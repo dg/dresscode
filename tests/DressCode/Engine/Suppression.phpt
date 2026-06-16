@@ -1,0 +1,60 @@
+<?php declare(strict_types=1);
+
+use DressCode\Engine\Suppression;
+use PhpSyntax\Parser;
+use Tester\Assert;
+
+require __DIR__ . '/../../bootstrap.php';
+
+
+$foreign = ['Generic.Files.LineLength' => ['dresscode/line-length']];
+$resolve = fn(string $name) => $foreign[$name] ?? (str_starts_with($name, 'dresscode/') ? [$name] : []);
+
+
+/** @param Closure(string): list<string> $resolve */
+function suppression(string $code, Closure $resolve): Suppression
+{
+	return Suppression::fromFile((new Parser)->parse($code), $resolve);
+}
+
+
+test('ignore on the same line and on its own line', function () use ($resolve) {
+	$s = suppression(<<<'XX'
+		<?php
+		$a; // dresscode:ignore dresscode/a
+		$b; // dresscode:ignore
+		// dresscode:ignore dresscode/a, dresscode/b
+		foo(
+			1,
+		);
+		$c;
+		XX, $resolve);
+	Assert::true($s->isSuppressed('dresscode/a', 2));
+	Assert::false($s->isSuppressed('dresscode/b', 2));
+	Assert::true($s->isSuppressed('dresscode/anything', 3));
+	Assert::true($s->isSuppressed('dresscode/a', 5));
+	Assert::true($s->isSuppressed('dresscode/b', 7));
+	Assert::false($s->isSuppressed('dresscode/c', 6));
+	Assert::false($s->isSuppressed('dresscode/a', 8));
+	Assert::false($s->isSuppressed('dresscode/a', 4));
+});
+
+
+test('disable and enable, also without a matching enable', function () use ($resolve) {
+	$s = suppression(<<<'XX'
+		<?php
+		$a;
+		// dresscode:disable dresscode/a
+		$b;
+		/* dresscode:enable dresscode/a */
+		$c;
+		# dresscode:disable
+		$d;
+		XX, $resolve);
+	Assert::false($s->isSuppressed('dresscode/a', 2));
+	Assert::true($s->isSuppressed('dresscode/a', 4));
+	Assert::false($s->isSuppressed('dresscode/a', 6));
+	Assert::true($s->isSuppressed('dresscode/a', 8));
+	Assert::true($s->isSuppressed('dresscode/other', 8));
+	Assert::false($s->isSuppressed('dresscode/b', 4));
+});
