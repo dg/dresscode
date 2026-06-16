@@ -15,7 +15,8 @@
 		"nette/neon": "^3.4",
 		"nette/schema": "^1.4.x-dev",
 		"nette/utils": "^4.1",
-		"phpsyntax/phpsyntax": "dev-master"
+		"phpsyntax/phpsyntax": "dev-master",
+		"composer/semver": "^3.4"
 	},
 	"require-dev": {
 		"nette/tester": "^2.6",
