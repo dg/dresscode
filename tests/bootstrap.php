@@ -44,3 +44,22 @@ function createTempDir(string $name): string
 	mkdir($path, recursive: true);
 	return str_replace('\\', '/', (string) realpath($path));
 }
+
+
+/** A rule of a test that decides one requirement of the project, `project.<its slug>`. */
+trait ProjectDecision
+{
+	public static function getDecisions(): array
+	{
+		return [new DressCode\Decision('project.' . lcfirst(ruleSlug(static::class)), DressCode\Domain::state(), 'What the rule of the test checks')];
+	}
+}
+
+
+/** The class of a rule as its fixtures and the lists of the tests name it: without the suffix, the first letter in lower case. */
+function ruleSlug(DressCode\Rule|string $rule): string
+{
+	$class = is_string($rule) ? $rule : $rule::class;
+	$short = substr($class, (int) strrpos('\\' . $class, '\\'));
+	return str_ends_with($short, 'Rule') && $short !== 'Rule' ? lcfirst(substr($short, 0, -4)) : $short;
+}

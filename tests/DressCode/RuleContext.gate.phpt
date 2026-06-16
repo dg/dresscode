@@ -9,6 +9,7 @@ use DressCode\Analyses\Registry;
 use DressCode\{Claim, Decision, Domain, GapRule, RuleContext, RuleInfo, Space, Stage, Style, Values};
 use DressCode\Domains\{Count, Shapes};
 use DressCode\Engine\{Fingerprints, Gate, ReportPolicy, Suppression};
+use DressCode\Engine\Gaps\{DecidedClaim, Fixer};
 use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\Parser;
 use Tester\Assert;
@@ -86,6 +87,22 @@ test('the only requirement of a rule is the one a report without a path is under
 	$values = new Values($decisions, ['blankLines.x' => $decisions['blankLines.x']->accept(1)]);
 	$context = new RuleContext($file, 'a.php', new Style, '8.4', new Registry, Suppression::fromFile($file, fn() => []), new Fingerprints([]), gate: Gate::fromValues(array_values($decisions), $values));
 	Assert::true($context->report($token, 'Wrong.'));
+});
+
+
+test('the engine reports a gap under the decision of the claim that decided it', function () use ($file) {
+	$context = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma' => 'spaced'], ['spacing.comma']);
+	$fixer = new Fixer([SpacingRule::class => $context]);
+	$comma = $file->find(PhpSyntax\Nodes\ArgumentListNode::class)[0]->getFirstToken()->getNext()?->getNext() ?? throw new LogicException;
+	$next = $comma->getNext() ?? throw new LogicException;
+	$rule = new SpacingRule;
+
+	$fixer->takeSpace(new DecidedClaim($rule, Space::Single, $comma, Claim::singleSpace()->withDecision('spacing.call'), null, 'after'), $comma, $next, '');
+	Assert::false($context->hasReports(), 'a claim of a decision narrowed away');
+
+	$fixer->takeSpace(new DecidedClaim($rule, Space::Single, $comma, Claim::singleSpace()->withDecision('spacing.comma'), null, 'after'), $comma, $next, '');
+	Assert::count(1, $context->takeReports());
+	Assert::same(' ', $comma->getTrailingSpace());
 });
 
 
