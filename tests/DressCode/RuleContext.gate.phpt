@@ -1,0 +1,98 @@
+<?php declare(strict_types=1);
+
+/**
+ * The gate every report of a rule passes: a path the rule does not declare and a parameter are a mistake of the
+ * rule in every mode, a requirement the run does not report records nothing and denies the fix.
+ */
+
+use DressCode\Analyses\Registry;
+use DressCode\{Claim, Decision, Domain, GapRule, RuleContext, RuleInfo, Space, Stage, Style, Values};
+use DressCode\Domains\{Count, Shapes};
+use DressCode\Engine\{Fingerprints, Gate, ReportPolicy, Suppression};
+use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Parser;
+use Tester\Assert;
+
+require __DIR__ . '/../bootstrap.php';
+
+
+#[RuleInfo(Stage::Formatting)]
+final class SpacingRule extends GapRule
+{
+	public static function getDecisions(): array
+	{
+		return [
+			new Decision('spacing.call', new Shapes(['compact' => ['foo()', '']]), 'The space before the parenthesis'),
+			new Decision('spacing.comma', new Shapes(['spaced' => ['$a, $b', '']]), 'The space around a comma'),
+			new Decision('spacing.commaAlignment', Domain::state(), 'Tabs aligning a column stay', parameter: true, default: 'forbidden'),
+		];
+	}
+
+
+	public function getClaims(): array
+	{
+		return [];
+	}
+}
+
+
+/**
+ * @param  array<string, mixed>  $raw
+ * @param  ?list<string>  $selection
+ */
+function createContext(FileNode $file, array $raw, ?array $selection = null, bool $strict = false): RuleContext
+{
+	$decisions = [];
+	foreach (SpacingRule::getDecisions() as $decision) {
+		$decisions[$decision->path] = $decision;
+	}
+
+	$values = new Values($decisions, array_map(fn($path) => $decisions[$path]->accept($raw[$path]), array_combine(array_keys($raw), array_keys($raw))), $selection);
+	return new RuleContext(
+		$file,
+		'a.php',
+		new Style,
+		'8.4',
+		new Registry,
+		Suppression::fromFile($file, fn() => []),
+		new Fingerprints([]),
+		policy: new ReportPolicy(strict: $strict),
+		gate: Gate::fromValues(SpacingRule::getDecisions(), $values),
+	);
+}
+
+
+$file = new Parser()->parse("<?php\nfoo(\$a,\$b);\n");
+$token = $file->getFirstToken();
+
+
+test('a selected requirement is reported, one the run does not report records nothing', function () use ($file, $token) {
+	$context = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma' => 'keep']);
+	Assert::true($context->report($token, 'Expected no whitespace.', decision: 'spacing.call'));
+	Assert::false($context->report($token, 'Expected a single space.', decision: 'spacing.comma'));
+	Assert::count(1, $context->takeReports());
+	Assert::true($context->isSilenced($token, decision: 'spacing.comma'));
+	Assert::false($context->isSilenced($token, decision: 'spacing.call'));
+
+	$narrowed = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma' => 'spaced'], ['spacing.comma']);
+	Assert::false($narrowed->report($token, 'Expected no whitespace.', decision: 'spacing.call'));
+	Assert::false($narrowed->reportGap($token, $token, 'Expected no whitespace.', decision: 'spacing.call'));
+	Assert::false($narrowed->hasReports());
+});
+
+
+test('the only requirement of a rule is the one a report without a path is under', function () use ($file, $token) {
+	$decisions = ['blankLines.x' => new Decision('blankLines.x', new Count, 'Blank lines')];
+	$values = new Values($decisions, ['blankLines.x' => $decisions['blankLines.x']->accept(1)]);
+	$context = new RuleContext($file, 'a.php', new Style, '8.4', new Registry, Suppression::fromFile($file, fn() => []), new Fingerprints([]), gate: Gate::fromValues(array_values($decisions), $values));
+	Assert::true($context->report($token, 'Wrong.'));
+});
+
+
+test('a claim made for a decision keeps the rest of it', function () {
+	$claim = new Claim(Space::None, because: 'the line is long')->withDecision('spacing.call');
+	Assert::same('spacing.call', $claim->decision);
+	Assert::same(Space::None, $claim->space);
+	Assert::same('the line is long', $claim->because);
+	Assert::null(Claim::noSpace()->decision);
+});
