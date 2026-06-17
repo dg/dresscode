@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use Composer\Semver\Constraint\ConstraintInterface;
-use Composer\Semver\VersionParser;
+use Composer\Semver\{Intervals, VersionParser};
 use function count;
 
 
@@ -29,6 +29,24 @@ final class Versions
 	public static function parse(string $constraint): ConstraintInterface
 	{
 		return self::$constraints[$constraint] ??= (new VersionParser)->parseConstraints($constraint);
+	}
+
+
+	/** Whether the string is one released version, `8.2` or `3.3.1`, and not a constraint or a branch. */
+	public static function isVersion(string $version): bool
+	{
+		try {
+			return VersionParser::parseStability((new VersionParser)->normalize($version)) !== 'dev';
+		} catch (\UnexpectedValueException) {
+			return false;
+		}
+	}
+
+
+	/** Whether every version the first constraint allows is one the second allows too. */
+	public static function isSubset(string $constraint, string $of): bool
+	{
+		return Intervals::isSubsetOf(self::parse($constraint), self::parse($of));
 	}
 
 

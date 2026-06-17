@@ -1,0 +1,64 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Config;
+
+use PhpSyntax\Analyses\NamespacedSymbols;
+
+
+/**
+ * What a configuration comes to: the rules in the order they run, each with the options it ends up with and
+ * with the layers that set them, the style, the target versions, the plugins, what the namespaces declare, and the
+ * rules that do not run with the reason. One resolution serves the run and whoever prints the configuration, so
+ * that what the reader is shown is what the rules were given.
+ * @internal
+ */
+final readonly class ResolvedConfig
+{
+	public function __construct(
+		/** @var list<ResolvedRule>  the active ones in the order they run, the rest behind them */
+		public array $rules,
+		/** the characters of one level of indentation */
+		public string $indent,
+		/** `"\n"`, `"\r\n"` or `'majority'` */
+		public string $lineEnding,
+		public string $phpVersion,
+		/** @var list<string>  names of the presets, parents first */
+		public array $presets,
+		/** @var array<string, string>  fully qualified name of a function the namespaces declare => the layer that named it first */
+		public array $namespacedFunctions = [],
+		/** @var array<string, string>  fully qualified name of a constant the namespaces declare => the layer that named it first */
+		public array $namespacedConstants = [],
+		/** @var 'certain'|'uncertain'  certain when the namespaces declare no function and no constant beyond those */
+		public string $nameResolution = 'uncertain',
+		/** the widest line the rules keep to; null for none */
+		public ?int $lineLength = null,
+		/** @var list<class-string>  the plugins the configuration names */
+		public array $plugins = [],
+	) {
+	}
+
+
+	/** @return list<ResolvedRule> */
+	public function getActiveRules(): array
+	{
+		return array_values(array_filter($this->rules, fn(ResolvedRule $rule) => $rule->isActive()));
+	}
+
+
+	public function getRule(string $name): ?ResolvedRule
+	{
+		return array_find($this->rules, fn(ResolvedRule $rule) => $rule->name === $name);
+	}
+
+
+	/** What the namespaces declare outside the files, as the resolver of names takes it. */
+	public function toNamespacedSymbols(): NamespacedSymbols
+	{
+		return new NamespacedSymbols(array_keys($this->namespacedFunctions), array_keys($this->namespacedConstants), $this->nameResolution === 'certain');
+	}
+}
