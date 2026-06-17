@@ -7,6 +7,7 @@
 
 namespace DressCode\Engine;
 
+use DressCode\Config\Catalogue;
 use DressCode\{ConfigurationException, GapRule, NodeRule, Rule, RuleInfo, Stage};
 use DressCode\Engine\Gaps\Claims;
 use PhpSyntax\{Node, Token};
@@ -52,7 +53,7 @@ final class RulePlan
 		}
 
 		foreach ($rules as $rule) {
-			$decisions = $rule::getDecisions();
+			$decisions = Catalogue::collectDecisions($rule::class);
 			if ($decisions === []) {
 				throw new ConfigurationException('Rule `' . $rule::class . '` declares no decision.');
 			}

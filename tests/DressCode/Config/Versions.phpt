@@ -25,3 +25,26 @@ test('the lowest version a constraint allows', function () {
 	Assert::null(Versions::findLowestVersion('dev-master'));
 	Assert::null(Versions::findLowestVersion('not a constraint'));
 });
+
+
+test('a version is one release, not a constraint or a branch', function () {
+	Assert::true(Versions::isVersion('8.2'));
+	Assert::true(Versions::isVersion('8'));
+	Assert::true(Versions::isVersion('3.3.1'));
+	Assert::false(Versions::isVersion('>=8.1'));
+	Assert::false(Versions::isVersion('^3.3'));
+	Assert::false(Versions::isVersion('dev-master'));
+	Assert::false(Versions::isVersion('3.3.x-dev'));
+	Assert::false(Versions::isVersion('eight'));
+});
+
+
+test('a constraint is a subset of another when every version it allows is one the other allows', function () {
+	Assert::true(Versions::isSubset('8.1', '>=8.1'));
+	Assert::true(Versions::isSubset('^8.1', '>=8.1'));
+	Assert::false(Versions::isSubset('8.0', '>=8.1'));
+	Assert::true(Versions::isSubset('^3.4', '>=3.3 <5.0'));
+	Assert::false(Versions::isSubset('^5.0', '>=3.3 <5.0'));
+	Assert::false(Versions::isSubset('^4.2 || ^5.0', '>=3.3 <5.0')); // a part of the range is too new
+	Assert::true(Versions::isSubset('^5.0', '*'));
+});

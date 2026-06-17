@@ -39,7 +39,7 @@ enum Risk: string
 	/** the type of a value, which the declarations in sight do not tell */
 	case TypeUnknown = 'typeUnknown';
 
-	/** whether an unqualified name reaches a function or a constant of the namespace */
+	/** whether an unqualified name reaches a function or a constant of the namespace, which `nameResolution: certain` tells */
 	case NameUncertain = 'nameUncertain';
 
 	/** a human: changing what the code does is what the fix is for, or it depends on code the run does not see */
