@@ -8,6 +8,9 @@ paths:
 	- src
 	- tests
 
+excludePaths:
+	- fixtures
+
 fileExtensions:
 	- php
 	- phpt
