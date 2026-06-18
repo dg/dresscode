@@ -7,14 +7,15 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Config, ConfigurationException, Plugin, PluginManifest, Profile};
-use DressCode\Engine\Helpers;
+use DressCode\{Config, ConfigurationException, Override, Plugin, PluginManifest, Profile};
+use DressCode\Engine\{FileProcessor, FileProcessors, Helpers, ReportPolicy, Runner};
 use Nette\Utils\FileSystem;
-use function is_string;
+use function count, is_string;
 
 
 /**
- * Resolves a configuration in a project, and reads what the composer.json of the project says of it.
+ * Resolves a configuration in a project and builds the runner of a run from it, and reads what the composer.json of
+ * the project says of it.
  * @internal
  */
 final readonly class RunnerFactory
@@ -57,6 +58,60 @@ final readonly class RunnerFactory
 			$only,
 			$resolver,
 			$target,
+		);
+	}
+
+
+	/**
+	 * @param  bool  $strict  a broken rule contract throws instead of warning
+	 * @param  bool  $fixRisky  every fix that may change what the code does is made, not only those of the decisions
+	 *                           the configuration names in fixRisky
+	 * @throws ConfigurationException
+	 */
+	public function createRunner(
+		ResolvedProject $resolution,
+		bool $strict = false,
+		bool $fixRisky = false,
+	): Runner
+	{
+		$config = $resolution->config;
+		$root = $resolution->root;
+		$layers = [...$resolution->pluginManifests, $config];
+		$analyses = array_merge(...array_map(fn(Config|PluginManifest $layer) => $layer->analyses, $layers));
+
+		$registry = $this->registry;
+		$processors = new FileProcessors(
+			array_map(fn(Override $override) => $override->paths, $config->overrides),
+			function (array $overrides) use ($resolution, $registry, $analyses, $strict, $fixRisky): FileProcessor {
+				$variant = $resolution->resolveFor($overrides);
+				$style = $variant->createStyle();
+				$analysisRegistry = $variant->createAnalyses();
+				foreach ($analyses as $class => $factory) {
+					$analysisRegistry->register($class, $factory);
+				}
+
+				return new FileProcessor(
+					RuleBuilder::buildRules($variant),
+					$analysisRegistry,
+					$variant->phpVersion,
+					$style,
+					detectLineEnding: $variant->lineEnding === 'majority',
+					policy: new ReportPolicy(
+						expandName: $registry->expandSuppressedName(...),
+						warnOnly: $variant->warnOnly,
+						fixRisky: $fixRisky ?: $variant->fixRisky,
+						strict: $strict,
+					),
+					gates: $variant->getGates(),
+				);
+			},
+		);
+		return new Runner(
+			$processors,
+			$root,
+			array_values(array_unique(array_merge(...array_map(fn(Config|PluginManifest $layer) => $layer->excludePaths, $layers)))),
+			$config->fileExtensions,
+			self::combineSkipWhen($layers),
 		);
 	}
 
@@ -129,6 +184,22 @@ final readonly class RunnerFactory
 		foreach (array_keys($config->rules) as $class) {
 			$this->registry->registerRule($class, $config->ruleUrl);
 		}
+	}
+
+
+	/**
+	 * A file any of the configurations skips is skipped.
+	 * @param  list<Config|PluginManifest>  $configs
+	 * @return ?\Closure(string, string): bool
+	 */
+	private static function combineSkipWhen(array $configs): ?\Closure
+	{
+		$filters = array_values(array_filter(array_map(fn(Config|PluginManifest $config) => $config->skipWhen, $configs)));
+		return match (count($filters)) {
+			0 => null,
+			1 => $filters[0],
+			default => fn(string $content, string $path): bool => array_any($filters, fn(\Closure $filter) => $filter($content, $path)),
+		};
 	}
 
 
