@@ -105,6 +105,13 @@ final class RuleRegistry
 	}
 
 
+	/** The name as it is written in a configuration or a comment: a built-in one without its vendor. */
+	public static function abbreviate(string $name): string
+	{
+		return str_starts_with($name, self::Vendor) ? substr($name, strlen(self::Vendor)) : $name;
+	}
+
+
 	/** @return array<string, class-string<Rule>>  name => class */
 	public function getRules(): array
 	{
