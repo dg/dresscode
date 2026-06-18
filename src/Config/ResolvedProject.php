@@ -12,8 +12,8 @@ use DressCode\{Config, ConfigurationException, PluginManifest, Profile};
 
 /**
  * What a configuration comes to in a project: the resolved configuration of a file no override matches, the version
- * the code targets and what the user should be told, together with what the configuration of a file matching some
- * overrides is resolved from.
+ * the code targets and what the user should be told, together with what a runner built from it and the configuration
+ * of a file matching some overrides are resolved from.
  * @internal
  */
 final readonly class ResolvedProject
