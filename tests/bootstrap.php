@@ -12,6 +12,12 @@ Tester\Environment::setupFunctions();
 putenv('GITHUB_ACTIONS'); // the format of a report depends on it
 putenv('GITHUB_WORKSPACE');
 
+if (!defined('STDIN')) { // the CGI defines none
+	define('STDIN', fopen('php://stdin', 'r'));
+	define('STDOUT', fopen('php://stdout', 'w'));
+	define('STDERR', fopen('php://stderr', 'w'));
+}
+
 
 /**
  * A new empty directory named after `$name`, numbered when the name comes again, in a directory that belongs to
