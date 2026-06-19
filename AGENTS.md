@@ -11,7 +11,7 @@ It is my fervent wish that this file guide every AI coding agent working with co
 
 DressCode is a PHP code style checker and fixer built on a **lossless concrete syntax tree**: every token of the source is in the tree, whitespace and comments are trivia attached to tokens, and printing the tree reproduces the input byte for byte.
 
-The tree itself is the `phpsyntax/phpsyntax` library (namespace `PhpSyntax`), developed in a repository of its own. This one holds `DressCode` (`src/`): engine, rules API, configuration, CLI.
+The tree itself is the `phpsyntax/phpsyntax` library (namespace `PhpSyntax`), developed in a repository of its own. This one holds `DressCode` (`src/`): engine, rules API, the library of generic rules, configuration, CLI.
 
 Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs from it is public API for plugins too. Presets define style; DressCode has no style of its own.
 
