@@ -1,0 +1,66 @@
+# To My Agents!
+
+It is my fervent wish that this file guide every AI coding agent working with code in this repository.
+
+
+## Documentation
+
+`docs/internals.md` is the source of truth for how DressCode works: the tree as a rule sees it, the mutation API, the engine of gaps and the rules. Read it before any non-trivial change.
+
+## Project overview
+
+DressCode is a PHP code style checker and fixer built on a **lossless concrete syntax tree**: every token of the source is in the tree, whitespace and comments are trivia attached to tokens, and printing the tree reproduces the input byte for byte.
+
+The tree itself is the `phpsyntax/phpsyntax` library (namespace `PhpSyntax`), developed in a repository of its own. This one holds `DressCode` (`src/`): engine, rules API, configuration, CLI.
+
+Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs from it is public API for plugins too. Presets define style; DressCode has no style of its own. Everything a project wants beyond the looks of its code is a group (`RuleInfo::$group`), not a preset.
+
+## Essential commands
+
+- `composer tester`: Nette Tester over `tests/`.
+- `composer phpstan`: PHPStan level 8, no baseline; `ignoreErrors` only with a reason.
+
+## Conventions
+
+- Nette coding standard: tabs, `declare(strict_types=1)`, single quotes, types everywhere, two blank lines between methods.
+- Modern PHP: `match` instead of `switch`, enums, `readonly`, promoted properties, named arguments, `never`.
+- Naming:
+  - methods are actions and start with a verb (`getFirstToken()`, `replaceChild()`, `report()`); a bare noun is not a method name;
+  - `get*` returns something that belongs to the object (may be `null`), `find*` searches and `null` means not found;
+  - a setter, a method whose only job is to write one value, returns `static` so that writes chain, as the setters of PhpSyntax do (`$token->setText('+=')->setTrailingSpace(' ')`); a method that decides what to change, such as `ensureStartsLine()` or `removeTrailingWhitespace()`, returns `void`;
+  - boolean queries `is*`/`has*`/`can*`, and `is*` also where the code may not settle the answer and the query returns a `Tristate`, as PHPStan names those returning its `TrinaryLogic` (such an answer is compared with `=== Tristate::Yes` or taken apart by `match`, an enum being always true); never `check*`, which is the name of a method that answers nothing and raises the problem itself, by throwing or by reporting;
+  - rule classes end with `Rule`; analyses carry bare names in `Analyses/`;
+  - a gap rule names the slots it claims as strings (`'openParen'`, `'statements:item'`), which no type checks, so a claim on a slot that is gone shows up only in the fixture of the rule; the names are in the node reference of PhpSyntax;
+  - no `Abstract`, `Interface`, `I` prefixes/suffixes; an interface or base class sits next to the directory of its implementations (`Rule.php` next to `Rules/`);
+  - enums of a namespace live in `enums.php`, exceptions in `exceptions.php`;
+  - names of the API are written in full, the slots of PhpSyntax a claim names among them (`expression`, `condition`, `statements`, `arguments`, `parameters`, `variable`); the abbreviations left there are `paren` in `openParen`/`closeParen`, the delimiter having no one-word English name, and `Op` in `BinaryOpNode` and its kin, which names the family across PHP tooling. A local variable may be abbreviated and often reads better for it (`$stmts`, `$args`, `$params`).
+- Comments only where the code itself is not enough; never restate what the code shows; density follows the surrounding file. No phpDoc for what the types already say.
+- Code in a doc comment is written in backticks: a call, a variable or a property, an operator, a keyword, a literal, the case of an enum (`report()`, `$this`, `?->`, `static`, `'*'`, `Severity::Warning`). Doc comments are read as Markdown in an IDE, and what stands bare there is typeset as text: `->` becomes an arrow, `...` an ellipsis. Backticks mark the code itself, so what only resembles code stays bare, whatever the IDE makes of it: a keyword used as a word (a static method, a readonly class, but a `match` expression), `null`, `true` and `false` in "null when …", and the `=>` describing a map (path => its size).
+- A framework or library is named in the core only where it is the subject of the code (a dependency, a file or key another tool defines). An example of a general mechanism uses invented names under the vendor `Acme`, in a domain of their own that mirrors no real API (`Acme\Shop\Order::STATUS_PAID`, `Acme\Mail\SmtpTransport`).
+- Code, comments, identifiers and messages in English.
+
+## Working rules
+
+- Every unit of work (class, rule) ends with tests, PHPStan and a critical review of correctness, clarity, elegance and names. Fix findings immediately, not in a later commit.
+- One commit per unit, message lowercase, past tense, `subject: description` when it clarifies the area. Linear history.
+- Committed files, commit messages and code comments never refer to documents outside the repository, nor to transient states of the work (milestones, phases, "until X exists"). Describe the current state; the history is in git.
+
+## Traps
+
+- `<?php` is not a token but `OpenTag` trivia carrying its whole text including the mandatory whitespace; it is always leading trivia of the following token.
+- `?>` is a `CloseTag` token that keeps the newline PHP swallows after it; after a terminated statement it forms its own `EmptyStatementNode`.
+- Trivia inside string interpolation (`"{$a /* c */}"`) carry `inInterpolation` and must never be reformatted.
+- Whitespace that is part of a token stays in its text: inline HTML, heredoc delimiters, `( int )` casts, `T_ENCAPSED_AND_WHITESPACE`.
+- A rule mutates only after `$context->report()` returned `true`; a mutation without a report or after a suppressed one is a broken contract that `RuleTester` and `--strict-rules` turn into an error. The other way round does not hold: a rule that cannot fix what it found reports and leaves the code alone, and the last round of the fix reports it again, which is how the run knows it remains. An occurrence the rule has no fix for is reported with `fixable: false`: such a report is never risky, so it is never offered to the consent, and a report without it that the last pass, which changed nothing, makes again breaks the contract, so the fixture in which it remains fails. An occurrence whose fix may change what the code does is reported with `risk:` and the `Risk` that would decide it (`TypeUnknown`, `NameUncertain`, `BehaviorChanges`), with `because:` where the risk alone does not say what may go wrong there, never glued to the message, and such a fix is made only for a rule the project names in `fixRisky` or with `--fix-risky`; a rule that knows its fix would be wrong says nothing at all; risky covers a changed behaviour and never a fix that may produce code PHP refuses to compile, which is what a fix decided by a file the project need not know of does: there the rule says nothing at all, while a child of an `@internal` class lives in the project itself, so a fix it decides is risky; a fixture with `// risky` in its header is a run that allows it.
+- A rule for a construct PHP gained in some version says so with `requires: ['php' => '>=8.4']` in its `#[RuleInfo]`, the key and the operator being those of the `require` of `composer.json`, the true version even at or below the floor of 8.0 (`str_contains()` is 8.0, an arrow function 7.4), and nothing older than 7.0, where no reader asks any more whether the code knows the construct (`[]` for `array()`, `?:`); the resolver leaves the rule out below that version, so a preset never has to guard it and `--rule <name>` cannot break the code, and a target never falls under the floor, so a version there never turns anything off. PHP 8.0 is the floor: never ask whether the target has something 8.0 already had. A rule whose version decides what it may write, not whether it runs at all, reads `RuleContext::$phpVersion` and compares the string with `version_compare()`, never with the string operators; so does a rule about a deprecation whose replacement older versions know too, since `requires` names the version that brought what a rule writes. A fixture is tested at the version of PHP its rule requires unless it says otherwise with `// php 8.2` next to the options in its header.
+- A violation is positioned at the token it was reported on; a problem in whitespace or a comment is reported with the trivia (`report($token, $message, trivia: $trivia)`), whose `line` the lexer stamped, otherwise it lands on the token's line and `dresscode:ignore` on the real line would not match it.
+- Options of a rule are validated by its `nette/schema` at the configuration boundary; a list option given replaces the default instead of being merged with it, whatever the schema says.
+- Nodes are matched by `instanceof`: `StatementNode::class` in `getVisitedTypes()` catches every statement. A `match` over node classes in a rule needs a `default` arm, because new node classes may appear in a minor release; `composer phpstan` reports a missing one as `match.unhandled`.
+- A slot of a node is written by assignment (`$node->condition = $expression`): its set hook moves the parents and tells the index. The text and the trivia of a token are written by `setText()`, `setLeadingTrivia()` and `setTrailingTrivia()`, because `?->` cannot stand on the left of an assignment. A property is written where the write takes one value and has one consequence, a method where it takes more or where two things change together (`StringNode::setValue($value, ?$quote)`). What has no hook the language guards instead: the items of a list are its own storage and change only through the methods of the list, and `parent` is written by the nodes when they adopt or release a child.
+- `Node::getChildren()` is the only way to the children and `Node::find()` (a class, optionally narrowed by a predicate) to the descendants; a node is not iterable, except a list (`NodeList`, plain or separated), which is read as a collection of its items, and `ModifiersNode` over its tokens, and a child is never replaced by assigning to it: `replaceWith()` or the setter of the parent, which the `Traverser` notices and skips the replaced node.
+- What a rule may write depends on where the expression stands, which the shape of the expression does not say: a call gives a value and never the place `unset()` and an assignment need, `self`, `parent` and `static` are resolved where a first-class callable is made and not where a closure is called, and PHP refuses a first-class callable made anywhere in a nullsafe chain. A fixture shows the shape, not the context.
+- A rule replaces the node it was given, or something inside it, never an ancestor of it. The walk notices a replaced node by its parent, and an ancestor taken out leaves that parent as it was: the rest of the chain and the whole subtree go on being visited outside the file, where `getAnalysis()` throws. `!is_null($x)` is rewritten where the negation stands, not where the call does.
+- `FileNode::$revision` is a version of the tree, not a count of mutations: a compound mutation such as `remove()` moves trivia in several steps and increments it several times. Compare it, never count on it.
+- A mutation must keep the trivia canonical: the line ending that ends the line of a token belongs to that token's trailing trivia, never to the leading trivia of the next one. A misplaced one makes `getTrailingSpace()` and the whitespace rules blind to the line break; `ensureStartsLine()` and `setBlankLinesBefore()` place it correctly, so build on them.
+- The whitespace between two tokens is nobody's to write: a `GapRule` claims what the gap must be (`Claim`: the `Space` of a line, the `Line` the second token stands on, the blank lines above and below a comment in the gap), the engine decides, fixes and reports under the name of the rule, and two plain claims on one component of one side of a slot are a `ConfigurationException`. So is a claim on a slot no node has: the gaps of a slot renamed in the tree would otherwise never reach the rule and turn it off in silence, so a claim names the class that really has the slot, and `:item` or `:separator` only a slot holding a list. A rule with an option builds its claim once in `configure()`, not at every gap. A closure gets the `Gap` and must give every gap of a construct the same answer whatever the engine did to the gaps before it: a decision read from the shape of the code (a list already broken, a line too long) goes through `Gap::once()`, which keeps it for the pass.
+- A rule that must not destroy a comment asks `Token::hasComment()`, `Token::hasCommentUpTo()` or removes one with `Token::removeTrivia()`; `Node::matches()` and `ExpressionNode::isRepeatableRead()` answer "does this expression repeat that one safely". Do not reimplement these locally.
