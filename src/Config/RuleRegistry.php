@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{ConfigurationException, Preset, PresetInfo, Rule, RuleInfo};
+use DressCode\{ConfigurationException, Preset, PresetInfo, Rule, RuleInfo, Rules};
 use Nette\Utils\Helpers;
 use function strlen;
 
@@ -21,6 +21,10 @@ final class RuleRegistry
 {
 	private const Vendor = 'dresscode/';
 
+	private const BuiltinRules = [
+		Rules\Files\NoBomRule::class,
+	];
+
 	/** @var array<string, class-string<Rule>>  name → class */
 	private array $rules = [];
 
@@ -30,6 +34,9 @@ final class RuleRegistry
 
 	public function __construct()
 	{
+		foreach (self::BuiltinRules as $class) {
+			$this->registerRule($class);
+		}
 	}
 
 
