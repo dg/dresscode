@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Plugin, PluginManifest};
+use DressCode\{Plugin, PluginManifest, Rules};
 
 
 /**
@@ -22,6 +22,7 @@ final class BuiltinPlugin implements Plugin
 			presets: [
 			],
 			rules: [
+				Rules\Files\NoBomRule::class,
 			],
 			ruleUrl: 'https://dresscode.run/rules/{slug}',
 		);
