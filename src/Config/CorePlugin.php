@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Plugin, PluginManifest};
+use DressCode\{Plugin, PluginManifest, Rules};
 
 
 /**
@@ -22,6 +22,7 @@ final class CorePlugin implements Plugin
 		static $manifest;
 		return $manifest ??= new PluginManifest(
 			rules: [
+				Rules\Files\NoBomRule::class,
 			],
 		);
 	}
