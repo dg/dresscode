@@ -269,6 +269,9 @@ test('the engine is built from the configuration', function () use ($fixtures) {
 	Assert::same([], $runner->findFiles(['src']));
 	$result = $runner->processCode('x.php', "<?php\r\n\$a;\r\n");
 	Assert::same(['8.1 "\t""\r\n"'], array_map(fn($v) => $v->message, $result->violations));
+
+	$runner = buildRunner(new Config(rules: [ReportContext::class], decisions: ['file' => ['lineEnding' => 'LF']] + ReportsContext), "$fixtures/project");
+	Assert::same(['Expected LF line endings, CRLF found.', '8.1 "\t""\n"'], array_map(fn($v) => $v->message, $runner->processCode('x.php', "<?php\r\n\$a;\r\n")->violations));
 });
 
 

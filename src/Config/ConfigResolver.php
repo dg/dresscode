@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Config, ConfigurationException, Decision, Plugin, Profile, Rule, RuleInfo, Values};
+use DressCode\{Config, ConfigurationException, Decision, Plugin, Profile, Rule, RuleInfo, Value, Values};
 use PhpSyntax\SymbolKind;
 use function count, is_array, is_string;
 
@@ -167,7 +167,7 @@ final class ConfigResolver
 		return new ResolvedConfig(
 			[...array_values($active), ...array_values($inactive)],
 			"\t",
-			'majority',
+			self::resolveLineEnding($values->get('file.lineEnding')),
 			$phpVersion,
 			$use,
 			namespacedFunctions: $bySource($symbols[SymbolKind::Function->name]),
@@ -288,6 +288,17 @@ final class ConfigResolver
 		$this->warnings['php'] = 'The target PHP ' . ($version ?? $target) . ' is older than PHP ' . Config::MinPhpVersion . ', the oldest DressCode fixes code for;'
 			. ' the code is checked as PHP ' . Config::MinPhpVersion . ', so a fix may write syntax the target does not have.';
 		return [Config::MinPhpVersion, Config::MinPhpVersion];
+	}
+
+
+	/** The line ending the decision names, or `majority` for the one each file uses most. */
+	private static function resolveLineEnding(Value $lineEnding): string
+	{
+		return match ($lineEnding->isKept() ? 'majority' : $lineEnding->getWord()) {
+			'LF' => "\n",
+			'CRLF' => "\r\n",
+			default => 'majority',
+		};
 	}
 
 
