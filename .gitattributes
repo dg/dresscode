@@ -1,0 +1,17 @@
+.gitattributes  export-ignore
+.github/        export-ignore
+.gitignore      export-ignore
+AGENTS.md       export-ignore
+ncs.*           export-ignore
+dresscode.php   export-ignore
+phpstan*.neon   export-ignore
+docs/           export-ignore
+grammar/        export-ignore
+tests/          export-ignore
+tools/          export-ignore
+
+*.php*          diff=php
+*.sh            text eol=lf
+bin/dresscode   text eol=lf
+tests/PhpSyntax/Parser/**  -text
+tests/**/fixtures/**       -text

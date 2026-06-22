@@ -1,0 +1,55 @@
+{
+	"name": "dresscode/dresscode",
+	"description": "DressCode: PHP code style checker and fixer built on a lossless syntax tree",
+	"keywords": ["php", "code style", "coding standard", "fixer", "formatter", "static analysis", "php-cs-fixer", "phpcs"],
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "David Grudl",
+			"homepage": "https://davidgrudl.com"
+		}
+	],
+	"require": {
+		"php": "8.2 - 8.5",
+		"ext-tokenizer": "*",
+		"nette/schema": "^1.4",
+		"nette/utils": "^4.1",
+		"phpstan/phpdoc-parser": "^2.0"
+	},
+	"require-dev": {
+		"nette/tester": "^2.6",
+		"tracy/tracy": "^2.12",
+		"phpstan/phpstan": "^2.2@stable",
+		"phpstan/extension-installer": "^1.4@stable",
+		"nette/phpstan-rules": "^1.0"
+	},
+	"autoload": {
+		"classmap": ["src/"],
+		"psr-4": {
+			"PhpSyntax\\": "src/PhpSyntax",
+			"DressCode\\": "src/DressCode"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"DressCode\\Tools\\PhpStan\\": "tools/phpstan"
+		}
+	},
+	"bin": ["bin/dresscode"],
+	"minimum-stability": "dev",
+	"scripts": {
+		"phpstan": "phpstan analyse",
+		"tester": "tester tests -s",
+		"build": "php grammar/build.php"
+	},
+	"config": {
+		"allow-plugins": {
+			"phpstan/extension-installer": true
+		}
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "1.0-dev"
+		}
+	}
+}
