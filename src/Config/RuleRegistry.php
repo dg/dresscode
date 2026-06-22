@@ -25,6 +25,7 @@ final class RuleRegistry
 		Rules\Files\NoBomRule::class,
 		Rules\Files\FullOpeningTagRule::class,
 		Rules\Files\LineEndingRule::class,
+		Rules\Files\NoClosingTagRule::class,
 		Rules\Files\EofNewlineRule::class,
 	];
 
