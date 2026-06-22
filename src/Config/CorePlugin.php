@@ -28,6 +28,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\OpeningTagNotationRule::class,
 				Rules\Files\LineEndingRule::class,
 				Rules\Files\NoBomRule::class,
+				Rules\Files\NoClosingTagRule::class,
 			],
 			// the decisions no single rule owns, each turning on the rules that name it in `RuleInfo::$decisions`
 			decisions: [
