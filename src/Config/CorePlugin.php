@@ -7,11 +7,13 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Plugin, PluginManifest, Rules};
+use DressCode\{Decision, Plugin, PluginManifest, Rules};
+use DressCode\Domains\Words;
 
 
 /**
- * What the core of DressCode brings: its rules, whose pages are on dresscode.run.
+ * What the core of DressCode brings: its rules, whose pages are on dresscode.run, and the decisions no single rule of
+ * it owns.
  * @internal
  */
 final class CorePlugin implements Plugin
@@ -23,7 +25,17 @@ final class CorePlugin implements Plugin
 		return $manifest ??= new PluginManifest(
 			rules: [
 				Rules\Files\OpeningTagNotationRule::class,
+				Rules\Files\LineEndingRule::class,
 				Rules\Files\NoBomRule::class,
+			],
+			// the decisions no single rule owns, each turning on the rules that name it in `RuleInfo::$decisions`
+			decisions: [
+				// the style of the run, which the engine reads and every rule writing code takes
+				new Decision('file.lineEnding', new Words([
+					'LF' => 'every line ends with LF',
+					'CRLF' => 'every line ends with CRLF',
+					'majority' => 'every line ends as most lines of the file do, LF on a tie',
+				]), 'The line ending of every line, which the code written new takes too; under `keep` that follows the file'),
 			],
 		);
 	}

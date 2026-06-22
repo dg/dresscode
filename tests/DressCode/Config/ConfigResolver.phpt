@@ -112,6 +112,7 @@ const ResolvedTestPresets = [
 	'test/base' => "project:\n\ta: forbidden\n\tc: forbidden\n\tcMax: 5\n\tb: forbidden\n",
 	'test/child' => "use: test/base\n\nproject:\n\tb: keep\n",
 	'test/future-preset' => "project:\n\ta: forbidden\n\tfuture: forbidden\n",
+	'test/styled' => "use: test/base\n\nfile:\n\tlineEnding: LF\n",
 	'test/broken' => "project:\n\tnone: forbidden\n",
 	'test/deciding' => "fixRisky: [RuleA]\n",
 	'test/targeting' => "targets: {php: '8.2'}\n",
@@ -374,7 +375,12 @@ test('an override lays a profile of its own over the configuration, its presets 
 		overrides: [
 			new Override(
 				['tests'],
-				new Profile(use: ['test/child'], nameResolution: 'uncertain', warnOnly: [RuleA::class], decisions: projectDecisions(['d'])),
+				new Profile(
+					use: ['test/child', 'test/styled'],
+					nameResolution: 'uncertain',
+					warnOnly: [RuleA::class],
+					decisions: projectDecisions(['d']),
+				),
 			),
 		],
 		decisions: ['project' => ['cMax' => 7]],
@@ -384,11 +390,12 @@ test('an override lays a profile of its own over the configuration, its presets 
 
 	// a preset of the override lies above the configuration, and one the configuration already has is not laid again
 	Assert::same(['test/base'], $base->use);
-	Assert::same(['test/base', 'test/child'], $tests->use);
+	Assert::same(['test/base', 'test/child', 'test/styled'], $tests->use);
 	Assert::same(['test/a', 'test/b', 'test/c'], names(RuleBuilder::buildRules($base)));
 	Assert::same(['test/a', 'test/c', 'test/d'], names(RuleBuilder::buildRules($tests)));
 	Assert::same(7, $tests->values->get('project.cMax')->getCount()[0]);
 	Assert::same('its decisions are `keep`', $tests->findRule(RuleB::class)?->inactiveMessage);
+	Assert::same([null, "\n"], [$base->lineEnding, $tests->lineEnding]);
 
 	Assert::same(['certain', 'uncertain'], [$base->nameResolution, $tests->nameResolution]);
 
@@ -462,6 +469,22 @@ test('what the namespaces declare adds up over the layers, and only the configur
 		InvalidArgumentException::class,
 		'`strlen` is in no namespace, and a global function needs no listing.',
 	);
+});
+
+
+test('the style is what the decisions of the last layer say, else a tab and the line ending each file mostly has', function () {
+	$resolver = createResolver();
+	$style = function (Config $config) use ($resolver): array {
+		$resolved = $resolver->resolve($config, '8.3');
+		return [$resolved->indent, $resolved->lineEnding];
+	};
+	Assert::same(["\t", null], $style(new Config));
+	Assert::same(["\t", null], $style(new Config(use: ['test/child'])));
+	Assert::same(["\t", "\n"], $style(new Config(use: ['test/styled'])));
+	Assert::same(["\t", "\n"], $style(new Config(use: ['test/styled', 'test/child'])));
+	Assert::same(["\t", "\r\n"], $style(new Config(use: ['test/styled'], decisions: ['file' => ['lineEnding' => 'CRLF']])));
+	Assert::same(["\t", null], $style(new Config(use: ['test/styled'], decisions: ['file' => ['lineEnding' => 'majority']])));
+	Assert::same(["\t", null], $style(new Config(use: ['test/styled'], decisions: ['file' => ['lineEnding' => 'keep']])));
 });
 
 
