@@ -23,6 +23,7 @@ final class RuleRegistry
 
 	private const BuiltinRules = [
 		Rules\Files\NoBomRule::class,
+		Rules\Files\FullOpeningTagRule::class,
 	];
 
 	/** @var array<string, class-string<Rule>>  name → class */
