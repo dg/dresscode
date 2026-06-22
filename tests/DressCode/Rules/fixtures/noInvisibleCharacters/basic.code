@@ -1,0 +1,20 @@
+<?php
+// comment with a space
+/** doc​ */
+$a = 'k dispozici';
+$b = "k dispozici";
+$c = 'it\'s ';
+$d = <<<EOT
+x y
+EOT;
+$e = <<<'EOT'
+x y
+EOT;
+$f​ = 1;
+$g = "a $x b";
+$h = '‮evil';
+$z = "a\ b";
+$y = "a\\ b";
+$b1 = b'bin ary';
+$b2 = B"bin ary";
+$b3 = b'a $b';
