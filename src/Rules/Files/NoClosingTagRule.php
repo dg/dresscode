@@ -1,0 +1,62 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\Files;
+
+use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
+use PhpSyntax\Nodes\Statement\EmptyStatementNode;
+use PhpSyntax\{Token, Trivia};
+use function ord;
+
+
+/**
+ * The file does not end with `?>`; the tag and any whitespace after it go away, a statement it terminated gets
+ * its semicolon.
+ */
+#[RuleInfo(
+	'dresscode/noClosingTag',
+	Stage::Structure,
+	description: 'Removes the closing tag at the end of the file',
+)]
+final class NoClosingTagRule extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+
+
+	public function afterPass(RuleContext $context): void
+	{
+		$last = $context->file->endOfFile->getPrevious();
+		$html = null;
+		if ($last?->is(Token::InlineHtml) && trim($last->text) === '') {
+			$html = $last;
+			$last = $last->getPrevious();
+		}
+
+		if (
+			$last === null
+			|| !$last->is(Token::CloseTag)
+			|| !$context->report($last, 'The closing tag at the end of the file is forbidden')
+		) {
+			return;
+		}
+
+		$html?->parent?->remove();
+		$statement = $last->parent;
+		if ($statement instanceof EmptyStatementNode) {
+			$statement->remove();
+		} else {
+			$last->getPrevious()?->removeTrailingWhitespace();
+			$semicolon = new Token(ord(';'), ';')
+				->setLeadingTrivia($last->leadingTrivia)
+				->setTrailingTrivia([new Trivia(Trivia::LineEnding, $context->style->lineEnding)]);
+			$statement?->replaceChild($last, $semicolon);
+		}
+	}
+}
