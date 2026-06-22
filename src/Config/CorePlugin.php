@@ -32,6 +32,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\NoClosingTagRule::class,
 				Rules\Files\NoInvisibleCharactersRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
+				Rules\Variables\NoGlobalStatementsRule::class,
 			],
 			// the decisions no single rule owns, each turning on the rules that name it in `RuleInfo::$decisions`
 			decisions: [
