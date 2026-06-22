@@ -25,6 +25,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Files\NoBomRule::class,
 				Rules\Files\FullOpeningTagRule::class,
 				Rules\Files\LineEndingRule::class,
+				Rules\Files\EofLineEndingRule::class,
 			],
 			ruleUrl: 'https://dresscode.run/rules/{slug}',
 		);
