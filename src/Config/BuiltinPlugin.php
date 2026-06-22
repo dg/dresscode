@@ -22,6 +22,7 @@ final class BuiltinPlugin implements Plugin
 			presets: [
 			],
 			rules: [
+				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\Files\NoBomRule::class,
 				Rules\Files\NoInvisibleCharactersRule::class,
 				Rules\Files\FullOpeningTagRule::class,
