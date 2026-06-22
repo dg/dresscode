@@ -1,0 +1,9 @@
+<?php
+// php 8.5
+(void) foo();;
+;
+if ($a) {
+	(void) foo();
+	;
+}
+(void) $obj->method();

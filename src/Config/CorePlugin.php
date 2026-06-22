@@ -24,6 +24,7 @@ final class CorePlugin implements Plugin
 		static $manifest;
 		return $manifest ??= new PluginManifest(
 			rules: [
+				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\Files\FinalLineEndingsRule::class,
 				Rules\Files\OpeningTagNotationRule::class,
 				Rules\Files\LineEndingRule::class,

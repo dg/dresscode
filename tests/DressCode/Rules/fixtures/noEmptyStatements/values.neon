@@ -1,0 +1,2 @@
+controlFlow:
+	emptyStatement: forbidden
