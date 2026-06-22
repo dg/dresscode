@@ -497,7 +497,7 @@ final class RuleTester
 			foreach ($lexer->tokenize($code, withPositions: false) as $token) {
 				foreach ([...$token->leadingTrivia, ...$token->trailingTrivia] as $trivia) {
 					if ($trivia->isComment()) {
-						$comments[] = rtrim((string) preg_replace('~\r\n?~', "\n", $trivia->text));
+						$comments[] = (string) preg_replace(['~\r\n?~', '~[ \t]+$~m'], ["\n", ''], $trivia->text);
 					}
 				}
 			}

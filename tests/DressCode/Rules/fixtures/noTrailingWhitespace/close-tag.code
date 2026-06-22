@@ -1,0 +1,5 @@
+<p><?php // c ?></p>
+<p><?php # c  ?></p>
+<p><?php echo 1; // c ?></p>
+<?php
+$a = 1; // c  

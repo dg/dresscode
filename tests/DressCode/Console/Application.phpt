@@ -354,6 +354,93 @@ test('fix writes the files and reports what remains', function () use ($root) {
 });
 
 
+test('overrides: another part of the tree gets other rules', function () use ($root) {
+	@mkdir("$root/lib"); // @ directory may already exist
+	@mkdir("$root/legacy"); // @ directory may already exist
+	foreach (['lib/a.php', 'legacy/b.php', 'legacy/e.php', 'legacy/deep/c.php'] as $path) {
+		@mkdir(dirname("$root/$path"), recursive: true); // @ directory may already exist
+		file_put_contents("$root/$path", "<?php\n\$a;\n");
+	}
+
+	file_put_contents("$root/overrides.neon", <<<'XX'
+		file:
+			trailingWhitespace: forbidden
+
+		overrides:
+			- paths: [legacy]
+			  file: {trailingWhitespace: keep, finalLineEndings: 1}
+			- paths: [legacy/deep]
+			  file: {finalLineEndings: keep}
+
+		paths: [lib, legacy]
+
+		XX);
+	$config = ['--config', "$root/overrides.neon"];
+
+	// the file of an override is processed with its rules; without one it keeps the base
+	$dirty = function () use ($root): void {
+		file_put_contents("$root/lib/a.php", "<?php\n\$a; \n");
+		file_put_contents("$root/legacy/b.php", "<?php\n\$a; \n");
+		file_put_contents("$root/legacy/e.php", "<?php\n\$a;");
+		file_put_contents("$root/legacy/deep/c.php", "<?php\n\$a;");
+	};
+	$state = fn(): array => array_map(
+		fn(string $path) => (string) file_get_contents("$root/$path"),
+		['lib/a.php', 'legacy/b.php', 'legacy/e.php', 'legacy/deep/c.php'],
+	);
+	$fixed = [
+		"<?php\n\$a;\n",   // lib: noTrailingWhitespace ran
+		"<?php\n\$a; \n",  // legacy: it did not
+		"<?php\n\$a;\n",   // legacy: finalLineEndings did
+		"<?php\n\$a;",     // legacy/deep: the second override turned that one off too
+	];
+
+	$dirty();
+	[$code] = runApp($root, ['fix', ...$config]);
+	Assert::same(0, $code);
+	Assert::same($fixed, $state());
+
+	// stdin stands for the path it is given, overrides and all
+	[$code, $out] = runApp($root, ['fix', ...$config, '--stdin', 'legacy/x.php'], "<?php\n\$a; \n");
+	Assert::same(0, $code);
+	Assert::same("<?php\n\$a; \n", $out);
+	[$code, $out] = runApp($root, ['fix', ...$config, '--stdin', 'lib/x.php'], "<?php\n\$a; \n");
+	Assert::same(0, $code);
+	Assert::same("<?php\n\$a;\n", $out);
+	[, $out] = runApp("$root/legacy", ['fix', ...$config, '--stdin', 'x.php'], "<?php\n\$a; \n"); // relative to the working directory
+	Assert::same("<?php\n\$a; \n", $out);
+});
+
+
+test('--only narrows the run to what it names', function () use ($root) {
+	@mkdir("$root/only"); // @ directory may already exist
+	foreach (['a', 'b', 'c', 'd'] as $name) {
+		file_put_contents("$root/only/$name.php", "<?php\n\$a; \n\$b;"); // trailing whitespace, no newline at the end
+	}
+
+	file_put_contents("$root/only.neon", <<<'XX'
+		file:
+			trailingWhitespace: forbidden
+			finalLineEndings: 1
+
+		paths: [only]
+
+		XX);
+	$config = ['--config', "$root/only.neon"];
+
+	// check reports what the named rule reports and nothing else
+	[$code, $out] = runApp($root, ['check', ...$config, '--only', 'file.trailingWhitespace']);
+	Assert::same(1, $code);
+	Assert::match('%A%FOUND  4 violations, a fix leaves none in 4 files%A%', $out);
+	Assert::notContains('file.finalLineEndings', $out);
+
+	// fix changes what that rule reports and leaves the rest alone
+	[$code] = runApp($root, ['fix', ...$config, '--only', 'file.trailingWhitespace']);
+	Assert::same(0, $code);
+	Assert::same("<?php\n\$a;\n\$b;", file_get_contents("$root/only/a.php"));
+});
+
+
 test('exit codes: violations, warnings, the warning threshold, a syntax error and a failing rule', function () {
 	$root = createConsoleProject();
 	$config = "<?php\nreturn new DressCode\\Config(rules: ConsoleRules, decisions: ['project' => ['rename' => 'forbidden', 'report' => 'forbidden']], paths: ['src']";

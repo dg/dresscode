@@ -1,0 +1,9 @@
+<?php
+/** 
+ * Doc. 	
+ *
+ * More.  
+ */
+function f() {}
+$a = 1; /* end  
+	of it */
