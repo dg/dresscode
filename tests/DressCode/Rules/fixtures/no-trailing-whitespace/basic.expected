@@ -1,0 +1,10 @@
+<?php
+
+$a = 1;
+// comment
+
+/* block   
+   */
+$s = "x  
+";
+$b = 2; # hash
