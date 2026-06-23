@@ -1,0 +1,9 @@
+<?php
+$a = true;
+$b = false;
+$c = null;
+$d = true;
+$e = MY_TRUE;
+$f = \true;
+$g = Foo::TRUE;
+$h = A\TRUE;
