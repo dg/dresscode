@@ -1,0 +1,10 @@
+<?php
+list($a, list /* keep */ ($b, $c)) = f();
+list /* keep */ ($d, list($e)) = f();
+list($f, list($g, $h)) = f(); // dresscode:ignore
+list(
+	$i,
+	list($j), // dresscode:ignore
+) = f();
+list($k, list($l, list($m))) = f();
+list($n, list($o)) = list($p) = f();
