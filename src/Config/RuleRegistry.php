@@ -23,6 +23,7 @@ final class RuleRegistry
 
 	private const BuiltinRules = [
 		Rules\Files\NoBomRule::class,
+		Rules\Files\NoInvisibleCharactersRule::class,
 		Rules\Files\FullOpeningTagRule::class,
 		Rules\Files\LineEndingRule::class,
 		Rules\Files\NoClosingTagRule::class,
