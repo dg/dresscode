@@ -1,0 +1,4 @@
+6: The keyword `EXIT` must be written `exit`.
+8: The keyword `DIE` must be written `die`.
+9: The keyword `Die` must be written `die`.
+13: The keyword `EXIT` must be written `exit`.

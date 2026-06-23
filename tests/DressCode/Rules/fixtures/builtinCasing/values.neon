@@ -1,0 +1,4 @@
+builtin:
+	keyword: lowercase
+	trueFalseNull: lowercase
+	magicConstant: uppercase
