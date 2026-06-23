@@ -28,6 +28,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Files\FullOpeningTagRule::class,
 				Rules\Files\LineEndingRule::class,
 				Rules\Files\NoClosingTagRule::class,
+				Rules\Literals\KeywordCasingRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
 				Rules\Files\EofLineEndingRule::class,
