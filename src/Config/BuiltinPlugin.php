@@ -22,6 +22,7 @@ final class BuiltinPlugin implements Plugin
 			presets: [
 			],
 			rules: [
+				Rules\Arrays\ShortArraySyntaxRule::class,
 				Rules\ControlFlow\ElseifKeywordRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\Files\NoBomRule::class,
