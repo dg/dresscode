@@ -1,0 +1,5 @@
+3: The literal `true` must be written `TRUE`.
+4: The literal `null` must be written `NULL`.
+4: The literal `False` must be written `FALSE`.
+4: The magic constant `__DIR__` must be written `__dir__`.
+4: The magic constant `__Class__` must be written `__class__`.

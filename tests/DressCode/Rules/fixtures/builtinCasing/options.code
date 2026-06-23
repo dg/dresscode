@@ -1,0 +1,5 @@
+<?php
+// {"keyword": "keep", "trueFalseNull": "uppercase", "magicConstant": "lowercase"}
+IF ($a === true) {
+	RETURN [null, False, __DIR__, __Class__];
+}

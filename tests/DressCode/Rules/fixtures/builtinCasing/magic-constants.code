@@ -1,0 +1,2 @@
+<?php
+echo __dir__, __File__, __LINE__, __function__;
