@@ -1,0 +1,40 @@
+<?php
+// Loaded before the autoloader, so that the classes
+// it registers are processed too.
+//
+// Usage:
+//   require 'bootstrap.php';
+$a = 1;
+
+# one paragraph
+#
+# another one
+$b = 2;
+
+// text
+//
+
+//
+$c = 3;
+
+// text
+#
+$d = 4;
+
+//
+//
+$e = 5;
+
+//
+/* */
+//
+$f = 6;
+
+$g = 7; // text
+//
+$h = 8;
+
+/*
+ *
+ */
+$i = 9;
