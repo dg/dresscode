@@ -1,0 +1,2 @@
+1: Expected `declare(strict_types=1)` at the start of the file.
+	risky BehaviorChanges: PHP then refuses an argument of a scalar type it used to convert

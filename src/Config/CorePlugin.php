@@ -37,6 +37,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\NoClosingTagRule::class,
 				Rules\Files\NoInvisibleCharactersRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
+				Rules\Files\StrictTypesRequiredRule::class,
 				Rules\Literals\BuiltinCasingRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
