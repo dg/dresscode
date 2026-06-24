@@ -1,0 +1,32 @@
+name: Coding Style
+
+on: [push, pull_request]
+
+jobs:
+    nette_cc:
+        name: Nette Code Checker
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: 8.3
+                  coverage: none
+
+            - run: composer create-project nette/code-checker temp/code-checker ^3 --no-progress
+            - run: php temp/code-checker/code-checker --strict-types --no-progress --ignore fixtures --ignore corpus --ignore src/PhpSyntax/Nodes
+
+
+    nette_cs:
+        name: Nette Coding Standard
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: 8.3
+                  coverage: none
+
+            - run: composer create-project nette/coding-standard temp/coding-standard ^3 --no-progress
+            # generated files (ParserData.php, TokenKind.php, Nodes/**) and the parser corpus are excluded from the check
+            - run: php temp/coding-standard/ecs check $(git ls-files '*.php' '*.phpt' | grep -v -E '^(src/PhpSyntax/(Nodes/|Parser/ParserData\.php|TokenKind\.php)|tests/PhpSyntax/Parser/corpus/)')
