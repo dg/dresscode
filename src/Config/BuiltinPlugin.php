@@ -39,6 +39,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Literals\MagicConstantCasingRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
+				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Whitespace\ParenthesesSpacingRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
 				Rules\Files\EofLineEndingRule::class,
