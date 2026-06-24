@@ -61,6 +61,16 @@ final class PresenterRule extends TestRule
 
 
 #[RuleInfo(Stage::Structure)]
+final class NoDbRule extends TestRule
+{
+	public static function getDecisions(): array
+	{
+		return [new Decision('project.noDbInPresenter', Domain::state(), 'A presenter does not query the database')];
+	}
+}
+
+
+#[RuleInfo(Stage::Structure)]
 final class SilentRule extends TestRule
 {
 }
@@ -123,6 +133,19 @@ final class StructureRule extends TestRule
 		return [new Decision('spacing.call.inner', new Shapes(['compact' => ['foo()', '']]), 'Beneath')];
 	}
 }
+
+
+test('the catalogue knows every decision, its rules, and runs the rules in the order of the registration', function () {
+	$catalogue = new Catalogue([TrailingIfRule::class, CallRule::class, GuardRule::class], ['acme' => [PresenterRule::class]], [NoDbRule::class]);
+	Assert::same('spacing.call', $catalogue->find('spacing.call')?->path);
+	Assert::null($catalogue->find('spacing.comma'));
+	Assert::same([TrailingIfRule::class], $catalogue->getRulesOf('controlFlow.trailingIfMinStatements'));
+	Assert::same([], $catalogue->getRulesOf('spacing.comma'));
+	Assert::same(['controlFlow.trailingIf', 'controlFlow.trailingIfMinStatements'], array_keys($catalogue->getDecisionsUnder('controlFlow')));
+	Assert::same(['controlFlow.trailingIf'], array_keys($catalogue->getDecisionsUnder('controlFlow.trailingIf')));
+	Assert::same([TrailingIfRule::class, CallRule::class, GuardRule::class, PresenterRule::class, NoDbRule::class], $catalogue->getRuleOrder());
+	Assert::count(6, $catalogue->getDecisions());
+});
 
 
 test('a path keeps to the sections of its registrant', function () {
