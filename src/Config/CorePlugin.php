@@ -25,6 +25,7 @@ final class CorePlugin implements Plugin
 		return $manifest ??= new PluginManifest(
 			rules: [
 				Rules\Arrays\NoLongArraySyntaxRule::class,
+				Rules\Comments\NoHashCommentsRule::class,
 				Rules\ControlFlow\ElseifNotationRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
