@@ -38,6 +38,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\NoInvisibleCharactersRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
 				Rules\Literals\BuiltinCasingRule::class,
+				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 			],
 			// the decisions no single rule owns, each turning on the rules that name it in `RuleInfo::$decisions`
