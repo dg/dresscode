@@ -76,6 +76,16 @@ test('a preset written as a file carries decisions and what it uses, nothing the
 });
 
 
+test('a key the catalogue does not know is named with the nearest known one, where it stands', function () {
+	$dir = createDecisionsProject(['dresscode.neon' => "spacng:\n\tcall: \"foo()\"\n"]);
+	Assert::exception(
+		fn() => resolveFile("$dir/dresscode.neon"),
+		ConfigurationException::class,
+		'Key `spacng` is unknown; write `spacing`.',
+	);
+});
+
+
 test('a key is one link of the path, the links written with dots are refused', function () {
 	$dir = createDecisionsProject(['dresscode.neon' => "naming.constant: keep\n"]);
 	Assert::exception(

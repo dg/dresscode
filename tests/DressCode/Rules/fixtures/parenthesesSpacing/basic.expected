@@ -1,0 +1,9 @@
+<?php
+foo($a);
+if ($a) {}
+function f($a) {}
+$b = (1 + 2) * 3;
+foo(
+	$a
+);
+foo();

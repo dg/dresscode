@@ -41,6 +41,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\BuiltinCasingRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
+				Rules\Whitespace\ParenthesesSpacingRule::class,
 			],
 			// the decisions no single rule owns, each turning on the rules that name it in `RuleInfo::$decisions`
 			decisions: [
