@@ -23,6 +23,7 @@ final class BuiltinPlugin implements Plugin
 			],
 			rules: [
 				Rules\Arrays\ShortArraySyntaxRule::class,
+				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
 				Rules\ControlFlow\ElseifKeywordRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
