@@ -35,6 +35,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Literals\TrueFalseNullCasingRule::class,
 				Rules\Literals\KeywordCasingRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
+				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Literals\MagicConstantCasingRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
