@@ -32,6 +32,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Files\FullOpeningTagRule::class,
 				Rules\Files\LineEndingRule::class,
 				Rules\Files\NoClosingTagRule::class,
+				Rules\Files\StrictTypesRequiredRule::class,
 				Rules\Literals\TrueFalseNullCasingRule::class,
 				Rules\Literals\KeywordCasingRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
