@@ -1,0 +1,46 @@
+{
+	"name": "dresscode/dresscode",
+	"description": "DressCode: PHP code style checker and fixer built on a lossless syntax tree",
+	"keywords": ["php", "code style", "coding standard", "fixer", "formatter", "static analysis", "php-cs-fixer", "phpcs"],
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "David Grudl",
+			"homepage": "https://davidgrudl.com"
+		}
+	],
+	"require": {
+		"php": "8.4 - 8.6",
+		"nette/schema": "^1.4.x-dev",
+		"nette/utils": "^4.1",
+		"phpsyntax/phpsyntax": "dev-master",
+		"phpstan/phpdoc-parser": "^2.0"
+	},
+	"require-dev": {
+		"nette/tester": "^2.6",
+		"tracy/tracy": "^2.12",
+		"phpstan/phpstan": "^2.2",
+		"phpstan/extension-installer": "^1.4",
+		"nette/phpstan-rules": "^1.0"
+	},
+	"autoload": {
+		"classmap": ["src/"],
+		"psr-4": {
+			"DressCode\\": "src"
+		}
+	},
+	"scripts": {
+		"phpstan": "phpstan analyse",
+		"tester": "tester tests -s"
+	},
+	"config": {
+		"allow-plugins": {
+			"phpstan/extension-installer": true
+		}
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "1.0-dev"
+		}
+	}
+}
