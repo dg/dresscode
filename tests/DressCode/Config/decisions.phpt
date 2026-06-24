@@ -55,3 +55,9 @@ test('a preset written as a file carries decisions and what it uses, nothing the
 	$dir = createDecisionsProject(['base.neon' => "use: [[psr12]]\n", 'dresscode.neon' => "use: base.neon\n"]);
 	Assert::exception(fn() => resolveFile("$dir/dresscode.neon"), ConfigurationException::class, "Preset file `%a%/base.neon`: The item 'use%a%0' expects to be string|Nette\\Neon\\Entity, array given.");
 });
+
+
+test('a key the catalogue does not know is named with the nearest known one, where it stands', function () {
+	$dir = createDecisionsProject(['dresscode.neon' => "spacng:\n\tcall: \"foo()\"\n"]);
+	Assert::exception(fn() => resolveFile("$dir/dresscode.neon"), ConfigurationException::class, 'Key `spacng` is unknown; write `spacing`.');
+});
