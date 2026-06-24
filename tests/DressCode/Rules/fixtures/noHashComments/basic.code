@@ -1,0 +1,7 @@
+<?php
+# comment
+$a = 1; #inline
+// keep
+#[Attr]
+function f() {
+}
