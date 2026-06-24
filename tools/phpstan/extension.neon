@@ -1,0 +1,4 @@
+services:
+	-
+		class: DressCode\Tools\PhpStan\LayerBoundaryRule
+		tags: [phpstan.rules.rule]

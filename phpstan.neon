@@ -1,0 +1,13 @@
+includes:
+	- tools/phpstan/extension.neon
+
+parameters:
+	level: 8
+
+	paths:
+		- src
+		- tests
+		- tools
+
+	excludePaths:
+		- tests/*/fixtures/*
