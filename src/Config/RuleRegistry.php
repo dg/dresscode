@@ -30,6 +30,7 @@ final class RuleRegistry
 		Rules\Files\NoClosingTagRule::class,
 		Rules\Literals\ConstantCasingRule::class,
 		Rules\Literals\KeywordCasingRule::class,
+		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\Files\EofNewlineRule::class,
