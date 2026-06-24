@@ -1,0 +1,9 @@
+presets:
+	- nette
+
+paths:
+	- tests
+
+fileExtensions:
+	- php
+	- phpt
