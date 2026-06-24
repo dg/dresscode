@@ -22,6 +22,7 @@ final class RuleRegistry
 	private const Vendor = 'dresscode/';
 
 	private const BuiltinRules = [
+		Rules\Arrays\ShortArraySyntaxRule::class,
 		Rules\ControlFlow\ElseifKeywordRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
 		Rules\Files\NoBomRule::class,
