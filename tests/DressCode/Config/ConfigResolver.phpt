@@ -326,6 +326,16 @@ test('fixRisky names a preset for every rule it mentions, as only does, and the 
 });
 
 
+test('a rule an override turns on runs somewhere, however the override decides it', function () {
+	// a word on a structure decides every decision under it
+	$config = new Config(fixRisky: ['multiline.operatorPosition'], overrides: [new Override(['tests'], new Profile(decisions: ['multiline' => ['operatorPosition' => 'lineStart']]))]);
+	$resolver = createResolver();
+	$resolver->resolve($config, '8.3');
+	Assert::same([], $resolver->getWarnings());
+	Assert::noError(fn() => createResolver()->resolve($config, '8.3', only: ['multiline.operatorPosition']));
+});
+
+
 test('an override lays a profile of its own over the configuration, its presets included', function () {
 	$resolver = createResolver();
 	$config = new Config(
