@@ -1,0 +1,9 @@
+<?php
+// {"unaryOperatorsWithSpace": ["!", "--"]}
+$a = ! $b;
+$a = - $b;
+$a ++;
+-- $a;
+$a --;
+$ $d;
+${ 'e' };

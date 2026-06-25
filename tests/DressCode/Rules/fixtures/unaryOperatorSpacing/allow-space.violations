@@ -1,0 +1,5 @@
+4: Expected no whitespace after the `-` operator.
+5: Expected no whitespace before the `++` operator.
+8: Expected no whitespace after the dollar sign.
+9: Expected no whitespace after the opening brace.
+9: Expected no whitespace before the closing brace.

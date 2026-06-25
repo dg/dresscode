@@ -1,0 +1,3 @@
+spacing:
+	unaryOperator: '-$x'
+	unaryOperatorsWithSpace: []
