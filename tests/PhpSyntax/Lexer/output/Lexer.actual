@@ -1,0 +1,7 @@
+[
+	'\';\' ; [OpenTag:<?php ] [EndOfLine:\n]',
+	'\';\' ; [] [EndOfLine:\r\n]',
+	'\';\' ; [] [EndOfLine:\r]',
+	'\';\' ; [] [EndOfLine:\r\n]',
+	'EndOfFile  [] []',
+]
