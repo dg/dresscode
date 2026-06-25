@@ -28,12 +28,33 @@ final class Lexer
 	/** @param ?list<Emulator> $emulators  null = those needed by the running PHP version */
 	public function __construct(?array $emulators = null)
 	{
-		$this->emulators = $emulators ?? [];
+		$this->emulators = $emulators ?? self::createHostEmulators();
 		foreach (TokenKind::HostConstants as $name => $kind) {
 			if (defined($name)) {
 				$this->kinds[constant($name)] = $kind;
 			}
 		}
+	}
+
+
+	/**
+	 * Emulators of syntax the running PHP version does not tokenize itself.
+	 * @return list<Emulator>
+	 */
+	public static function createHostEmulators(): array
+	{
+		$emulators = [];
+		if (PHP_VERSION_ID < 80400) {
+			$emulators[] = new Emulators\PropertyToken;
+			$emulators[] = new Emulators\AsymmetricVisibility;
+		}
+
+		if (PHP_VERSION_ID < 80500) {
+			$emulators[] = new Emulators\PipeOperator;
+			$emulators[] = new Emulators\VoidCast;
+		}
+
+		return $emulators;
 	}
 
 
