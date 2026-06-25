@@ -2,8 +2,14 @@ presets:
 	- nette
 
 paths:
+	- src
 	- tests
 
 fileExtensions:
 	- php
 	- phpt
+
+overrides:
+	- paths: [src]
+	  presets: [optimizations]
+	  nameResolution: certain

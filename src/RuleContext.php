@@ -1,0 +1,248 @@
+<?php declare(strict_types=1);
+
+namespace DressCode;
+
+use DressCode\Engine\Suppression;
+use PhpSyntax\Node;
+use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Token;
+use PhpSyntax\Trivia;
+use PhpSyntax\TriviaKind;
+use function in_array;
+
+
+/**
+ * What a rule sees of the file it runs on: the tree, the style, analyses, its storage, and report().
+ */
+final class RuleContext
+{
+	/** @var array<string, mixed>  state of the rule for this file; rules are stateless, this is where per-file state goes */
+	public array $storage = [];
+
+	/** @var list<Engine\Report>  reports of the current callback */
+	private array $reports = [];
+
+
+	/** @internal created by the pass runner */
+	public function __construct(
+		private readonly FileNode $file,
+		private readonly string $path,
+		private readonly Style $style,
+		private readonly string $phpVersion,
+		private readonly Analyses\Registry $analyses,
+		private readonly Suppression $suppression,
+		private readonly Engine\Fingerprints $fingerprints,
+		private readonly string $ruleName,
+		/** whether the run may make a fix that changes what the code does */
+		private readonly bool $fixRisky = false,
+		/** every fix of the rule may change what the code does, so every report of it is risky */
+		private readonly bool $alwaysRisky = false,
+		/** @var list<Rule>  the rules that run on the file, as configured for it */
+		private readonly array $rules = [],
+	) {
+	}
+
+
+	public function getFile(): FileNode
+	{
+		return $this->file;
+	}
+
+
+	public function getPath(): string
+	{
+		return $this->path;
+	}
+
+
+	public function getStyle(): Style
+	{
+		return $this->style;
+	}
+
+
+	/** The version the checked code is written for, as major.minor; compare it with version_compare(). */
+	public function getPhpVersion(): string
+	{
+		return $this->phpVersion;
+	}
+
+
+	/**
+	 * Reports a violation at the node, or at one of the trivia of the token when the problem lies in whitespace
+	 * or a comment; returns false when a comment silences it, and then the rule must not fix it.
+	 * `$risky` says that fixing this occurrence may change what the code does: the violation is reported either
+	 * way, and false says the run does not allow the fix, so the rule must leave the code alone. A rule whose every
+	 * fix may change it says so once with `risky` in its RuleInfo instead.
+	 * `$follows` names the token opening the line the reported whitespace is counted from: where that line was
+	 * opened, closed or moved by a violation of this run, the report is recorded as derived from it.
+	 * `$fixable` false says the rule has no fix for this occurrence and only reports it: the report is never risky,
+	 * false comes back whatever the run allows, and a mutation after it breaks the contract.
+	 */
+	public function report(
+		Node|Token $at,
+		string $message,
+		Severity $severity = Severity::Error,
+		?Trivia $trivia = null,
+		bool $risky = false,
+		?Token $follows = null,
+		bool $fixable = true,
+	): bool
+	{
+		$gap = $trivia === null ? null : self::findGap($at, $trivia);
+		if ($follows !== null) {
+			$gap ??= $at instanceof Token ? $at : $at->getFirstToken();
+		}
+
+		return $this->record($at, $message, $severity, $trivia, $risky, $gap, $follows, fixable: $fixable);
+	}
+
+
+	/**
+	 * Reports what the engine decided about the gap before the token, under the name of the rule whose claim
+	 * it was; `$breaks` says the fix puts a line break in or takes one out, opening or closing the line. The
+	 * gaps of a construct the claim was decided about are one violation in the pass, the shape of the construct
+	 * being what is wrong and not each of its breaks: placed and silenced as the first of them.
+	 * @internal
+	 */
+	public function reportGap(
+		Token $gap,
+		Node|Token $at,
+		string $message,
+		?Trivia $trivia = null,
+		bool $breaks = false,
+		?Node $construct = null,
+	): bool
+	{
+		if ($construct !== null) {
+			[$at, $trivia] = $this->fingerprints->placeConstruct($construct, $this->ruleName, $at, $trivia);
+		}
+
+		return $this->record($at, $message, Severity::Error, $trivia, risky: false, gap: $gap, follows: null, breaks: $breaks, construct: $construct);
+	}
+
+
+	/** Whether a comment silences a report of this rule at the node, which records nothing, unlike a report refused as risky. */
+	public function isSilenced(Node|Token $at, ?Trivia $trivia = null): bool
+	{
+		$line = self::findOriginalLine($at, $trivia);
+		return $line !== null && $this->suppression->isSuppressed($this->ruleName, $line);
+	}
+
+
+	private function record(
+		Node|Token $at,
+		string $message,
+		Severity $severity,
+		?Trivia $trivia,
+		bool $risky,
+		?Token $gap,
+		?Token $follows,
+		bool $breaks = false,
+		?Node $construct = null,
+		bool $fixable = true,
+	): bool
+	{
+		$line = self::findOriginalLine($at, $trivia);
+		if ($line !== null && $this->suppression->isSuppressed($this->ruleName, $line)) {
+			$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, silenced: true, fingerprint: null, line: $line, risky: false);
+			return false;
+		}
+
+		// a report a comment silenced is never counted into the identity, so the numbering of the occurrences
+		// means the same whether the comment is there or not
+		$line ??= 1;
+		$fingerprint = $construct === null
+			? $this->fingerprints->create($this->ruleName, $message, $line)
+			: $this->fingerprints->createFor($construct, $this->ruleName, $message, $line);
+		$risky = ($risky || $this->alwaysRisky) && $fixable;
+		$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, false, $fingerprint, $line, $risky, $gap, $follows, $breaks, $fixable);
+		return $fixable && !($risky && !$this->fixRisky);
+	}
+
+
+	/**
+	 * The token whose gap before it holds the whitespace: the token itself when the trivia stands before it,
+	 * the next one when it stands after; a comment is nobody's gap, its problem is the comment's own.
+	 */
+	private static function findGap(Node|Token $at, Trivia $trivia): ?Token
+	{
+		if ($trivia->kind !== TriviaKind::Whitespace && $trivia->kind !== TriviaKind::EndOfLine) {
+			return null;
+		}
+
+		$first = $at instanceof Token ? $at : $at->getFirstToken();
+		if ($first !== null && in_array($trivia, $first->leadingTrivia, true)) {
+			return $first;
+		}
+
+		$last = $at instanceof Token ? $at : $at->getLastToken();
+		return $last !== null && in_array($trivia, $last->trailingTrivia, true) ? $last->getNext() : null;
+	}
+
+
+	/**
+	 * An analysis of the file: any class built from the FileNode (or from nothing) and kept until the file
+	 * mutates; the built-in ones are in DressCode\Analyses and PhpSyntax\Analyses, a plugin registers its own
+	 * with Config::analysis().
+	 * @template T of object
+	 * @param  class-string<T>  $class
+	 * @return T
+	 */
+	public function getAnalysis(string $class): object
+	{
+		return $this->analyses->get($this->file, $class);
+	}
+
+
+	/**
+	 * The rule of the class as it is configured for this file, so that code a rule writes takes the shape another
+	 * rule gives it; null when that rule does not run on the file.
+	 * @template T of Rule
+	 * @param  class-string<T>  $class
+	 * @return ?T
+	 */
+	public function findRule(string $class): ?Rule
+	{
+		return array_find($this->rules, fn(Rule $rule) => $rule instanceof $class);
+	}
+
+
+	/** @internal */
+	public function hasReports(): bool
+	{
+		return $this->reports !== [];
+	}
+
+
+	/**
+	 * Takes the reports made since the last call, in the order they were made.
+	 * @return list<Engine\Report>
+	 * @internal
+	 */
+	public function takeReports(): array
+	{
+		$reports = $this->reports;
+		$this->reports = [];
+		return $reports;
+	}
+
+
+	/**
+	 * Line in the original file: of the trivia when it comes from the file, otherwise of the first token
+	 * of the node with an original position, or the nearest original token before a synthetic one.
+	 */
+	private static function findOriginalLine(Node|Token $at, ?Trivia $trivia): ?int
+	{
+		if ($trivia?->originalLine !== null) {
+			return $trivia->originalLine;
+		}
+
+		$token = $at instanceof Token ? $at : $at->getFirstToken();
+		while ($token && $token->originalLine === null) {
+			$token = $token->getPrevious();
+		}
+
+		return $token?->originalLine;
+	}
+}
