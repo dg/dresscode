@@ -1,0 +1,8 @@
+<?php
+// {"spacing.semicolon.before": "keep", "spacing.semicolon.after": "keep"}
+$a = 1 ;
+return $b
+	&& $c
+	;
+return $d
+	&& $e  ;

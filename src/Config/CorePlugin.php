@@ -43,6 +43,7 @@ final class CorePlugin implements Plugin
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Whitespace\ParenthesesSpacingRule::class,
+				Rules\Whitespace\SemicolonSpacingRule::class,
 			],
 			// the decisions no single rule owns, each turning on the rules that name it in `RuleInfo::$decisions`
 			decisions: [
