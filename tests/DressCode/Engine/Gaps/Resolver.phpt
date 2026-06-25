@@ -49,6 +49,21 @@ test('a claim on the whitespace and the line reports the line under its own deci
 });
 
 
+test('two rules may govern one operator when each abstains where the other decides', function () {
+	[$output, $violations] = apply([
+		RuleBuilder::createRule(Rules\Expressions\BinaryOperatorSpacingRule::class, ['spacing.binaryOperator' => 'spaced', 'spacing.binaryOperatorAlignment' => 'none']),
+		RuleBuilder::createRule(Rules\Expressions\ConcatenationSpacingRule::class, ['spacing.concatenation' => 'compact']),
+	], "<?php\n\$a = \$b  +  \$c . \$d;\n");
+	Assert::same("<?php\n\$a = \$b + \$c.\$d;\n", $output);
+	Assert::same([
+		'2: Expected a single space before the `+` operator. [spacing.binaryOperator]',
+		'2: Expected a single space after the `+` operator. [spacing.binaryOperator]',
+		'2: Expected no whitespace before the `.` operator. [spacing.concatenation]',
+		'2: Expected no whitespace after the `.` operator. [spacing.concatenation]',
+	], $violations);
+});
+
+
 #[RuleInfo(Stage::Formatting)]
 class ClaimingRule extends GapRule
 {

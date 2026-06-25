@@ -25,6 +25,7 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
  * a line may be moved to the start of the next one, as `multiline.operatorPosition.binary` says: a comparison, a
  * bitwise operator or a shift only where the joined line would be too wide. Whitespace wider than a space aligns
  * a column of assignments or of array items, and `spacing.binaryOperatorAlignment` says which of it stays.
+ * Concatenation is the matter of `ConcatenationSpacingRule`.
  */
 #[RuleInfo(Stage::Formatting)]
 final class BinaryOperatorSpacingRule extends GapRule
@@ -50,7 +51,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision(self::Spacing, new Shapes(['spaced' => ['$a + $b', 'a single space around']]), 'The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `=` of a default included; at a line break an operator takes no space on the side of the break, an assignment and `=>` stay on the line of what is before them, and `instanceof`, a comparison, a bitwise operator and a shift keep what follows them on their line, unless the line would grow too wide'),
+			new Decision(self::Spacing, new Shapes(['spaced' => ['$a + $b', 'a single space around']]), 'The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `=` of a default included, `.` being `spacing.concatenation`; at a line break an operator takes no space on the side of the break, an assignment and `=>` stay on the line of what is before them, and `instanceof`, a comparison, a bitwise operator and a shift keep what follows them on their line, unless the line would grow too wide'),
 			new Decision(self::Alignment, Domain::alignment(), 'Which whitespace wider than a single space around an operator stays, aligning a column of assignments or of array items; alignment is never made', parameter: true, default: 'spaces'),
 			new Decision(self::Position, Domain::lineStart(), 'Where a binary operator other than `.` stands at a line break: a comparison, a bitwise operator or a shift moves only where the line joined after it would be too wide'),
 		];
@@ -97,7 +98,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 	private function claimBeforeOperator(Gap $gap): ?Claim
 	{
 		return match (true) {
-			$gap->token->text === '.' => null,
+			$gap->token->text === '.' => null, // `ConcatenationSpacingRule`
 			$this->isMovedToStart($gap) => $this->moved,
 			default => $this->claim,
 		};
@@ -113,7 +114,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 		$token = $gap->token;
 		$next = $token->getNext();
 		return match (true) {
-			$token->text === '.' => null,
+			$token->text === '.' => null, // `ConcatenationSpacingRule`
 			$this->isMovedToStart($gap) => $this->afterMoved,
 			$this->claim === null => null,
 			$next === null || !$token->is(self::JoinedOperators) || $token->hasCommentUpTo($next) => $this->claim,
