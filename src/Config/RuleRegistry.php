@@ -35,6 +35,7 @@ final class RuleRegistry
 		Rules\Literals\ConstantCasingRule::class,
 		Rules\Literals\KeywordCasingRule::class,
 		Rules\Expressions\NotEqualsOperatorRule::class,
+		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
