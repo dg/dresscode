@@ -30,6 +30,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\ElseifNotationRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
+				Rules\Expressions\ConcatenationSpacingRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Files\FinalLineEndingsRule::class,
 				Rules\Files\OpeningTagNotationRule::class,

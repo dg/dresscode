@@ -1,0 +1,5 @@
+<?php
+// {"spacing.concatenation": "keep", "multiline.operatorPosition.concatenation": "lineStart"}
+$a = 'a'
+	. 'b';
+$a = 'a'.'b';
