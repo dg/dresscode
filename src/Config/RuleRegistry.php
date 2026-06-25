@@ -39,6 +39,7 @@ final class RuleRegistry
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
+		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Whitespace\ParenthesesSpacingRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\Files\EofNewlineRule::class,
