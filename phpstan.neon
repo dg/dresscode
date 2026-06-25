@@ -11,3 +11,4 @@ parameters:
 
 	excludePaths:
 		- tests/*/fixtures/*
+		- tests/PhpSyntax/Parser/corpus/*
