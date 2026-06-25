@@ -1,0 +1,4 @@
+#!/usr/bin/env php
+<?php
+// risky
+echo 1;

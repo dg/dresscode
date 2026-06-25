@@ -1,0 +1,6 @@
+<?php
+// {"placement": "openingTagLine"}
+// risky
+declare(strict_types=1);
+
+namespace Foo;
