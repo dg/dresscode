@@ -1,0 +1,5 @@
+2: Expected no line break after the `!` operator.
+4: Expected no line break after the `-` operator.
+7: Expected no line break before the `++` operator.
+8: Expected no line break after the `--` operator.
+10: Expected no line break after the `-` operator.
