@@ -6,8 +6,8 @@
  * long as they take turns abstaining, and what a rule leaves alone stays.
  */
 
-use DressCode\{Analyses, Claim, Config, ConfigurationException, Gap, GapRule, Line, Rule, RuleInfo, Space, Stage, Style};
-use DressCode\Config\PluginRegistry;
+use DressCode\{Analyses, Claim, Config, ConfigurationException, Gap, GapRule, Line, Rule, RuleInfo, Rules, Space, Stage, Style};
+use DressCode\Config\{PluginRegistry, RuleBuilder};
 use DressCode\Engine\{FileProcessor, ReportPolicy};
 use PhpSyntax\Nodes;
 use Tester\Assert;
@@ -32,6 +32,21 @@ function apply(array $rules, string $code): array
 	Assert::same([], $result->warnings);
 	return [$result->output, array_map(fn($v) => "$v->line: $v->message [$v->decision]", $result->violations)];
 }
+
+
+test('a claim on the whitespace and the line reports the line under its own decision where it names one', function () {
+	[$output, $violations] = apply([
+		RuleBuilder::createRule(Rules\Whitespace\SemicolonSpacingRule::class, [
+			'spacing.beforeSemicolon' => 'compact',
+			'multiline.semicolonOnOwnLine' => 'forbidden',
+		]),
+	], "<?php\nfoo(\n\t1\n) ;\nbar(\n\t2\n)\n;\n");
+	Assert::same("<?php\nfoo(\n\t1\n);\nbar(\n\t2\n);\n", $output);
+	Assert::same([
+		'4: Expected no whitespace before the semicolon. [spacing.beforeSemicolon]',
+		'8: Expected no line break before the semicolon. [multiline.semicolonOnOwnLine]',
+	], $violations);
+});
 
 
 #[RuleInfo(Stage::Formatting)]

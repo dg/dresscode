@@ -1,0 +1,7 @@
+<?php
+// {"spacing.beforeSemicolon": "keep", "spacing.afterSemicolon": "keep"}
+$a = 1 ;
+return $b
+	&& $c ;
+return $d
+	&& $e  ;

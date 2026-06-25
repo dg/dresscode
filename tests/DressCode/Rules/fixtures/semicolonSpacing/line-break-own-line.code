@@ -1,0 +1,13 @@
+<?php
+// {"multiline.semicolonOnOwnLine": "keep"}
+$a = 1
+	;
+return $b
+	&& $c
+	;
+$d = <<<'XX'
+	e
+	XX
+	;
+if (1)
+	;
