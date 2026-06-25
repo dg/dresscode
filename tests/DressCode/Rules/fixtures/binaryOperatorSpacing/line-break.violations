@@ -1,0 +1,7 @@
+3: Expected no line break before the `=` operator.
+5: Expected no line break before the `.=` operator.
+10: Expected no line break before the double arrow.
+13: Expected no line break before the double arrow.
+16: Expected no line break before the `instanceof` keyword.
+17: Expected no line break after the `instanceof` keyword.
+20: Expected no line break before the `=` operator.

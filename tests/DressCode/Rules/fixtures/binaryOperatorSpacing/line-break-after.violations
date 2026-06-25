@@ -1,0 +1,5 @@
+2: Expected no line break after the `===` operator.
+6: Expected no line break after the `<=>` operator.
+8: Expected no line break after the `|` operator.
+10: Expected no line break after the `<<` operator.
+14: Expected no line break after the `!==` operator.

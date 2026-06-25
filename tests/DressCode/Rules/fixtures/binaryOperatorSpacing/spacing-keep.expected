@@ -1,0 +1,8 @@
+<?php
+// {"spacing.binaryOperator": "keep", "multiline.operatorPosition.binary": "lineStart"}
+$a = $b
+	+ $c;
+$a = $b+$c;
+$a  =  $b;
+$a = $b ===
+	$c;
