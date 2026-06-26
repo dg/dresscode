@@ -6,8 +6,8 @@
  * long as they take turns abstaining, and what a rule leaves alone stays.
  */
 
-use DressCode\{Analyses, Claim, Config, ConfigurationException, Gap, GapRule, Line, Rule, RuleInfo, Space, Stage, Style};
-use DressCode\Config\RuleRegistry;
+use DressCode\{Analyses, Claim, Config, ConfigurationException, Gap, GapRule, Line, Rule, RuleInfo, Rules, Space, Stage, Style};
+use DressCode\Config\{PresetResolver, RuleRegistry};
 use DressCode\Engine\FileProcessor;
 use PhpSyntax\Nodes;
 use Tester\Assert;
@@ -28,6 +28,21 @@ function apply(array $rules, string $code): array
 	Assert::same([], $result->warnings);
 	return [$result->output, array_map(fn($v) => "$v->line: $v->message [$v->ruleName]", $result->violations)];
 }
+
+
+test('two rules may govern one operator when each abstains where the other decides', function () {
+	[$output, $violations] = apply([
+		PresetResolver::createRule(Rules\Expressions\BinaryOperatorSpacingRule::class, ['alignment' => 'none']),
+		PresetResolver::createRule(Rules\Expressions\ConcatSpacingRule::class, ['spacing' => 'none']),
+	], "<?php\n\$a = \$b  +  \$c . \$d;\n");
+	Assert::same("<?php\n\$a = \$b + \$c.\$d;\n", $output);
+	Assert::same([
+		'2: A single space before the + operator [dresscode/binary-operator-spacing]',
+		'2: A single space after the + operator [dresscode/binary-operator-spacing]',
+		'2: No whitespace before the . operator [dresscode/concat-spacing]',
+		'2: No whitespace after the . operator [dresscode/concat-spacing]',
+	], $violations);
+});
 
 
 /**
