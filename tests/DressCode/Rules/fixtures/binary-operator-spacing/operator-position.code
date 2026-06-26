@@ -1,0 +1,36 @@
+<?php
+// {"operatorPosition": "start"}
+$a = $b ??
+	$c;
+$a = $b +
+	$c;
+$a = $b &&
+	$c;
+$a = $b
+	&& $c;
+$a = $b && $c;
+$a = $b && // why
+	$c;
+$a = $b
+	&&
+	$c;
+$a = $b +
+	$c -
+	$d;
+$a = $b ===
+	$c;
+return $b ||
+	$c;
+if ($a &&
+	$b) {
+}
+if ($a ??
+	$b) {
+}
+$a = $b .
+	$c;
+$a = $b +
+
+	$c;
+$a = $someRatherLongVariableName->withAnotherLongPropertyName->andAThirdOneForGoodMeasure ===
+	$yetAnotherLongVariableName->withItsOwnProperty;

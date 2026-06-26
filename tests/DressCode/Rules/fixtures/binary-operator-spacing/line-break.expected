@@ -1,0 +1,27 @@
+<?php
+$a = 1;
+$b .= 'x';
+$c =
+	2;
+$d = [
+	'e' => 3,
+];
+foreach ($f as $g => $h) {
+}
+$i = $j instanceof K;
+$l = $m instanceof N;
+function o($p = 4) {
+}
+$q = match (true) {
+	$r,
+	$s
+		=> 5,
+};
+$t = fn($u)
+	=> $u;
+[$aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, $bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, $cccccccccccccccccccccccccccccc]
+	= foo($dddddddddddddddddddddddddddddd, $eeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
+$v = [
+	'key of an item' . ($wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww ? 'one' : 'other')
+		=> $xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
+];
