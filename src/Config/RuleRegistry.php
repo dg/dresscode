@@ -38,6 +38,7 @@ final class RuleRegistry
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
 		Rules\Expressions\ConcatSpacingRule::class,
 		Rules\Expressions\NotEqualsOperatorRule::class,
+		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
