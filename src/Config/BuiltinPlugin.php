@@ -40,6 +40,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\ConcatSpacingRule::class,
 				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
+				Rules\Expressions\ObjectOperatorSpacingRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
