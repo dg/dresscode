@@ -40,6 +40,7 @@ final class RuleRegistry
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
+		Rules\Whitespace\SemicolonSpacingRule::class,
 		Rules\Whitespace\ParenthesesSpacingRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\Files\EofNewlineRule::class,
