@@ -32,6 +32,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
 				Rules\Expressions\CastSpacingRule::class,
 				Rules\Expressions\ConcatenationSpacingRule::class,
+				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
