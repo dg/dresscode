@@ -24,6 +24,7 @@ final class CorePlugin implements Plugin
 		static $manifest;
 		return $manifest ??= new PluginManifest(
 			rules: [
+				Rules\Arrays\ArraySpacingRule::class,
 				Rules\Arrays\NoLongArraySyntaxRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
