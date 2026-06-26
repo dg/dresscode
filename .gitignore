@@ -2,4 +2,6 @@
 /composer.lock
 /grammar/vendor
 /grammar/composer.lock
+/grammar/tmp_parser.*
+/grammar/y.output
 /temp
