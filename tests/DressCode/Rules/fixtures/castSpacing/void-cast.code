@@ -1,0 +1,8 @@
+<?php
+// php 8.5
+( void ) foo();
+(void)foo();
+(void)  foo();
+(void)
+	foo();
+(void) foo();

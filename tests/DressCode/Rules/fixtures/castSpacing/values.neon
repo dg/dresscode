@@ -1,0 +1,2 @@
+spacing:
+	cast: '(int) $x'
