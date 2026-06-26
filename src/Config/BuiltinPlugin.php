@@ -38,6 +38,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
 				Rules\Expressions\CastSpacingRule::class,
 				Rules\Expressions\ConcatSpacingRule::class,
+				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
