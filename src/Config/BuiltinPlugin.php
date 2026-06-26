@@ -22,6 +22,7 @@ final class BuiltinPlugin implements Plugin
 			presets: [
 			],
 			rules: [
+				Rules\Expressions\OffsetBracketSpacingRule::class,
 				Rules\Arrays\ShortArraySyntaxRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
