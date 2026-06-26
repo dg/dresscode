@@ -23,6 +23,7 @@ final class BuiltinPlugin implements Plugin
 			],
 			rules: [
 				Rules\Expressions\OffsetBracketSpacingRule::class,
+				Rules\Arrays\ArraySpacingRule::class,
 				Rules\Arrays\ShortArraySyntaxRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
