@@ -1,0 +1,9 @@
+<?php
+// {"spacing.ternaryAlignment": "none"}
+$a = $b ? $c : $d;
+$a = $b ? $c : $d;
+$a = $b ?: $d;
+$a = $b ?: $d;
+$a = $b
+	? $c
+	: $d;

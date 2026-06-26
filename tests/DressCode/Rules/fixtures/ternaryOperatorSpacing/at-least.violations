@@ -1,0 +1,5 @@
+2: Expected at least one space before the `?` operator.
+2: Expected at least one space after the `?` operator.
+2: Expected at least one space before the colon.
+2: Expected at least one space after the colon.
+4: Expected no whitespace after the `?` operator.

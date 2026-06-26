@@ -1,0 +1,8 @@
+<?php
+// {"spacing.ternary": "keep", "multiline.operatorPosition.ternary": "lineStart"}
+$a = $b
+	? $c
+	: $d;
+$a = $b?$c:$d;
+$a = $b
+	? : $d;
