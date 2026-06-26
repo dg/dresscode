@@ -64,6 +64,16 @@ test('two rules may govern one operator when each abstains where the other decid
 });
 
 
+test('the whitespace of a string, of a comment and of a line ending is not a gap', function () {
+	[$output, $violations] = apply([
+		RuleBuilder::createRule(Rules\Whitespace\ParenthesesSpacingRule::class, ['spacing.parentheses' => 'compact']),
+		RuleBuilder::createRule(Rules\Expressions\ObjectOperatorSpacingRule::class, ['spacing.objectOperator' => 'compact']),
+	], "<?php\nfoo( \"{\$a -> b}\" );\nfoo( // c\n\t\$a\n);\n\$x ?>\n<b> ?> </b>\n");
+	Assert::same("<?php\nfoo(\"{\$a -> b}\");\nfoo( // c\n\t\$a\n);\n\$x ?>\n<b> ?> </b>\n", $output);
+	Assert::count(2, $violations);
+});
+
+
 #[RuleInfo(Stage::Formatting)]
 class ClaimingRule extends GapRule
 {
