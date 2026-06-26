@@ -35,6 +35,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
+				Rules\Expressions\OffsetBracketSpacingRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
 				Rules\Files\FinalLineEndingsRule::class,
