@@ -1,0 +1,2 @@
+3: Expected a line break after the expression, because the `?` operator ends its line.
+7: Expected a line break after the expression, because the `?:` operator ends its line.

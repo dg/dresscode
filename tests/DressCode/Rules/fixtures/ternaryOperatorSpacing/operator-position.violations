@@ -1,0 +1,5 @@
+3: Expected a line break after the expression, because the `?` operator ends its line.
+10: Expected a line break after the expression, because the `:` operator ends its line.
+12: Expected a line break after the expression, because the `?:` operator ends its line.
+19: Expected a line break after the expression, because the `?` operator ends its line.
+20: Expected a line break after the expression, because the `:` operator ends its line.

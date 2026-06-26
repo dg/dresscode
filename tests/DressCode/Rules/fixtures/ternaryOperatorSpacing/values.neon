@@ -1,0 +1,6 @@
+spacing:
+	ternary: '$a ? $b : $c'
+	ternaryAlignment: any
+multiline:
+	operatorPosition:
+		ternary: keep
