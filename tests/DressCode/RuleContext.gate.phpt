@@ -82,6 +82,18 @@ test('a selected requirement is reported, one the run does not report records no
 });
 
 
+test('a path the rule does not declare and a parameter are a mistake of the rule in every mode', function () use ($file, $token) {
+	foreach ([false, true] as $strict) {
+		$context = createContext($file, ['spacing.call' => 'foo()'], strict: $strict);
+		Assert::exception(fn() => $context->report($token, 'Wrong.', decision: 'spacing.cast'), LogicException::class, 'It reported under `spacing.cast`, a decision it does not declare.');
+		Assert::exception(fn() => $context->report($token, 'Wrong.', decision: 'spacing.commaAlignment'), LogicException::class, 'It reported under `spacing.commaAlignment`, a parameter, which reports nothing of its own.');
+		Assert::exception(fn() => $context->report($token, 'Wrong.'), LogicException::class, 'It reported under no decision, which only a rule of one requirement may.');
+		Assert::exception(fn() => $context->isSilenced($token, decision: 'spacing.cast'), LogicException::class);
+		Assert::false($context->hasReports());
+	}
+});
+
+
 test('the only requirement of a rule is the one a report without a path is under', function () use ($file, $token) {
 	$decisions = ['blankLines.x' => new Decision('blankLines.x', new Count, 'Blank lines')];
 	$values = new Values($decisions, ['blankLines.x' => $decisions['blankLines.x']->accept(1)]);
