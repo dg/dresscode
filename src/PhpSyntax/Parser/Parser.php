@@ -1,0 +1,229 @@
+<?php declare(strict_types=1);
+
+namespace PhpSyntax\Parser;
+
+use PhpSyntax\Lexer\Lexer;
+use PhpSyntax\Node;
+use PhpSyntax\ParseException;
+use PhpSyntax\Token;
+use PhpSyntax\TokenKind;
+use function count, ord;
+
+
+/**
+ * LALR(1) parser over the generated tables; builds the concrete syntax tree.
+ * Based on works by Nikita Popov, Moriyoshi Koizumi and Masato Bito.
+ */
+final class Parser
+{
+	use ParserData;
+
+	private const SymbolNone = -1;
+
+	/** @var list<Token> */
+	private array $tokens = [];
+	private int $position = 0;
+
+	/** @var array<int, Node|Token|null>  semantic value stack: tokens and results of reductions */
+	private array $semStack = [];
+
+	/** result of the last reduction */
+	private Node|Token|null $semValue = null;
+
+
+	public function __construct(
+		private readonly Lexer $lexer = new Lexer,
+	) {
+	}
+
+
+	/** @throws ParseException */
+	public function parse(string $code): GenericNode
+	{
+		$this->tokens = $this->lexer->tokenize($code);
+		$this->position = 0;
+		$children = [];
+		if (($start = $this->run()) !== null) {
+			$children[] = $start;
+		}
+
+		foreach ($this->tokens as $token) { // __halt_compiler() data and the end of file
+			if ($token->kind === TokenKind::HaltCompilerData || $token->kind === TokenKind::EndOfFile) {
+				$children[] = $token;
+			}
+		}
+
+		return $this->attach(new GenericNode(0, $children));
+	}
+
+
+	private function run(): Node|Token|null
+	{
+		$symbol = self::SymbolNone;
+		$token = $this->tokens[$this->position];
+		$state = 0;
+		$stateStack = [$state];
+		$stackPos = 0;
+		$this->semStack = [];
+
+		do {
+			if (self::ActionBase[$state] === 0) {
+				$rule = self::ActionDefault[$state];
+			} else {
+				if ($symbol === self::SymbolNone) {
+					$token = $this->tokens[$this->position];
+					$symbol = self::TokenToSymbol[match ($token->kind) {
+						TokenKind::CloseTag => ord(';'),
+						TokenKind::OpenTagWithEcho => TokenKind::Echo,
+						TokenKind::HaltCompilerData => TokenKind::EndOfFile,
+						default => $token->kind,
+					}];
+				}
+
+				$idx = self::ActionBase[$state] + $symbol;
+				if ((($idx >= 0 && $idx < count(self::Action) && self::ActionCheck[$idx] === $symbol)
+					|| ($state < self::Yy2Tblstate
+						&& ($idx = self::ActionBase[$state + self::NumNonLeafStates] + $symbol) >= 0
+						&& $idx < count(self::Action) && self::ActionCheck[$idx] === $symbol))
+					&& ($action = self::Action[$idx]) !== self::DefaultAction
+				) {
+					/*
+					>= numNonLeafStates: shift and reduce
+					> 0: shift
+					= 0: accept
+					< 0: reduce
+					= -YYUNEXPECTED: error
+					*/
+					if ($action > 0) { // shift
+						++$stackPos;
+						$stateStack[$stackPos] = $state = $action;
+						$this->semStack[$stackPos] = $token;
+						if ($token->kind !== TokenKind::EndOfFile && $token->kind !== TokenKind::HaltCompilerData) {
+							$this->position++;
+						}
+
+						$symbol = self::SymbolNone;
+						if ($action < self::NumNonLeafStates) {
+							continue;
+						}
+
+						$rule = $action - self::NumNonLeafStates; // shift-and-reduce
+					} else {
+						$rule = -$action;
+					}
+				} else {
+					$rule = self::ActionDefault[$state];
+				}
+			}
+
+			do {
+				if ($rule === 0) { // accept
+					return $this->semValue;
+
+				} elseif ($rule !== self::UnexpectedTokenRule) { // reduce
+					$this->reduce($rule, $stackPos);
+
+					// goto - shift nonterminal
+					$stackPos -= self::RuleToLength[$rule];
+					$nonTerminal = self::RuleToNonTerminal[$rule];
+					$idx = self::GotoBase[$nonTerminal] + $stateStack[$stackPos];
+					$state = $idx >= 0 && $idx < count(self::Goto) && self::GotoCheck[$idx] === $nonTerminal
+						? self::Goto[$idx]
+						: self::GotoDefault[$nonTerminal];
+
+					++$stackPos;
+					$stateStack[$stackPos] = $state;
+					$this->semStack[$stackPos] = $this->semValue;
+
+				} else {
+					throw $this->createUnexpectedTokenException($state, $token);
+				}
+
+				if ($state < self::NumNonLeafStates) {
+					break;
+				}
+
+				$rule = $state - self::NumNonLeafStates; // shift-and-reduce
+			} while (true);
+		} while (true);
+	}
+
+
+	/**
+	 * A production without an action passes a single child through, an empty one yields null,
+	 * any other becomes a generic node.
+	 */
+	protected function reduceGeneric(int $rule, int $pos): void
+	{
+		$length = self::RuleToLength[$rule];
+		if ($length === 0) {
+			$this->semValue = null;
+		} elseif ($length === 1) {
+			$this->semValue = $this->semStack[$pos];
+		} else {
+			$children = [];
+			for ($i = $pos - $length + 1; $i <= $pos; $i++) {
+				if ($this->semStack[$i] !== null) {
+					$children[] = $this->semStack[$i];
+				}
+			}
+
+			$this->semValue = $this->attach(new GenericNode($rule, $children));
+		}
+	}
+
+
+	private function attach(GenericNode $node): GenericNode
+	{
+		foreach ($node->children as $child) {
+			$child->parent = $node;
+		}
+
+		return $node;
+	}
+
+
+	private function createUnexpectedTokenException(int $state, Token $token): ParseException
+	{
+		$message = $token->kind === TokenKind::EndOfFile
+			? 'Unexpected end of file'
+			: "Unexpected '$token->text'";
+		if ($expected = $this->getExpectedTokens($state)) {
+			$last = array_pop($expected);
+			$message .= ', expecting ' . ($expected ? implode(', ', $expected) . ' or ' : '') . $last;
+		}
+
+		return new ParseException($message, $token->originalLine, $token->originalOffset);
+	}
+
+
+	/**
+	 * Names of tokens acceptable in the state, or [] when there are too many to be helpful.
+	 * @return list<string>
+	 */
+	private function getExpectedTokens(int $state): array
+	{
+		$expected = [];
+		$base = self::ActionBase[$state];
+		foreach (self::SymbolToName as $symbol => $name) {
+			$idx = $base + $symbol;
+			if (
+				(($idx >= 0 && $idx < count(self::Action) && self::ActionCheck[$idx] === $symbol)
+					|| ($state < self::Yy2Tblstate
+						&& ($idx = self::ActionBase[$state + self::NumNonLeafStates] + $symbol) >= 0
+						&& $idx < count(self::Action) && self::ActionCheck[$idx] === $symbol))
+				&& self::Action[$idx] !== self::UnexpectedTokenRule
+				&& self::Action[$idx] !== self::DefaultAction
+				&& $symbol !== 0
+			) {
+				if (count($expected) === 4) {
+					return [];
+				}
+
+				$expected[] = $name;
+			}
+		}
+
+		return $expected;
+	}
+}

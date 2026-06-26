@@ -5,6 +5,8 @@ namespace PhpSyntax;
 
 final class Token implements \Stringable
 {
+	public ?Node $parent = null;
+
 	/** @var list<Trivia> */
 	public array $leadingTrivia = [];
 
