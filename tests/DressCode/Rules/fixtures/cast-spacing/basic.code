@@ -1,0 +1,9 @@
+<?php
+$a = (INT)$b;
+$a = (integer) $b;
+$a = ( bool )   $b;
+$a = (Double)$b;
+$a = (string) $b;
+$a = (array)
+	$b;
+$a = (unset) $b;
