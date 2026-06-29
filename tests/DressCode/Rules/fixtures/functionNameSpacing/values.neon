@@ -1,0 +1,2 @@
+spacing:
+	call: 'foo($a, $b)'

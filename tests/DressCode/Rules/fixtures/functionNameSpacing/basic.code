@@ -1,0 +1,24 @@
+<?php
+foo ($a);
+$o->bar ();
+A::baz ();
+$o->{'bar'} ();
+A::{'baz'} ();
+new A ();
+function f ($a) {}
+class B { function m () {} }
+isset ($a);
+unset ($a);
+empty ($a);
+list ($a) = $b;
+exit ();
+foo
+	($a);
+eval ('1');
+class C {
+	public $p { set ($v) {} }
+}
+#[A (1)]
+#[B]
+function attributed() {}
+__halt_compiler ();

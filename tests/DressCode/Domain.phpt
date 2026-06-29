@@ -7,6 +7,19 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
+test('a shape is one of the known ones and never read', function () {
+	$shapes = new Shapes(['compact' => ['foo($a, $b)', 'no space'], 'spaced' => ['foo ($a, $b)', 'a single space']]);
+	Assert::same('spaced', $shapes->accept('foo ($a, $b)', 'spacing.call')->getShape());
+	Assert::same('spaced', $shapes->accept('spaced', 'spacing.call')->getShape());
+	Assert::exception(
+		fn() => $shapes->accept('foo( $a )', 'spacing.call', keep: true),
+		ConfigurationException::class,
+		'Key `spacing.call` does not take `foo( $a )`; write `compact` (`"foo($a, $b)"`), `spaced` (`"foo ($a, $b)"`) or `keep`.',
+	);
+	Assert::exception(fn() => $shapes->accept(['foo($a, $b)'], 'spacing.call'), ConfigurationException::class);
+});
+
+
 test('a count is a number, a range in any notation, an open one, or a word', function () {
 	$count = new Count(words: ['none' => 'no limit']);
 	Assert::same([2, 2], $count->accept(2, 'x.y')->getCount());
