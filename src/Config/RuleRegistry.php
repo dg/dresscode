@@ -38,6 +38,7 @@ final class RuleRegistry
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
 		Rules\Expressions\CastSpacingRule::class,
 		Rules\Expressions\ConcatSpacingRule::class,
+		Rules\Expressions\DoubleColonSpacingRule::class,
 		Rules\Expressions\NotEqualsOperatorRule::class,
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
