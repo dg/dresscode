@@ -49,6 +49,10 @@ $code = buildTokenKind(file_get_contents($tmpResultFile));
 file_put_contents("$srcDir/TokenKind.php", $code);
 unlink($tmpResultFile);
 
+echo "Building node classes.\n";
+require __DIR__ . '/nodes-generator.php';
+buildNodes(require __DIR__ . '/nodes.php', "$srcDir/Nodes");
+
 if (!$optionDebug) {
 	unlink($tmpGrammarFile);
 }

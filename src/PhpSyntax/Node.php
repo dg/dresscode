@@ -100,6 +100,14 @@ abstract class Node implements \Stringable
 	}
 
 
+	protected static function describeSlotMismatch(string $slot, self|Token $child): \InvalidArgumentException
+	{
+		return new \InvalidArgumentException(
+			($child instanceof Token ? "Token '$child->text'" : $child::class) . " cannot be placed in the slot '$slot' of " . static::class . '.',
+		);
+	}
+
+
 	protected static function describeChildMismatch(self|Token $child): \InvalidArgumentException
 	{
 		return new \InvalidArgumentException(
