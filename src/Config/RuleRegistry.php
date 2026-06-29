@@ -23,6 +23,7 @@ final class RuleRegistry
 
 	private const BuiltinRules = [
 		Rules\Expressions\OffsetBracketSpacingRule::class,
+		Rules\Arrays\ArraySpacingRule::class,
 		Rules\Arrays\ShortArraySyntaxRule::class,
 		Rules\Comments\NoEmptyCommentRule::class,
 		Rules\Comments\NoHashCommentRule::class,
