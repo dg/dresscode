@@ -1,0 +1,18 @@
+2: Expected no whitespace after the name.
+3: Expected no whitespace after the name.
+4: Expected no whitespace after the name.
+5: Expected no whitespace after the closing brace.
+6: Expected no whitespace after the closing brace.
+7: Expected no whitespace after the name.
+8: Expected no whitespace after the name.
+9: Expected no whitespace after the name.
+10: Expected no whitespace after the `isset` keyword.
+11: Expected no whitespace after the `unset` keyword.
+12: Expected no whitespace after the `empty` keyword.
+13: Expected no whitespace after the `list` keyword.
+14: Expected no whitespace after the `exit` keyword.
+15: Expected no line break after the name.
+17: Expected no whitespace after the `eval` keyword.
+19: Expected no whitespace after the name.
+21: Expected no whitespace after the name.
+24: Expected no whitespace after the `__halt_compiler` keyword.

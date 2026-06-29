@@ -51,6 +51,17 @@ test('the page of the manual is a link', function () {
 });
 
 
+test('the path of a decision is a link in a terminal with colors, and bare elsewhere', function () {
+	$url = 'https://dresscode.run/rules#spacing.call';
+	Assert::same(
+		"\e]8;;$url\e\\spacing.call\e]8;;\e\\",
+		Markup::formatDecision(new Console(colorDepth: ColorDepth::Ansi256, terminal: true), 'spacing.call', $url),
+	);
+	Assert::same('spacing.call', Markup::formatDecision(new Console(colorDepth: ColorDepth::None, terminal: true), 'spacing.call', $url));
+	Assert::same('spacing.call', Markup::formatDecision(new Console(colorDepth: ColorDepth::Ansi256, terminal: false), 'spacing.call', $url));
+});
+
+
 test('a diff is drawn by its lines', function () {
 	Assert::same(
 		"\e[36m@@ -1 +1 @@\n\e[0m\e[91m-a\n\e[0m\e[32m+b\n\e[0m c\n",

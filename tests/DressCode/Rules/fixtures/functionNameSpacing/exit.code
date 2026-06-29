@@ -1,0 +1,13 @@
+<?php
+// php 8.4
+exit(1);
+exit;
+exit ( 1 );
+EXIT(1);
+die("x");
+DIE ("x");
+Die;
+exit ();
+exit (  );
+function f() { return $a or exit (2); }
+EXIT (3);
