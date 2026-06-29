@@ -151,7 +151,7 @@ final class Application
 		);
 		$program->addOption(
 			'--set',
-			'Set a decision over the configuration as `path=value`, the value in NEON',
+			'Set a decision over the configuration as `path=value`, the value in NEON: `spacing.fnKeyword="fn ($x) => $x"`',
 			valueName: 'path=value',
 			repeatable: true,
 		);
