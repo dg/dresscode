@@ -1,0 +1,73 @@
+<?php
+function
+	foo()
+{
+	return
+		$a;
+	throw
+		new E;
+	yield
+		$b;
+	echo
+		$c;
+	require
+		'x.php';
+	$d = new
+		Foo;
+	return // why
+		$e;
+	$f = new
+		#[A]
+		class {};
+}
+abstract
+class A
+{
+	abstract public
+		static function
+		bar();
+}
+if ($a)
+{
+}
+else
+{
+}
+if ($a)
+	foo();
+else
+	bar();
+do
+{
+} while ($a);
+do
+	foo();
+while ($a);
+try
+{
+} finally
+{
+}
+const
+	X = 1,
+	Y = 2;
+const
+	Z = 3;
+global
+	$g;
+yield from
+	$h;
+echo
+	$i,
+	$j;
+class B
+{
+	use
+		T1,
+		T2;
+	use
+		T3;
+}
+?>
+<p><?=
+	$k ?></p>

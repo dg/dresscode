@@ -1,0 +1,6 @@
+<?php
+// {"spacing.fnKeyword": "keep"}
+$a = fn($x) => $x;
+$b = fn ($x) => $x;
+$c = fn  ($x) => $x;
+return  1;

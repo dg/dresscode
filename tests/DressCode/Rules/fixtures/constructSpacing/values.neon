@@ -1,0 +1,10 @@
+spacing:
+	languageConstruct: 'return $x'
+	controlKeyword: 'if ($a)'
+	connectingKeyword: '} else {'
+	functionKeyword: 'function ($x)'
+	modifier: 'final public static function'
+	fnKeyword: 'fn($x) => $x'
+
+multiline:
+	expressionBelowReturn: forbidden
