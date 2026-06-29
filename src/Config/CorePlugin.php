@@ -39,6 +39,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\OffsetBracketSpacingRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
+				Rules\Files\DeclareSpacingRule::class,
 				Rules\Files\FinalLineEndingsRule::class,
 				Rules\Files\OpeningTagNotationRule::class,
 				Rules\Files\LineEndingRule::class,
