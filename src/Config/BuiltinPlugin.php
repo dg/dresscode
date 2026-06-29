@@ -53,6 +53,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Whitespace\ParenthesesSpacingRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
 				Rules\Files\EofLineEndingRule::class,
+				Rules\Whitespace\ConstructSpacingRule::class,
 			],
 			ruleUrl: 'https://dresscode.run/rules/{slug}',
 		);
