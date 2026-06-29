@@ -35,6 +35,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Files\LineEndingRule::class,
 				Rules\Files\NoClosingTagRule::class,
 				Rules\Files\StrictTypesRequiredRule::class,
+				Rules\Functions\NamedArgumentSpacingRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
 				Rules\Literals\TrueFalseNullCasingRule::class,
 				Rules\Literals\KeywordCasingRule::class,
