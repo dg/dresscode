@@ -22,6 +22,7 @@ final class RuleRegistry
 	private const Vendor = 'dresscode/';
 
 	private const BuiltinRules = [
+		Rules\Expressions\OffsetBracketSpacingRule::class,
 		Rules\Arrays\ShortArraySyntaxRule::class,
 		Rules\Comments\NoEmptyCommentRule::class,
 		Rules\Comments\NoHashCommentRule::class,
