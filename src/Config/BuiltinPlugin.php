@@ -49,6 +49,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Literals\MagicConstantCasingRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
+				Rules\Files\DeclareSpacingRule::class,
 				Rules\Whitespace\SemicolonSpacingRule::class,
 				Rules\Whitespace\ParenthesesSpacingRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
