@@ -1,0 +1,7 @@
+<?php
+$a = $cond ? throw new ShouldNotHappen : $res;
+$b = new Foo;
+$c = new Foo ();
+$d = $cond ?: exit;
+exit;
+exit (1);
