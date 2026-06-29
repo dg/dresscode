@@ -23,4 +23,10 @@ final class GenericNode extends Node
 	{
 		return $this->children;
 	}
+
+
+	public function replaceChild(Node|Token $old, Node|Token $new): void
+	{
+		throw new \LogicException('A generic node cannot be modified.');
+	}
 }

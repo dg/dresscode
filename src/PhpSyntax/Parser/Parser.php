@@ -53,7 +53,7 @@ final class Parser
 			}
 		}
 
-		return $this->attach(new GenericNode(0, $children));
+		return (new GenericNode(0, $children))->attach();
 	}
 
 
@@ -168,18 +168,8 @@ final class Parser
 				}
 			}
 
-			$this->semValue = $this->attach(new GenericNode($rule, $children));
+			$this->semValue = (new GenericNode($rule, $children))->attach();
 		}
-	}
-
-
-	private function attach(GenericNode $node): GenericNode
-	{
-		foreach ($node->children as $child) {
-			$child->parent = $node;
-		}
-
-		return $node;
 	}
 
 
