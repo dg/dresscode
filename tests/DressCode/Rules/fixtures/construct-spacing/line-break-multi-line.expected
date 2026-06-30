@@ -1,0 +1,17 @@
+<?php
+// {"allowMultiLineExpression": true}
+function foo()
+{
+	return
+		$a
+		&& $b;
+	return $c;
+	throw
+		new E(
+			'x',
+		);
+	yield $d;
+	$e = new Foo(
+			1,
+		);
+}
