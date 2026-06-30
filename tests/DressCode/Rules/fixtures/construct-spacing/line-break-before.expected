@@ -1,0 +1,12 @@
+<?php
+foreach ($a as $b) {
+}
+$c = function () use ($d) {
+};
+class E
+{
+	use T, U {
+		T::f insteadof U;
+		U::g as h;
+	}
+}

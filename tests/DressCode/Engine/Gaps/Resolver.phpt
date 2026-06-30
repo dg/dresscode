@@ -30,6 +30,26 @@ function apply(array $rules, string $code): array
 }
 
 
+test('the stricter side of a gap wins: nothing before the semicolon, whatever the keyword asks for after itself', function () {
+	[$output, $violations] = apply([
+		PresetResolver::createRule(Rules\Whitespace\ConstructSpacingRule::class),
+		PresetResolver::createRule(Rules\Whitespace\SemicolonSpacingRule::class),
+	], "<?php\nreturn  ;\nreturn  \$a ;\n");
+	Assert::same("<?php\nreturn;\nreturn \$a;\n", $output);
+	Assert::same([
+		'2: No whitespace before the semicolon [dresscode/semicolon-spacing]',
+		'3: A single space after the return keyword [dresscode/construct-spacing]',
+		'3: No whitespace before the semicolon [dresscode/semicolon-spacing]',
+	], $violations);
+});
+
+
+test('a keyword alone knows what closes it', function () {
+	[$output] = apply([PresetResolver::createRule(Rules\Whitespace\ConstructSpacingRule::class)], "<?php\nreturn;\nswitch (\$a) {\n\tdefault:\n}\n");
+	Assert::same("<?php\nreturn;\nswitch (\$a) {\n\tdefault:\n}\n", $output);
+});
+
+
 test('two rules may govern one operator when each abstains where the other decides', function () {
 	[$output, $violations] = apply([
 		PresetResolver::createRule(Rules\Expressions\BinaryOperatorSpacingRule::class, ['alignment' => 'none']),
@@ -42,6 +62,21 @@ test('two rules may govern one operator when each abstains where the other decid
 		'2: No whitespace before the . operator [dresscode/concat-spacing]',
 		'2: No whitespace after the . operator [dresscode/concat-spacing]',
 	], $violations);
+});
+
+
+test('a plain claim and a closure deciding one component of one slot are refused at the first gap they meet on', function () {
+	$other = new #[RuleInfo('test/other-spacing', Stage::Formatting)] class extends GapRule {
+		public function getClaims(): array
+		{
+			return ['*' => ['returnKeyword' => [null, Claim::none()]]];
+		}
+	};
+	Assert::exception(
+		fn() => apply([PresetResolver::createRule(Rules\Whitespace\ConstructSpacingRule::class), $other], "<?php\nreturn \$a;\n"),
+		ConfigurationException::class,
+		'Rules dresscode/construct-spacing and test/other-spacing both govern the whitespace after *.returnKeyword.',
+	);
 });
 
 
