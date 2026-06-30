@@ -35,6 +35,7 @@ final class RuleRegistry
 		Rules\Files\LineEndingRule::class,
 		Rules\Files\NoClosingTagRule::class,
 		Rules\Files\StrictTypesRequiredRule::class,
+		Rules\Functions\FunctionNameSpacingRule::class,
 		Rules\Literals\ConstantCasingRule::class,
 		Rules\Literals\KeywordCasingRule::class,
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
