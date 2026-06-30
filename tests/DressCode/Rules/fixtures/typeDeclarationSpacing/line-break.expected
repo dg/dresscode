@@ -1,0 +1,21 @@
+<?php
+function a(
+	?int $b,
+	int|string $c,
+	A&B $d,
+	int $e,
+): int {
+}
+function f(): int
+{
+}
+class H
+{
+	public int $i;
+}
+try {
+} catch (A|B $e) {
+}
+enum G: string
+{
+}

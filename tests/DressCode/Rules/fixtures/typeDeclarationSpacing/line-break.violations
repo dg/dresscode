@@ -1,0 +1,10 @@
+3: Expected no line break after the `?` operator.
+5: Expected no line break after the `|` operator.
+8: Expected no line break before the `&` operator.
+9: Expected no line break after the named type.
+11: Expected no line break after the colon.
+15: Expected no line break before the colon.
+20: Expected no line break after the named type.
+25: Expected no line break before the `|` operator.
+25: Expected no whitespace after the `|` operator.
+28: Expected no line break before the colon.

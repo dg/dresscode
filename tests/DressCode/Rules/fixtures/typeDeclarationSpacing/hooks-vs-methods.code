@@ -1,0 +1,11 @@
+<?php
+// php 8.4
+class A
+{
+	public function f( string  $value ) {}
+	public string $c { set( string  $value ) { $this->c = $value; } }
+	public string $d { set( ?string  $value ) { $this->d = $value; } }
+	public string $e { set(string|int  $value) { $this->e = $value; } }
+	public Countable&Traversable $g { set(Countable&Traversable  $value ) { $this->g = $value; } }
+	public string $h { set(  string $value  ) { $this->h = $value; } }
+}

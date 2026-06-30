@@ -1,0 +1,7 @@
+<?php
+// {"catchType": "keep"}
+function f(? int $a, int | string $b) : ? array {
+	try {
+	} catch (A | B  $e) {
+	}
+}
