@@ -29,6 +29,7 @@ final class RuleRegistry
 		Rules\Comments\NoHashCommentRule::class,
 		Rules\ControlFlow\ElseifKeywordRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
+		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\Files\NoBomRule::class,
 		Rules\Files\NoInvisibleCharactersRule::class,
 		Rules\Files\FullOpeningTagRule::class,
