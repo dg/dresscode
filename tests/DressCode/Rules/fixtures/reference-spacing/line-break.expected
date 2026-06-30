@@ -1,0 +1,4 @@
+<?php
+$a = &$b;
+function &c(array &$d) {
+}
