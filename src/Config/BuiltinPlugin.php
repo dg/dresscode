@@ -46,6 +46,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
 				Rules\Expressions\ReferenceSpacingRule::class,
+				Rules\Expressions\SpreadOperatorSpacingRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
