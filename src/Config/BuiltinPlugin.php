@@ -52,6 +52,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Literals\MagicConstantCasingRule::class,
+				Rules\Types\TypeHintSpacingRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Files\DeclareSpacingRule::class,
