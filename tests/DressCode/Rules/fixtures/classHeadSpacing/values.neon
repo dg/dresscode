@@ -1,0 +1,3 @@
+spacing:
+	classHead: 'class Foo extends Bar implements Baz'
+	anonymousClass: 'new class ($a)'
