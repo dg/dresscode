@@ -1,0 +1,19 @@
+2: Expected no whitespace after the `?` operator.
+2: Expected a single space after the name.
+2: Expected no whitespace before the `|` operator.
+2: Expected no whitespace after the `|` operator.
+2: Expected no whitespace before the `&` operator.
+2: Expected no whitespace after the `&` operator.
+2: Expected no whitespace before the colon.
+2: Expected no whitespace after the `?` operator.
+4: Expected no whitespace after the `?` operator.
+5: Expected a single space after the name.
+6: Expected a single space after the colon.
+8: Expected a single space after the colon.
+9: Expected no whitespace before the colon.
+9: Expected a single space after the colon.
+13: Expected a single space after the colon.
+15: Expected no whitespace before the `|` operator.
+15: Expected no whitespace after the `|` operator.
+21: Expected no whitespace before the `|` operator.
+21: Expected no whitespace after the `|` operator.

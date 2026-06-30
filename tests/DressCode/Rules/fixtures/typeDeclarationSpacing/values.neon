@@ -1,0 +1,3 @@
+spacing:
+	typeDeclaration: '?int $x'
+	catchType: 'catch (A|B $e)'

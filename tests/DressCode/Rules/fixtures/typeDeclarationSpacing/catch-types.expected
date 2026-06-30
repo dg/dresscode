@@ -1,0 +1,6 @@
+<?php
+// {"catchType": "catch (A | B $e)"}
+try {
+} catch (A | B $e) {
+} catch (C | D $e) {
+}

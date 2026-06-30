@@ -55,6 +55,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\NamedArgumentSpacingRule::class,
 				Rules\Literals\BuiltinCasingRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
+				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Whitespace\ConstructSpacingRule::class,
