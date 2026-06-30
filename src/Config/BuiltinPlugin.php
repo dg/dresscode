@@ -25,6 +25,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\OffsetBracketSpacingRule::class,
 				Rules\Arrays\ArraySpacingRule::class,
 				Rules\Arrays\ShortArraySyntaxRule::class,
+				Rules\Whitespace\AttributeSpacingRule::class,
 				Rules\Classes\ClassDefinitionSpacingRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
