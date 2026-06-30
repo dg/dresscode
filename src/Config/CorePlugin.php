@@ -30,6 +30,7 @@ final class CorePlugin implements Plugin
 				Rules\Comments\NoHashCommentsRule::class,
 				Rules\ControlFlow\ElseifNotationRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
+				Rules\ControlFlow\SwitchCaseSpacingRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
 				Rules\Expressions\CastSpacingRule::class,
 				Rules\Expressions\ConcatenationSpacingRule::class,
