@@ -1,0 +1,8 @@
+<?php
+// {"anonymousClass": "new class($a)"}
+$a = new class($x) extends Foo {
+};
+$b = new class($x) {
+};
+$c = new class {
+};

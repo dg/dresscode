@@ -1,0 +1,9 @@
+2: Expected no line break after the `class` keyword.
+4: Expected no line break before the `extends` keyword.
+4: Expected no line break after the `extends` keyword.
+6: Expected no line break before the `implements` keyword.
+21: Expected no line break after the `trait` keyword.
+25: Expected no line break after the `enum` keyword.
+29: Expected no line break after the `class` keyword.
+31: Expected no line break before the `extends` keyword.
+31: Expected no line break after the `extends` keyword.

@@ -1,0 +1,7 @@
+<?php
+// {"classHead": "keep"}
+final  class  A  extends  B
+{
+}
+$x = new  class ($a)  extends  B {};
+$y = new class ( $a ) {};
