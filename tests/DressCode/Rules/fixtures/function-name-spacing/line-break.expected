@@ -1,0 +1,8 @@
+<?php
+foo(1);
+$a->bar(2);
+A::baz(3);
+function qux() {
+}
+new Foo(4);
+isset($b);
