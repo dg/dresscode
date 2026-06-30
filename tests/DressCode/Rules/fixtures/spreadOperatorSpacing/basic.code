@@ -1,0 +1,7 @@
+<?php
+f(... $args);
+f(...$args);
+function g(... $rest) {
+}
+$a = [... $b, 1];
+$c = f(...);
