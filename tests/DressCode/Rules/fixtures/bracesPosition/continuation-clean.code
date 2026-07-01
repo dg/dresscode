@@ -1,0 +1,9 @@
+<?php
+if ($a) {
+} else {
+}
+
+// the space around the keyword is not the matter of this rule
+if ($a) {
+}   else {
+}

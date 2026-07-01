@@ -1,0 +1,12 @@
+<?php
+// {"afterMultilineSignature": "nextLineAfterReturnType"}
+function f(
+	int $a,
+)
+{
+}
+
+function g(
+	int $a,
+): int {
+}

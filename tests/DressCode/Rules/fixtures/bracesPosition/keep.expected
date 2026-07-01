@@ -1,0 +1,22 @@
+<?php
+// {"class": "keep", "emptyBody": "keep", "emptyAnonymousClass": "ownLines"}
+class A {
+	public function f()
+	{
+		return 1;
+	}
+}
+class B
+{
+	public function g() {}
+
+	public function h()
+	{
+	}
+}
+$o = new class {
+};
+$d = function ()
+{};
+$e = function () {
+};

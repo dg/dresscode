@@ -1,0 +1,6 @@
+5: Expected no line break before the `elseif` keyword.
+7: Expected no line break before the `else` keyword.
+12: Expected no line break before the `catch` keyword.
+14: Expected no line break before the `finally` keyword.
+19: Expected no line break before the `while` keyword.
+24: Expected no line break before the `else` keyword.
