@@ -27,6 +27,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Arrays\ShortArraySyntaxRule::class,
 				Rules\Whitespace\AttributeSpacingRule::class,
 				Rules\Classes\ClassDefinitionSpacingRule::class,
+				Rules\Comments\CommentSpacingRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
 				Rules\ControlFlow\ElseifKeywordRule::class,
