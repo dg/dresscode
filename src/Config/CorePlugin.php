@@ -31,6 +31,7 @@ final class CorePlugin implements Plugin
 				Rules\Comments\CommentSpacingRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
+				Rules\ControlFlow\NoBracelessBodiesRule::class,
 				Rules\ControlFlow\ElseifNotationRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\ControlFlow\SwitchCaseSpacingRule::class,
