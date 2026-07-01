@@ -1,0 +1,3 @@
+<?php
+// {"comment.afterCode": "keep"}
+$a = 1;// c

@@ -1,0 +1,5 @@
+<?php
+$a = 1; // matches foo*/
+$b = 2; //matches foo*/
+foo();/* a */ // b
+foo(); /* a */ // b
