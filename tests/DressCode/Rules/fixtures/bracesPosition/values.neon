@@ -1,0 +1,12 @@
+braces:
+	position:
+		class: nextLine
+		function: nextLine
+		multilineSignature: sameLine
+		closure: sameLine
+		anonymousClass: sameLine
+		controlStructure: sameLine
+		continuingKeyword: sameLine
+	emptyBody: ownLines
+	emptyAnonymousClass: keep
+	singlelineClosure: keep

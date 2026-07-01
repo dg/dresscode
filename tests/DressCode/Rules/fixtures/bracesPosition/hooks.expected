@@ -1,0 +1,33 @@
+<?php
+// php 8.4
+class A
+{
+	public int $a { get; set; }
+	public int $b {
+		get {
+			return 1;
+		}
+		set {
+			$this->b = $value;
+		}
+	}
+	public int $c {
+		get {
+			return 1;
+		}
+	}
+	public int $d { get => 1; set => $this->d = $value; }
+	public int $e {
+		get => 1;
+		set {
+			$this->e = $value;
+		}
+	}
+	public int $f {
+		get;
+		set;
+	}
+	public function __construct(public int $g { set => $value; })
+	{
+	}
+}

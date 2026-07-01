@@ -32,7 +32,6 @@
 41: Expected a single space before the opening brace.
 43: Expected a single space after the `match` keyword.
 43: Expected a single space before the opening brace.
-44: Expected no whitespace before the closing brace.
 45: Expected no whitespace after the namespace separator.
 45: Expected no whitespace after the opening brace.
 45: Expected no whitespace before the closing brace.
@@ -44,3 +43,4 @@
 49: Expected no whitespace before the colon.
 54: Expected a single space before the `endif` keyword.
 55: Expected a single space before the `endwhile` keyword.
+57: Expected no whitespace before the closing brace.

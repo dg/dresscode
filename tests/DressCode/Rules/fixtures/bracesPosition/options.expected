@@ -1,0 +1,11 @@
+<?php
+// {"position.class": "sameLine", "position.controlStructure": "nextLine", "position.closure": "nextLine", "singlelineClosure": "forbidden"}
+class A {
+}
+if ($a)
+{
+}
+$f = function ()
+{
+	return 1;
+};

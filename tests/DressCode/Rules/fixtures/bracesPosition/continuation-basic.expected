@@ -1,0 +1,23 @@
+<?php
+if ($a) {
+	x();
+} elseif ($b) {
+} else {
+}
+
+try {
+} catch (E $e) {
+} finally {
+}
+
+do {
+} while ($a);
+
+if ($a) {
+}
+// comment
+else {
+}
+
+if ($a) x();
+else y();
