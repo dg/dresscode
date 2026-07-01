@@ -1,0 +1,6 @@
+<?php
+// {"catchTypes": "single"}
+try {
+} catch (A | B $e) {
+} catch (C | D $e) {
+}
