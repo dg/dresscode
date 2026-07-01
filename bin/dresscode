@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+
+// the project's autoloader first: a copy installed from a path repository brings its own vendor along
+foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
+	if (is_file($file)) {
+		require $file;
+		break;
+	}
+}
+
+if (!class_exists(DressCode\Console\Application::class)) {
+	fwrite(STDERR, "Install DressCode using `composer require --dev dresscode/dresscode`.\n");
+	exit(2);
+}
+
+// a 500 kB file peaks at about 100 MB; the ini default of 128M is too close for comfort
+if (preg_match('~^(\d+)([KMG]?)$~i', (string) ini_get('memory_limit'), $m)) {
+	$bytes = (int) $m[1] * ['' => 1, 'K' => 1024, 'M' => 1024 ** 2, 'G' => 1024 ** 3][strtoupper($m[2])];
+	if ($bytes < 512 * 1024 ** 2) {
+		ini_set('memory_limit', '512M');
+	}
+}
+
+exit((new DressCode\Console\Application)->run($argv));

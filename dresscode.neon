@@ -4,6 +4,7 @@ presets:
 paths:
 	- src
 	- tests
+	- bin/dresscode
 
 excludePaths:
 	- fixtures
