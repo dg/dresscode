@@ -1,0 +1,26 @@
+<?php
+if ($a)
+	// only for admins
+	x();
+foreach ($c as $d)
+
+	/** @var int $d */
+	z($d);
+for (;;)
+	/* c */ x();
+
+function f()
+{
+	if ($a)
+		# x
+		x();
+	else
+		/* multi
+		   line */
+		y();
+	while ($b) /* c */ y();
+	if ($a)
+      /* multi
+         line */
+      x();
+}

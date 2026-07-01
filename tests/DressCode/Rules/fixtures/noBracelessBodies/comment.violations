@@ -1,0 +1,7 @@
+4: The body of the `if` must be enclosed in braces.
+8: The body of the `foreach` must be enclosed in braces.
+10: The body of the `for` must be enclosed in braces.
+16: The body of the `if` must be enclosed in braces.
+20: The body of the `else` must be enclosed in braces.
+21: The body of the `while` must be enclosed in braces.
+25: The body of the `if` must be enclosed in braces.

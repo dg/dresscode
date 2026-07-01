@@ -1,0 +1,9 @@
+2: The body of the `if` must be enclosed in braces.
+3: The body of the `elseif` must be enclosed in braces.
+4: The body of the `else` must be enclosed in braces.
+9: The body of the `while` must be enclosed in braces.
+12: The body of the `for` must be enclosed in braces.
+15: The body of the `foreach` must be enclosed in braces.
+15: The body of the `if` must be enclosed in braces.
+16: The body of the `do` must be enclosed in braces.
+18: The body of the `if` must be enclosed in braces.
