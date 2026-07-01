@@ -1,0 +1,18 @@
+<?php
+//foo
+// bar
+//// ruler
+#foo
+/*foo*/
+/* bar */
+/**/
+/*** stars ***/
+/**doc*/
+/** doc */
+$a = 1;// c
+$b = 2;   // aligned
+$c = 3; /* c */
+foo(/* x */$y);
+$d = "no //change";
+#[Attr]
+function f() {}
