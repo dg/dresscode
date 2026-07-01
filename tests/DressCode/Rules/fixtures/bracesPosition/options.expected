@@ -1,0 +1,11 @@
+<?php
+// {"class": "sameLine", "controlStructure": "nextLine", "anonymousFunction": "nextLine", "singlelineAnonymousFunction": "always"}
+class A {
+}
+if ($a)
+{
+}
+$f = function ()
+{
+	return 1;
+};

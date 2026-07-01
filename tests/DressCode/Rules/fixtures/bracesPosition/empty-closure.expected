@@ -1,0 +1,8 @@
+<?php
+// {"singlelineAnonymousFunction": "always", "emptyBody": "sameLine"}
+$f = function () {};
+$g = function () {
+	return 1;
+};
+$h = function () { /* why */
+};
