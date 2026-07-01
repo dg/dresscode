@@ -1,0 +1,7 @@
+<?php
+// namespacedFunctions App\f, App\Sub\{g}
+// namespacedConstants App\C
+// nameResolution certain
+namespace App;
+
+f(); h(); Sub\g();
