@@ -62,6 +62,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Whitespace\SemicolonSpacingRule::class,
 				Rules\Whitespace\ParenthesesSpacingRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
+				Rules\Whitespace\SingleStatementPerLineRule::class,
 				Rules\Files\EofLineEndingRule::class,
 				Rules\Whitespace\ConstructSpacingRule::class,
 			],
