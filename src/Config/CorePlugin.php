@@ -27,6 +27,7 @@ final class CorePlugin implements Plugin
 				Rules\Arrays\ArraySpacingRule::class,
 				Rules\Arrays\NoLongArraySyntaxRule::class,
 				Rules\Classes\ClassHeadSpacingRule::class,
+				Rules\Comments\CommentSpacingRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
 				Rules\ControlFlow\ElseifNotationRule::class,

@@ -1,0 +1,5 @@
+<?php
+// {"comment": "keep"}
+//foo
+/*foo*/
+$a = 1;//c
