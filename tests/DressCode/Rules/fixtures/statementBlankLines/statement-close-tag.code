@@ -1,0 +1,6 @@
+<?php
+// {"beforeStatement": {"return": "keep"}, "afterStatement": {"if": 1}}
+if ($x) {
+}
+?>
+<b>html</b>

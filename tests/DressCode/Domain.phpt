@@ -87,6 +87,23 @@ test('names are free, patterns are regular expressions, allowed ones are words',
 });
 
 
+test('a map of a set of words takes those keys alone', function () {
+	$map = new Map(new Count, wildcards: false, words: ['return' => '', 'yield' => '']);
+	Assert::same([1, null], $map->accept(['return' => '1+'], 'blankLines.beforeStatement')->getEntries()['return']->getCount());
+	Assert::same(['return' => 1], $map->accept(['return' => 1], 'blankLines.beforeStatement')->toWrittenData());
+	Assert::exception(
+		fn() => $map->accept(['echo' => 1], 'blankLines.beforeStatement'),
+		ConfigurationException::class,
+		'Key `blankLines.beforeStatement` does not take `echo`; write `return` or `yield`.',
+	);
+	Assert::same(
+		'a map of `return`, `yield` to a count from 0, a range `1–2`, an open one `1+`, an entry withdrawn with `keep`',
+		$map->describe(),
+	);
+	Assert::exception(fn() => new Map(new Count, words: ['return' => '']), InvalidArgumentException::class);
+});
+
+
 test('a map maps names to values of its domain, keep withdraws an entry, never the whole', function () {
 	$map = new Map(new Words(['backslashed' => '', 'imported' => '']));
 	$value = $map->accept(['assert' => 'backslashed', 'strlen' => 'keep'], 'x.except');
@@ -146,6 +163,20 @@ test('a getter of another domain is a mistake of the rule', function () {
 		fn() => new Shapes(['compact' => ['foo()', '']])->accept('keep', 'x.y', keep: true)->getShape(),
 		LogicException::class,
 		'The value is `keep`; ask isKept() first.',
+	);
+});
+
+
+test('the helpers keep the vocabulary of states, placements and counts', function () {
+	Assert::same(['forbidden' => 'never there'], Domain::state()->words);
+	Assert::same(['forbidden', 'required'], array_keys(Domain::state('forbidden', 'required')->words));
+	Assert::same(['sameLine', 'nextLine'], array_keys(Domain::placement()->words));
+	Assert::same(['adopted'], array_keys(Domain::adopted()->words));
+	Assert::same([1, 2], Domain::blankLines()->accept('1-2', 'blankLines.afterImports')->getCount());
+	Assert::exception(
+		fn() => Domain::state('allowed'),
+		InvalidArgumentException::class,
+		'Word `allowed` is none of `forbidden`, `required`.',
 	);
 });
 

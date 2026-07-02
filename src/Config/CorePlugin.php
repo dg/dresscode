@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Decision, Plugin, PluginManifest, Rules};
+use DressCode\{Decision, Domain, Plugin, PluginManifest, Rules};
 use DressCode\Domains\Words;
 
 
@@ -63,6 +63,7 @@ final class CorePlugin implements Plugin
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\AttributePositionRule::class,
 				Rules\Whitespace\AttributeSpacingRule::class,
+				Rules\Whitespace\StatementBlankLinesRule::class,
 				Rules\Whitespace\BracesPositionRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Whitespace\ConstructSpacingRule::class,
@@ -78,6 +79,13 @@ final class CorePlugin implements Plugin
 					'CRLF' => 'every line ends with CRLF',
 					'majority' => 'every line ends as most lines of the file do, LF on a tie',
 				]), 'The line ending of every line, which the code written new takes too; under `keep` that follows the file'),
+
+				// the lines below a doc comment or an attribute, of a declaration among statements
+				new Decision(
+					'blankLines.afterPhpdoc',
+					Domain::blankLines(),
+					'Between a doc comment or an attribute and the declaration it belongs to',
+				),
 			],
 		);
 	}

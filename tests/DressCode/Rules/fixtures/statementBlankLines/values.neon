@@ -1,0 +1,9 @@
+blankLines:
+	afterOpeningTag: 1
+	beforeNamespace: 1
+	afterNamespace: 1
+	afterImports: 1
+	betweenImportKinds: 1
+	betweenDeclarations: 2
+	afterPhpdoc: 0
+	beforeStatement: {return: 1+}

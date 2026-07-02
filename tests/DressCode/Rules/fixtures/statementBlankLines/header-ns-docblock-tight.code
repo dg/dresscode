@@ -1,0 +1,5 @@
+<?php
+/**
+ * File docblock.
+ */
+namespace Foo;

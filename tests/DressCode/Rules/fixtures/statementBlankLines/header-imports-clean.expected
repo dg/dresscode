@@ -1,0 +1,8 @@
+<?php
+
+use A;
+use B;
+
+$x = 1;
+
+use C;
