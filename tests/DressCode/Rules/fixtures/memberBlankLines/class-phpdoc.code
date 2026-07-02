@@ -1,0 +1,24 @@
+<?php
+/** doc */
+
+class A
+{
+	/** doc */
+
+	public $a;
+
+	#[Attr]
+
+	public $b;
+
+	/**
+	 * doc
+	 */
+
+	#[Attr]
+	public function f() {}
+}
+
+/** doc */
+
+function g() {}

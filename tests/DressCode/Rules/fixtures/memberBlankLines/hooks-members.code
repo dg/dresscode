@@ -1,0 +1,18 @@
+<?php
+// php 8.4
+// {"betweenMethods": 1, "betweenMembers": 1, "beforeFirstMethod": 1}
+class A
+{
+	public string $a { get => $this->a; }
+	public string $b { get => $this->b; }
+	public function f() {}
+	public string $c { get => $this->c; }
+
+
+
+	public string $d {
+		get => $this->d;
+		set { $this->d = $value; }
+	}
+	public function g() {}
+}

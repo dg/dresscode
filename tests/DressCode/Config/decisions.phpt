@@ -33,8 +33,8 @@ function resolveFile(string $file, ?Profile $commandLine = null, ?array $only = 
 
 test('a file used by its path is taken relative to the file writing it, once however often it is named', function () {
 	$dir = createDecisionsProject([
-		'shared.neon' => "blankLines:\n\tafterNamespace: 3\n\tafterImports: 1\n",
-		'left.neon' => "use: shared.neon\nblankLines:\n\tafterNamespace: 2\n",
+		'shared.neon' => "blankLines:\n\tbetweenMethods: 3\n\tafterImports: 1\n",
+		'left.neon' => "use: shared.neon\nblankLines:\n\tbetweenMethods: 2\n",
 		'right.neon' => "use: shared.neon\nblankLines:\n\tafterImports: 2\n",
 		'dresscode.neon' => "use: [left.neon, right.neon]\n",
 	]);
@@ -44,7 +44,7 @@ test('a file used by its path is taken relative to the file writing it, once how
 		[$shared, strtr((string) realpath("$dir/left.neon"), '\\', '/'), strtr((string) realpath("$dir/right.neon"), '\\', '/')],
 		$resolved->use,
 	);
-	Assert::same([2, 2], $resolved->decisions['blankLines.afterNamespace']->value->getCount());
+	Assert::same([2, 2], $resolved->decisions['blankLines.betweenMethods']->value->getCount());
 	Assert::same([2, 2], $resolved->decisions['blankLines.afterImports']->value->getCount());
 });
 
@@ -80,11 +80,11 @@ test('a file that comes back to itself is an error, and so is one that does not 
 
 test('a file a configuration in PHP uses is relative to the root, as one in NEON is', function () {
 	$dir = createDecisionsProject([
-		'shared.neon' => "blankLines:\n\tafterNamespace: 3\n",
+		'shared.neon' => "blankLines:\n\tbetweenMethods: 3\n",
 		'dresscode.php' => "<?php\nreturn new DressCode\\Config(use: ['shared.neon']);\n",
 	]);
 	$resolved = new ConfigResolver(new PluginRegistry, root: $dir)->resolve(Loader::loadFile("$dir/dresscode.php"), '8.3');
-	Assert::same([3, 3], $resolved->decisions['blankLines.afterNamespace']->value->getCount());
+	Assert::same([3, 3], $resolved->decisions['blankLines.betweenMethods']->value->getCount());
 	Assert::same([strtr((string) realpath("$dir/shared.neon"), '\\', '/')], $resolved->use);
 });
 
@@ -113,11 +113,11 @@ test('a key the catalogue does not know is named with the nearest known one, whe
 		'Key `spacng` is unknown; write `spacing`.',
 	);
 
-	$dir = createDecisionsProject(['base.neon' => "blankLines:\n\tafterImport: 1\n", 'dresscode.neon' => "use: base.neon\n"]);
+	$dir = createDecisionsProject(['base.neon' => "blankLines:\n\tbetweenMethod: 1\n", 'dresscode.neon' => "use: base.neon\n"]);
 	Assert::exception(
 		fn() => resolveFile("$dir/dresscode.neon"),
 		ConfigurationException::class,
-		'Preset `%a%/base.neon`: Key `blankLines.afterImport` is unknown; write `blankLines.afterImports`.',
+		'Preset `%a%/base.neon`: Key `blankLines.betweenMethod` is unknown; write `blankLines.betweenMethods`.',
 	);
 });
 
