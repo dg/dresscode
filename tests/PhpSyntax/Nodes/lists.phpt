@@ -6,7 +6,6 @@ use PhpSyntax\Nodes\ModifiersNode;
 use PhpSyntax\Nodes\NodeList;
 use PhpSyntax\Nodes\SeparatedNodeList;
 use PhpSyntax\Nodes\StatementNode;
-use PhpSyntax\Parser\GenericNode;
 use PhpSyntax\Token;
 use PhpSyntax\TokenKind;
 use Tester\Assert;
@@ -14,9 +13,29 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-function node(string $text): GenericNode
+final class StubNode extends Node
 {
-	return (new GenericNode(1, [new Token(TokenKind::Identifier, $text)]))->attach();
+	public function __construct(
+		public Token $token,
+	) {
+	}
+
+
+	public function getChildren(): array
+	{
+		return [$this->token];
+	}
+
+
+	public function replaceChild(Node|Token $old, Node|Token $new): void
+	{
+	}
+}
+
+
+function node(string $text): StubNode
+{
+	return (new StubNode(new Token(TokenKind::Identifier, $text)))->attach();
 }
 
 
@@ -47,7 +66,7 @@ test('NodeList: items, parents, iteration, mutation', function () {
 	Assert::same(1, $list->indexOf($x));
 
 	Assert::exception(fn() => $list->append($x), LogicException::class, 'The node already belongs to a tree, clone it first.');
-	Assert::exception(fn() => $list->indexOf($a), InvalidArgumentException::class, 'PhpSyntax\Parser\GenericNode is not a child of PhpSyntax\Nodes\NodeList.');
+	Assert::exception(fn() => $list->indexOf($a), InvalidArgumentException::class, 'StubNode is not a child of PhpSyntax\Nodes\NodeList.');
 });
 
 

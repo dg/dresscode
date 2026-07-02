@@ -10,6 +10,7 @@ use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\Nodes\NodeList;
 use PhpSyntax\Nodes\SeparatedNodeList;
 use PhpSyntax\Nodes\Statement\HaltCompilerNode;
+use PhpSyntax\Nodes\Statement\NamespaceNode;
 use PhpSyntax\Nodes\StatementNode;
 use PhpSyntax\ParseException;
 use PhpSyntax\Token;
@@ -31,11 +32,11 @@ final class Parser
 	private array $tokens = [];
 	private int $position = 0;
 
-	/** @var array<int, Node|Token|null>  semantic value stack: tokens and results of reductions */
+	/** @var array<int, mixed>  semantic value stack: tokens, nodes, and arrays of slot values of a node under construction */
 	private array $semStack = [];
 
 	/** result of the last reduction */
-	private Node|Token|null $semValue = null;
+	private mixed $semValue = null;
 
 
 	public function __construct(
@@ -66,7 +67,45 @@ final class Parser
 		}
 
 		/** @var NodeList<StatementNode> $stmts */
-		return (new FileNode($stmts, $eof))->attach();
+		return (new FileNode($this->nestNamespaces($stmts), $eof))->attach();
+	}
+
+
+	/**
+	 * Moves the statements following "namespace A;" into that namespace, so that every namespace has its
+	 * statements as children; only __halt_compiler() stays outside.
+	 * @param  NodeList<StatementNode>  $stmts
+	 * @return NodeList<StatementNode>
+	 */
+	private function nestNamespaces(NodeList $stmts): NodeList
+	{
+		$hasUnbraced = false;
+		foreach ($stmts->items as $stmt) {
+			$hasUnbraced = $hasUnbraced || ($stmt instanceof NamespaceNode && $stmt->semicolon);
+		}
+
+		if (!$hasUnbraced) {
+			return $stmts;
+		}
+
+		$result = new NodeList;
+		$current = null;
+		foreach ($stmts->items as $stmt) {
+			$stmt->parent = null;
+			if ($stmt instanceof NamespaceNode) {
+				$current = $stmt->semicolon ? $stmt : null;
+				$result->append($stmt);
+			} elseif ($stmt instanceof HaltCompilerNode) {
+				$current = null;
+				$result->append($stmt);
+			} elseif ($current) {
+				$current->stmts->append($stmt);
+			} else {
+				$result->append($stmt);
+			}
+		}
+
+		return $result;
 	}
 
 
@@ -181,26 +220,16 @@ final class Parser
 
 
 	/**
-	 * A production without an action passes a single child through, an empty one yields null,
-	 * any other becomes a generic node.
+	 * A production without an action passes its single symbol through, an empty one yields null;
+	 * a longer one must have an action, otherwise tokens would drop out of the tree.
 	 */
-	protected function reduceGeneric(int $rule, int $pos): void
+	protected function reduceDefault(int $rule, int $pos): void
 	{
-		$length = self::RuleToLength[$rule];
-		if ($length === 0) {
-			$this->semValue = null;
-		} elseif ($length === 1) {
-			$this->semValue = $this->semStack[$pos];
-		} else {
-			$children = [];
-			for ($i = $pos - $length + 1; $i <= $pos; $i++) {
-				if ($this->semStack[$i] !== null) {
-					$children[] = $this->semStack[$i];
-				}
-			}
-
-			$this->semValue = (new GenericNode($rule, $children))->attach();
-		}
+		$this->semValue = match (self::RuleToLength[$rule]) {
+			0 => null,
+			1 => $this->semStack[$pos],
+			default => throw new \LogicException("Grammar rule $rule has no semantic action."),
+		};
 	}
 
 

@@ -1097,7 +1097,7 @@ trait ParserData
 	];
 
 
-	/** Runs the semantic action of the rule; a rule without an action builds a generic node. */
+	/** Runs the semantic action of the rule. */
 	protected function reduce(int $rule, int $pos): void
 	{
 		switch ($rule) {
@@ -1140,11 +1140,20 @@ trait ParserData
 			case 96:
 				 $this->semValue = (new Expression\VariableNode(null, null, $this->semStack[$pos-(1-1)], null))->attach();
 				break;
+			case 102:
+				 $this->semValue = (new Nodes\AttributeNode($this->semStack[$pos-(1-1)], null))->attach();
+				break;
+			case 103:
+				 $this->semValue = (new Nodes\AttributeNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
 			case 104:
 				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(1-1)]]))->attach();
 				break;
 			case 105:
 				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
+				break;
+			case 106:
+				 $this->semStack[$pos-(4-2)]->setTrailingSeparator($this->semStack[$pos-(4-3)]); $this->semValue = (new Nodes\AttributeGroupNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-4)]))->attach();
 				break;
 			case 107:
 				 $this->semValue = (new NodeList([$this->semStack[$pos-(1-1)]]))->attach();
@@ -1157,6 +1166,33 @@ trait ParserData
 				break;
 			case 114:
 				 $this->semValue = (new Statement\HaltCompilerNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)], null))->attach();
+				break;
+			case 115:
+				 $this->semValue = (new Statement\NamespaceNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)], null, new NodeList, null))->attach();
+				break;
+			case 116:
+				 $this->semValue = (new Statement\NamespaceNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], null, $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], $this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 117:
+				 $this->semValue = (new Statement\NamespaceNode($this->semStack[$pos-(4-1)], null, null, $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 118:
+				 $this->semValue = (new Statement\UseNode($this->semStack[$pos-(3-1)], null, $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 119:
+				 $this->semValue = (new Statement\UseNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 121:
+				 $this->semValue = (new Statement\ConstNode(new NodeList, $this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 122:
+				 $this->semValue = (new Statement\ConstNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 125:
+				 $this->semValue = (new Statement\GroupUseNode($this->semStack[$pos-(8-1)], $this->semStack[$pos-(8-2)], $this->semStack[$pos-(8-3)], $this->semStack[$pos-(8-4)], $this->semStack[$pos-(8-5)], $this->semStack[$pos-(8-6)], $this->semStack[$pos-(8-7)], $this->semStack[$pos-(8-8)]))->attach();
+				break;
+			case 126:
+				 $this->semValue = (new Statement\GroupUseNode($this->semStack[$pos-(7-1)], null, $this->semStack[$pos-(7-2)], $this->semStack[$pos-(7-3)], $this->semStack[$pos-(7-4)], $this->semStack[$pos-(7-5)], $this->semStack[$pos-(7-6)], $this->semStack[$pos-(7-7)]))->attach();
 				break;
 			case 127:
 				 $this->semStack[$pos-(2-1)]->setTrailingSeparator($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
@@ -1185,6 +1221,21 @@ trait ParserData
 			case 135:
 				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(1-1)]]))->attach();
 				break;
+			case 136:
+				 $this->semValue = (new Nodes\UseItemNode(null, $this->semStack[$pos-(1-1)], null, null))->attach();
+				break;
+			case 137:
+				 $this->semValue = (new Nodes\UseItemNode(null, $this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 138:
+				 $this->semValue = (new Nodes\UseItemNode(null, $this->semStack[$pos-(1-1)], null, null))->attach();
+				break;
+			case 139:
+				 $this->semValue = (new Nodes\UseItemNode(null, $this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 141:
+				 $this->semStack[$pos-(2-2)]->setType($this->semStack[$pos-(2-1)]); $this->semValue = $this->semStack[$pos-(2-2)];
+				break;
 			case 142:
 				 $this->semStack[$pos-(2-1)]->setTrailingSeparator($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
 				break;
@@ -1193,6 +1244,9 @@ trait ParserData
 				break;
 			case 144:
 				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(1-1)]]))->attach();
+				break;
+			case 145:
+				 $this->semValue = (new Nodes\ConstItemNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
 				break;
 			case 146:
 				 $this->semStack[$pos-(2-1)]->setTrailingSeparator($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
@@ -1203,14 +1257,83 @@ trait ParserData
 			case 148:
 				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(1-1)]]))->attach();
 				break;
+			case 149:
+				 $this->semValue = (new Nodes\ConstItemNode((new Nodes\IdentifierNode($this->semStack[$pos-(3-1)]))->attach(), $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 150:
+				 $this->semValue = (new Nodes\ConstItemNode((new Nodes\IdentifierNode($this->semStack[$pos-(3-1)]))->attach(), $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
 			case 151:
 				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
 				break;
 			case 152:
 				 $this->semValue = new NodeList;
 				break;
+			case 157:
+				 $this->semValue = (new Statement\BlockNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 158:
+				 $this->semValue = (new Statement\IfNode($this->semStack[$pos-(7-1)], $this->semStack[$pos-(7-2)], $this->semStack[$pos-(7-3)], $this->semStack[$pos-(7-4)], $this->semStack[$pos-(7-5)], null, null, $this->semStack[$pos-(7-6)], $this->semStack[$pos-(7-7)], null, null))->attach();
+				break;
+			case 159:
+				 $this->semValue = (new Statement\IfNode($this->semStack[$pos-(10-1)], $this->semStack[$pos-(10-2)], $this->semStack[$pos-(10-3)], $this->semStack[$pos-(10-4)], null, $this->semStack[$pos-(10-5)], $this->semStack[$pos-(10-6)], $this->semStack[$pos-(10-7)], $this->semStack[$pos-(10-8)], $this->semStack[$pos-(10-9)], $this->semStack[$pos-(10-10)]))->attach();
+				break;
+			case 160:
+				 $this->semValue = (new Statement\WhileNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], ...$this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 161:
+				 $this->semValue = (new Statement\DoWhileNode($this->semStack[$pos-(7-1)], $this->semStack[$pos-(7-2)], $this->semStack[$pos-(7-3)], $this->semStack[$pos-(7-4)], $this->semStack[$pos-(7-5)], $this->semStack[$pos-(7-6)], $this->semStack[$pos-(7-7)]))->attach();
+				break;
+			case 162:
+				 $this->semValue = (new Statement\ForNode($this->semStack[$pos-(9-1)], $this->semStack[$pos-(9-2)], $this->semStack[$pos-(9-3)], $this->semStack[$pos-(9-4)], $this->semStack[$pos-(9-5)], $this->semStack[$pos-(9-6)], $this->semStack[$pos-(9-7)], $this->semStack[$pos-(9-8)], ...$this->semStack[$pos-(9-9)]))->attach();
+				break;
+			case 163:
+				 $this->semValue = (new Statement\SwitchNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], ...$this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 164:
+				 $this->semValue = (new Statement\BreakNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 165:
+				 $this->semValue = (new Statement\ContinueNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 166:
+				 $this->semValue = (new Statement\ReturnNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 167:
+				 $this->semValue = (new Statement\GlobalNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 168:
+				 $this->semValue = (new Statement\StaticNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 169:
+				 $this->semValue = (new Statement\EchoNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
 			case 170:
 				 $this->semValue = (new Statement\InlineHtmlNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 171:
+				 $this->semValue = (new Statement\ExpressionStatementNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 172:
+				 $this->semValue = (new Statement\UnsetNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], $this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 173:
+				 $this->semValue = (new Statement\ForeachNode($this->semStack[$pos-(7-1)], $this->semStack[$pos-(7-2)], $this->semStack[$pos-(7-3)], $this->semStack[$pos-(7-4)], null, null, $this->semStack[$pos-(7-5)][0], $this->semStack[$pos-(7-5)][1], $this->semStack[$pos-(7-6)], ...$this->semStack[$pos-(7-7)]))->attach();
+				break;
+			case 174:
+				 $this->semValue = (new Statement\ForeachNode($this->semStack[$pos-(9-1)], $this->semStack[$pos-(9-2)], $this->semStack[$pos-(9-3)], $this->semStack[$pos-(9-4)], $this->semStack[$pos-(9-5)], $this->semStack[$pos-(9-6)], $this->semStack[$pos-(9-7)][0], $this->semStack[$pos-(9-7)][1], $this->semStack[$pos-(9-8)], ...$this->semStack[$pos-(9-9)]))->attach();
+				break;
+			case 175:
+				 $this->semValue = (new Statement\DeclareNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], ...$this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 176:
+				 $this->semValue = (new Statement\TryNode($this->semStack[$pos-(6-1)], (new Statement\BlockNode($this->semStack[$pos-(6-2)], $this->semStack[$pos-(6-3)], $this->semStack[$pos-(6-4)]))->attach(), $this->semStack[$pos-(6-5)], $this->semStack[$pos-(6-6)]))->attach();
+				break;
+			case 177:
+				 $this->semValue = (new Statement\GotoNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 178:
+				 $this->semValue = (new Statement\LabelNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
 				break;
 			case 180:
 				 $this->semValue = (new Statement\EmptyStatementNode($this->semStack[$pos-(1-1)]))->attach();
@@ -1227,6 +1350,12 @@ trait ParserData
 			case 185:
 				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
 				break;
+			case 186:
+				 $this->semValue = (new Nodes\CatchNode($this->semStack[$pos-(8-1)], $this->semStack[$pos-(8-2)], $this->semStack[$pos-(8-3)], $this->semStack[$pos-(8-4)], $this->semStack[$pos-(8-5)], (new Statement\BlockNode($this->semStack[$pos-(8-6)], $this->semStack[$pos-(8-7)], $this->semStack[$pos-(8-8)]))->attach()))->attach();
+				break;
+			case 188:
+				 $this->semValue = (new Nodes\FinallyNode($this->semStack[$pos-(4-1)], (new Statement\BlockNode($this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach()))->attach();
+				break;
 			case 189:
 				 $this->semStack[$pos-(2-1)]->setTrailingSeparator($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
 				break;
@@ -1236,11 +1365,65 @@ trait ParserData
 			case 191:
 				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
 				break;
+			case 198:
+				 $this->semValue = (new Statement\BlockNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 200:
+				 $this->semValue = (new Nodes\IdentifierNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 201:
+				 $this->semValue = (new Nodes\IdentifierNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 202:
+				 $this->semValue = (new Nodes\IdentifierNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 203:
+				 $this->semValue = (new Statement\FunctionNode(new NodeList, $this->semStack[$pos-(8-1)], $this->semStack[$pos-(8-2)], $this->semStack[$pos-(8-3)], $this->semStack[$pos-(8-4)], $this->semStack[$pos-(8-5)], $this->semStack[$pos-(8-6)], $this->semStack[$pos-(8-7)][0] ?? null, $this->semStack[$pos-(8-7)][1] ?? null, $this->semStack[$pos-(8-8)]))->attach();
+				break;
+			case 204:
+				 $this->semValue = (new Statement\FunctionNode($this->semStack[$pos-(9-1)], $this->semStack[$pos-(9-2)], $this->semStack[$pos-(9-3)], $this->semStack[$pos-(9-4)], $this->semStack[$pos-(9-5)], $this->semStack[$pos-(9-6)], $this->semStack[$pos-(9-7)], $this->semStack[$pos-(9-8)][0] ?? null, $this->semStack[$pos-(9-8)][1] ?? null, $this->semStack[$pos-(9-9)]))->attach();
+				break;
+			case 205:
+				 $this->semValue = (new Statement\ClassNode(new NodeList, $this->semStack[$pos-(7-1)][0], $this->semStack[$pos-(7-1)][1], $this->semStack[$pos-(7-2)], $this->semStack[$pos-(7-3)][0] ?? null, $this->semStack[$pos-(7-3)][1] ?? null, $this->semStack[$pos-(7-4)][0] ?? null, $this->semStack[$pos-(7-4)][1] ?? null, $this->semStack[$pos-(7-5)], $this->semStack[$pos-(7-6)], $this->semStack[$pos-(7-7)]))->attach();
+				break;
+			case 206:
+				 $this->semValue = (new Statement\ClassNode($this->semStack[$pos-(8-1)], $this->semStack[$pos-(8-2)][0], $this->semStack[$pos-(8-2)][1], $this->semStack[$pos-(8-3)], $this->semStack[$pos-(8-4)][0] ?? null, $this->semStack[$pos-(8-4)][1] ?? null, $this->semStack[$pos-(8-5)][0] ?? null, $this->semStack[$pos-(8-5)][1] ?? null, $this->semStack[$pos-(8-6)], $this->semStack[$pos-(8-7)], $this->semStack[$pos-(8-8)]))->attach();
+				break;
+			case 207:
+				 $this->semValue = (new Statement\InterfaceNode($this->semStack[$pos-(7-1)], $this->semStack[$pos-(7-2)], $this->semStack[$pos-(7-3)], $this->semStack[$pos-(7-4)][0] ?? null, $this->semStack[$pos-(7-4)][1] ?? null, $this->semStack[$pos-(7-5)], $this->semStack[$pos-(7-6)], $this->semStack[$pos-(7-7)]))->attach();
+				break;
+			case 208:
+				 $this->semValue = (new Statement\TraitNode($this->semStack[$pos-(6-1)], $this->semStack[$pos-(6-2)], $this->semStack[$pos-(6-3)], $this->semStack[$pos-(6-4)], $this->semStack[$pos-(6-5)], $this->semStack[$pos-(6-6)]))->attach();
+				break;
+			case 209:
+				 $this->semValue = (new Statement\EnumNode($this->semStack[$pos-(8-1)], $this->semStack[$pos-(8-2)], $this->semStack[$pos-(8-3)], $this->semStack[$pos-(8-4)][0] ?? null, $this->semStack[$pos-(8-4)][1] ?? null, $this->semStack[$pos-(8-5)][0] ?? null, $this->semStack[$pos-(8-5)][1] ?? null, $this->semStack[$pos-(8-6)], $this->semStack[$pos-(8-7)], $this->semStack[$pos-(8-8)]))->attach();
+				break;
+			case 211:
+				 $this->semValue = [$this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]];
+				break;
+			case 213:
+				 $this->semValue = [$this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]];
+				break;
+			case 214:
+				 $this->semValue = [new Nodes\ModifiersNode, $this->semStack[$pos-(1-1)]];
+				break;
+			case 215:
+				 $this->semValue = [$this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]];
+				break;
 			case 216:
 				 $this->semValue = (new Nodes\ModifiersNode([$this->semStack[$pos-(1-1)]]))->attach();
 				break;
 			case 217:
 				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
+				break;
+			case 222:
+				 $this->semValue = [$this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]];
+				break;
+			case 224:
+				 $this->semValue = [$this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]];
+				break;
+			case 226:
+				 $this->semValue = [$this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]];
 				break;
 			case 227:
 				 $this->semStack[$pos-(2-1)]->setTrailingSeparator($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
@@ -1251,6 +1434,27 @@ trait ParserData
 			case 229:
 				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
 				break;
+			case 230:
+				 $this->semValue = [$this->semStack[$pos-(1-1)], null, null, null, null];
+				break;
+			case 231:
+				 $this->semValue = [null, $this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]];
+				break;
+			case 232:
+				 $this->semValue = [$this->semStack[$pos-(1-1)], null, null, null, null];
+				break;
+			case 233:
+				 $this->semValue = [null, $this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]];
+				break;
+			case 234:
+				 $this->semValue = [$this->semStack[$pos-(1-1)], null, null, null, null];
+				break;
+			case 235:
+				 $this->semValue = [null, null, null, null, $this->semStack[$pos-(1-1)]];
+				break;
+			case 236:
+				 $this->semValue = [null, $this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]];
+				break;
 			case 237:
 				 $this->semStack[$pos-(2-1)]->setTrailingSeparator($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
 				break;
@@ -1260,11 +1464,35 @@ trait ParserData
 			case 239:
 				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
 				break;
+			case 240:
+				 $this->semValue = (new Nodes\DeclareItemNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 241:
+				 $this->semValue = [$this->semStack[$pos-(3-1)], null, null, $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)], null, null];
+				break;
+			case 242:
+				 $this->semValue = [$this->semStack[$pos-(4-1)], null, $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)], null, null];
+				break;
+			case 243:
+				 $this->semValue = [null, $this->semStack[$pos-(4-1)], null, $this->semStack[$pos-(4-2)], null, $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]];
+				break;
+			case 244:
+				 $this->semValue = [null, $this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], null, $this->semStack[$pos-(5-4)], $this->semStack[$pos-(5-5)]];
+				break;
 			case 245:
 				 $this->semValue = new NodeList;
 				break;
 			case 246:
 				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
+				break;
+			case 247:
+				 $this->semValue = (new Nodes\CaseNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 248:
+				 $this->semValue = (new Nodes\CaseNode($this->semStack[$pos-(3-1)], null, $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 251:
+				 $this->semValue = (new Expression\MatchNode($this->semStack[$pos-(7-1)], $this->semStack[$pos-(7-2)], $this->semStack[$pos-(7-3)], $this->semStack[$pos-(7-4)], $this->semStack[$pos-(7-5)], $this->semStack[$pos-(7-6)], $this->semStack[$pos-(7-7)]))->attach();
 				break;
 			case 252:
 				 $this->semValue = new SeparatedNodeList;
@@ -1278,17 +1506,53 @@ trait ParserData
 			case 255:
 				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
 				break;
+			case 256:
+				 $this->semValue = (new Nodes\MatchArmNode($this->semStack[$pos-(3-1)], null, null, $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 257:
+				 $this->semValue = (new Nodes\MatchArmNode(null, $this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 258:
+				 $this->semValue = [$this->semStack[$pos-(1-1)], null, null, null, null];
+				break;
+			case 259:
+				 $this->semValue = [null, $this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]];
+				break;
 			case 260:
 				 $this->semValue = new NodeList;
 				break;
 			case 261:
 				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
 				break;
+			case 262:
+				 $this->semValue = (new Nodes\ElseIfNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], $this->semStack[$pos-(5-5)], null, null))->attach();
+				break;
 			case 263:
 				 $this->semValue = new NodeList;
 				break;
 			case 264:
 				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
+				break;
+			case 265:
+				 $this->semValue = (new Nodes\ElseIfNode($this->semStack[$pos-(6-1)], $this->semStack[$pos-(6-2)], $this->semStack[$pos-(6-3)], $this->semStack[$pos-(6-4)], null, $this->semStack[$pos-(6-5)], $this->semStack[$pos-(6-6)]))->attach();
+				break;
+			case 267:
+				 $this->semValue = (new Nodes\ElseNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)], null, null))->attach();
+				break;
+			case 269:
+				 $this->semValue = (new Nodes\ElseNode($this->semStack[$pos-(3-1)], null, $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 270:
+				 $this->semValue = [null, $this->semStack[$pos-(1-1)]];
+				break;
+			case 271:
+				 $this->semValue = [$this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]];
+				break;
+			case 272:
+				 $this->semValue = [null, $this->semStack[$pos-(1-1)]];
+				break;
+			case 273:
+				 $this->semValue = [null, $this->semStack[$pos-(1-1)]];
 				break;
 			case 274:
 				 $this->semStack[$pos-(2-1)]->setTrailingSeparator($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
@@ -1308,11 +1572,125 @@ trait ParserData
 			case 279:
 				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
 				break;
+			case 288:
+				 $this->semValue = (new Nodes\ParameterNode($this->semStack[$pos-(7-1)], $this->semStack[$pos-(7-2)], $this->semStack[$pos-(7-3)], $this->semStack[$pos-(7-4)], $this->semStack[$pos-(7-5)], $this->semStack[$pos-(7-6)], null, null, $this->semStack[$pos-(7-7)][0] ?? null, $this->semStack[$pos-(7-7)][1] ?? null, $this->semStack[$pos-(7-7)][2] ?? null))->attach();
+				break;
+			case 289:
+				 $this->semValue = (new Nodes\ParameterNode($this->semStack[$pos-(9-1)], $this->semStack[$pos-(9-2)], $this->semStack[$pos-(9-3)], $this->semStack[$pos-(9-4)], $this->semStack[$pos-(9-5)], $this->semStack[$pos-(9-6)], $this->semStack[$pos-(9-7)], $this->semStack[$pos-(9-8)], $this->semStack[$pos-(9-9)][0] ?? null, $this->semStack[$pos-(9-9)][1] ?? null, $this->semStack[$pos-(9-9)][2] ?? null))->attach();
+				break;
+			case 291:
+				 $this->semValue = (new Type\NullableTypeNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 292:
+				 $this->semValue = (new Type\UnionTypeNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 295:
+				 $this->semValue = (new Type\NamedTypeNode((new Nodes\NameNode($this->semStack[$pos-(1-1)]))->attach()))->attach();
+				break;
+			case 296:
+				 $this->semValue = (new Type\NamedTypeNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 297:
+				 $this->semValue = (new Type\NamedTypeNode((new Nodes\NameNode($this->semStack[$pos-(1-1)]))->attach()))->attach();
+				break;
+			case 298:
+				 $this->semValue = (new Type\NamedTypeNode((new Nodes\NameNode($this->semStack[$pos-(1-1)]))->attach()))->attach();
+				break;
+			case 300:
+				 $this->semStack[$pos-(3-2)]->setOpenParen($this->semStack[$pos-(3-1)]); $this->semStack[$pos-(3-2)]->setCloseParen($this->semStack[$pos-(3-3)]); $this->semValue = $this->semStack[$pos-(3-2)];
+				break;
+			case 301:
+				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(3-1)]]))->attach(); $this->semValue->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semValue;
+				break;
+			case 302:
+				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
+				break;
+			case 304:
+				 $this->semStack[$pos-(3-2)]->setOpenParen($this->semStack[$pos-(3-1)]); $this->semStack[$pos-(3-2)]->setCloseParen($this->semStack[$pos-(3-3)]); $this->semValue = $this->semStack[$pos-(3-2)];
+				break;
+			case 305:
+				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(3-1)]]))->attach(); $this->semValue->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semValue;
+				break;
+			case 306:
+				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
+				break;
+			case 307:
+				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(3-1)]]))->attach(); $this->semValue->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semValue;
+				break;
+			case 308:
+				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
+				break;
+			case 309:
+				 $this->semValue = (new Type\IntersectionTypeNode(null, $this->semStack[$pos-(1-1)], null))->attach();
+				break;
+			case 310:
+				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(3-1)]]))->attach(); $this->semValue->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semValue;
+				break;
+			case 311:
+				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
+				break;
+			case 312:
+				 $this->semValue = (new Type\IntersectionTypeNode(null, $this->semStack[$pos-(1-1)], null))->attach();
+				break;
+			case 314:
+				 $this->semValue = (new Type\NullableTypeNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 315:
+				 $this->semValue = (new Type\UnionTypeNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 320:
+				 $this->semValue = [$this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]];
+				break;
+			case 321:
+				 $this->semValue = (new Nodes\ArgumentListNode($this->semStack[$pos-(2-1)], new SeparatedNodeList, $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 322:
+				 $this->semStack[$pos-(4-2)]->setTrailingSeparator($this->semStack[$pos-(4-3)]); $this->semValue = (new Nodes\ArgumentListNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 323:
+				 $this->semValue = (new Nodes\ArgumentListNode($this->semStack[$pos-(3-1)], (new SeparatedNodeList([$this->semStack[$pos-(3-2)]]))->attach(), $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 324:
+				 $this->semValue = (new Nodes\ArgumentListNode($this->semStack[$pos-(2-1)], new SeparatedNodeList, $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 325:
+				 $this->semStack[$pos-(4-2)]->setTrailingSeparator($this->semStack[$pos-(4-3)]); $this->semValue = (new Nodes\ArgumentListNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 326:
+				 $list = (new SeparatedNodeList([(new Nodes\ArgumentNode(null, null, null, null, $this->semStack[$pos-(4-2)]))->attach()]))->attach(); $list->setTrailingSeparator($this->semStack[$pos-(4-3)]); $this->semValue = (new Nodes\ArgumentListNode($this->semStack[$pos-(4-1)], $list, $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 327:
+				 $this->semValue = (new Nodes\ArgumentListNode($this->semStack[$pos-(3-1)], (new SeparatedNodeList([$this->semStack[$pos-(3-2)]]))->attach(), $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 328:
+				 $this->semValue = (new SeparatedNodeList([(new Nodes\ArgumentNode(null, null, null, null, $this->semStack[$pos-(3-1)]))->attach()]))->attach(); $this->semValue->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semValue;
+				break;
+			case 329:
+				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(1-1)]]))->attach();
+				break;
+			case 330:
+				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
+				break;
+			case 331:
+				 $this->semValue = (new Nodes\VariadicPlaceholderNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
 			case 332:
 				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(1-1)]]))->attach();
 				break;
 			case 333:
 				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
+				break;
+			case 334:
+				 $this->semValue = (new Nodes\ArgumentNode(null, null, $this->semStack[$pos-(2-1)], null, $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 335:
+				 $this->semValue = (new Nodes\ArgumentNode(null, null, null, $this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 336:
+				 $this->semValue = (new Nodes\ArgumentNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], null, null, $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 337:
+				 $this->semValue = (new Nodes\ArgumentNode(null, null, null, null, $this->semStack[$pos-(1-1)]))->attach();
 				break;
 			case 339:
 				 $this->semStack[$pos-(2-1)]->setTrailingSeparator($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
@@ -1332,17 +1710,77 @@ trait ParserData
 			case 345:
 				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(1-1)]]))->attach();
 				break;
+			case 346:
+				 $this->semValue = (new Nodes\StaticVarNode($this->semStack[$pos-(1-1)], null, null))->attach();
+				break;
+			case 347:
+				 $this->semValue = (new Nodes\StaticVarNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
 			case 348:
 				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
 				break;
 			case 349:
 				 $this->semValue = new NodeList;
 				break;
+			case 351:
+				 $this->semValue = (new Member\PropertyNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], $this->semStack[$pos-(5-5)], null, null, null))->attach();
+				break;
+			case 352:
+				 $this->semValue = (new Member\PropertyNode($this->semStack[$pos-(7-1)], $this->semStack[$pos-(7-2)], $this->semStack[$pos-(7-3)], $this->semStack[$pos-(7-4)], null, $this->semStack[$pos-(7-5)], $this->semStack[$pos-(7-6)], $this->semStack[$pos-(7-7)]))->attach();
+				break;
+			case 353:
+				 $this->semValue = (new Member\ClassConstNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], null, $this->semStack[$pos-(5-4)], $this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 354:
+				 $this->semValue = (new Member\ClassConstNode($this->semStack[$pos-(6-1)], $this->semStack[$pos-(6-2)], $this->semStack[$pos-(6-3)], $this->semStack[$pos-(6-4)], $this->semStack[$pos-(6-5)], $this->semStack[$pos-(6-6)]))->attach();
+				break;
+			case 355:
+				 $this->semValue = (new Member\MethodNode($this->semStack[$pos-(10-1)], $this->semStack[$pos-(10-2)], $this->semStack[$pos-(10-3)], $this->semStack[$pos-(10-4)], $this->semStack[$pos-(10-5)], $this->semStack[$pos-(10-6)], $this->semStack[$pos-(10-7)], $this->semStack[$pos-(10-8)], $this->semStack[$pos-(10-9)][0] ?? null, $this->semStack[$pos-(10-9)][1] ?? null, ...$this->semStack[$pos-(10-10)]))->attach();
+				break;
+			case 356:
+				 $this->semValue = (new Member\TraitUseNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], ...$this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 357:
+				 $this->semValue = (new Member\EnumCaseNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)][0] ?? null, $this->semStack[$pos-(5-4)][1] ?? null, $this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 358:
+				 $this->semValue = [$this->semStack[$pos-(1-1)], null, null, null];
+				break;
+			case 359:
+				 $this->semValue = [null, $this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]];
+				break;
 			case 360:
 				 $this->semValue = new NodeList;
 				break;
 			case 361:
 				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
+				break;
+			case 362:
+				 $this->semValue = (new Member\TraitPrecedenceNode($this->semStack[$pos-(4-1)][0], $this->semStack[$pos-(4-1)][1], $this->semStack[$pos-(4-1)][2], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 363:
+				 $this->semValue = (new Member\TraitAliasNode($this->semStack[$pos-(5-1)][0], $this->semStack[$pos-(5-1)][1], $this->semStack[$pos-(5-1)][2], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], $this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 364:
+				 $this->semValue = (new Member\TraitAliasNode($this->semStack[$pos-(4-1)][0], $this->semStack[$pos-(4-1)][1], $this->semStack[$pos-(4-1)][2], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], null, $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 365:
+				 $this->semValue = (new Member\TraitAliasNode($this->semStack[$pos-(4-1)][0], $this->semStack[$pos-(4-1)][1], $this->semStack[$pos-(4-1)][2], $this->semStack[$pos-(4-2)], null, $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 366:
+				 $this->semValue = (new Member\TraitAliasNode($this->semStack[$pos-(4-1)][0], $this->semStack[$pos-(4-1)][1], $this->semStack[$pos-(4-1)][2], $this->semStack[$pos-(4-2)], null, $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 367:
+				 $this->semValue = [$this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]];
+				break;
+			case 369:
+				 $this->semValue = [null, null, $this->semStack[$pos-(1-1)]];
+				break;
+			case 370:
+				 $this->semValue = [null, $this->semStack[$pos-(1-1)]];
+				break;
+			case 371:
+				 $this->semValue = [$this->semStack[$pos-(1-1)], null];
 				break;
 			case 373:
 				 $this->semValue = (new Nodes\ModifiersNode([$this->semStack[$pos-(1-1)]]))->attach();
@@ -1365,11 +1803,35 @@ trait ParserData
 			case 390:
 				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
 				break;
+			case 392:
+				 $this->semValue = (new Member\PropertyItemNode($this->semStack[$pos-(1-1)], null, null))->attach();
+				break;
+			case 393:
+				 $this->semValue = (new Member\PropertyItemNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
 			case 394:
 				 $this->semValue = new NodeList;
 				break;
 			case 395:
 				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
+				break;
+			case 397:
+				 $this->semValue = [$this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]];
+				break;
+			case 398:
+				 $this->semValue = (new Member\PropertyHookNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], null, null, null, ...$this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 399:
+				 $this->semValue = (new Member\PropertyHookNode($this->semStack[$pos-(8-1)], $this->semStack[$pos-(8-2)], $this->semStack[$pos-(8-3)], $this->semStack[$pos-(8-4)], $this->semStack[$pos-(8-5)], $this->semStack[$pos-(8-6)], $this->semStack[$pos-(8-7)], ...$this->semStack[$pos-(8-8)]))->attach();
+				break;
+			case 400:
+				 $this->semValue = [null, null, null, $this->semStack[$pos-(1-1)]];
+				break;
+			case 401:
+				 $this->semValue = [(new Statement\BlockNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach(), null, null, null];
+				break;
+			case 402:
+				 $this->semValue = [null, $this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]];
 				break;
 			case 403:
 				 $this->semValue = new Nodes\ModifiersNode;
@@ -1392,6 +1854,300 @@ trait ParserData
 			case 409:
 				 $this->semValue = new SeparatedNodeList;
 				break;
+			case 412:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 413:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 414:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 415:
+				 $this->semValue = (new Expression\AssignRefNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 416:
+				 $this->semValue = (new Expression\AssignRefNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 419:
+				 $this->semValue = (new Expression\FunctionCallNode((new Nodes\NameNode($this->semStack[$pos-(2-1)]))->attach(), $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 420:
+				 $this->semValue = (new Expression\CloneNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 421:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 422:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 423:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 424:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 425:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 426:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 427:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 428:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 429:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 430:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 431:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 432:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 433:
+				 $this->semValue = (new Expression\AssignNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 434:
+				 $this->semValue = (new Expression\PostfixNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 435:
+				 $this->semValue = (new Expression\UnaryNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 436:
+				 $this->semValue = (new Expression\PostfixNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 437:
+				 $this->semValue = (new Expression\UnaryNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 438:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 439:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 440:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 441:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 442:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 443:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 444:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 445:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 446:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 447:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 448:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 449:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 450:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 451:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 452:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 453:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 454:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 455:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 456:
+				 $this->semValue = (new Expression\UnaryNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 457:
+				 $this->semValue = (new Expression\UnaryNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 458:
+				 $this->semValue = (new Expression\UnaryNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 459:
+				 $this->semValue = (new Expression\UnaryNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 460:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 461:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 462:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 463:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 464:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 465:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 466:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 467:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 468:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 469:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 470:
+				 $this->semValue = (new Expression\InstanceofNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 471:
+				 $this->semValue = (new Expression\ParenthesizedNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 472:
+				 $this->semValue = (new Expression\TernaryNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], $this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 473:
+				 $this->semValue = (new Expression\TernaryNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], null, $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 474:
+				 $this->semValue = (new Expression\BinaryNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 475:
+				 $this->semValue = (new Expression\IssetNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 476:
+				 $this->semValue = (new Expression\EmptyNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 477:
+				 $this->semValue = (new Expression\IncludeNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 478:
+				 $this->semValue = (new Expression\IncludeNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 479:
+				 $this->semValue = (new Expression\EvalNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 480:
+				 $this->semValue = (new Expression\IncludeNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 481:
+				 $this->semValue = (new Expression\IncludeNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 482:
+				 $this->semValue = (new Expression\CastNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 483:
+				 $this->semValue = (new Expression\CastNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 484:
+				 $this->semValue = (new Expression\CastNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 485:
+				 $this->semValue = (new Expression\CastNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 486:
+				 $this->semValue = (new Expression\CastNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 487:
+				 $this->semValue = (new Expression\CastNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 488:
+				 $this->semValue = (new Expression\CastNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 489:
+				 $this->semValue = (new Expression\CastNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 490:
+				 $this->semValue = (new Expression\ExitNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 491:
+				 $this->semValue = (new Expression\UnaryNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 493:
+				 $this->semValue = (new Expression\ShellExecNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 494:
+				 $this->semValue = (new Expression\PrintNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 495:
+				 $this->semValue = (new Expression\YieldNode($this->semStack[$pos-(1-1)], null, null, null))->attach();
+				break;
+			case 496:
+				 $this->semValue = (new Expression\YieldNode($this->semStack[$pos-(2-1)], null, null, $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 497:
+				 $this->semValue = (new Expression\YieldNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 498:
+				 $this->semValue = (new Expression\YieldFromNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 499:
+				 $this->semValue = (new Expression\ThrowNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 500:
+				 $this->semValue = (new Expression\ArrowFunctionNode(new NodeList, null, $this->semStack[$pos-(8-1)], $this->semStack[$pos-(8-2)], $this->semStack[$pos-(8-3)], $this->semStack[$pos-(8-4)], $this->semStack[$pos-(8-5)], $this->semStack[$pos-(8-6)][0] ?? null, $this->semStack[$pos-(8-6)][1] ?? null, $this->semStack[$pos-(8-7)], $this->semStack[$pos-(8-8)]))->attach();
+				break;
+			case 501:
+				 $this->semValue = (new Expression\ArrowFunctionNode(new NodeList, $this->semStack[$pos-(9-1)], $this->semStack[$pos-(9-2)], $this->semStack[$pos-(9-3)], $this->semStack[$pos-(9-4)], $this->semStack[$pos-(9-5)], $this->semStack[$pos-(9-6)], $this->semStack[$pos-(9-7)][0] ?? null, $this->semStack[$pos-(9-7)][1] ?? null, $this->semStack[$pos-(9-8)], $this->semStack[$pos-(9-9)]))->attach();
+				break;
+			case 502:
+				 $this->semValue = (new Expression\ClosureNode(new NodeList, null, $this->semStack[$pos-(8-1)], $this->semStack[$pos-(8-2)], $this->semStack[$pos-(8-3)], $this->semStack[$pos-(8-4)], $this->semStack[$pos-(8-5)], $this->semStack[$pos-(8-6)], $this->semStack[$pos-(8-7)][0] ?? null, $this->semStack[$pos-(8-7)][1] ?? null, $this->semStack[$pos-(8-8)]))->attach();
+				break;
+			case 503:
+				 $this->semValue = (new Expression\ClosureNode(new NodeList, $this->semStack[$pos-(9-1)], $this->semStack[$pos-(9-2)], $this->semStack[$pos-(9-3)], $this->semStack[$pos-(9-4)], $this->semStack[$pos-(9-5)], $this->semStack[$pos-(9-6)], $this->semStack[$pos-(9-7)], $this->semStack[$pos-(9-8)][0] ?? null, $this->semStack[$pos-(9-8)][1] ?? null, $this->semStack[$pos-(9-9)]))->attach();
+				break;
+			case 504:
+				 $this->semValue = (new Expression\ArrowFunctionNode($this->semStack[$pos-(9-1)], null, $this->semStack[$pos-(9-2)], $this->semStack[$pos-(9-3)], $this->semStack[$pos-(9-4)], $this->semStack[$pos-(9-5)], $this->semStack[$pos-(9-6)], $this->semStack[$pos-(9-7)][0] ?? null, $this->semStack[$pos-(9-7)][1] ?? null, $this->semStack[$pos-(9-8)], $this->semStack[$pos-(9-9)]))->attach();
+				break;
+			case 505:
+				 $this->semValue = (new Expression\ArrowFunctionNode($this->semStack[$pos-(10-1)], $this->semStack[$pos-(10-2)], $this->semStack[$pos-(10-3)], $this->semStack[$pos-(10-4)], $this->semStack[$pos-(10-5)], $this->semStack[$pos-(10-6)], $this->semStack[$pos-(10-7)], $this->semStack[$pos-(10-8)][0] ?? null, $this->semStack[$pos-(10-8)][1] ?? null, $this->semStack[$pos-(10-9)], $this->semStack[$pos-(10-10)]))->attach();
+				break;
+			case 506:
+				 $this->semValue = (new Expression\ClosureNode($this->semStack[$pos-(9-1)], null, $this->semStack[$pos-(9-2)], $this->semStack[$pos-(9-3)], $this->semStack[$pos-(9-4)], $this->semStack[$pos-(9-5)], $this->semStack[$pos-(9-6)], $this->semStack[$pos-(9-7)], $this->semStack[$pos-(9-8)][0] ?? null, $this->semStack[$pos-(9-8)][1] ?? null, $this->semStack[$pos-(9-9)]))->attach();
+				break;
+			case 507:
+				 $this->semValue = (new Expression\ClosureNode($this->semStack[$pos-(10-1)], $this->semStack[$pos-(10-2)], $this->semStack[$pos-(10-3)], $this->semStack[$pos-(10-4)], $this->semStack[$pos-(10-5)], $this->semStack[$pos-(10-6)], $this->semStack[$pos-(10-7)], $this->semStack[$pos-(10-8)], $this->semStack[$pos-(10-9)][0] ?? null, $this->semStack[$pos-(10-9)][1] ?? null, $this->semStack[$pos-(10-10)]))->attach();
+				break;
+			case 508:
+				 $this->semValue = (new Nodes\AnonymousClassNode($this->semStack[$pos-(8-1)], $this->semStack[$pos-(8-2)][0], $this->semStack[$pos-(8-2)][1], $this->semStack[$pos-(8-3)], $this->semStack[$pos-(8-4)][0] ?? null, $this->semStack[$pos-(8-4)][1] ?? null, $this->semStack[$pos-(8-5)][0] ?? null, $this->semStack[$pos-(8-5)][1] ?? null, $this->semStack[$pos-(8-6)], $this->semStack[$pos-(8-7)], $this->semStack[$pos-(8-8)]))->attach();
+				break;
+			case 509:
+				 $this->semValue = (new Expression\NewNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 510:
+				 $this->semValue = (new Expression\NewNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)], null))->attach();
+				break;
+			case 511:
+				 $this->semValue = (new Expression\NewNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)], null))->attach();
+				break;
+			case 515:
+				 $this->semValue = (new Nodes\ClosureUsesNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
 			case 516:
 				 $this->semStack[$pos-(2-1)]->setTrailingSeparator($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
 				break;
@@ -1401,8 +2157,23 @@ trait ParserData
 			case 518:
 				 $this->semStack[$pos-(3-1)]->append($this->semStack[$pos-(3-3)], $this->semStack[$pos-(3-2)]); $this->semValue = $this->semStack[$pos-(3-1)];
 				break;
+			case 519:
+				 $this->semValue = (new Nodes\ClosureUseNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
 			case 520:
 				 $this->semValue = (new Nodes\NameNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 521:
+				 $this->semValue = (new Expression\FunctionCallNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 522:
+				 $this->semValue = (new Expression\FunctionCallNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 523:
+				 $this->semValue = (new Expression\FunctionCallNode($this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 524:
+				 $this->semValue = (new Expression\StaticCallNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)][0], $this->semStack[$pos-(4-3)][1], $this->semStack[$pos-(4-3)][2], $this->semStack[$pos-(4-4)]))->attach();
 				break;
 			case 525:
 				 $this->semValue = (new Nodes\NameNode($this->semStack[$pos-(1-1)]))->attach();
@@ -1418,6 +2189,15 @@ trait ParserData
 				break;
 			case 530:
 				 $this->semValue = (new Nodes\NameNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 533:
+				 $this->semValue = (new Expression\ParenthesizedNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 536:
+				 $this->semValue = new NodeList;
+				break;
+			case 537:
+				 $this->semValue = (new NodeList([$this->semStack[$pos-(1-1)]]))->attach();
 				break;
 			case 541:
 				 $this->semValue = (new Expression\ConstantFetchNode($this->semStack[$pos-(1-1)]))->attach();
@@ -1449,14 +2229,104 @@ trait ParserData
 			case 550:
 				 $this->semValue = (new Scalar\MagicConstantNode($this->semStack[$pos-(1-1)]))->attach();
 				break;
+			case 551:
+				 $this->semValue = (new Expression\ClassConstantFetchNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], null, $this->semStack[$pos-(3-3)], null))->attach();
+				break;
+			case 552:
+				 $this->semValue = (new Expression\ClassConstantFetchNode($this->semStack[$pos-(5-1)], $this->semStack[$pos-(5-2)], $this->semStack[$pos-(5-3)], $this->semStack[$pos-(5-4)], $this->semStack[$pos-(5-5)]))->attach();
+				break;
+			case 553:
+				 $this->semValue = (new Expression\ArrayNode(null, $this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 554:
+				 $this->semValue = (new Expression\ArrayNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
 			case 556:
 				 $this->semValue = (new Scalar\StringNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 557:
+				 $this->semValue = (new Scalar\InterpolatedStringNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
 				break;
 			case 558:
 				 $this->semValue = (new Scalar\IntegerNode($this->semStack[$pos-(1-1)]))->attach();
 				break;
 			case 559:
 				 $this->semValue = (new Scalar\FloatNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 563:
+				 $this->semValue = (new Scalar\HeredocNode($this->semStack[$pos-(3-1)], (new NodeList([(new Scalar\InterpolatedStringPartNode($this->semStack[$pos-(3-2)]))->attach()]))->attach(), $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 564:
+				 $this->semValue = (new Scalar\HeredocNode($this->semStack[$pos-(2-1)], new NodeList, $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 565:
+				 $this->semValue = (new Scalar\HeredocNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 569:
+				 $this->semValue = (new Expression\ParenthesizedNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 576:
+				 $this->semValue = (new Expression\ParenthesizedNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 580:
+				 $this->semValue = (new Expression\ArrayDimFetchNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 582:
+				 $this->semValue = (new Expression\MethodCallNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)][0], $this->semStack[$pos-(4-3)][1], $this->semStack[$pos-(4-3)][2], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 583:
+				 $this->semValue = (new Expression\MethodCallNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)][0], $this->semStack[$pos-(4-3)][1], $this->semStack[$pos-(4-3)][2], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 588:
+				 $this->semValue = (new Expression\PropertyFetchNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)][0], $this->semStack[$pos-(3-3)][1], $this->semStack[$pos-(3-3)][2]))->attach();
+				break;
+			case 589:
+				 $this->semValue = (new Expression\PropertyFetchNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)][0], $this->semStack[$pos-(3-3)][1], $this->semStack[$pos-(3-3)][2]))->attach();
+				break;
+			case 591:
+				 $this->semValue = (new Expression\VariableNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 592:
+				 $this->semValue = (new Expression\VariableNode($this->semStack[$pos-(2-1)], null, $this->semStack[$pos-(2-2)], null))->attach();
+				break;
+			case 594:
+				 $this->semValue = (new Expression\StaticPropertyFetchNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 596:
+				 $this->semValue = (new Expression\ArrayDimFetchNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 597:
+				 $this->semValue = (new Expression\PropertyFetchNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)][0], $this->semStack[$pos-(3-3)][1], $this->semStack[$pos-(3-3)][2]))->attach();
+				break;
+			case 598:
+				 $this->semValue = (new Expression\PropertyFetchNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)][0], $this->semStack[$pos-(3-3)][1], $this->semStack[$pos-(3-3)][2]))->attach();
+				break;
+			case 599:
+				 $this->semValue = (new Expression\StaticPropertyFetchNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 600:
+				 $this->semValue = (new Expression\StaticPropertyFetchNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 601:
+				 $this->semValue = [null, $this->semStack[$pos-(1-1)], null];
+				break;
+			case 602:
+				 $this->semValue = [$this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]];
+				break;
+			case 603:
+				 $this->semValue = [null, $this->semStack[$pos-(1-1)], null];
+				break;
+			case 604:
+				 $this->semValue = [null, $this->semStack[$pos-(1-1)], null];
+				break;
+			case 605:
+				 $this->semValue = [$this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]];
+				break;
+			case 606:
+				 $this->semValue = [null, $this->semStack[$pos-(1-1)], null];
+				break;
+			case 607:
+				 $this->semValue = (new Expression\ListNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->finishArrayItems($this->semStack[$pos-(4-3)]), $this->semStack[$pos-(4-4)]))->attach();
 				break;
 			case 608:
 				 $this->semValue = $this->finishArrayItems($this->semStack[$pos-(1-1)]);
@@ -1467,11 +2337,80 @@ trait ParserData
 			case 610:
 				 $this->semValue = (new SeparatedNodeList([$this->semStack[$pos-(1-1)]]))->attach();
 				break;
+			case 611:
+				 $this->semValue = (new Nodes\ArrayItemNode(null, null, null, null, $this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 612:
+				 $this->semValue = (new Nodes\ArrayItemNode(null, null, $this->semStack[$pos-(2-1)], null, $this->semStack[$pos-(2-2)]))->attach();
+				break;
+			case 613:
+				 $this->semValue = (new Nodes\ArrayItemNode(null, null, null, null, $this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 614:
+				 $this->semValue = (new Nodes\ArrayItemNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], null, null, $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 615:
+				 $this->semValue = (new Nodes\ArrayItemNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], null, $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 616:
+				 $this->semValue = (new Nodes\ArrayItemNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], null, null, $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 617:
+				 $this->semValue = (new Nodes\ArrayItemNode(null, null, null, $this->semStack[$pos-(2-1)], $this->semStack[$pos-(2-2)]))->attach();
+				break;
 			case 618:
 				 $this->semValue = (new Nodes\EmptyArrayItemNode())->attach();
 				break;
+			case 619:
+				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
+				break;
+			case 620:
+				 $this->semStack[$pos-(2-1)]->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semStack[$pos-(2-1)];
+				break;
+			case 621:
+				 $this->semValue = (new NodeList([$this->semStack[$pos-(1-1)]]))->attach();
+				break;
+			case 622:
+				 $this->semValue = (new NodeList([$this->semStack[$pos-(2-1)]]))->attach(); $this->semValue->append($this->semStack[$pos-(2-2)]); $this->semValue = $this->semValue;
+				break;
+			case 623:
+				 $this->semValue = (new Scalar\InterpolatedStringPartNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 624:
+				 $this->semValue = (new Expression\VariableNode(null, null, $this->semStack[$pos-(1-1)], null))->attach();
+				break;
+			case 626:
+				 $this->semValue = (new Expression\ArrayDimFetchNode($this->semStack[$pos-(4-1)], $this->semStack[$pos-(4-2)], $this->semStack[$pos-(4-3)], $this->semStack[$pos-(4-4)]))->attach();
+				break;
+			case 627:
+				 $this->semValue = (new Expression\PropertyFetchNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], null, $this->semStack[$pos-(3-3)], null))->attach();
+				break;
+			case 628:
+				 $this->semValue = (new Expression\PropertyFetchNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], null, $this->semStack[$pos-(3-3)], null))->attach();
+				break;
+			case 629:
+				 $this->semValue = (new Scalar\InterpolationNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 630:
+				 $this->semValue = (new Scalar\InterpolationNode($this->semStack[$pos-(3-1)], (new Expression\VariableNode(null, null, $this->semStack[$pos-(3-2)], null))->attach(), $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 631:
+				 $this->semValue = (new Scalar\InterpolationNode($this->semStack[$pos-(6-1)], (new Expression\ArrayDimFetchNode($this->semStack[$pos-(6-2)], $this->semStack[$pos-(6-3)], $this->semStack[$pos-(6-4)], $this->semStack[$pos-(6-5)]))->attach(), $this->semStack[$pos-(6-6)]))->attach();
+				break;
+			case 632:
+				 $this->semValue = (new Scalar\InterpolationNode($this->semStack[$pos-(3-1)], $this->semStack[$pos-(3-2)], $this->semStack[$pos-(3-3)]))->attach();
+				break;
+			case 633:
+				 $this->semValue = (new Scalar\StringNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 634:
+				 $this->semValue = (new Scalar\IntegerNode($this->semStack[$pos-(1-1)]))->attach();
+				break;
+			case 635:
+				 $this->semValue = (new Expression\UnaryNode($this->semStack[$pos-(2-1)], (new Scalar\IntegerNode($this->semStack[$pos-(2-2)]))->attach()))->attach();
+				break;
 			default:
-				$this->reduceGeneric($rule, $pos);
+				$this->reduceDefault($rule, $pos);
 		}
 	}
 }

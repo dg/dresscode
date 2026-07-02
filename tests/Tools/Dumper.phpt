@@ -55,10 +55,10 @@ test('tree from the parser', function () {
 	Assert::match(<<<'XX'
 		FileNode
 		  stmts: NodeList
-		    - GenericNode
-		      - VariableNode
+		    - ExpressionStatementNode
+		      expr: VariableNode
 		        name: Variable "$a"  <OpenTag"<?php "
-		      - ';' ";"
+		      semicolon: ';' ";"
 		  eof: EndOfFile ""
 
 		XX, Dumper::dump((new Parser)->parse('<?php $a;')));

@@ -107,7 +107,7 @@ trait #(-p)
 	];
 
 
-	/** Runs the semantic action of the rule; a rule without an action builds a generic node. */
+	/** Runs the semantic action of the rule. */
 	protected function reduce(int $rule, int $pos): void
 	{
 		switch ($rule) {
@@ -118,7 +118,7 @@ trait #(-p)
 #noact
 #endreduce
 			default:
-				$this->reduceGeneric($rule, $pos);
+				$this->reduceDefault($rule, $pos);
 		}
 	}
 }

@@ -38,7 +38,6 @@ final class Dumper
 			$node instanceof NodeList
 			|| $node instanceof SeparatedNodeList
 			|| $node instanceof ModifiersNode
-			|| $node instanceof Parser\GenericNode
 		) {
 			foreach ($node->getChildren() as $child) {
 				$output .= "$indent  - " . self::dumpNode($child, "$indent  ");
