@@ -9,3 +9,12 @@ if (@!include __DIR__ . '/../vendor/autoload.php') {
 Tester\Environment::setup();
 Tester\Environment::setupFunctions();
 Tester\Dumper::$maxPathSegments = 3;
+
+
+/**
+ * Returns the expected output stored after __halt_compiler() in a test file.
+ */
+function loadExpected(string $file, int $offset): string
+{
+	return ltrim((string) file_get_contents($file, offset: $offset), "\r\n");
+}

@@ -13,5 +13,6 @@ tools/          export-ignore
 *.php*          diff=php
 *.sh            text eol=lf
 bin/dresscode   text eol=lf
-tests/PhpSyntax/Parser/**  -text
+tests/PhpSyntax/Parser/corpus/**  -text
+tests/PhpSyntax/Parser/dump/**    -text
 tests/**/fixtures/**       -text

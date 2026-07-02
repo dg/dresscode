@@ -22,7 +22,8 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
 
 - `composer tester`: Nette Tester over `tests/`.
 - `composer phpstan`: PHPStan level 8, no baseline; `ignoreErrors` only with a reason.
-- `composer build`: regenerates `src/PhpSyntax/Parser/ParserData.php`, `src/PhpSyntax/TokenKind.php` and `src/PhpSyntax/Nodes/**` from `grammar/`. Commit the output; CI diffs it.
+- `composer build`: regenerates `src/PhpSyntax/Parser/ParserData.php`, `src/PhpSyntax/TokenKind.php` and `src/PhpSyntax/Nodes/**` from `grammar/` (`php.y` for the parser, `nodes.php` for the node classes). Commit the output; CI diffs it.
+- `php tests/_update-tests.php`: rewrites the expected output of failed dump fixtures from their `.actual` files.
 - Round-trip over an external corpus: `DRESSCODE_CORPUS=/path/to/php/code composer tester`.
 
 ## Conventions
@@ -58,4 +59,6 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
 - Trivia inside string interpolation (`"{$a /* c */}"`) carry `inInterpolation` and must never be reformatted.
 - Whitespace that is part of a token stays in its text: inline HTML, heredoc delimiters, `( int )` casts, `T_ENCAPSED_AND_WHITESPACE`.
 - `T_*` token ids differ between PHP builds; the lexer maps them by constant name, never by value.
-- A grammar production without an action must produce no callback (`null` in the table), so the driver can build a generic node; the Latte `#noact` behavior is wrong here.
+- A grammar alternative with two or more symbols must have an action that uses every symbol, otherwise tokens drop out of the tree; `composer build` fails on such an alternative. A single symbol passes through by default.
+- Semantic actions may put plain arrays of slot values on the value stack (alternative syntax tails, optional pairs like `: type`); they are spread into the node constructor and never leave the parser.
+- Dump fixtures in `tests/PhpSyntax/Parser/dump/` are the oracle for the shape of the tree; after an intended change run `php tests/_update-tests.php` and review the diff, never paste output by hand.
