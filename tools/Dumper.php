@@ -48,7 +48,7 @@ final class Dumper
 		}
 
 		foreach (get_object_vars($node) as $slot => $value) {
-			if ($value instanceof Node || $value instanceof Token) {
+			if ($slot !== 'parent' && ($value instanceof Node || $value instanceof Token)) {
 				$output .= "$indent  $slot: " . self::dumpNode($value, "$indent  ");
 			}
 		}

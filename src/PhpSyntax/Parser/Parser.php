@@ -4,6 +4,13 @@ namespace PhpSyntax\Parser;
 
 use PhpSyntax\Lexer\Lexer;
 use PhpSyntax\Node;
+use PhpSyntax\Nodes\ArrayItemNode;
+use PhpSyntax\Nodes\EmptyArrayItemNode;
+use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Nodes\NodeList;
+use PhpSyntax\Nodes\SeparatedNodeList;
+use PhpSyntax\Nodes\Statement\HaltCompilerNode;
+use PhpSyntax\Nodes\StatementNode;
 use PhpSyntax\ParseException;
 use PhpSyntax\Token;
 use PhpSyntax\TokenKind;
@@ -38,22 +45,28 @@ final class Parser
 
 
 	/** @throws ParseException */
-	public function parse(string $code): GenericNode
+	public function parse(string $code): FileNode
 	{
 		$this->tokens = $this->lexer->tokenize($code);
 		$this->position = 0;
-		$children = [];
-		if (($start = $this->run()) !== null) {
-			$children[] = $start;
+		$stmts = $this->run();
+		if (!$stmts instanceof NodeList) {
+			throw new \LogicException('The start production must yield a list of statements.');
 		}
 
-		foreach ($this->tokens as $token) { // __halt_compiler() data and the end of file
-			if ($token->kind === TokenKind::HaltCompilerData || $token->kind === TokenKind::EndOfFile) {
-				$children[] = $token;
+		$eof = $this->tokens[count($this->tokens) - 1];
+		$data = $this->tokens[count($this->tokens) - 2] ?? null;
+		if ($data?->kind === TokenKind::HaltCompilerData) {
+			$halt = $stmts->items[count($stmts->items) - 1] ?? null;
+			if (!$halt instanceof HaltCompilerNode) {
+				throw new \LogicException('__halt_compiler() data without the halt statement.');
 			}
+
+			$halt->setData($data);
 		}
 
-		return (new GenericNode(0, $children))->attach();
+		/** @var NodeList<StatementNode> $stmts */
+		return (new FileNode($stmts, $eof))->attach();
 	}
 
 
@@ -146,6 +159,24 @@ final class Parser
 				$rule = $state - self::NumNonLeafStates; // shift-and-reduce
 			} while (true);
 		} while (true);
+	}
+
+
+	/**
+	 * The grammar parses "[1,]" and "[]" with an empty item after the last comma; that item is really
+	 * a trailing separator, or nothing at all.
+	 * @param  SeparatedNodeList<ArrayItemNode|EmptyArrayItemNode>  $items
+	 * @return SeparatedNodeList<ArrayItemNode|EmptyArrayItemNode>
+	 */
+	protected function finishArrayItems(SeparatedNodeList $items): SeparatedNodeList
+	{
+		$last = $items->items[count($items->items) - 1];
+		if ($last instanceof EmptyArrayItemNode) {
+			$last->parent = null;
+			return (new SeparatedNodeList(array_slice($items->items, 0, -1), $items->separators))->attach();
+		}
+
+		return $items;
 	}
 
 

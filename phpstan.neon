@@ -10,8 +10,12 @@ parameters:
 		- tools
 
 	excludePaths:
-		- tests/*/fixtures/*
-		- tests/PhpSyntax/Parser/corpus/*
+		analyseAndScan:
+			- tests/*/fixtures/*
+			- tests/PhpSyntax/Parser/corpus/*
+		analyse:
+			# semantic actions index the untyped value stack; their shape is given by the grammar and checked by the round-trip tests
+			- src/PhpSyntax/Parser/ParserData.php
 
 	ignoreErrors:
 		-	# rule numbers come from the generated Action tables, so they always index the generated rule tables

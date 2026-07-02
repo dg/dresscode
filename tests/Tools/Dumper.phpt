@@ -51,14 +51,15 @@ test('nodes with slots, lists and tokens with trivia', function () {
 });
 
 
-test('generic tree from the parser', function () {
+test('tree from the parser', function () {
 	Assert::match(<<<'XX'
-		GenericNode
-		  - GenericNode
+		FileNode
+		  stmts: NodeList
 		    - GenericNode
-		      - Variable "$a"  <OpenTag"<?php "
+		      - VariableNode
+		        name: Variable "$a"  <OpenTag"<?php "
 		      - ';' ";"
-		  - EndOfFile ""
+		  eof: EndOfFile ""
 
 		XX, Dumper::dump((new Parser)->parse('<?php $a;')));
 });

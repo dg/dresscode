@@ -1,8 +1,9 @@
 <?php declare(strict_types=1);
 
 use PhpSyntax\Node;
+use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Nodes\Statement\HaltCompilerNode;
 use PhpSyntax\ParseException;
-use PhpSyntax\Parser\GenericNode;
 use PhpSyntax\Parser\Parser;
 use PhpSyntax\Printer;
 use PhpSyntax\Token;
@@ -12,42 +13,20 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-function parse(string $code): GenericNode
+function parse(string $code): FileNode
 {
-	$node = (new Parser)->parse($code);
-	Assert::same($code, Printer::print($node), 'round-trip');
-	Assert::same($code, (string) $node);
-	return $node;
+	$file = (new Parser)->parse($code);
+	Assert::same($code, Printer::print($file), 'round-trip');
+	Assert::same($code, (string) $file);
+	return $file;
 }
 
 
-/** @return list<string> */
-function describe(Node|Token $node, int $depth = 0): array
-{
-	$label = match (true) {
-		$node instanceof Token => "token '$node->text'",
-		$node instanceof GenericNode => 'rule ' . $node->rule,
-		default => 'node',
-	};
-	$lines = [str_repeat('  ', $depth) . $label];
-	if ($node instanceof Node) {
-		foreach ($node->getChildren() as $child) {
-			$lines = [...$lines, ...describe($child, $depth + 1)];
-		}
-	}
-
-	return $lines;
-}
-
-
-test('generic tree keeps every token and sets parents', function () {
-	$root = parse("<?php\n\$a = f(1, 2); // c\n");
-	Assert::same(0, $root->rule);
-	Assert::null($root->parent);
-	$eof = $root->children[count($root->children) - 1];
-	Assert::type(Token::class, $eof);
-	Assert::same(TokenKind::EndOfFile, $eof->kind);
-	Assert::same($root, $eof->parent);
+test('the tree keeps every token and sets parents', function () {
+	$file = parse("<?php\n\$a = f(1, 2); // c\n");
+	Assert::null($file->parent);
+	Assert::same(TokenKind::EndOfFile, $file->eof->kind);
+	Assert::same($file, $file->eof->parent);
 
 	$tokens = [];
 	$walk = function (Node|Token $node) use (&$walk, &$tokens) {
@@ -60,23 +39,14 @@ test('generic tree keeps every token and sets parents', function () {
 			}
 		}
 	};
-	$walk($root);
+	$walk($file);
 	Assert::same(['$a', '=', 'f', '(', '1', ',', '2', ')', ';', ''], $tokens);
 });
 
 
-test('single-child productions pass through, empty ones vanish', function () {
-	// top_statement_list_ex (with the empty list dropped) > expr semi (variable chain passed through)
-	Assert::match(
-		"rule 0\n  rule %d%\n    rule %d%\n      token '\$a'\n      token ';'\n  token ''",
-		implode("\n", describe(parse('<?php $a;'))),
-	);
-});
-
-
 test('empty file, file without PHP, close tag as a statement terminator', function () {
-	Assert::same(['rule 0', "  token ''"], describe(parse('')));
-	Assert::match("rule 0\n  rule %d%\n    token 'x'\n  token ''", implode("\n", describe(parse('x'))));
+	Assert::count(0, parse('')->stmts->getItems());
+	Assert::count(1, parse('x')->stmts->getItems());
 	parse("<?php foo() ?>\n<b><?php bar(); ?>");
 	parse('<?= $a ?>');
 	parse('<?php if ($a): ?>x<?php endif ?>');
@@ -84,13 +54,13 @@ test('empty file, file without PHP, close tag as a statement terminator', functi
 
 
 test('__halt_compiler data are part of the tree', function () {
-	$root = parse('<?php __halt_compiler(); raw data');
-	$data = $root->children[count($root->children) - 2];
-	Assert::type(Token::class, $data);
-	Assert::same(TokenKind::HaltCompilerData, $data->kind);
-	Assert::same($root, $data->parent);
+	$file = parse('<?php __halt_compiler(); raw data');
+	$halt = $file->stmts->getItems()[0];
+	Assert::type(HaltCompilerNode::class, $halt);
+	Assert::same(' raw data', $halt->data?->text);
+	Assert::same($halt, $halt->data->parent);
 	parse("<?php __halt_compiler() ?>\nraw");
-	parse('<?php __halt_compiler();');
+	Assert::null(parse('<?php __halt_compiler();')->stmts->getItems()[0]->data ?? null);
 });
 
 
