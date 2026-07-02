@@ -1,4 +1,24 @@
+parametersSchema:
+	dresscode: structure([
+		slotWriteAllowed: listOf(string())
+	])
+
+parameters:
+	dresscode:
+		# paths that implement the tree and may write node slots directly
+		slotWriteAllowed:
+			- src/PhpSyntax/Node.php
+			- src/PhpSyntax/NodeList.php
+			- src/PhpSyntax/SeparatedNodeList.php
+			- src/PhpSyntax/Nodes/
+			- src/PhpSyntax/Parser/
+			- tests/
+
 services:
 	-
 		class: DressCode\Tools\PhpStan\LayerBoundaryRule
+		tags: [phpstan.rules.rule]
+	-
+		class: DressCode\Tools\PhpStan\NodeSlotWriteRule
+		arguments: [%dresscode.slotWriteAllowed%]
 		tags: [phpstan.rules.rule]

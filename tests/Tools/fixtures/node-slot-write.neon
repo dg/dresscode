@@ -1,0 +1,7 @@
+includes:
+	- ../../../tools/phpstan/extension.neon
+
+parameters:
+	level: 8
+	dresscode:
+		slotWriteAllowed!: []
