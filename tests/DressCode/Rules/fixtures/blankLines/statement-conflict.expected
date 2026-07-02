@@ -1,0 +1,11 @@
+<?php
+
+// {"beforeStatement": {"return": 2}, "afterStatement": {"if": 0}}
+function a()
+{
+	if ($x) {
+	}
+
+
+	return 1;
+}

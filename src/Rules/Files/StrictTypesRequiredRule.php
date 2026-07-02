@@ -17,7 +17,7 @@ use PhpSyntax\Nodes\Statement\{DeclareNode, InlineHtmlNode};
  * Every file of PHP code declares `strict_types=1` as its first statement, on the line after the opening
  * tag or on the line of the tag itself; where other `declare` statements come first, the declaration among
  * them counts and its place is left as it is. A missing declaration is added right after the tag and whatever
- * followed the tag stays with the code below.
+ * followed the tag stays with the code below; the blank lines around belong to `BlankLinesRule`.
  * A file starting with markup is left alone, because PHP refuses the declaration there.
  *
  * A declaration added or set to `1` is risky: an argument of a scalar type the calls of the file coerced becomes

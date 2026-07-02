@@ -1,0 +1,37 @@
+<?php
+function a()
+{
+	$x = 1;
+	return $x;
+}
+
+function b()
+{
+	return 1;
+}
+
+function c()
+{
+	if ($x) {
+		foo();
+		return 1;
+	}
+
+
+	return 2;
+}
+
+switch ($a) {
+	case 1:
+		return 1;
+	case 2:
+		foo();
+		// why
+		return 2;
+}
+
+function g()
+{
+	foo();
+	throw new E;
+}

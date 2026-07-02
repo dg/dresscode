@@ -1,0 +1,20 @@
+blankLines:
+	afterOpeningTag: 1
+	beforeNamespace: 1
+	afterNamespace: 1
+	afterImports: 1
+	betweenImportKinds: 1
+	betweenDeclarations: 2
+	betweenMethods: 2
+	betweenInterfaceMethods: 1
+	beforeFirstMethod: 0
+	afterLastMethod: 0
+	beforeFirstMember: 0
+	afterLastMember: 0
+	betweenTraitUses: 0
+	afterTraitUses: 1
+	betweenMembers: 0-1
+	beforeDocumentedMember: 1
+	afterPhpdoc: 0
+	afterBlockOpeningBrace: 0
+	beforeStatement: {return: 1+}

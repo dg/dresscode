@@ -1,0 +1,17 @@
+<?php
+
+class A
+{
+	public $a;
+	public $b;
+
+	public $c;
+}
+
+
+$x = new class {
+	const X = 1;
+};
+
+
+class B {}
