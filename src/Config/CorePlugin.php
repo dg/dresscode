@@ -65,6 +65,7 @@ final class CorePlugin implements Plugin
 				Rules\Whitespace\AttributeSpacingRule::class,
 				Rules\Whitespace\StatementBlankLinesRule::class,
 				Rules\Whitespace\MemberBlankLinesRule::class,
+				Rules\Whitespace\BlockBlankLinesRule::class,
 				Rules\Whitespace\BracesPositionRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Whitespace\ConstructSpacingRule::class,
