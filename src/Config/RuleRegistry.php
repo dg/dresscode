@@ -7,6 +7,7 @@ use DressCode\Preset;
 use DressCode\PresetInfo;
 use DressCode\Rule;
 use DressCode\RuleInfo;
+use DressCode\Rules;
 use Nette\Utils\Helpers;
 use function strlen;
 
@@ -20,6 +21,10 @@ final class RuleRegistry
 {
 	private const Vendor = 'dresscode/';
 
+	private const BuiltinRules = [
+		Rules\Files\NoBomRule::class,
+	];
+
 	/** @var array<string, class-string<Rule>>  name → class */
 	private array $rules = [];
 
@@ -29,6 +34,9 @@ final class RuleRegistry
 
 	public function __construct()
 	{
+		foreach (self::BuiltinRules as $class) {
+			$this->registerRule($class);
+		}
 	}
 
 
