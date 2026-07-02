@@ -63,6 +63,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Files\DeclareSpacingRule::class,
+				Rules\Whitespace\BlankLinesRule::class,
 				Rules\Whitespace\SemicolonSpacingRule::class,
 				Rules\Whitespace\ParenthesesSpacingRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,

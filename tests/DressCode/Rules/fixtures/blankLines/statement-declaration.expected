@@ -1,0 +1,41 @@
+<?php
+
+// {"betweenMethods": 1}
+function a()
+{
+}
+
+
+class B
+{
+	public function c()
+	{
+	}
+
+	public function d()
+	{
+	}
+}
+
+
+if ($x) {
+	class E
+	{
+	}
+
+
+	foo();
+}
+
+
+interface F
+{
+}
+
+
+trait G
+{
+}
+
+
+bar();

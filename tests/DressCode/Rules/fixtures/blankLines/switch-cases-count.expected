@@ -1,0 +1,20 @@
+<?php
+
+// {"betweenCases": 0}
+
+switch ($a) {
+	case 1:
+	case 2:
+		foo();
+
+		break;
+	case 3:
+		bar();
+		// no break
+	case 4:
+		baz();
+		break;
+	// the last one
+	default:
+		qux();
+}
