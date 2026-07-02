@@ -1,0 +1,23 @@
+<?php
+// php 8.4
+class A
+{
+	public int $a {
+		#[Attr]
+		get => 1;
+		#[Attr]
+		#[Other]
+		set { }
+	}
+
+	public int $b { #[Attr] get => 1; }
+
+	public function __construct(
+		public int $c {
+			#[Attr]
+			get => 1;
+		},
+		public int $d { #[Attr] get => 1; },
+	) {
+	}
+}

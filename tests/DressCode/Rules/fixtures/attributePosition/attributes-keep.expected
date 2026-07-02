@@ -1,0 +1,7 @@
+<?php
+// {"attributes": "keep"}
+#[A] #[B]
+class C
+{
+	#[K] public function m(#[L] #[M] $a) {}
+}
