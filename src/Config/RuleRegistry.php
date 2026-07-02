@@ -27,6 +27,7 @@ final class RuleRegistry
 		Rules\Arrays\ShortArraySyntaxRule::class,
 		Rules\Whitespace\AttributeSpacingRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
+		Rules\Classes\SingleMemberPerLineRule::class,
 		Rules\Comments\CommentSpacingRule::class,
 		Rules\Comments\NoEmptyCommentRule::class,
 		Rules\Comments\NoHashCommentRule::class,
