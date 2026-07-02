@@ -1,0 +1,19 @@
+<?php
+#[A] #[B]
+class C
+{
+	#[D] #[E] #[F]
+	public $x;
+	#[G]
+
+	#[H] public $y;
+	#[I] const J = 1;
+	#[K] public function m(#[L] #[M] $a) {}
+}
+#[N] function f() {}
+enum E
+{
+	#[O] case P;
+}
+$c = new #[Q] class {};
+$f = #[R] fn() => 1;
