@@ -127,6 +127,7 @@ final class PassLoop
 			$this->mutatedRules = $this->reported = [];
 			$this->fingerprints->beginPass();
 
+			$this->analyses->beginPass($file);
 			$revision = $file->revision;
 			foreach ($this->plan->stages as $stage => $rules) {
 				$this->runStage($stage, $rules, $style);
