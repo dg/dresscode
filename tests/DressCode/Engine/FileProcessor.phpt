@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\{Analyses, Config, ConvergenceException, NodeRule, Rule, RuleContext, RuleInfo, Stage, Style};
+use DressCode\Config\PresetResolver;
 use DressCode\Engine\FileProcessor;
 use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\Expression\VariableNode;
@@ -96,6 +97,15 @@ test('a fix changes the output and keeps the original', function () {
 	Assert::true($result->isChanged());
 	Assert::same(['Rename $a'], array_map(fn($v) => $v->message, $result->violations));
 	Assert::same([], $result->remaining);
+});
+
+
+test('a claim a comment keeps from being fixed remains, whatever the rest of the traversal fixed after it', function () {
+	$code = "<?php\nif (\$a) {\n\t\$b;\n}\n// why\nelseif (\$c) {\n\t\$d;\n}\nif (\$e)\n{\n\t\$f;\n}\n";
+	$result = processor([PresetResolver::createRule(DressCode\Rules\Whitespace\BracesPositionRule::class)])->process('a.php', $code);
+	Assert::same("<?php\nif (\$a) {\n\t\$b;\n}\n// why\nelseif (\$c) {\n\t\$d;\n}\nif (\$e) {\n\t\$f;\n}\n", $result->output);
+	Assert::count(2, $result->violations);
+	Assert::same(['No line break before the elseif keyword'], array_map(fn($v) => $v->message, $result->remaining));
 });
 
 

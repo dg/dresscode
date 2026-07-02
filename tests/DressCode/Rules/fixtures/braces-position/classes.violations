@@ -1,0 +1,11 @@
+2: A line break before the opening brace
+6: A line break after the opening brace
+6: A line break before the closing brace
+7: A line break before the opening brace
+7: A line break after the opening brace
+8: A line break before the opening brace
+8: A line break after the opening brace
+8: A line break before the closing brace
+10: No line break before the opening brace
+14: A line break after the opening brace
+14: A line break before the closing brace
