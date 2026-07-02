@@ -1,0 +1,26 @@
+<?php
+function a(
+	#[A]
+	$x,
+	#[B]
+	#[C]
+	$y,
+	#[\SensitiveParameter]
+	string $z = '',
+) {}
+function b(#[A] $x, #[B] $y) {}
+$c = function (
+	#[A]
+	$x,
+) {};
+$d = fn(#[A] $x) => 1;
+class E
+{
+	public function __construct(
+		#[A]
+		private int $x,
+		#[B]
+		#[C]
+		public int $y,
+	) {}
+}

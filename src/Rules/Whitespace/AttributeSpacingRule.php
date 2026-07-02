@@ -14,7 +14,8 @@ use PhpSyntax\Nodes\AttributeGroupNode;
 
 /**
  * `#[Foo]` hugs its brackets: no whitespace after `#[` or before `]` on the same line, a single space between
- * the last group and what follows it on the line. A group spanning lines is left to its author.
+ * the last group and what follows it on the line. A group spanning lines is left to its author; where the
+ * groups of a declaration stand is the matter of `AttributePositionRule`.
  */
 #[RuleInfo(Stage::Formatting)]
 final class AttributeSpacingRule extends GapRule

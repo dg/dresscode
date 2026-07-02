@@ -1,0 +1,9 @@
+<?php
+// {"attributes.parameter": "keep"}
+function a(
+	#[A] $x,
+	#[B]
+	$y,
+) {}
+function b(#[A]
+	$x) {}

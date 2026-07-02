@@ -61,6 +61,7 @@ final class CorePlugin implements Plugin
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
+				Rules\Whitespace\AttributePositionRule::class,
 				Rules\Whitespace\AttributeSpacingRule::class,
 				Rules\Whitespace\BracesPositionRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,

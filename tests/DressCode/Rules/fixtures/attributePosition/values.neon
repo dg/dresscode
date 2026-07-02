@@ -1,0 +1,4 @@
+multiline:
+	attributes:
+		declaration: ownLines
+		parameter: ownLines
