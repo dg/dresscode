@@ -1,0 +1,3 @@
+3: Expected the heredoc body and its closing marker indented by 2 tabs, none found.
+10: Expected the heredoc body and its closing marker indented by 2 tabs, none found.
+14: Expected the heredoc body and its closing marker indented by 2 tabs, 4 tabs found.
