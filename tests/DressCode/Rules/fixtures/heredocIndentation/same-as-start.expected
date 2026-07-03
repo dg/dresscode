@@ -1,0 +1,7 @@
+<?php
+// {"heredoc": "sameAsStart"}
+function f() {
+	$a = <<<EOT
+	foo
+	EOT;
+}
