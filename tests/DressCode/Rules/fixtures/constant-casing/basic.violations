@@ -1,0 +1,4 @@
+2: The literal 'TRUE' must be written 'true'
+3: The literal 'False' must be written 'false'
+4: The literal 'NULL' must be written 'null'
+7: The literal '\TRUE' must be written '\true'
