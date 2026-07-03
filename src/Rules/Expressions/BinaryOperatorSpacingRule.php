@@ -7,8 +7,10 @@
 
 namespace DressCode\Rules\Expressions;
 
+use DressCode\Analyses\IndentationPlan;
 use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
 use DressCode\Domains\Shapes;
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Indentation, Token};
 use PhpSyntax\Nodes\{ArrayItemNode, DeclareItemNode, MatchArmNode};
 use PhpSyntax\Nodes\Expression\{AssignmentNode, BinaryOpNode, CombinedAssignmentNode, InstanceofNode, YieldNode};
@@ -27,7 +29,7 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
  * a column of assignments or of array items, and `spacing.binaryOperatorAlignment` says which of it stays.
  * Concatenation is the matter of `ConcatenationSpacingRule`.
  */
-#[RuleInfo(Stage::Formatting)]
+#[RuleInfo(Stage::Formatting, analyses: [IndentationPlan::class])]
 final class BinaryOperatorSpacingRule extends GapRule
 {
 	private const JoinedOperators = ['==', '!=', '<>', '===', '!==', '<', '<=', '>', '>=', '<=>', '&', '|', '^', '<<', '>>'];
@@ -119,7 +121,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 			$this->isMovedToStart($gap) => $this->afterMoved,
 			$this->claim === null => null,
 			$next === null || !$token->is(self::JoinedOperators) || $token->hasCommentUpTo($next) => $this->claim,
-			$next->startsLine() && self::isJoinedLineTooWide($gap, $token, $next) => $this->claim,
+			$next->startsLine() && self::isJoinedLineTooWide($gap, $token, $next) !== false => $this->claim,
 			default => $this->joined,
 		};
 	}
@@ -140,7 +142,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 				$next = $token->getNext();
 				return $next !== null
 					&& $token->isFollowedByLineEnding()
-					&& (!$token->is(self::JoinedOperators) || self::isJoinedLineTooWide($gap, $token, $next));
+					&& (!$token->is(self::JoinedOperators) || self::isJoinedLineTooWide($gap, $token, $next) === true);
 			});
 	}
 
@@ -162,19 +164,22 @@ final class BinaryOperatorSpacingRule extends GapRule
 			return $this->claim;
 		}
 
-		return self::isJoinedLineTooWide($gap, $previous, $token) ? $this->claim : $this->joined;
+		return self::isJoinedLineTooWide($gap, $previous, $token) !== false ? $this->claim : $this->joined;
 	}
 
 
 	/**
 	 * Whether the line of the second token, joined to the line of the first one with a space between them, would
-	 * be wider than the line length of the style.
+	 * be wider than the line length of the style; null while the line of the first one is not indented yet, which
+	 * leaves the line as it is until a pass later measures it.
 	 */
-	private static function isJoinedLineTooWide(Gap $gap, Token $first, Token $second): bool
+	private static function isJoinedLineTooWide(Gap $gap, Token $first, Token $second): ?bool
 	{
 		$style = $gap->style;
 		if ($style->maxLineLength === null) {
 			return false;
+		} elseif (!NodeHelpers::isLineInPlace($gap, $first)) {
+			return null;
 		}
 
 		$phpSyntax = $style->toPhpSyntax();

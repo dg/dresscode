@@ -413,6 +413,9 @@ final class RuleTester
 
 		$style = ($style ?? new Style(maxLineLength: self::DefaultLineLength))->withLineEnding(Style::detectLineEnding($code));
 		$registry = new Analyses\Registry($namespacedSymbols);
+		if ($values !== null) {
+			$registry->register(Analyses\IndentationPlan::class, Analyses\IndentationPlan::createFactory($values, $style));
+		}
 
 		foreach (new Config(analyses: $analyses)->analyses as $class => $factory) {
 			$registry->register($class, $factory);

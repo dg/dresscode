@@ -1,0 +1,12 @@
+<?php
+// php 8.6
+$f = foo(
+	1,
+	?,
+	name: ?,
+	...
+);
+$g = $items |> array_map(
+	str_replace('a', 'b', ?),
+	?,
+);

@@ -1,0 +1,18 @@
+<?php
+// php 8.5
+#[Attr(static function () {
+	$a = 1;
+	return $a;
+})]
+class A {}
+#[Attr(
+	static function () {
+		return 1;
+	},
+)]
+class B {}
+const C = static function () {
+	if (true) {
+		return 1;
+	}
+};

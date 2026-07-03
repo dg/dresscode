@@ -166,13 +166,14 @@ final class ConfigResolver
 		$bySource = fn(array $entries): array => array_column($entries, 1, 0);
 		return new ResolvedConfig(
 			[...array_values($active), ...array_values($inactive)],
-			"\t",
+			self::resolveIndent($values->get('indentation.unit')),
 			self::resolveLineEnding($values->get('file.lineEnding')),
 			$phpVersion,
 			$use,
 			namespacedFunctions: $bySource($symbols[SymbolKind::Function->name]),
 			namespacedConstants: $bySource($symbols[SymbolKind::Constant->name]),
 			nameResolution: $resolution ?? 'uncertain',
+			tabWidth: $values->get('indentation.tabWidth')->getCount()[0],
 			plugins: array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, [...$config->plugins, ...$commandLine instanceof Config ? $commandLine->plugins : []]),
 			decisions: $decisions,
 			values: $values,
@@ -288,6 +289,13 @@ final class ConfigResolver
 		$this->warnings['php'] = 'The target PHP ' . ($version ?? $target) . ' is older than PHP ' . Config::MinPhpVersion . ', the oldest DressCode fixes code for;'
 			. ' the code is checked as PHP ' . Config::MinPhpVersion . ', so a fix may write syntax the target does not have.';
 		return [Config::MinPhpVersion, Config::MinPhpVersion];
+	}
+
+
+	/** The characters of a level of indentation the unit names, a tab where it is `keep`. */
+	private static function resolveIndent(Value $unit): string
+	{
+		return $unit->isKept() || $unit->getWord() === 'tab' ? "\t" : str_repeat(' ', (int) $unit->getWord());
 	}
 
 

@@ -7,7 +7,10 @@
 
 namespace DressCode\Rules;
 
+use DressCode\Analyses\IndentationPlan;
+use DressCode\Gap;
 use PhpSyntax\{Node, Token};
+use function strlen;
 
 
 /**
@@ -16,6 +19,34 @@ use PhpSyntax\{Node, Token};
  */
 final class NodeHelpers
 {
+	/**
+	 * Whether the lines of the tokens have the indentation the run gives them (`Analyses\IndentationPlan`), or nothing
+	 * places them: a decision by the width of a line waits for it, and a pass later takes it over the right indentation.
+	 */
+	public static function isLineInPlace(Gap $gap, Token ...$tokens): bool
+	{
+		$plan = $gap->findAnalysis(IndentationPlan::class);
+		return $plan === null || array_all($tokens, fn(Token $token) => $plan->isLineInPlace($token));
+	}
+
+
+	/** `2 tabs`, `4 spaces`, `1 tab and 2 spaces`, `none`. */
+	public static function describeWidth(string $whitespace): string
+	{
+		$tabs = substr_count($whitespace, "\t");
+		$spaces = strlen($whitespace) - $tabs;
+		$parts = [];
+		if ($tabs > 0) {
+			$parts[] = $tabs === 1 ? '1 tab' : "$tabs tabs";
+		}
+		if ($spaces > 0) {
+			$parts[] = $spaces === 1 ? '1 space' : "$spaces spaces";
+		}
+
+		return $parts ? implode(' and ', $parts) : 'none';
+	}
+
+
 	/**
 	 * Whether a list in brackets spans lines: a line break after the opening bracket, an item starting a line, or the
 	 * closing bracket doing so. A comment after the opening bracket ends its line without making the list span lines.

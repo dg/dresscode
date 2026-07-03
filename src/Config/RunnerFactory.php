@@ -85,7 +85,7 @@ final readonly class RunnerFactory
 			function (array $overrides) use ($resolution, $registry, $analyses, $strict, $fixRisky): FileProcessor {
 				$variant = $resolution->resolveFor($overrides);
 				$style = $variant->createStyle();
-				$analysisRegistry = $variant->createAnalyses();
+				$analysisRegistry = $variant->createAnalyses($style);
 				foreach ($analyses as $class => $factory) {
 					$analysisRegistry->register($class, $factory);
 				}

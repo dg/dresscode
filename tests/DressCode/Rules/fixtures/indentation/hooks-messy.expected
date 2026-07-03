@@ -1,0 +1,22 @@
+<?php
+// php 8.4
+class A
+{
+	public string $a {
+		get => $this->a;
+		set( string  $value ) {
+			$this->a = $value;
+		}
+	}
+	public string $b {
+		#[Attr]
+		get {
+			return $this->b;
+		}
+	}
+	public function __construct(
+		public string $c {
+			get => $this->c;
+		},
+	) {}
+}

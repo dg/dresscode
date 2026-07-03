@@ -1,0 +1,11 @@
+<?php
+switch ($a) {
+	// about the first case
+	case 1:
+		one();
+		// break omitted
+
+	case 2:
+		two();
+		break;
+}

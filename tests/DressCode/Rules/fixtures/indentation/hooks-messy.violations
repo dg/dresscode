@@ -1,0 +1,13 @@
+5: Expected the member indented by 1 tab, none found.
+6: Expected the property hook indented by 2 tabs, none found.
+7: Expected the property hook indented by 2 tabs, 8 spaces found.
+8: Expected the statement indented by 3 tabs, none found.
+9: Expected the closing brace indented by 2 tabs, 2 spaces found.
+10: Expected the closing brace indented by 1 tab, none found.
+12: Expected the property hook indented by 2 tabs, 3 tabs found.
+14: Expected the statement indented by 3 tabs, none found.
+17: Expected the member indented by 1 tab, none found.
+18: Expected the parameter indented by 2 tabs, none found.
+19: Expected the property hook indented by 3 tabs, none found.
+20: Expected the closing brace indented by 2 tabs, none found.
+21: Expected the closing parenthesis indented by 1 tab, none found.
