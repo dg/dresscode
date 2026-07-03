@@ -1,0 +1,18 @@
+<?php
+function f($x, $o) {
+	$a = <<<EOT
+		text
+		{$x}
+		$x and more
+		{$o->name} $x
+
+		EOT;
+	$b = <<<EOT
+{$x} first
+text
+EOT;
+	return <<<EOT
+		{$o->name}
+		text
+		EOT;
+}
