@@ -27,6 +27,7 @@ final class RuleRegistry
 		Rules\Arrays\ShortArraySyntaxRule::class,
 		Rules\Whitespace\AttributeSpacingRule::class,
 		Rules\Whitespace\BracesPositionRule::class,
+		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
 		Rules\Classes\SingleMemberPerLineRule::class,
 		Rules\Comments\CommentSpacingRule::class,
