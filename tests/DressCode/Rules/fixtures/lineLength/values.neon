@@ -1,0 +1,4 @@
+file:
+	longLines: forbidden
+	maxLineLength: 120
+	longLinesExcept: [imports]

@@ -51,6 +51,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\FinalLineEndingsRule::class,
 				Rules\Files\OpeningTagNotationRule::class,
 				Rules\Files\LineEndingRule::class,
+				Rules\Files\LineLengthRule::class,
 				Rules\Files\NoBomRule::class,
 				Rules\Files\NoClosingTagRule::class,
 				Rules\Files\NoInvisibleCharactersRule::class,
@@ -83,6 +84,7 @@ final class CorePlugin implements Plugin
 					'CRLF' => 'every line ends with CRLF',
 					'majority' => 'every line ends as most lines of the file do, LF on a tie',
 				]), 'The line ending of every line, which the code written new takes too; under `keep` that follows the file'),
+				new Decision('file.maxLineLength', new Count(1, range: false, words: ['none' => 'no line is too wide']), 'The widest line, by which what spreads over lines is split', parameter: true, default: 'none'),
 				new Decision('indentation.unit', new Words([
 					'tab' => 'one tab per level',
 					'4 spaces' => 'four spaces per level',

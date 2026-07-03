@@ -39,6 +39,8 @@ final readonly class ResolvedConfig
 		public array $namespacedConstants = [],
 		/** @var 'certain'|'uncertain'  certain when the namespaces declare no function and no constant beyond those */
 		public string $nameResolution = 'uncertain',
+		/** the widest line the rules keep to; null for none */
+		public ?int $lineLength = null,
 		/** how many columns a tab counts for in the width of a line */
 		public int $tabWidth = 4,
 		/** @var list<class-string>  the plugins the configuration and the command line use */
@@ -103,6 +105,7 @@ final readonly class ResolvedConfig
 			$this->indent,
 			$this->lineEnding === 'majority' ? "\n" : $this->lineEnding,
 			$this->tabWidth,
+			$this->lineLength,
 		);
 	}
 
