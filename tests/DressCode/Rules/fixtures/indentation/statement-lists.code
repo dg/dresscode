@@ -1,0 +1,62 @@
+<?php
+
+use A\B,
+C\D;
+
+const
+X = 1,
+		Y = 2;
+
+#[
+Foo,
+		Bar,
+	]
+class K implements
+I1,
+		I2
+{
+	use T1,
+T2;
+
+	public const
+A = 1,
+			B = 2;
+
+	public int
+$p = 1,
+			$q = 2;
+
+	public function f(): void
+	{
+		global
+$a,
+			$b;
+
+		static
+$c = 1;
+
+		echo
+1,
+			2;
+
+		unset(
+$d,
+			$e,
+				);
+
+		for (
+$i = 0;
+			$i < 1;
+		$i++
+	) {
+		}
+
+		$g = function (
+$h,
+			$i
+				) use (
+	$j
+			) {
+		};
+	}
+}

@@ -8,6 +8,7 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\{Claim, ConfigurableRule, Gap, GapRule, Line, RuleInfo, Stage};
+use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{Indentation, Token};
 use PhpSyntax\Nodes\{ArrayItemNode, DeclareItemNode, MatchArmNode};
@@ -159,13 +160,16 @@ final class BinaryOperatorSpacingRule extends GapRule implements ConfigurableRul
 
 	/**
 	 * Whether the line of the second token, joined to the line of the first one with a space between them, would
-	 * be wider than the line length of the style.
+	 * be wider than the line length of the style; null while the line of the first one is not indented yet, which
+	 * leaves the line as it is until a pass later measures it.
 	 */
-	private static function isJoinedLineTooWide(Gap $gap, Token $first, Token $second): bool
+	private static function isJoinedLineTooWide(Gap $gap, Token $first, Token $second): ?bool
 	{
 		$style = $gap->style;
 		if ($style->lineLength === null) {
 			return false;
+		} elseif (!NodeHelpers::isLineInPlace($gap, $first)) {
+			return null;
 		}
 
 		$phpSyntax = $style->toPhpSyntax();

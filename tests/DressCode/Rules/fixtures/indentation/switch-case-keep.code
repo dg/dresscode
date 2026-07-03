@@ -1,0 +1,19 @@
+<?php
+// {"switchCase": "keep"}
+switch ($a) {
+	case 1:
+		one();
+		break;
+
+	default:
+		two();
+}
+
+switch ($b) {
+case 1:
+	one();
+	break;
+
+default:
+		two();
+}

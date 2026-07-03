@@ -70,6 +70,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Whitespace\SingleStatementPerLineRule::class,
 				Rules\Files\EofLineEndingRule::class,
 				Rules\Whitespace\ConstructSpacingRule::class,
+				Rules\Whitespace\IndentationRule::class,
 			],
 			ruleUrl: 'https://dresscode.run/rules/{slug}',
 		);
