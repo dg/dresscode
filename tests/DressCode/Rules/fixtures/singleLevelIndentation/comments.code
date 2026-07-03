@@ -1,0 +1,10 @@
+<?php
+
+function f(): void
+{
+	if (true) {
+		echo 1;
+	}
+			// right below a statement
+	echo 2;
+}
