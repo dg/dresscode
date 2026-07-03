@@ -22,6 +22,7 @@ final class RuleRegistry
 	private const Vendor = 'dresscode/';
 
 	private const BuiltinRules = [
+		Rules\ControlFlow\NoEmptyStatementRule::class,
 		Rules\Files\NoBomRule::class,
 		Rules\Files\NoInvisibleCharactersRule::class,
 		Rules\Files\FullOpeningTagRule::class,
