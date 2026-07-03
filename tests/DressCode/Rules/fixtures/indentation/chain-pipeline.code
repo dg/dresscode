@@ -1,0 +1,15 @@
+<?php
+// php 8.5
+// a pipeline is a chain, so every link of it stands one level below the line it begins on
+$order
+	|> array_keys(...)
+	|> json_encode(...);
+
+$json = $order
+	|> array_keys(...)
+	|> json_encode(...);
+
+// and what stands wrong is pulled into place
+$order
+		|> array_keys(...)
+|> json_encode(...);

@@ -1,0 +1,34 @@
+<?php
+// {"ternaryBelowCondition": "stepped"}
+// below a condition spread over lines a ternary steps in from the last line of the condition
+$a = $b
+	&& $c
+		? $d
+		: $e;
+
+foo(
+	$f,
+)
+	? $g
+	: $h;
+
+// a condition on one line keeps the level of the options
+$i = $j
+	? $k
+	: $l;
+
+// the end of a heredoc gives no level to count from
+function bar()
+{
+	return baz(<<<'X'
+		text
+		X, $m)
+		? $n
+		: $o;
+}
+
+// and what stands wrong is pulled into place
+$p = $q
+	&& $r
+		? $s
+		: $t;

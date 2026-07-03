@@ -1,0 +1,40 @@
+<?php
+// the links of a chain line up with the line the expression begins on
+$a = $b
+	&& $c
+	&& $d;
+
+$res =
+	$one
+	. $two
+	. $three;
+
+// a ternary steps in either way
+$e = $f
+	? $g
+	: $h;
+
+foo(
+	$i
+		? $j
+		: $k,
+);
+
+// below a condition spread over lines it lines up with the operators of the condition
+$w = $x
+	&& $y
+	? $z
+	: $aa;
+
+// and what stands wrong is pulled into place
+$l = $m
+		&& $n
+&& $o;
+
+$p = $q
+? $r
+: $s;
+
+$t =
+$u
+		. $v;

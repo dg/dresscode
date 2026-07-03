@@ -7,6 +7,7 @@
 
 namespace DressCode\Engine\Gaps;
 
+use DressCode\Analyses\IndentationSnapshot;
 use DressCode\{Line, RuleContext, Space};
 use PhpSyntax\{Indentation, Lexer, Token, Trivia};
 use function count;
@@ -103,6 +104,8 @@ final readonly class Fixer implements Sink
 			$token->setLeadingTrivia([]);
 			$previous->setTrailingTrivia([]);
 			$previous->setTrailingSpace($space === Space::None && self::canAdjoin($previous, $token) ? '' : ' ');
+			// a joined line may leave the lines below it shallower than the snapshot of the indentation says
+			$context->dropPassAnalysis(IndentationSnapshot::class);
 		}
 	}
 

@@ -1,0 +1,5 @@
+3: Expected the statement indented by 1 tab, none found.
+5: Expected the statement indented by 1 tab, 6 spaces found.
+7: Expected the statement indented by 1 tab, 2 spaces found.
+10: Expected the statement indented by 1 tab, 4 spaces found.
+11: Expected the `endforeach` keyword without indentation, 2 spaces found.

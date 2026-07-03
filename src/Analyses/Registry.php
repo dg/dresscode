@@ -134,6 +134,19 @@ final class Registry
 
 
 	/**
+	 * Drops what an analysis of the pass computed for the file, which a change it cannot follow made stale; the next
+	 * question computes it again.
+	 * @param  class-string<PassAnalysis>  $class
+	 */
+	public function dropPassAnalysis(FileNode $file, string $class): void
+	{
+		$analyses = $this->passCache[$file] ?? [];
+		unset($analyses[$class]);
+		$this->passCache[$file] = $analyses;
+	}
+
+
+	/**
 	 * The passes over the file are over: what was computed for it is dropped now, and not with the tree, which is cyclic
 	 * and lives on until the collector runs.
 	 */

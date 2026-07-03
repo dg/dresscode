@@ -39,6 +39,8 @@ final readonly class ResolvedConfig
 		public array $namespacedConstants = [],
 		/** @var 'certain'|'uncertain'  certain when the namespaces declare no function and no constant beyond those */
 		public string $nameResolution = 'uncertain',
+		/** how many columns a tab counts for in the width of a line */
+		public int $tabWidth = 4,
 		/** @var list<class-string>  the plugins the configuration and the command line use */
 		public array $plugins = [],
 		/** @var array<string, ResolvedDecision>  every decision of the catalogue by its path */
@@ -104,13 +106,16 @@ final readonly class ResolvedConfig
 		return new Style(
 			$this->indent,
 			$this->lineEnding ?? "\n",
+			$this->tabWidth,
 		);
 	}
 
 
-	/** The analyses of the run. */
-	public function createAnalyses(?NamespacedSymbols $symbols = null): Analyses\Registry
+	/** The analyses of the run, with the plan of the indentation the decisions give in the style. */
+	public function createAnalyses(Style $style, ?NamespacedSymbols $symbols = null): Analyses\Registry
 	{
-		return new Analyses\Registry($symbols ?? $this->toNamespacedSymbols());
+		$registry = new Analyses\Registry($symbols ?? $this->toNamespacedSymbols());
+		Analyses\IndentationPlan::register($registry, $this->values, $style);
+		return $registry;
 	}
 }

@@ -1,0 +1,26 @@
+<?php
+$a = [
+	1,
+	2 => [
+		3,
+		// comment
+		4,
+	],
+	5, 6,
+];
+function f()
+{
+	return array(
+		"a" => foo(
+			1,
+		),
+	);
+}
+$b = [1, 2];
+$c = [[
+	1,
+]];
+$c = [
+	'name' => 1,
+	// age => null
+];

@@ -1,0 +1,11 @@
+<?php
+switch ($a) {
+	case 1:
+		one();
+/* c */ case 2:
+		two();
+}
+
+if ($b) {
+	three();
+		/* d */ }

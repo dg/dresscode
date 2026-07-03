@@ -21,7 +21,8 @@ use PhpSyntax\Nodes\{ParameterNode, Statement};
  * a new line and the closing brace one of its own, except in a single-line closure, an empty anonymous class
  * or an abbreviated list of hooks (`{ get; set; }`), whose hooks otherwise take a line each. A function with
  * parameters on several lines has a decision of its own for the brace. The keyword that continues a structure
- * (`else`, `catch`, the `while` of `do`) meets the closing brace on its line or takes the next one.
+ * (`else`, `catch`, the `while` of `do`) meets the closing brace on its line or takes the next one. Where the
+ * lines then stand is the matter of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting)]
 final class BracesPositionRule extends GapRule

@@ -1,0 +1,5 @@
+3: Expected the case indented by 1 tab, none found.
+5: Expected the statement indented by 2 tabs, 3 tabs found.
+8: Expected the case indented by 1 tab, 2 tabs found.
+9: Expected the statement indented by 2 tabs, 1 tab found.
+10: Expected the statement indented by 2 tabs, 1 tab found.

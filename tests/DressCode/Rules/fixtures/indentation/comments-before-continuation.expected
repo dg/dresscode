@@ -1,0 +1,20 @@
+<?php
+if ($a) {
+	foo();
+// introduces the else
+} else {
+	bar();
+}
+
+do {
+	foo();
+// introduces the while
+} while ($a);
+
+if ($a) {
+	foo();
+	// closes the block
+}
+while ($a) {
+	foo();
+}

@@ -1,0 +1,4 @@
+7: Expected the comment indented by 1 tab, none found.
+12: Expected the inner lines of the comment aligned with its first line.
+18: Expected the comment indented by 1 tab, 2 tabs found.
+26: Expected the comment indented by 2 tabs, 3 tabs found.

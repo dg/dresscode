@@ -1,0 +1,9 @@
+4: Expected the statement indented by 1 tab, none found.
+5: Expected the array item indented by 2 tabs, 4 spaces found.
+6: Expected the array item indented by 2 tabs, 4 spaces found.
+7: Expected the closing bracket indented by 1 tab, none found.
+8: Expected the statement indented by 1 tab, 4 spaces found.
+11: Expected the statement indented by 1 tab, 2 spaces found.
+13: Expected the statement indented by 1 tab, 4 spaces found.
+14: Expected the statement indented by 2 tabs, 4 spaces found.
+15: Expected the closing brace indented by 1 tab, 4 spaces found.

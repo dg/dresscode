@@ -1,0 +1,32 @@
+3: Expected the statement without indentation, 2 spaces found.
+5: Expected the statement without indentation, 2 spaces found.
+9: Expected the member indented by 1 tab, none found.
+14: Expected the member indented by 1 tab, 4 spaces found.
+15: Expected the opening brace indented by 1 tab, 2 spaces found.
+16: Expected the statement indented by 2 tabs, 8 spaces found.
+17: Expected the statement indented by 3 tabs, 8 spaces found.
+19: Expected the closing brace indented by 2 tabs, 8 spaces found.
+20: Expected the continuation line indented by 2 tabs, 2 spaces found.
+21: Expected the statement indented by 3 tabs, 6 spaces found.
+22: Expected the argument indented by 4 tabs, 10 spaces found.
+23: Expected the closing parenthesis indented by 3 tabs, 6 spaces found.
+25: Expected the closing brace indented by 2 tabs, 8 spaces found.
+26: Expected the statement indented by 2 tabs, 8 spaces found.
+27: Expected the case indented by 3 tabs, 8 spaces found.
+28: Expected the statement indented by 4 tabs, 8 spaces found.
+29: Expected the statement indented by 4 tabs, 8 spaces found.
+30: Expected the case indented by 3 tabs, 12 spaces found.
+31: Expected the closing brace indented by 2 tabs, 8 spaces found.
+32: Expected the statement indented by 2 tabs, 8 spaces found.
+33: Expected the match arm indented by 3 tabs, 8 spaces found.
+34: Expected the match arm indented by 3 tabs, 12 spaces found.
+35: Expected the closing brace indented by 2 tabs, 8 spaces found.
+36: Expected the statement indented by 2 tabs, 8 spaces found.
+37: Expected the closing brace indented by 2 tabs, 8 spaces found.
+38: Expected the closing brace indented by 2 tabs, 8 spaces found.
+39: Expected the continuation line indented by 2 tabs, 8 spaces found.
+40: Expected the closing brace indented by 2 tabs, 8 spaces found.
+41: Expected the statement indented by 2 tabs, 8 spaces found.
+42: Expected the closing brace indented by 2 tabs, 8 spaces found.
+43: Expected the `while` keyword indented by 2 tabs, 8 spaces found.
+44: Expected the closing brace indented by 1 tab, 2 spaces found.

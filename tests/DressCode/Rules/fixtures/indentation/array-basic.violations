@@ -1,0 +1,11 @@
+3: Expected the array item indented by 1 tab, none found.
+4: Expected the array item indented by 1 tab, 8 spaces found.
+5: Expected the array item indented by 2 tabs, 4 spaces found.
+7: Expected the array item indented by 2 tabs, 12 spaces found.
+8: Expected the closing bracket indented by 1 tab, 8 spaces found.
+9: Expected the array item indented by 1 tab, 2 spaces found.
+10: Expected the closing bracket without indentation, 6 spaces found.
+14: Expected the array item indented by 2 tabs, 3 tabs found.
+15: Expected the argument indented by 3 tabs, 4 tabs found.
+16: Expected the closing parenthesis indented by 2 tabs, 3 tabs found.
+21: Expected the array item indented by 1 tab, 2 spaces found.

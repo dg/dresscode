@@ -289,6 +289,17 @@ final class RuleContext
 	}
 
 
+	/**
+	 * Drops what an analysis of the pass computed for the file, which a change it cannot follow made stale.
+	 * @param  class-string<Analyses\PassAnalysis>  $class
+	 * @internal
+	 */
+	public function dropPassAnalysis(string $class): void
+	{
+		$this->analyses->dropPassAnalysis($this->file, $class);
+	}
+
+
 	/** @internal */
 	public function hasReports(): bool
 	{
