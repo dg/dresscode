@@ -187,6 +187,7 @@ final class ConfigResolver
 			namespacedFunctions: $bySource($symbols[SymbolKind::Function->name]),
 			namespacedConstants: $bySource($symbols[SymbolKind::Constant->name]),
 			nameResolution: $resolution ?? 'uncertain',
+			lineLength: self::resolveLineLength($values->get('file.lineLength')),
 			tabWidth: $values->get('indentation.tabWidth')->getCount()[0],
 			plugins: array_map(
 				fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class,
@@ -343,6 +344,13 @@ final class ConfigResolver
 			'CRLF' => "\r\n",
 			default => null,
 		};
+	}
+
+
+	/** The widest line, null for none. */
+	private static function resolveLineLength(Value $length): ?int
+	{
+		return $length->content === 'none' ? null : $length->getCount()[0];
 	}
 
 

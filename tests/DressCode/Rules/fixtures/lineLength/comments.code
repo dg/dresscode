@@ -1,0 +1,18 @@
+<?php
+// lineLength 40
+$value = compute($a, $b); // a comment that makes it long
+// a comment line that is longer than forty characters
+$value = compute($aaaaaaaaaa, $bbbbbbbbbbbbbbb); // too
+/* a comment */ $value = compute($aaaaaaaaaa, $bb);
+$value = compute($a, $b); /* a comment that makes it long
+	and goes on below */
+/**
+ * a short line
+ * a line inside a doc comment past forty
+ * another line inside it, past forty too
+ */
+// dresscode:disable file.longLines
+/**
+ * a line inside a doc comment, silenced by the comments around
+ */
+// dresscode:enable file.longLines

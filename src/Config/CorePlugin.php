@@ -9,7 +9,7 @@ namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Decision, DecisionKind, Domain, Plugin, PluginManifest, Rules};
-use DressCode\Domains\{Count, Words};
+use DressCode\Domains\{Count, Names, Words};
 
 
 /**
@@ -51,6 +51,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\FinalLineEndingsRule::class,
 				Rules\Files\OpeningTagNotationRule::class,
 				Rules\Files\LineEndingRule::class,
+				Rules\Files\LineLengthRule::class,
 				Rules\Files\NoBomRule::class,
 				Rules\Files\NoClosingTagRule::class,
 				Rules\Files\NoInvisibleCharactersRule::class,
@@ -85,6 +86,17 @@ final class CorePlugin implements Plugin
 					'CRLF' => 'every line ends with CRLF',
 					'majority' => 'every line ends as most lines of the file do, LF on a tie',
 				]), 'The line ending of every line, which the code written new takes too; under `keep` that follows the file'),
+				new Decision(
+					'file.lineLength',
+					new Count(1, range: false, words: ['none' => 'no line is too wide']),
+					'The widest line; a line wider than it is reported',
+					kind: DecisionKind::Parameter,
+					default: 'none',
+				),
+				new Decision('file.lineLengthExcept', new Names([
+					'imports' => 'a `use` import, which cannot be split',
+					'strings' => 'a line that would fit were each of its string literals an empty pair of quotes, a string being never split',
+				], regularExpressions: true), 'What a line too wide leaves as it is: a `use` import with `imports`, one a regular expression matches, or with `strings` one wide only for its string literals, is not reported', kind: DecisionKind::Parameter, default: ['imports']),
 				new Decision('indentation.unit', new Words([
 					'tab' => 'one tab per level',
 					'4 spaces' => 'four spaces per level',

@@ -1,0 +1,10 @@
+<?php
+// lineLength 40
+// {"lineLengthExcept": ["strings"]}
+throw new Exception('A message far too long for the line.');
+$this->warn('A warning far too long for the line.');
+$value = "Hello $name, a greeting too long for it";
+$value = 'first part of it' . 'second part of it';
+$value = "{$a['key']} and the rest of a long string";
+$value = compute($aaaaaaaaaa, $bbbbbbbbbb, 'x', $cc);
+throw new Exception($aaaaaaaaaa, $bbbbbbbbbbbbbbbbbb);
