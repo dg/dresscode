@@ -123,7 +123,7 @@ final class Lexer
 					$isEol = $piece[0] === "\n" || $piece[0] === "\r";
 					$trivia = new Trivia($isEol ? TriviaKind::EndOfLine : TriviaKind::Whitespace, $piece, $inInterpolation);
 					if ($open) {
-						$open->trailingTrivia[] = $trivia;
+						$open->setTrailingTrivia([...$open->trailingTrivia, $trivia]);
 						if ($isEol) {
 							$open = null;
 						}
@@ -140,7 +140,7 @@ final class Lexer
 
 				$trivia = new Trivia($kind === TokenKind::Comment ? TriviaKind::Comment : TriviaKind::DocComment, $token->text, $inInterpolation);
 				if ($open) {
-					$open->trailingTrivia[] = $trivia;
+					$open->setTrailingTrivia([...$open->trailingTrivia, $trivia]);
 				} else {
 					$leading[] = $trivia;
 				}
@@ -170,7 +170,7 @@ final class Lexer
 				array_pop($braces);
 			}
 
-			$token->leadingTrivia = $leading;
+			$token->setLeadingTrivia($leading);
 			$leading = [];
 			$tokens[] = $token;
 			$end = $token->text[-1] ?? '';
@@ -182,7 +182,7 @@ final class Lexer
 		}
 
 		$eof = new Token(TokenKind::EndOfFile, '', strlen($code), $line);
-		$eof->leadingTrivia = $leading;
+		$eof->setLeadingTrivia($leading);
 		$tokens[] = $eof;
 		return $tokens;
 	}

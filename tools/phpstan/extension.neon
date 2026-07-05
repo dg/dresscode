@@ -1,11 +1,12 @@
 parametersSchema:
 	dresscode: structure([
 		slotWriteAllowed: listOf(string())
+		tokenWriteAllowed: listOf(string())
 	])
 
 parameters:
 	dresscode:
-		# paths that implement the tree and may write node slots directly
+		# paths that implement the tree and may write node slots and token parents directly
 		slotWriteAllowed:
 			- src/PhpSyntax/Node.php
 			- src/PhpSyntax/Token.php
@@ -14,12 +15,17 @@ parameters:
 			- src/PhpSyntax/Nodes/
 			- src/PhpSyntax/Parser/
 			- tests/
+		# paths that may write the text, trivia and index of a token directly: the token and the index
+		tokenWriteAllowed:
+			- src/PhpSyntax/Token.php
+			- src/PhpSyntax/TokenIndex.php
+			- tests/
 
 services:
 	-
 		class: DressCode\Tools\PhpStan\LayerBoundaryRule
 		tags: [phpstan.rules.rule]
 	-
-		class: DressCode\Tools\PhpStan\NodeSlotWriteRule
-		arguments: [%dresscode.slotWriteAllowed%]
+		class: DressCode\Tools\PhpStan\TreeWriteRule
+		arguments: [%dresscode.slotWriteAllowed%, %dresscode.tokenWriteAllowed%]
 		tags: [phpstan.rules.rule]

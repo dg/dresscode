@@ -29,14 +29,14 @@ test('synthetic token has no original position', function () {
 
 test('string form is leading trivia, text and trailing trivia', function () {
 	$token = new Token(TokenKind::Return, 'return');
-	$token->leadingTrivia = [
+	$token->setLeadingTrivia([
 		new Trivia(TriviaKind::EndOfLine, "\n"),
 		new Trivia(TriviaKind::Whitespace, "\t"),
-	];
-	$token->trailingTrivia = [
+	]);
+	$token->setTrailingTrivia([
 		new Trivia(TriviaKind::Whitespace, ' '),
 		new Trivia(TriviaKind::Comment, '// done'),
-	];
+	]);
 	Assert::same("\n\treturn // done", (string) $token);
 });
 

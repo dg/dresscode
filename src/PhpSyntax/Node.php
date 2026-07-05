@@ -176,17 +176,17 @@ abstract class Node implements \Stringable
 		$parent = $this->parent ?? throw new \LogicException('Cannot replace a node without a parent.');
 		if ($first = $this->getFirstToken()) {
 			$leading = $first->leadingTrivia;
-			$first->leadingTrivia = [];
+			$first->setLeadingTrivia([]);
 			if ($target = $node->getFirstToken()) {
-				$target->leadingTrivia = [...$leading, ...$target->leadingTrivia];
+				$target->setLeadingTrivia([...$leading, ...$target->leadingTrivia]);
 			}
 		}
 
 		if ($last = $this->getLastToken()) {
 			$trailing = $last->trailingTrivia;
-			$last->trailingTrivia = [];
+			$last->setTrailingTrivia([]);
 			if ($target = $node->getLastToken()) {
-				$target->trailingTrivia = [...$target->trailingTrivia, ...$trailing];
+				$target->setTrailingTrivia([...$target->trailingTrivia, ...$trailing]);
 			}
 		}
 
@@ -237,14 +237,14 @@ abstract class Node implements \Stringable
 		}
 
 		if ($previous) {
-			$previous->trailingTrivia = [...$previous->trailingTrivia, ...$before, ...$trailing];
+			$previous->setTrailingTrivia([...$previous->trailingTrivia, ...$before, ...$trailing]);
 			$trailing = [];
 		}
 
 		if ($next) {
-			$next->leadingTrivia = [...$leading, ...$after, ...$trailing, ...$next->leadingTrivia];
+			$next->setLeadingTrivia([...$leading, ...$after, ...$trailing, ...$next->leadingTrivia]);
 		} elseif ($previous) {
-			$previous->trailingTrivia = [...$previous->trailingTrivia, ...$leading, ...$after];
+			$previous->setTrailingTrivia([...$previous->trailingTrivia, ...$leading, ...$after]);
 		}
 
 		$parent->removeItem($this);
@@ -294,12 +294,14 @@ abstract class Node implements \Stringable
 		}
 
 		$child->parent = $this;
+		$this->getFile()?->adopted($child);
 	}
 
 
 	protected function release(self|Token|null $child): void
 	{
 		if ($child) {
+			$this->getFile()?->released($child);
 			$child->parent = null;
 		}
 	}

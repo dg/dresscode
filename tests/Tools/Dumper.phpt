@@ -18,8 +18,8 @@ require __DIR__ . '/../bootstrap.php';
 
 test('nodes with slots, lists and tokens with trivia', function () {
 	$a = new Token(TokenKind::Variable, '$a');
-	$a->leadingTrivia = [new Trivia(TriviaKind::OpenTag, "<?php\n"), new Trivia(TriviaKind::Whitespace, "\t")];
-	$a->trailingTrivia = [new Trivia(TriviaKind::Whitespace, ' ', inInterpolation: true)];
+	$a->setLeadingTrivia([new Trivia(TriviaKind::OpenTag, "<?php\n"), new Trivia(TriviaKind::Whitespace, "\t")]);
+	$a->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ', inInterpolation: true)]);
 	$ternary = new TernaryNode(
 		new VariableNode(null, null, $a, null),
 		new Token(ord('?'), '?'),

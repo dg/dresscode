@@ -6,28 +6,41 @@ use function count, strlen;
 
 
 /**
- * Order and positions of the tokens of a file, built lazily and rebuilt after a mutation:
- * a change of text or trivia invalidates the positions, a structural change also the order.
+ * Order and positions of the tokens of a file, built lazily and kept up to date after mutations: a structural
+ * change moves the tokens of the children it adopted and released (a change of unknown extent rebuilds the
+ * order), a change of the text or trivia of a token leaves the lines before it alone, and only the offsets and
+ * columns are recomputed from scratch. The numbering and the lines of the tokens after a change are brought
+ * up to date lazily, as far as the queries reach.
  */
 final class TokenIndex
 {
 	/** @var list<Token> */
 	private array $tokens = [];
 
-	/** @var array<int, int>  spl_object_id → index in $tokens */
-	private array $indexes = [];
+	/** @var array<int, int>  by index, valid up to $lined */
+	private array $lines = [];
 
 	/** @var list<int>  byte offset of the token text */
 	private array $offsets = [];
-
-	/** @var list<int> */
-	private array $lines = [];
 
 	/** @var list<int>  1-based, in UTF-8 characters */
 	private array $columns = [];
 
 	private bool $orderValid = false;
+
+	/** number of leading tokens whose Token::$index is current */
+	private int $numbered = 0;
+
+	/** number of leading tokens whose line is current */
+	private int $lined = 0;
+
 	private bool $positionsValid = false;
+
+	/** @var list<array{int, int}>  index ranges of the tokens released since the last update */
+	private array $released = [];
+
+	/** @var list<Node|Token>  children adopted since the last update */
+	private array $adopted = [];
 
 
 	public function __construct(
@@ -36,11 +49,99 @@ final class TokenIndex
 	}
 
 
-	public function invalidate(bool $structure): void
+	/**
+	 * The text or trivia of the token changed.
+	 * @param int $lineEndings  how many line endings the token gained (or lost, when negative)
+	 * @param bool $leading  the change is before the token, so its own line moves too
+	 * @internal
+	 */
+	public function updateToken(Token $token, int $lineEndings, bool $leading): void
 	{
 		$this->positionsValid = false;
-		if ($structure) {
-			$this->orderValid = false;
+		if ($lineEndings === 0 || !$this->orderValid) {
+			return;
+		}
+
+		$index = $this->getIndex($token);
+		$this->lined = min($this->lined, $leading ? $index : $index + 1);
+	}
+
+
+	/**
+	 * A child is about to be released from the tree: its tokens leave the order at updateStructure().
+	 * @internal
+	 */
+	public function released(Node|Token $child): void
+	{
+		if (!$this->orderValid) {
+			return;
+		}
+
+		$first = $child instanceof Token ? $child : $child->getFirstToken();
+		$last = $child instanceof Token ? $child : $child->getLastToken();
+		if ($first === null || $last === null) {
+			return;
+		}
+
+		$this->released[] = [$this->getIndex($first), $this->getIndex($last)];
+	}
+
+
+	/**
+	 * A child was adopted into the tree: its tokens join the order at updateStructure(), where the tree puts them.
+	 * @internal
+	 */
+	public function adopted(Node|Token $child): void
+	{
+		if ($this->orderValid) {
+			$this->adopted[] = $child;
+		}
+	}
+
+
+	/**
+	 * The tree is in its new shape: moves the tokens of the released and adopted children.
+	 * @internal
+	 */
+	public function updateStructure(): void
+	{
+		$this->positionsValid = false;
+		if (!$this->orderValid) {
+			return;
+		}
+
+		$released = $this->released;
+		$adopted = $this->adopted;
+		$this->released = $this->adopted = [];
+		usort($released, fn(array $a, array $b) => $b[0] <=> $a[0]);
+		foreach ($released as [$start, $end]) {
+			array_splice($this->tokens, $start, $end - $start + 1);
+			$this->touch($start);
+		}
+
+		foreach ($adopted as $child) {
+			$tokens = [];
+			if ($child instanceof Token) {
+				$tokens[] = $child;
+			} else {
+				self::collect($child, $tokens);
+			}
+
+			if ($tokens === []) {
+				continue;
+			}
+
+			$position = 0;
+			for ($before = self::findTokenBefore($child); $before !== null; $before = self::findTokenBefore($before)) {
+				$index = $this->indexOf($before); // null for a token of another adopted child, not placed yet
+				if ($index !== null) {
+					$position = $index + 1;
+					break;
+				}
+			}
+
+			array_splice($this->tokens, $position, 0, $tokens);
+			$this->touch($position);
 		}
 	}
 
@@ -69,8 +170,16 @@ final class TokenIndex
 	public function getIndex(Token $token): int
 	{
 		$this->ensureOrder();
-		return $this->indexes[spl_object_id($token)]
+		return $this->indexOf($token)
 			?? throw new \InvalidArgumentException('The token does not belong to the indexed tree.');
+	}
+
+
+	/** Whether the token is in the tree the index describes. */
+	public function contains(Token $token): bool
+	{
+		$this->ensureOrder();
+		return $this->indexOf($token) !== null;
 	}
 
 
@@ -83,8 +192,9 @@ final class TokenIndex
 
 	public function getLine(Token $token): int
 	{
-		$this->ensurePositions();
-		return $this->lines[$this->getIndex($token)];
+		$index = $this->getIndex($token);
+		$this->ensureLines($index);
+		return $this->lines[$index];
 	}
 
 
@@ -124,29 +234,139 @@ final class TokenIndex
 	}
 
 
+	/** Number of line endings ("\n", "\r\n" or a lone "\r") in the text. */
+	public static function countLineEndings(string $text): int
+	{
+		$lf = substr_count($text, "\n");
+		$cr = substr_count($text, "\r");
+		return $cr === 0 ? $lf : $lf + $cr - substr_count($text, "\r\n");
+	}
+
+
+	/** @param list<Trivia> $trivias */
+	public static function countLineEndingsIn(array $trivias): int
+	{
+		$count = 0;
+		foreach ($trivias as $trivia) {
+			$count += self::countLineEndings($trivia->text);
+		}
+
+		return $count;
+	}
+
+
+	/** Index of a token of the tree in its current order; null for a token that is not in it. */
+	private function indexOf(Token $token): ?int
+	{
+		$index = $token->index;
+		if (($this->tokens[$index] ?? null) === $token) {
+			return $index;
+		}
+
+		$this->renumber($token);
+		$index = $token->index;
+		return ($this->tokens[$index] ?? null) === $token ? $index : null;
+	}
+
+
+	/** Numbers the tokens after the last numbered one, up to the token given or the end. */
+	private function renumber(?Token $upTo): void
+	{
+		for ($i = $this->numbered, $n = count($this->tokens); $i < $n; $i++) {
+			$token = $this->tokens[$i];
+			$token->index = $i;
+			$token->indexedBy = $this;
+			if ($token === $upTo) {
+				$i++;
+				break;
+			}
+		}
+
+		$this->numbered = $i;
+	}
+
+
+	/** The order changed from the position on: numbering and lines there are stale. */
+	private function touch(int $position): void
+	{
+		$this->numbered = min($this->numbered, $position);
+		$this->lined = min($this->lined, $position);
+	}
+
+
 	private function ensureOrder(): void
 	{
 		if ($this->orderValid) {
 			return;
 		}
 
-		$this->tokens = $this->indexes = [];
-		$stack = [$this->root];
-		while ($stack) {
-			$node = array_pop($stack);
-			if ($node instanceof Token) {
-				$this->indexes[spl_object_id($node)] = count($this->tokens);
-				$this->tokens[] = $node;
+		$this->tokens = [];
+		self::collect($this->root, $this->tokens);
+		$this->numbered = $this->lined = 0;
+		$this->orderValid = true;
+		$this->positionsValid = false;
+		$this->released = $this->adopted = [];
+	}
+
+
+	/** @param list<Token> $tokens */
+	private static function collect(Node $node, array &$tokens): void
+	{
+		foreach ($node->getChildren() as $child) {
+			if ($child instanceof Token) {
+				$tokens[] = $child;
 			} else {
-				$children = $node->getChildren();
-				for ($i = count($children) - 1; $i >= 0; $i--) {
-					$stack[] = $children[$i];
+				self::collect($child, $tokens);
+			}
+		}
+	}
+
+
+	/** The nearest token before the node in the tree, whatever the state of the index. */
+	private static function findTokenBefore(Node|Token $node): ?Token
+	{
+		for ($child = $node; ($parent = $child->parent) !== null; $child = $parent) {
+			$siblings = $parent->getChildren();
+			$index = array_search($child, $siblings, strict: true);
+			if ($index === false) {
+				throw new \LogicException('The node is not a child of its parent.');
+			}
+
+			for ($i = $index - 1; $i >= 0; $i--) {
+				$token = $siblings[$i] instanceof Token ? $siblings[$i] : $siblings[$i]->getLastToken();
+				if ($token !== null) {
+					return $token;
 				}
 			}
 		}
 
-		$this->orderValid = true;
-		$this->positionsValid = false;
+		return null;
+	}
+
+
+	/** Counts the lines after the last counted one, up to the index given. */
+	private function ensureLines(int $upTo): void
+	{
+		if ($this->lined > $upTo) {
+			return;
+		}
+
+		$line = 1;
+		if ($this->lined > 0) {
+			$previous = $this->tokens[$this->lined - 1];
+			$line = $this->lines[$this->lined - 1]
+				+ self::countLineEndings($previous->text)
+				+ self::countLineEndingsIn($previous->trailingTrivia);
+		}
+
+		for ($i = $this->lined; $i <= $upTo; $i++) {
+			$token = $this->tokens[$i];
+			$line += self::countLineEndingsIn($token->leadingTrivia);
+			$this->lines[$i] = $line;
+			$line += self::countLineEndings($token->text) + self::countLineEndingsIn($token->trailingTrivia);
+		}
+
+		$this->lined = $upTo + 1;
 	}
 
 
@@ -157,21 +377,19 @@ final class TokenIndex
 			return;
 		}
 
-		$this->offsets = $this->lines = $this->columns = [];
+		$this->offsets = $this->columns = [];
 		$offset = 0;
-		$line = 1;
 		$column = 1;
 		foreach ($this->tokens as $token) {
 			foreach ($token->leadingTrivia as $trivia) {
-				self::advance($trivia->text, $offset, $line, $column);
+				self::advance($trivia->text, $offset, $column);
 			}
 
 			$this->offsets[] = $offset;
-			$this->lines[] = $line;
 			$this->columns[] = $column;
-			self::advance($token->text, $offset, $line, $column);
+			self::advance($token->text, $offset, $column);
 			foreach ($token->trailingTrivia as $trivia) {
-				self::advance($trivia->text, $offset, $line, $column);
+				self::advance($trivia->text, $offset, $column);
 			}
 		}
 
@@ -179,12 +397,11 @@ final class TokenIndex
 	}
 
 
-	private static function advance(string $text, int &$offset, int &$line, int &$column): void
+	private static function advance(string $text, int &$offset, int &$column): void
 	{
 		$offset += strlen($text);
 		$newlines = preg_match_all('~\r\n|\r|\n~', $text, $m, PREG_OFFSET_CAPTURE);
 		if ($newlines) {
-			$line += $newlines;
 			$last = $m[0][$newlines - 1];
 			$column = 1 + self::countCharacters(substr($text, $last[1] + strlen($last[0])));
 		} else {

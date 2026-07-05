@@ -12,7 +12,7 @@ use PhpSyntax\TokenIndex;
  */
 final class FileNode extends Node
 {
-	/** number of mutations since parsing; every mutating method increments it */
+	/** version of the tree: every write to a slot, a list, or the text or trivia of a token increments it */
 	public int $revision = 0;
 
 	private ?TokenIndex $index = null;
@@ -30,13 +30,40 @@ final class FileNode extends Node
 
 
 	/**
-	 * Records a structural mutation: the children of a node were replaced, added or removed.
-	 * @internal
+	 * A structural mutation is complete: the children reported by adopted() and released() are in their new
+	 * places, and the index moves their tokens instead of rebuilding the order.
+	 * @internal called by Node::structureChanged()
 	 */
 	public function structureChanged(): void
 	{
 		$this->revision++;
-		$this->index?->invalidate(structure: true);
+		$this->index?->updateStructure();
+	}
+
+
+	/**
+	 * The text or trivia of a token changed: the lines after it move by the line endings it gained or lost,
+	 * and with a change before the token so does its own.
+	 * @internal called by the setters of Token
+	 */
+	public function tokenChanged(Token $token, int $lineEndings, bool $leading): void
+	{
+		$this->revision++;
+		$this->index?->updateToken($token, $lineEndings, $leading);
+	}
+
+
+	/** @internal called by Node::adopt() */
+	public function adopted(Node|Token $child): void
+	{
+		$this->index?->adopted($child);
+	}
+
+
+	/** @internal called by Node::release() while the child is still in the tree */
+	public function released(Node|Token $child): void
+	{
+		$this->index?->released($child);
 	}
 
 

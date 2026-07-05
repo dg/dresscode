@@ -4,6 +4,8 @@ namespace PhpSyntax\Nodes;
 
 use PhpSyntax\Node;
 use PhpSyntax\Token;
+use PhpSyntax\Trivia;
+use PhpSyntax\TriviaKind;
 use function count;
 
 
@@ -13,7 +15,7 @@ use function count;
  * nothing between two separators ([, $b] = $x).
  * @template T of Node
  */
-final class SeparatedNodeList extends Node
+final class SeparatedNodeList extends Node implements \Countable
 {
 	/**
 	 * @param list<T> $items
@@ -54,22 +56,46 @@ final class SeparatedNodeList extends Node
 
 
 	/**
+	 * Appends an item; the separator before it is derived from the existing ones unless given.
 	 * @param T $item
-	 * @param ?Token $separator  the one before the item; required for any item but the first
 	 */
 	public function append(Node $item, ?Token $separator = null): void
 	{
-		if ($this->items === [] xor $separator === null) {
-			throw new \LogicException('A separator is required before every item but the first.');
+		$this->insert(count($this->items), $item, $separator);
+	}
+
+
+	/**
+	 * Inserts an item at the index. A missing separator is modeled on the existing ones, or on ", " in
+	 * a one-line list; in a multi-line list the item also inherits the indentation of its neighbor.
+	 * @param T $item
+	 */
+	public function insert(int $index, Node $item, ?Token $separator = null): void
+	{
+		if ($index < 0 || $index > count($this->items)) {
+			throw new \OutOfRangeException("Index $index is out of range.");
 		}
 
-		if ($separator) {
-			$this->adopt($separator);
-			$this->separators[] = $separator;
+		if ($this->items === []) {
+			if ($separator) {
+				throw new \LogicException('The first item has no separator before it.');
+			}
+		} elseif (!$separator) {
+			$neighbor = $this->items[$index > 0 ? $index - 1 : 0];
+			$separator = $this->deriveSeparator($index, $neighbor);
+			$this->indentLike($item, $neighbor);
+			if ($index > 0) {
+				$this->endLineLike($item, $neighbor);
+			}
 		}
 
 		$this->adopt($item);
-		$this->items[] = $item;
+		$this->items = self::spliceList($this->items, $index, 0, [$item]);
+		if ($separator) {
+			$this->adopt($separator);
+			$this->separators = self::spliceList($this->separators, max($index - 1, 0), 0, [$separator]);
+		}
+
 		$this->structureChanged();
 	}
 
@@ -95,11 +121,13 @@ final class SeparatedNodeList extends Node
 	public function removeItem(Node $item): void
 	{
 		$index = $this->indexOf($item);
+		$isLast = $index === count($this->items) - 1;
 		$this->release($item);
 		$this->items = self::spliceList($this->items, $index, 1);
-		$separator = $this->separators[$index] ?? null;
-		$separatorIndex = $separator ? $index : $index - 1;
-		if (isset($this->separators[$separatorIndex])) {
+		if ($this->items === []) {
+			array_walk($this->separators, $this->release(...));
+			$this->separators = [];
+		} elseif (isset($this->separators[$separatorIndex = $isLast ? $index - 1 : $index])) {
 			$this->release($this->separators[$separatorIndex]);
 			$this->separators = self::spliceList($this->separators, $separatorIndex, 1);
 		}
@@ -168,5 +196,84 @@ final class SeparatedNodeList extends Node
 	public function count(): int
 	{
 		return count($this->items);
+	}
+
+
+	private function deriveSeparator(int $index, Node $neighbor): Token
+	{
+		$model = $this->separators[min($index, count($this->separators)) - 1] ?? $this->separators[0] ?? null;
+		if ($model) {
+			return clone $model;
+		}
+
+		$separator = new Token(ord(','), ',');
+		$eol = self::findLineEnding($neighbor);
+		$separator->setTrailingTrivia([$eol ?? new Trivia(TriviaKind::Whitespace, ' ')]);
+		return $separator;
+	}
+
+
+	/**
+	 * When the neighbor ends its line, the new item after it takes over that role.
+	 */
+	private function endLineLike(Node $item, Node $neighbor): void
+	{
+		$source = $neighbor->getLastToken();
+		$target = $item->getLastToken();
+		if (
+			$source
+			&& $target
+			&& $source->trailingTrivia
+			&& end($source->trailingTrivia)->isEndOfLine()
+			&& !$target->trailingTrivia
+		) {
+			$target->setTrailingTrivia($source->trailingTrivia);
+			$source->setTrailingTrivia([]);
+		}
+	}
+
+
+	/** The line ending before the item when it starts a line. */
+	private static function findLineEnding(Node $item): ?Trivia
+	{
+		$token = $item->getFirstToken();
+		if (!$token) {
+			return null;
+		}
+
+		foreach ([array_reverse($token->leadingTrivia), array_reverse($token->getPrevious()->trailingTrivia ?? [])] as $trivias) {
+			foreach ($trivias as $trivia) {
+				if ($trivia->kind === TriviaKind::EndOfLine) {
+					return $trivia;
+				} elseif ($trivia->kind !== TriviaKind::Whitespace) {
+					return null;
+				}
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * Gives the item the leading indentation of its neighbor when it has no leading trivia of its own
+	 * and the neighbor starts a line.
+	 */
+	private function indentLike(Node $item, Node $neighbor): void
+	{
+		$target = $item->getFirstToken();
+		$source = $neighbor->getFirstToken();
+		if (!$target || !$source || $target->leadingTrivia) {
+			return;
+		}
+
+		$indentation = [];
+		foreach ($source->leadingTrivia as $trivia) {
+			$indentation = $trivia->kind === TriviaKind::Whitespace ? [...$indentation, $trivia] : [];
+		}
+
+		if ($source->startsLine()) {
+			$target->setLeadingTrivia($indentation);
+		}
 	}
 }

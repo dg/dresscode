@@ -61,9 +61,7 @@ test('a change of trivia moves the lines, a structural change also the order', f
 	Assert::same(3, $b->getLine());
 
 	$a = $index->getTokens()[0];
-	$a->trailingTrivia = [];
-	$a->leadingTrivia = [new Trivia(TriviaKind::OpenTag, "<?php\n"), new Trivia(TriviaKind::EndOfLine, "\n")];
-	$file->structureChanged();
+	$a->setLeadingTrivia([new Trivia(TriviaKind::OpenTag, "<?php\n"), new Trivia(TriviaKind::EndOfLine, "\n")]);
 	Assert::same(4, $b->getLine());
 	Assert::same(1, $file->revision);
 

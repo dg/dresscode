@@ -11,7 +11,7 @@ use function count;
  * Sequence of nodes without separators: statements, members, attribute groups.
  * @template T of Node
  */
-final class NodeList extends Node
+final class NodeList extends Node implements \Countable
 {
 	/**
 	 * @param list<T> $items

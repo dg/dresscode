@@ -7,7 +7,7 @@ use PhpSyntax\Nodes\ModifiersNode;
 use PhpSyntax\Token;
 
 
-final class SlotWrites
+final class TreeWrites
 {
 	public function run(TernaryNode $ternary, ModifiersNode $modifiers, Token $token): void
 	{
@@ -17,6 +17,9 @@ final class SlotWrites
 		$token->parent = $ternary;
 
 		$token->text = 'x';
+		$token->leadingTrivia = [];
+		$token->index = 1;
+		$token->setText('x');
 		$ternary->setIf(null);
 		$copy = $ternary->cond;
 	}
