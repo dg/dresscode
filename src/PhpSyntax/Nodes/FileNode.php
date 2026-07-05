@@ -4,6 +4,7 @@ namespace PhpSyntax\Nodes;
 
 use PhpSyntax\Node;
 use PhpSyntax\Token;
+use PhpSyntax\TokenIndex;
 
 
 /**
@@ -13,6 +14,8 @@ final class FileNode extends Node
 {
 	/** number of mutations since parsing; every mutating method increments it */
 	public int $revision = 0;
+
+	private ?TokenIndex $index = null;
 
 
 	/**
@@ -33,6 +36,13 @@ final class FileNode extends Node
 	public function structureChanged(): void
 	{
 		$this->revision++;
+		$this->index?->invalidate(structure: true);
+	}
+
+
+	public function getIndex(): TokenIndex
+	{
+		return $this->index ??= new TokenIndex($this);
 	}
 
 
