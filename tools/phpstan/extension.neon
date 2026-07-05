@@ -8,6 +8,7 @@ parameters:
 		# paths that implement the tree and may write node slots directly
 		slotWriteAllowed:
 			- src/PhpSyntax/Node.php
+			- src/PhpSyntax/Token.php
 			- src/PhpSyntax/NodeList.php
 			- src/PhpSyntax/SeparatedNodeList.php
 			- src/PhpSyntax/Nodes/

@@ -89,6 +89,25 @@ final class SeparatedNodeList extends Node
 	}
 
 
+	/**
+	 * Removes the item together with the separator after it, or the one before it for the last item.
+	 */
+	public function removeItem(Node $item): void
+	{
+		$index = $this->indexOf($item);
+		$this->release($item);
+		$this->items = self::spliceList($this->items, $index, 1);
+		$separator = $this->separators[$index] ?? null;
+		$separatorIndex = $separator ? $index : $index - 1;
+		if (isset($this->separators[$separatorIndex])) {
+			$this->release($this->separators[$separatorIndex]);
+			$this->separators = self::spliceList($this->separators, $separatorIndex, 1);
+		}
+
+		$this->structureChanged();
+	}
+
+
 	public function indexOf(Node $item): int
 	{
 		$index = array_search($item, $this->items, strict: true);

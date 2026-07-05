@@ -46,6 +46,13 @@ final class FileNode extends Node
 	}
 
 
+	public function __clone()
+	{
+		parent::__clone();
+		$this->index = null;
+	}
+
+
 	public function getChildren(): array
 	{
 		return [$this->stmts, $this->eof];

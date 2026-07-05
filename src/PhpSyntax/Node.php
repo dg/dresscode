@@ -3,6 +3,9 @@
 namespace PhpSyntax;
 
 use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Nodes\ModifiersNode;
+use PhpSyntax\Nodes\NodeList;
+use PhpSyntax\Nodes\SeparatedNodeList;
 
 
 /**
@@ -51,9 +54,233 @@ abstract class Node implements \Stringable
 	}
 
 
+	/** Null only for a node without tokens, such as an empty list. */
+	public function getFirstToken(): ?Token
+	{
+		foreach ($this->getChildren() as $child) {
+			$token = $child instanceof Token ? $child : $child->getFirstToken();
+			if ($token) {
+				return $token;
+			}
+		}
+
+		return null;
+	}
+
+
+	public function getLastToken(): ?Token
+	{
+		$children = $this->getChildren();
+		for ($i = count($children) - 1; $i >= 0; $i--) {
+			$token = $children[$i] instanceof Token ? $children[$i] : $children[$i]->getLastToken();
+			if ($token) {
+				return $token;
+			}
+		}
+
+		return null;
+	}
+
+
+	/** Current line of the first token; null for a detached subtree or a node without tokens. */
+	public function getStartLine(): ?int
+	{
+		return $this->getFirstToken()?->getLine();
+	}
+
+
+	/** Current line where the last token ends. */
+	public function getEndLine(): ?int
+	{
+		$token = $this->getLastToken();
+		$line = $token?->getLine();
+		return $line === null ? null : $line + preg_match_all('~\r\n|\r|\n~', $token->text);
+	}
+
+
+	/**
+	 * Doc comment before the node: the last one in the leading trivia of the first token, or in the trailing
+	 * trivia of the previous token (public $a; /** @var int * / public $b;).
+	 */
+	public function getDocComment(): ?Trivia
+	{
+		$token = $this->getFirstToken();
+		if (!$token) {
+			return null;
+		}
+
+		foreach ([$token->leadingTrivia, $token->getPrevious()->trailingTrivia ?? []] as $trivias) {
+			for ($i = count($trivias) - 1; $i >= 0; $i--) {
+				if ($trivias[$i]->kind === TriviaKind::DocComment) {
+					return $trivias[$i];
+				}
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * @template T of object
+	 * @param  class-string<T>  $class
+	 * @return (T&Node)|null
+	 */
+	public function findAncestor(string $class): ?self
+	{
+		for ($node = $this->parent; $node; $node = $node->parent) {
+			if ($node instanceof $class) {
+				return $node;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * Descendant nodes in pre-order, as a snapshot safe to iterate while mutating the tree.
+	 * @template T of Node
+	 * @param  ?class-string<T>  $class
+	 * @return list<($class is null ? Node : T)>
+	 */
+	public function getDescendants(?string $class = null): array
+	{
+		$result = [];
+		$stack = array_reverse($this->getChildren());
+		while ($stack) {
+			$node = array_pop($stack);
+			if ($node instanceof Token) {
+				continue;
+			}
+
+			if ($class === null || $node instanceof $class) {
+				$result[] = $node;
+			}
+
+			$children = $node->getChildren();
+			for ($i = count($children) - 1; $i >= 0; $i--) {
+				$stack[] = $children[$i];
+			}
+		}
+
+		return $result;
+	}
+
+
+	/**
+	 * Replaces this node in its parent; the trivia around the old node stay in place around the new one.
+	 */
+	public function replaceWith(self $node): void
+	{
+		$parent = $this->parent ?? throw new \LogicException('Cannot replace a node without a parent.');
+		if ($first = $this->getFirstToken()) {
+			$leading = $first->leadingTrivia;
+			$first->leadingTrivia = [];
+			if ($target = $node->getFirstToken()) {
+				$target->leadingTrivia = [...$leading, ...$target->leadingTrivia];
+			}
+		}
+
+		if ($last = $this->getLastToken()) {
+			$trailing = $last->trailingTrivia;
+			$last->trailingTrivia = [];
+			if ($target = $node->getLastToken()) {
+				$target->trailingTrivia = [...$target->trailingTrivia, ...$trailing];
+			}
+		}
+
+		$parent->replaceChild($this, $node);
+	}
+
+
+	/**
+	 * Removes this node from its list. A node alone on its lines takes the lines with it (indentation and
+	 * line ending), otherwise the whitespace around stays; comments inside, each with the line ending that
+	 * follows it, go where the policy says.
+	 */
+	public function remove(CommentPolicy $comments = CommentPolicy::MoveToNextToken): void
+	{
+		$parent = $this->parent;
+		if (!$parent instanceof NodeList && !$parent instanceof SeparatedNodeList) {
+			throw new \LogicException('Only an item of a list can be removed; use the setter of the slot instead.');
+		}
+
+		$tokens = $this->getIndexedTokens();
+		$first = $tokens[0] ?? null;
+		$last = $tokens[count($tokens) - 1] ?? null;
+		$previous = $first?->getPrevious();
+		$next = $last?->getNext();
+		[$leading, $moved] = self::splitComments($first->leadingTrivia ?? []);
+		foreach ($tokens as $token) {
+			foreach ([$token === $first ? [] : $token->leadingTrivia, $token === $last ? [] : $token->trailingTrivia] as $trivias) {
+				$moved = [...$moved, ...self::splitComments($trivias)[1]];
+			}
+		}
+
+		[$trailing, $trailingComments] = self::splitComments($last->trailingTrivia ?? []);
+		$moved = [...$moved, ...$trailingComments];
+
+		if (self::standsAlone($first->leadingTrivia ?? [], $last->trailingTrivia ?? [], $previous, $next)) {
+			if ($leading && end($leading)->kind === TriviaKind::Whitespace) {
+				array_pop($leading);
+			}
+
+			$trailing = [];
+		}
+
+		$before = $after = [];
+		if ($comments === CommentPolicy::MoveToPreviousToken && $previous) {
+			$before = $moved;
+		} elseif ($comments !== CommentPolicy::Drop) {
+			$after = $moved;
+		}
+
+		if ($previous) {
+			$previous->trailingTrivia = [...$previous->trailingTrivia, ...$before, ...$trailing];
+			$trailing = [];
+		}
+
+		if ($next) {
+			$next->leadingTrivia = [...$leading, ...$after, ...$trailing, ...$next->leadingTrivia];
+		} elseif ($previous) {
+			$previous->trailingTrivia = [...$previous->trailingTrivia, ...$leading, ...$after];
+		}
+
+		$parent->removeItem($this);
+	}
+
+
 	public function __toString(): string
 	{
 		return Printer::print($this);
+	}
+
+
+	/** Deep copy without a parent. */
+	public function __clone()
+	{
+		$this->parent = null;
+		foreach (get_object_vars($this) as $name => $value) {
+			if ($value instanceof self || $value instanceof Token) {
+				$copy = clone $value;
+				$copy->parent = $this;
+				$this->$name = $copy;
+			} elseif (
+				is_array($value)
+				&& (
+					$this instanceof NodeList
+					|| $this instanceof SeparatedNodeList
+					|| $this instanceof ModifiersNode
+				)
+			) {
+				$this->$name = array_map(function (Node|Token $item) {
+					$copy = clone $item;
+					$copy->parent = $this;
+					return $copy;
+				}, $value);
+			}
+		}
 	}
 
 
@@ -113,5 +340,90 @@ abstract class Node implements \Stringable
 		return new \InvalidArgumentException(
 			($child instanceof Token ? "Token '$child->text'" : $child::class) . ' is not a child of ' . static::class . '.',
 		);
+	}
+
+
+	/** @return list<Token> */
+	private function getIndexedTokens(): array
+	{
+		$tokens = [];
+		$stack = [$this];
+		while ($stack) {
+			$node = array_pop($stack);
+			if ($node instanceof Token) {
+				$tokens[] = $node;
+				continue;
+			}
+
+			$children = $node->getChildren();
+			for ($i = count($children) - 1; $i >= 0; $i--) {
+				$stack[] = $children[$i];
+			}
+		}
+
+		return $tokens;
+	}
+
+
+	/**
+	 * Separates comments, each with the line ending directly after it, from the rest of the trivia.
+	 * @param  list<Trivia>  $trivias
+	 * @return array{list<Trivia>, list<Trivia>}  [rest, comments]
+	 */
+	private static function splitComments(array $trivias): array
+	{
+		$rest = $comments = [];
+		foreach ($trivias as $i => $trivia) {
+			if ($trivia->isComment()) {
+				$comments[] = $trivia;
+			} elseif ($trivia->kind === TriviaKind::EndOfLine && $i > 0 && $trivias[$i - 1]->isComment()) {
+				$comments[] = $trivia;
+			} else {
+				$rest[] = $trivia;
+			}
+		}
+
+		return [$rest, $comments];
+	}
+
+
+	/**
+	 * Whether nothing but whitespace and comments shares the lines of the node.
+	 * @param list<Trivia> $leading
+	 * @param list<Trivia> $trailing
+	 */
+	private static function standsAlone(array $leading, array $trailing, ?Token $previous, ?Token $next): bool
+	{
+		$startsLine = false;
+		for ($i = count($leading) - 1; $i >= 0; $i--) {
+			if ($leading[$i]->isEndOfLine()) {
+				$startsLine = true;
+				break;
+			} elseif ($leading[$i]->kind !== TriviaKind::Whitespace && !$leading[$i]->isComment()) {
+				return false;
+			}
+		}
+
+		if (!$startsLine) {
+			$before = $previous->trailingTrivia ?? [];
+			$startsLine = !$previous || ($before && end($before)->isEndOfLine());
+		}
+
+		$endsLine = false;
+		foreach ($trailing as $trivia) {
+			if ($trivia->isEndOfLine()) {
+				$endsLine = true;
+				break;
+			} elseif ($trivia->kind !== TriviaKind::Whitespace && !$trivia->isComment()) {
+				return false;
+			}
+		}
+
+		if (!$endsLine) {
+			$after = $next->leadingTrivia ?? [];
+			$endsLine = !$next || $next->kind === TokenKind::EndOfFile || ($after && $after[0]->isEndOfLine());
+		}
+
+		return $startsLine && $endsLine;
 	}
 }

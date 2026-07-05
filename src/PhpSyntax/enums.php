@@ -11,3 +11,14 @@ enum TriviaKind
 	case DocComment;
 	case OpenTag;
 }
+
+
+/**
+ * What happens to the comments inside a removed subtree.
+ */
+enum CommentPolicy
+{
+	case MoveToNextToken;
+	case MoveToPreviousToken;
+	case Drop;
+}

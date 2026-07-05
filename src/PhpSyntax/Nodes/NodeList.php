@@ -54,7 +54,7 @@ final class NodeList extends Node
 	}
 
 
-	public function remove(Node $item): void
+	public function removeItem(Node $item): void
 	{
 		$index = $this->indexOf($item);
 		$this->release($item);

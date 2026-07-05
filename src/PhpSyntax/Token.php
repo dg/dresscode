@@ -70,6 +70,13 @@ final class Token implements \Stringable
 	}
 
 
+	/** Copy without a parent; trivia are immutable and shared. */
+	public function __clone()
+	{
+		$this->parent = null;
+	}
+
+
 	public function __toString(): string
 	{
 		return implode('', array_map(fn(Trivia $trivia) => $trivia->text, $this->leadingTrivia))

@@ -15,4 +15,25 @@ final readonly class Trivia
 		public bool $inInterpolation = false,
 	) {
 	}
+
+
+	public function isComment(): bool
+	{
+		return $this->kind === TriviaKind::Comment || $this->kind === TriviaKind::DocComment;
+	}
+
+
+	/** Whitespace or a line ending. */
+	public function isWhitespace(): bool
+	{
+		return $this->kind === TriviaKind::Whitespace || $this->kind === TriviaKind::EndOfLine;
+	}
+
+
+	/** Ends the line: a line ending, or an open tag whose text ends with one. */
+	public function isEndOfLine(): bool
+	{
+		return $this->kind === TriviaKind::EndOfLine
+			|| ($this->kind === TriviaKind::OpenTag && preg_match('~[\r\n]$~', $this->text) === 1);
+	}
 }

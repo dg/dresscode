@@ -68,7 +68,7 @@ test('a change of trivia moves the lines, a structural change also the order', f
 	Assert::same(1, $file->revision);
 
 	$stmt = $file->stmts->getItems()[0];
-	$file->stmts->remove($stmt);
+	$file->stmts->removeItem($stmt);
 	Assert::same(2, $file->revision);
 	Assert::same($b, $index->getTokens()[0]);
 	Assert::same(1, $b->getLine());
@@ -80,7 +80,7 @@ test('detached subtree has no positions', function () {
 	$file = (new Parser)->parse('<?php $a; $b;');
 	$stmt = $file->stmts->getItems()[0];
 	Assert::type(ExpressionStatementNode::class, $stmt);
-	$file->stmts->remove($stmt);
+	$file->stmts->removeItem($stmt);
 	Assert::null($stmt->semicolon->getLine());
 	Assert::null($stmt->semicolon->getNext());
 	Assert::null($stmt->getFile());

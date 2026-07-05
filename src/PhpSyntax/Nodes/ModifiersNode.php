@@ -54,7 +54,7 @@ final class ModifiersNode extends Node
 	}
 
 
-	public function remove(Token $token): void
+	public function removeToken(Token $token): void
 	{
 		$index = array_search($token, $this->tokens, strict: true);
 		if ($index === false) {
