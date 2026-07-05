@@ -58,10 +58,13 @@ final class Lexer
 	}
 
 
-	/** @return list<Token> */
-	public function tokenize(string $code): array
+	/**
+	 * @param  bool  $withPositions  false for a fragment whose tokens have no place in an original file
+	 * @return list<Token>
+	 */
+	public function tokenize(string $code, bool $withPositions = true): array
 	{
-		$raw = $this->tokenizeRaw($code);
+		$raw = $this->tokenizeRaw($code, $withPositions);
 		foreach ($this->emulators as $emulator) {
 			if ($emulator->isNeeded($code)) {
 				$raw = $emulator->emulate($raw);
@@ -76,7 +79,7 @@ final class Lexer
 	 * Tokens with host ids replaced by TokenKind; whitespace and comments are still tokens.
 	 * @return list<Token>
 	 */
-	private function tokenizeRaw(string $code): array
+	private function tokenizeRaw(string $code, bool $withPositions): array
 	{
 		$tokens = [];
 		foreach (@\PhpToken::tokenize($code) as $token) { // @ - compile warnings for invalid escape sequences in strings
@@ -93,7 +96,9 @@ final class Lexer
 				$kind = $token->id; // single character
 			}
 
-			$tokens[] = new Token($kind, $token->text, $token->pos, $token->line);
+			$tokens[] = $withPositions
+				? new Token($kind, $token->text, $token->pos, $token->line)
+				: new Token($kind, $token->text);
 		}
 
 		return $tokens;

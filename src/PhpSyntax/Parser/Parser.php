@@ -6,12 +6,18 @@ use PhpSyntax\Lexer\Lexer;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\ArrayItemNode;
 use PhpSyntax\Nodes\EmptyArrayItemNode;
+use PhpSyntax\Nodes\Expression\ClassConstantFetchNode;
+use PhpSyntax\Nodes\ExpressionNode;
 use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Nodes\NameNode;
 use PhpSyntax\Nodes\NodeList;
 use PhpSyntax\Nodes\SeparatedNodeList;
+use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
+use PhpSyntax\Nodes\Statement\FunctionNode;
 use PhpSyntax\Nodes\Statement\HaltCompilerNode;
 use PhpSyntax\Nodes\Statement\NamespaceNode;
 use PhpSyntax\Nodes\StatementNode;
+use PhpSyntax\Nodes\TypeNode;
 use PhpSyntax\ParseException;
 use PhpSyntax\Token;
 use PhpSyntax\TokenKind;
@@ -48,7 +54,56 @@ final class Parser
 	/** @throws ParseException */
 	public function parse(string $code): FileNode
 	{
-		$this->tokens = $this->lexer->tokenize($code);
+		return $this->parseFile($code, withPositions: true);
+	}
+
+
+	/**
+	 * Parses an expression into a detached node without original positions; the boundary trivia are empty.
+	 * @throws ParseException
+	 */
+	public function parseExpression(string $code): ExpressionNode
+	{
+		$stmts = $this->parseFile('<?php ' . $code . "\n;", withPositions: false)->stmts->getItems();
+		return count($stmts) === 1 && $stmts[0] instanceof ExpressionStatementNode
+			? $this->detach($stmts[0]->expr)
+			: throw new ParseException('Not an expression.');
+	}
+
+
+	/** @throws ParseException */
+	public function parseStatement(string $code): StatementNode
+	{
+		$stmts = $this->parseFile('<?php ' . $code, withPositions: false)->stmts->getItems();
+		return count($stmts) === 1
+			? $this->detach($stmts[0])
+			: throw new ParseException('Exactly one statement expected, ' . count($stmts) . ' given.');
+	}
+
+
+	/** @throws ParseException */
+	public function parseType(string $code): TypeNode
+	{
+		$stmt = $this->parseStatement("function f(): $code {}");
+		return $stmt instanceof FunctionNode && $stmt->returnType
+			? $this->detach($stmt->returnType)
+			: throw new ParseException('Not a type.');
+	}
+
+
+	/** @throws ParseException */
+	public function parseName(string $code): NameNode
+	{
+		$expr = $this->parseExpression("$code::class");
+		return $expr instanceof ClassConstantFetchNode && $expr->class instanceof NameNode
+			? $this->detach($expr->class)
+			: throw new ParseException('Not a name.');
+	}
+
+
+	private function parseFile(string $code, bool $withPositions): FileNode
+	{
+		$this->tokens = $this->lexer->tokenize($code, $withPositions);
 		$this->position = 0;
 		$stmts = $this->run();
 		if (!$stmts instanceof NodeList) {
@@ -68,6 +123,27 @@ final class Parser
 
 		/** @var NodeList<StatementNode> $stmts */
 		return (new FileNode($this->nestNamespaces($stmts), $eof))->attach();
+	}
+
+
+	/**
+	 * Takes the node out of the helper tree it was parsed in and clears the trivia on its edges.
+	 * @template T of Node
+	 * @param  T  $node
+	 * @return T
+	 */
+	private function detach(Node $node): Node
+	{
+		$node->parent = null;
+		if ($first = $node->getFirstToken()) {
+			$first->setLeadingTrivia([]);
+		}
+
+		if ($last = $node->getLastToken()) {
+			$last->setTrailingTrivia([]);
+		}
+
+		return $node;
 	}
 
 

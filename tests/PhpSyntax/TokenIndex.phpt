@@ -1,7 +1,10 @@
 <?php declare(strict_types=1);
 
+use PhpSyntax\Nodes\Expression\ArrayNode;
+use PhpSyntax\Nodes\Expression\BinaryNode;
 use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 use PhpSyntax\Parser\Parser;
+use PhpSyntax\Printer;
 use PhpSyntax\Style;
 use PhpSyntax\Token;
 use PhpSyntax\Trivia;
@@ -83,4 +86,47 @@ test('detached subtree has no positions', function () {
 	Assert::null($stmt->semicolon->getNext());
 	Assert::null($stmt->getFile());
 	Assert::exception(fn() => $file->getIndex()->getIndex($stmt->semicolon), InvalidArgumentException::class, 'The token does not belong to the indexed tree.');
+});
+
+
+test('the order and the lines follow mutations of every kind', function () {
+	$file = (new Parser)->parse("<?php\nfunction f(\$a) {\n\treturn [\n\t\t1,\n\t\t2\n\t];\n}\nfoo(1, 2);\n\$x = 'a' . 'b';\n");
+	$verify = function () use ($file): void {
+		$describe = fn(Token $token) => [$token->text, $token->getLine()];
+		$fresh = (new Parser)->parse(Printer::print($file));
+		$index = $file->getIndex();
+		Assert::same(array_map($describe, $fresh->getIndex()->getTokens()), array_map($describe, $index->getTokens()));
+		foreach ($index->getTokens() as $i => $token) {
+			Assert::same($i, $index->getIndex($token));
+			Assert::same($index->getTokens()[$i - 1] ?? null, $token->getPrevious());
+		}
+	};
+	$file->getLastToken()?->getLine(); // builds the index before the mutations
+	$file->stmts->getItems()[1]->remove(); // foo(1, 2);
+	$verify();
+	$file->stmts->insert(1, (new Parser)->parseStatement("\$y = 1;\n")); // tokens numbered by another tree
+	$verify();
+	$concat = $file->getDescendants(BinaryNode::class)[0];
+	$concat->replaceWith((new Parser)->parseExpression("'ab'"));
+	$verify();
+	$array = $file->getDescendants(ArrayNode::class)[0];
+	$array->items->setTrailingSeparator(new Token(ord(','), ','));
+	$verify();
+	$semicolon = $file->getLastToken()?->getPrevious();
+	Assert::type(Token::class, $semicolon);
+	$semicolon->setTrailingTrivia([new Trivia(TriviaKind::EndOfLine, "\n"), new Trivia(TriviaKind::EndOfLine, "\n")]);
+	$verify();
+	$semicolon->setLeadingTrivia([new Trivia(TriviaKind::Whitespace, '  ')]);
+	$verify();
+
+	$other = (new Parser)->parse("<?php\n\$z;\n");
+	$moved = $other->stmts->getItems()[0];
+	Assert::same(2, $moved->getStartLine()); // numbered by the index of the other file
+	$other->stmts->removeItem($moved);
+	Assert::null($moved->getStartLine());
+	$moved->getFirstToken()?->setLeadingTrivia([]); // the open tag of the other file
+	$file->stmts->append($moved);
+	$verify();
+	Assert::same(10, $moved->getStartLine());
+	Assert::same(1, $other->getLastToken()?->getLine());
 });
