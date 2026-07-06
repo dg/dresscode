@@ -1,0 +1,27 @@
+<?php
+class A
+{
+	/**
+	 * The opening line moved away from the lines below it.
+	 */
+	public $a;
+
+	/**
+	 * An inner line out of shape.
+	 */
+	public $b;
+
+	/*
+	  a comment of a shape of its own
+	    moves as a whole
+	*/
+	public $c;
+
+	public function f()
+	{
+		foo();
+		/**
+		 * Above the closing brace.
+		 */
+	}
+}

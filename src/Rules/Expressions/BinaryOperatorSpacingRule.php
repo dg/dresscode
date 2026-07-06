@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Claim, ConfigurableRule, Gap, GapRule, Line, RuleInfo, Stage, Style};
+use DressCode\{Claim, ConfigurableRule, Gap, GapRule, Line, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{Indentation, Token};
@@ -113,7 +113,7 @@ final class BinaryOperatorSpacingRule extends GapRule implements ConfigurableRul
 			$token->text === '.' => null, // dresscode/concat-spacing
 			$this->isMovedToStart($gap) => $this->joined,
 			$next === null || !$token->is(...self::JoinedOperators) || $token->hasCommentUpTo($next) => $this->claim,
-			$next->startsLine() && self::isJoinedLineTooWide($gap->style, $token, $next) => $this->claim,
+			$next->startsLine() && self::isJoinedLineTooWide($gap, $token, $next) !== false => $this->claim,
 			default => $this->joined,
 		};
 	}
@@ -135,7 +135,7 @@ final class BinaryOperatorSpacingRule extends GapRule implements ConfigurableRul
 				$next = $token->getNext();
 				return $next !== null
 					&& NodeHelpers::isLineBrokenAfter($token)
-					&& (!$token->is(...self::JoinedOperators) || self::isJoinedLineTooWide($gap->style, $token, $next));
+					&& (!$token->is(...self::JoinedOperators) || self::isJoinedLineTooWide($gap, $token, $next) === true);
 			});
 	}
 
@@ -157,18 +157,22 @@ final class BinaryOperatorSpacingRule extends GapRule implements ConfigurableRul
 			return $this->claim;
 		}
 
-		return self::isJoinedLineTooWide($gap->style, $previous, $token) ? $this->claim : $this->joined;
+		return self::isJoinedLineTooWide($gap, $previous, $token) !== false ? $this->claim : $this->joined;
 	}
 
 
 	/**
 	 * Whether the line of the second token, joined to the line of the first one with a space between them, would
-	 * be wider than the line length of the style.
+	 * be wider than the line length of the style; null while the line of the first one is not indented yet, which
+	 * leaves the line as it is until a pass later measures it.
 	 */
-	private static function isJoinedLineTooWide(Style $style, Token $first, Token $second): bool
+	private static function isJoinedLineTooWide(Gap $gap, Token $first, Token $second): ?bool
 	{
+		$style = $gap->style;
 		if ($style->lineLength === null) {
 			return false;
+		} elseif (!NodeHelpers::isLineInPlace($gap, $first)) {
+			return null;
 		}
 
 		$phpSyntax = $style->toPhpSyntax();
