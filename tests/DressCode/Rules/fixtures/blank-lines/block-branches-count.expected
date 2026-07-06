@@ -1,0 +1,18 @@
+<?php
+
+// {"betweenBranches": 0, "beforeBlockBrace": 1}
+
+if ($a) {
+	foo();
+} elseif ($b) {
+	bar();
+} else {
+	baz();
+
+}
+try {
+	foo();
+} catch (A $e) {
+	bar();
+
+}

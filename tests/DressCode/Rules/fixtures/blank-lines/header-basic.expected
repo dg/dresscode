@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Vendor\Package;
+
+use Vendor\Package\ClassA;
+use Vendor\Package\ClassB;
+
+use function Vendor\Package\functionA;
+
+use const Vendor\Package\CONSTANT_A;
+
+/**
+ * Doc.
+ */
+class Foo
+{
+}
