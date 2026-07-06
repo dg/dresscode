@@ -105,6 +105,7 @@ function renderNodeClass(string $class, array $definition): string
 
 	$parentShort = $use($parent);
 	$interfaceShorts = array_map($use, $interfaces);
+	$traitShorts = array_map($use, $definition['traits'] ?? []);
 	ksort($imports);
 
 	$lines = [];
@@ -127,6 +128,14 @@ function renderNodeClass(string $class, array $definition): string
 	$lines[] = ' */';
 	$lines[] = "final class $shortName extends $parentShort" . ($interfaceShorts ? ' implements ' . implode(', ', $interfaceShorts) : '');
 	$lines[] = '{';
+	foreach ($traitShorts as $trait) {
+		$lines[] = "\tuse $trait;";
+	}
+
+	if ($traitShorts) {
+		$lines[] = '';
+		$lines[] = '';
+	}
 
 	// constructor
 	$docs = [];

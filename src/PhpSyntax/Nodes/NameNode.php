@@ -15,6 +15,9 @@ use PhpSyntax\Token;
  */
 final class NameNode extends Node
 {
+	use NameQueries;
+
+
 	/**
 	 * @internal nodes are created by the parser
 	 */

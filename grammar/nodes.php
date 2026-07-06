@@ -7,6 +7,7 @@
  * (relative to PhpSyntax\Nodes, or one of the base classes in PhpSyntax), optionally nullable (?), a union (A|B),
  * or a list (NodeList<T>, SeparatedNodeList<T>). The parent defaults by directory: Expression and Scalar extend
  * ExpressionNode, Statement extends StatementNode, Type extends TypeNode, Member extends MemberNode, the rest Node.
+ * 'traits' lists handwritten traits (relative to PhpSyntax\Nodes) with the methods of the class;
  * 'manual' marks a handwritten class the schema only documents.
  */
 
@@ -15,6 +16,7 @@ return [
 
 	'NameNode' => [
 		'description' => 'Name of a class, function, constant or namespace: one token of any kind, including keywords the grammar accepts as names (static, array, readonly).',
+		'traits' => ['NameQueries'],
 		'slots' => ['token' => 'Token'],
 	],
 	'IdentifierNode' => [

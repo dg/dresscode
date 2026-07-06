@@ -14,6 +14,18 @@ enum TriviaKind
 
 
 /**
+ * Form of a name as written in the source.
+ */
+enum NameKind
+{
+	case Unqualified;
+	case Qualified;
+	case FullyQualified;
+	case Relative;
+}
+
+
+/**
  * What happens to the comments inside a removed subtree.
  */
 enum CommentPolicy
