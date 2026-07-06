@@ -1,0 +1,6 @@
+3: A line break before the argument, the arguments span several lines
+6: A line break before the argument, the arguments span several lines
+14: A line break before the argument, the arguments span several lines
+18: A line break before the argument, the arguments span several lines
+25: No line break before the variadic placeholder, a first-class callable has no arguments to spread
+26: No line break before the closing parenthesis, a first-class callable has no arguments to spread

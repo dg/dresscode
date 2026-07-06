@@ -44,6 +44,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Files\LineLengthRule::class,
 				Rules\Files\NoClosingTagRule::class,
 				Rules\Files\StrictTypesRequiredRule::class,
+				Rules\Functions\MultilineCallRule::class,
 				Rules\Functions\NamedArgumentSpacingRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
 				Rules\Literals\TrueFalseNullCasingRule::class,

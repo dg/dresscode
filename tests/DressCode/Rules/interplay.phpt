@@ -59,3 +59,11 @@ test('the areas of blankLines never pull against one another', function () {
 		Rules\Whitespace\BlankLinesRule::class => true,
 	], "<?php\n\nuse A;\n\n\nfunction f()\n{\n}\n", "<?php\n\nuse A;\n\nfunction f()\n{\n}\n");
 });
+
+
+test('indentation and multilineCall settle on one shape', function () {
+	interplay([
+		Rules\Whitespace\IndentationRule::class => true,
+		Rules\Functions\MultilineCallRule::class => true,
+	], "<?php\nfunction f()\n{\n  \$a = \$foo\n  ->bar(\n    1,\n      2,\n    )\n        ->baz();\n}\n", "<?php\nfunction f()\n{\n\t\$a = \$foo\n\t\t->bar(\n\t\t\t1,\n\t\t\t2,\n\t\t)\n\t\t->baz();\n}\n");
+});
