@@ -59,6 +59,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\StrictTypesRequiredRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
 				Rules\Functions\MultilineCallRule::class,
+				Rules\Functions\MultilineSignatureRule::class,
 				Rules\Functions\NamedArgumentSpacingRule::class,
 				Rules\Literals\HeredocIndentationRule::class,
 				Rules\Literals\BuiltinCasingRule::class,
@@ -100,6 +101,7 @@ final class CorePlugin implements Plugin
 					'call' => 'the arguments of a call',
 					'new' => 'the arguments of `new`',
 					'attribute' => 'the arguments of an attribute',
+					'signature' => 'the parameters of a function or a method',
 				], regularExpressions: true), 'What a line too wide leaves as it is: a construct named is not spread over lines for its width, and a line it stands on, one a regular expression matches, or with `strings` one wide only for its string literals, is not reported', kind: DecisionKind::Parameter, default: ['imports']),
 				new Decision('indentation.unit', new Words([
 					'tab' => 'one tab per level',

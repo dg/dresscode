@@ -1,0 +1,5 @@
+4: Expected a line break before the parameter, because the signature declares a promoted property.
+8: Expected a line break before the parameter, because the line is 170 characters long, more than 120.
+16: Expected a line break before the parameter, because the signature spans several lines.
+24: Expected a line break before the parameter, because the signature spans several lines.
+32: Expected a line break before the parameter, because the signature declares a promoted property.

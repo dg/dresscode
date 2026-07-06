@@ -10,7 +10,8 @@ namespace DressCode\Rules;
 use DressCode\Analyses\IndentationSnapshot;
 use DressCode\{Gap, Style};
 use PhpSyntax\{Indentation, Node, Token};
-use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, Expression, ExpressionNode, Scalar, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, Expression, ExpressionNode, Scalar, Statement, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\Member\MethodNode;
 use function count, strlen;
 
 
@@ -64,10 +65,10 @@ final class NodeHelpers
 	/**
 	 * The construct the node is, of a kind `LineSplits` names, with the token its frame begins with, the tokens its shape
 	 * puts at the start of a line once spread, and whether it is spread over lines already; null for a node that is none
-	 * or has nothing to spread: a call, `new` or an attribute without arguments, a first-class callable. The last is
-	 * whether the construct is a message, a call whose sole argument is a string, which is never spread for its width and
-	 * leaves what it holds whole too. A call left on its line by the author is not spread even where its last argument, a
-	 * closure or an array, spans lines.
+	 * or has nothing to spread: a call, `new` or an attribute without arguments, a first-class callable, a signature
+	 * without parameters. The last is whether the construct is a message, a call
+	 * whose sole argument is a string, which is never spread for its width and leaves what it holds whole too. A call
+	 * left on its line by the author is not spread even where its last argument, a closure or an array, spans lines.
 	 * @return ?array{string, Token, list<Token>, bool, bool}
 	 */
 	public static function findSplitFrame(Node $node): ?array
@@ -91,6 +92,18 @@ final class NodeHelpers
 					[...array_map(fn(Node $item) => $item->getFirstToken(), $items), $node->closeParen],
 					self::isMultiline($node->openParen, $items, $node->closeParen),
 					self::isSoleStringArgument($node),
+				];
+
+		} elseif ($node instanceof Statement\FunctionNode || $node instanceof MethodNode) {
+			$params = $node->parameters->getItems();
+			return $params === []
+				? null
+				: [
+					'signature',
+					$node->openParen,
+					[...array_map(fn(Node $param) => $param->getFirstToken(), $params), $node->closeParen],
+					self::isMultiline($node->openParen, $params, $node->closeParen),
+					false,
 				];
 		}
 
