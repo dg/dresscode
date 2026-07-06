@@ -1,0 +1,17 @@
+<?php
+// lineLength 50
+$fits = $aaaaaaaaaa && $bbbbbbbbbb && $cccccccccc;
+$spread = $aaaaaaaaaa && $bbbbbbbbbb && $cccccccccc;
+$text = 'The value ' . $value . ' is not ' . $expected;
+$mixed = $aaaaaaaaaa && $bbbbbbbbbb || $cccccccccccc;
+$parens = ($aaaaaaaaaa || $bbbbbbbbbb) && $cccccccccc;
+$sum = $aaaaaaaaaa + $bbbbbbbbbb + $cccccccccc + $ddd;
+$flags = JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR | JSON_HEX_TAG;
+$mask = E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_USER_NOTICE;
+$kept = $aaaaaaaaaa
+	. $bbbbbbbbbb . $cccccccccc . $dddddddddd . $eeeeee;
+if ($aaaaaaaaaa && $bbbbbbbbbb && $cccccccccc && $ddd) {
+}
+warn('The value ' . $value . ' is not the one ' . $expected);
+echo $aaaaaaaaaa . $bbbbbbbbbb; // a comment after the code keeps the line, whatever its length
+$warnings[$layer->describe() . " $map"] = "Map $map, which " . $layer->format() . " sets, is unknown.";

@@ -7,7 +7,7 @@
  */
 
 use DressCode\Config\{Catalogue, CorePlugin, DecisionResolver, Layer, LayerKind, PluginRegistry, RuleBuilder};
-use DressCode\{Decision, DecisionKind, Domain, GapRule, Space, Style};
+use DressCode\{Decision, DecisionKind, Domain, GapRule, LineSplits, Space, Style};
 use DressCode\Domains\{Count, Shapes, Words};
 use DressCode\Engine\{Gaps, RulePlan};
 use Nette\Neon\Neon;
@@ -109,21 +109,22 @@ test('every claim of a gap rule is made for a decision of that rule', function (
 		$resolved = $resolver->resolve(
 			is_file("$dir/values.neon") ? [[new Layer(LayerKind::Caller), (array) Neon::decodeFile("$dir/values.neon")]] : [],
 		);
+		$values = $resolver->createValues($resolved);
 		$rule = RuleBuilder::buildFromDecisions(
 			$resolver,
 			$resolved,
-			$resolver->createValues($resolved),
+			$values,
 		)[0] ?? throw new LogicException("$class does not run with the values of its fixtures.");
 
 		$gaps = new Gaps\Resolver(new RulePlan([$rule])->claims);
 		$sink->decided = [];
 		foreach (glob("$dir/*.code") ?: [] as $file) {
 			$code = (string) file_get_contents($file);
-			$gaps->beginPass(
-				new Style(maxLineLength: preg_match('~^// lineLength (\d+)~m', $code, $m) ? (int) $m[1] : null),
-				$sink,
-				fn() => null,
+			$style = new Style(
+				maxLineLength: preg_match('~^// lineLength (\d+)~m', $code, $m) ? (int) $m[1] : null,
+				lineSplits: LineSplits::fromValues($values),
 			);
+			$gaps->beginPass($style, $sink, fn() => null);
 			Traverser::traverse(
 				new Parser()->parse($code),
 				fn(Node|Token $node) => $node instanceof Token ? $gaps->enterToken($node) : $gaps->enterNode($node),

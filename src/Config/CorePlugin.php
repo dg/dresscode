@@ -43,6 +43,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\CastSpacingRule::class,
 				Rules\Expressions\ConcatenationSpacingRule::class,
 				Rules\Expressions\DoubleColonSpacingRule::class,
+				Rules\Expressions\MultilineBinaryOperatorRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
 				Rules\Expressions\OffsetBracketSpacingRule::class,
@@ -107,6 +108,7 @@ final class CorePlugin implements Plugin
 					'signature' => 'the parameters of a function or a method',
 					'condition' => 'a condition of `if`, `elseif`, `while` and `do-while`',
 					'for' => 'the header of a `for`',
+					'binaryOperator' => 'the operands of a boolean operator, of concatenations or of `|`',
 					'implements' => 'the interfaces a class implements or an interface extends',
 				], regularExpressions: true), 'What a line too wide leaves as it is: a construct named is not spread over lines for its width, and a line it stands on, one a regular expression matches, or with `strings` one wide only for its string literals, is not reported', kind: DecisionKind::Parameter, default: ['imports']),
 				new Decision('indentation.unit', new Words([
