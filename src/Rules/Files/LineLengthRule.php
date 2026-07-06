@@ -19,7 +19,8 @@ use function count;
  * of 120 through, and a style without one has nothing reported. The width is what the reader sees, a tab counting
  * to the next stop of the style wherever on the line it stands. The lines of a heredoc, a string spanning lines or
  * markup outside PHP tags are content and are not measured; a line inside a multi-line comment is reported on the
- * line the comment starts. The rule runs last, so it reports what the other rules left.
+ * line the comment starts. The rule runs last, after the rules that break long lines, so it reports what nothing
+ * could break.
  */
 #[RuleInfo(Stage::Finishing, decisions: ['file.maxLineLength'])]
 final class LineLengthRule extends NodeRule
@@ -33,7 +34,7 @@ final class LineLengthRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('file.longLines', Domain::state('forbidden'), 'A line wider than `file.maxLineLength` is reported'),
+			new Decision('file.longLines', Domain::state('forbidden'), 'A line wider than `file.maxLineLength`, which nothing could split, is reported'),
 			new Decision('file.longLinesExcept', new Names, 'The lines never reported: `imports` for a `use` import, which cannot be broken, and regular expressions of others', parameter: true, default: ['imports']),
 		];
 	}

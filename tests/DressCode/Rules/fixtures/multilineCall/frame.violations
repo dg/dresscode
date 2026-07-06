@@ -1,0 +1,6 @@
+4: Expected a line break before the argument, because the arguments span several lines.
+7: Expected a line break before the closing parenthesis, because the arguments span several lines.
+15: Expected a line break before the argument, because the arguments span several lines.
+19: Expected a line break before the argument, because the arguments span several lines.
+26: Expected no line break before the variadic placeholder, because a first-class callable has no arguments.
+27: Expected no line break before the closing parenthesis, because a first-class callable has no arguments.

@@ -58,6 +58,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\NoTrailingWhitespaceRule::class,
 				Rules\Files\StrictTypesRequiredRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
+				Rules\Functions\MultilineCallRule::class,
 				Rules\Functions\NamedArgumentSpacingRule::class,
 				Rules\Literals\HeredocIndentationRule::class,
 				Rules\Literals\BuiltinCasingRule::class,
