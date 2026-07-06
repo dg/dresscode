@@ -35,6 +35,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
 				Rules\ControlFlow\ElseifKeywordRule::class,
+				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\ControlFlow\SwitchCaseSpacingRule::class,
 				Rules\Files\NoBomRule::class,

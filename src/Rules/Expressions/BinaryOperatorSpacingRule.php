@@ -24,8 +24,10 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
  * `instanceof` stays on the line of both its operands. What follows a comparison, a bitwise operator or a shift
  * stays on the line of the operator, unless the line would grow wider than the line length. An operator ending
  * a line may be moved to the start of the next one: a comparison, a bitwise operator or a shift only where the
- * joined line would be too wide. Whitespace wider than a space aligns a column of assignments or of array items,
- * and the alignment option says which of it stays. Concatenation is the matter of dresscode/concatSpacing.
+ * joined line would be too wide, and a boolean operator chaining a condition never, because
+ * dresscode/multilineCondition places it. Whitespace wider than a space aligns a column of assignments or of
+ * array items, and the alignment option says which of it stays. Concatenation is the matter of
+ * dresscode/concatSpacing.
  */
 #[RuleInfo(
 	'dresscode/binaryOperatorSpacing',
@@ -47,7 +49,7 @@ final class BinaryOperatorSpacingRule extends GapRule implements ConfigurableRul
 			'alignment' => Expect::anyOf('none', 'spaces', 'tabs', 'keep')->default('spaces')
 				->description('Which alignment around an operator stays: `none` collapses it to a single space, `spaces` and `tabs` keep the one written with them, `keep` keeps any'),
 			'operatorPosition' => Expect::anyOf('keep', 'start')->default('keep')
-				->description('Where a binary operator at a line break stands: `keep` leaves it where it is, `start` moves one ending a line to the start of the next unless a comment follows it or the rule joins the lines'),
+				->description('Where a binary operator at a line break stands, except a boolean operator chaining a condition, which `dresscode/multilineCondition` places: `keep` leaves it where it is, `start` moves one ending a line to the start of the next unless a comment follows it or the rule joins the lines'),
 		]);
 	}
 
@@ -128,6 +130,7 @@ final class BinaryOperatorSpacingRule extends GapRule implements ConfigurableRul
 		$operation = $token->parent;
 		return $this->operatorPosition === 'start'
 			&& $operation instanceof BinaryOpNode
+			&& NodeHelpers::findConditionStatement($operation) === null // dresscode/multilineCondition
 			&& $gap->once($operation, function () use ($token, $gap): bool {
 				$next = $token->getNext();
 				return $next !== null

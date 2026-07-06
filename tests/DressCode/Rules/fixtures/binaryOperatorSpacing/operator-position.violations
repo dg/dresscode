@@ -6,5 +6,5 @@
 18: A line break before the `-` operator
 20: No line break after the `===` operator
 22: A line break before the `||` operator
-24: A line break before the `??` operator
-32: A line break before the `===` operator
+27: A line break before the `??` operator
+35: A line break before the `===` operator
