@@ -19,4 +19,18 @@ final readonly class RuleInfo
 		public bool $modifiesComments = false,
 	) {
 	}
+
+
+	/**
+	 * Reads the attribute of a rule class.
+	 * @param  Rule|class-string<Rule>  $rule
+	 * @throws ConfigurationException  when the class has no RuleInfo
+	 */
+	public static function of(Rule|string $rule): self
+	{
+		static $cache = [];
+		$class = $rule instanceof Rule ? $rule::class : $rule;
+		return $cache[$class] ??= ((new \ReflectionClass($class))->getAttributes(self::class)[0] ?? null)?->newInstance()
+			?? throw new ConfigurationException("Rule $class has no #[RuleInfo] attribute.");
+	}
 }

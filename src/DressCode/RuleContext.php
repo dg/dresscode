@@ -93,6 +93,13 @@ final class RuleContext
 	}
 
 
+	/** @internal */
+	public function hasReports(): bool
+	{
+		return $this->reports !== [];
+	}
+
+
 	/**
 	 * Takes the reports made since the last call; revision -1 marks a suppressed one.
 	 * @return list<array{Node|Token, string, Severity, int}>
