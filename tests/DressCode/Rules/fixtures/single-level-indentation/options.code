@@ -1,0 +1,12 @@
+<?php
+// {"singleLineComments": false}
+function f(): void
+{
+			// a note put beside the code, left alone
+	echo 1;
+
+			/**
+			 * a comment over several lines is still a line like any other
+			 */
+	echo 2;
+}
