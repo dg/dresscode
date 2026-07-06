@@ -7,6 +7,28 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
+test('a word is one of the words, a tolerance a list of them with the first written', function () {
+	$words = new Words(['LF' => 'LF', 'CRLF' => 'CRLF']);
+	Assert::same('CRLF', $words->accept('CRLF', 'file.lineEnding')->getWord());
+	Assert::exception(
+		fn() => $words->accept('cr', 'file.lineEnding', keep: true),
+		ConfigurationException::class,
+		'Key `file.lineEnding` does not take `cr`; write `LF`, `CRLF` or `keep`.',
+	);
+	Assert::exception(fn() => $words->accept(['LF'], 'file.lineEnding'), ConfigurationException::class, 'Key `file.lineEnding` does not take `["LF"]`; write `LF` or `CRLF`.');
+
+	$tolerance = new Words(['perLine' => '', 'compact' => ''], tolerance: true);
+	Assert::same(['compact', 'perLine'], $tolerance->accept(['compact', 'perLine'], 'multiline.condition')->getWords());
+	Assert::same('compact', $tolerance->accept(['compact', 'perLine'], 'multiline.condition')->getWord());
+	Assert::same(['perLine'], $tolerance->accept('perLine', 'multiline.condition')->getWords());
+	Assert::exception(fn() => $tolerance->accept(['compact', 'compact'], 'multiline.condition'), ConfigurationException::class, 'Key `multiline.condition` does not take `["compact","compact"]`, a word given twice; write each word once.');
+	Assert::exception(fn() => $tolerance->accept(['compact', 'frame'], 'multiline.condition'), ConfigurationException::class, 'Key `multiline.condition` does not take `frame`; write `perLine`, `compact` or a list of them.');
+
+	Assert::exception(fn() => new Words([]), InvalidArgumentException::class);
+	Assert::exception(fn() => new Words(['keep' => '']), InvalidArgumentException::class);
+});
+
+
 test('a shape is one of the known ones and never read', function () {
 	$shapes = new Shapes(['compact' => ['foo($a, $b)', 'no space'], 'spaced' => ['foo ($a, $b)', 'a single space']]);
 	Assert::same('spaced', $shapes->accept('foo ($a, $b)', 'spacing.call')->getShape());

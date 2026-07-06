@@ -17,10 +17,10 @@ use function count;
 /**
  * No line wider than the line length of the style: a line wider than it is reported, so a length of 120 lets a line
  * of 120 through, and a style without one has nothing reported. The width is what the reader sees, a tab counting
- * to the next stop of the style wherever on the line it stands. The lines of a heredoc, a string spanning lines or
- * markup outside PHP tags are content and are not measured; a line inside a multi-line comment is reported on the
- * line the comment starts. The rule runs last, after the rules that break long lines, so it reports what nothing
- * could break.
+ * to the next stop of the style wherever on the line it stands, and `MultilineConditionRule` measures with it
+ * too. The lines of a heredoc, a string spanning lines or markup outside PHP tags are content and are not measured;
+ * a line inside a multi-line comment is reported on the line the comment starts. The rule runs last, after the rules
+ * that break long lines, so it reports what nothing could break.
  */
 #[RuleInfo(Stage::Finishing, decisions: ['file.maxLineLength'])]
 final class LineLengthRule extends NodeRule

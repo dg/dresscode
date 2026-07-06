@@ -1,0 +1,14 @@
+<?php
+// {"condition": ["perLine", "compact"]}
+if (
+	$a
+	&& $b
+) {
+}
+if ($c
+	&& $d
+) {
+}
+if ($e && $f
+	&& $g) {
+}

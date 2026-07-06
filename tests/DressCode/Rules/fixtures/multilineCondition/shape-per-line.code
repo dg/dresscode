@@ -1,0 +1,9 @@
+<?php
+// {"condition": "perLine"}
+if ($a && $b
+	&& $c) {
+}
+if ($a
+	&& $b
+) {
+}

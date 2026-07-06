@@ -25,9 +25,10 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
  * `instanceof` stays on the line of both its operands. What follows a comparison, a bitwise operator or a shift
  * stays on the line of the operator, unless the line would grow wider than the line length. An operator ending
  * a line may be moved to the start of the next one, as `multiline.operatorPosition.binary` says: a comparison, a
- * bitwise operator or a shift only where the joined line would be too wide. Whitespace wider than a space aligns
- * a column of assignments or of array items, and `spacing.binaryOperatorAlignment` says which of it stays.
- * Concatenation is the matter of `ConcatenationSpacingRule`.
+ * bitwise operator or a shift only where the joined line would be too wide, and a boolean operator chaining a
+ * condition never, because `MultilineConditionRule` places it. Whitespace wider than a space aligns a column
+ * of assignments or of array items, and `spacing.binaryOperatorAlignment` says which of it stays. Concatenation
+ * is the matter of `ConcatenationSpacingRule`.
  */
 #[RuleInfo(Stage::Formatting, analyses: [IndentationPlan::class])]
 final class BinaryOperatorSpacingRule extends GapRule
@@ -55,7 +56,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 		return [
 			new Decision(self::Spacing, new Shapes(['spaced' => ['$a + $b', 'a single space around']]), 'The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `=` of a default included, `.` being `spacing.concatenation`; at a line break an operator takes no space on the side of the break, an assignment and `=>` stay on the line of what is before them, and `instanceof`, a comparison, a bitwise operator and a shift keep what follows them on their line, unless the line would grow too wide'),
 			new Decision(self::Alignment, Domain::alignment(), 'Which whitespace wider than a single space around an operator stays, aligning a column of assignments or of array items; alignment is never made', parameter: true, default: 'spaces'),
-			new Decision(self::Position, Domain::lineStart(), 'Where a binary operator other than `.` stands at a line break: a comparison, a bitwise operator or a shift moves only where the line joined after it would be too wide'),
+			new Decision(self::Position, Domain::lineStart(), 'Where a binary operator other than `.` stands at a line break, a boolean operator chaining a condition apart: a comparison, a bitwise operator or a shift moves only where the line joined after it would be too wide'),
 		];
 	}
 
@@ -138,6 +139,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 		$operation = $token->parent;
 		return $this->moved !== null
 			&& $operation instanceof BinaryOpNode
+			&& NodeHelpers::findConditionStatement($operation) === null // `MultilineConditionRule`
 			&& $gap->once($operation, function () use ($token, $gap): bool {
 				$next = $token->getNext();
 				return $next !== null

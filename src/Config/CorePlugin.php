@@ -34,6 +34,7 @@ final class CorePlugin implements Plugin
 				Rules\Comments\NoHashCommentsRule::class,
 				Rules\ControlFlow\NoBracelessBodiesRule::class,
 				Rules\ControlFlow\ElseifNotationRule::class,
+				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\ControlFlow\SwitchCaseSpacingRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
