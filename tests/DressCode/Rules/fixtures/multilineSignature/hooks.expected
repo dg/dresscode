@@ -1,0 +1,23 @@
+<?php
+// php 8.4
+// {"signatureWithPromotedProperties": "asSignature"}
+class A
+{
+	public function __construct(
+		public int $g {
+		set {
+			$this->g = $value;
+		}
+	},
+		public int $h { get => 1; }
+	)
+	{
+	}
+}
+
+class B
+{
+	public function __construct(public int $g { get => 1; }, public int $h)
+	{
+	}
+}
