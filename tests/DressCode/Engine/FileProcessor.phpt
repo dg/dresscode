@@ -136,6 +136,17 @@ test('a fix another round has to finish settles in that round', function () {
 });
 
 
+test('a decision by the width of a line waits a round for the line to be indented', function () {
+	$rules = [
+		RuleBuilder::createRule(DressCode\Rules\Whitespace\IndentationRule::class),
+		RuleBuilder::createRule(DressCode\Rules\Functions\MultilineSignatureRule::class),
+	];
+	$processor = new FileProcessor($rules, new Analyses\Registry, fn(string $name) => [$name], Config::DefaultPhpVersion, new Style(lineLength: 50), false);
+	$code = "<?php\nclass A\n{\n\t\t\t\tpublic function f(int \$a, int \$b): void {}\n}\n";
+	Assert::same("<?php\nclass A\n{\n\tpublic function f(int \$a, int \$b): void {}\n}\n", $processor->process('a.php', $code)->output);
+});
+
+
 test('a run that is not strict takes what the last pass left in the tree for the next round, and only parses the printed text', function () {
 	$result = processor([new RenameParsed(fn(string $name) => $name . 'a')])->process('a.php', "<?php\nf(\$a);\n");
 	Assert::same("<?php\nf(\$aa);\n", $result->output);
