@@ -10,7 +10,7 @@ namespace DressCode\Rules;
 use DressCode\Analyses\IndentationSnapshot;
 use DressCode\{Gap, Style};
 use PhpSyntax\{Indentation, Node, Token};
-use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, Expression, ExpressionNode, Scalar, SeparatedNodeList, Statement, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, ElseifNode, Expression, ExpressionNode, Scalar, SeparatedNodeList, Statement, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count, strlen;
 
@@ -21,6 +21,63 @@ use function count, strlen;
  */
 final class NodeHelpers
 {
+	/**
+	 * The `if`, `elseif`, `while` or `do-while` whose condition the operation is a part of, reached from the condition down
+	 * through logical operators alone, not through parentheses or a negation; null for any other operation.
+	 */
+	public static function findConditionStatement(
+		Expression\BinaryOpNode $operation,
+	): Statement\IfNode|ElseifNode|Statement\WhileNode|Statement\DoWhileNode|null
+	{
+		for ($node = $operation; $node instanceof Expression\BinaryOpNode && $node->isLogical(); $node = $parent) {
+			$parent = $node->parent;
+			if (
+				$parent instanceof Statement\IfNode
+				|| $parent instanceof ElseifNode
+				|| $parent instanceof Statement\WhileNode
+				|| $parent instanceof Statement\DoWhileNode
+			) {
+				return $parent->condition === $node ? $parent : null;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * The boolean operators chaining a condition, in the order they are written; parentheses and negations end the
+	 * chain.
+	 * @return list<Token>
+	 */
+	public static function collectConditionOperators(ExpressionNode $expression): array
+	{
+		return $expression instanceof Expression\BinaryOpNode && $expression->isLogical()
+			? [
+				...self::collectConditionOperators($expression->left),
+				$expression->operator,
+				...self::collectConditionOperators($expression->right),
+			]
+			: [];
+	}
+
+
+	/**
+	 * The boolean operators a condition is built of, seen through the parentheses and the negations around them; one
+	 * inside an argument, a `match` arm or a closure is not the condition's and does not count.
+	 */
+	public static function countConditionOperators(ExpressionNode $expression): int
+	{
+		return match (true) {
+			$expression instanceof Expression\BinaryOpNode && $expression->isLogical()
+				=> 1 + self::countConditionOperators($expression->left) + self::countConditionOperators($expression->right),
+			$expression instanceof Expression\ParenthesizedNode, $expression instanceof Expression\UnaryOpNode
+				=> self::countConditionOperators($expression->expression),
+			default => 0,
+		};
+	}
+
+
 	/**
 	 * Whether the lines of the tokens have the indentation the run gives them (`Analyses\IndentationSnapshot`), or nothing
 	 * places them: a decision by the width of a line waits for it, and a pass later takes it over the right indentation.
@@ -66,7 +123,7 @@ final class NodeHelpers
 	 * The construct the node is, of a kind `LineSplits` names, with the token its frame begins with, the tokens its shape
 	 * puts at the start of a line once spread, and whether it is spread over lines already; null for a node that is none
 	 * or has nothing to spread: a call, `new` or an attribute without arguments, a first-class callable, a signature
-	 * without parameters, a list
+	 * without parameters, a condition joined by no boolean operator, a list
 	 * of a single interface. The last is whether the construct is a message, a call
 	 * whose sole argument is a string, which is never spread for its width and leaves what it holds whole too. A call
 	 * left on its line by the author is not spread even where its last argument, a closure or an array, spans lines.
@@ -108,6 +165,22 @@ final class NodeHelpers
 				];
 
 		} elseif (
+			$node instanceof Statement\IfNode
+			|| $node instanceof ElseifNode
+			|| $node instanceof Statement\WhileNode
+			|| $node instanceof Statement\DoWhileNode
+		) {
+			return self::countConditionOperators($node->condition) === 0
+				? null
+				: [
+					'condition',
+					$node->openParen,
+					[$node->condition->getFirstToken(), ...self::collectConditionOperators($node->condition), $node->closeParen],
+					$node->openParen->getCurrentLine() !== $node->closeParen->getCurrentLine(),
+					false,
+				];
+
+		} elseif (
 			$node instanceof SeparatedNodeList
 			&& ((($node->parent instanceof Statement\ClassNode
 				|| $node->parent instanceof Statement\EnumNode
@@ -140,10 +213,10 @@ final class NodeHelpers
 	 * which leaves the lines spread from it no indentation to count from; where a comment follows the code of the
 	 * line, which would stay on its last line, away from the code it speaks of or silences; where another construct to
 	 * spread begins after it on the line (`isFollowedBySplit()`); and where what follows it on the line, which stays on
-	 * its last line, is too wide by itself. The outer one is spread first and the inner one measured on the line it is
-	 * left on, up to the first token a spread outer frame puts at the start of a line, which its rule moves away later
-	 * in the pass: the next argument or the closing parenthesis. The width is that of the code, a comment after it left
-	 * out (`measureCodeLine()`).
+	 * its last line, is too wide by itself. The outer one is spread first and the
+	 * inner one measured on the line it is left on, up to the first token a spread outer frame puts at the start of
+	 * a line, which its rule moves away later in the pass: the next argument or operator, or the
+	 * closing parenthesis. The width is that of the code, a comment after it left out (`measureCodeLine()`).
 	 */
 	public static function measureOverflow(Node $construct, Token $open, Gap $gap): ?int
 	{

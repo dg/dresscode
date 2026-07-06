@@ -1,0 +1,6 @@
+4: Expected a line break before the `&&` operator.
+14: Expected a line break before the `&&` operator.
+25: Expected a line break before the `and` keyword.
+31: Expected a line break before the `||` operator.
+41: Expected a line break before the `&&` operator.
+45: Expected a line break before the expression, because the condition is not in the `perLine` shape.

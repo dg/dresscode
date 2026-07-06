@@ -1,0 +1,8 @@
+<?php
+// {"condition": "compact"}
+if (
+	// the first condition
+	$a
+	&& $b
+) {
+}

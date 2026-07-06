@@ -35,6 +35,7 @@ final class CorePlugin implements Plugin
 				Rules\Comments\NoHashCommentsRule::class,
 				Rules\ControlFlow\NoBracelessBodiesRule::class,
 				Rules\ControlFlow\ElseifNotationRule::class,
+				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\ControlFlow\SwitchCaseSpacingRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
@@ -103,6 +104,7 @@ final class CorePlugin implements Plugin
 					'new' => 'the arguments of `new`',
 					'attribute' => 'the arguments of an attribute',
 					'signature' => 'the parameters of a function or a method',
+					'condition' => 'a condition of `if`, `elseif`, `while` and `do-while`',
 					'implements' => 'the interfaces a class implements or an interface extends',
 				], regularExpressions: true), 'What a line too wide leaves as it is: a construct named is not spread over lines for its width, and a line it stands on, one a regular expression matches, or with `strings` one wide only for its string literals, is not reported', kind: DecisionKind::Parameter, default: ['imports']),
 				new Decision('indentation.unit', new Words([

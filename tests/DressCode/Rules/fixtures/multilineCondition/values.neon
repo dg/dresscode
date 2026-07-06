@@ -1,0 +1,4 @@
+multiline:
+	condition: perLine
+	operatorPosition:
+		condition: keep

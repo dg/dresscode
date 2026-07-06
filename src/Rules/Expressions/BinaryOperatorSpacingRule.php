@@ -25,9 +25,10 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
  * `instanceof` stays on the line of both its operands. What follows a comparison, a bitwise operator or a shift
  * stays on the line of the operator, unless the line would grow wider than the line length. An operator ending
  * a line may be moved to the start of the next one, as `multiline.operatorPosition.binary` says: a comparison, a
- * bitwise operator or a shift only where the joined line would be too wide. Whitespace wider than a space aligns
- * a column of assignments or of array items, and `spacing.binaryOperatorAlignment` says which of it stays.
- * Concatenation is the matter of `ConcatenationSpacingRule`.
+ * bitwise operator or a shift only where the joined line would be too wide, and a boolean operator chaining a
+ * condition never, because `MultilineConditionRule` places it. Whitespace wider than a space aligns a column
+ * of assignments or of array items, and `spacing.binaryOperatorAlignment` says which of it stays. Concatenation
+ * is the matter of `ConcatenationSpacingRule`.
  */
 #[RuleInfo(Stage::Formatting, analyses: [IndentationSnapshot::class])]
 final class BinaryOperatorSpacingRule extends GapRule
@@ -68,7 +69,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 			new Decision(
 				self::Position,
 				Domain::lineStart(),
-				'Where a binary operator other than `.` stands at a line break: a comparison, a bitwise operator or a shift moves only where the line joined after it would be too wide',
+				'Where a binary operator other than `.` stands at a line break, a boolean operator chaining a condition apart: a comparison, a bitwise operator or a shift moves only where the line joined after it would be too wide',
 			),
 		];
 	}
@@ -152,6 +153,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 		$operation = $token->parent;
 		return $this->moved !== null
 			&& $operation instanceof BinaryOpNode
+			&& NodeHelpers::findConditionStatement($operation) === null // `MultilineConditionRule`
 			&& $gap->once($operation, function () use ($token, $gap): bool {
 				$next = $token->getNext();
 				return $next !== null

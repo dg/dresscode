@@ -1,0 +1,20 @@
+<?php
+// lineLength 119
+// the line is 119 characters long, the widest one that passes
+if ($aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa && $b) {
+}
+// at 120 it is split
+if ($bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb && $b) {
+}
+// a name of two-byte characters is measured in characters, so this line is 119 long too
+if ($ěšccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc && $b) {
+}
+// a tab counts to the next stop of the style, so this line is 120 long
+function f()
+{
+	if ($dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd && $b) {
+	}
+}
+// a comment after the code is not measured
+if ($eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee && $b) { // here
+}

@@ -1,0 +1,14 @@
+<?php
+if (
+	!($someVeryLongVariableName !== null && $anotherVeryLongVariableName !== null && $yetAnotherVariableName > 1000 && $ok)
+) {
+	x();
+}
+if (!($someVeryLongVariableName !== null && $anotherVeryLongVariableName !== null && $yetAnotherVariableName > 1000 && $ok)) {
+	x();
+}
+if (
+	($someVeryLongVariableName !== null && $anotherVeryLongVariableName !== null && $yetAnotherVariableName > 1000 && $ok)
+) {
+	x();
+}

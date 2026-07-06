@@ -6,5 +6,5 @@
 18: Expected a line break before the `-` operator.
 20: Expected no line break after the `===` operator.
 22: Expected a line break before the `||` operator.
-24: Expected a line break before the `??` operator.
-32: Expected a line break before the `===` operator.
+27: Expected a line break before the `??` operator.
+35: Expected a line break before the `===` operator.

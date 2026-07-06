@@ -1,0 +1,6 @@
+2: Expected a line break before the expression, because the line is 123 characters long, more than 120.
+7: Expected a line break before the expression, because the line is 126 characters long, more than 120.
+10: Expected a line break before the expression, because the line is 131 characters long, more than 120.
+13: Expected a line break before the expression, because the line is 127 characters long, more than 120.
+14: Expected a line break before the expression, because the line is 131 characters long, more than 120.
+20: Expected a line break before the expression, because the line is 122 characters long, more than 120.
