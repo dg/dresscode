@@ -1,0 +1,4 @@
+6: Expected a line break before the name, because the line is 65 characters long, more than 60.
+12: Expected a line break before the name, because the interfaces span several lines.
+16: Expected a line break before the name, because the line is 73 characters long, more than 60.
+19: Expected a line break before the name, because the line is 65 characters long, more than 60.

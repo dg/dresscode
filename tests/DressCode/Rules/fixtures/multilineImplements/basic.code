@@ -1,0 +1,21 @@
+<?php
+// lineLength 60
+class Fits extends Base implements Countable, Iterator
+{
+}
+class Spread extends Base implements Countable, IteratorAggregate
+{
+}
+class Single extends TheVeryLongBaseClassName implements Countable
+{
+}
+class ByAuthor implements Countable,
+	IteratorAggregate
+{
+}
+interface Extended extends Countable, IteratorAggregate, JsonSerializable
+{
+}
+enum Suit: string implements HasLabelInterface, HasColorInterface
+{
+}
