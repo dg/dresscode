@@ -1,0 +1,6 @@
+<?php
+// lineLength 60
+#[RuleInfo(Stage::Structure, decisions: ['upgrading.x'], analyses: [Aaaaaaaaa::class, Bbbbbbbbb::class])]
+final class X
+{
+}

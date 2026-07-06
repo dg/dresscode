@@ -1,0 +1,29 @@
+<?php
+// lineLength 60
+fits($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddddddddddddd);
+spread($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddddd);
+$result = $object->method($aaaaaaaaaa, $bbbbbbbbbb, $cccccc);
+$created = new Something($aaaaaaaaaa, $bbbbbbbbbb, $ccccccc);
+fits($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddddddddddddd); // not measured
+$context->report($node, sprintf('%d long, over %d.', $w, $l), fixable: false);
+outer($aaaaaaaaaa, inner($bbbbbbbbbb, $cccccccccc, $dddddddddd, $eeeeeeeeee, $ffffffffff));
+outer($aaaaaaaaaa, inner($bbbbbbbbbb, $cccccccccc, $dddddddddd, $eeeeeeeee));
+throw new InvalidArgumentException('A message is a single string, left whole.');
+warn('The message ' . $name . ' is joined from strings, left whole too.');
+warn('The message ' . describe($aaaaaaaaaa, $bbbbbbbbbb) . ' keeps its calls.');
+both('A message beside another argument is spread with it.', $x);
+register($aaaaaaaaaa, function ($event) use ($bbbbbbbbbbbbbb) {
+	return $event;
+});
+$callback = strlen(...) ?? $aaaaaaaaaa ?? $bbbbbbbbbb ?? $cccccccccc;
+#[Attribute($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddd)]
+function f()
+{
+	tabbed($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddddddd);
+	tabbed($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddd);
+	utf('žluťoučký kůň úpěl ďábelské ódy', $aaaaaaaaaa, $b);
+}
+$text = <<<'XX'
+	body
+	XX . format($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddddddddd);
+spread($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddddd); // stays

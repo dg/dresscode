@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Files;
 
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, Domain, LineSplits, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Indentation, Token, Trivia};
 use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode};
 use PhpSyntax\Nodes\Statement\UseNode;
@@ -21,9 +22,10 @@ use function count;
  * last token of the line left out, as the rules that break long lines measure it; a line holding nothing but
  * a comment is measured whole. The lines of a heredoc, a string spanning lines or markup outside PHP tags are content
  * and are not measured; a line inside a multi-line comment is measured and reported as any other. Neither is
- * a line `file.lineLengthExcept` leaves: a `use` import with `imports`, a line that would fit were each of
- * its string literals an empty pair of quotes with `strings`, and a line one of its regular expressions matches. The
- * rule runs last, so it reports what the other rules left.
+ * a line `file.lineLengthExcept` leaves: a `use` import with `imports`, a line on which a construct of a kind it names
+ * stands, a line that would fit were each of its string literals an empty pair of quotes with `strings`, and a line
+ * one of its regular expressions matches. The rule runs last, after the rules that break long lines, so it reports
+ * what nothing could break.
  * @phpstan-type Line array{text: string, code: ?string, blankText: string, blankCode: ?string, content: bool,
  *   token: ?Token, owner: ?Token, trivia: ?Trivia, lineInTrivia: int}
  */
@@ -35,6 +37,9 @@ final class LineLengthRule extends NodeRule
 	/** a line that fits with its string literals emptied is not reported */
 	private bool $ignoreStrings = false;
 
+	/** @var array<string, true>  the kinds of construct whose line is not reported */
+	private array $ignoreKinds = [];
+
 	/** @var list<string> */
 	private array $ignorePatterns = [];
 
@@ -45,7 +50,7 @@ final class LineLengthRule extends NodeRule
 			new Decision(
 				'file.longLines',
 				Domain::state('forbidden'),
-				'A line wider than `file.lineLength` is reported, unless `file.lineLengthExcept` leaves the line as it is',
+				'A line wider than `file.lineLength` that nothing could split is reported, unless `file.lineLengthExcept` leaves a construct on it or the line itself as it is',
 			),
 		];
 	}
@@ -58,6 +63,8 @@ final class LineLengthRule extends NodeRule
 				$this->ignoreImports = true;
 			} elseif ($name === 'strings') {
 				$this->ignoreStrings = true;
+			} elseif (isset(LineSplits::Kinds[$name])) {
+				$this->ignoreKinds[$name] = true;
 			} else {
 				$this->ignorePatterns[] = $name;
 			}
@@ -202,6 +209,7 @@ final class LineLengthRule extends NodeRule
 			&& !($this->ignoreImports && $line['token']?->findAncestor(UseNode::class) !== null)
 			&& !$this->matchesPattern($text)
 			&& !($this->ignoreStrings && Indentation::advance(0, rtrim($line['blankCode'] ?? $line['blankText']), $phpSyntax) <= $limit)
+			&& !$this->holdsIgnoredConstruct($line['token'])
 		) {
 			$message = "The line is $width characters long, more than $limit.";
 			$line['token'] !== null
@@ -223,5 +231,31 @@ final class LineLengthRule extends NodeRule
 	private function matchesPattern(string $line): bool
 	{
 		return array_any($this->ignorePatterns, fn(string $pattern) => preg_match($pattern, $line) === 1);
+	}
+
+
+	/** Whether a construct of a kind `file.lineLengthExcept` names begins on the line of the token and stays on it. */
+	private function holdsIgnoredConstruct(?Token $first): bool
+	{
+		if ($this->ignoreKinds === [] || $first === null) {
+			return false;
+		}
+
+		$line = $first->getCurrentLine();
+		for ($token = $first; $token !== null && $token->getCurrentLine() === $line; $token = $token->getNext()) {
+			for ($node = $token->parent; $node !== null; $node = $node->parent) {
+				$frame = NodeHelpers::findSplitFrame($node);
+				if (
+					$frame !== null
+					&& !$frame[3]
+					&& isset($this->ignoreKinds[$frame[0]])
+					&& $frame[1]->getCurrentLine() === $line
+				) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }

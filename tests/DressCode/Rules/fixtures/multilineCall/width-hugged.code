@@ -1,0 +1,11 @@
+<?php
+// lineLength 60
+// {"callSoleArgument": "hugged"}
+throw new InvalidArgumentException(sprintf('%s is not %s.', $value, $expected));
+$this->report(new Violation($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc));
+$this->report(['first' => $aaaaaaaaaa, 'second' => $bbbbbbbbbb, 3]);
+$this->report(name: format($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc));
+$this->report(...collect($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $d));
+$this->report(format($aaaaaaaaaa)->other($bbbbbbbbbb, $cccccccccc));
+$this->report(format()) . $aaaaaaaaaa . $bbbbbbbbbb . $cccccccccc;
+$this->report(sprintf('%s is not %s.', $value, describe($expected)));

@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Analyses, Rule, Style, Values};
+use DressCode\{Analyses, ImportStyle, LineSplits, Rule, Style, Values};
 use DressCode\Engine\Gate;
 use PhpSyntax\Analyses\NamespacedSymbols;
 
@@ -110,6 +110,8 @@ final readonly class ResolvedConfig
 			$this->lineEnding ?? "\n",
 			$this->tabWidth,
 			$this->lineLength,
+			new ImportStyle,
+			LineSplits::fromValues($this->values),
 		);
 	}
 

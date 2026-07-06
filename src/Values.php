@@ -40,6 +40,13 @@ final readonly class Values
 	}
 
 
+	/** Whether the catalogue knows the decision, which a run of a few rules does only for theirs. */
+	public function has(string $path): bool
+	{
+		return isset($this->decisions[$path]);
+	}
+
+
 	/** What the project resolved for the decision, null where it is `keep`, so that a rule reads `find($path)?->getWord()`. */
 	public function find(string $path): ?Value
 	{
