@@ -1,0 +1,40 @@
+<?php
+foo(
+1,
+2,
+);
+
+$a = [
+1,
+	// a comment inside comes along
+2,
+];
+
+function f(): void
+{
+echo 1;
+	}
+
+class A
+{
+	public function g(
+int $b,
+	): void {
+		foo(bar([
+	1,
+		]));
+	}
+}
+
+// what goes deeper than the level asked for keeps its own shape
+foo(
+	$a
+		? 1
+		: 2,
+);
+
+// the brackets of a string are not brackets of the code
+$s = "text {$a} more";
+$h = <<<XX
+  keep
+	XX;
