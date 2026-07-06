@@ -1,0 +1,8 @@
+<?php
+// {"maxWidth": 40}
+$short = ['a' => 1, 'b' => 2];
+$wide = ['first' => 'one', 'second' => 'two', 'third' => 'three'];
+foo(['first' => 'one', 'second' => 'two', 'third' => 'three'], $b);
+$nested = ['a' => ['first' => 'one', 'second' => 'two'], 'b' => 2];
+$single = ['a very long key of the only item' => 'its value'];
+$many = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];

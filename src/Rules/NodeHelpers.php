@@ -9,9 +9,9 @@ namespace DressCode\Rules;
 
 use DressCode\Gap;
 use DressCode\Rules\Whitespace\IndentationRule;
+use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{ElseifNode, Expression, Statement};
 use PhpSyntax\Nodes\Expression\BinaryOpNode;
-use PhpSyntax\Token;
 
 
 /**
@@ -52,5 +52,30 @@ final class NodeHelpers
 	{
 		$indentation = $gap->findRule(IndentationRule::class);
 		return $indentation === null || array_all($tokens, fn(Token $token) => $indentation->isLineInPlace($token, $gap->style));
+	}
+
+
+	/**
+	 * The width the node takes on one line, the gaps between its tokens counted as a single space each; null for
+	 * a node a comment stands in, whose line no measure can tell.
+	 */
+	public static function measureNode(Node $node): ?int
+	{
+		$last = $node->getLastToken();
+		$width = 0;
+		for ($token = $node->getFirstToken(); $token !== null; $token = $token->getNext()) {
+			if ($token->hasComment()) {
+				return null;
+			}
+
+			$width += mb_strlen($token->text);
+			if ($token === $last) {
+				return $width;
+			}
+
+			$width += $token->getTrailingSpace() === '' ? 0 : 1;
+		}
+
+		return null;
 	}
 }
