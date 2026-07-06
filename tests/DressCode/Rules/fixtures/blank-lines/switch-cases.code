@@ -1,0 +1,69 @@
+<?php
+
+// {"betweenCases": "paragraphed"}
+
+function paragraphed($a)
+{
+	switch ($a) {
+		case 1:
+		case 2:
+			foo();
+
+			break;
+		case 3:
+			bar();
+			// no break
+		case 4:
+			baz();
+			break;
+
+		// the last one
+		default:
+			qux();
+	}
+}
+
+
+function flat($a)
+{
+	switch ($a) {
+		case 1:
+			foo();
+			break;
+
+		case 2:
+			bar();
+			break;
+		default:
+			qux();
+	}
+}
+
+
+function tooMany($a)
+{
+	switch ($a) {
+		case 1:
+			foo();
+
+			bar();
+			break;
+
+
+		default:
+			qux();
+	}
+}
+
+
+function alternative($a)
+{
+	switch ($a):
+		case 1:
+			foo();
+
+			break;
+		default:
+			qux();
+	endswitch;
+}

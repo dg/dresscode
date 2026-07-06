@@ -1,0 +1,23 @@
+<?php
+function f()
+{
+
+	echo 1;
+
+}
+if (true) {
+
+	echo 2;
+}
+function g()
+{
+	echo 3;
+}
+$h = function () {
+
+};
+if ($c) { // invalid
+
+} elseif ($d) {
+	four();
+}

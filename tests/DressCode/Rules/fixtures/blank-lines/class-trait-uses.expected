@@ -1,0 +1,22 @@
+<?php
+
+// {"afterTraitUses": 2, "betweenMethods": 1}
+
+class A
+{
+	use T;
+
+
+	public function f()
+	{
+	}
+}
+
+
+class B
+{
+	use T;
+
+
+	public $b;
+}

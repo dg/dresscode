@@ -1,0 +1,8 @@
+<?php
+/**
+ * License header of the file.
+ */
+
+function f()
+{
+}

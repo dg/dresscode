@@ -1,0 +1,150 @@
+<?php
+
+// {"betweenBranches": "paragraphed"}
+
+function paragraphed()
+{
+	if ($a) {
+		if ($b) {
+			foo();
+		}
+
+		return;
+	} elseif ($c) {
+		bar();
+	} else {
+		baz();
+	}
+}
+
+
+function flat()
+{
+	if ($a) {
+		foo();
+		bar();
+	} elseif ($b) {
+		baz();
+
+	} else {
+		qux();
+	}
+}
+
+
+function tryChain()
+{
+	try {
+		foo();
+	} catch (A $e) {
+		bar();
+
+		throw $e;
+	} catch (B $e) {
+		baz();
+	} finally {
+		qux();
+	}
+}
+
+
+function tooMany()
+{
+	if ($a) {
+		foo();
+
+		bar();
+
+
+	} else {
+		baz();
+	}
+}
+
+
+function commentParagraph()
+{
+	if ($a) {
+		foo();
+
+		// nothing else to do
+	} else {
+		bar();
+	}
+}
+
+
+function commentJoined()
+{
+	if ($a) {
+		foo();
+		// nothing else to do
+	} else {
+		bar();
+	}
+}
+
+
+function nestedOnly()
+{
+	if ($a) {
+		foreach ($items as $item) {
+			foo();
+
+			bar();
+		}
+	} else {
+		baz();
+	}
+}
+
+
+function lastBranch()
+{
+	if ($a) {
+		foo();
+	} else {
+		bar();
+
+		baz();
+	}
+}
+
+
+function nestedElse()
+{
+	if ($a) {
+		foo();
+
+		bar();
+	} else if ($b) {
+		baz();
+	} else {
+		qux();
+	}
+}
+
+
+function emptyBranch()
+{
+	if ($a) {
+	} elseif ($b) {
+		foo();
+
+		bar();
+	} else {
+		baz();
+	}
+}
+
+
+function alternative()
+{
+	if ($a):
+		foo();
+
+		bar();
+	else:
+		baz();
+	endif;
+}
