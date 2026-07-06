@@ -26,6 +26,7 @@ final class CorePlugin implements Plugin
 		return $manifest ??= new PluginManifest(
 			rules: [
 				Rules\Arrays\ArraySpacingRule::class,
+				Rules\Arrays\MultilineArrayRule::class,
 				Rules\Arrays\NoLongArraySyntaxRule::class,
 				Rules\Classes\ClassHeadSpacingRule::class,
 				Rules\Classes\NoMembersSharingLineRule::class,

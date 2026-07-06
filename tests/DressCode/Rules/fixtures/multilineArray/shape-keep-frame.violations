@@ -1,0 +1,4 @@
+7: Expected no line break before the closing bracket, because the first item follows the opening bracket.
+23: Expected no line break before the opening bracket.
+32: Expected a line break before the closing bracket, because the first item begins a line.
+34: Expected a line break before the closing bracket, because the first item begins a line.

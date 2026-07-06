@@ -8,7 +8,7 @@
 namespace DressCode\Rules;
 
 use DressCode\Analyses\IndentationPlan;
-use DressCode\Gap;
+use DressCode\{Claim, Gap, Line};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{ElseifNode, Expression, Statement};
 use function strlen;
@@ -82,5 +82,64 @@ final class NodeHelpers
 		return ($open->getTrailingSpace() === null && !$open->hasComment())
 			|| $close->startsLine()
 			|| array_any($items, fn(Node $item) => $item->getFirstToken()?->startsLine() === true);
+	}
+
+
+	/**
+	 * The width the node takes on one line, the gaps between its tokens counted as a single space each; null for
+	 * a node a comment stands in, whose line no measure can tell.
+	 */
+	public static function measureNode(Node $node): ?int
+	{
+		$last = $node->getLastToken();
+		$width = 0;
+		for ($token = $node->getFirstToken(); $token !== null; $token = $token->getNext()) {
+			if ($token->hasComment()) {
+				return null;
+			}
+
+			$width += mb_strlen($token->text);
+			if ($token === $last) {
+				return $width;
+			}
+
+			$width += $token->getTrailingSpace() === '' ? 0 : 1;
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * The claims before the items of a list spread over lines by their width: an item follows the one before on its
+	 * line while the line, the comma after it included, fits into the length, and begins the next one when it does
+	 * not; null where an item cannot be measured on one line.
+	 * @param  list<Node>  $items
+	 * @param  int  $indentation  the width of the indentation of a line of items
+	 * @return ?list<Claim>
+	 */
+	public static function packItems(array $items, int $indentation, int $lineLength, string $because): ?array
+	{
+		$break = new Claim(line: Line::Next, because: $because);
+		$follow = new Claim(line: Line::Same, because: $because);
+		$claims = [];
+		$column = 0;
+		foreach ($items as $i => $item) {
+			$width = self::measureNode($item);
+			if ($width === null) {
+				return null;
+			}
+
+			$width++; // the comma after it
+			if ($i > 0 && $column + 1 + $width <= $lineLength) {
+				$claims[] = $follow;
+				$column += 1 + $width;
+			} else {
+				$claims[] = $break;
+				$column = $indentation + $width;
+			}
+		}
+
+		return $claims;
 	}
 }
