@@ -8,6 +8,7 @@ fits($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddddddddddddd); // not measured
 $context->report($node, sprintf('%d long, over %d.', $w, $l), fixable: false);
 outer($aaaaaaaaaa, inner($bbbbbbbbbb, $cccccccccc, $dddddddddd, $eeeeeeeeee, $ffffffffff));
 outer($aaaaaaaaaa, inner($bbbbbbbbbb, $cccccccccc, $dddddddddd, $eeeeeeeee));
+outer(inner($bbbbbbbbbb, $cccccccccc, $dddddddddd, $eeeeeeee), $after);
 throw new InvalidArgumentException('A message is a single string, left whole.');
 warn('The message ' . $name . ' is joined from strings, left whole too.');
 warn('The message ' . describe($aaaaaaaaaa, $bbbbbbbbbb) . ' keeps its calls.');

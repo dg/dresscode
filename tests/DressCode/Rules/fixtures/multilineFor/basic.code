@@ -1,0 +1,17 @@
+<?php
+// lineLength 60
+for ($i = 0; $i < 10; $i++) {
+}
+for ($i = 0, $n = count($items); $i < $n && $items[$i]; $i++) {
+}
+for ($i = 0; $i < 10;
+	$i++) {
+}
+for (; $iiiiiiiiiiiiiiiiiiiiiii < $nnnnnnnnnnnnnnnnnnnnnnnnnnn;) {
+}
+for (;;) {
+}
+for ($i = 0, $n = count($items); $i < $n && $items[$i]; $i++):
+endfor;
+for ($key = reset($vvvvvvvvvv); $key = key($vvvvvvvvvv); $key = next($vv)) {
+}

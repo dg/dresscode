@@ -1,0 +1,5 @@
+5: Expected a line break after the opening parenthesis, because the line is 63 characters long, more than 60.
+7: Expected a line break after the opening parenthesis, because the header spans several lines.
+10: Expected a line break after the opening parenthesis, because the line is 66 characters long, more than 60.
+14: Expected a line break after the opening parenthesis, because the line is 62 characters long, more than 60.
+16: Expected a line break after the opening parenthesis, because the line is 76 characters long, more than 60.
