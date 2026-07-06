@@ -1,0 +1,2 @@
+4: Expected a line break before the array item, because the array is 48 characters wide, more than 40.
+6: Expected a line break before the array item, because the array spans several lines.

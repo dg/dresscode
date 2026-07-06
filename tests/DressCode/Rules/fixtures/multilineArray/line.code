@@ -1,0 +1,6 @@
+<?php
+// lineLength 50
+$fits = ['first' => $aaaaaaaaaa, 'second' => $bb];
+$spread = ['first' => $aaaaaaaaaa, 'second' => $bbbbbb];
+$single = ['onlyOneItemHereThatIsLongerThanTheLine' => 1];
+call($aaaaaaaaaa, ['first' => $aaaaaaaaaa, 'second' => $b]);

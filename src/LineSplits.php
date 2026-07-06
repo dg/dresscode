@@ -25,6 +25,7 @@ final readonly class LineSplits
 		'condition' => 'multiline.condition',
 		'for' => 'multiline.for',
 		'binaryOperator' => 'multiline.binaryOperator',
+		'array' => 'multiline.array',
 		'implements' => 'multiline.implements',
 	];
 

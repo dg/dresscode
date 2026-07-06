@@ -21,8 +21,8 @@ use PhpSyntax\Nodes\{ArgumentListNode, VariadicPlaceholderNode};
  * of its own and each comma on the line of its argument. A call on one line is spread so when its line is wider
  * than the line length of the style, measured as the code of the line without a comment after it, unless an outer
  * construct on the line is spread first, `file.lineLengthExcept` names it, or its sole argument is a string, which
- * is a message to leave whole; with `multiline.callSoleArgument: hugged` a sole argument that is a call or `new`
- * spreads in its place, the parentheses staying together. Where the lines stand is the matter of
+ * is a message to leave whole; with `multiline.callSoleArgument: hugged` a sole argument that is a call, `new` or an
+ * array spreads in its place, the parentheses staying together. Where the lines stand is the matter of
  * `IndentationRule`. The parentheses of a first-class callable, `strlen(...)`, stay on one line.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
@@ -41,9 +41,9 @@ final class MultilineCallRule extends GapRule
 			self::Frame => 'only the parentheses on lines of their own',
 		]), 'The arguments of a call, of `new` or of an attribute spread over lines by its author, which is one where an argument or the closing parenthesis begins a line, or for the width of its line, the closing parenthesis then standing on a line of its own and each comma on the line of its argument', notes: ['A sole argument that is a string, a message, is not spread for its width']),
 			new Decision('multiline.callSoleArgument', new Words([
-				'hugged' => 'a sole argument that is a call or `new` spreads in the parentheses, `foo(bar(` and `))` together',
+				'hugged' => 'a sole argument that is a call, `new` or an array spreads in the parentheses, `foo(bar(` and `))` together',
 				'ownLine' => 'a sole argument takes a line of its own as any argument',
-			]), 'Where a call too wide whose sole argument is a call or `new` keeps it', kind: DecisionKind::Parameter, default: 'ownLine')];
+			]), 'Where a call too wide whose sole argument is a call, `new` or an array keeps it', kind: DecisionKind::Parameter, default: 'ownLine')];
 	}
 
 

@@ -8,7 +8,7 @@
 namespace DressCode\Rules;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Gap, Style};
+use DressCode\{Claim, Gap, Line, Style};
 use PhpSyntax\{Indentation, Node, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, ElseifNode, Expression, ExpressionNode, Scalar, SeparatedNodeList, Statement, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -146,7 +146,7 @@ final class NodeHelpers
 	 * puts at the start of a line once spread, and whether it is spread over lines already; null for a node that is none
 	 * or has nothing to spread: a call, `new` or an attribute without arguments, a first-class callable, a signature
 	 * without parameters, a condition joined by no boolean operator, an inner
-	 * link of a family of operators, a `for` with empty sections, a list
+	 * link of a family of operators, a `for` with empty sections, an array of fewer than two items, a list
 	 * of a single interface. The last is whether the construct is a message, a call
 	 * whose sole argument is a string, which is never spread for its width and leaves what it holds whole too. A call
 	 * left on its line by the author is not spread even where its last argument, a closure or an array, spans lines.
@@ -214,6 +214,18 @@ final class NodeHelpers
 					self::isMultiline($node->openParen, $items, $node->closeParen)
 					|| $node->firstSemicolon->startsLine()
 					|| $node->secondSemicolon->startsLine(),
+					false,
+				];
+
+		} elseif ($node instanceof Expression\ArrayNode) {
+			$items = $node->items->getItems();
+			return count($items) < 2
+				? null
+				: [
+					'array',
+					$node->openDelimiter,
+					[...array_filter(array_map(fn(Node $item) => $item->getFirstToken(), $items)), $node->closeDelimiter],
+					self::isMultiline($node->openDelimiter, $items, $node->closeDelimiter),
 					false,
 				];
 
@@ -409,8 +421,9 @@ final class NodeHelpers
 
 	/**
 	 * The construct the sole argument of the call is, which a line too wide spreads in place of the call where the
-	 * style hugs it (`LineSplits::$huggedSoleArgument`): a call or `new` with no other call in what it is made on,
-	 * which is of a kind the run spreads, has something to spread and is not spread yet; null where the call spreads itself.
+	 * style hugs it (`LineSplits::$huggedSoleArgument`): a call or `new` with no other call in what it is made on, or
+	 * an array, passed by its name or not, which is of a kind the run spreads, has something to spread and is not
+	 * spread yet; null where the call spreads itself.
 	 */
 	public static function findHuggedFrame(ArgumentListNode $list, Style $style): ?Node
 	{
@@ -422,6 +435,7 @@ final class NodeHelpers
 			$value instanceof Expression\MethodCallNode,
 			$value instanceof Expression\StaticMethodCallNode,
 			$value instanceof Expression\NewNode => $value->arguments,
+			$value instanceof Expression\ArrayNode => $value,
 			default => null,
 		};
 		// a call in what the call is made on, a chain among them, would spread before the arguments
@@ -519,5 +533,64 @@ final class NodeHelpers
 				|| self::holdsString($expression->right),
 			default => false,
 		};
+	}
+
+
+	/**
+	 * The width the node takes on one line, the gaps between its tokens counted as a single space each; null for
+	 * a node a comment stands in, whose line no measure can tell.
+	 */
+	public static function measureNode(Node $node): ?int
+	{
+		$last = $node->getLastToken();
+		$width = 0;
+		for ($token = $node->getFirstToken(); $token !== null; $token = $token->getNext()) {
+			if ($token->hasComment()) {
+				return null;
+			}
+
+			$width += mb_strlen($token->text);
+			if ($token === $last) {
+				return $width;
+			}
+
+			$width += $token->getTrailingSpace() === '' ? 0 : 1;
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * The claims before the items of a list spread over lines by their width: an item follows the one before on its
+	 * line while the line, the comma after it included, fits into the length, and begins the next one when it does
+	 * not; null where an item cannot be measured on one line.
+	 * @param  list<Node>  $items
+	 * @param  int  $indentation  the width of the indentation of a line of items
+	 * @return ?list<Claim>
+	 */
+	public static function packItems(array $items, int $indentation, int $lineLength, string $because): ?array
+	{
+		$break = new Claim(line: Line::Next, because: $because);
+		$follow = new Claim(line: Line::Same, because: $because);
+		$claims = [];
+		$column = 0;
+		foreach ($items as $i => $item) {
+			$width = self::measureNode($item);
+			if ($width === null) {
+				return null;
+			}
+
+			$width++; // the comma after it
+			if ($i > 0 && $column + 1 + $width <= $lineLength) {
+				$claims[] = $follow;
+				$column += 1 + $width;
+			} else {
+				$claims[] = $break;
+				$column = $indentation + $width;
+			}
+		}
+
+		return $claims;
 	}
 }

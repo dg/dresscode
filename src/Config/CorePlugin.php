@@ -26,6 +26,7 @@ final class CorePlugin implements Plugin
 		return $manifest ??= new PluginManifest(
 			rules: [
 				Rules\Arrays\ArraySpacingRule::class,
+				Rules\Arrays\MultilineArrayRule::class,
 				Rules\Arrays\NoLongArraySyntaxRule::class,
 				Rules\Classes\ClassHeadSpacingRule::class,
 				Rules\Classes\MultilineImplementsRule::class,
@@ -109,6 +110,7 @@ final class CorePlugin implements Plugin
 					'condition' => 'a condition of `if`, `elseif`, `while` and `do-while`',
 					'for' => 'the header of a `for`',
 					'binaryOperator' => 'the operands of a boolean operator, of concatenations or of `|`',
+					'array' => 'the items of an array, which `multiline.arrayMaxWidth` spreads all the same',
 					'implements' => 'the interfaces a class implements or an interface extends',
 				], regularExpressions: true), 'What a line too wide leaves as it is: a construct named is not spread over lines for its width, and a line it stands on, one a regular expression matches, or with `strings` one wide only for its string literals, is not reported', kind: DecisionKind::Parameter, default: ['imports']),
 				new Decision('indentation.unit', new Words([

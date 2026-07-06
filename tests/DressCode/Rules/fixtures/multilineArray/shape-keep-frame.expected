@@ -1,0 +1,42 @@
+<?php
+// {"array": "asWritten"}
+class C
+{
+	private const Operators = ['||', '&&', 'or',
+		'==', '!=' ];
+
+	private const Tight = ['a', 'b',
+		'c'];
+
+	private const Broken = [
+		'a',
+		'b',
+	];
+
+
+	public function f()
+	{
+		$x = [1, 2,
+			3];
+		$y = [
+			1,
+		];
+	}
+}
+
+$rules = [
+	A::class,
+	B::class,
+	C::class
+];
+$shared = [
+	A::class, B::class, C::class
+];
+$single = ['a',
+	'b', 'c',
+	'd'];
+$commented = ['a', 'b',
+	'c', // last
+];
+$nested = ['a' => [1,
+	2], 'b'];
