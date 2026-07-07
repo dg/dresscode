@@ -6,7 +6,7 @@
  * only makes work for the other belongs here too: the violation of the second must follow the first.
  */
 
-use DressCode\{Analyses, Config, FileResult, Rules, Style};
+use DressCode\{Analyses, Config, FileResult, Rules, Style, Violation};
 use DressCode\Config\{RuleBuilder, RuleRegistry};
 use DressCode\Engine\FileProcessor;
 use Tester\Assert;
@@ -66,4 +66,40 @@ test('indentation and multilineCall settle on one shape', function () {
 		Rules\Whitespace\IndentationRule::class => true,
 		Rules\Functions\MultilineCallRule::class => true,
 	], "<?php\nfunction f()\n{\n  \$a = \$foo\n  ->bar(\n    1,\n      2,\n    )\n        ->baz();\n}\n", "<?php\nfunction f()\n{\n\t\$a = \$foo\n\t\t->bar(\n\t\t\t1,\n\t\t\t2,\n\t\t)\n\t\t->baz();\n}\n");
+});
+
+
+test('a comma asked for only because another rule spread the array follows that rule', function () {
+	$result = interplay([
+		Rules\Arrays\MultilineArrayRule::class => ['maxWidth' => 30],
+		Rules\Arrays\TrailingCommaRule::class => true,
+	], "<?php\n\$a = ['alpha' => 1, 'beta' => 2, 'gamma' => 3];\n", "<?php\n\$a = [\n\t'alpha' => 1,\n\t'beta' => 2,\n\t'gamma' => 3,\n];\n");
+	Assert::count(2, $result->violations);
+	$byRule = array_column($result->violations, null, 'ruleName');
+	Assert::null($byRule['dresscode/multilineArray']->derivedFrom);
+	Assert::same($byRule['dresscode/multilineArray']->fingerprint, $byRule['dresscode/trailingComma']->derivedFrom);
+
+	// the same holds for the arguments of a call, the report standing on the closing bracket whatever the list is
+	$result = interplay([
+		Rules\Functions\MultilineCallRule::class => true,
+		Rules\Arrays\TrailingCommaRule::class => ['argument' => 'required'],
+	], "<?php\nfoo(\n\t1, 2);\n", "<?php\nfoo(\n\t1,\n\t2,\n);\n");
+	Assert::count(2, $result->violations);
+	$byRule = array_column($result->violations, null, 'ruleName');
+	Assert::null($byRule['dresscode/multilineCall']->derivedFrom);
+	Assert::same($byRule['dresscode/multilineCall']->fingerprint, $byRule['dresscode/trailingComma']->derivedFrom);
+
+	// an array the file itself spread owes the comma to nobody
+	$result = interplay([
+		Rules\Arrays\MultilineArrayRule::class => true,
+		Rules\Arrays\TrailingCommaRule::class => true,
+	], "<?php\n\$a = [\n\t'alpha' => 1,\n\t'beta' => 2\n];\n", "<?php\n\$a = [\n\t'alpha' => 1,\n\t'beta' => 2,\n];\n");
+	Assert::same([null], array_map(fn(Violation $violation) => $violation->derivedFrom, $result->violations));
+
+	// and the comma claims nothing about the line of the bracket, which the lines counted from it are placed by
+	$result = interplay([
+		Rules\Arrays\TrailingCommaRule::class => true,
+		Rules\Whitespace\IndentationRule::class => true,
+	], "<?php\n\$a = [\n\t1,\n\t2\n] + [\n\t\t3,\n];\n", "<?php\n\$a = [\n\t1,\n\t2,\n] + [\n\t3,\n];\n");
+	Assert::same([null, null], array_map(fn(Violation $violation) => $violation->derivedFrom, $result->violations));
 });

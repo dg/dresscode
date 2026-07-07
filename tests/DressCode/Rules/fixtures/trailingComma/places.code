@@ -1,0 +1,26 @@
+<?php
+// {"array": "forbidden", "argument": "optional", "parameter": "keep", "list": "keep"}
+$a = [
+	1,
+	2,
+];
+$b = [
+	1,
+	2 // two
+];
+$c = [1, 2,];
+f(
+	1,
+	2,
+);
+f(
+	1,
+	2
+);
+f(1, 2,);
+function g(
+	$a,
+	$b
+) {}
+function h($a, $b,) {}
+list($d, $e,) = $a;

@@ -1,0 +1,12 @@
+<?php
+// {"array": "optional", "closureUse": "required"}
+$f = function () use (
+	$a,
+	$b
+) {
+};
+$g = function () use ($a,
+	$b, ) {
+};
+$h = function () use ($a, $b) {
+};
