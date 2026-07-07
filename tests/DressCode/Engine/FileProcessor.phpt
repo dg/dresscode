@@ -116,6 +116,17 @@ test('a fix another round has to finish settles in that round', function () {
 });
 
 
+test('a decision by the width of a line waits a round for the line to be indented', function () {
+	$rules = [
+		PresetResolver::createRule(DressCode\Rules\Whitespace\IndentationRule::class),
+		PresetResolver::createRule(DressCode\Rules\Functions\MultiLineSignatureRule::class),
+	];
+	$processor = new FileProcessor($rules, new Analyses\Registry, fn(string $name) => [$name], Config::DefaultPhpVersion, new Style(lineLength: 50), false);
+	$code = "<?php\nclass A\n{\n\t\t\t\tpublic function f(int \$a, int \$b): void {}\n}\n";
+	Assert::same("<?php\nclass A\n{\n\tpublic function f(int \$a, int \$b): void {}\n}\n", $processor->process('a.php', $code)->output);
+});
+
+
 test('a text the rounds come back to is a cycle, and one still changing in the last round fails too', function () {
 	$cycle = processor([new RenameParsed(fn(string $name) => ['$a' => '$b', '$b' => '$a'][$name] ?? null)]);
 	Assert::exception(
