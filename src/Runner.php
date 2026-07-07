@@ -1,0 +1,181 @@
+<?php declare(strict_types=1);
+
+namespace DressCode;
+
+use DressCode\Engine\FileProcessor;
+use Nette\Utils\FileSystem;
+use Nette\Utils\Finder;
+use function count, in_array, strlen;
+
+
+/**
+ * Runs the file processor over the files of a project. Paths are relative to the root, with slashes.
+ */
+final class Runner
+{
+	private readonly string $root;
+
+
+	/**
+	 * @param list<string> $excludePaths  patterns of paths left out
+	 * @param array<string, list<string>> $ruleExcludePaths  rule name → patterns of paths the rule is not applied to
+	 */
+	public function __construct(
+		private readonly FileProcessor $processor,
+		string $root,
+		/** @var list<string> patterns of paths left out */
+		private readonly array $excludePaths = [],
+		/** @var array<string, list<string>> rule name → patterns of paths the rule is not applied to */
+		private readonly array $ruleExcludePaths = [],
+		/** @var list<string> */
+		private readonly array $extensions = ['php'],
+		/** @var ?\Closure(string $content, string $path): bool files left out by their content */
+		private readonly ?\Closure $skipWhen = null,
+	) {
+		$this->root = Helpers::canonicalizePath($root);
+	}
+
+
+	/**
+	 * @param list<string> $paths  files and directories, absolute or relative to the root
+	 * @throws RuleException|ConvergenceException
+	 */
+	public function run(array $paths, bool $fix, Reporter $reporter): RunResult
+	{
+		$files = $this->findFiles($paths);
+		$reporter->start(count($files), $fix);
+		$results = [];
+		foreach ($files as $path) {
+			$absolute = $this->toAbsolute($path);
+			$code = @file_get_contents($absolute); // @ - reported as exception
+			if ($code === false) {
+				throw new \RuntimeException("Cannot read file $path.");
+			}
+
+			if ($this->skipWhen && ($this->skipWhen)($code, $path)) {
+				continue;
+			}
+
+			$result = $this->processFile($path, $code);
+			if ($fix && $result->isChanged()) {
+				if (@file_put_contents($absolute, $result->output) === false) { // @ - reported as exception
+					throw new \RuntimeException("Cannot write file $path.");
+				}
+
+				$result->written = true;
+			}
+
+			$reporter->reportFile($result);
+			$results[] = $result;
+		}
+
+		$result = new RunResult($results, $fix);
+		$reporter->finish($result);
+		return $result;
+	}
+
+
+	/**
+	 * Processes a text that stands for the file at the path, with the rules that apply to it; nothing is written.
+	 * @throws RuleException|ConvergenceException
+	 */
+	public function processFile(string $path, string $code): FileResult
+	{
+		$path = $this->relativize($path);
+		$rules = null;
+		if ($this->ruleExcludePaths) {
+			$rules = [];
+			foreach ($this->processor->getRules() as $rule) {
+				$patterns = $this->ruleExcludePaths[RuleInfo::of($rule)->name] ?? [];
+				if (!self::matches($patterns, $path)) {
+					$rules[] = $rule;
+				}
+			}
+		}
+
+		return $this->processor->process($path, $code, $rules);
+	}
+
+
+	/**
+	 * Files under the paths with one of the extensions, minus the skipped ones; an explicitly given file
+	 * is taken as is. Sorted, relative to the root.
+	 * @param  list<string>  $paths
+	 * @return list<string>
+	 */
+	public function findFiles(array $paths): array
+	{
+		$files = [];
+		foreach ($paths as $path) {
+			$path = $this->relativize($path);
+			$absolute = $this->toAbsolute($path);
+			if (is_file($absolute)) {
+				$files[$path] = true;
+			} elseif (is_dir($absolute)) {
+				$finder = Finder::findFiles(array_map(fn($ext) => "*.$ext", $this->extensions))
+					->from($absolute)
+					->descentFilter(fn(\SplFileInfo $dir) => !self::matches($this->excludePaths, $this->relativize($dir->getPathname())));
+				foreach ($finder as $file) {
+					$relative = $this->relativize($file->getPathname());
+					if (!self::matches($this->excludePaths, $relative)) {
+						$files[$relative] = true;
+					}
+				}
+			} else {
+				throw new \RuntimeException("Path $path does not exist.");
+			}
+		}
+
+		$files = array_keys($files);
+		sort($files, SORT_STRING);
+		return $files;
+	}
+
+
+	/**
+	 * A path outside the root stays absolute, a relative one is under the root.
+	 */
+	private function toAbsolute(string $path): string
+	{
+		return match (true) {
+			$path === '' => $this->root,
+			FileSystem::isAbsolute($path) => $path,
+			default => $this->root . '/' . $path,
+		};
+	}
+
+
+	/**
+	 * Path with slashes, relative to the root when it lies under it.
+	 */
+	public function relativize(string $path): string
+	{
+		$path = Helpers::canonicalizePath($path);
+		if ($path === $this->root) {
+			return '';
+		} elseif (str_starts_with($path, $this->root . '/')) {
+			$path = substr($path, strlen($this->root) + 1);
+		}
+
+		return implode('/', array_filter(explode('/', $path), fn(string $segment) => $segment !== '.')); // "./a" and "." would match the ".*" skip
+	}
+
+
+	/** @param list<string> $patterns */
+	private static function matches(array $patterns, string $path): bool
+	{
+		foreach ($patterns as $pattern) {
+			if (Helpers::matchGlob($pattern, $path)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasExtension(string $path): bool
+	{
+		return in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), $this->extensions, strict: true);
+	}
+}

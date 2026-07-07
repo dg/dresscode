@@ -1,3 +1,5 @@
 /vendor
 /composer.lock
 /temp
+tests/**/output
+/tests/temp
