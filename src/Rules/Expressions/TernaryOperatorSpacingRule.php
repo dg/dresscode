@@ -61,7 +61,8 @@ final class TernaryOperatorSpacingRule extends GapRule
 	public function getClaims(): array
 	{
 		$short = fn(Gap $gap) => $gap->token->parent instanceof TernaryNode && $gap->token->parent->then === null;
-		// the break in front of an operator is claimed after the operand before it
+		// the break in front of an operator is claimed after the operand before it, because the claim before the
+		// operator is `MultilineTernaryRule`'s
 		return [
 			TernaryNode::class => [
 				'condition' => [null, fn(Gap $gap) => $this->claimBreakBefore($gap, 0)],

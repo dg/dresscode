@@ -43,6 +43,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\ConcatenationSpacingRule::class,
 				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\MultilineChainRule::class,
+				Rules\Expressions\MultilineTernaryRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
 				Rules\Expressions\OffsetBracketSpacingRule::class,
