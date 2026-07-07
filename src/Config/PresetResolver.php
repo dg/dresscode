@@ -49,7 +49,7 @@ final class PresetResolver
 		$rules = [];
 		foreach ($entries as $class => $value) {
 			if ($value !== false) {
-				$rules[] = $this->instantiate($class, $value);
+				$rules[] = self::createRule($class, $value);
 			}
 		}
 
@@ -88,7 +88,7 @@ final class PresetResolver
 	 * @param  class-string<Rule>  $class
 	 * @param  true|array<string, mixed>|\Closure(): Rule  $value
 	 */
-	private function instantiate(string $class, bool|array|\Closure $value): Rule
+	public static function createRule(string $class, bool|array|\Closure $value = true): Rule
 	{
 		$name = RuleInfo::of($class)->name;
 		$rule = $value instanceof \Closure ? $value() : new $class;
