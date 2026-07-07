@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Analyses;
+use DressCode\Config;
 use DressCode\Engine\FileProcessor;
 use DressCode\NodeRule;
 use DressCode\Rule;
@@ -56,7 +57,7 @@ final class ReportEol extends NodeRule
 /** @param list<Rule> $rules */
 function processor(array $rules, bool $detectEol = true): FileProcessor
 {
-	return new FileProcessor($rules, new Analyses\Registry, fn(string $name) => [$name], '8.0', new Style, $detectEol);
+	return new FileProcessor($rules, new Analyses\Registry, fn(string $name) => [$name], Config::DefaultPhpVersion, new Style, $detectEol);
 }
 
 

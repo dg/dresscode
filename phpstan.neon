@@ -5,6 +5,8 @@ parameters:
 		- src
 		- tests
 
+	scanDirectories:
+
 	excludePaths:
 		- tests/*/fixtures/*
 		- tests/temp/*

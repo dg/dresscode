@@ -73,7 +73,8 @@ foreach (
 	[
 		'src/a.php' => "<?php\n\$a;\n",
 		'src/b.php' => "<?php\n\$x;\n",
-		'src/c.phpt' => "<?php\n\$a;\n",
+		// any extension but .phpt: the tree lies under tests/, where the runner collects every .phpt
+		'src/c.phtml' => "<?php\n\$a;\n",
 		'src/sub/d.php' => "<?php\n\$a;\n",
 		'src/fixtures/e.php' => "<?php\n\$a;\n",
 		'vendor/f.php' => "<?php\n\$a;\n",
@@ -89,19 +90,19 @@ foreach (
 /**
  * @param list<string> $excludePaths
  * @param array<string, list<string>> $ruleExcludePaths
- * @param list<string> $extensions
+ * @param list<string> $fileExtensions
  * @param ?Closure(string, string): bool $skipWhen
  */
 function engine(
 	string $root,
 	array $excludePaths = ['vendor', 'fixtures*'],
 	array $ruleExcludePaths = [],
-	array $extensions = ['php'],
+	array $fileExtensions = ['php'],
 	?Closure $skipWhen = null,
 ): Runner
 {
 	$processor = new FileProcessor([new EngineRename], new Analyses\Registry, fn(string $name) => [$name], '8.0');
-	return new Runner($processor, $root, $excludePaths, $ruleExcludePaths, $extensions, $skipWhen);
+	return new Runner($processor, $root, $excludePaths, $ruleExcludePaths, $fileExtensions, $skipWhen);
 }
 
 
@@ -122,8 +123,10 @@ test('files are found under the paths, sorted, relative, with slashes, without t
 	);
 	Assert::same(['src/a.php', 'src/b.php', 'src/broken.php', 'src/skipped.php', 'src/sub/d.php'], $runner->findFiles(['src']));
 	Assert::same(['src/sub/d.php', 'vendor/f.php'], $runner->findFiles(['./src/sub', 'vendor/f.php']));
-	Assert::same(['src/c.phpt', 'src/fixtures/e.php'], engine($root, excludePaths: [], extensions: ['php', 'phpt'])->findFiles(['src/c.phpt', 'src/fixtures']));
+	Assert::same(['src/c.phtml', 'src/fixtures/e.php'], engine($root, excludePaths: [], fileExtensions: ['php', 'phtml'])->findFiles(['src/c.phtml', 'src/fixtures']));
 	Assert::exception(fn() => $runner->findFiles(['missing']), RuntimeException::class, 'Path missing does not exist.');
+	$outside = str_replace('\\', '/', (string) realpath(__DIR__ . '/Config/fixtures/project/src'));
+	Assert::same(["$outside/sub/file.php"], engine($root, excludePaths: [])->findFiles([$outside]));
 });
 
 

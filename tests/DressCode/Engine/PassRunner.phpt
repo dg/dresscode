@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Analyses;
+use DressCode\Config;
 use DressCode\ConvergenceException;
 use DressCode\Engine\PassRunner;
 use DressCode\NodeRule;
@@ -193,7 +194,7 @@ function run(string $code, array $rules, bool $strict = true): array
 {
 	$file = (new Parser)->parse($code);
 	$runner = new PassRunner($rules, new Analyses\Registry, fn(string $name) => [$name], strict: $strict);
-	$result = $runner->run($file, $code, 'test.php', new Style, '8.0');
+	$result = $runner->run($file, $code, 'test.php', new Style, Config::DefaultPhpVersion);
 	return [$file, $result];
 }
 

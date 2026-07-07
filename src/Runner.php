@@ -19,6 +19,8 @@ final class Runner
 	/**
 	 * @param list<string> $excludePaths  patterns of paths left out
 	 * @param array<string, list<string>> $ruleExcludePaths  rule name → patterns of paths the rule is not applied to
+	 * @param list<string> $fileExtensions
+	 * @param ?\Closure(string $content, string $path): bool $skipWhen  files left out by their content
 	 */
 	public function __construct(
 		private readonly FileProcessor $processor,
@@ -28,7 +30,7 @@ final class Runner
 		/** @var array<string, list<string>> rule name → patterns of paths the rule is not applied to */
 		private readonly array $ruleExcludePaths = [],
 		/** @var list<string> */
-		private readonly array $extensions = ['php'],
+		private readonly array $fileExtensions = ['php'],
 		/** @var ?\Closure(string $content, string $path): bool files left out by their content */
 		private readonly ?\Closure $skipWhen = null,
 	) {
@@ -112,7 +114,7 @@ final class Runner
 			if (is_file($absolute)) {
 				$files[$path] = true;
 			} elseif (is_dir($absolute)) {
-				$finder = Finder::findFiles(array_map(fn($ext) => "*.$ext", $this->extensions))
+				$finder = Finder::findFiles(array_map(fn($ext) => "*.$ext", $this->fileExtensions))
 					->from($absolute)
 					->descentFilter(fn(\SplFileInfo $dir) => !self::matches($this->excludePaths, $this->relativize($dir->getPathname())));
 				foreach ($finder as $file) {
@@ -176,6 +178,6 @@ final class Runner
 
 	public function hasExtension(string $path): bool
 	{
-		return in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), $this->extensions, strict: true);
+		return in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), $this->fileExtensions, strict: true);
 	}
 }
