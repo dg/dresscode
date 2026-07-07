@@ -1,0 +1,8 @@
+<?php
+// lineLength 50
+$query->select('name')->where('active', 1)->get();
+$query->select('name')->where('active', 1)->getAll();
+$object->property->other->method('argument', $value);
+$object->onlyOneMethodCallHere($aaaaaaaaaa, $bbbbbbbbbb);
+$object?->first($aaaaaaaaaa)?->second($bbbbbbbbbbbbbb);
+$result = $this->items->first()->getName() . $suffix; // a comment after the code keeps the line

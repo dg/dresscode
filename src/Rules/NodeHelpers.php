@@ -145,8 +145,8 @@ final class NodeHelpers
 	 * The construct the node is, of a kind `LineSplits` names, with the token its frame begins with, the tokens its shape
 	 * puts at the start of a line once spread, and whether it is spread over lines already; null for a node that is none
 	 * or has nothing to spread: a call, `new` or an attribute without arguments, a first-class callable, a signature
-	 * without parameters, a condition joined by no boolean operator, an inner
-	 * link of a family of operators, a `for` with empty sections, an array of fewer than two items, a list
+	 * without parameters, a condition joined by no boolean operator, a chain of fewer than two method calls, an inner
+	 * link of a chain or of a family of operators, a `for` with empty sections, an array of fewer than two items, a list
 	 * of a single interface. The last is whether the construct is a message, a call
 	 * whose sole argument is a string, which is never spread for its width and leaves what it holds whole too. A call
 	 * left on its line by the author is not spread even where its last argument, a closure or an array, spans lines.
@@ -200,6 +200,32 @@ final class NodeHelpers
 					$node->openParen,
 					[$node->condition->getFirstToken(), ...self::collectConditionOperators($node->condition), $node->closeParen],
 					$node->openParen->getCurrentLine() !== $node->closeParen->getCurrentLine(),
+					false,
+				];
+
+		} elseif (
+			($node instanceof Expression\MethodCallNode || $node instanceof Expression\PropertyFetchNode)
+			&& !(($node->parent instanceof Expression\MethodCallNode || $node->parent instanceof Expression\PropertyFetchNode)
+				&& $node->parent->object === $node)
+		) {
+			$calls = 0;
+			$operators = [];
+			for (
+				$link = $node;
+				$link instanceof Expression\MethodCallNode || $link instanceof Expression\PropertyFetchNode;
+				$link = $link->object
+			) {
+				$calls += $link instanceof Expression\MethodCallNode ? 1 : 0;
+				$operators[] = $link->operator;
+			}
+
+			return $calls < 2
+				? null
+				: [
+					'chain',
+					$node->getFirstToken(),
+					$operators,
+					array_any($operators, fn(Token $operator) => $operator->startsLine()),
 					false,
 				];
 
@@ -295,7 +321,7 @@ final class NodeHelpers
 	 * spread begins after it on the line (`isFollowedBySplit()`); and where what follows it on the line, which stays on
 	 * its last line, is too wide by itself. The outer one is spread first and the
 	 * inner one measured on the line it is left on, up to the first token a spread outer frame puts at the start of
-	 * a line, which its rule moves away later in the pass: the next argument, section or operator, or the
+	 * a line, which its rule moves away later in the pass: the next argument, section, operator or link, or the
 	 * closing parenthesis. The width is that of the code, a comment after it left out (`measureCodeLine()`).
 	 */
 	public static function measureOverflow(Node $construct, Token $open, Gap $gap): ?int

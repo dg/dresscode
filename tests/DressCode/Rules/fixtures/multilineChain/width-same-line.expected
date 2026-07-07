@@ -1,0 +1,9 @@
+<?php
+// lineLength 50
+// {"chainFirstLinks": "sameLine"}
+$query->select('name')
+	->where('active', 1)
+	->getAll();
+$this->repository->findAll()
+	->filter($callback)
+	->toArray();

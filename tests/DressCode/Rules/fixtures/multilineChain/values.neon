@@ -1,0 +1,3 @@
+multiline:
+	chain: perLine
+	chainFirstLinks: ownLine
