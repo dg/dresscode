@@ -1,0 +1,10 @@
+<?php
+// {"allowOwnLine": true}
+$a = 1;
+return $b
+	&& $c
+	;
+$d = <<<'XX'
+	e
+	XX
+	;
