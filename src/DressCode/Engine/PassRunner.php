@@ -130,7 +130,10 @@ final class PassRunner
 			$last = $output;
 		}
 
-		return new PassResult(array_values($this->violations), $this->warnings, $passes, $mutated);
+		$violations = array_values($this->violations);
+		// the passes report by rule, the reader reads by position
+		usort($violations, fn(Violation $a, Violation $b) => [$a->line, $a->column ?? 0] <=> [$b->line, $b->column ?? 0]);
+		return new PassResult($violations, $this->warnings, $passes, $mutated);
 	}
 
 

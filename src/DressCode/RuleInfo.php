@@ -17,6 +17,8 @@ final readonly class RuleInfo
 		public string $description = '',
 		/** the rule changes the text of comments; otherwise a changed or lost comment is a bug */
 		public bool $modifiesComments = false,
+		/** the construct the rule enforces exists only from this version of PHP on, "8.4" */
+		public ?string $minPhpVersion = null,
 	) {
 	}
 

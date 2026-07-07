@@ -21,7 +21,7 @@ final class Engine
 	/**
 	 * @param list<string> $skip  patterns of paths left out
 	 * @param array<string, list<string>> $ruleSkip  rule name → patterns of paths the rule is not applied to
-	 * @param list<string> $extensions
+	 * @param list<string> $fileExtensions
 	 * @param ?\Closure(string $content, string $path): bool $skipWhen  files left out by their content
 	 */
 	public function __construct(
@@ -29,7 +29,7 @@ final class Engine
 		string $root,
 		private readonly array $skip = [],
 		private readonly array $ruleSkip = [],
-		private readonly array $extensions = ['php'],
+		private readonly array $fileExtensions = ['php'],
 		private readonly ?\Closure $skipWhen = null,
 	) {
 		$this->root = rtrim(str_replace('\\', '/', $root), '/');
@@ -112,7 +112,7 @@ final class Engine
 			if (is_file($absolute)) {
 				$files[$path] = true;
 			} elseif (is_dir($absolute)) {
-				$finder = Finder::findFiles(array_map(fn($ext) => "*.$ext", $this->extensions))
+				$finder = Finder::findFiles(array_map(fn($ext) => "*.$ext", $this->fileExtensions))
 					->from($absolute)
 					->descentFilter(fn(\SplFileInfo $dir) => !self::matches($this->skip, $this->relativize($dir->getPathname())));
 				foreach ($finder as $file) {
@@ -163,6 +163,6 @@ final class Engine
 
 	public function hasExtension(string $path): bool
 	{
-		return in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), $this->extensions, strict: true);
+		return in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), $this->fileExtensions, strict: true);
 	}
 }

@@ -88,19 +88,19 @@ foreach (
 /**
  * @param list<string> $skip
  * @param array<string, list<string>> $ruleSkip
- * @param list<string> $extensions
+ * @param list<string> $fileExtensions
  * @param ?Closure(string, string): bool $skipWhen
  */
 function engine(
 	string $root,
 	array $skip = ['vendor', 'fixtures*'],
 	array $ruleSkip = [],
-	array $extensions = ['php'],
+	array $fileExtensions = ['php'],
 	?Closure $skipWhen = null,
 ): Engine
 {
 	$processor = new FileProcessor([new EngineRename], new AnalysisRegistry, fn(string $name) => $name);
-	return new Engine($processor, $root, $skip, $ruleSkip, $extensions, $skipWhen);
+	return new Engine($processor, $root, $skip, $ruleSkip, $fileExtensions, $skipWhen);
 }
 
 
@@ -121,7 +121,7 @@ test('files are found under the paths, sorted, relative, with slashes, without t
 	);
 	Assert::same(['src/a.php', 'src/b.php', 'src/broken.php', 'src/skipped.php', 'src/sub/d.php'], $engine->findFiles(['src']));
 	Assert::same(['src/sub/d.php', 'vendor/f.php'], $engine->findFiles(['./src/sub', 'vendor/f.php']));
-	Assert::same(['src/c.phpt', 'src/fixtures/e.php'], engine($root, skip: [], extensions: ['php', 'phpt'])->findFiles(['src/c.phpt', 'src/fixtures']));
+	Assert::same(['src/c.phpt', 'src/fixtures/e.php'], engine($root, skip: [], fileExtensions: ['php', 'phpt'])->findFiles(['src/c.phpt', 'src/fixtures']));
 	Assert::exception(fn() => $engine->findFiles(['missing']), RuntimeException::class, 'Path missing does not exist.');
 });
 
