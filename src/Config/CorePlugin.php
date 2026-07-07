@@ -46,6 +46,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\CastSpacingRule::class,
 				Rules\Expressions\ConcatenationSpacingRule::class,
 				Rules\Expressions\DoubleColonSpacingRule::class,
+				Rules\Expressions\ExplicitPrecedenceRequiredRule::class,
 				Rules\Expressions\MultilineBinaryOperatorRule::class,
 				Rules\Expressions\MultilineMatchArmRule::class,
 				Rules\Expressions\MultilineChainRule::class,
