@@ -1,0 +1,10 @@
+<?php
+// lineLength 60
+$kind = match (true) {
+	$a instanceof Foo, $a instanceof Bar => 'fits the line',
+	$a instanceof First, $a instanceof Second, $a instanceof Third => 'static',
+	$a instanceof One,
+		$a instanceof Two => 'spread by the author',
+	$a instanceof TheOnlyConditionOfTheArmThatIsLong => 'single',
+	default => null,
+};

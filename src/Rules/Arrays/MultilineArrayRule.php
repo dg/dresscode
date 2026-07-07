@@ -36,9 +36,6 @@ final class MultilineArrayRule extends GapRule
 	private const PerLine = 'perLine';
 	private const AsWritten = 'asWritten';
 
-	/** an array spread for its width with more items than this lets them fill its lines with `asWritten`, not a line each */
-	private const MaxItemsOnOwnLines = 5;
-
 	private string $shape;
 	private ?int $maxWidth = null;
 
@@ -194,7 +191,7 @@ final class MultilineArrayRule extends GapRule
 		$items = $array->items->getItems();
 		if (
 			$style->maxLineLength === null
-			|| count($items) <= self::MaxItemsOnOwnLines
+			|| count($items) <= NodeHelpers::MaxItemsOnOwnLines
 			|| !array_all($items, fn($item) => $item instanceof ArrayItemNode)
 		) {
 			return null;

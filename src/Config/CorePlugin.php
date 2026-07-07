@@ -45,6 +45,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\ConcatenationSpacingRule::class,
 				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\MultilineBinaryOperatorRule::class,
+				Rules\Expressions\MultilineMatchArmRule::class,
 				Rules\Expressions\MultilineChainRule::class,
 				Rules\Expressions\MultilineTernaryRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
@@ -116,6 +117,7 @@ final class CorePlugin implements Plugin
 					'binaryOperator' => 'the operands of a boolean operator, of concatenations or of `|`',
 					'array' => 'the items of an array, which `multiline.arrayMaxWidth` spreads all the same',
 					'implements' => 'the interfaces a class implements or an interface extends',
+					'matchArm' => 'the conditions of a `match` arm',
 				], regularExpressions: true), 'What a line too wide leaves as it is: a construct named is not spread over lines for its width, and a line it stands on, one a regular expression matches, or with `strings` one wide only for its string literals, is not reported', kind: DecisionKind::Parameter, default: ['imports']),
 				new Decision('indentation.unit', new Words([
 					'tab' => 'one tab per level',

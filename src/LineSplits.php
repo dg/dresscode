@@ -29,6 +29,7 @@ final readonly class LineSplits
 		'binaryOperator' => 'multiline.binaryOperator',
 		'array' => 'multiline.array',
 		'implements' => 'multiline.implements',
+		'matchArm' => 'multiline.matchArmConditions',
 	];
 
 	private const Except = 'file.lineLengthExcept';

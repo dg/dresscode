@@ -10,7 +10,7 @@ namespace DressCode\Rules;
 use DressCode\Analyses\IndentationSnapshot;
 use DressCode\{Claim, Gap, Line, Style};
 use PhpSyntax\{Indentation, Node, Token};
-use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, ElseifNode, Expression, ExpressionNode, Scalar, SeparatedNodeList, Statement, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, ElseifNode, Expression, ExpressionNode, MatchArmNode, Scalar, SeparatedNodeList, Statement, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count, strlen;
 
@@ -21,6 +21,10 @@ use function count, strlen;
  */
 final class NodeHelpers
 {
+	/** a list spread for its width with more items than this lets them fill its lines with `asWritten`, not a line each */
+	public const MaxItemsOnOwnLines = 5;
+
+
 	/**
 	 * The `if`, `elseif`, `while` or `do-while` whose condition the operation is a part of, reached from the condition down
 	 * through logical operators alone, not through parentheses or a negation; null for any other operation.
@@ -147,7 +151,7 @@ final class NodeHelpers
 	 * or has nothing to spread: a call, `new` or an attribute without arguments, a first-class callable, a signature
 	 * without parameters, a condition joined by no boolean operator, a chain of fewer than two method calls, an inner
 	 * link of a chain or of a family of operators, a `for` with empty sections, an array of fewer than two items, a list
-	 * of a single interface. The last is whether the construct is a message, a call
+	 * of a single interface, a `match` arm of a single condition. The last is whether the construct is a message, a call
 	 * whose sole argument is a string, which is never spread for its width and leaves what it holds whole too. A call
 	 * left on its line by the author is not spread even where its last argument, a closure or an array, spans lines.
 	 * @return ?array{string, Token, list<Token>, bool, bool}
@@ -281,6 +285,18 @@ final class NodeHelpers
 					$names[0],
 					[...$names, $node->parent->openBrace],
 					array_any($names, fn(Token $name) => $name->startsLine()),
+					false,
+				];
+
+		} elseif ($node instanceof SeparatedNodeList && $node->parent instanceof MatchArmNode && $node->parent->values === $node) {
+			$values = array_map(fn(Node $value) => $value->getFirstToken(), $node->getItems());
+			return count($values) < 2
+				? null
+				: [
+					'matchArm',
+					$values[0],
+					$values,
+					array_any(array_slice($values, 1), fn(Token $value) => $value->startsLine()),
 					false,
 				];
 

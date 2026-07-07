@@ -1,0 +1,12 @@
+<?php
+// lineLength 60
+// {"matchArmConditions": "asWritten"}
+$kind = match (true) {
+	$a instanceof Foo, $a instanceof Bar => 'fits the line',
+	$a instanceof First, $a instanceof Second, $a instanceof Third => 'static',
+	T_LINE, T_FILE, T_DIR, T_TRAIT_C, T_METHOD_C, T_FUNC_C, T_NS_C, T_CLASS_C => 'filled',
+	T_LINE, T_FILE, T_DIR, T_TRAIT_C, T_METHOD_C /* x */, T_FUNC_C, T_NS_C, T_CLASS_C => 'commented',
+	T_OPEN_TAG, T_OPEN_TAG_WITH_ECHO, T_CLOSE_TAG,
+	T_STRING, T_NAME_QUALIFIED => 'spread by the author',
+	default => null,
+};
