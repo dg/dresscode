@@ -1,0 +1,16 @@
+<?php
+use Space\{Alpha, Beta};
+
+$a = [1, 2];
+$b = [1, 2];
+f($x, $y);
+$c = [
+	1,
+	2,
+];
+list($d, $e) = $a;
+$f = array(3, 4);
+f($g);
+f($h /* keep */);
+f($i);
+f($j);

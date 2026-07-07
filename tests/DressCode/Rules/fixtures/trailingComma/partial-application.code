@@ -1,0 +1,18 @@
+<?php
+// php 8.6
+// {"trailingComma": {"argument": "required", "parameter": "required"}}
+$a = foo(
+	1,
+	?
+);
+$b = foo(
+	?,
+	...
+);
+class A
+{
+	public function __construct(
+		private \Closure $c = foo(1, 2, ?)
+	) {
+	}
+}

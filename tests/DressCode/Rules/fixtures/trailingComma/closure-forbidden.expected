@@ -1,0 +1,20 @@
+<?php
+// {"trailingComma": {"parameter": "forbidden", "closureUse": "forbidden"}}
+$f = function (
+	$a,
+	$b
+) use (
+	$c,
+	$d
+) {
+};
+$g = function ($a, $b) use ($c, $d) {
+};
+$h = fn(
+	$a,
+	$b
+) => $a;
+function f(
+	$a,
+	$b
+) {}

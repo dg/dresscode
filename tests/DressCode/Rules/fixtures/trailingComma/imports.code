@@ -1,0 +1,15 @@
+<?php
+// {"trailingComma": {"array": "optional", "import": "required"}}
+use Space\{
+	Alpha,
+	Beta
+};
+use Other\{
+	Gamma,
+	Delta,
+};
+use Third\{
+	Epsilon,
+	Zeta };
+use Flat\{Eta, Theta};
+use Comma\{Iota, Kappa,};

@@ -1,0 +1,19 @@
+<?php
+// php 8.6
+// {"trailingComma": {"parameter": "required"}}
+function f(
+	/** before */
+	int $a,
+	int $b = 10 /** after */
+) {}
+
+function g(
+	int $a /** after */,
+	int $b /** after */
+) {}
+
+function h(
+	int $a,
+	int $b
+	/** on the next line */
+) {}
