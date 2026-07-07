@@ -1,0 +1,4 @@
+2: Useless parentheses around the operand of `echo`, because it takes the operand without them.
+3: Useless parentheses around the operand of `return`, because it takes the operand without them.
+7: Useless parentheses around the operand of `yield`, because it takes the operand without them.
+9: Useless parentheses around the operand of `echo`, because it takes the operand without them.

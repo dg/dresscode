@@ -1,0 +1,9 @@
+<?php
+echo ((('ok')));
+return (((1 + 2)));
+function g()
+{
+	yield ($keys[$key] ?? $key) => $item;
+	yield ($k) => (($v));
+}
+echo ((/* why */ 'ok'));
