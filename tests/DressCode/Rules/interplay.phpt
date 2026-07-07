@@ -86,6 +86,22 @@ test('the areas of blankLines never pull against one another', function () {
 });
 
 
+test('explicitPrecedenceRequired adds what uselessParenthesesAfterConstruct does not remove', function () {
+	interplay([
+		Rules\Expressions\ExplicitPrecedenceRequiredRule::class => true,
+		Rules\ControlFlow\UselessParenthesesAfterConstructRule::class => true,
+	], "<?php\nreturn \$a && \$b || \$c;\necho (\$a);\n", "<?php\nreturn (\$a && \$b) || \$c;\necho \$a;\n");
+});
+
+
+test('explicitPrecedenceRequired and logicalOperatorNotation agree on and/or', function () {
+	interplay([
+		Rules\Expressions\ExplicitPrecedenceRequiredRule::class => true,
+		Rules\Expressions\LogicalOperatorNotationRule::class => true,
+	], "<?php\nif (\$b and \$c or \$d) {\n}\n", "<?php\nif ((\$b && \$c) || \$d) {\n}\n");
+});
+
+
 test('indentation and multilineCall settle on one shape', function () {
 	interplay([
 		Rules\Whitespace\IndentationRule::class => [

@@ -1,0 +1,9 @@
+2: The `&&` operation inside `||` must be enclosed in parentheses.
+3: The `&&` operation inside `||` must be enclosed in parentheses.
+4: The `and` operation inside `or` must be enclosed in parentheses.
+6: The `&&` operation inside `and` must be enclosed in parentheses.
+8: The `&&` operation inside `xor` must be enclosed in parentheses.
+11: The `==` operation inside `&` must be enclosed in parentheses.
+13: The `===` operation inside `|` must be enclosed in parentheses.
+15: The `&&` operation inside `||` must be enclosed in parentheses.
+17: The `&&` operation inside `||` must be enclosed in parentheses.
