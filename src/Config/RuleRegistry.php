@@ -58,6 +58,7 @@ final class RuleRegistry
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
+		Rules\Literals\HeredocIndentationRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
