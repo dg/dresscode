@@ -61,6 +61,22 @@ test('the areas of blankLines never pull against one another', function () {
 });
 
 
+test('explicitOperatorPrecedence adds what uselessConstructParentheses does not remove', function () {
+	interplay([
+		Rules\Expressions\ExplicitOperatorPrecedenceRule::class => true,
+		Rules\ControlFlow\UselessConstructParenthesesRule::class => true,
+	], "<?php\nreturn \$a && \$b || \$c;\necho (\$a);\n", "<?php\nreturn (\$a && \$b) || \$c;\necho \$a;\n");
+});
+
+
+test('explicitOperatorPrecedence and symbolicLogicalOperators agree on and/or', function () {
+	interplay([
+		Rules\Expressions\ExplicitOperatorPrecedenceRule::class => true,
+		Rules\Expressions\SymbolicLogicalOperatorsRule::class => true,
+	], "<?php\nif (\$b and \$c or \$d) {\n}\n", "<?php\nif ((\$b && \$c) || \$d) {\n}\n");
+});
+
+
 test('indentation and multilineCall settle on one shape', function () {
 	interplay([
 		Rules\Whitespace\IndentationRule::class => true,
