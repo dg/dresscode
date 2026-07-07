@@ -58,6 +58,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
+				Rules\Expressions\MultilineChainRule::class,
 				Rules\Expressions\ReferenceSpacingRule::class,
 				Rules\Expressions\SpreadOperatorSpacingRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
