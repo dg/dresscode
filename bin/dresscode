@@ -1,0 +1,16 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+
+foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $file) {
+	if (is_file($file)) {
+		require $file;
+		break;
+	}
+}
+
+if (!class_exists(DressCode\Console\Application::class)) {
+	fwrite(STDERR, "Install DressCode using `composer require --dev dresscode/dresscode`.\n");
+	exit(2);
+}
+
+exit((new DressCode\Console\Application)->run($argv));

@@ -7,6 +7,7 @@ use DressCode\Engine\FileResult;
 use DressCode\Engine\RunResult;
 use DressCode\Reporter;
 use DressCode\Severity;
+use Nette\CommandLine\Console;
 use function count;
 
 
@@ -17,15 +18,26 @@ final class ConsoleReporter implements Reporter
 {
 	/** @var resource */
 	private $stream;
+	private Console $console;
 	private bool $fix = false;
 
 
-	/** @param ?resource $stream */
+	/**
+	 * @param ?resource $stream
+	 * @param ?Console $console  colors; plain output when omitted
+	 */
 	public function __construct(
 		$stream = null,
 		private readonly bool $diff = false,
+		?Console $console = null,
 	) {
 		$this->stream = $stream ?? STDOUT;
+		if ($console === null) {
+			$console = new Console;
+			$console->useColors(false);
+		}
+
+		$this->console = $console;
 	}
 
 
@@ -37,13 +49,18 @@ final class ConsoleReporter implements Reporter
 
 	public function reportFile(FileResult $result): void
 	{
-		if (!$result->violations && !$result->warnings && $result->error === null && !$result->isChanged()) {
+		if (
+		    !$result->violations
+		    && !$result->warnings
+		    && $result->error === null
+		    && !$result->isChanged()
+		) {
 			return;
 		}
 
-		$this->write("$result->path\n");
+		$this->write($this->console->color('white', $result->path) . "\n");
 		if ($result->error !== null) {
-			$this->write(sprintf("  %-7s error    %s\n", $result->errorLine ?? '', $result->error));
+			$this->write(sprintf("  %-7s %s    %s\n", $result->errorLine ?? '', $this->console->color('red', 'error'), $result->error));
 		}
 
 		foreach ($result->violations as $violation) {
@@ -58,21 +75,21 @@ final class ConsoleReporter implements Reporter
 			}
 
 			$this->write(sprintf(
-				"  %-7s %-8s %s  [%s]%s\n",
+				"  %-7s %s %s  %s%s\n",
 				$position,
-				$violation->severity === Severity::Error ? 'error' : 'warning',
+				$violation->severity === Severity::Error ? $this->console->color('red', 'error   ') : $this->console->color('yellow', 'warning '),
 				$violation->message,
-				$violation->ruleName,
+				$this->console->color('gray', "[$violation->ruleName]"),
 				$marks ? '  (' . implode(', ', $marks) . ')' : '',
 			));
 		}
 
 		foreach ($result->warnings as $warning) {
-			$this->write("          warning  $warning\n");
+			$this->write('          ' . $this->console->color('yellow', 'warning') . "  $warning\n");
 		}
 
 		if ($this->diff && $result->isChanged()) {
-			$this->write(Diff::unified($result->code, (string) $result->output, $result->path));
+			$this->write($this->colorDiff(Diff::unified($result->code, (string) $result->output, $result->path)));
 		}
 
 		$this->write("\n");
@@ -102,7 +119,21 @@ final class ConsoleReporter implements Reporter
 			$line .= sprintf(', %s with syntax errors', self::plural($errors, 'file'));
 		}
 
-		$this->write("$line.\n");
+		$this->write($this->console->color($result->getExitCode() === 0 ? 'green' : 'red', "$line.") . "\n");
+	}
+
+
+	private function colorDiff(string $diff): string
+	{
+		return implode('', array_map(
+			fn(string $line) => match ($line[0] ?? '') {
+				'-' => $this->console->color('red', $line),
+				'+' => $this->console->color('green', $line),
+				'@' => $this->console->color('teal', $line),
+				default => $line,
+			},
+			preg_split('~(?<=\n)~', $diff, -1, PREG_SPLIT_NO_EMPTY) ?: [],
+		));
 	}
 
 
