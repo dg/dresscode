@@ -283,6 +283,15 @@ final class NodeHelpers
 					array_any($names, fn(Token $name) => $name->startsLine()),
 					false,
 				];
+
+		} elseif ($node instanceof Expression\TernaryNode) {
+			return [
+				'ternary',
+				$node->getFirstToken(),
+				[$node->question, $node->colon],
+				$node->question->startsLine() || $node->colon->startsLine(),
+				false,
+			];
 		}
 
 		return null;

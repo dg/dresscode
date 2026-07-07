@@ -1,0 +1,2 @@
+4: Expected a line break before the colon, because the ternary spans several lines.
+5: Expected a line break before the `?` operator, because the ternary spans several lines.

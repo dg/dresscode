@@ -1,0 +1,12 @@
+<?php
+// lineLength 50
+$value = $condition ? $firstBranchValue : $second;
+$value = $condition
+	? $firstBranchValue
+	: $secondd;
+$value = $this->getSomething()
+	?: $theDefaultValueHere;
+$value = $a
+	? ($b ? $cccccccccccccccc : $dddddddddd)
+	: $e;
+$value = $condition ? $first : $second; // a comment that is not measured

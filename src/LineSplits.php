@@ -24,6 +24,7 @@ final readonly class LineSplits
 		'signature' => 'multiline.signature',
 		'condition' => 'multiline.condition',
 		'chain' => 'multiline.chain',
+		'ternary' => 'multiline.ternary',
 		'for' => 'multiline.for',
 		'binaryOperator' => 'multiline.binaryOperator',
 		'array' => 'multiline.array',
