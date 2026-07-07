@@ -6,3 +6,4 @@
 /grammar/y.output
 /temp
 tests/**/output
+/tests/temp

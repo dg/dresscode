@@ -13,6 +13,7 @@ parameters:
 		analyseAndScan:
 			- tests/*/fixtures/*
 			- tests/PhpSyntax/Parser/corpus/*
+			- tests/temp/*
 		analyse:
 			# semantic actions index the untyped value stack; their shape is given by the grammar and checked by the round-trip tests
 			- src/PhpSyntax/Parser/ParserData.php
