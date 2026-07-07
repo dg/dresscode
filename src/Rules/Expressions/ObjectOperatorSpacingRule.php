@@ -14,7 +14,7 @@ use PhpSyntax\Nodes\Expression\{MethodCallNode, PropertyFetchNode};
 
 /**
  * No whitespace around `->` and `?->` on a line, nor inside the braces of a dynamic name: `$a->{$b}`. The name
- * stays on the line of the operator.
+ * stays on the line of the operator; a line break before the operator is `MultilineChainRule`'s.
  */
 #[RuleInfo(Stage::Formatting)]
 final class ObjectOperatorSpacingRule extends GapRule

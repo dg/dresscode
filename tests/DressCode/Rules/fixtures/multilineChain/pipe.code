@@ -1,0 +1,11 @@
+<?php
+// php 8.5
+$a = $x
+	|> trim(...)
+	|> strlen(...);
+$b = $x |> trim(...)
+	|> strlen(...);
+$c = $x |>
+	trim(...) |>
+	strlen(...);
+$d = $x |> trim(...) |> strlen(...);
