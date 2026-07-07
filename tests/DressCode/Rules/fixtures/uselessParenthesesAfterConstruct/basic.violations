@@ -1,0 +1,11 @@
+2: Useless parentheses around the operand of `return`, because it takes the operand without them.
+4: Useless parentheses around the operand of `echo`, because it takes the operand without them.
+5: Useless parentheses around the operand of `print`, because it takes the operand without them.
+6: Useless parentheses around the operand of `clone`, because it takes the operand without them.
+7: Useless parentheses around the operand of `include`, because it takes the operand without them.
+9: Useless parentheses around the operand of `case`, because it takes the operand without them.
+14: Useless parentheses around the operand of `yield`, because it takes the operand without them.
+19: Useless parentheses around the operand of `return`, because it takes the operand without them.
+20: Useless parentheses around the operand of `return`, because it takes the operand without them.
+21: Useless parentheses around the operand of `return`, because it takes the operand without them.
+24: Useless parentheses around the operand of `return`, because it takes the operand without them.
