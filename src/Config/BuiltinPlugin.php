@@ -62,6 +62,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\ReferenceSpacingRule::class,
 				Rules\Expressions\SpreadOperatorSpacingRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
+				Rules\Expressions\MultilineTernaryRule::class,
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Literals\HeredocIndentationRule::class,
