@@ -45,6 +45,7 @@ final class RuleRegistry
 		Rules\Files\NoClosingTagRule::class,
 		Rules\Files\StrictTypesRequiredRule::class,
 		Rules\Functions\MultiLineCallRule::class,
+		Rules\Functions\MultiLineSignatureRule::class,
 		Rules\Functions\NamedArgumentSpacingRule::class,
 		Rules\Functions\FunctionNameSpacingRule::class,
 		Rules\Literals\ConstantCasingRule::class,
