@@ -1,0 +1,6 @@
+5: A multi-line array must end with a trailing comma.
+12: A multi-line array must end with a trailing comma.
+16: A multi-line array must end with a trailing comma.
+21: A trailing comma must not precede a closing bracket on the line of the last item.
+29: A multi-line array must end with a trailing comma.
+33: A multi-line destructuring must end with a trailing comma.

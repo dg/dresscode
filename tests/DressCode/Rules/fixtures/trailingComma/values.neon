@@ -1,0 +1,9 @@
+multiline:
+	trailingComma:
+		array: required
+		argument: optional
+		parameter: keep
+		matchArm: keep
+		closureUse: keep
+		import: optional
+		list: optional

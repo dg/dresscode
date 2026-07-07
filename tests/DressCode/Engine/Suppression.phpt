@@ -39,6 +39,22 @@ test('ignore on the same line and on its own line', function () use ($resolve) {
 });
 
 
+test('a section or a structure silences every decision under it, and a name that stands for nothing is remembered', function () {
+	$resolve = fn(string $name) => in_array($name, ['spacing', 'multiline.trailingComma'], true) ? [$name] : [];
+	$s = suppression(<<<'XX'
+		<?php
+		$a; // dresscode:ignore spacing
+		$b; // dresscode:ignore multiline.trailingComma, nope
+		$c; // phpcs:ignore Some.Sniff
+		XX, $resolve);
+	Assert::true($s->isSilenced('spacing.call', 2));
+	Assert::false($s->isSilenced('spacingOther.call', 2));
+	Assert::true($s->isSilenced('multiline.trailingComma.array', 3));
+	Assert::false($s->isSilenced('multiline.operatorPosition.binary', 3));
+	Assert::same(['nope' => 'dresscode:ignore multiline.trailingComma, nope'], $s->getUnknownNames());
+});
+
+
 test('what follows two dashes says why and names no rule', function () use ($resolve) {
 	$s = suppression(<<<'XX'
 		<?php

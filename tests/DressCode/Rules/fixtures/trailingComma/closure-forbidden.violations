@@ -1,0 +1,6 @@
+6: A multi-line parameter list must not end with a trailing comma.
+9: A multi-line closure use list must not end with a trailing comma.
+11: A one-line list must not end with a trailing comma.
+11: A one-line list must not end with a trailing comma.
+16: A multi-line parameter list must not end with a trailing comma.
+20: A multi-line parameter list must not end with a trailing comma.
