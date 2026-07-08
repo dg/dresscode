@@ -45,6 +45,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\ConcatenationSpacingRule::class,
 				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\ExplicitPrecedenceRequiredRule::class,
+				Rules\Expressions\IncrementForAddOneRule::class,
 				Rules\Expressions\MultilineChainRule::class,
 				Rules\Expressions\MultilineTernaryRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
