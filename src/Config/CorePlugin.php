@@ -42,6 +42,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\UselessParenthesesAfterConstructRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
 				Rules\Expressions\CastSpacingRule::class,
+				Rules\Expressions\CombinedAssignmentForRepeatedTargetRule::class,
 				Rules\Expressions\ConcatenationSpacingRule::class,
 				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\ExplicitPrecedenceRequiredRule::class,
