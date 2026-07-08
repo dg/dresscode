@@ -1,0 +1,7 @@
+6: A multi-line argument list must end with a trailing comma
+9: No trailing comma before a closing bracket on the line of the last item of a multi-line argument list
+14: A multi-line parameter list must end with a trailing comma
+17: A multi-line parameter list must end with a trailing comma
+21: A multi-line match must end with a trailing comma
+28: A multi-line argument list must end with a trailing comma
+39: A multi-line argument list must end with a trailing comma
