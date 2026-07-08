@@ -1,0 +1,8 @@
+3: The `+= 1` assignment must be written `++`.
+	risky TypeUnknown: the target may be a string, which `++` changes as text
+4: The `-= 1` assignment must be written `--`.
+	risky TypeUnknown: the target may be a string, which `--` changes as text
+5: The `+= 1` assignment must be written `++`.
+	risky TypeUnknown: the target may be a string, which `++` changes as text
+6: The `+= 1` assignment must be written `++`.
+	risky TypeUnknown: the target may be a string, which `++` changes as text
