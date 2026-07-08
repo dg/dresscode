@@ -1,0 +1,8 @@
+3: The `+= 1` assignment must be written `++`
+	risky TypeUnknown
+4: The `-= 1` assignment must be written `--`
+	risky TypeUnknown
+5: The `+= 1` assignment must be written `++`
+	risky TypeUnknown
+6: The `+= 1` assignment must be written `++`
+	risky TypeUnknown

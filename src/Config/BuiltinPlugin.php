@@ -64,6 +64,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\MultilineChainRule::class,
 				Rules\Expressions\ReferenceSpacingRule::class,
 				Rules\Expressions\SpreadOperatorSpacingRule::class,
+				Rules\Expressions\IncrementForAddOneRule::class,
 				Rules\Expressions\SymbolicLogicalOperatorsRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
 				Rules\Expressions\MultilineTernaryRule::class,
