@@ -1,0 +1,27 @@
+<?php
+// {"shape": "keep"}
+class C
+{
+	private const Operators = ['||', '&&', 'or',
+		'==', '!=',
+	];
+
+	private const Tight = ['a', 'b',
+		'c'];
+
+	private const Broken = [
+		'a',
+		'b',
+	];
+
+
+	public function f()
+	{
+		$x = [1, 2,
+			3];
+		$y =
+		[
+			1,
+		];
+	}
+}
