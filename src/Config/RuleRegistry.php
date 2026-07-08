@@ -58,6 +58,7 @@ final class RuleRegistry
 		Rules\Expressions\DoubleColonSpacingRule::class,
 		Rules\Expressions\NotEqualsOperatorRule::class,
 		Rules\Expressions\ObjectOperatorSpacingRule::class,
+		Rules\Expressions\MultiLineChainRule::class,
 		Rules\Expressions\ReferenceSpacingRule::class,
 		Rules\Expressions\SpreadOperatorSpacingRule::class,
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
