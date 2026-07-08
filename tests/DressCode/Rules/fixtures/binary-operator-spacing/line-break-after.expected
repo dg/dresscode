@@ -1,0 +1,26 @@
+<?php
+$a = $b === $c;
+$a = $b
+	=== $c;
+$a = $b <=> $c;
+$a = $b | $c;
+$a = $b << $c;
+$a = $b === // c
+	$c;
+if ($a !== $b) {
+}
+if (
+	$a === $b &&
+	$c
+) {
+}
+$a = $b &&
+	$c;
+$a = $b +
+	$c;
+$a = $b ??
+	$c;
+$a = $b .
+	$c;
+$a = $someRatherLongVariableName->withAnotherLongPropertyName->andAThirdOneForGoodMeasure ===
+	$yetAnotherLongVariableName->withItsOwnProperty;
