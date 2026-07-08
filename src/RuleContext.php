@@ -76,8 +76,11 @@ final class RuleContext
 	 * `$risky` says that fixing this occurrence may change what the code does: the violation is reported either
 	 * way, and false says the run does not allow the fix, so the rule must leave the code alone. A rule whose every
 	 * fix may change it says so once with `risky` in its RuleInfo instead.
-	 * `$follows` names the token opening the line the reported whitespace is counted from: where that line was
-	 * opened, closed or moved by a violation of this run, the report is recorded as derived from it.
+	 * `$follows` names the token opening the line the reported whitespace is counted from, and says that the rule
+	 * writes the whitespace of the reported line: where that line was opened, closed or moved by a violation of
+	 * this run, the report is recorded as derived from it.
+	 * `$byLine` says the violation is the shape of the line the reported token stands on, whatever whitespace it
+	 * holds: where that line was opened or closed by a violation of this run, the report is derived from it.
 	 * `$fixable` false says the rule has no fix for this occurrence and only reports it: the report is never risky,
 	 * false comes back whatever the run allows, and a mutation after it breaks the contract.
 	 */
@@ -88,6 +91,7 @@ final class RuleContext
 		?Trivia $trivia = null,
 		bool $risky = false,
 		?Token $follows = null,
+		bool $byLine = false,
 		bool $fixable = true,
 	): bool
 	{
@@ -96,7 +100,7 @@ final class RuleContext
 			$gap ??= $at instanceof Token ? $at : $at->getFirstToken();
 		}
 
-		return $this->record($at, $message, $severity, $trivia, $risky, $gap, $follows, fixable: $fixable);
+		return $this->record($at, $message, $severity, $trivia, $risky, $gap, $follows, byLine: $byLine, fixable: $fixable);
 	}
 
 
@@ -140,6 +144,7 @@ final class RuleContext
 		bool $risky,
 		?Token $gap,
 		?Token $follows,
+		bool $byLine = false,
 		bool $breaks = false,
 		?Node $construct = null,
 		bool $fixable = true,
@@ -158,7 +163,7 @@ final class RuleContext
 			? $this->fingerprints->create($this->ruleName, $message, $line)
 			: $this->fingerprints->createFor($construct, $this->ruleName, $message, $line);
 		$risky = ($risky || $this->alwaysRisky) && $fixable;
-		$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, false, $fingerprint, $line, $risky, $gap, $follows, $breaks, $fixable);
+		$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, false, $fingerprint, $line, $risky, $gap, $follows, $byLine, $breaks, $fixable);
 		return $fixable && !($risky && !$this->fixRisky);
 	}
 

@@ -362,10 +362,16 @@ final class PassRunner
 
 	/**
 	 * The violation the report follows from: the one the fixer opened or closed the line of the reported gap
-	 * for, else the one that opened, closed or moved the line the reported whitespace is counted from.
+	 * for, else the one that opened, closed or moved the line the reported whitespace is counted from. A report
+	 * about the shape of the line it stands on asks who opened or closed that line, and nothing about whitespace.
 	 */
 	private function findAncestor(Report $report): ?string
 	{
+		if ($report->byLine) {
+			$token = $report->at instanceof Token ? $report->at : $report->at->getFirstToken();
+			return $token === null ? null : $this->opened[$token] ?? null;
+		}
+
 		if ($report->gap !== null && isset($this->opened[$report->gap])) {
 			return $this->opened[$report->gap];
 		}
