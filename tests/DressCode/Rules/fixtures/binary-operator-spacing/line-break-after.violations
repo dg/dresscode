@@ -1,0 +1,5 @@
+2: No line break after the === operator
+6: No line break after the <=> operator
+8: No line break after the | operator
+10: No line break after the << operator
+14: No line break after the !== operator

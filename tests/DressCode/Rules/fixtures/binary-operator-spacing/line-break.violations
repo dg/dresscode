@@ -1,0 +1,7 @@
+3: No line break before the = operator
+5: No line break before the .= operator
+10: No line break before the double arrow
+13: No line break before the double arrow
+16: No line break before the instanceof keyword
+17: No line break after the instanceof keyword
+20: No line break before the = operator

@@ -1,0 +1,5 @@
+<?php
+// {"alignment": "keep"}
+$a  =  1;
+$c	=	3;
+$d = 4;

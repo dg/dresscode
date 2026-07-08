@@ -1,0 +1,149 @@
+<?php declare(strict_types=1);
+
+namespace DressCode\Rules\Expressions;
+
+use DressCode\Claim;
+use DressCode\ConfigurableRule;
+use DressCode\Gap;
+use DressCode\GapRule;
+use DressCode\Line;
+use DressCode\RuleInfo;
+use DressCode\Stage;
+use DressCode\Style;
+use Nette\Schema\Expect;
+use Nette\Schema\Schema;
+use PhpSyntax\Indentation;
+use PhpSyntax\Nodes\ArrayItemNode;
+use PhpSyntax\Nodes\DeclareItemNode;
+use PhpSyntax\Nodes\Expression\AssignmentNode;
+use PhpSyntax\Nodes\Expression\BinaryOpNode;
+use PhpSyntax\Nodes\Expression\CombinedAssignmentNode;
+use PhpSyntax\Nodes\Expression\InstanceofNode;
+use PhpSyntax\Nodes\Expression\YieldNode;
+use PhpSyntax\Nodes\MatchArmNode;
+use PhpSyntax\Nodes\Statement\ForeachNode;
+use PhpSyntax\Token;
+
+
+/**
+ * Spaces around binary operators, assignments, `instanceof`, `=>` and the `=` of a default or a constant:
+ * one on each side, unless the operator sits at a line break. An assignment, `=` and the `=>` of an array item,
+ * a match arm, a yield or a foreach stay on the line of what is before them unless that spans several lines or
+ * the line would grow wider than the line length of the style, what follows them may begin below, and
+ * `instanceof` stays on the line of both its operands. What follows a comparison, a bitwise operator or a shift
+ * stays on the line of the operator, unless the line would grow wider than the line length. Whitespace wider
+ * than a space aligns a column of assignments or of array items, and the option says which of it stays: the one
+ * made of spaces, the one made of tabs, either, or none. Concatenation has a rule of its own.
+ */
+#[RuleInfo(
+	'dresscode/binary-operator-spacing',
+	Stage::Formatting,
+	description: 'Puts spaces around binary operators',
+)]
+final class BinaryOperatorSpacingRule extends GapRule implements ConfigurableRule
+{
+	private const JoinedOperators = ['==', '!=', '<>', '===', '!==', '<', '<=', '>', '>=', '<=>', '&', '|', '^', '<<', '>>'];
+
+	private Claim $claim;
+	private Claim $joined;
+
+
+	public static function getOptionsSchema(): Schema
+	{
+		return Expect::structure([
+			'alignment' => Expect::anyOf('none', 'spaces', 'tabs', 'keep')->default('spaces')
+				->description('Which alignment around an operator stays: none collapses it to a single space, spaces and tabs keep the one written with them, keep keeps any'),
+		]);
+	}
+
+
+	public function configure(array $options): void
+	{
+		$this->claim = match ($options['alignment']) {
+			'none' => Claim::single(),
+			'spaces' => Claim::atLeastSingle(),
+			'tabs' => Claim::singleOrTabs(),
+			default => Claim::atLeastSingleOrTabs(),
+		};
+		$this->joined = new Claim($this->claim->space, line: Line::Same);
+	}
+
+
+	public function getClaims(): array
+	{
+		$operator = fn(Gap $gap): ?Claim => $gap->token->text === '.' ? null : $this->claim; // dresscode/concat-spacing
+		$assignment = [$this->claimBeforeAssignment(...), $this->claim];
+		$arrow = ['doubleArrow' => $assignment];
+		// the equals of declare(strict_types=1) is dresscode/declare-spacing's
+		$declared = fn(Gap $gap) => $gap->token->parent instanceof DeclareItemNode;
+		return [
+			BinaryOpNode::class => ['operator' => [$operator, $this->claimAfterOperator(...)]],
+			AssignmentNode::class => ['operator' => $assignment],
+			CombinedAssignmentNode::class => ['operator' => $assignment],
+			InstanceofNode::class => ['instanceofKeyword' => [$this->joined, $this->joined]],
+			ArrayItemNode::class => $arrow,
+			MatchArmNode::class => $arrow,
+			YieldNode::class => $arrow,
+			ForeachNode::class => $arrow,
+			// the double arrow of a short closure or of a hook may begin a line of its own
+			'*' => ['doubleArrow' => [$this->claim, $this->claim], 'equals' => [
+				fn(Gap $gap): ?Claim => $declared($gap) ? null : $this->claimBeforeAssignment($gap),
+				fn(Gap $gap): ?Claim => $declared($gap) ? null : $this->claim,
+			]],
+		];
+	}
+
+
+	/**
+	 * What follows a comparison, a bitwise operator or a shift stays on its line, unless a comment stands between
+	 * them or the joined line would be wider than the line length.
+	 */
+	private function claimAfterOperator(Gap $gap): ?Claim
+	{
+		$token = $gap->token;
+		$next = $token->getNext();
+		return match (true) {
+			$token->text === '.' => null, // dresscode/concat-spacing
+			$next === null || !$token->is(...self::JoinedOperators) || $token->hasCommentUpTo($next) => $this->claim,
+			$next->startsLine() && self::isJoinedLineTooWide($gap->style, $token, $next) => $this->claim,
+			default => $this->joined,
+		};
+	}
+
+
+	/**
+	 * The operator joins the line of what is before it, unless that spans several lines itself, as the conditions
+	 * of a match arm may, or the joined line would be wider than the line length.
+	 */
+	private function claimBeforeAssignment(Gap $gap): Claim
+	{
+		$token = $gap->token;
+		$previous = $token->getPrevious();
+		if ($previous === null || !$token->startsLine()) {
+			return $this->joined;
+		}
+
+		$first = $token->parent?->getFirstToken();
+		if ($first !== null && $first->getLine() !== $previous->getLine()) {
+			return $this->claim;
+		}
+
+		return self::isJoinedLineTooWide($gap->style, $previous, $token) ? $this->claim : $this->joined;
+	}
+
+
+	/**
+	 * Whether the line of the second token, joined to the line of the first one with a space between them, would
+	 * be wider than the line length of the style.
+	 */
+	private static function isJoinedLineTooWide(Style $style, Token $first, Token $second): bool
+	{
+		if ($style->lineLength === null) {
+			return false;
+		}
+
+		$phpSyntax = $style->toPhpSyntax();
+		$rest = $second->getLineWidth($phpSyntax) - Indentation::advance(0, $second->getIndentation(), $phpSyntax);
+		return $first->getLineWidth($phpSyntax) + 1 + $rest > $style->lineLength;
+	}
+}
