@@ -35,6 +35,7 @@ final class RuleRegistry
 		Rules\Comments\NoEmptyCommentRule::class,
 		Rules\Comments\NoHashCommentRule::class,
 		Rules\ControlFlow\ElseifKeywordRule::class,
+		Rules\ControlFlow\MultiLineConditionRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\Files\NoBomRule::class,
