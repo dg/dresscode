@@ -58,6 +58,16 @@ test('two rules may govern one operator when each abstains where the other decid
 });
 
 
+test('the whitespace of a string, of a comment and of a line ending is not a gap', function () {
+	[$output, $violations] = apply([
+		PresetResolver::createRule(Rules\Whitespace\ParenthesesSpacingRule::class),
+		PresetResolver::createRule(Rules\Expressions\ObjectOperatorSpacingRule::class),
+	], "<?php\nfoo( \"{\$a -> b}\" );\nfoo( // c\n\t\$a\n);\n\$x ?>\n<b> ?> </b>\n");
+	Assert::same("<?php\nfoo(\"{\$a -> b}\");\nfoo( // c\n\t\$a\n);\n\$x ?>\n<b> ?> </b>\n", $output);
+	Assert::count(2, $violations);
+});
+
+
 /**
  * A rule made of claims alone, for the tests of the components; the name tells two of them apart.
  * @param array<string, array<string, array{mixed, mixed}>> $gaps
