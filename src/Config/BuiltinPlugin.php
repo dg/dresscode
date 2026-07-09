@@ -72,6 +72,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\SymbolicLogicalOperatorsRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
 				Rules\Expressions\MultilineTernaryRule::class,
+				Rules\Expressions\ShortTernaryForRepeatedConditionRule::class,
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
 				Rules\Expressions\UselessTernaryOperatorRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
