@@ -39,6 +39,7 @@ final class RuleRegistry
 		Rules\ControlFlow\ElseifKeywordRule::class,
 		Rules\ControlFlow\MultiLineConditionRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
+		Rules\ControlFlow\UselessConstructParenthesesRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\Files\NoBomRule::class,
 		Rules\Files\NoInvisibleCharactersRule::class,
