@@ -1,0 +1,9 @@
+<?php
+$a = !!$b;
+$c = !!!$d;
+if (!!getValue()) {
+}
+$e = !$f;
+$g = ! ! $h;
+$i = !/* c */!$j;
+$z = !!$a instanceof B;
