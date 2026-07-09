@@ -9,8 +9,8 @@ namespace DressCode\Rules;
 
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Claim, Gap, Line};
-use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ElseifNode, Expression, Statement};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{ElseifNode, Expression, ExpressionNode, Scalar, Statement};
 use function strlen;
 
 
@@ -82,6 +82,46 @@ final class NodeHelpers
 		return ($open->getTrailingSpace() === null && !$open->hasComment())
 			|| $close->startsLine()
 			|| array_any($items, fn(Node $item) => $item->getFirstToken()?->startsLine() === true);
+	}
+
+
+	/**
+	 * The negation of the expression as a new detached node with empty trivia on its edges: an equality flips
+	 * its operator, `!` is dropped, true and false swap, what binds tightly enough gets `!`, anything else `!(...)`.
+	 * An ordering is not flipped, because against NAN both `<` and `>=` are false.
+	 */
+	public static function negate(ExpressionNode $expression): ExpressionNode
+	{
+		if ($expression instanceof Expression\BinaryOpNode && ($operator = self::negateComparison($expression->operator))) {
+			$copy = $expression->withoutEdgeTrivia();
+			$copy->operator = $operator;
+			return $copy;
+		} elseif ($expression instanceof Expression\UnaryOpNode && $expression->operator->is('!')) {
+			$inner = $expression->expression instanceof Expression\ParenthesizedNode ? $expression->expression->expression : $expression->expression;
+			return $inner->withoutEdgeTrivia();
+		} elseif ($expression instanceof Scalar\BooleanNode) {
+			return (new Builder)->value(!$expression->toValue());
+		}
+
+		return (new Builder)->unary('!', $expression);
+	}
+
+
+	/** The operator of the opposite equality with the trivia of the given one, null for other operators. */
+	private static function negateComparison(Token $operator): ?Token
+	{
+		$text = match (true) {
+			$operator->is(Token::IsEqual) => '!=',
+			$operator->is(Token::IsNotEqual) => '==',
+			$operator->is(Token::IsIdentical) => '!==',
+			$operator->is(Token::IsNotIdentical) => '===',
+			default => null,
+		};
+		return $text === null
+			? null
+			: Token::fromText($text)
+				->setLeadingTrivia($operator->leadingTrivia)
+				->setTrailingTrivia($operator->trailingTrivia);
 	}
 
 
