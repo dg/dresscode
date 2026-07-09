@@ -1,0 +1,11 @@
+2: Useless ternary operator, because the condition itself is the result.
+3: Useless ternary operator, because the condition itself is the result.
+4: Useless ternary operator, but the condition may not be a boolean.
+6: Useless ternary operator, because the condition itself is the result.
+7: Useless ternary operator, because the condition itself is the result.
+8: Useless ternary operator, because the condition itself is the result.
+11: Useless ternary operator, because the condition itself is the result.
+13: Useless ternary operator, because the condition itself is the result.
+14: Useless ternary operator, because the condition itself is the result.
+15: Useless ternary operator, but the condition may not be a boolean.
+16: Useless ternary operator, because the condition itself is the result.
