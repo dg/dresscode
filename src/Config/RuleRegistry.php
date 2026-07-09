@@ -62,6 +62,7 @@ final class RuleRegistry
 		Rules\Expressions\MultiLineChainRule::class,
 		Rules\Expressions\ReferenceSpacingRule::class,
 		Rules\Expressions\SpreadOperatorSpacingRule::class,
+		Rules\Expressions\SymbolicLogicalOperatorsRule::class,
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\MultiLineTernaryRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
