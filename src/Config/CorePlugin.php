@@ -54,6 +54,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
 				Rules\Expressions\OffsetBracketSpacingRule::class,
 				Rules\Expressions\ReferenceSpacingRule::class,
+				Rules\Expressions\ShortTernaryForRepeatedConditionRule::class,
 				Rules\Expressions\SpreadOperatorSpacingRule::class,
 				Rules\Expressions\NoLooseComparisonsRule::class,
 				Rules\Expressions\LogicalOperatorNotationRule::class,
