@@ -1,0 +1,14 @@
+2: No line break after the function keyword
+5: No line break after the return keyword
+7: No line break after the throw keyword
+9: No line break after the yield keyword
+11: No line break after the echo keyword
+13: No line break after the require keyword
+15: No line break after the new keyword
+23: No line break after the abstract keyword
+26: No line break after the public keyword
+27: No line break after the function keyword
+54: No line break after the const keyword
+56: No line break after the global keyword
+58: No line break after the yield from operator
+68: No line break after the use keyword
