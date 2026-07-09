@@ -73,6 +73,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
 				Rules\Expressions\MultilineTernaryRule::class,
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
+				Rules\Expressions\UselessTernaryOperatorRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Literals\HeredocIndentationRule::class,
 				Rules\Literals\MagicConstantCasingRule::class,
