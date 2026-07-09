@@ -60,6 +60,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\ConcatSpacingRule::class,
 				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\ExplicitOperatorPrecedenceRule::class,
+				Rules\Expressions\NoShortBoolCastsRule::class,
 				Rules\Expressions\YodaRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
