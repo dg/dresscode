@@ -1,0 +1,9 @@
+<?php
+$a = (bool) $b;
+$c = (bool) !$d;
+if ((bool) getValue()) {
+}
+$e = !$f;
+$g = (bool) $h;
+$i = !/* c */!$j;
+$z = (bool) ($a instanceof B);

@@ -49,6 +49,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\IncrementForAddOneRule::class,
 				Rules\Expressions\MultilineChainRule::class,
 				Rules\Expressions\MultilineTernaryRule::class,
+				Rules\Expressions\NoDoubleNegationsRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
 				Rules\Expressions\OffsetBracketSpacingRule::class,
