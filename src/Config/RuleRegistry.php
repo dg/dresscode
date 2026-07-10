@@ -18,6 +18,7 @@ use DressCode\Rules;
 final class RuleRegistry
 {
 	private const BuiltinRules = [
+		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\EofNewlineRule::class,
 	];
 
