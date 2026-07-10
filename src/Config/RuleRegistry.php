@@ -8,6 +8,7 @@ use DressCode\PresetInfo;
 use DressCode\Presets;
 use DressCode\Rule;
 use DressCode\RuleInfo;
+use DressCode\Rules;
 
 
 /**
@@ -16,6 +17,10 @@ use DressCode\RuleInfo;
  */
 final class RuleRegistry
 {
+	private const BuiltinRules = [
+		Rules\Files\EofNewlineRule::class,
+	];
+
 	/** @var array<string, class-string<Rule>>  name → class */
 	private array $rules = [];
 
@@ -29,6 +34,9 @@ final class RuleRegistry
 	public function __construct()
 	{
 		$this->registerPreset(Presets\Per::class);
+		foreach (self::BuiltinRules as $class) {
+			$this->registerRule($class);
+		}
 	}
 
 
