@@ -1,0 +1,5 @@
+4: The cast `(VOID)` must be written `(void)`.
+5: The cast `(Void)` must be written `(void)`.
+6: The cast `(binary)` must be written `(string)`.
+7: The cast `(BINARY)` must be written `(string)`.
+8: The cast `(binary)` must be written `(string)`.

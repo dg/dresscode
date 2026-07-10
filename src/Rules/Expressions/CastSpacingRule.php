@@ -13,7 +13,8 @@ use PhpSyntax\Nodes\Expression\CastNode;
 
 
 /**
- * A single space, or none, between a cast and its operand, which stays on the line of the cast.
+ * A single space, or none, between a cast and its operand, which stays on the line of the cast. The spelling
+ * of the cast itself is the matter of `CastCanonicalTypeRule`.
  */
 #[RuleInfo(Stage::Formatting)]
 final class CastSpacingRule extends GapRule

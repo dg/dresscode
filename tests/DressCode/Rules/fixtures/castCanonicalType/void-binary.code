@@ -1,0 +1,10 @@
+<?php
+// php 8.5
+(void) foo();
+(VOID) foo();
+(Void)foo();
+$a = (binary) $b;
+$a = (BINARY) $b;
+$a = (binary)$b;
+$a = (string) $b;
+$a = b"x";

@@ -1,0 +1,4 @@
+2: The cast `(INT)` must be written `(int)`.
+3: The cast `(integer)` must be written `(int)`.
+4: The cast `( bool )` must be written `(bool)`.
+5: The cast `(Double)` must be written `(float)`.
