@@ -51,6 +51,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\MultilineTernaryRule::class,
 				Rules\Expressions\NoDoubleNegationsRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
+				Rules\Expressions\NullCoalescingForNullTernaryRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
 				Rules\Expressions\OffsetBracketSpacingRule::class,
 				Rules\Expressions\ReferenceSpacingRule::class,
