@@ -71,7 +71,9 @@ final class FileProcessor
 			try {
 				$file = $this->parser->parse($text);
 			} catch (ParseException $e) {
-				return new FileResult($path, $code, output: null, error: $e->getMessage(), errorLine: $e->originalLine);
+				return $round === 0
+					? new FileResult($path, $code, output: null, error: $e->getMessage(), errorLine: $e->originalLine)
+					: new FileResult($path, $code, output: null, failure: "The fixed code no longer parses: {$e->getMessage()} on line $e->originalLine.");
 			}
 
 			$runner = new PassRunner($rules ?? $this->rules, $this->analyses, $this->resolveAlias, $this->maxPasses, $this->strict);

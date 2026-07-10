@@ -19,6 +19,7 @@ final class FileResult
 	 * @param list<Violation> $violations
 	 * @param list<string> $warnings
 	 * @param ?string $error  syntax error that prevented processing
+	 * @param ?string $failure  a rule failed or the rules did not converge; the result was thrown away
 	 */
 	public function __construct(
 		public readonly string $path,
@@ -29,6 +30,7 @@ final class FileResult
 		public readonly ?string $error = null,
 		public readonly ?int $errorLine = null,
 		public readonly int $passes = 0,
+		public readonly ?string $failure = null,
 	) {
 	}
 

@@ -23,13 +23,14 @@ function results(): array
 			new Violation('test/report', 'Variable "b" & <c>', 2, null, Severity::Warning, fixable: false, followUp: true, fingerprint: 'f2'),
 		], ['Rule test/x mutated the file without reporting a violation.']),
 		new FileResult('src/broken.php', "<?php\n\$a = ;\n", null, error: "Syntax error, unexpected ';'", errorLine: 2),
+		new FileResult('src/fail.php', "<?php\n", null, failure: 'Rule test/x failed in src/fail.php: boom'),
 	];
 }
 
 
 function output(Reporter $reporter, bool $fix): void
 {
-	$reporter->start(3, $fix);
+	$reporter->start(4, $fix);
 	$results = results();
 	foreach ($results as $result) {
 		$reporter->reportFile($result);
@@ -66,7 +67,10 @@ test('console: check', function () {
 		src/broken.php
 		  2       error    Syntax error, unexpected ';'
 
-		Found 2 violations (1 fixable) in 3 files, 1 file with syntax errors.
+		src/fail.php
+		          failure  Rule test/x failed in src/fail.php: boom
+
+		Found 2 violations (1 fixable) in 4 files, 1 file with syntax errors, 1 file failed.
 
 		XX, capture(fn($s) => new ConsoleReporter($s), fix: false));
 });
@@ -88,7 +92,10 @@ test('console: fix with diff', function () {
 		src/broken.php
 		  2       error    Syntax error, unexpected ';'
 
-		Fixed 1 violation in 1 file, 1 violation remains, 1 file with syntax errors.
+		src/fail.php
+		          failure  Rule test/x failed in src/fail.php: boom
+
+		Fixed 1 violation in 1 file, 1 violation remains, 1 file with syntax errors, 1 file failed.
 
 		XX, capture(fn($s) => new ConsoleReporter($s, diff: true), fix: true));
 });
@@ -138,6 +145,7 @@ test('json', function () {
 		                "Rule test/x mutated the file without reporting a violation."
 		            ],
 		            "error": null,
+		            "failure": null,
 		            "changed": true,
 		            "written": false
 		        },
@@ -149,16 +157,27 @@ test('json', function () {
 		                "message": "Syntax error, unexpected ';'",
 		                "line": 2
 		            },
+		            "failure": null,
+		            "changed": false,
+		            "written": false
+		        },
+		        {
+		            "path": "src/fail.php",
+		            "violations": [],
+		            "warnings": [],
+		            "error": null,
+		            "failure": "Rule test/x failed in src/fail.php: boom",
 		            "changed": false,
 		            "written": false
 		        }
 		    ],
 		    "summary": {
-		        "files": 3,
+		        "files": 4,
 		        "violations": 2,
 		        "fixable": 1,
 		        "changedFiles": 1,
-		        "errors": 1
+		        "errors": 1,
+		        "failures": 1
 		    }
 		}
 
@@ -176,6 +195,9 @@ test('checkstyle', function () {
 		  </file>
 		  <file name="src/broken.php">
 		    <error line="2" severity="error" message="Syntax error, unexpected &apos;;&apos;" source="syntax"/>
+		  </file>
+		  <file name="src/fail.php">
+		    <error line="1" severity="error" message="Rule test/x failed in src/fail.php: boom" source="dresscode"/>
 		  </file>
 		</checkstyle>
 

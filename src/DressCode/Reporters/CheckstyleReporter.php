@@ -32,11 +32,15 @@ final class CheckstyleReporter implements Reporter
 
 	public function reportFile(FileResult $result): void
 	{
-		if (!$result->violations && $result->error === null) {
+		if (!$result->violations && $result->error === null && $result->failure === null) {
 			return;
 		}
 
 		$xml = sprintf("  <file name=\"%s\">\n", self::escape($result->path));
+		if ($result->failure !== null) {
+			$xml .= sprintf("    <error line=\"1\" severity=\"error\" message=\"%s\" source=\"dresscode\"/>\n", self::escape($result->failure));
+		}
+
 		if ($result->error !== null) {
 			$xml .= sprintf(
 				"    <error line=\"%d\" severity=\"error\" message=\"%s\" source=\"syntax\"/>\n",

@@ -53,12 +53,17 @@ final class ConsoleReporter implements Reporter
 		    !$result->violations
 		    && !$result->warnings
 		    && $result->error === null
+		    && $result->failure === null
 		    && !$result->isChanged()
 		) {
 			return;
 		}
 
 		$this->write($this->console->color('white', $result->path) . "\n");
+		if ($result->failure !== null) {
+			$this->write('          ' . $this->console->color('red', 'failure') . "  $result->failure\n");
+		}
+
 		if ($result->error !== null) {
 			$this->write(sprintf("  %-7s %s    %s\n", $result->errorLine ?? '', $this->console->color('red', 'error'), $result->error));
 		}
@@ -117,6 +122,10 @@ final class ConsoleReporter implements Reporter
 
 		if ($errors) {
 			$line .= sprintf(', %s with syntax errors', self::plural($errors, 'file'));
+		}
+
+		if ($failures = $result->countFailures()) {
+			$line .= sprintf(', %s failed', self::plural($failures, 'file'));
 		}
 
 		$this->write($this->console->color($result->getExitCode() === 0 ? 'green' : 'red', "$line.") . "\n");
