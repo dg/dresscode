@@ -1,0 +1,5 @@
+4: The if-else picking one of two values must be written as a ternary.
+	risky BehaviorChanges: the ternary evaluates the target before the condition, which may change it
+9: The if-else picking one of two values must be written as a ternary.
+	risky BehaviorChanges: the ternary evaluates the target before the condition, which may change it
+14: The if-else picking one of two values must be written as a ternary.
