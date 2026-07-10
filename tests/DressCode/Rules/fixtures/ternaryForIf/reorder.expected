@@ -1,0 +1,8 @@
+<?php
+// risky
+function reorder($o, $a, $c) {
+	$a[$o->i] = $o->next() ? 1 : 2;
+	$c::$x = ($c = $o->pick()) !== null ? 1 : 2;
+	Acme::$$c = $o->next() ? 1 : 2;
+	return $a;
+}

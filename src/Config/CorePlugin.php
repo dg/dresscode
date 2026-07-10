@@ -39,6 +39,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\ControlFlow\SwitchCaseSpacingRule::class,
+				Rules\ControlFlow\TernaryForIfRule::class,
 				Rules\ControlFlow\UselessParenthesesAfterConstructRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
 				Rules\Expressions\CastSpacingRule::class,
