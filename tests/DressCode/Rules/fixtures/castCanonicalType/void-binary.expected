@@ -1,0 +1,10 @@
+<?php
+// php 8.5
+(void) foo();
+(void) foo();
+(void)foo();
+$a = (string) $b;
+$a = (string) $b;
+$a = (string)$b;
+$a = (string) $b;
+$a = b"x";
