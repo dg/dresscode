@@ -1,0 +1,6 @@
+2: Useless parentheses around `new`, because PHP 8.4 reaches a member without them.
+3: Useless parentheses around `new`, because PHP 8.4 reaches a member without them.
+5: Useless parentheses around `new`, because PHP 8.4 reaches a member without them.
+6: Useless parentheses around `new`, because PHP 8.4 reaches a member without them.
+16: Useless parentheses around `new`, because PHP 8.4 reaches a member without them.
+17: Useless parentheses around `new`, because PHP 8.4 reaches a member without them.
