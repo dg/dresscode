@@ -46,7 +46,7 @@ final class Engine
 		$reporter->start(count($files), $fix);
 		$results = [];
 		foreach ($files as $path) {
-			$absolute = $this->root . '/' . $path;
+			$absolute = $this->toAbsolute($path);
 			$code = @file_get_contents($absolute); // @ - reported as exception
 			if ($code === false) {
 				throw new \RuntimeException("Cannot read file $path.");
@@ -108,7 +108,7 @@ final class Engine
 		$files = [];
 		foreach ($paths as $path) {
 			$path = $this->relativize($path);
-			$absolute = $path === '' ? $this->root : $this->root . '/' . $path;
+			$absolute = $this->toAbsolute($path);
 			if (is_file($absolute)) {
 				$files[$path] = true;
 			} elseif (is_dir($absolute)) {
@@ -129,6 +129,19 @@ final class Engine
 		$files = array_keys($files);
 		sort($files, SORT_STRING);
 		return $files;
+	}
+
+
+	/**
+	 * A path outside the root stays absolute, a relative one is under the root.
+	 */
+	private function toAbsolute(string $path): string
+	{
+		return match (true) {
+			$path === '' => $this->root,
+			(bool) preg_match('~^(?:[A-Za-z]:)?/~', $path) => $path,
+			default => $this->root . '/' . $path,
+		};
 	}
 
 

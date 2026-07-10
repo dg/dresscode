@@ -123,6 +123,8 @@ test('files are found under the paths, sorted, relative, with slashes, without t
 	Assert::same(['src/sub/d.php', 'vendor/f.php'], $engine->findFiles(['./src/sub', 'vendor/f.php']));
 	Assert::same(['src/c.phpt', 'src/fixtures/e.php'], engine($root, skip: [], fileExtensions: ['php', 'phpt'])->findFiles(['src/c.phpt', 'src/fixtures']));
 	Assert::exception(fn() => $engine->findFiles(['missing']), RuntimeException::class, 'Path missing does not exist.');
+	$outside = str_replace('\\', '/', (string) realpath(__DIR__ . '/Config/fixtures/project/src'));
+	Assert::same(["$outside/sub/file.php"], engine($root, skip: [])->findFiles([$outside]));
 });
 
 
