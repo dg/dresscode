@@ -133,6 +133,19 @@ final class Config
 	}
 
 
+	/**
+	 * Adds to the skip list, the default one included.
+	 * @param array<int|string, string|list<string>> $skip  pattern, or rule name → patterns
+	 */
+	public function addSkip(array $skip): static
+	{
+		$current = $this->getSkip();
+		$this->skip($skip);
+		$this->skip = [...$current, ...$this->skip ?? []];
+		return $this;
+	}
+
+
 	/** @param list<string> $extensions */
 	public function fileExtensions(array $extensions): static
 	{

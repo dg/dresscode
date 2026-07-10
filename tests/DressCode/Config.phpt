@@ -54,6 +54,16 @@ test('fluent setters', function () {
 });
 
 
+test('addSkip keeps the default and earlier patterns', function () {
+	$config = Config::create()->addSkip(['build', 'x/y' => ['legacy']]);
+	Assert::same(['vendor', 'temp', 'fixtures*', 'build'], $config->getSkip());
+	Assert::same(['x/y' => ['legacy']], $config->getRuleSkip());
+	$config->skip(['dist'])->addSkip(['out', 'x/y' => ['old']]);
+	Assert::same(['dist', 'out'], $config->getSkip());
+	Assert::same(['x/y' => ['legacy', 'old']], $config->getRuleSkip());
+});
+
+
 test('validation', function () {
 	Assert::exception(fn() => Config::create()->style(eol: 'crlf')->getEol(), ConfigurationException::class);
 	Assert::exception(fn() => Config::create()->phpVersion('eight'), InvalidArgumentException::class);

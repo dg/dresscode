@@ -8,6 +8,7 @@ use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\PhpVersion;
 use PhpSyntax\Style;
 use PhpSyntax\Token;
+use PhpSyntax\Trivia;
 
 
 /**
@@ -15,7 +16,7 @@ use PhpSyntax\Token;
  */
 final class RuleContext
 {
-	/** @var list<array{Node|Token, string, Severity, int}>  reports of the current callback with the revision at the time */
+	/** @var list<array{Node|Token, ?Trivia, string, Severity, int}>  reports of the current callback with the revision at the time */
 	private array $reports = [];
 
 	private RuleStorage $storage;
@@ -60,18 +61,23 @@ final class RuleContext
 
 
 	/**
-	 * Reports a violation at the node; returns false when it is suppressed by a comment, and then the rule
-	 * must not fix it.
+	 * Reports a violation at the node, or at one of the trivia of the token when the problem lies in whitespace
+	 * or a comment; returns false when it is suppressed by a comment, and then the rule must not fix it.
 	 */
-	public function report(Node|Token $at, string $message, Severity $severity = Severity::Error): bool
+	public function report(
+		Node|Token $at,
+		string $message,
+		Severity $severity = Severity::Error,
+		?Trivia $trivia = null,
+	): bool
 	{
-		$line = self::findOriginalLine($at);
+		$line = self::findOriginalLine($at, $trivia);
 		if ($line !== null && $this->suppression->isSuppressed($this->ruleName, $line)) {
-			$this->reports[] = [$at, $message, $severity, -1];
+			$this->reports[] = [$at, $trivia, $message, $severity, -1];
 			return false;
 		}
 
-		$this->reports[] = [$at, $message, $severity, $this->file->revision];
+		$this->reports[] = [$at, $trivia, $message, $severity, $this->file->revision];
 		return true;
 	}
 
@@ -102,7 +108,7 @@ final class RuleContext
 
 	/**
 	 * Takes the reports made since the last call; revision -1 marks a suppressed one.
-	 * @return list<array{Node|Token, string, Severity, int}>
+	 * @return list<array{Node|Token, ?Trivia, string, Severity, int}>
 	 * @internal
 	 */
 	public function takeReports(): array
@@ -114,11 +120,15 @@ final class RuleContext
 
 
 	/**
-	 * Line of the node in the original file: its first token with an original position, or the nearest
-	 * original token before a synthetic one.
+	 * Line in the original file: of the trivia when it comes from the file, otherwise of the first token
+	 * of the node with an original position, or the nearest original token before a synthetic one.
 	 */
-	public static function findOriginalLine(Node|Token $at): ?int
+	public static function findOriginalLine(Node|Token $at, ?Trivia $trivia = null): ?int
 	{
+		if ($trivia?->originalLine !== null) {
+			return $trivia->originalLine;
+		}
+
 		$token = $at instanceof Token ? $at : $at->getFirstToken();
 		while ($token && $token->originalLine === null) {
 			$token = $token->getPrevious();

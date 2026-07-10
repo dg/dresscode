@@ -13,6 +13,8 @@ final readonly class Trivia
 		public string $text,
 		/** inside string interpolation, where whitespace is part of the string value */
 		public bool $inInterpolation = false,
+		/** line in the original file; null for trivia created by a mutation */
+		public ?int $originalLine = null,
 	) {
 	}
 

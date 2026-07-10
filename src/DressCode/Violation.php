@@ -22,13 +22,23 @@ final readonly class Violation
 	}
 
 
+	/** @param string $lineContent  normalized by normalizeLineContent() */
 	public static function createFingerprint(
-	    string $ruleName,
-	    string $message,
-	    string $lineContent,
-	    int $occurrence,
+		string $ruleName,
+		string $message,
+		string $lineContent,
+		int $occurrence,
 	): string
 	{
-		return hash('xxh3', "$ruleName\n$message\n" . preg_replace('~\s+~', ' ', trim($lineContent)) . "\n$occurrence");
+		return hash('xxh3', "$ruleName\n$message\n$lineContent\n$occurrence");
+	}
+
+
+	/**
+	 * Line content as the fingerprint sees it: trimmed, whitespace collapsed.
+	 */
+	public static function normalizeLineContent(string $content): string
+	{
+		return (string) preg_replace('~\s+~', ' ', trim($content));
 	}
 }

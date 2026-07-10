@@ -252,7 +252,7 @@ final class PassRunner
 	{
 		$after = $this->file->revision;
 		$reported = false;
-		foreach ($context->takeReports() as [$at, $message, $severity, $reportRevision]) {
+		foreach ($context->takeReports() as [$at, $trivia, $message, $severity, $reportRevision]) {
 			if ($reportRevision === -1) {
 				if ($after > $before) {
 					$this->violateContract("Rule $name mutated the file after a suppressed report.");
@@ -262,8 +262,8 @@ final class PassRunner
 			}
 
 			$reported = true;
-			$line = RuleContext::findOriginalLine($at) ?? 1;
-			$content = $this->lines[$line - 1] ?? '';
+			$line = RuleContext::findOriginalLine($at, $trivia) ?? 1;
+			$content = Violation::normalizeLineContent($this->lines[$line - 1] ?? '');
 			$key = "$name\n$message\n$content";
 			$this->occurrences[$key] = ($this->occurrences[$key] ?? 0) + 1;
 			$fingerprint = Violation::createFingerprint($name, $message, $content, $this->occurrences[$key]);
@@ -271,7 +271,7 @@ final class PassRunner
 				$name,
 				$message,
 				$line,
-				self::findOriginalColumn($at),
+				$trivia === null ? self::findOriginalColumn($at) : null,
 				$severity,
 				fixable: $after > $reportRevision,
 				followUp: $reportRevision > 0,

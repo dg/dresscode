@@ -124,9 +124,11 @@ final class Lexer
 			$inInterpolation = $braces !== [];
 
 			if ($kind === TokenKind::Whitespace) {
+				$pieceLine = $token->originalLine;
 				foreach (self::splitWhitespace($token->text) as $piece) {
 					$isEol = $piece[0] === "\n" || $piece[0] === "\r";
-					$trivia = new Trivia($isEol ? TriviaKind::EndOfLine : TriviaKind::Whitespace, $piece, $inInterpolation);
+					$trivia = new Trivia($isEol ? TriviaKind::EndOfLine : TriviaKind::Whitespace, $piece, $inInterpolation, $pieceLine);
+					$pieceLine = $isEol && $pieceLine !== null ? $pieceLine + 1 : $pieceLine;
 					if ($open) {
 						$open->setTrailingTrivia([...$open->trailingTrivia, $trivia]);
 						if ($isEol) {
@@ -143,7 +145,7 @@ final class Lexer
 					throw new ParseException('Unterminated comment', $token->originalLine, $token->originalOffset);
 				}
 
-				$trivia = new Trivia($kind === TokenKind::Comment ? TriviaKind::Comment : TriviaKind::DocComment, $token->text, $inInterpolation);
+				$trivia = new Trivia($kind === TokenKind::Comment ? TriviaKind::Comment : TriviaKind::DocComment, $token->text, $inInterpolation, $token->originalLine);
 				if ($open) {
 					$open->setTrailingTrivia([...$open->trailingTrivia, $trivia]);
 				} else {
@@ -152,7 +154,7 @@ final class Lexer
 				continue;
 
 			} elseif ($kind === TokenKind::OpenTag) {
-				$leading[] = new Trivia(TriviaKind::OpenTag, $token->text);
+				$leading[] = new Trivia(TriviaKind::OpenTag, $token->text, originalLine: $token->originalLine);
 				$open = null;
 				continue;
 
