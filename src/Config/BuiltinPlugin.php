@@ -28,6 +28,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Arrays\TrailingCommaRule::class,
 				Rules\Arrays\MultilineArrayRule::class,
 				Rules\Whitespace\AttributeSpacingRule::class,
+				Rules\Expressions\UselessAttributeParenthesesRule::class,
 				Rules\Whitespace\AttributePositionRule::class,
 				Rules\Whitespace\BracesPositionRule::class,
 				Rules\ControlFlow\ControlStructureBracesRule::class,
