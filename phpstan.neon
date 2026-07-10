@@ -9,6 +9,9 @@ parameters:
 		- tests
 		- tools
 
+	scanDirectories:
+		- tests/fixtures/plugin/src
+
 	excludePaths:
 		analyseAndScan:
 			- tests/*/fixtures/*

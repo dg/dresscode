@@ -10,6 +10,8 @@ use DressCode\PresetContext;
 use DressCode\PresetInfo;
 use DressCode\Rule;
 use DressCode\RuleInfo;
+use Nette\Schema\Elements\ArrayType;
+use Nette\Schema\Elements\Structure;
 use Nette\Schema\Processor;
 use Nette\Schema\ValidationException;
 
@@ -109,8 +111,17 @@ final class PresetResolver
 	 */
 	private static function validateOptions(ConfigurableRule $rule, string $name, array $options): array
 	{
+		$schema = $rule::getOptionsSchema();
+		if ($schema instanceof Structure) { // an option given replaces its default whole, lists are not merged
+			foreach ($schema->getShape() as $item) {
+				if ($item instanceof ArrayType) {
+					$item->mergeDefaults(false);
+				}
+			}
+		}
+
 		try {
-			$normalized = (new Processor)->process($rule::getOptionsSchema(), $options);
+			$normalized = (new Processor)->process($schema, $options);
 		} catch (ValidationException $e) {
 			throw new ConfigurationException("Invalid options of rule $name: " . implode(' ', $e->getMessages()), previous: $e);
 		}

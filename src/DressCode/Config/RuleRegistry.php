@@ -16,6 +16,9 @@ use DressCode\RuleInfo;
  */
 final class RuleRegistry
 {
+	private const BuiltInRules = [
+	];
+
 	/** @var array<string, class-string<Rule>>  name → class */
 	private array $rules = [];
 
@@ -29,6 +32,9 @@ final class RuleRegistry
 	public function __construct()
 	{
 		$this->registerPreset(Presets\Per::class);
+		foreach (self::BuiltInRules as $class) {
+			$this->registerRule($class);
+		}
 	}
 
 

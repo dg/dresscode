@@ -35,5 +35,5 @@ test('analyses are created lazily, cached per file and dropped after a mutation'
 	Assert::notSame($scope, $registry->get($file, Scope::class));
 	Assert::same(2, $created[0]);
 
-	Assert::exception(fn() => $registry->get($file, PhpSyntax\Node::class), InvalidArgumentException::class, 'Analysis PhpSyntax\Node is not registered.');
+	Assert::exception(fn() => $registry->get($file, PhpSyntax\Node::class), Error::class);
 });

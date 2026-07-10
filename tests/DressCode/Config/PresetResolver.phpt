@@ -48,7 +48,7 @@ final class RuleC extends Rule implements ConfigurableRule
 
 	public static function getOptionsSchema(): Schema
 	{
-		return Expect::structure(['max' => Expect::int(3), 'names' => Expect::listOf('string')]);
+		return Expect::structure(['max' => Expect::int(3), 'names' => Expect::listOf('string')->default(['x'])]);
 	}
 
 
@@ -157,7 +157,7 @@ test('parents first, the child overrides whole entries, order of the first menti
 	$rules = resolve(Config::create()->preset(ChildPreset::class), php: '8.2');
 	Assert::same(['test/a', 'test/c'], names($rules));
 	assert($rules[1] instanceof RuleC);
-	Assert::equal(['max' => 5, 'names' => []], $rules[1]->options);
+	Assert::equal(['max' => 5, 'names' => ['x']], $rules[1]->options);
 });
 
 
@@ -166,6 +166,13 @@ test('the configuration overrides the presets', function () {
 	Assert::same(['test/c', 'test/b', 'test/d'], names($rules));
 	assert($rules[2] instanceof RuleD);
 	Assert::same('dep', $rules[2]->dependency);
+});
+
+
+test('a list option replaces its default instead of being merged with it', function () {
+	$rules = resolve(Config::create()->enable(RuleC::class, ['names' => ['y']]));
+	assert($rules[0] instanceof RuleC);
+	Assert::equal(['max' => 3, 'names' => ['y']], $rules[0]->options);
 });
 
 

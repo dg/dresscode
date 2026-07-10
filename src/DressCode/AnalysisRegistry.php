@@ -48,7 +48,11 @@ final class AnalysisRegistry
 			$analyses = [];
 		}
 
-		$analysis = $analyses[$class] ??= ($this->factories[$class] ?? throw new \InvalidArgumentException("Analysis $class is not registered."))($file);
+		if (!isset($this->factories[$class])) {
+			$this->register($class);
+		}
+
+		$analysis = $analyses[$class] ??= $this->factories[$class]($file);
 		$this->cache[$file] = [$file->revision, $analyses];
 		if (!$analysis instanceof $class) {
 			throw new \LogicException("The factory of $class returned " . $analysis::class . '.');
