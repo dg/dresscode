@@ -63,6 +63,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\NoShortBoolCastsRule::class,
 				Rules\Expressions\YodaRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
+				Rules\Expressions\NullCoalescingForNullTernaryRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
 				Rules\Expressions\MultilineChainRule::class,
 				Rules\Expressions\ReferenceSpacingRule::class,
