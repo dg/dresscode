@@ -8,6 +8,7 @@ use DressCode\PresetInfo;
 use DressCode\Presets;
 use DressCode\Rule;
 use DressCode\RuleInfo;
+use DressCode\Rules;
 
 
 /**
@@ -17,6 +18,7 @@ use DressCode\RuleInfo;
 final class RuleRegistry
 {
 	private const BuiltInRules = [
+		Rules\Files\EofNewlineRule::class,
 	];
 
 	/** @var array<string, class-string<Rule>>  name → class */
