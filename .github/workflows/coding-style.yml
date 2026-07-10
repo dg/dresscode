@@ -30,3 +30,17 @@ jobs:
             - run: composer create-project nette/coding-standard temp/coding-standard ^3 --no-progress
             # generated files (ParserData.php, TokenKind.php, Nodes/**) and the parser corpus are excluded from the check
             - run: php temp/coding-standard/ecs check $(git ls-files '*.php' '*.phpt' | grep -v -E '^(src/PhpSyntax/(Nodes/|Parser/ParserData\.php|TokenKind\.php)|tests/PhpSyntax/Parser/corpus/)')
+
+
+    dresscode:
+        name: DressCode (dogfood)
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: 8.3
+                  coverage: none
+
+            - run: composer install --no-progress --prefer-dist
+            - run: php bin/dresscode check
