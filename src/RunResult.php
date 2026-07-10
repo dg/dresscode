@@ -47,13 +47,24 @@ final readonly class RunResult
 	}
 
 
+	/** files whose rules failed */
+	public function countFailures(): int
+	{
+		return count(array_filter($this->files, fn(FileResult $f) => $f->failure !== null));
+	}
+
+
 	/**
 	 * 0 when nothing is left to report, 1 when violations remain (after the fixes, in a fix run) or a file
-	 * could not be parsed.
+	 * could not be parsed, 2 when a rule failed.
 	 */
 	public function getExitCode(): int
 	{
 		$remaining = $this->fix ? $this->countViolations() - $this->countFixable() : $this->countViolations();
-		return $remaining || $this->countErrors() ? 1 : 0;
+		return match (true) {
+			$this->countFailures() > 0 => 2,
+			$remaining > 0 || $this->countErrors() > 0 => 1,
+			default => 0,
+		};
 	}
 }

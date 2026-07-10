@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Analyses;
+use DressCode\Config;
 use DressCode\Engine\FileProcessor;
 use DressCode\FileResult;
 use DressCode\NodeRule;
@@ -40,6 +41,24 @@ final class EngineRename extends NodeRule
 }
 
 
+#[RuleInfo('test/thrower', Stage::Cleanup)]
+final class EngineThrower extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [VariableNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if ($node instanceof VariableNode && $node->name instanceof Token && $node->name->text === '$x') {
+			throw new RuntimeException('boom');
+		}
+	}
+}
+
+
 final class RecordingReporter implements Reporter
 {
 	/** @var list<string> */
@@ -54,7 +73,8 @@ final class RecordingReporter implements Reporter
 
 	public function reportFile(FileResult $result): void
 	{
-		$this->events[] = "file $result->path " . json_encode($result->isChanged()) . ' ' . json_encode($result->written);
+		$this->events[] = "file $result->path " . json_encode($result->isChanged()) . ' ' . json_encode($result->written)
+			. ($result->failure === null ? '' : " failure: $result->failure");
 	}
 
 
@@ -99,9 +119,10 @@ function engine(
 	array $ruleExcludePaths = [],
 	array $fileExtensions = ['php'],
 	?Closure $skipWhen = null,
+	bool $thrower = false,
 ): Runner
 {
-	$processor = new FileProcessor([new EngineRename], new Analyses\Registry, fn(string $name) => [$name], '8.0');
+	$processor = new FileProcessor($thrower ? [new EngineRename, new EngineThrower] : [new EngineRename], new Analyses\Registry, fn(string $name) => [$name], Config::DefaultPhpVersion);
 	return new Runner($processor, $root, $excludePaths, $ruleExcludePaths, $fileExtensions, $skipWhen);
 }
 
@@ -155,6 +176,22 @@ test('fix writes the changed files', function () use ($root) {
 	Assert::same("<?php\n\$b;\n", file_get_contents("$root/src/a.php"));
 	Assert::same("<?php\n\$a;\n", file_get_contents("$root/src/sub/d.php"));
 	Assert::same(0, $result->getExitCode());
+});
+
+
+test('a failing rule fails the file, the run goes on, nothing is written', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+	$reporter = new RecordingReporter;
+	$result = engine($root, thrower: true)->run(['src/a.php', 'src/b.php'], fix: true, reporter: $reporter);
+	Assert::same([
+		'start 2 true',
+		'file src/a.php true true',
+		'file src/b.php false false failure: Rule test/thrower failed in src/b.php: boom',
+		'finish 1',
+	], $reporter->events);
+	Assert::same("<?php\n\$x;\n", file_get_contents("$root/src/b.php"));
+	Assert::same(2, $result->getExitCode());
+	Assert::same(1, $result->countFailures());
 });
 
 

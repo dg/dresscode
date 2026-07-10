@@ -39,8 +39,8 @@ final class Runner
 
 
 	/**
+	 * Processes the files under the paths; a file whose rules fail is reported as a failure and the run goes on.
 	 * @param list<string> $paths  files and directories, absolute or relative to the root
-	 * @throws RuleException|ConvergenceException
 	 */
 	public function run(array $paths, bool $fix, Reporter $reporter): RunResult
 	{
@@ -58,7 +58,13 @@ final class Runner
 				continue;
 			}
 
-			$result = $this->processFile($path, $code);
+			try {
+				$result = $this->processFile($path, $code);
+			} catch (RuleException|ConvergenceException $e) {
+				$detail = $e instanceof ConvergenceException && $e->diff !== '' ? "\n$e->diff" : '';
+				$result = new FileResult($path, $code, output: null, failure: $e->getMessage() . $detail);
+			}
+
 			if ($fix && $result->isChanged()) {
 				if (@file_put_contents($absolute, $result->output) === false) { // @ - reported as exception
 					throw new \RuntimeException("Cannot write file $path.");

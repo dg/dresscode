@@ -40,7 +40,13 @@ final class JsonReporter implements Reporter
 
 	public function reportFile(FileResult $result): void
 	{
-		if (!$result->violations && !$result->warnings && $result->error === null && !$result->isChanged()) {
+		if (
+			!$result->violations
+			&& !$result->warnings
+			&& $result->error === null
+			&& $result->failure === null
+			&& !$result->isChanged()
+		) {
 			return;
 		}
 
@@ -49,6 +55,7 @@ final class JsonReporter implements Reporter
 			'violations' => array_map(self::violation(...), $result->violations),
 			'warnings' => $result->warnings,
 			'error' => $result->error === null ? null : ['message' => $result->error, 'line' => $result->errorLine],
+			'failure' => $result->failure,
 			'changed' => $result->isChanged(),
 			'written' => $result->written,
 		];
@@ -66,6 +73,7 @@ final class JsonReporter implements Reporter
 				'fixable' => $result->countFixable(),
 				'changedFiles' => $result->countChangedFiles(),
 				'errors' => $result->countErrors(),
+				'failures' => $result->countFailures(),
 			],
 		];
 		// the rest of the document, its outer braces stripped, continues the one opened in start()
