@@ -63,6 +63,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\LogicalOperatorNotationRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
+				Rules\Expressions\UselessParenthesesAroundNewRule::class,
 				Rules\Expressions\UselessTernaryOperatorRule::class,
 				Rules\Expressions\YodaRule::class,
 				Rules\Files\DeclareSpacingRule::class,
