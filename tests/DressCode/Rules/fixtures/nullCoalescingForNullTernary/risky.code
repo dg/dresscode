@@ -1,0 +1,8 @@
+<?php
+// risky
+$a = isset($x->y) ? $x->y : 'd';
+$b = null !== $x->y ? $x->y : $d;
+$c = isset($this->$nm) ? $this->$nm : $this->$nm = f('');
+$d = $x?->y !== null ? $x?->y : 'd';
+$e = $o->a['k'] !== null ? $o->a['k'] : 'd';
+$f = $x['k'] !== null ? $x['k'] : 'd';
