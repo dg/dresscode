@@ -25,6 +25,7 @@ final class RuleRegistry
 		Rules\Files\NoClosingTagRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Namespaces\UseFromSameNamespaceRule::class,
+		Rules\Namespaces\UselessAliasRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\ControlFlow\SingleStatementPerLineRule::class,
