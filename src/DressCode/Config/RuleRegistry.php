@@ -26,6 +26,7 @@ final class RuleRegistry
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
+		Rules\ControlFlow\SingleStatementPerLineRule::class,
 		Rules\Files\EofNewlineRule::class,
 	];
 
