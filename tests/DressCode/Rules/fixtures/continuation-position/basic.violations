@@ -1,0 +1,5 @@
+5: The elseif keyword must be on the line of the closing brace
+7: The else keyword must be on the line of the closing brace
+12: The catch keyword must be on the line of the closing brace
+14: The finally keyword must be on the line of the closing brace
+19: The while keyword must be on the line of the closing brace

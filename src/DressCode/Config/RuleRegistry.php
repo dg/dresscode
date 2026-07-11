@@ -18,6 +18,7 @@ use DressCode\Rules;
 final class RuleRegistry
 {
 	private const BuiltInRules = [
+		Rules\ControlFlow\ContinuationPositionRule::class,
 		Rules\Files\NoByteOrderMarkRule::class,
 		Rules\Files\FullOpeningTagRule::class,
 		Rules\Files\LineEndingRule::class,
