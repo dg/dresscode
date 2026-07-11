@@ -19,6 +19,7 @@ final class RuleRegistry
 {
 	private const BuiltInRules = [
 		Rules\Files\FullOpeningTagRule::class,
+		Rules\Files\LineEndingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\Files\EofNewlineRule::class,
