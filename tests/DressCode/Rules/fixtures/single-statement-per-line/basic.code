@@ -1,0 +1,10 @@
+<?php $a = 1; $b = 2;
+function f()
+{
+	x(); y();
+	switch ($a) {
+		case 1: return 1; case 2: return 2;
+	}
+}
+for ($i = 0; $i < 1; $i++) {}
+$c = 1; ?>
