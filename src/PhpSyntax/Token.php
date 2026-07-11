@@ -122,8 +122,10 @@ final class Token implements \Stringable
 			}
 		}
 
-		$before = $this->getPrevious()?->trailingTrivia;
-		return $before === null || ($before && end($before)->isEndOfLine());
+		$previous = $this->getPrevious();
+		$before = $previous?->trailingTrivia;
+		return $previous === null
+			|| ($before ? end($before)->isEndOfLine() : preg_match('~[\r\n]$~', $previous->text) === 1);
 	}
 
 
