@@ -1,0 +1,10 @@
+<?php
+
+namespace Foo\Bar;
+
+use Other\Thing;
+use Foo\Bar\Sub\Deep;
+use Foo\Bar\Aliased as A;
+use function Foo\Bar\f;
+
+class X {}
