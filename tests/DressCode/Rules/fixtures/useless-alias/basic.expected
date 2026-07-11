@@ -1,0 +1,5 @@
+<?php
+use Foo\Bar;
+use Foo\Baz as Qux, A; // c
+use Foo\{X, Y as Z};
+use function Foo\f;
