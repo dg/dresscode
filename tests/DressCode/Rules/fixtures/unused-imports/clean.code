@@ -1,0 +1,3 @@
+<?php
+use Lib\X;
+$a = X::class;

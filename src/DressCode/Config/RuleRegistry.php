@@ -24,6 +24,7 @@ final class RuleRegistry
 		Rules\Files\LineEndingRule::class,
 		Rules\Files\NoClosingTagRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
+		Rules\Namespaces\UnusedImportsRule::class,
 		Rules\Namespaces\UseFromSameNamespaceRule::class,
 		Rules\Namespaces\UselessAliasRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
