@@ -1,0 +1,32 @@
+<?php
+
+namespace App;
+
+use Lib\Used;
+use Lib\Unused;
+use Lib\Sub\Alias as Al, Lib\Gone;
+use Lib\InDoc;
+use Lib\Prefix;
+use Lib\Attr;
+use Lib\Caught;
+use Lib\Typed;
+use Lib\ByString;
+use function Lib\used;
+use function Lib\unused;
+use const Lib\USED;
+use const Lib\UNUSED;
+
+#[Attr]
+class X extends Used
+{
+	/** @var InDoc|null */
+	public $a;
+
+	public function f(Typed $t): al
+	{
+		try {
+			used(Prefix\Deep::class, USED, "ByString");
+		} catch (Caught $e) {
+		}
+	}
+}

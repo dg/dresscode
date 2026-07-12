@@ -1,0 +1,4 @@
+<?php
+// {"searchAnnotations": false}
+/** @var InDoc $x */
+$x = 1;
