@@ -169,6 +169,62 @@ abstract class Node implements \Stringable
 
 
 	/**
+	 * Whether the tokens of both nodes carry the same texts, whatever the whitespace between them.
+	 */
+	public function matches(self $other): bool
+	{
+		return self::collectTexts($this) === self::collectTexts($other);
+	}
+
+
+	/** @return list<string> */
+	private static function collectTexts(self|Token $item): array
+	{
+		if ($item instanceof Token) {
+			return [$item->text];
+		}
+
+		$texts = [];
+		foreach ($item->getChildren() as $child) {
+			foreach (self::collectTexts($child) as $text) {
+				$texts[] = $text;
+			}
+		}
+
+		return $texts;
+	}
+
+
+	/**
+	 * Whether reading the expression again gives the same value with no side effects: variables,
+	 * property, constant and offset fetches and scalars, nothing that runs code. A magic getter
+	 * behind a property fetch is out of sight and does not count.
+	 */
+	public function isRepeatableRead(): bool
+	{
+		foreach ([$this, ...$this->getDescendants()] as $node) {
+			if (
+				!$node instanceof Nodes\Expression\VariableNode
+				&& !$node instanceof Nodes\Expression\ArrayDimFetchNode
+				&& !$node instanceof Nodes\Expression\PropertyFetchNode
+				&& !$node instanceof Nodes\Expression\StaticPropertyFetchNode
+				&& !$node instanceof Nodes\Expression\ClassConstantFetchNode
+				&& !$node instanceof Nodes\Expression\ConstantFetchNode
+				&& !$node instanceof Nodes\NameNode
+				&& !$node instanceof Nodes\IdentifierNode
+				&& !$node instanceof Nodes\Scalar\IntegerNode
+				&& !$node instanceof Nodes\Scalar\FloatNode
+				&& !$node instanceof Nodes\Scalar\StringNode
+			) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	/**
 	 * Replaces this node in its parent; the trivia around the old node stay in place around the new one.
 	 */
 	public function replaceWith(self $node): void

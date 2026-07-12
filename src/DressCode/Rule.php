@@ -14,9 +14,9 @@ use PhpSyntax\Token;
 abstract class Rule
 {
 	/**
-	 * Classes of nodes (or Token::class) the rule wants to visit; instances of subclasses count too.
+	 * Classes or interfaces of nodes (or Token::class) the rule wants to visit; instances of subclasses count too.
 	 * An empty list means the rule works only in beforeFile() and afterFile().
-	 * @return list<class-string<Node>|class-string<Token>>
+	 * @return list<class-string>
 	 */
 	abstract public function getVisitedTypes(): array;
 
