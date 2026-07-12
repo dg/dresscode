@@ -1,0 +1,5 @@
+<h1>Title<?php if ($a) echo 'x' ?></h1>
+<?php if ($b) if ($c) echo 'y' ?>
+<?php
+if ($d) echo 'z';
+?>
