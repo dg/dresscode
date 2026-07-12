@@ -122,7 +122,7 @@ final class RuleTester
 		}
 
 		if ($result->violations && preg_match('~<\?php\b~i', $code)) {
-			$ignored = (string) preg_replace('~<\?php\b.*?(\r?\n|$)~i', '$0// dresscode:ignore-file$1', $code, 1);
+			$ignored = (string) preg_replace('~<\?php(\s)~i', '<?php /* dresscode:ignore-file */$1', $code, 1);
 			[$ignoredFile, $ignoredResult] = self::process($rule, $ignored, $phpVersion, $name);
 			if ($ignoredResult->violations || Printer::print($ignoredFile) !== $ignored) {
 				throw new TestFailure('The rule ignores the dresscode:ignore-file comment: it still reports or changes the file.');
