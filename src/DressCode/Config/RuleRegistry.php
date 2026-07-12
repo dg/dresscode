@@ -19,6 +19,7 @@ final class RuleRegistry
 {
 	private const BuiltInRules = [
 		Rules\ControlFlow\ContinuationPositionRule::class,
+		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\Files\NoByteOrderMarkRule::class,
 		Rules\Files\FullOpeningTagRule::class,
 		Rules\Files\LineEndingRule::class,

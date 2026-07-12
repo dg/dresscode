@@ -1,0 +1,37 @@
+<?php
+if ($a) {
+	x();
+}
+elseif ($b) {
+	y(); // c
+}
+else {
+	z();
+}
+
+function f()
+{
+	while ($a) {
+		foo(
+			1,
+		);
+	}
+	for (;;) {
+		bar(
+			2,
+		);
+	}
+	foreach ($a as $b) {
+		if ($b) {
+			baz();
+		}
+	}
+	do {
+		x();
+	} while ($a);
+	if ($a) {
+	} else if ($b) {
+		x();
+	}
+	while ($a);
+}
