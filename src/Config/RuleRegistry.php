@@ -45,6 +45,7 @@ final class RuleRegistry
 		Rules\Expressions\DoubleColonSpacingRule::class,
 		Rules\Expressions\NotEqualsOperatorRule::class,
 		Rules\Expressions\ObjectOperatorSpacingRule::class,
+		Rules\Expressions\ReferenceSpacingRule::class,
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
