@@ -73,6 +73,7 @@ final class RuleRegistry
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\MultiLineTernaryRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
+		Rules\Expressions\UselessTernaryOperatorRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\Literals\HeredocIndentationRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
