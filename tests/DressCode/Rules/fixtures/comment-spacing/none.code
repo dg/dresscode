@@ -1,0 +1,3 @@
+<?php
+// {"before": "keep"}
+$a = 1;// c
