@@ -44,6 +44,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\ControlFlow\UselessConstructParenthesesRule::class,
+				Rules\ControlFlow\UselessReturnRule::class,
 				Rules\ControlFlow\SwitchCaseSpacingRule::class,
 				Rules\Files\NoBomRule::class,
 				Rules\Files\NoInvisibleCharactersRule::class,

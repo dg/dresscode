@@ -176,6 +176,18 @@ test('a plugin makes its rules known by name, and brings the paths it leaves out
 });
 
 
+test('the page of a rule is where the configuration that names it by class says, or the plugin that brings it', function () use ($fixtures) {
+	$factory = new RunnerFactory;
+	$factory->createRunner(new Config(rules: [ReportContext::class => true], ruleUrl: 'https://wiki.acme.dev/{slug}'), "$fixtures/project");
+	Assert::same('https://wiki.acme.dev/a', $factory->registry->getRuleUrl('test/a'));
+	Assert::same('https://dresscode.run/rules/uselessReturn', $factory->registry->getRuleUrl('dresscode/uselessReturn'));
+
+	$factory = new RunnerFactory;
+	$factory->createRunner(new Config(plugins: [ProjectPlugin::class], ruleUrl: 'https://wiki.acme.dev/{slug}'), "$fixtures/project");
+	Assert::null($factory->registry->getRuleUrl('test/a'));
+});
+
+
 test('plugins takes plugins alone, a rule and a preset are named in their own keys', function () {
 	$create = fn(mixed ...$plugins) => new Config(plugins: array_values($plugins));
 	Assert::exception(
