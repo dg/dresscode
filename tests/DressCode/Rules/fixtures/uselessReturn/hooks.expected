@@ -1,0 +1,10 @@
+<?php
+// php 8.4
+class A
+{
+	public int $x {
+		set {
+			$this->y = $value;
+		}
+	}
+}

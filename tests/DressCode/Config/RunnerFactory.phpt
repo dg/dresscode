@@ -317,6 +317,18 @@ test('a plugin makes the decisions of its rules known, and brings the paths it l
 });
 
 
+test('the page of a rule is where the configuration that names it by class says, or the plugin that brings it', function () use ($fixtures) {
+	$factory = new RunnerFactory;
+	$factory->resolve(new Config(rules: [ReportContext::class], ruleUrl: 'https://wiki.acme.dev/{slug}'), "$fixtures/project");
+	Assert::same('https://wiki.acme.dev/reportContext', $factory->registry->findRuleUrl(ReportContext::class));
+	Assert::same('https://dresscode.run/decisions/functions.trailingBareReturn', $factory->registry->findUrl('functions.trailingBareReturn'));
+
+	$factory = new RunnerFactory;
+	$factory->resolve(new Config(use: [ProjectPlugin::class], ruleUrl: 'https://wiki.acme.dev/{slug}'), "$fixtures/project");
+	Assert::null($factory->registry->findRuleUrl(PluginRule::class));
+});
+
+
 test('use takes presets and plugins, a plugin only in the configuration of the project', function () {
 	Assert::same([ProjectPlugin::class], new Config(use: ['perCs', ProjectPlugin::class])->plugins);
 	Assert::same(['perCs'], new Config(use: ['perCs', ProjectPlugin::class])->use);
