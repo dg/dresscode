@@ -62,6 +62,7 @@ final class RuleRegistry
 		Rules\Whitespace\SemicolonSpacingRule::class,
 		Rules\Whitespace\ParenthesesSpacingRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
+		Rules\ControlFlow\SingleStatementPerLineRule::class,
 		Rules\Files\EofNewlineRule::class,
 		Rules\Whitespace\ConstructSpacingRule::class,
 	];
