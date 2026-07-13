@@ -42,6 +42,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\TernaryForIfRule::class,
 				Rules\ControlFlow\UselessBracesRule::class,
 				Rules\ControlFlow\UselessParenthesesAfterConstructRule::class,
+				Rules\ControlFlow\UselessElseRule::class,
 				Rules\ControlFlow\UselessReturnRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
 				Rules\Expressions\CastCanonicalTypeRule::class,

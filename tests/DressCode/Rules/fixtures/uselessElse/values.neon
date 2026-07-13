@@ -1,0 +1,3 @@
+controlFlow:
+	elseAfterExit: forbidden
+	elseifAfterExit: keep

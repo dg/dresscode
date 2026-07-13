@@ -1,0 +1,39 @@
+<?php
+// {"elseifAfterExit": "forbidden"}
+function f($x)
+{
+	if ($x === 1) {
+		return 1;
+	} // the first case
+	elseif ($x === 2) {
+		foo();
+	}
+	if ($x === 3) {
+		return 3;
+	} elseif /* the other case */ ($x === 4) {
+		foo();
+	}
+	if ($x === 5) {
+		return 5;
+	} elseif ($x === 6 /* six */) {
+		foo();
+	}
+	if ($x === 7) {
+		return 7;
+	}
+	if ($x === 8) { // fixed: the comment stays on the brace
+		foo();
+	}
+	if ($x === 9) {
+		return 9;
+	}
+	if ($x /* ten */ === 10) {
+		foo();
+	}
+	if ($x === 11) {
+		return 11;
+	} elseif /* kept */ ($x === 12) {
+		return 12;
+	}
+		foo();
+}

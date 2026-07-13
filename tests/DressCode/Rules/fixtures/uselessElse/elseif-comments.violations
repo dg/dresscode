@@ -1,0 +1,3 @@
+23: Useless elseif, because the branches before it always leave.
+28: Useless elseif, because the branches before it always leave.
+35: Useless else, because the branches before it always leave.

@@ -1,0 +1,26 @@
+<?php
+function a($x) {
+	if ($x) {
+		return 1;
+	}
+	// why
+		foo();
+		bar(); // end
+		// tail
+	// closing
+	baz();
+}
+function b($x) {
+	if ($x) {
+		return 1;
+	}
+		// only a comment
+	baz();
+}
+function c($x) {
+	if ($x) {
+		return 1;
+	} else /* kept */ {
+		foo();
+	}
+}

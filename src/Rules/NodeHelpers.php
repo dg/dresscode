@@ -10,7 +10,7 @@ namespace DressCode\Rules;
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Claim, Gap, Line};
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\{ElseifNode, Expression, ExpressionNode, Scalar, Statement};
+use PhpSyntax\Nodes\{ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, PlainNodeList, Scalar, Statement, StatementNode};
 use function strlen;
 
 
@@ -41,6 +41,21 @@ final class NodeHelpers
 		}
 
 		return null;
+	}
+
+
+	/**
+	 * Whether the block, an item of the list, declares a function or a class at the top of a file or a namespace, which
+	 * out of the block PHP would bind before the code runs.
+	 * @param  PlainNodeList<covariant Node>  $list
+	 */
+	public static function hasHoistableDeclaration(PlainNodeList $list, Statement\BlockNode $block): bool
+	{
+		return ($list->parent instanceof FileNode || $list->parent instanceof Statement\NamespaceNode)
+			&& array_any(
+				$block->statements->getItems(),
+				fn(StatementNode $stmt) => $stmt instanceof Statement\FunctionNode || $stmt instanceof ClassLikeNode,
+			);
 	}
 
 

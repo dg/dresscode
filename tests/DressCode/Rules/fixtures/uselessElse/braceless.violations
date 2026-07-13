@@ -1,0 +1,3 @@
+5: Useless else, because the branches before it always leave.
+12: Useless else, because the branches before it always leave.
+19: Useless else, because the branches before it always leave.
