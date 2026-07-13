@@ -1,0 +1,41 @@
+<?php
+// a branch that leaves needs no braces
+function a($x) {
+	if ($x) return 1;
+	else {
+		x();
+	}
+}
+function b($x) {
+	if ($x) return 1;
+	elseif ($y) throw new E;
+	else {
+		x();
+		y();
+	}
+}
+function c($x) {
+	foreach ($x as $y) {
+		if ($y) continue; else {
+			z();
+		}
+	}
+}
+function e($x) {
+	if ($x) return 1;
+	else y();
+}
+
+// left alone: a branch without braces that goes on, an elseif written in two words
+function d($x) {
+	if ($x) x();
+	else {
+		y();
+	}
+}
+function f($x) {
+	if ($x) return 1;
+	else if ($y) {
+		y();
+	}
+}
