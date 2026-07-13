@@ -1,0 +1,8 @@
+<?php
+// {"minStatements": 1}
+function d($x)
+{
+	if ($x) {
+		bar();
+	}
+}
