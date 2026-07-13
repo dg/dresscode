@@ -52,6 +52,7 @@ final class RuleRegistry
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
+		Rules\Types\TypeHintSpacingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\DeclareSpacingRule::class,

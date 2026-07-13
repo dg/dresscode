@@ -1,0 +1,10 @@
+3: No line break after the ? operator
+5: No line break after the | operator
+8: No line break before the & operator
+9: No line break after the named type
+11: No line break after the colon
+15: No line break before the colon
+20: No line break after the named type
+25: No line break before the | operator
+25: No whitespace after the | operator
+28: No line break before the colon
