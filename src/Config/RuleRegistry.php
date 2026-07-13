@@ -25,6 +25,7 @@ final class RuleRegistry
 		Rules\Expressions\OffsetBracketSpacingRule::class,
 		Rules\Arrays\ArraySpacingRule::class,
 		Rules\Arrays\ShortArraySyntaxRule::class,
+		Rules\Classes\ClassDefinitionSpacingRule::class,
 		Rules\Comments\NoEmptyCommentRule::class,
 		Rules\Comments\NoHashCommentRule::class,
 		Rules\ControlFlow\ElseifKeywordRule::class,

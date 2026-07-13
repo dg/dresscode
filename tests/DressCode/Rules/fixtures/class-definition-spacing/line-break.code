@@ -1,0 +1,41 @@
+<?php
+class
+	A
+	extends
+	B
+	implements
+	C,
+	D
+{
+}
+class E extends F implements
+	G,
+	H
+{
+}
+interface I extends
+	J,
+	K
+{
+}
+trait
+	T
+{
+}
+enum
+	U: string
+{
+}
+$x = new class
+	($a)
+	extends
+	B {};
+$y = new class
+{
+};
+class L // why
+	extends M
+{
+}
+$w = new class // why
+	($a) {};
