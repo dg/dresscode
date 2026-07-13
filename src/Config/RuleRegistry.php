@@ -63,6 +63,7 @@ final class RuleRegistry
 		Rules\Expressions\NoShortBoolCastRule::class,
 		Rules\Expressions\YodaRule::class,
 		Rules\Expressions\NotEqualsOperatorRule::class,
+		Rules\Expressions\NullCoalescingOperatorRule::class,
 		Rules\Expressions\ObjectOperatorSpacingRule::class,
 		Rules\Expressions\MultiLineChainRule::class,
 		Rules\Expressions\ReferenceSpacingRule::class,
