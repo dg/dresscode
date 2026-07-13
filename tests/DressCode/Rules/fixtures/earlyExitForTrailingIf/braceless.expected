@@ -1,0 +1,39 @@
+<?php
+// an else that leaves needs no braces to come first
+function a($x) {
+	if (!$x) return;
+		x();
+		y();
+}
+function b($x) {
+	foreach ($x as $y) {
+		if (!$y) continue;
+			z();
+		w();
+	}
+}
+function c($x) {
+	if (!$x) throw new E;
+		x();
+	y();
+}
+
+// left alone: an else without braces that goes on, an if without braces, an else if
+function d($x) {
+	if ($x) {
+		x();
+	} else y();
+}
+function e($x) {
+	if ($x) x();
+	else return;
+}
+function f($x, $y) {
+	if ($x) {
+		x();
+	} else if ($y) {
+		return 1;
+	} else {
+		return 2;
+	}
+}

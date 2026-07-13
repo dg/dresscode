@@ -1,0 +1,8 @@
+<?php
+// {"trailingIfMinStatements": 1}
+function d($x)
+{
+	if ($x) {
+		bar();
+	}
+}

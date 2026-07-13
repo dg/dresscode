@@ -1,0 +1,22 @@
+<?php
+// php 8.4
+class A
+{
+	public int $x {
+		set {
+			foo();
+			if ($value) {
+				bar();
+				baz();
+			}
+		}
+		get {
+			foo();
+			if ($this->y) {
+				bar();
+				baz();
+			}
+			return 1;
+		}
+	}
+}

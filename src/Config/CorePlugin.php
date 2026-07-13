@@ -35,6 +35,7 @@ final class CorePlugin implements Plugin
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
 				Rules\ControlFlow\NoBracelessBodiesRule::class,
+				Rules\ControlFlow\EarlyExitForTrailingIfRule::class,
 				Rules\ControlFlow\ElseifNotationRule::class,
 				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
