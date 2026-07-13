@@ -1,0 +1,68 @@
+<?php
+function a($x)
+{
+	if ($x) {
+		foo();
+		bar();
+		// done
+	}
+}
+
+function b($x)
+{
+	if ($x) { // only for admins
+		foo();
+		bar();
+	}
+}
+
+function c($x)
+{
+	if ($x) /* only for admins */ {
+		foo();
+		bar();
+	}
+}
+
+function d($x)
+{
+	if ($x) { // the usual case
+		foo();
+		bar();
+	} else {
+		return;
+	}
+}
+
+function e($x)
+{
+	if ($x) {
+		foo();
+		bar();
+	} // end of the usual case
+	else {
+		return;
+	}
+}
+
+function f($x)
+{
+	if ($x) {
+		foo();
+		bar();
+	} else /* the rare case */ {
+		return;
+	}
+}
+
+// fixed: the comments go with what they describe
+function g($x)
+{
+	if ($x) {
+		// the usual case
+		foo();
+		bar();
+	} else { // the rare case
+		return;
+	}
+}
