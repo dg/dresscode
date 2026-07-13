@@ -1,0 +1,4 @@
+<?php
+// braces next to a close tag or inline HTML stay, the whitespace they leave being output
+{ ?>html<?php }
+foo();
