@@ -1,0 +1,37 @@
+<?php
+function a()
+{
+	foo();
+	return;
+}
+
+function b(): void
+{
+	if ($x) {
+		return;
+	}
+	return;
+}
+
+function c()
+{
+	return 1;
+}
+
+function d()
+{
+	return; // last
+}
+
+$f = function () {
+	bar();
+	return;
+};
+
+class C
+{
+	public function m()
+	{
+		return;
+	}
+}
