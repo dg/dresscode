@@ -31,6 +31,7 @@ final class RuleRegistry
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
 		Rules\Expressions\CastSpacingRule::class,
 		Rules\Expressions\ConcatSpacingRule::class,
+		Rules\Expressions\DoubleColonSpacingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\ControlFlow\SingleStatementPerLineRule::class,
