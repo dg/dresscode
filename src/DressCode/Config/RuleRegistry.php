@@ -34,6 +34,7 @@ final class RuleRegistry
 		Rules\Expressions\ConcatSpacingRule::class,
 		Rules\Expressions\DoubleColonSpacingRule::class,
 		Rules\Expressions\ObjectOperatorSpacingRule::class,
+		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\ControlFlow\SingleStatementPerLineRule::class,
