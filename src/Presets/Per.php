@@ -5,6 +5,7 @@ namespace DressCode\Presets;
 use DressCode\Preset;
 use DressCode\PresetContext;
 use DressCode\PresetInfo;
+use DressCode\Rules;
 
 
 /**
@@ -16,6 +17,9 @@ final class Per implements Preset
 	public function getRules(PresetContext $context): array
 	{
 		return [
+
+			// 6. Operators
+			Rules\Expressions\ConcatSpacingRule::class => true,
 		];
 	}
 

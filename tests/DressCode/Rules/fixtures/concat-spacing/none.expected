@@ -1,0 +1,3 @@
+<?php
+// {"spacing": "none"}
+$a = "x".$b;
