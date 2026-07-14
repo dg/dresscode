@@ -28,6 +28,7 @@ final class RuleRegistry
 		Rules\Namespaces\UnusedImportsRule::class,
 		Rules\Namespaces\UseFromSameNamespaceRule::class,
 		Rules\Namespaces\UselessAliasRule::class,
+		Rules\Literals\KeywordCasingRule::class,
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
 		Rules\Expressions\CastSpacingRule::class,
 		Rules\Expressions\ConcatSpacingRule::class,

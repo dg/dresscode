@@ -1,0 +1,11 @@
+<?php
+CLASS A EXTENDS B {
+	PUBLIC STATIC FUNCTION f() { RETURN SELF::x() + Parent::y() + STATIC::z(); }
+}
+IF ($a) {
+} ELSEIF ($b) {
+}
+FOREACH ($a AS $b) {}
+$f = FN() => NEW A;
+function g() { YIELD FROM []; }
+echo TRUE, NULL, Self::class;
