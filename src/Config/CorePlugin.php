@@ -39,6 +39,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\ElseifNotationRule::class,
 				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
+				Rules\ControlFlow\ReturnForBooleanIfRule::class,
 				Rules\ControlFlow\SwitchCaseSpacingRule::class,
 				Rules\ControlFlow\TernaryForIfRule::class,
 				Rules\ControlFlow\UselessBracesRule::class,

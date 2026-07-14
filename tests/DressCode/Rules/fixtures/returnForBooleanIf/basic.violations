@@ -1,0 +1,7 @@
+3: Useless `if`, because its condition itself is the result.
+9: Useless `if`, because its condition itself is the result.
+16: Useless `if`, because its condition itself is the result.
+28: Useless `if`, because its condition itself is the result.
+49: Useless `if`, because its condition itself is the result.
+56: Useless `if`, because its condition itself is the result.
+61: Useless `if`, because its condition itself is the result.
