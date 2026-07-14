@@ -1,0 +1,10 @@
+<div>
+    <?php foreach ($a as $b) { ?>
+        <?= $b ?>
+    <?php } ?>
+</div>
+<?php if ($a) { ?>
+    text
+<?php } ?>
+<?php while ($a) { ?>
+    <?php } ?>
