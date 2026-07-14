@@ -26,6 +26,7 @@ final class RuleRegistry
 		Rules\Arrays\ArraySpacingRule::class,
 		Rules\Arrays\ShortArraySyntaxRule::class,
 		Rules\Whitespace\AttributeSpacingRule::class,
+		Rules\Whitespace\AttributePositionRule::class,
 		Rules\Whitespace\BracesPositionRule::class,
 		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
