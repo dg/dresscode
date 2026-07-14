@@ -167,6 +167,15 @@ test('a comma asked for only because another rule spread the array follows that 
 });
 
 
+test('a brace noAlternativeSyntax writes stands where constructSpacing wants it', function () {
+	$result = interplay([
+		Rules\ControlFlow\NoAlternativeSyntaxRule::class => true,
+		Rules\Whitespace\ConstructSpacingRule::class => true,
+	], "<?php\nforeach (\$a as \$b):\nendforeach;\nif (\$a):\nelse:\nendif;\nswitch (\$a):\nendswitch;\n", "<?php\nforeach (\$a as \$b) {\n}\nif (\$a) {\n} else {\n}\nswitch (\$a) {\n}\n");
+	Assert::same(['braces.alternativeSyntax'], array_values(array_unique(array_map(fn(Violation $violation) => $violation->decision, $result->violations))));
+});
+
+
 test('a comment commentSpacing rewrites keeps its line for the rule that reports it next', function () {
 	$result = interplay([
 		Rules\Comments\CommentSpacingRule::class => ['spacing.comment' => 'spaced'],

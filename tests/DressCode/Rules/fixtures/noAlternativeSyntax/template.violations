@@ -1,0 +1,3 @@
+2: The `foreach` must be written with braces instead of the alternative syntax.
+6: The `if` must be written with braces instead of the alternative syntax.
+9: The `while` must be written with braces instead of the alternative syntax.
