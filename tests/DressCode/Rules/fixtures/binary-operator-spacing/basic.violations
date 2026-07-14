@@ -1,0 +1,16 @@
+2: At least one space before the = operator
+2: At least one space after the = operator
+4: At least one space before the + operator
+4: At least one space after the + operator
+5: At least one space before the && operator
+5: At least one space after the && operator
+5: At least one space before the || operator
+5: At least one space after the || operator
+6: At least one space before the ?? operator
+6: At least one space after the ?? operator
+7: At least one space before the => operator
+7: At least one space after the => operator
+8: At least one space before the => operator
+8: At least one space after the => operator
+10: At least one space before the => operator
+10: At least one space after the => operator
