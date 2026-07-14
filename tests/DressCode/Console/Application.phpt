@@ -178,6 +178,14 @@ test('a path outside the root is checked where it is', function () use ($root) {
 });
 
 
+test('a rule needing a newer PHP than the target is left out and said aloud when asked for by name', function () use ($root) {
+	[$code, $out, $err] = runApp($root, ['check', 'src/b.php', '--rule', 'dresscode/useless-parentheses-around-new=on']);
+	Assert::same(0, $code);
+	Assert::match('Warning: Rule `dresscode/useless-parentheses-around-new` needs PHP 8.4 and the target is %a%; skipped.%A%', $err);
+	Assert::match("%A%OK  1 file, up to the dress code\n", $out);
+});
+
+
 test('stdin: check reports, fix writes the result to stdout', function () use ($root) {
 	[$code, $out] = runApp($root, ['check', '--stdin', 'src/x.php'], "<?php\n\$a;\n");
 	Assert::same(1, $code);

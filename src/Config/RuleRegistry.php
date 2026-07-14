@@ -33,6 +33,7 @@ final class RuleRegistry
 		Rules\Whitespace\BracesPositionRule::class,
 		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
+		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Classes\SingleMemberPerLineRule::class,
 		Rules\Comments\CommentSpacingRule::class,
 		Rules\Comments\NoEmptyCommentRule::class,
