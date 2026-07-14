@@ -1,0 +1,25 @@
+<?php
+if ($a) {
+	one();
+} elseif ($b) {
+	two();
+} else {
+	three();
+}
+while ($c) {
+	four();
+}
+foreach ($d as $e) {
+	five();
+}
+for ($i = 0; $i < 3; $i++) {
+	six();
+}
+switch ($f) {
+	case 1:
+		seven();
+		break;
+}
+if ($g) {
+	eight();
+}

@@ -1,0 +1,14 @@
+<div>
+    <?php foreach ($a as $b) { ?>
+        <?= $b ?>
+    <?php } ?>
+</div>
+<?php if ($a) { ?>
+    text
+<?php } ?>
+<?php while ($a) { ?>
+    <?php } ?>
+
+<?php if ($c) foreach ($a as $b): ?>
+    nested
+<?php endforeach ?>

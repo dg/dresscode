@@ -1,0 +1,5 @@
+2: The `if` must be written with braces instead of the alternative syntax.
+9: The `while` must be written with braces instead of the alternative syntax.
+12: The `foreach` must be written with braces instead of the alternative syntax.
+15: The `for` must be written with braces instead of the alternative syntax.
+18: The `switch` must be written with braces instead of the alternative syntax.
