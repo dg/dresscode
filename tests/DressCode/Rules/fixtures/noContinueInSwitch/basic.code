@@ -1,0 +1,44 @@
+<?php
+foreach ($a as $b) {
+	switch ($b) {
+		case 1:
+			continue;
+		case 2:
+			continue 2;
+		case 3:
+			foreach ($c as $d) {
+				continue;
+			}
+			break;
+		case 4:
+			if ($b) {
+				continue;
+			}
+	}
+	continue;
+}
+
+foreach ($a as $b) {
+	switch ($b) {
+		case 1:
+			continue ?>
+			<p>html</p>
+			<?php
+	}
+}
+
+foreach ($a as $b) {
+	switch ($b) {
+		case 1:
+			continue /* c */ ?>
+			<p>html</p>
+			<?php
+		case 2:
+			continue // e
+			?>
+			<p>html</p>
+			<?php
+		case 3:
+			continue /* d */;
+	}
+}
