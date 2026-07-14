@@ -28,6 +28,7 @@ final class RuleRegistry
 		Rules\Namespaces\UnusedImportsRule::class,
 		Rules\Namespaces\UseFromSameNamespaceRule::class,
 		Rules\Namespaces\UselessAliasRule::class,
+		Rules\Expressions\BinaryOperatorSpacingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\ControlFlow\SingleStatementPerLineRule::class,

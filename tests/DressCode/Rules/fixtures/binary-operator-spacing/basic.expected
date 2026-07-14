@@ -1,0 +1,23 @@
+<?php
+$a = 1;
+$a  +=  2;
+$b = $a + 1 * $c;
+$c = $a && $b || $c;
+$d = $a ?? $b;
+$e = ["a" => 1, "b" =>  2];
+$f = fn($x) => $x;
+$g = $a instanceof  B;
+$h = match ($a) { 1 => 2 };
+$i = $a
+	+ $b;
+$j = "a".$b;
+const K = 1;
+function g($a = 1) {
+	static $s = 2;
+	yield $a => $s;
+}
+class L {
+	public $p = 3;
+}
+foreach ($a as $k => $v) {}
+$r = &$s;
