@@ -35,6 +35,7 @@ final class RuleRegistry
 		Rules\Expressions\DoubleColonSpacingRule::class,
 		Rules\Expressions\ObjectOperatorSpacingRule::class,
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
+		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\ControlFlow\SingleStatementPerLineRule::class,

@@ -1,0 +1,7 @@
+2: No whitespace after the ! operator
+3: No whitespace after the - operator
+4: No whitespace before the ++ operator
+5: No whitespace after the -- operator
+10: No whitespace after the dollar sign
+11: No whitespace after the opening brace
+11: No whitespace before the closing brace
