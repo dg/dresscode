@@ -33,6 +33,7 @@ final class RuleRegistry
 		Rules\Expressions\CastSpacingRule::class,
 		Rules\Expressions\ConcatSpacingRule::class,
 		Rules\Expressions\DoubleColonSpacingRule::class,
+		Rules\Expressions\ObjectOperatorSpacingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\ControlFlow\SingleStatementPerLineRule::class,
