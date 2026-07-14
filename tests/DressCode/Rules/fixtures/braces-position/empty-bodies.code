@@ -1,0 +1,41 @@
+<?php
+// {"emptyBodies": "sameLine"}
+class MyException extends RuntimeException
+{
+}
+interface Marker
+{
+}
+final class Point
+{
+    public function __construct(private int $x, private int $y)
+    {
+    }
+
+    public function noop(): void {
+    }
+
+    public function fine(): void {}
+
+    public function spaced(): void { }
+
+    public function commented(): void
+    {
+        // nothing yet
+    }
+
+    public function multi(
+        int $a,
+    ): void
+    {
+    }
+}
+$f = function ()
+{
+};
+$g = new class
+{
+};
+enum Unit
+{
+}
