@@ -1,0 +1,11 @@
+<?php
+class A extends B {
+	public static function f() { return self::x() + parent::y() + static::z(); }
+}
+if ($a) {
+} elseif ($b) {
+}
+foreach ($a as $b) {}
+$f = fn() => new A;
+function g() { yield from []; }
+echo TRUE, NULL, self::class;
