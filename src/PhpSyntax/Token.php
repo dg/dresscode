@@ -129,6 +129,40 @@ final class Token implements \Stringable
 	}
 
 
+	/**
+	 * Whitespace between the token and the next one on the same line ('' when they touch); null when a line
+	 * ending or a comment follows, when the whitespace belongs to a string, or when the next token opens
+	 * with a line ending of its own (inline HTML, __halt_compiler() data).
+	 */
+	public function getTrailingSpace(): ?string
+	{
+		$space = '';
+		foreach ($this->trailingTrivia as $trivia) {
+			if ($trivia->kind !== TriviaKind::Whitespace || $trivia->inInterpolation) {
+				return null;
+			}
+
+			$space .= $trivia->text;
+		}
+
+		$next = $this->getNext();
+		return $next !== null && preg_match('~^[\r\n]~', $next->text) === 1 ? null : $space;
+	}
+
+
+	/**
+	 * Replaces the whitespace between the token and the next one; only where getTrailingSpace() is not null.
+	 */
+	public function setTrailingSpace(string $space): void
+	{
+		if ($this->getTrailingSpace() === null) {
+			throw new \LogicException("Token '$this->text' is followed by a line ending or a comment.");
+		}
+
+		$this->setTrailingTrivia($space === '' ? [] : [new Trivia(TriviaKind::Whitespace, $space)]);
+	}
+
+
 	/** Indentation of the line the token is on, whether the token starts it or not. */
 	public function getLineIndentation(): string
 	{
