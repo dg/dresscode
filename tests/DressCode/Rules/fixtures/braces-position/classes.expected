@@ -1,0 +1,23 @@
+<?php
+class A
+{
+	public $x;
+}
+interface I
+{
+	public function f();
+}
+trait T
+{
+}
+enum E: int
+{
+	case A = 1;
+}
+$o = new class {
+	public $x;
+};
+$p = new class {};
+$q = new class {
+	public $x;
+};
