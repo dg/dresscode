@@ -41,6 +41,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\MultilineForRule::class,
 				Rules\ControlFlow\NoAlternativeSyntaxRule::class,
+				Rules\ControlFlow\NoContinueInSwitchRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\ControlFlow\ReturnForBooleanIfRule::class,
 				Rules\ControlFlow\SwitchCaseSpacingRule::class,

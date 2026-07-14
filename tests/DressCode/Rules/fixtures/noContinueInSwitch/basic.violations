@@ -1,0 +1,6 @@
+5: A switch must be left with `break`, or the loop continued with `continue 2`, not `continue`.
+15: A switch must be left with `break`, or the loop continued with `continue 2`, not `continue`.
+24: A switch must be left with `break`, or the loop continued with `continue 2`, not `continue`.
+33: A switch must be left with `break`, or the loop continued with `continue 2`, not `continue`.
+37: A switch must be left with `break`, or the loop continued with `continue 2`, not `continue`.
+42: A switch must be left with `break`, or the loop continued with `continue 2`, not `continue`.

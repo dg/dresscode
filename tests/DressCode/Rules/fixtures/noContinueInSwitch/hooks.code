@@ -1,0 +1,19 @@
+<?php
+// php 8.4
+foreach ($a as $b) {
+	switch ($b) {
+		case 1:
+			$o = new class {
+				public int $x {
+					set {
+						foreach ($value as $v) {
+							continue;
+						}
+					}
+				}
+			};
+			break;
+		case 2:
+			continue;
+	}
+}

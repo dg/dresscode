@@ -1,0 +1,1 @@
+17: A switch must be left with `break`, or the loop continued with `continue 2`, not `continue`.
