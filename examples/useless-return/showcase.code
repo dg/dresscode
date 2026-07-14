@@ -1,0 +1,6 @@
+<?php
+function announce(string $message): void
+{
+	echo $message;
+	return;
+}
