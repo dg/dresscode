@@ -1,0 +1,4 @@
+2: No whitespace between the ! operator and its operand
+3: No whitespace between the - operator and its operand
+4: No whitespace between the ++ operator and its operand
+5: No whitespace between the -- operator and its operand
