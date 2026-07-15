@@ -7,9 +7,10 @@
 
 namespace DressCode\Rules;
 
-use DressCode\Gap;
+use DressCode\{Gap, RuleContext};
 use DressCode\Rules\Whitespace\IndentationRule;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{Node, Parser, SymbolKind, Token};
 use PhpSyntax\Nodes\{ElseifNode, Expression, ExpressionNode, Scalar, Statement};
 use PhpSyntax\Nodes\Expression\BinaryOpNode;
 use function assert;
@@ -98,6 +99,43 @@ final class NodeHelpers
 		return new Token($kind, $text)
 			->setLeadingTrivia($operator->leadingTrivia)
 			->setTrailingTrivia($operator->trailingTrivia);
+	}
+
+
+	/**
+	 * The constructs inside the node that may reach a variable by a name they do not spell out: variable
+	 * variables, calls of `compact()`, `extract()` and `get_defined_vars()`, and `eval` and `include`, whose code runs in
+	 * the scope they are written in.
+	 * @return list<Node>
+	 */
+	public static function findDynamicVariableAccesses(Node $node, RuleContext $context): array
+	{
+		return $node->find(Node::class, fn(Node $inner) => $inner instanceof Expression\IncludeNode
+			|| $inner instanceof Expression\EvalNode
+			|| ($inner instanceof Expression\VariableNode && ($inner->dollar !== null || !$inner->name instanceof Token))
+			|| (
+				$inner instanceof Expression\FunctionCallNode
+				&& GlobalCalls::findFunction($inner, ['compact' => true, 'extract' => true, 'get_defined_vars' => true], $context) !== null
+			));
+	}
+
+
+	/** Whether the file imports a function under a name other than its own, so that a call names another function than it spells. */
+	public static function importsFunctionAs(RuleContext $context): bool
+	{
+		/** @var \WeakMap<NameResolver, bool> $known  by the resolver, which the first mutation replaces */
+		static $known = new \WeakMap;
+		$resolver = $context->getAnalysis(NameResolver::class);
+		if (isset($known[$resolver])) {
+			return $known[$resolver];
+		}
+
+		$file = $context->file;
+		$scopes = [$file, ...array_filter($file->statements->getItems(), fn($statement) => $statement instanceof Statement\NamespaceNode)];
+		return $known[$resolver] = array_any($scopes, fn(Node $scope) => array_any(
+			$resolver->getImports(SymbolKind::Function, $scope),
+			fn(string $function, string $alias) => strcasecmp($alias, substr((string) strrchr('\\' . $function, '\\'), 1)) !== 0,
+		));
 	}
 
 

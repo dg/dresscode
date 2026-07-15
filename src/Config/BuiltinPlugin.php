@@ -50,6 +50,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\ControlFlow\UselessConstructParenthesesRule::class,
 				Rules\ControlFlow\UselessElseRule::class,
 				Rules\ControlFlow\UselessReturnRule::class,
+				Rules\ControlFlow\UselessCatchVariableRule::class,
 				Rules\ControlFlow\ReferenceThrowableOnlyRule::class,
 				Rules\ControlFlow\SwitchCaseColonRule::class,
 				Rules\ControlFlow\SwitchCaseSpacingRule::class,
