@@ -44,6 +44,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\ControlFlow\TernaryForIfRule::class,
 				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\NoAlternativeSyntaxRule::class,
+				Rules\ControlFlow\FallThroughCommentRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
 				Rules\ControlFlow\UselessConstructParenthesesRule::class,
 				Rules\ControlFlow\UselessElseRule::class,
