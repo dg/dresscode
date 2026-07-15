@@ -1,0 +1,2 @@
+12: A case falling through to the next one must end with `break` or be marked with a `no break` comment.
+15: Useless `no break` comment, because the case cannot fall through.

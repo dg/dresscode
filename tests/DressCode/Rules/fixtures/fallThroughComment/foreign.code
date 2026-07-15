@@ -1,0 +1,27 @@
+<?php
+// a comment holding the words among others marks a case but is never removed, other words are not the marker
+switch ($a) {
+	case 1:
+		return; // there is no breakfast today
+	case 2:
+		two();
+		/* No  Break */
+	case 3:
+		three();
+		// we must not break here
+	case 4:
+		four();
+		break;
+		# no break
+	case 5:
+		exit; // no breakfast either
+	case 6:
+		six(); // no break.
+	case 7:
+		return; // no break, it returns
+	case 8:
+		eight();
+		// no break, falls into default
+	default:
+		other();
+}
