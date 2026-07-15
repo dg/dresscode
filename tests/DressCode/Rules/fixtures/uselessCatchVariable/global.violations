@@ -1,0 +1,1 @@
+4: Useless catch variable `$unused`, because nothing reads it.

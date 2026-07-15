@@ -1,0 +1,41 @@
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+try {
+	foo();
+} catch (Exception) {
+}
+
+function f()
+{
+	try {
+		include 'setup.php';
+	} catch (Exception) {
+	}
+
+	$fn = function () {
+		include 'handler.php';
+	};
+}
+
+function g()
+{
+	foreach ($items as $item) {
+		include 'handler.php';
+		try {
+			foo();
+		} catch (Exception $c) {
+		}
+	}
+}
+
+function h()
+{
+	start:
+	include 'handler.php';
+	try {
+		foo();
+	} catch (Exception $d) {
+	}
+	goto start;
+}

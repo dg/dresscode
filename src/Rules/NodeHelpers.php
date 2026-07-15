@@ -8,7 +8,7 @@
 namespace DressCode\Rules;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Gap, Line, Style};
+use DressCode\{Claim, Gap, Line, RuleContext, Style};
 use PhpSyntax\{Builder, Indentation, Node, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, MatchArmNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -641,6 +641,24 @@ final class NodeHelpers
 			: Token::fromText($text)
 				->setLeadingTrivia($operator->leadingTrivia)
 				->setTrailingTrivia($operator->trailingTrivia);
+	}
+
+
+	/**
+	 * The constructs inside the node that may reach a variable by a name they do not spell out: variable
+	 * variables, calls of `compact()`, `extract()` and `get_defined_vars()`, and `eval` and `include`, whose code runs in
+	 * the scope they are written in.
+	 * @return list<Node>
+	 */
+	public static function findDynamicVariableAccesses(Node $node, RuleContext $context): array
+	{
+		return $node->find(Node::class, fn(Node $inner) => $inner instanceof Expression\IncludeNode
+			|| $inner instanceof Expression\EvalNode
+			|| ($inner instanceof Expression\VariableNode && ($inner->dollar !== null || !$inner->name instanceof Token))
+			|| (
+				$inner instanceof Expression\FunctionCallNode
+				&& GlobalCalls::findFunction($inner, ['compact' => true, 'extract' => true, 'get_defined_vars' => true], $context) !== null
+			));
 	}
 
 
