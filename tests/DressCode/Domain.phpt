@@ -87,6 +87,17 @@ test('a count is a number, a range in any notation, an open one, or a word', fun
 });
 
 
+test('a text is the text of the project, written as it is given', function () {
+	Assert::same('break omitted', new Text()->accept('break omitted', 'controlFlow.switch.fallThroughComment')->getText());
+	Assert::exception(
+		fn() => new Text()->accept(' ', 'controlFlow.switch.fallThroughComment', keep: true),
+		ConfigurationException::class,
+		'Key `controlFlow.switch.fallThroughComment` does not take ` `; write a text or `keep`.',
+	);
+	Assert::same(['kind' => 'text'], new Text()->toArray());
+});
+
+
 test('names are free, patterns are regular expressions, allowed ones are words', function () {
 	Assert::same(['password'], new Names()->accept(['password'], 'x.y')->getNames());
 	Assert::same([], new Names()->accept([], 'x.y')->getNames());

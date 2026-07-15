@@ -1,0 +1,3 @@
+controlFlow:
+	switch:
+		fallThroughComment: no break
