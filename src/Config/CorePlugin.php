@@ -49,6 +49,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\SwitchCaseSpacingRule::class,
 				Rules\ControlFlow\TernaryForIfRule::class,
 				Rules\ControlFlow\UselessBracesRule::class,
+				Rules\ControlFlow\UselessCatchVariableRule::class,
 				Rules\ControlFlow\UselessParenthesesAfterConstructRule::class,
 				Rules\ControlFlow\UselessElseRule::class,
 				Rules\ControlFlow\UselessReturnRule::class,
