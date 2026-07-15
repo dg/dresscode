@@ -1,0 +1,4 @@
+3: The type `Exception` must be `Throwable`, which also covers errors.
+9: The type `Exception` must be `Throwable`, which also covers errors.
+27: The type `Exception` must be `Throwable`, which also covers errors.
+29: The type `Exception` must be `Throwable`, which also covers errors.
