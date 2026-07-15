@@ -1,0 +1,8 @@
+1: Expected 1 blank line before the function, 0 found
+5: Expected at least 1 blank line before the return, 0 found
+7: Expected 2 blank lines before the function, 1 found
+12: Expected 2 blank lines before the function, 1 found
+17: Expected at least 1 blank line before the return, 0 found
+23: Expected 2 blank lines after the function, 1 found
+29: Expected at least 1 blank line before the return, 0 found
+32: Expected 2 blank lines before the function, 1 found

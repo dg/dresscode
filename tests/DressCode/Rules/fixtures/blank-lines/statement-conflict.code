@@ -1,0 +1,8 @@
+<?php
+// {"before": {"return": 2}, "after": {"if": 0}}
+function a()
+{
+	if ($x) {
+	}
+	return 1;
+}

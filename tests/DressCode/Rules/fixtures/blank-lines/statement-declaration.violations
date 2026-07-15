@@ -1,0 +1,8 @@
+2: Expected 1 blank line before the function, 0 found
+6: Expected 2 blank lines before the class, 0 found
+11: Expected 1 blank line before the method, 3 found
+18: Expected 2 blank lines after the class, 0 found
+22: Expected 2 blank lines after the class, 0 found
+24: Expected 2 blank lines before the interface, 0 found
+27: Expected 2 blank lines before the trait, 1 found
+31: Expected 2 blank lines after the trait, 0 found

@@ -1,0 +1,7 @@
+<?php
+// not a doc comment
+/** doc */
+
+function f()
+{
+}

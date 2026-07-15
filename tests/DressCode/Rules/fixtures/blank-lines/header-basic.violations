@@ -1,0 +1,8 @@
+1: Expected 1 blank line before the declare, 0 found
+1: A line break after the opening tag
+2: Expected 1 blank line before the namespace, 0 found
+3: Expected 1 blank line before the import, 0 found
+4: Expected 0 blank lines before the import, 1 found
+6: Expected 1 blank line before the import, 0 found
+7: Expected 1 blank line before the import, 0 found
+8: Expected 1 blank line before the class, 0 found
