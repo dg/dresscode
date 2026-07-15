@@ -39,6 +39,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Comments\CommentSpacingRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
+				Rules\ControlFlow\NoUnreachableCatchesRule::class,
 				Rules\ControlFlow\EarlyExitRule::class,
 				Rules\ControlFlow\ElseifKeywordRule::class,
 				Rules\ControlFlow\TernaryForIfRule::class,
