@@ -1,0 +1,18 @@
+<?php
+class A
+{
+	use StaticClass;
+
+
+	public function f()
+	{
+	}
+}
+class B
+{
+	use StaticClass;
+
+	public function g()
+	{
+	}
+}
