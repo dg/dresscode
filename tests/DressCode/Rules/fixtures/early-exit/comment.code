@@ -1,0 +1,9 @@
+<?php
+function a($x)
+{
+	if ($x) {
+		foo();
+		bar();
+		// done
+	}
+}
