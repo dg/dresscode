@@ -1,0 +1,9 @@
+<?php
+namespace App;
+
+// `A` is `App\A`, another class than `\A`, so both stand in the merged catch
+try {
+	run();
+} catch (A|\A $e) {
+	log($e);
+}

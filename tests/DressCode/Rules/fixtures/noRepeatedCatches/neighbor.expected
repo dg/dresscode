@@ -1,0 +1,9 @@
+<?php
+// a catch a comment keeps standing is the neighbor of the next, which merges into it and not past it
+try {
+	run();
+} catch (A $e) {
+	log($e);
+} catch (B|C $e) { // logged twice on purpose
+	log($e);
+}

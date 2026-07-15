@@ -176,6 +176,14 @@ test('a brace noAlternativeSyntax writes stands where constructSpacing wants it'
 });
 
 
+test('a catch uselessCatchVariable leaves without its variable merges by noRepeatedCatches', function () {
+	interplay([
+		Rules\ControlFlow\UselessCatchVariableRule::class => ['cleanup.catchWithoutVariable' => 'required'],
+		Rules\ControlFlow\NoRepeatedCatchesRule::class => ['cleanup.repeatedCatch' => 'forbidden'],
+	], "<?php\ntry {\n\trun();\n} catch (A \$e) {\n\tfail();\n} catch (B) {\n\tfail();\n}\n", "<?php\ntry {\n\trun();\n} catch (A|B) {\n\tfail();\n}\n");
+});
+
+
 test('a comment commentSpacing rewrites keeps its line for the rule that reports it next', function () {
 	$result = interplay([
 		Rules\Comments\CommentSpacingRule::class => ['spacing.comment' => 'spaced'],
