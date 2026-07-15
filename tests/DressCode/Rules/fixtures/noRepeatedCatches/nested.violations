@@ -1,0 +1,4 @@
+8: The catch of `B` has the body of the one before it, which takes its types.
+13: The catch of `D` has the body of the one before it, which takes its types.
+25: The catch of `F` has the body of the one before it, which takes its types.
+27: The catch of `B` has the body of the one before it, which takes its types.

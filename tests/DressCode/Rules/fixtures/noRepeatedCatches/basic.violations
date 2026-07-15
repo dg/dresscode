@@ -1,0 +1,5 @@
+7: The catch of `B` has the body of the one before it, which takes its types.
+9: The catch of `C` has the body of the one before it, which takes its types.
+18: The catch of `\A` has the body of the one before it, which takes its types.
+40: The catch of `A|\B` has the body of the one before it, which takes its types.
+67: The catch of `B` has the body of the one before it, which takes its types.

@@ -1,0 +1,60 @@
+<?php
+// three catches of one body
+try {
+	run();
+} catch (A|B|C $e) {
+	log($e);
+}
+
+// one class written two ways is written once
+try {
+	run();
+} catch (A $e) {
+	log($e);
+}
+
+// another variable, another body, and catches with one between them stay
+try {
+	run();
+} catch (A $e) {
+	log($e);
+} catch (B $f) {
+	log($f);
+} catch (C $e) {
+	other($e);
+} catch (D $e) {
+	log($e);
+}
+
+// without a variable, a type the kept one has, another whitespace
+try {
+	run();
+} catch (A|\B) {
+	fail();
+}
+
+// a comment in the catch that would go
+try {
+	run();
+} catch (A $e) {
+	log($e);
+} catch (B $e) {
+	log($e); // why
+}
+
+// a comment among the types of the catch that would stay
+try {
+	run();
+} catch (A /* first */ $e) {
+	log($e);
+} catch (B $e) {
+	log($e);
+}
+
+
+// a comment after the catch that stays
+try {
+	run();
+} catch (A|B $e) {
+	log($e);
+} // logged

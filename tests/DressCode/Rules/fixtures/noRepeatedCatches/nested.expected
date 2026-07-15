@@ -1,0 +1,22 @@
+<?php
+// a try inside a catch merges on its own, and a finally stays after the merged catch
+try {
+	try {
+		run();
+	} catch (A|B $e) {
+		retry();
+	}
+} catch (C|D $e) {
+	log($e);
+} finally {
+	close();
+}
+
+try {
+	run();
+} catch (A|B $e) {
+	try {
+		undo();
+	} catch (E|F) {
+	}
+}
