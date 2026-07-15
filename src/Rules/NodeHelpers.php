@@ -11,7 +11,7 @@ use DressCode\Gap;
 use DressCode\Rules\Whitespace\IndentationRule;
 use PhpSyntax\{Node, Parser, Token, TokenKind};
 use PhpSyntax\Nodes\{ElseIfNode, Expression, ExpressionNode, Scalar, Statement};
-use function assert;
+use function assert, count;
 
 
 /**
@@ -154,5 +154,24 @@ final class NodeHelpers
 		$new->setLeadingTrivia($operator->leadingTrivia);
 		$new->setTrailingTrivia($operator->trailingTrivia);
 		return $new;
+	}
+
+
+	/**
+	 * Whether the block ends with a statement after which the code does not go on: return, break, continue,
+	 * goto, throw or exit.
+	 */
+	public static function endsWithExit(Statement\BlockNode $block): bool
+	{
+		$stmts = $block->statements->getItems();
+		$last = $stmts === [] ? null : $stmts[count($stmts) - 1];
+		return match (true) {
+			$last instanceof Statement\ReturnNode,
+			$last instanceof Statement\BreakNode,
+			$last instanceof Statement\ContinueNode,
+			$last instanceof Statement\GotoNode => true,
+			$last instanceof Statement\ExpressionStatementNode => $last->expression instanceof Expression\ThrowNode || $last->expression instanceof Expression\ExitNode,
+			default => false,
+		};
 	}
 }

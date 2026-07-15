@@ -44,6 +44,7 @@ final class RuleRegistry
 		Rules\ControlFlow\MultiLineConditionRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
 		Rules\ControlFlow\UselessConstructParenthesesRule::class,
+		Rules\ControlFlow\UselessElseRule::class,
 		Rules\ControlFlow\UselessReturnRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\Files\NoBomRule::class,
