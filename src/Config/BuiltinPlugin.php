@@ -98,6 +98,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Types\TypeHintSpacingRule::class,
 				Rules\Variables\CombinedIssetsRule::class,
 				Rules\Variables\CombinedUnsetsRule::class,
+				Rules\Variables\NoDuplicateAssignmentsRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Files\DeclareSpacingRule::class,
