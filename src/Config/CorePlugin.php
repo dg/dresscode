@@ -97,6 +97,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\BuiltinCasingRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
+				Rules\Variables\NoSeparateIssetsRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\AttributePositionRule::class,
 				Rules\Whitespace\AttributeSpacingRule::class,

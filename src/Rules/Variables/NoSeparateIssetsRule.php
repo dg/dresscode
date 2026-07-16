@@ -1,0 +1,67 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\Variables;
+
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
+use PhpSyntax\{Node, Token};
+use PhpSyntax\Nodes\Expression\{BinaryOpNode, IssetNode};
+
+
+/**
+ * `isset($a) && isset($b)` becomes `isset($a, $b)`; the last `isset()` of a longer `&&` chain merges into
+ * the one before it. A comment between the two stops the merge.
+ */
+#[RuleInfo(Stage::Structure)]
+final class NoSeparateIssetsRule extends NodeRule
+{
+	public static function getDecisions(): array
+	{
+		return [new Decision('expressions.separateIssets', Domain::state('forbidden'), '`isset($a) && isset($b)` is `isset($a, $b)`')];
+	}
+
+
+	public function getVisitedNodes(): array
+	{
+		return [BinaryOpNode::class];
+	}
+
+
+	public function leave(Node|Token $node, RuleContext $context): void
+	{
+		if (
+			!$node instanceof BinaryOpNode
+			|| !$node->operator->is(Token::BooleanAnd)
+			|| !$node->right instanceof IssetNode
+			|| !($target = self::findPrecedingIsset($node->left))
+			|| $target->closeParen->hasCommentUpTo($node->right->closeParen)
+			|| !$context->report($node->right, 'Consecutive `isset()` calls must be combined into one.')
+		) {
+			return;
+		}
+
+		$replacement = $node->left->withoutEdgeTrivia();
+		$merged = self::findPrecedingIsset($replacement);
+		assert($merged !== null);
+		foreach ($node->right->variables->getItems() as $var) {
+			$merged->variables->append($var->withoutEdgeTrivia());
+		}
+
+		$node->replaceWith($replacement);
+	}
+
+
+	/** The `isset()` an `isset()` joined by `&&` would merge into: the left operand itself, or the right end of a left-nested `&&` chain. */
+	private static function findPrecedingIsset(Node $left): ?IssetNode
+	{
+		return match (true) {
+			$left instanceof IssetNode => $left,
+			$left instanceof BinaryOpNode && $left->operator->is(Token::BooleanAnd) && $left->right instanceof IssetNode => $left->right,
+			default => null,
+		};
+	}
+}
