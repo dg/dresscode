@@ -71,6 +71,7 @@ final class RuleRegistry
 		Rules\Files\EofNewlineRule::class,
 		Rules\Whitespace\ConstructSpacingRule::class,
 		Rules\Whitespace\IndentationRule::class,
+		Rules\Whitespace\SingleLevelIndentationRule::class,
 	];
 
 	/** @var array<string, class-string<Rule>>  name → class */

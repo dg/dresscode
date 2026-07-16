@@ -1,0 +1,53 @@
+<?php
+
+function ok(): void
+{
+	if (true) {
+		echo 1;
+	}
+
+	echo 2;
+}
+
+// several brackets on one line still open a single level
+function brackets(array $a): void
+{
+	foo(bar([
+		1,
+	]));
+}
+
+// a level of its own is fine for a comment too
+	// and so is coming back from it
+function comments(): void
+{
+	echo 1;
+}
+
+function tooDeep(): void
+{
+			echo 1;
+}
+
+function backAndForth(): void
+{
+	if (true) {
+		if (true) {
+			echo 1;
+		}
+	}
+
+	echo 2;
+}
+
+function toALevelNothingOpened(): void
+{
+			echo 1;
+		echo 2;
+}
+
+function laidOutByHand(): void
+{
+	foo(1,
+	    2);
+}
