@@ -96,6 +96,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Literals\HeredocIndentationRule::class,
 				Rules\Literals\MagicConstantCasingRule::class,
 				Rules\Types\TypeHintSpacingRule::class,
+				Rules\Variables\CombinedIssetsRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Files\DeclareSpacingRule::class,
