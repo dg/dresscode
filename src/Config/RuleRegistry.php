@@ -48,6 +48,7 @@ final class RuleRegistry
 		Rules\ControlFlow\UselessConstructParenthesesRule::class,
 		Rules\ControlFlow\UselessElseRule::class,
 		Rules\ControlFlow\UselessReturnRule::class,
+		Rules\ControlFlow\SwitchCaseColonRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\ControlFlow\NoContinueInSwitchRule::class,
 		Rules\ControlFlow\UselessIfConditionWithReturnRule::class,
