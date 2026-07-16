@@ -1,0 +1,8 @@
+<?php
+$a = 'abc';
+$b = 'a"b';
+$c = "it's";
+$d = "line\n";
+$e = "a $b";
+$f = 'back\\slash';
+$g = 'ok';

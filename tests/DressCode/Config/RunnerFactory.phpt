@@ -116,6 +116,15 @@ final class ProjectPlugin implements Plugin
 }
 
 
+final class DoubleQuotesPlugin implements Plugin
+{
+	public function getManifest(): PluginManifest
+	{
+		return new PluginManifest(presets: ['test/double' => __DIR__ . '/fixtures/double-quotes.neon']);
+	}
+}
+
+
 final class NestedPlugin implements Plugin
 {
 	public function getManifest(): PluginManifest
@@ -375,6 +384,36 @@ test('use takes presets and plugins, a plugin only in the configuration of the p
 		fn() => new ReflectionClass(PluginManifest::class)->newInstanceArgs(['plugins' => [ReportContext::class]]),
 		InvalidArgumentException::class,
 		'Plugin `ReportContext` is not a plugin; a rule is named in `rules` and a preset in `presets`.',
+	);
+});
+
+
+test('an override turns a rule off by its decision, an unknown one is an error before any file', function () use ($fixtures) {
+	$off = new Config(
+		rules: [ReportContext::class],
+		decisions: ReportsContext,
+		overrides: [new Override(['sub'], new Profile(decisions: ['project' => ['context' => 'keep']]))],
+	);
+	$runner = buildRunner($off, "$fixtures/project");
+	Assert::same([], $runner->processCode('src/sub/x.php', "<?php\n\$a;\n")->violations);
+	Assert::count(1, $runner->processCode('src/x.php', "<?php\n\$a;\n")->violations);
+
+	$unknown = new Config(
+		rules: [ReportContext::class],
+		overrides: [new Override(['sub'], new Profile(decisions: ['project' => ['nope' => 'keep']]))],
+	);
+	Assert::exception(
+		fn() => (new RunnerFactory)->resolve($unknown, "$fixtures/project"),
+		ConfigurationException::class,
+		'The override for `sub`: %a%`project.nope`%a%',
+	);
+
+	// so is a value no decision takes, which would otherwise wait for a file of the override
+	$invalid = new Config(overrides: [new Override(['sub'], new Profile(decisions: ['literals' => ['quotes' => 'triple']]))]);
+	Assert::exception(
+		fn() => (new RunnerFactory)->resolve($invalid, "$fixtures/project"),
+		ConfigurationException::class,
+		'The override for `sub`: Key `literals.quotes` does not take `triple`; %a%',
 	);
 });
 
