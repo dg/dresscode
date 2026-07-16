@@ -98,6 +98,7 @@ final class CorePlugin implements Plugin
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,
+				Rules\Variables\NoSeparateUnsetsRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\AttributePositionRule::class,
 				Rules\Whitespace\AttributeSpacingRule::class,
