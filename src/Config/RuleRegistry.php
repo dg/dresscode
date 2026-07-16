@@ -43,6 +43,7 @@ final class RuleRegistry
 		Rules\ControlFlow\ElseifKeywordRule::class,
 		Rules\ControlFlow\TernaryForSimpleBranchRule::class,
 		Rules\ControlFlow\MultiLineConditionRule::class,
+		Rules\ControlFlow\NoAlternativeSyntaxRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
 		Rules\ControlFlow\UselessConstructParenthesesRule::class,
 		Rules\ControlFlow\UselessElseRule::class,
