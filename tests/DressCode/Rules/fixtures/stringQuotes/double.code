@@ -1,0 +1,9 @@
+<?php
+// {"quotes": "double"}
+$a = 'abc';
+$b = 'say "hi"';
+$c = 'it\'s';
+$d = 'a $b';
+$e = 'brace {x}';
+$f = 'back\\slash';
+$g = "ok";

@@ -1,8 +1,9 @@
 <?php declare(strict_types=1);
 
-use DressCode\{Config, ConfigurationException, NodeRule, Override, Plugin, PluginManifest, Profile, RuleContext, RuleInfo, Stage};
+use DressCode\{Config, ConfigurationException, NodeRule, Override, Plugin, PluginManifest, Preset, PresetInfo, Profile, RuleContext, RuleInfo, Stage};
 use DressCode\Config\{PhpVersionSource, RunnerFactory};
 use DressCode\Reporters\NullReporter;
+use DressCode\Rules\Literals\StringQuotesRule;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use Tester\{Assert, FileMock};
@@ -52,6 +53,16 @@ final class ReportVariable extends NodeRule
 }
 
 
+#[PresetInfo('test/double')]
+final class DoubleQuotesPreset implements Preset
+{
+	public function getProfile(): Profile
+	{
+		return new Profile(rules: [StringQuotesRule::class => 'double']);
+	}
+}
+
+
 final class ProjectPlugin implements Plugin
 {
 	public function getManifest(): PluginManifest
@@ -61,6 +72,15 @@ final class ProjectPlugin implements Plugin
 			plugins: [new NestedPlugin],
 			skipWhen: fn(string $content) => str_contains($content, '@generated'),
 		);
+	}
+}
+
+
+final class DoubleQuotesPlugin implements Plugin
+{
+	public function getManifest(): PluginManifest
+	{
+		return new PluginManifest(presets: [DoubleQuotesPreset::class]);
 	}
 }
 
@@ -210,6 +230,56 @@ test('plugins takes plugins alone, a rule and a preset are named in their own ke
 		InvalidArgumentException::class,
 		'Plugin `ReportContext` is not a plugin; a rule is named in `rules` and a preset in `presets`.',
 	);
+});
+
+
+test('an override turns a rule off under its class as under its name, an unknown one is an error before any file', function () use ($fixtures) {
+	$byClass = new Config(rules: [ReportContext::class => true], overrides: [new Override(['sub'], rules: [ReportContext::class => false])]);
+	$runner = (new RunnerFactory)->createRunner($byClass, "$fixtures/project");
+	Assert::same([], $runner->processFile('src/sub/x.php', "<?php\n\$a;\n")->violations);
+	Assert::count(1, $runner->processFile('src/x.php', "<?php\n\$a;\n")->violations);
+
+	$unknown = new Config(rules: [ReportContext::class => true], overrides: [new Override(['sub'], rules: ['test/nope' => false])]);
+	Assert::exception(
+		fn() => (new RunnerFactory)->createRunner($unknown, "$fixtures/project"),
+		ConfigurationException::class,
+		'The override for `sub`: Unknown rule `test/nope`.',
+	);
+
+	// so is an option no rule takes, which would otherwise wait for a file of the override
+	$invalid = new Config(overrides: [new Override(['sub'], rules: ['stringQuotes' => ['quote' => 'single']])]);
+	Assert::exception(
+		fn() => (new RunnerFactory)->createRunner($invalid, "$fixtures/project"),
+		ConfigurationException::class,
+		"Invalid options of rule `dresscode/stringQuotes` set by the override for `sub`: Unexpected item 'quote', did you mean 'quotes'?",
+	);
+});
+
+
+test('an override brings its presets, its style, its name resolution and its warnings to its files', function () use ($fixtures) {
+	$factory = new RunnerFactory;
+	$runner = $factory->createRunner(
+		new Config(
+			plugins: [DoubleQuotesPlugin::class],
+			rules: [ReportContext::class => true],
+			nameResolution: 'certain',
+			overrides: [new Override(['sub'], presets: ['test/double'], indent: 2, nameResolution: 'uncertain', warnOnly: [ReportContext::class])],
+		),
+		"$fixtures/project",
+	);
+	$describe = fn(string $path) => array_map(
+		fn($violation) => "$violation->ruleName {$violation->severity->name} $violation->message",
+		$runner->processFile($path, "<?php\n\$a = 'text';\n")->violations,
+	);
+	Assert::same(['test/a Error 8.1 "\t""\n"'], $describe('src/x.php'));
+	$sub = $describe('src/sub/x.php');
+	Assert::count(2, $sub);
+	Assert::same('test/a Warning 8.1 "  ""\n"', $sub[0]);
+	Assert::match('dresscode/stringQuotes Error %a%', $sub[1]);
+
+	$sub = $factory->resolveConfigFor($runner->findOverridesFor('src/sub/x.php'));
+	Assert::same('certain', $factory->getResolvedConfig()->nameResolution);
+	Assert::same('uncertain', $sub->nameResolution);
 });
 
 
