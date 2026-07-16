@@ -1,0 +1,169 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\ControlFlow;
+
+use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
+use Nette\Schema\{Expect, Schema};
+use PhpSyntax\{Node, Nodes, Token, Trivia, TriviaKind};
+use PhpSyntax\Nodes\Expression\{ExitNode, ThrowNode};
+use PhpSyntax\Nodes\Statement;
+use function count;
+
+
+/**
+ * A comment marking an intentional fall-through from a non-empty case into the next one, and no such
+ * comment where the case cannot fall through.
+ */
+#[RuleInfo(
+	'dresscode/fall-through-comment',
+	Stage::Structure,
+	description: 'Requires a comment on an intentional case fall-through',
+	modifiesComments: true,
+)]
+final class FallThroughCommentRule extends NodeRule implements ConfigurableRule
+{
+	private string $comment = 'no break';
+
+
+	public static function getOptionsSchema(): Schema
+	{
+		return Expect::structure([
+			'comment' => Expect::string('no break')->assert(fn($text) => trim($text) !== '', 'not empty')
+				->description('Text of the fall-through comment, matched case-insensitively and inserted as a line comment'),
+		]);
+	}
+
+
+	public function configure(array $options): void
+	{
+		$this->comment = $options['comment'];
+	}
+
+
+	public function getVisitedTypes(): array
+	{
+		return [Nodes\CaseNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if (
+			!$node instanceof Nodes\CaseNode
+			|| !($list = $node->parent) instanceof Nodes\NodeList
+			|| $node->statements->isEmpty()
+		) {
+			return;
+		}
+
+		$items = $list->getItems();
+		$next = $items[$list->indexOf($node) + 1] ?? null;
+		if (!$next instanceof Nodes\CaseNode) {
+			return;
+		}
+
+		$stmts = $node->statements->getItems();
+		$fallsThrough = !$this->endsFlow($stmts[count($stmts) - 1]);
+		[$token, $comment] = $this->findComment($node, $next);
+		if ($fallsThrough && $comment === null) {
+			if ($context->report($next, "An intentional fall-through must be marked with a '$this->comment' comment")) {
+				$first = $next->getFirstToken();
+				if ($first) {
+					$first->setLeadingTrivia([
+						new Trivia(TriviaKind::Whitespace, $stmts[0]->getFirstToken()?->getLineIndentation() ?? ''),
+						new Trivia(TriviaKind::Comment, '// ' . $this->comment),
+						new Trivia(TriviaKind::EndOfLine, $context->getStyle()->eol),
+						...$first->leadingTrivia,
+					]);
+				}
+			}
+		} elseif (!$fallsThrough && $comment !== null && $token !== null) {
+			if ($context->report($token, "Useless '$this->comment' comment", trivia: $comment)) {
+				$token->removeTrivia($comment);
+			}
+		}
+	}
+
+
+	/** Whether the statement always leaves the switch, so the case cannot fall through. */
+	private function endsFlow(Nodes\StatementNode $stmt): bool
+	{
+		return match (true) {
+			$stmt instanceof Statement\BreakNode,
+			$stmt instanceof Statement\ContinueNode,
+			$stmt instanceof Statement\ReturnNode,
+			$stmt instanceof Statement\GotoNode => true,
+			$stmt instanceof Statement\ExpressionStatementNode => $stmt->expression instanceof ThrowNode || $stmt->expression instanceof ExitNode,
+			$stmt instanceof Statement\BlockNode => !$stmt->statements->isEmpty()
+				&& $this->endsFlow($stmt->statements->getItems()[count($stmt->statements->getItems()) - 1]),
+			$stmt instanceof Statement\IfNode => $this->ifEndsFlow($stmt),
+			$stmt instanceof Statement\TryNode => $this->tryEndsFlow($stmt),
+			default => false,
+		};
+	}
+
+
+	private function ifEndsFlow(Statement\IfNode $stmt): bool
+	{
+		if ($stmt->else === null) {
+			return false;
+		}
+
+		$branches = [$stmt->body ?? $stmt->statements, $stmt->else->body ?? $stmt->else->statements];
+		foreach ($stmt->elseifs->getItems() as $elseif) {
+			$branches[] = $elseif->body ?? $elseif->statements;
+		}
+
+		foreach ($branches as $branch) {
+			$last = $branch instanceof Nodes\NodeList
+				? ($branch->getItems()[count($branch->getItems()) - 1] ?? null)
+				: $branch;
+			if ($last === null || !$this->endsFlow($last)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	private function tryEndsFlow(Statement\TryNode $stmt): bool
+	{
+		$finally = $stmt->finally?->body;
+		if ($finally !== null && $this->endsFlow($finally)) {
+			return true;
+		}
+
+		if (!$this->endsFlow($stmt->body)) {
+			return false;
+		}
+
+		return array_all($stmt->catches->getItems(), fn(Nodes\CatchNode $catch) => $this->endsFlow($catch->body));
+	}
+
+
+	/**
+	 * The fall-through comment between the last statement of the case and the next one, with its token.
+	 * @return array{?Token, ?Trivia}
+	 */
+	private function findComment(Nodes\CaseNode $node, Nodes\CaseNode $next): array
+	{
+		$pattern = '~' . str_replace(' ', '\s+', preg_quote($this->comment, '~')) . '~i';
+		$last = $node->getLastToken();
+		$first = $next->getFirstToken();
+		foreach ([[$last, $last?->trailingTrivia], [$first, $first?->leadingTrivia]] as [$token, $trivias]) {
+			foreach ($trivias ?? [] as $trivia) {
+				if ($trivia->isComment() && preg_match($pattern, $trivia->text) === 1) {
+					return [$token, $trivia];
+				}
+			}
+		}
+
+		return [null, null];
+	}
+}
