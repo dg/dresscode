@@ -113,6 +113,15 @@ final class ProjectPlugin implements Plugin
 }
 
 
+final class DoubleQuotesPlugin implements Plugin
+{
+	public function getManifest(): PluginManifest
+	{
+		return new PluginManifest(presets: ['test/double' => __DIR__ . '/fixtures/double-quotes.neon']);
+	}
+}
+
+
 final class NestedPlugin implements Plugin
 {
 	public function getManifest(): PluginManifest
@@ -342,6 +351,58 @@ test('use takes presets and plugins, a plugin only in the configuration of the p
 		InvalidArgumentException::class,
 		'Plugin `ReportContext` is not a plugin; a rule is named in `rules` and a preset in `presets`.',
 	);
+});
+
+
+test('an override turns a rule off by its decision, an unknown one is an error before any file', function () use ($fixtures) {
+	$off = new Config(rules: [ReportContext::class], decisions: ReportsContext, overrides: [new Override(['sub'], new Profile(decisions: ['project' => ['context' => 'keep']]))]);
+	$runner = buildRunner($off, "$fixtures/project");
+	Assert::same([], $runner->processCode('src/sub/x.php', "<?php\n\$a;\n")->violations);
+	Assert::count(1, $runner->processCode('src/x.php', "<?php\n\$a;\n")->violations);
+
+	$unknown = new Config(rules: [ReportContext::class], overrides: [new Override(['sub'], new Profile(decisions: ['project' => ['nope' => 'keep']]))]);
+	Assert::exception(
+		fn() => (new RunnerFactory)->resolve($unknown, "$fixtures/project"),
+		ConfigurationException::class,
+		'The override for `sub`: %a%`project.nope`%a%',
+	);
+
+	// so is a value no decision takes, which would otherwise wait for a file of the override
+	$invalid = new Config(overrides: [new Override(['sub'], new Profile(decisions: ['literals' => ['quotes' => 'triple']]))]);
+	Assert::exception(
+		fn() => (new RunnerFactory)->resolve($invalid, "$fixtures/project"),
+		ConfigurationException::class,
+		'The override for `sub`: Key `literals.quotes` does not take `triple`; %a%',
+	);
+});
+
+
+test('an override brings its presets, its style, its name resolution and its warnings to its files', function () use ($fixtures) {
+	$factory = new RunnerFactory;
+	$resolution = $factory->resolve(
+		new Config(
+			use: [DoubleQuotesPlugin::class],
+			rules: [ReportContext::class],
+			nameResolution: 'certain',
+			overrides: [new Override(['sub'], new Profile(use: ['test/double'], nameResolution: 'uncertain', warnOnly: [ReportContext::class], decisions: ['indentation' => ['unit' => '2 spaces']]))],
+			decisions: ReportsContext,
+		),
+		"$fixtures/project",
+	);
+	$runner = $factory->createRunner($resolution);
+	$describe = fn(string $path) => array_map(
+		fn($violation) => "$violation->decision {$violation->severity->name} $violation->message",
+		$runner->processCode($path, "<?php\n\$a = 'text';\n")->violations,
+	);
+	Assert::same(['project.context Error 8.1 "\t""\n"'], $describe('src/x.php'));
+	$sub = $describe('src/sub/x.php');
+	Assert::count(2, $sub);
+	Assert::same('project.context Warning 8.1 "  ""\n"', $sub[0]);
+	Assert::match('literals.quotes Error %a%', $sub[1]);
+
+	$sub = $resolution->resolveFor($runner->findOverridesFor('src/sub/x.php'));
+	Assert::same('certain', $resolution->resolvedConfig->nameResolution);
+	Assert::same('uncertain', $sub->nameResolution);
 });
 
 

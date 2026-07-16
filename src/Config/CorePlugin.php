@@ -95,6 +95,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\NamedArgumentSpacingRule::class,
 				Rules\Literals\HeredocIndentationRule::class,
 				Rules\Literals\BuiltinCasingRule::class,
+				Rules\Literals\StringQuotesRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,
