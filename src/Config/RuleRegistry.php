@@ -49,6 +49,7 @@ final class RuleRegistry
 		Rules\ControlFlow\UselessElseRule::class,
 		Rules\ControlFlow\UselessReturnRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
+		Rules\ControlFlow\NoContinueInSwitchRule::class,
 		Rules\ControlFlow\UselessIfConditionWithReturnRule::class,
 		Rules\Files\NoBomRule::class,
 		Rules\Files\NoInvisibleCharactersRule::class,
