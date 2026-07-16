@@ -12,6 +12,7 @@ use DressCode\Rule;
 use DressCode\RuleContext;
 use DressCode\RuleException;
 use DressCode\RuleInfo;
+use DressCode\Rules\Whitespace\IndentationRule;
 use DressCode\Severity;
 use DressCode\Stage;
 use DressCode\Style;
@@ -428,6 +429,36 @@ test('a line that follows a move the run refused is not derived from it', functi
 		[, $result] = run($code, [new MoveChain], fixRisky: $fixRisky);
 		$byMessage = array_column($result->violations, null, 'message');
 		Assert::same($fixRisky ? $byMessage['Move $b']->fingerprint : null, $byMessage['Move $c']->derivedFrom, $fixRisky ? 'allowed' : 'refused');
+	}
+});
+
+
+test('a line placed by the line of its construct follows that line, and its ancestor is the first', function () {
+	// $b is wrong on its own; the inner if is wrong on its own, and $d and the inner brace count from it
+	$code = "<?php\nif (\$a) {\n\$b;\nif (\$c) {\n\$d;\n}\n}\n";
+	[$file, $result] = run($code, [new IndentationRule]);
+	Assert::same("<?php\nif (\$a) {\n\t\$b;\n\tif (\$c) {\n\t\t\$d;\n\t}\n}\n", (string) $file);
+	[$b, $if, $d, $brace] = $result->violations;
+	Assert::same([3, 4, 5, 6], array_map(fn($v) => $v->line, $result->violations));
+	Assert::same([null, null, $if->fingerprint, $if->fingerprint], [$b->derivedFrom, $if->derivedFrom, $d->derivedFrom, $brace->derivedFrom]);
+
+	// the line the fixer opened is the ancestor of what is placed by it, however deep
+	[$file, $result] = run("<?php\nif (\$a) foreach (\$c as \$x) {\n\$d;\n}\n", [new BreakBody, new IndentationRule]);
+	Assert::same("<?php\nif (\$a)\n\n\tforeach (\$c as \$x) {\n\t\t\$d;\n\t}\n", (string) $file);
+	Assert::count(4, $result->violations);
+	$break = null;
+	foreach ($result->violations as $violation) {
+		if (str_starts_with($violation->message, 'A line break')) {
+			$break = $violation;
+		}
+	}
+
+	Assert::notNull($break);
+	Assert::null($break->derivedFrom);
+	foreach ($result->violations as $violation) {
+		if ($violation !== $break) {
+			Assert::same($break->fingerprint, $violation->derivedFrom, $violation->message);
+		}
 	}
 });
 

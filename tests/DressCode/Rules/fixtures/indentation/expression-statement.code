@@ -1,0 +1,11 @@
+<?php
+// an expression that begins its statement has no line of its own to line up with, so a continuation steps in
+$found
+	|| throw new LogicException('not found');
+
+$this->ready
+	&& $this->run();
+
+// and what lines up with the statement itself is pulled into place
+$found
+|| $this->fail();

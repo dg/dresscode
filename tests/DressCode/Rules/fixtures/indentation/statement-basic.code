@@ -1,0 +1,45 @@
+<?php
+
+  namespace Foo;
+
+  use Bar;
+
+class A
+{
+public $x;
+
+    /**
+     * Doc
+     */
+    public function f($a)
+  {
+        if ($a) {
+        x();
+            // comment
+        }
+  else {
+      y(
+          1,
+      );
+            // last
+        }
+        switch ($a) {
+        case 1:
+        z();
+        break;
+            default:
+        }
+        $m = match ($a) {
+        1 => 2,
+            default => 3,
+        };
+        try {
+        } catch (E $e) {
+        }
+        finally {
+        }
+        do {
+        }
+        while ($a);
+  }
+}
