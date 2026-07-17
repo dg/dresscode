@@ -95,6 +95,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Literals\HeredocIndentationRule::class,
 				Rules\Literals\MagicConstantCasingRule::class,
+				Rules\Literals\NoTrailingWhitespaceInStringRule::class,
 				Rules\Literals\StringQuotesRule::class,
 				Rules\Types\TypeHintSpacingRule::class,
 				Rules\Variables\CombinedIssetsRule::class,
