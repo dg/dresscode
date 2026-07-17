@@ -69,6 +69,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\FunctionNameSpacingRule::class,
 				Rules\Literals\TrueFalseNullCasingRule::class,
 				Rules\Literals\KeywordCasingRule::class,
+				Rules\Literals\NumericLiteralSeparatorRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
 				Rules\Expressions\CastSpacingRule::class,
 				Rules\Expressions\CastCanonicalTypeRule::class,
