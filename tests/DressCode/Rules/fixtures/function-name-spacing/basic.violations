@@ -1,0 +1,14 @@
+2: No whitespace after the name
+3: No whitespace after the name
+4: No whitespace after the name
+5: No whitespace after the name
+6: No whitespace after the name
+7: No whitespace after the name
+8: No whitespace after the isset keyword
+9: No whitespace after the unset keyword
+10: No whitespace after the empty keyword
+11: No whitespace after the list keyword
+12: No whitespace after the exit keyword
+15: No whitespace after the eval keyword
+17: No whitespace after the name
+19: No whitespace after the __halt_compiler keyword
