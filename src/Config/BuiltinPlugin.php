@@ -96,6 +96,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Literals\ComplexStringVariableRule::class,
 				Rules\Literals\NoImplicitBackslashesRule::class,
 				Rules\Literals\HeredocIndentationRule::class,
+				Rules\Literals\NowdocWithoutInterpolationRule::class,
 				Rules\Literals\MagicConstantCasingRule::class,
 				Rules\Literals\NoTrailingWhitespaceInStringRule::class,
 				Rules\Literals\StringQuotesRule::class,
