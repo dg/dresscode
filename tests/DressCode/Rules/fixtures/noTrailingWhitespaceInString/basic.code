@@ -1,0 +1,15 @@
+<?php
+// risky
+$a = 'one  
+two';
+$b = "three	
+four $x 
+five";
+$c = <<<EOD
+six 
+seven
+EOD;
+$d = 'no problem';
+?>
+<p>eight </p> 
+<p>nine</p>
