@@ -1,0 +1,30 @@
+<?php
+return$a;
+return  $a;
+return;
+$f = function() {};
+$g = fn ($x) => $x;
+$h = function ($x)use($y) {};
+if ($a) {
+}elseif ($b) {
+}else{
+}
+foreach ($a as$b) {}
+foreach ($a  as  $b) {}
+echo  1;
+new  A;
+throw  $e;
+static::x();
+A::class;
+switch ($a) {
+	default:
+}
+class  A  extends  B {
+	public  $x;
+	const  X = 1;
+	use  T;
+}
+namespace  Foo;
+use  Bar;
+$x = new static((string) $y);
+$z = new  static;

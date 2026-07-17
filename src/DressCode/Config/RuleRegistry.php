@@ -42,6 +42,7 @@ final class RuleRegistry
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\ControlFlow\SingleStatementPerLineRule::class,
 		Rules\Files\EofNewlineRule::class,
+		Rules\Whitespace\ConstructSpacingRule::class,
 	];
 
 	/** @var array<string, class-string<Rule>>  name → class */

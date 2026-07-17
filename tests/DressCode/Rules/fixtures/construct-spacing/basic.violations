@@ -1,0 +1,23 @@
+2: A single space after the return keyword
+3: A single space after the return keyword
+5: A single space after the function keyword
+6: No whitespace between the fn keyword and its parenthesis
+7: A single space after the use keyword
+7: A single space before the use keyword
+9: A single space before the elseif keyword
+10: A single space after the else keyword
+10: A single space before the else keyword
+12: A single space after the as keyword
+13: A single space after the as keyword
+13: A single space before the as keyword
+14: A single space after the echo keyword
+15: A single space after the new keyword
+16: A single space after the throw keyword
+22: A single space after the class keyword
+22: A single space after the extends keyword
+23: A single space after the public keyword
+24: A single space after the const keyword
+25: A single space after the use keyword
+27: A single space after the namespace keyword
+28: A single space after the use keyword
+30: A single space after the new keyword
