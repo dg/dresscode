@@ -1,0 +1,43 @@
+2: A single space after the return keyword
+3: A single space after the return keyword
+5: A single space after the function keyword
+6: No whitespace after the fn keyword
+7: A single space before the use keyword
+7: A single space after the use keyword
+9: A single space before the elseif keyword
+10: A single space before the else keyword
+10: A single space after the else keyword
+12: A single space after the as keyword
+13: A single space before the as keyword
+13: A single space after the as keyword
+14: A single space after the echo keyword
+15: A single space after the new keyword
+16: A single space after the throw keyword
+23: A single space after the public keyword
+24: A single space after the const keyword
+25: A single space after the use keyword
+26: A single space after the as keyword
+26: A single space after the protected keyword
+28: A single space after the namespace keyword
+29: A single space after the use keyword
+31: A single space after the new keyword
+32: A single space before the opening brace
+34: A single space after the try keyword
+35: A single space before the opening brace
+36: A single space before the finally keyword
+36: A single space after the finally keyword
+38: A single space after the do keyword
+39: A single space before the while keyword
+40: A single space before the opening brace
+42: A single space after the match keyword
+42: A single space before the opening brace
+43: No whitespace before the closing brace
+44: No whitespace after the namespace separator
+44: No whitespace after the opening brace
+44: No whitespace before the closing brace
+45: A single space after the use keyword
+45: A single space after the function keyword
+46: A single space after the const keyword
+46: A single space after the function keyword
+47: No whitespace before the colon
+48: No whitespace before the colon
