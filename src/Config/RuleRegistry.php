@@ -38,6 +38,7 @@ final class RuleRegistry
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
+		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\ControlFlow\SingleStatementPerLineRule::class,
 		Rules\Files\EofNewlineRule::class,
