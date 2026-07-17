@@ -32,15 +32,30 @@ final class Token implements \Stringable
 	}
 
 
+	/**
+	 * Whether the token is of one of the kinds, given as a kind or as the text of an operator or punctuation;
+	 * the content of a string never matches a text.
+	 */
 	public function is(int|string ...$kinds): bool
 	{
 		foreach ($kinds as $kind) {
-			if (is_int($kind) ? $this->kind === $kind : $this->text === $kind) {
+			if (is_int($kind) ? $this->kind === $kind : ($this->text === $kind && !$this->isStringContent())) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+
+	private function isStringContent(): bool
+	{
+		return $this->kind === TokenKind::EncapsedAndWhitespace
+			|| $this->kind === TokenKind::ConstantEncapsedString
+			|| $this->kind === TokenKind::InlineHtml
+			|| $this->kind === TokenKind::NumString
+			|| $this->kind === TokenKind::StringVarname
+			|| $this->kind === TokenKind::HaltCompilerData;
 	}
 
 
