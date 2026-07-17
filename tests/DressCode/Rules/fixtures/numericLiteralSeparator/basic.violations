@@ -1,0 +1,6 @@
+2: The number `1000` must be written `1_000`.
+4: The number `1000000` must be written `1_000_000`.
+8: The number `1.23456` must be written `1.234_56`.
+9: The number `12345.6` must be written `12_345.6`.
+11: The number `1234e5` must be written `1_234e5`.
+12: The number `12345.678901` must be written `12_345.678_901`.
