@@ -1,0 +1,7 @@
+<?php
+// {"indentation": "sameAsStart"}
+function f() {
+	$a = <<<EOT
+	foo
+	EOT;
+}
