@@ -18,6 +18,7 @@ use DressCode\Rules;
 final class RuleRegistry
 {
 	private const BuiltInRules = [
+		Rules\Expressions\OffsetBracketSpacingRule::class,
 		Rules\Arrays\ArraySpacingRule::class,
 		Rules\ControlFlow\ContinuationPositionRule::class,
 		Rules\ControlFlow\ControlStructureBracesRule::class,
