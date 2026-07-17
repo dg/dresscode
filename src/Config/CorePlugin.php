@@ -96,6 +96,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\NoDollarBraceInterpolationsRule::class,
 				Rules\Literals\HeredocIndentationRule::class,
 				Rules\Literals\BuiltinCasingRule::class,
+				Rules\Literals\NoImplicitBackslashesRule::class,
 				Rules\Literals\NoTrailingWhitespaceInStringRule::class,
 				Rules\Literals\StringQuotesRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,

@@ -1,0 +1,6 @@
+2: A backslash that starts no escape sequence must be escaped as `\\`.
+7: A backslash that starts no escape sequence must be escaped as `\\`.
+9: A backslash that starts no escape sequence must be escaped as `\\`.
+16: A backslash that starts no escape sequence must be escaped as `\\`.
+17: A backslash that starts no escape sequence must be escaped as `\\`.
+19: A backslash that starts no escape sequence must be escaped as `\\`.
