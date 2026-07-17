@@ -93,6 +93,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
 				Rules\Expressions\UselessTernaryOperatorRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
+				Rules\Literals\ComplexStringVariableRule::class,
 				Rules\Literals\HeredocIndentationRule::class,
 				Rules\Literals\MagicConstantCasingRule::class,
 				Rules\Literals\NoTrailingWhitespaceInStringRule::class,
