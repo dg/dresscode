@@ -1,0 +1,28 @@
+<?php
+function f() {
+	$a = <<<EOT
+foo
+  bar
+EOT;
+	$b = <<<'EOT'
+		foo
+		EOT;
+	$c = <<<EOT
+			foo $x
+			bar
+			EOT;
+	return <<<EOT
+
+		x
+		EOT;
+}
+$d = <<<EOT
+foo
+EOT;
+function g() {
+	return <<<X
+		a
+		X . <<<Y
+b
+Y;
+}
