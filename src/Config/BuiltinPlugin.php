@@ -70,6 +70,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Literals\TrueFalseNullCasingRule::class,
 				Rules\Literals\KeywordCasingRule::class,
 				Rules\Literals\NumericLiteralSeparatorRule::class,
+				Rules\Literals\OctalNotationRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
 				Rules\Expressions\CastSpacingRule::class,
 				Rules\Expressions\CastCanonicalTypeRule::class,
