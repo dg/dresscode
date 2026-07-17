@@ -39,6 +39,7 @@ final class RuleRegistry
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
+		Rules\Files\DeclareSpacingRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\ControlFlow\SingleStatementPerLineRule::class,
 		Rules\Files\EofNewlineRule::class,
