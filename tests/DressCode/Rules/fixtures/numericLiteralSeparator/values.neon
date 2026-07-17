@@ -1,0 +1,4 @@
+literals:
+	digitSeparator:
+		integer: 4
+		fraction: 4
