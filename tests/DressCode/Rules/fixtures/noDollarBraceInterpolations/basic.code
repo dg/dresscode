@@ -1,0 +1,9 @@
+<?php
+$a = "pre${x}post";
+$b = "keep{$y}form";
+$c = "plain$z";
+$d = "self${$v}ref";
+$e = <<<EOD
+text ${w} here
+EOD;
+$f = "a${g[0]}b${h['k']}c${i[$j]}d${k[f()]}e${l[K]}";
