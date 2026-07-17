@@ -100,6 +100,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\NoTrailingWhitespaceInStringRule::class,
 				Rules\Literals\NowdocForHeredocRule::class,
 				Rules\Literals\NumericLiteralSeparatorRule::class,
+				Rules\Literals\OctalNotationRule::class,
 				Rules\Literals\StringQuotesRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
