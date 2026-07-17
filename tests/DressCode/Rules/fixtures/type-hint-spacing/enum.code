@@ -1,0 +1,5 @@
+<?php
+enum A : string {}
+enum B:int {}
+enum C: string {}
+enum D {}

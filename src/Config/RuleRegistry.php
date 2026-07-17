@@ -40,6 +40,7 @@ final class RuleRegistry
 		Rules\Expressions\ObjectOperatorSpacingRule::class,
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
+		Rules\Types\TypeHintSpacingRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\DeclareSpacingRule::class,
