@@ -39,6 +39,7 @@ final class RuleRegistry
 		Rules\Comments\CommentSpacingRule::class,
 		Rules\Comments\NoEmptyCommentRule::class,
 		Rules\Comments\NoHashCommentRule::class,
+		Rules\ControlFlow\NoUnreachableCatchRule::class,
 		Rules\ControlFlow\EarlyExitRule::class,
 		Rules\ControlFlow\ElseifKeywordRule::class,
 		Rules\ControlFlow\TernaryForSimpleBranchRule::class,
