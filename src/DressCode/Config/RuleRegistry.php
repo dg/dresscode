@@ -25,6 +25,7 @@ final class RuleRegistry
 		Rules\Files\FullOpeningTagRule::class,
 		Rules\Files\LineEndingRule::class,
 		Rules\Files\NoClosingTagRule::class,
+		Rules\Functions\FunctionNameSpacingRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Namespaces\UnusedImportsRule::class,
 		Rules\Namespaces\UseFromSameNamespaceRule::class,
