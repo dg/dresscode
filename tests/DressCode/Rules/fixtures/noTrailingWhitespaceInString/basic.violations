@@ -1,0 +1,10 @@
+3: Expected no whitespace at the end of a line in the string.
+	risky BehaviorChanges: the whitespace is a part of the value
+5: Expected no whitespace at the end of a line in the string.
+	risky BehaviorChanges: the whitespace is a part of the value
+6: Expected no whitespace at the end of a line in the string.
+	risky BehaviorChanges: the whitespace is a part of the value
+9: Expected no whitespace at the end of a line in the string.
+	risky BehaviorChanges: the whitespace is a part of the value
+14: Expected no whitespace at the end of a line in the string.
+	risky BehaviorChanges: the whitespace is a part of the value
