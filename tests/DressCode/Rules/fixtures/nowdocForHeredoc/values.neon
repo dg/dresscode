@@ -1,0 +1,2 @@
+literals:
+	heredocWithoutInterpolation: forbidden

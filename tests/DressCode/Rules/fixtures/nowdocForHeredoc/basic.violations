@@ -1,0 +1,4 @@
+2: The heredoc without interpolation must be written as a nowdoc.
+6: The heredoc without interpolation must be written as a nowdoc.
+18: The heredoc without interpolation must be written as a nowdoc.
+20: The heredoc without interpolation must be written as a nowdoc.

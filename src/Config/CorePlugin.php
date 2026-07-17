@@ -98,6 +98,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\BuiltinCasingRule::class,
 				Rules\Literals\NoImplicitBackslashesRule::class,
 				Rules\Literals\NoTrailingWhitespaceInStringRule::class,
+				Rules\Literals\NowdocForHeredocRule::class,
 				Rules\Literals\StringQuotesRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
