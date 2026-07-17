@@ -1,0 +1,3 @@
+2: The octal number `0755` must be written `0o755`.
+7: The octal number `00` must be written `0o0`.
+8: The octal number `0_755` must be written `0o755`.
