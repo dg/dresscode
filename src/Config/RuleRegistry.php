@@ -96,6 +96,7 @@ final class RuleRegistry
 		Rules\Literals\HeredocIndentationRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
+		Rules\Variables\CombinedIssetsRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\DeclareSpacingRule::class,
