@@ -23,6 +23,7 @@ final class RuleRegistry
 		Rules\ControlFlow\ContinuationPositionRule::class,
 		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
+		Rules\Classes\UselessNullPropertyInitializationRule::class,
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
