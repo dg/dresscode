@@ -18,6 +18,12 @@ final class Per implements Preset
 	{
 		return [
 
+			// 4. Classes, properties and methods: empty bodies, anonymous classes, named arguments
+			Rules\Classes\ClassDefinitionSpacingRule::class => ['spaceBeforeParenthesis' => false],
+
+			// 5.6 The types of a multi-catch hug their bar, as every compound type does
+			Rules\Types\TypeHintSpacingRule::class => true,
+
 			// 6. Operators
 			Rules\Expressions\ConcatSpacingRule::class => true,
 		];
