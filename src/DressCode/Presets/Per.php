@@ -18,6 +18,9 @@ final class Per implements Preset
 	{
 		return [
 
+			// 4. Classes, properties and methods: empty bodies, anonymous classes, named arguments
+			Rules\Classes\ClassDefinitionSpacingRule::class => ['spaceBeforeParenthesis' => false],
+
 			// 6. Operators
 			Rules\Expressions\ConcatSpacingRule::class => true,
 		];

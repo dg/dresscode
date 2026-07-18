@@ -1,0 +1,14 @@
+<?php
+final class A extends B implements C, D
+{
+}
+interface I extends J {}
+$x = new class ($a) extends B {};
+$y = new class ( $a ) {};
+$z = new class (self::T) extends B {};
+enum E: string {}
+class Long extends B implements
+	C,
+	D
+{
+}

@@ -1,0 +1,8 @@
+<?php
+// {"spaceBeforeParenthesis": false}
+$a = new class($x) extends Foo {
+};
+$b = new class($x) {
+};
+$c = new class {
+};
