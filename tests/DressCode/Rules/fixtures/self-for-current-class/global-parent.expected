@@ -1,0 +1,13 @@
+<?php
+namespace Nette2\Utils;
+
+class DateTimeImmutable extends \DateTimeImmutable
+{
+	public function f()
+	{
+		$a = new \DateTimeImmutable;
+		$b = \DateTimeImmutable::createFromInterface($a);
+		$c = new self;
+		return self::create();
+	}
+}
