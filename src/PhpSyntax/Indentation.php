@@ -2,6 +2,7 @@
 
 namespace PhpSyntax;
 
+use PhpSyntax\Nodes\SeparatedNodeList;
 use function count;
 
 
@@ -85,6 +86,92 @@ final class Indentation
 				break;
 			}
 		}
+	}
+
+
+	/**
+	 * Puts every item of a delimited list on its own line, one unit deeper than the indentation given, and
+	 * the closing delimiter on a line of its own at that indentation; an item spanning lines keeps its shape.
+	 * @template T of Node
+	 * @param SeparatedNodeList<T> $list
+	 */
+	public static function breakList(
+		SeparatedNodeList $list,
+		Token $open,
+		Token $close,
+		string $indentation,
+		Style $style,
+	): void
+	{
+		$eol = new Trivia(TriviaKind::EndOfLine, $style->eol);
+		$inner = $indentation . $style->indent;
+		$open->setTrailingTrivia(self::withoutSpace($open->trailingTrivia, $eol));
+		$separators = $list->getSeparators();
+		foreach ($list->getItems() as $i => $item) {
+			$first = $item->getFirstToken();
+			$last = $item->getLastToken();
+			if ($first === null || $last === null) {
+				continue;
+			}
+
+			$old = $first->startsLine() ? $first->getIndentation() : null;
+			$first->setLeadingTrivia([...self::comments($first->leadingTrivia), new Trivia(TriviaKind::Whitespace, $inner)]);
+			if ($old !== null && $old !== $inner) {
+				self::shift($first, $last, $old, $inner, $style);
+			}
+
+			$end = $separators[$i] ?? $last;
+			if ($end === $last && $i === count($list->getItems()) - 1 && !$list->hasTrailingSeparator()) {
+				$end->setTrailingTrivia(self::withoutSpace($end->trailingTrivia, $eol));
+			} elseif ($end !== $last) {
+				$last->setTrailingTrivia(self::withoutSpace($last->trailingTrivia, null));
+				$end->setTrailingTrivia(self::withoutSpace($end->trailingTrivia, $eol));
+			}
+		}
+
+		$close->setLeadingTrivia([...self::comments($close->leadingTrivia), ...($indentation === '' ? [] : [new Trivia(TriviaKind::Whitespace, $indentation)])]);
+	}
+
+
+	/**
+	 * The trivia without whitespace and line endings, ending with the line ending given, comments kept.
+	 * @param  list<Trivia>  $trivia
+	 * @return list<Trivia>
+	 */
+	private static function withoutSpace(array $trivia, ?Trivia $eol): array
+	{
+		$result = [];
+		foreach ($trivia as $item) {
+			if ($item->isComment()) {
+				$result[] = new Trivia(TriviaKind::Whitespace, ' ');
+				$result[] = $item;
+			}
+		}
+
+		if ($eol !== null) {
+			$result[] = $eol;
+		}
+
+		return $result;
+	}
+
+
+	/**
+	 * Comments among the trivia, each on a line of its own.
+	 * @param  list<Trivia>  $trivia
+	 * @return list<Trivia>
+	 */
+	private static function comments(array $trivia): array
+	{
+		$result = [];
+		foreach ($trivia as $item) {
+			if ($item->isComment()) {
+				$result[] = $item;
+				$result[] = new Trivia(TriviaKind::EndOfLine, "\n");
+			}
+		}
+
+		return $result;
 	}
 
 
