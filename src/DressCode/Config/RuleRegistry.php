@@ -26,6 +26,7 @@ final class RuleRegistry
 		Rules\Classes\UselessNullPropertyInitializationRule::class,
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
+		Rules\Classes\VisibilityRequiredRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\Files\NoByteOrderMarkRule::class,
 		Rules\Files\FullOpeningTagRule::class,
