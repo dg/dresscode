@@ -1,0 +1,17 @@
+<?php
+class A
+{
+	var $a;
+	static $b;
+	const X = 1;
+	static public function f() {}
+	function g() {}
+	readonly public $c;
+	static private final function h() {}
+	/** doc */
+	function i() {}
+	#[Attr]
+	function j() {}
+}
+interface I { function f(); const Y = 1; }
+trait T { function f() {} }
