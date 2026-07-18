@@ -1,0 +1,14 @@
+<?php
+namespace X;
+class Foo extends Bar
+{
+	public function f(): Foo
+	{
+		return new self(self::X, self::$y, self::z(), $a instanceof self, \X\Foo::W);
+	}
+	public function g()
+	{
+		return new class { public function h() { return Foo::X; } };
+	}
+}
+class Other { public function f() { return Foo::X; } }

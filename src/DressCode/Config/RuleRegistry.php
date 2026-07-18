@@ -24,6 +24,7 @@ final class RuleRegistry
 		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
 		Rules\Classes\OrderedMembersRule::class,
+		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\Files\NoByteOrderMarkRule::class,
 		Rules\Files\FullOpeningTagRule::class,
