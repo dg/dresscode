@@ -1,0 +1,8 @@
+<?php
+class A
+{
+	public $a;
+	public $b, $c;
+	public ?int $d = null;
+	public $e = 1;
+}
