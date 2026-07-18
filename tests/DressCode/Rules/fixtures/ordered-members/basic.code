@@ -1,0 +1,14 @@
+<?php
+class A
+{
+	public function f() {}
+	private $c;
+	/** doc */
+	public $a;
+	private const Z = 1;
+	use T;
+	public const X = 1;
+	protected $b;
+	public function g() {}
+	const Y = 2;
+}
