@@ -25,6 +25,7 @@ final class RuleRegistry
 		Rules\Expressions\OffsetBracketSpacingRule::class,
 		Rules\Arrays\ArraySpacingRule::class,
 		Rules\Arrays\ShortArraySyntaxRule::class,
+		Rules\Arrays\MultiLineArrayRule::class,
 		Rules\Whitespace\AttributeSpacingRule::class,
 		Rules\Whitespace\AttributePositionRule::class,
 		Rules\Whitespace\BracesPositionRule::class,
