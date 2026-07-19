@@ -1,0 +1,8 @@
+<?php
+// {"shape": "compact"}
+if (
+	// the first condition
+	$a
+	&& $b
+) {
+}
