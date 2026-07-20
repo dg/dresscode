@@ -1,0 +1,6 @@
+6: The property `$b` must not declare its visibility `public`, which its set visibility implies.
+7: The property `$c` must not declare its visibility `public`, which its set visibility implies.
+8: The property `$d` must not declare its visibility `public`, which its set visibility implies.
+10: The property `$f` must not declare its visibility `public`, which its set visibility implies.
+14: The property `$p` must not declare its visibility `public`, which its set visibility implies.
+15: The property `$q` must not declare its visibility `public`, which its set visibility implies.

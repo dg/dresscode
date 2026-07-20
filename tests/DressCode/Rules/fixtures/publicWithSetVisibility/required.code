@@ -1,0 +1,18 @@
+<?php
+class A
+{
+	private(set) string $a;
+	protected(set) int $b = 0;
+	final private(set) static int $c = 0;
+	public private(set) string $d;
+	protected private(set) string $e;
+	private(set) /* why */ readonly string $f;
+	public string $g;
+
+	public function __construct(
+		private(set) string $p,
+		protected(set) readonly int $q,
+		public private(set) string $r,
+		readonly int $s,
+	) {}
+}

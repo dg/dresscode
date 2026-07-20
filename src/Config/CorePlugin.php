@@ -31,6 +31,7 @@ final class CorePlugin implements Plugin
 				Rules\Arrays\TrailingCommaRule::class,
 				Rules\Classes\ClassHeadSpacingRule::class,
 				Rules\Classes\MultilineImplementsRule::class,
+				Rules\Classes\PublicWithSetVisibilityRule::class,
 				Rules\Classes\NoMembersSharingLineRule::class,
 				Rules\Classes\VisibilityRequiredRule::class,
 				Rules\Classes\ModifierOrderRule::class,
