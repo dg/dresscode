@@ -1,0 +1,5 @@
+<?php
+namespace App;
+
+$a = `ls -la`;
+$b = `ls $dir`;
