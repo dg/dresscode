@@ -33,6 +33,8 @@ final readonly class Report
 		public ?Token $gap = null,
 		/** the token opening the line the reported whitespace is counted from */
 		public ?Token $follows = null,
+		/** what is wrong is the shape of the line the reported token stands on, and the rule writes no whitespace */
+		public bool $byLine = false,
 		/** the fix puts a line break into the gap or takes one out, opening or closing the line of the token */
 		public bool $breaks = false,
 		/** the rule has a fix for it; false when it only reports it */

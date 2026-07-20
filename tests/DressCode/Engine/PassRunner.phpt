@@ -122,6 +122,26 @@ final class ReportBodySpace extends NodeRule
 }
 
 
+/** Reports the shape of the line every statement stands on, which is nobody's whitespace. */
+#[RuleInfo('test/report-statement-line', Stage::Cleanup)]
+final class ReportStatementLine extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [ExpressionStatementNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		$token = $node instanceof ExpressionStatementNode ? $node->getFirstToken() : null;
+		if ($token !== null) {
+			$context->report($token, "The line of $token->text", byLine: true);
+		}
+	}
+}
+
+
 /**
  * Places every statement by the one above it: the second is a risky move, the third follows the second,
  * so what the third is derived from depends on whether the run allowed the move.
@@ -460,6 +480,19 @@ test('a line placed by the line of its construct follows that line, and its ance
 			Assert::same($break->fingerprint, $violation->derivedFrom, $violation->message);
 		}
 	}
+});
+
+
+test('a violation about the shape of a line is derived from what opened it, and moves that line for nobody', function () {
+	[, $result] = run("<?php\nif (\$a) \$b;\n", [new BreakBody, new ReportStatementLine]);
+	$byMessage = array_column($result->violations, null, 'message');
+	Assert::same($byMessage['A line break before the statement']->fingerprint, $byMessage['The line of $b']->derivedFrom);
+
+	// a line nobody opened leaves such a report its own, and the report is no move the lines below count from
+	[, $result] = run("<?php\n\t\$a;\n\t\$b;\n\t\$c;\n", [new ReportStatementLine, new MoveChain], fixRisky: true);
+	$byMessage = array_column($result->violations, null, 'message');
+	Assert::null($byMessage['The line of $b']->derivedFrom);
+	Assert::same($byMessage['Move $b']->fingerprint, $byMessage['Move $c']->derivedFrom);
 });
 
 
