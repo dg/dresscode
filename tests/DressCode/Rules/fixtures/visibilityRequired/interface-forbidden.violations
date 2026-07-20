@@ -1,0 +1,5 @@
+5: The method `f()` of an interface must not declare its visibility.
+8: The method `g()` of an interface must not declare its visibility.
+10: The method `h()` of an interface must not declare its visibility.
+14: The constant `X` must declare its visibility.
+18: The method `f()` must declare its visibility.

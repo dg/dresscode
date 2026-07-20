@@ -1,0 +1,19 @@
+<?php
+// {"interfaceMethodVisibility": "forbidden"}
+interface I
+{
+	public function f();
+
+	/** doc */
+	public function g();
+
+	static public function h();
+
+	function i();
+
+	const X = 1;
+}
+class A
+{
+	function f() {}
+}

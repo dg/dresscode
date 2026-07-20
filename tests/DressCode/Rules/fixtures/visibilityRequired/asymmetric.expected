@@ -1,0 +1,20 @@
+<?php
+// php 8.5
+class A
+{
+	private(set) string $a;
+	protected(set) int $b = 0;
+	private(set) static int $c = 0;
+	static private(set) int $d = 0;
+	public private(set) static int $e = 0;
+	final private(set) string $f;
+	private(set) readonly string $g;
+	public function __construct(
+		private(set) string $p,
+		protected(set) readonly int $q,
+		public private(set) string $r,
+		final $s,
+		final private(set) string $t,
+		readonly int $u,
+	) {}
+}

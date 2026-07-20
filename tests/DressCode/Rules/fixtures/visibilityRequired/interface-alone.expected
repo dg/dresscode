@@ -1,0 +1,15 @@
+<?php
+// {"memberVisibility": "keep", "interfaceMethodVisibility": "forbidden"}
+interface I
+{
+	function f();
+
+	static function g();
+
+	const X = 1;
+}
+class A
+{
+	static public function f() {}
+	var $a;
+}

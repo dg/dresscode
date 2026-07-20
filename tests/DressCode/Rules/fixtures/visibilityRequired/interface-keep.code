@@ -1,0 +1,12 @@
+<?php
+// {"interfaceMethodVisibility": "keep"}
+interface I
+{
+	public function f();
+
+	function g();
+
+	static public function h();
+
+	const X = 1;
+}
