@@ -102,6 +102,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\NumericLiteralSeparatorRule::class,
 				Rules\Literals\OctalNotationRule::class,
 				Rules\Literals\StringQuotesRule::class,
+				Rules\Literals\UselessStringConcatenationRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,

@@ -1,0 +1,5 @@
+2: Useless concatenation of two string literals, because they make one literal.
+3: Useless concatenation of two string literals, but an escape sequence could span the joint.
+9: Useless concatenation of two string literals, because they make one literal.
+9: Useless concatenation of two string literals, because they make one literal.
+10: Useless concatenation of two string literals, because they make one literal.

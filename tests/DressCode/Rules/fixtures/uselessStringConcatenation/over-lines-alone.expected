@@ -1,0 +1,5 @@
+<?php
+// {"concatenatedLiterals": "keep", "concatenatedLiteralsOverLines": "joined"}
+$a = 'foo' . 'bar';
+$b = 'foobar';
+$c = $x . '';
