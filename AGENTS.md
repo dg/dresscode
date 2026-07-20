@@ -13,7 +13,7 @@ DressCode is a PHP code style checker and fixer built on a **lossless concrete s
 
 The tree itself is the `phpsyntax/phpsyntax` library (namespace `PhpSyntax`), developed in a repository of its own. This one holds `DressCode` (`src/`): engine, rules API, the library of generic rules, configuration, CLI.
 
-Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs from it is public API for plugins too.
+Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs from it is public API for plugins too. What the rules only share among themselves (`Rules\BlankLines`) is `@internal`.
 
 ## Essential commands
 
