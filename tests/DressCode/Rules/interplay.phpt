@@ -184,6 +184,15 @@ test('a catch uselessCatchVariable leaves without its variable merges by noRepea
 });
 
 
+test('uselessModifier, visibilityRequired and modifierOrder settle on one shape', function () {
+	interplay([
+		Rules\Classes\UselessModifierRule::class => true,
+		Rules\Classes\VisibilityRequiredRule::class => true,
+		Rules\Classes\ModifierOrderRule::class => true,
+	], "<?php\nfinal class A\n{\n\tfinal function a() {}\n\tstatic final public function b() {}\n}\n", "<?php\nfinal class A\n{\n\tpublic function a() {}\n\tpublic static function b() {}\n}\n");
+});
+
+
 test('publicWithSetVisibility and visibilityRequired agree that a set visibility is a visibility', function () {
 	$code = "<?php\nclass A\n{\n\tstatic public private(set) int \$a = 0;\n\tprotected(set) int \$b = 0;\n\tvar \$c;\n}\n";
 	$expected = [

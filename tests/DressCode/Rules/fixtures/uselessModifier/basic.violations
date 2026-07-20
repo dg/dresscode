@@ -1,0 +1,13 @@
+4: Useless `final` modifier, because the class is final.
+5: Useless `final` modifier, because the class is final.
+6: Useless `final` modifier, because the class is final.
+13: Useless `final` modifier, because an enum is final.
+18: Useless `readonly` modifier, because the class is readonly.
+19: Useless `readonly` modifier, because the class is readonly.
+20: Useless `readonly` modifier, because the class is readonly.
+30: Useless `readonly` modifier, because the class is readonly.
+32: Useless `readonly` modifier, because the class is readonly.
+36: Useless `final` modifier, because no child overrides a private method.
+37: Useless `final` modifier, because no child overrides a private method.
+38: Useless `final` modifier, because no child overrides a private method.
+47: Useless `readonly` modifier, because the class is readonly.
