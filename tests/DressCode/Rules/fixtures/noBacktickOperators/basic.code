@@ -1,0 +1,8 @@
+<?php
+$a = `ls -la`;
+$b = `ls $dir`;
+$c = `ls {$dir}/x`;
+$d = `echo "hi"`;
+$e = `echo 'hi'`;
+$f = ``;
+$g = `ls $dir[x]`;
