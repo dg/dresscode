@@ -1,0 +1,12 @@
+4: The property `$a` must declare its visibility.
+5: The property `$b` must declare its visibility.
+6: The constant `X` must declare its visibility.
+8: The method `g()` must declare its visibility.
+12: The method `i()` must declare its visibility.
+14: The method `j()` must declare its visibility.
+16: The method `f()` must declare its visibility.
+16: The constant `Y` must declare its visibility.
+16: The method `g()` must declare its visibility.
+17: The method `f()` must declare its visibility.
+18: The constant `Z` must declare its visibility.
+18: The method `f()` must declare its visibility.

@@ -1,0 +1,18 @@
+<?php
+class A
+{
+	public $a;
+	public static $b;
+	public const X = 1;
+	static public function f() {}
+	public function g() {}
+	readonly public $c;
+	static private final function h() {}
+	/** doc */
+	public function i() {}
+	#[Attr]
+	public function j() {}
+}
+interface I { public function f(); public const Y = 1; public static function g(); }
+trait T { public function f() {} }
+enum E { public const Z = 1; public function f() {} }

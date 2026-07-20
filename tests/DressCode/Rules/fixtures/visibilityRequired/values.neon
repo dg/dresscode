@@ -1,0 +1,4 @@
+classes:
+	visibility:
+		member: required
+		interfaceMethod: required
