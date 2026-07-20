@@ -1,0 +1,5 @@
+<?php
+namespace App;
+
+$a = \shell_exec("ls -la");
+$b = \shell_exec("ls $dir");
