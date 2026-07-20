@@ -1,0 +1,19 @@
+<?php
+// {"publicWithSetVisibility": "forbidden"}
+class A
+{
+	private(set) string $a;
+	public protected(set) int $b = 0;
+	final public private(set) static int $c = 0;
+	public /* why */ private(set) string $d;
+	protected private(set) string $e;
+	public public(set) string $f;
+	public string $g;
+
+	public function __construct(
+		public private(set) string $p,
+		public protected(set) readonly int $q,
+		private private(set) string $r,
+		public readonly int $s,
+	) {}
+}

@@ -92,7 +92,7 @@ final class VisibilityRequiredRule extends NodeRule
 		$hasVisibility = false;
 		foreach ($tokens as $token) {
 			$visibility = MemberModifiers::rank($token) === MemberModifiers::Visibility;
-			// a set visibility alone is one too
+			// a set visibility alone is one too, the `public` it implies being `classes.publicWithSetVisibility`
 			$hasVisibility = $hasVisibility || $visibility || MemberModifiers::rank($token) === MemberModifiers::SetVisibility;
 			if (!$visibility || $mode !== self::Forbidden) {
 				$desired[] = $token->is(Token::Var) && $mode === self::Required ? 'public' : $token->text;

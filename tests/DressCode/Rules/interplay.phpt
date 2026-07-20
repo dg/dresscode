@@ -184,6 +184,22 @@ test('a catch uselessCatchVariable leaves without its variable merges by noRepea
 });
 
 
+test('publicWithSetVisibility and visibilityRequired agree that a set visibility is a visibility', function () {
+	$code = "<?php\nclass A\n{\n\tstatic public private(set) int \$a = 0;\n\tprotected(set) int \$b = 0;\n\tvar \$c;\n}\n";
+	$expected = [
+		'required' => "<?php\nclass A\n{\n\tpublic private(set) static int \$a = 0;\n\tpublic protected(set) int \$b = 0;\n\tpublic \$c;\n}\n",
+		'forbidden' => "<?php\nclass A\n{\n\tprivate(set) static int \$a = 0;\n\tprotected(set) int \$b = 0;\n\tpublic \$c;\n}\n",
+	];
+	foreach ($expected as $value => $output) {
+		interplay([
+			Rules\Classes\PublicWithSetVisibilityRule::class => ['classes.publicWithSetVisibility' => $value],
+			Rules\Classes\VisibilityRequiredRule::class => true,
+			Rules\Classes\ModifierOrderRule::class => true,
+		], $code, $output);
+	}
+});
+
+
 test('a comment commentSpacing rewrites keeps its line for the rule that reports it next', function () {
 	$result = interplay([
 		Rules\Comments\CommentSpacingRule::class => ['spacing.comment' => 'spaced'],

@@ -1,0 +1,6 @@
+4: The property `$a` must declare its visibility `public` in front of its set visibility.
+5: The property `$b` must declare its visibility `public` in front of its set visibility.
+6: The property `$c` must declare its visibility `public` in front of its set visibility.
+9: The property `$f` must declare its visibility `public` in front of its set visibility.
+13: The property `$p` must declare its visibility `public` in front of its set visibility.
+14: The property `$q` must declare its visibility `public` in front of its set visibility.

@@ -30,6 +30,7 @@ final class CorePlugin implements Plugin
 				Rules\Arrays\NoLongArraySyntaxRule::class,
 				Rules\Arrays\TrailingCommaRule::class,
 				Rules\Classes\ClassHeadSpacingRule::class,
+				Rules\Classes\PublicWithSetVisibilityRule::class,
 				Rules\Classes\NoMembersSharingLineRule::class,
 				Rules\Classes\VisibilityRequiredRule::class,
 				Rules\Classes\ModifierOrderRule::class,
