@@ -95,6 +95,7 @@ final class RuleRegistry
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\Literals\HeredocIndentationRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
+		Rules\Literals\StringQuotesRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
 		Rules\Variables\CombinedIssetsRule::class,
 		Rules\Variables\CombinedUnsetsRule::class,
