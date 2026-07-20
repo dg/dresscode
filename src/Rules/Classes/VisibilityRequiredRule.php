@@ -17,8 +17,8 @@ use function count;
 
 /**
  * Every property, method and constant of a class, interface, trait or enum declares its visibility (`var` becomes
- * `public`, a set visibility being one). A method of an interface, public whatever it says, follows
- * `classes.interfaceMethodVisibility`.
+ * `public`, a set visibility being one); the order of the modifiers is `ModifierOrderRule`'s. A method of an
+ * interface, public whatever it says, follows `classes.interfaceMethodVisibility`.
  */
 #[RuleInfo(Stage::Structure)]
 final class VisibilityRequiredRule extends NodeRule

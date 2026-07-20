@@ -1,0 +1,10 @@
+<?php
+class A
+{
+	var $a;
+	static $b;
+	static public function f() {}
+	readonly public int $c;
+	static private final function h() {}
+	function g() {}
+}

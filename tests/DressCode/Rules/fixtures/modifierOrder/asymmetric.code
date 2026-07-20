@@ -1,0 +1,13 @@
+<?php
+// php 8.5
+class A
+{
+	static private(set) int $d = 0;
+	readonly private(set) string $g;
+	public private(set) static int $e = 0;
+}
+
+interface I
+{
+	static public function h();
+}
