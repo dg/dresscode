@@ -1,0 +1,12 @@
+<?php
+// {"multiLine": ["closureUses"]}
+$f = function () use (
+	$a,
+	$b
+) {
+};
+$g = function () use ($a,
+	$b, ) {
+};
+$h = function () use ($a, $b) {
+};
