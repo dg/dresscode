@@ -33,6 +33,7 @@ final class CorePlugin implements Plugin
 				Rules\Classes\MultilineImplementsRule::class,
 				Rules\Classes\NoMembersSharingLineRule::class,
 				Rules\Classes\VisibilityRequiredRule::class,
+				Rules\Classes\ModifierOrderRule::class,
 				Rules\Comments\CommentSpacingRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,

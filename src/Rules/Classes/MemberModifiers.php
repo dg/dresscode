@@ -12,7 +12,8 @@ use PhpSyntax\Token;
 
 
 /**
- * The modifiers of a property, a method and a constant as `VisibilityRequiredRule` reads and writes them.
+ * The modifiers of a property, a method and a constant as `VisibilityRequiredRule` and `ModifierOrderRule` read and
+ * write them.
  * @internal
  */
 final class MemberModifiers

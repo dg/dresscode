@@ -1,0 +1,3 @@
+6: The modifiers of the method `f()` must be written `public static`.
+7: The modifiers of the property `$c` must be written `public readonly`.
+8: The modifiers of the method `h()` must be written `final private static`.
