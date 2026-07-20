@@ -1,0 +1,1 @@
+5: Useless concatenation of two string literals, because they make one literal.
