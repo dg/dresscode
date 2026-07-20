@@ -93,6 +93,7 @@ final class RuleRegistry
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Expressions\UselessTernaryOperatorRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
+		Rules\Literals\ComplexStringVariableRule::class,
 		Rules\Literals\HeredocIndentationRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Literals\NoTrailingWhitespaceInStringRule::class,
