@@ -98,6 +98,7 @@ final class RuleRegistry
 		Rules\Types\TypeHintSpacingRule::class,
 		Rules\Variables\CombinedIssetsRule::class,
 		Rules\Variables\CombinedUnsetsRule::class,
+		Rules\Variables\NoDuplicateAssignmentRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\DeclareSpacingRule::class,
