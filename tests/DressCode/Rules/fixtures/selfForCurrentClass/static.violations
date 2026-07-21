@@ -1,0 +1,15 @@
+9: `static` must be written `self`, because no subclass can exist here.
+9: `static` must be written `self`, because no subclass can exist here.
+9: `static` must be written `self`, because no subclass can exist here.
+10: `static` must be written `self`, because no subclass can exist here.
+11: `static` must be written `self`, because no subclass can exist here.
+12: `static` must be written `self`, because no subclass can exist here.
+12: `static` must be written `self`, because no subclass can exist here.
+12: `static` must be written `self`, because no subclass can exist here.
+22: `static` must be written `self`, because no subclass can exist here.
+29: `static` must be written `self`, because no subclass can exist here.
+29: `static` must be written `self`, because no subclass can exist here.
+62: `static` must be written `self`, because no subclass can exist here.
+	risky BehaviorChanges: a closure bound to another class sees `static` and `self` apart
+62: `static` must be written `self`, because no subclass can exist here.
+	risky BehaviorChanges: a closure bound to another class sees `static` and `self` apart

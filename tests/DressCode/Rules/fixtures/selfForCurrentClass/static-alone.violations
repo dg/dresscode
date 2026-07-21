@@ -1,0 +1,1 @@
+7: `static` must be written `self`, because no subclass can exist here.

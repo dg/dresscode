@@ -1,0 +1,9 @@
+<?php
+// {"currentClass": "keep", "staticInFinalClass": "self"}
+final class Foo
+{
+	public static function create(): static
+	{
+		return Foo::build() ?? new static;
+	}
+}
