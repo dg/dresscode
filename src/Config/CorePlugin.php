@@ -35,6 +35,7 @@ final class CorePlugin implements Plugin
 				Rules\Classes\SelfForCurrentClassRule::class,
 				Rules\Classes\NoMembersSharingLineRule::class,
 				Rules\Classes\UselessModifierRule::class,
+				Rules\Classes\UselessNullInitializationRule::class,
 				Rules\Classes\VisibilityRequiredRule::class,
 				Rules\Classes\ModifierOrderRule::class,
 				Rules\Comments\CommentSpacingRule::class,
