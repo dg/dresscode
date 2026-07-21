@@ -1,0 +1,2 @@
+6: A multi-line closure use list must end with a trailing comma
+9: No trailing comma before a closing bracket on the line of the last item of a multi-line closure use list

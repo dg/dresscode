@@ -17,6 +17,8 @@ final class Per implements Preset
 	public function getRules(PresetContext $context): array
 	{
 		return [
+			// 2.6 Trailing commas
+			Rules\Arrays\TrailingCommaRule::class => ['multiLine' => ['arrays', 'arguments', 'parameters', 'match', 'closureUses']],
 
 			// 4. Classes, properties and methods: empty bodies, anonymous classes, named arguments
 			Rules\Classes\ClassDefinitionSpacingRule::class => ['spaceBeforeParenthesis' => false],
