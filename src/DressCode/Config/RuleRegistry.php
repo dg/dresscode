@@ -20,6 +20,7 @@ final class RuleRegistry
 	private const BuiltInRules = [
 		Rules\Expressions\OffsetBracketSpacingRule::class,
 		Rules\Arrays\ArraySpacingRule::class,
+		Rules\Arrays\ShortArraySyntaxRule::class,
 		Rules\ControlFlow\ContinuationPositionRule::class,
 		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
