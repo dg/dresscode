@@ -69,6 +69,7 @@ final class RuleRegistry
 		Rules\Functions\FunctionNameSpacingRule::class,
 		Rules\Literals\ConstantCasingRule::class,
 		Rules\Literals\KeywordCasingRule::class,
+		Rules\Literals\NumericLiteralSeparatorRule::class,
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
 		Rules\Expressions\CastSpacingRule::class,
 		Rules\Expressions\CastCanonicalTypeRule::class,
