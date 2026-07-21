@@ -1,0 +1,20 @@
+<?php
+namespace X;
+
+final class Foo
+{
+	public static function create(): static
+	{
+		return new static(self::X);
+	}
+}
+
+enum Suit
+{
+	case Hearts;
+
+	public static function first(): self
+	{
+		return static::Hearts;
+	}
+}

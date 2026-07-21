@@ -1,0 +1,2 @@
+12: The current class `Foo` must be referenced as `self`.
+12: `static` must be written `self`, because no subclass can exist here.

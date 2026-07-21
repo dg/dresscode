@@ -1,0 +1,3 @@
+qualification:
+	currentClass: self
+	staticInFinalClass: keep

@@ -32,6 +32,7 @@ final class CorePlugin implements Plugin
 				Rules\Classes\ClassHeadSpacingRule::class,
 				Rules\Classes\MemberOrderRule::class,
 				Rules\Classes\PublicWithSetVisibilityRule::class,
+				Rules\Classes\SelfForCurrentClassRule::class,
 				Rules\Classes\NoMembersSharingLineRule::class,
 				Rules\Classes\UselessModifierRule::class,
 				Rules\Classes\VisibilityRequiredRule::class,

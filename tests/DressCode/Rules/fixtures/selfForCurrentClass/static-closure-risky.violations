@@ -1,0 +1,5 @@
+10: `static` must be written `self`, because no subclass can exist here.
+	risky BehaviorChanges: a closure bound to another class sees `static` and `self` apart
+10: `static` must be written `self`, because no subclass can exist here.
+	risky BehaviorChanges: a closure bound to another class sees `static` and `self` apart
+10: `static` must be written `self`, because no subclass can exist here.

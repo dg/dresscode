@@ -1,0 +1,21 @@
+<?php
+// {"staticInFinalClass": "self"}
+final class Foo
+{
+	public function f()
+	{
+		function inner()
+		{
+			return [Foo::X, new Foo, function () { return Foo::X; }];
+		}
+
+		return new class(self::X, self::X) {
+			public function __construct($a, $b)
+			{
+			}
+		};
+	}
+}
+
+$x = new class(static::X) {
+};
