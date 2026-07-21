@@ -70,6 +70,7 @@ final class RuleRegistry
 		Rules\Literals\ConstantCasingRule::class,
 		Rules\Literals\KeywordCasingRule::class,
 		Rules\Literals\NumericLiteralSeparatorRule::class,
+		Rules\Literals\OctalNotationRule::class,
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
 		Rules\Expressions\CastSpacingRule::class,
 		Rules\Expressions\CastCanonicalTypeRule::class,
