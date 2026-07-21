@@ -1,0 +1,6 @@
+<?php
+StrLen("a");
+\COUNT([1]);
+Nette\StrLen("x");
+myFunc();
+strlen("b");
