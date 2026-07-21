@@ -1,0 +1,13 @@
+<?php
+// php 8.4
+class A
+{
+	public const X = 1;
+	public string $b { get => $this->b; set { $this->b = $value; } }
+	public string $a {
+		get => $this->a;
+	}
+	private $c;
+	public function f() {}
+	public function __construct(public int $p { get => $this->p; }) {}
+}

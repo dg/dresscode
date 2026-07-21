@@ -1,0 +1,39 @@
+<?php
+class Heading
+{
+	// public API
+	public function f() {}
+
+	// helpers
+	private $cache;
+
+	private function g() {}
+}
+
+class Banner
+{
+	public function f() {}
+
+	// ---- properties ----
+	public $a;
+	public $b;
+}
+
+class Own
+{
+
+	/** doc */
+	public $a;
+	public $b; // trailing
+	private $c;
+	public function f() {}
+}
+
+class Unmoved
+{
+	// ---- properties ----
+	public $a;
+
+	// ---- methods ----
+	public function f() {}
+}

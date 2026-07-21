@@ -1,0 +1,9 @@
+<?php
+// {"memberOrder": ["magicMethod", "method", "privateMethod"]}
+class A
+{
+	private function a() {}
+	public function b() {}
+	public function __toString() {}
+	public function __construct() {}
+}
