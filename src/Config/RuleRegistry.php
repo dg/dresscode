@@ -21,6 +21,7 @@ final class RuleRegistry
 		Rules\Expressions\OffsetBracketSpacingRule::class,
 		Rules\Arrays\ArraySpacingRule::class,
 		Rules\Arrays\ShortArraySyntaxRule::class,
+		Rules\Arrays\TrailingCommaRule::class,
 		Rules\ControlFlow\ContinuationPositionRule::class,
 		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
