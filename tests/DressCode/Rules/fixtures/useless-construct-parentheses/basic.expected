@@ -1,0 +1,15 @@
+<?php
+return $a;
+return ($a) + 1;
+echo "x";
+print $x;
+$b = clone $obj;
+include "file.php";
+switch ($a) {
+	case 1:
+		break;
+}
+function g()
+{
+	yield $x;
+}

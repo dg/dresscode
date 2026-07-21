@@ -30,6 +30,7 @@ final class RuleRegistry
 		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\Classes\VisibilityRequiredRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
+		Rules\ControlFlow\UselessConstructParenthesesRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\Files\NoByteOrderMarkRule::class,
 		Rules\Files\FullOpeningTagRule::class,
