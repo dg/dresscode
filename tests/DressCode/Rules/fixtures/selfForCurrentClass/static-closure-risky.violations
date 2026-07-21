@@ -1,0 +1,5 @@
+10: `static` can mean no class but the current one here and must be written as `self`
+	risky BehaviorChanges: a closure bound to another class sees `static` and `self` apart
+10: `static` can mean no class but the current one here and must be written as `self`
+	risky BehaviorChanges: a closure bound to another class sees `static` and `self` apart
+10: `static` can mean no class but the current one here and must be written as `self`

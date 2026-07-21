@@ -1,0 +1,15 @@
+9: `static` can mean no class but the current one here and must be written as `self`
+9: `static` can mean no class but the current one here and must be written as `self`
+9: `static` can mean no class but the current one here and must be written as `self`
+10: `static` can mean no class but the current one here and must be written as `self`
+11: `static` can mean no class but the current one here and must be written as `self`
+12: `static` can mean no class but the current one here and must be written as `self`
+12: `static` can mean no class but the current one here and must be written as `self`
+12: `static` can mean no class but the current one here and must be written as `self`
+22: `static` can mean no class but the current one here and must be written as `self`
+29: `static` can mean no class but the current one here and must be written as `self`
+29: `static` can mean no class but the current one here and must be written as `self`
+62: `static` can mean no class but the current one here and must be written as `self`
+	risky BehaviorChanges: a closure bound to another class sees `static` and `self` apart
+62: `static` can mean no class but the current one here and must be written as `self`
+	risky BehaviorChanges: a closure bound to another class sees `static` and `self` apart
