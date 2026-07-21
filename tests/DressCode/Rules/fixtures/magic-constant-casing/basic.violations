@@ -1,0 +1,3 @@
+2: The magic constant must be written '__DIR__'
+2: The magic constant must be written '__FILE__'
+2: The magic constant must be written '__FUNCTION__'
