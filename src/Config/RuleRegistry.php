@@ -33,6 +33,7 @@ final class RuleRegistry
 		Rules\Files\LineEndingRule::class,
 		Rules\Files\NoClosingTagRule::class,
 		Rules\Functions\NamedArgumentSpacingRule::class,
+		Rules\Functions\NativeFunctionCasingRule::class,
 		Rules\Functions\FunctionNameSpacingRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Namespaces\UnusedImportsRule::class,
