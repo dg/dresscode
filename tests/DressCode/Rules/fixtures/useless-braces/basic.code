@@ -1,0 +1,16 @@
+<?php
+{
+	echo 1;
+	echo 2;
+}
+function foo()
+{
+	{
+		bar();
+	}
+}
+if (true) {
+	baz();
+}
+{
+}
