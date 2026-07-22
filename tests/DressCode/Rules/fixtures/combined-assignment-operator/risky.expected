@@ -1,0 +1,5 @@
+<?php
+// risky
+$n->p ??= [];
+$o->p .= f();
+self::$q += new Q;
