@@ -1,0 +1,2 @@
+4: Expected one trait per `use` statement, 3 found.
+8: Expected one property per declaration, 2 found.

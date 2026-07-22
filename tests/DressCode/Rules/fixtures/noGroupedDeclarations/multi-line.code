@@ -1,0 +1,10 @@
+<?php
+class A
+{
+	use T1,
+		T2,
+		T3;
+
+	public $a,
+		$b;
+}

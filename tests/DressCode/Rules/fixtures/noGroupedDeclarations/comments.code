@@ -1,0 +1,13 @@
+<?php
+class A
+{
+	private const
+		A = 6,
+		// of the rest
+		B = 'b', // b
+		C = 'c'; // c
+
+	public $d, /* e */ $e;
+	use T1, // t2
+		T2;
+}
