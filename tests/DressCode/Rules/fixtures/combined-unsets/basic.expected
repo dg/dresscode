@@ -1,0 +1,9 @@
+<?php
+unset($a, $b, $c, $d);
+echo 1;
+unset($e);
+// comment
+unset($f);
+if (true) {
+	unset($g, $h);
+}
