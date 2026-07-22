@@ -24,6 +24,7 @@ final class RuleRegistry
 		Rules\Arrays\TrailingCommaRule::class,
 		Rules\ControlFlow\ContinuationPositionRule::class,
 		Rules\ControlFlow\ControlStructureBracesRule::class,
+		Rules\ControlFlow\UselessBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,
 		Rules\Classes\OrderedMembersRule::class,
