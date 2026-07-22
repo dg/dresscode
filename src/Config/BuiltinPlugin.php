@@ -115,6 +115,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Variables\CombinedUnsetsRule::class,
 				Rules\Variables\NoDuplicateAssignmentsRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
+				Rules\Classes\NoStaticThisRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Files\DeclareSpacingRule::class,
 				Rules\Whitespace\BlankLinesRule::class,

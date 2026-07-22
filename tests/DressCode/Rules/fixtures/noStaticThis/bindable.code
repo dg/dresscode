@@ -1,0 +1,9 @@
+<?php
+Assert::with($object, fn() => $this->extensions);
+Closure::bind(function () { return $this->x; }, $object, X::class);
+$fn = static function () { return $this; };
+class A {
+	public static function f() {
+		return fn() => $this->x;
+	}
+}
