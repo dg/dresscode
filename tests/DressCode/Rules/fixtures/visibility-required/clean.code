@@ -1,0 +1,7 @@
+<?php
+class A
+{
+	public const X = 1;
+	final public static function f() {}
+	public private(set) int $x;
+}
