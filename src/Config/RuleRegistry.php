@@ -58,6 +58,7 @@ final class RuleRegistry
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
+		Rules\Literals\NoTrailingWhitespaceInStringRule::class,
 		Rules\Literals\SingleQuotedStringsRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
 		Rules\Variables\CombinedUnsetsRule::class,
