@@ -13,10 +13,13 @@ use PhpSyntax\Nodes\{FileNode, MemberNode, StatementNode};
 
 
 /**
- * What a rule sees of the file it runs on: the tree, the style, analyses and `report()`.
+ * What a rule sees of the file it runs on: the tree, the style, analyses, its storage, and `report()`.
  */
 final class RuleContext
 {
+	/** @var array<string, mixed>  state of the rule for this pass over the file; rules are stateless, this is where such state goes */
+	public array $storage = [];
+
 	/** @var list<Engine\Report>  reports of the current callback */
 	private array $reports = [];
 
