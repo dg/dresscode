@@ -1,0 +1,3 @@
+2: A heredoc without interpolation must be a nowdoc
+6: A heredoc without interpolation must be a nowdoc
+18: A heredoc without interpolation must be a nowdoc

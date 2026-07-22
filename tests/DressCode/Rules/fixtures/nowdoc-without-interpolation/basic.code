@@ -1,0 +1,19 @@
+<?php
+$a = <<<EOD
+plain text
+costs $5 and \\ and \$var
+EOD;
+$b = <<<"EOD"
+quoted form
+EOD;
+$c = <<<EOD
+has $var inside
+EOD;
+$d = <<<EOD
+has \n escape
+EOD;
+$e = <<<'EOD'
+already nowdoc
+EOD;
+$f = <<<EOD
+EOD;

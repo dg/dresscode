@@ -29,6 +29,9 @@ final class Per implements Preset
 
 			// 6. Operators
 			Rules\Expressions\ConcatSpacingRule::class => true,
+
+			// 10. Heredoc and nowdoc
+			Rules\Literals\NowdocWithoutInterpolationRule::class => true,
 		];
 	}
 
