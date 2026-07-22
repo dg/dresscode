@@ -1,0 +1,12 @@
+<?php
+$a = (string) $x;
+$b = (string) $x;
+$c = (string) $x;
+$d = $a . $b;
+$e = 'x';
+$f = (string) $x;
+$g = (string) ($x + 1);
+$h = $x ?: (string) $y;
+$i = (string) f($x);
+$j = (string) $x;
+$k = "$x";
