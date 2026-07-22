@@ -117,6 +117,16 @@ test('an analysis of the pass survives the mutations in it and is dropped when t
 });
 
 
+test('an analysis that is not registered and needs more than the file is not found', function () {
+	$registry = new Analyses\Registry;
+	$file = (new Parser)->parse('<?php f();');
+	Assert::type(Analyses\PhpDoc::class, $registry->find($file, Analyses\PhpDoc::class));
+	Assert::type(NameResolver::class, $registry->find($file, NameResolver::class));
+	Assert::null($registry->find($file, StringAnalysisStub::class));
+	Assert::null($registry->find($file, OptionalStringAnalysisStub::class));
+});
+
+
 final readonly class StringAnalysisStub
 {
 	public function __construct(
