@@ -1,0 +1,1 @@
+9: The `$this` stands in a static context, which has no object.

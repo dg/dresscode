@@ -1,0 +1,4 @@
+4: The `$this` stands in a static context, which has no object.
+13: The `$this` stands in a static context, which has no object.
+23: The `$this` stands in a static context, which has no object.
+28: The `$this` stands in a static context, which has no object.
