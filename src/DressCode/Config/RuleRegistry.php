@@ -33,6 +33,7 @@ final class RuleRegistry
 		Rules\ControlFlow\ElseifKeywordRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
 		Rules\ControlFlow\UselessConstructParenthesesRule::class,
+		Rules\ControlFlow\SwitchCaseColonRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\Files\NoByteOrderMarkRule::class,
 		Rules\Files\FullOpeningTagRule::class,
