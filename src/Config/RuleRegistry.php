@@ -55,6 +55,7 @@ final class RuleRegistry
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Literals\SingleQuotedStringsRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
+		Rules\Variables\CombinedUnsetsRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\DeclareSpacingRule::class,
