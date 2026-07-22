@@ -1,0 +1,18 @@
+<?php
+if ($a) {
+	one();
+} elseif ($b) {
+	two();
+} elseif ($c) {
+	three();
+} else {
+	four();
+}
+if ($a) {
+} else /* comment */ if ($b) {
+}
+if ($x) {
+} else {
+	if ($y) {
+	}
+}
