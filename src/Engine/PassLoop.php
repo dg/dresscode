@@ -126,6 +126,9 @@ final class PassLoop
 
 			$this->mutatedRules = $this->reported = [];
 			$this->fingerprints->beginPass();
+			foreach ($this->contexts as $context) {
+				$context->storage = [];
+			}
 
 			$this->analyses->beginPass($file);
 			$revision = $file->revision;

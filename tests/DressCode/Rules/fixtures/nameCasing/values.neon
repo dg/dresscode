@@ -1,0 +1,9 @@
+naming:
+	class: keep
+	method: keep
+	function: keep
+	constant: keep
+	enumCase: keep
+	property: keep
+	variable: keep
+	except: []
