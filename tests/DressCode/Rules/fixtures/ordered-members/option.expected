@@ -1,0 +1,8 @@
+<?php
+// {"order": ["method_public", "method_private"]}
+class A
+{
+	public function b() {}
+	private function a() {}
+	public $x;
+}
