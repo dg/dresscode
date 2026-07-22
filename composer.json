@@ -17,6 +17,7 @@
 		"nette/schema": "^1.4.x-dev",
 		"nette/utils": "^4.1",
 		"phpsyntax/phpsyntax": "dev-master",
+		"phpstan/phpdoc-parser": "^2.0",
 		"composer/semver": "^3.4"
 	},
 	"require-dev": {
