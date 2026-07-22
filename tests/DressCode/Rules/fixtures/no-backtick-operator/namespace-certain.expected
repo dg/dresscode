@@ -1,0 +1,5 @@
+<?php
+// nameResolution certain
+namespace App;
+
+$a = shell_exec("ls");
