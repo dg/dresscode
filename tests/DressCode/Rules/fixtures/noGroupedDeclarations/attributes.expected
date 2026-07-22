@@ -1,0 +1,27 @@
+<?php
+// php 8.4
+class A
+{
+	#[Attr]
+	public $a;
+	#[Attr]
+	public $b;
+
+	#[Attr] public $c;
+	#[Attr] public $d;
+
+	/** doc */
+	#[Attr('x')]
+	public int $e = 1;
+	#[Attr('x')]
+	public int $f;
+
+	#[Attr]
+	const A = 1;
+	#[Attr]
+	const B = 2;
+
+	/** doc */
+	#[Attr] const C = 1;
+	#[Attr] const D = 2;
+}
