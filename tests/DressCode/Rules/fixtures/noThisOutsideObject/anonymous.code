@@ -1,0 +1,13 @@
+<?php
+class A
+{
+	public function f()
+	{
+		return new class($this) {
+			public static function g()
+			{
+				return $this;
+			}
+		};
+	}
+}
