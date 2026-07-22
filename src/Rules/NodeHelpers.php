@@ -10,10 +10,10 @@ namespace DressCode\Rules;
 use DressCode\{Gap, RuleContext};
 use DressCode\Rules\Whitespace\IndentationRule;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, SymbolKind, Token};
-use PhpSyntax\Nodes\{ElseifNode, Expression, ExpressionNode, Scalar, Statement};
+use PhpSyntax\{Node, Parser, SymbolKind, Token, Trivia};
+use PhpSyntax\Nodes\{ElseifNode, Expression, ExpressionNode, PlainNodeList, Scalar, SeparatedNodeList, Statement};
 use PhpSyntax\Nodes\Expression\BinaryOpNode;
-use function assert;
+use function array_slice, assert, count;
 
 
 /**
@@ -161,5 +161,49 @@ final class NodeHelpers
 		}
 
 		return null;
+	}
+
+
+	/**
+	 * Splits a declaration listing several items (`const A = 1, B = 2;`, `public $a, $b;`, `use A, B;`) into
+	 * one declaration per item: every item after the first gets a copy of the declaration of its own, the copies
+	 * follow the original in its list and the original keeps the first item. The slot names the list of items
+	 * of the declaration (`'items'`, `'traits'`).
+	 * @template T of Node
+	 * @param  T  $node
+	 * @param  PlainNodeList<T>  $list
+	 */
+	public static function splitItems(Node $node, PlainNodeList $list, string $slot, string $lineEnding): void
+	{
+		$items = $node->$slot;
+		assert($items instanceof SeparatedNodeList);
+		$members = $items->getItems();
+		$index = $list->indexOf($node);
+		$indentation = $node->getFirstToken()?->getIndentation() ?? '';
+		$trailing = $node->getLastToken()->trailingTrivia ?? [];
+		$end = new Trivia(Trivia::LineEnding, $lineEnding);
+		foreach (array_slice($members, 1) as $i => $member) {
+			$copy = clone $node;
+			$copied = $copy->$slot;
+			assert($copied instanceof SeparatedNodeList);
+			foreach ($copied->getItems() as $j => $item) {
+				if ($j !== $i + 1) {
+					$copied->removeItem($item);
+				}
+			}
+
+			// the item kept the indentation of the line it continued, which now stands after the keyword
+			$first = $copied->getItems()[0]->getFirstToken();
+			$first?->setLeadingTrivia(array_values(array_filter($first->leadingTrivia, fn(Trivia $trivia) => $trivia->isComment())));
+
+			$copy->setEdgeTrivia([new Trivia(Trivia::Whitespace, $indentation)], $i === count($members) - 2 ? $trailing : [$end]);
+			$list->insert($index + $i + 1, $copy);
+		}
+
+		foreach (array_slice($members, 1) as $member) {
+			$items->removeItem($member);
+		}
+
+		$node->setEdgeTrivia(trailing: [$end]);
 	}
 }
