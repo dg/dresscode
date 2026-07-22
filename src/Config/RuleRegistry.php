@@ -36,6 +36,7 @@ final class RuleRegistry
 		Rules\Classes\ClassDefinitionSpacingRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Classes\SingleMemberPerLineRule::class,
+		Rules\Classes\UselessModifierRule::class,
 		Rules\Classes\VisibilityRequiredRule::class,
 		Rules\Comments\CommentSpacingRule::class,
 		Rules\Comments\NoEmptyCommentRule::class,
