@@ -10,9 +10,9 @@ namespace DressCode\Rules;
 use DressCode\{Gap, RuleContext};
 use DressCode\Rules\Whitespace\IndentationRule;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, Token, TokenKind};
-use PhpSyntax\Nodes\{ElseIfNode, Expression, ExpressionNode, Scalar, Statement};
-use function assert, count;
+use PhpSyntax\{Node, Parser, Token, TokenKind, Trivia, TriviaKind};
+use PhpSyntax\Nodes\{ElseIfNode, Expression, ExpressionNode, NodeList, Scalar, SeparatedNodeList, Statement};
+use function array_slice, assert, count;
 
 
 /**
@@ -193,5 +193,45 @@ final class NodeHelpers
 				$inner instanceof Expression\FunctionCallNode
 				&& array_any(['compact', 'extract', 'get_defined_vars'], fn(string $function) => $resolver->isGlobalFunctionCall($inner, $function))
 			));
+	}
+
+
+	/**
+	 * Splits a declaration listing several items (`const A = 1, B = 2;`, `public $a, $b;`, `use A, B;`) into
+	 * one declaration per item: every item after the first gets a copy of the declaration of its own, the copies
+	 * follow the original in its list and the original keeps the first item. The slot names the list of items
+	 * of the declaration (`'items'`, `'traits'`).
+	 * @template T of Node
+	 * @param  T  $node
+	 * @param  NodeList<T>  $list
+	 */
+	public static function splitItems(Node $node, NodeList $list, string $slot, string $eol): void
+	{
+		$items = $node->$slot;
+		assert($items instanceof SeparatedNodeList);
+		$members = $items->getItems();
+		$index = $list->indexOf($node);
+		$indentation = $node->getFirstToken()?->getIndentation() ?? '';
+		$trailing = $node->getLastToken()->trailingTrivia ?? [];
+		$end = new Trivia(TriviaKind::EndOfLine, $eol);
+		foreach (array_slice($members, 1) as $i => $member) {
+			$copy = clone $node;
+			$copied = $copy->$slot;
+			assert($copied instanceof SeparatedNodeList);
+			foreach ($copied->getItems() as $j => $item) {
+				if ($j !== $i + 1) {
+					$copied->removeItem($item);
+				}
+			}
+
+			$copy->setEdgeTrivia([new Trivia(TriviaKind::Whitespace, $indentation)], $i === count($members) - 2 ? $trailing : [$end]);
+			$list->insert($index + $i + 1, $copy);
+		}
+
+		foreach (array_slice($members, 1) as $member) {
+			$items->removeItem($member);
+		}
+
+		$node->setEdgeTrivia(trailing: [$end]);
 	}
 }
