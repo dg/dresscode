@@ -1,0 +1,10 @@
+<?php
+class A
+{
+	public $a;
+	public $b, $c;
+	public ?int $d = null;
+	public $e = 1;
+	public $f /* unknown yet */ = null;
+	public $g = null /* unknown yet */;
+}
