@@ -1,0 +1,3 @@
+functions:
+	closureReturningOneExpression: forbidden
+	closureReturningOneExpressionNested: yes

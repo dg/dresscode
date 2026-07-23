@@ -1,0 +1,6 @@
+<?php
+$a = function /* c */ ($x) { return $x; };
+$b = static /* c */ function ($x) { return $x; };
+$c = function & /* c */ ($x) { return $x; };
+$d = fn($x /* c */) => $x;
+$e = fn($x) => $x;

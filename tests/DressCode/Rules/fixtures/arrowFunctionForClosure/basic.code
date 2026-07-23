@@ -1,0 +1,13 @@
+<?php
+$a = function ($x) { return $x + 1; };
+$b = function ($x) use ($y) {
+	return $x + $y;
+};
+$c = function ($x) use (&$y) { return $x; };
+$d = static function (): int { return 1; };
+$e = function () { echo 1; return 2; };
+$f = function () { /* c */ return 1; };
+$g = function &($x) { return $x; };
+$h = function ($x) { return function () use ($x) { return $x; }; };
+$i = function () { return; };
+$j = fn() => 1;

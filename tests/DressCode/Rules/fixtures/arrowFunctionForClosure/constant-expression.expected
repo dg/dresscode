@@ -1,0 +1,7 @@
+<?php
+// php 8.5
+const C = static function () { return 1; };
+function f($x = static function () { return 1; }) {}
+#[Attr(static function () { return 1; })]
+class A {}
+$a = fn() => 1;
