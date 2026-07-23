@@ -73,6 +73,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Files\LineLengthRule::class,
 				Rules\Files\NoClosingTagRule::class,
 				Rules\Files\StrictTypesRequiredRule::class,
+				Rules\Functions\ArrowFunctionRule::class,
 				Rules\Functions\MultilineCallRule::class,
 				Rules\Functions\MultilineSignatureRule::class,
 				Rules\Functions\NamedArgumentSpacingRule::class,
