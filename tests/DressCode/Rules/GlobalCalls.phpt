@@ -88,3 +88,27 @@ test('findFunction: a keyword written as a name is never a function, even where 
 	$file = (new Parser)->parse("<?php\nexit(\$x);\nisset(\$x);");
 	Assert::same([], $file->find(FunctionCallNode::class));
 });
+
+
+test('findUncertainty: an unqualified call in a namespace may call a function of the namespace', function () {
+	[$call, $context] = prepare("namespace Acme;\nstrlen(\$x);");
+	Assert::same('the namespace may declare `strlen()`', GlobalCalls::findUncertainty($call, $context));
+
+	[$call, $context] = prepare("namespace Acme;\nSTRLEN(\$x);");
+	Assert::same('the namespace may declare `strlen()`', GlobalCalls::findUncertainty($call, $context));
+});
+
+
+test('findUncertainty: a qualified call, a call in the global namespace and a function imported are certain', function () {
+	[$call, $context] = prepare("namespace Acme;\n\\strlen(\$x);");
+	Assert::null(GlobalCalls::findUncertainty($call, $context));
+
+	[$call, $context] = prepare('strlen($x);');
+	Assert::null(GlobalCalls::findUncertainty($call, $context));
+
+	[$call, $context] = prepare("namespace Acme;\nAcme\\strlen(\$x);");
+	Assert::null(GlobalCalls::findUncertainty($call, $context));
+
+	[$call, $context] = prepare("namespace Acme;\nuse function strlen;\nstrlen(\$x);");
+	Assert::null(GlobalCalls::findUncertainty($call, $context));
+});
