@@ -1,0 +1,20 @@
+<?php
+class A extends B
+{
+	public function f()
+	{
+		function inner()
+		{
+			return [__CLASS__, get_class(), get_called_class(), get_parent_class(), $this::class];
+		}
+
+		return new class(__CLASS__, get_parent_class()) {
+			public function __construct($name, $parent)
+			{
+			}
+		};
+	}
+}
+
+$x = new class(__CLASS__, get_parent_class()) extends B {
+};

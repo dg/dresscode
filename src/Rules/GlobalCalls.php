@@ -9,13 +9,14 @@ namespace DressCode\Rules;
 
 use DressCode\RuleContext;
 use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{NameForm, UnqualifiedResolution};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
 use PhpSyntax\Nodes\NameNode;
 use function array_key_exists;
 
 
 /**
- * What a rule asks about a call of a global function: which function it calls.
+ * What a rule asks about a call of a global function: which function it calls, and why that may be another one.
  */
 final class GlobalCalls
 {
@@ -32,5 +33,21 @@ final class GlobalCalls
 			|| (!array_key_exists(strtolower($name->shortName), $names) && !CodeWriter::importsFunctionAs($context))
 				? null
 				: $context->getAnalysis(NameResolver::class)->findGlobalFunction($call, $names);
+	}
+
+
+	/**
+	 * Why a call taken as a call of a global function may call another one: its name is unqualified in a namespace
+	 * that may declare a function of that name elsewhere (`UnqualifiedResolution::Uncertain`). A rule rewriting such a call
+	 * reports it with `Risk::NameUncertain` and this as the reason; null when the call is certain.
+	 */
+	public static function findUncertainty(FunctionCallNode $call, RuleContext $context): ?string
+	{
+		$name = $call->name;
+		return $name instanceof NameNode
+			&& $name->form === NameForm::Unqualified
+			&& $context->getAnalysis(NameResolver::class)->getUnqualifiedResolution($name) === UnqualifiedResolution::Uncertain
+				? 'the namespace may declare `' . strtolower($name->text) . '()`'
+				: null;
 	}
 }

@@ -1,0 +1,3 @@
+cleanup:
+	classNameNotation: classKeyword
+	get_class: keep

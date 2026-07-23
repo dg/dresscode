@@ -1,0 +1,2 @@
+8: The class name must be obtained with `$obj::class`.
+	risky NameUncertain: the namespace may declare `get_class()`
