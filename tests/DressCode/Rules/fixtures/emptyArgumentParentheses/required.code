@@ -1,0 +1,13 @@
+<?php
+$a = new Foo;
+$b = new Foo();
+$c = new Foo(1);
+$d = new $class;
+$e = new static;
+$f = new class {
+};
+$g = new class extends Foo {
+};
+$h = new class (1) {
+};
+$i = new Foo ;

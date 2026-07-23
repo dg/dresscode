@@ -1,0 +1,5 @@
+classes:
+	emptyParentheses:
+		instantiation: required
+		anonymousClass: required
+		attribute: forbidden

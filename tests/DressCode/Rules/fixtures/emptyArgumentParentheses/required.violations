@@ -1,0 +1,6 @@
+2: Expected `()` after `new Foo`.
+5: Expected `()` after `new $class`.
+6: Expected `()` after `new static`.
+7: Expected `()` after `new class`.
+9: Expected `()` after `new class`.
+13: Expected `()` after `new Foo`.

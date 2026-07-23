@@ -1,0 +1,3 @@
+3: Expected no `()` after `new Foo`.
+6: Expected no `()` after `new $class`.
+7: Expected no `()` after `new class`.

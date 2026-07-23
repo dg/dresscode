@@ -1,0 +1,6 @@
+<?php
+// {"emptyParentheses.instantiation": "forbidden", "emptyParentheses.anonymousClass": "forbidden"}
+$h = new Foo()->bar();
+$i = new Foo()['x'];
+$j = new Foo()::X;
+$k = new Foo()->y;

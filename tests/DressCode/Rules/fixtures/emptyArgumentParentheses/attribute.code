@@ -1,0 +1,12 @@
+<?php
+#[Bar()]
+#[Baz, Qux( )]
+#[Args(1), Named(a: 1)]
+#[Keep(/* why */)]
+class A
+{
+    public function f(#[Param()] int $x, #[Attr( )] int $y) {}
+}
+#[Lead
+/* c */()]
+function g() {}
