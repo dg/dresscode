@@ -1,0 +1,8 @@
+<?php
+class A
+{
+	public const A = 1, B = 2;
+	private const X = [1, 2], Y = 3, Z = 4; // c
+	const OK = 1;
+}
+const P = 1, Q = 2;
