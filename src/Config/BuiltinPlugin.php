@@ -37,6 +37,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Classes\GetClassNotationRule::class,
 				Rules\Classes\NameCasingRule::class,
 				Rules\Expressions\UselessParenthesesAroundNewRule::class,
+				Rules\Expressions\NewArgumentParenthesesRule::class,
 				Rules\Classes\UselessNullInitializationRule::class,
 				Rules\Classes\KindInClassNameRule::class,
 				Rules\Classes\OrderedMembersRule::class,
