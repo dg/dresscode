@@ -115,6 +115,7 @@ final class RuleRegistry
 		Rules\Variables\CombinedUnsetsRule::class,
 		Rules\Variables\NoDuplicateAssignmentRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
+		Rules\Classes\NoThisInStaticContextRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\DeclareSpacingRule::class,
 		Rules\Whitespace\BlankLinesRule::class,

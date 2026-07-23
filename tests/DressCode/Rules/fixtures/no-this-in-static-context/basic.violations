@@ -1,0 +1,3 @@
+4: $this is not available in a static context
+13: $this is not available in a static context
+23: $this is not available in a static context

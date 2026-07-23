@@ -1,0 +1,25 @@
+<?php
+class A {
+	public static function a() {
+		return $this->x;
+	}
+	public function b() {
+		return $this->x;
+	}
+	public static function c() {
+		return fn() => $this;
+	}
+	public function d() {
+		return static fn() => $this;
+	}
+	public function e() {
+		return function () { return $this; };
+	}
+	public static function g() {
+		return B::$this;
+	}
+}
+function f() {
+	return $this;
+}
+$g = $this;
