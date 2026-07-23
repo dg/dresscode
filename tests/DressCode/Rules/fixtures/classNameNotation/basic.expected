@@ -1,0 +1,16 @@
+<?php
+class A
+{
+	public function f()
+	{
+		return [self::class, static::class, static::class, get_parent_class(), self::class, get_class($x), self::class, static::class];
+	}
+
+
+	public function g()
+	{
+		return [static::class, $this::NAME, $that::class, self::class, $this::{$name}];
+	}
+}
+echo get_class(), __CLASS__;
+class NoParent { function f() { return get_parent_class(); } }

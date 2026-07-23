@@ -1,0 +1,9 @@
+<?php
+// {"cleanup.classNameNotation": "keep", "cleanup.get_class": "forbidden"}
+// risky
+namespace App;
+
+function f($obj)
+{
+	return $obj::class;
+}
