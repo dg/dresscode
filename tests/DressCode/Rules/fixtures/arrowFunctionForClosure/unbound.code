@@ -1,0 +1,24 @@
+<?php
+class A
+{
+	public function run(): void
+	{
+		$a = function ($x) use ($y) { return $x + $y + $this->z; };
+		$b = function () { return ($x = 1) + $x; };
+		$c = function ($x) { return array_map(fn($item) => $item + $x, []); };
+		$d = function ($x) { return function () use ($x) { return $x; }; };
+		$h = function () { return $_GET['a'] ?? $GLOBALS['b']; };
+		$i = function ($a) { return ($x = $a) ? $x : 0; };
+
+		// left alone, the closure reads a variable it does not have
+		$e = function ($x) { return $x + $y; };
+		$f = function () { return array_map(fn($item) => $item + $y, []); };
+		$g = function () { return function () use ($y) { return $y; }; };
+
+		// left alone, the variable is read before it is surely written
+		$j = function () { return $x + ($x = 1); };
+		$k = function ($a) { return $a && ($x = 1) ? $x : 0; };
+		$l = function () { return $x .= 'a'; };
+		$m = function ($a) { return $a?->b($x = 1) ?? $x; };
+	}
+}
