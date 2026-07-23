@@ -1,0 +1,7 @@
+2: Useless prefix `Abstract` in the name of the abstract class `AbstractFoo`.
+3: Useless suffix `Abstract` in the name of the abstract class `FooAbstract`.
+6: Useless suffix `Interface` in the name of the interface `FooInterface`.
+7: Useless prefix `Interface` in the name of the interface `InterfaceFoo`.
+9: Useless suffix `Trait` in the name of the trait `FooTrait`.
+10: Useless prefix `Trait` in the name of the trait `Trait1`.
+14: Useless suffix `Error` in the name of the class `FooError`.
