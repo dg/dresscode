@@ -1,0 +1,9 @@
+<?php
+// {"attributeParentheses": "required"}
+#[Bar()]
+#[Baz(), Qux() /* c */]
+#[Args(1), Bare()]
+class A
+{
+    public function f(#[Param()] int $x) {}
+}

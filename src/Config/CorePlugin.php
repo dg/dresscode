@@ -72,6 +72,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\CombinedAssignmentForRepeatedTargetRule::class,
 				Rules\Expressions\ConcatenationSpacingRule::class,
 				Rules\Expressions\DoubleColonSpacingRule::class,
+				Rules\Expressions\EmptyArgumentParenthesesRule::class,
 				Rules\Expressions\ExplicitPrecedenceRequiredRule::class,
 				Rules\Expressions\IncrementForAddOneRule::class,
 				Rules\Expressions\MultilineChainRule::class,

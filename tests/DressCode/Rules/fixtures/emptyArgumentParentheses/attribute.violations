@@ -1,0 +1,4 @@
+2: Expected no `()` after the attribute `Bar`.
+3: Expected no `()` after the attribute `Qux`.
+8: Expected no `()` after the attribute `Param`.
+8: Expected no `()` after the attribute `Attr`.

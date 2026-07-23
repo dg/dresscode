@@ -1,0 +1,4 @@
+3: Expected `()` after the attribute `Bar`.
+4: Expected `()` after the attribute `Baz`.
+4: Expected `()` after the attribute `Qux`.
+8: Expected `()` after the attribute `Param`.

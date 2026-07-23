@@ -1,0 +1,4 @@
+classes:
+	newParentheses: required
+	anonymousClassParentheses: required
+	attributeParentheses: forbidden
