@@ -1,0 +1,4 @@
+<?php
+// php 8.6
+$a = $obj->__invoke(?);
+$b = $obj->__invoke(1, ?);
