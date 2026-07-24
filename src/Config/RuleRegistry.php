@@ -42,6 +42,7 @@ final class RuleRegistry
 		Rules\Functions\NamedArgumentSpacingRule::class,
 		Rules\Functions\NativeFunctionCasingRule::class,
 		Rules\Functions\FunctionNameSpacingRule::class,
+		Rules\Functions\UselessParameterDefaultRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Namespaces\UnusedImportsRule::class,
 		Rules\Namespaces\UseFromSameNamespaceRule::class,
