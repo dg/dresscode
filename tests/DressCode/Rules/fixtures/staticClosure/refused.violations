@@ -1,0 +1,4 @@
+2: A closure not using `$this` must be static
+	risky BehaviorChanges: a closure bound to an object elsewhere is not seen
+3: A closure not using `$this` must be static
+	risky BehaviorChanges: a closure bound to an object elsewhere is not seen

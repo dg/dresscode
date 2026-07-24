@@ -1,0 +1,12 @@
+7: A closure not using `$this` must be static
+	risky BehaviorChanges: a closure bound to an object elsewhere is not seen
+8: A closure not using `$this` must be static
+	risky BehaviorChanges: a closure bound to an object elsewhere is not seen
+12: A closure not using `$this` must be static
+	risky BehaviorChanges: a closure bound to an object elsewhere is not seen
+14: A closure not using `$this` must be static
+	risky BehaviorChanges: a closure bound to an object elsewhere is not seen
+21: A closure not using `$this` must be static
+	risky BehaviorChanges: a closure bound to an object elsewhere is not seen
+22: A closure not using `$this` must be static
+	risky BehaviorChanges: a closure bound to an object elsewhere is not seen
