@@ -63,6 +63,7 @@ final class RuleRegistry
 		Rules\Expressions\IncrementOperatorRule::class,
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
+		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\Literals\ComplexStringVariableRule::class,
 		Rules\Literals\NoImplicitBackslashRule::class,
 		Rules\Literals\NowdocWithoutInterpolationRule::class,
