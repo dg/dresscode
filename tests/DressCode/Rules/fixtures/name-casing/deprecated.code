@@ -1,0 +1,30 @@
+<?php
+// {"classes": "PascalCase", "constants": "PascalCase", "methods": "camelCase", "properties": "camelCase"}
+// php 8.4
+class Foo
+{
+	public const NewName = 'x';
+
+	/** @deprecated use Foo::NewName */
+	public const OLD_NAME = self::NewName;
+
+	#[\Deprecated]
+	public const OTHER_NAME = self::NewName;
+
+	/** @deprecated */
+	public function old_method(): void
+	{
+	}
+
+	/** @Deprecated is a tag of its own, whatever the case */
+	public $old_property;
+
+	public $still_checked;
+
+	public const STILL_CHECKED = 1;
+}
+
+/** @deprecated */
+class old_class
+{
+}

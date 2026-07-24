@@ -1,0 +1,14 @@
+5: The class 'foo_bar' must be written in PascalCase
+7: The constant 'Good' must be written in UPPER_CASE
+7: The constant 'bad' must be written in UPPER_CASE
+8: The property 'Bad_name' must be written in camelCase
+9: The property 'promoted_bad' must be written in camelCase
+9: The variable 'param_bad' must be written in camelCase
+14: The variable '_a' must be written in camelCase
+15: The method 'Wrong_Method' must be written in camelCase
+18: The variable 'snake_var' must be written in camelCase
+20: The variable 'Other' must be written in camelCase
+21: The variable 'p_x' must be written in camelCase
+30: The enum case 'SPADES' must be written in PascalCase
+32: The function 'do_something' must be written in camelCase
+35: The constant 'top' must be written in UPPER_CASE

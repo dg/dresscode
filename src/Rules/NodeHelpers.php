@@ -7,11 +7,12 @@
 
 namespace DressCode\Rules;
 
-use DressCode\{Gap, RuleContext};
+use DressCode\{Analyses, Gap, RuleContext};
 use DressCode\Rules\Whitespace\IndentationRule;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, Token, TokenKind, Trivia, TriviaKind};
-use PhpSyntax\Nodes\{ElseIfNode, Expression, ExpressionNode, NodeList, Scalar, SeparatedNodeList, Statement};
+use PhpSyntax\Nodes\{AttributeGroupNode, ElseIfNode, Expression, ExpressionNode, NodeList, Scalar, SeparatedNodeList, Statement};
 use function array_slice, assert, count;
 
 
@@ -30,6 +31,35 @@ final class NodeHelpers
 	private const LogicalOperators = [
 		TokenKind::BooleanAnd, TokenKind::BooleanOr, TokenKind::LogicalAnd, TokenKind::LogicalOr, TokenKind::LogicalXor,
 	];
+
+
+	/**
+	 * Whether the declaration says of itself that it is deprecated, by the `@deprecated` annotation or by the
+	 * `#[\Deprecated]` attribute of PHP 8.4.
+	 */
+	public static function isDeprecated(Node $node, RuleContext $context): bool
+	{
+		$docComment = $node->getDocComment();
+		if ($docComment !== null && !$docComment->inInterpolation) {
+			foreach ($context->getAnalysis(Analyses\PhpDoc::class)->parse($docComment)->children as $child) {
+				if ($child instanceof PhpDocTagNode && strcasecmp($child->name, '@deprecated') === 0) {
+					return true;
+				}
+			}
+		}
+
+		$attributes = property_exists($node, 'attributes') ? $node->attributes : null;
+		$resolver = $context->getAnalysis(NameResolver::class);
+		foreach ($attributes instanceof NodeList ? $attributes->getItems() : [] as $group) {
+			foreach ($group instanceof AttributeGroupNode ? $group->attributes->getItems() : [] as $attribute) {
+				if (strcasecmp($resolver->resolveClass($attribute->name, $node), 'Deprecated') === 0) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 
 
 	/**
