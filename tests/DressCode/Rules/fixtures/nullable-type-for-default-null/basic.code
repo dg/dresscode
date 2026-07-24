@@ -1,0 +1,15 @@
+<?php
+function a(int $x = null) {
+}
+function b(?int $x = null) {
+}
+function c(int|string|null $x = null) {
+}
+function d(mixed $x = null) {
+}
+function e($x = null) {
+}
+function f(Foo $x = null, string $y = null) {
+}
+function g(int $x = 1) {
+}
