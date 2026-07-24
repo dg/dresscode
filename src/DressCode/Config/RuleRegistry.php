@@ -63,6 +63,7 @@ final class RuleRegistry
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Literals\NoTrailingWhitespaceInStringRule::class,
 		Rules\Literals\SingleQuotedStringsRule::class,
+		Rules\Types\NullableTypeForDefaultNullRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
 		Rules\Variables\CombinedUnsetsRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
