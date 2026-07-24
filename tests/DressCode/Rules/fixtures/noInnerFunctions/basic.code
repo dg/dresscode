@@ -1,0 +1,18 @@
+<?php
+function outer() {
+	function inner() {}
+	$f = function () {
+		function deeper() {}
+	};
+	$c = new class {
+		public function m() {
+			function insideMethod() {}
+		}
+	};
+}
+class A {
+	public function m() {
+		function inMethod() {}
+	}
+}
+function top() {}

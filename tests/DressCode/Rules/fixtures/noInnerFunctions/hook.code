@@ -1,0 +1,9 @@
+<?php
+class A {
+	public string $name {
+		set {
+			function inHook() {}
+			$this->name = $value;
+		}
+	}
+}

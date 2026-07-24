@@ -1,0 +1,4 @@
+3: The function `inner()` declared inside another function is forbidden.
+5: The function `deeper()` declared inside another function is forbidden.
+9: The function `insideMethod()` declared inside another function is forbidden.
+15: The function `inMethod()` declared inside another function is forbidden.
