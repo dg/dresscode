@@ -1,0 +1,16 @@
+<?php
+// php 8.5
+// risky
+const C = static function () {};
+function f($x = static function () { return 1; }) {}
+#[Attr(static function () {})]
+class A {}
+#[Attr(strlen(...))]
+class B {}
+class D
+{
+	public function m($y = static function () { return 1; })
+	{
+		$z = function () { return 1; };
+	}
+}
