@@ -1,0 +1,2 @@
+14: The closure not using `$this` must be static.
+	risky BehaviorChanges: a closure bound to an object elsewhere is not seen
