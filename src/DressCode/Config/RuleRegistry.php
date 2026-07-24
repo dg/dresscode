@@ -63,6 +63,7 @@ final class RuleRegistry
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Literals\ComplexStringVariableRule::class,
+		Rules\Literals\NoImplicitBackslashRule::class,
 		Rules\Literals\NowdocWithoutInterpolationRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Literals\NoTrailingWhitespaceInStringRule::class,

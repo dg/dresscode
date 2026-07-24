@@ -1,0 +1,13 @@
+<?php
+$a = "digit \d here";
+$b = "newline \n tab \t";
+$c = "pair \\d stays";
+$d = 'single \d stays';
+$e = "octal \0 hex \x41";
+$f = "interp $x \q end";
+$g = <<<EOD
+body \w escape \n
+EOD;
+$h = <<<'EOD'
+nowdoc \w stays
+EOD;
