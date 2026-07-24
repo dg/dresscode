@@ -1,0 +1,16 @@
+<?php
+function a($x = 1, $y) {
+}
+function b($x = 1, $y = 2) {
+}
+function c(int $x = null, int $y) {
+}
+function d(?int $x = null, int $y) {
+}
+function e($x = 1, ...$rest) {
+}
+class F {
+	public function __construct(private int $x = 1, int $y)
+	{
+	}
+}
