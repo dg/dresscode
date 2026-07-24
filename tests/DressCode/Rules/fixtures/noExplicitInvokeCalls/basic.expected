@@ -1,0 +1,10 @@
+<?php
+$a = $f($x, $y);
+$b = ($this->handler)();
+$c = f()(1);
+$d = $f?->__invoke();
+$e = $f();
+$g = $f(/* c */);
+$h = $f->/* c */__invoke();
+$i = $a?->b->__invoke($x);
+$j = ($a?->b)->__invoke($x);
