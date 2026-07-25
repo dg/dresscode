@@ -33,6 +33,7 @@ final class RuleRegistry
 		Rules\Comments\NoEmptyCommentRule::class,
 		Rules\Comments\NoHashCommentRule::class,
 		Rules\ControlFlow\ElseifKeywordRule::class,
+		Rules\ControlFlow\FallThroughCommentRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
 		Rules\ControlFlow\UselessConstructParenthesesRule::class,
 		Rules\ControlFlow\SwitchCaseColonRule::class,

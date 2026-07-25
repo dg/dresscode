@@ -1,0 +1,2 @@
+5: An intentional fall-through must be marked with a 'no break' comment
+12: Useless 'no break' comment
