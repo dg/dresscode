@@ -1,0 +1,5 @@
+2: The conversion function must be written as the '(int)' cast
+3: The conversion function must be written as the '(string)' cast
+4: The conversion function must be written as the '(float)' cast
+5: The conversion function must be written as the '(bool)' cast
+6: The conversion function must be written as the '(float)' cast
