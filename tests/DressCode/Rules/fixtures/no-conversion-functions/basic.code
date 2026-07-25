@@ -1,0 +1,11 @@
+<?php
+$a = intval($x);
+$b = strval($x->y);
+$c = floatval($x + $y);
+$d = boolval(f($x));
+$e = doubleval($x[0]);
+$f = intval($x, 8);
+$g = intval();
+$h = \Foo\intval($x);
+$i = intval(...$x);
+$j = intval(...);

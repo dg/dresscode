@@ -54,6 +54,7 @@ final class RuleRegistry
 		Rules\Literals\ConstantCasingRule::class,
 		Rules\Literals\KeywordCasingRule::class,
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
+		Rules\Functions\NoConversionFunctionsRule::class,
 		Rules\Expressions\CastSpacingRule::class,
 		Rules\Expressions\ConcatSpacingRule::class,
 		Rules\Expressions\DoubleColonSpacingRule::class,
