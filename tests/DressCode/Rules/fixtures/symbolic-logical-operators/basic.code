@@ -1,0 +1,10 @@
+<?php
+if ($a and $b) {
+}
+if ($a or $b and $c) {
+}
+$x = $a && $b;
+$y = $a = f() or die();
+$z = $a xor $b;
+while ($a AND $b) {
+}

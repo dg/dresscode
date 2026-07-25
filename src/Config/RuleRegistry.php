@@ -62,6 +62,7 @@ final class RuleRegistry
 		Rules\Expressions\ReferenceSpacingRule::class,
 		Rules\Expressions\SpreadOperatorSpacingRule::class,
 		Rules\Expressions\IncrementOperatorRule::class,
+		Rules\Expressions\SymbolicLogicalOperatorsRule::class,
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
