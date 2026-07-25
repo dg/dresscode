@@ -1,0 +1,24 @@
+<?php
+switch ($a) {
+	case 1:
+		one();
+		// no break
+	case 2:
+		two();
+		// no break
+	case 3:
+	case 4:
+		four();
+		break;
+	case 5:
+		five();
+		return;
+	case 6:
+		if ($b) {
+			break;
+		} else {
+			return;
+		}
+	default:
+		other();
+}
