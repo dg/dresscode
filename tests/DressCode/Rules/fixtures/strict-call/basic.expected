@@ -1,0 +1,20 @@
+<?php
+$a = in_array($x, $y, true);
+$b = in_array($x, $y, true);
+$c = in_array($x, $y, false);
+$d = array_search($x, $y, true);
+$e = array_keys($y, 'v', true);
+$f = array_keys($y);
+$g = base64_decode($s, true);
+$h = mb_detect_encoding($s, mb_detect_order(), true);
+$i = mb_detect_encoding($s, $order, true);
+$j = \in_array($x, $y, true);
+$k = in_array(needle: $x, haystack: $y);
+$l = in_array(...$args);
+$m = in_array(
+	$x,
+	$y,
+	true,
+);
+$n = Foo\in_array($x, $y);
+$o = in_array(...);

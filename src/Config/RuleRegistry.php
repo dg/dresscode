@@ -51,6 +51,7 @@ final class RuleRegistry
 		Rules\Functions\FunctionNameSpacingRule::class,
 		Rules\Functions\UselessParameterDefaultRule::class,
 		Rules\Functions\NoSettypeRule::class,
+		Rules\Functions\StrictCallRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Namespaces\ReferenceUsedNamesOnlyRule::class,
 		Rules\Namespaces\UnusedImportsRule::class,
