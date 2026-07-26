@@ -31,6 +31,7 @@ final class RuleRegistry
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\Classes\VisibilityRequiredRule::class,
+		Rules\Comments\CommentedOutFunctionRule::class,
 		Rules\Comments\NoEmptyCommentRule::class,
 		Rules\Comments\NoHashCommentRule::class,
 		Rules\ControlFlow\ElseifKeywordRule::class,

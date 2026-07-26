@@ -1,0 +1,15 @@
+<?php
+var_dump($x);
+print_r($x); // note
+$a = 1; var_export($a);
+var_dump($a); $b = 2;
+if ($x) {
+	var_dump(
+		$x,
+		[1, 2],
+	);
+	$y = var_dump($x);
+	f(var_dump($x));
+}
+Foo\var_dump($x);
+dump($x);
