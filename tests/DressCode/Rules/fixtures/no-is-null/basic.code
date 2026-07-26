@@ -1,0 +1,23 @@
+<?php
+$a = is_null($x);
+$b = !is_null($x);
+$c = is_null($x->y[0]);
+$d = is_null($a = $b);
+$e = is_null($x) === true;
+$f = (int) is_null($x);
+$g = !!is_null($x);
+$h = is_null($x) && is_null($y);
+$i = is_null($x ?? $y);
+$j = is_null($x + 1);
+$k = is_null(f($x));
+$l = $r ? is_null($x) : 1;
+$m = \is_null($x);
+$n = is_null($x, $y);
+$o = is_null(...);
+$p = Foo\is_null($x);
+$q = is_null(/* c */ $x);
+$r = -is_null($x);
+$s = is_null($x)[0];
+$t = is_null($x) . 'a';
+$u = is_null($x) ?? 1;
+$v = is_null( $x );
