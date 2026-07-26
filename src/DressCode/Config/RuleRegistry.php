@@ -56,6 +56,7 @@ final class RuleRegistry
 		Rules\Namespaces\UselessAliasRule::class,
 		Rules\Literals\ConstantCasingRule::class,
 		Rules\Literals\KeywordCasingRule::class,
+		Rules\Namespaces\NoLeadingBackslashInGlobalNamespaceRule::class,
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
 		Rules\Functions\NoConversionFunctionsRule::class,
 		Rules\Expressions\CastSpacingRule::class,

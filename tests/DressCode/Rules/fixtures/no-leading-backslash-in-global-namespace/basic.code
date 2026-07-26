@@ -1,0 +1,22 @@
+<?php
+
+use Foo\Bar;
+use function Foo\shadowed;
+use const Foo\SHADOWED;
+
+$a = new \Baz;
+$b = new \Foo\Qux;
+$c = new \Bar\Something;
+function f(\Foo $x, ?\Baz $y): \Iterator {}
+$d = \Baz::CONST;
+$e = $x instanceof \Baz;
+$f = \strlen('x');
+$g = \PHP_EOL;
+$h = \Foo\helper();
+$l = \Bar\helper();
+$i = \shadowed();
+$j = \SHADOWED;
+$k = \shadowed;
+try {
+} catch (\Exception | \Foo\Error $e) {
+}
