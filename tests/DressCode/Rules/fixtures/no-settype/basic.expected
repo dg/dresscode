@@ -1,0 +1,15 @@
+<?php
+$a = (int) $a;
+$b = (int) $b;
+$c = (bool) $c;
+$d = (float) $d;
+$e = null;
+settype($f, 'resource');
+settype($g->h, 'int');
+$ok = settype($i, 'int');
+settype($j, $type);
+settype($k, 'int', 2);
+settype(/* c */ $l, 'int');
+if (true) {
+	$m = (array) $m;
+}
