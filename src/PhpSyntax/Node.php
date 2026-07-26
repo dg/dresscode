@@ -196,6 +196,18 @@ abstract class Node implements \Stringable
 
 
 	/**
+	 * Whether a comment sits anywhere between the first and the last token of the node; the trivia
+	 * on its outer edges do not count.
+	 */
+	public function hasComment(): bool
+	{
+		$first = $this->getFirstToken();
+		$last = $this->getLastToken();
+		return $first !== null && $last !== null && $first->hasCommentUpTo($last);
+	}
+
+
+	/**
 	 * Whether reading the expression again gives the same value with no side effects: variables,
 	 * property, constant and offset fetches and scalars, nothing that runs code. A magic getter
 	 * behind a property fetch is out of sight and does not count.

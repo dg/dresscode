@@ -34,3 +34,19 @@ enum CommentPolicy
 	case MoveToPreviousToken;
 	case Drop;
 }
+
+
+/**
+ * What a name refers to, by its place in the tree.
+ * Stands last in the file: the composer classmap generator reads `case Namespace` as a namespace
+ * declaration, so every class written below it would be mapped without the namespace.
+ */
+enum NameRole
+{
+	case ClassLike;
+	case Function;
+	case Constant;
+
+	/** a use or namespace statement */
+	case Namespace;
+}

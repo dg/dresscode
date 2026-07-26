@@ -3,6 +3,7 @@
 namespace PhpSyntax\Nodes;
 
 use PhpSyntax\NameKind;
+use PhpSyntax\NameRole;
 use PhpSyntax\TokenKind;
 
 
@@ -42,6 +43,19 @@ trait NameQueries
 			default => $name,
 		};
 		return explode('\\', $name);
+	}
+
+
+	/** What the name refers to: a function when called, a constant when fetched, a namespace in use and namespace statements, otherwise a class. */
+	public function getRole(): NameRole
+	{
+		$parent = $this->parent;
+		return match (true) {
+			$parent instanceof UseItemNode, $parent instanceof Statement\GroupUseNode, $parent instanceof Statement\NamespaceNode => NameRole::Namespace,
+			$parent instanceof Expression\FunctionCallNode && $parent->name === $this => NameRole::Function,
+			$parent instanceof Expression\ConstantFetchNode => NameRole::Constant,
+			default => NameRole::ClassLike,
+		};
 	}
 
 
