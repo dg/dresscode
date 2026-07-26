@@ -1,0 +1,13 @@
+<?php
+$a = isset($x) && isset($y);
+$b = isset($x) && isset($y) && isset($z);
+$c = isset($x) && $y && isset($z);
+$d = $w && isset($x) && isset($y);
+$e = isset($x) || isset($y);
+$f = isset($x) && isset($y['k'], $y['l']) && $z;
+if (isset($x)
+	&& isset($y)
+) {
+}
+$g = isset($x) && /* c */ isset($y);
+$h = isset($x) and isset($y);

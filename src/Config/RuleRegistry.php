@@ -78,6 +78,7 @@ final class RuleRegistry
 		Rules\Literals\SingleQuotedStringsRule::class,
 		Rules\Types\NullableTypeForDefaultNullRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
+		Rules\Variables\CombinedIssetsRule::class,
 		Rules\Variables\CombinedUnsetsRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
