@@ -1,0 +1,2 @@
+3: The function mktime() is an alias of time()
+5: The function ldap_close() is an alias of ldap_unbind()

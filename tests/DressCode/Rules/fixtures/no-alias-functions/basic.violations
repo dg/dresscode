@@ -1,0 +1,6 @@
+2: The function sizeof() is an alias of count()
+3: The function join() is an alias of implode()
+4: The function is_integer() is an alias of is_int()
+4: The function is_double() is an alias of is_float()
+6: The function pg_exec() is an alias of pg_query()
+10: The function sizeof() is an alias of count()
