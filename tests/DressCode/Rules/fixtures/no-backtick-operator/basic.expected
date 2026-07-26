@@ -1,0 +1,8 @@
+<?php
+$a = shell_exec("ls -la");
+$b = shell_exec("ls $dir");
+$c = shell_exec("ls {$dir}/x");
+$d = `echo "hi"`;
+$e = `echo 'hi'`;
+$f = shell_exec("");
+$g = shell_exec("ls $dir[x]");
