@@ -61,6 +61,7 @@ final class RuleRegistry
 		Rules\Expressions\CastSpacingRule::class,
 		Rules\Expressions\ConcatSpacingRule::class,
 		Rules\Expressions\DoubleColonSpacingRule::class,
+		Rules\Functions\NoIsNullRule::class,
 		Rules\Expressions\NoShortBoolCastRule::class,
 		Rules\Expressions\NotEqualsOperatorRule::class,
 		Rules\Expressions\ObjectOperatorSpacingRule::class,
