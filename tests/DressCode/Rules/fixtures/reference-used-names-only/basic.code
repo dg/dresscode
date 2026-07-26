@@ -1,0 +1,21 @@
+<?php
+
+namespace App;
+
+use Lib\Existing;
+use Other\Thing;
+
+#[\Lib\Attr]
+class X extends \Lib\Base implements \Lib\Contracts\Face
+{
+	use \Lib\Traits\T;
+
+	public function f(\Lib\Existing $a): \Lib\Result
+	{
+		try {
+			return new \Lib\Result(\Lib\Util::x(), \strlen("a"), \PHP_EOL, \Lib\func(), \Lib\CONST_A, \Exception::class);
+		} catch (\Lib\E $e) {
+			return \Another\Thing::create() instanceof \Lib\Result;
+		}
+	}
+}

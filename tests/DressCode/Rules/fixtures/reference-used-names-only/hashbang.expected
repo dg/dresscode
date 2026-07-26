@@ -1,0 +1,5 @@
+#!/usr/bin/env php
+<?php
+use Lib\Foo;
+
+$x = new Foo;

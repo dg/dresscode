@@ -1,0 +1,7 @@
+<html>
+<?php
+use Lib\Bar;
+use Lib\Foo;
+
+$x = new Foo(Bar::X); ?>
+<body></body>

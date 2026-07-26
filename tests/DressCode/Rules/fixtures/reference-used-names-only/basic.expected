@@ -1,0 +1,28 @@
+<?php
+
+namespace App;
+
+use Lib\Existing;
+use Other\Thing;
+use Lib\Attr;
+use Lib\Base;
+use Lib\Contracts\Face;
+use Lib\Traits\T;
+use Lib\Result;
+use Lib\Util;
+use Lib\E;
+
+#[Attr]
+class X extends Base implements Face
+{
+	use T;
+
+	public function f(Existing $a): Result
+	{
+		try {
+			return new Result(Util::x(), \strlen("a"), \PHP_EOL, \Lib\func(), \Lib\CONST_A, \Exception::class);
+		} catch (E $e) {
+			return \Another\Thing::create() instanceof Result;
+		}
+	}
+}
