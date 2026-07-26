@@ -1,0 +1,8 @@
+<?php
+
+use Nette2\ComponentModel\Component;
+
+class TestContainer extends Component implements \ArrayAccess
+{
+	use \Nette2\ComponentModel\ArrayAccess;
+}

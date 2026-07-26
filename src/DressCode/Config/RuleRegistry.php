@@ -52,6 +52,7 @@ final class RuleRegistry
 		Rules\Functions\UselessParameterDefaultRule::class,
 		Rules\Functions\NoSettypeRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
+		Rules\Namespaces\ReferenceUsedNamesOnlyRule::class,
 		Rules\Namespaces\UnusedImportsRule::class,
 		Rules\Namespaces\UseFromSameNamespaceRule::class,
 		Rules\Namespaces\UselessAliasRule::class,

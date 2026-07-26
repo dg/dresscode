@@ -1,0 +1,4 @@
+<?php
+use Lib\Foo;
+
+$x = new Foo;
