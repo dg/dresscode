@@ -1,0 +1,6 @@
+<?php
+// {"sets": ["@time", "@ldap"]}
+$a = mktime();
+$b = mktime(1);
+$c = ldap_close($conn);
+$d = sizeof($x);

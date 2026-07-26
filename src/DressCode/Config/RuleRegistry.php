@@ -47,6 +47,7 @@ final class RuleRegistry
 		Rules\Files\NoClosingTagRule::class,
 		Rules\Functions\NamedArgumentSpacingRule::class,
 		Rules\Functions\NativeFunctionCasingRule::class,
+		Rules\Functions\NoAliasFunctionsRule::class,
 		Rules\Functions\FunctionNameSpacingRule::class,
 		Rules\Functions\UselessParameterDefaultRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
