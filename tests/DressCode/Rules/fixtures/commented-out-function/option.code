@@ -1,0 +1,4 @@
+<?php
+// {"functions": ["dump"]}
+dump($x);
+var_dump($x);

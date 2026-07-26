@@ -1,0 +1,5 @@
+2: The call of var_dump() must be commented out
+3: The call of print_r() must be commented out
+4: The call of var_export() must be commented out
+5: The call of var_dump() must be commented out
+7: The call of var_dump() must be commented out
