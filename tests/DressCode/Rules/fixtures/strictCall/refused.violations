@@ -1,0 +1,4 @@
+2: The `in_array()` call must pass `$strict = true`
+	risky TypeUnknown
+3: The `base64_decode()` call must pass `$strict = true`
+	risky BehaviorChanges

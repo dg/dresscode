@@ -507,3 +507,24 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 	file_put_contents("$root/src/r.php", "<?php\n\$r; // dresscode:ignore test/riskyRename\n");
 	Assert::same(0, runApp($root, ['check', '--config', $config])[0]);
 });
+
+
+test('a violation the rule has no fix for is no fix waiting, with the consent or without it', function () {
+	$root = createTempDir('unfixable');
+	mkdir("$root/src");
+	$config = "$root/strictCall.php";
+	// an explicit false is only reported, so neither the consent nor its absence has a fix to make
+	foreach ([
+		['in_array(1, [1], false)', '', 1, 0],
+		['in_array(1, [1], false)', ", fixRisky: ['strictCall']", 1, 0],
+		['in_array(1, [1])', '', 1, 1],
+		['in_array(1, [1])', ", fixRisky: ['strictCall']", 0, 0],
+	] as [$call, $tail, $remaining, $deferred]) {
+		file_put_contents("$root/src/a.php", "<?php\n$call;\n");
+		file_put_contents($config, "<?php\nreturn new DressCode\\Config(rules: ['strictCall' => true], paths: ['src']$tail);\n");
+
+		[, $out] = runApp($root, ['check', '--config', $config, '--format', 'json']);
+		$summary = json_decode($out, associative: true)['summary'];
+		Assert::same([$remaining, $deferred], [$summary['remaining'], $summary['refused']], "$call$tail");
+	}
+});
