@@ -70,6 +70,7 @@ final class RuleRegistry
 		Rules\Expressions\DoubleColonSpacingRule::class,
 		Rules\Functions\NoIsNullRule::class,
 		Rules\Expressions\NoShortBoolCastRule::class,
+		Rules\Expressions\NoYodaComparisonRule::class,
 		Rules\Expressions\NotEqualsOperatorRule::class,
 		Rules\Expressions\ObjectOperatorSpacingRule::class,
 		Rules\Expressions\ReferenceSpacingRule::class,

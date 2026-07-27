@@ -1,0 +1,24 @@
+<?php
+if (1 === $a) {}
+if (null !== $a->b) {}
+if ('x' == $a[0]) {}
+if (FOO != $a) {}
+if (Foo::BAR === $a) {}
+if (true === f($a)) {}
+if (f($a) === $a) {}
+if ($a === $b) {}
+if (1 === 2) {}
+if (-1 === $a) {}
+if (1 === (int) $a) {}
+if (1 === $a = f()) {}
+if ([] === $a) {}
+if (null === Foo::$a) {}
+if (null === self::create()) {}
+if (1 <= $a) {}
+if (1 /* one */ === /* a */ $a) {}
+$x = 1 === $a && null !== $b;
+if (1 ===
+	$a) {}
+if (null === $a->b()) {}
+if ('a' . 'b' === $a) {}
+if (!$a === false) {}
