@@ -35,6 +35,7 @@ final class RuleRegistry
 		Rules\Comments\CommentedOutFunctionRule::class,
 		Rules\Comments\NoEmptyCommentRule::class,
 		Rules\Comments\NoHashCommentRule::class,
+		Rules\ControlFlow\NoUnreachableCatchRule::class,
 		Rules\ControlFlow\ElseifKeywordRule::class,
 		Rules\ControlFlow\NoAlternativeSyntaxRule::class,
 		Rules\ControlFlow\FallThroughCommentRule::class,
