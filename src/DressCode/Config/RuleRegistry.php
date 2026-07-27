@@ -42,6 +42,7 @@ final class RuleRegistry
 		Rules\ControlFlow\UselessConstructParenthesesRule::class,
 		Rules\ControlFlow\SwitchCaseColonRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
+		Rules\ControlFlow\NoContinueInSwitchRule::class,
 		Rules\Files\NoByteOrderMarkRule::class,
 		Rules\Files\FullOpeningTagRule::class,
 		Rules\Files\LineEndingRule::class,
