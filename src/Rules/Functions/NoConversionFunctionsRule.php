@@ -5,12 +5,12 @@ namespace DressCode\Rules\Functions;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
+use DressCode\Rules\NodeHelpers;
 use DressCode\Stage;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\ArgumentNode;
 use PhpSyntax\Nodes\Expression;
-use PhpSyntax\Nodes\Scalar;
 use PhpSyntax\Parser;
 use PhpSyntax\Token;
 use function count;
@@ -74,7 +74,7 @@ final class NoConversionFunctionsRule extends NodeRule
 		$operand = clone $arg->value;
 		$operand->setEdgeTrivia(leading: []);
 		$operand->getLastToken()?->removeTrailingWhitespace();
-		if ($this->bindsLooserThanCast($arg->value)) {
+		if (!NodeHelpers::bindsTighterThanPrefix($arg->value)) {
 			$template = (new Parser)->parseExpression("($cast) (0)");
 			assert($template instanceof Expression\CastNode && $template->expression instanceof Expression\ParenthesizedNode);
 			$template->expression->expression = $operand;
@@ -85,26 +85,5 @@ final class NoConversionFunctionsRule extends NodeRule
 		}
 
 		$node->replaceWith($template);
-	}
-
-
-	/** A cast binds tighter than most operators, so anything but a primary expression needs parentheses. */
-	private function bindsLooserThanCast(Node $expr): bool
-	{
-		return !$expr instanceof Expression\VariableNode
-			&& !$expr instanceof Expression\ArrayAccessNode
-			&& !$expr instanceof Expression\PropertyFetchNode
-			&& !$expr instanceof Expression\StaticPropertyFetchNode
-			&& !$expr instanceof Expression\ClassConstantFetchNode
-			&& !$expr instanceof Expression\ConstantFetchNode
-			&& !$expr instanceof Expression\FunctionCallNode
-			&& !$expr instanceof Expression\MethodCallNode
-			&& !$expr instanceof Expression\StaticMethodCallNode
-			&& !$expr instanceof Expression\ParenthesizedNode
-			&& !$expr instanceof Scalar\IntegerNode
-			&& !$expr instanceof Scalar\FloatNode
-			&& !$expr instanceof Scalar\StringNode
-			&& !$expr instanceof Scalar\BooleanNode
-			&& !$expr instanceof Scalar\NullNode;
 	}
 }

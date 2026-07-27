@@ -3,3 +3,10 @@
 4: The conversion function must be written as the '(float)' cast
 5: The conversion function must be written as the '(bool)' cast
 6: The conversion function must be written as the '(float)' cast
+7: The conversion function must be written as the '(string)' cast
+13: The conversion function must be written as the '(int)' cast
+14: The conversion function must be written as the '(int)' cast
+15: The conversion function must be written as the '(int)' cast
+16: The conversion function must be written as the '(int)' cast
+17: The conversion function must be written as the '(int)' cast
+18: The conversion function must be written as the '(int)' cast
