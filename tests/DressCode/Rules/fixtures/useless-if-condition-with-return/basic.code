@@ -1,0 +1,54 @@
+<?php
+function a($x) {
+	if ($x > 1) {
+		return true;
+	}
+	return false;
+}
+function b($x) {
+	if ($x > 1) {
+		return false;
+	} else {
+		return true;
+	}
+}
+function c($x) {
+	if ($x) {
+		return true;
+	}
+	return false;
+}
+function d($x) {
+	if ($x > 1) {
+		return true;
+	}
+	return true;
+}
+function e($x) {
+	if ($x > 1) {
+		// comment
+		return true;
+	}
+	return false;
+}
+function f($x) {
+	if ($x > 1) {
+		return true;
+	} elseif ($x) {
+		return false;
+	}
+	return false;
+}
+function g($x) {
+	if ($x > 1) {
+		return true;
+	}
+	return $x;
+}
+function h($x) {
+	if (!$x) {
+		return false;
+	}
+
+	return true;
+}

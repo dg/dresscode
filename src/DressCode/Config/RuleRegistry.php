@@ -45,6 +45,7 @@ final class RuleRegistry
 		Rules\ControlFlow\SwitchCaseColonRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\ControlFlow\NoContinueInSwitchRule::class,
+		Rules\ControlFlow\UselessIfConditionWithReturnRule::class,
 		Rules\Files\NoByteOrderMarkRule::class,
 		Rules\Files\FullOpeningTagRule::class,
 		Rules\Files\LineEndingRule::class,
