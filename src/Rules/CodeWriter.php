@@ -9,8 +9,8 @@ namespace DressCode\Rules;
 
 use DressCode\RuleContext;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, SymbolKind};
-use PhpSyntax\Nodes\Statement;
+use PhpSyntax\{NameForm, Node, SymbolKind, UnqualifiedResolution};
+use PhpSyntax\Nodes\{ExpressionNode, NameNode, Statement};
 
 
 /**
@@ -19,6 +19,26 @@ use PhpSyntax\Nodes\Statement;
  */
 final class CodeWriter
 {
+	/**
+	 * How the name of another global function is written in place of the name of a call of a global one: bare where
+	 * the replaced name is bare, nothing takes the bare name and it is no less certain than the replaced one, which is
+	 * the fallback the call already stood on; else, and for a name that is an expression, with the leading backslash.
+	 */
+	public static function spellFunction(string $function, NameNode|ExpressionNode $replaced, RuleContext $context): string
+	{
+		$resolver = $context->getAnalysis(NameResolver::class);
+		return $replaced instanceof NameNode
+			&& $replaced->form === NameForm::Unqualified
+			&& $resolver->isAliasFree($function, SymbolKind::Function, $replaced)
+			&& (
+				$resolver->getUnqualifiedResolution($replaced) === UnqualifiedResolution::Uncertain
+				|| $resolver->getUnqualifiedResolution($function, SymbolKind::Function, $replaced) === UnqualifiedResolution::Global
+			)
+				? $function
+				: '\\' . $function;
+	}
+
+
 	/** Whether the file imports a function under a name other than its own, so that a call names another function than it spells. */
 	public static function importsFunctionAs(RuleContext $context): bool
 	{
