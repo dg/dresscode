@@ -1,0 +1,7 @@
+<?php
+namespace App;
+
+use function strlen as Len;
+
+Len('x');
+strlen('x');
