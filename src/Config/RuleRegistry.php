@@ -41,6 +41,7 @@ final class RuleRegistry
 		Rules\ControlFlow\FallThroughCommentRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
 		Rules\ControlFlow\UselessConstructParenthesesRule::class,
+		Rules\ControlFlow\ReferenceThrowableOnlyRule::class,
 		Rules\ControlFlow\SwitchCaseColonRule::class,
 		Rules\ControlFlow\SwitchCaseSpacingRule::class,
 		Rules\ControlFlow\NoContinueInSwitchRule::class,
