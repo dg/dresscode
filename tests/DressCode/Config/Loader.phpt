@@ -2,6 +2,7 @@
 
 use DressCode\{Config, ConfigurationException, NodeRule, Override, Plugin, PluginManifest, RuleInfo, Stage};
 use DressCode\Config\{Loader, NeonReader, RuleBuilder};
+use DressCode\Rules\Upgrading\ForbiddenFunctionsRule;
 use Nette\Schema\Elements\Type;
 use Tester\{Assert, FileMock};
 
@@ -145,6 +146,18 @@ test('errors', function () use ($fixtures) {
 		ConfigurationException::class,
 		'Configuration file `%a%`: The indentation must be a number of spaces or `tab`.',
 	);
+});
+
+
+test('a map of functions given as a list says to write the name with null', function () {
+	$message = '`forbiddenFunctions` maps a function to a sentence; write `var_dump: null` for none.';
+	$config = Loader::loadFile(FileMock::create("rules:\n\tforbiddenFunctions: [var_dump, dd]\n", 'neon'));
+	Assert::exception(
+		fn() => RuleBuilder::processOptions(ForbiddenFunctionsRule::class, [['file', $config->rules['forbiddenFunctions']]]),
+		ConfigurationException::class,
+		$message,
+	);
+	Assert::same([['var_dump' => null], []], RuleBuilder::processOptions(ForbiddenFunctionsRule::class, [['file', ['var_dump' => null]]]));
 });
 
 

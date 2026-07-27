@@ -36,6 +36,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Classes\ClassDefinitionSpacingRule::class,
 				Rules\Classes\GetClassNotationRule::class,
 				Rules\Classes\NameCasingRule::class,
+				Rules\Upgrading\ForbiddenFunctionsRule::class,
 				Rules\Expressions\UselessParenthesesAroundNewRule::class,
 				Rules\Expressions\NewArgumentParenthesesRule::class,
 				Rules\Classes\UselessNullInitializationRule::class,
