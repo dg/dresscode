@@ -1,0 +1,53 @@
+<?php
+function a($x) {
+	if ($x) {
+		return 1;
+	}
+		return 2;
+}
+function b($x) {
+	if ($x) {
+		return 1;
+	} elseif ($y) {
+		throw new E;
+	}
+		x();
+		y();
+}
+function c($x) {
+	if ($x) {
+		x();
+	} else {
+		y();
+	}
+}
+function d($x) {
+	if ($x) {
+		return 1;
+	}
+	z();
+}
+function e($x) {
+	if ($x) {
+		return 1;
+	} elseif ($y) {
+		x();
+	} else {
+		y();
+	}
+}
+function f($x) {
+	if ($x) {
+		return 1;
+	} else {
+		function g() {}
+	}
+}
+function h($x) {
+	foreach ($x as $y) {
+		if ($y) {
+			continue;
+		}
+			w();
+	}
+}
