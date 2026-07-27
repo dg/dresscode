@@ -1,0 +1,19 @@
+<?php
+foreach ($a as $b) {
+	switch ($b) {
+		case 1:
+			break;
+		case 2:
+			continue 2;
+		case 3:
+			foreach ($c as $d) {
+				continue;
+			}
+			break;
+		case 4:
+			if ($b) {
+				break;
+			}
+	}
+	continue;
+}
