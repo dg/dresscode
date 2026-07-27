@@ -110,6 +110,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\NoExplicitInvokeCallsRule::class,
 				Rules\Functions\NoInnerFunctionsRule::class,
 				Rules\Functions\StaticForClosureWithoutThisRule::class,
+				Rules\Functions\StrictComparisonArgumentRequiredRule::class,
 				Rules\Functions\UselessParameterDefaultRule::class,
 				Rules\Literals\NoDollarBraceInterpolationsRule::class,
 				Rules\Literals\HeredocIndentationRule::class,

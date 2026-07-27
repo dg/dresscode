@@ -9,16 +9,36 @@ namespace DressCode\Rules;
 
 use DressCode\RuleContext;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, SymbolKind};
-use PhpSyntax\Nodes\Statement;
+use PhpSyntax\{NameForm, Node, SymbolKind, UnqualifiedResolution};
+use PhpSyntax\Nodes\{ExpressionNode, NameNode, Statement};
 
 
 /**
- * What a rule writing code into a file needs so that the code takes the shape the file has: whether the file imports
- * a function under another name. A rule shipped by a package writes with it too.
+ * What a rule writing code into a file needs so that the code takes the shape the file has: a function spelled the
+ * way the file reaches it. A rule shipped by a package writes with it too.
  */
 final class CodeWriter
 {
+	/**
+	 * How the name of another global function is written in place of the name of a call of a global one: bare where
+	 * the replaced name is bare, nothing takes the bare name and it is no less certain than the replaced one, which is
+	 * the fallback the call already stood on; else, and for a name that is an expression, with the leading backslash.
+	 */
+	public static function spellFunction(string $function, NameNode|ExpressionNode $replaced, RuleContext $context): string
+	{
+		$resolver = $context->getAnalysis(NameResolver::class);
+		return $replaced instanceof NameNode
+			&& $replaced->form === NameForm::Unqualified
+			&& $resolver->isAliasFree($function, SymbolKind::Function, $replaced)
+			&& (
+				$resolver->getUnqualifiedResolution($replaced) === UnqualifiedResolution::Uncertain
+				|| $resolver->getUnqualifiedResolution($function, SymbolKind::Function, $replaced) === UnqualifiedResolution::Global
+			)
+				? $function
+				: '\\' . $function;
+	}
+
+
 	/** Whether the file imports a function under a name other than its own, so that a call names another function than it spells. */
 	public static function importsFunctionAs(RuleContext $context): bool
 	{
