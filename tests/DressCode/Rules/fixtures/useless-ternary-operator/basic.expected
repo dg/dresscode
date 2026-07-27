@@ -1,0 +1,14 @@
+<?php
+$a = $x > 1;
+$b = $x <= 1;
+$c = $x ? true : false;
+$d = $x === null ? true : true;
+$e = !($x && $y);
+$f = !$x;
+$g = $x instanceof Foo;
+$h = $x ?: false;
+$i = $x ?: true;
+$j = $x > 1;
+$k = $x > 1 ? true : 1;
+$l = ($x > 1) ? /* c */ true : false;
+$m = f($x > 1);
