@@ -1,0 +1,9 @@
+<?php
+class A
+{
+	public function f()
+	{
+		return [get_class(), get_class($this), get_called_class(), get_parent_class(), __CLASS__, get_class($x), \get_class()];
+	}
+}
+echo get_class(), __CLASS__;

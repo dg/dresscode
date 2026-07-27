@@ -1,0 +1,11 @@
+<?php
+// {"onObjects": true}
+$a = $obj::class;
+$b = $this->x['y']::class;
+$c = f()::class;
+$d = ($x ?? $y)::class;
+$e = get_class(...$args);
+$f = get_class(/* c */ $obj);
+function g($o) {
+	return $o::class;
+}

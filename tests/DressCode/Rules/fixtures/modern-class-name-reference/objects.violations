@@ -1,0 +1,5 @@
+3: The class name must be obtained with $obj::class
+4: The class name must be obtained with $this->x['y']::class
+5: The class name must be obtained with f()::class
+6: The class name must be obtained with ($x ?? $y)::class
+10: The class name must be obtained with $o::class

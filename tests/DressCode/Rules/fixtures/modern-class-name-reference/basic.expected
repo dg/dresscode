@@ -1,0 +1,9 @@
+<?php
+class A
+{
+	public function f()
+	{
+		return [self::class, static::class, static::class, parent::class, self::class, get_class($x), self::class];
+	}
+}
+echo get_class(), __CLASS__;

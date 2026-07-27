@@ -1,0 +1,6 @@
+6: The class name must be obtained with self::class
+6: The class name must be obtained with static::class
+6: The class name must be obtained with static::class
+6: The class name must be obtained with parent::class
+6: The class name must be obtained with self::class
+6: The class name must be obtained with self::class
