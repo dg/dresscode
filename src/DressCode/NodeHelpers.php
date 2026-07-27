@@ -1,0 +1,126 @@
+<?php declare(strict_types=1);
+
+namespace DressCode;
+
+use PhpSyntax\Nodes\Expression;
+use PhpSyntax\Nodes\ExpressionNode;
+use PhpSyntax\Parser\Parser;
+use PhpSyntax\Token;
+use PhpSyntax\TokenKind;
+use function in_array, ord;
+
+
+/**
+ * Queries and constructions over the tree that several rules share.
+ * @internal
+ */
+final class NodeHelpers
+{
+	private const BooleanOperators = [
+		TokenKind::IsEqual, TokenKind::IsNotEqual, TokenKind::IsIdentical, TokenKind::IsNotIdentical,
+		'<', '>', TokenKind::IsSmallerOrEqual, TokenKind::IsGreaterOrEqual,
+		TokenKind::BooleanAnd, TokenKind::BooleanOr, TokenKind::LogicalAnd, TokenKind::LogicalOr, TokenKind::LogicalXor,
+	];
+
+
+	/**
+	 * Whether the expression yields a boolean whatever its operands: a comparison, a logical operation,
+	 * a negation, instanceof, isset(), empty(), a bool cast or a boolean literal.
+	 */
+	public static function isBoolean(ExpressionNode $expr): bool
+	{
+		return match (true) {
+			$expr instanceof Expression\BinaryNode => $expr->operator->is(...self::BooleanOperators),
+			$expr instanceof Expression\UnaryNode => $expr->operator->is('!'),
+			$expr instanceof Expression\CastNode => $expr->cast->kind === TokenKind::BoolCast,
+			$expr instanceof Expression\ParenthesizedNode => self::isBoolean($expr->expr),
+			$expr instanceof Expression\ConstantFetchNode => self::isBooleanLiteral($expr),
+			default => $expr instanceof Expression\InstanceofNode || $expr instanceof Expression\IssetNode || $expr instanceof Expression\EmptyNode,
+		};
+	}
+
+
+	/** Whether the expression is the literal true or false. */
+	public static function isBooleanLiteral(ExpressionNode $expr): bool
+	{
+		return $expr instanceof Expression\ConstantFetchNode
+			&& in_array(strtolower($expr->name->getName()), ['true', 'false'], strict: true);
+	}
+
+
+	/**
+	 * The negation of the expression as a new detached node with empty trivia on its edges: a comparison flips
+	 * its operator, `!` is dropped, true and false swap, a primary expression gets `!`, anything else `!(...)`.
+	 */
+	public static function negate(ExpressionNode $expr): ExpressionNode
+	{
+		$copy = self::detach($expr);
+		if ($copy instanceof Expression\BinaryNode && ($operator = self::negateComparison($copy->operator))) {
+			$copy->setOperator($operator);
+			return $copy;
+		} elseif ($copy instanceof Expression\UnaryNode && $copy->operator->is('!')) {
+			$inner = $copy->expr instanceof Expression\ParenthesizedNode ? $copy->expr->expr : $copy->expr;
+			return self::detach($inner);
+		} elseif (self::isBooleanLiteral($copy)) {
+			assert($copy instanceof Expression\ConstantFetchNode);
+			return (new Parser)->parseExpression(strtolower($copy->name->getName()) === 'true' ? 'false' : 'true');
+		}
+
+		$negation = (new Parser)->parseExpression(self::isPrimary($copy) ? '!0' : '!(0)');
+		assert($negation instanceof Expression\UnaryNode);
+		($negation->expr instanceof Expression\ParenthesizedNode ? $negation->expr->expr : $negation->expr)->replaceWith($copy);
+		return $negation;
+	}
+
+
+	/** The operator of the opposite comparison with the trivia of the given one, null for other operators. */
+	private static function negateComparison(Token $operator): ?Token
+	{
+		[$kind, $text] = match (true) {
+			$operator->is(TokenKind::IsEqual) => [TokenKind::IsNotEqual, '!='],
+			$operator->is(TokenKind::IsNotEqual) => [TokenKind::IsEqual, '=='],
+			$operator->is(TokenKind::IsIdentical) => [TokenKind::IsNotIdentical, '!=='],
+			$operator->is(TokenKind::IsNotIdentical) => [TokenKind::IsIdentical, '==='],
+			$operator->is('<') => [TokenKind::IsGreaterOrEqual, '>='],
+			$operator->is('>') => [TokenKind::IsSmallerOrEqual, '<='],
+			$operator->is(TokenKind::IsSmallerOrEqual) => [ord('>'), '>'],
+			$operator->is(TokenKind::IsGreaterOrEqual) => [ord('<'), '<'],
+			default => [null, null],
+		};
+		if ($kind === null || $text === null) {
+			return null;
+		}
+
+		$new = new Token($kind, $text);
+		$new->setLeadingTrivia($operator->leadingTrivia);
+		$new->setTrailingTrivia($operator->trailingTrivia);
+		return $new;
+	}
+
+
+	private static function isPrimary(ExpressionNode $expr): bool
+	{
+		return $expr instanceof Expression\VariableNode
+			|| $expr instanceof Expression\ArrayDimFetchNode
+			|| $expr instanceof Expression\PropertyFetchNode
+			|| $expr instanceof Expression\StaticPropertyFetchNode
+			|| $expr instanceof Expression\ClassConstantFetchNode
+			|| $expr instanceof Expression\ConstantFetchNode
+			|| $expr instanceof Expression\FunctionCallNode
+			|| $expr instanceof Expression\MethodCallNode
+			|| $expr instanceof Expression\StaticCallNode
+			|| $expr instanceof Expression\ParenthesizedNode
+			|| $expr instanceof Expression\IssetNode
+			|| $expr instanceof Expression\EmptyNode;
+	}
+
+
+	/** A copy without a parent and without trivia on its edges. */
+	private static function detach(ExpressionNode $expr): ExpressionNode
+	{
+		$copy = clone $expr;
+		$copy->getFirstToken()?->setLeadingTrivia([]);
+		$copy->getLastToken()?->setTrailingTrivia([]);
+		return $copy;
+	}
+}

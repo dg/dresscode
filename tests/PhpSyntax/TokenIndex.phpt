@@ -130,3 +130,14 @@ test('the order and the lines follow mutations of every kind', function () {
 	Assert::same(10, $moved->getStartLine());
 	Assert::same(1, $other->getLastToken()?->getLine());
 });
+
+
+test('line width counts the indentation visually and drops trailing whitespace', function () {
+	$file = (new Parser)->parse("<?php\n\tif (\$a) { // c   \n\t\t\$bb = 'ěšč';\t\n\t}\n");
+	$style = new Style(tabWidth: 4);
+	$if = $file->stmts->getItems()[0];
+	Assert::same(strlen('    if ($a) { // c'), $if->getFirstToken()?->getLineWidth($style));
+	$assign = $file->getDescendants(ExpressionStatementNode::class)[0];
+	Assert::same(strlen('        $bb = ') + 5 + 1, $assign->semicolon->getLineWidth($style));
+	Assert::same(5, $file->getLastToken()?->getPrevious()?->getLineWidth($style));
+});

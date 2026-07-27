@@ -128,6 +128,46 @@ final class Token implements \Stringable
 	}
 
 
+	/**
+	 * Visual width of the line the token is on, in characters up to the last one that is not whitespace;
+	 * tabs in the indentation count as the tab width of the style.
+	 */
+	public function getLineWidth(Style $style): int
+	{
+		$start = $this;
+		while (!$start->startsLine() && ($previous = $start->getPrevious()) !== null) {
+			$start = $previous;
+		}
+
+		$width = Indentation::width($start->getIndentation(), $style);
+		$pending = 0;
+		for ($token = $start; $token !== null; $token = $token->getNext()) {
+			if ($token !== $start && preg_match('~^[\r\n]~', $token->text)) {
+				break;
+			}
+
+			$width += $pending + mb_strlen($token->text);
+			$pending = 0;
+			if (preg_match('~[\r\n]$~', $token->text)) {
+				return $width;
+			}
+
+			foreach ($token->trailingTrivia as $trivia) {
+				if ($trivia->isEndOfLine()) {
+					return $width;
+				} elseif ($trivia->isWhitespace()) {
+					$pending += mb_strlen($trivia->text);
+				} else {
+					$width += $pending + mb_strlen(rtrim($trivia->text));
+					$pending = 0;
+				}
+			}
+		}
+
+		return $width;
+	}
+
+
 	/** Whether the token is the first on its line. */
 	public function startsLine(): bool
 	{
