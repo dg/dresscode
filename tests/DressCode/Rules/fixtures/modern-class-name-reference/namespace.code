@@ -1,0 +1,10 @@
+<?php
+namespace App;
+
+class A
+{
+	public function f()
+	{
+		return get_class() . \get_called_class();
+	}
+}

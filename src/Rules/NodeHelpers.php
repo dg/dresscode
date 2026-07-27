@@ -11,8 +11,8 @@ use DressCode\{Analyses, Gap, RuleContext};
 use DressCode\Rules\Whitespace\IndentationRule;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, Token, TokenKind, Trivia, TriviaKind};
-use PhpSyntax\Nodes\{AttributeGroupNode, ElseIfNode, Expression, ExpressionNode, NodeList, Scalar, SeparatedNodeList, Statement};
+use PhpSyntax\{Node, Parser, SymbolKind, Token, TokenKind, Trivia, TriviaKind, UnqualifiedResolution};
+use PhpSyntax\Nodes\{AttributeGroupNode, ElseIfNode, Expression, ExpressionNode, NameNode, NodeList, Scalar, SeparatedNodeList, Statement};
 use function array_slice, assert, count;
 
 
@@ -223,6 +223,22 @@ final class NodeHelpers
 				$inner instanceof Expression\FunctionCallNode
 				&& array_any(['compact', 'extract', 'get_defined_vars'], fn(string $function) => $resolver->isGlobalFunctionCall($inner, $function))
 			));
+	}
+
+
+	/**
+	 * Why a call taken as a call of a global function may call another one: its name is unqualified in a namespace
+	 * that may declare a function of that name elsewhere (`UnqualifiedResolution::Uncertain`). A rule rewriting such a call
+	 * reports it as risky with this reason after the message; null when the call is certain.
+	 */
+	public static function findUncertainty(Expression\FunctionCallNode $call, RuleContext $context): ?string
+	{
+		$name = $call->name;
+		return $name instanceof NameNode
+			&& $name->isUnqualified()
+			&& $context->getAnalysis(NameResolver::class)->getUnqualifiedResolution($name->text, SymbolKind::Function, $call) === UnqualifiedResolution::Uncertain
+			? ', unless the namespace declares ' . strtolower($name->text) . '()'
+			: null;
 	}
 
 
