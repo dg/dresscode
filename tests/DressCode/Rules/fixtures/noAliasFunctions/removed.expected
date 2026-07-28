@@ -1,0 +1,11 @@
+<?php
+// {"sets": ["all"]}
+function close($x) {}
+$a = close(1);
+$b = is_real($x);
+$c = magic_quotes_runtime(0);
+$d = imap_header($stream, 1);
+$e = mbereg('a', $s);
+$f = mbsplit(',', $s);
+$g = read_exif_data($file);
+$h = count($x);

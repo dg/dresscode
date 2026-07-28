@@ -1,0 +1,10 @@
+<?php
+$a = count($x);
+$b = \implode(', ', $x);
+$c = is_int($x) || is_float($y);
+$d = mktime();
+$e = pg_query($conn, 'SELECT 1');
+$f = ldap_close($c);
+$g = Foo\sizeof($x);
+$h = $obj->sizeof($x);
+$i = count(...);

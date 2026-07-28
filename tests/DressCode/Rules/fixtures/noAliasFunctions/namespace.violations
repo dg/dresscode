@@ -1,0 +1,4 @@
+6: The function `sizeof()` is an alias of `count()`
+	risky NameUncertain: the namespace may declare `sizeof()`
+7: The function `sizeof()` is an alias of `count()`
+8: The function `sizeof()` is an alias of `count()`
