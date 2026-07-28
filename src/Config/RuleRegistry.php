@@ -83,6 +83,7 @@ final class RuleRegistry
 		Rules\Functions\FunctionNameSpacingRule::class,
 		Rules\Functions\UselessParameterDefaultRule::class,
 		Rules\Functions\StaticClosureRule::class,
+		Rules\Functions\StrictCallRule::class,
 		Rules\Literals\ConstantCasingRule::class,
 		Rules\Literals\KeywordCasingRule::class,
 		Rules\Literals\NumericLiteralSeparatorRule::class,
