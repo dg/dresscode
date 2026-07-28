@@ -1,0 +1,17 @@
+<?php
+class A {
+	/** @var int */
+	const B = 1;
+
+	/**
+	 * Summary.
+	 * @var string
+	 */
+	const C = "x";
+
+	/** @var int the answer */
+	const D = 42;
+
+	/** Plain description. */
+	const E = 2;
+}

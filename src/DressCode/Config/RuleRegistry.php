@@ -87,6 +87,7 @@ final class RuleRegistry
 		Rules\Expressions\UselessTernaryOperatorRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
+		Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
 		Rules\Literals\NoBacktickOperatorRule::class,
 		Rules\Literals\ComplexStringVariableRule::class,
 		Rules\Literals\NoImplicitBackslashRule::class,
