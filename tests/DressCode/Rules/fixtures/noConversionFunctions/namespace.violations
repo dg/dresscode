@@ -1,0 +1,3 @@
+4: The conversion function must be written as the `(int)` cast
+	risky NameUncertain: the namespace may declare `intval()`
+5: The conversion function must be written as the `(string)` cast

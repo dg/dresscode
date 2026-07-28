@@ -92,6 +92,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Literals\NumericLiteralSeparatorRule::class,
 				Rules\Literals\OctalNotationRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
+				Rules\Functions\NoConversionFunctionsRule::class,
 				Rules\Expressions\CastSpacingRule::class,
 				Rules\Expressions\CastCanonicalTypeRule::class,
 				Rules\Expressions\CombinedAssignmentForRepeatedTargetRule::class,
