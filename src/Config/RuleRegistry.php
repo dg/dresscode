@@ -36,6 +36,7 @@ final class RuleRegistry
 		Rules\Classes\ClassDefinitionSpacingRule::class,
 		Rules\Classes\ModernClassNameReferenceRule::class,
 		Rules\Classes\NameCasingRule::class,
+		Rules\Upgrading\ForbiddenFunctionsRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Expressions\NewArgumentParenthesesRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,
