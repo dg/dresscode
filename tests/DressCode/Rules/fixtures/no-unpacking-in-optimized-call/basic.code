@@ -1,0 +1,8 @@
+<?php
+$a = count(...$args);
+$b = \strlen(...$args);
+$c = sprintf('%s', ...$args);
+$d = count($x);
+$e = count(...);
+$f = foo(...$args);
+$g = Foo\count(...$args);
