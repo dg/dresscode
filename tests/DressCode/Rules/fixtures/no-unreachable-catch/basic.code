@@ -1,0 +1,14 @@
+<?php
+try {
+} catch (\Throwable $e) {
+} catch (\Exception $e) {
+} catch (\Error $e) {
+}
+try {
+} catch (\Exception $e) {
+} catch (Throwable $e) {
+}
+try {
+} catch (\RuntimeException | \Throwable $e) {
+} catch (\Exception $e) {
+}
