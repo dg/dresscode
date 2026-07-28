@@ -1,0 +1,6 @@
+<?php
+// risky
+namespace App;
+
+$a = count($items);
+$b = \count($items);

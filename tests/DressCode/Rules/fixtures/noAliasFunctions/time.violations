@@ -1,0 +1,2 @@
+3: The alias `mktime()` must be written `time()`.
+5: The alias `ldap_close()` must be written `ldap_unbind()`.

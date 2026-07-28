@@ -1,0 +1,2 @@
+3: The alias `sizeof()` must be written `count()`.
+4: The alias `join()` must be written `implode()`.

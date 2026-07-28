@@ -1,0 +1,6 @@
+2: The alias `sizeof()` must be written `count()`.
+3: The alias `join()` must be written `implode()`.
+4: The alias `is_integer()` must be written `is_int()`.
+4: The alias `is_double()` must be written `is_float()`.
+6: The alias `pg_exec()` must be written `pg_query()`.
+10: The alias `sizeof()` must be written `count()`.

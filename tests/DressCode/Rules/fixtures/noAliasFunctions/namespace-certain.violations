@@ -1,0 +1,2 @@
+8: The alias `sizeof()` must be written `count()`.
+9: The alias `chop()` must be written `rtrim()`.

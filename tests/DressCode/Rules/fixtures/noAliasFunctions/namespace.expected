@@ -1,0 +1,8 @@
+<?php
+namespace App;
+
+use function sizeof as size;
+
+$a = sizeof($x);
+$b = \count($x);
+$c = \count($x);
