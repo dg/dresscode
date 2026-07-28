@@ -79,6 +79,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\MultilineSignatureRule::class,
 				Rules\Functions\NamedArgumentSpacingRule::class,
 				Rules\Functions\NativeFunctionCasingRule::class,
+				Rules\Functions\NoDeprecatedFunctionsRule::class,
 				Rules\Functions\NoDirectInvokeCallsRule::class,
 				Rules\Functions\NoInnerFunctionsRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
