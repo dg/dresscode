@@ -1,0 +1,10 @@
+<?php
+// {"comment": "break omitted"}
+switch ($a) {
+	case 1:
+		one();
+		// break omitted
+	case 2:
+		two();
+		break;
+}
