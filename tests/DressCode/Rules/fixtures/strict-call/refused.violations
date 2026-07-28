@@ -1,0 +1,2 @@
+2: The in_array() call must pass $strict = true
+3: The base64_decode() call must pass $strict = true
