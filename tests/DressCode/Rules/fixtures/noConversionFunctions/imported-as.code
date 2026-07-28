@@ -1,0 +1,9 @@
+<?php
+namespace App;
+
+use function intval as toInt;
+use function Acme\Text\strval;
+
+$a = toInt($x);
+$b = strval($x);
+$c = \intval($x);

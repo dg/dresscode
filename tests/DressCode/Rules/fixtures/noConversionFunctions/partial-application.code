@@ -1,0 +1,5 @@
+<?php
+// php 8.6
+$a = intval(?);
+$b = strval(?);
+$c = intval(?, 16);
