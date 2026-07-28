@@ -12,9 +12,9 @@ use function array_key_exists;
 
 /**
  * What PHP itself declares: the functions, classes, interfaces, enums and constants of PHP 8.0 and later and of the
- * extensions shipped with it, gathered over every version. The running interpreter is never asked, so the answer
- * does not depend on the PHP or the extensions of the machine that runs the check; a PECL extension is not PHP and is
- * not here.
+ * extensions shipped with it, gathered over every version; what PHP retired is in its upgrading data instead,
+ * `src/Rules/Upgrading/php.neon`. The running interpreter is never asked, so the answer does not depend on the PHP or the
+ * extensions of the machine that runs the check; a PECL extension is not PHP and is not here.
  */
 final class PhpSymbols
 {

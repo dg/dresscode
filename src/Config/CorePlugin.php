@@ -125,6 +125,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\UselessStringConcatenationRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
+				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,
 				Rules\Variables\NoSeparateUnsetsRule::class,
 				Rules\Variables\NoRepeatedAssignmentsRule::class,

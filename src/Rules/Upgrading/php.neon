@@ -1,0 +1,171 @@
+# What PHP itself retired, the upgrading data of PHP written as those of a library: a deprecated function
+# reported.
+# @generated from the reflection dumps of JetBrains/phpstorm-stubs, UPGRADING and the entries kept by hand, do not edit.
+
+package: php
+
+since 8.6:
+	forbiddenFunctions:
+		doubleval: deprecated
+		is_double: deprecated
+		is_integer: deprecated
+		is_long: deprecated
+		mb_ereg: deprecated
+		mb_ereg_match: deprecated
+		mb_ereg_replace: deprecated
+		mb_ereg_replace_callback: deprecated
+		mb_ereg_search: deprecated
+		mb_ereg_search_getpos: deprecated
+		mb_ereg_search_getregs: deprecated
+		mb_ereg_search_init: deprecated
+		mb_ereg_search_pos: deprecated
+		mb_ereg_search_regs: deprecated
+		mb_ereg_search_setpos: deprecated
+		mb_eregi: deprecated
+		mb_eregi_replace: deprecated
+		mb_regex_encoding: deprecated
+		mb_regex_set_options: deprecated
+		mb_split: deprecated
+		metaphone: deprecated
+		mysqli_get_charset: deprecated
+		mysqli_stmt_init: deprecated
+		spl_classes: deprecated
+		spl_object_hash: deprecated
+		strcoll: deprecated
+
+since 8.5:
+	forbiddenFunctions:
+		curl_close: deprecated
+		curl_share_close: deprecated
+		finfo_close: deprecated
+		imagedestroy: deprecated
+		mysqli_execute: deprecated
+		socket_set_timeout: deprecated
+		xml_parser_free: deprecated
+
+since 8.4:
+	forbiddenFunctions:
+		intlcal_set: deprecated
+		intlgregcal_create_instance: deprecated
+		lcg_value: deprecated
+		mysqli_kill: deprecated
+		mysqli_ping: deprecated
+		mysqli_refresh: deprecated
+		xml_set_object: deprecated
+
+since 8.3:
+	forbiddenFunctions:
+		assert_options: deprecated
+
+since 8.2:
+	forbiddenFunctions:
+		utf8_decode: deprecated
+		utf8_encode: deprecated
+
+since 8.1:
+	forbiddenFunctions:
+		date_sunrise: deprecated
+		date_sunset: deprecated
+		gmstrftime: deprecated
+		mhash: deprecated
+		mhash_count: deprecated
+		mhash_get_block_size: deprecated
+		mhash_get_hash_name: deprecated
+		mhash_keygen_s2k: deprecated
+		odbc_result_all: deprecated
+		strftime: deprecated
+		strptime: deprecated
+
+since 8.0:
+	forbiddenFunctions:
+		enchant_broker_free: deprecated
+		enchant_broker_free_dict: deprecated
+		enchant_broker_get_dict_path: deprecated
+		enchant_broker_set_dict_path: deprecated
+		enchant_dict_add_to_personal: deprecated
+		enchant_dict_is_in_session: deprecated
+		libxml_disable_entity_loader: deprecated
+		ocibindbyname: deprecated
+		ocicancel: deprecated
+		ocicollappend: deprecated
+		ocicollassignelem: deprecated
+		ocicollgetelem: deprecated
+		ocicollmax: deprecated
+		ocicollsize: deprecated
+		ocicolltrim: deprecated
+		ocicolumnisnull: deprecated
+		ocicolumnname: deprecated
+		ocicolumnprecision: deprecated
+		ocicolumnscale: deprecated
+		ocicolumnsize: deprecated
+		ocicolumntype: deprecated
+		ocicolumntyperaw: deprecated
+		ocicommit: deprecated
+		ocidefinebyname: deprecated
+		ocierror: deprecated
+		ociexecute: deprecated
+		ocifetch: deprecated
+		ocifetchinto: deprecated
+		ocifetchstatement: deprecated
+		ocifreecollection: deprecated
+		ocifreecursor: deprecated
+		ocifreedesc: deprecated
+		ocifreestatement: deprecated
+		ociloadlob: deprecated
+		ocilogoff: deprecated
+		ocilogon: deprecated
+		ocinewcollection: deprecated
+		ocinewcursor: deprecated
+		ocinewdescriptor: deprecated
+		ocinlogon: deprecated
+		ocinumcols: deprecated
+		ociparse: deprecated
+		ocipasswordchange: deprecated
+		ociplogon: deprecated
+		ociresult: deprecated
+		ocirollback: deprecated
+		ocirowcount: deprecated
+		ocisavelob: deprecated
+		ocisavelobfile: deprecated
+		ociserverversion: deprecated
+		ocisetprefetch: deprecated
+		ocistatementtype: deprecated
+		ociwritelobtofile: deprecated
+		openssl_free_key: deprecated
+		openssl_pkey_free: deprecated
+		openssl_x509_free: deprecated
+		pg_clientencoding: deprecated
+		pg_cmdtuples: deprecated
+		pg_errormessage: deprecated
+		pg_fieldisnull: deprecated
+		pg_fieldname: deprecated
+		pg_fieldnum: deprecated
+		pg_fieldprtlen: deprecated
+		pg_fieldsize: deprecated
+		pg_fieldtype: deprecated
+		pg_freeresult: deprecated
+		pg_getlastoid: deprecated
+		pg_loclose: deprecated
+		pg_locreate: deprecated
+		pg_loexport: deprecated
+		pg_loimport: deprecated
+		pg_loopen: deprecated
+		pg_loread: deprecated
+		pg_loreadall: deprecated
+		pg_lounlink: deprecated
+		pg_lowrite: deprecated
+		pg_numfields: deprecated
+		pg_numrows: deprecated
+		pg_result: deprecated
+		pg_setclientencoding: deprecated
+		shmop_close: deprecated
+		zip_close: deprecated
+		zip_entry_close: deprecated
+		zip_entry_compressedsize: deprecated
+		zip_entry_compressionmethod: deprecated
+		zip_entry_filesize: deprecated
+		zip_entry_name: deprecated
+		zip_entry_open: deprecated
+		zip_entry_read: deprecated
+		zip_open: deprecated
+		zip_read: deprecated
