@@ -1,0 +1,4 @@
+6: The alias `sizeof()` must be written `count()`.
+	risky NameUncertain: the namespace may declare `sizeof()`
+7: The alias `sizeof()` must be written `count()`.
+8: The alias `sizeof()` must be written `count()`.

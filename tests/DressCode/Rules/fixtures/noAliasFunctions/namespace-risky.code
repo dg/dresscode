@@ -1,0 +1,6 @@
+<?php
+// risky
+namespace App;
+
+$a = sizeof($items);
+$b = \sizeof($items);

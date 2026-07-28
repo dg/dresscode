@@ -1,0 +1,4 @@
+<?php
+// php 8.6
+$a = sizeof(?);
+$b = \join(', ', ?);
