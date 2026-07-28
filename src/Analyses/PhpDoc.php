@@ -5,6 +5,9 @@ namespace DressCode\Analyses;
 use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTextNode;
+use PHPStan\PhpDocParser\Ast\PhpDoc\TemplateTagValueNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use PHPStan\PhpDocParser\Parser\PhpDocParser;
@@ -12,6 +15,8 @@ use PHPStan\PhpDocParser\Parser\TokenIterator;
 use PHPStan\PhpDocParser\Parser\TypeParser;
 use PHPStan\PhpDocParser\ParserConfig;
 use PHPStan\PhpDocParser\Printer\Printer;
+use PhpSyntax\Node;
+use PhpSyntax\Nodes\ClassLikeNode;
 use PhpSyntax\Trivia;
 use PhpSyntax\TriviaKind;
 
@@ -72,5 +77,45 @@ final class PhpDoc
 
 		[$originalNode, $tokens] = $this->parsed[$original];
 		return new Trivia(TriviaKind::DocComment, $this->printer->printFormatPreserving($node, $originalNode, $tokens), $original->inInterpolation);
+	}
+
+
+	/**
+	 * Names declared by `@template` in the doc comment of the node and of its class; a native type cannot name them.
+	 * @return list<string>
+	 */
+	public function findTemplates(Node $node): array
+	{
+		$names = [];
+		foreach ([$node, $node->findAncestor(ClassLikeNode::class)] as $owner) {
+			$docComment = $owner?->getDocComment();
+			if ($docComment === null || $docComment->inInterpolation) {
+				continue;
+			}
+
+			foreach ($this->parse($docComment)->children as $child) {
+				if ($child instanceof PhpDocTagNode && $child->value instanceof TemplateTagValueNode) {
+					$names[] = $child->value->name;
+				}
+			}
+		}
+
+		return $names;
+	}
+
+
+	/**
+	 * Whether nothing but blank text is left in the tree; such a tree prints as an empty doc comment, so remove
+	 * the doc comment instead of printing it.
+	 */
+	public static function isEmpty(PhpDocNode $node): bool
+	{
+		foreach ($node->children as $child) {
+			if (!$child instanceof PhpDocTextNode || trim($child->text) !== '') {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
