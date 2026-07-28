@@ -1,0 +1,8 @@
+<?php
+$a = strftime('%Y');
+$b = \date_sunrise(time());
+$c = Foo\strftime('%Y');
+$d = $x->strftime();
+$e = strlen('x');
+$f = utf8_encode('x');
+$g = PG_NumRows($result);
