@@ -1,0 +1,88 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\Functions;
+
+use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use PhpSyntax\{Node, Token};
+use PhpSyntax\Nodes\{ParameterNode, SeparatedNodeList};
+use PhpSyntax\Nodes\Scalar\NullNode;
+use PhpSyntax\Nodes\Type\NamedTypeNode;
+
+
+/**
+ * No default value on a parameter that a required one follows; such a default can never apply.
+ * A default `null` on a plain type stays, because it is what makes the type nullable, and
+ * a promoted property is not touched at all.
+ */
+#[RuleInfo(
+	'dresscode/useless-parameter-default',
+	Stage::Structure,
+	description: 'Removes a default value that a required parameter makes unreachable',
+	group: Group::Cleanup,
+)]
+final class UselessParameterDefaultRule extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [ParameterNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if (
+			!$node instanceof ParameterNode
+			|| $node->equals === null
+			|| $node->default === null
+			|| !$node->modifiers->isEmpty()
+			|| self::keepsImplicitNullability($node)
+			|| !($params = $node->parent) instanceof SeparatedNodeList
+			|| !self::hasRequiredAfter($params, $node)
+			|| ($last = $node->getLastToken()) === null
+			|| $node->equals->hasComment()
+			|| $node->equals->hasCommentUpTo($last)
+			|| $last->hasComment()
+			|| !$context->report($node->default, 'Useless default value, a parameter without one follows')
+		) {
+			return;
+		}
+
+		$node->equals = null;
+		$node->default = null;
+		$node->variable->getLastToken()?->removeTrailingWhitespace();
+	}
+
+
+	/** Removing `= null` from a plain type would stop the parameter accepting null. */
+	private static function keepsImplicitNullability(ParameterNode $node): bool
+	{
+		return $node->type instanceof NamedTypeNode
+			&& $node->default instanceof NullNode;
+	}
+
+
+	/** @param  SeparatedNodeList<ParameterNode>  $params */
+	private static function hasRequiredAfter(SeparatedNodeList $params, ParameterNode $node): bool
+	{
+		$seen = false;
+		foreach ($params->getItems() as $param) {
+			if ($param === $node) {
+				$seen = true;
+			} elseif (
+				$seen
+				&& $param->equals === null
+				&& $param->ellipsis === null
+				&& !$param->isPromoted()
+			) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}
