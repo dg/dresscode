@@ -1,0 +1,14 @@
+2: The `intval()` call must be written as the `(int)` cast.
+3: The `strval()` call must be written as the `(string)` cast.
+4: The `floatval()` call must be written as the `(float)` cast.
+5: The `boolval()` call must be written as the `(bool)` cast.
+6: The `doubleval()` call must be written as the `(float)` cast.
+7: The `strval()` call must be written as the `(string)` cast.
+13: The `intval()` call must be written as the `(int)` cast.
+14: The `intval()` call must be written as the `(int)` cast.
+15: The `intval()` call must be written as the `(int)` cast.
+16: The `intval()` call must be written as the `(int)` cast.
+17: The `intval()` call must be written as the `(int)` cast.
+18: The `intval()` call must be written as the `(int)` cast.
+19: The `intval()` call must be written as the `(int)` cast.
+20: The `intval()` call must be written as the `(int)` cast, but a comment stands among its arguments.

@@ -1,0 +1,2 @@
+7: The `intval()` call must be written as the `(int)` cast.
+9: The `intval()` call must be written as the `(int)` cast.

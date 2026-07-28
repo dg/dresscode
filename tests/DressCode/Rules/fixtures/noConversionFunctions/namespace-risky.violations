@@ -1,0 +1,2 @@
+5: The `intval()` call must be written as the `(int)` cast.
+	risky NameUncertain: the namespace may declare `intval()`
