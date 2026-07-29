@@ -1,0 +1,5 @@
+<?php
+namespace App;
+
+$a = is_null($x);
+$b = $x === null;

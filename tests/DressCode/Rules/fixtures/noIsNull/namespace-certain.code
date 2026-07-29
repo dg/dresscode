@@ -1,0 +1,10 @@
+<?php
+// namespacedFunctions App\is_null
+// nameResolution certain
+namespace App {
+	$a = is_null($x);
+}
+
+namespace Lib {
+	$b = is_null($x);
+}
