@@ -85,6 +85,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\NoInnerFunctionsRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
 				Rules\Functions\UselessParameterDefaultRule::class,
+				Rules\Functions\NoSettypeRule::class,
 				Rules\Functions\StaticClosureRule::class,
 				Rules\Functions\StrictCallRule::class,
 				Rules\Literals\TrueFalseNullCasingRule::class,

@@ -1,0 +1,3 @@
+6: The `settype()` call must be written as an assignment of a cast
+	risky NameUncertain: the namespace may declare `settype()`
+7: The `settype()` call must be written as an assignment of a cast
