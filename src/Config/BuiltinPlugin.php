@@ -99,6 +99,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\ConcatSpacingRule::class,
 				Rules\Expressions\DoubleColonSpacingRule::class,
 				Rules\Expressions\ExplicitOperatorPrecedenceRule::class,
+				Rules\Functions\NoIsNullRule::class,
 				Rules\Expressions\NoShortBoolCastsRule::class,
 				Rules\Expressions\YodaRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
