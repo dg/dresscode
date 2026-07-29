@@ -1,0 +1,86 @@
+<?php
+function defined(array $rows, $param)
+{
+	$param = (int) $param;
+
+	$a = 1;
+	$a = (int) $a;
+
+	[$b, [$c]] = $rows;
+	$b = (int) $b;
+	$c = (int) $c;
+
+	$d[] = 1;
+	$d = (array) $d;
+
+	$e = $f = 2;
+	$f = (string) $f;
+
+	global $g;
+	$g = (int) $g;
+
+	static $h = 0;
+	$h = (int) $h;
+
+	foreach ($rows as $key => [$i]) {
+		$key = (string) $key;
+		$i = (int) $i;
+	}
+
+	try {
+		run();
+	} catch (Exception $j) {
+		$j = (array) $j;
+	}
+
+	if ($rows) {
+		$k = 1;
+		$k = (int) $k;
+	}
+
+	$l = 1;
+	$l = (int) $l;
+	unset($l);
+
+	$use = function () use ($a) {
+		$a = (int) $a;
+	};
+}
+
+
+function undefined(array $rows)
+{
+	if ($rows) {
+		$a = 1;
+	}
+	settype($a, 'int');
+
+	foreach ($rows as $b) {
+	}
+	settype($b, 'int');
+
+	$rows[$c] = 1;
+	settype($c, 'int');
+
+	run($d = 1);
+	settype($d, 'int');
+
+	settype($e, 'int');
+	$e = 1;
+
+	$f = null;
+
+	$g = 1;
+	unset($g);
+	settype($g, 'int');
+
+	$h = 1;
+	foreach ($rows as $row) {
+		settype($h, 'int');
+		unset($h);
+	}
+
+	$use = function () {
+		settype($rows, 'array');
+	};
+}
