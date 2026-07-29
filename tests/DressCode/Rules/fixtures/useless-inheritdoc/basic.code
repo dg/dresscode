@@ -1,0 +1,25 @@
+<?php
+class A extends B {
+	/** {@inheritDoc} */
+	public function a(int $x): int {}
+
+	/**
+	 * @inheritdoc
+	 */
+	public function b(int $x) {}
+
+	/** {@inheritDoc} */
+	public function c(array $x): int {}
+
+	/** {@inheritDoc} */
+	public function d($x): int {}
+
+	/** {@inheritDoc} */
+	public int $e;
+
+	/** {@inheritDoc} Extra text. */
+	public function f(): int {}
+
+	/** {@inheritDoc} */
+	public function g(?iterable $x): int {}
+}

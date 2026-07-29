@@ -93,6 +93,7 @@ final class RuleRegistry
 		Rules\PhpDoc\PhpDocNullLastRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
 		Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
+		Rules\PhpDoc\UselessInheritDocRule::class,
 		Rules\Literals\NoBacktickOperatorRule::class,
 		Rules\Literals\ComplexStringVariableRule::class,
 		Rules\Literals\NoImplicitBackslashRule::class,
