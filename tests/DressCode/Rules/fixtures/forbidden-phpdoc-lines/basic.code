@@ -1,0 +1,28 @@
+<?php
+// {"patterns": ["~^(?:(?!private|protected|static)\\S+ )?(?:con|de)structor\\.\\z~i", "~^Created by \\S+\\.\\z~i", "~^\\S+ [gs]etter\\.\\z~i"]}
+class A {
+	/**
+	 * Class constructor.
+	 * @param int $a
+	 */
+	public function __construct($a) {}
+
+	/**
+	 * Created by PhpStorm.
+	 * Does something.
+	 */
+	public function b() {}
+
+	/**
+	 * Name setter.
+	 */
+	public function setName() {}
+
+	/**
+	 * Private constructor.
+	 */
+	private function c() {}
+
+	/** Constructor. */
+	public function d() {}
+}
