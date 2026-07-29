@@ -79,6 +79,7 @@ final class RuleRegistry
 		Rules\Functions\MultiLineSignatureRule::class,
 		Rules\Functions\NamedArgumentSpacingRule::class,
 		Rules\Functions\NativeFunctionCasingRule::class,
+		Rules\Functions\NoAliasFunctionsRule::class,
 		Rules\Functions\NoDeprecatedFunctionsRule::class,
 		Rules\Functions\NoDirectInvokeCallRule::class,
 		Rules\Functions\NoInnerFunctionsRule::class,
