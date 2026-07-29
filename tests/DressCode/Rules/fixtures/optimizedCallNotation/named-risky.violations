@@ -1,0 +1,2 @@
+6: A named argument disables the compiler optimization of `in_array()`
+	risky NameUncertain: the namespace may declare `in_array()`
