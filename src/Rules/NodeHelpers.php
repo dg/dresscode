@@ -2,6 +2,9 @@
 
 namespace DressCode\Rules;
 
+use DressCode\RuleContext;
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression;
 use PhpSyntax\Nodes\ExpressionNode;
 use PhpSyntax\Nodes\OperatorNode;
@@ -152,5 +155,24 @@ final class NodeHelpers
 			$last instanceof Statement\ExpressionStatementNode => $last->expression instanceof Expression\ThrowNode || $last->expression instanceof Expression\ExitNode,
 			default => false,
 		};
+	}
+
+
+	/**
+	 * The constructs inside the node that may reach a variable by a name they do not spell out: variable
+	 * variables, calls of compact(), extract() and get_defined_vars(), and eval and include, whose code runs in
+	 * the scope they are written in.
+	 * @return list<Node>
+	 */
+	public static function findDynamicVariableAccesses(Node $node, RuleContext $context): array
+	{
+		$resolver = $context->getAnalysis(NameResolver::class);
+		return $node->find(Node::class, fn(Node $inner) => $inner instanceof Expression\IncludeNode
+			|| $inner instanceof Expression\EvalNode
+			|| ($inner instanceof Expression\VariableNode && ($inner->dollar !== null || !$inner->name instanceof Token))
+			|| (
+				$inner instanceof Expression\FunctionCallNode
+				&& array_any(['compact', 'extract', 'get_defined_vars'], fn(string $function) => $resolver->isGlobalFunctionCall($inner, $function))
+			));
 	}
 }
