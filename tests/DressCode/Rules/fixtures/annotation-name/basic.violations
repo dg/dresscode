@@ -1,0 +1,5 @@
+2: Annotation @inheritdoc must be written '@inheritDoc'
+2: Annotation @Return must be written '@return'
+2: Annotation @dataprovider must be written '@dataProvider'
+2: Annotation @PHPStan-Return must be written '@phpstan-return'
+2: Annotation @Template must be written '@template'

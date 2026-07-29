@@ -85,6 +85,7 @@ final class RuleRegistry
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Expressions\UselessTernaryOperatorRule::class,
+		Rules\PhpDoc\AnnotationNameRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
 		Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
