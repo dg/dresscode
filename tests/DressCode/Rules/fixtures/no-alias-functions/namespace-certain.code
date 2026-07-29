@@ -1,0 +1,10 @@
+<?php
+// namespacedFunctions App\count
+// nameResolution certain
+namespace App;
+
+use function Lib\join;
+
+$a = sizeof($x);
+$b = chop($x);
+$c = join(',', $x);
