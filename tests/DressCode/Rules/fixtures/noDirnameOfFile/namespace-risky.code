@@ -1,0 +1,8 @@
+<?php
+// risky
+namespace App;
+
+use function dirname as dn;
+
+$a = dirname(dirname($x));
+$b = dn(dn($x));
