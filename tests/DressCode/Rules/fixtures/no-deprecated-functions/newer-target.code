@@ -1,0 +1,5 @@
+<?php
+// php 8.4
+$a = utf8_encode('x');
+$b = lcg_value();
+$c = imap_open('x', 'u', 'p');
