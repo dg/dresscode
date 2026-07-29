@@ -1,0 +1,9 @@
+<?php
+// php 8.1
+namespace App;
+
+use function strlen as strftime;
+use function strftime as fmt;
+
+$a = strftime('x');
+$b = fmt('%Y');
