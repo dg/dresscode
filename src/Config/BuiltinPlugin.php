@@ -76,6 +76,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Files\StrictTypesRequiredRule::class,
 				Rules\Functions\ArrowFunctionRule::class,
 				Rules\Functions\MultilineCallRule::class,
+				Rules\Functions\NoDirnameOfFileRule::class,
 				Rules\Functions\MultilineSignatureRule::class,
 				Rules\Functions\NamedArgumentSpacingRule::class,
 				Rules\Functions\NativeFunctionCasingRule::class,
