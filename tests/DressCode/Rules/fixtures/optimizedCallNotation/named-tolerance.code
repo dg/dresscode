@@ -1,0 +1,5 @@
+<?php
+// {"optimizedFunction":["imported","bare","backslashed"]}
+namespace App;
+
+$a = \in_array(needle: $x, haystack: $list);

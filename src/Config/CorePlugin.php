@@ -128,6 +128,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\OctalNotationRule::class,
 				Rules\Literals\StringQuotesRule::class,
 				Rules\Literals\UselessStringConcatenationRule::class,
+				Rules\Namespaces\OptimizedCallNotationRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
@@ -163,6 +164,25 @@ final class CorePlugin implements Plugin
 				]), 'Every line indented by the construct it continues, one level per nesting, the level being this unit; under `keep` a line stays where it is'),
 				new Decision('indentation.tabWidth', new Count(1, 8, range: false), 'How many columns a tab counts for in the width of a line', parameter: true, default: 4),
 				...self::createIndentationDecisions(),
+
+				// how far a global function is written out, which decides the arguments of its optimized call
+				Rules\Namespaces\QualificationPolicy::createGlobalDecision(
+					'qualification.globalFunction',
+					'A global function called in a namespace, `strlen()`, of which only a call the compiler optimizes is looked at, unless `optimizedFunction` requires a form for such a function',
+					'`strlen()`',
+					'`use function strlen;` and `strlen()`',
+					'`\strlen()`',
+					'Not a function of the namespace of the file, nor a name in a file without a namespace.',
+				),
+				Rules\Namespaces\QualificationPolicy::createOptimizedDecision(
+					'qualification.optimizedFunction',
+					'A global function whose call PHP compiles to one opcode once it knows the function is global, `count()`, `strlen()`, `is_int()` and the others; where this key requires a form, it decides such a function over `globalFunction`, and a call of it written imported or with the backslash, by either key, has its arguments passed positionally and an unpacked one reported',
+					'`strlen()`',
+					'`use function strlen;`',
+					'`\strlen()`',
+					'optimizes it',
+					'A function is optimized in a namespace where one of its calls there is, an unpacked or named argument aside, and every reference to it in that namespace is then written so.',
+				),
 			],
 		);
 	}

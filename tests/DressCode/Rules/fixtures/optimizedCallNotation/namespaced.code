@@ -1,0 +1,9 @@
+<?php
+namespace App;
+
+use function count;
+
+$a = count(...$args);
+$b = \strlen(...$args);
+$c = sprintf('%s', ...$args);
+$d = dirname(...$args);
