@@ -1,0 +1,4 @@
+<?php
+// php 8.6
+$a = is_null(?);
+$b = !is_null(?);

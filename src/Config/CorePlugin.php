@@ -111,6 +111,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\NoConversionFunctionsRule::class,
 				Rules\Functions\NoExplicitInvokeCallsRule::class,
 				Rules\Functions\NoInnerFunctionsRule::class,
+				Rules\Functions\NoIsNullRule::class,
 				Rules\Functions\StaticForClosureWithoutThisRule::class,
 				Rules\Functions\StrictComparisonArgumentRequiredRule::class,
 				Rules\Functions\UselessParameterDefaultRule::class,

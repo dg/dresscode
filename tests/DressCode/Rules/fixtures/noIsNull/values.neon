@@ -1,0 +1,2 @@
+cleanup:
+	is_null: forbidden
