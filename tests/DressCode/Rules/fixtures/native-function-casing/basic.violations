@@ -1,0 +1,3 @@
+2: The function StrLen() must be written 'strlen()'
+3: The function COUNT() must be written 'count()'
+9: The function FastCGI_Finish_Request() must be written 'fastcgi_finish_request()'
