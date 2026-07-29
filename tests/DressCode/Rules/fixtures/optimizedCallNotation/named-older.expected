@@ -1,0 +1,3 @@
+<?php
+// php 8.0
+$a = str_contains($h, $n);

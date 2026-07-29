@@ -1,0 +1,1 @@
+3: A named argument disables the compiler optimization of `str_contains()`.

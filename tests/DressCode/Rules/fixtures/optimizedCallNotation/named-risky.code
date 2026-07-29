@@ -1,0 +1,5 @@
+<?php
+// risky
+namespace App;
+
+$a = in_array($x, $list, strict: true);
