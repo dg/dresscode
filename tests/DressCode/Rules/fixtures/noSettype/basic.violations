@@ -1,0 +1,16 @@
+3: The `settype()` call must be written as an assignment of a cast.
+	risky BehaviorChanges: the variable may be undefined, which the cast warns about
+4: The `settype()` call must be written as an assignment of a cast.
+	risky BehaviorChanges: the variable may be undefined, which the cast warns about
+5: The `settype()` call must be written as an assignment of a cast.
+	risky BehaviorChanges: the variable may be undefined, which the cast warns about
+6: The `settype()` call must be written as an assignment of a cast.
+	risky BehaviorChanges: the variable may be undefined, which the cast warns about
+7: The `settype()` call must be written as an assignment of a cast.
+15: The `settype()` call must be written as an assignment of a cast.
+	risky BehaviorChanges: the variable may be undefined, which the cast warns about
+33: The `settype()` call must be written as an assignment of a cast.
+35: The `settype()` call must be written as an assignment of a cast.
+	risky BehaviorChanges: the variable may be undefined, which the cast warns about
+36: The `settype()` call must be written as an assignment of a cast.
+	risky BehaviorChanges: the variable may be undefined, which the cast warns about

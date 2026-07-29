@@ -1,0 +1,8 @@
+<?php
+// risky
+namespace App;
+
+function f($a)
+{
+	settype($a, 'int');
+}
