@@ -129,6 +129,13 @@ test('a key is one link of the path, the links written with dots are refused', f
 		ConfigurationException::class,
 		'Key `naming.constant` holds dots; write its links nested, each a key of its own.',
 	);
+
+	$dir = createDecisionsProject(['dresscode.neon' => "imports:\n\tgrouping.class: grouped\n"]);
+	Assert::exception(
+		fn() => resolveFile("$dir/dresscode.neon"),
+		ConfigurationException::class,
+		'Key `imports.grouping.class` holds dots; write its links nested, each a key of its own.',
+	);
 });
 
 

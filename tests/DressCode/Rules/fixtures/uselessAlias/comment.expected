@@ -1,0 +1,8 @@
+<?php
+use Foo\Bar as /* c */ Bar;
+use Foo\Baz /* c */ as Baz;
+use Foo\Qux;
+use Foo\Own
+	/* d */ as Own;
+use Foo\Line // c
+	as Line;
