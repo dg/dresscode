@@ -1,0 +1,2 @@
+6: The settype() call must be written as an assignment of a cast, unless the namespace declares settype()
+7: The settype() call must be written as an assignment of a cast
