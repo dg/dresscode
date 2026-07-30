@@ -1,0 +1,3 @@
+qualification:
+	inFileWithoutNamespace: bare
+	uselessBackslash: forbidden

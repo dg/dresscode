@@ -1,0 +1,4 @@
+2: Useless leading backslash of `\Foo\Bar`, because an import names the fully qualified name anyway.
+3: Useless leading backslash of `\A`, because an import names the fully qualified name anyway.
+4: Useless leading backslash of `\strlen`, because an import names the fully qualified name anyway.
+5: Useless leading backslash of `\Foo`, because an import names the fully qualified name anyway.

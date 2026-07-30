@@ -129,6 +129,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\StringQuotesRule::class,
 				Rules\Literals\UselessStringConcatenationRule::class,
 				Rules\Namespaces\OptimizedCallNotationRule::class,
+				Rules\Namespaces\UselessLeadingBackslashRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
@@ -172,7 +173,7 @@ final class CorePlugin implements Plugin
 					'`strlen()`',
 					'`use function strlen;` and `strlen()`',
 					'`\strlen()`',
-					'Not a function of the namespace of the file, nor a name in a file without a namespace.',
+					'Not a function of the namespace of the file, nor a name in a file without a namespace, which `inFileWithoutNamespace` decides.',
 				),
 				Rules\Namespaces\QualificationPolicy::createOptimizedDecision(
 					'qualification.optimizedFunction',

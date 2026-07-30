@@ -1,0 +1,14 @@
+7: Useless leading backslash of `\Baz`, because the code stands in the global namespace.
+8: Useless leading backslash of `\Foo\Qux`, because the code stands in the global namespace.
+10: Useless leading backslash of `\Foo`, because the code stands in the global namespace.
+10: Useless leading backslash of `\Baz`, because the code stands in the global namespace.
+10: Useless leading backslash of `\Iterator`, because the code stands in the global namespace.
+11: Useless leading backslash of `\Baz`, because the code stands in the global namespace.
+12: Useless leading backslash of `\Baz`, because the code stands in the global namespace.
+13: Useless leading backslash of `\strlen`, because the code stands in the global namespace.
+14: Useless leading backslash of `\PHP_EOL`, because the code stands in the global namespace.
+15: Useless leading backslash of `\Foo\helper`, because the code stands in the global namespace.
+19: Useless leading backslash of `\shadowed`, because the code stands in the global namespace.
+21: Useless leading backslash of `\Exception`, because the code stands in the global namespace.
+21: Useless leading backslash of `\Foo\Error`, because the code stands in the global namespace.
+24: Useless leading backslash of `\strlen`, because the code stands in the global namespace.
