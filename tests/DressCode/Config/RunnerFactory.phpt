@@ -7,10 +7,13 @@ use DressCode\ConfigurationException;
 use DressCode\Extension;
 use DressCode\NodeRule;
 use DressCode\Override;
+use DressCode\Preset;
+use DressCode\PresetInfo;
 use DressCode\Profile;
 use DressCode\Reporters\NullReporter;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
+use DressCode\Rules\Literals\StringQuotesRule;
 use DressCode\Stage;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression\VariableNode;
@@ -59,6 +62,16 @@ final class ReportVariable extends NodeRule
 		if ($this->report) {
 			$context->report($node, 'A variable');
 		}
+	}
+}
+
+
+#[PresetInfo('test/double')]
+final class DoubleQuotesPreset implements Preset
+{
+	public function getProfile(): Profile
+	{
+		return new Profile(rules: [StringQuotesRule::class => 'double']);
 	}
 }
 
@@ -186,6 +199,29 @@ test('an extension makes its rules known by name, and brings the paths it leaves
 	$files = $runner->findFiles(['.']);
 	Assert::same(['checked.php', 'generated.php', 'skipped.php'], $files);
 	Assert::same(['checked.php'], array_map(fn($result) => $result->path, $runner->run($files, false, new NullReporter)->files));
+});
+
+
+test('an override turns a rule off under its class as under its name, an unknown one is an error before any file', function () use ($fixtures) {
+	$byClass = new Config(rules: [ReportContext::class => true], overrides: [new Override(['sub'], rules: [ReportContext::class => false])]);
+	$runner = (new RunnerFactory)->createRunner($byClass, "$fixtures/project");
+	Assert::same([], $runner->processFile('src/sub/x.php', "<?php\n\$a;\n")->violations);
+	Assert::count(1, $runner->processFile('src/x.php', "<?php\n\$a;\n")->violations);
+
+	$unknown = new Config(rules: [ReportContext::class => true], overrides: [new Override(['sub'], rules: ['test/nope' => false])]);
+	Assert::exception(
+		fn() => (new RunnerFactory)->createRunner($unknown, "$fixtures/project"),
+		ConfigurationException::class,
+		"Unknown rule 'test/nope'. (in the override for sub)",
+	);
+
+	// so is an option no rule takes, which would otherwise wait for a file of the override
+	$invalid = new Config(overrides: [new Override(['sub'], rules: ['string-quotes' => ['quote' => 'single']])]);
+	Assert::exception(
+		fn() => (new RunnerFactory)->createRunner($invalid, "$fixtures/project"),
+		ConfigurationException::class,
+		"Invalid options of rule dresscode/string-quotes set by the override for sub: Unexpected item 'quote', did you mean 'quotes'?",
+	);
 });
 
 
