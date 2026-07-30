@@ -1,0 +1,10 @@
+<?php
+$a = dirname(dirname($x));
+$b = dirname(dirname(dirname($x)));
+$c = dirname(dirname($x, 2));
+$d = dirname(dirname(__FILE__));
+$e = dirname(dirname(dirname(__FILE__)));
+$f = dirname(__FILE__, 2);
+$g = dirname($x, 2);
+$h = dirname(dirname($x), $n);
+$i = dirname(dirname(/* c */ $x));

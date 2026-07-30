@@ -1,0 +1,6 @@
+<?php
+namespace App;
+
+$a = dirname(__FILE__);
+$b = \dirname($x, 2);
+$c = \dirname(dirname($x));
