@@ -1,0 +1,4 @@
+<?php
+$name = "Kafka";
+$greeting = "Hello, $name";
+$path = "a\tb";
