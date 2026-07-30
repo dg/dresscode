@@ -95,6 +95,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Namespaces\UselessAliasRule::class,
 				Rules\Literals\TrueFalseNullCasingRule::class,
 				Rules\Literals\KeywordCasingRule::class,
+				Rules\Namespaces\UselessBackslashInGlobalNamespaceRule::class,
 				Rules\Literals\NumericLiteralSeparatorRule::class,
 				Rules\Literals\OctalNotationRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
