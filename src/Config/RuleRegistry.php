@@ -94,6 +94,7 @@ final class RuleRegistry
 		Rules\Expressions\UselessTernaryOperatorRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\Literals\ComplexStringVariableRule::class,
+		Rules\Literals\NoImplicitBackslashRule::class,
 		Rules\Literals\HeredocIndentationRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Literals\NoTrailingWhitespaceInStringRule::class,
