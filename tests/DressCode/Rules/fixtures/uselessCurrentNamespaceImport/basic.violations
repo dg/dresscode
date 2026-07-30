@@ -1,0 +1,2 @@
+5: Useless import of `Baz`, because it is in the current namespace.
+6: Useless import of `Qux`, because it is in the current namespace.

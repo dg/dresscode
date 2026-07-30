@@ -1,0 +1,2 @@
+2: Useless import of `strlen()`, because it is in the current namespace.
+3: Useless import of `PHP_EOL`, because it is in the current namespace.

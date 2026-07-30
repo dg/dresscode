@@ -1,0 +1,5 @@
+<?php
+use function Foo\bar;
+use function trim as clean;
+
+echo strlen('') . PHP_EOL . bar() . clean('');
