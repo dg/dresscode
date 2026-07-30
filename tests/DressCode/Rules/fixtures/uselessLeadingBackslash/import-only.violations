@@ -1,0 +1,1 @@
+4: Useless leading backslash of `\Baz`, because an import names the fully qualified name anyway.
