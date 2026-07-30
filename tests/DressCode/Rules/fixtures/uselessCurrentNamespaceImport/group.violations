@@ -1,0 +1,1 @@
+4: Useless import of `Foo`, because it is in the current namespace.
