@@ -130,6 +130,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\UselessStringConcatenationRule::class,
 				Rules\Namespaces\OptimizedCallNotationRule::class,
 				Rules\Namespaces\UselessLeadingBackslashRule::class,
+				Rules\Namespaces\UselessAliasRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,

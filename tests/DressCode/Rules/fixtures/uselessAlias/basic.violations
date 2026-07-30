@@ -1,0 +1,4 @@
+2: Useless alias `Bar`, because it repeats the imported name.
+3: Useless alias `A`, because it repeats the imported name.
+4: Useless alias `X`, because it repeats the imported name.
+5: Useless alias `f`, because it repeats the imported name.
