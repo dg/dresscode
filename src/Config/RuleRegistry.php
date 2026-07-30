@@ -99,6 +99,7 @@ final class RuleRegistry
 		Rules\Expressions\ConcatSpacingRule::class,
 		Rules\Expressions\DoubleColonSpacingRule::class,
 		Rules\Expressions\ExplicitOperatorPrecedenceRule::class,
+		Rules\Functions\NoIsNullRule::class,
 		Rules\Expressions\NoShortBoolCastRule::class,
 		Rules\Expressions\YodaRule::class,
 		Rules\Expressions\NotEqualsOperatorRule::class,
