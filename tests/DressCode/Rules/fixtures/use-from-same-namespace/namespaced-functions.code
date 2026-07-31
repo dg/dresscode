@@ -1,0 +1,7 @@
+<?php
+namespace App;
+
+use function App\helper;
+use const App\LIMIT;
+
+echo helper() . LIMIT;
