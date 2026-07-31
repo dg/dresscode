@@ -1,0 +1,4 @@
+builtin:
+	class: declared
+	function: declared
+	type: lowercase

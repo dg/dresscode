@@ -1,0 +1,11 @@
+2: The class name `stdclass` must be written `stdClass`.
+3: The class name `STDCLASS` must be written `stdClass`.
+4: The class name `exception` must be written `Exception`.
+5: The class name `traversable` must be written `Traversable`.
+5: The class name `countable` must be written `Countable`.
+7: The class name `throwable` must be written `Throwable`.
+9: The class name `datetime` must be written `DateTime`.
+11: The class name `arrayobject` must be written `ArrayObject`.
+11: The class name `iterator` must be written `Iterator`.
+15: The class name `random\randomizer` must be written `Random\Randomizer`.
+16: The class name `com` must be written `COM`.
