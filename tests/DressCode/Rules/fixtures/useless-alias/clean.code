@@ -1,0 +1,3 @@
+<?php
+use Foo\Bar as Baz;
+use Foo\Bar as bar;
