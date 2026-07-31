@@ -1,0 +1,10 @@
+<?php
+
+use Foo\A;
+use Foo\B as C;
+use function Foo\f;
+use function Foo\g;
+use const Foo\X;
+use function Foo\h; // c
+
+class Y {}

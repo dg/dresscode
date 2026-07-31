@@ -1,0 +1,9 @@
+<?php
+// {"grouping.function": "combined", "grouping.constant": "combined"}
+namespace A;
+use B, C;
+use function e;
+use function f, g;
+use const H;
+use const I; // keep
+use const J;

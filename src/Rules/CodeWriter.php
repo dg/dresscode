@@ -39,6 +39,17 @@ final class CodeWriter
 	}
 
 
+	/** The keyword a use statement writes in front of the names of the kind, with the space after it, empty for a class. */
+	public static function spellImportKind(SymbolKind $kind): string
+	{
+		return match ($kind) {
+			SymbolKind::Function => 'function ',
+			SymbolKind::Constant => 'const ',
+			SymbolKind::ClassLike => '',
+		};
+	}
+
+
 	/** Whether the file imports a function under a name other than its own, so that a call names another function than it spells. */
 	public static function importsFunctionAs(RuleContext $context): bool
 	{

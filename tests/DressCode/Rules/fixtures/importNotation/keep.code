@@ -1,0 +1,6 @@
+<?php
+// {"grouping.class": ["separated", "grouped"], "grouping.function": "keep", "grouping.constant": ["separated", "grouped"]}
+namespace A;
+use B\{C, D};
+use function e, f;
+use G, H;

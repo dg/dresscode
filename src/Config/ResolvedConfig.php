@@ -110,7 +110,7 @@ final readonly class ResolvedConfig
 			$this->lineEnding ?? "\n",
 			$this->tabWidth,
 			$this->lineLength,
-			new ImportStyle,
+			ImportStyle::fromValues($this->values),
 			LineSplits::fromValues($this->values),
 		);
 	}

@@ -7,7 +7,7 @@
 
 namespace DressCode\Testing;
 
-use DressCode\{Analyses, Config, ConfigurationException, ConvergenceException, Decision, LineSplits, Profile, Rule, RuleException, RuleInfo, Style, Values, Violation};
+use DressCode\{Analyses, Config, ConfigurationException, ConvergenceException, Decision, ImportStyle, LineSplits, Profile, Rule, RuleException, RuleInfo, Style, Values, Violation};
 use DressCode\Config\{Catalogue, DecisionResolver, Layer, LayerKind, RuleBuilder};
 use DressCode\Engine\{Diff, Gate, Helpers, PassLoop, PassResult, ReportPolicy, RulePlan};
 use Nette\Neon\Neon;
@@ -411,7 +411,7 @@ final class RuleTester
 		$style = ($style ?? new Style(maxLineLength: self::DefaultLineLength))->withLineEnding(Style::detectLineEnding($code));
 		$registry = new Analyses\Registry($namespacedSymbols);
 		if ($values !== null) {
-			$style = $style->withLineSplits(LineSplits::fromValues($values));
+			$style = $style->withImports(ImportStyle::fromValues($values))->withLineSplits(LineSplits::fromValues($values));
 			Analyses\IndentationPlan::register($registry, $values, $style);
 		}
 

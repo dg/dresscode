@@ -6,7 +6,7 @@
  * only makes work for the other belongs here too: the violation of the second must follow the first.
  */
 
-use DressCode\{Analyses, Config, FileResult, Rules, Style, Violation};
+use DressCode\{Analyses, Config, FileResult, ImportStyle, Rules, Style, Violation};
 use DressCode\Config\{PluginRegistry, RuleBuilder};
 use DressCode\Engine\{FileProcessor, ReportPolicy};
 use Tester\Assert;
@@ -31,7 +31,7 @@ function interplay(
 
 	$resolved = RuleBuilder::resolveValues(array_keys($rules), $values);
 	$instances = RuleBuilder::createRules(array_keys($rules), $resolved);
-	$style = new Style("\t", "\n");
+	$style = new Style("\t", "\n", imports: ImportStyle::fromValues($resolved));
 	Analyses\IndentationPlan::register($analyses, $resolved, $style);
 
 	$processor = new FileProcessor(
@@ -239,4 +239,20 @@ test('a comment commentSpacing rewrites keeps its line for the rule that reports
 		Rules\Comments\NoHashCommentsRule::class => true,
 	], "<?php\n\$a = 1;\n#foo\n\$b = 2;\n", "<?php\n\$a = 1;\n// foo\n\$b = 2;\n");
 	Assert::same([3, 3], array_map(fn(Violation $violation) => $violation->line, $result->violations));
+});
+
+
+test('importNotation combines what importOrder then sorts', function () {
+	interplay([
+		Rules\Namespaces\ImportNotationRule::class => [
+			'imports.grouping.class' => 'separated',
+			'imports.grouping.function' => 'combined',
+			'imports.grouping.constant' => 'separated',
+		],
+		Rules\Namespaces\ImportOrderRule::class => [
+			'imports.order.kinds' => ['class', 'function', 'constant'],
+			'imports.order.names' => 'alphabetical',
+			'imports.order.caseSensitive' => false,
+		],
+	], "<?php\nnamespace A;\nuse function b;\nuse function a;\nuse D, C;\n", "<?php\nnamespace A;\nuse C;\nuse D;\nuse function a, b;\n");
 });

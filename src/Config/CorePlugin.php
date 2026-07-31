@@ -132,6 +132,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\OctalNotationRule::class,
 				Rules\Literals\StringQuotesRule::class,
 				Rules\Literals\UselessStringConcatenationRule::class,
+				Rules\Namespaces\ImportNotationRule::class,
 				Rules\Namespaces\ImportOrderRule::class,
 				Rules\Namespaces\OptimizedCallNotationRule::class,
 				Rules\Namespaces\UselessLeadingBackslashRule::class,
@@ -203,6 +204,7 @@ final class CorePlugin implements Plugin
 					default: 4,
 				),
 				...self::createIndentationDecisions(),
+				...self::createImportDecisions(),
 
 				// how far a global function is written out, which decides the arguments of its optimized call
 				Rules\Namespaces\QualificationPolicy::createGlobalDecision(
@@ -254,6 +256,22 @@ final class CorePlugin implements Plugin
 				'flat' => 'every link one level below the start',
 				'nested' => 'a link one level deeper or shallower than the link before it',
 			]), 'Where the links of a chain spread over lines stand'),
+		];
+	}
+
+
+	/** @return list<Decision>  how the names of the imports are put into statements, which an import a rule adds takes too */
+	private static function createImportDecisions(): array
+	{
+		$shapes = new Words([
+			'separated' => 'a `use` of its own for every name, `use Foo; use Bar;`',
+			'combined' => 'all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration',
+			'grouped' => 'a group use of one namespace stays, `use Acme\Shop\{Order, Cart};`',
+		], tolerance: true);
+		return [
+			new Decision('imports.grouping.class', $shapes, 'How the imports of classes are put into `use` statements'),
+			new Decision('imports.grouping.function', $shapes, 'How the imports of functions are put into `use` statements'),
+			new Decision('imports.grouping.constant', $shapes, 'How the imports of constants are put into `use` statements'),
 		];
 	}
 }

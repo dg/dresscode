@@ -1,0 +1,6 @@
+<?php
+// {"grouping.class": ["separated", "grouped"]}
+namespace App;
+use Lib\{A, B};
+use Lib\C, Lib\D;
+use Other\E;

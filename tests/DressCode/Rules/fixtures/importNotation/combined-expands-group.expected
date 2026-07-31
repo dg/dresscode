@@ -1,0 +1,4 @@
+<?php
+// {"grouping.class": "combined"}
+namespace App;
+use Lib\A, Lib\B, Other\C;
