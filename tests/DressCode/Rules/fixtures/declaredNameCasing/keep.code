@@ -1,0 +1,8 @@
+<?php
+// {"class": "keep", "function": "keep"}
+$a = new StdClass;
+$b = StrLen('x');
+
+function f(Int $a): VOID
+{
+}

@@ -1,0 +1,22 @@
+<?php
+namespace App;
+
+function f(int $a, ?string $b, bool|null $c, iterable $d, Foo $e): void
+{
+}
+
+class Bar
+{
+	public mixed $x;
+	public int|false|float $y;
+	public Self $z;
+	public ARRAY $w;
+	public object $o;
+	public never|true $n;
+
+
+	public function g(): Static
+	{
+		return fn(int $i): never => throw new \Exception;
+	}
+}

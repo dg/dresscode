@@ -133,6 +133,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\StringQuotesRule::class,
 				Rules\Literals\UselessStringConcatenationRule::class,
 				Rules\Namespaces\ImportNotationRule::class,
+				Rules\Namespaces\DeclaredNameCasingRule::class,
 				Rules\Namespaces\ImportOrderRule::class,
 				Rules\Namespaces\OptimizedCallNotationRule::class,
 				Rules\Namespaces\UselessLeadingBackslashRule::class,

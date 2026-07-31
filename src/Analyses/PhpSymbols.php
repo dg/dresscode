@@ -7,6 +7,8 @@
 
 namespace DressCode\Analyses;
 
+use function array_key_exists;
+
 
 /**
  * What PHP itself declares: the functions, classes, interfaces, enums and constants of PHP 8.0 and later and of the
@@ -17,6 +19,23 @@ namespace DressCode\Analyses;
 final class PhpSymbols
 {
 	use PhpSymbolsData;
+
+	/** Whether PHP declares the global function, whatever the letter case. */
+	public function isBuiltinFunction(string $name): bool
+	{
+		return array_key_exists(strtolower($name), self::Functions);
+	}
+
+
+	/**
+	 * The declared spelling of a builtin class, interface or enum given its fully qualified name in any letter case,
+	 * without a leading backslash; null for any other name.
+	 */
+	public function findClassName(string $name): ?string
+	{
+		return self::Classes[strtolower($name)] ?? null;
+	}
+
 
 	/** Whether PHP declares the constant, given its fully qualified name without a leading backslash; the name itself is case-sensitive. */
 	public function isBuiltinConstant(string $name): bool

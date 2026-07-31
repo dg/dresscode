@@ -1,0 +1,8 @@
+<?php
+namespace App;
+
+use Acme\Shop\OrderItem as orderitem;
+use function Acme\Shop\formatPrice as formatprice;
+
+$a = new orderitem;
+echo formatprice(1.0);

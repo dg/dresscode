@@ -1,0 +1,14 @@
+4: The type `Int` must be written `int`.
+4: The type `STRING` must be written `string`.
+4: The type `Bool` must be written `bool`.
+4: The type `NULL` must be written `null`.
+4: The type `VOID` must be written `void`.
+10: The type `MIXED` must be written `mixed`.
+11: The type `Int` must be written `int`.
+11: The type `FALSE` must be written `false`.
+11: The type `Float` must be written `float`.
+14: The type `Object` must be written `object`.
+15: The type `Never` must be written `never`.
+15: The type `True` must be written `true`.
+20: The type `INT` must be written `int`.
+20: The type `NEVER` must be written `never`.

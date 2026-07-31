@@ -1,0 +1,16 @@
+<?php
+$a = new stdclass;
+$b = new \STDCLASS;
+$c = $x instanceof exception;
+function f(traversable $t): \countable {}
+try {
+} catch (\throwable $e) {
+}
+$d = datetime::createFromFormat('Y', '2000');
+$e = stdClass::class;
+class Foo extends arrayobject implements iterator {}
+$f = new Foo\stdclass;
+$g = stdclass();
+$h = STDCLASS;
+$i = new random\randomizer;
+$j = new com('x');
