@@ -1,0 +1,6 @@
+5: Expected `use A as Alias;` here, as the imports are sorted by name.
+6: Expected `use B;` here, as the imports are sorted by name.
+9: Expected `use C;` here, as the imports are sorted by name.
+10: Expected `use D;` here, as the imports are sorted by name.
+13: Expected `use X;` here, as the imports are sorted by name.
+14: Expected `use Y;` here, as the imports are sorted by name.

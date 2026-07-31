@@ -1,0 +1,4 @@
+3: Expected `use Zeta\B;` here, as the imports are grouped by kind.
+4: Expected `use Alpha\A;` here, as the imports are grouped by kind.
+5: Expected `use function strlen;` here, as the imports are grouped by kind.
+6: Expected `use const PHP_EOL;` here, as the imports are grouped by kind.

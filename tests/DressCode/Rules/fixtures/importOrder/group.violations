@@ -1,0 +1,2 @@
+3: Expected `use Abc;` here, as the imports are sorted by name.
+4: Expected `use Foo\{bar, baz};` here, as the imports are sorted by name.

@@ -1,0 +1,4 @@
+<?php
+
+use Abc;
+use Foo\{function b, const C, A};

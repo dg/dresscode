@@ -1,0 +1,6 @@
+<?php
+
+use Foo\Alias as Beta;
+use Zed;
+use function Foo\{a, b};
+use const Bar\{C, D};
