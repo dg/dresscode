@@ -1,0 +1,8 @@
+<?php
+namespace App;
+
+use function array_filter as count;
+use function strlen as len;
+
+count(...$args);
+len(...$args);

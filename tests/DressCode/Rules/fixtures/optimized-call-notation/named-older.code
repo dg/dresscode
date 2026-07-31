@@ -1,0 +1,2 @@
+<?php
+$a = str_contains(haystack: $h, needle: $n);
