@@ -1,0 +1,5 @@
+<?php
+// {"order": "byKind"}
+use function Foo\{b, a};
+use Zed;
+use Abc;
