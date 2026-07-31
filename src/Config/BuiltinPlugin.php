@@ -91,6 +91,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\StaticClosureRule::class,
 				Rules\Functions\StrictCallRule::class,
 				Rules\Namespaces\UselessImportBackslashRule::class,
+				Rules\Namespaces\UnusedImportsRule::class,
 				Rules\Namespaces\UselessSameNamespaceImportRule::class,
 				Rules\Namespaces\UselessAliasRule::class,
 				Rules\Literals\TrueFalseNullCasingRule::class,

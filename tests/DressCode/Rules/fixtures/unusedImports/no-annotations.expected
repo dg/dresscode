@@ -1,0 +1,4 @@
+<?php
+// {"annotations": false}
+/** @var InDoc $x */
+$x = 1;
