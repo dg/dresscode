@@ -125,3 +125,11 @@ test('a comma asked for only because another rule spread the array follows that 
 	], "<?php\n\$a = [\n\t1,\n\t2\n] + [\n\t\t3,\n];\n", "<?php\n\$a = [\n\t1,\n\t2,\n] + [\n\t3,\n];\n");
 	Assert::same([null, null], array_map(fn(Violation $violation) => $violation->derivedFrom, $result->violations));
 });
+
+
+test('useless-modifier and visibility-required settle on one shape', function () {
+	interplay([
+		Rules\Classes\UselessModifierRule::class => true,
+		Rules\Classes\VisibilityRequiredRule::class => true,
+	], "<?php\nfinal class A\n{\n\tfinal function a() {}\n\tstatic final public function b() {}\n}\n", "<?php\nfinal class A\n{\n\tpublic function a() {}\n\tpublic static function b() {}\n}\n");
+});
