@@ -1,0 +1,7 @@
+<?php
+// {"order.kinds": "keep"}
+use Zed;
+use Alpha;
+use function zed;
+use function alpha;
+use Beta;

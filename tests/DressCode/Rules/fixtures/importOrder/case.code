@@ -1,0 +1,4 @@
+<?php
+// {"order.caseSensitive": true}
+use a;
+use B;

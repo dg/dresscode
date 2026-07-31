@@ -1,0 +1,5 @@
+imports:
+	order:
+		kinds: [class, function, constant]
+		names: alphabetical
+		caseSensitive: no

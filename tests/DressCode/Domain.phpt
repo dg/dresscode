@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\{ConfigurationException, Decision, DecisionKind, Domain};
-use DressCode\Domains\{Count, Map, Names, Shapes, Text, Words};
+use DressCode\Domains\{Count, Flag, Map, Names, Shapes, Text, Words};
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
@@ -84,6 +84,16 @@ test('a count is a number, a range in any notation, an open one, or a word', fun
 	);
 	Assert::exception(fn() => $exact->accept('1+', 'x.y'), ConfigurationException::class);
 	Assert::exception(fn() => new Count(2, 1), InvalidArgumentException::class);
+});
+
+
+test('a flag is yes or no', function () {
+	Assert::true(new Flag()->accept(true, 'imports.order.caseSensitive')->getFlag());
+	Assert::exception(
+		fn() => new Flag()->accept('yes', 'imports.order.caseSensitive'),
+		ConfigurationException::class,
+		'Key `imports.order.caseSensitive` does not take `yes`; write `yes` or `no`.',
+	);
 });
 
 

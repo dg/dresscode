@@ -1,0 +1,5 @@
+<?php
+// {"order.names": "keep"}
+use function Foo\{b, a};
+use Zed;
+use Abc;

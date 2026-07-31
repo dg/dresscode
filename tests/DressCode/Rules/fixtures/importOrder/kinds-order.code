@@ -1,0 +1,6 @@
+<?php
+// {"order.kinds": ["function", "class"], "order.names": "keep"}
+use const B;
+use Foo;
+use function bar;
+use Alpha;
