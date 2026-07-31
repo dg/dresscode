@@ -1,0 +1,14 @@
+<?php
+$a = count(...$args);
+$b = \strlen(...$args);
+$c = sprintf('%s', ...$args);
+$d = count($x);
+$e = count(...);
+$f = foo(...$args);
+$g = Foo\count(...$args);
+$h = is_real(...$args);
+$i = chr(...$args);
+$j = dirname(__DIR__, ...$args);
+$k = sprintf(...$args);
+$l = in_array($x, ...$args);
+$m = in_array($x, ['a'], ...$args);
