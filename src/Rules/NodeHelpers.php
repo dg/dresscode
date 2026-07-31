@@ -11,7 +11,7 @@ use DressCode\{Gap, RuleContext};
 use DressCode\Rules\Whitespace\IndentationRule;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, SymbolKind, Token, Trivia};
-use PhpSyntax\Nodes\{ElseifNode, Expression, ExpressionNode, PlainNodeList, Scalar, SeparatedNodeList, Statement};
+use PhpSyntax\Nodes\{ElseifNode, Expression, ExpressionNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode};
 use PhpSyntax\Nodes\Expression\BinaryOpNode;
 use function array_slice, assert, count;
 
@@ -136,6 +136,58 @@ final class NodeHelpers
 			$resolver->getImports(SymbolKind::Function, $scope),
 			fn(string $function, string $alias) => strcasecmp($alias, substr((string) strrchr('\\' . $function, '\\'), 1)) !== 0,
 		));
+	}
+
+
+	/**
+	 * Writes the items of a group use as imports of their own, `use A\{B, C as D};` becoming `use A\B;` and
+	 * `use A\C as D;`, each on a line of its own with the indentation of the group.
+	 * @param PlainNodeList<StatementNode> $list
+	 */
+	public static function expandGroup(Statement\UseNode $node, PlainNodeList $list, string $lineEnding): void
+	{
+		$parser = new Parser;
+		$statements = [];
+		foreach ($node->items->getItems() as $item) {
+			$type = match ($item->symbolKind) {
+				SymbolKind::Function => 'function ',
+				SymbolKind::Constant => 'const ',
+				SymbolKind::ClassLike => '',
+			};
+			$alias = $item->alias === null ? '' : ' as ' . $item->alias->text;
+			$statements[] = $parser->parseStatement("use $type{$item->fullName}$alias;");
+		}
+
+		$indentation = $node->getFirstToken()?->getIndentation() ?? '';
+		$last = array_pop($statements);
+		if ($last === null) {
+			return;
+		}
+
+		$index = $list->indexOf($node);
+		$node->replaceWith($last);
+		foreach ($statements as $i => $statement) {
+			$head = $last->getFirstToken();
+			$leading = $i === 0 && $head ? $head->leadingTrivia : [new Trivia(Trivia::Whitespace, $indentation)];
+			$statement->setEdgeTrivia($leading, [new Trivia(Trivia::LineEnding, $lineEnding)]);
+			$list->insert($index + $i, $statement);
+		}
+
+		if (count($statements)) {
+			$last->setEdgeTrivia(leading: [new Trivia(Trivia::Whitespace, $indentation)]);
+		}
+	}
+
+
+	/**
+	 * A comment standing inside the node or at the end of its last line, which `Node::hasComment()` does not count;
+	 * true for a node without tokens, which nothing can be said of.
+	 */
+	public static function hasCommentUpToLineEnding(Node $node): bool
+	{
+		$first = $node->getFirstToken();
+		$last = $node->getLastToken();
+		return $first === null || $last === null || $first->hasCommentUpTo($last) || $last->hasComment();
 	}
 
 

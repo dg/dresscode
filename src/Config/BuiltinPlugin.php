@@ -90,6 +90,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\NoSettypeRule::class,
 				Rules\Functions\StaticClosureRule::class,
 				Rules\Functions\StrictCallRule::class,
+				Rules\Namespaces\ImportNotationRule::class,
 				Rules\Namespaces\UselessImportBackslashRule::class,
 				Rules\Namespaces\OrderedImportsRule::class,
 				Rules\Namespaces\UnusedImportsRule::class,

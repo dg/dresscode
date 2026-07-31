@@ -127,3 +127,11 @@ test('uselessModifier and visibilityRequired settle on one shape', function () {
 		Rules\Classes\VisibilityRequiredRule::class => true,
 	], "<?php\nfinal class A\n{\n\tfinal function a() {}\n\tstatic final public function b() {}\n}\n", "<?php\nfinal class A\n{\n\tpublic function a() {}\n\tpublic static function b() {}\n}\n");
 });
+
+
+test('importNotation combines what orderedImports then sorts', function () {
+	interplay([
+		Rules\Namespaces\ImportNotationRule::class => ['function' => 'combined'],
+		Rules\Namespaces\OrderedImportsRule::class => true,
+	], "<?php\nnamespace A;\nuse function b;\nuse function a;\nuse D, C;\n", "<?php\nnamespace A;\nuse C;\nuse D;\nuse function a, b;\n");
+});

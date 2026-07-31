@@ -1,0 +1,4 @@
+<?php
+// {"class": "combined"}
+namespace A;
+use \B\C, \D as E;
