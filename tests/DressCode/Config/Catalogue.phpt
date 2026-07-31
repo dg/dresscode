@@ -2,7 +2,7 @@
 
 use DressCode\Analyses\IndentationPlan;
 use DressCode\Config\{Catalogue, CorePlugin};
-use DressCode\{ConfigurationException, Decision, Domain, NodeRule, RuleInfo, Stage};
+use DressCode\{ConfigurationException, Decision, Domain, ImportStyle, NodeRule, RuleInfo, Stage};
 use DressCode\Domains\{Count, Names, Shapes};
 use Tester\Assert;
 
@@ -233,7 +233,7 @@ test('a decision of a tree a rule only reads is known to the values without the 
 	$core = (new CorePlugin)->getManifest()->decisions;
 	$alone = new Catalogue([LineEndingReaderRule::class], coreDecisions: $core);
 	// the decisions the style of a run is read from are known whatever rules there are
-	$style = array_values(array_diff(IndentationPlan::Decisions, ['indentation.unit']));
+	$style = array_values(array_diff([...ImportStyle::Decisions, ...IndentationPlan::Decisions], ['indentation.unit']));
 	Assert::same(['indentation.unit', 'file.lineEnding', ...$style], array_keys($alone->getDecisions()));
 	Assert::same([], $alone->getRulesOf('file.lineEnding'));
 	Assert::same([LineEndingReaderRule::class], $alone->getReadersOf('file.lineEnding'));

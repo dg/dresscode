@@ -1,0 +1,7 @@
+<?php
+namespace A;
+
+use B, // first
+	C, /* inner */ D;
+use E, F; // after the statement
+use function g, h;

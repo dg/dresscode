@@ -1,0 +1,5 @@
+imports:
+	class: separate
+	function: separate
+	constant: separate
+	groupUse: forbidden

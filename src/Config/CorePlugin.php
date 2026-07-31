@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
-use DressCode\{Decision, Plugin, PluginManifest, Rules};
+use DressCode\{Decision, ImportStyle, Plugin, PluginManifest, Rules};
 use DressCode\Domains\{Count, Words};
 
 
@@ -128,6 +128,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\OctalNotationRule::class,
 				Rules\Literals\StringQuotesRule::class,
 				Rules\Literals\UselessStringConcatenationRule::class,
+				Rules\Namespaces\ImportNotationRule::class,
 				Rules\Namespaces\ImportOrderRule::class,
 				Rules\Namespaces\OptimizedCallNotationRule::class,
 				Rules\Namespaces\UselessLeadingBackslashRule::class,
@@ -169,6 +170,7 @@ final class CorePlugin implements Plugin
 				]), 'Every line indented by the construct it continues, one level per nesting, the level being this unit; under `keep` a line stays where it is'),
 				new Decision('indentation.tabWidth', new Count(1, 8, range: false), 'How many columns a tab counts for in the width of a line', parameter: true, default: 4),
 				...self::createIndentationDecisions(),
+				...self::createImportDecisions(),
 
 				// how far a global function is written out, which decides the arguments of its optimized call
 				Rules\Namespaces\QualificationPolicy::createGlobalDecision(
@@ -209,6 +211,24 @@ final class CorePlugin implements Plugin
 				'flat' => 'every link one level below the start',
 				'nested' => 'a link one level deeper or shallower than the link before it',
 			]), 'Where the links of a chain spread over lines stand'),
+		];
+	}
+
+
+	/** @return list<Decision>  the shape of the imports, which an import a rule adds takes too */
+	private static function createImportDecisions(): array
+	{
+		$shapes = new Words([
+			'separate' => 'a `use` of its own for every name, `use Foo; use Bar;`',
+			'combined' => 'all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration',
+		]);
+		return [
+			new Decision('imports.class', $shapes, 'How the imports of classes are spread over `use` statements'),
+			new Decision('imports.function', $shapes, 'How the imports of functions are spread over `use` statements'),
+			new Decision('imports.constant', $shapes, 'How the imports of constants are spread over `use` statements'),
+			new Decision(ImportStyle::GroupUse, new Words([
+				'forbidden' => 'a group use of a kind decided above is expanded into the shape of that kind',
+			]), 'The group use'),
 		];
 	}
 }

@@ -1,0 +1,20 @@
+<?php
+namespace App;
+
+use Uses\{
+	Bar,
+	Nonexistent, // after an item
+	Baz
+};
+use Other\{ // after the brace
+	One,
+	Two
+};
+use Third\{
+	// on a line of its own
+	Alpha,
+	Beta
+	// before the brace
+};
+use Plain\A;
+use Plain\B;

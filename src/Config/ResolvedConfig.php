@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Analyses, Rule, Style, Values};
+use DressCode\{Analyses, ImportStyle, Rule, Style, Values};
 use DressCode\Engine\Gate;
 use PhpSyntax\Analyses\NamespacedSymbols;
 
@@ -106,6 +106,7 @@ final readonly class ResolvedConfig
 			$this->lineEnding === 'majority' ? "\n" : $this->lineEnding,
 			$this->tabWidth,
 			$this->lineLength,
+			ImportStyle::fromValues($this->values),
 		);
 	}
 

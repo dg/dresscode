@@ -34,6 +34,21 @@ final readonly class ImportStyle
 	}
 
 
+	/** The style the values of the decisions `imports.*` give. */
+	public static function fromValues(Values $values): self
+	{
+		$shapes = [];
+		foreach (self::Kinds as $kind => $word) {
+			$shape = $values->find("imports.$word")?->getWord();
+			if ($shape !== null) {
+				$shapes[$kind] = $shape;
+			}
+		}
+
+		return new self($shapes, $values->find(self::GroupUse)?->getWord() !== 'forbidden');
+	}
+
+
 	/** The shape the imports of the kind are written in, `separate` or `combined`; null where the file decides. */
 	public function getShape(SymbolKind $kind): ?string
 	{
