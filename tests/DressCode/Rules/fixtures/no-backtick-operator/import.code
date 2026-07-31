@@ -1,0 +1,4 @@
+<?php
+use function Lib\run as shell_exec;
+
+$a = `ls -la`;
