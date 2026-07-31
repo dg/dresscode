@@ -1,0 +1,24 @@
+<?php
+use Lib\A;
+use Lib\B;
+use Lib\C;
+use Lib\D;
+use Lib\E;
+use Lib\Shape;
+use Acme\Db\Mapping as DB;
+use Acme\Db\Types;
+use Lib\Unused;
+
+/**
+ * @param int $x the value of {@see A}
+ * @param Shape::TYPE_* $y
+ * @return string {@link B::method()}
+ * @throws \Exception when {@see C} fails
+ * @param int $z like E::LIMIT
+ */
+function f($x, $y, $z) {}
+
+/**
+ * @DB\Column(type=Types::STRING, default=D::VALUE)
+ */
+$x = 1;

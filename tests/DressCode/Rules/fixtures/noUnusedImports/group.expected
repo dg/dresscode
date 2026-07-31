@@ -1,0 +1,4 @@
+<?php
+use Lib\{A, C as D};
+new A;
+new D;

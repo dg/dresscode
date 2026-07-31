@@ -1,0 +1,17 @@
+<?php
+use Acme\Db\Mapping as DB;
+use Acme\Http\Annotation\Endpoint;
+use Lib\Param;
+use Lib\Phpstan;
+use Lib\Qualified;
+use Acme\Db\Mapping\Index;
+
+/**
+ * @DB\Entity
+ * @DB\Table(indexes={@Index(name="a", columns={"a"})})
+ * @Endpoint("/home", name="home")
+ * @\Lib\Qualified
+ * @param int $x
+ * @phpstan-return void
+ */
+function f($x) {}
