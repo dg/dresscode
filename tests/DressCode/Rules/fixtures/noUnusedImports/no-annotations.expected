@@ -1,0 +1,4 @@
+<?php
+// {"phpdoc.namesUseImports": false}
+/** @var InDoc $x */
+$x = 1;
