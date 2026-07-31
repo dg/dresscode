@@ -1,0 +1,12 @@
+<?php
+$a = 'foobar';
+$b = "foo" . "bar";
+$c = 'foo' . "bar";
+$d = 'foo'
+	. 'bar';
+$e = '<' . '?php';
+$f = '?' . '>';
+$g = 'abc';
+$h = 'it\'s ok';
+$i = 'foo' . /* c */ 'bar';
+$j = 'foo' . $x . 'bar';
