@@ -87,3 +87,11 @@ test('indentation and multi-line-call settle on one shape', function () {
 		Rules\Functions\MultiLineCallRule::class => true,
 	], "<?php\nfunction f()\n{\n  \$a = \$foo\n  ->bar(\n    1,\n      2,\n    )\n        ->baz();\n}\n", "<?php\nfunction f()\n{\n\t\$a = \$foo\n\t\t->bar(\n\t\t\t1,\n\t\t\t2,\n\t\t)\n\t\t->baz();\n}\n");
 });
+
+
+test('useless-modifier and visibility-required settle on one shape', function () {
+	interplay([
+		Rules\Classes\UselessModifierRule::class => true,
+		Rules\Classes\VisibilityRequiredRule::class => true,
+	], "<?php\nfinal class A\n{\n\tfinal function a() {}\n\tstatic final public function b() {}\n}\n", "<?php\nfinal class A\n{\n\tpublic function a() {}\n\tpublic static function b() {}\n}\n");
+});
