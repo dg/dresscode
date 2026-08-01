@@ -94,6 +94,7 @@ final class RuleRegistry
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\PhpDoc\NoUnknownParamAnnotationRule::class,
 		Rules\PhpDoc\PhpDocNullLastRule::class,
+		Rules\PhpDoc\PropertyPhpDocSingleLineRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
 		Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
 		Rules\PhpDoc\UselessInheritDocRule::class,
