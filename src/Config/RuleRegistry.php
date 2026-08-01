@@ -86,6 +86,7 @@ final class RuleRegistry
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Expressions\UselessTernaryOperatorRule::class,
 		Rules\PhpDoc\AnnotationNameRule::class,
+		Rules\PhpDoc\AttributeAfterPhpDocRule::class,
 		Rules\PhpDoc\PhpDocAlignmentRule::class,
 		Rules\PhpDoc\ForbiddenAnnotationsRule::class,
 		Rules\PhpDoc\ForbiddenPhpDocLinesRule::class,
