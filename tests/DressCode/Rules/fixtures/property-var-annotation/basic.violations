@@ -1,0 +1,2 @@
+3: Only one @var annotation is allowed in a property doc comment
+9: The @var annotation must be the first one in a property doc comment
