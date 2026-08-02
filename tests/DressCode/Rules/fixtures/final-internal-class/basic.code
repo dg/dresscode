@@ -1,0 +1,20 @@
+<?php
+/** @internal */
+class A {}
+/**
+ * @internal
+ * @final
+ */
+class B {}
+/** @internal */
+abstract class C {}
+/** @internal */
+final class D {}
+class E {}
+/** @internal */
+readonly class F {}
+/**
+ * @internal
+ * @ORM\Entity
+ */
+class G {}
