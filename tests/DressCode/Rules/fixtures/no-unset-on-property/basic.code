@@ -1,0 +1,11 @@
+<?php
+unset($this->a);
+unset($this->b, self::$c);
+unset($a);
+unset($this->d, $e);
+unset($this->f['k']);
+unset($this->g->h);
+if ($x) {
+	unset($this->i);
+}
+unset(/* c */ $this->j);
