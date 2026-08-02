@@ -32,6 +32,7 @@ final class RuleRegistry
 		Rules\Classes\ModernClassNameReferenceRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,
+		Rules\Classes\NoKindInClassNameRule::class,
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\Classes\VisibilityRequiredRule::class,
