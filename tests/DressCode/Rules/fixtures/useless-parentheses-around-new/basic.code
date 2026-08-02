@@ -1,0 +1,10 @@
+<?php
+$a = (new Foo())->bar();
+$b = (new Foo(1))->bar;
+$c = (new Foo)->bar();
+$d = (new Foo())::X;
+$e = (new Foo())['x'];
+$f = (new Foo());
+$g = (new Foo()) . 'x';
+$h = (new class () {})->bar();
+$i = (/* c */ new Foo())->bar();
