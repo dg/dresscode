@@ -30,6 +30,24 @@ test('matches() compares token texts, not whitespace', function () {
 });
 
 
+test('isDereferenced()', function () {
+	$fetch = parseStatement("(new A)->b;\n")->expr;
+	assert($fetch instanceof PhpSyntax\Nodes\Expression\PropertyFetchNode);
+	Assert::true($fetch->object->isDereferenced());
+	Assert::false($fetch->isDereferenced());
+	$call = parseStatement("f(\$a)[0];\n")->expr;
+	assert($call instanceof PhpSyntax\Nodes\Expression\ArrayDimFetchNode);
+	Assert::true($call->var->isDereferenced());
+	Assert::false($call->dim?->isDereferenced());
+	$invoke = parseStatement("(new A)();\n")->expr;
+	assert($invoke instanceof PhpSyntax\Nodes\Expression\FunctionCallNode);
+	$callee = $invoke->name;
+	assert($callee instanceof PhpSyntax\Nodes\ExpressionNode);
+	Assert::true($callee->isDereferenced());
+	Assert::false($invoke->isDereferenced());
+});
+
+
 test('isRepeatableRead()', function () {
 	Assert::true(parseStatement("\$a->b[C::D];\n")->expr->isRepeatableRead());
 	Assert::false(parseStatement("\$a->b();\n")->expr->isRepeatableRead());
