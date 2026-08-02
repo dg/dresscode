@@ -1,0 +1,9 @@
+<?php
+// {"minDigitsBeforeDecimalPoint": 7, "minDigitsAfterDecimalPoint": 20}
+$a = 1_000_000;
+$b = 100000;
+$c = 1.23456789;
+$d = 0x00007F;
+$e = 0x10FFFF;
+$f = 0x1234567;
+$g = 0b11110000;
