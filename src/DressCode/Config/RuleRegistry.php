@@ -28,6 +28,7 @@ final class RuleRegistry
 		Rules\ControlFlow\UselessBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
 		Rules\Namespaces\ClassReferenceNameCasingRule::class,
+		Rules\Classes\FinalInternalClassRule::class,
 		Rules\Classes\ModernClassNameReferenceRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,
