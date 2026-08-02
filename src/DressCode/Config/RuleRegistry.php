@@ -89,6 +89,7 @@ final class RuleRegistry
 		Rules\Expressions\ReferenceSpacingRule::class,
 		Rules\Expressions\SpreadOperatorSpacingRule::class,
 		Rules\Expressions\IncrementOperatorRule::class,
+		Rules\Expressions\StrictComparisonRule::class,
 		Rules\Expressions\SymbolicLogicalOperatorsRule::class,
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
