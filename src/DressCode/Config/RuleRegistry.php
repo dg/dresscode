@@ -29,6 +29,7 @@ final class RuleRegistry
 		Rules\Classes\ClassDefinitionSpacingRule::class,
 		Rules\Namespaces\ClassReferenceNameCasingRule::class,
 		Rules\Classes\ModernClassNameReferenceRule::class,
+		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
