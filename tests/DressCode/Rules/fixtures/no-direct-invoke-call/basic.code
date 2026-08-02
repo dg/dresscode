@@ -1,0 +1,8 @@
+<?php
+$a = $f->__invoke($x, $y);
+$b = $this->handler->__invoke();
+$c = f()->__invoke(1);
+$d = $f?->__invoke();
+$e = $f->__INVOKE();
+$g = $f->__invoke(/* c */);
+$h = $f->/* c */__invoke();
