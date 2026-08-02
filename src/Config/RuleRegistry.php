@@ -70,6 +70,7 @@ final class RuleRegistry
 		Rules\Literals\KeywordCasingRule::class,
 		Rules\Namespaces\NoLeadingBackslashInGlobalNamespaceRule::class,
 		Rules\Literals\NumericLiteralSeparatorRule::class,
+		Rules\Literals\OctalNotationRule::class,
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
 		Rules\Functions\NoConversionFunctionsRule::class,
 		Rules\Expressions\CastSpacingRule::class,
