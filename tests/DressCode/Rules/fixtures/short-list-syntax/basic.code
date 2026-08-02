@@ -1,0 +1,7 @@
+<?php
+list($a, $b) = f();
+list('k' => $c, , $d) = f();
+list($e, list($f, $g)) = f();
+foreach ($x as list($h, $i)) {}
+[$j, $k] = f();
+list ($l) = f();
