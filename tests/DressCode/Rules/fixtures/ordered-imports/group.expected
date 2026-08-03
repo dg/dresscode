@@ -1,0 +1,4 @@
+<?php
+
+use Abc;
+use Foo\{bar, baz};

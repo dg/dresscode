@@ -1,0 +1,4 @@
+<?php
+use Acme\Text\Search;
+use function count, strlen;
+use const DIRECTORY_SEPARATOR, PHP_EOL;

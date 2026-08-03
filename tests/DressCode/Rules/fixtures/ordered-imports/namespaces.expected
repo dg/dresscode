@@ -1,0 +1,15 @@
+<?php
+
+namespace Foo;
+
+use A as Alias;
+use B;
+
+$x = 1;
+use C;
+use D;
+
+namespace Bar {
+	use X;
+	use Y;
+}

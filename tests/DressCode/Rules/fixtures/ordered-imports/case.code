@@ -1,0 +1,4 @@
+<?php
+// {"caseSensitive": true}
+use a;
+use B;
