@@ -1,0 +1,12 @@
+<?php
+// {"onStatic": true}
+// risky
+namespace X;
+
+final class WithClosure
+{
+	public function f()
+	{
+		return [fn() => self::class, function () { return new self; }, self::X];
+	}
+}

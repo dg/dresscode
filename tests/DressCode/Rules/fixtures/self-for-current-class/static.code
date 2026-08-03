@@ -1,0 +1,66 @@
+<?php
+// {"onStatic": true}
+namespace X;
+
+final class Foo
+{
+	public static function create(): static
+	{
+		$a = static::class . static::X . static::$y;
+		$b = new static;
+		$c = new static(1);
+		return $a instanceof static ? static::build() : new static;
+	}
+}
+
+enum Suit
+{
+	case Hearts;
+
+	public static function first(): self
+	{
+		return static::Hearts;
+	}
+}
+
+$x = new class {
+	public function f()
+	{
+		return static::class . (new class { public function g() { return static::X; } })->g();
+	}
+};
+
+// left alone
+class Open
+{
+	public function f(): static
+	{
+		return new static;
+	}
+}
+
+abstract class Base
+{
+	public function f()
+	{
+		return static::class;
+	}
+}
+
+trait T
+{
+	public function f()
+	{
+		return static::class;
+	}
+}
+
+final class WithClosure
+{
+	public function f()
+	{
+		return [fn() => static::class, function () { return new static; }];
+	}
+}
+
+echo static::class;
