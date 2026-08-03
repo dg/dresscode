@@ -1,0 +1,11 @@
+<?php
+// {"globalClass":"imported"}
+namespace App;
+
+/**
+ * @param Order $order
+ * @return Sub\Exception
+ */
+function f($order, \Acme\Shop\Order $other, \Sub $sub, \Acme\Shop\Invoice $invoice)
+{
+}

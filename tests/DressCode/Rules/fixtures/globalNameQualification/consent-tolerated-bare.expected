@@ -1,0 +1,10 @@
+<?php
+// {"globalFunction":["imported","bare"]}
+// nameResolution certain
+namespace App;
+
+use function count;
+
+$a = strlen($x);
+$b = strlen($y);
+$c = count($z);

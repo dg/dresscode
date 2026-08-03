@@ -1,0 +1,8 @@
+<?php
+// {"globalClass":"imported","imports.class":"combined"}
+namespace App;
+
+use Exception, Lib\Foo;
+
+$a = new Foo;
+$b = new Exception;

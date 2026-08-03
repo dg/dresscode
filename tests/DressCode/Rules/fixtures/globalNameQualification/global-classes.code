@@ -1,0 +1,9 @@
+<?php
+// {"globalClass":"imported"}
+namespace App;
+
+use Foo\Exception;
+
+$a = new \DateTime;
+$b = new \Exception;
+throw new \RuntimeException;

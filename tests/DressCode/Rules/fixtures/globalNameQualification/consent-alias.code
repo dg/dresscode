@@ -1,0 +1,10 @@
+<?php
+// {"globalFunction":"imported"}
+// nameResolution certain
+namespace App;
+
+use function strlen as len;
+
+$a = strlen($x);
+$b = \strlen($y);
+$c = len($z);

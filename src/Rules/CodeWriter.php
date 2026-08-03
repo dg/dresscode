@@ -9,13 +9,15 @@ namespace DressCode\Rules;
 
 use DressCode\RuleContext;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{NameForm, Node, SymbolKind, UnqualifiedResolution};
-use PhpSyntax\Nodes\{ExpressionNode, NameNode, Statement};
+use PhpSyntax\{Builder, NameForm, Node, SymbolKind, Trivia, UnqualifiedResolution};
+use PhpSyntax\Nodes\{ExpressionNode, FileNode, NameNode, Statement, UseItemNode};
+use function count;
 
 
 /**
  * What a rule writing code into a file needs so that the code takes the shape the file has: a function spelled the
- * way the file reaches it. A rule shipped by a package writes with it too.
+ * way the file reaches it, an import written the way the file writes its imports. A rule shipped by a package writes
+ * with it too.
  */
 final class CodeWriter
 {
@@ -36,6 +38,172 @@ final class CodeWriter
 			)
 				? $function
 				: '\\' . $function;
+	}
+
+
+	/**
+	 * Whether a `use` statement can be added to the scope: a file that opens with markup has no line for one unless
+	 * an import stands in it already.
+	 */
+	public static function canAddImport(FileNode|Statement\NamespaceNode $scope): bool
+	{
+		$items = $scope->statements->getItems();
+		$first = $items[0] ?? null;
+		return !$first instanceof Statement\InlineHtmlNode
+			|| $first->isPreamble()
+			|| array_any($items, fn(Node $stmt) => $stmt instanceof Statement\UseNode);
+	}
+
+
+	/**
+	 * Imports the name into the scope in the shape `Style::$imports` gives its kind, or where it gives none the way the
+	 * scope writes its imports, so that the rules of their shape and order find nothing to add: where
+	 * the order of imports puts it (classes, functions, constants, each alphabetically the way importOrder sorts by
+	 * default, so other options of it may still find the order wrong), into a group use standing under the namespace of
+	 * the name where the style keeps groups, into the statement of its kind standing there when the shape is combined
+	 * or that statement lists several names, else with a statement of its own, else first in the scope behind its
+	 * `declare` statements, a hashbang and the header comment of a file, a blank line apart.
+	 */
+	public static function addImport(
+		FileNode|Statement\NamespaceNode $scope,
+		SymbolKind $kind,
+		string $fullName,
+		RuleContext $context,
+	): void
+	{
+		$rank = fn(SymbolKind $kind) => match ($kind) {
+			SymbolKind::ClassLike => 0,
+			SymbolKind::Function => 1,
+			SymbolKind::Constant => 2,
+		};
+		$precedes = fn(string $name) => strcasecmp(strtr($name, ['\\' => ' ']), strtr($fullName, ['\\' => ' '])) < 0;
+		$list = $scope->statements;
+		$items = $list->getItems();
+		// the statement the order of the imports puts the name into: the last one of the kind whose first name precedes it
+		$host = $group = null;
+		foreach ($items as $stmt) {
+			if (!$stmt instanceof Statement\UseNode || $stmt->symbolKind !== $kind) {
+				continue;
+			} elseif (!$stmt->isGroup()) {
+				$host = $host === null || $precedes(self::getFirstName($stmt)) ? $stmt : $host;
+			} elseif (self::coversName($stmt, $fullName)) {
+				$group = $group === null || $precedes(self::getFirstName($stmt)) ? $stmt : $group;
+			}
+		}
+
+		$imports = $context->style->imports;
+		if ($group !== null && $imports->keepsGroups()) {
+			$group->addImport($fullName, index: count(array_filter($group->items->getItems(), fn(UseItemNode $item) => $precedes($item->fullName))));
+			return;
+		}
+
+		$shape = $imports->getShape($kind);
+		if ($host !== null && ($shape === 'combined' || ($shape === null && count($host->items) > 1))) {
+			$host->addImport($fullName, index: count(array_filter($host->items->getItems(), fn(UseItemNode $item) => $precedes($item->text))));
+			return;
+		}
+
+		$after = $before = null;
+		foreach ($items as $i => $stmt) {
+			if (!$stmt instanceof Statement\UseNode) {
+				continue;
+			} elseif (
+				$rank($stmt->symbolKind) < $rank($kind)
+				|| ($stmt->symbolKind === $kind && $precedes(self::getFirstName($stmt)))
+			) {
+				$after = $i + 1;
+			} else {
+				$before ??= $i;
+			}
+		}
+
+		$keyword = self::spellImportKind($kind);
+		$statement = (new Builder)->statement("use $keyword$fullName;");
+		$eol = Trivia::fromText($context->style->lineEnding);
+		$indentOf = fn(?Node $node): array => ($indentation = $node?->getFirstToken()?->getIndentation() ?? '') === ''
+			? []
+			: [new Trivia(Trivia::Whitespace, $indentation)];
+
+		if ($after !== null) {
+			$statement->setEdgeTrivia($indentOf($items[$after - 1]), [$eol]);
+			$list->insert($after, $statement);
+			return;
+		}
+
+		if ($before !== null) {
+			// the import takes the place of the first one, with what stands above it, and that one keeps its indentation
+			$first = $items[$before]->getFirstToken();
+			$indent = $indentOf($items[$before]);
+			$statement->setEdgeTrivia($first->leadingTrivia, [$eol]);
+			$first->setLeadingTrivia($indent);
+			$list->insert($before, $statement);
+			return;
+		}
+
+		$index = 0;
+		while (
+			($stmt = $items[$index] ?? null) instanceof Statement\DeclareNode
+			|| ($index === 0 && $stmt instanceof Statement\InlineHtmlNode && $stmt->isPreamble())
+		) {
+			$index++;
+		}
+
+		$neighborFirst = ($items[$index] ?? null)?->getFirstToken();
+		$braced = $scope instanceof Statement\NamespaceNode && $scope->openBrace !== null;
+		$indentation = $neighborFirst?->getIndentation() ?? ($braced ? $context->style->indent : '');
+		// a braced namespace ends the line with its brace, an unbraced one and an open tag are a blank line apart from it
+		$leading = $braced ? [] : [$eol];
+		if ($neighborFirst !== null) {
+			// the open tag stays first, and in a file so does its header, a comment a blank line apart from the code
+			$trivia = $neighborFirst->leadingTrivia;
+			$above = 0;
+			foreach ($trivia as $i => $item) {
+				if ($item->is(Trivia::OpenTag)) {
+					$above = $i + 1;
+				} elseif (
+					$scope instanceof FileNode
+					&& $item->isComment()
+					&& ($trivia[$i + 1] ?? null)?->is(Trivia::LineEnding)
+					&& ($trivia[$i + 2] ?? null)?->is(Trivia::LineEnding)
+				) {
+					$above = $i + 2;
+				}
+			}
+
+			$leading = [...array_slice($trivia, 0, $above), ...$leading];
+			$neighborFirst->setLeadingTrivia(array_slice($trivia, $above));
+		}
+
+		if ($indentation !== '') {
+			$leading[] = new Trivia(Trivia::Whitespace, $indentation);
+		}
+
+		$statement->setEdgeTrivia($leading, [$eol]);
+		$list->insert($index, $statement);
+		if ($neighborFirst !== null && !($neighborFirst->leadingTrivia[0] ?? null)?->is(Trivia::LineEnding)) {
+			$neighborFirst->setBlankLinesBefore(1, $context->style->lineEnding);
+		}
+	}
+
+
+	/** The name the order of the imports puts the statement by: the first one it imports, under the prefix of a group. */
+	private static function getFirstName(Statement\UseNode $stmt): string
+	{
+		$item = $stmt->items->getItems()[0] ?? null;
+		return $item === null
+			? ''
+			: ($stmt->isGroup() ? ltrim($stmt->prefix->text, '\\') . '\\' : '') . $item->text;
+	}
+
+
+	/** Whether the prefix of the group is the namespace the name stands in, so that it can be written as an item of it. */
+	private static function coversName(Statement\UseNode $stmt, string $fullName): bool
+	{
+		$name = ltrim($fullName, '\\');
+		$pos = strrpos($name, '\\');
+		return $stmt->isGroup()
+			&& $pos !== false
+			&& strcasecmp(ltrim($stmt->prefix->text, '\\'), substr($name, 0, $pos)) === 0;
 	}
 
 

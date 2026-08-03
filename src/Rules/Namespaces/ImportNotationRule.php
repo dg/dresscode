@@ -132,7 +132,7 @@ final class ImportNotationRule extends NodeRule
 				continue;
 			}
 
-			// a copy of the item: merging the statements must not rewrite how a name is written,
+			// a copy of the item, not addImport(): merging the statements must not rewrite how a name is written,
 			// and a leading backslash belongs to `qualification.uselessBackslash`
 			foreach ($use->items->getItems() as $item) {
 				$copy = $item->withoutEdgeTrivia();

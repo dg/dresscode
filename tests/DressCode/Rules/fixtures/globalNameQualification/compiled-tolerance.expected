@@ -1,0 +1,11 @@
+<?php
+// {"globalFunction":"imported","optimizedFunction":["imported","backslashed"]}
+// nameResolution certain
+namespace App;
+
+use function basename;
+use function strlen;
+
+$a = strlen($x);
+$b = \strlen($y);
+$c = basename($x);

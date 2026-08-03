@@ -1,0 +1,8 @@
+<?php
+// {"optimizedFunction":["imported","backslashed"]}
+// nameResolution certain
+namespace App ?>
+<html>
+<?php $x = strlen('a'); // dresscode:ignore ?>
+<?php $y = strlen('b'); ?>
+</html>

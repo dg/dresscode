@@ -1,0 +1,11 @@
+<?php
+// {"globalFunction":"bare"}
+// risky
+namespace App;
+
+use function strlen;
+use function trim as clean;
+
+\count($a);
+strlen($b);
+clean($c);

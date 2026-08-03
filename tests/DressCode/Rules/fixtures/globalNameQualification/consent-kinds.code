@@ -1,0 +1,8 @@
+<?php
+// {"globalFunction":"imported","globalConstant":"imported"}
+// nameResolution certain
+namespace App;
+
+$a = strlen($x); // dresscode:ignore
+$b = strlen($y);
+echo PHP_EOL;

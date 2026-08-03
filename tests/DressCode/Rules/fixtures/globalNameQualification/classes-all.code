@@ -1,0 +1,6 @@
+<?php
+// {"globalClass":"imported"}
+namespace App;
+
+$a = new \Lib\Foo;
+$b = new \Exception;

@@ -1,0 +1,8 @@
+<?php
+// risky
+// {"globalFunction":"backslashed","optimizedFunction":"backslashed"}
+namespace App;
+
+// each occurrence keeps the letter case it is written in
+StrToUpper($a);
+strtoupper($b);

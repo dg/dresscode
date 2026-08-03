@@ -1,0 +1,9 @@
+<?php
+// {"globalFunction":"bare"}
+// risky
+namespace App;
+
+
+count($a);
+strlen($b);
+trim($c);

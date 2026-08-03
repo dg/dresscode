@@ -1,0 +1,6 @@
+<?php
+// {"globalFunction":"imported"}
+namespace App;
+
+$a = strlen($x);
+$b = \strlen($y);

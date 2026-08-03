@@ -1,0 +1,9 @@
+<?php
+// {"globalClass":"backslashed"}
+namespace App;
+
+use DateTime;
+use Exception as BaseException;
+
+$a = new \DateTime;
+$b = new \Exception;

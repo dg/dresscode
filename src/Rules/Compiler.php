@@ -24,14 +24,16 @@ final class Compiler
 	 * Whether PHP optimizes the call of the global function with its arguments: most of the functions it optimizes with
 	 * any, some only with every argument constant, `sprintf()` only with a constant format of `%s` and `%d` alone, `in_array()`
 	 * only with a constant array it looks up in a hash and `array_slice()` only of `func_get_args()`; none with a named
-	 * argument, and none with an unpacked one unless `$unpacked` asks about the call the unpacked last argument would
-	 * make if it passed its values one by one, none of them constant.
+	 * argument unless `$named` asks about the call the arguments would make passed positionally in the order they stand,
+	 * and none with an unpacked one unless `$unpacked` asks about the call the unpacked last argument would make if it
+	 * passed its values one by one, none of them constant.
 	 */
 	public static function isOptimizedCall(
 		Expression\FunctionCallNode $call,
 		string $function,
 		RuleContext $context,
 		bool $unpacked = false,
+		bool $named = false,
 	): bool
 	{
 		$values = [];
@@ -39,7 +41,7 @@ final class Compiler
 		foreach ($call->arguments->items->getItems() as $argument) {
 			if (
 				!$argument instanceof ArgumentNode
-				|| $argument->name !== null
+				|| ($argument->name !== null && !$named)
 				|| $rest
 				|| ($argument->ellipsis !== null && !$unpacked)
 			) {
@@ -135,31 +137,36 @@ final class Compiler
 
 	/**
 	 * Whether the value of the expression is known while compiling: a literal, an operation on known values, or a constant
-	 * of PHP the compiler reads, which is one written qualified, imported or in the global namespace.
+	 * of PHP the compiler reads, which is one written qualified, imported or in the global namespace, and with `$unqualified`
+	 * also one written bare in a namespace, which PHP reaches by the fallback at run time.
 	 */
-	public static function isKnownAtCompileTime(?Node $node, RuleContext $context): bool
+	public static function isKnownAtCompileTime(?Node $node, RuleContext $context, bool $unqualified = false): bool
 	{
 		return match (true) {
 			$node instanceof Scalar\StringNode, $node instanceof Scalar\IntegerNode, $node instanceof Scalar\FloatNode,
 			$node instanceof Scalar\BooleanNode, $node instanceof Scalar\NullNode, $node instanceof Scalar\MagicConstantNode => true,
 			$node instanceof Scalar\HeredocNode => !$node->hasInterpolation(),
-			$node instanceof Expression\ConstantFetchNode => self::isReadConstant($node, $context),
+			$node instanceof Expression\ConstantFetchNode => self::isReadConstant($node, $context, $unqualified),
 			$node instanceof Expression\ParenthesizedNode, $node instanceof Expression\UnaryOpNode, $node instanceof Expression\CastNode
-				=> self::isKnownAtCompileTime($node->expression, $context),
-			$node instanceof Expression\BinaryOpNode => self::isKnownAtCompileTime($node->left, $context)
-				&& self::isKnownAtCompileTime($node->right, $context),
+				=> self::isKnownAtCompileTime($node->expression, $context, $unqualified),
+			$node instanceof Expression\BinaryOpNode => self::isKnownAtCompileTime($node->left, $context, $unqualified)
+				&& self::isKnownAtCompileTime($node->right, $context, $unqualified),
 			default => false,
 		};
 	}
 
 
-	/** Whether the fetch reads a constant of PHP while compiling. */
-	private static function isReadConstant(Expression\ConstantFetchNode $fetch, RuleContext $context): bool
+	/** Whether the fetch reads a constant of PHP while compiling, or with `$unqualified` at least reaches one by the fallback. */
+	private static function isReadConstant(
+		Expression\ConstantFetchNode $fetch,
+		RuleContext $context,
+		bool $unqualified,
+	): bool
 	{
 		$resolver = $context->getAnalysis(NameResolver::class);
 		$name = $fetch->name;
 		return $context->getAnalysis(Analyses\PhpSymbols::class)->isBuiltinConstant($resolver->resolveConstant($name))
-			&& self::isNameKnown($name, SymbolKind::Constant, $context);
+			&& ($unqualified || self::isNameKnown($name, SymbolKind::Constant, $context));
 	}
 
 

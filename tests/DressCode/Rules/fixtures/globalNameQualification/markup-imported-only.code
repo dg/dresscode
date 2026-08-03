@@ -1,0 +1,8 @@
+<?php
+// {"globalFunction":"imported"}
+// nameResolution certain
+namespace App ?>
+<html>
+<?php echo strlen('a'); ?>
+<?php echo \strlen('b'); ?>
+</html>

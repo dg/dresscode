@@ -1,0 +1,2 @@
+7: Global function `strlen()` must be imported.
+8: Global constant `PHP_EOL` must be imported.

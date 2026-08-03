@@ -1,0 +1,2 @@
+7: Global function `dirname()` must be imported.
+8: Global function `basename()` must be written without the leading backslash.

@@ -1,0 +1,8 @@
+<?php
+// {"optimizedFunction":["imported","backslashed"],"globalConstant":["imported","backslashed"]}
+// risky
+namespace App;
+
+use const PHP_EOL;
+
+echo count([]) . PHP_EOL;

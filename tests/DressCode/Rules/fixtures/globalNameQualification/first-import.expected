@@ -1,0 +1,14 @@
+<?php
+// {"optimizedFunction":["imported","backslashed"]}
+// risky
+namespace App;
+
+use function count;
+
+class B
+{
+	function g()
+	{
+		return count([]);
+	}
+}

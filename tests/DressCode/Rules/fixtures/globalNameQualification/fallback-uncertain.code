@@ -1,0 +1,8 @@
+<?php
+// {"globalFunction":"bare"}
+namespace App;
+
+use function strlen;
+
+\count($a);
+strlen($b);

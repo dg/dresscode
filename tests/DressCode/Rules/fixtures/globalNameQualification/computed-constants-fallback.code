@@ -1,0 +1,12 @@
+<?php
+// {"globalConstant":["imported","backslashed"],"optimizedConstant":"bare"}
+// nameResolution certain
+namespace App;
+
+use const PHP_VERSION_ID;
+
+const SEPARATOR = \DIRECTORY_SEPARATOR . 'x';
+
+if (PHP_VERSION_ID >= 80400) {
+	trigger_error('x', \E_USER_DEPRECATED);
+}

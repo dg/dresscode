@@ -1,0 +1,12 @@
+<?php
+// {"optimizedFunction":["imported","backslashed"]}
+// risky
+namespace App {
+	use Foo\Bar;
+
+	echo count([]);
+}
+
+namespace Other {
+	echo strlen('');
+}

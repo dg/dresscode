@@ -1,0 +1,6 @@
+qualification:
+	globalClass: keep
+	globalFunction: keep
+	optimizedFunction: keep
+	globalConstant: keep
+	optimizedConstant: keep
