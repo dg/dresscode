@@ -1,0 +1,23 @@
+<?php
+/**
+ * Summary here.
+ *
+ * @param int $x
+ */
+function f($x) {
+}
+/**
+ * Tight already.
+ */
+function g() {
+}
+/** One line. */
+function h() {
+}
+/**
+ * One.
+ *
+ * Two.
+ */
+function i() {
+}
