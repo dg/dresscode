@@ -1,0 +1,10 @@
+<?php
+// {"constantOfAnotherNamespace":"imported"}
+namespace App;
+
+$a = \Lib\FOO;
+$b = \lib\BAR;
+$c = \Other\BAZ;
+$d = \lib\sub\QUX;
+$e = \Lib\SubQUX;
+$f = \Lib\subQUX;

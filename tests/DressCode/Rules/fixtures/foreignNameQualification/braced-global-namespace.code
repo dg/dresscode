@@ -1,0 +1,6 @@
+<?php
+// {"classOfAnotherNamespace":"imported"}
+namespace {
+	$a = new \Lib\Foo;
+	$b = new Lib\Thing;
+}

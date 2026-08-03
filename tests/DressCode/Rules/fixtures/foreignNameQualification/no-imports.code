@@ -1,0 +1,8 @@
+<?php
+// {"classOfAnotherNamespace":"imported"}
+declare(strict_types=1);
+namespace App;
+$x = new \Lib\Foo;
+class Baz {}
+$y = new \Lib\Bar\Foo;
+$z = new \Lib\Baz;
