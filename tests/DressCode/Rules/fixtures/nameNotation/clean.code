@@ -1,0 +1,5 @@
+<?php
+// {"class": "import", "globalClass": "keep"}
+namespace App;
+use Lib\Foo;
+$x = new Foo(\strlen(""), \Exception::class);

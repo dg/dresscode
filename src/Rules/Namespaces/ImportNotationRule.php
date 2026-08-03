@@ -60,6 +60,26 @@ final class ImportNotationRule extends NodeRule implements ConfigurableRule
 	}
 
 
+	/**
+	 * The shape the imports of the kind are written in, single or combined; null when the rule leaves them as they are.
+	 * @internal
+	 */
+	public function getShape(SymbolKind $kind): ?string
+	{
+		return $this->shapes[self::kindOf($kind)];
+	}
+
+
+	/**
+	 * Whether a group use stays as it is, so that a name of its namespace may be written as an item of it.
+	 * @internal
+	 */
+	public function keepsGroups(): bool
+	{
+		return $this->group === 'keep';
+	}
+
+
 	public function getVisitedTypes(): array
 	{
 		return [FileNode::class, NamespaceNode::class];

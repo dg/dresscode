@@ -1,0 +1,8 @@
+<?php
+// {"class": "import", "globalClass": "backslash"}
+namespace App;
+
+use Exception;
+
+$a = new \Lib\Foo;
+$b = new Exception;

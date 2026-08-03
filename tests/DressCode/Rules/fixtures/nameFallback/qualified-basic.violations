@@ -1,0 +1,6 @@
+13: Global function `strlen()` must be imported
+	risky NameUncertain
+14: Global constant `PHP_EOL` must be imported
+	risky NameUncertain
+14: Global constant `DIRECTORY_SEPARATOR` must be imported
+	risky NameUncertain

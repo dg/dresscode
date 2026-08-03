@@ -1,0 +1,12 @@
+<?php
+// {"class": "import", "globalClass": "keep"}
+
+namespace App\Model;
+
+class Entity
+{
+	public function copy(): Entity
+	{
+		return new Entity;
+	}
+}

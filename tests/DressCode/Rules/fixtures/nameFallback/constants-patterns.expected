@@ -1,0 +1,9 @@
+<?php
+// {"optimizedFunction": "qualified", "constant": {"PHP_*": "qualified"}}
+// risky
+namespace App;
+
+use function count;
+use const PHP_EOL;
+
+echo count([]) . PHP_EOL;

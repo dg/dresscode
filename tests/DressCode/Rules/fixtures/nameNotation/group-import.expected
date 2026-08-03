@@ -1,0 +1,9 @@
+<?php
+// {"class": "import"}
+namespace App;
+
+use Lib\{Bar, Foo, Zed};
+use Other\Thing;
+
+$a = new Foo;
+$b = new Thing;

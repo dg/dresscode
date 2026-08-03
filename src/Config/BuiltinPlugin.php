@@ -94,6 +94,8 @@ final class BuiltinPlugin implements Plugin
 				Rules\Namespaces\ImportNotationRule::class,
 				Rules\Namespaces\UselessImportBackslashRule::class,
 				Rules\Namespaces\OrderedImportsRule::class,
+				Rules\Namespaces\NameNotationRule::class,
+				Rules\Namespaces\NameFallbackRule::class,
 				Rules\Namespaces\UnusedImportsRule::class,
 				Rules\Namespaces\UselessSameNamespaceImportRule::class,
 				Rules\Namespaces\UselessAliasRule::class,

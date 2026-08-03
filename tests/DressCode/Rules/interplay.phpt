@@ -9,6 +9,7 @@
 use DressCode\{Analyses, Config, FileResult, Rules, Style, Violation};
 use DressCode\Config\{RuleBuilder, RuleRegistry};
 use DressCode\Engine\FileProcessor;
+use PhpSyntax\Analyses\NamespacedSymbols;
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -134,4 +135,83 @@ test('importNotation combines what orderedImports then sorts', function () {
 		Rules\Namespaces\ImportNotationRule::class => ['function' => 'combined'],
 		Rules\Namespaces\OrderedImportsRule::class => true,
 	], "<?php\nnamespace A;\nuse function b;\nuse function a;\nuse D, C;\n", "<?php\nnamespace A;\nuse C;\nuse D;\nuse function a, b;\n");
+});
+
+
+test('an import nameFallback adds takes the shape importNotation gives it, so that nothing else is reported', function () {
+	$rules = fn(string $shape) => [
+		Rules\Namespaces\NameFallbackRule::class => ['optimizedFunction' => 'qualified'],
+		Rules\Namespaces\ImportNotationRule::class => ['function' => $shape],
+	];
+	$certain = new Analyses\Registry(new NamespacedSymbols(complete: true));
+	$reported = fn(FileResult $result) => array_values(array_unique(array_map(fn(Violation $violation) => $violation->ruleName, $result->violations)));
+
+	// one import of the kind fits either shape, so the shape comes from the rule
+	$code = "<?php\nnamespace A;\n\nuse function count;\n\ncount(\$a);\nstrlen(\$b);\n";
+	$result = interplay($rules('combined'), $code, "<?php\nnamespace A;\n\nuse function count, strlen;\n\ncount(\$a);\nstrlen(\$b);\n", $certain);
+	Assert::same(['dresscode/nameFallback'], $reported($result));
+	$result = interplay($rules('single'), $code, "<?php\nnamespace A;\n\nuse function count;\nuse function strlen;\n\ncount(\$a);\nstrlen(\$b);\n", $certain);
+	Assert::same(['dresscode/nameFallback'], $reported($result));
+
+	// and two imports the rule adds itself go into one statement
+	$result = interplay($rules('combined'), "<?php\nnamespace A;\n\nstrlen(\$a);\ncount(\$b);\n", "<?php\nnamespace A;\n\nuse function count, strlen;\n\nstrlen(\$a);\ncount(\$b);\n", $certain);
+	Assert::same(['dresscode/nameFallback'], $reported($result));
+});
+
+
+test('nameFallback qualifies a name in the shape nameNotation gives it, and nameNotation leaves a name nameFallback wants bare', function () {
+	$certain = new Analyses\Registry(new NamespacedSymbols(complete: true));
+	interplay([
+		Rules\Namespaces\NameFallbackRule::class => ['optimizedFunction' => 'qualified'],
+		Rules\Namespaces\NameNotationRule::class => ['globalFunction' => 'backslash'],
+	], "<?php\nnamespace A;\n\nstrlen(\$a);\n", "<?php\nnamespace A;\n\n\\strlen(\$a);\n", $certain);
+
+	interplay([
+		Rules\Namespaces\NameFallbackRule::class => ['function' => 'fallback'],
+		Rules\Namespaces\NameNotationRule::class => ['globalFunction' => 'import'],
+	], "<?php\nnamespace A;\n\n\\implode(',', \$a);\n", "<?php\nnamespace A;\n\nimplode(',', \$a);\n", $certain);
+
+	// a name the namespace declares cannot stand bare, so its shape stays nameNotation's
+	interplay([
+		Rules\Namespaces\NameFallbackRule::class => ['function' => 'fallback'],
+		Rules\Namespaces\NameNotationRule::class => ['globalFunction' => 'backslash'],
+	], "<?php\nnamespace A;\n\nuse function strlen;\n\nstrlen(\$a);\n", "<?php\nnamespace A;\n\n\n\\strlen(\$a);\n", new Analyses\Registry(new NamespacedSymbols(['A\strlen'], [], true)));
+});
+
+
+test('an import a bare name would be taken over by is reported, and added once nameFallback qualifies that name', function () {
+	$certain = new Analyses\Registry(new NamespacedSymbols(complete: true));
+	$code = "<?php\nnamespace A;\n\n\\strlen(\$a);\nstrlen(\$b);\n";
+	$result = interplay([Rules\Namespaces\NameNotationRule::class => ['globalFunction' => 'import']], $code, null, $certain);
+	Assert::same(['Global function `strlen()` must be imported'], array_map(fn(Violation $violation) => $violation->message, $result->violations));
+
+	// the import nameFallback adds for the bare name is in place for the other one by the next pass
+	interplay([
+		Rules\Namespaces\NameFallbackRule::class => ['optimizedFunction' => 'qualified'],
+		Rules\Namespaces\NameNotationRule::class => ['globalFunction' => 'import'],
+	], $code, "<?php\nnamespace A;\n\nuse function strlen;\n\nstrlen(\$a);\nstrlen(\$b);\n", $certain);
+
+	// only a call PHP optimizes with its arguments is nameFallback's to qualify, any other leaves the import reported
+	$rules = [
+		Rules\Namespaces\NameFallbackRule::class => ['optimizedFunction' => 'qualified'],
+		Rules\Namespaces\NameNotationRule::class => ['globalFunction' => 'import'],
+	];
+	interplay($rules, "<?php\nnamespace A;\n\n\\dirname(\$a);\ndirname(__DIR__);\n", "<?php\nnamespace A;\n\nuse function dirname;\n\ndirname(\$a);\ndirname(__DIR__);\n", $certain);
+	$result = interplay($rules, "<?php\nnamespace A;\n\n\\dirname(\$a);\ndirname(\$b);\n", null, $certain);
+	Assert::same(
+		['dresscode/nameNotation: Global function `dirname()` must be imported'],
+		array_map(fn(Violation $violation) => "$violation->ruleName: $violation->message", $result->violations),
+	);
+});
+
+
+test('an import nameNotation asks for and the markup leaves no line for is reported once, not written with the backslash', function () {
+	$result = interplay([
+		Rules\Namespaces\NameFallbackRule::class => ['optimizedFunction' => 'qualified'],
+		Rules\Namespaces\NameNotationRule::class => ['globalFunction' => 'import'],
+	], "<?php\nnamespace A ?>\n<html>\n<?php echo strlen('a'); ?>\n", null, new Analyses\Registry(new NamespacedSymbols(complete: true)));
+	Assert::same(
+		['dresscode/nameFallback: Global function `strlen()` must be imported'],
+		array_map(fn(Violation $violation) => "$violation->ruleName: $violation->message", $result->violations),
+	);
 });

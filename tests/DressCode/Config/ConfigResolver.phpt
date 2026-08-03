@@ -2,7 +2,8 @@
 
 use DressCode\{Config, ConfigurableRule, ConfigurationException, NodeRule, Override, Preset, PresetInfo, Profile, Rule, RuleInfo, Stage};
 use DressCode\Config\{ConfigResolver, ResolvedRule, RuleBuilder, RuleRegistry};
-use Nette\Schema\{Expect, Schema};
+use DressCode\Rules\Namespaces\NameNotationRule;
+use Nette\Schema\{Expect, Processor, Schema};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -590,6 +591,46 @@ test('what the namespaces declare adds up over the layers, and only the configur
 		ConfigurationException::class,
 		'Preset `test/bad-declarations`: `strlen` is in no namespace, and a global function needs no listing.',
 	);
+});
+
+
+test('a rule whose options decide nothing says so through its schema, and nameNotation refuses a value it has not', function () {
+	$resolver = new ConfigResolver(new RuleRegistry);
+	$resolver->resolve(new Config(rules: [
+		'dresscode/nameNotation' => true,
+		'dresscode/nameFallback' => true, // no key given, so it stays the only rule of its group that decides nothing
+		'dresscode/nameCasing' => ['ignorePatterns' => ['~^x~']], // a pattern of what not to report, and still no case to report
+	]), '8.4');
+	$warnings = $resolver->getWarnings();
+	sort($warnings);
+	Assert::same([
+		'Rule `dresscode/nameCasing`: No kind of name is given a case, so nothing is reported.',
+		'Rule `dresscode/nameFallback`: No key such as function or optimizedFunction is given, so every name stays as it is.',
+		'Rule `dresscode/nameNotation`: No key such as class or globalFunction is given, so every name stays as it is.',
+	], $warnings);
+
+	$resolver = new ConfigResolver(new RuleRegistry);
+	$resolver->resolve(new Config(rules: ['dresscode/nameFallback' => ['optimizedFunction' => 'qualified']]), '8.4');
+	Assert::same([], $resolver->getWarnings());
+
+	// whether a name stands bare is for nameFallback to decide, not a shape of nameNotation
+	Assert::exception(
+		fn() => $resolver->resolve(new Config(rules: ['dresscode/nameNotation' => ['globalFunction' => 'bare']]), '8.4'),
+		ConfigurationException::class,
+		'%a%globalFunction%a%',
+	);
+	Assert::exception(
+		fn() => $resolver->resolve(new Config(rules: ['dresscode/nameNotation' => ['optimizedFunction' => 'import']]), '8.4'),
+		ConfigurationException::class,
+		'%a%optimizedFunction%a%',
+	);
+
+	// a plain value over a map replaces it with its names
+	$options = (new Processor)->processMultiple(NameNotationRule::getOptionsSchema(), [
+		['globalFunction' => ['*' => 'import', 'strlen' => 'backslash']],
+		['globalFunction' => 'backslash'],
+	]);
+	Assert::same('backslash', ((array) $options)['globalFunction']);
 });
 
 
