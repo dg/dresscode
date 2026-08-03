@@ -1,0 +1,10 @@
+<?php
+// risky
+namespace X;
+class Foo
+{
+	public static function f()
+	{
+		return Foo::create() . Foo::X;
+	}
+}
