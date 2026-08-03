@@ -1,0 +1,8 @@
+<?php
+// {"functions": "combined", "constants": "combined"}
+namespace A;
+use B;
+use C;
+use function e, f, g;
+use const H, J;
+use const I; // keep
