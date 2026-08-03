@@ -1,0 +1,6 @@
+<?php
+// {"function.otherNamespace":"imported"}
+namespace App;
+
+\fn\use();
+\Lib\helper();

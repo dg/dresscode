@@ -1,0 +1,6 @@
+5: The fully qualified name `\Lib\FOO` must be imported.
+6: The fully qualified name `\lib\BAR` must be imported.
+7: The fully qualified name `\Other\BAZ` must be imported.
+8: The fully qualified name `\lib\sub\QUX` must be imported.
+9: The fully qualified name `\Lib\SubQUX` must be imported.
+10: The fully qualified name `\Lib\subQUX` must be imported.

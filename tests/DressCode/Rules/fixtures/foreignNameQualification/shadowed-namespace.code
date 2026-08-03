@@ -1,0 +1,6 @@
+<?php
+// {"class.otherNamespace":"imported"}
+namespace App;
+
+$a = new \Foo\Bar;
+$b = new Bar;

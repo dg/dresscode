@@ -1,0 +1,7 @@
+qualification:
+	class:
+		otherNamespace: keep
+	function:
+		otherNamespace: keep
+	constant:
+		otherNamespace: keep

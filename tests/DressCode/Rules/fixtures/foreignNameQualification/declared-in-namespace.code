@@ -1,0 +1,12 @@
+<?php
+// {"class.otherNamespace":"imported"}
+
+namespace App\Model;
+
+class Entity
+{
+	public function copy(): \App\Model\Entity
+	{
+		return new \App\Model\Entity;
+	}
+}

@@ -136,6 +136,7 @@ final class CorePlugin implements Plugin
 				Rules\Namespaces\DeclaredNameCasingRule::class,
 				Rules\Namespaces\ImportOrderRule::class,
 				Rules\Namespaces\GlobalNameQualificationRule::class,
+				Rules\Namespaces\ForeignNameQualificationRule::class,
 				Rules\Namespaces\OptimizedCallNotationRule::class,
 				Rules\Namespaces\UselessLeadingBackslashRule::class,
 				Rules\Namespaces\NoUnusedImportsRule::class,

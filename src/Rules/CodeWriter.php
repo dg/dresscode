@@ -42,6 +42,24 @@ final class CodeWriter
 
 
 	/**
+	 * The scope the imports of the node belong to: its namespace, or the file where the file declares none; null for
+	 * a node of a file with namespaces that stands outside them.
+	 */
+	public static function findImportScope(Node $node): FileNode|Statement\NamespaceNode|null
+	{
+		for (; $node !== null; $node = $node->parent) {
+			if ($node instanceof Statement\NamespaceNode) {
+				return $node;
+			} elseif ($node instanceof FileNode) {
+				return array_any($node->statements->getItems(), fn(Node $stmt) => $stmt instanceof Statement\NamespaceNode) ? null : $node;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
 	 * Whether a `use` statement can be added to the scope: a file that opens with markup has no line for one unless
 	 * an import stands in it already.
 	 */

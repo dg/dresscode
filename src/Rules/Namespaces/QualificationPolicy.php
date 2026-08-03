@@ -47,12 +47,13 @@ final readonly class QualificationPolicy
 		string $description,
 		string $imported,
 		string $backslashed,
+		?string $note = null,
 	): Decision
 	{
 		return new Decision($path, new Words([
 			self::Imported => "imported, $imported",
 			self::Backslashed => "with the leading backslash, $backslashed",
-		], tolerance: true), $description);
+		], tolerance: true), $description, $note === null ? [] : [$note]);
 	}
 
 
