@@ -1,0 +1,8 @@
+<?php
+// {"class.global":"imported","imports.grouping.class":["combined","grouped"]}
+namespace App;
+
+use Lib\Foo;
+
+$a = new Foo;
+$b = new \Exception;

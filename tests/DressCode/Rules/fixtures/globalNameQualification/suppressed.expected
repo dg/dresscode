@@ -1,0 +1,7 @@
+<?php
+// {"function.optimized":["imported","backslashed"]}
+// nameResolution certain
+namespace App;
+
+$a = strlen('x'); // dresscode:ignore
+$b = \strlen('y');

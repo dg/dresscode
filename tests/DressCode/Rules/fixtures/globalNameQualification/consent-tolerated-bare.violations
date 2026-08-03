@@ -1,0 +1,2 @@
+6: Global function `strlen()` must be written without the leading backslash.
+8: Global function `count()` must be imported.

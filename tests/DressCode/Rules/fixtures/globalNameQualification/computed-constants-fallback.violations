@@ -1,0 +1,2 @@
+6: Global constant `PHP_VERSION_ID` must not be imported.
+8: Global constant `DIRECTORY_SEPARATOR` must be written without the leading backslash.

@@ -1,0 +1,9 @@
+<?php
+// {"function.optimized":["imported","backslashed"]}
+// risky
+namespace App;
+
+use function count;
+use function Foo\{strlen};
+
+echo strlen('') . \strlen('') . count([]);

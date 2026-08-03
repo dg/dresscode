@@ -135,6 +135,7 @@ final class CorePlugin implements Plugin
 				Rules\Namespaces\ImportNotationRule::class,
 				Rules\Namespaces\DeclaredNameCasingRule::class,
 				Rules\Namespaces\ImportOrderRule::class,
+				Rules\Namespaces\GlobalNameQualificationRule::class,
 				Rules\Namespaces\OptimizedCallNotationRule::class,
 				Rules\Namespaces\UselessLeadingBackslashRule::class,
 				Rules\Namespaces\NoUnusedImportsRule::class,
@@ -207,10 +208,10 @@ final class CorePlugin implements Plugin
 				...self::createIndentationDecisions(),
 				...self::createImportDecisions(),
 
-				// how far a global function is written out, which decides the arguments of its optimized call
+				// how far a global function is written out, which decides the arguments of its optimized call too
 				Rules\Namespaces\QualificationPolicy::createGlobalDecision(
 					'qualification.function.global',
-					'A global function called in a namespace, `strlen()`, of which only a call the compiler optimizes is looked at, unless `function.optimized` requires a form for such a function',
+					'A global function called in a namespace, `strlen()`, those the compiler optimizes included unless `function.optimized` requires a form for them',
 					'`strlen()`',
 					'`use function strlen;` and `strlen()`',
 					'`\strlen()`',

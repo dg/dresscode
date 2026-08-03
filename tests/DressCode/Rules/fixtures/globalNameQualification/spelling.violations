@@ -1,0 +1,4 @@
+7: Global function `StrToUpper()` must be written with the leading backslash.
+	risky NameUncertain
+8: Global function `strtoupper()` must be written with the leading backslash.
+	risky NameUncertain

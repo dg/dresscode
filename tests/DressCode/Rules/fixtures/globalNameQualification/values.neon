@@ -1,0 +1,9 @@
+qualification:
+	class:
+		global: keep
+	function:
+		global: keep
+		optimized: keep
+	constant:
+		global: keep
+		optimized: keep
