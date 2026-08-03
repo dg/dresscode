@@ -35,6 +35,7 @@ final class RuleRegistry
 		Rules\ControlFlow\UselessBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
+		Rules\Classes\UselessNullPropertyInitializationRule::class,
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\Classes\SingleMemberPerLineRule::class,
