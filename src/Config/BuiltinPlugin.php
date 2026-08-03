@@ -131,6 +131,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\UnaryOperatorSpacingRule::class,
 				Rules\Expressions\UselessTernaryOperatorRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
+				Rules\PhpDoc\PhpdocTrimRule::class,
 				Rules\Literals\NoBacktickOperatorsRule::class,
 				Rules\Literals\ComplexStringVariableRule::class,
 				Rules\Literals\NoImplicitBackslashesRule::class,
