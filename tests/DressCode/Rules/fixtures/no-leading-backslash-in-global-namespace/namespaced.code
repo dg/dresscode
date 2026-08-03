@@ -1,0 +1,5 @@
+<?php
+namespace App;
+
+$a = new \Baz;
+$b = new \Foo\Qux;
