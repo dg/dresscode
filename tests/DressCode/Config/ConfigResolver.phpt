@@ -410,7 +410,10 @@ test('an override lays a profile of its own over the configuration, its presets 
 	Assert::same('its decisions are `keep`', $tests->findRule(RuleB::class)?->inactiveMessage);
 	Assert::same([["\t", null], ['  ', "\n"]], [[$base->indent, $base->lineEnding], [$tests->indent, $tests->lineEnding]]);
 
+	// a certain resolution turns on the guard of its lists, and a file that ends up uncertain has none to guard
 	Assert::same(['certain', 'uncertain'], [$base->nameResolution, $tests->nameResolution]);
+	Assert::true($base->findRule(DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class)?->isActive());
+	Assert::false($tests->findRule(DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class)?->isActive());
 
 	// a list adds up: what the configuration accepts holds under the override, which adds what it says
 	Assert::same([true, false], [$base->findRule(RuleA::class)?->fixRisky, $base->findRule(RuleA::class)?->warnOnly]);
@@ -466,6 +469,11 @@ test('what the namespaces declare adds up over the layers, and only the configur
 
 	$certain = $resolver->resolve(new Config(nameResolution: 'certain'), Config::DefaultPhpVersion);
 	Assert::true($certain->toNamespacedSymbols()->complete);
+
+	// a certain resolution turns on the guard of its lists, which nothing turns off, the fixes resting on the lists
+	$guard = DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class;
+	Assert::true($certain->findRule($guard)?->isActive());
+	Assert::false($uncertain->findRule($guard)?->isActive());
 
 	// an override adds to the lists for its files
 	$overridden = new Config(
