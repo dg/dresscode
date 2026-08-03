@@ -8,6 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{Config, ConfigurationException, Override, Plugin, Preset, PresetInfo, Profile, Rule, RuleInfo};
+use DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule;
 use PhpSyntax\SymbolKind;
 use function count, in_array, is_int, is_string, strlen;
 use const PHP_EOL;
@@ -22,6 +23,9 @@ final class ConfigResolver
 {
 	/** the settings a preset may not make, because they are decisions of the project and not of a standard */
 	private const ProjectDecisions = ['targets', 'nameResolution', 'fixRisky', 'warnOnly'];
+
+	/** the layer by which a certain resolution turns on the guard of its lists */
+	private const GuardLayer = 'nameResolution: certain';
 
 	/** @var array<string, string> */
 	private array $warnings = [];
@@ -78,7 +82,14 @@ final class ConfigResolver
 				$eol = $profile->lineEnding ?? $eol;
 				$lineLength = $profile->lineLength ?? $lineLength;
 				$php = $profile->targets['php'] ?? $php;
-				$resolution = $profile->nameResolution ?? $resolution;
+				// a resolution called certain rests on lists that must stay complete, so it turns on their guard below the
+				// rules of the same profile, which may still turn it off
+				if ($profile->nameResolution !== null) {
+					$resolution = $profile->nameResolution;
+					if ($resolution === 'certain') {
+						$layers[NoUnlistedNamespacedDeclarationsRule::class][] = [self::GuardLayer, true];
+					}
+				}
 
 				foreach ([
 					[SymbolKind::Function, $profile->namespaces['functions']],
@@ -108,6 +119,10 @@ final class ConfigResolver
 			} catch (ConfigurationException $e) {
 				throw self::locate($e, $isPreset ? "preset $source" : $source);
 			}
+		}
+
+		if ($resolution !== 'certain') {
+			$layers = self::removeGuardLayer($layers);
 		}
 
 		[$phpTarget, $phpVersion] = $this->resolveTargetPhp($php ?? $phpTarget);
@@ -174,6 +189,26 @@ final class ConfigResolver
 		return $kind === SymbolKind::Constant
 			? strtolower(substr($name, 0, $pos)) . substr($name, $pos)
 			: strtolower($name);
+	}
+
+
+	/**
+	 * The layers without the one by which a certain resolution turned on the guard of its lists, for a file whose
+	 * resolution is not certain in the end and so has no lists to guard.
+	 * @param  array<class-string<Rule>, list<array{string, mixed}>>  $layers
+	 * @return array<class-string<Rule>, list<array{string, mixed}>>
+	 */
+	private static function removeGuardLayer(array $layers): array
+	{
+		$guard = NoUnlistedNamespacedDeclarationsRule::class;
+		if (isset($layers[$guard])) {
+			$layers[$guard] = array_values(array_filter($layers[$guard], fn(array $layer) => $layer[0] !== self::GuardLayer));
+			if ($layers[$guard] === []) {
+				unset($layers[$guard]);
+			}
+		}
+
+		return $layers;
 	}
 
 

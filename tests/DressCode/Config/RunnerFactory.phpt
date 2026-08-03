@@ -277,9 +277,10 @@ test('an override brings its presets, its style, its name resolution and its war
 	Assert::same('test/a Warning 8.1 "  ""\n"', $sub[0]);
 	Assert::match('dresscode/stringQuotes Error %a%', $sub[1]);
 
+	$guard = 'dresscode/noUnlistedNamespacedDeclarations';
 	$sub = $factory->resolveConfigFor($runner->findOverridesFor('src/sub/x.php'));
-	Assert::same('certain', $factory->getResolvedConfig()->nameResolution);
-	Assert::same('uncertain', $sub->nameResolution);
+	Assert::same(['certain', true], [$factory->getResolvedConfig()->nameResolution, $factory->getResolvedConfig()->getRule($guard)?->isActive()]);
+	Assert::same(['uncertain', false], [$sub->nameResolution, $sub->getRule($guard)?->isActive()]);
 });
 
 

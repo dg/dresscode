@@ -516,13 +516,15 @@ test('an override lays a profile of its own over the configuration, its presets 
 	// a preset of the override lies above the configuration, and one the configuration already has is not laid again
 	Assert::same(['test/base'], $base->presets);
 	Assert::same(['test/base', 'test/child', 'test/nested-preset', 'test/styled'], $tests->presets);
-	Assert::same(['test/a', 'test/c', 'test/b'], names(RuleBuilder::buildRules($base)));
+	Assert::same(['test/a', 'test/c', 'test/b', 'dresscode/noUnlistedNamespacedDeclarations'], names(RuleBuilder::buildRules($base)));
 	Assert::same(['test/a', 'test/c', 'test/nested'], names(RuleBuilder::buildRules($tests)));
 	Assert::same(['max' => 7, 'names' => ['x']], $tests->getRule('test/c')?->options);
 	Assert::same('turned off by test/child', $tests->getRule('test/b')?->inactive);
 	Assert::same([["\t", 'majority'], ['  ', "\n"]], [[$base->indent, $base->lineEnding], [$tests->indent, $tests->lineEnding]]);
 
+	// a certain resolution turns on the guard of its lists, and a file that ends up uncertain has none to guard
 	Assert::same(['certain', 'uncertain'], [$base->nameResolution, $tests->nameResolution]);
+	Assert::same('no preset or rule of the configuration mentions it', $tests->getRule('dresscode/noUnlistedNamespacedDeclarations')?->inactive);
 
 	// a list adds up: what the configuration accepts holds under the override, which adds what it says
 	Assert::same([true, false], [$base->getRule('test/a')?->fixRisky, $base->getRule('test/a')?->warnOnly]);
@@ -578,6 +580,16 @@ test('what the namespaces declare adds up over the layers, and only the configur
 	$certain = $resolver->resolve(new Config(presets: [DeclaringPreset::class], nameResolution: 'certain'), Config::DefaultPhpVersion);
 	Assert::true($certain->toNamespacedSymbols()->complete);
 	Assert::true($certain->toNamespacedSymbols()->hasConstant('Fw\VERSION'));
+
+	// a certain resolution turns on the guard of its lists, which the rules of the configuration may turn off
+	$guard = 'dresscode/noUnlistedNamespacedDeclarations';
+	$rule = $certain->getRule($guard);
+	Assert::notNull($rule);
+	Assert::true($rule->isActive());
+	Assert::same('nameResolution: certain', $rule->getSource());
+	Assert::false($uncertain->getRule($guard)?->isActive());
+	$kept = $resolver->resolve(new Config(rules: [$guard => false], nameResolution: 'certain'), Config::DefaultPhpVersion);
+	Assert::false($kept->getRule($guard)?->isActive());
 
 	// an override adds to the lists for its files
 	$overridden = new Config(namespaces: ['functions' => ['App\helper']], overrides: [new Override(['tests'], namespaces: ['functions' => ['App\Tests\fixture']])]);

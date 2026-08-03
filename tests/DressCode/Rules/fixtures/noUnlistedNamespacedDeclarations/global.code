@@ -1,0 +1,5 @@
+<?php
+// nameResolution certain
+function helper() {}
+const LIMIT = 1;
+define('ALSO_GLOBAL', 2);
