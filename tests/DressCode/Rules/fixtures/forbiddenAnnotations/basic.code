@@ -1,0 +1,25 @@
+<?php
+// {"annotations": ["@author", "@todo", "@package"]}
+
+/**
+ * Description.
+ *
+ * @author John
+ * @param int $a
+ */
+function a($a) {}
+
+/**
+ * @author John
+ */
+function b() {}
+
+/** @TODO fix */
+function c() {}
+
+/**
+ * @author John
+ *
+ * @package Foo
+ */
+class D {}
