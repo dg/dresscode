@@ -140,6 +140,7 @@ final class CorePlugin implements Plugin
 				Rules\Namespaces\UselessAliasRule::class,
 				Rules\Namespaces\UselessCurrentNamespaceImportRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
+				Rules\PhpDoc\PhpdocAlignmentRule::class,
 				Rules\PhpDoc\PhpdocBlankLinesRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
