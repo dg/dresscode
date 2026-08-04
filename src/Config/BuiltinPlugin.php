@@ -133,6 +133,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\PhpDoc\AnnotationCasingRule::class,
 				Rules\PhpDoc\PhpdocAlignmentRule::class,
 				Rules\PhpDoc\ForbiddenAnnotationsRule::class,
+				Rules\PhpDoc\ForbiddenPhpdocLinesRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\PhpDoc\PhpdocTrimRule::class,
 				Rules\Literals\NoBacktickOperatorsRule::class,
