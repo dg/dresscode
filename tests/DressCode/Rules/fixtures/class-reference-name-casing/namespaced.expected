@@ -1,0 +1,9 @@
+<?php
+namespace App;
+
+use stdclass as Base;
+
+$a = new stdclass;
+$b = new \stdClass;
+$c = new Base;
+$d = new namespace\stdclass;

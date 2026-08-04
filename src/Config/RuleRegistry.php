@@ -34,6 +34,7 @@ final class RuleRegistry
 		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\ControlFlow\UselessBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,
+		Rules\Namespaces\ClassReferenceNameCasingRule::class,
 		Rules\Classes\ModernClassNameReferenceRule::class,
 		Rules\Classes\NameCasingRule::class,
 		Rules\Upgrading\ForbiddenFunctionsRule::class,
