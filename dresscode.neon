@@ -8,6 +8,7 @@ paths:
 
 excludePaths:
 	- fixtures
+	- tests/corpus
 
 fileExtensions:
 	- php
