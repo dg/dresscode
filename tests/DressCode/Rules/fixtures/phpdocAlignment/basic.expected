@@ -1,0 +1,19 @@
+<?php
+/**
+ * Misaligned.
+ * @param int $a
+ * @return int
+ */
+function a($a) {}
+class B {
+	/**
+	 * Misaligned.
+	 *
+	 * @var int
+	 */
+	public $x;
+	public $y; /** inline
+	* misaligned */
+	/** one line */
+	public $z;
+}
