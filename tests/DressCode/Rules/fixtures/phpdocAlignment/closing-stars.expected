@@ -1,0 +1,16 @@
+<?php
+/**
+ * Text.
+ **/
+function a() {}
+
+/**
+ ***/
+function b() {}
+
+class C {
+	/**
+	 * Text.
+	 **/
+	public $x;
+}
