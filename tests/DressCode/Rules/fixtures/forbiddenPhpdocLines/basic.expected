@@ -1,0 +1,31 @@
+<?php
+// {"forbiddenLines": ["~^(?:(?!private|protected|static)\\S+ )?(?:con|de)structor\\.\\z~i", "~^Created by \\S+\\.\\z~i", "~^\\S+ [gs]etter\\.\\z~i"]}
+class A {
+	/**
+	 * @param int $a
+	 */
+	public function __construct($a) {}
+
+	/**
+	 * Does something.
+	 */
+	public function b() {}
+
+	public function setName() {}
+
+	/**
+	 * Private constructor.
+	 */
+	private function c() {}
+
+	public function d() {}
+
+	/**
+	 * Does something.
+	 *
+	 * In steps:
+	 *   - first
+	 *   - second
+	 */
+	public function e() {}
+}
