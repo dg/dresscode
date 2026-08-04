@@ -1,0 +1,3 @@
+phpdoc:
+	annotation:
+		casing: canonicalCase
