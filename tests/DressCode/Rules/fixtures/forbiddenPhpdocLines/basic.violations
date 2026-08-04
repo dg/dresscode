@@ -1,0 +1,5 @@
+4: The doc comment line `Class constructor.` is forbidden.
+10: The doc comment line `Created by PhpStorm.` is forbidden.
+16: The doc comment line `Name setter.` is forbidden.
+26: The doc comment line `Constructor.` is forbidden.
+29: The doc comment line `Created by PhpStorm.` is forbidden.
