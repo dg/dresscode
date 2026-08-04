@@ -1,0 +1,13 @@
+<?php
+class Foo
+{
+	/**
+	 * The first line of the text,
+	 * then {@InheritDoc} in the middle
+	 * and the last line.
+	 * @Param int $x
+	 */
+	public function f($x)
+	{
+	}
+}

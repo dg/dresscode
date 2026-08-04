@@ -1,0 +1,2 @@
+4: Annotation `@InheritDoc` must be written `@inheritDoc`.
+4: Annotation `@Param` must be written `@param`.
