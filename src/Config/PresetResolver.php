@@ -8,6 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{Config, ConfigurableRule, ConfigurationException, Override, Preset, PresetInfo, Profile, Rule, RuleInfo};
+use DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationRule;
 use Nette\Schema\Elements\{ArrayType, Structure};
 use Nette\Schema\{Helpers, Processor, ValidationException};
 use PhpSyntax\SymbolKind;
@@ -24,6 +25,9 @@ final class PresetResolver
 {
 	/** the settings a preset may not make, because they are decisions of the project and not of a standard */
 	private const ProjectDecisions = ['php', 'nameResolution', 'fixRisky', 'warnings'];
+
+	/** the layer by which a certain resolution turns on the guard of its lists */
+	private const GuardLayer = 'nameResolution: certain';
 
 	/** @var array<string, string> */
 	private array $warnings = [];
@@ -80,7 +84,14 @@ final class PresetResolver
 				$eol = $profile->eol ?? $eol;
 				$lineLength = $profile->lineLength ?? $lineLength;
 				$php = $profile->php ?? $php;
-				$resolution = $profile->nameResolution ?? $resolution;
+				// a resolution called certain rests on lists that must stay complete, so it turns on their guard below the
+				// rules of the same profile, which may still turn it off
+				if ($profile->nameResolution !== null) {
+					$resolution = $profile->nameResolution;
+					if ($resolution === 'certain') {
+						$layers[NoUnlistedNamespacedDeclarationRule::class][] = [self::GuardLayer, true];
+					}
+				}
 
 				foreach ([
 					[SymbolKind::Function, $profile->namespaces['functions']],
@@ -109,6 +120,15 @@ final class PresetResolver
 
 			} catch (ConfigurationException $e) {
 				throw self::locate($e, $isPreset ? "preset $source" : $source);
+			}
+		}
+
+		// a file whose resolution is not certain in the end has no lists to guard
+		$guard = NoUnlistedNamespacedDeclarationRule::class;
+		if ($resolution !== 'certain' && isset($layers[$guard])) {
+			$layers[$guard] = array_values(array_filter($layers[$guard], fn(array $layer) => $layer[0] !== self::GuardLayer));
+			if ($layers[$guard] === []) {
+				unset($layers[$guard]);
 			}
 		}
 
