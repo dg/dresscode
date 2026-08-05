@@ -1,0 +1,12 @@
+<?php
+// {"classes": "PascalCase", "methods": "camelCase", "functions": "camelCase", "variables": "camelCase", "ignorePatterns": ["~^(stream|dir)_~", "~^curl_~"]}
+class Wrapper
+{
+	public function stream_open() {}
+	public function dir_readdir() {}
+	public function other_method() {}
+}
+
+function curl_init() {}
+function curl_setopt($curl_handle, $option_name) {}
+function other_function() {}

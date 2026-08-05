@@ -1,0 +1,6 @@
+<?php
+// {"constants": "PascalCase"}
+class A
+{
+	const Good = 1, Io = 2, IO = 3, HTTPClient = 4, BAD_ONE = 5, HTTP = 6;
+}
