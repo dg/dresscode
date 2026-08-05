@@ -1,0 +1,14 @@
+<?php
+// {"constants": {"Lib\\*": "import", "Lib\\Sub*": "keep"}}
+namespace App;
+
+use const lib\BAR;
+use const Lib\FOO;
+use const Lib\subQUX;
+
+$a = FOO;
+$b = BAR;
+$c = \Other\BAZ;
+$d = \lib\sub\QUX;
+$e = \Lib\SubQUX;
+$f = subQUX;

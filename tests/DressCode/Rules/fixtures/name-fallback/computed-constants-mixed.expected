@@ -1,0 +1,8 @@
+<?php
+// {"constants": "fallback", "optimizedConstants": "qualified"}
+// nameResolution certain
+namespace App;
+
+if (\PHP_VERSION_ID >= 80400) {
+	trigger_error('x', E_USER_DEPRECATED);
+}

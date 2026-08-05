@@ -1,0 +1,8 @@
+<?php
+// {"functions": "fallback"}
+namespace App;
+
+use function strlen;
+
+\count($a);
+strlen($b);

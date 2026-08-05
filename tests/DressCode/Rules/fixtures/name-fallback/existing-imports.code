@@ -1,0 +1,9 @@
+<?php
+// {"optimizedFunctions": "qualified"}
+// risky
+namespace App;
+
+use function count;
+use function strlen, unused_fn;
+
+echo count([]) . strlen('') . is_array([]);

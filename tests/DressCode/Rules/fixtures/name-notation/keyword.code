@@ -1,0 +1,6 @@
+<?php
+// {"functions": "import"}
+namespace App;
+
+\fn\use();
+\Lib\helper();

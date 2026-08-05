@@ -1,0 +1,7 @@
+<?php
+// {"classes": "import", "globalClasses": "keep"}
+use Foo\Bar;
+
+$a = new \Lib\Foo;
+$b = new Lib\Thing;
+$c = new Bar\Baz;

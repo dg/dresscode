@@ -1,0 +1,11 @@
+<?php
+// {"globalClasses": "import"}
+namespace App;
+
+use DateTime;
+use Foo\Exception;
+use RuntimeException;
+
+$a = new DateTime;
+$b = new \Exception;
+throw new RuntimeException;

@@ -1,0 +1,26 @@
+<?php
+// {"optimizedFunctions": "qualified"}
+// nameResolution certain
+namespace KeyedStrict {
+	$a = in_array($x, ['a' => 'b', 1 => 2], \true);
+}
+
+namespace Signed {
+	$a = in_array($x, [-1, +2], true);
+}
+
+namespace Nowdoc {
+	$a = sprintf(<<<'X'
+		%s
+		X, $x);
+}
+
+namespace Concatenated {
+	$a = sprintf('%s' . ':%d', $x, $y);
+}
+
+namespace ImportedConstant {
+	use const PHP_OS_FAMILY;
+
+	$a = extension_loaded(PHP_OS_FAMILY);
+}

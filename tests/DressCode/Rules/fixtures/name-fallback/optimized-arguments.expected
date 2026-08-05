@@ -1,0 +1,26 @@
+<?php
+// {"optimizedFunctions": "qualified"}
+// nameResolution certain
+namespace App;
+
+use function array_slice;
+use function dirname;
+use function extension_loaded;
+use function func_get_args;
+use function function_exists;
+use function in_array;
+use function ord;
+use function sprintf;
+use function strlen;
+
+function withConstants(string $s, int $code)
+{
+	$a = strlen($s);
+	$b = ord('A');
+	$c = dirname(__DIR__, 2);
+	$d = sprintf('%s:%d %%', $s, $code);
+	$e = in_array($s, ['a', 'b'], true);
+	$f = array_slice(func_get_args(), 1);
+	$g = function_exists('mb_' . 'strlen');
+	$h = extension_loaded(\PHP_OS_FAMILY);
+}

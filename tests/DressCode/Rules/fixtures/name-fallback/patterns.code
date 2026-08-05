@@ -1,0 +1,6 @@
+<?php
+// {"functions": {"str_*": "qualified"}}
+// risky
+namespace App;
+
+echo strlen('') . str_replace('a', 'b', 'c') . count([]);

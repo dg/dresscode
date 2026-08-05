@@ -66,6 +66,13 @@ final class ImportNotationRule extends NodeRule implements ConfigurableRule
 	}
 
 
+	/** Whether a group use stays as it is, so that a name of its namespace may be written as an item of it. */
+	public function keepsGroups(): bool
+	{
+		return $this->groupUse === 'keep';
+	}
+
+
 	public function getVisitedTypes(): array
 	{
 		return [FileNode::class, NamespaceNode::class];

@@ -1,0 +1,10 @@
+<?php
+// {"optimizedFunctions": "qualified", "functions": "fallback"}
+// nameResolution certain
+namespace App;
+
+
+$a = dirname($path);
+$b = in_array($x, ['a', 'b'], $strict);
+$c = \chr(65);
+$d = \chr($code);

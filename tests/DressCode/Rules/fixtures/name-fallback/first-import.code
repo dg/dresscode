@@ -1,0 +1,12 @@
+<?php
+// {"optimizedFunctions": "qualified"}
+// risky
+namespace App;
+
+class B
+{
+	function g()
+	{
+		return count([]);
+	}
+}

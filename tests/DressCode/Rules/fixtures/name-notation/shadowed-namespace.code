@@ -1,0 +1,6 @@
+<?php
+// {"classes": "import", "globalClasses": "keep"}
+namespace App;
+
+$a = new \Foo\Bar;
+$b = new Bar;

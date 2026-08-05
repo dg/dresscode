@@ -1,0 +1,11 @@
+<?php
+// {"classes": "import", "globalClasses": "keep"}
+declare(strict_types=1);
+namespace App;
+
+use Lib\Foo;
+
+$x = new Foo;
+class Baz {}
+$y = new \Lib\Bar\Foo;
+$z = new \Lib\Baz;

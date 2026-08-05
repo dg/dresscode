@@ -1,0 +1,6 @@
+<?php
+// {"classes": "import"}
+namespace App ?>
+<html>
+<?php $x = new \Lib\Foo; ?>
+</html>

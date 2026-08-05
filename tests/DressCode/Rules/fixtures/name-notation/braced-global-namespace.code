@@ -1,0 +1,6 @@
+<?php
+// {"classes": "import", "globalClasses": "keep"}
+namespace {
+	$a = new \Lib\Foo;
+	$b = new Lib\Thing;
+}

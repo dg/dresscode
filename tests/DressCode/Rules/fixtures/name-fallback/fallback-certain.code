@@ -1,0 +1,11 @@
+<?php
+// {"functions": "fallback", "constants": "fallback"}
+// namespacedFunctions App\count
+// nameResolution certain
+namespace App;
+
+use const PHP_EOL;
+
+\count($a);
+\strlen($b);
+echo PHP_EOL . \M_PI . E_ALL;

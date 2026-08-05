@@ -1,0 +1,10 @@
+<?php
+// {"functions": {"str*": "qualified", "strtolower": "fallback", "*": "qualified"}, "optimizedFunctions": "fallback"}
+// nameResolution certain
+namespace App;
+
+$a = strlen('');
+$b = strtolower('');
+$c = str_repeat('', 1);
+$d = count([]);
+$e = array_map(null, []);

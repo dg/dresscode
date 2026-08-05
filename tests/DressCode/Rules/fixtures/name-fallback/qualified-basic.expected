@@ -1,0 +1,19 @@
+<?php
+// {"optimizedFunctions": "qualified", "constants": {"PHP_*": "qualified", "DIRECTORY_SEPARATOR": "qualified"}}
+// risky
+namespace App;
+
+use Foo\Bar;
+use function array_map;
+use function strlen;
+use const DIRECTORY_SEPARATOR;
+use const PHP_EOL;
+
+class A
+{
+	function f($x)
+	{
+		\count($x); strlen($x); in_array(1, $x); \array_map('f', $x); dump($x); \Foo\count($x); Bar::count($x); $x->strlen();
+		echo PHP_EOL . \PHP_VERSION . DIRECTORY_SEPARATOR . M_PI . Bar::PHP_X;
+	}
+}

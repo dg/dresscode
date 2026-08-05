@@ -1,0 +1,8 @@
+<?php
+// {"optimizedFunctions": "qualified"}
+// nameResolution certain
+namespace App ?>
+<html>
+<?php $x = strlen('a'); // dresscode:ignore ?>
+<?php $y = \strlen('b'); ?>
+</html>

@@ -1,0 +1,12 @@
+<?php
+// {"functions": "qualified", "constants": "qualified"}
+// risky
+namespace App;
+
+use function array_map;
+use function count;
+use function no_such_function;
+use const NO_SUCH_CONSTANT;
+use const PHP_EOL;
+
+echo array_map('f', []) . count([]) . no_such_function() . PHP_EOL . NO_SUCH_CONSTANT . true;
