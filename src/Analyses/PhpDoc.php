@@ -9,7 +9,7 @@ namespace DressCode\Analyses;
 
 use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
-use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocChildNode, PhpDocNode, PhpDocTagNode, PhpDocTextNode, TemplateTagValueNode, TypeAliasImportTagValueNode, TypeAliasTagValueNode};
+use PHPStan\PhpDocParser\Ast\PhpDoc\{GenericTagValueNode, InvalidTagValueNode, PhpDocChildNode, PhpDocNode, PhpDocTagNode, PhpDocTextNode, TemplateTagValueNode, TypeAliasImportTagValueNode, TypeAliasTagValueNode};
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\{ConstExprParser, PhpDocParser, TokenIterator, TypeParser};
 use PHPStan\PhpDocParser\ParserConfig;
@@ -146,5 +146,13 @@ final class PhpDoc
 	public static function isEmpty(PhpDocNode $node): bool
 	{
 		return array_all($node->children, fn(PhpDocChildNode $child) => $child instanceof PhpDocTextNode && trim($child->text) === '');
+	}
+
+
+	/** Whether the annotation has nothing after its name. */
+	public static function isEmptyTag(PhpDocTagNode $tag): bool
+	{
+		return ($tag->value instanceof InvalidTagValueNode || $tag->value instanceof GenericTagValueNode)
+			&& trim($tag->value->value) === '';
 	}
 }
