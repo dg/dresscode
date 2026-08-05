@@ -93,6 +93,7 @@ final class RuleRegistry
 		Rules\Functions\StrictCallRule::class,
 		Rules\Namespaces\ImportNotationRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
+		Rules\Namespaces\NoUnlistedNamespacedDeclarationRule::class,
 		Rules\Namespaces\OrderedImportsRule::class,
 		Rules\Namespaces\NameNotationRule::class,
 		Rules\Namespaces\NameFallbackRule::class,
