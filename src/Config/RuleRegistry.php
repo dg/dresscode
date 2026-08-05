@@ -37,6 +37,7 @@ final class RuleRegistry
 		Rules\Classes\NameCasingRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,
+		Rules\Classes\KindInClassNameRule::class,
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\Classes\SingleMemberPerDeclarationRule::class,
