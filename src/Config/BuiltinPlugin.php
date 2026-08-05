@@ -136,6 +136,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\PhpDoc\ForbiddenPhpdocLinesRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\PhpDoc\PhpdocNullPositionRule::class,
+				Rules\PhpDoc\PhpdocCanonicalTypesRule::class,
 				Rules\PhpDoc\PhpdocTrimRule::class,
 				Rules\Literals\NoBacktickOperatorsRule::class,
 				Rules\Literals\ComplexStringVariableRule::class,
