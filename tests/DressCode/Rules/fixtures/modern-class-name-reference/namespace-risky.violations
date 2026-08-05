@@ -1,0 +1,1 @@
+9: The class name must be obtained with self::class, unless the namespace declares get_class()

@@ -1,0 +1,11 @@
+<?php
+// risky
+namespace App;
+
+class A
+{
+	public function f()
+	{
+		return get_class();
+	}
+}
