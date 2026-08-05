@@ -131,6 +131,7 @@ final class RuleRegistry
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Expressions\UselessTernaryOperatorRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
+		Rules\PhpDoc\PhpDocTrimRule::class,
 		Rules\Literals\NoBacktickOperatorRule::class,
 		Rules\Literals\ComplexStringVariableRule::class,
 		Rules\Literals\NoImplicitBackslashRule::class,
