@@ -130,6 +130,7 @@ final class RuleRegistry
 		Rules\Expressions\ShortTernaryOperatorRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Expressions\UselessTernaryOperatorRule::class,
+		Rules\PhpDoc\PhpDocAlignmentRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
 		Rules\Literals\NoBacktickOperatorRule::class,
