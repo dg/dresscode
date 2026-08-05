@@ -1,0 +1,15 @@
+<?php
+// {"position": "first"}
+/**
+ * @param int|null $a
+ * @param null|int $b
+ * @param string|int|null $c
+ * @return array<int, Foo|null>
+ */
+function a($a, $b, $c) {}
+
+/** @var string|null */
+const X = 1;
+
+/** @var array<string, int|string|null> */
+const Y = 1;
