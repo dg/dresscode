@@ -1,0 +1,7 @@
+<?php
+// {"types.array": "keep"}
+/**
+ * @param array<int> $a
+ * @param int[] $c
+ */
+function f($a, $c) {}

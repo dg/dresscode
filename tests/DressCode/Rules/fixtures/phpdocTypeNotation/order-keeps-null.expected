@@ -1,0 +1,7 @@
+<?php
+// {"types.unionOrder": "byName", "types.array": "keep"}
+/**
+ * @param null|int|string $a
+ * @param Foo|null|string $b
+ */
+function f($a, $b) {}

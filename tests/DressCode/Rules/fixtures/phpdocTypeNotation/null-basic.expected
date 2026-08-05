@@ -1,0 +1,11 @@
+<?php
+// {"types.nullPosition": "last", "types.array": "keep"}
+/**
+ * @param int|null $a
+ * @param int|null $b
+ * @return array<int, Foo|null>
+ */
+function a($a, $b) {}
+
+/** @var string|int|null */
+const X = 1;

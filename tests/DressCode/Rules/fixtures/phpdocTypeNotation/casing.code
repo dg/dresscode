@@ -1,0 +1,22 @@
+<?php
+/**
+ * @param Int $x
+ * @param STRING $y
+ * @param Foo $z
+ * @return BOOL|Null
+ */
+function f($x, $y, $z) {
+}
+/** @var array<Int, String> */
+$a = [];
+/** @var int */
+$b = 1;
+/** @phpstan-type Entry array{Callback: \Closure, Int: STRING} */
+class Shape
+{
+}
+/**
+ * @title(value ="x", mode=True,)
+ */
+function annotated() {
+}

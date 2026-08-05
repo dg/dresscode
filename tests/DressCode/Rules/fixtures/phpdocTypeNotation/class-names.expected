@@ -1,0 +1,16 @@
+<?php
+namespace App;
+
+use Acme\Text\Str;
+
+class Resource
+{
+}
+
+/**
+ * @param Str $s
+ * @param Resource|resource $r
+ * @param str|int $i
+ * @return scalar
+ */
+function f($s, $r, $i) {}

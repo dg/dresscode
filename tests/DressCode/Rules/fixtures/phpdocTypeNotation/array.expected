@@ -1,0 +1,11 @@
+<?php
+/**
+ * @param array<int> $a
+ * @param array<array<int>> $b
+ * @param array<int> $c
+ * @param list<int> $d
+ * @param array<string, array<int>> $e
+ * @param array<int|string> $f
+ * @return array{a: array<int>}
+ */
+function f($a, $b, $c, $d, $e, $f) {}
