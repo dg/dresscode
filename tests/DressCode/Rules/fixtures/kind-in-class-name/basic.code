@@ -1,0 +1,16 @@
+<?php
+abstract class AbstractFoo {}
+abstract class FooAbstract {}
+abstract class Foo {}
+class AbstractBar {}
+interface FooInterface {}
+interface InterfaceFoo {}
+interface Foo2 {}
+trait FooTrait {}
+trait Trait1 {}
+trait TraitsAware {}
+abstract class Abstraction {}
+class ParseError2 {}
+class FooError {}
+class Error {}
+abstract class BaseError {}
