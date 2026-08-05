@@ -1,0 +1,10 @@
+<?php
+/**
+ * @return int
+ * @return string
+ */
+function a() {}
+/**
+ * @return int
+ */
+function b() {}

@@ -1,0 +1,16 @@
+<?php
+/**
+ * @param
+ * @return
+ */
+function a($a) {}
+
+class A
+{
+	/**
+	 * @param int $a
+	 * @return int
+	 * @internal
+	 */
+	public function b($a) {}
+}

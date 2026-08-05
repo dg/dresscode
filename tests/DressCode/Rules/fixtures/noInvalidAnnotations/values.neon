@@ -1,0 +1,5 @@
+phpdoc:
+	annotation:
+		paramOfMissingParameter: forbidden
+		duplicateReturn: forbidden
+		empty: forbidden
