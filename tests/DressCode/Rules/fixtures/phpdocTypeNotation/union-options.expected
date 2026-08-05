@@ -1,0 +1,11 @@
+<?php
+// {"types.nullable": "?T", "types.nullPosition": "last", "types.unionOrder": "byName", "types.array": "keep"}
+/**
+ * @param ?int $a
+ * @param array|Foo|string|null $b
+ * @param mixed|null $c
+ * @param (A&B)|null $d
+ * @param alpha|Zeta $e
+ * @return ?array<int>
+ */
+function f($a, $b, $c, $d, $e) {}

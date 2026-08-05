@@ -1,0 +1,8 @@
+<?php
+// {"types.builtin": "keep"}
+/**
+ * @param Integer|integer $a
+ * @param int[] $b
+ * @return BOOL|bool
+ */
+function f($a, $b) {}

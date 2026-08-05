@@ -1,0 +1,7 @@
+2: The type `integer` in a doc comment must be written `int`.
+2: The type `Boolean` in a doc comment must be written `bool`.
+2: A union type in a doc comment names a type twice.
+2: The type `callback` in a doc comment must be written `callable`.
+2: The type `double` in a doc comment must be written `float`.
+10: The type `str` in a doc comment must be written `string`.
+16: The type `integer` in a doc comment must be written `int`.

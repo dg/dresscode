@@ -1,0 +1,7 @@
+phpdoc:
+	types:
+		builtin: canonical
+		nullable: keep
+		nullPosition: keep
+		unionOrder: keep
+		array: 'array<T>'

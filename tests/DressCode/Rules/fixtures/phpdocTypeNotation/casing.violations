@@ -1,0 +1,7 @@
+2: The type `Int` in a doc comment must be written `int`.
+2: The type `STRING` in a doc comment must be written `string`.
+2: The type `BOOL` in a doc comment must be written `bool`.
+2: The type `Null` in a doc comment must be written `null`.
+10: The type `Int` in a doc comment must be written `int`.
+10: The type `String` in a doc comment must be written `string`.
+14: The type `STRING` in a doc comment must be written `string`.

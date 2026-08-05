@@ -1,0 +1,15 @@
+<?php
+// {"types.nullPosition": "first", "types.array": "keep"}
+/**
+ * @param null|int $a
+ * @param null|int $b
+ * @param null|string|int $c
+ * @return array<int, null|Foo>
+ */
+function a($a, $b, $c) {}
+
+/** @var null|string */
+const X = 1;
+
+/** @var array<string, null|int|string> */
+const Y = 1;
