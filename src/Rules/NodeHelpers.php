@@ -10,16 +10,19 @@ use PhpSyntax\Node;
 use PhpSyntax\Nodes\AttributeGroupNode;
 use PhpSyntax\Nodes\Expression;
 use PhpSyntax\Nodes\ExpressionNode;
+use PhpSyntax\Nodes\NameNode;
 use PhpSyntax\Nodes\NodeList;
 use PhpSyntax\Nodes\OperatorNode;
 use PhpSyntax\Nodes\Scalar;
 use PhpSyntax\Nodes\SeparatedNodeList;
 use PhpSyntax\Nodes\Statement;
 use PhpSyntax\Parser;
+use PhpSyntax\SymbolKind;
 use PhpSyntax\Token;
 use PhpSyntax\TokenKind;
 use PhpSyntax\Trivia;
 use PhpSyntax\TriviaKind;
+use PhpSyntax\UnqualifiedResolution;
 use function array_slice, assert, count;
 
 
@@ -211,6 +214,22 @@ final class NodeHelpers
 				$inner instanceof Expression\FunctionCallNode
 				&& array_any(['compact', 'extract', 'get_defined_vars'], fn(string $function) => $resolver->isGlobalFunctionCall($inner, $function))
 			));
+	}
+
+
+	/**
+	 * Why a call taken as a call of a global function may call another one: its name is unqualified in a namespace
+	 * that may declare a function of that name elsewhere (`UnqualifiedResolution::Uncertain`). A rule rewriting such a call
+	 * reports it as risky with this reason after the message; null when the call is certain.
+	 */
+	public static function findUncertainty(Expression\FunctionCallNode $call, RuleContext $context): ?string
+	{
+		$name = $call->name;
+		return $name instanceof NameNode
+			&& $name->isUnqualified()
+			&& $context->getAnalysis(NameResolver::class)->getUnqualifiedResolution($name->text, SymbolKind::Function, $call) === UnqualifiedResolution::Uncertain
+			? ', unless the namespace declares ' . strtolower($name->text) . '()'
+			: null;
 	}
 
 
