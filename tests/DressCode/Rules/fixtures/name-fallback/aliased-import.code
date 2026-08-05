@@ -1,0 +1,9 @@
+<?php
+// {"optimizedFunctions": "qualified"}
+// nameResolution certain
+namespace App;
+
+use function strlen as len;
+
+len($a);
+strlen($b);

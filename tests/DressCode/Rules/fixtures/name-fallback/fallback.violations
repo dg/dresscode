@@ -1,0 +1,4 @@
+6: Global function strlen() must not be imported
+7: Global function trim() must not be imported
+9: Global function count() must be written without the leading backslash
+11: Global function trim() must be written without the import

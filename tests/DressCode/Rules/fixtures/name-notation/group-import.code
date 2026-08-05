@@ -1,0 +1,8 @@
+<?php
+// {"classes": "import"}
+namespace App;
+
+use Lib\{Bar, Zed};
+
+$a = new \Lib\Foo;
+$b = new \Other\Thing;

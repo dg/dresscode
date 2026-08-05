@@ -1,0 +1,3 @@
+6: Global function strlen() must be imported
+8: Global function str_repeat() must be imported
+10: Global function array_map() must be imported

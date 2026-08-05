@@ -1,0 +1,21 @@
+<?php
+// {"optimizedFunctions": "qualified"}
+// nameResolution certain
+namespace App;
+
+function withVariables(string $s, array $list, string $name, int $code, bool $strict)
+{
+	$a = chr($code);
+	$b = defined($name);
+	$c = dirname($s);
+	$d = sprintf('%.2f', $s);
+	$e = in_array($s, $list, true);
+	$f = in_array($s, ['1', '2']);
+	$g = array_slice($list, 1);
+	$h = constant($name);
+	$i = sprintf(format: '%s', values: $s);
+	$j = extension_loaded(PHP_OS_FAMILY);
+	$k = in_array($s, ['a', 'b'], $strict);
+	$l = in_array($s, ['a', PHP_EOL]);
+	$m = in_array($s, [1.5], true);
+}

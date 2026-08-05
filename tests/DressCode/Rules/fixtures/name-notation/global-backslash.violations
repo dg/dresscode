@@ -1,0 +1,4 @@
+6: Global function strlen() must not be imported
+7: Global constant PHP_EOL must not be imported
+11: Global function strlen() must be written with the leading backslash
+13: Global constant PHP_EOL must be written with the leading backslash
