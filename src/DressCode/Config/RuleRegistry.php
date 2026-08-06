@@ -18,6 +18,7 @@ use DressCode\Rules;
 final class RuleRegistry
 {
 	private const BuiltInRules = [
+		Rules\Arrays\ArrayIndentationRule::class,
 		Rules\Expressions\OffsetBracketSpacingRule::class,
 		Rules\Arrays\ArraySpacingRule::class,
 		Rules\Arrays\ShortArraySyntaxRule::class,
