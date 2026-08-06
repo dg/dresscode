@@ -1,0 +1,36 @@
+<?php
+function a($c) {
+	return $c ? 1 : 2;
+}
+function b($c, $d) {
+	$x = $c > 1 ? 'a' : 'b';
+	if ($c) {
+		$y = 1;
+	} else {
+		$z = 2;
+	}
+	if ($c && $d) {
+		return 1;
+	} else {
+		return 2;
+	}
+	if ($c) {
+		// comment
+		return 1;
+	} else {
+		return 2;
+	}
+	return $c ? ($d ? 1 : 2) : 3;
+	if ($c) {
+		x();
+	} else {
+		y();
+	}
+	if ($c) {
+		return 1;
+	} elseif ($d) {
+		return 2;
+	} else {
+		return 3;
+	}
+}
