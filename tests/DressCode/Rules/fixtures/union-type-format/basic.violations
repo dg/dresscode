@@ -1,0 +1,5 @@
+2: The nullable type must be written '?int'
+2: The nullable type must be written '?Foo'
+2: null must come last in a union type
+2: null must come last in a union type
+4: The nullable type must be written '?int'

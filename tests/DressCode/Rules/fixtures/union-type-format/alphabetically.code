@@ -1,0 +1,3 @@
+<?php
+// {"alphabetically": true}
+function f(string|int|null $a, Foo|array|bool $b, null|B|a $c, int|string $d): int|string|null {}
