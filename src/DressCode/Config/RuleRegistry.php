@@ -90,6 +90,7 @@ final class RuleRegistry
 		Rules\Expressions\NoShortBoolCastRule::class,
 		Rules\Expressions\NoYodaComparisonRule::class,
 		Rules\Expressions\NotEqualsOperatorRule::class,
+		Rules\Expressions\NullCoalescingOperatorRule::class,
 		Rules\Expressions\ObjectOperatorSpacingRule::class,
 		Rules\Expressions\ReferenceSpacingRule::class,
 		Rules\Expressions\SpreadOperatorSpacingRule::class,

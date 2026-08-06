@@ -1,0 +1,13 @@
+<?php
+$a = $x ?? 'd';
+$b = $x['k'] ?? null;
+$c = $x ?? $d;
+$d = $x->y ?? $d;
+$e = $x ?? $d;
+$f = isset($x) ? $y : 'd';
+$g = isset($x, $y) ? $x : 'd';
+$h = isset(f()) ? f() : 'd';
+$i = $x ?? ($y ? 1 : 2);
+$k = !isset($x) ? 'd' : $x;
+$l = isset($x) ? /* c */ $x : 'd';
+$m = isset($x) ?: 'd';
