@@ -1,0 +1,11 @@
+<?php
+class A {
+	/** @var int */
+	// phpcs:ignore
+	public $a;
+
+	/** @var int */
+
+	// comment
+	public $b;
+}
