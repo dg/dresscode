@@ -1,0 +1,46 @@
+<?php
+$a = f();
+assert(is_int($a));
+$b = g();
+assert($b instanceof Foo || $b === null);
+[$c, $d] = h();
+assert(is_string($c));
+/** @var array<int> $e */
+$e = i();
+/**
+ * Something else.
+ */
+$f = j();
+assert($f instanceof \Bar);
+foreach ($list as $key => $value) {
+	x();
+}
+foreach ($list as $value) {
+	assert($value instanceof Foo);
+	x();
+}
+while ($g = next($list)) {
+	assert(is_int($g));
+	y();
+}
+/** @var int $h */
+$other = k();
+/** @var positive-int $i */
+$i = l();
+function fn1() {
+	$m = n();
+	assert($m instanceof Foo || $m === null);
+	return $m;
+}
+/** @template T of Row */
+class Repo {
+	/** @template U */
+	public function find(): void {
+		/** @var T $row */
+		$row = q();
+		/** @phpstan-var U|null $item */
+		$item = r();
+		$plain = s();
+		assert($plain instanceof Row);
+	}
+}

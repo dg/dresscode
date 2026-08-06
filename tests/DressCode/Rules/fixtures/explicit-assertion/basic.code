@@ -1,0 +1,46 @@
+<?php
+/** @var int $a */
+$a = f();
+/** @var Foo|null $b */
+$b = g();
+/** @var string $c a description */
+[$c, $d] = h();
+/** @var array<int> $e */
+$e = i();
+/**
+ * Something else.
+ * @var \Bar $f
+ */
+$f = j();
+foreach ($list as $key => $value) {
+	x();
+}
+/** @var Foo $value */
+foreach ($list as $value) {
+	x();
+}
+/** @var int $g */
+while ($g = next($list)) {
+	y();
+}
+/** @var int $h */
+$other = k();
+/** @var positive-int $i */
+$i = l();
+function fn1() {
+	/** @var ?Foo $m */
+	$m = n();
+	return $m;
+}
+/** @template T of Row */
+class Repo {
+	/** @template U */
+	public function find(): void {
+		/** @var T $row */
+		$row = q();
+		/** @phpstan-var U|null $item */
+		$item = r();
+		/** @var Row $plain */
+		$plain = s();
+	}
+}
