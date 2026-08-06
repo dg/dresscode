@@ -114,6 +114,7 @@ final class RuleRegistry
 		Rules\Literals\NoBacktickOperatorRule::class,
 		Rules\Literals\ComplexStringVariableRule::class,
 		Rules\Literals\NoImplicitBackslashRule::class,
+		Rules\Literals\HeredocIndentationRule::class,
 		Rules\Literals\NowdocWithoutInterpolationRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Literals\NoTrailingWhitespaceInStringRule::class,

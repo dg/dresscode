@@ -29,6 +29,7 @@ final class Per implements Preset
 
 			// 10. Heredoc and nowdoc
 			Rules\Literals\NowdocWithoutInterpolationRule::class => true,
+			Rules\Literals\HeredocIndentationRule::class => true,
 
 			// 12. Attributes
 			Rules\PhpDoc\AttributeAfterPhpDocRule::class => true,
