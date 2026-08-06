@@ -2,4 +2,5 @@ phpdoc:
 	annotation:
 		paramOfMissingParameter: forbidden
 		duplicateReturn: forbidden
+		duplicateVar: forbidden
 		empty: forbidden
