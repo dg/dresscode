@@ -132,6 +132,7 @@ final class RuleRegistry
 		Rules\Expressions\UselessTernaryOperatorRule::class,
 		Rules\PhpDoc\AnnotationNameRule::class,
 		Rules\PhpDoc\PhpDocAlignmentRule::class,
+		Rules\PhpDoc\ForbiddenAnnotationsRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
 		Rules\Literals\NoBacktickOperatorRule::class,
