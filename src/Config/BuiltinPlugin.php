@@ -140,6 +140,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\PhpDoc\PhpdocNullPositionRule::class,
 				Rules\PhpDoc\PhpdocCanonicalTypesRule::class,
 				Rules\PhpDoc\PhpdocTrimRule::class,
+				Rules\PhpDoc\NoEmptyVarAnnotationsRule::class,
 				Rules\Literals\NoBacktickOperatorsRule::class,
 				Rules\Literals\ComplexStringVariableRule::class,
 				Rules\Literals\NoImplicitBackslashesRule::class,
