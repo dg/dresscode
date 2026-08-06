@@ -1,0 +1,32 @@
+3: Wrong indentation of a statement
+5: Wrong indentation of a statement
+9: Wrong indentation of a member
+14: Wrong indentation of a member
+15: Wrong indentation of an opening brace
+16: Wrong indentation of a statement
+17: Wrong indentation of a statement
+19: Wrong indentation of a closing brace
+20: Wrong indentation of a continuation line
+21: Wrong indentation of a statement
+22: Wrong indentation of an argument
+23: Wrong indentation of a closing parenthesis
+25: Wrong indentation of a closing brace
+26: Wrong indentation of a statement
+27: Wrong indentation of a case
+28: Wrong indentation of a statement
+29: Wrong indentation of a statement
+30: Wrong indentation of a case
+31: Wrong indentation of a closing brace
+32: Wrong indentation of a statement
+33: Wrong indentation of a match arm
+34: Wrong indentation of a match arm
+35: Wrong indentation of a closing brace
+36: Wrong indentation of a statement
+37: Wrong indentation of a closing brace
+38: Wrong indentation of a closing brace
+39: Wrong indentation of a continuation line
+40: Wrong indentation of a closing brace
+41: Wrong indentation of a statement
+42: Wrong indentation of a closing brace
+43: Wrong indentation of the while keyword
+44: Wrong indentation of a closing brace

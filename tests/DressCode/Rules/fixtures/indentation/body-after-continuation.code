@@ -1,0 +1,14 @@
+<?php
+if ($a &&
+	$b) {
+		foo();
+		}
+foreach ($list as
+	$item) {
+	bar();
+}
+$f = function ($x) use (
+	$y,
+) {
+		return $x;
+};

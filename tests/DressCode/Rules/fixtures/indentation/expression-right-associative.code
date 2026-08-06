@@ -1,0 +1,15 @@
+<?php
+function f() {
+	return $this->response['candidates'][0]['finishReason']
+		?? $this->response['promptFeedback']['blockReason']
+		?? null;
+}
+$a = $b
+	. $c
+	. $d;
+$e = $f
+	** $g
+	** $h;
+$i = $j
+	?? ($k
+		?? $l);

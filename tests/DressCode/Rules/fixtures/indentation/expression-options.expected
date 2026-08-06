@@ -1,0 +1,16 @@
+<?php
+// {"binary": 1, "ternary": 0}
+// with binary at one level a chain steps in instead of lining up
+$a =
+	$b
+		&& $c;
+
+// and with the ternary at none it lines up instead of stepping in
+$d =
+	$e
+	? $f
+	: $g;
+
+// an expression sharing its line steps in whatever the options say
+$h = $i
+	&& $j;

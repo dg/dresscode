@@ -128,6 +128,7 @@ final class RuleRegistry
 		Rules\ControlFlow\SingleStatementPerLineRule::class,
 		Rules\Files\EofNewlineRule::class,
 		Rules\Whitespace\ConstructSpacingRule::class,
+		Rules\Whitespace\IndentationRule::class,
 	];
 
 	/** @var array<string, class-string<Rule>>  name → class */

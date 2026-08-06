@@ -1,0 +1,24 @@
+<?php
+class A
+{
+	public function right(
+		int $a,
+		int $b,
+	): void {
+	}
+
+	public function tooShallow(
+	int $a,
+	int $b,
+): void {
+	}
+
+	public function tooDeep(
+				int $a,
+				/** @var array<int> */
+				array $b = [
+					1,
+				],
+			): void {
+	}
+}
