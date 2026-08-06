@@ -14,3 +14,11 @@ class A
 	 */
 	public function b($a) {}
 }
+
+class B
+{
+	/**
+	 * @see
+	 */
+	public function c() {}
+}
