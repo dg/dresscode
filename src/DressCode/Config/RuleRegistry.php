@@ -42,6 +42,7 @@ final class RuleRegistry
 		Rules\Comments\NoHashCommentRule::class,
 		Rules\ControlFlow\NoUnreachableCatchRule::class,
 		Rules\ControlFlow\ElseifKeywordRule::class,
+		Rules\ControlFlow\MultiLineConditionRule::class,
 		Rules\ControlFlow\NoAlternativeSyntaxRule::class,
 		Rules\ControlFlow\FallThroughCommentRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
