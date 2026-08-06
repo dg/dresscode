@@ -118,6 +118,7 @@ final class RuleRegistry
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Literals\NoTrailingWhitespaceInStringRule::class,
 		Rules\Literals\SingleQuotedStringsRule::class,
+		Rules\PhpDoc\ExplicitAssertionRule::class,
 		Rules\Types\NullableTypeForDefaultNullRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
 		Rules\Variables\CombinedIssetsRule::class,
