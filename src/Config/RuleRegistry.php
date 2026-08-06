@@ -133,6 +133,7 @@ final class RuleRegistry
 		Rules\PhpDoc\AnnotationNameRule::class,
 		Rules\PhpDoc\PhpDocAlignmentRule::class,
 		Rules\PhpDoc\ForbiddenAnnotationsRule::class,
+		Rules\PhpDoc\ForbiddenPhpDocLinesRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
 		Rules\Literals\NoBacktickOperatorRule::class,
