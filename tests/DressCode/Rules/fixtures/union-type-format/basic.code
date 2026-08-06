@@ -1,0 +1,5 @@
+<?php
+function a(int|null $a, null|Foo $b, int|string|null $c, null|int|string $d, ?int $e, (A&B)|null $f, int|null|string $g): Foo|Bar|null {}
+class C {
+	public null|int $p;
+}

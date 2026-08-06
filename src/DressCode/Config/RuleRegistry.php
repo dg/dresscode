@@ -128,6 +128,7 @@ final class RuleRegistry
 		Rules\PhpDoc\ExplicitAssertionRule::class,
 		Rules\Types\NullableTypeForDefaultNullRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
+		Rules\Types\UnionTypeFormatRule::class,
 		Rules\Variables\CombinedIssetsRule::class,
 		Rules\Variables\CombinedUnsetsRule::class,
 		Rules\Variables\NoDuplicateAssignmentRule::class,
