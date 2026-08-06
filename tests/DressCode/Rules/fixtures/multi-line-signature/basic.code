@@ -1,0 +1,23 @@
+<?php
+class A
+{
+	public function __construct(private int $a, protected readonly string $b = "x")
+	{
+	}
+
+	public function long(string $aaaaaaaaaaaaaaaaaaaa, string $bbbbbbbbbbbbbbbbbbbb, string $cccccccccccccccccccc, string $dddddddddddddddddddd, string $eeeeeeeeee): void
+	{
+	}
+
+	public function short(int $a, int $b): void
+	{
+	}
+
+	public function partly(int $a,
+		int $b, /* c */
+			array $c = [
+				1,
+			],
+	) {
+	}
+}

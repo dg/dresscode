@@ -58,6 +58,7 @@ final class RuleRegistry
 		Rules\Files\NoClosingTagRule::class,
 		Rules\Functions\ArrowFunctionRule::class,
 		Rules\Functions\MultiLineCallRule::class,
+		Rules\Functions\MultiLineSignatureRule::class,
 		Rules\Functions\NamedArgumentSpacingRule::class,
 		Rules\Functions\NativeFunctionCasingRule::class,
 		Rules\Functions\NoAliasFunctionsRule::class,
