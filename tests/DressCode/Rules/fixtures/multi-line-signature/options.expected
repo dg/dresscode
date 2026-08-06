@@ -1,0 +1,10 @@
+<?php
+// {"minLineLength": 52, "promotedProperties": false}
+class A
+{
+	public function __construct(private int $a) {}
+	function f(
+		$aaaaaaaaaaaaaaa,
+		$bbbbbbbbbbbbbbb
+	) {}
+}
