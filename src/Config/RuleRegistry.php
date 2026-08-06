@@ -54,6 +54,7 @@ final class RuleRegistry
 		Rules\Files\LineEndingRule::class,
 		Rules\Files\NoClosingTagRule::class,
 		Rules\Functions\ArrowFunctionRule::class,
+		Rules\Functions\MultiLineCallRule::class,
 		Rules\Functions\NamedArgumentSpacingRule::class,
 		Rules\Functions\NativeFunctionCasingRule::class,
 		Rules\Functions\NoAliasFunctionsRule::class,
