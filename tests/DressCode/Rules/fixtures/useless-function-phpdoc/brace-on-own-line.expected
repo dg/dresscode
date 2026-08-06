@@ -1,0 +1,25 @@
+<?php
+class A
+{
+	public function a(): string
+	{
+	}
+
+
+	public function b(int $a): string
+	{
+	}
+
+
+	/**
+	 * @return string the name
+	 */
+	public function c(): string
+	{
+	}
+}
+
+interface B
+{
+	public function a(): string;
+}
