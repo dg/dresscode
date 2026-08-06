@@ -1,0 +1,10 @@
+<?php
+/**
+ * @param null|int $a
+ * @param int|null $b
+ * @return array<int, null|Foo>
+ */
+function a($a, $b) {}
+
+/** @var null|string|int */
+const X = 1;

@@ -135,6 +135,7 @@ final class RuleRegistry
 		Rules\PhpDoc\ForbiddenAnnotationsRule::class,
 		Rules\PhpDoc\ForbiddenPhpDocLinesRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
+		Rules\PhpDoc\PhpDocNullLastRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
 		Rules\Literals\NoBacktickOperatorRule::class,
 		Rules\Literals\ComplexStringVariableRule::class,
