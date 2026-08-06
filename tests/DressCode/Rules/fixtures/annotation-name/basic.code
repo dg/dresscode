@@ -1,0 +1,10 @@
+<?php
+/**
+ * {@inheritdoc}
+ * @Return int
+ * @dataprovider provide
+ * @PHPStan-Return int
+ * @Template T
+ * @Custom
+ */
+function a() {}
