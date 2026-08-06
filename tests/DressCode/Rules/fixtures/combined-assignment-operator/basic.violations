@@ -1,0 +1,4 @@
+2: The assignment must be written += instead of repeating its target
+3: The assignment must be written .= instead of repeating its target
+4: The assignment must be written ??= instead of repeating its target
+7: The assignment must be written *= instead of repeating its target
