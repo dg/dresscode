@@ -1,0 +1,5 @@
+<?php
+// {"allowNested": false}
+$a = function ($x) { return $x + 1; };
+$h = function ($x) { return function () use ($x) { return $x; }; };
+$i = function ($x) { return fn() => $x; };

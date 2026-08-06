@@ -1,0 +1,9 @@
+<?php
+$a = function () use ($x, $name) { return $$name; };
+$b = function () use ($x, $name) { return ${$name}; };
+$c = function () use ($x) { return compact('x'); };
+$d = function () use ($x) { return get_defined_vars(); };
+$e = function () use ($x) { return extract(['y' => 1]) + $x; };
+$f = function () use ($x) { return eval('return $x;'); };
+$g = function () use ($x) { return include 'x.php'; };
+$h = function ($name) { return fn() => $$name; };
