@@ -114,6 +114,7 @@ final class RuleRegistry
 		Rules\PhpDoc\PropertyVarAnnotationRule::class,
 		Rules\PhpDoc\NoEmptyVarAnnotationRule::class,
 		Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
+		Rules\PhpDoc\UselessFunctionPhpDocRule::class,
 		Rules\PhpDoc\UselessInheritDocRule::class,
 		Rules\Literals\NoBacktickOperatorRule::class,
 		Rules\Literals\ComplexStringVariableRule::class,
