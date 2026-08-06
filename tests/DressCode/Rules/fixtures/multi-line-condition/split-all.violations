@@ -1,0 +1,4 @@
+3: A line break before the expression, some parts of the condition share a line
+3: A line break before the && operator, some parts of the condition share a line
+4: A line break before the closing parenthesis, some parts of the condition share a line
+6: A line break before the expression, the condition spans several lines

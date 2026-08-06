@@ -1,0 +1,9 @@
+<?php
+// {"splitAllParts": true}
+if ($a && $b
+	&& $c) {
+}
+if ($a
+	&& $b
+) {
+}

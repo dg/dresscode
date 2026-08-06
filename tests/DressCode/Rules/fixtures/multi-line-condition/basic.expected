@@ -1,0 +1,48 @@
+<?php
+if (
+	$someVeryLongVariableName !== null
+	&& $anotherVeryLongVariableName !== null
+	&& $yetAnotherVariableName > 1000
+	&& $ok
+) {
+	x();
+}
+if ($a && $b) {
+}
+while (
+	$someVeryLongVariableName !== null
+	&& $anotherVeryLongVariableName !== null
+	&& $yetAnotherVariableName > 1000
+	&& $ok
+) {
+}
+if ($a) {
+} elseif (
+	$someVeryLongVariableName !== null
+	&& (
+		$anotherVeryLongVariableName !== null
+		|| $yetAnotherVariableName > 1000
+	)
+	&& $ok
+) {
+}
+do {
+} while (
+	$someVeryLongVariableName !== null
+	&& $anotherVeryLongVariableName !== null
+	&& $yetAnotherVariableName > 1000
+	&& $ok
+);
+if ($someVeryLongVariableName !== null && $anotherVeryLongVariableName !== null /* c */ && $yetAnotherVariableName > 1000 && $ok) {
+}
+if (
+	$a && $b
+) {
+}
+if (
+	$someVeryLongVariableName !== null
+	&& $anotherVeryLongVariableName !== null
+	&& $yetAnotherVariableName > 1000
+	&& $ok
+):
+endif;
