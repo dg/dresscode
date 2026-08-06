@@ -138,6 +138,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\PhpDoc\NoUnknownParamAnnotationsRule::class,
 				Rules\PhpDoc\PhpdocNullPositionRule::class,
+				Rules\PhpDoc\PropertyPhpdocSinglelineRule::class,
 				Rules\PhpDoc\PhpdocCanonicalTypesRule::class,
 				Rules\PhpDoc\PhpdocTrimRule::class,
 				Rules\PhpDoc\PropertyVarAnnotationRule::class,
