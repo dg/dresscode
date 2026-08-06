@@ -78,6 +78,7 @@ final class RuleRegistry
 		Rules\Functions\MultiLineSignatureRule::class,
 		Rules\Functions\NamedArgumentSpacingRule::class,
 		Rules\Functions\FunctionNameSpacingRule::class,
+		Rules\Functions\StaticClosureRule::class,
 		Rules\Literals\ConstantCasingRule::class,
 		Rules\Literals\KeywordCasingRule::class,
 		Rules\Literals\NumericLiteralSeparatorRule::class,
