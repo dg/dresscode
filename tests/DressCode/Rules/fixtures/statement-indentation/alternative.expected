@@ -1,0 +1,12 @@
+<?php
+if ($a):
+	x();
+elseif ($b):
+	y();
+else:
+	z();
+endif;
+foreach ($a as $b):
+	x();
+endforeach;
+while ($a): endwhile;

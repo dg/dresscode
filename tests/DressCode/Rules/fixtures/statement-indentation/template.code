@@ -1,0 +1,8 @@
+<div>
+    <?php foreach ($a as $b): ?>
+        <?= $b ?>
+    <?php endforeach ?>
+</div>
+<?php if ($a) {
+    x();
+} ?>

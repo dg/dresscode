@@ -1,0 +1,16 @@
+<?php
+function f()
+{
+	$a = [
+		1,
+		2,
+	];
+	$s = <<<XX
+  keep
+    XX;
+	$b = "multi
+  line";
+	foo(function () {
+		return 1;
+	});
+}
