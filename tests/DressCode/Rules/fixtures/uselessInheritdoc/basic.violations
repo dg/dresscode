@@ -1,0 +1,2 @@
+3: Useless doc comment with `@inheritDoc`, because a doc comment is inherited without it.
+17: Useless doc comment with `@inheritDoc`, because a doc comment is inherited without it.
