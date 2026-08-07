@@ -1,0 +1,29 @@
+<?php
+class A {
+	/** @var int */
+	const B = 1;
+
+	/**
+	 * Summary.
+	 * @var string
+	 */
+	const C = "x";
+
+	/** @var int the answer */
+	const D = 42;
+
+	/** Plain description. */
+	const E = 2;
+
+	/** @var array<string, int> */
+	const F = ['a' => 1];
+
+	/** @var int[] */
+	const G = [1, 2];
+
+	/** @var array{a: int} */
+	const H = ['a' => 1];
+
+	/** @var ?int */
+	const I = null;
+}
