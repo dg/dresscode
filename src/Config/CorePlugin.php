@@ -149,6 +149,7 @@ final class CorePlugin implements Plugin
 				Rules\PhpDoc\PhpdocTypeNotationRule::class,
 				Rules\PhpDoc\NoPlainPropertyCommentsRule::class,
 				Rules\PhpDoc\SinglelinePropertyPhpdocRule::class,
+				Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,
