@@ -1,0 +1,17 @@
+<?php
+/**
+ * @param integer $x
+ * @param Boolean $y
+ * @param double|real $z
+ * @return callback
+ */
+function f($x, $y, $z) {
+}
+/** @var str */
+$a = "";
+/** @var int */
+$b = 1;
+/** @var Integration */
+$c = null;
+/** @var array{callback: integer, integer: int} */
+$s = [];

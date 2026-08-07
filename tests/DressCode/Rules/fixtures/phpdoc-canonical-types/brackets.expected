@@ -1,0 +1,10 @@
+<?php
+// {"arrayNotation": "brackets"}
+/**
+ * @param int[] $a
+ * @param int[][] $b
+ * @param int[] $c
+ * @param array<string, int> $d
+ * @param array<int|string> $e
+ */
+function f($a, $b, $c, $d, $e) {}
