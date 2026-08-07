@@ -140,6 +140,7 @@ final class CorePlugin implements Plugin
 				Rules\Namespaces\UselessAliasRule::class,
 				Rules\Namespaces\UselessCurrentNamespaceImportRule::class,
 				Rules\PhpDoc\AnnotationCasingRule::class,
+				Rules\PhpDoc\PhpdocAboveAttributesRule::class,
 				Rules\PhpDoc\ForbiddenAnnotationsRule::class,
 				Rules\PhpDoc\ForbiddenPhpdocLinesRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
