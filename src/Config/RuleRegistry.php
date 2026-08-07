@@ -136,6 +136,7 @@ final class RuleRegistry
 		Rules\PhpDoc\ForbiddenPhpDocLinesRule::class,
 		Rules\PhpDoc\NoDuplicateReturnAnnotationRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
+		Rules\PhpDoc\NoUnknownParamAnnotationRule::class,
 		Rules\PhpDoc\PhpDocNullLastRule::class,
 		Rules\PhpDoc\PhpDocCanonicalTypesRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
