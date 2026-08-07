@@ -145,6 +145,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\PhpDoc\PropertyVarAnnotationRule::class,
 				Rules\PhpDoc\NoEmptyVarAnnotationsRule::class,
 				Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
+				Rules\PhpDoc\UselessInheritdocRule::class,
 				Rules\Literals\NoBacktickOperatorsRule::class,
 				Rules\Literals\ComplexStringVariableRule::class,
 				Rules\Literals\NoImplicitBackslashesRule::class,
