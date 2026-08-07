@@ -1,0 +1,21 @@
+<?php
+/**
+ * Doc.
+ */
+#[Attr]
+class A {
+	/** @var int */
+	#[Attr]
+	#[Other]
+	public $x;
+
+	/** ok */
+	#[Attr]
+	public function ok() {}
+
+	#[Attr] /** inline */
+	public $y;
+}
+/** Fn. */
+#[Attr]
+function f(#[Attr] /** p */ int $p) {}
