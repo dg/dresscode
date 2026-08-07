@@ -134,6 +134,7 @@ final class RuleRegistry
 		Rules\PhpDoc\PhpDocAlignmentRule::class,
 		Rules\PhpDoc\ForbiddenAnnotationsRule::class,
 		Rules\PhpDoc\ForbiddenPhpDocLinesRule::class,
+		Rules\PhpDoc\NoDuplicateReturnAnnotationRule::class,
 		Rules\PhpDoc\NoEmptyPhpDocRule::class,
 		Rules\PhpDoc\PhpDocNullLastRule::class,
 		Rules\PhpDoc\PhpDocCanonicalTypesRule::class,
