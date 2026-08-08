@@ -158,6 +158,7 @@ final class RuleRegistry
 	public function __construct()
 	{
 		$this->registerPreset(Presets\Per::class);
+		$this->registerPreset(Presets\Psr12::class);
 		foreach (self::BuiltinRules as $class) {
 			$this->registerRule($class);
 		}
