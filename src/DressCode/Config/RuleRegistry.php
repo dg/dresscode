@@ -24,6 +24,7 @@ final class RuleRegistry
 		Rules\Arrays\ShortArraySyntaxRule::class,
 		Rules\Arrays\ShortListSyntaxRule::class,
 		Rules\Arrays\TrailingCommaRule::class,
+		Rules\Whitespace\AttributeSpacingRule::class,
 		Rules\ControlFlow\ContinuationPositionRule::class,
 		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\ControlFlow\UselessBracesRule::class,

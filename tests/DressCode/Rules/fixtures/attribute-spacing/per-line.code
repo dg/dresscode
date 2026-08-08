@@ -1,0 +1,11 @@
+<?php
+// {"groupPerLine": true}
+#[A] #[B]
+class C
+{
+	#[D] #[E] #[F]
+	public $x;
+	#[G]
+	#[H] public $y;
+}
+function f(#[I] #[J] $a) {}

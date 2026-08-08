@@ -1,0 +1,13 @@
+<?php
+#[Foo]
+#[Bar]
+#[Baz, Qux]
+#[
+    Multi,
+    Line
+]
+#[Args(1), Named(a: 1)]
+class A
+{
+    public function f(#[Param] int $x, #[Attr]int $y) {}
+}
