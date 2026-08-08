@@ -35,6 +35,9 @@ final class Per implements Preset
 			Rules\Literals\HeredocIndentationRule::class => true,
 
 			// 12. Attributes
+			Rules\Whitespace\AttributeSpacingRule::class => true,
+			Rules\Expressions\UselessAttributeParenthesesRule::class => true,
+			Rules\Whitespace\AttributePositionRule::class => true,
 			Rules\PhpDoc\AttributeAfterPhpDocRule::class => true,
 		];
 	}
