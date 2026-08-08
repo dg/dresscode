@@ -74,7 +74,9 @@ final class JsonReporter implements Reporter
 				'changedFiles' => $result->countChangedFiles(),
 				'errors' => $result->countErrors(),
 				'failures' => $result->countFailures(),
+				'baselined' => $result->baselined,
 			],
+			'warnings' => $result->warnings,
 		];
 		// the rest of the document, its outer braces stripped, continues the one opened in start()
 		$json = substr(json_encode($rest, self::Flags), 2, -2);

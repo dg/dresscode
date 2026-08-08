@@ -10,11 +10,14 @@ use function count;
  */
 final readonly class RunResult
 {
-	/** @param list<FileResult> $files */
 	public function __construct(
 		/** @var list<FileResult> */
 		public array $files,
 		public bool $fix,
+		/** violations the baseline silenced */
+		public int $baselined = 0,
+		/** @var list<string> about the run as a whole */
+		public array $warnings = [],
 	) {
 	}
 

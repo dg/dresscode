@@ -2,10 +2,11 @@
 
 namespace DressCode;
 
+use DressCode\Engine\Baseline;
 use DressCode\Engine\FileProcessor;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Finder;
-use function count, in_array, strlen;
+use function count, in_array, sprintf, strlen;
 
 
 /**
@@ -21,6 +22,7 @@ final class Runner
 	 * @param array<string, list<string>> $ruleExcludePaths  rule name → patterns of paths the rule is not applied to
 	 * @param list<string> $fileExtensions
 	 * @param ?\Closure(string $content, string $path): bool $skipWhen  files left out by their content
+	 * @param ?Baseline $baseline  violations left unreported
 	 */
 	public function __construct(
 		private readonly FileProcessor $processor,
@@ -33,6 +35,8 @@ final class Runner
 		private readonly array $fileExtensions = ['php'],
 		/** @var ?\Closure(string $content, string $path): bool files left out by their content */
 		private readonly ?\Closure $skipWhen = null,
+		/** violations left unreported */
+		private readonly ?Baseline $baseline = null,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
 	}
@@ -77,7 +81,13 @@ final class Runner
 			$results[] = $result;
 		}
 
-		$result = new RunResult($results, $fix);
+		$unused = $this->baseline?->countUnused() ?? 0;
+		$result = new RunResult(
+			$results,
+			$fix,
+			baselined: $this->baseline?->countMatched() ?? 0,
+			warnings: $unused ? [sprintf('%d %s of the baseline no longer match a violation; regenerate it', $unused, $unused === 1 ? 'entry' : 'entries')] : [],
+		);
 		$reporter->finish($result);
 		return $result;
 	}
@@ -101,7 +111,8 @@ final class Runner
 			}
 		}
 
-		return $this->processor->process($path, $code, $rules);
+		$result = $this->processor->process($path, $code, $rules);
+		return $this->baseline?->filter($result) ?? $result;
 	}
 
 
