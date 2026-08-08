@@ -11,7 +11,7 @@ use DressCode\Rules;
 /**
  * PER Coding Style 2.0, the default preset.
  */
-#[PresetInfo('dresscode/per', 'PER Coding Style 2.0')]
+#[PresetInfo('dresscode/per', 'PER Coding Style 3.1', indent: 4, eol: 'majority')]
 final class Per implements Preset
 {
 	public function getRules(PresetContext $context): array

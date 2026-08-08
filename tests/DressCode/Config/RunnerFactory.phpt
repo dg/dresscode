@@ -43,12 +43,12 @@ test('the PHP version comes from the configuration, composer.json or the runtime
 
 
 test('the engine is built from the configuration', function () use ($fixtures) {
-	$config = Config::create()->enable(ReportContext::class)->style(indent: '  ')->excludePaths(['sub']);
+	$config = Config::create()->enable(ReportContext::class)->style(indent: 2)->excludePaths(['sub']);
 	$runner = (new RunnerFactory)->createRunner($config, "$fixtures/project");
 	Assert::same([], $runner->findFiles(['src']));
 	$result = $runner->processFile('x.php', "<?php\r\n\$a;\r\n");
 	Assert::same(['8.1 "  ""\r\n"'], array_map(fn($v) => $v->message, $result->violations));
 
-	$runner = (new RunnerFactory)->createRunner($config->style(eol: "\n"), "$fixtures/project");
+	$runner = (new RunnerFactory)->createRunner($config->style(eol: 'lf'), "$fixtures/project");
 	Assert::same(['8.1 "  ""\n"'], array_map(fn($v) => $v->message, $runner->processFile('x.php', "<?php\r\n\$a;\r\n")->violations));
 });

@@ -14,7 +14,7 @@ use Nette\Schema\Elements\ArrayType;
 use Nette\Schema\Elements\Structure;
 use Nette\Schema\Processor;
 use Nette\Schema\ValidationException;
-use function is_array;
+use function is_array, is_int;
 
 
 /**
@@ -37,9 +37,14 @@ final class PresetResolver
 	public function resolve(Config $config, PresetContext $context): array
 	{
 		$entries = [];
-		$visited = [];
-		foreach ($config->getPresets() as $preset) {
-			$this->collect($this->registry->resolvePreset($preset), $context, $entries, $visited);
+		foreach ($this->listPresets($config) as $class) {
+			foreach ((new $class)->getRules($context) as $rule => $value) {
+				try {
+					$entries[$this->registry->resolveRule($rule)] = $value;
+				} catch (ConfigurationException $e) {
+					throw new ConfigurationException("{$e->getMessage()} (in preset " . PresetInfo::of($class)->name . ')', previous: $e);
+				}
+			}
 		}
 
 		foreach ($config->getRules() as $rule => $value) {
@@ -58,29 +63,74 @@ final class PresetResolver
 
 
 	/**
+	 * Indentation unit and line ending of a run: the configuration wins, then the last preset declaring
+	 * them, then a tab and the majority line ending of each file. 'platform' is answered here, so that
+	 * the rest of the run, the result cache included, sees the line ending it stands for.
+	 * @return array{string, "\n"|"\r\n"|'majority'}
+	 * @throws ConfigurationException
+	 */
+	public function resolveStyle(Config $config): array
+	{
+		$indent = $eol = null;
+		foreach ($this->listPresets($config) as $class) {
+			$info = PresetInfo::of($class);
+			$indent = $info->indent ?? $indent;
+			$eol = $info->eol ?? $eol;
+		}
+
+		$eol = match ($config->getEol() ?? $eol ?? 'majority') {
+			'lf' => "\n",
+			'crlf' => "\r\n",
+			'platform' => PHP_EOL === "\r\n" ? "\r\n" : "\n",
+			'majority' => 'majority',
+			default => throw new ConfigurationException("The line ending must be 'lf', 'crlf', 'majority' or 'platform'."),
+		};
+
+		$indent = $config->getIndent() ?? $indent ?? 'tab';
+		return [
+			match (true) {
+				$indent === 'tab' => "\t",
+				is_int($indent) && $indent >= 1 => str_repeat(' ', $indent),
+				default => throw new ConfigurationException("The indentation must be a number of spaces or 'tab'."),
+			},
+			$eol,
+		];
+	}
+
+
+	/**
+	 * Presets of the configuration with their parents, parents first, each once.
+	 * @return list<class-string<Preset>>
+	 * @throws ConfigurationException
+	 */
+	private function listPresets(Config $config): array
+	{
+		$list = $visited = [];
+		foreach ($config->getPresets() as $preset) {
+			$this->collectPreset($this->registry->resolvePreset($preset), $list, $visited);
+		}
+
+		return $list;
+	}
+
+
+	/**
 	 * @param  class-string<Preset>  $class
-	 * @param  array<class-string<Rule>, bool|array<string, mixed>|\Closure(): Rule>  $entries
+	 * @param  list<class-string<Preset>>  $list
 	 * @param  array<class-string<Preset>, true>  $visited
 	 */
-	private function collect(string $class, PresetContext $context, array &$entries, array &$visited): void
+	private function collectPreset(string $class, array &$list, array &$visited): void
 	{
 		if (isset($visited[$class])) {
 			return;
 		}
 
 		$visited[$class] = true;
-		$preset = new $class;
-		foreach ($preset->getParents() as $parent) {
-			$this->collect($this->registry->resolvePreset($parent), $context, $entries, $visited);
+		foreach ((new $class)->getParents() as $parent) {
+			$this->collectPreset($this->registry->resolvePreset($parent), $list, $visited);
 		}
 
-		foreach ($preset->getRules($context) as $rule => $value) {
-			try {
-				$entries[$this->registry->resolveRule($rule)] = $value;
-			} catch (ConfigurationException $e) {
-				throw new ConfigurationException("{$e->getMessage()} (in preset " . PresetInfo::of($class)->name . ')', previous: $e);
-			}
-		}
+		$list[] = $class;
 	}
 
 

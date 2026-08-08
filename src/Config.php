@@ -3,7 +3,7 @@
 namespace DressCode;
 
 use PhpSyntax\Nodes\FileNode;
-use function is_string;
+use function is_int, is_string;
 
 
 /**
@@ -35,9 +35,7 @@ final class Config
 
 	/** 'auto' means the version of composer.json */
 	private ?string $phpVersion = null;
-	private ?string $indent = null;
-
-	/** 'auto' means the prevailing line ending of each file */
+	private int|string|null $indent = null;
 	private ?string $eol = null;
 
 	/** @var ?list<string> */
@@ -141,10 +139,10 @@ final class Config
 
 
 	/**
-	 * @param ?string $indent  the indentation unit
-	 * @param ?string $eol  "\n", "\r\n" or 'auto'
+	 * @param int|string|null $indent  a number of spaces or 'tab'
+	 * @param ?string $eol  'lf', 'crlf', 'majority' or 'platform'
 	 */
-	public function style(?string $indent = null, ?string $eol = null): static
+	public function style(int|string|null $indent = null, ?string $eol = null): static
 	{
 		$this->indent = $indent ?? $this->indent;
 		$this->eol = $eol ?? $this->eol;
@@ -390,22 +388,29 @@ final class Config
 	}
 
 
-	/** The configured indentation unit; null leaves it to the presets. */
-	public function getIndent(): ?string
+	/**
+	 * The configured indentation; null leaves it to the presets.
+	 * @return int|'tab'|null
+	 */
+	public function getIndent(): int|string|null
 	{
-		return $this->indent;
+		return match (true) {
+			$this->indent === null, $this->indent === 'tab' => $this->indent,
+			is_int($this->indent) && $this->indent >= 1 => $this->indent,
+			default => throw new ConfigurationException("The indentation must be a number of spaces or 'tab'."),
+		};
 	}
 
 
 	/**
 	 * The configured line ending; null leaves it to the presets.
-	 * @return "\n"|"\r\n"|'auto'|null
+	 * @return 'lf'|'crlf'|'majority'|'platform'|null
 	 */
 	public function getEol(): ?string
 	{
 		return match ($this->eol) {
-			null, "\n", "\r\n", 'auto' => $this->eol,
-			default => throw new ConfigurationException('The line ending must be "\n", "\r\n" or \'auto\'.'),
+			null, 'lf', 'crlf', 'majority', 'platform' => $this->eol,
+			default => throw new ConfigurationException("The line ending must be 'lf', 'crlf', 'majority' or 'platform'."),
 		};
 	}
 

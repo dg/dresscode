@@ -116,6 +116,22 @@ final class ChildPreset implements Preset
 }
 
 
+#[PresetInfo('test/styled', indent: 2, eol: 'lf')]
+final class StyledPreset implements Preset
+{
+	public function getRules(PresetContext $context): array
+	{
+		return [];
+	}
+
+
+	public function getParents(): array
+	{
+		return [BasePreset::class];
+	}
+}
+
+
 #[PresetInfo('test/broken')]
 final class BrokenPreset implements Preset
 {
@@ -180,6 +196,21 @@ test('a list option replaces its default instead of being merged with it', funct
 test('a configuration without a preset', function () {
 	Assert::same(['test/c', 'test/a'], names(resolve(Config::create()->enable(RuleC::class)->enable(RuleA::class))));
 	Assert::same([], resolve(Config::create()));
+});
+
+
+test('the style comes from the configuration, else from the last preset declaring one, else tab and majority', function () {
+	$resolver = new PresetResolver(new RuleRegistry);
+	Assert::same(["\t", 'majority'], $resolver->resolveStyle(Config::create()));
+	Assert::same(["\t", 'majority'], $resolver->resolveStyle(Config::create()->preset(ChildPreset::class)));
+	Assert::same(['  ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)));
+	Assert::same(['  ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->preset(ChildPreset::class)));
+	Assert::same(['    ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(indent: 4)));
+	Assert::same(['  ', "\r\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(eol: 'crlf')));
+	Assert::same(['  ', 'majority'], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(eol: 'majority')));
+	Assert::same(['  ', PHP_EOL], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(eol: 'platform')));
+	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->style(eol: 'unix')), ConfigurationException::class, "The line ending must be 'lf', 'crlf', 'majority' or 'platform'.");
+	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->style(indent: 'spaces')), ConfigurationException::class, "The indentation must be a number of spaces or 'tab'.");
 });
 
 

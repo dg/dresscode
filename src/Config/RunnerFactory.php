@@ -31,20 +31,21 @@ final class RunnerFactory
 	public function createRunner(Config $config, string $root, bool $strict = false): Runner
 	{
 		$phpVersion = $this->resolvePhpVersion($config, $root);
-		$rules = new PresetResolver($this->registry)->resolve($config, new PresetContext($phpVersion));
+		$resolver = new PresetResolver($this->registry);
+		$rules = $resolver->resolve($config, new PresetContext($phpVersion));
 		$analyses = new Analyses\Registry;
 		foreach ($config->getAnalyses() as $class => $factory) {
 			$analyses->register($class, $factory);
 		}
 
-		$eol = $config->getEol() ?? 'auto';
+		[$indent, $eol] = $resolver->resolveStyle($config);
 		$processor = new FileProcessor(
 			$rules,
 			$analyses,
 			$this->registry->resolveNames(...),
 			$phpVersion,
-			new Style($config->getIndent() ?? "\t", $eol === 'auto' ? "\n" : $eol),
-			detectEol: $eol === 'auto',
+			new Style($indent, $eol === 'majority' ? "\n" : $eol),
+			detectEol: $eol === 'majority',
 			strict: $strict,
 		);
 		return new Runner(
