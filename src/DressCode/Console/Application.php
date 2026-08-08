@@ -9,12 +9,15 @@ use DressCode\ConfigurationException;
 use DressCode\ConvergenceException;
 use DressCode\Engine\Baseline;
 use DressCode\Engine\RunResult;
+use DressCode\Engine\SuppressionMigration;
 use DressCode\Reporter;
 use DressCode\Reporters;
 use DressCode\RuleException;
 use DressCode\RuleInfo;
 use Nette\CommandLine\Console;
 use Nette\CommandLine\Parser;
+use PhpSyntax\ParseException;
+use PhpSyntax\Printer;
 
 
 /**
@@ -31,6 +34,8 @@ final class Application
 		  dresscode check [paths...] [options]   report violations
 		  dresscode fix [paths...] [options]     fix what the rules can and report the rest
 		  dresscode rules [options]              list the known rules
+		  dresscode migrate-suppressions [paths...] [options]
+		                                         rewrite phpcs suppression comments to the dresscode form
 
 		Options:
 		  --config <file>           configuration file; the nearest dresscode.php when omitted
@@ -106,6 +111,7 @@ final class Application
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
 				'rules' => $this->runRules($args),
+				'migrate-suppressions' => $this->runMigrateSuppressions($args),
 				default => throw new UsageException("Unknown command '{$args['command']}'."),
 			};
 
@@ -210,6 +216,59 @@ final class Application
 		$baseline->save($file);
 		$this->write(sprintf("Baseline with %d violation%s written to %s.\n", $baseline->count(), $baseline->count() === 1 ? '' : 's', $name));
 		return $run->countFailures() || $run->countErrors() ? 2 : 0;
+	}
+
+
+	/**
+	 * Rewrites the phpcs suppression comments of the files to the dresscode form and writes them back.
+	 * @param array<string, mixed> $args
+	 */
+	private function runMigrateSuppressions(array $args): int
+	{
+		$factory = new EngineFactory;
+		[$config, $root] = $this->loadConfig($args);
+		$engine = $factory->createEngine($config, $root);
+		$paths = $args['paths'] ?: $config->getPaths();
+		if (!$paths) {
+			throw new UsageException('No paths given and none configured.');
+		}
+
+		$migration = new SuppressionMigration($factory->getRegistry()->resolveName(...));
+		$parser = new \PhpSyntax\Parser\Parser;
+		$files = 0;
+		foreach ($engine->findFiles($paths) as $path) {
+			$absolute = $engine->toAbsolute($path);
+			$code = @file_get_contents($absolute); // @ - reported as exception
+			if ($code === false) {
+				throw new \RuntimeException("Cannot read file $path.");
+			}
+
+			try {
+				$file = $parser->parse($code);
+			} catch (ParseException $e) {
+				$this->write("$path: skipped, {$e->getMessage()}\n");
+				continue;
+			}
+
+			if ($migration->migrate($file)) {
+				if (@file_put_contents($absolute, Printer::print($file)) === false) { // @ - reported as exception
+					throw new \RuntimeException("Cannot write file $path.");
+				}
+
+				$files++;
+			}
+		}
+
+		$this->write(sprintf("Migrated %d suppression comment%s in %d file%s.\n", $migration->count, $migration->count === 1 ? '' : 's', $files, $files === 1 ? '' : 's'));
+		if ($migration->unknownNames) {
+			$this->write('Warning: unknown rule names kept as they are: ' . implode(', ', array_keys($migration->unknownNames)) . "\n");
+		}
+
+		if ($migration->ownLineIgnore) {
+			$this->write("Note: dresscode:ignore on a line of its own covers the whole statement below it, not just the next line; review the migrated ones.\n");
+		}
+
+		return 0;
 	}
 
 

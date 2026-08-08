@@ -151,7 +151,7 @@ final class Engine
 	/**
 	 * A path outside the root stays absolute, a relative one is under the root.
 	 */
-	private function toAbsolute(string $path): string
+	public function toAbsolute(string $path): string
 	{
 		return match (true) {
 			$path === '' => $this->root,
