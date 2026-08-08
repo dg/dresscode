@@ -115,6 +115,22 @@ final class ChildPreset implements Preset
 }
 
 
+#[PresetInfo('test/styled', indent: '  ', eol: "\n")]
+final class StyledPreset implements Preset
+{
+	public function getRules(PresetContext $context): array
+	{
+		return [];
+	}
+
+
+	public function getParents(): array
+	{
+		return [BasePreset::class];
+	}
+}
+
+
 #[PresetInfo('test/broken')]
 final class BrokenPreset implements Preset
 {
@@ -179,6 +195,19 @@ test('a list option replaces its default instead of being merged with it', funct
 test('a configuration without a preset', function () {
 	Assert::same(['test/c', 'test/a'], names(resolve(Config::create()->enable(RuleC::class)->enable(RuleA::class))));
 	Assert::same([], resolve(Config::create()));
+});
+
+
+test('the style comes from the configuration, else from the last preset declaring one, else tab and auto', function () {
+	$resolver = new PresetResolver(new RuleRegistry);
+	Assert::same(["\t", 'auto'], $resolver->resolveStyle(Config::create()));
+	Assert::same(["\t", 'auto'], $resolver->resolveStyle(Config::create()->preset(ChildPreset::class)));
+	Assert::same(['  ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)));
+	Assert::same(['  ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->preset(ChildPreset::class)));
+	Assert::same(['    ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(indent: '    ')));
+	Assert::same(['  ', "\r\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(eol: "\r\n")));
+	Assert::same(['  ', 'auto'], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(eol: 'auto')));
+	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->style(eol: 'crlf')), ConfigurationException::class, 'The line ending must be "\n", "\r\n" or \'auto\'.');
 });
 
 

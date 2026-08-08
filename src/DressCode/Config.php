@@ -208,18 +208,21 @@ final class Config
 	}
 
 
-	public function getIndent(): string
+	/** The configured indentation unit; null leaves it to the presets. */
+	public function getIndent(): ?string
 	{
-		return $this->indent ?? "\t";
+		return $this->indent;
 	}
 
 
-	/** @return "\n"|"\r\n"|'auto' */
-	public function getEol(): string
+	/**
+	 * The configured line ending; null leaves it to the presets.
+	 * @return "\n"|"\r\n"|'auto'|null
+	 */
+	public function getEol(): ?string
 	{
 		return match ($this->eol) {
-			null, 'auto' => 'auto',
-			"\n", "\r\n" => $this->eol,
+			null, "\n", "\r\n", 'auto' => $this->eol,
 			default => throw new ConfigurationException('The line ending must be "\n", "\r\n" or \'auto\'.'),
 		};
 	}

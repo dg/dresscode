@@ -31,18 +31,19 @@ final class EngineFactory
 	public function createEngine(Config $config, string $root, bool $strict = false): Engine
 	{
 		$phpVersion = $this->resolvePhpVersion($config, $root);
-		$rules = (new PresetResolver($this->registry))->resolve($config, new PresetContext($phpVersion));
+		$resolver = new PresetResolver($this->registry);
+		$rules = $resolver->resolve($config, new PresetContext($phpVersion));
 		$analyses = new AnalysisRegistry;
 		foreach ($config->getAnalyses() as $class => $factory) {
 			$analyses->register($class, $factory);
 		}
 
-		$eol = $config->getEol();
+		[$indent, $eol] = $resolver->resolveStyle($config);
 		$processor = new FileProcessor(
 			$rules,
 			$analyses,
 			$this->registry->resolveName(...),
-			new Style($config->getIndent(), $eol === 'auto' ? "\n" : $eol),
+			new Style($indent, $eol === 'auto' ? "\n" : $eol),
 			detectEol: $eol === 'auto',
 			phpVersion: $phpVersion,
 			strict: $strict,

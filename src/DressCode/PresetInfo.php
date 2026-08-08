@@ -3,12 +3,21 @@
 namespace DressCode;
 
 
+/**
+ * Name and description of a preset, and the style it needs when the configuration sets none.
+ */
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final readonly class PresetInfo
 {
+	/**
+	 * @param ?string $indent  the indentation unit
+	 * @param ?string $eol  "\n" or "\r\n"
+	 */
 	public function __construct(
 		public string $name,
 		public string $description = '',
+		public ?string $indent = null,
+		public ?string $eol = null,
 	) {
 	}
 

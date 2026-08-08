@@ -13,8 +13,8 @@ test('defaults', function () {
 	Assert::same([], $config->getPresets());
 	Assert::same([], $config->getRules());
 	Assert::same('auto', $config->getPhpVersion());
-	Assert::same("\t", $config->getIndent());
-	Assert::same('auto', $config->getEol());
+	Assert::null($config->getIndent());
+	Assert::null($config->getEol());
 	Assert::same([], $config->getPaths());
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'], $config->getSkip());
 	Assert::same([], $config->getRuleSkip());
