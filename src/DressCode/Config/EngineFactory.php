@@ -6,6 +6,7 @@ use DressCode\AnalysisRegistry;
 use DressCode\Config;
 use DressCode\ConfigurationException;
 use DressCode\Engine;
+use DressCode\Engine\Baseline;
 use DressCode\Engine\FileProcessor;
 use DressCode\PresetContext;
 use PhpSyntax\PhpVersion;
@@ -55,7 +56,26 @@ final class EngineFactory
 			$config->getRuleSkip(),
 			$config->getFileExtensions(),
 			$config->getSkipWhen(),
+			self::loadBaseline($config, $root),
 		);
+	}
+
+
+	/** The configured baseline when its file exists; before the first generation there is none. */
+	public static function loadBaseline(Config $config, string $root): ?Baseline
+	{
+		$file = self::resolveBaselineFile($config, $root);
+		return $file !== null && is_file($file) ? Baseline::load($file) : null;
+	}
+
+
+	/** Absolute path of the configured baseline file, relative paths under the root. */
+	public static function resolveBaselineFile(Config $config, string $root): ?string
+	{
+		$file = $config->getBaseline();
+		return $file === null || preg_match('~^(?:[A-Za-z]:)?[/\\\]~', $file)
+			? $file
+			: rtrim(str_replace('\\', '/', $root), '/') . '/' . $file;
 	}
 
 

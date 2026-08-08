@@ -50,11 +50,11 @@ final class ConsoleReporter implements Reporter
 	public function reportFile(FileResult $result): void
 	{
 		if (
-		    !$result->violations
-		    && !$result->warnings
-		    && $result->error === null
-		    && $result->failure === null
-		    && !$result->isChanged()
+			!$result->violations
+			&& !$result->warnings
+			&& $result->error === null
+			&& $result->failure === null
+			&& !($result->isChanged() && ($this->fix || $this->diff))
 		) {
 			return;
 		}
@@ -126,6 +126,14 @@ final class ConsoleReporter implements Reporter
 
 		if ($failures = $result->countFailures()) {
 			$line .= sprintf(', %s failed', self::plural($failures, 'file'));
+		}
+
+		if ($result->baselined) {
+			$line .= sprintf(', %s in the baseline', self::plural($result->baselined, 'violation'));
+		}
+
+		foreach ($result->warnings as $warning) {
+			$this->write($this->console->color('yellow', 'Warning') . ": $warning\n");
 		}
 
 		$this->write($this->console->color($result->getExitCode() === 0 ? 'green' : 'red', "$line.") . "\n");

@@ -162,6 +162,7 @@ final class Config
 	}
 
 
+	/** JSON file of violations left unreported, relative to the root; `check --generate-baseline` writes it */
 	public function baseline(?string $file): static
 	{
 		$this->baseline = $file;

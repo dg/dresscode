@@ -2,6 +2,7 @@
 
 namespace DressCode;
 
+use DressCode\Engine\Baseline;
 use DressCode\Engine\FileProcessor;
 use DressCode\Engine\FileResult;
 use DressCode\Engine\PathGlob;
@@ -23,6 +24,7 @@ final class Engine
 	 * @param array<string, list<string>> $ruleSkip  rule name → patterns of paths the rule is not applied to
 	 * @param list<string> $fileExtensions
 	 * @param ?\Closure(string $content, string $path): bool $skipWhen  files left out by their content
+	 * @param ?Baseline $baseline  violations left unreported
 	 */
 	public function __construct(
 		private readonly FileProcessor $processor,
@@ -31,6 +33,7 @@ final class Engine
 		private readonly array $ruleSkip = [],
 		private readonly array $fileExtensions = ['php'],
 		private readonly ?\Closure $skipWhen = null,
+		private readonly ?Baseline $baseline = null,
 	) {
 		$this->root = rtrim(str_replace('\\', '/', $root), '/');
 	}
@@ -75,7 +78,13 @@ final class Engine
 			$results[] = $result;
 		}
 
-		$result = new RunResult($results, $fix);
+		$unused = $this->baseline?->countUnused() ?? 0;
+		$result = new RunResult(
+			$results,
+			$fix,
+			baselined: $this->baseline?->countMatched() ?? 0,
+			warnings: $unused ? [sprintf('%d %s of the baseline no longer match a violation; regenerate it', $unused, $unused === 1 ? 'entry' : 'entries')] : [],
+		);
 		$reporter->finish($result);
 		return $result;
 	}
@@ -99,7 +108,8 @@ final class Engine
 			}
 		}
 
-		return $this->processor->process($path, $code, $rules);
+		$result = $this->processor->process($path, $code, $rules);
+		return $this->baseline?->filter($result) ?? $result;
 	}
 
 

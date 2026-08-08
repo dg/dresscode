@@ -69,7 +69,9 @@ final class JsonReporter implements Reporter
 				'changedFiles' => $result->countChangedFiles(),
 				'errors' => $result->countErrors(),
 				'failures' => $result->countFailures(),
+				'baselined' => $result->baselined,
 			],
+			'warnings' => $result->warnings,
 		];
 		fwrite($this->stream, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n");
 	}

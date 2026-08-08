@@ -177,8 +177,10 @@ test('json', function () {
 		        "fixable": 1,
 		        "changedFiles": 1,
 		        "errors": 1,
-		        "failures": 1
-		    }
+		        "failures": 1,
+		        "baselined": 0
+		    },
+		    "warnings": []
 		}
 
 		XX, capture(fn($s) => new JsonReporter($s), fix: false));
