@@ -48,6 +48,7 @@ final class Application
 		                            fix writes the result to stdout
 		  --generate-baseline       write the violations found into the configured baseline file
 		                            instead of reporting them (check only)
+		  --no-cache                process every file, even one whose content is known to be clean
 		  --strict                  a rule breaking its contract is an error
 		  --no-color                plain output
 		  --version                 print the version
@@ -154,7 +155,7 @@ final class Application
 	{
 		$factory = new RunnerFactory;
 		[$config, $root] = $this->loadConfig($args);
-		$runner = $factory->createRunner($config, $root, strict: (bool) $args['--strict']);
+		$runner = $factory->createRunner($config, $root, strict: (bool) $args['--strict'], cache: !$args['--no-cache']);
 		$stdinPath = $args['--stdin-path'];
 		$paths = $args['paths'];
 

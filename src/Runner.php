@@ -4,6 +4,7 @@ namespace DressCode;
 
 use DressCode\Engine\Baseline;
 use DressCode\Engine\FileProcessor;
+use DressCode\Engine\ResultCache;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Finder;
 use function count, in_array, sprintf, strlen;
@@ -17,13 +18,6 @@ final class Runner
 	private readonly string $root;
 
 
-	/**
-	 * @param list<string> $excludePaths  patterns of paths left out
-	 * @param array<string, list<string>> $ruleExcludePaths  rule name → patterns of paths the rule is not applied to
-	 * @param list<string> $fileExtensions
-	 * @param ?\Closure(string $content, string $path): bool $skipWhen  files left out by their content
-	 * @param ?Baseline $baseline  violations left unreported
-	 */
 	public function __construct(
 		private readonly FileProcessor $processor,
 		string $root,
@@ -37,6 +31,8 @@ final class Runner
 		private readonly ?\Closure $skipWhen = null,
 		/** violations left unreported */
 		private readonly ?Baseline $baseline = null,
+		/** contents known to be clean, skipped without processing */
+		private readonly ?ResultCache $cache = null,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
 	}
@@ -62,11 +58,17 @@ final class Runner
 				continue;
 			}
 
-			try {
-				$result = $this->processFile($path, $code);
-			} catch (RuleException|ConvergenceException $e) {
-				$detail = $e instanceof ConvergenceException && $e->diff !== '' ? "\n$e->diff" : '';
-				$result = new FileResult($path, $code, output: null, failure: $e->getMessage() . $detail);
+			$key = $this->cache ? ResultCache::hashContent($code) : null;
+			if ($key !== null && $this->cache->isClean($key)) {
+				$result = new FileResult($path, $code, $code);
+				$result->cached = true;
+			} else {
+				try {
+					$result = $this->processFile($path, $code);
+				} catch (RuleException|ConvergenceException $e) {
+					$detail = $e instanceof ConvergenceException && $e->diff !== '' ? "\n$e->diff" : '';
+					$result = new FileResult($path, $code, output: null, failure: $e->getMessage() . $detail);
+				}
 			}
 
 			if ($fix && $result->isChanged()) {
@@ -77,10 +79,15 @@ final class Runner
 				$result->written = true;
 			}
 
+			if ($key !== null && !$result->cached) {
+				$this->remember($result, $key);
+			}
+
 			$reporter->reportFile($result);
 			$results[] = $result;
 		}
 
+		$this->cache?->save();
 		$unused = $this->baseline?->countUnused() ?? 0;
 		$result = new RunResult(
 			$results,
@@ -90,6 +97,24 @@ final class Runner
 		);
 		$reporter->finish($result);
 		return $result;
+	}
+
+
+	/**
+	 * A clean result makes its content known to the cache; a fixed file without remaining violations makes
+	 * the written content known too.
+	 */
+	private function remember(FileResult $result, string $key): void
+	{
+		if ($result->error !== null || $result->failure !== null || $result->warnings) {
+			return;
+		}
+
+		if (!$result->violations && !$result->isChanged()) {
+			$this->cache?->markClean($key);
+		} elseif ($result->written && $result->output !== null && !$result->getUnfixedViolations()) {
+			$this->cache?->markClean(ResultCache::hashContent($result->output));
+		}
 	}
 
 
