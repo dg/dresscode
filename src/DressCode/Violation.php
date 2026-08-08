@@ -22,6 +22,38 @@ final readonly class Violation
 	}
 
 
+	/** @return array<string, mixed> */
+	public function toArray(): array
+	{
+		return [
+			'rule' => $this->ruleName,
+			'message' => $this->message,
+			'line' => $this->line,
+			'column' => $this->column,
+			'severity' => $this->severity === Severity::Error ? 'error' : 'warning',
+			'fixable' => $this->fixable,
+			'followUp' => $this->followUp,
+			'fingerprint' => $this->fingerprint,
+		];
+	}
+
+
+	/** @param array<string, mixed> $data  as toArray() made it */
+	public static function fromArray(array $data): self
+	{
+		return new self(
+			(string) $data['rule'],
+			(string) $data['message'],
+			(int) $data['line'],
+			$data['column'] === null ? null : (int) $data['column'],
+			$data['severity'] === 'error' ? Severity::Error : Severity::Warning,
+			(bool) $data['fixable'],
+			(bool) $data['followUp'],
+			(string) $data['fingerprint'],
+		);
+	}
+
+
 	/** @param string $lineContent  normalized by normalizeLineContent() */
 	public static function createFingerprint(
 		string $ruleName,

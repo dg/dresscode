@@ -8,6 +8,7 @@ use DressCode\Engine\FileResult;
 use DressCode\Engine\PathGlob;
 use DressCode\Engine\ResultCache;
 use DressCode\Engine\RunResult;
+use DressCode\Engine\WorkerPool;
 use Nette\Utils\Finder;
 use function count, in_array;
 
@@ -46,51 +47,52 @@ final class Engine
 	 * Processes the files under the paths; a file whose rules fail is reported as a failure and the run goes on.
 	 * @param list<string> $paths  files and directories, absolute or relative to the root
 	 */
-	public function run(array $paths, bool $fix, Reporter $reporter): RunResult
+	public function run(array $paths, bool $fix, Reporter $reporter, ?WorkerPool $workers = null): RunResult
 	{
 		$files = $this->findFiles($paths);
 		$reporter->start(count($files), $fix);
 		$results = [];
+		$pending = [];
 		foreach ($files as $path) {
-			$absolute = $this->toAbsolute($path);
-			$code = @file_get_contents($absolute); // @ - reported as exception
-			if ($code === false) {
-				throw new \RuntimeException("Cannot read file $path.");
-			}
-
+			$code = $this->read($path);
 			if ($this->skipWhen && ($this->skipWhen)($code, $path)) {
 				continue;
 			}
 
-			$key = $this->cache ? ResultCache::hashContent($code) : null;
-			if ($key !== null && $this->cache->isClean($key)) {
-				$result = new FileResult($path, $code, $code);
-				$result->cached = true;
+			if ($this->cache?->isClean(ResultCache::hashContent($code))) {
+				$results[$path] = new FileResult($path, $code, $code);
+				$results[$path]->cached = true;
 			} else {
-				try {
-					$result = $this->processFile($path, $code);
-				} catch (RuleException | ConvergenceException $e) {
-					$detail = $e instanceof ConvergenceException && $e->diff !== '' ? "\n$e->diff" : '';
-					$result = new FileResult($path, $code, output: null, failure: $e->getMessage() . $detail);
-				}
+				$results[$path] = null;
+				$pending[$path] = $code;
+			}
+		}
+
+		if ($workers !== null && count($pending) > 1) {
+			foreach ($workers->process($pending) as $path => $result) {
+				$results[$path] = $this->baseline?->filter($result) ?? $result;
+			}
+		} else {
+			foreach ($pending as $path => $code) {
+				$results[$path] = $this->processPath($path, $fix, $code);
+			}
+		}
+
+		$ordered = [];
+		foreach ($results as $path => $result) {
+			if ($result === null) {
+				throw new \RuntimeException("The workers returned no result for $path.");
 			}
 
-			if ($fix && $result->isChanged()) {
-				if (@file_put_contents($absolute, $result->output) === false) { // @ - reported as exception
-					throw new \RuntimeException("Cannot write file $path.");
-				}
-
-				$result->written = true;
-			}
-
-			if ($key !== null && !$result->cached) {
-				$this->remember($result, $key);
+			if ($this->cache !== null && !$result->cached) {
+				$this->remember($result, ResultCache::hashContent($result->code));
 			}
 
 			$reporter->reportFile($result);
-			$results[] = $result;
+			$ordered[] = $result;
 		}
 
+		$results = $ordered;
 		$this->cache?->save();
 		$unused = $this->baseline?->countUnused() ?? 0;
 		$result = new RunResult(
@@ -101,6 +103,46 @@ final class Engine
 		);
 		$reporter->finish($result);
 		return $result;
+	}
+
+
+	/**
+	 * Processes one file of the project: a failing rule is a failed result, fix writes a changed file back.
+	 * @param  ?string  $code  the content, read from the file when null
+	 * @throws \RuntimeException  when the file cannot be read or written
+	 */
+	public function processPath(string $path, bool $fix, ?string $code = null): FileResult
+	{
+		$path = $this->relativize($path);
+		$code ??= $this->read($path);
+		try {
+			$result = $this->processFile($path, $code);
+		} catch (RuleException | ConvergenceException $e) {
+			$detail = $e instanceof ConvergenceException && $e->diff !== '' ? "\n$e->diff" : '';
+			$result = new FileResult($path, $code, output: null, failure: $e->getMessage() . $detail);
+		}
+
+		if ($fix && $result->isChanged()) {
+			if (@file_put_contents($this->toAbsolute($path), $result->output) === false) { // @ - reported as exception
+				throw new \RuntimeException("Cannot write file $path.");
+			}
+
+			$result->written = true;
+		}
+
+		return $result;
+	}
+
+
+	/** @throws \RuntimeException */
+	private function read(string $path): string
+	{
+		$code = @file_get_contents($this->toAbsolute($path)); // @ - reported as exception
+		if ($code === false) {
+			throw new \RuntimeException("Cannot read file $path.");
+		}
+
+		return $code;
 	}
 
 

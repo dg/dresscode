@@ -10,6 +10,8 @@ use DressCode\ConvergenceException;
 use DressCode\Engine\Baseline;
 use DressCode\Engine\RunResult;
 use DressCode\Engine\SuppressionMigration;
+use DressCode\Engine\WorkerClient;
+use DressCode\Engine\WorkerPool;
 use DressCode\Reporter;
 use DressCode\Reporters;
 use DressCode\RuleException;
@@ -48,6 +50,7 @@ final class Application
 		  --generate-baseline       write the violations found into the configured baseline file
 		                            instead of reporting them (check only)
 		  --no-cache                process every file, even one whose content is known to be clean
+		  --jobs <n>                worker processes; the number of processors by default, 1 runs in-process
 		  --strict                  a rule breaking its contract is an error
 		  --no-color                plain output
 		  --version                 print the version
@@ -68,6 +71,9 @@ final class Application
 
 	private Console $console;
 
+	/** the script the workers are started with */
+	private string $scriptFile = 'dresscode';
+
 
 	/**
 	 * @param ?resource $stdout
@@ -79,6 +85,7 @@ final class Application
 		$stderr = null,
 		$stdin = null,
 		private readonly ?string $cwd = null,
+		private readonly ?string $script = null,
 	) {
 		$this->stdout = $stdout ?? STDOUT;
 		$this->stderr = $stderr ?? STDERR;
@@ -95,6 +102,7 @@ final class Application
 	public function run(array $argv): int
 	{
 		try {
+			$this->scriptFile = $this->script ?? $argv[0] ?? 'dresscode';
 			$args = $this->parseArguments(array_slice($argv, 1));
 			if ($args['--no-color']) {
 				$this->console->useColors(false);
@@ -140,7 +148,8 @@ final class Application
 	{
 		$parser = (new Parser(self::Help, ['--format' => [Parser::Enum => ['console', 'json', 'checkstyle']]]))
 			->addArgument('command', optional: true)
-			->addArgument('paths', optional: true, repeatable: true);
+			->addArgument('paths', optional: true, repeatable: true)
+			->addOption('--worker'); // the address of the parent; a worker started by WorkerPool
 		try {
 			return $parser->parse($args);
 		} catch (\Throwable $e) {
@@ -154,6 +163,11 @@ final class Application
 	{
 		$factory = new EngineFactory;
 		[$config, $root] = $this->loadConfig($args);
+		if (is_string($args['--worker'])) { // the parent keeps the cache and the baseline
+			$engine = $factory->createEngine($config->baseline(null), $root, strict: (bool) $args['--strict'], cache: false);
+			return WorkerClient::serve($args['--worker'], $engine, $fix);
+		}
+
 		$engine = $factory->createEngine($config, $root, strict: (bool) $args['--strict'], cache: !$args['--no-cache']);
 		$stdinPath = $args['--stdin-path'];
 		$paths = $args['paths'];
@@ -186,8 +200,43 @@ final class Application
 			return $this->generateBaseline($factory, $config, $root, $paths, $fix);
 		}
 
+		$jobs = $args['--jobs'] === null ? WorkerPool::detectCpuCount() : max(1, (int) $args['--jobs']);
+		$workers = $jobs > 1 ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->cwd) : null;
 		$reporter = $this->createReporter($args, $this->stdout);
-		return $engine->run($paths, $fix, $reporter)->getExitCode();
+		return $engine->run($paths, $fix, $reporter, $workers)->getExitCode();
+	}
+
+
+	/**
+	 * The command line of a worker: the same PHP with the same ini file (the binary alone would load the default
+	 * one), the same command and configuration; the paths come over the connection.
+	 * @param  array<string, mixed>  $args
+	 * @return list<string>
+	 */
+	private function buildWorkerCommand(array $args, bool $fix): array
+	{
+		$ini = php_ini_loaded_file();
+		$command = [
+			PHP_BINARY,
+			...($ini === false ? (php_ini_scanned_files() === false ? ['-n'] : []) : ['-c', $ini]),
+			$this->scriptFile,
+			$fix ? 'fix' : 'check',
+			'--no-color',
+		];
+		foreach (['--config', '--preset', '--rule'] as $option) {
+			foreach ((array) $args[$option] as $value) {
+				if (is_string($value)) {
+					$command[] = $option;
+					$command[] = $value;
+				}
+			}
+		}
+
+		if ($args['--strict']) {
+			$command[] = '--strict';
+		}
+
+		return $command;
 	}
 
 
