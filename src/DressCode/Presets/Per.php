@@ -9,7 +9,9 @@ use DressCode\Rules;
 
 
 /**
- * PER Coding Style 2.0, the default preset.
+ * PER Coding Style 2.0, the default preset: PSR-12 plus what the PER added (trailing commas, short closures,
+ * empty bodies as `{}`, attributes, enumerations, heredoc); the specification defines the style and this
+ * preset adds nothing of its own.
  */
 #[PresetInfo('dresscode/per', 'PER Coding Style 2.0', indent: '    ', eol: "\n")]
 final class Per implements Preset
@@ -40,6 +42,6 @@ final class Per implements Preset
 
 	public function getParents(): array
 	{
-		return [];
+		return [Psr12::class];
 	}
 }
