@@ -5,7 +5,6 @@ namespace DressCode\Reporters;
 use DressCode\FileResult;
 use DressCode\Reporter;
 use DressCode\RunResult;
-use DressCode\Severity;
 use DressCode\Violation;
 use function count;
 
@@ -87,15 +86,6 @@ final class JsonReporter implements Reporter
 	/** @return array<string, mixed> */
 	private static function violation(Violation $violation): array
 	{
-		return [
-			'rule' => $violation->ruleName,
-			'message' => $violation->message,
-			'line' => $violation->line,
-			'column' => $violation->column,
-			'severity' => $violation->severity === Severity::Error ? 'error' : 'warning',
-			'fixable' => $violation->fixable,
-			'followUp' => $violation->followUp,
-			'fingerprint' => $violation->fingerprint,
-		];
+		return $violation->toArray();
 	}
 }
