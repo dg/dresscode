@@ -200,3 +200,30 @@ test('processFile applies the rule skips to the given path and writes nothing', 
 	Assert::true($engine->hasExtension('src/x.PHP'));
 	Assert::false($engine->hasExtension('src/x.phpt'));
 });
+
+
+test('clean contents are remembered and skipped next time, a fixed file too', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");
+	$file = "$root/cache.json";
+	@unlink($file); // @ - may not exist
+	$engine = fn() => new Engine(
+		new FileProcessor([new EngineRename], new AnalysisRegistry, fn(string $name) => $name),
+		$root,
+		cache: DressCode\Engine\ResultCache::load($file, 'cfg'),
+	);
+	$cached = fn(RunResult $run) => array_map(fn(FileResult $r) => $r->cached, $run->files);
+
+	$run = $engine()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	Assert::same([false, false], $cached($run));
+	$run = $engine()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	Assert::same([false, true], $cached($run));
+	Assert::same(1, $run->countViolations());
+
+	$run = $engine()->run(['src/a.php'], true, new RecordingReporter);
+	Assert::true($run->files[0]->written);
+	$run = $engine()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	Assert::same([true, true], $cached($run));
+	Assert::same(0, $run->countViolations());
+	Assert::same(0, DressCode\Engine\ResultCache::load($file, 'other')->count());
+});

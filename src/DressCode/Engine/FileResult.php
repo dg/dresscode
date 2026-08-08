@@ -13,6 +13,9 @@ final class FileResult
 	/** the fixed text was written back to the file */
 	public bool $written = false;
 
+	/** the content was known to be clean, so it was not processed */
+	public bool $cached = false;
+
 
 	/**
 	 * @param ?string $output  the text after the fixes; null when the file could not be parsed

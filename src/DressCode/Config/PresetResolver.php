@@ -35,6 +35,43 @@ final class PresetResolver
 	 */
 	public function resolve(Config $config, PresetContext $context): array
 	{
+		$rules = [];
+		foreach ($this->collectEntries($config, $context) as $class => $value) {
+			$rules[] = self::createRule($class, $value);
+		}
+
+		return $rules;
+	}
+
+
+	/**
+	 * The effective rules as data: name → options as configured, [] for none, 'factory' for a rule built by
+	 * a closure; what a result cache keys on.
+	 * @return array<string, array<string, mixed>|string>
+	 * @throws ConfigurationException
+	 */
+	public function describe(Config $config, PresetContext $context): array
+	{
+		$description = [];
+		foreach ($this->collectEntries($config, $context) as $class => $value) {
+			$description[RuleInfo::of($class)->name] = match (true) {
+				$value instanceof \Closure => 'factory',
+				$value === true => [],
+				default => $value,
+			};
+		}
+
+		return $description;
+	}
+
+
+	/**
+	 * Rules of the presets and the configuration, without the disabled ones.
+	 * @return array<class-string<Rule>, true|array<string, mixed>|\Closure(): Rule>
+	 * @throws ConfigurationException
+	 */
+	private function collectEntries(Config $config, PresetContext $context): array
+	{
 		$entries = [];
 		foreach ($this->listPresets($config) as $class) {
 			foreach ((new $class)->getRules($context) as $rule => $value) {
@@ -50,14 +87,7 @@ final class PresetResolver
 			$entries[$this->registry->resolveRule($rule)] = $value;
 		}
 
-		$rules = [];
-		foreach ($entries as $class => $value) {
-			if ($value !== false) {
-				$rules[] = self::createRule($class, $value);
-			}
-		}
-
-		return $rules;
+		return array_filter($entries, fn($value) => $value !== false);
 	}
 
 
