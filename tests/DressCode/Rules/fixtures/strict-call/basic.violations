@@ -1,0 +1,9 @@
+3: The in_array() call must pass $strict = true
+5: The in_array() call must pass $strict = true
+6: The array_search() call must pass $strict = true
+7: The array_keys() call must pass $strict = true
+9: The base64_decode() call must pass $strict = true
+10: The mb_detect_encoding() call must pass $strict = true
+11: The mb_detect_encoding() call must pass $strict = true
+12: The in_array() call must pass $strict = true
+15: The in_array() call must pass $strict = true

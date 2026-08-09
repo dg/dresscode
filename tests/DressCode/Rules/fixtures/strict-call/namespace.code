@@ -1,0 +1,9 @@
+<?php
+// risky
+namespace App;
+
+use function mb_detect_encoding as detect;
+
+$a = mb_detect_encoding($s);
+$b = \mb_detect_encoding($s);
+$c = detect($s);
