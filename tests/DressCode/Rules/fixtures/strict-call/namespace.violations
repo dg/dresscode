@@ -1,0 +1,3 @@
+7: The mb_detect_encoding() call must pass $strict = true
+8: The mb_detect_encoding() call must pass $strict = true
+9: The mb_detect_encoding() call must pass $strict = true

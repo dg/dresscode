@@ -186,6 +186,25 @@ final class NodeHelpers
 
 
 	/**
+	 * How the name of another global function is written in place of the name of a call of a global one: bare where
+	 * the replaced name is bare, nothing takes the bare name and it is no less certain than the replaced one, which is
+	 * the fallback the call already stood on; else with the leading backslash.
+	 */
+	public static function spellGlobalFunction(string $function, NameNode $replaced, RuleContext $context): string
+	{
+		$resolver = $context->getAnalysis(NameResolver::class);
+		return $replaced->isUnqualified()
+			&& $resolver->isAliasFree($function, SymbolKind::Function, $replaced)
+			&& (
+				$resolver->getUnqualifiedResolution($replaced->text, SymbolKind::Function, $replaced) === UnqualifiedResolution::Uncertain
+				|| $resolver->getUnqualifiedResolution($function, SymbolKind::Function, $replaced) === UnqualifiedResolution::Global
+			)
+			? $function
+			: '\\' . $function;
+	}
+
+
+	/**
 	 * Splits a declaration listing several items (`const A = 1, B = 2;`, `public $a, $b;`, `use A, B;`) into
 	 * one declaration per item: every item after the first gets a copy of the declaration of its own, the copies
 	 * follow the original in its list and the original keeps the first item. The slot names the list of items

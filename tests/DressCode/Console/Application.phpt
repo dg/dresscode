@@ -346,3 +346,30 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 	file_put_contents("$root/src/r.php", "<?php\n\$r; // dresscode:ignore test/risky-rename\n");
 	Assert::same(0, runApp($root, ['check', '--config', $config])[0]);
 });
+
+
+test('a violation the rule has no fix for is no fix waiting, with the consent or without it', function () use ($root) {
+	Helpers::purge("$root/src");
+	$config = "$root/strict-call.php";
+	// an explicit false is only reported, so neither the consent nor its absence has a fix to make
+	foreach ([
+		['in_array(1, [1], false)', '', 1, 0],
+		['in_array(1, [1], false)', ", fixRisky: ['strict-call']", 1, 0],
+		['in_array(1, [1])', '', 1, 1],
+		['in_array(1, [1])', ", fixRisky: ['strict-call']", 0, 0],
+	] as [$call, $tail, $remaining, $deferred]) {
+		file_put_contents("$root/src/a.php", "<?php\n$call;\n");
+		file_put_contents($config, "<?php\nreturn new DressCode\\Config(rules: ['strict-call' => true], paths: ['src']$tail);\n");
+
+		[, $out] = runApp($root, ['check', '--config', $config, '--format', 'json']);
+		$summary = json_decode($out, associative: true)['summary'];
+		Assert::same([$remaining, $deferred], [$summary['remaining'], $summary['riskyDeferred']], "$call$tail");
+
+		[, $out] = runApp($root, ['check', '--config', $config]);
+		if ($deferred) {
+			Assert::contains('1 of them risky (strict-call)', $out);
+		} else {
+			Assert::notContains('of them risky', $out);
+		}
+	}
+});
