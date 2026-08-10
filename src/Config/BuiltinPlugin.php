@@ -145,6 +145,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\PhpDoc\PhpdocTrimRule::class,
 				Rules\PhpDoc\PropertyPhpdocRequiredRule::class,
 				Rules\PhpDoc\PropertyVarAnnotationRule::class,
+				Rules\PhpDoc\PromotedPropertyAnnotationPositionRule::class,
 				Rules\PhpDoc\NoEmptyVarAnnotationsRule::class,
 				Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
 				Rules\PhpDoc\UselessFunctionPhpdocRule::class,
