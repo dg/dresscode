@@ -140,6 +140,7 @@ final class RuleRegistry
 		Rules\PhpDoc\PhpDocNullLastRule::class,
 		Rules\PhpDoc\PhpDocCanonicalTypesRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
+		Rules\PhpDoc\PropertyVarAnnotationRule::class,
 		Rules\PhpDoc\NoEmptyVarAnnotationRule::class,
 		Rules\Literals\NoBacktickOperatorRule::class,
 		Rules\Literals\ComplexStringVariableRule::class,
