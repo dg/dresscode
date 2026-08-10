@@ -1,0 +1,5 @@
+classes:
+	internal:
+		final: required
+		markedBy: ['@internal']
+		except: ['@final', '@Entity', '@ORM\Entity', '@ORM\Mapping\Entity', '@Mapping\Entity', '@Document', '@ODM\Document']
