@@ -149,6 +149,7 @@ final class CorePlugin implements Plugin
 				Rules\PhpDoc\NoInvalidAnnotationsRule::class,
 				Rules\PhpDoc\PhpdocBlankLinesRule::class,
 				Rules\PhpDoc\PhpdocTypeNotationRule::class,
+				Rules\PhpDoc\PromotedPropertyAnnotationPositionRule::class,
 				Rules\PhpDoc\NoPlainPropertyCommentsRule::class,
 				Rules\PhpDoc\SinglelinePropertyPhpdocRule::class,
 				Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
