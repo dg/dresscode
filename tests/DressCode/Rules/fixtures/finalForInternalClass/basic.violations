@@ -1,0 +1,4 @@
+4: The internal class `A` must be final.
+	risky BehaviorChanges: a class of the project elsewhere may extend it
+16: The internal class `F` must be final.
+	risky BehaviorChanges: a class of the project elsewhere may extend it
