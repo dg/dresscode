@@ -1,0 +1,13 @@
+<?php
+class Option
+{
+	/**
+	 * @param  list<non-empty-string>|class-string<\BackedEnum>|null  $enum  the allowed values
+	 * @param  ?(\Closure(mixed): mixed)  $normalizer  converts the value
+	 */
+	public function __construct(
+		public array|string|null $enum = null,
+		public ?\Closure $normalizer = null,
+	) {
+	}
+}

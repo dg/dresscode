@@ -1,0 +1,3 @@
+phpdoc:
+	property:
+		promoted: '@var'

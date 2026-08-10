@@ -1,0 +1,2 @@
+4: The promoted property `$enum` must be documented at its declaration, not by a `@param`.
+4: The promoted property `$normalizer` must be documented at its declaration, not by a `@param`.

@@ -1,0 +1,11 @@
+<?php
+class Option
+{
+	public function __construct(
+		/** @var list<non-empty-string>|class-string<\BackedEnum>|null the allowed values */
+		public array|string|null $enum = null,
+		/** @var ?(\Closure(mixed): mixed) converts the value */
+		public ?\Closure $normalizer = null,
+	) {
+	}
+}
