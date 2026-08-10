@@ -35,6 +35,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\ControlFlow\UselessBracesRule::class,
 				Rules\Classes\ClassDefinitionSpacingRule::class,
 				Rules\Namespaces\NativeClassCasingRule::class,
+				Rules\Classes\FinalInternalClassRule::class,
 				Rules\Classes\GetClassNotationRule::class,
 				Rules\Classes\NameCasingRule::class,
 				Rules\Upgrading\ForbiddenFunctionsRule::class,
