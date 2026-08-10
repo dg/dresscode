@@ -1,0 +1,5 @@
+<?php
+// php 8.0
+$a = strftime('%Y');
+$b = utf8_encode('x');
+$c = pg_numrows($result);
