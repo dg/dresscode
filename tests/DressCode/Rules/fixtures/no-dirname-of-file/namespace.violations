@@ -1,0 +1,3 @@
+4: The dirname(__FILE__) call must be written '__DIR__', unless the namespace declares dirname()
+5: Nested dirname() calls must be one call with the levels argument
+6: Nested dirname() calls must be one call with the levels argument, unless the namespace declares dirname()
