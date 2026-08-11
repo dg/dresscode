@@ -1,0 +1,28 @@
+<?php
+// {"constant": "required"}
+class A
+{
+	private const PRIVATE = 'a';
+	final public const FINAL = 1;
+	public const OPEN = 1.5;
+	protected const PROTECTED = true;
+}
+
+final class B
+{
+	public const NAME = 'b';
+}
+
+enum C
+{
+	public const NAME = 'c';
+}
+
+interface D
+{
+	public const NAME = 'd';
+}
+
+$e = new class {
+	public const NAME = 'e';
+};

@@ -156,6 +156,7 @@ final class CorePlugin implements Plugin
 				Rules\PhpDoc\UselessFunctionPhpdocRule::class,
 				Rules\PhpDoc\UselessInheritdocRule::class,
 				Rules\Types\NativeTypeRequiredRule::class,
+				Rules\Types\ConstantTypeRequiredRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,

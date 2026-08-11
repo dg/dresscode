@@ -1,0 +1,14 @@
+6: Constant `NAME` must have the native type `string` of its value.
+	risky BehaviorChanges: a child declaring the constant again must keep its type
+7: Constant `COUNT` must have the native type `int` of its value.
+	risky BehaviorChanges: a child declaring the constant again must keep its type
+8: Constant `RATIO` must have the native type `float` of its value.
+	risky BehaviorChanges: a child declaring the constant again must keep its type
+9: Constant `ON` must have the native type `bool` of its value.
+	risky BehaviorChanges: a child declaring the constant again must keep its type
+10: Constant `ITEMS` must have the native type `array` of its value.
+	risky BehaviorChanges: a child declaring the constant again must keep its type
+11: Constant `NEGATIVE` must have the native type `int` of its value.
+	risky BehaviorChanges: a child declaring the constant again must keep its type
+12: Constant `JOINED` must have the native type `string` of its value.
+	risky BehaviorChanges: a child declaring the constant again must keep its type
