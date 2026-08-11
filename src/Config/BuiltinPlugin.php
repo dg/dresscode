@@ -160,6 +160,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Literals\UselessStringConcatRule::class,
 				Rules\Literals\StringQuotesRule::class,
 				Rules\PhpDoc\ExplicitAssertionRule::class,
+				Rules\Types\NullableTypeForDefaultNullRule::class,
 				Rules\Types\TypeHintRequiredRule::class,
 				Rules\Types\TypeHintSpacingRule::class,
 				Rules\Variables\CombinedIssetsRule::class,
