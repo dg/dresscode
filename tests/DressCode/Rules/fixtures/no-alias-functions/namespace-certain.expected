@@ -1,0 +1,10 @@
+<?php
+// namespacedFunctions App\count
+// nameResolution certain
+namespace App;
+
+use function Lib\join;
+
+$a = \count($x);
+$b = rtrim($x);
+$c = join(',', $x);

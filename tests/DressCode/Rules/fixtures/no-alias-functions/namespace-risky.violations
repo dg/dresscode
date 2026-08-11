@@ -1,0 +1,2 @@
+5: The function sizeof() is an alias of count(), unless the namespace declares sizeof()
+6: The function sizeof() is an alias of count()
