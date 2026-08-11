@@ -8,7 +8,7 @@
 namespace DressCode\Rules\PhpDoc;
 
 use DressCode\Analyses\PhpDoc;
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\NativeType;
 use PHPStan\PhpDocParser\Ast\PhpDoc\{ParamTagValueNode, PhpDocTagNode, PhpDocTextNode, ReturnTagValueNode, TypelessParamTagValueNode};
 use PHPStan\PhpDocParser\Ast\Type\TypeNode as PhpDocTypeNode;
@@ -23,20 +23,35 @@ use PhpSyntax\Nodes\TypeNode;
 /**
  * A doc comment of a function that only repeats its signature, `@param int $a` on `int $a` and `@return void`
  * on `: void`, without a description of anything, is removed. An annotation of an array, iterable or traversable
- * type that says more than the native one (`int[]`, `array<string, Foo>`) keeps the doc comment.
+ * type that says more than the native one (`int[]`, `array<string, Foo>`) keeps the doc comment, the traversable
+ * classes being those of `types.traversableClasses`.
  */
 #[RuleInfo(
 	Stage::Structure,
 	modifiesComments: true,
+	decisions: ['types.traversableClasses'],
 	analyses: [PhpDoc::class, NameResolver::class],
 )]
 final class UselessFunctionPhpdocRule extends NodeRule
 {
+	/** @var list<string> */
+	private array $traversableClasses = [];
+
+
 	public static function getDecisions(): array
 	{
 		return [
 			new Decision('phpdoc.repeatingNativeTypes', Domain::state('forbidden'), 'A function doc comment that only repeats the native types of the signature, without a description of anything, is removed'),
 		];
+	}
+
+
+	public function configure(Values $values): void
+	{
+		$this->traversableClasses = array_map(
+			fn(string $name) => strtolower(ltrim($name, '\\')),
+			$values->get('types.traversableClasses')->getNames(),
+		);
 	}
 
 
@@ -112,7 +127,7 @@ final class UselessFunctionPhpdocRule extends NodeRule
 
 		$bare = $native instanceof NullableTypeNode ? $native->type : $native;
 		if ($bare instanceof NamedTypeNode) {
-			$traversable = NativeType::isTraversable($bare->name->text, ['traversable'], fn() => $resolver->resolveClass($bare->name));
+			$traversable = NativeType::isTraversable($bare->name->text, $this->traversableClasses, fn() => $resolver->resolveClass($bare->name));
 			if ($traversable && !NativeType::isPlainIterable($annotation)) {
 				return false;
 			}

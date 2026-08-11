@@ -1,0 +1,26 @@
+11: Useless `@param` annotation for parameter `$a`, because the native type says the same.
+11: Useless `@param` annotation for parameter `$b`, because the native type says the same.
+11: Useless `@param` annotation for parameter `$d`, because the native type says the same.
+11: Useless `@param` annotation for parameter `$f`, because the native type says the same.
+11: Useless `@param` annotation for parameter `$g`, because the native type says the same.
+11: Useless `@param` annotation for parameter `$i`, because the native type says the same.
+23: Parameter `$a` must have the native type `int` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+23: Parameter `$b` must have the native type `?Foo` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+23: Parameter `$c` must have the native type `array` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+23: Parameter `$d` must have the native type `int|string` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+23: Parameter `$g` must have the native type `mixed` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+23: Parameter `$h` must have the native type `array` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+23: Parameter `$j` must have the native type `int` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+27: Parameter `$x` must have a native type or a `@param` annotation.
+27: Parameter `$y` of the type `array` must have a `@param` annotation saying what its items are.
+27: Parameter `$z` of the type `iterable` must have a `@param` annotation saying what its items are.
+27: Parameter `$t` of the type `\Traversable` must have a `@param` annotation saying what its items are.
+36: Useless `@param` annotation for parameter `$a`, because the native type says the same.
+44: Parameter `$p` must have a native type or a `@param` annotation.

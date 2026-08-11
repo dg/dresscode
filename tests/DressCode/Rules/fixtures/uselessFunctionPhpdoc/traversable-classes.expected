@@ -1,0 +1,11 @@
+<?php
+// {"types.traversableClasses": ["Collection"]}
+class A
+{
+	/**
+	 * @return Collection
+	 */
+	public function a(): Collection {}
+
+	public function b(): Traversable {}
+}

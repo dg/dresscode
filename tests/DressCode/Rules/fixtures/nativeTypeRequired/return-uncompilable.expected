@@ -1,0 +1,17 @@
+<?php
+// {"parameter": "keep", "property": "keep"}
+// risky
+class A
+{
+	/** @return empty */
+	public function a() { return 1; }
+
+	/** @return string|void */
+	public function b() { return 1; }
+
+	/** @return $this&\Countable */
+	public function c() { return $this; }
+
+	/** @return bool|false */
+	public function d(): bool { return true; }
+}

@@ -9,7 +9,7 @@ namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Decision, ImportStyle, Plugin, PluginManifest, Rules};
-use DressCode\Domains\{Count, Words};
+use DressCode\Domains\{Count, Names, Words};
 
 
 /**
@@ -155,6 +155,7 @@ final class CorePlugin implements Plugin
 				Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
 				Rules\PhpDoc\UselessFunctionPhpdocRule::class,
 				Rules\PhpDoc\UselessInheritdocRule::class,
+				Rules\Types\NativeTypeRequiredRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,
@@ -209,6 +210,9 @@ final class CorePlugin implements Plugin
 					'optimizes it',
 					'A function is optimized in a namespace where one of its calls there is, an unpacked or named argument aside, and every reference to it in that namespace is then written so.',
 				),
+
+				// the classes a native type takes as iterable
+				new Decision('types.traversableClasses', new Names, 'Classes treated like `array` and `iterable`, whose annotation says what their items are', parameter: true, default: ['Traversable']),
 			],
 		);
 	}

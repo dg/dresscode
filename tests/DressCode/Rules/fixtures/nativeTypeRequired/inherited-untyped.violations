@@ -1,0 +1,6 @@
+46: Useless `@var` annotation for property `$title`, because the native type says the same.
+47: Property `$title` must have the native type `string` from its `@var` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+50: Useless `@param` annotation for parameter `$count`, because the native type says the same.
+51: Parameter `$count` must have the native type `int` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`

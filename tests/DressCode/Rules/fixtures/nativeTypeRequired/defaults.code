@@ -1,0 +1,41 @@
+<?php
+// php 8.2
+// {"return": "keep"}
+// risky
+interface A {}
+interface B {}
+
+class X
+{
+	/** @var string */
+	public $label = 0;
+
+	/** @var float */
+	public $ratio = 1;
+
+	/** @var string|false */
+	public $flag = false;
+
+	/** @var A&B */
+	public $both = null;
+
+	/**
+	 * @param string $name
+	 * @param ?callable $handler
+	 * @param A&B $pair
+	 * @param string $title
+	 */
+	public function __construct($name = 0, public $handler = null, public $pair = null, public $title = null)
+	{
+	}
+
+	/**
+	 * @param int $count
+	 * @param bool $strict
+	 * @param A&B $pair
+	 * @param string $mode
+	 */
+	public function run($count = 1.5, $strict = 'yes', $pair = null, $mode = self::Mode)
+	{
+	}
+}

@@ -1,0 +1,26 @@
+<?php
+// php 8.1
+// {"return": "keep"}
+// risky
+interface A {}
+interface B {}
+
+class X
+{
+	/** @var A&B */
+	public $both = null;
+
+	/**
+	 * @param A&B $pair
+	 */
+	public function __construct(public $pair = null)
+	{
+	}
+
+	/**
+	 * @param A&B $pair
+	 */
+	public function run($pair = null)
+	{
+	}
+}

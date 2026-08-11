@@ -1,0 +1,4 @@
+types:
+	parameter: required
+	property: required
+	return: required

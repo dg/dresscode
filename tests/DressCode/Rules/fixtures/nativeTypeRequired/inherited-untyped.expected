@@ -1,0 +1,52 @@
+<?php
+// {"return": "keep"}
+// risky
+namespace App;
+
+use Acme\Store\{HasName, Record};
+
+// the ancestors may declare these untyped, so nothing is written
+class Order extends Record implements HasName
+{
+	/** @var string */
+	protected $table = 'orders';
+
+
+	/** @param int $id */
+	public function __construct(
+		public $id,
+	) {
+	}
+
+
+	/** @param string $name */
+	public function rename($name)
+	{
+	}
+}
+
+
+trait Named
+{
+}
+
+
+class Tagged
+{
+	use Named;
+
+	/** @var string */
+	public $tag;
+}
+
+
+// a class with nothing above it has no declaration to redeclare
+class Plain
+{
+	public string $title;
+
+
+	public function take(int $count)
+	{
+	}
+}

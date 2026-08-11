@@ -1,0 +1,54 @@
+<?php
+// {"return": "keep", "property": "keep"}
+// risky
+namespace App;
+
+/**
+ * @template T
+ */
+class A
+{
+	/**
+	 * @param string[] $c
+	 * @param T $e
+	 * @param array<int, string> $h desc
+	 * @param positive-int $j
+	 */
+	public function a(int $a, ?Foo $b, array $c, int|string $d, $e, callable $f, mixed $g, array $h, int $i, int $j)
+	{
+	}
+
+	public function b($x, array $y, iterable $z, \Traversable $t)
+	{
+	}
+
+	/** {@inheritDoc} */
+	public function c($x)
+	{
+	}
+
+	/**
+	 * @phpstan-param int $b
+	 */
+	public function d(int $a, $b, int ...$c)
+	{
+	}
+
+	public function __construct(private $p)
+	{
+	}
+}
+
+
+class Handler
+{
+	/**
+	 * @param callable $a
+	 * @param callable|string $b
+	 */
+	public function __construct(
+		private $a,
+		private $b,
+	) {
+	}
+}
