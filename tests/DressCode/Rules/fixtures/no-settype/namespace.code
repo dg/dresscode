@@ -1,0 +1,8 @@
+<?php
+namespace App;
+
+function f($a, $b)
+{
+	settype($a, 'int');
+	\settype($b, 'string');
+}
