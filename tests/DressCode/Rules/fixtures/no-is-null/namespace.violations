@@ -1,0 +1,2 @@
+4: The is_null() call must be written as a comparison with null, unless the namespace declares is_null()
+5: The is_null() call must be written as a comparison with null
