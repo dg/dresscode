@@ -1,0 +1,16 @@
+3: The inline `@var` annotation must be written as an `assert()` of the type.
+	risky BehaviorChanges: a wrong annotation then stops the program where it only misled an analyzer
+5: The inline `@var` annotation must be written as an `assert()` of the type.
+	risky BehaviorChanges: a wrong annotation then stops the program where it only misled an analyzer
+7: The inline `@var` annotation must be written as an `assert()` of the type.
+	risky BehaviorChanges: a wrong annotation then stops the program where it only misled an analyzer
+11: The inline `@var` annotation must be written as an `assert()` of the type.
+	risky BehaviorChanges: a wrong annotation then stops the program where it only misled an analyzer
+19: The inline `@var` annotation must be written as an `assert()` of the type.
+	risky BehaviorChanges: a wrong annotation then stops the program where it only misled an analyzer
+23: The inline `@var` annotation must be written as an `assert()` of the type.
+	risky BehaviorChanges: a wrong annotation then stops the program where it only misled an analyzer
+32: The inline `@var` annotation must be written as an `assert()` of the type.
+	risky BehaviorChanges: a wrong annotation then stops the program where it only misled an analyzer
+44: The inline `@var` annotation must be written as an `assert()` of the type.
+	risky BehaviorChanges: a wrong annotation then stops the program where it only misled an analyzer
