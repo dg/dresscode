@@ -7,23 +7,134 @@
 
 namespace DressCode\Rules;
 
-use PHPStan\PhpDocParser\Ast\Type;
-use function in_array;
+use PHPStan\PhpDocParser\Ast\{ConstExpr, Type};
+use function count, in_array;
 
 
 /**
- * What the rules ask of a doc comment type beside a native one: whether the two say the same, and whether a type is
- * iterable.
+ * The native type a doc comment type stands for, as far as the PHP version can express it: `int[]` is
+ * `array`, `class-string` is `string`, `Foo|null` is `?Foo`, `scalar` is `string|int|float|bool`.
  * @internal
  */
 final class NativeType
 {
+	public const Parameter = 'parameter';
+	public const Return = 'return';
+	public const Property = 'property';
+
 	private const Iterable = ['array', 'iterable'];
 
 	private const Builtin = [
 		'int', 'float', 'string', 'bool', 'array', 'iterable', 'callable', 'object', 'mixed', 'null', 'void', 'never',
 		'false', 'true', 'self', 'static', 'parent',
 	];
+
+	private const Aliases = [
+		'integer' => 'int', 'boolean' => 'bool', 'double' => 'float',
+		'positive-int' => 'int', 'non-positive-int' => 'int', 'negative-int' => 'int', 'non-negative-int' => 'int',
+		'literal-int' => 'int', 'int-mask' => 'int', 'callable-array' => 'callable', 'callable-string' => 'callable',
+		'non-empty-array' => 'array', 'list' => 'array', 'non-empty-list' => 'array',
+	];
+
+	private const Unofficial = [
+		'scalar' => ['string', 'int', 'float', 'bool'],
+		'numeric' => ['int', 'float', 'string'],
+		'array-key' => ['int', 'string'],
+	];
+
+
+	/**
+	 * The native type for the annotation in the given place, null when PHP cannot express it or when it would
+	 * say nothing (a template type, a pseudo-type). Traversable types with an item specification (`Foo[]`,
+	 * `array<int, Foo>`) become the bare traversable type.
+	 * @param  list<string>  $traversableTypeHints  lowercased fully qualified names of classes treated like iterables
+	 * @param  list<string>  $templates  names of template types in scope
+	 * @param  callable(string): string  $resolveClass  fully qualified name of a class as written in the annotation
+	 */
+	public static function fromAnnotation(
+		Type\TypeNode $type,
+		string $place,
+		string $phpVersion,
+		array $traversableTypeHints,
+		array $templates,
+		callable $resolveClass,
+	): ?string
+	{
+		$nullable = false;
+		if ($type instanceof Type\NullableTypeNode) {
+			$nullable = true;
+			$type = $type->type;
+		}
+
+		$hints = [];
+		if ($type instanceof Type\UnionTypeNode || $type instanceof Type\IntersectionTypeNode) {
+			$traversable = $itemsSpecified = false;
+			foreach ($type->types as $member) {
+				$hint = self::oneType($member);
+				if ($hint === null) {
+					return null;
+				} elseif (strtolower($hint) === 'null') {
+					$nullable = true;
+					continue;
+				}
+
+				$isArrayShape = $member instanceof Type\ArrayTypeNode || $member instanceof Type\ArrayShapeNode;
+				$itemsSpecified = $itemsSpecified || $isArrayShape;
+				$traversable = $traversable || (!$isArrayShape && self::isTraversable($hint, $traversableTypeHints, $resolveClass));
+				$hints[] = $hint;
+			}
+
+			if ($itemsSpecified && $traversable) { // Foo[]|Traversable: the array part only says what the items are
+				$hints = array_values(array_filter(
+					$hints,
+					fn(string $hint) => strtolower($hint) !== 'array' && self::isTraversable($hint, $traversableTypeHints, $resolveClass),
+				));
+			}
+
+		} else {
+			$hint = self::oneType($type);
+			if ($hint === null) {
+				return null;
+			}
+
+			$hints[] = $hint;
+		}
+
+		$expanded = [];
+		foreach ($hints as $hint) {
+			$expanded = [...$expanded, ...(self::Unofficial[strtolower($hint)] ?? [$hint])];
+		}
+
+		$hints = array_values(array_unique($expanded));
+		$intersection = $type instanceof Type\IntersectionTypeNode;
+		if (
+			$hints === []
+			|| ($intersection && ($nullable || (count($hints) > 1 && version_compare($phpVersion, '8.1', '<'))))
+		) {
+			return null;
+		}
+
+		foreach ($hints as $i => $hint) {
+			$hints[$i] = strtolower($hint) === 'true' && version_compare($phpVersion, '8.2', '<') ? 'bool' : $hint;
+			if (
+				!self::isValid($hints[$i], $place, $phpVersion, count($hints) > 1)
+				|| in_array($hint, $templates, true)
+			) {
+				return null;
+			}
+		}
+
+		if (in_array('mixed', array_map('strtolower', $hints), true)) {
+			return 'mixed';
+		}
+
+		return match (true) {
+			$intersection => implode('&', $hints),
+			$nullable && count($hints) === 1 => '?' . $hints[0],
+			$nullable => implode('|', $hints) . '|null',
+			default => implode('|', $hints),
+		};
+	}
 
 
 	/**
@@ -64,6 +175,54 @@ final class NativeType
 		);
 		sort($members);
 		return implode('|', $members);
+	}
+
+
+	/** The native name behind one type node, null for a node that is not one type. */
+	private static function oneType(Type\TypeNode $type): ?string
+	{
+		return match (true) {
+			$type instanceof Type\IdentifierTypeNode => self::identifier($type->name),
+			$type instanceof Type\GenericTypeNode => self::identifier($type->type->name),
+			$type instanceof Type\ThisTypeNode => 'static',
+			$type instanceof Type\CallableTypeNode => $type->identifier->name,
+			$type instanceof Type\ArrayTypeNode, $type instanceof Type\ArrayShapeNode => 'array',
+			$type instanceof Type\ObjectShapeNode => 'object',
+			$type instanceof Type\ConstTypeNode => match (true) {
+				$type->constExpr instanceof ConstExpr\ConstExprIntegerNode => 'int',
+				$type->constExpr instanceof ConstExpr\ConstExprFloatNode => 'float',
+				$type->constExpr instanceof ConstExpr\ConstExprStringNode => 'string',
+				default => null,
+			},
+			default => null,
+		};
+	}
+
+
+	private static function identifier(string $name): string
+	{
+		$lower = strtolower($name);
+		return match (true) {
+			isset(self::Aliases[$lower]) => self::Aliases[$lower],
+			str_ends_with($lower, '-string') => 'string',
+			in_array($lower, self::Builtin, true) => $lower,
+			default => $name,
+		};
+	}
+
+
+	private static function isValid(string $hint, string $place, string $phpVersion, bool $inUnion): bool
+	{
+		$lower = strtolower($hint);
+		return match ($lower) {
+			'object', 'mixed', 'iterable', 'self', 'parent' => true,
+			'static', 'void' => $place === self::Return,
+			'never' => $place === self::Return && version_compare($phpVersion, '8.1', '>='),
+			'null', 'true' => version_compare($phpVersion, '8.2', '>='),
+			'false' => $inUnion || version_compare($phpVersion, '8.2', '>='),
+			'callable' => $place !== self::Property,
+			default => $lower !== 'resource' && preg_match('~^\\\?[A-Za-z_\x80-\xff][\w\x80-\xff\\\]*$~', $hint) === 1,
+		};
 	}
 
 
