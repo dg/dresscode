@@ -159,6 +159,7 @@ final class CorePlugin implements Plugin
 				Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
 				Rules\PhpDoc\UselessFunctionPhpdocRule::class,
 				Rules\PhpDoc\UselessInheritdocRule::class,
+				Rules\Types\NativeTypeRequiredRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,
@@ -249,6 +250,15 @@ final class CorePlugin implements Plugin
 					'blankLines.afterPhpdoc',
 					Domain::blankLines(),
 					'Between a doc comment or an attribute and the declaration it belongs to',
+				),
+
+				// the classes a native type takes as iterable
+				new Decision(
+					'types.traversableClasses',
+					new Names,
+					'Classes treated like `array` and `iterable`, whose annotation says what their items are',
+					kind: DecisionKind::Parameter,
+					default: ['Traversable'],
 				),
 			],
 		);

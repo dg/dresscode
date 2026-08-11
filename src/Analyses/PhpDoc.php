@@ -9,12 +9,13 @@ namespace DressCode\Analyses;
 
 use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
-use PHPStan\PhpDocParser\Ast\PhpDoc\{GenericTagValueNode, InvalidTagValueNode, PhpDocChildNode, PhpDocNode, PhpDocTagNode, PhpDocTextNode};
+use PHPStan\PhpDocParser\Ast\PhpDoc\{GenericTagValueNode, InvalidTagValueNode, PhpDocChildNode, PhpDocNode, PhpDocTagNode, PhpDocTextNode, TemplateTagValueNode, TypeAliasImportTagValueNode, TypeAliasTagValueNode};
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\{ConstExprParser, PhpDocParser, TokenIterator, TypeParser};
 use PHPStan\PhpDocParser\ParserConfig;
 use PHPStan\PhpDocParser\Printer\Printer;
 use PhpSyntax\{Node, Token, Trivia};
+use PhpSyntax\Nodes\ClassLikeNode;
 
 
 /**
@@ -105,6 +106,36 @@ final class PhpDoc
 		} else {
 			$at->replaceDocComment($this->print($node, $original));
 		}
+	}
+
+
+	/**
+	 * Names of the templates and type aliases in scope of the node, declared by its doc comment or by the doc comment
+	 * of its class, or imported there; a native type cannot name them.
+	 * @return list<string>
+	 */
+	public function findLocalTypes(Node $node): array
+	{
+		$names = [];
+		foreach ([$node, $node->findAncestor(ClassLikeNode::class)] as $owner) {
+			$docComment = $owner?->getDocComment();
+			if ($docComment === null) {
+				continue;
+			}
+
+			foreach ($this->parse($docComment)->children as $child) {
+				$value = $child instanceof PhpDocTagNode ? $child->value : null;
+				if ($value instanceof TemplateTagValueNode) {
+					$names[] = $value->name;
+				} elseif ($value instanceof TypeAliasTagValueNode) {
+					$names[] = $value->alias;
+				} elseif ($value instanceof TypeAliasImportTagValueNode) {
+					$names[] = $value->importedAs ?? $value->importedAlias;
+				}
+			}
+		}
+
+		return $names;
 	}
 
 

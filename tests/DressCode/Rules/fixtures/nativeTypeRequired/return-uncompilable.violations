@@ -1,0 +1,2 @@
+16: The method `d()` must have the native return type `bool` from its `@return` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`

@@ -1,0 +1,5 @@
+types:
+	declaration:
+		parameter: required
+		property: required
+		return: required

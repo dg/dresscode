@@ -1,0 +1,28 @@
+<?php
+// risky
+/**
+ * @phpstan-type Row array{id: int}
+ * @phpstan-import-type Item from Store as Entry
+ * @psalm-type Cell = string
+ */
+class Table
+{
+	/** @var Row */
+	public $row;
+
+	/** @var Cell */
+	public $cell;
+
+	/** @var Store */
+	public $store;
+
+
+	/**
+	 * @param Row $r
+	 * @param Store $s
+	 * @return Entry
+	 */
+	public function find($r, $s)
+	{
+	}
+}

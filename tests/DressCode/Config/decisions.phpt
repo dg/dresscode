@@ -153,3 +153,20 @@ test('the run narrowed to a path reports that decision alone and changes no valu
 		$narrowed->findRule(DressCode\Rules\Whitespace\ConstructSpacingRule::class)?->inactiveReason,
 	);
 });
+
+
+test('the command line sets a decision over everything, and fixRisky and warnOnly take a path', function () {
+	$dir = createDecisionsProject(
+		['dresscode.neon' => "fixRisky: [types.declaration.parameter]\nwarnOnly: [blankLines]\ntypes:\n\tdeclaration:\n\t\tparameter: required\n"],
+	);
+	$resolved = resolveFile("$dir/dresscode.neon", new Profile(decisions: ['blankLines' => ['betweenMethods' => 3]]));
+	Assert::same([3, 3], $resolved->decisions['blankLines.betweenMethods']->value->getCount());
+	Assert::same('the command line', $resolved->decisions['blankLines.betweenMethods']->value->origin?->describe());
+	Assert::true($resolved->findRule(DressCode\Rules\Types\NativeTypeRequiredRule::class)?->fixRisky);
+	Assert::true($resolved->findRule(DressCode\Rules\Whitespace\MemberBlankLinesRule::class)?->warnOnly);
+	Assert::exception(
+		fn() => new Config(decisions: ['paths' => []]),
+		InvalidArgumentException::class,
+		'The decisions are sections, and `paths` is a key of the configuration.',
+	);
+});

@@ -1,0 +1,23 @@
+7: Useless `@return` annotation, because the native return type says the same.
+8: The method `a()` must have the native return type `int` from its `@return` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+10: The method `b()` must have the `void` return type.
+	risky BehaviorChanges: a child returning a value then fails
+12: The method `c()` must have a native return type or a `@return` annotation.
+17: The method `e()` returning `array` must have a `@return` annotation saying what its items are.
+19: Useless `@return` annotation, because the native return type says the same.
+20: The return type of the method `f()` must be `never` instead of `void`, as the `@return` annotation says.
+	risky BehaviorChanges: PHP then throws a `TypeError` where the function returns after all
+23: The method `g()` must have the native return type `static` from its `@return` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+25: Useless `@return` annotation, because the native return type says the same.
+28: The method `i()` must have a native return type or a `@return` annotation.
+30: The method `j()` must have a native return type or a `@return` annotation.
+32: The method `k()` must have the `void` return type.
+	risky BehaviorChanges: a child returning a value then fails
+35: The method `l()` must have the native return type `?string` from its `@return` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+39: The closure must have the `void` return type.
+41: The closure must have the `void` return type.
+44: The method `run()` must have the `void` return type.
+50: The method `stop()` must have the `void` return type.
