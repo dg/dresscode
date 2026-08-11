@@ -1,0 +1,22 @@
+<?php
+// risky
+/** @var float $a */
+$a = f();
+/** @var A&(B|C) $b */
+$b = g();
+/** @var (A|B)&C $c */
+$c = h();
+/**
+ * @phpstan-type Row array{id: int}
+ * @phpstan-import-type Item from Store as Entry
+ */
+class Repo {
+	public function find(): void {
+		/** @var Row $row */
+		$row = q();
+		/** @var Entry $entry */
+		$entry = r();
+		/** @var Store $store */
+		$store = s();
+	}
+}

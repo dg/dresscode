@@ -1,0 +1,2 @@
+6: The inline `@var` annotation must be written as an `assert()` of the type.
+	risky BehaviorChanges: a wrong annotation then stops the program where it only misled an analyzer

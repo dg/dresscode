@@ -1,0 +1,6 @@
+<?php
+// risky
+namespace App;
+
+/** @var int $a */
+$a = f();
