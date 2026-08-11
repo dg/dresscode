@@ -1,0 +1,1 @@
+5: The conversion function must be written as the '(int)' cast, unless the namespace declares intval()
