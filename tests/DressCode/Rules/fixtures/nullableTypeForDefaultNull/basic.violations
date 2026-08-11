@@ -1,0 +1,7 @@
+2: The type of the parameter `$x` defaulting to `null` must be written `?int`.
+12: The type of the parameter `$x` defaulting to `null` must be written `?Foo`.
+12: The type of the parameter `$y` defaulting to `null` must be written `?string`.
+17: The type of the parameter `$x` defaulting to `null` must be written `int|string|null`.
+18: The type of the parameter `$x` defaulting to `null` must be written `int | false | null`.
+19: The type of the parameter `$x` defaulting to `null` must be written `(A&B)|C|null`.
+20: The type of the parameter `$x` defaulting to `null` must be written `(A&B)|null`.
