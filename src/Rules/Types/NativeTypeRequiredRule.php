@@ -27,7 +27,7 @@ use function count;
  * a native void the annotation says is never becomes never. Any other declaration with neither is reported, as
  * is an array, iterable or traversable one whose annotation does not say what the items are. A function
  * inheriting its documentation (`{@inheritDoc}`, `#[\Override]`) is left alone. Each place can be turned off on its
- * own.
+ * own; a class constant is `ConstantTypeRequiredRule`'s.
  *
  * A native type written is risky: PHP enforces it, and an annotation that was wrong becomes a TypeError. None is
  * written where PHP would refuse it: against a default of another type, and on a property or a parameter of a method
