@@ -1,0 +1,8 @@
+<?php
+// risky
+namespace App;
+
+function f($a)
+{
+	$a = (int) $a;
+}
