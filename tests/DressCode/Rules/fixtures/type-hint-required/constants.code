@@ -1,0 +1,18 @@
+<?php
+// risky
+// {"constants": true, "parameters": false, "properties": false, "returns": false}
+// php 8.3
+class A
+{
+	public const NAME = "a";
+	public const COUNT = 1;
+	public const RATIO = 1.5;
+	public const ON = true;
+	public const ITEMS = [1, 2];
+	public const NEGATIVE = -1;
+	public const JOINED = "a" . "b";
+	public const string TYPED = "a";
+	public const OTHER = self::NAME;
+	public const A = 1, B = 2;
+	public const NOTHING = null;
+}
