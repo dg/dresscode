@@ -1,0 +1,4 @@
+types:
+	nullable: '?int'
+	nullPosition: last
+	unionOrder: keep
