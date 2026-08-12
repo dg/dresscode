@@ -1,0 +1,10 @@
+4: The promoted property $items must be documented at its declaration, not by a @param
+16: The promoted property $map must be documented at its declaration, not by a @param
+33: The promoted property $ids must be documented at its declaration, not by a @param
+42: The promoted property $ids must be documented at its declaration, not by a @param
+52: The promoted property $version must be documented at its declaration, not by a @param
+52: The promoted property $strict must be documented at its declaration, not by a @param
+52: The promoted property $config must be documented at its declaration, not by a @param
+52: The promoted property $resolve must be documented at its declaration, not by a @param
+70: The promoted property $ids must be documented at its declaration, not by a @param
+80: The promoted property $options must be documented at its declaration, not by a @param
