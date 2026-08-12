@@ -1,0 +1,4 @@
+<?php
+// php 8.6
+$a = substr(?, 0, 3) === 'abc';
+$b = strpos(?, 'x') === 0;

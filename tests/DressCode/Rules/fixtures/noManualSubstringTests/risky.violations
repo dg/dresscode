@@ -1,0 +1,10 @@
+3: The `mb_strpos()` comparison must be written with `str_contains()`.
+	risky BehaviorChanges: the `mb_` function counts characters where the new one counts bytes
+4: The `mb_strstr()` comparison must be written with `str_contains()`.
+	risky BehaviorChanges: the `mb_` function counts characters where the new one counts bytes
+5: The `mb_strpos()` comparison must be written with `str_starts_with()`.
+	risky BehaviorChanges: the `mb_` function counts characters where the new one counts bytes
+6: The `substr()` comparison must be written with `str_ends_with()`.
+	risky BehaviorChanges: `str_ends_with()` finds an empty needle in any haystack
+7: The `substr()` comparison must be written with `str_ends_with()`.
+	risky BehaviorChanges: `str_ends_with()` finds an empty needle in any haystack

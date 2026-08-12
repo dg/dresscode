@@ -1,0 +1,7 @@
+<?php
+// risky
+$a = str_contains($h, $n);
+$b = !str_contains($h, $n);
+$c = str_starts_with($h, $n);
+$d = str_ends_with($h, $n);
+$e = !str_ends_with($h, $n);

@@ -9,9 +9,9 @@ namespace DressCode\Rules;
 
 use DressCode\RuleContext;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{NameForm, UnqualifiedResolution};
+use PhpSyntax\{NameForm, Node, UnqualifiedResolution};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
-use PhpSyntax\Nodes\NameNode;
+use PhpSyntax\Nodes\{ExpressionNode, NameNode};
 use function array_key_exists;
 
 
@@ -49,5 +49,43 @@ final class GlobalCalls
 			&& $context->getAnalysis(NameResolver::class)->getUnqualifiedResolution($name) === UnqualifiedResolution::Uncertain
 				? 'the namespace may declare `' . strtolower($name->text) . '()`'
 				: null;
+	}
+
+
+	/**
+	 * Why a rewrite of the expression that keeps the expressions given may change what the code calls: the uncertainty
+	 * of the first call it takes away, the expression itself and every call in it but those inside what it keeps, as
+	 * `findUncertainty()` gives it; null when every such call is certain.
+	 * @param  list<ExpressionNode>  $kept
+	 */
+	public static function findUncertaintyOfRewrite(ExpressionNode $expression, array $kept, RuleContext $context): ?string
+	{
+		foreach ([$expression, ...$expression->find(FunctionCallNode::class)] as $call) {
+			if (
+				$call instanceof FunctionCallNode
+				&& !self::isKept($call, $kept, $expression)
+				&& ($uncertainty = self::findUncertainty($call, $context)) !== null
+			) {
+				return $uncertainty;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * Whether the node stands in one of the kept expressions, below the expression rewritten.
+	 * @param  list<ExpressionNode>  $kept
+	 */
+	private static function isKept(Node $node, array $kept, ExpressionNode $expression): bool
+	{
+		for (; $node !== null && $node !== $expression; $node = $node->parent) {
+			if (in_array($node, $kept, true)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
