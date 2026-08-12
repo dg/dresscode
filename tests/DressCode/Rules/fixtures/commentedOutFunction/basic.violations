@@ -1,0 +1,10 @@
+3: The call of `var_dump()` must be commented out
+	risky BehaviorChanges
+4: The call of `print_r()` must be commented out
+	risky BehaviorChanges
+5: The call of `var_export()` must be commented out
+	risky BehaviorChanges
+6: The call of `var_dump()` must be commented out
+	risky BehaviorChanges
+8: The call of `var_dump()` must be commented out
+	risky BehaviorChanges

@@ -77,6 +77,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Files\NoClosingTagRule::class,
 				Rules\Files\StrictTypesRequiredRule::class,
 				Rules\Functions\ArrowFunctionRule::class,
+				Rules\Functions\CommentedOutFunctionRule::class,
 				Rules\Functions\MultilineCallRule::class,
 				Rules\Functions\NoDirnameOfFileRule::class,
 				Rules\Functions\MultilineSignatureRule::class,
