@@ -1,0 +1,2 @@
+6: Argument unpacking disables the compiler optimization of count()
+7: Argument unpacking disables the compiler optimization of strlen()

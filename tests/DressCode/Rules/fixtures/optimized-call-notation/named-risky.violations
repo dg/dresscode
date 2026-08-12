@@ -1,0 +1,1 @@
+5: A named argument disables the compiler optimization of in_array(), unless the namespace declares in_array()
