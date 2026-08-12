@@ -18,8 +18,9 @@ use PhpSyntax\{Node, SymbolKind, Token};
 /**
  * The notation of types in doc comments: built-in types in the short form (`int`, not `integer`) and in lowercase
  * (`int`, not `Int`) and a union naming every type once, as `phpdoc.types.builtin` says, arrays in one notation
- * (`array<int>` rather than `int[]`, or the other way round). Of a union, a single type with `null` may be
- * written `?T`, `null` may stand at one end and the other types in alphabetical order. Class names keep their case, `list<int>` is a
+ * (`array<int>` rather than `int[]`, or the other way round). A union is decided as `TypeNotationRule` decides a
+ * native one, by decisions of its own: a single type with `null` may be written `?T`, `null` may stand at one end
+ * and the other types in alphabetical order. Class names keep their case, `list<int>` is a
  * different type and stays. A name imported or declared as a class (`Resource`) stays too.
  */
 #[RuleInfo(Stage::Finishing, modifiesComments: true, analyses: [PhpDoc::class, NameResolver::class])]

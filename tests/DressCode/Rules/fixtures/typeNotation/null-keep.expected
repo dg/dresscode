@@ -1,0 +1,3 @@
+<?php
+// {"unionOrder": "byName", "nullPosition": "keep"}
+function f(int|null|string $a, null|a|B $c, int|string|null $d, ?int $e, ?int $f, int|NULL|string $g): int|string|null {}

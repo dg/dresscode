@@ -1,0 +1,3 @@
+<?php
+// {"nullable": "keep"}
+function f(int|null $a, null|Foo $b, null|int|string $c): ?int {}

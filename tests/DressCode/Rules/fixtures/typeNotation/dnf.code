@@ -1,0 +1,3 @@
+<?php
+// php 8.2
+function f((B&A)|C|null $a, null|(A&B) $b, (A&B)|null $c, (Z&Y)|(X&W) $d): (B&A)|null {}

@@ -1,0 +1,4 @@
+<?php
+// php 8.2
+// {"unionOrder": "byName"}
+function f((B&A)|C|null $a, (A&B)|null $b, (A&B)|null $c, (X&W)|(Z&Y) $d, A|(B&A)|C $e): (B&A)|null {}
