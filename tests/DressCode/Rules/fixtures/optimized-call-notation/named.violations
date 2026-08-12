@@ -1,0 +1,6 @@
+5: A named argument disables the compiler optimization of in_array()
+6: A named argument disables the compiler optimization of in_array()
+7: A named argument disables the compiler optimization of class_exists()
+8: A named argument disables the compiler optimization of strpos()
+12: A named argument disables the compiler optimization of trim()
+16: A named argument disables the compiler optimization of in_array()

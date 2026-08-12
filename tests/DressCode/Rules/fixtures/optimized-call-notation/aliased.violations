@@ -1,0 +1,1 @@
+8: Argument unpacking disables the compiler optimization of strlen()

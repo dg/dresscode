@@ -1,0 +1,19 @@
+<?php
+// nameResolution certain
+namespace App;
+
+$a = in_array($x, $list, true);
+$b = \in_array($x, $list);
+$c = class_exists($class, false);
+$d = strpos($s, 'a', 2);
+$e = in_array($x, strict: true, haystack: $list);
+$f = preg_match('~a~', $s, matches: $m);
+$g = array_slice($list, 1, preserve_keys: true);
+$h = trim($s, characters: /* spaces */ ' ');
+$i = in_array(
+	$x,
+	$list,
+	true,
+);
+$j = max(1, values: 2);
+$k = count($list, mode: COUNT_RECURSIVE);

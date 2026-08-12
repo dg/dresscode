@@ -1,0 +1,5 @@
+2: Argument unpacking disables the compiler optimization of count()
+3: Argument unpacking disables the compiler optimization of strlen()
+4: Argument unpacking disables the compiler optimization of sprintf()
+11: Argument unpacking disables the compiler optimization of dirname()
+14: Argument unpacking disables the compiler optimization of in_array()
