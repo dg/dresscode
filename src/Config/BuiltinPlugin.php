@@ -163,6 +163,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Types\NullableTypeForDefaultNullRule::class,
 				Rules\Types\TypeHintRequiredRule::class,
 				Rules\Types\TypeHintSpacingRule::class,
+				Rules\Types\UnionTypeNotationRule::class,
 				Rules\Variables\CombinedIssetsRule::class,
 				Rules\Variables\CombinedUnsetsRule::class,
 				Rules\Variables\NoDuplicateAssignmentsRule::class,
