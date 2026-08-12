@@ -91,6 +91,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\UselessParameterDefaultRule::class,
 				Rules\Functions\OptimizedCallNotationRule::class,
 				Rules\Functions\NoSettypeRule::class,
+				Rules\Functions\NoManualSubstringTestsRule::class,
 				Rules\Functions\StaticClosureRule::class,
 				Rules\Functions\StrictCallRule::class,
 				Rules\Namespaces\ImportNotationRule::class,
