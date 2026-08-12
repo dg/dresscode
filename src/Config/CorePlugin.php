@@ -108,6 +108,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\NoTrailingWhitespaceRule::class,
 				Rules\Files\StrictTypesRequiredRule::class,
 				Rules\Functions\ArrowFunctionForClosureRule::class,
+				Rules\Functions\NoDebugOutputRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
 				Rules\Functions\MultilineCallRule::class,
 				Rules\Functions\MultilineSignatureRule::class,

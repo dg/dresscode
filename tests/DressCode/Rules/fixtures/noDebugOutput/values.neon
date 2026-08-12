@@ -1,0 +1,3 @@
+correctness:
+	debugOutput: commentedOut
+	debugOutputFunctions: [print_r, var_dump, var_export]

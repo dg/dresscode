@@ -1,0 +1,10 @@
+10: The call of `var_export()` must be commented out.
+	risky BehaviorChanges: what the call printed disappears from the output
+11: The call of `print_r()` must be commented out.
+	risky BehaviorChanges: what the call printed disappears from the output
+12: The call of `var_export()` must be commented out.
+	risky BehaviorChanges: what the call printed disappears from the output
+13: The call of `var_export()` must be commented out.
+	risky BehaviorChanges: what the call printed disappears from the output
+14: The call of `var_dump()` must be commented out.
+	risky BehaviorChanges: what the call printed disappears from the output

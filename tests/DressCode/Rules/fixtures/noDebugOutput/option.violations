@@ -1,0 +1,2 @@
+4: The call of `dump()` must be commented out.
+	risky BehaviorChanges: what the call printed disappears from the output
