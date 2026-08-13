@@ -1,0 +1,17 @@
+<?php
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Routing\Annotation\Route;
+use Lib\Param;
+use Lib\Phpstan;
+use Lib\Qualified;
+use Doctrine\ORM\Mapping\Index;
+
+/**
+ * @ORM\Entity
+ * @ORM\Table(indexes={@Index(name="a", columns={"a"})})
+ * @Route("/home", name="home")
+ * @\Lib\Qualified
+ * @param int $x
+ * @phpstan-return void
+ */
+function f($x) {}

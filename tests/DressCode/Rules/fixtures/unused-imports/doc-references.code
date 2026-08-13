@@ -1,0 +1,12 @@
+<?php
+use Lib\A;
+use Lib\B;
+use Lib\C;
+use Lib\D;
+
+/**
+ * The description mentions {@see C} and {@link D::CONSTANT}.
+ * @see A::method()
+ * @throws B
+ */
+$x = 1;
