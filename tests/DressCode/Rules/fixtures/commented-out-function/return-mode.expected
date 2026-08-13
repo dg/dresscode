@@ -1,0 +1,14 @@
+<?php
+// risky
+var_export($x, true);
+print_r($x, true);
+var_export($x, return: true);
+print_r($x, return: true);
+var_export($x, $return);
+print_r($x, $return);
+var_export(...$args);
+// var_export($x, false);
+// print_r($x, FALSE);
+// var_export($x, return: false);
+// var_export($x);
+// var_dump($x, true);
