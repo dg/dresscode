@@ -1,0 +1,23 @@
+<?php
+// php 8.5
+class A
+{
+	private(set) string $a;
+	public private(set) string $b;
+	protected(set) string $c;
+	public protected(set) int $d;
+	public private(set) static int $s;
+	public private(set) string $e;
+	public readonly string $f;
+
+	public function __construct(string $a, string $b, string $c, int $d, int $s, string $e, string $f)
+	{
+		$this->a = $a;
+		$this->b = $b;
+		$this->c = $c;
+		$this->d = $d;
+		self::$s = $s;
+		$this->e = $e;
+		$this->f = $f;
+	}
+}

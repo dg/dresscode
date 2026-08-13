@@ -1,0 +1,11 @@
+<?php
+// php 8.5
+class A
+{
+	public private(set) static int $s;
+
+	public function __construct(private(set) string $a, public private(set) string $b, protected(set) string $c, public protected(set) int $d, int $s, public private(set) string $e, public readonly string $f)
+	{
+		self::$s = $s;
+	}
+}
