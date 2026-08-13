@@ -1,0 +1,6 @@
+<?php
+// risky
+$lengths = array_map(fn($s) => strlen($s), $strings);
+$trimmed = array_map(function ($s) { return trim($s); }, $strings);
+$sorted = usort($items, fn($x, $y) => $this->compare($x, $y));
+$made = array_map(function ($row) { return Helper::make($row); }, $rows);
