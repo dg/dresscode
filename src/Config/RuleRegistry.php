@@ -163,6 +163,7 @@ final class RuleRegistry
 		Rules\Types\NullableTypeForDefaultNullRule::class,
 		Rules\Types\TypeHintRequiredRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
+		Rules\Types\UnionTypeFormatRule::class,
 		Rules\Variables\CombinedIssetsRule::class,
 		Rules\Variables\CombinedUnsetsRule::class,
 		Rules\Variables\NoDuplicateAssignmentRule::class,
