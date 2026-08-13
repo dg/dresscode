@@ -1,0 +1,28 @@
+<?php
+class A
+{
+	// the name
+	private int $x;
+	private string $y; // why y
+	private string $z;
+	private string $w;
+
+	public function __construct(int $x, string $y, string $z, string $w)
+	{
+		$this->x = $x;
+		$this->y = $y;
+		// set z
+		$this->z = $z;
+		$this->w = $w; // set w
+	}
+}
+
+class B
+{
+	private int $x;
+
+	public function __construct(int $x = null)
+	{
+		$this->x = $x;
+	}
+}

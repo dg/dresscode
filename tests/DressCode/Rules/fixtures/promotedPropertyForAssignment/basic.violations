@@ -1,0 +1,7 @@
+4: The property `$name` must be promoted to a constructor parameter.
+5: The property `$count` must be promoted to a constructor parameter.
+6: The property `$foo` must be promoted to a constructor parameter.
+7: The property `$untyped` must be promoted to a constructor parameter.
+	risky BehaviorChanges: promotion sets the untyped property before the body runs
+54: The property `$a` must be promoted to a constructor parameter.
+87: The property `$data` must be promoted to a constructor parameter.
