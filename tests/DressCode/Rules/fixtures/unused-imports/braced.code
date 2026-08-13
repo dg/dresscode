@@ -1,0 +1,10 @@
+<?php
+namespace A {
+	use Lib\X;
+	use Lib\Y;
+	new X;
+}
+namespace B {
+	use Lib\X;
+	new Y;
+}
