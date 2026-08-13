@@ -44,6 +44,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Classes\UselessNullInitializationRule::class,
 				Rules\Classes\KindInClassNameRule::class,
 				Rules\Classes\OrderedMembersRule::class,
+				Rules\Classes\PromotedPropertyForAssignmentRule::class,
 				Rules\Classes\SelfForCurrentClassRule::class,
 				Rules\Classes\SingleMemberPerDeclarationRule::class,
 				Rules\Classes\SingleMemberPerLineRule::class,
