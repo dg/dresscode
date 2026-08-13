@@ -1,0 +1,4 @@
+<?php
+// {"functions": "combined"}
+namespace A;
+use function B\c, B\d, e;

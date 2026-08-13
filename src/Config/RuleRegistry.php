@@ -90,6 +90,7 @@ final class RuleRegistry
 		Rules\Functions\NoSettypeRule::class,
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
+		Rules\Namespaces\ImportNotationRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Namespaces\OrderedImportsRule::class,
 		Rules\Namespaces\UnusedImportsRule::class,
