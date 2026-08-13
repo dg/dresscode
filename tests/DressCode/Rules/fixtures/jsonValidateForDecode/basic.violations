@@ -1,0 +1,12 @@
+3: The test for JSON must be written with `json_validate()`
+	risky BehaviorChanges: `json_validate()` takes the document `null` for JSON, the test does not
+6: The test for JSON must be written with `json_validate()`
+	risky BehaviorChanges: `json_validate()` takes the document `null` for JSON, the test does not
+7: The test for JSON must be written with `json_validate()`
+	risky BehaviorChanges: `json_validate()` takes the document `null` for JSON, the test does not
+8: The test for JSON must be written with `json_validate()`
+	risky BehaviorChanges: `json_validate()` takes the document `null` for JSON, the test does not
+9: The test for JSON must be written with `json_validate()`
+	risky BehaviorChanges: `json_validate()` takes the document `null` for JSON, the test does not
+10: The test for JSON must be written with `json_validate()`
+	risky BehaviorChanges: `json_validate()` takes the document `null` for JSON, the test does not
