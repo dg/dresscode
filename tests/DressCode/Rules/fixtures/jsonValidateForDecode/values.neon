@@ -1,0 +1,3 @@
+upgrading:
+	functions:
+		json_validate: adopted

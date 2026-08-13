@@ -108,6 +108,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\ArrowFunctionForClosureRule::class,
 				Rules\Functions\NoDebugOutputRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
+				Rules\Functions\JsonValidateForDecodeRule::class,
 				Rules\Functions\MultilineCallRule::class,
 				Rules\Functions\MultilineSignatureRule::class,
 				Rules\Functions\NamedArgumentSpacingRule::class,

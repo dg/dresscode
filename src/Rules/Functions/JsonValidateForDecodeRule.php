@@ -1,0 +1,133 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\Functions;
+
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\{CodeWriter, GlobalCalls};
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{ArgumentNode, Expression, ExpressionNode, NameNode};
+use PhpSyntax\Nodes\Scalar\NullNode;
+use function count;
+
+
+/**
+ * `json_decode($json) !== null && json_last_error() === JSON_ERROR_NONE` asks whether the text is JSON and
+ * throws the value away, which is what `json_validate()` of PHP 8.3 is for. The `associative` argument goes
+ * with the decoding; a call carrying `depth` or `flags`, or an unpacked argument that may hold them, stays: the new
+ * function takes only one of the flags of the old one, and the fix carries over nothing but the text.
+ *
+ * Every fix is risky, and for one document: `json_decode('null')` gives null without an error, so the pair
+ * says the text is not JSON, while `json_validate('null')` says it is.
+ */
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.3'], analyses: [NameResolver::class])]
+final class JsonValidateForDecodeRule extends NodeRule
+{
+	public static function getDecisions(): array
+	{
+		return [new Decision('upgrading.functions.json_validate', Domain::adopted(), '`json_validate()` for `json_decode()` called only to test the input')];
+	}
+
+
+	public function getVisitedNodes(): array
+	{
+		return [Expression\BinaryOpNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if (
+			!$node instanceof Expression\BinaryOpNode
+			|| !$node->operator->is(Token::BooleanAnd)
+			|| !self::isErrorCheck($node->right, $context)
+			|| $node->hasInnerComment()
+		) {
+			return;
+		}
+
+		// the two checks are the whole condition, or its end, which && binds to the left
+		$chained = $node->left instanceof Expression\BinaryOpNode && $node->left->operator->is(Token::BooleanAnd)
+			? $node->left
+			: null;
+		$decode = self::readDecodedJson($chained === null ? $node->left : $chained->right, $context);
+		if (
+			$decode === null
+			|| !$context->report($node, 'The test for JSON must be written with `json_validate()`.', risk: Risk::BehaviorChanges, because: '`json_validate()` takes the document `null` for JSON, the test does not')
+		) {
+			return;
+		}
+
+		$spelling = CodeWriter::spellFunction('json_validate', $decode->name, $context);
+		$json = $decode->arguments->findArgument('json', 0)?->value;
+		assert($json !== null);
+		$builder = new Builder;
+		$call = $builder->call($spelling, [$json]);
+
+		if ($chained === null) {
+			$node->replaceWith($call);
+			return;
+		}
+
+		$node->replaceWith($builder->binary($chained->left, '&&', $call));
+	}
+
+
+	/** The call of `json_decode()` whose result the expression only compares with null, the value thrown away. */
+	private static function readDecodedJson(ExpressionNode $expression, RuleContext $context): ?Expression\FunctionCallNode
+	{
+		if (
+			!$expression instanceof Expression\BinaryOpNode
+			|| !$expression->operator->is(Token::IsNotIdentical)
+		) {
+			return null;
+		}
+
+		$call = match (true) {
+			$expression->right instanceof NullNode => $expression->left,
+			$expression->left instanceof NullNode => $expression->right,
+			default => null,
+		};
+		if (
+			!$call instanceof Expression\FunctionCallNode
+			|| !$call->name instanceof NameNode
+			|| GlobalCalls::findFunction($call, ['json_decode' => true], $context) === null
+			|| $call->arguments->isPartialApplication()
+			|| array_any($call->arguments->items->getItems(), fn($argument) => $argument instanceof ArgumentNode && $argument->ellipsis !== null)
+			|| $call->arguments->findArgument('json', 0) === null
+			|| $call->arguments->findArgument('depth', 2) !== null
+			|| $call->arguments->findArgument('flags', 3) !== null
+			|| count($call->arguments->items) > 2
+		) {
+			return null;
+		}
+
+		return $call;
+	}
+
+
+	/** Whether the expression is `json_last_error() === JSON_ERROR_NONE`, which says the decoding went through. */
+	private static function isErrorCheck(ExpressionNode $expression, RuleContext $context): bool
+	{
+		if (
+			!$expression instanceof Expression\BinaryOpNode
+			|| !$expression->operator->is(Token::IsIdentical)
+		) {
+			return false;
+		}
+
+		[$call, $constant] = $expression->right instanceof Expression\ConstantFetchNode
+			? [$expression->left, $expression->right]
+			: [$expression->right, $expression->left];
+		return $call instanceof Expression\FunctionCallNode
+			&& count($call->arguments->items) === 0
+			&& $constant instanceof Expression\ConstantFetchNode
+			&& GlobalCalls::findFunction($call, ['json_last_error' => true], $context) !== null
+			&& $context->getAnalysis(NameResolver::class)->resolveConstant($constant->name) === 'JSON_ERROR_NONE';
+	}
+}
