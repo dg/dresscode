@@ -1,0 +1,68 @@
+<?php
+namespace App;
+
+use Traversable;
+
+class Collection implements \Countable, \ArrayAccess, \IteratorAggregate, \JsonSerializable
+{
+	public function count(): int
+	{
+		return 0;
+	}
+
+
+	public function offsetGet($offset): ?string
+	{
+		return null;
+	}
+
+
+	public function getIterator(): Traversable
+	{
+		return new \ArrayIterator([]);
+	}
+
+
+	public function jsonSerialize(): array
+	{
+		return [];
+	}
+
+
+	// left alone
+
+	#[\ReturnTypeWillChange]
+	public function offsetExists($offset)
+	{
+		return false;
+	}
+
+
+	#[\ReturnTypeWillChange]
+	public function offsetSet($offset, $value): bool
+	{
+		return true;
+	}
+
+
+	#[\ReturnTypeWillChange, \Deprecated]
+	public function offsetUnset($offset): void
+	{
+	}
+
+
+	#[\ReturnTypeWillChange]
+	public function own(): int
+	{
+		return 1;
+	}
+}
+
+class Other implements \Countable
+{
+	#[\ReturnTypeWillChange]
+	public function count(): \Countable
+	{
+		return $this;
+	}
+}
