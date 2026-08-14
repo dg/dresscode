@@ -1,0 +1,5 @@
+<?php
+// {"namedClasses": null, "anonymousClasses": "forbidden"}
+$a = new Foo();
+$e = new class {
+};

@@ -1,0 +1,6 @@
+<?php
+// {"namedClasses": "forbidden", "anonymousClasses": "forbidden"}
+$h = new Foo()->bar();
+$i = new Foo()['x'];
+$j = new Foo()::X;
+$k = new Foo()->y;

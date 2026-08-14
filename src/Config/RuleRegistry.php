@@ -33,6 +33,7 @@ final class RuleRegistry
 		Rules\Classes\FinalInternalClassRule::class,
 		Rules\Classes\ModernClassNameReferenceRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
+		Rules\Expressions\NewArgumentParenthesesRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,
 		Rules\Classes\NoKindInClassNameRule::class,
 		Rules\Classes\OrderedMembersRule::class,
