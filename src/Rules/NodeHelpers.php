@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules;
 
-use DressCode\Analyses\{IndentationPlan, Parameter};
+use DressCode\Analyses\{IndentationPlan, Parameter, PhpSignatures};
 use DressCode\{Claim, Gap, Line, RuleContext};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, SymbolKind, Token, Trivia};
@@ -142,7 +142,8 @@ final class NodeHelpers
 
 
 	/**
-	 * The parameters of the function the call calls, as the declaration in the file says; null where it does not tell.
+	 * The parameters of the function the call calls, as the declaration in the file or the signature of PHP says; null
+	 * where neither tells.
 	 * @return ?list<Parameter>
 	 */
 	public static function findParameters(Expression\FunctionCallNode $call, RuleContext $context): ?array
@@ -154,14 +155,18 @@ final class NodeHelpers
 		$resolver = $context->getAnalysis(NameResolver::class);
 		$function = $resolver->resolveFunction($call->name);
 		$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
-		return $declaration === null ? null : array_map(
-			fn(ParameterNode $parameter) => new Parameter(
-				(string) $parameter->variable->plainName,
-				variadic: $parameter->ellipsis !== null,
-				byReference: $parameter->ampersand !== null,
+		return match (true) {
+			$declaration !== null => array_map(
+				fn(ParameterNode $parameter) => new Parameter(
+					(string) $parameter->variable->plainName,
+					variadic: $parameter->ellipsis !== null,
+					byReference: $parameter->ampersand !== null,
+				),
+				$declaration->parameters->getItems(),
 			),
-			$declaration->parameters->getItems(),
-		);
+			$resolver->isGlobalFunctionCall($call) => $context->getAnalysis(PhpSignatures::class)->findParameters($function),
+			default => null,
+		};
 	}
 
 

@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Namespaces;
 
-use DressCode\Analyses\PhpSymbols;
+use DressCode\Analyses\{Parameter, PhpSignatures, PhpSymbols};
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\{Compiler, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
@@ -23,14 +23,14 @@ use function count;
  * some functions into opcodes, but only where it knows while compiling that the call is global, in the global namespace
  * or with the name imported or fully qualified, and never with an unpacked argument, which is reported where the call
  * would be optimized with the values passed one by one, nor with a named one. PHP 8.4 calls some functions without a
- * frame, even unqualified in a namespace, but never with a named argument either. A named argument of such a function
- * is written positionally where every named argument stands at the position of its parameter, whatever version the
- * code targets, since it may run on a later one.
+ * frame, even unqualified in a namespace, but never with a named argument either. A named argument is written
+ * positionally where every named argument stands at the position of its parameter, whatever version the code targets,
+ * since it may run on a later one.
  */
 #[RuleInfo(
 	Stage::Structure,
 	decisions: ['qualification.globalFunction', 'qualification.optimizedFunction'],
-	analyses: [PhpSymbols::class, NameResolver::class],
+	analyses: [PhpSignatures::class, PhpSymbols::class, NameResolver::class],
 )]
 final class OptimizedCallNotationRule extends NodeRule
 {
@@ -86,7 +86,10 @@ final class OptimizedCallNotationRule extends NodeRule
 			return;
 		}
 
-		$parameters = $context->getAnalysis(PhpSymbols::class)->findFramelessParameterNames($name, count($args)) ?? [];
+		$parameters = $context->getAnalysis(PhpSymbols::class)->findFramelessParameterNames($name, count($args))
+			?? ($qualified && Compiler::isOptimizedCall($node, $name, $context, named: true)
+				? array_map(fn(Parameter $parameter) => $parameter->variadic ? '' : $parameter->name, $context->getAnalysis(PhpSignatures::class)->findParameters($name) ?? [])
+				: []);
 		$this->writePositionally($node, $name, $args, $parameters, $this->decision, $context);
 	}
 

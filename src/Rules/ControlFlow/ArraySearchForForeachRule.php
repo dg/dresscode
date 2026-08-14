@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\ControlFlow;
 
-use DressCode\Analyses\Parameter;
+use DressCode\Analyses\{Parameter, PhpSignatures};
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\{GlobalCalls, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
@@ -36,7 +36,7 @@ use function count, in_array;
  * fix is risky wherever the loop may go through something else. Only an array literal and what a declaration in
  * sight says are told from a Traversable.
  */
-#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.4'], decisions: ['upgrading.functions.arraySearchFunctions'], analyses: [NameResolver::class])]
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.4'], decisions: ['upgrading.functions.arraySearchFunctions'], analyses: [PhpSignatures::class, NameResolver::class])]
 final class ArraySearchForForeachRule extends NodeRule
 {
 	public function getVisitedNodes(): array

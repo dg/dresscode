@@ -1,0 +1,2 @@
+6: A named argument disables the compiler optimization of `count()`.
+7: A named argument disables the compiler optimization of `strlen()`.

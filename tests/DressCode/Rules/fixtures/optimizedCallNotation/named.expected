@@ -18,5 +18,5 @@ $i = in_array(
 	true,
 );
 $j = max(1, values: 2);
-$k = count($list, mode: COUNT_RECURSIVE);
+$k = count($list, COUNT_RECURSIVE);
 $l = \in_array(...$args, haystack: $list);

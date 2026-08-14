@@ -7,13 +7,14 @@
 
 namespace DressCode\Rules\Functions;
 
+use DressCode\Analyses\{Parameter, PhpSignatures};
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Flag;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\{AnonymousFunctionNode, AttributeNode, ClosureUseNode, ConstItemNode, ExpressionNode, FunctionLikeNode, ParameterNode, StatementNode};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClosureNode, CombinedAssignmentNode, MatchNode, MethodCallNode, ParenthesizedNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, TernaryNode, VariableNode};
+use PhpSyntax\Nodes\{AnonymousFunctionNode, ArgumentNode, AttributeNode, ClosureUseNode, ConstItemNode, ExpressionNode, FunctionLikeNode, ParameterNode, SeparatedNodeList, StatementNode};
+use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClosureNode, CombinedAssignmentNode, FunctionCallNode, MatchNode, MethodCallNode, ParenthesizedNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, TernaryNode, VariableNode};
 use PhpSyntax\Nodes\Member\{EnumCaseNode, PropertyItemNode};
 use PhpSyntax\Nodes\Statement\ReturnNode;
 use function count;
@@ -24,11 +25,12 @@ use function count;
  * along automatically, one captured by reference does not, so such a closure stays. So does a closure whose
  * body reaches a variable by a name it does not spell out (`$$name`, `compact()`, `extract()`,
  * `get_defined_vars()`, `eval`, `include`), because an arrow function captures only the variables its
- * expression names, and a closure reading a variable it neither takes, uses nor assigns, which it sees undefined
- * where an arrow function would capture it. A comment before the parameters or anywhere after them keeps the
- * closure as well, and so does a constant expression, which takes a static closure but no arrow function.
+ * expression names, and a closure reading a variable it neither takes, uses, assigns nor passes to a parameter
+ * taking it by reference before the read, which it sees undefined where an arrow function would capture it. A
+ * comment before the parameters or anywhere after them keeps the closure as well, and so does a constant
+ * expression, which takes a static closure but no arrow function.
  */
-#[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
+#[RuleInfo(Stage::Structure, analyses: [NameResolver::class, PhpSignatures::class])]
 final class ArrowFunctionForClosureRule extends NodeRule
 {
 	private const Plain = 'functions.closureReturningOneExpression';
@@ -86,7 +88,7 @@ final class ArrowFunctionForClosureRule extends NodeRule
 			(!$this->nested && $node->body->find(AnonymousFunctionNode::class))
 			|| NodeHelpers::findDynamicVariableAccesses($node->body, $context) !== []
 			|| self::standsInConstantExpression($node)
-			|| self::readsUnboundVariable($node, $return->expression)
+			|| self::readsUnboundVariable($node, $return->expression, $context)
 		) {
 			return;
 		}
@@ -122,7 +124,7 @@ final class ArrowFunctionForClosureRule extends NodeRule
 	 * surely runs: one behind a condition, a short circuit or a nullsafe operator may not, and a read standing before
 	 * the write is ended, `$x + ($x = 1)`, has no evident order.
 	 */
-	private static function readsUnboundVariable(ClosureNode $closure, ExpressionNode $expression): bool
+	private static function readsUnboundVariable(ClosureNode $closure, ExpressionNode $expression, RuleContext $context): bool
 	{
 		$bound = self::Bound;
 		foreach ([...$closure->parameters->getItems(), ...$closure->uses?->items->getItems() ?? []] as $declared) {
@@ -144,7 +146,7 @@ final class ArrowFunctionForClosureRule extends NodeRule
 				continue;
 			}
 
-			$writer = $variable->isWritten() ? self::findWriter($variable) : null;
+			$writer = $variable->isWritten() ? self::findWriter($variable) : self::findReferenceTaker($variable, $context);
 			$writer = $writer !== null && isset($order[$writer->getLastToken()]) ? $writer : null;
 			if (
 				$writer === null
@@ -182,6 +184,33 @@ final class ArrowFunctionForClosureRule extends NodeRule
 		}
 
 		return $node->parent;
+	}
+
+
+	/**
+	 * The call the variable is passed to by reference, which writes it, as the declaration in the file or the signature
+	 * of PHP says; null where the variable is no argument of a parameter known to take one by reference.
+	 */
+	private static function findReferenceTaker(VariableNode $variable, RuleContext $context): ?ExpressionNode
+	{
+		$argument = $variable->parent;
+		$call = $argument?->parent?->parent?->parent;
+		if (
+			!$argument instanceof ArgumentNode
+			|| $argument->ellipsis !== null
+			|| !$argument->parent instanceof SeparatedNodeList
+			|| !$call instanceof FunctionCallNode
+			|| ($parameters = NodeHelpers::findParameters($call, $context)) === null
+		) {
+			return null;
+		}
+
+		$position = $argument->parent->indexOf($argument);
+		$last = $parameters[count($parameters) - 1] ?? null;
+		$parameter = $argument->name === null
+			? $parameters[$position] ?? ($last?->variadic ? $last : null)
+			: array_find($parameters, fn(Parameter $parameter) => $parameter->name === $argument->name->text);
+		return $parameter?->byReference ? $call : null;
 	}
 
 

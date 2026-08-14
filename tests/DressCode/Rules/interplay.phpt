@@ -246,3 +246,17 @@ test('an import the qualification adds takes the shape importNotation gives it, 
 	$result = interplay($rules('combined'), "<?php\nnamespace A;\n\nstrlen(\$a);\ncount(\$b);\n", "<?php\nnamespace A;\n\nuse function count, strlen;\n\nstrlen(\$a);\ncount(\$b);\n", $certain);
 	Assert::same(['qualification.optimizedFunction'], $reported($result));
 });
+
+
+test('a call the qualification writes qualified gets its arguments positionally from optimizedCallNotation', function () {
+	$values = ['qualification.globalFunction' => 'bare', 'qualification.optimizedFunction' => 'backslashed'];
+	interplay(
+		[
+			Rules\Namespaces\GlobalNameQualificationRule::class => $values,
+			Rules\Namespaces\OptimizedCallNotationRule::class => $values,
+		],
+		"<?php\nnamespace App;\n\n\$a = count(\$list, mode: COUNT_RECURSIVE);\n\$b = strlen(string: \$s);\n",
+		"<?php\nnamespace App;\n\n\$a = \\count(\$list, COUNT_RECURSIVE);\n\$b = \\strlen(\$s);\n",
+		new Analyses\Registry(new NamespacedSymbols(complete: true)),
+	);
+});
