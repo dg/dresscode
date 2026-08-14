@@ -13,6 +13,8 @@ tools/          export-ignore
 *.php*          diff=php
 *.sh            text eol=lf
 bin/dresscode   text eol=lf
+# byte-exact: these files are the input and the oracle of round-trip and rule tests,
+# so a checkout must never rewrite their line endings
 tests/PhpSyntax/Parser/corpus/**  -text
 tests/PhpSyntax/Parser/dump/**    -text
 tests/**/fixtures/**       -text

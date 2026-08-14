@@ -65,6 +65,7 @@ final class LayerBoundaryRule implements Rule
 		if (str_starts_with($name, self::Layer)) {
 			return false;
 		} elseif ($this->reflectionProvider->hasClass($name)) {
+			// isBuiltin(), not getFileName(): built-in classes have a stub file, so they look like vendor code
 			return !$this->reflectionProvider->getClass($name)->isBuiltin();
 		} elseif ($this->reflectionProvider->hasFunction(new Name($name), null)) {
 			return !$this->reflectionProvider->getFunction(new Name($name), null)->isBuiltin();
