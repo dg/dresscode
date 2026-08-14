@@ -138,6 +138,7 @@ final class RuleRegistry
 		Rules\Variables\NoGlobalKeywordRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\DeclareSpacingRule::class,
+		Rules\Whitespace\SemicolonSpacingRule::class,
 		Rules\Whitespace\ParenthesesSpacingRule::class,
 		Rules\Files\NoTrailingWhitespaceRule::class,
 		Rules\ControlFlow\SingleStatementPerLineRule::class,
