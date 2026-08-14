@@ -1,0 +1,4 @@
+<?php
+$handler = Closure::fromCallable([$this->mailer, 'send']);
+$formatter = Closure::fromCallable('ucfirst');
+$factories = array_map(fn(...$args) => Item::create(...$args), $rows);

@@ -1,0 +1,4 @@
+<?php
+$handler = $this->mailer->send(...);
+$formatter = \ucfirst(...);
+$factories = array_map(Item::create(...), $rows);

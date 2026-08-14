@@ -79,6 +79,7 @@ final class RuleRegistry
 		Rules\Files\StrictTypesRequiredRule::class,
 		Rules\Functions\ArrowFunctionRule::class,
 		Rules\Functions\CommentedOutFunctionRule::class,
+		Rules\Functions\FirstClassCallableNotationRule::class,
 		Rules\Functions\MultiLineCallRule::class,
 		Rules\Functions\NoDirnameOfFileRule::class,
 		Rules\Functions\MultiLineSignatureRule::class,
