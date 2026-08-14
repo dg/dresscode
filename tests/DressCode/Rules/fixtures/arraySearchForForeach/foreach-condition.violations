@@ -1,0 +1,14 @@
+7: The loop must be written with `array_any()`.
+	risky TypeUnknown: the condition may pass a variable by reference, which the arrow function writes only for itself
+19: The loop must be written with `array_any()`.
+	risky TypeUnknown: the condition may pass a variable by reference, which the arrow function writes only for itself
+47: The loop must be written with `array_any()`.
+	risky TypeUnknown: the condition may pass a variable by reference, which the arrow function writes only for itself
+58: The loop must be written with `array_any()`.
+	risky TypeUnknown: the condition may pass a variable by reference, which the arrow function writes only for itself
+104: The loop must be written with `array_any()`.
+	risky TypeUnknown: the condition may pass a variable by reference, which the arrow function writes only for itself
+115: The loop must be written with `array_any()`.
+	risky TypeUnknown: the condition may pass a variable by reference, which the arrow function writes only for itself
+126: The loop must be written with `array_any()`.
+	risky TypeUnknown: the condition may pass a variable by reference, which the arrow function writes only for itself

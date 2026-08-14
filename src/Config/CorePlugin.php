@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
-use DressCode\{Decision, ImportStyle, Plugin, PluginManifest, Rules};
+use DressCode\{Decision, Domain, ImportStyle, Plugin, PluginManifest, Rules};
 use DressCode\Domains\{Count, Names, Words};
 
 
@@ -49,6 +49,7 @@ final class CorePlugin implements Plugin
 				Rules\Comments\CommentSpacingRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
+				Rules\ControlFlow\ArraySearchForForeachRule::class,
 				Rules\ControlFlow\NoBracelessBodiesRule::class,
 				Rules\ControlFlow\EarlyExitForTrailingIfRule::class,
 				Rules\ControlFlow\ElseifNotationRule::class,
@@ -222,6 +223,9 @@ final class CorePlugin implements Plugin
 
 				// the classes a native type takes as iterable
 				new Decision('types.traversableClasses', new Names, 'Classes treated like `array` and `iterable`, whose annotation says what their items are', parameter: true, default: ['Traversable']),
+
+				// the newer constructs, decided once for every rule writing them
+				new Decision('upgrading.functions.arraySearchFunctions', Domain::adopted(), '`array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` that only asks what they answer'),
 			],
 		);
 	}

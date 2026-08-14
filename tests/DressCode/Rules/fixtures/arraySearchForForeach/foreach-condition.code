@@ -1,0 +1,188 @@
+<?php
+// risky
+
+function matching(array $lines): ?string
+{
+	$found = false;
+	foreach ($lines as $line) {
+		if (preg_match('~^x(.*)~', $line, $m)) {
+			$found = true;
+			break;
+		}
+	}
+
+	return $found ? $m[1] : null;
+}
+
+function matchingPattern(array $lines, string $pattern): bool
+{
+	foreach ($lines as $line) {
+		if (preg_match($pattern, $line)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function counting(array $lines, array $counts): bool
+{
+	foreach ($lines as $line) {
+		if (tally($line, $counts['all'])) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function tally(string $line, ?int &$count): bool
+{
+	$count++;
+	return $line !== '';
+}
+
+function allowed(array $items, array $allowed): bool
+{
+	foreach ($items as $item) {
+		if (in_array($item, $allowed, true)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function caged(array $items, $cage): bool
+{
+	foreach ($items as $item) {
+		if ($item->isIn($cage)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function readsAnswer(array $numbers)
+{
+	$found = null;
+	foreach ($numbers as $number) {
+		if ($found === null && $number > 3) {
+			$found = $number;
+			break;
+		}
+	}
+
+	return $found;
+}
+
+function yielding(array $items)
+{
+	foreach ($items as $item) {
+		if (yield $item) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function yieldingFrom(array $items)
+{
+	foreach ($items as $item) {
+		if (!(yield from $item)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function matchingNamed(array $lines): bool
+{
+	foreach ($lines as $line) {
+		if (preg_match(subject: $line, matches: $m, pattern: '~^x~')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function scanningUnpacked(array $lines, array $p): bool
+{
+	foreach ($lines as $line) {
+		if (sscanf($line, '%d', ...$p)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function scanningVariadic(array $lines): bool
+{
+	foreach ($lines as $line) {
+		if (sscanf($line, '%d %d', $a, $b)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function namesFunction(array $items): bool
+{
+	foreach ($items as $item) {
+		if ($item === __FUNCTION__) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function namesMethod(array $items): bool
+{
+	foreach ($items as $item) {
+		if ($item === __METHOD__) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function countsArguments(array $items): bool
+{
+	foreach ($items as $item) {
+		if ($item === func_num_args()) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function readsArguments(array $items): bool
+{
+	foreach ($items as $item) {
+		if (in_array($item, func_get_args(), true)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function readsArgument(array $items): bool
+{
+	foreach ($items as $item) {
+		if ($item === func_get_arg(0)) {
+			return true;
+		}
+	}
+
+	return false;
+}
