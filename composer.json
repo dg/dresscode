@@ -41,7 +41,8 @@
 	"scripts": {
 		"phpstan": "phpstan analyse",
 		"tester": "tester tests -s",
-		"build": "php grammar/build.php"
+		"build": "php grammar/build.php",
+		"reference": "php docs/reference/generate.php"
 	},
 	"config": {
 		"allow-plugins": {

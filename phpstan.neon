@@ -8,6 +8,7 @@ parameters:
 		- src
 		- tests
 		- tools
+		- docs/reference
 
 	scanDirectories:
 		- tests/fixtures/plugin/src
