@@ -1,0 +1,3 @@
+<?php
+$property = new ReflectionProperty($entity, 'id');
+$id = $property->getValue($entity);
