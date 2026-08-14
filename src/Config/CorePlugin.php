@@ -86,6 +86,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\NullCoalescingForNullTernaryRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
 				Rules\Expressions\OffsetBracketSpacingRule::class,
+				Rules\Expressions\PipeForNestedCallsRule::class,
 				Rules\Expressions\ReferenceSpacingRule::class,
 				Rules\Expressions\ShortTernaryForRepeatedConditionRule::class,
 				Rules\Expressions\SpreadOperatorSpacingRule::class,

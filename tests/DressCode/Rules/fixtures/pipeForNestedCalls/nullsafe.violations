@@ -1,0 +1,2 @@
+4: The nested calls must be written with the pipe operator.
+	risky TypeUnknown: a step may take its argument by reference, which the pipe cannot pass

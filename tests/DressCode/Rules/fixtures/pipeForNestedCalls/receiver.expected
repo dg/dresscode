@@ -1,0 +1,14 @@
+<?php
+function f(Text $o, string $input)
+{
+	$a = trim(make()->clean(strtolower($input)));
+	$b = trim($o->clean(strtolower($input)));
+	$c = trim(strtolower(make()->clean($input)));
+	$d = trim(strtolower(make()->clean($input++)));
+}
+
+
+function make(): Text
+{
+	return new Text;
+}
