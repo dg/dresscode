@@ -1,0 +1,4 @@
+3: The callable must be written strlen(...)
+4: The callable must be written trim(...)
+5: The callable must be written $this->compare(...)
+6: The callable must be written Helper::make(...)
