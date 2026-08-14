@@ -1,0 +1,19 @@
+10: Useless @param annotation for parameter $a
+10: Useless @param annotation for parameter $b
+10: Useless @param annotation for parameter $d
+10: Useless @param annotation for parameter $f
+10: Useless @param annotation for parameter $g
+10: Useless @param annotation for parameter $i
+22: Parameter $a must have the native type 'int' from its @param annotation
+22: Parameter $b must have the native type '?Foo' from its @param annotation
+22: Parameter $c must have the native type 'array' from its @param annotation
+22: Parameter $d must have the native type 'int|string' from its @param annotation
+22: Parameter $g must have the native type 'mixed' from its @param annotation
+22: Parameter $h must have the native type 'array' from its @param annotation
+22: Parameter $j must have the native type 'int' from its @param annotation
+26: Parameter $x has no type hint nor @param annotation
+26: Traversable parameter $y has no @param annotation saying what the items are
+26: Traversable parameter $z has no @param annotation saying what the items are
+26: Traversable parameter $t has no @param annotation saying what the items are
+35: Useless @param annotation for parameter $a
+43: Parameter $p has no type hint nor @param annotation

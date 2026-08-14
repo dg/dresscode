@@ -1,0 +1,15 @@
+<?php
+class A
+{
+	/** @var int */
+	private $count;
+
+	/**
+	 * @param string $name
+	 * @return bool
+	 */
+	public function check($name)
+	{
+		return true;
+	}
+}

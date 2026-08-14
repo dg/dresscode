@@ -1,0 +1,40 @@
+<?php
+// php 8.2
+// {"parameters": false, "properties": false}
+class A
+{
+	/** @return int */
+	public function a() { return 1; }
+
+	public function b() { echo 1; }
+
+	public function c() { return 1; }
+
+	/** @return Foo[] */
+	public function d(): array { return []; }
+
+	public function e(): array { return []; }
+
+	/** @return never */
+	public function f(): void { throw new E; }
+
+	/** @return static */
+	public function g() { return $this; }
+
+	/** @return int */
+	public function h(): int { return 1; }
+
+	public function i() { yield 1; }
+
+	abstract public function j();
+
+	public function k() { $f = function () { return 1; }; }
+
+	/** @return ?string desc */
+	public function l() { return null; }
+
+	public function __construct() { echo 1; }
+}
+$c = function () { echo 1; };
+$d = function () use ($x) { return 1; };
+$e = function () use ($x) { echo 1; };

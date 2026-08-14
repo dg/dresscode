@@ -1,0 +1,10 @@
+<?php
+class A
+{
+	private int $count;
+
+	public function check(string $name): bool
+	{
+		return true;
+	}
+}

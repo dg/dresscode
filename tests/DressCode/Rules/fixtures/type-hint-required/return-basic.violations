@@ -1,0 +1,15 @@
+6: Useless @return annotation
+7: The function must have the native return type 'int' from its @return annotation
+9: The function must have the void return type
+11: The function has no return type hint nor @return annotation
+16: Traversable return type has no @return annotation saying what the items are
+18: Useless @return annotation
+19: The return type must be never instead of void, as the @return annotation says
+22: The function must have the native return type 'static' from its @return annotation
+24: Useless @return annotation
+27: The function has no return type hint nor @return annotation
+29: The function has no return type hint nor @return annotation
+31: The function must have the void return type
+34: The function must have the native return type '?string' from its @return annotation
+38: The function must have the void return type
+40: The function must have the void return type
