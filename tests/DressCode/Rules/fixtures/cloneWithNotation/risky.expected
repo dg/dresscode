@@ -1,0 +1,9 @@
+<?php
+// risky
+class Copy
+{
+	public function withTags(): static
+	{
+		return clone($this, ['tags' => $this->defaults['tags']]);
+	}
+}

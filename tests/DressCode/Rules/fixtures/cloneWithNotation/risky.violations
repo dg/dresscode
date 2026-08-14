@@ -1,0 +1,2 @@
+7: The properties assigned to a clone must be given to `clone()`.
+	risky BehaviorChanges: the values are read before `__clone()` runs, not after it

@@ -1,0 +1,99 @@
+<?php
+class Point
+{
+	public const ORIGIN = 0;
+
+
+	public function __construct(
+		private int $x,
+		private int $y,
+		private array $tags = [],
+	) {
+	}
+
+
+	public function withX(int $x): static
+	{
+		return clone($this, ['x' => $x]);
+	}
+
+
+	public function withTwice(int $x): static
+	{
+		$new = clone($this, ['x' => 0]);
+		$new->x = $x;
+		return $new;
+	}
+
+
+	public function withBoth(int $x, int $y): static
+	{
+		$new = clone($this, ['x' => $x]);
+		$new->y = $y ?? self::ORIGIN;
+		return $new;
+	}
+
+
+	public function moved(int $x): static
+	{
+		$new = clone($this, ['x' => $x]);
+		$new->log('moved');
+		return $new;
+	}
+
+
+	public function reset(): static
+	{
+		$new = clone($this, ['x' => 0, 'y' => PHP_INT_MAX]);
+		$this->notify($new);
+		return $new;
+	}
+
+
+	public function withOrigin(): static
+	{
+		return clone($this, ['y' => static::ORIGIN]);
+	}
+
+
+	// left alone
+
+	public function withComment(int $x): static
+	{
+		$new = clone $this;
+		// the x
+		$new->x = $x;
+		return $new;
+	}
+
+
+	public function withCall(array $tags): static
+	{
+		$new = clone $this;
+		$new->tags = array_unique($tags);
+		return $new;
+	}
+
+
+	public function readsClone(int $x): static
+	{
+		$new = clone $this;
+		$new->x = $new->y + $x;
+		return $new;
+	}
+
+
+	public function nothing(): static
+	{
+		$new = clone $this;
+		return $new;
+	}
+
+
+	public function nested(int $x): static
+	{
+		$new = clone $this;
+		$new->inner->x = $x;
+		return $new;
+	}
+}
