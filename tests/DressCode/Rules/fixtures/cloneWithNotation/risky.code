@@ -1,0 +1,11 @@
+<?php
+// risky
+class Copy
+{
+	public function withTags(): static
+	{
+		$new = clone $this;
+		$new->tags = $this->defaults['tags'];
+		return $new;
+	}
+}

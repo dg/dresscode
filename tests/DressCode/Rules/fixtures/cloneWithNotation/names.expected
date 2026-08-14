@@ -1,0 +1,17 @@
+<?php
+// variables named as the parts of the built code
+class Pair
+{
+	public function with($subject, $value): static
+	{
+		return clone($this, ['a' => $subject, 'b' => $value]);
+	}
+
+
+	public function copied(self $value): static
+	{
+		$subject = clone($value, ['a' => 1]);
+		$subject->log();
+		return $subject;
+	}
+}
