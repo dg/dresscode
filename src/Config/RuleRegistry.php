@@ -86,6 +86,7 @@ final class RuleRegistry
 		Rules\Expressions\BinaryOperatorSpacingRule::class,
 		Rules\Functions\NoConversionFunctionsRule::class,
 		Rules\Expressions\CastSpacingRule::class,
+		Rules\Expressions\CastCanonicalTypeRule::class,
 		Rules\Expressions\CombinedAssignmentOperatorRule::class,
 		Rules\Expressions\ConcatSpacingRule::class,
 		Rules\Expressions\DoubleColonSpacingRule::class,

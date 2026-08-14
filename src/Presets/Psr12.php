@@ -30,6 +30,7 @@ final class Psr12 implements Preset
 			Rules\Literals\KeywordCasingRule::class => true,
 			Rules\Literals\ConstantCasingRule::class => true,
 			Rules\Expressions\CastSpacingRule::class => true,
+			Rules\Expressions\CastCanonicalTypeRule::class => true,
 
 			// 3. Declare statements, namespace and import statements
 			Rules\Namespaces\NoLeadingBackslashInImportRule::class => true,
