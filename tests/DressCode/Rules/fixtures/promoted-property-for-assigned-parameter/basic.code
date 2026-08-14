@@ -1,0 +1,83 @@
+<?php
+class A
+{
+	private string $name;
+	public readonly int $count;
+	protected ?Foo $foo;
+	private $untyped;
+	private string $withDefault = 'x';
+	private static string $static;
+	private string $other;
+	private string $twice;
+	private string $written;
+	private string $read;
+	private string $renamed;
+	/** @var list<int> */
+	private array $documented;
+
+	public function __construct(
+		string $name,
+		int $count,
+		?Foo $foo,
+		$untyped,
+		string $withDefault,
+		string $static,
+		int $other,
+		string $twice,
+		string $written,
+		string $read,
+		string $different,
+		array $documented,
+		string $plain,
+	) {
+		$this->name = $name;
+		$this->count = $count;
+		$this->foo = $foo;
+		$this->untyped = $untyped;
+		$this->withDefault = $withDefault;
+		$this->static = $static;
+		$this->other = $other;
+		$this->twice = $twice;
+		$this->twice = 'again';
+		$written = trim($written);
+		$this->written = $written;
+		$this->read = $read;
+		echo $this->read;
+		$this->renamed = $different;
+		$this->documented = $documented;
+		echo $plain;
+	}
+}
+
+class B
+{
+	private string $a;
+
+	public function __construct(string $a = 'd', private int $b = 1)
+	{
+		$this->a = $a;
+	}
+}
+
+class C
+{
+	private string $a;
+
+	public function __construct(string $a)
+	{
+		if (true) {
+			$this->a = $a;
+		}
+	}
+}
+
+class D
+{
+	private string $a;
+
+	public function __construct(string $a, ...$rest)
+	{
+		$this->a = $a;
+		$fn = function () use (&$a) {};
+	}
+}

@@ -1,0 +1,13 @@
+<?php
+// risky
+class A
+{
+	private $name;
+	private $count;
+
+	public function __construct($name, $count)
+	{
+		$this->name = $name;
+		$this->count = $count;
+	}
+}

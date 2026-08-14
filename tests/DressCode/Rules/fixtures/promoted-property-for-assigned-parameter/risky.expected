@@ -1,0 +1,9 @@
+<?php
+// risky
+class A
+{
+
+	public function __construct(private $name, private $count)
+	{
+	}
+}

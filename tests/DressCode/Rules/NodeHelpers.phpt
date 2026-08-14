@@ -56,3 +56,13 @@ test('negate()', function () {
 		Assert::same($code, (string) $original);
 	}
 });
+
+
+test('isWritten()', function () {
+	$code = '<?php $w1 = 1; $w2 += 1; $w3++; [$w4, [$w5]] = f(); list($w6) = f(); unset($w7, $w8); global $w9;'
+		. ' foreach ($r1 as $w10 => [$w11]) {} f(...$r2); echo $r3, $r4; $w12 = [$r5]; $w13[0] = 1; unset($w14[0]);'
+		. ' $r6->a = 1; echo $r7[0];';
+	foreach ((new Parser)->parse($code)->find(PhpSyntax\Nodes\Expression\VariableNode::class) as $variable) {
+		Assert::same(str_starts_with($variable->text, '$w'), NodeHelpers::isWritten($variable), $variable->text);
+	}
+});
