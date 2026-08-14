@@ -1,0 +1,5 @@
+<?php
+// php 8.6
+$a = trim(strtolower(htmlspecialchars(?)));
+$b = trim(strtolower(htmlspecialchars($input, ?)));
+$c = $items |> array_map(str_replace('a', 'b', ?), ?);

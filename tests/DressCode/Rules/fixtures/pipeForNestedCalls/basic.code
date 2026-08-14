@@ -1,0 +1,15 @@
+<?php
+$a = trim(strtolower(htmlspecialchars($input)));
+$b = trim(strtolower($input));
+$c = $this->clean(trim(strtolower($input)));
+$d = Helper::wrap(trim(strtolower($input)));
+echo trim(strtolower(htmlspecialchars($input)));
+return trim(strtolower(htmlspecialchars($input)));
+$e = 'x' . trim(strtolower(htmlspecialchars($input)));
+$f = trim(strtolower(htmlspecialchars($input)), ' ');
+$g = trim(strtolower(htmlspecialchars($input, ENT_QUOTES)));
+$h = trim(strtolower(htmlspecialchars($input)))[0];
+$i = $fn(strtolower(htmlspecialchars($input)));
+$j = trim(strtolower(htmlspecialchars(f($input))));
+$k = trim(strtolower(htmlspecialchars($input ?? $default)));
+$l = trim(strtolower(htmlspecialchars($input . $suffix)));

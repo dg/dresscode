@@ -1,0 +1,7 @@
+<?php
+function f(Text $o, string $input)
+{
+	$a = trim($o->clean(strtolower(htmlspecialchars($input))));
+	$b = trim($o?->clean(strtolower(htmlspecialchars($input))));
+	$c = trim(strtolower($o?->clean(htmlspecialchars($input))));
+}

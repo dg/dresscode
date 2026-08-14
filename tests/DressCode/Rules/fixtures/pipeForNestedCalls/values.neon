@@ -1,0 +1,4 @@
+upgrading:
+	syntax:
+		pipe: adopted
+		pipeMinCalls: 3
