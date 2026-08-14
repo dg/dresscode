@@ -102,7 +102,7 @@ final class PassRunner
 			$this->lineOffsets[] = $offset + strlen($eol);
 		}
 		$this->violations = $this->warnings = $this->occurrences = $this->contexts = $this->entering = $this->leaving = [];
-		$suppression = Suppression::fromFile($file, $this->resolveAlias);
+		$suppression = Suppression::fromFile($file, $this->resolveAlias, $code);
 		foreach ($this->stages as $rules) {
 			foreach ($rules as $rule) {
 				$name = RuleInfo::of($rule)->name;
@@ -122,7 +122,9 @@ final class PassRunner
 			$this->mutatedRules = $this->occurrences = [];
 			$revision = $file->revision;
 			foreach ($this->stages as $stage => $rules) {
-				$this->runStage($stage, $rules);
+				if ($rules !== []) {
+					$this->runStage($stage, $rules);
+				}
 			}
 
 			if ($file->revision === $revision) {

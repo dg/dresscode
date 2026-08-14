@@ -25,10 +25,17 @@ final class Suppression
 	private array $ranges = [];
 
 
-	/** @param \Closure(string): ?string $resolveAlias  maps a rule name or an alias to the canonical name, null if unknown */
-	public static function fromFile(FileNode $file, \Closure $resolveAlias): self
+	/**
+	 * @param \Closure(string): ?string $resolveAlias  maps a rule name or an alias to the canonical name, null if unknown
+	 * @param ?string $code  the source; when it mentions no suppression, the tokens are not walked at all
+	 */
+	public static function fromFile(FileNode $file, \Closure $resolveAlias, ?string $code = null): self
 	{
 		$suppression = new self;
+		if ($code !== null && !str_contains($code, 'dresscode:') && !str_contains($code, 'phpcs')) { // nothing to read
+			return $suppression;
+		}
+
 		$disabled = [];
 		$lastLine = $file->eof->originalLine ?? 1;
 		foreach ($file->getIndex()->getTokens() as $token) {
