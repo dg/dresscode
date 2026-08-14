@@ -1,0 +1,8 @@
+<?php
+// {"function.global":"bare","function.optimized":"backslashed"}
+// nameResolution certain
+namespace App;
+
+$a = \count($list, mode: COUNT_RECURSIVE);
+$b = \strlen(string: $s);
+$c = \is_int($x);

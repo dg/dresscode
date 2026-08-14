@@ -4,3 +4,4 @@
 10: A named argument disables the compiler optimization of `strpos()`.
 14: A named argument disables the compiler optimization of `trim()`.
 18: A named argument disables the compiler optimization of `in_array()`.
+21: A named argument disables the compiler optimization of `count()`.

@@ -300,3 +300,17 @@ test('an import the qualification adds takes the shape importNotation gives it, 
 	);
 	Assert::same(['qualification.function.optimized'], $reported($result));
 });
+
+
+test('a call the qualification writes qualified gets its arguments positionally from optimizedCallNotation', function () {
+	$values = ['qualification.function.global' => 'bare', 'qualification.function.optimized' => 'backslashed'];
+	interplay(
+		[
+			Rules\Namespaces\GlobalNameQualificationRule::class => $values,
+			Rules\Namespaces\OptimizedCallNotationRule::class => $values,
+		],
+		"<?php\nnamespace App;\n\n\$a = count(\$list, mode: COUNT_RECURSIVE);\n\$b = strlen(string: \$s);\n",
+		"<?php\nnamespace App;\n\n\$a = \\count(\$list, COUNT_RECURSIVE);\n\$b = \\strlen(\$s);\n",
+		new Analyses\Registry(new NamespacedSymbols(complete: true)),
+	);
+});

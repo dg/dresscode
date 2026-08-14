@@ -9,6 +9,7 @@ class A
 		$d = function ($x) { return function () use ($x) { return $x; }; };
 		$h = function () { return $_GET['a'] ?? $GLOBALS['b']; };
 		$i = function ($a) { return ($x = $a) ? $x : 0; };
+		$n = function ($p, $s) { return preg_match($p, $s, $m) ? $m[0] : null; };
 
 		// left alone, the closure reads a variable it does not have
 		$e = function ($x) { return $x + $y; };
@@ -20,5 +21,6 @@ class A
 		$k = function ($a) { return $a && ($x = 1) ? $x : 0; };
 		$l = function () { return $x .= 'a'; };
 		$m = function ($a) { return $a?->b($x = 1) ?? $x; };
+		$o = function ($s) { return unknown($s, $x) ? $x : null; };
 	}
 }

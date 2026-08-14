@@ -9,14 +9,21 @@ namespace DressCode\Analyses;
 
 
 /**
- * A parameter of a function: its name and how it takes the argument.
+ * A parameter of a function PHP or the file declares: its name, the type as PHP describes it, a class fully
+ * qualified without a leading backslash and a nullable type as a union with null, and how it takes the argument.
  */
 final readonly class Parameter
 {
 	public function __construct(
 		public string $name,
+		/** null for a parameter that declares none */
+		public ?string $type = null,
+		/** a variadic parameter is one too, PHP calling the function without it */
+		public bool $optional = false,
 		public bool $variadic = false,
 		public bool $byReference = false,
+		/** the default as PHP code; null for none and where the versions of PHP declare different ones */
+		public ?string $default = null,
 	) {
 	}
 }
