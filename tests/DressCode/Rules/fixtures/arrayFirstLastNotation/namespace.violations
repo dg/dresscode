@@ -1,0 +1,9 @@
+6: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+7: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+8: The first item must be read with `array_first()`.
+9: The last item must be read with `array_last()`.
+	risky NameUncertain: the namespace may declare `count()`
+10: The first item must be read with `array_first()`.
+	risky NameUncertain: the namespace may declare `array_values()`

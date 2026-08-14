@@ -1,0 +1,8 @@
+3: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+4: The last item must be read with `array_last()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+5: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+6: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one

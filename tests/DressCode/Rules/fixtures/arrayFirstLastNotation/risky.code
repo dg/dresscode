@@ -1,0 +1,10 @@
+<?php
+// risky
+$a = reset($items);
+$b = end($items);
+$c = \reset($items);
+$d = $x ?? reset($items);
+reset($items);
+end($items);
+$e = reset($items, 1);
+$f = current($items);
