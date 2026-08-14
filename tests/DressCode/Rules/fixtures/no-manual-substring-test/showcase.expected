@@ -1,0 +1,6 @@
+<?php
+if (str_contains($path, '/')) {
+	echo 1;
+}
+$isPhp = str_ends_with($path, '.php');
+$isAbsolute = str_starts_with($path, '/');

@@ -1,0 +1,7 @@
+<?php
+// risky
+$a = mb_strpos($h, $n) !== false;
+$b = mb_strstr($h, $n) === false;
+$c = mb_strpos($h, $n) === 0;
+$d = substr($h, -strlen($n)) === $n;
+$e = substr($h, -strlen($n)) !== $n;
