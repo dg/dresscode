@@ -1,0 +1,6 @@
+4: Useless @var annotation for property $count
+5: Property $count must have the native type 'int' from its @var annotation
+7: Useless @param annotation for parameter $name
+7: Useless @return annotation
+11: Parameter $name must have the native type 'string' from its @param annotation
+11: The function must have the native return type 'bool' from its @return annotation

@@ -1,0 +1,34 @@
+<?php
+// {"parameters": false, "returns": false}
+class A
+{
+	/** @var int */
+	public $a;
+
+	/** @var Foo|null */
+	public $b;
+
+	/** @var string[] */
+	public $c;
+
+	/** @var Foo */
+	public $d = null;
+
+	/** @var int $e desc */
+	public $e;
+
+	public $f;
+
+	public array $g;
+
+	/** @var callable */
+	public $h;
+
+	/** @var int */
+	public int $i;
+
+	public $j, $k;
+
+	/** @var list<int> */
+	public array $l = [];
+}

@@ -130,6 +130,7 @@ final class RuleRegistry
 		Rules\Literals\SingleQuotedStringsRule::class,
 		Rules\PhpDoc\ExplicitAssertionRule::class,
 		Rules\Types\NullableTypeForDefaultNullRule::class,
+		Rules\Types\TypeHintRequiredRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
 		Rules\Types\UnionTypeFormatRule::class,
 		Rules\Variables\CombinedIssetsRule::class,

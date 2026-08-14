@@ -1,0 +1,46 @@
+<?php
+// {"returns": false, "properties": false}
+namespace App;
+
+/**
+ * @template T
+ */
+class A
+{
+	/**
+	 * @param int $a
+	 * @param Foo|null $b
+	 * @param string[] $c
+	 * @param int|string $d
+	 * @param T $e
+	 * @param callable $f
+	 * @param mixed $g
+	 * @param array<int, string> $h desc
+	 * @param $i
+	 * @param positive-int $j
+	 */
+	public function a($a, $b, $c, $d, $e, callable $f, $g, $h, int $i, $j)
+	{
+	}
+
+	public function b($x, array $y, iterable $z, \Traversable $t)
+	{
+	}
+
+	/** {@inheritDoc} */
+	public function c($x)
+	{
+	}
+
+	/**
+	 * @param int $a
+	 * @phpstan-param int $b
+	 */
+	public function d(int $a, $b, int ...$c)
+	{
+	}
+
+	public function __construct(private $p)
+	{
+	}
+}
