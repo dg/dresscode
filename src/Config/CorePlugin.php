@@ -50,6 +50,7 @@ final class CorePlugin implements Plugin
 				Rules\Comments\CommentSpacingRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
+				Rules\ControlFlow\ArraySearchForForeachRule::class,
 				Rules\ControlFlow\NoBracelessBodiesRule::class,
 				Rules\ControlFlow\EarlyExitForTrailingIfRule::class,
 				Rules\ControlFlow\ElseifNotationRule::class,
@@ -268,6 +269,13 @@ final class CorePlugin implements Plugin
 					'Classes treated like `array` and `iterable`, whose annotation says what their items are',
 					kind: DecisionKind::Parameter,
 					default: ['Traversable'],
+				),
+
+				// the newer constructs, decided once for every rule writing them
+				new Decision(
+					'upgrading.functions.arraySearchFunctions',
+					Domain::adopted(),
+					'`array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` that only asks what they answer',
 				),
 			],
 		);

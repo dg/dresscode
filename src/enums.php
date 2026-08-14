@@ -21,6 +21,17 @@ enum Stage
 
 
 /**
+ * The answer to a question the code may not settle.
+ */
+enum Tristate
+{
+	case Yes;
+	case No;
+	case Maybe;
+}
+
+
+/**
  * Why the fix of an occurrence may change what the code does: what would decide that it does not.
  */
 enum Risk: string

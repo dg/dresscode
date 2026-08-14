@@ -7,10 +7,11 @@
 
 namespace DressCode\Rules;
 
-use DressCode\Analyses\IndentationSnapshot;
+use DressCode\Analyses\{IndentationSnapshot, Parameter};
 use DressCode\{Claim, Gap, Line, RuleContext, Style};
-use PhpSyntax\{Builder, Indentation, Node, Token, Trivia};
-use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, MatchArmNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, VariadicPlaceholderNode};
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{Builder, Indentation, Node, SymbolKind, Token, Trivia};
+use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, MatchArmNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count, strlen;
 
@@ -641,6 +642,30 @@ final class NodeHelpers
 			: Token::fromText($text)
 				->setLeadingTrivia($operator->leadingTrivia)
 				->setTrailingTrivia($operator->trailingTrivia);
+	}
+
+
+	/**
+	 * The parameters of the function the call calls, as the declaration in the file says; null where it does not tell.
+	 * @return ?list<Parameter>
+	 */
+	public static function findParameters(Expression\FunctionCallNode $call, RuleContext $context): ?array
+	{
+		if (!$call->name instanceof NameNode) {
+			return null;
+		}
+
+		$resolver = $context->getAnalysis(NameResolver::class);
+		$function = $resolver->resolveFunction($call->name);
+		$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
+		return $declaration === null ? null : array_map(
+			fn(ParameterNode $parameter) => new Parameter(
+				(string) $parameter->variable->plainName,
+				variadic: $parameter->ellipsis !== null,
+				byReference: $parameter->ampersand !== null,
+			),
+			$declaration->parameters->getItems(),
+		);
 	}
 
 
