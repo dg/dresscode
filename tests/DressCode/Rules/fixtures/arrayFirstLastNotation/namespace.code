@@ -1,0 +1,10 @@
+<?php
+// risky
+
+namespace App;
+
+$a = \reset($items);
+$b = reset($items);
+$c = $items[\array_key_first($items)];
+$d = \array_values($items)[count($items) - 1];
+$e = array_values($items)[0];

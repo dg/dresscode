@@ -1,0 +1,10 @@
+<?php
+// risky
+
+namespace App;
+
+$a = \array_first($items);
+$b = array_first($items);
+$c = \array_first($items);
+$d = \array_last($items);
+$e = array_first($items);

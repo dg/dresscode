@@ -106,6 +106,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\NoInvisibleCharactersRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
 				Rules\Files\StrictTypesRequiredRule::class,
+				Rules\Functions\ArrayFirstLastNotationRule::class,
 				Rules\Functions\ArrowFunctionForClosureRule::class,
 				Rules\Functions\NoDebugOutputRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
