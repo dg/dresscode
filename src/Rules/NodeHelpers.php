@@ -13,7 +13,7 @@ use DressCode\Rules\Whitespace\IndentationRule;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, SymbolKind, Token, TokenKind, Trivia, TriviaKind, UnqualifiedResolution};
-use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, AttributeGroupNode, ElseIfNode, Expression, ExpressionNode, NameNode, NodeList, Scalar, SeparatedNodeList, Statement, UseItemNode};
+use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, AttributeGroupNode, CatchNode, ClosureUseNode, ElseIfNode, Expression, ExpressionNode, NameNode, NodeList, Scalar, SeparatedNodeList, Statement, StaticVariableNode, UseItemNode};
 use function array_slice, assert, count;
 
 
@@ -224,6 +224,42 @@ final class NodeHelpers
 				$inner instanceof Expression\FunctionCallNode
 				&& array_any(['compact', 'extract', 'get_defined_vars'], fn(string $function) => $resolver->isGlobalFunctionCall($inner, $function))
 			));
+	}
+
+
+	/**
+	 * Whether something writes the variable or an element of it: it is assigned, stepped, unset, bound, or taken
+	 * by reference.
+	 */
+	public static function isWritten(Expression\VariableNode $variable): bool
+	{
+		$node = $variable;
+		$parent = $node->parent;
+		while ( // destructuring writes every variable inside it, and unset and global take theirs in a list
+			($parent instanceof Expression\ArrayAccessNode && $parent->expression === $node)
+			|| $parent instanceof Expression\ParenthesizedNode
+			|| $parent instanceof Expression\ArrayNode
+			|| $parent instanceof Expression\ListNode
+			|| $parent instanceof ArrayItemNode
+			|| $parent instanceof SeparatedNodeList
+		) {
+			[$node, $parent] = [$parent, $parent->parent];
+		}
+
+		return match (true) {
+			$parent instanceof Expression\AssignmentNode,
+			$parent instanceof Expression\AssignmentByReferenceNode,
+			$parent instanceof Expression\CombinedAssignmentNode => $parent->findSlotOf($node) === 'target',
+			$parent instanceof Expression\PrefixOpNode,
+			$parent instanceof Expression\PostfixOpNode => true,
+			$parent instanceof ArgumentNode, $parent instanceof ClosureUseNode => $parent->ampersand !== null,
+			$parent instanceof Statement\ForeachNode => $parent->findSlotOf($node) === 'key' || $parent->findSlotOf($node) === 'value',
+			$parent instanceof Statement\UnsetNode,
+			$parent instanceof Statement\GlobalNode,
+			$parent instanceof StaticVariableNode,
+			$parent instanceof CatchNode => true,
+			default => false,
+		};
 	}
 
 
