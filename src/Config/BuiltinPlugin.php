@@ -57,6 +57,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\ControlFlow\EarlyExitRule::class,
 				Rules\ControlFlow\ElseifKeywordRule::class,
 				Rules\ControlFlow\TernaryForIfRule::class,
+				Rules\ControlFlow\ArrayFunctionForForeachRule::class,
 				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\NoAlternativeSyntaxRule::class,
 				Rules\ControlFlow\FallThroughCommentRule::class,
