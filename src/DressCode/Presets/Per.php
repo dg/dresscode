@@ -24,6 +24,7 @@ final class Per implements Preset
 
 			// 4. Classes, properties and methods: empty bodies, anonymous classes, named arguments
 			Rules\Classes\ClassDefinitionSpacingRule::class => ['spaceBeforeParenthesis' => false],
+			Rules\Expressions\NewArgumentParenthesesRule::class => ['namedClasses' => 'required', 'anonymousClasses' => 'forbidden'],
 			Rules\Functions\NamedArgumentSpacingRule::class => true,
 
 			// 6. Operators
