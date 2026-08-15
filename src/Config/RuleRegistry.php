@@ -3,6 +3,7 @@
 namespace DressCode\Config;
 
 use DressCode\ConfigurationException;
+use DressCode\Interop\Translator;
 use DressCode\Preset;
 use DressCode\PresetInfo;
 use DressCode\Presets;
@@ -13,10 +14,13 @@ use DressCode\Rules;
 
 /**
  * Rule and preset classes known to a run, by name, alias or class; a name may belong to one class only.
+ * A name without a vendor is the built-in one of that name, so 'per' is 'dresscode/per'.
  * @internal
  */
 final class RuleRegistry
 {
+	private const Vendor = 'dresscode/';
+
 	private const BuiltinRules = [
 		Rules\Expressions\OffsetBracketSpacingRule::class,
 		Rules\Arrays\ArraySpacingRule::class,
@@ -153,15 +157,13 @@ final class RuleRegistry
 	/** @var array<string, class-string<Rule>>  name → class */
 	private array $rules = [];
 
-	/** @var array<string, string>  alias → name */
-	private array $aliases = [];
-
 	/** @var array<string, class-string<Preset>>  name → class */
 	private array $presets = [];
 
 
-	public function __construct()
-	{
+	public function __construct(
+		private readonly Translator $translator = new Translator,
+	) {
 		$this->registerPreset(Presets\Per::class);
 		$this->registerPreset(Presets\Psr12::class);
 		foreach (self::BuiltinRules as $class) {
@@ -188,21 +190,13 @@ final class RuleRegistry
 		}
 
 		$this->rules[$info->name] = $class;
-		foreach ($info->aliases as $alias) {
-			$owner = $this->aliases[$alias] ?? null;
-			if ($owner !== null && $owner !== $info->name) {
-				throw new ConfigurationException("Alias '$alias' is used by both rules $owner and $info->name.");
-			}
-
-			$this->aliases[$alias] = $info->name;
-		}
-
 		return $info->name;
 	}
 
 
 	/**
-	 * Class of the rule given by name, alias or class; a class is registered on the way.
+	 * Class of the rule given by name or class; a class is registered on the way. A name of another tool
+	 * is not a name here: it is translated together with its options by `dresscode import`.
 	 * @return class-string<Rule>
 	 * @throws ConfigurationException
 	 */
@@ -214,28 +208,30 @@ final class RuleRegistry
 			return $rule;
 		}
 
-		return $this->rules[$this->resolveName($rule) ?? '']
-			?? throw new ConfigurationException("Unknown rule '$rule'.");
+		$class = $this->rules[$rule] ?? $this->rules[self::Vendor . $rule] ?? null;
+		if ($class !== null) {
+			return $class;
+		}
+
+		$covered = $this->translator->findRules($rule);
+		throw new ConfigurationException("Unknown rule '$rule'." . ($covered
+			? ' It is covered by ' . implode(' and ', $covered) . '; run `dresscode import` to translate a configuration of another tool.'
+			: ''));
 	}
 
 
 	/**
-	 * Canonical name of a rule given by name or alias; null when unknown.
-	 */
-	public function resolveName(string $rule): ?string
-	{
-		return isset($this->rules[$rule]) ? $rule : ($this->aliases[$rule] ?? null);
-	}
-
-
-	/**
-	 * The rules a name stands for; a name no rule owns stands for nothing.
+	 * Rules a name in a suppression comment stands for: its own, or those covering it when it belongs
+	 * to another tool; empty when nothing does.
 	 * @return list<string>
 	 */
 	public function resolveNames(string $rule): array
 	{
-		$resolved = $this->resolveName($rule);
-		return $resolved === null ? [] : [$resolved];
+		return match (true) {
+			isset($this->rules[$rule]) => [$rule],
+			isset($this->rules[self::Vendor . $rule]) => [self::Vendor . $rule],
+			default => $this->translator->findRules($rule),
+		};
 	}
 
 
@@ -280,7 +276,8 @@ final class RuleRegistry
 			return $preset;
 		}
 
-		return $this->presets[$preset] ?? throw new ConfigurationException("Unknown preset '$preset'.");
+		$class = $this->presets[$preset] ?? $this->presets[self::Vendor . $preset] ?? null;
+		return $class ?? throw new ConfigurationException("Unknown preset '$preset'.");
 	}
 
 
@@ -288,5 +285,11 @@ final class RuleRegistry
 	public function getPresets(): array
 	{
 		return $this->presets;
+	}
+
+
+	public function getTranslator(): Translator
+	{
+		return $this->translator;
 	}
 }

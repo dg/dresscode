@@ -25,7 +25,7 @@ use PhpSyntax\Token;
 use PhpSyntax\TokenKind;
 use PhpSyntax\Trivia;
 use PhpSyntax\TriviaKind;
-use function count, is_array, is_int, sprintf;
+use function count, in_array, is_array, is_int, sprintf, strlen;
 
 
 /**
@@ -76,7 +76,8 @@ final class Resolver
 
 	/**
 	 * @param list<Rule> $rules
-	 * @throws ConfigurationException when two rules claim the same component of the same side of the same slot
+	 * @throws ConfigurationException when a claim names a slot the tree has not, or when two rules claim
+	 *         the same component of the same side of the same slot
 	 */
 	public function __construct(array $rules)
 	{
@@ -86,13 +87,100 @@ final class Resolver
 			}
 
 			foreach ($rule->getClaims() as $class => $slots) {
+				$class = $class === '*' ? '*' : ltrim($class, '\\');
 				foreach ($slots as $slot => [$before, $after]) {
-					$key = ($class === '*' ? '*' : ltrim($class, '\\')) . ".$slot";
+					self::checkTarget($class, $slot, $rule);
+					$key = "$class.$slot";
 					$this->claim($this->before, 'before', $key, $rule, $before);
 					$this->claim($this->after, 'after', $key, $rule, $after);
 				}
 			}
 		}
+	}
+
+
+	/**
+	 * Checks that the claim names something the tree has: a node class and one of its slots, `*` for every
+	 * class or every slot, and `:item` or `:separator` for a slot holding a list. A slot renamed in the tree
+	 * would otherwise turn the rule off without a word, the gaps of that slot simply never reaching it.
+	 * @throws ConfigurationException
+	 */
+	private static function checkTarget(string $class, string $slot, Rule $rule): void
+	{
+		$name = $slot;
+		$part = null;
+		foreach ([':item', ':separator'] as $suffix) {
+			if (str_ends_with($slot, $suffix)) {
+				$name = substr($slot, 0, -strlen($suffix));
+				$part = $suffix;
+				break;
+			}
+		}
+
+		if ($class !== '*' && !isset(LayoutData::Roles[$class])) {
+			self::refuse($rule, $class, $slot, "'$class' is not a node class");
+		}
+
+		if ($name === '*') {
+			return; // every slot of the class, so there is no name to look up
+		}
+
+		$owners = self::findOwners($class, $name);
+		if ($owners === []) {
+			self::refuse($rule, $class, $slot, $class === '*' ? "no node has a slot '$name'" : "it has no slot '$name'");
+		} elseif ($part !== null && !self::holdsList($owners, $name, $part)) {
+			self::refuse($rule, $class, $slot, 'the slot holds no list to have ' . ($part === ':item' ? 'items' : 'separators'));
+		}
+	}
+
+
+	private static function refuse(Rule $rule, string $class, string $slot, string $what): never
+	{
+		throw new ConfigurationException(sprintf(
+			'Rule %s claims the whitespace of %s.%s, but %s.',
+			RuleInfo::of($rule)->name,
+			$class,
+			$slot,
+			$what,
+		));
+	}
+
+
+	/**
+	 * The node classes the claim reaches that have the slot: the one named, or every one for '*'.
+	 * @return list<class-string<Node>>
+	 */
+	private static function findOwners(string $class, string $slot): array
+	{
+		$owners = [];
+		foreach (LayoutData::Roles as $candidate => $roles) {
+			if (($class === '*' || $class === $candidate) && isset($roles[$slot])) {
+				$owners[] = $candidate;
+			}
+		}
+
+		return $owners;
+	}
+
+
+	/**
+	 * Whether the slot of any of the classes holds a list of the kind the part needs: separators are the
+	 * business of a separated list alone, items are of either.
+	 * @param list<class-string<Node>> $owners
+	 */
+	private static function holdsList(array $owners, string $slot, string $part): bool
+	{
+		$lists = $part === ':separator'
+			? [SeparatedNodeList::class]
+			: [SeparatedNodeList::class, NodeList::class];
+		foreach ($owners as $owner) {
+			$type = new \ReflectionProperty($owner, $slot)->getType();
+			if ($type instanceof \ReflectionNamedType && in_array($type->getName(), $lists, true)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 
