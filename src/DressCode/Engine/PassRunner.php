@@ -66,13 +66,13 @@ final class PassRunner
 
 	/**
 	 * @param list<Rule> $rules  in configuration order
-	 * @param \Closure(string): ?string $resolveAlias  rule name or alias → canonical name
+	 * @param \Closure(string): list<string> $resolveNames  a name in a suppression comment → the rules it stands for
 	 * @param bool $strict  a broken rule contract (silent mutation, mutation after a suppressed report) throws instead of warning
 	 */
 	public function __construct(
 		array $rules,
 		private readonly AnalysisRegistry $analyses,
-		private readonly \Closure $resolveAlias,
+		private readonly \Closure $resolveNames,
 		private readonly int $maxPasses = 10,
 		private readonly bool $strict = false,
 	) {
@@ -102,7 +102,7 @@ final class PassRunner
 			$this->lineOffsets[] = $offset + strlen($eol);
 		}
 		$this->violations = $this->warnings = $this->occurrences = $this->contexts = $this->entering = $this->leaving = [];
-		$suppression = Suppression::fromFile($file, $this->resolveAlias, $code);
+		$suppression = Suppression::fromFile($file, $this->resolveNames, $code);
 		foreach ($this->stages as $rules) {
 			foreach ($rules as $rule) {
 				$name = RuleInfo::of($rule)->name;

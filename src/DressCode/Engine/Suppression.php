@@ -14,7 +14,8 @@ use function count;
  * Which rules are silenced on which original lines, read once from the comments of the file before any mutation:
  * "dresscode:ignore [names]" on a line silences that line, on its own line the nearest node starting on the
  * next line; "dresscode:disable [names]" up to "dresscode:enable"; "dresscode:ignore-file" the whole file.
- * The phpcs forms (phpcs:ignore, phpcs:disable, phpcs:enable, @phpcsSuppress) are understood through aliases.
+ * The phpcs forms (phpcs:ignore, phpcs:disable, phpcs:enable, @phpcsSuppress) name the rules of another
+ * tool, which DressCode\Interop translates.
  * @internal
  */
 final class Suppression
@@ -26,10 +27,10 @@ final class Suppression
 
 
 	/**
-	 * @param \Closure(string): ?string $resolveAlias  maps a rule name or an alias to the canonical name, null if unknown
+	 * @param \Closure(string): list<string> $resolveNames  maps a name to the rules it stands for, empty if unknown
 	 * @param ?string $code  the source; when it mentions no suppression, the tokens are not walked at all
 	 */
-	public static function fromFile(FileNode $file, \Closure $resolveAlias, ?string $code = null): self
+	public static function fromFile(FileNode $file, \Closure $resolveNames, ?string $code = null): self
 	{
 		$suppression = new self;
 		if ($code !== null && !str_contains($code, 'dresscode:') && !str_contains($code, 'phpcs')) { // nothing to read
@@ -49,7 +50,7 @@ final class Suppression
 					}
 
 					$line = self::lineOf($trivia, $trivias, $index, $token);
-					$names = self::names($m[2] ?? '', $resolveAlias);
+					$names = self::names($m[2] ?? '', $resolveNames);
 					if ($m[1] === 'ignore-file') {
 						$suppression->add([self::All], 1, PHP_INT_MAX);
 					} elseif ($m[1] === 'ignore') {
@@ -76,7 +77,7 @@ final class Suppression
 			$suppression->add([$name], $from, $lastLine);
 		}
 
-		$suppression->collectPhpcsSuppress($file, $resolveAlias);
+		$suppression->collectPhpcsSuppress($file, $resolveNames);
 		return $suppression;
 	}
 
@@ -105,14 +106,14 @@ final class Suppression
 
 
 	/**
-	 * @param  \Closure(string): ?string  $resolveAlias
+	 * @param  \Closure(string): list<string>  $resolveNames
 	 * @return list<string>
 	 */
-	private static function names(string $list, \Closure $resolveAlias): array
+	private static function names(string $list, \Closure $resolveNames): array
 	{
 		$names = [];
 		foreach (preg_split('~[,\s]+~', trim($list), -1, PREG_SPLIT_NO_EMPTY) as $name) {
-			$names[] = $resolveAlias($name) ?? $name;
+			$names = [...$names, ...($resolveNames($name) ?: [$name])];
 		}
 
 		return $names ?: [self::All];
@@ -120,16 +121,16 @@ final class Suppression
 
 
 	/**
-	 * @param \Closure(string): ?string $resolveAlias
+	 * @param \Closure(string): list<string> $resolveNames
 	 */
-	private function collectPhpcsSuppress(FileNode $file, \Closure $resolveAlias): void
+	private function collectPhpcsSuppress(FileNode $file, \Closure $resolveNames): void
 	{
 		foreach ($file->getDescendants() as $node) {
 			$doc = $node->getDocComment();
 			if ($doc && preg_match_all('~@phpcsSuppress\s+([\w.]+)~', $doc->text, $m)) {
 				$from = $node->getFirstToken()?->originalLine;
 				if ($from !== null) {
-					$this->add(self::names(implode(',', $m[1]), $resolveAlias), $from, self::endLine($node));
+					$this->add(self::names(implode(',', $m[1]), $resolveNames), $from, self::endLine($node));
 				}
 			}
 		}

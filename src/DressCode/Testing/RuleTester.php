@@ -143,7 +143,7 @@ final class RuleTester
 			throw new TestFailure("The code does not parse: {$e->getMessage()}");
 		}
 
-		$runner = new PassRunner([$rule], new AnalysisRegistry, fn(string $rule) => $rule, strict: true);
+		$runner = new PassRunner([$rule], new AnalysisRegistry, fn(string $rule) => [$rule], strict: true);
 		try {
 			$result = $runner->run($file, $code, $name, new Style(eol: Style::detectEol($code)), $phpVersion);
 		} catch (RuleException $e) {

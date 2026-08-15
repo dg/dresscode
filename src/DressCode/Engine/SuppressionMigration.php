@@ -9,7 +9,7 @@ use PhpSyntax\Trivia;
 /**
  * Rewrites the phpcs suppression comments of a file to the dresscode form with canonical rule names:
  * `phpcs:ignore|disable|enable|ignoreFile` become `dresscode:ignore|disable|enable|ignore-file`; a `@phpcsSuppress`
- * tag keeps its name and gets the canonical rule name. Names no rule or alias owns stay as they are and are listed.
+ * tag keeps its name and gets the canonical rule name. Names no rule covers stay as they are and are listed.
  * @internal
  */
 final class SuppressionMigration
@@ -23,9 +23,9 @@ final class SuppressionMigration
 	public bool $ownLineIgnore = false;
 
 
-	/** @param \Closure(string): ?string $resolveAlias */
+	/** @param \Closure(string): list<string> $resolveNames */
 	public function __construct(
-		private readonly \Closure $resolveAlias,
+		private readonly \Closure $resolveNames,
 	) {
 	}
 
@@ -80,11 +80,12 @@ final class SuppressionMigration
 
 	private function canonical(string $name): string
 	{
-		$resolved = ($this->resolveAlias)($name);
-		if ($resolved === null) {
+		$resolved = ($this->resolveNames)($name);
+		if (!$resolved) {
 			$this->unknownNames[$name] = true;
+			return $name;
 		}
 
-		return $resolved ?? $name;
+		return implode(', ', $resolved);
 	}
 }

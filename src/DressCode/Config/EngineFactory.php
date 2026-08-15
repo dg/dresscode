@@ -53,7 +53,7 @@ final class EngineFactory
 		$processor = new FileProcessor(
 			$rules,
 			$analyses,
-			$this->registry->resolveName(...),
+			$this->registry->resolveNames(...),
 			new Style($indent, $eol === 'auto' ? "\n" : $eol),
 			detectEol: $eol === 'auto',
 			phpVersion: $phpVersion,

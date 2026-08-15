@@ -191,7 +191,7 @@ final class Thrower extends Rule
 function run(string $code, array $rules, bool $strict = true): array
 {
 	$file = (new Parser)->parse($code);
-	$runner = new PassRunner($rules, new AnalysisRegistry, fn(string $name) => $name, strict: $strict);
+	$runner = new PassRunner($rules, new AnalysisRegistry, fn(string $name) => [$name], strict: $strict);
 	$result = $runner->run($file, $code, 'test.php', new Style, PhpVersion::current());
 	return [$file, $result];
 }

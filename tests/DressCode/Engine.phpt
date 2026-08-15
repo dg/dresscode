@@ -119,7 +119,7 @@ function engine(
 	bool $thrower = false,
 ): Engine
 {
-	$processor = new FileProcessor($thrower ? [new EngineRename, new EngineThrower] : [new EngineRename], new AnalysisRegistry, fn(string $name) => $name);
+	$processor = new FileProcessor($thrower ? [new EngineRename, new EngineThrower] : [new EngineRename], new AnalysisRegistry, fn(string $name) => [$name]);
 	return new Engine($processor, $root, $skip, $ruleSkip, $fileExtensions, $skipWhen);
 }
 
@@ -208,7 +208,7 @@ test('clean contents are remembered and skipped next time, a fixed file too', fu
 	$file = "$root/cache.json";
 	@unlink($file); // @ - may not exist
 	$engine = fn() => new Engine(
-		new FileProcessor([new EngineRename], new AnalysisRegistry, fn(string $name) => $name),
+		new FileProcessor([new EngineRename], new AnalysisRegistry, fn(string $name) => [$name]),
 		$root,
 		cache: DressCode\Engine\ResultCache::load($file, 'cfg'),
 	);

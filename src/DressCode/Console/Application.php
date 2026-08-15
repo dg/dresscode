@@ -12,6 +12,9 @@ use DressCode\Engine\RunResult;
 use DressCode\Engine\SuppressionMigration;
 use DressCode\Engine\WorkerClient;
 use DressCode\Engine\WorkerPool;
+use DressCode\Interop\PhpCodeSniffer;
+use DressCode\Interop\PhpCsFixer;
+use DressCode\Interop\Translator;
 use DressCode\Reporter;
 use DressCode\Reporters;
 use DressCode\RuleException;
@@ -36,6 +39,7 @@ final class Application
 		  dresscode check [paths...] [options]   report violations
 		  dresscode fix [paths...] [options]     fix what the rules can and report the rest
 		  dresscode rules [options]              list the known rules
+		  dresscode import <file>                translate a php-cs-fixer or phpcs configuration
 		  dresscode migrate-suppressions [paths...] [options]
 		                                         rewrite phpcs suppression comments to the dresscode form
 
@@ -120,6 +124,7 @@ final class Application
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
 				'rules' => $this->runRules($args),
+				'import' => $this->runImport($args),
 				'migrate-suppressions' => $this->runMigrateSuppressions($args),
 				default => throw new UsageException("Unknown command '{$args['command']}'."),
 			};
@@ -283,7 +288,7 @@ final class Application
 			throw new UsageException('No paths given and none configured.');
 		}
 
-		$migration = new SuppressionMigration($factory->getRegistry()->resolveName(...));
+		$migration = new SuppressionMigration($factory->getRegistry()->resolveNames(...));
 		$parser = new \PhpSyntax\Parser\Parser;
 		$files = 0;
 		foreach ($engine->findFiles($paths) as $path) {
@@ -333,21 +338,55 @@ final class Application
 			$enabled[RuleInfo::of($rule)->name] = true;
 		}
 
-		$rules = $factory->getRegistry()->getRules();
+		$registry = $factory->getRegistry();
+		$rules = $registry->getRules();
 		ksort($rules, SORT_STRING);
 		foreach ($rules as $name => $class) {
 			$info = RuleInfo::of($class);
+			$covers = $registry->getTranslator()->findForeignNames($name);
 			$this->write(sprintf(
 				"%s %-45s %-10s %s%s\n",
 				isset($enabled[$name]) ? '*' : ' ',
 				$this->console->color(isset($enabled[$name]) ? 'white' : null, $name),
 				$info->stage->name,
 				$info->description,
-				$info->aliases ? $this->console->color('gray', '  (' . implode(', ', $info->aliases) . ')') : '',
+				$covers ? $this->console->color('gray', '  (covers ' . implode(', ', $covers) . ')') : '',
 			));
 		}
 
 		$this->write("\n* enabled by the configuration\n");
+		return 0;
+	}
+
+
+	/**
+	 * @param  array<string, mixed>  $args
+	 * @throws UsageException
+	 */
+	private function runImport(array $args): int
+	{
+		$file = $args['paths'][0] ?? throw new UsageException('No configuration file given.');
+		$rules = preg_match('~\.xml(\.dist)?$~Di', $file)
+			? PhpCodeSniffer::readConfig($file)
+			: PhpCsFixer::readConfig($file);
+		$translation = (new Translator)->translate($rules);
+		$this->write($translation->toConfig());
+		$this->writeError(sprintf(
+			"\nRead %d rule%s, enabled %d and %d preset%s.\n",
+			count($rules),
+			count($rules) === 1 ? '' : 's',
+			count($translation->rules),
+			count($translation->presets),
+			count($translation->presets) === 1 ? '' : 's',
+		));
+		foreach ($translation->warnings as $warning) {
+			$this->writeError("  $warning\n");
+		}
+
+		if (!$translation->presets) {
+			$this->writeError("  The indentation and the line ending are not read from there; set them with style().\n");
+		}
+
 		return 0;
 	}
 

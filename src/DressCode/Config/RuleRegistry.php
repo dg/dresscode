@@ -3,6 +3,7 @@
 namespace DressCode\Config;
 
 use DressCode\ConfigurationException;
+use DressCode\Interop\Translator;
 use DressCode\Preset;
 use DressCode\PresetInfo;
 use DressCode\Presets;
@@ -154,15 +155,13 @@ final class RuleRegistry
 	/** @var array<string, class-string<Rule>>  name → class */
 	private array $rules = [];
 
-	/** @var array<string, string>  alias → name */
-	private array $aliases = [];
-
 	/** @var array<string, class-string<Preset>>  name → class */
 	private array $presets = [];
 
 
-	public function __construct()
-	{
+	public function __construct(
+		private readonly Translator $translator = new Translator,
+	) {
 		$this->registerPreset(Presets\Per::class);
 		$this->registerPreset(Presets\Psr12::class);
 		foreach (self::BuiltInRules as $class) {
@@ -189,21 +188,13 @@ final class RuleRegistry
 		}
 
 		$this->rules[$info->name] = $class;
-		foreach ($info->aliases as $alias) {
-			$owner = $this->aliases[$alias] ?? null;
-			if ($owner !== null && $owner !== $info->name) {
-				throw new ConfigurationException("Alias '$alias' is used by both rules $owner and $info->name.");
-			}
-
-			$this->aliases[$alias] = $info->name;
-		}
-
 		return $info->name;
 	}
 
 
 	/**
-	 * Class of the rule given by name, alias or class; a class is registered on the way.
+	 * Class of the rule given by name or class; a class is registered on the way. A name of another tool
+	 * is not a name here: it is translated together with its options by `dresscode import`.
 	 * @return class-string<Rule>
 	 * @throws ConfigurationException
 	 */
@@ -213,19 +204,25 @@ final class RuleRegistry
 			/** @var class-string<Rule> $rule */
 			$this->registerRule($rule);
 			return $rule;
+		} elseif (isset($this->rules[$rule])) {
+			return $this->rules[$rule];
 		}
 
-		return $this->rules[$this->resolveName($rule) ?? '']
-			?? throw new ConfigurationException("Unknown rule '$rule'.");
+		$covered = $this->translator->findRules($rule);
+		throw new ConfigurationException("Unknown rule '$rule'." . ($covered
+			? ' It is covered by ' . implode(' and ', $covered) . '; run `dresscode import` to translate a configuration of another tool.'
+			: ''));
 	}
 
 
 	/**
-	 * Canonical name of a rule given by name or alias; null when unknown.
+	 * Rules a name in a suppression comment stands for: its own, or those covering it when it belongs
+	 * to another tool; empty when nothing does.
+	 * @return list<string>
 	 */
-	public function resolveName(string $rule): ?string
+	public function resolveNames(string $rule): array
 	{
-		return isset($this->rules[$rule]) ? $rule : ($this->aliases[$rule] ?? null);
+		return isset($this->rules[$rule]) ? [$rule] : $this->translator->findRules($rule);
 	}
 
 
@@ -278,5 +275,11 @@ final class RuleRegistry
 	public function getPresets(): array
 	{
 		return $this->presets;
+	}
+
+
+	public function getTranslator(): Translator
+	{
+		return $this->translator;
 	}
 }

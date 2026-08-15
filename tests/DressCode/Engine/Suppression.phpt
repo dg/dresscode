@@ -7,11 +7,11 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-$aliases = ['Generic.Files.LineLength' => 'dresscode/line-length'];
-$resolve = fn(string $name) => $aliases[$name] ?? (str_starts_with($name, 'dresscode/') ? $name : null);
+$foreign = ['Generic.Files.LineLength' => ['dresscode/line-length']];
+$resolve = fn(string $name) => $foreign[$name] ?? (str_starts_with($name, 'dresscode/') ? [$name] : []);
 
 
-/** @param Closure(string): ?string $resolve */
+/** @param Closure(string): list<string> $resolve */
 function suppression(string $code, Closure $resolve): Suppression
 {
 	return Suppression::fromFile((new Parser)->parse($code), $resolve);

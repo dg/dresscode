@@ -54,7 +54,7 @@ final class ReportEol extends Rule
 /** @param list<Rule> $rules */
 function processor(array $rules, bool $detectEol = true): FileProcessor
 {
-	return new FileProcessor($rules, new AnalysisRegistry, fn(string $name) => $name, new Style, $detectEol);
+	return new FileProcessor($rules, new AnalysisRegistry, fn(string $name) => [$name], new Style, $detectEol);
 }
 
 

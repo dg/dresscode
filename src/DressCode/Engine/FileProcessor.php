@@ -27,14 +27,14 @@ final class FileProcessor
 
 	/**
 	 * @param list<Rule> $rules  in configuration order
-	 * @param \Closure(string): ?string $resolveAlias  rule name or alias → canonical name
+	 * @param \Closure(string): list<string> $resolveNames  a name in a suppression comment → the rules it stands for
 	 * @param bool $detectEol  the line ending of the style follows the prevailing one of each file
 	 * @param bool $strict  a broken rule contract throws instead of warning
 	 */
 	public function __construct(
 		private readonly array $rules,
 		private readonly AnalysisRegistry $analyses,
-		private readonly \Closure $resolveAlias,
+		private readonly \Closure $resolveNames,
 		private readonly Style $style = new Style,
 		private readonly bool $detectEol = true,
 		?PhpVersion $phpVersion = null,
@@ -76,7 +76,7 @@ final class FileProcessor
 					: new FileResult($path, $code, output: null, failure: "The fixed code no longer parses: {$e->getMessage()} on line $e->originalLine.");
 			}
 
-			$runner = new PassRunner($rules ?? $this->rules, $this->analyses, $this->resolveAlias, $this->maxPasses, $this->strict);
+			$runner = new PassRunner($rules ?? $this->rules, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict);
 			$result = $runner->run($file, $text, $path, $style, $this->phpVersion);
 			$first ??= $result;
 			$passes += $result->passes;

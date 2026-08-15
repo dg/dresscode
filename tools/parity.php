@@ -128,7 +128,7 @@ if (
 echo "running dresscode fix (php version $phpVersion)...\n";
 $registry = new RuleRegistry;
 $rules = (new PresetResolver($registry))->resolve(Config::create()->preset('Nette\CodingStandard\Presets\Php'), new PresetContext($phpVersion));
-$processor = new FileProcessor($rules, new AnalysisRegistry, $registry->resolveName(...));
+$processor = new FileProcessor($rules, new AnalysisRegistry, $registry->resolveNames(...));
 
 $errors = [];
 foreach ($files as $relative) {
