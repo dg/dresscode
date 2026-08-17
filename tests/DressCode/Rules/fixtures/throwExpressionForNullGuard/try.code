@@ -1,0 +1,26 @@
+<?php
+function load(Repository $repo, int $id): ?User
+{
+	// left alone
+	try {
+		$user = $repo->find($id);
+		if ($user === null) {
+			throw new NotFound($id);
+		}
+	} catch (NotFound) {
+	}
+
+	try {
+		$loader = function () use ($repo, $id) {
+			$user = $repo->find($id);
+			if ($user === null) {
+				throw new NotFound($id);
+			}
+			return $user;
+		};
+	} finally {
+		log('done');
+	}
+
+	return $user;
+}

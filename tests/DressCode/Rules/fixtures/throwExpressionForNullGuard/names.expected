@@ -1,0 +1,10 @@
+<?php
+// variables named as the parts of the built code
+function load(Repository $repo, int $id): array
+{
+	$value = $repo->find($id) ?? throw new NotFound($id);
+
+	$throw = $repo->find($id) ?? throw new NotFound($id);
+
+	return [$value, $throw];
+}
