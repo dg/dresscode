@@ -1,0 +1,6 @@
+6: A closure not using $this must be static
+7: A closure not using $this must be static
+11: A closure not using $this must be static
+13: A closure not using $this must be static
+20: A closure not using $this must be static
+21: A closure not using $this must be static
