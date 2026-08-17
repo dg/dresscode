@@ -1,0 +1,8 @@
+5: Function var_dump() is forbidden
+6: Function var_dump() is forbidden
+7: Function sizeof() is forbidden, the replacement is count()
+8: Function dd() is forbidden
+9: Function ddd() is forbidden
+10: Function App\Debug\dump() is forbidden
+11: Function App\Debug\trace() is forbidden
+14: Function var_dump() is forbidden
