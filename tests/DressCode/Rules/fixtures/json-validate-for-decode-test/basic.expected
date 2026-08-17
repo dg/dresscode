@@ -1,0 +1,18 @@
+<?php
+// risky
+if (json_validate($json)) {
+	echo 1;
+}
+$a = json_validate($json);
+$b = json_validate($json);
+$c = $enabled && json_validate($json);
+$d = json_validate($json);
+$e = \json_validate($json);
+$f = json_decode($json, true, 4) !== null && json_last_error() === JSON_ERROR_NONE;
+$g = json_decode($json, true, flags: JSON_THROW_ON_ERROR) !== null && json_last_error() === JSON_ERROR_NONE;
+$h = json_decode($json) !== false && json_last_error() === JSON_ERROR_NONE;
+$i = json_decode($json) !== null && json_last_error() !== JSON_ERROR_NONE;
+$j = json_decode($json) !== null && json_last_error() === JSON_ERROR_SYNTAX;
+$k = json_decode($json) !== null and json_last_error() === JSON_ERROR_NONE;
+$l = json_decode($json) !== null && json_last_error($x) === JSON_ERROR_NONE;
+$m = json_decode(...) !== null && json_last_error() === JSON_ERROR_NONE;
