@@ -1,0 +1,3 @@
+<?php
+// {"placement": "openingTagLine"}
+namespace Foo;
