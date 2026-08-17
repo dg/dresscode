@@ -1,0 +1,3 @@
+7: Global constant 'PHP_EOL' must not be imported
+10: Global function strlen() must be written without the leading backslash
+11: Global constant 'M_PI' must be written without the leading backslash

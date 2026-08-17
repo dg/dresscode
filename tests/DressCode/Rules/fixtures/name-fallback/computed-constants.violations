@@ -1,0 +1,5 @@
+8: Global constant 'PHP_VERSION_ID' must be imported
+9: Global constant 'ENT_QUOTES' must be imported
+9: Global constant 'ENT_HTML5' must be imported
+12: Global constant 'PHP_ZTS' must be imported
+13: Global constant 'INF' must be imported

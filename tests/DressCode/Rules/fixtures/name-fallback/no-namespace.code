@@ -1,0 +1,3 @@
+<?php
+// {"optimizedFunctions": "qualified"}
+echo count([]) . \strlen('');

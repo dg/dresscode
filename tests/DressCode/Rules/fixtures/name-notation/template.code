@@ -1,0 +1,3 @@
+<html>
+<?php $x = new \Lib\Foo; ?>
+<body></body>

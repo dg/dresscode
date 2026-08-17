@@ -1,0 +1,15 @@
+<?php
+// {"optimizedFunctions": "qualified"}
+// risky
+namespace App {
+	use Foo\Bar;
+	use function count;
+
+	echo count([]);
+}
+
+namespace Other {
+	use function strlen;
+
+	echo strlen('');
+}

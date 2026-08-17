@@ -1,0 +1,3 @@
+12: Global function count() must be imported
+12: Global function array_map() must be imported
+13: Global constant 'PHP_VERSION' must be imported
