@@ -1,0 +1,15 @@
+<?php
+// comment with a space
+/** doc */
+$a = "k\u{00A0}dispozici";
+$b = "k\u{00A0}dispozici";
+$c = 'it\'s ';
+$d = <<<EOT
+x\u{00A0}y
+EOT;
+$e = <<<'EOT'
+x y
+EOT;
+$f​ = 1;
+$g = "a $x b";
+$h = "\u{202E}evil";
