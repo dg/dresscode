@@ -462,6 +462,39 @@ test('a configuration without a preset', function () {
 });
 
 
+test('an override lays a profile of its own over the configuration, its presets included', function () {
+	$resolver = new PresetResolver(new RuleRegistry);
+	$config = new Config(
+		presets: [BasePreset::class],
+		rules: [RuleC::class => ['max' => 7]],
+		nameResolution: 'certain',
+		fixRisky: [RuleA::class],
+		overrides: [
+			new Override(['tests'], presets: [ChildPreset::class, NestedPreset::class, StyledPreset::class], nameResolution: 'uncertain', warnings: [RuleA::class]),
+		],
+	);
+	$base = $resolver->resolve($config, '8.3');
+	$tests = $resolver->resolve($config, '8.3', [0]);
+
+	// a preset of the override lies above the configuration, and one the configuration already has is not laid again
+	Assert::same(['test/base'], $base->presets);
+	Assert::same(['test/base', 'test/child', 'test/nested-preset', 'test/styled'], $tests->presets);
+	Assert::same(['test/a', 'test/c', 'test/b', 'dresscode/no-unlisted-namespaced-declaration'], names($resolver->build($base)));
+	Assert::same(['test/a', 'test/c', 'test/nested'], names($resolver->build($tests)));
+	Assert::same(['max' => 7, 'names' => ['x']], $tests->getRule('test/c')?->options);
+	Assert::same('turned off by test/child', $tests->getRule('test/b')?->inactive);
+	Assert::same([["\t", 'majority'], ['  ', "\n"]], [[$base->indent, $base->eol], [$tests->indent, $tests->eol]]);
+
+	// a certain resolution turns on the guard of its lists, and a file that ends up uncertain has none to guard
+	Assert::same(['certain', 'uncertain'], [$base->nameResolution, $tests->nameResolution]);
+	Assert::same('no preset or rule of the configuration mentions it', $tests->getRule('dresscode/no-unlisted-namespaced-declaration')?->inactive);
+
+	// a list adds up: what the configuration accepts holds under the override, which adds what it says
+	Assert::same([true, false], [$base->getRule('test/a')?->fixRisky, $base->getRule('test/a')?->warning]);
+	Assert::same([true, true], [$tests->getRule('test/a')?->fixRisky, $tests->getRule('test/a')?->warning]);
+});
+
+
 test('the command line lies over the overrides', function () {
 	$resolver = new PresetResolver(new RuleRegistry);
 	$config = new Config(rules: [RuleA::class => true], overrides: [new Override(['tests'], rules: [RuleA::class => false])]);
@@ -484,6 +517,56 @@ test('the version of PHP a profile says is the target of its files, raised to th
 
 	Assert::same('8.0', $resolver->resolve($config, '8.4', [1])->phpVersion);
 	Assert::contains('The target PHP 7.4 is older than PHP 8.0, the oldest DressCode fixes code for;', implode("\n", $resolver->getWarnings()));
+});
+
+
+test('what the namespaces declare adds up over the layers, and only the configuration makes it certain', function () {
+	$resolver = new PresetResolver(new RuleRegistry);
+	// one symbol spelled twice is listed once, as PHP reads the letter case of a function and of a namespace
+	$uncertain = $resolver->resolve(
+		new Config(presets: [DeclaringPreset::class], namespaces: ['functions' => ['App\helper', 'fw\config\SERVICE'], 'constants' => ['fw\VERSION', 'Fw\version']]),
+		Config::DefaultPhpVersion,
+	);
+	Assert::same(
+		[
+			'Fw\Config\service' => 'test/declaring',
+			'Fw\Config\param' => 'test/declaring',
+			'App\helper' => 'the configuration',
+		],
+		$uncertain->namespacedFunctions,
+	);
+	Assert::same(['Fw\VERSION' => 'test/declaring', 'Fw\version' => 'the configuration'], $uncertain->namespacedConstants);
+	Assert::same('uncertain', $uncertain->nameResolution);
+	Assert::false($uncertain->toNamespacedSymbols()->complete);
+	Assert::true($uncertain->toNamespacedSymbols()->hasFunction('App\helper'));
+
+	$certain = $resolver->resolve(new Config(presets: [DeclaringPreset::class], nameResolution: 'certain'), Config::DefaultPhpVersion);
+	Assert::true($certain->toNamespacedSymbols()->complete);
+	Assert::true($certain->toNamespacedSymbols()->hasConstant('Fw\VERSION'));
+	Assert::notSame($uncertain->toArray(), $certain->toArray());
+
+	// a certain resolution turns on the guard of its lists, which the rules of the configuration may turn off
+	$guard = 'dresscode/no-unlisted-namespaced-declaration';
+	$rule = $certain->getRule($guard);
+	Assert::notNull($rule);
+	Assert::true($rule->isActive());
+	Assert::same('nameResolution: certain', $rule->getSource());
+	Assert::false($uncertain->getRule($guard)?->isActive());
+	$kept = $resolver->resolve(new Config(rules: [$guard => false], nameResolution: 'certain'), Config::DefaultPhpVersion);
+	Assert::false($kept->getRule($guard)?->isActive());
+
+	// an override adds to the lists for its files
+	$overridden = new Config(namespaces: ['functions' => ['App\helper']], overrides: [new Override(['tests'], namespaces: ['functions' => ['App\Tests\fixture']])]);
+	Assert::same(
+		['App\helper' => 'the configuration', 'App\Tests\fixture' => 'the override for tests'],
+		$resolver->resolve($overridden, Config::DefaultPhpVersion, [0])->namespacedFunctions,
+	);
+
+	Assert::exception(
+		fn() => $resolver->resolve(new Config(presets: [BadDeclarationsPreset::class]), Config::DefaultPhpVersion),
+		ConfigurationException::class,
+		"'strlen' is in no namespace, and a global function needs no listing. (in preset test/bad-declarations)",
+	);
 });
 
 

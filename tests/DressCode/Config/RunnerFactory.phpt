@@ -225,6 +225,34 @@ test('an override turns a rule off under its class as under its name, an unknown
 });
 
 
+test('an override brings its presets, its style, its name resolution and its warnings to its files', function () use ($fixtures) {
+	$factory = new RunnerFactory;
+	$runner = $factory->createRunner(
+		new Config(
+			extensions: [DoubleQuotesPreset::class],
+			rules: [ReportContext::class => true],
+			nameResolution: 'certain',
+			overrides: [new Override(['sub'], presets: ['test/double'], indent: 2, nameResolution: 'uncertain', warnings: [ReportContext::class])],
+		),
+		"$fixtures/project",
+	);
+	$describe = fn(string $path) => array_map(
+		fn($violation) => "$violation->ruleName {$violation->severity->name} $violation->message",
+		$runner->processFile($path, "<?php\n\$a = 'text';\n")->violations,
+	);
+	Assert::same(['test/a Error 8.1 "\t""\n"'], $describe('src/x.php'));
+	$sub = $describe('src/sub/x.php');
+	Assert::count(2, $sub);
+	Assert::same('test/a Warning 8.1 "  ""\n"', $sub[0]);
+	Assert::match('dresscode/string-quotes Error %a%', $sub[1]);
+
+	$guard = 'dresscode/no-unlisted-namespaced-declaration';
+	$sub = $factory->resolveConfigFor($runner->findOverridesFor('src/sub/x.php'));
+	Assert::same(['certain', true], [$factory->getResolvedConfig()->nameResolution, $factory->getResolvedConfig()->getRule($guard)?->isActive()]);
+	Assert::same(['uncertain', false], [$sub->nameResolution, $sub->getRule($guard)?->isActive()]);
+});
+
+
 test('a runner keeps the configuration it was built from, whatever the factory builds after it', function () use ($fixtures) {
 	$factory = new RunnerFactory;
 	$runner = $factory->createRunner(

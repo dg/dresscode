@@ -1,0 +1,4 @@
+8: Function App\unlisted() must be listed in namespaces.functions
+10: Function App\polyfill() must be listed in namespaces.functions
+12: Constant App\UNLISTED must be listed in namespaces.constants
+13: Constant App\DEFINED must be listed in namespaces.constants
