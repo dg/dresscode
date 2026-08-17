@@ -508,6 +508,41 @@ final class NodeHelpers
 
 
 	/**
+	 * The functions and constants the node declares into a namespace, with a declaration inside a condition or a
+	 * function body and a constant define() names with a string: the kind, the fully qualified name and the node that
+	 * names it, in the order they are written. What is declared into the global namespace is not among them.
+	 * @return list<array{SymbolKind, string, Node}>
+	 */
+	public static function findNamespacedDeclarations(Node $node, NameResolver $resolver): array
+	{
+		$declarations = [];
+		$candidates = $node->find(Node::class, fn(Node $inner) => $inner instanceof Statement\FunctionNode
+			|| $inner instanceof Statement\ConstNode
+			|| $inner instanceof Expression\FunctionCallNode);
+		foreach ($candidates as $inner) {
+			if ($inner instanceof Statement\FunctionNode) {
+				$declarations[] = [SymbolKind::Function, (string) $resolver->getDeclaredName($inner), $inner->name];
+			} elseif ($inner instanceof Statement\ConstNode) {
+				foreach ($inner->items->getItems() as $item) {
+					$declarations[] = [SymbolKind::Constant, (string) $resolver->getDeclaredName($item), $item];
+				}
+			} elseif (
+				$inner instanceof Expression\FunctionCallNode
+				&& $resolver->isGlobalFunctionCall($inner, 'define')
+			) {
+				// a name with a leading backslash declares a constant no name reaches, not the one it spells
+				$argument = $inner->arguments->findArgument('constant_name', 0)?->value;
+				if ($argument instanceof Scalar\StringNode && !str_starts_with($argument->value, '\\')) {
+					$declarations[] = [SymbolKind::Constant, $argument->value, $argument];
+				}
+			}
+		}
+
+		return array_values(array_filter($declarations, fn(array $declaration) => str_contains($declaration[1], '\\')));
+	}
+
+
+	/**
 	 * Splits a declaration listing several items (`const A = 1, B = 2;`, `public $a, $b;`, `use A, B;`) into
 	 * one declaration per item: every item after the first gets a copy of the declaration of its own, the copies
 	 * follow the original in its list and the original keeps the first item. The slot names the list of items

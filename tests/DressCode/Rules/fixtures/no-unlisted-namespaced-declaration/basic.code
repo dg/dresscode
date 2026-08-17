@@ -1,0 +1,26 @@
+<?php
+// namespacedFunctions App\listed
+// namespacedConstants App\LISTED
+// nameResolution certain
+namespace App;
+
+function listed() {}
+function unlisted() {}
+if (!function_exists('App\polyfill')) {
+	function polyfill() {}
+}
+const LISTED = 1, UNLISTED = 2;
+define('App\DEFINED', 3);
+define('GLOBAL_ONE', 4);
+define($name, 5);
+define('\App\LEADING', 6); // declares a constant no name reaches
+
+class A
+{
+	const X = 1;
+
+	public function method()
+	{
+		return fn() => null;
+	}
+}
