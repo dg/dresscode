@@ -672,6 +672,7 @@ return [
 	],
 	'Statement\InlineHtmlNode' => [
 		'description' => 'Text outside PHP tags, including a BOM or a hashbang line.',
+		'traits' => ['Statement\InlineHtmlQueries'],
 		'slots' => ['html' => 'Token'],
 	],
 	'Statement\EmptyStatementNode' => [

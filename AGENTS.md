@@ -45,7 +45,7 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
   - `no-` is a construct that must not appear at all (`no-global-keyword`), `useless-` one that is legal and right elsewhere but adds nothing here (`useless-else`); an empty instance is always `no-`;
   - horizontal space is `<construct>-spacing`, vertical blank lines `<construct>-blank-lines`, indentation `<construct>-indentation`;
   - `phpdoc` is the whole block, `annotation` a single tag; `parameter` is declared, `argument` is passed; a backslash is `backslash`;
-  - canonical spelling is `-notation` or `-canonical-*`, canonical case `-casing`;
+  - canonical spelling is `-notation` or `-canonical-*`, canonical case `-casing`; something that must be present is `-required`;
   - the slug is the class name in kebab-case, with `phpdoc`, `eof`, `inheritdoc` and `elseif` as single tokens.
 - The directory of a rule is the most encompassing of the topics it could belong to, not a criterion: none exists that would hold for the whole catalogue, and both indexes of `docs/reference/rules.md` are generated, one from the directory and one from the name.
 - Comments only where the code itself is not enough; never restate what the code shows; density follows the surrounding file. No phpDoc for what the types already say.

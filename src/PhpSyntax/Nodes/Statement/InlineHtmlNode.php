@@ -16,6 +16,9 @@ use PhpSyntax\Token;
  */
 final class InlineHtmlNode extends StatementNode
 {
+	use InlineHtmlQueries;
+
+
 	/**
 	 * @internal nodes are created by the parser
 	 */
