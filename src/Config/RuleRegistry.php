@@ -64,6 +64,7 @@ final class RuleRegistry
 		Rules\ControlFlow\NoContinueInSwitchRule::class,
 		Rules\ControlFlow\UselessIfConditionWithReturnRule::class,
 		Rules\Files\NoBomRule::class,
+		Rules\Files\NoInvisibleCharactersRule::class,
 		Rules\Files\FullOpeningTagRule::class,
 		Rules\Files\LineEndingRule::class,
 		Rules\Files\NoClosingTagRule::class,
