@@ -60,6 +60,7 @@ final class RuleRegistry
 		Rules\Files\FullOpeningTagRule::class,
 		Rules\Files\LineEndingRule::class,
 		Rules\Files\NoClosingTagRule::class,
+		Rules\Files\StrictTypesRequiredRule::class,
 		Rules\Functions\ArrowFunctionRule::class,
 		Rules\Functions\MultiLineCallRule::class,
 		Rules\Functions\MultiLineSignatureRule::class,
