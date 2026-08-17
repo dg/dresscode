@@ -1,0 +1,48 @@
+<?php
+// risky
+function load(Repository $repo, int $id, array $config, ?string $fallback): void
+{
+	$user = $repo->find($id);
+	if ($user === null) {
+		throw new NotFound($id);
+	}
+
+	$name = $fallback ?: $repo->findName($id);
+	if (null === $name) throw new LogicException('no name');
+
+	// risky
+	$host = $config['host'];
+	if ($host === null) {
+		throw new InvalidArgumentException('host');
+	}
+
+	// left alone
+	$loose = $repo->find($id);
+	if ($loose == null) {
+		throw new NotFound($id);
+	}
+
+	$other = $repo->find($id);
+	if ($user === null) {
+		throw new NotFound($id);
+	}
+
+	$logged = $repo->find($id);
+	if ($logged === null) {
+		log('missing');
+		throw new NotFound($id);
+	}
+
+	$branched = $repo->find($id);
+	if ($branched === null) {
+		throw new NotFound($id);
+	} else {
+		echo 'found';
+	}
+
+	$commented = $repo->find($id);
+	// missing user
+	if ($commented === null) {
+		throw new NotFound($id);
+	}
+}

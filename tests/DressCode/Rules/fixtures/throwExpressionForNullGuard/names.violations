@@ -1,0 +1,2 @@
+6: The null check of the assigned value must be written with `?? throw`.
+11: The null check of the assigned value must be written with `?? throw`.
