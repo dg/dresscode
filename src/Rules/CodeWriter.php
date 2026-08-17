@@ -15,12 +15,39 @@ use function count;
 
 
 /**
- * What a rule writing code into a file needs so that the code takes the shape the file has: a function spelled the
- * way the file reaches it, an import written the way the file writes its imports. A rule shipped by a package writes
- * with it too.
+ * What a rule writing code into a file needs so that the code takes the shape the file has: a class or a function
+ * spelled the way the file reaches it, an import written the way the file writes its imports. A rule shipped by a
+ * package writes with it too.
  */
 final class CodeWriter
 {
+	/**
+	 * How a class is written where the node stands: the shortest way that reaches it, through an import added where
+	 * none does, the scope takes one and the short name is free; a file without a namespace imports a class of one
+	 * too, rather than writing it qualified. A global class gets no import, it is written with its backslash where
+	 * nothing imports it, which `qualification.globalClass` decides. It may add an import, so it is called only
+	 * after `report()` returned true.
+	 */
+	public static function writeClass(string $class, Node $at, RuleContext $context): string
+	{
+		$resolver = $context->getAnalysis(NameResolver::class);
+		$short = $resolver->shortenName($class, SymbolKind::ClassLike, $at);
+		$scope = self::findImportScope($at);
+		if (
+			(str_starts_with($short, '\\') || ($scope instanceof FileNode && str_contains($short, '\\')))
+			&& str_contains($class, '\\')
+			&& $scope !== null
+			&& self::canAddImport($scope)
+			&& $resolver->isAliasFree(QualifiedNames::stripNamespace($class), SymbolKind::ClassLike, $at)
+		) {
+			self::addImport($scope, SymbolKind::ClassLike, $class, $context);
+			$short = $context->getAnalysis(NameResolver::class)->shortenName($class, SymbolKind::ClassLike, $at);
+		}
+
+		return $short;
+	}
+
+
 	/**
 	 * How the name of another global function is written in place of the name of a call of a global one: bare where
 	 * the replaced name is bare, nothing takes the bare name and it is no less certain than the replaced one, which is
@@ -38,6 +65,24 @@ final class CodeWriter
 			)
 				? $function
 				: '\\' . $function;
+	}
+
+
+	/**
+	 * The scope the imports of the node belong to: its namespace, or the file where the file declares none; null for
+	 * a node of a file with namespaces that stands outside them.
+	 */
+	public static function findImportScope(Node $node): FileNode|Statement\NamespaceNode|null
+	{
+		for (; $node !== null; $node = $node->parent) {
+			if ($node instanceof Statement\NamespaceNode) {
+				return $node;
+			} elseif ($node instanceof FileNode) {
+				return array_any($node->statements->getItems(), fn(Node $stmt) => $stmt instanceof Statement\NamespaceNode) ? null : $node;
+			}
+		}
+
+		return null;
 	}
 
 

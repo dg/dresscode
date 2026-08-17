@@ -1,0 +1,4 @@
+2: The class `A` with a `__toString()` method must implement `Stringable`.
+10: The class `B` with a `__toString()` method must implement `Stringable`.
+18: The class `C` with a `__toString()` method must implement `Stringable`.
+55: The anonymous class with a `__toString()` method must implement `Stringable`.

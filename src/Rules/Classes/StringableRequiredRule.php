@@ -1,0 +1,114 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\Classes;
+
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\CodeWriter;
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{Builder, Node, Token, Trivia};
+use PhpSyntax\Nodes\{AnonymousClassNode, NameNode};
+use PhpSyntax\Nodes\Member\MethodNode;
+use PhpSyntax\Nodes\Statement\ClassNode;
+
+
+/**
+ * A class with `__toString()` says that it is `Stringable`. PHP 8.0 gives it that interface whether it says
+ * so or not, so the fix adds nothing at run time; it puts in the declaration what the code already is, where
+ * a reader and a static analyser look for it.
+ *
+ * The name is written as the file reaches it, bare in a file without a namespace or under an import of it,
+ * else with the leading backslash. A class that names the interface already is left alone, and one that has it
+ * from a parent is not seen, which costs nothing: PHP takes a repeated interface.
+ */
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.0'], analyses: [NameResolver::class])]
+final class StringableRequiredRule extends NodeRule
+{
+	public static function getDecisions(): array
+	{
+		return [new Decision('upgrading.classes.Stringable', Domain::adopted(), 'A class with `__toString()` declares it')];
+	}
+
+
+	public function getVisitedNodes(): array
+	{
+		return [ClassNode::class, AnonymousClassNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if (
+			(!$node instanceof ClassNode && !$node instanceof AnonymousClassNode)
+			|| !self::hasToString($node)
+			|| self::namesStringable($node, $context)
+			|| !$context->report(
+				$node->classKeyword,
+				($node instanceof ClassNode ? "The class `{$node->name->token->text}`" : 'The anonymous class') . ' with a `__toString()` method must implement `Stringable`.',
+			)
+		) {
+			return;
+		}
+
+		$template = (new Builder)->fragment(ClassNode::class, 'class Template implements ' . CodeWriter::writeClass('Stringable', $node, $context) . ' {}');
+		assert($template->implements !== null && $template->implementsKeyword !== null);
+		if ($node->implements === null) {
+			[$keyword, $names] = [$template->implementsKeyword, $template->implements];
+			$template->implementsKeyword = null;
+			$template->implements = null;
+			$anchor = ($node->extends ?? ($node instanceof ClassNode ? $node->name : $node->arguments))?->getLastToken()
+				?? $node->classKeyword;
+			$trailing = self::takeTrailing($anchor, ' ');
+			$node->implementsKeyword = $keyword;
+			$node->implements = $names;
+			$names->getLastToken()?->setTrailingTrivia($trailing);
+		} else {
+			$name = $template->implements->getItems()[0];
+			$template->implements->removeItem($name);
+			$name->setEdgeTrivia([], []);
+			$trailing = self::takeTrailing($node->implements->getLastToken(), '');
+			$node->implements->append($name);
+			$name->getLastToken()->setTrailingTrivia($trailing);
+		}
+	}
+
+
+	/**
+	 * What ends the line of the token, the token left with the given whitespace instead, so that the clause
+	 * written after it takes over the end of the line.
+	 * @return list<Trivia>
+	 */
+	private static function takeTrailing(?Token $anchor, string $replacement): array
+	{
+		if ($anchor === null) {
+			return [];
+		}
+
+		$trailing = $anchor->trailingTrivia;
+		$anchor->setTrailingTrivia($replacement === '' ? [] : [new Trivia(Trivia::Whitespace, $replacement)]);
+		return $trailing;
+	}
+
+
+	private static function hasToString(ClassNode|AnonymousClassNode $class): bool
+	{
+		return array_any(
+			$class->members->getItems(),
+			fn(Node $member) => $member instanceof MethodNode && $member->name->equals('__toString'),
+		);
+	}
+
+
+	private static function namesStringable(ClassNode|AnonymousClassNode $class, RuleContext $context): bool
+	{
+		$resolver = $context->getAnalysis(NameResolver::class);
+		return array_any(
+			$class->implements?->getItems() ?? [],
+			fn(NameNode $name) => strcasecmp($resolver->resolveClass($name), 'Stringable') === 0,
+		);
+	}
+}
