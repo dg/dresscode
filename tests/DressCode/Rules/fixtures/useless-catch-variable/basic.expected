@@ -1,0 +1,58 @@
+<?php
+function a()
+{
+	try {
+		foo();
+	} catch (Exception $e) {
+		log($e);
+	} catch (Error $e) {
+	} catch (TypeError | ValueError) {
+		bar();
+	}
+}
+
+function b()
+{
+	try {
+		foo();
+	} catch (Exception $e) {
+	}
+	return $e ?? null;
+}
+
+function c()
+{
+	try {
+		foo();
+	} catch (Exception $e) {
+		echo "failed: $e";
+	}
+}
+
+function d()
+{
+	try {
+		foo();
+	} catch (Exception $e) {
+	} finally {
+		echo $e;
+	}
+}
+
+function e()
+{
+	try {
+		foo();
+	} catch (Exception $e) {
+	}
+	return compact('e');
+}
+
+function f()
+{
+	try {
+		foo();
+	} catch (Exception $e) {
+		$fn = function () use ($e) {};
+	}
+}
