@@ -1,0 +1,82 @@
+<?php
+function literal(): bool
+{
+	foreach (['cat', 'dog'] as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function iterator(Iterator $animals): bool
+{
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function rewritten(array $animals): bool
+{
+	$animals = new ArrayIterator($animals);
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+class Zoo
+{
+	private array $animals = [];
+	private iterable $visitors = [];
+
+
+	public function __construct(
+		private array $keepers,
+	) {
+	}
+
+
+	public function hasCat(): bool
+	{
+		foreach ($this->animals as $animal) {
+			if (str_starts_with($animal, 'c')) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasChild(): bool
+	{
+		foreach ($this->visitors as $visitor) {
+			if ($visitor->isChild()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasKeeper(): bool
+	{
+		foreach ($this->keepers as $keeper) {
+			if ($keeper->isOnDuty()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}

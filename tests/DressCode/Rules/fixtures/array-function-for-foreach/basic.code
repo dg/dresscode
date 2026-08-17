@@ -1,0 +1,208 @@
+<?php
+function any(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			$found = true;
+			break;
+		}
+	}
+
+	return $found;
+}
+
+function all(array $animals): bool
+{
+	$ok = true;
+	foreach ($animals as $animal) {
+		if (!str_starts_with($animal, 'c')) {
+			$ok = false;
+			break;
+		}
+	}
+
+	return $ok;
+}
+
+function find(array $animals)
+{
+	$found = null;
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			$found = $animal;
+			break;
+		}
+	}
+
+	return $found;
+}
+
+function findKey(array $animals)
+{
+	$found = null;
+	foreach ($animals as $index => $animal) {
+		if (str_starts_with($animal, 'c')) {
+			$found = $index;
+			break;
+		}
+	}
+
+	return $found;
+}
+
+function withKey(array $rows): bool
+{
+	$found = false;
+	foreach ($rows as $key => $row) {
+		if ($key > 3 && $row->matches()) {
+			$found = true;
+			break;
+		}
+	}
+
+	return $found;
+}
+
+function returning(array $animals): bool
+{
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function returningAll(array $animals): bool
+{
+	foreach ($animals as $animal) {
+		if (!$animal->isValid()) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function returningFind(array $animals)
+{
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			return $animal;
+		}
+	}
+
+	return null;
+}
+
+function leftBehind(array $animals)
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$found = true;
+			break;
+		}
+	}
+
+	return [$found, $animal];
+}
+
+function byReference(array &$animals): bool
+{
+	$found = false;
+	foreach ($animals as &$animal) {
+		if ($animal->matches()) {
+			$found = true;
+			break;
+		}
+	}
+
+	return $found;
+}
+
+function doesMore(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$found = true;
+			break;
+		}
+
+		echo $animal;
+	}
+
+	return $found;
+}
+
+function otherVariable(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$other = true;
+			break;
+		}
+	}
+
+	return $found;
+}
+
+function noBreak(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$found = true;
+		}
+	}
+
+	return $found;
+}
+
+function withElse(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$found = true;
+			break;
+		} else {
+			echo 1;
+		}
+	}
+
+	return $found;
+}
+
+function counting(array $animals): int
+{
+	$count = 0;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$count = 1;
+			break;
+		}
+	}
+
+	return $count;
+}
+
+function multiLine(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if (
+			$animal->matches()
+			&& $animal->isReady()
+		) {
+			$found = true;
+			break;
+		}
+	}
+
+	return $found;
+}
