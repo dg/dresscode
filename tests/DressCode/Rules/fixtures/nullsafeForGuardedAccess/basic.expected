@@ -1,0 +1,21 @@
+<?php
+$a = $user?->getName();
+$b = $user?->getName();
+$c = $user?->name;
+$d = $user?->profile->name;
+$e = $user?->getProfile()->name;
+$f = $user?->items[0];
+$g = $this->user?->getName();
+$h = $user !== null ? $user->getName() : 'anonymous';
+$i = $user !== null ? $user->getName() + 1 : null;
+$j = $user !== null ? $other->getName() : null;
+$k = $user !== null ? $user : null;
+$l = $user !== null ? $user[0] : null;
+$at = $user !== null ? $user[0]->getName() : null;
+$m = $user !== null ? $user?->getName() : null;
+$n = $user !== null ? Helper::of($user) : null;
+$o = $user == null ? null : $user->getName();
+$p = f() !== null ? f()->getName() : null;
+$q = $user !== null ? $user->getName(/* c */) : null;
+$ar = $user === null ? null : $user->getName(...);
+$as = $user === null ? null : $user->profile->render(...);

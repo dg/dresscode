@@ -127,6 +127,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\YodaRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\NullCoalescingForNullTernaryRule::class,
+				Rules\Expressions\NullsafeForGuardedAccessRule::class,
 				Rules\Expressions\PipeOperatorRule::class,
 				Rules\Expressions\ObjectOperatorSpacingRule::class,
 				Rules\Expressions\MultilineChainRule::class,
