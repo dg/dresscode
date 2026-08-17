@@ -1,0 +1,2 @@
+9: Useless catch variable $x, it is never used
+64: Useless catch variable $e, it is never used
