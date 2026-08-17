@@ -42,6 +42,7 @@ final class RuleRegistry
 		Rules\Classes\UselessModifierRule::class,
 		Rules\Classes\VisibilityRequiredRule::class,
 		Rules\Comments\CommentedOutFunctionRule::class,
+		Rules\Comments\CommentSpacingRule::class,
 		Rules\Comments\NoEmptyCommentRule::class,
 		Rules\Comments\NoHashCommentRule::class,
 		Rules\ControlFlow\NoUnreachableCatchRule::class,
