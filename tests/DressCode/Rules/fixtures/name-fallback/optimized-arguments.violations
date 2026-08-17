@@ -1,0 +1,9 @@
+8: Global function strlen() must be imported
+9: Global function ord() must be imported
+10: Global function dirname() must be imported
+11: Global function sprintf() must be imported
+12: Global function in_array() must be imported
+13: Global function array_slice() must be imported
+13: Global function func_get_args() must be imported
+14: Global function function_exists() must be imported
+15: Global function extension_loaded() must be imported

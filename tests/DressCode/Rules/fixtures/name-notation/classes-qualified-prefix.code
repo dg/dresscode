@@ -1,0 +1,8 @@
+<?php
+// {"classes": "import", "globalClasses": "import"}
+namespace App;
+
+$a = new \Exception;
+$b = new Exception\Sub;
+$c = new \Lib\Foo;
+$d = Foo\bar();

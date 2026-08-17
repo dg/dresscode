@@ -1,0 +1,2 @@
+6: Global function dirname() must not be imported
+9: Global function in_array() must be written without the leading backslash

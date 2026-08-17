@@ -1,0 +1,5 @@
+6: Global function array_map() must be imported
+6: Global function count() must be imported
+6: Global function no_such_function() must be imported
+6: Global constant 'PHP_EOL' must be imported
+6: Global constant 'NO_SUCH_CONSTANT' must be imported

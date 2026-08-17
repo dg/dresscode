@@ -1,0 +1,8 @@
+<?php
+// {"optimizedFunctions": "qualified"}
+// risky
+namespace App;
+
+use function Foo\{strlen};
+
+echo strlen('') . \strlen('') . count([]);

@@ -94,6 +94,8 @@ final class RuleRegistry
 		Rules\Namespaces\ImportNotationRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Namespaces\OrderedImportsRule::class,
+		Rules\Namespaces\NameNotationRule::class,
+		Rules\Namespaces\NameFallbackRule::class,
 		Rules\Namespaces\UnusedImportsRule::class,
 		Rules\Namespaces\UseFromSameNamespaceRule::class,
 		Rules\Namespaces\UselessAliasRule::class,

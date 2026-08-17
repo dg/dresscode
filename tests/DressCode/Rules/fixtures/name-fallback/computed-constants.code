@@ -1,0 +1,18 @@
+<?php
+// {"optimizedConstants": "qualified"}
+// nameResolution certain
+namespace App;
+
+const LIMIT = 10;
+
+if (PHP_VERSION_ID >= 80400 && $ready) {
+	$flags = ENT_QUOTES | ENT_HTML5;
+}
+
+$zts = !PHP_ZTS;
+$min = -INF;
+$cli = $sapi === PHP_SAPI;
+$path = $dir . DIRECTORY_SEPARATOR;
+trigger_error('x', E_USER_DEPRECATED);
+fwrite(STDERR, is_resource(STDOUT) ? 'a' : 'b');
+echo LIMIT . NO_SUCH_CONSTANT;

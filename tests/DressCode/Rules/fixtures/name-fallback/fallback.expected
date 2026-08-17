@@ -1,0 +1,9 @@
+<?php
+// {"functions": "fallback"}
+// risky
+namespace App;
+
+
+count($a);
+strlen($b);
+trim($c);

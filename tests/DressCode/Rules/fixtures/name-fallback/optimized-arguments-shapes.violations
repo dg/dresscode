@@ -1,0 +1,5 @@
+5: Global function in_array() must be imported
+9: Global function in_array() must be imported
+13: Global function sprintf() must be imported
+19: Global function sprintf() must be imported
+25: Global function extension_loaded() must be imported

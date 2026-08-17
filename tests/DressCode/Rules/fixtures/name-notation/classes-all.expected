@@ -1,0 +1,9 @@
+<?php
+// {"classes": "import"}
+namespace App;
+
+use Exception;
+use Lib\Foo;
+
+$a = new Foo;
+$b = new Exception;
