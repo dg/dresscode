@@ -1,0 +1,5 @@
+<?php
+function hasDraft(array $articles): bool
+{
+	return array_any($articles, fn($article) => $article->isDraft());
+}

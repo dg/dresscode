@@ -1,0 +1,64 @@
+<?php
+function literal(): bool
+{
+	return array_any(['cat', 'dog'], fn($animal) => str_starts_with($animal, 'c'));
+}
+
+function iterator(Iterator $animals): bool
+{
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function rewritten(array $animals): bool
+{
+	$animals = new ArrayIterator($animals);
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+class Zoo
+{
+	private array $animals = [];
+	private iterable $visitors = [];
+
+
+	public function __construct(
+		private array $keepers,
+	) {
+	}
+
+
+	public function hasCat(): bool
+	{
+		return array_any($this->animals, fn($animal) => str_starts_with($animal, 'c'));
+	}
+
+
+	public function hasChild(): bool
+	{
+		foreach ($this->visitors as $visitor) {
+			if ($visitor->isChild()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasKeeper(): bool
+	{
+		return array_any($this->keepers, fn($keeper) => $keeper->isOnDuty());
+	}
+}
