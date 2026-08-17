@@ -77,6 +77,7 @@ final class RuleRegistry
 		Rules\Functions\UselessParameterDefaultRule::class,
 		Rules\Functions\NoUnpackingInOptimizedCallRule::class,
 		Rules\Functions\NoSettypeRule::class,
+		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Namespaces\ReferenceUsedNamesOnlyRule::class,

@@ -1,0 +1,23 @@
+<?php
+class A
+{
+	public function a()
+	{
+		$a = static function () { return 1; };
+		$b = static fn($x) => $x * 2;
+		$c = function () { return $this->x; };
+		$d = fn() => $this->x;
+		$e = function () { return parent::foo(); };
+		$f = static function () { return self::foo() . static::bar(); };
+		$g = function () { $h = function () { return $this; }; };
+		$i = static function () { $j = static function () { return $this; }; };
+		$k = function () { return "{$this->x}"; };
+		$l = function () { return include 'x.php'; };
+		$m = (function () { return 1; })->bindTo($this);
+		$n = Closure::bind(function () { return 1; }, $this);
+		$o = function () { return $$x; };
+		$p = static function () {};
+		$q = #[Attr] static function () {};
+		$r = static function () { return new class { public function m() { return $this; } }; };
+	}
+}
