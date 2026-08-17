@@ -1,0 +1,31 @@
+<?php
+final class A
+{
+	public const X = 1;
+	public function a() {}
+	protected function b() {}
+	public function c() {}
+	private function d() {}
+}
+
+enum E
+{
+	public function a() {}
+}
+
+readonly class R
+{
+	public int $a;
+	public int $b;
+	public function __construct(public int $c, private int $d) {}
+}
+
+class N
+{
+	final public function a() {}
+	public readonly int $b;
+}
+
+$x = new readonly class {
+	public int $a;
+};
