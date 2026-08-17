@@ -1,0 +1,5 @@
+<?php
+// risky
+if (json_decode($input, true) !== null && json_last_error() === JSON_ERROR_NONE) {
+	echo 'valid';
+}
