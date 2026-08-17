@@ -1,0 +1,28 @@
+<?php
+class A
+{
+	public static function __set_state($properties)
+	{
+	}
+}
+
+class B
+{
+	static function __SET_STATE($properties)
+	{
+	}
+}
+
+class C
+{
+	public static function __set_state($properties)
+	{
+	}
+}
+
+class D
+{
+	public function __wakeup()
+	{
+	}
+}
