@@ -1,0 +1,3 @@
+upgrading:
+	functions:
+		array_is_list: adopted
