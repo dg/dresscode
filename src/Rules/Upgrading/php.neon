@@ -1,5 +1,5 @@
 # What PHP itself retired, the upgrading data of PHP written as those of a library: a deprecated function
-# reported.
+# reported, a call doing nothing since a version removed.
 # @generated from the reflection dumps of JetBrains/phpstorm-stubs, UPGRADING and the entries kept by hand, do not edit.
 
 package: php
@@ -75,6 +75,10 @@ since 8.1:
 		odbc_result_all: deprecated
 		strftime: deprecated
 		strptime: deprecated
+	replacedCalls:
+		'ReflectionMethod::setAccessible($accessible)': removed
+		'ReflectionProperty::setAccessible($accessible)': removed
+		'finfo_close($finfo)': removed
 
 since 8.0:
 	forbiddenFunctions:
@@ -169,3 +173,8 @@ since 8.0:
 		zip_entry_read: deprecated
 		zip_open: deprecated
 		zip_read: deprecated
+	replacedCalls:
+		'curl_close($handle)': removed
+		'curl_share_close($share_handle)': removed
+		'imagedestroy($image)': removed
+		'xml_parser_free($parser)': removed

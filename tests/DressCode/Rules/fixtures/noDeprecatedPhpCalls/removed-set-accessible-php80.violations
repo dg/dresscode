@@ -1,0 +1,1 @@
+6: Useless `curl_close()` call, because it does nothing since PHP 8.0.

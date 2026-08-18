@@ -1,0 +1,2 @@
+5: Useless `curl_close()` call, because it does nothing since PHP 8.0.
+	risky NameUncertain: the namespace may declare `curl_close()`

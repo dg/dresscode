@@ -1,0 +1,4 @@
+<?php
+// php 8.5
+(void) curl_close($ch);
+(void) imagedestroy($image);
