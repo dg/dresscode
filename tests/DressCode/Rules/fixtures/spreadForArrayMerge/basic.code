@@ -1,0 +1,31 @@
+<?php
+$a = array_merge(['a' => 1], ['b' => 2]);
+$b = \array_merge($defaults, $options);
+$c = array_merge($first, $second, $third);
+$g = array_merge([1, 2], [5 => 'x'], ['1' => 'y', 'k' => 'z'], [...$rest]);
+$h = array_merge([
+	'a',
+	'b',
+], ['c']);
+$i = array_merge(
+	['k' => 1],
+	['l' => 2],
+);
+$j = array_merge([
+	'a',
+], $extra);
+$k = array_merge([
+], []);
+
+function nested()
+{
+	return array_map(trim(...), array_merge([
+		'x',
+		'y',
+	], ['z']));
+}
+
+// left alone
+$d = array_merge(...$lists);
+$e = array_merge(array: $one);
+$f = $object->array_merge($one, $two);
