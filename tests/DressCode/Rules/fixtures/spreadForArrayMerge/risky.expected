@@ -1,0 +1,15 @@
+<?php
+// risky
+$a = ['a' => 1, 'b' => 2];
+$b = [...$defaults, ...$options];
+$c = [...$first, ...$second, ...$third];
+$g = [1, 2, ...[5 => 'x'], ...['1' => 'y', 'k' => 'z'], ...$rest];
+$j = [
+	'a',
+	...$extra,
+];
+
+// left alone
+$d = array_merge(...$lists);
+$e = array_merge(array: $one);
+$f = $object->array_merge($one, $two);
