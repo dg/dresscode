@@ -27,6 +27,7 @@ final class CorePlugin implements Plugin
 			rules: [
 				Rules\Arrays\ArraySpacingRule::class,
 				Rules\Arrays\MultilineArrayRule::class,
+				Rules\Arrays\NoManualListTestsRule::class,
 				Rules\Arrays\NoLongArraySyntaxRule::class,
 				Rules\Arrays\TrailingCommaRule::class,
 				Rules\Classes\ClassHeadSpacingRule::class,
