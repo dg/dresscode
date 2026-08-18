@@ -1,0 +1,8 @@
+<?php
+class Money
+{
+	public function __toString(): string
+	{
+		return $this->amount . ' ' . $this->currency;
+	}
+}
