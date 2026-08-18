@@ -1,0 +1,8 @@
+<?php
+class Point
+{
+	public function __set_state(array $properties)
+	{
+		return new self($properties['x'], $properties['y']);
+	}
+}
