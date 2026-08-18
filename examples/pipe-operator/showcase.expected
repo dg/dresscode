@@ -1,0 +1,2 @@
+<?php
+$slug = $title |> htmlspecialchars(...) |> strtolower(...) |> trim(...);

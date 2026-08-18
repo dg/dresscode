@@ -1,0 +1,2 @@
+13: The nested calls must be written with the pipe operator
+16: The nested calls must be written with the pipe operator, which fails on a parameter by reference

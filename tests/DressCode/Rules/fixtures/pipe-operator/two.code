@@ -1,0 +1,4 @@
+<?php
+// {"minimumCalls": 2}
+$a = trim(strtolower($input));
+$b = trim($input);
