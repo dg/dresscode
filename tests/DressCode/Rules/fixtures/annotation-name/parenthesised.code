@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * @Template("x")
+ * @Mixin("y")
+ * @Return int
+ */
+function a() {}
