@@ -1,0 +1,18 @@
+<?php
+function a(#[\SensitiveParameter] string $password, string $other) {}
+function b(#[\SensitiveParameter] string $password) {}
+function c(#[SensitiveParameter] string $password) {}
+function d(#[\SensitiveParameter] string $PASSWORD) {}
+function e(#[\SensitiveParameter] $secret) {}
+function f(
+	#[\SensitiveParameter] string $apiKey,
+	int $limit,
+) {}
+class G
+{
+	public function __construct(
+		#[Other]
+		#[\SensitiveParameter] private string $privateKey,
+	) {
+	}
+}
