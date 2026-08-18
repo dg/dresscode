@@ -1,0 +1,26 @@
+<?php
+// risky
+
+namespace App;
+
+use Acme\Time\{Clock, Schedule, SystemClock};
+
+class Calendar extends Schedule
+{
+	public function __construct(?Clock $clock = null)
+	{
+		$clock ??= new SystemClock;
+	}
+
+
+	public function save(?Clock $clock = null): void
+	{
+		$clock ??= new SystemClock;
+	}
+
+
+	private function plan(?Clock $clock = null): void
+	{
+		$clock ??= new SystemClock;
+	}
+}

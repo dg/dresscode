@@ -10,7 +10,7 @@ namespace DressCode\Rules;
 use DressCode\Analyses\{IndentationSnapshot, Parameter, PhpSignatures};
 use DressCode\{Claim, Gap, Line, RuleContext, Style};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Builder, Indentation, Node, SymbolKind, Token, Trivia};
+use PhpSyntax\{Builder, ConstantExpressionFeature, Indentation, Node, SymbolKind, Token, Trivia};
 use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, MatchArmNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count, strlen;
@@ -642,6 +642,20 @@ final class NodeHelpers
 			: Token::fromText($text)
 				->setLeadingTrivia($operator->leadingTrivia)
 				->setTrailingTrivia($operator->trailingTrivia);
+	}
+
+
+	/**
+	 * What a constant expression may hold at the version in a default of a parameter or an argument of an attribute,
+	 * the places taking `new`, for `ExpressionNode::isConstantExpression()`.
+	 * @return list<ConstantExpressionFeature>
+	 */
+	public static function listInitializerFeatures(string $phpVersion): array
+	{
+		return [
+			...(version_compare($phpVersion, '8.1', '>=') ? [ConstantExpressionFeature::New] : []),
+			...(version_compare($phpVersion, '8.5', '>=') ? [ConstantExpressionFeature::Cast, ConstantExpressionFeature::Closure] : []),
+		];
 	}
 
 

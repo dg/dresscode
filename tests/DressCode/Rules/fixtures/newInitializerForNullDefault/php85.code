@@ -1,0 +1,20 @@
+<?php
+// risky
+// php 8.5
+class Service
+{
+	public function cast(?Formatter $formatter = null): void
+	{
+		$formatter ??= new Formatter((int) '1', static function (string $s): string {
+			return trim($s);
+		}, strlen(...));
+	}
+
+
+	// left alone
+
+	public function closure(?Formatter $formatter = null): void
+	{
+		$formatter ??= new Formatter(fn(string $s) => trim($s));
+	}
+}

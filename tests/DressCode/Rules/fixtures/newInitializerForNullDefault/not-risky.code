@@ -1,0 +1,56 @@
+<?php
+class Service
+{
+	private Clock $clock;
+	private Logger $logger;
+
+
+	public function __construct(?Clock $clock = null, Logger|null $logger = null)
+	{
+		$this->clock = $clock ?? new SystemClock;
+		$this->logger = $logger;
+	}
+
+
+	public function format(?Formatter $formatter = null): string
+	{
+		$formatter ??= new Formatter(Formatter::SHORT, 'cs');
+		return $formatter->format($this->clock->now());
+	}
+
+
+	public function convert(?Converter $converter = null): string
+	{
+		$converter = $converter ?? new Converter;
+		return $converter->run();
+	}
+
+
+	// left alone
+
+	public function withArgument(?Formatter $formatter = null, string $locale = 'cs'): string
+	{
+		$formatter ??= new Formatter(Formatter::SHORT, $locale);
+		return $formatter->format(1);
+	}
+
+
+	public function notFirst(?Formatter $formatter = null): string
+	{
+		$x = 1;
+		$formatter ??= new Formatter;
+		return $formatter->format($x);
+	}
+
+
+	public function selfInstance(?self $other = null): void
+	{
+		$other ??= new self;
+	}
+
+
+	public function untyped($formatter = null): void
+	{
+		$formatter ??= new Formatter;
+	}
+}
