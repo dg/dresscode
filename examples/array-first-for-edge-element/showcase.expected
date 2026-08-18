@@ -1,0 +1,3 @@
+<?php
+$newest = array_first($articles);
+$oldest = array_last($articles);

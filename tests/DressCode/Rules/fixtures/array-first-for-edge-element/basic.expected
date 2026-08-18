@@ -1,0 +1,21 @@
+<?php
+$a = array_first($items);
+$b = array_last($items);
+$c = array_first($items);
+$d = array_last($items);
+$e = array_first($this->rows);
+$f = array_first($items);
+$g = $items[array_key_first($other)];
+$h = $items[array_key_last($items) - 1];
+$i = array_values($items)[1];
+$j = array_values($items)[count($other) - 1];
+$k = array_values($items)[count($items) - 2];
+$l = $items[array_key_first(f())];
+$m = f()[array_key_first(f())];
+$n = $items[array_key_first($items, 1)];
+$o = $items[];
+unset($items[array_key_first($items)]);
+$items[array_key_last($items)] = 1;
+$items[array_key_first($items)][] = 2;
+$items[array_key_first($items)]++;
+f(array_first($items));
