@@ -1,0 +1,11 @@
+<?php
+$a = $items === array_values($items);
+$b = array_values($items) === $items;
+$c = $items !== array_values($items);
+$d = $this->rows === array_values($this->rows);
+$e = $items === \array_values($items);
+$f = $items === array_values($other);
+$g = f() === array_values(f());
+$h = array_values($items) === array_values($other);
+$i = $items == array_values($items);
+$j = array_values($items, true) === $items;
