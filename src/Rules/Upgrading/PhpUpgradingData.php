@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\Config;
+use DressCode\{Config, Risk};
 use Nette\Neon\Neon;
 use function is_array, is_string;
 
@@ -15,7 +15,8 @@ use function is_array, is_string;
 /**
  * Upgrading data of PHP, written as those of a library, `php.neon` beside the class being the ones DressCode ships: a
  * function of `forbiddenFunctions` is reported as deprecated since the version of its section, whatever the target,
- * and an entry of `replacedCalls` written `removed` takes the call away from the version of its section.
+ * and an entry of `replacedCalls` writes its code instead of the call or, as `removed`, takes the call away, from the
+ * version `from` says, the version of its section otherwise.
  * @internal
  */
 final class PhpUpgradingData
@@ -109,11 +110,30 @@ final class PhpUpgradingData
 				);
 			}
 
-			foreach (array_keys((array) ($section['replacedCalls'] ?? [])) as $call) {
+			foreach ((array) ($section['replacedCalls'] ?? []) as $call => $value) {
 				$pattern = str_contains((string) $call, '::')
 					? MemberPattern::fromKey((string) $call)
 					: FunctionPattern::fromKey((string) $call);
-				$entry = new PhpUpgradingEntry($pattern, PhpUpgradingOperation::Remove, $since, $since);
+				$entry = match (true) {
+					$value === 'removed' => new PhpUpgradingEntry($pattern, PhpUpgradingOperation::Remove, $since, $since),
+					is_array($value) => new PhpUpgradingEntry(
+						$pattern,
+						PhpUpgradingOperation::Replace,
+						$since,
+						(string) ($value['from'] ?? $since),
+						(string) $value['write'],
+						Risk::tryFrom((string) ($value['risk'] ?? '')),
+						isset($value['because']) ? (string) $value['because'] : null,
+					),
+					default => new PhpUpgradingEntry($pattern, PhpUpgradingOperation::Replace, $since, $since, (string) $value),
+				};
+				if (
+					$entry->operation === PhpUpgradingOperation::Replace
+					&& ($pattern instanceof MemberPattern || !preg_match('~^\w+\(~', (string) $entry->replacement))
+				) {
+					throw new \LogicException("The upgrading data of PHP write `$entry->replacement` for `$call`, but only a call of a function is written as one of another.");
+				}
+
 				$entries[$entry->getLookupName()][] = $entry;
 			}
 		}

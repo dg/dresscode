@@ -1,0 +1,9 @@
+3: The deprecated `utf8_encode()` call must be written with `mb_convert_encoding()`.
+	risky BehaviorChanges: a build without mbstring answers the call with an error
+4: The deprecated `utf8_decode()` call must be written with `mb_convert_encoding()`.
+	risky BehaviorChanges: a build without mbstring answers the call with an error
+5: The deprecated `utf8_encode()` call must be written with `mb_convert_encoding()`.
+	risky BehaviorChanges: a build without mbstring answers the call with an error
+6: Function `utf8_encode()` is deprecated since PHP 8.2.
+7: Function `utf8_encode()` is deprecated since PHP 8.2.
+8: Function `utf8_encode()` is deprecated since PHP 8.2.
