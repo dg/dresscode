@@ -1,4 +1,4 @@
-3: Function `strftime()` is deprecated since PHP 8.1.
 4: The deprecated `utf8_encode()` call must be written with `mb_convert_encoding()`.
 	risky BehaviorChanges: a build without mbstring answers the call with an error
-5: Function `pg_numrows()` is deprecated.
+5: The deprecated `utf8_decode()` call must be written with `mb_convert_encoding()`.
+	risky BehaviorChanges: a build without mbstring answers the call with an error

@@ -17,6 +17,9 @@ enum UpgradingOperation
 	/** the call is reported, nothing taking its place */
 	case Report;
 
+	/** the call is written as the code of the entry */
+	case Replace;
+
 	/** the call does nothing and goes, with the statement it makes */
 	case Remove;
 }

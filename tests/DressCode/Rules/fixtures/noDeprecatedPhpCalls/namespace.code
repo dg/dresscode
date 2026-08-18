@@ -3,3 +3,4 @@ namespace App;
 
 curl_close($ch);
 \curl_close($ch);
+$a = utf8_encode($s);

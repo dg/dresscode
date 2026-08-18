@@ -1,3 +1,5 @@
 4: Useless `curl_close()` call, because it does nothing since PHP 8.0.
 	risky NameUncertain: the namespace may declare `curl_close()`
 5: Useless `curl_close()` call, because it does nothing since PHP 8.0.
+6: The deprecated `utf8_encode()` call must be written with `mb_convert_encoding()`.
+	risky BehaviorChanges: a build without mbstring answers the call with an error

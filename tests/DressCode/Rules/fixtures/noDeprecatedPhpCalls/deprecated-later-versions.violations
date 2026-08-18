@@ -1,3 +1,4 @@
-2: Function `utf8_encode()` is deprecated since PHP 8.2.
+2: The deprecated `utf8_encode()` call must be written with `mb_convert_encoding()`.
+	risky BehaviorChanges: a build without mbstring answers the call with an error
 3: Function `lcg_value()` is deprecated since PHP 8.4.
 5: Function `mb_split()` is deprecated since PHP 8.6.

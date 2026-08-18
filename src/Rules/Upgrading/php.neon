@@ -1,5 +1,5 @@
 # What PHP itself retired, the upgrading data of PHP written as those of a library: a deprecated function
-# reported, a call doing nothing since a version removed.
+# reported, a call written as what replaces it, a call doing nothing since a version removed.
 # @generated from the reflection dumps of JetBrains/phpstorm-stubs, UPGRADING and the entries kept by hand, do not edit.
 
 package: php
@@ -61,6 +61,9 @@ since 8.2:
 	forbiddenFunctions:
 		utf8_decode: deprecated
 		utf8_encode: deprecated
+	replacedCalls:
+		'utf8_decode($string)': {write: "mb_convert_encoding($string, 'ISO-8859-1')", risk: behaviorChanges, because: a build without mbstring answers the call with an error, from: '8.0'}
+		'utf8_encode($string)': {write: "mb_convert_encoding($string, 'UTF-8', 'ISO-8859-1')", risk: behaviorChanges, because: a build without mbstring answers the call with an error, from: '8.0'}
 
 since 8.1:
 	forbiddenFunctions:

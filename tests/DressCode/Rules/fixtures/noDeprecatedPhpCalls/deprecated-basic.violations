@@ -1,4 +1,5 @@
 2: Function `strftime()` is deprecated since PHP 8.1.
 3: Function `date_sunrise()` is deprecated since PHP 8.1.
-7: Function `utf8_encode()` is deprecated since PHP 8.2.
+7: The deprecated `utf8_encode()` call must be written with `mb_convert_encoding()`.
+	risky BehaviorChanges: a build without mbstring answers the call with an error
 8: Function `pg_numrows()` is deprecated.

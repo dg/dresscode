@@ -9,18 +9,18 @@ namespace DressCode\Rules\Upgrading;
 
 use DressCode\{Config, Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Map;
-use DressCode\Rules\{GlobalCalls, NodeHelpers};
+use DressCode\Rules\{CodeWriter, GlobalCalls, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, ClosureUseNode, Expression, FunctionLikeNode, IdentifierNode, NameNode, PlainNodeList};
 use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
-use function count;
+use function count, strlen;
 
 
 /**
  * What the upgrading data of PHP say of a call PHP retired (`PhpUpgradingData`): a deprecated function is reported whatever the
- * target, since the code may run on the version that deprecated it, and a call doing nothing on the target goes,
- * with the statement it makes.
+ * target, since the code may run on the version that deprecated it; a call the data write otherwise is written so
+ * where the target has what replaces it; and a call doing nothing on the target goes, with the statement it makes.
  *
  * Only a call standing as a statement is removed, and only one whose arguments would do nothing when they ran: a
  * call whose value something takes is a question about the code rather than a freeing. A call that is the body of
@@ -54,7 +54,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 			new Decision(
 				'upgrading.php.deprecatedCall',
 				Domain::state(),
-				'A call PHP retired is written as the upgrading data of PHP say: a deprecated function reported, `curl_close()` and the other calls doing nothing on the target removed',
+				'A call PHP retired is written as the upgrading data of PHP say: a deprecated function reported, `utf8_encode()` written with `mb_convert_encoding()`, `curl_close()` and the other calls doing nothing on the target removed',
 			),
 			new Decision(
 				'upgrading.php.deprecatedCallExcept',
@@ -105,7 +105,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 		foreach ($entries[$function] as $entry) {
 			if ($entry->operation !== UpgradingOperation::Report && version_compare($context->phpVersion, $entry->appliesFrom, '>=')) {
 				$bindings = $entry->pattern instanceof FunctionPattern ? $entry->pattern->bind($call->arguments) : null;
-				if ($bindings !== null && self::rewriteCall($entry, $call, "$function()", $context)) {
+				if ($bindings !== null && self::rewriteCall($entry, $call, "$function()", $bindings, $context)) {
 					return;
 				}
 			}
@@ -135,8 +135,8 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 				&& !isset($this->except[$name])
 				&& version_compare($context->phpVersion, $entry->appliesFrom, '>=')
 				&& self::isVariableOf($call->object, $entry->pattern->class, $context)
-				&& ($entry->pattern->arguments ?? ArgumentPattern::any())->bind($call->arguments) !== null
-				&& self::rewriteCall($entry, $call, $call->name->text . '()', $context)
+				&& ($bindings = ($entry->pattern->arguments ?? ArgumentPattern::any())->bind($call->arguments)) !== null
+				&& self::rewriteCall($entry, $call, $call->name->text . '()', $bindings, $context)
 			) {
 				return;
 			}
@@ -149,24 +149,50 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 		UpgradingEntry $entry,
 		Expression\FunctionCallNode|Expression\MethodCallNode $call,
 		string $subject,
+		?ArgumentBindings $bindings,
 		RuleContext $context,
 	): bool
 	{
 		$uncertainty = $call instanceof Expression\FunctionCallNode ? GlobalCalls::findUncertainty($call, $context) : null;
-		$statement = $call->parent;
-		if (!$statement instanceof ExpressionStatementNode || !self::hasPlainArguments($call)) {
-			return false;
-		} elseif (
-			!$statement->hasInnerComment()
-			&& $context->report(
-				$call,
-				"Useless `$subject` call, because it does nothing since PHP $entry->appliesFrom.",
-				fixable: $statement->parent instanceof PlainNodeList,
-				risk: $uncertainty === null ? null : Risk::NameUncertain,
-				because: $uncertainty,
-			)
+		if ($entry->operation === UpgradingOperation::Remove) {
+			$statement = $call->parent;
+			if (!$statement instanceof ExpressionStatementNode || !self::hasPlainArguments($call)) {
+				return false;
+			} elseif (
+				!$statement->hasInnerComment()
+				&& $context->report(
+					$call,
+					"Useless `$subject` call, because it does nothing since PHP $entry->appliesFrom.",
+					fixable: $statement->parent instanceof PlainNodeList,
+					risk: $uncertainty === null ? null : Risk::NameUncertain,
+					because: $uncertainty,
+				)
+			) {
+				$statement->remove();
+			}
+
+			return true;
+		}
+
+		$write = (string) $entry->write;
+		$name = $call->name;
+		if (
+			!$call instanceof Expression\FunctionCallNode
+			|| !$name instanceof NameNode
+			|| $bindings === null
+			|| !preg_match('~^(\w+)\(~', $write, $m)
+			|| $call->hasInnerComment()
 		) {
-			$statement->remove();
+			return false;
+		} elseif ($context->report(
+			$call,
+			"The deprecated `$subject` call must be written with `$m[1]()`.",
+			risk: $entry->risk ?? ($uncertainty === null ? null : Risk::NameUncertain),
+			because: $entry->risk === null ? $uncertainty : $entry->because,
+		)) {
+			$values = array_map(fn(ArgumentNode|array $argument) => $argument instanceof ArgumentNode ? $argument->value : null, $bindings->arguments);
+			$code = CodeWriter::spellFunction($m[1], $name, $context) . substr($write, strlen($m[1]));
+			$call->replaceWith((new Builder)->expression($code, ...array_filter($values)));
 		}
 
 		return true;

@@ -7,6 +7,8 @@
 
 namespace DressCode\Rules\Upgrading;
 
+use DressCode\Risk;
+
 
 /**
  * An entry of the upgrading data of PHP as the rule works with it: what it matches, what it does, the version that retired
@@ -22,6 +24,10 @@ final readonly class UpgradingEntry
 		public string $retiredIn,
 		/** the oldest target the operation is right for */
 		public string $appliesFrom,
+		/** the code written instead, for a replacement */
+		public ?string $write = null,
+		public ?Risk $risk = null,
+		public ?string $because = null,
 	) {
 	}
 
