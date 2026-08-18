@@ -1,0 +1,45 @@
+<?php
+// nameResolution certain
+namespace App;
+
+class Sorter extends Base
+{
+	public function run(array $items): array
+	{
+		usort($items, 'self::compare');
+		$a = array_map('static::wrap', $items);
+		$b = array_map(['parent', 'convert'], $items);
+		$c = call_user_func('PARENT::make', 1);
+		$d = \Closure::fromCallable(['self', 'compare']);
+		$e = array_filter($items, callback: 'self::keep');
+
+		// reported only
+		$f = array_map([$this, 'parent::convert'], $items);
+		$g = array_map(['Other', 'Base::convert'], $items);
+
+		// left alone
+		$h = is_callable('self::compare');
+		$i = str_replace('self::compare', '', 'x');
+		$j = array_map('Other::convert', $items);
+		$k = array_map('self::' . $name, $items);
+		return [];
+	}
+}
+
+final class Lonely
+{
+	public function run(array $items): array
+	{
+		return array_map('parent::convert', $items);
+	}
+}
+
+trait Helps
+{
+	public function run(array $items): array
+	{
+		return array_map('parent::convert', $items);
+	}
+}
+
+$outside = array_map('self::convert', []);

@@ -1,0 +1,2 @@
+2: The callable `["parent", "run"]` is deprecated since PHP 8.2.
+3: The callable `'parent::run'` is deprecated since PHP 8.2.

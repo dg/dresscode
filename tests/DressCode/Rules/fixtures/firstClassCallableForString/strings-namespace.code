@@ -1,0 +1,11 @@
+<?php
+namespace App;
+
+class Sorter
+{
+	public function run(array $items): void
+	{
+		usort($items, 'self::compare');
+		\usort($items, 'self::compare');
+	}
+}

@@ -1,0 +1,2 @@
+9: The callable `'self::compare'` is deprecated since PHP 8.2.
+	risky NameUncertain: the namespace may declare `usort()`
