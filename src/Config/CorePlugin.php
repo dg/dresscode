@@ -122,6 +122,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\MultilineCallRule::class,
 				Rules\Functions\MultilineSignatureRule::class,
 				Rules\Functions\NamedArgumentSpacingRule::class,
+				Rules\Functions\NewInitializerForNullDefaultRule::class,
 				Rules\Functions\NoAliasFunctionsRule::class,
 				Rules\Functions\NoConversionFunctionsRule::class,
 				Rules\Functions\NoExplicitInvokeCallsRule::class,

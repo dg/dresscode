@@ -1,0 +1,88 @@
+<?php
+// risky
+class Service
+{
+	private Clock $clock;
+	private Logger $logger;
+
+
+	public function __construct(Clock $clock = new SystemClock, Logger|null $logger = null)
+	{
+		$this->clock = $clock;
+		$this->logger = $logger;
+	}
+
+
+	public function format(Formatter $formatter = new Formatter(Formatter::SHORT, 'cs')): string
+	{
+		return $formatter->format($this->clock->now());
+	}
+
+
+	public function convert(Converter $converter = new Converter): string
+	{
+		return $converter->run();
+	}
+
+
+	public function stamp(Clock&Stringable $clock = new SystemClock): string
+	{
+		return (string) $clock;
+	}
+
+
+	public function both(Clock $clock = new SystemClock, Formatter $formatter = new Formatter, Converter $converter = new Converter): string
+	{
+		$this->logger = $logger ?? new Logger;
+		return $formatter->format($clock->now());
+	}
+
+
+	public function repeated(Clock $clock, Formatter $formatter = new Formatter, Converter $converter = new Converter): void
+	{
+		$clock ??= new SystemClock;
+		$formatter ??= new OtherFormatter;
+	}
+
+
+	public function reading(Formatter $formatter = new Formatter, ?Converter $converter = null): void
+	{
+		$this->converter = $converter ?? new Converter($formatter);
+		$converter ??= new Converter;
+	}
+
+
+	// left alone
+
+	public function withArgument(?Formatter $formatter = null, string $locale = 'cs'): string
+	{
+		$formatter ??= new Formatter(Formatter::SHORT, $locale);
+		return $formatter->format(1);
+	}
+
+
+	public function notFirst(?Formatter $formatter = null): string
+	{
+		$x = 1;
+		$formatter ??= new Formatter;
+		return $formatter->format($x);
+	}
+
+
+	public function selfInstance(?self $other = null): void
+	{
+		$other ??= new self;
+	}
+
+
+	public function untyped($formatter = null): void
+	{
+		$formatter ??= new Formatter;
+	}
+
+
+	public function lateBound(?Clock $clock = null): void
+	{
+		$clock ??= new SystemClock(static::ZONE);
+	}
+}
