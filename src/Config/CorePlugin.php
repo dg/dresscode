@@ -135,6 +135,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\NoIsNullRule::class,
 				Rules\Functions\NoManualSubstringTestsRule::class,
 				Rules\Functions\NoSettypeRule::class,
+				Rules\Functions\SensitiveParameterRequiredRule::class,
 				Rules\Functions\StaticForClosureWithoutThisRule::class,
 				Rules\Functions\StrictComparisonArgumentRequiredRule::class,
 				Rules\Functions\UselessParameterDefaultRule::class,

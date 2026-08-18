@@ -10,7 +10,7 @@ namespace DressCode\Rules;
 use DressCode\RuleContext;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, NameForm, Node, SymbolKind, Trivia, UnqualifiedResolution};
-use PhpSyntax\Nodes\{ExpressionNode, FileNode, NameNode, Statement, UseItemNode};
+use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, ExpressionNode, FileNode, NameNode, Statement, UseItemNode};
 use function count;
 
 
@@ -285,5 +285,34 @@ final class CodeWriter
 			$resolver->getImports(SymbolKind::Function, $scope),
 			fn(string $function, string $alias) => strcasecmp($alias, QualifiedNames::stripNamespace($function)) !== 0,
 		));
+	}
+
+
+	/**
+	 * Writes the attributes in front of the declaration, behind the attributes it carries already, on the line of the
+	 * declaration: the first one takes over what stood in front of it, its doc comment among it. The code is that of
+	 * an attribute without `#[]`, its class spelled already.
+	 * @param  list<string>  $codes
+	 */
+	public static function addAttributes(AttributeAwareNode&Node $declaration, array $codes): void
+	{
+		$attributes = $declaration->attributes;
+		$anchor = $attributes->isEmpty() ? $declaration->getFirstToken() : $attributes->getLastToken()?->getNext();
+		$takesOver = true;
+		foreach ($codes as $code) {
+			$group = (new Builder)->fragment(AttributeGroupNode::class, "#[$code]");
+			$attributes->append($group);
+			if ($anchor === null) {
+				continue;
+			} elseif ($takesOver) {
+				$group->getFirstToken()->setLeadingTrivia($anchor->leadingTrivia);
+				$anchor->setLeadingTrivia([]);
+				$takesOver = false;
+			} else {
+				$group->getFirstToken()->setLeadingTrivia([]);
+			}
+
+			$group->getLastToken()->setTrailingTrivia([Trivia::fromText(' ')]);
+		}
 	}
 }
