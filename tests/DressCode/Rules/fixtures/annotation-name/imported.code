@@ -1,0 +1,10 @@
+<?php
+namespace App;
+
+use Doctrine\Template;
+
+/**
+ * @Template("x")
+ * @Return int
+ */
+function a() {}
