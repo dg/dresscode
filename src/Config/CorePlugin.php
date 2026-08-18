@@ -121,6 +121,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\ArrayFirstLastNotationRule::class,
 				Rules\Functions\ArrowFunctionForClosureRule::class,
 				Rules\Functions\NoDebugOutputRule::class,
+				Rules\Functions\FirstClassCallableForStringRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
 				Rules\Functions\JsonValidateForDecodeRule::class,
 				Rules\Functions\MultilineCallRule::class,
@@ -288,6 +289,7 @@ final class CorePlugin implements Plugin
 					Domain::adopted(),
 					'`array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` that only asks what they answer',
 				),
+				new Decision('upgrading.syntax.firstClassCallables', Domain::adopted(), '`foo(...)` for `\'self::foo\'`'),
 			],
 		);
 	}

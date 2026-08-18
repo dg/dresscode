@@ -71,6 +71,18 @@ final class PipeRule extends TestRule
 }
 
 
+#[RuleInfo(Stage::Structure, decisions: ['upgrading.syntax.firstClassCallables'])]
+final class CallableRule extends TestRule
+{
+}
+
+
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.4'], decisions: ['upgrading.syntax.firstClassCallables'])]
+final class PartialCallableRule extends TestRule
+{
+}
+
+
 #[RuleInfo(Stage::Structure)]
 final class GuardRule extends TestRule
 {
@@ -88,13 +100,13 @@ final class GuardRule extends TestRule
 
 
 $catalogue = Catalogue::fromRules([
-	PipeRule::class, DebugRule::class, MatchRule::class, GuardRule::class,
+	PipeRule::class, DebugRule::class, MatchRule::class, CallableRule::class, PartialCallableRule::class, GuardRule::class,
 ]);
 $everything = [[
 	new Layer(LayerKind::Configuration),
 	[
 		'correctness' => ['debugOutput' => 'forbidden', 'debugOutputFunctions' => ['dump']],
-		'upgrading' => ['match' => 'adopted', 'pipe' => 'adopted'],
+		'upgrading' => ['match' => 'adopted', 'pipe' => 'adopted', 'syntax' => ['firstClassCallables' => 'adopted']],
 	],
 ]];
 
@@ -117,7 +129,10 @@ test(
 		$resolver = new DecisionResolver($catalogue, phpTarget: '8.2', certainNames: true);
 		$resolved = $resolver->resolve($everything);
 		$rules = RuleBuilder::buildFromDecisions($resolver, $resolved, $resolver->createValues($resolved));
-		Assert::same([DebugRule::class, MatchRule::class, GuardRule::class], array_map(fn($rule) => $rule::class, $rules));
+		Assert::same(
+			[DebugRule::class, MatchRule::class, CallableRule::class, GuardRule::class],
+			array_map(fn($rule) => $rule::class, $rules),
+		);
 		Assert::type(DebugRule::class, $rules[0]);
 		Assert::same(['dump'], $rules[0]->functions);
 	},
@@ -129,3 +144,27 @@ test('a parameter alone builds no rule', function () use ($catalogue) {
 	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['correctness' => ['debugOutputFunctions' => ['dump']]]]]);
 	Assert::same([], RuleBuilder::buildFromDecisions($resolver, $resolved, $resolver->createValues($resolved)));
 });
+
+
+test(
+	'a decision of several rules turns on every one that can run, and takes effect while one does',
+	function () use ($catalogue, $everything) {
+		$resolver = new DecisionResolver($catalogue, phpTarget: '8.4', certainNames: true);
+		$resolved = $resolver->resolve($everything);
+		Assert::same([CallableRule::class, PartialCallableRule::class], $resolved['upgrading.syntax.firstClassCallables']->rules);
+		Assert::null($resolved['upgrading.syntax.firstClassCallables']->inactive);
+		$rules = RuleBuilder::buildFromDecisions($resolver, $resolved, $resolver->createValues($resolved));
+		Assert::same(
+			[DebugRule::class, MatchRule::class, CallableRule::class, PartialCallableRule::class, GuardRule::class],
+			array_map(fn($rule) => $rule::class, $rules),
+		);
+
+		$old = Catalogue::fromRules([PartialCallableRule::class]);
+		Assert::same(
+			InactiveReason::Php,
+			new DecisionResolver($old, phpTarget: '8.2')->resolve(
+				[[new Layer(LayerKind::Configuration), ['upgrading' => ['syntax' => ['firstClassCallables' => 'adopted']]]]],
+			)['upgrading.syntax.firstClassCallables']->inactive,
+		);
+	},
+);
