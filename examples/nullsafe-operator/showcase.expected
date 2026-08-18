@@ -1,0 +1,2 @@
+<?php
+$name = $user?->getProfile()->name;
