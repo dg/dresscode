@@ -1,0 +1,5 @@
+<?php
+// risky
+namespace App;
+
+curl_close($ch);

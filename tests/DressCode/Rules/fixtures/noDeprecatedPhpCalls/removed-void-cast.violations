@@ -1,0 +1,3 @@
+3: Function `curl_close()` is deprecated since PHP 8.5.
+4: Function `imagedestroy()` is deprecated since PHP 8.5.
+5: Useless `curl_close()` call, because it does nothing since PHP 8.0.

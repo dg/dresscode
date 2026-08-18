@@ -7,13 +7,15 @@
 
 namespace DressCode\Rules\Upgrading;
 
+use DressCode\Config;
 use Nette\Neon\Neon;
 use function is_array, is_string;
 
 
 /**
  * Upgrading data of PHP, written as those of a library, `php.neon` beside the class being the ones DressCode ships: a
- * function of `forbiddenFunctions` is reported as deprecated since the version of its section, whatever the target.
+ * function of `forbiddenFunctions` is reported as deprecated since the version of its section, whatever the target,
+ * and an entry of `replacedCalls` written `removed` takes the call away from the version of its section.
  * @internal
  */
 final class PhpUpgradingData
@@ -26,6 +28,12 @@ final class PhpUpgradingData
 	 * until the file is read
 	 */
 	private ?array $entries = null;
+
+	/**
+	 * @var array<lowercase-string, list<array{lowercase-string, PhpUpgradingEntry}>>  the name of a method => its
+	 * entries, each with the name it is looked up by
+	 */
+	private array $methods = [];
 
 
 	private function __construct(
@@ -48,7 +56,37 @@ final class PhpUpgradingData
 	 */
 	public function getEntries(): array
 	{
-		return $this->entries ??= self::read($this->file);
+		return $this->entries ?? $this->load();
+	}
+
+
+	/**
+	 * The entries of a method of the name, each with the name it is looked up by.
+	 * @return list<array{lowercase-string, PhpUpgradingEntry}>
+	 */
+	public function getMethodEntries(string $method): array
+	{
+		$this->getEntries();
+		return $this->methods[strtolower($method)] ?? [];
+	}
+
+
+	/**
+	 * Reads the file, the entries and those of methods by their names.
+	 * @return array<lowercase-string, list<PhpUpgradingEntry>>
+	 */
+	private function load(): array
+	{
+		$this->entries = self::read($this->file);
+		foreach ($this->entries as $name => $list) {
+			foreach ($list as $entry) {
+				if ($entry->pattern instanceof MemberPattern) {
+					$this->methods[strtolower($entry->pattern->name)][] = [$name, $entry];
+				}
+			}
+		}
+
+		return $this->entries;
 	}
 
 
@@ -63,7 +101,20 @@ final class PhpUpgradingData
 
 			$since = substr($key, 6);
 			foreach (array_keys((array) ($section['forbiddenFunctions'] ?? [])) as $name) {
-				$entries[strtolower((string) $name)][] = new PhpUpgradingEntry($since);
+				$entries[strtolower((string) $name)][] = new PhpUpgradingEntry(
+					FunctionPattern::fromKey((string) $name),
+					PhpUpgradingOperation::Report,
+					$since,
+					Config::MinPhpVersion,
+				);
+			}
+
+			foreach (array_keys((array) ($section['replacedCalls'] ?? [])) as $call) {
+				$pattern = str_contains((string) $call, '::')
+					? MemberPattern::fromKey((string) $call)
+					: FunctionPattern::fromKey((string) $call);
+				$entry = new PhpUpgradingEntry($pattern, PhpUpgradingOperation::Remove, $since, $since);
+				$entries[$entry->getLookupName()][] = $entry;
 			}
 		}
 

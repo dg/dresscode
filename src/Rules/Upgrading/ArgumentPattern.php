@@ -1,0 +1,140 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\Upgrading;
+
+use DressCode\Violation;
+use PhpSyntax\{Builder, ParseException};
+use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\Expression\{FunctionCallNode, VariableNode};
+use function count;
+
+
+/**
+ * The shape of the arguments a key of the upgrading data asks of a call, written as the arguments of a call are:
+ * `$name, $label, true`, `miss: $f, ...`, `$callable, ...$args`. A placeholder stands for any expression,
+ * `$this` being none; a literal stands for the same value however written, an item under a name for an argument
+ * passed by that name, and the rest of the arguments has to be asked for, with `...` or `...$args`, or the call
+ * may have none.
+ */
+final readonly class ArgumentPattern
+{
+	private function __construct(
+		/** @var list<ArgumentPatternItem>  the positional ones, the named ones, and last the one standing for the rest */
+		public array $items,
+	) {
+	}
+
+
+	/** The pattern of any arguments, `...`. */
+	public static function any(): self
+	{
+		return new self([new ArgumentPatternItem(rest: true)]);
+	}
+
+
+	/** @throws \InvalidArgumentException  saying which item cannot be read, as the end of a sentence about the key */
+	public static function parse(string $arguments): self
+	{
+		try {
+			$call = (new Builder)->fragment(FunctionCallNode::class, "f($arguments)");
+		} catch (ParseException $e) {
+			throw new \InvalidArgumentException("the arguments do not read as those of a call: {$e->getMessage()}", previous: $e);
+		}
+
+		$items = $placeholders = [];
+		$named = false;
+		foreach ($call->arguments->items as $argument) {
+			if ($items !== [] && $items[count($items) - 1]->rest) {
+				throw new \InvalidArgumentException(Violation::formatCode($argument->text) . ' stands behind the item that takes the rest of the arguments.');
+			}
+
+			if ($argument instanceof VariadicPlaceholderNode) {
+				$items[] = new ArgumentPatternItem(rest: true);
+				continue;
+			}
+
+			$value = $argument instanceof ArgumentNode && $argument->ampersand === null ? $argument->value : null;
+			$name = $argument->name?->text;
+			$placeholder = $value instanceof VariableNode ? $value->plainName : null;
+			$variadic = $argument instanceof ArgumentNode && $argument->ellipsis !== null;
+			if ($placeholder === 'this') {
+				throw new \InvalidArgumentException('`$this` is no placeholder.');
+			} elseif ($placeholder !== null && in_array($placeholder, $placeholders, true)) {
+				throw new \InvalidArgumentException("the placeholder `\$$placeholder` stands for two arguments.");
+			} elseif ($name === null && $named && !$variadic) {
+				throw new \InvalidArgumentException('the positional ' . Violation::formatCode($argument->text) . ' stands behind a named item.');
+			}
+
+			$named = $named || $name !== null;
+			$placeholders[] = $placeholder;
+			$items[] = match (true) {
+				$variadic && $placeholder !== null && $name === null => new ArgumentPatternItem($placeholder, rest: true),
+				!$variadic && $placeholder !== null => new ArgumentPatternItem($placeholder, parameterName: $name),
+				!$variadic && $value?->hasValue() => new ArgumentPatternItem(literal: [$value->toValue()], parameterName: $name),
+				default => throw new \InvalidArgumentException(Violation::formatCode($argument->text) . ' is no placeholder, no literal, and neither `...` nor `...$name`.'),
+			};
+		}
+
+		return new self($items);
+	}
+
+
+	/**
+	 * The arguments of the call in the words of the pattern, or null where the call is not of its shape: an item has
+	 * no argument, a literal another value, an argument is left that nothing asked for. A call that leaves arguments
+	 * open with `?` or `...` is none either.
+	 */
+	public function bind(ArgumentListNode $arguments): ?ArgumentBindings
+	{
+		if ($arguments->isPartialApplication()) {
+			return null;
+		}
+
+		$bound = $taken = [];
+		$tail = null;
+		foreach ($this->items as $index => $item) {
+			if ($item->rest) {
+				$tail = $item;
+				break;
+			}
+
+			// the positional items stand first, so the index of one is its position
+			$argument = $item->parameterName === null
+				? $arguments->findArgument(null, $index)
+				: $arguments->findArgument($item->parameterName, null);
+			if (
+				$argument === null
+				|| ($item->literal !== null && !($argument->value->hasValue() && $argument->value->toValue() === $item->literal[0]))
+			) {
+				return null;
+			}
+
+			$taken[] = $argument;
+			if ($item->placeholder !== null) {
+				$bound[$item->placeholder] = $argument;
+			}
+		}
+
+		$rest = [];
+		foreach ($arguments->items as $argument) {
+			if ($argument instanceof ArgumentNode && !in_array($argument, $taken, true)) {
+				$rest[] = $argument;
+			}
+		}
+
+		if ($tail === null) {
+			return $rest === [] ? new ArgumentBindings($bound) : null;
+		} elseif ($tail->placeholder === null) {
+			return new ArgumentBindings($bound, $rest);
+		} elseif (array_any($rest, fn(ArgumentNode $argument) => $argument->name !== null)) {
+			return null; // a name has no place among the arguments a variadic placeholder writes elsewhere
+		}
+
+		return new ArgumentBindings($bound + [$tail->placeholder => $rest]);
+	}
+}

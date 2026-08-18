@@ -1,0 +1,7 @@
+<?php
+function a()
+{
+	$property = new ReflectionProperty(Foo::class, 'bar');
+	$property->setAccessible(true);
+	curl_close($handle);
+}

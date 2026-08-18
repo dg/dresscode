@@ -1,0 +1,15 @@
+<?php
+$ch = curl_init();
+curl_exec($ch);
+curl_close($ch);
+\curl_share_close($sh);
+finfo_close($finfo);
+imagedestroy($image);
+xml_parser_free($parser);
+curl_close($handles[$i]);
+$closed = curl_close($ch);
+curl_close(f());
+if (true) {
+	curl_close($ch);
+}
+fclose($file);
