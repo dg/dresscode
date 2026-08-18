@@ -100,6 +100,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\JsonValidateForDecodeRule::class,
 				Rules\Functions\ArrayFirstNotationRule::class,
 				Rules\Functions\UselessSetAccessibleRule::class,
+				Rules\Functions\UselessNoOpCallRule::class,
 				Rules\Functions\StaticClosureRule::class,
 				Rules\Functions\StrictCallRule::class,
 				Rules\Namespaces\ImportNotationRule::class,
