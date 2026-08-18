@@ -1,0 +1,1 @@
+6: The parameter `$password` must be marked with `#[\SensitiveParameter]`, because it holds a secret.

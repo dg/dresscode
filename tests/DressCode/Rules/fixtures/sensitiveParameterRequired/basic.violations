@@ -1,0 +1,8 @@
+2: The parameter `$password` must be marked with `#[\SensitiveParameter]`, because it holds a secret.
+5: The parameter `$PASSWORD` must be marked with `#[\SensitiveParameter]`, because it holds a secret.
+6: The parameter `$secret` must be marked with `#[\SensitiveParameter]`, because it holds a secret.
+8: The parameter `$apiKey` must be marked with `#[\SensitiveParameter]`, because it holds a secret.
+14: The parameter `$privateKey` must be marked with `#[\SensitiveParameter]`, because it holds a secret.
+20: The parameter `$password` must be marked with `#[\SensitiveParameter]`, because it holds a secret.
+21: The parameter `$secret` must be marked with `#[\SensitiveParameter]`, because it holds a secret.
+23: The parameter `$password` must be marked with `#[\SensitiveParameter]`, because it holds a secret.
