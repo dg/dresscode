@@ -1,0 +1,9 @@
+2: The `null` key must be written `''`, which is what the array makes of it.
+	risky TypeUnknown: an object implementing `ArrayAccess` gets the key as it is written
+3: The `null` key must be written `''`, which is what the array makes of it.
+	risky TypeUnknown: an object implementing `ArrayAccess` gets the key as it is written
+4: The `null` key must be written `''`, which is what the array makes of it.
+5: The `null` key must be written `''`, which is what the array makes of it.
+6: The `null` key must be written `''`, which is what the array makes of it.
+12: The `null` key must be written `''`, which is what the array makes of it.
+12: The `null` key must be written `''`, which is what the array makes of it.

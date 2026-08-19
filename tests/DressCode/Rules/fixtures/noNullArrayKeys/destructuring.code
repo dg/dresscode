@@ -1,0 +1,16 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\Cart;
+
+
+function read(array $items, Cart $cart, $unknown, array $rows): void
+{
+	[null => $a] = $items;
+	[null => $b] = $cart;
+	[null => $c] = $unknown;
+	['x' => [null => $d]] = $items;
+	foreach ($rows as [null => $e]) {
+	}
+}

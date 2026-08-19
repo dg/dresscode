@@ -1,0 +1,5 @@
+<?php
+// risky
+namespace App;
+
+$a = array_key_exists('', $items);

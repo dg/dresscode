@@ -1,0 +1,5 @@
+<?php
+namespace App;
+
+$a = array_key_exists(null, $items);
+$b = \array_key_exists(null, $items);
