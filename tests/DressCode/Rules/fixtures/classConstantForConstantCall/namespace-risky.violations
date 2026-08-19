@@ -1,0 +1,2 @@
+5: The `constant()` call must be written `Example::{…}`.
+	risky NameUncertain: the namespace may declare `constant()`

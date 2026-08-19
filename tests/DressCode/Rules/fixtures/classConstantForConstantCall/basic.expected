@@ -1,0 +1,11 @@
+<?php
+$a = Example::{$name};
+$b = self::{$name};
+$c = Example::{'NAME'};
+$d = Example::{$name};
+$e = constant($class . '::' . $name);
+$f = constant(Example::class . '->' . $name);
+$g = constant(Example::NAME . '::' . $name);
+$h = constant('Example::' . $name);
+$i = constant($name);
+$j = constant(Example::class . '::' . $name, 1);
