@@ -1,0 +1,1 @@
+6: The rounding mode must be written `RoundingMode::HalfAwayFromZero`.

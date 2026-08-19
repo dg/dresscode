@@ -1,0 +1,13 @@
+<?php
+$a = round(1.5, 0, PHP_ROUND_HALF_UP);
+$b = round($x, $p, PHP_ROUND_HALF_DOWN);
+$c = round($x, $p, PHP_ROUND_HALF_EVEN);
+$d = round($x, $p, PHP_ROUND_HALF_ODD);
+$e = round($x, mode: PHP_ROUND_HALF_UP);
+$f = \round($x, 0, \PHP_ROUND_HALF_UP);
+$g = round($x, 0);
+$h = round($x, 0, $mode);
+$i = round($x, 0, PHP_ROUND_HALF_UP + 1);
+$j = floor($x, 0, PHP_ROUND_HALF_UP);
+$k = round($x, 0, RoundingMode::HalfEven);
+$l = PHP_ROUND_HALF_UP;

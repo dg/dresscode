@@ -1,0 +1,3 @@
+4: The rounding mode must be written `RoundingMode::HalfAwayFromZero`.
+5: The rounding mode must be written `RoundingMode::HalfAwayFromZero`.
+	risky NameUncertain: the namespace may declare `round()`
