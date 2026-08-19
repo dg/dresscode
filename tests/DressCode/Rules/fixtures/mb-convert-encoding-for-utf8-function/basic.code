@@ -1,0 +1,10 @@
+<?php
+// risky
+// php 8.2
+$a = utf8_encode($value);
+$b = utf8_decode($value);
+$c = \utf8_encode($value);
+$d = utf8_encode($value, 'x');
+$e = utf8_encode(...);
+$f = utf8_encode(string: $value);
+$g = mb_convert_encoding($value, 'UTF-8');

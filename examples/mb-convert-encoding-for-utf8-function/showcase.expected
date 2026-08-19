@@ -1,0 +1,4 @@
+<?php
+// risky
+// php 8.2
+$latin = mb_convert_encoding($text, 'ISO-8859-1');

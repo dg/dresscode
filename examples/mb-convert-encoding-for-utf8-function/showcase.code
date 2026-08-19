@@ -1,0 +1,4 @@
+<?php
+// risky
+// php 8.2
+$latin = utf8_decode($text);
