@@ -1,0 +1,5 @@
+<?php
+namespace App;
+
+$a = \round($x, 0, \RoundingMode::HalfAwayFromZero);
+$b = round($x, 0, \PHP_ROUND_HALF_UP);
