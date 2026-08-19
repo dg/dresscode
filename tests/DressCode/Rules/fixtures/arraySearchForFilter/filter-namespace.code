@@ -1,0 +1,7 @@
+<?php
+namespace App;
+
+$a = count(array_filter($items, fn($x) => $x > 1)) > 0;
+$b = \count(\array_filter($items, fn($x) => $x > 1)) > 0;
+$c = \count(array_filter($items, fn($x) => $x > 1)) > 0;
+$d = array_key_first(\array_filter($items, fn($x) => $x > 1));

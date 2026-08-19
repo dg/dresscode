@@ -54,6 +54,7 @@ final class CorePlugin implements Plugin
 				Rules\Comments\CommentSpacingRule::class,
 				Rules\Comments\NoEmptyCommentsRule::class,
 				Rules\Comments\NoHashCommentsRule::class,
+				Rules\ControlFlow\ArraySearchForFilterRule::class,
 				Rules\ControlFlow\ArraySearchForForeachRule::class,
 				Rules\ControlFlow\NoBracelessBodiesRule::class,
 				Rules\ControlFlow\EarlyExitForTrailingIfRule::class,
@@ -239,7 +240,7 @@ final class CorePlugin implements Plugin
 				new Decision('types.traversableClasses', new Names, 'Classes treated like `array` and `iterable`, whose annotation says what their items are', parameter: true, default: ['Traversable']),
 
 				// the newer constructs, decided once for every rule writing them
-				new Decision('upgrading.functions.arraySearchFunctions', Domain::adopted(), '`array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` that only asks what they answer'),
+				new Decision('upgrading.functions.arraySearchFunctions', Domain::adopted(), '`array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` or an `array_filter()` that only asks what they answer'),
 				new Decision('upgrading.syntax.firstClassCallables', Domain::adopted(), '`foo(...)` for `\'self::foo\'`'),
 			],
 		);

@@ -1,0 +1,6 @@
+<?php
+// risky
+namespace App;
+
+$a = array_any($items, fn($x) => $x > 1);
+$d = \array_find_key($items, fn($x) => $x > 1);

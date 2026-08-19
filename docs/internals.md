@@ -132,7 +132,7 @@ A comment inside the code a rule would rewrite silences the rule, which then nei
 
 **A risky fix may change what the code does; it may never write code that does not compile.** What only a file the project need not know of could decide is therefore not risky but undecidable, and there the rule says nothing at all, because the consent of `fixRisky` cannot be asked for it: a fatal error in another file, not a change of behaviour in this one. A class marked `@internal` is where the project does know: only its own package may extend it, so the project giving the consent is the one place such a child may live, and a fix that such a child decides is risky rather than silent.
 
-The behaviour a fix keeps is that of working code. A fix that only spares an error or a warning the original code would raise past the point where it knows its answer, its evaluation cut short, is not risky.
+The behaviour a fix keeps is that of working code. A fix that only spares an error or a warning the original code would raise past the point where it knows its answer, its evaluation cut short (`array_any()` instead of `count(array_filter())`), is not risky.
 
 An unqualified call of a global function in a namespace is a risky occurrence wherever `NameResolver::getUnqualifiedResolution()` says `UnqualifiedResolution::Uncertain`, which `nameResolution: certain` of the project takes away, and the rule that rewrites it reports it with `Risk::NameUncertain`; a name the rule writes anew follows the name it replaces, or `NameResolver::shortenName()` where there is none.
 

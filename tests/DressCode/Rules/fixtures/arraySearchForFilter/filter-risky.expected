@@ -1,0 +1,11 @@
+<?php
+// risky
+$a = array_any($items, 'trim');
+$f = count(array_filter($items, 'is_numeric')) > 0;
+$b = array_any($items, fn($item, $key = null) => $item > 3);
+$c = array_any($items, fn($item) => $this->check($item));
+$d = array_find_key($items, $callback);
+$e = array_any($items, function ($item) {
+	$this->seen++;
+	return $item > 3;
+});

@@ -1,0 +1,27 @@
+<?php
+$a = count(array_filter($items, fn($item) => $item > 3)) > 0;
+$b = count(array_filter($items, fn($item) => $item > 3)) === 0;
+$c = array_filter($items, fn($item) => $item->active) !== [];
+$d = [] === array_filter($items, fn($item) => $item->active);
+$e = !empty(array_filter($items, function ($item) {
+	return $item['ok'];
+}));
+$f = empty(array_filter($items, fn($item) => $item > 3));
+$g = count(array_filter($items, fn($item) => $item > 3)) === count($items);
+$h = array_values(array_filter($items, fn($item) => $item > 3))[0] ?? null;
+$i = array_key_first(array_filter($items, fn($item) => $item > 3));
+$j = 0 < count(array_filter($items, fn($item) => $item > 3));
+if (count(array_filter($items, fn($item) => $item > 3)) >= 1) {
+}
+
+// left alone
+$k = count(array_filter($items)) > 0;
+$l = count(array_filter($items, fn($item) => $item > 3, ARRAY_FILTER_USE_KEY)) > 0;
+$m = count(array_filter($items, fn($item) => $item > 3)) > 1;
+$n = count(array_filter($items, fn($item) => $item > 3)) === count($other);
+$o = array_filter($items, fn($item) => $item > 3);
+$p = array_values(array_filter($items, fn($item) => $item > 3))[1] ?? null;
+$q = count(array_filter($items, /* odd */ fn($item) => $item > 3)) > 0;
+$r = count(array_filter($items, is_array(...))) > 0;
+$s = count($items) === count(array_filter($items, fn($item) => $item > 3));
+$t = count(array_filter($items, fn($item) => $item > 3)) !== count($items);

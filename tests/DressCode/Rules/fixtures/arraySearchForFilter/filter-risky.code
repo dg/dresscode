@@ -1,0 +1,11 @@
+<?php
+// risky
+$a = count(array_filter($items, 'trim')) > 0;
+$f = count(array_filter($items, 'is_numeric')) > 0;
+$b = count(array_filter($items, fn($item, $key = null) => $item > 3)) > 0;
+$c = count(array_filter($items, fn($item) => $this->check($item))) > 0;
+$d = array_key_first(array_filter($items, $callback));
+$e = count(array_filter($items, function ($item) {
+	$this->seen++;
+	return $item > 3;
+})) > 0;
