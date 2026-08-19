@@ -1,0 +1,12 @@
+<?php
+// php 8.5
+$a = $items[null];
+$items[null] = 1;
+$b = array_key_exists(null, $items);
+$c = array_key_exists(key: null, array: $items);
+$d = \array_key_exists(NULL, $items);
+$e = $items[$key];
+$f = array_key_exists($key, $items);
+$g = array_key_exists($key, null);
+$h = $items[];
+$i = ['x' => null];
