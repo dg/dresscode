@@ -1,0 +1,5 @@
+<?php
+namespace App;
+
+$a = constant(Example::class . '::' . $name);
+$b = \constant(Example::class . '::' . $name);

@@ -1,0 +1,5 @@
+<?php
+// risky
+namespace App;
+
+$a = constant(Example::class . '::' . $name);

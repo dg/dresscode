@@ -31,6 +31,7 @@ final class CorePlugin implements Plugin
 				Rules\Arrays\NoLongArraySyntaxRule::class,
 				Rules\Arrays\SpreadForArrayMergeRule::class,
 				Rules\Arrays\TrailingCommaRule::class,
+				Rules\Classes\ClassConstantForConstantCallRule::class,
 				Rules\Classes\ClassHeadSpacingRule::class,
 				Rules\Classes\FinalForInternalClassRule::class,
 				Rules\Classes\ClassNameNotationRule::class,
