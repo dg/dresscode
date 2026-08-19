@@ -1,0 +1,5 @@
+<?php
+// risky
+// php 8.1
+$a = utf8_encode($value);
+$b = utf8_decode($value);

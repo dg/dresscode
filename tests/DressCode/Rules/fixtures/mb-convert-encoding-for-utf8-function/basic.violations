@@ -1,0 +1,3 @@
+4: The deprecated utf8_encode() call must be written with mb_convert_encoding()
+5: The deprecated utf8_decode() call must be written with mb_convert_encoding()
+6: The deprecated utf8_encode() call must be written with mb_convert_encoding()
