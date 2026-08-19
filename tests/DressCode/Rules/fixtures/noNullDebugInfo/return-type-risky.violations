@@ -1,0 +1,2 @@
+5: The return type of `__debugInfo()` must be `array`, not a nullable one.
+	risky TypeUnknown: a returned expression may be null

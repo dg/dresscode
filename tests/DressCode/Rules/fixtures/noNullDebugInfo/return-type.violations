@@ -1,0 +1,9 @@
+4: The return type of `__debugInfo()` must be `array`, not a nullable one.
+7: The `__debugInfo()` method must return an array, not `null`.
+16: The return type of `__debugInfo()` must be `array`, not a nullable one.
+24: The return type of `__debugInfo()` must be `array`, not a nullable one.
+35: The return type of `__debugInfo()` must be `array`, not a nullable one.
+	risky TypeUnknown: a returned expression may be null
+59: The return type of `__debugInfo()` must be `array`, not a nullable one.
+67: The return type of `__debugInfo()` must be `array`, not a nullable one.
+74: The return type of `__debugInfo()` must be `array`, not a nullable one.
