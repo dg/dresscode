@@ -46,6 +46,7 @@ final class RuleRegistry
 		Rules\Classes\KindInClassNameRule::class,
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\PromotedPropertyForAssignedParameterRule::class,
+		Rules\Classes\ClassConstantFetchForConstantCallRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\Classes\StringableRequiredRule::class,
 		Rules\Classes\StaticSetStateRequiredRule::class,
