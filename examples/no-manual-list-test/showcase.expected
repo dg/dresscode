@@ -1,0 +1,4 @@
+<?php
+if (array_is_list($rows)) {
+	echo 'a list';
+}
