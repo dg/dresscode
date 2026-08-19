@@ -1,0 +1,4 @@
+2: A built-in type in a doc comment must be written in its canonical form
+8: A union type in a doc comment names a type twice
+10: A built-in type in a doc comment must be written in its canonical form
+16: A built-in type in a doc comment must be written in its canonical form
