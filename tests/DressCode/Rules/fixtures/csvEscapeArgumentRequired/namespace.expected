@@ -1,0 +1,5 @@
+<?php
+namespace App;
+
+fputcsv($handle, $row);
+\fputcsv($handle, $row, escape: '\\');
