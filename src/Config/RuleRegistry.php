@@ -100,6 +100,7 @@ final class RuleRegistry
 		Rules\Functions\JsonValidateForDecodeTestRule::class,
 		Rules\Functions\ArrayFirstForEdgeElementRule::class,
 		Rules\Functions\UselessSetAccessibleRule::class,
+		Rules\Functions\UselessNoOpCallRule::class,
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
 		Rules\Namespaces\ImportNotationRule::class,
