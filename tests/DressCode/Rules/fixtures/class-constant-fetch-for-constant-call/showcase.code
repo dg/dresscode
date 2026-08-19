@@ -1,0 +1,2 @@
+<?php
+$value = constant(Status::class . '::' . $name);
