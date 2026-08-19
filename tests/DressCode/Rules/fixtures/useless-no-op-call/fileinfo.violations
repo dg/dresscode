@@ -1,0 +1,1 @@
+3: Useless finfo_close() call, PHP frees the object by itself since 8.1

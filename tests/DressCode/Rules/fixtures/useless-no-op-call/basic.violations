@@ -1,0 +1,6 @@
+4: Useless curl_close() call, PHP frees the object by itself since 8.0
+5: Useless curl_share_close() call, PHP frees the object by itself since 8.0
+7: Useless imagedestroy() call, PHP frees the object by itself since 8.0
+8: Useless xml_parser_free() call, PHP frees the object by itself since 8.0
+9: Useless curl_close() call, PHP frees the object by itself since 8.0
+13: Useless curl_close() call, PHP frees the object by itself since 8.0

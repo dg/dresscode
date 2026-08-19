@@ -1,0 +1,9 @@
+<?php
+$ch = curl_init();
+curl_exec($ch);
+finfo_close($finfo);
+$closed = curl_close($ch);
+curl_close(f());
+if (true) {
+}
+fclose($file);

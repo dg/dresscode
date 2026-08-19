@@ -1,0 +1,4 @@
+<?php
+$ch = curl_init($url);
+$body = curl_exec($ch);
+curl_close($ch);
