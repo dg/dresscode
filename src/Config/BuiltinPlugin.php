@@ -50,6 +50,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Classes\SelfForCurrentClassRule::class,
 				Rules\Classes\StringableRequiredRule::class,
 				Rules\Classes\StaticSetStateRequiredRule::class,
+				Rules\Classes\NoNullDebugInfoRule::class,
 				Rules\Classes\SingleMemberPerDeclarationRule::class,
 				Rules\Classes\SingleMemberPerLineRule::class,
 				Rules\Classes\UselessModifierRule::class,
