@@ -27,6 +27,7 @@ final class RuleRegistry
 		Rules\Arrays\ShortArraySyntaxRule::class,
 		Rules\Arrays\TrailingCommaRule::class,
 		Rules\Arrays\MultiLineArrayRule::class,
+		Rules\Arrays\NoManualListTestRule::class,
 		Rules\Whitespace\AttributeSpacingRule::class,
 		Rules\Expressions\UselessAttributeParenthesesRule::class,
 		Rules\Whitespace\AttributePositionRule::class,
