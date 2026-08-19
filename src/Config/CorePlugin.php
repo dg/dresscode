@@ -38,6 +38,7 @@ final class CorePlugin implements Plugin
 				Rules\Classes\ClassNameNotationRule::class,
 				Rules\Classes\ClassKindInNameRule::class,
 				Rules\Classes\NameCasingRule::class,
+				Rules\Classes\NoNullDebugInfoRule::class,
 				Rules\Classes\NoThisOutsideObjectRule::class,
 				Rules\Classes\MemberOrderRule::class,
 				Rules\Classes\PromotedPropertyForAssignmentRule::class,

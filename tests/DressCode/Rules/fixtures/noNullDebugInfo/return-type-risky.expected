@@ -1,0 +1,9 @@
+<?php
+// risky
+final class D
+{
+	public function __debugInfo(): array
+	{
+		return $this->data;
+	}
+}

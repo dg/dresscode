@@ -1,0 +1,78 @@
+<?php
+final class A
+{
+	public function __debugInfo(): array
+	{
+		if ($this->hidden) {
+			return [];
+		}
+
+		return ['a' => 1];
+	}
+}
+
+final class B
+{
+	public function __debugInfo(): array
+	{
+		return [];
+	}
+}
+
+final class C
+{
+	public function __debugInfo(): array
+	{
+		$fn = function () {
+			return null;
+		};
+		return [];
+	}
+}
+
+final class D
+{
+	public function __debugInfo(): ?array
+	{
+		return $this->data;
+	}
+}
+
+final class E
+{
+	public function __debugInfo(): ?array
+	{
+		return /* nothing */ null;
+	}
+}
+
+class F
+{
+	public function __debugInfo(): array
+	{
+		return [];
+	}
+}
+
+class G
+{
+	public function __debugInfo(): ?array
+	{
+		return [];
+	}
+}
+
+enum H
+{
+	public function __debugInfo(): array
+	{
+		return [];
+	}
+}
+
+$i = new class {
+	public function __debugInfo(): array
+	{
+		return [];
+	}
+};
