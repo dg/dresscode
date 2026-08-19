@@ -1,0 +1,2 @@
+5: The `null` key must be written `''`, which is what the array makes of it.
+	risky NameUncertain: the namespace may declare `array_key_exists()`
