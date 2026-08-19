@@ -1,0 +1,6 @@
+2: The rounding mode must be written RoundingMode::HalfAwayFromZero
+3: The rounding mode must be written RoundingMode::HalfTowardsZero
+4: The rounding mode must be written RoundingMode::HalfEven
+5: The rounding mode must be written RoundingMode::HalfOdd
+6: The rounding mode must be written RoundingMode::HalfAwayFromZero
+7: The rounding mode must be written RoundingMode::HalfAwayFromZero
