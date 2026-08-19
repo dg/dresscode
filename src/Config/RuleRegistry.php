@@ -103,6 +103,7 @@ final class RuleRegistry
 		Rules\Functions\UselessSetAccessibleRule::class,
 		Rules\Functions\UselessNoOpCallRule::class,
 		Rules\Functions\MbConvertEncodingForUtf8FunctionRule::class,
+		Rules\Functions\SensitiveParameterRequiredRule::class,
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
 		Rules\Namespaces\ImportNotationRule::class,
