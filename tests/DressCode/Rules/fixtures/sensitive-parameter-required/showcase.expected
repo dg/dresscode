@@ -1,0 +1,4 @@
+<?php
+function login(string $name, #[\SensitiveParameter] string $password): void
+{
+}
