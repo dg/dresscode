@@ -1,0 +1,12 @@
+<?php
+// php 8.4
+fputcsv($handle, $row);
+fputcsv($handle, $row, ';');
+fgetcsv($handle);
+fgetcsv($handle, 1000, ',', '"', '\\');
+str_getcsv($line, ',', '"');
+str_getcsv($line, escape: '');
+\fputcsv($handle, $row);
+fputcsv($handle, $row, ';', '"', '\\', "\n");
+str_getcsv();
+$csv->fputcsv($row);

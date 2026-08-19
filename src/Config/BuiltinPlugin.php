@@ -106,6 +106,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\MbConvertEncodingForUtf8Rule::class,
 				Rules\Functions\SensitiveParameterRequiredRule::class,
 				Rules\Functions\RoundingModeNotationRule::class,
+				Rules\Functions\CsvEscapeArgumentRequiredRule::class,
 				Rules\Functions\StaticClosureRule::class,
 				Rules\Functions\StrictCallRule::class,
 				Rules\Namespaces\ImportNotationRule::class,
