@@ -1,0 +1,2 @@
+5: The `escape` argument of `fputcsv()` must be written out, because its default is deprecated.
+	risky NameUncertain: the namespace may declare `fputcsv()`
