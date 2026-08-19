@@ -1,0 +1,20 @@
+3: The search through `array_filter()` must be written with `array_any()`.
+	risky BehaviorChanges: the callback gets the key as a second argument
+5: The search through `array_filter()` must be written with `array_any()`.
+	risky BehaviorChanges: the callback gets the key as a second argument
+6: The search through `array_filter()` must be written with `array_any()`.
+	risky BehaviorChanges: the callback is called only until the answer is known
+7: The search through `array_filter()` must be written with `array_find_key()`.
+	risky BehaviorChanges: the callback gets the key as a second argument
+8: The search through `array_filter()` must be written with `array_any()`.
+	risky BehaviorChanges: the callback is called only until the answer is known
+12: The search through `array_filter()` must be written with `array_any()`.
+	risky BehaviorChanges: the callback is called only until the answer is known
+13: The search through `array_filter()` must be written with `array_any()`.
+	risky BehaviorChanges: the callback is called only until the answer is known
+14: The search through `array_filter()` must be written with `array_any()`.
+	risky BehaviorChanges: the callback is called only until the answer is known
+15: The search through `array_filter()` must be written with `array_any()`.
+	risky BehaviorChanges: the callback is called only until the answer is known
+16: The search through `array_filter()` must be written with `array_any()`.
+	risky BehaviorChanges: the callback is called only until the answer is known

@@ -1,0 +1,7 @@
+4: The search through `array_filter()` must be written with `array_any()`.
+	risky NameUncertain: the namespace may declare `count()`
+5: The search through `array_filter()` must be written with `array_any()`.
+6: The search through `array_filter()` must be written with `array_any()`.
+	risky NameUncertain: the namespace may declare `array_filter()`
+7: The search through `array_filter()` must be written with `array_find_key()`.
+	risky NameUncertain: the namespace may declare `array_key_first()`

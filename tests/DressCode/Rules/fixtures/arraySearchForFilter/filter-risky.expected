@@ -1,0 +1,16 @@
+<?php
+// risky
+$a = array_any($items, 'trim');
+$f = count(array_filter($items, 'is_numeric')) > 0;
+$b = array_any($items, fn($item, $key = null) => $item > 3);
+$c = array_any($items, fn($item) => $this->check($item));
+$d = array_find_key($items, $callback);
+$e = array_any($items, function ($item) {
+	$this->seen++;
+	return $item > 3;
+});
+$g = array_any($items, fn($item) => 1 / $item);
+$h = array_any($items, fn($item) => $item->active);
+$i = array_any($items, fn($item) => $item > 3);
+$j = array_any($items, fn(int $item) => $item === 3);
+$k = array_any($items, fn($item) => $item === $other);
