@@ -1,0 +1,29 @@
+<?php
+class A {
+	/**
+	 * @var int
+	 * @var string
+	 */
+	public $a;
+
+	/**
+	 * @deprecated
+	 * @var int
+	 */
+	public $b;
+
+	/** @var */
+	public $c;
+
+	/**
+	 * @var int
+	 * @see
+	 */
+	public $d;
+
+	/* comment */
+	public $e;
+
+	/** @var int */
+	public $f;
+}
