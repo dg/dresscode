@@ -1,0 +1,16 @@
+4: The name `let` of the import is reserved since PHP 8.6.
+5: The name `Is` of the import is reserved since PHP 8.6.
+6: The name `is` of the import is reserved since PHP 8.6.
+7: The name `_` of the import is reserved since PHP 8.6.
+10: The name `let` of the class is reserved since PHP 8.6.
+12: The name `namespace` of the class constant is reserved since PHP 8.6.
+21: The name `IS` of the interface is reserved since PHP 8.6.
+25: The name `Is` of the trait is reserved since PHP 8.6.
+29: The name `let` of the enum is reserved since PHP 8.6.
+33: The name `_` of the class is reserved since PHP 8.4.
+37: The name `readonly` of the function is reserved since PHP 8.6.
+45: The name `_` of the constant is reserved since PHP 8.6.
+45: The name `LET` of the constant is reserved since PHP 8.6.
+47: The name `let` of the constant is reserved since PHP 8.6.
+50: The name `is` of the class alias is reserved since PHP 8.6.
+56: The name `_` of the class alias is reserved since PHP 8.4.

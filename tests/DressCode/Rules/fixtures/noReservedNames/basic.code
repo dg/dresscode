@@ -1,0 +1,56 @@
+<?php
+namespace App;
+
+use Foo\let;
+use Foo\Bar as Is;
+use function Foo\is;
+use const Foo\{BAR as _};
+use Foo\Let\Thing;
+
+class let
+{
+	const namespace = 1;
+	const let = 2;
+
+
+	public function is(): void
+	{
+	}
+}
+
+interface IS
+{
+}
+
+trait Is
+{
+}
+
+enum let
+{
+}
+
+class _
+{
+}
+
+function readonly()
+{
+}
+
+function _()
+{
+}
+
+const _ = 1, LET = 2, Fine = 3;
+
+define('let', 1);
+define('App\let', 2);
+define($name, 3);
+class_alias(Foo::class, 'is');
+$object->define('let', 1);
+
+class IsValid
+{
+}
+class_alias(Foo::class, '_');
