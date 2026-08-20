@@ -1,0 +1,7 @@
+<?php
+/**
+ * @param int $a
+ * @param int $b
+ * @param $c
+ */
+function a($a) {}
