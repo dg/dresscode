@@ -1,0 +1,9 @@
+13: Method __wakeup() is deprecated since PHP 8.5, and its body is empty
+25: Method __wakeup() is deprecated since PHP 8.5, and its body is empty
+35: Method __wakeup() is deprecated since PHP 8.5, and its body is empty
+43: Method __wakeup() is deprecated since PHP 8.5, __unserialize() takes its place
+52: Method __wakeup() is deprecated since PHP 8.5, __unserialize() takes its place
+59: Method __wakeup() is deprecated since PHP 8.5, __unserialize() takes its place
+67: Method __wakeup() is deprecated since PHP 8.5, __unserialize() takes its place
+74: Method __wakeup() is deprecated since PHP 8.5, __unserialize() takes its place
+82: Method __wakeup() is deprecated since PHP 8.5, __unserialize() takes its place
