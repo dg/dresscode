@@ -1,0 +1,5 @@
+<?php
+// php 8.5
+if (array_key_exists('', $options)) {
+	echo 1;
+}

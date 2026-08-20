@@ -28,6 +28,7 @@ final class RuleRegistry
 		Rules\Arrays\TrailingCommaRule::class,
 		Rules\Arrays\MultiLineArrayRule::class,
 		Rules\Arrays\NoManualListTestRule::class,
+		Rules\Arrays\NoNullArrayKeyRule::class,
 		Rules\Whitespace\AttributeSpacingRule::class,
 		Rules\Expressions\UselessAttributeParenthesesRule::class,
 		Rules\Whitespace\AttributePositionRule::class,
