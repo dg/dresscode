@@ -163,6 +163,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\UselessStringConcatenationRule::class,
 				Rules\Namespaces\ImportNotationRule::class,
 				Rules\Namespaces\DeclaredNameCasingRule::class,
+				Rules\Namespaces\NoReservedNamesRule::class,
 				Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class,
 				Rules\Namespaces\ImportOrderRule::class,
 				Rules\Namespaces\GlobalNameQualificationRule::class,
