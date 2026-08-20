@@ -1,0 +1,25 @@
+<?php
+function readsOffsetFirst($o, $a)
+{
+	switch ($o->next()) {
+		case 1:
+			$a[$o->i] = 'one';
+			break;
+		default:
+			$a[$o->i] = 'other';
+	}
+	return $a;
+}
+
+
+function readsConstantOffset($o, $a)
+{
+	switch ($o->next()) {
+		case 1:
+			$a[Acme::Key] = 'one';
+			break;
+		default:
+			$a[Acme::Key] = 'other';
+	}
+	return $a;
+}

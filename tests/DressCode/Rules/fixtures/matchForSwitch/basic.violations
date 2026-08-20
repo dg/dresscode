@@ -1,0 +1,6 @@
+3: The `switch` giving one value must be written as a `match`.
+	risky TypeUnknown: `match` compares with `===` where `switch` compares with `==`
+16: The `switch` giving one value must be written as a `match`.
+	risky TypeUnknown: `match` compares with `===` where `switch` compares with `==`
+97: The `switch` giving one value must be written as a `match`.
+	risky TypeUnknown: `match` compares with `===` where `switch` compares with `==`
