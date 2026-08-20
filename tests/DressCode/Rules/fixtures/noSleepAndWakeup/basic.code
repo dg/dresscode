@@ -1,0 +1,20 @@
+<?php
+// php 8.5
+class A
+{
+	public function __sleep()
+	{
+		return [];
+	}
+
+
+	public function __wakeup()
+	{
+	}
+
+
+	public function __serialize(): array
+	{
+		return [];
+	}
+}
