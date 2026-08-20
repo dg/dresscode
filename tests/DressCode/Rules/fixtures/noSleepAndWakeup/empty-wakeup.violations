@@ -1,0 +1,10 @@
+12: Useless method `__wakeup()`, because it is empty and soft-deprecated since PHP 8.5.
+24: Useless method `__wakeup()`, because it is empty and soft-deprecated since PHP 8.5.
+34: Useless method `__wakeup()`, because it is empty and soft-deprecated since PHP 8.5.
+42: Method `__wakeup()` is soft-deprecated since PHP 8.5 in favor of `__unserialize()`.
+49: Method `__wakeup()` is soft-deprecated since PHP 8.5 in favor of `__unserialize()`.
+58: Method `__wakeup()` is soft-deprecated since PHP 8.5 in favor of `__unserialize()`.
+65: Method `__wakeup()` is soft-deprecated since PHP 8.5 in favor of `__unserialize()`.
+73: Method `__wakeup()` is soft-deprecated since PHP 8.5 in favor of `__unserialize()`.
+80: Method `__wakeup()` is soft-deprecated since PHP 8.5 in favor of `__unserialize()`.
+88: Method `__wakeup()` is soft-deprecated since PHP 8.5 in favor of `__unserialize()`.

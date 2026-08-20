@@ -1,0 +1,3 @@
+upgrading:
+	php:
+		sleepAndWakeup: forbidden

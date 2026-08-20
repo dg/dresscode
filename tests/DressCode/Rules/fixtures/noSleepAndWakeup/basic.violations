@@ -1,0 +1,2 @@
+4: Method `__sleep()` is soft-deprecated since PHP 8.5 in favor of `__serialize()`.
+10: Useless method `__wakeup()`, because it is empty and soft-deprecated since PHP 8.5.
