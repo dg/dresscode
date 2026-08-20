@@ -1,0 +1,6 @@
+<?php
+// {"before": [], "after": {"if": 1}}
+if ($x) {
+}
+?>
+<b>html</b>
