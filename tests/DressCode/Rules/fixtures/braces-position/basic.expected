@@ -1,0 +1,26 @@
+<?php
+
+function f()
+{
+	return 1;
+}
+
+function g()
+{
+}
+
+class A
+{
+	public function m(int $x): void
+	{
+		$f = function () {
+		};
+	}
+
+
+	abstract public function n();
+
+	public function o()
+	{
+	}
+}

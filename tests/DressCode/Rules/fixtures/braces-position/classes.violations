@@ -1,0 +1,11 @@
+2: The opening brace must be on its own line
+6: The content of a block must start on a new line
+6: The closing brace must be on its own line
+7: The opening brace must be on its own line
+7: The content of a block must start on a new line
+8: The opening brace must be on its own line
+8: The content of a block must start on a new line
+8: The closing brace must be on its own line
+10: The opening brace must be on the line of the declaration
+14: The content of a block must start on a new line
+14: The closing brace must be on its own line

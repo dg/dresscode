@@ -1,0 +1,13 @@
+<?php
+// {"multiLineParameters": "nextLine"}
+function f(
+	int $a,
+)
+{
+}
+
+function g(
+	int $a,
+): int
+{
+}

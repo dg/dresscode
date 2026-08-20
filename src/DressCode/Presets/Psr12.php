@@ -39,6 +39,7 @@ final class Psr12 implements Preset
 			// 4. Classes, properties and methods
 			Rules\Expressions\NewArgumentParenthesesRule::class => ['anonymousClasses' => null],
 			Rules\Classes\ClassDefinitionSpacingRule::class => true,
+			Rules\Whitespace\BracesPositionRule::class => ['allowSingleLineAnonymousFunctions' => false],
 			Rules\Classes\OrderedMembersRule::class => ['order' => ['use_trait']],
 			Rules\Classes\VisibilityRequiredRule::class => true,
 			Rules\Functions\FunctionNameSpacingRule::class => true,

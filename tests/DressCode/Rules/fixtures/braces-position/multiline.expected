@@ -1,0 +1,18 @@
+<?php
+
+function f(
+	int $a,
+	int $b,
+) {
+}
+
+function g(
+	int $a,
+): int {
+}
+
+function h(
+	int $a,
+) // comment
+{
+}

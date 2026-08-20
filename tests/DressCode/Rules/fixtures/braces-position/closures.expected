@@ -1,0 +1,12 @@
+<?php
+$f = function () { return 1; };
+$g = function () {
+	return 1;
+};
+$h = function () {
+	return
+	1;
+};
+foo(function ($a) {
+	return $a;
+});
