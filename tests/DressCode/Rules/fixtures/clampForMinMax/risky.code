@@ -1,0 +1,5 @@
+<?php
+// risky
+$a = max($lo, min(100, $value));
+$b = max($o->low(), min(100, $it->next()));
+$z = max(count($items), min($value, 9));

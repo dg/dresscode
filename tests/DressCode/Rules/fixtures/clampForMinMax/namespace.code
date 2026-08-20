@@ -1,0 +1,5 @@
+<?php
+namespace App;
+
+$a = \max(0, \min(100, $value));
+$b = \max(0, min(100, $value));

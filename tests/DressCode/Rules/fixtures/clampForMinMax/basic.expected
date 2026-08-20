@@ -1,0 +1,13 @@
+<?php
+$a = clamp($value, 0, 100);
+$b = clamp($value, 0, 100);
+$c = clamp($value, 0, 100);
+$d = \clamp($value, 0, 100);
+$e = max($lo, min(100, $value));
+$f = max(0, min($hi, $value));
+$g = max(0, min($a, $b));
+$h = max(0, min(100, 50));
+$i = max(0, $value);
+$j = max(0, min(100, $value), 5);
+$k = max(0, abs($value));
+$l = min(0, min(100, $value));
