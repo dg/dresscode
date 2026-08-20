@@ -33,6 +33,7 @@ final class Psr12 implements Preset
 			Rules\Expressions\CastCanonicalTypeRule::class => true,
 
 			// 3. Declare statements, namespace and import statements
+			Rules\Files\HeaderBlankLinesRule::class => true,
 			Rules\Namespaces\NoLeadingBackslashInImportRule::class => true,
 			Rules\Files\DeclareSpacingRule::class => true,
 

@@ -1,0 +1,7 @@
+1: The opening tag must be on its own line
+2: Expected 1 blank line before the namespace declaration, 0 found
+3: Expected 1 blank line after the namespace declaration, 0 found
+4: Expected 0 blank lines between imports of one group, 1 found
+6: Expected 1 blank line between import groups, 0 found
+7: Expected 1 blank line between import groups, 0 found
+8: Expected 1 blank line after the imports, 0 found

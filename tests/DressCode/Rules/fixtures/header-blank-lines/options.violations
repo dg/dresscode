@@ -1,0 +1,3 @@
+2: Expected 1 blank line before the namespace declaration, 0 found
+5: Expected 0 blank lines between import groups, 1 found
+7: Expected 2 blank lines after the imports, 0 found

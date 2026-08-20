@@ -152,6 +152,7 @@ final class RuleRegistry
 		Rules\Variables\NoUnsetOnPropertyRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\DeclareSpacingRule::class,
+		Rules\Files\HeaderBlankLinesRule::class,
 		Rules\Whitespace\BodyBlankLinesRule::class,
 		Rules\Whitespace\SemicolonSpacingRule::class,
 		Rules\Whitespace\ParenthesesSpacingRule::class,
