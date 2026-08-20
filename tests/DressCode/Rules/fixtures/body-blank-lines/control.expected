@@ -1,0 +1,19 @@
+<?php
+if ($x) {
+	foo();
+
+}
+foreach ($a as $b) {
+	bar();
+}
+switch ($x) {
+	case 1:
+		break;
+
+}
+$y = match ($x) {
+	1 => 2,
+};
+{
+	baz();
+}
