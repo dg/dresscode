@@ -1,0 +1,29 @@
+<?php
+trigger_error('failed', E_USER_ERROR);
+trigger_error('failed', \E_USER_ERROR);
+trigger_error('failed', 256);
+$a = chr(300);
+$b = chr(-1);
+$c = ord('');
+$d = ord('ab');
+$e = readdir();
+rewinddir(null);
+closedir();
+$f = ctype_digit(5);
+$g = ctype_alpha(text: 65);
+$p = openssl_pkey_derive($public, $private, 32);
+$q = openssl_pkey_derive($public, $private, key_length: $length);
+
+// left alone
+trigger_error('failed', E_USER_WARNING);
+trigger_error('failed');
+$h = chr(65);
+$i = chr($code);
+$j = ord('a');
+$k = ord($string);
+$l = readdir($handle);
+$m = ctype_digit('5');
+$n = ctype_digit($value);
+$o = $object->chr(300);
+$r = openssl_pkey_derive($public, $private, 0);
+$s = openssl_pkey_derive($public, $private);

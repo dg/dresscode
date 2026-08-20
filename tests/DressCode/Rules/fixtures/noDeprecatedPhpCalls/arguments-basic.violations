@@ -1,0 +1,14 @@
+2: Passing `E_USER_ERROR` to `trigger_error()` is deprecated since PHP 8.4 in favor of throwing an exception.
+3: Passing `E_USER_ERROR` to `trigger_error()` is deprecated since PHP 8.4 in favor of throwing an exception.
+4: Passing `E_USER_ERROR` to `trigger_error()` is deprecated since PHP 8.4 in favor of throwing an exception.
+5: A value of `chr()` outside 0 to 255 is deprecated since PHP 8.5.
+6: A value of `chr()` outside 0 to 255 is deprecated since PHP 8.5.
+7: A string of `ord()` not one byte long is deprecated since PHP 8.5.
+8: A string of `ord()` not one byte long is deprecated since PHP 8.5.
+9: A missing or null handle of `readdir()` is deprecated since PHP 8.5.
+10: A missing or null handle of `rewinddir()` is deprecated since PHP 8.5.
+11: A missing or null handle of `closedir()` is deprecated since PHP 8.5.
+12: An integer given to a `ctype_*()` function is deprecated since PHP 8.1.
+13: An integer given to a `ctype_*()` function is deprecated since PHP 8.1.
+14: The `key_length` argument of `openssl_pkey_derive()` is deprecated since PHP 8.5.
+15: The `key_length` argument of `openssl_pkey_derive()` is deprecated since PHP 8.5.
