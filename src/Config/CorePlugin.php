@@ -67,6 +67,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\NoAlternativeSyntaxRule::class,
 				Rules\ControlFlow\NoContinueInSwitchRule::class,
 				Rules\ControlFlow\NoEmptyStatementsRule::class,
+				Rules\ControlFlow\NoReturnsInFinallyRule::class,
 				Rules\ControlFlow\NoUnreachableCatchesRule::class,
 				Rules\ControlFlow\NoRepeatedCatchesRule::class,
 				Rules\ControlFlow\ThrowableForExceptionRule::class,

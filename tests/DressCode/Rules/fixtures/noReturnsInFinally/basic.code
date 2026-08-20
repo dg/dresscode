@@ -1,0 +1,30 @@
+<?php
+function a()
+{
+	try {
+		return 1;
+	} finally {
+		return 2;
+	}
+}
+
+function b()
+{
+	try {
+		f();
+	} catch (Exception $e) {
+		return 1;
+	} finally {
+		if ($x) {
+			return;
+		}
+		$fn = function () {
+			return 3;
+		};
+		$g = fn() => 4;
+		try {
+		} finally {
+			return 5;
+		}
+	}
+}
