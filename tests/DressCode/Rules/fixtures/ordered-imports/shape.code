@@ -1,0 +1,10 @@
+<?php
+
+namespace Demo;
+
+use const PHP_EOL;
+use Demo\Second, Demo\First;
+use function strlen;
+use Demo\Third;
+
+class Demo {}

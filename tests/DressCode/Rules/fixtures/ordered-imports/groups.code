@@ -1,0 +1,6 @@
+<?php
+// {"alphabetically": false}
+use function strlen;
+use Zeta\B;
+use const PHP_EOL;
+use Alpha\A;

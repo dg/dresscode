@@ -34,6 +34,7 @@ final class Psr12 implements Preset
 
 			// 3. Declare statements, namespace and import statements
 			Rules\Files\HeaderBlankLinesRule::class => true,
+			Rules\Namespaces\OrderedImportsRule::class => ['alphabetically' => false],
 			Rules\Namespaces\NoLeadingBackslashInImportRule::class => true,
 			Rules\Files\DeclareSpacingRule::class => true,
 
