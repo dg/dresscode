@@ -1,0 +1,36 @@
+<?php
+namespace App;
+
+$a = \json_encode($data, 0);
+$b = \json_encode($data, 0, 512);
+$c = \json_encode($data, JSON_PRETTY_PRINT, 512);
+$d = \in_array($needle, $haystack, false);
+$e = \str_pad($s, 10, ' ', STR_PAD_RIGHT);
+$f = \str_pad($s, 10, ' ');
+$g = \array_slice($items, 1, null, false);
+$h = \json_encode($data, depth: 512);
+$i = format(1, 'x', null);
+$j = counted(1, 2);
+
+// left alone
+$k = \json_encode($data, 1, 512);
+$l = \htmlspecialchars($s, ENT_QUOTES);
+$m = \json_encode($data, 0.0);
+$n = \in_array($needle, $haystack, true);
+$o = \explode(',', $s, -1);
+$p = $object->json_encode($data, 0);
+$q = \json_encode($data, (0));
+$r = json_encode($data, 0);
+$s = str_getcsv($line, ',', '"', '\\');
+
+
+function format(int $a, string $b = 'x', ?string $c = null): string
+{
+	return $a . $b . $c;
+}
+
+
+function counted(int $a, int $b = 2): int
+{
+	return func_num_args();
+}

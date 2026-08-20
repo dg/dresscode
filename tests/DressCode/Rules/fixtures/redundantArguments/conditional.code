@@ -1,0 +1,22 @@
+<?php
+namespace App;
+
+$a = format(1, 'x');
+$b = local(1, 'x');
+
+
+if (!function_exists('App\format')) {
+	function format(int $a, string $b = 'x'): string
+	{
+		return $a . $b;
+	}
+}
+
+
+function outer(): void
+{
+	function local(int $a, string $b = 'x'): string
+	{
+		return $a . $b;
+	}
+}

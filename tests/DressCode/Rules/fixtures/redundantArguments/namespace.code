@@ -1,0 +1,5 @@
+<?php
+namespace App;
+
+$a = get_defined_functions(false);
+$b = \get_defined_functions(false);

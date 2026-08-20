@@ -1,0 +1,5 @@
+2: Useless `context` argument of `finfo_buffer()`, because it is ignored and deprecated since PHP 8.5.
+3: Useless `context` argument of `finfo_buffer()`, because it is ignored and deprecated since PHP 8.5.
+5: Useless `exclude_disabled` argument of `get_defined_functions()`, because it is ignored and deprecated since PHP 8.5.
+8: Useless `exclude_disabled` argument of `get_defined_functions()`, because it is ignored and deprecated since PHP 8.5.
+11: Useless `case_insensitive` argument of `define()`, because it is ignored and deprecated since PHP 8.6.
