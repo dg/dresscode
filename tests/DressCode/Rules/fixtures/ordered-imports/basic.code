@@ -1,0 +1,10 @@
+<?php
+
+// header
+use Zeta\B;
+use function strlen;
+use Alpha\A; // A
+use const PHP_EOL;
+use alpha\Aa;
+
+class X {}

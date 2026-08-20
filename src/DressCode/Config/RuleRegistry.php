@@ -84,6 +84,7 @@ final class RuleRegistry
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
+		Rules\Namespaces\OrderedImportsRule::class,
 		Rules\Namespaces\ReferenceUsedNamesOnlyRule::class,
 		Rules\Namespaces\UnusedImportsRule::class,
 		Rules\Namespaces\UseFromSameNamespaceRule::class,

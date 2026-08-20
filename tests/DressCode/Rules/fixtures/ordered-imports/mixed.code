@@ -1,0 +1,4 @@
+<?php
+use function count, strlen;
+use const DIRECTORY_SEPARATOR, PHP_EOL;
+use Nette\Utils\Strings;
