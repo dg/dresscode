@@ -21,6 +21,7 @@ use function count, strlen;
  * What the upgrading data of PHP say of a call PHP retired (`PhpUpgradingData`): a deprecated function is reported whatever the
  * target, since the code may run on the version that deprecated it; a call the data write otherwise is written so
  * where the target has what replaces it; and a call doing nothing on the target goes, with the statement it makes.
+ * An argument whose value PHP deprecated is reported too (`DeprecatedArguments`).
  *
  * Only a call standing as a statement is removed, and only one whose arguments would do nothing when they ran: a
  * call whose value something takes is a question about the code rather than a freeing. A call that is the body of
@@ -54,12 +55,12 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 			new Decision(
 				'upgrading.php.deprecatedCall',
 				Domain::state(),
-				'A call PHP retired is written as the upgrading data of PHP say: a deprecated function reported, `utf8_encode()` written with `mb_convert_encoding()`, `curl_close()` and the other calls doing nothing on the target removed',
+				'A call PHP retired is written as the upgrading data of PHP say: a deprecated function reported, `utf8_encode()` written with `mb_convert_encoding()`, `curl_close()` and the other calls doing nothing on the target removed, an argument whose value PHP deprecated reported',
 			),
 			new Decision(
 				'upgrading.php.deprecatedCallExcept',
 				new Names,
-				'The entries of the upgrading data of PHP withdrawn, by the name of the function or `Class::method` in any letter case',
+				'The entries of the upgrading data of PHP withdrawn, by the name of the function or `Class::method` in any letter case, the name of a function withdrawing the values of its arguments PHP deprecated too',
 				kind: DecisionKind::Parameter,
 				default: [],
 			),
@@ -91,6 +92,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 
 	private function enterFunctionCall(Expression\FunctionCallNode $call, RuleContext $context): void
 	{
+		DeprecatedArguments::check($call, $context, $this->except);
 		$entries = $this->data->getEntries();
 		$function = GlobalCalls::findFunction($call, $entries, $context);
 		if ($function === null || isset($this->except[$function])) {
