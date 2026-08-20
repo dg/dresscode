@@ -1,0 +1,91 @@
+<?php
+namespace App;
+
+final class Removed implements \JsonSerializable, \Countable
+{
+	public function count(): int
+	{
+		return 0;
+	}
+
+
+	public function __wakeup(): void
+	{
+	}
+
+
+	public function jsonSerialize(): mixed
+	{
+		return null;
+	}
+}
+
+$x = new class {
+	private function __wakeup() {}
+};
+
+final class Last
+{
+	public function run(): void
+	{
+	}
+
+
+	public function __wakeup()
+	{
+	}
+}
+
+// left alone
+class Open
+{
+	public function __wakeup()
+	{
+	}
+}
+
+final class Child extends Base
+{
+	public function __wakeup()
+	{
+	}
+}
+
+final class WithTrait
+{
+	use Wakes;
+
+	public function __wakeup()
+	{
+	}
+}
+
+final class ImplementsOwn implements Wakeable
+{
+	public function __wakeup()
+	{
+	}
+}
+
+final class Commented
+{
+	/** unserialization does nothing more */
+	public function __wakeup()
+	{
+	}
+}
+
+class NotEmpty
+{
+	public function __wakeup()
+	{
+		$this->connect();
+	}
+}
+
+trait Wakes
+{
+	public function __wakeup()
+	{
+	}
+}

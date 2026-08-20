@@ -1,0 +1,14 @@
+<?php
+final class A
+{
+	public function __sleep()
+	{
+		return [];
+	}
+
+
+	public function __serialize(): array
+	{
+		return [];
+	}
+}
