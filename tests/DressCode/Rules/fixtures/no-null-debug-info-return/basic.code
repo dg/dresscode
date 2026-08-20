@@ -1,0 +1,39 @@
+<?php
+class A
+{
+	public function __debugInfo(): ?array
+	{
+		if ($this->hidden) {
+			return null;
+		}
+
+		return ['a' => 1];
+	}
+}
+
+class B
+{
+	public function __DEBUGINFO()
+	{
+		return;
+	}
+}
+
+class C
+{
+	public function __debugInfo(): array
+	{
+		$fn = function () {
+			return null;
+		};
+		return [];
+	}
+}
+
+class D
+{
+	public function debugInfo()
+	{
+		return null;
+	}
+}
