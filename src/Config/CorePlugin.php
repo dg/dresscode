@@ -146,6 +146,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\SensitiveParameterRequiredRule::class,
 				Rules\Functions\StaticForClosureWithoutThisRule::class,
 				Rules\Functions\StrictComparisonArgumentRequiredRule::class,
+				Rules\Functions\RedundantArgumentsRule::class,
 				Rules\Functions\UselessParameterDefaultRule::class,
 				Rules\Literals\NoDollarBraceInterpolationsRule::class,
 				Rules\Literals\HeredocIndentationRule::class,

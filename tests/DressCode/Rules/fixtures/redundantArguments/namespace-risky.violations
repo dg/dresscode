@@ -1,0 +1,4 @@
+5: Useless `exclude_disabled` argument of `get_defined_functions()`, because it is ignored and deprecated since PHP 8.5.
+	risky NameUncertain: the namespace may declare `get_defined_functions()`
+6: Useless `flags` argument of `json_encode()`, because it repeats the default value.
+	risky NameUncertain: the namespace may declare `json_encode()`

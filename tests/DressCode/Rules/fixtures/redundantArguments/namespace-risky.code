@@ -1,0 +1,6 @@
+<?php
+// risky
+namespace App;
+
+$a = get_defined_functions(false);
+$b = json_encode($data, 0);
