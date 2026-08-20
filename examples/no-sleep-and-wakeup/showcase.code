@@ -1,0 +1,9 @@
+<?php
+// php 8.5
+class User
+{
+	public function __sleep()
+	{
+		return ['id', 'name'];
+	}
+}

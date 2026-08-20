@@ -52,6 +52,7 @@ final class RuleRegistry
 		Rules\Classes\StringableRequiredRule::class,
 		Rules\Classes\StaticSetStateRequiredRule::class,
 		Rules\Classes\NoNullDebugInfoReturnRule::class,
+		Rules\Classes\NoSleepAndWakeupRule::class,
 		Rules\Classes\SingleMemberPerDeclarationRule::class,
 		Rules\Classes\SingleMemberPerLineRule::class,
 		Rules\Classes\UselessModifierRule::class,
