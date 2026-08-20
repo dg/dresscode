@@ -1,0 +1,11 @@
+<?php
+// {"beforeClosingBrace": true}
+function f()
+{
+	foo();
+}
+if ($x) {
+	foo();
+} else {
+	bar();
+}
