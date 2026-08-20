@@ -1,0 +1,7 @@
+<?php
+// php 8.5
+#[Attr(strlen(...))]
+class A {}
+const C = strlen(...);
+function f($x = strlen(...)) {}
+$a = Closure::fromCallable('strlen');

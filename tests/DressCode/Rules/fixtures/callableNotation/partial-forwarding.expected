@@ -1,0 +1,8 @@
+<?php
+// php 8.6
+$a = array_map(strlen(?), $strings);
+$b = array_map(trim(?), $strings);
+$c = array_map(fn(string $s) => strlen($s), $strings);
+$d = array_map(max(...), $lists);
+$e = \trim(...);
+$f = array_map(fn($row) => (new Formatter)->format($row), $rows);

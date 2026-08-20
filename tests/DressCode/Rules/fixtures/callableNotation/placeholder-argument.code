@@ -1,0 +1,4 @@
+<?php
+// php 8.6
+$a = Closure::fromCallable(?);
+$b = Closure::fromCallable('trim');
