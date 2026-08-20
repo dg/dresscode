@@ -64,6 +64,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\EarlyExitForTrailingIfRule::class,
 				Rules\ControlFlow\ElseifNotationRule::class,
 				Rules\ControlFlow\FallThroughCommentRule::class,
+				Rules\ControlFlow\MatchForSwitchRule::class,
 				Rules\ControlFlow\MultilineConditionRule::class,
 				Rules\ControlFlow\NoAlternativeSyntaxRule::class,
 				Rules\ControlFlow\NoContinueInSwitchRule::class,
