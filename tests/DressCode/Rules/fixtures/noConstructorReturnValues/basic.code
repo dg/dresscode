@@ -1,0 +1,64 @@
+<?php
+class A
+{
+	public function __construct(array $items)
+	{
+		if ($items === []) {
+			return $this;
+		}
+
+		if ($items === [1]) {
+			return $this->init();
+		}
+
+		if ($items === [2]) return $this->init();
+
+		$fn = function () {
+			return 1;
+		};
+		return $this;
+	}
+}
+
+class B
+{
+	public function __construct()
+	{
+		$this->x = 1;
+		return $this->load() ?: null;
+	}
+
+
+	public function __destruct()
+	{
+		return /* closed */ $this->close();
+	}
+}
+
+class C
+{
+	public function __construct()
+	{
+		yield 1;
+	}
+
+
+	public function __destruct()
+	{
+		yield from $this->items;
+	}
+
+
+	public function other()
+	{
+		return $this;
+	}
+}
+
+class D
+{
+	public function __construct()
+	{
+		return;
+	}
+}
