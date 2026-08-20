@@ -1,0 +1,3 @@
+<?php
+// risky
+$a = max($lo, min(100, $value));
