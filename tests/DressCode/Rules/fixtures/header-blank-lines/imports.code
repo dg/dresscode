@@ -1,0 +1,13 @@
+<?php
+
+namespace Foo;
+
+use A;
+
+use B;
+
+
+// c
+use C;
+
+class X {}

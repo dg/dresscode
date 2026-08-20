@@ -1,0 +1,9 @@
+<?php
+// {"afterOpeningTag": null, "afterNamespace": 0, "afterImports": 2, "betweenImportGroups": 0}
+namespace Foo;
+use A;
+
+use function b;
+class C
+{
+}

@@ -1,0 +1,19 @@
+<?php
+
+// {"beforeDeclaration": 2}
+namespace Foo;
+
+use A;
+
+
+class X {}
+
+namespace Bar;
+
+
+/** doc */
+function f() {}
+
+namespace Baz;
+
+require 'x';
