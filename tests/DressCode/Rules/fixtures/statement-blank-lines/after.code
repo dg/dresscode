@@ -1,0 +1,31 @@
+<?php
+// {"before": [], "after": {"if": [0, 1], "foreach": 1, "try": 1, "throw": 2}}
+function a()
+{
+	if ($x) {
+		foo();
+	}
+	bar();
+	if ($y) {
+	}
+
+
+	baz();
+	foreach ($a as $b) {
+	}
+	qux();
+	try {
+	} catch (E) {
+	}
+	function f() {}
+	foreach ($a as $b) {
+	}
+}
+
+function g()
+{
+	if ($x) {
+		throw new E;
+	}
+	throw new F;
+}
