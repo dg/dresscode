@@ -1,0 +1,33 @@
+<?php
+if ($a) {
+	x();
+}
+elseif ($b) {
+	y();
+}
+else {
+}
+foreach ($a as $b) {
+}
+try {
+} catch (E $e) {
+} finally {
+}
+switch ($a) {
+	case 1:
+}
+$m = match ($a) {
+	default => 1,
+};
+do {
+} while ($a);
+while ($a) // comment
+{
+}
+if ($closing) {
+	one();
+}
+while ($w) {
+	two();
+	three();
+}
