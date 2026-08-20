@@ -126,6 +126,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\ClampForMinMaxRule::class,
 				Rules\Functions\NoDebugOutputRule::class,
 				Rules\Functions\CsvEscapeArgumentRequiredRule::class,
+				Rules\Functions\CallableNotationRule::class,
 				Rules\Functions\FirstClassCallableForStringRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
 				Rules\Functions\JsonValidateForDecodeRule::class,
@@ -250,7 +251,7 @@ final class CorePlugin implements Plugin
 
 				// the newer constructs, decided once for every rule writing them
 				new Decision('upgrading.functions.arraySearchFunctions', Domain::adopted(), '`array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` or an `array_filter()` that only asks what they answer'),
-				new Decision('upgrading.syntax.firstClassCallables', Domain::adopted(), '`foo(...)` for `\'self::foo\'`'),
+				new Decision('upgrading.syntax.firstClassCallables', Domain::adopted(), '`foo(...)` for `Closure::fromCallable()`, a forwarding closure and `\'self::foo\'`; from PHP 8.6 a partial application'),
 			],
 		);
 	}

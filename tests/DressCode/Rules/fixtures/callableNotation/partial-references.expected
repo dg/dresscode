@@ -1,0 +1,33 @@
+<?php
+// php 8.6
+namespace App;
+
+
+function pad(string $text): string
+{
+	return $text;
+}
+
+
+function trimAll(array &$lines): void
+{
+}
+
+
+class Report
+{
+	public function run(): void
+	{
+		// written as a partial application
+		$a = str_pad(?, 10);
+		$b = pad(?);
+
+		// risky: may take an argument by reference
+		$c = fn($x) => $this->render($x);
+		$d = fn($x) => \Acme\Text\wrap($x);
+
+		// risky: takes an argument by reference
+		$e = fn($x) => sort($x);
+		$f = fn($x) => trimAll($x);
+	}
+}

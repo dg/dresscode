@@ -1,0 +1,35 @@
+<?php
+// risky
+namespace App;
+
+class Factory extends Base
+{
+	public function run(array $rows, Factory $factory): void
+	{
+		// written as a first-class callable
+		$a = array_map(fn(...$args) => $this->make(...$args), $rows);
+		$b = array_map(fn(...$args) => $factory->make(...$args), $rows);
+		$c = array_map(fn(...$args) => max(...$args), $rows);
+		$d = \Closure::fromCallable([static::class, 'make']);
+		$e = \Closure::fromCallable('trim');
+
+		// risky: the object is read when the callable is made
+		$f = array_map(fn(...$args) => $this->factory->make(...$args), $rows);
+
+		// risky: the class `static` resolves to may differ
+		$g = \Closure::fromCallable([Factory::class, 'make']);
+		$h = \Closure::fromCallable([self::class, 'make']);
+		$i = \Closure::fromCallable([parent::class, 'make']);
+		$j = \Closure::fromCallable('App\Factory::make');
+		$k = \Closure::fromCallable(['App\Factory', 'make']);
+
+		// left alone
+		$l = array_map(fn(...$args) => $this->factory()->make(...$args), $rows);
+		$m = array_map(function (...$args) {
+			return $factory->make(...$args);
+		}, $rows);
+		$n = array_map(fn(...$args) => compact(...$args), $rows);
+		$o = array_map(fn(...$args) => sort(...$args), $rows);
+		$p = array_map(#[Pure] fn(...$args) => max(...$args), $rows);
+	}
+}

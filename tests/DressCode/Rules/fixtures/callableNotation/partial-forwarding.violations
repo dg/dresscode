@@ -1,0 +1,4 @@
+3: The closure forwarding its parameters to one call must be written as a partial application.
+4: The closure forwarding its parameters to one call must be written as a partial application.
+6: The callable must be written `max(...)`.
+7: The callable must be written `\trim(...)`.

@@ -1,0 +1,19 @@
+10: The callable must be written `$this->make(...)`.
+	risky TypeUnknown: the call may take an argument by reference, where the closure passed a copy
+11: The callable must be written `$factory->make(...)`.
+	risky TypeUnknown: the call may take an argument by reference, where the closure passed a copy
+12: The callable must be written `max(...)`.
+13: The callable must be written `static::make(...)`.
+14: The callable must be written `\trim(...)`.
+17: The callable must be written `$this->factory->make(...)`.
+	risky BehaviorChanges: the object is evaluated when the callable is made, not when it is called
+20: The callable must be written `Factory::make(...)`.
+	risky BehaviorChanges: the class `static` resolves to in the method may differ
+21: The callable must be written `self::make(...)`.
+	risky BehaviorChanges: the class `static` resolves to in the method may differ
+22: The callable must be written `parent::make(...)`.
+	risky BehaviorChanges: the class `static` resolves to in the method may differ
+23: The callable must be written `\App\Factory::make(...)`.
+	risky BehaviorChanges: the class `static` resolves to in the method may differ
+24: The callable must be written `\App\Factory::make(...)`.
+	risky BehaviorChanges: the class `static` resolves to in the method may differ

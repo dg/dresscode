@@ -1,0 +1,52 @@
+<?php
+// php 8.6
+// risky
+namespace App;
+
+class Pager
+{
+	public int $limit = 10;
+
+
+	public function run(array $items, string $prefix): void
+	{
+		// written as a partial application
+		$a = str_pad(?, 10, '-');
+		$b = $this->format(?, 'key', ?);
+		$c = sprintf('%s-%s', ...);
+		$d = Helper::wrap(?, PHP_EOL);
+		$e = str_pad(?, length: 10);
+		$f = implode($prefix, ?);
+		$g = $this->format(?, self::KEY, null);
+
+		// risky: read when the partial is made
+		$h = array_slice(?, 0, $this->limit);
+		$i = $this->helper->format(?, 1);
+
+		// risky: takes an argument by reference
+		$s = preg_match('~a~', ?, $matches);
+
+		// left alone
+		$k = fn($x) => array_slice($x, 0, count($items));
+		$l = function ($x) use ($prefix) {
+			return implode($prefix, $x);
+		};
+		$m = function ($x) {
+			return implode($prefix, $x);
+		};
+		$n = fn(int $x) => str_repeat('-', $x);
+		$o = fn($x = 1) => str_repeat('-', $x);
+		$p = fn(&$x) => str_repeat('-', $x);
+		$q = fn($x) => str_repeat($x, $x);
+		$r = fn($x, $y) => str_replace($y, $x, 'a');
+		$t = fn($x) => compact('x', 'items');
+		$u = fn($x) => self::make($x, 1);
+		$v = fn($x) => $this?->format($x, 1, 2);
+		$w = fn($x) => (new Formatter)->format($x, 1);
+		$y = fn($x): string => str_pad($x, 10);
+		$z = fn() => str_pad('a', 10);
+		$aa = fn($x) => str_pad(/* padded */ $x, 10);
+		$bb = fn($x) => $this->format($x, f(), 1);
+		$cc = #[Pure] fn($x) => str_pad($x, 10);
+	}
+}
