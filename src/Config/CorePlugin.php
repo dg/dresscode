@@ -123,6 +123,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\StrictTypesRequiredRule::class,
 				Rules\Functions\ArrayFirstLastNotationRule::class,
 				Rules\Functions\ArrowFunctionForClosureRule::class,
+				Rules\Functions\ClampForMinMaxRule::class,
 				Rules\Functions\NoDebugOutputRule::class,
 				Rules\Functions\CsvEscapeArgumentRequiredRule::class,
 				Rules\Functions\FirstClassCallableForStringRule::class,

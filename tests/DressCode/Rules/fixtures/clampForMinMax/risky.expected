@@ -1,0 +1,5 @@
+<?php
+// risky
+$a = clamp($value, $lo, 100);
+$b = clamp($it->next(), $o->low(), 100);
+$z = clamp($value, count($items), 9);

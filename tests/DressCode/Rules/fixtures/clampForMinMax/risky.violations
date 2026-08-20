@@ -1,0 +1,6 @@
+3: The value held between bounds must be written with `clamp()`.
+	risky BehaviorChanges: `clamp()` refuses a minimum above its maximum with an error
+4: The value held between bounds must be written with `clamp()`.
+	risky BehaviorChanges: `clamp()` reads the value first and refuses a minimum above its maximum
+5: The value held between bounds must be written with `clamp()`.
+	risky BehaviorChanges: `clamp()` refuses a minimum above its maximum with an error
