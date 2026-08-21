@@ -64,6 +64,7 @@ final class RuleRegistry
 		Rules\ControlFlow\EarlyExitRule::class,
 		Rules\ControlFlow\ElseifKeywordRule::class,
 		Rules\ControlFlow\TernaryForSimpleBranchRule::class,
+		Rules\ControlFlow\MatchForSimpleSwitchRule::class,
 		Rules\ControlFlow\ArrayFunctionForForeachRule::class,
 		Rules\ControlFlow\MultiLineConditionRule::class,
 		Rules\ControlFlow\NoAlternativeSyntaxRule::class,

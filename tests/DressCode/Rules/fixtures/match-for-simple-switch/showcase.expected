@@ -1,0 +1,10 @@
+<?php
+// risky
+function describe(int $code): string
+{
+	return match ($code) {
+		200 => "OK",
+		404 => "Not Found",
+		default => "Unknown",
+	};
+}
