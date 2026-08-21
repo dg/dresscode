@@ -1,0 +1,42 @@
+<?php
+// php 8.5
+final class Pager
+{
+	private int $limit = 10;
+	private int $page = 1;
+	private int $size = 20;
+	private string $label = 'pager';
+	private $untyped = 1;
+	private static int $count = 0;
+
+	public function next(): static
+	{
+		$this->page++;
+		return clone($this, ['limit' => $this->limit * 2]);
+	}
+
+
+	public function getLabel(): string
+	{
+		return $this->label . $this->limit;
+	}
+}
+
+final class Sized
+{
+	private int $size = 20;
+	private int $set;
+
+
+	public function __construct(int $size)
+	{
+		$this->size = $size;
+		$this->set = $size;
+	}
+}
+
+class Open
+{
+	public int $limit = 10;
+	private int $own = 1;
+}

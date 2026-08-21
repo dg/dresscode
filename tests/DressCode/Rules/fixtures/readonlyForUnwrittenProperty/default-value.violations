@@ -1,0 +1,5 @@
+5: The property `$limit`, which nothing writes, must be readonly.
+7: The property `$size`, which nothing writes, must be readonly.
+8: The property `$label`, which nothing writes, must be readonly.
+28: The property `$set`, written only by the constructor, must be readonly.
+41: The property `$own`, which nothing writes, must be readonly.

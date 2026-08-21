@@ -1,0 +1,33 @@
+<?php
+// risky
+final class A
+{
+	public string $name;
+
+	public function __construct(string $name)
+	{
+		$this->name = $name;
+	}
+}
+
+final class B
+{
+	var string $name;
+
+	public function __construct(string $name)
+	{
+		$this->name = $name;
+	}
+}
+
+final class WithTrait
+{
+	use Resets;
+
+	private int $value;
+
+	public function __construct()
+	{
+		$this->value = 1;
+	}
+}

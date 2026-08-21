@@ -1,0 +1,4 @@
+35: The property `$value`, written only by the constructor, must be readonly.
+55: The property `$kept`, written only by the constructor, must be readonly.
+107: The property `$first`, written only by the constructor, must be readonly.
+108: The property `$second`, written only by the constructor, must be readonly.

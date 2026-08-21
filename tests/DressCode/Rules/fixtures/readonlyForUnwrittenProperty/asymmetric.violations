@@ -1,0 +1,10 @@
+6: The property `$a`, written only by the constructor, must be readonly.
+	risky BehaviorChanges: code outside the file may write it
+7: The property `$b`, written only by the constructor, must be readonly.
+	risky BehaviorChanges: code outside the file may write it
+8: The property `$c`, written only by the constructor, must be readonly.
+	risky BehaviorChanges: code outside the file may write it
+9: The property `$d`, written only by the constructor, must be readonly.
+	risky BehaviorChanges: code outside the file may write it
+11: The property `$e`, written only by the constructor, must be readonly.
+	risky BehaviorChanges: code outside the file may write it
