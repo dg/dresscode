@@ -1,0 +1,20 @@
+<?php
+// php 8.5
+// risky
+namespace App;
+
+#[\Deprecated(message: 'use NewHelpers')]
+trait OldHelpers
+{
+}
+
+#[\Deprecated(since: '2.0')]
+const OLD_LIMIT = 10;
+
+/** @deprecated */
+const A = 1, B = 2;
+
+/** @deprecated */
+interface OldContract
+{
+}

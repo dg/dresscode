@@ -16,8 +16,8 @@ use function count;
 
 /**
  * What a rule writing code into a file needs so that the code takes the shape the file has: a class or a function
- * spelled the way the file reaches it, an import written the way the file writes its imports. A rule shipped by a
- * package writes with it too.
+ * spelled the way the file reaches it, an import written the way the file writes its imports, an attribute on a line
+ * of its own above a declaration. A rule shipped by a package writes with it too.
  */
 final class CodeWriter
 {
@@ -289,16 +289,27 @@ final class CodeWriter
 
 
 	/**
-	 * Writes the attributes in front of the declaration, behind the attributes it carries already, on the line of the
-	 * declaration: the first one takes over what stood in front of it, its doc comment among it. The code is that of
-	 * an attribute without `#[]`, its class spelled already.
+	 * Writes the attributes in front of the declaration, behind the attributes it carries already, each in a group on
+	 * a line of its own where the declaration starts its line and they are not inline, else on the line of the
+	 * declaration: the first one of a declaration without any, or the first inline one, takes over what stood in front
+	 * of it, its doc comment among it. The code is that of an attribute without `#[]`, its class spelled already.
 	 * @param  list<string>  $codes
 	 */
-	public static function addAttributes(AttributeAwareNode&Node $declaration, array $codes): void
+	public static function addAttributes(
+		AttributeAwareNode&Node $declaration,
+		array $codes,
+		RuleContext $context,
+		bool $inline = false,
+	): void
 	{
 		$attributes = $declaration->attributes;
 		$anchor = $attributes->isEmpty() ? $declaration->getFirstToken() : $attributes->getLastToken()?->getNext();
-		$takesOver = true;
+		$ownLine = !$inline && ($anchor?->startsLine() ?? false);
+		$eolText = $context->style->lineEnding;
+		$indentationText = $anchor?->getIndentation() ?? '';
+		// a trivia stands in one place, so each is made anew
+		$indentation = fn() => $indentationText === '' ? [] : [new Trivia(Trivia::Whitespace, $indentationText)];
+		$takesOver = $attributes->isEmpty() || $inline;
 		foreach ($codes as $code) {
 			$group = (new Builder)->fragment(AttributeGroupNode::class, "#[$code]");
 			$attributes->append($group);
@@ -306,13 +317,13 @@ final class CodeWriter
 				continue;
 			} elseif ($takesOver) {
 				$group->getFirstToken()->setLeadingTrivia($anchor->leadingTrivia);
-				$anchor->setLeadingTrivia([]);
+				$anchor->setLeadingTrivia($ownLine ? $indentation() : []);
 				$takesOver = false;
 			} else {
-				$group->getFirstToken()->setLeadingTrivia([]);
+				$group->getFirstToken()->setLeadingTrivia($ownLine ? $indentation() : []);
 			}
 
-			$group->getLastToken()->setTrailingTrivia([Trivia::fromText(' ')]);
+			$group->getLastToken()->setTrailingTrivia([Trivia::fromText($ownLine ? $eolText : ' ')]);
 		}
 	}
 }

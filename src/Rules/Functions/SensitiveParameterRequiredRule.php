@@ -64,6 +64,6 @@ final class SensitiveParameterRequiredRule extends NodeRule
 			return;
 		}
 
-		CodeWriter::addAttributes($node, [CodeWriter::writeClass(\SensitiveParameter::class, $node, $context)]);
+		CodeWriter::addAttributes($node, [CodeWriter::writeClass(\SensitiveParameter::class, $node, $context)], $context, inline: true);
 	}
 }

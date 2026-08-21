@@ -62,7 +62,7 @@ function addAttributes(string $code, string $class): string
 	$file = (new Parser)->parse("<?php\n$code");
 	$declaration = $file->findFirst($class);
 	Assert::true($declaration instanceof AttributeAwareNode);
-	CodeWriter::addAttributes($declaration, ['B', 'C']);
+	CodeWriter::addAttributes($declaration, ['B', 'C'], createWriterContext($file));
 	return substr((string) $file, 6);
 }
 
@@ -108,6 +108,18 @@ test('addImport(): the header comment of a file stays above the import, the doc 
 test('addImport(): markup before the open tag leaves no line for the first import', function () {
 	$file = (new Parser)->parse("<html>\n<?php\n\$x = 1;\n");
 	Assert::false(CodeWriter::canAddImport($file));
+});
+
+
+test('addAttributes(): a declaration starting its line gets them on lines of their own', function () {
+	Assert::same(
+		"class X\n{\n\t/** Doc. */\n\t#[B]\n\t#[C]\n\tpublic function m() {}\n}\n",
+		addAttributes("class X\n{\n\t/** Doc. */\n\tpublic function m() {}\n}\n", MethodNode::class),
+	);
+	Assert::same(
+		"class X\n{\n\t#[A]\n\t#[B]\n\t#[C]\n\tpublic function m() {}\n}\n",
+		addAttributes("class X\n{\n\t#[A]\n\tpublic function m() {}\n}\n", MethodNode::class),
+	);
 });
 
 

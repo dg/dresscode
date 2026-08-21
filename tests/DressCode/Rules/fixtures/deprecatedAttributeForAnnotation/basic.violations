@@ -1,0 +1,14 @@
+5: The `@deprecated` annotation must be written as the `#[\Deprecated]` attribute.
+	risky BehaviorChanges: PHP then reports a deprecation at every use
+13: The `@deprecated` annotation must be written as the `#[\Deprecated]` attribute.
+	risky BehaviorChanges: PHP then reports a deprecation at every use
+22: The `@deprecated` annotation must be written as the `#[\Deprecated]` attribute.
+	risky BehaviorChanges: PHP then reports a deprecation at every use
+31: The `@deprecated` annotation must be written as the `#[\Deprecated]` attribute.
+	risky BehaviorChanges: PHP then reports a deprecation at every use
+37: The `@deprecated` annotation must be written as the `#[\Deprecated]` attribute.
+	risky BehaviorChanges: PHP then reports a deprecation at every use
+48: The `@deprecated` annotation must be written as the `#[\Deprecated]` attribute.
+	risky BehaviorChanges: PHP then reports a deprecation at every use
+57: The `@deprecated` annotation must be written as the `#[\Deprecated]` attribute.
+	risky BehaviorChanges: PHP then reports a deprecation at every use
