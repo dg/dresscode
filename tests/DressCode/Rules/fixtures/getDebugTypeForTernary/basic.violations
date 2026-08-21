@@ -1,0 +1,6 @@
+3: The type of the value must be asked for with `get_debug_type()`.
+	risky TypeUnknown: the value may be one whose type `gettype()` or `get_class()` spells another way
+4: The type of the value must be asked for with `get_debug_type()`.
+	risky TypeUnknown: the value may be one whose type `gettype()` or `get_class()` spells another way
+5: The type of the value must be asked for with `get_debug_type()`.
+	risky TypeUnknown: the value may be one whose type `gettype()` or `get_class()` spells another way
