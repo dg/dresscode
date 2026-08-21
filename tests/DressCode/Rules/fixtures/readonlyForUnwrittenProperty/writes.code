@@ -1,0 +1,44 @@
+<?php
+final class Writes
+{
+	private string $unset;
+	private string $cloned;
+	private array $destructured;
+	private string $iterated;
+	private array $element;
+	private string $kept;
+
+	public function __construct()
+	{
+		$this->unset = 'a';
+		$this->cloned = 'b';
+		$this->destructured = [];
+		$this->iterated = 'c';
+		$this->element = [];
+		$this->kept = 'd';
+	}
+
+
+	public function reset(): void
+	{
+		unset($this->unset);
+	}
+
+
+	public function withCloned(string $value): static
+	{
+		$clone = clone $this;
+		$clone->cloned = $value;
+		return $clone;
+	}
+
+
+	public function load(): void
+	{
+		[$this->destructured] = [[1]];
+		foreach ([1] as $this->iterated) {
+		}
+
+		unset($this->element[0]);
+	}
+}

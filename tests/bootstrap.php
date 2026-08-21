@@ -19,6 +19,34 @@ if (!defined('STDIN')) { // the CGI defines none
 }
 
 
+/** The CLI binary of PHP a test runs code with, the test skipped without one. */
+function getPhpCliBinary(): string
+{
+	$binary = findPhpCliBinary();
+	if ($binary === null) {
+		Tester\Environment::skip('No CLI binary of PHP beside ' . PHP_BINARY . '.');
+		exit; // skip() has ended the test already, which its signature does not say
+	}
+
+	return $binary;
+}
+
+
+/**
+ * The binary of the process, or under the CGI the CLI binary beside it; null where there is none, and a run starts
+ * no workers.
+ */
+function findPhpCliBinary(): ?string
+{
+	if (PHP_SAPI === 'cli') {
+		return PHP_BINARY;
+	}
+
+	$path = dirname(PHP_BINARY) . '/php' . (PHP_OS_FAMILY === 'Windows' ? '.exe' : '');
+	return is_file($path) ? $path : null;
+}
+
+
 /**
  * A new empty directory named after `$name`, numbered when the name comes again, in a directory that belongs to
  * this test process alone. It lies outside tests/, so the runner never takes a file a test writes for a test. A

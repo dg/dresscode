@@ -119,6 +119,19 @@ final class RuleTester
 
 
 	/**
+	 * What the rule makes of the fixture; for a tool that writes the .expected file.
+	 * @param class-string<Rule>|\Closure(array<string, mixed>): Rule $rule
+	 * @param array<string|int, string|callable(FileNode, string): object> $analyses
+	 * @throws TestFailure
+	 */
+	public static function collectOutput(string|\Closure $rule, string $file, ?string $phpVersion = null, array $analyses = []): string
+	{
+		[$node] = self::processFixture($rule, $file, $phpVersion, $analyses);
+		return Printer::print($node);
+	}
+
+
+	/**
 	 * @param ?string $expected  the output; null when the rule must leave the code as it is
 	 * @param ?list<string> $violations  "line: message" each, and the line of the risk after a risky one; null to skip the check
 	 * @param NamespacedSymbols $namespacedSymbols  what the namespaces declare outside the code

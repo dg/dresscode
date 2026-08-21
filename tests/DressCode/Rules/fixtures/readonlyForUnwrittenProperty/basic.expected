@@ -1,0 +1,79 @@
+<?php
+final class A
+{
+	private readonly string $name;
+	protected int $count;
+	public string $title;
+	private string $changed;
+	private string $appended;
+	private $untyped;
+	private static string $shared;
+	private string $withDefault = 'x';
+	private string $never;
+
+	public function __construct(string $name, private readonly int $price)
+	{
+		$this->name = $name;
+		$this->count = 1;
+		$this->title = 'a';
+		$this->changed = 'a';
+		$this->appended = 'b';
+		$this->untyped = 'c';
+		self::$shared = 'd';
+		$this->withDefault = 'e';
+	}
+
+
+	public function rename(string $name): void
+	{
+		$this->changed = $name;
+	}
+
+
+	public function grow(): void
+	{
+		$this->appended .= '!';
+	}
+}
+
+class B
+{
+	protected string $name;
+	private readonly string $other;
+
+	public function __construct()
+	{
+		$this->name = 'a';
+		$this->other = 'b';
+	}
+}
+
+final class C
+{
+	private string $late;
+
+	public function __construct()
+	{
+		$fn = function () {
+			$this->late = 'a';
+		};
+	}
+}
+
+final class D
+{
+	public function __construct(public readonly string $name, private readonly string $other)
+	{
+	}
+}
+
+final class E
+{
+	public function __construct(
+		private ?string $mime = null {
+			get => $this->mime;
+		},
+		private readonly string $plain = '',
+	) {
+	}
+}

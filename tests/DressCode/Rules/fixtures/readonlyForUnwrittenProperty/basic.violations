@@ -1,0 +1,9 @@
+4: The property `$name`, written only by the constructor, must be readonly.
+5: The property `$count`, written only by the constructor, must be readonly.
+	risky BehaviorChanges: code outside the file may write it
+6: The property `$title`, written only by the constructor, must be readonly.
+	risky BehaviorChanges: code outside the file may write it
+14: The property `$price`, written only by the constructor, must be readonly.
+42: The property `$other`, written only by the constructor, must be readonly.
+65: The property `$other`, written only by the constructor, must be readonly.
+76: The property `$plain`, written only by the constructor, must be readonly.
