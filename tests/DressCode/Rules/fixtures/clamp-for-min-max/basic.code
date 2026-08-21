@@ -1,0 +1,13 @@
+<?php
+$a = max(0, min(100, $value));
+$b = min(100, max(0, $value));
+$c = max(0, min($value, 100));
+$d = \max(0, \min(100, $value));
+$e = max($lo, min(100, $value));
+$f = max(0, min($hi, $value));
+$g = max(0, min($a, $b));
+$h = max(0, min(100, 50));
+$i = max(0, $value);
+$j = max(0, min(100, $value), 5);
+$k = max(0, abs($value));
+$l = min(0, min(100, $value));
