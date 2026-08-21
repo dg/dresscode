@@ -1,0 +1,5 @@
+3: The context argument of finfo_buffer() is deprecated since PHP 8.5, nothing reads it
+4: The context argument of finfo_buffer() is deprecated since PHP 8.5, nothing reads it
+6: The exclude_disabled argument of get_defined_functions() is deprecated since PHP 8.5, nothing reads it
+8: The key_length argument of openssl_pkey_derive() is deprecated since PHP 8.5, nothing reads it
+9: The exclude_disabled argument of get_defined_functions() is deprecated since PHP 8.5, nothing reads it

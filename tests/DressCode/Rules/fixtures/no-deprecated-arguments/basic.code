@@ -1,0 +1,11 @@
+<?php
+// php 8.5
+finfo_buffer($finfo, $contents, FILEINFO_NONE, []);
+finfo_buffer($finfo, $contents, FILEINFO_NONE, context: $ctx);
+finfo_buffer($finfo, $contents, FILEINFO_NONE);
+get_defined_functions(false);
+get_defined_functions();
+openssl_pkey_derive($public, $private, 32);
+\get_defined_functions(true);
+get_defined_functions(f());
+$finfo->buffer($contents, FILEINFO_NONE, []);
