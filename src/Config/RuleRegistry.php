@@ -111,6 +111,7 @@ final class RuleRegistry
 		Rules\Functions\RoundingModeNotationRule::class,
 		Rules\Functions\CsvEscapeArgumentRequiredRule::class,
 		Rules\Functions\NoDeprecatedArgumentsRule::class,
+		Rules\Functions\ClampForMinMaxRule::class,
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
 		Rules\Namespaces\ImportNotationRule::class,
