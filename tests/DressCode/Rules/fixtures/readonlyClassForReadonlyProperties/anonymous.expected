@@ -1,0 +1,21 @@
+<?php
+// php 8.3
+$a = new readonly class {
+	public readonly int $id;
+};
+
+$b = new readonly class (1) {
+	public function __construct(
+		public readonly int $id,
+	) {
+	}
+};
+
+// left alone
+$c = new class {
+	public int $id;
+};
+
+$d = new #[AllowDynamicProperties] class {
+	public readonly int $id;
+};
