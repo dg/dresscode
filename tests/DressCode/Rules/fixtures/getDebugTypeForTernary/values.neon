@@ -1,0 +1,3 @@
+upgrading:
+	functions:
+		get_debug_type: adopted

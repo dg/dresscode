@@ -134,6 +134,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\CallableNotationRule::class,
 				Rules\Functions\FirstClassCallableForStringRule::class,
 				Rules\Functions\FunctionNameSpacingRule::class,
+				Rules\Functions\GetDebugTypeForTernaryRule::class,
 				Rules\Functions\JsonValidateForDecodeRule::class,
 				Rules\Functions\MultilineCallRule::class,
 				Rules\Functions\MultilineSignatureRule::class,
