@@ -113,6 +113,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\CsvEscapeArgumentRequiredRule::class,
 				Rules\Functions\NoDeprecatedArgumentsRule::class,
 				Rules\Functions\ClampForMinMaxRule::class,
+				Rules\Functions\GetDebugTypeForTernaryRule::class,
 				Rules\Functions\StaticClosureRule::class,
 				Rules\Functions\StrictCallRule::class,
 				Rules\Namespaces\ImportNotationRule::class,
