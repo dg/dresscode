@@ -1,0 +1,13 @@
+<?php
+// risky
+function describe(int $code): string
+{
+	switch ($code) {
+		case 200:
+			return "OK";
+		case 404:
+			return "Not Found";
+		default:
+			return "Unknown";
+	}
+}

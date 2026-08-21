@@ -1,0 +1,84 @@
+<?php
+// risky
+$statement = match ($input) {
+	Lexer::T_SELECT => 'select',
+	Lexer::T_UPDATE => 'update',
+	default => 'error',
+};
+
+function returning($input)
+{
+	return match ($input) {
+		1, 2 => 'low',
+		3 => 'high',
+		default => 'unknown',
+	};
+}
+
+function noDefault($input)
+{
+	switch ($input) {
+		case 1:
+			return 'a';
+		case 2:
+			return 'b';
+	}
+}
+
+function doesMore($input)
+{
+	switch ($input) {
+		case 1:
+			echo 'a';
+			$x = 1;
+			break;
+		default:
+			$x = 2;
+	}
+
+	return $x;
+}
+
+function otherVariable($input)
+{
+	switch ($input) {
+		case 1:
+			$x = 1;
+			break;
+		default:
+			$y = 2;
+	}
+}
+
+function mixedForms($input)
+{
+	switch ($input) {
+		case 1:
+			$x = 1;
+			break;
+		default:
+			return 2;
+	}
+}
+
+function fallsThrough($input)
+{
+	switch ($input) {
+		case 1:
+			$x = 1;
+		default:
+			$x = 2;
+	}
+}
+
+function continues($input)
+{
+	foreach ([] as $i) {
+		switch ($input) {
+			case 1:
+				continue 2;
+			default:
+				$x = 2;
+		}
+	}
+}
