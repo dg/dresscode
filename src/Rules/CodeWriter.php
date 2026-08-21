@@ -11,14 +11,15 @@ use DressCode\RuleContext;
 use DressCode\Rules\Namespaces\ImportNotationRule;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{CommentPolicy, NameForm, Node, Parser, SymbolKind, Trivia, UnqualifiedResolution};
-use PhpSyntax\Nodes\{FileNode, NameNode, Statement, UseItemNode};
+use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, FileNode, NameNode, Statement, UseItemNode};
 use function count;
 
 
 /**
  * What a rule writing code into a file needs so that the code takes the shape the file has: a class or a function
  * spelled the way the file reaches it, an import written the way the file writes its imports, a node removed with one
- * gap left of the two around it. A rule shipped by a package writes with it too.
+ * gap left of the two around it, an attribute on a line of its own above a declaration. A rule shipped by a package
+ * writes with it too.
  */
 final class CodeWriter
 {
@@ -261,6 +262,39 @@ final class CodeWriter
 		$node->remove($comments);
 		if ($next !== null && $gap !== null) {
 			$next->setBlankLinesBefore($gap, $context->style->lineEnding);
+		}
+	}
+
+
+	/**
+	 * Writes the attributes above the declaration, each in a group on a line of its own, behind the attributes it
+	 * carries already: the first one of a declaration without any takes over what stood in front of it, its doc
+	 * comment among it. The code is that of an attribute without `#[]`, its class spelled already.
+	 * @param  list<string>  $codes
+	 */
+	public static function addAttributes(AttributeAwareNode&Node $declaration, array $codes, RuleContext $context): void
+	{
+		$attributes = $declaration->attributes;
+		// a trivia stands in one place, so each is made anew
+		$first = $declaration->getFirstToken();
+		$eolText = $context->style->lineEnding;
+		$indentationText = $first?->getIndentation() ?? '';
+		$indentation = fn() => new Trivia(Trivia::Whitespace, $indentationText);
+		$takesOver = $attributes->isEmpty();
+		foreach ($codes as $code) {
+			$group = (new Parser)->parseFragment(AttributeGroupNode::class, "#[$code]");
+			$attributes->append($group);
+			if ($first === null) {
+				continue;
+			} elseif ($takesOver) {
+				$group->getFirstToken()?->setLeadingTrivia($first->leadingTrivia);
+				$first->setLeadingTrivia([$indentation()]);
+				$takesOver = false;
+			} else {
+				$group->getFirstToken()?->setLeadingTrivia([$indentation()]);
+			}
+
+			$group->getLastToken()?->setTrailingTrivia([new Trivia(Trivia::LineEnding, $eolText)]);
 		}
 	}
 }

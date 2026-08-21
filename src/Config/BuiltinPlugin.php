@@ -161,6 +161,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Expressions\UselessTernaryOperatorRule::class,
 				Rules\PhpDoc\AnnotationCasingRule::class,
 				Rules\PhpDoc\AttributeAfterPhpdocRule::class,
+				Rules\PhpDoc\DeprecatedAttributeForAnnotationRule::class,
 				Rules\PhpDoc\PhpdocAlignmentRule::class,
 				Rules\PhpDoc\ForbiddenAnnotationsRule::class,
 				Rules\PhpDoc\ForbiddenPhpdocLinesRule::class,
