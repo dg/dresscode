@@ -1,0 +1,20 @@
+<?php
+// risky
+// php 8.4
+
+#[\Deprecated(message: '3.x use foo()')]
+function a()
+{
+}
+
+
+#[\Deprecated(message: '2024-01-01')]
+function b()
+{
+}
+
+
+#[\Deprecated(message: 'use bar()', since: '2.0')]
+function c()
+{
+}

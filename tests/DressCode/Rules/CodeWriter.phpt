@@ -4,10 +4,11 @@ use DressCode\Analyses\Registry;
 use DressCode\Engine\{Fingerprints, Suppression};
 use DressCode\{RuleContext, Style};
 use DressCode\Rules\CodeWriter;
-use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\{Node, Parser, SymbolKind};
+use PhpSyntax\Nodes\{AttributeAwareNode, FileNode, ParameterNode};
+use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Scalar\IntegerNode;
 use PhpSyntax\Nodes\Statement\NamespaceNode;
-use PhpSyntax\{Parser, SymbolKind};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -52,6 +53,20 @@ function addImport(string $code): string
 }
 
 
+/**
+ * The file with `#[B]` and `#[C]` added to the first declaration of the class.
+ * @param  class-string<AttributeAwareNode&Node>  $class
+ */
+function addAttributes(string $code, string $class): string
+{
+	$file = (new Parser)->parse("<?php\n$code");
+	$declaration = $file->findFirst($class);
+	Assert::true($declaration instanceof AttributeAwareNode);
+	CodeWriter::addAttributes($declaration, ['B', 'C'], createWriterContext($file));
+	return substr((string) $file, 6);
+}
+
+
 test('addImport(): the first import stands under the open tag', function () {
 	Assert::same("<?php\n\nuse New\\B;\n\n\$x = 1;\n", addImport("<?php\n\$x = 1;\n"));
 	Assert::same(
@@ -93,4 +108,32 @@ test('addImport(): the header comment of a file stays above the import, the doc 
 test('addImport(): markup before the open tag leaves no line for the first import', function () {
 	$file = (new Parser)->parse("<html>\n<?php\n\$x = 1;\n");
 	Assert::false(CodeWriter::canAddImport($file));
+});
+
+
+test('addAttributes(): a declaration starting its line gets them on lines of their own', function () {
+	Assert::same(
+		"class X\n{\n\t/** Doc. */\n\t#[B]\n\t#[C]\n\tpublic function m() {}\n}\n",
+		addAttributes("class X\n{\n\t/** Doc. */\n\tpublic function m() {}\n}\n", MethodNode::class),
+	);
+	Assert::same(
+		"class X\n{\n\t#[A]\n\t#[B]\n\t#[C]\n\tpublic function m() {}\n}\n",
+		addAttributes("class X\n{\n\t#[A]\n\tpublic function m() {}\n}\n", MethodNode::class),
+	);
+});
+
+
+test('addAttributes(): a declaration standing behind other code or its attributes gets them on its line', function () {
+	Assert::same(
+		"class X\n{\n\t#[A] #[B] #[C] public function m() {}\n}\n",
+		addAttributes("class X\n{\n\t#[A] public function m() {}\n}\n", MethodNode::class),
+	);
+	Assert::same(
+		"class X { #[B] #[C] public function m() {} }\n",
+		addAttributes("class X { public function m() {} }\n", MethodNode::class),
+	);
+	Assert::same(
+		"function f(#[B] #[C] \$a) {}\n",
+		addAttributes("function f(\$a) {}\n", ParameterNode::class),
+	);
 });

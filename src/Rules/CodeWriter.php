@@ -10,14 +10,14 @@ namespace DressCode\Rules;
 use DressCode\RuleContext;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, NameForm, Node, SymbolKind, Trivia, UnqualifiedResolution};
-use PhpSyntax\Nodes\{ExpressionNode, FileNode, NameNode, Statement, UseItemNode};
+use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, ExpressionNode, FileNode, NameNode, Statement, UseItemNode};
 use function count;
 
 
 /**
  * What a rule writing code into a file needs so that the code takes the shape the file has: a class or a function
- * spelled the way the file reaches it, an import written the way the file writes its imports. A rule shipped by a
- * package writes with it too.
+ * spelled the way the file reaches it, an import written the way the file writes its imports, an attribute on a line
+ * of its own above a declaration. A rule shipped by a package writes with it too.
  */
 final class CodeWriter
 {
@@ -279,5 +279,40 @@ final class CodeWriter
 			$resolver->getImports(SymbolKind::Function, $scope),
 			fn(string $function, string $alias) => strcasecmp($alias, QualifiedNames::stripNamespace($function)) !== 0,
 		));
+	}
+
+
+	/**
+	 * Writes the attributes in front of the declaration, behind the attributes it carries already, each in a group on
+	 * a line of its own where the declaration starts its line, else on the line of the declaration: the first one of a
+	 * declaration without any takes over what stood in front of it, its doc comment among it. The code is that of an
+	 * attribute without `#[]`, its class spelled already.
+	 * @param  list<string>  $codes
+	 */
+	public static function addAttributes(AttributeAwareNode&Node $declaration, array $codes, RuleContext $context): void
+	{
+		$attributes = $declaration->attributes;
+		$anchor = $attributes->isEmpty() ? $declaration->getFirstToken() : $attributes->getLastToken()?->getNext();
+		$ownLine = $anchor?->startsLine() ?? false;
+		$eolText = $context->style->lineEnding;
+		$indentationText = $anchor?->getIndentation() ?? '';
+		// a trivia stands in one place, so each is made anew
+		$indentation = fn() => $indentationText === '' ? [] : [new Trivia(Trivia::Whitespace, $indentationText)];
+		$takesOver = $attributes->isEmpty();
+		foreach ($codes as $code) {
+			$group = (new Builder)->fragment(AttributeGroupNode::class, "#[$code]");
+			$attributes->append($group);
+			if ($anchor === null) {
+				continue;
+			} elseif ($takesOver) {
+				$group->getFirstToken()->setLeadingTrivia($anchor->leadingTrivia);
+				$anchor->setLeadingTrivia($ownLine ? $indentation() : []);
+				$takesOver = false;
+			} else {
+				$group->getFirstToken()->setLeadingTrivia($ownLine ? $indentation() : []);
+			}
+
+			$group->getLastToken()->setTrailingTrivia([Trivia::fromText($ownLine ? $eolText : ' ')]);
+		}
 	}
 }
