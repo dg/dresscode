@@ -1,0 +1,17 @@
+<?php
+namespace App;
+
+use AllowDynamicProperties as Dynamic;
+
+
+#[Dynamic]
+final class Aliased
+{
+	public readonly int $id;
+}
+
+#[Acme\Shop\AllowDynamicProperties]
+final readonly class Named
+{
+	public readonly int $id;
+}
