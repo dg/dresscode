@@ -1,0 +1,21 @@
+<?php
+// risky
+final class A
+{
+	public readonly string $name;
+
+	public function __construct(string $name)
+	{
+		$this->name = $name;
+	}
+}
+
+final class B
+{
+	public readonly string $name;
+
+	public function __construct(string $name)
+	{
+		$this->name = $name;
+	}
+}

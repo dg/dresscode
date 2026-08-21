@@ -1,0 +1,4 @@
+5: The property nothing but the constructor writes must be readonly
+	risky BehaviorChanges: code outside the file may write it
+15: The property nothing but the constructor writes must be readonly
+	risky BehaviorChanges: code outside the file may write it

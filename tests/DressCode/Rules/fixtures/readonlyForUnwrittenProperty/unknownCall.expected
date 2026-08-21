@@ -1,0 +1,16 @@
+<?php
+final class UnknownCall
+{
+	private array $values;
+
+	public function __construct(private readonly Service $service)
+	{
+		$this->values = [];
+	}
+
+
+	public function run(): void
+	{
+		$this->service->process($this->values);
+	}
+}
