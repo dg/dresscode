@@ -1,0 +1,32 @@
+<?php
+// {"classes": "PascalCase", "methods": "camelCase", "functions": "camelCase", "constants": "UPPER_CASE", "enumCases": "PascalCase", "properties": "camelCase", "variables": "camelCase"}
+namespace App;
+
+class foo_bar
+{
+	const Good = 1, OTHER_GOOD = 2, bad = 3;
+	public $okName, $Bad_name;
+	public function __construct(private int $promoted_bad, int $param_bad, int $paramOk) {}
+	public function __toString() {}
+	public function __soapCall() {}
+	public function Wrong_Method() {}
+	public function okMethod()
+	{
+		$snake_var = 1;
+		$snake_var = 2;
+		$Other = $this->x + $_GET['a'] + self::$Static + $snake_var;
+		$fn = fn($p_x) => $p_x;
+	}
+}
+
+interface IO {}
+interface HTTPClient {}
+enum Suit: string
+{
+	case Hearts = 'h';
+	case SPADES = 's';
+}
+function do_something() {}
+function __autoload() {}
+const TOP = 1;
+const top = 2;

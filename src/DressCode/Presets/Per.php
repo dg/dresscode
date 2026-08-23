@@ -34,6 +34,9 @@ final class Per implements Preset
 			// 7.1 Short closures
 			Rules\Whitespace\SemicolonSpacingRule::class => ['after' => null],
 
+			// 9. Enumerations: cases in PascalCase, on top of what PSR-1 says about names
+			Rules\Classes\NameCasingRule::class => ['classes' => 'PascalCase', 'methods' => 'camelCase', 'constants' => 'UPPER_CASE', 'enumCases' => 'PascalCase'],
+
 			// 10. Heredoc and nowdoc
 			Rules\Literals\NowdocWithoutInterpolationRule::class => true,
 			Rules\Literals\HeredocIndentationRule::class => true,
