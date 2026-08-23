@@ -101,6 +101,7 @@ final class RuleRegistry
 		Rules\Expressions\CombinedAssignmentOperatorRule::class,
 		Rules\Expressions\ConcatSpacingRule::class,
 		Rules\Expressions\DoubleColonSpacingRule::class,
+		Rules\Expressions\ExplicitOperatorPrecedenceRule::class,
 		Rules\Functions\NoIsNullRule::class,
 		Rules\Expressions\NoShortBoolCastRule::class,
 		Rules\Expressions\NoYodaComparisonRule::class,
