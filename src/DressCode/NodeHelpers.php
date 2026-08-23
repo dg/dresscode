@@ -4,10 +4,11 @@ namespace DressCode;
 
 use PhpSyntax\Nodes\Expression;
 use PhpSyntax\Nodes\ExpressionNode;
+use PhpSyntax\Nodes\Statement;
 use PhpSyntax\Parser\Parser;
 use PhpSyntax\Token;
 use PhpSyntax\TokenKind;
-use function in_array, ord;
+use function count, in_array, ord;
 
 
 /**
@@ -122,5 +123,24 @@ final class NodeHelpers
 		$copy->getFirstToken()?->setLeadingTrivia([]);
 		$copy->getLastToken()?->setTrailingTrivia([]);
 		return $copy;
+	}
+
+
+	/**
+	 * Whether the block ends with a statement after which the code does not go on: return, break, continue,
+	 * goto, throw or exit.
+	 */
+	public static function leaves(Statement\BlockNode $block): bool
+	{
+		$stmts = $block->stmts->getItems();
+		$last = $stmts === [] ? null : $stmts[count($stmts) - 1];
+		return match (true) {
+			$last instanceof Statement\ReturnNode,
+			$last instanceof Statement\BreakNode,
+			$last instanceof Statement\ContinueNode,
+			$last instanceof Statement\GotoNode => true,
+			$last instanceof Statement\ExpressionStatementNode => $last->expr instanceof Expression\ThrowNode || $last->expr instanceof Expression\ExitNode,
+			default => false,
+		};
 	}
 }
