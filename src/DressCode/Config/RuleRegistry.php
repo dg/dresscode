@@ -130,6 +130,7 @@ final class RuleRegistry
 		Rules\PhpDoc\NoUnknownParamAnnotationRule::class,
 		Rules\PhpDoc\PhpDocNullLastRule::class,
 		Rules\PhpDoc\PropertyPhpDocSingleLineRule::class,
+		Rules\PhpDoc\PhpDocCanonicalTypesRule::class,
 		Rules\PhpDoc\PhpDocTrimRule::class,
 		Rules\PhpDoc\PropertyPhpDocRequiredRule::class,
 		Rules\PhpDoc\PropertyVarAnnotationRule::class,

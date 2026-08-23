@@ -1,0 +1,17 @@
+<?php
+/**
+ * @param int $x
+ * @param bool $y
+ * @param float $z
+ * @return callable
+ */
+function f($x, $y, $z) {
+}
+/** @var string */
+$a = "";
+/** @var int */
+$b = 1;
+/** @var Integration */
+$c = null;
+/** @var array{callback: int, integer: int} */
+$s = [];

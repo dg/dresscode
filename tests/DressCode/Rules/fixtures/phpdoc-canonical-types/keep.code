@@ -1,0 +1,7 @@
+<?php
+// {"arrayNotation": null}
+/**
+ * @param array<int> $a
+ * @param int[] $c
+ */
+function f($a, $c) {}
