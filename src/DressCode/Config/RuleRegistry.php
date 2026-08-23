@@ -83,6 +83,7 @@ final class RuleRegistry
 		Rules\Functions\NoSettypeRule::class,
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
+		Rules\Namespaces\GlobalImportsRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Namespaces\OrderedImportsRule::class,
 		Rules\Namespaces\ReferenceUsedNamesOnlyRule::class,

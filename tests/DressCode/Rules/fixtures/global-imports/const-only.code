@@ -1,0 +1,7 @@
+<?php
+// {"constants": ["PHP_*"]}
+namespace App;
+
+use const PHP_EOL;
+
+echo count([]) . PHP_EOL;

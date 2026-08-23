@@ -1,0 +1,8 @@
+<?php
+// {"functions": "all", "constants": "all"}
+namespace App;
+
+use function array_map, count;
+use const PHP_EOL;
+
+echo array_map('f', []) . count([]) . no_such_function() . PHP_EOL . NO_SUCH_CONSTANT . true;

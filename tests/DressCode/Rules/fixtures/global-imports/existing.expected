@@ -1,0 +1,7 @@
+<?php
+namespace App;
+
+use function count, is_array;
+use function strlen, unused_fn;
+
+echo count([]) . strlen('') . is_array([]);
