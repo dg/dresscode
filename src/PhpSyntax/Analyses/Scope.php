@@ -3,6 +3,7 @@
 namespace PhpSyntax\Analyses;
 
 use PhpSyntax\Node;
+use PhpSyntax\Nodes\AnonymousClassNode;
 use PhpSyntax\Nodes\ClassLikeNode;
 use PhpSyntax\Nodes\Expression\ArrowFunctionNode;
 use PhpSyntax\Nodes\Expression\ClosureNode;
@@ -23,7 +24,7 @@ final class Scope
 	 * The innermost function, method, closure, arrow function or property hook around the node.
 	 */
 	public function getFunction(
-	    Node|Token $node,
+		Node|Token $node,
 	): FunctionNode|MethodNode|ClosureNode|ArrowFunctionNode|PropertyHookNode|null
 	{
 		for ($ancestor = $node->parent; $ancestor; $ancestor = $ancestor->parent) {
@@ -54,7 +55,7 @@ final class Scope
 	 */
 	public function hasThis(Node|Token $node): bool
 	{
-		for ($ancestor = $node->parent; $ancestor; $ancestor = $ancestor->parent) {
+		for ($ancestor = $node->parent; $ancestor; $node = $ancestor, $ancestor = $ancestor->parent) {
 			if ($ancestor instanceof ClosureNode || $ancestor instanceof ArrowFunctionNode) {
 				if ($ancestor->staticKeyword) {
 					return false;
@@ -63,6 +64,8 @@ final class Scope
 				return !$ancestor->modifiers->has(TokenKind::Static) && $this->getClass($ancestor) !== null;
 			} elseif ($ancestor instanceof PropertyHookNode) {
 				return true;
+			} elseif ($ancestor instanceof AnonymousClassNode && $node === $ancestor->args) {
+				continue; // the arguments of new class(...) are evaluated outside the class
 			} elseif ($ancestor instanceof FunctionNode || $ancestor instanceof ClassLikeNode) {
 				return false;
 			}
