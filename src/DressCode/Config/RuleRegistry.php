@@ -154,6 +154,7 @@ final class RuleRegistry
 		Rules\Variables\CombinedUnsetsRule::class,
 		Rules\Variables\NoDuplicateAssignmentRule::class,
 		Rules\Variables\NoGlobalKeywordRule::class,
+		Rules\Classes\NoThisInStaticContextRule::class,
 		Rules\Variables\NoUnsetOnPropertyRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\DeclareSpacingRule::class,
