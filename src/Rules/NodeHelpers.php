@@ -13,10 +13,11 @@ use PhpSyntax\Nodes\ExpressionNode;
 use PhpSyntax\Nodes\NodeList;
 use PhpSyntax\Nodes\OperatorNode;
 use PhpSyntax\Nodes\Scalar;
+use PhpSyntax\Nodes\Statement;
 use PhpSyntax\Parser;
 use PhpSyntax\Token;
 use PhpSyntax\TokenKind;
-use function ord;
+use function count, ord;
 
 
 /**
@@ -148,5 +149,24 @@ final class NodeHelpers
 		$copy = clone $expression;
 		$copy->setEdgeTrivia([], []);
 		return $copy;
+	}
+
+
+	/**
+	 * Whether the block ends with a statement after which the code does not go on: return, break, continue,
+	 * goto, throw or exit.
+	 */
+	public static function leaves(Statement\BlockNode $block): bool
+	{
+		$stmts = $block->statements->getItems();
+		$last = $stmts === [] ? null : $stmts[count($stmts) - 1];
+		return match (true) {
+			$last instanceof Statement\ReturnNode,
+			$last instanceof Statement\BreakNode,
+			$last instanceof Statement\ContinueNode,
+			$last instanceof Statement\GotoNode => true,
+			$last instanceof Statement\ExpressionStatementNode => $last->expression instanceof Expression\ThrowNode || $last->expression instanceof Expression\ExitNode,
+			default => false,
+		};
 	}
 }
