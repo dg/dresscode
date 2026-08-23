@@ -1,0 +1,11 @@
+<?php
+/**
+ * @param int[] $a
+ * @param int[][] $b
+ * @param array<int> $c
+ * @param list<int> $d
+ * @param array<string, int[]> $e
+ * @param (int|string)[] $f
+ * @return array{a: int[]}
+ */
+function f($a, $b, $c, $d, $e, $f) {}

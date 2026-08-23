@@ -1,0 +1,8 @@
+<?php
+/**
+ * @param int|string|int $a
+ * @param null|int|null $b
+ * @param int|int $c
+ * @return int|string
+ */
+function f($a, $b, $c) {}
