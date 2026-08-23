@@ -1,0 +1,7 @@
+<?php
+// {"functions": ["str_*"]}
+namespace App;
+
+use function str_replace;
+
+echo strlen('') . str_replace('a', 'b', 'c') . count([]);

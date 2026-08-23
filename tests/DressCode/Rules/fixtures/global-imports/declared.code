@@ -1,0 +1,17 @@
+<?php
+// {"functions": "all", "constants": "all"}
+namespace App;
+
+const PHP_EOL = "\n";
+
+function ini_set(string $option, string $value)
+{
+	return \ini_set($option, $value);
+}
+
+function f($x)
+{
+	ini_set('a', 'b');
+	\strlen($x);
+	echo PHP_EOL;
+}

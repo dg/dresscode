@@ -1,0 +1,12 @@
+<?php
+namespace App;
+
+use function count;
+
+class B
+{
+	function g()
+	{
+		return count([]);
+	}
+}

@@ -1,0 +1,3 @@
+5: Global function array_map() must be imported
+5: Global function count() must be imported
+5: Global constant 'PHP_EOL' must be imported

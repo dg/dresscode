@@ -1,0 +1,9 @@
+12: Global function count() must be imported
+12: An imported name must be used without the leading backslash
+12: Global function strlen() must be imported
+12: Global function in_array() must be imported
+12: An imported name must be used without the leading backslash
+13: Global constant 'PHP_EOL' must be imported
+13: Global constant 'PHP_VERSION' must be imported
+13: An imported name must be used without the leading backslash
+13: Global constant 'DIRECTORY_SEPARATOR' must be imported

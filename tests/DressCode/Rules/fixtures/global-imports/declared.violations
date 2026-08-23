@@ -1,0 +1,2 @@
+15: Global function strlen() must be imported
+15: An imported name must be used without the leading backslash
