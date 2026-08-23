@@ -1,0 +1,95 @@
+<?php
+function a($x)
+{
+	foo();
+	if (!$x) {
+		return;
+	}
+		bar();
+		baz();
+}
+
+function b($x): void
+{
+	if ($x <= 1) {
+		return;
+	}
+		bar();
+		baz();
+}
+
+function c($x): int
+{
+	if ($x) {
+		bar();
+		baz();
+	}
+}
+
+function d($x)
+{
+	if ($x) {
+		bar();
+	}
+}
+
+function e($x)
+{
+	if ($x) {
+		bar();
+		baz();
+	}
+	qux();
+}
+
+function f($x)
+{
+	if ($x) {
+		bar();
+		return;
+	}
+}
+
+function g($x)
+{
+	if (!$x) {
+		return 1;
+	}
+		bar();
+		baz();
+	qux();
+}
+
+function h($x)
+{
+	if ($x) {
+		bar();
+	} elseif ($y) {
+		baz();
+	} else {
+		return;
+	}
+}
+
+foreach ($items as $item) {
+	if ($item /* c */) {
+		bar();
+		baz();
+	}
+}
+
+while ($x) {
+	if (!($x && $y)) {
+		continue;
+	}
+		bar();
+		baz();
+}
+
+$f = function () {
+	if (!$x) {
+		return;
+	}
+		bar();
+		baz();
+};
