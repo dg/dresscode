@@ -1,0 +1,17 @@
+<?php
+$a = $b && $c || $d;
+$a = $b || $c && $d;
+if ($b and $c or $d) {
+}
+if ($b && $c and $d) {
+}
+$a = $b xor $c && $d;
+$a = ($b && $c) || $d;
+$a = $b && $c && $d;
+$a = $b & $c == 1;
+$a = ($b & $c) == 1;
+$a = $b | $c === $d;
+$a = $b + $c * $d;
+if ($x && $y || $z) {
+}
+return $a && $b || $c;
