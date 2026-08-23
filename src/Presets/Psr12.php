@@ -32,6 +32,9 @@ final class Psr12 implements Preset
 			Rules\Expressions\CastSpacingRule::class => true,
 			Rules\Expressions\CastCanonicalTypeRule::class => true,
 
+			// 2.1 Basic coding standard: PSR-1 3 and 4 on the case of names
+			Rules\Classes\NameCasingRule::class => ['classes' => 'PascalCase', 'methods' => 'camelCase', 'constants' => 'UPPER_CASE'],
+
 			// 3. Declare statements, namespace and import statements
 			Rules\Files\HeaderBlankLinesRule::class => true,
 			Rules\Namespaces\OrderedImportsRule::class => ['alphabetically' => false],

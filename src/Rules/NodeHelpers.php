@@ -2,8 +2,15 @@
 
 namespace DressCode\Rules;
 
+use DressCode\Analyses;
+use DressCode\RuleContext;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\Node;
+use PhpSyntax\Nodes\AttributeGroupNode;
 use PhpSyntax\Nodes\Expression;
 use PhpSyntax\Nodes\ExpressionNode;
+use PhpSyntax\Nodes\NodeList;
 use PhpSyntax\Nodes\OperatorNode;
 use PhpSyntax\Nodes\Scalar;
 use PhpSyntax\Parser;
@@ -26,6 +33,36 @@ final class NodeHelpers
 
 	/** the precedence of a cast and of unary minus, the tightest of the prefixes the rules write; `!` binds looser */
 	private const PrefixPrecedence = 240;
+
+
+	/**
+	 * Whether the declaration says of itself that it is deprecated, by the `@deprecated` annotation or by the
+	 * `#[\Deprecated]` attribute of PHP 8.4. What is deprecated cannot be renamed any more, so a rule about
+	 * names leaves it alone.
+	 */
+	public static function isDeprecated(Node $node, RuleContext $context): bool
+	{
+		$docComment = $node->getDocComment();
+		if ($docComment !== null && !$docComment->inInterpolation) {
+			foreach ($context->getAnalysis(Analyses\PhpDoc::class)->parse($docComment)->children as $child) {
+				if ($child instanceof PhpDocTagNode && strcasecmp($child->name, '@deprecated') === 0) {
+					return true;
+				}
+			}
+		}
+
+		$attributes = property_exists($node, 'attributes') ? $node->attributes : null;
+		$resolver = $context->getAnalysis(NameResolver::class);
+		foreach ($attributes instanceof NodeList ? $attributes->getItems() : [] as $group) {
+			foreach ($group instanceof AttributeGroupNode ? $group->attributes->getItems() : [] as $attribute) {
+				if (strcasecmp($resolver->resolveClass($attribute->name, $node), 'Deprecated') === 0) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 
 
 	/**
