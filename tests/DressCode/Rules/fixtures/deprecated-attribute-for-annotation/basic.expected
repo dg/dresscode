@@ -1,0 +1,55 @@
+<?php
+// risky
+// php 8.4
+
+#[\Deprecated(message: 'Use someOtherFunction() instead', since: '1.0.0')]
+function a()
+{
+}
+
+
+/**
+ * Does something.
+ */
+#[\Deprecated]
+function b()
+{
+}
+
+
+#[\Deprecated(message: 'Use the other one')]
+function c()
+{
+}
+
+class D
+{
+	#[\Deprecated(since: '2.1')]
+	public function old(): void
+	{
+	}
+
+
+	#[\Deprecated]
+	public const OLD = 1;
+
+
+	#[\Deprecated]
+	/** @deprecated */
+	public function marked(): void
+	{
+	}
+}
+
+enum E
+{
+	#[\Deprecated(message: 'Use NEW', since: '1.0')]
+	case Old;
+}
+
+/**
+ * @deprecated
+ */
+class F
+{
+}

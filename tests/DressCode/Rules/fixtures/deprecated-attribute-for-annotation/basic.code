@@ -1,0 +1,59 @@
+<?php
+// risky
+// php 8.4
+
+/**
+ * @deprecated 1.0.0 Use someOtherFunction() instead
+ */
+function a()
+{
+}
+
+
+/**
+ * Does something.
+ * @deprecated
+ */
+function b()
+{
+}
+
+
+/**
+ * @deprecated Use the other one
+ */
+function c()
+{
+}
+
+class D
+{
+	/** @deprecated 2.1 */
+	public function old(): void
+	{
+	}
+
+
+	/** @deprecated */
+	public const OLD = 1;
+
+
+	#[\Deprecated]
+	/** @deprecated */
+	public function marked(): void
+	{
+	}
+}
+
+enum E
+{
+	/** @deprecated 1.0 Use NEW */
+	case Old;
+}
+
+/**
+ * @deprecated
+ */
+class F
+{
+}
