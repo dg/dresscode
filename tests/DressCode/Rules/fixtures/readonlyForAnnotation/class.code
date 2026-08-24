@@ -1,0 +1,74 @@
+<?php
+// risky
+// php 8.2
+namespace App;
+
+/**
+ * A point.
+ * @readonly
+ */
+final class Point
+{
+	public function __construct(
+		public int $x,
+		public int $y = 0,
+	) {
+	}
+}
+
+/** @psalm-readonly */
+final class Money
+{
+	/** @readonly */
+	private int $amount;
+	private string $currency;
+}
+
+// left alone
+
+/** @readonly */
+class Open
+{
+	private int $amount;
+}
+
+/** @readonly */
+final class Child extends Base
+{
+	private int $amount;
+}
+
+/** @readonly */
+final class WithTrait
+{
+	use Named;
+}
+
+/** @readonly */
+#[\AllowDynamicProperties]
+final class Dynamic
+{
+}
+
+/** @readonly */
+final class Untyped
+{
+	private $amount;
+}
+
+/** @readonly */
+final class WithDefault
+{
+	private int $amount = 0;
+}
+
+/** @readonly */
+final class WithStatic
+{
+	private static int $count;
+}
+
+/** @readonly */
+final readonly class Already
+{
+}

@@ -1,0 +1,4 @@
+6: The class `Point` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error
+19: The class `Money` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error

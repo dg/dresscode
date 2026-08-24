@@ -14,7 +14,7 @@ use PhpSyntax\Token;
 
 /**
  * The modifiers of a property, a method and a constant as `VisibilityRequiredRule` and `ModifierOrderRule` read and
- * write them and the readonly rule adds `readonly` to them.
+ * write them and the readonly rules add `readonly` to them.
  * @internal
  */
 final class MemberModifiers
