@@ -1,0 +1,13 @@
+4: The callable must be called directly, not through `call_user_func()`
+	risky BehaviorChanges: the callable may take a parameter by reference, which the direct call passes as one
+5: The callable must be called directly, not through `call_user_func()`
+	risky BehaviorChanges: the callable may take a parameter by reference, which the direct call passes as one
+6: The callable must be called directly, not through `call_user_func()`
+	risky BehaviorChanges: the callable may take a parameter by reference, which the direct call passes as one
+7: The callable must be called directly, not through `call_user_func()`
+8: The callable must be called directly, not through `call_user_func()`
+	risky BehaviorChanges: the callable may take a parameter by reference, which the direct call passes as one
+9: The callable must be called directly, not through `call_user_func()`
+10: The callable must be called directly, not through `call_user_func()`
+	risky BehaviorChanges: the callable may take a parameter by reference, which the direct call passes as one
+11: The callable must be called directly, not through `call_user_func()`

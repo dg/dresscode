@@ -1,0 +1,5 @@
+6: The callable must be called directly, not through `call_user_func()`
+7: The callable must be called directly, not through `call_user_func()`
+8: The callable must be called directly, not through `call_user_func()`
+	risky BehaviorChanges: under `strict_types` the direct call refuses an argument `call_user_func()` converted
+9: The callable must be called directly, not through `call_user_func_array()`

@@ -1,0 +1,39 @@
+<?php
+// php 8.1
+$a = call_user_func($callback);
+$b = call_user_func($callback, 1, 'x');
+$c = call_user_func($this->handler, 1);
+$d = call_user_func(static::$factory, 1);
+$e = call_user_func($handlers['save'], 1);
+$f = call_user_func($this->handlers['save'], 1);
+$g = call_user_func(getHandler(), 1);
+$h = call_user_func($factory->create(), 1);
+$i = call_user_func(function ($x) { return $x; }, 1);
+$j = call_user_func(fn($x) => $x, 1);
+$k = call_user_func('strtoupper', 'a');
+$l = call_user_func($prefix . 'Handler', 1);
+$m = call_user_func(new Invokable, 1);
+$n = \call_user_func($callback, [1, 2]);
+$o = call_user_func(
+	$callback,
+	1,
+	2,
+);
+$p = call_user_func($this->condition) ? 'yes' : 'no';
+$q = call_user_func_array($callback, func_get_args()) . 'x';
+$r = [
+	call_user_func($callback, 1) // first
+	,
+	call_user_func($callback)
+];
+
+// left alone
+$s = call_user_func([$obj, 'method'], 1);
+$t = call_user_func('Foo::bar', 1);
+$u = call_user_func(...);
+$v = call_user_func();
+$w = Foo\call_user_func($callback, 1);
+$x = $obj->call_user_func($callback, 1);
+$y = call_user_func(...$arguments);
+$z = call_user_func(callback: $callback);
+$aa = call_user_func('isset', 1);

@@ -1,0 +1,215 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\Functions;
+
+use DressCode\Analyses\{Parameter, PhpSignatures, PhpSymbols};
+use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
+use DressCode\Rules\{Compiler, GlobalCalls};
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{NameForm, Node, ParseException, Parser, SymbolKind, Token};
+use PhpSyntax\Nodes\{ArgumentNode, ExpressionNode, NameNode, ParameterNode};
+use PhpSyntax\Nodes\Expression\{ArrayNode, ArrowFunctionNode, ClosureNode, FunctionCallNode};
+use PhpSyntax\Nodes\Scalar\StringNode;
+use PhpSyntax\Nodes\Statement\DeclareNode;
+use function array_any, count;
+
+
+/**
+ * A callable is called directly, not through `call_user_func()`: `$callback($a)`, `($this->handler)($a)`,
+ * `strtoupper($a)`, and `call_user_func_array($callback, $args)` is `$callback(...$args)` from PHP 8.1 on, where
+ * unpacking takes the string keys the function passes as named arguments. A callable written as an array or as
+ * a string naming a method is left alone: whether `[$x, 'run']` holds an object or a class is not in the code.
+ *
+ * Two things the direct call does differently make a fix risky. It passes a variable, a property or an element by
+ * reference where the function declares the parameter so, which `call_user_func()` never does; that is ruled out
+ * only for a callable whose parameters are in sight, a closure or a function of PHP. And `call_user_func()`,
+ * being internal, hands the arguments over as a caller without strict types, so in a file declaring them the direct
+ * call may throw a TypeError where the old one converted; unless PHP compiles the call into a direct one itself,
+ * which it does where it knows the name is the global function and no argument is named or unpacked.
+ */
+#[RuleInfo(
+	'dresscode/noCallUserFunc',
+	Stage::Structure,
+	description: 'Calls a callable directly instead of through `call_user_func()`',
+	group: RuleGroup::Cleanup,
+	requires: ['php' => '>=7.0'],
+)]
+final class NoCallUserFuncRule extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [FunctionCallNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if (
+			!$node instanceof FunctionCallNode
+			|| !$node->name instanceof NameNode
+			|| ($function = GlobalCalls::findFunction($node, ['call_user_func' => true, 'call_user_func_array' => true], $context)) === null
+			|| $node->arguments->isPartialApplication()
+		) {
+			return;
+		}
+
+		$args = $node->arguments->items->getItems();
+		$callable = $args[0] ?? null;
+		if (
+			!$callable instanceof ArgumentNode
+			|| $callable->name !== null
+			|| $callable->ellipsis !== null
+			|| $callable->value instanceof ArrayNode
+		) {
+			return;
+		}
+
+		$named = $callable->value instanceof StringNode ? self::buildNamedCall($callable->value, $context) : null;
+		if ($callable->value instanceof StringNode && $named === null) {
+			return;
+		}
+
+		if ($function === 'call_user_func_array') {
+			$array = $args[1] ?? null;
+			if (
+				count($args) !== 2
+				|| !$array instanceof ArgumentNode
+				|| $array->name !== null
+				|| $array->ellipsis !== null
+				|| version_compare($context->phpVersion, '8.1', '<')
+			) {
+				return;
+			}
+
+			$passed = [$array->value];
+			$end = $node->arguments->closeParen;
+
+		} else {
+			$passed = array_map(fn(ArgumentNode $arg) => $arg->value, array_filter(array_slice($args, 1), fn($arg) => $arg instanceof ArgumentNode));
+			$end = ($args[1] ?? null)?->getFirstToken() ?? $node->arguments->closeParen;
+		}
+
+		// a comment between the name and the arguments the call keeps would be lost with them
+		$fixable = $node->name->getLastToken()?->hasCommentUpTo($end) === false;
+		$uncertainty = GlobalCalls::findUncertainty($node, $context);
+		$because = match (true) {
+			array_any($passed, fn(ExpressionNode $value) => $value->isWritable()) && !$this->isWithoutReferences($callable->value, $context)
+				=> 'the callable may take a parameter by reference, which the direct call passes as one',
+			$passed !== [] && self::declaresStrictTypes($context) && !$this->isCompiledDirectly($node, $function, $context)
+				=> 'under `strict_types` the direct call refuses an argument `' . $function . '()` converted',
+			default => null,
+		};
+
+		if (!$context->report(
+			$node->name,
+			"The callable must be called directly, not through `$function()`",
+			fixable: $fixable,
+			risk: $because !== null ? Risk::BehaviorChanges : ($uncertainty === null ? null : Risk::NameUncertain),
+			because: $because ?? $uncertainty,
+		)) {
+			return;
+		}
+
+		$call = $named ?? FunctionCallNode::of(clone $callable->value);
+		if ($function === 'call_user_func_array') {
+			$template = (new Parser)->parseExpression('f(...$a)');
+			assert($template instanceof FunctionCallNode && $template->arguments->items->getItems()[0] instanceof ArgumentNode);
+			$value = $passed[0]->withoutEdgeTrivia();
+			$template->arguments->items->getItems()[0]->value->replaceWith($value);
+			$call->arguments = clone $template->arguments;
+		} else {
+			// what follows the call stays with the node it replaces, so the arguments must not bring it a second time
+			$arguments = clone $node->arguments;
+			$arguments->items->removeItem($arguments->items->getItems()[0]);
+			$arguments->closeParen->setTrailingTrivia([]);
+			$call->arguments = $arguments;
+		}
+
+		$node->replaceWith($call);
+	}
+
+
+	/**
+	 * The call of the function a string callable names, without arguments, its name written bare only where nothing
+	 * but the global function answers to it; null for a string naming a method, a keyword, or anything but a name.
+	 */
+	private static function buildNamedCall(StringNode $callable, RuleContext $context): ?FunctionCallNode
+	{
+		$name = self::findFunctionName($callable);
+		if ($name === null) {
+			return null;
+		}
+
+		$resolver = $context->getAnalysis(NameResolver::class);
+		$bare = $resolver->getNamespace($callable) === '' && !isset($resolver->getImports(SymbolKind::Function, $callable)[strtolower($name)]);
+		try {
+			$call = (new Parser)->parseExpression(($bare ? '' : '\\') . $name . '()');
+		} catch (ParseException) {
+			return null;
+		}
+
+		return $call instanceof FunctionCallNode && $call->name instanceof NameNode && !$call->name->isKeyword()
+			? $call
+			: null;
+	}
+
+
+	/** Whether none of the parameters of the callable takes an argument by reference, as far as the code shows them. */
+	private function isWithoutReferences(ExpressionNode $callable, RuleContext $context): bool
+	{
+		if ($callable instanceof ClosureNode || $callable instanceof ArrowFunctionNode) {
+			return !array_any($callable->parameters->getItems(), fn(ParameterNode $parameter) => $parameter->ampersand !== null);
+		}
+
+		$name = $callable instanceof StringNode ? self::findFunctionName($callable) : null;
+		$parameters = $name !== null && $context->getAnalysis(PhpSymbols::class)->isInternalFunction($name)
+			? $context->getAnalysis(PhpSignatures::class)->findParameters($name)
+			: null;
+		return $parameters !== null && !array_any($parameters, fn(Parameter $parameter) => $parameter->byReference);
+	}
+
+
+	/** Whether PHP compiles the call into a direct call of the callable, which checks the types as the file does. */
+	private function isCompiledDirectly(FunctionCallNode $call, string $function, RuleContext $context): bool
+	{
+		$resolver = $context->getAnalysis(NameResolver::class);
+		$name = $call->name;
+		return $name instanceof NameNode
+			&& (
+				$name->form === NameForm::FullyQualified
+				|| $resolver->getNamespace($call) === ''
+				|| isset($resolver->getImports(SymbolKind::Function, $call)[strtolower($name->text)])
+			)
+			&& Compiler::isOptimizedCall($call, $function, $context);
+	}
+
+
+	/** The function a string callable names, without a leading backslash; null for a method or anything but a name. */
+	private static function findFunctionName(StringNode $string): ?string
+	{
+		return preg_match('~^\\\\?([a-z_\x80-\xff][\w\x80-\xff]*(?:\\\\[a-z_\x80-\xff][\w\x80-\xff]*)*)$~iD', $string->value, $m)
+			? $m[1]
+			: null;
+	}
+
+
+	private static function declaresStrictTypes(RuleContext $context): bool
+	{
+		foreach ($context->file->statements->getItems() as $statement) {
+			if ($statement instanceof DeclareNode) {
+				foreach ($statement->items->getItems() as $item) {
+					if (strtolower($item->name->token->text) === 'strict_types' && trim((string) $item->value) === '1') {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+}
