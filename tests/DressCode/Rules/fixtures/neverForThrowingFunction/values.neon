@@ -1,0 +1,3 @@
+correctness:
+	neverReturnType: required
+	neverReturnTypeOnClosures: keep
