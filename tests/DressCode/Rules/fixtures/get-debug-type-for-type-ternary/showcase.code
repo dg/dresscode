@@ -1,0 +1,3 @@
+<?php
+// risky
+$type = is_object($value) ? get_class($value) : gettype($value);
