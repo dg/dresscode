@@ -1,0 +1,3 @@
+3: The closure never returns and must have the return type `never`.
+7: The closure never returns and must have the return type `never`.
+23: The closure never returns and must have the return type `never`.

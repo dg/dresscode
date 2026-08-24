@@ -192,6 +192,7 @@ final class CorePlugin implements Plugin
 				Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
 				Rules\PhpDoc\UselessFunctionPhpdocRule::class,
 				Rules\PhpDoc\UselessInheritdocRule::class,
+				Rules\Types\NeverForThrowingFunctionRule::class,
 				Rules\Types\NullableTypeForDefaultNullRule::class,
 				Rules\Types\NativeTypeRequiredRule::class,
 				Rules\Types\ConstantTypeRequiredRule::class,

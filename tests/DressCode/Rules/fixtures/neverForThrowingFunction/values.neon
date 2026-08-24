@@ -1,0 +1,4 @@
+upgrading:
+	syntax:
+		neverReturnType: adopted
+		neverReturnTypeOnClosures: no

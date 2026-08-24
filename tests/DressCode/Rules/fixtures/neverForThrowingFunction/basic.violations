@@ -1,0 +1,10 @@
+2: The function `a()` never returns and must have the return type `never`.
+8: The function `b()` never returns and must have the return type `never`.
+31: The function `e()` never returns and must have the return type `never`.
+67: The method `failPrivate()` never returns and must have the return type `never`.
+73: The method `failFinal()` never returns and must have the return type `never`.
+91: The method `fail()` never returns and must have the return type `never`.
+106: The method `failFinal()` never returns and must have the return type `never`.
+112: The method `failPrivate()` never returns and must have the return type `never`.
+121: The method `fail()` never returns and must have the return type `never`.
+129: The method `fail()` never returns and must have the return type `never`.
