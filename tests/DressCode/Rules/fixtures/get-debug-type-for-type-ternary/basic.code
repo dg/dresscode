@@ -1,0 +1,10 @@
+<?php
+// risky
+$a = is_object($value) ? get_class($value) : gettype($value);
+$b = !is_object($value) ? gettype($value) : get_class($value);
+$c = is_object($this->x) ? get_class($this->x) : gettype($this->x);
+$d = is_object($value) ? get_class($other) : gettype($value);
+$e = is_object($value) ? $value::class : gettype($value);
+$f = is_object($value) ? get_class($value) : get_debug_type($value);
+$g = is_array($value) ? get_class($value) : gettype($value);
+$h = is_object(f()) ? get_class(f()) : gettype(f());
