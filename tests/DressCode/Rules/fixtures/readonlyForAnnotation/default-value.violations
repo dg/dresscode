@@ -1,0 +1,4 @@
+8: The property `$limit` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error
+30: The class `Settings` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error

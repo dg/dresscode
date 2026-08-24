@@ -1,0 +1,2 @@
+9: The property `$x` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error

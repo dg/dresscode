@@ -1,0 +1,10 @@
+<?php
+// risky
+// php 8.1
+namespace App;
+
+/** @readonly */
+final class Point
+{
+	private readonly int $x;
+}

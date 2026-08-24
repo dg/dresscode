@@ -46,6 +46,7 @@ final class CorePlugin implements Plugin
 				Rules\Classes\PromotedPropertyForAssignmentRule::class,
 				Rules\Classes\PublicWithSetVisibilityRule::class,
 				Rules\Classes\ReadonlyClassForReadonlyPropertiesRule::class,
+				Rules\Classes\ReadonlyForAnnotationRule::class,
 				Rules\Classes\ReadonlyForUnwrittenPropertyRule::class,
 				Rules\Classes\SelfForCurrentClassRule::class,
 				Rules\Classes\NoGroupedDeclarationsRule::class,

@@ -1,0 +1,14 @@
+7: The property `$name` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error
+10: The property `$id` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error
+16: The property `$foo` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error
+42: The property `$name` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error
+45: The property `$id` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error
+48: The property `$legacy` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error
+53: The property `$name` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error
