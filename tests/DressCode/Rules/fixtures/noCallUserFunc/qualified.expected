@@ -1,0 +1,6 @@
+<?php
+use Acme\Shop as App;
+
+$a = \App\format(1);
+$b = \Lib\format(2);
+$c = format(3);

@@ -1,0 +1,11 @@
+<?php
+// call_user_func() warns where the callable takes the argument by reference
+
+$a = $callback($value);
+$b = $callback($this->value, 1);
+$c = $callback(...$values);
+$d = strtoupper($value);
+$e = sort($value);
+$f = (function ($x) { return $x; })($value);
+$g = (function (&$x) { $x = 1; })($value);
+$h = (fn($x) => $x)($items[0]);

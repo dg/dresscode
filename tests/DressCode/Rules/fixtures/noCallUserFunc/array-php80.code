@@ -1,0 +1,6 @@
+<?php
+// php 8.0
+// PHP 8.0 unpacks no array with string keys, which call_user_func_array() passes as named arguments
+
+$a = call_user_func_array($callback, func_get_args());
+$b = call_user_func($callback, 1);

@@ -1,0 +1,5 @@
+<?php declare(strict_types=1);
+// risky
+// php 8.1
+
+$c = call_user_func($callback, x: 1);
