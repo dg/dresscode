@@ -1,0 +1,25 @@
+<?php
+// {"closures": true}
+$fail = function () {
+	throw new LogicException('no');
+};
+
+$exit = static function (int $code) {
+	exit($code);
+};
+
+$returning = function () {
+	if ($x) {
+		return 1;
+	}
+
+	throw new LogicException('no');
+};
+
+$typed = function (): never {
+	throw new LogicException('no');
+};
+
+usort($items, function ($a, $b) {
+	throw new LogicException('no');
+});

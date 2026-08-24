@@ -191,6 +191,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\PhpDoc\ExplicitAssertionRule::class,
 				Rules\Types\NullableTypeForDefaultNullRule::class,
 				Rules\Types\TypeHintRequiredRule::class,
+				Rules\Types\NeverForThrowingFunctionRule::class,
 				Rules\Types\TypeHintSpacingRule::class,
 				Rules\Types\UnionTypeNotationRule::class,
 				Rules\Variables\CombinedIssetsRule::class,
