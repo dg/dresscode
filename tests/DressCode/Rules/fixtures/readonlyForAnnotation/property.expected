@@ -1,0 +1,49 @@
+<?php
+// risky
+namespace App;
+
+class Open
+{
+	private readonly string $name;
+
+	/**
+	 * The identifier.
+	 */
+	private readonly int $id;
+
+	private readonly ?Foo $foo;
+
+	// left alone
+
+	/** @readonly */
+	public string $public;
+
+	/** @readonly */
+	private $untyped;
+
+	/** @readonly */
+	private int $withDefault = 1;
+
+	/** @readonly */
+	private static int $static;
+
+	/** @readonly */
+	private readonly int $already;
+
+	/** @immutable */
+	private int $other;
+}
+
+final class Closed
+{
+	public readonly string $name;
+
+	protected readonly int $id;
+
+	/** @readonly */
+	var int $legacy;
+}
+
+$x = new class {
+	public readonly string $name;
+};

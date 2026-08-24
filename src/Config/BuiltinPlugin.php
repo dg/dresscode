@@ -49,6 +49,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Classes\PromotedPropertyForAssignmentRule::class,
 				Rules\Classes\ReadonlyForUnwrittenPropertyRule::class,
 				Rules\Classes\ReadonlyClassForReadonlyMembersRule::class,
+				Rules\Classes\ReadonlyForAnnotationRule::class,
 				Rules\Classes\ClassConstantForConstantCallRule::class,
 				Rules\Classes\SelfForCurrentClassRule::class,
 				Rules\Classes\StringableRequiredRule::class,

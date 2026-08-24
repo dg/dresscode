@@ -1,0 +1,12 @@
+7: The property the annotation marks as readonly must be declared readonly
+	risky BehaviorChanges
+10: The property the annotation marks as readonly must be declared readonly
+	risky BehaviorChanges
+16: The property the annotation marks as readonly must be declared readonly
+	risky BehaviorChanges
+42: The property the annotation marks as readonly must be declared readonly
+	risky BehaviorChanges
+45: The property the annotation marks as readonly must be declared readonly
+	risky BehaviorChanges
+53: The property the annotation marks as readonly must be declared readonly
+	risky BehaviorChanges
