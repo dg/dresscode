@@ -1,0 +1,4 @@
+3: The callable must be called directly, not through `call_user_func()`, but a comment stands among its arguments.
+4: The callable must be called directly, not through `call_user_func()`, but a comment stands among its arguments.
+5: The callable must be called directly, not through `call_user_func()`, but a comment stands among its arguments.
+6: The callable must be called directly, not through `call_user_func_array()`, but a comment stands among its arguments.

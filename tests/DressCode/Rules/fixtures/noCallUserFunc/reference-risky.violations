@@ -1,0 +1,4 @@
+4: The callable must be called directly, not through `call_user_func()`.
+	risky BehaviorChanges: the callable may take a parameter by reference, which the direct call passes as one
+5: The callable must be called directly, not through `call_user_func()`.
+	risky BehaviorChanges: the callable may take a parameter by reference, which the direct call passes as one

@@ -1,0 +1,38 @@
+<?php
+// php 8.1
+$a = $callback();
+$b = $callback(1, 'x');
+$c = ($this->handler)(1);
+$d = (static::$factory)(1);
+$e = $handlers['save'](1);
+$f = $this->handlers['save'](1);
+$g = getHandler()(1);
+$h = $factory->create()(1);
+$i = (function ($x) { return $x; })(1);
+$j = (fn($x) => $x)(1);
+$k = strtoupper('a');
+$l = ($prefix . 'Handler')(1);
+$m = (new Invokable)(1);
+$n = $callback([1, 2]);
+$o = $callback(
+	1,
+	2,
+);
+$p = ($this->condition)() ? 'yes' : 'no';
+$q = $callback(...func_get_args()) . 'x';
+$r = [
+	$callback(1) // first
+	,
+	$callback()
+];
+
+// left alone
+$s = call_user_func([$obj, 'method'], 1);
+$t = call_user_func('Foo::bar', 1);
+$u = call_user_func(...);
+$v = call_user_func();
+$w = Foo\call_user_func($callback, 1);
+$x = $obj->call_user_func($callback, 1);
+$y = call_user_func(...$arguments);
+$z = call_user_func(callback: $callback);
+$aa = call_user_func('isset', 1);

@@ -1,0 +1,9 @@
+<?php declare(strict_types=1);
+// php 8.1
+
+// the call PHP compiles into a direct one already checks the types strictly, the other one loosely
+
+$a = $callback(1);
+$b = $callback();
+$c = call_user_func($callback, x: 1);
+$d = $callback(...[1]);
