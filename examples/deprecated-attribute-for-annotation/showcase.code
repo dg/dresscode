@@ -1,0 +1,10 @@
+<?php
+// risky
+// php 8.4
+
+/**
+ * @deprecated 2.0 Use render() instead
+ */
+function renderTemplate()
+{
+}
