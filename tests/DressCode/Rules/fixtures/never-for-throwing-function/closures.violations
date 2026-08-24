@@ -1,0 +1,3 @@
+3: The function that always throws must be declared as returning never
+7: The function that always throws must be declared as returning never
+23: The function that always throws must be declared as returning never

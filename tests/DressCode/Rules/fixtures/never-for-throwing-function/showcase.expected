@@ -1,0 +1,5 @@
+<?php
+function fail(string $message): never
+{
+	throw new LogicException($message);
+}
