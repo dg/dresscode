@@ -49,6 +49,7 @@ final class RuleRegistry
 		Rules\Classes\PromotedPropertyForAssignedParameterRule::class,
 		Rules\Classes\ReadonlyForUnwrittenPropertyRule::class,
 		Rules\Classes\ReadonlyClassForReadonlyMembersRule::class,
+		Rules\Classes\ReadonlyForAnnotationRule::class,
 		Rules\Classes\ClassConstantFetchForConstantCallRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\Classes\StringableRequiredRule::class,
