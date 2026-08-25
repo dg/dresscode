@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * Lost.
+ */
+/**
+ * Documents the class.
+ */
+class A
+{
+	/** Lost. */
+
+	/** Documents the constant. */
+	const X = 1;
+
+	/** First. */ /** Second. */
+	public $a;
+
+	/** Separated. */
+	// by a comment
+	/** Documents the property. */
+	public $b;
+
+	/** Alone. */
+	public $c;
+
+	/** One. */
+	/** Two. */
+	/** Three. */
+	public function foo()
+	{
+		$x = 1; /** Inline. */
+		/** Next line. */
+		$y = 2;
+
+		/* plain */
+		/** Documented. */
+		return "{$x /** a */ /** b */}";
+	}
+}
