@@ -1,0 +1,2 @@
+10: The private method `trim()` uses no `$this` and must be static.
+	risky BehaviorChanges: a closure made of it can no longer be bound to an object

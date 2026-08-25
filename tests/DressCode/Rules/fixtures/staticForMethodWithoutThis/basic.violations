@@ -1,0 +1,10 @@
+16: The private method `trim()` uses no `$this` and must be static.
+	risky BehaviorChanges: a closure made of it can no longer be bound to an object
+22: The private method `pad()` uses no `$this` and must be static.
+	risky BehaviorChanges: a closure made of it can no longer be bound to an object
+34: The private method `wrap()` uses no `$this` and must be static.
+	risky BehaviorChanges: a closure made of it can no longer be bound to an object
+40: The private method `build()` uses no `$this` and must be static.
+	risky BehaviorChanges: a closure made of it can no longer be bound to an object
+122: The private method `helper()` uses no `$this` and must be static.
+	risky BehaviorChanges: a closure made of it can no longer be bound to an object

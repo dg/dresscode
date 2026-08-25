@@ -1,0 +1,59 @@
+<?php
+// risky
+class Solo
+{
+	public function describe(): string
+	{
+		return $this->other() . $this->own() . $this->ownStatic();
+	}
+
+
+	public static function create(): string
+	{
+		return 'x';
+	}
+
+
+	public function name(): string
+	{
+		return 'solo';
+	}
+
+
+	private function other(): string
+	{
+		return Other::make();
+	}
+
+
+	private function own(): string
+	{
+		return Solo::name();
+	}
+
+
+	private function ownStatic(): string
+	{
+		return Solo::create();
+	}
+}
+
+class Child extends Base
+{
+	public function describe(): string
+	{
+		return $this->ancestor() . $this->other();
+	}
+
+
+	private function ancestor(): string
+	{
+		return Base::helper();
+	}
+
+
+	private function other(): string
+	{
+		return Other::make();
+	}
+}
