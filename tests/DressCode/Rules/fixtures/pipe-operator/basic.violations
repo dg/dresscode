@@ -1,8 +1,8 @@
 2: The nested calls must be written with the pipe operator
-4: The nested calls must be written with the pipe operator
-5: The nested calls must be written with the pipe operator
+4: The nested calls must be written with the pipe operator, which fails on a parameter by reference
+5: The nested calls must be written with the pipe operator, which fails on a parameter by reference
 6: The nested calls must be written with the pipe operator
 7: The nested calls must be written with the pipe operator
-13: The nested calls must be written with the pipe operator
+13: The nested calls must be written with the pipe operator, which fails on a parameter by reference
 14: The nested calls must be written with the pipe operator
 15: The nested calls must be written with the pipe operator

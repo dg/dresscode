@@ -7,9 +7,11 @@
 
 namespace DressCode\Rules\Expressions;
 
+use DressCode\Analyses\PhpSignatures;
 use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{AccessKind, Node, Parser, Token};
+use PhpSyntax\{AccessKind, Node, Parser, SymbolKind, Token};
+use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, Expression, ExpressionNode, IdentifierNode, NameNode, OperatorNode};
 use function count;
 
@@ -22,6 +24,10 @@ use function count;
  *
  * A nest standing inside an operator that binds tighter than the pipe stays as it is: the pipe binds loosely,
  * between concatenation and comparison, so it would need parentheses there and read worse than the nest.
+ *
+ * A pipe cannot pass its value by reference, so a nest with a step taking it so stays as it is. What a step takes
+ * says the declaration of PHP or of the file; the fix is risky where nothing says it, which is every method and
+ * a function of another file.
  */
 #[RuleInfo(
 	'dresscode/pipe-operator',
@@ -72,19 +78,26 @@ final class PipeOperatorRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$steps = [];
+		$steps = $byValue = [];
 		$inner = $node;
 		while (($callee = self::readCallee($inner)) !== null) {
 			$steps[] = $callee;
 			assert($inner instanceof Expression\FunctionCallNode || $inner instanceof Expression\MethodCallNode || $inner instanceof Expression\StaticMethodCallNode);
+			$byValue[] = self::takesByValue($inner, $context);
 			$argument = $inner->arguments->items->getItems()[0];
 			assert($argument instanceof ArgumentNode);
 			$inner = $argument->value;
 		}
 
+		$unknown = in_array(null, $byValue, true);
 		if (
 			count($steps) < $this->minimumCalls
-			|| !$context->report($node, 'The nested calls must be written with the pipe operator')
+			|| in_array(false, $byValue, true)
+			|| !$context->report(
+				$node,
+				'The nested calls must be written with the pipe operator' . ($unknown ? ', which fails on a parameter by reference' : ''),
+				risky: $unknown,
+			)
 		) {
 			return;
 		}
@@ -133,6 +146,30 @@ final class PipeOperatorRule extends NodeRule implements ConfigurableRule
 				? $call->class->text . '::' . $call->name->text
 				: null,
 		};
+	}
+
+
+	/**
+	 * Whether the call takes its argument by value, as the declaration in the file or the one of PHP says; null
+	 * where nothing tells.
+	 */
+	private static function takesByValue(ExpressionNode $call, RuleContext $context): ?bool
+	{
+		if (!$call instanceof Expression\FunctionCallNode || !$call->name instanceof NameNode) {
+			return null;
+		}
+
+		$resolver = $context->getAnalysis(NameResolver::class);
+		$function = $resolver->resolveFunction($call->name);
+		$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
+		if ($declaration !== null) {
+			return ($declaration->parameters->getItems()[0] ?? null)?->ampersand === null;
+		}
+
+		$parameters = $resolver->isGlobalFunctionCall($call)
+			? $context->getAnalysis(PhpSignatures::class)->findParameters($function)
+			: null;
+		return $parameters === null ? null : !($parameters[0]->byReference ?? false);
 	}
 
 

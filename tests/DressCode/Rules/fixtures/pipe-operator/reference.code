@@ -1,0 +1,16 @@
+<?php
+function shout(string $s): string
+{
+	return strtoupper($s);
+}
+
+function sortAll(array &$items): array
+{
+	sort($items);
+	return $items;
+}
+
+$a = shout(trim(strtolower($input)));
+$b = sortAll(array_unique(array_filter($items)));
+$c = end(array_unique(array_filter($items)));
+$d = trim(strtolower(elsewhere($input)));

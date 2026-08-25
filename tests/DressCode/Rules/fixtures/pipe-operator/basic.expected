@@ -1,8 +1,8 @@
 <?php
 $a = $input |> htmlspecialchars(...) |> strtolower(...) |> trim(...);
 $b = trim(strtolower($input));
-$c = $input |> strtolower(...) |> trim(...) |> $this->clean(...);
-$d = $input |> strtolower(...) |> trim(...) |> Helper::wrap(...);
+$c = $this->clean(trim(strtolower($input)));
+$d = Helper::wrap(trim(strtolower($input)));
 echo $input |> htmlspecialchars(...) |> strtolower(...) |> trim(...);
 return $input |> htmlspecialchars(...) |> strtolower(...) |> trim(...);
 $e = 'x' . trim(strtolower(htmlspecialchars($input)));
@@ -10,6 +10,6 @@ $f = trim(strtolower(htmlspecialchars($input)), ' ');
 $g = trim(strtolower(htmlspecialchars($input, ENT_QUOTES)));
 $h = trim(strtolower(htmlspecialchars($input)))[0];
 $i = $fn(strtolower(htmlspecialchars($input)));
-$j = $input |> f(...) |> htmlspecialchars(...) |> strtolower(...) |> trim(...);
+$j = trim(strtolower(htmlspecialchars(f($input))));
 $k = ($input ?? $default) |> htmlspecialchars(...) |> strtolower(...) |> trim(...);
 $l = $input . $suffix |> htmlspecialchars(...) |> strtolower(...) |> trim(...);
