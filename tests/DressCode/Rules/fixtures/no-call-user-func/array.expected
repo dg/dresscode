@@ -1,0 +1,13 @@
+<?php
+// php 8.1
+
+$a = $callback(...func_get_args());
+$b = ($this->handler)(...[1, 2]);
+$c = strtoupper(...$arguments);
+$d = call_user_func_array($callback, $arguments);
+$e = (fn(...$x) => $x)(...$arguments);
+
+// left alone
+$f = call_user_func_array($callback, ...$rest);
+$g = call_user_func_array($callback);
+$h = call_user_func_array([$obj, 'method'], $arguments);
