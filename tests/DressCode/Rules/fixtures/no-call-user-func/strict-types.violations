@@ -1,0 +1,4 @@
+6: The callable must be called directly, not through call_user_func()
+7: The callable must be called directly, not through call_user_func()
+8: The callable must be called directly, not through call_user_func()
+9: The callable must be called directly, not through call_user_func_array()

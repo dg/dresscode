@@ -99,6 +99,7 @@ final class RuleRegistry
 		Rules\Functions\NoAliasFunctionsRule::class,
 		Rules\Functions\NoDeprecatedFunctionsRule::class,
 		Rules\Functions\NoDirectInvokeCallRule::class,
+		Rules\Functions\NoCallUserFuncRule::class,
 		Rules\Functions\NoInnerFunctionsRule::class,
 		Rules\Functions\FunctionNameSpacingRule::class,
 		Rules\Functions\UselessParameterDefaultRule::class,
