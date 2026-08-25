@@ -1,0 +1,22 @@
+<?php
+// risky
+// {"staticMethodWithoutThisVisibilities": ["public"]}
+final class Report
+{
+	public function title(): string
+	{
+		return 'Report';
+	}
+
+
+	protected function footer(): string
+	{
+		return '--';
+	}
+
+
+	private function note(): string
+	{
+		return 'n';
+	}
+}

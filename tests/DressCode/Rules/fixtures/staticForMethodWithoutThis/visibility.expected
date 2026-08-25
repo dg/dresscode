@@ -1,0 +1,86 @@
+<?php
+// risky
+// {"staticMethodWithoutThisVisibilities": ["private", "protected", "public"]}
+final class Report
+{
+	public static function render(): string
+	{
+		return self::title() . self::footer() . self::note();
+	}
+
+
+	public static function title(): string
+	{
+		return 'Report';
+	}
+
+
+	protected static function footer(): string
+	{
+		return '--';
+	}
+
+
+	private static function note(): string
+	{
+		return 'n';
+	}
+}
+
+
+class Open
+{
+	public function name(): string
+	{
+		return 'open';
+	}
+
+
+	protected function kind(): string
+	{
+		return 'open';
+	}
+
+
+	final public static function id(): int
+	{
+		return 1;
+	}
+}
+
+
+final class Child extends Open
+{
+	public function size(): int
+	{
+		return 2;
+	}
+}
+
+
+final class Counter implements Countable
+{
+	public function count(): int
+	{
+		return 0;
+	}
+}
+
+
+final class Traited
+{
+	use Sizes;
+
+	public function size(): int
+	{
+		return 3;
+	}
+}
+
+
+$anonymous = new class {
+	static function size(): int
+	{
+		return 4;
+	}
+};
