@@ -1,0 +1,2 @@
+23: The private method other() uses no $this and must be static
+35: The private method ownStatic() uses no $this and must be static
