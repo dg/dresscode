@@ -1,0 +1,7 @@
+<?php
+
+$content = @file_get_contents($file);
+$value = @$array['key'];
+$both = @unlink(@$path);
+$sum = $a + $b;
+$negated = -$b;

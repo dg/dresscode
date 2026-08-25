@@ -103,6 +103,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\MultilineMatchArmRule::class,
 				Rules\Expressions\MultilineChainRule::class,
 				Rules\Expressions\MultilineTernaryRule::class,
+				Rules\Expressions\NoErrorSuppressionRule::class,
 				Rules\Expressions\NoDoubleNegationsRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\NullCoalescingForNullTernaryRule::class,
