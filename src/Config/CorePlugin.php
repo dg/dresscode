@@ -184,6 +184,7 @@ final class CorePlugin implements Plugin
 				Rules\PhpDoc\AssertForInlineVarRule::class,
 				Rules\PhpDoc\ForbiddenAnnotationsRule::class,
 				Rules\PhpDoc\ForbiddenPhpdocLinesRule::class,
+				Rules\PhpDoc\NoConsecutivePhpdocsRule::class,
 				Rules\PhpDoc\NoEmptyPhpdocsRule::class,
 				Rules\PhpDoc\PhpdocAlignmentRule::class,
 				Rules\PhpDoc\NoInvalidAnnotationsRule::class,
