@@ -1,0 +1,7 @@
+7: Constant NAME must have the native type 'string' of its value
+8: Constant COUNT must have the native type 'int' of its value
+9: Constant RATIO must have the native type 'float' of its value
+10: Constant ON must have the native type 'bool' of its value
+11: Constant ITEMS must have the native type 'array' of its value
+12: Constant NEGATIVE must have the native type 'int' of its value
+13: Constant JOINED must have the native type 'string' of its value

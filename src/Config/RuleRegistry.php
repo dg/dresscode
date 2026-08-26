@@ -159,6 +159,7 @@ final class RuleRegistry
 		Rules\Literals\NoTrailingWhitespaceInStringRule::class,
 		Rules\Literals\UselessStringConcatRule::class,
 		Rules\Literals\StringQuotesRule::class,
+		Rules\Types\TypeHintRequiredRule::class,
 		Rules\Types\TypeHintSpacingRule::class,
 		Rules\Variables\CombinedIssetsRule::class,
 		Rules\Variables\CombinedUnsetsRule::class,
