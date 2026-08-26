@@ -140,7 +140,7 @@ final class Application
 			valueName: 'file',
 		);
 		$program->addOption('--preset', 'add a preset, which also runs without a configuration file', valueName: 'name', repeatable: true);
-		$program->addOption('--rule', 'set a rule, `name` or `name=value` with the value in NEON: `true`, `false`, `keep`, the value of its decision such as `forbidden`, or its options as a map; a bare name enables it', valueName: 'spec', repeatable: true);
+		$program->addOption('--rule', 'set a rule, `name` or `name=value` with the value in NEON: `true`, `false`, `keep`, the value of its decision such as `forbidden`, or its options as `{minImports: 2}`; a bare name enables it', valueName: 'spec', repeatable: true);
 		$program->addFlag('--no-color', 'plain output');
 		$program->addFlag('--help', 'print this help', standalone: true);
 		$program->addFlag('--version', 'print the name and the version', standalone: true);

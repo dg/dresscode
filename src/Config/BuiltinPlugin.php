@@ -122,6 +122,8 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\StaticClosureRule::class,
 				Rules\Functions\StrictCallRule::class,
 				Rules\Namespaces\ImportNotationRule::class,
+				Rules\Namespaces\GroupImportRule::class,
+				Rules\Namespaces\MultilineImportRule::class,
 				Rules\Namespaces\UselessImportBackslashRule::class,
 				Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class,
 				Rules\Namespaces\OrderedImportsRule::class,
