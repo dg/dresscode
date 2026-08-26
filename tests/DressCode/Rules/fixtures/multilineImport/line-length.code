@@ -1,0 +1,5 @@
+<?php
+// lineLength 30
+use Short\{A, B};
+use Longer\Space\{Alpha, Beta};
+use function Longer\Space\{first, second};

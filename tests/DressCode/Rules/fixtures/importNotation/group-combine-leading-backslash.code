@@ -1,0 +1,8 @@
+<?php
+// {"groupUse": "required", "class": "keep", "function": "keep", "constant": "keep"}
+
+namespace Demo;
+
+use \Lib\Space\Alpha;
+use \Lib\Space\Beta;
+use \Lib\Space\Gamma;

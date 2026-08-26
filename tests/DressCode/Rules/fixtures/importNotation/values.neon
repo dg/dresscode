@@ -3,3 +3,4 @@ imports:
 	function: separate
 	constant: separate
 	groupUse: forbidden
+	groupUseMinNames: 2

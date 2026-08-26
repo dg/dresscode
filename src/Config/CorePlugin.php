@@ -168,6 +168,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\StringQuotesRule::class,
 				Rules\Literals\UselessStringConcatenationRule::class,
 				Rules\Namespaces\ImportNotationRule::class,
+				Rules\Namespaces\MultilineImportRule::class,
 				Rules\Namespaces\BuiltinNameCasingRule::class,
 				Rules\Namespaces\NoReservedNamesRule::class,
 				Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class,
@@ -301,7 +302,8 @@ final class CorePlugin implements Plugin
 			new Decision('imports.constant', $shapes, 'How the imports of constants are spread over `use` statements'),
 			new Decision(ImportStyle::GroupUse, new Words([
 				'forbidden' => 'a group use of a kind decided above is expanded into the shape of that kind',
-			]), 'The group use'),
+				'required' => 'the imports of one namespace are written as one group use, `use Acme\Shop\{Order, Cart};`',
+			]), 'The group use, a kind written `combined` never grouped and a name of the global namespace standing apart'),
 		];
 	}
 }

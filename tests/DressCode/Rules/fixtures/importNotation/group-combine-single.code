@@ -1,0 +1,10 @@
+<?php
+// {"groupUse": "required"}
+namespace Demo;
+
+use Lib\A, Lib\B;
+use Lib\C;
+use Other\{X, Y};
+use function Lib\f, Lib\g;
+
+new A;

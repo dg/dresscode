@@ -1,0 +1,7 @@
+<?php
+// {"groupUse": "required", "class": "keep", "function": "keep", "constant": "keep"}
+
+namespace Demo;
+
+use Lib\{Alpha, Beta, Gamma};
+use Solo\{One, Two};

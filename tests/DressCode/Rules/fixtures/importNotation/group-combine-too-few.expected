@@ -1,0 +1,10 @@
+<?php
+// {"groupUse": "required", "class": "keep", "function": "keep", "constant": "keep"}
+
+namespace Demo;
+
+use Lib\{Alpha, Beta};
+use Solo\Only;
+use Full\{One, Two, Three};
+use function Few\first;
+use Cmt\{Left, Alone}; // stays
