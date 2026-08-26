@@ -1,0 +1,10 @@
+6: Useless @var annotation for property $a
+7: Property $a must have the native type 'int' from its @var annotation
+9: Useless @var annotation for property $b
+10: Property $b must have the native type '?Foo' from its @var annotation
+13: Property $c must have the native type 'array' from its @var annotation
+16: Property $d must have the native type '?Foo' from its @var annotation
+19: Property $e must have the native type 'int' from its @var annotation
+21: Property $f has no type hint nor @var annotation
+23: Traversable property $g has no @var annotation saying what the items are
+28: Useless @var annotation for property $i
