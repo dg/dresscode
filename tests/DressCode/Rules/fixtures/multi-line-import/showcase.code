@@ -1,0 +1,7 @@
+<?php
+// lineLength 50
+
+namespace App;
+
+use Acme\Mail\{Attachment, Header, Mailer, Message, Part, Sender};
+use Acme\Http\{Request, Response};

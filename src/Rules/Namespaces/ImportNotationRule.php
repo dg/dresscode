@@ -10,7 +10,7 @@ namespace DressCode\Rules\Namespaces;
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, SymbolKind, Token, Trivia, TriviaKind};
+use PhpSyntax\{Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{FileNode, NodeList, StatementNode, UseItemNode};
 use PhpSyntax\Nodes\Statement\{NamespaceNode, UseNode};
 use function array_slice, count;
@@ -135,50 +135,9 @@ final class ImportNotationRule extends NodeRule implements ConfigurableRule
 	 */
 	private function expand(UseNode $node, NodeList $list, RuleContext $context): void
 	{
-		if (!$context->report($node, 'A group use declaration must be expanded into single imports')) {
-			return;
+		if ($context->report($node, 'A group use must be written as imports of their own')) {
+			NodeHelpers::expandGroup($node, $list, $context->getStyle()->eol);
 		}
-
-		$parser = new Parser;
-		$statements = [];
-		foreach ($node->items->getItems() as $item) {
-			$statements[] = $parser->parseStatement(self::describe($item));
-		}
-
-		$indentation = $node->getFirstToken()?->getIndentation() ?? '';
-		$eol = $context->getStyle()->eol;
-		$last = array_pop($statements);
-		if ($last === null) {
-			return;
-		}
-
-		$index = $list->indexOf($node);
-		$node->replaceWith($last);
-		foreach ($statements as $i => $statement) {
-			$head = $last->getFirstToken();
-			$leading = $i === 0 && $head ? $head->leadingTrivia : [new Trivia(TriviaKind::Whitespace, $indentation)];
-			$statement->setEdgeTrivia($leading, [new Trivia(TriviaKind::EndOfLine, $eol)]);
-			$list->insert($index + $i, $statement);
-		}
-
-		if (count($statements)) {
-			$last->setEdgeTrivia(leading: [new Trivia(TriviaKind::Whitespace, $indentation)]);
-		}
-	}
-
-
-	private static function describe(UseItemNode $item): string
-	{
-		$type = match ($item->kind) {
-			SymbolKind::Function => 'function ',
-			SymbolKind::Constant => 'const ',
-			SymbolKind::ClassLike => '',
-		};
-		return 'use '
-			. $type
-			. $item->fullName
-			. ($item->alias === null ? '' : ' as ' . $item->alias->text)
-			. ';';
 	}
 
 
@@ -202,7 +161,7 @@ final class ImportNotationRule extends NodeRule implements ConfigurableRule
 	 */
 	private function combine(array $uses, string $kind, RuleContext $context): void
 	{
-		$uses = array_values(array_filter($uses, fn(UseNode $use) => !self::hasComment($use)));
+		$uses = array_values(array_filter($uses, fn(UseNode $use) => !NodeHelpers::hasComment($use)));
 		$first = $uses[0] ?? null;
 		if ($first === null) {
 			return;
@@ -222,14 +181,5 @@ final class ImportNotationRule extends NodeRule implements ConfigurableRule
 
 			$use->remove();
 		}
-	}
-
-
-	/** A comment inside the statement or at the end of its line. */
-	private static function hasComment(UseNode $use): bool
-	{
-		$first = $use->getFirstToken();
-		$last = $use->getLastToken();
-		return $first === null || $last === null || $first->hasCommentUpTo($last) || $last->hasComment();
 	}
 }

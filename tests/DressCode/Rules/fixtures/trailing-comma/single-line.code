@@ -1,4 +1,6 @@
 <?php
+use Space\{Alpha, Beta,};
+
 $a = [1, 2,];
 $b = [1, 2];
 f($x, $y,);

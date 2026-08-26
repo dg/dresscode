@@ -13,15 +13,17 @@ use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{ArgumentListNode, ClosureUsesNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\{ArrayNode, ArrowFunctionNode, ClosureNode, ListNode, MatchNode};
 use PhpSyntax\Nodes\Member\MethodNode;
-use PhpSyntax\Nodes\Statement\FunctionNode;
+use PhpSyntax\Nodes\Statement\{FunctionNode, UseNode};
 use function count, ord;
 
 
 /**
- * The closing bracket decides the trailing comma: on its own line it asks for the comma, on the line
- * of the last item it forbids one, however many lines an item inside spans. `multiLine` says which
- * kinds of list get the comma; `singleLine` removes it from a list written on one line and covers
- * arrays, argument lists and `list()` whatever `multiLine` says, because there the comma is never wanted.
+ * The closing bracket decides the trailing comma of a list spread over lines: on its own line it asks for the
+ * comma, on the line of the last item it forbids one. A list is spread where a line breaks after the opening
+ * bracket, an item starts a line or the closing bracket does; one whose items start on the line of the bracket
+ * counts as written on one line however many lines an item spans or a comma begins. `multiLine` says which
+ * kinds of list get the comma; `singleLine` removes it from a list written on one line and covers arrays,
+ * argument lists, `list()` and a group use whatever `multiLine` says, because there the comma is never wanted.
  */
 #[RuleInfo(
 	'dresscode/trailing-comma',
@@ -38,10 +40,10 @@ final class TrailingCommaRule extends NodeRule implements ConfigurableRule
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'multiLine' => Expect::listOf(Expect::anyOf('arrays', 'arguments', 'parameters', 'match', 'closureUses'))->default(['arrays'])
+			'multiLine' => Expect::listOf(Expect::anyOf('arrays', 'arguments', 'parameters', 'match', 'closureUses', 'imports'))->default(['arrays'])
 				->description('Kinds of lists that end with a trailing comma when the closing bracket is on its own line'),
 			'singleLine' => Expect::bool(true)
-				->description('Removes the trailing comma of an array, argument list or list() written on one line'),
+				->description('Removes the trailing comma of an array, argument list, list() or group use written on one line'),
 		]);
 	}
 
@@ -65,6 +67,7 @@ final class TrailingCommaRule extends NodeRule implements ConfigurableRule
 			ArrowFunctionNode::class,
 			MatchNode::class,
 			ClosureUsesNode::class,
+			UseNode::class,
 		];
 	}
 
@@ -79,6 +82,7 @@ final class TrailingCommaRule extends NodeRule implements ConfigurableRule
 				=> ['parameters', $node->parameters, $node->openParen, $node->closeParen, 'parameter list'],
 			$node instanceof MatchNode => ['match', $node->arms, $node->openBrace, $node->closeBrace, 'match'],
 			$node instanceof ClosureUsesNode => ['closureUses', $node->variables, $node->openParen, $node->closeParen, 'closure use list'],
+			$node instanceof UseNode && $node->isGroup() => ['imports', $node->items, $node->openBrace, $node->closeBrace, 'group use'],
 			default => [null, null, null, null, null],
 		};
 		if ($list === null) {
@@ -100,7 +104,7 @@ final class TrailingCommaRule extends NodeRule implements ConfigurableRule
 		if (!self::isSpread($open, $items, $close)) {
 			if (
 				!$this->singleLine
-				|| !($node instanceof ListNode || $element === 'arrays' || $element === 'arguments')
+				|| !($node instanceof ListNode || $node instanceof UseNode || $element === 'arrays' || $element === 'arguments')
 				|| !$list->hasTrailingSeparator()
 			) {
 				return;

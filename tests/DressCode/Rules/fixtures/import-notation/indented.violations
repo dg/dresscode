@@ -1,1 +1,1 @@
-3: A group use declaration must be expanded into single imports
+3: A group use must be written as imports of their own

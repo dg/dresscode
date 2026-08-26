@@ -175,7 +175,7 @@ final class MultiLineArrayRule extends GapRule implements ConfigurableRule
 		$claims = [];
 		$column = 0;
 		foreach ($items as $i => $item) {
-			$width = $item instanceof ArrayItemNode ? self::measureItem($item) : null;
+			$width = $item instanceof ArrayItemNode ? NodeHelpers::measureNode($item) : null;
 			if ($width === null) {
 				return null;
 			}
@@ -191,28 +191,6 @@ final class MultiLineArrayRule extends GapRule implements ConfigurableRule
 		}
 
 		return $claims;
-	}
-
-
-	/** The width of the item, which stands on the line of its array; null for an item holding a comment. */
-	private static function measureItem(ArrayItemNode $item): ?int
-	{
-		$last = $item->getLastToken();
-		$width = 0;
-		for ($token = $item->getFirstToken(); $token !== null; $token = $token->getNext()) {
-			if ($token->hasComment()) {
-				return null;
-			}
-
-			$width += mb_strlen($token->text);
-			if ($token === $last) {
-				return $width;
-			}
-
-			$width += $token->getTrailingSpace() === '' ? 0 : 1;
-		}
-
-		return null;
 	}
 
 

@@ -1,0 +1,11 @@
+<?php
+// {"minImports": 2}
+
+namespace Demo;
+
+use Lib\Space\{Alpha};
+use Lib\Space\Beta;
+use Lib\Other\One;
+use Lib\Other\Two;
+use Mixed\One, Other\Two;
+use Solo\Only;

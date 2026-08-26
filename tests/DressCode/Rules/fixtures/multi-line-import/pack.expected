@@ -1,0 +1,6 @@
+<?php
+// {"lineLength": 40}
+use Space\{
+	Alpha, Beta, Gamma, Delta, Epsilon,
+	Zeta, Eta
+};

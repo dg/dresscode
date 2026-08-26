@@ -13,7 +13,7 @@ use DressCode\Rules\Whitespace\IndentationRule;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, SymbolKind, Token, TokenKind, Trivia, TriviaKind, UnqualifiedResolution};
-use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, AttributeGroupNode, CatchNode, ClosureUseNode, ElseIfNode, Expression, ExpressionNode, NameNode, NodeList, Scalar, SeparatedNodeList, Statement, StaticVariableNode, UseItemNode};
+use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, AttributeGroupNode, CatchNode, ClosureUseNode, ElseIfNode, Expression, ExpressionNode, NameNode, NodeList, Scalar, SeparatedNodeList, Statement, StatementNode, StaticVariableNode, UseItemNode};
 use function array_slice, assert, count;
 
 
@@ -656,6 +656,83 @@ final class NodeHelpers
 		}
 
 		return array_values(array_filter($declarations, fn(array $declaration) => str_contains($declaration[1], '\\')));
+	}
+
+
+	/**
+	 * Writes the items of a group use as imports of their own, `use A\{B, C as D};` becoming `use A\B;` and
+	 * `use A\C as D;`, each on a line of its own with the indentation of the group.
+	 * @param NodeList<StatementNode> $list
+	 */
+	public static function expandGroup(Statement\UseNode $node, NodeList $list, string $eol): void
+	{
+		$parser = new Parser;
+		$statements = [];
+		foreach ($node->items->getItems() as $item) {
+			$type = match ($item->kind) {
+				SymbolKind::Function => 'function ',
+				SymbolKind::Constant => 'const ',
+				SymbolKind::ClassLike => '',
+			};
+			$alias = $item->alias === null ? '' : ' as ' . $item->alias->text;
+			$statements[] = $parser->parseStatement("use $type{$item->fullName}$alias;");
+		}
+
+		$indentation = $node->getFirstToken()?->getIndentation() ?? '';
+		$last = array_pop($statements);
+		if ($last === null) {
+			return;
+		}
+
+		$index = $list->indexOf($node);
+		$node->replaceWith($last);
+		foreach ($statements as $i => $statement) {
+			$head = $last->getFirstToken();
+			$leading = $i === 0 && $head ? $head->leadingTrivia : [new Trivia(TriviaKind::Whitespace, $indentation)];
+			$statement->setEdgeTrivia($leading, [new Trivia(TriviaKind::EndOfLine, $eol)]);
+			$list->insert($index + $i, $statement);
+		}
+
+		if (count($statements)) {
+			$last->setEdgeTrivia(leading: [new Trivia(TriviaKind::Whitespace, $indentation)]);
+		}
+	}
+
+
+	/**
+	 * A comment standing inside the node or at the end of its last line, which Node::hasComment() does not count;
+	 * true for a node without tokens, which nothing can be said of.
+	 */
+	public static function hasComment(Node $node): bool
+	{
+		$first = $node->getFirstToken();
+		$last = $node->getLastToken();
+		return $first === null || $last === null || $first->hasCommentUpTo($last) || $last->hasComment();
+	}
+
+
+	/**
+	 * The width the node takes on one line, the gaps between its tokens counted as a single space each; null for
+	 * a node a comment stands in, whose line no measure can tell.
+	 */
+	public static function measureNode(Node $node): ?int
+	{
+		$last = $node->getLastToken();
+		$width = 0;
+		for ($token = $node->getFirstToken(); $token !== null; $token = $token->getNext()) {
+			if ($token->hasComment()) {
+				return null;
+			}
+
+			$width += mb_strlen($token->text);
+			if ($token === $last) {
+				return $width;
+			}
+
+			$width += $token->getTrailingSpace() === '' ? 0 : 1;
+		}
+
+		return null;
 	}
 
 

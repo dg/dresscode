@@ -1,0 +1,13 @@
+<?php
+
+namespace Demo;
+
+use Lib\Space\{Alpha, Beta, Gamma as Third};
+use Lib\Other\One;
+use Lib\Other\Two;
+use Exception;
+use Plain;
+use Cmt\A; // why this one
+use Cmt\{B, C, D};
+use function Lib\Space\{first, second, third};
+use function count;

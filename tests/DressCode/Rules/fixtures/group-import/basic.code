@@ -1,0 +1,19 @@
+<?php
+
+namespace Demo;
+
+use Lib\Space\Alpha;
+use Lib\Space\Beta;
+use Lib\Space\Gamma as Third;
+use Lib\Other\One;
+use Lib\Other\Two;
+use Exception;
+use Plain;
+use Cmt\A; // why this one
+use Cmt\B;
+use Cmt\C;
+use Cmt\D;
+use function Lib\Space\first;
+use function Lib\Space\second;
+use function Lib\Space\third;
+use function count;
