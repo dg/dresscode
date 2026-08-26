@@ -3,3 +3,4 @@ imports:
 		class: separated
 		function: separated
 		constant: separated
+	groupMinNames: 2

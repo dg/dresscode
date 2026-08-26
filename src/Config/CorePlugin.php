@@ -172,6 +172,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\StringQuotesRule::class,
 				Rules\Literals\UselessStringConcatenationRule::class,
 				Rules\Namespaces\ImportNotationRule::class,
+				Rules\Namespaces\MultilineImportRule::class,
 				Rules\Namespaces\DeclaredNameCasingRule::class,
 				Rules\Namespaces\NoReservedNamesRule::class,
 				Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class,
@@ -353,12 +354,24 @@ final class CorePlugin implements Plugin
 		$shapes = new Words([
 			'separated' => 'a `use` of its own for every name, `use Foo; use Bar;`',
 			'combined' => 'all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration',
-			'grouped' => 'a group use of one namespace stays, `use Acme\Shop\{Order, Cart};`',
+			'grouped' => 'the names of one namespace in one group use, `use Acme\Shop\{Order, Cart};`, from `imports.groupMinNames` of them on',
 		], tolerance: true);
 		return [
-			new Decision('imports.grouping.class', $shapes, 'How the imports of classes are put into `use` statements'),
-			new Decision('imports.grouping.function', $shapes, 'How the imports of functions are put into `use` statements'),
-			new Decision('imports.grouping.constant', $shapes, 'How the imports of constants are put into `use` statements'),
+			new Decision(
+				'imports.grouping.class',
+				$shapes,
+				'How the imports of classes are put into `use` statements, a name of the global namespace never grouped',
+			),
+			new Decision(
+				'imports.grouping.function',
+				$shapes,
+				'How the imports of functions are put into `use` statements, a name of the global namespace never grouped',
+			),
+			new Decision(
+				'imports.grouping.constant',
+				$shapes,
+				'How the imports of constants are put into `use` statements, a name of the global namespace never grouped',
+			),
 		];
 	}
 }

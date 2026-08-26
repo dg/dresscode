@@ -1,0 +1,12 @@
+<?php
+// {"grouping.class": "grouped", "grouping.function": "grouped", "grouping.constant": "grouped", "groupMinNames": 3}
+
+namespace Demo;
+
+use Lib\Space\Alpha;
+use Lib\Space\Beta;
+use Lib\Other\One;
+use Lib\Other\Two;
+use Mixed\One;
+use Other\Two;
+use Solo\Only;

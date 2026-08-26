@@ -1,0 +1,2 @@
+6: Expected separate imports instead of the group use, because it has too few imports from `Lib\Space`.
+10: Expected one import per `use` statement, 2 found.

@@ -1,0 +1,11 @@
+<?php
+// lineLength 40
+use Short\{A, B};
+use Deep\Nested\Space\{
+	Alpha, Beta, Gamma
+};
+use Deep\Nested\Space\{OneLongNameOnlyInside};
+use Already\{
+	B, A
+};
+use Plain\Statement;
