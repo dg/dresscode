@@ -1,0 +1,7 @@
+<?php
+// {"minImports": 2}
+
+namespace Demo;
+
+use Lib\{Alpha, Beta, Gamma};
+use Solo\{One, Two};

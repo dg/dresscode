@@ -122,6 +122,8 @@ final class RuleRegistry
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
 		Rules\Namespaces\ImportNotationRule::class,
+		Rules\Namespaces\GroupImportRule::class,
+		Rules\Namespaces\MultiLineImportRule::class,
 		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
 		Rules\Namespaces\NoUnlistedNamespacedDeclarationRule::class,
 		Rules\Namespaces\OrderedImportsRule::class,

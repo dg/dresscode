@@ -1,0 +1,7 @@
+<?php
+
+namespace App;
+
+use Acme\Mail\{Attachment, Mailer, Message};
+use Acme\Http\Request;
+use Acme\Http\Response;
