@@ -1,0 +1,59 @@
+<?php declare(strict_types=1);
+
+namespace DressCode\Rules\Types;
+
+use DressCode\Group;
+use DressCode\NodeRule;
+use DressCode\RuleContext;
+use DressCode\RuleInfo;
+use DressCode\Stage;
+use PhpSyntax\Node;
+use PhpSyntax\Nodes\ParameterNode;
+use PhpSyntax\Nodes\Scalar\NullNode;
+use PhpSyntax\Nodes\Type\NamedTypeNode;
+use PhpSyntax\Nodes\Type\NullableTypeNode;
+use PhpSyntax\Parser;
+use PhpSyntax\Token;
+use function in_array;
+
+
+/**
+ * An explicit `?` on the type of a parameter whose default is `null`, instead of the deprecated
+ * implicit nullability; a union or intersection type is left alone, and so are `mixed` and `null`, which hold null
+ * already and take no `?`.
+ */
+#[RuleInfo(
+	'dresscode/nullable-type-for-default-null',
+	Stage::Structure,
+	description: 'Marks the type of a parameter defaulting to null as nullable',
+	group: Group::Deprecations,
+)]
+final class NullableTypeForDefaultNullRule extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [ParameterNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if (
+			!$node instanceof ParameterNode
+			|| !($type = $node->type) instanceof NamedTypeNode
+			|| in_array(strtolower($type->name->token->text), ['mixed', 'null'], true)
+			|| !$node->default instanceof NullNode
+			|| !$context->report($type, 'The type of a parameter defaulting to null must be nullable')
+		) {
+			return;
+		}
+
+		$nullable = (new Parser)->parseType('?int');
+		assert($nullable instanceof NullableTypeNode);
+		$inner = clone $type;
+		$nullable->question->setLeadingTrivia($inner->name->token->leadingTrivia);
+		$inner->name->token->setLeadingTrivia([]);
+		$nullable->type = $inner;
+		$node->type = $nullable;
+	}
+}
