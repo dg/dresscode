@@ -29,7 +29,9 @@ final readonly class ResolvedConfig
 		public string $phpVersion,
 		/** @var list<string>  names of the presets, parents first */
 		public array $presets,
-		/** @var array<string, string>  fully qualified name of a function the namespaces declare → the layer that named it first */
+		/** @var list<string>  names of the groups any layer asked for, in the order of their first mention */
+		public array $groups = [],
+		/** @var array<string, string>  fully qualified name of a function the namespaces declare => the layer that named it first */
 		public array $namespacedFunctions = [],
 		/** @var array<string, string>  fully qualified name of a constant the namespaces declare => the layer that named it first */
 		public array $namespacedConstants = [],

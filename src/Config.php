@@ -39,6 +39,7 @@ final readonly class Config extends Profile
 
 	/**
 	 * @param list<string> $presets
+	 * @param list<string|Group> $groups
 	 * @param array<string, bool|string|int|array<string, mixed>|\Closure(): Rule> $rules
 	 * @param array{functions?: list<string>, constants?: list<string>} $namespaces
 	 * @param list<string> $fixRisky
@@ -51,6 +52,7 @@ final readonly class Config extends Profile
 		/** @var list<string|Extension>  classes of extensions, and rules and presets made known by their names; a run looks them up */
 		public array $extensions = [],
 		array $presets = [],
+		array $groups = [],
 		array $rules = [],
 		int|string|null $indent = null,
 		?string $eol = null,
@@ -70,7 +72,7 @@ final readonly class Config extends Profile
 		?callable $skipWhen = null,
 		array $analyses = [],
 	) {
-		parent::__construct($presets, $rules, $indent, $eol, $lineLength, $php, $namespaces, $nameResolution, $fixRisky, $warnings);
+		parent::__construct($presets, $groups, $rules, $indent, $eol, $lineLength, $php, $namespaces, $nameResolution, $fixRisky, $warnings);
 		$this->excludePaths = array_values(array_unique([...self::DefaultExcludePaths, ...$excludePaths]));
 		$this->skipWhen = $skipWhen === null ? null : $skipWhen(...);
 		$this->analyses = self::normalizeAnalyses($analyses);

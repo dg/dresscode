@@ -120,7 +120,8 @@ final class Application
 			alias: '-c',
 			valueName: 'file',
 		);
-		$program->addOption('--preset', 'add a preset', valueName: 'name', repeatable: true);
+		$program->addOption('--preset', 'add a preset, which also runs without a configuration file', valueName: 'name', repeatable: true);
+		$program->addOption('--group', 'add a group of rules, such as `cleanup` or `modernization`, which also runs without a configuration file', valueName: 'name', repeatable: true);
 		$program->addOption('--rule', 'enable or disable a rule: `name=on` or `name=off`', valueName: 'spec', repeatable: true);
 		$program->addFlag('--no-color', 'plain output');
 		$program->addFlag('--help', 'print this help', standalone: true);
@@ -337,10 +338,13 @@ final class Application
 	{
 		/** @var list<string> $presets */
 		$presets = $args['--preset'];
+		/** @var list<string> $groups */
+		$groups = $args['--group'];
 		[$config, $root, $file] = (new Loader)->load(
 			$args['--config'],
 			$this->cwd ?? (string) getcwd(),
-			$this->defaultConfig ?? ($presets ? new Config : null),
+			// without a configuration file the run has only the presets and groups named on the command line
+			$this->defaultConfig ?? ($presets || $groups ? new Config : null),
 		);
 		$rules = [];
 		foreach ($args['--rule'] as $rule) {
@@ -351,7 +355,12 @@ final class Application
 			$rules[$m[1]] = $m[2] === 'on';
 		}
 
-		return [$config, $root, $file, $presets || $rules ? new Profile(presets: $presets, rules: $rules) : null];
+		return [
+			$config,
+			$root,
+			$file,
+			$presets || $groups || $rules ? new Profile(presets: $presets, groups: $groups, rules: $rules) : null,
+		];
 	}
 
 

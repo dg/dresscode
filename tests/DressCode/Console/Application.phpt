@@ -266,7 +266,7 @@ test('a run inside GitHub Actions annotates without being told to', function () 
 });
 
 
-test('without a configuration file neither check nor fix runs, unless a preset is named', function () {
+test('without a configuration file neither check nor fix runs, unless a preset or a group is named', function () {
 	$dir = sys_get_temp_dir();
 	foreach (['check', 'fix'] as $command) {
 		[$code, , $err] = runApp($dir, [$command]);

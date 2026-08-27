@@ -1,6 +1,10 @@
 presets:
 	- nette
 
+groups:
+	- modernization
+	- deprecations
+
 rules:
 	group-import: {minImports: 2}
 
