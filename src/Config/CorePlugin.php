@@ -10,11 +10,12 @@ namespace DressCode\Config;
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Decision, Domain, ImportStyle, Plugin, PluginManifest, Rules};
 use DressCode\Domains\{Count, Names, Words};
+use function dirname;
 
 
 /**
- * What the core of DressCode brings: its rules, whose pages are on dresscode.run, and the decisions no single rule of
- * it owns.
+ * What the core of DressCode brings: its presets, its rules, whose pages are on dresscode.run, and the decisions no
+ * single rule of it owns.
  * @internal
  */
 final class CorePlugin implements Plugin
@@ -24,6 +25,10 @@ final class CorePlugin implements Plugin
 		// built once, since nothing of it changes
 		static $manifest;
 		return $manifest ??= new PluginManifest(
+			presets: [
+				'dresscode/perCs' => dirname(__DIR__) . '/Presets/perCs.neon',
+				'dresscode/psr12' => dirname(__DIR__) . '/Presets/psr12.neon',
+			],
 			rules: [
 				Rules\Arrays\ArraySpacingRule::class,
 				Rules\Arrays\MultilineArrayRule::class,

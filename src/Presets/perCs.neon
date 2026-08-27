@@ -1,0 +1,59 @@
+# PER Coding Style 3.1
+#
+# PSR-12 plus what PER Coding Style added (trailing commas, short closures, empty bodies as `{}`, attributes,
+# enumerations, heredoc, property hooks); the specification defines the style and this preset adds nothing of its own.
+
+use: psr12
+
+indentation:
+	heredoc: startPlusOne                    # body and closing marker one level deeper than the start
+
+naming:
+	enumCase: PascalCase                     # reported, never renamed
+
+spacing:
+	attribute: '#[Foo($a)]'
+	fnKeyword: 'fn($x) => $x'
+	beforeSemicolon: '$a;'
+	catchType: 'catch (A|B $e)'             # as a union type
+	namedArgument: 'foo(name: $x)'
+
+multiline:
+	operatorPosition:
+		concatenation: lineStart             # `. $b` opens the line
+		ternary: lineStart                   # `? $b` and `: $c` open the lines
+	chain: perLine                           # a link per line once spread
+	ternary: perLine                         # `?` and `:` each on a line once spread
+	array: perLine                           # an item per line once spread
+	# a comma after the last item where the closing bracket has a line of its own, none on one line
+	trailingComma:
+		array: required
+		argument: required
+		parameter: required
+		matchArm: required
+		closureUse: required
+		import: optional
+		list: optional
+	attributes: ownLines                     # a group per line above the declaration
+	parameterAttributes: ownLines            # so in parameters spread over lines
+
+braces:
+	emptyBody: sameLine                      # `function foo(): void {}`
+	emptyAnonymousClass: sameLine            # `new class {}`
+
+classes:
+	groupedDeclarationAllowedFor: []         # `const A = 1, B = 2;` is split
+	membersPerLine: 1
+	anonymousClassParentheses: forbidden     # `new class {}`, not `new class() {}`
+	attributeParentheses: forbidden          # `#[Foo]`, not `#[Foo()]`
+
+types:
+	nullable: '?int'                         # not `int|null`
+	nullPosition: last                       # `int|string|null`
+
+literals:
+	heredocWithoutInterpolation: forbidden   # a nowdoc `<<<'EOT'` instead
+	longArraySyntax: forbidden               # `[1, 2]`, not `array(1, 2)`
+
+phpdoc:
+	aboveAttributes: required

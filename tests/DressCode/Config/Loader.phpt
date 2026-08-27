@@ -122,7 +122,7 @@ test('load: without a file and without a default there is no style to run', func
 	Assert::exception(
 		fn() => Loader::load(null, sys_get_temp_dir()),
 		ConfigurationException::class,
-		'No `dresscode.neon` or `dresscode.php` found in `%a%` or above it, so there is no dress code to check against.',
+		'No `dresscode.neon` or `dresscode.php` found in `%a%` or above it, so there is no dress code to check against. Name a standard with `--use`.',
 	);
 });
 
@@ -238,6 +238,33 @@ test('a rule of the project is named by its class, and what the namespaces decla
 });
 
 
+test('a list of a single item is written without the list, in a configuration and in an override', function () {
+	$config = Loader::loadFile(FileMock::create(<<<'XX'
+		use: perCs
+		paths: src
+		excludePaths: src/generated
+		fileExtensions: php
+		fixRisky: modernizations
+		warnOnly: cleanup
+		namespaces:
+			functions: App\helper
+		overrides:
+			- paths: tests
+			  use: psr12
+		XX, 'neon'));
+	Assert::same(['perCs'], $config->use);
+	Assert::same(['src'], $config->paths);
+	Assert::contains('src/generated', $config->excludePaths);
+	Assert::same(['php'], $config->fileExtensions);
+	Assert::same(['modernizations'], $config->fixRisky);
+	Assert::same(['cleanup'], $config->warnOnly);
+	Assert::same(['App\helper'], $config->namespaces['functions']);
+	Assert::same(['tests'], $config->overrides[0]->paths);
+	Assert::same(['psr12'], $config->overrides[0]->profile->use);
+	Assert::exception(fn() => Loader::loadFile(FileMock::create('use: 1', 'neon')), ConfigurationException::class, "%a%The item 'use%a%0' expects to be string|%a%Entity, 1 given.");
+});
+
+
 test('the page of the rules the configuration names by class is an address with the slug in it', function () {
 	$ruleUrl = fn(string $file) => Loader::loadFile(FileMock::create($file, 'neon'))->ruleUrl;
 	Assert::same('https://wiki.acme.dev/rules/{slug}', $ruleUrl("ruleUrl: 'https://wiki.acme.dev/rules/{slug}'\n"));
@@ -254,6 +281,7 @@ test('an override takes every key of a profile', function () {
 	$config = Loader::loadFile(FileMock::create(<<<'XX'
 		overrides:
 			- paths: [tests]
+			  use: [psr12]
 			  targets: {php: 8.3}
 			  namespaces: {functions: [App\Tests\fixture]}
 			  nameResolution: uncertain
@@ -262,6 +290,7 @@ test('an override takes every key of a profile', function () {
 		XX, 'neon'));
 	$override = $config->overrides[0];
 	Assert::same(['tests'], $override->paths);
+	Assert::same(['psr12'], $override->profile->use);
 	Assert::same('8.3', $override->profile->targets['php'] ?? null);
 	Assert::same(['App\Tests\fixture'], $override->profile->namespaces['functions']);
 	Assert::same('uncertain', $override->profile->nameResolution);

@@ -256,6 +256,12 @@ test('--only keeps what it names of what the configuration comes to, and turns n
 	$narrowed = $resolver->resolve(new Config(use: ['test/child']), '8.3', only: [RuleC::class]);
 	Assert::same('the run is narrowed to other decisions', $narrowed->findRule(RuleA::class)?->inactiveMessage);
 
+	// a decision of the core runs its rule alone
+	Assert::same([DressCode\Rules\ControlFlow\FallThroughCommentRule::class], array_map(
+		fn(ResolvedRule $rule) => $rule->class,
+		$resolver->resolve(new Config(use: ['perCs']), '8.3', only: ['controlFlow.switchFallThrough'])->getActiveRules(),
+	));
+
 	// a preset stands for every rule owning a decision it and its parents make, and not for what the configuration
 	// added; one the configuration turned off stays off, and the run says so
 	$resolver = createResolver();
@@ -270,6 +276,12 @@ test('--only keeps what it names of what the configuration comes to, and turns n
 		['Option `--only` keeps 2 of the 3 rules of preset `test/base` that may run here, without `project.b`, which the configuration turns off.'],
 		$resolver->getWarnings(),
 	);
+
+	// a preset stands for the rules owning its decisions
+	Assert::contains(DressCode\Rules\ControlFlow\FallThroughCommentRule::class, array_map(
+		fn(ResolvedRule $rule) => $rule->class,
+		createResolver()->resolve(new Config(use: ['perCs']), '8.3', only: ['perCs'])->getActiveRules(),
+	));
 
 	// a rule only an override turns on runs where the override applies
 	$resolver = createResolver();
@@ -454,8 +466,8 @@ test('the style is what the decisions of the last layer say, else a tab and the 
 test('use lays its presets in the order written, each where it is named first, and says what a preset named again does not do', function () {
 	// a preset its child brings along is not named twice by the project, and the command line names what it wants
 	$resolver = createResolver();
-	$resolver->resolve(new Config(use: ['test/child']), '8.3', commandLine: new Profile(use: ['test/base']));
-	Assert::same(['The command line uses preset `test/base`, which preset `test/child` already brings; the entry does nothing.'], $resolver->getWarnings());
+	$resolver->resolve(new Config(use: ['perCs']), '8.3', commandLine: new Profile(use: ['psr12']));
+	Assert::same(['The command line uses preset `dresscode/psr12`, which preset `dresscode/perCs` already brings; the entry does nothing.'], $resolver->getWarnings());
 
 	Assert::exception(
 		fn() => createResolver()->resolve(new Config(use: ['test/plugin-preset']), '8.3'),

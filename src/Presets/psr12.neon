@@ -1,0 +1,112 @@
+# PSR-12 Extended Coding Style
+#
+# PSR-12, section by section; the specification defines the style and this preset adds nothing of its own.
+
+file:
+	bom: forbidden
+	openingTag: '<?php'                       # not `<?` or `<?PHP`
+	closingTagAtEnd: forbidden                # a `?>` before HTML stays
+	lineEnding: majority                      # as most lines of the file, LF on a tie
+	finalLineEndings: 1
+	trailingWhitespace: forbidden             # the text of a string stays
+	maxLineLength: 120                        # a signature or a condition wider is spread
+	statementsPerLine: 1                      # `foo(); bar();` takes two lines
+
+indentation:
+	unit: '4 spaces'
+	binaryOperator: 0                         # `&& $b` right below `$a`, a level deeper after `$x =` or `return`
+	ternary: 1                                # `?` and `:` opening a line
+	switchCase: 1                             # `case` inside `switch`
+	chain: flat                               # every link one level below the start of the chain
+
+# names are reported, never renamed
+naming:
+	class: PascalCase
+	method: camelCase                         # `__construct()` passes
+	constant: UPPER_CASE
+
+builtin:
+	keyword: lowercase                        # `self`, `parent` too
+	trueFalseNull: lowercase
+	type: lowercase                           # `int`, `string`, `void`
+	castType: short                           # `(int)`, not `(integer)` or `( int )`
+
+qualification:
+	uselessBackslash: forbidden               # `use Foo\Bar;`, not `use \Foo\Bar;`
+
+imports:
+	order: groupedByKind                       # classes, functions, constants, each in the order written
+
+spacing:
+	declare: 'declare(strict_types=1)'
+	call: 'foo($a, $b)'                       # `function foo($a)` too
+	parentheses: '($a)'
+	controlKeyword: 'if ($a)'                 # `while`, `for`, `foreach`, `switch`, `catch` too
+	connectingKeyword: '} else {'             # `catch`, `finally`, `as`, the `use` of a closure too
+	functionKeyword: 'function ($x)'
+	languageConstruct: 'return $x'            # `throw`, `yield`, `new`, `include` too
+	comma: '$a, $b'
+	commaAlignment: none                      # no extra spaces after a comma
+	cast: '(int) $x'
+	reference: '&$x'
+	spread: '...$x'
+	unaryOperator: '-$x'                      # `!$a`, `++$i` too
+	unaryOperatorsWithSpace: [!]              # `! $x` may stay
+	binaryOperator: '$a + $b'                 # `=`, `=>`, `instanceof` too
+	concatenation: '$a . $b'
+	ternary: '$a ? $b : $c'                   # `$a ?: $b` too
+	classHead: 'class Foo extends Bar implements Baz'
+	anonymousClass: 'new class ($a)'
+	modifier: 'final public static function'
+	typeDeclaration: '?int $x'                # `): int` too
+	catchType: 'catch (A | B $e)'
+	switchCase: 'case 1:'
+
+multiline:
+	operatorPosition:
+		binary: lineStart                     # `+ $b` opens the line, not ends the one before
+		condition: lineStart                  # `&& $b` opens the line
+	signatureOverMaxLength: split             # a parameter per line
+	signatureWithPromotedProperties: asSignature     # spread only when too long
+	signature: perLine                        # a parameter per line once spread
+	call: perLine                             # an argument per line once spread
+	condition: perLine                        # `if (` above `$a`, `) {` below the last part
+
+braces:
+	class: nextLine
+	function: nextLine                        # one with parameters on one line
+	afterMultilineSignature: sameLine         # `) {` on a line of their own
+	closure: sameLine
+	anonymousClass: sameLine
+	controlStructure: sameLine
+	bracelessBody: forbidden                  # `if ($a) foo();` gets braces
+	continuingKeyword: sameLine               # `} else {`
+	emptyBody: ownLines                       # not `{}`
+	singlelineClosure: forbidden              # `function () { return 1; }` is spread
+
+blankLines:
+	afterOpeningTag: 1
+	beforeNamespace: 1
+	afterNamespace: 1
+	afterImports: 1
+	betweenImportKinds: 1
+	beforeFirstMethod: 0
+	afterLastMethod: 0
+	beforeFirstMember: 0
+	afterLastMember: 0
+	betweenTraitUses: 0
+	afterTraitUses: 1
+
+classes:
+	memberVisibility: required                # `var` is `public`
+	modifierOrder: canonical                  # `final public static`
+	interfaceMethodVisibility: required       # `public` though implied
+	memberOrder: [traitUse]
+	groupedDeclarationAllowedFor: [constant]  # `public $a, $b;` is split
+	newParentheses: required                  # `new Foo()`
+
+controlFlow:
+	elseif: 'elseif'                          # not `else if`
+	switchCaseTerminator: ':'                 # not `case 1;`
+	switchFallThrough: no break               # the comment of a fall-through
+	emptyStatement: forbidden                 # `foo();;`

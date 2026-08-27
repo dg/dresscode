@@ -86,6 +86,7 @@ test('a rule is known by its class, once however often it is registered', functi
 	Assert::same($count + 1, count($registry->rules));
 	Assert::same(RuleOne::class, $registry->rules[$count]);
 	Assert::same(RuleOne::class, $registry->registerRuleOrResolvePreset(RuleOne::class)->rule);
+	Assert::same('dresscode/perCs', $registry->registerRuleOrResolvePreset('perCs')->preset);
 });
 
 
@@ -114,6 +115,8 @@ test('errors', function () {
 	$registry = new PluginRegistry;
 	$registry->registerRule(RuleOne::class);
 	Assert::exception(fn() => $registry->registerRuleOrResolvePreset('quite/different'), ConfigurationException::class, 'Unknown decision, preset or rule `quite/different`.');
+	Assert::exception(fn() => $registry->registerRuleOrResolvePreset('perC'), ConfigurationException::class, 'Unknown decision, preset or rule `perC`. Did you mean `perCs`?');
+	Assert::exception(fn() => $registry->resolvePreset('dresscode/perC'), ConfigurationException::class, 'Unknown preset `dresscode/perC`. Did you mean `dresscode/perCs`?');
 	Assert::exception(
 		fn() => $registry->registerRuleOrResolvePreset('importOrder'),
 		ConfigurationException::class,
@@ -159,8 +162,13 @@ test('presets', function () {
 	$registry = new PluginRegistry;
 	$file = FileMock::create("decisions:\n", 'neon');
 	$registry->registerPreset('test/preset', $file);
+	Assert::same('dresscode/perCs', $registry->resolvePreset('dresscode/perCs'));
+	Assert::same('dresscode/perCs', $registry->resolvePreset('perCs'));
 	Assert::same('test/preset', $registry->resolvePreset('test/preset'));
-	Assert::same(['test/preset'], array_keys($registry->presets));
+	Assert::same([
+		'dresscode/perCs', 'dresscode/psr12', 'test/preset',
+	], array_keys($registry->presets));
+	Assert::match('%a%/src/Presets/perCs.neon', $registry->presets['dresscode/perCs']);
 	Assert::exception(fn() => $registry->resolvePreset('none'), ConfigurationException::class, 'Unknown preset `none`.');
 	Assert::exception(fn() => $registry->resolvePreset('u'), ConfigurationException::class, 'Unknown preset `u`.');
 	Assert::exception(fn() => $registry->registerPreset('test/missing', 'none.neon'), ConfigurationException::class, 'Preset `test/missing` names file `none.neon`, which does not exist.');
