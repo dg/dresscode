@@ -1,0 +1,7 @@
+<?php
+// risky
+// nameResolution certain
+namespace App;
+
+/** @var int $a */
+$a = f();
