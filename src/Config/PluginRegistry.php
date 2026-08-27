@@ -16,7 +16,7 @@ use function array_key_exists, strlen;
 /**
  * What a run knows of its plugins: the rules by their classes, the presets by name, the pages of their documentation,
  * the sections and the catalogue. A name of a preset without a vendor is the
- * one of the core of that name.
+ * one of the core of that name, so `'perCs'` is `'dresscode/perCs'`.
  * @internal
  */
 final class PluginRegistry

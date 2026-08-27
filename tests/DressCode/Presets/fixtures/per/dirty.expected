@@ -1,0 +1,13 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Vendor\Package;
+
+class Foo
+{
+    public function sampleFunction(int $a): array
+    {
+        return [$a];
+    }
+}

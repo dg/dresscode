@@ -59,7 +59,7 @@ test('every key is a named argument', function () {
 
 
 test('an override is a profile for the paths it names', function () {
-	$profile = new Profile(nameResolution: 'uncertain');
+	$profile = new Profile(use: ['psr12'], nameResolution: 'uncertain');
 	$override = new Override(['tests'], $profile);
 	Assert::same(['tests'], $override->paths);
 	Assert::same($profile, $override->profile);

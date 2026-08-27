@@ -85,6 +85,7 @@ test('a rule is known by its class, once however often it is registered', functi
 	$registry->registerRule(RuleOne::class);
 	Assert::same($count + 1, count($registry->rules));
 	Assert::same(RuleOne::class, $registry->rules[$count]);
+	Assert::same('dresscode/perCs', $registry->findPreset('perCs'));
 });
 
 
@@ -115,6 +116,15 @@ test('errors', function () {
 	Assert::same(
 		'Unknown decision, preset or rule `quite/different`.',
 		$registry->createUnknownNameException('quite/different')->getMessage(),
+	);
+	Assert::same(
+		'Unknown decision, preset or rule `perC`. Did you mean `perCs`?',
+		$registry->createUnknownNameException('perC')->getMessage(),
+	);
+	Assert::exception(
+		fn() => $registry->resolvePreset('dresscode/perC'),
+		ConfigurationException::class,
+		'Unknown preset `dresscode/perC`. Did you mean `dresscode/perCs`?',
 	);
 	Assert::exception(fn() => RuleInfo::of(NoInfo::class), ConfigurationException::class, 'Rule `NoInfo` has no `#[RuleInfo]` attribute.');
 	// @phpstan-ignore argument.type (a class that is no rule is what the check refuses)
@@ -156,8 +166,13 @@ test('presets', function () {
 	$registry = new PluginRegistry;
 	$file = FileMock::create("decisions:\n", 'neon');
 	$registry->registerPreset('test/preset', $file);
+	Assert::same('dresscode/perCs', $registry->resolvePreset('dresscode/perCs'));
+	Assert::same('dresscode/perCs', $registry->resolvePreset('perCs'));
 	Assert::same('test/preset', $registry->resolvePreset('test/preset'));
-	Assert::same(['test/preset'], array_keys($registry->presets));
+	Assert::same([
+		'dresscode/perCs', 'dresscode/psr12', 'test/preset',
+	], array_keys($registry->presets));
+	Assert::match('%a%/src/Presets/perCs.neon', $registry->presets['dresscode/perCs']);
 	Assert::exception(fn() => $registry->resolvePreset('none'), ConfigurationException::class, 'Unknown preset `none`.');
 	Assert::exception(fn() => $registry->resolvePreset('u'), ConfigurationException::class, 'Unknown preset `u`.');
 	Assert::exception(

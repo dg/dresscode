@@ -1,0 +1,43 @@
+<?php
+
+$arr = [];
+
+$arr1 = ['single', 'line', 'declaration'];
+
+$arr2 = [
+    'multi',
+    'line',
+    'declaration',
+    ['values' => 1, 5, 7],
+    [
+        'nested',
+        'array',
+    ],
+];
+
+$arr = ['a' => 'A', 'b' => 'B', 'c' => 'C'];
+
+$arr = [
+    'a' => 'A',
+    'b' => 'B',
+    'c' => 'C',
+];
+
+$result = match ($a) {
+    'foo' => 'Foo',
+    'bar' => 'Bar',
+    default => 'Baz',
+};
+
+function beep(string $a, string $b, string $c)
+{
+    // ...
+}
+
+function beep2(
+    string $a,
+    string $b,
+    string $c,
+) {
+    // ...
+}
