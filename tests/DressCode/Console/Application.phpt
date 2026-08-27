@@ -249,6 +249,14 @@ test('a run inside GitHub Actions annotates without being told to', function () 
 });
 
 
+test('without a configuration file the default preset applies', function () {
+	$dir = sys_get_temp_dir();
+	[$code, , $err] = runApp($dir, ['check']);
+	Assert::same(2, $code);
+	Assert::match('Error: No paths given and none configured.%A%', $err);
+});
+
+
 test('fix writes the files and reports what remains', function () use ($root) {
 	[$code, $out] = runApp($root, ['fix', '--diff', '--rule', ConsoleReport::class . '=on']);
 	Assert::same(1, $code);
