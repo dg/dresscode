@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Config, ConfigurableRule, ConfigurationException, Override, Preset, PresetInfo, Profile, Rule, RuleInfo};
+use DressCode\{Config, ConfigurableRule, ConfigurationException, Group, Override, Preset, PresetInfo, Profile, Rule, RuleInfo};
 use DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationRule;
 use Nette\Schema\Elements\{ArrayType, Structure};
 use Nette\Schema\{Helpers, Processor, ValidationException};
@@ -71,7 +71,7 @@ final class PresetResolver
 	{
 		/** @var array<class-string<Rule>, list<array{string, mixed}>> $layers */
 		$layers = [];
-		$explicit = $fixRisky = $warningRules = $presets = [];
+		$explicit = $fixRisky = $warningRules = $presets = $groups = [];
 		$symbols = [SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
 		$indent = $eol = $lineLength = $php = $resolution = null;
 		foreach ($this->collectLayers(self::listProfiles($config, $overrides, $commandLine)) as [$source, $profile, $isPreset]) {
@@ -99,6 +99,17 @@ final class PresetResolver
 				] as [$kind, $names]) {
 					foreach ($names as $name) {
 						$symbols[$kind->name][Profile::toSymbolKey($kind, $name)] ??= [$name, $source];
+					}
+				}
+
+				// a group lies under the rules of its own profile and names no rule itself, so a rule it turns on
+				// is one nobody asked for by name and is left out in silence where it cannot run
+				foreach ($profile->groups as $group) {
+					$groups[$group->value] = true;
+					foreach ($this->registry->getRules() as $class) {
+						if (RuleInfo::of($class)->group === $group) {
+							$layers[$class][] = ["group $group->value", true];
+						}
 					}
 				}
 
@@ -141,7 +152,7 @@ final class PresetResolver
 
 		// `only` filters what the rest comes to, so it takes a rule away and never enables one
 		$narrowed = $only ? $this->resolveOnly($only) : null;
-		$kept = $narrowed === null ? null : array_fill_keys(array_merge(...array_column($narrowed, 1)), true);
+		$kept = $narrowed === null ? null : array_fill_keys(array_merge(...array_column($narrowed, 2)), true);
 		$active = $inactive = [];
 		foreach ($layers as $class => $ruleLayers) {
 			$resolved = $this->resolveRule(
@@ -183,6 +194,7 @@ final class PresetResolver
 			},
 			$phpVersion,
 			$presets,
+			array_keys($groups),
 			namespacedFunctions: $bySource($symbols[SymbolKind::Function->name]),
 			namespacedConstants: $bySource($symbols[SymbolKind::Constant->name]),
 			nameResolution: $resolution ?? 'uncertain',
@@ -341,19 +353,29 @@ final class PresetResolver
 
 
 	/**
-	 * The rules a run narrowed by `only` keeps, per name it was given: a rule for itself, a preset for every
-	 * rule it and its parents mention.
+	 * The rules a run narrowed by `only` keeps, per name it was given: a rule for itself, a group for every rule
+	 * that carries it, a preset for every rule it and its parents mention.
 	 * @param  list<string>  $names
-	 * @return list<array{class-string<Rule>|class-string<Preset>, list<class-string<Rule>>}>  what a name names and the rules it lets in
+	 * @return list<array{string, ?class-string<Rule>, list<class-string<Rule>>}>  what the name was, the rule it names, and the rules it lets in
 	 * @throws ConfigurationException
 	 */
 	private function resolveOnly(array $names): array
 	{
 		$narrowed = [];
 		foreach ($names as $name) {
+			$group = Group::tryFrom($name);
+			if ($group !== null) {
+				$rules = array_values(array_filter(
+					$this->registry->getRules(),
+					fn(string $class) => RuleInfo::of($class)->group === $group,
+				));
+				$narrowed[] = ["group $name", null, $rules];
+				continue;
+			}
+
 			$class = $this->registry->resolveRuleOrPreset($name);
 			if (!is_a($class, Preset::class, allow_string: true)) {
-				$narrowed[] = [$class, [$class]];
+				$narrowed[] = [RuleInfo::of($class)->name, $class, [$class]];
 				continue;
 			}
 
@@ -365,7 +387,7 @@ final class PresetResolver
 				}
 			}
 
-			$narrowed[] = [$class, $rules];
+			$narrowed[] = ['preset ' . PresetInfo::of($class)->name, null, $rules];
 		}
 
 		return $narrowed;
@@ -375,7 +397,7 @@ final class PresetResolver
 	/**
 	 * A name of `only` that lets in nothing that runs would make a run that checks nothing and says it is
 	 * clean; a rule that runs only where an override enables it is not such a name.
-	 * @param  list<array{class-string<Rule>|class-string<Preset>, list<class-string<Rule>>}>  $narrowed
+	 * @param  list<array{string, ?class-string<Rule>, list<class-string<Rule>>}>  $narrowed
 	 * @param  array<class-string<Rule>, ResolvedRule>  $active
 	 * @param  array<class-string<Rule>, ResolvedRule>  $inactive
 	 * @param  array<class-string<Rule>, true>  $ofOverrides
@@ -383,11 +405,11 @@ final class PresetResolver
 	 */
 	private static function checkOnly(array $narrowed, array $active, array $inactive, array $ofOverrides): void
 	{
-		foreach ($narrowed as [$class, $rules]) {
+		foreach ($narrowed as [$name, $class, $rules]) {
 			if (array_filter($rules, fn(string $rule) => isset($active[$rule]) || isset($ofOverrides[$rule]))) {
 				continue;
-			} elseif (is_subclass_of($class, Preset::class)) {
-				throw new ConfigurationException('Preset ' . PresetInfo::of($class)->name . ' the run is narrowed to has no rule that runs here.');
+			} elseif ($class === null) {
+				throw new ConfigurationException(ucfirst($name) . ' the run is narrowed to has no rule that runs here.');
 			}
 
 			$rule = $inactive[$class];
@@ -426,7 +448,8 @@ final class PresetResolver
 
 
 	/**
-	 * The rules some override of the configuration turns on, itself or by a preset, whichever file it applies to.
+	 * The rules some override of the configuration turns on, itself, by a group or by a preset, whichever file
+	 * it applies to.
 	 * @return array<class-string<Rule>, true>
 	 * @throws ConfigurationException
 	 */
@@ -436,11 +459,20 @@ final class PresetResolver
 		foreach ($config->overrides as $override) {
 			foreach ($this->collectLayers([[self::describeOverride($override), $override]]) as [$source, $profile, $isPreset]) {
 				try {
+					foreach ($profile->groups as $group) {
+						foreach ($this->registry->getRules() as $class) {
+							if (RuleInfo::of($class)->group === $group) {
+								$rules[$class] = true;
+							}
+						}
+					}
+
 					foreach ($profile->rules as $rule => $value) {
 						if (self::normalize($value) !== false) {
 							$rules[$this->registry->resolveRule($rule)] = true;
 						}
 					}
+
 				} catch (ConfigurationException $e) {
 					throw self::locate($e, $isPreset ? "preset $source" : $source);
 				}

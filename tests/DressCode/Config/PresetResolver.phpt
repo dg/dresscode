@@ -574,6 +574,48 @@ test('the style is the last one a layer says, else a tab and the line ending eac
 });
 
 
+test('a group turns on every rule that carries it, under the rules of its own profile', function () {
+	// the group of the preset lies under the preset, the group of the configuration under its rules
+	$rules = resolve(new Config(groups: ['cleanup'], rules: ['dresscode/unused-imports' => false]));
+	Assert::contains('dresscode/useless-else', names($rules));
+	Assert::notContains('dresscode/unused-imports', names($rules));
+	Assert::notContains('dresscode/braces-position', names($rules)); // no group: the standard chooses it
+
+	// a group names no rule, so a rule of it that cannot run is left out in silence, as a preset's is
+	$resolver = new PresetResolver(new RuleRegistry);
+	$resolved = $resolver->resolve(new Config(groups: ['modernization']), '8.3');
+	$byName = array_column($resolved->rules, null, 'name');
+	Assert::same('it needs PHP 8.5 and the target is 8.3', $byName['dresscode/pipe-operator']->inactive);
+	Assert::same([], $resolver->getWarnings());
+	Assert::same(['modernization'], $resolved->groups);
+
+	// the group of the command line lies over the configuration, and the value of a rule is where it was said
+	$rules = resolve(new Config(rules: ['dresscode/useless-else' => false]), commandLine: new Profile(groups: ['cleanup']));
+	Assert::contains('dresscode/useless-else', names($rules));
+});
+
+
+test('a group is one of the groups, and the name of one narrows the run to its rules', function () {
+	Assert::exception(
+		fn() => new Config(groups: ['cleanups']),
+		InvalidArgumentException::class,
+		"Unknown group 'cleanups'; the groups are cleanup, modernization, types, deprecations, correctness, optimized-calls.",
+	);
+
+	$resolver = new PresetResolver(new RuleRegistry);
+	$resolved = $resolver->resolve(new Config(groups: ['cleanup', 'types']), '8.3', only: ['types']);
+	$active = array_map(fn(ResolvedRule $rule) => $rule->name, $resolved->getActiveRules());
+	Assert::contains('dresscode/phpdoc-canonical-types', $active);
+	Assert::notContains('dresscode/useless-else', $active);
+
+	Assert::exception(
+		fn() => $resolver->resolve(new Config(groups: ['cleanup']), '8.3', only: ['types']),
+		ConfigurationException::class,
+		'Group types the run is narrowed to has no rule that runs here.',
+	);
+});
+
+
 test('errors', function () {
 	Assert::exception(fn() => resolve(new Config(rules: ['test/none' => true])), ConfigurationException::class, "Unknown rule 'test/none'.");
 	Assert::exception(fn() => resolve(new Config(presets: [BrokenPreset::class])), ConfigurationException::class, "Unknown rule 'test/none'. (in preset test/broken)");
