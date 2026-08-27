@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Plugin, PluginManifest, Rules};
+use DressCode\{Plugin, PluginManifest, Presets, Rules};
 
 
 /**
@@ -20,6 +20,8 @@ final class BuiltinPlugin implements Plugin
 	{
 		return new PluginManifest(
 			presets: [
+				Presets\PerCs::class,
+				Presets\Psr12::class,
 			],
 			rules: [
 				Rules\Expressions\OffsetBracketSpacingRule::class,

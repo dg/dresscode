@@ -2,6 +2,7 @@
 
 use DressCode\{Config, ConfigurationException, NodeRule, Override, Plugin, PluginManifest, RuleInfo, Stage};
 use DressCode\Config\{Loader, NeonReader, RuleBuilder};
+use DressCode\Presets\PerCs;
 use DressCode\Rules\Upgrading\ForbiddenFunctionsRule;
 use Nette\Schema\Elements\Type;
 use Tester\{Assert, FileMock};
@@ -228,6 +229,19 @@ test('the version of PHP is taken with quotes or without them', function () {
 });
 
 
+test('a rule and a preset are named by their classes, and what the namespaces declare is a map', function () {
+	$config = Loader::loadFile(FileMock::create(<<<'XX'
+		rules: {LoaderRule: true}
+		presets: [DressCode\Presets\PerCs]
+		namespaces:
+			functions: [App\helper]
+		XX, 'neon'));
+	Assert::same([LoaderRule::class => true], $config->rules);
+	Assert::same([PerCs::class], $config->presets);
+	Assert::same(['functions' => ['App\helper'], 'constants' => []], $config->namespaces);
+});
+
+
 test('the page of the rules the configuration names by class is an address with the slug in it', function () {
 	$ruleUrl = fn(string $file) => Loader::loadFile(FileMock::create($file, 'neon'))->ruleUrl;
 	Assert::same('https://wiki.acme.dev/rules/{slug}', $ruleUrl("ruleUrl: 'https://wiki.acme.dev/rules/{slug}'\n"));
@@ -236,6 +250,35 @@ test('the page of the rules the configuration names by class is an address with 
 		fn() => $ruleUrl("ruleUrl: 'wiki page'\n"),
 		ConfigurationException::class,
 		'Configuration file `%a%`: Invalid `ruleUrl` `wiki page`, an address such as `https://acme.dev/rules/{slug}` is expected.',
+	);
+});
+
+
+test('an override takes every key of a profile, the entity of a rule included', function () {
+	$config = Loader::loadFile(FileMock::create(<<<'XX'
+		overrides:
+			- paths: [tests]
+			  presets: [psr12]
+			  targets: {php: 8.3}
+			  namespaces: {functions: [App\Tests\fixture]}
+			  nameResolution: uncertain
+			  fixRisky: [strictCall]
+			  warnOnly: [lineLength]
+			  rules: {LoaderRule: LoaderRule(dependency: db)}
+		XX, 'neon'));
+	$override = $config->overrides[0];
+	Assert::same(['tests'], $override->paths);
+	Assert::same(['psr12'], $override->presets);
+	Assert::same('8.3', $override->targets['php'] ?? null);
+	Assert::same(['App\Tests\fixture'], $override->namespaces['functions']);
+	Assert::same('uncertain', $override->nameResolution);
+	Assert::same([['strictCall'], ['lineLength']], [$override->fixRisky, $override->warnOnly]);
+	Assert::type(Closure::class, $override->rules['LoaderRule']);
+
+	Assert::exception(
+		fn() => Loader::loadFile(FileMock::create("overrides:\n\t- rules: {LoaderRule: false}\n", 'neon')),
+		ConfigurationException::class,
+		'Configuration file %a%paths%a%',
 	);
 });
 

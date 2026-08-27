@@ -50,6 +50,17 @@ test('every key is a named argument', function () {
 });
 
 
+test('an override is a profile for the paths it names', function () {
+	$override = new Override(['tests'], presets: ['psr12'], nameResolution: 'uncertain', fixRisky: ['strictCall']);
+	Assert::same(['tests'], $override->paths);
+	Assert::same(['psr12'], $override->presets);
+	Assert::same('uncertain', $override->nameResolution);
+	Assert::same(['strictCall'], $override->fixRisky);
+	Assert::exception(fn() => new Override([]), InvalidArgumentException::class, 'An override needs the paths it applies to.');
+	Assert::same(['php' => '8.3'], new Override(['tests'], targets: ['php' => '8.3'])->targets);
+});
+
+
 test('excluded paths add up to the default list, each pattern once', function () {
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'build'], new Config(excludePaths: ['build', 'vendor'])->excludePaths);
 });

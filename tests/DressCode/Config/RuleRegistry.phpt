@@ -2,6 +2,7 @@
 
 use DressCode\Config\RuleRegistry;
 use DressCode\{ConfigurationException, NodeRule, Preset, PresetInfo, Profile, RuleInfo, Stage};
+use DressCode\Presets\{PerCs, Psr12};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -125,6 +126,19 @@ test('names of a suppression comment', function () {
 });
 
 
+test('errors', function () {
+	$registry = new RuleRegistry;
+	$registry->registerRule(RuleOne::class);
+	Assert::exception(fn() => $registry->resolveRule('quite/different'), ConfigurationException::class, 'Unknown rule `quite/different`.');
+	Assert::exception(fn() => $registry->resolveRule('test/none'), ConfigurationException::class, 'Unknown rule `test/none`. Did you mean `test/one`?');
+	Assert::exception(fn() => $registry->resolveRule('indentaton'), ConfigurationException::class, 'Unknown rule `indentaton`. Did you mean `indentation`?');
+	Assert::exception(fn() => $registry->resolvePreset('dresscode/perC'), ConfigurationException::class, 'Unknown preset `dresscode/perC`. Did you mean `dresscode/perCs`?');
+	Assert::exception(fn() => $registry->registerRule(RuleOneClone::class), ConfigurationException::class, 'Rule name `test/one` is used by both `RuleOne` and `RuleOneClone`.');
+	Assert::exception(fn() => $registry->registerRule(NoInfo::class), ConfigurationException::class, 'Rule `NoInfo` has no `#[RuleInfo]` attribute.');
+	Assert::exception(fn() => $registry->resolveRule(stdClass::class), ConfigurationException::class, 'Class `stdClass` is not a rule.');
+});
+
+
 test('what a rule requires is php, a Composer constraint', function () {
 	Assert::same('8.4', RuleInfo::of(RequiringRule::class)->getMinPhpVersion());
 	Assert::null(RuleInfo::of(RuleOne::class)->getMinPhpVersion());
@@ -155,4 +169,23 @@ test('what a rule requires is php, a Composer constraint', function () {
 		ConfigurationException::class,
 		'Class `KebabNameRule`: Rule name `test/kebab-name` is not `vendor/camelCaseName`.',
 	);
+});
+
+
+test('presets', function () {
+	$registry = new RuleRegistry;
+	Assert::same(PerCs::class, $registry->resolvePreset('dresscode/perCs'));
+	Assert::same(Psr12::class, $registry->resolvePreset('dresscode/psr12'));
+	Assert::same(PerCs::class, $registry->resolvePreset('perCs'));
+	Assert::same(TestPreset::class, $registry->resolvePreset(TestPreset::class));
+	Assert::same(TestPreset::class, $registry->resolvePreset('test/preset'));
+	Assert::same(
+		[
+			'dresscode/perCs' => PerCs::class, 'dresscode/psr12' => Psr12::class,
+			'test/preset' => TestPreset::class,
+		],
+		$registry->presets,
+	);
+	Assert::exception(fn() => $registry->resolvePreset('none'), ConfigurationException::class, 'Unknown preset `none`.');
+	Assert::exception(fn() => $registry->resolvePreset(stdClass::class), ConfigurationException::class, 'Class `stdClass` is not a preset.');
 });

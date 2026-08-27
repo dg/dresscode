@@ -1,0 +1,10 @@
+<?php declare(strict_types=1);
+namespace Vendor\Package;
+use Vendor\Package\Bar;
+class Foo extends Bar {
+    public function sampleFunction(int $a) : array {
+        if ($a) return [$a];
+        return array();
+    }
+}
+

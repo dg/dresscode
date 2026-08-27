@@ -14,7 +14,7 @@ use function strlen;
 
 /**
  * Rule and preset classes known to a run, by name or class; a name may belong to one class only.
- * A name without a vendor is the built-in one of that name.
+ * A name without a vendor is the built-in one of that name, so `'perCs'` is `'dresscode/perCs'`.
  * @internal
  */
 final class RuleRegistry
