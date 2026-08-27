@@ -13,7 +13,7 @@ use PhpSyntax\{Token, Trivia};
 
 /**
  * Takes what the engine of the gaps decided about a gap, the claim that won a component, together with what the
- * gap holds. The fixer of a pass reports and fixes.
+ * gap holds. The fixer of a pass reports and fixes, the survey of the whitespace fuzz records.
  * @internal
  */
 interface Sink
