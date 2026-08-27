@@ -20,7 +20,7 @@ use function count, is_array, is_int;
 /**
  * Applies the claims of the gap rules along the traversal of the formatting stage: entering a node hands them to
  * the tokens at the edges of its slot values, reaching a token decides the gap before it component by component
- * and hands the decision to a Sink, the fixer of the pass.
+ * and hands the decision to a Sink, the fixer of the pass or the survey of the whitespace fuzz.
  * @internal
  */
 final class Resolver

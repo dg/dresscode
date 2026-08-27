@@ -28,6 +28,7 @@ Internal:
 - `Rules\NodeHelpers`, `Rules\Compiler`, `Rules\NativeType`, `Rules\Classes\PropertyWrites`, `Rules\Classes\MemberModifiers`, `Rules\Functions\ForwardingClosure`, `Rules\Namespaces\NameReferences`, `Rules\Namespaces\QualificationPolicy`, `Rules\PhpDoc\AnnotationReplacement`, `Rules\PhpDoc\PhpdocTypeNotationVisitor`: what the rules share among themselves or a rule does in a class of its own
 - `Rules\Upgrading\DeprecatedArguments`, `Rules\Upgrading\PhpUpgradingData`, `Rules\Upgrading\UpgradingEntry`, `Rules\Upgrading\enums.php`: the helpers of the rule fed by the upgrading data of PHP
 - `Analyses\Registry`, `Analyses\PhpSymbolsData`, `Analyses\PhpSignaturesData`: the machinery of the analyses
+- `Testing\GapSurvey`: what the gap rules govern, recorded for the whitespace fuzz
 
 Of the public classes, the constructors of `Gap` and `RuleContext` and the methods marked `@internal` (`Value::__construct()`, `Value::keep()`, `Values::__construct()`, `reportGap()`, `hasReports()`, `takeReports()`, `Config::MinPhpVersion`, `FileResult::markWritten()`) are the engine's alone. For a rule the name and the namespace of its class are public, so that a configuration can name it by class, while its methods are not. A rule never asks another one: what two rules share is a decision of a tree, which a rule that only reads it names in `RuleInfo::$reads` and reads from its values, the style of the run (`Style`, its imports among it), or an analysis of the file (`Analyses\IndentationPlan`).
 
