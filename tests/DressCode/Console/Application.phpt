@@ -266,6 +266,20 @@ test('a run inside GitHub Actions annotates without being told to', function () 
 });
 
 
+test('without a configuration file neither check nor fix runs, unless a preset is named', function () {
+	$dir = sys_get_temp_dir();
+	foreach (['check', 'fix'] as $command) {
+		[$code, , $err] = runApp($dir, [$command]);
+		Assert::same(2, $code);
+		Assert::match('Error: No configuration file found in %a% or above it.%A%', $err);
+	}
+
+	[$code, , $err] = runApp($dir, ['check', '--preset', 'per']);
+	Assert::same(2, $code);
+	Assert::match('Error: No paths given and none configured.%A%', $err);
+});
+
+
 test('fix writes the files and reports what remains', function () use ($root) {
 	[$code, $out] = runApp($root, ['fix', '--diff', '--rule', ConsoleReport::class . '=on']);
 	Assert::same(1, $code);

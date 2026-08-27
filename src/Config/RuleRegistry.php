@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{ConfigurationException, Preset, PresetInfo, Rule, RuleInfo, Rules};
+use DressCode\{ConfigurationException, Preset, PresetInfo, Presets, Rule, RuleInfo, Rules};
 use Nette\Utils\Helpers;
 use function strlen;
 
@@ -227,6 +227,8 @@ final class RuleRegistry
 
 	public function __construct()
 	{
+		$this->registerPreset(Presets\Per::class);
+		$this->registerPreset(Presets\Psr12::class);
 		foreach (self::BuiltinRules as $class) {
 			$this->registerRule($class);
 		}

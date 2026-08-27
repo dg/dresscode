@@ -1,0 +1,91 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Presets;
+
+use DressCode\{Preset, PresetInfo, Profile};
+
+
+/**
+ * PSR-12 Extended Coding Style, section by section; the specification defines the style and this preset
+ * adds nothing of its own.
+ */
+#[PresetInfo('dresscode/psr12', 'PSR-12 Extended Coding Style')]
+final class Psr12 implements Preset
+{
+	public function getProfile(): Profile
+	{
+		return new Profile(
+			indent: 4,
+			eol: 'majority',
+			lineLength: 120,
+			rules: [
+				// 2. General: files, lines, indenting, keywords and types
+				'no-bom' => true,
+				'full-opening-tag' => true,
+				'line-ending' => true,
+				'eof-newline' => true,
+				'no-closing-tag' => true,
+				'no-trailing-whitespace' => true,
+				'single-statement-per-line' => true,
+				'indentation' => true,
+				'keyword-casing' => true,
+				'constant-casing' => true,
+				'cast-spacing' => true,
+				'cast-canonical-type' => true,
+
+				// 2.1 Basic coding standard: PSR-1 3 and 4 on the case of names
+				'name-casing' => ['classes' => 'PascalCase', 'methods' => 'camelCase', 'constants' => 'UPPER_CASE'],
+
+				// 3. Declare statements, namespace and import statements
+				'ordered-imports' => ['order' => 'byKind'],
+				'no-leading-backslash-in-import' => true,
+				'declare-spacing' => true,
+
+				// 4. Classes, properties and methods
+				'new-argument-parentheses' => ['anonymousClasses' => 'keep'],
+				'class-definition-spacing' => true,
+				'braces-position' => ['singleLineAnonymousFunctions' => 'expanded'],
+				// PSR-12 asks for blank lines in the header and none between the members it names; what it says
+				// nothing about is left as it is
+				'blank-lines' => [
+					'betweenDeclarations' => 'keep', 'betweenMethods' => 'keep', 'betweenMethodsInInterface' => 'keep',
+					'betweenMembers' => 'keep', 'beforeDocumentedMember' => 'keep', 'afterPhpDoc' => 'keep',
+					'afterBlockBrace' => 'keep', 'before' => [],
+				],
+				'ordered-members' => ['order' => ['use_trait']],
+				'visibility-required' => true,
+				'single-member-per-declaration' => ['members' => ['property', 'trait']],
+				'function-name-spacing' => true,
+				'parentheses-spacing' => true,
+				'comma-spacing' => ['alignment' => 'none'],
+				'multi-line-signature' => ['promotedProperties' => 'keep'],
+				'type-hint-spacing' => ['catchTypes' => 'single'],
+				'reference-spacing' => true,
+				'spread-operator-spacing' => true,
+				'multi-line-call' => true,
+
+				// 5. Control structures; what a return gives may begin below it, which the specification leaves open
+				'construct-spacing' => ['allowMultiLineExpression' => true],
+				'control-structure-braces' => true,
+				'elseif-keyword' => true,
+				'multi-line-condition' => true,
+				'switch-case-colon' => true,
+				'switch-case-spacing' => true,
+				'fall-through-comment' => true,
+
+				// 6. Operators
+				'unary-operator-spacing' => true,
+				'binary-operator-spacing' => true,
+				'ternary-operator-spacing' => true,
+
+				// 11. Arrays
+				'short-array-syntax' => true,
+			],
+		);
+	}
+}
