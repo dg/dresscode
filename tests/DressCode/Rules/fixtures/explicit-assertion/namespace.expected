@@ -1,0 +1,6 @@
+<?php
+// risky
+namespace App;
+
+$a = f();
+assert(\is_int($a));
