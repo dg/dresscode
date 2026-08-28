@@ -1,0 +1,8 @@
+1: Nested dirname() calls must be one call with the levels argument
+1: Nested dirname() calls must be one call with the levels argument
+2: Nested dirname() calls must be one call with the levels argument
+3: Nested dirname() calls must be one call with the levels argument
+4: Nested dirname() calls must be one call with the levels argument
+5: Nested dirname() calls must be one call with the levels argument
+6: Nested dirname() calls must be one call with the levels argument
+7: The dirname(__FILE__) call must be written '__DIR__'

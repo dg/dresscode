@@ -73,6 +73,7 @@ final class RuleRegistry
 		Rules\Functions\ArrowFunctionRule::class,
 		Rules\Functions\ForbiddenFunctionsRule::class,
 		Rules\Functions\MultiLineCallRule::class,
+		Rules\Functions\NoDirnameOfFileRule::class,
 		Rules\Functions\MultiLineSignatureRule::class,
 		Rules\Functions\NamedArgumentSpacingRule::class,
 		Rules\Functions\NativeFunctionCasingRule::class,

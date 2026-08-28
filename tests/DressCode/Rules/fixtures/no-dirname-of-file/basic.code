@@ -1,0 +1,8 @@
+<?php
+$a = dirname(__FILE__);
+$b = dirname(__FILE__, 2);
+$c = \dirname(__FILE__);
+$d = dirname(__file__);
+$e = Foo\dirname(__FILE__);
+$f = dirname(/* keep */ __FILE__);
+$g = dirname(__DIR__);
