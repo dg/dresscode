@@ -1,0 +1,8 @@
+<?php
+// {"members": ["property"]}
+class A
+{
+	const X = 1, Y = 2;
+	use T1, T2;
+	public $a, $b;
+}

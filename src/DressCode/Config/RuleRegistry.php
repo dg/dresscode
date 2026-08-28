@@ -41,6 +41,7 @@ final class RuleRegistry
 		Rules\Classes\NoKindInClassNameRule::class,
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
+		Rules\Classes\SingleMemberPerDeclarationRule::class,
 		Rules\Classes\UselessModifierRule::class,
 		Rules\Classes\VisibilityRequiredRule::class,
 		Rules\Comments\CommentedOutFunctionRule::class,

@@ -1,0 +1,8 @@
+<?php
+class A
+{
+	use T1, T2, T3; // c
+	use T4, T5 {
+		T4::f insteadof T5;
+	}
+}

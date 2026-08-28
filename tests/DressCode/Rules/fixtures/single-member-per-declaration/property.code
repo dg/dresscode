@@ -1,0 +1,7 @@
+<?php
+class A
+{
+	/** doc */
+	public int $a = 1, $b, $c = 3; // c
+	protected $d, $e;
+}
