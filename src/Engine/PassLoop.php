@@ -91,7 +91,7 @@ final class PassLoop
 		$this->opened = new \WeakMap;
 		$this->moved = new \WeakMap;
 		$this->fingerprints = new Fingerprints($lines);
-		$suppression = Suppression::fromFile($file, $this->policy->expandName, $code);
+		$suppression = Suppression::fromFile($file, $this->policy->expandName, $code, $this->policy->suppressionComments);
 		foreach ($suppression->getUnknownNames() as $name => $comment) {
 			$this->warnings[] = 'Comment '
 				. Violation::formatCode($comment)

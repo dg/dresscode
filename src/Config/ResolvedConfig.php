@@ -45,6 +45,8 @@ final readonly class ResolvedConfig
 		public int $tabWidth = 4,
 		/** @var list<class-string>  the plugins the configuration and the command line use */
 		public array $plugins = [],
+		/** @var array<string, list<string>>  pattern of a comment => the decisions it silences where it stands */
+		public array $suppressionComments = [],
 		/** @var array<string, ResolvedDecision>  every decision of the catalogue by its path */
 		public array $decisions = [],
 		/** @var array<string, true>  the decisions whose fixes that may change what the code does the project accepts */

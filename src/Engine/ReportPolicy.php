@@ -24,6 +24,8 @@ final readonly class ReportPolicy
 	/** @param ?\Closure(string): list<string> $expandName  without one a name stands for itself */
 	public function __construct(
 		?\Closure $expandName = null,
+		/** @var array<string, list<string>>  pattern of a comment => the decisions it silences where it stands */
+		public array $suppressionComments = [],
 		/** @var array<string, true>  decisions whose violations only warn */
 		public array $warnOnly = [],
 		/**

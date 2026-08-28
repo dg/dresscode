@@ -60,6 +60,7 @@ final readonly class Config extends Profile
 	 * @param list<string> $fixRisky
 	 * @param array<string, string> $targets  `php` => the version the code is written for
 	 * @param list<string> $warnOnly
+	 * @param array<string, string|list<string>> $suppressionComments
 	 * @param list<string> $excludePaths  left out of the run on top of the default list
 	 * @param ?callable(string $content, string $path): bool $skipWhen
 	 * @param array<string|int, string|callable(FileNode, string): object> $analyses  a class the engine builds itself, or
@@ -74,6 +75,7 @@ final readonly class Config extends Profile
 		?string $nameResolution = null,
 		array $fixRisky = [],
 		array $warnOnly = [],
+		array $suppressionComments = [],
 		/** @var list<Override> */
 		public array $overrides = [],
 		/** @var list<string>  files and directories relative to the root, checked when the command line names none */
@@ -98,6 +100,7 @@ final readonly class Config extends Profile
 			$nameResolution,
 			$fixRisky,
 			$warnOnly,
+			$suppressionComments,
 			$decisions,
 		);
 		$this->plugins = array_values($plugins);
