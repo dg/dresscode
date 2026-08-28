@@ -15,3 +15,17 @@ jobs:
 
             - run: composer create-project nette/code-checker temp/code-checker ^3 --no-progress
             - run: php temp/code-checker/code-checker --strict-types --no-progress --ignore fixtures
+
+
+    dresscode:
+        name: DressCode (dogfood)
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: 8.4
+                  coverage: none
+
+            - run: composer install --no-progress --prefer-dist
+            - run: php bin/dresscode check

@@ -1,0 +1,29 @@
+presets:
+	- nette
+
+groups:
+	- modernization
+	- deprecations
+
+rules:
+	groupImport: {minImports: 2}
+
+paths:
+	- src
+	- tests
+	- bin/dresscode
+
+excludePaths:
+	- fixtures
+	- tests/corpus
+
+fileExtensions:
+	- php
+	- phpt
+
+overrides:
+	- paths: [src]
+	  groups: [optimizedCalls]
+	  nameResolution: certain
+	  rules:
+	  	nameFallback: {optimizedFunction: qualified, optimizedConstant: qualified}
