@@ -1,0 +1,7 @@
+<?php
+
+use Foo\{A, B as C};
+use function Foo\{f, g};
+use Foo\{const X, function h}; // c
+
+class Y {}

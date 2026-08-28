@@ -1,0 +1,5 @@
+<?php
+namespace A;
+use B, C as D;
+use function e, f;
+use const G, H;

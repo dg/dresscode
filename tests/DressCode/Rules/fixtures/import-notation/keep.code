@@ -1,0 +1,6 @@
+<?php
+// {"groupUse": "keep", "functions": null}
+namespace A;
+use B\{C, D};
+use function e, f;
+use G, H;
