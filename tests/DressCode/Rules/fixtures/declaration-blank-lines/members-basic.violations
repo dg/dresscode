@@ -1,0 +1,8 @@
+5: Expected 0 blank lines before the trait use, 1 found
+7: Expected 0 blank lines before the trait use, 1 found
+9: Expected 1 blank line before the constant, 0 found
+10: Expected at most 1 blank line before the constant, 2 found
+13: Expected 1 blank line before the property, 0 found
+19: Expected 2 blank lines before the method, 1 found
+26: Expected 0 blank lines before the closing brace, 2 found
+33: Expected at most 1 blank line before the enum case, 2 found
