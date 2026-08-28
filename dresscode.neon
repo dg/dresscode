@@ -1,0 +1,28 @@
+use:
+	- nette
+	- modernizations
+
+paths:
+	- src
+	- tests
+	- bin/dresscode
+
+excludePaths:
+	- fixtures
+	- tests/corpus
+	- tests/**/output
+
+fileExtensions:
+	- php
+	- phpt
+
+imports:
+	groupUse: required
+
+overrides:
+	-
+		paths: [src]
+		nameResolution: certain
+		use:
+			- compilerOptimizations
+			- deprecations
