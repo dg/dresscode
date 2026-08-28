@@ -220,6 +220,35 @@ test('extensions name rules, presets and extensions, and what the namespaces dec
 });
 
 
+test('an override takes every key of a profile, the entity of a rule included', function () {
+	$config = Loader::loadFile(FileMock::create(<<<'XX'
+		overrides:
+			- paths: [tests]
+			  presets: [nette]
+			  php: 8.3
+			  namespaces: {functions: [App\Tests\fixture]}
+			  nameResolution: uncertain
+			  fixRisky: [strict-call]
+			  warnings: [line-length]
+			  rules: {LoaderRule: LoaderRule(dependency: db)}
+		XX, 'neon'));
+	$override = $config->overrides[0];
+	Assert::same(['tests'], $override->paths);
+	Assert::same(['nette'], $override->presets);
+	Assert::same('8.3', $override->php);
+	Assert::same(['App\Tests\fixture'], $override->namespaces['functions']);
+	Assert::same('uncertain', $override->nameResolution);
+	Assert::same([['strict-call'], ['line-length']], [$override->fixRisky, $override->warnings]);
+	Assert::type(Closure::class, $override->rules['LoaderRule']);
+
+	Assert::exception(
+		fn() => Loader::loadFile(FileMock::create("overrides:\n\t- rules: {LoaderRule: false}\n", 'neon')),
+		ConfigurationException::class,
+		'Configuration file %a%paths%a%',
+	);
+});
+
+
 test('an entity is a new object, what a static method returns, the method itself, or a chain of calls', function () {
 	$skipWhen = fn(string $neon): Closure => Loader::loadFile(FileMock::create($neon, 'neon'))->skipWhen ?? throw new LogicException;
 	Assert::true($skipWhen("skipWhen: LoaderFilter(marker: '@generated')\n")('// @generated', 'a.php'));

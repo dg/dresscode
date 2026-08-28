@@ -1,0 +1,55 @@
+<?php declare(strict_types=1);
+
+namespace App\Model;
+
+use Nette\Utils\Strings;
+
+
+/**
+ * A repository written the Nette way.
+ */
+final class UserRepository
+{
+	private const DefaultLimit = 10;
+
+	/** @var array<int, string> */
+	private array $names = [];
+
+
+	public function __construct(
+		private readonly Connection $connection,
+		private readonly ?Cache $cache = null,
+	) {
+	}
+
+
+	/**
+	 * Finds the users of the given names.
+	 * @param  list<string>  $names
+	 * @return list<User>
+	 */
+	public function findByNames(array $names, int $limit = self::DefaultLimit): array
+	{
+		$rows = $this->connection->table('users')
+			->where('name', $names)
+			->limit($limit)
+			->fetchAll();
+
+		$matrix = [
+			1, 2, 3,
+			4, 5, 6,
+		];
+
+		try {
+			return array_map(fn($row) => new User($row->id, Strings::lower($row->name)), $rows);
+		} catch (\RuntimeException|\LogicException $e) {
+			throw new RepositoryException($e->getMessage(), previous: $e);
+		}
+	}
+
+
+	public function count(): int
+	{
+		return $this->cache?->load('count') ?? $this->connection->table('users')->count();
+	}
+}

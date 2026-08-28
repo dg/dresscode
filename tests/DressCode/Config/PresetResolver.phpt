@@ -413,6 +413,41 @@ function narrow(
 }
 
 
+test('--only keeps what it names of what the configuration comes to, and enables nothing', function () {
+	$resolver = new PresetResolver(new RuleRegistry);
+
+	// a rule by its name or its class, with the options it has without --only
+	Assert::same(['test/c'], narrow($resolver, new Config(presets: [ChildPreset::class]), ['test/c']));
+	Assert::same(['test/c'], narrow($resolver, new Config(presets: [ChildPreset::class]), [RuleC::class]));
+	$narrowed = $resolver->resolve(new Config(presets: [ChildPreset::class]), '8.3', only: ['test/c']);
+	Assert::same(['max' => 5, 'names' => ['x']], $narrowed->getRule('test/c')?->options);
+	Assert::same('the run is narrowed to other rules', $narrowed->getRule('test/a')?->inactive);
+
+	// a name without a vendor is the built-in one
+	Assert::same(['dresscode/string-quotes'], narrow($resolver, new Config(presets: ['nette']), ['string-quotes']));
+
+	// a preset stands for every rule it and its parents mention, and not for what the configuration added
+	$config = new Config(presets: [ChildPreset::class], rules: [RuleNested::class => true]);
+	Assert::same(['test/a', 'test/c'], narrow($resolver, $config, [ChildPreset::class]));
+	Assert::same(['test/a', 'test/c'], narrow($resolver, $config, ['test/base']));
+	Assert::same(['test/a', 'test/c', 'test/nested'], narrow($resolver, $config, ['test/base', 'test/nested']));
+
+	// the command line is a layer below it: what --rule turned on, --only may keep
+	$enabled = new Profile(rules: ['test/b' => true]);
+	Assert::same(['test/b'], narrow($resolver, $config, ['test/b'], commandLine: $enabled));
+	Assert::same(['test/a'], narrow($resolver, $config, ['test/a'], commandLine: $enabled));
+
+	// a rule left out is not a rule skipped for its version, and says nothing
+	$resolver->resolve(new Config(rules: [RuleFuture::class => true, RuleA::class => true]), '8.3', only: ['test/a']);
+	Assert::same(['Rule test/future needs PHP 8.4, the target is 8.3; skipped.'], $resolver->getWarnings());
+
+	// a rule only an override enables runs where the override applies
+	$overridden = new Config(presets: [ChildPreset::class], overrides: [new Override(['tests'], rules: ['test/nested' => true])]);
+	Assert::same([], narrow($resolver, $overridden, ['test/nested']));
+	Assert::same(['test/nested'], narrow($resolver, $overridden, ['test/nested'], [0]));
+});
+
+
 test('a name of --only that lets in nothing that runs is an error, not an empty run', function () {
 	$resolver = new PresetResolver(new RuleRegistry);
 	Assert::exception(
