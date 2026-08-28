@@ -51,6 +51,7 @@ final class Psr12 implements Preset
 			],
 			Rules\Classes\OrderedMembersRule::class => ['order' => ['use_trait']],
 			Rules\Classes\VisibilityRequiredRule::class => true,
+			Rules\Classes\SingleMemberPerDeclarationRule::class => ['members' => ['property', 'trait']],
 			Rules\Functions\FunctionNameSpacingRule::class => true,
 			Rules\Whitespace\ParenthesesSpacingRule::class => true,
 			Rules\Whitespace\CommaSpacingRule::class => ['tabAlignment' => false],
