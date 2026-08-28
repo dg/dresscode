@@ -1,7 +1,8 @@
 #!/usr/bin/env php
 <?php declare(strict_types=1);
 
-foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $file) {
+// the project's autoloader first: a copy installed from a path repository brings its own vendor along
+foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
 	if (is_file($file)) {
 		require $file;
 		break;
