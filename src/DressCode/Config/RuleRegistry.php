@@ -150,6 +150,7 @@ final class RuleRegistry
 		Rules\Literals\NowdocWithoutInterpolationRule::class,
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Literals\NoTrailingWhitespaceInStringRule::class,
+		Rules\Literals\UselessStringConcatRule::class,
 		Rules\Literals\SingleQuotedStringsRule::class,
 		Rules\PhpDoc\ExplicitAssertionRule::class,
 		Rules\Types\NullableTypeForDefaultNullRule::class,
