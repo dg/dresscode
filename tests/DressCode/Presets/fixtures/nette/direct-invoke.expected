@@ -1,0 +1,13 @@
+<?php declare(strict_types=1);
+
+final class Holder
+{
+	public ?array $items = null;
+
+
+	public function reset(Closure $callback): void
+	{
+		$this->items = null;
+		$callback();
+	}
+}
