@@ -3,6 +3,18 @@ presets:
 
 rules:
 	group-import: {minImports: 2}
+	strict-comparison: true
+	final-internal-class: true
+
+fixRisky:
+	- strict-call
+	- modern-class-name-reference
+	- strict-types-required
+	- strict-comparison
+	- final-internal-class
+	- no-trailing-whitespace-in-string
+	- explicit-assertion
+	- increment-operator
 
 paths:
 	- src
