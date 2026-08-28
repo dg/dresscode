@@ -28,6 +28,12 @@ final class CorePlugin implements Plugin
 			presets: [
 				'dresscode/perCs' => dirname(__DIR__) . '/Presets/perCs.neon',
 				'dresscode/psr12' => dirname(__DIR__) . '/Presets/psr12.neon',
+				'dresscode/cleanup' => dirname(__DIR__) . '/Presets/cleanup.neon',
+				'dresscode/compilerOptimizations' => dirname(__DIR__) . '/Presets/compilerOptimizations.neon',
+				'dresscode/correctness' => dirname(__DIR__) . '/Presets/correctness.neon',
+				'dresscode/deprecations' => dirname(__DIR__) . '/Presets/deprecations.neon',
+				'dresscode/modernizations' => dirname(__DIR__) . '/Presets/modernizations.neon',
+				'dresscode/types' => dirname(__DIR__) . '/Presets/types.neon',
 			],
 			rules: [
 				Rules\Arrays\ArraySpacingRule::class,
