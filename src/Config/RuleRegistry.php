@@ -59,6 +59,7 @@ final class RuleRegistry
 		Rules\ControlFlow\FallThroughCommentRule::class,
 		Rules\ControlFlow\NoEmptyStatementRule::class,
 		Rules\ControlFlow\UselessConstructParenthesesRule::class,
+		Rules\ControlFlow\UselessElseRule::class,
 		Rules\ControlFlow\UselessReturnRule::class,
 		Rules\ControlFlow\UselessCatchVariableRule::class,
 		Rules\ControlFlow\ReferenceThrowableOnlyRule::class,
