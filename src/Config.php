@@ -42,6 +42,7 @@ final readonly class Config extends Profile
 
 	/**
 	 * @param list<string> $presets
+	 * @param list<string|RuleGroup> $groups
 	 * @param array<string, bool|string|int|array<string, mixed>|\Closure(): Rule> $rules
 	 * @param array{functions?: list<string>, constants?: list<string>} $namespaces
 	 * @param list<string> $fixRisky
@@ -55,6 +56,7 @@ final readonly class Config extends Profile
 		/** @var list<class-string<Plugin>|Plugin>  what packages bring to the project, by class or as an object */
 		public array $plugins = [],
 		array $presets = [],
+		array $groups = [],
 		array $rules = [],
 		int|string|null $indent = null,
 		?string $lineEnding = null,
@@ -76,7 +78,7 @@ final readonly class Config extends Profile
 		/** the address of the page of each rule the configuration names by class, `{slug}` standing for the name without its vendor */
 		public ?string $ruleUrl = null,
 	) {
-		parent::__construct($presets, $rules, $indent, $lineEnding, $lineLength, $targets, $namespaces, $nameResolution, $fixRisky, $warnOnly);
+		parent::__construct($presets, $groups, $rules, $indent, $lineEnding, $lineLength, $targets, $namespaces, $nameResolution, $fixRisky, $warnOnly);
 		self::checkPlugins($plugins);
 		self::checkRuleUrl($ruleUrl);
 

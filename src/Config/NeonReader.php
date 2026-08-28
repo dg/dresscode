@@ -83,6 +83,7 @@ final class NeonReader
 	{
 		return [
 			'presets' => Expect::listOf('string'),
+			'groups' => Expect::listOf('string'),
 			// a bare value is the decision of the rule
 			'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), Expect::string(), Expect::int(), Expect::arrayOf('mixed'), Expect::type(Entity::class)), 'string'),
 			'indent' => Expect::anyOf(Expect::int(), Expect::string()),

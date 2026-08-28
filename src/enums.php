@@ -55,7 +55,7 @@ enum Severity
 
 
 /**
- * What a project gets from a rule beyond the looks of the code.
+ * What a project gets from a rule beyond the looks of the code, so that it can ask for all of a kind at once.
  */
 enum RuleGroup: string
 {

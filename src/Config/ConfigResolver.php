@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Config, ConfigurationException, Override, Plugin, Preset, PresetInfo, Profile, Rule, RuleInfo};
+use DressCode\{Config, ConfigurationException, Override, Plugin, Preset, PresetInfo, Profile, Rule, RuleGroup, RuleInfo};
 use DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule;
 use PhpSyntax\SymbolKind;
 use function count, in_array, is_int, is_string, strlen;
@@ -69,7 +69,7 @@ final class ConfigResolver
 	{
 		/** @var array<class-string<Rule>, list<array{string, mixed}>> $layers */
 		$layers = [];
-		$explicit = $fixRisky = $warningRules = $presets = [];
+		$explicit = $fixRisky = $warningRules = $presets = $groups = [];
 		$symbols = [SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
 		$indent = $eol = $lineLength = $php = $resolution = null;
 		foreach ($this->collectLayers(self::listProfiles($config, $overrides, $commandLine)) as [$source, $profile, $isPreset]) {
@@ -97,6 +97,15 @@ final class ConfigResolver
 				] as [$kind, $names]) {
 					foreach ($names as $name) {
 						$symbols[$kind->name][self::toSymbolKey($kind, $name)] ??= [$name, $source];
+					}
+				}
+
+				// a group lies under the rules of its own profile and names no rule itself, so a rule it turns on
+				// is one nobody asked for by name and is left out in silence where it cannot run
+				foreach ($profile->groups as $group) {
+					$groups[$group->value] = true;
+					foreach ($this->findRulesOfGroup($group) as $class) {
+						$layers[$class][] = ["group $group->value", true];
 					}
 				}
 
@@ -168,6 +177,7 @@ final class ConfigResolver
 			self::resolveLineEnding($eol),
 			$phpVersion,
 			$presets,
+			array_keys($groups),
 			namespacedFunctions: $bySource($symbols[SymbolKind::Function->name]),
 			namespacedConstants: $bySource($symbols[SymbolKind::Constant->name]),
 			nameResolution: $resolution ?? 'uncertain',
@@ -372,8 +382,8 @@ final class ConfigResolver
 			return $layer;
 		} elseif (str_starts_with($layer, $prefix = 'the override for ')) {
 			return $prefix . '`' . implode('`, `', explode(', ', substr($layer, strlen($prefix)))) . '`';
-		} elseif (preg_match('~^preset (.+)$~', $layer, $m)) {
-			return "preset `$m[1]`";
+		} elseif (preg_match('~^(preset|group) (.+)$~', $layer, $m)) {
+			return "$m[1] `$m[2]`";
 		}
 
 		return "`$layer`";
@@ -403,12 +413,18 @@ final class ConfigResolver
 
 
 	/**
-	 * The rules a name of `only` stands for: a rule for itself, a preset for every rule it and its parents mention.
+	 * The rules a name of `only` stands for: a rule for itself, a group for every rule it turns on,
+	 * a preset for every rule it and its parents mention.
 	 * @return array{string, ?class-string<Rule>, list<class-string<Rule>>}  what the name was, the rule it names, and the rules it stands for
 	 * @throws ConfigurationException
 	 */
 	private function expandName(string $name): array
 	{
+		$group = RuleGroup::tryFrom($name);
+		if ($group !== null) {
+			return ["group $name", null, $this->findRulesOfGroup($group)];
+		}
+
 		$class = $this->registry->resolveRuleOrPreset($name);
 		if (!is_a($class, Preset::class, allow_string: true)) {
 			return [RuleInfo::of($class)->name, $class, [$class]];
@@ -480,7 +496,8 @@ final class ConfigResolver
 
 
 	/**
-	 * The rules some override of the configuration turns on, itself or by a preset, whichever file it applies to.
+	 * The rules some override of the configuration turns on, itself, by a group or by a preset, whichever file
+	 * it applies to.
 	 * @return array<class-string<Rule>, true>
 	 * @throws ConfigurationException
 	 */
@@ -490,6 +507,12 @@ final class ConfigResolver
 		foreach ($config->overrides as $override) {
 			foreach ($this->collectLayers([[self::describeOverride($override), $override]]) as [$source, $profile, $isPreset]) {
 				try {
+					foreach ($profile->groups as $group) {
+						foreach ($this->findRulesOfGroup($group) as $class) {
+							$rules[$class] = true;
+						}
+					}
+
 					foreach ($profile->rules as $rule => $value) {
 						if (self::normalize($value) !== false) {
 							$rules[$this->registry->resolveRule($rule)] = true;
@@ -503,6 +526,19 @@ final class ConfigResolver
 		}
 
 		return $rules;
+	}
+
+
+	/**
+	 * The rules the group turns on, those that carry it.
+	 * @return list<class-string<Rule>>
+	 */
+	private function findRulesOfGroup(RuleGroup $group): array
+	{
+		return array_values(array_filter(
+			$this->registry->rules,
+			fn(string $class) => RuleInfo::of($class)->group === $group,
+		));
 	}
 
 

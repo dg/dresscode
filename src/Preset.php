@@ -9,7 +9,7 @@ namespace DressCode;
 
 
 /**
- * A named profile: rules with their options, the style it needs and what the namespaces of a framework declare.
+ * A named profile: rules with their options, groups, the style it needs and what the namespaces of a framework declare.
  * The presets of its profile are the ones it builds on, laid below it parents first.
  */
 interface Preset

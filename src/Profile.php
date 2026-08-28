@@ -13,7 +13,7 @@ use function in_array, is_int;
 
 
 /**
- * What decides how a file is processed: the presets and the rules, the style, the version of PHP the code
+ * What decides how a file is processed: the presets, the groups and the rules, the style, the version of PHP the code
  * is written for, what its namespaces declare, and the rules whose risky fixes are accepted or whose violations only
  * warn. A preset
  * is a profile under a name, an override is one for a part of the tree, and the configuration is the one of the whole
@@ -32,8 +32,12 @@ readonly class Profile
 	 */
 	public ?string $nameResolution;
 
+	/** @var list<RuleGroup>  what the profile asks for beyond the looks of the code, every rule of the group with its defaults */
+	public array $groups;
+
 
 	/**
+	 * @param list<string|RuleGroup> $groups
 	 * @param array{functions?: list<string>, constants?: list<string>} $namespaces  functions and constants the namespaces
 	 *   declare, each written as an item of a `use` statement writes it (`'App\helper'`, `'App\Utils\{format, parse}'`): an
 	 *   unqualified call in a namespace reaches such a function before the global one, which no file that calls it shows
@@ -41,6 +45,8 @@ readonly class Profile
 	public function __construct(
 		/** @var list<string>  names or classes, laid below the rest of the profile */
 		public array $presets = [],
+		/** @var list<string|RuleGroup>  groups of rules, by the name of the group (`cleanup`) or by the case itself */
+		array $groups = [],
 		/** @var array<string, bool|string|int|array<string, mixed>|\Closure(): Rule>  name or class => enabled, the value of its decision, options, or a factory for a rule with dependencies */
 		public array $rules = [],
 		/** a number of spaces or `'tab'` */
@@ -75,6 +81,15 @@ readonly class Profile
 		} elseif ($unknown = array_diff_key($namespaces, ['functions' => true, 'constants' => true])) {
 			throw new \InvalidArgumentException('The namespaces declare functions and constants, not `' . array_key_first($unknown) . '`.');
 		}
+
+		$this->groups = array_map(
+			fn(string|RuleGroup $group) => $group instanceof RuleGroup
+				? $group
+				: (RuleGroup::tryFrom($group) ?? throw new \InvalidArgumentException(
+					"Unknown group `$group`; the groups are `" . implode('`, `', array_column(RuleGroup::cases(), 'value')) . '`.',
+				)),
+			$groups,
+		);
 
 		$this->nameResolution = $nameResolution;
 		$this->namespaces = [
