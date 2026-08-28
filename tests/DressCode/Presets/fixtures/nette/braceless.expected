@@ -1,0 +1,22 @@
+<?php declare(strict_types=1);
+
+namespace App;
+
+
+function collect(array $items): array
+{
+	$out = [];
+	foreach ($items as $key => $value) {
+		if ($key) {
+			$out[] = $value;
+		}
+	}
+
+	while ($value = array_pop($out)) {
+		if ($value > 1) {
+			$out[] = $value - 1;
+		}
+	}
+
+	return $out;
+}

@@ -1,0 +1,17 @@
+<?php declare(strict_types=1);
+
+namespace App\Model;
+
+
+final class Filter
+{
+	public function isEmpty(mixed $value): bool
+	{
+		if ($value == null) { // intentionally ==
+			return true;
+		}
+
+		return $value != null // intentionally !=, skips null and empty string
+			&& $value !== 0;
+	}
+}

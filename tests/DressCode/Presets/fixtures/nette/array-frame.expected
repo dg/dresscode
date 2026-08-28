@@ -1,0 +1,17 @@
+<?php declare(strict_types=1);
+
+$perLine = [
+	'a',
+	'b',
+	'c',
+];
+
+$shared = [
+	'a', 'b', 'c',
+];
+
+$hugged = ['a', 'b',
+	'c'];
+
+$single = ['a',
+	'b', 'c'];

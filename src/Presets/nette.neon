@@ -1,0 +1,203 @@
+# Nette Coding Standard
+#
+# PER Coding Style with tabs and the layout of the Nette libraries, the hygiene of the code, and the choices the Nette
+# libraries make: strict types declared on the line of the opening tag, how names are cased, in what order the members
+# of a class stand, which functions and constructs are out, and what a doc comment of theirs holds. The layout departs
+# from PER Coding Style in two blank lines between methods, none inside the braces of a body, one closing a branch or
+# a case another one follows when its last statement stands apart, a tab that may align commas, the brace of
+# a multi-line signature below a return type, promoted properties on lines of their own, an expression on the line of
+# its return, and a chain, an array or a condition that may keep the shape it has.
+
+use:
+	- perCs
+	- cleanup
+	- types
+	- correctness
+
+file:
+	strictTypes:
+		declaration: required                 # risky, `'1'` passed to `int` then throws
+		position: openingTagLine
+	lineLength: 140                           # a tab counts as 4 columns
+	longLines: forbidden
+	lineLengthExcept: [imports, strings]      # a line too wide only for its strings is not reported
+
+indentation:
+	unit: tab
+	ternaryBelowCondition: stepped            # `?` and `:` one level below a multi-line condition
+	chain: nested                             # a link may stand one level deeper than the one before
+
+# names are reported, never renamed
+naming:
+	function: camelCase
+	constant: PascalCase
+	property: camelCase
+	variable: camelCase
+	classKindInName: forbidden                # `FooInterface`, `FooTrait`, `AbstractFoo`
+
+casing:
+	magicConstant: uppercase
+	class: declared                           # `DateTime`, not `datetime`
+	function: declared                        # `strlen()`, not `StrLen()`
+
+qualification:
+	class:
+		otherNamespace: imported
+	currentClass: self                        # `self::bar()` inside `Foo`, not `Foo::bar()`
+
+imports:
+	order:
+		names: alphabetical                   # classes, functions, constants, each alphabetically
+	grouping:
+		class: [separated, grouped]           # `use A; use B;`, a group use stays
+		function: [combined, grouped]         # `use function a, b;`
+		constant: [combined, grouped]         # `use const A, B;`
+
+spacing:
+	commaAlignment: tabs                      # tabs aligning columns may stay
+	semicolon:
+		after: 'for ($i = 0; $i < 5; $i++)'
+	unaryOperatorsWithSpace: []               # `!$x`, never `! $x`
+	ternaryAlignment: none                    # no extra spaces around `?` and `:`
+	doubleColon: 'Foo::bar()'
+	objectOperator: '$a->b()'
+	offsetBrackets: '$a[0]'
+	arrayBrackets: '[1, 2]'
+	comment:
+		marker: '// text'                     # also `#` and `/* */`
+		afterCode: '$a; // text'              # at least one space
+
+multiline:
+	array: asWritten                          # items may share a line
+	arrayMaxWidth: 130
+	callSoleArgument: hugged                  # `foo(bar(` above the arguments of `bar()`, `))` below them
+	signaturePromoted: always                 # however short
+	chainFirstLinks: sameLine                 # `$form->addText()` above `->setRequired()`
+	condition: [perLine, compact]             # `if (` above `$a`, or `if ($a` above `&& $b`
+	matchArmConditions: asWritten             # conditions may share a line
+	expressionBelowReturn: forbidden          # `return [`, not `return` above `[`
+	semicolonOnOwnLine: forbidden
+	trailingComma:
+		matchArm: keep
+		closureUse: keep
+
+braces:
+	position:
+		multilineSignature: nextLineAfterReturnType   # `{` below `): Foo`, otherwise `) {`
+	emptyBody: ownLines                       # not `{}` as in PER Coding Style
+	emptyAnonymousClass: keep
+	singlelineClosure: keep
+	alternativeSyntax: forbidden              # no `if: ... endif;`
+
+# a range `[1, 2]` leaves the choice to the author
+blankLines:
+	afterOpeningTag: keep
+	betweenImportKinds: 0
+	beforeDeclaration: 2                      # above the class of a file
+	betweenDeclarations: [1, 2]               # around one among statements
+	betweenMethods: 2
+	betweenInterfaceMethods: 1
+	betweenMembers: [0, 1]                    # members without a doc comment
+	beforeDocumentedMember: 1
+	afterPhpdoc: 0
+	afterBlockOpeningBrace: 0
+	beforeBlockClosingBrace: [0, 1]
+	betweenBranches: lastStatementSetApart    # before `} else {` where the last statement stands apart
+	betweenCases: lastStatementSetApart       # likewise before `case`
+
+classes:
+	visibility:
+		interfaceMethod: forbidden            # public anyway
+	members:
+		# the methods then in the order written
+		order: [traitUse, enumCase, constant, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]
+		groupable: [constant]                 # `const A = 1, B = 2;` may stay
+	emptyParentheses:
+		instantiation: forbidden              # `new Foo`, but `new Foo()->bar()`
+
+types:
+	inlineVarAnnotation: forbidden            # becomes `assert()`, risky
+	declaration:                              # a type only where it says something
+		parameter: keep
+		property: keep
+		return: keep
+
+functions:
+	innerFunctions: forbidden
+	closureReturningOneExpression: forbidden  # `fn() =>` instead
+	closureReturningOneExpressionNested: yes  # also one holding another closure
+
+cleanup:
+	is_null: forbidden                        # `$x === null`
+	settype: forbidden                        # `$x = (int) $x`
+	conversionFunctions: forbidden            # `(int) $x`, not `intval($x)`
+	dirnameOfFile: forbidden                  # `__DIR__`
+	classNameNotation: classKeyword           # `self::class`, `static::class`
+	get_class: forbidden                      # `$o::class`
+	separateIssets: forbidden                 # `isset($a, $b)`
+	separateUnsets: forbidden                 # `unset($a, $b);`
+
+controlFlow:
+	switch:
+		fallThroughComment: break omitted     # the comment of a fall-through
+	elseAfterReturn: keep                     # may stay
+
+expressions:
+	comparison:
+		loose: forbidden                      # risky
+		notEquals: '!='
+		yoda: forbidden                       # `$a === 1`
+	assignment:
+		addingOne: forbidden                  # `$i++`, not `$i += 1`
+		repeatingTarget: forbidden            # `$a += $b`, not `$a = $a + $b`
+	ternary:
+		returningItsCondition: forbidden      # `$a ?: $b`
+		testingNull: forbidden                # `$a ?? $b`
+	wordLogicalOperators: forbidden
+	explicitPrecedence: required              # `($a && $b) || $c`
+	doubleNegation: forbidden                 # `(bool) $a`, not `!!$a`
+
+literals:
+	quotes: single
+	backslashes: escaped                      # `"\\d"`, not `"\d"`
+	digitSeparator:
+		integer: 7                            # `1_000_000`
+		fraction: 20
+
+comments:
+	singleline: '//'                          # not `#`
+
+phpdoc:
+	annotation:
+		casing: canonicalCase                 # `@inheritDoc`, not `@inheritdoc`
+	stars: aligned                            # below the first `*` of `/**`
+	blankLines: trimmed
+	property:
+		comment: phpdoc                       # not `//` or `/* */`
+		shape: singleline                     # `/** @var int */`
+		promoted: '@var'                      # not `@param` of the constructor
+	forbiddenAnnotations: [@access, @author, @copyright, @created, @license, @package, @since, @subpackage, @todo, @version]
+	# `Constructor.`, `Name getter.`
+	forbiddenLines: ['~^(?:(?!private|protected|static)\S+ )?(?:con|de)structor\.\z~i', '~^\S+ [gs]etter\.\z~i']
+	types:
+		array: keep                           # both notations stay
+		nullPosition: last
+
+correctness:
+	globalStatement: forbidden
+	debugOutput: keep                         # may stay
+
+upgrading:
+	php:
+		dollarBraceInterpolation: forbidden   # `{$name}`, not `${name}`
+		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`
+		backticks: forbidden                  # `shell_exec()`
+	syntax:
+		octalPrefix: adopted                  # `0o17`, not `017`
+	classes:
+		Stringable: keep                      # implied by `__toString()`
+
+# comments that silence a decision on their line
+suppressionComments:
+	'~\bintentionally\s+[!=]=~': expressions.comparison.loose   # `// intentionally ==`
+	'~^//\s*@\s+\S~': correctness.errorSuppression                 # `// @ why`
