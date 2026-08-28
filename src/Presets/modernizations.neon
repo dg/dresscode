@@ -1,0 +1,52 @@
+# Modernizations
+#
+# The construct a newer PHP has, written where an older one says the same, each where the target version of the
+# project has it. It decides nothing about the layout, so it goes with any standard.
+
+functions:
+	closureReturningOneExpression: forbidden         # `fn() =>` instead
+	closureReturningOneExpressionNested: yes         # also one holding another closure
+
+cleanup:
+	classNameNotation: classKeyword            # `self::class`, `static::class`
+
+controlFlow:
+	ifReturningOneOfTwoValues: forbidden       # `return $c ? 1 : 2;`
+
+expressions:
+	assignmentRepeatingTarget: forbidden       # `$a += $b`, not `$a = $a + $b`
+	ternaryTestingNull: forbidden              # `$a ?? $b`
+	ternaryReturningItsCondition: forbidden    # `$a ?: $b`
+	separateIssets: forbidden                  # `isset($a, $b)`
+	separateUnsets: forbidden                  # `unset($a, $b);`
+
+literals:
+	longArraySyntax: forbidden                 # `[1, 2]`, not `array(1, 2)`
+
+upgrading:
+	php:
+		sleepAndWakeup: forbidden              # `__serialize()` and `__unserialize()` instead
+	syntax:
+		spreadForArrayMerge: adopted           # `[...$a, ...$b]`, not `array_merge($a, $b)`
+		dynamicClassConstant: adopted          # `X::{$name}`, not `constant("X::$name")`
+		match: adopted                         # for a `switch` returning or assigning
+		throwExpression: adopted               # `$a ?? throw new E`
+		cloneWith: adopted                     # `clone($o, [...])`
+		nullsafe: adopted                      # `$a?->b`, not `$a ? $a->b : null`
+		pipe: adopted                          # `$x |> a(...) |> b(...)`, not `b(a($x))`
+		newWithoutWrapping: adopted            # `new Foo()->bar()`, not `(new Foo())->bar()`
+		firstClassCallables: adopted           # `foo(...)`, not `Closure::fromCallable('foo')`
+		octalPrefix: adopted                   # `0o17`, not `017`
+		newInInitializer: adopted              # `Clock $c = new SystemClock`, not a `null` swapped in the body
+		promotedProperties: adopted
+	functions:
+		array_is_list: adopted
+		arraySearchFunctions: adopted          # `array_find()`, `array_any()` for a `foreach`
+		arrayFirstLast: adopted                # `array_first()`, not `reset()`
+		clamp: adopted                         # `clamp($x, $lo, $hi)`, not `max($lo, min($x, $hi))`
+		get_debug_type: adopted
+		json_validate: adopted                 # not `json_decode()` only testing
+		substringFunctions: adopted            # `str_contains()`, not `strpos() !== false`
+		roundingMode: adopted                  # `RoundingMode::HalfAwayFromZero`, not `PHP_ROUND_HALF_UP`
+	phpdoc:
+		deprecated: adopted                    # `#[\Deprecated]`, not `@deprecated`

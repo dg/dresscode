@@ -1,0 +1,66 @@
+# Cleanup
+#
+# Code that is there for nothing: what repeats what the language already says, what can never run, an alias of a
+# function, a comment or a doc comment that says nothing. It decides nothing about the layout, so it goes with any
+# standard.
+
+qualification:
+	uselessBackslash: forbidden              # `use Foo\Bar;`, not `use \Foo\Bar;`
+	inFileWithoutNamespace: bare             # `strlen()`, not `\strlen()`
+
+imports:
+	unused: forbidden
+	aliasEqualToName: forbidden              # `use Foo;`, not `use Foo as Foo;`
+	ofCurrentNamespace: forbidden            # `use Acme\Shop\Order;` in `namespace Acme\Shop`
+
+braces:
+	bareStatementGroup: forbidden            # no `{ ... }` that nothing opens
+
+classes:
+	impliedModifiers: forbidden              # `final` in a final class
+	untypedPropertyNullInitialization: forbidden   # `public $a;`, not `public $a = null;`
+	ReturnTypeWillChange: forbidden          # on a method declaring its return type
+
+functions:
+	trailingBareReturn: forbidden            # no `return;` closing a function
+	uselessParameterDefault: forbidden       # a default before a required parameter
+
+cleanup:
+	aliasFunctions: [internal, imap, pg]     # `count()`, not `sizeof()`
+	call_user_func: forbidden                # `$f($x)`, not `call_user_func($f, $x)`, risky
+	__invoke: forbidden                      # `$f($x)`, not `$f->__invoke($x)`
+	redundantArguments: forbidden            # `json_encode($a)`, not `json_encode($a, 0)`
+	catchWithoutVariable: required           # `catch (E)` where `$e` is not read
+	repeatedCatch: forbidden                 # `catch (A|B $e)` for two catches of one body
+
+controlFlow:
+	emptyStatement: forbidden                # `foo();;`
+	ifReturningBoolean: forbidden            # `return $a > 1;` for an `if` returning `true` or `false`
+	elseAfterExit: forbidden                 # the `else` after a `return` goes, its body following the `if`
+
+expressions:
+	parenthesesAfterConstruct: forbidden     # `return $x;`, not `return ($x);`
+	ternaryOfTrueAndFalse: forbidden         # `$a > 1`, not `$a > 1 ? true : false`
+
+literals:
+	concatenatedLiterals: joined             # `'ab'`, not `'a' . 'b'`
+
+comments:
+	empty: forbidden
+
+phpdoc:
+	empty: forbidden
+	constantVar: forbidden                   # a bare `@var int` on a class constant
+	repeatingNativeTypes: forbidden          # one only repeating the signature
+	inheritdocOnly: forbidden                # one holding only `{@inheritDoc}`
+
+correctness:
+	debugOutput: commentedOut                # `// var_dump($a);`, risky
+
+upgrading:
+	php:
+		deprecatedCall: forbidden            # a call doing nothing on the target, as `curl_close()`, goes
+	syntax:
+		newWithoutWrapping: adopted          # `new Foo()->bar()`, not `(new Foo())->bar()`
+		readonlyProperties: adopted          # `readonly` on one only the constructor writes
+		readonlyClasses: adopted             # `readonly class` for a final one whose every property is

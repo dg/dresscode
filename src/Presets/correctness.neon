@@ -1,0 +1,24 @@
+# Correctness
+#
+# What is most likely a mistake whatever the style: a call comparing loosely where it should not, `$this` where no
+# object is, a `catch` nothing reaches, a doc comment contradicting itself, invisible characters in the code.
+
+phpdoc:
+	paramOfMissingParameter: forbidden          # a `@param` of no parameter
+	duplicateReturn: forbidden
+	emptyAnnotation: forbidden                  # `@param`, `@return`, `@var`, `@see` without content
+	duplicateVar: forbidden
+
+correctness:
+	__debugInfo: array                          # `[]`, not `null`
+	thisOutsideObject: forbidden                # in a static method or a function, reported
+	__set_state: static
+	continueInSwitch: forbidden                 # a `continue` only leaving a `switch`, reported
+	unreachableCatch: forbidden                 # after `catch (Throwable)`
+	exceptionWhereThrowableBelongs: forbidden   # `catch (Exception)` where `Throwable` is meant, reported
+	errorSuppression: forbidden                 # the `@` operator, reported
+	invisibleCharacters: forbidden              # zero-width, no-break and bidi characters, escaped
+	strictComparisonArgument: required          # `in_array($a, $b, true)`, risky
+	trailingWhitespaceInString: forbidden       # in a multi-line string or inline HTML
+	consecutivePhpdocs: forbidden               # the first of two is lost, reported
+	repeatedAssignment: forbidden               # `$a = $a = 1`

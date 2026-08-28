@@ -1,0 +1,11 @@
+# Compiler optimizations
+#
+# Global names written in the form PHP optimizes when it compiles the code: a function the compiler turns into an
+# opcode and a constant it computes with are imported, so that the compiler knows them, and every other global name is
+# written bare.
+
+qualification:
+	globalFunction: bare                            # `array_map()`, reached by the fallback at run time
+	optimizedFunction: imported                     # `use function strlen;`, its arguments positional
+	globalConstant: bare                            # `E_ALL`
+	optimizedConstant: [imported, backslashed]      # `PHP_VERSION_ID` imported or `\PHP_VERSION_ID`

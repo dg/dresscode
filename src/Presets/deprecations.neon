@@ -1,0 +1,27 @@
+# Deprecations
+#
+# What a newer PHP deprecated or removed, fixed where a replacement exists and reported where none does. A deprecation
+# is reported whatever the target, the code meeting it wherever it runs on the version that made it.
+
+builtin:
+	castType: short                           # `(int)`, not `(integer)`, PHP 8.5
+
+controlFlow:
+	switchCaseTerminator: colon               # `case 1:`, not `case 1;`, PHP 8.5
+
+expressions:
+	backticks: forbidden                      # `shell_exec()`, PHP 8.5
+
+upgrading:
+	php:
+		nullArrayKey: forbidden               # `['' => 1]`, not `[null => 1]`, PHP 8.5
+		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`, PHP 8.4
+		deprecatedCall: forbidden             # `mb_convert_encoding()`, not `utf8_encode()`
+		constructorReturnValue: forbidden     # PHP 8.6
+		sleepAndWakeup: forbidden             # `__serialize()`, PHP 8.5
+		returnInFinally: forbidden            # PHP 8.6
+		csvEscapeArgument: required           # the `escape` of `fgetcsv()` written out, PHP 8.4
+		dollarBraceInterpolation: forbidden   # `{$name}`, not `${name}`, PHP 8.2
+		reservedNames: forbidden              # `let`, `is`, `_`, PHP 8.6
+	syntax:
+		firstClassCallables: adopted          # `foo(...)`, not `Closure::fromCallable('foo')`

@@ -443,14 +443,23 @@ final class ConfigResolver
 
 	/**
 	 * What a name of `only`, `fixRisky` or `warnOnly` stands for: a decision or a section for the decisions under it, a
-	 * rule for its own, a preset for every decision it and its parents make, each with the rules owning them.
+	 * rule for its own, a preset for every decision it and its parents make, each with the rules owning them. A section
+	 * named like a preset is written `section.*`, the bare name being refused as both.
 	 * @throws ConfigurationException
 	 */
 	private function expandName(string $name): ExpandedName
 	{
-		$paths = array_keys($this->getCatalogue()->getDecisionsUnder($name));
+		$section = str_ends_with($name, '.*') ? substr($name, 0, -2) : null;
+		$paths = array_keys($this->getCatalogue()->getDecisionsUnder($section ?? $name));
+		$preset = $paths !== [] && $section === null && !str_contains($name, '.') ? $this->registry->findPreset($name) : null;
+		if ($preset !== null) {
+			throw new ConfigurationException("Name `$name` is both a section of decisions and the preset `$preset`; write `$name.*` for the section or `$preset` for the preset.");
+		}
+
 		$preset = null;
-		if ($paths === []) {
+		if ($paths === [] && $section !== null) {
+			throw new ConfigurationException("Unknown section `$section`.");
+		} elseif ($paths === []) {
 			$resolved = $this->registry->registerRuleOrResolvePreset($name);
 			$class = $resolved->rule;
 			if ($class !== null) {
@@ -466,7 +475,7 @@ final class ConfigResolver
 
 		$paths = array_values(array_unique($paths));
 		$rules = array_merge(...array_map($this->getCatalogue()->getRulesOf(...), $paths));
-		return new ExpandedName($preset ?? $name, $preset !== null, null, array_values(array_unique($rules)), $paths);
+		return new ExpandedName($preset ?? $section ?? $name, $preset !== null, null, array_values(array_unique($rules)), $paths);
 	}
 
 
