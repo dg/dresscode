@@ -1,0 +1,25 @@
+<?php declare(strict_types=1);
+
+namespace App;
+
+
+final class OperatorPosition
+{
+	public function check(?string $value, bool $flag, bool $other): string
+	{
+		if (
+			$flag &&
+			($value ??
+				'') !== ''
+		) {
+			return $value .
+				'!';
+		}
+
+		$result = $flag && // why
+			$other;
+		return $result ?
+			'yes' :
+			'no';
+	}
+}

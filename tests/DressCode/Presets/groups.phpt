@@ -67,7 +67,7 @@ test('every rule a preset names exists, and only the standards carry a style', f
 			Assert::same('dresscode/' . $rule, RuleInfo::of($registry->resolveRule($rule))->name, "$rule in $name");
 		}
 
-		if (!in_array($name, ['dresscode/perCs', 'dresscode/psr12'], true)) {
+		if (!in_array($name, ['dresscode/perCs', 'dresscode/psr12', 'dresscode/nette'], true)) {
 			Assert::null($profile->indent, $name);
 			Assert::null($profile->lineEnding, $name);
 			Assert::null($profile->lineLength, $name);

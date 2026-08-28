@@ -2,7 +2,7 @@
 
 use DressCode\Config\RuleRegistry;
 use DressCode\{ConfigurationException, NodeRule, Preset, PresetInfo, Profile, RuleInfo, Stage};
-use DressCode\Presets\{PerCs, Psr12};
+use DressCode\Presets\{Nette, PerCs, Psr12};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -132,7 +132,7 @@ test('errors', function () {
 	Assert::exception(fn() => $registry->resolveRule('quite/different'), ConfigurationException::class, 'Unknown rule `quite/different`.');
 	Assert::exception(fn() => $registry->resolveRule('test/none'), ConfigurationException::class, 'Unknown rule `test/none`. Did you mean `test/one`?');
 	Assert::exception(fn() => $registry->resolveRule('indentaton'), ConfigurationException::class, 'Unknown rule `indentaton`. Did you mean `indentation`?');
-	Assert::exception(fn() => $registry->resolvePreset('dresscode/perC'), ConfigurationException::class, 'Unknown preset `dresscode/perC`. Did you mean `dresscode/perCs`?');
+	Assert::exception(fn() => $registry->resolvePreset('dresscode/nete'), ConfigurationException::class, 'Unknown preset `dresscode/nete`. Did you mean `dresscode/nette`?');
 	Assert::exception(fn() => $registry->registerRule(RuleOneClone::class), ConfigurationException::class, 'Rule name `test/one` is used by both `RuleOne` and `RuleOneClone`.');
 	Assert::exception(fn() => $registry->registerRule(NoInfo::class), ConfigurationException::class, 'Rule `NoInfo` has no `#[RuleInfo]` attribute.');
 	Assert::exception(fn() => $registry->resolveRule(stdClass::class), ConfigurationException::class, 'Class `stdClass` is not a rule.');
@@ -181,7 +181,7 @@ test('presets', function () {
 	Assert::same(TestPreset::class, $registry->resolvePreset('test/preset'));
 	Assert::same(
 		[
-			'dresscode/perCs' => PerCs::class, 'dresscode/psr12' => Psr12::class,
+			'dresscode/perCs' => PerCs::class, 'dresscode/psr12' => Psr12::class, 'dresscode/nette' => Nette::class,
 			'test/preset' => TestPreset::class,
 		],
 		$registry->presets,

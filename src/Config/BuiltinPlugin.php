@@ -22,6 +22,7 @@ final class BuiltinPlugin implements Plugin
 			presets: [
 				Presets\PerCs::class,
 				Presets\Psr12::class,
+				Presets\Nette::class,
 			],
 			rules: [
 				Rules\Expressions\OffsetBracketSpacingRule::class,

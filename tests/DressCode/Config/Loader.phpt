@@ -258,7 +258,7 @@ test('an override takes every key of a profile, the entity of a rule included', 
 	$config = Loader::loadFile(FileMock::create(<<<'XX'
 		overrides:
 			- paths: [tests]
-			  presets: [psr12]
+			  presets: [nette]
 			  targets: {php: 8.3}
 			  namespaces: {functions: [App\Tests\fixture]}
 			  nameResolution: uncertain
@@ -268,7 +268,7 @@ test('an override takes every key of a profile, the entity of a rule included', 
 		XX, 'neon'));
 	$override = $config->overrides[0];
 	Assert::same(['tests'], $override->paths);
-	Assert::same(['psr12'], $override->presets);
+	Assert::same(['nette'], $override->presets);
 	Assert::same('8.3', $override->targets['php'] ?? null);
 	Assert::same(['App\Tests\fixture'], $override->namespaces['functions']);
 	Assert::same('uncertain', $override->nameResolution);

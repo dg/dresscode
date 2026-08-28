@@ -439,7 +439,7 @@ test('--only keeps what it names of what the configuration comes to, and enables
 	Assert::same('the run is narrowed to other rules', $narrowed->getRule('test/a')?->inactive);
 
 	// a name without a vendor is the built-in one
-	Assert::same(['dresscode/stringQuotes'], narrow($resolver, new Config(rules: ['stringQuotes' => true]), ['stringQuotes']));
+	Assert::same(['dresscode/stringQuotes'], narrow($resolver, new Config(presets: ['nette']), ['stringQuotes']));
 
 	// a preset stands for every rule it and its parents mention, and not for what the configuration added
 	$config = new Config(presets: [ChildPreset::class], rules: [RuleNested::class => true]);

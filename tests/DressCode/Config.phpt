@@ -51,9 +51,9 @@ test('every key is a named argument', function () {
 
 
 test('an override is a profile for the paths it names', function () {
-	$override = new Override(['tests'], presets: ['psr12'], nameResolution: 'uncertain', fixRisky: ['strictCall']);
+	$override = new Override(['tests'], presets: ['nette'], nameResolution: 'uncertain', fixRisky: ['strictCall']);
 	Assert::same(['tests'], $override->paths);
-	Assert::same(['psr12'], $override->presets);
+	Assert::same(['nette'], $override->presets);
 	Assert::same('uncertain', $override->nameResolution);
 	Assert::same(['strictCall'], $override->fixRisky);
 	Assert::exception(fn() => new Override([]), InvalidArgumentException::class, 'An override needs the paths it applies to.');
