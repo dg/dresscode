@@ -68,7 +68,7 @@ final class ConfigResolver
 		?array $only = null,
 	): ResolvedConfig
 	{
-		$fixRisky = $warningRules = $fixRiskyPaths = $warnOnlyPaths = $use = [];
+		$fixRisky = $warningRules = $fixRiskyPaths = $warnOnlyPaths = $use = $suppressionComments = [];
 		$symbols = [SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
 		$php = $resolution = null;
 		$decisionLayers = [];
@@ -106,6 +106,10 @@ final class ConfigResolver
 					$expanded = $this->expandName($name);
 					$warningRules += array_fill_keys($expanded->rules, true);
 					$warnOnlyPaths += array_fill_keys($expanded->paths, true);
+				}
+
+				foreach ($profile->suppressionComments as $pattern => $names) {
+					$suppressionComments[$pattern] = array_values(array_unique(array_merge(...array_map($this->resolveSuppressedName(...), (array) $names))));
 				}
 
 			} catch (ConfigurationException $e) {
@@ -176,6 +180,7 @@ final class ConfigResolver
 			lineLength: self::resolveLineLength($values->get('file.maxLineLength')),
 			tabWidth: $values->get('indentation.tabWidth')->getCount()[0],
 			plugins: array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, [...$config->plugins, ...$commandLine instanceof Config ? $commandLine->plugins : []]),
+			suppressionComments: $suppressionComments,
 			decisions: $decisions,
 			values: $values,
 			fixRisky: $fixRiskyPaths,
@@ -257,6 +262,18 @@ final class ConfigResolver
 	private function collectSelection(array $narrowed): array
 	{
 		return array_values(array_unique(array_merge(...array_map(fn(ExpandedName $name) => $name->paths, $narrowed))));
+	}
+
+
+	/**
+	 * The decisions a name of `suppressionComments` silences.
+	 * @return list<string>
+	 * @throws ConfigurationException
+	 */
+	private function resolveSuppressedName(string $name): array
+	{
+		return $this->registry->expandSuppressedName($name)
+			?: throw new ConfigurationException("`suppressionComments` names `$name`, which is no decision, section or rule.");
 	}
 
 

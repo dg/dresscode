@@ -31,11 +31,12 @@ final class Suppression
 	/**
 	 * @param \Closure(string): list<string> $expandName  maps a name to the decisions it stands for, empty if unknown
 	 * @param ?string $code  the source; when it mentions no suppression, the tokens are not walked at all
+	 * @param array<string, list<string>> $comments  pattern of a comment => the decisions it silences where it stands
 	 */
-	public static function fromFile(FileNode $file, \Closure $expandName, ?string $code = null): self
+	public static function fromFile(FileNode $file, \Closure $expandName, ?string $code = null, array $comments = []): self
 	{
 		$suppression = new self;
-		if ($code !== null && !str_contains($code, 'dresscode:')) { // nothing to read
+		if ($code !== null && $comments === [] && !str_contains($code, 'dresscode:')) { // nothing to read
 			return $suppression;
 		}
 
@@ -44,14 +45,16 @@ final class Suppression
 		foreach ($file->getTokens() as $token) {
 			foreach ([$token->leadingTrivia, $token->trailingTrivia] as $trivias) {
 				foreach ($trivias as $index => $trivia) {
-					if (
-						!$trivia->isComment()
-						|| !preg_match('~dresscode:(ignoreFile|ignore|disable|enable)(?:\s+([\w/.\\\\][\w/.\\\\,\s-]*?))?(?:\s+--(?:\s.*?)?)?(?=\s*(?:\*/|$))~m', $trivia->text, $m)
-					) {
+					if (!$trivia->isComment()) {
+						continue;
+					} elseif (preg_match('~dresscode:(ignoreFile|ignore|disable|enable)(?:\s+([\w/.\\\\][\w/.\\\\,\s-]*?))?(?:\s+--(?:\s.*?)?)?(?=\s*(?:\*/|$))~m', $trivia->text, $m)) {
+						$names = $suppression->expandNames($m[2] ?? '', $expandName, $m[0]);
+					} elseif ($names = self::matchComment($trivia->text, $comments)) {
+						$m = [1 => 'ignore'];
+					} else {
 						continue;
 					}
 
-					$names = $suppression->expandNames($m[2] ?? '', $expandName, $m[0]);
 					$line = $trivia->line;
 					if ($m[1] === 'ignoreFile') {
 						$suppression->add([self::All], 1, PHP_INT_MAX);
@@ -155,6 +158,23 @@ final class Suppression
 	public function getUnknownNames(): array
 	{
 		return $this->unknown;
+	}
+
+
+	/**
+	 * @param  array<string, list<string>>  $comments
+	 * @return list<string>
+	 */
+	private static function matchComment(string $text, array $comments): array
+	{
+		$names = [];
+		foreach ($comments as $pattern => $rules) {
+			if (preg_match($pattern, $text)) {
+				$names = [...$names, ...$rules];
+			}
+		}
+
+		return $names;
 	}
 
 

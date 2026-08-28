@@ -55,6 +55,12 @@ readonly class Profile
 		public array $fixRisky = [],
 		/** @var list<string>  decisions, sections, presets or classes of rules whose violations only warn */
 		public array $warnOnly = [],
+		/**
+		 * a comment the project already writes to say a line is meant as it is: pattern => the rules or decisions it
+		 * silences where it stands, as `dresscode:ignore` does
+		 * @var array<string, string|list<string>>
+		 */
+		public array $suppressionComments = [],
 		/** @var array<string, mixed>  the decisions, a tree of sections the resolver reads against the catalogue */
 		public array $decisions = [],
 	) {
@@ -74,6 +80,13 @@ readonly class Profile
 			default => $entry,
 		}, $use);
 
+		foreach ($suppressionComments as $pattern => $names) {
+			if (@preg_match((string) $pattern, '') === false) { // @ an invalid pattern only warns
+				throw new \InvalidArgumentException("`$pattern` in `suppressionComments` is not a regular expression, such as `~intentionally ==~`.");
+			} elseif ($names === [] || $names === '') {
+				throw new \InvalidArgumentException("`suppressionComments` names no rule for `$pattern`.");
+			}
+		}
 
 		$this->nameResolution = $nameResolution;
 		$this->namespaces = [

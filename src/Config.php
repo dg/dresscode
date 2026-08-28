@@ -53,6 +53,7 @@ final readonly class Config extends Profile
 	 * @param list<string> $fixRisky
 	 * @param array<string, string> $targets  `php` => the version the code is written for
 	 * @param list<string> $warnOnly
+	 * @param array<string, string|list<string>> $suppressionComments
 	 * @param list<string> $excludePaths  left out of the run on top of the default list
 	 * @param ?callable(string $content, string $path): bool $skipWhen
 	 * @param array<string|int, string|callable(FileNode, string): object> $analyses  a class the engine builds itself, or a class with its factory given the file and its path
@@ -66,6 +67,7 @@ final readonly class Config extends Profile
 		?string $nameResolution = null,
 		array $fixRisky = [],
 		array $warnOnly = [],
+		array $suppressionComments = [],
 		/** @var list<Override> */
 		public array $overrides = [],
 		/** @var list<string>  files and directories relative to the root, checked when the command line names none */
@@ -80,7 +82,7 @@ final readonly class Config extends Profile
 		array $decisions = [],
 	) {
 		$plugins = array_filter($use, fn($entry) => $entry instanceof Plugin || is_subclass_of($entry, Plugin::class));
-		parent::__construct(array_values(array_diff_key($use, $plugins)), $targets, $namespaces, $nameResolution, $fixRisky, $warnOnly, $decisions);
+		parent::__construct(array_values(array_diff_key($use, $plugins)), $targets, $namespaces, $nameResolution, $fixRisky, $warnOnly, $suppressionComments, $decisions);
 		$this->plugins = array_values($plugins);
 		$this->rules = self::normalizeRules($rules);
 		Config\ManifestFields::checkRuleUrl($ruleUrl);

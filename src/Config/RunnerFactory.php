@@ -98,6 +98,7 @@ final readonly class RunnerFactory
 					detectLineEnding: $variant->lineEnding === 'majority',
 					policy: new ReportPolicy(
 						expandName: $registry->expandSuppressedName(...),
+						suppressionComments: $variant->suppressionComments,
 						warnOnly: $variant->warnOnly,
 						fixRisky: $fixRisky ?: $variant->fixRisky,
 						strict: $strict,

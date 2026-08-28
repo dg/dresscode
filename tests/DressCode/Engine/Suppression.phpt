@@ -201,3 +201,34 @@ test('the hyphenated ignore-file is no directive', function () use ($resolve) {
 	$s = suppression("<?php\n// dresscode:ignore-file\n\$a;", $resolve);
 	Assert::false($s->isSilenced('dresscode/x', 3));
 });
+
+
+test('a comment the configuration names silences its rules on its line', function () use ($resolve) {
+	$code = <<<'XX'
+		<?php
+		if ($a == null) { // intentionally ==, skip nulls
+		}
+		if (
+			$b != null // intentionally ==
+			&& $c
+		) {}
+		$d == 1; // a plain comment
+		@mkdir($e); // @ may exist
+		// intentionally ==
+		$f == 1;
+		$g == 1;
+		XX;
+	$s = Suppression::fromFile((new Parser)->parse($code), $resolve, $code, [
+		'~\bintentionally\s+==~' => ['dresscode/noLooseComparisons'],
+		'~^//\s*@\s+\S~' => ['dresscode/noErrorSuppression'],
+	]);
+	Assert::true($s->isSilenced('dresscode/noErrorSuppression', 9));
+	Assert::false($s->isSilenced('dresscode/noErrorSuppression', 8));
+	Assert::true($s->isSilenced('dresscode/noLooseComparisons', 2));
+	Assert::false($s->isSilenced('dresscode/other', 2));
+	Assert::true($s->isSilenced('dresscode/noLooseComparisons', 5));
+	Assert::false($s->isSilenced('dresscode/noLooseComparisons', 6));
+	Assert::false($s->isSilenced('dresscode/noLooseComparisons', 8));
+	Assert::true($s->isSilenced('dresscode/noLooseComparisons', 11));
+	Assert::false($s->isSilenced('dresscode/noLooseComparisons', 12));
+});

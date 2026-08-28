@@ -37,7 +37,8 @@ final class Catalogue
 	/** the keys of a file that are no section: the environment, the scope, the execution and `use` */
 	public const ReservedKeys = [
 		'use', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths',
-		'fileExtensions', 'skipWhen', 'rules', 'analyses', 'fixRisky', 'warnOnly', 'overrides',
+		'fileExtensions', 'skipWhen', 'rules', 'analyses', 'fixRisky', 'warnOnly',
+		'suppressionComments', 'overrides',
 	];
 
 	/** the section of the rules of the project */

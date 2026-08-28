@@ -87,11 +87,13 @@ test('a file a configuration in PHP uses is relative to the root, as one in NEON
 });
 
 
-test('a preset written as a file carries decisions and what it uses, nothing the project decides', function () {
+test('a preset written as a file carries decisions, what it uses and the comments that silence a line, nothing the project decides', function () {
 	$dir = createDecisionsProject(['base.neon' => "paths: [src]\n", 'dresscode.neon' => "use: base.neon\n"]);
 	Assert::exception(fn() => resolveFile("$dir/dresscode.neon"), ConfigurationException::class, 'Preset file `%a%/base.neon` sets `paths`, which the project decides, not a preset.');
 	$dir = createDecisionsProject(['base.neon' => "use: [[psr12]]\n", 'dresscode.neon' => "use: base.neon\n"]);
 	Assert::exception(fn() => resolveFile("$dir/dresscode.neon"), ConfigurationException::class, "Preset file `%a%/base.neon`: The item 'use%a%0' expects to be string|Nette\\Neon\\Entity, array given.");
+	$dir = createDecisionsProject(['base.neon' => "suppressionComments:\n\t'~ok~': expressions.comparison\n", 'dresscode.neon' => "use: base.neon\n"]);
+	Assert::same(['~ok~' => ['expressions.comparison']], resolveFile("$dir/dresscode.neon")->suppressionComments);
 });
 
 
