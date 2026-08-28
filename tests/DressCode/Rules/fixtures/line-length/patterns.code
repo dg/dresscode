@@ -1,0 +1,4 @@
+<?php
+// {"limit": 40, "ignorePatterns": ["~https?://~"], "ignoreImports": false}
+// see https://example.com/a/very/long/url/path
+use Some\Very\Long\Namespace\ClassName\Here;

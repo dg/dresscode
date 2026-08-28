@@ -1,0 +1,4 @@
+<?php
+// {"limit": 40}
+$a = "x	y" . 'a string that is long enough';
+	$b = 'a string that is long enough here';

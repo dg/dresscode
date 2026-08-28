@@ -1,0 +1,17 @@
+<?php
+// {"limit": 40}
+$short = 1;
+$aVeryLongVariableName = 'a very long string';
+use Some\Very\Long\Namespace\ClassName\Here;
+$h = <<<EOT
+a heredoc line that is much longer than forty characters
+EOT;
+$s = 'multi
+line string that is much longer than forty characters
+end';
+// a comment line that is longer than forty characters
+									$t = 1; // tabs
+$u = "one $line" . 'string that is long';
+/*
+ * a block comment line that is longer than forty characters
+ */
