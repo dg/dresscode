@@ -1,0 +1,48 @@
+<?php
+
+class A
+{
+	public $x;
+
+
+	public function a()
+	{
+	}
+
+
+	/** doc */
+	public function b()
+	{
+	}
+
+
+	#[Attr]
+	public function c()
+	{
+	}
+
+
+	public $y;
+
+
+	public function d()
+	{
+	} // end
+}
+
+interface I
+{
+	function a();
+
+	function b();
+}
+
+
+function f()
+{
+}
+
+
+function g()
+{
+}

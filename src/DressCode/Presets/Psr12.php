@@ -45,6 +45,10 @@ final class Psr12 implements Preset
 			Rules\Expressions\NewArgumentParenthesesRule::class => ['anonymousClasses' => null],
 			Rules\Classes\ClassDefinitionSpacingRule::class => true,
 			Rules\Whitespace\BracesPositionRule::class => ['allowSingleLineAnonymousFunctions' => false],
+			Rules\Whitespace\DeclarationBlankLinesRule::class => [
+				'betweenFunctions' => null, 'betweenFunctionsInInterface' => null,
+				'betweenMembers' => null, 'beforeDocumentedMember' => null, 'afterPhpdoc' => null,
+			],
 			Rules\Classes\OrderedMembersRule::class => ['order' => ['use_trait']],
 			Rules\Classes\VisibilityRequiredRule::class => true,
 			Rules\Functions\FunctionNameSpacingRule::class => true,

@@ -1,0 +1,8 @@
+5: Expected 0 blank lines after the opening brace of the class, 1 found
+7: Expected 0 blank lines between trait uses, 1 found
+9: Expected 1 blank line after the trait uses, 0 found
+10: Expected at most 1 blank line between members, 2 found
+13: Expected 1 blank line before a documented member, 0 found
+19: Expected 2 blank lines before the function, 1 found
+26: Expected 0 blank lines before the closing brace of the class, 2 found
+33: Expected at most 1 blank line between members, 2 found

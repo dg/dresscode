@@ -161,6 +161,7 @@ final class RuleRegistry
 		Rules\Variables\NoUnsetOnPropertyRule::class,
 		Rules\Whitespace\CommaSpacingRule::class,
 		Rules\Files\DeclareSpacingRule::class,
+		Rules\Whitespace\DeclarationBlankLinesRule::class,
 		Rules\Whitespace\StatementBlankLinesRule::class,
 		Rules\Files\HeaderBlankLinesRule::class,
 		Rules\Whitespace\BodyBlankLinesRule::class,

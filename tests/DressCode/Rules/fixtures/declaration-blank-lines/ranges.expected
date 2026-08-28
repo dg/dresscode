@@ -1,0 +1,24 @@
+<?php
+// {"betweenFunctions": [1, 2], "betweenMembers": [1, null]}
+class A
+{
+	public $a;
+
+	public $b;
+
+	public $c;
+
+
+
+	public $d;
+
+	public function f() {}
+
+	public function g() {}
+
+
+	public function h() {}
+
+
+	public function i() {}
+}

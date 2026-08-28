@@ -1,0 +1,14 @@
+<?php
+// {"betweenFunctions": 1, "beforeFirst": 1, "afterLast": 1}
+class A
+{
+
+	public function a()
+	{
+	}
+
+	public function b()
+	{
+	}
+
+}
