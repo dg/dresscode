@@ -1,0 +1,18 @@
+<?php declare(strict_types=1);
+
+namespace App\Model;
+
+
+final class Storage
+{
+	public function create(string $dir): void
+	{
+		@mkdir($dir); // @ directory may already exist
+	}
+
+
+	public function read(string $file): string|false
+	{
+		return @file_get_contents($file); // @ the file may not exist
+	}
+}

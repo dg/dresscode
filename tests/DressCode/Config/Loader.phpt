@@ -148,12 +148,12 @@ test('errors', function () use ($fixtures) {
 		'Configuration file `%a%`: The PHP version must be written as `8.2`, `eight` given.',
 	);
 	Assert::exception(
-		fn() => Loader::loadFile(FileMock::create("<?php\nreturn new DressCode\\Config(uses: ['perCs']);\n", 'php')),
+		fn() => Loader::loadFile(FileMock::create("<?php\nreturn new DressCode\\Config(uses: ['nette']);\n", 'php')),
 		ConfigurationException::class,
 		'Configuration file `%a%`: Unknown named parameter $uses on line 2',
 	);
 	Assert::exception(
-		fn() => Loader::loadFile(FileMock::create("<?php\nreturn new DressCode\\Config(use: ['perCs'] paths: ['src']);\n", 'php')),
+		fn() => Loader::loadFile(FileMock::create("<?php\nreturn new DressCode\\Config(use: ['nette'] paths: ['src']);\n", 'php')),
 		ConfigurationException::class,
 		'Configuration file `%a%`: syntax error, %a% on line 2',
 	);
@@ -240,7 +240,7 @@ test('a rule of the project is named by its class, and what the namespaces decla
 
 test('a list of a single item is written without the list, in a configuration and in an override', function () {
 	$config = Loader::loadFile(FileMock::create(<<<'XX'
-		use: perCs
+		use: nette
 		paths: src
 		excludePaths: src/generated
 		fileExtensions: php
@@ -252,7 +252,7 @@ test('a list of a single item is written without the list, in a configuration an
 			- paths: tests
 			  use: psr12
 		XX, 'neon'));
-	Assert::same(['perCs'], $config->use);
+	Assert::same(['nette'], $config->use);
 	Assert::same(['src'], $config->paths);
 	Assert::contains('src/generated', $config->excludePaths);
 	Assert::same(['php'], $config->fileExtensions);
@@ -297,7 +297,7 @@ test('an override takes every key of a profile', function () {
 	$config = Loader::loadFile(FileMock::create(<<<'XX'
 		overrides:
 			- paths: [tests]
-			  use: [psr12]
+			  use: [nette]
 			  targets: {php: 8.3}
 			  namespaces: {functions: [App\Tests\fixture]}
 			  nameResolution: uncertain
@@ -306,7 +306,7 @@ test('an override takes every key of a profile', function () {
 		XX, 'neon'));
 	$override = $config->overrides[0];
 	Assert::same(['tests'], $override->paths);
-	Assert::same(['psr12'], $override->profile->use);
+	Assert::same(['nette'], $override->profile->use);
 	Assert::same('8.3', $override->profile->targets['php'] ?? null);
 	Assert::same(['App\Tests\fixture'], $override->profile->namespaces['functions']);
 	Assert::same('uncertain', $override->profile->nameResolution);

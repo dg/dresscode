@@ -11,7 +11,7 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-const Standards = ['dresscode/perCs', 'dresscode/psr12'];
+const Standards = ['dresscode/perCs', 'dresscode/psr12', 'dresscode/nette'];
 
 $registry = new PluginRegistry;
 $resolver = new ConfigResolver($registry);

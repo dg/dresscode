@@ -28,6 +28,7 @@ final class CorePlugin implements Plugin
 			presets: [
 				'dresscode/perCs' => dirname(__DIR__) . '/Presets/perCs.neon',
 				'dresscode/psr12' => dirname(__DIR__) . '/Presets/psr12.neon',
+				'dresscode/nette' => dirname(__DIR__) . '/Presets/nette.neon',
 				'dresscode/cleanup' => dirname(__DIR__) . '/Presets/cleanup.neon',
 				'dresscode/compilerOptimizations' => dirname(__DIR__) . '/Presets/compilerOptimizations.neon',
 				'dresscode/correctness' => dirname(__DIR__) . '/Presets/correctness.neon',

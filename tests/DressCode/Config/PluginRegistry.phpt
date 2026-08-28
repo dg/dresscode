@@ -86,7 +86,7 @@ test('a rule is known by its class, once however often it is registered', functi
 	Assert::same($count + 1, count($registry->rules));
 	Assert::same(RuleOne::class, $registry->rules[$count]);
 	Assert::same(RuleOne::class, $registry->registerRuleOrResolvePreset(RuleOne::class)->rule);
-	Assert::same('dresscode/perCs', $registry->registerRuleOrResolvePreset('perCs')->preset);
+	Assert::same('dresscode/nette', $registry->registerRuleOrResolvePreset('nette')->preset);
 });
 
 
@@ -115,8 +115,8 @@ test('errors', function () {
 	$registry = new PluginRegistry;
 	$registry->registerRule(RuleOne::class);
 	Assert::exception(fn() => $registry->registerRuleOrResolvePreset('quite/different'), ConfigurationException::class, 'Unknown decision, preset or rule `quite/different`.');
-	Assert::exception(fn() => $registry->registerRuleOrResolvePreset('perC'), ConfigurationException::class, 'Unknown decision, preset or rule `perC`. Did you mean `perCs`?');
-	Assert::exception(fn() => $registry->resolvePreset('dresscode/perC'), ConfigurationException::class, 'Unknown preset `dresscode/perC`. Did you mean `dresscode/perCs`?');
+	Assert::exception(fn() => $registry->registerRuleOrResolvePreset('nete'), ConfigurationException::class, 'Unknown decision, preset or rule `nete`. Did you mean `nette`?');
+	Assert::exception(fn() => $registry->resolvePreset('dresscode/nete'), ConfigurationException::class, 'Unknown preset `dresscode/nete`. Did you mean `dresscode/nette`?');
 	Assert::exception(
 		fn() => $registry->registerRuleOrResolvePreset('importOrder'),
 		ConfigurationException::class,
@@ -166,8 +166,8 @@ test('presets', function () {
 	Assert::same('dresscode/perCs', $registry->resolvePreset('perCs'));
 	Assert::same('test/preset', $registry->resolvePreset('test/preset'));
 	Assert::same([
-		'dresscode/perCs', 'dresscode/psr12', 'dresscode/cleanup', 'dresscode/compilerOptimizations', 'dresscode/correctness',
-		'dresscode/deprecations', 'dresscode/modernizations', 'dresscode/types', 'test/preset',
+		'dresscode/perCs', 'dresscode/psr12', 'dresscode/nette', 'dresscode/cleanup', 'dresscode/compilerOptimizations',
+		'dresscode/correctness', 'dresscode/deprecations', 'dresscode/modernizations', 'dresscode/types', 'test/preset',
 	], array_keys($registry->presets));
 	Assert::match('%a%/src/Presets/perCs.neon', $registry->presets['dresscode/perCs']);
 	Assert::exception(fn() => $registry->resolvePreset('none'), ConfigurationException::class, 'Unknown preset `none`.');
