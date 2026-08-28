@@ -1,0 +1,13 @@
+{
+	"name": "acme/dresscode-plugin",
+	"description": "A fake DressCode plugin used by the end-to-end tests",
+	"type": "library",
+	"require": {
+		"dresscode/dresscode": "^1.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"Acme\\DressCode\\": "src/"
+		}
+	}
+}
