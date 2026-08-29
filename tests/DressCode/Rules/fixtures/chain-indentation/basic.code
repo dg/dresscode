@@ -1,0 +1,32 @@
+<?php
+$a = $foo
+  ->bar()
+      ->baz(
+          1,
+      )
+->qux();
+$b = $foo->bar()
+	->baz();
+$c = $foo
+	->bar()
+	->baz();
+return $this->x
+		->y()
+	->z;
+foo(
+	$bar
+	->baz()
+);
+$d = $foo
+	->map(function ($x) {
+		return $x
+				->y();
+	})
+	->all();
+$e = Foo::create()
+		->bar();
+$f = $foo?->bar()
+		?->baz();
+$g = $foo
+	->bar['x']
+		->baz();

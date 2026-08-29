@@ -1,0 +1,16 @@
+<?php
+// {"allowNesting": true}
+$class->addMethod('__construct')
+	->addPromotedParameter('container')
+		->setPrivate()
+		->setType($name);
+$builder->addDefinition('latte')
+	->setFactory(Engine::class)
+		->addSetup('setCacheDirectory', [$dir])
+		->addSetup('setLocale', [$locale]);
+$a = $foo
+	->bar()
+	->baz();
+$b = $foo
+	->bar()
+	->baz();
