@@ -75,6 +75,23 @@ final class RuleTester
 
 
 	/**
+	 * What the rule reports over the fixture, line by line as the .violations file records it; for a tool
+	 * that writes such a file.
+	 * @param class-string<Rule>|\Closure(array<string, mixed>): Rule $rule
+	 * @return list<string>
+	 * @throws TestFailure
+	 */
+	public static function collectViolations(string|\Closure $rule, string $file, ?PhpVersion $phpVersion = null): array
+	{
+		$code = self::read($file);
+		$options = self::readOptions($code, $file);
+		$instance = $rule instanceof \Closure ? $rule($options) : PresetResolver::createRule($rule, $options ?: true);
+		[, $result] = self::process($instance, $code, $phpVersion ?? PhpVersion::current(), basename($file));
+		return array_map(fn(Violation $v) => "$v->line: $v->message", $result->violations);
+	}
+
+
+	/**
 	 * @param ?string $expected  the output; null when the rule must leave the code as it is
 	 * @param ?list<string> $violations  "line: message" each; null to skip the check
 	 * @throws TestFailure

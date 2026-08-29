@@ -25,6 +25,7 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
 - `composer build`: regenerates `src/PhpSyntax/Parser/ParserData.php`, `src/PhpSyntax/TokenKind.php` and `src/PhpSyntax/Nodes/**` from `grammar/` (`php.y` for the parser, `nodes.php` for the node classes). Commit the output; CI diffs it.
 - `composer reference`: regenerates `docs/reference/rules.md` (rules with their options) and `docs/reference/nodes.md` (node classes with their slots) from the code and `grammar/nodes.php`. Commit the output; CI diffs it.
 - `php tests/_update-tests.php`: rewrites the expected output of failed dump fixtures from their `.actual` files.
+- `php tools/update-violations.php [--all] [slug...]`: writes the `.violations` file of a rule fixture from what the rule reports, `--all` also over the files that have one. Review the diff; a wrong message recorded there is a wrong message tested everywhere.
 - Round-trip over an external corpus: `DRESSCODE_CORPUS=/path/to/php/code composer tester`.
 - `php bin/dresscode check`: DressCode over its own sources with `dresscode.php`; CI runs it too.
 
