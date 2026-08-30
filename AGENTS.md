@@ -33,6 +33,13 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
   - no `Abstract`, `Interface`, `I` or `Aware` prefixes/suffixes; an interface or base class sits next to the directory of its implementations (`Rule.php` next to `Rules/`);
   - enums of a namespace live in `enums.php`, exceptions in `exceptions.php`;
   - names of the API are written in full, the slots of PhpSyntax a claim names among them (`expression`, `condition`, `statements`, `arguments`, `parameters`, `variable`); the abbreviations left there are `paren` in `openParen`/`closeParen`, the delimiter having no one-word English name, `eol`, and `Op` in `BinaryOpNode` and its kin, which names the family across PHP tooling. A local variable may be abbreviated and often reads better for it (`$stmts`, `$args`, `$params`).
+- Rule names say the state the rule enforces, never the step the fixer takes, and follow one vocabulary; `tests/DressCode/Rules/naming.phpt` enforces it and holds the short list of names that stand outside. A name is built in the shape of its kind: a **decision** is the noun of the construct and the rule gives it a value (`braces-position`, `line-length`, `trailing-comma`), **hygiene** is a sentence of state and the rule has nothing to choose (`useless-else`, `parentheses-spacing`), a **policy** is the area it governs and the project brings the list (`forbidden-functions`). A bare noun therefore belongs only to a rule with an option:
+  - `no-` is a construct that must not appear at all (`no-global-keyword`), `useless-` one that is legal and right elsewhere but adds nothing here (`useless-else`); an empty instance is always `no-`;
+  - horizontal space is `<construct>-spacing`, vertical blank lines `<construct>-blank-lines`, indentation `<construct>-indentation`;
+  - `phpdoc` is the whole block, `annotation` a single tag; `parameter` is declared, `argument` is passed; a backslash is `backslash`;
+  - canonical spelling is `-notation` or `-canonical-*`, canonical case `-casing`; something that must be present is `-required`;
+  - the slug is the class name in kebab-case, with `phpdoc`, `eof`, `inheritdoc` and `elseif` as single tokens.
+- The directory of a rule is the most encompassing of the topics it could belong to, not a criterion: none exists that would hold for the whole catalogue.
 - Comments only where the code itself is not enough; never restate what the code shows; density follows the surrounding file. No phpDoc for what the types already say.
 - Code, comments, identifiers and messages in English.
 
