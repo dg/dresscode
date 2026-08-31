@@ -97,6 +97,7 @@ final class Application
 			return match ($command->name) {
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
+				'config' => $this->runConfig($args),
 				'explain' => $this->runExplain($args),
 				'catalogue' => $this->runCatalogue($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
@@ -163,6 +164,7 @@ final class Application
 
 		$check = $program->addCommand('check', 'Report the violations');
 		$fix = $program->addCommand('fix', 'Fix what the rules can and report the rest');
+		$config = $program->addCommand('config', 'Print the configuration as the run resolves it');
 		$explain = $program->addCommand('explain', 'Explain a decision, its values and its value in this configuration; every decision the configuration makes when none is named');
 		$catalogue = $program->addCommand('catalogue', 'List every decision the rules of the run declare, those this configuration makes marked');
 		$program->addText('Exit codes: `0` clean, `1` violations or syntax errors, `2` a file failed, `3` a mistake of the command line or of the configuration.');
@@ -194,7 +196,7 @@ final class Application
 			$command->addFlag('--strict-rules', 'Treat a rule breaking its contract as an error, not a warning');
 		}
 
-		foreach ([$check, $fix, $explain, $catalogue] as $command) {
+		foreach ([$check, $fix, $config, $explain, $catalogue] as $command) {
 			$command->addOption(
 				'--only',
 				'Only these: a decision, a section, a rule or a preset, narrowed to what the configuration runs; the values stay as the configuration resolves them',
@@ -203,6 +205,9 @@ final class Application
 			);
 		}
 
+		$config->addOption('--file', 'Print what the configuration comes to for that one file', valueName: 'path');
+		$config->addOption('--preset', 'Print what the preset comes to on its own, instead of the configuration', valueName: 'name');
+		$config->addOption('--format', 'Output format: `console` to read, `json` as data', alias: '-f', enum: ['console', 'json']);
 		$explain->addOption('--format', 'Output format: `console` to read, `markdown` as a document', alias: '-f', enum: ['console', 'markdown']);
 		$catalogue->addOption('--format', 'Output format: `console` to read, `json` as data', alias: '-f', enum: ['console', 'json']);
 		return $program;
@@ -394,6 +399,47 @@ final class Application
 		}
 
 		return implode('/', $common ?? []);
+	}
+
+
+	/**
+	 * Prints the configuration as the run resolves it, or a preset alone: every decision a layer set in the shape of
+	 * the file with the layer that set it, and why a decision takes no effect where it does not.
+	 */
+	private function runConfig(ParseResult $args): int
+	{
+		$factory = new RunnerFactory;
+		// a preset alone is what a project using it with nothing of its own comes to
+		if (is_string($preset = $args['--preset'])) {
+			try {
+				$config = new Config(use: [$preset]);
+			} catch (\InvalidArgumentException $e) {
+				throw new UsageException("Option `--preset`: {$e->getMessage()}", previous: $e);
+			}
+
+			[$root, $configFile, $commandLine] = [Helpers::canonicalizePath($this->workingDirectory), null, null];
+
+		} else {
+			['config' => $config, 'root' => $root, 'file' => $configFile, 'commandLine' => $commandLine] = $this->loadConfig($args);
+		}
+		$resolution = $factory->resolve($config, $root, $commandLine, self::parseOnly($args));
+		$file = $args['--file'];
+		$resolved = is_string($file)
+			? $resolution->resolveFor($factory->createRunner($resolution)->findOverridesFor($this->resolvePath($file)))
+			: $resolution->resolvedConfig;
+		$printer = new ConfigPrinter($resolved);
+		if ($args['--format'] === 'json') {
+			$this->out->write($printer->printJson());
+			return 0;
+		}
+
+		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($resolution));
+		if (is_string($file)) {
+			$this->out->writeLine($this->out->color('gray', 'File       ') . FileSystem::platformSlashes($file));
+		}
+
+		$this->out->write($printer->print($this->out));
+		return 0;
 	}
 
 

@@ -7,6 +7,7 @@
 
 use DressCode\{Config, ConfigurationException, Profile};
 use DressCode\Config\{ConfigResolver, Loader, PluginRegistry};
+use DressCode\Console\Application;
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -124,5 +125,13 @@ test('the command line sets a decision over everything, and fixRisky and warnOnl
 	Assert::same('the command line', $resolved->decisions['blankLines.betweenMethods']->value->origin?->describe());
 	Assert::true($resolved->findRule(DressCode\Rules\Types\NativeTypeRequiredRule::class)?->fixRisky);
 	Assert::true($resolved->findRule(DressCode\Rules\Whitespace\BlankLinesRule::class)?->warnOnly);
+
+	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	$code = new Application($out, $err, cwd: $dir)->run(['dresscode', 'config', '--format', 'json', '--set', 'blankLines.betweenMethods=1-2']);
+	rewind($out);
+	Assert::same(0, $code);
+	$data = json_decode((string) stream_get_contents($out), true);
+	Assert::same(['value' => [1, 2], 'layer' => 'the command line', 'inactive' => null, 'selected' => true], $data['decisions']['blankLines.betweenMethods']);
 	Assert::exception(fn() => new Config(decisions: ['paths' => []]), InvalidArgumentException::class, 'The decisions are sections, and `paths` is a key of the configuration.');
 });

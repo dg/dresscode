@@ -2,6 +2,8 @@
 
 use DressCode\Console\Application;
 use DressCode\{Decision, Domain, NodeRule, Plugin, PluginManifest, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\Classes\FinalForInternalClassRule;
+use DressCode\Rules\Functions\StaticForClosureWithoutThisRule;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use Tester\Assert;
@@ -200,6 +202,18 @@ test('check of a clean path with options from the command line', function () use
 	[$code, $out] = runApp($root, ['check', 'src/b.php', '--set', 'project.report=forbidden', '--format', 'json']);
 	Assert::same(1, $code);
 	Assert::match('%A%"decision": "project.report",%A%', $out);
+	[$code, $out] = runApp($root, ['config', '--set', 'project.report=forbidden', '--format', 'json']);
+	Assert::same(0, $code);
+	Assert::true(json_decode($out, associative: true)['rules'][ConsoleReport::class]['active']);
+	// --only narrows the run to what it names, and turns nothing on
+	[$code, $out] = runApp($root, ['config', '--set', 'project.report=forbidden', '--only', 'project.report', '--format', 'json']);
+	Assert::same(0, $code);
+	$rules = json_decode($out, associative: true)['rules'];
+	Assert::true($rules[ConsoleReport::class]['active']);
+	Assert::false($rules[ConsoleRename::class]['active']);
+	[$code, , $err] = runApp($root, ['config', '--only', ConsoleReport::class]);
+	Assert::same(3, $code);
+	Assert::same("Error: Option `--only` names rule `ConsoleReport`, which cannot run here: no preset or layer of the configuration names its decisions.\n", $err);
 });
 
 
@@ -278,6 +292,9 @@ test('errors go to stderr with exit code 3', function () use ($root) {
 	[$code, , $err] = runApp($root, ['check', '--format', 'xml']);
 	Assert::same(3, $code);
 	Assert::match("Error: Option --format: expects console, bare, github, json or checkstyle, 'xml' given.%A%", $err);
+	[$code, , $err] = runApp($root, ['config', '--format', 'markdown']);
+	Assert::same(3, $code);
+	Assert::match("Error: Option --format: expects console or json, 'markdown' given.%A%", $err);
 	[$code, , $err] = runApp($root, ['explain', '--format', 'json']);
 	Assert::same(3, $code);
 	Assert::match("Error: Option --format: expects console or markdown, 'json' given.%A%", $err);
@@ -359,6 +376,18 @@ test('without a configuration file neither check nor fix runs, unless a preset i
 });
 
 
+test('a file --use names is relative to the working directory, one the configuration uses to its root', function () {
+	$dir = createTempDir('console-use');
+	mkdir("$dir/config");
+	file_put_contents("$dir/config/dresscode.php", "<?php\nreturn new DressCode\\Config(use: ['base.neon']);\n");
+	file_put_contents("$dir/config/base.neon", "blankLines:\n\tbetweenMethods: 3\n");
+	file_put_contents("$dir/style.neon", "blankLines:\n\tafterImports: 2\n");
+	[$code, $out] = runApp($dir, ['config', '--config', "$dir/config/dresscode.php", '--use', 'style.neon']);
+	Assert::same(0, $code);
+	Assert::match("%A%\tafterImports: 2 %A%/console-use/style.neon\n\tbetweenMethods: 3 %A%/console-use/config/base.neon\n%A?%", $out);
+});
+
+
 test('fix writes the files and reports what remains', function () use ($root) {
 	[$code, $out] = runApp($root, ['fix', '--diff', '--set', 'project.report=forbidden']);
 	Assert::same(1, $code);
@@ -380,6 +409,93 @@ test('fix writes the files and reports what remains', function () use ($root) {
 
 		XX, $out);
 	Assert::same("<?php\n\$b;\n", file_get_contents("$root/src/a.php"));
+});
+
+
+test('config writes every decision a layer set in the shape of the file, with the layer that set it', function () use ($root) {
+	file_put_contents("$root/conf.neon", <<<'XX'
+		use:
+			- dresscode/psr12
+
+		suppressionComments:
+			"~intentionally ==~": [expressions.comparison]
+
+		qualification: keep
+
+		upgrading:
+			syntax:
+				promotedProperties: keep
+
+		file:
+			maxLineLength: 100
+			longLinesExcept: []
+			longLines: forbidden
+
+		overrides:
+			- paths: [src/generated]
+			  indentation: keep
+
+		paths: [src]
+
+		XX);
+
+	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon"]);
+	Assert::same(0, $code);
+	Assert::match('%A%Use        dresscode/psr12%A%', $out);
+	Assert::match('%A%Comments   silence decisions on their line%A%      ~intentionally ==~ %a%expressions.comparison%A%', $out);
+	Assert::match('%A%Style%a%4 spaces, the line ending each file mostly has, lines of up to 100 characters%A%', $out);
+	Assert::match('%A%Decisions  %d% of %d% set by a layer, the others asking for nothing%A%', $out);
+	Assert::match("%A%\nfile:\n%A%\tmaxLineLength: 100 %s%# the configuration\n%A?%", $out);
+	Assert::match("%A%\nqualification:\n%A%\tglobalFunction: keep %s%# the configuration\n%A?%", $out);
+	Assert::match("%A%\tcall: compact %s%# dresscode/psr12\n%A?%", $out);
+	Assert::match("%A%\tsyntax:\n\t\tpromotedProperties: keep %s%# the configuration\n%A?%", $out);
+
+	// for one file it is what the run uses for that file
+	[, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--file', 'src/generated/x.php']);
+	Assert::match('%A%File       src%a%generated%a%x.php%A%', $out);
+	Assert::match("%A%\nindentation:\n%A%\tunit: keep %s%# the override for src/generated\n%A?%", $out);
+
+	// a preset alone, whatever the configuration is
+	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--preset', 'psr12']);
+	Assert::same(0, $code);
+	Assert::match('%A%Config     none, using psr12%A%', $out);
+	Assert::match("%A%\tmaxLineLength: 120 %s%# dresscode/psr12\n%A?%", $out);
+
+	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--format', 'json']);
+	Assert::same(0, $code);
+	$data = json_decode($out, associative: true);
+	Assert::same(1, $data['version']);
+	Assert::same(['psr12'], $data['use']);
+	Assert::same(['php' => '8.4'], $data['targets']);
+	Assert::same(4, $data['indent']);
+	Assert::same(100, $data['lineLength']);
+	Assert::same('uncertain', $data['nameResolution']);
+	Assert::same(['~intentionally ==~' => ['expressions.comparison']], $data['suppressionComments']);
+	Assert::same([], $data['decisions']['file.longLinesExcept']['value']);
+	Assert::false($data['rules'][DressCode\Rules\Namespaces\GlobalNameQualificationRule::class]['active']);
+	Assert::same(['reason' => 'turnedOff', 'message' => 'its decisions are `keep`'], $data['rules'][DressCode\Rules\Namespaces\GlobalNameQualificationRule::class]['inactive']);
+	Assert::same('notMentioned', $data['rules'][StaticForClosureWithoutThisRule::class]['inactive']['reason']);
+});
+
+
+test('config names the targets and the plugins of the configuration', function () use ($root) {
+	file_put_contents("$root/targets.neon", <<<'XX'
+		use: [dresscode/psr12, ConsolePlugin]
+		targets: {php: '8.4'}
+		paths: [src]
+
+		XX);
+
+	[$code, $out, $err] = runApp($root, ['config', '--config', "$root/targets.neon"]);
+	Assert::same('', $err);
+	Assert::same(0, $code);
+	Assert::match('%A%Use        ConsolePlugin, dresscode/psr12%A%', $out);
+	Assert::match('%A%Targets    php 8.4%A%', $out);
+
+	[, $out] = runApp($root, ['config', '--config', "$root/targets.neon", '--format', 'json']);
+	$data = json_decode($out, associative: true);
+	Assert::same(['php' => '8.4'], $data['targets']);
+	Assert::same(['ConsolePlugin', 'psr12'], $data['use']);
 });
 
 
@@ -405,6 +521,17 @@ test('overrides: another part of the tree gets other rules', function () use ($r
 
 		XX);
 	$config = ['--config', "$root/overrides.neon"];
+
+	// what the configuration comes to for a file is what the overrides it matches say, in the order written
+	$names = function (string $file, string $cwd = '') use ($root): array {
+		[, $out] = runApp($root . $cwd, ['config', '--config', "$root/overrides.neon", '--file', $file, '--format', 'json']);
+		$data = json_decode($out, associative: true);
+		return array_map(ruleSlug(...), array_keys(array_filter($data['rules'], fn(array $rule) => $rule['active'])));
+	};
+	Assert::same(['noTrailingWhitespace'], $names('lib/a.php'));
+	Assert::same(['finalLineEndings'], $names('legacy/b.php')); // the override turned the first rule off
+	Assert::same([], $names('legacy/deep/c.php')); // and the second override turned the other one off
+	Assert::same(['finalLineEndings'], $names('b.php', '/legacy')); // relative to the working directory, as check takes it
 
 	// the file of an override is processed with its rules; without one it keeps the base
 	$dirty = function () use ($root): void {
@@ -467,6 +594,10 @@ test('--only narrows the run to what it names', function () use ($root) {
 	[$code] = runApp($root, ['fix', ...$config, '--only', 'file.trailingWhitespace']);
 	Assert::same(0, $code);
 	Assert::same("<?php\n\$a;\n\$b;", file_get_contents("$root/only/a.php"));
+
+	// config says of every other decision that the run leaves it out
+	[, $out] = runApp($root, ['config', ...$config, '--only', 'file.trailingWhitespace']);
+	Assert::match("%A%\tfinalLineEndings: 1 %s%# the configuration, outside --only\n%A?%", $out);
 });
 
 
@@ -530,6 +661,9 @@ test('exit codes: a file that failed is 2, a mistake of the command line or of t
 	file_put_contents("$root/invalid.php", "<?php\nreturn new DressCode\\Config(rules: ConsoleRules, decisions: ['project' => ['rename' => 'forbidden']], paths: ['src'], ruleUrl: 1);\n");
 	Assert::same(3, runApp($root, ['check', '--config', "$root/invalid.php"])[0]);
 	Assert::same(3, runApp($root, ['check', '--nope'])[0]);
+	[$code, , $err] = runApp($root, ['config', '--preset', '']);
+	Assert::same(3, $code);
+	Assert::match("Error: Option `--preset`: `use` names a preset or the path of a file, an empty string given.\n%A%", $err);
 	foreach ([['--max-warnings', 'xyz'], ['--max-warnings', '-1']] as [$option, $value]) {
 		[$code, , $err] = runApp($root, ['check', $option, $value]);
 		Assert::same(3, $code, "$option $value");
@@ -596,10 +730,29 @@ test('a violation the rule has no fix for is no fix waiting, with the consent or
 });
 
 
-test('a decision named in fixRisky that runs nowhere is a warning', function () use ($root) {
+test('config says of a decision with risky fixes whether the project accepts them, and a name that does nothing is a warning', function () use ($root) {
 	$config = "$root/risky-config.php";
 	file_put_contents($config, "<?php\nreturn new DressCode\\Config(rules: ConsoleRules, decisions: ['project' => ['riskyRename' => 'forbidden'], 'correctness' => ['strictComparisonArgument' => 'required']],"
 		. " overrides: [new DressCode\\Override(['src'], new DressCode\\Profile(decisions: ['file' => ['strictTypes' => 'required']])), new DressCode\\Override(['legacy'], new DressCode\\Profile(decisions: ['file' => ['lineEnding' => 'LF']]))], fixRisky: [ConsoleRiskyRename::class, 'file.strictTypes', 'classes.markedInternal'], paths: ['src']);\n");
+
+	[$code, $out] = runApp($root, ['config', '--config', $config]);
+	Assert::same(0, $code);
+	Assert::match("%A%\triskyRename: forbidden %s%# the configuration, risky fixes accepted\n%A?%", $out);
+	Assert::match("%A%\tstrictComparisonArgument: required %s%# the configuration\n%A?%", $out);
+	Assert::match("%A%\tstrictTypes: keep %s%# no layer, risky fixes accepted\n%A?%", $out);
+	Assert::match("%A%\tmarkedInternal: keep %s%# no layer, risky fixes accepted\n%A?%", $out);
+
+	[, $out] = runApp($root, ['config', '--config', $config, '--format', 'json']);
+	$rules = json_decode($out, associative: true)['rules'];
+	Assert::same('onlyOverride', $rules[DressCode\Rules\Files\StrictTypesRequiredRule::class]['inactive']['reason']);
+	Assert::same('notMentioned', $rules[FinalForInternalClassRule::class]['inactive']['reason']);
+	Assert::true($rules[ConsoleRiskyRename::class]['fixRisky']);
+	Assert::false($rules[DressCode\Rules\Functions\StrictComparisonArgumentRequiredRule::class]['fixRisky']);
+
+	// so it is for a file another override matches
+	[, $out] = runApp($root, ['config', '--config', $config, '--file', 'legacy/a.php', '--format', 'json']);
+	$rules = json_decode($out, associative: true)['rules'];
+	Assert::same('onlyOverride', $rules[DressCode\Rules\Files\StrictTypesRequiredRule::class]['inactive']['reason']);
 
 	// a rule an override turns on runs somewhere, one that nothing turns on makes the entry a line that does nothing
 	[, , $err] = runApp($root, ['check', '--config', $config]);
