@@ -225,6 +225,13 @@ test('stdin: check reports, fix writes the result to stdout', function () use ($
 });
 
 
+test('rules', function () use ($root) {
+	[$code, $out] = runApp($root, ['rules']);
+	Assert::same(0, $code);
+	Assert::match("%A%  dresscode/eofLineEnding %s%Formatting %a%\n%A%* test/rename %s%Structure  Renames \$a to \$b\n\n* enabled by the configuration\n", $out);
+});
+
+
 test('errors go to stderr with exit code 3', function () use ($root) {
 	[$code, $out, $err] = runApp($root, ['check', '--nope']);
 	Assert::same(3, $code);

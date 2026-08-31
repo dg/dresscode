@@ -7,10 +7,10 @@
 
 namespace DressCode\Console;
 
-use DressCode\{Config, ConfigurationException, ConvergenceException, Preset, PresetInfo, Profile, Reporter, Reporters, RuleException};
+use DressCode\{Config, ConfigurationException, ConvergenceException, Preset, PresetInfo, Profile, Reporter, Reporters, RuleException, RuleInfo};
 use DressCode\Config\{Loader, PhpVersionSource, RuleRegistry, RunnerFactory};
 use DressCode\Engine\{FileSummary, Helpers, RunInfo, Runner, RunResult};
-use Nette\CommandLine\{ColorDepth, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, ParseResult};
+use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Neon\{Exception as NeonException, Neon};
 use Nette\Utils\FileSystem;
 use function array_slice, count, extension_loaded, in_array, is_array, is_bool, is_int, is_string, sprintf;
@@ -97,6 +97,7 @@ final class Application
 			return match ($command->name) {
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
+				'rules' => $this->runRules($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
 
@@ -148,6 +149,7 @@ final class Application
 
 		$check = $program->addCommand('check', 'report violations');
 		$fix = $program->addCommand('fix', 'fix what the rules can and report the rest');
+		$rules = $program->addCommand('rules', 'list the known rules');
 		$program->addText('Exit codes: `0` clean, `1` violations or syntax errors, `2` a file failed, `3` a mistake of the command line or of the configuration.');
 
 		foreach ([$check, $fix] as $command) {
@@ -177,7 +179,7 @@ final class Application
 			$command->addFlag('--strict-rules', 'a rule breaking its contract is an error, not a warning');
 		}
 
-		foreach ([$check, $fix] as $command) {
+		foreach ([$check, $fix, $rules] as $command) {
 			$command->addOption(
 				'--only',
 				'run only these of the rules the configuration comes to, a preset standing for all of its rules',
@@ -364,6 +366,34 @@ final class Application
 		}
 
 		return implode('/', $common ?? []);
+	}
+
+
+	private function runRules(ParseResult $args): int
+	{
+		$factory = new RunnerFactory;
+		[$config, $root, , $commandLine] = $this->loadConfig($args);
+		$runner = $factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
+		$enabled = [];
+		foreach ($runner->getProcessor()->rules as $rule) {
+			$enabled[RuleInfo::of($rule)->name] = true;
+		}
+
+		$registry = $factory->registry;
+		$rules = $registry->rules;
+		ksort($rules, SORT_STRING);
+		foreach ($rules as $name => $class) {
+			$info = RuleInfo::of($class);
+			$this->out->writeLine(
+				(isset($enabled[$name]) ? '*' : ' ')
+				. ' ' . Ansi::pad($this->out->color(isset($enabled[$name]) ? 'white' : null, $name), 45)
+				. ' ' . Ansi::pad($info->stage->name, 10)
+				. ' ' . Markup::highlightCode($this->out, $info->description),
+			);
+		}
+
+		$this->out->writeLine("\n* enabled by the configuration");
+		return 0;
 	}
 
 
