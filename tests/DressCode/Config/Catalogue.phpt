@@ -277,6 +277,13 @@ test('a rule of a plugin names a tree of the core, of its plugin and of the plug
 });
 
 
+test('without a catalogue, a rule of a plugin names the tree of the plugin its package names in extra.dresscode', function () {
+	$rule = Acme\DressCode\Rules\NoVarDumpRule::class;
+	Assert::same(['acme.debugFunctions', 'acme.debugCalls'], array_map(fn(Decision $decision) => $decision->path, Catalogue::collectDecisions($rule)));
+	Assert::same(['acme.debugFunctions', 'acme.debugCalls'], array_keys(Catalogue::fromRules([$rule])->getDecisionsOf($rule)));
+});
+
+
 test('a rule has some decision, a decision one declaration, and no path is both a structure and a decision', function () {
 	Assert::exception(fn() => new Catalogue([CallRule::class, SpacingAgainRule::class]), ConfigurationException::class, 'Decision `spacing.call` is declared by both `CallRule` and `SpacingAgainRule`; a decision several rules share is declared by a tree and named by each of them.');
 	Assert::exception(fn() => new Catalogue([SilentRule::class]), ConfigurationException::class, 'Rule `SilentRule` declares no decision.');

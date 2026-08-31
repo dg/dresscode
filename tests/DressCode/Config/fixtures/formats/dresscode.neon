@@ -1,0 +1,45 @@
+use:
+	- dresscode/psr12
+	- acme/default
+	- Acme\DressCode\Plugin
+
+rules:
+	- Acme\DressCode\Rules\NoVarDumpRule
+
+targets:
+	php: '8.3'
+namespaces:
+	functions: [App\helper, 'App\Utils\{format, parse}']
+	constants: [App\LIMIT]
+nameResolution: certain
+fixRisky: [dresscode/strictComparisonArgumentRequired]
+warnOnly: [dresscode/lineLength]
+
+overrides:
+	- paths: [tests]
+	  use: [dresscode/nette]
+	  nameResolution: uncertain
+	  blankLines: keep
+
+paths: [src, tests]
+excludePaths: [build, docs/generated]
+fileExtensions: [php, phpt]
+analyses:
+	- Acme\DressCode\Analyses\FunctionCalls
+
+blankLines:
+	betweenMethods: 1–2
+	beforeStatement: {return: 1+}
+	afterStatement: {}
+spacing:
+	fnKeyword: 'fn ($x) => $x'
+types:
+	traversableClasses: [Traversable, Iterator]
+controlFlow:
+	trailingIfMinStatements: 3
+file:
+	lineEnding: LF
+	maxLineLength: 160
+	longLinesExcept: []
+indentation:
+	unit: tab

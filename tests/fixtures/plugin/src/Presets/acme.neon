@@ -1,0 +1,11 @@
+# The Acme house style
+
+use: perCs
+
+file:
+	trailingWhitespace: forbidden
+imports:
+	order: alphabetical
+acme:
+	debugCalls: forbidden
+	debugFunctions: [var_dump, print_r]

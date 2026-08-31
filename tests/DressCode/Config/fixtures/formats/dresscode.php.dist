@@ -1,0 +1,30 @@
+<?php declare(strict_types=1);
+
+use DressCode\Config;
+use DressCode\Override;
+use DressCode\Profile;
+
+return new Config(
+	use: ['dresscode/psr12', 'acme/default', Acme\DressCode\Plugin::class],
+	rules: [Acme\DressCode\Rules\NoVarDumpRule::class],
+	targets: ['php' => '8.3'],
+	namespaces: ['functions' => ['App\helper', 'App\Utils\{format, parse}'], 'constants' => ['App\LIMIT']],
+	nameResolution: 'certain',
+	fixRisky: ['dresscode/strictComparisonArgumentRequired'],
+	warnOnly: ['dresscode/lineLength'],
+	overrides: [
+		new Override(['tests'], new Profile(use: ['dresscode/nette'], nameResolution: 'uncertain', decisions: ['blankLines' => 'keep'])),
+	],
+	paths: ['src', 'tests'],
+	excludePaths: ['build', 'docs/generated'],
+	fileExtensions: ['php', 'phpt'],
+	analyses: [Acme\DressCode\Analyses\FunctionCalls::class],
+	decisions: [
+		'blankLines' => ['betweenMethods' => "1\u{2013}2", 'beforeStatement' => ['return' => '1+'], 'afterStatement' => []],
+		'spacing' => ['fnKeyword' => 'fn ($x) => $x'],
+		'types' => ['traversableClasses' => ['Traversable', 'Iterator']],
+		'controlFlow' => ['trailingIfMinStatements' => 3],
+		'file' => ['lineEnding' => 'LF', 'maxLineLength' => 160, 'longLinesExcept' => []],
+		'indentation' => ['unit' => 'tab'],
+	],
+);
