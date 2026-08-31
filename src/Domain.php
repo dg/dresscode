@@ -14,8 +14,8 @@ use const JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE;
 
 /**
  * What a decision takes: the values it accepts, how a value is normalized, how the values of two layers merge,
- * and a description of itself as data and as prose, which the catalogue exports. The domains are those of
- * `Domains\`, which a plugin declares its decisions with; it writes none of its own.
+ * and a description of itself as data and as prose, which the catalogue exports and `explain` reads. The domains
+ * are those of `Domains\`, which a plugin declares its decisions with; it writes none of its own.
  */
 abstract readonly class Domain
 {
