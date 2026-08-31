@@ -20,6 +20,12 @@ use function dirname;
  */
 final class CorePlugin implements Plugin
 {
+	/**
+	 * The presets that are complete standards; the other presets are sets.
+	 */
+	public const Standards = ['perCs', 'psr12', 'nette'];
+
+
 	public function getManifest(): PluginManifest
 	{
 		// built once, since nothing of it changes

@@ -148,7 +148,14 @@ final readonly class Application
 		$program->addFlag('--help', 'Print this help', standalone: true);
 		$program->addFlag('--version', 'Print the name and the version', standalone: true);
 
-		$program->addCommandsFrom(new Commands\CheckCommand($this->context));
+		$context = $this->context;
+		foreach ([ // in the order the help lists them
+			new Commands\CheckCommand($context),
+			new Commands\CatalogueCommand($context),
+		] as $handlers) {
+			$program->addCommandsFrom($handlers);
+		}
+
 		$program->addText('Exit codes: `0` clean, `1` violations or syntax errors, `2` a file failed, `3` a mistake of the command line or of the configuration.');
 		return $program;
 	}

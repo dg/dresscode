@@ -209,6 +209,22 @@ final class ConfigResolver
 
 
 	/**
+	 * The decisions each of the three standards makes, resolved alone.
+	 * @return array<string, array<string, ResolvedDecision>>  standard => path => its decision
+	 * @throws ConfigurationException
+	 */
+	public function resolveStandards(string $phpTarget): array
+	{
+		$standards = [];
+		foreach (CorePlugin::Standards as $standard) {
+			$standards[$standard] = $this->resolve(new Config(use: ["dresscode/$standard"]), $phpTarget)->decisions;
+		}
+
+		return $standards;
+	}
+
+
+	/**
 	 * The catalogue of the registered rules, as the registry keeps it.
 	 * @throws ConfigurationException
 	 */
