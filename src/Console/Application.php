@@ -12,7 +12,7 @@ use DressCode\Config\{Catalogue, ConfigResolver, CorePlugin, Loader, PhpVersionS
 use DressCode\Engine\{FileSummary, Helpers, RunInfo, Runner, RunResult};
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, Normalizers, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Neon\{Exception as NeonException, Neon};
-use Nette\Utils\{FileSystem, Json};
+use Nette\Utils\{FileSystem, Helpers as UtilsHelpers, Json};
 use function count, extension_loaded, in_array, is_string, sprintf;
 
 
@@ -97,6 +97,7 @@ final class Application
 			return match ($command->name) {
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
+				'explain' => $this->runExplain($args),
 				'catalogue' => $this->runCatalogue($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
@@ -162,8 +163,11 @@ final class Application
 
 		$check = $program->addCommand('check', 'Report the violations');
 		$fix = $program->addCommand('fix', 'Fix what the rules can and report the rest');
+		$explain = $program->addCommand('explain', 'Explain a decision, its values and its value in this configuration; every decision the configuration makes when none is named');
 		$catalogue = $program->addCommand('catalogue', 'List every decision the rules of the run declare, those this configuration makes marked');
 		$program->addText('Exit codes: `0` clean, `1` violations or syntax errors, `2` a file failed, `3` a mistake of the command line or of the configuration.');
+
+		$explain->addArgument('decision', 'A decision, or a section or structure of them; the whole configuration when omitted', optional: true);
 
 		foreach ([$check, $fix] as $command) {
 			$command->addArgument('paths', 'Files or directories; the configured paths when omitted', optional: true, repeatable: true);
@@ -190,7 +194,7 @@ final class Application
 			$command->addFlag('--strict-rules', 'Treat a rule breaking its contract as an error, not a warning');
 		}
 
-		foreach ([$check, $fix, $catalogue] as $command) {
+		foreach ([$check, $fix, $explain, $catalogue] as $command) {
 			$command->addOption(
 				'--only',
 				'Only these: a decision, a section, a rule or a preset, narrowed to what the configuration runs; the values stay as the configuration resolves them',
@@ -199,6 +203,7 @@ final class Application
 			);
 		}
 
+		$explain->addOption('--format', 'Output format: `console` to read, `markdown` as a document', alias: '-f', enum: ['console', 'markdown']);
 		$catalogue->addOption('--format', 'Output format: `console` to read, `json` as data', alias: '-f', enum: ['console', 'json']);
 		return $program;
 	}
@@ -389,6 +394,45 @@ final class Application
 		}
 
 		return implode('/', $common ?? []);
+	}
+
+
+	/**
+	 * Explains a decision in detail with the values the standards give it, the decisions under a section, or the
+	 * configuration as a whole when none is named, which is every decision a layer makes; the Markdown document is
+	 * drawn, or with `--format markdown` written as it is.
+	 * @throws UsageException
+	 */
+	private function runExplain(ParseResult $args): int
+	{
+		$path = $args['decision'];
+		$factory = new RunnerFactory;
+		['config' => $config, 'root' => $root, 'file' => $configFile, 'commandLine' => $commandLine] = $this->loadConfig($args);
+		$resolution = $factory->resolve($config, $root, $commandLine, self::parseOnly($args));
+		$resolved = $resolution->resolvedConfig;
+		if (!is_string($path)) {
+			$markdown = new ExplainPrinter($factory->registry)->printConfig($resolved);
+
+		} elseif (isset($resolved->decisions[$path])) {
+			$standards = self::resolveStandards($factory->registry, $resolved->phpVersion);
+			$markdown = new ExplainPrinter($factory->registry, $standards)->printDecision($resolved->decisions[$path]);
+
+		} elseif (array_any(array_keys($resolved->decisions), fn(string $known) => str_starts_with($known, "$path."))) {
+			$markdown = new ExplainPrinter($factory->registry)->printSection($path, $resolved);
+
+		} else {
+			$hint = UtilsHelpers::getSuggestion(array_keys($resolved->decisions), $path);
+			throw new UsageException("Unknown decision `$path`." . ($hint === null ? '' : " Did you mean `$hint`?"));
+		}
+
+		if ($args['--format'] === 'markdown') {
+			$this->out->write($markdown);
+			return 0;
+		}
+
+		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($resolution));
+		$this->out->write("\n" . Markup::renderMarkdown($this->out, $markdown));
+		return 0;
 	}
 
 

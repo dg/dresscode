@@ -10,7 +10,7 @@ namespace DressCode;
 
 /**
  * A key of the configuration saying how one thing in the code is written: its path, which is the identity of
- * everything a user ever sees about it, the values it takes, and the words that describe them.
+ * everything a user ever sees about it, the values it takes, and the words `explain` prints.
  * A requirement turns its rule on wherever it is not `keep`; a parameter only refines one and turns nothing on;
  * a fact is a key of the environment whose guard the rule is.
  */
@@ -22,7 +22,7 @@ final readonly class Decision
 		public Domain $domain,
 		/** what the rule does where the key is not `keep`, a sentence without a trailing period */
 		public string $description,
-		/** @var list<string>  what the key is not about, in sentences; never an action of its own */
+		/** @var list<string>  what the key is not about, in sentences `explain` prints; never an action of its own */
 		public array $notes = [],
 		/** the value only refines a requirement and turns nothing on, so it takes no `keep` */
 		public bool $parameter = false,
