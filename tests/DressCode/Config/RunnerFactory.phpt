@@ -97,6 +97,15 @@ final class NestedExtension implements Extension
 }
 
 
+final class DecidingExtension implements Extension
+{
+	public function getConfig(): Config
+	{
+		return new Config(presets: ['per']);
+	}
+}
+
+
 test('the PHP version comes from the configuration, composer.json or the default', function () use ($fixtures) {
 	$factory = new RunnerFactory;
 	Assert::same(['8.1', PhpVersionSource::Composer], $factory->resolvePhpVersion(new Config, "$fixtures/project"));
@@ -204,6 +213,26 @@ test('an extension makes its rules known by name, and brings the paths it leaves
 	$files = $runner->findFiles(['.']);
 	Assert::same(['checked.php', 'generated.php', 'skipped.php'], $files);
 	Assert::same(['checked.php'], array_map(fn($result) => $result->path, $runner->run($files, false, new NullReporter)->files));
+});
+
+
+test('an extension brings only what a package can, and a class that is none of the three says so', function () use ($fixtures) {
+	$create = fn(Config $config) => (new RunnerFactory)->createRunner($config, "$fixtures/project");
+	Assert::exception(
+		fn() => $create(new Config(extensions: [DecidingExtension::class])),
+		ConfigurationException::class,
+		'Extension DecidingExtension sets presets, which is for the project to decide; an extension sets extensions, analyses, excludePaths, skipWhen.',
+	);
+	Assert::exception(
+		fn() => $create(new Config(extensions: ['DressCode\Missing'])),
+		ConfigurationException::class,
+		'Extension class DressCode\Missing does not exist.',
+	);
+	Assert::exception(
+		fn() => $create(new Config(extensions: [stdClass::class])),
+		ConfigurationException::class,
+		'Extension stdClass is not an extension, a rule or a preset.',
+	);
 });
 
 
