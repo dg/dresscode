@@ -288,6 +288,60 @@ test('fix writes the files and reports what remains', function () use ($root) {
 });
 
 
+test('config says what every rule ends up with, where it came from and why one does not run', function () use ($root) {
+	file_put_contents("$root/conf.neon", <<<'XX'
+		presets:
+			- dresscode/psr12
+
+		lineLength: 100
+
+		rules:
+			dresscode/line-length: {ignoreImports: false}
+			dresscode/name-casing: keep
+			dresscode/ordered-imports: {order: alphabetical}
+
+		overrides:
+			- paths: [src/generated]
+			  rules: {dresscode/indentation: keep}
+
+		paths: [src]
+
+		XX);
+
+	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon"]);
+	Assert::same(0, $code);
+	Assert::match('%A%Presets    dresscode/psr12%A%', $out);
+	Assert::match('%A%  dresscode/line-length %a%the configuration%A%', $out);
+	Assert::match('%A%Style%a%4 spaces, the line ending each file mostly has, lines of up to 100 characters%A%', $out);
+	Assert::match('%A%      ignoreImports %a%false %a%the configuration%A%', $out);
+	// a value the project changed says what it overrode, one that only repeats the preset does not
+	Assert::match('%A%      order %a%alphabetical %a%the configuration (over dresscode/psr12 byKind)%A%', $out);
+	Assert::match('%A%Not running%A%  dresscode/name-casing %a%turned off by the configuration%A%', $out);
+	Assert::notContains('dresscode/indentation ', substr($out, strpos($out, 'Not running') ?: 0));
+
+	// for one file it is what the run uses for that file
+	[, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--file', 'src/generated/x.php']);
+	Assert::match('%A%File       src%a%generated%a%x.php%A%', $out);
+	Assert::match('%A%  dresscode/indentation %a%turned off by the override for src/generated%A%', $out);
+
+	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--json']);
+	Assert::same(0, $code);
+	$data = json_decode($out, associative: true);
+	Assert::same(['dresscode/psr12'], $data['presets']);
+	Assert::same(100, $data['lineLength']);
+	Assert::false($data['rules']['dresscode/line-length']['options']['ignoreImports']);
+	Assert::false($data['rules']['dresscode/name-casing']['active']);
+	Assert::same('turned off by the configuration', $data['rules']['dresscode/name-casing']['inactive']);
+	Assert::same(
+		[
+			['source' => 'dresscode/psr12', 'value' => 'byKind'],
+			['source' => 'the configuration', 'value' => 'alphabetical'],
+		],
+		$data['rules']['dresscode/ordered-imports']['origins']['order'],
+	);
+});
+
+
 test('exit codes: violations, warnings, the warning threshold, a syntax error and a failing rule', function () use ($root) {
 	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
 	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");
@@ -384,4 +438,28 @@ test('a violation the rule has no fix for is no fix waiting, with the consent or
 			Assert::notContains('of them risky', $out);
 		}
 	}
+});
+
+
+test('config says of a rule with risky fixes whether the project accepts them, and a name that does nothing is a warning', function () use ($root) {
+	$config = "$root/risky-config.php";
+	file_put_contents($config, "<?php\nreturn new DressCode\\Config(rules: [ConsoleRiskyRename::class => true, 'strict-call' => true],"
+		. " overrides: [new DressCode\\Override(['src'], rules: ['static-closure' => true])], fixRisky: [ConsoleRiskyRename::class, 'static-closure', 'final-internal-class'], paths: ['src']);\n");
+
+	[$code, $out] = runApp($root, ['config', '--config', $config]);
+	Assert::same(0, $code);
+	Assert::match('%A%  test/risky-rename %a%the configuration, risky fixes accepted%A%', $out);
+	Assert::match('%A%  dresscode/strict-call %a%the configuration, risky fixes only reported%A%', $out);
+	Assert::match('%A%Not running%A%  dresscode/static-closure %s%only an override turns it on, risky fixes accepted%A%', $out);
+	Assert::match('%A%Not running%A%  dresscode/final-internal-class %s%no preset or rule of the configuration mentions it, risky fixes accepted%A%', $out);
+
+	[, $out] = runApp($root, ['config', '--config', $config, '--json']);
+	$rules = json_decode($out, associative: true)['rules'];
+	Assert::true($rules['test/risky-rename']['fixRisky']);
+	Assert::false($rules['dresscode/strict-call']['fixRisky']);
+
+	// a rule an override turns on runs somewhere, one that nothing turns on makes the entry a line that does nothing
+	[, , $err] = runApp($root, ['check', '--config', $config]);
+	Assert::contains('Rule dresscode/final-internal-class is named in fixRisky but runs nowhere; the entry does nothing.', $err);
+	Assert::notContains('static-closure', $err);
 });
