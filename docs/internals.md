@@ -195,7 +195,7 @@ The run keeps of the result of a file what it needs without the code and the out
 
 ### The file
 
-A configuration is written as `dresscode.neon` or `dresscode.php`, and the two are the same thing said twice: every key of the NEON is a named argument of the constructor of `Config`, so `NeonReader` is a schema that accepts no key it does not know, the evaluation of entities and a spread into the constructor.
+A configuration is written as `dresscode.neon` or `dresscode.php`, and the two are the same thing said twice: every key of the NEON is a named argument of the constructor of `Config`, so `NeonReader` is a schema that accepts no key it does not know, the evaluation of entities and a spread into the constructor, and a test asserts that the two files of the fixture build an equal `Config`.
 
 The shape is shared: `Profile` holds what decides how a file is processed (`presets`, `rules`, `indent`, `lineEnding`, `lineLength`, `targets`, `namespaces`, `nameResolution`, `fixRisky`, `warnOnly`), a preset is a profile under a name, an `Override` is a profile with the `paths` it applies to, and `Config` is the profile of the whole project with the scope of a run (`paths`, `excludePaths`, `fileExtensions`, `skipWhen`), its `overrides` and what it brings in (`plugins`, `analyses`). They are readonly values checked when they are constructed: a value one of them refuses is an `InvalidArgumentException`, which `NeonReader` and `Loader` turn into a `ConfigurationException` naming the file and the resolver into one naming the preset.
 

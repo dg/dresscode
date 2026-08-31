@@ -1,0 +1,40 @@
+plugins:
+	- Acme\DressCode\Plugin
+
+presets:
+	- dresscode/psr12
+	- acme/default
+
+groups:
+	- cleanup
+	- types
+
+rules:
+	dresscode/lineLength: {ignoreImports: false}
+	dresscode/strictComparison: true
+	dresscode/yoda: keep
+	Acme\DressCode\Rules\NoVarDumpRule: true
+
+indent: tab
+lineEnding: LF
+lineLength: 160
+targets:
+	php: '8.3'
+namespaces:
+	functions: [App\helper, 'App\Utils\{format, parse}']
+	constants: [App\LIMIT]
+nameResolution: certain
+fixRisky: [dresscode/strictCall]
+warnOnly: [dresscode/lineLength]
+
+overrides:
+	- paths: [tests]
+	  presets: [dresscode/nette]
+	  rules: {dresscode/lineLength: keep}
+	  nameResolution: uncertain
+
+paths: [src, tests]
+excludePaths: [build, docs/generated]
+fileExtensions: [php, phpt]
+analyses:
+	- Acme\DressCode\Analyses\FunctionCalls

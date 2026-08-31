@@ -162,6 +162,15 @@ test('a map of functions given as a list says to write the name with null', func
 });
 
 
+test('a NEON file and a PHP file say the same thing, and the local file wins over the template', function () use ($fixtures) {
+	Assert::same("$fixtures/formats/dresscode.neon", Loader::find("$fixtures/formats"));
+	Assert::equal(
+		Loader::loadFile("$fixtures/formats/dresscode.php.dist"),
+		Loader::loadFile("$fixtures/formats/dresscode.neon"),
+	);
+});
+
+
 test('the two formats side by side are an ambiguity, not a preference', function () {
 	$dir = createTempDir('formats');
 	file_put_contents("$dir/dresscode.neon", '');
