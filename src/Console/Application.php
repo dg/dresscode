@@ -97,6 +97,7 @@ final class Application
 			return match ($command->name) {
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
+				'config' => $this->runConfig($args),
 				'explain' => $this->runExplain($args),
 				'rules' => $this->runRules($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
@@ -150,6 +151,7 @@ final class Application
 
 		$check = $program->addCommand('check', 'report violations');
 		$fix = $program->addCommand('fix', 'fix what the rules can and report the rest');
+		$config = $program->addCommand('config', 'print the configuration as the run resolves it');
 		$explain = $program->addCommand('explain', 'explain what a rule is for and its options here; every rule that runs when none is named');
 		$rules = $program->addCommand('rules', 'list the known rules');
 		$program->addText('Exit codes: `0` clean, `1` violations or syntax errors, `2` a file failed, `3` a mistake of the command line or of the configuration.');
@@ -183,7 +185,7 @@ final class Application
 			$command->addFlag('--strict-rules', 'a rule breaking its contract is an error, not a warning');
 		}
 
-		foreach ([$check, $fix, $explain, $rules] as $command) {
+		foreach ([$check, $fix, $config, $explain, $rules] as $command) {
 			$command->addOption(
 				'--only',
 				'run only these of the rules the configuration comes to, a preset standing for all of its rules',
@@ -192,6 +194,8 @@ final class Application
 			);
 		}
 
+		$config->addOption('--file', 'what the configuration comes to for that one file', valueName: 'path');
+		$config->addOption('--format', '`console` to read, `json` as data', alias: '-f', enum: ['console', 'json']);
 		$explain->addOption('--format', '`console` to read, `markdown` as a document', alias: '-f', enum: ['console', 'markdown']);
 		return $program;
 	}
@@ -371,6 +375,35 @@ final class Application
 		}
 
 		return implode('/', $common ?? []);
+	}
+
+
+	/**
+	 * Prints the configuration as the run resolves it: which rule runs with which options, which layer gave
+	 * every value and what it overrode, and why a rule does not run.
+	 */
+	private function runConfig(ParseResult $args): int
+	{
+		$factory = new RunnerFactory;
+		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
+		$runner = $factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
+		$file = $args['--file'];
+		$resolved = is_string($file)
+			? $factory->resolveConfigFor($runner->findOverridesFor($file))
+			: $factory->getResolvedConfig();
+		$printer = new ConfigPrinter($resolved);
+		if ($args['--format'] === 'json') {
+			$this->out->write($printer->printJson());
+			return 0;
+		}
+
+		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
+		if (is_string($file)) {
+			$this->out->writeLine($this->out->color('gray', 'File       ') . FileSystem::platformSlashes($file));
+		}
+
+		$this->out->write($printer->print($this->out));
+		return 0;
 	}
 
 
