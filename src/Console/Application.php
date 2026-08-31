@@ -97,6 +97,7 @@ final class Application
 			return match ($command->name) {
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
+				'explain' => $this->runExplain($args),
 				'rules' => $this->runRules($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
@@ -149,12 +150,15 @@ final class Application
 
 		$check = $program->addCommand('check', 'report violations');
 		$fix = $program->addCommand('fix', 'fix what the rules can and report the rest');
+		$explain = $program->addCommand('explain', 'explain what a rule is for and its options here; every rule that runs when none is named');
 		$rules = $program->addCommand('rules', 'list the known rules');
 		$program->addText('Exit codes: `0` clean, `1` violations or syntax errors, `2` a file failed, `3` a mistake of the command line or of the configuration.');
 
 		foreach ([$check, $fix] as $command) {
 			$command->addArgument('paths', 'files or directories; the configured paths when omitted', optional: true, repeatable: true);
 		}
+
+		$explain->addArgument('rule', 'name of the rule; every rule that runs when omitted', optional: true);
 
 		foreach ([$check, $fix] as $command) {
 			$command->addOption(
@@ -179,7 +183,7 @@ final class Application
 			$command->addFlag('--strict-rules', 'a rule breaking its contract is an error, not a warning');
 		}
 
-		foreach ([$check, $fix, $rules] as $command) {
+		foreach ([$check, $fix, $explain, $rules] as $command) {
 			$command->addOption(
 				'--only',
 				'run only these of the rules the configuration comes to, a preset standing for all of its rules',
@@ -188,6 +192,7 @@ final class Application
 			);
 		}
 
+		$explain->addOption('--format', '`console` to read, `markdown` as a document', alias: '-f', enum: ['console', 'markdown']);
 		return $program;
 	}
 
@@ -366,6 +371,43 @@ final class Application
 		}
 
 		return implode('/', $common ?? []);
+	}
+
+
+	/**
+	 * Explains a rule in detail, or the configuration as a whole when none is named, which is every rule that runs
+	 * with the options it has under this configuration; the Markdown document is drawn, or with `--format markdown`
+	 * written as it is.
+	 * @throws UsageException
+	 */
+	private function runExplain(ParseResult $args): int
+	{
+		$name = $args['rule'];
+		$factory = new RunnerFactory;
+		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
+		$factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
+		$resolved = $factory->getResolvedConfig();
+		$printer = new ExplainPrinter($factory->registry);
+		if (is_string($name)) {
+			$rule = $resolved->getRule(RuleInfo::of($factory->registry->resolveRule($name))->name);
+			if ($rule === null) {
+				throw new UsageException("Rule `$name` is not part of this configuration.");
+			}
+
+			$markdown = $printer->printRule($rule);
+
+		} else {
+			$markdown = $printer->printConfig($resolved);
+		}
+
+		if ($args['--format'] === 'markdown') {
+			$this->out->write($markdown);
+			return 0;
+		}
+
+		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
+		$this->out->write("\n" . Markup::renderMarkdown($this->out, $markdown));
+		return 0;
 	}
 
 

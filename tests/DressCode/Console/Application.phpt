@@ -243,6 +243,9 @@ test('errors go to stderr with exit code 3', function () use ($root) {
 	[$code, , $err] = runApp($root, ['check', '--format', 'xml']);
 	Assert::same(3, $code);
 	Assert::match("Error: Option --format: expects console, bare, github, json or checkstyle, 'xml' given.%A%", $err);
+	[$code, , $err] = runApp($root, ['explain', '--format', 'json']);
+	Assert::same(3, $code);
+	Assert::match("Error: Option --format: expects console or markdown, 'json' given.%A%", $err);
 	[$code, , $err] = runApp($root, ['check', '--rule', 'test/rename={']);
 	Assert::same(3, $code);
 	Assert::match('Error: Option `--rule` has an invalid value in `test/rename={`:%A%', $err);

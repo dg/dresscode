@@ -8,6 +8,7 @@
 namespace DressCode\Console;
 
 use DressCode\Config\RuleRegistry;
+use DressCode\Violation;
 use Nette\CommandLine\{Console, HelpRenderer};
 
 
@@ -36,6 +37,51 @@ final class Markup
 		$out = '';
 		foreach (HelpRenderer::splitCodeSpans($text) as [$piece, $code]) {
 			$out .= $console->color($code ? self::CodeColor : $color, $piece);
+		}
+
+		return $out;
+	}
+
+
+	/**
+	 * Draws the Markdown the explanations are written in: a heading in white without its marks, a bullet without its
+	 * dash and the paragraph nested under it in gray, below it, the code, an emphasis in gray and a link as a link of
+	 * the terminal; without colors the code keeps its backticks and a link shows its address.
+	 */
+	public static function renderMarkdown(Console $console, string $markdown): string
+	{
+		$out = '';
+		foreach (explode("\n", $markdown) as $line) {
+			$out .= match (true) {
+				(bool) preg_match('~^#+ (.*)$~', $line, $m) => self::renderInline($console, $m[1], 'white'),
+				str_starts_with($line, '- ') => '  ' . self::renderInline($console, substr($line, 2)),
+				str_starts_with($line, '  ') && trim($line) !== '' => '      ' . self::renderInline($console, trim($line), 'gray'),
+				default => self::renderInline($console, $line),
+			} . "\n";
+		}
+
+		return rtrim($out, "\n") . "\n";
+	}
+
+
+	/** One line of Markdown: its code spans, emphasis, links and escaped characters. */
+	private static function renderInline(Console $console, string $text, ?string $color = null): string
+	{
+		$out = '';
+		foreach (HelpRenderer::splitCodeSpans($text) as [$piece, $code]) {
+			$out .= $code
+				? ($console->hasColors() ? $console->color(self::CodeColor, $piece) : Violation::formatCode($piece))
+				: (string) preg_replace_callback(
+					'~\[([^\]]+)\]\(([^)\s]+)\)|<(https?://[^>\s]+)>|(?<![\w\\\\])_([^_]+)_(?!\w)|\\\\([#-])|([^[<_\\\\]+|.)~s',
+					fn(array $m) => match (true) {
+						$m[1] !== null && $m[2] !== null => $console->link($m[2], $m[1]),
+						$m[3] !== null => $console->link($m[3]),
+						$m[4] !== null => $console->color('gray', $m[4]),
+						default => $console->color($color, (string) ($m[5] ?? $m[6])),
+					},
+					$piece,
+					flags: PREG_UNMATCHED_AS_NULL,
+				);
 		}
 
 		return $out;
