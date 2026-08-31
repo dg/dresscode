@@ -469,6 +469,47 @@ test('an override turns a rule off by its decision, an unknown one is an error b
 });
 
 
+test('an override brings its presets, its style, its name resolution and its warnings to its files', function () use ($fixtures) {
+	$factory = new RunnerFactory;
+	$resolution = $factory->resolve(
+		new Config(
+			use: [DoubleQuotesPlugin::class],
+			rules: [ReportContext::class],
+			nameResolution: 'certain',
+			overrides: [new Override(
+				['sub'],
+				new Profile(
+					use: ['test/double'],
+					nameResolution: 'uncertain',
+					warnOnly: [ReportContext::class],
+					decisions: ['indentation' => ['unit' => '2 spaces']],
+				),
+			)],
+			decisions: ReportsContext,
+		),
+		"$fixtures/project",
+	);
+	$runner = $factory->createRunner($resolution);
+	$describe = fn(string $path) => array_map(
+		fn($violation) => "$violation->decision {$violation->severity->name} $violation->message",
+		$runner->processCode($path, "<?php\n\$a = 'text';\n")->violations,
+	);
+	Assert::same(['project.context Error 8.1 "\t""\n"'], $describe('src/x.php'));
+	$sub = $describe('src/sub/x.php');
+	Assert::count(2, $sub);
+	Assert::same('project.context Warning 8.1 "  ""\n"', $sub[0]);
+	Assert::match('literals.quotes Error %a%', $sub[1]);
+
+	$guard = DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class;
+	$sub = $resolution->resolveFor($runner->findOverridesFor('src/sub/x.php'));
+	Assert::same(
+		['certain', true],
+		[$resolution->resolvedConfig->nameResolution, $resolution->resolvedConfig->findRule($guard)?->isActive()],
+	);
+	Assert::same(['uncertain', false], [$sub->nameResolution, $sub->findRule($guard)?->isActive()]);
+});
+
+
 test('a runner keeps the configuration it was built from, whatever the factory builds after it', function () use ($fixtures) {
 	$factory = new RunnerFactory;
 	$runner = $factory->createRunner(

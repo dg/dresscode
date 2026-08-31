@@ -197,6 +197,16 @@ final readonly class Runner
 
 
 	/**
+	 * Indexes of the overrides that apply to the file.
+	 * @return list<int>
+	 */
+	public function findOverridesFor(string $path): array
+	{
+		return $this->processors->findOverrides($this->relativize($path));
+	}
+
+
+	/**
 	 * Files under the paths with one of the extensions, minus the excluded ones; an explicitly given file
 	 * is taken as is, unless `$skipExcluded` lets the excluded paths leave it out like a found one, which
 	 * is what a hook or an editor naming every file it touches wants; a file outside the root has no path
