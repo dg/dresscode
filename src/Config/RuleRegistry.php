@@ -5,6 +5,7 @@ namespace DressCode\Config;
 use DressCode\ConfigurationException;
 use DressCode\Preset;
 use DressCode\PresetInfo;
+use DressCode\Presets;
 use DressCode\Rule;
 use DressCode\RuleInfo;
 use DressCode\Rules;
@@ -192,6 +193,8 @@ final class RuleRegistry
 
 	public function __construct()
 	{
+		$this->registerPreset(Presets\Per::class);
+		$this->registerPreset(Presets\Psr12::class);
 		foreach (self::BuiltinRules as $class) {
 			$this->registerRule($class);
 		}

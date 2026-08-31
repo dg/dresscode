@@ -6,6 +6,7 @@ use DressCode\Config\PresetResolver;
 use DressCode\ConfigurationException;
 use DressCode\Extension;
 use DressCode\NodeRule;
+use DressCode\Presets\Per;
 use DressCode\RuleInfo;
 use DressCode\Stage;
 use Tester\Assert;
@@ -113,6 +114,18 @@ test('load: an explicit file is taken wherever the run started', function () use
 });
 
 
+test('load: without a file the default applies and the directory is the root', function () {
+	$dir = sys_get_temp_dir();
+	[$config, $root, $file] = (new Loader)->load(null, $dir);
+	Assert::same([Per::class], $config->presets);
+	Assert::same(rtrim(str_replace('\\', '/', $dir), '/'), $root);
+	Assert::null($file);
+
+	$default = new Config(presets: ['from/default']);
+	Assert::same($default, (new Loader)->load(null, $dir, $default)[0]);
+});
+
+
 test('errors', function () use ($fixtures) {
 	Assert::exception(fn() => Loader::loadFile("$fixtures/none.php"), ConfigurationException::class, 'Configuration file %a%none.php does not exist.');
 	Assert::exception(fn() => Loader::loadFile("$fixtures/bad.php"), ConfigurationException::class, 'Configuration file %a%bad.php must return DressCode\Config.');
@@ -201,6 +214,17 @@ test('the version of PHP is taken with quotes or without them', function () {
 		"Configuration file %a%: Invalid PHP version '8'.",
 	);
 	Assert::same('8.2', $php("php: 8.25\n")); // no such version, and the minor is one digit
+});
+
+
+test('extensions name rules, presets and extensions, and what the namespaces declare is a map', function () {
+	$config = Loader::loadFile(FileMock::create(<<<'XX'
+		extensions: [LoaderRule, DressCode\Presets\Per]
+		namespaces:
+			functions: [App\helper]
+		XX, 'neon'));
+	Assert::same([LoaderRule::class, Per::class], $config->extensions);
+	Assert::same(['functions' => ['App\helper'], 'constants' => []], $config->namespaces);
 });
 
 
