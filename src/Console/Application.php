@@ -8,11 +8,11 @@
 namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, Plugin, Profile, Reporter, Reporters, RuleException};
-use DressCode\Config\{Loader, PhpVersionSource, PluginRegistry, ResolvedProject, RunnerFactory};
+use DressCode\Config\{Catalogue, ConfigResolver, CorePlugin, Loader, PhpVersionSource, PluginRegistry, ResolvedProject, RunnerFactory};
 use DressCode\Engine\{FileSummary, Helpers, RunInfo, Runner, RunResult};
-use Nette\CommandLine\{ColorDepth, Command, Console, HelpRenderer, Normalizers, ParseException as CommandLineException, Parser, ParseResult};
+use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, Normalizers, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Neon\{Exception as NeonException, Neon};
-use Nette\Utils\FileSystem;
+use Nette\Utils\{FileSystem, Json};
 use function count, extension_loaded, in_array, is_string, sprintf;
 
 
@@ -97,6 +97,7 @@ final class Application
 			return match ($command->name) {
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
+				'catalogue' => $this->runCatalogue($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
 
@@ -161,6 +162,7 @@ final class Application
 
 		$check = $program->addCommand('check', 'Report the violations');
 		$fix = $program->addCommand('fix', 'Fix what the rules can and report the rest');
+		$catalogue = $program->addCommand('catalogue', 'List every decision the rules of the run declare, those this configuration makes marked');
 		$program->addText('Exit codes: `0` clean, `1` violations or syntax errors, `2` a file failed, `3` a mistake of the command line or of the configuration.');
 
 		foreach ([$check, $fix] as $command) {
@@ -186,6 +188,9 @@ final class Application
 			);
 			$command->addFlag('--fix-risky', 'Also make the fixes that may change what the code does, beyond those `fixRisky` allows; they are reported either way');
 			$command->addFlag('--strict-rules', 'Treat a rule breaking its contract as an error, not a warning');
+		}
+
+		foreach ([$check, $fix, $catalogue] as $command) {
 			$command->addOption(
 				'--only',
 				'Only these: a decision, a section, a rule or a preset, narrowed to what the configuration runs; the values stay as the configuration resolves them',
@@ -194,6 +199,7 @@ final class Application
 			);
 		}
 
+		$catalogue->addOption('--format', 'Output format: `console` to read, `json` as data', alias: '-f', enum: ['console', 'json']);
 		return $program;
 	}
 
@@ -383,6 +389,66 @@ final class Application
 		}
 
 		return implode('/', $common ?? []);
+	}
+
+
+	/**
+	 * Lists every decision of the catalogue with its description, those the configuration makes marked; or writes the
+	 * catalogue as data, the values of the standards included.
+	 */
+	private function runCatalogue(ParseResult $args): int
+	{
+		$factory = new RunnerFactory;
+		['config' => $config, 'root' => $root, 'commandLine' => $commandLine] = $this->loadConfig($args);
+		$resolution = $factory->resolve($config, $root, $commandLine, self::parseOnly($args));
+		$catalogue = $resolution->getCatalogue();
+		if ($args['--format'] === 'json') {
+			$data = $catalogue->toArray();
+			foreach (self::resolveStandards($factory->registry, $resolution->resolvedConfig->phpVersion) as $standard => $decisions) {
+				foreach ($decisions as $path => $decision) {
+					if (isset($data['decisions'][$path])) {
+						$data['decisions'][$path]['standards'][$standard] = $decision->value->toData();
+					}
+				}
+			}
+
+			$this->out->write(Json::encode($data, pretty: true) . "\n");
+			return 0;
+		}
+
+		$made = $resolution->resolvedConfig->decisions;
+		// the sections of the core in their order, those of the plugins and of the project after them
+		$decisions = $catalogue->getDecisions();
+		$order = array_flip(Catalogue::CoreSections);
+		uksort($decisions, fn(string $a, string $b) => ($order[explode('.', $a)[0]] ?? PHP_INT_MAX) <=> ($order[explode('.', $b)[0]] ?? PHP_INT_MAX));
+		foreach ($decisions as $path => $decision) {
+			$set = isset($made[$path]) && !$made[$path]->value->isKept();
+			$this->out->writeLine(
+				($set ? '*' : ' ')
+				. ' ' . Ansi::pad($this->out->color($set ? 'white' : null, $path), 50)
+				. ' ' . Markup::highlightCode($this->out, $decision->description),
+			);
+		}
+
+		$this->out->writeLine("\n* made by the configuration");
+		return 0;
+	}
+
+
+	/**
+	 * The decisions each of the three standards makes, resolved alone.
+	 * @return array<string, array<string, Config\ResolvedDecision>>  standard => path => its decision
+	 */
+	private static function resolveStandards(PluginRegistry $registry, string $phpVersion): array
+	{
+		$standards = [];
+		foreach (CorePlugin::Standards as $standard) {
+			$standards[$standard] = new ConfigResolver($registry)
+				->resolve(new Config(use: ["dresscode/$standard"]), $phpVersion)
+				->decisions;
+		}
+
+		return $standards;
 	}
 
 

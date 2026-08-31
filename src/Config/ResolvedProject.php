@@ -45,6 +45,13 @@ final readonly class ResolvedProject
 	}
 
 
+	/** Every decision the rules of the run declare, those of the plugins and of the project among them. */
+	public function getCatalogue(): Catalogue
+	{
+		return $this->resolver->getCatalogue();
+	}
+
+
 	/**
 	 * What the configuration comes to for a file matching those overrides; the same resolution the run uses.
 	 * @param  list<int>  $overrides

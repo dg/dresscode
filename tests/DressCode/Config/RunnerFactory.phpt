@@ -185,6 +185,43 @@ final class TopPlugin implements Plugin
 }
 
 
+#[RuleInfo(Stage::Structure, decisions: ['shared.variables'])]
+final class SharingRule extends NodeRule
+{
+	public function getVisitedNodes(): array
+	{
+		return [];
+	}
+}
+
+
+final class SharedPlugin implements Plugin
+{
+	public function getManifest(): PluginManifest
+	{
+		return new PluginManifest(section: 'shared', decisions: [new Decision('shared.variables', Domain::state('forbidden'), 'A variable is reported')]);
+	}
+}
+
+
+final class SharingPlugin implements Plugin
+{
+	public function getManifest(): PluginManifest
+	{
+		return new PluginManifest(rules: [SharingRule::class], section: 'sharing', plugins: [SharedPlugin::class]);
+	}
+}
+
+
+final class StrangerPlugin implements Plugin
+{
+	public function getManifest(): PluginManifest
+	{
+		return new PluginManifest(rules: [SharingRule::class], section: 'stranger');
+	}
+}
+
+
 final class CyclePlugin implements Plugin
 {
 	public function getManifest(): PluginManifest
@@ -209,6 +246,17 @@ test('a plugin is loaded once by its class, given by its name or as an object, t
 	$factory->resolve(new Config(use: [new BasePlugin, TopPlugin::class, new BasePlugin]), "$fixtures/project");
 	Assert::same(1, BasePlugin::$manifests);
 	Assert::same([BaseRule::class, TopRule::class], array_slice($factory->registry->rules, -2));
+});
+
+
+test('a rule of a plugin names a tree of a plugin it builds on, never one of a plugin it does not', function () use ($fixtures) {
+	$resolution = new RunnerFactory()->resolve(new Config(use: [SharingPlugin::class]), "$fixtures/project");
+	Assert::same([SharingRule::class], $resolution->getCatalogue()->getRulesOf('shared.variables'));
+	Assert::exception(
+		fn() => new RunnerFactory()->resolve(new Config(use: [SharedPlugin::class, StrangerPlugin::class]), "$fixtures/project"),
+		ConfigurationException::class,
+		'Rule `SharingRule` names `shared.variables` of the plugin of section `shared`, which the plugin of section `stranger` does not build on; add that plugin to the `plugins` of its manifest.',
+	);
 });
 
 

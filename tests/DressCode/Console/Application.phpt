@@ -250,6 +250,20 @@ test('stdin: check reports, fix writes the result to stdout', function () use ($
 });
 
 
+test('catalogue lists every decision, those the configuration makes marked, and writes it as data', function () use ($root) {
+	[$code, $out] = runApp($root, ['catalogue']);
+	Assert::same(0, $code);
+	Assert::match("%A?%  file.finalLineEndings %s%%a%\n%A%* project.rename %s%%a%\n%A%\n* made by the configuration\n", $out);
+	Assert::true(strpos($out, 'file.finalLineEndings') < strpos($out, 'spacing.call'), 'the sections stand in the order of the core');
+
+	[$code, $out] = runApp($root, ['catalogue', '--format', 'json']);
+	Assert::same(0, $code);
+	$data = json_decode($out, associative: true);
+	Assert::same(DressCode\Config\Catalogue::Version, $data['version']);
+	Assert::same('compact', $data['decisions']['spacing.call']['standards']['nette']);
+});
+
+
 test('errors go to stderr with exit code 3', function () use ($root) {
 	[$code, $out, $err] = runApp($root, ['check', '--nope']);
 	Assert::same(3, $code);
