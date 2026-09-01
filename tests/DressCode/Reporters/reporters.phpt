@@ -319,7 +319,8 @@ test('json', function () {
 		        "riskyDeferred": 0,
 		        "changedFiles": 1,
 		        "syntaxErrors": 1,
-		        "failures": 1
+		        "failures": 1,
+		        "baselined": 0
 		    },
 		    "warnings": []
 		}

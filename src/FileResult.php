@@ -39,6 +39,8 @@ final class FileResult
 		public readonly ?string $failure = null,
 		/** the page of the manual that says more about the failure, as `page#anchor` */
 		public readonly ?string $failureDocs = null,
+		/** @var list<string> fingerprints of the violations the baseline silenced, for the run to count */
+		public readonly array $baselined = [],
 		/** @var list<Violation>  what the output still violates, positioned in the output: what a check of it reports */
 		public readonly array $remaining = [],
 	) {
@@ -68,6 +70,7 @@ final class FileResult
 			$this->passes,
 			$this->failure,
 			$this->failureDocs,
+			$this->baselined,
 			$this->remaining,
 		);
 		$result->changed = $this->isChanged();
