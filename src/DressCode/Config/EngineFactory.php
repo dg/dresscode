@@ -21,9 +21,37 @@ use PhpSyntax\Style;
  */
 final class EngineFactory
 {
+	/** @var list<string> */
+	private array $warnings = [];
+
+	/** @var ?array{PhpVersion, PhpVersionSource} */
+	private ?array $phpVersion = null;
+
+
 	public function __construct(
 		private readonly RuleRegistry $registry = new RuleRegistry,
 	) {
+	}
+
+
+	/**
+	 * What the last built engine has to say about the configuration it was built from.
+	 * @return list<string>
+	 */
+	public function getWarnings(): array
+	{
+		return $this->warnings;
+	}
+
+
+	/**
+	 * The version the last built engine targets and where it came from; the caller must not resolve it
+	 * again, or the header could name something else than the rules were chosen for.
+	 * @return array{PhpVersion, PhpVersionSource}
+	 */
+	public function getPhpVersion(): array
+	{
+		return $this->phpVersion ?? throw new \LogicException('No engine has been built yet.');
 	}
 
 
@@ -34,10 +62,11 @@ final class EngineFactory
 	 */
 	public function createEngine(Config $config, string $root, bool $strict = false, bool $cache = true): Engine
 	{
-		$phpVersion = $this->resolvePhpVersion($config, $root);
+		[$phpVersion] = $this->phpVersion = $this->resolvePhpVersion($config, $root);
 		$resolver = new PresetResolver($this->registry);
 		$context = new PresetContext($phpVersion);
 		$rules = $resolver->resolve($config, $context);
+		$this->warnings = $resolver->getWarnings();
 		$analyses = new AnalysisRegistry;
 		foreach ($config->getAnalyses() as $class => $factory) {
 			$analyses->register($class, $factory);
@@ -54,9 +83,9 @@ final class EngineFactory
 			$rules,
 			$analyses,
 			$this->registry->resolveNames(...),
+			$phpVersion,
 			new Style($indent, $eol === 'auto' ? "\n" : $eol),
 			detectEol: $eol === 'auto',
-			phpVersion: $phpVersion,
 			strict: $strict,
 		);
 		return new Engine(
@@ -123,24 +152,53 @@ final class EngineFactory
 
 
 	/**
-	 * The configured version, or the lowest one composer.json of the root allows, or the running one.
+	 * The configured version, or the lowest one the nearest composer.json allows, or the default one. The
+	 * running version is never the answer: it says nothing about the code being checked.
+	 * @return array{PhpVersion, PhpVersionSource}
 	 */
-	public function resolvePhpVersion(Config $config, string $root): PhpVersion
+	public function resolvePhpVersion(Config $config, string $root): array
 	{
 		$version = $config->getPhpVersion();
-		return $version instanceof PhpVersion
-			? $version
-			: (self::detectPhpVersion("$root/composer.json") ?? PhpVersion::current());
+		if ($version instanceof PhpVersion) {
+			return [$version, PhpVersionSource::Configuration];
+		}
+
+		$detected = self::detectPhpVersion(self::findComposerFile($root));
+		return $detected === null
+			? [PhpVersion::lowest(), PhpVersionSource::Default]
+			: [$detected, PhpVersionSource::Composer];
 	}
 
 
-	public static function detectPhpVersion(string $composerFile): ?PhpVersion
+	/**
+	 * The composer.json of the root or of a directory above it, the way the configuration file is looked up.
+	 */
+	public static function findComposerFile(string $root): ?string
 	{
-		$json = @file_get_contents($composerFile); // @ - the file is optional
+		$directory = rtrim(str_replace('\\', '/', $root), '/');
+		while (true) {
+			if (is_file("$directory/composer.json")) {
+				return "$directory/composer.json";
+			}
+
+			$parent = dirname($directory);
+			if ($parent === $directory) {
+				return null;
+			}
+
+			$directory = $parent;
+		}
+	}
+
+
+	/** The lowest version the constraint of require.php allows; a constraint naming no number has none. */
+	public static function detectPhpVersion(?string $composerFile): ?PhpVersion
+	{
+		$json = $composerFile === null ? false : @file_get_contents($composerFile); // @ - the file is optional
 		$data = $json === false ? null : json_decode($json, associative: true);
 		$constraint = is_array($data) ? ($data['require']['php'] ?? null) : null;
-		return is_string($constraint) && preg_match('~\d+\.\d+~', $constraint, $m)
-			? PhpVersion::fromString($m[0])
+		return is_string($constraint) && preg_match('~(\d+)(?:\.(\d+))?~', $constraint, $m)
+			? new PhpVersion((int) $m[1], (int) ($m[2] ?? 0))
 			: null;
 	}
 

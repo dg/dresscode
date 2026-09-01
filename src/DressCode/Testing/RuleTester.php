@@ -33,7 +33,8 @@ final class RuleTester
 	/**
 	 * Runs every *.code fixture in the directory: the output must equal <name>.expected (the input when
 	 * there is none), the violations <name>.violations when present. A fixture may set the options
-	 * of the rule in a comment on its first or second line: `// {"option": value}`. Returns the count.
+	 * of the rule and the version of PHP it is written for in a comment on one of its first three lines:
+	 * `// {"option": value}` and `// php 8.4`. Returns the count.
 	 * @param class-string<Rule>|\Closure(array<string, mixed>): Rule $rule
 	 * @throws TestFailure
 	 */
@@ -67,7 +68,7 @@ final class RuleTester
 		$options = self::readOptions($code, $file);
 		$instance = $rule instanceof \Closure ? $rule($options) : PresetResolver::createRule($rule, $options ?: true);
 		try {
-			self::check($instance, $code, $expected, $violations, $phpVersion, basename($file));
+			self::check($instance, $code, $expected, $violations, $phpVersion ?? self::readPhpVersion($code, $file), basename($file));
 		} catch (TestFailure $e) {
 			throw new TestFailure("$file: {$e->getMessage()}", previous: $e);
 		}
@@ -86,7 +87,7 @@ final class RuleTester
 		$code = self::read($file);
 		$options = self::readOptions($code, $file);
 		$instance = $rule instanceof \Closure ? $rule($options) : PresetResolver::createRule($rule, $options ?: true);
-		[, $result] = self::process($instance, $code, $phpVersion ?? PhpVersion::current(), basename($file));
+		[, $result] = self::process($instance, $code, $phpVersion ?? self::readPhpVersion($code, $file) ?? self::defaultPhpVersion($instance), basename($file));
 		return array_map(fn(Violation $v) => "$v->line: $v->message", $result->violations);
 	}
 
@@ -106,7 +107,7 @@ final class RuleTester
 	): void
 	{
 		$expected ??= $code;
-		$phpVersion ??= PhpVersion::current();
+		$phpVersion ??= self::defaultPhpVersion($rule);
 		[$file, $result] = self::process($rule, $code, $phpVersion, $name);
 		self::checkParents($file);
 		$output = Printer::print($file);
@@ -218,7 +219,7 @@ final class RuleTester
 	 */
 	private static function readOptions(string $code, string $file): array
 	{
-		foreach (array_slice(preg_split('~\r?\n~', $code, 3), 0, 2) as $line) {
+		foreach (self::readHeader($code) as $line) {
 			if (preg_match('~^//\s*(\{.*\})\s*$~', $line, $m)) {
 				try {
 					return json_decode($m[1], associative: true, flags: JSON_THROW_ON_ERROR);
@@ -229,6 +230,43 @@ final class RuleTester
 		}
 
 		return [];
+	}
+
+
+	/** The version the fixture is written for, when it says so; `// php 8.4`. */
+	private static function readPhpVersion(string $code, string $file): ?PhpVersion
+	{
+		foreach (self::readHeader($code) as $line) {
+			if (preg_match('~^//\s*php\s+(\S+)\s*$~i', $line, $m)) {
+				try {
+					return PhpVersion::fromString($m[1]);
+				} catch (\InvalidArgumentException $e) {
+					throw new TestFailure("$file: invalid version header: {$e->getMessage()}");
+				}
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * A fixture says nothing about the version when the rule works everywhere, and then it is tested at the
+	 * lowest version it can meet; a rule of a newer construct at the version that construct came with.
+	 */
+	private static function defaultPhpVersion(Rule $rule): PhpVersion
+	{
+		return PhpVersion::fromString(RuleInfo::of($rule)->minPhpVersion ?? PhpVersion::Lowest);
+	}
+
+
+	/**
+	 * The lines a fixture may put its headers on.
+	 * @return list<string>
+	 */
+	private static function readHeader(string $code): array
+	{
+		return array_slice(preg_split('~\r?\n~', $code, 4), 0, 3);
 	}
 
 

@@ -14,7 +14,8 @@ test('PhpVersion', function () {
 	Assert::same('8.2', (string) $version);
 	Assert::same('8.4', (string) PhpVersion::fromString('8.4.11'));
 	Assert::same('8.1', (string) PhpVersion::fromId(80105));
-	Assert::same(PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION, (string) PhpVersion::current());
+
+	Assert::same('8.0', (string) PhpVersion::lowest());
 
 	Assert::true($version->isAtLeast('8.2'));
 	Assert::true($version->isAtLeast('7.4'));

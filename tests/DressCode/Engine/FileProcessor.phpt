@@ -8,6 +8,7 @@ use DressCode\RuleInfo;
 use DressCode\Stage;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression\VariableNode;
+use PhpSyntax\PhpVersion;
 use PhpSyntax\Style;
 use PhpSyntax\Token;
 use Tester\Assert;
@@ -54,7 +55,7 @@ final class ReportEol extends Rule
 /** @param list<Rule> $rules */
 function processor(array $rules, bool $detectEol = true): FileProcessor
 {
-	return new FileProcessor($rules, new AnalysisRegistry, fn(string $name) => [$name], new Style, $detectEol);
+	return new FileProcessor($rules, new AnalysisRegistry, fn(string $name) => [$name], PhpVersion::lowest(), new Style, $detectEol);
 }
 
 

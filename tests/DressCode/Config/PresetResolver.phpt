@@ -81,6 +81,32 @@ final class RuleD extends Rule
 }
 
 
+#[RuleInfo('test/future', Stage::Formatting, minPhpVersion: '8.4')]
+final class RuleFuture extends Rule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+}
+
+
+#[PresetInfo('test/future-preset')]
+final class FuturePreset implements Preset
+{
+	public function getRules(PresetContext $context): array
+	{
+		return [RuleA::class => true, RuleFuture::class => true];
+	}
+
+
+	public function getParents(): array
+	{
+		return [];
+	}
+}
+
+
 #[PresetInfo('test/base')]
 final class BasePreset implements Preset
 {
@@ -189,6 +215,25 @@ test('a list option replaces its default instead of being merged with it', funct
 	$rules = resolve(Config::create()->enable(RuleC::class, ['names' => ['y']]));
 	assert($rules[0] instanceof RuleC);
 	Assert::equal(['max' => 3, 'names' => ['y']], $rules[0]->options);
+});
+
+
+test('a rule of a construct the target version has not got is left out', function () {
+	$resolver = new PresetResolver(new RuleRegistry);
+	$resolve = fn(Config $config, string $php) => names($resolver->resolve($config, new PresetContext(PhpVersion::fromString($php))));
+
+	Assert::same(['test/a', 'test/future'], $resolve(Config::create()->preset(FuturePreset::class), '8.4'));
+	Assert::same(['test/a'], $resolve(Config::create()->preset(FuturePreset::class), '8.3'));
+	Assert::same([], $resolver->getWarnings()); // coming from a preset it is business as usual
+
+	Assert::same([], $resolve(Config::create()->enable(RuleFuture::class), '8.3'));
+	Assert::same(['Rule test/future needs PHP 8.4, the target is 8.3; skipped.'], $resolver->getWarnings());
+
+	// what the result cache keys on is what really runs
+	Assert::same(
+		['test/a'],
+		array_keys($resolver->describe(Config::create()->preset(FuturePreset::class), new PresetContext(PhpVersion::fromString('8.3')))),
+	);
 });
 
 

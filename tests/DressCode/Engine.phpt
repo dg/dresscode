@@ -12,6 +12,7 @@ use DressCode\RuleInfo;
 use DressCode\Stage;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression\VariableNode;
+use PhpSyntax\PhpVersion;
 use PhpSyntax\Token;
 use Tester\Assert;
 use Tester\Helpers;
@@ -119,7 +120,7 @@ function engine(
 	bool $thrower = false,
 ): Engine
 {
-	$processor = new FileProcessor($thrower ? [new EngineRename, new EngineThrower] : [new EngineRename], new AnalysisRegistry, fn(string $name) => [$name]);
+	$processor = new FileProcessor($thrower ? [new EngineRename, new EngineThrower] : [new EngineRename], new AnalysisRegistry, fn(string $name) => [$name], PhpVersion::lowest());
 	return new Engine($processor, $root, $skip, $ruleSkip, $fileExtensions, $skipWhen);
 }
 
@@ -150,7 +151,8 @@ test('files are found under the paths, sorted, relative, with slashes, without t
 
 test('check reports and writes nothing', function () use ($root) {
 	$reporter = new RecordingReporter;
-	$result = engine($root, skipWhen: fn(string $content) => str_contains($content, '// skip me'))->run(['src'], fix: false, reporter: $reporter);
+	$engine = engine($root, skipWhen: fn(string $content) => str_contains($content, '// skip me'));
+	$result = $engine->run($engine->findFiles(['src']), fix: false, reporter: $reporter);
 	Assert::same([
 		'start 5 false',
 		'file src/a.php true false',
@@ -168,7 +170,8 @@ test('check reports and writes nothing', function () use ($root) {
 
 test('fix writes the changed files', function () use ($root) {
 	$reporter = new RecordingReporter;
-	$result = engine($root, ruleSkip: ['test/rename' => ['src/sub']])->run(['src/a.php', 'src/sub'], fix: true, reporter: $reporter);
+	$engine = engine($root, ruleSkip: ['test/rename' => ['src/sub']]);
+	$result = $engine->run($engine->findFiles(['src/a.php', 'src/sub']), fix: true, reporter: $reporter);
 	Assert::same(['start 2 true', 'file src/a.php true true', 'file src/sub/d.php false false', 'finish 1'], $reporter->events);
 	Assert::same("<?php\n\$b;\n", file_get_contents("$root/src/a.php"));
 	Assert::same("<?php\n\$a;\n", file_get_contents("$root/src/sub/d.php"));
@@ -208,7 +211,7 @@ test('clean contents are remembered and skipped next time, a fixed file too', fu
 	$file = "$root/cache.json";
 	@unlink($file); // @ - may not exist
 	$engine = fn() => new Engine(
-		new FileProcessor([new EngineRename], new AnalysisRegistry, fn(string $name) => [$name]),
+		new FileProcessor([new EngineRename], new AnalysisRegistry, fn(string $name) => [$name], PhpVersion::lowest()),
 		$root,
 		cache: DressCode\Engine\ResultCache::load($file, 'cfg'),
 	);

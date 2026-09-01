@@ -8,6 +8,10 @@ namespace PhpSyntax;
  */
 final readonly class PhpVersion implements \Stringable
 {
+	/** the lowest version that can be targeted, and the target when nothing says otherwise */
+	public const Lowest = '8.0';
+
+
 	public function __construct(
 		public int $major,
 		public int $minor,
@@ -26,16 +30,16 @@ final readonly class PhpVersion implements \Stringable
 	}
 
 
+	public static function lowest(): self
+	{
+		return self::fromString(self::Lowest);
+	}
+
+
 	/** @param int $id  as in PHP_VERSION_ID, 80200 */
 	public static function fromId(int $id): self
 	{
 		return new self(intdiv($id, 10000), intdiv($id % 10000, 100));
-	}
-
-
-	public static function current(): self
-	{
-		return new self(PHP_MAJOR_VERSION, PHP_MINOR_VERSION);
 	}
 
 

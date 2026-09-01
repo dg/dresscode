@@ -18,7 +18,7 @@ final class ConfigLoader
 	/**
 	 * @param  ?string  $file  the configuration file, or null to search from the directory upwards
 	 * @param  bool  $defaultPreset  use the default preset when there is no configuration file
-	 * @return array{Config, string}  the configuration and the root directory, with slashes
+	 * @return array{Config, string, ?string}  the configuration, the root directory with slashes, and the file it came from
 	 * @throws ConfigurationException
 	 */
 	public function load(?string $file, string $directory, bool $defaultPreset = true): array
@@ -37,7 +37,7 @@ final class ConfigLoader
 		}
 
 		$root = realpath($root) ?: $root;
-		return [$config, rtrim(str_replace('\\', '/', $root), '/')];
+		return [$config, rtrim(str_replace('\\', '/', $root), '/'), $file];
 	}
 
 

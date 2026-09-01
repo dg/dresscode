@@ -21,13 +21,14 @@ final class FileProcessor
 {
 	private const MaxRounds = 5;
 
-	private readonly PhpVersion $phpVersion;
 	private readonly Parser $parser;
 
 
 	/**
 	 * @param list<Rule> $rules  in configuration order
 	 * @param \Closure(string): list<string> $resolveNames  a name in a suppression comment → the rules it stands for
+	 * @param PhpVersion $phpVersion  the version the checked code is written for; it has no default, only
+	 *                                the configuration knows it
 	 * @param bool $detectEol  the line ending of the style follows the prevailing one of each file
 	 * @param bool $strict  a broken rule contract throws instead of warning
 	 */
@@ -35,13 +36,12 @@ final class FileProcessor
 		private readonly array $rules,
 		private readonly AnalysisRegistry $analyses,
 		private readonly \Closure $resolveNames,
+		private readonly PhpVersion $phpVersion,
 		private readonly Style $style = new Style,
 		private readonly bool $detectEol = true,
-		?PhpVersion $phpVersion = null,
 		private readonly int $maxPasses = 10,
 		private readonly bool $strict = false,
 	) {
-		$this->phpVersion = $phpVersion ?? PhpVersion::current();
 		$this->parser = new Parser;
 	}
 

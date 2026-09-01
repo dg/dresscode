@@ -13,6 +13,7 @@
 
 use DressCode\AnalysisRegistry;
 use DressCode\Config;
+use DressCode\Config\EngineFactory;
 use DressCode\Config\PresetResolver;
 use DressCode\Config\RuleRegistry;
 use DressCode\Engine\Diff;
@@ -117,18 +118,12 @@ echo "v3 exit: $v3Exit (output in v3-output.txt)\n";
 
 
 // DressCode over the new copy, in-process with the live sources
-$phpVersion = PhpVersion::current();
-if (
-	is_file("$repo/composer.json")
-	&& preg_match('~(\d+\.\d+)~', json_decode((string) file_get_contents("$repo/composer.json"), associative: true)['require']['php'] ?? '', $m)
-) {
-	$phpVersion = PhpVersion::fromString($m[1]);
-}
+$phpVersion = EngineFactory::detectPhpVersion("$repo/composer.json") ?? PhpVersion::lowest();
 
 echo "running dresscode fix (php version $phpVersion)...\n";
 $registry = new RuleRegistry;
 $rules = (new PresetResolver($registry))->resolve(Config::create()->preset('Nette\CodingStandard\Presets\Php'), new PresetContext($phpVersion));
-$processor = new FileProcessor($rules, new AnalysisRegistry, $registry->resolveNames(...));
+$processor = new FileProcessor($rules, new AnalysisRegistry, $registry->resolveNames(...), $phpVersion);
 
 $errors = [];
 foreach ($files as $relative) {

@@ -192,7 +192,7 @@ function run(string $code, array $rules, bool $strict = true): array
 {
 	$file = (new Parser)->parse($code);
 	$runner = new PassRunner($rules, new AnalysisRegistry, fn(string $name) => [$name], strict: $strict);
-	$result = $runner->run($file, $code, 'test.php', new Style, PhpVersion::current());
+	$result = $runner->run($file, $code, 'test.php', new Style, PhpVersion::lowest());
 	return [$file, $result];
 }
 
