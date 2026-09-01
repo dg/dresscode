@@ -7,11 +7,14 @@
 
 namespace DressCode\Config;
 
+use Composer\InstalledVersions;
 use Composer\Semver\VersionParser;
 use DressCode\{Analyses, Config, ConfigurationException, Extension, Helpers, Override, Preset, Profile, Rule, Runner, Style};
-use DressCode\Engine\{Baseline, FileProcessor};
+use DressCode\Engine\{Baseline, FileProcessor, ResultCache};
 use Nette\Utils\FileSystem;
+use PhpSyntax\Nodes\FileNode;
 use function array_slice, count, dirname, in_array, is_array, is_string, strlen;
+use const JSON_PARTIAL_OUTPUT_ON_ERROR, JSON_THROW_ON_ERROR;
 
 
 /**
@@ -70,12 +73,15 @@ final class RunnerFactory
 
 
 	/**
-	 * @param ?Profile $commandLine  laid over the configuration and its overrides, as --preset and --rule are
-	 * @param ?list<string> $only  names or classes of the rules and presets the run is narrowed to
-	 * @param bool $strict  a broken rule contract throws instead of warning
-	 * @param bool $fixRisky  every fix that may change what the code does is made, not only those of the rules
-	 *                        the configuration names in fixRisky
-	 * @param bool $baseline  the configured baseline leaves what it knows unreported; a run generating one sees everything
+	 * @param  ?Profile  $commandLine  laid over the configuration and its overrides, as --preset and --rule are
+	 * @param  ?list<string>  $only  names or classes of the rules and presets the run is narrowed to
+	 * @param  bool  $strict  a broken rule contract throws instead of warning
+	 * @param  bool  $cache  clean files are remembered and skipped next time
+	 * @param  ?string  $configFile  the file the configuration was read from; its text is all the cache knows about
+	 *                                a rule or an analysis a closure builds
+	 * @param  bool  $fixRisky  every fix that may change what the code does is made, not only those of the rules
+	 *                           the configuration names in fixRisky
+	 * @param  bool  $baseline  the configured baseline leaves what it knows unrecorded; a run generating one sees everything
 	 * @throws ConfigurationException
 	 */
 	public function createRunner(
@@ -84,6 +90,8 @@ final class RunnerFactory
 		?Profile $commandLine = null,
 		?array $only = null,
 		bool $strict = false,
+		bool $cache = true,
+		?string $configFile = null,
 		bool $fixRisky = false,
 		bool $baseline = true,
 	): Runner
@@ -144,6 +152,23 @@ final class RunnerFactory
 				);
 			},
 		);
+		$resultCache = $cache && ($configFile !== null || !self::hasClosures($config, $resolved, $analyses))
+			? ResultCache::load(
+				self::resolveCacheFile($config, $root),
+				// the baseline decides what a rule reports, so a file clean under one is not clean under another
+				self::hashConfiguration([
+					$resolved->toArray(),
+					array_keys($analyses),
+					$baselineFile?->getHash(),
+					$config->overrides,
+					$commandLine,
+					$only,
+					$fixRisky,
+					$configFile === null ? null : hash_file('xxh128', $configFile),
+					$this->collectSourceTimes($resolved, $analyses),
+				]),
+			)
+			: null;
 		return new Runner(
 			$processors,
 			$root,
@@ -151,6 +176,7 @@ final class RunnerFactory
 			$config->fileExtensions,
 			self::combineSkipWhen($layers),
 			$baselineFile,
+			$resultCache,
 			narrowed: (bool) $only,
 		);
 	}
@@ -227,6 +253,121 @@ final class RunnerFactory
 			1 => $filters[0],
 			default => fn(string $content, string $path): bool => array_any($filters, fn(\Closure $filter) => $filter($content, $path)),
 		};
+	}
+
+
+	/** The cache file of the project root: in the configured directory, else in the system temp. */
+	private static function resolveCacheFile(Config $config, string $root): string
+	{
+		$root = Helpers::canonicalizePath($root);
+		$dir = $config->cacheDir === null ? sys_get_temp_dir() . '/dresscode' : self::toAbsolutePath($config->cacheDir, $root);
+		return Helpers::canonicalizePath($dir) . '/' . substr(hash('xxh128', $root), 0, 16) . '.json';
+	}
+
+
+	/**
+	 * Identity of everything a result depends on besides the file: the effective rules with their options, the
+	 * style, the PHP version and the versions (with their git references) of every installed package, with the
+	 * sources no package version stands for among the configuration.
+	 * @param  array<mixed>  $configuration
+	 */
+	private static function hashConfiguration(array $configuration): string
+	{
+		$packages = array_map(fn(array $package) => [$package['version'], $package['reference']], self::getInstalledPackages());
+		return hash('xxh128', json_encode([$configuration, $packages], JSON_THROW_ON_ERROR | JSON_PARTIAL_OUTPUT_ON_ERROR));
+	}
+
+
+	/**
+	 * The packages installed with the project, read from the raw data of Composer: InstalledVersions answers from
+	 * every registered loader, the one inside the phar of PHPStan included once it is started, and would then name
+	 * its packages, its versions and its root instead of the project's.
+	 * @return array<string, array{version: ?string, reference: ?string, path: ?string}>  path null for the root package
+	 */
+	private static function getInstalledPackages(): array
+	{
+		if (!class_exists(InstalledVersions::class)) {
+			return [];
+		}
+
+		$packages = [];
+		foreach (InstalledVersions::getAllRawData() as $data) {
+			if (str_starts_with($data['root']['install_path'], 'phar://')) {
+				continue;
+			}
+
+			foreach ($data['versions'] as $name => $package) {
+				$packages[$name] ??= [
+					'version' => $package['version'] ?? null,
+					'reference' => $package['reference'] ?? null,
+					'path' => $name === $data['root']['name'] ? null : ($package['install_path'] ?? null),
+				];
+			}
+		}
+
+		return $packages;
+	}
+
+
+	/**
+	 * The modification times of the files the rules, presets and analyses of the run are declared in, their parents
+	 * and traits included, where no installed package holds them: the version of a package stands for its files,
+	 * while a rule of the project itself changes under the same version of the project.
+	 * @param  array<class-string, ?\Closure(FileNode): object>  $analyses
+	 * @return array<string, int|false>  file → modification time
+	 */
+	private function collectSourceTimes(ResolvedConfig $resolved, array $analyses): array
+	{
+		$installed = self::getInstalledPackages();
+		if ($installed === []) {
+			return [];
+		}
+
+		$packages = [];
+		foreach ($installed as $package) {
+			$path = $package['path'] === null ? false : realpath($package['path']);
+			if ($path !== false) {
+				$packages[] = Helpers::canonicalizePath($path) . '/';
+			}
+		}
+
+		$classes = [
+			...array_values($this->registry->getRules()),
+			...array_map(fn(ResolvedRule $rule) => $rule->class, $resolved->rules),
+			...array_values($this->registry->getPresets()),
+			...array_keys($analyses),
+		];
+		$times = [];
+		foreach (array_unique($classes) as $class) {
+			for ($reflection = new \ReflectionClass($class); $reflection; $reflection = $reflection->getParentClass()) {
+				foreach ([$reflection, ...array_values($reflection->getTraits())] as $declaring) {
+					$file = $declaring->getFileName();
+					$file = $file === false ? null : Helpers::canonicalizePath($file);
+					if (
+						$file !== null
+						&& !isset($times[$file])
+						&& !array_any($packages, fn(string $path) => str_starts_with($file, $path))
+					) {
+						$times[$file] = filemtime($file);
+					}
+				}
+			}
+		}
+
+		ksort($times);
+		return $times;
+	}
+
+
+	/**
+	 * Whether a closure builds a rule or an analysis of the run, which the resolved configuration cannot describe.
+	 * @param  array<class-string, ?\Closure(FileNode): object>  $analyses
+	 */
+	private static function hasClosures(Config $config, ResolvedConfig $resolved, array $analyses): bool
+	{
+		return array_any($resolved->rules, fn(ResolvedRule $rule) => $rule->factory !== null)
+			|| array_any($config->overrides, fn(Override $override) => array_any($override->rules, fn($value) => $value instanceof \Closure))
+			|| array_filter($analyses) !== [];
 	}
 
 
