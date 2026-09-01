@@ -23,6 +23,8 @@ final readonly class PassResult
 		public array $warnings,
 		public int $passes,
 		public bool $mutated,
+		/** @var list<string> fingerprints of the violations the baseline silenced */
+		public array $baselined = [],
 		/** @var list<string> rules that mutated the file */
 		public array $mutatedRules = [],
 	) {

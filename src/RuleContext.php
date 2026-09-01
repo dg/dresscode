@@ -72,7 +72,8 @@ final class RuleContext
 
 	/**
 	 * Reports a violation at the node, or at one of the trivia of the token when the problem lies in whitespace
-	 * or a comment; returns false when a comment silences it, and then the rule must not fix it.
+	 * or a comment; returns false when a comment silences it, and then the rule must not fix it. A violation the
+	 * baseline knows is not recorded, and the rule fixes it like any other.
 	 * `$risky` says that fixing this occurrence may change what the code does: the violation is reported either
 	 * way, and false says the run does not allow the fix, so the rule must leave the code alone. A rule whose every
 	 * fix may change it says so once with `risky` in its RuleInfo instead.
@@ -108,7 +109,7 @@ final class RuleContext
 	 * Reports what the engine decided about the gap before the token, under the name of the rule whose claim
 	 * it was; `$breaks` says the fix puts a line break in or takes one out, opening or closing the line. The
 	 * gaps of a construct the claim was decided about are one violation in the pass, the shape of the construct
-	 * being what is wrong and not each of its breaks: placed and silenced as the first of them.
+	 * being what is wrong and not each of its breaks: placed, silenced and known as the first of them.
 	 * @internal
 	 */
 	public function reportGap(
@@ -152,18 +153,19 @@ final class RuleContext
 	{
 		$line = self::findOriginalLine($at, $trivia);
 		if ($line !== null && $this->suppression->isSuppressed($this->ruleName, $line)) {
-			$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, silenced: true, fingerprint: null, line: $line, risky: false);
+			$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, silenced: true, known: false, fingerprint: null, line: $line, risky: false);
 			return false;
 		}
 
-		// a report a comment silenced is never counted into the identity, so the numbering of the occurrences
-		// means the same whether the comment is there or not
+		// the identity is counted here, before the baseline is asked: a report a comment silenced was
+		// never counted into it either, and the numbering of the occurrences has to mean the same
 		$line ??= 1;
 		$fingerprint = $construct === null
 			? $this->fingerprints->create($this->ruleName, $message, $line)
 			: $this->fingerprints->createFor($construct, $this->ruleName, $message, $line);
+		$known = $this->fingerprints->isKnown($fingerprint);
 		$risky = ($risky || $this->alwaysRisky) && $fixable;
-		$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, false, $fingerprint, $line, $risky, $gap, $follows, $byLine, $breaks, $fixable);
+		$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, false, $known, $fingerprint, $line, $risky, $gap, $follows, $byLine, $breaks, $fixable);
 		return $fixable && !($risky && !$this->fixRisky);
 	}
 

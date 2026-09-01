@@ -13,7 +13,8 @@ use PhpSyntax\{Node, Token, Trivia};
 
 /**
  * One call of RuleContext::report() as the pass runner accounts for it: what was reported and where, the
- * revision of the file at the time, and whether a comment or the risk of the fix denied it.
+ * revision of the file at the time, whether a comment silenced it, whether its fix is risky or missing, and whether
+ * the baseline knows it.
  * @internal
  */
 final readonly class Report
@@ -27,6 +28,8 @@ final readonly class Report
 		public int $revision,
 		/** a suppression comment silenced it: no violation is recorded and the rule must not fix it */
 		public bool $silenced,
+		/** the baseline knows it: no violation is recorded, the rule may still fix it */
+		public bool $known,
 		/** null when a comment silenced it, so that the occurrence was never counted */
 		public ?string $fingerprint,
 		/** line in the original file */

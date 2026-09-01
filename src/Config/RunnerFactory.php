@@ -9,7 +9,7 @@ namespace DressCode\Config;
 
 use Composer\Semver\VersionParser;
 use DressCode\{Analyses, Config, ConfigurationException, Extension, Helpers, Override, Preset, Profile, Rule, Runner, Style};
-use DressCode\Engine\FileProcessor;
+use DressCode\Engine\{Baseline, FileProcessor};
 use Nette\Utils\FileSystem;
 use function array_slice, count, dirname, in_array, is_array, is_string, strlen;
 
@@ -75,6 +75,7 @@ final class RunnerFactory
 	 * @param bool $strict  a broken rule contract throws instead of warning
 	 * @param bool $fixRisky  every fix that may change what the code does is made, not only those of the rules
 	 *                        the configuration names in fixRisky
+	 * @param bool $baseline  the configured baseline leaves what it knows unreported; a run generating one sees everything
 	 * @throws ConfigurationException
 	 */
 	public function createRunner(
@@ -84,6 +85,7 @@ final class RunnerFactory
 		?array $only = null,
 		bool $strict = false,
 		bool $fixRisky = false,
+		bool $baseline = true,
 	): Runner
 	{
 		$visited = [];
@@ -100,6 +102,7 @@ final class RunnerFactory
 		$this->warnings = $resolver->getWarnings();
 		$this->phpVersion = [$resolved->phpVersion, $source];
 		$analyses = array_merge(...array_map(fn(Config $layer) => $layer->analyses, $layers));
+		$baselineFile = $baseline ? self::loadBaseline($config, $root) : null;
 
 		// the processors are built lazily, so they must not ask the factory, which may have built another runner since
 		$this->resolveFor = $resolveFor = fn(array $overrides) => $overrides === []
@@ -108,7 +111,7 @@ final class RunnerFactory
 		$registry = $this->registry;
 		$processors = new FileProcessors(
 			array_map(fn(Override $override) => $override->paths, $config->overrides),
-			function (array $overrides) use ($resolver, $resolveFor, $registry, $analyses, $strict, $fixRisky): FileProcessor {
+			function (array $overrides) use ($resolver, $resolveFor, $registry, $analyses, $strict, $baselineFile, $fixRisky): FileProcessor {
 				$variant = $resolveFor($overrides);
 				$analysisRegistry = new Analyses\Registry($variant->toNamespacedSymbols());
 				foreach ($analyses as $class => $factory) {
@@ -134,6 +137,7 @@ final class RunnerFactory
 					new Style($variant->indent, $variant->eol === 'majority' ? "\n" : $variant->eol, lineLength: $variant->lineLength),
 					detectEol: $variant->eol === 'majority',
 					strict: $strict,
+					baseline: $baselineFile,
 					warningRules: $warningRules,
 					fixRisky: $fixRisky,
 					fixRiskyRules: $fixRiskyRules,
@@ -146,6 +150,8 @@ final class RunnerFactory
 			array_values(array_unique(array_merge(...array_map(fn(Config $layer) => $layer->excludePaths, $layers)))),
 			$config->fileExtensions,
 			self::combineSkipWhen($layers),
+			$baselineFile,
+			narrowed: (bool) $only,
 		);
 	}
 
@@ -221,6 +227,13 @@ final class RunnerFactory
 			1 => $filters[0],
 			default => fn(string $content, string $path): bool => array_any($filters, fn(\Closure $filter) => $filter($content, $path)),
 		};
+	}
+
+
+	/** The configured baseline when its file exists; before the first generation there is none. */
+	public static function loadBaseline(Config $config, string $root): ?Baseline
+	{
+		return $config->baseline === null ? null : Baseline::load(self::toAbsolutePath($config->baseline, $root));
 	}
 
 

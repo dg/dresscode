@@ -286,3 +286,14 @@ test('a runner keeps the configuration it was built from, whatever the factory b
 	Assert::same(['test/a'], array_map(fn($v) => $v->ruleName, $runner->processFile('src/x.php', "<?php\n\$a;\n")->violations));
 	Assert::same([], $runner->processFile('src/sub/x.php', "<?php\n\$a;\n")->violations);
 });
+
+
+test('the name of the baseline is judged even before the file exists', function () use ($fixtures) {
+	Assert::null(RunnerFactory::loadBaseline(new Config, $fixtures));
+	Assert::null(RunnerFactory::loadBaseline(new Config(baseline: 'baseline.neon'), $fixtures)); // no file yet
+	Assert::exception(
+		fn() => RunnerFactory::loadBaseline(new Config(baseline: 'baseline.txt'), $fixtures),
+		ConfigurationException::class,
+		'The baseline file %a%baseline.txt must be a .neon or a .php file.',
+	);
+});

@@ -37,6 +37,8 @@ final class FileResult
 		public readonly int $passes = 0,
 		/** a rule failed, the rules did not converge or the file changed before it was written; the result was thrown away */
 		public readonly ?string $failure = null,
+		/** @var list<string> fingerprints of the violations the baseline silenced, for the run to count */
+		public readonly array $baselined = [],
 		/** @var list<Violation>  what the output still violates, positioned in the output: what a check of it reports */
 		public readonly array $remaining = [],
 	) {
@@ -65,6 +67,7 @@ final class FileResult
 			$this->errorLine,
 			$this->passes,
 			$this->failure,
+			$this->baselined,
 			$this->remaining,
 		);
 		$result->changed = $this->isChanged();
