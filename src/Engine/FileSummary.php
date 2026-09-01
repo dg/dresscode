@@ -26,6 +26,7 @@ final readonly class FileSummary
 		/** the output differs from the code */
 		public bool $changed,
 		public bool $written,
+		public bool $cached,
 		public ?string $syntaxError,
 		public ?string $failure,
 	) {
@@ -40,6 +41,7 @@ final readonly class FileSummary
 			$result->remaining,
 			$result->changed,
 			$result->written,
+			$result->cached,
 			$result->syntaxError,
 			$result->failure,
 		);

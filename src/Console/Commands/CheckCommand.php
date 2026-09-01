@@ -66,6 +66,9 @@ final readonly class CheckCommand
 		$runner = $factory->createRunner(
 			$resolution,
 			strict: (bool) $run->strictRules,
+			// the counts of a file served from the cache are those the baseline left
+			cache: !$generate && !$run->noCache,
+			configFile: $configFile,
 			fixRisky: (bool) ($check->fixRisky ?? false),
 			baseline: !$generate,
 		);

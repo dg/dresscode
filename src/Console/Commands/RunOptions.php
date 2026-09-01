@@ -28,6 +28,8 @@ final readonly class RunOptions
 		public ?string $format = null,
 		#[Cli\Flag('Skip a named file that `excludePaths` leaves out, as a hook or an editor passing every file it touches needs')]
 		public ?bool $skipExcluded = null,
+		#[Cli\Flag('Process every file, even one whose content is known to be clean')]
+		public ?bool $noCache = null,
 		#[Cli\Flag('Treat a rule breaking its contract as an error, not a warning')]
 		public ?bool $strictRules = null,
 	) {

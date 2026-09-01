@@ -165,6 +165,13 @@ final class Baseline
 	}
 
 
+	/** Identity of the entries, for whatever caches a result that depends on them. */
+	public function getHash(): string
+	{
+		return hash('xxh128', serialize($this->entries));
+	}
+
+
 	/** Whether the baseline holds this violation of the file, which is then not recorded. */
 	public function has(string $path, string $fingerprint): bool
 	{
@@ -173,7 +180,8 @@ final class Baseline
 
 
 	/**
-	 * Records the entries a run matched in a file.
+	 * Records the entries a run matched; the run tells the baseline, because a file may have been
+	 * served by the cache, which knows what the baseline matched in it.
 	 * @param list<string> $fingerprints
 	 */
 	public function markMatched(string $path, array $fingerprints): void
