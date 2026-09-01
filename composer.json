@@ -33,7 +33,8 @@
 	},
 	"scripts": {
 		"phpstan": "phpstan analyse",
-		"tester": "tester tests -s"
+		"tester": "tester tests -s",
+		"reference": "php docs/reference/generate.php"
 	},
 	"config": {
 		"allow-plugins": {
