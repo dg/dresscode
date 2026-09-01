@@ -116,6 +116,7 @@ final class NeonReader
 			'fileExtensions' => Expect::listOf('string', wrap: true),
 			'skipWhen' => Expect::type(Entity::class),
 			'baseline' => Expect::string(),
+			'cacheDir' => Expect::string(),
 			// a class the engine builds itself, or a class with the entity of its factory
 			'analyses' => Expect::arrayOf(Expect::anyOf(Expect::string(), Expect::type(Entity::class))),
 			'ruleUrl' => Expect::string(),

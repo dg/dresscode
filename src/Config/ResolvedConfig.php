@@ -15,8 +15,8 @@ use PhpSyntax\Analyses\NamespacedSymbols;
 /**
  * What a configuration comes to: every decision with its value and the layers that set it, the rules in the order
  * they run, the style, the target versions, the plugins, what the namespaces declare, and the rules that do not run
- * with the reason. One resolution serves the run and whoever prints the configuration, so that what the reader is
- * shown is what the rules were given.
+ * with the reason. One resolution serves the run, the result cache and whoever prints the
+ * configuration, so that what the reader is shown is what the rules were given.
  * @internal
  */
 final readonly class ResolvedConfig
@@ -53,6 +53,8 @@ final readonly class ResolvedConfig
 		public array $fixRisky = [],
 		/** @var array<string, true>  the decisions whose violations only warn */
 		public array $warnOnly = [],
+		/** @var list<ResolvedConfig>  what each override of the configuration comes to for a file it alone matches */
+		public array $overrides = [],
 	) {
 	}
 
@@ -119,5 +121,36 @@ final readonly class ResolvedConfig
 		$registry = new Analyses\Registry($symbols ?? $this->toNamespacedSymbols());
 		$registry->register(Analyses\IndentationPlan::class, Analyses\IndentationPlan::createFactory($this->values, $style));
 		return $registry;
+	}
+
+
+	/**
+	 * Everything a result depends on besides the file and the versions of the packages: the active rules, whether a
+	 * closure builds them and whether their risky fixes are made, the values of the decisions, the style, the target
+	 * version, what the namespaces declare and the same of every override. A changed default is a changed
+	 * value here, which a description of what the configuration said would miss.
+	 * @return array<string, mixed>
+	 */
+	public function toArray(): array
+	{
+		$rules = [];
+		foreach ($this->getActiveRules() as $rule) {
+			$rules[$rule->class] = ['factory' => $rule->factory !== null, 'fixRisky' => $rule->fixRisky];
+		}
+
+		return [
+			'rules' => $rules,
+			'indent' => $this->indent,
+			'lineEnding' => $this->lineEnding,
+			'lineLength' => $this->lineLength,
+			'tabWidth' => $this->tabWidth,
+			'php' => $this->phpVersion,
+			'namespaces' => [array_keys($this->namespacedFunctions), array_keys($this->namespacedConstants), $this->nameResolution],
+			'suppressionComments' => $this->suppressionComments,
+			'decisions' => array_map(fn(ResolvedDecision $decision) => $decision->value->toData(), $this->decisions),
+			'fixRisky' => array_keys($this->fixRisky),
+			'selected' => array_keys(array_filter($this->decisions, fn(ResolvedDecision $decision) => !$decision->decision->parameter && $this->values->isSelected($decision->decision->path))),
+			'overrides' => array_map(fn(self $override) => $override->toArray(), $this->overrides),
+		];
 	}
 }

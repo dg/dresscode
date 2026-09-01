@@ -52,6 +52,26 @@ final class EngineThrower extends NodeRule
 
 
 #[RuleInfo(Stage::Structure)]
+final class EnginePath extends NodeRule
+{
+	use ProjectDecision;
+
+	public function getVisitedNodes(): array
+	{
+		return [VariableNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if (str_ends_with($context->path, 'b.php')) {
+			$context->report($node, 'A variable in b.php.', fixable: false);
+		}
+	}
+}
+
+
+#[RuleInfo(Stage::Structure)]
 final class EngineUnfixable extends NodeRule
 {
 	use ProjectDecision;
@@ -443,6 +463,120 @@ test('a violation the baseline holds is fixed by a rule that can fix it, and its
 });
 
 
+test('clean contents are remembered and skipped next time, a fixed file too', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");
+	$file = "$root/cache.json";
+	$runner = fn() => new Runner(
+		new FileProcessor([new EngineRename], new Analyses\Registry, Config::DefaultPhpVersion),
+		$root,
+		cache: DressCode\Engine\ResultCache::load($file, 'cfg'),
+	);
+	$cached = fn(RunResult $run) => array_map(fn(FileSummary $r) => $r->cached, $run->files);
+
+	$run = $runner()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	Assert::same([false, false], $cached($run));
+	$run = $runner()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	Assert::same([false, true], $cached($run));
+	Assert::same(1, $run->countViolations());
+
+	$run = $runner()->run(['src/a.php'], true, new RecordingReporter);
+	Assert::true($run->files[0]->written);
+	$run = $runner()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	Assert::same([true, true], $cached($run));
+	Assert::same(0, $run->countViolations());
+	Assert::same(0, DressCode\Engine\ResultCache::load($file, 'other')->count());
+});
+
+
+test('a file served by the cache is reported with its text, read when its turn comes', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$x;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");
+	$file = "$root/cache-text.json";
+	$runner = fn() => new Runner(
+		new FileProcessor([new EngineRename], new Analyses\Registry, Config::DefaultPhpVersion),
+		$root,
+		cache: DressCode\Engine\ResultCache::load($file, 'cfg'),
+	);
+	$runner()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+
+	$reporter = new RecordingReporter;
+	$run = $runner()->run(['src/a.php', 'src/b.php'], false, $reporter);
+	Assert::same([true, true], array_map(fn(FileSummary $r) => $r->cached, $run->files));
+	Assert::same("<?php\n\$x;\n", $reporter->texts['src/a.php'][0]);
+	Assert::same($reporter->texts['src/b.php'][0], $reporter->texts['src/b.php'][1]);
+	Assert::same(
+		['start 2 false', 'file src/a.php false false', 'file src/b.php false false', 'finish 0'],
+		$reporter->events,
+	);
+});
+
+
+test('a file the cache served but whose text changed before it was read again is processed as a pending one', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$x;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");
+	$file = "$root/cache-changed.json";
+	$runner = fn(?Closure $skipWhen = null) => new Runner(
+		new FileProcessor([new EngineRename], new Analyses\Registry, Config::DefaultPhpVersion),
+		$root,
+		skipWhen: $skipWhen,
+		cache: DressCode\Engine\ResultCache::load($file, 'cfg'),
+	);
+	$runner()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+
+	$edit = function (string $code, string $path) use ($root): bool {
+		if ($path === 'src/b.php') {
+			file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+		}
+		return false;
+	};
+	$started = [];
+	$onProgress = function (int $done, array $running) use (&$started): void {
+		$started = [...$started, ...array_keys($running)];
+	};
+	$run = $runner($edit)->run(['src/a.php', 'src/b.php'], false, new RecordingReporter, onProgress: $onProgress);
+	Assert::same([false, true], array_map(fn(FileSummary $r) => $r->cached, $run->files));
+	Assert::same(1, $run->countViolations());
+	Assert::same(['src/a.php'], $started); // the loop of the pending files processed it
+});
+
+
+test('the cache knows a content by its path, because a rule may give two files of the same text different verdicts', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$x;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");
+	$file = "$root/cache-path.json";
+	$runner = fn() => new Runner(
+		new FileProcessor([new EnginePath], new Analyses\Registry, Config::DefaultPhpVersion),
+		$root,
+		cache: DressCode\Engine\ResultCache::load($file, 'cfg'),
+	);
+
+	Assert::same(0, $runner()->run(['src/a.php'], false, new RecordingReporter)->countViolations());
+	$run = $runner()->run(['src/b.php'], false, new RecordingReporter);
+	Assert::false($run->files[0]->cached);
+	Assert::same(1, $run->countViolations());
+});
+
+
+test('a cached file tells the baseline what it matched, so a second run counts the same and warns about nothing', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$x;\n");
+	$file = "$root/cache-baseline.json";
+	$processor = fn(?DressCode\Engine\Baseline $baseline) => new FileProcessor([new EngineUnfixable], new Analyses\Registry, Config::DefaultPhpVersion, policy: new ReportPolicy(baseline: $baseline));
+	$generated = new Runner($processor(null), $root)->run(['src/a.php'], false, new RecordingReporter);
+	$run = function () use ($root, $file, $processor, $generated): RunResult {
+		$baseline = DressCode\Engine\Baseline::fromResults($generated->files);
+		return new Runner($processor($baseline), $root, baseline: $baseline, cache: DressCode\Engine\ResultCache::load($file, 'cfg'))
+			->run(['src/a.php'], false, new RecordingReporter);
+	};
+
+	$first = $run();
+	$second = $run();
+	Assert::same([false, true], [$first->files[0]->cached, $second->files[0]->cached]);
+	Assert::same([1, 1], [$first->baselined, $second->baselined]);
+	Assert::same([[], []], [$first->warnings, $second->warnings]);
+});
+
+
 test('an entry of the baseline is stale only when its file was processed and its rule ran there', function () use ($root) {
 	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
 	file_put_contents("$root/src/b.php", "<?php\n\$a;\n");
@@ -469,14 +603,17 @@ test('an entry of the baseline is stale only when its file was processed and its
 
 test('a fix is judged by the text it leaves, so a problem reported beside a fix in one callback remains', function () use ($root) {
 	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
-	$runner = new Runner(
+	$file = "$root/cache-remaining.json";
+	$runner = fn() => new Runner(
 		new FileProcessor([new EngineUnfixable], new Analyses\Registry, Config::DefaultPhpVersion),
 		$root,
+		cache: DressCode\Engine\ResultCache::load($file, 'cfg'),
 	);
 
-	$run = $runner->run(['src/a.php'], true, new RecordingReporter);
+	$run = $runner()->run(['src/a.php'], true, new RecordingReporter);
 	Assert::same("<?php\n\$b;\n", file_get_contents("$root/src/a.php"));
 	Assert::same(['A problem no fix removes.', 'Rename $a.'], array_map(fn($v) => $v->message, $run->files[0]->violations));
 	Assert::same(['A problem no fix removes.'], array_map(fn($v) => $v->message, $run->files[0]->remaining));
 	Assert::same(1, $run->getExitCode());
+	Assert::false($runner()->run(['src/a.php'], false, new RecordingReporter)->files[0]->cached); // the fixed text was not clean
 });

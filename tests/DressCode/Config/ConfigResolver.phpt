@@ -217,8 +217,10 @@ test('a rule of a construct the target version has not got is left out', functio
 	Assert::same([], $resolve(new Config(decisions: projectDecisions(['future'])), '8.3'));
 	Assert::same(['Decision `project.future` needs PHP >=8.4 and the target is 8.3; skipped.'], $resolver->getWarnings());
 
-	// a rule that does not run says why
+	// what the result cache keys on is what really runs, and a rule that does not says why
 	$resolved = $resolver->resolve(new Config(use: ['test/future-preset']), '8.3');
+	Assert::true(isset($resolved->toArray()['rules'][RuleA::class]));
+	Assert::false(isset($resolved->toArray()['rules'][RuleFuture::class]));
 	$future = $resolved->findRule(RuleFuture::class);
 	Assert::type(ResolvedRule::class, $future);
 	Assert::same('it needs PHP >=8.4 and the target is 8.3', $future->inactiveMessage);
@@ -460,6 +462,7 @@ test('what the namespaces declare adds up over the layers, and only the configur
 
 	$certain = $resolver->resolve(new Config(nameResolution: 'certain'), Config::DefaultPhpVersion);
 	Assert::true($certain->toNamespacedSymbols()->complete);
+	Assert::notSame($uncertain->toArray(), $certain->toArray());
 
 	// a certain resolution turns on the guard of its lists, which nothing turns off, the fixes resting on the lists
 	$guard = DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class;

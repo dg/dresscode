@@ -185,6 +185,7 @@ final class ConfigResolver
 			values: $values,
 			fixRisky: $fixRiskyPaths,
 			warnOnly: $warnOnlyPaths,
+			overrides: $resolvedOverrides,
 		);
 	}
 

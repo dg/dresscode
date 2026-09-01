@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
 
+use Composer\InstalledVersions;
 use DressCode\{Config, ConfigurationException, Decision, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, RuleContext, RuleInfo, Stage};
 use DressCode\Config\{Composer, PhpVersionSource, RunnerFactory};
 use DressCode\Engine\Runner;
@@ -14,10 +15,10 @@ $fixtures = str_replace('\\', '/', __DIR__) . '/fixtures';
 
 
 /** A runner built by a factory of its own, as every run of the tool builds one. */
-function buildRunner(Config $config, string $root, ?Profile $commandLine = null): Runner
+function buildRunner(Config $config, string $root, ?Profile $commandLine = null, ?string $configFile = null): Runner
 {
 	$factory = new RunnerFactory;
-	return $factory->createRunner($factory->resolve($config, $root, $commandLine));
+	return $factory->createRunner($factory->resolve($config, $root, $commandLine), configFile: $configFile);
 }
 
 
@@ -292,7 +293,7 @@ test('a target older than the oldest PHP DressCode fixes code for is raised to i
 
 	$factory = new RunnerFactory;
 	$resolution = $factory->resolve(new Config(rules: [ReportContext::class], decisions: ReportsContext), $root);
-	$runner = $factory->createRunner($resolution);
+	$runner = $factory->createRunner($resolution, cache: false);
 	Assert::same(['8.0', PhpVersionSource::Composer], [$resolution->phpVersion, $resolution->phpVersionSource]);
 	Assert::same([$warning => null], $resolution->warnings);
 	Assert::match('8.0 %a%', $runner->processCode('x.php', "<?php\n\$a;\n")->violations[0]->message);
@@ -301,6 +302,42 @@ test('a target older than the oldest PHP DressCode fixes code for is raised to i
 	$resolution = $factory->resolve(new Config(targets: ['php' => '7.4']), $root);
 	Assert::same(['8.0', PhpVersionSource::Configuration], [$resolution->phpVersion, $resolution->phpVersionSource]);
 	Assert::same([$warning => null], $resolution->warnings);
+});
+
+
+test('the identity of the process names the packages it is loaded from, not its root', function () {
+	$own = require __DIR__ . '/../../../vendor/composer/installed.php';
+	$identity = RunnerFactory::getProcessIdentity();
+	Assert::true(isset($identity['nette/utils']));
+	Assert::false(isset($identity[$own['root']['name']]));
+
+	// a global installation beside the own one, with a package that is only provided
+	$global = fn(string $vendor) => [
+		'root' => [
+			'name' => 'acme/global', 'pretty_version' => '1.0.0', 'version' => '1.0.0.0', 'reference' => null, 'type' => 'project',
+			'install_path' => "$vendor/..", 'aliases' => [], 'dev' => false,
+		],
+		'versions' => [
+			'acme/global' => [
+				'pretty_version' => '1.0.0', 'version' => '1.0.0.0', 'reference' => null, 'type' => 'project',
+				'install_path' => "$vendor/..", 'aliases' => [], 'dev_requirement' => false,
+			],
+			'acme/linter' => [
+				'pretty_version' => '2.1.0', 'version' => '2.1.0.0', 'reference' => 'abc123', 'type' => 'library',
+				'install_path' => "$vendor/acme/linter", 'aliases' => [], 'dev_requirement' => false,
+			],
+			'acme/virtual' => ['dev_requirement' => false, 'provided' => ['1.0']],
+		],
+	];
+	try {
+		InstalledVersions::reload($global('/home/user/.composer/vendor'));
+		$identity = RunnerFactory::getProcessIdentity();
+		Assert::same(['2.1.0.0', 'abc123'], $identity['acme/linter']);
+		Assert::false(isset($identity['acme/global']));
+		Assert::false(isset($identity['acme/virtual']));
+	} finally {
+		InstalledVersions::reload($own);
+	}
 });
 
 
@@ -364,7 +401,7 @@ test('a plugin makes the decisions of its rules known, and brings the paths it l
 		$root,
 		new Profile(decisions: ['plugin' => ['variables' => 'forbidden']]),
 	);
-	$runner = $factory->createRunner($resolution);
+	$runner = $factory->createRunner($resolution, cache: false);
 	Assert::same([PluginRule::class], array_map(fn($rule) => $rule->class, $resolution->resolvedConfig->getActiveRules()));
 
 	// the paths of every layer add up, and a file any layer skips is skipped
@@ -437,7 +474,7 @@ test('an override brings its presets, its style, its name resolution and its war
 		),
 		"$fixtures/project",
 	);
-	$runner = $factory->createRunner($resolution);
+	$runner = $factory->createRunner($resolution, cache: false);
 	$describe = fn(string $path) => array_map(
 		fn($violation) => "$violation->decision {$violation->severity->name} $violation->message",
 		$runner->processCode($path, "<?php\n\$a = 'text';\n")->violations,
@@ -459,12 +496,165 @@ test('a runner keeps the configuration it was built from, whatever the factory b
 	$factory = new RunnerFactory;
 	$runner = $factory->createRunner(
 		$factory->resolve(new Config(rules: [ReportContext::class], decisions: ReportsContext, overrides: [new Override(['sub'], new Profile(decisions: ['project' => ['context' => 'keep']]))]), "$fixtures/project"),
+		cache: false,
 	);
-	$factory->createRunner($factory->resolve(new Config(rules: [ReportVariable::class], decisions: ReportsVariables), "$fixtures/project"));
+	$factory->createRunner($factory->resolve(new Config(rules: [ReportVariable::class], decisions: ReportsVariables), "$fixtures/project"), cache: false);
 
 	// both processors are built lazily, the base one and the one of the override, and both after the second runner
 	Assert::same(['project.context'], array_map(fn($v) => $v->decision, $runner->processCode('src/x.php', "<?php\n\$a;\n")->violations));
 	Assert::same([], $runner->processCode('src/sub/x.php', "<?php\n\$a;\n")->violations);
+});
+
+
+test('a rule built by a closure is cached only under the text of the file the configuration came from', function () {
+	$root = createTempDir('runner-factory');
+	file_put_contents("$root/x.php", "<?php\n\$x;\n");
+	file_put_contents("$root/quiet.php", '<?php // quiet');
+	file_put_contents("$root/loud.php", '<?php // loud');
+	$quiet = fn() => new Config(rules: [ReportVariable::class => fn() => new ReportVariable(report: false)], cacheDir: "$root/cache", decisions: ReportsVariables);
+	$loud = fn() => new Config(rules: [ReportVariable::class => fn() => new ReportVariable], cacheDir: "$root/cache", decisions: ReportsVariables);
+	$run = fn(Config $config, ?string $file = null) => buildRunner($config, $root, configFile: $file)
+		->run(['x.php'], false, new NullReporter);
+
+	// without the file nothing tells the two closures apart, so nothing is cached
+	Assert::same(0, $run($quiet())->countViolations());
+	Assert::same(0, $run($quiet())->countViolations());
+	Assert::same(1, $run($loud())->countViolations());
+
+	// with it the text of the file is part of the identity
+	Assert::false($run($quiet(), "$root/quiet.php")->files[0]->cached);
+	Assert::true($run($quiet(), "$root/quiet.php")->files[0]->cached);
+	Assert::same(1, $run($loud(), "$root/loud.php")->countViolations());
+});
+
+
+test('the decisions of the command line are part of the identity, whatever the file of the configuration says', function () {
+	$root = createTempDir('runner-factory-options');
+	file_put_contents("$root/x.php", "<?php \$x = \\strlen('a');\n");
+	file_put_contents("$root/config.php", '<?php // the same text for both runs');
+	$config = fn(string $cacheDir) => new Config(
+		cacheDir: $cacheDir,
+		decisions: ['qualification' => ['inFileWithoutNamespace' => 'bare']],
+	);
+	$run = fn(?Profile $commandLine, string $cacheDir) => buildRunner($config($cacheDir), $root, $commandLine, "$root/config.php")
+		->run(['x.php'], false, new NullReporter);
+
+	// the command line changes the decisions, not the text of the file
+	foreach ([[false, true], [true, false]] as $order) {
+		$cacheDir = createTempDir('cache');
+		foreach ($order as $tight) {
+			$result = $run($tight ? null : new Profile(decisions: ['qualification' => ['inFileWithoutNamespace' => 'keep']]), $cacheDir);
+			Assert::same($tight ? 1 : 0, $result->countViolations());
+			Assert::false($result->files[0]->cached);
+		}
+	}
+});
+
+
+test('what an override comes to is part of the identity, a preset only it uses included', function () {
+	$root = createTempDir('runner-factory-override');
+	file_put_contents("$root/x.php", "<?php\n\$x;\n");
+	file_put_contents("$root/config.php", '<?php // the same text for both runs');
+	file_put_contents("$root/style.neon", "file:\n\tstrictTypes: keep\n");
+	$run = fn() => buildRunner(
+		new Config(cacheDir: "$root/cache", overrides: [new Override(['x.php'], new Profile(use: ["$root/style.neon"]))]),
+		$root,
+		configFile: "$root/config.php",
+	)->run(['x.php'], false, new NullReporter);
+
+	Assert::same(0, $run()->countViolations());
+	Assert::true($run()->files[0]->cached);
+	file_put_contents("$root/style.neon", "file:\n\tstrictTypes: required\n");
+	$result = $run();
+	Assert::false($result->files[0]->cached);
+	Assert::same(1, $result->countViolations());
+});
+
+
+test('a rule of the project itself is part of the identity by the time its file changed', function () {
+	$root = createTempDir('runner-factory-sources');
+	$file = "$root/TouchedRule.php";
+	if (!class_exists('TouchedRule', autoload: false)) {
+		file_put_contents($file, "<?php\n#[DressCode\\RuleInfo(DressCode\\Stage::Structure)]\nfinal class TouchedRule extends DressCode\\NodeRule\n{\n\tuse ProjectDecision;\n\n\tpublic function getVisitedNodes(): array\n\t{\n\t\treturn [];\n\t}\n}\n");
+		require $file;
+	}
+
+	file_put_contents("$root/x.php", "<?php\n");
+	$cached = fn() => buildRunner(new Config(rules: ['TouchedRule'], cacheDir: "$root/cache"), $root) // @phpstan-ignore argument.type (the class is declared at run time)
+		->run(['x.php'], false, new NullReporter)
+		->files[0]->cached;
+
+	Assert::false($cached());
+	Assert::true($cached());
+	touch($file, (int) filemtime($file) + 10);
+	clearstatcache();
+	Assert::false($cached());
+	Assert::true($cached());
+});
+
+
+test('a helper of the tool the rules stand on is part of the identity by the time its file changed', function () {
+	$root = createTempDir('runner-factory-helpers');
+	file_put_contents("$root/x.php", "<?php\n");
+	$cached = fn() => buildRunner(new Config(rules: [ReportVariable::class], cacheDir: "$root/cache", decisions: ReportsVariables), $root)
+		->run(['x.php'], false, new NullReporter)
+		->files[0]->cached;
+
+	$file = (string) new ReflectionClass(DressCode\Rules\CodeWriter::class)->getFileName();
+	$time = (int) filemtime($file);
+	Assert::false($cached());
+	Assert::true($cached());
+	try {
+		touch($file, $time + 10);
+		clearstatcache();
+		Assert::false($cached());
+	} finally {
+		touch($file, $time);
+		clearstatcache();
+	}
+
+	// so are the data the rules read from the tree, the upgrading data of PHP among them
+	$file = DressCode\Rules\Upgrading\PhpUpgradingData::File;
+	$time = (int) filemtime($file);
+	$cached();
+	Assert::true($cached());
+	try {
+		touch($file, $time + 10);
+		clearstatcache();
+		Assert::false($cached());
+	} finally {
+		touch($file, $time);
+		clearstatcache();
+	}
+});
+
+
+test('a package the project upgrades is part of the identity, however the tool itself was installed', function () {
+	$root = createTempDir('runner-factory-packages');
+	mkdir("$root/vendor/composer", recursive: true);
+	file_put_contents("$root/composer.json", '{"name": "app/project", "require": {"acme/lib": "^3.1"}}');
+	file_put_contents("$root/x.php", "<?php\n");
+	$installed = fn(string $reference) => file_put_contents(
+		"$root/vendor/composer/installed.json",
+		json_encode(['packages' => [[
+			'name' => 'acme/lib',
+			'version' => 'dev-master',
+			'version_normalized' => 'dev-master',
+			'source' => ['reference' => $reference],
+		]]], JSON_THROW_ON_ERROR),
+	);
+	$cached = fn() => buildRunner(new Config(cacheDir: "$root/cache", decisions: ['file' => ['bom' => 'forbidden']]), $root)
+		->run(['x.php'], false, new NullReporter)
+		->files[0]->cached;
+
+	$installed('aaaaaaa');
+	Assert::false($cached());
+	Assert::true($cached());
+
+	// the same version of the same branch, another commit: the files are other files
+	$installed('bbbbbbb');
+	Assert::false($cached());
+	Assert::true($cached());
 });
 
 

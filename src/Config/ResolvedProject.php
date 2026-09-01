@@ -34,6 +34,7 @@ final readonly class ResolvedProject
 		public array $warnings,
 		/** @var list<PluginManifest>  the plugins of the configuration, a plugin after those it builds on */
 		public array $pluginManifests,
+		public ProjectPackages $projectPackages,
 		/** laid over the configuration and its overrides, as --use is */
 		public ?Profile $commandLine,
 		/** @var ?list<string>  decisions, sections, presets and classes of rules the run is narrowed to */

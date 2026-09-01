@@ -200,6 +200,7 @@ final class Application
 				$command->addFlag('--fix-risky', 'Also make the fixes that may change what the code does, beyond those `fixRisky` allows; they are reported either way');
 			}
 
+			$command->addFlag('--no-cache', 'Process every file, even one whose content is known to be clean');
 			$command->addFlag('--strict-rules', 'Treat a rule breaking its contract as an error, not a warning');
 		}
 
@@ -231,6 +232,8 @@ final class Application
 		$runner = $factory->createRunner(
 			$resolution,
 			strict: (bool) $args['--strict-rules'],
+			cache: !$generate && !$args['--no-cache'], // the counts of a file served from the cache are those the baseline left
+			configFile: $configFile,
 			fixRisky: (bool) ($args['--fix-risky'] ?? false),
 			baseline: !$generate,
 		);
@@ -500,7 +503,7 @@ final class Application
 		$resolution = $factory->resolve($config, $root, $commandLine, self::parseOnly($args));
 		$file = $args['--file'];
 		$resolved = is_string($file)
-			? $resolution->resolveFor($factory->createRunner($resolution, baseline: false)->findOverridesFor($this->resolvePath($file)))
+			? $resolution->resolveFor($factory->createRunner($resolution, cache: false, baseline: false)->findOverridesFor($this->resolvePath($file)))
 			: $resolution->resolvedConfig;
 		$printer = new ConfigPrinter($resolved);
 		if ($args['--format'] === 'json') {

@@ -455,7 +455,7 @@ test('a baseline does not stand in the way of a fix', function () {
 	file_put_contents("$root/jobs/b.php", "<?php\n\$x;\n");
 	file_put_contents("$root/jobs/c.php", $c);
 	file_put_contents("$root/jobs.php", "<?php\nreturn new DressCode\\Config(paths: ['jobs'], baseline: 'jobs-baseline.neon', decisions: ['correctness' => ['strictComparisonArgument' => 'required']]);\n");
-	$config = ['--config', "$root/jobs.php"];
+	$config = ['--config', "$root/jobs.php", '--no-cache'];
 
 	// the risky fixes the configuration does not accept are what a fix leaves
 	runApp($root, ['baseline', ...$config]);
@@ -585,7 +585,7 @@ test('config names the targets and the plugins of the configuration', function (
 });
 
 
-test('overrides: another part of the tree gets other rules', function () use ($root) {
+test('overrides: another part of the tree gets other rules, and the run and the cache agree', function () use ($root) {
 	@mkdir("$root/lib"); // @ directory may already exist
 	@mkdir("$root/legacy"); // @ directory may already exist
 	foreach (['lib/a.php', 'legacy/b.php', 'legacy/e.php', 'legacy/deep/c.php'] as $path) {
@@ -604,9 +604,10 @@ test('overrides: another part of the tree gets other rules', function () use ($r
 			  file: {finalLineEndings: keep}
 
 		paths: [lib, legacy]
+		cacheDir: cache
 
 		XX);
-	$config = ['--config', "$root/overrides.neon"];
+	$config = ['--config', "$root/overrides.neon", '--no-cache'];
 
 	// what the configuration comes to for a file is what the overrides it matches say, in the order written
 	$names = function (string $file, string $cwd = '') use ($root): array {
@@ -651,10 +652,21 @@ test('overrides: another part of the tree gets other rules', function () use ($r
 	Assert::same("<?php\n\$a;\n", $out);
 	[, $out] = runApp("$root/legacy", ['fix', ...$config, '--stdin', 'x.php'], "<?php\n\$a; \n"); // relative to the working directory
 	Assert::same("<?php\n\$a; \n", $out);
+
+	// the cache tells the two configurations of one content apart: the same text is clean in one and not
+	// in the other, and a warm run says what the cold one said
+	file_put_contents("$root/lib/a.php", "<?php\n\$a; \n");
+	file_put_contents("$root/legacy/b.php", "<?php\n\$a; \n");
+	foreach ([1, 2] as $round) {
+		[$code, $out] = runApp($root, ['check', '--config', "$root/overrides.neon"]);
+		Assert::same(1, $code, "round $round");
+		Assert::match('%A%lib%a%a.php%A%', $out);
+		Assert::notContains('b.php', $out);
+	}
 });
 
 
-test('--only narrows the run to what it names', function () use ($root) {
+test('--only narrows the run to what it names, in the cache too', function () use ($root) {
 	@mkdir("$root/only"); // @ directory may already exist
 	foreach (['a', 'b', 'c', 'd'] as $name) {
 		file_put_contents("$root/only/$name.php", "<?php\n\$a; \n\$b;"); // trailing whitespace, no newline at the end
@@ -666,12 +678,13 @@ test('--only narrows the run to what it names', function () use ($root) {
 			finalLineEndings: 1
 
 		paths: [only]
+		cacheDir: cache
 
 		XX);
 	$config = ['--config', "$root/only.neon"];
 
 	// check reports what the named rule reports and nothing else
-	[$code, $out] = runApp($root, ['check', ...$config, '--only', 'file.trailingWhitespace']);
+	[$code, $out] = runApp($root, ['check', ...$config, '--only', 'file.trailingWhitespace', '--no-cache']);
 	Assert::same(1, $code);
 	Assert::match('%A%FOUND  4 violations, a fix leaves none in 4 files%A%', $out);
 	Assert::notContains('file.finalLineEndings', $out);
@@ -680,6 +693,13 @@ test('--only narrows the run to what it names', function () use ($root) {
 	[$code] = runApp($root, ['fix', ...$config, '--only', 'file.trailingWhitespace']);
 	Assert::same(0, $code);
 	Assert::same("<?php\n\$a;\n\$b;", file_get_contents("$root/only/a.php"));
+
+	// what the narrowed run remembered as clean is not clean for the whole configuration
+	Assert::same(0, runApp($root, ['check', ...$config, '--only', 'file.trailingWhitespace'])[0]);
+	[$code, $out] = runApp($root, ['check', ...$config]);
+	Assert::same(1, $code);
+	Assert::match('%A%FOUND  4 violations, a fix leaves none in 4 files%A%', $out);
+	Assert::contains('file.finalLineEndings', $out);
 
 	// config says of every other decision that the run leaves it out
 	[, $out] = runApp($root, ['config', ...$config, '--only', 'file.trailingWhitespace']);
@@ -692,23 +712,23 @@ test('exit codes: violations, warnings, the warning threshold, a syntax error an
 	$config = "<?php\nreturn new DressCode\\Config(rules: ConsoleRules, decisions: ['project' => ['rename' => 'forbidden', 'report' => 'forbidden']], paths: ['src']";
 	$write = fn(string $tail) => file_put_contents("$root/exit.php", "$config$tail);\n");
 	/** @param list<string> $args */
-	$run = fn(array $args = []) => runApp($root, array_values(['check', '--config', "$root/exit.php", ...$args]))[0];
+	$run = fn(array $args = []) => runApp($root, array_values(['check', '--config', "$root/exit.php", '--no-cache', ...$args]))[0];
 
 	$write('');
 	Assert::same(1, $run()); // violations of both rules
-	Assert::same(1, runApp($root, ['fix', '--config', "$root/exit.php"])[0]); // ConsoleReport fixes nothing
+	Assert::same(1, runApp($root, ['fix', '--config', "$root/exit.php", '--no-cache'])[0]); // ConsoleReport fixes nothing
 	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
 
 	// the same violations as warnings: reported, counted, and the exit code stays clean
 	$write(', warnOnly: [ConsoleRename::class, ConsoleReport::class]');
-	[$code, $out] = runApp($root, ['check', '--config', "$root/exit.php"]);
+	[$code, $out] = runApp($root, ['check', '--config', "$root/exit.php", '--no-cache']);
 	Assert::same(0, $code);
 	Assert::match('%A%  warning  2:1  Rename $a.  project.rename%A%FOUND  3 warnings, a fix leaves 2 in 2 files%A%', $out);
 	Assert::same(0, $run(['--max-warnings', '3']));
 	Assert::same(1, $run(['--max-warnings', '2']));
 	// and so it is over stdin
 	/** @param list<string> $args */
-	$stdin = fn(array $args) => runApp($root, array_values(['check', '--config', "$root/exit.php", ...$args, '--stdin', 'src/b.php']), "<?php\n\$x;\n")[0];
+	$stdin = fn(array $args) => runApp($root, array_values(['check', '--config', "$root/exit.php", '--no-cache', ...$args, '--stdin', 'src/b.php']), "<?php\n\$x;\n")[0];
 	Assert::same(0, $stdin([]));
 	Assert::same(1, $stdin(['--max-warnings', '0']));
 
@@ -727,7 +747,7 @@ test('exit codes: violations, warnings, the warning threshold, a syntax error an
 test('exit codes: a file that failed is 2, a mistake of the command line or of the configuration is 3', function () {
 	$root = createConsoleProject();
 	file_put_contents("$root/failing.php", "<?php\nreturn new DressCode\\Config(rules: ConsoleRules, decisions: ['project' => ['failing' => 'forbidden']], paths: ['src']);\n");
-	[$code, $out, $err] = runApp($root, ['check', '--config', "$root/failing.php"]);
+	[$code, $out, $err] = runApp($root, ['check', '--config', "$root/failing.php", '--no-cache']);
 	Assert::same(2, $code);
 	Assert::same('', $err);
 	Assert::contains('Broken rule', $out);
@@ -745,7 +765,7 @@ test('exit codes: a file that failed is 2, a mistake of the command line or of t
 	Assert::match("Error: boom\nLogicException in %a%throwing.php:2\n#0 %A%", $err);
 
 	file_put_contents("$root/invalid.php", "<?php\nreturn new DressCode\\Config(rules: ConsoleRules, decisions: ['project' => ['rename' => 'forbidden']], paths: ['src'], baseline: 1);\n");
-	Assert::same(3, runApp($root, ['check', '--config', "$root/invalid.php"])[0]);
+	Assert::same(3, runApp($root, ['check', '--config', "$root/invalid.php", '--no-cache'])[0]);
 	Assert::same(3, runApp($root, ['check', '--nope'])[0]);
 	[$code, , $err] = runApp($root, ['config', '--preset', '']);
 	Assert::same(3, $code);
@@ -769,31 +789,31 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 
 	// refused: reported, counted apart, not fixed, and the exit code says the code is not clean
 	$write('');
-	[$code] = runApp($root, ['fix', '--config', $config]);
+	[$code] = runApp($root, ['fix', '--config', $config, '--no-cache']);
 	Assert::same(1, $code);
 	Assert::same("<?php\n\$r;\n", (string) file_get_contents("$root/src/r.php"));
 
 	// the flag of the run allows it
-	[$code] = runApp($root, ['fix', '--config', $config, '--fix-risky']);
+	[$code] = runApp($root, ['fix', '--config', $config, '--no-cache', '--fix-risky']);
 	Assert::same(0, $code);
 	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
 
 	// and so does the configuration, for the rules it names
 	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
 	$write(', fixRisky: [ConsoleRiskyRename::class]');
-	Assert::same(0, runApp($root, ['fix', '--config', $config])[0]);
+	Assert::same(0, runApp($root, ['fix', '--config', $config, '--no-cache'])[0]);
 	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
 
 	// the JSON says of every violation why it was risky and how many are waiting
 	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
 	$write('');
-	[, $out] = runApp($root, ['check', '--config', $config, '--format', 'json']);
+	[, $out] = runApp($root, ['check', '--config', $config, '--no-cache', '--format', 'json']);
 	Assert::contains('"risk": "behaviorChanges"', $out);
 	Assert::contains('"refused": 1', $out);
 
 	// a comment silences it like any other violation
 	file_put_contents("$root/src/r.php", "<?php\n\$r; // dresscode:ignore project.riskyRename\n");
-	Assert::same(0, runApp($root, ['check', '--config', $config])[0]);
+	Assert::same(0, runApp($root, ['check', '--config', $config, '--no-cache'])[0]);
 });
 
 
@@ -811,7 +831,7 @@ test('a violation the rule has no fix for is no fix waiting, with the consent or
 		file_put_contents("$root/src/a.php", "<?php\n$call;\n");
 		file_put_contents($config, "<?php\nreturn new DressCode\\Config(paths: ['src']$tail, decisions: ['correctness' => ['strictComparisonArgument' => 'required']]);\n");
 
-		[, $out] = runApp($root, ['check', '--config', $config, '--format', 'json']);
+		[, $out] = runApp($root, ['check', '--config', $config, '--no-cache', '--format', 'json']);
 		$summary = json_decode($out, associative: true)['summary'];
 		Assert::same([$remaining, $deferred], [$summary['remaining'], $summary['refused']], "$call$tail");
 	}
@@ -843,7 +863,7 @@ test('config says of a decision with risky fixes whether the project accepts the
 	Assert::same('onlyOverride', $rules[DressCode\Rules\Files\StrictTypesRequiredRule::class]['inactive']['reason']);
 
 	// a rule an override turns on runs somewhere, one that nothing turns on makes the entry a line that does nothing
-	[, , $err] = runApp($root, ['check', '--config', $config]);
+	[, , $err] = runApp($root, ['check', '--config', $config, '--no-cache']);
 	Assert::contains('Decision `classes.markedInternal` is named in `fixRisky` but runs nowhere; the entry does nothing.', $err);
 	Assert::notContains('file.strictTypes', $err);
 });

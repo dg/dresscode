@@ -9,7 +9,7 @@ namespace DressCode\Engine;
 
 use DressCode\{ConvergenceException, FileResult, Reporter, RuleException};
 use Nette\Utils\{FileSystem, Finder};
-use function count, sprintf, strlen;
+use function count, is_string, sprintf, strlen;
 
 
 /**
@@ -33,6 +33,8 @@ final readonly class Runner
 		private ?\Closure $skipWhen = null,
 		/** violations left unreported */
 		private ?Baseline $baseline = null,
+		/** contents known to be clean, skipped without processing */
+		private ?ResultCache $cache = null,
 		/** the run is narrowed to some of the decisions, so it says nothing about the baseline entries of the others */
 		private bool $narrowed = false,
 	) {
@@ -57,9 +59,9 @@ final readonly class Runner
 	): RunResult
 	{
 		$reporter->start(new RunInfo($this->root, $fix, count($files)));
-		/** @var array<string, FileResult> $ready the finished files */
+		/** @var array<string, FileResult|string> $ready the finished files, a cached one by the hash of its content */
 		$ready = [];
-		$order = [];
+		$order = $pending = [];
 		foreach ($files as $path) {
 			$code = $this->read($path);
 			if ($code !== null && $this->skipWhen && ($this->skipWhen)($code, $path)) {
@@ -67,19 +69,46 @@ final readonly class Runner
 			}
 
 			$order[] = $path;
+			$hash = $code === null ? null : ResultCache::hashContent($path, $code);
+			if ($hash !== null && $this->cache?->findClean($hash) !== null) {
+				$ready[$path] = $hash;
+			} else {
+				$pending[] = $path;
+			}
 		}
 
-		foreach ($order as $path) { // a configuration the rules do not fit fails before any file
+		foreach ($pending as $path) { // a configuration the rules do not fit fails before any file
 			$this->processors->get($path);
 		}
 
-		$ordered = [];
+		$ordered = $requeued = [];
 		$scope = []; // the files the run can say something about to the baseline, and by which decisions
-		$report = function () use (&$ready, &$ordered, &$scope, $order, $reporter): void {
+		$report = function () use (&$ready, &$ordered, &$scope, &$requeued, $order, $reporter): void {
 			for ($next = count($ordered); isset($order[$next], $ready[$order[$next]]); $next++) {
 				$path = $order[$next];
 				$result = $ready[$path];
 				unset($ready[$path]);
+				if (is_string($result)) { // served by the cache, its text read only now and processed like the others where it changed since
+					$code = $this->read($path);
+					$baselined = $code !== null && ResultCache::hashContent($path, $code) === $result
+						? $this->cache?->findClean($result)
+						: null;
+					if ($code === null) {
+						$result = self::createUnreadable($path);
+					} elseif ($baselined === null) {
+						$this->processors->get($path);
+						$requeued[] = $path;
+						return;
+					} else {
+						$this->baseline?->markMatched($path, $baselined);
+						$result = new FileResult($path, $code, $code, baselined: $baselined, cached: true);
+					}
+				}
+
+				if ($this->cache !== null && !$result->cached) {
+					$this->remember($this->cache, $result);
+				}
+
 				if ($this->baseline !== null && $result->syntaxError === null && $result->failure === null) {
 					$scope[$path] = $this->narrowed ? $this->processors->get($path)->getReportedDecisions() : null;
 				}
@@ -89,15 +118,20 @@ final readonly class Runner
 			}
 		};
 
-		foreach ($this->processPending($order, $fix, $onProgress) as $path => $result) {
-			$ready[$path] = $result;
-			$report();
+		$report();
+		while (($queue = [...$pending, ...$requeued]) !== []) {
+			$pending = $requeued = [];
+			foreach ($this->processPending($queue, $fix, $onProgress, count($order) - count($queue)) as $path => $result) {
+				$ready[$path] = $result;
+				$report();
+			}
 		}
 
 		if ($onProgress !== null) {
 			$onProgress(count($files), []); // the whole scope is done, whatever was skipped along the way
 		}
 
+		$this->cache?->save();
 		$unmatched = $this->baseline?->countUnmatched($scope) ?? 0;
 		$result = new RunResult(
 			$ordered,
@@ -117,14 +151,15 @@ final readonly class Runner
 
 
 	/**
-	 * The results of the files in the order they are done, each file read when its turn comes.
+	 * The results of the files the cache did not serve, in the order they are done, each file read when its turn
+	 * comes.
 	 * @param  list<string>  $paths
 	 * @param  ?\Closure(int, array<string, float>): void  $onProgress
+	 * @param  int  $done  files done before, the cached ones
 	 * @return \Generator<string, FileResult>
 	 */
-	private function processPending(array $paths, bool $fix, ?\Closure $onProgress): \Generator
+	private function processPending(array $paths, bool $fix, ?\Closure $onProgress, int $done): \Generator
 	{
-		$done = 0;
 		$collector = new CycleCollector;
 		try {
 			foreach ($paths as $path) {
@@ -191,6 +226,30 @@ final readonly class Runner
 	private static function createUnreadable(string $path): FileResult
 	{
 		return new FileResult($path, '', output: null, failure: "Cannot read file `$path`.");
+	}
+
+
+	/**
+	 * A clean result makes its content known to the cache, with what the baseline matched in it; a fixed file
+	 * without remaining violations makes the written content known too, unless there is a baseline, whose
+	 * entries no run has yet held against the fixed lines.
+	 */
+	private function remember(ResultCache $cache, FileResult $result): void
+	{
+		if ($result->syntaxError !== null || $result->failure !== null || $result->warnings) {
+			return;
+		}
+
+		if (!$result->violations && !$result->changed) {
+			$cache->markClean(ResultCache::hashContent($result->path, $result->code), $result->baselined);
+		} elseif (
+			$result->written
+			&& $result->output !== null
+			&& !$result->remaining
+			&& $this->baseline === null
+		) {
+			$cache->markClean(ResultCache::hashContent($result->path, $result->output));
+		}
 	}
 
 
