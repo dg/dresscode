@@ -9,7 +9,7 @@ namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, Preset, PresetInfo, Profile, Reporter, Reporters, RuleException, RuleInfo};
 use DressCode\Config\{Loader, PhpVersionSource, RuleRegistry, RunnerFactory};
-use DressCode\Engine\{FileSummary, Helpers, RunInfo, Runner, RunResult};
+use DressCode\Engine\{Baseline, FileSummary, Helpers, RunInfo, Runner, RunResult};
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Neon\{Exception as NeonException, Neon};
 use Nette\Utils\FileSystem;
@@ -69,8 +69,8 @@ final class Application
 
 
 	/**
-	 * Runs the command line and returns the exit code: 0 clean, 1 violations or syntax errors, 2 a file that
-	 * failed, 3 a mistake of the command line or of the configuration.
+	 * Runs the command line and returns the exit code: 0 clean, 1 violations, syntax errors or a refused
+	 * baseline, 2 a file that failed, 3 a mistake of the command line or of the configuration.
 	 * @param  list<string>  $argv  including the script name
 	 */
 	public function run(array $argv): int
@@ -95,7 +95,7 @@ final class Application
 			}
 
 			return match ($command->name) {
-				'check' => $this->runCheckOrFix($args, fix: false),
+				'check', 'baseline' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
 				'config' => $this->runConfig($args),
 				'explain' => $this->runExplain($args),
@@ -151,37 +151,44 @@ final class Application
 
 		$check = $program->addCommand('check', 'report violations');
 		$fix = $program->addCommand('fix', 'fix what the rules can and report the rest');
+		$baseline = $program->addCommand('baseline', 'write the violations a fix leaves into the baseline file of the configuration, once a fix changes nothing');
 		$config = $program->addCommand('config', 'print the configuration as the run resolves it');
 		$explain = $program->addCommand('explain', 'explain what a rule is for and its options here; every rule that runs when none is named');
 		$rules = $program->addCommand('rules', 'list the known rules');
-		$program->addText('Exit codes: `0` clean, `1` violations or syntax errors, `2` a file failed, `3` a mistake of the command line or of the configuration.');
+		$program->addText('Exit codes: `0` clean, `1` violations, syntax errors or a refused baseline, `2` a file failed, `3` a mistake of the command line or of the configuration.');
 
-		foreach ([$check, $fix] as $command) {
+		foreach ([$check, $fix, $baseline] as $command) {
 			$command->addArgument('paths', 'files or directories; the configured paths when omitted', optional: true, repeatable: true);
 		}
 
 		$explain->addArgument('rule', 'name of the rule; every rule that runs when omitted', optional: true);
 
-		foreach ([$check, $fix] as $command) {
+		foreach ([$check, $fix, $baseline] as $command) {
 			$command->addOption(
 				'--format',
 				'`github` when running there; `bare` says only what is left to the user and which files were rewritten, so a clean run says nothing at all',
 				alias: '-f',
 				enum: ['console', 'bare', 'github', 'json', 'checkstyle'],
 			);
-			$command->addFlag('--diff', 'show the fixes as a unified diff (`console` format)');
-			$command->addOption(
-				'--stdin',
-				'read the code from stdin as if it were the file at the path; `fix` writes the result to stdout',
-				valueName: 'path',
-			);
+			if ($command !== $baseline) { // a baseline holds what the configuration as it is leaves
+				$command->addFlag('--diff', 'show the fixes as a unified diff (`console` format)');
+				$command->addOption(
+					'--stdin',
+					'read the code from stdin as if it were the file at the path; `fix` writes the result to stdout',
+					valueName: 'path',
+				);
+			}
+
 			$command->addFlag('--skip-excluded', 'skip a named file that `excludePaths` of the configuration leaves out, which a hook or an editor naming every file it touches wants');
-			$command->addOption(
-				'--max-warnings',
-				'exit with `1` when more than `n` warnings are left; without it any number of them keeps the run clean',
-				valueName: 'n',
-			);
-			$command->addFlag('--fix-risky', 'also make the fixes that may change what the code does, not only those of the rules the configuration names in `fixRisky`; they are reported either way');
+			if ($command !== $baseline) {
+				$command->addOption(
+					'--max-warnings',
+					'exit with `1` when more than `n` warnings are left; without it any number of them keeps the run clean',
+					valueName: 'n',
+				);
+				$command->addFlag('--fix-risky', 'also make the fixes that may change what the code does, not only those of the rules the configuration names in `fixRisky`; they are reported either way');
+			}
+
 			$command->addFlag('--strict-rules', 'a rule breaking its contract is an error, not a warning');
 		}
 
@@ -212,15 +219,15 @@ final class Application
 			$commandLine,
 			$only,
 			strict: (bool) $args['--strict-rules'],
-			fixRisky: (bool) $args['--fix-risky'],
+			fixRisky: (bool) ($args['--fix-risky'] ?? false),
 		);
 		foreach ($factory->getWarnings() as $warning) {
 			$this->err->writeLine(Markup::highlightCode($this->err, "Warning: $warning", 'yellow'));
 		}
 
-		$stdinPath = $args['--stdin'];
+		$stdinPath = $args['--stdin'] ?? null;
 		$paths = array_values(array_unique(array_map($this->resolvePath(...), self::parsePaths($args))));
-		$maxWarnings = $args['--max-warnings'] === null ? null : max(0, (int) $args['--max-warnings']);
+		$maxWarnings = ($args['--max-warnings'] ?? null) === null ? null : max(0, (int) $args['--max-warnings']);
 		if (is_string($stdinPath)) {
 			if ($paths) {
 				throw new UsageException('Paths cannot be combined with `--stdin`.');
@@ -235,15 +242,20 @@ final class Application
 		}
 
 		$format = self::resolveFormat($args, detect: true);
+		$generate = $args->command->name === 'baseline';
 		$files = $runner->findFiles($scope, skipExcluded: (bool) $args['--skip-excluded']);
-		// the machine-readable formats must not be prefaced
-		if (in_array($format, ['console', 'github'], true)) {
+		// the machine-readable formats must not be prefaced, and a generated baseline is not a report
+		if (!$generate && in_array($format, ['console', 'github'], true)) {
 			if ($this->xdebug) {
 				$this->err->writeLine('Warning: Xdebug is loaded and makes the run many times slower.', 'red');
 			}
 
 			$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
 			$this->writeScope(files: $files, paths: $scope, root: $root, fix: $fix, narrowed: $paths && $scope !== $paths);
+		}
+
+		if ($generate) {
+			return $this->generateBaseline($factory, $config, $root, $configFile, $commandLine, $files, $format);
 		}
 
 		$progress = $format === 'console' && count($files) > 1 && $this->out->isTerminal()
@@ -375,6 +387,70 @@ final class Application
 		}
 
 		return implode('/', $common ?? []);
+	}
+
+
+	/**
+	 * Runs the check without the current baseline over code a fix leaves alone and writes what remains into the
+	 * configured baseline file, or into the default one beside the configuration, which the user then has to name
+	 * to make it apply; code a fix would still change, or a file that fails or does not parse, is refused.
+	 * @param  list<string>  $files
+	 */
+	private function generateBaseline(
+		RunnerFactory $factory,
+		Config $config,
+		string $root,
+		?string $configFile,
+		?Profile $commandLine,
+		array $files,
+		string $format,
+	): int
+	{
+		$name = $config->baseline ?? self::defaultBaselineName($configFile);
+		$file = RunnerFactory::toAbsolutePath($name, $root);
+		$runner = $factory->createRunner($config, $root, $commandLine, baseline: false);
+		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter);
+		$changed = $failed = [];
+		foreach ($run->files as $result) {
+			if ($result->failure !== null || $result->syntaxError !== null) {
+				$failed[] = $result->path;
+			} elseif ($result->changed) {
+				$changed[] = $result->path;
+			}
+		}
+
+		if ($changed || $failed) {
+			$counts = array_filter([
+				$changed ? sprintf('a fix would change %d file%s', count($changed), count($changed) === 1 ? '' : 's') : null,
+				$failed ? sprintf('%d file%s failed', count($failed), count($failed) === 1 ? '' : 's') : null,
+			]);
+			$paths = [...$changed, ...$failed];
+			$this->writeError(
+				'The baseline is generated over code a fix leaves alone: ' . implode(', ', $counts) . '. Run `fix` first.',
+				'suppressing#baseline',
+				implode('', array_map(fn(string $path) => "  $path\n", array_slice($paths, 0, 10)))
+				. (count($paths) > 10 ? '  and ' . (count($paths) - 10) . " more\n" : ''),
+			);
+			return 1;
+		}
+
+		$baseline = Baseline::fromResults($run->files);
+		$baseline->save($file);
+		$message = sprintf("Baseline with %d violation%s written to `%s`.\n", $baseline->count(), $baseline->count() === 1 ? '' : 's', $name);
+		if ($config->baseline === null) {
+			$message .= "Name it under `baseline` in the configuration to make it apply.\n";
+		}
+
+		// every other format keeps its stream to itself
+		$format === 'console' ? $this->write($message) : $this->writeNote($message);
+		return 0;
+	}
+
+
+	/** The baseline is written in the format the configuration is written in, so there is no third format. */
+	private static function defaultBaselineName(?string $configFile): string
+	{
+		return 'dresscode-baseline.' . (Loader::detectFormat($configFile ?? '') ?? 'neon');
 	}
 
 
@@ -521,7 +597,7 @@ final class Application
 	private static function parseOnly(ParseResult $args): ?array
 	{
 		/** @var list<string> $only */
-		$only = $args['--only'];
+		$only = $args['--only'] ?? [];
 		return $only ?: null;
 	}
 
@@ -592,6 +668,20 @@ final class Application
 	{
 		$value = getenv($name);
 		return $value === false || $value === '' ? null : $value;
+	}
+
+
+	/** A message of the tool on the output, its code drawn; what is not a message (code, JSON) goes to `$out` itself. */
+	private function write(string $text): void
+	{
+		$this->out->write(Markup::highlightCode($this->out, $text));
+	}
+
+
+	/** A message of the tool on the error output, which keeps the output for what the command produces. */
+	private function writeNote(string $text): void
+	{
+		$this->err->write(Markup::highlightCode($this->err, $text));
 	}
 
 

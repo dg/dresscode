@@ -19,7 +19,7 @@ final readonly class Violation
 		public int $line,
 		public ?int $column,
 		public Severity $severity,
-		/** stable identity: the rule, the normalized content of the line and the place among the violations of that rule on it */
+		/** stable identity for baselines: the rule, the normalized content of the line and the place among the violations of that rule on it */
 		public string $fingerprint,
 		/** the fix of this occurrence may change what the code does, so it waits until the run allows one; what would decide */
 		public ?Risk $risk = null,

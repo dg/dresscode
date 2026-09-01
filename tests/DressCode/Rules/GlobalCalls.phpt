@@ -22,7 +22,7 @@ function prepare(string $code): array
 		'8.4',
 		new Registry,
 		Suppression::fromFile($file, fn() => []),
-		new Fingerprints([]),
+		new Fingerprints([], 'a.php'),
 		'test/a',
 	);
 	$calls = $file->find(FunctionCallNode::class);

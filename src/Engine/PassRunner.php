@@ -69,6 +69,8 @@ final class PassRunner
 		private readonly int $maxPasses = 10,
 		/** a broken rule contract throws instead of warning */
 		private readonly bool $strict = false,
+		/** violations it knows are not recorded */
+		private readonly ?Baseline $baseline = null,
 		/** @var array<string, true>  rules whose violations only warn */
 		private readonly array $warningRules = [],
 		/** whether every fix that may change what the code does is allowed */
@@ -95,7 +97,7 @@ final class PassRunner
 		$this->violations = $this->warnings = $this->contexts = $this->entering = $this->leaving = [];
 		$this->opened = new \WeakMap;
 		$this->moved = new \WeakMap;
-		$this->fingerprints = new Fingerprints($lines);
+		$this->fingerprints = new Fingerprints($lines, $path, $this->baseline);
 		$suppression = Suppression::fromFile($file, $this->resolveNames, $code);
 		foreach ($this->plan->rules as $rule) {
 			$name = RuleInfo::of($rule)->name;
@@ -145,8 +147,10 @@ final class PassRunner
 			$this->warnings,
 			$passes,
 			$mutated,
+			$this->fingerprints->getSilenced(),
 			array_keys($mutatedRules),
-			remaining: $mutated ? $this->collectRemaining($last) : null,
+			// what the baseline knows is decided by the lines of the fixed text, which only another run has
+			remaining: $mutated && $this->baseline === null ? $this->collectRemaining($last) : null,
 		);
 	}
 
@@ -158,7 +162,7 @@ final class PassRunner
 	 */
 	private function collectRemaining(string $text): array
 	{
-		$fingerprints = new Fingerprints(preg_split('~\r\n|\r|\n~', $text) ?: []);
+		$fingerprints = new Fingerprints(preg_split('~\r\n|\r|\n~', $text) ?: [], $this->path);
 		/** @var \WeakMap<Token, string> $opened */
 		$opened = new \WeakMap;
 		/** @var \WeakMap<Token, string> $moved */
@@ -360,7 +364,8 @@ final class PassRunner
 
 	/**
 	 * Turns the reports of a callback into violations and checks that every mutation follows a report that returned
-	 * true; what the rule wrote after a denied report, up to its next one, it wrote for that report.
+	 * true; what the rule wrote after a denied report, up to its next one, it wrote for that report. A report the
+	 * baseline knows is not denied, only not recorded.
 	 * @param int $before  the revision of the file before the callback
 	 * @param bool $checkSilent  whether an unreported mutation is the rule's doing, which along the gap
 	 *                           traversal it need not be, because the revision then covers every rule
@@ -388,18 +393,21 @@ final class PassRunner
 			$severity = isset($this->warningRules[$name]) ? Severity::Warning : Severity::Error;
 			$this->reported[] = [$name, $report, $refused, $severity];
 			$derivedFrom = self::findAncestor($report, $this->opened, $this->moved);
-			$this->violations[$fingerprint] ??= new Violation(
-				$name,
-				$report->message,
-				$report->line,
-				$report->trivia === null ? $this->findOriginalColumn($report->at) : null,
-				$severity,
-				fingerprint: $fingerprint,
-				risk: $report->risk,
-				refused: $refused,
-				because: $report->because,
-				derivedFrom: $derivedFrom === $fingerprint ? null : $derivedFrom,
-			);
+			if (!$report->known) { // what the baseline knows is not recorded, though the rule may have fixed it
+				$this->violations[$fingerprint] ??= new Violation(
+					$name,
+					$report->message,
+					$report->line,
+					$report->trivia === null ? $this->findOriginalColumn($report->at) : null,
+					$severity,
+					fingerprint: $fingerprint,
+					risk: $report->risk,
+					refused: $refused,
+					because: $report->because,
+					derivedFrom: $derivedFrom === $fingerprint ? null : $derivedFrom,
+				);
+			}
+
 			self::markLine($report, $refused, $derivedFrom ?? $fingerprint, $this->opened, $this->moved);
 		}
 

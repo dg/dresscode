@@ -74,6 +74,8 @@ final readonly class Config extends Profile
 		/** @var list<string>  the extensions of the files to check, without a dot */
 		public array $fileExtensions = ['php'],
 		?callable $skipWhen = null,
+		/** .neon or .php file of violations left unreported, relative to the root; `dresscode baseline` writes it */
+		public ?string $baseline = null,
 		array $analyses = [],
 		/** the address of the page of each rule the configuration names by class, `{slug}` standing for the name without its vendor */
 		public ?string $ruleUrl = null,

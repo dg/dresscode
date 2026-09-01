@@ -39,6 +39,8 @@ final class FileProcessor
 		private readonly int $maxPasses = 10,
 		/** a broken rule contract throws instead of warning */
 		private readonly bool $strict = false,
+		/** violations it knows are not recorded */
+		private readonly ?Baseline $baseline = null,
 		/** @var array<string, true>  rules whose violations only warn */
 		private readonly array $warningRules = [],
 		/** whether every fix that may change what the code does is allowed */
@@ -75,7 +77,7 @@ final class FileProcessor
 			}
 
 			$this->plan ??= new RulePlan($this->rules);
-			$runner = new PassRunner($this->plan, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->warningRules, $this->fixRisky, $this->fixRiskyRules);
+			$runner = new PassRunner($this->plan, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline, $this->warningRules, $this->fixRisky, $this->fixRiskyRules);
 			$result = $runner->run($file, $text, $path, $style, $this->phpVersion);
 			$first ??= $result;
 			$passes += $result->passes;
@@ -107,6 +109,7 @@ final class FileProcessor
 			$first->violations,
 			$first->warnings,
 			passes: $passes,
+			baselined: $first->baselined,
 			remaining: $remaining ?? $result->violations, // the last round is a check of the text the fix writes
 		);
 	}

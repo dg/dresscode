@@ -23,6 +23,7 @@ test('defaults', function () {
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'], $config->excludePaths);
 	Assert::same(['php'], $config->fileExtensions);
 	Assert::null($config->skipWhen);
+	Assert::null($config->baseline);
 	Assert::same([], $config->analyses);
 });
 
@@ -39,6 +40,7 @@ test('every key is a named argument', function () {
 		paths: ['src'],
 		fileExtensions: ['php', 'phpt'],
 		skipWhen: fn(string $content, string $path) => $path === 'skip.php',
+		baseline: 'baseline.json',
 	);
 	Assert::same(['a/b'], $config->presets);
 	Assert::same(['x/y' => ['opt' => 1], 'x/z' => false], $config->rules);
@@ -47,6 +49,7 @@ test('every key is a named argument', function () {
 	Assert::same(['src'], $config->paths);
 	Assert::same(['php', 'phpt'], $config->fileExtensions);
 	Assert::true(($config->skipWhen ?? throw new LogicException)('', 'skip.php'));
+	Assert::same('baseline.json', $config->baseline);
 });
 
 
