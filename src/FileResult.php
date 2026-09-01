@@ -43,6 +43,8 @@ final class FileResult
 		public readonly array $remaining = [],
 		/** the fixed text was written back to the file */
 		public private(set) bool $written = false,
+		/** the content was known to be clean, so it was not processed */
+		public readonly bool $cached = false,
 	) {
 	}
 

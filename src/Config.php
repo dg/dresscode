@@ -76,6 +76,7 @@ final readonly class Config extends Profile
 		?callable $skipWhen = null,
 		/** .neon or .php file of violations left unreported, relative to the root; `dresscode baseline` writes it */
 		public ?string $baseline = null,
+		public ?string $cacheDir = null,
 		array $analyses = [],
 		/** the address of the page of each rule the configuration names by class, `{slug}` standing for the name without its vendor */
 		public ?string $ruleUrl = null,

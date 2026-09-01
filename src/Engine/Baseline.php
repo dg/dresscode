@@ -163,6 +163,13 @@ final class Baseline
 	}
 
 
+	/** Identity of the entries, for whatever caches a result that depends on them. */
+	public function getHash(): string
+	{
+		return hash('xxh128', serialize($this->entries));
+	}
+
+
 	/** Whether the baseline knows this violation of the file, which is then not recorded. */
 	public function knows(string $path, string $fingerprint): bool
 	{
@@ -171,7 +178,8 @@ final class Baseline
 
 
 	/**
-	 * Records the entries a run silenced in a file.
+	 * Records the entries a run silenced; the run tells the baseline, because a file may have been
+	 * served by the cache, which knows what the baseline silenced in it.
 	 * @param list<string> $fingerprints
 	 */
 	public function markUsed(string $path, array $fingerprints): void
