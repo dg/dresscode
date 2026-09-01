@@ -195,6 +195,12 @@ final class RuleRegistry
 	{
 		$this->registerPreset(Presets\Per::class);
 		$this->registerPreset(Presets\Psr12::class);
+		$this->registerPreset(Presets\Cleanup::class);
+		$this->registerPreset(Presets\Modern::class);
+		$this->registerPreset(Presets\Types::class);
+		$this->registerPreset(Presets\PhpDoc::class);
+		$this->registerPreset(Presets\Imports::class);
+		$this->registerPreset(Presets\Classes::class);
 		foreach (self::BuiltinRules as $class) {
 			$this->registerRule($class);
 		}
