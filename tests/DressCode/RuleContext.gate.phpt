@@ -56,7 +56,7 @@ function createContext(FileNode $file, array $raw, ?array $selection = null, boo
 		'8.4',
 		new Registry,
 		Suppression::fromFile($file, fn() => []),
-		new Fingerprints([]),
+		new Fingerprints([], 'a.php'),
 		policy: new ReportPolicy(strict: $strict),
 		gate: Gate::fromValues(SpacingRule::getDecisions(), $values),
 	);
@@ -97,8 +97,21 @@ test('a path the rule does not declare and a parameter are a mistake of the rule
 test('the only requirement of a rule is the one a report without a path is under', function () use ($file, $token) {
 	$decisions = ['blankLines.x' => new Decision('blankLines.x', new Count, 'Blank lines')];
 	$values = new Values($decisions, ['blankLines.x' => $decisions['blankLines.x']->accept(1)]);
-	$context = new RuleContext($file, 'a.php', new Style, '8.4', new Registry, Suppression::fromFile($file, fn() => []), new Fingerprints([]), gate: Gate::fromValues(array_values($decisions), $values));
+	$context = new RuleContext($file, 'a.php', new Style, '8.4', new Registry, Suppression::fromFile($file, fn() => []), new Fingerprints([], 'a.php'), gate: Gate::fromValues(array_values($decisions), $values));
 	Assert::true($context->report($token, 'Wrong.'));
+});
+
+
+test('the gate names the requirements the run reports', function () {
+	Assert::same(['spacing.call', 'spacing.comma'], Gate::open(SpacingRule::getDecisions())->getAdmitted());
+
+	$decisions = [];
+	foreach (SpacingRule::getDecisions() as $decision) {
+		$decisions[$decision->path] = $decision;
+	}
+
+	$values = new Values($decisions, ['spacing.call' => $decisions['spacing.call']->accept('foo()'), 'spacing.comma' => $decisions['spacing.comma']->accept('keep')]);
+	Assert::same(['spacing.call'], Gate::fromValues(SpacingRule::getDecisions(), $values)->getAdmitted());
 });
 
 

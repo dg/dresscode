@@ -273,6 +273,7 @@ final class ConsoleReporter implements Reporter
 			!$this->fix && $left !== $result->countViolations() ? 'a fix leaves ' . ($left ?: 'none') : null,
 			$result->countSyntaxErrors() ? self::formatCount($result->countSyntaxErrors(), 'syntax error') : null,
 			$failures ? self::formatCount($failures, 'failed file') : null,
+			$result->baselined ? self::formatCount($result->baselined, 'violation') . ' in the baseline' : null,
 		]);
 
 		$state = match (true) {

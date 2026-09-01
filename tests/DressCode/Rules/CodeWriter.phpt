@@ -36,7 +36,7 @@ function createWriterContext(FileNode $file): RuleContext
 		'8.4',
 		new Registry,
 		Suppression::fromFile($file, fn() => []),
-		new Fingerprints([]),
+		new Fingerprints([], 'a.php'),
 	);
 }
 

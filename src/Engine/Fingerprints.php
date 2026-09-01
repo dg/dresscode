@@ -12,9 +12,9 @@ use function count;
 
 
 /**
- * The identity of the violations of one file while they are being reported: the fingerprint of a report. The place
- * of a violation among those of its decision on a line is kept across the passes, so that a pass repeating a report
- * of the pass before arrives at the same fingerprint and adds no violation.
+ * The identity of the violations of one file while they are being reported: the fingerprint of a report and
+ * whether the baseline holds it. The place of a violation among those of its decision on a line is kept across the
+ * passes, so that a pass repeating a report of the pass before arrives at the same fingerprint and adds no violation.
  * @internal
  */
 final class Fingerprints
@@ -25,6 +25,9 @@ final class Fingerprints
 	/** @var array<string, array<string, int>>  decision\nline content => message\noccurrence => its place among them, kept over the passes */
 	private array $places = [];
 
+	/** @var array<string, true>  fingerprints the baseline matched */
+	private array $baselined = [];
+
 	/** @var \WeakMap<Node, array<string, array{at: Node|Token, trivia: ?Trivia, fingerprint: ?string}>>  a construct => decision => the place of its violation in this pass and its fingerprint */
 	private \WeakMap $constructs;
 
@@ -32,12 +35,14 @@ final class Fingerprints
 	public function __construct(
 		/** @var list<string>  lines of the original file */
 		private readonly array $lines,
+		private readonly string $path,
+		private readonly ?Baseline $baseline = null,
 	) {
 		$this->constructs = new \WeakMap;
 	}
 
 
-	/** A new pass counts the occurrences from the start. */
+	/** A new pass counts the occurrences from the start; what the baseline held stays matched. */
 	public function beginPass(): void
 	{
 		$this->occurrences = [];
@@ -49,7 +54,7 @@ final class Fingerprints
 	 * The identity of the violation about to be reported; every call counts as one occurrence of its message. The
 	 * message tells the violations of the decision on the line apart while the file is processed, a pass repeating one
 	 * arriving at the same identity, but is not part of it: the violations of the decision on the line are numbered in the
-	 * order they first come, so that a message worded otherwise by a newer version keeps its identity.
+	 * order they first come, so that a message worded otherwise by a newer version keeps what the baseline holds.
 	 */
 	public function create(string $decision, string $message, int $line): string
 	{
@@ -104,5 +109,25 @@ final class Fingerprints
 		$reports[$decision] = $report;
 		$this->constructs[$construct] = $reports;
 		return $report['fingerprint'];
+	}
+
+
+	/** Whether the baseline holds the violation, which is then baselined and not recorded. */
+	public function matchBaseline(string $fingerprint): bool
+	{
+		if ($this->baseline?->has($this->path, $fingerprint) !== true) {
+			return false;
+		}
+
+		$this->baselined[$fingerprint] = true;
+		return true;
+	}
+
+
+	/** @return list<string>  the fingerprints the baseline matched, each once */
+	public function getBaselined(): array
+	{
+		// a fingerprint of nothing but digits comes back from the array key as an int
+		return array_map(strval(...), array_keys($this->baselined));
 	}
 }

@@ -215,10 +215,10 @@ test('github: a warning about the run is an annotation of its own', function () 
 	$stream = memory();
 	$reporter = new GithubReporter($stream);
 	$reporter->start(new RunInfo('', false, 1));
-	$reporter->finish(new RunResult([], false, warnings: ['Decision `acme.debugCalls` needs PHP 8.4 and the target is 8.1; skipped.']));
+	$reporter->finish(new RunResult([], false, warnings: ['1 entry of the baseline no longer matches a violation']));
 	rewind($stream);
 	Assert::same(
-		"::warning title=dresscode::Decision `acme.debugCalls` needs PHP 8.4 and the target is 8.1; skipped.\n0 violations in 1 file\n",
+		"::warning title=dresscode::1 entry of the baseline no longer matches a violation\n0 violations in 1 file\n",
 		stream_get_contents($stream),
 	);
 });
@@ -452,6 +452,7 @@ test('json', function () {
 		        "changedFiles": 1,
 		        "syntaxErrors": 1,
 		        "failures": 1,
+		        "baselined": 0,
 		        "exitCode": 2
 		    },
 		    "warnings": []

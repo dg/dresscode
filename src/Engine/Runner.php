@@ -9,7 +9,7 @@ namespace DressCode\Engine;
 
 use DressCode\{ConvergenceException, FileResult, Reporter, RuleException};
 use Nette\Utils\{FileSystem, Finder};
-use function count, strlen;
+use function count, sprintf, strlen;
 
 
 /**
@@ -31,6 +31,10 @@ final readonly class Runner
 		private array $fileExtensions = ['php'],
 		/** @var ?\Closure(string $content, string $path): bool files left out by their content */
 		private ?\Closure $skipWhen = null,
+		/** violations left unreported */
+		private ?Baseline $baseline = null,
+		/** the run is narrowed to some of the decisions, so it says nothing about the baseline entries of the others */
+		private bool $narrowed = false,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
 		$this->processors = $processors instanceof FileProcessor ? FileProcessors::of($processors) : $processors;
@@ -70,11 +74,16 @@ final readonly class Runner
 		}
 
 		$ordered = [];
-		$report = function () use (&$ready, &$ordered, $order, $reporter): void {
+		$scope = []; // the files the run can say something about to the baseline, and by which decisions
+		$report = function () use (&$ready, &$ordered, &$scope, $order, $reporter): void {
 			for ($next = count($ordered); isset($order[$next], $ready[$order[$next]]); $next++) {
 				$path = $order[$next];
 				$result = $ready[$path];
 				unset($ready[$path]);
+				if ($this->baseline !== null && $result->syntaxError === null && $result->failure === null) {
+					$scope[$path] = $this->narrowed ? $this->processors->get($path)->getReportedDecisions() : null;
+				}
+
 				$reporter->reportFile($result);
 				$ordered[] = FileSummary::of($result);
 			}
@@ -89,7 +98,19 @@ final readonly class Runner
 			$onProgress(count($files), []); // the whole scope is done, whatever was skipped along the way
 		}
 
-		$result = new RunResult($ordered, $fix, maxWarnings: $maxWarnings);
+		$unmatched = $this->baseline?->countUnmatched($scope) ?? 0;
+		$result = new RunResult(
+			$ordered,
+			$fix,
+			baselined: $this->baseline?->countMatched() ?? 0,
+			warnings: $unmatched ? [sprintf(
+				'%d %s of the baseline no longer %s a violation; regenerate it with `dresscode baseline`.',
+				$unmatched,
+				$unmatched === 1 ? 'entry' : 'entries',
+				$unmatched === 1 ? 'matches' : 'match',
+			)] : [],
+			maxWarnings: $maxWarnings,
+		);
 		$reporter->finish($result);
 		return $result;
 	}
@@ -180,7 +201,9 @@ final readonly class Runner
 	public function processCode(string $path, string $code): FileResult
 	{
 		$path = $this->relativize($path);
-		return $this->processors->get($path)->process($path, $code);
+		$result = $this->processors->get($path)->process($path, $code);
+		$this->baseline?->markMatched($result->path, $result->baselined);
+		return $result;
 	}
 
 

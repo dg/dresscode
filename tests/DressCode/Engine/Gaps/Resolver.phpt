@@ -287,7 +287,7 @@ test('a required line break is put in, after the comment on the line of what clo
 });
 
 
-test('the gaps of a construct a closure decided about once are one violation, placed and silenced as the first of them', function () {
+test('the gaps of a construct a closure decided about once are one violation, placed, silenced and baselined as the first of them', function () {
 	$rule = claiming([Nodes\Expression\ArrayNode::class => ['items:item' => [
 		fn(Gap $gap) => ($array = $gap->value->parent?->parent) instanceof Nodes\Expression\ArrayNode
 			? $gap->once($array, Claim::nextLine(...))

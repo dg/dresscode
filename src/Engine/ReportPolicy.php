@@ -12,7 +12,8 @@ use function is_array;
 
 /**
  * How a run treats what the rules report, the same for every file of one configuration: what silences a report, what
- * only warns, which fixes that may change what the code does it makes, and whether a broken rule contract throws.
+ * leaves it unrecorded or only warns, which fixes that may change what the code does it makes, and whether a broken
+ * rule contract throws.
  * @internal
  */
 final readonly class ReportPolicy
@@ -26,6 +27,8 @@ final readonly class ReportPolicy
 		?\Closure $expandName = null,
 		/** @var array<string, list<string>>  pattern of a comment => the decisions it silences where it stands */
 		public array $suppressionComments = [],
+		/** violations it holds are not recorded */
+		public ?Baseline $baseline = null,
 		/** @var array<string, true>  decisions whose violations only warn */
 		public array $warnOnly = [],
 		/** @var bool|array<string, true>  whether the run may make a fix that changes what the code does: every one, or those of the decisions */

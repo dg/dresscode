@@ -115,6 +115,7 @@ final class NeonReader
 			'excludePaths' => Expect::listOf('string', wrap: true),
 			'fileExtensions' => Expect::listOf('string', wrap: true),
 			'skipWhen' => Expect::type(Entity::class),
+			'baseline' => Expect::string(),
 			// a class the engine builds itself, or a class with the entity of its factory
 			'analyses' => Expect::arrayOf(Expect::anyOf(Expect::string(), Expect::type(Entity::class))),
 			'ruleUrl' => Expect::string(),

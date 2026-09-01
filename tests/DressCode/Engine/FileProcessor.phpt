@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-use DressCode\{Analyses, Config, ConvergenceException, NodeRule, Rule, RuleContext, RuleInfo, Stage, Style};
+use DressCode\{Analyses, Config, ConvergenceException, FileResult, NodeRule, Rule, RuleContext, RuleInfo, Stage, Style};
 use DressCode\Config\RuleBuilder;
-use DressCode\Engine\{FileProcessor, ReportPolicy};
+use DressCode\Engine\{Baseline, FileProcessor, ReportPolicy};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use PhpSyntax\Nodes\Scalar\IntegerNode;
@@ -109,6 +109,14 @@ function processor(array $rules, bool $detectLineEnding = true, bool $strict = f
 }
 
 
+/** @param list<Rule> $rules */
+function processWithBaseline(array $rules, string $code, ?Baseline $baseline): FileResult
+{
+	return new FileProcessor($rules, new Analyses\Registry, Config::DefaultPhpVersion, policy: new ReportPolicy(baseline: $baseline))
+		->process('a.php', $code);
+}
+
+
 test('a clean file passes through unchanged', function () {
 	$result = processor([new ProcessorRename])->process('a.php', "<?php\n\$x;\n");
 	Assert::same("<?php\n\$x;\n", $result->output);
@@ -139,6 +147,39 @@ test('a claim a comment keeps from being fixed remains, whatever the rest of the
 	Assert::same("<?php\nif (\$a) {\n\t\$b;\n}\n// why\nelseif (\$c) {\n\t\$d;\n}\nif (\$e) {\n\t\$f;\n}\n", $result->output);
 	Assert::count(2, $result->violations);
 	Assert::same(['Expected no line break before the `elseif` keyword.'], array_map(fn($v) => $v->message, $result->remaining));
+});
+
+
+test('a violation the baseline holds is not recognized in a later round on a line a fix rewrote, and remains', function () {
+	$rules = fn() => [new ProcessorRename, RuleBuilder::createRule(DressCode\Rules\Variables\NoGlobalStatementsRule::class)];
+	$code = "<?php\nglobal \$a;\n";
+	$global = array_values(array_filter(
+		processWithBaseline($rules(), $code, null)->violations,
+		fn($v) => $v->decision === 'correctness.globalStatement',
+	));
+	$baseline = Baseline::fromResults([new FileResult('a.php', $code, $code, $global)]);
+
+	$result = processWithBaseline($rules(), $code, $baseline);
+	Assert::same("<?php\nglobal \$b;\n", $result->output);
+	Assert::same(['project.processorRename'], array_map(fn($v) => $v->decision, $result->violations));
+	Assert::count(1, $result->baselined);
+	// what the fix left is what the next check reports
+	Assert::same(['correctness.globalStatement'], array_map(fn($v) => $v->decision, $result->remaining));
+	$next = processWithBaseline($rules(), (string) $result->output, $baseline);
+	Assert::same(array_map(fn($v) => $v->fingerprint, $result->remaining), array_map(fn($v) => $v->fingerprint, $next->violations));
+});
+
+
+test('a violation the baseline holds is not recorded, and a rule that can fix it fixes it', function () {
+	$rules = fn() => [RuleBuilder::createRule(DressCode\Rules\Literals\StringQuotesRule::class, ['literals.quotes' => 'single'])];
+	$code = "<?php\n\$a = \"x\";\n";
+	$baseline = Baseline::fromResults([processWithBaseline($rules(), $code, null)]);
+
+	$result = processWithBaseline($rules(), $code, $baseline);
+	Assert::same("<?php\n\$a = 'x';\n", $result->output);
+	Assert::same([], $result->violations);
+	Assert::count(1, $result->baselined);
+	Assert::same([], $result->remaining);
 });
 
 

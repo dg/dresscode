@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{Config, ConfigurationException, Override, Plugin, PluginManifest, Profile};
-use DressCode\Engine\{FileProcessor, FileProcessors, Helpers, ReportPolicy, Runner};
+use DressCode\Engine\{Baseline, FileProcessor, FileProcessors, Helpers, ReportPolicy, Runner};
 use Nette\Utils\FileSystem;
 use function count, is_string;
 
@@ -66,23 +66,26 @@ final readonly class RunnerFactory
 	 * @param  bool  $strict  a broken rule contract throws instead of warning
 	 * @param  bool  $fixRisky  every fix that may change what the code does is made, not only those of the decisions
 	 *                           the configuration names in fixRisky
+	 * @param  bool  $baseline  the configured baseline leaves what it knows unrecorded; a run generating one sees everything
 	 * @throws ConfigurationException
 	 */
 	public function createRunner(
 		ResolvedProject $resolution,
 		bool $strict = false,
 		bool $fixRisky = false,
+		bool $baseline = true,
 	): Runner
 	{
 		$config = $resolution->config;
 		$root = $resolution->root;
 		$layers = [...$resolution->pluginManifests, $config];
 		$analyses = array_merge(...array_map(fn(Config|PluginManifest $layer) => $layer->analyses, $layers));
+		$baselineFile = $baseline ? self::loadBaseline($config, $root) : null;
 
 		$registry = $this->registry;
 		$processors = new FileProcessors(
 			array_map(fn(Override $override) => $override->paths, $config->overrides),
-			function (array $overrides) use ($resolution, $registry, $analyses, $strict, $fixRisky): FileProcessor {
+			function (array $overrides) use ($resolution, $registry, $analyses, $strict, $baselineFile, $fixRisky): FileProcessor {
 				$variant = $resolution->resolveFor($overrides);
 				$style = $variant->createStyle();
 				$analysisRegistry = $variant->createAnalyses($style);
@@ -99,6 +102,7 @@ final readonly class RunnerFactory
 					policy: new ReportPolicy(
 						expandName: $registry->expandSuppressedName(...),
 						suppressionComments: $variant->suppressionComments,
+						baseline: $baselineFile,
 						warnOnly: $variant->warnOnly,
 						fixRisky: $fixRisky ?: $variant->fixRisky,
 						strict: $strict,
@@ -113,6 +117,8 @@ final readonly class RunnerFactory
 			array_values(array_unique(array_merge(...array_map(fn(Config|PluginManifest $layer) => $layer->excludePaths, $layers)))),
 			$config->fileExtensions,
 			self::combineSkipWhen($layers),
+			$baselineFile,
+			narrowed: (bool) $resolution->only,
 		);
 	}
 
@@ -201,6 +207,13 @@ final readonly class RunnerFactory
 			1 => $filters[0],
 			default => fn(string $content, string $path): bool => array_any($filters, fn(\Closure $filter) => $filter($content, $path)),
 		};
+	}
+
+
+	/** The configured baseline when its file exists; before the first generation there is none. */
+	public static function loadBaseline(Config $config, string $root): ?Baseline
+	{
+		return $config->baseline === null ? null : Baseline::load(self::toAbsolutePath($config->baseline, $root));
 	}
 
 

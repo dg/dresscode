@@ -78,4 +78,14 @@ final readonly class Gate
 		$selected = $this->decisions[$decision] ?? throw new \LogicException("It reported under `$decision`, a parameter, which reports nothing of its own.");
 		return $selected ? $decision : null;
 	}
+
+
+	/**
+	 * The paths of the requirements the run reports.
+	 * @return list<string>
+	 */
+	public function getAdmitted(): array
+	{
+		return array_keys(array_filter($this->decisions));
+	}
 }
