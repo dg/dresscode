@@ -2,6 +2,7 @@
 
 use DressCode\{FileResult, Reporter, RunResult, Severity, Violation};
 use DressCode\Reporters\{CheckstyleReporter, ConsoleReporter, GithubReporter, JsonReporter};
+use Nette\CommandLine\Console;
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -46,6 +47,13 @@ function memory()
 }
 
 
+/** @param resource $stream  a console that writes the report as plain text */
+function plain($stream): Console
+{
+	return new Console($stream, colors: false);
+}
+
+
 /** @param Closure(resource): Reporter $factory */
 function capture(Closure $factory, bool $fix): string
 {
@@ -82,7 +90,7 @@ test('console: check lists every violation and says what a fix would leave', fun
 
 		FAILED  2 violations, 1 of them following from others, 1 warning, a fix leaves 1, 1 file with syntax errors, 1 failed file in 3 of 4 files
 
-		XX, normalize(capture(fn($s) => new ConsoleReporter($s), fix: false)));
+		XX, normalize(capture(fn($s) => new ConsoleReporter(plain($s)), fix: false)));
 });
 
 
@@ -108,13 +116,13 @@ test('console: fix lists what the fixed text still violates and says which file 
 
 		FAILED  2 violations found, none remaining, 1 warning, 1 file with syntax errors, 1 failed file in 3 of 4 files
 
-		XX, normalize(capture(fn($s) => new ConsoleReporter($s, diff: true), fix: true)));
+		XX, normalize(capture(fn($s) => new ConsoleReporter(plain($s), diff: true), fix: true)));
 });
 
 
 test('console: verdict of a clean run', function () {
 	$stream = memory();
-	$reporter = new ConsoleReporter($stream);
+	$reporter = new ConsoleReporter(plain($stream));
 	$reporter->start(1, false);
 	$reporter->finish(new RunResult([new FileResult('a.php', '', '')], false));
 	$reporter->start(1, true);
@@ -136,7 +144,7 @@ test('bare: what is left to the user and which files were rewritten, nothing els
 		src/fail.php
 		  Rule test/x failed in src/fail.php: boom
 
-		XX, normalize(capture(fn($s) => new ConsoleReporter($s, diff: true, bare: true), fix: true)));
+		XX, normalize(capture(fn($s) => new ConsoleReporter(plain($s), diff: true, bare: true), fix: true)));
 });
 
 
@@ -169,7 +177,7 @@ test('console: what follows from a violation is described by rule and line', fun
 	$violation = fn(string $rule, int $line, string $fingerprint, ?string $from = null) =>
 		new Violation($rule, 'M', $line, null, Severity::Error, fingerprint: $fingerprint, derivedFrom: $from);
 	$stream = memory();
-	$reporter = new ConsoleReporter($stream);
+	$reporter = new ConsoleReporter(plain($stream));
 	$reporter->start(1, false);
 	$reporter->reportFile(new FileResult('a.php', '', '', [
 		$violation('test/a', 2, 'f1'),
@@ -200,7 +208,7 @@ test('console: what follows from a violation is described by rule and line', fun
 
 test('console: paths under the working directory are relative to it, the others absolute', function () {
 	$stream = memory();
-	$reporter = new ConsoleReporter($stream, root: '/project', cwd: '/project/src');
+	$reporter = new ConsoleReporter(plain($stream), root: '/project', cwd: '/project/src');
 	$reporter->start(2, false);
 	$reporter->reportFile(new FileResult('src/a.php', '', '', [
 		new Violation('dresscode/no-x', 'No x', 1, null, Severity::Error, fingerprint: 'f'),
@@ -223,6 +231,23 @@ test('console: paths under the working directory are relative to it, the others 
 		  error  1  No z  acme/no-z
 
 		XX, normalize(stream_get_contents($stream)));
+});
+
+
+test('console: a status drawn over the output is erased before anything is written, a clean file writes nothing', function () {
+	putenv('COLUMNS=80');
+	$stream = memory();
+	$console = new Console($stream, colors: false, terminal: true);
+	$reporter = new ConsoleReporter($console);
+	[$clean, $violating] = results();
+	$console->setStatus('5/10 running');
+	$reporter->reportFile($clean);
+	rewind($stream);
+	Assert::same("\e[?25l5/10 running\r", (string) stream_get_contents($stream)); // the status is all there is
+
+	$reporter->reportFile($violating);
+	rewind($stream);
+	Assert::match("\e[?25l5/10 running\r\e[J\e[?25hsrc%a%a.php%A%", (string) stream_get_contents($stream));
 });
 
 
