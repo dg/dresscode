@@ -189,6 +189,20 @@ final readonly class CommandContext
 	}
 
 
+	/** A message of the tool on the output, its code drawn; what is not a message (code, JSON) goes to `$out` itself. */
+	public function write(string $text): void
+	{
+		$this->out->write(Markup::highlightCode($this->out, $text));
+	}
+
+
+	/** A message of the tool on the error output, which keeps the output for what the command produces. */
+	public function writeNote(string $text): void
+	{
+		$this->err->write(Markup::highlightCode($this->err, $text));
+	}
+
+
 	/** An error that ends the run, followed by the detail and the page of the manual that says more. */
 	public function writeError(string $message, ?string $docs = null, string $detail = ''): void
 	{

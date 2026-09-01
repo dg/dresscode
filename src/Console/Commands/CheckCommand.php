@@ -7,17 +7,17 @@
 
 namespace DressCode\Console\Commands;
 
-use DressCode\Config\PluginRegistry;
+use DressCode\{Config, Reporter, Reporters};
+use DressCode\Config\{Loader, PluginRegistry};
 use DressCode\Console\{CommandContext, Markup, ProgressBar};
-use DressCode\Engine\{FileSummary, Helpers, Runner, RunResult};
-use DressCode\{Reporter, Reporters};
+use DressCode\Engine\{Baseline, FileSummary, Helpers, Runner, RunResult};
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use function count, in_array, is_string, sprintf;
 
 
 /**
- * The commands `check` and `fix`: the run over the files of the project, or over the code of stdin.
+ * The commands `check`, `fix` and `baseline`: the run over the files of the project, or over the code of stdin.
  * @internal
  */
 final readonly class CheckCommand
@@ -42,14 +42,32 @@ final readonly class CheckCommand
 	}
 
 
-	private function run(ParseResult $args, RunOptions $run, CheckOptions $check, bool $fix = false): int
+	#[Cli\Command('Write the violations a fix leaves into the baseline file of the configuration, once a fix changes nothing')]
+	public function baseline(ParseResult $args, RunOptions $run): int
 	{
-		[$factory, $resolution, $configFile] = $this->context->resolveProject($args, $check->only);
+		return $this->run($args, $run, generate: true);
+	}
+
+
+	/**
+	 * @param  ?CheckOptions  $check  what check and fix take beyond the run, null for the baseline
+	 * @param  bool  $generate  the baseline command writes the configured baseline, it never reads it
+	 */
+	private function run(
+		ParseResult $args,
+		RunOptions $run,
+		?CheckOptions $check = null,
+		bool $fix = false,
+		bool $generate = false,
+	): int
+	{
+		[$factory, $resolution, $configFile] = $this->context->resolveProject($args, $check->only ?? []);
 		[$config, $root] = [$resolution->config, $resolution->root];
 		$runner = $factory->createRunner(
 			$resolution,
 			strict: (bool) $run->strictRules,
-			fixRisky: (bool) $check->fixRisky,
+			fixRisky: (bool) ($check->fixRisky ?? false),
+			baseline: !$generate,
 		);
 		[$out, $err] = [$this->context->out, $this->context->err];
 		foreach ($resolution->warnings as $warning => $docs) {
@@ -59,9 +77,9 @@ final readonly class CheckCommand
 			}
 		}
 
-		$stdinPath = $check->stdin;
+		$stdinPath = $check?->stdin;
 		$paths = array_values(array_unique(array_map($this->context->resolvePath(...), $run->paths)));
-		$maxWarnings = $check->maxWarnings;
+		$maxWarnings = $check?->maxWarnings;
 		$format = self::resolveFormat($args, detect: true);
 
 		if (is_string($stdinPath)) {
@@ -77,8 +95,8 @@ final readonly class CheckCommand
 			throw new UsageException('No paths given and none configured.', $args->command);
 		}
 
-		// the machine-readable formats must not be prefaced
-		$preface = in_array($format, ['console', 'github'], true);
+		// the machine-readable formats must not be prefaced, and a generated baseline is not a report
+		$preface = !$generate && in_array($format, ['console', 'github'], true);
 		if ($preface) {
 			if ($this->context->xdebug) {
 				$err->writeLine('Warning: Xdebug is loaded and makes the run many times slower.', 'red');
@@ -98,12 +116,16 @@ final readonly class CheckCommand
 			$this->writeScope(files: $files, paths: $scope, root: $root, fix: $fix, narrowed: $paths && $scope !== $paths);
 		}
 
-		$progress = $format === 'console' && count($files) > 1 && $out->isTerminal()
+		$progress = !$generate && $format === 'console' && count($files) > 1 && $out->isTerminal()
 			? new ProgressBar($out, count($files))
 			: null;
 		$onProgress = $progress === null ? null : $progress->advance(...);
 
 		try {
+			if ($generate) {
+				return $this->generateBaseline($runner, $config, $root, $configFile, $files, $format);
+			}
+
 			$reporter = $this->createReporter($args, $out, $this->context->stdout, $root, $format, $factory->registry);
 			return $runner->run($files, $fix, $reporter, $onProgress, $maxWarnings)->getExitCode();
 		} finally {
@@ -193,6 +215,68 @@ final readonly class CheckCommand
 		}
 
 		return implode('/', $common ?? []);
+	}
+
+
+	/**
+	 * Runs the check without the current baseline over code a fix leaves alone and writes what remains into the
+	 * configured baseline file, or into the default one beside the configuration, which the user then has to name
+	 * to make it apply; code a fix would still change, or a file that fails or does not parse, is refused.
+	 * @param  list<string>  $files
+	 */
+	private function generateBaseline(
+		Runner $runner,
+		Config $config,
+		string $root,
+		?string $configFile,
+		array $files,
+		string $format,
+	): int
+	{
+		$name = $config->baseline ?? self::getDefaultBaselineName($configFile);
+		$file = Helpers::toAbsolutePath($name, $root);
+		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter);
+		$changed = $failed = [];
+		foreach ($run->files as $result) {
+			if ($result->failure !== null || $result->syntaxError !== null) {
+				$failed[] = $result->path;
+			} elseif ($result->changed) {
+				$changed[] = $result->path;
+			}
+		}
+
+		if ($changed || $failed) {
+			$counts = array_filter([
+				$changed ? 'a fix would change ' . Markup::formatCount(count($changed), 'file') : null,
+				$failed ? Markup::formatCount(count($failed), 'file') . ' failed' : null,
+			]);
+			$paths = [...$changed, ...$failed];
+			$this->context->writeError(
+				'The baseline is generated over code a fix leaves alone: ' . implode(', ', $counts) . '. Run `fix` first.',
+				'suppressing#baseline',
+				implode('', array_map(fn(string $path) => "  $path\n", array_slice($paths, 0, 10)))
+				. (count($paths) > 10 ? '  and ' . (count($paths) - 10) . " more\n" : ''),
+			);
+			return 1;
+		}
+
+		$baseline = Baseline::fromResults($run->files);
+		$baseline->save($file);
+		$message = 'Baseline with ' . Markup::formatCount($baseline->count(), 'violation') . " written to `$name`.\n";
+		if ($config->baseline === null) {
+			$message .= "Name it under `baseline` in the configuration to make it apply.\n";
+		}
+
+		// every other format keeps its stream to itself
+		$format === 'console' ? $this->context->write($message) : $this->context->writeNote($message);
+		return 0;
+	}
+
+
+	/** The baseline is written in the format the configuration is written in, so there is no third format. */
+	private static function getDefaultBaselineName(?string $configFile): string
+	{
+		return 'dresscode-baseline.' . (Loader::detectFormat($configFile ?? '') ?? 'neon');
 	}
 
 

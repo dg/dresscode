@@ -11,7 +11,7 @@ use Nette\CommandLine\Attributes as Cli;
 
 
 /**
- * The inputs of a run over the files of the project, which `check` and `fix` share.
+ * The inputs of a run over the files of the project, which `check`, `fix` and `baseline` share.
  * @internal
  */
 final readonly class RunOptions

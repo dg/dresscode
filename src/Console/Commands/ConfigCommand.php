@@ -71,7 +71,9 @@ final readonly class ConfigCommand
 		}
 		$resolution = $factory->resolve($config, $root, $commandLine, $only ?: null);
 		$resolved = is_string($file)
-			? $resolution->resolveFor($factory->createRunner($resolution)->findOverridesFor($this->context->resolvePath($file)))
+			? $resolution->resolveFor(
+				$factory->createRunner($resolution, baseline: false)->findOverridesFor($this->context->resolvePath($file)),
+			)
 			: $resolution->resolvedConfig;
 		$printer = new ConfigPrinter($resolved);
 		$out = $this->context->out;

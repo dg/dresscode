@@ -11,7 +11,8 @@ use Nette\CommandLine\{Attributes as Cli, Normalizers};
 
 
 /**
- * The inputs `check` and `fix` have beyond those of the run.
+ * The inputs `check` and `fix` have beyond those of the run, which a baseline does not take: it holds what the
+ * configuration as it is leaves.
  * @internal
  */
 final readonly class CheckOptions

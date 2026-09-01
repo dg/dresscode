@@ -18,6 +18,7 @@ return new Config(
 	paths: ['src', 'tests'],
 	excludePaths: ['build', 'docs/generated'],
 	fileExtensions: ['php', 'phpt'],
+	baseline: 'dresscode-baseline.neon',
 	analyses: [Acme\DressCode\Analyses\FunctionCalls::class],
 	decisions: [
 		'blankLines' => ['betweenMethods' => "1\u{2013}2", 'beforeStatement' => ['return' => '1+'], 'afterStatement' => []],

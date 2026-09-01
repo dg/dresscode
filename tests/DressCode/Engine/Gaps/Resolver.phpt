@@ -307,31 +307,34 @@ test('a required line break is put in, after the comment on the line of what clo
 });
 
 
-test('the gaps of a construct a closure decided about once are one violation, placed and silenced as the first of them', function () {
-	$rule = claiming([Nodes\Expression\ArrayNode::class => ['items:item' => [
-		fn(Gap $gap) => ($array = $gap->value->parent?->parent) instanceof Nodes\Expression\ArrayNode
-			? $gap->once($array, Claim::nextLine(...))
-			: null,
-		null,
-	]]]);
-	[$output, $violations] = apply(
-		[$rule],
-		"<?php\n\$a = [1, 2, 3];\n\$b = [\n\t4, 5];\n// dresscode:ignore ClaimingRule\n\$c = [6, 7];\n",
-	);
-	Assert::same("<?php\n\$a = [\n\t1,\n\t2,\n\t3];\n\$b = [\n\t4,\n\t5];\n// dresscode:ignore ClaimingRule\n\$c = [6, 7];\n", $output);
-	Assert::same([
-		'2: Expected a line break before the array item. [project.claiming]',
-		'4: Expected a line break before the array item. [project.claiming]',
-	], $violations);
+test(
+	'the gaps of a construct a closure decided about once are one violation, placed, silenced and baselined as the first of them',
+	function () {
+		$rule = claiming([Nodes\Expression\ArrayNode::class => ['items:item' => [
+			fn(Gap $gap) => ($array = $gap->value->parent?->parent) instanceof Nodes\Expression\ArrayNode
+				? $gap->once($array, Claim::nextLine(...))
+				: null,
+			null,
+		]]]);
+		[$output, $violations] = apply(
+			[$rule],
+			"<?php\n\$a = [1, 2, 3];\n\$b = [\n\t4, 5];\n// dresscode:ignore ClaimingRule\n\$c = [6, 7];\n",
+		);
+		Assert::same("<?php\n\$a = [\n\t1,\n\t2,\n\t3];\n\$b = [\n\t4,\n\t5];\n// dresscode:ignore ClaimingRule\n\$c = [6, 7];\n", $output);
+		Assert::same([
+			'2: Expected a line break before the array item. [project.claiming]',
+			'4: Expected a line break before the array item. [project.claiming]',
+		], $violations);
 
-	// a claim decided at every gap on its own is a violation at every gap
-	$rule = claiming([Nodes\Expression\ArrayNode::class => ['items:item' => [fn(Gap $gap) => Claim::nextLine(), null]]]);
-	[, $violations] = apply([$rule], "<?php\n\$a = [1, 2];\n");
-	Assert::same([
-		'2: Expected a line break before the array item. [project.claiming]',
-		'2: Expected a line break before the array item. [project.claiming]',
-	], $violations);
-});
+		// a claim decided at every gap on its own is a violation at every gap
+		$rule = claiming([Nodes\Expression\ArrayNode::class => ['items:item' => [fn(Gap $gap) => Claim::nextLine(), null]]]);
+		[, $violations] = apply([$rule], "<?php\n\$a = [1, 2];\n");
+		Assert::same([
+			'2: Expected a line break before the array item. [project.claiming]',
+			'2: Expected a line break before the array item. [project.claiming]',
+		], $violations);
+	},
+);
 
 
 test('a forbidden line break is taken out, and a comment that has nowhere to go leaves it reported', function () {
