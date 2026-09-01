@@ -1,0 +1,99 @@
+<?php
+
+if ($expr1) {
+    // if body
+} elseif ($expr2) {
+    // elseif body
+} else {
+    // else body;
+}
+
+if (
+    $expr1
+    && $expr2
+) {
+    // if body
+} elseif (
+    $expr3
+    && $expr4
+) {
+    // elseif body
+}
+
+switch ($expr) {
+    case 0:
+        echo 'First case, with a break';
+        break;
+    case 1:
+        echo 'Second case, which falls through';
+        // no break
+    case 2:
+    case 3:
+    case 4:
+        echo 'Third case, return instead of break';
+        return;
+    default:
+        echo 'Default case';
+        break;
+}
+
+switch (
+    $expr1
+    && $expr2
+) {
+    // structure body
+}
+
+$returnValue = match ($expr) {
+    0 => 'First case',
+    1, 2, 3 => multipleCases(),
+    default => 'Default case',
+};
+
+while ($expr) {
+    // structure body
+}
+
+while (
+    $expr1
+    && $expr2
+) {
+    // structure body
+}
+
+do {
+    // structure body;
+} while ($expr);
+
+do {
+    // structure body;
+} while (
+    $expr1
+    && $expr2
+);
+
+for ($i = 0; $i < 10; $i++) {
+    // for body
+}
+
+for (
+    $i = 0;
+    $i < 10;
+    $i++
+) {
+    // for body
+}
+
+foreach ($iterable as $key => $value) {
+    // foreach body
+}
+
+try {
+    // try body
+} catch (FirstThrowableType $e) {
+    // catch body
+} catch (OtherThrowableType | AnotherThrowableType $e) {
+    // catch body
+} finally {
+    // finally body
+}

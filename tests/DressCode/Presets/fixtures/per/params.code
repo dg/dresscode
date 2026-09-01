@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Vendor\Package;
+
+class ClassName
+{
+    public function foo(int $arg1, &$arg2, $arg3 = [])
+    {
+        // method body
+    }
+
+    public function aVeryLongMethodName(
+        ClassTypeHint $arg1,
+        &$arg2,
+        array $arg3 = [],
+    ) {
+        // method body
+    }
+}
+
+class ReturnTypeVariations
+{
+    public function functionName(int $arg1, $arg2): string
+    {
+        return 'foo';
+    }
+
+    public function anotherFunction(
+        string $foo,
+        string $bar,
+        int $baz,
+    ): string {
+        return 'foo';
+    }
+
+    public function nullable(?string $arg1, ?int &$arg2): ?string
+    {
+        return 'foo';
+    }
+
+    public function process(string $algorithm, ...$parts)
+    {
+        // processing
+    }
+
+    public function processByRef(string $algorithm, &...$parts)
+    {
+        // processing
+    }
+}

@@ -1,0 +1,24 @@
+<?php
+
+namespace Vendor\Package;
+
+use FooClass;
+use BarClass as Bar;
+use OtherVendor\OtherPackage\BazClass;
+
+class ClassName extends ParentClass implements \ArrayAccess, \Countable
+{
+    // constants, properties, methods
+}
+
+class ClassName2 extends ParentClass implements
+    \ArrayAccess,
+    \Countable,
+    \Serializable
+{
+    // constants, properties, methods
+}
+
+class MyException extends \RuntimeException {}
+
+$foo = new Foo();
