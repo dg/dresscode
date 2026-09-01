@@ -24,9 +24,23 @@ use function is_array, is_int;
  */
 final class PresetResolver
 {
+	/** @var array<string, string> */
+	private array $warnings = [];
+
+
 	public function __construct(
 		private readonly RuleRegistry $registry,
 	) {
+	}
+
+
+	/**
+	 * What the caller should tell the user about the configuration, each thing once.
+	 * @return list<string>
+	 */
+	public function getWarnings(): array
+	{
+		return array_values($this->warnings);
 	}
 
 
@@ -84,11 +98,39 @@ final class PresetResolver
 			}
 		}
 
+		$explicit = [];
 		foreach ($config->getRules() as $rule => $value) {
-			$entries[$this->registry->resolveRule($rule)] = $value;
+			$class = $this->registry->resolveRule($rule);
+			$entries[$class] = $value;
+			$explicit[$class] = true;
 		}
 
-		return array_filter($entries, fn($value) => $value !== false);
+		$entries = array_filter($entries, fn($value) => $value !== false);
+		return array_filter(
+			$entries,
+			fn(string $class) => $this->fitsPhpVersion($class, $context->getPhpVersion(), isset($explicit[$class])),
+			ARRAY_FILTER_USE_KEY,
+		);
+	}
+
+
+	/**
+	 * A rule enforcing a construct the target version does not have would write code that does not parse.
+	 * Coming from a preset that is business as usual, asked for by name it deserves a word.
+	 * @param  class-string<Rule>  $class
+	 */
+	private function fitsPhpVersion(string $class, string $target, bool $explicit): bool
+	{
+		$info = RuleInfo::of($class);
+		if ($info->minPhpVersion === null || version_compare($target, $info->minPhpVersion, '>=')) {
+			return true;
+		}
+
+		if ($explicit) {
+			$this->warnings[$info->name] = "Rule $info->name needs PHP $info->minPhpVersion, the target is $target; skipped.";
+		}
+
+		return false;
 	}
 
 

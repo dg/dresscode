@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Config;
+use DressCode\Config\PhpVersionSource;
 use DressCode\Config\RunnerFactory;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
@@ -10,6 +11,7 @@ use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression\VariableNode;
 use PhpSyntax\Token;
 use Tester\Assert;
+use Tester\FileMock;
 
 
 require __DIR__ . '/../../bootstrap.php';
@@ -33,12 +35,43 @@ final class ReportContext extends NodeRule
 }
 
 
-test('the PHP version comes from the configuration, composer.json or the runtime', function () use ($fixtures) {
+test('the PHP version comes from the configuration, composer.json or the default', function () use ($fixtures) {
 	$factory = new RunnerFactory;
-	Assert::same('8.1', $factory->resolvePhpVersion(Config::create(), "$fixtures/project"));
-	Assert::same('8.4', $factory->resolvePhpVersion(Config::create()->phpVersion('8.4'), "$fixtures/project"));
-	Assert::same(PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION, $factory->resolvePhpVersion(Config::create(), $fixtures));
+	Assert::same(
+		['8.1', PhpVersionSource::Composer],
+		[($v = $factory->resolvePhpVersion(Config::create(), "$fixtures/project"))[0], $v[1]],
+	);
+	Assert::same(
+		['8.4', PhpVersionSource::Configuration],
+		[($v = $factory->resolvePhpVersion(Config::create()->phpVersion('8.4'), "$fixtures/project"))[0], $v[1]],
+	);
+	// a directory without a composer.json of its own is answered by the nearest one above it
+	Assert::same(
+		['8.1', PhpVersionSource::Composer],
+		[($v = $factory->resolvePhpVersion(Config::create(), "$fixtures/project/src"))[0], $v[1]],
+	);
+	Assert::same( // above the fixtures there is the composer.json of DressCode itself
+		PhpVersionSource::Composer,
+		$factory->resolvePhpVersion(Config::create(), $fixtures)[1],
+	);
+	Assert::same(
+		[Config::DefaultPhpVersion, PhpVersionSource::Default],
+		[($v = $factory->resolvePhpVersion(Config::create(), sys_get_temp_dir()))[0], $v[1]],
+	);
+});
+
+
+test('the lowest version the constraint of require.php allows', function () use ($fixtures) {
+	$detect = fn(string $json) => RunnerFactory::detectPhpVersion(FileMock::create($json, 'json'));
+	Assert::same('8.2', $detect('{"require": {"php": "8.2 - 8.5"}}'));
+	Assert::same('8.1', $detect('{"require": {"php": ">=8.1 <8.6"}}'));
+	Assert::same('7.4', $detect('{"require": {"php": "^7.4 || ^8.0"}}'));
+	Assert::same('8.0', $detect('{"require": {"php": "^8"}}'));
+	Assert::null($detect('{"require": {"php": "*"}}'));
+	Assert::null($detect('{"require": {}}'));
+	Assert::null($detect('not json'));
 	Assert::null(RunnerFactory::detectPhpVersion("$fixtures/none.json"));
+	Assert::null(RunnerFactory::detectPhpVersion(null));
 });
 
 

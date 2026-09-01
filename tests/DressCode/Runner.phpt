@@ -153,7 +153,8 @@ test('files are found under the paths, sorted, relative, with slashes, without t
 
 test('check reports and writes nothing', function () use ($root) {
 	$reporter = new RecordingReporter;
-	$result = engine($root, skipWhen: fn(string $content) => str_contains($content, '// skip me'))->run(['src'], fix: false, reporter: $reporter);
+	$runner = engine($root, skipWhen: fn(string $content) => str_contains($content, '// skip me'));
+	$result = $runner->run($runner->findFiles(['src']), fix: false, reporter: $reporter);
 	Assert::same([
 		'start 5 false',
 		'file src/a.php true false',
@@ -171,7 +172,8 @@ test('check reports and writes nothing', function () use ($root) {
 
 test('fix writes the changed files', function () use ($root) {
 	$reporter = new RecordingReporter;
-	$result = engine($root, ruleExcludePaths: ['test/rename' => ['src/sub']])->run(['src/a.php', 'src/sub'], fix: true, reporter: $reporter);
+	$runner = engine($root, ruleExcludePaths: ['test/rename' => ['src/sub']]);
+	$result = $runner->run($runner->findFiles(['src/a.php', 'src/sub']), fix: true, reporter: $reporter);
 	Assert::same(['start 2 true', 'file src/a.php true true', 'file src/sub/d.php false false', 'finish 1'], $reporter->events);
 	Assert::same("<?php\n\$b;\n", file_get_contents("$root/src/a.php"));
 	Assert::same("<?php\n\$a;\n", file_get_contents("$root/src/sub/d.php"));
