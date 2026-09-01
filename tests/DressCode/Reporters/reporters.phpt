@@ -5,6 +5,7 @@ use DressCode\Engine\RunResult;
 use DressCode\Reporter;
 use DressCode\Reporters\CheckstyleReporter;
 use DressCode\Reporters\ConsoleReporter;
+use DressCode\Reporters\GithubReporter;
 use DressCode\Reporters\JsonReporter;
 use DressCode\Severity;
 use DressCode\Violation;
@@ -57,31 +58,41 @@ function capture(Closure $factory, bool $fix): string
 }
 
 
-test('console: check', function () {
+/**
+ * The console reporter prints native separators and a check mark the console can show;
+ * the expectations are written with slashes and a plus.
+ */
+function normalize(string $output): string
+{
+	return str_replace([DIRECTORY_SEPARATOR, '✔'], ['/', '+'], $output);
+}
+
+
+test('console: check lists every violation', function () {
 	Assert::match(<<<'XX'
 		src/a.php
-		  2:1     error    Rename $a  [test/rename]  (fixable)
-		  2       warning  Variable "b" & <c>  [test/report]  (follow-up)
-		          warning  Rule test/x mutated the file without reporting a violation.
+		  error    2:1  Rename $a           test/rename
+		  warning    2  Variable "b" & <c>  test/report
+		  Rule test/x mutated the file without reporting a violation.
 
 		src/broken.php
-		  2       error    Syntax error, unexpected ';'
+		  2  Syntax error, unexpected ';'
 
 		src/fail.php
-		          failure  Rule test/x failed in src/fail.php: boom
+		  Rule test/x failed in src/fail.php: boom
 
-		Found 2 violations (1 fixable) in 4 files, 1 file with syntax errors, 1 file failed.
+		FAILED  2 violations, 1 of them fixable, 1 file with syntax errors, 1 file with failing rules in 3 of 4 files
 
-		XX, capture(fn($s) => new ConsoleReporter($s), fix: false));
+		XX, normalize(capture(fn($s) => new ConsoleReporter($s), fix: false)));
 });
 
 
-test('console: fix with diff', function () {
+test('console: fix lists what is left and counts what it fixed', function () {
 	Assert::match(<<<'XX'
 		src/a.php
-		  2:1     error    Rename $a  [test/rename]  (fixed)
-		  2       warning  Variable "b" & <c>  [test/report]  (follow-up)
-		          warning  Rule test/x mutated the file without reporting a violation.
+		  fixed    2:1  Rename $a           test/rename
+		  warning    2  Variable "b" & <c>  test/report
+		  Rule test/x mutated the file without reporting a violation.
 		--- src/a.php
 		+++ src/a.php
 		@@ -1,2 +1,2 @@
@@ -90,18 +101,18 @@ test('console: fix with diff', function () {
 		+$b;
 
 		src/broken.php
-		  2       error    Syntax error, unexpected ';'
+		  2  Syntax error, unexpected ';'
 
 		src/fail.php
-		          failure  Rule test/x failed in src/fail.php: boom
+		  Rule test/x failed in src/fail.php: boom
 
-		Fixed 1 violation in 1 file, 1 violation remains, 1 file with syntax errors, 1 file failed.
+		FAILED  1 violation fixed, 1 remaining, 1 file with syntax errors, 1 file with failing rules in 3 of 4 files
 
-		XX, capture(fn($s) => new ConsoleReporter($s, diff: true), fix: true));
+		XX, normalize(capture(fn($s) => new ConsoleReporter($s, diff: true), fix: true)));
 });
 
 
-test('console: summary of a clean run', function () {
+test('console: verdict of a clean run', function () {
 	$stream = memory();
 	$reporter = new ConsoleReporter($stream);
 	$reporter->start(1, false);
@@ -109,7 +120,70 @@ test('console: summary of a clean run', function () {
 	$reporter->start(1, true);
 	$reporter->finish(new RunResult([new FileResult('a.php', '', '')], true));
 	rewind($stream);
-	Assert::same("No violations found in 1 file.\nNothing to fix in 1 file.\n", stream_get_contents($stream));
+	Assert::same("OK  no violations in 1 file\nOK  no violations in 1 file\n", stream_get_contents($stream));
+});
+
+
+test('bare: what is left to the user and which files were rewritten, nothing else', function () {
+	Assert::match(<<<'XX'
+		src/a.php  rewritten
+		  warning  2  Variable "b" & <c>  test/report
+		  Rule test/x mutated the file without reporting a violation.
+
+		src/broken.php
+		  2  Syntax error, unexpected ';'
+
+		src/fail.php
+		  Rule test/x failed in src/fail.php: boom
+
+		XX, normalize(capture(fn($s) => new ConsoleReporter($s, diff: true, bare: true), fix: true)));
+});
+
+
+test('an empty scope still gets the skeleton of a machine-readable format', function () {
+	foreach ([JsonReporter::class, CheckstyleReporter::class, GithubReporter::class] as $class) {
+		$stream = memory();
+		$reporter = new $class($stream);
+		$reporter->start(0, false);
+		$reporter->finish(new RunResult([], false));
+		rewind($stream);
+		Assert::notSame('', (string) stream_get_contents($stream), $class);
+	}
+});
+
+
+test('github: a warning about the run is an annotation of its own', function () {
+	$stream = memory();
+	$reporter = new GithubReporter($stream);
+	$reporter->start(1, false);
+	$reporter->finish(new RunResult([], false, warnings: ['1 entry of the baseline no longer match a violation']));
+	rewind($stream);
+	Assert::same(
+		"::warning title=dresscode::1 entry of the baseline no longer match a violation\n0 violations in 1 file\n",
+		stream_get_contents($stream),
+	);
+});
+
+
+test('console: paths under the working directory are relative to it, the others absolute', function () {
+	$stream = memory();
+	$reporter = new ConsoleReporter($stream, root: '/project', cwd: '/project/src');
+	$reporter->start(2, false);
+	$reporter->reportFile(new FileResult('src/a.php', '', '', [
+		new Violation('dresscode/no-x', 'No x', 1, null, Severity::Error, fixable: false, followUp: false, fingerprint: 'f'),
+	]));
+	$reporter->reportFile(new FileResult('tests/b.php', '', '', [
+		new Violation('acme/no-y', 'No y', 1, null, Severity::Error, fixable: false, followUp: false, fingerprint: 'f'),
+	]));
+	rewind($stream);
+	Assert::match(<<<'XX'
+		a.php
+		  error  1  No x  no-x
+
+		/project/tests/b.php
+		  error  1  No y  acme/no-y
+
+		XX, normalize(stream_get_contents($stream)));
 });
 
 
@@ -184,6 +258,19 @@ test('json', function () {
 		}
 
 		XX, capture(fn($s) => new JsonReporter($s), fix: false));
+});
+
+
+test('github: annotations addressed from the checkout', function () {
+	Assert::match(<<<'XX'
+		::warning file=project/src/a.php,line=1,title=dresscode::Rule test/x mutated the file without reporting a violation.
+		::error file=project/src/a.php,line=2,col=1,title=test/rename::Rename $a
+		::warning file=project/src/a.php,line=2,title=test/report::Variable "b" & <c>
+		::error file=project/src/broken.php,line=2,title=syntax error::Syntax error, unexpected ';'
+		::error file=project/src/fail.php,line=1,title=dresscode::Rule test/x failed in src/fail.php: boom
+		2 violations in 4 files
+
+		XX, capture(fn($s) => new GithubReporter($s, root: '/build/project', workspace: '/build'), fix: false));
 });
 
 

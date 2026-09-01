@@ -44,12 +44,18 @@ final class Engine
 
 
 	/**
-	 * Processes the files under the paths; a file whose rules fail is reported as a failure and the run goes on.
-	 * @param list<string> $paths  files and directories, absolute or relative to the root
+	 * Processes the files; a file whose rules fail is reported as a failure and the run goes on.
+	 * @param list<string> $files  as findFiles() returned them
+	 * @param ?\Closure(int, array<string, float>): void $onProgress  files done and the paths in progress
 	 */
-	public function run(array $paths, bool $fix, Reporter $reporter, ?WorkerPool $workers = null): RunResult
+	public function run(
+		array $files,
+		bool $fix,
+		Reporter $reporter,
+		?WorkerPool $workers = null,
+		?\Closure $onProgress = null,
+	): RunResult
 	{
-		$files = $this->findFiles($paths);
 		$reporter->start(count($files), $fix);
 		$results = [];
 		$pending = [];
@@ -68,14 +74,27 @@ final class Engine
 			}
 		}
 
+		$done = count($results) - count($pending); // the cached ones are already done
 		if ($workers !== null && count($pending) > 1) {
-			foreach ($workers->process($pending) as $path => $result) {
+			$report = $onProgress === null
+				? null
+				: fn(int $processed, array $running) => $onProgress($done + $processed, $running);
+			foreach ($workers->process($pending, $report) as $path => $result) {
 				$results[$path] = $this->baseline?->filter($result) ?? $result;
 			}
 		} else {
 			foreach ($pending as $path => $code) {
+				if ($onProgress !== null) {
+					$onProgress($done, [$path => microtime(as_float: true)]);
+				}
+
 				$results[$path] = $this->processPath($path, $fix, $code);
+				$done++;
 			}
+		}
+
+		if ($onProgress !== null) {
+			$onProgress(count($files), []); // the whole scope is done, whatever was skipped along the way
 		}
 
 		$ordered = [];

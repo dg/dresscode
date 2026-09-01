@@ -26,7 +26,7 @@ final class WorkerPool
 	/** workers that have connected so far */
 	private int $accepted = 0;
 
-	/** @var array<int, string>  path in progress, by socket id */
+	/** @var array<int, array{string, float}>  path in progress with the time it started, by socket id */
 	private array $inProgress = [];
 
 	/** @var list<array{resource, string}>  process, file with its output */
@@ -62,10 +62,11 @@ final class WorkerPool
 
 	/**
 	 * @param  array<string, string>  $files  path → content
+	 * @param  ?\Closure(int, array<string, float>): void  $onProgress  files done and the paths in progress
 	 * @return array<string, FileResult>  by path
 	 * @throws \RuntimeException  when a worker fails
 	 */
-	public function process(array $files): array
+	public function process(array $files, ?\Closure $onProgress = null): array
 	{
 		$address = $this->listen();
 		$this->queue = array_keys($files);
@@ -88,6 +89,9 @@ final class WorkerPool
 				}
 
 				$this->checkWorkers(count($results) < count($files));
+				if ($onProgress !== null) {
+					$onProgress(count($results), $this->getInProgress());
+				}
 			}
 		} finally {
 			foreach ($this->sockets as $socket) {
@@ -250,7 +254,7 @@ final class WorkerPool
 		$line = fgets($socket);
 		if ($line === false) {
 			if (isset($this->inProgress[$id])) {
-				throw new \RuntimeException("A worker ended while processing {$this->inProgress[$id]}." . $this->collectErrors());
+				throw new \RuntimeException("A worker ended while processing {$this->inProgress[$id][0]}." . $this->collectErrors());
 			}
 
 			$this->disconnect($id);
@@ -272,8 +276,20 @@ final class WorkerPool
 			return;
 		}
 
-		$this->inProgress[$id] = $path;
+		$this->inProgress[$id] = [$path, microtime(as_float: true)];
 		fwrite($this->sockets[$id], json_encode(['path' => $path], JSON_THROW_ON_ERROR) . "\n");
+	}
+
+
+	/** @return array<string, float>  path in progress → the time it started */
+	private function getInProgress(): array
+	{
+		$paths = [];
+		foreach ($this->inProgress as [$path, $since]) {
+			$paths[$path] = $since;
+		}
+
+		return $paths;
 	}
 
 
