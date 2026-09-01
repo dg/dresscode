@@ -9,10 +9,10 @@ namespace DressCode\Console;
 
 use DressCode\Config\ResolvedRule;
 use DressCode\{ConfigurableRule, RuleInfo};
-use Nette\CommandLine\Console;
+use Nette\CommandLine\{Ansi, Console};
 use Nette\Schema\Elements\{AnyOf, Structure, Type};
 use Nette\Schema\Processor;
-use function count, is_bool, is_string, strlen, strval;
+use function count, is_bool, is_string, strval;
 
 
 /**
@@ -76,7 +76,7 @@ final class ExplainPrinter
 	{
 		$info = RuleInfo::of($this->rule->class);
 		$out = $console->color('white', $this->rule->name) . "\n";
-		$out .= ($info->description === '' ? '' : "$info->description.\n");
+		$out .= ($info->description === '' ? '' : Markup::highlightCode($console, "$info->description.") . "\n");
 		$facts = ['stage ' . $info->stage->name];
 		if ($info->getMinPhpVersion() !== null) {
 			$facts[] = 'needs PHP ' . $info->getMinPhpVersion();
@@ -125,17 +125,17 @@ final class ExplainPrinter
 		$origins = $this->rule->getOrigins();
 		$out = "\n" . $console->color('white', "Options\n");
 		// the widest name decides the column, so a long one does not run into its value
-		$width = max(26, ...array_map(strlen(...), array_map(strval(...), array_keys($schema->getShape()))));
+		$width = max(26, ...array_map(Ansi::measure(...), array_map(strval(...), array_keys($schema->getShape()))));
 		foreach ($schema->getShape() as $option => $element) {
 			$value = $this->rule->options[$option] ?? $defaults[$option] ?? null;
 			$layers = $origins[(string) $option] ?? [];
-			$out .= '  ' . str_pad((string) $option, $width + 1) . str_pad(self::format($value), 24)
+			$out .= '  ' . Ansi::pad((string) $option, $width + 1) . Ansi::pad(self::format($value), 24)
 				. $console->color('gray', $layers === [] ? '(default)' : $layers[count($layers) - 1][0]) . "\n";
 			$description = $element instanceof Type || $element instanceof AnyOf || $element instanceof Structure
 				? $element->describe()['description'] ?? null
 				: null;
 			if (is_string($description) && $description !== '') {
-				$out .= $console->color('gray', "      $description\n");
+				$out .= '      ' . Markup::highlightCode($console, $description, 'gray') . "\n";
 			}
 		}
 

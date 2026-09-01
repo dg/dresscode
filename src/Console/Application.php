@@ -10,7 +10,7 @@ namespace DressCode\Console;
 use DressCode\{Config, ConfigurationException, ConvergenceException, Helpers, Preset, PresetInfo, Profile, Reporter, Reporters, RuleException, RuleInfo, RunResult};
 use DressCode\Config\{Loader, PhpVersionSource, RunnerFactory};
 use DressCode\Engine\Baseline;
-use Nette\CommandLine\{ColorDepth, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, ParseResult};
+use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Utils\FileSystem;
 use function array_slice, count, extension_loaded, in_array, is_string, sprintf;
 
@@ -31,7 +31,8 @@ final class Application
 	/** @var resource */
 	private $stdin;
 
-	private Console $console;
+	private Console $out;
+	private Console $err;
 
 	/** PHP runs with Xdebug, which makes a run many times slower */
 	private readonly bool $xdebug;
@@ -55,7 +56,9 @@ final class Application
 		$this->stdout = $stdout ?? STDOUT;
 		$this->stderr = $stderr ?? STDERR;
 		$this->stdin = $stdin ?? STDIN;
-		$this->console = new Console($this->stdout, colorDepth: $stdout === null ? null : ColorDepth::None);
+		// what the caller hands in is captured output, which FORCE_COLOR must not color
+		$this->out = new Console($this->stdout, colorDepth: $stdout === null ? null : ColorDepth::None);
+		$this->err = new Console($this->stderr, colorDepth: $stderr === null ? null : ColorDepth::None);
 		$this->xdebug = $xdebug ?? ($stdout === null && extension_loaded('xdebug'));
 	}
 
@@ -72,15 +75,16 @@ final class Application
 			$args = (new Parser)->parse($program, array_slice($argv, 1));
 			$command = $args->command;
 			if ($args['--no-color']) {
-				$this->console->setColorDepth(ColorDepth::None);
+				$this->out->setColorDepth(ColorDepth::None);
+				$this->err->setColorDepth(ColorDepth::None);
 			}
 
 			if ($args['--version']) {
-				$this->write($this->formatName() . "\n");
+				$this->out->writeLine($this->formatName($this->out));
 				return 0;
 			} elseif ($args['--help'] || $command === $program) {
-				$this->write($this->formatName() . "\n\n");
-				new HelpRenderer($this->console)->render($command);
+				$this->out->writeLine($this->formatName($this->out) . "\n");
+				new HelpRenderer($this->out)->render($command);
 				return $command === $program && !$args['--help'] ? 2 : 0;
 			}
 
@@ -101,12 +105,20 @@ final class Application
 			$this->writeUsageError($e->getMessage(), $command);
 			return 2;
 
-		} catch (ConfigurationException|RuleException|\RuntimeException $e) {
-			$this->writeError("Error: {$e->getMessage()}\n");
+		} catch (ConfigurationException $e) {
+			$this->writeError($e->getMessage(), $e->docs);
+			return 2;
+
+		} catch (RuleException|\RuntimeException $e) {
+			$this->writeError($e->getMessage());
 			return 2;
 
 		} catch (ConvergenceException $e) {
-			$this->writeError("Error: {$e->getMessage()}\n" . ($e->diff === '' ? '' : "The two states differ:\n$e->diff"));
+			$this->writeError(
+				$e->getMessage(),
+				ConvergenceException::Docs,
+				$e->diff === '' ? '' : "The two states differ:\n" . Markup::highlightDiff($this->err, $e->diff),
+			);
 			return 2;
 		}
 	}
@@ -202,7 +214,7 @@ final class Application
 			fixRisky: (bool) $args['--fix-risky'],
 		);
 		foreach ($factory->getWarnings() as $warning) {
-			$this->writeError($this->console->color('yellow', "Warning: $warning") . "\n");
+			$this->err->writeLine(Markup::highlightCode($this->err, "Warning: $warning", 'yellow'));
 		}
 
 		$stdinPath = $args['--stdin'];
@@ -216,7 +228,10 @@ final class Application
 
 			// the caller of stdin is an editor or a hook waiting for the format it asked for
 			$format = self::resolveFormat($args, detect: false);
-			$reporter = $this->createReporter($args, $fix ? $this->stderr : $this->stdout, $root, $format);
+			// a fix writes the fixed code to stdout, so its report goes to stderr
+			$reporter = $fix
+				? $this->createReporter($args, $this->err, $this->stderr, $root, $format)
+				: $this->createReporter($args, $this->out, $this->stdout, $root, $format);
 			$code = (string) stream_get_contents($this->stdin);
 			$reporter->start(1, $fix);
 			$result = $runner->processFile($this->resolvePath($stdinPath), $code);
@@ -224,7 +239,7 @@ final class Application
 			$run = new RunResult([$result], $fix, maxWarnings: $maxWarnings);
 			$reporter->finish($run);
 			if ($fix) {
-				$this->write($result->output ?? $code);
+				$this->out->write($result->output ?? $code);
 			}
 
 			return $run->getExitCode();
@@ -247,7 +262,7 @@ final class Application
 		// the machine-readable formats must not be prefaced, and a generated baseline is not a report
 		if (!$generate && in_array($format, ['console', 'github'], true)) {
 			if ($this->xdebug) {
-				$this->writeError($this->console->color('red', 'Warning: Xdebug is loaded and makes the run many times slower.') . "\n");
+				$this->err->writeLine('Warning: Xdebug is loaded and makes the run many times slower.', 'red');
 			}
 
 			$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
@@ -258,11 +273,11 @@ final class Application
 			return $this->generateBaseline($factory, $config, $root, $configFile, $commandLine, $files, $format);
 		}
 
-		$reporter = $this->createReporter($args, $this->stdout, $root, $format);
-		$progress = $format === 'console' && count($files) > 1 && $this->console->isTerminal()
-			? new ProgressBar($this->stdout, $this->console, count($files))
+		$progress = $format === 'console' && count($files) > 1 && $this->out->isTerminal()
+			? new ProgressBar($this->out, count($files))
 			: null;
 		$onProgress = $progress === null ? null : $progress->advance(...);
+		$reporter = $this->createReporter($args, $this->out, $this->stdout, $root, $format);
 
 		try {
 			return $runner->run($files, $fix, $reporter, $onProgress, $maxWarnings)->getExitCode();
@@ -275,15 +290,15 @@ final class Application
 	/** Where the rules come from, which is nothing the command line shows. */
 	private function writeHeader(?string $configFile, Config $config, ?Profile $commandLine, string $phpVersion): void
 	{
-		$this->write($this->formatName() . "\n");
+		$this->out->writeLine($this->formatName($this->out));
 		$presets = array_map(
 			fn(string $preset) => is_subclass_of($preset, Preset::class) ? PresetInfo::of($preset)->name : $preset,
 			[...$config->presets, ...$commandLine->presets ?? []],
 		);
-		$this->write($this->console->color('gray', 'Config     ') . ($configFile === null
+		$this->out->writeLine($this->out->color('gray', 'Config     ') . ($configFile === null
 			? 'none, preset ' . (implode(', ', $presets) ?: 'none')
-			: FileSystem::platformSlashes($configFile)) . "\n");
-		$this->write($this->console->color('gray', 'Target     ') . "PHP $phpVersion\n");
+			: FileSystem::platformSlashes($configFile)));
+		$this->out->writeLine($this->out->color('gray', 'Target     ') . Markup::highlightCode($this->out, "PHP $phpVersion"));
 	}
 
 
@@ -300,10 +315,10 @@ final class Application
 		$scope = count($files) === 1
 			? FileSystem::platformSlashes($absolute[0])
 			: sprintf('%d files in %s', count($files), FileSystem::platformSlashes(self::findCommonDirectory($absolute) ?: $root));
-		$this->write($files
-			? $this->console->color('gray', $fix ? 'Fixing     ' : 'Checking   ') . $scope
-				. ($narrowed ? $this->console->color('gray', ', narrowed to the configured paths') : '') . "\n\n"
-			: $this->console->color('yellow', sprintf(
+		$this->out->write($files
+			? $this->out->color('gray', $fix ? 'Fixing     ' : 'Checking   ') . $scope
+				. ($narrowed ? $this->out->color('gray', ', narrowed to the configured paths') : '') . "\n\n"
+			: $this->out->color('yellow', sprintf(
 				($fix ? 'Nothing to fix' : 'Nothing to check') . ': no file in %s',
 				implode(', ', array_map(FileSystem::platformSlashes(...), $paths)),
 			)) . "\n");
@@ -311,10 +326,10 @@ final class Application
 
 
 	/** The name of the tool as it is written everywhere it appears. */
-	private function formatName(): string
+	private function formatName(Console $console): string
 	{
-		return $this->console->color('white', 'DRESS') . $this->console->color('red', '|')
-			. $this->console->color('white', 'CODE') . ' ' . $this->console->color('gray', self::Version);
+		return $console->color('white', 'DRESS') . $console->color('red', '|')
+			. $console->color('white', 'CODE') . ' ' . $console->color('gray', self::Version);
 	}
 
 
@@ -392,9 +407,12 @@ final class Application
 				$failed ? sprintf('%d file%s failed', count($failed), count($failed) === 1 ? '' : 's') : null,
 			]);
 			$paths = [...$changed, ...$failed];
-			$this->writeError('Error: The baseline is generated over code a fix leaves alone: ' . implode(', ', $counts) . ". Run `fix` first.\n"
-				. implode('', array_map(fn(string $path) => "  $path\n", array_slice($paths, 0, 10)))
-				. (count($paths) > 10 ? '  and ' . (count($paths) - 10) . " more\n" : ''));
+			$this->writeError(
+				'The baseline is generated over code a fix leaves alone: ' . implode(', ', $counts) . '. Run `fix` first.',
+				'suppressing#baseline',
+				implode('', array_map(fn(string $path) => "  $path\n", array_slice($paths, 0, 10)))
+				. (count($paths) > 10 ? '  and ' . (count($paths) - 10) . " more\n" : ''),
+			);
 			return 2;
 		}
 
@@ -406,7 +424,7 @@ final class Application
 		}
 
 		// every other format keeps its stream to itself
-		$format === 'console' ? $this->write($message) : $this->writeError($message);
+		$format === 'console' ? $this->write($message) : $this->writeNote($message);
 		return 0;
 	}
 
@@ -434,16 +452,16 @@ final class Application
 			: $factory->getResolvedConfig();
 		$printer = new ConfigPrinter($resolved);
 		if ($args['--json']) {
-			$this->write($printer->printJson());
+			$this->out->write($printer->printJson());
 			return 0;
 		}
 
 		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
 		if (is_string($file)) {
-			$this->write($this->console->color('gray', 'File       ') . FileSystem::platformSlashes($file) . "\n");
+			$this->out->writeLine($this->out->color('gray', 'File       ') . FileSystem::platformSlashes($file));
 		}
 
-		$this->write($printer->print($this->console));
+		$this->out->write($printer->print($this->out));
 		return 0;
 	}
 
@@ -480,7 +498,7 @@ final class Application
 
 		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
 		foreach ($rules as $rule) {
-			$this->write("\n" . new ExplainPrinter($rule)->print($this->console));
+			$this->out->write("\n" . new ExplainPrinter($rule)->print($this->out));
 		}
 
 		return 0;
@@ -502,16 +520,15 @@ final class Application
 		ksort($rules, SORT_STRING);
 		foreach ($rules as $name => $class) {
 			$info = RuleInfo::of($class);
-			$this->write(sprintf(
-				"%s %-45s %-10s %s\n",
-				isset($enabled[$name]) ? '*' : ' ',
-				$this->console->color(isset($enabled[$name]) ? 'white' : null, $name),
-				$info->stage->name,
-				$info->description,
-			));
+			$this->out->writeLine(
+				(isset($enabled[$name]) ? '*' : ' ')
+				. ' ' . Ansi::pad($this->out->color(isset($enabled[$name]) ? 'white' : null, $name), 45)
+				. ' ' . Ansi::pad($info->stage->name, 10)
+				. ' ' . $info->description,
+			);
 		}
 
-		$this->write("\n* enabled by the configuration\n");
+		$this->out->writeLine("\n* enabled by the configuration");
 		return 0;
 	}
 
@@ -584,19 +601,24 @@ final class Application
 
 
 	/**
-	 * @param resource $stream
-	 * @param string $root  the paths of the results are relative to it
+	 * @param  resource  $stream  the same place as the console; a machine-readable format is no text of a console
+	 * @param  string  $root  the paths of the results are relative to it
 	 */
-	private function createReporter(ParseResult $args, $stream, string $root, string $format): Reporter
+	private function createReporter(
+		ParseResult $args,
+		Console $console,
+		$stream,
+		string $root,
+		string $format,
+	): Reporter
 	{
 		return match ($format) {
 			'json' => new Reporters\JsonReporter($stream),
 			'checkstyle' => new Reporters\CheckstyleReporter($stream),
 			'github' => new Reporters\GithubReporter($stream, $root, self::getEnv('GITHUB_WORKSPACE')),
 			default => new Reporters\ConsoleReporter(
-				$stream,
+				$console,
 				diff: (bool) $args['--diff'],
-				console: $this->console,
 				root: $root,
 				cwd: Helpers::canonicalizePath($this->cwd ?? (string) getcwd()),
 				bare: $format === 'bare',
@@ -625,22 +647,34 @@ final class Application
 	}
 
 
+	/** A message of the tool on the output, its code drawn; what is not a message (code, JSON) goes to `$out` itself. */
 	private function write(string $text): void
 	{
-		fwrite($this->stdout, $text);
+		$this->out->write(Markup::highlightCode($this->out, $text));
 	}
 
 
-	private function writeError(string $text): void
+	/** A message of the tool on the error output, which keeps the output for what the command produces. */
+	private function writeNote(string $text): void
 	{
-		fwrite($this->stderr, $text);
+		$this->err->write(Markup::highlightCode($this->err, $text));
+	}
+
+
+	/** An error that ends the run, followed by the detail and the page of the manual that says more. */
+	private function writeError(string $message, ?string $docs = null, string $detail = ''): void
+	{
+		$this->err->write($this->err->color('red', 'Error:') . ' ' . Markup::highlightCode($this->err, $message) . "\n" . $detail);
+		if ($docs !== null) {
+			$this->err->writeLine(Markup::formatDocsLink($this->err, $docs));
+		}
 	}
 
 
 	/** A mistake in how the tool was called, followed by the help of the command it was called with. */
 	private function writeUsageError(string $message, Command $command): void
 	{
-		$this->writeError("Error: $message\n\n");
-		new HelpRenderer(new Console($this->stderr))->render($command);
+		$this->err->writeLine($this->err->color('red', 'Error:') . ' ' . Markup::highlightCode($this->err, $message) . "\n");
+		new HelpRenderer($this->err)->render($command);
 	}
 }

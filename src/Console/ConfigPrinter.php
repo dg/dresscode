@@ -9,7 +9,7 @@ namespace DressCode\Console;
 
 use DressCode\Config\{ResolvedConfig, ResolvedRule};
 use DressCode\RuleInfo;
-use Nette\CommandLine\Console;
+use Nette\CommandLine\{Ansi, Console};
 use Nette\Utils\Json;
 use function array_slice, count, is_bool, is_string, sprintf, strlen;
 
@@ -162,10 +162,10 @@ final class ConfigPrinter
 	}
 
 
-	/** To the width of the column, and always with a space, so that a long value does not swallow the next one. */
+	/** Unlike `Ansi::pad()`, a column always ends with a space, so a name too long does not run into the next one. */
 	private static function pad(string $text, int $width): string
 	{
-		return $text . str_repeat(' ', max(1, $width - strlen($text)));
+		return $text . str_repeat(' ', max(1, $width - Ansi::measure($text)));
 	}
 
 

@@ -8,9 +8,10 @@
 namespace DressCode\Reporters;
 
 use DressCode\Config\RuleRegistry;
+use DressCode\Console\Markup;
 use DressCode\Engine\Diff;
 use DressCode\{FileResult, Reporter, RunResult, Severity, Violation};
-use Nette\CommandLine\{ColorDepth, Console};
+use Nette\CommandLine\{Ansi, Console};
 use Nette\Utils\FileSystem;
 use function array_slice, count, sprintf, strlen;
 
@@ -28,10 +29,6 @@ final class ConsoleReporter implements Reporter
 	/** a run shorter than this is not worth timing */
 	private const LongRun = 1.0;
 
-	/** @var resource */
-	private $stream;
-	private Console $console;
-
 	/** the bare format has no room for it */
 	private readonly bool $diff;
 
@@ -46,14 +43,9 @@ final class ConsoleReporter implements Reporter
 	private bool $separate = false;
 
 
-	/**
-	 * @param ?resource $stream
-	 * @param ?Console $console  colors; plain output when omitted
-	 */
 	public function __construct(
-		$stream = null,
+		private readonly Console $console,
 		bool $diff = false,
-		?Console $console = null,
 		/** the paths of the results are relative to it */
 		private readonly string $root = '',
 		/** a file under it is reported relative to it, the others absolutely */
@@ -61,13 +53,6 @@ final class ConsoleReporter implements Reporter
 		/** only what is left to the user and which files were rewritten, nothing else */
 		private readonly bool $bare = false,
 	) {
-		$this->stream = $stream ?? STDOUT;
-		if ($console === null) {
-			$console = new Console;
-			$console->setColorDepth(ColorDepth::None);
-		}
-
-		$this->console = $console;
 		$this->diff = $diff && !$bare;
 	}
 
@@ -103,21 +88,25 @@ final class ConsoleReporter implements Reporter
 		$this->write($this->console->color('white', $this->formatPath($result->path))
 			. ($rewritten ? $this->console->color('gray', '  rewritten') : '') . "\n");
 		if ($result->failure !== null) {
-			$this->write('  ' . $this->console->color('red', $result->failure) . "\n");
+			[$message, $diff] = explode("\n", $result->failure, 2) + [1 => ''];
+			$this->write('  ' . Markup::highlightCode($this->console, $message, 'red') . "\n" . Markup::highlightDiff($this->console, $diff));
+			if ($result->failureDocs !== null) {
+				$this->write('  ' . Markup::formatDocsLink($this->console, $result->failureDocs) . "\n");
+			}
 		}
 
 		if ($result->error !== null) {
 			$position = $result->errorLine === null ? '' : "$result->errorLine  ";
-			$this->write('  ' . $this->console->color('red', $position . $result->error) . "\n");
+			$this->write('  ' . Markup::highlightCode($this->console, $position . $result->error, 'red') . "\n");
 		}
 
 		$this->writeViolations($violations);
 		foreach ($result->warnings as $warning) {
-			$this->write('  ' . $this->console->color('yellow', $warning) . "\n");
+			$this->write('  ' . Markup::highlightCode($this->console, $warning, 'yellow') . "\n");
 		}
 
 		if ($this->diff && $result->isChanged()) {
-			$this->write($this->colorDiff(Diff::unified($result->code, (string) $result->output, $result->path)));
+			$this->write(Markup::highlightDiff($this->console, Diff::unified($result->code, (string) $result->output, $result->path)));
 		}
 
 		// a file with nothing below its name stays a single line, the others are set apart
@@ -139,9 +128,10 @@ final class ConsoleReporter implements Reporter
 			return;
 		}
 
-		$positionWidth = max(array_map(fn(Violation $v) => strlen(self::formatPosition($v)), $violations));
-		$messageWidth = min(self::MessageWidth, max(array_map(fn(Violation $v) => strlen($v->message), $violations)));
-		$stateWidth = max(array_map(fn(Violation $v) => strlen(self::formatState($v)), $violations));
+		$positionWidth = max(array_map(fn(Violation $v) => Ansi::measure(self::formatPosition($v)), $violations));
+		$show = fn(Violation $v) => Markup::highlightCode($this->console, $v->message);
+		$messageWidth = min(self::MessageWidth, max(array_map(fn(Violation $v) => Ansi::measure($show($v)), $violations)));
+		$stateWidth = max(array_map(fn(Violation $v) => Ansi::measure(self::formatState($v)), $violations));
 
 		$derived = [];
 		$listed = [];
@@ -159,9 +149,9 @@ final class ConsoleReporter implements Reporter
 			$state = self::formatState($violation);
 			$this->write(sprintf(
 				"  %s  %s  %s  %s\n",
-				$this->console->color($state === 'warning' ? 'olive' : 'maroon', str_pad($state, $stateWidth)),
-				$this->console->color('gray', str_pad(self::formatPosition($violation), $positionWidth, ' ', STR_PAD_LEFT)),
-				str_pad($violation->message, $messageWidth),
+				$this->console->color($state === 'warning' ? 'olive' : 'maroon', Ansi::pad($state, $stateWidth)),
+				$this->console->color('gray', Ansi::pad(self::formatPosition($violation), $positionWidth, STR_PAD_LEFT)),
+				Ansi::pad($show($violation), $messageWidth),
 				$this->console->color('gray', RuleRegistry::abbreviate($violation->ruleName)),
 			));
 			if (isset($derived[$violation->fingerprint])) {
@@ -211,7 +201,7 @@ final class ConsoleReporter implements Reporter
 		}
 
 		foreach ($result->warnings as $warning) {
-			$this->write($this->console->color('yellow', "Warning: $warning") . "\n\n");
+			$this->write(Markup::highlightCode($this->console, "Warning: $warning", 'yellow') . "\n\n");
 		}
 
 		$this->write($this->console->color(
@@ -308,20 +298,6 @@ final class ConsoleReporter implements Reporter
 	}
 
 
-	private function colorDiff(string $diff): string
-	{
-		return implode('', array_map(
-			fn(string $line) => match ($line[0] ?? '') {
-				'-' => $this->console->color('red', $line),
-				'+' => $this->console->color('green', $line),
-				'@' => $this->console->color('teal', $line),
-				default => $line,
-			},
-			preg_split('~(?<=\n)~', $diff, -1, PREG_SPLIT_NO_EMPTY) ?: [],
-		));
-	}
-
-
 	private static function plural(int $count, string $noun): string
 	{
 		return $count . ' ' . $noun . ($count === 1 ? '' : 's');
@@ -330,6 +306,6 @@ final class ConsoleReporter implements Reporter
 
 	private function write(string $text): void
 	{
-		fwrite($this->stream, $text);
+		$this->console->write($text);
 	}
 }

@@ -111,5 +111,5 @@ test('explain of a name no rule owns', function () {
 	$code = new Application($out, $err, cwd: __DIR__)->run(['dresscode', 'explain', 'useless-retrn']);
 	rewind($err);
 	Assert::same(2, $code);
-	Assert::contains("Unknown rule `useless-retrn`. Did you mean `useless-return`?", (string) stream_get_contents($err));
+	Assert::contains('Unknown rule `useless-retrn`. Did you mean `useless-return`?', (string) stream_get_contents($err));
 });
