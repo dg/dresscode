@@ -201,6 +201,7 @@ final class RuleRegistry
 		$this->registerPreset(Presets\PhpDoc::class);
 		$this->registerPreset(Presets\Imports::class);
 		$this->registerPreset(Presets\Classes::class);
+		$this->registerPreset(Presets\Optimizations::class);
 		foreach (self::BuiltinRules as $class) {
 			$this->registerRule($class);
 		}

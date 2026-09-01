@@ -18,7 +18,7 @@ require __DIR__ . '/../../bootstrap.php';
 
 $composable = [
 	Presets\Cleanup::class, Presets\Modern::class, Presets\Types::class,
-	Presets\PhpDoc::class, Presets\Imports::class, Presets\Classes::class,
+	Presets\PhpDoc::class, Presets\Imports::class, Presets\Classes::class, Presets\Optimizations::class,
 ];
 
 
