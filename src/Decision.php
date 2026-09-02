@@ -10,7 +10,7 @@ namespace DressCode;
 
 /**
  * A key of the configuration saying how one thing in the code is written: its path, which is the identity of
- * everything a user ever sees about it, the values it takes, and the words `explain` prints.
+ * everything a user ever sees about it, the values it takes, and the words `explain` and the reference print.
  * A requirement turns its rule on wherever it is not `keep`; a parameter only refines one and turns nothing on;
  * a fact is a key of the environment whose guard the rule is.
  */

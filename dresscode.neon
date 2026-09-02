@@ -6,6 +6,7 @@ paths:
 	- src
 	- tests
 	- bin/dresscode
+	- docs/reference/generate.php
 
 excludePaths:
 	- fixtures
