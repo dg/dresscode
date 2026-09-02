@@ -4,6 +4,7 @@ parameters:
 	paths:
 		- src
 		- tests
+		- docs/reference
 
 	scanDirectories:
 		- tests/fixtures/plugin/src
