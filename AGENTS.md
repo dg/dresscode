@@ -19,6 +19,7 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
 
 - `composer tester`: Nette Tester over `tests/`.
 - `composer phpstan`: PHPStan level 8, no baseline; `ignoreErrors` only with a reason.
+- `php bin/dresscode check`: DressCode over its own sources with `dresscode.neon`; CI runs it too.
 
 ## Conventions
 
