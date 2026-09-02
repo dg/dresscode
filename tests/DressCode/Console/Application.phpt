@@ -149,6 +149,29 @@ test('check of a clean path with options from the command line', function () use
 });
 
 
+test('paths named are relative to the working directory, and a directory holding the configured paths is narrowed to them', function () use ($root) {
+	@mkdir("$root/other"); // @ - may exist
+	file_put_contents("$root/other/c.php", "<?php\n\$a;\n");
+	try {
+		[, $out] = runApp("$root/src", ['check', 'a.php']);
+		Assert::match("%A%Checking   %a%src%a%a.php\n%A%", $out);
+		[, $out] = runApp("$root/other", ['check', '.']);
+		Assert::match("%A%Checking   %a%other%a%c.php\n%A%", $out);
+		[, $out] = runApp("$root/src", ['check', '..']);
+		Assert::match("%A%Checking   2 files in %a%src, narrowed to the configured paths\n%A%", $out);
+		[, $out] = runApp($root, ['check', 'src', 'src']);
+		Assert::match("%A%Checking   2 files in %a%src\n%A%", $out);
+		if (PHP_OS_FAMILY === 'Windows') { // the root is spelled as the disk has it, the working directory as it was typed
+			[, $out] = runApp(strtoupper("$root/src"), ['check', '..']);
+			Assert::match("%A%, narrowed to the configured paths\n%A%", $out);
+		}
+	} finally {
+		unlink("$root/other/c.php");
+		rmdir("$root/other");
+	}
+});
+
+
 test('a path outside the root is checked where it is', function () use ($root) {
 	$outside = dirname($root) . '/console-outside';
 	@mkdir($outside); // @ - may exist
@@ -531,6 +554,8 @@ test('overrides: another part of the tree gets other rules, and the run, the cac
 	[$code, $out] = runApp($root, ['fix', ...$config, '--stdin', 'lib/x.php'], "<?php\n\$a; \n");
 	Assert::same(0, $code);
 	Assert::same("<?php\n\$a;\n", $out);
+	[, $out] = runApp("$root/legacy", ['fix', ...$config, '--stdin', 'x.php'], "<?php\n\$a; \n"); // relative to the working directory
+	Assert::same("<?php\n\$a; \n", $out);
 
 	// the cache tells the two configurations of one content apart: the same text is clean in one and not
 	// in the other, and a warm run says what the cold one said

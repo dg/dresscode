@@ -309,6 +309,29 @@ final class Runner
 
 
 	/**
+	 * The paths named within the configured ones: a directory holding some of those stands for them, anything else
+	 * for itself, since whoever names a path outside them means it.
+	 * @param  list<string>  $paths
+	 * @param  list<string>  $configured
+	 * @return list<string>
+	 */
+	public function narrowPaths(array $paths, array $configured): array
+	{
+		$configured = array_map($this->relativize(...), $configured);
+		$narrowed = [];
+		foreach ($paths as $path) {
+			$relative = $this->relativize($path);
+			$held = in_array($relative, $configured, true)
+				? []
+				: array_filter($configured, fn(string $inner) => $relative === '' || str_starts_with("$inner/", "$relative/"));
+			array_push($narrowed, ...($held ?: [$path]));
+		}
+
+		return array_values(array_unique($narrowed));
+	}
+
+
+	/**
 	 * A path outside the root stays absolute, a relative one is under the root.
 	 */
 	public function toAbsolute(string $path): string
