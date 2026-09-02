@@ -257,6 +257,13 @@ final class NeonReader
 	}
 
 
+	/** The title of a preset, the first line of the comment its file opens with. */
+	public static function readPresetTitle(string $file): string
+	{
+		return preg_match('~\A#[ \t]*(\S.*?)\s*$~m', (string) file_get_contents($file), $m) ? $m[1] : '';
+	}
+
+
 	/**
 	 * An entry of `use` naming a file, one ending in `.neon`, as the absolute path, taken relative to the directory
 	 * of what writes it; the name of a preset as it is.

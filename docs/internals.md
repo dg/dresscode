@@ -7,7 +7,7 @@ How DressCode works: the facts an agent or a contributor needs before touching t
 - `phpsyntax/phpsyntax` (namespace `PhpSyntax`, a repository of its own): lexer, parser, tree, printer, navigation, mutation. Its internals are documented there; what a rule of DressCode uses from it is below.
 - `DressCode` (`src/`): engine, rules API, rules, configuration, CLI. Rules use only the public API of `PhpSyntax`; whatever a rule of the core needs from it is public API for plugins too.
 
-The public, semver-stable surface of `DressCode` is what the first list names, and the second names what is `@internal`. Every class of `src/` is in one of them, the more specific name deciding (a class before a namespace, a longer namespace before a shorter one). An item names its classes, namespaces or files first, the explanation follows a colon.
+The public, semver-stable surface of `DressCode` is what the first list names, and the second names what is `@internal`. Every class of `src/` is in one of them, the more specific name deciding (a class before a namespace, a longer namespace before a shorter one), and `tests/DressCode/api.phpt` checks both lists against the code. An item names its classes, namespaces or files first, the explanation follows a colon.
 
 Public:
 

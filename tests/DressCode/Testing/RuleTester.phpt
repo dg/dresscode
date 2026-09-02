@@ -2,6 +2,7 @@
 
 use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Style, Values};
 use DressCode\Domains\Words;
+use DressCode\Rules\Classes\ClassNameNotationRule;
 use DressCode\Testing\{RuleTester, TestFailure};
 use PhpSyntax\Analyses\{NameResolver, NamespacedSymbols};
 use PhpSyntax\{NameForm, Node, Token, UnqualifiedResolution};
@@ -231,6 +232,15 @@ test('a violation left although the run allowed its fix needs a report without a
 		'Rule `RiskyReport` failed in `code`: It reported an occurrence it then left unfixed without saying `fixable: false`.',
 	);
 	RuleTester::check(new RiskyReport(declared: true), "<?php\n\$a;\n", fixRisky: true);
+});
+
+
+test('the decisions a fixture makes a risky fix under are those of the reports with a risk, in a fixture saying risky', function () {
+	$dir = __DIR__ . '/../Rules/fixtures';
+	Assert::same(['cleanup.classNameNotation'], RuleTester::collectRiskyDecisions(ClassNameNotationRule::class, "$dir/classNameNotation/namespace-risky.code"));
+	Assert::same(['cleanup.get_class'], RuleTester::collectRiskyDecisions(ClassNameNotationRule::class, "$dir/classNameNotation/objects-namespace-risky.code"));
+	Assert::same([], RuleTester::collectRiskyDecisions(ClassNameNotationRule::class, "$dir/classNameNotation/namespace.code"));
+	Assert::same(['file.strictTypes'], RuleTester::collectRiskyDecisions(DressCode\Rules\Files\StrictTypesRequiredRule::class, "$dir/strictTypesRequired/tag-line-missing.code"));
 });
 
 

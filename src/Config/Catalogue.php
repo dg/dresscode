@@ -27,7 +27,7 @@ final class Catalogue
 	/** the version of the shape of the export */
 	public const Version = 3;
 
-	/** the sections of the core, in the order a file writes them */
+	/** the sections of the core, in the order a file and the reference write them */
 	public const CoreSections = [
 		'file', 'indentation', 'naming', 'builtin', 'qualification', 'imports', 'spacing', 'multiline', 'braces',
 		'blankLines', 'classes', 'types', 'functions', 'cleanup', 'controlFlow', 'expressions', 'literals',

@@ -131,6 +131,26 @@ final class RuleTester
 
 
 	/**
+	 * The decisions under which the rule makes a fix that changes what the code does over the fixture, which only
+	 * a fixture saying `// risky` lets it make; for the reference, which says what decisions have such a fix.
+	 * @param class-string<Rule>|\Closure(array<string, mixed>): Rule $rule
+	 * @param array<string|int, string|callable(FileNode, string): object> $analyses
+	 * @return list<string>
+	 * @throws TestFailure
+	 */
+	public static function collectRiskyDecisions(string|\Closure $rule, string $file, array $analyses = []): array
+	{
+		if (!self::readRisky(self::read($file))) {
+			return [];
+		}
+
+		[, $result] = self::processFixture($rule, $file, null, $analyses);
+		$made = array_filter($result->violations, fn(Violation $v) => $v->risk !== null && !$v->refused);
+		return array_values(array_unique(array_map(fn(Violation $v) => $v->decision, $made)));
+	}
+
+
+	/**
 	 * @param ?string $expected  the output; null when the rule must leave the code as it is
 	 * @param ?list<string> $violations  "line: message" each, and the line of the risk after a risky one; null to skip the check
 	 * @param NamespacedSymbols $namespacedSymbols  what the namespaces declare outside the code
