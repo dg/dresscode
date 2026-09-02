@@ -5,6 +5,11 @@ use DressCode\ConfigurationException;
 use DressCode\NodeRule;
 use DressCode\Preset;
 use DressCode\PresetInfo;
+use DressCode\Presets;
+use DressCode\Presets\Nette;
+use DressCode\Presets\Per;
+use DressCode\Presets\Psr12;
+use DressCode\Presets\Symfony;
 use DressCode\Profile;
 use DressCode\RuleInfo;
 use DressCode\Stage;
@@ -99,6 +104,26 @@ test('rules by class and name', function () {
 	Assert::same(RuleOne::class, $registry->resolveRule(RuleOne::class));
 	Assert::same(RuleOne::class, $registry->getRules()['test/one']);
 	Assert::same($registry->resolveRule('dresscode/ordered-imports'), $registry->resolveRule('ordered-imports'));
+});
+
+
+test('presets', function () {
+	$registry = new RuleRegistry;
+	Assert::same(Per::class, $registry->resolvePreset('dresscode/per'));
+	Assert::same(Psr12::class, $registry->resolvePreset('dresscode/psr12'));
+	Assert::same(Per::class, $registry->resolvePreset('per'));
+	Assert::same(TestPreset::class, $registry->resolvePreset(TestPreset::class));
+	Assert::same(TestPreset::class, $registry->resolvePreset('test/preset'));
+	Assert::same(
+		[
+			'dresscode/per' => Per::class, 'dresscode/psr12' => Psr12::class, 'dresscode/nette' => Nette::class,
+			'dresscode/symfony' => Symfony::class, 'dresscode/nette-style' => Presets\NetteStyle::class,
+			'dresscode/symfony-configurator' => Presets\SymfonyConfigurator::class, 'test/preset' => TestPreset::class,
+		],
+		$registry->getPresets(),
+	);
+	Assert::exception(fn() => $registry->resolvePreset('none'), ConfigurationException::class, "Unknown preset 'none'.");
+	Assert::exception(fn() => $registry->resolvePreset(stdClass::class), ConfigurationException::class, 'Class stdClass is not a preset.');
 });
 
 
