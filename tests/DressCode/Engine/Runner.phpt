@@ -281,16 +281,16 @@ test('fix writes the changed files', function () use ($root) {
 });
 
 
-test('the progress hears of every file as it starts, and of the end', function () use ($root) {
+test('the progress hears of every file as it starts, with its size, and of the end', function () use ($root) {
 	$calls = [];
-	$onProgress = function (int $done, array $running) use (&$calls): void {
-		$calls[] = [$done, array_keys($running)];
+	$onProgress = function (int $done, array $running, ?int $size) use (&$calls): void {
+		$calls[] = [$done, array_keys($running), $size];
 	};
 	engine($root)->run(['src/a.php', 'src/b.php'], fix: false, reporter: new RecordingReporter, onProgress: $onProgress);
 	Assert::same([
-		[0, ['src/a.php']],
-		[1, ['src/b.php']],
-		[2, []],
+		[0, ['src/a.php'], filesize("$root/src/a.php")],
+		[1, ['src/b.php'], filesize("$root/src/b.php")],
+		[2, [], null],
 	], $calls);
 });
 
@@ -537,7 +537,7 @@ test('a file the cache served but whose text changed before it was read again is
 	$run = $runner($edit)->run(['src/a.php', 'src/b.php'], false, new RecordingReporter, onProgress: $onProgress);
 	Assert::same([false, true], array_map(fn(FileSummary $r) => $r->cached, $run->files));
 	Assert::same(1, $run->countViolations());
-	Assert::same(['src/a.php'], $started); // the loop of the pending files processed it
+	Assert::same(['src/a.php'], $started); // the loop of the pending files processed it, as it would a worker
 });
 
 
