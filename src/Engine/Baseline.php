@@ -179,7 +179,7 @@ final class Baseline
 
 	/**
 	 * Records the entries a run silenced; the run tells the baseline, because a file may have been
-	 * served by the cache, which knows what the baseline silenced in it.
+	 * processed by a worker with a baseline of its own.
 	 * @param list<string> $fingerprints
 	 */
 	public function markUsed(string $path, array $fingerprints): void

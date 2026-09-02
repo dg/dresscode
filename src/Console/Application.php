@@ -9,7 +9,7 @@ namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, Preset, PresetInfo, Profile, Reporter, Reporters, RuleException, RuleInfo};
 use DressCode\Config\{Loader, PhpVersionSource, RuleRegistry, RunnerFactory};
-use DressCode\Engine\{Baseline, FileSummary, Helpers, RunInfo, Runner, RunResult};
+use DressCode\Engine\{Baseline, FileSummary, Helpers, RunInfo, Runner, RunResult, WorkerClient, WorkerPool};
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Neon\{Exception as NeonException, Neon};
 use Nette\Utils\FileSystem;
@@ -35,6 +35,9 @@ final class Application
 	private Console $out;
 	private Console $err;
 
+	/** the script the workers are started with */
+	private string $scriptFile = 'dresscode';
+
 	/** PHP runs with Xdebug, which makes a run many times slower */
 	private readonly bool $xdebug;
 
@@ -53,6 +56,7 @@ final class Application
 		$stderr = null,
 		$stdin = null,
 		private readonly ?string $cwd = null,
+		private readonly ?string $script = null,
 		/** what applies when the project has no configuration file */
 		private readonly ?Config $defaultConfig = null,
 		?bool $xdebug = null,
@@ -75,6 +79,7 @@ final class Application
 	 */
 	public function run(array $argv): int
 	{
+		$this->scriptFile = $this->script ?? $argv[0] ?? 'dresscode';
 		$program = self::defineCommandLine();
 		$command = $program;
 		try {
@@ -190,7 +195,13 @@ final class Application
 			}
 
 			$command->addFlag('--no-cache', 'process every file, even one whose content is known to be clean');
+			$command->addOption(
+				'--jobs',
+				'worker processes; by default the number of processors, at most one per four files; `1` runs in-process',
+				valueName: 'n',
+			);
 			$command->addFlag('--strict-rules', 'a rule breaking its contract is an error, not a warning');
+			$command->addOption('--worker', hidden: true); // the address of the parent; a worker started by WorkerPool
 		}
 
 		foreach ([$check, $fix, $config, $explain, $rules] as $command) {
@@ -214,6 +225,20 @@ final class Application
 		$factory = new RunnerFactory;
 		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
 		$only = self::parseOnly($args);
+		if (is_string($args['--worker'])) { // the parent keeps the cache; the baseline decides what is reported
+			$runner = $factory->createRunner(
+				$config,
+				$root,
+				$commandLine,
+				$only,
+				strict: (bool) $args['--strict-rules'],
+				cache: false,
+				fixRisky: (bool) ($args['--fix-risky'] ?? false),
+				baseline: $args->command->name !== 'baseline',
+			);
+			return WorkerClient::serve($args['--worker'], $runner, $fix);
+		}
+
 		$runner = $factory->createRunner(
 			$config,
 			$root,
@@ -224,7 +249,7 @@ final class Application
 			configFile: $configFile,
 			fixRisky: (bool) ($args['--fix-risky'] ?? false),
 		);
-		foreach ($factory->getWarnings() as $warning) {
+		foreach ($factory->getWarnings() as $warning) { // only the parent warns, a worker has returned above
 			$this->err->writeLine(Markup::highlightCode($this->err, "Warning: $warning", 'yellow'));
 		}
 
@@ -257,8 +282,13 @@ final class Application
 			$this->writeScope(files: $files, paths: $scope, root: $root, fix: $fix, narrowed: $paths && $scope !== $paths);
 		}
 
+		// a worker costs about the processing of a few files to start, so by default one for every four files at most
+		$jobs = $args['--jobs'] === null
+			? max(1, min(WorkerPool::detectCpuCount(), intdiv(count($files), 4)))
+			: max(1, (int) $args['--jobs']);
+		$workers = $jobs > 1 && $files ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->cwd) : null;
 		if ($generate) {
-			return $this->generateBaseline($factory, $config, $root, $configFile, $commandLine, $files, $format);
+			return $this->generateBaseline($factory, $config, $root, $configFile, $commandLine, $files, $workers, $format);
 		}
 
 		$progress = $format === 'console' && count($files) > 1 && $this->out->isTerminal()
@@ -268,7 +298,7 @@ final class Application
 		$reporter = $this->createReporter($args, $this->out, $this->stdout, $root, $format, $factory->registry);
 
 		try {
-			return $runner->run($files, $fix, $reporter, $onProgress, $maxWarnings)->getExitCode();
+			return $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings)->getExitCode();
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
 		}
@@ -394,6 +424,40 @@ final class Application
 
 
 	/**
+	 * The command line of a worker: the same PHP, the same command and configuration; the paths come over the
+	 * connection.
+	 * @return list<string>
+	 */
+	private function buildWorkerCommand(ParseResult $args, bool $fix): array
+	{
+		$command = [
+			...WorkerPool::buildPhpCommand(),
+			$this->scriptFile,
+			$fix ? 'fix' : ($args->command->name === 'baseline' ? 'baseline' : 'check'),
+			'--no-color',
+		];
+		foreach (['--config', '--preset', '--group', '--rule', '--only'] as $option) {
+			foreach ((array) ($args[$option] ?? []) as $value) {
+				if (is_string($value)) {
+					$command[] = $option;
+					$command[] = $value;
+				}
+			}
+		}
+
+		if ($args['--strict-rules']) {
+			$command[] = '--strict-rules';
+		}
+
+		if ($args['--fix-risky'] ?? false) { // what a worker may fix has to be what the parent was asked for
+			$command[] = '--fix-risky';
+		}
+
+		return $command;
+	}
+
+
+	/**
 	 * Runs the check without the current baseline over code a fix leaves alone and writes what remains into the
 	 * configured baseline file, or into the default one beside the configuration, which the user then has to name
 	 * to make it apply; code a fix would still change, or a file that fails or does not parse, is refused.
@@ -406,13 +470,14 @@ final class Application
 		?string $configFile,
 		?Profile $commandLine,
 		array $files,
+		?WorkerPool $workers,
 		string $format,
 	): int
 	{
 		$name = $config->baseline ?? self::defaultBaselineName($configFile);
 		$file = RunnerFactory::toAbsolutePath($name, $root);
 		$runner = $factory->createRunner($config, $root, $commandLine, cache: false, baseline: false);
-		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter);
+		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter, workers: $workers);
 		$changed = $failed = [];
 		foreach ($run->files as $result) {
 			if ($result->failure !== null || $result->syntaxError !== null) {

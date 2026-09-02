@@ -49,12 +49,14 @@ final class Runner
 	 * as soon as the files before it are, and the run keeps its result without the texts, so that a large tree is
 	 * never held in memory as a whole; the texts are what a reporter sees in `reportFile()`.
 	 * @param list<string> $files  as `findFiles()` returned them
-	 * @param ?\Closure(int, array<string, float>): void $onProgress  files done and the paths in progress
+	 * @param ?\Closure(int, array<string, float>, ?int): void $onProgress  files done, the paths in progress and, when
+	 *   nothing is heard of the one in progress until it is done, its size
 	 */
 	public function run(
 		array $files,
 		bool $fix,
 		Reporter $reporter,
+		?WorkerPool $workers = null,
 		?\Closure $onProgress = null,
 		?int $maxWarnings = null,
 	): RunResult
@@ -62,7 +64,7 @@ final class Runner
 		$reporter->start(new RunInfo($this->root, $fix, count($files)));
 		/** @var array<string, FileResult|list<string>> $ready the finished files, a cached one by what it silenced */
 		$ready = [];
-		$order = $pending = [];
+		$order = $pending = $sizes = [];
 		foreach ($files as $path) {
 			$code = $this->read($path);
 			if ($this->skipWhen && ($this->skipWhen)($code, $path)) {
@@ -76,6 +78,7 @@ final class Runner
 				$this->baseline?->markUsed($path, $baselined);
 			} else {
 				$pending[] = $path;
+				$sizes[$path] = strlen($code);
 			}
 		}
 
@@ -107,13 +110,17 @@ final class Runner
 		};
 
 		$report();
-		foreach ($this->processPending($pending, $fix, $onProgress, count($order) - count($pending)) as $path => $result) {
+		foreach ($this->processPending($pending, $sizes, $fix, $workers, $onProgress, count($order) - count($pending)) as $path => $result) {
 			$ready[$path] = $result;
 			$report();
 		}
 
+		if (count($ordered) < count($order)) {
+			throw new \RuntimeException('The workers returned no result for `' . $order[count($ordered)] . '`.');
+		}
+
 		if ($onProgress !== null) {
-			$onProgress(count($files), []); // the whole scope is done, whatever was skipped along the way
+			$onProgress(count($files), [], null); // the whole scope is done, whatever was skipped along the way
 		}
 
 		$this->cache?->save();
@@ -136,25 +143,41 @@ final class Runner
 
 
 	/**
-	 * The results of the files the cache did not serve, in the order they are done, each file read when its turn
-	 * comes.
+	 * The results of the files the cache did not serve, in the order they are done: from the workers when there are
+	 * any and more than one file, or a single one with the progress watched, since only the workers let it tick while
+	 * a file is processed; else one by one, each file read when its turn comes.
 	 * @param  list<string>  $paths
-	 * @param  ?\Closure(int, array<string, float>): void  $onProgress
+	 * @param  array<string, int>  $sizes  path => the length of its content
+	 * @param  ?\Closure(int, array<string, float>, ?int): void  $onProgress
 	 * @param  int  $done  files done before, the cached ones
 	 * @return \Generator<string, FileResult>
 	 */
 	private function processPending(
 		array $paths,
+		array $sizes,
 		bool $fix,
+		?WorkerPool $workers,
 		?\Closure $onProgress,
 		int $done,
 	): \Generator
 	{
+		if ($workers !== null && (count($paths) > 1 || ($paths && $onProgress !== null))) {
+			$progress = $onProgress === null
+				? null
+				: fn(int $processed, array $running) => $onProgress($done + $processed, $running, null);
+			foreach ($workers->process($paths, $this->read(...), $progress) as $path => $result) {
+				$this->baseline?->markUsed($result->path, $result->baselined);
+				yield $path => $result;
+			}
+
+			return;
+		}
+
 		$collector = new CycleCollector;
 		try {
 			foreach ($paths as $path) {
 				if ($onProgress !== null) {
-					$onProgress($done++, [$path => microtime(as_float: true)]);
+					$onProgress($done++, [$path => microtime(as_float: true)], $sizes[$path]);
 				}
 
 				$result = $this->processPath($path, $fix);
