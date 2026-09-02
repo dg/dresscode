@@ -19,6 +19,7 @@ require __DIR__ . '/../../bootstrap.php';
 $composable = [
 	Presets\Cleanup::class, Presets\Modern::class, Presets\Types::class,
 	Presets\PhpDoc::class, Presets\Imports::class, Presets\Classes::class, Presets\Optimizations::class,
+	Presets\SymfonyConfigurator::class,
 ];
 
 
@@ -37,6 +38,40 @@ test('a preset added to a standard drags nothing in and brings no style', functi
 		Assert::true($profile->rules !== [] || $profile->namespaces !== ['functions' => [], 'constants' => []], "$class is empty");
 		Assert::null($profile->indent, $class);
 		Assert::null($profile->eol, $class);
+	}
+});
+
+
+test('the presets added to a standard do not overlap', function () use ($composable) {
+	$seen = [];
+	foreach ($composable as $class) {
+		foreach (profileOf($class)->rules as $rule => $value) {
+			Assert::false(isset($seen[$rule]), "$rule is in " . ($seen[$rule] ?? '') . " and in $class");
+			$seen[$rule] = $class;
+		}
+	}
+
+	Assert::same(55, count($seen));
+});
+
+
+test('a preset added to a standard sets no option a standard decides', function () use ($composable) {
+	// the preset is laid above the standard, so an option both set would be taken from the standard; a value that is
+	// no map decides the whole rule
+	$decided = [];
+	foreach ([Presets\Per::class, Presets\Psr12::class, Presets\Nette::class, Presets\Symfony::class] as $standard) {
+		foreach (profileOf($standard)->rules as $rule => $value) {
+			$decided[$rule] = [...$decided[$rule] ?? [], ...(is_array($value) ? array_keys($value) : ($value === true ? [] : ['*']))];
+		}
+	}
+
+	foreach ($composable as $class) {
+		foreach (profileOf($class)->rules as $rule => $value) {
+			Assert::true(
+				$value === true || (is_array($value) && !in_array('*', $decided[$rule] ?? [], true) && !array_intersect(array_keys($value), $decided[$rule] ?? [])),
+				"$rule in $class",
+			);
+		}
 	}
 });
 

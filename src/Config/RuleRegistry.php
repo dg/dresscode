@@ -196,6 +196,7 @@ final class RuleRegistry
 		$this->registerPreset(Presets\Per::class);
 		$this->registerPreset(Presets\Psr12::class);
 		$this->registerPreset(Presets\Nette::class);
+		$this->registerPreset(Presets\Symfony::class);
 		$this->registerPreset(Presets\NetteStyle::class);
 		$this->registerPreset(Presets\Cleanup::class);
 		$this->registerPreset(Presets\Modern::class);
@@ -204,6 +205,7 @@ final class RuleRegistry
 		$this->registerPreset(Presets\Imports::class);
 		$this->registerPreset(Presets\Classes::class);
 		$this->registerPreset(Presets\Optimizations::class);
+		$this->registerPreset(Presets\SymfonyConfigurator::class);
 		foreach (self::BuiltinRules as $class) {
 			$this->registerRule($class);
 		}
