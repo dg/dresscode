@@ -16,6 +16,7 @@ use function count;
  * with the layers that set them, the style, the target version of PHP, what the namespaces declare, and the
  * rules that do not run with the reason. One resolution serves the run, the result cache and whoever prints the
  * configuration, so that what the reader is shown is what the rules were given.
+ * @internal
  */
 final readonly class ResolvedConfig
 {
