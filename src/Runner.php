@@ -15,6 +15,7 @@ use function count, sprintf, strlen;
 
 /**
  * Runs the file processor over the files of a project. Paths are relative to the root, with slashes.
+ * @internal
  */
 final class Runner
 {

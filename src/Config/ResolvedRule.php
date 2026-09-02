@@ -15,6 +15,7 @@ use function count, is_array;
  * One rule of a resolved configuration: its canonical name, the options it ends up with, the layers that
  * set them and, when it does not run, why. The layers are what they were given, in the order they were
  * given; the options are the result of processing them through the schema of the rule, defaults and all.
+ * @internal
  */
 final readonly class ResolvedRule
 {
