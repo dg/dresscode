@@ -144,7 +144,7 @@ final class ExplainPrinter
 	}
 
 
-	/** The area a rule belongs to, that is the directory of its class. */
+	/** The area a rule belongs to, that is the directory of its class, as the reference groups them too. */
 	private static function categoryOf(ResolvedRule $rule): string
 	{
 		$parts = explode('\\', $rule->class);
