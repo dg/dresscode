@@ -7,7 +7,7 @@
 
 namespace DressCode\Console\Commands;
 
-use Nette\CommandLine\Attributes as Cli;
+use Nette\CommandLine\{Attributes as Cli, Normalizers};
 
 
 /**
@@ -30,8 +30,23 @@ final readonly class RunOptions
 		public ?bool $skipExcluded = null,
 		#[Cli\Flag('Process every file, even one whose content is known to be clean')]
 		public ?bool $noCache = null,
+		#[Cli\Option(
+			'Number of worker processes; by default the number of processors, at most one per four files; `1` runs in-process',
+			valueName: 'n',
+			normalizer: [self::class, 'parseJobs'],
+		)]
+		public ?int $jobs = null,
 		#[Cli\Flag('Treat a rule breaking its contract as an error, not a warning')]
 		public ?bool $strictRules = null,
+		/** the address of the parent; a worker started by WorkerPool */
+		#[Cli\Option(hidden: true)]
+		public ?string $worker = null,
 	) {
+	}
+
+
+	public static function parseJobs(string $value): int
+	{
+		return Normalizers::int(min: 1)($value);
 	}
 }

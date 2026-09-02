@@ -27,6 +27,7 @@ final readonly class Application
 	 * @param  ?resource  $stdout
 	 * @param  ?resource  $stderr
 	 * @param  ?resource  $stdin
+	 * @param  ?string  $script  the script the workers are started with, the one the process was started with by default
 	 * @param  ?Config  $defaultConfig  what applies when the project has no configuration file
 	 * @param  ?bool  $xdebug  whether Xdebug is loaded; detected when the output is the process's own
 	 */
@@ -35,6 +36,7 @@ final readonly class Application
 		$stderr = null,
 		$stdin = null,
 		?string $cwd = null,
+		?string $script = null,
 		?Config $defaultConfig = null,
 		?bool $xdebug = null,
 	) {
@@ -48,6 +50,7 @@ final readonly class Application
 			out: $out,
 			err: $err,
 			workingDirectory: $cwd ?? (string) getcwd(),
+			scriptFile: $script ?? $_SERVER['argv'][0] ?? 'dresscode',
 			defaultConfig: $defaultConfig,
 			xdebug: $xdebug ?? ($stdout === null && extension_loaded('xdebug')),
 		);

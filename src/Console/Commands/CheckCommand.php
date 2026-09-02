@@ -10,7 +10,7 @@ namespace DressCode\Console\Commands;
 use DressCode\{Config, Reporter, Reporters};
 use DressCode\Config\{Loader, PluginRegistry};
 use DressCode\Console\{CommandContext, Markup, ProgressBar};
-use DressCode\Engine\{Baseline, FileSummary, Helpers, Runner, RunResult};
+use DressCode\Engine\{Baseline, FileSummary, Helpers, Runner, RunResult, Worker, WorkerPool};
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use function count, in_array, is_string, sprintf;
@@ -63,17 +63,29 @@ final readonly class CheckCommand
 	{
 		[$factory, $resolution, $configFile] = $this->context->resolveProject($args, $check->only ?? []);
 		[$config, $root] = [$resolution->config, $resolution->root];
+		$fixRisky = (bool) ($check->fixRisky ?? false);
+		if ($run->worker !== null) { // the parent keeps the cache; the baseline decides what is reported
+			$runner = $factory->createRunner(
+				$resolution,
+				strict: (bool) $run->strictRules,
+				cache: false,
+				fixRisky: $fixRisky,
+				baseline: !$generate,
+			);
+			return Worker::run($run->worker, $runner, $fix);
+		}
+
 		$runner = $factory->createRunner(
 			$resolution,
 			strict: (bool) $run->strictRules,
 			// the counts of a file served from the cache are those the baseline left
 			cache: !$generate && !$run->noCache,
 			configFile: $configFile,
-			fixRisky: (bool) ($check->fixRisky ?? false),
+			fixRisky: $fixRisky,
 			baseline: !$generate,
 		);
 		[$out, $err] = [$this->context->out, $this->context->err];
-		foreach ($resolution->warnings as $warning => $docs) {
+		foreach ($resolution->warnings as $warning => $docs) { // only the parent warns, a worker has returned above
 			$err->writeLine(Markup::highlightCode($err, "Warning: $warning", 'yellow'));
 			if ($docs !== null) {
 				$err->writeLine(Markup::formatDocsLink($err, $docs));
@@ -119,6 +131,12 @@ final readonly class CheckCommand
 			$this->writeScope(files: $files, paths: $scope, root: $root, fix: $fix, narrowed: $paths && $scope !== $paths);
 		}
 
+		// a worker costs about the processing of a few files to start, so by default one for every four files at most
+		$jobs = $run->jobs ?? max(1, min(WorkerPool::detectCpuCount(), intdiv(count($files), 4)));
+		$command = $jobs > 1 && $files ? $this->buildWorkerCommand($args) : null;
+		$workers = $command
+			? new WorkerPool($command, $jobs, $this->context->workingDirectory)
+			: null;
 		$progress = !$generate && $format === 'console' && count($files) > 1 && $out->isTerminal()
 			? new ProgressBar($out, count($files))
 			: null;
@@ -126,11 +144,11 @@ final readonly class CheckCommand
 
 		try {
 			if ($generate) {
-				return $this->generateBaseline($runner, $config, $root, $configFile, $files, $format);
+				return $this->generateBaseline($runner, $config, $root, $configFile, $files, $workers, $format);
 			}
 
 			$reporter = $this->createReporter($args, $out, $this->context->stdout, $root, $format, $factory->registry);
-			return $runner->run($files, $fix, $reporter, $onProgress, $maxWarnings)->getExitCode();
+			return $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings)->getExitCode();
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
 		}
@@ -222,6 +240,44 @@ final readonly class CheckCommand
 
 
 	/**
+	 * The command line of a worker: the same PHP, the same command and configuration; the paths come over the
+	 * connection. Null where there is no PHP to start one with, and the run stays in the process.
+	 * @return ?list<string>
+	 */
+	private function buildWorkerCommand(ParseResult $args): ?array
+	{
+		$php = WorkerPool::buildPhpCommand();
+		if ($php === null) {
+			return null;
+		}
+
+		$command = [
+			...$php,
+			$this->context->scriptFile,
+			(string) $args->command->name,
+			'--no-color',
+		];
+		foreach (['--config', '--use', '--set', '--only'] as $option) {
+			foreach ((array) ($args[$option] ?? []) as $value) {
+				if (is_string($value)) {
+					$command[] = "$option=$value"; // a value starting with a dash would read as an option
+				}
+			}
+		}
+
+		if ($args['--strict-rules']) {
+			$command[] = '--strict-rules';
+		}
+
+		if ($args['--fix-risky'] ?? false) { // what a worker may fix has to be what the parent was asked for
+			$command[] = '--fix-risky';
+		}
+
+		return $command;
+	}
+
+
+	/**
 	 * Runs the check without the current baseline over code a fix leaves alone and writes what remains into the
 	 * configured baseline file, or into the default one beside the configuration, which the user then has to name
 	 * to make it apply; code a fix would still change, or a file that fails or does not parse, is refused.
@@ -233,12 +289,13 @@ final readonly class CheckCommand
 		string $root,
 		?string $configFile,
 		array $files,
+		?WorkerPool $workers,
 		string $format,
 	): int
 	{
 		$name = $config->baseline ?? self::getDefaultBaselineName($configFile);
 		$file = Helpers::toAbsolutePath($name, $root);
-		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter);
+		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter, workers: $workers);
 		$changed = $failed = [];
 		foreach ($run->files as $result) {
 			if ($result->failure !== null || $result->syntaxError !== null) {

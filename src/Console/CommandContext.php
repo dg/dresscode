@@ -34,6 +34,8 @@ final readonly class CommandContext
 		public Console $err,
 		/** the directory the paths of the command line are relative to */
 		public string $workingDirectory,
+		/** the script the workers are started with */
+		public string $scriptFile,
 		/** what applies when the project has no configuration file */
 		public ?Config $defaultConfig,
 		/** PHP runs with Xdebug, which makes a run many times slower */
