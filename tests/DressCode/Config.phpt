@@ -139,3 +139,16 @@ test('an extension that cannot be called says so', function () {
 		'Extension stdClass is not callable, it needs an __invoke() method.',
 	);
 });
+
+
+test('an analysis the engine cannot build says so', function () {
+	Assert::exception(
+		fn() => Config::create()->analysis(ArrayObject::class),
+		ConfigurationException::class,
+		'Analysis ArrayObject must take the FileNode or nothing in its constructor, or come with a factory.',
+	);
+
+	// a constructor the engine can call, or a factory that calls it instead
+	Assert::noError(fn() => Config::create()->analysis(stdClass::class));
+	Assert::noError(fn() => Config::create()->analysis(ArrayObject::class, fn() => new ArrayObject));
+});

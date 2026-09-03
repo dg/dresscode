@@ -212,11 +212,39 @@ final class Config
 	/**
 	 * @param class-string $class
 	 * @param ?callable(FileNode): object $factory
+	 * @throws ConfigurationException
 	 */
 	public function analysis(string $class, ?callable $factory = null): static
 	{
+		if (!class_exists($class)) {
+			throw new ConfigurationException("Analysis class $class does not exist.");
+		} elseif ($factory === null && !self::isConstructible($class)) {
+			throw new ConfigurationException("Analysis $class must take the FileNode or nothing in its constructor, or come with a factory.");
+		}
+
 		$this->analyses[$class] = $factory === null ? null : $factory(...);
 		return $this;
+	}
+
+
+	/**
+	 * Whether the engine can build the analysis itself, which it does with the FileNode or without arguments.
+	 * @param class-string $class
+	 */
+	private static function isConstructible(string $class): bool
+	{
+		$reflection = new \ReflectionClass($class);
+		$constructor = $reflection->getConstructor();
+		if (!$reflection->isInstantiable()) {
+			return false;
+		} elseif ($constructor === null || $constructor->getNumberOfParameters() === 0) {
+			return true;
+		}
+
+		$type = $constructor->getParameters()[0]->getType();
+		return $constructor->getNumberOfRequiredParameters() <= 1
+			&& $type instanceof \ReflectionNamedType
+			&& is_a($type->getName(), FileNode::class, allow_string: true);
 	}
 
 

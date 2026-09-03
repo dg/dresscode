@@ -45,7 +45,8 @@ final class Application
 		                                         rewrite phpcs suppression comments to the dresscode form
 
 		Options:
-		  -c, --config <file>       configuration file; the nearest dresscode.php when omitted
+		  -c, --config <file>       configuration file; the nearest dresscode.neon
+		                            or dresscode.php when omitted
 		  -f, --format <name>       console, bare, github, json or checkstyle; github when running
 		                            there. bare says only what is left to the user and which files
 		                            were rewritten, so a clean run says nothing at all
@@ -298,7 +299,7 @@ final class Application
 		return $version . match ($source) {
 			PhpVersionSource::Configuration => '',
 			PhpVersionSource::Composer => ' from composer.json',
-			PhpVersionSource::Default => ' by default, no composer.json found; set phpVersion() in ' . ConfigLoader::FileName,
+			PhpVersionSource::Default => ' by default, no composer.json found; set phpVersion in the configuration',
 		};
 	}
 
