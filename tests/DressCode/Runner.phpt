@@ -127,7 +127,7 @@ function engine(
 }
 
 
-test('a dot path is the root itself and never matches the dot-prefixed skip', function () use ($root) {
+test('a dot path is the root itself and never matches the dot-prefixed exclusion', function () use ($root) {
 	$runner = engine($root, excludePaths: ['vendor', 'fixtures*', '.*']);
 	Assert::same('', $runner->relativize('.'));
 	Assert::same('src/a.php', $runner->relativize('./src/./a.php'));
@@ -136,7 +136,7 @@ test('a dot path is the root itself and never matches the dot-prefixed skip', fu
 });
 
 
-test('files are found under the paths, sorted, relative, with slashes, without the skipped ones', function () use ($root) {
+test('files are found under the paths, sorted, relative, with slashes, without the excluded ones', function () use ($root) {
 	$runner = engine($root);
 	Assert::same(
 		['src/a.php', 'src/b.php', 'src/broken.php', 'src/skipped.php', 'src/sub/d.php'],
@@ -197,7 +197,7 @@ test('a failing rule fails the file, the run goes on, nothing is written', funct
 });
 
 
-test('processFile applies the rule skips to the given path and writes nothing', function () use ($root) {
+test('processFile applies the rule exclusions to the given path and writes nothing', function () use ($root) {
 	$runner = engine($root, ruleExcludePaths: ['test/rename' => ['src/sub']]);
 	Assert::true($runner->processFile("$root/src/x.php", "<?php\n\$a;\n")->isChanged());
 	Assert::false($runner->processFile('src/sub/x.php', "<?php\n\$a;\n")->isChanged());

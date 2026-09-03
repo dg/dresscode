@@ -11,6 +11,7 @@ use DressCode\Engine\FileProcessor;
 use DressCode\Engine\ResultCache;
 use DressCode\Helpers;
 use DressCode\PresetContext;
+use DressCode\RuleInfo;
 use DressCode\Runner;
 use PhpSyntax\Style;
 use function is_array, is_string;
@@ -63,6 +64,7 @@ final class RunnerFactory
 	 */
 	public function createRunner(Config $config, string $root, bool $strict = false, bool $cache = true): Runner
 	{
+		$ruleExcludePaths = $this->resolveRuleExcludePaths($config);
 		[$phpVersion] = $this->phpVersion = $this->resolvePhpVersion($config, $root);
 		$resolver = new PresetResolver($this->registry);
 		$context = new PresetContext($phpVersion);
@@ -77,7 +79,7 @@ final class RunnerFactory
 		$resultCache = $cache
 			? ResultCache::load(
 				self::resolveCacheFile($config, $root),
-				self::hashConfiguration([$resolver->describe($config, $context), $phpVersion, $indent, $eol, $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses())]),
+				self::hashConfiguration([$resolver->describe($config, $context), $phpVersion, $indent, $eol, $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $ruleExcludePaths]),
 			)
 			: null;
 		$processor = new FileProcessor(
@@ -93,7 +95,7 @@ final class RunnerFactory
 			$processor,
 			$root,
 			$config->getExcludePaths(),
-			$config->getRuleExcludePaths(),
+			$ruleExcludePaths,
 			$config->getFileExtensions(),
 			$config->getSkipWhen(),
 			self::loadBaseline($config, $root),
@@ -117,8 +119,9 @@ final class RunnerFactory
 
 
 	/**
-	 * Identity of everything a result depends on besides the file: the effective rules with their options, the
-	 * style, the PHP version and the versions (with their git references) of every installed package.
+	 * Identity of everything a result depends on besides the file: the effective rules with their options and
+	 * the paths they are left out of, the style, the PHP version and the versions (with their git references)
+	 * of every installed package.
 	 * @param  array<mixed>  $configuration
 	 */
 	public static function hashConfiguration(array $configuration): string
@@ -131,6 +134,24 @@ final class RunnerFactory
 		}
 
 		return hash('xxh128', json_encode([$configuration, $packages], JSON_THROW_ON_ERROR | JSON_PARTIAL_OUTPUT_ON_ERROR));
+	}
+
+
+	/**
+	 * The excluded paths under the name of the rule the engine will ask by, so that a class stands for its
+	 * rule here as it does everywhere else and a name no rule owns is an error instead of a silent no-op.
+	 * @return array<string, list<string>>
+	 * @throws ConfigurationException
+	 */
+	private function resolveRuleExcludePaths(Config $config): array
+	{
+		$resolved = [];
+		foreach ($config->getRuleExcludePaths() as $rule => $patterns) {
+			$name = RuleInfo::of($this->registry->resolveRule($rule))->name;
+			$resolved[$name] = [...$resolved[$name] ?? [], ...$patterns];
+		}
+
+		return $resolved;
 	}
 
 

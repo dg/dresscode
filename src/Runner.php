@@ -203,7 +203,7 @@ final class Runner
 
 
 	/**
-	 * Files under the paths with one of the extensions, minus the skipped ones; an explicitly given file
+	 * Files under the paths with one of the extensions, minus the excluded ones; an explicitly given file
 	 * is taken as is. Sorted, relative to the root.
 	 * @param  list<string>  $paths
 	 * @return list<string>
@@ -262,7 +262,7 @@ final class Runner
 			$path = substr($path, strlen($this->root) + 1);
 		}
 
-		return implode('/', array_filter(explode('/', $path), fn(string $segment) => $segment !== '.')); // "./a" and "." would match the ".*" skip
+		return implode('/', array_filter(explode('/', $path), fn(string $segment) => $segment !== '.')); // "./a" and "." would match the ".*" exclusion
 	}
 
 

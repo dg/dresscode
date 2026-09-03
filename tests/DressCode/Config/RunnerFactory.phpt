@@ -3,6 +3,7 @@
 use DressCode\Config;
 use DressCode\Config\PhpVersionSource;
 use DressCode\Config\RunnerFactory;
+use DressCode\ConfigurationException;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
@@ -84,4 +85,30 @@ test('the engine is built from the configuration', function () use ($fixtures) {
 
 	$runner = (new RunnerFactory)->createRunner($config->style(eol: 'lf'), "$fixtures/project");
 	Assert::same(['8.1 "  ""\n"'], array_map(fn($v) => $v->message, $runner->processFile('x.php', "<?php\r\n\$a;\r\n")->violations));
+});
+
+
+test('a rule is left out of paths under its class as under its name, an unknown one is an error', function () use ($fixtures) {
+	$byClass = Config::create()->enable(ReportContext::class)->excludeRulePaths(ReportContext::class, ['sub']);
+	$runner = (new RunnerFactory)->createRunner($byClass, "$fixtures/project");
+	Assert::same([], $runner->processFile('src/sub/x.php', "<?php\n\$a;\n")->violations);
+	Assert::count(1, $runner->processFile('src/x.php', "<?php\n\$a;\n")->violations);
+
+	$unknown = Config::create()->enable(ReportContext::class)->excludeRulePaths('test/nope', ['sub']);
+	Assert::exception(
+		fn() => (new RunnerFactory)->createRunner($unknown, "$fixtures/project"),
+		ConfigurationException::class,
+		"Unknown rule 'test/nope'.",
+	);
+});
+
+
+test('the name of the baseline is judged even before the file exists', function () use ($fixtures) {
+	Assert::null(RunnerFactory::loadBaseline(Config::create(), $fixtures));
+	Assert::null(RunnerFactory::loadBaseline(Config::create()->baseline('baseline.neon'), $fixtures)); // no file yet
+	Assert::exception(
+		fn() => RunnerFactory::loadBaseline(Config::create()->baseline('baseline.txt'), $fixtures),
+		ConfigurationException::class,
+		'The baseline file %a%baseline.txt must be a .neon or a .php file.',
+	);
 });
