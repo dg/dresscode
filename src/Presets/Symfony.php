@@ -1,0 +1,124 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Presets;
+
+use DressCode\{Preset, PresetInfo, Profile};
+
+
+/**
+ * The Symfony Coding Standards as the @Symfony rule set of PHP CS Fixer defines them, without most of its rules
+ * about phpDoc, of which it takes only an empty doc comment, the trimming and the canonical types: PER, which the
+ * set builds on, with the casing, the imports, the blank lines and the
+ * whitespace Symfony adds, and without the rules that would break a construct over lines, which Symfony
+ * leaves to the author.
+ */
+#[PresetInfo('dresscode/symfony', 'Symfony Coding Standards as the @Symfony rule set defines them, without most of its phpDoc rules')]
+final class Symfony implements Preset
+{
+	public function getProfile(): Profile
+	{
+		return new Profile(
+			presets: [Per::class, SymfonyConfigurator::class],
+			indent: 4,
+			eol: 'majority',
+			lineLength: false,
+			rules: [
+				// a construct keeps the lines it is written on: method_argument_space says on_multiline=ignore,
+				// and no fixer of the set breaks a condition, a chain, an array or a ternary
+				'multi-line-call' => false,
+				'multi-line-signature' => false,
+				'multi-line-condition' => false,
+				'multi-line-chain' => false,
+				'multi-line-array' => false,
+				'multi-line-ternary' => false,
+				'indentation' => ['chain' => 'keep', 'binary' => 'keep'],
+
+				// heredoc_to_nowdoc and heredoc_indentation belong to other sets
+				'nowdoc-without-interpolation' => false,
+				'heredoc-indentation' => false,
+
+				// casing
+				'class-reference-name-casing' => true,
+				'magic-constant-casing' => true,
+				'native-function-casing' => true,
+
+				// imports
+				'import-notation' => true,
+				// global_namespace_import imports nothing: a class is written fully qualified, a function and a constant too
+				// where they are qualified, and a bare one stays bare
+				'name-notation' => ['globalClasses' => 'backslash', 'globalFunctions' => 'backslash', 'globalConstants' => 'backslash'],
+				'ordered-imports' => ['order' => 'alphabetical', 'caseSensitive' => false],
+				'unused-imports' => true,
+
+				// comments and phpdoc
+				'comment-spacing' => true,
+				'no-empty-comment' => true,
+				'no-hash-comment' => true,
+				'no-empty-phpdoc' => true,
+				'phpdoc-canonical-types' => ['arrayNotation' => 'keep'],
+				'phpdoc-trim' => true,
+
+				// blank lines
+
+				'blank-lines' => [
+					'betweenDeclarations' => [0, 1], 'betweenMethods' => 1, 'betweenMethodsInInterface' => 1, 'beforeFirstMethod' => 0, 'afterLastMethod' => 0,
+					'afterClassBrace' => 0, 'beforeClassBrace' => 0, 'betweenTraitUses' => 'keep',
+					'afterTraitUses' => 'keep', 'betweenMembers' => 'keep', 'beforeDocumentedMember' => 'keep', 'afterPhpDoc' => 0,
+					'before' => ['return' => [1, null]],
+				],
+
+				// the whitespace of a line
+				'array-spacing' => true,
+				'comma-spacing' => ['alignment' => 'keep'],
+				'object-operator-spacing' => true,
+				'offset-bracket-spacing' => true,
+				'semicolon-spacing' => ['after' => 'single'],
+				'class-definition-spacing' => ['beforeParenthesis' => 'none'],
+				'construct-spacing' => ['arrowFunction' => 'single'],
+				'declare-spacing' => true,
+				'braces-position' => [
+					'classes' => 'nextLine', 'anonymousClasses' => 'sameLine', 'anonymousFunctions' => 'sameLine',
+					'controlStructures' => 'sameLine', 'singleLineAnonymousFunctions' => 'allowed', 'emptyAnonymousClasses' => 'sameLine',
+					// single_line_empty_body is switched off in @Symfony
+					'emptyBodies' => 'ownLine',
+				],
+
+				// operators
+				'binary-operator-spacing' => ['alignment' => 'none'],
+				'concat-spacing' => ['spacing' => 'none'],
+				'unary-operator-spacing' => true,
+				'increment-operator' => true,
+				'not-equals-operator' => true,
+				'no-short-bool-cast' => true,
+
+				// literals and strings
+				'string-quotes' => 'single',
+				'complex-string-variable' => true,
+				'no-backtick-operator' => true,
+
+				// control structures
+				'no-alternative-syntax' => true,
+				'no-continue-in-switch' => true,
+				'no-empty-statement' => true,
+				'useless-braces' => true,
+				'useless-construct-parentheses' => true,
+				'useless-else' => true,
+				'useless-return' => true,
+
+				// classes, arrays and types
+				'useless-null-property-initialization' => true,
+				'nullable-type-for-default-null' => true,
+				'type-hint-spacing' => ['catchTypes' => 'none'],
+				'trailing-comma' => [
+					'multiLine' => ['arrays', 'match', 'parameters'],
+					'singleLine' => true,
+				],
+			],
+		);
+	}
+}

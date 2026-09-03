@@ -2,7 +2,9 @@
 
 use DressCode\{Config, ConfigurableRule, ConfigurationException, NodeRule, Override, Preset, PresetInfo, Profile, Rule, RuleInfo, Stage};
 use DressCode\Config\{PresetResolver, ResolvedRule, RuleRegistry};
-use Nette\Schema\{Expect, Schema};
+use DressCode\Presets\Symfony;
+use DressCode\Rules\Namespaces\NameNotationRule;
+use Nette\Schema\{Expect, Processor, Schema};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -589,6 +591,54 @@ test('what the namespaces declare adds up over the layers, and only the configur
 		ConfigurationException::class,
 		"'strlen' is in no namespace, and a global function needs no listing. (in preset test/bad-declarations)",
 	);
+});
+
+
+test('a rule whose options decide nothing says so through its schema, and name-notation refuses a value it has not', function () {
+	$resolver = new PresetResolver(new RuleRegistry);
+	$resolver->resolve(new Config(rules: [
+		'dresscode/name-notation' => true,
+		'dresscode/name-fallback' => true, // no key given, so it stays the only rule of its group that decides nothing
+		'dresscode/name-casing' => ['ignorePatterns' => ['~^x~']], // a pattern of what not to report, and still no case to report
+		'dresscode/forbidden-functions' => true, // a list the packages of the project may fill, so an empty one is no mistake
+	]), '8.4');
+	$warnings = $resolver->getWarnings();
+	sort($warnings);
+	Assert::same([
+		'Rule dresscode/name-casing: No kind of name is given a case, so nothing is reported.',
+		'Rule dresscode/name-fallback: No key such as functions or optimizedFunctions is given, so every name stays as it is.',
+		'Rule dresscode/name-notation: No key such as classes or globalFunctions is given, so every name stays as it is.',
+	], $warnings);
+
+	$resolver = new PresetResolver(new RuleRegistry);
+	$resolver->resolve(new Config(rules: ['dresscode/name-fallback' => ['optimizedFunctions' => 'qualified']]), '8.4');
+	Assert::same([], $resolver->getWarnings());
+
+	// whether a name stands bare is no shape of name-notation any more
+	Assert::exception(
+		fn() => $resolver->resolve(new Config(rules: ['dresscode/name-notation' => ['globalFunctions' => 'bare']]), '8.4'),
+		ConfigurationException::class,
+		'%a%globalFunctions%a%',
+	);
+	Assert::exception(
+		fn() => $resolver->resolve(new Config(rules: ['dresscode/name-notation' => ['optimizedFunctions' => 'import']]), '8.4'),
+		ConfigurationException::class,
+		'%a%optimizedFunctions%a%',
+	);
+
+	// a map of the configuration merges with the plain value of the preset as with its pattern *, and a plain value reads back plain
+	$merged = $resolver->resolve(new Config(presets: [Symfony::class], rules: ['dresscode/name-notation' => ['globalFunctions' => ['strlen' => 'import']]]), '8.4');
+	$rule = $merged->getRule('dresscode/name-notation');
+	Assert::notNull($rule);
+	Assert::same(['*' => 'backslash', 'strlen' => 'import'], $rule->options['globalFunctions']);
+	Assert::same('backslash', $rule->options['globalClasses']);
+
+	// while a plain value over a map replaces it with its names
+	$options = (new Processor)->processMultiple(NameNotationRule::getOptionsSchema(), [
+		['globalFunctions' => ['*' => 'import', 'strlen' => 'backslash']],
+		['globalFunctions' => 'backslash'],
+	]);
+	Assert::same('backslash', ((array) $options)['globalFunctions']);
 });
 
 
