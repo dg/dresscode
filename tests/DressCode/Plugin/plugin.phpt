@@ -1,11 +1,14 @@
 <?php declare(strict_types=1);
 
 /**
- * End-to-end: a plugin with a rule, an analysis and a preset, wired only by the configuration file.
+ * End-to-end: a plugin with a rule, an analysis and a preset, brought in by an extension.
  */
 
+use Acme\DressCode\Extension;
+use DressCode\Config;
 use DressCode\Console\Application;
 use Tester\Assert;
+use Tester\Helpers;
 
 require __DIR__ . '/../../bootstrap.php';
 
@@ -14,11 +17,12 @@ require __DIR__ . '/../../bootstrap.php';
  * @param  list<string>  $args
  * @return array{int, string, string}
  */
-function runPlugin(array $args): array
+function runPlugin(array $args, ?string $cwd = null, ?Config $default = null): array
 {
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
-	$code = (new Application($out, $err, cwd: __DIR__ . '/fixtures/project'))->run(['dresscode', ...$args]);
+	$app = new Application($out, $err, cwd: $cwd ?? __DIR__ . '/fixtures/project', defaultConfig: $default);
+	$code = $app->run(['dresscode', ...$args]);
 	rewind($out);
 	rewind($err);
 	return [$code, (string) stream_get_contents($out), (string) stream_get_contents($err)];
@@ -66,4 +70,18 @@ test('the plugin rule is known by name', function () {
 	[$code, $out] = runPlugin(['check', '--rule', 'acme/no-var-dump=off', '--rule', 'dresscode/ordered-imports=off', '--rule', 'dresscode/no-trailing-whitespace=off']);
 	Assert::same(0, $code);
 	Assert::match("%A%OK  no violations in 1 file\n", $out);
+});
+
+
+test('a default configuration stands in for a missing file', function () {
+	$root = str_replace('\\', '/', (string) realpath(sys_get_temp_dir())) . '/dresscode-plugin';
+	@mkdir($root, recursive: true); // @ - may exist
+	Helpers::purge($root);
+	@mkdir("$root/src");
+	file_put_contents("$root/src/a.php", "<?php\n\nvar_dump(1);\n");
+
+	[$code, $out, $err] = runPlugin(['check'], $root, Config::create()->extension(Extension::class)->paths(['src']));
+	Assert::same('', $err);
+	Assert::same(1, $code);
+	Assert::match('%A%Config     none, preset acme/default%A%Call of var_dump() is forbidden  acme/no-var-dump%A%', $out);
 });

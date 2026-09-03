@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
 
+use DressCode\Config;
 use DressCode\Config\ConfigLoader;
 use DressCode\ConfigurationException;
 use DressCode\Presets\Per;
@@ -26,13 +27,25 @@ test('load: the found file and its directory as the root', function () use ($fix
 });
 
 
-test('load: no file means the default preset and the directory as the root', function () {
+test('load: an explicit file is taken wherever the run started', function () use ($fixtures) {
+	[$config, $root, $file] = (new ConfigLoader)->load("$fixtures/project/dresscode.php", sys_get_temp_dir());
+	Assert::same("$fixtures/project", $root);
+	Assert::same("$fixtures/project/dresscode.php", $file);
+	Assert::same(['test/a' => true], $config->getRules());
+});
+
+
+test('load: without a file the default applies, resolved, and the directory is the root', function () {
 	$dir = sys_get_temp_dir();
-	[$config, $root] = (new ConfigLoader)->load(null, $dir);
+	[$config, $root, $file] = (new ConfigLoader)->load(null, $dir);
 	Assert::same([Per::class], $config->getPresets());
 	Assert::same(rtrim(str_replace('\\', '/', $dir), '/'), $root);
-	[$config] = (new ConfigLoader)->load(null, $dir, defaultPreset: false);
-	Assert::same([], $config->getPresets());
+	Assert::null($file);
+
+	$default = Config::create()->extension(fn(Config $config) => $config->preset('from/extension'));
+	[$config] = (new ConfigLoader)->load(null, $dir, $default);
+	Assert::same(['from/extension'], $config->getPresets());
+	Assert::same([], $default->getPresets()); // the default itself is left untouched
 });
 
 

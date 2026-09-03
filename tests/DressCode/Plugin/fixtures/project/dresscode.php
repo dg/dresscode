@@ -3,5 +3,5 @@
 use DressCode\Config;
 
 return Config::create()
-	->preset(Acme\DressCode\Presets\Acme::class)
+	->extension(Acme\DressCode\Extension::class)
 	->paths(['src']);

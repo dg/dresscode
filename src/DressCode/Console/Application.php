@@ -85,6 +85,7 @@ final class Application
 	 * @param ?resource $stdout
 	 * @param ?resource $stderr
 	 * @param ?resource $stdin
+	 * @param ?Config $defaultConfig  what applies when the project has no configuration file
 	 */
 	public function __construct(
 		$stdout = null,
@@ -92,6 +93,7 @@ final class Application
 		$stdin = null,
 		private readonly ?string $cwd = null,
 		private readonly ?string $script = null,
+		private readonly ?Config $defaultConfig = null,
 	) {
 		$this->stdout = $stdout ?? STDOUT;
 		$this->stderr = $stderr ?? STDERR;
@@ -527,7 +529,7 @@ final class Application
 		[$config, $root, $file] = (new ConfigLoader)->load(
 			$args['--config'],
 			$this->cwd ?? (string) getcwd(),
-			defaultPreset: !$presets,
+			$this->defaultConfig ?? ($presets ? Config::create() : null),
 		);
 		foreach ($presets as $preset) {
 			$config->preset($preset);

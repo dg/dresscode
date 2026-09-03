@@ -8,7 +8,7 @@ use DressCode\Presets;
 
 
 /**
- * Finds and loads dresscode.php with its extra layers; without a file the default preset applies.
+ * Finds and loads dresscode.php; without a file the caller's default applies, or the default preset.
  */
 final class ConfigLoader
 {
@@ -17,19 +17,15 @@ final class ConfigLoader
 
 	/**
 	 * @param  ?string  $file  the configuration file, or null to search from the directory upwards
-	 * @param  bool  $defaultPreset  use the default preset when there is no configuration file
+	 * @param  ?Config  $default  what applies when there is no configuration file; the default preset when null
 	 * @return array{Config, string, ?string}  the configuration, the root directory with slashes, and the file it came from
 	 * @throws ConfigurationException
 	 */
-	public function load(?string $file, string $directory, bool $defaultPreset = true): array
+	public function load(?string $file, string $directory, ?Config $default = null): array
 	{
 		$file ??= self::find($directory);
 		if ($file === null) {
-			$config = Config::create();
-			if ($defaultPreset) {
-				$config->preset(Presets\Per::class);
-			}
-
+			$config = $default ?? Config::create()->preset(Presets\Per::class);
 			$root = $directory;
 		} else {
 			$config = self::loadFile($file);
