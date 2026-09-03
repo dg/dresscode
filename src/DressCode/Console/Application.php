@@ -221,8 +221,8 @@ final class Application
 		$files = $engine->findFiles($paths);
 		// the machine-readable formats must not be prefaced
 		if (in_array($format, ['console', 'github'], true)) {
-			$php = self::describePhpVersion($factory);
-			$this->writeHeader($configFile, $config, $php, $files, $paths, $root, $fix);
+			$this->writeHeader($configFile, $config, self::describePhpVersion($factory));
+			$this->writeScope(files: $files, paths: $paths, root: $root, fix: $fix);
 		}
 
 		// a worker costs about the processing of a few files to start, so by default one for every four files at most
@@ -246,24 +246,9 @@ final class Application
 	}
 
 
-	/**
-	 * Where the rules come from and what they are applied to: neither is visible on the command line,
-	 * and the scope reaches wherever the configuration was found, not where the run was started.
-	 * @param  list<string>  $files  relative to the root
-	 * @param  list<string>  $paths  they were found under these
-	 */
-	private function writeHeader(
-		?string $configFile,
-		Config $config,
-		string $phpVersion,
-		array $files,
-		array $paths,
-		string $root,
-		bool $fix,
-	): void
+	/** Where the rules come from, which is nothing the command line shows. */
+	private function writeHeader(?string $configFile, Config $config, string $phpVersion): void
 	{
-		$common = $files ? self::findCommonDirectory($files) : '';
-		$scope = self::toNativePath($common === '' ? $root : "$root/$common");
 		$this->write($this->formatName() . "\n");
 		$presets = array_map(
 			fn(string $preset) => is_subclass_of($preset, Preset::class) ? PresetInfo::of($preset)->name : $preset,
@@ -273,7 +258,19 @@ final class Application
 			? 'none, preset ' . (implode(', ', $presets) ?: 'none')
 			: self::toNativePath($configFile)) . "\n");
 		$this->write($this->console->color('gray', 'Target     ') . "PHP $phpVersion\n");
+	}
 
+
+	/**
+	 * What the rules are applied to: the scope reaches wherever the configuration was found,
+	 * not where the run was started.
+	 * @param  list<string>  $files  relative to the root
+	 * @param  list<string>  $paths  they were found under these
+	 */
+	private function writeScope(array $files, array $paths, string $root, bool $fix): void
+	{
+		$common = $files ? self::findCommonDirectory($files) : '';
+		$scope = self::toNativePath($common === '' ? $root : "$root/$common");
 		$this->write($files
 			? $this->console->color('gray', $fix ? 'Fixing     ' : 'Checking   ')
 				. sprintf("%d file%s in %s\n\n", count($files), count($files) === 1 ? '' : 's', $scope)
