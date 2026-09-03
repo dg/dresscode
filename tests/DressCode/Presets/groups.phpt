@@ -1,7 +1,8 @@
 <?php declare(strict_types=1);
 
 /**
- * What a group may carry, so that asking for one never fights the standard the project chose.
+ * What a group may carry, so that asking for one never fights the standard the project chose, and what is left
+ * outside every group and every standard, which is the list of rules a project turns on by name.
  */
 
 use DressCode\Config\RuleRegistry;
@@ -57,6 +58,46 @@ test('a group carries every rule of its kind, whatever brings the rule in', func
 	foreach ($byGroup as $group => $names) {
 		Assert::true(count($names) > 2, "$group has too few rules to be a group");
 	}
+});
+
+
+test('a rule is in a group, chosen by a standard, or turned on by name on purpose', function () use ($registry) {
+	// a rule outside every group and every preset is one a project asks for itself, and the reason is here
+	$onRequest = [
+		'earlyExit', // the shape of a function body, which no standard prescribes
+		'finalInternalClass', // what a project does with its own internals
+		'groupImport', // whether the imports of a namespace stand under one prefix, which is the project's own decision
+		'lineLength', // a value of the style, which a standard sets where it has one
+		'multilineImport', // the shape of a group use, which a project chooses together with writing one
+		'nameFallback', // the decision needs an option, and a group carries none
+		'noUnlistedNamespacedDeclarations', // the guard of a certain name resolution, which turns itself on
+		'readonlyForUnwrittenProperty', 'readonlyClassForReadonlyMembers', 'readonlyForAnnotation',
+		'sensitiveParameterRequired', // the list of what is sensitive is the project's
+		'singleLevelIndentation', // a measure of the shape of a body, not of its layout
+		'staticForMethodWithoutThis', // how a class is built, which no group decides for it
+		'staticClosure', // a decision of the project about what its code means
+		// the rules of maps, which a project turns on by name for its own list
+		'forbiddenFunctions',
+	];
+
+	$chosen = [];
+	foreach ($registry->presets as $class) {
+		foreach (profileOf($class)->rules as $rule => $value) {
+			$chosen[$registry->resolveRule($rule)] = true;
+		}
+	}
+
+	$left = [];
+	foreach ($registry->rules as $name => $class) {
+		if (RuleInfo::of($class)->group === null && !isset($chosen[$class])) {
+			$left[] = substr($name, 10);
+		}
+	}
+
+	sort($left);
+	$expected = $onRequest;
+	sort($expected);
+	Assert::same($expected, $left, 'a rule nothing turns on; give it a group, a standard, or a reason here');
 });
 
 
