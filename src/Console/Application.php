@@ -15,6 +15,7 @@ use DressCode\Profile;
 use DressCode\Reporter;
 use DressCode\Reporters;
 use DressCode\RuleException;
+use DressCode\RuleInfo;
 use DressCode\RunResult;
 use Nette\CommandLine\Command;
 use Nette\CommandLine\Console;
@@ -27,7 +28,7 @@ use function array_slice, count, extension_loaded, in_array, is_string, sprintf;
 
 
 /**
- * The dresscode command: check and fix.
+ * The dresscode command: check, fix and rules.
  */
 final class Application
 {
@@ -98,6 +99,7 @@ final class Application
 			return match ($command->name) {
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
+				'rules' => $this->runRules($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
 
@@ -141,6 +143,7 @@ final class Application
 
 		$check = $program->addCommand('check', 'report violations');
 		$fix = $program->addCommand('fix', 'fix what the rules can and report the rest');
+		$rules = $program->addCommand('rules', 'list the known rules');
 		$program->addText('Exit codes: 0 clean, 1 violations or syntax errors, 2 failure.');
 
 		foreach ([$check, $fix] as $command) {
@@ -170,7 +173,7 @@ final class Application
 			$command->addFlag('--strict-rules', 'a rule breaking its contract is an error, not a warning');
 		}
 
-		foreach ([$check, $fix] as $command) {
+		foreach ([$check, $fix, $rules] as $command) {
 			$command->addOption(
 				'--only',
 				'run only these of the rules the configuration comes to, a preset standing for all of its rules',
@@ -336,6 +339,35 @@ final class Application
 		}
 
 		return implode('/', $common ?? []);
+	}
+
+
+	private function runRules(Result $args): int
+	{
+		$factory = new RunnerFactory;
+		[$config, $root, , $commandLine] = $this->loadConfig($args);
+		$runner = $factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
+		$enabled = [];
+		foreach ($runner->getProcessor()->getRules() as $rule) {
+			$enabled[RuleInfo::of($rule)->name] = true;
+		}
+
+		$registry = $factory->getRegistry();
+		$rules = $registry->getRules();
+		ksort($rules, SORT_STRING);
+		foreach ($rules as $name => $class) {
+			$info = RuleInfo::of($class);
+			$this->write(sprintf(
+				"%s %-45s %-10s %s\n",
+				isset($enabled[$name]) ? '*' : ' ',
+				$this->console->color(isset($enabled[$name]) ? 'white' : null, $name),
+				$info->stage->name,
+				$info->description,
+			));
+		}
+
+		$this->write("\n* enabled by the configuration\n");
+		return 0;
 	}
 
 
