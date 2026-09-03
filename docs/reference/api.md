@@ -106,7 +106,7 @@ final class ConfigurationException extends Exception implements Stringable, Thro
 
 ```php
 final class Application
-	public const Version = '1.0-dev'
+	public const Version = '1.0.0'
 	public function __construct($stdout = null, $stderr = null, $stdin = null, ?string $cwd = null, ?string $script = null, ?DressCode\Config $defaultConfig = null, ?bool $xdebug = null)
 	public function run(array $argv): int
 ```
