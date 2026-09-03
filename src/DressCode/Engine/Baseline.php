@@ -3,14 +3,15 @@
 namespace DressCode\Engine;
 
 use DressCode\ConfigurationException;
-use Nette\Utils\Json;
-use Nette\Utils\JsonException;
+use Nette\Neon\Exception as NeonException;
+use Nette\Neon\Neon;
 use function count, is_array, is_string;
 
 
 /**
- * Known violations left unreported, by file and fingerprint; generated from a run and kept in a JSON file.
- * A run marks the entries it matched, so the stale ones can be reported.
+ * Known violations left unreported, by file and fingerprint; generated from a run and kept in a file of
+ * the format the configuration is written in. A run marks the entries it matched, so the stale ones can
+ * be reported.
  * @internal
  */
 final class Baseline
@@ -27,15 +28,18 @@ final class Baseline
 	/** @throws ConfigurationException */
 	public static function load(string $file): self
 	{
-		$json = @file_get_contents($file); // @ - reported as exception
-		if ($json === false) {
+		if (!is_file($file)) {
 			throw new ConfigurationException("Cannot read the baseline file $file.");
 		}
 
-		try {
-			$data = Json::decode($json, forceArrays: true);
-		} catch (JsonException $e) {
-			throw new ConfigurationException("The baseline file $file is not valid JSON: {$e->getMessage()}", previous: $e);
+		if (self::isNeon($file)) {
+			try {
+				$data = Neon::decode((string) @file_get_contents($file)); // @ - a file that vanished meanwhile decodes as empty
+			} catch (NeonException $e) {
+				throw new ConfigurationException("The baseline file $file is not valid NEON: {$e->getMessage()}", previous: $e);
+			}
+		} else {
+			$data = require $file;
 		}
 
 		$baseline = new self;
@@ -80,6 +84,7 @@ final class Baseline
 	}
 
 
+	/** In the format of the file name: the one the configuration is written in, so there is no third format. */
 	public function save(string $file): void
 	{
 		$files = [];
@@ -90,10 +95,40 @@ final class Baseline
 			}
 		}
 
-		$json = Json::encode(['files' => (object) $files], pretty: true) . "\n";
-		if (@file_put_contents($file, $json) === false) { // @ - reported as exception
+		$content = self::isNeon($file)
+			? Neon::encode(['files' => $files], blockMode: true)
+			: "<?php declare(strict_types=1);\n\nreturn " . self::export(['files' => $files], "\n") . ";\n";
+		if (@file_put_contents($file, $content) === false) { // @ - reported as exception
 			throw new \RuntimeException("Cannot write the baseline file $file.");
 		}
+	}
+
+
+	/**
+	 * The format follows the extension, as it does for the configuration; anything else is a typo in the
+	 * configured name, not a format to guess at.
+	 * @throws ConfigurationException
+	 */
+	private static function isNeon(string $file): bool
+	{
+		return match (strtolower(pathinfo($file, PATHINFO_EXTENSION))) {
+			'neon' => true,
+			'php' => false,
+			default => throw new ConfigurationException("The baseline file $file must be a .neon or a .php file."),
+		};
+	}
+
+
+	/** @param array<int|string, mixed> $value */
+	private static function export(array $value, string $indent): string
+	{
+		$items = [];
+		foreach ($value as $key => $item) {
+			$items[] = $indent . "\t" . (is_string($key) ? var_export($key, return: true) . ' => ' : '')
+				. (is_array($item) ? self::export($item, $indent . "\t") : var_export($item, return: true)) . ',';
+		}
+
+		return $items ? '[' . implode('', $items) . "$indent]" : '[]';
 	}
 
 

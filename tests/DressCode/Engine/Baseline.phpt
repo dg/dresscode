@@ -21,7 +21,7 @@ function violation(string $rule, string $message, string $line, int $occurrence 
 $dir = __DIR__ . '/../../temp/baseline';
 @mkdir($dir, recursive: true); // @ - may exist
 Helpers::purge($dir);
-$file = "$dir/baseline.json";
+$file = "$dir/baseline.neon";
 
 $a = violation('test/a', 'Message A', '  $x = 1;  ');
 $b = violation('test/b', 'Message B', '$y;');
@@ -36,32 +36,44 @@ test('generated from results, saved and loaded back', function () use ($file, $a
 	Assert::same(3, $baseline->count());
 	$baseline->save($file);
 	Assert::match(<<<'XX'
-		{
-		    "files": {
-		        "src/a.php": [
-		            {
-		                "rule": "test/a",
-		                "message": "Message A",
-		                "fingerprint": "%h%"
-		            },
-		            {
-		                "rule": "test/a",
-		                "message": "Message A",
-		                "fingerprint": "%h%"
-		            }
-		        ],
-		        "src/b.php": [
-		            {
-		                "rule": "test/b",
-		                "message": "Message B",
-		                "fingerprint": "%h%"
-		            }
-		        ]
-		    }
-		}
+		files:
+			src/a.php:
+				-
+					rule: test/a
+					message: Message A
+					fingerprint: %a%
+		%A%
+			src/b.php:
+				-
+					rule: test/b
+					message: Message B
+					fingerprint: %a%
 
 		XX, (string) file_get_contents($file));
 	Assert::same(3, Baseline::load($file)->count());
+});
+
+
+test('the PHP format says the same and reads back the same', function () use ($dir, $file) {
+	$php = "$dir/baseline.php";
+	Baseline::load($file)->save($php);
+	Assert::match(<<<'XX'
+		<?php declare(strict_types=1);
+
+		return [
+			'files' => [
+				'src/a.php' => [
+					[
+						'rule' => 'test/a',
+						'message' => 'Message A',
+						'fingerprint' => '%h%',
+					],
+		%A%
+			],
+		];
+
+		XX, (string) file_get_contents($php));
+	Assert::same(3, Baseline::load($php)->count());
 });
 
 
@@ -87,11 +99,16 @@ test('filters the known violations of a file and counts the matched and the unus
 
 
 test('invalid files', function () use ($dir) {
-	Assert::exception(fn() => Baseline::load("$dir/none.json"), ConfigurationException::class, 'Cannot read the baseline file %a%');
-	file_put_contents("$dir/broken.json", '{');
-	Assert::exception(fn() => Baseline::load("$dir/broken.json"), ConfigurationException::class, 'The baseline file %a% is not valid JSON: %a%');
-	file_put_contents("$dir/shape.json", '{"files": {"a.php": [{"rule": 1}]}}');
-	Assert::exception(fn() => Baseline::load("$dir/shape.json"), ConfigurationException::class, 'The baseline file %a% has an unexpected shape.');
-	file_put_contents("$dir/empty.json", '{}');
-	Assert::same(0, Baseline::load("$dir/empty.json")->count());
+	Assert::exception(fn() => Baseline::load("$dir/none.neon"), ConfigurationException::class, 'Cannot read the baseline file %a%');
+	file_put_contents("$dir/broken.neon", "files:\n\t- a\n  - b\n");
+	Assert::exception(fn() => Baseline::load("$dir/broken.neon"), ConfigurationException::class, 'The baseline file %a% is not valid NEON: %a%');
+	file_put_contents("$dir/shape.neon", "files:\n\ta.php:\n\t\t- {rule: 1}\n");
+	Assert::exception(fn() => Baseline::load("$dir/shape.neon"), ConfigurationException::class, 'The baseline file %a% has an unexpected shape.');
+	file_put_contents("$dir/empty.neon", '');
+	Assert::same(0, Baseline::load("$dir/empty.neon")->count());
+
+	file_put_contents("$dir/wrong.json", '{}');
+	$message = 'The baseline file %a%wrong.json must be a .neon or a .php file.';
+	Assert::exception(fn() => Baseline::load("$dir/wrong.json"), ConfigurationException::class, $message);
+	Assert::exception(fn() => (new Baseline)->save("$dir/wrong.json"), ConfigurationException::class, $message);
 });

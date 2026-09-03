@@ -117,11 +117,7 @@ final class EngineFactory
 	{
 		$root = rtrim(str_replace('\\', '/', $root), '/');
 		$dir = $config->getCacheDir();
-		$dir = match (true) {
-			$dir === null => sys_get_temp_dir() . '/dresscode',
-			(bool) preg_match('~^(?:[A-Za-z]:)?[/\\\]~', $dir) => $dir,
-			default => "$root/$dir",
-		};
+		$dir = $dir === null ? sys_get_temp_dir() . '/dresscode' : self::toAbsolutePath($dir, $root);
 		return rtrim(str_replace('\\', '/', $dir), '/') . '/' . substr(hash('xxh128', $root), 0, 16) . '.json';
 	}
 
@@ -175,9 +171,16 @@ final class EngineFactory
 	public static function resolveBaselineFile(Config $config, string $root): ?string
 	{
 		$file = $config->getBaseline();
-		return $file === null || preg_match('~^(?:[A-Za-z]:)?[/\\\]~', $file)
-			? $file
-			: rtrim(str_replace('\\', '/', $root), '/') . '/' . $file;
+		return $file === null ? null : self::toAbsolutePath($file, $root);
+	}
+
+
+	/** A path of the configuration as the filesystem takes it: an absolute one stands, a relative one is under the root. */
+	public static function toAbsolutePath(string $path, string $root): string
+	{
+		return preg_match('~^(?:[A-Za-z]:)?[/\\\]~', $path)
+			? $path
+			: rtrim(str_replace('\\', '/', $root), '/') . '/' . $path;
 	}
 
 
