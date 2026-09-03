@@ -88,6 +88,24 @@ test('the engine is built from the configuration', function () use ($fixtures) {
 });
 
 
+test('an extension makes its rules known by name and sets up the run', function () use ($fixtures) {
+	$config = Config::create()->enable('test/a');
+	$factory = new RunnerFactory;
+	Assert::exception(
+		fn() => $factory->createRunner($config, "$fixtures/project"),
+		ConfigurationException::class,
+		"Unknown rule 'test/a'.",
+	);
+
+	$runner = $factory->createRunner(
+		$config->extension(fn(Config $config) => $config->registerRules([ReportContext::class])->style(indent: 2)),
+		"$fixtures/project",
+	);
+	Assert::same(['test/a'], array_map(fn($rule) => RuleInfo::of($rule)->name, $runner->getProcessor()->getRules()));
+	Assert::same(['8.1 "  ""\n"'], array_map(fn($v) => $v->message, $runner->processFile('x.php', "<?php\n\$a;\n")->violations));
+});
+
+
 test('a rule is left out of paths under its class as under its name, an unknown one is an error', function () use ($fixtures) {
 	$byClass = Config::create()->enable(ReportContext::class)->excludeRulePaths(ReportContext::class, ['sub']);
 	$runner = (new RunnerFactory)->createRunner($byClass, "$fixtures/project");
