@@ -21,7 +21,7 @@ use function count, extension_loaded, in_array, is_string, sprintf;
  */
 final class Application
 {
-	public const Version = '1.0-dev';
+	public const Version = '1.0.0';
 
 	/** @var resource */
 	private $stdout;
