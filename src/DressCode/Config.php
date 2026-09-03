@@ -13,7 +13,7 @@ use PhpSyntax\PhpVersion;
 final class Config
 {
 	/** dependencies, temporary and log directories, and anything dot-prefixed (.git, .idea, .scratch) */
-	public const DefaultSkip = ['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'];
+	public const DefaultExcludePaths = ['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'];
 
 	/** @var list<string>  names or classes */
 	private array $presets = [];
@@ -31,11 +31,11 @@ final class Config
 	/** @var ?list<string> */
 	private ?array $paths = null;
 
-	/** @var ?list<string> */
-	private ?array $skip = null;
+	/** @var list<string>  what the default list is extended with */
+	private array $excludePaths = [];
 
 	/** @var array<string, list<string>>  rule name → patterns */
-	private array $ruleSkip = [];
+	private array $ruleExcludePaths = [];
 
 	/** @var ?list<string> */
 	private ?array $fileExtensions = null;
@@ -113,40 +113,29 @@ final class Config
 
 
 	/**
-	 * Replaces the default skip list. Patterns under a string key apply to that rule only.
-	 * @param array<int|string, string|list<string>> $skip  pattern, or rule name → patterns
+	 * Paths left out of the run, on top of the default list; every layer adds to it, none replaces it.
+	 * @param list<string> $paths  patterns, relative to the root
 	 */
-	public function skip(array $skip): static
+	public function excludePaths(array $paths): static
 	{
-		$this->skip = [];
-		foreach ($skip as $key => $value) {
-			if (is_string($key)) {
-				$this->ruleSkip[$key] = array_merge($this->ruleSkip[$key] ?? [], (array) $value);
-			} elseif (is_string($value)) {
-				$this->skip[] = $value;
-			} else {
-				throw new ConfigurationException('Skip patterns must be strings, or rule name => patterns.');
-			}
-		}
-
+		$this->excludePaths = [...$this->excludePaths, ...$paths];
 		return $this;
 	}
 
 
 	/**
-	 * Adds to the skip list, the default one included.
-	 * @param array<int|string, string|list<string>> $skip  pattern, or rule name → patterns
+	 * Paths the rule is not applied to; the file is checked by the rest of the rules.
+	 * @param string $rule  name or class
+	 * @param list<string> $paths  patterns, relative to the root
 	 */
-	public function addSkip(array $skip): static
+	public function excludeRulePaths(string $rule, array $paths): static
 	{
-		$current = $this->getSkip();
-		$this->skip($skip);
-		$this->skip = [...$current, ...$this->skip ?? []];
+		$this->ruleExcludePaths[$rule] = [...$this->ruleExcludePaths[$rule] ?? [], ...$paths];
 		return $this;
 	}
 
 
-	/** @param list<string> $extensions */
+	/** @param list<string> $extensions  the extensions of the files to check, without a dot */
 	public function fileExtensions(array $extensions): static
 	{
 		$this->fileExtensions = $extensions;
@@ -236,17 +225,20 @@ final class Config
 	}
 
 
-	/** @return list<string> */
-	public function getSkip(): array
+	/**
+	 * The default list with everything the layers added, each pattern once.
+	 * @return list<string>
+	 */
+	public function getExcludePaths(): array
 	{
-		return $this->skip ?? self::DefaultSkip;
+		return array_values(array_unique([...self::DefaultExcludePaths, ...$this->excludePaths]));
 	}
 
 
 	/** @return array<string, list<string>> */
-	public function getRuleSkip(): array
+	public function getRuleExcludePaths(): array
 	{
-		return $this->ruleSkip;
+		return $this->ruleExcludePaths;
 	}
 
 

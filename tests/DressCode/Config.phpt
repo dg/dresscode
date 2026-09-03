@@ -16,8 +16,8 @@ test('defaults', function () {
 	Assert::null($config->getIndent());
 	Assert::null($config->getEol());
 	Assert::same([], $config->getPaths());
-	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'], $config->getSkip());
-	Assert::same([], $config->getRuleSkip());
+	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'], $config->getExcludePaths());
+	Assert::same([], $config->getRuleExcludePaths());
 	Assert::same(['php'], $config->getFileExtensions());
 	Assert::null($config->getSkipWhen());
 	Assert::null($config->getBaseline());
@@ -34,7 +34,9 @@ test('fluent setters', function () {
 		->disable('x/y')
 		->style(indent: '    ', eol: "\r\n")
 		->paths(['src'])
-		->skip(['tests/fixtures/*', 'x/z' => ['tests'], 'x/y' => 'legacy'])
+		->excludePaths(['tests/fixtures/*'])
+		->excludeRulePaths('x/z', ['tests'])
+		->excludeRulePaths('x/y', ['legacy'])
 		->fileExtensions(['php', 'phpt'])
 		->skipWhen(fn(string $content, string $path) => $path === 'skip.php')
 		->baseline('baseline.json');
@@ -44,8 +46,8 @@ test('fluent setters', function () {
 	Assert::same('    ', $config->getIndent());
 	Assert::same("\r\n", $config->getEol());
 	Assert::same(['src'], $config->getPaths());
-	Assert::same(['tests/fixtures/*'], $config->getSkip());
-	Assert::same(['x/z' => ['tests'], 'x/y' => ['legacy']], $config->getRuleSkip());
+	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'tests/fixtures/*'], $config->getExcludePaths());
+	Assert::same(['x/z' => ['tests'], 'x/y' => ['legacy']], $config->getRuleExcludePaths());
 	Assert::same(['php', 'phpt'], $config->getFileExtensions());
 	$skipWhen = $config->getSkipWhen();
 	Assert::notNull($skipWhen);
@@ -54,13 +56,13 @@ test('fluent setters', function () {
 });
 
 
-test('addSkip keeps the default and earlier patterns', function () {
-	$config = Config::create()->addSkip(['build', 'x/y' => ['legacy']]);
-	Assert::same(['vendor', 'temp', 'fixtures*', 'build'], $config->getSkip());
-	Assert::same(['x/y' => ['legacy']], $config->getRuleSkip());
-	$config->skip(['dist'])->addSkip(['out', 'x/y' => ['old']]);
-	Assert::same(['dist', 'out'], $config->getSkip());
-	Assert::same(['x/y' => ['legacy', 'old']], $config->getRuleSkip());
+test('excluded paths add up to the default list, each pattern once', function () {
+	$config = Config::create()->excludePaths(['build'])->excludeRulePaths('x/y', ['legacy']);
+	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'build'], $config->getExcludePaths());
+	Assert::same(['x/y' => ['legacy']], $config->getRuleExcludePaths());
+	$config->excludePaths(['dist', 'build'])->excludeRulePaths('x/y', ['old']);
+	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'build', 'dist'], $config->getExcludePaths());
+	Assert::same(['x/y' => ['legacy', 'old']], $config->getRuleExcludePaths());
 });
 
 

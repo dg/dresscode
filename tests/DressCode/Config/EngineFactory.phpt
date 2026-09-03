@@ -3,6 +3,7 @@
 use DressCode\Config;
 use DressCode\Config\EngineFactory;
 use DressCode\Config\PhpVersionSource;
+use DressCode\ConfigurationException;
 use DressCode\Rule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
@@ -76,7 +77,7 @@ test('the lowest version the constraint of require.php allows', function () use 
 
 
 test('the engine is built from the configuration', function () use ($fixtures) {
-	$config = Config::create()->enable(ReportContext::class)->style(indent: '  ')->skip(['sub']);
+	$config = Config::create()->enable(ReportContext::class)->style(indent: '  ')->excludePaths(['sub']);
 	$engine = (new EngineFactory)->createEngine($config, "$fixtures/project");
 	Assert::same([], $engine->findFiles(['src']));
 	$result = $engine->processFile('x.php', "<?php\r\n\$a;\r\n");
@@ -84,4 +85,19 @@ test('the engine is built from the configuration', function () use ($fixtures) {
 
 	$engine = (new EngineFactory)->createEngine($config->style(eol: "\n"), "$fixtures/project");
 	Assert::same(['8.1 "  ""\n"'], array_map(fn($v) => $v->message, $engine->processFile('x.php', "<?php\r\n\$a;\r\n")->violations));
+});
+
+
+test('a rule is left out of paths under its class as under its name, an unknown one is an error', function () use ($fixtures) {
+	$byClass = Config::create()->enable(ReportContext::class)->excludeRulePaths(ReportContext::class, ['sub']);
+	$engine = (new EngineFactory)->createEngine($byClass, "$fixtures/project");
+	Assert::same([], $engine->processFile('src/sub/x.php', "<?php\n\$a;\n")->violations);
+	Assert::count(1, $engine->processFile('src/x.php', "<?php\n\$a;\n")->violations);
+
+	$unknown = Config::create()->enable(ReportContext::class)->excludeRulePaths('test/nope', ['sub']);
+	Assert::exception(
+		fn() => (new EngineFactory)->createEngine($unknown, "$fixtures/project"),
+		ConfigurationException::class,
+		"Unknown rule 'test/nope'.",
+	);
 });

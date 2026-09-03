@@ -106,27 +106,27 @@ foreach (
 
 
 /**
- * @param list<string> $skip
- * @param array<string, list<string>> $ruleSkip
+ * @param list<string> $excludePaths
+ * @param array<string, list<string>> $ruleExcludePaths
  * @param list<string> $fileExtensions
  * @param ?Closure(string, string): bool $skipWhen
  */
 function engine(
 	string $root,
-	array $skip = ['vendor', 'fixtures*'],
-	array $ruleSkip = [],
+	array $excludePaths = ['vendor', 'fixtures*'],
+	array $ruleExcludePaths = [],
 	array $fileExtensions = ['php'],
 	?Closure $skipWhen = null,
 	bool $thrower = false,
 ): Engine
 {
 	$processor = new FileProcessor($thrower ? [new EngineRename, new EngineThrower] : [new EngineRename], new AnalysisRegistry, fn(string $name) => [$name], PhpVersion::lowest());
-	return new Engine($processor, $root, $skip, $ruleSkip, $fileExtensions, $skipWhen);
+	return new Engine($processor, $root, $excludePaths, $ruleExcludePaths, $fileExtensions, $skipWhen);
 }
 
 
-test('a dot path is the root itself and never matches the dot-prefixed skip', function () use ($root) {
-	$engine = engine($root, skip: ['vendor', 'fixtures*', '.*']);
+test('a dot path is the root itself and never matches the dot-prefixed exclusion', function () use ($root) {
+	$engine = engine($root, excludePaths: ['vendor', 'fixtures*', '.*']);
 	Assert::same('', $engine->relativize('.'));
 	Assert::same('src/a.php', $engine->relativize('./src/./a.php'));
 	Assert::contains('src/a.php', $engine->findFiles(['.']));
@@ -134,7 +134,7 @@ test('a dot path is the root itself and never matches the dot-prefixed skip', fu
 });
 
 
-test('files are found under the paths, sorted, relative, with slashes, without the skipped ones', function () use ($root) {
+test('files are found under the paths, sorted, relative, with slashes, without the excluded ones', function () use ($root) {
 	$engine = engine($root);
 	Assert::same(
 		['src/a.php', 'src/b.php', 'src/broken.php', 'src/skipped.php', 'src/sub/d.php'],
@@ -142,10 +142,10 @@ test('files are found under the paths, sorted, relative, with slashes, without t
 	);
 	Assert::same(['src/a.php', 'src/b.php', 'src/broken.php', 'src/skipped.php', 'src/sub/d.php'], $engine->findFiles(['src']));
 	Assert::same(['src/sub/d.php', 'vendor/f.php'], $engine->findFiles(['./src/sub', 'vendor/f.php']));
-	Assert::same(['src/c.phpt', 'src/fixtures/e.php'], engine($root, skip: [], fileExtensions: ['php', 'phpt'])->findFiles(['src/c.phpt', 'src/fixtures']));
+	Assert::same(['src/c.phpt', 'src/fixtures/e.php'], engine($root, excludePaths: [], fileExtensions: ['php', 'phpt'])->findFiles(['src/c.phpt', 'src/fixtures']));
 	Assert::exception(fn() => $engine->findFiles(['missing']), RuntimeException::class, 'Path missing does not exist.');
 	$outside = str_replace('\\', '/', (string) realpath(__DIR__ . '/Config/fixtures/project/src'));
-	Assert::same(["$outside/sub/file.php"], engine($root, skip: [])->findFiles([$outside]));
+	Assert::same(["$outside/sub/file.php"], engine($root, excludePaths: [])->findFiles([$outside]));
 });
 
 
@@ -170,7 +170,7 @@ test('check reports and writes nothing', function () use ($root) {
 
 test('fix writes the changed files', function () use ($root) {
 	$reporter = new RecordingReporter;
-	$engine = engine($root, ruleSkip: ['test/rename' => ['src/sub']]);
+	$engine = engine($root, ruleExcludePaths: ['test/rename' => ['src/sub']]);
 	$result = $engine->run($engine->findFiles(['src/a.php', 'src/sub']), fix: true, reporter: $reporter);
 	Assert::same(['start 2 true', 'file src/a.php true true', 'file src/sub/d.php false false', 'finish 1'], $reporter->events);
 	Assert::same("<?php\n\$b;\n", file_get_contents("$root/src/a.php"));
@@ -195,8 +195,8 @@ test('a failing rule fails the file, the run goes on, nothing is written', funct
 });
 
 
-test('processFile applies the rule skips to the given path and writes nothing', function () use ($root) {
-	$engine = engine($root, ruleSkip: ['test/rename' => ['src/sub']]);
+test('processFile applies the rule exclusions to the given path and writes nothing', function () use ($root) {
+	$engine = engine($root, ruleExcludePaths: ['test/rename' => ['src/sub']]);
 	Assert::true($engine->processFile("$root/src/x.php", "<?php\n\$a;\n")->isChanged());
 	Assert::false($engine->processFile('src/sub/x.php', "<?php\n\$a;\n")->isChanged());
 	Assert::same('src/x.php', $engine->processFile("$root/src/x.php", '<?php')->path);

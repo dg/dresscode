@@ -22,8 +22,8 @@ final class Engine
 
 
 	/**
-	 * @param list<string> $skip  patterns of paths left out
-	 * @param array<string, list<string>> $ruleSkip  rule name → patterns of paths the rule is not applied to
+	 * @param list<string> $excludePaths  patterns of paths left out
+	 * @param array<string, list<string>> $ruleExcludePaths  rule name → patterns of paths the rule is not applied to
 	 * @param list<string> $fileExtensions
 	 * @param ?\Closure(string $content, string $path): bool $skipWhen  files left out by their content
 	 * @param ?Baseline $baseline  violations left unreported
@@ -32,8 +32,8 @@ final class Engine
 	public function __construct(
 		private readonly FileProcessor $processor,
 		string $root,
-		private readonly array $skip = [],
-		private readonly array $ruleSkip = [],
+		private readonly array $excludePaths = [],
+		private readonly array $ruleExcludePaths = [],
 		private readonly array $fileExtensions = ['php'],
 		private readonly ?\Closure $skipWhen = null,
 		private readonly ?Baseline $baseline = null,
@@ -191,10 +191,10 @@ final class Engine
 	{
 		$path = $this->relativize($path);
 		$rules = null;
-		if ($this->ruleSkip) {
+		if ($this->ruleExcludePaths) {
 			$rules = [];
 			foreach ($this->processor->getRules() as $rule) {
-				$patterns = $this->ruleSkip[RuleInfo::of($rule)->name] ?? [];
+				$patterns = $this->ruleExcludePaths[RuleInfo::of($rule)->name] ?? [];
 				if (!self::matches($patterns, $path)) {
 					$rules[] = $rule;
 				}
@@ -207,7 +207,7 @@ final class Engine
 
 
 	/**
-	 * Files under the paths with one of the extensions, minus the skipped ones; an explicitly given file
+	 * Files under the paths with one of the extensions, minus the excluded ones; an explicitly given file
 	 * is taken as is. Sorted, relative to the root.
 	 * @param  list<string>  $paths
 	 * @return list<string>
@@ -223,10 +223,10 @@ final class Engine
 			} elseif (is_dir($absolute)) {
 				$finder = Finder::findFiles(array_map(fn($ext) => "*.$ext", $this->fileExtensions))
 					->from($absolute)
-					->descentFilter(fn(\SplFileInfo $dir) => !self::matches($this->skip, $this->relativize($dir->getPathname())));
+					->descentFilter(fn(\SplFileInfo $dir) => !self::matches($this->excludePaths, $this->relativize($dir->getPathname())));
 				foreach ($finder as $file) {
 					$relative = $this->relativize($file->getPathname());
-					if (!self::matches($this->skip, $relative)) {
+					if (!self::matches($this->excludePaths, $relative)) {
 						$files[$relative] = true;
 					}
 				}
@@ -266,7 +266,7 @@ final class Engine
 			$path = substr($path, strlen($this->root) + 1);
 		}
 
-		return implode('/', array_filter(explode('/', $path), fn(string $segment) => $segment !== '.')); // "./a" and "." would match the ".*" skip
+		return implode('/', array_filter(explode('/', $path), fn(string $segment) => $segment !== '.')); // "./a" and "." would match the ".*" exclusion
 	}
 
 
