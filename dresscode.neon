@@ -1,0 +1,215 @@
+extensions:
+	- DressCode\Tools\SkipGenerated
+
+presets:
+	- dresscode/per
+
+style:
+	indent: "\t"
+	eol: auto
+
+rules:
+	dresscode/braces-position:
+		multiLineParameters: nextLineAfterReturnType
+
+	dresscode/ordered-imports: true
+	dresscode/unused-imports: true
+	dresscode/reference-used-names-only: true
+	dresscode/import-notation:
+		functions: combined
+		constants: combined
+		groupUse: keep
+
+	dresscode/useless-alias: true
+	dresscode/use-from-same-namespace: true
+	dresscode/body-blank-lines: true
+	dresscode/header-blank-lines:
+		beforeNamespace: 1
+		afterOpeningTag: null
+		afterNamespace: null
+		afterImports: null
+		betweenImportGroups: 0
+
+	dresscode/declaration-blank-lines: true
+	dresscode/control-structure-braces: true
+	dresscode/statement-indentation: true
+	dresscode/keyword-casing: true
+	dresscode/cast-spacing: true
+	dresscode/cast-canonical-type: true
+	dresscode/binary-operator-spacing: true
+	dresscode/concat-spacing: true
+	dresscode/unary-operator-spacing: true
+	dresscode/object-operator-spacing: true
+	dresscode/double-colon-spacing: true
+	dresscode/ternary-operator-spacing: true
+	dresscode/semicolon-spacing: true
+	dresscode/comma-spacing: true
+	dresscode/array-spacing: true
+	dresscode/offset-bracket-spacing: true
+	dresscode/parentheses-spacing: true
+	dresscode/function-name-spacing: true
+	dresscode/construct-spacing: true
+	dresscode/declare-spacing: true
+	dresscode/type-hint-spacing: true
+	dresscode/switch-case-spacing: true
+	dresscode/visibility-required: true
+	dresscode/single-member-per-declaration:
+		members:
+			- property
+			- trait
+
+	dresscode/name-casing:
+		classes: PascalCase
+		methods: camelCase
+		functions: camelCase
+		constants: PascalCase
+		enumCases: PascalCase
+		properties: camelCase
+		variables: camelCase
+
+	dresscode/useless-null-property-initialization: true
+	dresscode/self-for-current-class: true
+	dresscode/modern-class-name-reference: true
+	dresscode/ordered-members: true
+	dresscode/class-definition-spacing: true
+	dresscode/multi-line-signature: true
+	dresscode/multi-line-call: true
+	dresscode/named-argument-spacing: true
+	dresscode/no-global-keyword: true
+	dresscode/not-equals-operator: true
+	dresscode/magic-constant-casing: true
+	dresscode/native-function-casing: true
+	dresscode/single-quoted-strings: true
+	dresscode/no-empty-statement: true
+	dresscode/useless-construct-parentheses: true
+	dresscode/short-array-syntax: true
+	dresscode/elseif-keyword: true
+	dresscode/no-short-bool-cast: true
+	dresscode/increment-operator: true
+	dresscode/combined-unsets: true
+	dresscode/useless-braces: true
+	dresscode/constant-casing: true
+	dresscode/switch-case-colon: true
+	dresscode/short-ternary-operator: true
+	dresscode/nowdoc-without-interpolation: true
+	dresscode/no-trailing-whitespace-in-string: true
+	dresscode/nullable-type-for-default-null: true
+	dresscode/useless-parameter-default: true
+	dresscode/complex-string-variable: true
+	dresscode/spread-operator-spacing: true
+	dresscode/reference-spacing: true
+	dresscode/combined-assignment-operator: true
+	dresscode/no-empty-comment: true
+	dresscode/no-hash-comment: true
+	dresscode/no-implicit-backslash: true
+	dresscode/no-empty-phpdoc: true
+	dresscode/phpdoc-trim: true
+	dresscode/phpdoc-canonical-types: true
+	dresscode/fall-through-comment: true
+	dresscode/useless-constant-var-annotation: true
+	dresscode/new-argument-parentheses:
+		namedClasses: forbidden
+		anonymousClasses: forbidden
+
+	dresscode/symbolic-logical-operators: true
+	dresscode/no-alternative-syntax: true
+	dresscode/no-conversion-functions: true
+	dresscode/no-dirname-of-file: true
+	dresscode/no-alias-functions: true
+	dresscode/no-settype: true
+	dresscode/combined-issets: true
+	dresscode/no-backtick-operator: true
+	dresscode/strict-call: true
+	dresscode/no-is-null: true
+	dresscode/commented-out-function:
+		functions:
+			- print_r
+			- var_dump
+			- var_export
+			- dump
+
+	dresscode/class-reference-name-casing: true
+	dresscode/no-leading-backslash-in-global-namespace: true
+	dresscode/no-yoda-comparison: true
+	dresscode/useless-ternary-operator: true
+	dresscode/multi-line-condition: true
+	dresscode/useless-if-condition-with-return: true
+	dresscode/no-continue-in-switch: true
+	dresscode/no-unreachable-catch: true
+	dresscode/reference-throwable-only: true
+	dresscode/no-this-in-static-context: true
+	dresscode/no-inner-functions: true
+	dresscode/no-duplicate-assignment: true
+	dresscode/no-deprecated-functions: true
+	dresscode/useless-string-concat: true
+	dresscode/no-unpacking-in-optimized-call: true
+	dresscode/explicit-assertion: true
+	dresscode/forbidden-annotations:
+		annotations:
+			- @todo
+			- @author
+			- @copyright
+			- @created
+			- @license
+			- @package
+			- @since
+			- @subpackage
+			- @version
+
+	dresscode/forbidden-phpdoc-lines:
+		patterns:
+			- '~^(?:(?!private|protected|static)\S+ )?(?:con|de)structor\.\z~i'
+			- ~^Created by \S+\.\z~i
+			- '~^\S+ [gs]etter\.\z~i'
+
+	dresscode/annotation-name: true
+	dresscode/useless-inheritdoc: true
+	dresscode/phpdoc-null-last: true
+	dresscode/phpdoc-alignment: true
+	dresscode/useless-function-phpdoc: true
+	dresscode/attribute-after-phpdoc: true
+	dresscode/property-phpdoc-single-line: true
+	dresscode/no-duplicate-return-annotation: true
+	dresscode/no-unknown-param-annotation: true
+	dresscode/property-phpdoc-required: true
+	dresscode/property-var-annotation: true
+	dresscode/no-empty-var-annotation: true
+	dresscode/null-coalescing-operator: true
+	dresscode/short-list-syntax: true
+	dresscode/octal-notation: true
+	dresscode/numeric-literal-separator:
+		minDigitsBeforeDecimalPoint: 7
+		minDigitsAfterDecimalPoint: 20
+
+	dresscode/heredoc-indentation: true
+	dresscode/arrow-function: true
+	dresscode/trailing-comma:
+		multiLine:
+			- arrays
+			- arguments
+			- parameters
+
+	dresscode/strict-comparison: true
+	dresscode/useless-else: true
+	dresscode/final-internal-class: true
+	dresscode/no-unset-on-property: true
+	dresscode/ternary-for-simple-branch: true
+	dresscode/no-direct-invoke-call: true
+	dresscode/no-kind-in-class-name: true
+	dresscode/union-type-format: true
+
+paths:
+	- src
+	- tests
+	- tools
+	- bin/dresscode
+	- docs/reference/generate.php
+
+excludePaths:
+	- fixtures
+	- corpus
+	- dump
+
+fileExtensions:
+	- php
+	- phpt

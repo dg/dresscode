@@ -7,8 +7,8 @@ use PhpSyntax\PhpVersion;
 
 
 /**
- * Configuration of a run, built fluently in dresscode.php. A setting left untouched keeps its default,
- * so layers merge by what they set.
+ * Configuration of a run, built fluently in dresscode.php or read from dresscode.neon, whose every key
+ * is one of these methods. A setting left untouched keeps its default, so layers merge by what they set.
  */
 final class Config
 {

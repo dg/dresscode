@@ -27,7 +27,7 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
 - `php tests/_update-tests.php`: rewrites the expected output of failed dump fixtures from their `.actual` files.
 - `php tools/update-violations.php [--all] [slug...]`: writes the `.violations` file of a rule fixture from what the rule reports, `--all` also over the files that have one. Review the diff; a wrong message recorded there is a wrong message tested everywhere.
 - Round-trip over an external corpus: `DRESSCODE_CORPUS=/path/to/php/code composer tester`.
-- `php bin/dresscode check`: DressCode over its own sources with `dresscode.php`; CI runs it too.
+- `php bin/dresscode check`: DressCode over its own sources with `dresscode.neon`; CI runs it too.
 
 ## Conventions
 

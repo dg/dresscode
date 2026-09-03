@@ -34,7 +34,8 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"DressCode\\Tools\\PhpStan\\": "tools/phpstan"
+			"DressCode\\Tools\\PhpStan\\": "tools/phpstan",
+			"DressCode\\Tools\\": "tools"
 		}
 	},
 	"bin": ["bin/dresscode"],
