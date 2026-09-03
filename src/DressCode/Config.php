@@ -15,6 +15,15 @@ final class Config
 	/** dependencies, temporary and log directories, and anything dot-prefixed (.git, .idea, .scratch) */
 	public const DefaultExcludePaths = ['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'];
 
+	/** @var list<string|\Closure(self): mixed>  closures and class names, in the order of the first mention */
+	private array $extensions = [];
+
+	/** @var list<class-string<Rule>> */
+	private array $registeredRules = [];
+
+	/** @var list<class-string<Preset>> */
+	private array $registeredPresets = [];
+
 	/** @var list<string>  names or classes */
 	private array $presets = [];
 
@@ -52,6 +61,40 @@ final class Config
 	public static function create(): self
 	{
 		return new self;
+	}
+
+
+	/**
+	 * Sets up a layer below this one: whatever the extension sets, this configuration may override. The
+	 * layer is built when the configuration is resolved, so the order of the calls does not matter.
+	 * @param string|callable(self): mixed $extension  a callable, or the name of an invokable class
+	 */
+	public function extension(callable|string $extension): static
+	{
+		$this->extensions[] = is_string($extension) ? $extension : $extension(...);
+		return $this;
+	}
+
+
+	/**
+	 * Makes the rules known by their names, without enabling them.
+	 * @param list<class-string<Rule>> $classes
+	 */
+	public function registerRules(array $classes): static
+	{
+		$this->registeredRules = [...$this->registeredRules, ...$classes];
+		return $this;
+	}
+
+
+	/**
+	 * Makes the presets known by their names.
+	 * @param list<class-string<Preset>> $classes
+	 */
+	public function registerPresets(array $classes): static
+	{
+		$this->registeredPresets = [...$this->registeredPresets, ...$classes];
+		return $this;
 	}
 
 
@@ -174,6 +217,122 @@ final class Config
 	{
 		$this->analyses[$class] = $factory === null ? null : $factory(...);
 		return $this;
+	}
+
+
+	/**
+	 * Lays another configuration over this one: its presets and rules come after, its settings win when set.
+	 */
+	public function merge(self $layer): static
+	{
+		$this->extensions = array_merge($this->extensions, $layer->extensions);
+		$this->registeredRules = array_merge($this->registeredRules, $layer->registeredRules);
+		$this->registeredPresets = array_merge($this->registeredPresets, $layer->registeredPresets);
+		$this->presets = array_merge($this->presets, $layer->presets);
+		foreach ($layer->rules as $rule => $options) {
+			$this->rules[$rule] = $options;
+		}
+
+		$this->phpVersion = $layer->phpVersion ?? $this->phpVersion;
+		$this->indent = $layer->indent ?? $this->indent;
+		$this->eol = $layer->eol ?? $this->eol;
+		$this->paths = $layer->paths ?? $this->paths;
+		$this->excludePaths = [...$this->excludePaths, ...$layer->excludePaths];
+		foreach ($layer->ruleExcludePaths as $rule => $patterns) {
+			$this->ruleExcludePaths[$rule] = [...$this->ruleExcludePaths[$rule] ?? [], ...$patterns];
+		}
+
+		$this->fileExtensions = $layer->fileExtensions ?? $this->fileExtensions;
+		$this->skipWhen = $layer->skipWhen ?? $this->skipWhen;
+		$this->baseline = $layer->baseline ?? $this->baseline;
+		$this->cacheDir = $layer->cacheDir ?? $this->cacheDir;
+		$this->analyses = $layer->analyses + $this->analyses;
+		return $this;
+	}
+
+
+	/**
+	 * The configuration with its extensions laid out below it, each class once and the ones it pulled in
+	 * before it, ready to be read; the result has no extensions left to apply.
+	 * @throws ConfigurationException
+	 */
+	public function resolveExtensions(): self
+	{
+		$base = new self;
+		$visited = [];
+		foreach ($this->extensions as $extension) {
+			self::applyExtension($extension, $base, $visited);
+		}
+
+		$base->merge($this);
+		$base->extensions = [];
+		return $base;
+	}
+
+
+	/**
+	 * @param  string|\Closure(self): mixed  $extension
+	 * @param  array<string, true>  $visited
+	 * @throws ConfigurationException
+	 */
+	private static function applyExtension(\Closure|string $extension, self $base, array &$visited): void
+	{
+		if (is_string($extension)) {
+			if (isset($visited[$extension])) {
+				return;
+			}
+
+			$visited[$extension] = true;
+		}
+
+		$layer = new self;
+		self::toCallable($extension)($layer);
+		foreach ($layer->extensions as $nested) {
+			self::applyExtension($nested, $base, $visited);
+		}
+
+		$base->merge($layer);
+	}
+
+
+	/**
+	 * @param  string|\Closure(self): mixed  $extension
+	 * @return callable(self): mixed
+	 * @throws ConfigurationException
+	 */
+	private static function toCallable(\Closure|string $extension): callable
+	{
+		if ($extension instanceof \Closure) {
+			return $extension;
+		} elseif (!class_exists($extension)) {
+			throw new ConfigurationException("Extension class $extension does not exist.");
+		}
+
+		$object = new $extension;
+		return is_callable($object)
+			? $object
+			: throw new ConfigurationException("Extension $extension is not callable, it needs an __invoke() method.");
+	}
+
+
+	/** @return list<string|\Closure(self): mixed> */
+	public function getExtensions(): array
+	{
+		return $this->extensions;
+	}
+
+
+	/** @return list<class-string<Rule>> */
+	public function getRegisteredRules(): array
+	{
+		return $this->registeredRules;
+	}
+
+
+	/** @return list<class-string<Preset>> */
+	public function getRegisteredPresets(): array
+	{
+		return $this->registeredPresets;
 	}
 
 

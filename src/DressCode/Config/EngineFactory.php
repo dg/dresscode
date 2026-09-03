@@ -63,6 +63,15 @@ final class EngineFactory
 	 */
 	public function createEngine(Config $config, string $root, bool $strict = false, bool $cache = true): Engine
 	{
+		$config = $config->resolveExtensions();
+		foreach ($config->getRegisteredRules() as $class) {
+			$this->registry->registerRule($class);
+		}
+
+		foreach ($config->getRegisteredPresets() as $class) {
+			$this->registry->registerPreset($class);
+		}
+
 		$ruleExcludePaths = $this->resolveRuleExcludePaths($config);
 		[$phpVersion] = $this->phpVersion = $this->resolvePhpVersion($config, $root);
 		$resolver = new PresetResolver($this->registry);

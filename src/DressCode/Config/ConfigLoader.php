@@ -36,6 +36,7 @@ final class ConfigLoader
 			$root = dirname($file);
 		}
 
+		$config = $config->resolveExtensions();
 		$root = realpath($root) ?: $root;
 		return [$config, rtrim(str_replace('\\', '/', $root), '/'), $file];
 	}

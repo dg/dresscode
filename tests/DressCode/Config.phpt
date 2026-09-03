@@ -8,6 +8,24 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
+final class ConfigInnerExtension
+{
+	public function __invoke(Config $config): void
+	{
+		$config->preset('inner');
+	}
+}
+
+
+final class ConfigOuterExtension
+{
+	public function __invoke(Config $config): void
+	{
+		$config->extension(ConfigInnerExtension::class)->preset('outer');
+	}
+}
+
+
 test('defaults', function () {
 	$config = Config::create();
 	Assert::same([], $config->getPresets());
@@ -69,4 +87,55 @@ test('excluded paths add up to the default list, each pattern once', function ()
 test('validation', function () {
 	Assert::exception(fn() => Config::create()->style(eol: 'crlf')->getEol(), ConfigurationException::class);
 	Assert::exception(fn() => Config::create()->phpVersion('eight'), InvalidArgumentException::class);
+});
+
+
+test('a layer overrides what it sets, appends presets and rules and adds to the exclusions', function () {
+	$base = Config::create()->preset('a')->enable('x', ['a' => 1])->enable('y')->paths(['src'])->excludePaths(['build'])->excludeRulePaths('x', ['legacy'])->style(indent: '  ');
+	$layer = Config::create()->preset('b')->disable('x')->enable('z')->excludePaths(['dist'])->excludeRulePaths('x', ['old'])->style(eol: "\n");
+	$base->merge($layer);
+	Assert::same(['a', 'b'], $base->getPresets());
+	Assert::same(['x' => false, 'y' => true, 'z' => true], $base->getRules());
+	Assert::same(['src'], $base->getPaths());
+	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'build', 'dist'], $base->getExcludePaths());
+	Assert::same(['x' => ['legacy', 'old']], $base->getRuleExcludePaths());
+	Assert::same('  ', $base->getIndent());
+	Assert::same("\n", $base->getEol());
+});
+
+
+test('an extension sets up a layer below the configuration, whatever the order of the calls', function () {
+	$config = Config::create()
+		->style(indent: "\t")
+		->preset('project')
+		->extension(fn(Config $config) => $config->preset('extension')->style(indent: '  ')->excludePaths(['expected']))
+		->excludePaths(['build'])
+		->resolveExtensions();
+	Assert::same(['extension', 'project'], $config->getPresets());
+	Assert::same("\t", $config->getIndent());
+	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'expected', 'build'], $config->getExcludePaths());
+	Assert::same([], $config->getExtensions());
+});
+
+
+test('an extension named by its class is applied once, the ones it pulls in before it', function () {
+	$config = Config::create()
+		->extension(ConfigOuterExtension::class)
+		->extension(ConfigInnerExtension::class)
+		->resolveExtensions();
+	Assert::same(['inner', 'outer'], $config->getPresets());
+});
+
+
+test('an extension that cannot be called says so', function () {
+	Assert::exception(
+		fn() => Config::create()->extension('DressCode\Missing')->resolveExtensions(),
+		ConfigurationException::class,
+		'Extension class DressCode\Missing does not exist.',
+	);
+	Assert::exception(
+		fn() => Config::create()->extension(stdClass::class)->resolveExtensions(),
+		ConfigurationException::class,
+		'Extension stdClass is not callable, it needs an __invoke() method.',
+	);
 });
