@@ -5,6 +5,9 @@ parameters:
 		- src
 		- tests
 
+	scanDirectories:
+		- tests/fixtures/plugin/src
+
 	excludePaths:
 		- tests/*/fixtures/*
 		- tests/temp/*

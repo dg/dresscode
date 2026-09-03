@@ -1,0 +1,29 @@
+<?php declare(strict_types=1);
+
+use DressCode\Config;
+use DressCode\Override;
+
+return new Config(
+	extensions: [Acme\DressCode\Extension::class, Acme\DressCode\Rules\NoVarDumpRule::class],
+	presets: ['dresscode/psr12', 'acme/default'],
+	rules: [
+		'dresscode/line-length' => ['ignoreImports' => false],
+		'dresscode/strict-comparison' => true,
+		'dresscode/yoda' => 'keep',
+	],
+	indent: 'tab',
+	eol: 'LF',
+	lineLength: 160,
+	php: '8.3',
+	namespaces: ['functions' => ['App\helper', 'App\Utils\{format, parse}'], 'constants' => ['App\LIMIT']],
+	nameResolution: 'certain',
+	fixRisky: ['dresscode/strict-call'],
+	warnings: ['dresscode/line-length'],
+	overrides: [
+		new Override(['tests'], presets: ['dresscode/nette'], rules: ['dresscode/line-length' => 'keep'], nameResolution: 'uncertain'),
+	],
+	paths: ['src', 'tests'],
+	excludePaths: ['build', 'docs/generated'],
+	fileExtensions: ['php', 'phpt'],
+	analyses: [Acme\DressCode\Analyses\FunctionCalls::class],
+);
