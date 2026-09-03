@@ -95,6 +95,8 @@ final class Application
 		$stdin = null,
 		private readonly ?string $cwd = null,
 		private readonly ?string $script = null,
+		/** what applies when the project has no configuration file */
+		private readonly ?Config $defaultConfig = null,
 	) {
 		$this->stdout = $stdout ?? STDOUT;
 		$this->stderr = $stderr ?? STDERR;
@@ -521,7 +523,7 @@ final class Application
 		[$config, $root, $file] = (new Loader)->load(
 			$args['--config'],
 			$this->cwd ?? (string) getcwd(),
-			defaultPreset: !$presets,
+			$this->defaultConfig ?? ($presets ? Config::create() : null),
 		);
 		foreach ($presets as $preset) {
 			$config->preset($preset);
