@@ -13,12 +13,13 @@ DressCode is a PHP code style checker and fixer built on a **lossless concrete s
 
 The tree itself is the `phpsyntax/phpsyntax` library (namespace `PhpSyntax`), developed in a repository of its own. This one holds `DressCode` (`src/`): engine, rules API, the library of generic rules, configuration, CLI.
 
-Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs from it is public API for plugins too. What the rules only share among themselves (`Rules\NodeHelpers`, `Rules\BlankLines`) is `@internal`.
+Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs from it is public API for plugins too. What the rules only share among themselves (`Rules\NodeHelpers`, `Rules\BlankLines`) is `@internal`. Presets define style; DressCode has no style of its own except `dresscode/per` (PER Coding Style 3.1), `dresscode/psr12`, `dresscode/nette` (the Nette Coding Standard, PER with tabs and its departures, which the repository itself is checked with) and `dresscode/symfony`.
 
 ## Essential commands
 
 - `composer tester`: Nette Tester over `tests/`.
 - `composer phpstan`: PHPStan level 8, no baseline; `ignoreErrors` only with a reason.
+- `php bin/dresscode check`: DressCode over its own sources with `dresscode.neon`; CI runs it too.
 
 ## Conventions
 
@@ -28,7 +29,7 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
   - methods are actions and start with a verb (`getFirstToken()`, `replaceChild()`, `report()`); a bare noun is not a method name;
   - `get*` returns something that belongs to the object (may be `null`), `find*` searches and `null` means not found;
   - boolean queries `is*`/`has*`/`can*`, never `check*`, which is the name of a method that answers nothing and raises the problem itself, by throwing or by reporting;
-  - rule classes end with `Rule`; analyses carry bare names in `Analyses/`;
+  - rule classes end with `Rule`; presets and analyses carry bare names in `Presets/` and `Analyses/`;
   - a gap rule names the slots it claims as strings (`'openParen'`, `'statements:item'`), which no type checks, so a claim on a slot that is gone shows up only in the fixture of the rule; the names are in the node reference of PhpSyntax;
   - no `Abstract`, `Interface`, `I` or `Aware` prefixes/suffixes; an interface or base class sits next to the directory of its implementations (`Rule.php` next to `Rules/`);
   - enums of a namespace live in `enums.php`, exceptions in `exceptions.php`;
