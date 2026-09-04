@@ -1,0 +1,3 @@
+7: The method overriding App\Base::run() must be marked with #[\Override]
+12: The method overriding App\Renderable::render() must be marked with #[\Override]
+23: The method overriding App\Base::make() must be marked with #[\Override]

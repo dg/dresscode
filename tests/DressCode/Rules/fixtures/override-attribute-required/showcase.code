@@ -1,0 +1,10 @@
+<?php
+
+namespace App;
+
+class Report extends Base
+{
+	public function run(): void
+	{
+	}
+}

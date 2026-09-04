@@ -15,6 +15,7 @@ use PHPStan\Type\Type;
 use PhpSyntax\{Node, Printer};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
 use PhpSyntax\Nodes\{ExpressionNode, FileNode, IdentifierNode};
+use PhpSyntax\Nodes\Member\MethodNode;
 
 
 /**
@@ -29,6 +30,9 @@ final class Types implements PassAnalysis
 	/** @var \SplObjectStorage<ExpressionNode, array{Expr, Scope}> */
 	private \SplObjectStorage $expressions;
 
+	/** @var \SplObjectStorage<MethodNode, Scope> */
+	private \SplObjectStorage $declarations;
+
 	/** @var \WeakMap<Callee, ClassConstantReflection|ExtendedMethodReflection|ExtendedPropertyReflection> */
 	private \WeakMap $reflections;
 
@@ -36,6 +40,7 @@ final class Types implements PassAnalysis
 	public function __construct(FileNode $file, string $path, PhpStan $phpstan)
 	{
 		$this->expressions = new \SplObjectStorage;
+		$this->declarations = new \SplObjectStorage;
 		$this->reflections = new \WeakMap;
 		$index = $file->getIndex();
 		$phpstan->resolveScopes($path, $phpstan->parse(Printer::print($file)), function (ParserNode $node, Scope $scope) use ($index): void {
@@ -43,6 +48,11 @@ final class Types implements PassAnalysis
 				$expression = $index->findNode($node->getStartFilePos(), $node->getEndFilePos() + 1, ExpressionNode::class);
 				if ($expression !== null && !isset($this->expressions[$expression])) {
 					$this->expressions[$expression] = [$node, $scope];
+				}
+			} elseif ($node instanceof ParserNode\Stmt\ClassMethod) {
+				$method = $index->findNode($node->getStartFilePos(), $node->getEndFilePos() + 1, MethodNode::class);
+				if ($method !== null && !isset($this->declarations[$method])) {
+					$this->declarations[$method] = $scope;
 				}
 			}
 		});
@@ -103,6 +113,44 @@ final class Types implements PassAnalysis
 		$callee = new Callee($kind, $reflection instanceof ExtendedPropertyReflection ? $name : $reflection->getName(), $reflection->getDeclaringClass()->getName());
 		$this->reflections[$callee] = $reflection;
 		return $callee;
+	}
+
+
+	/**
+	 * The method of the same name a parent class or an interface declares, which the declaration overrides; a private
+	 * method of an ancestor is hidden, not overridden, and the next ancestor is asked. Null where the declaration
+	 * overrides nothing, and for a declaration the pass began without.
+	 */
+	public function findOverridden(Node $declaration): ?Callee
+	{
+		if (!$declaration instanceof MethodNode || !isset($this->declarations[$declaration])) {
+			return null;
+		}
+
+		$scope = $this->declarations[$declaration];
+		$class = $scope->getClassReflection();
+		if ($class === null) {
+			return null;
+		}
+
+		$name = $declaration->name->text;
+		$parent = $class->getParentClass();
+		foreach ([...($parent === null ? [] : [$parent]), ...$class->getInterfaces()] as $ancestor) {
+			if (!$ancestor->hasMethod($name)) {
+				continue;
+			}
+
+			$method = $ancestor->getMethod($name, $scope);
+			if ($method->isPrivate()) {
+				continue; // a private method of an ancestor is not overridden, it is hidden
+			}
+
+			$callee = new Callee(MemberKind::Method, $method->getName(), $method->getDeclaringClass()->getName());
+			$this->reflections[$callee] = $method;
+			return $callee;
+		}
+
+		return null;
 	}
 
 

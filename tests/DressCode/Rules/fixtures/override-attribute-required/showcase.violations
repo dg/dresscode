@@ -1,0 +1,1 @@
+7: The method overriding App\Base::run() must be marked with #[\Override]

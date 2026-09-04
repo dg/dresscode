@@ -1,0 +1,45 @@
+<?php
+
+namespace App;
+
+class Child extends Base implements Renderable
+{
+	#[\Override]
+	public function run(): void
+	{
+	}
+
+
+	#[\Override]
+	public function render(): string
+	{
+		return '';
+	}
+
+
+	public function hidden(): void
+	{
+	}
+
+
+	#[\Override]
+	public static function make(): static
+	{
+	}
+
+
+	public function own(): void
+	{
+	}
+
+
+	public function __construct()
+	{
+	}
+
+
+	#[\Override]
+	public function marked(): void
+	{
+	}
+}
