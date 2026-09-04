@@ -211,10 +211,11 @@ final class RuleContext
 
 
 	/**
-	 * An analysis of the file: any class built from the FileNode (or from nothing), kept until the file mutates;
-	 * those of the core are in DressCode\Analyses and PhpSyntax\Analyses, a plugin registers its own under the key
-	 * analyses of the configuration. Throws for one the run does not have, which `findAnalysis()` answers with null,
-	 * and in a strict run for one the rule does not name in `RuleInfo::$analyses`.
+	 * An analysis of the file: any class built from the FileNode (or from nothing), kept until the file mutates, or
+	 * until the pass ends for a PassAnalysis; those of the core are in DressCode\Analyses and PhpSyntax\Analyses,
+	 * a plugin registers its own under the key analyses of the configuration. Throws for one the run does not have,
+	 * which `findAnalysis()` answers with null, and in a strict run for one the rule does not name in
+	 * `RuleInfo::$analyses`.
 	 * @template T of object
 	 * @param  class-string<T>  $class
 	 * @return T

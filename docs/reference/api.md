@@ -33,6 +33,12 @@ final readonly class Parameter
 	public function __construct(string $name, ?string $type = null, bool $optional = false, bool $variadic = false, bool $byReference = false, ?string $default = null)
 ```
 
+## `DressCode\Analyses\PassAnalysis`
+
+```php
+interface PassAnalysis
+```
+
 ## `DressCode\Analyses\PhpDoc`
 
 ```php
