@@ -78,6 +78,40 @@ test('explain says of a rule whose every fix may change the code that the fix wa
 });
 
 
+test('explain without a rule writes every rule that runs, in Markdown into the output', function () {
+	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	$root = __DIR__ . '/../../temp/explain';
+	@mkdir($root, recursive: true); // @ - may exist
+	file_put_contents("$root/dresscode.neon", "presets: [dresscode/nette]\npaths: [src]\n");
+	$code = new Application($out, $err, cwd: $root)->run(['dresscode', 'explain', '--output', "$root/rules.md"]);
+	Assert::same(0, $code);
+
+	$text = (string) file_get_contents("$root/rules.md");
+	Assert::contains("# Rules this project enforces\n", $text);
+	Assert::contains('- Composed of: `dresscode/psr12`, `dresscode/per`, `dresscode/nette-style`', $text);
+	Assert::contains('- Indentation: a tab', $text);
+	Assert::contains("### dresscode/useless-return\n", $text);
+	Assert::contains("```php\nfunction announce(string \$message): void", $text);
+	Assert::contains("becomes\n", $text);
+	// what does not run is not explained
+	Assert::notContains('dresscode/line-length', $text);
+});
+
+
+test('explain without a rule and without an output prints every rule that runs', function () {
+	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	$code = new Application($out, $err, cwd: __DIR__ . '/../../temp/explain')->run(['dresscode', 'explain']);
+	rewind($out);
+	$text = (string) stream_get_contents($out);
+	Assert::same(0, $code);
+	Assert::contains('dresscode/useless-return', $text);
+	Assert::contains('It runs in this project, set by group cleanup.', $text);
+	Assert::notContains('It does not run in this project', $text);
+});
+
+
 test('explain of a name no rule owns', function () {
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
