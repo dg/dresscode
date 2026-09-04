@@ -12,10 +12,10 @@ use PhpSyntax\Nodes\FileNode;
 
 
 /**
- * Creates analyses on demand and keeps them per file until the file mutates. An analysis is any class that can be
- * built from the file (and its path), or from nothing; a rule asks for one through `RuleContext::getAnalysis()`.
- * What the namespaces of the project declare outside the file is one of them, and the resolver of names is built
- * with it.
+ * Creates analyses on demand and keeps them per file until the file mutates, or until the pass ends for
+ * a PassAnalysis. An analysis is any class that can be built from the file (and its path), or from nothing;
+ * a rule asks for one through `RuleContext::getAnalysis()`. What the namespaces of the project declare outside
+ * the file is one of them, and the resolver of names is built with it.
  * @internal
  */
 final class Registry
@@ -26,10 +26,14 @@ final class Registry
 	/** @var \WeakMap<FileNode, array{int, array<class-string, object>}>  revision and analyses of the file */
 	private \WeakMap $cache;
 
+	/** @var \WeakMap<FileNode, array<class-string, object>>  the analyses of the pass, kept over its mutations */
+	private \WeakMap $passCache;
+
 
 	public function __construct(NamespacedSymbols $namespacedSymbols = new NamespacedSymbols)
 	{
 		$this->cache = new \WeakMap;
+		$this->passCache = new \WeakMap;
 		$this->factories[NamespacedSymbols::class] = fn() => $namespacedSymbols;
 		$this->factories[NameResolver::class] = fn(FileNode $file) => new NameResolver($file, $namespacedSymbols);
 	}
@@ -60,13 +64,21 @@ final class Registry
 			$this->register($class);
 		}
 
-		[$revision, $analyses] = $this->cache[$file] ?? [null, []];
-		if ($revision !== $file->revision) {
-			$analyses = [];
+		if (is_subclass_of($class, PassAnalysis::class)) {
+			$analyses = $this->passCache[$file] ?? [];
+			$analysis = $analyses[$class] ??= $this->factories[$class]($file, $path);
+			$this->passCache[$file] = $analyses;
+
+		} else {
+			[$revision, $analyses] = $this->cache[$file] ?? [null, []];
+			if ($revision !== $file->revision) {
+				$analyses = [];
+			}
+
+			$analysis = $analyses[$class] ??= $this->factories[$class]($file, $path);
+			$this->cache[$file] = [$file->revision, $analyses];
 		}
 
-		$analysis = $analyses[$class] ??= $this->factories[$class]($file, $path);
-		$this->cache[$file] = [$file->revision, $analyses];
 		if (!$analysis instanceof $class) {
 			throw new \LogicException("The factory of `$class` returned `" . $analysis::class . '`.');
 		}
@@ -115,5 +127,12 @@ final class Registry
 		return $constructor->getNumberOfRequiredParameters() <= 1
 			&& $type instanceof \ReflectionNamedType
 			&& is_a(FileNode::class, $type->getName(), allow_string: true);
+	}
+
+
+	/** A pass over the file begins: what the previous one computed for the whole pass is dropped. */
+	public function beginPass(FileNode $file): void
+	{
+		unset($this->passCache[$file]);
 	}
 }

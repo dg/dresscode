@@ -120,6 +120,7 @@ final class PassRunner
 				$context->storage = [];
 			}
 
+			$this->analyses->beginPass($file);
 			$revision = $file->revision;
 			foreach ($this->plan->stages as $stage => $rules) {
 				$this->runStage($stage, $rules, $style);
