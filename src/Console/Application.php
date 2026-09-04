@@ -100,6 +100,7 @@ final class Application
 			return match ($command->name) {
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
+				'explain' => $this->runExplain($args),
 				'rules' => $this->runRules($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
@@ -143,12 +144,15 @@ final class Application
 
 		$check = $program->addCommand('check', 'report violations');
 		$fix = $program->addCommand('fix', 'fix what the rules can and report the rest');
+		$explain = $program->addCommand('explain', 'what a rule is for, its options here and its examples');
 		$rules = $program->addCommand('rules', 'list the known rules');
 		$program->addText('Exit codes: 0 clean, 1 violations or syntax errors, 2 failure.');
 
 		foreach ([$check, $fix] as $command) {
 			$command->addArgument('paths', 'files or directories; the configured paths when omitted', optional: true, repeatable: true);
 		}
+
+		$explain->addArgument('rule', 'name of the rule');
 
 		foreach ([$check, $fix] as $command) {
 			$command->addOption(
@@ -173,7 +177,7 @@ final class Application
 			$command->addFlag('--strict-rules', 'a rule breaking its contract is an error, not a warning');
 		}
 
-		foreach ([$check, $fix, $rules] as $command) {
+		foreach ([$check, $fix, $explain, $rules] as $command) {
 			$command->addOption(
 				'--only',
 				'run only these of the rules the configuration comes to, a preset standing for all of its rules',
@@ -339,6 +343,30 @@ final class Application
 		}
 
 		return implode('/', $common ?? []);
+	}
+
+
+	/**
+	 * Explains one rule: what it is for, the options it has under this configuration, and the examples
+	 * someone chose for it.
+	 * @throws UsageException
+	 */
+	private function runExplain(Result $args): int
+	{
+		$name = $args['rule'];
+		$factory = new RunnerFactory;
+		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
+		$factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
+		$rule = $factory->getResolvedConfig()->getRule(
+			RuleInfo::of($factory->getRegistry()->resolveRule($name))->name,
+		);
+		if ($rule === null) {
+			throw new UsageException("Unknown rule '$name'.");
+		}
+
+		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
+		$this->write("\n" . new ExplainPrinter($rule, __DIR__ . '/../../tests/DressCode/Rules/fixtures')->print($this->console));
+		return 0;
 	}
 
 
