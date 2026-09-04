@@ -45,6 +45,7 @@ final class RuleRegistry
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\Classes\SingleMemberPerDeclarationRule::class,
+		Rules\Classes\SingleMemberPerLineRule::class,
 		Rules\Classes\UselessModifierRule::class,
 		Rules\Classes\VisibilityRequiredRule::class,
 		Rules\Comments\CommentedOutFunctionRule::class,

@@ -31,6 +31,7 @@ $perOnly = [
 	'dresscode/named-argument-spacing',
 	'dresscode/concat-spacing',
 	'dresscode/semicolon-spacing',
+	'dresscode/single-member-per-line',
 	'dresscode/nowdoc-without-interpolation',
 	'dresscode/heredoc-indentation',
 	'dresscode/attribute-spacing',
