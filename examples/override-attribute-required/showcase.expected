@@ -1,0 +1,11 @@
+<?php
+
+namespace App;
+
+class Report extends Base
+{
+	#[\Override]
+	public function run(): void
+	{
+	}
+}
