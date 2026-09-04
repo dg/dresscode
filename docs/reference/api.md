@@ -112,8 +112,9 @@ final readonly class Config extends DressCode\Profile
 	public readonly array $fileExtensions
 	public readonly ?string $baseline
 	public readonly ?string $cacheDir
+	public readonly ?string $typeAnalysis
 	public readonly ?string $ruleUrl
-	public function __construct(array $use = [], array $rules = [], array $targets = [], array $namespaces = [], ?string $nameResolution = null, array $fixRisky = [], array $warnOnly = [], array $suppressionComments = [], array $overrides = [], array $paths = [], array $excludePaths = [], array $fileExtensions = ['php'], ?callable $skipWhen = null, ?string $baseline = null, ?string $cacheDir = null, array $analyses = [], ?string $ruleUrl = null, array $decisions = [])
+	public function __construct(array $use = [], array $rules = [], array $targets = [], array $namespaces = [], ?string $nameResolution = null, array $fixRisky = [], array $warnOnly = [], array $suppressionComments = [], array $overrides = [], array $paths = [], array $excludePaths = [], array $fileExtensions = ['php'], ?callable $skipWhen = null, ?string $baseline = null, ?string $cacheDir = null, array $analyses = [], ?string $typeAnalysis = null, ?string $ruleUrl = null, array $decisions = [])
 	public function getRuleFactories(): array
 ```
 
@@ -123,7 +124,7 @@ final readonly class Config extends DressCode\Profile
 final class Catalogue
 	public const Version = 3
 	public const CoreSections = ['file', 'indentation', 'naming', 'builtin', 'qualification', 'imports', 'spacing', 'multiline', 'braces', 'blankLines', 'classes', 'types', 'functions', 'cleanup', 'controlFlow', 'expressions', 'literals', 'comments', 'phpdoc', 'correctness', 'upgrading']
-	public const ReservedKeys = ['use', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths', 'fileExtensions', 'skipWhen', 'baseline', 'cacheDir', 'rules', 'analyses', 'fixRisky', 'warnOnly', 'suppressionComments', 'overrides']
+	public const ReservedKeys = ['use', 'typeAnalysis', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths', 'fileExtensions', 'skipWhen', 'baseline', 'cacheDir', 'rules', 'analyses', 'fixRisky', 'warnOnly', 'suppressionComments', 'overrides']
 	public const ProjectSection = 'project'
 	public function __construct(array $coreRules, array $pluginRules = [], array $projectRules = [], array $coreDecisions = [], array $pluginDecisions = [], array $pluginDependencies = [])
 	public static function fromRules(array $rules): DressCode\Config\Catalogue
@@ -482,10 +483,11 @@ final readonly class RuleInfo
 	public readonly DressCode\Stage $stage
 	public readonly bool $modifiesComments
 	public readonly array $requires
+	public readonly bool $typesRequired
 	public readonly array $analyses
 	public readonly array $decisions
 	public readonly array $reads
-	public function __construct(DressCode\Stage $stage, bool $modifiesComments = false, array $requires = [], array $analyses = [], array $decisions = [], array $reads = [])
+	public function __construct(DressCode\Stage $stage, bool $modifiesComments = false, array $requires = [], bool $typesRequired = false, array $analyses = [], array $decisions = [], array $reads = [])
 	public static function of(DressCode\Rule|string $rule): DressCode\RuleInfo
 	public function getMinPhpVersion(): ?string
 ```

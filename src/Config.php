@@ -80,6 +80,8 @@ final readonly class Config extends Profile
 		public ?string $baseline = null,
 		public ?string $cacheDir = null,
 		array $analyses = [],
+		/** `'phpstan'` lets the rules that need the types of the code run */
+		public ?string $typeAnalysis = null,
 		/** the address of the page of each rule of the project, `{slug}` standing for its class without the suffix, the first letter in lower case */
 		public ?string $ruleUrl = null,
 		array $decisions = [],
@@ -88,6 +90,10 @@ final readonly class Config extends Profile
 		parent::__construct(array_values(array_diff_key($use, $plugins)), $targets, $namespaces, $nameResolution, $fixRisky, $warnOnly, $suppressionComments, $decisions);
 		$this->plugins = array_values($plugins);
 		$this->rules = self::normalizeRules($rules);
+		if ($typeAnalysis !== null && $typeAnalysis !== 'phpstan') {
+			throw new \InvalidArgumentException("The type analysis must be `phpstan`, `$typeAnalysis` given.");
+		}
+
 		Config\ManifestFields::checkRuleUrl($ruleUrl);
 		Config\ManifestFields::checkGlobs($excludePaths, 'excludePaths');
 

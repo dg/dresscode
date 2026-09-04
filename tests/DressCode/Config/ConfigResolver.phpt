@@ -89,8 +89,18 @@ final class RuleFuture extends ResolvedTestRule
 }
 
 
+#[RuleInfo(Stage::Structure, typesRequired: true)]
+final class RuleTyped extends ResolvedTestRule
+{
+	public static function getDecisions(): array
+	{
+		return [self::decide('typed', 'Of the types')];
+	}
+}
+
+
 const ResolvedTestRules = [
-	RuleA::class, RuleB::class, RuleC::class, RuleD::class, RuleFuture::class,
+	RuleA::class, RuleB::class, RuleC::class, RuleD::class, RuleFuture::class, RuleTyped::class,
 ];
 
 
@@ -109,6 +119,7 @@ const ResolvedTestPresets = [
 	'test/base' => "project:\n\ta: forbidden\n\tc: forbidden\n\tcMax: 5\n\tb: forbidden\n",
 	'test/child' => "use: test/base\n\nproject:\n\tb: keep\n",
 	'test/future-preset' => "project:\n\ta: forbidden\n\tfuture: forbidden\n",
+	'test/typed-preset' => "project:\n\ta: forbidden\n\ttyped: forbidden\n",
 	'test/styled' => "use: test/base\n\nindentation:\n\tunit: 2 spaces\nfile:\n\tlineEnding: LF\n",
 	'test/broken' => "project:\n\tnone: forbidden\n",
 	'test/deciding' => "fixRisky: [RuleA]\n",
@@ -230,6 +241,32 @@ test('a rule of a construct the target version has not got is left out', functio
 	Assert::same(['test/a', 'test/future'], $resolve(new Config(use: ['test/future-preset']), '8.4 - 8.6'));
 	Assert::same(['test/a'], $resolve(new Config(use: ['test/future-preset']), '^8.3'));
 	Assert::same('8.4', $resolver->resolve(new Config, '8.4 - 8.6')->phpVersion);
+});
+
+
+test('a rule that needs the types of the code runs only where the configuration gives them', function () {
+	$resolver = createResolver();
+	$resolve = fn(Config $config) => names(RuleBuilder::buildRules($resolver->resolve($config, '8.3')));
+
+	// coming from a preset it is left out in silence, whatever the project has
+	Assert::same(['test/a'], $resolve(new Config(use: ['test/typed-preset'])));
+	Assert::same([], $resolver->getWarnings());
+	Assert::same(['test/a', 'test/typed'], $resolve(new Config(use: ['test/typed-preset'], typeAnalysis: 'phpstan')));
+	Assert::same(['test/a'], $resolve(new Config(use: ['test/typed-preset'], typeAnalysis: 'phpstan', decisions: projectDecisions(['typed'], 'keep'))));
+
+	$resolved = $resolver->resolve(new Config(use: ['test/typed-preset']), '8.3');
+	Assert::same('it needs the types of the code and the configuration sets no types', $resolved->findRule(RuleTyped::class)?->inactiveMessage);
+	Assert::null($resolved->typeAnalysis);
+	Assert::null($resolved->toArray()['typeAnalysis']);
+	Assert::same('phpstan', $resolver->resolve(new Config(typeAnalysis: 'phpstan'), '8.3')->typeAnalysis);
+
+	// the project making the decision asked for what it cannot get
+	Assert::exception(
+		fn() => $resolve(new Config(decisions: projectDecisions(['typed']))),
+		ConfigurationException::class,
+		'Decision `project.typed` needs the types of the code; set `typeAnalysis: phpstan` in the configuration and install `phpstan/phpstan` beside DressCode.',
+	);
+	Assert::same(['test/typed'], $resolve(new Config(typeAnalysis: 'phpstan', decisions: projectDecisions(['typed']))));
 });
 
 

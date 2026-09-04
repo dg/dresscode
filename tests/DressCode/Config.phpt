@@ -34,6 +34,7 @@ test('defaults', function () {
 	Assert::null($config->baseline);
 	Assert::null($config->cacheDir);
 	Assert::same([], $config->analyses);
+	Assert::null($config->typeAnalysis);
 });
 
 
@@ -90,6 +91,7 @@ test('a value a profile cannot hold is refused when it is written', function () 
 	Assert::exception(fn() => new Profile(targets: ['php' => 'eight']), InvalidArgumentException::class, 'The PHP version must be written as `8.2`, `eight` given.');
 	Assert::exception(fn() => new Profile(nameResolution: 'sure'), InvalidArgumentException::class, 'The name resolution must be `certain` or `uncertain`, `sure` given.');
 	Assert::exception(fn() => new Profile(namespaces: ['classes' => []]), InvalidArgumentException::class, 'The namespaces declare functions and constants, not `classes`.');
+	Assert::exception(fn() => new Config(typeAnalysis: 'psalm'), InvalidArgumentException::class, 'The type analysis must be `phpstan`, `psalm` given.');
 	Assert::exception(fn() => new Config(rules: ['x/y']), InvalidArgumentException::class, '`rules` names the classes of the rules of the project, `x/y` is not one.'); // @phpstan-ignore argument.type (the check is the point)
 	Assert::exception(fn() => new Config(rules: [ConfigTestRule::class => true]), InvalidArgumentException::class, 'The factory of rule `ConfigTestRule` must be a closure, `bool` given.'); // @phpstan-ignore argument.type (the check is the point)
 });

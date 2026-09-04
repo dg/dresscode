@@ -194,6 +194,7 @@ test('a path keeps to the sections of its registrant', function () {
 	Assert::exception(fn() => new Catalogue([], ['nette' => [PresenterRule::class]]), ConfigurationException::class, 'Rule `PresenterRule` declares `acme.presenterTemplates` outside the section `nette` of the plugin of section `nette`.');
 	Assert::exception(fn() => new Catalogue([], [], [CallRule::class]), ConfigurationException::class, 'Rule `CallRule` declares `spacing.call` outside the section `project` of the project.');
 	Assert::exception(fn() => new Catalogue([], ['types' => [PresenterRule::class]]), ConfigurationException::class, 'Plugin section `types` is a key of the configuration or a section of the core; name the section after the plugin.');
+	Assert::exception(fn() => new Catalogue([], ['typeAnalysis' => []]), ConfigurationException::class);
 	Assert::noError(fn() => new Catalogue([], ['php' => []])); // the target version is a key under `targets`
 	Assert::noError(fn() => new Catalogue([], ['acme' => [GuardRule::class]])); // a fact is a key of the environment, whoever guards it
 });

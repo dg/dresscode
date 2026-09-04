@@ -142,6 +142,7 @@ final class ConfigResolver
 		$resolver = new DecisionResolver(
 			$this->getCatalogue(),
 			$phpTarget,
+			typesAvailable: $config->typeAnalysis !== null,
 			certainNames: $resolution === 'certain',
 		);
 		$decisions = $resolver->resolve($decisionLayers);
@@ -179,6 +180,7 @@ final class ConfigResolver
 			nameResolution: $resolution ?? 'uncertain',
 			lineLength: self::resolveLineLength($values->get('file.maxLineLength')),
 			tabWidth: $values->get('indentation.tabWidth')->getCount()[0],
+			typeAnalysis: $config->typeAnalysis,
 			plugins: array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, [...$config->plugins, ...$commandLine instanceof Config ? $commandLine->plugins : []]),
 			suppressionComments: $suppressionComments,
 			decisions: $decisions,
@@ -203,7 +205,7 @@ final class ConfigResolver
 	/**
 	 * A rule runs where one of its requirements or facts takes effect and lies in the mask of the run; otherwise it says
 	 * why it does not. A preset may decide what cannot run here; a project deciding it asked for what it cannot get,
-	 * which is a warning for the target.
+	 * which is an error for the types and a warning for the target.
 	 * @param  class-string<Rule>  $class
 	 * @param  array<string, ResolvedDecision>  $decisions  those the rule declares
 	 * @param  ?InactiveReason  $ruleReason  why the rule does not run whatever its values
@@ -235,7 +237,9 @@ final class ConfigResolver
 			return $top?->origin?->isProject() === true && !$top->isKept();
 		}));
 		$info = RuleInfo::of($class);
-		if ($asked !== [] && $reasons === [InactiveReason::Php]) {
+		if ($asked !== [] && $reasons === [InactiveReason::Types]) {
+			throw new ConfigurationException("Decision `$asked[0]` needs the types of the code; set `typeAnalysis: phpstan` in the configuration and install `phpstan/phpstan` beside DressCode.", docs: 'types#enable');
+		} elseif ($asked !== [] && $reasons === [InactiveReason::Php]) {
 			$this->warnings[$class] = "Decision `$asked[0]` needs PHP {$info->requires['php']} and the target is $phpTarget; skipped.";
 		}
 
@@ -243,6 +247,7 @@ final class ConfigResolver
 			$effective !== [] && array_any($effective, fn(ResolvedDecision $decision) => $values->isSelected($decision->decision->path)) => [null, null],
 			$effective !== [] => [InactiveReason::Narrowed, 'the run is narrowed to other decisions'],
 			$reasons === [InactiveReason::Php] => [InactiveReason::Php, "it needs PHP {$info->requires['php']} and the target is $phpTarget"],
+			$reasons === [InactiveReason::Types] => [InactiveReason::Types, 'it needs the types of the code and the configuration sets no types'],
 			array_any($own, fn(ResolvedDecision $decision) => $decision->layers !== []) => [InactiveReason::TurnedOff, 'its decisions are `keep`'],
 			$ofOverride => [InactiveReason::OnlyOverride, 'only an override turns it on'],
 			default => [InactiveReason::NotMentioned, 'no preset or layer of the configuration names its decisions'],
@@ -545,7 +550,7 @@ final class ConfigResolver
 			}
 
 			// left out is what the project turned off, and where it does not use the name what the name would bring; a rule
-			// its standard turns off or that cannot run here, too new for the target, is not
+			// its standard turns off or that cannot run here, too new for the target or needing the types, is not
 			$collective = PluginRegistry::abbreviate($expanded->name);
 			$laid = in_array($collective, array_map(PluginRegistry::abbreviate(...), $use), true);
 			$left = array_filter($rules, fn(string $rule) => match ($inactive[$rule]->inactiveReason ?? null) {

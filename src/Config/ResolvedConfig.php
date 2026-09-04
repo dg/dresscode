@@ -43,6 +43,8 @@ final readonly class ResolvedConfig
 		public ?int $lineLength = null,
 		/** how many columns a tab counts for in the width of a line */
 		public int $tabWidth = 4,
+		/** `'phpstan'` when the types of the code come from the PHPStan of the project; null when the rules have none */
+		public ?string $typeAnalysis = null,
 		/** @var list<class-string>  the plugins the configuration and the command line use */
 		public array $plugins = [],
 		/** @var array<string, list<string>>  pattern of a comment => the decisions it silences where it stands */
@@ -127,7 +129,7 @@ final readonly class ResolvedConfig
 	/**
 	 * Everything a result depends on besides the file and the versions of the packages: the active rules, whether a
 	 * closure builds them and whether their risky fixes are made, the values of the decisions, the style, the target
-	 * version, what the namespaces declare and the same of every override. A changed default is a changed
+	 * version, what the namespaces declare, the types and the same of every override. A changed default is a changed
 	 * value here, which a description of what the configuration said would miss.
 	 * @return array<string, mixed>
 	 */
@@ -146,6 +148,7 @@ final readonly class ResolvedConfig
 			'tabWidth' => $this->tabWidth,
 			'php' => $this->phpVersion,
 			'namespaces' => [array_keys($this->namespacedFunctions), array_keys($this->namespacedConstants), $this->nameResolution],
+			'typeAnalysis' => $this->typeAnalysis,
 			'suppressionComments' => $this->suppressionComments,
 			'decisions' => array_map(fn(ResolvedDecision $decision) => $decision->value->toData(), $this->decisions),
 			'fixRisky' => array_keys($this->fixRisky),

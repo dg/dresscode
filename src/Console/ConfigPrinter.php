@@ -134,6 +134,7 @@ final readonly class ConfigPrinter
 			'version' => self::Version,
 			'use' => [...$this->config->plugins, ...array_map(PluginRegistry::abbreviate(...), $this->config->use)],
 			'targets' => ['php' => $this->config->phpVersion],
+			'typeAnalysis' => $this->config->typeAnalysis,
 			'indent' => $this->config->indent === "\t" ? 'tab' : strlen($this->config->indent),
 			'lineEnding' => match ($this->config->lineEnding) {
 				"\n" => 'LF',

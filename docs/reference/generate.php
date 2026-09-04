@@ -118,10 +118,18 @@ foreach ($bySection as $section => $decisions) {
 			fn(string $standard) => "$standard " . formatValue($standards[$standard][$path]->value),
 			array_keys($standards),
 		));
+		// the decision needs what every one of its rules needs
+		$needs = null;
 		$modifiesComments = false;
 		foreach ($rules as $rule) {
 			$info = RuleInfo::of($rule);
 			$facts[] = 'Rule `' . $rule . '`, stage ' . $info->stage->name;
+			$ruleNeeds = [];
+			if ($info->typesRequired) {
+				$ruleNeeds[] = 'Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`';
+			}
+
+			$needs = $needs === null ? $ruleNeeds : array_values(array_intersect($needs, $ruleNeeds));
 			$modifiesComments = $modifiesComments || $info->modifiesComments;
 		}
 
@@ -133,6 +141,7 @@ foreach ($bySection as $section => $decisions) {
 			$facts[] = "Needs PHP $phpNeeds[$path]";
 		}
 
+		array_push($facts, ...$needs ?? []);
 		if ($modifiesComments) {
 			$facts[] = 'Modifies comments';
 		}

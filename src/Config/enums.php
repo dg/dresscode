@@ -39,6 +39,9 @@ enum InactiveReason: string
 	/** the target is older than the rule needs */
 	case Php = 'php';
 
+	/** the run has no types the rule needs */
+	case Types = 'types';
+
 	/** the run is narrowed to other decisions */
 	case Narrowed = 'narrowed';
 

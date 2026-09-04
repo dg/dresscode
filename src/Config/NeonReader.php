@@ -107,6 +107,7 @@ final class NeonReader
 			...self::getProfileSchema(),
 			// a rule of the project by its class; one built by a factory is given by dresscode.php
 			'rules' => Expect::arrayOf('mixed'),
+			'typeAnalysis' => Expect::anyOf('phpstan'),
 			'overrides' => Expect::listOf(Expect::structure([
 				'paths' => Expect::listOf('string', wrap: true)->required(),
 				...self::getProfileSchema(),
