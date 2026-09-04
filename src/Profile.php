@@ -63,6 +63,8 @@ readonly class Profile
 		public array $fixRisky = [],
 		/** @var list<string>  names or classes of the rules whose violations only warn */
 		public array $warnings = [],
+		/** `'phpstan'` takes the types of the code from the PHPStan of the project; without it no rule that needs them runs */
+		public ?string $types = null,
 	) {
 		if ($indent !== null && $indent !== 'tab' && !(is_int($indent) && $indent >= 1)) {
 			throw new \InvalidArgumentException('The indentation must be a number of spaces or `tab`.');
@@ -76,6 +78,8 @@ readonly class Profile
 			throw new \InvalidArgumentException("The name resolution must be `certain` or `uncertain`, `$nameResolution` given.");
 		} elseif ($unknown = array_diff_key($namespaces, ['functions' => true, 'constants' => true])) {
 			throw new \InvalidArgumentException('The namespaces declare functions and constants, not `' . array_key_first($unknown) . '`.');
+		} elseif ($types !== null && $types !== 'phpstan') {
+			throw new \InvalidArgumentException("The types must be `phpstan`, `$types` given.");
 		}
 
 		$this->groups = array_map(

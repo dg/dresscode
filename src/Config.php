@@ -74,8 +74,9 @@ final readonly class Config extends Profile
 		public ?string $baseline = null,
 		public ?string $cacheDir = null,
 		array $analyses = [],
+		?string $types = null,
 	) {
-		parent::__construct($presets, $groups, $rules, $indent, $eol, $lineLength, $php, $namespaces, $nameResolution, $fixRisky, $warnings);
+		parent::__construct($presets, $groups, $rules, $indent, $eol, $lineLength, $php, $namespaces, $nameResolution, $fixRisky, $warnings, $types);
 		$this->excludePaths = array_values(array_unique([...self::DefaultExcludePaths, ...$excludePaths]));
 		$this->skipWhen = $skipWhen === null ? null : $skipWhen(...);
 		$this->analyses = self::normalizeAnalyses($analyses);
