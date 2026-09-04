@@ -146,7 +146,7 @@ final class Application
 		$check = $program->addCommand('check', 'report violations');
 		$fix = $program->addCommand('fix', 'fix what the rules can and report the rest');
 		$config = $program->addCommand('config', 'print the configuration as the run resolves it');
-		$explain = $program->addCommand('explain', 'what a rule is for, its options here and its examples');
+		$explain = $program->addCommand('explain', 'what a rule is for, its options here and its examples; every rule that runs when none is named');
 		$rules = $program->addCommand('rules', 'list the known rules');
 		$program->addText('Exit codes: 0 clean, 1 violations or syntax errors, 2 failure.');
 
@@ -154,7 +154,7 @@ final class Application
 			$command->addArgument('paths', 'files or directories; the configured paths when omitted', optional: true, repeatable: true);
 		}
 
-		$explain->addArgument('rule', 'name of the rule');
+		$explain->addArgument('rule', 'name of the rule; every rule that runs when omitted', optional: true);
 
 		foreach ([$check, $fix] as $command) {
 			$command->addOption(
@@ -190,6 +190,7 @@ final class Application
 
 		$config->addOption('--file', 'what the configuration comes to for that one file', valueName: 'path');
 		$config->addFlag('--json', 'the configuration as data');
+		$explain->addOption('--output', 'write the explanation there, in Markdown', valueName: 'file');
 		return $program;
 	}
 
@@ -380,8 +381,8 @@ final class Application
 
 
 	/**
-	 * Explains one rule: what it is for, the options it has under this configuration, and the examples
-	 * someone chose for it.
+	 * Explains a rule, or every rule that runs when none is named: what it is for, the options it has under
+	 * this configuration, and the examples someone chose for it; with --output as Markdown into that file.
 	 * @throws UsageException
 	 */
 	private function runExplain(Result $args): int
@@ -390,15 +391,31 @@ final class Application
 		$factory = new RunnerFactory;
 		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
 		$factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
-		$rule = $factory->getResolvedConfig()->getRule(
-			RuleInfo::of($factory->getRegistry()->resolveRule($name))->name,
-		);
-		if ($rule === null) {
-			throw new UsageException("Unknown rule '$name'.");
+		$resolved = $factory->getResolvedConfig();
+		$fixtures = __DIR__ . '/../../tests/DressCode/Rules/fixtures';
+		$rules = $resolved->getActiveRules();
+		if (is_string($name)) {
+			$rule = $resolved->getRule(RuleInfo::of($factory->getRegistry()->resolveRule($name))->name);
+			if ($rule === null) {
+				throw new UsageException("Unknown rule '$name'.");
+			}
+
+			$rules = [$rule];
+		}
+
+		$file = $args['--output'];
+		if (is_string($file)) {
+			$printer = new ExplainMarkdownPrinter($resolved, $fixtures);
+			FileSystem::write($file, is_string($name) ? $printer->printRule($rules[0]) : $printer->print());
+			$this->write('Written to ' . FileSystem::platformSlashes($file) . ".\n");
+			return 0;
 		}
 
 		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
-		$this->write("\n" . new ExplainPrinter($rule, __DIR__ . '/../../tests/DressCode/Rules/fixtures')->print($this->console));
+		foreach ($rules as $rule) {
+			$this->write("\n" . new ExplainPrinter($rule, $fixtures)->print($this->console));
+		}
+
 		return 0;
 	}
 
