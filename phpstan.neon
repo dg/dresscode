@@ -12,3 +12,10 @@ parameters:
 	excludePaths:
 		- tests/*/fixtures/*
 		- tests/corpus/*
+
+	ignoreErrors:
+		# the class phpstan/extension-installer generates is internal to it; should it be renamed or dropped, the
+		# extensions go unread, which costs what they add to the types, not a wrong answer
+		-
+			identifier: phpstanApi.classConstant
+			path: src/Analyses/PhpStan.php

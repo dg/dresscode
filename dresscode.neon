@@ -8,6 +8,8 @@ groups:
 rules:
 	group-import: {minImports: 2}
 
+types: phpstan
+
 paths:
 	- src
 	- tests
