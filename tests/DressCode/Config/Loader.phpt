@@ -238,6 +238,25 @@ test('the version of PHP is taken with quotes or without them', function () {
 });
 
 
+test('the types of the code come from phpstan or from nowhere', function () {
+	$types = fn(string $file) => Loader::loadFile(FileMock::create($file, 'neon'))->types;
+	Assert::same('phpstan', $types("types: phpstan\n"));
+	Assert::null($types("paths: [src]\n"));
+	Assert::exception(
+		fn() => $types("types: psalm\n"),
+		ConfigurationException::class,
+		"Configuration file `%a%`: The item 'types' expects to be %a%",
+	);
+
+	// the types are known for the whole project, which an override does not decide
+	Assert::exception(
+		fn() => $types("overrides:\n\t- paths: [src]\n\t  types: phpstan\n"),
+		ConfigurationException::class,
+		"Configuration file `%a%`: Unexpected item 'overrides\u{a0}›\u{a0}0\u{a0}›\u{a0}types'%a%",
+	);
+});
+
+
 test('a rule and a preset are named by their classes, and what the namespaces declare is a map', function () {
 	$config = Loader::loadFile(FileMock::create(<<<'XX'
 		rules: {LoaderRule: true}

@@ -39,6 +39,8 @@ final readonly class ResolvedConfig
 		public string $nameResolution = 'uncertain',
 		/** the widest line the rules keep to; null for none */
 		public ?int $lineLength = null,
+		/** `'phpstan'` when the types of the code come from the PHPStan of the project; null when the rules have none */
+		public ?string $types = null,
 		/** @var list<class-string>  the plugins the configuration names */
 		public array $plugins = [],
 	) {
@@ -68,8 +70,8 @@ final readonly class ResolvedConfig
 	/**
 	 * Everything a result depends on besides the file and the versions of the packages: the active rules with the
 	 * options they end up with, whether a closure builds them and whether their risky fixes are made, the style, the
-	 * target version and what the namespaces declare. A changed default is a changed value here, which a description
-	 * of what the configuration said would miss.
+	 * target version, what the namespaces declare and the types. A changed default is a changed value here, which
+	 * a description of what the configuration said would miss.
 	 * @return array<string, mixed>
 	 */
 	public function toArray(): array
@@ -86,6 +88,7 @@ final readonly class ResolvedConfig
 			'lineLength' => $this->lineLength,
 			'php' => $this->phpVersion,
 			'namespaces' => [array_keys($this->namespacedFunctions), array_keys($this->namespacedConstants), $this->nameResolution],
+			'types' => $this->types,
 		];
 	}
 }

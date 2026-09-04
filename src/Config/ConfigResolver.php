@@ -145,6 +145,7 @@ final class ConfigResolver
 				$class,
 				$ruleLayers,
 				$phpTarget,
+				types: $config->types !== null,
 				explicit: isset($explicit[$class]),
 				kept: $kept === null || isset($kept[$class]),
 				fixRisky: isset($fixRisky[$class]),
@@ -182,6 +183,7 @@ final class ConfigResolver
 			namespacedConstants: $bySource($symbols[SymbolKind::Constant->name]),
 			nameResolution: $resolution ?? 'uncertain',
 			lineLength: $lineLength ?: null,
+			types: $config->types,
 			plugins: array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, $config->plugins),
 		);
 	}
@@ -545,6 +547,7 @@ final class ConfigResolver
 	/**
 	 * @param  class-string<Rule>  $class
 	 * @param  list<array{string, mixed}>  $layers
+	 * @param  bool  $types  whether the configuration gives the types of the code
 	 * @param  bool  $explicit  whether a layer other than a preset mentions the rule
 	 * @param  bool  $kept  whether `only` keeps the rule, or the run is not narrowed
 	 * @param  bool  $fixRisky  whether the project accepts its fixes that may change what the code does
@@ -555,6 +558,7 @@ final class ConfigResolver
 		string $class,
 		array $layers,
 		string $phpTarget,
+		bool $types,
 		bool $explicit,
 		bool $kept,
 		bool $fixRisky,
@@ -565,9 +569,16 @@ final class ConfigResolver
 		$last = $layers[count($layers) - 1][1];
 		$php = $info->requires['php'] ?? null;
 		$tooNew = $php !== null && !Versions::isSubset($phpTarget, $php);
+		$untyped = $info->typesRequired && !$types;
+		// a preset may name such a rule whatever the project has; a project naming it asked for what it cannot get
+		if ($untyped && $last !== false && $explicit) {
+			throw new ConfigurationException("Rule `$info->name` needs the types of the code; set `types: phpstan` in the configuration and install `phpstan/phpstan` in the project.", docs: 'types#enable');
+		}
+
 		[$reason, $inactive] = match (true) {
 			$last === false => ['turnedOff', 'turned off by ' . $layers[count($layers) - 1][0]],
 			$tooNew => ['php', "it needs PHP $php and the target is $phpTarget"],
+			$untyped => ['types', 'it needs the types of the code and the configuration sets no types'],
 			!$kept => ['narrowed', 'the run is narrowed to other rules'],
 			default => [null, null],
 		};

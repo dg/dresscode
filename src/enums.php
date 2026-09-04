@@ -36,7 +36,7 @@ enum Tristate
  */
 enum Risk
 {
-	/** the type of a value, which the declarations in sight do not tell */
+	/** the type of a value, which neither the declarations in sight nor the types tell */
 	case TypeUnknown;
 
 	/** whether an unqualified name reaches a function or a constant of the namespace, which `nameResolution: certain` tells */

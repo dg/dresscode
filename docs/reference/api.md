@@ -88,8 +88,9 @@ final readonly class Config extends DressCode\Profile
 	public readonly array $fileExtensions
 	public readonly ?string $baseline
 	public readonly ?string $cacheDir
+	public readonly ?string $types
 	public readonly ?string $ruleUrl
-	public function __construct(array $plugins = [], array $presets = [], array $groups = [], array $rules = [], string|int|null $indent = null, ?string $lineEnding = null, int|false|null $lineLength = null, array $targets = [], array $namespaces = [], ?string $nameResolution = null, array $fixRisky = [], array $warnOnly = [], array $overrides = [], array $paths = [], array $excludePaths = [], array $fileExtensions = ['php'], ?callable $skipWhen = null, ?string $baseline = null, ?string $cacheDir = null, array $analyses = [], ?string $ruleUrl = null)
+	public function __construct(array $plugins = [], array $presets = [], array $groups = [], array $rules = [], string|int|null $indent = null, ?string $lineEnding = null, int|false|null $lineLength = null, array $targets = [], array $namespaces = [], ?string $nameResolution = null, array $fixRisky = [], array $warnOnly = [], array $overrides = [], array $paths = [], array $excludePaths = [], array $fileExtensions = ['php'], ?callable $skipWhen = null, ?string $baseline = null, ?string $cacheDir = null, array $analyses = [], ?string $types = null, ?string $ruleUrl = null)
 ```
 
 ## `DressCode\ConfigurableRule`
@@ -341,8 +342,9 @@ final readonly class RuleInfo
 	public readonly ?DressCode\RuleGroup $group
 	public readonly bool $modifiesComments
 	public readonly array $requires
+	public readonly bool $typesRequired
 	public readonly ?string $decision
-	public function __construct(string $name, DressCode\Stage $stage, string $description = '', ?DressCode\RuleGroup $group = null, bool $modifiesComments = false, array $requires = [], ?string $decision = null)
+	public function __construct(string $name, DressCode\Stage $stage, string $description = '', ?DressCode\RuleGroup $group = null, bool $modifiesComments = false, array $requires = [], bool $typesRequired = false, ?string $decision = null)
 	public static function of(DressCode\Rule|string $rule): DressCode\RuleInfo
 	public function getMinPhpVersion(): ?string
 ```

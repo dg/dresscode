@@ -116,6 +116,7 @@ final class ConfigPrinter
 			'groups' => $this->config->groups,
 			'plugins' => $this->config->plugins,
 			'targets' => ['php' => $this->config->phpVersion],
+			'types' => $this->config->types,
 			'indent' => $this->config->indent === "\t" ? 'tab' : strlen($this->config->indent),
 			'lineEnding' => match ($this->config->lineEnding) {
 				"\n" => 'LF',

@@ -149,6 +149,26 @@ final class FuturePreset implements Preset
 }
 
 
+#[RuleInfo('test/typed', Stage::Structure, typesRequired: true)]
+final class RuleTyped extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+}
+
+
+#[PresetInfo('test/typed-preset')]
+final class TypedPreset implements Preset
+{
+	public function getProfile(): Profile
+	{
+		return new Profile(rules: [RuleA::class => true, RuleTyped::class => true]);
+	}
+}
+
+
 #[PresetInfo('test/base')]
 final class BasePreset implements Preset
 {
@@ -408,6 +428,32 @@ test('a rule of a construct the target version has not got is left out', functio
 	Assert::same(['test/a', 'test/future'], $resolve(new Config(presets: [FuturePreset::class]), '8.4 - 8.6'));
 	Assert::same(['test/a'], $resolve(new Config(presets: [FuturePreset::class]), '^8.3'));
 	Assert::same('8.4', $resolver->resolve(new Config, '8.4 - 8.6')->phpVersion);
+});
+
+
+test('a rule that needs the types of the code runs only where the configuration gives them', function () {
+	$resolver = new ConfigResolver(new RuleRegistry);
+	$resolve = fn(Config $config) => names(RuleBuilder::buildRules($resolver->resolve($config, '8.3')));
+
+	// coming from a preset it is left out in silence, whatever the project has
+	Assert::same(['test/a'], $resolve(new Config(presets: [TypedPreset::class])));
+	Assert::same([], $resolver->getWarnings());
+	Assert::same(['test/a', 'test/typed'], $resolve(new Config(presets: [TypedPreset::class], types: 'phpstan')));
+	Assert::same(['test/a'], $resolve(new Config(presets: [TypedPreset::class], rules: [RuleTyped::class => false], types: 'phpstan')));
+
+	$resolved = $resolver->resolve(new Config(presets: [TypedPreset::class]), '8.3');
+	Assert::same('it needs the types of the code and the configuration sets no types', $resolved->getRule('test/typed')?->inactive);
+	Assert::null($resolved->types);
+	Assert::null($resolved->toArray()['types']);
+	Assert::same('phpstan', $resolver->resolve(new Config(types: 'phpstan'), '8.3')->types);
+
+	// the project naming it asked for what it cannot get
+	Assert::exception(
+		fn() => $resolve(new Config(rules: [RuleTyped::class => true])),
+		ConfigurationException::class,
+		'Rule `test/typed` needs the types of the code; set `types: phpstan` in the configuration and install `phpstan/phpstan` in the project.',
+	);
+	Assert::same(['test/typed'], $resolve(new Config(rules: [RuleTyped::class => true], types: 'phpstan')));
 });
 
 

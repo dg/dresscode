@@ -78,10 +78,16 @@ final readonly class Config extends Profile
 		public ?string $baseline = null,
 		public ?string $cacheDir = null,
 		array $analyses = [],
+		/** `'phpstan'` lets the rules that need the types of the code run */
+		public ?string $types = null,
 		/** the address of the page of each rule the configuration names by class, `{slug}` standing for the name without its vendor */
 		public ?string $ruleUrl = null,
 	) {
 		parent::__construct($presets, $groups, $rules, $indent, $lineEnding, $lineLength, $targets, $namespaces, $nameResolution, $fixRisky, $warnOnly);
+		if ($types !== null && $types !== 'phpstan') {
+			throw new \InvalidArgumentException("The types must be `phpstan`, `$types` given.");
+		}
+
 		self::checkPlugins($plugins);
 		self::checkRuleUrl($ruleUrl);
 
