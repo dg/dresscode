@@ -98,6 +98,7 @@ final class NeonReader
 			'nameResolution' => Expect::anyOf('certain', 'uncertain'),
 			'fixRisky' => Expect::listOf('string'),
 			'warnings' => Expect::listOf('string'),
+			'types' => Expect::anyOf('phpstan'),
 		];
 	}
 

@@ -212,9 +212,21 @@ test('the version of PHP is taken with quotes or without them', function () {
 	Assert::exception(
 		fn() => $php("php: '8'\n"),
 		ConfigurationException::class,
-		"Configuration file %a%: Invalid PHP version '8'.",
+		"Configuration file %a%: The PHP version must be written as '8.2', '8' given.",
 	);
 	Assert::same('8.2', $php("php: 8.25\n")); // no such version, and the minor is one digit
+});
+
+
+test('the types of the code come from phpstan or from nowhere', function () {
+	$types = fn(string $file) => Loader::loadFile(FileMock::create($file, 'neon'))->types;
+	Assert::same('phpstan', $types("types: phpstan\n"));
+	Assert::null($types("paths: [src]\n"));
+	Assert::exception(
+		fn() => $types("types: psalm\n"),
+		ConfigurationException::class,
+		"Configuration file %a%: The item 'types' expects to be %a%",
+	);
 });
 
 

@@ -40,6 +40,8 @@ final readonly class ResolvedConfig
 		public string $nameResolution = 'uncertain',
 		/** the widest line the rules keep to; null for none */
 		public ?int $lineLength = null,
+		/** 'phpstan' when the types of the code come from the PHPStan of the project; null when the rules have none */
+		public ?string $types = null,
 	) {
 	}
 
@@ -85,6 +87,7 @@ final readonly class ResolvedConfig
 			'lineLength' => $this->lineLength,
 			'php' => $this->phpVersion,
 			'namespaces' => [array_keys($this->namespacedFunctions), array_keys($this->namespacedConstants), $this->nameResolution],
+			'types' => $this->types,
 		];
 	}
 

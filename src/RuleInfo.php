@@ -31,6 +31,8 @@ final readonly class RuleInfo
 		 * @var array<string, string>
 		 */
 		public array $requires = [],
+		/** the rule makes no sense without the types of the code (Analyses\Types), so it does not run where the configuration gives none */
+		public bool $requiresTypes = false,
 		/** the option a bare value written for the rule fills, for a rule that is one decision */
 		public ?string $decision = null,
 		/** every fix of the rule may change what the code does, because the code cannot tell a safe occurrence */

@@ -24,7 +24,7 @@ use const PHP_EOL;
 final class PresetResolver
 {
 	/** the settings a preset may not make, because they are decisions of the project and not of a standard */
-	private const ProjectDecisions = ['php', 'nameResolution', 'fixRisky', 'warnings'];
+	private const ProjectDecisions = ['php', 'nameResolution', 'fixRisky', 'warnings', 'types'];
 
 	/** the layer by which a certain resolution turns on the guard of its lists */
 	private const GuardLayer = 'nameResolution: certain';
@@ -73,7 +73,7 @@ final class PresetResolver
 		$layers = [];
 		$explicit = $fixRisky = $warningRules = $presets = $groups = [];
 		$symbols = [SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
-		$indent = $eol = $lineLength = $php = $resolution = null;
+		$indent = $eol = $lineLength = $php = $resolution = $types = null;
 		foreach ($this->collectLayers(self::listProfiles($config, $overrides, $commandLine)) as [$source, $profile, $isPreset]) {
 			try {
 				if ($isPreset) {
@@ -84,6 +84,7 @@ final class PresetResolver
 				$eol = $profile->eol ?? $eol;
 				$lineLength = $profile->lineLength ?? $lineLength;
 				$php = $profile->php ?? $php;
+				$types = $profile->types ?? $types;
 				// a resolution called certain rests on lists that must stay complete, so it turns on their guard below the
 				// rules of the same profile, which may still turn it off
 				if ($profile->nameResolution !== null) {
@@ -159,6 +160,7 @@ final class PresetResolver
 				$class,
 				$ruleLayers,
 				$phpVersion,
+				types: $types !== null,
 				explicit: isset($explicit[$class]),
 				kept: $kept === null || isset($kept[$class]),
 				fixRisky: isset($fixRisky[$class]),
@@ -199,6 +201,7 @@ final class PresetResolver
 			namespacedConstants: $bySource($symbols[SymbolKind::Constant->name]),
 			nameResolution: $resolution ?? 'uncertain',
 			lineLength: $lineLength ?: null,
+			types: $types,
 		);
 	}
 
@@ -486,6 +489,7 @@ final class PresetResolver
 	/**
 	 * @param  class-string<Rule>  $class
 	 * @param  list<array{string, mixed}>  $layers
+	 * @param  bool  $types  whether the configuration gives the types of the code
 	 * @param  bool  $explicit  whether a layer other than a preset mentions the rule
 	 * @param  bool  $kept  whether `only` keeps the rule, or the run is not narrowed
 	 * @param  bool  $fixRisky  whether the project accepts its fixes that may change what the code does
@@ -496,6 +500,7 @@ final class PresetResolver
 		string $class,
 		array $layers,
 		string $phpVersion,
+		bool $types,
 		bool $explicit,
 		bool $kept,
 		bool $fixRisky,
@@ -506,9 +511,16 @@ final class PresetResolver
 		$last = $layers[count($layers) - 1][1];
 		$minPhpVersion = $info->getMinPhpVersion();
 		$tooNew = $minPhpVersion !== null && version_compare($phpVersion, $minPhpVersion, '<');
+		$untyped = $info->requiresTypes && !$types;
+		// a preset may name such a rule whatever the project has; a project naming it asked for what it cannot get
+		if ($untyped && $last !== false && $explicit) {
+			throw new ConfigurationException("Rule $info->name needs the types of the code: set 'types: phpstan' in the configuration, with phpstan/phpstan installed in the project.");
+		}
+
 		$inactive = match (true) {
 			$last === false => 'turned off by ' . $layers[count($layers) - 1][0],
 			$tooNew => "it needs PHP $minPhpVersion and the target is $phpVersion",
+			$untyped => 'it needs the types of the code and the configuration sets no types',
 			!$kept => 'the run is narrowed to other rules',
 			default => null,
 		};

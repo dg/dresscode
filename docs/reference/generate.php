@@ -163,6 +163,10 @@ foreach ($rules as $name => $class) {
 		$facts[] = "Needs PHP $minPhpVersion";
 	}
 
+	if ($info->requiresTypes) {
+		$facts[] = 'Needs the types of the code, so it runs only with `types: phpstan`';
+	}
+
 	if ($info->modifiesComments) {
 		$facts[] = 'Modifies comments';
 	}
