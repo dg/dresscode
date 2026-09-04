@@ -12,23 +12,28 @@ use PhpSyntax\Nodes\FileNode;
 
 
 /**
- * Creates analyses on demand and keeps them per file until the file mutates. An analysis is any class that can
- * be built from the file, or from nothing; a rule asks for one through RuleContext::getAnalysis(). What the
- * namespaces of the project declare outside the file is one of them, and the resolver of names is built with it.
+ * Creates analyses on demand and keeps them per file until the file mutates, or until the pass ends for
+ * a PassAnalysis. An analysis is any class that can be built from the file (and its path), or from nothing;
+ * a rule asks for one through RuleContext::getAnalysis(). What the namespaces of the project declare outside
+ * the file is one of them, and the resolver of names is built with it.
  * @internal
  */
 final class Registry
 {
-	/** @var array<class-string, \Closure(FileNode): object> */
+	/** @var array<class-string, \Closure(FileNode, string): object> */
 	private array $factories = [];
 
 	/** @var \WeakMap<FileNode, array{int, array<class-string, object>}>  revision and analyses of the file */
 	private \WeakMap $cache;
 
+	/** @var \WeakMap<FileNode, array<class-string, object>>  the analyses of the pass, kept over its mutations */
+	private \WeakMap $passCache;
+
 
 	public function __construct(NamespacedSymbols $namespacedSymbols = new NamespacedSymbols)
 	{
 		$this->cache = new \WeakMap;
+		$this->passCache = new \WeakMap;
 		$this->factories[NamespacedSymbols::class] = fn() => $namespacedSymbols;
 		$this->factories[NameResolver::class] = fn(FileNode $file) => new NameResolver($file, $namespacedSymbols);
 	}
@@ -38,7 +43,7 @@ final class Registry
 	 * Registers an analysis; without a factory it is created as new $class($file), or new $class when
 	 * its constructor takes no parameter.
 	 * @param  class-string  $class
-	 * @param  ?\Closure(FileNode): object  $factory
+	 * @param  ?\Closure(FileNode, string): object  $factory  given the file and its path
 	 */
 	public function register(string $class, ?\Closure $factory = null): void
 	{
@@ -52,23 +57,38 @@ final class Registry
 	 * @param  class-string<T>  $class
 	 * @return T
 	 */
-	public function get(FileNode $file, string $class): object
+	public function get(FileNode $file, string $class, string $path = ''): object
 	{
-		[$revision, $analyses] = $this->cache[$file] ?? [null, []];
-		if ($revision !== $file->revision) {
-			$analyses = [];
-		}
-
 		if (!isset($this->factories[$class])) {
 			$this->register($class);
 		}
 
-		$analysis = $analyses[$class] ??= $this->factories[$class]($file);
-		$this->cache[$file] = [$file->revision, $analyses];
+		if (is_subclass_of($class, PassAnalysis::class)) {
+			$analyses = $this->passCache[$file] ?? [];
+			$analysis = $analyses[$class] ??= $this->factories[$class]($file, $path);
+			$this->passCache[$file] = $analyses;
+
+		} else {
+			[$revision, $analyses] = $this->cache[$file] ?? [null, []];
+			if ($revision !== $file->revision) {
+				$analyses = [];
+			}
+
+			$analysis = $analyses[$class] ??= $this->factories[$class]($file, $path);
+			$this->cache[$file] = [$file->revision, $analyses];
+		}
+
 		if (!$analysis instanceof $class) {
 			throw new \LogicException("The factory of $class returned " . $analysis::class . '.');
 		}
 
 		return $analysis;
+	}
+
+
+	/** A pass over the file begins: what the previous one computed for the whole pass is dropped. */
+	public function beginPass(FileNode $file): void
+	{
+		unset($this->passCache[$file]);
 	}
 }
