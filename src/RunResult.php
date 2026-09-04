@@ -14,6 +14,8 @@ final readonly class RunResult
 		/** @var list<FileResult>  without their code and output, which a reporter sees in reportFile() */
 		public array $files,
 		public bool $fix,
+		/** violations the baseline silenced */
+		public int $baselined = 0,
 		/** @var list<string> about the run as a whole */
 		public array $warnings = [],
 		/** how many warnings the run tolerates before the exit code says so; null for any number */

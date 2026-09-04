@@ -3,10 +3,11 @@
 namespace DressCode;
 
 use DressCode\Config\FileProcessors;
+use DressCode\Engine\Baseline;
 use DressCode\Engine\FileProcessor;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Finder;
-use function count, strlen;
+use function count, sprintf, strlen;
 
 
 /**
@@ -27,6 +28,10 @@ final class Runner
 		private readonly array $fileExtensions = ['php'],
 		/** @var ?\Closure(string $content, string $path): bool files left out by their content */
 		private readonly ?\Closure $skipWhen = null,
+		/** violations left unreported */
+		private readonly ?Baseline $baseline = null,
+		/** the run is narrowed to some of the rules, so it says nothing about the baseline entries of the others */
+		private readonly bool $narrowed = false,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
 		$this->processors = $processors instanceof FileProcessor ? FileProcessors::of($processors) : $processors;
@@ -63,11 +68,18 @@ final class Runner
 		}
 
 		$ordered = [];
-		$report = function () use (&$ready, &$ordered, $order, $reporter): void {
+		$scope = []; // the files the run can say something about to the baseline, and by which rules
+		$report = function () use (&$ready, &$ordered, &$scope, $order, $reporter): void {
 			for ($next = count($ordered); isset($order[$next], $ready[$order[$next]]); $next++) {
 				$path = $order[$next];
 				$result = $ready[$path];
 				unset($ready[$path]);
+				if ($this->baseline !== null && $result->error === null && $result->failure === null) {
+					$scope[$path] = $this->narrowed
+						? array_map(fn(Rule $rule) => RuleInfo::of($rule)->name, $this->processors->get($path)->getRules())
+						: null;
+				}
+
 				$reporter->reportFile($result);
 				$ordered[] = $result->withoutTexts();
 			}
@@ -83,7 +95,19 @@ final class Runner
 			$onProgress(count($files), []); // the whole scope is done, whatever was skipped along the way
 		}
 
-		$result = new RunResult($ordered, $fix, maxWarnings: $maxWarnings);
+		$unused = $this->baseline?->countUnused($scope) ?? 0;
+		$result = new RunResult(
+			$ordered,
+			$fix,
+			baselined: $this->baseline?->countMatched() ?? 0,
+			warnings: $unused ? [sprintf(
+				'%d %s of the baseline no longer %s a violation; regenerate it',
+				$unused,
+				$unused === 1 ? 'entry' : 'entries',
+				$unused === 1 ? 'matches' : 'match',
+			)] : [],
+			maxWarnings: $maxWarnings,
+		);
 		$reporter->finish($result);
 		return $result;
 	}
@@ -159,7 +183,9 @@ final class Runner
 	public function processFile(string $path, string $code): FileResult
 	{
 		$path = $this->relativize($path);
-		return $this->processors->get($path)->process($path, $code);
+		$result = $this->processors->get($path)->process($path, $code);
+		$this->baseline?->markUsed($result->path, $result->baselined);
+		return $result;
 	}
 
 

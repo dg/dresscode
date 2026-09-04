@@ -31,5 +31,6 @@ overrides:
 paths: [src, tests]
 excludePaths: [build, docs/generated]
 fileExtensions: [php, phpt]
+baseline: dresscode-baseline.neon
 analyses:
 	- Acme\DressCode\Analyses\FunctionCalls

@@ -63,6 +63,8 @@ final readonly class Config extends Profile
 		/** @var list<string>  the extensions of the files to check, without a dot */
 		public array $fileExtensions = ['php'],
 		?callable $skipWhen = null,
+		/** .neon or .php file of violations left unreported, relative to the root; `check --generate-baseline` writes it */
+		public ?string $baseline = null,
 		array $analyses = [],
 	) {
 		parent::__construct($presets, $rules, $indent, $eol, $lineLength, $php, $namespaces, $nameResolution, $fixRisky, $warnings);

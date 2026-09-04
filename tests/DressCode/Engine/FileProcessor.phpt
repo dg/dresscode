@@ -4,7 +4,9 @@ use DressCode\Analyses;
 use DressCode\Config;
 use DressCode\Config\PresetResolver;
 use DressCode\ConvergenceException;
+use DressCode\Engine\Baseline;
 use DressCode\Engine\FileProcessor;
+use DressCode\FileResult;
 use DressCode\NodeRule;
 use DressCode\Rule;
 use DressCode\RuleContext;
@@ -91,6 +93,14 @@ function processor(array $rules, bool $detectEol = true): FileProcessor
 }
 
 
+/** @param list<Rule> $rules */
+function processWithBaseline(array $rules, string $code, ?Baseline $baseline): FileResult
+{
+	return new FileProcessor($rules, new Analyses\Registry, fn(string $name) => [$name], Config::DefaultPhpVersion, baseline: $baseline)
+		->process('a.php', $code);
+}
+
+
 test('a clean file passes through unchanged', function () {
 	$result = processor([new ProcessorRename])->process('a.php', "<?php\n\$x;\n");
 	Assert::same("<?php\n\$x;\n", $result->output);
@@ -116,6 +126,39 @@ test('a claim a comment keeps from being fixed remains, whatever the rest of the
 	Assert::same("<?php\nif (\$a) {\n\t\$b;\n}\n// why\nelseif (\$c) {\n\t\$d;\n}\nif (\$e) {\n\t\$f;\n}\n", $result->output);
 	Assert::count(2, $result->violations);
 	Assert::same(['No line break before the elseif keyword'], array_map(fn($v) => $v->message, $result->remaining));
+});
+
+
+test('a violation the baseline knows is not recognized in a later round on a line a fix rewrote, and remains', function () {
+	$rules = fn() => [new ProcessorRename, PresetResolver::createRule(DressCode\Rules\Variables\NoGlobalKeywordRule::class)];
+	$code = "<?php\nglobal \$a;\n";
+	$global = array_values(array_filter(
+		processWithBaseline($rules(), $code, null)->violations,
+		fn($v) => $v->ruleName === 'dresscode/no-global-keyword',
+	));
+	$baseline = Baseline::fromResults([new FileResult('a.php', $code, $code, $global)]);
+
+	$result = processWithBaseline($rules(), $code, $baseline);
+	Assert::same("<?php\nglobal \$b;\n", $result->output);
+	Assert::same(['test/rename'], array_map(fn($v) => $v->ruleName, $result->violations));
+	Assert::count(1, $result->baselined);
+	// what the fix left is what the next check reports
+	Assert::same(['dresscode/no-global-keyword'], array_map(fn($v) => $v->ruleName, $result->remaining));
+	$next = processWithBaseline($rules(), (string) $result->output, $baseline);
+	Assert::same(array_map(fn($v) => $v->fingerprint, $result->remaining), array_map(fn($v) => $v->fingerprint, $next->violations));
+});
+
+
+test('a violation the baseline knows is not recorded, and a rule that can fix it fixes it', function () {
+	$rules = fn() => [PresetResolver::createRule(DressCode\Rules\Literals\StringQuotesRule::class)];
+	$code = "<?php\n\$a = \"x\";\n";
+	$baseline = Baseline::fromResults([processWithBaseline($rules(), $code, null)]);
+
+	$result = processWithBaseline($rules(), $code, $baseline);
+	Assert::same("<?php\n\$a = 'x';\n", $result->output);
+	Assert::same([], $result->violations);
+	Assert::count(1, $result->baselined);
+	Assert::same([], $result->remaining);
 });
 
 

@@ -327,3 +327,87 @@ test('processFile processes a text for the given path and writes nothing', funct
 	Assert::true($runner->processFile("$root/src/x.php", "<?php\n\$a;\n")->isChanged());
 	Assert::same('src/x.php', $runner->processFile("$root/src/x.php", '<?php')->path);
 });
+
+
+test('the baseline keeps what it knows from being reported, and the run counts it', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$x;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");
+	$processor = fn(?DressCode\Engine\Baseline $baseline) => new FileProcessor(
+		[new EngineUnfixable],
+		new Analyses\Registry,
+		fn(string $name) => [$name],
+		Config::DefaultPhpVersion,
+		baseline: $baseline,
+	);
+	$baseline = DressCode\Engine\Baseline::fromResults(new Runner($processor(null), $root)->run(['src/a.php'], false, new RecordingReporter)->files);
+	Assert::same(1, $baseline->count());
+
+	$run = new Runner($processor($baseline), $root, baseline: $baseline)->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	Assert::same(1, $run->countViolations()); // the one of src/b.php, which the baseline does not know
+	Assert::same(1, $run->baselined);
+	Assert::same([], $run->files[0]->violations);
+	Assert::same([], $run->warnings);
+});
+
+
+test('a violation the baseline knows is fixed by a rule that can fix it, and its entry turns stale', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$a;\n");
+	$processor = fn(?DressCode\Engine\Baseline $baseline) => new FileProcessor(
+		[new EngineRename],
+		new Analyses\Registry,
+		fn(string $name) => [$name],
+		Config::DefaultPhpVersion,
+		baseline: $baseline,
+	);
+	$generated = new Runner($processor(null), $root)->run(['src/a.php'], false, new RecordingReporter)->files;
+	// every run loads the baseline anew, and an instance remembers the entries its runs matched
+	$runner = function () use ($processor, $root, $generated): Runner {
+		$baseline = DressCode\Engine\Baseline::fromResults($generated);
+		return new Runner($processor($baseline), $root, baseline: $baseline);
+	};
+
+	// check reports only what the baseline does not know, and fix reports the same
+	$fingerprints = fn(RunResult $run) => array_map(
+		fn(FileResult $file) => array_map(fn($violation) => $violation->fingerprint, $file->violations),
+		$run->files,
+	);
+	$check = $runner()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	Assert::same(1, $check->countViolations());
+	Assert::same(1, $check->baselined);
+	$fix = $runner()->run(['src/a.php', 'src/b.php'], true, new RecordingReporter);
+	Assert::same($fingerprints($check), $fingerprints($fix));
+	Assert::same(0, $fix->getExitCode());
+	Assert::same([], $fix->warnings); // the first round matched the entry
+
+	// and it fixes what the baseline knows too, which leaves the entry stale for the next run
+	Assert::same([true, true], array_map(fn(FileResult $file) => $file->written, $fix->files));
+	Assert::same("<?php\n\$b;\n", (string) file_get_contents("$root/src/a.php"));
+	$next = $runner()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	Assert::same(['1 entry of the baseline no longer matches a violation; regenerate it'], $next->warnings);
+});
+
+
+test('an entry of the baseline is stale only when its file was processed and its rule ran there', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$a;\n");
+	$processor = fn(bool $rename, ?DressCode\Engine\Baseline $baseline = null) => new FileProcessor(
+		$rename ? [new EngineRename] : [],
+		new Analyses\Registry,
+		fn(string $name) => [$name],
+		Config::DefaultPhpVersion,
+		baseline: $baseline,
+	);
+	$generated = new Runner($processor(true), $root)->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	$warnings = function (bool $rename, bool $narrowed, bool $both) use ($root, $processor, $generated): array {
+		$baseline = DressCode\Engine\Baseline::fromResults($generated->files);
+		return new Runner($processor($rename, $baseline), $root, baseline: $baseline, narrowed: $narrowed)
+			->run($both ? ['src/a.php', 'src/b.php'] : ['src/a.php'], false, new RecordingReporter)
+			->warnings;
+	};
+
+	Assert::same([], $warnings(rename: true, narrowed: false, both: false)); // the entry of b.php says nothing about a run over a.php
+	Assert::same([], $warnings(rename: false, narrowed: true, both: false)); // nor does one of a rule the run was narrowed away from
+	Assert::same(['1 entry of the baseline no longer matches a violation; regenerate it'], $warnings(rename: false, narrowed: false, both: false));
+	Assert::same(['2 entries of the baseline no longer match a violation; regenerate it'], $warnings(rename: false, narrowed: false, both: true));
+});
