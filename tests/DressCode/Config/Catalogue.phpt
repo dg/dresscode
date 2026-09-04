@@ -241,6 +241,7 @@ test('a path keeps to the sections of its registrant', function () {
 		ConfigurationException::class,
 		'Plugin section `path` is one letter off the key `paths` of the configuration, which a file would read as a typo of it; name the section after the plugin.',
 	);
+	Assert::exception(fn() => new Catalogue([], ['typeAnalysis' => []]), ConfigurationException::class);
 	Assert::noError(fn() => new Catalogue([], ['php' => []])); // the target version is a key under `targets`
 	Assert::noError(fn() => new Catalogue([], ['acme' => [GuardRule::class]])); // a fact is a key of the environment, whoever guards it
 });

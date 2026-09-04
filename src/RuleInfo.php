@@ -33,6 +33,8 @@ final readonly class RuleInfo
 		 * @var array<string, string>
 		 */
 		public array $requires = [],
+		/** the rule makes no sense without the types of the code, so it does not run where the configuration gives none */
+		public bool $typesRequired = false,
 		/**
 		 * the analyses the rule asks for, those the helpers it calls ask for among them, which a strict run holds it to
 		 * @var list<class-string>

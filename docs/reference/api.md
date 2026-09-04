@@ -135,8 +135,9 @@ final readonly class Config extends DressCode\Profile
 	public readonly list<string> $fileExtensions
 	public readonly ?string $baseline
 	public readonly ?string $cacheDir
+	public readonly ?string $typeAnalysis
 	public readonly ?string $ruleUrl
-	public function __construct(list<string|DressCode\Plugin> $use = [], array<int|class-string<DressCode\Rule>, class-string<DressCode\Rule>|Closure(): DressCode\Rule> $rules = [], array<string, string> $targets = [], array{functions?: list<string>, constants?: list<string>} $namespaces = [], ?string $nameResolution = null, list<string> $fixRisky = [], list<string> $warnOnly = [], array<string, string|list<string>> $suppressionComments = [], array $overrides = [], array $paths = [], list<string> $excludePaths = [], array $fileExtensions = ['php'], ?callable(string $content, string $path): bool $skipWhen = null, ?string $baseline = null, ?string $cacheDir = null, array<string|int, string|callable(PhpSyntax\Nodes\FileNode, string): object> $analyses = [], ?string $ruleUrl = null, array<string, mixed> $decisions = [])
+	public function __construct(list<string|DressCode\Plugin> $use = [], array<int|class-string<DressCode\Rule>, class-string<DressCode\Rule>|Closure(): DressCode\Rule> $rules = [], array<string, string> $targets = [], array{functions?: list<string>, constants?: list<string>} $namespaces = [], ?string $nameResolution = null, list<string> $fixRisky = [], list<string> $warnOnly = [], array<string, string|list<string>> $suppressionComments = [], array $overrides = [], array $paths = [], list<string> $excludePaths = [], array $fileExtensions = ['php'], ?callable(string $content, string $path): bool $skipWhen = null, ?string $baseline = null, ?string $cacheDir = null, array<string|int, string|callable(PhpSyntax\Nodes\FileNode, string): object> $analyses = [], ?string $typeAnalysis = null, ?string $ruleUrl = null, array<string, mixed> $decisions = [])
 	public function getRuleFactories(): array<class-string<DressCode\Rule>, Closure(): DressCode\Rule>
 ```
 
@@ -146,7 +147,7 @@ final readonly class Config extends DressCode\Profile
 final class Catalogue
 	public const Version = 3
 	public const CoreSections = ['file', 'indentation', 'naming', 'casing', 'qualification', 'imports', 'spacing', 'multiline', 'braces', 'blankLines', 'classes', 'types', 'functions', 'cleanup', 'controlFlow', 'expressions', 'literals', 'comments', 'phpdoc', 'correctness', 'upgrading']
-	public const ReservedKeys = ['use', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths', 'fileExtensions', 'skipWhen', 'baseline', 'cacheDir', 'rules', 'analyses', 'fixRisky', 'warnOnly', 'suppressionComments', 'overrides']
+	public const ReservedKeys = ['use', 'typeAnalysis', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths', 'fileExtensions', 'skipWhen', 'baseline', 'cacheDir', 'rules', 'analyses', 'fixRisky', 'warnOnly', 'suppressionComments', 'overrides']
 	public const ProjectSection = 'project'
 	public function __construct(list<class-string<DressCode\Rule>> $coreRules, array<string, list<class-string<DressCode\Rule>>> $pluginRules = [], list<class-string<DressCode\Rule>> $projectRules = [], list<DressCode\Decision> $coreDecisions = [], array<string, list<DressCode\Decision>> $pluginDecisions = [], array<string, list<string>> $pluginDependencies = [])
 	public static function fromRules(list<class-string<DressCode\Rule>> $rules): DressCode\Config\Catalogue
@@ -514,10 +515,11 @@ final readonly class RuleInfo
 	public readonly DressCode\Stage $stage
 	public readonly bool $modifiesComments
 	public readonly array<string, string> $requires
+	public readonly bool $typesRequired
 	public readonly list<class-string> $analyses
 	public readonly list<string> $decisions
 	public readonly list<string> $reads
-	public function __construct(DressCode\Stage $stage, bool $modifiesComments = false, array $requires = [], array $analyses = [], array $decisions = [], array $reads = [])
+	public function __construct(DressCode\Stage $stage, bool $modifiesComments = false, array $requires = [], bool $typesRequired = false, array $analyses = [], array $decisions = [], array $reads = [])
 	public static function of(DressCode\Rule|class-string<DressCode\Rule> $rule): DressCode\RuleInfo
 	public function getMinPhpVersion(): ?string
 ```

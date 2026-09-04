@@ -320,6 +320,7 @@ final class RuleTester
 		$resolver = new DecisionResolver(
 			$catalogue,
 			phpTarget: $phpVersion ?? self::readPhpVersion($code) ?? self::getDefaultPhpVersion($class),
+			typesAnalyzed: true,
 			certainNames: self::readNamespacedSymbols($code)->complete,
 		);
 		try {
