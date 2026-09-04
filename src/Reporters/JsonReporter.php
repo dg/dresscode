@@ -76,6 +76,7 @@ final class JsonReporter implements Reporter
 				'changedFiles' => $result->countChangedFiles(),
 				'syntaxErrors' => $result->countSyntaxErrors(),
 				'failures' => $result->countFailures(),
+				'baselined' => $result->baselined,
 			],
 			'warnings' => $result->warnings,
 		];

@@ -252,6 +252,7 @@ final class ConsoleReporter implements Reporter
 			!$this->fix && $left !== $result->countViolations() ? 'a fix leaves ' . ($left ?: 'none') : null,
 			$result->countSyntaxErrors() ? self::plural($result->countSyntaxErrors(), 'file') . ' with syntax errors' : null,
 			$failures ? self::plural($failures, 'failed file') : null,
+			$result->baselined ? self::plural($result->baselined, 'violation') . ' in the baseline' : null,
 			$result->countRiskyDeferred()
 				? $result->countRiskyDeferred() . ' of them risky (' . implode(', ', array_map(self::formatRule(...), $result->listRiskyDeferredRules()))
 					. '), fixed with --fix-risky or once their rules are named in fixRisky'

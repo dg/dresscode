@@ -369,10 +369,11 @@ function run(
 	bool $strict = true,
 	bool $fixRisky = false,
 	array $fixRiskyRules = [],
+	?DressCode\Engine\Baseline $baseline = null,
 ): array
 {
 	$file = (new Parser)->parse($code);
-	$runner = new PassRunner($rules, new Analyses\Registry, fn(string $name) => [$name], strict: $strict, fixRisky: $fixRisky, fixRiskyRules: $fixRiskyRules);
+	$runner = new PassRunner($rules, new Analyses\Registry, fn(string $name) => [$name], strict: $strict, baseline: $baseline, fixRisky: $fixRisky, fixRiskyRules: $fixRiskyRules);
 	$result = $runner->run($file, $code, 'test.php', new Style, Config::DefaultPhpVersion);
 	return [$file, $result];
 }
@@ -500,6 +501,19 @@ test('suppression stops the fix', function () {
 	[$file, $result] = run("<?php\n\$a; // dresscode:ignore test/rename\n\$a;", [new RenameA]);
 	Assert::same("<?php\n\$a; // dresscode:ignore test/rename\n\$b;", (string) $file);
 	Assert::count(1, $result->violations);
+});
+
+
+test('a rule may fix a violation the baseline knows, and the contract holds', function () {
+	$code = "<?php\n\$a;\n\$a;\n";
+	[, $result] = run($code, [new RenameA]);
+	$baseline = DressCode\Engine\Baseline::fromResults([new DressCode\FileResult('test.php', $code, $code, [$result->violations[0]])]);
+
+	[$file, $result] = run($code, [new RenameA], baseline: $baseline);
+	Assert::same("<?php\n\$b;\n\$b;\n", (string) $file);
+	Assert::same([3], array_map(fn($v) => $v->line, $result->violations));
+	Assert::count(1, $result->baselined);
+	Assert::same([], $result->warnings);
 });
 
 
