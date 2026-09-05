@@ -128,6 +128,7 @@ final class RuleRegistry
 		Rules\Expressions\StrictComparisonRule::class,
 		Rules\Expressions\SymbolicLogicalOperatorsRule::class,
 		Rules\Expressions\TernaryOperatorSpacingRule::class,
+		Rules\Expressions\MultiLineTernaryRule::class,
 		Rules\Expressions\ShortTernaryOperatorRule::class,
 		Rules\Expressions\UnaryOperatorSpacingRule::class,
 		Rules\Expressions\UselessTernaryOperatorRule::class,

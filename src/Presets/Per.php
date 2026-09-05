@@ -34,6 +34,7 @@ final class Per implements Preset
 
 			// 6. Operators
 			Rules\Expressions\ConcatSpacingRule::class => true,
+			Rules\Expressions\MultiLineTernaryRule::class => true,
 
 			// 7.1 Short closures
 			Rules\Whitespace\SemicolonSpacingRule::class => ['after' => null],
