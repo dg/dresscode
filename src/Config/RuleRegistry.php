@@ -146,6 +146,7 @@ final class RuleRegistry
 		Rules\PhpDoc\PhpDocTrimRule::class,
 		Rules\PhpDoc\PropertyPhpDocRequiredRule::class,
 		Rules\PhpDoc\PropertyVarAnnotationRule::class,
+		Rules\PhpDoc\PromotedPropertyAnnotationPositionRule::class,
 		Rules\PhpDoc\NoEmptyVarAnnotationRule::class,
 		Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
 		Rules\PhpDoc\UselessFunctionPhpDocRule::class,
