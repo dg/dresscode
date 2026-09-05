@@ -45,6 +45,9 @@ final class Per implements Preset
 			Rules\Literals\NowdocWithoutInterpolationRule::class => true,
 			Rules\Literals\HeredocIndentationRule::class => true,
 
+			// 11. Arrays
+			Rules\Arrays\MultiLineArrayRule::class => true,
+
 			// 12. Attributes
 			Rules\Whitespace\AttributeSpacingRule::class => true,
 			Rules\Expressions\UselessAttributeParenthesesRule::class => true,

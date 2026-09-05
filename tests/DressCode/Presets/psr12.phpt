@@ -34,6 +34,7 @@ $perOnly = [
 	'dresscode/single-member-per-line',
 	'dresscode/nowdoc-without-interpolation',
 	'dresscode/heredoc-indentation',
+	'dresscode/multi-line-array',
 	'dresscode/attribute-spacing',
 	'dresscode/useless-attribute-parentheses',
 	'dresscode/attribute-position',
