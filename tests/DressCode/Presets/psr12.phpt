@@ -29,6 +29,7 @@ $names = fn(string $preset) => array_map(
 $perOnly = [
 	'dresscode/trailing-comma',
 	'dresscode/named-argument-spacing',
+	'dresscode/multi-line-chain',
 	'dresscode/concat-spacing',
 	'dresscode/semicolon-spacing',
 	'dresscode/single-member-per-line',

@@ -1,0 +1,22 @@
+<?php
+$a->b()->c();
+$a
+	->b()
+	->c();
+$a
+	->b()
+	->c();
+$this
+	->repository
+	->find(1)
+	->load();
+Foo::create()
+	->run();
+$x = $a
+	->b(function () {
+		return 1;
+	})
+	->c();
+$a
+	?->b()
+	->c;

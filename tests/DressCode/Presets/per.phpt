@@ -71,6 +71,7 @@ Assert::same(
 		'dresscode/short-array-syntax',
 		'dresscode/trailing-comma',
 		'dresscode/named-argument-spacing',
+		'dresscode/multi-line-chain',
 		'dresscode/concat-spacing',
 		'dresscode/semicolon-spacing',
 		'dresscode/single-member-per-line',

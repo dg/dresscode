@@ -1,0 +1,11 @@
+<?php
+// {"leadingLinksOnFirstLine": true}
+$a->b()->c();
+$a->b()
+	->c();
+$a
+	->b()->c();
+$this->repository
+	->find(1)->load();
+Foo::create()
+	->run();

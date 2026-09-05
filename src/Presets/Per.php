@@ -22,11 +22,12 @@ final class Per implements Preset
 			// 2.6 Trailing commas
 			Rules\Arrays\TrailingCommaRule::class => ['multiLine' => ['arrays', 'arguments', 'parameters', 'match', 'closureUses']],
 
-			// 4. Classes, properties and methods: empty bodies, anonymous classes, named arguments
+			// 4. Classes, properties and methods: empty bodies, anonymous classes, named arguments, chains
 			Rules\Classes\ClassDefinitionSpacingRule::class => ['spaceBeforeParenthesis' => false],
 			Rules\Whitespace\BracesPositionRule::class => ['allowSingleLineAnonymousFunctions' => false, 'emptyBodies' => 'sameLine'],
 			Rules\Expressions\NewArgumentParenthesesRule::class => ['namedClasses' => 'required', 'anonymousClasses' => 'forbidden'],
 			Rules\Functions\NamedArgumentSpacingRule::class => true,
+			Rules\Expressions\MultiLineChainRule::class => true,
 
 			// 5.6 The types of a multi-catch hug their bar, as every compound type does
 			Rules\Types\TypeHintSpacingRule::class => true,
