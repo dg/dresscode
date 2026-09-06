@@ -1,0 +1,24 @@
+presets:
+	- nette
+
+rules:
+	strict-comparison: true
+	final-internal-class: true
+	ternary-for-simple-branch: true
+	no-direct-invoke-call: true
+	no-kind-in-class-name: true
+	global-imports: {functions: optimized}
+
+paths:
+	- src
+	- tests
+	- bin/dresscode
+	- docs/reference/generate.php
+
+excludePaths:
+	- fixtures
+	- corpus
+
+fileExtensions:
+	- php
+	- phpt
