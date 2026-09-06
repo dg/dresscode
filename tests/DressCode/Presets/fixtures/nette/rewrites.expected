@@ -1,0 +1,21 @@
+<?php declare(strict_types=1);
+
+namespace App;
+
+
+final class Rewrites
+{
+	public function check(mixed $value, array $items): string
+	{
+		if ($value !== null && $items[0] === null) {
+			return (string) $value;
+		}
+
+		switch (true) {
+			case reset($items) !== null:
+				return implode(',', ...[$items]);
+			default:
+				return (string) (int) $value;
+		}
+	}
+}

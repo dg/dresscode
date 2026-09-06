@@ -6,6 +6,7 @@ use DressCode\NodeRule;
 use DressCode\Preset;
 use DressCode\PresetContext;
 use DressCode\PresetInfo;
+use DressCode\Presets\Nette;
 use DressCode\Presets\Per;
 use DressCode\Presets\Psr12;
 use DressCode\RuleInfo;
@@ -104,7 +105,10 @@ test('presets', function () {
 	Assert::same(Per::class, $registry->resolvePreset('per'));
 	Assert::same(TestPreset::class, $registry->resolvePreset(TestPreset::class));
 	Assert::same(TestPreset::class, $registry->resolvePreset('test/preset'));
-	Assert::same(['dresscode/per' => Per::class, 'dresscode/psr12' => Psr12::class, 'test/preset' => TestPreset::class], $registry->getPresets());
+	Assert::same(
+		['dresscode/per' => Per::class, 'dresscode/psr12' => Psr12::class, 'dresscode/nette' => Nette::class, 'test/preset' => TestPreset::class],
+		$registry->getPresets(),
+	);
 	Assert::exception(fn() => $registry->resolvePreset('none'), ConfigurationException::class, "Unknown preset 'none'.");
 	Assert::exception(fn() => $registry->resolvePreset(stdClass::class), ConfigurationException::class, 'Class stdClass is not a preset.');
 });
