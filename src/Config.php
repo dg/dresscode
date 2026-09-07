@@ -65,6 +65,7 @@ final readonly class Config extends Profile
 		?callable $skipWhen = null,
 		/** .neon or .php file of violations left unreported, relative to the root; `check --generate-baseline` writes it */
 		public ?string $baseline = null,
+		public ?string $cacheDir = null,
 		array $analyses = [],
 	) {
 		parent::__construct($presets, $rules, $indent, $eol, $lineLength, $php, $namespaces, $nameResolution, $fixRisky, $warnings);

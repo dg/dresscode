@@ -177,6 +177,7 @@ final class Application
 				valueName: 'n',
 			);
 			$command->addFlag('--fix-risky', 'also make the fixes that may change what the code does, not only those of the rules the configuration names in fixRisky; they are reported either way');
+			$command->addFlag('--no-cache', 'process every file, even one whose content is known to be clean');
 			$command->addFlag('--strict-rules', 'a rule breaking its contract is an error, not a warning');
 		}
 
@@ -209,6 +210,8 @@ final class Application
 			$commandLine,
 			$only,
 			strict: (bool) $args['--strict-rules'],
+			cache: !$args['--no-cache'],
+			configFile: $configFile,
 			fixRisky: (bool) $args['--fix-risky'],
 		);
 		foreach ($factory->getWarnings() as $warning) {
@@ -383,7 +386,7 @@ final class Application
 	{
 		$name = $config->baseline ?? self::defaultBaselineName($configFile);
 		$file = RunnerFactory::toAbsolutePath($name, $root);
-		$runner = $factory->createRunner($config, $root, $commandLine, baseline: false);
+		$runner = $factory->createRunner($config, $root, $commandLine, cache: false, baseline: false);
 		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter);
 		$changed = $failed = [];
 		foreach ($run->files as $result) {
@@ -435,7 +438,7 @@ final class Application
 	{
 		$factory = new RunnerFactory;
 		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
-		$runner = $factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
+		$runner = $factory->createRunner($config, $root, $commandLine, self::parseOnly($args), cache: false);
 		$file = $args['--file'];
 		$resolved = is_string($file)
 			? $factory->resolveConfigFor($runner->findOverridesFor($file))
@@ -466,7 +469,7 @@ final class Application
 		$name = $args['rule'];
 		$factory = new RunnerFactory;
 		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
-		$factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
+		$factory->createRunner($config, $root, $commandLine, self::parseOnly($args), cache: false);
 		$resolved = $factory->getResolvedConfig();
 		$fixtures = __DIR__ . '/../../tests/DressCode/Rules/fixtures';
 		$rules = $resolved->getActiveRules();
