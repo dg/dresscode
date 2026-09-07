@@ -20,6 +20,30 @@ final class IndentationPlan
 	public function isLineInPlace(PhpSyntax\Token $token): bool
 ```
 
+## `DressCode\Analyses\Member`
+
+```php
+final readonly class Member
+	public readonly DressCode\Analyses\MemberKind $kind
+	public readonly string $name
+	public readonly string $declaringClass
+	public function __construct(DressCode\Analyses\MemberKind $kind, string $name, string $declaringClass)
+	public function describe(): string
+```
+
+## `DressCode\Analyses\MemberKind`
+
+```php
+enum MemberKind
+	case Constant
+	case Method
+	case StaticMethod
+	case Property
+	case StaticProperty
+	case Constructor
+	public function describe(string $class, string $name): string
+```
+
 ## `DressCode\Analyses\Parameter`
 
 ```php
@@ -76,6 +100,8 @@ final class PhpSymbols
 final class Types implements DressCode\Analyses\PassAnalysis
 	public function isOfType(PhpSyntax\Nodes\ExpressionNode $expression, string $type, ?PhpSyntax\Nodes\ExpressionNode $at = null): DressCode\Tristate
 	public function findClasses(PhpSyntax\Nodes\ExpressionNode $expression): array
+	public function findMember(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\Member
+	public function findClassName(string $name): ?string
 ```
 
 ## `DressCode\Claim`
