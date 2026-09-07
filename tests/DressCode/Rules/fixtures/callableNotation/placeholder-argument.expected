@@ -1,4 +1,5 @@
 <?php
+// types off
 // php 8.6
 $a = Closure::fromCallable(?);
 $b = \trim(...);

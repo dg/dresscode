@@ -1,12 +1,21 @@
 <?php declare(strict_types=1);
 
-// A worker of WorkerPool behaving as the first argument says: php fake-worker.php <split|stall|other-path|silent> --worker <address>
+// A worker of WorkerPool behaving as the first argument says: php fake-worker.php <split|stall|other-path|silent|log=<file>> --worker <address>
+// log=<file> writes into the file when it starts and when it connects, a while later, and then answers as split does;
 // silent never connects
 
 $mode = $argv[1];
 if ($mode === 'silent') {
 	sleep(30);
 	exit;
+}
+
+if (str_starts_with($mode, 'log=')) {
+	$log = substr($mode, 4);
+	file_put_contents($log, "start\n", FILE_APPEND | LOCK_EX);
+	usleep(300_000);
+	file_put_contents($log, "connect\n", FILE_APPEND | LOCK_EX);
+	$mode = 'split';
 }
 
 $socket = stream_socket_client('tcp://' . $argv[3], $errno, $error, timeout: 10);

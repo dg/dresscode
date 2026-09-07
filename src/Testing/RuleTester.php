@@ -29,6 +29,9 @@ final class RuleTester
 	/** the widest line a fixture is checked with unless its header says another */
 	private const DefaultLineLength = 120;
 
+	/** @var array<string, Analyses\PhpStan>  by the stubs, the file of the code and the version of PHP */
+	private static array $phpstan = [];
+
 
 	/**
 	 * Runs every *.code fixture in the directory: the output must equal <name>.expected (the input when
@@ -39,7 +42,10 @@ final class RuleTester
 	 * written for `// php 8.4`, the widest line `// lineLength 80` (120 without it), that the run allows a fix that
 	 * changes what the code does `// risky`, and what the namespaces declare outside it
 	 * `// namespacedFunctions Acme\helper, Acme\Text\{format}`, `// namespacedConstants Acme\LIMIT` and
-	 * `// nameResolution certain`. Returns the count.
+	 * `// nameResolution certain`. A rule that needs the types of the code
+	 * gets them from the PHPStan of this project over the fixture and the declarations in the `stubs` directory
+	 * beside it, and so does one that only does better with them where that directory is there, unless the fixture
+	 * says `// types off`. Returns the count.
 	 * @param class-string<Rule>|\Closure(array<string, mixed>): Rule $rule
 	 * @param array<string|int, string|callable(FileNode, string): object> $analyses  the analyses of a plugin, as
 	 *   `Config::$analyses` takes them
@@ -93,6 +99,7 @@ final class RuleTester
 				fixRisky: self::readRisky($code),
 				namespacedSymbols: self::readNamespacedSymbols($code),
 				style: self::readStyle($code),
+				stubs: self::findStubs($file, $code, $instance),
 				analyses: $analyses,
 				values: $values,
 			);
@@ -155,6 +162,8 @@ final class RuleTester
 	 * @param ?string $expected  the output; null when the rule must leave the code as it is
 	 * @param ?list<string> $violations  "line: message" each, and the line of the risk after a risky one; null to skip the check
 	 * @param NamespacedSymbols $namespacedSymbols  what the namespaces declare outside the code
+	 * @param ?string $stubs  directory of the declarations the types of the code are computed with, which a rule that
+	 *   does not need them gets too
 	 * @param array<string|int, string|callable(FileNode, string): object> $analyses  the analyses of a plugin, as
 	 *   `Config::$analyses` takes them
 	 * @param ?Style $style  the style the code is processed with; null is tabs and the widest line `DefaultLineLength`,
@@ -173,6 +182,7 @@ final class RuleTester
 		bool $fixRisky = false,
 		NamespacedSymbols $namespacedSymbols = new NamespacedSymbols,
 		?Style $style = null,
+		?string $stubs = null,
 		array $analyses = [],
 		?Values $values = null,
 	): void
@@ -186,6 +196,7 @@ final class RuleTester
 			fixRisky: $fixRisky,
 			namespacedSymbols: $namespacedSymbols,
 			style: $style,
+			stubs: $stubs,
 			analyses: $analyses,
 			values: $values,
 		);
@@ -221,6 +232,7 @@ final class RuleTester
 			fixRisky: $fixRisky,
 			namespacedSymbols: $namespacedSymbols,
 			style: $style,
+			stubs: $stubs,
 			analyses: $analyses,
 			values: $values,
 		);
@@ -251,6 +263,7 @@ final class RuleTester
 				fixRisky: $fixRisky,
 				namespacedSymbols: $namespacedSymbols,
 				style: $style,
+				stubs: $stubs,
 				analyses: $analyses,
 				values: $values,
 			);
@@ -282,6 +295,7 @@ final class RuleTester
 				fixRisky: self::readRisky($code),
 				namespacedSymbols: self::readNamespacedSymbols($code),
 				style: self::readStyle($code),
+				stubs: self::findStubs($file, $code, $instance),
 				analyses: $analyses,
 				values: $values,
 			);
@@ -420,6 +434,24 @@ final class RuleTester
 
 
 	/**
+	 * The directory of declarations beside the fixture, when there is one and the header does not turn the types off
+	 * with `// types off`, which a rule that needs them cannot run with.
+	 * @throws TestFailure
+	 */
+	private static function findStubs(string $file, string $code, Rule $rule): ?string
+	{
+		if (!array_any(self::readHeader($code), fn(string $line) => preg_match('~^//\s*types\s+off\s*$~i', $line) === 1)) {
+			$dir = dirname($file) . '/stubs';
+			return is_dir($dir) ? $dir : null;
+		} elseif (RuleInfo::of($rule)->typesRequired) {
+			throw new TestFailure('The header `// types off` cannot stand in a fixture of a rule with `typesRequired`; remove it.');
+		}
+
+		return null;
+	}
+
+
+	/**
 	 * @param array<string|int, string|callable(FileNode, string): object> $analyses
 	 * @return array{FileNode, PassResult}
 	 * @throws TestFailure
@@ -432,6 +464,7 @@ final class RuleTester
 		bool $fixRisky,
 		NamespacedSymbols $namespacedSymbols,
 		?Style $style,
+		?string $stubs = null,
 		array $analyses = [],
 		?Values $values = null,
 	): array
@@ -449,6 +482,10 @@ final class RuleTester
 			Analyses\IndentationPlan::register($registry, $values, $style);
 		}
 
+		if (RuleInfo::of($rule)->typesRequired || $stubs !== null) {
+			self::registerTypes($registry, $code, $stubs, $phpVersion);
+		}
+
 		foreach (new Config(analyses: $analyses)->analyses as $class => $factory) {
 			$registry->register($class, $factory);
 		}
@@ -464,6 +501,32 @@ final class RuleTester
 		}
 
 		return [$file, $result];
+	}
+
+
+	/**
+	 * The types of the code from the PHPStan of this project. PHPStan reads the declarations of a file from the
+	 * disk, so the code the run begins with goes to a file of its own, named by its text, and a later pass reads
+	 * its own text as the command line does; a text seen before shares its PHPStan.
+	 */
+	private static function registerTypes(Analyses\Registry $registry, string $code, ?string $stubs, string $phpVersion): void
+	{
+		$dir = sys_get_temp_dir() . '/dresscode-tests/types';
+		$path = $dir . '/' . hash('xxh128', $code) . '.php';
+		$registry->register(Analyses\Types::class, function (FileNode $file) use ($code, $stubs, $phpVersion, $dir, $path): Analyses\Types {
+			if (!is_file($path)) {
+				@mkdir($dir, recursive: true); // @ directory may already exist
+				file_put_contents($path, $code);
+			}
+
+			$phpstan = self::$phpstan["$stubs|$path|$phpVersion"] ??= new Analyses\PhpStan(
+				$stubs ?? $dir,
+				array_values(array_filter([$stubs, $path])),
+				"$dir/cache",
+				$phpVersion,
+			);
+			return new Analyses\Types($file, $path, $phpstan);
+		});
 	}
 
 

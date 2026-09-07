@@ -92,6 +92,13 @@ final readonly class Placement
 	public function isInPlace(): bool
 ```
 
+## `DressCode\Analyses\Types`
+
+```php
+final class Types implements DressCode\Analyses\PassAnalysis
+	public function isOfType(PhpSyntax\Nodes\ExpressionNode $expression, string $type): DressCode\Tristate
+```
+
 ## `DressCode\Claim`
 
 ```php
@@ -660,7 +667,7 @@ final class RuleTester
 	public static function collectViolations(class-string<DressCode\Rule>|Closure(array<string, mixed>): DressCode\Rule $rule, string $file, ?string $phpVersion = null, array<string|int, string|callable(PhpSyntax\Nodes\FileNode, string): object> $analyses = []): list<string>
 	public static function collectOutput(class-string<DressCode\Rule>|Closure(array<string, mixed>): DressCode\Rule $rule, string $file, ?string $phpVersion = null, array<string|int, string|callable(PhpSyntax\Nodes\FileNode, string): object> $analyses = []): string
 	public static function collectRiskyDecisions(class-string<DressCode\Rule>|Closure(array<string, mixed>): DressCode\Rule $rule, string $file, array<string|int, string|callable(PhpSyntax\Nodes\FileNode, string): object> $analyses = []): list<string>
-	public static function check(DressCode\Rule $rule, string $code, ?string $expected = null, ?list<string> $violations = null, ?string $phpVersion = null, string $name = 'code', bool $fixRisky = false, PhpSyntax\Analyses\NamespacedSymbols $namespacedSymbols = new PhpSyntax\Analyses\NamespacedSymbols, ?DressCode\Style $style = null, array<string|int, string|callable(PhpSyntax\Nodes\FileNode, string): object> $analyses = [], ?DressCode\Values $values = null): void
+	public static function check(DressCode\Rule $rule, string $code, ?string $expected = null, ?list<string> $violations = null, ?string $phpVersion = null, string $name = 'code', bool $fixRisky = false, PhpSyntax\Analyses\NamespacedSymbols $namespacedSymbols = new PhpSyntax\Analyses\NamespacedSymbols, ?DressCode\Style $style = null, ?string $stubs = null, array<string|int, string|callable(PhpSyntax\Nodes\FileNode, string): object> $analyses = [], ?DressCode\Values $values = null): void
 ```
 
 ## `DressCode\Testing\TestFailure`

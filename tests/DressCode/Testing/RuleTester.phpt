@@ -175,6 +175,23 @@ final class TestedUncertain extends NodeRule
 }
 
 
+#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [DressCode\Analyses\Types::class])]
+final class TestedTyped extends NodeRule
+{
+	use ProjectDecision;
+
+	public function getVisitedNodes(): array
+	{
+		return [];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+	}
+}
+
+
 /** An analysis of a plugin. */
 final class TestedLabel
 {
@@ -351,6 +368,11 @@ test('fixture errors', function () {
 		fn() => RuleTester::run(TestedRename::class, __DIR__ . '/fixtures/none'),
 		TestFailure::class,
 		'Directory `%a%` has no `*.code` fixtures.',
+	);
+	Assert::exception(
+		fn() => RuleTester::run(TestedTyped::class, __DIR__ . '/fixtures/types-off'),
+		TestFailure::class,
+		'`%a%off.code`: The header `// types off` cannot stand in a fixture of a rule with `typesRequired`; remove it.',
 	);
 	Assert::exception(
 		fn() => RuleTester::runFixture(TestedRename::class, __DIR__ . '/fixtures/rename/clean.expected'),

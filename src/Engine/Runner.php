@@ -37,6 +37,8 @@ final readonly class Runner
 		private ?ResultCache $cache = null,
 		/** the run is narrowed to some of the decisions, so it says nothing about the baseline entries of the others */
 		private bool $narrowed = false,
+		/** @var ?\Closure(): void  fills the cache the workers share, which those started together would all write at once */
+		public ?\Closure $warmUp = null,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
 		$this->processors = $processors instanceof FileProcessor ? FileProcessors::of($processors) : $processors;

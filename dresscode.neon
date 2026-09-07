@@ -2,6 +2,8 @@ use:
 	- nette
 	- modernizations
 
+typeAnalysis: phpstan
+
 paths:
 	- src
 	- tests
