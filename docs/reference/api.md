@@ -14,6 +14,17 @@ final readonly class Member
 	public function describe(): string
 ```
 
+## `DressCode\Analyses\MemberAccess`
+
+```php
+final readonly class MemberAccess
+	public readonly DressCode\Analyses\MemberKind $kind
+	public readonly string $name
+	public readonly array $classes
+	public readonly bool $declared
+	public function __construct(DressCode\Analyses\MemberKind $kind, string $name, array $classes, bool $declared)
+```
+
 ## `DressCode\Analyses\MemberKind`
 
 ```php
@@ -83,7 +94,12 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function isOfType(PhpSyntax\Nodes\ExpressionNode $expression, string $type): DressCode\Tristate
 	public function findClasses(PhpSyntax\Nodes\ExpressionNode $expression): array
 	public function findMember(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\Member
+	public function findMemberAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
+	public function findConstructorAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
+	public function findParameters(DressCode\Analyses\MemberAccess $access): ?array
+	public function findMethodParameters(string $class, string $method): ?array
 	public function findClassName(string $name): ?string
+	public function hasMember(string $class, DressCode\Analyses\MemberKind $kind, string $name): bool
 ```
 
 ## `DressCode\Claim`

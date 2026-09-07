@@ -12,12 +12,12 @@ use PhpParser\Node as ParserNode;
 use PhpParser\Node\Expr;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCallableNode};
-use PHPStan\Reflection\ExtendedPropertyReflection;
-use PHPStan\Type\{Type, TypeCombinator};
+use PHPStan\Reflection\{ExtendedParameterReflection, ExtendedPropertyReflection};
+use PHPStan\Type\{MixedType, Type, TypeCombinator, VerbosityLevel};
 use PhpSyntax\{Node, Printer, Token};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, NewNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
 use PhpSyntax\Nodes\{ExpressionNode, FileNode, IdentifierNode, NameNode};
-use function count, strlen;
+use function count, is_bool, strlen;
 
 
 /**
@@ -204,12 +204,147 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * The member access the node makes, decided by the type of its receiver and not by the class that declares the
+	 * member: a class constant access, a method call, a property access, or an instantiation of a named class. There
+	 * is one for a member no class declares any more, and where a child overrides the member the classes are those of
+	 * the receiver. Null for a name that is an expression and for a receiver that is no object.
+	 */
+	public function findMemberAccess(ExpressionNode $node): ?MemberAccess
+	{
+		$receiver = $this->findReceiver($node);
+		if ($receiver === null) {
+			return null;
+		}
+
+		[$kind, $type, $name] = $receiver;
+		$classes = $type->getObjectClassNames();
+		return new MemberAccess($kind, $name, $classes, array_any($classes, fn(string $class) => $this->hasMember($class, $kind, $name)));
+	}
+
+
+	/**
+	 * The instantiation, or a call of `parent::__construct()`, as the access of the constructor it runs, whose class is
+	 * the one that declares it: `new Child` of a child that declares none runs the constructor of its parent, a child
+	 * that declares one its own. Null for any other node.
+	 */
+	public function findConstructorAccess(ExpressionNode $node): ?MemberAccess
+	{
+		$access = $node instanceof NewNode || ($node instanceof StaticMethodCallNode && $node->name instanceof IdentifierNode && $node->name->equals('__construct'))
+			? $this->findMemberAccess($node)
+			: null;
+		if ($access === null) {
+			return null;
+		}
+
+		$declaring = $this->findMember($node)?->declaringClass;
+		return new MemberAccess(MemberKind::Constructor, '__construct', $declaring === null ? $access->classes : [$declaring], $access->declared);
+	}
+
+
+	/**
+	 * The parameters of the method the access calls, as the class of the receiver declares them; null for an access
+	 * that is no call, for a method no class of the receiver declares, and where two of them declare it differently.
+	 * @return ?list<Parameter>
+	 */
+	public function findParameters(MemberAccess $access): ?array
+	{
+		if (!in_array($access->kind, [MemberKind::Method, MemberKind::StaticMethod, MemberKind::Constructor], true)) {
+			return null;
+		}
+
+		$found = null;
+		foreach ($access->classes as $class) {
+			if (!$this->hasMember($class, $access->kind, $access->name)) {
+				continue;
+			}
+
+			// the default does not decide how an argument binds
+			$parameters = $this->findMethodParameters($class, $access->name);
+			$describe = fn(Parameter $parameter) => [$parameter->name, $parameter->type, $parameter->optional, $parameter->variadic, $parameter->byReference];
+			if (
+				$parameters === null
+				|| ($found !== null && array_map($describe, $found) !== array_map($describe, $parameters))
+			) {
+				return null;
+			}
+
+			$found = $parameters;
+		}
+
+		return $found;
+	}
+
+
+	/**
+	 * The parameters of the method as the class declares it, itself or through an ancestor, the constructor among them;
+	 * null for a method the class does not have, for a class nothing declares and for a method of several variants.
+	 * @return ?list<Parameter>
+	 */
+	public function findMethodParameters(string $class, string $method): ?array
+	{
+		$reflection = $this->phpstan->findClass($class);
+		$variants = $reflection !== null && $reflection->hasNativeMethod($method) ? $reflection->getNativeMethod($method)->getVariants() : [];
+		return count($variants) === 1 ? array_map(self::toParameter(...), $variants[0]->getParameters()) : null;
+	}
+
+
+	private static function toParameter(ExtendedParameterReflection $parameter): Parameter
+	{
+		return new Parameter(
+			$parameter->getName(),
+			self::describeNative($parameter->getNativeType()),
+			$parameter->isOptional(),
+			$parameter->isVariadic(),
+			$parameter->passedByReference()->yes(),
+			self::writeValue($parameter->getDefaultValue()),
+		);
+	}
+
+
+	/** The native type as PHP describes it; null for a declaration without one. */
+	private static function describeNative(Type $type): ?string
+	{
+		return $type instanceof MixedType && !$type->isExplicitMixed() ? null : $type->describe(VerbosityLevel::typeOnly());
+	}
+
+
+	/** The value as PHP code; null for none and for a value that is no scalar, null or empty array. */
+	private static function writeValue(?Type $value): ?string
+	{
+		$scalars = $value?->getConstantScalarValues() ?? [];
+		return match (true) {
+			$value === null => null,
+			$value->isNull()->yes() => 'null',
+			count($scalars) === 1 && is_bool($scalars[0]) => $scalars[0] ? 'true' : 'false',
+			count($scalars) === 1 && $scalars[0] !== null => var_export($scalars[0], true),
+			$value->isArray()->yes() && $value->isIterableAtLeastOnce()->no() => '[]',
+			default => null,
+		};
+	}
+
+
+	/**
 	 * The declared spelling of a class, interface, trait or enum the project, its packages or PHP declare, given its
 	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares.
 	 */
 	public function findClassName(string $name): ?string
 	{
 		return $this->phpstan->findClassName($name);
+	}
+
+
+	/**
+	 * Whether the class has the member of that kind, itself or through an ancestor; a magic one it does not have, and
+	 * a class nothing declares has none.
+	 */
+	public function hasMember(string $class, MemberKind $kind, string $name): bool
+	{
+		$reflection = $this->phpstan->findClass($class);
+		return $reflection !== null && match ($kind) {
+			MemberKind::Constant => $reflection->hasConstant($name),
+			MemberKind::Method, MemberKind::StaticMethod, MemberKind::Constructor => $reflection->hasNativeMethod($name),
+			MemberKind::Property, MemberKind::StaticProperty => $reflection->hasNativeProperty($name),
+		};
 	}
 
 
