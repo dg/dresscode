@@ -333,12 +333,54 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * Whether the class is the ancestor, extends it, implements it or uses it as a trait, both fully qualified, in any
+	 * letter case; maybe where either is a class nothing declares, or one whose ancestors run in a circle, which PHP
+	 * refuses to load, and where an ancestor of the class is one nothing declares, so that its hierarchy is not seen whole.
+	 */
+	public function isSubtype(string $class, string $ancestor): Tristate
+	{
+		return $this->declarations->isSubtype($class, $ancestor);
+	}
+
+
+	/** Whether PHP reads the class as an attribute, `#[\Attribute]` standing on it; maybe for a class nothing declares. */
+	public function isAttributeClass(string $class): Tristate
+	{
+		return $this->declarations->isAttributeClass($class);
+	}
+
+
+	/** Whether the class is an interface; maybe for a class nothing declares. */
+	public function isInterface(string $class): Tristate
+	{
+		return $this->declarations->isInterface($class);
+	}
+
+
+	/** Whether the class is declared final; maybe for a class nothing declares. */
+	public function isFinalClass(string $class): Tristate
+	{
+		return $this->declarations->isFinalClass($class);
+	}
+
+
+	/**
 	 * Whether the class has the member of that kind, itself or through an ancestor; a magic one it does not have, and
 	 * a class nothing declares has none.
 	 */
 	public function hasMember(string $class, MemberKind $kind, string $name): bool
 	{
 		return $this->declarations->hasMember($class, $kind, $name);
+	}
+
+
+	/**
+	 * Whether the class has the method, in any letter case of either, and it is static; no for a class that has no such
+	 * method, maybe for a class nothing declares and for one whose hierarchy is not seen whole and has no such method.
+	 */
+	public function isStaticMethod(string $class, string $method): Tristate
+	{
+		return $this->declarations->isStaticMethod($class, $method);
 	}
 
 

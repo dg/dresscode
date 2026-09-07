@@ -7,7 +7,8 @@
 
 namespace DressCode\Analyses;
 
-use PHPStan\Reflection\ExtendedParameterReflection;
+use DressCode\Tristate;
+use PHPStan\Reflection\{ClassReflection, ExtendedParameterReflection};
 use PHPStan\Type\{MixedType, Type, VerbosityLevel};
 use function count, is_bool;
 
@@ -18,10 +19,17 @@ use function count, is_bool;
  * the same name of `Types`, which describes it and asks it here.
  * @internal
  */
-final readonly class Declarations
+final class Declarations
 {
+	/** @var array<string, Tristate>  lowercased "class ancestor" => whether the one is the other's subtype */
+	private array $subtypes = [];
+
+	/** @var array<string, bool>  lowercased class => whether something declares every ancestor it names */
+	private array $seenWhole = [];
+
+
 	public function __construct(
-		private PhpStan $phpstan,
+		private readonly PhpStan $phpstan,
 	) {
 	}
 
@@ -78,6 +86,48 @@ final readonly class Declarations
 	}
 
 
+	public function isSubtype(string $class, string $ancestor): Tristate
+	{
+		if (strcasecmp($class, $ancestor) === 0) {
+			return Tristate::Yes;
+		}
+
+		$key = strtolower("$class $ancestor");
+		if (!isset($this->subtypes[$key])) {
+			$reflection = $this->phpstan->findClass($class);
+			$ancestorReflection = $this->phpstan->findClass($ancestor);
+			$this->subtypes[$key] = match (true) {
+				$reflection === null || $ancestorReflection === null => Tristate::Maybe,
+				$ancestorReflection->isTrait()
+					? $reflection->hasTraitUse($ancestorReflection->getName())
+					: $reflection->isSubclassOfClass($ancestorReflection) => Tristate::Yes,
+				$this->isSeenWhole($reflection) => Tristate::No,
+				default => Tristate::Maybe,
+			};
+		}
+
+		return $this->subtypes[$key];
+	}
+
+
+	public function isAttributeClass(string $class): Tristate
+	{
+		return self::toTristate($this->phpstan->findClass($class)?->isAttributeClass());
+	}
+
+
+	public function isInterface(string $class): Tristate
+	{
+		return self::toTristate($this->phpstan->findClass($class)?->isInterface());
+	}
+
+
+	public function isFinalClass(string $class): Tristate
+	{
+		return self::toTristate($this->phpstan->findClass($class)?->isFinalByKeyword());
+	}
+
+
 	public function hasMember(string $class, MemberKind $kind, string $name): bool
 	{
 		$reflection = $this->phpstan->findClass($class);
@@ -85,6 +135,44 @@ final readonly class Declarations
 			MemberKind::Constant => $reflection->hasConstant($name),
 			MemberKind::Method, MemberKind::StaticMethod, MemberKind::Constructor => $reflection->hasNativeMethod($name),
 			MemberKind::Property, MemberKind::StaticProperty => $reflection->hasNativeProperty($name),
+		};
+	}
+
+
+	public function isStaticMethod(string $class, string $method): Tristate
+	{
+		$reflection = $this->phpstan->findClass($class);
+		return match (true) {
+			$reflection === null => Tristate::Maybe,
+			$reflection->hasNativeMethod($method) => $reflection->getNativeMethod($method)->isStatic() ? Tristate::Yes : Tristate::No,
+			$this->isSeenWhole($reflection) => Tristate::No,
+			default => Tristate::Maybe,
+		};
+	}
+
+
+	/** Whether every ancestor the class and its ancestors name, its parent, interfaces and traits, is one something declares. */
+	private function isSeenWhole(ClassReflection $class): bool
+	{
+		return $this->seenWhole[strtolower($class->getName())] ??= array_all(
+			$class->getAncestors(),
+			function (ClassReflection $ancestor): bool {
+				$native = $ancestor->getNativeReflection()->getBetterReflection();
+				return array_all(
+					array_filter([$native->getParentClassName(), ...$native->getInterfaceClassNames(), ...$native->getTraitClassNames()]),
+					fn(string $name) => $this->phpstan->findClass($name) !== null,
+				);
+			},
+		);
+	}
+
+
+	private static function toTristate(?bool $answer): Tristate
+	{
+		return match ($answer) {
+			true => Tristate::Yes,
+			false => Tristate::No,
+			null => Tristate::Maybe,
 		};
 	}
 }
