@@ -162,6 +162,17 @@ final class PhpStan
 
 
 	/**
+	 * The declared spelling of a class, interface, trait or enum the project, its packages or PHP declare, given its
+	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares or PHP
+	 * refuses to load.
+	 */
+	public function findClassName(string $name): ?string
+	{
+		return $this->findClass($name)?->getName();
+	}
+
+
+	/**
 	 * The class, interface, trait or enum of that fully qualified name, in any letter case; null for a name nothing
 	 * declares, and for one whose ancestors run in a circle, which PHP refuses to load.
 	 */
