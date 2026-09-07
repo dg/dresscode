@@ -1,0 +1,18 @@
+<?php
+namespace App;
+
+use Acme\Shop\Order;
+
+
+/** @param class-string<Order> $class */
+function run(Order $order, string $class, $unknown, array $rows): void
+{
+	// written as a first-class callable
+	$a = $order->ship(...);
+
+	// risky: the value may be the name of a class
+	$c = \Closure::fromCallable([$unknown, 'ship']);
+
+	// left alone: a class name
+	$d = \Closure::fromCallable([$class, 'make']);
+}

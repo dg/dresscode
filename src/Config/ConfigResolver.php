@@ -34,6 +34,8 @@ final class ConfigResolver
 
 	public function __construct(
 		private readonly PluginRegistry $registry,
+		/** the run can get the types the configuration asks for; without them it resolves as if it asked for none */
+		private readonly bool $typesAvailable = true,
 		/** the directory a file in `use` of the configuration and its overrides is relative to */
 		private readonly string $root = '.',
 	) {
@@ -142,7 +144,7 @@ final class ConfigResolver
 		$resolver = new DecisionResolver(
 			$this->getCatalogue(),
 			$phpTarget,
-			typesAvailable: $config->typeAnalysis !== null,
+			typesAvailable: $config->typeAnalysis !== null && $this->typesAvailable,
 			certainNames: $resolution === 'certain',
 		);
 		$decisions = $resolver->resolve($decisionLayers);
@@ -180,7 +182,7 @@ final class ConfigResolver
 			nameResolution: $resolution ?? 'uncertain',
 			lineLength: self::resolveLineLength($values->get('file.maxLineLength')),
 			tabWidth: $values->get('indentation.tabWidth')->getCount()[0],
-			typeAnalysis: $config->typeAnalysis,
+			typeAnalysis: $this->typesAvailable ? $config->typeAnalysis : null,
 			plugins: array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, [...$config->plugins, ...$commandLine instanceof Config ? $commandLine->plugins : []]),
 			suppressionComments: $suppressionComments,
 			decisions: $decisions,
@@ -238,7 +240,9 @@ final class ConfigResolver
 		}));
 		$info = RuleInfo::of($class);
 		if ($asked !== [] && $reasons === [InactiveReason::Types]) {
-			throw new ConfigurationException("Decision `$asked[0]` needs the types of the code; set `typeAnalysis: phpstan` in the configuration and install `phpstan/phpstan` beside DressCode.", docs: 'types#enable');
+			throw new ConfigurationException($this->typesAvailable
+				? "Decision `$asked[0]` needs the types of the code; set `typeAnalysis: phpstan` in the configuration and install `phpstan/phpstan` beside DressCode."
+				: "Decision `$asked[0]` needs the types of the code, but `phpstan/phpstan` is not installed beside DressCode.", docs: 'types#enable');
 		} elseif ($asked !== [] && $reasons === [InactiveReason::Php]) {
 			$this->warnings[$class] = "Decision `$asked[0]` needs PHP {$info->requires['php']} and the target is $phpTarget; skipped.";
 		}
@@ -247,7 +251,9 @@ final class ConfigResolver
 			$effective !== [] && array_any($effective, fn(ResolvedDecision $decision) => $values->isSelected($decision->decision->path)) => [null, null],
 			$effective !== [] => [InactiveReason::Narrowed, 'the run is narrowed to other decisions'],
 			$reasons === [InactiveReason::Php] => [InactiveReason::Php, "it needs PHP {$info->requires['php']} and the target is $phpTarget"],
-			$reasons === [InactiveReason::Types] => [InactiveReason::Types, 'it needs the types of the code and the configuration sets no types'],
+			$reasons === [InactiveReason::Types] => [InactiveReason::Types, $this->typesAvailable
+				? 'it needs the types of the code and the configuration sets no types'
+				: 'it needs the types of the code and phpstan/phpstan is not installed beside DressCode'],
 			array_any($own, fn(ResolvedDecision $decision) => $decision->layers !== []) => [InactiveReason::TurnedOff, 'its decisions are `keep`'],
 			$ofOverride => [InactiveReason::OnlyOverride, 'only an override turns it on'],
 			default => [InactiveReason::NotMentioned, 'no preset or layer of the configuration names its decisions'],

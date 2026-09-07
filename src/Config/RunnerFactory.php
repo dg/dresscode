@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use Composer\InstalledVersions;
-use DressCode\{Config, ConfigurationException, Override, Plugin, PluginManifest, Profile, Rule};
+use DressCode\{Analyses, Config, ConfigurationException, Override, Plugin, PluginManifest, Profile, Rule};
 use DressCode\Engine\{Baseline, FileProcessor, FileProcessors, Helpers, ReportPolicy, ResultCache, Runner};
 use Nette\Utils\{FileSystem, Finder};
 use PhpSyntax\Node;
@@ -25,6 +25,8 @@ final readonly class RunnerFactory
 {
 	public function __construct(
 		public PluginRegistry $registry = new PluginRegistry,
+		/** whether `phpstan/phpstan` is installed beside DressCode; null asks Composer */
+		private ?bool $phpstanInstalled = null,
 	) {
 	}
 
@@ -46,9 +48,13 @@ final readonly class RunnerFactory
 		];
 		$this->registerProjectRules($config);
 		[$target, $source] = $this->getPhpTarget($config, $root);
-		$resolver = new ConfigResolver($this->registry, $root);
+		$typesAvailable = $config->typeAnalysis === null || $this->isPhpStanInstalled();
+		$resolver = new ConfigResolver($this->registry, $typesAvailable, $root);
 		$resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
 		$warnings = array_fill_keys($resolver->getWarnings(), null);
+		if (!$typesAvailable) {
+			$warnings['The configuration sets `typeAnalysis: phpstan`, but `phpstan/phpstan` is not installed beside DressCode, so the run goes without the types of the code.'] = 'types#enable';
+		}
 
 		return new ResolvedProject(
 			$config,
@@ -91,6 +97,17 @@ final readonly class RunnerFactory
 		$resolved = $resolution->resolvedConfig;
 		$layers = [...$resolution->pluginManifests, $config];
 		$analyses = array_merge(...array_map(fn(Config|PluginManifest $layer) => $layer->analyses, $layers));
+		if ($resolved->typeAnalysis === 'phpstan') {
+			// one PHPStan reads every file, so it parses the newest syntax an override may target
+			$phpVersion = $resolved->phpVersion;
+			foreach ($resolved->overrides as $override) {
+				$phpVersion = version_compare($override->phpVersion, $phpVersion, '>') ? $override->phpVersion : $phpVersion;
+			}
+
+			$phpstan = new Analyses\PhpStan($root, self::resolveAnalysedPaths($config, $root), self::resolveCacheDir($config, $root) . '/phpstan', $phpVersion);
+			$analyses[Analyses\Types::class] = fn(FileNode $file, string $path) => new Analyses\Types($file, $path, $phpstan);
+		}
+
 		$baselineFile = $baseline ? self::loadBaseline($config, $root) : null;
 
 		$registry = $this->registry;
@@ -148,7 +165,14 @@ final readonly class RunnerFactory
 			$baselineFile,
 			$resultCache,
 			narrowed: (bool) $resolution->only,
+			warmUp: isset($phpstan) ? $phpstan->warmUp(...) : null,
 		);
+	}
+
+
+	private function isPhpStanInstalled(): bool
+	{
+		return $this->phpstanInstalled ?? Analyses\PhpStan::isAvailable();
 	}
 
 
@@ -242,15 +266,37 @@ final readonly class RunnerFactory
 	/** The cache file of the project root: in the configured directory, else in the system temp. */
 	private static function resolveCacheFile(Config $config, string $root): string
 	{
+		return self::resolveCacheDir($config, $root) . '/' . substr(hash('xxh128', Helpers::canonicalizePath($root)), 0, 16) . '.json';
+	}
+
+
+	private static function resolveCacheDir(Config $config, string $root): string
+	{
 		$root = Helpers::canonicalizePath($root);
 		$dir = $config->cacheDir === null ? sys_get_temp_dir() . '/dresscode' : self::toAbsolutePath($config->cacheDir, $root);
-		return Helpers::canonicalizePath($dir) . '/' . substr(hash('xxh128', $root), 0, 16) . '.json';
+		return Helpers::canonicalizePath($dir);
+	}
+
+
+	/**
+	 * Where PHPStan looks for the declarations of the project besides its Composer autoload: the configured paths
+	 * that exist, else the root.
+	 * @return list<string>
+	 */
+	private static function resolveAnalysedPaths(Config $config, string $root): array
+	{
+		$paths = array_values(array_filter(
+			array_map(fn(string $path) => self::toAbsolutePath($path, $root), $config->paths),
+			fn(string $path) => is_dir($path) || is_file($path),
+		));
+		return $paths === [] ? [$root] : $paths;
 	}
 
 
 	/**
 	 * The identity of everything a result depends on besides the file: what the caller gives, the packages of the
-	 * project, and those of the running process, which are the tool wherever it is not installed in the project.
+	 * project, and those of the running process, which are the tool, its PHPStan and the extensions of it wherever
+	 * they are not installed in the project.
 	 * @param  array<mixed>  $configuration
 	 */
 	private static function hashConfiguration(array $configuration, ProjectPackages $project): string
@@ -301,13 +347,15 @@ final readonly class RunnerFactory
 
 
 	/**
-	 * What Composer says of the installations the running process is loaded from.
+	 * What Composer says of the installations the running process is loaded from: InstalledVersions answers from
+	 * every registered loader, the one inside the phar of PHPStan included once it is started, so a root of a phar
+	 * is left out.
 	 * @return list<array{root: array{name: string, install_path: string}, versions: array<string, array{version?: string, reference?: ?string, install_path?: string}>}>
 	 */
 	private static function getProcessInstallations(): array
 	{
 		return class_exists(InstalledVersions::class)
-			? InstalledVersions::getAllRawData()
+			? array_values(array_filter(InstalledVersions::getAllRawData(), fn(array $data) => !str_starts_with($data['root']['install_path'], 'phar://')))
 			: [];
 	}
 

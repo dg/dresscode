@@ -29,6 +29,16 @@ test('an answer that arrives in parts is put together into one result', function
 });
 
 
+test('with the warm-up first, the other workers start only once the first has connected', function () {
+	$log = createTempDir('warm-first') . '/log.txt';
+	$results = processWith(new WorkerPool(fakeWorker("log=$log"), jobs: 3, warmFirst: true));
+	Assert::count(3, $results);
+	$events = file($log, FILE_IGNORE_NEW_LINES) ?: [];
+	// the first worker may process every file before the others connect, and those are stopped then
+	Assert::same(['start', 'connect'], array_slice($events, 0, 2));
+});
+
+
 test('a worker stuck in the middle of an answer fails the run once it spends longer than the timeout on the file', function () {
 	$started = microtime(as_float: true);
 	Assert::exception(
@@ -51,7 +61,7 @@ test('a path that is not UTF-8 is handed out and answered as it is', function ()
 test('a worker that never connects fails the run once the connect timeout passes', function () {
 	$started = microtime(as_float: true);
 	Assert::exception(
-		fn() => processWith(new WorkerPool(fakeWorker('silent'), jobs: 2, connectTimeout: 1)),
+		fn() => processWith(new WorkerPool(fakeWorker('silent'), jobs: 2, connectTimeout: 1, warmFirst: true)),
 		RuntimeException::class,
 		'A worker has not connected within 1 s.%A?%',
 	);

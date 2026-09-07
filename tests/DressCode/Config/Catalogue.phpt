@@ -139,6 +139,12 @@ final class EnforcingReaderRule extends TestRule
 }
 
 
+#[RuleInfo(Stage::Structure, typesRequired: true)]
+final class UndeclaredTypesRule extends TestRule
+{
+}
+
+
 // @phpstan-ignore argument.type (a class nothing declares, which the attribute refuses)
 #[RuleInfo(Stage::Structure, analyses: ['Acme\Nowhere'])]
 final class UnknownAnalysisRule extends TestRule
@@ -252,7 +258,8 @@ test('a decision of a tree a rule only reads is known to the values without the 
 });
 
 
-test('a rule names the analyses it asks for', function () {
+test('a rule names the analyses it asks for, the types among them where it requires them', function () {
+	Assert::exception(fn() => RuleInfo::of(UndeclaredTypesRule::class), ConfigurationException::class, 'Class `UndeclaredTypesRule`: A rule that requires the types names `DressCode\Analyses\Types` among its analyses.');
 	Assert::exception(fn() => RuleInfo::of(UnknownAnalysisRule::class), ConfigurationException::class, 'Class `UnknownAnalysisRule`: A rule asks for analysis `Acme\Nowhere`, which is no class.');
 });
 

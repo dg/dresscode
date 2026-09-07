@@ -250,6 +250,7 @@ final class Application
 				fixRisky: $fixRisky,
 				baseline: !$generate,
 			);
+			($runner->warmUp)?->__invoke(); // before connecting, which is what starts the other workers
 			return Worker::run($args['--worker'], $runner, $fix);
 		}
 
@@ -308,7 +309,7 @@ final class Application
 
 		// a worker costs about the processing of a few files to start, so by default one for every four files at most
 		$jobs = $args['--jobs'] ?? max(1, min(WorkerPool::detectCpuCount(), intdiv(count($files), 4)));
-		$workers = $jobs > 1 && $files ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->cwd) : null;
+		$workers = $jobs > 1 && $files ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->cwd, warmFirst: $runner->warmUp !== null) : null;
 		if ($generate) {
 			return $this->generateBaseline($runner, $config, $root, $configFile, $files, $workers, $format);
 		}

@@ -70,6 +70,14 @@ final class PhpSymbols
 	public function findFramelessParameterNames(string $function, int $arguments): ?array
 ```
 
+## `DressCode\Analyses\Types`
+
+```php
+final class Types implements DressCode\Analyses\PassAnalysis
+	public function isOfType(PhpSyntax\Nodes\ExpressionNode $expression, string $type, ?PhpSyntax\Nodes\ExpressionNode $at = null): DressCode\Tristate
+	public function findClasses(PhpSyntax\Nodes\ExpressionNode $expression): array
+```
+
 ## `DressCode\Claim`
 
 ```php
@@ -626,7 +634,7 @@ final class RuleTester
 	public static function collectViolations(Closure|string $rule, string $file, ?string $phpVersion = null, array $analyses = []): array
 	public static function collectOutput(Closure|string $rule, string $file, ?string $phpVersion = null, array $analyses = []): string
 	public static function collectRiskyDecisions(Closure|string $rule, string $file, array $analyses = []): array
-	public static function check(DressCode\Rule $rule, string $code, ?string $expected = null, ?array $violations = null, ?string $phpVersion = null, string $name = 'code', bool $fixRisky = false, PhpSyntax\Analyses\NamespacedSymbols $namespacedSymbols = new PhpSyntax\Analyses\NamespacedSymbols, ?DressCode\Style $style = null, array $analyses = [], ?DressCode\Values $values = null): void
+	public static function check(DressCode\Rule $rule, string $code, ?string $expected = null, ?array $violations = null, ?string $phpVersion = null, string $name = 'code', bool $fixRisky = false, PhpSyntax\Analyses\NamespacedSymbols $namespacedSymbols = new PhpSyntax\Analyses\NamespacedSymbols, ?DressCode\Style $style = null, ?string $stubs = null, array $analyses = [], ?DressCode\Values $values = null): void
 ```
 
 ## `DressCode\Testing\TestFailure`

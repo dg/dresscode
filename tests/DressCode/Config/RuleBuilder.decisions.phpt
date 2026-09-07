@@ -65,7 +65,7 @@ final class PipeRule extends TestRule
 }
 
 
-#[RuleInfo(Stage::Structure, typesRequired: true)]
+#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [DressCode\Analyses\Types::class])]
 final class OverrideRule extends TestRule
 {
 	public static function getDecisions(): array

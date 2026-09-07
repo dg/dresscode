@@ -1,10 +1,10 @@
-22: The closure forwarding its parameters to one call must be written as a partial application.
 23: The closure forwarding its parameters to one call must be written as a partial application.
-26: The closure forwarding its parameters to one call must be written as a partial application.
-	risky TypeUnknown: the call may take an argument by reference, where the closure passed a copy
+24: The closure forwarding its parameters to one call must be written as a partial application.
 27: The closure forwarding its parameters to one call must be written as a partial application.
 	risky TypeUnknown: the call may take an argument by reference, where the closure passed a copy
-30: The closure forwarding its parameters to one call must be written as a partial application.
-	risky BehaviorChanges: the call takes an argument by reference, where the closure passed a copy
+28: The closure forwarding its parameters to one call must be written as a partial application.
+	risky TypeUnknown: the call may take an argument by reference, where the closure passed a copy
 31: The closure forwarding its parameters to one call must be written as a partial application.
+	risky BehaviorChanges: the call takes an argument by reference, where the closure passed a copy
+32: The closure forwarding its parameters to one call must be written as a partial application.
 	risky BehaviorChanges: the call takes an argument by reference, where the closure passed a copy

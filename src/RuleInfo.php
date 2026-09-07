@@ -33,7 +33,7 @@ final readonly class RuleInfo
 		 * @var array<string, string>
 		 */
 		public array $requires = [],
-		/** the rule makes no sense without the types of the code, so it does not run where the configuration gives none */
+		/** the rule makes no sense without the types of the code (Analyses\Types), so it does not run where the configuration gives none */
 		public bool $typesRequired = false,
 		/**
 		 * the analyses the rule asks for, those the helpers it calls ask for among them, which a strict run holds it to
@@ -60,6 +60,8 @@ final readonly class RuleInfo
 			throw new \InvalidArgumentException('A rule names each analysis it asks for once.');
 		} elseif ($unknown = array_filter($analyses, fn(string $class) => !class_exists($class))) {
 			throw new \InvalidArgumentException('A rule asks for analysis `' . reset($unknown) . '`, which is no class.');
+		} elseif ($typesRequired && !in_array(Analyses\Types::class, $analyses, true)) {
+			throw new \InvalidArgumentException('A rule that requires the types names `DressCode\Analyses\Types` among its analyses.');
 		}
 
 		foreach ($requires as $requirement => $constraint) {

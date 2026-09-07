@@ -89,7 +89,7 @@ final class RuleFuture extends ResolvedTestRule
 }
 
 
-#[RuleInfo(Stage::Structure, typesRequired: true)]
+#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [DressCode\Analyses\Types::class])]
 final class RuleTyped extends ResolvedTestRule
 {
 	public static function getDecisions(): array

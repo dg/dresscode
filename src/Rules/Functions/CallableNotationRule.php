@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\Analyses\{Parameter, PhpSignatures};
+use DressCode\Analyses\{Parameter, PhpSignatures, Types};
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate, Violation};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, DereferenceKind, Node, SymbolKind, Token};
@@ -50,7 +50,7 @@ use function count;
  * `$this` where `$this` is a `Foo`, and `[self::class, 'make']` to `self` where `self::make(...)` passes a static
  * caller on, so inside a class the fix is risky; `static::class` names the same class either way. A variable or a
  * property in the place of the object may hold the name of a class as well, which `->` calls no method on, so the fix
- * is risky unless it is `$this`.
+ * is risky unless it is `$this` or the types say it is an object, and the callable stays where they say it is not.
  *
  * A bare array or string callable stays as it is: the code does not say that `[$obj, 'run']` is a callable at all.
  */
@@ -58,7 +58,7 @@ use function count;
 	Stage::Structure,
 	requires: ['php' => '>=8.1'],
 	decisions: ['upgrading.syntax.firstClassCallables'],
-	analyses: [PhpSignatures::class, NameResolver::class],
+	analyses: [PhpSignatures::class, Types::class, NameResolver::class],
 )]
 final class CallableNotationRule extends NodeRule
 {
@@ -184,9 +184,10 @@ final class CallableNotationRule extends NodeRule
 				...(strtolower($target->class->text) === 'static' ? [null, null] : $static),
 			],
 			$target->isDereferenceable(DereferenceKind::Fetch)
-			&& !$target->isInNullsafeChain() => [
+			&& !$target->isInNullsafeChain()
+			&& ($object = self::isObject($target, $context)) !== Tristate::No => [
 				$target->text . '->' . $method->toValue(),
-				...(self::isObject($target) ? [null, null] : [Risk::TypeUnknown, 'the value may be the name of a class, not an object']),
+				...($object === Tristate::Maybe ? [Risk::TypeUnknown, 'the value may be the name of a class, not an object'] : [null, null]),
 			],
 			default => null,
 		};
@@ -194,9 +195,11 @@ final class CallableNotationRule extends NodeRule
 
 
 	/** Whether the value is an object rather than the name of a class, which a callable may hold as well. */
-	private static function isObject(ExpressionNode $value): bool
+	private static function isObject(ExpressionNode $value, RuleContext $context): Tristate
 	{
-		return $value instanceof Expression\VariableNode && $value->isThis();
+		return $value instanceof Expression\VariableNode && $value->isThis()
+			? Tristate::Yes
+			: $context->findAnalysis(Types::class)?->isOfType($value, 'object') ?? Tristate::Maybe;
 	}
 
 

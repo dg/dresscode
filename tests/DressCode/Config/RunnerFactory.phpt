@@ -305,7 +305,7 @@ test('a target older than the oldest PHP DressCode fixes code for is raised to i
 });
 
 
-test('the identity of the process names the packages it is loaded from, not its root', function () {
+test('the identity of the process names the packages it is loaded from, not its root, nor what a phar brings', function () {
 	$own = require __DIR__ . '/../../../vendor/composer/installed.php';
 	$identity = RunnerFactory::getProcessIdentity();
 	Assert::true(isset($identity['nette/utils']));
@@ -335,6 +335,9 @@ test('the identity of the process names the packages it is loaded from, not its 
 		Assert::same(['2.1.0.0', 'abc123'], $identity['acme/linter']);
 		Assert::false(isset($identity['acme/global']));
 		Assert::false(isset($identity['acme/virtual']));
+
+		InstalledVersions::reload($global('phar://linter.phar/vendor'));
+		Assert::false(isset(RunnerFactory::getProcessIdentity()['acme/linter']));
 	} finally {
 		InstalledVersions::reload($own);
 	}

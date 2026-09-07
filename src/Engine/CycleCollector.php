@@ -10,9 +10,9 @@ namespace DressCode\Engine;
 
 /**
  * The cycle collector of a process working through files: off while they are processed, and a collection between
- * two of them once the memory has doubled since what the last one left. A tree is cyclic, so the collector PHP runs
- * by itself scans it again and again and frees little; the memory stays bounded, below three quarters of
- * `memory_limit`.
+ * two of them once the memory has doubled since what the last one left. A tree is cyclic and the reflection of
+ * PHPStan a large graph that stays alive, so the collector PHP runs by itself scans both again and again and frees
+ * little; the memory stays bounded, below three quarters of `memory_limit`.
  * @internal
  */
 final class CycleCollector
