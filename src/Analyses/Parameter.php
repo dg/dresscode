@@ -9,8 +9,9 @@ namespace DressCode\Analyses;
 
 
 /**
- * A parameter of a function PHP or the file declares: its name, the type as PHP describes it, a class fully
- * qualified without a leading backslash and a nullable type as a union with null, and how it takes the argument.
+ * A parameter of a function PHP or the file declares, or of a method of a class: its name, the type as PHP describes
+ * it, a class fully qualified without a leading backslash and a nullable type as a union with null, and how it takes
+ * the argument.
  */
 final readonly class Parameter
 {
@@ -22,7 +23,10 @@ final readonly class Parameter
 		public bool $optional = false,
 		public bool $variadic = false,
 		public bool $byReference = false,
-		/** the default as PHP code; null for none and where the versions of PHP declare different ones */
+		/**
+		 * the default as PHP code; null for a parameter without one, for one whose default is no value to write, and for
+		 * a function of PHP whose versions declare different ones
+		 */
 		public ?string $default = null,
 	) {
 	}
