@@ -26,6 +26,7 @@ test('defaults', function () {
 	Assert::same(['php'], $config->fileExtensions);
 	Assert::null($config->skipWhen);
 	Assert::null($config->baseline);
+	Assert::null($config->cacheDir);
 	Assert::same([], $config->analyses);
 });
 

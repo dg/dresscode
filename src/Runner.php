@@ -5,6 +5,7 @@ namespace DressCode;
 use DressCode\Config\FileProcessors;
 use DressCode\Engine\Baseline;
 use DressCode\Engine\FileProcessor;
+use DressCode\Engine\ResultCache;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Finder;
 use function count, sprintf, strlen;
@@ -30,6 +31,8 @@ final class Runner
 		private readonly ?\Closure $skipWhen = null,
 		/** violations left unreported */
 		private readonly ?Baseline $baseline = null,
+		/** contents known to be clean, skipped without processing */
+		private readonly ?ResultCache $cache = null,
 		/** the run is narrowed to some of the rules, so it says nothing about the baseline entries of the others */
 		private readonly bool $narrowed = false,
 	) {
@@ -54,9 +57,7 @@ final class Runner
 	): RunResult
 	{
 		$reporter->start(count($files), $fix);
-		$order = $pending = [];
-		/** @var array<string, FileResult> $ready  results waiting for the files before them */
-		$ready = [];
+		$order = $ready = $pending = [];
 		foreach ($files as $path) {
 			$code = $this->read($path);
 			if ($this->skipWhen && ($this->skipWhen)($code, $path)) {
@@ -64,7 +65,15 @@ final class Runner
 			}
 
 			$order[] = $path;
-			$pending[] = $path;
+			$baselined = $this->cache?->findClean(ResultCache::hashContent($path, $code));
+			if ($baselined !== null) {
+				$result = new FileResult($path, $code, $code, baselined: $baselined);
+				$result->cached = true;
+				$ready[$path] = $result->withoutTexts();
+				$this->baseline?->markUsed($path, $baselined);
+			} else {
+				$pending[] = $path;
+			}
 		}
 
 		$ordered = [];
@@ -74,6 +83,10 @@ final class Runner
 				$path = $order[$next];
 				$result = $ready[$path];
 				unset($ready[$path]);
+				if ($this->cache !== null && !$result->cached) {
+					$this->remember($result);
+				}
+
 				if ($this->baseline !== null && $result->error === null && $result->failure === null) {
 					$scope[$path] = $this->narrowed
 						? array_map(fn(Rule $rule) => RuleInfo::of($rule)->name, $this->processors->get($path)->getRules())
@@ -86,7 +99,7 @@ final class Runner
 		};
 
 		$report();
-		foreach ($this->processPending($pending, $fix, $onProgress) as $path => $result) {
+		foreach ($this->processPending($pending, $fix, $onProgress, count($order) - count($pending)) as $path => $result) {
 			$ready[$path] = $result;
 			$report();
 		}
@@ -95,6 +108,7 @@ final class Runner
 			$onProgress(count($files), []); // the whole scope is done, whatever was skipped along the way
 		}
 
+		$this->cache?->save();
 		$unused = $this->baseline?->countUnused($scope) ?? 0;
 		$result = new RunResult(
 			$ordered,
@@ -114,14 +128,20 @@ final class Runner
 
 
 	/**
-	 * The results of the files in the order they are done, each file read when its turn comes.
+	 * The results of the files the cache did not serve, in the order they are done, each file read when its turn
+	 * comes.
 	 * @param  list<string>  $paths
 	 * @param  ?\Closure(int, array<string, float>): void  $onProgress
+	 * @param  int  $done  files done before, the cached ones
 	 * @return \Generator<string, FileResult>
 	 */
-	private function processPending(array $paths, bool $fix, ?\Closure $onProgress): \Generator
+	private function processPending(
+		array $paths,
+		bool $fix,
+		?\Closure $onProgress,
+		int $done,
+	): \Generator
 	{
-		$done = 0;
 		foreach ($paths as $path) {
 			if ($onProgress !== null) {
 				$onProgress($done++, [$path => microtime(as_float: true)]);
@@ -173,6 +193,30 @@ final class Runner
 		}
 
 		return $code;
+	}
+
+
+	/**
+	 * A clean result makes its content known to the cache, with what the baseline silenced in it; a fixed file
+	 * without remaining violations makes the written content known too, unless there is a baseline, whose
+	 * entries no run has yet held against the fixed lines.
+	 */
+	private function remember(FileResult $result): void
+	{
+		if ($result->error !== null || $result->failure !== null || $result->warnings) {
+			return;
+		}
+
+		if (!$result->violations && !$result->isChanged()) {
+			$this->cache?->markClean(ResultCache::hashContent($result->path, $result->code), $result->baselined);
+		} elseif (
+			$result->written
+			&& $result->output !== null
+			&& !$result->remaining
+			&& $this->baseline === null
+		) {
+			$this->cache?->markClean(ResultCache::hashContent($result->path, $result->output));
+		}
 	}
 
 

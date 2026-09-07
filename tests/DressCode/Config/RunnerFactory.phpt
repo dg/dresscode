@@ -125,13 +125,13 @@ test('a target older than the oldest PHP DressCode fixes code for is raised to i
 	$warning = 'The target PHP 7.4 is older than PHP 8.0, the oldest DressCode fixes code for; the code is checked as PHP 8.0, so a fix may write syntax the target does not have.';
 
 	$factory = new RunnerFactory;
-	$runner = $factory->createRunner(new Config(rules: [ReportContext::class => true]), $root);
+	$runner = $factory->createRunner(new Config(rules: [ReportContext::class => true]), $root, cache: false);
 	Assert::same(['8.0', PhpVersionSource::Composer], $factory->getPhpVersion());
 	Assert::same([$warning], $factory->getWarnings());
 	Assert::match('8.0 %a%', $runner->processFile('x.php', "<?php\n\$a;\n")->violations[0]->message);
 
 	// every engine the factory builds starts with warnings of its own
-	$factory->createRunner(new Config(php: '7.4'), $root);
+	$factory->createRunner(new Config(php: '7.4'), $root, cache: false);
 	Assert::same(['8.0', PhpVersionSource::Configuration], $factory->getPhpVersion());
 	Assert::same([$warning], $factory->getWarnings());
 });
@@ -181,6 +181,7 @@ test('the command line lies over the configuration', function () use ($fixtures)
 		new Config(rules: [ReportContext::class => true]),
 		"$fixtures/project",
 		commandLine: new Profile(rules: [ReportContext::class => false, ReportVariable::class => true]),
+		cache: false,
 	);
 	Assert::same(['test/b'], array_map(fn($v) => $v->ruleName, $runner->processFile('x.php', "<?php\n\$a;\n")->violations));
 });
@@ -206,6 +207,7 @@ test('an extension makes its rules known by name, and brings the paths it leaves
 			skipWhen: fn(string $content) => str_contains($content, '@skip'),
 		),
 		$root,
+		cache: false,
 	);
 	Assert::same(['test/a'], array_map(fn($rule) => RuleInfo::of($rule)->name, $runner->getProcessor()->getRules()));
 
@@ -217,7 +219,7 @@ test('an extension makes its rules known by name, and brings the paths it leaves
 
 
 test('an extension brings only what a package can, and a class that is none of the three says so', function () use ($fixtures) {
-	$create = fn(Config $config) => (new RunnerFactory)->createRunner($config, "$fixtures/project");
+	$create = fn(Config $config) => (new RunnerFactory)->createRunner($config, "$fixtures/project", cache: false);
 	Assert::exception(
 		fn() => $create(new Config(extensions: [DecidingExtension::class])),
 		ConfigurationException::class,
@@ -269,6 +271,7 @@ test('an override brings its presets, its style, its name resolution and its war
 			overrides: [new Override(['sub'], presets: ['test/double'], indent: 2, nameResolution: 'uncertain', warnings: [ReportContext::class])],
 		),
 		"$fixtures/project",
+		cache: false,
 	);
 	$describe = fn(string $path) => array_map(
 		fn($violation) => "$violation->ruleName {$violation->severity->name} $violation->message",
@@ -292,12 +295,89 @@ test('a runner keeps the configuration it was built from, whatever the factory b
 	$runner = $factory->createRunner(
 		new Config(rules: [ReportContext::class => true], overrides: [new Override(['sub'], rules: [ReportContext::class => false])]),
 		"$fixtures/project",
+		cache: false,
 	);
-	$factory->createRunner(new Config(rules: [ReportVariable::class => true]), "$fixtures/project");
+	$factory->createRunner(new Config(rules: [ReportVariable::class => true]), "$fixtures/project", cache: false);
 
 	// both processors are built lazily, the base one and the one of the override, and both after the second runner
 	Assert::same(['test/a'], array_map(fn($v) => $v->ruleName, $runner->processFile('src/x.php', "<?php\n\$a;\n")->violations));
 	Assert::same([], $runner->processFile('src/sub/x.php', "<?php\n\$a;\n")->violations);
+});
+
+
+test('a rule built by a closure is cached only under the text of the file the configuration came from', function () {
+	$root = __DIR__ . '/../../temp/runner-factory';
+	@mkdir($root, recursive: true); // @ - may exist
+	Tester\Helpers::purge($root);
+	file_put_contents("$root/x.php", "<?php\n\$x;\n");
+	file_put_contents("$root/quiet.php", '<?php // quiet');
+	file_put_contents("$root/loud.php", '<?php // loud');
+	$quiet = fn() => new Config(rules: [ReportVariable::class => fn() => new ReportVariable(report: false)], cacheDir: "$root/cache");
+	$loud = fn() => new Config(rules: [ReportVariable::class => fn() => new ReportVariable], cacheDir: "$root/cache");
+	$run = fn(Config $config, ?string $file = null) => (new RunnerFactory)
+		->createRunner($config, $root, configFile: $file)
+		->run(['x.php'], false, new NullReporter);
+
+	// without the file nothing tells the two closures apart, so nothing is cached
+	Assert::same(0, $run($quiet())->countViolations());
+	Assert::same(0, $run($quiet())->countViolations());
+	Assert::same(1, $run($loud())->countViolations());
+
+	// with it the text of the file is part of the identity
+	Assert::false($run($quiet(), "$root/quiet.php")->files[0]->cached);
+	Assert::true($run($quiet(), "$root/quiet.php")->files[0]->cached);
+	Assert::same(1, $run($loud(), "$root/loud.php")->countViolations());
+});
+
+
+test('the options of a rule built by a closure are part of the identity, whatever the file of the configuration says', function () {
+	$root = __DIR__ . '/../../temp/runner-factory-options';
+	@mkdir($root, recursive: true); // @ - may exist
+	file_put_contents("$root/x.php", "<?php \$x = 'text';\n");
+	file_put_contents("$root/config.php", '<?php // the same text for both runs');
+	$config = new Config(
+		extensions: [DoubleQuotesPreset::class],
+		rules: [StringQuotesRule::class => fn() => new StringQuotesRule],
+		cacheDir: "$root/cache",
+	);
+	$run = fn(?Profile $commandLine) => (new RunnerFactory)
+		->createRunner($config, $root, $commandLine, configFile: "$root/config.php")
+		->run(['x.php'], false, new NullReporter);
+
+	// a preset from the command line changes the options, not the text of the file
+	foreach ([[false, true], [true, false]] as $order) {
+		Tester\Helpers::purge("$root/cache");
+		foreach ($order as $double) {
+			$result = $run($double ? new Profile(presets: ['test/double']) : null);
+			Assert::same($double ? 1 : 0, $result->countViolations());
+			Assert::false($result->files[0]->cached);
+		}
+	}
+});
+
+
+test('a rule of the project itself is part of the identity by the time its file changed', function () {
+	$root = __DIR__ . '/../../temp/runner-factory-sources';
+	@mkdir($root, recursive: true); // @ - may exist
+	$file = "$root/TouchedRule.php";
+	if (!class_exists('TouchedRule', autoload: false)) {
+		file_put_contents($file, "<?php\n#[DressCode\\RuleInfo('test/touched', DressCode\\Stage::Structure)]\nfinal class TouchedRule extends DressCode\\NodeRule\n{\n\tpublic function getVisitedTypes(): array\n\t{\n\t\treturn [];\n\t}\n}\n");
+		require $file;
+	}
+
+	file_put_contents("$root/x.php", "<?php\n");
+	Tester\Helpers::purge("$root/cache");
+	$cached = fn() => (new RunnerFactory)
+		->createRunner(new Config(rules: ['TouchedRule' => true], cacheDir: "$root/cache"), $root)
+		->run(['x.php'], false, new NullReporter)
+		->files[0]->cached;
+
+	Assert::false($cached());
+	Assert::true($cached());
+	touch($file, (int) filemtime($file) + 10);
+	clearstatcache();
+	Assert::false($cached());
+	Assert::true($cached());
 });
 
 

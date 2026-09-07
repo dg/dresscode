@@ -408,16 +408,16 @@ test('exit codes: violations, warnings, the warning threshold, a syntax error an
 	$config = "<?php\nreturn new DressCode\\Config(rules: [ConsoleRename::class => true, ConsoleReport::class => true], paths: ['src']";
 	$write = fn(string $tail) => file_put_contents("$root/exit.php", "$config$tail);\n");
 	/** @param list<string> $args */
-	$run = fn(array $args = []) => runApp($root, array_values(['check', '--config', "$root/exit.php", ...$args]))[0];
+	$run = fn(array $args = []) => runApp($root, array_values(['check', '--config', "$root/exit.php", '--no-cache', ...$args]))[0];
 
 	$write('');
 	Assert::same(1, $run()); // violations of both rules
-	Assert::same(1, runApp($root, ['fix', '--config', "$root/exit.php"])[0]); // test/report fixes nothing
+	Assert::same(1, runApp($root, ['fix', '--config', "$root/exit.php", '--no-cache'])[0]); // test/report fixes nothing
 	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
 
 	// the same violations as warnings: reported, counted, and the exit code stays clean
 	$write(', warnings: [ConsoleRename::class, ConsoleReport::class]');
-	[$code, $out] = runApp($root, ['check', '--config', "$root/exit.php"]);
+	[$code, $out] = runApp($root, ['check', '--config', "$root/exit.php", '--no-cache']);
 	Assert::same(0, $code);
 	Assert::match('%A%  warning  2:1  Rename $a  test/rename%A%FOUND  3 warnings, a fix leaves 2 in 2 files%A%', $out);
 	Assert::same(0, $run(['--max-warnings', '3']));
@@ -444,13 +444,13 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 
 	// refused: reported, counted apart, not fixed, and the exit code says the code is not clean
 	$write('');
-	[$code, $out] = runApp($root, ['fix', '--config', $config]);
+	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache']);
 	Assert::same(1, $code);
 	Assert::contains('1 of them risky (test/risky-rename), fixed with --fix-risky or once their rules are named in fixRisky', $out);
 	Assert::same("<?php\n\$r;\n", (string) file_get_contents("$root/src/r.php"));
 
 	// the flag of the run allows it
-	[$code, $out] = runApp($root, ['fix', '--config', $config, '--fix-risky']);
+	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache', '--fix-risky']);
 	Assert::same(0, $code);
 	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
 	Assert::notContains('of them risky', $out);
@@ -458,19 +458,19 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 	// and so does the configuration, for the rules it names
 	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
 	$write(', fixRisky: [ConsoleRiskyRename::class]');
-	Assert::same(0, runApp($root, ['fix', '--config', $config])[0]);
+	Assert::same(0, runApp($root, ['fix', '--config', $config, '--no-cache'])[0]);
 	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
 
 	// the JSON says of every violation whether it was risky and how many are waiting
 	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
 	$write('');
-	[, $out] = runApp($root, ['check', '--config', $config, '--format', 'json']);
+	[, $out] = runApp($root, ['check', '--config', $config, '--no-cache', '--format', 'json']);
 	Assert::contains('"risky": true', $out);
 	Assert::contains('"riskyDeferred": 1', $out);
 
 	// a comment silences it like any other violation
 	file_put_contents("$root/src/r.php", "<?php\n\$r; // dresscode:ignore test/risky-rename\n");
-	Assert::same(0, runApp($root, ['check', '--config', $config])[0]);
+	Assert::same(0, runApp($root, ['check', '--config', $config, '--no-cache'])[0]);
 });
 
 
@@ -487,11 +487,11 @@ test('a violation the rule has no fix for is no fix waiting, with the consent or
 		file_put_contents("$root/src/a.php", "<?php\n$call;\n");
 		file_put_contents($config, "<?php\nreturn new DressCode\\Config(rules: ['strict-call' => true], paths: ['src']$tail);\n");
 
-		[, $out] = runApp($root, ['check', '--config', $config, '--format', 'json']);
+		[, $out] = runApp($root, ['check', '--config', $config, '--no-cache', '--format', 'json']);
 		$summary = json_decode($out, associative: true)['summary'];
 		Assert::same([$remaining, $deferred], [$summary['remaining'], $summary['riskyDeferred']], "$call$tail");
 
-		[, $out] = runApp($root, ['check', '--config', $config]);
+		[, $out] = runApp($root, ['check', '--config', $config, '--no-cache']);
 		if ($deferred) {
 			Assert::contains('1 of them risky (strict-call)', $out);
 		} else {
@@ -519,7 +519,7 @@ test('config says of a rule with risky fixes whether the project accepts them, a
 	Assert::false($rules['dresscode/strict-call']['fixRisky']);
 
 	// a rule an override turns on runs somewhere, one that nothing turns on makes the entry a line that does nothing
-	[, , $err] = runApp($root, ['check', '--config', $config]);
+	[, , $err] = runApp($root, ['check', '--config', $config, '--no-cache']);
 	Assert::contains('Rule dresscode/final-internal-class is named in fixRisky but runs nowhere; the entry does nothing.', $err);
 	Assert::notContains('static-closure', $err);
 });

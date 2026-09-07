@@ -12,6 +12,9 @@ final class FileResult
 	/** the fixed text was written back to the file */
 	public bool $written = false;
 
+	/** the content was known to be clean, so it was not processed */
+	public bool $cached = false;
+
 	/** whether the output differs from the code, kept by a result without its texts */
 	private ?bool $changed = null;
 
@@ -67,6 +70,7 @@ final class FileResult
 		);
 		$result->changed = $this->isChanged();
 		$result->written = $this->written;
+		$result->cached = $this->cached;
 		return $result;
 	}
 }
