@@ -1,0 +1,4 @@
+<?php
+// ::class gives the name without the leading backslash the string has
+$a = '\App\Model\User';
+$b = '\DateTimeImmutable';
