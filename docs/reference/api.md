@@ -99,7 +99,12 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function findParameters(DressCode\Analyses\MemberAccess $access): ?array
 	public function findMethodParameters(string $class, string $method): ?array
 	public function findClassName(string $name): ?string
+	public function isSubtype(string $class, string $ancestor): DressCode\Tristate
+	public function isAttributeClass(string $class): DressCode\Tristate
+	public function isInterface(string $class): DressCode\Tristate
+	public function isFinalClass(string $class): DressCode\Tristate
 	public function hasMember(string $class, DressCode\Analyses\MemberKind $kind, string $name): bool
+	public function isStaticMethod(string $class, string $method): DressCode\Tristate
 ```
 
 ## `DressCode\Claim`
