@@ -8,7 +8,7 @@
 namespace DressCode\Analyses;
 
 
-/** What a member is, as declared for a `Member`. */
+/** What a member is: as declared for a `Member`, by the syntax that reaches it for a `MemberAccess`. */
 enum MemberKind
 {
 	case Constant;
