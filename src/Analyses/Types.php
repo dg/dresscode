@@ -12,7 +12,7 @@ use PhpParser\Node as ParserNode;
 use PhpParser\Node\Expr;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCallableNode};
-use PHPStan\Reflection\{ExtendedParameterReflection, ExtendedPropertyReflection};
+use PHPStan\Reflection\{ClassReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
 use PHPStan\Type\{MixedType, Type, TypeCombinator, VerbosityLevel};
 use PhpSyntax\{Node, Printer, Token};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
@@ -36,6 +36,12 @@ final class Types implements PassAnalysis
 
 	/** @var array<string, list<ExpressionNode>>  "start:end" => the expressions the text stood at when the analysis was made, the innermost first */
 	private array $spans = [];
+
+	/** @var array<string, Tristate>  lowercased "class ancestor" => whether the one is the other's subtype */
+	private array $subtypes = [];
+
+	/** @var array<string, bool>  lowercased class => whether something declares every ancestor it names */
+	private array $seenWhole = [];
 
 	private readonly PhpStan $phpstan;
 
@@ -348,6 +354,56 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * Whether the class is the ancestor, extends it, implements it or uses it as a trait, both fully qualified, in any
+	 * letter case; maybe where either is a class nothing declares, or one whose ancestors run in a circle, which PHP
+	 * refuses to load, and where an ancestor of the class is one nothing declares, so that its hierarchy is not seen whole.
+	 */
+	public function isSubtype(string $class, string $ancestor): Tristate
+	{
+		if (strcasecmp($class, $ancestor) === 0) {
+			return Tristate::Yes;
+		}
+
+		$key = strtolower("$class $ancestor");
+		if (!isset($this->subtypes[$key])) {
+			$reflection = $this->phpstan->findClass($class);
+			$ancestorReflection = $this->phpstan->findClass($ancestor);
+			$this->subtypes[$key] = match (true) {
+				$reflection === null || $ancestorReflection === null => Tristate::Maybe,
+				$ancestorReflection->isTrait()
+					? $reflection->hasTraitUse($ancestorReflection->getName())
+					: $reflection->isSubclassOfClass($ancestorReflection) => Tristate::Yes,
+				$this->isSeenWhole($reflection) => Tristate::No,
+				default => Tristate::Maybe,
+			};
+		}
+
+		return $this->subtypes[$key];
+	}
+
+
+	/** Whether PHP reads the class as an attribute, `#[\Attribute]` standing on it; maybe for a class nothing declares. */
+	public function isAttributeClass(string $class): Tristate
+	{
+		return self::toTristate($this->phpstan->findClass($class)?->isAttributeClass());
+	}
+
+
+	/** Whether the class is an interface; maybe for a class nothing declares. */
+	public function isInterface(string $class): Tristate
+	{
+		return self::toTristate($this->phpstan->findClass($class)?->isInterface());
+	}
+
+
+	/** Whether the class is declared final; maybe for a class nothing declares. */
+	public function isFinalClass(string $class): Tristate
+	{
+		return self::toTristate($this->phpstan->findClass($class)?->isFinalByKeyword());
+	}
+
+
+	/**
 	 * Whether the class has the member of that kind, itself or through an ancestor; a magic one it does not have, and
 	 * a class nothing declares has none.
 	 */
@@ -358,6 +414,48 @@ final class Types implements PassAnalysis
 			MemberKind::Constant => $reflection->hasConstant($name),
 			MemberKind::Method, MemberKind::StaticMethod, MemberKind::Constructor => $reflection->hasNativeMethod($name),
 			MemberKind::Property, MemberKind::StaticProperty => $reflection->hasNativeProperty($name),
+		};
+	}
+
+
+	/**
+	 * Whether the class has the method, in any letter case of either, and it is static; no for a class that has no such
+	 * method, maybe for a class nothing declares and for one whose hierarchy is not seen whole and has no such method.
+	 */
+	public function isStaticMethod(string $class, string $method): Tristate
+	{
+		$reflection = $this->phpstan->findClass($class);
+		return match (true) {
+			$reflection === null => Tristate::Maybe,
+			$reflection->hasNativeMethod($method) => $reflection->getNativeMethod($method)->isStatic() ? Tristate::Yes : Tristate::No,
+			$this->isSeenWhole($reflection) => Tristate::No,
+			default => Tristate::Maybe,
+		};
+	}
+
+
+	/** Whether every ancestor the class and its ancestors name, its parent, interfaces and traits, is one something declares. */
+	private function isSeenWhole(ClassReflection $class): bool
+	{
+		return $this->seenWhole[strtolower($class->getName())] ??= array_all(
+			$class->getAncestors(),
+			function (ClassReflection $ancestor): bool {
+				$native = $ancestor->getNativeReflection()->getBetterReflection();
+				return array_all(
+					array_filter([$native->getParentClassName(), ...$native->getInterfaceClassNames(), ...$native->getTraitClassNames()]),
+					fn(string $name) => $this->phpstan->findClass($name) !== null,
+				);
+			},
+		);
+	}
+
+
+	private static function toTristate(?bool $answer): Tristate
+	{
+		return match ($answer) {
+			true => Tristate::Yes,
+			false => Tristate::No,
+			null => Tristate::Maybe,
 		};
 	}
 

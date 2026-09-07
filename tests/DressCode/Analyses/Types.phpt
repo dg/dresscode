@@ -233,6 +233,59 @@ test('the access a node makes is decided by the receiver, whether or not anythin
 });
 
 
+test('what a class has, a maybe where nothing declares an ancestor of it', function () {
+	$types = analyse(storageSample());
+
+	Assert::same(Tristate::Yes, $types->isSubtype('App\MyStorage', 'acme\cache\FILESTORAGE'));
+	Assert::same(Tristate::Yes, $types->isSubtype('App\MyStorage', 'Acme\Cache\Storage'));
+	Assert::same(Tristate::Yes, $types->isSubtype('Acme\Cache\FileStorage', 'Acme\Cache\FileStorage'));
+	Assert::same(Tristate::No, $types->isSubtype('Acme\Cache\FileStorage', 'App\MyStorage'));
+	Assert::same(Tristate::No, $types->isSubtype('Acme\Cache\Unrelated', 'Acme\Cache\FileStorage'));
+	Assert::same(Tristate::Yes, $types->isSubtype('Acme\Removed', 'acme\removed'));
+	Assert::same(Tristate::Maybe, $types->isSubtype('App\MyStorage', 'Acme\Removed'));
+	Assert::same(Tristate::Yes, $types->isSubtype('App\MyStorage', 'acme\cache\caching')); // the trait of the parent
+	Assert::same(Tristate::No, $types->isSubtype('Acme\Cache\Unrelated', 'Acme\Cache\Caching'));
+
+	Assert::true($types->hasMember('App\MyStorage', MemberKind::Property, 'tempDirectory'));
+	Assert::false($types->hasMember('App\MyStorage', MemberKind::Property, 'magic'));
+	Assert::false($types->hasMember('Acme\Removed', MemberKind::Property, 'any'));
+
+	Assert::same(Tristate::Yes, $types->isInterface('Acme\Cache\Storage'));
+	Assert::same(Tristate::No, $types->isInterface('Acme\Cache\FileStorage'));
+	Assert::same(Tristate::Maybe, $types->isInterface('Acme\Removed'));
+	Assert::same(Tristate::No, $types->isFinalClass('Acme\Cache\FileStorage'));
+	Assert::same(Tristate::Maybe, $types->isFinalClass('Acme\Removed'));
+	Assert::same(Tristate::Yes, $types->isAttributeClass('Attribute'));
+	Assert::same(Tristate::No, $types->isAttributeClass('Acme\Cache\FileStorage'));
+	Assert::same(Tristate::Maybe, $types->isAttributeClass('Acme\Removed'));
+
+	Assert::same(Tristate::No, $types->isStaticMethod('App\MyStorage', 'GETCACHEKEY'));
+	Assert::same(Tristate::Yes, $types->isStaticMethod('Acme\Cache\FileStorage', 'create'));
+	Assert::same(Tristate::No, $types->isStaticMethod('Acme\Cache\FileStorage', 'removedMethod'));
+	Assert::same(Tristate::Maybe, $types->isStaticMethod('Acme\Removed', 'run'));
+});
+
+
+test('a class whose parent the pass renamed has the hierarchy of the text of the pass, while the disk still has the old parent', function () {
+	$code = "<?php\nnamespace App;\n\nclass Child extends %s\n{\n\tpublic function run(): string\n\t{\n\t\treturn \$this->greet() . get_class(new class {});\n\t}\n}\n";
+	$dir = createTempDir('renamed');
+	file_put_contents("$dir/Base.php", "<?php\nnamespace App;\n\nclass NewBase\n{\n\tpublic function greet(): string\n\t{\n\t\treturn '';\n\t}\n}\n");
+	$path = "$dir/Child.php";
+	file_put_contents($path, sprintf($code, 'OldBase'));
+	$phpstan = new Analyses\PhpStan($dir, [$dir], dirname($dir) . '/cache');
+
+	$hierarchyOf = function (string $parent) use ($code, $path, $phpstan): array {
+		$file = (new Parser)->parse(sprintf($code, $parent));
+		$types = new Analyses\Types($file, $path, $phpstan);
+		return [$types->isSubtype('App\Child', 'App\NewBase'), $types->findMemberAccess($file->find(MethodCallNode::class)[0])?->declared];
+	};
+
+	Assert::same([Tristate::Maybe, false], $hierarchyOf('OldBase')); // a parent nothing declares hides the rest of the hierarchy
+	Assert::same([Tristate::Yes, true], $hierarchyOf('NewBase'));
+	Assert::same([Tristate::Maybe, false], $hierarchyOf('OldBase'));
+});
+
+
 test('a member the pass added is one the class has, while the disk still has the class without it', function () {
 	$code = "<?php\nnamespace App;\n\nclass Widget\n{\n%s}\n";
 	$dir = createTempDir('added');
