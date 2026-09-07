@@ -1,0 +1,9 @@
+<?php
+namespace App;
+
+function test(string $s): void
+{
+	$a = \strlen($s) === 0;
+	$b = strlen($s) === 0;
+	$c = strlen(/* the text */ $s) === 0;
+}
