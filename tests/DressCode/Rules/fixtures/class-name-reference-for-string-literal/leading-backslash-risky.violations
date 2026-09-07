@@ -1,0 +1,1 @@
+3: The class name must be written App\Model\User::class, not as a string

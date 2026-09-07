@@ -37,8 +37,11 @@ final class Types implements PassAnalysis
 	private \WeakMap $reflections;
 
 
-	public function __construct(FileNode $file, string $path, PhpStan $phpstan)
-	{
+	public function __construct(
+		FileNode $file,
+		string $path,
+		private readonly PhpStan $phpstan,
+	) {
 		$this->expressions = new \SplObjectStorage;
 		$this->declarations = new \SplObjectStorage;
 		$this->reflections = new \WeakMap;
@@ -164,6 +167,16 @@ final class Types implements PassAnalysis
 		return $reflection->isDeprecated()->yes()
 			? Deprecation::fromDescription($reflection->getDeprecatedDescription() ?? '')
 			: null;
+	}
+
+
+	/**
+	 * The declared spelling of a class, interface, trait or enum the project, its packages or PHP declare, given its
+	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares.
+	 */
+	public function findClassName(string $name): ?string
+	{
+		return $this->phpstan->findClassName($name);
 	}
 
 

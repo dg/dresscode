@@ -12,6 +12,7 @@ use Nette\Utils\FileSystem;
 use PHPStan\Analyser\{NodeScopeResolver, Scope, ScopeContext, ScopeFactory};
 use PHPStan\DependencyInjection\{Container, ContainerFactory};
 use PHPStan\Parser\Parser;
+use PHPStan\Reflection\ReflectionProvider;
 
 
 /**
@@ -68,6 +69,17 @@ final class PhpStan
 		$resolver->setAnalysedFiles([$path]);
 		$scope = $container->getByType(ScopeFactory::class)->create(ScopeContext::create($path));
 		$resolver->processNodes($ast, $scope, $callback);
+	}
+
+
+	/**
+	 * The declared spelling of a class, interface, trait or enum the project, its packages or PHP declare, given its
+	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares.
+	 */
+	public function findClassName(string $name): ?string
+	{
+		$provider = $this->getContainer()->getByType(ReflectionProvider::class);
+		return $provider->hasClass($name) ? $provider->getClass($name)->getName() : null;
 	}
 
 

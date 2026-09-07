@@ -39,6 +39,7 @@ final class RuleRegistry
 		Rules\Namespaces\ClassReferenceNameCasingRule::class,
 		Rules\Classes\FinalInternalClassRule::class,
 		Rules\Classes\ModernClassNameReferenceRule::class,
+		Rules\Classes\ClassNameReferenceForStringLiteralRule::class,
 		Rules\Classes\NameCasingRule::class,
 		Rules\Upgrading\ForbiddenFunctionsRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
