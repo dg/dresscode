@@ -1,0 +1,4 @@
+7: Useless method __construct(), it only calls the parent method
+13: Useless method render(), it only calls the parent method
+19: Useless method load(), it only calls the parent method
+25: Useless method save(), it only calls the parent method
