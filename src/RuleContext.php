@@ -188,8 +188,10 @@ final class RuleContext
 
 
 	/**
-	 * The analysis of the file where the run has it, null where it does not: an analysis nothing registered whose
-	 * constructor takes more than the FileNode. What the factory of a registered one throws is thrown.
+	 * The analysis of the file where the run has it, null where it does not: the types of the code without
+	 * `types: phpstan`, which a rule that only does better with them asks for this way, and an analysis nothing
+	 * registered whose constructor takes more than the FileNode. What the factory of a registered one throws is
+	 * thrown.
 	 * @template T of object
 	 * @param  class-string<T>  $class
 	 * @return ?T

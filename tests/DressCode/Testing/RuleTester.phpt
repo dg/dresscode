@@ -154,6 +154,21 @@ final class TestedUncertain extends NodeRule
 }
 
 
+#[RuleInfo('test/typed', Stage::Structure, typesRequired: true)]
+final class TestedTyped extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+	}
+}
+
+
 /** An analysis of a plugin. */
 final class TestedLabel
 {
@@ -245,5 +260,6 @@ test('a style given is used, with the line ending of the code', function () {
 
 test('fixture errors', function () {
 	Assert::exception(fn() => RuleTester::run(TestedRename::class, __DIR__ . '/fixtures/none'), TestFailure::class, 'No `*.code` fixtures in `%a%`.');
+	Assert::exception(fn() => RuleTester::run(TestedTyped::class, __DIR__ . '/fixtures/types-off'), TestFailure::class, '%a%A rule that needs the types cannot run with `types off`.');
 	Assert::exception(fn() => RuleTester::runFixture(TestedRename::class, __DIR__ . '/fixtures/rename/clean.expected'), TestFailure::class, 'Cannot read `%a%');
 });

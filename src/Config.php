@@ -78,7 +78,7 @@ final readonly class Config extends Profile
 		public ?string $baseline = null,
 		public ?string $cacheDir = null,
 		array $analyses = [],
-		/** `'phpstan'` lets the rules that need the types of the code run */
+		/** `'phpstan'` takes the types of the code from the PHPStan of the project; without it no rule that needs them runs */
 		public ?string $types = null,
 		/** the address of the page of each rule the configuration names by class, `{slug}` standing for the name without its vendor */
 		public ?string $ruleUrl = null,

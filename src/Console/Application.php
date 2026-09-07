@@ -236,6 +236,7 @@ final class Application
 				fixRisky: (bool) ($args['--fix-risky'] ?? false),
 				baseline: $args->command->name !== 'baseline',
 			);
+			($runner->warmUp)?->__invoke(); // before connecting, which is what starts the other workers
 			return WorkerClient::serve($args['--worker'], $runner, $fix);
 		}
 
@@ -286,7 +287,7 @@ final class Application
 		$jobs = $args['--jobs'] === null
 			? max(1, min(WorkerPool::detectCpuCount(), intdiv(count($files), 4)))
 			: max(1, (int) $args['--jobs']);
-		$workers = $jobs > 1 && $files ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->cwd) : null;
+		$workers = $jobs > 1 && $files ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->cwd, warmFirst: $runner->warmUp !== null) : null;
 		if ($generate) {
 			return $this->generateBaseline($factory, $config, $root, $configFile, $commandLine, $files, $workers, $format);
 		}
