@@ -11,10 +11,11 @@ use DressCode\Tristate;
 use PhpParser\Node as ParserNode;
 use PhpParser\Node\Expr;
 use PHPStan\Analyser\Scope;
-use PHPStan\Type\Type;
+use PHPStan\Reflection\ExtendedPropertyReflection;
+use PHPStan\Type\{Type, TypeCombinator};
 use PhpSyntax\{Node, Printer, Token};
-use PhpSyntax\Nodes\Expression\ParenthesizedNode;
-use PhpSyntax\Nodes\{ExpressionNode, FileNode};
+use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
+use PhpSyntax\Nodes\{ExpressionNode, FileNode, IdentifierNode, NameNode};
 use function count, strlen;
 
 
@@ -40,10 +41,12 @@ final class Types implements PassAnalysis
 
 	private readonly PhpStan $phpstan;
 
+	private readonly Declarations $declarations;
+
 
 	/**
-	 * The scopes wait for the first question that needs them; the nodes are found by where their text stood now, so
-	 * that what the pass changes meanwhile moves nothing.
+	 * The scopes wait for the first question that needs them, most of a file asking about classes alone; the nodes are
+	 * found by where their text stood now, so that what the pass changes meanwhile moves nothing.
 	 * @internal
 	 */
 	public function __construct(
@@ -58,6 +61,7 @@ final class Types implements PassAnalysis
 			return $ast ??= $phpstan->parse($code);
 		};
 		$this->phpstan = $phpstan->deriveFor($path, $code, $this->parse);
+		$this->declarations = $this->phpstan->getDeclarations();
 		$this->collectSpans($file);
 	}
 
@@ -165,5 +169,103 @@ final class Types implements PassAnalysis
 			$answer->no() => Tristate::No,
 			default => Tristate::Maybe,
 		};
+	}
+
+
+	/**
+	 * The member the node reaches: the constant of a class constant access, the method of a call, the property of
+	 * an access, the constructor of an instantiation, decided by the class that declares it and of the kind it is
+	 * declared (`parent::recalc()` reaches a method, `$order->make()` a static one, `parent::__construct()` the
+	 * constructor). Null for a node that reaches no known member, or whose name is an expression.
+	 */
+	public function findMember(ExpressionNode $node): ?Member
+	{
+		$receiver = $this->findReceiver($node);
+		if ($receiver === null) {
+			return null;
+		}
+
+		[$kind, $type, $name, $scope] = $receiver;
+		$reflection = match ($kind) {
+			MemberKind::Constant => $scope->getConstantReflection($type, $name),
+			MemberKind::Method, MemberKind::StaticMethod, MemberKind::Constructor => $scope->getMethodReflection($type, $name),
+			MemberKind::Property => $scope->getInstancePropertyReflection($type, $name),
+			MemberKind::StaticProperty => $scope->getStaticPropertyReflection($type, $name),
+		};
+		if ($reflection === null) {
+			return null;
+		} elseif ($kind === MemberKind::Method || $kind === MemberKind::StaticMethod) {
+			$kind = match (true) {
+				strcasecmp($name, '__construct') === 0 => MemberKind::Constructor,
+				$reflection->isStatic() => MemberKind::StaticMethod,
+				default => MemberKind::Method,
+			};
+		}
+
+		// a property reflection does not say its name, which the declaration cannot spell differently anyway
+		return new Member(
+			$kind,
+			$reflection instanceof ExtendedPropertyReflection ? $name : $reflection->getName(),
+			$reflection->getDeclaringClass()->getName(),
+		);
+	}
+
+
+	/**
+	 * The declared spelling of a class, interface, trait or enum the project, its packages or PHP declare, given its
+	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares.
+	 */
+	public function findClassName(string $name): ?string
+	{
+		return $this->declarations->findClassName($name);
+	}
+
+
+	/**
+	 * What the syntax of a member access says and the types add: the kind, the type of the receiver, the name as
+	 * written and the scope; null for a node that is no access, whose name is an expression or whose receiver is no object.
+	 * @return ?array{MemberKind, Type, string, Scope}
+	 */
+	private function findReceiver(ExpressionNode $node): ?array
+	{
+		$found = $this->findExpression($node);
+		if ($found === null) {
+			return null;
+		}
+
+		[$parserNode, $scope] = $found;
+		[$kind, $type, $name] = match (true) {
+			$node instanceof ClassConstantFetchNode && $node->name instanceof IdentifierNode && $parserNode instanceof Expr\ClassConstFetch
+				=> [MemberKind::Constant, self::getClassType($parserNode->class, $scope), $node->name->text],
+			$node instanceof StaticMethodCallNode && $node->name instanceof IdentifierNode && $parserNode instanceof Expr\StaticCall
+				=> [MemberKind::StaticMethod, self::getClassType($parserNode->class, $scope), $node->name->text],
+			$node instanceof MethodCallNode
+			&& $node->name instanceof IdentifierNode
+			&& ($parserNode instanceof Expr\MethodCall || $parserNode instanceof Expr\NullsafeMethodCall)
+				=> [MemberKind::Method, $scope->getType($parserNode->var), $node->name->text],
+			$node instanceof StaticPropertyFetchNode && $node->plainName !== null && $parserNode instanceof Expr\StaticPropertyFetch
+				=> [MemberKind::StaticProperty, self::getClassType($parserNode->class, $scope), $node->plainName],
+			$node instanceof PropertyFetchNode
+			&& $node->name instanceof IdentifierNode
+			&& ($parserNode instanceof Expr\PropertyFetch || $parserNode instanceof Expr\NullsafePropertyFetch)
+				=> [MemberKind::Property, $scope->getType($parserNode->var), $node->name->text],
+			$node instanceof NewNode
+			&& $node->class instanceof NameNode
+			&& $parserNode instanceof Expr\New_
+			&& $parserNode->class instanceof ParserNode\Name
+				=> [MemberKind::Constructor, $scope->resolveTypeByName($parserNode->class), '__construct'],
+			default => [null, null, null],
+		};
+		// a receiver that may be null is the class it may be: where it is null, the call fails before and after alike
+		$type = $type === null ? null : TypeCombinator::removeNull($type);
+		return $kind === null || $type === null || $name === null || $type->getObjectClassNames() === []
+			? null // no class the member could be declared by: mixed, a scalar, an unknown variable
+			: [$kind, $type, $name, $scope];
+	}
+
+
+	private static function getClassType(ParserNode\Name|Expr $class, Scope $scope): Type
+	{
+		return $class instanceof ParserNode\Name ? $scope->resolveTypeByName($class) : $scope->getType($class);
 	}
 }
