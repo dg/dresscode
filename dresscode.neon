@@ -7,6 +7,9 @@ groups:
 
 rules:
 	groupImport: {minImports: 2}
+	overrideAttributeRequired: keep
+
+types: phpstan
 
 paths:
 	- src

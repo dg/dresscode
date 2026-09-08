@@ -565,6 +565,7 @@ final readonly class Violation
 - `DressCode\Rules\Classes\NoSleepAndWakeupRule`
 - `DressCode\Rules\Classes\NoStaticThisRule`
 - `DressCode\Rules\Classes\OrderedMembersRule`
+- `DressCode\Rules\Classes\OverrideAttributeRequiredRule`
 - `DressCode\Rules\Classes\PromotedPropertyForAssignmentRule`
 - `DressCode\Rules\Classes\ReadonlyClassForReadonlyMembersRule`
 - `DressCode\Rules\Classes\ReadonlyForAnnotationRule`
