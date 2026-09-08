@@ -79,6 +79,7 @@ final class RuleRegistry
 		Rules\Files\NoClosingTagRule::class,
 		Rules\Files\StrictTypesRequiredRule::class,
 		Rules\Functions\ArrowFunctionRule::class,
+		Rules\Functions\FirstClassCallableNotationRule::class,
 		Rules\Functions\ForbiddenFunctionsRule::class,
 		Rules\Functions\MultiLineCallRule::class,
 		Rules\Functions\NoDirnameOfFileRule::class,

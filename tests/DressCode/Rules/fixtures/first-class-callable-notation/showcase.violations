@@ -1,0 +1,3 @@
+2: The callable must be written as $this->mailer->send(...)
+3: The callable must be written as \ucfirst(...)
+4: The callable must be written as Item::create(...)
