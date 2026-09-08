@@ -178,10 +178,27 @@ function storageSample(): FileNode
 }
 
 
-test('what the declaration deprecates for a member built by hand', function () {
-	$types = analyse(orderSample());
+test('what the declaration deprecates for a member built by hand and for one an override found', function () {
+	$file = (new Parser)->parse(<<<'PHP'
+		<?php
+		namespace App;
+
+		use Acme\Shop\Order;
+
+		class Child extends Order
+		{
+			public function recalc(): void
+			{
+			}
+		}
+		PHP);
+	$types = analyse($file);
 	$order = 'Acme\Shop\Order';
 
+	Assert::equal(
+		new Deprecation('use recalculate()', null, 'recalculate', replacementIsCall: true),
+		$types->findDeprecation($types->findOverridden($file->find(PhpSyntax\Nodes\Member\MethodNode::class)[0]) ?? throw new LogicException('No member.')),
+	);
 	Assert::same('recalculate', $types->findDeprecation(new Analyses\Member(MemberKind::Method, 'recalc', $order))?->replacementName);
 	Assert::same('make', $types->findDeprecation(new Analyses\Member(MemberKind::StaticMethod, 'build', $order))?->replacementName);
 	Assert::same('$count', $types->findDeprecation(new Analyses\Member(MemberKind::StaticProperty, 'counter', $order))?->replacementName);
@@ -309,6 +326,97 @@ test('what the deprecation of a class says', function () {
 	Assert::equal(new Deprecation('use Acme\Cache\FileStorage', 'Acme\Cache\FileStorage'), $types->findClassDeprecation('acme\cache\oldstorage'));
 	Assert::null($types->findClassDeprecation('Acme\Cache\FileStorage'));
 	Assert::null($types->findClassDeprecation('Acme\Removed'));
+});
+
+
+test('the class a declaration stands in', function () {
+	$file = storageSample();
+	$types = analyse($file);
+
+	[$override, $anonymous] = $file->find(PhpSyntax\Nodes\Member\MethodNode::class);
+	Assert::same('App\MyStorage', $types->findDeclaringClass($override));
+	Assert::same(Tristate::Yes, $types->isSubtype((string) $types->findDeclaringClass($anonymous), 'Acme\Cache\Storage'));
+});
+
+
+test('a declaration with the signature of the parent declaration', function () {
+	$file = (new Parser)->parse(<<<'PHP'
+		<?php
+		namespace App;
+
+		class Base
+		{
+			public function same(int $a, string ...$rest): string { return ''; }
+			protected function visibility($a) {}
+			public function type(int $a) {}
+			public function name(int $a) {}
+			public function defaultValue(int $a = 1) {}
+			public function reference(array &$a) {}
+			public function returnType(): string { return ''; }
+			public static function staticness() {}
+			private function hidden() {}
+			public function self(): self { return $this; }
+		}
+
+		class Child extends Base
+		{
+			public function same(int $a, string ...$rest): string { return ''; }
+			public function visibility($a) {}
+			public function type(string $a) {}
+			public function name(int $b) {}
+			public function defaultValue(int $a = 2) {}
+			public function reference(array $a) {}
+			public function returnType(): ?string { return ''; }
+			public function staticness() {}
+			public function hidden() {}
+			public function self(): self { return $this; }
+			public function own() {}
+		}
+		PHP);
+	$types = analyse($file);
+	$methods = [];
+	foreach ($file->find(PhpSyntax\Nodes\Member\MethodNode::class) as $method) {
+		if ($method->findAncestor(PhpSyntax\Nodes\Statement\ClassNode::class)?->name->text === 'Child') {
+			$methods[$method->name->text] = $types->matchesParentSignature($method);
+		}
+	}
+
+	Assert::same([
+		'same' => true,
+		'visibility' => false,
+		'type' => false,
+		'name' => false,
+		'defaultValue' => false,
+		'reference' => false,
+		'returnType' => false,
+		'staticness' => false,
+		'hidden' => false,
+		'self' => false,
+		'own' => false,
+	], $methods);
+});
+
+
+test('an overriding declaration is read from the text of the pass, while the disk still has the text of the first one', function () {
+	$code = "<?php\nnamespace App;\n\nabstract class Base\n{\n\tabstract protected function run(string \$name): int;\n}\n\nclass Child extends Base\n{\n\tprotected function %s\n\t{\n\t\treturn 1;\n\t}\n}\n";
+	$dir = createTempDir('stale');
+	$path = "$dir/Child.php";
+	file_put_contents($path, sprintf($code, 'run(int $name)'));
+	$phpstan = new Analyses\PhpStan($dir, [$path], "$dir/cache");
+
+	$signatureOf = function (string $declaration) use ($code, $path, $phpstan): Analyses\OverriddenSignature {
+		$file = (new Parser)->parse(sprintf($code, $declaration));
+		$method = $file->find(PhpSyntax\Nodes\Member\MethodNode::class)[1];
+		return new Analyses\Types($file, $path, $phpstan)->findOverriddenSignature($method) ?? throw new LogicException('No signature.');
+	};
+
+	$first = $signatureOf('run(int $name)');
+	Assert::true($first->returnWidened);
+	Assert::same([0], $first->narrowedParameters);
+
+	$fixed = $signatureOf('run(string $name): int');
+	Assert::false($fixed->returnWidened);
+	Assert::same([], $fixed->narrowedParameters);
 });
 
 
