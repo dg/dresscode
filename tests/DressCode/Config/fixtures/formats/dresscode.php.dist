@@ -1,0 +1,20 @@
+<?php declare(strict_types=1);
+
+use DressCode\Config;
+
+return Config::create()
+	->extension(Acme\DressCode\Extension::class)
+	->preset('dresscode/psr12')
+	->preset('acme/default')
+	->enable('dresscode/line-length', ['maxLength' => 160])
+	->enable('dresscode/strict-comparison')
+	->disable('dresscode/no-yoda-comparison')
+	->style(indent: "\t", eol: 'auto')
+	->phpVersion('8.3')
+	->paths(['src', 'tests'])
+	->excludePaths(['build', 'docs/generated'])
+	->excludeRulePaths('dresscode/ordered-imports', ['src/Legacy'])
+	->fileExtensions(['php', 'phpt'])
+	->baseline('dresscode-baseline.neon')
+	->cacheDir('temp/dresscode')
+	->analysis(Acme\DressCode\Analyses\FunctionCalls::class);

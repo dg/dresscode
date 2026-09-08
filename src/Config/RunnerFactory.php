@@ -13,6 +13,7 @@ use DressCode\Helpers;
 use DressCode\PresetContext;
 use DressCode\RuleInfo;
 use DressCode\Runner;
+use Nette\Utils\FileSystem;
 use PhpSyntax\Style;
 use function is_array, is_string;
 
@@ -118,12 +119,8 @@ final class RunnerFactory
 	{
 		$root = Helpers::canonicalizePath($root);
 		$dir = $config->getCacheDir();
-		$dir = match (true) {
-			$dir === null => sys_get_temp_dir() . '/dresscode',
-			(bool) preg_match('~^(?:[A-Za-z]:)?[/\\\]~', $dir) => $dir,
-			default => "$root/$dir",
-		};
-		return rtrim(str_replace('\\', '/', $dir), '/') . '/' . substr(hash('xxh128', $root), 0, 16) . '.json';
+		$dir = $dir === null ? sys_get_temp_dir() . '/dresscode' : self::toAbsolutePath($dir, $root);
+		return Helpers::canonicalizePath($dir) . '/' . substr(hash('xxh128', $root), 0, 16) . '.json';
 	}
 
 
@@ -176,9 +173,16 @@ final class RunnerFactory
 	public static function resolveBaselineFile(Config $config, string $root): ?string
 	{
 		$file = $config->getBaseline();
-		return $file === null || preg_match('~^(?:[A-Za-z]:)?[/\\\]~', $file)
-			? $file
-			: rtrim(str_replace('\\', '/', $root), '/') . '/' . $file;
+		return $file === null ? null : self::toAbsolutePath($file, $root);
+	}
+
+
+	/** A path of the configuration as the filesystem takes it: an absolute one stands, a relative one is under the root. */
+	public static function toAbsolutePath(string $path, string $root): string
+	{
+		return FileSystem::isAbsolute($path)
+			? $path
+			: Helpers::canonicalizePath($root) . '/' . $path;
 	}
 
 

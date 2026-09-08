@@ -12,6 +12,7 @@
 	"require": {
 		"php": "8.4 - 8.6",
 		"nette/command-line": "^1.9",
+		"nette/neon": "^3.4",
 		"nette/schema": "^1.4.x-dev",
 		"nette/utils": "^4.1",
 		"phpsyntax/phpsyntax": "dev-master",

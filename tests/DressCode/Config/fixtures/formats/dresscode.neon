@@ -1,0 +1,26 @@
+extensions:
+	- Acme\DressCode\Extension
+
+presets:
+	- dresscode/psr12
+	- acme/default
+
+rules:
+	dresscode/line-length: {maxLength: 160}
+	dresscode/strict-comparison: true
+	dresscode/no-yoda-comparison: false
+
+style:
+	indent: "\t"
+	eol: auto
+
+phpVersion: '8.3'
+paths: [src, tests]
+excludePaths: [build, docs/generated]
+excludeRulePaths:
+	dresscode/ordered-imports: [src/Legacy]
+fileExtensions: [php, phpt]
+baseline: dresscode-baseline.neon
+cacheDir: temp/dresscode
+analyses:
+	- Acme\DressCode\Analyses\FunctionCalls

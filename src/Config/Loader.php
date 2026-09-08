@@ -6,14 +6,19 @@ use DressCode\Config;
 use DressCode\ConfigurationException;
 use DressCode\Helpers;
 use DressCode\Presets;
+use function count;
 
 
 /**
- * Finds and loads dresscode.php; without a file the caller's default applies, or the default preset.
+ * Finds and loads the configuration file; without one the caller's default applies, or the default preset.
  */
 final class Loader
 {
-	public const FileName = 'dresscode.php';
+	/** the two formats, in no order of preference: only one of them may lie in a directory */
+	public const FileNames = ['dresscode.neon', 'dresscode.php'];
+
+	/** the committed template a local file of the same format replaces whole */
+	public const DistSuffix = '.dist';
 
 
 	/**
@@ -40,15 +45,24 @@ final class Loader
 
 
 	/**
-	 * The nearest dresscode.php in the directory or above it.
+	 * The nearest configuration file in the directory or above it: within a directory the local file wins
+	 * over the .dist template, and the two formats are an ambiguity nobody can resolve for the user.
+	 * @throws ConfigurationException
 	 */
 	public static function find(string $directory): ?string
 	{
 		$directory = Helpers::canonicalizePath($directory);
 		while (true) {
-			$file = "$directory/" . self::FileName;
-			if (is_file($file)) {
-				return $file;
+			foreach (['', self::DistSuffix] as $suffix) {
+				$found = array_values(array_filter(
+					array_map(fn(string $name) => "$directory/$name$suffix", self::FileNames),
+					is_file(...),
+				));
+				if (count($found) > 1) {
+					throw new ConfigurationException('Both ' . implode(' and ', $found) . ' exist; keep one of them.');
+				} elseif ($found) {
+					return $found[0];
+				}
 			}
 
 			$parent = dirname($directory);
@@ -61,18 +75,28 @@ final class Loader
 	}
 
 
-	/** @throws ConfigurationException */
+	/** The format follows the extension of the file, a .dist template that of the file it stands for. */
 	public static function loadFile(string $file): Config
 	{
 		if (!is_file($file)) {
 			throw new ConfigurationException("Configuration file $file does not exist.");
 		}
 
-		$config = require $file;
-		if (!$config instanceof Config) {
-			throw new ConfigurationException("Configuration file $file must return DressCode\\Config.");
-		}
+		$name = (string) preg_replace('~\\' . self::DistSuffix . '$~', '', $file);
+		return match (strtolower(pathinfo($name, PATHINFO_EXTENSION))) {
+			'neon' => NeonReader::read($file),
+			'php' => self::loadPhpFile($file),
+			default => throw new ConfigurationException("Configuration file $file must be a .neon or a .php file."),
+		};
+	}
 
-		return $config;
+
+	/** @throws ConfigurationException */
+	private static function loadPhpFile(string $file): Config
+	{
+		$config = require $file;
+		return $config instanceof Config
+			? $config
+			: throw new ConfigurationException("Configuration file $file must return DressCode\\Config.");
 	}
 }
