@@ -86,6 +86,20 @@ final class Registry
 	}
 
 
+	/**
+	 * The analysis, or null for one nothing registered that cannot be built from the file alone.
+	 * @template T of object
+	 * @param  class-string<T>  $class
+	 * @return ?T
+	 */
+	public function find(FileNode $file, string $class, string $path = ''): ?object
+	{
+		return isset($this->factories[$class]) || (new \ReflectionClass($class)->getConstructor()?->getNumberOfRequiredParameters() ?? 0) <= 1
+			? $this->get($file, $class, $path)
+			: null;
+	}
+
+
 	/** A pass over the file begins: what the previous one computed for the whole pass is dropped. */
 	public function beginPass(FileNode $file): void
 	{

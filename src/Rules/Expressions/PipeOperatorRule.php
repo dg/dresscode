@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\Analyses\PhpSignatures;
+use DressCode\Analyses\{PhpSignatures, Types};
 use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{AccessKind, Node, Parser, SymbolKind, Token};
@@ -26,8 +26,8 @@ use function count;
  * between concatenation and comparison, so it would need parentheses there and read worse than the nest.
  *
  * A pipe cannot pass its value by reference, so a nest with a step taking it so stays as it is. What a step takes
- * says the declaration of PHP or of the file; the fix is risky where nothing says it, which is every method and
- * a function of another file.
+ * says the declaration of PHP or of the file, and of a method the types; the fix is risky where nothing says it,
+ * which without the types is every method and a function of another file.
  */
 #[RuleInfo(
 	'dresscode/pipe-operator',
@@ -150,25 +150,29 @@ final class PipeOperatorRule extends NodeRule implements ConfigurableRule
 
 
 	/**
-	 * Whether the call takes its argument by value, as the declaration in the file or the one of PHP says; null
-	 * where nothing tells.
+	 * Whether the call takes its argument by value, as the declaration in the file or the one of PHP says, and of
+	 * a method the types; null where nothing tells.
 	 */
 	private static function takesByValue(ExpressionNode $call, RuleContext $context): ?bool
 	{
-		if (!$call instanceof Expression\FunctionCallNode || !$call->name instanceof NameNode) {
-			return null;
+		if ($call instanceof Expression\FunctionCallNode && $call->name instanceof NameNode) {
+			$resolver = $context->getAnalysis(NameResolver::class);
+			$function = $resolver->resolveFunction($call->name);
+			$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
+			if ($declaration !== null) {
+				return ($declaration->parameters->getItems()[0] ?? null)?->ampersand === null;
+			}
+
+			$parameters = $resolver->isGlobalFunctionCall($call)
+				? $context->getAnalysis(PhpSignatures::class)->findParameters($function)
+				: null;
+
+		} else {
+			$types = $context->findAnalysis(Types::class);
+			$access = $types?->findAccess($call);
+			$parameters = $access === null ? null : $types->findParameters($access);
 		}
 
-		$resolver = $context->getAnalysis(NameResolver::class);
-		$function = $resolver->resolveFunction($call->name);
-		$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
-		if ($declaration !== null) {
-			return ($declaration->parameters->getItems()[0] ?? null)?->ampersand === null;
-		}
-
-		$parameters = $resolver->isGlobalFunctionCall($call)
-			? $context->getAnalysis(PhpSignatures::class)->findParameters($function)
-			: null;
 		return $parameters === null ? null : !($parameters[0]->byReference ?? false);
 	}
 
