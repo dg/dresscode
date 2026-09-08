@@ -21,9 +21,9 @@ use function count, strlen;
 
 
 /**
- * The types of the code, from the PHPStan of the project: what an expression is, and which member a call or an
- * access reaches. The answers are those of the text of the pass at its first question; a node inserted after it
- * has none, and a rule asking for one asks with `?->`.
+ * The types of the code, from the PHPStan of the project: what an expression is, which member a call or an
+ * access reaches, and what the declaration of that member says about it. The answers are those of the text of the
+ * pass at its first question; a node inserted after it has none, and a rule asking for one asks with `?->`.
  * A rule asks questions; the answers in the words of PHPStan stay inside.
  */
 final class Types implements PassAnalysis
@@ -323,6 +323,16 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * What the declaration of the member says about its deprecation; null for a member that is not deprecated, and for
+	 * one its class does not have.
+	 */
+	public function findDeprecation(Member $member): ?Deprecation
+	{
+		return $this->declarations->findDeprecation($member);
+	}
+
+
+	/**
 	 * The declared spelling of a class, interface, trait or enum the project, its packages or PHP declare, given its
 	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares.
 	 */
@@ -381,6 +391,18 @@ final class Types implements PassAnalysis
 	public function isStaticMethod(string $class, string $method): Tristate
 	{
 		return $this->declarations->isStaticMethod($class, $method);
+	}
+
+
+	/**
+	 * What the declaration of the class says about its deprecation; null for one that is not deprecated or that nothing
+	 * declares. The replacement is the class its description names, `use Acme\Mail\SmtpTransport`, in its declared spelling:
+	 * a bare name is looked up beside the deprecated class before it is taken as written, a qualified one the other
+	 * way round, and there is none where neither exists.
+	 */
+	public function findClassDeprecation(string $class): ?Deprecation
+	{
+		return $this->declarations->findClassDeprecation($class);
 	}
 
 

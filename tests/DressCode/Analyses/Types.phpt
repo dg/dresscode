@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\{Analyses, Tristate};
-use DressCode\Analyses\MemberKind;
+use DressCode\Analyses\{Deprecation, MemberKind};
 use PhpSyntax\{Builder, Parser, Printer};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, StaticMethodCallNode, VariableNode};
 use PhpSyntax\Nodes\{ExpressionNode, FileNode};
@@ -23,7 +23,7 @@ function analyse(FileNode $file): Analyses\Types
 }
 
 
-/** Calls and constant accesses over `Acme\Shop\Order` of the stubs. */
+/** Calls and constant accesses over `Acme\Shop\Order` of the stubs, which deprecates a method and a constant. */
 function orderSample(): FileNode
 {
 	return (new Parser)->parse(<<<'PHP'
@@ -115,6 +115,27 @@ test('the member a call or a constant access reaches', function () {
 });
 
 
+test('what the declaration of a member deprecates, and the class the member is reached through', function () {
+	$file = orderSample();
+	$types = analyse($file);
+
+	[$selfConstant, $orderConstant, $myConstant] = $file->find(ClassConstantFetchNode::class);
+	[$thisCall] = $file->find(MethodCallNode::class);
+	$memberOf = fn(ExpressionNode $node) => $types->findMember($node) ?? throw new LogicException('No member.');
+
+	Assert::equal(
+		new Deprecation('use recalculate()', null, 'recalculate', replacementIsCall: true),
+		$types->findDeprecation($memberOf($thisCall)),
+	);
+	foreach ([$selfConstant, $orderConstant] as $access) {
+		Assert::equal(new Deprecation('use Order::StatusPaid', 'Order', 'StatusPaid'), $types->findDeprecation($memberOf($access)));
+	}
+
+	Assert::null($types->findDeprecation($memberOf($myConstant)));
+	Assert::null($types->findDeprecation(new Analyses\Member(MemberKind::Constant, 'X', 'Y')));
+});
+
+
 /** Accesses over `Acme\Cache\FileStorage` of the stubs, a child of it, and classes nothing declares. */
 function storageSample(): FileNode
 {
@@ -122,6 +143,7 @@ function storageSample(): FileNode
 		<?php
 		namespace App;
 
+		use Acme\Cache\OldStorage;
 		use Acme\Cache\FileStorage;
 		use Acme\Cache\Unrelated;
 
@@ -135,12 +157,13 @@ function storageSample(): FileNode
 			}
 		}
 
-		function test(FileStorage $storage, MyStorage $my, ?FileStorage $nullable, FileStorage|Unrelated $union, int $number, $unknown, string $class): void
+		function test(FileStorage $storage, MyStorage $my, ?FileStorage $nullable, FileStorage|Unrelated $union, MyStorage|OldStorage $alike, int $number, $unknown, string $class): void
 		{
 			$storage->removedMethod(1);
 			$my->getCacheKey();
 			$nullable?->tempDirectory;
 			$union->getCacheKey();
+			$alike->getCacheKey();
 			$storage->magic;
 			new MyStorage('temp');
 			$number->getCacheKey();
@@ -158,10 +181,26 @@ function storageSample(): FileNode
 }
 
 
+test('what the declaration deprecates for a member built by hand', function () {
+	$types = analyse(orderSample());
+	$order = 'Acme\Shop\Order';
+
+	Assert::same('recalculate', $types->findDeprecation(new Analyses\Member(MemberKind::Method, 'recalc', $order))?->replacementName);
+	Assert::same('make', $types->findDeprecation(new Analyses\Member(MemberKind::StaticMethod, 'build', $order))?->replacementName);
+	Assert::same('$count', $types->findDeprecation(new Analyses\Member(MemberKind::StaticProperty, 'counter', $order))?->replacementName);
+	Assert::same('$items', $types->findDeprecation(new Analyses\Member(MemberKind::Property, 'legacy', $order))?->replacementName);
+
+	// a member that is not deprecated, and a name nothing declares
+	Assert::null($types->findDeprecation(new Analyses\Member(MemberKind::Method, 'recalculate', $order)));
+	Assert::null($types->findDeprecation(new Analyses\Member(MemberKind::Method, 'missing', $order)));
+	Assert::null($types->findDeprecation(new Analyses\Member(MemberKind::Method, 'recalc', 'Acme\Shop\Missing')));
+});
+
+
 test('the access a node makes is decided by the receiver, whether or not anything declares the member', function () {
 	$file = storageSample();
 	$types = analyse($file);
-	[$removed, $overridden, $ofUnion, $onNumber, $onUnknown, $dynamicName, $callable] = $file->find(MethodCallNode::class);
+	[$removed, $overridden, $ofUnion, $ofAlike, $onNumber, $onUnknown, $dynamicName, $callable] = $file->find(MethodCallNode::class);
 	[$constant] = $file->find(ClassConstantFetchNode::class);
 	[$staticProperty] = $file->find(PhpSyntax\Nodes\Expression\StaticPropertyFetchNode::class);
 	[$parentCall] = $file->find(StaticMethodCallNode::class);
@@ -225,6 +264,8 @@ test('the access a node makes is decided by the receiver, whether or not anythin
 	);
 	Assert::null($parametersOf($removed)); // nothing declares it
 	Assert::null($parametersOf($ofUnion)); // the classes of the union declare it differently
+	Assert::same(['App\MyStorage', 'Acme\Cache\OldStorage'], $types->findMemberAccess($ofAlike)?->classes);
+	Assert::same($parametersOf($overridden), $parametersOf($ofAlike)); // and these two alike
 	Assert::null($parametersOf($constant));
 	Assert::same(
 		$parametersOf($new),
@@ -277,6 +318,18 @@ test('what a class has, a maybe where nothing declares an ancestor of it', funct
 	Assert::same(Tristate::Yes, $types->isStaticMethod('Acme\Cache\FileStorage', 'create'));
 	Assert::same(Tristate::No, $types->isStaticMethod('Acme\Cache\FileStorage', 'removedMethod'));
 	Assert::same(Tristate::Maybe, $types->isStaticMethod('Acme\Removed', 'run'));
+});
+
+
+test('what the deprecation of a class says', function () {
+	$types = analyse(storageSample());
+
+	Assert::equal(
+		new Deprecation('use Acme\Cache\FileStorage', 'Acme\Cache\FileStorage'),
+		$types->findClassDeprecation('acme\cache\oldstorage'),
+	);
+	Assert::null($types->findClassDeprecation('Acme\Cache\FileStorage'));
+	Assert::null($types->findClassDeprecation('Acme\Removed'));
 });
 
 
@@ -340,4 +393,48 @@ test('the bootstrap files the configuration of PHPStan names run before the anal
 	$types = new Analyses\Types((new Parser)->parse((string) file_get_contents("$dir/Widget.php")), "$dir/Widget.php", $phpstan);
 	Assert::same('App\Widget', $types->findClassName('app\widget'));
 	Assert::true(defined('DressCodeTestBootstrap'));
+});
+
+
+test('a deprecation names its replacement in a shape a tool can read, or it does not', function () {
+	Assert::equal(new Deprecation('use Order::StatusPaid', 'Order', 'StatusPaid'), Deprecation::fromDescription('use Order::StatusPaid'));
+	Assert::equal(
+		new Deprecation('use \Acme\Shop\Order::StatusPaid instead.', 'Acme\Shop\Order', 'StatusPaid'),
+		Deprecation::fromDescription('use \Acme\Shop\Order::StatusPaid instead.'),
+	);
+	Assert::equal(new Deprecation('use recalculate()', null, 'recalculate', true), Deprecation::fromDescription('use recalculate()'));
+	Assert::equal(new Deprecation('Use $items', null, '$items'), Deprecation::fromDescription('Use $items'));
+	Assert::equal(new Deprecation('use something else'), Deprecation::fromDescription('use something else'));
+	Assert::equal(new Deprecation('since 3.2'), Deprecation::fromDescription('since 3.2'));
+	Assert::equal(new Deprecation(''), Deprecation::fromDescription(''));
+
+	// the words around the code
+	$codes = [
+		'since Mailer 6.4, use "enableCompression()" instead.' => 'enableCompression()',
+		'since acme/mailer 5.3, use DEFAULT_PORT instead.' => 'DEFAULT_PORT',
+		'since Mailer 8.1; use Acme\Mail\Transport instead' => 'Acme\Mail\Transport',
+		'since Mailer 6.1, to be removed in 7.0, use {@link SmtpTransport} instead' => 'SmtpTransport',
+		'use const RETRY_LIMIT instead' => 'RETRY_LIMIT',
+		'use protected const RETRY_LIMIT instead' => 'RETRY_LIMIT',
+		'use the {@see QueuedMessage} instead' => 'QueuedMessage',
+		'use {@see self::getRecipients()} instead' => 'self::getRecipients()',
+		'use `getHeaders()` instead' => 'getHeaders()',
+		'use "Acme\Mail\Transport\SendmailTransport" instead' => 'Acme\Mail\Transport\SendmailTransport',
+		'use the Foo class instead' => 'Foo',
+		'use ->send() instead' => 'send()',
+		'use the Queued attribute instead' => null,
+		'use the #[Queued] attribute instead' => null,
+		"use Mailer's TransportFactory instead" => null,
+		'use a middleware instead.' => null,
+		'since Mailer 7.3, to be removed in 8.0' => null,
+	];
+	foreach ($codes as $description => $code) {
+		Assert::same($code, Deprecation::findReplacementCode($description), $description);
+	}
+
+	Assert::equal(
+		new Deprecation('use {@see self::getRecipients()} instead', null, 'getRecipients', true),
+		Deprecation::fromDescription('use {@see self::getRecipients()} instead'),
+	);
+	Assert::equal(new Deprecation('use ->send() instead', null, 'send', true), Deprecation::fromDescription('use ->send() instead'));
 });

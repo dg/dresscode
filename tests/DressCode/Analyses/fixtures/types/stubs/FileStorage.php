@@ -47,6 +47,12 @@ class FileStorage implements Storage
 }
 
 
+/** @deprecated use Acme\Cache\FileStorage */
+class OldStorage extends FileStorage
+{
+}
+
+
 class Unrelated
 {
 	public function getCacheKey(int $depth): array

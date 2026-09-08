@@ -9,7 +9,7 @@ namespace DressCode\Rules;
 
 
 /**
- * The last segment of a fully qualified name of a class, a function or a constant.
+ * The two halves of a fully qualified name of a class, a function or a constant.
  */
 final class QualifiedNames
 {
@@ -17,5 +17,12 @@ final class QualifiedNames
 	public static function stripNamespace(string $name): string
 	{
 		return substr($name, (int) strrpos('\\' . $name, '\\'));
+	}
+
+
+	/** The namespace of a fully qualified name, `Acme\Shop` of `Acme\Shop\Order`, empty for a global one. */
+	public static function extractNamespace(string $name): string
+	{
+		return substr($name, 0, max(0, (int) strrpos($name, '\\')));
 	}
 }
