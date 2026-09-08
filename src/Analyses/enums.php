@@ -8,7 +8,7 @@
 namespace DressCode\Analyses;
 
 
-/** What a callee is, by the syntax that reaches it. */
+/** What a member is, by the syntax that reaches it. */
 enum MemberKind
 {
 	case Constant;
@@ -16,4 +16,5 @@ enum MemberKind
 	case StaticMethod;
 	case Property;
 	case StaticProperty;
+	case Constructor;
 }

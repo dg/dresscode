@@ -14,6 +14,11 @@ parameters:
 		- tests/corpus/*
 
 	ignoreErrors:
+		# a first-class callable reaches the analysis only as a node of PHPStan's own; should PHPStan stop making
+		# them, the branch is dead, the callable goes unseen as any unknown node does, and the test of Types says so
+		-
+			identifier: phpstanApi.instanceofAssumption
+			path: src/Analyses/Types.php
 		# the class phpstan/extension-installer generates is internal to it; should it be renamed or dropped, the
 		# extensions go unread, which costs what they add to the types, not a wrong answer
 		-

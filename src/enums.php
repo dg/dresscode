@@ -20,6 +20,17 @@ enum Stage
 }
 
 
+/**
+ * The answer to a question the code may not settle: yes for certain, no for certain, or maybe.
+ */
+enum Tristate
+{
+	case Yes;
+	case No;
+	case Maybe;
+}
+
+
 enum Severity
 {
 	case Error;

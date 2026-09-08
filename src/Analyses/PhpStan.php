@@ -13,7 +13,7 @@ use PHPStan\Analyser\{NodeScopeResolver, Scope, ScopeContext, ScopeFactory};
 use PHPStan\DependencyInjection\{Container, ContainerFactory};
 use PHPStan\ExtensionInstaller\GeneratedConfig;
 use PHPStan\Parser\Parser;
-use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\Reflection\{ClassReflection, ReflectionProvider};
 
 
 /**
@@ -79,8 +79,15 @@ final class PhpStan
 	 */
 	public function findClassName(string $name): ?string
 	{
+		return $this->findClass($name)?->getName();
+	}
+
+
+	/** The class, interface, trait or enum of that fully qualified name, in any letter case; null for a name nothing declares. */
+	public function findClass(string $name): ?ClassReflection
+	{
 		$provider = $this->getContainer()->getByType(ReflectionProvider::class);
-		return $provider->hasClass($name) ? $provider->getClass($name)->getName() : null;
+		return $provider->hasClass($name) ? $provider->getClass($name) : null;
 	}
 
 
