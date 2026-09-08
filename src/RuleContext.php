@@ -206,6 +206,19 @@ final class RuleContext
 
 
 	/**
+	 * The analysis of the file where the run has it, null where it does not: the types of the code without
+	 * `types: phpstan`, which a rule that only does better with them asks for this way.
+	 * @template T of object
+	 * @param  class-string<T>  $class
+	 * @return ?T
+	 */
+	public function findAnalysis(string $class): ?object
+	{
+		return $this->analyses->find($this->file, $class, $this->path);
+	}
+
+
+	/**
 	 * The rule of the class as it is configured for this file, so that code a rule writes takes the shape another
 	 * rule gives it; null when that rule does not run on the file.
 	 * @template T of Rule

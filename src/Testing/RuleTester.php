@@ -41,7 +41,7 @@ final class RuleTester
 	 * `// namespacedFunctions App\helper, App\Utils\{format}`, `// namespacedConstants App\LIMIT` and
 	 * `// nameResolution certain`. A rule that needs the types of the code
 	 * gets them from the PHPStan of this project over the fixture and the declarations in the `stubs` directory
-	 * beside it. Returns the count.
+	 * beside it, and so does one that only does better with them where that directory is there. Returns the count.
 	 * @param class-string<Rule>|\Closure(array<string, mixed>): Rule $rule
 	 * @throws TestFailure
 	 */
@@ -123,7 +123,7 @@ final class RuleTester
 	 * @param ?string $expected  the output; null when the rule must leave the code as it is
 	 * @param ?list<string> $violations  "line: message" each; null to skip the check
 	 * @param NamespacedSymbols $namespacedSymbols  what the namespaces declare outside the code
-	 * @param ?string $stubs  directory of the declarations the types of the code are computed with, for a rule that needs them
+	 * @param ?string $stubs  directory of the declarations the types of the code are computed with, which a rule that does not need them gets too
 	 * @throws TestFailure
 	 */
 	public static function check(
@@ -244,7 +244,7 @@ final class RuleTester
 		}
 
 		$registry = new Analyses\Registry($namespacedSymbols);
-		if (RuleInfo::of($rule)->requiresTypes) {
+		if (RuleInfo::of($rule)->requiresTypes || $stubs !== null) {
 			self::registerTypes($registry, $stubs);
 		}
 
