@@ -1,0 +1,4 @@
+6: Class App\Legacy\Mailer is replaced by App\Mail\Mailer
+10: Class App\Legacy\Mailer is replaced by App\Mail\Mailer
+10: Class App\Legacy\Mailer is replaced by App\Mail\Mailer
+19: Class App\Legacy\Mailer is replaced by App\Mail\Mailer
