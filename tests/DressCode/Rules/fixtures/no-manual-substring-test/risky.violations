@@ -1,0 +1,5 @@
+3: The mb_strpos() comparison must be written with str_contains()
+4: The mb_strstr() comparison must be written with str_contains()
+5: The mb_strpos() comparison must be written with str_starts_with()
+6: The substr() comparison must be written with str_ends_with()
+7: The substr() comparison must be written with str_ends_with()
