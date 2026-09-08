@@ -1,0 +1,12 @@
+<?php
+namespace App;
+
+use Stringable;
+
+class A
+{
+	public function __toString(): string
+	{
+		return '';
+	}
+}

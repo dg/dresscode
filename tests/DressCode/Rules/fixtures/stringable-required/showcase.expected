@@ -1,5 +1,5 @@
 <?php
-class Money implements \Stringable
+class Money implements Stringable
 {
 	public function __toString(): string
 	{

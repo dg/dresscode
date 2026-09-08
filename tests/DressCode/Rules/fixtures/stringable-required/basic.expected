@@ -1,5 +1,5 @@
 <?php
-class A implements \Stringable
+class A implements Stringable
 {
 	public function __toString(): string
 	{
@@ -7,7 +7,7 @@ class A implements \Stringable
 	}
 }
 
-class B extends Base implements \Stringable
+class B extends Base implements Stringable
 {
 	public function __toString()
 	{
@@ -15,7 +15,7 @@ class B extends Base implements \Stringable
 	}
 }
 
-class C implements Countable, \Stringable
+class C implements Countable, Stringable
 {
 	public function __toString(): string
 	{
@@ -52,7 +52,7 @@ interface G
 	public function __toString(): string;
 }
 
-$h = new class implements \Stringable {
+$h = new class implements Stringable {
 	public function __toString(): string
 	{
 		return 'h';
