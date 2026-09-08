@@ -75,6 +75,21 @@ enum MemberKind
 	public function describe(string $class, string $name): string
 ```
 
+## `DressCode\Analyses\OverriddenSignature`
+
+```php
+final readonly class OverriddenSignature
+	public readonly string $declaringClass
+	public readonly bool $final
+	public readonly bool $static
+	public readonly PhpSyntax\Visibility $visibility
+	public readonly ?string $returnType
+	public readonly bool $returnWidened
+	public readonly list<DressCode\Analyses\Parameter> $parameters
+	public readonly list<int> $narrowedParameters
+	public function __construct(string $declaringClass, bool $final, bool $static, PhpSyntax\Visibility $visibility, ?string $returnType, bool $returnWidened, array $parameters, array $narrowedParameters)
+```
+
 ## `DressCode\Analyses\Parameter`
 
 ```php
@@ -150,6 +165,9 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function findConstructorAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
 	public function findParameters(DressCode\Analyses\MemberAccess $access): ?list<DressCode\Analyses\Parameter>
 	public function findMethodParameters(string $class, string $method): ?list<DressCode\Analyses\Parameter>
+	public function findDeclaringClass(PhpSyntax\Nodes\Member\MethodNode $declaration): ?string
+	public function findOverridden(PhpSyntax\Nodes\Member\MethodNode|PhpSyntax\Nodes\Member\ClassConstNode|PhpSyntax\Nodes\Member\EnumCaseNode|PhpSyntax\Nodes\Member\PropertyNode|PhpSyntax\Nodes\ParameterNode $declaration): ?DressCode\Analyses\Member
+	public function findOverriddenSignature(PhpSyntax\Nodes\Member\MethodNode $declaration): ?DressCode\Analyses\OverriddenSignature
 	public function findDeprecation(DressCode\Analyses\Member $member): ?DressCode\Analyses\Deprecation
 	public function findClassName(string $name): ?string
 	public function isSubtype(string $class, string $ancestor): DressCode\Tristate
