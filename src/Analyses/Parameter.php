@@ -7,6 +7,8 @@
 
 namespace DressCode\Analyses;
 
+use function in_array;
+
 
 /**
  * A parameter of a function PHP declares or of a method of a class: its name, the type as PHP describes it, a class
@@ -28,5 +30,39 @@ final readonly class Parameter
 		 */
 		public ?string $default = null,
 	) {
+	}
+
+
+	/**
+	 * Whether an argument written for the other parameter may stand here: the type takes everything the other
+	 * one takes and the argument is taken the same way. Inheritance is out of reach, so a class type is only
+	 * ever equal to itself and a rewrite the answer would allow is refused instead.
+	 */
+	public function canReplace(self $other): bool
+	{
+		if ($this->byReference !== $other->byReference) {
+			return false;
+		}
+
+		$types = self::split($this->type ?? 'mixed');
+		return in_array('mixed', $types, true)
+			|| array_diff(self::split($other->type ?? 'mixed'), $types) === [];
+	}
+
+
+	/** @return list<string> */
+	private static function split(string $type): array
+	{
+		$types = explode('|', strtolower(ltrim($type, '?')));
+		if (str_starts_with($type, '?')) {
+			$types[] = 'null';
+		}
+
+		// PHP passes an int where a float is declared, and nowhere else does it widen
+		if (in_array('float', $types, true)) {
+			$types[] = 'int';
+		}
+
+		return $types;
 	}
 }
