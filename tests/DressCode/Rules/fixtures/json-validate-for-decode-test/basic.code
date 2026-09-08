@@ -1,0 +1,18 @@
+<?php
+// risky
+if (json_decode($json, true) !== null && json_last_error() === JSON_ERROR_NONE) {
+	echo 1;
+}
+$a = json_decode($json) !== null && json_last_error() === JSON_ERROR_NONE;
+$b = null !== json_decode($json) && JSON_ERROR_NONE === json_last_error();
+$c = $enabled && json_decode($json, true) !== null && json_last_error() === JSON_ERROR_NONE;
+$d = json_decode($json, associative: true) !== null && json_last_error() === JSON_ERROR_NONE;
+$e = \json_decode($json) !== null && json_last_error() === JSON_ERROR_NONE;
+$f = json_decode($json, true, 4) !== null && json_last_error() === JSON_ERROR_NONE;
+$g = json_decode($json, true, flags: JSON_THROW_ON_ERROR) !== null && json_last_error() === JSON_ERROR_NONE;
+$h = json_decode($json) !== false && json_last_error() === JSON_ERROR_NONE;
+$i = json_decode($json) !== null && json_last_error() !== JSON_ERROR_NONE;
+$j = json_decode($json) !== null && json_last_error() === JSON_ERROR_SYNTAX;
+$k = json_decode($json) !== null and json_last_error() === JSON_ERROR_NONE;
+$l = json_decode($json) !== null && json_last_error($x) === JSON_ERROR_NONE;
+$m = json_decode(...) !== null && json_last_error() === JSON_ERROR_NONE;

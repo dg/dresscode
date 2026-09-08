@@ -95,6 +95,7 @@ final class RuleRegistry
 		Rules\Functions\OptimizedCallNotationRule::class,
 		Rules\Functions\NoSettypeRule::class,
 		Rules\Functions\NoManualSubstringTestRule::class,
+		Rules\Functions\JsonValidateForDecodeTestRule::class,
 		Rules\Functions\UselessSetAccessibleRule::class,
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
