@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules;
 
-use DressCode\Analyses\{IndentationPlan, Parameter, PhpSignatures};
+use DressCode\Analyses\{IndentationPlan, Parameter, PhpSignatures, Types};
 use DressCode\{Claim, Gap, Line, RuleContext};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, SymbolKind, Token, Trivia};
@@ -142,31 +142,40 @@ final class NodeHelpers
 
 
 	/**
-	 * The parameters of the function the call calls, as the declaration in the file or the signature of PHP says; null
-	 * where neither tells.
+	 * The parameters of the function, the method or the constructor the call calls, as the declaration in the file,
+	 * the signature of PHP or, of a method or a constructor, the types say; null where none of them tells.
 	 * @return ?list<Parameter>
 	 */
-	public static function findParameters(Expression\FunctionCallNode $call, RuleContext $context): ?array
+	public static function findParameters(
+		Expression\FunctionCallNode|Expression\MethodCallNode|Expression\StaticMethodCallNode|Expression\NewNode $call,
+		RuleContext $context,
+	): ?array
 	{
-		if (!$call->name instanceof NameNode) {
-			return null;
+		if ($call instanceof Expression\FunctionCallNode) {
+			if (!$call->name instanceof NameNode) {
+				return null;
+			}
+
+			$resolver = $context->getAnalysis(NameResolver::class);
+			$function = $resolver->resolveFunction($call->name);
+			$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
+			return match (true) {
+				$declaration !== null => array_map(
+					fn(ParameterNode $parameter) => new Parameter(
+						(string) $parameter->variable->plainName,
+						variadic: $parameter->ellipsis !== null,
+						byReference: $parameter->ampersand !== null,
+					),
+					$declaration->parameters->getItems(),
+				),
+				$resolver->isGlobalFunctionCall($call) => $context->getAnalysis(PhpSignatures::class)->findParameters($function),
+				default => null,
+			};
 		}
 
-		$resolver = $context->getAnalysis(NameResolver::class);
-		$function = $resolver->resolveFunction($call->name);
-		$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
-		return match (true) {
-			$declaration !== null => array_map(
-				fn(ParameterNode $parameter) => new Parameter(
-					(string) $parameter->variable->plainName,
-					variadic: $parameter->ellipsis !== null,
-					byReference: $parameter->ampersand !== null,
-				),
-				$declaration->parameters->getItems(),
-			),
-			$resolver->isGlobalFunctionCall($call) => $context->getAnalysis(PhpSignatures::class)->findParameters($function),
-			default => null,
-		};
+		$types = $context->findAnalysis(Types::class);
+		$access = $call instanceof Expression\NewNode ? $types?->findConstructorAccess($call) : $types?->findMemberAccess($call);
+		return $access === null ? null : $types->findParameters($access);
 	}
 
 

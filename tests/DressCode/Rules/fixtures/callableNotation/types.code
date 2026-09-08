@@ -9,10 +9,12 @@ function run(Order $order, string $class, $unknown, array $rows): void
 {
 	// written as a first-class callable
 	$a = \Closure::fromCallable([$order, 'ship']);
+	$b = array_map(fn(...$args) => $order->ship(...$args), $rows);
 
 	// risky: the value may be the name of a class
 	$c = \Closure::fromCallable([$unknown, 'ship']);
 
-	// left alone: a class name
+	// left alone: a class name, and a parameter taken by reference
 	$d = \Closure::fromCallable([$class, 'make']);
+	$e = array_map(fn(...$args) => $order->tag(...$args), $rows);
 }

@@ -7,6 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
+use DressCode\Analyses\Types;
 use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ClassLikeNode, NameNode, ParameterNode, StatementNode, TypeNode};
@@ -25,10 +26,11 @@ use function count;
  * `$this->clock = $clock;`, and `$clock ??= new SystemClock;` disappears. The arguments of `new` must be constant, as
  * a default asks, and its class a name of its own; a statement whose object is not ends the run of such statements,
  * since it may read a parameter, and so does a second one for the same parameter. Every fix is risky: the parameter no longer takes null, so a caller passing it gets a TypeError.
- * A method that may override another one is left alone, PHP forbidding it to narrow the type of a parameter: every
- * method of a class that extends or implements anything, of a trait or of a class using one.
+ * A method that may override another one is left alone, PHP forbidding it to narrow the type of a parameter, and so is
+ * every method of a trait or of a class using one. Without the types, a method that overrides another one is not told
+ * from one that does not, so every method of a class that extends or implements anything is left alone.
  */
-#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.1'])]
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.1'], analyses: [Types::class])]
 final class NewInitializerForNullDefaultRule extends NodeRule
 {
 	public static function getDecisions(): array
@@ -87,7 +89,7 @@ final class NewInitializerForNullDefaultRule extends NodeRule
 			|| !$parameter->default instanceof NullNode
 			|| $type === null
 			|| ($written = self::writeWithoutNull($type)) === null
-			|| ($node instanceof MethodNode && self::mayOverride($node))
+			|| ($node instanceof MethodNode && self::mayOverride($node, $context))
 			|| !$context->report(
 				$parameter,
 				"The parameter `\$$name` must default to the object its body puts in place of null.",
@@ -179,7 +181,7 @@ final class NewInitializerForNullDefaultRule extends NodeRule
 
 
 	/** Whether the method may override another one, whose parameter PHP forbids it to narrow. */
-	private static function mayOverride(MethodNode $method): bool
+	private static function mayOverride(MethodNode $method, RuleContext $context): bool
 	{
 		$class = $method->findAncestor(ClassLikeNode::class);
 		if (
@@ -189,10 +191,13 @@ final class NewInitializerForNullDefaultRule extends NodeRule
 			return true;
 		}
 
-		return match (true) {
+		$inherits = match (true) {
 			$class instanceof ClassNode, $class instanceof AnonymousClassNode => $class->extends !== null || $class->implements !== null,
 			$class instanceof EnumNode => $class->implements !== null,
 			default => true,
 		};
+		$types = $context->findAnalysis(Types::class);
+		return $inherits
+			&& ($types?->findDeclaringClass($method) === null || $types->findOverridden($method) !== null);
 	}
 }

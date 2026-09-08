@@ -1,0 +1,18 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\Status;
+
+
+function compare(int $a, int $b, bool $c, bool $d, Status $e, string $f, string $g): array
+{
+	return [
+		$a === $b,
+		$c !== $d,
+		$e === Status::Paid,
+		$f == $g,
+		$a == $f,
+		($a & 4) === 0,
+	];
+}

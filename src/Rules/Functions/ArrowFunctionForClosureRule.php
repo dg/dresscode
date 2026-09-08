@@ -7,14 +7,14 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\Analyses\{Parameter, PhpSignatures};
+use DressCode\Analyses\{Parameter, PhpSignatures, Types};
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Flag;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{AnonymousFunctionNode, ArgumentNode, AttributeNode, ClosureUseNode, ConstItemNode, ExpressionNode, FunctionLikeNode, ParameterNode, SeparatedNodeList, StatementNode};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClosureNode, CombinedAssignmentNode, FunctionCallNode, MatchNode, MethodCallNode, ParenthesizedNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, TernaryNode, VariableNode};
+use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClosureNode, CombinedAssignmentNode, FunctionCallNode, MatchNode, MethodCallNode, NewNode, ParenthesizedNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, TernaryNode, VariableNode};
 use PhpSyntax\Nodes\Member\{EnumCaseNode, PropertyItemNode};
 use PhpSyntax\Nodes\Statement\ReturnNode;
 use function count;
@@ -30,7 +30,7 @@ use function count;
  * comment before the parameters or anywhere after them keeps the closure as well, and so does a constant
  * expression, which takes a static closure but no arrow function.
  */
-#[RuleInfo(Stage::Structure, analyses: [NameResolver::class, PhpSignatures::class])]
+#[RuleInfo(Stage::Structure, analyses: [NameResolver::class, PhpSignatures::class, Types::class])]
 final class ArrowFunctionForClosureRule extends NodeRule
 {
 	private const Plain = 'functions.closureReturningOneExpression';
@@ -199,7 +199,7 @@ final class ArrowFunctionForClosureRule extends NodeRule
 			!$argument instanceof ArgumentNode
 			|| $argument->ellipsis !== null
 			|| !$argument->parent instanceof SeparatedNodeList
-			|| !$call instanceof FunctionCallNode
+			|| !($call instanceof FunctionCallNode || $call instanceof MethodCallNode || $call instanceof StaticMethodCallNode || $call instanceof NewNode)
 			|| ($parameters = NodeHelpers::findParameters($call, $context)) === null
 		) {
 			return null;

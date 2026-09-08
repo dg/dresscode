@@ -1,23 +1,23 @@
-2: The ternary testing for null must be written with `??`.
 3: The ternary testing for null must be written with `??`.
-	risky TypeUnknown: an object may read null for what `isset()` called set, where `??` falls back
 4: The ternary testing for null must be written with `??`.
-5: The ternary testing for null must be written with `??`.
-	risky TypeUnknown: `??` may call `__isset()` or `offsetExists()`, which the test did not
-6: The ternary testing for null must be written with `??`.
-10: The ternary testing for null must be written with `??`.
-14: The ternary testing for null must be written with `??`.
 	risky TypeUnknown: an object may read null for what `isset()` called set, where `??` falls back
+5: The ternary testing for null must be written with `??`.
+6: The ternary testing for null must be written with `??`.
+	risky TypeUnknown: `??` may call `__isset()` or `offsetExists()`, which the test did not
+7: The ternary testing for null must be written with `??`.
+11: The ternary testing for null must be written with `??`.
 15: The ternary testing for null must be written with `??`.
 	risky TypeUnknown: an object may read null for what `isset()` called set, where `??` falls back
 16: The ternary testing for null must be written with `??`.
-17: The ternary testing for null must be written with `??`.
-	risky TypeUnknown: `??` may call `__isset()` or `offsetExists()`, which the test did not
-18: The ternary testing for null must be written with `??`.
-19: The ternary testing for null must be written with `??`.
 	risky TypeUnknown: an object may read null for what `isset()` called set, where `??` falls back
-20: The ternary testing for null must be written with `??`.
+17: The ternary testing for null must be written with `??`.
+18: The ternary testing for null must be written with `??`.
 	risky TypeUnknown: `??` may call `__isset()` or `offsetExists()`, which the test did not
+19: The ternary testing for null must be written with `??`.
+20: The ternary testing for null must be written with `??`.
+	risky TypeUnknown: an object may read null for what `isset()` called set, where `??` falls back
 21: The ternary testing for null must be written with `??`.
 	risky TypeUnknown: `??` may call `__isset()` or `offsetExists()`, which the test did not
 22: The ternary testing for null must be written with `??`.
+	risky TypeUnknown: `??` may call `__isset()` or `offsetExists()`, which the test did not
+23: The ternary testing for null must be written with `??`.

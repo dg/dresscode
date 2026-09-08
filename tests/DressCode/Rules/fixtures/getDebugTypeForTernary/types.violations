@@ -1,0 +1,11 @@
+12: The type of the value must be asked for with `get_debug_type()`.
+13: The type of the value must be asked for with `get_debug_type()`.
+	risky TypeUnknown: the value may be one whose type `gettype()` or `get_class()` spells another way
+14: The type of the value must be asked for with `get_debug_type()`.
+	risky BehaviorChanges: the value is one whose type `gettype()` spells another way
+15: The type of the value must be asked for with `get_debug_type()`.
+	risky TypeUnknown: the value may be one whose type `gettype()` or `get_class()` spells another way
+16: The type of the value must be asked for with `get_debug_type()`.
+	risky TypeUnknown: the value may be one whose type `gettype()` or `get_class()` spells another way
+17: The type of the value must be asked for with `get_debug_type()`.
+	risky TypeUnknown: the value may be one whose type `gettype()` or `get_class()` spells another way

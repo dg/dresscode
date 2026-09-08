@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\Analyses\{PhpDoc, PhpSignatures};
+use DressCode\Analyses\{PhpDoc, PhpSignatures, Types};
 use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocChildNode, PhpDocTagNode};
 use PhpSyntax\Analyses\NameResolver;
@@ -37,7 +37,7 @@ use PhpSyntax\Nodes\Statement\ClassNode;
 	Stage::Structure,
 	modifiesComments: true,
 	requires: ['php' => '>=8.1'],
-	analyses: [PhpDoc::class, PhpSignatures::class, NameResolver::class],
+	analyses: [PhpDoc::class, PhpSignatures::class, Types::class, NameResolver::class],
 )]
 final class ReadonlyForAnnotationRule extends NodeRule
 {

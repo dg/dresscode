@@ -7,7 +7,7 @@ use Acme\Shop\Cart;
 
 function read(array $items, Cart $cart, $unknown, array $rows): void
 {
-	[null => $a] = $items;
+	['' => $a] = $items;
 	[null => $b] = $cart;
 	[null => $c] = $unknown;
 	['x' => [null => $d]] = $items;

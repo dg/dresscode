@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\CombinedAssignmentNode;
 use PhpSyntax\Nodes\Scalar\IntegerNode;
@@ -16,10 +17,11 @@ use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 
 /**
  * `$a++` and `$a--` instead of `$a += 1` and `$a -= 1`, only as a whole statement, where the value
- * of the expression cannot be observed. Risky: null and a string that is no number count differently,
- * `null--` staying null and `'a'++` being `'b'`, and a number is not told from them.
+ * of the expression cannot be observed. Risky but for a number: null and a string that is no number count
+ * differently, `null--` staying null and `'a'++` being `'b'`, so a target the types tell is no number stays as it
+ * is. Without the types, a number is not told from them.
  */
-#[RuleInfo(Stage::Structure)]
+#[RuleInfo(Stage::Structure, analyses: [Types::class])]
 final class IncrementForAddOneRule extends NodeRule
 {
 	public static function getDecisions(): array
@@ -48,13 +50,16 @@ final class IncrementForAddOneRule extends NodeRule
 
 		$operator = $node->operator->is('+=') ? '++' : '--';
 		$last = $node->target->getLastToken();
+		$type = $context->findAnalysis(Types::class)?->isOfType($node->target, 'int|float');
+		$number = $type === Tristate::Yes;
 		if (
-			$last->hasCommentUpTo($node->expression->token)
+			$type === Tristate::No
+			|| $last->hasCommentUpTo($node->expression->token)
 			|| !$context->report(
 				$node,
 				"The `{$node->operator->text} 1` assignment must be written `$operator`.",
-				risk: Risk::TypeUnknown,
-				because: "the target may be a string, which `$operator` changes as text",
+				risk: $number ? null : Risk::TypeUnknown,
+				because: $number ? null : "the target may be a string, which `$operator` changes as text",
 			)
 		) {
 			return;

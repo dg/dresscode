@@ -1,0 +1,17 @@
+<?php
+// risky
+// nameResolution certain
+
+namespace App;
+
+use Acme\Shop\Cart;
+
+
+function merge(array $defaults, array $options, iterable $extra, Cart $cart): array
+{
+	return [
+		[...$defaults, ...$options],
+		[...$defaults, ...$extra],
+		array_merge($defaults, $cart),
+	];
+}

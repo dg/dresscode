@@ -1,3 +1,4 @@
 11: The callable must be written `$order->ship(...)`.
-14: The callable must be written `$unknown->ship(...)`.
+12: The callable must be written `$order->ship(...)`.
+15: The callable must be written `$unknown->ship(...)`.
 	risky TypeUnknown: the value may be the name of a class, not an object

@@ -1,0 +1,65 @@
+<?php
+
+namespace App;
+
+use Acme\Zoo\Keeper;
+
+
+function hasSleepingAnimal(Keeper $keeper): bool
+{
+	foreach ($keeper->animals as $animal) {
+		if ($animal->isAsleep()) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+function hasSleepingHerd(Keeper $keeper): bool
+{
+	foreach ($keeper->herd as $animal) {
+		if ($animal->isAsleep()) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+function hasSleepingVisitor(Keeper $keeper): bool
+{
+	foreach ($keeper->visitors as $animal) {
+		if ($animal->isAsleep()) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+function feedsAll(Keeper $keeper, int $portion): bool
+{
+	foreach ($keeper->animals as $animal) {
+		if (!$keeper->feeds($animal, $portion)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+function weighsAny(Keeper $keeper, ?int $weight): bool
+{
+	foreach ($keeper->animals as $animal) {
+		if ($keeper->weighs($animal, $weight)) {
+			return true;
+		}
+	}
+
+	return false;
+}

@@ -1,0 +1,45 @@
+<?php
+// risky
+
+namespace App;
+
+use Acme\Time\{Clock, Schedule, SystemClock};
+
+class Calendar extends Schedule
+{
+	public function load(?Clock $clock = null): void
+	{
+		$clock ??= new SystemClock;
+	}
+
+
+	public function save(Clock $clock = new SystemClock): void
+	{
+	}
+}
+
+
+trait Timed
+{
+	public function at(?Clock $clock = null): void
+	{
+		$clock ??= new SystemClock;
+	}
+}
+
+
+trait Stamped
+{
+	abstract public function at(?Clock $clock = null): void;
+}
+
+
+class Diary
+{
+	use Stamped;
+
+	public function at(?Clock $clock = null): void
+	{
+		$clock ??= new SystemClock;
+	}
+}

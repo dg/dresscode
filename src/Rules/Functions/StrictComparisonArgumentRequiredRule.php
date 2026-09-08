@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
@@ -20,9 +21,11 @@ use function count;
 /**
  * Functions with a `$strict` parameter are called with it set to `true`: a missing one is added, together with
  * the default values of the parameters before it; an explicit `false` is only reported. Such a fix changes what
- * the call answers for a value only the loose mode accepted, so it waits for the run to allow it.
+ * the call answers for a value only the loose mode accepted, so it waits for the run to allow it, but for an
+ * integer needle searched among integers, which it leaves as it was. Without the types, such a search is not told
+ * from another.
  */
-#[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
+#[RuleInfo(Stage::Structure, analyses: [Types::class, NameResolver::class])]
 final class StrictComparisonArgumentRequiredRule extends NodeRule
 {
 	/**
@@ -90,17 +93,28 @@ final class StrictComparisonArgumentRequiredRule extends NodeRule
 			return;
 		}
 
-		// the needle and the haystack of a search
+		// the needle and the haystack of a search, which compare alike either way where both are integers
 		[$needle, $haystack] = match ($function) {
 			'in_array', 'array_search' => [$args[0], $args[1]],
 			'array_keys' => [$args[1], $args[0]],
 			default => [null, null],
 		};
+		$types = $context->findAnalysis(Types::class);
+		$integers = $needle instanceof ArgumentNode && $haystack instanceof ArgumentNode && $types !== null
+			? [$types->isOfType($needle->value, 'int'), $types->isOfType($haystack->value, 'array<int>')]
+			: [];
+		$risk = match (true) {
+			!$needle instanceof ArgumentNode || !$haystack instanceof ArgumentNode => Risk::BehaviorChanges,
+			$integers === [Tristate::Yes, Tristate::Yes] => null,
+			in_array(Tristate::No, $integers, true) => Risk::BehaviorChanges,
+			default => Risk::TypeUnknown,
+		};
+		$uncertainty = GlobalCalls::findUncertainty($node, $context);
 		if (!$context->report(
 			$node,
 			$message,
-			risk: $needle instanceof ArgumentNode && $haystack instanceof ArgumentNode ? Risk::TypeUnknown : Risk::BehaviorChanges,
-			because: match ($function) {
+			risk: $risk ?? ($uncertainty === null ? null : Risk::NameUncertain),
+			because: $risk === null ? $uncertainty : match ($function) {
 				'base64_decode' => 'a strict decoding gives false for a character outside the alphabet',
 				'mb_detect_encoding' => 'a strict detection gives only an encoding the whole string is valid in',
 				default => 'a strict search no longer finds a value of another type',

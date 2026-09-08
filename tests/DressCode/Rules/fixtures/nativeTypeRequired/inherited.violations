@@ -1,0 +1,15 @@
+13: Useless `@var` annotation for property `$note`, because the native type says the same.
+14: Property `$note` must have the native type `string` from its `@var` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+16: Useless `@param` annotation for parameter `$mode`, because the native type says the same.
+16: Useless `@param` annotation for parameter `$tries`, because the native type says the same.
+21: Parameter `$mode` must have the native type `string` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+21: Parameter `$tries` must have the native type `int` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+33: Useless `@param` annotation for parameter `$label`, because the native type says the same.
+37: Parameter `$label` must have the native type `?string` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+52: Useless `@param` annotation for parameter `$title`, because the native type says the same.
+56: Parameter `$title` must have the native type `string` from its `@param` annotation.
+	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`

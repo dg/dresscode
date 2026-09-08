@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\ControlFlow;
 
-use DressCode\Analyses\{Parameter, PhpSignatures};
+use DressCode\Analyses\{Parameter, PhpSignatures, Types};
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\{GlobalCalls, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
@@ -33,10 +33,10 @@ use function count, in_array;
  * is not known.
  *
  * The functions take an array and a foreach any iterable, so a loop over what is no array is left alone and the
- * fix is risky wherever the loop may go through something else. Only an array literal and what a declaration in
- * sight says are told from a Traversable.
+ * fix is risky wherever the loop may go through something else. Without the types, only an array literal and what
+ * a declaration in sight says are told from a Traversable.
  */
-#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.4'], decisions: ['upgrading.functions.arraySearchFunctions'], analyses: [PhpSignatures::class, NameResolver::class])]
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.4'], decisions: ['upgrading.functions.arraySearchFunctions'], analyses: [PhpSignatures::class, Types::class, NameResolver::class])]
 final class ArraySearchForForeachRule extends NodeRule
 {
 	public function getVisitedNodes(): array
@@ -72,6 +72,10 @@ final class ArraySearchForForeachRule extends NodeRule
 			default => [null, false],
 		};
 		$overArray = self::isArray($foreach);
+		if ($overArray === Tristate::Maybe) {
+			$overArray = $context->findAnalysis(Types::class)?->isOfType($foreach->expression, 'array') ?? Tristate::Maybe;
+		}
+
 		$reference = $function === null ? Tristate::No : self::passesReference($condition, $foreach, $context);
 		if (
 			$function === null
@@ -242,8 +246,8 @@ final class ArraySearchForForeachRule extends NodeRule
 
 	/**
 	 * Whether a call of the condition takes a variable of the scope, or an element of one, by reference, which the
-	 * arrow function writes only for itself, as the declaration in the file or the signature of PHP says; maybe where
-	 * neither tells.
+	 * arrow function writes only for itself, as the declaration in the file, the signature of PHP or, of a method, the
+	 * types say; maybe where none of them tells.
 	 */
 	private static function passesReference(ExpressionNode $condition, Statement\ForeachNode $foreach, RuleContext $context): Tristate
 	{
@@ -267,8 +271,11 @@ final class ArraySearchForForeachRule extends NodeRule
 
 			$call = $list->parent?->parent;
 			$parameters = $call instanceof Expression\FunctionCallNode
-				? NodeHelpers::findParameters($call, $context)
-				: null;
+				|| $call instanceof Expression\MethodCallNode
+				|| $call instanceof Expression\StaticMethodCallNode
+				|| $call instanceof Expression\NewNode
+					? NodeHelpers::findParameters($call, $context)
+					: null;
 			if ($parameters === null) {
 				$result = Tristate::Maybe;
 				continue;

@@ -171,6 +171,34 @@ final class NativeType
 	}
 
 
+	/**
+	 * Whether the native type is the one PHPStan describes, its classes fully qualified without a leading backslash
+	 * and a nullable type as a union with null; an intersection is never the same.
+	 * @param  callable(string): string  $resolveClass  fully qualified name of a class as written in the native type
+	 */
+	public static function isDescribedAs(string $native, string $described, callable $resolveClass): bool
+	{
+		if (str_contains($native, '&') || str_contains($described, '&')) {
+			return false;
+		}
+
+		$canonize = function (string $type, ?callable $resolveClass): array {
+			$members = explode('|', ltrim($type, '?'));
+			if (str_starts_with($type, '?')) {
+				$members[] = 'null';
+			}
+
+			$members = array_map(
+				fn(string $member) => strtolower(in_array(strtolower($member), self::Builtin, true) || $resolveClass === null ? $member : ltrim($resolveClass($member), '\\')),
+				$members,
+			);
+			sort($members);
+			return $members;
+		};
+		return $canonize($native, $resolveClass) === $canonize($described, null);
+	}
+
+
 	private static function isPlain(Type\TypeNode $type): bool
 	{
 		if ($type instanceof Type\UnionTypeNode) {

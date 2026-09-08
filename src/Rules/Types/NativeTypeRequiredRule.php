@@ -7,14 +7,14 @@
 
 namespace DressCode\Rules\Types;
 
-use DressCode\Analyses\PhpDoc;
+use DressCode\Analyses\{Parameter, PhpDoc, Types};
 use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\NativeType;
 use PHPStan\PhpDocParser\Ast\PhpDoc\{ParamTagValueNode, PhpDocNode, PhpDocTagNode, ReturnTagValueNode, TypelessParamTagValueNode, VarTagValueNode};
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, NameForm, Node, Token, Trivia};
-use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, Expression, Scalar, TypeNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, Expression, ParameterNode, Scalar, TypeNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyNode, TraitUseNode};
 use PhpSyntax\Nodes\Statement\{ClassNode, EnumNode, FunctionNode, InterfaceNode, ReturnNode};
 use function count;
@@ -30,14 +30,16 @@ use function count;
  * own; a class constant is `ConstantTypeRequiredRule`'s.
  *
  * A native type written is risky: PHP enforces it, and an annotation that was wrong becomes a TypeError. None is
- * written where PHP would refuse it: against a default of another type, and on a property or a parameter of a method
- * in a class with a parent, an interface or a trait, which may declare it without that type.
+ * written where PHP would refuse it: against a default of another type, on a property redeclaring one of its parent or
+ * of a trait it uses, and on a parameter its parent declares without that type, which only the types of the run show;
+ * without them nothing is written on a property or a parameter of a method in a class with a parent, an interface or
+ * a trait.
  */
 #[RuleInfo(
 	Stage::Structure,
 	modifiesComments: true,
 	decisions: ['types.traversableClasses'],
-	analyses: [PhpDoc::class, NameResolver::class],
+	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class NativeTypeRequiredRule extends NodeRule
 {
@@ -130,14 +132,24 @@ final class NativeTypeRequiredRule extends NodeRule
 	private function checkParameters(FunctionNode|MethodNode $node, ?PhpDocNode $tree, RuleContext $context): array
 	{
 		[$tags, $prefixed] = self::findTags($tree, '@param');
-		$unseen = $node instanceof MethodNode && !$node->isConstructor() && self::hasAncestors($node);
+		$types = $context->findAnalysis(Types::class);
+		$params = $node->parameters->getItems();
+		$overridden = $types !== null
+			&& $node instanceof MethodNode
+			&& !$node->isConstructor()
+			&& array_any($params, fn(ParameterNode $param) => $param->type === null)
+				? $types->findOverriddenSignature($node)
+				: null;
+		$variadic = $overridden === null ? null : array_find($overridden->parameters, fn(Parameter $parameter) => $parameter->variadic);
+		$unseen = $types === null && $node instanceof MethodNode && !$node->isConstructor() && self::hasAncestors($node);
 		$removed = [];
-		foreach ($node->parameters->getItems() as $param) {
+		foreach ($params as $i => $param) {
 			$name = $param->variable->name;
 			if (!$name instanceof Token) {
 				continue;
 			}
 
+			$inherited = $overridden->parameters[$i] ?? $variadic;
 			$removed[] = $this->checkDeclaration(
 				'types.parameter',
 				"Parameter `$name->text`",
@@ -150,7 +162,12 @@ final class NativeTypeRequiredRule extends NodeRule
 				$context,
 				place: $param->promoted ? NativeType::Property : NativeType::Parameter,
 				default: $param->default,
-				isRefused: fn() => $param->promoted ? self::hasAncestors($param) : $unseen,
+				isRefused: $param->promoted
+					? fn() => $types === null
+						? self::hasAncestors($param)
+						: $types->findOverridden($param) !== null || $types->findTraitProperty($param) !== null
+					: fn(string $native, \Closure $resolve) => $unseen || ($inherited !== null
+						&& ($inherited->type === null || !NativeType::isDescribedAs($native, $inherited->type, $resolve))),
 			);
 		}
 
@@ -222,7 +239,7 @@ final class NativeTypeRequiredRule extends NodeRule
 
 	/**
 	 * Whether the class the declaration stands in has a parent, an interface or a trait, which may declare it without a
-	 * type.
+	 * type; only the types of the run tell whether one does.
 	 */
 	private static function hasAncestors(Node $node): bool
 	{
@@ -274,7 +291,9 @@ final class NativeTypeRequiredRule extends NodeRule
 			$context,
 			place: NativeType::Property,
 			default: $item->default,
-			isRefused: fn() => self::hasAncestors($node),
+			isRefused: fn() => ($types = $context->findAnalysis(Types::class)) === null
+				? self::hasAncestors($node)
+				: $types->findOverridden($node) !== null || $types->findTraitProperty($node) !== null,
 		);
 		if ($tag !== null && $tree !== null) {
 			self::removeTags($node, $tree, [$tag], $docComment, $phpDoc);
@@ -455,7 +474,7 @@ final class NativeTypeRequiredRule extends NodeRule
 
 	/**
 	 * Whether the declaration documents itself by `{@inheritDoc}` or the `#[\Override]` attribute, a bare `Override`
-	 * being taken for the one of PHP left without an import.
+	 * in a namespace that declares no such class being the one of PHP left without an import.
 	 */
 	private static function isInherited(
 		FunctionNode|MethodNode|Expression\ClosureNode $node,
@@ -471,11 +490,13 @@ final class NativeTypeRequiredRule extends NodeRule
 			return true;
 		}
 
+		$types = $context->findAnalysis(Types::class);
 		foreach ($node->attributes->getItems() as $group) {
 			foreach ($group->items->getItems() as $attribute) {
 				if (
 					$attribute->name->form === NameForm::Unqualified
 					&& strcasecmp($attribute->name->text, 'Override') === 0
+					&& $types?->findClassName($resolver->resolveClass($attribute->name)) === null
 				) {
 					return true;
 				}

@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Arrays;
 
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\{GlobalCalls, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
@@ -20,10 +21,10 @@ use PhpSyntax\Nodes\Scalar\StringNode;
  * Arrays merged by `array_merge()` are written as an array spreading them, `[...$defaults, ...$options]`, which since
  * PHP 8.1 keeps the string keys as the function does, the later one winning, and numbers the others anew. The two part
  * where an argument is no array: the function refuses it with a TypeError, while spreading takes an object that is
- * `Traversable` too. An argument that is not an array literal is not told from such an object, so the fix is risky
- * there.
+ * `Traversable` too. Without the types, an argument that is not an array literal is not told from such an object, so
+ * the fix is risky there; a call with an argument the types know is no array is left as it is.
  */
-#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.1'], analyses: [NameResolver::class])]
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.1'], analyses: [Types::class, NameResolver::class])]
 final class SpreadForArrayMergeRule extends NodeRule
 {
 	public static function getDecisions(): array
@@ -49,7 +50,16 @@ final class SpreadForArrayMergeRule extends NodeRule
 			return;
 		}
 
-		$certain = array_all($values, fn(ExpressionNode $value) => $value instanceof ArrayNode);
+		$types = $context->findAnalysis(Types::class);
+		$arrays = array_map(
+			fn(ExpressionNode $value) => $value instanceof ArrayNode ? Tristate::Yes : $types?->isOfType($value, 'array') ?? Tristate::Maybe,
+			$values,
+		);
+		if (in_array(Tristate::No, $arrays, true)) {
+			return; // the call refuses such an argument, which the spread may take
+		}
+
+		$certain = array_all($arrays, fn(Tristate $array) => $array === Tristate::Yes);
 		$uncertainName = GlobalCalls::findUncertainty($node, $context);
 		if (!$context->report(
 			$node,

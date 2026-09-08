@@ -1,0 +1,6 @@
+10: The `switch` giving one value must be written as a `match`.
+21: The `switch` giving one value must be written as a `match`.
+32: The `switch` giving one value must be written as a `match`.
+	risky TypeUnknown: `match` compares with `===` where `switch` compares with `==`
+43: The `switch` giving one value must be written as a `match`.
+	risky BehaviorChanges: the `match` evaluates the target before the subject and the labels, which may change it

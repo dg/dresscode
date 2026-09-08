@@ -1,4 +1,5 @@
 <?php
+// types off
 // risky
 $a = isset($x->y) ? $x->y : 'd';
 $b = null !== $x->y ? $x->y : $d;

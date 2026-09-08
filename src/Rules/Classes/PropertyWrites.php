@@ -163,19 +163,19 @@ final readonly class PropertyWrites
 
 
 	/**
-	 * Whether the parameter the argument binds to takes it by reference, as the declaration in the file or the one
-	 * of PHP says; null where nothing tells.
+	 * Whether the parameter the argument binds to takes it by reference, as the declaration in the file, the one of
+	 * PHP or the types say; null where nothing tells.
 	 */
 	private static function takesByReference(ArgumentNode $argument, ClassNode|AnonymousClassNode $class, RuleContext $context): ?bool
 	{
 		$list = $argument->parent;
 		$call = $list?->parent?->parent;
-		$parameters = match (true) {
-			$call instanceof Expression\FunctionCallNode => NodeHelpers::findParameters($call, $context),
-			$call instanceof Expression\MethodCallNode,
-			$call instanceof Expression\StaticMethodCallNode => self::findOwnParameters($call, $class),
-			default => null,
-		};
+		$parameters = $call instanceof Expression\FunctionCallNode
+			|| $call instanceof Expression\MethodCallNode
+			|| $call instanceof Expression\StaticMethodCallNode
+			|| $call instanceof Expression\NewNode
+				? self::findOwnParameters($call, $class) ?? NodeHelpers::findParameters($call, $context)
+				: null;
 		if ($parameters === null || !$list instanceof SeparatedNodeList) {
 			return null;
 		}
@@ -202,8 +202,8 @@ final readonly class PropertyWrites
 
 
 	/**
-	 * The parameters of the method a call on `$this`, `self` or `static` runs, as the class in sight declares them;
-	 * null for any other call.
+	 * The parameters of the method a call on `$this`, `self` or `static` runs, as the class in sight declares them,
+	 * which needs no types; null for any other call.
 	 * @return ?list<Parameter>
 	 */
 	private static function findOwnParameters(

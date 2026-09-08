@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\ControlFlow;
 
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{CaseNode, Expression, ExpressionNode, Statement, StatementNode};
 use function count;
@@ -24,11 +25,12 @@ use function count;
  * it as it is, the arms of a match having nowhere to put one.
  *
  * The fix is risky: a switch compares loosely and a match strictly, so a case of `1` catches `'1'` and `true`
- * and an arm of `1` catches neither. It is risky as well where the subject or a label runs code and the variable
- * reads before them an offset that is more than a variable, a literal or a constant, or a class given by an
- * expression.
+ * and an arm of `1` catches neither. Without the types, a subject of the type of the labels is not told from
+ * one of another type; where the types say a label is a scalar of a type the subject never has, an arm that would
+ * never match, the switch stays. It is risky as well where the subject or a label runs code and the variable reads before
+ * them an offset that is more than a variable, a literal or a constant, or a class given by an expression.
  */
-#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.0'])]
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.0'], analyses: [Types::class])]
 final class MatchForSwitchRule extends NodeRule
 {
 	public static function getDecisions(): array
@@ -57,13 +59,22 @@ final class MatchForSwitchRule extends NodeRule
 		$compared = [$node->subject, ...array_merge(...array_column($arms, 0))];
 		$target = $arms[0][2];
 		$reordered = $target !== null && $target->hasEarlyReads() && array_any($compared, fn(ExpressionNode $expr) => $expr->hasEffect());
+		$alike = $context->findAnalysis(Types::class)?->isComparedAlike($compared) ?? Tristate::Maybe;
+		if ($alike === Tristate::No) {
+			return;
+		}
+
+		[$risk, $because] = match (true) {
+			$reordered && $alike !== Tristate::Yes => [Risk::BehaviorChanges, '`match` compares with `===`, not `==`, and evaluates the target before the subject and the labels'],
+			$reordered => [Risk::BehaviorChanges, 'the `match` evaluates the target before the subject and the labels, which may change it'],
+			$alike !== Tristate::Yes => [Risk::TypeUnknown, '`match` compares with `===` where `switch` compares with `==`'],
+			default => [null, null],
+		};
 		if (!$context->report(
 			$node->switchKeyword,
 			'The `switch` giving one value must be written as a `match`.',
-			risk: $reordered ? Risk::BehaviorChanges : Risk::TypeUnknown,
-			because: $reordered
-				? '`match` compares with `===`, not `==`, and evaluates the target before the subject and the labels'
-				: '`match` compares with `===` where `switch` compares with `==`',
+			risk: $risk,
+			because: $because,
 		)) {
 			return;
 		}

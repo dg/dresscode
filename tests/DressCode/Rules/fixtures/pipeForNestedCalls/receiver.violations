@@ -1,8 +1,6 @@
 4: The nested calls must be written with the pipe operator.
 	risky BehaviorChanges: a receiver runs code, which the pipe runs after the code its call takes
 5: The nested calls must be written with the pipe operator.
-	risky TypeUnknown: a step may take its argument by reference, which the pipe cannot pass
 6: The nested calls must be written with the pipe operator.
-	risky TypeUnknown: a step may take its argument by reference, which the pipe cannot pass
 7: The nested calls must be written with the pipe operator.
 	risky BehaviorChanges: a receiver runs code, which the pipe runs after the code its call takes

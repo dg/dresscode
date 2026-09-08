@@ -1,0 +1,9 @@
+11: The `in_array()` call must pass `$strict = true`.
+12: The `array_search()` call must pass `$strict = true`.
+13: The `array_keys()` call must pass `$strict = true`.
+14: The `in_array()` call must pass `$strict = true`.
+	risky BehaviorChanges: a strict search no longer finds a value of another type
+15: The `base64_decode()` call must pass `$strict = true`.
+	risky BehaviorChanges: a strict decoding gives false for a character outside the alphabet
+16: The `in_array()` call must pass `$strict = true`.
+	risky NameUncertain: the namespace may declare `in_array()`

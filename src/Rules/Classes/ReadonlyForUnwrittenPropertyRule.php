@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\Analyses\PhpSignatures;
+use DressCode\Analyses\{PhpSignatures, Types};
 use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token, Visibility};
@@ -39,7 +39,7 @@ use function count;
 #[RuleInfo(
 	Stage::Structure,
 	requires: ['php' => '>=8.1'],
-	analyses: [PhpSignatures::class, NameResolver::class],
+	analyses: [PhpSignatures::class, Types::class, NameResolver::class],
 )]
 final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 {

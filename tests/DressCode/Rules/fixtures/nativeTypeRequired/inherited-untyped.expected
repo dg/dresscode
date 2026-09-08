@@ -1,11 +1,12 @@
 <?php
 // {"return": "keep"}
 // risky
+// types off
 namespace App;
 
 use Acme\Store\{HasName, Record};
 
-// the ancestors may declare these untyped, so nothing is written
+// without the types the ancestors may declare these untyped, so nothing is written
 class Order extends Record implements HasName
 {
 	/** @var string */

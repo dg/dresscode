@@ -1,4 +1,5 @@
 <?php
+// types off
 $a = in_array($x, $y);
 $b = base64_decode($s);
 $c = mb_detect_encoding($s);

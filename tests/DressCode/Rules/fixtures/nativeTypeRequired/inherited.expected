@@ -1,0 +1,54 @@
+<?php
+// {"return": "keep"}
+// risky
+namespace App;
+
+use Acme\Store\{HasName, Record};
+
+class Order extends Record
+{
+	/** @var string */
+	protected $table = 'orders';
+
+	protected string $note;
+
+	/**
+	 * @param array $options
+	 */
+	public function save($options, string $mode, int $tries = 1)
+	{
+	}
+
+	/**
+	 * @param string $first
+	 * @param int $second
+	 */
+	public function many($first = '', $second = 0)
+	{
+	}
+
+	/**
+	 * @param int $value
+	 */
+	public function put($value, ?string $label = null)
+	{
+	}
+}
+
+class Customer
+{
+	use HasName;
+
+	/** @var string */
+	protected $name;
+}
+
+class Invoice extends Record
+{
+	/**
+	 * @param string $connection
+	 */
+	public function __construct(protected $connection, protected string $title)
+	{
+	}
+}

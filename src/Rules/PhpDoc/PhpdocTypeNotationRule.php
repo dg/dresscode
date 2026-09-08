@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\PhpDoc;
 
-use DressCode\Analyses\PhpDoc;
+use DressCode\Analyses\{PhpDoc, Types};
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\{Shapes, Words};
 use PHPStan\PhpDocParser\Ast\NodeTraverser;
@@ -21,9 +21,10 @@ use PhpSyntax\{Node, SymbolKind, Token};
  * (`array<int>` rather than `int[]`, or the other way round). A union is decided as `TypeNotationRule` decides a
  * native one, by decisions of its own: a single type with `null` may be written `?T`, `null` may stand at one end
  * and the other types in alphabetical order. Class names keep their case, `list<int>` is a
- * different type and stays. A name imported or declared as a class (`Resource`) stays too.
+ * different type and stays. A name imported or declared as a class (`Resource`) stays too; without `typeAnalysis`
+ * a class declared in another file is not seen.
  */
-#[RuleInfo(Stage::Finishing, modifiesComments: true, analyses: [PhpDoc::class, NameResolver::class])]
+#[RuleInfo(Stage::Finishing, modifiesComments: true, analyses: [PhpDoc::class, Types::class, NameResolver::class])]
 final class PhpdocTypeNotationRule extends NodeRule
 {
 	private const BuiltinNames = 'phpdoc.types.builtin';
@@ -81,7 +82,8 @@ final class PhpdocTypeNotationRule extends NodeRule
 			$resolver = $context->getAnalysis(NameResolver::class);
 			$class = ltrim($resolver->getNamespace($node) . '\\' . $name, '\\');
 			return isset($resolver->getImports(SymbolKind::ClassLike, $node)[strtolower($name)])
-				|| $resolver->findDeclaration($class, SymbolKind::ClassLike) !== null;
+				|| $resolver->findDeclaration($class, SymbolKind::ClassLike) !== null
+				|| $context->findAnalysis(Types::class)?->findClassName($class) !== null;
 		};
 
 		foreach ($node->getDocComments() as $trivia) {

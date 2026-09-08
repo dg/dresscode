@@ -1,0 +1,3 @@
+13: The `array_merge()` call must be written as an array spreading its arguments.
+14: The `array_merge()` call must be written as an array spreading its arguments.
+	risky TypeUnknown: an argument may be an object, which the spread takes and `array_merge()` refuses

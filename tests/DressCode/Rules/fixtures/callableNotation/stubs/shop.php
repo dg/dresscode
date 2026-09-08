@@ -14,4 +14,9 @@ class Order
 	public function ship(int $days): void
 	{
 	}
+
+
+	public function tag(array &$tags): void
+	{
+	}
 }

@@ -7,8 +7,9 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
-use DressCode\Rules\CodeWriter;
+use DressCode\Analyses\Types;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
+use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, Expression, ExpressionNode, NameNode};
@@ -22,9 +23,10 @@ use function count;
  * The two do not spell the same answer: `gettype()` says `integer`, `double`, `boolean` and `NULL` where
  * `get_debug_type()` says `int`, `float`, `bool` and `null`, `get_class()` names an object of an anonymous class
  * with the file that declares it, and a message or a comparison built on those words says something else
- * afterwards, so the fix is risky.
+ * afterwards, so the fix is risky but for a string or an array, which both name alike.
+ * Without the types, such a value is not told from another.
  */
-#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.0'], analyses: [NameResolver::class])]
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.0'], analyses: [Types::class, NameResolver::class])]
 final class GetDebugTypeForTernaryRule extends NodeRule
 {
 	public static function getDecisions(): array
@@ -62,12 +64,14 @@ final class GetDebugTypeForTernaryRule extends NodeRule
 		}
 
 		assert($test instanceof Expression\FunctionCallNode);
-		if (!$context->report(
-			$node,
-			'The type of the value must be asked for with `get_debug_type()`.',
-			risk: Risk::TypeUnknown,
-			because: 'the value may be one whose type `gettype()` or `get_class()` spells another way',
-		)) {
+		$uncertainty = GlobalCalls::findUncertaintyOfRewrite($node, [$subject], $context);
+		$types = $context->findAnalysis(Types::class);
+		[$risk, $because] = match (true) {
+			$types?->isOfType($subject, 'string|array') === Tristate::Yes => [$uncertainty === null ? null : Risk::NameUncertain, $uncertainty],
+			$types?->isOfType($subject, 'int|float|bool|null') === Tristate::Yes => [Risk::BehaviorChanges, 'the value is one whose type `gettype()` spells another way'],
+			default => [Risk::TypeUnknown, 'the value may be one whose type `gettype()` or `get_class()` spells another way'],
+		};
+		if (!$context->report($node, 'The type of the value must be asked for with `get_debug_type()`.', risk: $risk, because: $because)) {
 			return;
 		}
 

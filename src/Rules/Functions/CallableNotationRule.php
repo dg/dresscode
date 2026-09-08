@@ -42,7 +42,7 @@ use function count;
  * call given fewer arguments than the function requires, an error the closure raised only when called. A function
  * reading the scope of its caller, `compact()` among them, keeps the closure. A parameter taking its argument by
  * reference makes a partial application risky, the partial passing on what the closure passed a copy of, and so does
- * a function or a method whose parameters neither the file nor PHP tell, which makes a first-class callable
+ * a function or a method whose parameters neither the file, PHP nor the types tell, which makes a first-class callable
  * risky too; a function known to take one is not made a first-class callable of. A closure carrying an attribute
  * stays, a callable having nowhere to keep it.
  *
@@ -352,8 +352,8 @@ final class CallableNotationRule extends NodeRule
 
 	/**
 	 * Whether the function or the method the call calls takes an argument by reference, which the callable passes on
-	 * where the closure passed a copy, as the declaration in the file or the signature of PHP says; maybe where neither
-	 * tells.
+	 * where the closure passed a copy, as the declaration in the file, the signature of PHP or, of a method, the
+	 * types say; maybe where none of them tells.
 	 */
 	private static function takesReference(
 		Expression\FunctionCallNode|Expression\MethodCallNode|Expression\StaticMethodCallNode $call,
@@ -372,6 +372,11 @@ final class CallableNotationRule extends NodeRule
 			} elseif ($resolver->isGlobalFunctionCall($call)) {
 				$parameters = $context->getAnalysis(PhpSignatures::class)->findParameters(strtolower(ltrim($function, '\\')));
 			}
+
+		} elseif (!$call instanceof Expression\FunctionCallNode) {
+			$types = $context->findAnalysis(Types::class);
+			$access = $types?->findMemberAccess($call);
+			$parameters = $access === null ? null : $types->findParameters($access);
 		}
 
 		return match (true) {

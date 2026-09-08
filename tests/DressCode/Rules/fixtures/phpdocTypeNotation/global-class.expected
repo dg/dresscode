@@ -1,0 +1,8 @@
+<?php
+// a global class declared in another file, which the types see, stays
+
+/**
+ * @param Resource $r
+ * @param int $i
+ */
+function f($r, $i) {}
