@@ -258,6 +258,20 @@ test('fix writes the changed files', function () use ($root) {
 });
 
 
+test('the progress hears of every file as it starts, with its size, and of the end', function () use ($root) {
+	$calls = [];
+	$onProgress = function (int $done, array $running, ?int $size) use (&$calls): void {
+		$calls[] = [$done, array_keys($running), $size];
+	};
+	engine($root)->run(['src/a.php', 'src/b.php'], fix: false, reporter: new RecordingReporter, onProgress: $onProgress);
+	Assert::same([
+		[0, ['src/a.php'], filesize("$root/src/a.php")],
+		[1, ['src/b.php'], filesize("$root/src/b.php")],
+		[2, [], null],
+	], $calls);
+});
+
+
 test('a failing rule fails the file, the run goes on, nothing is written', function () use ($root) {
 	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
 	$reporter = new RecordingReporter;

@@ -58,6 +58,8 @@ final class ConsoleReporter implements Reporter
 		private readonly string $cwd = '',
 		/** only what is left to the user and which files were rewritten, nothing else */
 		private readonly bool $bare = false,
+		/** @var ?\Closure(): void called before anything is written, so that a line drawn over the output can be erased first */
+		private readonly ?\Closure $beforeWrite = null,
 	) {
 		$this->stream = $stream ?? STDOUT;
 		if ($console === null) {
@@ -332,6 +334,10 @@ final class ConsoleReporter implements Reporter
 
 	private function write(string $text): void
 	{
+		if ($this->beforeWrite !== null) {
+			($this->beforeWrite)();
+		}
+
 		fwrite($this->stream, $text);
 	}
 }

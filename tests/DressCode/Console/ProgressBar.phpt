@@ -35,7 +35,7 @@ test('a run over before the delay draws nothing', function () {
 	$stream = stream();
 	$bar = bar($stream);
 	$bar->advance(3);
-	$bar->finish();
+	$bar->clear();
 	Assert::same('', read($stream));
 });
 
@@ -50,6 +50,21 @@ test('the bar shows the share done and the file that takes long', function () {
 	usleep(150_000);
 	$bar->advance(6, ['src/slow.php' => microtime(as_float: true) - 3]);
 	Assert::contains('6/10  src/slow.php  3s', read($stream));
+});
+
+
+test('a large file nothing is heard of is named at once with its size, until the next one starts', function () {
+	$stream = stream();
+	$bar = bar($stream);
+	$bar->advance(0, ['src/large.php' => microtime(as_float: true)], 250_000);
+	Assert::same("\r  [                    ]  0/10  src/large.php  250 kB\r", read($stream));
+
+	$bar->advance(1, ['src/small.php' => microtime(as_float: true)], 2_000);
+	Assert::same(
+		"\r  [                    ]  0/10  src/large.php  250 kB\r"
+		. "\r  [==                  ]  1/10" . str_repeat(' ', 23) . "\r",
+		read($stream),
+	);
 });
 
 

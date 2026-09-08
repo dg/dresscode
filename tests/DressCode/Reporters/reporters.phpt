@@ -233,6 +233,21 @@ test('console: paths under the working directory are relative to it, the others 
 });
 
 
+test('console: a line drawn over the output is erased before anything is written, a clean file writes nothing', function () {
+	$stream = memory();
+	$reporter = new ConsoleReporter($stream, beforeWrite: function () use ($stream): void {
+		fwrite($stream, '<erased>');
+	});
+	[$clean, $violating] = results();
+	$reporter->reportFile($clean);
+	Assert::same(0, ftell($stream));
+
+	$reporter->reportFile($violating);
+	rewind($stream);
+	Assert::match('<erased>src%a%a.php%A%', (string) stream_get_contents($stream));
+});
+
+
 test('json', function () {
 	Assert::match(<<<'XX'
 		{
