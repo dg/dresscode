@@ -13,3 +13,10 @@ parameters:
 		- tests/*/fixtures/*
 		- tests/temp/*
 		- tests/corpus/*
+
+	ignoreErrors:
+		# a first-class callable reaches the analysis only as a node of PHPStan's own; should PHPStan stop making
+		# them, the branch is dead, the callable goes unseen as any unknown node does, and the test of Types says so
+		-
+			identifier: phpstanApi.instanceofAssumption
+			path: src/Analyses/Types.php

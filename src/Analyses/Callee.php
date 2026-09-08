@@ -31,6 +31,7 @@ final readonly class Callee
 			MemberKind::StaticMethod => "Static method $this->declaringClass::$this->name()",
 			MemberKind::Property => "Property $this->declaringClass::\$$this->name",
 			MemberKind::StaticProperty => "Static property $this->declaringClass::\$$this->name",
+			MemberKind::Constructor => "Constructor $this->declaringClass::$this->name()",
 		};
 	}
 }
