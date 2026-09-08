@@ -1,0 +1,4 @@
+8: The method `FromArray()` must be written `fromArray()`.
+9: The method `GETTOTAL()` must be written `getTotal()`.
+10: The method `gettotal()` must be written `getTotal()`.
+10: The method `GetTotal()` must be written `getTotal()`.

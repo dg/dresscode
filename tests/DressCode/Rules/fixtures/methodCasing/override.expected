@@ -1,0 +1,27 @@
+<?php
+namespace App;
+
+use Acme\Shop\Order;
+
+class PaidOrder extends Order
+{
+	public function getTotal(): float
+	{
+		return parent::getTotal() * 2;
+	}
+
+
+	public function getName(): string
+	{
+		return 'paid';
+	}
+}
+
+
+class Shipment implements \Countable
+{
+	public function count(): int
+	{
+		return 0;
+	}
+}

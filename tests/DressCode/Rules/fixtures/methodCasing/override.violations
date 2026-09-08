@@ -1,0 +1,3 @@
+8: The method `GetTotal()` must be written `getTotal()`, as `Acme\Shop\Order` declares it.
+10: The method `GETTOTAL()` must be written `getTotal()`.
+23: The method `COUNT()` must be written `count()`, as `Countable` declares it.

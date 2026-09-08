@@ -39,6 +39,7 @@ casing:
 	magicConstant: uppercase
 	class: declared                           # `DateTime`, not `datetime`
 	function: declared                        # `strlen()`, not `StrLen()`
+	method: declared                          # `$o->getTotal()`, not `$o->gettotal()`, with `typeAnalysis`
 
 qualification:
 	class:

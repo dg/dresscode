@@ -1,0 +1,11 @@
+<?php
+namespace App;
+
+use Acme\Shop\Order;
+
+function total(Order $order, ?Order $other, $unknown): float
+{
+	$copy = Order::FromArray([]);
+	$callable = $order->GETTOTAL(...);
+	return $order->gettotal() + $other?->GetTotal() + $copy->getTotal() + $unknown->gettotal();
+}
