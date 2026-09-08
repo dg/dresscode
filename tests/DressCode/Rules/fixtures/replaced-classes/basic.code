@@ -1,0 +1,25 @@
+<?php
+// {"App\\Mailer\\SmtpMailer": "App\\Mail\\Mailer", "Legacy\\Logger": "Psr\\Log\\LoggerInterface", "\\App\\Old": "\\App\\Current"}
+
+namespace App;
+
+use App\Mailer\SmtpMailer;
+use Legacy\Logger as Log;
+
+#[Old]
+final class Service extends Old
+{
+	public function __construct(
+		private SmtpMailer $mailer,
+		private Log $log,
+	) {
+	}
+
+
+	public function create(\Legacy\Logger|Old|null $logger): Old
+	{
+		$mailer = new SmtpMailer;
+		$class = Old::class;
+		return $logger instanceof Old ? $logger : new Old($mailer, SmtpMailer::Default);
+	}
+}

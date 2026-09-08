@@ -1,0 +1,14 @@
+6: Class App\Mailer\SmtpMailer is replaced by App\Mail\Mailer
+7: Class Legacy\Logger is replaced by Psr\Log\LoggerInterface
+9: Class App\Old is replaced by App\Current
+10: Class App\Old is replaced by App\Current
+13: Class App\Mailer\SmtpMailer is replaced by App\Mail\Mailer
+14: Class Legacy\Logger is replaced by Psr\Log\LoggerInterface
+19: Class Legacy\Logger is replaced by Psr\Log\LoggerInterface
+19: Class App\Old is replaced by App\Current
+19: Class App\Old is replaced by App\Current
+21: Class App\Mailer\SmtpMailer is replaced by App\Mail\Mailer
+22: Class App\Old is replaced by App\Current
+23: Class App\Old is replaced by App\Current
+23: Class App\Old is replaced by App\Current
+23: Class App\Mailer\SmtpMailer is replaced by App\Mail\Mailer
