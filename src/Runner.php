@@ -176,6 +176,12 @@ final class Runner
 	}
 
 
+	public function getProcessor(): FileProcessor
+	{
+		return $this->processor;
+	}
+
+
 	public function hasExtension(string $path): bool
 	{
 		return in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), $this->fileExtensions, strict: true);

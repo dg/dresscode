@@ -11,6 +11,7 @@
 	],
 	"require": {
 		"php": "8.4 - 8.6",
+		"nette/command-line": "^1.9",
 		"nette/schema": "^1.4.x-dev",
 		"nette/utils": "^4.1",
 		"phpsyntax/phpsyntax": "dev-master",
@@ -23,6 +24,7 @@
 		"phpstan/extension-installer": "^1.4",
 		"nette/phpstan-rules": "^1.0"
 	},
+	"bin": ["bin/dresscode"],
 	"autoload": {
 		"classmap": ["src/"],
 		"psr-4": {
