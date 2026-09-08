@@ -7,12 +7,14 @@
 
 namespace DressCode\Analyses;
 
+use DressCode\Rules\QualifiedNames;
 use DressCode\Tristate;
 use PhpParser\Node as ParserNode;
 use PhpParser\Node\Expr;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCallableNode};
-use PHPStan\Reflection\{ClassReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
+use PHPStan\Reflection\{ClassConstantReflection, ClassMemberReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
+use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\Type\{MixedType, Type, TypeCombinator, VerbosityLevel};
 use PhpSyntax\{Node, Printer, Token};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
@@ -21,9 +23,9 @@ use function count, is_bool, strlen;
 
 
 /**
- * The types of the code, from the PHPStan of the project: what an expression is, and which member a call or an
- * access reaches. The answers are those of the text of the pass at its first question; a node inserted after it
- * has none, and a rule asking for one asks with `?->`.
+ * The types of the code, from the PHPStan of the project: what an expression is, which member a call or an
+ * access reaches, and what the declaration of that member says about it. The answers are those of the text of the
+ * pass at its first question; a node inserted after it has none, and a rule asking for one asks with `?->`.
  * A rule asks questions; the answers in the words of PHPStan stay inside.
  */
 final class Types implements PassAnalysis
@@ -344,6 +346,112 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * What the declaration of the member says about its deprecation; null for a member that is not deprecated, and for
+	 * one its class does not have.
+	 */
+	public function findDeprecation(Member $member): ?Deprecation
+	{
+		$class = $this->phpstan->findClass($member->declaringClass);
+		$reflection = $class === null ? null : self::findNativeMember($class, $member->kind, $member->name);
+		return $reflection?->isDeprecated()->yes()
+			? Deprecation::fromDescription($reflection->getDeprecatedDescription() ?? '')
+			: null;
+	}
+
+
+	/**
+	 * Whether the member of that name, which the class declaring the member has, can be written in its place without
+	 * touching anything else: of the same kind and staticness, and for a method one that takes every call of the
+	 * member the same way, the parameters of the member in the same order under the same names, each taking what
+	 * the one of the member takes, and none required that the member does not have; at least as visible as the
+	 * member, a private member of an ancestor being seen nowhere; for a property also at least as writable, and of the same
+	 * native type.
+	 */
+	public function canReplace(Member $member, string $name): bool
+	{
+		$class = $this->phpstan->findClass($member->declaringClass);
+		$own = $class === null ? null : self::findNativeMember($class, $member->kind, $member->name);
+		$replacement = $class === null ? null : self::findNativeMember($class, $member->kind, $name);
+		return $own !== null && $replacement !== null
+			&& self::rankVisibility($replacement, $class) >= self::rankVisibility($own, $class)
+			&& match ($member->kind) {
+				MemberKind::Constant => true,
+				MemberKind::Property, MemberKind::StaticProperty => $replacement->isStatic() === ($member->kind === MemberKind::StaticProperty)
+					&& $own instanceof PhpPropertyReflection && $replacement instanceof PhpPropertyReflection
+					&& self::rankWriting($replacement) >= self::rankWriting($own)
+					&& $replacement->getNativeType()->equals($own->getNativeType()),
+				MemberKind::Constructor => false,
+				MemberKind::Method, MemberKind::StaticMethod => $this->canReplaceMethod($member, $name),
+			};
+	}
+
+
+	/** The member of that kind the class declares natively, itself or through an ancestor. */
+	private static function findNativeMember(
+		ClassReflection $class,
+		MemberKind $kind,
+		string $name,
+	): ClassConstantReflection|ExtendedMethodReflection|PhpPropertyReflection|null
+	{
+		return match ($kind) {
+			MemberKind::Constant => $class->hasConstant($name) ? $class->getConstant($name) : null,
+			MemberKind::Method, MemberKind::StaticMethod, MemberKind::Constructor => $class->hasNativeMethod($name) ? $class->getNativeMethod($name) : null,
+			MemberKind::Property, MemberKind::StaticProperty => $class->hasNativeProperty($name) ? $class->getNativeProperty($name) : null,
+		};
+	}
+
+
+	/** How widely the member of the class is seen: public, protected, private, and a private one of an ancestor least. */
+	private static function rankVisibility(ClassMemberReflection $member, ClassReflection $class): int
+	{
+		return match (true) {
+			$member->isPublic() => 3,
+			!$member->isPrivate() => 2,
+			$member->getDeclaringClass()->getName() === $class->getName() => 1,
+			default => 0,
+		};
+	}
+
+
+	/** How widely the property is written: nowhere outside its declaration, from its class, from it and its children, from anywhere. */
+	private static function rankWriting(PhpPropertyReflection $property): int
+	{
+		return match (true) {
+			$property->isReadOnly(), $property->isReadOnlyByPhpDoc(), !$property->isWritable(), $property->hasHook('get') && !$property->hasHook('set') => 0,
+			$property->isPrivateSet() => 1,
+			$property->isProtectedSet() => 2,
+			default => 3,
+		};
+	}
+
+
+	/** Whether the method of that name takes every call of the method of the member the same way. */
+	private function canReplaceMethod(Member $member, string $name): bool
+	{
+		$ownStatic = $this->isStaticMethod($member->declaringClass, $member->name);
+		$old = $this->findMethodParameters($member->declaringClass, $member->name);
+		$new = $this->findMethodParameters($member->declaringClass, $name);
+		if ($old === null || $new === null || $ownStatic !== $this->isStaticMethod($member->declaringClass, $name)) {
+			return false;
+		}
+
+		foreach ($new as $i => $parameter) {
+			$replaced = $old[$i] ?? null;
+			if ($replaced === null ? !$parameter->optional : (
+				$parameter->name !== $replaced->name
+				|| $parameter->variadic !== $replaced->variadic
+				|| (!$parameter->optional && $replaced->optional)
+				|| !$parameter->canReplace($replaced)
+			)) {
+				return false;
+			}
+		}
+
+		return count($new) >= count($old);
+	}
+
+
+	/**
 	 * The declared spelling of a class, interface, trait or enum the project, its packages or PHP declare, given its
 	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares.
 	 */
@@ -457,6 +565,33 @@ final class Types implements PassAnalysis
 			false => Tristate::No,
 			null => Tristate::Maybe,
 		};
+	}
+
+
+	/**
+	 * What the declaration of the class says about its deprecation; null for one that is not deprecated or that nothing
+	 * declares. The replacement is the class its description names, `use Acme\Mail\SmtpTransport`, in its declared spelling:
+	 * a bare name is looked up beside the deprecated class before it is taken as written, a qualified one the other
+	 * way round, and there is none where neither exists.
+	 */
+	public function findClassDeprecation(string $class): ?Deprecation
+	{
+		$reflection = $this->phpstan->findClass($class);
+		if (!$reflection?->isDeprecated()) {
+			return null;
+		}
+
+		$description = $reflection->getDeprecatedDescription() ?? '';
+		$namespace = QualifiedNames::extractNamespace($reflection->getName());
+		if (!preg_match('~^\\\\?(\w+(?:\\\\\w+)*)$~D', Deprecation::findReplacementCode($description) ?? '', $m)) {
+			return new Deprecation($description);
+		}
+
+		$beside = ltrim("$namespace\\$m[1]", '\\');
+		$replacement = str_contains($m[1], '\\')
+			? $this->findClassName($m[1]) ?? $this->findClassName($beside)
+			: $this->findClassName($beside) ?? $this->findClassName($m[1]);
+		return new Deprecation($description, $replacement);
 	}
 
 
