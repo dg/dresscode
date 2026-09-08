@@ -8,17 +8,49 @@
 namespace DressCode\Rules;
 
 use DressCode\RuleContext;
-use PhpSyntax\{CommentPolicy, Node, Parser, Token, Trivia, TriviaKind};
-use PhpSyntax\Nodes\{AttributeGroupNode, NodeList};
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{CommentPolicy, Node, Parser, SymbolKind, Token, Trivia, TriviaKind};
+use PhpSyntax\Nodes\{AttributeGroupNode, FileNode, NodeList};
 
 
 /**
- * What a rule writing code into a file needs so that the code takes the shape the file has: a node removed with one gap
- * left of the two around it, an attribute on a line of its own above a declaration. A rule shipped by a package writes
- * with it too.
+ * What a rule writing code into a file needs so that the code takes the shape the file has: a class spelled the way
+ * the file reaches it, a node removed with one gap left of the two around it, an attribute on a line of its own above
+ * a declaration. A rule shipped by a package writes with it too.
  */
 final class CodeWriter
 {
+	/**
+	 * How a class is written where the node stands: fully qualified when asked so, else the shortest way that reaches
+	 * it, through an import added where none does, the scope takes one and the short name is free; a file without
+	 * a namespace imports a class of one too, rather than writing it qualified. A global class gets no import, it is
+	 * written with its backslash where nothing imports it, which name-notation spells as the project does. It may
+	 * add an import, so it is called only after `report()` returned true.
+	 */
+	public static function spellClass(string $class, Node $at, RuleContext $context, bool $fullyQualified = false): string
+	{
+		if ($fullyQualified) {
+			return '\\' . $class;
+		}
+
+		$resolver = $context->getAnalysis(NameResolver::class);
+		$short = $resolver->getShortName($class, SymbolKind::ClassLike, $at);
+		$scope = NodeHelpers::findImportScope($at);
+		if (
+			(str_starts_with($short, '\\') || ($scope instanceof FileNode && str_contains($short, '\\')))
+			&& str_contains($class, '\\')
+			&& $scope !== null
+			&& NodeHelpers::canAddImport($scope)
+			&& $resolver->isAliasFree(substr($class, (int) strrpos('\\' . $class, '\\')), SymbolKind::ClassLike, $at)
+		) {
+			NodeHelpers::addImport($scope, SymbolKind::ClassLike, $class, $context);
+			$short = $context->getAnalysis(NameResolver::class)->getShortName($class, SymbolKind::ClassLike, $at);
+		}
+
+		return $short;
+	}
+
+
 	/**
 	 * Removes a node standing on lines of its own between two others, a member of a class among them, and leaves one
 	 * gap where there were two, the narrower one, which `Node::remove()` would add up instead: none after the opening

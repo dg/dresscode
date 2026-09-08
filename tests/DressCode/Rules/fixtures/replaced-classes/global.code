@@ -1,0 +1,14 @@
+<?php
+// {"Acme\\Mail\\ITransport": "Acme\\Mail\\Transport", "Legacy\\Logger": "Psr\\Log\\LoggerInterface"}
+
+declare(strict_types=1);
+
+use Acme\Mail\ITransport;
+
+require __DIR__ . '/bootstrap.php';
+
+// a file that declares no namespace imports into itself
+function test(ITransport $control, \Legacy\Logger $fully): void
+{
+	$logger = new Legacy\Logger;
+}

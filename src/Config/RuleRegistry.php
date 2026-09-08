@@ -42,6 +42,7 @@ final class RuleRegistry
 		Rules\Classes\ClassNameReferenceForStringLiteralRule::class,
 		Rules\Classes\NameCasingRule::class,
 		Rules\Upgrading\NoDeprecatedMembersRule::class,
+		Rules\Upgrading\ReplacedClassesRule::class,
 		Rules\Upgrading\ForbiddenFunctionsRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Expressions\NewArgumentParenthesesRule::class,

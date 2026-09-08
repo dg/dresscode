@@ -2,6 +2,8 @@
 
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Nodes\ExpressionNode;
+use PhpSyntax\Nodes\Scalar\IntegerNode;
+use PhpSyntax\Nodes\Statement\NamespaceNode;
 use PhpSyntax\Parser;
 use Tester\Assert;
 
@@ -65,4 +67,17 @@ test('isWritten()', function () {
 	foreach ((new Parser)->parse($code)->find(PhpSyntax\Nodes\Expression\VariableNode::class) as $variable) {
 		Assert::same(str_starts_with($variable->text, '$w'), NodeHelpers::isWritten($variable), $variable->text);
 	}
+});
+
+
+test('findImportScope()', function () {
+	$file = (new Parser)->parse("<?php\nfunction f() { return 1; }\n");
+	[$number] = $file->find(IntegerNode::class);
+	Assert::same($file, NodeHelpers::findImportScope($number));
+
+	$file = (new Parser)->parse("<?php\nnamespace A;\nreturn 1;\n");
+	[$namespace] = $file->find(NamespaceNode::class);
+	[$number] = $file->find(IntegerNode::class);
+	Assert::same($namespace, NodeHelpers::findImportScope($number));
+	Assert::null(NodeHelpers::findImportScope($file)); // a file with namespaces imports into them
 });

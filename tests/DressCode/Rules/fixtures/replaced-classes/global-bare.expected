@@ -1,0 +1,8 @@
+<?php
+
+use Psr\Log\LoggerInterface;
+
+// {"Legacy\\Logger": "Psr\\Log\\LoggerInterface"}
+
+// a file without a namespace and without imports
+$logger = new LoggerInterface;

@@ -8,6 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\CodeWriter;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, Token, Trivia, TriviaKind};
 use PhpSyntax\Nodes\{AnonymousClassNode, NameNode};
@@ -20,8 +21,8 @@ use PhpSyntax\Nodes\Statement\ClassNode;
  * so or not, so the fix adds nothing at run time; it puts in the declaration what the code already is, where
  * a reader and a static analyser look for it.
  *
- * The name is written with the leading backslash, which dresscode/name-notation turns into an import where
- * the standard asks for one. A class that names the interface already is left alone, and one that has it
+ * The name is written as the file reaches it, bare in a file without a namespace or under an import of it,
+ * else with the leading backslash. A class that names the interface already is left alone, and one that has it
  * from a parent is not seen, which costs nothing: PHP takes a repeated interface.
  */
 #[RuleInfo(
@@ -50,7 +51,7 @@ final class StringableRequiredRule extends NodeRule
 			return;
 		}
 
-		$template = (new Parser)->parseStatement('class Template implements \Stringable {}');
+		$template = (new Parser)->parseStatement('class Template implements ' . CodeWriter::spellClass('Stringable', $node, $context) . ' {}');
 		assert($template instanceof ClassNode && $template->implements !== null && $template->implementsKeyword !== null);
 		if ($node->implements === null) {
 			[$keyword, $names] = [$template->implementsKeyword, $template->implements];

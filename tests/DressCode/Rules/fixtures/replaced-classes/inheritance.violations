@@ -1,0 +1,6 @@
+6: Class `Acme\Codec\CacheableNormalizer` is replaced by `Acme\Codec\Normalizer`
+7: Class `Acme\Codec\ContextAwareNormalizer` is replaced by `Acme\Codec\Normalizer`
+11: Class `Acme\Codec\ContextAwareNormalizer` is replaced by `Acme\Codec\Normalizer`
+16: Class `Acme\Codec\ContextAwareNormalizer` is replaced by `Acme\Codec\Normalizer`
+16: Class `Acme\Codec\CacheableNormalizer` is replaced by `Acme\Codec\Normalizer`
+21: Class `Acme\Codec\ContextAwareNormalizer` is replaced by `Acme\Codec\Normalizer`
