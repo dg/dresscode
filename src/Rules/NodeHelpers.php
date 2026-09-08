@@ -279,6 +279,14 @@ final class NodeHelpers
 	}
 
 
+	/** What a deprecation says, as the end of the message after a colon: on one line and without its period; empty when it says nothing. */
+	public static function formatDeprecation(Analyses\Deprecation $deprecation): string
+	{
+		$description = rtrim((string) preg_replace('~\s+~', ' ', trim($deprecation->description)), '.');
+		return $description === '' ? '' : ": $description";
+	}
+
+
 	/**
 	 * How the name of another global function is written in place of the name of a call of a global one: bare where
 	 * the replaced name is bare, nothing takes the bare name and it is no less certain than the replaced one, which is

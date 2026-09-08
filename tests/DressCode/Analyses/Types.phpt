@@ -307,4 +307,31 @@ test('a deprecation names its replacement in a shape a tool can read, or it does
 	Assert::equal(new Deprecation('use something else'), Deprecation::fromDescription('use something else'));
 	Assert::equal(new Deprecation('since 3.2'), Deprecation::fromDescription('since 3.2'));
 	Assert::equal(new Deprecation(''), Deprecation::fromDescription(''));
+
+	// the words around the code
+	$codes = [
+		'since Mailer 6.4, use "enableCompression()" instead.' => 'enableCompression()',
+		'since acme/mailer 5.3, use DEFAULT_PORT instead.' => 'DEFAULT_PORT',
+		'since Mailer 8.1; use Acme\Mail\Transport instead' => 'Acme\Mail\Transport',
+		'since Mailer 6.1, to be removed in 7.0, use {@link SmtpTransport} instead' => 'SmtpTransport',
+		'use const RETRY_LIMIT instead' => 'RETRY_LIMIT',
+		'use protected const RETRY_LIMIT instead' => 'RETRY_LIMIT',
+		'use the {@see QueuedMessage} instead' => 'QueuedMessage',
+		'use {@see self::getRecipients()} instead' => 'self::getRecipients()',
+		'use `getHeaders()` instead' => 'getHeaders()',
+		'use "Acme\Mail\Transport\SendmailTransport" instead' => 'Acme\Mail\Transport\SendmailTransport',
+		'use the Foo class instead' => 'Foo',
+		'use ->send() instead' => 'send()',
+		'use the Queued attribute instead' => null,
+		'use the #[Queued] attribute instead' => null,
+		"use Mailer's TransportFactory instead" => null,
+		'use a middleware instead.' => null,
+		'since Mailer 7.3, to be removed in 8.0' => null,
+	];
+	foreach ($codes as $description => $code) {
+		Assert::same($code, Deprecation::findReplacementCode($description), $description);
+	}
+
+	Assert::equal(new Deprecation('use {@see self::getRecipients()} instead', null, 'getRecipients', true), Deprecation::fromDescription('use {@see self::getRecipients()} instead'));
+	Assert::equal(new Deprecation('use ->send() instead', null, 'send', true), Deprecation::fromDescription('use ->send() instead'));
 });

@@ -1,0 +1,36 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\Order;
+
+class MyOrder extends Order
+{
+	public function check(): void
+	{
+		$this->recalc();
+		$x = self::STATUS_PAID;
+		$y = static::STATUS_OPEN;
+	}
+}
+
+
+function test(Order $order, MyOrder $my, $unknown): void
+{
+	$a = $order::STATUS_PAID;
+	$b = Order::STATUS_PAID;
+	$c = MyOrder::STATUS_PAID;
+	$d = $order::StatusPaid;
+	$order->recalc();
+	$order?->recalc();
+	$e = Order::OLD;
+	$f = Order::EMAIL;
+	Order::make();
+	$unknown->recalc();
+	$unknown::STATUS_PAID;
+
+	// the replacement takes the use as it is, or the use is only reported
+	$order->verifyWith('email');
+	$order->verify('email');
+	$l = Order::CLOSED;
+}

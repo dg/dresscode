@@ -447,7 +447,7 @@ test('a rule that needs the types of the code runs only where the configuration 
 	Assert::exception(
 		fn() => $resolve(new Config(rules: [RuleTyped::class => true])),
 		ConfigurationException::class,
-		"Rule test/typed needs the types of the code: set 'types: phpstan' in the configuration, with phpstan/phpstan installed in the project.",
+		"Rule test/typed needs the types of the code; set 'types: phpstan' in the configuration and install phpstan/phpstan in the project.",
 	);
 	Assert::same(['test/typed'], $resolve(new Config(rules: [RuleTyped::class => true], types: 'phpstan')));
 
@@ -731,11 +731,11 @@ test('a group turns on every rule that carries it, under the rules of its own pr
 
 	// a group names no rule, so a rule of it that cannot run is left out in silence, as a preset's is
 	$resolver = new PresetResolver(new RuleRegistry);
-	$resolved = $resolver->resolve(new Config(groups: ['modernization']), '8.3');
+	$resolved = $resolver->resolve(new Config(groups: ['deprecations']), '8.3');
 	$byName = array_column($resolved->rules, null, 'name');
-	Assert::same('it needs PHP 8.5 and the target is 8.3', $byName['dresscode/pipe-operator']->inactive);
+	Assert::same('it needs the types of the code and the configuration sets no types', $byName['dresscode/no-deprecated-members']->inactive);
 	Assert::same([], $resolver->getWarnings());
-	Assert::same(['modernization'], $resolved->groups);
+	Assert::same(['deprecations'], $resolved->groups);
 
 	// the group of the command line lies over the configuration, and the value of a rule is where it was said
 	$rules = resolve(new Config(rules: ['dresscode/useless-else' => false]), commandLine: new Profile(groups: ['cleanup']));

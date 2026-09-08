@@ -514,7 +514,7 @@ final class PresetResolver
 		$untyped = $info->requiresTypes && !$types;
 		// a preset may name such a rule whatever the project has; a project naming it asked for what it cannot get
 		if ($untyped && $last !== false && $explicit) {
-			throw new ConfigurationException("Rule $info->name needs the types of the code: set 'types: phpstan' in the configuration, with phpstan/phpstan installed in the project.");
+			throw new ConfigurationException("Rule $info->name needs the types of the code; set 'types: phpstan' in the configuration and install phpstan/phpstan in the project.");
 		}
 
 		$inactive = match (true) {

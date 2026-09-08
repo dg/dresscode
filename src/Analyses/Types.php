@@ -338,6 +338,53 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * Whether the member of that name, which the class declaring the callee has, can be written in its place without
+	 * touching anything else: of the same kind and staticness, and for a method one that takes every call of the
+	 * callee the same way, the parameters of the callee in the same order under the same names, each taking what
+	 * the one of the callee takes, and none required that the callee does not have.
+	 */
+	public function canReplace(Callee $callee, string $name): bool
+	{
+		$class = $this->phpstan->findClass($callee->declaringClass);
+		if ($class === null) {
+			return false;
+		}
+
+		switch ($callee->kind) {
+			case MemberKind::Constant:
+				return $class->hasConstant($name);
+			case MemberKind::Property:
+			case MemberKind::StaticProperty:
+				return $class->hasNativeProperty($name)
+					&& $class->getNativeProperty($name)->isStatic() === ($callee->kind === MemberKind::StaticProperty);
+			case MemberKind::Constructor:
+				return false;
+		}
+
+		$ownStatic = $this->isStaticMethod($callee->declaringClass, $callee->name);
+		$old = $this->findParameters(new Access($callee->kind, $callee->name, [$callee->declaringClass], true));
+		$new = $this->findParameters(new Access($callee->kind, $name, [$callee->declaringClass], true));
+		if ($old === null || $new === null || $ownStatic !== $this->isStaticMethod($callee->declaringClass, $name)) {
+			return false;
+		}
+
+		foreach ($new as $i => $parameter) {
+			$replaced = $old[$i] ?? null;
+			if ($replaced === null ? !$parameter->optional : (
+				$parameter->name !== $replaced->name
+				|| $parameter->variadic !== $replaced->variadic
+				|| (!$parameter->optional && $replaced->optional)
+				|| !$parameter->canReplace($replaced)
+			)) {
+				return false;
+			}
+		}
+
+		return count($new) >= count($old);
+	}
+
+
+	/**
 	 * The declared spelling of a class, interface, trait or enum the project, its packages or PHP declare, given its
 	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares.
 	 */
@@ -402,7 +449,7 @@ final class Types implements PassAnalysis
 
 		$description = $reflection->getDeprecatedDescription() ?? '';
 		$namespace = substr($reflection->getName(), 0, (int) strrpos($reflection->getName(), '\\'));
-		if (!preg_match('~^use\s+\\\\?(\w+(?:\\\\\w+)*)(?:\s+instead)?\.?$~iD', trim($description), $m)) {
+		if (!preg_match('~^\\\\?(\w+(?:\\\\\w+)*)$~D', Deprecation::findReplacementCode($description) ?? '', $m)) {
 			return new Deprecation($description);
 		}
 

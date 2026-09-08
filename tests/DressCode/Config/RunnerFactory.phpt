@@ -124,6 +124,44 @@ test('a target older than the oldest PHP DressCode fixes code for is raised to i
 });
 
 
+test('the types of the code come from the PHPStan of the project when the configuration says so', function () {
+	$root = __DIR__ . '/../../temp/types';
+	@mkdir("$root/stubs", recursive: true); // @ - may exist
+	copy(__DIR__ . '/../Analyses/fixtures/types/stubs/Order.php', "$root/stubs/Order.php");
+	// a file that declares a class, which is what makes PHPStan read it from the disk
+	$code = <<<'XX'
+		<?php
+
+		use Acme\Shop\Order;
+
+		class Check
+		{
+			public function run(Order $order): string
+			{
+				return $order::STATUS_PAID;
+			}
+		}
+		XX;
+	file_put_contents("$root/Check.php", $code);
+
+	$factory = new RunnerFactory;
+	$runner = $factory->createRunner(new Config(rules: ['no-deprecated-members' => true], paths: ['stubs'], types: 'phpstan'), $root, cache: false);
+	// the run names the file relative to the root, while the working directory is another
+	$result = $runner->processFile("$root/Check.php", $code);
+	Assert::same(
+		['9: Constant Acme\Shop\Order::STATUS_PAID is deprecated: use Order::StatusPaid'],
+		array_map(fn($violation) => "$violation->line: $violation->message", $result->violations),
+	);
+
+	// without the types the rule the project names is refused, not left out
+	Assert::exception(
+		fn() => $factory->createRunner(new Config(rules: ['no-deprecated-members' => true]), $root, cache: false),
+		ConfigurationException::class,
+		'Rule dresscode/no-deprecated-members needs the types of the code; %a%',
+	);
+});
+
+
 test('the lowest version the constraint of require.php allows', function () use ($fixtures) {
 	$detect = fn(string $json) => RunnerFactory::detectPhpVersion(FileMock::create($json, 'json'));
 	Assert::same('8.2', $detect('{"require": {"php": "8.2 - 8.5"}}'));
