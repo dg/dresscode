@@ -12,6 +12,7 @@ use PhpParser\Node as ParserNode;
 use PhpParser\Node\Expr;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCallableNode};
+use PHPStan\Php\PhpVersion;
 use PHPStan\Reflection\{ClassConstantReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
 use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\Type\{Type, TypeCombinator};
@@ -215,6 +216,47 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * Whether the loose and the strict comparison of the first expression with each of the others answer alike: yes
+	 * where they are all integers, all booleans or all enum cases; no where the first and another are scalars or null
+	 * of types with no value in common, which `===` never finds equal while `==` may (`1 == '1'`); maybe otherwise,
+	 * two strings among it, `'1' == '01'` comparing them as numbers, and for an expression the analysis was made
+	 * without.
+	 * @param list<ExpressionNode> $expressions
+	 */
+	public function isComparedAlike(array $expressions): Tristate
+	{
+		if (array_any(
+			['int', 'bool', \UnitEnum::class],
+			fn(string $type) => array_all(
+				$expressions,
+				fn(ExpressionNode $expression) => $this->isOfType($expression, $type) === Tristate::Yes,
+			),
+		)) {
+			return Tristate::Yes;
+		}
+
+		$first = $expressions === [] ? null : $this->getType($expressions[0]);
+		if ($first === null || !$first->isScalar()->or($first->isNull())->yes()) {
+			return Tristate::Maybe;
+		}
+
+		foreach (array_slice($expressions, 1) as $expression) {
+			$type = $this->getType($expression);
+			if (
+				$type !== null
+				&& $type->isScalar()->or($type->isNull())->yes()
+				&& $first->isSuperTypeOf($type)->no()
+				&& !$first->looseCompare($type, new PhpVersion(80000))->isFalse()->yes()
+			) {
+				return Tristate::No;
+			}
+		}
+
+		return Tristate::Maybe;
+	}
+
+
+	/**
 	 * The classes the expression is an instance of, fully qualified; none for anything that is no object.
 	 * @return list<string>
 	 */
@@ -413,6 +455,39 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * The property of the same name a trait the class uses declares, which PHP composes with the declaration, a
+	 * property or a promoted parameter. Null where no trait declares one, for one of several properties, and for a
+	 * declaration the analysis was made without.
+	 */
+	public function findTraitProperty(PropertyNode|ParameterNode $declaration): ?Member
+	{
+		$name = match (true) {
+			$declaration instanceof PropertyNode => $declaration->items->count() === 1
+				? $declaration->items->getItems()[0]->plainName
+				: null,
+			default => $declaration->promoted ? $declaration->variable->plainName : null,
+		};
+		$class = $name === null ? null : $this->findDeclaredClass($declaration);
+		if ($name === null || $class === null) {
+			return null;
+		}
+
+		foreach ($class->getTraits() as $trait) {
+			if ($trait->hasNativeProperty($name)) {
+				$property = $trait->getNativeProperty($name);
+				return new Member(
+					$property->isStatic() ? MemberKind::StaticProperty : MemberKind::Property,
+					$property->getName(),
+					$trait->getName(),
+				);
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
 	 * The method the declaration overrides as the parent class or an interface declares it natively, the first of
 	 * them that declares it and not privately, with where the declaration departs from it; null where it overrides
 	 * nothing, either has more than one variant, or the analysis was made without the declaration.
@@ -520,12 +595,32 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * Whether the member is abstract, which a class that is not abstract must implement: a method or a property of an
+	 * interface is, a constant never; maybe for a member its class does not have.
+	 */
+	public function isAbstract(Member $member): Tristate
+	{
+		return $this->declarations->isAbstract($member);
+	}
+
+
+	/**
 	 * The declared spelling of a class, interface, trait or enum the project, its packages or PHP declare, given its
 	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares.
 	 */
 	public function findClassName(string $name): ?string
 	{
 		return $this->declarations->findClassName($name);
+	}
+
+
+	/**
+	 * The declared spelling of a function the project, its packages or PHP declare, given its fully qualified name in
+	 * any letter case without a leading backslash; null for a name nothing declares.
+	 */
+	public function findFunctionName(string $name): ?string
+	{
+		return $this->declarations->findFunctionName($name);
 	}
 
 
@@ -568,6 +663,42 @@ final class Types implements PassAnalysis
 	public function hasMember(string $class, MemberKind $kind, string $name): bool
 	{
 		return $this->declarations->hasMember($class, $kind, $name);
+	}
+
+
+	/**
+	 * Whether the property the access reaches holds a plain value its reads and writes go straight to: declared,
+	 * neither readonly, virtual nor hooked, and one no child can hook, being private or final or of a final class.
+	 * No for a property reached through `__get` and `__set` and for a readonly, virtual or hooked one; maybe where
+	 * a child may hook it, and for an access the types cannot tell or the analysis was made without.
+	 */
+	public function isPlainProperty(ExpressionNode $access): Tristate
+	{
+		$member = $this->findMember($access);
+		if ($member === null) {
+			// a property no class declares is magic where every class of the receiver answers through __get or __set
+			$classes = $this->findMemberAccess($access)->classes ?? [];
+			return $classes !== [] && array_all($classes, fn(string $name) => ($class = $this->phpstan->findClass($name)) !== null
+				&& ($class->hasNativeMethod('__get') || $class->hasNativeMethod('__set')))
+					? Tristate::No
+					: Tristate::Maybe;
+		}
+
+		$class = $member->kind === MemberKind::Property || $member->kind === MemberKind::StaticProperty
+			? $this->phpstan->findClass($member->declaringClass)
+			: null;
+		if ($class === null) {
+			return Tristate::Maybe;
+		} elseif (!$class->hasNativeProperty($member->name)) {
+			return Tristate::No;
+		}
+
+		$property = $class->getNativeProperty($member->name);
+		return match (true) {
+			$property->isReadOnly(), $property->isVirtual()->yes(), $property->hasHook('get'), $property->hasHook('set') => Tristate::No,
+			$property->isPrivate(), $property->isFinal()->yes(), $class->isFinalByKeyword() => Tristate::Yes,
+			default => Tristate::Maybe,
+		};
 	}
 
 

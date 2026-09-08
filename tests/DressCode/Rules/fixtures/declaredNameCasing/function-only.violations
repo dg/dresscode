@@ -1,0 +1,2 @@
+6: The function `Acme\Shop\formatprice()` must be written `Acme\Shop\formatPrice()`.
+9: The function `formatprice()` must be written `formatPrice()`.

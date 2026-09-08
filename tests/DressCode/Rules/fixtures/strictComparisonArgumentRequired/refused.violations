@@ -1,6 +1,6 @@
-2: The `in_array()` call must pass `$strict = true`.
+3: The `in_array()` call must pass `$strict = true`.
 	risky TypeUnknown: a strict search no longer finds a value of another type
-3: The `base64_decode()` call must pass `$strict = true`.
+4: The `base64_decode()` call must pass `$strict = true`.
 	risky BehaviorChanges: a strict decoding gives false for a character outside the alphabet
-4: The `mb_detect_encoding()` call must pass `$strict = true`.
+5: The `mb_detect_encoding()` call must pass `$strict = true`.
 	risky BehaviorChanges: a strict detection gives only an encoding the whole string is valid in

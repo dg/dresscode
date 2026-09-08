@@ -1,0 +1,13 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\Cart;
+
+
+function read(array $items, Cart $cart, $unknown): void
+{
+	$a = $items[null];
+	$b = $cart[null];
+	$c = $unknown[null];
+}

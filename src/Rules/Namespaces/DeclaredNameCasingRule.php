@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Namespaces;
 
-use DressCode\Analyses\PhpSymbols;
+use DressCode\Analyses\{PhpSymbols, Types};
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
 use PhpSyntax\Analyses\NameResolver;
@@ -19,14 +19,14 @@ use function count, strlen;
 
 
 /**
- * Names PHP and the extensions shipped with it declare written in the case of their declaration: classes,
- * interfaces and enums (`stdClass`, `Random\Randomizer`), in a reference and in an import, functions (`strlen()`,
- * not `StrLen()`) and the types of a declaration (`int`, `void`); a name of the project or of a package keeps the
- * case it is written in. Of a name only the links written are rewritten, so an alias of an import, which is a name
- * of the project, stays; the types that are keywords, `array`, `callable`, `static`, `self` and `parent`, are the
- * keywords of `BuiltinCasingRule`.
+ * Names written in the case of their declaration: classes, interfaces, traits and enums (`stdClass`,
+ * `Random\Randomizer`), in a reference and in an import, functions (`strlen()`, not `StrLen()`) and the types of a
+ * declaration (`int`, `void`). Without the types of the code only what PHP and the extensions shipped with it declare
+ * is known, and a name of the project or of a package keeps the case it is written in. Of a name only the links
+ * written are rewritten, so an alias of an import, which is a name of the project, stays; the types that are
+ * keywords, `array`, `callable`, `static`, `self` and `parent`, are the keywords of `BuiltinCasingRule`.
  */
-#[RuleInfo(Stage::Structure, analyses: [PhpSymbols::class, NameResolver::class])]
+#[RuleInfo(Stage::Structure, analyses: [PhpSymbols::class, NameResolver::class, Types::class])]
 final class DeclaredNameCasingRule extends NodeRule
 {
 	private const ClassDecision = 'casing.class';
@@ -51,12 +51,12 @@ final class DeclaredNameCasingRule extends NodeRule
 			new Decision(
 				self::ClassDecision,
 				new Words(['declared' => '`stdClass`, `DateTime`, never `datetime`']),
-				'The case of a class, an interface or an enum PHP declares, as its declaration writes it',
+				'The case of a class, an interface, a trait or an enum as its declaration writes it, of one PHP declares only where the configuration sets no `typeAnalysis`',
 			),
 			new Decision(
 				self::FunctionDecision,
 				new Words(['declared' => '`strlen`, never `StrLen`']),
-				'The case of a function PHP declares, as its declaration writes it',
+				'The case of a function as its declaration writes it, of one PHP declares only where the configuration sets no `typeAnalysis`',
 			),
 			new Decision(
 				self::TypeDecision,
@@ -196,10 +196,11 @@ final class DeclaredNameCasingRule extends NodeRule
 	}
 
 
-	/** The declared spelling of a class PHP declares. */
+	/** The declared spelling of the class, from the types of the code where the run has them. */
 	private function findClassName(string $name, RuleContext $context): ?string
 	{
-		return $context->getAnalysis(PhpSymbols::class)->findClassName($name);
+		return $context->findAnalysis(Types::class)?->findClassName($name)
+			?? $context->getAnalysis(PhpSymbols::class)->findClassName($name);
 	}
 
 
@@ -232,10 +233,14 @@ final class DeclaredNameCasingRule extends NodeRule
 	}
 
 
-	/** The declared spelling of a global function PHP declares. */
+	/**
+	 * The declared spelling of the function, from the types of the code where the run has them, else of a global
+	 * function PHP declares.
+	 */
 	private function findFunctionName(string $name, bool $global, RuleContext $context): ?string
 	{
-		return $global && $context->getAnalysis(PhpSymbols::class)->isBuiltinFunction($name) ? strtolower($name) : null;
+		return $context->findAnalysis(Types::class)?->findFunctionName($name)
+			?? ($global && $context->getAnalysis(PhpSymbols::class)->isBuiltinFunction($name) ? strtolower($name) : null);
 	}
 
 

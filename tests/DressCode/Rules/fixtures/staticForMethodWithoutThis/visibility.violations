@@ -1,12 +1,12 @@
-6: The public method `render()` uses no `$this` and must be static.
+7: The public method `render()` uses no `$this` and must be static.
 	risky BehaviorChanges: a closure made of it can no longer be bound to an object
-12: The public method `title()` uses no `$this` and must be static.
+13: The public method `title()` uses no `$this` and must be static.
 	risky BehaviorChanges: a closure made of it can no longer be bound to an object
-18: The protected method `footer()` uses no `$this` and must be static.
+19: The protected method `footer()` uses no `$this` and must be static.
 	risky BehaviorChanges: a closure made of it can no longer be bound to an object
-24: The private method `note()` uses no `$this` and must be static.
+25: The private method `note()` uses no `$this` and must be static.
 	risky BehaviorChanges: a closure made of it can no longer be bound to an object
-45: The public method `id()` uses no `$this` and must be static.
+46: The public method `id()` uses no `$this` and must be static.
 	risky BehaviorChanges: a closure made of it can no longer be bound to an object
-82: The public method `size()` uses no `$this` and must be static.
+83: The public method `size()` uses no `$this` and must be static.
 	risky BehaviorChanges: a closure made of it can no longer be bound to an object

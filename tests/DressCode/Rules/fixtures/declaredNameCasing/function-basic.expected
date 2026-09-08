@@ -1,4 +1,5 @@
 <?php
+// types off
 strlen("a");
 \count([1]);
 Acme\StrLen("x");

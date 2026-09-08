@@ -1,0 +1,3 @@
+10: The `null` key must be written `''`, which is what the array makes of it.
+12: The `null` key must be written `''`, which is what the array makes of it.
+	risky TypeUnknown: an object implementing `ArrayAccess` gets the key as it is written

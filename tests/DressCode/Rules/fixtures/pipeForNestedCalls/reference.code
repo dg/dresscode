@@ -14,3 +14,5 @@ $a = shout(trim(strtolower($input)));
 $b = sortAll(array_unique(array_filter($items)));
 $c = end(array_unique(array_filter($items)));
 $d = trim(strtolower(elsewhere($input)));
+$e = Text::lower(trim(strtolower($input)));
+$f = Text::sortAll(array_unique(array_filter($items)));

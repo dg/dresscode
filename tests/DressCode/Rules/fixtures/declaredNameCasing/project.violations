@@ -1,0 +1,7 @@
+4: The class name `Acme\Shop\orderitem` must be written `Acme\Shop\OrderItem`.
+5: The class name `OrderITEM` must be written `OrderItem`.
+6: The function `Acme\Shop\formatprice()` must be written `Acme\Shop\formatPrice()`.
+8: The class name `orderitem` must be written `OrderItem`.
+9: The class name `acme\shop\Orderitem` must be written `Acme\Shop\OrderItem`.
+12: The function `formatprice()` must be written `formatPrice()`.
+13: The function `FormatPrice()` must be written `formatPrice()`.

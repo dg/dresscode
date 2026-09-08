@@ -1,0 +1,19 @@
+<?php
+// nameResolution certain
+
+namespace App;
+
+use Acme\Shop\Event;
+
+
+function describe(Event $event): array
+{
+	return [
+		get_debug_type($event->payload),
+		is_object($event->context) ? get_class($event->context) : gettype($event->context),
+		is_object($event->count) ? get_class($event->count) : gettype($event->count),
+		is_object($event->previous) ? get_class($event->previous) : gettype($event->previous),
+		is_object($event->sequence) ? get_class($event->sequence) : gettype($event->sequence),
+		is_object($event) ? get_class($event) : gettype($event),
+	];
+}

@@ -7,18 +7,19 @@
 
 namespace DressCode\Rules\ControlFlow;
 
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Statement\TryNode;
 
 
 /**
- * A catch whose every class a previous one catches already, `Throwable` or the class itself, can never run; reported,
- * never removed. A catch after one of its parent class is not told from a reachable one, the rule not asking what the
- * classes extend.
+ * A catch whose every class a previous one catches already, `Throwable`, the class itself or, with the types, a class it
+ * extends, can never run; reported, never removed. Without the types a catch after one of its parent class is not told
+ * from a reachable one.
  */
-#[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
+#[RuleInfo(Stage::Structure, analyses: [NameResolver::class, Types::class])]
 final class NoUnreachableCatchesRule extends NodeRule
 {
 	public static function getDecisions(): array
@@ -44,12 +45,15 @@ final class NoUnreachableCatchesRule extends NodeRule
 		}
 
 		$resolver = $context->getAnalysis(NameResolver::class);
+		$types = $context->findAnalysis(Types::class);
 		$caught = [];
 		foreach ($node->catches->getItems() as $catch) {
 			$classes = array_map(fn($type) => $resolver->resolveClass($type), $catch->types->getItems());
 			$by = array_find($caught, fn(string $previous) => array_all(
 				$classes,
-				fn(string $class) => strcasecmp($previous, 'Throwable') === 0 || strcasecmp($class, $previous) === 0,
+				fn(string $class) => strcasecmp($previous, 'Throwable') === 0
+					|| $types?->isSubtype($class, $previous) === Tristate::Yes
+					|| strcasecmp($class, $previous) === 0,
 			));
 			if ($by !== null) {
 				$context->report($catch, "Unreachable catch block, because a previous one catches `$by`.", fixable: false);

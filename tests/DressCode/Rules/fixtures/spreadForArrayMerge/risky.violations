@@ -1,8 +1,8 @@
-3: The `array_merge()` call must be written as an array spreading its arguments.
 4: The `array_merge()` call must be written as an array spreading its arguments.
-	risky TypeUnknown: an argument may be an object, which the spread takes and `array_merge()` refuses
 5: The `array_merge()` call must be written as an array spreading its arguments.
 	risky TypeUnknown: an argument may be an object, which the spread takes and `array_merge()` refuses
 6: The `array_merge()` call must be written as an array spreading its arguments.
+	risky TypeUnknown: an argument may be an object, which the spread takes and `array_merge()` refuses
 7: The `array_merge()` call must be written as an array spreading its arguments.
+8: The `array_merge()` call must be written as an array spreading its arguments.
 	risky TypeUnknown: an argument may be an object, which the spread takes and `array_merge()` refuses

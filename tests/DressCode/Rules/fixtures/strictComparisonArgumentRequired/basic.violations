@@ -1,18 +1,18 @@
-3: The `in_array()` call must pass `$strict = true`.
+4: The `in_array()` call must pass `$strict = true`.
 	risky TypeUnknown: a strict search no longer finds a value of another type
-5: The `in_array()` call must pass `$strict = true`.
-6: The `array_search()` call must pass `$strict = true`.
+6: The `in_array()` call must pass `$strict = true`.
+7: The `array_search()` call must pass `$strict = true`.
 	risky TypeUnknown: a strict search no longer finds a value of another type
-7: The `array_keys()` call must pass `$strict = true`.
+8: The `array_keys()` call must pass `$strict = true`.
 	risky TypeUnknown: a strict search no longer finds a value of another type
-9: The `base64_decode()` call must pass `$strict = true`.
+10: The `base64_decode()` call must pass `$strict = true`.
 	risky BehaviorChanges: a strict decoding gives false for a character outside the alphabet
-10: The `mb_detect_encoding()` call must pass `$strict = true`.
-	risky BehaviorChanges: a strict detection gives only an encoding the whole string is valid in
 11: The `mb_detect_encoding()` call must pass `$strict = true`.
 	risky BehaviorChanges: a strict detection gives only an encoding the whole string is valid in
-12: The `in_array()` call must pass `$strict = true`.
+12: The `mb_detect_encoding()` call must pass `$strict = true`.
+	risky BehaviorChanges: a strict detection gives only an encoding the whole string is valid in
+13: The `in_array()` call must pass `$strict = true`.
 	risky TypeUnknown: a strict search no longer finds a value of another type
-15: The `in_array()` call must pass `$strict = true`.
+16: The `in_array()` call must pass `$strict = true`.
 	risky TypeUnknown: a strict search no longer finds a value of another type
-21: The `in_array()` call must pass `$strict = true`.
+22: The `in_array()` call must pass `$strict = true`.

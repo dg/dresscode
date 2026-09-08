@@ -1,4 +1,5 @@
 <?php
+// types off
 function readsOffsetFirst($o, $a)
 {
 	switch ($o->next()) {

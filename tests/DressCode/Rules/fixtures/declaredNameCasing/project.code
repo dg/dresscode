@@ -1,0 +1,13 @@
+<?php
+namespace App;
+
+use Acme\Shop\orderitem;
+use Acme\Shop\{OrderITEM as Line};
+use function Acme\Shop\formatprice;
+
+$a = new orderitem;
+$b = new \acme\shop\Orderitem;
+$c = new Line;
+$d = new UnknownClass;
+echo formatprice(1.0);
+echo \Acme\Shop\FormatPrice(2.0);

@@ -1,6 +1,6 @@
-7: The `mb_detect_encoding()` call must pass `$strict = true`.
-	risky BehaviorChanges: a strict detection gives only an encoding the whole string is valid in
 8: The `mb_detect_encoding()` call must pass `$strict = true`.
 	risky BehaviorChanges: a strict detection gives only an encoding the whole string is valid in
 9: The `mb_detect_encoding()` call must pass `$strict = true`.
+	risky BehaviorChanges: a strict detection gives only an encoding the whole string is valid in
+10: The `mb_detect_encoding()` call must pass `$strict = true`.
 	risky BehaviorChanges: a strict detection gives only an encoding the whole string is valid in

@@ -1,0 +1,4 @@
+10: The `+= 1` assignment must be written `++`.
+11: The `-= 1` assignment must be written `--`.
+12: The `+= 1` assignment must be written `++`.
+	risky TypeUnknown: the target may be a string, which `++` changes as text

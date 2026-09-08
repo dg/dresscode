@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\Analyses\PhpSignatures;
+use DressCode\Analyses\{PhpSignatures, Types};
 use DressCode\{Decision, DecisionKind, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate, Values};
 use DressCode\Domains\Count;
 use PhpSyntax\Analyses\NameResolver;
@@ -27,14 +27,14 @@ use function count;
  * between concatenation and comparison, so it would need parentheses there and read worse than the nest.
  *
  * A pipe cannot pass its value by reference, so a nest with a step taking it so stays as it is. What a step takes
- * says the declaration of PHP or of the file; the fix is risky where nothing says it, which is every method and a
- * function of another file. A receiver that runs code is risky too where its call takes code that runs: the nest
- * evaluates the receiver before that code, the pipe after it.
+ * says the declaration of PHP or of the file, and of a method the types; the fix is risky where nothing says it,
+ * which is a function of another file and without the types every method. A receiver that runs code is risky too
+ * where its call takes code that runs: the nest evaluates the receiver before that code, the pipe after it.
  */
 #[RuleInfo(
 	Stage::Structure,
 	requires: ['php' => '>=8.5'],
-	analyses: [PhpSignatures::class, NameResolver::class],
+	analyses: [PhpSignatures::class, Types::class, NameResolver::class],
 )]
 final class PipeForNestedCallsRule extends NodeRule
 {
@@ -179,25 +179,29 @@ final class PipeForNestedCallsRule extends NodeRule
 
 
 	/**
-	 * Whether the call takes its argument by value, as the declaration in the file or the one of PHP says: Yes by
-	 * value, No by reference, Maybe where nothing tells.
+	 * Whether the call takes its argument by value, as the declaration in the file or the one of PHP says, and of
+	 * a method the types: Yes by value, No by reference, Maybe where nothing tells.
 	 */
 	private static function isPassedByValue(ExpressionNode $call, RuleContext $context): Tristate
 	{
-		if (!$call instanceof Expression\FunctionCallNode || !$call->name instanceof NameNode) {
-			return Tristate::Maybe;
+		if ($call instanceof Expression\FunctionCallNode && $call->name instanceof NameNode) {
+			$resolver = $context->getAnalysis(NameResolver::class);
+			$function = $resolver->resolveFunction($call->name);
+			$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
+			if ($declaration !== null) {
+				return ($declaration->parameters->getItems()[0] ?? null)?->ampersand === null ? Tristate::Yes : Tristate::No;
+			}
+
+			$parameters = $resolver->isGlobalFunctionCall($call)
+				? $context->getAnalysis(PhpSignatures::class)->findParameters($function)
+				: null;
+
+		} else {
+			$types = $context->findAnalysis(Types::class);
+			$access = $types?->findMemberAccess($call);
+			$parameters = $access === null ? null : $types->findParameters($access);
 		}
 
-		$resolver = $context->getAnalysis(NameResolver::class);
-		$function = $resolver->resolveFunction($call->name);
-		$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
-		if ($declaration !== null) {
-			return ($declaration->parameters->getItems()[0] ?? null)?->ampersand === null ? Tristate::Yes : Tristate::No;
-		}
-
-		$parameters = $resolver->isGlobalFunctionCall($call)
-			? $context->getAnalysis(PhpSignatures::class)->findParameters($function)
-			: null;
 		return match (true) {
 			$parameters === null => Tristate::Maybe,
 			$parameters[0]->byReference ?? false => Tristate::No,

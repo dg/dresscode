@@ -11,6 +11,7 @@ use DressCode\Rules\QualifiedNames;
 use DressCode\Tristate;
 use PHPStan\Reflection\{ClassConstantReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection};
 use PHPStan\Reflection\Php\PhpPropertyReflection;
+use PHPStan\TrinaryLogic;
 use PHPStan\Type\{MixedType, Type, VerbosityLevel};
 use function count, is_bool;
 
@@ -92,6 +93,15 @@ final class Declarations
 	}
 
 
+	public function isAbstract(Member $member): Tristate
+	{
+		$class = $this->phpstan->findClass($member->declaringClass);
+		$reflection = $class === null ? null : self::findNativeMember($class, $member->kind, $member->name);
+		$abstract = $reflection instanceof ClassConstantReflection ? false : $reflection?->isAbstract();
+		return self::toTristate($abstract instanceof TrinaryLogic ? ($abstract->maybe() ? null : $abstract->yes()) : $abstract);
+	}
+
+
 	/** The member of that kind the class declares natively, itself or through an ancestor. */
 	public static function findNativeMember(
 		ClassReflection $class,
@@ -112,6 +122,12 @@ final class Declarations
 	public function findClassName(string $name): ?string
 	{
 		return $this->phpstan->findClassName($name);
+	}
+
+
+	public function findFunctionName(string $name): ?string
+	{
+		return $this->phpstan->findFunctionName($name);
 	}
 
 

@@ -7,6 +7,14 @@ interface Storage
 }
 
 
+interface Lockable
+{
+	public bool $locked { get; }
+
+	public function lock(): void;
+}
+
+
 trait Caching
 {
 }

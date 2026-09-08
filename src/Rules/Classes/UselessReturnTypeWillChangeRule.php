@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, AttributeGroupNode, ClassLikeNode};
@@ -22,10 +23,10 @@ use function in_array;
  * one than the method of PHP it implements will declare. On a method that declares the return type already, it says
  * nothing and goes. The rule knows the methods of the interfaces of PHP a class names in its `implements`, `Countable`,
  * `ArrayAccess`, `Iterator`, `IteratorAggregate` and `JsonSerializable`; a class that has them only from a parent is
- * left alone, the interface not being in sight. A narrower return type than the one PHP will declare is told only among
- * the traversables of PHP.
+ * left alone, the interface not being in sight. A narrower return type than the one PHP will declare is told by the
+ * types, and without them only among the traversables of PHP.
  */
-#[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
+#[RuleInfo(Stage::Structure, analyses: [NameResolver::class, Types::class])]
 final class UselessReturnTypeWillChangeRule extends NodeRule
 {
 	/** interface => method => the return type PHP will declare, `mixed` taking any */
@@ -70,7 +71,7 @@ final class UselessReturnTypeWillChangeRule extends NodeRule
 		if (
 			!$group instanceof AttributeGroupNode
 			|| !($class instanceof ClassNode || $class instanceof AnonymousClassNode || $class instanceof EnumNode)
-			|| !self::declaresReturnType($node, $class, $resolver)
+			|| !self::declaresReturnType($node, $class, $resolver, $context->findAnalysis(Types::class))
 			|| $group->hasInnerComment()
 			|| !$context->report($group, 'Useless `#[\ReturnTypeWillChange]`, because the method declares its return type.')
 		) {
@@ -86,6 +87,7 @@ final class UselessReturnTypeWillChangeRule extends NodeRule
 		MethodNode $method,
 		ClassNode|AnonymousClassNode|EnumNode $class,
 		NameResolver $resolver,
+		?Types $types,
 	): bool
 	{
 		$name = strtolower($method->name->text);
@@ -103,6 +105,7 @@ final class UselessReturnTypeWillChangeRule extends NodeRule
 					strcasecmp($declared, $expected) === 0
 					|| ($expected === 'Traversable'
 						&& in_array(strtolower($declared), ['iterator', 'iteratoraggregate', 'generator'], true))
+					|| $types?->isSubtype($declared, $expected) === Tristate::Yes
 				))
 			) {
 				return true;

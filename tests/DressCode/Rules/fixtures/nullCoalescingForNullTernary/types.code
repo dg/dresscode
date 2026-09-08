@@ -1,0 +1,17 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\{Basket, Cart};
+
+
+/** @param array<string, ?int> $list */
+function read(Cart $cart, Basket $basket, array $list, \ArrayAccess $map): array
+{
+	return [
+		isset($cart->total) ? $cart->total : 0,
+		isset($basket->total) ? $basket->total : 0,
+		$list['k'] !== null ? $list['k'] : 0,
+		$map['k'] !== null ? $map['k'] : 0,
+	];
+}

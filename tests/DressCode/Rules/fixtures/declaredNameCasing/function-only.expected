@@ -1,0 +1,9 @@
+<?php
+// {"class": "keep"}
+namespace App;
+
+use Acme\Shop\orderitem;
+use function Acme\Shop\formatPrice;
+
+$a = new orderitem;
+echo formatPrice(1.0);

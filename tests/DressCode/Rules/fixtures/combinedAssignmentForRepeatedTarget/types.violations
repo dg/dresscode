@@ -1,0 +1,7 @@
+10: The assignment must be written `??=` instead of repeating its target.
+11: The assignment must be written `??=` instead of repeating its target.
+	risky BehaviorChanges: the property is readonly, hooked or magic, and `??=` may skip its write
+12: The assignment must be written `??=` instead of repeating its target.
+	risky TypeUnknown: the property may be readonly, hooked or magic, and `??=` may skip its write
+13: The assignment must be written `??=` instead of repeating its target.
+	risky BehaviorChanges: the property is readonly, hooked or magic, and `??=` may skip its write

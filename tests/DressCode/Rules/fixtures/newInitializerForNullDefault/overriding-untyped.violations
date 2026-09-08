@@ -1,2 +1,2 @@
-22: The parameter `$clock` must default to the object its body puts in place of null.
+23: The parameter `$clock` must default to the object its body puts in place of null.
 	risky BehaviorChanges: a caller passing null gets a TypeError

@@ -1,0 +1,6 @@
+12: The ternary testing for null must be written with `??`.
+13: The ternary testing for null must be written with `??`.
+	risky TypeUnknown: an object may read null for what `isset()` called set, where `??` falls back
+14: The ternary testing for null must be written with `??`.
+15: The ternary testing for null must be written with `??`.
+	risky TypeUnknown: `??` may call `__isset()` or `offsetExists()`, which the test did not

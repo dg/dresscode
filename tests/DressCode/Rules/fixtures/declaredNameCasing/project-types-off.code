@@ -1,0 +1,10 @@
+<?php
+// types off
+namespace App;
+
+use Acme\Shop\orderitem;
+use function Acme\Shop\formatprice;
+
+$a = new orderitem;
+echo formatprice(1.0);
+echo StrLen('a');

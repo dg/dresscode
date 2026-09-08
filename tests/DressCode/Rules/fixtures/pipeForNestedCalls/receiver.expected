@@ -2,8 +2,8 @@
 function f(Text $o, string $input)
 {
 	$a = trim(make()->clean(strtolower($input)));
-	$b = trim($o->clean(strtolower($input)));
-	$c = trim(strtolower(make()->clean($input)));
+	$b = $input |> strtolower(...) |> $o->clean(...) |> trim(...);
+	$c = $input |> make()->clean(...) |> strtolower(...) |> trim(...);
 	$d = trim(strtolower(make()->clean($input++)));
 }
 

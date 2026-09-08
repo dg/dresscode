@@ -159,6 +159,7 @@ final readonly class Placement
 ```php
 final class Types implements DressCode\Analyses\PassAnalysis
 	public function isOfType(PhpSyntax\Nodes\ExpressionNode $expression, string $type): DressCode\Tristate
+	public function isComparedAlike(list<PhpSyntax\Nodes\ExpressionNode> $expressions): DressCode\Tristate
 	public function findClasses(PhpSyntax\Nodes\ExpressionNode $expression): list<string>
 	public function findMember(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\Member
 	public function findMemberAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
@@ -167,14 +168,18 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function findMethodParameters(string $class, string $method): ?list<DressCode\Analyses\Parameter>
 	public function findDeclaringClass(PhpSyntax\Nodes\Member\MethodNode $declaration): ?string
 	public function findOverridden(PhpSyntax\Nodes\Member\MethodNode|PhpSyntax\Nodes\Member\ClassConstNode|PhpSyntax\Nodes\Member\EnumCaseNode|PhpSyntax\Nodes\Member\PropertyNode|PhpSyntax\Nodes\ParameterNode $declaration): ?DressCode\Analyses\Member
+	public function findTraitProperty(PhpSyntax\Nodes\Member\PropertyNode|PhpSyntax\Nodes\ParameterNode $declaration): ?DressCode\Analyses\Member
 	public function findOverriddenSignature(PhpSyntax\Nodes\Member\MethodNode $declaration): ?DressCode\Analyses\OverriddenSignature
 	public function findDeprecation(DressCode\Analyses\Member $member): ?DressCode\Analyses\Deprecation
+	public function isAbstract(DressCode\Analyses\Member $member): DressCode\Tristate
 	public function findClassName(string $name): ?string
+	public function findFunctionName(string $name): ?string
 	public function isSubtype(string $class, string $ancestor): DressCode\Tristate
 	public function isAttributeClass(string $class): DressCode\Tristate
 	public function isInterface(string $class): DressCode\Tristate
 	public function isFinalClass(string $class): DressCode\Tristate
 	public function hasMember(string $class, DressCode\Analyses\MemberKind $kind, string $name): bool
+	public function isPlainProperty(PhpSyntax\Nodes\ExpressionNode $access): DressCode\Tristate
 	public function isStaticMethod(string $class, string $method): DressCode\Tristate
 	public function findClassDeprecation(string $class): ?DressCode\Analyses\Deprecation
 ```

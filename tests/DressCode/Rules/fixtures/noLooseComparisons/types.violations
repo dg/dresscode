@@ -1,0 +1,7 @@
+11: The `==` comparison must be written `===`.
+12: The `!=` comparison must be written `!==`.
+13: The `==` comparison must be written `===`.
+14: The `==` comparison must be written `===`.
+	risky TypeUnknown: the operands may differ in type, which the loose comparison converted
+15: The `==` comparison must be written `===`, but the types of its operands differ.
+16: The `==` comparison must be written `===`.

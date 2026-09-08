@@ -398,7 +398,7 @@ The case of the magic constants such as `__DIR__`.
 
 ### casing.class
 
-The case of a class, an interface or an enum PHP declares, as its declaration writes it.
+The case of a class, an interface, a trait or an enum as its declaration writes it, of one PHP declares only where the configuration sets no `typeAnalysis`.
 
 - By default `keep`
 - Takes: `declared` (`stdClass`, `DateTime`, never `datetime`); `keep`
@@ -407,7 +407,7 @@ The case of a class, an interface or an enum PHP declares, as its declaration wr
 
 ### casing.function
 
-The case of a function PHP declares, as its declaration writes it.
+The case of a function as its declaration writes it, of one PHP declares only where the configuration sets no `typeAnalysis`.
 
 - By default `keep`
 - Takes: `declared` (`strlen`, never `StrLen`); `keep`

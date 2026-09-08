@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{Expression, ExpressionNode};
 
@@ -18,9 +19,10 @@ use PhpSyntax\Nodes\{Expression, ExpressionNode};
  * because on a string offset the combined operator throws an Error, and the rule does not tell a string from an
  * array. A property is a risky target: `??=` writes nothing where the value is not null,
  * so a readonly property, `__set` or a hook is not reached, and the combined operator reads the property
- * only after a right side that may have changed it. A variable reads the same either way.
+ * only after a right side that may have changed it. A variable reads the same either way. Without the types,
+ * a plain property, which `??=` may skip writing, is not told from another.
  */
-#[RuleInfo(Stage::Structure)]
+#[RuleInfo(Stage::Structure, analyses: [Types::class])]
 final class CombinedAssignmentForRepeatedTargetRule extends NodeRule
 {
 	private const Operators = [
@@ -60,7 +62,11 @@ final class CombinedAssignmentForRepeatedTargetRule extends NodeRule
 		$property = $var instanceof Expression\PropertyFetchNode || $var instanceof Expression\StaticPropertyFetchNode;
 		[$risk, $because] = match (true) {
 			!$property => [null, null],
-			$combined === '??=' => [Risk::TypeUnknown, 'the property may be readonly, hooked or magic, and `??=` may skip its write'],
+			$combined === '??=' => match ($context->findAnalysis(Types::class)?->isPlainProperty($var) ?? Tristate::Maybe) {
+				Tristate::Yes => [null, null],
+				Tristate::No => [Risk::BehaviorChanges, 'the property is readonly, hooked or magic, and `??=` may skip its write'],
+				Tristate::Maybe => [Risk::TypeUnknown, 'the property may be readonly, hooked or magic, and `??=` may skip its write'],
+			},
 			$binary->right->hasEffect() => [Risk::BehaviorChanges, "the right side may change the property before `$combined` reads it"],
 			default => [null, null],
 		};

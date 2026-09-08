@@ -1,0 +1,18 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\Catalog;
+
+
+function find(Catalog $catalog, int $id, string $name): array
+{
+	return [
+		\in_array($id, $catalog->ids, true),
+		\array_search($id, $catalog->ids, true),
+		\array_keys($catalog->ids, $id, true),
+		\in_array($name, $catalog->names),
+		\base64_decode($name),
+		in_array($id, $catalog->ids),
+	];
+}
