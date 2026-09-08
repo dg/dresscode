@@ -10,7 +10,8 @@ namespace DressCode\Analyses;
 
 /**
  * A member, named by the class that declares it and not by the text that reaches it: `$order::STATUS_PAID`,
- * `MyOrder::STATUS_PAID` and `self::STATUS_PAID` in a child are one member.
+ * `MyOrder::STATUS_PAID` and `self::STATUS_PAID` in a child are one member. A declaration, which `findOverridden()`
+ * asks about, is named the same way.
  */
 final readonly class Member
 {

@@ -67,6 +67,21 @@ enum MemberKind
 	public function describe(string $class, string $name): string
 ```
 
+## `DressCode\Analyses\OverriddenSignature`
+
+```php
+final readonly class OverriddenSignature
+	public readonly string $declaringClass
+	public readonly bool $final
+	public readonly bool $static
+	public readonly PhpSyntax\Visibility $visibility
+	public readonly ?string $returnType
+	public readonly bool $returnWidened
+	public readonly array $parameters
+	public readonly array $narrowedParameters
+	public function __construct(string $declaringClass, bool $final, bool $static, PhpSyntax\Visibility $visibility, ?string $returnType, bool $returnWidened, array $parameters, array $narrowedParameters)
+```
+
 ## `DressCode\Analyses\Parameter`
 
 ```php
@@ -129,6 +144,10 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function findConstructorAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
 	public function findParameters(DressCode\Analyses\MemberAccess $access): ?array
 	public function findMethodParameters(string $class, string $method): ?array
+	public function findDeclaringClass(PhpSyntax\Nodes\Member\MethodNode $declaration): ?string
+	public function findOverridden(PhpSyntax\Nodes\Member\MethodNode|PhpSyntax\Nodes\Member\ClassConstNode|PhpSyntax\Nodes\Member\EnumCaseNode|PhpSyntax\Nodes\Member\PropertyNode|PhpSyntax\Nodes\ParameterNode $declaration): ?DressCode\Analyses\Member
+	public function matchesParentSignature(PhpSyntax\Nodes\Member\MethodNode $declaration): bool
+	public function findOverriddenSignature(PhpSyntax\Nodes\Member\MethodNode $declaration): ?DressCode\Analyses\OverriddenSignature
 	public function findDeprecation(DressCode\Analyses\Member $member): ?DressCode\Analyses\Deprecation
 	public function canReplace(DressCode\Analyses\Member $member, string $name): bool
 	public function findClassName(string $name): ?string

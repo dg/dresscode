@@ -15,10 +15,13 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCallableNode};
 use PHPStan\Reflection\{ClassConstantReflection, ClassMemberReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
 use PHPStan\Reflection\Php\PhpPropertyReflection;
+use PHPStan\TrinaryLogic;
 use PHPStan\Type\{MixedType, Type, TypeCombinator, VerbosityLevel};
-use PhpSyntax\{Node, Printer, Token};
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{Node, Printer, Token, Visibility};
+use PhpSyntax\Nodes\{ClassLikeNode, ExpressionNode, FileNode, IdentifierNode, MemberNode, NameNode, ParameterNode};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
-use PhpSyntax\Nodes\{ExpressionNode, FileNode, IdentifierNode, NameNode};
+use PhpSyntax\Nodes\Member\{ClassConstNode, EnumCaseNode, MethodNode, PropertyNode};
 use function count, is_bool, strlen;
 
 
@@ -33,11 +36,19 @@ final class Types implements PassAnalysis
 	/** @var \SplObjectStorage<ExpressionNode, array{Expr, Scope}> */
 	private \SplObjectStorage $expressions;
 
+	/** @var \SplObjectStorage<MethodNode, array{ParserNode\Stmt\ClassMethod, Scope}> */
+	private \SplObjectStorage $declarations;
+
 	/** @var ?\Closure(): array<ParserNode\Stmt>  the text parsed by PHPStan once asked, until the scopes are resolved from it */
 	private ?\Closure $parse;
 
-	/** @var array<string, list<ExpressionNode>>  "start:end" => the expressions the text stood at when the analysis was made, the innermost first */
+	/** @var array<string, list<ExpressionNode|MethodNode>>  "start:end" => the nodes the text stood at when the analysis was made, the innermost first */
 	private array $spans = [];
+
+	/** @var \SplObjectStorage<MemberNode, null>  the member declarations the analysis was made with */
+	private \SplObjectStorage $members;
+
+	private ?NameResolver $names = null;
 
 	/** @var array<string, Tristate>  lowercased "class ancestor" => whether the one is the other's subtype */
 	private array $subtypes = [];
@@ -59,6 +70,8 @@ final class Types implements PassAnalysis
 		PhpStan $phpstan,
 	) {
 		$this->expressions = new \SplObjectStorage;
+		$this->declarations = new \SplObjectStorage;
+		$this->members = new \SplObjectStorage;
 		$code = Printer::print($file);
 		$ast = null;
 		$this->parse = function () use ($phpstan, $code, &$ast): array {
@@ -70,7 +83,7 @@ final class Types implements PassAnalysis
 
 
 	/**
-	 * Records where the text of the expressions under the node stands, as `FileNode::findNode()` does.
+	 * Records where the text of the node and of everything under it stands, as `FileNode::findNode()` does.
 	 * @return ?array{int, int}  its offsets, the end exclusive; null for a node without tokens
 	 */
 	private function collectSpans(Node $node): ?array
@@ -92,8 +105,12 @@ final class Types implements PassAnalysis
 
 		if ($start === null || $end === null) {
 			return null;
-		} elseif ($node instanceof ExpressionNode) {
+		} elseif ($node instanceof ExpressionNode || $node instanceof MethodNode) {
 			$this->spans["$start:$end"][] = $node;
+		}
+
+		if ($node instanceof MemberNode) {
+			$this->members[$node] = null;
 		}
 
 		return [$start, $end];
@@ -114,20 +131,36 @@ final class Types implements PassAnalysis
 			if ($class !== null && ($circular[$class->getName()] ??= PhpStan::hasCircularAncestors($class))) {
 				return;
 			} elseif ($node instanceof Expr) {
-				$expression = $this->findSpan($node);
+				$expression = $this->findSpan($node, ExpressionNode::class);
 				if ($expression !== null && !isset($this->expressions[$expression])) {
 					$this->expressions[$expression] = [$node, $scope];
+				}
+			} elseif ($node instanceof ParserNode\Stmt\ClassMethod) {
+				$method = $this->findSpan($node, MethodNode::class);
+				if ($method !== null && !isset($this->declarations[$method])) {
+					$this->declarations[$method] = [$node, $scope];
 				}
 			}
 		});
 	}
 
 
-	/** The outermost expression the text of the node of PHPStan stood at. */
-	private function findSpan(ParserNode $node): ?ExpressionNode
+	/**
+	 * The outermost node of the class the text of the node of PHPStan stood at.
+	 * @template T of ExpressionNode|MethodNode
+	 * @param  class-string<T>  $class
+	 * @return ?T
+	 */
+	private function findSpan(ParserNode $node, string $class): ?Node
 	{
 		$nodes = $this->spans[$node->getStartFilePos() . ':' . ($node->getEndFilePos() + 1)] ?? [];
-		return $nodes[count($nodes) - 1] ?? null;
+		for ($i = count($nodes) - 1; $i >= 0; $i--) {
+			if ($nodes[$i] instanceof $class) {
+				return $nodes[$i];
+			}
+		}
+
+		return null;
 	}
 
 
@@ -143,6 +176,14 @@ final class Types implements PassAnalysis
 		}
 
 		return $this->expressions[$node] ?? null;
+	}
+
+
+	/** @return ?array{ParserNode\Stmt\ClassMethod, Scope} */
+	private function findDeclaration(MethodNode $node): ?array
+	{
+		$this->resolveScopes();
+		return $this->declarations[$node] ?? null;
 	}
 
 
@@ -320,6 +361,203 @@ final class Types implements PassAnalysis
 			$parameter->passedByReference()->yes(),
 			self::writeValue($parameter->getDefaultValue()),
 		);
+	}
+
+
+	/** The class the method declaration belongs to; null for a declaration the analysis was made without. */
+	public function findDeclaringClass(MethodNode $declaration): ?string
+	{
+		return $this->findDeclaredClass($declaration)?->getName();
+	}
+
+
+	/**
+	 * The member of the same name a parent class or an interface declares, which the declaration overrides: a method
+	 * by a method, a constant by a constant or an enum case, a property by a property or a promoted parameter; a
+	 * private member of an ancestor is hidden, not overridden, and the next ancestor is asked. Null where the
+	 * declaration overrides nothing, for one of several constants or properties, for a constant, an enum case or a
+	 * property declared outside the constructor of an anonymous class, and for a declaration the analysis was made
+	 * without.
+	 */
+	public function findOverridden(MethodNode|ClassConstNode|EnumCaseNode|PropertyNode|ParameterNode $declaration): ?Member
+	{
+		[$kind, $name] = match (true) {
+			$declaration instanceof MethodNode => [MemberKind::Method, $declaration->name->text],
+			$declaration instanceof EnumCaseNode => [MemberKind::Constant, $declaration->name->text],
+			$declaration instanceof ClassConstNode => [MemberKind::Constant, $declaration->items->count() === 1 ? $declaration->items->getItems()[0]->name->text : null],
+			$declaration instanceof PropertyNode => [MemberKind::Property, $declaration->items->count() === 1 ? $declaration->items->getItems()[0]->plainName : null],
+			default => [MemberKind::Property, $declaration->promoted ? $declaration->variable->plainName : null],
+		};
+		$class = $name === null ? null : $this->findDeclaredClass($declaration);
+		$member = $class === null ? null : self::findOverriddenMember($class, $kind, $name);
+		return match (true) {
+			$member instanceof ExtendedMethodReflection => new Member($member->isStatic() ? MemberKind::StaticMethod : MemberKind::Method, $member->getName(), $member->getDeclaringClass()->getName()),
+			$member instanceof PhpPropertyReflection => new Member($member->isStatic() ? MemberKind::StaticProperty : MemberKind::Property, $member->getName(), $member->getDeclaringClass()->getName()),
+			$member !== null => new Member(MemberKind::Constant, $member->getName(), $member->getDeclaringClass()->getName()),
+			default => null,
+		};
+	}
+
+
+	/**
+	 * Whether the parent class declares the method the way the declaration does, so that a caller sees no difference
+	 * between the two: the same visibility and staticness, the same parameters by name, order, default, reference,
+	 * variadic and native type, and the same native return type. False for a declaration the analysis was made without,
+	 * for one no parent class declares, and for one whose parent declaration is private or abstract.
+	 */
+	public function matchesParentSignature(MethodNode $declaration): bool
+	{
+		$class = $this->findDeclaredClass($declaration);
+		if ($class === null) {
+			return false;
+		}
+
+		$name = $declaration->name->text;
+		$parent = $class->getParentClass();
+		if ($parent === null || !$class->hasNativeMethod($name) || !$parent->hasNativeMethod($name)) {
+			return false;
+		}
+
+		$own = $class->getNativeMethod($name);
+		$inherited = $parent->getNativeMethod($name);
+		$abstract = $inherited->isAbstract();
+		if (
+			$inherited->isPrivate()
+			|| ($abstract instanceof TrinaryLogic ? !$abstract->no() : $abstract)
+			|| $own->isPublic() !== $inherited->isPublic()
+			|| $own->isPrivate() !== $inherited->isPrivate()
+			|| $own->isStatic() !== $inherited->isStatic()
+			|| count($own->getVariants()) !== 1
+			|| count($inherited->getVariants()) !== 1
+		) {
+			return false;
+		}
+
+		$ownVariant = $own->getOnlyVariant();
+		$inheritedVariant = $inherited->getOnlyVariant();
+		$ownParameters = $ownVariant->getParameters();
+		$inheritedParameters = $inheritedVariant->getParameters();
+		if (
+			count($ownParameters) !== count($inheritedParameters)
+			|| !$ownVariant->getNativeReturnType()->equals($inheritedVariant->getNativeReturnType())
+		) {
+			return false;
+		}
+
+		foreach ($ownParameters as $i => $parameter) {
+			$other = $inheritedParameters[$i];
+			$default = $parameter->getDefaultValue();
+			$otherDefault = $other->getDefaultValue();
+			if (
+				$parameter->getName() !== $other->getName()
+				|| $parameter->isOptional() !== $other->isOptional()
+				|| $parameter->isVariadic() !== $other->isVariadic()
+				|| !$parameter->passedByReference()->equals($other->passedByReference())
+				|| !$parameter->getNativeType()->equals($other->getNativeType())
+				|| ($default === null) !== ($otherDefault === null)
+				|| ($default !== null && $otherDefault !== null && !$default->equals($otherDefault))
+			) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	/**
+	 * The method the declaration overrides as the parent class or an interface declares it natively, the first of
+	 * them that declares it and not privately, with where the declaration departs from it; null where it overrides
+	 * nothing, either has more than one variant, or the analysis was made without the declaration.
+	 */
+	public function findOverriddenSignature(MethodNode $declaration): ?OverriddenSignature
+	{
+		$class = $this->findDeclaredClass($declaration);
+		if ($class === null) {
+			return null;
+		}
+
+		$name = $declaration->name->text;
+		$inherited = $class->hasNativeMethod($name) ? self::findOverriddenMember($class, MemberKind::Method, $name) : null;
+		if (!$inherited instanceof ExtendedMethodReflection || count($inherited->getVariants()) !== 1) {
+			return null;
+		}
+
+		$found = $this->findDeclaration($declaration); // the scopes are asked only for a declaration that overrides something
+		if ($found === null) {
+			return null;
+		}
+
+		// the declaration is read from the text of the pass, the reflection of its class is the file on the disk
+		[$method, $scope] = $found;
+		$ownReturnType = $scope->getFunctionType($method->returnType, false, false);
+		$ownTypes = array_map(fn(ParserNode\Param $param) => $scope->getFunctionType(
+			$param->type,
+			$param->default instanceof Expr\ConstFetch && $param->default->name->toLowerString() === 'null',
+			false,
+		), $method->params);
+		$variant = $inherited->getOnlyVariant();
+		$returnType = $variant->getNativeReturnType();
+		return new OverriddenSignature(
+			$inherited->getDeclaringClass()->getName(),
+			$inherited->isFinal()->yes(),
+			$inherited->isStatic(),
+			$inherited->isPublic() ? Visibility::Public : Visibility::Protected,
+			self::writeNativeType($returnType),
+			self::writeNativeType($returnType) !== null
+			&& (self::writeNativeType($ownReturnType) === null || !$returnType->isSuperTypeOf($ownReturnType)->yes()),
+			array_map(self::toParameter(...), $variant->getParameters()),
+			array_keys(array_filter(
+				$variant->getParameters(),
+				fn(ExtendedParameterReflection $parameter, int $i) => isset($ownTypes[$i]) && !$ownTypes[$i]->isSuperTypeOf($parameter->getNativeType())->yes(),
+				ARRAY_FILTER_USE_BOTH,
+			)),
+		);
+	}
+
+
+	/**
+	 * The class the member declaration, or the constructor of the promoted parameter, belongs to, found by its name,
+	 * which needs no scopes; only an anonymous class has none, and is asked of them for a method. Null for a
+	 * declaration the analysis was made without.
+	 */
+	private function findDeclaredClass(MemberNode|ParameterNode $declaration): ?ClassReflection
+	{
+		$member = $declaration instanceof ParameterNode ? $declaration->findAncestor(MethodNode::class) : $declaration;
+		if ($member === null || !isset($this->members[$member])) {
+			return null;
+		}
+
+		$owner = $member->findAncestor(ClassLikeNode::class);
+		$className = $owner === null ? null : ($this->names ??= new NameResolver($this->file))->getDeclaredName($owner);
+		return match (true) {
+			$className !== null => $this->phpstan->findClass($className),
+			$member instanceof MethodNode => ($this->findDeclaration($member)[1] ?? null)?->getClassReflection(),
+			default => null,
+		};
+	}
+
+
+	/**
+	 * The member of the kind and name the parent class or the first interface declares natively and not privately,
+	 * which a member of the class overrides; a private member of an ancestor is hidden, not overridden, and a member
+	 * only an annotation declares is none PHP overrides.
+	 */
+	private static function findOverriddenMember(
+		ClassReflection $class,
+		MemberKind $kind,
+		string $name,
+	): ClassConstantReflection|ExtendedMethodReflection|PhpPropertyReflection|null
+	{
+		$parent = $class->getParentClass();
+		foreach ([...($parent === null ? [] : [$parent]), ...$class->getInterfaces()] as $ancestor) {
+			$member = self::findNativeMember($ancestor, $kind, $name);
+			if ($member !== null && !$member->isPrivate()) {
+				return $member;
+			}
+		}
+
+		return null;
 	}
 
 
