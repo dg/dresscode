@@ -1,0 +1,45 @@
+<?php
+function a($object)
+{
+	$prop = new ReflectionProperty($object, 'value');
+	return $prop->getValue($object);
+}
+
+function b($object)
+{
+	$method = new \ReflectionMethod($object, 'run');
+	return $method->invoke($object);
+}
+
+function c($object)
+{
+	$prop = new ReflectionProperty($object, 'value');
+	$prop = new ReflectionProperty($object, 'other');
+	$prop->setAccessible(true);
+}
+
+function d($thing)
+{
+	$thing->setAccessible(true);
+}
+
+function e($object)
+{
+	$class = new ReflectionClass($object);
+	$class->setAccessible(true);
+}
+
+function f($object)
+{
+	$prop = new ReflectionProperty($object, 'value');
+	$prop->setAccessible(log());
+}
+
+function g($object)
+{
+	$prop = new ReflectionProperty($object, 'value');
+	$prop?->setAccessible(true);
+	$value = $prop->setAccessible(true);
+}
+
+$prop = new ReflectionProperty($o, 'value');

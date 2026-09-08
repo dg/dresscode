@@ -1,0 +1,4 @@
+<?php
+$property = new ReflectionProperty($entity, 'id');
+$property->setAccessible(true);
+$id = $property->getValue($entity);
