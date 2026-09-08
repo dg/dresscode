@@ -1,0 +1,35 @@
+<?php
+// php 8.4
+
+namespace App;
+
+class Article extends Model implements HasName
+{
+	public string $title = 'article';
+	protected static int $count = 1;
+	public int $hidden = 1;
+	public string $name = '';
+	public int $own = 0;
+	public int $x = 1, $y = 2;
+}
+
+class Post extends Model
+{
+	public function __construct(
+		public int $id,
+		int $plain,
+	) {
+	}
+}
+
+class Page extends Model
+{
+	public function __construct(public int $id)
+	{
+	}
+}
+
+class Square extends Shape
+{
+	public int $size = 0;
+}

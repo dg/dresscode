@@ -1,0 +1,4 @@
+8: The constant overriding `App\Model::TABLE` must be marked with `#[\Override]`.
+9: The constant overriding `App\Model::KEY` must be marked with `#[\Override]`.
+12: The constant overriding `App\HasLimit::LIMIT` must be marked with `#[\Override]`.
+21: The enum case overriding `App\HasLimit::LIMIT` must be marked with `#[\Override]`.

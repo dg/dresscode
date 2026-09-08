@@ -151,6 +151,7 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function matchesParentSignature(PhpSyntax\Nodes\Member\MethodNode $declaration): bool
 	public function findOverriddenSignature(PhpSyntax\Nodes\Member\MethodNode $declaration): ?DressCode\Analyses\OverriddenSignature
 	public function findDeprecation(DressCode\Analyses\Member $member): ?DressCode\Analyses\Deprecation
+	public function isAbstract(DressCode\Analyses\Member $member): DressCode\Tristate
 	public function canReplace(DressCode\Analyses\Member $member, string $name): bool
 	public function findClassName(string $name): ?string
 	public function isSubtype(string $class, string $ancestor): DressCode\Tristate
@@ -812,6 +813,7 @@ final readonly class Violation
 - `DressCode\Rules\Classes\NoNullDebugInfoRule`
 - `DressCode\Rules\Classes\NoSleepAndWakeupRule`
 - `DressCode\Rules\Classes\NoThisOutsideObjectRule`
+- `DressCode\Rules\Classes\OverrideAttributeRequiredRule`
 - `DressCode\Rules\Classes\PromotedPropertyForAssignmentRule`
 - `DressCode\Rules\Classes\PublicWithSetVisibilityRule`
 - `DressCode\Rules\Classes\ReadonlyClassForReadonlyPropertiesRule`

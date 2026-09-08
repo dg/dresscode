@@ -664,6 +664,19 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * Whether the member is abstract, which a class that is not abstract must implement: a method or a property of an
+	 * interface is, a constant never; maybe for a member its class does not have.
+	 */
+	public function isAbstract(Member $member): Tristate
+	{
+		$class = $this->phpstan->findClass($member->declaringClass);
+		$reflection = $class === null ? null : self::findNativeMember($class, $member->kind, $member->name);
+		$abstract = $reflection instanceof ClassConstantReflection ? false : $reflection?->isAbstract();
+		return self::toTristate($abstract instanceof TrinaryLogic ? ($abstract->maybe() ? null : $abstract->yes()) : $abstract);
+	}
+
+
+	/**
 	 * Whether the member of that name, which the class declaring the member has, can be written in its place without
 	 * touching anything else: of the same kind and staticness, and for a method one that takes every call of the
 	 * member the same way, the parameters of the member in the same order under the same names, each taking what

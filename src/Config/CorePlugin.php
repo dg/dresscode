@@ -61,6 +61,7 @@ final class CorePlugin implements Plugin
 				Rules\Classes\NoSleepAndWakeupRule::class,
 				Rules\Classes\NoThisOutsideObjectRule::class,
 				Rules\Classes\MemberOrderRule::class,
+				Rules\Classes\OverrideAttributeRequiredRule::class,
 				Rules\Classes\PromotedPropertyForAssignmentRule::class,
 				Rules\Classes\PublicWithSetVisibilityRule::class,
 				Rules\Classes\ReadonlyClassForReadonlyPropertiesRule::class,

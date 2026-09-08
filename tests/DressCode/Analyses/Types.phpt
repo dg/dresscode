@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\{Analyses, Tristate};
-use DressCode\Analyses\{Deprecation, MemberKind};
+use DressCode\Analyses\{Deprecation, Member, MemberKind};
 use PhpSyntax\{Builder, Parser, Printer};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, StaticMethodCallNode, VariableNode};
 use PhpSyntax\Nodes\{ExpressionNode, FileNode};
@@ -307,6 +307,11 @@ test('what a class has, a maybe where nothing declares an ancestor of it', funct
 	Assert::same(Tristate::Yes, $types->isInterface('Acme\Cache\Storage'));
 	Assert::same(Tristate::No, $types->isInterface('Acme\Cache\FileStorage'));
 	Assert::same(Tristate::Maybe, $types->isInterface('Acme\Removed'));
+	Assert::same(Tristate::Yes, $types->isAbstract(new Member(MemberKind::Method, 'lock', 'Acme\Cache\Lockable')));
+	Assert::same(Tristate::Yes, $types->isAbstract(new Member(MemberKind::Property, 'locked', 'Acme\Cache\Lockable')));
+	Assert::same(Tristate::No, $types->isAbstract(new Member(MemberKind::Method, 'getCacheKey', 'Acme\Cache\FileStorage')));
+	Assert::same(Tristate::No, $types->isAbstract(new Member(MemberKind::Constant, 'RetryLimit', 'Acme\Cache\FileStorage')));
+	Assert::same(Tristate::Maybe, $types->isAbstract(new Member(MemberKind::Method, 'any', 'Acme\Removed')));
 	Assert::same(Tristate::No, $types->isFinalClass('Acme\Cache\FileStorage'));
 	Assert::same(Tristate::Maybe, $types->isFinalClass('Acme\Removed'));
 	Assert::same(Tristate::Yes, $types->isAttributeClass('Attribute'));

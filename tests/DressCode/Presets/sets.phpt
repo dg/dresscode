@@ -54,6 +54,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'phpdoc.types.nullable', 'phpdoc.types.unionOrder', 'types.unionOrder', // an order or a notation a project chooses
 		'qualification.constantOfAnotherNamespace', 'qualification.globalClass', 'qualification.staticInFinalClass', 'qualification.functionOfAnotherNamespace', // how far a name is written out is the project's
 		'types.constant', // a typed constant, which the code before PHP 8.3 cannot have
+		'upgrading.classes.Override', // a guarantee the code takes on, which no older construct gave
 		'upgrading.phpdoc.readonly', // an annotation may promise what the code does not keep, which only the project knows
 		'upgrading.classes.SensitiveParameter', // the list of what is sensitive is the project's
 	];

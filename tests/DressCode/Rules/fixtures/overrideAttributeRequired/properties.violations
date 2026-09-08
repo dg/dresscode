@@ -1,0 +1,3 @@
+8: The property overriding `App\Model::$title` must be marked with `#[\Override]`.
+9: The property overriding `App\Model::$count` must be marked with `#[\Override]`.
+19: The property overriding `App\Model::$id` must be marked with `#[\Override]`.
