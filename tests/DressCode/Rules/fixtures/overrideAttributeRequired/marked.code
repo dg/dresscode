@@ -1,0 +1,37 @@
+<?php
+
+namespace App;
+
+use Override as Marker;
+
+class Aliased extends Base
+{
+	#[Marker]
+	public function run(): void
+	{
+	}
+}
+
+class Grouped extends Base
+{
+	#[\Deprecated, \OVERRIDE]
+	public function run(): void
+	{
+	}
+}
+
+class Unimported extends Base
+{
+	#[Override]
+	public function run(): void
+	{
+	}
+}
+
+class Mentioned extends Base
+{
+	#[\Deprecated('override run() instead')]
+	public function run(): void
+	{
+	}
+}

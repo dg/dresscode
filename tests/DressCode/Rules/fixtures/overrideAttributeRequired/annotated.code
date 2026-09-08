@@ -1,0 +1,10 @@
+<?php
+
+namespace App;
+
+class FromMagic extends Magic
+{
+	public function annotated(): void
+	{
+	}
+}

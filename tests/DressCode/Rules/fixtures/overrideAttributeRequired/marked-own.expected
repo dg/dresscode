@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Own;
+
+use App\Base;
+
+class Child extends Base
+{
+	#[Override]
+	#[\Override]
+	public function run(): void
+	{
+	}
+}

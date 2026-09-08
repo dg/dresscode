@@ -1,0 +1,31 @@
+<?php
+// php 8.6
+
+namespace App;
+
+class Child extends Model implements HasLimit
+{
+	#[\Override]
+	public const TABLE = 'children';
+	#[\Override]
+	protected const KEY = 'child_id';
+	public const SECRET = 'c';
+	public const A = 10, B = 20;
+	#[\Override]
+	public const LIMIT = 5;
+	public const OWN = 1;
+
+	#[\Override]
+	public const MARKED = 1;
+}
+
+enum Size implements HasLimit
+{
+	#[\Override]
+	case LIMIT;
+	case Small;
+}
+
+$anonymous = new class extends Model {
+	public const TABLE = 'anonymous';
+};
