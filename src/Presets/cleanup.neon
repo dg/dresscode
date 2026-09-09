@@ -19,6 +19,7 @@ braces:
 classes:
 	impliedModifiers: forbidden              # `final` in a final class
 	untypedPropertyNullInitialization: forbidden   # `public $a;`, not `public $a = null;`
+	methodOnlyCallingParent: forbidden       # one only forwarding to `parent::`, risky
 	ReturnTypeWillChange: forbidden          # on a method declaring its return type
 
 functions:

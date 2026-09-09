@@ -76,6 +76,7 @@ final class CorePlugin implements Plugin
 				Rules\Classes\StringableRequiredRule::class,
 				Rules\Classes\UselessModifierRule::class,
 				Rules\Classes\UselessNullInitializationRule::class,
+				Rules\Classes\UselessOverridingMethodRule::class,
 				Rules\Classes\UselessReturnTypeWillChangeRule::class,
 				Rules\Classes\VisibilityRequiredRule::class,
 				Rules\Classes\ModifierOrderRule::class,

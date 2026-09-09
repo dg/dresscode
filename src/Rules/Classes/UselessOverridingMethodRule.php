@@ -1,0 +1,127 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\Classes;
+
+use DressCode\Analyses\Types;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{Node, Token};
+use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ClassLikeNode, IdentifierNode, NameNode};
+use PhpSyntax\Nodes\Expression\{StaticMethodCallNode, VariableNode};
+use PhpSyntax\Nodes\Member\{MethodNode, TraitUseNode};
+use PhpSyntax\Nodes\Statement\{ClassNode, ExpressionStatementNode, ReturnNode};
+use function count, in_array;
+
+
+/**
+ * A method whose whole body passes its parameters on to the parent method of the same name,
+ * `return parent::load($id)`, says nothing the parent does not, and goes. The types decide whether a caller could
+ * tell the two apart, which the method alone does not show: the parent must declare it with the same visibility,
+ * staticness, parameters and return type (`Types::matchesParentSignature()`).
+ *
+ * The method stays where it says more than its code: a comment, an attribute other than `#[\Override]`, `final`,
+ * a trait the class uses, whose method of the name would take the place of the parent's, and a call that discards
+ * the return value of a method that is not void. A body that passes the parameters in another order, or not all
+ * of them, is not a repetition either.
+ *
+ * Every fix is risky: a parent reading `func_get_args()` sees the arguments a caller passed beyond the parameters,
+ * which the override dropped, and the frame of the method leaves the stack traces and the debugger.
+ */
+#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class, NameResolver::class])]
+final class UselessOverridingMethodRule extends NodeRule
+{
+	public static function getDecisions(): array
+	{
+		return [new Decision('classes.methodOnlyCallingParent', Domain::state('forbidden'), 'A method that only forwards to the parent with the same arguments adds nothing')];
+	}
+
+
+	public function getVisitedNodes(): array
+	{
+		return [MethodNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		$class = $node instanceof Node ? $node->findAncestor(ClassLikeNode::class) : null;
+		if (
+			!$node instanceof MethodNode
+			|| !($class instanceof ClassNode || $class instanceof AnonymousClassNode)
+			|| $class->extends === null
+			|| array_any($class->members->getItems(), fn(Node $member) => $member instanceof TraitUseNode)
+			|| !self::isRepetition($node, $context)
+			|| $node->hasLeadingComment()
+			|| $node->hasInnerComment()
+			|| $node->hasTrailingComment()
+			|| !$context->getAnalysis(Types::class)->matchesParentSignature($node)
+			|| !$context->report($node->name, "Useless method `{$node->name->text}()`, because it only calls the parent method.", risk: Risk::BehaviorChanges, because: 'the parent then sees through `func_get_args()` the arguments the override dropped')
+		) {
+			return;
+		}
+
+		$node->remove(mergeBlankLines: true);
+	}
+
+
+	/** Whether the method is nothing but the call of the parent method of its name with its parameters, in their order. */
+	private static function isRepetition(MethodNode $method, RuleContext $context): bool
+	{
+		$statements = $method->body?->statements->getItems() ?? [];
+		$statement = $statements[0] ?? null;
+		$call = match (true) {
+			$statement instanceof ReturnNode => $statement->expression,
+			$statement instanceof ExpressionStatementNode && self::returnsNothing($method) => $statement->expression,
+			default => null,
+		};
+		if (
+			count($statements) !== 1
+			|| !$call instanceof StaticMethodCallNode
+			|| !$call->class instanceof NameNode
+			|| !$call->class->equals('parent')
+			|| !$call->name instanceof IdentifierNode
+			|| !$call->name->equals($method->name->text)
+			|| $method->modifiers->final
+			|| array_any($context->getAnalysis(NameResolver::class)->findAttributeClasses($method), fn(string $class) => strcasecmp($class, 'Override') !== 0)
+		) {
+			return false;
+		}
+
+		$parameters = $method->parameters->getItems();
+		$arguments = $call->arguments->items->getItems();
+		if (count($parameters) !== count($arguments)) {
+			return false;
+		}
+
+		foreach ($parameters as $i => $parameter) {
+			$argument = $arguments[$i];
+			if (
+				$parameter->promoted // a promoted parameter declares a property, which would go with the constructor
+				|| !$argument instanceof ArgumentNode
+				|| $argument->name !== null
+				|| ($argument->ellipsis !== null) !== ($parameter->ellipsis !== null)
+				|| !$argument->value instanceof VariableNode
+				|| $argument->value->plainName === null
+				|| $argument->value->plainName !== $parameter->variable->plainName
+			) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	/** Whether the method returns no value a call of the parent could give it: `void`, `never`, or a constructor or destructor. */
+	private static function returnsNothing(MethodNode $method): bool
+	{
+		return $method->isConstructor()
+			|| $method->isDestructor()
+			|| in_array(strtolower((string) $method->returnType?->text), ['void', 'never'], true);
+	}
+}

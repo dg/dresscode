@@ -1,0 +1,2 @@
+classes:
+	methodOnlyCallingParent: forbidden
