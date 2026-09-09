@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\{Config, ConfigurationException};
-use DressCode\Config\{PackageProfiles, RunnerFactory};
+use DressCode\Config\{PackageProfiles, ProjectPackages, RunnerFactory};
 use Nette\Utils\FileSystem;
 use Tester\Assert;
 
@@ -74,7 +74,7 @@ test('the profile a package ships applies up to its installed version, the one o
 		['extra' => ['dresscode' => ['deprecations' => 'root.neon']]],
 	);
 
-	$packages = PackageProfiles::discover($root);
+	$packages = PackageProfiles::discover(ProjectPackages::read($root));
 	Assert::same([], $packages->warnings);
 	Assert::same([], $packages->extensions);
 	Assert::same(['root.neon of app/project', 'deprecations.neon of acme/lib'], array_column($packages->profiles, 0));
@@ -106,9 +106,23 @@ test('a profile for a package that is not installed is left out, and a package m
 		],
 	);
 
-	$packages = PackageProfiles::discover($root);
+	$packages = PackageProfiles::discover(ProjectPackages::read($root));
 	Assert::same(['deprecations/lib.neon of acme/rules'], array_column($packages->profiles, 0));
 	// measured against the version of acme/lib, not of the package carrying the file
+	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0][1]->rules);
+});
+
+
+test('a package the project requires itself is measured by the lowest version its constraint allows, not the installed one', function () {
+	$root = project(
+		'required',
+		['acme/lib' => ['3.4.0.0', ['deprecations' => 'deprecations.neon']]],
+		['vendor/acme/lib/deprecations.neon' => "package: acme/lib\n\nsince 3.0:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Renamed\n\nsince 3.3:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Later\n"],
+		['require' => ['acme/lib' => '^3.1']],
+	);
+
+	// the code still has to run on 3.1, where the name of 3.3 does not exist yet
+	$packages = PackageProfiles::discover(ProjectPackages::read($root));
 	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0][1]->rules);
 });
 
@@ -123,7 +137,7 @@ test('a package names its extension, and one whose class is missing is a warning
 		[],
 	);
 
-	$packages = PackageProfiles::discover($root);
+	$packages = PackageProfiles::discover(ProjectPackages::read($root));
 	Assert::same(['Acme\DressCode\Extension'], $packages->extensions);
 	Assert::same(
 		['Package acme/ghost names the extension Acme\Missing\Extension, which does not exist or is not an extension; skipped.'],
@@ -146,11 +160,11 @@ test('a profile that turns a rule on, names an unknown key or is missing is an e
 	];
 	foreach ($errors as $content => $message) {
 		$root = project('errors', ['acme/lib' => ['1.0.0.0', ['deprecations' => 'deprecations.neon']]], ['vendor/acme/lib/deprecations.neon' => $content]);
-		Assert::exception(fn() => PackageProfiles::discover($root), ConfigurationException::class, $message);
+		Assert::exception(fn() => PackageProfiles::discover(ProjectPackages::read($root)), ConfigurationException::class, $message);
 	}
 
 	$root = project('missing', ['acme/lib' => ['1.0.0.0', ['deprecations' => 'deprecations.neon']]], []);
-	Assert::exception(fn() => PackageProfiles::discover($root), ConfigurationException::class, 'Deprecations deprecations.neon of acme/lib do not exist.');
+	Assert::exception(fn() => PackageProfiles::discover(ProjectPackages::read($root)), ConfigurationException::class, 'Deprecations deprecations.neon of acme/lib do not exist.');
 });
 
 

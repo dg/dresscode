@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\{Config, ConfigurableRule, ConfigurationException, NodeRule, Override, Preset, PresetInfo, Profile, Rule, RuleInfo, Stage};
-use DressCode\Config\{PresetResolver, ResolvedRule, RuleRegistry};
+use DressCode\Config\{PresetResolver, ProjectPackages, ResolvedRule, RuleRegistry};
 use DressCode\Presets\Symfony;
 use DressCode\Rules\Namespaces\NameNotationRule;
 use Nette\Schema\{Expect, Processor, Schema};
@@ -166,6 +166,36 @@ final class TypedPreset implements Preset
 	public function getProfile(): Profile
 	{
 		return new Profile(rules: [RuleA::class => true, RuleTyped::class => true]);
+	}
+}
+
+
+#[RuleInfo('test/packaged', Stage::Structure, requires: ['acme/lib' => '>=3.3'])]
+final class RulePackaged extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+}
+
+
+#[RuleInfo('test/any-package', Stage::Structure, requires: ['acme/any' => '*'])]
+final class RuleAnyPackage extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+}
+
+
+#[PresetInfo('test/packaged-preset')]
+final class PackagedPreset implements Preset
+{
+	public function getProfile(): Profile
+	{
+		return new Profile(rules: [RulePackaged::class => true, RuleAnyPackage::class => true]);
 	}
 }
 
@@ -414,7 +444,7 @@ test('a rule of a construct the target version has not got is left out', functio
 	Assert::same([], $resolver->getWarnings()); // coming from a preset it is business as usual
 
 	Assert::same([], $resolve(new Config(rules: [RuleFuture::class => true]), '8.3'));
-	Assert::same(['Rule test/future needs PHP 8.4, the target is 8.3; skipped.'], $resolver->getWarnings());
+	Assert::same(['Rule test/future needs PHP 8.4 and the target is 8.3; skipped.'], $resolver->getWarnings());
 
 	// what the result cache keys on is what really runs, and a rule that does not says why
 	$resolved = $resolver->resolve(new Config(presets: [FuturePreset::class]), '8.3');
@@ -424,6 +454,47 @@ test('a rule of a construct the target version has not got is left out', functio
 	Assert::same('it needs PHP 8.4 and the target is 8.3', $future->inactive);
 	Assert::same('test/future-preset', $future->getSource());
 	Assert::same(['8.3', "\t", 'majority'], [$resolved->phpVersion, $resolved->indent, $resolved->eol]);
+});
+
+
+test('a rule requiring a package runs only where the version the project stands on has what the rule writes', function () {
+	$resolve = function (Config $config, ProjectPackages $project): array {
+		$resolver = new PresetResolver(new RuleRegistry, [], $project);
+		$inactive = [];
+		foreach ($resolver->resolve($config, '8.3')->rules as $rule) {
+			$inactive[$rule->name] = $rule->inactive;
+		}
+
+		return [$inactive, $resolver->getWarnings()];
+	};
+	$installed = fn(?string $version) => ['version' => $version, 'reference' => null, 'path' => null, 'extra' => []];
+	$config = new Config(presets: [PackagedPreset::class]);
+
+	// a package the project does not have, or has below the version: left out, silently when a preset named the rule
+	[$inactive, $warnings] = $resolve($config, new ProjectPackages(rootName: 'app/project'));
+	Assert::same('it needs acme/lib 3.3 and the project does not have it', $inactive['test/packaged']);
+	Assert::same('it needs acme/any and the project does not have it', $inactive['test/any-package']);
+	Assert::same([], $warnings);
+
+	[$inactive] = $resolve($config, new ProjectPackages(installed: ['acme/lib' => $installed('3.2.1'), 'acme/any' => $installed('1.0')]));
+	Assert::same('it needs acme/lib 3.3 and the project is on 3.2.1', $inactive['test/packaged']);
+	Assert::null($inactive['test/any-package']);
+
+	// the constraint of the project decides over the installed version
+	[$inactive] = $resolve($config, new ProjectPackages(required: ['acme/lib' => '^3.1'], installed: ['acme/lib' => $installed('3.4')]));
+	Assert::same('it needs acme/lib 3.3 and the project is on 3.1', $inactive['test/packaged']);
+	[$inactive] = $resolve($config, new ProjectPackages(required: ['acme/lib' => '^3.3'], installed: ['acme/lib' => $installed('3.4')]));
+	Assert::null($inactive['test/packaged']);
+
+	// any version does for the project itself and for a branch without an alias
+	[$inactive] = $resolve($config, new ProjectPackages(rootName: 'acme/lib'));
+	Assert::null($inactive['test/packaged']);
+	[$inactive] = $resolve($config, new ProjectPackages(installed: ['acme/lib' => $installed(null)]));
+	Assert::null($inactive['test/packaged']);
+
+	// a project naming the rule hears why it does not run
+	[, $warnings] = $resolve(new Config(rules: [RulePackaged::class => true]), new ProjectPackages);
+	Assert::same(['Rule test/packaged needs acme/lib 3.3 and the project does not have it; skipped.'], $warnings);
 });
 
 
@@ -504,7 +575,7 @@ test('--only keeps what it names of what the configuration comes to, and enables
 
 	// a rule left out is not a rule skipped for its version, and says nothing
 	$resolver->resolve(new Config(rules: [RuleFuture::class => true, RuleA::class => true]), '8.3', only: ['test/a']);
-	Assert::same(['Rule test/future needs PHP 8.4, the target is 8.3; skipped.'], $resolver->getWarnings());
+	Assert::same(['Rule test/future needs PHP 8.4 and the target is 8.3; skipped.'], $resolver->getWarnings());
 
 	// a rule only an override enables runs where the override applies
 	$overridden = new Config(presets: [ChildPreset::class], overrides: [new Override(['tests'], rules: ['test/nested' => true])]);
@@ -518,22 +589,22 @@ test('a name of --only that lets in nothing that runs is an error, not an empty 
 	Assert::exception(
 		fn() => narrow($resolver, new Config(presets: [ChildPreset::class]), ['test/b']),
 		ConfigurationException::class,
-		'Rule test/b the run is narrowed to does not run: turned off by test/child. Turn it on with --rule test/b=on.',
+		"Option --only names rule test/b, which does not run: turned off by test/child; turn it on with '--rule test/b=on'.",
 	);
 	Assert::exception(
 		fn() => narrow($resolver, new Config(presets: [ChildPreset::class]), [RuleNested::class]),
 		ConfigurationException::class,
-		'Rule test/nested the run is narrowed to does not run: no preset or rule of the configuration mentions it. Turn it on with --rule test/nested=on.',
+		"Option --only names rule test/nested, which does not run: no preset or rule of the configuration mentions it; turn it on with '--rule test/nested=on'.",
 	);
 	Assert::exception(
 		fn() => narrow($resolver, new Config(rules: [RuleFuture::class => true]), ['test/future']),
 		ConfigurationException::class,
-		'Rule test/future the run is narrowed to does not run: it needs PHP 8.4 and the target is 8.3.',
+		'Option --only names rule test/future, which does not run: it needs PHP 8.4 and the target is 8.3.',
 	);
 	Assert::exception(
 		fn() => narrow($resolver, new Config(presets: [ChildPreset::class]), [NestedPreset::class]),
 		ConfigurationException::class,
-		'Preset test/nested-preset the run is narrowed to has no rule that runs here.',
+		'Option --only names preset test/nested-preset, which has no rule that runs here.',
 	);
 	Assert::exception(
 		fn() => narrow($resolver, new Config(presets: [ChildPreset::class]), ['test/basee']),
@@ -759,7 +830,7 @@ test('a group is one of the groups, and the name of one narrows the run to its r
 	Assert::exception(
 		fn() => $resolver->resolve(new Config(groups: ['cleanup']), '8.3', only: ['types']),
 		ConfigurationException::class,
-		'Group types the run is narrowed to has no rule that runs here.',
+		'Option --only names group types, which has no rule that runs here.',
 	);
 });
 

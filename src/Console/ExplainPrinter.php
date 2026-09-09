@@ -65,6 +65,10 @@ final class ExplainPrinter
 			$facts[] = 'needs PHP ' . $info->getMinPhpVersion();
 		}
 
+		foreach ($info->getRequiredPackages() as $package => $version) {
+			$facts[] = "needs $package" . ($version === null ? '' : " $version");
+		}
+
 		if ($info->modifiesComments) {
 			$facts[] = 'modifies comments';
 		}
