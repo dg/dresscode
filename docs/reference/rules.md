@@ -814,7 +814,7 @@ Stage: Structure.
 
 ### dresscode/no-deprecated-members
 
-Replaces deprecated constants and methods with the member their deprecation names, and reports the rest.
+Replaces deprecated constants, methods and properties with the member their deprecation names, and reports the rest.
 
 Stage: Structure. Needs the types of the code, so it runs only with `types: phpstan`.
 

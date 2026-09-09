@@ -764,6 +764,40 @@ test('a group is one of the groups, and the name of one narrows the run to its r
 });
 
 
+test('what the packages say lies under every layer, never turns a rule on and survives the rule being turned off', function () {
+	$packages = [['deprecations.neon of acme/lib', new Profile(rules: [RuleC::class => ['max' => 1], RuleA::class => []])]];
+	$options = function (Config $config) use ($packages): ?array {
+		$resolver = new PresetResolver(new RuleRegistry, $packages);
+		$resolved = $resolver->resolve($config, '8.3');
+		foreach ($resolver->build($resolved) as $rule) {
+			if ($rule instanceof RuleC) {
+				return $rule->options;
+			}
+		}
+
+		return null;
+	};
+
+	// the package speaks for the rule the project turns on, and the project has the last word
+	Assert::equal(['max' => 1, 'names' => ['x']], $options(new Config(rules: [RuleC::class => true])));
+	Assert::equal(['max' => 7, 'names' => ['x']], $options(new Config(rules: [RuleC::class => ['max' => 7]])));
+
+	// a preset turning the rule off drops what the preset below it said, not what the package says
+	Assert::equal(['max' => 1, 'names' => ['z']], $options(new Config(presets: [OffPreset::class], rules: [RuleC::class => ['names' => ['z']]])));
+
+	// and nothing the project does not mention runs
+	Assert::null($options(new Config));
+	$resolver = new PresetResolver(new RuleRegistry, $packages);
+	$rules = array_column($resolver->resolve(new Config, '8.3')->rules, null, 'name');
+	Assert::same('no preset or rule of the configuration mentions it', $rules['test/a']->inactive);
+
+	// a rule this DressCode does not know is a warning, not an error, because the package may be newer
+	$resolver = new PresetResolver(new RuleRegistry, [['deprecations.neon of acme/lib', new Profile(rules: ['acme/from-the-future' => []])]]);
+	$resolver->resolve(new Config, '8.3');
+	Assert::same(['Rule acme/from-the-future, which deprecations.neon of acme/lib sets, is unknown here; skipped.'], $resolver->getWarnings());
+});
+
+
 test('errors', function () {
 	Assert::exception(fn() => resolve(new Config(rules: ['test/none' => true])), ConfigurationException::class, "Unknown rule 'test/none'.");
 	Assert::exception(fn() => resolve(new Config(presets: [BrokenPreset::class])), ConfigurationException::class, "Unknown rule 'test/none'. (in preset test/broken)");

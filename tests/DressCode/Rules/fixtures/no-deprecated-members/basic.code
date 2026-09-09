@@ -26,6 +26,11 @@ function test(Order $order, MyOrder $my, $unknown): void
 	$e = Order::OLD;
 	$f = Order::EMAIL;
 	Order::make();
+	$g = $order->legacy;
+	$h = $order?->legacy;
+	$i = $order->items;
+	$j = Order::$counter;
+	$k = MyOrder::$count;
 	$unknown->recalc();
 	$unknown::STATUS_PAID;
 

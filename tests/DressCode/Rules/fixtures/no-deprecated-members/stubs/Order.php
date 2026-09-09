@@ -18,6 +18,14 @@ class Order
 	/** @deprecated use Acme\Shop\Validator::validateEmail() */
 	public const EMAIL = ':email';
 
+	/** @deprecated use $items */
+	public array $legacy = [];
+	public array $items = [];
+
+	/** @deprecated use $count */
+	public static int $counter = 0;
+	public static int $count = 0;
+
 
 	/** @deprecated use recalculate() */
 	public function recalc(): void

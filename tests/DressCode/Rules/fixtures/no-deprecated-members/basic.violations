@@ -9,6 +9,9 @@
 26: Constant Acme\Shop\Order::OLD is deprecated
 27: Constant Acme\Shop\Order::EMAIL is deprecated: use Acme\Shop\Validator::validateEmail()
 28: Static method Acme\Shop\Order::make() is deprecated: use Helpers::create() instead
-33: Method Acme\Shop\Order::verifyWith() is deprecated: use "checkWith()" instead
-34: Method Acme\Shop\Order::verify() is deprecated: use "check()" instead
-35: Constant Acme\Shop\Order::CLOSED is deprecated: use STATUS_CLOSED instead
+29: Property Acme\Shop\Order::$legacy is deprecated: use $items
+30: Property Acme\Shop\Order::$legacy is deprecated: use $items
+32: Static property Acme\Shop\Order::$counter is deprecated: use $count
+38: Method Acme\Shop\Order::verifyWith() is deprecated: use "checkWith()" instead
+39: Method Acme\Shop\Order::verify() is deprecated: use "check()" instead
+40: Constant Acme\Shop\Order::CLOSED is deprecated: use STATUS_CLOSED instead
