@@ -169,6 +169,7 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function findDeclaringClass(PhpSyntax\Nodes\Member\MethodNode $declaration): ?string
 	public function findOverridden(PhpSyntax\Nodes\Member\MethodNode|PhpSyntax\Nodes\Member\ClassConstNode|PhpSyntax\Nodes\Member\EnumCaseNode|PhpSyntax\Nodes\Member\PropertyNode|PhpSyntax\Nodes\ParameterNode $declaration): ?DressCode\Analyses\Member
 	public function findTraitProperty(PhpSyntax\Nodes\Member\PropertyNode|PhpSyntax\Nodes\ParameterNode $declaration): ?DressCode\Analyses\Member
+	public function matchesParentSignature(PhpSyntax\Nodes\Member\MethodNode $declaration): bool
 	public function findOverriddenSignature(PhpSyntax\Nodes\Member\MethodNode $declaration): ?DressCode\Analyses\OverriddenSignature
 	public function findDeprecation(DressCode\Analyses\Member $member): ?DressCode\Analyses\Deprecation
 	public function isAbstract(DressCode\Analyses\Member $member): DressCode\Tristate
@@ -861,6 +862,7 @@ final readonly class Violation
 - `DressCode\Rules\Classes\StringableRequiredRule`
 - `DressCode\Rules\Classes\UselessModifierRule`
 - `DressCode\Rules\Classes\UselessNullInitializationRule`
+- `DressCode\Rules\Classes\UselessOverridingMethodRule`
 - `DressCode\Rules\Classes\UselessReturnTypeWillChangeRule`
 - `DressCode\Rules\Classes\VisibilityRequiredRule`
 - `DressCode\Rules\Comments\CommentSpacingRule`

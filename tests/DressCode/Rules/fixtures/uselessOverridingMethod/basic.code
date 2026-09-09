@@ -1,0 +1,120 @@
+<?php
+// risky
+namespace App;
+
+class Child extends Base
+{
+	public function __construct(string $name, int $count = 0)
+	{
+		parent::__construct($name, $count);
+	}
+
+
+	public function render(string $template, array ...$params): string
+	{
+		return parent::render($template, ...$params);
+	}
+
+
+	protected function load(int $id): ?object
+	{
+		return parent::load($id);
+	}
+
+
+	public function save(): void
+	{
+		parent::save();
+	}
+
+
+	// left alone
+
+	public static function create(string $name): static
+	{
+		return parent::create($name);
+	}
+
+
+	public function reset(): void
+	{
+		parent::reset();
+		$this->log();
+	}
+
+
+	public function wider(int|string $id): void
+	{
+		parent::wider($id);
+	}
+}
+
+
+class Other extends Base
+{
+	/** Loads the record the cache misses. */
+	protected function load(int $id): ?object
+	{
+		return parent::load($id);
+	}
+
+
+	#[\Deprecated]
+	public function save(): void
+	{
+		parent::save();
+	}
+
+
+	final public function reset(): void
+	{
+		parent::reset();
+	}
+
+
+	public function render(string $template, array ...$params): string
+	{
+		return parent::render($params, $template);
+	}
+
+
+	public static function create(string $name): static
+	{
+		return parent::create('fixed');
+	}
+
+
+	public function __construct(string $name, int $count = 0)
+	{
+		parent::__construct($name);
+	}
+}
+
+
+class Promoted extends Base
+{
+	public function __construct(private string $name, int $count = 0)
+	{
+		parent::__construct($name, $count);
+	}
+}
+
+
+class WithTrait extends Base
+{
+	use Renders;
+
+	public function render(string $template, array ...$params): string
+	{
+		return parent::render($template, ...$params);
+	}
+}
+
+
+class Discards extends Base
+{
+	protected function load(int $id): ?object
+	{
+		parent::load($id);
+	}
+}

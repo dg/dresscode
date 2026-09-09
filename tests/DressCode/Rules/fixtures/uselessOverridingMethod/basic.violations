@@ -1,0 +1,8 @@
+7: Useless method `__construct()`, because it only calls the parent method.
+	risky BehaviorChanges: the parent then sees through `func_get_args()` the arguments the override dropped
+13: Useless method `render()`, because it only calls the parent method.
+	risky BehaviorChanges: the parent then sees through `func_get_args()` the arguments the override dropped
+19: Useless method `load()`, because it only calls the parent method.
+	risky BehaviorChanges: the parent then sees through `func_get_args()` the arguments the override dropped
+25: Useless method `save()`, because it only calls the parent method.
+	risky BehaviorChanges: the parent then sees through `func_get_args()` the arguments the override dropped
