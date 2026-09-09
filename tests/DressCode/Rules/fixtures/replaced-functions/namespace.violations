@@ -1,0 +1,3 @@
+7: Function strlen() is replaced by mb_strlen(), unless the namespace declares strlen()
+8: Function strlen() is replaced by mb_strlen()
+9: Function strlen() is replaced by mb_strlen()

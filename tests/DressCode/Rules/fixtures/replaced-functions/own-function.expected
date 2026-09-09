@@ -1,0 +1,5 @@
+<?php
+// {"substr": "App\\substring", "myOldOne": "myNewOne"}
+
+$a = \App\substring($s, 1, 2, 3);
+$b = myNewOne($x, $y);

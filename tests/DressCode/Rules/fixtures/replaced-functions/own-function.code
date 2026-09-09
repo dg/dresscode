@@ -1,0 +1,5 @@
+<?php
+// {"substr": "App\\substring", "myOldOne": "myNewOne"}
+
+$a = substr($s, 1, 2, 3);
+$b = myOldOne($x, $y);
