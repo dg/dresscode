@@ -1,0 +1,12 @@
+<?php
+// {"substr_count": "mb_substr_count", "substr": "mb_substr", "strlen": "mb_strlen", "strrev": "str_repeat"}
+
+$a = substr_count($s, $n, 3);
+$b = substr_count($s, $n, 3, 4);
+$c = substr($s, offset: 1);
+$d = substr($s, ...$rest);
+$e = strlen($s, $extra);
+$f = mb_substr($s, 1, 2);
+$g = mb_strlen(string: $s);
+$h = mb_substr_count($s, $n);
+$i = strrev($s);

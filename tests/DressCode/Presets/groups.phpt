@@ -73,7 +73,7 @@ test('a rule is in a group, chosen by a standard, or turned on by name on purpos
 		'static-closure', // a decision of the project about what its code means
 		// the rules of maps, which a project turns on by name for its own list
 		'forbidden-functions',
-		'replaced-classes',
+		'replaced-classes', 'replaced-functions',
 	];
 
 	$chosen = [];

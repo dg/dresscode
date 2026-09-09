@@ -1,0 +1,13 @@
+<?php
+// {"strlen": "mb_strlen", "substr": "mb_substr", "strpos": "mb_strpos", "strtolower": "mb_strtolower", "substr_count": "mb_substr_count", "getrandmax": "mt_getrandmax"}
+
+$a = strlen($s);
+$b = \substr($s, 1, 2);
+$c = STRPOS($s, $n);
+$d = strtolower($s);
+$e = getrandmax();
+$f = substr_count($s, $n);
+$g = strlen(...);
+$h = $obj->strlen($s);
+$i = Foo\strlen($s);
+$j = 'strlen';
