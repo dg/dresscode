@@ -53,6 +53,7 @@ final class CorePlugin implements Plugin
 				Rules\Classes\ClassConstantForConstantCallRule::class,
 				Rules\Classes\ClassHeadSpacingRule::class,
 				Rules\Classes\MultilineImplementsRule::class,
+				Rules\Classes\ClassKeywordForStringRule::class,
 				Rules\Classes\FinalForInternalClassRule::class,
 				Rules\Classes\ClassNameNotationRule::class,
 				Rules\Classes\ClassKindInNameRule::class,
