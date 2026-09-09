@@ -1,0 +1,2 @@
+<?php
+$slug = trim(strtolower(htmlspecialchars($title)));
