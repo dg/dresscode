@@ -96,10 +96,11 @@ final class RunnerFactory
 	): Runner
 	{
 		$project = ProjectPackages::read($root);
+		$packages = PackageProfiles::discover($project);
 		$visited = [];
-		$layers = [...$this->loadExtensions($config->extensions, $visited), $config];
+		$layers = [...$this->loadExtensions([...$packages->extensions, ...$config->extensions], $visited), $config];
 		[$version, $source] = $this->resolvePhpVersion($config, $root);
-		$resolver = new PresetResolver($this->registry, $project);
+		$resolver = new PresetResolver($this->registry, $packages->profiles, $project);
 		$this->resolved = $resolved = $resolver->resolve($config, $version, [], $commandLine, $only);
 		// an override is resolved for a file it matches, so a name or an option it gets wrong would pass unnoticed until
 		// such a file comes; each of them is resolved as soon as the run is built
@@ -107,7 +108,7 @@ final class RunnerFactory
 			$resolver->resolve($config, $version, [$index], $commandLine, $only);
 		}
 
-		$this->warnings = $resolver->getWarnings();
+		$this->warnings = [...$packages->warnings, ...$resolver->getWarnings()];
 		$this->phpVersion = [$resolved->phpVersion, $source];
 		$analyses = array_merge(...array_map(fn(Config $layer) => $layer->analyses, $layers));
 		if ($resolved->types === 'phpstan') {

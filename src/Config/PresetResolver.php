@@ -38,6 +38,8 @@ final class PresetResolver
 
 	public function __construct(
 		private readonly RuleRegistry $registry,
+		/** @var list<array{string, Profile, Group}>  what the installed packages say, laid under everything; a rule a file feeds is turned on by the group of the file */
+		private readonly array $packageProfiles = [],
 		/** the packages the project stands on, which decide whether a rule requiring one runs */
 		private readonly ProjectPackages $project = new ProjectPackages,
 	) {
@@ -76,6 +78,21 @@ final class PresetResolver
 		$explicit = $fixRisky = $warningRules = $presets = $groups = [];
 		$symbols = [SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
 		$indent = $eol = $lineLength = $php = $resolution = $types = null;
+
+		// what the packages say lies under every layer and is heard only of a rule some layer turns on
+		/** @var array<class-string<Rule>, list<array{string, mixed, Group}>> $packageLayers */
+		$packageLayers = [];
+		$named = [];
+		foreach ($this->packageProfiles as [$source, $profile, $group]) {
+			foreach ($profile->rules as $rule => $value) {
+				try {
+					$packageLayers[$this->registry->resolveRule($rule)][] = [$source, $value, $group];
+				} catch (ConfigurationException) {
+					$this->warnings["$source $rule"] = "Rule $rule, which $source sets, is unknown here; skipped.";
+				}
+			}
+		}
+
 		foreach ($this->collectLayers(self::listProfiles($config, $overrides, $commandLine)) as [$source, $profile, $isPreset]) {
 			try {
 				if ($isPreset) {
@@ -109,15 +126,14 @@ final class PresetResolver
 				// is one nobody asked for by name and is left out in silence where it cannot run
 				foreach ($profile->groups as $group) {
 					$groups[$group->value] = true;
-					foreach ($this->registry->getRules() as $class) {
-						if (RuleInfo::of($class)->group === $group) {
-							$layers[$class][] = ["group $group->value", true];
-						}
+					foreach ($this->findRulesOfGroup($group) as $class) {
+						$layers[$class][] = ["group $group->value", true];
 					}
 				}
 
 				foreach ($profile->rules as $rule => $value) {
 					$class = $this->registry->resolveRule($rule);
+					$named[$class] = true;
 					$layers[$class][] = [$source, self::normalize($value)];
 					if (!$isPreset) {
 						$explicit[$class] = true;
@@ -153,6 +169,16 @@ final class PresetResolver
 			$phpVersion = Config::MinPhpVersion;
 		}
 
+		$seeded = [];
+		foreach ($packageLayers as $class => $below) {
+			// the data of a group the project did not turn on are heard only by a rule it names itself
+			$below = isset($named[$class]) ? $below : array_filter($below, fn(array $layer) => isset($groups[$layer[2]->value]));
+			if (isset($layers[$class]) && $below !== []) {
+				$layers[$class] = [...array_map(fn(array $layer) => [$layer[0], $layer[1]], array_values($below)), ...$layers[$class]];
+				$seeded[$class] = count($below);
+			}
+		}
+
 		// `only` filters what the rest comes to, so it takes a rule away and never enables one
 		$narrowed = $only ? $this->resolveOnly($only) : null;
 		$kept = $narrowed === null ? null : array_fill_keys(array_merge(...array_column($narrowed, 2)), true);
@@ -167,6 +193,7 @@ final class PresetResolver
 				kept: $kept === null || isset($kept[$class]),
 				fixRisky: isset($fixRisky[$class]),
 				warning: isset($warningRules[$class]),
+				packageLayers: $seeded[$class] ?? 0,
 			);
 			$resolved->isActive() ? $active[$class] = $resolved : $inactive[$class] = $resolved;
 		}
@@ -375,8 +402,8 @@ final class PresetResolver
 
 
 	/**
-	 * The rules a run narrowed by `only` keeps, per name it was given: a rule for itself, a group for every rule
-	 * that carries it, a preset for every rule it and its parents mention.
+	 * The rules a run narrowed by `only` keeps, per name it was given: a rule for itself, a group for every rule it
+	 * turns on, a preset for every rule it and its parents mention.
 	 * @param  list<string>  $names
 	 * @return list<array{string, ?class-string<Rule>, list<class-string<Rule>>}>  what the name was, the rule it names, and the rules it lets in
 	 * @throws ConfigurationException
@@ -387,11 +414,7 @@ final class PresetResolver
 		foreach ($names as $name) {
 			$group = Group::tryFrom($name);
 			if ($group !== null) {
-				$rules = array_values(array_filter(
-					$this->registry->getRules(),
-					fn(string $class) => RuleInfo::of($class)->group === $group,
-				));
-				$narrowed[] = ["group $name", null, $rules];
+				$narrowed[] = ["group $name", null, $this->findRulesOfGroup($group)];
 				continue;
 			}
 
@@ -482,10 +505,8 @@ final class PresetResolver
 			foreach ($this->collectLayers([[self::describeOverride($override), $override]]) as [$source, $profile, $isPreset]) {
 				try {
 					foreach ($profile->groups as $group) {
-						foreach ($this->registry->getRules() as $class) {
-							if (RuleInfo::of($class)->group === $group) {
-								$rules[$class] = true;
-							}
+						foreach ($this->findRulesOfGroup($group) as $class) {
+							$rules[$class] = true;
 						}
 					}
 
@@ -506,6 +527,31 @@ final class PresetResolver
 
 
 	/**
+	 * The rules the group turns on: those that carry it, and those an upgrading file of that group feeds, its intent
+	 * being a matter of the data and not of the rule reading them.
+	 * @return list<class-string<Rule>>
+	 */
+	private function findRulesOfGroup(Group $group): array
+	{
+		$rules = array_values(array_filter(
+			$this->registry->getRules(),
+			fn(string $class) => RuleInfo::of($class)->group === $group,
+		));
+		foreach ($this->packageProfiles as [, $profile, $packageGroup]) {
+			foreach ($packageGroup === $group ? array_keys($profile->rules) : [] as $rule) {
+				try {
+					$rules[] = $this->registry->resolveRule($rule);
+				} catch (ConfigurationException) {
+					// an unknown rule is warned about where its data are laid
+				}
+			}
+		}
+
+		return array_values(array_unique($rules));
+	}
+
+
+	/**
 	 * @param  class-string<Rule>  $class
 	 * @param  list<array{string, mixed}>  $layers
 	 * @param  bool  $types  whether the configuration gives the types of the code
@@ -513,6 +559,7 @@ final class PresetResolver
 	 * @param  bool  $kept  whether `only` keeps the rule, or the run is not narrowed
 	 * @param  bool  $fixRisky  whether the project accepts its fixes that may change what the code does
 	 * @param  bool  $warning  whether its violations only warn
+	 * @param  int  $packageLayers  how many of the first layers are what the installed packages say
 	 * @throws ConfigurationException
 	 */
 	private function resolveRule(
@@ -524,6 +571,7 @@ final class PresetResolver
 		bool $kept,
 		bool $fixRisky,
 		bool $warning,
+		int $packageLayers = 0,
 	): ResolvedRule
 	{
 		$info = RuleInfo::of($class);
@@ -553,7 +601,7 @@ final class PresetResolver
 
 		$options = [];
 		if ($inactive === null) {
-			[$options, $warnings] = self::validateOptions($class, $info->name, self::stack($layers, $info), self::describeSources($layers));
+			[$options, $warnings] = self::validateOptions($class, $info->name, self::stack($layers, $info, $packageLayers), self::describeSources($layers));
 			foreach ($warnings as $message) {
 				$this->warnings["$info->name $message"] = "Rule `$info->name`: $message";
 			}
@@ -568,6 +616,7 @@ final class PresetResolver
 			$last instanceof \Closure ? $last : null,
 			$fixRisky,
 			$warning,
+			$packageLayers,
 		);
 	}
 
@@ -596,17 +645,19 @@ final class PresetResolver
 
 	/**
 	 * The layers a rule ends up with, as the schema takes them: turning the rule off drops everything said
-	 * before it, so a map written after it starts from the defaults of the schema again.
+	 * before it but what the installed packages say, so a map written after it starts from the defaults of
+	 * the schema and the packages again.
 	 * @param  list<array{string, mixed}>  $layers
+	 * @param  int  $packageLayers  how many of the first layers are what the installed packages say
 	 * @return list<array<string, mixed>>
 	 * @throws ConfigurationException
 	 */
-	private static function stack(array $layers, RuleInfo $info): array
+	private static function stack(array $layers, RuleInfo $info, int $packageLayers = 0): array
 	{
 		$stack = [];
 		foreach ($layers as [$source, $value]) {
 			if ($value === false) {
-				$stack = [];
+				$stack = array_slice($stack, 0, $packageLayers);
 			} elseif (is_array($value)) {
 				$stack[] = self::markLists($value, top: true);
 			} elseif (is_string($value) || is_int($value)) {

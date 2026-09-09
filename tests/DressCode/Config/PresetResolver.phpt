@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\{Config, ConfigurableRule, ConfigurationException, NodeRule, Override, Preset, PresetInfo, Profile, Rule, RuleInfo, Stage};
+use DressCode\{Config, ConfigurableRule, ConfigurationException, Group, NodeRule, Override, Preset, PresetInfo, Profile, Rule, RuleInfo, Stage};
 use DressCode\Config\{PresetResolver, ProjectPackages, ResolvedRule, RuleRegistry};
 use DressCode\Presets\Symfony;
 use DressCode\Rules\Namespaces\NameNotationRule;
@@ -459,7 +459,7 @@ test('a rule of a construct the target version has not got is left out', functio
 
 test('a rule requiring a package runs only where the version the project stands on has what the rule writes', function () {
 	$resolve = function (Config $config, ProjectPackages $project): array {
-		$resolver = new PresetResolver(new RuleRegistry, $project);
+		$resolver = new PresetResolver(new RuleRegistry, [], $project);
 		$inactive = [];
 		foreach ($resolver->resolve($config, '8.3')->rules as $rule) {
 			$inactive[$rule->name] = $rule->inactive;
@@ -832,6 +832,69 @@ test('a group is one of the groups, and the name of one narrows the run to its r
 		ConfigurationException::class,
 		'Option `--only` names group `types`, which has no rule that runs here.',
 	);
+});
+
+
+test('what the packages say lies under every layer, never turns a rule on and survives the rule being turned off', function () {
+	$packages = [['upgrading.neon of acme/lib', new Profile(rules: [RuleC::class => ['max' => 1], RuleA::class => []]), Group::Deprecations]];
+	$options = function (Config $config) use ($packages): ?array {
+		$resolver = new PresetResolver(new RuleRegistry, $packages);
+		$resolved = $resolver->resolve($config, '8.3');
+		foreach ($resolver->build($resolved) as $rule) {
+			if ($rule instanceof RuleC) {
+				return $rule->options;
+			}
+		}
+
+		return null;
+	};
+
+	// the package speaks for the rule the project turns on, and the project has the last word
+	Assert::equal(['max' => 1, 'names' => ['x']], $options(new Config(rules: [RuleC::class => true])));
+	Assert::equal(['max' => 7, 'names' => ['x']], $options(new Config(rules: [RuleC::class => ['max' => 7]])));
+
+	// a preset turning the rule off drops what the preset below it said, not what the package says
+	Assert::equal(['max' => 1, 'names' => ['z']], $options(new Config(presets: [OffPreset::class], rules: [RuleC::class => ['names' => ['z']]])));
+
+	// and nothing the project does not mention runs
+	Assert::null($options(new Config));
+	$resolver = new PresetResolver(new RuleRegistry, $packages);
+	$rules = array_column($resolver->resolve(new Config, '8.3')->rules, null, 'name');
+	Assert::same('no preset or rule of the configuration mentions it', $rules['test/a']->inactive);
+
+	// a rule this DressCode does not know is a warning, not an error, because the package may be newer
+	$resolver = new PresetResolver(new RuleRegistry, [['upgrading.neon of acme/lib', new Profile(rules: ['acme/from-the-future' => []]), Group::Deprecations]]);
+	$resolver->resolve(new Config, '8.3');
+	Assert::same(['Rule acme/from-the-future, which upgrading.neon of acme/lib sets, is unknown here; skipped.'], $resolver->getWarnings());
+});
+
+
+test('the group of an upgrading file turns on the rules it feeds, which hear its data where the group is on or the rule is named', function () {
+	$packages = [
+		['retired.neon of acme/lib', new Profile(rules: [RuleC::class => ['max' => 1]]), Group::Deprecations],
+		['modern.neon of acme/lib', new Profile(rules: [RuleC::class => ['names' => ['m']]]), Group::Modernization],
+	];
+	$options = function (Config $config) use ($packages): ?array {
+		$resolver = new PresetResolver(new RuleRegistry, $packages);
+		foreach ($resolver->build($resolver->resolve($config, '8.3')) as $rule) {
+			if ($rule instanceof RuleC) {
+				return $rule->options;
+			}
+		}
+
+		return null;
+	};
+
+	Assert::equal(['max' => 1, 'names' => ['x']], $options(new Config(groups: [Group::Deprecations])));
+	Assert::equal(['max' => 3, 'names' => ['m']], $options(new Config(groups: [Group::Modernization])));
+	Assert::equal(['max' => 1, 'names' => ['m']], $options(new Config(groups: [Group::Deprecations, Group::Modernization])));
+	Assert::equal(['max' => 1, 'names' => ['m']], $options(new Config(rules: [RuleC::class => true])));
+	Assert::null($options(new Config(groups: [Group::Types])));
+
+	// only narrows to the rules the group turns on, those it feeds among them
+	$resolver = new PresetResolver(new RuleRegistry, $packages);
+	$rules = array_column($resolver->resolve(new Config(groups: [Group::Modernization]), '8.3', only: ['modernization'])->rules, null, 'name');
+	Assert::true($rules['test/c']->isActive());
 });
 
 
