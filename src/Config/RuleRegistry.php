@@ -97,6 +97,7 @@ final class RuleRegistry
 		Rules\Functions\NoSettypeRule::class,
 		Rules\Functions\NoManualSubstringTestRule::class,
 		Rules\Functions\JsonValidateForDecodeTestRule::class,
+		Rules\Functions\ArrayFirstForEdgeElementRule::class,
 		Rules\Functions\UselessSetAccessibleRule::class,
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
