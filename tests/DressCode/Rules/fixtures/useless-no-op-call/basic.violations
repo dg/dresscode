@@ -1,0 +1,7 @@
+4: Useless curl_close() call, PHP 8.0 frees what it freed by itself
+5: Useless curl_share_close() call, PHP 8.0 frees what it freed by itself
+6: Useless finfo_close() call, PHP 8.0 frees what it freed by itself
+7: Useless imagedestroy() call, PHP 8.0 frees what it freed by itself
+8: Useless xml_parser_free() call, PHP 8.0 frees what it freed by itself
+9: Useless curl_close() call, PHP 8.0 frees what it freed by itself
+13: Useless curl_close() call, PHP 8.0 frees what it freed by itself

@@ -1,0 +1,1 @@
+4: Useless curl_close() call, PHP 8.0 frees what it freed by itself
