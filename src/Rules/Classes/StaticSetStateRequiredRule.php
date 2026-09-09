@@ -1,0 +1,57 @@
+<?php declare(strict_types=1);
+
+namespace DressCode\Rules\Classes;
+
+use DressCode\Group;
+use DressCode\NodeRule;
+use DressCode\RuleContext;
+use DressCode\RuleInfo;
+use DressCode\Stage;
+use PhpSyntax\Node;
+use PhpSyntax\Nodes\Member\MethodNode;
+use PhpSyntax\Token;
+use PhpSyntax\TokenKind;
+use PhpSyntax\Trivia;
+use PhpSyntax\TriviaKind;
+
+
+/**
+ * `__set_state()` is called on the class, never on an object, so it is static; PHP 8.0 checks the signatures
+ * of the magic methods and refuses one that is not. The modifier goes last and dresscode/visibility-required
+ * puts the modifiers in their order.
+ */
+#[RuleInfo(
+	'dresscode/static-set-state-required',
+	Stage::Structure,
+	description: 'Declares __set_state() static, which is how PHP calls it',
+	group: Group::Correctness,
+)]
+final class StaticSetStateRequiredRule extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [MethodNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if (
+			!$node instanceof MethodNode
+			|| strcasecmp($node->name->text, '__set_state') !== 0
+			|| $node->modifiers->isStatic()
+			|| !$context->report($node->name, 'The __set_state() method must be static')
+		) {
+			return;
+		}
+
+		$token = new Token(TokenKind::Static, 'static');
+		if ($node->modifiers->isEmpty()) {
+			$token->setLeadingTrivia($node->functionKeyword->leadingTrivia);
+			$node->functionKeyword->setLeadingTrivia([]);
+		}
+
+		$token->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
+		$node->modifiers->append($token);
+	}
+}
