@@ -113,6 +113,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Functions\OptimizedCallNotationRule::class,
 				Rules\Functions\NoSettypeRule::class,
 				Rules\Functions\NoManualSubstringTestsRule::class,
+				Rules\Functions\NoManualEmptyStringTestsRule::class,
 				Rules\Functions\JsonValidateForDecodeRule::class,
 				Rules\Functions\ArrayFirstNotationRule::class,
 				Rules\Functions\UselessSetAccessibleRule::class,

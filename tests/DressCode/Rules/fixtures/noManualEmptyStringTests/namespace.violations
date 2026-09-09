@@ -1,0 +1,4 @@
+6: The empty string must be tested with `=== ''`, not through `strlen()`
+7: The empty string must be tested with `=== ''`, not through `strlen()`
+	risky NameUncertain: the namespace may declare `strlen()`
+8: The empty string must be tested with `=== ''`, not through `strlen()`

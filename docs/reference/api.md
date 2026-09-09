@@ -666,6 +666,7 @@ final readonly class Violation
 - `DressCode\Rules\Functions\NoDirnameOfFileRule`
 - `DressCode\Rules\Functions\NoInnerFunctionsRule`
 - `DressCode\Rules\Functions\NoIsNullRule`
+- `DressCode\Rules\Functions\NoManualEmptyStringTestsRule`
 - `DressCode\Rules\Functions\NoManualSubstringTestsRule`
 - `DressCode\Rules\Functions\NoSettypeRule`
 - `DressCode\Rules\Functions\OptimizedCallNotationRule`
