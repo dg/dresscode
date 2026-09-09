@@ -31,3 +31,7 @@ overrides:
 	  nameResolution: certain
 	  rules:
 	  	nameFallback: {optimizedFunction: qualified, optimizedConstant: qualified}
+
+	- paths: [src/Analyses/PhpSymbolsData.php]
+	  rules:
+	  	classNameReferenceForString: keep

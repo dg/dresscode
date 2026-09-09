@@ -42,6 +42,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Namespaces\NativeClassCasingRule::class,
 				Rules\Classes\FinalInternalClassRule::class,
 				Rules\Classes\GetClassNotationRule::class,
+				Rules\Classes\ClassNameReferenceForStringRule::class,
 				Rules\Classes\NameCasingRule::class,
 				Rules\Upgrading\ForbiddenFunctionsRule::class,
 				Rules\Expressions\UselessParenthesesAroundNewRule::class,

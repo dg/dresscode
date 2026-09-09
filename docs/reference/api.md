@@ -557,6 +557,7 @@ final readonly class Violation
 - `DressCode\Rules\Arrays\TrailingCommaRule`
 - `DressCode\Rules\Classes\ClassConstantForConstantCallRule`
 - `DressCode\Rules\Classes\ClassDefinitionSpacingRule`
+- `DressCode\Rules\Classes\ClassNameReferenceForStringRule`
 - `DressCode\Rules\Classes\FinalInternalClassRule`
 - `DressCode\Rules\Classes\GetClassNotationRule`
 - `DressCode\Rules\Classes\KindInClassNameRule`

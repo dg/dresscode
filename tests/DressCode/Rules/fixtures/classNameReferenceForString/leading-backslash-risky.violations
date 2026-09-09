@@ -1,0 +1,2 @@
+3: The class name must be written `App\Model\User::class`, not as a string
+	risky BehaviorChanges: `::class` drops the leading backslash of the string

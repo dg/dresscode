@@ -60,7 +60,7 @@ final class OverrideAttributeRequiredRule extends NodeRule
 			return;
 		}
 
-		CodeWriter::addAttributes($node, ['\Override'], $context);
+		CodeWriter::addAttributes($node, ['\Override'], $context); // dresscode:ignore classNameReferenceForString
 	}
 
 
