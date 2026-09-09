@@ -1,0 +1,160 @@
+<?php
+function any(array $animals): bool
+{
+	$found = array_any($animals, fn($animal) => str_starts_with($animal, 'c'));
+
+	return $found;
+}
+
+function all(array $animals): bool
+{
+	$ok = array_all($animals, fn($animal) => str_starts_with($animal, 'c'));
+
+	return $ok;
+}
+
+function find(array $animals)
+{
+	$found = array_find($animals, fn($animal) => str_starts_with($animal, 'c'));
+
+	return $found;
+}
+
+function findKey(array $animals)
+{
+	$found = array_find_key($animals, fn($animal) => str_starts_with($animal, 'c'));
+
+	return $found;
+}
+
+function withKey(array $rows): bool
+{
+	$found = array_any($rows, fn($row, $key) => $key > 3 && $row->matches());
+
+	return $found;
+}
+
+function returning(array $animals): bool
+{
+	return array_any($animals, fn($animal) => str_starts_with($animal, 'c'));
+}
+
+function returningAll(array $animals): bool
+{
+	return array_all($animals, fn($animal) => $animal->isValid());
+}
+
+function returningFind(array $animals)
+{
+	return array_find($animals, fn($animal) => $animal->matches());
+}
+
+function leftBehind(array $animals)
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$found = true;
+			break;
+		}
+	}
+
+	return [$found, $animal];
+}
+
+function byReference(array &$animals): bool
+{
+	$found = false;
+	foreach ($animals as &$animal) {
+		if ($animal->matches()) {
+			$found = true;
+			break;
+		}
+	}
+
+	return $found;
+}
+
+function doesMore(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$found = true;
+			break;
+		}
+
+		echo $animal;
+	}
+
+	return $found;
+}
+
+function otherVariable(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$other = true;
+			break;
+		}
+	}
+
+	return $found;
+}
+
+function noBreak(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$found = true;
+		}
+	}
+
+	return $found;
+}
+
+function withElse(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$found = true;
+			break;
+		} else {
+			echo 1;
+		}
+	}
+
+	return $found;
+}
+
+function counting(array $animals): int
+{
+	$count = 0;
+	foreach ($animals as $animal) {
+		if ($animal->matches()) {
+			$count = 1;
+			break;
+		}
+	}
+
+	return $count;
+}
+
+function multiLine(array $animals): bool
+{
+	$found = false;
+	foreach ($animals as $animal) {
+		if (
+			$animal->matches()
+			&& $animal->isReady()
+		) {
+			$found = true;
+			break;
+		}
+	}
+
+	return $found;
+}

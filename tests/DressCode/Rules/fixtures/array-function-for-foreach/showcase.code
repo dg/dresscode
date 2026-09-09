@@ -1,0 +1,11 @@
+<?php
+function hasDraft(array $articles): bool
+{
+	foreach ($articles as $article) {
+		if ($article->isDraft()) {
+			return true;
+		}
+	}
+
+	return false;
+}

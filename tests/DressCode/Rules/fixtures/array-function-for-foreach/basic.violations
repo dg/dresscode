@@ -1,0 +1,8 @@
+5: The loop must be written with array_any()
+18: The loop must be written with array_all()
+31: The loop must be written with array_find()
+44: The loop must be written with array_find_key()
+57: The loop must be written with array_any()
+69: The loop must be written with array_any()
+80: The loop must be written with array_all()
+91: The loop must be written with array_find()
