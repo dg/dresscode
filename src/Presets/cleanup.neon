@@ -43,6 +43,7 @@ expressions:
 	ternaryOfTrueAndFalse: forbidden         # `$a > 1`, not `$a > 1 ? true : false`
 
 literals:
+	classNameInString: forbidden             # `Order::class`, not `'Acme\Shop\Order'`
 	concatenatedLiterals: joined             # `'ab'`, not `'a' . 'b'`
 
 comments:

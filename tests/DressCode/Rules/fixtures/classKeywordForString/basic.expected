@@ -1,0 +1,25 @@
+<?php
+namespace App;
+
+use App\Model\User;
+
+final class Config
+{
+	public const Entity = User::class;
+
+	public array $map = [Model\Repository::class => Model\Status::class];
+
+
+	public function load(string $class = User::class): bool
+	{
+		return is_a($class, Model\Repository::class, true) || $class === 'DateTimeImmutable';
+	}
+}
+
+// left alone
+$a = 'App\Model\Missing';
+$b = 'app\model\user';
+$c = 'App\Model';
+$d = 'User';
+$e = "App\\Model\\{$name}";
+$f = 'App\Model\User::find';

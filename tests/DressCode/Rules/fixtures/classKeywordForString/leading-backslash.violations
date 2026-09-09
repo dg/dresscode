@@ -1,0 +1,4 @@
+3: The class name must be written `App\Model\User::class` instead of a string.
+	risky BehaviorChanges: `::class` drops the leading backslash of the string
+4: The class name must be written `DateTimeImmutable::class` instead of a string.
+	risky BehaviorChanges: `::class` drops the leading backslash of the string

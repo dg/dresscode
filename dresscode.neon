@@ -29,3 +29,8 @@ overrides:
 		use:
 			- compilerOptimizations
 			- deprecations
+
+	- # the class names of PHP are the data of the generated list, not references to code
+		paths: [src/Analyses/PhpSymbolsData.php]
+		literals:
+			classNameInString: keep
