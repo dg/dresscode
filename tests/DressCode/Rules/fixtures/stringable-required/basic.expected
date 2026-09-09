@@ -1,0 +1,60 @@
+<?php
+class A implements \Stringable
+{
+	public function __toString(): string
+	{
+		return 'a';
+	}
+}
+
+class B extends Base implements \Stringable
+{
+	public function __toString()
+	{
+		return 'b';
+	}
+}
+
+class C implements Countable, \Stringable
+{
+	public function __toString(): string
+	{
+		return 'c';
+	}
+}
+
+class D implements Stringable
+{
+	public function __toString(): string
+	{
+		return 'd';
+	}
+}
+
+class E implements \Stringable, Countable
+{
+	public function __toString(): string
+	{
+		return 'e';
+	}
+}
+
+class F
+{
+	public function toString(): string
+	{
+		return 'f';
+	}
+}
+
+interface G
+{
+	public function __toString(): string;
+}
+
+$h = new class implements \Stringable {
+	public function __toString(): string
+	{
+		return 'h';
+	}
+};
