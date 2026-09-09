@@ -579,6 +579,7 @@ final readonly class Violation
 - `DressCode\Rules\Classes\StringableRequiredRule`
 - `DressCode\Rules\Classes\UselessModifierRule`
 - `DressCode\Rules\Classes\UselessNullInitializationRule`
+- `DressCode\Rules\Classes\UselessOverridingMethodRule`
 - `DressCode\Rules\Classes\VisibilityRequiredRule`
 - `DressCode\Rules\Comments\CommentSpacingRule`
 - `DressCode\Rules\Comments\NoEmptyCommentsRule`
