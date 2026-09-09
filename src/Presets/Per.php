@@ -5,7 +5,6 @@ namespace DressCode\Presets;
 use DressCode\Preset;
 use DressCode\PresetContext;
 use DressCode\PresetInfo;
-use DressCode\Rules;
 
 
 /**
@@ -20,41 +19,41 @@ final class Per implements Preset
 	{
 		return [
 			// 2.6 Trailing commas
-			Rules\Arrays\TrailingCommaRule::class => ['multiLine' => ['arrays', 'arguments', 'parameters', 'match', 'closureUses']],
+			'trailing-comma' => ['multiLine' => ['arrays', 'arguments', 'parameters', 'match', 'closureUses']],
 
 			// 4. Classes, properties and methods: empty bodies, anonymous classes, named arguments, chains
-			Rules\Classes\ClassDefinitionSpacingRule::class => ['spaceBeforeParenthesis' => false],
-			Rules\Whitespace\BracesPositionRule::class => ['allowSingleLineAnonymousFunctions' => false, 'emptyBodies' => 'sameLine'],
-			Rules\Expressions\NewArgumentParenthesesRule::class => ['namedClasses' => 'required', 'anonymousClasses' => 'forbidden'],
-			Rules\Functions\NamedArgumentSpacingRule::class => true,
-			Rules\Expressions\MultiLineChainRule::class => true,
+			'class-definition-spacing' => ['spaceBeforeParenthesis' => false],
+			'braces-position' => ['allowSingleLineAnonymousFunctions' => false, 'emptyBodies' => 'sameLine'],
+			'new-argument-parentheses' => ['namedClasses' => 'required', 'anonymousClasses' => 'forbidden'],
+			'named-argument-spacing' => true,
+			'multi-line-chain' => true,
 
 			// 5.6 The types of a multi-catch hug their bar, as every compound type does
-			Rules\Types\TypeHintSpacingRule::class => true,
+			'type-hint-spacing' => true,
 
 			// 6. Operators
-			Rules\Expressions\ConcatSpacingRule::class => true,
-			Rules\Expressions\MultiLineTernaryRule::class => true,
+			'concat-spacing' => true,
+			'multi-line-ternary' => true,
 
 			// 7.1 Short closures
-			Rules\Whitespace\SemicolonSpacingRule::class => ['after' => null],
+			'semicolon-spacing' => ['after' => null],
 
 			// 9. Enumerations: cases in PascalCase, on top of what PSR-1 says about names, each on its own line
-			Rules\Classes\NameCasingRule::class => ['classes' => 'PascalCase', 'methods' => 'camelCase', 'constants' => 'UPPER_CASE', 'enumCases' => 'PascalCase'],
-			Rules\Classes\SingleMemberPerLineRule::class => true,
+			'name-casing' => ['classes' => 'PascalCase', 'methods' => 'camelCase', 'constants' => 'UPPER_CASE', 'enumCases' => 'PascalCase'],
+			'single-member-per-line' => true,
 
 			// 10. Heredoc and nowdoc
-			Rules\Literals\NowdocWithoutInterpolationRule::class => true,
-			Rules\Literals\HeredocIndentationRule::class => true,
+			'nowdoc-without-interpolation' => true,
+			'heredoc-indentation' => true,
 
 			// 11. Arrays
-			Rules\Arrays\MultiLineArrayRule::class => true,
+			'multi-line-array' => true,
 
 			// 12. Attributes
-			Rules\Whitespace\AttributeSpacingRule::class => true,
-			Rules\Expressions\UselessAttributeParenthesesRule::class => true,
-			Rules\Whitespace\AttributePositionRule::class => true,
-			Rules\PhpDoc\AttributeAfterPhpDocRule::class => true,
+			'attribute-spacing' => true,
+			'useless-attribute-parentheses' => true,
+			'attribute-position' => true,
+			'attribute-after-phpdoc' => true,
 		];
 	}
 

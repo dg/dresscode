@@ -5,7 +5,6 @@ namespace DressCode\Presets;
 use DressCode\Preset;
 use DressCode\PresetContext;
 use DressCode\PresetInfo;
-use DressCode\Rules;
 
 
 /**
@@ -19,65 +18,65 @@ final class Psr12 implements Preset
 	{
 		return [
 			// 2. General: files, lines, indenting, keywords and types
-			Rules\Files\NoBomRule::class => true,
-			Rules\Files\FullOpeningTagRule::class => true,
-			Rules\Files\LineEndingRule::class => true,
-			Rules\Files\EofNewlineRule::class => true,
-			Rules\Files\NoClosingTagRule::class => true,
-			Rules\Files\NoTrailingWhitespaceRule::class => true,
-			Rules\ControlFlow\SingleStatementPerLineRule::class => true,
-			Rules\Whitespace\IndentationRule::class => true,
-			Rules\Literals\KeywordCasingRule::class => true,
-			Rules\Literals\ConstantCasingRule::class => true,
-			Rules\Expressions\CastSpacingRule::class => true,
-			Rules\Expressions\CastCanonicalTypeRule::class => true,
+			'no-bom' => true,
+			'full-opening-tag' => true,
+			'line-ending' => true,
+			'eof-newline' => true,
+			'no-closing-tag' => true,
+			'no-trailing-whitespace' => true,
+			'single-statement-per-line' => true,
+			'indentation' => true,
+			'keyword-casing' => true,
+			'constant-casing' => true,
+			'cast-spacing' => true,
+			'cast-canonical-type' => true,
 
 			// 2.1 Basic coding standard: PSR-1 3 and 4 on the case of names
-			Rules\Classes\NameCasingRule::class => ['classes' => 'PascalCase', 'methods' => 'camelCase', 'constants' => 'UPPER_CASE'],
+			'name-casing' => ['classes' => 'PascalCase', 'methods' => 'camelCase', 'constants' => 'UPPER_CASE'],
 
 			// 3. Declare statements, namespace and import statements
-			Rules\Files\HeaderBlankLinesRule::class => true,
-			Rules\Namespaces\OrderedImportsRule::class => ['alphabetically' => false],
-			Rules\Namespaces\NoLeadingBackslashInImportRule::class => true,
-			Rules\Files\DeclareSpacingRule::class => true,
+			'header-blank-lines' => true,
+			'ordered-imports' => ['alphabetically' => false],
+			'no-leading-backslash-in-import' => true,
+			'declare-spacing' => true,
 
 			// 4. Classes, properties and methods
-			Rules\Expressions\NewArgumentParenthesesRule::class => ['anonymousClasses' => null],
-			Rules\Classes\ClassDefinitionSpacingRule::class => true,
-			Rules\Whitespace\BracesPositionRule::class => ['allowSingleLineAnonymousFunctions' => false],
-			Rules\Whitespace\DeclarationBlankLinesRule::class => [
+			'new-argument-parentheses' => ['anonymousClasses' => null],
+			'class-definition-spacing' => true,
+			'braces-position' => ['allowSingleLineAnonymousFunctions' => false],
+			'declaration-blank-lines' => [
 				'betweenFunctions' => null, 'betweenFunctionsInInterface' => null,
 				'betweenMembers' => null, 'beforeDocumentedMember' => null, 'afterPhpDoc' => null,
 			],
-			Rules\Classes\OrderedMembersRule::class => ['order' => ['use_trait']],
-			Rules\Classes\VisibilityRequiredRule::class => true,
-			Rules\Classes\SingleMemberPerDeclarationRule::class => ['members' => ['property', 'trait']],
-			Rules\Functions\FunctionNameSpacingRule::class => true,
-			Rules\Whitespace\ParenthesesSpacingRule::class => true,
-			Rules\Whitespace\CommaSpacingRule::class => ['tabAlignment' => false],
-			Rules\Functions\MultiLineSignatureRule::class => ['promotedProperties' => false],
-			Rules\Types\TypeHintSpacingRule::class => ['catchTypes' => 'single'],
-			Rules\Expressions\ReferenceSpacingRule::class => true,
-			Rules\Expressions\SpreadOperatorSpacingRule::class => true,
-			Rules\Functions\MultiLineCallRule::class => true,
+			'ordered-members' => ['order' => ['use_trait']],
+			'visibility-required' => true,
+			'single-member-per-declaration' => ['members' => ['property', 'trait']],
+			'function-name-spacing' => true,
+			'parentheses-spacing' => true,
+			'comma-spacing' => ['tabAlignment' => false],
+			'multi-line-signature' => ['promotedProperties' => false],
+			'type-hint-spacing' => ['catchTypes' => 'single'],
+			'reference-spacing' => true,
+			'spread-operator-spacing' => true,
+			'multi-line-call' => true,
 
 			// 5. Control structures
-			Rules\Whitespace\ConstructSpacingRule::class => true,
-			Rules\ControlFlow\ControlStructureBracesRule::class => true,
-			Rules\ControlFlow\ElseifKeywordRule::class => true,
-			Rules\ControlFlow\ContinuationPositionRule::class => true,
-			Rules\ControlFlow\MultiLineConditionRule::class => true,
-			Rules\ControlFlow\SwitchCaseColonRule::class => true,
-			Rules\ControlFlow\SwitchCaseSpacingRule::class => true,
-			Rules\ControlFlow\FallThroughCommentRule::class => true,
+			'construct-spacing' => true,
+			'control-structure-braces' => true,
+			'elseif-keyword' => true,
+			'continuation-position' => true,
+			'multi-line-condition' => true,
+			'switch-case-colon' => true,
+			'switch-case-spacing' => true,
+			'fall-through-comment' => true,
 
 			// 6. Operators
-			Rules\Expressions\UnaryOperatorSpacingRule::class => true,
-			Rules\Expressions\BinaryOperatorSpacingRule::class => true,
-			Rules\Expressions\TernaryOperatorSpacingRule::class => true,
+			'unary-operator-spacing' => true,
+			'binary-operator-spacing' => true,
+			'ternary-operator-spacing' => true,
 
 			// 11. Arrays
-			Rules\Arrays\ShortArraySyntaxRule::class => true,
+			'short-array-syntax' => true,
 		];
 	}
 
