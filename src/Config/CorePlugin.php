@@ -168,6 +168,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\NoDirnameOfFileRule::class,
 				Rules\Functions\NoInnerFunctionsRule::class,
 				Rules\Functions\NoIsNullRule::class,
+				Rules\Functions\NoManualEmptyStringTestsRule::class,
 				Rules\Functions\NoManualSubstringTestsRule::class,
 				Rules\Functions\NoSettypeRule::class,
 				Rules\Functions\RoundingModeNotationRule::class,

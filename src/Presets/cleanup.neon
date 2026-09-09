@@ -27,6 +27,7 @@ functions:
 
 cleanup:
 	aliasFunctions: [internal, imap, pg]     # `count()`, not `sizeof()`
+	strlenEmptyTest: forbidden               # `$s === ''`, not `strlen($s) === 0`
 	call_user_func: forbidden                # `$f($x)`, not `call_user_func($f, $x)`, risky
 	__invoke: forbidden                      # `$f($x)`, not `$f->__invoke($x)`
 	redundantArguments: forbidden            # `json_encode($a)`, not `json_encode($a, 0)`
