@@ -3,6 +3,7 @@
 namespace DressCode\Config;
 
 use DressCode\ConfigurationException;
+use DressCode\Interop\Translator;
 use DressCode\Preset;
 use DressCode\PresetInfo;
 use DressCode\Presets;
@@ -191,8 +192,9 @@ final class RuleRegistry
 	private array $presets = [];
 
 
-	public function __construct()
-	{
+	public function __construct(
+		private readonly Translator $translator = new Translator,
+	) {
 		$this->registerPreset(Presets\Per::class);
 		$this->registerPreset(Presets\Psr12::class);
 		$this->registerPreset(Presets\Nette::class);
@@ -253,7 +255,11 @@ final class RuleRegistry
 			return $class;
 		}
 
-		throw new ConfigurationException("Unknown rule '$rule'." . self::suggest($rule, array_keys($this->rules)));
+		$covered = $this->translator->findRules($rule);
+		$hint = $covered
+			? ' It is covered by ' . implode(' and ', $covered) . '; run `dresscode import` to translate a configuration of another tool.'
+			: self::suggest($rule, array_keys($this->rules));
+		throw new ConfigurationException("Unknown rule '$rule'.$hint");
 	}
 
 
@@ -271,7 +277,8 @@ final class RuleRegistry
 
 
 	/**
-	 * Rules a name in a suppression comment stands for: its own; empty when nothing does.
+	 * Rules a name in a suppression comment stands for: its own, or those covering it when it belongs
+	 * to another tool; empty when nothing does.
 	 * @return list<string>
 	 */
 	public function resolveNames(string $rule): array
@@ -279,7 +286,7 @@ final class RuleRegistry
 		return match (true) {
 			isset($this->rules[$rule]) => [$rule],
 			isset($this->rules[self::Vendor . $rule]) => [self::Vendor . $rule],
-			default => [],
+			default => $this->translator->findRules($rule),
 		};
 	}
 
@@ -362,5 +369,11 @@ final class RuleRegistry
 	public function getPresets(): array
 	{
 		return $this->presets;
+	}
+
+
+	public function getTranslator(): Translator
+	{
+		return $this->translator;
 	}
 }

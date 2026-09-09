@@ -12,6 +12,9 @@ use DressCode\Engine\Baseline;
 use DressCode\Engine\WorkerClient;
 use DressCode\Engine\WorkerPool;
 use DressCode\Helpers;
+use DressCode\Interop\PhpCodeSniffer;
+use DressCode\Interop\PhpCsFixer;
+use DressCode\Interop\Translator;
 use DressCode\Preset;
 use DressCode\PresetInfo;
 use DressCode\Profile;
@@ -111,6 +114,7 @@ final class Application
 				'config' => $this->runConfig($args),
 				'explain' => $this->runExplain($args),
 				'rules' => $this->runRules($args),
+				'import' => $this->runImport($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
 
@@ -156,6 +160,7 @@ final class Application
 		$config = $program->addCommand('config', 'print the configuration as the run resolves it');
 		$explain = $program->addCommand('explain', 'what a rule is for, its options here and its examples; every rule that runs when none is named');
 		$rules = $program->addCommand('rules', 'list the known rules');
+		$import = $program->addCommand('import', 'translate a php-cs-fixer or phpcs configuration');
 		$program->addText('Exit codes: 0 clean, 1 violations or syntax errors, 2 failure.');
 
 		foreach ([$check, $fix] as $command) {
@@ -163,6 +168,7 @@ final class Application
 		}
 
 		$explain->addArgument('rule', 'name of the rule; every rule that runs when omitted', optional: true);
+		$import->addArgument('file', 'php-cs-fixer or phpcs configuration file');
 
 		foreach ([$check, $fix] as $command) {
 			$command->addOption(
@@ -587,16 +593,52 @@ final class Application
 		ksort($rules, SORT_STRING);
 		foreach ($rules as $name => $class) {
 			$info = RuleInfo::of($class);
+			$covers = $registry->getTranslator()->findForeignNames($name);
 			$this->write(sprintf(
-				"%s %-45s %-10s %s\n",
+				"%s %-45s %-10s %s%s\n",
 				isset($enabled[$name]) ? '*' : ' ',
 				$this->console->color(isset($enabled[$name]) ? 'white' : null, $name),
 				$info->stage->name,
 				$info->description,
+				$covers ? $this->console->color('gray', '  (covers ' . implode(', ', $covers) . ')') : '',
 			));
 		}
 
 		$this->write("\n* enabled by the configuration\n");
+		return 0;
+	}
+
+
+	private function runImport(Result $args): int
+	{
+		$file = $args['file'];
+		[$rules, $unread] = preg_match('~\.xml(\.dist)?$~Di', $file)
+			? PhpCodeSniffer::readConfig($file)
+			: [PhpCsFixer::readConfig($file), []];
+		$translation = (new Translator)->translate($rules);
+		foreach ($unread as $warning) {
+			$translation->warn($warning);
+		}
+
+		$this->write($translation->toConfig());
+		$disabled = count(array_filter($translation->rules, fn($options) => $options === false));
+		$this->writeError(sprintf(
+			"\nRead %d rule%s, enabled %d%s and %d preset%s.\n",
+			count($rules),
+			count($rules) === 1 ? '' : 's',
+			count($translation->rules) - $disabled,
+			$disabled ? ", turned off $disabled" : '',
+			count($translation->presets),
+			count($translation->presets) === 1 ? '' : 's',
+		));
+		foreach ($translation->warnings as $warning) {
+			$this->writeError("  $warning\n");
+		}
+
+		if (!$translation->presets) {
+			$this->writeError("  The indentation and the line ending are not read from there; set them with indent and eol.\n");
+		}
+
 		return 0;
 	}
 

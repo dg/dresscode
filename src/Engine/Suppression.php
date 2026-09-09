@@ -14,6 +14,8 @@ use function count;
  * Which rules are silenced on which original lines, read once from the comments of the file before any mutation:
  * "dresscode:ignore [names]" on a line silences that line, on its own line the nearest node starting on the
  * next line; "dresscode:disable [names]" up to "dresscode:enable"; "dresscode:ignore-file" the whole file.
+ * The phpcs forms (phpcs:ignore, phpcs:disable, phpcs:enable, @phpcsSuppress) name the rules of another
+ * tool, which DressCode\Interop translates.
  * @internal
  */
 final class Suppression
@@ -31,7 +33,7 @@ final class Suppression
 	public static function fromFile(FileNode $file, \Closure $resolveNames, ?string $code = null): self
 	{
 		$suppression = new self;
-		if ($code !== null && !str_contains($code, 'dresscode:')) { // nothing to read
+		if ($code !== null && !str_contains($code, 'dresscode:') && !str_contains($code, 'phpcs')) { // nothing to read
 			return $suppression;
 		}
 
@@ -42,7 +44,7 @@ final class Suppression
 				foreach ($trivias as $index => $trivia) {
 					if (
 						!$trivia->isComment()
-						|| !preg_match('~dresscode:(ignore-file|ignore|disable|enable)(?:\s+([\w/.,\s-]+?))?\s*(?:\*/|$)~m', $trivia->text, $m)
+						|| !preg_match('~(?:dresscode|phpcs):(ignore-file|ignore|disable|enable)(?:\s+([\w/.,\s-]+?))?\s*(?:\*/|$)~m', $trivia->text, $m)
 					) {
 						continue;
 					}
@@ -75,6 +77,7 @@ final class Suppression
 			$suppression->add([$name], $from, $lastLine);
 		}
 
+		$suppression->collectPhpcsSuppress($file, $resolveNames);
 		return $suppression;
 	}
 
@@ -114,6 +117,23 @@ final class Suppression
 		}
 
 		return $names ?: [self::All];
+	}
+
+
+	/**
+	 * @param \Closure(string): list<string> $resolveNames
+	 */
+	private function collectPhpcsSuppress(FileNode $file, \Closure $resolveNames): void
+	{
+		foreach ($file->find(Node::class) as $node) {
+			$doc = $node->getDocComment();
+			if ($doc && preg_match_all('~@phpcsSuppress\s+([\w.]+)~', $doc->text, $m)) {
+				$from = $node->getFirstToken()?->originalLine;
+				if ($from !== null) {
+					$this->add(self::names(implode(',', $m[1]), $resolveNames), $from, self::endLine($node));
+				}
+			}
+		}
 	}
 
 
