@@ -78,10 +78,11 @@ test('the profile a package ships applies up to its installed version, the one o
 	$packages = PackageProfiles::discover(ProjectPackages::read($root));
 	Assert::same([], $packages->warnings);
 	Assert::same([], $packages->extensions);
-	Assert::same(['root.neon of app/project', 'upgrading.neon of acme/lib'], array_column($packages->profiles, 0));
+	Assert::same(['root.neon of app/project', 'upgrading.neon of acme/lib'], array_column($packages->profiles, 'source'));
 
 	// every section of the root package, whose version says nothing
-	Assert::same(['replaced-classes' => ['App\Old' => 'App\Renamed']], $packages->profiles[0][1]->rules);
+	Assert::same([], $packages->profiles[0]->unreached);
+	Assert::same(['replaced-classes' => ['App\Old' => 'App\Renamed']], $packages->profiles[0]->profile->rules);
 
 	// the sections up to 3.2 in the order of their versions, a later one having the last word on a key; 3.5 is not reached
 	Assert::same(
@@ -89,8 +90,46 @@ test('the profile a package ships applies up to its installed version, the one o
 			'replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\RenamedAgain', 'Acme\Lib\Older' => 'Acme\Lib\Renamed'],
 			'replaced-functions' => ['acme_gone' => 'acme_kept'],
 		],
-		$packages->profiles[1][1]->rules,
+		$packages->profiles[1]->profile->rules,
 	);
+	Assert::same(['3.5'], $packages->profiles[1]->unreached);
+});
+
+
+test('a later section has the last word on an entry, and a value NEON reads as an entity stays one for the schema of the rule', function () {
+	$root = project(
+		'keep',
+		['acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']]],
+		[
+			'vendor/acme/lib/upgrading.neon' => <<<'XX'
+				package: acme/lib
+				group: deprecations
+
+				since 3:
+					replaced-members:
+						Acme\Lib\Order::OLD: New
+						Acme\Lib\Order::$paid: isPaid()
+
+				since 3.2:
+					replaced-members:
+						Acme\Lib\Order::OLD: keep
+
+				since 4:
+					replaced-members:
+						Acme\Lib\Order::$paid: keep
+
+				since 3.10:
+					replaced-members: []
+				XX,
+		],
+	);
+
+	[$profile] = PackageProfiles::discover(ProjectPackages::read($root))->profiles;
+	Assert::equal(
+		['replaced-members' => ['Acme\Lib\Order::OLD' => 'keep', 'Acme\Lib\Order::$paid' => new Nette\Neon\Entity('isPaid')]],
+		$profile->profile->rules,
+	);
+	Assert::same(['3.10', '4'], $profile->unreached);
 });
 
 
@@ -108,9 +147,9 @@ test('a profile for a package that is not installed is left out, and a package m
 	);
 
 	$packages = PackageProfiles::discover(ProjectPackages::read($root));
-	Assert::same(['upgrading/lib.neon of acme/rules'], array_column($packages->profiles, 0));
+	Assert::same(['upgrading/lib.neon of acme/rules'], array_column($packages->profiles, 'source'));
 	// measured against the version of acme/lib, not of the package carrying the file
-	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0][1]->rules);
+	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0]->profile->rules);
 });
 
 
@@ -124,7 +163,7 @@ test('a package the project requires itself is measured by the lowest version it
 
 	// the code still has to run on 3.1, where the name of 3.3 does not exist yet
 	$packages = PackageProfiles::discover(ProjectPackages::read($root));
-	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0][1]->rules);
+	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0]->profile->rules);
 });
 
 
@@ -182,7 +221,7 @@ test('the group of a file is the intent of its data', function () {
 			'vendor/acme/lib/modern.neon' => "package: acme/lib\ngroup: modernization\n\nsince 1.0:\n\treplaced-classes: []\n",
 		],
 	);
-	$groups = array_map(fn(array $profile) => $profile[2], PackageProfiles::discover(ProjectPackages::read($root))->profiles);
+	$groups = array_map(fn($profile) => $profile->group, PackageProfiles::discover(ProjectPackages::read($root))->profiles);
 	Assert::same([Group::Deprecations, Group::Modernization], $groups);
 });
 

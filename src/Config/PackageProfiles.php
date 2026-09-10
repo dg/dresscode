@@ -13,12 +13,11 @@ use function is_array, is_string;
 
 
 /**
- * What the installed packages bring to a project without being named in its configuration: the upgrading files
- * a package ships under `extra.dresscode.upgrading` of its composer.json, what its versions retired and what to
- * write instead, as the options of the rules of DressCode in sections `since <version>`, of which the ones the
- * version the project stands on reaches apply (ProjectPackages::findVersion()); and the extension a package names
- * under `extra.dresscode.extension`. The root package takes part too, and its own file applies whole. Such a file
- * never turns a rule on itself; the `group` it has to name does, where the project turns that group on.
+ * What the installed packages bring to a project without being named in its configuration: the upgrading files under
+ * `extra.dresscode.upgrading`, cut to the sections the version of their package reaches (`ProjectPackages::findVersion()`),
+ * a later one having the last word on an entry, and the extension under `extra.dresscode.extension`. The root package
+ * takes part too, and a file about the root itself applies whole. Such a file never turns a rule on itself; the
+ * `group` it has to name does, where the project turns that group on.
  * @internal
  */
 final class PackageProfiles
@@ -28,7 +27,7 @@ final class PackageProfiles
 
 
 	private function __construct(
-		/** @var list<array{string, Profile, Group}>  where it comes from, what it says and its intent, the root package first */
+		/** @var list<PackageProfile>  the root package first */
 		public readonly array $profiles,
 		/** @var list<class-string<Extension>> */
 		public readonly array $extensions,
@@ -64,9 +63,9 @@ final class PackageProfiles
 				}
 
 				$source = "$file of $name";
-				$read = self::readUpgrading("$path/$file", $source, $project);
-				if ($read !== null) {
-					$profiles[] = [$source, ...$read];
+				$profile = self::readUpgrading("$path/$file", $source, $project);
+				if ($profile !== null) {
+					$profiles[] = $profile;
 				}
 			}
 
@@ -86,12 +85,11 @@ final class PackageProfiles
 
 	/**
 	 * The file as a profile, cut to the sections the version the project stands on of the package it names reaches:
-	 * every one where any version does, none for a package the project does not have, in which case it is null;
-	 * with the group the file names.
-	 * @return ?array{Profile, Group}
+	 * every one where any version does, none for a package the project does not have, in which case it is null.
+	 * A value is taken as NEON gives it, an entity too, for the schema of the rule to read.
 	 * @throws ConfigurationException
 	 */
-	private static function readUpgrading(string $file, string $source, ProjectPackages $project): ?array
+	private static function readUpgrading(string $file, string $source, ProjectPackages $project): ?PackageProfile
 	{
 		// an installed package names the file as "<file> of <package>"
 		$label = preg_match('~^(.+) of (.+)$~', $source, $m) ? "`$m[1]` of `$m[2]`" : "`$source`";
@@ -142,15 +140,18 @@ final class PackageProfiles
 
 		$version = $project->findVersion($package);
 		uksort($sections, fn(string $a, string $b) => version_compare($a, $b));
-		$rules = [];
+		$rules = $unreached = [];
 		foreach ($sections as $since => $section) {
-			if ($version === null || version_compare($version, $since, '>=')) {
-				foreach ($section as $rule => $options) {
-					$rules[$rule] = array_replace($rules[$rule] ?? [], $options);
-				}
+			if ($version !== null && version_compare($version, (string) $since, '<')) {
+				$unreached[] = (string) $since;
+				continue;
+			}
+
+			foreach ($section as $rule => $options) {
+				$rules[$rule] = array_replace($rules[$rule] ?? [], $options);
 			}
 		}
 
-		return [new Profile(rules: $rules), $group];
+		return new PackageProfile($source, new Profile(rules: $rules), $group, $unreached);
 	}
 }

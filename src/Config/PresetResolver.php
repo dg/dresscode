@@ -12,7 +12,7 @@ use DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationRule;
 use Nette\Schema\Elements\{ArrayType, Structure};
 use Nette\Schema\{Helpers, Processor, ValidationException};
 use PhpSyntax\SymbolKind;
-use function count, in_array, is_array, is_int, is_string;
+use function count, in_array, is_array, is_int, is_string, strlen;
 use const PHP_EOL;
 
 
@@ -38,7 +38,7 @@ final class PresetResolver
 
 	public function __construct(
 		private readonly RuleRegistry $registry,
-		/** @var list<array{string, Profile, Group}>  what the installed packages say, laid under everything; a rule a file feeds is turned on by the group of the file */
+		/** @var list<PackageProfile>  what the installed packages say, laid under everything; a rule a file feeds is turned on by the group of the file */
 		private readonly array $packageProfiles = [],
 		/** the packages the project stands on, which decide whether a rule requiring one runs */
 		private readonly ProjectPackages $project = new ProjectPackages,
@@ -83,12 +83,12 @@ final class PresetResolver
 		/** @var array<class-string<Rule>, list<array{string, mixed, Group}>> $packageLayers */
 		$packageLayers = [];
 		$named = [];
-		foreach ($this->packageProfiles as [$source, $profile, $group]) {
-			foreach ($profile->rules as $rule => $value) {
+		foreach ($this->packageProfiles as $package) {
+			foreach ($package->profile->rules as $rule => $value) {
 				try {
-					$packageLayers[$this->registry->resolveRule($rule)][] = [$source, $value, $group];
+					$packageLayers[$this->registry->resolveRule($rule)][] = [$package->source, $value, $package->group];
 				} catch (ConfigurationException) {
-					$this->warnings["$source $rule"] = "Rule $rule, which $source sets, is unknown here; skipped.";
+					$this->warnings["$package->source $rule"] = "Rule `$rule`, which " . self::formatLayer($package->source) . ' sets, is not known to this DressCode; skipped.';
 				}
 			}
 		}
@@ -345,13 +345,13 @@ final class PresetResolver
 		try {
 			$profile = (new $class)->getProfile();
 		} catch (\InvalidArgumentException $e) {
-			throw new ConfigurationException("{$e->getMessage()} (in preset $name)", previous: $e);
+			throw new ConfigurationException("Preset `$name`: {$e->getMessage()}", previous: $e);
 		}
 
 		$defaults = new Profile;
 		foreach (self::ProjectDecisions as $key) {
 			if ($profile->$key !== $defaults->$key) {
-				throw new ConfigurationException("Preset $name sets $key, which is a decision of the project, not of a standard.");
+				throw new ConfigurationException("Preset `$name` sets `$key`, which the project decides, not a standard.");
 			}
 		}
 
@@ -359,12 +359,12 @@ final class PresetResolver
 	}
 
 
-	/** An error said in a layer the reader has to be sent to; the configuration and the command line need no pointing at. */
+	/** An error said in a layer the reader has to be sent to, named in front of it; the configuration needs no pointing at. */
 	private static function locate(ConfigurationException $e, string $layer): ConfigurationException
 	{
-		return in_array($layer, ['the configuration', 'the command line'], true)
+		return $layer === 'the configuration'
 			? $e
-			: new ConfigurationException("{$e->getMessage()} (in $layer)", previous: $e);
+			: new ConfigurationException(ucfirst(self::formatLayer($layer)) . ": {$e->getMessage()}", $e->docs, $e);
 	}
 
 
@@ -537,8 +537,8 @@ final class PresetResolver
 			$this->registry->getRules(),
 			fn(string $class) => RuleInfo::of($class)->group === $group,
 		));
-		foreach ($this->packageProfiles as [, $profile, $packageGroup]) {
-			foreach ($packageGroup === $group ? array_keys($profile->rules) : [] as $rule) {
+		foreach ($this->packageProfiles as $package) {
+			foreach ($package->group === $group ? array_keys($package->profile->rules) : [] as $rule) {
 				try {
 					$rules[] = $this->registry->resolveRule($rule);
 				} catch (ConfigurationException) {
