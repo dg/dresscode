@@ -53,7 +53,7 @@ final class Psr12 implements Preset
 			'single-member-per-declaration' => ['members' => ['property', 'trait']],
 			'function-name-spacing' => true,
 			'parentheses-spacing' => true,
-			'comma-spacing' => ['tabAlignment' => false],
+			'comma-spacing' => ['alignment' => 'none'],
 			'multi-line-signature' => ['promotedProperties' => false],
 			'type-hint-spacing' => ['catchTypes' => 'single'],
 			'reference-spacing' => true,

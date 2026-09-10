@@ -108,8 +108,7 @@ Stage: Formatting. Covers: `binary_operator_spaces`, `Squiz.WhiteSpace.LogicalOp
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `spacing` | `atLeastSingle` \| `single` | `"atLeastSingle"` | atLeastSingle keeps extra spaces that align assignments or array items, single collapses them to one |
-| `tabAlignment` | bool | `false` | Whitespace with a tab that aligns columns stays as well |
+| `alignment` | `none` \| `spaces` \| `tabs` \| `keep` | `"spaces"` | Which alignment around an operator stays: none collapses it to a single space, spaces and tabs keep the one written with them, keep keeps any |
 
 ### dresscode/body-blank-lines
 
@@ -196,7 +195,7 @@ Stage: Formatting. Covers: `no_whitespace_before_comma_in_array`, `whitespace_af
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `tabAlignment` | bool | `true` | Whitespace with a tab after a comma stays, as it aligns columns |
+| `alignment` | `none` \| `spaces` \| `tabs` \| `keep` | `"tabs"` | Which alignment after a comma stays: none collapses it to a single space, spaces and tabs keep the one written with them, keep keeps any |
 
 ### dresscode/comment-spacing
 

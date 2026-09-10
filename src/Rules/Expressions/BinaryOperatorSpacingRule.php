@@ -19,8 +19,9 @@ use PhpSyntax\Nodes\Expression\InstanceofNode;
 
 /**
  * Spaces around binary operators, assignments, `instanceof`, `=>` and the `=` of a default or a constant:
- * at least one on each side, or exactly one, unless the operator sits at a line break. Concatenation has
- * a rule of its own.
+ * one on each side, unless the operator sits at a line break. Whitespace wider than that aligns a column
+ * of assignments or of array items, and the option says which of it stays: the one made of spaces, the one
+ * made of tabs, either, or none. Concatenation has a rule of its own.
  */
 #[RuleInfo(
 	'dresscode/binary-operator-spacing',
@@ -35,18 +36,19 @@ final class BinaryOperatorSpacingRule extends GapRule implements ConfigurableRul
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'spacing' => Expect::anyOf('atLeastSingle', 'single')->default('atLeastSingle')
-				->description('atLeastSingle keeps extra spaces that align assignments or array items, single collapses them to one'),
-			'tabAlignment' => Expect::bool(false)->description('Whitespace with a tab that aligns columns stays as well'),
+			'alignment' => Expect::anyOf('none', 'spaces', 'tabs', 'keep')->default('spaces')
+				->description('Which alignment around an operator stays: none collapses it to a single space, spaces and tabs keep the one written with them, keep keeps any'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->claim = match (true) {
-			$options['spacing'] === 'single' => $options['tabAlignment'] ? Claim::singleOrTabs() : Claim::single(),
-			default => $options['tabAlignment'] ? Claim::atLeastSingleOrTabs() : Claim::atLeastSingle(),
+		$this->claim = match ($options['alignment']) {
+			'none' => Claim::single(),
+			'spaces' => Claim::atLeastSingle(),
+			'tabs' => Claim::singleOrTabs(),
+			default => Claim::atLeastSingleOrTabs(),
 		};
 	}
 

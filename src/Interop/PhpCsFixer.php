@@ -48,7 +48,7 @@ final class PhpCsFixer
 					$t->warn('binary_operator_spaces aligns operators, DressCode only keeps an alignment that is already there');
 				}
 				$t->enable('dresscode/binary-operator-spacing', [
-					'spacing' => $default === 'single_space' ? 'single' : 'atLeastSingle',
+					'alignment' => $default === 'single_space' ? 'none' : 'spaces',
 				]);
 			},
 			'blank_line_after_namespace' => fn(array $o, Translation $t) => $t->enable('dresscode/header-blank-lines', ['afterNamespace' => 1]),
@@ -301,7 +301,9 @@ final class PhpCsFixer
 				$t->enable('dresscode/unary-operator-spacing');
 			},
 			'visibility_required' => 'dresscode/visibility-required',
-			'whitespace_after_comma_in_array' => 'dresscode/comma-spacing',
+			'whitespace_after_comma_in_array' => fn(array $o, Translation $t) => $t->enable('dresscode/comma-spacing', [
+				'alignment' => ($o['ensure_single_space'] ?? false) ? 'none' : 'keep',
+			]),
 		];
 	}
 

@@ -49,7 +49,7 @@ final class Nette implements Preset
 			'ternary-operator-spacing' => ['spacing' => 'single'],
 			'comment-spacing' => true,
 			'semicolon-spacing' => ['after' => 'single'],
-			'comma-spacing' => ['tabAlignment' => true],
+			'comma-spacing' => ['alignment' => 'tabs'],
 			'object-operator-spacing' => true,
 			'double-colon-spacing' => true,
 			'array-spacing' => true,

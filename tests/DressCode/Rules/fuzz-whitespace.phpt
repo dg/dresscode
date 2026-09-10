@@ -404,9 +404,9 @@ $config = Config::create()
 foreach (array_keys($registry->getRules()) as $name) {
 	if (str_ends_with($name, '-spacing')) {
 		$config->enable($name, match ($name) {
-			'dresscode/binary-operator-spacing' => ['spacing' => 'single'],
+			'dresscode/binary-operator-spacing' => ['alignment' => 'none'],
 			'dresscode/ternary-operator-spacing' => ['spacing' => 'single'],
-			'dresscode/comma-spacing' => ['tabAlignment' => false],
+			'dresscode/comma-spacing' => ['alignment' => 'none'],
 			'dresscode/comment-spacing' => ['before' => 'single'],
 			default => true,
 		});

@@ -66,7 +66,7 @@ test('a keyword alone knows what closes it', function () {
 
 test('two rules may govern one operator when each abstains where the other decides', function () {
 	[$output, $violations] = apply([
-		PresetResolver::createRule(Rules\Expressions\BinaryOperatorSpacingRule::class, ['spacing' => 'single']),
+		PresetResolver::createRule(Rules\Expressions\BinaryOperatorSpacingRule::class, ['alignment' => 'none']),
 		PresetResolver::createRule(Rules\Expressions\ConcatSpacingRule::class, ['spacing' => 'none']),
 	], "<?php\n\$a = \$b  +  \$c . \$d;\n");
 	Assert::same("<?php\n\$a = \$b + \$c.\$d;\n", $output);

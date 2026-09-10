@@ -14,8 +14,9 @@ use PhpSyntax\Nodes\MatchArmNode;
 
 
 /**
- * No whitespace before a comma, a single space after it unless the line ends there. Tabs after
- * a comma align columns and stay, unless the option turns the tolerance off.
+ * No whitespace before a comma, a single space after it unless the line ends there. Whitespace wider
+ * than that aligns the columns of a table, and the option says which of it stays: the one made of tabs,
+ * the one made of spaces, either, or none.
  */
 #[RuleInfo(
 	'dresscode/comma-spacing',
@@ -24,31 +25,37 @@ use PhpSyntax\Nodes\MatchArmNode;
 )]
 final class CommaSpacingRule extends GapRule implements ConfigurableRule
 {
-	private bool $tabAlignment = true;
+	private Claim $alignment;
 
 
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'tabAlignment' => Expect::bool(true)->description('Whitespace with a tab after a comma stays, as it aligns columns'),
+			'alignment' => Expect::anyOf('none', 'spaces', 'tabs', 'keep')->default('tabs')
+				->description('Which alignment after a comma stays: none collapses it to a single space, spaces and tabs keep the one written with them, keep keeps any'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->tabAlignment = $options['tabAlignment'];
+		$this->alignment = match ($options['alignment']) {
+			'none' => Claim::single(),
+			'spaces' => Claim::atLeastSingle(),
+			'tabs' => Claim::singleOrTabs(),
+			default => Claim::atLeastSingleOrTabs(),
+		};
 	}
 
 
 	public function getClaims(): array
 	{
-		$after = $this->tabAlignment ? Claim::singleOrTabs() : Claim::single();
 		// the comma after a skipped item of a destructuring list keeps its space: [$a, , $b]
 		$before = fn(Gap $gap): ?Claim => $gap->token->is(',') && !($gap->token->getPrevious()?->is(',') ?? false) ? Claim::none() : null;
+		$after = fn(Gap $gap): ?Claim => $gap->token->is(',') ? $this->alignment : null;
 		return [
-			'*' => ['*:separator' => [$before, fn(Gap $gap) => $gap->token->is(',') ? $after : null]],
-			MatchArmNode::class => ['defaultComma' => [Claim::none(), $after]],
+			'*' => ['*:separator' => [$before, $after]],
+			MatchArmNode::class => ['defaultComma' => [Claim::none(), $this->alignment]],
 		];
 	}
 }
