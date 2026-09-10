@@ -28,7 +28,7 @@ As this project has it: `multiLine`: `["arrays","arguments","parameters"]`.
 
 Puts every item of a multi-line array on its own line and the opening bracket on the line before.
 
-As this project has it: `oneItemPerLine`: `false`.
+As this project has it: `shape`: `keep`.
 
 
 ### dresscode/array-spacing
@@ -49,7 +49,7 @@ As this project has it: `classes`: `PascalCase`, `methods`: `camelCase`, `consta
 
 Puts single spaces in the head of a class declaration.
 
-As this project has it: `spaceBeforeParenthesis`: `true`.
+As this project has it: `beforeParenthesis`: `single`.
 
 
 ### dresscode/ordered-members
@@ -298,7 +298,7 @@ As this project has it: `spacing`: `single`.
 
 Puts every link of a multi-line chain of calls on its own line, the first one included.
 
-As this project has it: `leadingLinksOnFirstLine`: `true`.
+As this project has it: `leadingLinks`: `sameLine`.
 
 
 ### dresscode/concat-spacing
@@ -458,7 +458,7 @@ Removes whitespace between a function name and its parentheses.
 
 Splits long signatures and constructors with promoted properties into one parameter per line.
 
-As this project has it: `promotedProperties`: `true`.
+As this project has it: `promotedProperties`: `ownLines`.
 
 
 ### dresscode/multi-line-call
@@ -623,7 +623,7 @@ As this project has it: `minDigitsBeforeDecimalPoint`: `7`, `minDigitsAfterDecim
 
 Sorts use statements alphabetically, classes before functions before constants.
 
-As this project has it: `alphabetically`: `true`.
+As this project has it: `order`: `alphabetical`.
 
 
 ### dresscode/no-leading-backslash-in-import
@@ -830,7 +830,7 @@ Indents every line by the construct it continues, one level per nesting.
 
 Positions the braces of classes, functions and control structures, and the keywords between them.
 
-As this project has it: `allowSingleLineAnonymousFunctions`: `true`, `emptyBodies`: `ownLine`, `multiLineParameters`: `nextLineAfterReturnType`.
+As this project has it: `singleLineAnonymousFunctions`: `allowed`, `emptyBodies`: `ownLine`, `multiLineParameters`: `nextLineAfterReturnType`.
 
 
 ### dresscode/declaration-blank-lines

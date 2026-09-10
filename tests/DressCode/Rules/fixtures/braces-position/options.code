@@ -1,5 +1,5 @@
 <?php
-// {"classes": "sameLine", "controlStructures": "nextLine", "anonymousFunctions": "nextLine", "allowSingleLineAnonymousFunctions": false}
+// {"classes": "sameLine", "controlStructures": "nextLine", "anonymousFunctions": "nextLine", "singleLineAnonymousFunctions": "expanded"}
 class A
 {
 }

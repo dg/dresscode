@@ -22,8 +22,8 @@ final class Per implements Preset
 			'trailing-comma' => ['multiLine' => ['arrays', 'arguments', 'parameters', 'match', 'closureUses']],
 
 			// 4. Classes, properties and methods: empty bodies, anonymous classes, named arguments, chains
-			'class-definition-spacing' => ['spaceBeforeParenthesis' => false],
-			'braces-position' => ['allowSingleLineAnonymousFunctions' => false, 'emptyBodies' => 'sameLine'],
+			'class-definition-spacing' => ['beforeParenthesis' => 'none'],
+			'braces-position' => ['singleLineAnonymousFunctions' => 'expanded', 'emptyBodies' => 'sameLine'],
 			'new-argument-parentheses' => ['namedClasses' => 'required', 'anonymousClasses' => 'forbidden'],
 			'named-argument-spacing' => true,
 			'multi-line-chain' => true,

@@ -431,7 +431,7 @@ test('config says what every rule ends up with, where it came from and why one d
 		rules:
 			dresscode/line-length: {limit: 100}
 			dresscode/name-casing: keep
-			dresscode/ordered-imports: {alphabetically: true}
+			dresscode/ordered-imports: {order: alphabetical}
 
 		excludeRulePaths:
 			dresscode/indentation: [src/generated]
@@ -446,7 +446,7 @@ test('config says what every rule ends up with, where it came from and why one d
 	Assert::match('%A%  dresscode/line-length %a%the configuration%A%', $out);
 	Assert::match('%A%      limit %a%100 %a%the configuration%A%', $out);
 	// a value the project changed says what it overrode, one that only repeats the preset does not
-	Assert::match('%A%      alphabetically %a%true %a%the configuration (over dresscode/psr12 false)%A%', $out);
+	Assert::match('%A%      order %a%alphabetical %a%the configuration (over dresscode/psr12 byKind)%A%', $out);
 	Assert::match('%A%Not running%A%  dresscode/name-casing %a%turned off by the configuration%A%', $out);
 	Assert::notContains('dresscode/indentation ', substr($out, strpos($out, 'Not running') ?: 0));
 
@@ -463,8 +463,8 @@ test('config says what every rule ends up with, where it came from and why one d
 	Assert::false($data['rules']['dresscode/name-casing']['active']);
 	Assert::same('turned off by the configuration', $data['rules']['dresscode/name-casing']['inactive']);
 	Assert::same(
-		[['source' => 'dresscode/psr12', 'value' => false], ['source' => 'the configuration', 'value' => true]],
-		$data['rules']['dresscode/ordered-imports']['origins']['alphabetically'],
+		[['source' => 'dresscode/psr12', 'value' => 'byKind'], ['source' => 'the configuration', 'value' => 'alphabetical']],
+		$data['rules']['dresscode/ordered-imports']['origins']['order'],
 	);
 });
 

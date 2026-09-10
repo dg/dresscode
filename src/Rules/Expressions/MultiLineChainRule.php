@@ -29,21 +29,24 @@ use PhpSyntax\Nodes\Expression\PropertyFetchNode;
 )]
 final class MultiLineChainRule extends GapRule implements ConfigurableRule
 {
-	private bool $leadingLinksOnFirstLine = false;
+	private const OwnLine = 'ownLine';
+	private const SameLine = 'sameLine';
+
+	private string $leadingLinks = self::OwnLine;
 
 
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'leadingLinksOnFirstLine' => Expect::bool(false)
-				->description('The links before the first one that begins a line stay on the first line of the chain; by default every link of a split chain begins a line'),
+			'leadingLinks' => Expect::anyOf(self::OwnLine, self::SameLine)->default(self::OwnLine)
+				->description('The links before the first one that begins a line: ownLine gives each of them a line too, sameLine leaves them on the line the chain starts on'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->leadingLinksOnFirstLine = $options['leadingLinksOnFirstLine'];
+		$this->leadingLinks = $options['leadingLinks'];
 	}
 
 
@@ -67,7 +70,7 @@ final class MultiLineChainRule extends GapRule implements ConfigurableRule
 
 		// up to the outermost link unless the links before this one decide, then down through the links
 		while (
-			!$this->leadingLinksOnFirstLine
+			$this->leadingLinks === self::OwnLine
 			&& (
 				$link->parent instanceof MethodCallNode
 				|| $link->parent instanceof PropertyFetchNode

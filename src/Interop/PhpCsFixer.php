@@ -70,12 +70,12 @@ final class PhpCsFixer
 				'anonymousClasses' => ($o['anonymous_classes_opening_brace'] ?? 'same_line') === 'same_line' ? 'sameLine' : 'nextLine',
 				'anonymousFunctions' => ($o['anonymous_functions_opening_brace'] ?? 'same_line') === 'same_line' ? 'sameLine' : 'nextLine',
 				'controlStructures' => ($o['control_structures_opening_brace'] ?? 'same_line') === 'same_line' ? 'sameLine' : 'nextLine',
-				'allowSingleLineAnonymousFunctions' => $o['allow_single_line_anonymous_functions'] ?? true,
+				'singleLineAnonymousFunctions' => ($o['allow_single_line_anonymous_functions'] ?? true) ? 'allowed' : 'expanded',
 				'emptyAnonymousClasses' => ($o['allow_single_line_empty_anonymous_classes'] ?? true) ? 'sameLine' : 'ownLine',
 			]),
 			'cast_spaces' => fn(array $o, Translation $t) => $t->enable('dresscode/cast-spacing', ['spacing' => $o['space'] ?? 'single']),
 			'class_definition' => fn(array $o, Translation $t) => $t->enable('dresscode/class-definition-spacing', [
-				'spaceBeforeParenthesis' => $o['space_before_parenthesis'] ?? false,
+				'beforeParenthesis' => ($o['space_before_parenthesis'] ?? false) ? 'single' : 'none',
 			]),
 			'class_reference_name_casing' => 'dresscode/class-reference-name-casing',
 			'combine_consecutive_issets' => 'dresscode/combined-issets',
@@ -128,7 +128,7 @@ final class PhpCsFixer
 				: $t->warn("method_argument_space with on_multiline={$o['on_multiline']} has no equivalent, DressCode always puts each argument on its own line"),
 			'modernize_types_casting' => 'dresscode/no-conversion-functions',
 			'modifier_keywords' => 'dresscode/visibility-required',
-			'multiline_promoted_properties' => fn(array $o, Translation $t) => $t->enable('dresscode/multi-line-signature', ['promotedProperties' => true]),
+			'multiline_promoted_properties' => fn(array $o, Translation $t) => $t->enable('dresscode/multi-line-signature', ['promotedProperties' => 'ownLines']),
 			'native_function_casing' => 'dresscode/native-function-casing',
 			'new_expression_parentheses' => 'dresscode/useless-parentheses-around-new',
 			'new_with_braces' => fn(array $o, Translation $t) => $t->enable('dresscode/new-argument-parentheses', [
@@ -218,7 +218,7 @@ final class PhpCsFixer
 					$t->warn('ordered_types with null_adjustment=none has no equivalent, DressCode always puts null first or last');
 				}
 				$t->enable('dresscode/union-type-format', [
-					'alphabetically' => ($o['sort_algorithm'] ?? 'alpha') === 'alpha',
+					'others' => ($o['sort_algorithm'] ?? 'alpha') === 'alpha' ? 'byName' : 'keep',
 					'nullPosition' => ($o['null_adjustment'] ?? 'always_first') === 'always_last' ? 'last' : 'first',
 				]);
 			},
@@ -228,7 +228,7 @@ final class PhpCsFixer
 					$t->warn('ordered_imports with sort_algorithm=length has no equivalent, DressCode sorts alphabetically');
 				}
 				$t->enable('dresscode/ordered-imports', [
-					'alphabetically' => $sort !== 'none',
+					'order' => $sort === 'none' ? 'byKind' : 'alphabetical',
 					'caseSensitive' => $o['case_sensitive'] ?? false,
 				]);
 			},

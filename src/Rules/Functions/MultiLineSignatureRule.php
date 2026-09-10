@@ -30,15 +30,19 @@ use PhpSyntax\Style;
 )]
 final class MultiLineSignatureRule extends GapRule implements ConfigurableRule
 {
+	private const OwnLines = 'ownLines';
+	private const Keep = 'keep';
+
 	private int $minLineLength = 121;
-	private bool $promotedProperties = true;
+	private string $promotedProperties = self::OwnLines;
 
 
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
 			'minLineLength' => Expect::int(121)->min(1)->description('A signature whose line is at least this long is split'),
-			'promotedProperties' => Expect::bool(true)->description('A signature declaring a promoted property is split regardless of its length'),
+			'promotedProperties' => Expect::anyOf(self::OwnLines, self::Keep)->default(self::OwnLines)
+				->description('ownLines splits a signature declaring a promoted property whatever its length, keep leaves the length to decide'),
 		]);
 	}
 
@@ -98,7 +102,7 @@ final class MultiLineSignatureRule extends GapRule implements ConfigurableRule
 			return 'the signature spans several lines';
 		}
 
-		if ($this->promotedProperties) {
+		if ($this->promotedProperties === self::OwnLines) {
 			foreach ($node->parameters->getItems() as $param) {
 				if ($param->isPromoted()) {
 					return 'the signature declares a promoted property';

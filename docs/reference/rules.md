@@ -133,7 +133,7 @@ Stage: Formatting. Covers: `braces_position`, `control_structure_continuation_po
 | `anonymousClasses` | `sameLine` \| `nextLine` | `"sameLine"` |  |
 | `anonymousFunctions` | `sameLine` \| `nextLine` | `"sameLine"` |  |
 | `controlStructures` | `sameLine` \| `nextLine` | `"sameLine"` |  |
-| `allowSingleLineAnonymousFunctions` | bool | `true` |  |
+| `singleLineAnonymousFunctions` | `allowed` \| `expanded` | `"allowed"` | A closure written whole on one line: allowed leaves it there, expanded gives its braces the position of any other |
 | `emptyAnonymousClasses` | `sameLine` \| `ownLine` | `"sameLine"` | An empty anonymous class as {} on the line of new, whatever it holds inside |
 | `emptyBodies` | `sameLine` \| `ownLine` | `"ownLine"` | An empty body of a class, function, method or closure as {} on the line of its head; a comment inside makes it not empty |
 | `continuation` | `sameLine` \| `nextLine` | `"sameLine"` | The keyword continuing a structure (else, elseif, catch, finally, the while of do) on the line of the closing brace, or on the next one |
@@ -162,7 +162,7 @@ Stage: Formatting. Covers: `class_definition`, `PSR2.Classes.ClassDeclaration.Sp
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `spaceBeforeParenthesis` | bool | `true` | Between class and the arguments of an anonymous class: new class ($a), false hugs them |
+| `beforeParenthesis` | `single` \| `none` | `"single"` | Between class and the arguments of an anonymous class: single writes new class ($a), none hugs them |
 
 ### dresscode/class-reference-name-casing
 
@@ -501,7 +501,7 @@ Stage: Formatting.
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `oneItemPerLine` | bool | `true` | Every item on a line of its own; false lets items share a line |
+| `shape` | `perLine` \| `keep` | `"perLine"` | perLine gives every item a line of its own, keep lets the items stand as they are |
 
 ### dresscode/multi-line-call
 
@@ -517,7 +517,7 @@ Stage: Formatting.
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `leadingLinksOnFirstLine` | bool | `false` | The links before the first one that begins a line stay on the first line of the chain; by default every link of a split chain begins a line |
+| `leadingLinks` | `ownLine` \| `sameLine` | `"ownLine"` | The links before the first one that begins a line: ownLine gives each of them a line too, sameLine leaves them on the line the chain starts on |
 
 ### dresscode/multi-line-condition
 
@@ -539,7 +539,7 @@ Stage: Formatting. Covers: `multiline_promoted_properties`, `SlevomatCodingStand
 | Option | Type | Default | |
 |---|---|---|---|
 | `minLineLength` | int | `121` | A signature whose line is at least this long is split |
-| `promotedProperties` | bool | `true` | A signature declaring a promoted property is split regardless of its length |
+| `promotedProperties` | `ownLines` \| `keep` | `"ownLines"` | ownLines splits a signature declaring a promoted property whatever its length, keep leaves the length to decide |
 
 ### dresscode/multi-line-ternary
 
@@ -857,7 +857,7 @@ Stage: Structure. Covers: `ordered_imports`, `SlevomatCodingStandard.Namespaces.
 | Option | Type | Default | |
 |---|---|---|---|
 | `caseSensitive` | bool | `false` |  |
-| `alphabetically` | bool | `true` | False only puts classes before functions before constants and keeps the order within a kind |
+| `order` | `alphabetical` \| `byKind` | `"alphabetical"` | byKind only puts classes before functions before constants and keeps the order within a kind |
 
 ### dresscode/ordered-members
 
@@ -1145,7 +1145,7 @@ Stage: Structure. Covers: `ordered_types`, `SlevomatCodingStandard.TypeHints.DNF
 |---|---|---|---|
 | `shortNullable` | bool | `true` | T\|null is written ?T |
 | `nullPosition` | `last` \| `first` | `"last"` | Where null stands in a union of three or more types |
-| `alphabetically` | bool | `false` | The other types of a union are sorted by name, case-insensitively |
+| `others` | `byName` \| `keep` | `"keep"` | byName sorts the types beside null by name, case-insensitively; keep leaves their order alone |
 
 ### dresscode/unused-imports
 

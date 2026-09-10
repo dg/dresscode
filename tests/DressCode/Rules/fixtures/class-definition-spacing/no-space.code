@@ -1,5 +1,5 @@
 <?php
-// {"spaceBeforeParenthesis": false}
+// {"beforeParenthesis": "none"}
 $a = new class ($x) extends Foo {
 };
 $b = new class($x) {

@@ -28,7 +28,7 @@ final class Nette implements Preset
 			'header-blank-lines' => [
 				'beforeNamespace' => 1, 'afterOpeningTag' => 'keep', 'afterNamespace' => 1, 'afterImports' => 1, 'betweenImportGroups' => 0, 'beforeDeclaration' => 2,
 			],
-			'ordered-imports' => ['alphabetically' => true],
+			'ordered-imports' => ['order' => 'alphabetical'],
 			'unused-imports' => true,
 			'reference-used-names-only' => true,
 			'import-notation' => ['functions' => 'combined', 'constants' => 'combined', 'groupUse' => 'keep'],
@@ -54,18 +54,18 @@ final class Nette implements Preset
 			'double-colon-spacing' => true,
 			'array-spacing' => true,
 			'offset-bracket-spacing' => true,
-			'class-definition-spacing' => ['spaceBeforeParenthesis' => true],
+			'class-definition-spacing' => ['beforeParenthesis' => 'single'],
 
 			// breaks: the brace of a multi-line signature below its return type, promoted properties on lines of their
 			// own, the first link of a chain and several items of an array may share a line, and a broken condition
 			// may begin on the line of its parenthesis or below it
 			'braces-position' => [
 				'multiLineParameters' => 'nextLineAfterReturnType', 'emptyBodies' => 'ownLine',
-				'allowSingleLineAnonymousFunctions' => true,
+				'singleLineAnonymousFunctions' => 'allowed',
 			],
-			'multi-line-signature' => ['promotedProperties' => true],
-			'multi-line-chain' => ['leadingLinksOnFirstLine' => true],
-			'multi-line-array' => ['oneItemPerLine' => false],
+			'multi-line-signature' => ['promotedProperties' => 'ownLines'],
+			'multi-line-chain' => ['leadingLinks' => 'sameLine'],
+			'multi-line-array' => ['shape' => 'keep'],
 			'multi-line-condition' => ['shape' => ['perLine', 'compact']],
 			'trailing-comma' => ['multiLine' => ['arrays', 'arguments', 'parameters']],
 

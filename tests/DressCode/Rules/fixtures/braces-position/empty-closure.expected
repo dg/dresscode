@@ -1,5 +1,5 @@
 <?php
-// {"allowSingleLineAnonymousFunctions": false, "emptyBodies": "sameLine"}
+// {"singleLineAnonymousFunctions": "expanded", "emptyBodies": "sameLine"}
 $f = function () {};
 $g = function () {
 	return 1;

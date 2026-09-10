@@ -31,16 +31,19 @@ use function count;
 final class OrderedImportsRule extends NodeRule implements ConfigurableRule
 {
 	private const Types = ['', 'function', 'const'];
+	private const Alphabetical = 'alphabetical';
+	private const ByKind = 'byKind';
 
+	private string $order = self::Alphabetical;
 	private bool $caseSensitive = false;
-	private bool $alphabetically = true;
 
 
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
 			'caseSensitive' => Expect::bool(false),
-			'alphabetically' => Expect::bool(true)->description('False only puts classes before functions before constants and keeps the order within a kind'),
+			'order' => Expect::anyOf(self::Alphabetical, self::ByKind)->default(self::Alphabetical)
+				->description('byKind only puts classes before functions before constants and keeps the order within a kind'),
 		]);
 	}
 
@@ -48,7 +51,7 @@ final class OrderedImportsRule extends NodeRule implements ConfigurableRule
 	public function configure(array $options): void
 	{
 		$this->caseSensitive = $options['caseSensitive'];
-		$this->alphabetically = $options['alphabetically'];
+		$this->order = $options['order'];
 	}
 
 
@@ -101,7 +104,7 @@ final class OrderedImportsRule extends NodeRule implements ConfigurableRule
 		$statements = [];
 		foreach (self::Types as $type) {
 			$pool = $names[$type];
-			if ($this->alphabetically) {
+			if ($this->order === self::Alphabetical) {
 				usort($pool, $this->compare(...));
 			}
 
@@ -116,7 +119,7 @@ final class OrderedImportsRule extends NodeRule implements ConfigurableRule
 				continue;
 			}
 
-			if (!$context->report($stmt, $this->alphabetically ? 'Imports are not sorted' : 'Imports are not grouped by kind')) {
+			if (!$context->report($stmt, $this->order === self::Alphabetical ? 'Imports are not sorted' : 'Imports are not grouped by kind')) {
 				return;
 			}
 

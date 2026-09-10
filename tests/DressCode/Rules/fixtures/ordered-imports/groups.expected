@@ -1,5 +1,5 @@
 <?php
-// {"alphabetically": false}
+// {"order": "byKind"}
 use Zeta\B;
 use Alpha\A;
 use function strlen;

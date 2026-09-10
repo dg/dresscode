@@ -36,14 +36,14 @@ final class Psr12 implements Preset
 
 			// 3. Declare statements, namespace and import statements
 			'header-blank-lines' => true,
-			'ordered-imports' => ['alphabetically' => false],
+			'ordered-imports' => ['order' => 'byKind'],
 			'no-leading-backslash-in-import' => true,
 			'declare-spacing' => true,
 
 			// 4. Classes, properties and methods
 			'new-argument-parentheses' => ['anonymousClasses' => 'keep'],
 			'class-definition-spacing' => true,
-			'braces-position' => ['allowSingleLineAnonymousFunctions' => false],
+			'braces-position' => ['singleLineAnonymousFunctions' => 'expanded'],
 			'declaration-blank-lines' => [
 				'betweenFunctions' => 'keep', 'betweenFunctionsInInterface' => 'keep',
 				'betweenMembers' => 'keep', 'beforeDocumentedMember' => 'keep', 'afterPhpDoc' => 'keep',
@@ -54,7 +54,7 @@ final class Psr12 implements Preset
 			'function-name-spacing' => true,
 			'parentheses-spacing' => true,
 			'comma-spacing' => ['alignment' => 'none'],
-			'multi-line-signature' => ['promotedProperties' => false],
+			'multi-line-signature' => ['promotedProperties' => 'keep'],
 			'type-hint-spacing' => ['catchTypes' => 'single'],
 			'reference-spacing' => true,
 			'spread-operator-spacing' => true,

@@ -44,6 +44,8 @@ final class BracesPositionRule extends GapRule implements ConfigurableRule
 	private const SameLine = 'sameLine';
 	private const NextLine = 'nextLine';
 	private const OwnLine = 'ownLine';
+	private const Allowed = 'allowed';
+	private const Expanded = 'expanded';
 
 	private const ClassLikes = [Statement\ClassNode::class, Statement\InterfaceNode::class, Statement\TraitNode::class, Statement\EnumNode::class];
 	private const Bodied = [
@@ -59,7 +61,7 @@ final class BracesPositionRule extends GapRule implements ConfigurableRule
 	private string $anonymousClasses = self::SameLine;
 	private string $anonymousFunctions = self::SameLine;
 	private string $controlStructures = self::SameLine;
-	private bool $allowSingleLineAnonymousFunctions = true;
+	private string $singleLineAnonymousFunctions = self::Allowed;
 	private string $emptyAnonymousClasses = self::SameLine;
 	private string $emptyBodies = self::OwnLine;
 	private string $continuation = self::SameLine;
@@ -75,7 +77,8 @@ final class BracesPositionRule extends GapRule implements ConfigurableRule
 			'anonymousClasses' => (clone $position)->default(self::SameLine),
 			'anonymousFunctions' => (clone $position)->default(self::SameLine),
 			'controlStructures' => (clone $position)->default(self::SameLine),
-			'allowSingleLineAnonymousFunctions' => Expect::bool(true),
+			'singleLineAnonymousFunctions' => Expect::anyOf(self::Allowed, self::Expanded)->default(self::Allowed)
+				->description('A closure written whole on one line: allowed leaves it there, expanded gives its braces the position of any other'),
 			'emptyAnonymousClasses' => Expect::anyOf(self::SameLine, self::OwnLine)->default(self::SameLine)
 				->description('An empty anonymous class as {} on the line of new, whatever it holds inside'),
 			'emptyBodies' => Expect::anyOf(self::SameLine, self::OwnLine)->default(self::OwnLine)
@@ -93,7 +96,7 @@ final class BracesPositionRule extends GapRule implements ConfigurableRule
 		$this->anonymousClasses = $options['anonymousClasses'];
 		$this->anonymousFunctions = $options['anonymousFunctions'];
 		$this->controlStructures = $options['controlStructures'];
-		$this->allowSingleLineAnonymousFunctions = $options['allowSingleLineAnonymousFunctions'];
+		$this->singleLineAnonymousFunctions = $options['singleLineAnonymousFunctions'];
 		$this->emptyAnonymousClasses = $options['emptyAnonymousClasses'];
 		$this->emptyBodies = $options['emptyBodies'];
 		$this->continuation = $options['continuation'];
@@ -205,7 +208,7 @@ final class BracesPositionRule extends GapRule implements ConfigurableRule
 				$node->body->closeBrace,
 				$node->body->statements->isEmpty(),
 				$this->anonymousFunctions === self::NextLine,
-				$this->allowSingleLineAnonymousFunctions,
+				$this->singleLineAnonymousFunctions === self::Allowed,
 				true,
 			],
 			$node instanceof Statement\ClassNode, $node instanceof Statement\InterfaceNode,

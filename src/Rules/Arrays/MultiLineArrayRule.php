@@ -19,10 +19,11 @@ use PhpSyntax\TokenKind;
 
 
 /**
- * An array spread over lines has every item on a line of its own (or several items on one, as the option
- * allows), each comma on the line of its item and the closing bracket on a line of its own, while the opening
- * bracket stays on the line of the code before it (an assignment, a return, a double arrow); an array kept on
- * one line is left alone. Where the lines stand is the matter of dresscode/indentation.
+ * An array spread over lines has every item on a line of its own and the closing bracket on a line of its
+ * own; `keep` leaves that frame as it is, so an array whose first item stands on the line of the opening
+ * bracket keeps the closing one where it is too. Whatever the frame, the opening bracket stays on the line
+ * of the code before it (an assignment, a return, a double arrow) and each comma on the line of its item,
+ * and an array kept on one line is left alone. Where the lines stand is the matter of dresscode/indentation.
  */
 #[RuleInfo(
 	'dresscode/multi-line-array',
@@ -31,20 +32,24 @@ use PhpSyntax\TokenKind;
 )]
 final class MultiLineArrayRule extends GapRule implements ConfigurableRule
 {
-	private bool $oneItemPerLine = true;
+	private const PerLine = 'perLine';
+	private const Keep = 'keep';
+
+	private string $shape = self::PerLine;
 
 
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'oneItemPerLine' => Expect::bool(true)->description('Every item on a line of its own; false lets items share a line'),
+			'shape' => Expect::anyOf(self::PerLine, self::Keep)->default(self::PerLine)
+				->description('perLine gives every item a line of its own, keep lets the items stand as they are'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->oneItemPerLine = $options['oneItemPerLine'];
+		$this->shape = $options['shape'];
 	}
 
 
@@ -55,9 +60,10 @@ final class MultiLineArrayRule extends GapRule implements ConfigurableRule
 		$hug = new Claim(Space::None, line: Line::Same, because: $because);
 		$follow = new Claim(line: Line::Same, because: $because);
 		return [ArrayNode::class => [
-			'items:item' => [$this->oneItemPerLine ? fn(Gap $gap) => self::isBroken($gap, $gap->value->parent?->parent) ? $break : null : null, null],
+			'items:item' => [$this->shape === self::PerLine ? fn(Gap $gap) => self::isBroken($gap, $gap->value->parent?->parent) ? $break : null : null, null],
 			'items:separator' => [fn(Gap $gap) => self::isBroken($gap, $gap->token->parent?->parent) ? $hug : null, null],
-			'closeDelimiter' => [fn(Gap $gap) => self::isBroken($gap, $gap->token->parent) ? $break : null, null],
+			// whether the closing bracket starts a line is the frame of the array, which keep leaves alone
+			'closeDelimiter' => [$this->shape === self::PerLine ? fn(Gap $gap) => self::isBroken($gap, $gap->token->parent) ? $break : null : null, null],
 			'openDelimiter' => [fn(Gap $gap) => self::isBroken($gap, $gap->token->parent) && self::follows($gap->token) ? $follow : null, null],
 		]];
 	}

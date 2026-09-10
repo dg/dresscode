@@ -45,7 +45,7 @@ final class Symfony implements Preset
 
 			// imports
 			'import-notation' => true,
-			'ordered-imports' => ['alphabetically' => true, 'caseSensitive' => false],
+			'ordered-imports' => ['order' => 'alphabetical', 'caseSensitive' => false],
 			'unused-imports' => true,
 
 			// comments and phpdoc
@@ -71,12 +71,12 @@ final class Symfony implements Preset
 			'object-operator-spacing' => true,
 			'offset-bracket-spacing' => true,
 			'semicolon-spacing' => ['after' => 'single'],
-			'class-definition-spacing' => ['spaceBeforeParenthesis' => false],
+			'class-definition-spacing' => ['beforeParenthesis' => 'none'],
 			'construct-spacing' => ['arrowFunction' => 'single'],
 			'declare-spacing' => true,
 			'braces-position' => [
 				'classes' => 'nextLine', 'anonymousClasses' => 'sameLine', 'anonymousFunctions' => 'sameLine',
-				'controlStructures' => 'sameLine', 'allowSingleLineAnonymousFunctions' => true, 'emptyAnonymousClasses' => 'sameLine',
+				'controlStructures' => 'sameLine', 'singleLineAnonymousFunctions' => 'allowed', 'emptyAnonymousClasses' => 'sameLine',
 				// single_line_empty_body is switched off in @Symfony
 				'emptyBodies' => 'ownLine',
 			],

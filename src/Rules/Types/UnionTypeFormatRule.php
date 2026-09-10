@@ -30,9 +30,12 @@ use function count;
 )]
 final class UnionTypeFormatRule extends NodeRule implements ConfigurableRule
 {
+	private const ByName = 'byName';
+	private const Keep = 'keep';
+
 	private bool $shortNullable = true;
 	private string $nullPosition = 'last';
-	private bool $alphabetically = false;
+	private string $others = self::Keep;
 
 
 	public static function getOptionsSchema(): Schema
@@ -40,7 +43,8 @@ final class UnionTypeFormatRule extends NodeRule implements ConfigurableRule
 		return Expect::structure([
 			'shortNullable' => Expect::bool(true)->description('T|null is written ?T'),
 			'nullPosition' => Expect::anyOf('last', 'first')->default('last')->description('Where null stands in a union of three or more types'),
-			'alphabetically' => Expect::bool(false)->description('The other types of a union are sorted by name, case-insensitively'),
+			'others' => Expect::anyOf(self::ByName, self::Keep)->default(self::Keep)
+				->description('byName sorts the types beside null by name, case-insensitively; keep leaves their order alone'),
 		]);
 	}
 
@@ -49,7 +53,7 @@ final class UnionTypeFormatRule extends NodeRule implements ConfigurableRule
 	{
 		$this->shortNullable = $options['shortNullable'];
 		$this->nullPosition = $options['nullPosition'];
-		$this->alphabetically = $options['alphabetically'];
+		$this->others = $options['others'];
 	}
 
 
@@ -77,7 +81,7 @@ final class UnionTypeFormatRule extends NodeRule implements ConfigurableRule
 			}
 		}
 
-		if ($others === [] || ($nulls === [] && !$this->alphabetically)) {
+		if ($others === [] || ($nulls === [] && $this->others === self::Keep)) {
 			return;
 		}
 
@@ -89,7 +93,7 @@ final class UnionTypeFormatRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		if ($this->alphabetically) {
+		if ($this->others === self::ByName) {
 			usort($others, strcasecmp(...));
 		}
 
@@ -103,7 +107,7 @@ final class UnionTypeFormatRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$message = $this->alphabetically && array_values(array_diff($actual, ['null'])) !== $others
+		$message = $this->others === self::ByName && array_values(array_diff($actual, ['null'])) !== $others
 			? 'The types of a union type must be in alphabetical order'
 			: "null must come {$this->nullPosition} in a union type";
 		if ($context->report($node, $message)) {

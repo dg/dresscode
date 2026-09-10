@@ -1,5 +1,5 @@
 <?php
-// {"minLineLength": 52, "promotedProperties": false}
+// {"minLineLength": 52, "promotedProperties": "keep"}
 class A
 {
 	public function __construct(private int $a) {}

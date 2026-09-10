@@ -90,7 +90,7 @@ final class PhpCodeSniffer
 			]),
 			'SlevomatCodingStandard.Classes.RequireMultiLineMethodSignature' => fn(array $o, Translation $t) => $t->enable('dresscode/multi-line-signature', [
 				'minLineLength' => $o['minLineLength'] ?? 121,
-				'promotedProperties' => $o['withPromotedProperties'] ?? false,
+				'promotedProperties' => ($o['withPromotedProperties'] ?? false) ? 'ownLines' : 'keep',
 			]),
 			'SlevomatCodingStandard.Classes.SuperfluousAbstractClassNaming' => 'dresscode/no-kind-in-class-name',
 			'SlevomatCodingStandard.Classes.SuperfluousErrorNaming' => 'dresscode/no-kind-in-class-name',
@@ -155,7 +155,7 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.Functions.StrictCall' => 'dresscode/strict-call',
 			'SlevomatCodingStandard.Functions.UselessParameterDefaultValue' => 'dresscode/useless-parameter-default',
 			'SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses' => fn(array $o, Translation $t) => $t->enable('dresscode/ordered-imports', [
-				'alphabetically' => true,
+				'order' => 'alphabetical',
 				'caseSensitive' => $o['caseSensitive'] ?? false,
 			]),
 			'SlevomatCodingStandard.Namespaces.DisallowGroupUse' => fn(array $o, Translation $t) => $t->enable('dresscode/import-notation', ['groupUse' => 'expand']),

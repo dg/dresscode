@@ -1,5 +1,5 @@
 <?php
-// {"leadingLinksOnFirstLine": true}
+// {"leadingLinks": "sameLine"}
 $a->b()->c();
 $a->b()
 	->c();

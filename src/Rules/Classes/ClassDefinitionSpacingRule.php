@@ -20,7 +20,7 @@ use PhpSyntax\Nodes\Statement\TraitNode;
 /**
  * The head of a class declaration with single spaces between its words, up to the opening brace:
  * `class Foo extends Bar implements Baz {`, `new class ($a) extends Bar` (or `new class($a)` without
- * spaceBeforeParenthesis). The modifiers before it are dresscode/construct-spacing, the backing type
+ * beforeParenthesis). The modifiers before it are dresscode/construct-spacing, the backing type
  * of an enum dresscode/type-hint-spacing.
  */
 #[RuleInfo(
@@ -30,20 +30,24 @@ use PhpSyntax\Nodes\Statement\TraitNode;
 )]
 final class ClassDefinitionSpacingRule extends GapRule implements ConfigurableRule
 {
-	private bool $spaceBeforeParenthesis = true;
+	private const Single = 'single';
+	private const None = 'none';
+
+	private string $beforeParenthesis = self::Single;
 
 
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'spaceBeforeParenthesis' => Expect::bool(true)->description('Between class and the arguments of an anonymous class: new class ($a), false hugs them'),
+			'beforeParenthesis' => Expect::anyOf(self::Single, self::None)->default(self::Single)
+				->description('Between class and the arguments of an anonymous class: single writes new class ($a), none hugs them'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->spaceBeforeParenthesis = $options['spaceBeforeParenthesis'];
+		$this->beforeParenthesis = $options['beforeParenthesis'];
 	}
 
 
@@ -54,7 +58,7 @@ final class ClassDefinitionSpacingRule extends GapRule implements ConfigurableRu
 		$implements = ['implementsKeyword' => $single];
 		$brace = ['openBrace' => [Claim::single(), null]];
 		$anonymous = fn(Gap $gap) => $gap->token->getNext()?->is('(') ?? false
-			? ($this->spaceBeforeParenthesis ? Claim::single() : Claim::none())
+			? ($this->beforeParenthesis === self::Single ? Claim::single() : Claim::none())
 			: Claim::single();
 		return [
 			ClassNode::class => ['classKeyword' => [null, Claim::single()]] + $extends + $implements + $brace,
