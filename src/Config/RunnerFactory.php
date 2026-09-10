@@ -86,10 +86,12 @@ final class RunnerFactory
 		}
 
 		[$indent, $eol] = $resolver->resolveStyle($config);
+		$baseline = self::loadBaseline($config, $root);
 		$resultCache = $cache
 			? ResultCache::load(
 				self::resolveCacheFile($config, $root),
-				self::hashConfiguration([$resolver->describe($config, $context), $phpVersion, $indent, $eol, $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $ruleExcludePaths]),
+				// the baseline decides what a rule reports, so a file clean under one is not clean under another
+				self::hashConfiguration([$resolver->describe($config, $context), $phpVersion, $indent, $eol, $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $ruleExcludePaths, $baseline?->getHash()]),
 			)
 			: null;
 		$processor = new FileProcessor(
@@ -100,6 +102,7 @@ final class RunnerFactory
 			new Style($indent, $eol === 'majority' ? "\n" : $eol),
 			detectEol: $eol === 'majority',
 			strict: $strict,
+			baseline: $baseline,
 		);
 		return new Runner(
 			$processor,
@@ -108,7 +111,7 @@ final class RunnerFactory
 			$ruleExcludePaths,
 			$config->getFileExtensions(),
 			$config->getSkipWhen(),
-			self::loadBaseline($config, $root),
+			$baseline,
 			$resultCache,
 		);
 	}

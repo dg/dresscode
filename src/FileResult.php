@@ -32,6 +32,8 @@ final class FileResult
 		public readonly int $passes = 0,
 		/** a rule failed or the rules did not converge; the result was thrown away */
 		public readonly ?string $failure = null,
+		/** @var list<string> fingerprints of the violations the baseline silenced, for the run to count */
+		public readonly array $baselined = [],
 	) {
 	}
 
@@ -58,6 +60,7 @@ final class FileResult
 			'errorLine' => $this->errorLine,
 			'passes' => $this->passes,
 			'failure' => $this->failure,
+			'baselined' => $this->baselined,
 			'written' => $this->written,
 		];
 	}
@@ -77,6 +80,7 @@ final class FileResult
 			$data['errorLine'] === null ? null : (int) $data['errorLine'],
 			(int) $data['passes'],
 			$data['failure'] === null ? null : (string) $data['failure'],
+			is_array($data['baselined']) ? array_values(array_map('strval', $data['baselined'])) : [],
 		);
 		$result->written = (bool) $data['written'];
 		return $result;

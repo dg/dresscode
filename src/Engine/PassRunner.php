@@ -57,8 +57,7 @@ final class PassRunner
 	/** @var list<string> */
 	private array $warnings = [];
 
-	/** @var array<string, int>  rule\nmessage\nline content → occurrences, for fingerprints */
-	private array $occurrences = [];
+	private Fingerprints $fingerprints;
 
 	/** @var list<string> */
 	private array $lines = [];
@@ -80,6 +79,8 @@ final class PassRunner
 		private readonly int $maxPasses = 10,
 		/** a broken rule contract (silent mutation, mutation after a suppressed report) throws instead of warning */
 		private readonly bool $strict = false,
+		/** violations it knows are neither reported nor fixed */
+		private readonly ?Baseline $baseline = null,
 	) {
 		foreach (Stage::cases() as $stage) {
 			$this->stages[$stage->name] = [];
@@ -110,11 +111,12 @@ final class PassRunner
 		foreach ($matches[0] as [$eol, $offset]) {
 			$this->lineOffsets[] = $offset + strlen($eol);
 		}
-		$this->violations = $this->warnings = $this->occurrences = $this->contexts = $this->entering = $this->leaving = [];
+		$this->violations = $this->warnings = $this->contexts = $this->entering = $this->leaving = [];
+		$this->fingerprints = new Fingerprints($this->lines, $path, $this->baseline);
 		$suppression = Suppression::fromFile($file, $this->resolveNames, $code);
 		foreach ($this->rules as $rule) {
 			$name = RuleInfo::of($rule)->name;
-			$this->contexts[$name] = new RuleContext($file, $path, $style, $phpVersion, $this->analyses, $suppression, $name);
+			$this->contexts[$name] = new RuleContext($file, $path, $style, $phpVersion, $this->analyses, $suppression, $this->fingerprints, $name);
 		}
 
 		$seen = [hash('xxh3', $code) => true];
@@ -126,7 +128,8 @@ final class PassRunner
 				throw new ConvergenceException($path, array_keys($this->mutatedRules), '');
 			}
 
-			$this->mutatedRules = $this->occurrences = [];
+			$this->mutatedRules = [];
+			$this->fingerprints->startPass();
 			$revision = $file->revision;
 			foreach ($this->stages as $stage => $rules) {
 				$this->runStage($stage, $rules, $style);
@@ -150,7 +153,7 @@ final class PassRunner
 		$violations = array_values($this->violations);
 		// the passes report by rule, the reader reads by position
 		usort($violations, fn(Violation $a, Violation $b) => [$a->line, $a->column ?? 0] <=> [$b->line, $b->column ?? 0]);
-		return new PassResult($violations, $this->warnings, $passes, $mutated);
+		return new PassResult($violations, $this->warnings, $passes, $mutated, $this->fingerprints->getSilenced());
 	}
 
 
@@ -194,7 +197,9 @@ final class PassRunner
 		if ($gaps !== null) {
 			foreach ($this->contexts as $name => $context) {
 				if ($context->hasReports()) {
-					$this->account($name, $context, $before);
+					// the whitespace of a gap is written by the engine, always after a report of its own,
+					// so an unreported mutation here belongs to another rule of the same traversal
+					$this->account($name, $context, $before, checkSilent: false);
 				}
 			}
 		}
@@ -295,16 +300,20 @@ final class PassRunner
 
 	/**
 	 * Turns the reports of a callback into violations, marks the fixed ones, and checks that every mutation
-	 * follows a report that returned true.
+	 * follows a report that returned true. A silenced report is judged by the window between it and the
+	 * next report of the same rule: what the rule wrote there it wrote for the report it was denied.
 	 * @param int $before  the revision of the file before the callback
+	 * @param bool $checkSilent  whether an unreported mutation is the rule's doing, which along the gap
+	 *                           traversal it need not be, because the revision then covers every rule
 	 */
-	private function account(string $name, RuleContext $context, int $before): void
+	private function account(string $name, RuleContext $context, int $before, bool $checkSilent = true): void
 	{
 		$after = $this->file->revision;
 		$reported = false;
-		foreach ($context->takeReports() as [$at, $trivia, $message, $severity, $reportRevision]) {
-			if ($reportRevision === -1) {
-				if ($after > $before) {
+		$reports = $context->takeReports();
+		foreach ($reports as $i => [$at, $trivia, $message, $severity, $reportRevision, $silenced, $fingerprint, $line]) {
+			if ($silenced || $fingerprint === null) { // silenced by a comment or by the baseline
+				if (($reports[$i + 1][4] ?? $after) > $reportRevision) {
 					$this->violateContract("Rule $name mutated the file after a suppressed report.");
 				}
 
@@ -312,11 +321,6 @@ final class PassRunner
 			}
 
 			$reported = true;
-			$line = RuleContext::findOriginalLine($at, $trivia) ?? 1;
-			$content = Violation::normalizeLineContent($this->lines[$line - 1] ?? '');
-			$key = "$name\n$message\n$content";
-			$this->occurrences[$key] = ($this->occurrences[$key] ?? 0) + 1;
-			$fingerprint = Violation::createFingerprint($name, $message, $content, $this->occurrences[$key]);
 			$this->violations[$fingerprint] ??= new Violation(
 				$name,
 				$message,
@@ -331,7 +335,7 @@ final class PassRunner
 
 		if ($after > $before) {
 			$this->mutatedRules[$name] = true;
-			if (!$reported) {
+			if (!$reported && $checkSilent) {
 				$this->violateContract("Rule $name mutated the file without reporting a violation.");
 			}
 		}

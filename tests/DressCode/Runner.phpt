@@ -207,6 +207,46 @@ test('processFile applies the rule exclusions to the given path and writes nothi
 });
 
 
+test('the baseline silences a violation before the rule fixes it, and the run counts it', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$a;\n");
+
+	$processor = fn(?DressCode\Engine\Baseline $baseline) => new FileProcessor(
+		[new EngineRename],
+		new Analyses\Registry,
+		fn(string $name) => [$name],
+		Config::DefaultPhpVersion,
+		baseline: $baseline,
+	);
+	$run = new Runner($processor(null), $root)->run(['src/a.php'], false, new RecordingReporter);
+	$baseline = DressCode\Engine\Baseline::fromResults($run->files);
+	Assert::same(1, $baseline->count());
+
+	// what the baseline knows is neither reported nor fixed, and fix leaves the file alone
+	$runner = new Runner($processor($baseline), $root, baseline: $baseline);
+	$run = $runner->run(['src/a.php', 'src/b.php'], true, new RecordingReporter);
+	Assert::same(1, $run->countViolations()); // the one of src/b.php, which the baseline does not know
+	Assert::same(1, $run->baselined);
+	Assert::same(0, $run->getExitCode());
+	Assert::same("<?php\n\$a;\n", (string) file_get_contents("$root/src/a.php"));
+	Assert::same("<?php\n\$b;\n", (string) file_get_contents("$root/src/b.php")); // the same violation of another file is not known
+	Assert::same([], $run->files[0]->violations);
+	Assert::true($run->files[1]->violations[0]->fixable);
+	Assert::same([], $run->warnings);
+
+	// check reports what fix changed and nothing else
+	file_put_contents("$root/src/b.php", "<?php\n\$a;\n");
+	$fingerprints = fn(RunResult $run) => array_map(
+		fn(FileResult $file) => array_map(fn($violation) => $violation->fingerprint, $file->violations),
+		$run->files,
+	);
+	$check = new Runner($processor($baseline), $root, baseline: $baseline)->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	$fix = new Runner($processor($baseline), $root, baseline: $baseline)->run(['src/a.php', 'src/b.php'], true, new RecordingReporter);
+	Assert::same($fingerprints($check), $fingerprints($fix));
+	Assert::same([false, true], array_map(fn(FileResult $file) => $file->written, $fix->files));
+});
+
+
 test('clean contents are remembered and skipped next time, a fixed file too', function () use ($root) {
 	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
 	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");

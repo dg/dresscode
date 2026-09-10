@@ -76,7 +76,8 @@ final class Runner
 				? null
 				: fn(int $processed, array $running) => $onProgress($done + $processed, $running);
 			foreach ($workers->process($pending, $report) as $path => $result) {
-				$results[$path] = $this->baseline?->filter($result) ?? $result;
+				$this->baseline?->markUsed($result->path, $result->baselined);
+				$results[$path] = $result;
 			}
 		} else {
 			foreach ($pending as $path => $code) {
@@ -198,7 +199,8 @@ final class Runner
 		}
 
 		$result = $this->processor->process($path, $code, $rules);
-		return $this->baseline?->filter($result) ?? $result;
+		$this->baseline?->markUsed($result->path, $result->baselined);
+		return $result;
 	}
 
 

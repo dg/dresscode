@@ -18,7 +18,7 @@ final class RuleContext
 	/** @var array<string, mixed>  state of the rule for this file; rules are stateless, this is where per-file state goes */
 	public array $storage = [];
 
-	/** @var list<array{Node|Token, ?Trivia, string, Severity, int}>  reports of the current callback with the revision at the time */
+	/** @var list<array{Node|Token, ?Trivia, string, Severity, int, bool, ?string, int}>  reports of the current callback with the revision at the time, whether it was silenced, the fingerprint and the original line */
 	private array $reports = [];
 
 
@@ -30,6 +30,7 @@ final class RuleContext
 		private readonly string $phpVersion,
 		private readonly Analyses\Registry $analyses,
 		private readonly Suppression $suppression,
+		private readonly Engine\Fingerprints $fingerprints,
 		private readonly string $ruleName,
 	) {
 	}
@@ -62,7 +63,7 @@ final class RuleContext
 
 	/**
 	 * Reports a violation at the node, or at one of the trivia of the token when the problem lies in whitespace
-	 * or a comment; returns false when it is suppressed by a comment, and then the rule must not fix it.
+	 * or a comment; returns false when a comment or the baseline silences it, and then the rule must not fix it.
 	 */
 	public function report(
 		Node|Token $at,
@@ -73,12 +74,17 @@ final class RuleContext
 	{
 		$line = self::findOriginalLine($at, $trivia);
 		if ($line !== null && $this->suppression->isSuppressed($this->ruleName, $line)) {
-			$this->reports[] = [$at, $trivia, $message, $severity, -1];
+			$this->reports[] = [$at, $trivia, $message, $severity, $this->file->revision, true, null, $line];
 			return false;
 		}
 
-		$this->reports[] = [$at, $trivia, $message, $severity, $this->file->revision];
-		return true;
+		// the identity is counted here, before the baseline is asked: a report a comment silenced was
+		// never counted into it either, and the numbering of the occurrences has to mean the same
+		$line ??= 1;
+		$fingerprint = $this->fingerprints->create($this->ruleName, $message, $line);
+		$known = $this->fingerprints->isKnown($fingerprint);
+		$this->reports[] = [$at, $trivia, $message, $severity, $this->file->revision, $known, $fingerprint, $line];
+		return !$known;
 	}
 
 
@@ -104,8 +110,8 @@ final class RuleContext
 
 
 	/**
-	 * Takes the reports made since the last call; revision -1 marks a suppressed one.
-	 * @return list<array{Node|Token, ?Trivia, string, Severity, int}>
+	 * Takes the reports made since the last call, in the order they were made.
+	 * @return list<array{Node|Token, ?Trivia, string, Severity, int, bool, ?string, int}>
 	 * @internal
 	 */
 	public function takeReports(): array

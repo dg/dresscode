@@ -149,39 +149,33 @@ final class Baseline
 	}
 
 
-	/**
-	 * The result without the violations the baseline knows; those count as matched.
-	 */
-	public function filter(FileResult $result): FileResult
+	/** Identity of the entries, for whatever caches a result that depends on them. */
+	public function getHash(): string
 	{
-		$known = $this->entries[$result->path] ?? [];
-		$kept = [];
-		foreach ($result->violations as $violation) {
-			if (isset($known[$violation->fingerprint])) {
-				unset($this->unused[$result->path][$violation->fingerprint]);
+		return hash('xxh128', serialize($this->entries));
+	}
+
+
+	/** Whether the baseline knows this violation of the file, which is then neither reported nor fixed. */
+	public function knows(string $path, string $fingerprint): bool
+	{
+		return isset($this->entries[$path][$fingerprint]);
+	}
+
+
+	/**
+	 * Records the entries a run silenced; the run tells the baseline, because a file may have been
+	 * processed by a worker with a baseline of its own.
+	 * @param list<string> $fingerprints
+	 */
+	public function markUsed(string $path, array $fingerprints): void
+	{
+		foreach ($fingerprints as $fingerprint) {
+			if (isset($this->entries[$path][$fingerprint], $this->unused[$path][$fingerprint])) {
+				unset($this->unused[$path][$fingerprint]);
 				$this->matched++;
-			} else {
-				$kept[] = $violation;
 			}
 		}
-
-		if (count($kept) === count($result->violations)) {
-			return $result;
-		}
-
-		$filtered = new FileResult(
-			$result->path,
-			$result->code,
-			$result->output,
-			$kept,
-			$result->warnings,
-			$result->error,
-			$result->errorLine,
-			$result->passes,
-			$result->failure,
-		);
-		$filtered->written = $result->written;
-		return $filtered;
 	}
 
 

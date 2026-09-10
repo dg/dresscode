@@ -103,6 +103,48 @@ final class Stubborn extends NodeRule
 }
 
 
+/** Reports a variable and puts a fresh node in its place, which has no position of its own. */
+#[RuleInfo('test/replace', Stage::Structure)]
+final class ReplaceVariable extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [VariableNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if ($node instanceof VariableNode && $node->name instanceof Token && $node->name->text === '$a') {
+			if ($context->report($node, 'Replace $a')) {
+				$node->replaceWith((new Parser)->parseExpression('$b'));
+			}
+		}
+	}
+}
+
+
+/** Reports every variable of the file in one callback and renames the ones it was allowed to. */
+#[RuleInfo('test/batch', Stage::Cleanup)]
+final class BatchRename extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+
+
+	public function afterFile(RuleContext $context): void
+	{
+		foreach ($context->getFile()->find(VariableNode::class) as $var) {
+			if ($var->name instanceof Token && $var->name->text === '$a' && $context->report($var, 'Rename $a')) {
+				$var->name->setText('$b');
+			}
+		}
+	}
+}
+
+
 #[RuleInfo('test/toggle', Stage::Cleanup)]
 final class Toggle extends NodeRule
 {
@@ -213,6 +255,16 @@ test('reports become violations with original positions and fingerprints', funct
 });
 
 
+test('a violation keeps the position the reported code still had', function () {
+	// the node is replaced by one without a position, so a position resolved afterwards would fall
+	// back to the nearest original token before it, which stands on the line above
+	[$file, $result] = run("<?php\nf(\n\t\$a,\n);\n", [new ReplaceVariable]);
+	Assert::same("<?php\nf(\n\t\$b,\n);\n", (string) $file);
+	Assert::count(1, $result->violations);
+	Assert::same([3, 2], [$result->violations[0]->line, $result->violations[0]->column]);
+});
+
+
 test('a fix marks the violation fixable and takes one more pass', function () {
 	[$file, $result] = run('<?php $a; $a;', [new RenameA]);
 	Assert::same('<?php $b; $b;', (string) $file);
@@ -242,6 +294,13 @@ test('contract violations: silent mutation and mutation after a suppressed repor
 	[, $result] = run('<?php $a; ', [new SilentMutation], strict: false);
 	Assert::same(['Rule test/silent mutated the file without reporting a violation.'], $result->warnings);
 	Assert::exception(fn() => run("<?php\n\$x; // dresscode:ignore\n", [new Stubborn]), RuleException::class, '%a%mutated the file after a suppressed report.');
+
+	// one callback, one report silenced and the others fixed: what the rule wrote it wrote for the others
+	$code = "<?php\n\$a;\n\$a; // dresscode:ignore test/batch\n\$a;\n";
+	[$file, $result] = run($code, [new BatchRename]);
+	Assert::same("<?php\n\$b;\n\$a; // dresscode:ignore test/batch\n\$b;\n", (string) $file);
+	Assert::same([], $result->warnings);
+	Assert::count(2, $result->violations);
 });
 
 

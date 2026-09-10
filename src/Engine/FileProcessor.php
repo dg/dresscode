@@ -38,6 +38,8 @@ final class FileProcessor
 		private readonly int $maxPasses = 10,
 		/** a broken rule contract throws instead of warning */
 		private readonly bool $strict = false,
+		/** violations it knows are neither reported nor fixed */
+		private readonly ?Baseline $baseline = null,
 	) {
 		$this->parser = new Parser;
 	}
@@ -73,7 +75,7 @@ final class FileProcessor
 					: new FileResult($path, $code, output: null, failure: "The fixed code no longer parses: {$e->getMessage()} on line $e->sourceLine.");
 			}
 
-			$runner = new PassRunner($rules ?? $this->rules, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict);
+			$runner = new PassRunner($rules ?? $this->rules, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline);
 			$result = $runner->run($file, $text, $path, $style, $this->phpVersion);
 			$first ??= $result;
 			$passes += $result->passes;
@@ -92,6 +94,7 @@ final class FileProcessor
 				...($settled ? [] : ['The fixes did not settle in ' . self::MaxRounds . ' rounds; run the fixer again.']),
 			],
 			passes: $passes,
+			baselined: $first->baselined,
 		);
 	}
 }

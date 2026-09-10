@@ -177,8 +177,8 @@ final class Application
 	{
 		$factory = new RunnerFactory;
 		[$config, $root, $configFile] = $this->loadConfig($args);
-		if (is_string($args['--worker'])) { // the parent keeps the cache and the baseline
-			$runner = $factory->createRunner($config->baseline(null), $root, strict: (bool) $args['--strict-rules'], cache: false);
+		if (is_string($args['--worker'])) { // the parent keeps the cache; the baseline decides what a rule may fix
+			$runner = $factory->createRunner($config, $root, strict: (bool) $args['--strict-rules'], cache: false);
 			return WorkerClient::serve($args['--worker'], $runner, $fix);
 		}
 

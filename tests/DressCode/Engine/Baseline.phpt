@@ -63,7 +63,8 @@ test('a fingerprint of nothing but digits survives the round trip', function () 
 	Assert::contains("'9231335105126121'", (string) file_get_contents($file));
 	$baseline = Baseline::load($file);
 	assert($baseline !== null);
-	Assert::same([], $baseline->filter(new FileResult('src/a.php', '', '', [$digits]))->violations);
+	Assert::true($baseline->knows('src/a.php', $digits->fingerprint));
+	$baseline->markUsed('src/a.php', [$digits->fingerprint]);
 	Assert::same([1, 0], [$baseline->countMatched(), $baseline->countUnused()]);
 });
 
@@ -91,23 +92,23 @@ test('the PHP format says the same and reads back the same', function () use ($d
 });
 
 
-test('filters the known violations of a file and counts the matched and the unused entries', function () use ($file, $a, $b, $c) {
+test('knows the violations of a file and counts the matched and the unused entries', function () use ($file, $a, $b, $c) {
 	$baseline = Baseline::load($file);
 	assert($baseline !== null);
-	$fresh = violation('test/c', 'New', '$z;');
-	$result = $baseline->filter(new FileResult('src/a.php', '', '', [$a, $fresh]));
-	Assert::same([$fresh], $result->violations);
+	Assert::true($baseline->knows('src/a.php', $a->fingerprint));
+	Assert::false($baseline->knows('src/a.php', violation('test/c', 'New', '$z;')->fingerprint));
+	Assert::false($baseline->knows('src/c.php', $b->fingerprint)); // the same fingerprint in another file is not known
+
+	$baseline->markUsed('src/a.php', [$a->fingerprint]);
 	Assert::same(1, $baseline->countMatched());
 	Assert::same(2, $baseline->countUnused());
 
-	$other = new FileResult('src/c.php', '', '', [$b]); // the same fingerprint in another file is not known
-	Assert::same($other, $baseline->filter($other));
+	$baseline->markUsed('src/a.php', [$a->fingerprint]); // a repeated mark counts once
+	$baseline->markUsed('src/c.php', [$b->fingerprint]); // an entry of another file is none
 	Assert::same(1, $baseline->countMatched());
-
-	$untouched = new FileResult('src/b.php', '', '', []);
-	Assert::same($untouched, $baseline->filter($untouched));
 	Assert::same(2, $baseline->countUnused());
-	Assert::same([], $baseline->filter(new FileResult('src/a.php', '', '', [$c]))->violations);
+
+	$baseline->markUsed('src/a.php', [$c->fingerprint]);
 	Assert::same(2, $baseline->countMatched());
 	Assert::same(1, $baseline->countUnused());
 });

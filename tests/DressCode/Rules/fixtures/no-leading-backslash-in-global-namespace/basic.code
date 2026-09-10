@@ -20,3 +20,6 @@ $k = \shadowed;
 try {
 } catch (\Exception | \Foo\Error $e) {
 }
+$m = f(
+	\strlen("x"),
+);
