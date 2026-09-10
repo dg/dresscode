@@ -145,7 +145,7 @@ final class PresetResolver
 		return new ResolvedRule(
 			$info->name,
 			$class,
-			$inactive === null ? self::validateOptions($class, $info->name, self::stack($layers)) : [],
+			$inactive === null ? self::validateOptions($class, $info->name, self::stack($layers), self::describeSources($layers)) : [],
 			$layers,
 			$inactive,
 			$last instanceof \Closure ? $last : null,
@@ -171,6 +171,23 @@ final class PresetResolver
 		}
 
 		return $stack;
+	}
+
+
+	/**
+	 * Who set the options of a rule, for an error message that has to send the reader somewhere.
+	 * @param list<array{string, mixed}> $layers
+	 */
+	private static function describeSources(array $layers): string
+	{
+		$sources = [];
+		foreach ($layers as [$source, $value]) {
+			if (is_array($value)) {
+				$sources[$source] = true;
+			}
+		}
+
+		return implode(' and ', array_keys($sources));
 	}
 
 
@@ -310,9 +327,10 @@ final class PresetResolver
 	 * the layer below it key by key and a list or a scalar replaces it.
 	 * @param  class-string<Rule>  $class
 	 * @param  list<array<string, mixed>>  $layers
+	 * @param  string  $sources  who set them, for an error message
 	 * @return array<string, mixed>
 	 */
-	private static function validateOptions(string $class, string $name, array $layers): array
+	private static function validateOptions(string $class, string $name, array $layers, string $sources = ''): array
 	{
 		if (!is_subclass_of($class, ConfigurableRule::class)) {
 			return [];
@@ -330,7 +348,11 @@ final class PresetResolver
 		try {
 			$normalized = (new Processor)->processMultiple($schema, $layers ?: [[]]);
 		} catch (ValidationException $e) {
-			throw new ConfigurationException("Invalid options of rule $name: " . implode(' ', $e->getMessages()), previous: $e);
+			throw new ConfigurationException(
+				"Invalid options of rule $name" . ($sources === '' ? '' : " set by $sources") . ': '
+				. implode(' ', $e->getMessages()),
+				previous: $e,
+			);
 		}
 
 		return (array) $normalized;

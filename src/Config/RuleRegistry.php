@@ -10,6 +10,8 @@ use DressCode\Presets;
 use DressCode\Rule;
 use DressCode\RuleInfo;
 use DressCode\Rules;
+use Nette\Utils\Helpers;
+use function strlen;
 
 
 /**
@@ -248,9 +250,23 @@ final class RuleRegistry
 		}
 
 		$covered = $this->translator->findRules($rule);
-		throw new ConfigurationException("Unknown rule '$rule'." . ($covered
+		$hint = $covered
 			? ' It is covered by ' . implode(' and ', $covered) . '; run `dresscode import` to translate a configuration of another tool.'
-			: ''));
+			: self::suggest($rule, array_keys($this->rules));
+		throw new ConfigurationException("Unknown rule '$rule'.$hint");
+	}
+
+
+	/**
+	 * " Did you mean 'x'?" for the nearest of the known names, empty when none is near enough; the name
+	 * is compared without its vendor as well, so that a slug typed alone finds its rule.
+	 * @param  list<string>  $known
+	 */
+	private static function suggest(string $name, array $known): string
+	{
+		$bare = array_map(fn(string $item) => substr($item, strlen(self::Vendor)), $known);
+		$hint = Helpers::getSuggestion($known, $name) ?? Helpers::getSuggestion($bare, $name);
+		return $hint === null ? '' : " Did you mean '$hint'?";
 	}
 
 
@@ -311,7 +327,9 @@ final class RuleRegistry
 		}
 
 		$class = $this->presets[$preset] ?? $this->presets[self::Vendor . $preset] ?? null;
-		return $class ?? throw new ConfigurationException("Unknown preset '$preset'.");
+		return $class ?? throw new ConfigurationException(
+			"Unknown preset '$preset'." . self::suggest($preset, array_keys($this->presets)),
+		);
 	}
 
 

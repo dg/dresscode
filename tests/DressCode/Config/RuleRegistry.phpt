@@ -87,7 +87,10 @@ test('names of a suppression comment', function () {
 test('errors', function () {
 	$registry = new RuleRegistry;
 	$registry->registerRule(RuleOne::class);
-	Assert::exception(fn() => $registry->resolveRule('test/none'), ConfigurationException::class, "Unknown rule 'test/none'.");
+	Assert::exception(fn() => $registry->resolveRule('quite/different'), ConfigurationException::class, "Unknown rule 'quite/different'.");
+	Assert::exception(fn() => $registry->resolveRule('test/none'), ConfigurationException::class, "Unknown rule 'test/none'. Did you mean 'test/one'?");
+	Assert::exception(fn() => $registry->resolveRule('indentaton'), ConfigurationException::class, "Unknown rule 'indentaton'. Did you mean 'indentation'?");
+	Assert::exception(fn() => $registry->resolvePreset('dresscode/nete'), ConfigurationException::class, "Unknown preset 'dresscode/nete'. Did you mean 'dresscode/nette'?");
 	Assert::exception(
 		fn() => $registry->resolveRule('cast_spaces'),
 		ConfigurationException::class,

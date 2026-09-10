@@ -405,7 +405,8 @@ test('errors', function () {
 	Assert::exception(fn() => resolve(Config::create()->enable('test/none')), ConfigurationException::class, "Unknown rule 'test/none'.");
 	Assert::exception(fn() => resolve(Config::create()->preset(BrokenPreset::class)), ConfigurationException::class, "Unknown rule 'test/none'. (in preset test/broken)");
 	Assert::exception(fn() => resolve(Config::create()->enable(RuleA::class, ['x' => 1])), ConfigurationException::class, 'Rule test/a has no options.');
-	Assert::exception(fn() => resolve(Config::create()->enable(RuleC::class, ['max' => 'no'])), ConfigurationException::class, "Invalid options of rule test/c: The item 'max' expects to be int, 'no' given.");
-	Assert::exception(fn() => resolve(Config::create()->enable(RuleC::class, ['other' => 1])), ConfigurationException::class, "Invalid options of rule test/c: Unexpected item 'other'.");
+	// the message names the layer that set the options, because that is where the reader has to go
+	Assert::exception(fn() => resolve(Config::create()->enable(RuleC::class, ['max' => 'no'])), ConfigurationException::class, "Invalid options of rule test/c set by the configuration: The item 'max' expects to be int, 'no' given.");
+	Assert::exception(fn() => resolve(Config::create()->preset(BasePreset::class)->enable(RuleC::class, ['maxx' => 1])), ConfigurationException::class, "Invalid options of rule test/c set by test/base and the configuration: Unexpected item 'maxx', did you mean 'max'?");
 	Assert::exception(fn() => resolve(Config::create()->enable(RuleD::class, fn() => new RuleA)), ConfigurationException::class, 'The factory of rule test/d returned RuleA instead of RuleD.');
 });
