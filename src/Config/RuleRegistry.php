@@ -43,7 +43,7 @@ final class RuleRegistry
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Expressions\NewArgumentParenthesesRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,
-		Rules\Classes\NoKindInClassNameRule::class,
+		Rules\Classes\KindInClassNameRule::class,
 		Rules\Classes\OrderedMembersRule::class,
 		Rules\Classes\SelfForCurrentClassRule::class,
 		Rules\Classes\SingleMemberPerDeclarationRule::class,

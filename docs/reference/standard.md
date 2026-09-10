@@ -108,9 +108,11 @@ Reports $this used where no object is available.
 Makes classes annotated as internal final.
 
 
-### dresscode/no-kind-in-class-name
+### dresscode/kind-in-class-name
 
-Reports a class, interface or trait name repeating its kind.
+Decides whether the name of a class, interface or trait repeats its kind.
+
+As this project has it: `kind`: `forbidden`.
 
 
 ## Comments

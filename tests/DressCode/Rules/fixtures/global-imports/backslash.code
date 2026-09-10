@@ -1,0 +1,15 @@
+<?php
+// {"functions": "backslash", "constants": "backslash"}
+namespace App;
+
+use function App\local;
+use function strlen as len;
+use const PHP_EOL;
+
+count($a);
+\strlen($b);
+len($c);
+local($d);
+echo PHP_EOL;
+echo \PHP_INT_MAX;
+echo Foo::BAR;

@@ -139,6 +139,14 @@ final class PhpCsFixer
 				'namedClasses' => ($o['named_class'] ?? true) ? 'required' : 'forbidden',
 				'anonymousClasses' => ($o['anonymous_class'] ?? true) ? 'required' : 'forbidden',
 			]),
+			'native_function_invocation' => function (array $o, Translation $t) {
+				if (($o['scope'] ?? 'all') === 'namespaced') {
+					$t->warn('native_function_invocation with scope=namespaced is what DressCode does anyway: code in the global namespace needs no backslash');
+				}
+
+				$t->enable('dresscode/global-imports', ['functions' => 'backslash']);
+			},
+			'native_constant_invocation' => fn(array $o, Translation $t) => $t->enable('dresscode/global-imports', ['constants' => 'backslash']),
 			'no_alias_functions' => fn(array $o, Translation $t) => $t->enable('dresscode/no-alias-functions', array_filter(['sets' => $o['sets'] ?? null], fn($v) => $v !== null)),
 			'no_alternative_syntax' => 'dresscode/no-alternative-syntax',
 			'no_blank_lines_after_class_opening' => 'dresscode/declaration-blank-lines',

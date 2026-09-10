@@ -1,0 +1,10 @@
+<?php
+// {"kind": "required"}
+abstract class AbstractFoo {}
+abstract class Foo {}
+class Bar {}
+interface FooInterface {}
+interface Foo2 {}
+trait FooTrait {}
+trait Foo3 {}
+class FooError {}

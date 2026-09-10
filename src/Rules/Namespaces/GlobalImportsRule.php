@@ -26,11 +26,13 @@ use function defined, in_array, is_array;
 
 
 /**
- * A namespaced file imports the global functions and constants it uses, so that the compiler knows them and
- * turns the optimizable ones (`count()`, `strlen()`, `is_array()`...) into opcodes; which ones is a matter of
- * the options, `optimized` being the short name for that list. A missing import joins the first use statement
- * of its kind or gets one of its own, and a leading backslash on an imported name goes away. The shape and the
- * order of the use statements and the imports nothing uses belong to other rules.
+ * A namespaced file tells the compiler which global functions and constants it means, so that it can turn the
+ * optimizable ones (`count()`, `strlen()`, `is_array()`...) into opcodes. It does so by importing them, and
+ * which ones is a matter of the options, `optimized` being the short name for that list; a missing import joins
+ * the first use statement of its kind or gets one of its own, and a leading backslash on an imported name goes
+ * away. The other way is `backslash`, which imports nothing and writes the leading backslash instead, as a
+ * standard asks for when the file must not depend on its imports. The shape and the order of the use statements
+ * and the imports nothing uses belong to other rules.
  */
 #[RuleInfo(
 	'dresscode/global-imports',
@@ -46,6 +48,8 @@ final class GlobalImportsRule extends NodeRule implements ConfigurableRule
 		'get_called_class', 'gettype', 'func_num_args', 'func_get_args', 'array_slice', 'array_key_exists', 'sprintf',
 	];
 
+	private const Backslash = 'backslash';
+
 	/** @var string|list<string> */
 	private string|array $functions = 'optimized';
 
@@ -56,10 +60,10 @@ final class GlobalImportsRule extends NodeRule implements ConfigurableRule
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'functions' => Expect::anyOf('optimized', 'all', 'none', Expect::listOf('string'))->default('optimized')
-				->description('Which global functions to import: the ones the compiler turns into opcodes, all, none, or those matching the patterns with *'),
-			'constants' => Expect::anyOf('all', 'none', Expect::listOf('string'))->default('none')
-				->description('Which global constants to import: all, none, or those matching the patterns with *, case-sensitively'),
+			'functions' => Expect::anyOf('optimized', 'all', 'none', self::Backslash, Expect::listOf('string'))->default('optimized')
+				->description('Which global functions to import: the ones the compiler turns into opcodes, all, none, or those matching the patterns with *; backslash writes them fully qualified instead'),
+			'constants' => Expect::anyOf('all', 'none', self::Backslash, Expect::listOf('string'))->default('none')
+				->description('Which global constants to import: all, none, or those matching the patterns with *, case-sensitively; backslash writes them fully qualified instead'),
 		]);
 	}
 
@@ -112,12 +116,22 @@ final class GlobalImportsRule extends NodeRule implements ConfigurableRule
 
 		foreach ([SymbolKind::Function, SymbolKind::Constant] as $kind) {
 			$missing = [];
+			$qualify = ($kind === SymbolKind::Function ? $this->functions : $this->constants) === self::Backslash;
 			foreach ($uses[$kind->name] as $key => $occurrences) {
 				$name = $occurrences[0]->parts[0];
 				// what the alias of the name imports here: the global name itself, something else, or nothing yet
 				$target = $imported[$kind->name][$key] ?? null;
 				$isImported = $target !== null
 					&& ($kind === SymbolKind::Function ? strcasecmp($target, $name) === 0 : $target === $name);
+				if ($qualify) {
+					// an alias standing for something else is not this global name, so it is left alone
+					foreach ($target === null || $isImported ? $occurrences : [] as $occurrence) {
+						$this->addBackslash($kind, $occurrence, $context);
+					}
+
+					continue;
+				}
+
 				// a name the namespace declares is not free: importing it would take it from the local one
 				if ($target === null && $this->isWanted($kind, $name) && $resolver->isAliasFree($name, $kind, $node)) {
 					if ($context->report($occurrences[0], ($kind === SymbolKind::Function ? "Global function $name()" : "Global constant '$name'") . ' must be imported')) {
@@ -160,6 +174,20 @@ final class GlobalImportsRule extends NodeRule implements ConfigurableRule
 				: defined($name) && !in_array(strtoupper($name), ['TRUE', 'FALSE', 'NULL'], strict: true),
 			default => false,
 		};
+	}
+
+
+	private function addBackslash(SymbolKind $kind, NameNode $name, RuleContext $context): void
+	{
+		$what = $kind === SymbolKind::Function ? "Global function {$name->parts[0]}()" : "Global constant '{$name->parts[0]}'";
+		if (
+			$name->kind === NameKind::FullyQualified
+			|| !$context->report($name, "$what must be written with the leading backslash")
+		) {
+			return;
+		}
+
+		$name->text = '\\' . $name->parts[0];
 	}
 
 
