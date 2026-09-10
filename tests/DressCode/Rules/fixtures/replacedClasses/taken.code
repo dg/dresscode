@@ -1,0 +1,21 @@
+<?php
+// {"App\\Legacy\\Mailer": "App\\Mail\\Mailer"}
+
+namespace App;
+
+use App\Legacy\Mailer;
+
+class Mailer2
+{
+	public function send(Mailer $mailer, \App\Legacy\Mailer $other): void
+	{
+	}
+}
+
+namespace Other;
+
+use Some\Mailer;
+
+function f(\App\Legacy\Mailer $a, Mailer $b): void
+{
+}

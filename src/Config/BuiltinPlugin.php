@@ -45,6 +45,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Classes\ClassNameReferenceForStringRule::class,
 				Rules\Classes\NameCasingRule::class,
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
+				Rules\Upgrading\ReplacedClassesRule::class,
 				Rules\Upgrading\ForbiddenFunctionsRule::class,
 				Rules\Expressions\UselessParenthesesAroundNewRule::class,
 				Rules\Expressions\NewArgumentParenthesesRule::class,

@@ -1,0 +1,23 @@
+<?php
+// {"Acme\\Codec\\ContextAwareNormalizer": "Acme\\Codec\\Normalizer", "Acme\\Codec\\CacheableNormalizer": "Acme\\Codec\\Normalizer"}
+
+namespace App;
+
+use Acme\Codec\CacheableNormalizer;
+use Acme\Codec\ContextAwareNormalizer;
+use Acme\Codec\Normalizer;
+
+// the list names the class already, as it stands or once rewritten: the old name goes
+class PostNormalizer implements Normalizer, ContextAwareNormalizer
+{
+}
+
+
+class TagNormalizer implements ContextAwareNormalizer, CacheableNormalizer
+{
+}
+
+
+interface ExtendedNormalizer extends ContextAwareNormalizer, Normalizer
+{
+}

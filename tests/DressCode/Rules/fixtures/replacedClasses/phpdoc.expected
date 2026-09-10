@@ -1,0 +1,30 @@
+<?php
+// {"App\\Mailer\\SmtpMailer": "App\\Mail\\Mailer", "App\\Kind": "App\\Token"}
+
+namespace App;
+
+use App\Mail\Mailer;
+
+/**
+ * Sends what the mailer is given.
+ * @see Mailer::send()
+ * @see Token::Names
+ * @see
+ * SmtpMailer on the next line is text, not the target of the tag
+ */
+class Service
+{
+	/** @var list<Mailer> */
+	private array $mailers = [];
+
+
+	/**
+	 * @param  Token::*  $kind
+	 * @param  Mailer|\App\Mail\Mailer|null  $mailer
+	 * @return array<string, Mailer>  see {@link Mailer} and the text naming SmtpMailer
+	 */
+	public function create(int $kind, ?Mailer $mailer): array
+	{
+		return [];
+	}
+}

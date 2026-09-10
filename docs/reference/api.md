@@ -735,6 +735,7 @@ final readonly class Violation
 - `DressCode\Rules\Types\UnionTypeNotationRule`
 - `DressCode\Rules\Upgrading\ForbiddenFunctionsRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
+- `DressCode\Rules\Upgrading\ReplacedClassesRule`
 - `DressCode\Rules\Variables\CombinedIssetsRule`
 - `DressCode\Rules\Variables\CombinedUnsetsRule`
 - `DressCode\Rules\Variables\NoDuplicateAssignmentsRule`

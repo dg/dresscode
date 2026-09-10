@@ -1,0 +1,10 @@
+6: Class `App\Mailer\SmtpMailer` is replaced by `App\Mail\Mailer`
+8: Class `App\Mailer\SmtpMailer` is replaced by `App\Mail\Mailer`
+8: Class `App\Kind` is replaced by `App\Token`
+17: Class `App\Mailer\SmtpMailer` is replaced by `App\Mail\Mailer`
+21: Class `App\Kind` is replaced by `App\Token`
+21: Class `App\Mailer\SmtpMailer` is replaced by `App\Mail\Mailer`
+21: Class `App\Mailer\SmtpMailer` is replaced by `App\Mail\Mailer`
+21: Class `App\Mailer\SmtpMailer` is replaced by `App\Mail\Mailer`
+21: Class `App\Mailer\SmtpMailer` is replaced by `App\Mail\Mailer`
+26: Class `App\Mailer\SmtpMailer` is replaced by `App\Mail\Mailer`

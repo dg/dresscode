@@ -1,0 +1,29 @@
+<?php
+// {"Acme\\Mail\\SmtpMailer": "App\\Mail\\Mailer", "Acme\\Codec\\Message": "Acme\\Codec\\Envelope"}
+
+namespace App;
+
+use Acme\Codec\Envelope as Letter;
+use App\Mail\Mailer;
+
+#[Mailer(secure: true)]
+final class Checkout
+{
+	public function __construct(
+		private Mailer $mailer,
+		private Letter $envelope,
+	) {
+	}
+
+
+	public function send(): Mailer
+	{
+		return $this->mailer instanceof Mailer ? $this->mailer : new Mailer;
+	}
+
+
+	public function wrap(): Letter
+	{
+		return Letter::empty();
+	}
+}

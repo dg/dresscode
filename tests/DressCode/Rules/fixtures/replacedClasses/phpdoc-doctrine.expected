@@ -1,0 +1,14 @@
+<?php
+// {"App\\Kind": "App\\Token"}
+
+namespace App;
+
+use App\Token;
+
+class Service
+{
+	/**
+	 * @Choice(kind="primary", options={kind=1}, of=Token::class)
+	 */
+	public ?Token $kind = null;
+}
