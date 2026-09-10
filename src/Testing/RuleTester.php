@@ -33,8 +33,9 @@ final class RuleTester
 	/**
 	 * Runs every *.code fixture in the directory: the output must equal <name>.expected (the input when
 	 * there is none), the violations <name>.violations when present. A fixture may set the options
-	 * of the rule and the version of PHP it is written for in a comment on one of its first three lines:
-	 * `// {"option": value}` and `// php 8.4`. Returns the count.
+	 * of the rule, the version of PHP it is written for and whether the run allows a fix that changes what
+	 * the code does in a comment on one of its first three lines: `// {"option": value}`, `// php 8.4`
+	 * and `// risky`. Returns the count.
 	 * @param class-string<Rule>|\Closure(array<string, mixed>): Rule $rule
 	 * @throws TestFailure
 	 */
@@ -68,7 +69,7 @@ final class RuleTester
 		$options = self::readOptions($code, $file);
 		$instance = $rule instanceof \Closure ? $rule($options) : PresetResolver::createRule($rule, $options ?: true);
 		try {
-			self::check($instance, $code, $expected, $violations, $phpVersion ?? self::readPhpVersion($code, $file), basename($file));
+			self::check($instance, $code, $expected, $violations, $phpVersion ?? self::readPhpVersion($code, $file), basename($file), self::readRisky($code));
 		} catch (TestFailure $e) {
 			throw new TestFailure("$file: {$e->getMessage()}", previous: $e);
 		}
@@ -87,7 +88,7 @@ final class RuleTester
 		$code = self::read($file);
 		$options = self::readOptions($code, $file);
 		$instance = $rule instanceof \Closure ? $rule($options) : PresetResolver::createRule($rule, $options ?: true);
-		[, $result] = self::process($instance, $code, $phpVersion ?? self::readPhpVersion($code, $file) ?? self::defaultPhpVersion($instance), basename($file));
+		[, $result] = self::process($instance, $code, $phpVersion ?? self::readPhpVersion($code, $file) ?? self::defaultPhpVersion($instance), basename($file), self::readRisky($code));
 		return array_map(fn(Violation $v) => "$v->line: $v->message", $result->violations);
 	}
 
@@ -102,7 +103,7 @@ final class RuleTester
 		$code = self::read($file);
 		$options = self::readOptions($code, $file);
 		$instance = $rule instanceof \Closure ? $rule($options) : PresetResolver::createRule($rule, $options ?: true);
-		[$node] = self::process($instance, $code, $phpVersion ?? self::readPhpVersion($code, $file) ?? self::defaultPhpVersion($instance), basename($file));
+		[$node] = self::process($instance, $code, $phpVersion ?? self::readPhpVersion($code, $file) ?? self::defaultPhpVersion($instance), basename($file), self::readRisky($code));
 		return Printer::print($node);
 	}
 
@@ -119,11 +120,12 @@ final class RuleTester
 		?array $violations = null,
 		?string $phpVersion = null,
 		string $name = 'code',
+		bool $fixRisky = false,
 	): void
 	{
 		$expected ??= $code;
 		$phpVersion ??= self::defaultPhpVersion($rule);
-		[$file, $result] = self::process($rule, $code, $phpVersion, $name);
+		[$file, $result] = self::process($rule, $code, $phpVersion, $name, $fixRisky);
 		self::checkParents($file);
 		$output = Printer::print($file);
 		if ($output !== $expected) {
@@ -144,7 +146,7 @@ final class RuleTester
 			self::checkComments($code, $output);
 		}
 
-		[, $again] = self::process($rule, $output, $phpVersion, $name);
+		[, $again] = self::process($rule, $output, $phpVersion, $name, $fixRisky);
 		$fixed = array_filter($again->violations, fn(Violation $v) => $v->fixable);
 		if ($again->mutated || $fixed) {
 			throw new TestFailure(
@@ -156,7 +158,7 @@ final class RuleTester
 
 		if ($result->violations && preg_match('~<\?php\b~i', $code)) {
 			$ignored = (string) preg_replace('~<\?php(\s)~i', '<?php /* dresscode:ignore-file */$1', $code, 1);
-			[$ignoredFile, $ignoredResult] = self::process($rule, $ignored, $phpVersion, $name);
+			[$ignoredFile, $ignoredResult] = self::process($rule, $ignored, $phpVersion, $name, $fixRisky);
 			if ($ignoredResult->violations || Printer::print($ignoredFile) !== $ignored) {
 				throw new TestFailure('The rule ignores the dresscode:ignore-file comment: it still reports or changes the file.');
 			}
@@ -168,7 +170,13 @@ final class RuleTester
 	 * @return array{FileNode, PassResult}
 	 * @throws TestFailure
 	 */
-	private static function process(Rule $rule, string $code, string $phpVersion, string $name): array
+	private static function process(
+		Rule $rule,
+		string $code,
+		string $phpVersion,
+		string $name,
+		bool $fixRisky = false,
+	): array
 	{
 		try {
 			$file = (new Parser)->parse($code);
@@ -176,7 +184,7 @@ final class RuleTester
 			throw new TestFailure("The code does not parse: {$e->getMessage()}");
 		}
 
-		$runner = new PassRunner([$rule], new Analyses\Registry, fn(string $rule) => [$rule], strict: true);
+		$runner = new PassRunner([$rule], new Analyses\Registry, fn(string $rule) => [$rule], strict: true, fixRisky: $fixRisky);
 		try {
 			$result = $runner->run($file, $code, $name, new Style(eol: Style::detectEol($code)), $phpVersion);
 		} catch (RuleException $e) {
@@ -249,6 +257,19 @@ final class RuleTester
 
 
 	/** The version the fixture is written for, when it says so; `// php 8.4`. */
+	/** `// risky` in the header lets the rule make the fixes that change what the code does. */
+	private static function readRisky(string $code): bool
+	{
+		foreach (self::readHeader($code) as $line) {
+			if (preg_match('~^//\s*risky\s*$~i', $line)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
 	private static function readPhpVersion(string $code, string $file): ?string
 	{
 		foreach (self::readHeader($code) as $line) {

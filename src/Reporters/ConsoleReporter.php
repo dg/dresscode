@@ -203,6 +203,9 @@ final class ConsoleReporter implements Reporter
 			$result->countErrors() ? self::plural($result->countErrors(), 'file') . ' with syntax errors' : null,
 			$failures ? self::plural($failures, 'file') . ' with failing rules' : null,
 			$result->baselined ? self::plural($result->baselined, 'violation') . ' in the baseline' : null,
+			$result->countRiskyDeferred()
+				? $result->countRiskyDeferred() . ' of them risky, run with --fix-risky to have them fixed'
+				: null,
 		]);
 
 		$state = match (true) {

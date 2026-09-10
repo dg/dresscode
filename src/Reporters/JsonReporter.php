@@ -70,6 +70,7 @@ final class JsonReporter implements Reporter
 				'files' => count($result->files),
 				'violations' => $result->countViolations(),
 				'fixable' => $result->countFixable(),
+				'riskyDeferred' => $result->countRiskyDeferred(),
 				'changedFiles' => $result->countChangedFiles(),
 				'errors' => $result->countErrors(),
 				'failures' => $result->countFailures(),

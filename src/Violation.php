@@ -18,6 +18,8 @@ final readonly class Violation
 		public bool $followUp,
 		/** stable identity for baselines: rule, message, normalized line content and the occurrence index */
 		public string $fingerprint,
+		/** the fix of this occurrence may change what the code does, so it waits until the run allows one */
+		public bool $risky = false,
 	) {
 	}
 
@@ -33,6 +35,7 @@ final readonly class Violation
 			'severity' => $this->severity === Severity::Error ? 'error' : 'warning',
 			'fixable' => $this->fixable,
 			'followUp' => $this->followUp,
+			'risky' => $this->risky,
 			'fingerprint' => $this->fingerprint,
 		];
 	}
@@ -50,6 +53,7 @@ final readonly class Violation
 			(bool) $data['fixable'],
 			(bool) $data['followUp'],
 			(string) $data['fingerprint'],
+			(bool) ($data['risky'] ?? false),
 		);
 	}
 

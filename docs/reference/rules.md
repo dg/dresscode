@@ -496,7 +496,7 @@ Stage: Structure. Covers: `magic_constant_casing`.
 
 Uses ::class instead of get_class() and __CLASS__.
 
-Stage: Structure. Covers: `SlevomatCodingStandard.Classes.ModernClassNameReference`.
+Stage: Structure. Covers: `SlevomatCodingStandard.Classes.ModernClassNameReference`. May have risky fixes, which wait for `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|

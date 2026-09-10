@@ -84,6 +84,8 @@ final class PassRunner
 		private readonly ?Baseline $baseline = null,
 		/** @var array<string, true>  rules whose violations only warn */
 		private readonly array $warningRules = [],
+		/** whether a fix that may change what the code does is allowed */
+		private readonly bool $fixRisky = false,
 	) {
 		foreach (Stage::cases() as $stage) {
 			$this->stages[$stage->name] = [];
@@ -119,7 +121,7 @@ final class PassRunner
 		$suppression = Suppression::fromFile($file, $this->resolveNames, $code);
 		foreach ($this->rules as $rule) {
 			$name = RuleInfo::of($rule)->name;
-			$this->contexts[$name] = new RuleContext($file, $path, $style, $phpVersion, $this->analyses, $suppression, $this->fingerprints, $name);
+			$this->contexts[$name] = new RuleContext($file, $path, $style, $phpVersion, $this->analyses, $suppression, $this->fingerprints, $name, $this->fixRisky);
 		}
 
 		$seen = [hash('xxh3', $code) => true];
@@ -303,8 +305,9 @@ final class PassRunner
 
 	/**
 	 * Turns the reports of a callback into violations, marks the fixed ones, and checks that every mutation
-	 * follows a report that returned true. A silenced report is judged by the window between it and the
-	 * next report of the same rule: what the rule wrote there it wrote for the report it was denied.
+	 * follows a report that returned true. A report the rule was denied — by a comment, by the baseline or
+	 * because the run refuses a risky fix — is judged by the window between it and the next report of the
+	 * same rule: what the rule wrote there it wrote for the report it was denied.
 	 * @param int $before  the revision of the file before the callback
 	 * @param bool $checkSilent  whether an unreported mutation is the rule's doing, which along the gap
 	 *                           traversal it need not be, because the revision then covers every rule
@@ -314,12 +317,15 @@ final class PassRunner
 		$after = $this->file->revision;
 		$reported = false;
 		$reports = $context->takeReports();
-		foreach ($reports as $i => [$at, $trivia, $message, $severity, $reportRevision, $silenced, $fingerprint, $line]) {
-			if ($silenced || $fingerprint === null) { // silenced by a comment or by the baseline
-				if (($reports[$i + 1][4] ?? $after) > $reportRevision) {
-					$this->violateContract("Rule $name mutated the file after a suppressed report.");
-				}
+		foreach ($reports as $i => [$at, $trivia, $message, $severity, $reportRevision, $silenced, $fingerprint, $line, $risky]) {
+			$refused = $risky && !$this->fixRisky;
+			$denied = $silenced || $fingerprint === null || $refused; // a comment, the baseline or the risk
+			// what the rule wrote between this report and its next one it wrote for the report it was denied
+			if ($denied && ($reports[$i + 1][4] ?? $after) > $reportRevision) {
+				$this->violateContract("Rule $name mutated the file after a suppressed report.");
+			}
 
+			if ($silenced || $fingerprint === null) { // and then there is no violation to record
 				continue;
 			}
 
@@ -331,9 +337,11 @@ final class PassRunner
 				$trivia === null ? $this->findOriginalColumn($at) : null,
 				// every rule is an error until the configuration softens it
 				isset($this->warningRules[$name]) ? Severity::Warning : $severity,
-				fixable: $after > $reportRevision,
+				// a rule may write its fixes after reporting them all, so the whole callback is the window
+				fixable: !$refused && $after > $reportRevision,
 				followUp: $reportRevision > 0,
 				fingerprint: $fingerprint,
+				risky: $risky,
 			);
 		}
 

@@ -80,6 +80,21 @@ function kind(string $slug): string
 
 
 /** A link to the entry of a rule: in a long list the slug alone reads better than the full name. */
+/** A fixture that lets the rule make a fix which changes what the code does is the proof that it has one. */
+function hasRiskyFixture(string $name): bool
+{
+	$slug = substr($name, strpos($name, '/') + 1);
+	foreach (glob(__DIR__ . "/../../tests/DressCode/Rules/fixtures/$slug/*.code") ?: [] as $file) {
+		$header = implode("\n", array_slice(preg_split('~\r?\n~', (string) file_get_contents($file)) ?: [], 0, 4));
+		if (preg_match('~^//\s*risky\s*$~im', $header)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 function ruleLink(string $name): string
 {
 	return '[' . substr($name, strpos($name, '/') + 1) . '](#' . str_replace('/', '', $name) . ')';
@@ -129,6 +144,10 @@ foreach ($rules as $name => $class) {
 
 	if ($info->modifiesComments) {
 		$facts[] = 'Modifies comments';
+	}
+
+	if (hasRiskyFixture($name)) {
+		$facts[] = 'May have risky fixes, which wait for `--fix-risky`';
 	}
 
 	$out .= implode('. ', $facts) . ".\n\n";

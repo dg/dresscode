@@ -209,6 +209,7 @@ test('json', function () {
 		                    "severity": "error",
 		                    "fixable": true,
 		                    "followUp": false,
+		                    "risky": false,
 		                    "fingerprint": "f1"
 		                },
 		                {
@@ -219,6 +220,7 @@ test('json', function () {
 		                    "severity": "warning",
 		                    "fixable": false,
 		                    "followUp": true,
+		                    "risky": false,
 		                    "fingerprint": "f2"
 		                }
 		            ],
@@ -256,6 +258,7 @@ test('json', function () {
 		        "files": 4,
 		        "violations": 2,
 		        "fixable": 1,
+		        "riskyDeferred": 0,
 		        "changedFiles": 1,
 		        "errors": 1,
 		        "failures": 1,

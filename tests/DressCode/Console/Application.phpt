@@ -35,6 +35,26 @@ final class ConsoleRename extends NodeRule
 }
 
 
+#[RuleInfo('test/risky-rename', Stage::Structure, description: 'Renames $r to $s, which may change what the code does')]
+final class ConsoleRiskyRename extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [VariableNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		if ($node instanceof VariableNode && $node->name instanceof Token && $node->name->text === '$r') {
+			if ($context->report($node, 'Rename $r', risky: true)) {
+				$node->name->setText('$s');
+			}
+		}
+	}
+}
+
+
 #[RuleInfo('test/report', Stage::Formatting)]
 final class ConsoleReport extends NodeRule
 {
@@ -564,4 +584,42 @@ test('exit codes: violations, warnings, the warning threshold, a syntax error an
 	Assert::same(1, $run());
 	unlink("$root/src/broken.php");
 	Assert::same(0, $run());
+});
+
+
+test('a risky fix waits for the run to allow it, and is a violation until it is made', function () use ($root) {
+	Helpers::purge("$root/src");
+	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
+	$config = "$root/risky.php";
+	$write = fn(string $tail) => file_put_contents($config, "<?php\nreturn DressCode\\Config::create()->enable(ConsoleRiskyRename::class)->paths(['src'])$tail;\n");
+
+	// refused: reported, counted apart, not fixed, and the exit code says the code is not clean
+	$write('');
+	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache']);
+	Assert::same(1, $code);
+	Assert::contains('1 of them risky, run with --fix-risky to have them fixed', $out);
+	Assert::same("<?php\n\$r;\n", (string) file_get_contents("$root/src/r.php"));
+
+	// the flag of the run allows it
+	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache', '--fix-risky']);
+	Assert::same(0, $code);
+	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
+	Assert::notContains('--fix-risky to have them fixed', $out);
+
+	// and so does the configuration, which says the same thing for every run
+	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
+	$write('->risky()');
+	Assert::same(0, runApp($root, ['fix', '--config', $config, '--no-cache'])[0]);
+	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
+
+	// the JSON says of every violation whether it was risky and how many are waiting
+	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
+	$write('');
+	[, $out] = runApp($root, ['check', '--config', $config, '--no-cache', '--format', 'json']);
+	Assert::contains('"risky": true', $out);
+	Assert::contains('"riskyDeferred": 1', $out);
+
+	// a comment silences it like any other violation
+	file_put_contents("$root/src/r.php", "<?php\n\$r; // dresscode:ignore test/risky-rename\n");
+	Assert::same(0, runApp($root, ['check', '--config', $config, '--no-cache'])[0]);
 });

@@ -66,7 +66,15 @@ final class ModernClassNameReferenceRule extends NodeRule implements Configurabl
 			$node instanceof Expression\FunctionCallNode => $this->describeCall($node, $inClass, $context),
 			default => null,
 		};
-		if ($replacement === null || !$context->report($node, "The class name must be obtained with $replacement")) {
+		if ($replacement === null) {
+			return;
+		}
+
+		// get_class($object) throws where $object is not one, and ::class on a string gives the string back,
+		// so the rewrite changes what the code does wherever the argument is not certainly an object
+		$risky = $node instanceof Expression\FunctionCallNode && !str_starts_with($replacement, 'self::')
+			&& !str_starts_with($replacement, 'static::') && !str_starts_with($replacement, 'parent::');
+		if (!$context->report($node, "The class name must be obtained with $replacement", risky: $risky)) {
 			return;
 		}
 

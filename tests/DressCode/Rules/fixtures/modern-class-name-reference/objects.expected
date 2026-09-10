@@ -1,5 +1,6 @@
 <?php
 // {"onObjects": true}
+// risky
 $a = $obj::class;
 $b = $this->x['y']::class;
 $c = f()::class;

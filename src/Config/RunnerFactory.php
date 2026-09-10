@@ -99,12 +99,13 @@ final class RunnerFactory
 
 		$baseline = self::loadBaseline($config, $root);
 		$warningRules = $this->resolveWarnings($config);
+		$fixRisky = $config->getRisky();
 		$this->resolveFor = fn(array $blocks) => $blocks === []
 			? $resolved
 			: $resolver->resolveConfig($config, $context, array_values($blocks));
 		$processors = new FileProcessors(
 			array_map(fn(array $block) => $block[0], $config->getBlocks()),
-			function (array $blocks) use ($analyses, $phpVersion, $strict, $baseline, $warningRules, $resolver): FileProcessor {
+			function (array $blocks) use ($analyses, $phpVersion, $strict, $baseline, $warningRules, $fixRisky, $resolver): FileProcessor {
 				$variant = $this->resolveConfigFor($blocks);
 				return new FileProcessor(
 					$resolver->build($variant),
@@ -116,6 +117,7 @@ final class RunnerFactory
 					strict: $strict,
 					baseline: $baseline,
 					warningRules: $warningRules,
+					fixRisky: $fixRisky,
 				);
 			},
 		);
@@ -123,7 +125,7 @@ final class RunnerFactory
 			? ResultCache::load(
 				self::resolveCacheFile($config, $root),
 				// the baseline decides what a rule reports, so a file clean under one is not clean under another
-				self::hashConfiguration([$resolved->toArray(), $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $ruleExcludePaths, $baseline?->getHash(), $config->getBlocks()]),
+				self::hashConfiguration([$resolved->toArray(), $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $ruleExcludePaths, $baseline?->getHash(), $config->getBlocks(), $fixRisky]),
 			)
 			: null;
 		return new Runner(

@@ -39,6 +39,16 @@ final readonly class RunResult
 	}
 
 
+	/** Fixes the run offered and was not allowed to make; a fix it made is not one of them. */
+	public function countRiskyDeferred(): int
+	{
+		return array_sum(array_map(
+			fn(FileResult $f) => count(array_filter($f->violations, fn(Violation $v) => $v->risky && !$v->fixable)),
+			$this->files,
+		));
+	}
+
+
 	public function countChangedFiles(): int
 	{
 		return count(array_filter($this->files, fn(FileResult $f) => $f->isChanged()));

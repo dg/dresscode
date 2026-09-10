@@ -69,6 +69,7 @@ final class NeonReader
 				'files' => Expect::listOf('string')->required(),
 				'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), 'keep', Expect::arrayOf('mixed', 'string')), 'string'),
 			])->castTo('array')),
+			'risky' => Expect::bool(),
 			'fileExtensions' => Expect::listOf('string'),
 			'baseline' => Expect::string(),
 			'cacheDir' => Expect::string(),
@@ -131,6 +132,10 @@ final class NeonReader
 
 		if (isset($data['warnings'])) {
 			$config->warnings(self::listOfStrings($data, 'warnings'));
+		}
+
+		if (isset($data['risky'])) {
+			$config->risky((bool) $data['risky']);
 		}
 
 		if (isset($data['fileExtensions'])) {

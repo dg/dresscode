@@ -39,6 +39,42 @@ final class ReportVariables extends NodeRule
 }
 
 
+/**
+ * Upper-cases two variables of one statement in one callback, and $b is the risky occurrence, so that the
+ * accounting sees a safe and a refused report side by side; the flag reports them in the other order.
+ */
+#[RuleInfo('test/rename-pair', Stage::Structure)]
+final class RenamePair extends NodeRule
+{
+	public function __construct(
+		private bool $riskyFirst = false,
+	) {
+	}
+
+
+	public function getVisitedTypes(): array
+	{
+		return [ExpressionStatementNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		$variables = $node instanceof Node ? $node->find(VariableNode::class) : [];
+		foreach ($this->riskyFirst ? array_reverse($variables) : $variables as $variable) {
+			$name = $variable->name;
+			if (!$name instanceof Token || ($upper = strtoupper($name->text)) === $name->text) {
+				continue;
+			}
+
+			if ($context->report($variable, "Variable {$name->text}", risky: $name->text === '$b')) {
+				$name->setText($upper);
+			}
+		}
+	}
+}
+
+
 #[RuleInfo('test/rename', Stage::Structure)]
 final class RenameA extends NodeRule
 {
@@ -232,10 +268,10 @@ final class Thrower extends NodeRule
  * @param  list<Rule>  $rules
  * @return array{PhpSyntax\Nodes\FileNode, DressCode\Engine\PassResult}
  */
-function run(string $code, array $rules, bool $strict = true): array
+function run(string $code, array $rules, bool $strict = true, bool $fixRisky = false): array
 {
 	$file = (new Parser)->parse($code);
-	$runner = new PassRunner($rules, new Analyses\Registry, fn(string $name) => [$name], strict: $strict);
+	$runner = new PassRunner($rules, new Analyses\Registry, fn(string $name) => [$name], strict: $strict, fixRisky: $fixRisky);
 	$result = $runner->run($file, $code, 'test.php', new Style, Config::DefaultPhpVersion);
 	return [$file, $result];
 }
@@ -326,4 +362,30 @@ test('a replaced or removed node is not seen by the rest of the chain', function
 test('an exception in a rule is wrapped', function () {
 	$e = Assert::exception(fn() => run('<?php', [new Thrower]), RuleException::class, 'Rule test/thrower failed in test.php: boom');
 	Assert::type(RuntimeException::class, $e?->getPrevious());
+});
+
+
+test('a risky occurrence is reported and left alone, and the safe one beside it is fixed either way', function () {
+	foreach ([false, true] as $riskyFirst) {
+		$order = $riskyFirst ? 'risky first' : 'safe first';
+		[$file, $result] = run("<?php\n\$a + \$b;\n", [new RenamePair($riskyFirst)]);
+		Assert::same("<?php\n\$A + \$b;\n", (string) $file, $order);
+		Assert::same([], $result->warnings, $order);
+		Assert::count(2, $result->violations);
+		foreach ($result->violations as $violation) {
+			Assert::same(!$violation->risky, $violation->fixable, "$order: {$violation->message}");
+		}
+	}
+});
+
+
+test('with the fixes allowed the risky occurrence is fixed and says it was risky', function () {
+	[$file, $result] = run("<?php\n\$a + \$b;\n", [new RenamePair], fixRisky: true);
+	Assert::same("<?php\n\$A + \$B;\n", (string) $file);
+	Assert::count(2, $result->violations);
+	foreach ($result->violations as $violation) {
+		Assert::true($violation->fixable);
+	}
+
+	Assert::same([false, true], array_map(fn($v) => $v->risky, $result->violations));
 });

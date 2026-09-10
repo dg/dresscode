@@ -50,6 +50,9 @@ final class Config
 	/** @var ?list<string>  names or classes of the rules that only warn */
 	private ?array $warnings = null;
 
+	/** whether a fix that may change what the code does is allowed */
+	private ?bool $risky = null;
+
 	/** @var list<array{list<string>, array<string, bool|array<string, mixed>>}>  patterns and the rules of that part of the tree */
 	private array $blocks = [];
 
@@ -213,6 +216,18 @@ final class Config
 	}
 
 
+	/**
+	 * Allows a fix that may change what the code does. Such an occurrence is reported either way; without this
+	 * it waits, with it the rule rewrites it. It is per occurrence, not per rule: the same rule fixes what it
+	 * knows is safe whatever this says.
+	 */
+	public function risky(bool $risky = true): static
+	{
+		$this->risky = $risky;
+		return $this;
+	}
+
+
 	/** @param list<string> $extensions  the extensions of the files to check, without a dot */
 	public function fileExtensions(array $extensions): static
 	{
@@ -306,6 +321,7 @@ final class Config
 		}
 
 		$this->warnings = $layer->warnings ?? $this->warnings;
+		$this->risky = $layer->risky ?? $this->risky;
 		$this->blocks = [...$this->blocks, ...$layer->blocks];
 		$this->fileExtensions = $layer->fileExtensions ?? $this->fileExtensions;
 		$this->skipWhen = $layer->skipWhen ?? $this->skipWhen;
@@ -477,6 +493,12 @@ final class Config
 	public function getWarnings(): array
 	{
 		return $this->warnings ?? [];
+	}
+
+
+	public function getRisky(): bool
+	{
+		return $this->risky ?? false;
 	}
 
 

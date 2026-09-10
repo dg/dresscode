@@ -1,6 +1,8 @@
 presets:
 	- nette
 
+risky: yes
+
 rules:
 	strict-comparison: true
 	final-internal-class: true

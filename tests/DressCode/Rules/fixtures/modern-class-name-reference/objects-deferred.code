@@ -1,6 +1,5 @@
 <?php
 // {"onObjects": true}
-// risky
 $a = get_class($obj);
 $b = get_class($this->x['y']);
 $c = get_class(f());

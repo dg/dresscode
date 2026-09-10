@@ -65,6 +65,9 @@ final class Application
 		                            instead of reporting them (check only)
 		  --max-warnings <n>        exit with 1 when more than n warnings are left; without it any
 		                            number of them keeps the run clean
+		  --fix-risky               also make the fixes that may change what the code does; they are
+		                            reported either way, and `risky: yes` in the configuration says
+		                            the same thing for every run
 		  --file <path>             what the configuration comes to for that one file (config only)
 		  --json                    the configuration as data (config only)
 		  --output <file>           write there instead of to the output (standard only)
@@ -378,6 +381,10 @@ final class Application
 			$command[] = '--strict-rules';
 		}
 
+		if ($args['--fix-risky']) { // what a worker may fix has to be what the parent was asked for
+			$command[] = '--fix-risky';
+		}
+
 		if ($args['--generate-baseline']) { // the workers of such a run must see what the baseline knows too
 			$command[] = '--generate-baseline';
 		}
@@ -645,6 +652,10 @@ final class Application
 			}
 
 			$m[2] === 'on' ? $config->enable($m[1]) : $config->disable($m[1]);
+		}
+
+		if ($args['--fix-risky']) {
+			$config->risky();
 		}
 
 		return [$config, $root, $file];
