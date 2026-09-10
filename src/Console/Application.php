@@ -44,6 +44,7 @@ final class Application
 		  dresscode fix [paths...] [options]     fix what the rules can and report the rest
 		  dresscode config [options]             print the configuration as the run resolves it
 		  dresscode explain <rule> [options]     what a rule is for, its options here and its examples
+		  dresscode standard [options]           the standard of the project, as Markdown
 		  dresscode rules [options]              list the known rules
 		  dresscode import <file>                translate a php-cs-fixer or phpcs configuration
 		  dresscode migrate-suppressions [paths...] [options]
@@ -66,6 +67,7 @@ final class Application
 		                            number of them keeps the run clean
 		  --file <path>             what the configuration comes to for that one file (config only)
 		  --json                    the configuration as data (config only)
+		  --output <file>           write there instead of to the output (standard only)
 		  --no-cache                process every file, even one whose content is known to be clean
 		  --jobs <n>                worker processes; by default the number of processors, at most one per four files; 1 runs in-process
 		  --strict-rules            a rule breaking its contract is an error, not a warning
@@ -139,6 +141,7 @@ final class Application
 				'fix' => $this->runCheckOrFix($args, fix: true),
 				'config' => $this->runConfig($args),
 				'explain' => $this->runExplain($args),
+				'standard' => $this->runStandard($args),
 				'rules' => $this->runRules($args),
 				'import' => $this->runImport($args),
 				'migrate-suppressions' => $this->runMigrateSuppressions($args),
@@ -528,6 +531,29 @@ final class Application
 
 		$this->writeHeader($configFile, $config, self::describePhpVersion($factory));
 		$this->write("\n" . new ExplainPrinter($rule, __DIR__ . '/../../tests/DressCode/Rules/fixtures')->print($this->console));
+		return 0;
+	}
+
+
+	/**
+	 * Writes the standard of the project out of its configuration, in Markdown.
+	 * @param array<string, mixed> $args
+	 */
+	private function runStandard(array $args): int
+	{
+		$factory = new RunnerFactory;
+		[$config, $root] = $this->loadConfig($args);
+		$factory->createRunner($config, $root, cache: false);
+		$printer = new StandardPrinter($factory->getResolvedConfig(), __DIR__ . '/../../tests/DressCode/Rules/fixtures');
+		$text = $printer->print(basename(Helpers::canonicalizePath($root)) . ': the standard DressCode enforces');
+		$file = $args['--output'];
+		if (is_string($file)) {
+			FileSystem::write($file, $text);
+			$this->write('Standard written to ' . FileSystem::platformSlashes($file) . ".\n");
+		} else {
+			$this->write($text);
+		}
+
 		return 0;
 	}
 

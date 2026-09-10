@@ -73,6 +73,27 @@ test('explain writes what the rule is, what it does here, and its example', func
 });
 
 
+test('standard writes what is enforced, and says that it is not the whole standard', function () {
+	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	$root = __DIR__ . '/../../temp/explain';
+	@mkdir($root, recursive: true); // @ - may exist
+	file_put_contents("$root/dresscode.neon", "presets: [dresscode/nette]\npaths: [src]\n");
+	$code = new Application($out, $err, cwd: $root)->run(['dresscode', 'standard', '--output', "$root/standard.md"]);
+	Assert::same(0, $code);
+
+	$text = (string) file_get_contents("$root/standard.md");
+	Assert::contains('which is a part of a', $text);
+	Assert::contains('- Composed of: `dresscode/psr12`, `dresscode/per`, `dresscode/nette`', $text);
+	Assert::contains('- Indentation: a tab', $text);
+	Assert::contains("### dresscode/useless-return\n", $text);
+	Assert::contains("```php\nfunction announce(string \$message): void", $text);
+	Assert::contains("becomes\n", $text);
+	// what does not run is not part of the standard it writes
+	Assert::notContains('dresscode/line-length', $text);
+});
+
+
 test('explain of a name no rule owns', function () {
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
