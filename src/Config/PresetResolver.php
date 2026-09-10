@@ -12,6 +12,7 @@ use DressCode\Rule;
 use DressCode\RuleInfo;
 use Nette\Schema\Elements\ArrayType;
 use Nette\Schema\Elements\Structure;
+use Nette\Schema\Helpers;
 use Nette\Schema\Processor;
 use Nette\Schema\ValidationException;
 use function count, is_array, is_int;
@@ -144,11 +145,55 @@ final class PresetResolver
 		return new ResolvedRule(
 			$info->name,
 			$class,
-			$inactive === null ? self::validateOptions($class, $info->name, is_array($last) ? $last : []) : [],
+			$inactive === null ? self::validateOptions($class, $info->name, self::stack($layers)) : [],
 			$layers,
 			$inactive,
 			$last instanceof \Closure ? $last : null,
 		);
+	}
+
+
+	/**
+	 * The layers a rule ends up with, as the schema takes them: turning the rule off drops everything said
+	 * before it, so a map written after it starts from the defaults of the schema again.
+	 * @param  list<array{string, mixed}>  $layers
+	 * @return list<array<string, mixed>>
+	 */
+	private static function stack(array $layers): array
+	{
+		$stack = [];
+		foreach ($layers as [, $value]) {
+			if ($value === false) {
+				$stack = [];
+			} else {
+				$stack[] = is_array($value) ? self::markLists($value, top: true) : [];
+			}
+		}
+
+		return $stack;
+	}
+
+
+	/**
+	 * A map merges with the layer below it key by key, a list replaces it whole; the marker is how every
+	 * merge() of nette/schema is told the second, and without it a list of a preset and a list of the
+	 * project would be appended to one another.
+	 */
+	private static function markLists(mixed $value, bool $top = false): mixed
+	{
+		if (!is_array($value)) {
+			return $value;
+		}
+
+		foreach ($value as $key => $item) {
+			$value[$key] = self::markLists($item);
+		}
+
+		if (!$top && array_is_list($value)) {
+			$value[Helpers::PreventMerging] = true;
+		}
+
+		return $value;
 	}
 
 
@@ -234,7 +279,7 @@ final class PresetResolver
 		return self::buildRule(new ResolvedRule(
 			$name,
 			$class,
-			self::validateOptions($class, $name, is_array($value) ? $value : []),
+			self::validateOptions($class, $name, self::stack([['the caller', $value]])),
 			[['the caller', $value]],
 			factory: $value instanceof \Closure ? $value : null,
 		));
@@ -261,18 +306,20 @@ final class PresetResolver
 
 
 	/**
+	 * The options a rule ends up with: the layers processed through its schema, so that a map merges with
+	 * the layer below it key by key and a list or a scalar replaces it.
 	 * @param  class-string<Rule>  $class
-	 * @param  array<string, mixed>  $options
+	 * @param  list<array<string, mixed>>  $layers
 	 * @return array<string, mixed>
 	 */
-	private static function validateOptions(string $class, string $name, array $options): array
+	private static function validateOptions(string $class, string $name, array $layers): array
 	{
 		if (!is_subclass_of($class, ConfigurableRule::class)) {
 			return [];
 		}
 
 		$schema = $class::getOptionsSchema();
-		if ($schema instanceof Structure) { // an option given replaces its default whole, lists are not merged
+		if ($schema instanceof Structure) { // a list given replaces its default instead of extending it
 			foreach ($schema->getShape() as $item) {
 				if ($item instanceof ArrayType) {
 					$item->mergeDefaults(false);
@@ -281,7 +328,7 @@ final class PresetResolver
 		}
 
 		try {
-			$normalized = (new Processor)->process($schema, $options);
+			$normalized = (new Processor)->processMultiple($schema, $layers ?: [[]]);
 		} catch (ValidationException $e) {
 			throw new ConfigurationException("Invalid options of rule $name: " . implode(' ', $e->getMessages()), previous: $e);
 		}

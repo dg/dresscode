@@ -17,7 +17,9 @@ final class Acme implements Preset
 		return [
 			NoVarDumpRule::class => ['functions' => ['var_dump', 'print_r']],
 			'dresscode/no-trailing-whitespace' => true,
-			'dresscode/ordered-imports' => version_compare($context->getPhpVersion(), '8.0', '>='),
+			'dresscode/ordered-imports' => version_compare($context->getPhpVersion(), '8.0', '>=')
+				? ['alphabetically' => true]
+				: false,
 		];
 	}
 

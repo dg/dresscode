@@ -29,7 +29,7 @@ final class Per implements Preset
 			'multi-line-chain' => true,
 
 			// 5.6 The types of a multi-catch hug their bar, as every compound type does
-			'type-hint-spacing' => true,
+			'type-hint-spacing' => ['catchTypes' => 'none'],
 
 			// 6. Operators
 			'concat-spacing' => true,

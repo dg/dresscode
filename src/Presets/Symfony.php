@@ -67,7 +67,7 @@ final class Symfony implements Preset
 
 			// the whitespace of a line
 			'array-spacing' => true,
-			'comma-spacing' => true,
+			'comma-spacing' => ['tabAlignment' => true],
 			'object-operator-spacing' => true,
 			'offset-bracket-spacing' => true,
 			'semicolon-spacing' => ['after' => 'single'],

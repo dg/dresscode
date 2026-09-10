@@ -28,7 +28,7 @@ final class Nette implements Preset
 			'header-blank-lines' => [
 				'beforeNamespace' => 1, 'afterOpeningTag' => null, 'afterNamespace' => 1, 'afterImports' => 1, 'betweenImportGroups' => 0, 'beforeDeclaration' => 2,
 			],
-			'ordered-imports' => true,
+			'ordered-imports' => ['alphabetically' => true],
 			'unused-imports' => true,
 			'reference-used-names-only' => true,
 			'import-notation' => ['functions' => 'combined', 'constants' => 'combined', 'groupUse' => 'keep'],
@@ -38,25 +38,31 @@ final class Nette implements Preset
 			'no-leading-backslash-in-global-namespace' => true,
 
 			// blank lines: two between methods, none inside a body's braces
-			'declaration-blank-lines' => true,
+			'declaration-blank-lines' => [
+				'betweenFunctions' => 2, 'betweenFunctionsInInterface' => 1, 'betweenMembers' => [0, 1],
+				'beforeDocumentedMember' => 1, 'afterPhpDoc' => 0,
+			],
 			'body-blank-lines' => true,
 
 			// the whitespace of a line: exactly one space around a ternary, a tab may align commas, a space after the
 			// slashes of a comment
 			'ternary-operator-spacing' => ['spacing' => 'single'],
 			'comment-spacing' => true,
-			'semicolon-spacing' => true,
-			'comma-spacing' => true,
+			'semicolon-spacing' => ['after' => 'single'],
+			'comma-spacing' => ['tabAlignment' => true],
 			'object-operator-spacing' => true,
 			'double-colon-spacing' => true,
 			'array-spacing' => true,
 			'offset-bracket-spacing' => true,
-			'class-definition-spacing' => true,
+			'class-definition-spacing' => ['spaceBeforeParenthesis' => true],
 
 			// breaks: the brace of a multi-line signature below its return type, promoted properties on lines of their
 			// own, the first link of a chain and several items of an array may share a line
-			'braces-position' => ['multiLineParameters' => 'nextLineAfterReturnType'],
-			'multi-line-signature' => true,
+			'braces-position' => [
+				'multiLineParameters' => 'nextLineAfterReturnType', 'emptyBodies' => 'ownLine',
+				'allowSingleLineAnonymousFunctions' => true,
+			],
+			'multi-line-signature' => ['promotedProperties' => true],
 			'multi-line-chain' => ['leadingLinksOnFirstLine' => true],
 			'multi-line-array' => ['oneItemPerLine' => false],
 			'trailing-comma' => ['multiLine' => ['arrays', 'arguments', 'parameters']],
@@ -66,7 +72,10 @@ final class Nette implements Preset
 				'classes' => 'PascalCase', 'methods' => 'camelCase', 'functions' => 'camelCase', 'constants' => 'PascalCase',
 				'enumCases' => 'PascalCase', 'properties' => 'camelCase', 'variables' => 'camelCase',
 			],
-			'ordered-members' => true,
+			'ordered-members' => ['order' => [
+				'use_trait', 'constant', 'constant_public', 'constant_protected', 'constant_private',
+				'property_public', 'property_protected', 'property_private',
+			]],
 			'useless-modifier' => true,
 			'useless-null-property-initialization' => true,
 			'self-for-current-class' => true,

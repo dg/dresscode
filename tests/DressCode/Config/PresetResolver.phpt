@@ -82,6 +82,38 @@ final class RuleD extends NodeRule
 }
 
 
+#[RuleInfo('test/nested', Stage::Formatting)]
+final class RuleNested extends NodeRule implements ConfigurableRule
+{
+	/** @var array<string, mixed> */
+	public array $options = [];
+
+
+	public static function getOptionsSchema(): Schema
+	{
+		return Expect::structure([
+			'naming' => Expect::structure([
+				'classes' => Expect::string('PascalCase'),
+				'except' => Expect::listOf('string'),
+			])->castTo('array'),
+			'blank' => Expect::anyOf(Expect::int(), Expect::tuple([Expect::int(), Expect::int()->nullable()]))->default(1),
+		]);
+	}
+
+
+	public function configure(array $options): void
+	{
+		$this->options = $options;
+	}
+
+
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+}
+
+
 #[RuleInfo('test/future', Stage::Formatting, minPhpVersion: '8.4')]
 final class RuleFuture extends NodeRule
 {
@@ -142,6 +174,38 @@ final class ChildPreset implements Preset
 }
 
 
+#[PresetInfo('test/nested-preset')]
+final class NestedPreset implements Preset
+{
+	public function getRules(PresetContext $context): array
+	{
+		return [RuleNested::class => ['naming' => ['classes' => 'camelCase', 'except' => ['a']], 'blank' => [1, 2]]];
+	}
+
+
+	public function getParents(): array
+	{
+		return [];
+	}
+}
+
+
+#[PresetInfo('test/off')]
+final class OffPreset implements Preset
+{
+	public function getRules(PresetContext $context): array
+	{
+		return [RuleC::class => false];
+	}
+
+
+	public function getParents(): array
+	{
+		return [BasePreset::class];
+	}
+}
+
+
 #[PresetInfo('test/styled', indent: 2, eol: 'lf')]
 final class StyledPreset implements Preset
 {
@@ -191,11 +255,12 @@ function names(array $rules): array
 }
 
 
-test('parents first, the child overrides whole entries, order of the first mention', function () {
+test('parents first, the child overrides the keys it names, order of the first mention', function () {
+	// the base sets max, the child names only names: what the child does not say the base keeps
 	$rules = resolve(Config::create()->preset(ChildPreset::class));
 	Assert::same(['test/a', 'test/c'], names($rules));
 	assert($rules[1] instanceof RuleC);
-	Assert::equal(['max' => 3, 'names' => ['x']], $rules[1]->options);
+	Assert::equal(['max' => 5, 'names' => ['x']], $rules[1]->options);
 
 	$rules = resolve(Config::create()->preset(ChildPreset::class), php: '8.2');
 	Assert::same(['test/a', 'test/c'], names($rules));
@@ -216,6 +281,80 @@ test('a list option replaces its default instead of being merged with it', funct
 	$rules = resolve(Config::create()->enable(RuleC::class, ['names' => ['y']]));
 	assert($rules[0] instanceof RuleC);
 	Assert::equal(['max' => 3, 'names' => ['y']], $rules[0]->options);
+});
+
+
+test('a map merges by key, a list and a scalar replace, and turning the rule off starts over', function () {
+	$options = function (Config $config): array {
+		foreach (resolve($config) as $rule) {
+			if ($rule instanceof RuleC) {
+				return $rule->options;
+			}
+		}
+
+		return [];
+	};
+
+	// a later layer changes what it names and leaves the rest of the layer below it alone
+	Assert::equal(
+		['max' => 7, 'names' => ['x']],
+		$options(Config::create()->preset(BasePreset::class)->enable(RuleC::class, ['max' => 7])),
+	);
+
+	// a list of the project replaces the list of the preset instead of extending it
+	Assert::equal(
+		['max' => 5, 'names' => ['y']],
+		$options(Config::create()->preset(BasePreset::class)->enable(RuleC::class, ['names' => ['y']])),
+	);
+	Assert::equal(
+		['max' => 5, 'names' => []],
+		$options(Config::create()->preset(BasePreset::class)->enable(RuleC::class, ['names' => []])),
+	);
+
+	// two layers naming the same key: the later one wins
+	Assert::equal(
+		['max' => 9, 'names' => ['x']],
+		$options(Config::create()->preset(BasePreset::class)->enable(RuleC::class, ['max' => 8])->enable(RuleC::class, ['max' => 9])),
+	);
+
+	// turning the rule off drops what was said before it, so what follows starts from the defaults
+	Assert::equal(
+		['max' => 3, 'names' => ['z']],
+		$options(Config::create()->preset(OffPreset::class)->enable(RuleC::class, ['names' => ['z']])),
+	);
+	Assert::same([], $options(Config::create()->preset(OffPreset::class)));
+});
+
+
+test('a nested map merges by key and a tuple of an union replaces', function () {
+	$options = function (Config $config): array {
+		$rules = resolve($config);
+		assert($rules[0] instanceof RuleNested);
+		return $rules[0]->options;
+	};
+
+	Assert::equal(
+		['naming' => ['classes' => 'PascalCase', 'except' => ['a']], 'blank' => [1, 2]],
+		$options(Config::create()->enable(RuleNested::class, ['naming' => ['except' => ['a']], 'blank' => [1, 2]])),
+	);
+
+	// the map of the second layer meets the map of the first key by key, the tuple replaces
+	Assert::equal(
+		['naming' => ['classes' => 'camelCase', 'except' => ['b']], 'blank' => [0, null]],
+		$options(Config::create()->preset(NestedPreset::class)->enable(RuleNested::class, ['naming' => ['except' => ['b']], 'blank' => [0, null]])),
+	);
+
+	// an int and a tuple are the two shapes of one option, and neither is merged with the other
+	Assert::equal(
+		['naming' => ['classes' => 'camelCase', 'except' => ['a']], 'blank' => 4],
+		$options(Config::create()->preset(NestedPreset::class)->enable(RuleNested::class, ['blank' => 4])),
+	);
+
+	// and the other way round, a tuple over a number
+	Assert::equal(
+		['naming' => ['classes' => 'PascalCase', 'except' => []], 'blank' => [2, 3]],
+		$options(Config::create()->enable(RuleNested::class, ['blank' => [2, 3]])),
+	);
 });
 
 
