@@ -1,0 +1,9 @@
+<?php
+// risky
+$a = array_keys($items) === range(0, count($items) - 1);
+$b = array_keys($items) !== range(0, count($items) - 1);
+$c = range(0, count($items) - 1) === array_keys($items);
+$d = array_keys($items) === range(0, count($other) - 1);
+$e = array_keys($items) === range(1, count($items) - 1);
+$f = array_keys($items) === range(0, count($items) - 2);
+$g = array_keys($items) === range(0, count($items));
