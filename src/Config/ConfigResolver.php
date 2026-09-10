@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{Config, ConfigurationException, Decision, DecisionKind, Plugin, Profile, Rule, RuleInfo, Value, Values};
-use DressCode\Domains\Words;
+use DressCode\Domains\{Map, Words};
 use PhpSyntax\SymbolKind;
 use function count, is_array, is_string;
 
@@ -149,7 +149,15 @@ final class ConfigResolver
 		$decisions = $resolver->resolve($decisionLayers);
 		$values = $resolver->createValues($decisions, $narrowed === null ? null : $this->collectSelection($narrowed));
 		foreach ($this->getCatalogue()->getDecisions() as $path => $decision) {
-			if ($decision->domain instanceof Words && $decision->domain->isWarning($values->get($path))) {
+			// a map the run is narrowed away from is refused where its entries are wrong all the same, no rule reading it
+			if (
+				$decision->domain instanceof Map
+				&& $decision->domain->grammar !== null
+				&& !$values->isKept($path)
+				&& !$values->isSelected($path)
+			) {
+				$values->readMap($path);
+			} elseif ($decision->domain instanceof Words && $decision->domain->isWarning($values->get($path))) {
 				$warnOnlyPaths[$path] = true;
 				$warningRules += array_fill_keys($decisions[$path]->rules, true);
 			}

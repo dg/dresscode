@@ -1,0 +1,14 @@
+<?php
+// {"libraries": {"replacedClasses": {"App\\Kind": "App\\Token"}}}
+
+namespace App;
+
+use App\Kind;
+
+class Service
+{
+	/**
+	 * @Choice(kind="primary", options={kind=1}, of=Kind::class)
+	 */
+	public ?Kind $kind = null;
+}

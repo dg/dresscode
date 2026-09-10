@@ -1,0 +1,30 @@
+<?php
+// {"libraries": {"replacedClasses": {"App\\Mailer\\SmtpMailer": "App\\Mail\\Mailer", "App\\Kind": "App\\Token", "App\\Obsolete": "App\\Missing"}}}
+
+namespace App;
+
+use App\Mail\Mailer;
+
+/**
+ * Sends what the mailer is given.
+ * @see Mailer::send()
+ * @see Token::Names
+ * @see
+ * SmtpMailer on the next line is text, not the target of the tag
+ */
+class Service
+{
+	/** @var list<Mailer>|list<Obsolete>  a class the project does not have is reported and left */
+	private array $mailers = [];
+
+
+	/**
+	 * @param  Token::*  $kind
+	 * @param  Mailer|\App\Mail\Mailer|null  $mailer
+	 * @return array<string, Mailer>  see {@link Mailer} and the text naming SmtpMailer
+	 */
+	public function create(int $kind, ?Mailer $mailer): array
+	{
+		return [];
+	}
+}
