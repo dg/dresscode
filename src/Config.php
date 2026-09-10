@@ -47,6 +47,9 @@ final class Config
 	/** @var array<string, list<string>>  rule name → patterns */
 	private array $ruleExcludePaths = [];
 
+	/** @var ?list<string>  names or classes of the rules that only warn */
+	private ?array $warnings = null;
+
 	/** @var ?list<string> */
 	private ?array $fileExtensions = null;
 
@@ -181,6 +184,18 @@ final class Config
 	}
 
 
+	/**
+	 * Rules that only warn: what they report is counted and printed, but the exit code stays clean unless
+	 * `--max-warnings` sets a threshold. Every rule is an error until a layer softens it.
+	 * @param list<string> $rules  names or classes
+	 */
+	public function warnings(array $rules): static
+	{
+		$this->warnings = $rules;
+		return $this;
+	}
+
+
 	/** @param list<string> $extensions  the extensions of the files to check, without a dot */
 	public function fileExtensions(array $extensions): static
 	{
@@ -273,6 +288,7 @@ final class Config
 			$this->ruleExcludePaths[$rule] = [...$this->ruleExcludePaths[$rule] ?? [], ...$patterns];
 		}
 
+		$this->warnings = $layer->warnings ?? $this->warnings;
 		$this->fileExtensions = $layer->fileExtensions ?? $this->fileExtensions;
 		$this->skipWhen = $layer->skipWhen ?? $this->skipWhen;
 		$this->baseline = $layer->baseline ?? $this->baseline;
@@ -436,6 +452,13 @@ final class Config
 	public function getRuleExcludePaths(): array
 	{
 		return $this->ruleExcludePaths;
+	}
+
+
+	/** @return list<string> */
+	public function getWarnings(): array
+	{
+		return $this->warnings ?? [];
 	}
 
 

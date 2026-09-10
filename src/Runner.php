@@ -50,6 +50,7 @@ final class Runner
 		Reporter $reporter,
 		?WorkerPool $workers = null,
 		?\Closure $onProgress = null,
+		?int $maxWarnings = null,
 	): RunResult
 	{
 		$reporter->start(count($files), $fix);
@@ -116,6 +117,7 @@ final class Runner
 			$fix,
 			baselined: $this->baseline?->countMatched() ?? 0,
 			warnings: $unused ? [sprintf('%d %s of the baseline no longer match a violation; regenerate it', $unused, $unused === 1 ? 'entry' : 'entries')] : [],
+			maxWarnings: $maxWarnings,
 		);
 		$reporter->finish($result);
 		return $result;

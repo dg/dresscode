@@ -113,6 +113,7 @@ final class RunnerFactory
 			detectEol: $eol === 'majority',
 			strict: $strict,
 			baseline: $baseline,
+			warningRules: $this->resolveWarnings($config),
 		);
 		return new Runner(
 			$processor,
@@ -168,6 +169,23 @@ final class RunnerFactory
 		foreach ($config->getRuleExcludePaths() as $rule => $patterns) {
 			$name = RuleInfo::of($this->registry->resolveRule($rule))->name;
 			$resolved[$name] = [...$resolved[$name] ?? [], ...$patterns];
+		}
+
+		return $resolved;
+	}
+
+
+	/**
+	 * The rules that only warn, under the names the engine asks by, so that a class stands for its rule and
+	 * a name no rule owns is an error instead of a line that quietly does nothing.
+	 * @return array<string, true>
+	 * @throws ConfigurationException
+	 */
+	private function resolveWarnings(Config $config): array
+	{
+		$resolved = [];
+		foreach ($config->getWarnings() as $rule) {
+			$resolved[RuleInfo::of($this->registry->resolveRule($rule))->name] = true;
 		}
 
 		return $resolved;

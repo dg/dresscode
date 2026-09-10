@@ -82,7 +82,7 @@ test('console: check lists every violation', function () {
 		src/fail.php
 		  Rule test/x failed in src/fail.php: boom
 
-		FAILED  2 violations, 1 of them fixable, 1 file with syntax errors, 1 file with failing rules in 3 of 4 files
+		FAILED  1 violation, 1 warning, 1 of them fixable, 1 file with syntax errors, 1 file with failing rules in 3 of 4 files
 
 		XX, normalize(capture(fn($s) => new ConsoleReporter($s), fix: false)));
 });
@@ -107,7 +107,7 @@ test('console: fix lists what is left and counts what it fixed', function () {
 		src/fail.php
 		  Rule test/x failed in src/fail.php: boom
 
-		FAILED  1 violation fixed, 1 remaining, 1 file with syntax errors, 1 file with failing rules in 3 of 4 files
+		FAILED  1 violation fixed, 1 warning, 1 file with syntax errors, 1 file with failing rules in 3 of 4 files
 
 		XX, normalize(capture(fn($s) => new ConsoleReporter($s, diff: true), fix: true)));
 });

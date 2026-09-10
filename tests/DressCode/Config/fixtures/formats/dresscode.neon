@@ -8,7 +8,7 @@ presets:
 rules:
 	dresscode/line-length: {maxLength: 160}
 	dresscode/strict-comparison: true
-	dresscode/no-yoda-comparison: false
+	dresscode/no-yoda-comparison: keep
 
 style:
 	indent: "\t"
@@ -19,6 +19,7 @@ paths: [src, tests]
 excludePaths: [build, docs/generated]
 excludeRulePaths:
 	dresscode/ordered-imports: [src/Legacy]
+warnings: [dresscode/line-length]
 fileExtensions: [php, phpt]
 baseline: dresscode-baseline.neon
 cacheDir: temp/dresscode

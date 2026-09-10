@@ -12,6 +12,7 @@ use DressCode\Rule;
 use DressCode\RuleContext;
 use DressCode\RuleException;
 use DressCode\RuleInfo;
+use DressCode\Severity;
 use DressCode\Stage;
 use DressCode\Violation;
 use PhpSyntax\Node;
@@ -81,6 +82,8 @@ final class PassRunner
 		private readonly bool $strict = false,
 		/** violations it knows are neither reported nor fixed */
 		private readonly ?Baseline $baseline = null,
+		/** @var array<string, true>  rules whose violations only warn */
+		private readonly array $warningRules = [],
 	) {
 		foreach (Stage::cases() as $stage) {
 			$this->stages[$stage->name] = [];
@@ -326,7 +329,8 @@ final class PassRunner
 				$message,
 				$line,
 				$trivia === null ? $this->findOriginalColumn($at) : null,
-				$severity,
+				// every rule is an error until the configuration softens it
+				isset($this->warningRules[$name]) ? Severity::Warning : $severity,
 				fixable: $after > $reportRevision,
 				followUp: $reportRevision > 0,
 				fingerprint: $fingerprint,

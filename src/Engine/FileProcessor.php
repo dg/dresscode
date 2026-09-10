@@ -40,6 +40,8 @@ final class FileProcessor
 		private readonly bool $strict = false,
 		/** violations it knows are neither reported nor fixed */
 		private readonly ?Baseline $baseline = null,
+		/** @var array<string, true>  rules whose violations only warn */
+		private readonly array $warningRules = [],
 	) {
 		$this->parser = new Parser;
 	}
@@ -75,7 +77,7 @@ final class FileProcessor
 					: new FileResult($path, $code, output: null, failure: "The fixed code no longer parses: {$e->getMessage()} on line $e->sourceLine.");
 			}
 
-			$runner = new PassRunner($rules ?? $this->rules, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline);
+			$runner = new PassRunner($rules ?? $this->rules, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline, $this->warningRules);
 			$result = $runner->run($file, $text, $path, $style, $this->phpVersion);
 			$first ??= $result;
 			$passes += $result->passes;

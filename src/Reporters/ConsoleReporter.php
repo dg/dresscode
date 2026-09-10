@@ -187,7 +187,8 @@ final class ConsoleReporter implements Reporter
 	private function formatVerdict(RunResult $result): string
 	{
 		$fixed = $this->fix ? $result->countFixable() : 0;
-		$remaining = $result->countViolations() - $fixed;
+		$remaining = $result->countRemaining(Severity::Error);
+		$warnings = $result->countRemaining(Severity::Warning);
 		$failures = $result->countFailures();
 		$affected = count(array_filter(
 			$result->files,
@@ -197,6 +198,7 @@ final class ConsoleReporter implements Reporter
 		$parts = array_filter([
 			$fixed ? self::plural($fixed, 'violation') . ' fixed' : null,
 			$remaining ? ($fixed ? "$remaining remaining" : self::plural($remaining, 'violation')) : null,
+			$warnings ? self::plural($warnings, 'warning') : null,
 			!$this->fix && $result->countFixable() ? $result->countFixable() . ' of them fixable' : null,
 			$result->countErrors() ? self::plural($result->countErrors(), 'file') . ' with syntax errors' : null,
 			$failures ? self::plural($failures, 'file') . ' with failing rules' : null,
@@ -206,7 +208,7 @@ final class ConsoleReporter implements Reporter
 		$state = match (true) {
 			$failures > 0 => 'FAILED',
 			$fixed > 0 => 'FIXED',
-			$remaining > 0 || $result->countErrors() > 0 => 'FOUND',
+			$remaining > 0 || $warnings > 0 || $result->countErrors() > 0 => 'FOUND',
 			default => 'OK',
 		};
 		$scope = $affected > 0 && $affected < $this->fileCount

@@ -60,6 +60,8 @@ final class Application
 		                            fix writes the result to stdout
 		  --generate-baseline       write the violations found into the configured baseline file
 		                            instead of reporting them (check only)
+		  --max-warnings <n>        exit with 1 when more than n warnings are left; without it any
+		                            number of them keeps the run clean
 		  --no-cache                process every file, even one whose content is known to be clean
 		  --jobs <n>                worker processes; by default the number of processors, at most one per four files; 1 runs in-process
 		  --strict-rules            a rule breaking its contract is an error, not a warning
@@ -247,8 +249,9 @@ final class Application
 			? null
 			: fn(int $done, array $running) => $progress->advance($done, $running);
 
+		$maxWarnings = $args['--max-warnings'] === null ? null : max(0, (int) $args['--max-warnings']);
 		try {
-			return $runner->run($files, $fix, $reporter, $workers, $onProgress)->getExitCode();
+			return $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings)->getExitCode();
 		} finally {
 			$progress?->finish(); // an error must not be written into the bar
 		}

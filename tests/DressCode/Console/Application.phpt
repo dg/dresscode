@@ -401,3 +401,37 @@ test('fix writes the files and reports what remains', function () use ($root) {
 		XX, $out);
 	Assert::same("<?php\n\$b;\n", file_get_contents("$root/src/a.php"));
 });
+
+
+test('exit codes: violations, warnings, the warning threshold, a syntax error and a failing rule', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");
+	$config = "<?php\nreturn DressCode\\Config::create()->enable(ConsoleRename::class)->enable(ConsoleReport::class)->paths(['src'])";
+	$write = fn(string $tail) => file_put_contents("$root/exit.php", "$config$tail;\n");
+	/** @param list<string> $args */
+	$run = fn(array $args = []) => runApp($root, array_values(['check', '--config', "$root/exit.php", '--no-cache', ...$args]))[0];
+
+	$write('');
+	Assert::same(1, $run()); // violations of both rules
+	Assert::same(1, runApp($root, ['fix', '--config', "$root/exit.php", '--no-cache'])[0]); // test/report fixes nothing
+	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+
+	// the same violations as warnings: reported, counted, and the exit code stays clean
+	$write('->warnings([ConsoleRename::class, ConsoleReport::class])');
+	[$code, $out] = runApp($root, ['check', '--config', "$root/exit.php", '--no-cache']);
+	Assert::same(0, $code);
+	Assert::match('%A%  warning  2:1  Rename $a  test/rename%A%FOUND  3 warnings, 1 of them fixable in 2 files%A%', $out);
+	Assert::same(0, $run(['--max-warnings', '3']));
+	Assert::same(1, $run(['--max-warnings', '2']));
+
+	// a rule left as an error decides the exit code whatever the threshold says
+	$write('->warnings([ConsoleReport::class])');
+	Assert::same(1, $run(['--max-warnings', '100']));
+
+	// a syntax error is 1 even when every rule only warns
+	$write('->warnings([ConsoleRename::class, ConsoleReport::class])');
+	file_put_contents("$root/src/broken.php", "<?php\n\$a = ;\n");
+	Assert::same(1, $run());
+	unlink("$root/src/broken.php");
+	Assert::same(0, $run());
+});

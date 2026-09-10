@@ -18,6 +18,8 @@ final readonly class RunResult
 		public int $baselined = 0,
 		/** @var list<string> about the run as a whole */
 		public array $warnings = [],
+		/** how many warnings the run tolerates before the exit code says so; null for any number */
+		public ?int $maxWarnings = null,
 	) {
 	}
 
@@ -58,15 +60,36 @@ final readonly class RunResult
 
 
 	/**
-	 * 0 when nothing is left to report, 1 when violations remain (after the fixes, in a fix run) or a file
-	 * could not be parsed, 2 when a rule failed.
+	 * Violations the run leaves to the user: all of them in a check, the ones no rule fixed in a fix.
+	 */
+	public function countRemaining(?Severity $severity = null): int
+	{
+		$count = 0;
+		foreach ($this->files as $file) {
+			foreach ($file->violations as $violation) {
+				if (
+					($severity === null || $violation->severity === $severity)
+					&& !($this->fix && $violation->fixable)
+				) {
+					$count++;
+				}
+			}
+		}
+
+		return $count;
+	}
+
+
+	/**
+	 * 0 when nothing is left to report, 1 when violations remain (after the fixes, in a fix run), a file
+	 * could not be parsed or the warnings passed the threshold, 2 when a rule failed.
 	 */
 	public function getExitCode(): int
 	{
-		$remaining = $this->fix ? $this->countViolations() - $this->countFixable() : $this->countViolations();
 		return match (true) {
 			$this->countFailures() > 0 => 2,
-			$remaining > 0 || $this->countErrors() > 0 => 1,
+			$this->countRemaining(Severity::Error) > 0 || $this->countErrors() > 0 => 1,
+			$this->maxWarnings !== null && $this->countRemaining(Severity::Warning) > $this->maxWarnings => 1,
 			default => 0,
 		};
 	}

@@ -10,6 +10,7 @@ use Nette\Schema\Elements\Structure;
 use Nette\Schema\Expect;
 use Nette\Schema\Processor;
 use Nette\Schema\ValidationException;
+use function is_string;
 
 
 /**
@@ -53,7 +54,8 @@ final class NeonReader
 		return Expect::structure([
 			'extensions' => Expect::listOf('string'),
 			'presets' => Expect::listOf('string'),
-			'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), Expect::arrayOf('mixed', 'string')), 'string'),
+			// keep is the word for "this decision enforces nothing"; false says the same in the PHP notation
+			'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), 'keep', Expect::arrayOf('mixed', 'string')), 'string'),
 			'style' => Expect::structure([
 				'indent' => Expect::anyOf(Expect::int(), Expect::string()),
 				'eol' => Expect::string(),
@@ -62,6 +64,7 @@ final class NeonReader
 			'paths' => Expect::listOf('string'),
 			'excludePaths' => Expect::listOf('string'),
 			'excludeRulePaths' => Expect::arrayOf(Expect::listOf('string'), 'string'),
+			'warnings' => Expect::listOf('string'),
 			'fileExtensions' => Expect::listOf('string'),
 			'baseline' => Expect::string(),
 			'cacheDir' => Expect::string(),
@@ -82,10 +85,14 @@ final class NeonReader
 			$config->preset($preset);
 		}
 
-		/** @var array<string, bool|array<string, mixed>> $rules */
+		/** @var array<string, bool|string|array<string, mixed>> $rules */
 		$rules = $data['rules'] ?? [];
 		foreach ($rules as $rule => $value) {
-			$value === false ? $config->disable($rule) : $config->enable($rule, $value);
+			if ($value === false || $value === 'keep') {
+				$config->disable($rule);
+			} else {
+				$config->enable($rule, is_string($value) ? true : $value);
+			}
 		}
 
 		/** @var array{indent: ?string, eol: ?string} $style */
@@ -105,6 +112,10 @@ final class NeonReader
 		$ruleExcludePaths = $data['excludeRulePaths'] ?? [];
 		foreach ($ruleExcludePaths as $rule => $patterns) {
 			$config->excludeRulePaths($rule, $patterns);
+		}
+
+		if (isset($data['warnings'])) {
+			$config->warnings(self::listOfStrings($data, 'warnings'));
 		}
 
 		if (isset($data['fileExtensions'])) {
