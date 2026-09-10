@@ -13,6 +13,8 @@ expressions:
 	backticks: forbidden                      # `shell_exec()`, PHP 8.5
 
 upgrading:
+	declarations:
+		deprecatedMember: replaced
 	php:
 		nullArrayKey: forbidden               # `['' => 1]`, not `[null => 1]`, PHP 8.5
 		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`, PHP 8.4

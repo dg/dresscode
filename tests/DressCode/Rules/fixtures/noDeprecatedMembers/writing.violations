@@ -1,0 +1,13 @@
+65: Property `Acme\Shop\Ledger::$narrow` is deprecated: use $wide.
+66: Constant `Acme\Shop\Ledger::LIMIT` is deprecated: use WIDE_LIMIT.
+73: Constant `Acme\Shop\Ledger::MAX` is deprecated: use MAX_ROWS.
+74: Property `Acme\Shop\Ledger::$rows` is deprecated: use $entries.
+75: Static property `Acme\Shop\Ledger::$last` is deprecated: use $next.
+76: Property `Acme\Shop\Ledger::$frozen` is deprecated: use $locked.
+77: Property `Acme\Shop\Ledger::$open` is deprecated: use $guarded.
+78: Property `Acme\Shop\Ledger::$mixed` is deprecated: use $shielded.
+79: Property `Acme\Shop\Ledger::$plain` is deprecated: use $viewed.
+80: Property `Acme\Shop\Ledger::$sum` is deprecated: use $total.
+81: Property `Acme\Shop\Ledger::$strict` is deprecated: use $loose.
+82: Property `Acme\Shop\Ledger::$sealedAlso` is deprecated: use $sealedToo.
+83: Property `Acme\Shop\Ledger::$outside` is deprecated: use $inside.

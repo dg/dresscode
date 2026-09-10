@@ -975,6 +975,7 @@ final readonly class Violation
 - `DressCode\Rules\Types\NullableTypeForDefaultNullRule`
 - `DressCode\Rules\Types\TypeDeclarationSpacingRule`
 - `DressCode\Rules\Types\TypeNotationRule`
+- `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedPhpCallsRule`
 - `DressCode\Rules\Variables\NoGlobalStatementsRule`
 - `DressCode\Rules\Variables\NoRepeatedAssignmentsRule`
