@@ -9,7 +9,7 @@ namespace DressCode\Analyses;
 
 use DressCode\Rules\QualifiedNames;
 use DressCode\Tristate;
-use PHPStan\Reflection\{ClassConstantReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection};
+use PHPStan\Reflection\{ClassConstantReflection, ClassMemberReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection};
 use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\{MixedType, Type, VerbosityLevel};
@@ -102,6 +102,26 @@ final class Declarations
 	}
 
 
+	public function canReplace(Member $member, string $name): bool
+	{
+		$class = $this->phpstan->findClass($member->declaringClass);
+		$own = $class === null ? null : self::findNativeMember($class, $member->kind, $member->name);
+		$replacement = $class === null ? null : self::findNativeMember($class, $member->kind, $name);
+		return $own !== null && $replacement !== null
+			&& self::rankVisibility($replacement, $class) >= self::rankVisibility($own, $class)
+			&& match ($member->kind) {
+				MemberKind::Constant => true,
+				MemberKind::Property,
+				MemberKind::StaticProperty => $replacement->isStatic() === ($member->kind === MemberKind::StaticProperty)
+					&& $own instanceof PhpPropertyReflection && $replacement instanceof PhpPropertyReflection
+					&& self::rankWriting($replacement) >= self::rankWriting($own)
+					&& $replacement->getNativeType()->equals($own->getNativeType()),
+				MemberKind::Constructor => false,
+				MemberKind::Method, MemberKind::StaticMethod => $this->canReplaceMethod($member, $name),
+			};
+	}
+
+
 	/** The member of that kind the class declares natively, itself or through an ancestor. */
 	public static function findNativeMember(
 		ClassReflection $class,
@@ -116,6 +136,59 @@ final class Declarations
 				: null,
 			MemberKind::Property, MemberKind::StaticProperty => $class->hasNativeProperty($name) ? $class->getNativeProperty($name) : null,
 		};
+	}
+
+
+	/** How widely the member of the class is seen: public, protected, private, and a private one of an ancestor least. */
+	private static function rankVisibility(ClassMemberReflection $member, ClassReflection $class): int
+	{
+		return match (true) {
+			$member->isPublic() => 3,
+			!$member->isPrivate() => 2,
+			$member->getDeclaringClass()->getName() === $class->getName() => 1,
+			default => 0,
+		};
+	}
+
+
+	/** How widely the property is written: nowhere outside its declaration, from its class, from it and its children, from anywhere. */
+	private static function rankWriting(PhpPropertyReflection $property): int
+	{
+		return match (true) {
+			$property->isReadOnly(),
+			$property->isReadOnlyByPhpDoc(),
+			!$property->isWritable(),
+			$property->hasHook('get') && !$property->hasHook('set') => 0,
+			$property->isPrivateSet() => 1,
+			$property->isProtectedSet() => 2,
+			default => 3,
+		};
+	}
+
+
+	/** Whether the method of that name takes every call of the method of the member the same way. */
+	private function canReplaceMethod(Member $member, string $name): bool
+	{
+		$ownStatic = $this->isStaticMethod($member->declaringClass, $member->name);
+		$old = $this->findMethodParameters($member->declaringClass, $member->name);
+		$new = $this->findMethodParameters($member->declaringClass, $name);
+		if ($old === null || $new === null || $ownStatic !== $this->isStaticMethod($member->declaringClass, $name)) {
+			return false;
+		}
+
+		foreach ($new as $i => $parameter) {
+			$replaced = $old[$i] ?? null;
+			if ($replaced === null ? !$parameter->optional : (
+				$parameter->name !== $replaced->name
+				|| $parameter->variadic !== $replaced->variadic
+				|| (!$parameter->optional && $replaced->optional)
+				|| !$parameter->canReplace($replaced)
+			)) {
+				return false;
+			}
+		}
+
+		return count($new) >= count($old);
 	}
 
 

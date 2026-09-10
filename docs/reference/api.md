@@ -101,6 +101,7 @@ final readonly class Parameter
 	public readonly bool $byReference
 	public readonly ?string $default
 	public function __construct(string $name, ?string $type = null, bool $optional = false, bool $variadic = false, bool $byReference = false, ?string $default = null)
+	public function canReplace(DressCode\Analyses\Parameter $other): bool
 ```
 
 ## `DressCode\Analyses\PassAnalysis`
@@ -173,6 +174,7 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function findOverriddenSignature(PhpSyntax\Nodes\Member\MethodNode $declaration): ?DressCode\Analyses\OverriddenSignature
 	public function findDeprecation(DressCode\Analyses\Member $member): ?DressCode\Analyses\Deprecation
 	public function isAbstract(DressCode\Analyses\Member $member): DressCode\Tristate
+	public function canReplace(DressCode\Analyses\Member $member, string $name): bool
 	public function findClassName(string $name): ?string
 	public function findFunctionName(string $name): ?string
 	public function isSubtype(string $class, string $ancestor): DressCode\Tristate
@@ -1015,6 +1017,7 @@ final readonly class Violation
 - `DressCode\Rules\Types\NullableTypeForDefaultNullRule`
 - `DressCode\Rules\Types\TypeDeclarationSpacingRule`
 - `DressCode\Rules\Types\TypeNotationRule`
+- `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedPhpCallsRule`
 - `DressCode\Rules\Variables\NoGlobalStatementsRule`
 - `DressCode\Rules\Variables\NoRepeatedAssignmentsRule`

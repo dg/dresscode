@@ -1,0 +1,84 @@
+<?php
+
+namespace Acme\Shop;
+
+class Base
+{
+	private function hidden(): void
+	{
+	}
+
+
+	protected function shielded(): void
+	{
+	}
+}
+
+
+class Cart extends Base
+{
+	/** @deprecated use MAX_ITEMS */
+	public const MAX = 10;
+	private const MAX_ITEMS = 10;
+
+	/** @deprecated use $entries */
+	protected array $lines = [];
+	private array $entries = [];
+
+
+	/** @deprecated use total() */
+	public function sum(): int
+	{
+		return 0;
+	}
+
+
+	private function total(): int
+	{
+		return 0;
+	}
+
+
+	/** @deprecated use count() */
+	public function size(): int
+	{
+		return 0;
+	}
+
+
+	public function count(): int
+	{
+		return 0;
+	}
+
+
+	/** @deprecated use hidden() */
+	private function conceal(): void
+	{
+		$this->conceal();
+	}
+
+
+	/** @deprecated use shielded() */
+	protected function guard(): void
+	{
+		$this->shielded();
+	}
+}
+
+
+function test(Cart $cart): void
+{
+	$cart->sum();
+	$a = Cart::MAX;
+	$cart->count();
+}
+
+
+class MyCart extends Cart
+{
+	public function test(): void
+	{
+		$a = $this->lines;
+	}
+}

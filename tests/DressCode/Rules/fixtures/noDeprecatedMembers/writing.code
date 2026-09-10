@@ -1,0 +1,84 @@
+<?php
+
+namespace Acme\Shop;
+
+class Ledger
+{
+	/** @deprecated use MAX_ROWS */
+	public const MAX = 10;
+	public const MAX_ROWS = 10;
+
+	/** @deprecated use WIDE_LIMIT */
+	protected const LIMIT = 10;
+	public const WIDE_LIMIT = 10;
+
+	/** @deprecated use $entries */
+	public array $rows = [];
+	public array $entries = [];
+
+	/** @deprecated use $wide */
+	protected array $narrow = [];
+	public array $wide = [];
+
+	/** @deprecated use $next */
+	public static int $last = 0;
+	public static int $next = 0;
+
+	/** @deprecated use $locked */
+	public array $frozen = [];
+	public readonly array $locked;
+
+	/** @deprecated use $guarded */
+	public array $open = [];
+	public private(set) array $guarded = [];
+
+	/** @deprecated use $shielded */
+	public array $mixed = [];
+	public protected(set) array $shielded = [];
+
+	/** @deprecated use $viewed */
+	public array $plain = [];
+	public array $viewed { get => []; }
+
+	/** @deprecated use $total */
+	public int $sum = 0;
+	public ?int $total = 0;
+
+	/** @deprecated use $loose */
+	public int $strict = 0;
+	public $loose = 0;
+
+	/** @deprecated use $sealedToo */
+	public readonly array $sealedAlso;
+	public readonly array $sealedToo;
+
+	/** @deprecated use $inside */
+	public private(set) array $outside = [];
+	public protected(set) array $inside = [];
+}
+
+
+class Branch extends Ledger
+{
+	public function test(): void
+	{
+		$this->narrow;
+		static::LIMIT;
+	}
+}
+
+
+function test(Ledger $ledger): void
+{
+	$ledger::MAX;
+	$ledger->rows;
+	Ledger::$last;
+	$ledger->frozen;
+	$ledger->open;
+	$ledger->mixed;
+	$ledger->plain;
+	$ledger->sum;
+	$ledger->strict;
+	$ledger->sealedAlso;
+	$ledger->outside;
+}

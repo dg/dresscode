@@ -1,7 +1,8 @@
 <?php declare(strict_types=1);
 
 /**
- * The catalog of the parameters of the functions PHP declares.
+ * The catalog of the parameters of the functions PHP declares, and the question a replacement of a call asks
+ * of it: may an argument written for one parameter stand at the other one.
  */
 
 use DressCode\Analyses\{Parameter, PhpSignatures};
@@ -36,6 +37,7 @@ test('the shapes a parameter comes in', function () use ($parametersOf) {
 	Assert::true($parametersOf('preg_match')[2]->byReference);
 	Assert::true($parametersOf('sprintf')[1]->variadic);
 	Assert::null($parametersOf('array_key_exists')[0]->type, 'an untyped parameter');
+	Assert::true($parametersOf('array_key_exists')[0]->canReplace($string), 'takes anything');
 
 	Assert::false($string->optional);
 	Assert::true($length->optional);
@@ -48,4 +50,24 @@ test('a function without parameters and one the catalog does not hold', function
 	Assert::same([], $signatures->findParameters('time'));
 	Assert::null($signatures->findParameters('apache_request_headers'), 'an extension the source cannot see');
 	Assert::null($signatures->findParameters('myOwnFunction'));
+});
+
+
+test('an argument written for one parameter standing at another', function () {
+	$int = new Parameter('offset', 'int');
+	$nullableInt = new Parameter('length', '?int');
+	$string = new Parameter('encoding', 'string|null');
+	$mixed = new Parameter('value', 'mixed');
+	$float = new Parameter('num', 'float');
+
+	Assert::true($int->canReplace(new Parameter('start', 'int')), 'the same type under another name');
+	Assert::true($nullableInt->canReplace($int), 'a wider type');
+	Assert::false($int->canReplace($nullableInt), 'a narrower one');
+	Assert::false($string->canReplace($int), 'an unrelated one');
+	Assert::true($mixed->canReplace($string), 'mixed takes everything');
+	Assert::false($string->canReplace($mixed));
+	Assert::true($float->canReplace($int), 'PHP passes an int where a float is declared');
+
+	Assert::false($int->canReplace(new Parameter('offset', 'int', byReference: true)), 'the argument is taken another way');
+	Assert::true(new Parameter('matches', 'mixed', byReference: true)->canReplace(new Parameter('m', 'array', byReference: true)));
 });
