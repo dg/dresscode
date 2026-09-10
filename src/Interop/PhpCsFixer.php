@@ -51,18 +51,18 @@ final class PhpCsFixer
 					'alignment' => $default === 'single_space' ? 'none' : 'spaces',
 				]);
 			},
-			'blank_line_after_namespace' => fn(array $o, Translation $t) => $t->enable('dresscode/header-blank-lines', ['afterNamespace' => 1]),
-			'blank_line_after_opening_tag' => fn(array $o, Translation $t) => $t->enable('dresscode/header-blank-lines', ['afterOpeningTag' => 1]),
+			'blank_line_after_namespace' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', ['afterNamespace' => 1]),
+			'blank_line_after_opening_tag' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', ['afterOpeningTag' => 1]),
 			'blank_line_before_statement' => function (array $o, Translation $t) {
 				$statements = $o['statements'] ?? ['break', 'continue', 'declare', 'return', 'throw', 'try'];
 				$supported = ['break', 'continue', 'do', 'for', 'foreach', 'if', 'return', 'switch', 'throw', 'try', 'while', 'yield'];
 				foreach (array_diff($statements, $supported) as $statement) {
 					$t->warn("blank_line_before_statement with $statement has no equivalent, DressCode knows no such statement kind");
 				}
-				$t->enable('dresscode/statement-blank-lines', ['before' => array_fill_keys(array_intersect($statements, $supported), [1, null])]);
+				$t->enable('dresscode/blank-lines', ['before' => array_fill_keys(array_intersect($statements, $supported), [1, null])]);
 			},
-			'blank_line_between_import_groups' => fn(array $o, Translation $t) => $t->enable('dresscode/header-blank-lines', ['betweenImportGroups' => 1]),
-			'blank_lines_before_namespace' => fn(array $o, Translation $t) => $t->enable('dresscode/header-blank-lines', [
+			'blank_line_between_import_groups' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', ['betweenImportGroups' => 1]),
+			'blank_lines_before_namespace' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', [
 				'beforeNamespace' => max(0, ($o['min_line_breaks'] ?? 2) - 1),
 			]),
 			'braces_position' => fn(array $o, Translation $t) => $t->enable('dresscode/braces-position', [
@@ -149,14 +149,14 @@ final class PhpCsFixer
 			'native_constant_invocation' => fn(array $o, Translation $t) => $t->enable('dresscode/global-imports', ['constants' => 'backslash']),
 			'no_alias_functions' => fn(array $o, Translation $t) => $t->enable('dresscode/no-alias-functions', array_filter(['sets' => $o['sets'] ?? null], fn($v) => $v !== null)),
 			'no_alternative_syntax' => 'dresscode/no-alternative-syntax',
-			'no_blank_lines_after_class_opening' => 'dresscode/declaration-blank-lines',
-			'no_blank_lines_after_phpdoc' => fn(array $o, Translation $t) => $t->enable('dresscode/declaration-blank-lines', ['afterPhpDoc' => 0]),
+			'no_blank_lines_after_class_opening' => 'dresscode/blank-lines',
+			'no_blank_lines_after_phpdoc' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', ['afterPhpDoc' => 0]),
 			'no_break_comment' => fn(array $o, Translation $t) => $t->enable('dresscode/fall-through-comment', array_filter(['comment' => $o['comment_text'] ?? null], fn($v) => $v !== null)),
 			'no_closing_tag' => 'dresscode/no-closing-tag',
 			'no_empty_comment' => 'dresscode/no-empty-comment',
 			'no_empty_phpdoc' => 'dresscode/no-empty-phpdoc',
 			'no_empty_statement' => 'dresscode/no-empty-statement',
-			'no_extra_blank_lines' => 'dresscode/header-blank-lines',
+			'no_extra_blank_lines' => 'dresscode/blank-lines',
 			'no_leading_import_slash' => 'dresscode/no-leading-backslash-in-import',
 			'no_leading_namespace_whitespace' => 'dresscode/indentation',
 			'no_multiple_statements_per_line' => 'dresscode/single-statement-per-line',
@@ -262,7 +262,7 @@ final class PhpCsFixer
 				'members' => array_values(array_map(fn(string $e) => $e === 'const' ? 'constant' : $e, $o['elements'] ?? ['const', 'property'])),
 			]),
 			'single_import_per_statement' => fn(array $o, Translation $t) => $t->enable('dresscode/import-notation', ($o['group_to_single_imports'] ?? true) ? [] : ['groupUse' => 'keep']),
-			'single_line_after_imports' => 'dresscode/header-blank-lines',
+			'single_line_after_imports' => 'dresscode/blank-lines',
 			'single_line_comment_spacing' => 'dresscode/comment-spacing',
 			'single_line_comment_style' => fn(array $o, Translation $t) => in_array('hash', $o['comment_types'] ?? ['asterisk', 'hash'], true)
 				? $t->enable('dresscode/no-hash-comment')

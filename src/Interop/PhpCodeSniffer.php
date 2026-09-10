@@ -56,7 +56,7 @@ final class PhpCodeSniffer
 				$t->enable('dresscode/indentation');
 			},
 			'PSR1.Methods.CamelCapsMethodName' => fn(array $o, Translation $t) => $t->enable('dresscode/name-casing', ['methods' => 'camelCase']),
-			'PSR12.Files.FileHeader' => 'dresscode/header-blank-lines',
+			'PSR12.Files.FileHeader' => 'dresscode/blank-lines',
 			'PSR2.Classes.ClassDeclaration' => 'dresscode/braces-position',
 			'PSR2.Classes.ClassDeclaration.SpaceBeforeKeyword' => 'dresscode/class-definition-spacing',
 			'PSR2.Classes.PropertyDeclaration' => 'dresscode/visibility-required',
@@ -66,25 +66,25 @@ final class PhpCodeSniffer
 			'PSR2.Files.ClosingTag' => 'dresscode/no-closing-tag',
 			'PSR2.Files.EndFileNewline' => 'dresscode/eof-newline',
 			'PSR2.Namespaces.NamespaceDeclaration' => 'dresscode/indentation',
-			'PSR2.Namespaces.UseDeclaration' => 'dresscode/header-blank-lines',
+			'PSR2.Namespaces.UseDeclaration' => 'dresscode/blank-lines',
 			'SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement' => 'dresscode/indentation',
 			'SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace' => 'dresscode/array-spacing',
 			'SlevomatCodingStandard.Arrays.TrailingArrayComma' => fn(array $o, Translation $t) => $t->enable('dresscode/trailing-comma', ['multiLine' => ['arrays'], 'singleLine' => false]),
-			'SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/declaration-blank-lines', ['afterPhpDoc' => $o['linesCountBetweenAttributeAndTarget'] ?? 0]),
+			'SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', ['afterPhpDoc' => $o['linesCountBetweenAttributeAndTarget'] ?? 0]),
 			'SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine' => 'dresscode/attribute-position',
 			'SlevomatCodingStandard.Attributes.RequireAttributeAfterDocComment' => 'dresscode/attribute-after-phpdoc',
 			'SlevomatCodingStandard.Classes.BackedEnumTypeSpacing' => 'dresscode/type-hint-spacing',
 			'SlevomatCodingStandard.Classes.ClassConstantVisibility' => 'dresscode/visibility-required',
-			'SlevomatCodingStandard.Classes.ConstantSpacing' => 'dresscode/declaration-blank-lines',
+			'SlevomatCodingStandard.Classes.ConstantSpacing' => 'dresscode/blank-lines',
 			'SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition' => fn(array $o, Translation $t) => $t->enable('dresscode/single-member-per-declaration', ['members' => ['constant']]),
 			'SlevomatCodingStandard.Classes.DisallowMultiPropertyDefinition' => fn(array $o, Translation $t) => $t->enable('dresscode/single-member-per-declaration', ['members' => ['property']]),
-			'SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces' => fn(array $o, Translation $t) => $t->enable('dresscode/declaration-blank-lines', [
-				'afterOpeningBrace' => $o['linesCountAfterOpeningBrace'] ?? 1,
-				'beforeClosingBrace' => $o['linesCountBeforeClosingBrace'] ?? 1,
+			'SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', [
+				'afterClassBrace' => $o['linesCountAfterOpeningBrace'] ?? 1,
+				'beforeClassBrace' => $o['linesCountBeforeClosingBrace'] ?? 1,
 			]),
 			'SlevomatCodingStandard.Classes.ModernClassNameReference' => fn(array $o, Translation $t) => $t->enable('dresscode/modern-class-name-reference', ['onObjects' => $o['enableOnObjects'] ?? false]),
 			'SlevomatCodingStandard.Classes.PropertyDeclaration' => 'dresscode/visibility-required',
-			'SlevomatCodingStandard.Classes.PropertySpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/declaration-blank-lines', [
+			'SlevomatCodingStandard.Classes.PropertySpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', [
 				'betweenMembers' => [0, $o['maxLinesCountBeforeWithoutComment'] ?? 1],
 				'beforeDocumentedMember' => [0, $o['maxLinesCountBeforeWithComment'] ?? 1],
 			]),
@@ -97,7 +97,7 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.Classes.SuperfluousInterfaceNaming' => fn(array $o, Translation $t) => $t->enable('dresscode/kind-in-class-name', ['kind' => 'forbidden']),
 			'SlevomatCodingStandard.Classes.SuperfluousTraitNaming' => fn(array $o, Translation $t) => $t->enable('dresscode/kind-in-class-name', ['kind' => 'forbidden']),
 			'SlevomatCodingStandard.Classes.TraitUseDeclaration' => fn(array $o, Translation $t) => $t->enable('dresscode/single-member-per-declaration', ['members' => ['trait']]),
-			'SlevomatCodingStandard.Classes.TraitUseSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/declaration-blank-lines', [
+			'SlevomatCodingStandard.Classes.TraitUseSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', [
 				'betweenTraitUses' => $o['linesCountBetweenUses'] ?? 0,
 				'afterTraitUses' => $o['linesCountAfterLastUse'] ?? 1,
 			]),
@@ -113,7 +113,7 @@ final class PhpCodeSniffer
 				'traversableTypeHints' => $o['traversableTypeHints'] ?? null,
 			], fn($v) => $v !== null)),
 			'SlevomatCodingStandard.Commenting.UselessInheritDocComment' => 'dresscode/useless-inheritdoc',
-			'SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/statement-blank-lines', [
+			'SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', [
 				'before' => array_fill_keys($o['controlStructures'] ?? ['if', 'do', 'while', 'for', 'foreach', 'switch', 'try'], $o['linesCountBefore'] ?? 1),
 				'after' => array_fill_keys($o['controlStructures'] ?? ['if', 'do', 'while', 'for', 'foreach', 'switch', 'try'], $o['linesCountAfter'] ?? 1),
 			]),
@@ -123,7 +123,7 @@ final class PhpCodeSniffer
 				$t->enable('dresscode/early-exit', ['minStatements' => ($o['ignoreTrailingIfWithOneInstruction'] ?? false) ? 2 : 1]);
 				$t->enable('dresscode/useless-else', ['elseif' => true]);
 			},
-			'SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/statement-blank-lines', [
+			'SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', [
 				'before' => array_fill_keys(array_intersect($o['jumpStatements'] ?? ['break', 'continue', 'return', 'throw', 'yield'], ['break', 'continue', 'return', 'throw', 'yield']), $o['linesCountBefore'] ?? 1),
 				'after' => array_fill_keys(array_intersect($o['jumpStatements'] ?? ['break', 'continue', 'return', 'throw', 'yield'], ['break', 'continue', 'return', 'throw', 'yield']), $o['linesCountAfter'] ?? 1),
 			]),
@@ -248,12 +248,12 @@ final class PhpCodeSniffer
 			'Squiz.Strings.DoubleQuoteUsage' => 'dresscode/single-quoted-strings',
 			'Squiz.Strings.EchoedStrings' => 'dresscode/useless-construct-parentheses',
 			'Squiz.WhiteSpace.CastSpacing' => 'dresscode/cast-canonical-type',
-			'Squiz.WhiteSpace.ControlStructureSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/body-blank-lines', ['beforeClosingBrace' => true]),
-			'Squiz.WhiteSpace.FunctionOpeningBraceSpace' => 'dresscode/body-blank-lines',
-			'Squiz.WhiteSpace.FunctionSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/declaration-blank-lines', [
+			'Squiz.WhiteSpace.ControlStructureSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', ['beforeBlockBrace' => 0]),
+			'Squiz.WhiteSpace.FunctionOpeningBraceSpace' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', ['afterBlockBrace' => 0]),
+			'Squiz.WhiteSpace.FunctionSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', [
 				'betweenFunctions' => $o['spacing'] ?? 2,
-				'beforeFirst' => $o['spacingBeforeFirst'] ?? 2,
-				'afterLast' => $o['spacingAfterLast'] ?? 2,
+				'beforeFirstFunction' => $o['spacingBeforeFirst'] ?? 2,
+				'afterLastFunction' => $o['spacingAfterLast'] ?? 2,
 			]),
 			'Squiz.WhiteSpace.LogicalOperatorSpacing' => 'dresscode/binary-operator-spacing',
 			'Squiz.WhiteSpace.ObjectOperatorSpacing' => 'dresscode/object-operator-spacing',

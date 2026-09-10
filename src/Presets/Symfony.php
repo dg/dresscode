@@ -57,13 +57,13 @@ final class Symfony implements Preset
 			'phpdoc-trim' => true,
 
 			// blank lines
-			'header-blank-lines' => true,
-			'declaration-blank-lines' => [
-				'betweenFunctions' => 1, 'betweenFunctionsInInterface' => 1, 'beforeFirst' => 0, 'afterLast' => 0,
-				'afterOpeningBrace' => 0, 'beforeClosingBrace' => 0, 'betweenTraitUses' => 'keep',
+
+			'blank-lines' => [
+				'betweenFunctions' => 1, 'betweenFunctionsInInterface' => 1, 'beforeFirstFunction' => 0, 'afterLastFunction' => 0,
+				'afterClassBrace' => 0, 'beforeClassBrace' => 0, 'betweenTraitUses' => 'keep',
 				'afterTraitUses' => 'keep', 'betweenMembers' => 'keep', 'beforeDocumentedMember' => 'keep', 'afterPhpDoc' => 0,
+				'before' => ['return' => [1, null]],
 			],
-			'statement-blank-lines' => ['before' => ['return' => [1, null]]],
 
 			// the whitespace of a line
 			'array-spacing' => true,

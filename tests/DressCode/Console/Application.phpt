@@ -207,7 +207,7 @@ test('import translates a foreign configuration and says what it could not', fun
 		. "use DressCode\\Config;\n\n"
 		. "return Config::create()\n"
 		. "\t->preset('dresscode/psr12')\n"
-		. "\t->enable('dresscode/declaration-blank-lines', ['betweenFunctions' => 1, 'beforeFirst' => 0, 'afterLast' => 0])\n"
+		. "\t->enable('dresscode/blank-lines', ['betweenFunctions' => 1, 'beforeFirstFunction' => 0, 'afterLastFunction' => 0])\n"
 		. "\t->enable('dresscode/trailing-comma', ['multiLine' => ['arrays', 'arguments'], 'singleLine' => false]);\n",
 		$out,
 	);

@@ -35,7 +35,6 @@ final class Psr12 implements Preset
 			'name-casing' => ['classes' => 'PascalCase', 'methods' => 'camelCase', 'constants' => 'UPPER_CASE'],
 
 			// 3. Declare statements, namespace and import statements
-			'header-blank-lines' => true,
 			'ordered-imports' => ['order' => 'byKind'],
 			'no-leading-backslash-in-import' => true,
 			'declare-spacing' => true,
@@ -44,9 +43,12 @@ final class Psr12 implements Preset
 			'new-argument-parentheses' => ['anonymousClasses' => 'keep'],
 			'class-definition-spacing' => true,
 			'braces-position' => ['singleLineAnonymousFunctions' => 'expanded'],
-			'declaration-blank-lines' => [
+			// PSR-12 asks for blank lines in the header and none between the members it names; what it says
+			// nothing about is left as it is
+			'blank-lines' => [
 				'betweenFunctions' => 'keep', 'betweenFunctionsInInterface' => 'keep',
 				'betweenMembers' => 'keep', 'beforeDocumentedMember' => 'keep', 'afterPhpDoc' => 'keep',
+				'afterBlockBrace' => 'keep', 'before' => [],
 			],
 			'ordered-members' => ['order' => ['use_trait']],
 			'visibility-required' => true,

@@ -36,34 +36,25 @@ function interplay(array $rules, string $code, ?string $expected = null): void
 }
 
 
-test('statement-blank-lines never adds before the first statement of a block, which body-blank-lines trims', function () {
+test('the areas of blank-lines never pull against one another', function () {
+	// the first statement of a block gets no blank line before it: that gap belongs to the brace
 	interplay([
-		Rules\Whitespace\StatementBlankLinesRule::class => true,
-		Rules\Whitespace\BodyBlankLinesRule::class => true,
+		Rules\Whitespace\BlankLinesRule::class => ['afterOpeningTag' => 'keep'],
 	], "<?php\nfunction f()\n{\n\n\treturn 1;\n}\n", "<?php\nfunction f()\n{\n\treturn 1;\n}\n");
-});
 
-
-test('statement-blank-lines leaves a nested declaration to declaration-blank-lines', function () {
+	// a declaration nested in a body is a declaration, not a statement of a kind
 	interplay([
-		Rules\Whitespace\StatementBlankLinesRule::class => ['after' => ['if' => 1]],
-		Rules\Whitespace\DeclarationBlankLinesRule::class => true,
+		Rules\Whitespace\BlankLinesRule::class => ['afterOpeningTag' => 'keep', 'after' => ['if' => 1]],
 	], "<?php\nfunction f()\n{\n\tif (\$x) {\n\t}\n\tfunction g()\n\t{\n\t}\n}\n", "<?php\nfunction f()\n{\n\tif (\$x) {\n\t}\n\n\n\tfunction g()\n\t{\n\t}\n}\n");
-});
 
-
-test('statement-blank-lines leaves the statement after the imports to header-blank-lines', function () {
+	// the statement after the imports is the header's business, whatever its kind asks for
 	interplay([
-		Rules\Whitespace\StatementBlankLinesRule::class => ['before' => ['if' => 0]],
-		Rules\Files\HeaderBlankLinesRule::class => true,
+		Rules\Whitespace\BlankLinesRule::class => ['before' => ['if' => 0]],
 	], "<?php\n\nuse A;\n\nif (\$x) {\n}\n");
-});
 
-
-test('header-blank-lines and declaration-blank-lines meet on a function after the imports, and the claim naming the file wins', function () {
+	// and so is a function after them, where the header and the declarations meet
 	interplay([
-		Rules\Files\HeaderBlankLinesRule::class => true,
-		Rules\Whitespace\DeclarationBlankLinesRule::class => true,
+		Rules\Whitespace\BlankLinesRule::class => true,
 	], "<?php\n\nuse A;\n\n\nfunction f()\n{\n}\n", "<?php\n\nuse A;\n\nfunction f()\n{\n}\n");
 });
 

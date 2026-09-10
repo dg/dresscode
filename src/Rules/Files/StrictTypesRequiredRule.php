@@ -22,7 +22,7 @@ use function array_slice;
 /**
  * Every file of PHP code declares `strict_types=1` as its first statement, on the line after the opening
  * tag or on the line of the tag itself. A missing declaration is added right after the tag and whatever
- * followed the tag stays with the code below; the blank lines around belong to dresscode/header-blank-lines.
+ * followed the tag stays with the code below; the blank lines around belong to dresscode/blank-lines.
  * A file starting with markup is left alone, because PHP refuses the declaration there.
  */
 #[RuleInfo(
@@ -39,7 +39,7 @@ final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 	{
 		return Expect::structure([
 			'placement' => Expect::anyOf('ownLine', 'openingTagLine')->default('ownLine')
-				->description('ownLine puts the declaration on the line after the opening tag, openingTagLine on the line of the tag, which needs afterOpeningTag of dresscode/header-blank-lines set to null'),
+				->description('ownLine puts the declaration on the line after the opening tag, openingTagLine on the line of the tag, which needs afterOpeningTag of dresscode/blank-lines set to keep'),
 		]);
 	}
 

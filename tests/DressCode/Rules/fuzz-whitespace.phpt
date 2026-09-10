@@ -392,13 +392,12 @@ $resolver = new PresetResolver($registry);
 $config = Config::create()
 	->preset(Per::class)
 	// PER says nothing about blank lines, and a range as a count would leave the fixpoint ambiguous
-	->enable('dresscode/declaration-blank-lines', [
-		'betweenFunctions' => 2, 'betweenFunctionsInInterface' => 1, 'beforeFirst' => 0, 'afterLast' => 0,
-		'afterOpeningBrace' => 0, 'beforeClosingBrace' => 0, 'betweenTraitUses' => 0, 'afterTraitUses' => 1,
+	->enable('dresscode/blank-lines', [
+		'betweenFunctions' => 2, 'betweenFunctionsInInterface' => 1, 'beforeFirstFunction' => 0, 'afterLastFunction' => 0,
+		'afterClassBrace' => 0, 'beforeClassBrace' => 0, 'betweenTraitUses' => 0, 'afterTraitUses' => 1,
 		'betweenMembers' => 1, 'beforeDocumentedMember' => 1, 'afterPhpDoc' => 0,
-	])
-	->enable('dresscode/statement-blank-lines', ['before' => ['return' => 1]])
-	->enable('dresscode/body-blank-lines', ['beforeClosingBrace' => true]);
+		'before' => ['return' => 1], 'afterBlockBrace' => 0, 'beforeBlockBrace' => 0,
+	]);
 // PER leaves some gaps to taste and some to nobody; the damage can only be undone where a rule governs
 // the gap exactly, so every spacing rule of the catalogue is on, with its exact choice where it has one
 foreach (array_keys($registry->getRules()) as $name) {

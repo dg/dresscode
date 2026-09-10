@@ -25,16 +25,11 @@ final class NetteStyle implements Preset
 
 			// the header: imports in one block, one blank line between the blocks and before a statement that follows
 			// them, two before a declaration
-			'header-blank-lines' => [
+			'blank-lines' => [
 				'beforeNamespace' => 1, 'afterOpeningTag' => 'keep', 'afterNamespace' => 1, 'afterImports' => 1, 'betweenImportGroups' => 0, 'beforeDeclaration' => 2,
-			],
-
-			// blank lines: two between methods, none inside a body's braces
-			'declaration-blank-lines' => [
 				'betweenFunctions' => 2, 'betweenFunctionsInInterface' => 1, 'betweenMembers' => [0, 1],
-				'beforeDocumentedMember' => 1, 'afterPhpDoc' => 0,
+				'beforeDocumentedMember' => 1, 'afterPhpDoc' => 0, 'afterBlockBrace' => 0,
 			],
-			'body-blank-lines' => true,
 
 			// the whitespace of a line: exactly one space around a ternary, a tab may align commas, a space after the
 			// slashes of a comment

@@ -8,7 +8,7 @@ coding standard, not the whole of it: what no rule covers is not here.
 - Line ending: the one each file mostly has
 - Written for PHP 8.4
 
-152 rules are enforced.
+150 rules are enforced.
 
 ## Arrays
 
@@ -427,13 +427,6 @@ Removes the closing tag at the end of the file.
 Removes whitespace at the end of lines.
 
 
-### dresscode/header-blank-lines
-
-Puts a fixed number of blank lines around the blocks of the file header.
-
-As this project has it: `beforeNamespace`: `1`, `afterOpeningTag`: `keep`, `afterNamespace`: `1`, `afterImports`: `1`, `betweenImportGroups`: `0`, `beforeDeclaration`: `2`.
-
-
 ### dresscode/declare-spacing
 
 Removes whitespace inside a declare statement.
@@ -839,11 +832,11 @@ Positions the braces of classes, functions and control structures, and the keywo
 As this project has it: `singleLineAnonymousFunctions`: `allowed`, `emptyBodies`: `ownLine`, `multiLineParameters`: `nextLineAfterReturnType`.
 
 
-### dresscode/declaration-blank-lines
+### dresscode/blank-lines
 
-Normalizes blank lines between declarations, around the class braces and after a doc comment.
+Puts blank lines where the standard asks for them, in the header, the class, the block and between statements.
 
-As this project has it: `betweenFunctions`: `2`, `betweenFunctionsInInterface`: `1`, `betweenMembers`: `[0,1]`, `beforeDocumentedMember`: `1`, `afterPhpDoc`: `0`.
+As this project has it: `betweenFunctions`: `2`, `betweenFunctionsInInterface`: `1`, `betweenMembers`: `[0,1]`, `beforeDocumentedMember`: `1`, `afterPhpDoc`: `0`, `afterBlockBrace`: `0`, `before`: `[]`, `beforeNamespace`: `1`, `afterOpeningTag`: `keep`, `afterNamespace`: `1`, `afterImports`: `1`, `betweenImportGroups`: `0`, `beforeDeclaration`: `2`.
 
 
 ### dresscode/parentheses-spacing
@@ -890,9 +883,4 @@ Removes whitespace inside the brackets of an attribute group.
 ### dresscode/attribute-position
 
 Puts the attributes of a declaration on lines of their own above it.
-
-
-### dresscode/body-blank-lines
-
-Removes the blank line after the opening brace of a block.
 

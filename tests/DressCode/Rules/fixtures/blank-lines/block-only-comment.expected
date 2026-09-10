@@ -1,0 +1,11 @@
+<?php
+
+// a branch whose body is a comment keeps the blank line the branch after it would keep anyway
+if ($a) {
+	// injected value
+
+} elseif ($b) {
+	x();
+
+} else {
+}
