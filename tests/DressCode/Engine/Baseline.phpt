@@ -116,16 +116,16 @@ test('knows the violations of a file and counts the matched and the unused entri
 test('invalid files', function () use ($dir) {
 	Assert::null(Baseline::load("$dir/none.neon")); // before the first generation
 	file_put_contents("$dir/broken.neon", "files:\n\t- a\n  - b\n");
-	Assert::exception(fn() => Baseline::load("$dir/broken.neon"), ConfigurationException::class, 'The baseline file %a% is not valid NEON: %a%');
+	Assert::exception(fn() => Baseline::load("$dir/broken.neon"), ConfigurationException::class, 'Baseline file %a% is not valid NEON: %a%');
 	file_put_contents("$dir/shape.neon", "files:\n\ta.php:\n\t\t- {rule: 1}\n");
-	Assert::exception(fn() => Baseline::load("$dir/shape.neon"), ConfigurationException::class, 'The baseline file %a% has an unexpected shape.');
+	Assert::exception(fn() => Baseline::load("$dir/shape.neon"), ConfigurationException::class, 'Baseline file %a% has an unexpected shape.');
 	file_put_contents("$dir/empty.neon", '');
 	Assert::same(0, Baseline::load("$dir/empty.neon")?->count());
 
 	// the name says the format, so it is judged whether the file exists or not
 	file_put_contents("$dir/wrong.json", '{}');
-	$message = 'The baseline file %a%wrong.json must be a .neon or a .php file.';
+	$message = 'Baseline file %a%wrong.json must be a .neon or a .php file.';
 	Assert::exception(fn() => Baseline::load("$dir/wrong.json"), ConfigurationException::class, $message);
-	Assert::exception(fn() => Baseline::load("$dir/missing.json"), ConfigurationException::class, 'The baseline file %a%missing.json must be a .neon or a .php file.');
+	Assert::exception(fn() => Baseline::load("$dir/missing.json"), ConfigurationException::class, 'Baseline file %a%missing.json must be a .neon or a .php file.');
 	Assert::exception(fn() => (new Baseline)->save("$dir/wrong.json"), ConfigurationException::class, $message);
 });

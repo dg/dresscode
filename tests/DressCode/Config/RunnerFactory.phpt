@@ -443,6 +443,6 @@ test('the name of the baseline is judged even before the file exists', function 
 	Assert::exception(
 		fn() => RunnerFactory::loadBaseline(new Config(baseline: 'baseline.txt'), $fixtures),
 		ConfigurationException::class,
-		'The baseline file %a%baseline.txt must be a .neon or a .php file.',
+		'Baseline file %a%baseline.txt must be a .neon or a .php file.',
 	);
 });

@@ -29,4 +29,5 @@ return new Config(
 	baseline: 'dresscode-baseline.neon',
 	cacheDir: 'temp/dresscode',
 	analyses: [Acme\DressCode\Analyses\FunctionCalls::class],
+	packages: ['acme/mailer' => '3.3'],
 );

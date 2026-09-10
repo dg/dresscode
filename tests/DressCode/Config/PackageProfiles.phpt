@@ -162,6 +162,17 @@ test('a package the project requires itself is measured by the lowest version it
 	// the code still has to run on 3.1, where the name of 3.3 does not exist yet
 	$packages = PackageProfiles::discover(ProjectPackages::read($root));
 	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0]->profile->rules);
+	Assert::same(['3.3'], $packages->profiles[0]->unreached);
+
+	// unless the configuration says the code is written for 3.3 already
+	$packages = PackageProfiles::discover(ProjectPackages::read($root)->withTargets(['acme/lib' => '3.3']));
+	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Later']], $packages->profiles[0]->profile->rules);
+	Assert::same([], $packages->profiles[0]->unreached);
+
+	$factory = new RunnerFactory;
+	$runner = $factory->createRunner(new Config(rules: ['replaced-classes' => true], packages: ['acme/lib' => '3.3', 'acme/ghost' => '1.0']), $root, cache: false);
+	Assert::same("<?php\n\nnamespace App;\n\nnew \\Acme\\Lib\\Later;\n", $runner->processFile("$root/f.php", "<?php\n\nnamespace App;\n\nnew \\Acme\\Lib\\Old;\n")->output);
+	Assert::same(["The configuration names package acme/ghost in 'packages', but it is not installed; skipped."], $factory->getWarnings());
 });
 
 
@@ -187,14 +198,14 @@ test('a package names its extension, and one whose class is missing is a warning
 test('a profile that turns a rule on, names an unknown key or is missing is an error naming it', function () {
 	$errors = [
 		"package: acme/lib\n\nsince 1.0:\n\treplaced-classes: true\n"
-			=> "Upgrading file upgrading.neon of acme/lib: 'replaced-classes' in 'since 1.0' must be a map of options; a package turns no rule on.",
+			=> "Upgrading file upgrading.neon of acme/lib: The rule 'replaced-classes' in 'since 1.0' must be a map of options; a package turns no rule on.",
 		"package: acme/lib\n\nrules:\n\treplaced-classes: []\n"
-			=> "Upgrading file upgrading.neon of acme/lib: unexpected key 'rules'; the file holds 'package' and sections 'since <version>'.",
+			=> "Upgrading file upgrading.neon of acme/lib: Unexpected key 'rules'; the file holds 'package' and sections 'since <version>'.",
 		"since 1.0:\n\treplaced-classes: []\n"
-			=> "Upgrading file upgrading.neon of acme/lib: 'package' must name the package the sections are versions of, as vendor/name.",
+			=> "Upgrading file upgrading.neon of acme/lib: The key 'package' must name the package the sections are versions of, as vendor/name.",
 		"package: acme/lib\n\nsince 1.0: [a, b]\n"
-			=> "Upgrading file upgrading.neon of acme/lib: 'since 1.0' must be a map of rules to their options.",
-		"package: acme/lib\n\nsince 1.0:\n\treplaced-classes: [a: b\n" => 'Upgrading file upgrading.neon of acme/lib: %a%',
+			=> "Upgrading file upgrading.neon of acme/lib: The section 'since 1.0' must be a map of rules to their options.",
+		"package: acme/lib\n\nsince 1.0:\n\treplaced-classes: [a: b\n" => 'Upgrading file upgrading.neon of acme/lib is not valid NEON: %a%',
 	];
 	foreach ($errors as $content => $message) {
 		$root = project('errors', ['acme/lib' => ['1.0.0.0', ['upgrading' => 'upgrading.neon']]], ['vendor/acme/lib/upgrading.neon' => $content]);

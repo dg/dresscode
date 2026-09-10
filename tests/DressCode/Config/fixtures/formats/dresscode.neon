@@ -37,5 +37,7 @@ excludePaths: [build, docs/generated]
 fileExtensions: [php, phpt]
 baseline: dresscode-baseline.neon
 cacheDir: temp/dresscode
+packages:
+	acme/mailer: '3.3'
 analyses:
 	- Acme\DressCode\Analyses\FunctionCalls

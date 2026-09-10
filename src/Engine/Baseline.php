@@ -45,7 +45,7 @@ final class Baseline
 				'php' => require $file,
 			};
 		} catch (NeonException $e) {
-			throw new ConfigurationException("The baseline file $file is not valid NEON: {$e->getMessage()}", previous: $e);
+			throw new ConfigurationException("Baseline file $file is not valid NEON: {$e->getMessage()}", previous: $e);
 		}
 
 		$baseline = new self;
@@ -58,7 +58,7 @@ final class Baseline
 					|| !is_string($violation['rule'] ?? null)
 					|| !is_string($violation['message'] ?? null)
 				) {
-					throw new ConfigurationException("The baseline file $file has an unexpected shape.");
+					throw new ConfigurationException("Baseline file $file has an unexpected shape.");
 				}
 
 				$baseline->add($path, $violation['fingerprint'], $violation['rule'], $violation['message']);
@@ -127,7 +127,7 @@ final class Baseline
 		return match (strtolower(pathinfo($file, PATHINFO_EXTENSION))) {
 			'neon' => 'neon',
 			'php' => 'php',
-			default => throw new ConfigurationException("The baseline file $file must be a .neon or a .php file."),
+			default => throw new ConfigurationException("Baseline file $file must be a .neon or a .php file."),
 		};
 	}
 

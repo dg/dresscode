@@ -97,12 +97,12 @@ final class PackageProfiles
 		try {
 			$data = Neon::decodeFile($file);
 		} catch (NeonException $e) {
-			throw new ConfigurationException("Upgrading file $source: {$e->getMessage()}", previous: $e);
+			throw new ConfigurationException("Upgrading file $source is not valid NEON: {$e->getMessage()}", previous: $e);
 		}
 
 		$package = is_array($data) ? $data['package'] ?? null : null;
 		if (!is_string($package) || !preg_match(self::PackagePattern, $package)) {
-			throw new ConfigurationException("Upgrading file $source: 'package' must name the package the sections are versions of, as vendor/name.");
+			throw new ConfigurationException("Upgrading file $source: The key 'package' must name the package the sections are versions of, as vendor/name.");
 		}
 
 		/** @var array<string, array<string, array<string, mixed>>> $sections  version → rule → its options */
@@ -111,14 +111,14 @@ final class PackageProfiles
 			if ($key === 'package') {
 				continue;
 			} elseif (!is_string($key) || !preg_match(self::SectionPattern, $key, $m)) {
-				throw new ConfigurationException("Upgrading file $source: unexpected key '$key'; the file holds 'package' and sections 'since <version>'.");
+				throw new ConfigurationException("Upgrading file $source: Unexpected key '$key'; the file holds 'package' and sections 'since <version>'.");
 			} elseif (!is_array($section) || (array_is_list($section) && $section !== [])) {
-				throw new ConfigurationException("Upgrading file $source: '$key' must be a map of rules to their options.");
+				throw new ConfigurationException("Upgrading file $source: The section '$key' must be a map of rules to their options.");
 			}
 
 			foreach ($section as $rule => $options) {
 				if (!is_string($rule) || !is_array($options)) {
-					throw new ConfigurationException("Upgrading file $source: '$rule' in '$key' must be a map of options; a package turns no rule on.");
+					throw new ConfigurationException("Upgrading file $source: The rule '$rule' in '$key' must be a map of options; a package turns no rule on.");
 				}
 
 				$sections[$m[1]][$rule] = $options;
