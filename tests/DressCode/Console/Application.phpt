@@ -403,6 +403,52 @@ test('fix writes the files and reports what remains', function () use ($root) {
 });
 
 
+test('config says what every rule ends up with, where it came from and why one does not run', function () use ($root) {
+	file_put_contents("$root/conf.neon", <<<'XX'
+		presets:
+			- dresscode/psr12
+
+		rules:
+			dresscode/line-length: {limit: 100}
+			dresscode/name-casing: keep
+			dresscode/ordered-imports: {alphabetically: true}
+
+		excludeRulePaths:
+			dresscode/indentation: [src/generated]
+
+		paths: [src]
+
+		XX);
+
+	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon"]);
+	Assert::same(0, $code);
+	Assert::match('%A%Presets    dresscode/psr12%A%', $out);
+	Assert::match('%A%  dresscode/line-length %a%the configuration%A%', $out);
+	Assert::match('%A%      limit %a%100 %a%the configuration%A%', $out);
+	// a value the project changed says what it overrode, one that only repeats the preset does not
+	Assert::match('%A%      alphabetically %a%true %a%the configuration (over dresscode/psr12 false)%A%', $out);
+	Assert::match('%A%Not running%A%  dresscode/name-casing %a%turned off by the configuration%A%', $out);
+	Assert::notContains('dresscode/indentation ', substr($out, strpos($out, 'Not running') ?: 0));
+
+	// for one file it is what the run uses for that file
+	[, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--file', 'src/generated/x.php']);
+	Assert::match('%A%File       src%a%generated%a%x.php%A%', $out);
+	Assert::match('%A%  dresscode/indentation %a%the configuration keeps it away from this path%A%', $out);
+
+	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--json']);
+	Assert::same(0, $code);
+	$data = json_decode($out, associative: true);
+	Assert::same(['dresscode/psr12'], $data['presets']);
+	Assert::same(100, $data['rules']['dresscode/line-length']['options']['limit']);
+	Assert::false($data['rules']['dresscode/name-casing']['active']);
+	Assert::same('turned off by the configuration', $data['rules']['dresscode/name-casing']['inactive']);
+	Assert::same(
+		[['source' => 'dresscode/psr12', 'value' => false], ['source' => 'the configuration', 'value' => true]],
+		$data['rules']['dresscode/ordered-imports']['origins']['alphabetically'],
+	);
+});
+
+
 test('exit codes: violations, warnings, the warning threshold, a syntax error and a failing rule', function () use ($root) {
 	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
 	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");

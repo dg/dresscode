@@ -42,6 +42,7 @@ final class Application
 		Usage:
 		  dresscode check [paths...] [options]   report violations
 		  dresscode fix [paths...] [options]     fix what the rules can and report the rest
+		  dresscode config [options]             print the configuration as the run resolves it
 		  dresscode rules [options]              list the known rules
 		  dresscode import <file>                translate a php-cs-fixer or phpcs configuration
 		  dresscode migrate-suppressions [paths...] [options]
@@ -62,6 +63,8 @@ final class Application
 		                            instead of reporting them (check only)
 		  --max-warnings <n>        exit with 1 when more than n warnings are left; without it any
 		                            number of them keeps the run clean
+		  --file <path>             what the configuration comes to for that one file (config only)
+		  --json                    the configuration as data (config only)
 		  --no-cache                process every file, even one whose content is known to be clean
 		  --jobs <n>                worker processes; by default the number of processors, at most one per four files; 1 runs in-process
 		  --strict-rules            a rule breaking its contract is an error, not a warning
@@ -133,6 +136,7 @@ final class Application
 			return match ($args['command']) {
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
+				'config' => $this->runConfig($args),
 				'rules' => $this->runRules($args),
 				'import' => $this->runImport($args),
 				'migrate-suppressions' => $this->runMigrateSuppressions($args),
@@ -467,6 +471,34 @@ final class Application
 			$this->write("Note: dresscode:ignore on a line of its own covers the whole statement below it, not just the next line; review the migrated ones.\n");
 		}
 
+		return 0;
+	}
+
+
+	/**
+	 * Prints the configuration as the run resolves it: which rule runs with which options, which layer gave
+	 * every value and what it overrode, and why a rule does not run.
+	 * @param array<string, mixed> $args
+	 */
+	private function runConfig(array $args): int
+	{
+		$factory = new RunnerFactory;
+		[$config, $root, $configFile] = $this->loadConfig($args);
+		$runner = $factory->createRunner($config, $root, cache: false);
+		$file = $args['--file'];
+		$excluded = is_string($file) ? $runner->getExcludedRules($file) : [];
+		$printer = new ConfigPrinter($factory->getResolvedConfig(), $excluded);
+		if ($args['--json']) {
+			$this->write($printer->printJson());
+			return 0;
+		}
+
+		$this->writeHeader($configFile, $config, self::describePhpVersion($factory));
+		if (is_string($file)) {
+			$this->write($this->console->color('gray', 'File       ') . FileSystem::platformSlashes($file) . "\n");
+		}
+
+		$this->write($printer->print($this->console));
 		return 0;
 	}
 

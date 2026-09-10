@@ -207,6 +207,24 @@ final class Runner
 
 
 	/**
+	 * Rules the configuration keeps away from the file, by name, with the reason a reader wants.
+	 * @return array<string, string>
+	 */
+	public function getExcludedRules(string $path): array
+	{
+		$path = $this->relativize($path);
+		$excluded = [];
+		foreach ($this->ruleExcludePaths as $rule => $patterns) {
+			if (self::matches($patterns, $path)) {
+				$excluded[$rule] = 'the configuration keeps it away from this path';
+			}
+		}
+
+		return $excluded;
+	}
+
+
+	/**
 	 * Files under the paths with one of the extensions, minus the excluded ones; an explicitly given file
 	 * is taken as is. Sorted, relative to the root.
 	 * @param  list<string>  $paths
