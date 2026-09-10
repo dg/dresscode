@@ -35,15 +35,15 @@ final class CommentSpacingRule extends NodeRule implements ConfigurableRule
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'before' => Expect::anyOf('atLeastSingle', 'single')->default('atLeastSingle')->nullable()
-				->description('Whitespace before a comment following code on its line: atLeastSingle keeps a wider gap such as an alignment, single collapses it to one space, null leaves it alone'),
+			'before' => Expect::anyOf('atLeastSingle', 'single', 'keep')->default('atLeastSingle')
+				->description('Whitespace before a comment following code on its line: atLeastSingle keeps a wider gap such as an alignment, single collapses it to one space, keep leaves it alone'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->before = $options['before'];
+		$this->before = $options['before'] === 'keep' ? null : $options['before'];
 	}
 
 

@@ -51,24 +51,24 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'binary' => Expect::int(0)->min(0)->max(1)->nullable()
-				->description('Levels a binary operator opening a line steps in by when its expression has a line of its own; null leaves such lines alone'),
-			'ternary' => Expect::int(1)->min(0)->max(1)->nullable()
-				->description('Levels the ? and : of a ternary opening a line step in by; null leaves them alone'),
+			'binary' => Expect::anyOf(Expect::int()->min(0)->max(1), 'keep')->default(0)
+				->description('Levels a binary operator opening a line steps in by when its expression has a line of its own; keep leaves such lines alone'),
+			'ternary' => Expect::anyOf(Expect::int()->min(0)->max(1), 'keep')->default(1)
+				->description('Levels the ? and : of a ternary opening a line step in by; keep leaves them alone'),
 			'switchCases' => Expect::int(1)->min(0)->max(1)
 				->description('Levels the cases of a switch step in by'),
-			'chain' => Expect::anyOf('single', 'nesting')->default('single')->nullable()
-				->description('single puts every link of a chain one level below its start, nesting lets a link stand one level deeper or shallower than the link before it; null leaves chains alone'),
+			'chain' => Expect::anyOf('single', 'nesting', 'keep')->default('single')
+				->description('single puts every link of a chain one level below its start, nesting lets a link stand one level deeper or shallower than the link before it; keep leaves chains alone'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->binary = $options['binary'];
-		$this->ternary = $options['ternary'];
+		$this->binary = $options['binary'] === 'keep' ? null : $options['binary'];
+		$this->ternary = $options['ternary'] === 'keep' ? null : $options['ternary'];
 		$this->switchCases = $options['switchCases'];
-		$this->chain = $options['chain'];
+		$this->chain = $options['chain'] === 'keep' ? null : $options['chain'];
 	}
 
 

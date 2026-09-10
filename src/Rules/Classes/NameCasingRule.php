@@ -62,7 +62,7 @@ final class NameCasingRule extends NodeRule implements ConfigurableRule
 
 	public static function getOptionsSchema(): Schema
 	{
-		$case = Expect::anyOf(...self::Cases)->nullable();
+		$case = Expect::anyOf(...[...self::Cases, 'keep']);
 		return Expect::structure([
 			'classes' => (clone $case)->description('Classes, interfaces, traits and enums'),
 			'methods' => clone $case,
@@ -80,7 +80,7 @@ final class NameCasingRule extends NodeRule implements ConfigurableRule
 	public function configure(array $options): void
 	{
 		foreach (self::Kinds as $kind) {
-			$this->cases[$kind] = $options[$kind];
+			$this->cases[$kind] = $options[$kind] === 'keep' ? null : $options[$kind];
 		}
 
 		$this->ignorePatterns = $options['ignorePatterns'];

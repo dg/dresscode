@@ -106,7 +106,7 @@ final class DeclarationBlankLinesRule extends GapRule implements ConfigurableRul
 	public function configure(array $options): void
 	{
 		foreach ($options as $name => $value) {
-			$this->$name = $value;
+			$this->$name = BlankLines::count($value);
 		}
 	}
 

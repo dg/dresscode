@@ -11,19 +11,34 @@ use function is_int;
 
 /**
  * A count of blank lines as the rules take it in their options: an exact number, a range `[min, max]`
- * with an open end as null, or null to leave the place alone.
+ * with an open end as null, or `keep` to leave the place alone.
  * @internal
  */
 final class BlankLines
 {
-	/** @param int|array{int, ?int}|null $default */
-	public static function schema(int|array|null $default): AnyOf
+	public const Keep = 'keep';
+
+
+	/** @param int|array{int, ?int}|self::Keep $default */
+	public static function schema(int|array|string $default): AnyOf
 	{
 		return Expect::anyOf(
 			Expect::int()->min(0),
 			// required items: otherwise a null given for the option satisfies the tuple as a pair of defaults
 			Expect::tuple([Expect::int()->min(0), Expect::int()->min(0)->nullable()]),
-		)->nullable()->default($default);
+			self::Keep,
+		)->default($default);
+	}
+
+
+	/**
+	 * The count a rule works with, where the place it leaves alone is null.
+	 * @param  int|array{int, ?int}|self::Keep  $value
+	 * @return int|array{int, ?int}|null
+	 */
+	public static function count(int|array|string $value): int|array|null
+	{
+		return $value === self::Keep ? null : $value;
 	}
 
 

@@ -1,5 +1,5 @@
 <?php
-// {"groupUse": "keep", "functions": null}
+// {"groupUse": "keep", "functions": "keep"}
 namespace A;
 use B\{C, D};
 use function e, f;

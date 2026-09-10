@@ -47,9 +47,9 @@ final class ImportNotationRule extends NodeRule implements ConfigurableRule
 
 	public static function getOptionsSchema(): Schema
 	{
-		$shape = Expect::anyOf('single', 'combined')->default('single')->nullable();
+		$shape = Expect::anyOf('single', 'combined', 'keep')->default('single');
 		return Expect::structure([
-			'classes' => (clone $shape)->description('single gives every class its own use statement, combined puts all classes of the namespace into one; null leaves them alone'),
+			'classes' => (clone $shape)->description('single gives every class its own use statement, combined puts all classes of the namespace into one; keep leaves them alone'),
 			'functions' => clone $shape,
 			'constants' => clone $shape,
 			'groupUse' => Expect::anyOf('expand', 'keep')->default('expand')
@@ -61,7 +61,7 @@ final class ImportNotationRule extends NodeRule implements ConfigurableRule
 	public function configure(array $options): void
 	{
 		foreach (self::Kinds as $kind) {
-			$this->shapes[$kind] = $options[$kind];
+			$this->shapes[$kind] = $options[$kind] === 'keep' ? null : $options[$kind];
 		}
 
 		$this->groupUse = $options['groupUse'];

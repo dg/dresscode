@@ -36,7 +36,7 @@ final class Per implements Preset
 			'multi-line-ternary' => true,
 
 			// 7.1 Short closures
-			'semicolon-spacing' => ['after' => null],
+			'semicolon-spacing' => ['after' => 'keep'],
 
 			// 9. Enumerations: cases in PascalCase, on top of what PSR-1 says about names, each on its own line
 			'name-casing' => ['classes' => 'PascalCase', 'methods' => 'camelCase', 'constants' => 'UPPER_CASE', 'enumCases' => 'PascalCase'],

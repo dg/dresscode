@@ -31,16 +31,16 @@ final class SemicolonSpacingRule extends GapRule implements ConfigurableRule
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'before' => Expect::anyOf('none', null)->default('none'),
-			'after' => Expect::anyOf('single', null)->default('single'),
+			'before' => Expect::anyOf('none', 'keep')->default('none'),
+			'after' => Expect::anyOf('single', 'keep')->default('single'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->before = $options['before'];
-		$this->after = $options['after'];
+		$this->before = $options['before'] === 'keep' ? null : $options['before'];
+		$this->after = $options['after'] === 'keep' ? null : $options['after'];
 	}
 
 

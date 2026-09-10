@@ -32,7 +32,7 @@ final class Symfony implements Preset
 			'multi-line-chain' => false,
 			'multi-line-array' => false,
 			'multi-line-ternary' => false,
-			'indentation' => ['chain' => null, 'binary' => null],
+			'indentation' => ['chain' => 'keep', 'binary' => 'keep'],
 
 			// heredoc_to_nowdoc and heredoc_indentation belong to other sets
 			'nowdoc-without-interpolation' => false,
@@ -53,15 +53,15 @@ final class Symfony implements Preset
 			'no-empty-comment' => true,
 			'no-hash-comment' => true,
 			'no-empty-phpdoc' => true,
-			'phpdoc-canonical-types' => ['arrayNotation' => null],
+			'phpdoc-canonical-types' => ['arrayNotation' => 'keep'],
 			'phpdoc-trim' => true,
 
 			// blank lines
 			'header-blank-lines' => true,
 			'declaration-blank-lines' => [
 				'betweenFunctions' => 1, 'betweenFunctionsInInterface' => 1, 'beforeFirst' => 0, 'afterLast' => 0,
-				'afterOpeningBrace' => 0, 'beforeClosingBrace' => 0, 'betweenTraitUses' => null,
-				'afterTraitUses' => null, 'betweenMembers' => null, 'beforeDocumentedMember' => null, 'afterPhpDoc' => 0,
+				'afterOpeningBrace' => 0, 'beforeClosingBrace' => 0, 'betweenTraitUses' => 'keep',
+				'afterTraitUses' => 'keep', 'betweenMembers' => 'keep', 'beforeDocumentedMember' => 'keep', 'afterPhpDoc' => 0,
 			],
 			'statement-blank-lines' => ['before' => ['return' => [1, null]]],
 

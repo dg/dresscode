@@ -206,7 +206,7 @@ Stage: Cleanup. Covers: `PhpCsFixerCustomFixers/comment_surrounded_by_spaces`, `
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `before` | ?`atLeastSingle` \| `single` | `"atLeastSingle"` | Whitespace before a comment following code on its line: atLeastSingle keeps a wider gap such as an alignment, single collapses it to one space, null leaves it alone |
+| `before` | `atLeastSingle` \| `single` \| `keep` | `"atLeastSingle"` | Whitespace before a comment following code on its line: atLeastSingle keeps a wider gap such as an alignment, single collapses it to one space, keep leaves it alone |
 
 ### dresscode/commented-out-function
 
@@ -264,17 +264,17 @@ Stage: Formatting. Covers: `no_blank_lines_after_class_opening`, `no_blank_lines
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `betweenFunctions` | ?int \| [int, ?int] | `2` | Before and after a function or method; the first and last method of a class use beforeFirst and afterLast |
-| `betweenFunctionsInInterface` | ?int \| [int, ?int] | `1` |  |
-| `beforeFirst` | ?int \| [int, ?int] | `0` | Before a method that is the first member of its class |
-| `afterLast` | ?int \| [int, ?int] | `0` | After a method that is the last member of its class |
-| `afterOpeningBrace` | ?int \| [int, ?int] | `0` | Before the first member, unless it is a method: then beforeFirst applies |
-| `beforeClosingBrace` | ?int \| [int, ?int] | `0` | After the last member, unless it is a method: then afterLast applies |
-| `betweenTraitUses` | ?int \| [int, ?int] | `0` |  |
-| `afterTraitUses` | ?int \| [int, ?int] | `1` | Before the member following the trait uses, unless it is a method: then betweenFunctions applies |
-| `betweenMembers` | ?int \| [int, ?int] | `[0,1]` | Between properties, constants and enum cases without a doc comment or attribute |
-| `beforeDocumentedMember` | ?int \| [int, ?int] | `1` | Before a property, constant or enum case with a doc comment or an attribute |
-| `afterPhpDoc` | ?int \| [int, ?int] | `0` | Between a doc comment or an attribute and the declaration it belongs to |
+| `betweenFunctions` | int \| [int, ?int] | `2` | Before and after a function or method; the first and last method of a class use beforeFirst and afterLast |
+| `betweenFunctionsInInterface` | int \| [int, ?int] | `1` |  |
+| `beforeFirst` | int \| [int, ?int] | `0` | Before a method that is the first member of its class |
+| `afterLast` | int \| [int, ?int] | `0` | After a method that is the last member of its class |
+| `afterOpeningBrace` | int \| [int, ?int] | `0` | Before the first member, unless it is a method: then beforeFirst applies |
+| `beforeClosingBrace` | int \| [int, ?int] | `0` | After the last member, unless it is a method: then afterLast applies |
+| `betweenTraitUses` | int \| [int, ?int] | `0` |  |
+| `afterTraitUses` | int \| [int, ?int] | `1` | Before the member following the trait uses, unless it is a method: then betweenFunctions applies |
+| `betweenMembers` | int \| [int, ?int] | `[0,1]` | Between properties, constants and enum cases without a doc comment or attribute |
+| `beforeDocumentedMember` | int \| [int, ?int] | `1` | Before a property, constant or enum case with a doc comment or an attribute |
+| `afterPhpDoc` | int \| [int, ?int] | `0` | Between a doc comment or an attribute and the declaration it belongs to |
 
 ### dresscode/declare-spacing
 
@@ -404,12 +404,12 @@ Stage: Formatting. Covers: `blank_line_after_namespace`, `blank_line_after_openi
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `beforeNamespace` | ?int \| [int, ?int] | `1` | Before the namespace declaration |
-| `afterOpeningTag` | ?int \| [int, ?int] | `1` | After the line of &lt;?php, which then carries no code; a file with markup outside PHP keeps its tag |
-| `afterNamespace` | ?int \| [int, ?int] | `1` | After an unbraced namespace declaration |
-| `afterImports` | ?int \| [int, ?int] | `1` | After the last import, before the rest of the code |
-| `betweenImportGroups` | ?int \| [int, ?int] | `1` | Between imports of classes, functions and constants; imports of one group never have a blank line between them |
-| `beforeDeclaration` | ?int \| [int, ?int] | `null` | Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of afterNamespace and afterImports |
+| `beforeNamespace` | int \| [int, ?int] | `1` | Before the namespace declaration |
+| `afterOpeningTag` | int \| [int, ?int] | `1` | After the line of &lt;?php, which then carries no code; a file with markup outside PHP keeps its tag |
+| `afterNamespace` | int \| [int, ?int] | `1` | After an unbraced namespace declaration |
+| `afterImports` | int \| [int, ?int] | `1` | After the last import, before the rest of the code |
+| `betweenImportGroups` | int \| [int, ?int] | `1` | Between imports of classes, functions and constants; imports of one group never have a blank line between them |
+| `beforeDeclaration` | int \| [int, ?int] | `"keep"` | Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of afterNamespace and afterImports |
 
 ### dresscode/heredoc-indentation
 
@@ -429,9 +429,9 @@ Stage: Structure. Covers: `single_import_per_statement`, `SlevomatCodingStandard
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `classes` | ?`single` \| `combined` | `"single"` | single gives every class its own use statement, combined puts all classes of the namespace into one; null leaves them alone |
-| `functions` | ?`single` \| `combined` | `"single"` |  |
-| `constants` | ?`single` \| `combined` | `"single"` |  |
+| `classes` | `single` \| `combined` \| `keep` | `"single"` | single gives every class its own use statement, combined puts all classes of the namespace into one; keep leaves them alone |
+| `functions` | `single` \| `combined` \| `keep` | `"single"` |  |
+| `constants` | `single` \| `combined` \| `keep` | `"single"` |  |
 | `groupUse` | `expand` \| `keep` | `"expand"` | expand turns a group use of a checked kind into the shape of that kind, keep leaves it as it is |
 
 ### dresscode/increment-operator
@@ -448,10 +448,10 @@ Stage: Cleanup. Covers: `array_indentation`, `indentation_type`, `method_chainin
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `binary` | ?int | `0` | Levels a binary operator opening a line steps in by when its expression has a line of its own; null leaves such lines alone |
-| `ternary` | ?int | `1` | Levels the ? and : of a ternary opening a line step in by; null leaves them alone |
+| `binary` | int | `0` | Levels a binary operator opening a line steps in by when its expression has a line of its own; keep leaves such lines alone |
+| `ternary` | int | `1` | Levels the ? and : of a ternary opening a line step in by; keep leaves them alone |
 | `switchCases` | int | `1` | Levels the cases of a switch step in by |
-| `chain` | ?`single` \| `nesting` | `"single"` | single puts every link of a chain one level below its start, nesting lets a link stand one level deeper or shallower than the link before it; null leaves chains alone |
+| `chain` | `single` \| `nesting` \| `keep` | `"single"` | single puts every link of a chain one level below its start, nesting lets a link stand one level deeper or shallower than the link before it; keep leaves chains alone |
 
 ### dresscode/keyword-casing
 
@@ -555,13 +555,13 @@ Stage: Structure. Covers: `Generic.NamingConventions.CamelCapsFunctionName`, `Ge
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `classes` | ?`PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` | `null` | Classes, interfaces, traits and enums |
-| `methods` | ?`PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` | `null` |  |
-| `functions` | ?`PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` | `null` |  |
-| `constants` | ?`PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` | `null` | Class constants and constants declared with const outside a class; a constant of an enum may also follow enumCases |
-| `enumCases` | ?`PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` | `null` |  |
-| `properties` | ?`PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` | `null` | Declared properties, promoted constructor parameters included |
-| `variables` | ?`PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` | `null` | Variables and parameters, except $this and the superglobals; each name once per function |
+| `classes` | `PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` \| `keep` | `null` | Classes, interfaces, traits and enums |
+| `methods` | `PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` \| `keep` | `null` |  |
+| `functions` | `PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` \| `keep` | `null` |  |
+| `constants` | `PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` \| `keep` | `null` | Class constants and constants declared with const outside a class; a constant of an enum may also follow enumCases |
+| `enumCases` | `PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` \| `keep` | `null` |  |
+| `properties` | `PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` \| `keep` | `null` | Declared properties, promoted constructor parameters included |
+| `variables` | `PascalCase` \| `camelCase` \| `UPPER_CASE` \| `snake_case` \| `keep` | `null` | Variables and parameters, except $this and the superglobals; each name once per function |
 | `ignorePatterns` | list of string | `[]` | Regular expressions; a name matching one is never reported, whatever its kind, as the methods of a stream wrapper or a replacement for a native function are |
 
 ### dresscode/named-argument-spacing
@@ -584,8 +584,8 @@ Stage: Structure. Covers: `new_with_braces`, `new_with_parentheses`, `SlevomatCo
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `namedClasses` | ?`required` \| `forbidden` | `"required"` |  |
-| `anonymousClasses` | ?`required` \| `forbidden` | `"required"` |  |
+| `namedClasses` | `required` \| `forbidden` \| `keep` | `"required"` |  |
+| `anonymousClasses` | `required` \| `forbidden` \| `keep` | `"required"` |  |
 
 ### dresscode/no-alias-functions
 
@@ -889,7 +889,7 @@ Stage: Cleanup. Covers: `PhpCsFixerCustomFixers/phpdoc_array_style`, `PhpCsFixer
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `arrayNotation` | ?`generic` \| `brackets` | `"generic"` | generic writes int[] as array&lt;int>, brackets writes array&lt;int> as int[]; null keeps both |
+| `arrayNotation` | `generic` \| `brackets` \| `keep` | `"generic"` | generic writes int[] as array&lt;int>, brackets writes array&lt;int> as int[]; keep leaves both alone |
 
 ### dresscode/phpdoc-null-last
 
@@ -963,8 +963,8 @@ Stage: Formatting. Covers: `no_singleline_whitespace_before_semicolons`, `space_
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `before` | ?`none` | `"none"` |  |
-| `after` | ?`single` | `"single"` |  |
+| `before` | `none` \| `keep` | `"none"` |  |
+| `after` | `single` \| `keep` | `"single"` |  |
 
 ### dresscode/short-array-syntax
 

@@ -70,19 +70,19 @@ final class HeaderBlankLinesRule extends GapRule implements ConfigurableRule
 			'afterNamespace' => BlankLines::schema(1)->description('After an unbraced namespace declaration'),
 			'afterImports' => BlankLines::schema(1)->description('After the last import, before the rest of the code'),
 			'betweenImportGroups' => BlankLines::schema(1)->description('Between imports of classes, functions and constants; imports of one group never have a blank line between them'),
-			'beforeDeclaration' => BlankLines::schema(null)->description('Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of afterNamespace and afterImports'),
+			'beforeDeclaration' => BlankLines::schema(BlankLines::Keep)->description('Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of afterNamespace and afterImports'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->beforeNamespace = $options['beforeNamespace'];
-		$this->afterOpeningTag = $options['afterOpeningTag'];
-		$this->afterNamespace = $options['afterNamespace'];
-		$this->afterImports = $options['afterImports'];
-		$this->betweenImportGroups = $options['betweenImportGroups'];
-		$this->beforeDeclaration = $options['beforeDeclaration'];
+		$this->beforeNamespace = BlankLines::count($options['beforeNamespace']);
+		$this->afterOpeningTag = BlankLines::count($options['afterOpeningTag']);
+		$this->afterNamespace = BlankLines::count($options['afterNamespace']);
+		$this->afterImports = BlankLines::count($options['afterImports']);
+		$this->betweenImportGroups = BlankLines::count($options['betweenImportGroups']);
+		$this->beforeDeclaration = BlankLines::count($options['beforeDeclaration']);
 	}
 
 

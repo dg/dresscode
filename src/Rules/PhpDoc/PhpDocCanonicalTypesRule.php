@@ -60,15 +60,15 @@ final class PhpDocCanonicalTypesRule extends NodeRule implements ConfigurableRul
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'arrayNotation' => Expect::anyOf('generic', 'brackets')->default('generic')->nullable()
-				->description('generic writes int[] as array<int>, brackets writes array<int> as int[]; null keeps both'),
+			'arrayNotation' => Expect::anyOf('generic', 'brackets', 'keep')->default('generic')
+				->description('generic writes int[] as array<int>, brackets writes array<int> as int[]; keep leaves both alone'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->arrayNotation = $options['arrayNotation'];
+		$this->arrayNotation = $options['arrayNotation'] === 'keep' ? null : $options['arrayNotation'];
 	}
 
 

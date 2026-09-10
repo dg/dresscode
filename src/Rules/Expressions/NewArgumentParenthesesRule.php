@@ -37,16 +37,16 @@ final class NewArgumentParenthesesRule extends NodeRule implements ConfigurableR
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'namedClasses' => Expect::anyOf('required', 'forbidden', null)->default('required'),
-			'anonymousClasses' => Expect::anyOf('required', 'forbidden', null)->default('required'),
+			'namedClasses' => Expect::anyOf('required', 'forbidden', 'keep')->default('required'),
+			'anonymousClasses' => Expect::anyOf('required', 'forbidden', 'keep')->default('required'),
 		]);
 	}
 
 
 	public function configure(array $options): void
 	{
-		$this->namedClasses = $options['namedClasses'];
-		$this->anonymousClasses = $options['anonymousClasses'];
+		$this->namedClasses = $options['namedClasses'] === 'keep' ? null : $options['namedClasses'];
+		$this->anonymousClasses = $options['anonymousClasses'] === 'keep' ? null : $options['anonymousClasses'];
 	}
 
 

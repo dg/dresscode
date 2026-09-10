@@ -427,7 +427,7 @@ Removes whitespace at the end of lines.
 
 Puts a fixed number of blank lines around the blocks of the file header.
 
-As this project has it: `beforeNamespace`: `1`, `afterOpeningTag`: `null`, `afterNamespace`: `1`, `afterImports`: `1`, `betweenImportGroups`: `0`, `beforeDeclaration`: `2`.
+As this project has it: `beforeNamespace`: `1`, `afterOpeningTag`: `keep`, `afterNamespace`: `1`, `afterImports`: `1`, `betweenImportGroups`: `0`, `beforeDeclaration`: `2`.
 
 
 ### dresscode/declare-spacing
@@ -696,7 +696,7 @@ Removes extra blank lines in a doc comment.
 
 Writes the types in doc comments in their canonical form: short lowercase built-ins, one array notation, no repeated type in a union.
 
-As this project has it: `arrayNotation`: `null`.
+As this project has it: `arrayNotation`: `keep`.
 
 
 ### dresscode/phpdoc-null-last

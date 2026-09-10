@@ -41,12 +41,12 @@ final class Psr12 implements Preset
 			'declare-spacing' => true,
 
 			// 4. Classes, properties and methods
-			'new-argument-parentheses' => ['anonymousClasses' => null],
+			'new-argument-parentheses' => ['anonymousClasses' => 'keep'],
 			'class-definition-spacing' => true,
 			'braces-position' => ['allowSingleLineAnonymousFunctions' => false],
 			'declaration-blank-lines' => [
-				'betweenFunctions' => null, 'betweenFunctionsInInterface' => null,
-				'betweenMembers' => null, 'beforeDocumentedMember' => null, 'afterPhpDoc' => null,
+				'betweenFunctions' => 'keep', 'betweenFunctionsInInterface' => 'keep',
+				'betweenMembers' => 'keep', 'beforeDocumentedMember' => 'keep', 'afterPhpDoc' => 'keep',
 			],
 			'ordered-members' => ['order' => ['use_trait']],
 			'visibility-required' => true,

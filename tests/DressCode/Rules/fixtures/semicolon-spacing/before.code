@@ -1,5 +1,5 @@
 <?php
-// {"after": null}
+// {"after": "keep"}
 $a = 1 ;
 for ($i = 0 ; $i < 1 ; $i++) {}
 $b = 2

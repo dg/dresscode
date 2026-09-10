@@ -26,7 +26,7 @@ final class Nette implements Preset
 			// the header: imports in one block, one blank line between the blocks and before a statement that follows
 			// them, two before a declaration
 			'header-blank-lines' => [
-				'beforeNamespace' => 1, 'afterOpeningTag' => null, 'afterNamespace' => 1, 'afterImports' => 1, 'betweenImportGroups' => 0, 'beforeDeclaration' => 2,
+				'beforeNamespace' => 1, 'afterOpeningTag' => 'keep', 'afterNamespace' => 1, 'afterImports' => 1, 'betweenImportGroups' => 0, 'beforeDeclaration' => 2,
 			],
 			'ordered-imports' => ['alphabetically' => true],
 			'unused-imports' => true,
@@ -145,7 +145,7 @@ final class Nette implements Preset
 			'commented-out-function' => ['functions' => ['print_r', 'var_dump', 'var_export', 'dump']],
 			'no-empty-phpdoc' => true,
 			'phpdoc-trim' => true,
-			'phpdoc-canonical-types' => ['arrayNotation' => null],
+			'phpdoc-canonical-types' => ['arrayNotation' => 'keep'],
 			'phpdoc-null-last' => true,
 			'phpdoc-alignment' => true,
 			'annotation-name' => true,

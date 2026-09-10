@@ -44,7 +44,7 @@ final class StatementBlankLinesRule extends GapRule implements ConfigurableRule
 
 	public static function getOptionsSchema(): Schema
 	{
-		$counts = fn() => Expect::arrayOf(BlankLines::schema(null), Expect::anyOf(...self::Kinds));
+		$counts = fn() => Expect::arrayOf(BlankLines::schema(BlankLines::Keep), Expect::anyOf(...self::Kinds));
 		return Expect::structure([
 			'before' => $counts()->default(['return' => [1, null]])
 				->description('Blank lines before a statement of the kind, as a count or a range [min, max] with null for no bound; yield means a statement made of a yield expression'),
@@ -55,8 +55,8 @@ final class StatementBlankLinesRule extends GapRule implements ConfigurableRule
 
 	public function configure(array $options): void
 	{
-		$this->before = $options['before'];
-		$this->after = $options['after'];
+		$this->before = array_map(BlankLines::count(...), $options['before']);
+		$this->after = array_map(BlankLines::count(...), $options['after']);
 	}
 
 

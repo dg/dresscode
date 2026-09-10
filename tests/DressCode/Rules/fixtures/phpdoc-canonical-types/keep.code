@@ -1,5 +1,5 @@
 <?php
-// {"arrayNotation": null}
+// {"arrayNotation": "keep"}
 /**
  * @param array<int> $a
  * @param int[] $c
