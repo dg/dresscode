@@ -22,3 +22,8 @@ excludePaths:
 fileExtensions:
 	- php
 	- phpt
+
+for:
+	# a test opens with its own header and stands the bootstrap apart from the imports
+	- files: [tests/**.phpt]
+	  rules: {dresscode/header-blank-lines: {afterImports: 2}}

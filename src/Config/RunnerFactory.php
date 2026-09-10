@@ -32,6 +32,9 @@ final class RunnerFactory
 
 	private ?ResolvedConfig $resolved = null;
 
+	/** @var ?\Closure(list<int>): ResolvedConfig */
+	private ?\Closure $resolveFor = null;
+
 
 	public function __construct(
 		private readonly RuleRegistry $registry = new RuleRegistry,
@@ -86,37 +89,45 @@ final class RunnerFactory
 		$ruleExcludePaths = $this->resolveRuleExcludePaths($config);
 		[$phpVersion] = $this->phpVersion = $this->resolvePhpVersion($config, $root);
 		$resolver = new PresetResolver($this->registry);
-		$this->resolved = $resolved = $resolver->resolveConfig($config, new PresetContext($phpVersion));
-		$rules = $resolver->build($resolved);
+		$context = new PresetContext($phpVersion);
+		$this->resolved = $resolved = $resolver->resolveConfig($config, $context);
 		$this->warnings = $resolver->getWarnings();
 		$analyses = new Analyses\Registry;
 		foreach ($config->getAnalyses() as $class => $factory) {
 			$analyses->register($class, $factory);
 		}
 
-		$indent = $resolved->indent;
-		$eol = $resolved->eol;
 		$baseline = self::loadBaseline($config, $root);
+		$warningRules = $this->resolveWarnings($config);
+		$this->resolveFor = fn(array $blocks) => $blocks === []
+			? $resolved
+			: $resolver->resolveConfig($config, $context, array_values($blocks));
+		$processors = new FileProcessors(
+			array_map(fn(array $block) => $block[0], $config->getBlocks()),
+			function (array $blocks) use ($analyses, $phpVersion, $strict, $baseline, $warningRules, $resolver): FileProcessor {
+				$variant = $this->resolveConfigFor($blocks);
+				return new FileProcessor(
+					$resolver->build($variant),
+					$analyses,
+					$this->registry->resolveNames(...),
+					$phpVersion,
+					new Style($variant->indent, $variant->eol === 'majority' ? "\n" : $variant->eol),
+					detectEol: $variant->eol === 'majority',
+					strict: $strict,
+					baseline: $baseline,
+					warningRules: $warningRules,
+				);
+			},
+		);
 		$resultCache = $cache
 			? ResultCache::load(
 				self::resolveCacheFile($config, $root),
 				// the baseline decides what a rule reports, so a file clean under one is not clean under another
-				self::hashConfiguration([$resolved->toArray(), $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $ruleExcludePaths, $baseline?->getHash()]),
+				self::hashConfiguration([$resolved->toArray(), $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $ruleExcludePaths, $baseline?->getHash(), $config->getBlocks()]),
 			)
 			: null;
-		$processor = new FileProcessor(
-			$rules,
-			$analyses,
-			$this->registry->resolveNames(...),
-			$phpVersion,
-			new Style($indent, $eol === 'majority' ? "\n" : $eol),
-			detectEol: $eol === 'majority',
-			strict: $strict,
-			baseline: $baseline,
-			warningRules: $this->resolveWarnings($config),
-		);
 		return new Runner(
-			$processor,
+			$processors,
 			$root,
 			$config->getExcludePaths(),
 			$ruleExcludePaths,
@@ -125,6 +136,16 @@ final class RunnerFactory
 			$baseline,
 			$resultCache,
 		);
+	}
+
+
+	/**
+	 * What the configuration comes to for a file matching those blocks; the same resolution the run uses.
+	 * @param  list<int>  $blocks
+	 */
+	public function resolveConfigFor(array $blocks): ResolvedConfig
+	{
+		return ($this->resolveFor ?? throw new \LogicException('No engine has been built yet.'))($blocks);
 	}
 
 

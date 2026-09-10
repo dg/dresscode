@@ -449,6 +449,90 @@ test('config says what every rule ends up with, where it came from and why one d
 });
 
 
+test('for: another part of the tree gets other rules, and the run, the cache and the workers agree', function () use ($root) {
+	@mkdir("$root/lib");
+	@mkdir("$root/legacy");
+	foreach (['lib/a.php', 'legacy/b.php', 'legacy/e.php', 'legacy/deep/c.php'] as $path) {
+		@mkdir(dirname("$root/$path"), recursive: true);
+		file_put_contents("$root/$path", "<?php\n\$a;\n");
+	}
+
+	file_put_contents("$root/for.neon", <<<'XX'
+		rules:
+			dresscode/no-trailing-whitespace: true
+
+		for:
+			- files: [legacy]
+			  rules: {dresscode/no-trailing-whitespace: keep, dresscode/eof-newline: true}
+			- files: [legacy/deep]
+			  rules: {dresscode/eof-newline: keep}
+
+		paths: [lib, legacy]
+		cacheDir: cache
+
+		XX);
+	$config = ['--config', "$root/for.neon", '--no-cache'];
+
+	// what the configuration comes to for a file is what the blocks it matches say, in the order written
+	$names = function (string $file) use ($root, $config): array {
+		[, $out] = runApp($root, ['config', ...$config, '--file', $file, '--json']);
+		$data = json_decode($out, associative: true);
+		return array_keys(array_filter($data['rules'], fn(array $rule) => $rule['active']));
+	};
+	Assert::same(['dresscode/no-trailing-whitespace'], $names('lib/a.php'));
+	Assert::same(['dresscode/eof-newline'], $names('legacy/b.php')); // the block turned the first rule off
+	Assert::same([], $names('legacy/deep/c.php')); // and the second block turned the other one off
+
+	// the file of a block is processed with its rules; without one it keeps the base
+	$dirty = function () use ($root): void {
+		file_put_contents("$root/lib/a.php", "<?php\n\$a; \n");
+		file_put_contents("$root/legacy/b.php", "<?php\n\$a; \n");
+		file_put_contents("$root/legacy/e.php", "<?php\n\$a;");
+		file_put_contents("$root/legacy/deep/c.php", "<?php\n\$a;");
+	};
+	$state = fn(): array => array_map(
+		fn(string $path) => (string) file_get_contents("$root/$path"),
+		['lib/a.php', 'legacy/b.php', 'legacy/e.php', 'legacy/deep/c.php'],
+	);
+	$fixed = [
+		"<?php\n\$a;\n",   // lib: no-trailing-whitespace ran
+		"<?php\n\$a; \n",  // legacy: it did not
+		"<?php\n\$a;\n",   // legacy: eof-newline did
+		"<?php\n\$a;",     // legacy/deep: the second block turned that one off too
+	];
+
+	$dirty();
+	[$code] = runApp($root, ['fix', ...$config]);
+	Assert::same(0, $code);
+	Assert::same($fixed, $state());
+
+	// workers see the same blocks as the one process
+	$dirty();
+	[$code] = runApp($root, ['fix', ...$config, '--jobs', '3']);
+	Assert::same(0, $code);
+	Assert::same($fixed, $state());
+
+	// stdin stands for the path it is given, blocks and all
+	[$code, $out] = runApp($root, ['fix', ...$config, '--stdin', 'legacy/x.php'], "<?php\n\$a; \n");
+	Assert::same(0, $code);
+	Assert::same("<?php\n\$a; \n", $out);
+	[$code, $out] = runApp($root, ['fix', ...$config, '--stdin', 'lib/x.php'], "<?php\n\$a; \n");
+	Assert::same(0, $code);
+	Assert::same("<?php\n\$a;\n", $out);
+
+	// the cache tells the two configurations of one content apart: the same text is clean in one and not
+	// in the other, and a warm run says what the cold one said
+	file_put_contents("$root/lib/a.php", "<?php\n\$a; \n");
+	file_put_contents("$root/legacy/b.php", "<?php\n\$a; \n");
+	foreach ([1, 2] as $round) {
+		[$code, $out] = runApp($root, ['check', '--config', "$root/for.neon"]);
+		Assert::same(1, $code, "round $round");
+		Assert::match('%A%lib%a%a.php%A%', $out);
+		Assert::notContains('b.php', $out);
+	}
+});
+
+
 test('exit codes: violations, warnings, the warning threshold, a syntax error and a failing rule', function () use ($root) {
 	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
 	file_put_contents("$root/src/b.php", "<?php\n\$x;\n");

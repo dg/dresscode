@@ -2,6 +2,7 @@
 
 namespace DressCode;
 
+use DressCode\Config\FileProcessors;
 use DressCode\Engine\Baseline;
 use DressCode\Engine\FileProcessor;
 use DressCode\Engine\ResultCache;
@@ -17,10 +18,11 @@ use function count, in_array, sprintf, strlen;
 final class Runner
 {
 	private readonly string $root;
+	private readonly FileProcessors $processors;
 
 
 	public function __construct(
-		private readonly FileProcessor $processor,
+		FileProcessor|FileProcessors $processors,
 		string $root,
 		/** @var list<string> patterns of paths left out */
 		private readonly array $excludePaths = [],
@@ -36,6 +38,7 @@ final class Runner
 		private readonly ?ResultCache $cache = null,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
+		$this->processors = $processors instanceof FileProcessor ? FileProcessors::of($processors) : $processors;
 	}
 
 
@@ -62,7 +65,7 @@ final class Runner
 				continue;
 			}
 
-			if ($this->cache?->isClean(ResultCache::hashContent($code))) {
+			if ($this->cache?->isClean(ResultCache::hashContent($code, $this->processors->getKey($path)))) {
 				$results[$path] = new FileResult($path, $code, $code);
 				$results[$path]->cached = true;
 			} else {
@@ -102,7 +105,7 @@ final class Runner
 			}
 
 			if ($this->cache !== null && !$result->cached) {
-				$this->remember($result, ResultCache::hashContent($result->code));
+				$this->remember($result, $this->processors->getKey($result->path));
 			}
 
 			$reporter->reportFile($result);
@@ -168,16 +171,16 @@ final class Runner
 	 * A clean result makes its content known to the cache; a fixed file without remaining violations makes
 	 * the written content known too.
 	 */
-	private function remember(FileResult $result, string $key): void
+	private function remember(FileResult $result, string $variant): void
 	{
 		if ($result->error !== null || $result->failure !== null || $result->warnings) {
 			return;
 		}
 
 		if (!$result->violations && !$result->isChanged()) {
-			$this->cache?->markClean($key);
+			$this->cache?->markClean(ResultCache::hashContent($result->code, $variant));
 		} elseif ($result->written && $result->output !== null && !$result->getUnfixedViolations()) {
-			$this->cache?->markClean(ResultCache::hashContent($result->output));
+			$this->cache?->markClean(ResultCache::hashContent($result->output, $variant));
 		}
 	}
 
@@ -189,20 +192,31 @@ final class Runner
 	public function processFile(string $path, string $code): FileResult
 	{
 		$path = $this->relativize($path);
+		$processor = $this->processors->get($path);
 		$rules = null;
 		if ($this->ruleExcludePaths) {
 			$rules = [];
-			foreach ($this->processor->getRules() as $rule) {
+			foreach ($processor->getRules() as $rule) {
 				$patterns = $this->ruleExcludePaths[RuleInfo::of($rule)->name] ?? [];
-				if (!self::matches($patterns, $path)) {
+				if (!Helpers::matchesAny($patterns, $path)) {
 					$rules[] = $rule;
 				}
 			}
 		}
 
-		$result = $this->processor->process($path, $code, $rules);
+		$result = $processor->process($path, $code, $rules);
 		$this->baseline?->markUsed($result->path, $result->baselined);
 		return $result;
+	}
+
+
+	/**
+	 * Indexes of the `for` blocks that apply to the file.
+	 * @return list<int>
+	 */
+	public function findBlocksFor(string $path): array
+	{
+		return $this->processors->findBlocks($this->relativize($path));
 	}
 
 
@@ -215,7 +229,7 @@ final class Runner
 		$path = $this->relativize($path);
 		$excluded = [];
 		foreach ($this->ruleExcludePaths as $rule => $patterns) {
-			if (self::matches($patterns, $path)) {
+			if (Helpers::matchesAny($patterns, $path)) {
 				$excluded[$rule] = 'the configuration keeps it away from this path';
 			}
 		}
@@ -241,10 +255,10 @@ final class Runner
 			} elseif (is_dir($absolute)) {
 				$finder = Finder::findFiles(array_map(fn($ext) => "*.$ext", $this->fileExtensions))
 					->from($absolute)
-					->descentFilter(fn(\SplFileInfo $dir) => !self::matches($this->excludePaths, $this->relativize($dir->getPathname())));
+					->descentFilter(fn(\SplFileInfo $dir) => !Helpers::matchesAny($this->excludePaths, $this->relativize($dir->getPathname())));
 				foreach ($finder as $file) {
 					$relative = $this->relativize($file->getPathname());
-					if (!self::matches($this->excludePaths, $relative)) {
+					if (!Helpers::matchesAny($this->excludePaths, $relative)) {
 						$files[$relative] = true;
 					}
 				}
@@ -288,22 +302,9 @@ final class Runner
 	}
 
 
-	/** @param list<string> $patterns */
-	private static function matches(array $patterns, string $path): bool
-	{
-		foreach ($patterns as $pattern) {
-			if (Helpers::matchGlob($pattern, $path)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-
 	public function getProcessor(): FileProcessor
 	{
-		return $this->processor;
+		return $this->processors->getBase();
 	}
 
 

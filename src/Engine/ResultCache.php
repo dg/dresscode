@@ -54,9 +54,13 @@ final class ResultCache
 	}
 
 
-	public static function hashContent(string $code): string
+	/**
+	 * The identity of a content under one configuration; a `for` block gives two files of the same text
+	 * different rules, so the verdict of one says nothing about the other.
+	 */
+	public static function hashContent(string $code, string $variant = ''): string
 	{
-		return hash('xxh128', $code);
+		return hash('xxh128', $code) . ($variant === '' ? '' : ":$variant");
 	}
 
 

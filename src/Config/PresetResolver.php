@@ -75,9 +75,10 @@ final class PresetResolver
 	 * The configuration as data: what every rule ends up with, where it came from, and why a rule that
 	 * does not run does not. The run, the result cache and whoever prints the configuration read this one
 	 * result, so that none of them can say something the others do not.
+	 * @param  list<int>  $blocks  indexes of the `for` blocks that match the file this is resolved for
 	 * @throws ConfigurationException
 	 */
-	public function resolveConfig(Config $config, PresetContext $context): ResolvedConfig
+	public function resolveConfig(Config $config, PresetContext $context, array $blocks = []): ResolvedConfig
 	{
 		$presets = $this->listPresets($config);
 		/** @var array<class-string<Rule>, list<array{string, mixed}>> $layers */
@@ -98,6 +99,18 @@ final class PresetResolver
 			$class = $this->registry->resolveRule($rule);
 			$layers[$class][] = ['the configuration', $value];
 			$explicit[$class] = true;
+		}
+
+		// the blocks come last and in the order they were written, so that a later one has the last word
+		$all = $config->getBlocks();
+		foreach ($blocks as $index) {
+			[$files, $rules] = $all[$index];
+			$source = 'for ' . implode(', ', $files);
+			foreach ($rules as $rule => $value) {
+				$class = $this->registry->resolveRule($rule);
+				$layers[$class][] = [$source, $value];
+				$explicit[$class] = true;
+			}
 		}
 
 		$rules = $inactive = [];

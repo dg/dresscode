@@ -16,6 +16,19 @@ final class Helpers
 	 * `[abc]` and `[!abc]` are a character class. A pattern with a slash is anchored to the root, one without
 	 * matches a segment at any depth; both match the path itself and any directory on its way.
 	 */
+	/** @param list<string> $patterns */
+	public static function matchesAny(array $patterns, string $path): bool
+	{
+		foreach ($patterns as $pattern) {
+			if (self::matchGlob($pattern, $path)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
 	public static function matchGlob(string $pattern, string $path): bool
 	{
 		/** @var array<string, string> $cache */

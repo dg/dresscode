@@ -65,6 +65,10 @@ final class NeonReader
 			'excludePaths' => Expect::listOf('string'),
 			'excludeRulePaths' => Expect::arrayOf(Expect::listOf('string'), 'string'),
 			'warnings' => Expect::listOf('string'),
+			'for' => Expect::listOf(Expect::structure([
+				'files' => Expect::listOf('string')->required(),
+				'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), 'keep', Expect::arrayOf('mixed', 'string')), 'string'),
+			])->castTo('array')),
 			'fileExtensions' => Expect::listOf('string'),
 			'baseline' => Expect::string(),
 			'cacheDir' => Expect::string(),
@@ -112,6 +116,17 @@ final class NeonReader
 		$ruleExcludePaths = $data['excludeRulePaths'] ?? [];
 		foreach ($ruleExcludePaths as $rule => $patterns) {
 			$config->excludeRulePaths($rule, $patterns);
+		}
+
+		/** @var list<array{files: list<string>, rules: array<string, bool|string|array<string, mixed>>}> $blocks */
+		$blocks = $data['for'] ?? [];
+		foreach ($blocks as $block) {
+			$rules = [];
+			foreach ($block['rules'] as $rule => $value) {
+				$rules[$rule] = $value === 'keep' ? false : (is_string($value) ? true : $value);
+			}
+
+			$config->for($block['files'], $rules);
 		}
 
 		if (isset($data['warnings'])) {

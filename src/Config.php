@@ -50,6 +50,9 @@ final class Config
 	/** @var ?list<string>  names or classes of the rules that only warn */
 	private ?array $warnings = null;
 
+	/** @var list<array{list<string>, array<string, bool|array<string, mixed>>}>  patterns and the rules of that part of the tree */
+	private array $blocks = [];
+
 	/** @var ?list<string> */
 	private ?array $fileExtensions = null;
 
@@ -185,6 +188,20 @@ final class Config
 
 
 	/**
+	 * Other rules for a part of the tree: a file the patterns match gets these on top of everything above,
+	 * in the order the blocks were written. A part of a project with a convention of its own needs another
+	 * number, not a rule turned off everywhere.
+	 * @param list<string> $files  patterns, relative to the root
+	 * @param array<string, bool|array<string, mixed>> $rules  names or classes, as `rules` takes them
+	 */
+	public function for(array $files, array $rules): static
+	{
+		$this->blocks[] = [$files, $rules];
+		return $this;
+	}
+
+
+	/**
 	 * Rules that only warn: what they report is counted and printed, but the exit code stays clean unless
 	 * `--max-warnings` sets a threshold. Every rule is an error until a layer softens it.
 	 * @param list<string> $rules  names or classes
@@ -289,6 +306,7 @@ final class Config
 		}
 
 		$this->warnings = $layer->warnings ?? $this->warnings;
+		$this->blocks = [...$this->blocks, ...$layer->blocks];
 		$this->fileExtensions = $layer->fileExtensions ?? $this->fileExtensions;
 		$this->skipWhen = $layer->skipWhen ?? $this->skipWhen;
 		$this->baseline = $layer->baseline ?? $this->baseline;
@@ -459,6 +477,13 @@ final class Config
 	public function getWarnings(): array
 	{
 		return $this->warnings ?? [];
+	}
+
+
+	/** @return list<array{list<string>, array<string, bool|array<string, mixed>>}> */
+	public function getBlocks(): array
+	{
+		return $this->blocks;
 	}
 
 

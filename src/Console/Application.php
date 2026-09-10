@@ -486,8 +486,10 @@ final class Application
 		[$config, $root, $configFile] = $this->loadConfig($args);
 		$runner = $factory->createRunner($config, $root, cache: false);
 		$file = $args['--file'];
-		$excluded = is_string($file) ? $runner->getExcludedRules($file) : [];
-		$printer = new ConfigPrinter($factory->getResolvedConfig(), $excluded);
+		$resolved = is_string($file)
+			? $factory->resolveConfigFor($runner->findBlocksFor($file))
+			: $factory->getResolvedConfig();
+		$printer = new ConfigPrinter($resolved, is_string($file) ? $runner->getExcludedRules($file) : []);
 		if ($args['--json']) {
 			$this->write($printer->printJson());
 			return 0;
