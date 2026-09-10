@@ -36,7 +36,8 @@
 		"phpstan": "phpstan analyse",
 		"tester": "tester tests -s",
 		"verify-examples": "tester tests/DressCode/Console/explain.phpt tests/DressCode/Rules/rules.phpt -s",
-		"reference": "php docs/reference/generate.php"
+		"reference": "php docs/reference/generate.php",
+		"standard": "php bin/dresscode standard --output docs/reference/standard.md"
 	},
 	"config": {
 		"allow-plugins": {

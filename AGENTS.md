@@ -21,6 +21,7 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
 - `composer phpstan`: PHPStan level 8, no baseline; `ignoreErrors` only with a reason.
 - `composer verify-examples`: the examples `dresscode explain` shows, run against the rules they belong to; they are fixtures named `showcase*.code`, so `composer tester` covers them too.
 - `composer reference`: regenerates `docs/reference/rules.md` (rules with their options) from the catalogue. Commit the output; CI diffs it.
+- `composer standard`: regenerates `docs/reference/standard.md`, the standard this repository is checked with, written out of its own configuration. Commit the output; CI diffs it too, so a change of a preset or of an option is visible as a change of the document it produces.
 - `php bin/dresscode check`: DressCode over its own sources with `dresscode.neon`; CI runs it too.
 
 ## Conventions
