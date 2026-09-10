@@ -49,8 +49,10 @@ final readonly class Values
 
 
 	/**
-	 * The entries of a map the project resolved, without those a layer withdrew, normalized by the domain of its values.
+	 * The entries of a map the project resolved, without those a layer withdrew: as the grammar of its domain reads
+	 * them as written, or normalized by the domain of its values where it has no grammar.
 	 * @return array<mixed>
+	 * @throws ConfigurationException  for a path that is no map, or an entry the grammar does not take
 	 */
 	public function readMap(string $path): array
 	{
@@ -60,10 +62,11 @@ final readonly class Values
 			throw new \LogicException("Decision `$path` is no map.");
 		}
 
-		return $value->isKept() ? [] : array_map(
-			fn(Value $entry) => $entry->toData(),
+		$entries = $value->isKept() ? [] : array_map(
+			fn(Value $entry) => $domain->grammar === null ? $entry->toData() : $entry->raw,
 			array_filter($value->getEntries(), fn(Value $entry) => !$entry->isKept()),
 		);
+		return $domain->read($entries, $path);
 	}
 
 

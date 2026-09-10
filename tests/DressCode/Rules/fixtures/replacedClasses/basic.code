@@ -1,0 +1,27 @@
+<?php
+// {"libraries": {"replacedClasses": {"App\\Mailer\\SmtpMailer": "App\\Mail\\Mailer", "Legacy\\Logger": "Psr\\Log\\LoggerInterface", "\\App\\Old": "\\App\\Current", "App\\Withdrawn": "keep", "App\\Obsolete": "App\\Missing"}}}
+
+namespace App;
+
+use App\Mailer\SmtpMailer;
+use Legacy\Logger as Log;
+
+#[Old]
+final class Service extends Old
+{
+	public function __construct(
+		private SmtpMailer $mailer,
+		private Log $log,
+	) {
+	}
+
+
+	public function create(\Legacy\Logger|Old|null $logger): Old
+	{
+		$mailer = new SmtpMailer;
+		$class = Old::class;
+		$kept = Withdrawn::class; // an entry withdrawn with keep
+		$missing = Obsolete::class; // reported, the project having no such class
+		return $logger instanceof Old ? $logger : new Old($mailer, SmtpMailer::Default);
+	}
+}

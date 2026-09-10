@@ -9,7 +9,8 @@ namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Decision, Domain, ImportStyle, Plugin, PluginManifest, Rules};
-use DressCode\Domains\{Count, Names, Words};
+use DressCode\Domains\{Count, GrammarEntry, Map, Names, Words};
+use Nette\Schema\{Context, Expect, Schema};
 use function dirname;
 
 
@@ -28,7 +29,7 @@ final class CorePlugin implements Plugin
 
 	public function getManifest(): PluginManifest
 	{
-		// built once, since nothing of it changes
+		// built once, the grammars of the maps above all, since nothing of it changes
 		static $manifest;
 		return $manifest ??= new PluginManifest(
 			presets: [
@@ -226,6 +227,7 @@ final class CorePlugin implements Plugin
 				Rules\Types\ConstantTypeRequiredRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Types\TypeNotationRule::class,
+				Rules\Upgrading\ReplacedClassesRule::class,
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,
@@ -284,6 +286,9 @@ final class CorePlugin implements Plugin
 				// the classes a native type takes as iterable
 				new Decision('types.traversableClasses', new Names, 'Classes treated like `array` and `iterable`, whose annotation says what their items are', parameter: true, default: ['Traversable']),
 
+				// the maps of what the libraries retired, which the project writes, each read by its grammar
+				new Decision('upgrading.libraries.replacedClasses', new Map(new GrammarEntry, grammar: self::createReplacedClassesGrammar(), caseInsensitive: true), 'A class written instead of another one, both fully qualified (`Acme\\Old\\Mailer: Acme\\Mail\\Mailer`)'),
+
 				// the newer constructs, decided once for every rule writing them
 				new Decision('upgrading.functions.arraySearchFunctions', Domain::adopted(), '`array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` or an `array_filter()` that only asks what they answer'),
 				new Decision('upgrading.syntax.firstClassCallables', Domain::adopted(), '`foo(...)` for `Closure::fromCallable()`, a forwarding closure and `\'self::foo\'`; from PHP 8.6 a partial application'),
@@ -328,5 +333,22 @@ final class CorePlugin implements Plugin
 				'required' => 'the imports of one namespace are written as one group use, `use Acme\Shop\{Order, Cart};`',
 			]), 'The group use, a kind written `combined` never grouped and a name of the global namespace standing apart'),
 		];
+	}
+
+
+	private static function createReplacedClassesGrammar(): Schema
+	{
+		$name = fn() => Expect::string()->pattern('\\\\?\w+(\\\\\w+)*');
+		return Expect::arrayOf($name(), $name())
+			->description('The class → the class written instead, both fully qualified')
+			->transform(function (array $options, Context $context): array {
+				foreach ($options as $old => $new) {
+					if (strcasecmp(ltrim((string) $old, '\\'), ltrim($new, '\\')) === 0) {
+						$context->addError("The class `$old` is given as its own replacement.", 'dresscode.sameClass');
+					}
+				}
+
+				return $options;
+			});
 	}
 }

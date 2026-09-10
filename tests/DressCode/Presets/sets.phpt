@@ -57,6 +57,8 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'upgrading.classes.Override', // a guarantee the code takes on, which no older construct gave
 		'upgrading.phpdoc.readonly', // an annotation may promise what the code does not keep, which only the project knows
 		'upgrading.classes.SensitiveParameter', // the list of what is sensitive is the project's
+		// the maps, which a project writes for itself
+		'upgrading.libraries.replacedClasses',
 	];
 
 	$made = array_flip(array_merge(...array_values($written)));

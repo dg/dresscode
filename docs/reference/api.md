@@ -351,6 +351,14 @@ final readonly class Flag extends DressCode\Domain
 	public function describe(): string
 ```
 
+## `DressCode\Domains\GrammarEntry`
+
+```php
+final readonly class GrammarEntry extends DressCode\Domain
+	public function toArray(): array
+	public function describe(): string
+```
+
 ## `DressCode\Domains\Map`
 
 ```php
@@ -358,8 +366,10 @@ final readonly class Map extends DressCode\Domain
 	public readonly DressCode\Domain $values
 	public readonly bool $wildcards
 	public readonly ?array $words
+	public readonly ?Nette\Schema\Schema $grammar
 	public readonly bool $caseInsensitive
-	public function __construct(DressCode\Domain $values, bool $wildcards = true, ?array $words = null, bool $caseInsensitive = false)
+	public function __construct(DressCode\Domain $values, bool $wildcards = true, ?array $words = null, ?Nette\Schema\Schema $grammar = null, bool $caseInsensitive = false)
+	public function read(array $entries, string $path): array
 	public function merge(DressCode\Value $below, DressCode\Value $above): DressCode\Value
 	public function toArray(): array
 	public function describe(): string
@@ -977,6 +987,7 @@ final readonly class Violation
 - `DressCode\Rules\Types\TypeNotationRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedPhpCallsRule`
+- `DressCode\Rules\Upgrading\ReplacedClassesRule`
 - `DressCode\Rules\Variables\NoGlobalStatementsRule`
 - `DressCode\Rules\Variables\NoRepeatedAssignmentsRule`
 - `DressCode\Rules\Variables\NoSeparateIssetsRule`

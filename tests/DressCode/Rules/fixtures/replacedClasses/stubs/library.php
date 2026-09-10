@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Mail;
+
+class Mailer
+{
+	public const Default = 1;
+}
+
+
+namespace App;
+
+class Current
+{
+}
+
+
+class Token
+{
+	public const Names = [];
+}
+
+
+namespace Psr\Log;
+
+interface LoggerInterface
+{
+}
+
+
+namespace Acme\Mail;
+
+interface Transport
+{
+}
+
+
+namespace Acme\Codec;
+
+interface Normalizer
+{
+}
+
+
+class Envelope
+{
+}

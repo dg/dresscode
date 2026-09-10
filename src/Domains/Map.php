@@ -8,13 +8,15 @@
 namespace DressCode\Domains;
 
 use DressCode\{ConfigurationException, Domain, Value};
+use Nette\Schema\{Processor, Schema, ValidationException};
 use function is_array, is_int;
 
 
 /**
- * A map of names to values of one domain, `except`, `beforeStatement`. It merges with the map below it key by key,
- * and an entry `keep` withdraws the entry below as a tombstone, which stays until a name is looked up, so that it
- * wins as the most particular entry. The map as a whole takes no `keep`; `{}` is no entries of its own.
+ * A map of names to values of one domain, `except`, `beforeStatement`, the maps of the libraries. It merges with
+ * the map below it key by key, and an entry `keep` withdraws the entry below as a tombstone, which stays until a
+ * name is looked up, so that it wins as the most particular entry. The map as a whole takes no `keep`; `{}` is
+ * no entries of its own.
  */
 final readonly class Map extends Domain
 {
@@ -24,6 +26,8 @@ final readonly class Map extends Domain
 		public bool $wildcards = true,
 		/** @var ?array<string, string>  name => what it means, where the names are a set of words; null for free names */
 		public ?array $words = null,
+		/** the grammar the entries are read by as a whole once the layers are merged, the maps of the upgrading data */
+		public ?Schema $grammar = null,
 		/**
 		 * the names are read in any letter case and with or without their leading backslash, as PHP reads a function
 		 * or a class, so a name above replaces the one below spelled otherwise and one layer names each once
@@ -32,6 +36,22 @@ final readonly class Map extends Domain
 	) {
 		if ($words !== null && ($words === [] || $wildcards)) {
 			throw new \InvalidArgumentException('The words a map takes as names must be some, and they are no wildcards.');
+		}
+	}
+
+
+	/**
+	 * The entries as the grammar reads them, an entry withdrawn written `keep`; the entries as they are without one.
+	 * @param  array<string, mixed>  $entries
+	 * @return array<mixed>
+	 * @throws ConfigurationException  where an entry is not what the grammar takes
+	 */
+	public function read(array $entries, string $path): array
+	{
+		try {
+			return $this->grammar === null ? $entries : (array) (new Processor)->process($this->grammar, $entries);
+		} catch (ValidationException $e) {
+			throw new ConfigurationException("Invalid entries of `$path`: " . implode(' ', $e->getMessages()), previous: $e);
 		}
 	}
 
