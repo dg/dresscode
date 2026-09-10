@@ -13,7 +13,7 @@ DressCode is a PHP code style checker and fixer built on a **lossless concrete s
 
 The tree itself is the `phpsyntax/phpsyntax` library (namespace `PhpSyntax`), developed in a repository of its own. This one holds `DressCode` (`src/`): engine, rules API, the library of generic rules, configuration, CLI. The names of other tools live only in `Interop/`, never in a rule.
 
-Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs from it is public API for plugins too. What the rules only share among themselves (`Rules\NodeHelpers`, `Rules\BlankLines`) is `@internal`. Presets define style; DressCode has no style of its own except `dresscode/per` (PER Coding Style 2.0), `dresscode/psr12` and `dresscode/nette` (the Nette Coding Standard, PER with tabs and its departures, which the repository itself is checked with).
+Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs from it is public API for plugins too. What the rules only share among themselves (`Rules\NodeHelpers`, `Rules\BlankLines`) is `@internal`. Presets define style; DressCode has no style of its own except `dresscode/per` (PER Coding Style 3.1), `dresscode/psr12`, `dresscode/nette` (the Nette Coding Standard, PER with tabs and its departures, which the repository itself is checked with) and `dresscode/symfony`.
 
 ## Essential commands
 

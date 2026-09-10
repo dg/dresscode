@@ -9,6 +9,7 @@ use DressCode\PresetInfo;
 use DressCode\Presets\Nette;
 use DressCode\Presets\Per;
 use DressCode\Presets\Psr12;
+use DressCode\Presets\Symfony;
 use DressCode\RuleInfo;
 use DressCode\Stage;
 use Tester\Assert;
@@ -106,7 +107,10 @@ test('presets', function () {
 	Assert::same(TestPreset::class, $registry->resolvePreset(TestPreset::class));
 	Assert::same(TestPreset::class, $registry->resolvePreset('test/preset'));
 	Assert::same(
-		['dresscode/per' => Per::class, 'dresscode/psr12' => Psr12::class, 'dresscode/nette' => Nette::class, 'test/preset' => TestPreset::class],
+		[
+			'dresscode/per' => Per::class, 'dresscode/psr12' => Psr12::class, 'dresscode/nette' => Nette::class,
+			'dresscode/symfony' => Symfony::class, 'test/preset' => TestPreset::class,
+		],
 		$registry->getPresets(),
 	);
 	Assert::exception(fn() => $registry->resolvePreset('none'), ConfigurationException::class, "Unknown preset 'none'.");

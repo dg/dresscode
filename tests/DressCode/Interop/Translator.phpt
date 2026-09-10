@@ -66,13 +66,29 @@ test('no foreign name is the name of a rule', function () {
 
 
 test('a set becomes a preset, an unknown rule a warning', function () {
-	$translation = (new Translator)->translate(['@PSR12' => true, 'PSR12' => true, '@Symfony' => true, 'no_such_fixer' => true]);
-	Assert::same(['dresscode/psr12'], $translation->presets);
+	$translation = (new Translator)->translate(['@PSR12' => true, 'PSR12' => true, '@Symfony' => true, '@PhpCsFixer' => true, 'no_such_fixer' => true]);
+	Assert::same(['dresscode/psr12', 'dresscode/symfony'], $translation->presets);
 	Assert::same([], $translation->rules);
 	Assert::same([
-		'The rule set @Symfony has no DressCode preset; start from dresscode/per or dresscode/psr12.',
+		'The rule set @PhpCsFixer has no DressCode preset; start from dresscode/per or dresscode/psr12.',
 		'No DressCode rule covers no_such_fixer.',
 	], $translation->warnings);
+});
+
+
+test('an element with no rule of its own is dropped from the list, not passed on', function () {
+	// @Symfony asks for array_destructuring, which dresscode/trailing-comma does not know
+	$translation = (new Translator)->translate([
+		'trailing_comma_in_multiline' => ['elements' => ['array_destructuring', 'arrays', 'match', 'parameters']],
+	]);
+	Assert::same(
+		['multiLine' => ['arrays', 'match', 'parameters'], 'singleLine' => false],
+		$translation->rules['dresscode/trailing-comma'],
+	);
+	Assert::same(
+		['trailing_comma_in_multiline with array_destructuring has no equivalent, dresscode/trailing-comma leaves the comma of a destructuring alone'],
+		$translation->warnings,
+	);
 });
 
 

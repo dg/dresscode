@@ -199,6 +199,7 @@ final class RuleRegistry
 		$this->registerPreset(Presets\Per::class);
 		$this->registerPreset(Presets\Psr12::class);
 		$this->registerPreset(Presets\Nette::class);
+		$this->registerPreset(Presets\Symfony::class);
 		foreach (self::BuiltinRules as $class) {
 			$this->registerRule($class);
 		}

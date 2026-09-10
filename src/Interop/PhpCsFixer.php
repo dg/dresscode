@@ -283,10 +283,16 @@ final class PhpCsFixer
 			'ternary_operator_spaces' => 'dresscode/ternary-operator-spacing',
 			'ternary_to_elvis_operator' => 'dresscode/short-ternary-operator',
 			'ternary_to_null_coalescing' => 'dresscode/null-coalescing-operator',
-			'trailing_comma_in_multiline' => fn(array $o, Translation $t) => $t->enable('dresscode/trailing-comma', [
-				'multiLine' => $o['elements'] ?? ['arrays'],
-				'singleLine' => false,
-			]),
+			'trailing_comma_in_multiline' => function (array $o, Translation $t) {
+				$elements = $o['elements'] ?? ['arrays'];
+				if (in_array('array_destructuring', $elements, strict: true)) {
+					$t->warn('trailing_comma_in_multiline with array_destructuring has no equivalent, dresscode/trailing-comma leaves the comma of a destructuring alone');
+				}
+				$t->enable('dresscode/trailing-comma', [
+					'multiLine' => array_values(array_diff($elements, ['array_destructuring'])),
+					'singleLine' => false,
+				]);
+			},
 			'trim_array_spaces' => 'dresscode/array-spacing',
 			'unary_operator_spaces' => function (array $o, Translation $t) {
 				if ($o['only_dec_inc'] ?? false) {
@@ -336,6 +342,7 @@ final class PhpCsFixer
 			'@PSR1' => 'dresscode/psr12',
 			'@PSR2' => 'dresscode/psr12',
 			'@PSR12' => 'dresscode/psr12',
+			'@Symfony' => 'dresscode/symfony',
 		];
 	}
 }
