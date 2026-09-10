@@ -2,10 +2,13 @@
 
 namespace DressCode\Rules\Expressions;
 
+use DressCode\ConfigurableRule;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
 use DressCode\Stage;
+use Nette\Schema\Expect;
+use Nette\Schema\Schema;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression\ArrayNode;
 use PhpSyntax\Nodes\Expression\AssignmentNode;
@@ -22,23 +25,45 @@ use PhpSyntax\TokenKind;
 
 
 /**
- * A comparison has the variable on the left and the constant on the right: `$a === 1`, not `1 === $a`.
- * The sides are ranked as slevomat does: a variable ranks highest, a call next, a constant lowest, so
- * a comparison of two variables or of two calls is left alone. A right side that is an assignment is only
- * reported, because the swap would change what is assigned.
+ * Which side of a comparison holds the constant: with `forbidden` the variable stands on the left and the
+ * constant on the right (`$a === 1`), with `required` the other way round, which is what a standard asks
+ * for when an accidental assignment must not compile. The sides are ranked as slevomat does: a variable
+ * ranks highest, a call next, a constant lowest, so a comparison of two variables or of two calls is left
+ * alone, and a side that is an assignment is only reported, because the swap would change what is assigned.
  */
 #[RuleInfo(
-	'dresscode/no-yoda-comparison',
+	'dresscode/yoda',
 	Stage::Structure,
-	description: 'Puts the variable side of a comparison on the left',
+	description: 'Decides which side of a comparison the constant stands on',
+	decision: 'comparisons',
 )]
-final class NoYodaComparisonRule extends NodeRule
+final class YodaRule extends NodeRule implements ConfigurableRule
 {
+	private const Forbidden = 'forbidden';
+	private const Required = 'required';
+
 	private const
 		Variable = 3,
 		Call = 2,
 		Constant = 1,
 		Literal = 0;
+
+	private string $comparisons = self::Forbidden;
+
+
+	public static function getOptionsSchema(): Schema
+	{
+		return Expect::structure([
+			'comparisons' => Expect::anyOf(self::Forbidden, self::Required)->default(self::Forbidden)
+				->description('forbidden puts the variable of a comparison on the left, required puts the constant there'),
+		]);
+	}
+
+
+	public function configure(array $options): void
+	{
+		$this->comparisons = $options['comparisons'];
+	}
 
 
 	public function getVisitedTypes(): array
@@ -58,14 +83,15 @@ final class NoYodaComparisonRule extends NodeRule
 
 		$left = self::rank($node->left);
 		$right = self::rank($node->right);
+		$wanted = $this->comparisons === self::Forbidden ? 'variable' : 'constant';
 		if (
 			$left === null
 			|| $right === null
-			|| $left >= $right
+			|| ($this->comparisons === self::Forbidden ? $left >= $right : $left <= $right)
 			|| ($left >= self::Call && $right >= self::Call)
-			|| !$context->report($node->operator, 'The variable of a comparison must be on the left side')
-			|| $node->right instanceof AssignmentNode
-			|| $node->right instanceof CombinedAssignmentNode
+			|| !$context->report($node->operator, "The $wanted of a comparison must be on the left side")
+			|| self::isAssignment($node->left)
+			|| self::isAssignment($node->right)
 		) {
 			return;
 		}
@@ -76,6 +102,13 @@ final class NoYodaComparisonRule extends NodeRule
 		self::keepEdges($node->right, $newRight);
 		$node->left = $newLeft;
 		$node->right = $newRight;
+	}
+
+
+	/** An assignment that changed sides would assign something else, so such a comparison is only reported. */
+	private static function isAssignment(ExpressionNode $expr): bool
+	{
+		return $expr instanceof AssignmentNode || $expr instanceof CombinedAssignmentNode;
 	}
 
 

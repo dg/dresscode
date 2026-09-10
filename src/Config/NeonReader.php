@@ -10,7 +10,6 @@ use Nette\Schema\Elements\Structure;
 use Nette\Schema\Expect;
 use Nette\Schema\Processor;
 use Nette\Schema\ValidationException;
-use function is_string;
 
 
 /**
@@ -54,8 +53,8 @@ final class NeonReader
 		return Expect::structure([
 			'extensions' => Expect::listOf('string'),
 			'presets' => Expect::listOf('string'),
-			// keep is the word for "this decision enforces nothing"; false says the same in the PHP notation
-			'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), 'keep', Expect::arrayOf('mixed', 'string')), 'string'),
+			// a bare value is the decision of the rule; keep says "this decision enforces nothing", as false does in the PHP notation
+			'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), Expect::string(), Expect::int(), Expect::arrayOf('mixed', 'string')), 'string'),
 			'style' => Expect::structure([
 				'indent' => Expect::anyOf(Expect::int(), Expect::string()),
 				'eol' => Expect::string(),
@@ -67,7 +66,7 @@ final class NeonReader
 			'warnings' => Expect::listOf('string'),
 			'for' => Expect::listOf(Expect::structure([
 				'files' => Expect::listOf('string')->required(),
-				'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), 'keep', Expect::arrayOf('mixed', 'string')), 'string'),
+				'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), Expect::string(), Expect::int(), Expect::arrayOf('mixed', 'string')), 'string'),
 			])->castTo('array')),
 			'risky' => Expect::bool(),
 			'fileExtensions' => Expect::listOf('string'),
@@ -90,13 +89,13 @@ final class NeonReader
 			$config->preset($preset);
 		}
 
-		/** @var array<string, bool|string|array<string, mixed>> $rules */
+		/** @var array<string, bool|string|int|array<string, mixed>> $rules */
 		$rules = $data['rules'] ?? [];
 		foreach ($rules as $rule => $value) {
 			if ($value === false || $value === 'keep') {
 				$config->disable($rule);
 			} else {
-				$config->enable($rule, is_string($value) ? true : $value);
+				$config->enable($rule, $value);
 			}
 		}
 
@@ -119,12 +118,12 @@ final class NeonReader
 			$config->excludeRulePaths($rule, $patterns);
 		}
 
-		/** @var list<array{files: list<string>, rules: array<string, bool|string|array<string, mixed>>}> $blocks */
+		/** @var list<array{files: list<string>, rules: array<string, bool|string|int|array<string, mixed>>}> $blocks */
 		$blocks = $data['for'] ?? [];
 		foreach ($blocks as $block) {
 			$rules = [];
 			foreach ($block['rules'] as $rule => $value) {
-				$rules[$rule] = $value === 'keep' ? false : (is_string($value) ? true : $value);
+				$rules[$rule] = $value === 'keep' ? false : $value;
 			}
 
 			$config->for($block['files'], $rules);

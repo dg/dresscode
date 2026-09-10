@@ -91,7 +91,7 @@ final class Nette implements Preset
 
 			// expressions and literals
 			'not-equals-operator' => true,
-			'no-yoda-comparison' => true,
+			'yoda' => 'forbidden',
 			'explicit-operator-precedence' => true,
 			'useless-parentheses-around-new' => true,
 			'no-short-bool-cast' => true,

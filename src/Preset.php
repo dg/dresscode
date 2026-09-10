@@ -9,8 +9,9 @@ namespace DressCode;
 interface Preset
 {
 	/**
-	 * Rule name or class → true (enable), false (disable), options, or a factory fn(): Rule for a rule with dependencies.
-	 * @return array<string, bool|array<string, mixed>|\Closure(): Rule>
+	 * Rule name or class → true (enable), false (disable), the value of the rule's decision, options,
+	 * or a factory fn(): Rule for a rule with dependencies.
+	 * @return array<string, bool|string|int|array<string, mixed>|\Closure(): Rule>
 	 */
 	public function getRules(PresetContext $context): array;
 

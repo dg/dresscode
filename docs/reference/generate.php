@@ -150,6 +150,10 @@ foreach ($rules as $name => $class) {
 		$facts[] = 'May have risky fixes, which wait for `--fix-risky`';
 	}
 
+	if ($info->decision !== null) {
+		$facts[] = "One decision, so a value written for the rule fills `$info->decision`";
+	}
+
 	$out .= implode('. ', $facts) . ".\n\n";
 	if (is_subclass_of($class, ConfigurableRule::class)) {
 		$schema = $class::getOptionsSchema();

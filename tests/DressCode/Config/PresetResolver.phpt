@@ -66,6 +66,32 @@ final class RuleC extends NodeRule implements ConfigurableRule
 }
 
 
+#[RuleInfo('test/one-decision', Stage::Formatting, decision: 'shape')]
+final class RuleOneDecision extends NodeRule implements ConfigurableRule
+{
+	/** @var array<string, mixed> */
+	public array $options = [];
+
+
+	public static function getOptionsSchema(): Schema
+	{
+		return Expect::structure(['shape' => Expect::anyOf('perLine', 'compact')->default('perLine')]);
+	}
+
+
+	public function configure(array $options): void
+	{
+		$this->options = $options;
+	}
+
+
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+}
+
+
 #[RuleInfo('test/d', Stage::Formatting)]
 final class RuleD extends NodeRule
 {
@@ -274,6 +300,25 @@ test('the configuration overrides the presets', function () {
 	Assert::same(['test/c', 'test/b', 'test/d'], names($rules));
 	assert($rules[2] instanceof RuleD);
 	Assert::same('dep', $rules[2]->dependency);
+});
+
+
+test('a rule that is one decision takes its value directly', function () {
+	$rules = resolve(Config::create()->enable(RuleOneDecision::class, 'compact'));
+	assert($rules[0] instanceof RuleOneDecision);
+	Assert::same(['shape' => 'compact'], $rules[0]->options);
+
+	// the layers meet as they would in the long notation, whichever of the two each is written in
+	$rules = resolve(Config::create()->enable(RuleOneDecision::class, 'compact')->enable(RuleOneDecision::class, ['shape' => 'perLine']));
+	assert($rules[0] instanceof RuleOneDecision);
+	Assert::same(['shape' => 'perLine'], $rules[0]->options);
+
+	// a rule that is more than one decision has nowhere to put the value
+	Assert::exception(
+		fn() => resolve(Config::create()->enable(RuleC::class, 'compact')),
+		ConfigurationException::class,
+		'Rule test/c takes no bare value, which the configuration gives it; write the options it has.',
+	);
 });
 
 

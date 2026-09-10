@@ -67,6 +67,11 @@ final class StandardPrinter
 			$options[] = "`$path`: " . self::format($layers[count($layers) - 1][1]);
 		}
 
+		// a rule that is one decision says its value even when nobody changed it: the value is the standard
+		if (!$options && $info->decision !== null) {
+			$options[] = "`$info->decision`: " . self::format($rule->options[$info->decision] ?? null);
+		}
+
 		if ($options) {
 			$out .= 'As this project has it: ' . implode(', ', $options) . ".\n\n";
 		}

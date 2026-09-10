@@ -118,7 +118,7 @@ final class PhpCodeSniffer
 				'after' => array_fill_keys($o['controlStructures'] ?? ['if', 'do', 'while', 'for', 'foreach', 'switch', 'try'], $o['linesCountAfter'] ?? 1),
 			]),
 			'SlevomatCodingStandard.ControlStructures.DisallowContinueWithoutIntegerOperandInSwitch' => 'dresscode/no-continue-in-switch',
-			'SlevomatCodingStandard.ControlStructures.DisallowYodaComparison' => 'dresscode/no-yoda-comparison',
+			'SlevomatCodingStandard.ControlStructures.DisallowYodaComparison' => fn(array $o, Translation $t) => $t->enable('dresscode/yoda', ['comparisons' => 'forbidden']),
 			'SlevomatCodingStandard.ControlStructures.EarlyExit' => function (array $o, Translation $t) {
 				$t->enable('dresscode/early-exit', ['minStatements' => ($o['ignoreTrailingIfWithOneInstruction'] ?? false) ? 2 : 1]);
 				$t->enable('dresscode/useless-else', ['elseif' => true]);

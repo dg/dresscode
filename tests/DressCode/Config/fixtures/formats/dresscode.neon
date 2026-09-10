@@ -8,7 +8,7 @@ presets:
 rules:
 	dresscode/line-length: {maxLength: 160}
 	dresscode/strict-comparison: true
-	dresscode/no-yoda-comparison: keep
+	dresscode/yoda: keep
 
 style:
 	indent: "\t"

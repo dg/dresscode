@@ -18,6 +18,8 @@ final readonly class RuleInfo
 		public bool $modifiesComments = false,
 		/** the construct the rule enforces exists only from this version of PHP on, "8.4" */
 		public ?string $minPhpVersion = null,
+		/** the option a bare value written for the rule fills, for a rule that is one decision */
+		public ?string $decision = null,
 	) {
 	}
 

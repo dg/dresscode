@@ -15,7 +15,7 @@ use Nette\Schema\Elements\Structure;
 use Nette\Schema\Helpers;
 use Nette\Schema\Processor;
 use Nette\Schema\ValidationException;
-use function count, is_array, is_int;
+use function count, is_array, is_int, is_string;
 
 
 /**
@@ -158,7 +158,7 @@ final class PresetResolver
 		return new ResolvedRule(
 			$info->name,
 			$class,
-			$inactive === null ? self::validateOptions($class, $info->name, self::stack($layers), self::describeSources($layers)) : [],
+			$inactive === null ? self::validateOptions($class, $info->name, self::stack($layers, $info), self::describeSources($layers)) : [],
 			$layers,
 			$inactive,
 			$last instanceof \Closure ? $last : null,
@@ -171,19 +171,37 @@ final class PresetResolver
 	 * before it, so a map written after it starts from the defaults of the schema again.
 	 * @param  list<array{string, mixed}>  $layers
 	 * @return list<array<string, mixed>>
+	 * @throws ConfigurationException
 	 */
-	private static function stack(array $layers): array
+	private static function stack(array $layers, RuleInfo $info): array
 	{
 		$stack = [];
-		foreach ($layers as [, $value]) {
+		foreach ($layers as [$source, $value]) {
 			if ($value === false) {
 				$stack = [];
+			} elseif (is_array($value)) {
+				$stack[] = self::markLists($value, top: true);
+			} elseif (is_string($value) || is_int($value)) {
+				$stack[] = [self::decisionOf($info, $source) => $value];
 			} else {
-				$stack[] = is_array($value) ? self::markLists($value, top: true) : [];
+				$stack[] = [];
 			}
 		}
 
 		return $stack;
+	}
+
+
+	/**
+	 * The option a bare value written for the rule fills. A rule that is more than one decision has none,
+	 * and then the value has nowhere to go.
+	 * @throws ConfigurationException
+	 */
+	private static function decisionOf(RuleInfo $info, string $source): string
+	{
+		return $info->decision ?? throw new ConfigurationException(
+			"Rule $info->name takes no bare value, which $source gives it; write the options it has.",
+		);
 	}
 
 
@@ -301,15 +319,16 @@ final class PresetResolver
 
 	/**
 	 * @param  class-string<Rule>  $class
-	 * @param  true|array<string, mixed>|\Closure(): Rule  $value
+	 * @param  true|string|int|array<string, mixed>|\Closure(): Rule  $value
 	 */
-	public static function createRule(string $class, bool|array|\Closure $value = true): Rule
+	public static function createRule(string $class, bool|string|int|array|\Closure $value = true): Rule
 	{
-		$name = RuleInfo::of($class)->name;
+		$info = RuleInfo::of($class);
+		$name = $info->name;
 		return self::buildRule(new ResolvedRule(
 			$name,
 			$class,
-			self::validateOptions($class, $name, self::stack([['the caller', $value]])),
+			self::validateOptions($class, $name, self::stack([['the caller', $value]], $info)),
 			[['the caller', $value]],
 			factory: $value instanceof \Closure ? $value : null,
 		));

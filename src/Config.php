@@ -30,7 +30,7 @@ final class Config
 	/** @var list<string>  names or classes */
 	private array $presets = [];
 
-	/** @var array<string, bool|array<string, mixed>|\Closure(): Rule>  rule name or class → enabled, options or a factory, in the order of the first mention */
+	/** @var array<string, bool|string|int|array<string, mixed>|\Closure(): Rule>  rule name or class → enabled, the value of its decision, options or a factory, in the order of the first mention */
 	private array $rules = [];
 
 	/** 'auto' means the version of composer.json */
@@ -53,7 +53,7 @@ final class Config
 	/** whether a fix that may change what the code does is allowed */
 	private ?bool $risky = null;
 
-	/** @var list<array{list<string>, array<string, bool|array<string, mixed>>}>  patterns and the rules of that part of the tree */
+	/** @var list<array{list<string>, array<string, bool|string|int|array<string, mixed>>}>  patterns and the rules of that part of the tree */
 	private array $blocks = [];
 
 	/** @var ?list<string> */
@@ -130,9 +130,9 @@ final class Config
 
 	/**
 	 * @param string $rule  name or class
-	 * @param bool|array<string, mixed>|\Closure(): Rule $options  options, or a factory for a rule with dependencies
+	 * @param bool|string|int|array<string, mixed>|\Closure(): Rule $options  the value of the rule's decision, options, or a factory for a rule with dependencies
 	 */
-	public function enable(string $rule, bool|array|\Closure $options = true): static
+	public function enable(string $rule, bool|string|int|array|\Closure $options = true): static
 	{
 		$this->rules[$rule] = $options;
 		return $this;
@@ -195,7 +195,7 @@ final class Config
 	 * in the order the blocks were written. A part of a project with a convention of its own needs another
 	 * number, not a rule turned off everywhere.
 	 * @param list<string> $files  patterns, relative to the root
-	 * @param array<string, bool|array<string, mixed>> $rules  names or classes, as `rules` takes them
+	 * @param array<string, bool|string|int|array<string, mixed>> $rules  names or classes, as `rules` takes them
 	 */
 	public function for(array $files, array $rules): static
 	{
@@ -424,7 +424,7 @@ final class Config
 	}
 
 
-	/** @return array<string, bool|array<string, mixed>|\Closure(): Rule> */
+	/** @return array<string, bool|string|int|array<string, mixed>|\Closure(): Rule> */
 	public function getRules(): array
 	{
 		return $this->rules;
@@ -502,7 +502,7 @@ final class Config
 	}
 
 
-	/** @return list<array{list<string>, array<string, bool|array<string, mixed>>}> */
+	/** @return list<array{list<string>, array<string, bool|string|int|array<string, mixed>>}> */
 	public function getBlocks(): array
 	{
 		return $this->blocks;

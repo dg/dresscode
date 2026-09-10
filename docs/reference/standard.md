@@ -336,9 +336,11 @@ Removes whitespace around the brackets of an offset access.
 Writes != instead of <>.
 
 
-### dresscode/no-yoda-comparison
+### dresscode/yoda
 
-Puts the variable side of a comparison on the left.
+Decides which side of a comparison the constant stands on.
+
+As this project has it: `comparisons`: `forbidden`.
 
 
 ### dresscode/explicit-operator-precedence

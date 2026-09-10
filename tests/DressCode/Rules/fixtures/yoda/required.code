@@ -1,0 +1,13 @@
+<?php
+// {"comparisons": "required"}
+if ($a === 1) {}
+if ($a->b !== null) {}
+if ($a[0] == 'x') {}
+if (f($a) === true) {}
+if (f($a) === $a) {}
+if ($a === $b) {}
+if (1 === 2) {}
+if ($a === Foo::BAR) {}
+if (1 === $a = f()) {}
+if ($a <= 1) {}
+if (1 === $a) {}
