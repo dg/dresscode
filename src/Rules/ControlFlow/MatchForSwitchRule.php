@@ -7,6 +7,7 @@
 
 namespace DressCode\Rules\ControlFlow;
 
+use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\{Node, Parser, Token};
 use PhpSyntax\Nodes\{CaseNode, Expression, ExpressionNode, Statement, StatementNode};
@@ -24,7 +25,8 @@ use function count;
  * it as it is, the arms of a match having nowhere to put one.
  *
  * The fix is risky: a switch compares loosely and a match strictly, so a case of `1` catches `'1'` and `true`
- * and an arm of `1` catches neither.
+ * and an arm of `1` catches neither. Without the types, a subject of the type of the labels is not told from
+ * one of another type.
  */
 #[RuleInfo(
 	'dresscode/matchForSwitch',
@@ -53,7 +55,7 @@ final class MatchForSwitchRule extends NodeRule
 			|| !$context->report(
 				$node->switchKeyword,
 				'The switch giving one value must be written as a match',
-				risk: Risk::TypeUnknown,
+				risk: $context->findAnalysis(Types::class)?->isComparedAlike([$node->subject, ...array_merge(...array_column($arms, 0))]) ? null : Risk::TypeUnknown,
 			)
 		) {
 			return;

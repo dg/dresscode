@@ -1,10 +1,10 @@
-3: The `==` comparison must be written `===`
+4: The `==` comparison must be written `===`
 	risky TypeUnknown
-4: The `!=` comparison must be written `!==`
+5: The `!=` comparison must be written `!==`
 	risky TypeUnknown
-5: The `<>` comparison must be written `!==`
+6: The `<>` comparison must be written `!==`
 	risky TypeUnknown
-8: The `==` comparison must be written `===`
+9: The `==` comparison must be written `===`
 	risky TypeUnknown
-8: The `!=` comparison must be written `!==`
+9: The `!=` comparison must be written `!==`
 	risky TypeUnknown

@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Tristate};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\{Node, Parser, Token};
 use PhpSyntax\Nodes\{ArgumentNode, NameNode};
@@ -19,7 +20,9 @@ use function array_slice, count, in_array;
 /**
  * Functions with a `$strict` parameter are called with it set to `true`: a missing one is added, together with
  * the default values of the parameters before it; an explicit `false` is only reported. Such a fix changes what
- * the call answers for a value only the loose mode accepted, so it waits for the run to allow it.
+ * the call answers for a value only the loose mode accepted, so it waits for the run to allow it, but for an
+ * integer needle searched among integers, which it leaves as it was. Without the types, such a search is not told
+ * from another.
  */
 #[RuleInfo(
 	'dresscode/strictCall',
@@ -88,15 +91,18 @@ final class StrictCallRule extends NodeRule
 			return;
 		}
 
-		// a search compares its needle with the haystack, where only what the values are decides
+		// the needle and the haystack of a search, which compare alike either way where both are integers
 		[$needle, $haystack] = match ($function) {
 			'in_array', 'array_search' => [$args[0], $args[1]],
 			'array_keys' => [$args[1], $args[0]],
 			default => [null, null],
 		};
-		$risk = $needle instanceof ArgumentNode && $haystack instanceof ArgumentNode
-			? Risk::TypeUnknown
-			: Risk::BehaviorChanges;
+		$types = $context->findAnalysis(Types::class);
+		$risk = match (true) {
+			!$needle instanceof ArgumentNode || !$haystack instanceof ArgumentNode => Risk::BehaviorChanges,
+			$types?->isOfType($needle->value, 'int') === Tristate::Yes && $types->isOfType($haystack->value, 'array<int>') === Tristate::Yes => null,
+			default => Risk::TypeUnknown,
+		};
 		if (!$context->report($node, $message, risk: $risk)) {
 			return;
 		}

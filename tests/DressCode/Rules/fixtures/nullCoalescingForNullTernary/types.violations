@@ -1,0 +1,6 @@
+12: A ternary testing for null must be written with `??`
+13: A ternary testing for null must be written with `??`
+	risky TypeUnknown: `??` may ask an object through its magic methods, which the test did not
+14: A ternary testing for null must be written with `??`
+15: A ternary testing for null must be written with `??`
+	risky TypeUnknown: `??` may ask an object through its magic methods, which the test did not

@@ -120,6 +120,7 @@ final class PhpSymbols
 ```php
 final class Types implements DressCode\Analyses\PassAnalysis
 	public function isOfType(PhpSyntax\Nodes\ExpressionNode $expression, string $type): DressCode\Tristate
+	public function isComparedAlike(array $expressions): bool
 	public function findClasses(PhpSyntax\Nodes\ExpressionNode $expression): array
 	public function findMember(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\Member
 	public function findMemberAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
@@ -138,6 +139,7 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function isInterface(string $class): DressCode\Tristate
 	public function isFinalClass(string $class): DressCode\Tristate
 	public function hasMember(string $class, DressCode\Analyses\MemberKind $kind, string $name): bool
+	public function isPlainProperty(PhpSyntax\Nodes\ExpressionNode $access): DressCode\Tristate
 	public function isStaticMethod(string $class, string $method): DressCode\Tristate
 	public function findClassDeprecation(string $class): ?DressCode\Analyses\Deprecation
 ```

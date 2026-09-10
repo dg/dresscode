@@ -7,8 +7,9 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
-use DressCode\Rules\CodeWriter;
+use DressCode\Analyses\Types;
+use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Tristate};
+use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, Expression, ExpressionNode, NameNode};
@@ -21,7 +22,8 @@ use function count;
  *
  * The two do not spell the same answer: `gettype()` says `integer`, `double`, `boolean` and `NULL` where
  * `get_debug_type()` says `int`, `float`, `bool` and `null`, and a message or a comparison built on those words
- * says something else afterwards, so the fix is risky.
+ * says something else afterwards, so the fix is risky but for a string or an array, which both name alike.
+ * Without the types, such a value is not told from another.
  */
 #[RuleInfo(
 	'dresscode/getDebugTypeForTernary',
@@ -61,11 +63,17 @@ final class GetDebugTypeForTernaryRule extends NodeRule
 		}
 
 		assert($test instanceof Expression\FunctionCallNode && $test->name instanceof NameNode);
+		$uncertainty = GlobalCalls::findUncertainty($test, $context);
+		$sameAnswer = $context->findAnalysis(Types::class)?->isOfType($subject, 'string|array') === Tristate::Yes;
 		if (!$context->report(
 			$node,
 			'The type of the value must be asked for with `get_debug_type()`',
-			risk: Risk::TypeUnknown,
-			because: 'the value may be one whose type `gettype()` spells another way',
+			risk: match (true) {
+				!$sameAnswer => Risk::TypeUnknown,
+				$uncertainty !== null => Risk::NameUncertain,
+				default => null,
+			},
+			because: $sameAnswer ? $uncertainty : 'the value may be one whose type `gettype()` spells another way',
 		)) {
 			return;
 		}

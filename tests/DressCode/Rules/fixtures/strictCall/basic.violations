@@ -1,17 +1,17 @@
-3: The `in_array()` call must pass `$strict = true`
+4: The `in_array()` call must pass `$strict = true`
 	risky TypeUnknown
-5: The `in_array()` call must pass `$strict = true`
-6: The `array_search()` call must pass `$strict = true`
+6: The `in_array()` call must pass `$strict = true`
+7: The `array_search()` call must pass `$strict = true`
 	risky TypeUnknown
-7: The `array_keys()` call must pass `$strict = true`
+8: The `array_keys()` call must pass `$strict = true`
 	risky TypeUnknown
-9: The `base64_decode()` call must pass `$strict = true`
-	risky BehaviorChanges
-10: The `mb_detect_encoding()` call must pass `$strict = true`
+10: The `base64_decode()` call must pass `$strict = true`
 	risky BehaviorChanges
 11: The `mb_detect_encoding()` call must pass `$strict = true`
 	risky BehaviorChanges
-12: The `in_array()` call must pass `$strict = true`
+12: The `mb_detect_encoding()` call must pass `$strict = true`
+	risky BehaviorChanges
+13: The `in_array()` call must pass `$strict = true`
 	risky TypeUnknown
-15: The `in_array()` call must pass `$strict = true`
+16: The `in_array()` call must pass `$strict = true`
 	risky TypeUnknown

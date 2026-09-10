@@ -1,6 +1,6 @@
-3: The assignment must be written `??=` instead of repeating its target
+4: The assignment must be written `??=` instead of repeating its target
 	risky TypeUnknown: the property may be readonly, hooked or magic, and `??=` does not write a value that is not null
-4: The assignment must be written `.=` instead of repeating its target
+5: The assignment must be written `.=` instead of repeating its target
 	risky BehaviorChanges: the right side may change the property before `.=` reads it
-5: The assignment must be written `+=` instead of repeating its target
+6: The assignment must be written `+=` instead of repeating its target
 	risky BehaviorChanges: the right side may change the property before `+=` reads it

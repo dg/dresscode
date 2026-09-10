@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Tristate};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, BinaryOpNode, IssetNode, PropertyFetchNode, TernaryNode};
 use PhpSyntax\Nodes\ExpressionNode;
@@ -20,7 +21,8 @@ use function count;
  * that can be read again without side effects. `??` asks `__isset` or `offsetExists` and then reads through
  * `__get` or `offsetGet`, and without `__isset` it calls `__get` straight away. `isset()` of a property never
  * calls its `__get`, so after it a property is a risky subject; `!== null` never asks, so after it a property
- * or an offset anywhere in the expression is.
+ * or an offset anywhere in the expression is. Without the types, a plain property or array is not told from
+ * an object answering through its methods.
  */
 #[RuleInfo(
 	'dresscode/nullCoalescingForNullTernary',
@@ -71,7 +73,8 @@ final class NullCoalescingForNullTernaryRule extends NodeRule
 		$asked = $cond instanceof IssetNode
 			? ($subject instanceof PropertyFetchNode ? [$subject] : [])
 			: self::findAskable($subject);
-		$risky = $asked !== [];
+		$types = $context->findAnalysis(Types::class);
+		$risky = !array_all($asked, fn(ExpressionNode $read) => self::isPlainRead($read, $types));
 		if (!$context->report(
 			$node->question,
 			'A ternary testing for null must be written with `??`',
@@ -95,5 +98,16 @@ final class NullCoalescingForNullTernaryRule extends NodeRule
 			[$expr, ...$expr->find(ExpressionNode::class)],
 			fn(ExpressionNode $node) => $node instanceof PropertyFetchNode || $node instanceof ArrayAccessNode,
 		));
+	}
+
+
+	/** Whether the types tell that the read goes straight to a value: a plain property, or an offset of an array. */
+	private static function isPlainRead(ExpressionNode $read, ?Types $types): bool
+	{
+		return match (true) {
+			$read instanceof PropertyFetchNode => $types?->isPlainProperty($read) === Tristate::Yes,
+			$read instanceof ArrayAccessNode => $types?->isOfType($read->expression, 'array') === Tristate::Yes,
+			default => false,
+		};
 	}
 }

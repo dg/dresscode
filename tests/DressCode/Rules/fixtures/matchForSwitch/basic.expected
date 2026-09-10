@@ -1,4 +1,5 @@
 <?php
+// types off
 // risky
 $statement = match ($input) {
 	Lexer::T_SELECT => 'select',

@@ -1,4 +1,4 @@
-23: The private method `other()` uses no `$this` and must be static
+24: The private method `other()` uses no `$this` and must be static
 	risky BehaviorChanges
-35: The private method `ownStatic()` uses no `$this` and must be static
+36: The private method `ownStatic()` uses no `$this` and must be static
 	risky BehaviorChanges

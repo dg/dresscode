@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\Analyses\PhpSignatures;
+use DressCode\Analyses\{PhpSignatures, Types};
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, SymbolKind, Token, Visibility};
@@ -252,8 +252,8 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 
 
 	/**
-	 * Whether the parameter the argument binds to takes it by reference, as the declaration in the file or the one
-	 * of PHP says; null where nothing tells.
+	 * Whether the parameter the argument binds to takes it by reference, as the declaration in the file, the one of
+	 * PHP or the types say; null where nothing tells.
 	 */
 	private static function takesByReference(ArgumentNode $argument, ClassNode|AnonymousClassNode $class, RuleContext $context): ?bool
 	{
@@ -263,7 +263,7 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 			$call instanceof Expression\FunctionCallNode => self::findFunctionParameters($call, $context),
 			$call instanceof Expression\MethodCallNode,
 			$call instanceof Expression\StaticMethodCallNode,
-			$call instanceof Expression\NewNode => self::findMethodParameters($call, $class),
+			$call instanceof Expression\NewNode => self::findMethodParameters($call, $class, $context),
 			default => null,
 		};
 		if ($parameters === null || !$list instanceof SeparatedNodeList) {
@@ -320,12 +320,13 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 
 	/**
 	 * The parameters of the method the call or instantiation runs, as the class in sight declares them for a call on
-	 * `$this`, `self` or `static`.
+	 * `$this`, `self` or `static`, and as the types say otherwise.
 	 * @return ?list<array{string, bool, bool}>
 	 */
 	private static function findMethodParameters(
 		Expression\MethodCallNode|Expression\StaticMethodCallNode|Expression\NewNode $call,
 		ClassNode|AnonymousClassNode $class,
+		RuleContext $context,
 	): ?array
 	{
 		$own = match (true) {
@@ -341,7 +342,12 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 			}
 		}
 
-		return null;
+		$types = $context->findAnalysis(Types::class);
+		$access = $types?->findMemberAccess($call);
+		$parameters = $access === null ? null : $types->findParameters($access);
+		return $parameters === null
+			? null
+			: array_map(fn($parameter) => [$parameter->name, $parameter->byReference, $parameter->variadic], $parameters);
 	}
 
 

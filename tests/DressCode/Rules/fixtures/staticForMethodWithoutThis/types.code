@@ -1,0 +1,36 @@
+<?php
+// risky
+
+namespace App;
+
+use Acme\Shop\{Base, Other};
+
+
+class Known extends Base
+{
+	public function describe(): string
+	{
+		return $this->other();
+	}
+
+
+	private function other(): string
+	{
+		return Other::make();
+	}
+}
+
+
+class Orphan extends \Acme\Missing\Base
+{
+	public function describe(): string
+	{
+		return $this->other();
+	}
+
+
+	private function other(): string
+	{
+		return Other::make();
+	}
+}

@@ -7,6 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
+use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\BinaryOpNode;
@@ -14,7 +15,8 @@ use PhpSyntax\Nodes\Expression\BinaryOpNode;
 
 /**
  * Strict comparison everywhere: `===` for `==`, `!==` for `!=` and `<>`. Risky: a loose comparison that
- * relied on type juggling changes its result.
+ * relied on type juggling changes its result. Without the types, operands of one type, which compare the same
+ * either way, are not told from others.
  */
 #[RuleInfo(
 	'dresscode/strictComparison',
@@ -46,7 +48,7 @@ final class StrictComparisonRule extends NodeRule
 			|| !$context->report(
 				$node->operator,
 				"The `{$node->operator->text}` comparison must be written `$text`",
-				risk: Risk::TypeUnknown,
+				risk: $context->findAnalysis(Types::class)?->isComparedAlike([$node->left, $node->right]) ? null : Risk::TypeUnknown,
 			)
 		) {
 			return;

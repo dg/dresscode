@@ -213,6 +213,20 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * Whether the expressions are all of one type the loose and the strict comparison compare alike: integers,
+	 * booleans or enum cases; two strings are not, `'1' == '01'` comparing them as numbers.
+	 * @param list<ExpressionNode> $expressions
+	 */
+	public function isComparedAlike(array $expressions): bool
+	{
+		return array_any(
+			['int', 'bool', \UnitEnum::class],
+			fn(string $type) => array_all($expressions, fn(ExpressionNode $expression) => $this->isOfType($expression, $type) === Tristate::Yes),
+		);
+	}
+
+
+	/**
 	 * The classes the expression is an instance of, fully qualified; none for anything that is no object.
 	 * @return list<string>
 	 */
@@ -722,6 +736,42 @@ final class Types implements PassAnalysis
 			MemberKind::Constant => $reflection->hasConstant($name),
 			MemberKind::Method, MemberKind::StaticMethod, MemberKind::Constructor => $reflection->hasNativeMethod($name),
 			MemberKind::Property, MemberKind::StaticProperty => $reflection->hasNativeProperty($name),
+		};
+	}
+
+
+	/**
+	 * Whether the property the access reaches holds a plain value its reads and writes go straight to: declared,
+	 * neither readonly, virtual nor hooked, and one no child can hook, being private or final or of a final class.
+	 * No for a property reached through `__get` and `__set` and for a readonly, virtual or hooked one; maybe where
+	 * a child may hook it, and for an access the types cannot tell or the analysis was made without.
+	 */
+	public function isPlainProperty(ExpressionNode $access): Tristate
+	{
+		$member = $this->findMember($access);
+		if ($member === null) {
+			// a property no class declares is magic where every class of the receiver answers through __get or __set
+			$classes = $this->findMemberAccess($access)->classes ?? [];
+			return $classes !== [] && array_all($classes, fn(string $name) => ($class = $this->phpstan->findClass($name)) !== null
+				&& ($class->hasNativeMethod('__get') || $class->hasNativeMethod('__set')))
+				? Tristate::No
+				: Tristate::Maybe;
+		}
+
+		$class = $member->kind === MemberKind::Property || $member->kind === MemberKind::StaticProperty
+			? $this->phpstan->findClass($member->declaringClass)
+			: null;
+		if ($class === null) {
+			return Tristate::Maybe;
+		} elseif (!$class->hasNativeProperty($member->name)) {
+			return Tristate::No;
+		}
+
+		$property = $class->getNativeProperty($member->name);
+		return match (true) {
+			$property->isReadOnly(), $property->isVirtual()->yes(), $property->hasHook('get'), $property->hasHook('set') => Tristate::No,
+			$property->isPrivate(), $property->isFinal()->yes(), $class->isFinalByKeyword() => Tristate::Yes,
+			default => Tristate::Maybe,
 		};
 	}
 

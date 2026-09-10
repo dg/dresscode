@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token, Visibility};
@@ -26,9 +27,9 @@ use function in_array;
  * closure that inherits it included and an anonymous class that has its own excluded, a variable variable,
  * `compact()`, `extract()`, `get_defined_vars()`, `eval` and `include`, which could reach it by name,
  * `debug_backtrace()`, which shows the object, `parent::` and a call through `self::`, `static::` or the name of
- * the class or an ancestor of a method the class does not declare static, which PHP makes with the object, and in
- * a class extending another any class it names may be an ancestor. A method calling itself through `$this` stays
- * too.
+ * the class or an ancestor of a method the class does not declare static, which PHP makes with the object; without
+ * the types, any class a class extending another names may be an ancestor. A method calling itself through `$this`
+ * stays too.
  *
  * Every fix is risky, because what the file does not show can notice the change: a closure made of the method is
  * static and refuses to be bound to an object, and reflection reports it static.
@@ -110,7 +111,8 @@ final class StaticForMethodWithoutThisRule extends NodeRule
 			$named = $resolver->resolveClass($call->class);
 			$own = $resolver->getDeclaredName($class);
 			if ($own === null || strcasecmp($named, $own) !== 0) {
-				return $class->extends === null;
+				$types = $context->findAnalysis(Types::class);
+				return $class->extends === null || ($own !== null && $types?->isSubtype($own, $named) === Tristate::No);
 			}
 		}
 

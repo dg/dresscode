@@ -1,0 +1,35 @@
+<?php
+
+namespace App;
+
+use Acme\Zoo\Keeper;
+
+
+function hasSleepingAnimal(Keeper $keeper): bool
+{
+	return array_any($keeper->animals, fn($animal) => $animal->isAsleep());
+}
+
+
+function hasSleepingHerd(Keeper $keeper): bool
+{
+	foreach ($keeper->herd as $animal) {
+		if ($animal->isAsleep()) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+function hasSleepingVisitor(Keeper $keeper): bool
+{
+	foreach ($keeper->visitors as $animal) {
+		if ($animal->isAsleep()) {
+			return true;
+		}
+	}
+
+	return false;
+}

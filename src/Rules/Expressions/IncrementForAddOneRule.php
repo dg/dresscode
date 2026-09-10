@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\{Node, Parser, Token};
 use PhpSyntax\Nodes\Expression\{CombinedAssignmentNode, PostfixOpNode};
 use PhpSyntax\Nodes\Scalar\IntegerNode;
@@ -16,8 +17,8 @@ use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 
 /**
  * `$a++` and `$a--` instead of `$a += 1` and `$a -= 1`, only as a whole statement, where the value
- * of the expression cannot be observed. Risky: null and a string that is no number count differently,
- * `null--` staying null and `'a'++` being `'b'`, and a number is not told from them.
+ * of the expression cannot be observed. Risky but for a number: null and a string that is no number count
+ * differently, `null--` staying null and `'a'++` being `'b'`. Without the types, a number is not told from them.
  */
 #[RuleInfo(
 	'dresscode/incrementForAddOne',
@@ -52,7 +53,7 @@ final class IncrementForAddOneRule extends NodeRule
 			|| !$context->report(
 				$node,
 				"The `{$node->operator->text} 1` assignment must be written `$operator`",
-				risk: Risk::TypeUnknown,
+				risk: $context->findAnalysis(Types::class)?->isOfType($node->target, 'int|float') === Tristate::Yes ? null : Risk::TypeUnknown,
 			)
 		) {
 			return;

@@ -7,6 +7,7 @@
 
 namespace DressCode\Rules\ControlFlow;
 
+use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Tristate};
 use DressCode\Rules\{CodeWriter, NodeHelpers};
 use PhpSyntax\{Node, Parser, Token};
@@ -29,8 +30,8 @@ use function count, in_array;
  * scope: the loop writes them for the code around it, the closure of the call does not.
  *
  * The functions take an array and a foreach any iterable, so a loop over what is no array is left alone and the
- * fix is risky wherever the loop may go through something else. Only an array literal and what a declaration in
- * sight says are told from a Traversable.
+ * fix is risky wherever the loop may go through something else. Without the types, only an array literal and what
+ * a declaration in sight says are told from a Traversable.
  */
 #[RuleInfo(
 	'dresscode/arrayFunctionForForeach',
@@ -74,6 +75,10 @@ final class ArrayFunctionForForeachRule extends NodeRule
 			default => [null, false],
 		};
 		$overArray = self::isArray($foreach);
+		if ($overArray === Tristate::Maybe) {
+			$overArray = $context->findAnalysis(Types::class)?->isOfType($foreach->expression, 'array') ?? Tristate::Maybe;
+		}
+
 		if (
 			$function === null
 			|| $overArray === Tristate::No

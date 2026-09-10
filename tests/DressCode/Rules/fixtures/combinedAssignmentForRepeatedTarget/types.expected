@@ -1,0 +1,14 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\{Bag, Basket, Cart};
+
+
+function fill(Cart $cart, Basket $basket, Bag $bag): void
+{
+	$cart->total ??= 0;
+	$cart->id = $cart->id ?? 0;
+	$basket->total = $basket->total ?? 0;
+	$bag->total = $bag->total ?? 0;
+}
