@@ -215,7 +215,7 @@ test('errors go to stderr with exit code 2', function () use ($root) {
 	Assert::match("Error: Unknown option --nope.\n\nUsage:%A%", $err);
 	[$code, , $err] = runApp($root, ['check', '--rule', 'test/none=on']);
 	Assert::same(2, $code);
-	Assert::same("Error: Unknown rule 'test/none'.\n", $err);
+	Assert::same("Error: The command line: Unknown rule 'test/none'.\n", $err);
 	[$code, , $err] = runApp($root, ['check', '--format', 'xml']);
 	Assert::same(2, $code);
 	Assert::match("Error: Option --format: expects console, bare, github, json or checkstyle, 'xml' given.%A%", $err);

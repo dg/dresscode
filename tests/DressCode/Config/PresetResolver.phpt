@@ -526,7 +526,7 @@ test('a rule that needs the types of the code runs only where the configuration 
 	Assert::exception(
 		fn() => $resolve(new Config(presets: [TypesPreset::class])),
 		ConfigurationException::class,
-		'Preset %a% sets types, which is a decision of the project, not of a standard.',
+		"Preset %a% sets 'types', which the project decides, not a standard.",
 	);
 });
 
@@ -723,7 +723,7 @@ test('what the namespaces declare adds up over the layers, and only the configur
 	Assert::exception(
 		fn() => $resolver->resolve(new Config(presets: [BadDeclarationsPreset::class]), Config::DefaultPhpVersion),
 		ConfigurationException::class,
-		"'strlen' is in no namespace, and a global function needs no listing. (in preset test/bad-declarations)",
+		"Preset test/bad-declarations: 'strlen' is in no namespace, and a global function needs no listing.",
 	);
 });
 
@@ -835,8 +835,22 @@ test('a group is one of the groups, and the name of one narrows the run to its r
 });
 
 
+test('a value NEON read as an entity is shown among the origins the way a file writes it', function () {
+	$rule = new ResolvedRule('test/c', RuleC::class, [], [
+		['upgrading.neon of acme/lib', ['Acme\Order::$paid' => new Nette\Neon\Entity('isPaid'), 'Acme\Order::OLD' => 'New']],
+	]);
+	Assert::same(
+		[
+			'Acme\Order::$paid' => [['upgrading.neon of acme/lib', 'isPaid()']],
+			'Acme\Order::OLD' => [['upgrading.neon of acme/lib', 'New']],
+		],
+		$rule->getOrigins(),
+	);
+});
+
+
 test('what the packages say lies under every layer, never turns a rule on and survives the rule being turned off', function () {
-	$packages = [['deprecations.neon of acme/lib', new Profile(rules: [RuleC::class => ['max' => 1], RuleA::class => []])]];
+	$packages = [new Config\PackageProfile('upgrading.neon of acme/lib', new Profile(rules: [RuleC::class => ['max' => 1], RuleA::class => []]))];
 	$options = function (Config $config) use ($packages): ?array {
 		$resolver = new PresetResolver(new RuleRegistry, $packages);
 		$resolved = $resolver->resolve($config, '8.3');
@@ -863,22 +877,22 @@ test('what the packages say lies under every layer, never turns a rule on and su
 	Assert::same('no preset or rule of the configuration mentions it', $rules['test/a']->inactive);
 
 	// a rule this DressCode does not know is a warning, not an error, because the package may be newer
-	$resolver = new PresetResolver(new RuleRegistry, [['deprecations.neon of acme/lib', new Profile(rules: ['acme/from-the-future' => []])]]);
+	$resolver = new PresetResolver(new RuleRegistry, [new Config\PackageProfile('upgrading.neon of acme/lib', new Profile(rules: ['acme/from-the-future' => []]))]);
 	$resolver->resolve(new Config, '8.3');
-	Assert::same(['Rule acme/from-the-future, which deprecations.neon of acme/lib sets, is unknown here; skipped.'], $resolver->getWarnings());
+	Assert::same(['Rule acme/from-the-future, which upgrading.neon of acme/lib sets, is not known to this DressCode; skipped.'], $resolver->getWarnings());
 });
 
 
 test('errors', function () {
 	Assert::exception(fn() => resolve(new Config(rules: ['test/none' => true])), ConfigurationException::class, "Unknown rule 'test/none'.");
-	Assert::exception(fn() => resolve(new Config(presets: [BrokenPreset::class])), ConfigurationException::class, "Unknown rule 'test/none'. (in preset test/broken)");
-	Assert::exception(fn() => resolve(new Config(presets: [DecidingPreset::class])), ConfigurationException::class, 'Preset test/deciding sets fixRisky, which is a decision of the project, not of a standard.');
-	Assert::exception(fn() => resolve(new Config(overrides: [new Override(['tests'], presets: ['test/nope'])])), ConfigurationException::class, "Unknown preset 'test/nope'. (in the override for tests)");
-	Assert::exception(fn() => resolve(new Config(overrides: [new Override(['tests'], fixRisky: ['test/nope'])])), ConfigurationException::class, "Unknown rule 'test/nope'. (in the override for tests)");
+	Assert::exception(fn() => resolve(new Config(presets: [BrokenPreset::class])), ConfigurationException::class, "Preset test/broken: Unknown rule 'test/none'.");
+	Assert::exception(fn() => resolve(new Config(presets: [DecidingPreset::class])), ConfigurationException::class, "Preset test/deciding sets 'fixRisky', which the project decides, not a standard.");
+	Assert::exception(fn() => resolve(new Config(overrides: [new Override(['tests'], presets: ['test/nope'])])), ConfigurationException::class, "The override for tests: Unknown preset 'test/nope'.");
+	Assert::exception(fn() => resolve(new Config(overrides: [new Override(['tests'], fixRisky: ['test/nope'])])), ConfigurationException::class, "The override for tests: Unknown rule 'test/nope'.");
 	Assert::exception(
 		fn() => new PresetResolver(new RuleRegistry)->resolve(new Config(overrides: [new Override(['tests'], warnings: ['test/nope'])]), '8.3', [0]),
 		ConfigurationException::class,
-		"Unknown rule 'test/nope'. (in the override for tests)",
+		"The override for tests: Unknown rule 'test/nope'.",
 	);
 	Assert::exception(fn() => resolve(new Config(rules: [RuleA::class => ['x' => 1]])), ConfigurationException::class, 'Rule test/a has no options.');
 	// the message names the layer that set the options, because that is where the reader has to go

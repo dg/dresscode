@@ -239,7 +239,7 @@ final class RunnerFactory
 			$defaults = get_object_vars(new Config);
 			foreach (get_object_vars($provided) as $key => $value) {
 				if (!in_array($key, self::ExtensionKeys, true) && $value !== $defaults[$key]) {
-					throw new ConfigurationException('Extension ' . $extension::class . " sets $key, which is for the project to decide; an extension sets " . implode(', ', self::ExtensionKeys) . '.');
+					throw new ConfigurationException('Extension ' . $extension::class . " sets '$key', which the project decides; an extension sets " . implode(', ', self::ExtensionKeys) . '.');
 				}
 			}
 

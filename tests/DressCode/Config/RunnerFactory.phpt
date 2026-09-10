@@ -248,7 +248,7 @@ test('an extension brings only what a package can, and a class that is none of t
 	Assert::exception(
 		fn() => $create(new Config(extensions: [DecidingExtension::class])),
 		ConfigurationException::class,
-		'Extension DecidingExtension sets presets, which is for the project to decide; an extension sets extensions, analyses, excludePaths, skipWhen.',
+		"Extension DecidingExtension sets 'presets', which the project decides; an extension sets extensions, analyses, excludePaths, skipWhen.",
 	);
 	Assert::exception(
 		fn() => $create(new Config(extensions: ['DressCode\Missing'])),
@@ -273,7 +273,7 @@ test('an override turns a rule off under its class as under its name, an unknown
 	Assert::exception(
 		fn() => (new RunnerFactory)->createRunner($unknown, "$fixtures/project"),
 		ConfigurationException::class,
-		"Unknown rule 'test/nope'. (in the override for sub)",
+		"The override for sub: Unknown rule 'test/nope'.",
 	);
 
 	// so is an option no rule takes, which would otherwise wait for a file of the override
