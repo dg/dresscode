@@ -93,6 +93,21 @@ final class RuleTester
 
 
 	/**
+	 * What the rule makes of the fixture; for a tool that writes the .expected file.
+	 * @param class-string<Rule>|\Closure(array<string, mixed>): Rule $rule
+	 * @throws TestFailure
+	 */
+	public static function collectOutput(string|\Closure $rule, string $file, ?string $phpVersion = null): string
+	{
+		$code = self::read($file);
+		$options = self::readOptions($code, $file);
+		$instance = $rule instanceof \Closure ? $rule($options) : PresetResolver::createRule($rule, $options ?: true);
+		[$node] = self::process($instance, $code, $phpVersion ?? self::readPhpVersion($code, $file) ?? self::defaultPhpVersion($instance), basename($file));
+		return Printer::print($node);
+	}
+
+
+	/**
 	 * @param ?string $expected  the output; null when the rule must leave the code as it is
 	 * @param ?list<string> $violations  "line: message" each; null to skip the check
 	 * @throws TestFailure

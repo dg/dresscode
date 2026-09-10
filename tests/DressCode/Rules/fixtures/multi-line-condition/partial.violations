@@ -1,6 +1,6 @@
-2: A line break before the expression, the condition spans several lines
-3: A line break before the closing parenthesis, the condition spans several lines
-7: A line break before the closing parenthesis, the condition spans several lines
-9: A line break before the expression, the condition spans several lines
-21: A line break before the expression, the condition spans several lines
-23: A line break before the closing parenthesis, the condition spans several lines
+2: A line break before the expression, the condition is not written in the 'perLine' shape
+3: A line break before the closing parenthesis, the condition is not written in the 'perLine' shape
+7: A line break before the closing parenthesis, the condition is not written in the 'perLine' shape
+9: A line break before the expression, the condition is not written in the 'perLine' shape
+21: A line break before the expression, the condition is not written in the 'perLine' shape
+23: A line break before the closing parenthesis, the condition is not written in the 'perLine' shape

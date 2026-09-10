@@ -86,12 +86,13 @@ final class Fixer implements Sink
 			return;
 		}
 
-		// joining two lines is only safe when nothing but whitespace stands between the tokens
-		if (
-			$previous === null
-			|| ($leading[0] ?? null)?->kind === TriviaKind::OpenTag
-			|| $previous->hasCommentUpTo($token)
-		) {
+		if ($previous === null || ($leading[0] ?? null)?->kind === TriviaKind::OpenTag) {
+			return;
+		}
+
+		// a comment between the tokens has nowhere to go, so the claim is reported and left unfixed
+		if ($previous->hasCommentUpTo($token)) {
+			$context->report($at, $message);
 			return;
 		}
 

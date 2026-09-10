@@ -19,10 +19,7 @@ while (
 if ($a) {
 } elseif (
 	$someVeryLongVariableName !== null
-	&& (
-		$anotherVeryLongVariableName !== null
-		|| $yetAnotherVariableName > 1000
-	)
+	&& ($anotherVeryLongVariableName !== null || $yetAnotherVariableName > 1000)
 	&& $ok
 ) {
 }
@@ -33,7 +30,12 @@ do {
 	&& $yetAnotherVariableName > 1000
 	&& $ok
 );
-if ($someVeryLongVariableName !== null && $anotherVeryLongVariableName !== null /* c */ && $yetAnotherVariableName > 1000 && $ok) {
+if (
+	$someVeryLongVariableName !== null
+	&& $anotherVeryLongVariableName !== null /* c */
+	&& $yetAnotherVariableName > 1000
+	&& $ok
+) {
 }
 if (
 	$a && $b

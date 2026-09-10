@@ -57,7 +57,8 @@ final class Nette implements Preset
 			'class-definition-spacing' => ['spaceBeforeParenthesis' => true],
 
 			// breaks: the brace of a multi-line signature below its return type, promoted properties on lines of their
-			// own, the first link of a chain and several items of an array may share a line
+			// own, the first link of a chain and several items of an array may share a line, and a broken condition
+			// may begin on the line of its parenthesis or below it
 			'braces-position' => [
 				'multiLineParameters' => 'nextLineAfterReturnType', 'emptyBodies' => 'ownLine',
 				'allowSingleLineAnonymousFunctions' => true,
@@ -65,6 +66,7 @@ final class Nette implements Preset
 			'multi-line-signature' => ['promotedProperties' => true],
 			'multi-line-chain' => ['leadingLinksOnFirstLine' => true],
 			'multi-line-array' => ['oneItemPerLine' => false],
+			'multi-line-condition' => ['shape' => ['perLine', 'compact']],
 			'trailing-comma' => ['multiLine' => ['arrays', 'arguments', 'parameters']],
 
 			// names and declarations

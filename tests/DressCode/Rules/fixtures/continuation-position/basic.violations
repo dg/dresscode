@@ -3,3 +3,4 @@
 12: No line break before the catch keyword
 14: No line break before the finally keyword
 19: No line break before the while keyword
+24: No line break before the else keyword

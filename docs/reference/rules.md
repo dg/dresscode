@@ -530,14 +530,14 @@ Stage: Formatting.
 
 ### dresscode/multi-line-condition
 
-Splits a long condition of if, elseif, while and do-while into one part per line.
+Writes a condition of if, elseif, while and do-while in the shape the configuration asks for.
 
 Stage: Formatting. Covers: `SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition`.
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `minLineLength` | int | `121` | A condition whose line reaches this width, its closing parenthesis included, is split; what follows on the line does not count, and dresscode/line-length reports a line of one less |
-| `shape` | `perLine` \| `compact` \| `keep` | `"compact"` | What a condition already on several lines looks like: perLine gives every part a line of its own, compact leaves the parts on the lines they share and only frames them, keep leaves it alone |
+| `minLineLength` | int | `121` | A condition whose line reaches this width, its closing parenthesis included, is broken; what follows on the line does not count, and dresscode/line-length reports a line of one less |
+| `shape` | list of `perLine` \| `compact` | `"perLine"` | The shape of a condition on several lines: perLine begins it on the line after the parenthesis, compact on the line of it, both closing the parenthesis on a line of its own; a list of the two lets either pass and writes anything else in the first, keep leaves every condition as it is |
 
 ### dresscode/multi-line-signature
 

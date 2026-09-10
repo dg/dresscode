@@ -1,0 +1,10 @@
+<?php
+// the operator ends the line the author wrote; a break before it must not leave it alone on one
+if ($a &&
+	$b) {
+}
+if (
+	$a &&
+	$b
+) {
+}

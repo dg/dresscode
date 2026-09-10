@@ -1,0 +1,16 @@
+<?php
+// {"shape": "compact"}
+// the gap the join opens after the parenthesis belongs to dresscode/parentheses-spacing, so this rule
+// alone leaves a space there
+if ($a
+	&& $b
+) {
+}
+if ($c
+	&& $d) {
+}
+if (
+	$e
+	&& $f
+) {
+}

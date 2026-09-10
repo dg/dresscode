@@ -16,27 +16,31 @@ use PhpSyntax\Node;
 use PhpSyntax\Nodes\ElseIfNode;
 use PhpSyntax\Nodes\Expression\BinaryOpNode;
 use PhpSyntax\Nodes\Expression\ParenthesizedNode;
+use PhpSyntax\Nodes\Expression\UnaryOpNode;
 use PhpSyntax\Nodes\ExpressionNode;
 use PhpSyntax\Nodes\Statement\DoWhileNode;
 use PhpSyntax\Nodes\Statement\IfNode;
 use PhpSyntax\Nodes\Statement\WhileNode;
 use PhpSyntax\Style;
 use PhpSyntax\TokenKind;
+use function count, in_array, is_array;
 
 
 /**
- * A condition whose line reaches minLineLength is split so that every part starts a line with its operator
- * and the closing parenthesis stands on a line of its own; a parenthesized group with operators inside is
- * split the same way. The width is measured as dresscode/line-length measures a line, a tab counting to the
- * next stop of the style, and up to the closing parenthesis when that shares the line, because what follows
- * belongs to other rules and may still move. What a condition already on several lines looks like is the
- * option `shape`. Where the lines stand is the matter of dresscode/indentation. A condition with a comment
- * inside is left alone.
+ * A condition of if, elseif, while and do-while joined by boolean operators is written in one of two shapes:
+ * `perLine` begins it on the line after the opening parenthesis, `compact` on the line of it, and both leave
+ * the closing parenthesis on a line of its own, so that the brace of the body stands apart from the condition.
+ * How the parts are spread over the lines between is the author's; a condition in neither shape is written
+ * again with a line per part, and so is one that stands on a single line reaching `minLineLength`. The option
+ * names the shapes that pass, the first of them the one anything else is written in. The width is measured
+ * as dresscode/line-length measures a line, a tab counting to the next stop of the style, and up to the
+ * closing parenthesis when that shares the line, because what follows belongs to other rules and may still
+ * move. Where the lines stand is the matter of dresscode/indentation.
  */
 #[RuleInfo(
 	'dresscode/multi-line-condition',
 	Stage::Formatting,
-	description: 'Splits a long condition of if, elseif, while and do-while into one part per line',
+	description: 'Writes a condition of if, elseif, while and do-while in the shape the configuration asks for',
 )]
 final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 {
@@ -49,15 +53,18 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 	];
 
 	private int $minLineLength = 121;
-	private string $shape = self::Compact;
+
+	/** @var list<string>  the shapes that pass, the first of them the one a condition in none of them is written in */
+	private array $shapes = [self::PerLine];
 
 
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'minLineLength' => Expect::int(121)->min(1)->description('A condition whose line reaches this width, its closing parenthesis included, is split; what follows on the line does not count, and dresscode/line-length reports a line of one less'),
-			'shape' => Expect::anyOf(self::PerLine, self::Compact, self::Keep)->default(self::Compact)
-				->description('What a condition already on several lines looks like: perLine gives every part a line of its own, compact leaves the parts on the lines they share and only frames them, keep leaves it alone'),
+			'minLineLength' => Expect::int(121)->min(1)->description('A condition whose line reaches this width, its closing parenthesis included, is broken; what follows on the line does not count, and dresscode/line-length reports a line of one less'),
+			'shape' => Expect::anyOf(self::PerLine, self::Compact, self::Keep, Expect::listOf(Expect::anyOf(self::PerLine, self::Compact))->min(1))
+				->default(self::PerLine)
+				->description('The shape of a condition on several lines: perLine begins it on the line after the parenthesis, compact on the line of it, both closing the parenthesis on a line of its own; a list of the two lets either pass and writes anything else in the first, keep leaves every condition as it is'),
 		]);
 	}
 
@@ -65,15 +72,19 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 	public function configure(array $options): void
 	{
 		$this->minLineLength = $options['minLineLength'];
-		$this->shape = $options['shape'];
+		$this->shapes = match (true) {
+			is_array($options['shape']) => array_values(array_unique($options['shape'])),
+			$options['shape'] === self::Keep => [],
+			default => [$options['shape']],
+		};
 	}
 
 
 	public function getClaims(): array
 	{
 		$statement = [
-			'condition' => [fn(Gap $gap) => $this->claimToSplit($gap, $gap->value->parent), null],
-			'closeParen' => [fn(Gap $gap) => $this->claimToSplit($gap, $gap->token->parent), null],
+			'condition' => [fn(Gap $gap) => $this->claimToBegin($gap, $gap->value->parent), null],
+			'closeParen' => [fn(Gap $gap) => $this->claimToEnd($gap, $gap->token->parent), null],
 		];
 		return [
 			IfNode::class => $statement,
@@ -81,129 +92,41 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 			WhileNode::class => $statement,
 			DoWhileNode::class => $statement,
 			BinaryOpNode::class => [
-				'operator' => [fn(Gap $gap) => $this->claimToLayOutPart($gap, $gap->token->parent), null],
-			],
-			ParenthesizedNode::class => [
-				'expression' => [fn(Gap $gap) => $this->claimToLayOutPart($gap, $gap->value->parent), null],
-				'closeParen' => [fn(Gap $gap) => $this->claimToLayOutPart($gap, $gap->token->parent), null],
+				// the part begins with its operator, so what follows the operator stays on its line
+				'operator' => [
+					fn(Gap $gap) => $this->claimForPart($gap, $gap->token->parent, Line::Next),
+					fn(Gap $gap) => $this->claimForPart($gap, $gap->token->parent, Line::Same),
+				],
 			],
 		];
 	}
 
 
-	/**
-	 * The break, with its reason, of a statement whose condition begins on the line after the opening parenthesis
-	 * and ends before the closing one on a line of its own: when it takes a line per part, or when its chain of
-	 * boolean operators spreads over lines already and the parentheses do not follow, which `shape: keep` does
-	 * not ask for. Decided once per pass about the statement, from the shape it has when the first of its
-	 * gaps is reached.
-	 */
-	private function claimToSplit(Gap $gap, ?Node $node): ?Claim
+	/** Where the condition begins is the whole difference between the two shapes. */
+	private function claimToBegin(Gap $gap, ?Node $node): ?Claim
 	{
-		if (
-			!$node instanceof IfNode
-			&& !$node instanceof ElseIfNode
-			&& !$node instanceof WhileNode
-			&& !$node instanceof DoWhileNode
-		) {
-			return null;
-		}
+		$decision = $this->decide($gap, $node);
+		return $decision === null
+			? null
+			: new Claim(line: $decision[0] === self::PerLine ? Line::Next : Line::Same, because: $decision[1]);
+	}
 
-		return $gap->once($node, fn() => $this->claimToLayOut($gap, $node)
-			?? ($this->shape !== self::Keep && $this->isHalfSplit($node)
-				? new Claim(line: Line::Next, because: 'the condition spans several lines')
-				: null));
+
+	/** Both shapes leave the closing parenthesis on a line of its own. */
+	private function claimToEnd(Gap $gap, ?Node $node): ?Claim
+	{
+		$decision = $this->decide($gap, $node);
+		return $decision === null ? null : new Claim(line: Line::Next, because: $decision[1]);
 	}
 
 
 	/**
-	 * The break, with its reason, of a statement whose condition takes a line per part: when it stands on one
-	 * line that is too long, or when `shape: perLine` asks for every part and some still share a line. A comment
-	 * inside leaves it alone. Decided once per pass about the condition.
+	 * The break of the condition the part belongs to, when the part lies on the way from that condition down
+	 * through the boolean operators of its chain, which is where the shape reaches.
 	 */
-	private function claimToLayOut(Gap $gap, ?Node $node): ?Claim
+	private function claimForPart(Gap $gap, ?Node $part, Line $line): ?Claim
 	{
-		if (
-			!$node instanceof IfNode
-			&& !$node instanceof ElseIfNode
-			&& !$node instanceof WhileNode
-			&& !$node instanceof DoWhileNode
-		) {
-			return null;
-		}
-
-		return $gap->once($node->condition, function () use ($node, $gap): ?Claim {
-			$because = $this->reasonToLayOut($node, $gap->style);
-			return $because === null ? null : new Claim(line: Line::Next, because: $because);
-		});
-	}
-
-
-	/**
-	 * A chain of boolean operators spread over lines whose parentheses do not follow: the condition shares the
-	 * line of the opening one, or the closing one shares a line with the condition.
-	 */
-	private function isHalfSplit(IfNode|ElseIfNode|WhileNode|DoWhileNode $node): bool
-	{
-		$cond = $node->condition;
-		$first = $cond->getFirstToken();
-		return self::canLayOut($cond)
-			&& self::hasSplitOperator($cond)
-			&& !$node->openParen->hasCommentUpTo($node->closeParen)
-			&& ($first?->getLine() === $node->openParen->getLine() || !$node->closeParen->startsLine());
-	}
-
-
-	/** Whether a boolean operator on the way down through the chain and its parenthesized groups begins a line. */
-	private static function hasSplitOperator(ExpressionNode $expr): bool
-	{
-		if ($expr instanceof BinaryOpNode && $expr->operator->is(...self::BooleanOperators)) {
-			return $expr->operator->startsLine() || self::hasSplitOperator($expr->left) || self::hasSplitOperator($expr->right);
-		}
-
-		return $expr instanceof ParenthesizedNode && self::hasSplitOperator($expr->expression);
-	}
-
-
-	/** A condition of width minLineLength or more is split, so the widest one that passes is one character narrower. */
-	private function reasonToLayOut(IfNode|ElseIfNode|WhileNode|DoWhileNode $node, Style $style): ?string
-	{
-		$cond = $node->condition;
-		$operators = self::countOperators($cond);
-		$first = $cond->getFirstToken();
-		$last = $cond->getLastToken();
-		if (
-			$operators === 0
-			|| $first === null
-			|| $last === null
-			|| $node->openParen->hasCommentUpTo($node->closeParen)
-		) {
-			return null;
-		}
-
-		$lines = ($last->getLine() ?? 0) - ($first->getLine() ?? 0) + 1;
-		if ($lines > 1) {
-			return $this->shape === self::PerLine && $lines < $operators + 1 ? 'some parts of the condition share a line' : null;
-		}
-
-		// the width of the condition itself, with its closing parenthesis when that shares the line: what follows
-		// on the line is the business of other rules and may still move
-		$end = $node->closeParen->getLine() === $last->getLine() ? $node->closeParen : $last;
-		$column = Indentation::advance(($end->getVisualColumn($style) ?? 1) - 1, $end->text, $style);
-		return $column >= $this->minLineLength && ($first->getLine() === $node->openParen->getLine() || self::canLayOut($cond))
-			? "the condition reaches column $column"
-			: null;
-	}
-
-
-	/**
-	 * The break of the condition the part belongs to, when the part lies on the way from a condition laid out part
-	 * by part down through boolean operators and parenthesized groups with operators inside, which is where the
-	 * layout reaches.
-	 */
-	private function claimToLayOutPart(Gap $gap, ?Node $part): ?Claim
-	{
-		if (!self::canLayOut($part)) {
+		if (!self::isChained($part)) {
 			return null;
 		}
 
@@ -215,10 +138,11 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 				|| $parent instanceof WhileNode
 				|| $parent instanceof DoWhileNode
 			) {
-				return $parent->condition === $node ? $this->claimToLayOut($gap, $parent) : null;
+				$decision = $parent->condition === $node ? $this->decide($gap, $parent) : null;
+				return $decision === null ? null : new Claim(line: $line, because: $decision[1]);
 			}
 
-			if (!self::canLayOut($parent)) {
+			if (!self::isChained($parent)) {
 				return null;
 			}
 		}
@@ -227,23 +151,95 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 	}
 
 
-	/** Whether laying the expression out changes anything: a chain of boolean operators, or a parenthesized one. */
-	private static function canLayOut(?Node $expr): bool
+	/**
+	 * The shape the condition of the statement must be written in and why, or null when it may stay as it is.
+	 * Decided once per pass about the condition, from the shape it has when the first of its gaps is reached.
+	 * @return ?array{string, string}
+	 */
+	private function decide(Gap $gap, ?Node $node): ?array
 	{
-		return ($expr instanceof BinaryOpNode && $expr->operator->is(...self::BooleanOperators))
-			|| ($expr instanceof ParenthesizedNode && self::countOperators($expr->expression) > 0);
+		if (
+			!$node instanceof IfNode
+			&& !$node instanceof ElseIfNode
+			&& !$node instanceof WhileNode
+			&& !$node instanceof DoWhileNode
+		) {
+			return null;
+		}
+
+		return $gap->once($node->condition, function () use ($node, $gap): ?array {
+			$because = $this->reasonToWrite($node, $gap->style);
+			return $because === null ? null : [$this->shapes[0], $because];
+		});
 	}
 
 
-	private static function countOperators(ExpressionNode $expr): int
+	/**
+	 * Why the condition must be written again: it stands on several lines in no shape the configuration allows,
+	 * or on a single line of width minLineLength or more, so the widest one that passes is one character narrower.
+	 */
+	private function reasonToWrite(IfNode|ElseIfNode|WhileNode|DoWhileNode $node, Style $style): ?string
 	{
-		$count = 0;
-		foreach ([$expr, ...$expr->find(BinaryOpNode::class)] as $node) {
-			if ($node instanceof BinaryOpNode && $node->operator->is(...self::BooleanOperators)) {
-				$count++;
-			}
+		$cond = $node->condition;
+		$first = $cond->getFirstToken();
+		$last = $cond->getLastToken();
+		if ($this->shapes === [] || $first === null || $last === null || self::countOperators($cond) === 0) {
+			return null;
 		}
 
-		return $count;
+		// several lines is a property of the parentheses, not of the chain: a condition on one line between
+		// parentheses of their own is written in no shape either
+		if ($node->openParen->getLine() !== $node->closeParen->getLine()) {
+			return in_array(self::shapeOf($node), $this->shapes, strict: true)
+				? null
+				: (count($this->shapes) === 1
+					? "the condition is not written in the '{$this->shapes[0]}' shape"
+					: 'the condition is written in none of the allowed shapes');
+		}
+
+		// the width of the condition itself, with its closing parenthesis when that shares the line: what follows
+		// on the line is the business of other rules and may still move
+		$end = $node->closeParen->getLine() === $last->getLine() ? $node->closeParen : $last;
+		$column = Indentation::advance(($end->getVisualColumn($style) ?? 1) - 1, $end->text, $style);
+		return $column >= $this->minLineLength ? "the condition reaches column $column" : null;
+	}
+
+
+	/**
+	 * The shape a condition standing on several lines is written in: where it begins is the whole difference,
+	 * and both shapes leave the closing parenthesis on a line of its own, so that the brace of the body stands
+	 * apart from the condition. Null for a condition that is in neither, whose parts are then given a line each.
+	 */
+	private static function shapeOf(IfNode|ElseIfNode|WhileNode|DoWhileNode $node): ?string
+	{
+		$first = $node->condition->getFirstToken();
+		if ($first === null || !$node->closeParen->startsLine()) {
+			return null;
+		}
+
+		return $first->startsLine() ? self::PerLine : self::Compact;
+	}
+
+
+	/** The chain reaches through boolean operators only, so a part on its own line is a part of the condition. */
+	private static function isChained(?Node $expr): bool
+	{
+		return $expr instanceof BinaryOpNode && $expr->operator->is(...self::BooleanOperators);
+	}
+
+
+	/**
+	 * Boolean operators the condition is built of, seen through the parentheses and the negations around them;
+	 * one inside an argument, a match arm or a closure is not the condition's and does not count.
+	 */
+	private static function countOperators(ExpressionNode $expr): int
+	{
+		return match (true) {
+			$expr instanceof BinaryOpNode => self::isChained($expr)
+				? 1 + self::countOperators($expr->left) + self::countOperators($expr->right)
+				: 0,
+			$expr instanceof ParenthesizedNode, $expr instanceof UnaryOpNode => self::countOperators($expr->expression),
+			default => 0,
+		};
 	}
 }

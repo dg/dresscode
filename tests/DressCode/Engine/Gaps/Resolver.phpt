@@ -211,11 +211,14 @@ test('a required line break is put in, after the comment on the line of what clo
 });
 
 
-test('a forbidden line break is taken out, with the whitespace of the line the gap asks for', function () {
+test('a forbidden line break is taken out, and a comment that has nowhere to go leaves it reported', function () {
 	$rule = claiming([Nodes\ElseNode::class => ['elseKeyword' => [new Claim(Space::Single, line: Line::Same), null]]]);
 	[$output, $violations] = apply([$rule], "<?php\nif (\$a) {\n}\nelse {\n}\nif (\$b) {\n} // c\nelse {\n}\n");
 	Assert::same("<?php\nif (\$a) {\n} else {\n}\nif (\$b) {\n} // c\nelse {\n}\n", $output);
-	Assert::same(['4: No line break before the else keyword [test/claiming]'], $violations);
+	Assert::same([
+		'4: No line break before the else keyword [test/claiming]',
+		'8: No line break before the else keyword [test/claiming]',
+	], $violations);
 });
 
 
