@@ -3,11 +3,13 @@
 /**
  * The naming conventions of the rule catalogue, so that it cannot drift again: the slug and the class
  * name say the same thing, the class lies in the directory its namespace names, and every slug is built
- * from the vocabulary. The list of exceptions is the point of the test: it keeps visible how many names
- * step outside the rules.
+ * in the shape of its kind: a decision is the noun of the construct, hygiene a sentence of state,
+ * a policy the name of the area. The list of exceptions is the point of the test: it keeps visible how
+ * many names step outside the shapes.
  */
 
 use DressCode\Config\RuleRegistry;
+use DressCode\ConfigurableRule;
 use Tester\Assert;
 
 
@@ -49,68 +51,75 @@ test('the slug is kebab-case under the dresscode vendor', function () use ($rule
 });
 
 
-test('every slug follows the vocabulary', function () use ($rules) {
-	// a name says what the rule enforces: a forbidden construct, a useless one, or the wanted shape
+test('every slug is built in the shape of its kind', function () use ($rules) {
+	// three kinds, three shapes: a policy is the area it governs and takes the project's own list,
+	// hygiene is a sentence of state, a decision is the noun of the construct and takes a value
 	$suffixes = ['-spacing', '-blank-lines', '-indentation', '-casing', '-notation', '-syntax', '-position', '-alignment', '-operator', '-required'];
-	$prefixes = ['no-', 'useless-', 'single-', 'ordered-', 'multi-line-', 'short-', 'combined-', 'forbidden-'];
+	$prefixes = ['no-', 'useless-', 'single-', 'ordered-', 'multi-line-', 'short-', 'combined-'];
 	$infixes = ['-canonical-'];
 
-	// names that stand outside the vocabulary on purpose; keep this list short and argued
+	// a name says a state or a construct, never the step the fixer takes
+	$verbs = ['add-', 'convert-', 'disallow-', 'enforce-', 'prefer-', 'remove-', 'require-', 'rewrite-'];
+
+	// sentences of state the vocabulary has no pattern for; keep this list short and argued
 	$exceptions = [
-		'annotation-name', 'arrow-function', 'attribute-after-phpdoc', 'commented-out-function',
-		'complex-string-variable', 'control-structure-braces', 'early-exit', 'elseif-keyword', 'eof-newline', 'explicit-operator-precedence',
-		'explicit-assertion', 'fall-through-comment', 'final-internal-class', 'full-opening-tag',
-		'global-imports', 'indentation', 'line-ending', 'line-length', 'modern-class-name-reference',
-		'new-argument-parentheses', 'nullable-type-for-default-null', 'nowdoc-without-interpolation',
-		'numeric-literal-separator', 'phpdoc-null-last', 'phpdoc-trim',
-		'property-phpdoc-single-line', 'property-var-annotation', 'reference-throwable-only',
-		'reference-used-names-only', 'self-for-current-class', 'static-closure', 'strict-call', 'strict-comparison',
-		'switch-case-colon', 'symbolic-logical-operators', 'ternary-for-simple-branch', 'trailing-comma',
-		'union-type-format', 'unused-imports', 'use-from-same-namespace',
+		'annotation-name', 'attribute-after-phpdoc', 'complex-string-variable', 'control-structure-braces',
+		'elseif-keyword', 'eof-newline', 'explicit-assertion', 'explicit-operator-precedence',
+		'full-opening-tag', 'line-ending', 'nullable-type-for-default-null', 'nowdoc-without-interpolation',
+		'phpdoc-null-last', 'phpdoc-trim', 'property-phpdoc-single-line', 'property-var-annotation',
+		'reference-throwable-only', 'self-for-current-class', 'static-closure', 'strict-call',
+		'strict-comparison', 'switch-case-colon', 'symbolic-logical-operators', 'ternary-for-simple-branch',
+		'use-from-same-namespace',
 	];
 
-	$matches = function (string $slug) use ($suffixes, $prefixes, $infixes): bool {
+	$shapeOf = function (string $slug, string $class) use ($suffixes, $prefixes, $infixes, $verbs): ?string {
+		if (str_starts_with($slug, 'forbidden-')) {
+			return 'policy';
+		}
+
 		foreach ($suffixes as $suffix) {
 			if (str_ends_with($slug, $suffix)) {
-				return true;
+				return 'hygiene';
 			}
 		}
 
 		foreach ($prefixes as $prefix) {
 			if (str_starts_with($slug, $prefix)) {
-				return true;
+				return 'hygiene';
+			}
+		}
+
+		foreach ($verbs as $verb) {
+			if (str_starts_with($slug, $verb)) {
+				return null;
 			}
 		}
 
 		foreach ($infixes as $infix) {
 			if (str_contains($slug, $infix)) {
-				return true;
+				return 'hygiene';
 			}
 		}
 
-		return false;
+		// what is left is a bare noun phrase, which only a rule with a value to give it may carry
+		return is_subclass_of($class, ConfigurableRule::class) ? 'decision' : null;
 	};
 
 	$outside = $redundant = [];
 	foreach ($rules as $name => $class) {
 		$slug = substr($name, strpos($name, '/') + 1);
-		if (!$matches($slug) && !in_array($slug, $exceptions, strict: true)) {
+		$shape = $shapeOf($slug, $class);
+		if ($shape === null && !in_array($slug, $exceptions, strict: true)) {
 			$outside[] = $slug;
-		}
-	}
-
-	// an exception the vocabulary already covers only inflates the list
-	foreach ($exceptions as $slug) {
-		if ($matches($slug)) {
+		} elseif ($shape !== null && in_array($slug, $exceptions, strict: true)) {
 			$redundant[] = $slug;
 		}
 	}
 
-	Assert::same([], $redundant, 'exceptions the vocabulary already covers');
+	Assert::same([], $redundant, 'exceptions a shape already covers');
+	Assert::same([], $outside, 'slugs outside the three shapes; add one to $exceptions only with a reason');
 
-	Assert::same([], $outside, 'slugs outside the vocabulary; add one to $exceptions only with a reason');
-
-	// an exception that no longer names a rule, or one the vocabulary already covers, only inflates the list
+	// an exception that no longer names a rule only inflates the list
 	$slugs = array_map(fn(string $name) => substr($name, strpos($name, '/') + 1), array_keys($rules));
 	Assert::same([], array_values(array_diff($exceptions, $slugs)), 'exceptions naming no rule');
 });
