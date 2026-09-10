@@ -1,20 +1,23 @@
 <?php
-// {"position": "nextLine"}
+// {"continuation": "nextLine"}
 if ($a) {
 	x();
-} elseif ($b) {
+}
+elseif ($b) {
 }
 else {
 }
 
 try {
-} catch (E $e) {
+}
+catch (E $e) {
 }
 finally {
 }
 
 do {
-} while ($a);
+}
+while ($a);
 
 if ($a)
 	x();

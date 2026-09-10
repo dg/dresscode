@@ -1,11 +1,9 @@
 <?php
 if ($a) {
 	x();
-}
-elseif ($b) {
+} elseif ($b) {
 	y();
-}
-else {
+} else {
 }
 foreach ($a as $b) {
 }

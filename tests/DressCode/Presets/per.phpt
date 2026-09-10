@@ -60,7 +60,6 @@ Assert::same(
 		'dresscode/construct-spacing',
 		'dresscode/control-structure-braces',
 		'dresscode/elseif-keyword',
-		'dresscode/continuation-position',
 		'dresscode/multi-line-condition',
 		'dresscode/switch-case-colon',
 		'dresscode/switch-case-spacing',

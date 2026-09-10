@@ -1,6 +1,8 @@
 3: No line break before the opening brace
+6: No line break before the elseif keyword
 6: A line break after the opening brace
 6: A line break before the closing brace
+7: No line break before the else keyword
 8: No line break before the opening brace
 11: No line break before the opening brace
 14: No line break before the opening brace

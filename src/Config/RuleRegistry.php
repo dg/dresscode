@@ -33,7 +33,6 @@ final class RuleRegistry
 		Rules\Expressions\UselessAttributeParenthesesRule::class,
 		Rules\Whitespace\AttributePositionRule::class,
 		Rules\Whitespace\BracesPositionRule::class,
-		Rules\ControlFlow\ContinuationPositionRule::class,
 		Rules\ControlFlow\ControlStructureBracesRule::class,
 		Rules\ControlFlow\UselessBracesRule::class,
 		Rules\Classes\ClassDefinitionSpacingRule::class,

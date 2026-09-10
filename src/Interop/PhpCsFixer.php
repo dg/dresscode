@@ -87,7 +87,9 @@ final class PhpCsFixer
 				? $t->enable('dresscode/constant-casing')
 				: $t->warn('constant_case with case=upper has no equivalent, DressCode writes true, false and null in lower case'),
 			'control_structure_braces' => 'dresscode/control-structure-braces',
-			'control_structure_continuation_position' => 'dresscode/continuation-position',
+			'control_structure_continuation_position' => fn(array $o, Translation $t) => $t->enable('dresscode/braces-position', [
+				'continuation' => ($o['position'] ?? 'same_line') === 'next_line' ? 'nextLine' : 'sameLine',
+			]),
 			'declare_equal_normalize' => fn(array $o, Translation $t) => ($o['space'] ?? 'none') === 'none'
 				? $t->enable('dresscode/declare-spacing')
 				: $t->warn('declare_equal_normalize with space=single has no equivalent, DressCode writes declare(strict_types=1) without spaces'),

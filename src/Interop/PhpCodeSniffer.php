@@ -229,7 +229,7 @@ final class PhpCodeSniffer
 			'Squiz.Commenting.FunctionComment.DuplicateReturn' => 'dresscode/no-duplicate-return-annotation',
 			'Squiz.Commenting.FunctionComment.ExtraParamComment' => 'dresscode/no-unknown-param-annotation',
 			'Squiz.Commenting.VariableComment' => 'dresscode/property-phpdoc-required',
-			'Squiz.ControlStructures.ControlSignature' => 'dresscode/continuation-position',
+			'Squiz.ControlStructures.ControlSignature' => 'dresscode/braces-position',
 			'Squiz.Functions.FunctionDeclarationArgumentSpacing' => 'dresscode/comma-spacing',
 			'Squiz.Functions.MultiLineFunctionDeclaration' => 'dresscode/braces-position',
 			'Squiz.NamingConventions.ValidFunctionName' => fn(array $o, Translation $t) => $t->enable('dresscode/name-casing', ['methods' => 'camelCase', 'functions' => 'camelCase']),

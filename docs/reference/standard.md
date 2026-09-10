@@ -8,7 +8,7 @@ coding standard, not the whole of it: what no rule covers is not here.
 - Line ending: the one each file mostly has
 - Written for PHP 8.4
 
-153 rules are enforced.
+152 rules are enforced.
 
 ## Arrays
 
@@ -152,11 +152,6 @@ Encloses the body of every control structure in braces.
 ### dresscode/elseif-keyword
 
 Replaces else if with elseif.
-
-
-### dresscode/continuation-position
-
-Puts else, elseif, catch, finally and the while of do on the line of the closing brace, or on the next one.
 
 
 ### dresscode/multi-line-condition
@@ -833,7 +828,7 @@ Indents every line by the construct it continues, one level per nesting.
 
 ### dresscode/braces-position
 
-Positions the braces of classes, functions and control structures.
+Positions the braces of classes, functions and control structures, and the keywords between them.
 
 As this project has it: `allowSingleLineAnonymousFunctions`: `true`, `emptyBodies`: `ownLine`, `multiLineParameters`: `nextLineAfterReturnType`.
 

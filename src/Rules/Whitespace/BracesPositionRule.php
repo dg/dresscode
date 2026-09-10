@@ -30,13 +30,14 @@ use PhpSyntax\Token;
  * a new line and the closing brace one of its own, except in a single-line closure, an empty anonymous class
  * or an abbreviated list of hooks (`{ get; set; }`), whose hooks otherwise take a line each. For functions
  * with parameters on several lines, the brace follows the closing parenthesis (PER), takes its own line
- * (multiLineParameters: nextLine), or does so only after a return type (nextLineAfterReturnType). Where the
- * lines then stand is the matter of dresscode/indentation.
+ * (multiLineParameters: nextLine), or does so only after a return type (nextLineAfterReturnType). The keyword
+ * that continues a structure (`else`, `catch`, the `while` of `do`) meets the closing brace on its line or
+ * takes the next one. Where the lines then stand is the matter of dresscode/indentation.
  */
 #[RuleInfo(
 	'dresscode/braces-position',
 	Stage::Formatting,
-	description: 'Positions the braces of classes, functions and control structures',
+	description: 'Positions the braces of classes, functions and control structures, and the keywords between them',
 )]
 final class BracesPositionRule extends GapRule implements ConfigurableRule
 {
@@ -61,6 +62,7 @@ final class BracesPositionRule extends GapRule implements ConfigurableRule
 	private bool $allowSingleLineAnonymousFunctions = true;
 	private string $emptyAnonymousClasses = self::SameLine;
 	private string $emptyBodies = self::OwnLine;
+	private string $continuation = self::SameLine;
 
 
 	public static function getOptionsSchema(): Schema
@@ -78,6 +80,8 @@ final class BracesPositionRule extends GapRule implements ConfigurableRule
 				->description('An empty anonymous class as {} on the line of new, whatever it holds inside'),
 			'emptyBodies' => Expect::anyOf(self::SameLine, self::OwnLine)->default(self::OwnLine)
 				->description('An empty body of a class, function, method or closure as {} on the line of its head; a comment inside makes it not empty'),
+			'continuation' => (clone $position)->default(self::SameLine)
+				->description('The keyword continuing a structure (else, elseif, catch, finally, the while of do) on the line of the closing brace, or on the next one'),
 		]);
 	}
 
@@ -92,6 +96,7 @@ final class BracesPositionRule extends GapRule implements ConfigurableRule
 		$this->allowSingleLineAnonymousFunctions = $options['allowSingleLineAnonymousFunctions'];
 		$this->emptyAnonymousClasses = $options['emptyAnonymousClasses'];
 		$this->emptyBodies = $options['emptyBodies'];
+		$this->continuation = $options['continuation'];
 	}
 
 
@@ -125,6 +130,16 @@ final class BracesPositionRule extends GapRule implements ConfigurableRule
 				'hooks:item' => [fn(Gap $gap) => $this->afterOpening($gap->value->parent?->parent), null],
 			];
 		}
+
+		// the keyword that continues a structure meets the brace that closed the part before it;
+		// a body without braces keeps the keyword where it is
+		$wanted = $this->continuation === self::SameLine ? new Claim(Space::Single, line: Line::Same) : Claim::nextLine();
+		$continues = [fn(Gap $gap) => $gap->token->getPrevious()?->is('}') ?? false ? $wanted : null, null];
+		$claims[Nodes\ElseIfNode::class]['elseifKeyword'] = $continues;
+		$claims[Nodes\ElseNode::class]['elseKeyword'] = $continues;
+		$claims[Nodes\CatchNode::class]['catchKeyword'] = $continues;
+		$claims[Nodes\FinallyNode::class]['finallyKeyword'] = $continues;
+		$claims[Statement\DoWhileNode::class]['whileKeyword'] = $continues;
 
 		return $claims;
 	}

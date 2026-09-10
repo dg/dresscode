@@ -64,7 +64,6 @@ final class Psr12 implements Preset
 			'construct-spacing' => true,
 			'control-structure-braces' => true,
 			'elseif-keyword' => true,
-			'continuation-position' => true,
 			'multi-line-condition' => true,
 			'switch-case-colon' => true,
 			'switch-case-spacing' => true,
