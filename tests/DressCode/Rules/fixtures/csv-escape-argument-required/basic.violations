@@ -1,0 +1,5 @@
+3: The escape argument of fputcsv() must be written out, its default being deprecated
+4: The escape argument of fputcsv() must be written out, its default being deprecated
+5: The escape argument of fgetcsv() must be written out, its default being deprecated
+7: The escape argument of str_getcsv() must be written out, its default being deprecated
+9: The escape argument of fputcsv() must be written out, its default being deprecated
