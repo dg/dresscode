@@ -113,7 +113,8 @@ test('presets', function () {
 	Assert::same(
 		[
 			'dresscode/per' => Per::class, 'dresscode/psr12' => Psr12::class, 'dresscode/nette' => Nette::class,
-			'dresscode/symfony' => Symfony::class, 'dresscode/cleanup' => Presets\Cleanup::class,
+			'dresscode/symfony' => Symfony::class, 'dresscode/nette-style' => Presets\NetteStyle::class,
+			'dresscode/cleanup' => Presets\Cleanup::class,
 			'dresscode/modern' => Presets\Modern::class, 'dresscode/types' => Presets\Types::class,
 			'dresscode/phpdoc' => Presets\PhpDoc::class, 'dresscode/imports' => Presets\Imports::class,
 			'dresscode/classes' => Presets\Classes::class, 'test/preset' => TestPreset::class,

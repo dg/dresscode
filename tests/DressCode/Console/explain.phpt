@@ -67,7 +67,7 @@ test('explain writes what the rule is, what it does here, and its example', func
 	$text = (string) stream_get_contents($out);
 	Assert::same(0, $code);
 	Assert::contains('dresscode/useless-return', $text);
-	Assert::contains('It runs in this project, set by dresscode/nette.', $text);
+	Assert::contains('It runs in this project, set by dresscode/cleanup.', $text);
 	Assert::contains("\techo \$message;\n  \treturn;", $text);
 	Assert::contains('becomes', $text);
 });
@@ -84,7 +84,7 @@ test('standard writes what is enforced, and says that it is not the whole standa
 
 	$text = (string) file_get_contents("$root/standard.md");
 	Assert::contains('which is a part of a', $text);
-	Assert::contains('- Composed of: `dresscode/psr12`, `dresscode/per`, `dresscode/nette`', $text);
+	Assert::contains('- Composed of: `dresscode/psr12`, `dresscode/per`, `dresscode/nette-style`', $text);
 	Assert::contains('- Indentation: a tab', $text);
 	Assert::contains("### dresscode/useless-return\n", $text);
 	Assert::contains("```php\nfunction announce(string \$message): void", $text);

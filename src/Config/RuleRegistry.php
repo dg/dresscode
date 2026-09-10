@@ -201,6 +201,7 @@ final class RuleRegistry
 		$this->registerPreset(Presets\Psr12::class);
 		$this->registerPreset(Presets\Nette::class);
 		$this->registerPreset(Presets\Symfony::class);
+		$this->registerPreset(Presets\NetteStyle::class);
 		$this->registerPreset(Presets\Cleanup::class);
 		$this->registerPreset(Presets\Modern::class);
 		$this->registerPreset(Presets\Types::class);

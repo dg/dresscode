@@ -87,7 +87,7 @@ final class PresetResolver
 			$name = PresetInfo::of($class)->name;
 			foreach ((new $class)->getRules($context) as $rule => $value) {
 				try {
-					$layers[$this->registry->resolveRule($rule)][] = [$name, $value];
+					$layers[$this->registry->resolveRule($rule)][] = [$name, self::normalize($value)];
 				} catch (ConfigurationException $e) {
 					throw new ConfigurationException("{$e->getMessage()} (in preset $name)", previous: $e);
 				}
@@ -97,7 +97,7 @@ final class PresetResolver
 		$explicit = [];
 		foreach ($config->getRules() as $rule => $value) {
 			$class = $this->registry->resolveRule($rule);
-			$layers[$class][] = ['the configuration', $value];
+			$layers[$class][] = ['the configuration', self::normalize($value)];
 			$explicit[$class] = true;
 		}
 
@@ -108,7 +108,7 @@ final class PresetResolver
 			$source = 'for ' . implode(', ', $files);
 			foreach ($rules as $rule => $value) {
 				$class = $this->registry->resolveRule($rule);
-				$layers[$class][] = [$source, $value];
+				$layers[$class][] = [$source, self::normalize($value)];
 				$explicit[$class] = true;
 			}
 		}
@@ -133,6 +133,16 @@ final class PresetResolver
 			$context->getPhpVersion(),
 			array_map(fn(string $class) => PresetInfo::of($class)->name, $presets),
 		);
+	}
+
+
+	/**
+	 * `keep` says at every level that the rule enforces nothing, which is what `false` says in the PHP
+	 * notation of a configuration, so the two meet here and the rest of the resolver knows one of them.
+	 */
+	private static function normalize(mixed $value): mixed
+	{
+		return $value === 'keep' ? false : $value;
 	}
 
 
