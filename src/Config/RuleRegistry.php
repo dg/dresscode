@@ -106,6 +106,7 @@ final class RuleRegistry
 		Rules\Functions\UselessNoOpCallRule::class,
 		Rules\Functions\MbConvertEncodingForUtf8FunctionRule::class,
 		Rules\Functions\SensitiveParameterRequiredRule::class,
+		Rules\Functions\RoundingModeNotationRule::class,
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
 		Rules\Namespaces\ImportNotationRule::class,
