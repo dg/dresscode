@@ -30,6 +30,8 @@ final class RunnerFactory
 	/** @var ?array{string, PhpVersionSource} */
 	private ?array $phpVersion = null;
 
+	private ?ResolvedConfig $resolved = null;
+
 
 	public function __construct(
 		private readonly RuleRegistry $registry = new RuleRegistry,
@@ -58,6 +60,13 @@ final class RunnerFactory
 	}
 
 
+	/** The configuration the last built engine came from, as data. */
+	public function getResolvedConfig(): ResolvedConfig
+	{
+		return $this->resolved ?? throw new \LogicException('No engine has been built yet.');
+	}
+
+
 	/**
 	 * @param bool $strict  a broken rule contract throws instead of warning
 	 * @param bool $cache  clean files are remembered and skipped next time
@@ -77,21 +86,22 @@ final class RunnerFactory
 		$ruleExcludePaths = $this->resolveRuleExcludePaths($config);
 		[$phpVersion] = $this->phpVersion = $this->resolvePhpVersion($config, $root);
 		$resolver = new PresetResolver($this->registry);
-		$context = new PresetContext($phpVersion);
-		$rules = $resolver->resolve($config, $context);
+		$this->resolved = $resolved = $resolver->resolveConfig($config, new PresetContext($phpVersion));
+		$rules = $resolver->build($resolved);
 		$this->warnings = $resolver->getWarnings();
 		$analyses = new Analyses\Registry;
 		foreach ($config->getAnalyses() as $class => $factory) {
 			$analyses->register($class, $factory);
 		}
 
-		[$indent, $eol] = $resolver->resolveStyle($config);
+		$indent = $resolved->indent;
+		$eol = $resolved->eol;
 		$baseline = self::loadBaseline($config, $root);
 		$resultCache = $cache
 			? ResultCache::load(
 				self::resolveCacheFile($config, $root),
 				// the baseline decides what a rule reports, so a file clean under one is not clean under another
-				self::hashConfiguration([$resolver->describe($config, $context), $phpVersion, $indent, $eol, $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $ruleExcludePaths, $baseline?->getHash()]),
+				self::hashConfiguration([$resolved->toArray(), $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $ruleExcludePaths, $baseline?->getHash()]),
 			)
 			: null;
 		$processor = new FileProcessor(

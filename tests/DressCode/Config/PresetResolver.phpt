@@ -230,11 +230,14 @@ test('a rule of a construct the target version has not got is left out', functio
 	Assert::same([], $resolve(Config::create()->enable(RuleFuture::class), '8.3'));
 	Assert::same(['Rule test/future needs PHP 8.4, the target is 8.3; skipped.'], $resolver->getWarnings());
 
-	// what the result cache keys on is what really runs
-	Assert::same(
-		['test/a'],
-		array_keys($resolver->describe(Config::create()->preset(FuturePreset::class), new PresetContext('8.3'))),
-	);
+	// what the result cache keys on is what really runs, and a rule that does not says why
+	$resolved = $resolver->resolveConfig(Config::create()->preset(FuturePreset::class), new PresetContext('8.3'));
+	Assert::same(['test/a'], array_keys($resolved->toArray()['rules']));
+	$future = $resolved->getRule('test/future');
+	Assert::type(DressCode\Config\ResolvedRule::class, $future);
+	Assert::same('it needs PHP 8.4 and the target is 8.3', $future->inactive);
+	Assert::same('test/future-preset', $future->getSource());
+	Assert::same(['8.3', "\t", 'majority'], [$resolved->phpVersion, $resolved->indent, $resolved->eol]);
 });
 
 

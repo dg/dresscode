@@ -14,7 +14,7 @@ use Nette\Schema\Elements\ArrayType;
 use Nette\Schema\Elements\Structure;
 use Nette\Schema\Processor;
 use Nette\Schema\ValidationException;
-use function is_array, is_int;
+use function count, is_array, is_int;
 
 
 /**
@@ -50,9 +50,20 @@ final class PresetResolver
 	 */
 	public function resolve(Config $config, PresetContext $context): array
 	{
+		return $this->build($this->resolveConfig($config, $context));
+	}
+
+
+	/**
+	 * Instances of the rules that run, in the order they run.
+	 * @return list<Rule>
+	 * @throws ConfigurationException
+	 */
+	public function build(ResolvedConfig $resolved): array
+	{
 		$rules = [];
-		foreach ($this->collectEntries($config, $context) as $class => $value) {
-			$rules[] = self::createRule($class, $value);
+		foreach ($resolved->getActiveRules() as $rule) {
+			$rules[] = self::buildRule($rule);
 		}
 
 		return $rules;
@@ -60,40 +71,23 @@ final class PresetResolver
 
 
 	/**
-	 * The effective rules as data: name → options as configured, [] for none, 'factory' for a rule built by
-	 * a closure; what a result cache keys on.
-	 * @return array<string, array<string, mixed>|string>
+	 * The configuration as data: what every rule ends up with, where it came from, and why a rule that
+	 * does not run does not. The run, the result cache and whoever prints the configuration read this one
+	 * result, so that none of them can say something the others do not.
 	 * @throws ConfigurationException
 	 */
-	public function describe(Config $config, PresetContext $context): array
+	public function resolveConfig(Config $config, PresetContext $context): ResolvedConfig
 	{
-		$description = [];
-		foreach ($this->collectEntries($config, $context) as $class => $value) {
-			$description[RuleInfo::of($class)->name] = match (true) {
-				$value instanceof \Closure => 'factory',
-				$value === true => [],
-				default => $value,
-			};
-		}
-
-		return $description;
-	}
-
-
-	/**
-	 * Rules of the presets and the configuration, without the disabled ones.
-	 * @return array<class-string<Rule>, true|array<string, mixed>|\Closure(): Rule>
-	 * @throws ConfigurationException
-	 */
-	private function collectEntries(Config $config, PresetContext $context): array
-	{
-		$entries = [];
-		foreach ($this->listPresets($config) as $class) {
+		$presets = $this->listPresets($config);
+		/** @var array<class-string<Rule>, list<array{string, mixed}>> $layers */
+		$layers = [];
+		foreach ($presets as $class) {
+			$name = PresetInfo::of($class)->name;
 			foreach ((new $class)->getRules($context) as $rule => $value) {
 				try {
-					$entries[$this->registry->resolveRule($rule)] = $value;
+					$layers[$this->registry->resolveRule($rule)][] = [$name, $value];
 				} catch (ConfigurationException $e) {
-					throw new ConfigurationException("{$e->getMessage()} (in preset " . PresetInfo::of($class)->name . ')', previous: $e);
+					throw new ConfigurationException("{$e->getMessage()} (in preset $name)", previous: $e);
 				}
 			}
 		}
@@ -101,36 +95,60 @@ final class PresetResolver
 		$explicit = [];
 		foreach ($config->getRules() as $rule => $value) {
 			$class = $this->registry->resolveRule($rule);
-			$entries[$class] = $value;
+			$layers[$class][] = ['the configuration', $value];
 			$explicit[$class] = true;
 		}
 
-		$entries = array_filter($entries, fn($value) => $value !== false);
-		return array_filter(
-			$entries,
-			fn(string $class) => $this->fitsPhpVersion($class, $context->getPhpVersion(), isset($explicit[$class])),
-			ARRAY_FILTER_USE_KEY,
+		$rules = $inactive = [];
+		foreach ($layers as $class => $ruleLayers) {
+			$resolved = $this->resolveRule($class, $ruleLayers, $context->getPhpVersion(), isset($explicit[$class]));
+			$resolved->isActive() ? $rules[] = $resolved : $inactive[] = $resolved;
+		}
+
+		foreach ($this->registry->getRules() as $name => $class) {
+			if (!isset($layers[$class])) {
+				$inactive[] = new ResolvedRule($name, $class, [], [], inactive: 'no preset or rule of the configuration mentions it');
+			}
+		}
+
+		[$indent, $eol] = $this->resolveStyle($config);
+		return new ResolvedConfig(
+			[...$rules, ...$inactive],
+			$indent,
+			$eol,
+			$context->getPhpVersion(),
+			array_map(fn(string $class) => PresetInfo::of($class)->name, $presets),
 		);
 	}
 
 
 	/**
-	 * A rule enforcing a construct the target version does not have would write code that does not parse.
-	 * Coming from a preset that is business as usual, asked for by name it deserves a word.
 	 * @param  class-string<Rule>  $class
+	 * @param  list<array{string, mixed}>  $layers
+	 * @throws ConfigurationException
 	 */
-	private function fitsPhpVersion(string $class, string $target, bool $explicit): bool
+	private function resolveRule(string $class, array $layers, string $phpVersion, bool $explicit): ResolvedRule
 	{
 		$info = RuleInfo::of($class);
-		if ($info->minPhpVersion === null || version_compare($target, $info->minPhpVersion, '>=')) {
-			return true;
+		$last = $layers[count($layers) - 1][1];
+		$inactive = match (true) {
+			$last === false => 'turned off by ' . $layers[count($layers) - 1][0],
+			$info->minPhpVersion !== null && version_compare($phpVersion, $info->minPhpVersion, '<')
+				=> "it needs PHP $info->minPhpVersion and the target is $phpVersion",
+			default => null,
+		};
+		if ($inactive !== null && $last !== false && $explicit) {
+			$this->warnings[$info->name] = "Rule $info->name needs PHP $info->minPhpVersion, the target is $phpVersion; skipped.";
 		}
 
-		if ($explicit) {
-			$this->warnings[$info->name] = "Rule $info->name needs PHP $info->minPhpVersion, the target is $target; skipped.";
-		}
-
-		return false;
+		return new ResolvedRule(
+			$info->name,
+			$class,
+			$inactive === null ? self::validateOptions($class, $info->name, is_array($last) ? $last : []) : [],
+			$layers,
+			$inactive,
+			$last instanceof \Closure ? $last : null,
+		);
 	}
 
 
@@ -213,15 +231,29 @@ final class PresetResolver
 	public static function createRule(string $class, bool|array|\Closure $value = true): Rule
 	{
 		$name = RuleInfo::of($class)->name;
-		$rule = $value instanceof \Closure ? $value() : new $class;
+		return self::buildRule(new ResolvedRule(
+			$name,
+			$class,
+			self::validateOptions($class, $name, is_array($value) ? $value : []),
+			[['the caller', $value]],
+			factory: $value instanceof \Closure ? $value : null,
+		));
+	}
+
+
+	/** @throws ConfigurationException */
+	private static function buildRule(ResolvedRule $resolved): Rule
+	{
+		$class = $resolved->class;
+		$rule = $resolved->factory === null ? new $class : ($resolved->factory)();
 		if (!$rule instanceof $class) {
-			throw new ConfigurationException("The factory of rule $name returned " . $rule::class . " instead of $class.");
+			throw new ConfigurationException("The factory of rule $resolved->name returned " . $rule::class . " instead of $class.");
 		}
 
 		if ($rule instanceof ConfigurableRule) {
-			$rule->configure(self::validateOptions($rule, $name, is_array($value) ? $value : []));
-		} elseif (is_array($value)) {
-			throw new ConfigurationException("Rule $name has no options.");
+			$rule->configure($resolved->options);
+		} elseif (is_array($resolved->layers[count($resolved->layers) - 1][1] ?? null)) {
+			throw new ConfigurationException("Rule $resolved->name has no options.");
 		}
 
 		return $rule;
@@ -229,12 +261,17 @@ final class PresetResolver
 
 
 	/**
+	 * @param  class-string<Rule>  $class
 	 * @param  array<string, mixed>  $options
 	 * @return array<string, mixed>
 	 */
-	private static function validateOptions(ConfigurableRule $rule, string $name, array $options): array
+	private static function validateOptions(string $class, string $name, array $options): array
 	{
-		$schema = $rule::getOptionsSchema();
+		if (!is_subclass_of($class, ConfigurableRule::class)) {
+			return [];
+		}
+
+		$schema = $class::getOptionsSchema();
 		if ($schema instanceof Structure) { // an option given replaces its default whole, lists are not merged
 			foreach ($schema->getShape() as $item) {
 				if ($item instanceof ArrayType) {
