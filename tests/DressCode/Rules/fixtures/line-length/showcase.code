@@ -1,0 +1,4 @@
+<?php
+// {"limit": 60}
+$short = 1;
+$long = 'a line that says more than sixty characters allow it to';

@@ -35,6 +35,7 @@
 	"scripts": {
 		"phpstan": "phpstan analyse",
 		"tester": "tester tests -s",
+		"verify-examples": "tester tests/DressCode/Console/explain.phpt tests/DressCode/Rules/rules.phpt -s",
 		"reference": "php docs/reference/generate.php"
 	},
 	"config": {

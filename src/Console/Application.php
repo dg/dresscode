@@ -43,6 +43,7 @@ final class Application
 		  dresscode check [paths...] [options]   report violations
 		  dresscode fix [paths...] [options]     fix what the rules can and report the rest
 		  dresscode config [options]             print the configuration as the run resolves it
+		  dresscode explain <rule> [options]     what a rule is for, its options here and its examples
 		  dresscode rules [options]              list the known rules
 		  dresscode import <file>                translate a php-cs-fixer or phpcs configuration
 		  dresscode migrate-suppressions [paths...] [options]
@@ -137,6 +138,7 @@ final class Application
 				'check' => $this->runCheckOrFix($args, fix: false),
 				'fix' => $this->runCheckOrFix($args, fix: true),
 				'config' => $this->runConfig($args),
+				'explain' => $this->runExplain($args),
 				'rules' => $this->runRules($args),
 				'import' => $this->runImport($args),
 				'migrate-suppressions' => $this->runMigrateSuppressions($args),
@@ -501,6 +503,31 @@ final class Application
 		}
 
 		$this->write($printer->print($this->console));
+		return 0;
+	}
+
+
+	/**
+	 * Explains one rule: what it is for, the options it has under this configuration, and the examples
+	 * someone chose for it.
+	 * @param  array<string, mixed>  $args
+	 * @throws UsageException
+	 */
+	private function runExplain(array $args): int
+	{
+		$name = $args['paths'][0] ?? throw new UsageException('No rule given.');
+		$factory = new RunnerFactory;
+		[$config, $root, $configFile] = $this->loadConfig($args);
+		$factory->createRunner($config, $root, cache: false);
+		$rule = $factory->getResolvedConfig()->getRule(
+			RuleInfo::of($factory->getRegistry()->resolveRule($name))->name,
+		);
+		if ($rule === null) {
+			throw new UsageException("Unknown rule '$name'.");
+		}
+
+		$this->writeHeader($configFile, $config, self::describePhpVersion($factory));
+		$this->write("\n" . new ExplainPrinter($rule, __DIR__ . '/../../tests/DressCode/Rules/fixtures')->print($this->console));
 		return 0;
 	}
 
