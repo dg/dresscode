@@ -734,6 +734,7 @@ final readonly class Violation
 - `DressCode\Rules\Types\TypeHintSpacingRule`
 - `DressCode\Rules\Types\UnionTypeNotationRule`
 - `DressCode\Rules\Upgrading\ForbiddenFunctionsRule`
+- `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
 - `DressCode\Rules\Variables\CombinedIssetsRule`
 - `DressCode\Rules\Variables\CombinedUnsetsRule`
 - `DressCode\Rules\Variables\NoDuplicateAssignmentsRule`
