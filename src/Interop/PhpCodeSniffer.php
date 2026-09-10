@@ -131,7 +131,7 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.ControlStructures.NewWithoutParentheses' => 'dresscode/new-argument-parentheses',
 			'SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition' => fn(array $o, Translation $t) => $t->enable('dresscode/multi-line-condition', [
 				'minLineLength' => $o['minLineLength'] ?? 121,
-				'splitAllParts' => $o['alwaysSplitAllConditionParts'] ?? false,
+				'shape' => ($o['alwaysSplitAllConditionParts'] ?? false) ? 'perLine' : 'compact',
 			]),
 			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator' => 'dresscode/combined-assignment-operator',
 			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator' => 'dresscode/null-coalescing-operator',

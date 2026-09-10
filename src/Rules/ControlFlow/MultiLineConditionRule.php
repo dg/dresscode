@@ -11,6 +11,7 @@ use DressCode\RuleInfo;
 use DressCode\Stage;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
+use PhpSyntax\Indentation;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\ElseIfNode;
 use PhpSyntax\Nodes\Expression\BinaryOpNode;
@@ -24,11 +25,13 @@ use PhpSyntax\TokenKind;
 
 
 /**
- * A long condition joined by boolean operators is split so that every part starts a line with its operator
+ * A condition whose line reaches minLineLength is split so that every part starts a line with its operator
  * and the closing parenthesis stands on a line of its own; a parenthesized group with operators inside is
- * split the same way. A condition whose chain already spreads over lines keeps its parts as they are but
- * starts on the line after the opening parenthesis and puts the closing one on a line of its own. Where the
- * lines stand is the matter of dresscode/indentation. A condition with a comment inside is left alone.
+ * split the same way. The width is measured as dresscode/line-length measures a line, a tab counting to the
+ * next stop of the style, and up to the closing parenthesis when that shares the line, because what follows
+ * belongs to other rules and may still move. What a condition already on several lines looks like is the
+ * option `shape`. Where the lines stand is the matter of dresscode/indentation. A condition with a comment
+ * inside is left alone.
  */
 #[RuleInfo(
 	'dresscode/multi-line-condition',
@@ -37,19 +40,24 @@ use PhpSyntax\TokenKind;
 )]
 final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 {
+	private const PerLine = 'perLine';
+	private const Compact = 'compact';
+	private const Keep = 'keep';
+
 	private const BooleanOperators = [
 		TokenKind::BooleanAnd, TokenKind::BooleanOr, TokenKind::LogicalAnd, TokenKind::LogicalOr, TokenKind::LogicalXor,
 	];
 
 	private int $minLineLength = 121;
-	private bool $splitAllParts = false;
+	private string $shape = self::Compact;
 
 
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'minLineLength' => Expect::int(121)->min(1)->description('A condition reaching this column or beyond, its closing parenthesis included, is split; what follows on the line does not count'),
-			'splitAllParts' => Expect::bool(false)->description('A condition already on several lines is split further until every part has its own line'),
+			'minLineLength' => Expect::int(121)->min(1)->description('A condition whose line reaches this width, its closing parenthesis included, is split; what follows on the line does not count, and dresscode/line-length reports a line of one less'),
+			'shape' => Expect::anyOf(self::PerLine, self::Compact, self::Keep)->default(self::Compact)
+				->description('What a condition already on several lines looks like: perLine gives every part a line of its own, compact leaves the parts on the lines they share and only frames them, keep leaves it alone'),
 		]);
 	}
 
@@ -57,7 +65,7 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 	public function configure(array $options): void
 	{
 		$this->minLineLength = $options['minLineLength'];
-		$this->splitAllParts = $options['splitAllParts'];
+		$this->shape = $options['shape'];
 	}
 
 
@@ -86,8 +94,9 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 	/**
 	 * The break, with its reason, of a statement whose condition begins on the line after the opening parenthesis
 	 * and ends before the closing one on a line of its own: when it takes a line per part, or when its chain of
-	 * boolean operators spreads over lines already and the parentheses do not follow. Decided once per pass
-	 * about the statement, from the shape it has when the first of its gaps is reached.
+	 * boolean operators spreads over lines already and the parentheses do not follow, which `shape: keep` does
+	 * not ask for. Decided once per pass about the statement, from the shape it has when the first of its
+	 * gaps is reached.
 	 */
 	private function claimToSplit(Gap $gap, ?Node $node): ?Claim
 	{
@@ -101,13 +110,15 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 		}
 
 		return $gap->once($node, fn() => $this->claimToLayOut($gap, $node)
-			?? ($this->isHalfSplit($node) ? new Claim(line: Line::Next, because: 'the condition spans several lines') : null));
+			?? ($this->shape !== self::Keep && $this->isHalfSplit($node)
+				? new Claim(line: Line::Next, because: 'the condition spans several lines')
+				: null));
 	}
 
 
 	/**
 	 * The break, with its reason, of a statement whose condition takes a line per part: when it stands on one
-	 * line that is too long, or when the option asks for every part and some still share a line. A comment
+	 * line that is too long, or when `shape: perLine` asks for every part and some still share a line. A comment
 	 * inside leaves it alone. Decided once per pass about the condition.
 	 */
 	private function claimToLayOut(Gap $gap, ?Node $node): ?Claim
@@ -154,7 +165,7 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 	}
 
 
-	/** The width of the line depends on the tab width of the style. */
+	/** A condition of width minLineLength or more is split, so the widest one that passes is one character narrower. */
 	private function reasonToLayOut(IfNode|ElseIfNode|WhileNode|DoWhileNode $node, Style $style): ?string
 	{
 		$cond = $node->condition;
@@ -172,13 +183,13 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 
 		$lines = ($last->getLine() ?? 0) - ($first->getLine() ?? 0) + 1;
 		if ($lines > 1) {
-			return $this->splitAllParts && $lines < $operators + 1 ? 'some parts of the condition share a line' : null;
+			return $this->shape === self::PerLine && $lines < $operators + 1 ? 'some parts of the condition share a line' : null;
 		}
 
 		// the width of the condition itself, with its closing parenthesis when that shares the line: what follows
 		// on the line is the business of other rules and may still move
 		$end = $node->closeParen->getLine() === $last->getLine() ? $node->closeParen : $last;
-		$column = ($end->getVisualColumn($style) ?? 0) + mb_strlen($end->text) - 1;
+		$column = Indentation::advance(($end->getVisualColumn($style) ?? 1) - 1, $end->text, $style);
 		return $column >= $this->minLineLength && ($first->getLine() === $node->openParen->getLine() || self::canLayOut($cond))
 			? "the condition reaches column $column"
 			: null;

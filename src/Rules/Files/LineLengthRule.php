@@ -9,18 +9,21 @@ use DressCode\RuleInfo;
 use DressCode\Stage;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
+use PhpSyntax\Indentation;
 use PhpSyntax\Nodes\Scalar\HeredocNode;
 use PhpSyntax\Token;
 use PhpSyntax\TokenKind;
 use PhpSyntax\Trivia;
-use function count, strlen;
+use function count;
 
 
 /**
- * No line longer than the limit, measured visually with a tab in the indentation as the tab width of the
- * style. The lines of a heredoc, a string spanning lines or markup outside PHP tags are content and are not
- * measured; a line inside a multi-line comment is reported on the line the comment starts. The rule runs
- * last, after the rules that break long lines, so it reports what nothing could break.
+ * No line longer than the limit: a line of width greater than it is reported, so a limit of 120 lets a line
+ * of 120 through. The width is what the reader sees, a tab counting to the next stop of the style wherever
+ * on the line it stands, and dresscode/multi-line-condition measures with it too. The lines of a heredoc,
+ * a string spanning lines or markup outside PHP tags are content and are not measured; a line inside
+ * a multi-line comment is reported on the line the comment starts. The rule runs last, after the rules that
+ * break long lines, so it reports what nothing could break.
  */
 #[RuleInfo(
 	'dresscode/line-length',
@@ -39,7 +42,7 @@ final class LineLengthRule extends NodeRule implements ConfigurableRule
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::structure([
-			'limit' => Expect::int(120)->min(1),
+			'limit' => Expect::int(120)->min(1)->description('The widest line that passes; dresscode/multi-line-condition breaks a condition at minLineLength, which is this plus one'),
 			'ignoreImports' => Expect::bool(true)->description('A use import is never reported, it cannot be broken'),
 			'ignorePatterns' => Expect::listOf('string')->description('Regular expressions; a line matching one is never reported'),
 		]);
@@ -139,7 +142,7 @@ final class LineLengthRule extends NodeRule implements ConfigurableRule
 	private function finishLine(array &$line, RuleContext $context): void
 	{
 		$text = rtrim($line['text']);
-		$width = mb_strlen($text) + (strlen($text) - strlen(ltrim($text, "\t"))) * ($context->getStyle()->tabWidth - 1);
+		$width = Indentation::advance(0, $text, $context->getStyle());
 		$owner = $line['owner'];
 		if (
 			$owner !== null

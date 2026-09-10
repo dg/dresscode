@@ -1,5 +1,5 @@
 <?php
-// {"splitAllParts": true}
+// {"shape": "perLine"}
 if (
 	$a
 	&& $b

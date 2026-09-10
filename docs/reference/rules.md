@@ -482,7 +482,7 @@ Stage: Cleanup. Covers: `Generic.Files.LineLength`, `SlevomatCodingStandard.File
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `limit` | int | `120` |  |
+| `limit` | int | `120` | The widest line that passes; dresscode/multi-line-condition breaks a condition at minLineLength, which is this plus one |
 | `ignoreImports` | bool | `true` | A use import is never reported, it cannot be broken |
 | `ignorePatterns` | list of string | `[]` | Regular expressions; a line matching one is never reported |
 
@@ -536,8 +536,8 @@ Stage: Formatting. Covers: `SlevomatCodingStandard.ControlStructures.RequireMult
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `minLineLength` | int | `121` | A condition reaching this column or beyond, its closing parenthesis included, is split; what follows on the line does not count |
-| `splitAllParts` | bool | `false` | A condition already on several lines is split further until every part has its own line |
+| `minLineLength` | int | `121` | A condition whose line reaches this width, its closing parenthesis included, is split; what follows on the line does not count, and dresscode/line-length reports a line of one less |
+| `shape` | `perLine` \| `compact` \| `keep` | `"compact"` | What a condition already on several lines looks like: perLine gives every part a line of its own, compact leaves the parts on the lines they share and only frames them, keep leaves it alone |
 
 ### dresscode/multi-line-signature
 

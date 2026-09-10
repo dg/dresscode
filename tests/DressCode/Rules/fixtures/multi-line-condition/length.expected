@@ -1,0 +1,23 @@
+<?php
+// {"minLineLength": 120}
+// the condition ends at column 119, the widest one that passes
+if ($aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa && $b) {
+}
+// at column 120 it is split
+if (
+	$bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+	&& $b
+) {
+}
+// a name of two-byte characters is measured in characters, so this one ends at 119 too
+if ($ěšccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc && $b) {
+}
+// a tab counts to the next stop of the style, so this one ends at column 120
+function f()
+{
+	if (
+		$dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+		&& $b
+	) {
+	}
+}
