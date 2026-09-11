@@ -1,0 +1,34 @@
+<?php
+// {"libraries": {"replacedFunctions": {"Acme\\Scope\\old": "Acme\\Scope\\current", "old": "fresh"}}}
+
+namespace Acme\Scope {
+	current();
+}
+
+
+namespace Acme\Scope {
+	use function Acme\Other\old;
+
+	old();
+	\Acme\Scope\current();
+}
+
+
+namespace Acme\Scope {
+	use function Acme\Scope\old as legacy;
+
+	current();
+}
+
+
+namespace Acme\Scope {
+	use function old;
+
+	\fresh();
+}
+
+
+namespace Acme\Other {
+	old();
+	\fresh();
+}
