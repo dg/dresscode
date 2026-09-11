@@ -1,0 +1,93 @@
+<?php
+// risky
+switch ($input) {
+	case Lexer::T_SELECT:
+		$statement = 'select';
+		break;
+	case Lexer::T_UPDATE:
+		$statement = 'update';
+		break;
+	default:
+		$statement = 'error';
+}
+
+function returning($input)
+{
+	switch ($input) {
+		case 1:
+		case 2:
+			return 'low';
+		case 3:
+			return 'high';
+		default:
+			return 'unknown';
+	}
+}
+
+function noDefault($input)
+{
+	switch ($input) {
+		case 1:
+			return 'a';
+		case 2:
+			return 'b';
+	}
+}
+
+function doesMore($input)
+{
+	switch ($input) {
+		case 1:
+			echo 'a';
+			$x = 1;
+			break;
+		default:
+			$x = 2;
+	}
+
+	return $x;
+}
+
+function otherVariable($input)
+{
+	switch ($input) {
+		case 1:
+			$x = 1;
+			break;
+		default:
+			$y = 2;
+	}
+}
+
+function mixedForms($input)
+{
+	switch ($input) {
+		case 1:
+			$x = 1;
+			break;
+		default:
+			return 2;
+	}
+}
+
+function fallsThrough($input)
+{
+	switch ($input) {
+		case 1:
+			$x = 1;
+		default:
+			$x = 2;
+	}
+}
+
+function continues($input)
+{
+	foreach ([] as $i) {
+		switch ($input) {
+			case 1:
+				continue 2;
+			default:
+				$x = 2;
+		}
+	}
+}
