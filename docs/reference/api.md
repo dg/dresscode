@@ -707,6 +707,7 @@ final readonly class FunctionPattern
 final class MemberMapGrammar
 	public const ReplacedClasses = 'upgrading.libraries.replacedClasses'
 	public const ReplacedFunctions = 'upgrading.libraries.replacedFunctions'
+	public const ForbiddenFunctions = 'upgrading.libraries.forbiddenFunctions'
 ```
 
 ## `DressCode\Rules\Upgrading\MemberPattern`
@@ -1036,6 +1037,7 @@ final readonly class Violation
 - `DressCode\Rules\Types\NullableTypeForDefaultNullRule`
 - `DressCode\Rules\Types\TypeDeclarationSpacingRule`
 - `DressCode\Rules\Types\TypeNotationRule`
+- `DressCode\Rules\Upgrading\ForbiddenFunctionsRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedPhpCallsRule`
 - `DressCode\Rules\Upgrading\ReplacedClassesRule`

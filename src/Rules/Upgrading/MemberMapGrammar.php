@@ -15,4 +15,5 @@ final class MemberMapGrammar
 {
 	public const ReplacedClasses = 'upgrading.libraries.replacedClasses';
 	public const ReplacedFunctions = 'upgrading.libraries.replacedFunctions';
+	public const ForbiddenFunctions = 'upgrading.libraries.forbiddenFunctions';
 }

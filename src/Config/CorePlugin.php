@@ -234,8 +234,10 @@ final class CorePlugin implements Plugin
 				Rules\Types\ConstantTypeRequiredRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Types\TypeNotationRule::class,
+				// what a map replaces is written first, so that what it forbids is reported of what remains
 				Rules\Upgrading\ReplacedClassesRule::class,
 				Rules\Upgrading\ReplacedFunctionsRule::class,
+				Rules\Upgrading\ForbiddenFunctionsRule::class,
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,
@@ -348,6 +350,11 @@ final class CorePlugin implements Plugin
 					new Map(new GrammarEntry, grammar: self::createReplacedFunctionsGrammar(), caseInsensitive: true),
 					'A function written instead of another one (`acme_send: Acme\\Mail\\send`)',
 				),
+				new Decision(
+					MemberMapGrammar::ForbiddenFunctions,
+					new Map(new GrammarEntry, grammar: self::createForbiddenFunctionsGrammar(), caseInsensitive: true),
+					'A function that may not be called, with what to do instead',
+				),
 
 				// the newer constructs, decided once for every rule writing them
 				new Decision(
@@ -450,5 +457,12 @@ final class CorePlugin implements Plugin
 
 				return $options;
 			});
+	}
+
+
+	private static function createForbiddenFunctionsGrammar(): Schema
+	{
+		return Expect::arrayOf(Expect::string()->nullable())
+			->description('The forbidden function or a pattern with `*`, a name without a backslash meaning the global function → what to do instead, as the end of the message, or null for none');
 	}
 }
