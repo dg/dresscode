@@ -92,7 +92,7 @@ Assert::same(
 		'dresscode/increment-operator',
 		'dresscode/not-equals-operator',
 		'dresscode/no-short-bool-cast',
-		'dresscode/single-quoted-strings',
+		'dresscode/string-quotes',
 		'dresscode/complex-string-variable',
 		'dresscode/no-backtick-operator',
 		'dresscode/no-alternative-syntax',

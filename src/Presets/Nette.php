@@ -48,7 +48,7 @@ final class Nette implements Preset
 			'increment-operator' => true,
 			'symbolic-logical-operators' => true,
 			'magic-constant-casing' => true,
-			'single-quoted-strings' => true,
+			'string-quotes' => 'single',
 			'no-trailing-whitespace-in-string' => true,
 			'complex-string-variable' => true,
 			'no-implicit-backslash' => true,

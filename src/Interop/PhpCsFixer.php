@@ -267,7 +267,7 @@ final class PhpCsFixer
 			'single_line_comment_style' => fn(array $o, Translation $t) => in_array('hash', $o['comment_types'] ?? ['asterisk', 'hash'], true)
 				? $t->enable('dresscode/no-hash-comment')
 				: $t->warn('single_line_comment_style without hash has no equivalent, DressCode only rewrites the hash comment'),
-			'single_quote' => 'dresscode/single-quoted-strings',
+			'single_quote' => fn(array $o, Translation $t) => $t->enable('dresscode/string-quotes', ['quotes' => 'single']),
 			'single_space_around_construct' => 'dresscode/construct-spacing',
 			'single_trait_insert_per_statement' => fn(array $o, Translation $t) => $t->enable('dresscode/single-member-per-declaration', ['members' => ['trait']]),
 			'space_after_semicolon' => 'dresscode/semicolon-spacing',

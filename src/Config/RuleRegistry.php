@@ -160,7 +160,7 @@ final class RuleRegistry
 		Rules\Literals\MagicConstantCasingRule::class,
 		Rules\Literals\NoTrailingWhitespaceInStringRule::class,
 		Rules\Literals\UselessStringConcatRule::class,
-		Rules\Literals\SingleQuotedStringsRule::class,
+		Rules\Literals\StringQuotesRule::class,
 		Rules\PhpDoc\ExplicitAssertionRule::class,
 		Rules\Types\NullableTypeForDefaultNullRule::class,
 		Rules\Types\TypeHintRequiredRule::class,

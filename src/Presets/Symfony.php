@@ -90,7 +90,7 @@ final class Symfony implements Preset
 			'no-short-bool-cast' => true,
 
 			// literals and strings
-			'single-quoted-strings' => true,
+			'string-quotes' => 'single',
 			'complex-string-variable' => true,
 			'no-backtick-operator' => true,
 

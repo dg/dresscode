@@ -570,9 +570,11 @@ Writes octal numbers with the 0o prefix.
 Writes magic constants in uppercase.
 
 
-### dresscode/single-quoted-strings
+### dresscode/string-quotes
 
-Uses single quotes where double quotes give nothing.
+Decides which quotes a string that needs neither kind is written with.
+
+As this project has it: `quotes`: `single`.
 
 ```php
 $name = "Kafka";

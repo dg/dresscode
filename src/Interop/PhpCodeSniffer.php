@@ -245,7 +245,7 @@ final class PhpCodeSniffer
 			'Squiz.Scope.MethodScope' => 'dresscode/visibility-required',
 			'Squiz.Scope.StaticThisUsage' => 'dresscode/no-this-in-static-context',
 			'Squiz.Strings.ConcatenationSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/concat-spacing', ['spacing' => ($o['spacing'] ?? 0) > 0 ? 'single' : 'none']),
-			'Squiz.Strings.DoubleQuoteUsage' => 'dresscode/single-quoted-strings',
+			'Squiz.Strings.DoubleQuoteUsage' => fn(array $o, Translation $t) => $t->enable('dresscode/string-quotes', ['quotes' => 'single']),
 			'Squiz.Strings.EchoedStrings' => 'dresscode/useless-construct-parentheses',
 			'Squiz.WhiteSpace.CastSpacing' => 'dresscode/cast-canonical-type',
 			'Squiz.WhiteSpace.ControlStructureSpacing' => fn(array $o, Translation $t) => $t->enable('dresscode/blank-lines', ['beforeBlockBrace' => 0]),
