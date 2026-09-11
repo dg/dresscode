@@ -21,8 +21,8 @@ function results(): array
 	return [
 		new FileResult('src/clean.php', "<?php\n", "<?php\n"),
 		new FileResult('src/a.php', "<?php\n\$a;\n", "<?php\n\$b;\n", [
-			new Violation('test/rename', 'Rename $a', 2, 1, Severity::Error, fixable: true, followUp: false, fingerprint: 'f1'),
-			new Violation('test/report', 'Variable "b" & <c>', 2, null, Severity::Warning, fixable: false, followUp: true, fingerprint: 'f2'),
+			new Violation('test/rename', 'Rename $a', 2, 1, Severity::Error, fixable: true, fingerprint: 'f1'),
+			new Violation('test/report', 'Variable "b" & <c>', 2, null, Severity::Warning, fixable: false, fingerprint: 'f2'),
 		], ['Rule test/x mutated the file without reporting a violation.']),
 		new FileResult('src/broken.php', "<?php\n\$a = ;\n", null, error: "Syntax error, unexpected ';'", errorLine: 2),
 		new FileResult('src/fail.php', "<?php\n", null, failure: 'Rule test/x failed in src/fail.php: boom'),
@@ -171,13 +171,13 @@ test('console: paths under the working directory are relative to it, the others 
 	$reporter = new ConsoleReporter($stream, root: '/project', cwd: '/project/src');
 	$reporter->start(2, false);
 	$reporter->reportFile(new FileResult('src/a.php', '', '', [
-		new Violation('dresscode/no-x', 'No x', 1, null, Severity::Error, fixable: false, followUp: false, fingerprint: 'f'),
+		new Violation('dresscode/no-x', 'No x', 1, null, Severity::Error, fixable: false, fingerprint: 'f'),
 	]));
 	$reporter->reportFile(new FileResult('tests/b.php', '', '', [
-		new Violation('acme/no-y', 'No y', 1, null, Severity::Error, fixable: false, followUp: false, fingerprint: 'f'),
+		new Violation('acme/no-y', 'No y', 1, null, Severity::Error, fixable: false, fingerprint: 'f'),
 	]));
 	$reporter->reportFile(new FileResult('/elsewhere/c.php', '', '', [
-		new Violation('acme/no-z', 'No z', 1, null, Severity::Error, fixable: false, followUp: false, fingerprint: 'f'),
+		new Violation('acme/no-z', 'No z', 1, null, Severity::Error, fixable: false, fingerprint: 'f'),
 	]));
 	rewind($stream);
 	Assert::match(<<<'XX'
@@ -208,9 +208,9 @@ test('json', function () {
 		                    "column": 1,
 		                    "severity": "error",
 		                    "fixable": true,
-		                    "followUp": false,
 		                    "risky": false,
-		                    "fingerprint": "f1"
+		                    "fingerprint": "f1",
+		                    "derivedFrom": null
 		                },
 		                {
 		                    "rule": "test/report",
@@ -219,9 +219,9 @@ test('json', function () {
 		                    "column": null,
 		                    "severity": "warning",
 		                    "fixable": false,
-		                    "followUp": true,
 		                    "risky": false,
-		                    "fingerprint": "f2"
+		                    "fingerprint": "f2",
+		                    "derivedFrom": null
 		                }
 		            ],
 		            "warnings": [

@@ -15,7 +15,7 @@ require __DIR__ . '/../../bootstrap.php';
 function violation(string $rule, string $message, string $line, int $occurrence = 1): Violation
 {
 	$content = Violation::normalizeLineContent($line);
-	return new Violation($rule, $message, 1, null, Severity::Error, fixable: false, followUp: false, fingerprint: Violation::createFingerprint($rule, $message, $content, $occurrence));
+	return new Violation($rule, $message, 1, null, Severity::Error, fixable: false, fingerprint: Violation::createFingerprint($rule, $message, $content, $occurrence));
 }
 
 
@@ -57,7 +57,7 @@ test('generated from results, saved and loaded back', function () use ($file, $a
 
 test('a fingerprint of nothing but digits survives the round trip', function () use ($dir) {
 	// PHP turns such a key into an int, NEON writes an unquoted number and the loader refuses the file
-	$digits = new Violation('test/a', 'M', 1, null, Severity::Error, fixable: false, followUp: false, fingerprint: '9231335105126121');
+	$digits = new Violation('test/a', 'M', 1, null, Severity::Error, fixable: false, fingerprint: '9231335105126121');
 	$file = "$dir/digits.neon";
 	Baseline::fromResults([new FileResult('src/a.php', '', '', [$digits])])->save($file);
 	Assert::contains("'9231335105126121'", (string) file_get_contents($file));

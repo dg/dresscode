@@ -47,6 +47,9 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 	/** @var array<int, string>  line → the indentation it is given, or has where nothing governs it */
 	private array $lines = [];
 
+	/** @var array<int, Token>  line → the token opening it */
+	private array $openers = [];
+
 
 	public static function getOptionsSchema(): Schema
 	{
@@ -88,7 +91,7 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$this->lines = [];
+		$this->lines = $this->openers = [];
 		$style = $context->getStyle();
 		$previous = null;
 		foreach ($node->getIndex()->getTokens() as $token) {
@@ -104,6 +107,7 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 			}
 
 			if ($opens) {
+				$this->openers[$token->getLine() ?? 0] = $token;
 				$this->place($token, $style, $context);
 			} elseif ($previous === null || preg_match('~[\r\n]$~', $previous->text) === 1) {
 				// a line the text opens (inline HTML, a heredoc, a close tag) is a fact the lines below count from
@@ -122,7 +126,7 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 		[$owner, $child] = Indentation::findOwner($token);
 		if ($owner === null) { // the first token of the file
 			$this->lines[$line] = '';
-			$this->indent($token, '', '', 'a statement', $context);
+			$this->indent($token, '', '', 'a statement', $context, null);
 			return;
 		}
 
@@ -162,7 +166,8 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 				=> $indentation . $style->indent,
 			default => $indentation,
 		};
-		$this->indent($token, $indentation, $commentIndentation, self::describe($role, $item, $token), $context);
+		// the line is placed by what the line of its construct was given, so it follows that line wherever it went
+		$this->indent($token, $indentation, $commentIndentation, self::describe($role, $item, $token), $context, $this->openers[$first->getLine() ?? 0] ?? null);
 	}
 
 
@@ -172,6 +177,7 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 		string $commentIndentation,
 		string $subject,
 		RuleContext $context,
+		?Token $follows,
 	): void
 	{
 		if (Indentation::has($token, $indentation, $commentIndentation)) {
@@ -179,7 +185,7 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 		}
 
 		$subject = $token->getIndentation() === $indentation ? 'a comment' : $subject;
-		if ($context->report($token, "Wrong indentation of $subject", trivia: Indentation::findTrivia($token))) {
+		if ($context->report($token, "Wrong indentation of $subject", trivia: Indentation::findTrivia($token), follows: $follows)) {
 			Indentation::set($token, $indentation, $commentIndentation);
 		}
 	}

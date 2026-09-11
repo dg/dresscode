@@ -55,6 +55,12 @@ final class PassRunner
 	/** @var array<string, Violation>  by fingerprint, so that a pass repeating a report adds nothing */
 	private array $violations = [];
 
+	/** @var \WeakMap<Token, string>  a token whose line the fixer opened or closed → the fingerprint of the violation it did it for, the first of its chain */
+	private \WeakMap $opened;
+
+	/** @var \WeakMap<Token, string>  a token whose line a rule moved → the fingerprint of the violation the move follows from */
+	private \WeakMap $moved;
+
 	/** @var list<string> */
 	private array $warnings = [];
 
@@ -117,6 +123,8 @@ final class PassRunner
 			$this->lineOffsets[] = $offset + strlen($eol);
 		}
 		$this->violations = $this->warnings = $this->contexts = $this->entering = $this->leaving = [];
+		$this->opened = new \WeakMap;
+		$this->moved = new \WeakMap;
 		$this->fingerprints = new Fingerprints($this->lines, $path, $this->baseline);
 		$suppression = Suppression::fromFile($file, $this->resolveNames, $code);
 		foreach ($this->rules as $rule) {
@@ -317,32 +325,42 @@ final class PassRunner
 		$after = $this->file->revision;
 		$reported = false;
 		$reports = $context->takeReports();
-		foreach ($reports as $i => [$at, $trivia, $message, $severity, $reportRevision, $silenced, $fingerprint, $line, $risky]) {
-			$refused = $risky && !$this->fixRisky;
-			$denied = $silenced || $fingerprint === null || $refused; // a comment, the baseline or the risk
+		foreach ($reports as $i => $report) {
+			$fingerprint = $report->fingerprint;
+			$refused = $report->risky && !$this->fixRisky;
+			$denied = $report->silenced || $fingerprint === null || $refused; // a comment, the baseline or the risk
 			// what the rule wrote between this report and its next one it wrote for the report it was denied
-			if ($denied && ($reports[$i + 1][4] ?? $after) > $reportRevision) {
+			if ($denied && ($reports[$i + 1]->revision ?? $after) > $report->revision) {
 				$this->violateContract("Rule $name mutated the file after a suppressed report.");
 			}
 
-			if ($silenced || $fingerprint === null) { // and then there is no violation to record
+			if ($report->silenced || $fingerprint === null) { // and then there is no violation to record
 				continue;
 			}
 
 			$reported = true;
+			$derivedFrom = $this->findAncestor($report);
 			$this->violations[$fingerprint] ??= new Violation(
 				$name,
-				$message,
-				$line,
-				$trivia === null ? $this->findOriginalColumn($at) : null,
+				$report->message,
+				$report->line,
+				$report->trivia === null ? $this->findOriginalColumn($report->at) : null,
 				// every rule is an error until the configuration softens it
-				isset($this->warningRules[$name]) ? Severity::Warning : $severity,
+				isset($this->warningRules[$name]) ? Severity::Warning : $report->severity,
 				// a rule may write its fixes after reporting them all, so the whole callback is the window
-				fixable: !$refused && $after > $reportRevision,
-				followUp: $reportRevision > 0,
+				fixable: !$refused && $after > $report->revision,
 				fingerprint: $fingerprint,
-				risky: $risky,
+				risky: $report->risky,
+				derivedFrom: $derivedFrom === $fingerprint ? null : $derivedFrom,
 			);
+			// what is placed by this line follows from what opened, closed or moved it, the first of the chain
+			if ($report->gap !== null && !$refused) {
+				if ($report->breaks) {
+					$this->opened[$report->gap] ??= $derivedFrom ?? $fingerprint;
+				} elseif ($report->follows !== null) {
+					$this->moved[$report->gap] ??= $derivedFrom ?? $fingerprint;
+				}
+			}
 		}
 
 		if ($after > $before) {
@@ -351,6 +369,21 @@ final class PassRunner
 				$this->violateContract("Rule $name mutated the file without reporting a violation.");
 			}
 		}
+	}
+
+
+	/**
+	 * The violation the report follows from: the one the fixer opened or closed the line of the reported gap
+	 * for, else the one that opened, closed or moved the line the reported whitespace is counted from.
+	 */
+	private function findAncestor(Report $report): ?string
+	{
+		if ($report->gap !== null && isset($this->opened[$report->gap])) {
+			return $this->opened[$report->gap];
+		}
+
+		$follows = $report->follows;
+		return $follows === null ? null : $this->opened[$follows] ?? $this->moved[$follows] ?? null;
 	}
 
 

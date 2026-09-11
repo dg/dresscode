@@ -14,12 +14,15 @@ final readonly class Violation
 		public Severity $severity,
 		/** the rule fixed it */
 		public bool $fixable,
-		/** reported on a tree already changed by another rule, on code the user has not seen */
-		public bool $followUp,
 		/** stable identity for baselines: rule, message, normalized line content and the occurrence index */
 		public string $fingerprint,
 		/** the fix of this occurrence may change what the code does, so it waits until the run allows one */
 		public bool $risky = false,
+		/**
+		 * fingerprint of the violation of the same file this one follows from: its fix opened, closed or moved
+		 * the line the whitespace reported here stands on, so the code the user wrote was not what was found
+		 */
+		public ?string $derivedFrom = null,
 	) {
 	}
 
@@ -34,9 +37,9 @@ final readonly class Violation
 			'column' => $this->column,
 			'severity' => $this->severity === Severity::Error ? 'error' : 'warning',
 			'fixable' => $this->fixable,
-			'followUp' => $this->followUp,
 			'risky' => $this->risky,
 			'fingerprint' => $this->fingerprint,
+			'derivedFrom' => $this->derivedFrom,
 		];
 	}
 
@@ -51,9 +54,9 @@ final readonly class Violation
 			$data['column'] === null ? null : (int) $data['column'],
 			$data['severity'] === 'error' ? Severity::Error : Severity::Warning,
 			(bool) $data['fixable'],
-			(bool) $data['followUp'],
 			(string) $data['fingerprint'],
 			(bool) ($data['risky'] ?? false),
+			isset($data['derivedFrom']) ? (string) $data['derivedFrom'] : null,
 		);
 	}
 

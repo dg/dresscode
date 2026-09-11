@@ -8,6 +8,8 @@ use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\Style;
 use PhpSyntax\Token;
 use PhpSyntax\Trivia;
+use PhpSyntax\TriviaKind;
+use function in_array;
 
 
 /**
@@ -18,7 +20,7 @@ final class RuleContext
 	/** @var array<string, mixed>  state of the rule for this file; rules are stateless, this is where per-file state goes */
 	public array $storage = [];
 
-	/** @var list<array{Node|Token, ?Trivia, string, Severity, int, bool, ?string, int, bool}>  reports of the current callback with the revision at the time, whether it was silenced, the fingerprint, the original line and whether the fix was refused as risky */
+	/** @var list<Engine\Report>  reports of the current callback */
 	private array $reports = [];
 
 
@@ -68,6 +70,8 @@ final class RuleContext
 	 * or a comment; returns false when a comment or the baseline silences it, and then the rule must not fix it.
 	 * `$risky` says that fixing this occurrence may change what the code does: the violation is reported either
 	 * way, and false says the run does not allow the fix, so the rule must leave the code alone.
+	 * `$follows` names the token opening the line the reported whitespace is counted from: where that line was
+	 * opened, closed or moved by a violation of this run, the report is recorded as derived from it.
 	 */
 	public function report(
 		Node|Token $at,
@@ -75,11 +79,49 @@ final class RuleContext
 		Severity $severity = Severity::Error,
 		?Trivia $trivia = null,
 		bool $risky = false,
+		?Token $follows = null,
+	): bool
+	{
+		$gap = $trivia === null ? null : self::findGap($at, $trivia);
+		if ($follows !== null) {
+			$gap ??= $at instanceof Token ? $at : $at->getFirstToken();
+		}
+
+		return $this->record($at, $message, $severity, $trivia, $risky, $gap, $follows);
+	}
+
+
+	/**
+	 * Reports what the engine decided about the gap before the token, under the name of the rule whose claim
+	 * it was; `$breaks` says the fix puts a line break in or takes one out, opening or closing the line.
+	 * @internal
+	 */
+	public function reportGap(
+		Token $gap,
+		Node|Token $at,
+		string $message,
+		?Trivia $trivia = null,
+		bool $breaks = false,
+	): bool
+	{
+		return $this->record($at, $message, Severity::Error, $trivia, risky: false, gap: $gap, follows: null, breaks: $breaks);
+	}
+
+
+	private function record(
+		Node|Token $at,
+		string $message,
+		Severity $severity,
+		?Trivia $trivia,
+		bool $risky,
+		?Token $gap,
+		?Token $follows,
+		bool $breaks = false,
 	): bool
 	{
 		$line = self::findOriginalLine($at, $trivia);
 		if ($line !== null && $this->suppression->isSuppressed($this->ruleName, $line)) {
-			$this->reports[] = [$at, $trivia, $message, $severity, $this->file->revision, true, null, $line, false];
+			$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, silenced: true, fingerprint: null, line: $line, risky: false);
 			return false;
 		}
 
@@ -88,9 +130,28 @@ final class RuleContext
 		$line ??= 1;
 		$fingerprint = $this->fingerprints->create($this->ruleName, $message, $line);
 		$known = $this->fingerprints->isKnown($fingerprint);
-		$refused = $risky && !$this->fixRisky;
-		$this->reports[] = [$at, $trivia, $message, $severity, $this->file->revision, $known, $fingerprint, $line, $risky];
-		return !$known && !$refused;
+		$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, $known, $fingerprint, $line, $risky, $gap, $follows, $breaks);
+		return !$known && !($risky && !$this->fixRisky);
+	}
+
+
+	/**
+	 * The token whose gap before it holds the whitespace: the token itself when the trivia stands before it,
+	 * the next one when it stands after; a comment is nobody's gap, its problem is the comment's own.
+	 */
+	private static function findGap(Node|Token $at, Trivia $trivia): ?Token
+	{
+		if ($trivia->kind !== TriviaKind::Whitespace && $trivia->kind !== TriviaKind::EndOfLine) {
+			return null;
+		}
+
+		$first = $at instanceof Token ? $at : $at->getFirstToken();
+		if ($first !== null && in_array($trivia, $first->leadingTrivia, strict: true)) {
+			return $first;
+		}
+
+		$last = $at instanceof Token ? $at : $at->getLastToken();
+		return $last !== null && in_array($trivia, $last->trailingTrivia, strict: true) ? $last->getNext() : null;
 	}
 
 
@@ -117,7 +178,7 @@ final class RuleContext
 
 	/**
 	 * Takes the reports made since the last call, in the order they were made.
-	 * @return list<array{Node|Token, ?Trivia, string, Severity, int, bool, ?string, int, bool}>
+	 * @return list<Engine\Report>
 	 * @internal
 	 */
 	public function takeReports(): array

@@ -17,7 +17,7 @@ use function array_slice, count;
  * Reports a gap that is not what the claim on it asks for, under the name of the rule that made the claim, and
  * fixes it: a line break is put in or taken out, the whitespace of a line and the blank lines of a break are
  * written as claimed. The blank lines and the whitespace of a line that a break has just opened or closed are
- * the business of the next pass.
+ * the business of the next pass, and a violation about them is derived from the one the break was written for.
  * @internal
  */
 final class Fixer implements Sink
@@ -41,7 +41,7 @@ final class Fixer implements Sink
 		$at = $side === 'before' || $previous === null ? $token : $previous;
 		$message = self::withReason(Messages::line($wanted, $side, $subject, $at), $because);
 		if ($wanted === Line::Next) {
-			if (!$context->report($at, $message)) {
+			if (!$context->reportGap($token, $at, $message, breaks: true)) {
 				return;
 			}
 
@@ -96,7 +96,7 @@ final class Fixer implements Sink
 			return;
 		}
 
-		if ($context->report($at, $message)) {
+		if ($context->reportGap($token, $at, $message, breaks: true)) {
 			$token->setLeadingTrivia([]);
 			$previous->setTrailingTrivia([]);
 			$previous->setTrailingSpace($space === Space::None ? '' : ' ');
@@ -136,7 +136,7 @@ final class Fixer implements Sink
 
 		$context = $this->contexts[RuleInfo::of($rule)->name];
 		$at = $side === 'before' ? $token : $previous;
-		if ($context->report($at, self::withReason(Messages::space($wanted, $side, $at), $because))) {
+		if ($context->reportGap($token, $at, self::withReason(Messages::space($wanted, $side, $at), $because))) {
 			$previous->setTrailingSpace($wanted === Space::None ? '' : ' ');
 		}
 	}
@@ -162,7 +162,7 @@ final class Fixer implements Sink
 
 		$context = $this->contexts[RuleInfo::of($rule)->name];
 		$message = self::withReason(Messages::blankLines($count, $where, $found), $because);
-		if (!$context->report($token, $message, trivia: $at)) {
+		if (!$context->reportGap($token, $token, $message, trivia: $at)) {
 			return;
 		}
 

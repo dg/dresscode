@@ -1,19 +1,24 @@
 <?php declare(strict_types=1);
 
 use DressCode\Analyses;
+use DressCode\Claim;
 use DressCode\Config;
 use DressCode\ConvergenceException;
 use DressCode\Engine\PassRunner;
+use DressCode\GapRule;
+use DressCode\Line;
 use DressCode\NodeRule;
 use DressCode\Rule;
 use DressCode\RuleContext;
 use DressCode\RuleException;
 use DressCode\RuleInfo;
+use DressCode\Rules\Whitespace\IndentationRule;
 use DressCode\Severity;
 use DressCode\Stage;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression\VariableNode;
 use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
+use PhpSyntax\Nodes\Statement\IfNode;
 use PhpSyntax\Parser;
 use PhpSyntax\Style;
 use PhpSyntax\Token;
@@ -71,6 +76,76 @@ final class RenamePair extends NodeRule
 				$name->setText($upper);
 			}
 		}
+	}
+}
+
+
+/** The body of an if on a line of its own, a blank line above it. */
+#[RuleInfo('test/break-body', Stage::Formatting)]
+final class BreakBody extends GapRule
+{
+	public function getClaims(): array
+	{
+		return [IfNode::class => ['body' => [new Claim(line: Line::Next, blank: 1), null]]];
+	}
+}
+
+
+/** The body of an if on the line of the if. */
+#[RuleInfo('test/join-body', Stage::Formatting)]
+final class JoinBody extends GapRule
+{
+	public function getClaims(): array
+	{
+		return [IfNode::class => ['body' => [Claim::sameLine(), null]]];
+	}
+}
+
+
+/** Reports the whitespace before the body of an if, whatever it is. */
+#[RuleInfo('test/report-body-space', Stage::Cleanup)]
+final class ReportBodySpace extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [IfNode::class];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+		$before = $node instanceof IfNode ? $node->body?->getFirstToken()?->getPrevious() : null;
+		$trivia = $before?->trailingTrivia[0] ?? null;
+		if ($before !== null && $trivia !== null) {
+			$context->report($before, 'Whitespace before the body', trivia: $trivia);
+		}
+	}
+}
+
+
+/**
+ * Places every statement by the one above it: the second is a risky move, the third follows the second,
+ * so what the third is derived from depends on whether the run allowed the move.
+ */
+#[RuleInfo('test/move-chain', Stage::Cleanup)]
+final class MoveChain extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+
+
+	public function afterFile(RuleContext $context): void
+	{
+		$tokens = [];
+		foreach ($context->getFile()->find(ExpressionStatementNode::class) as $statement) {
+			$tokens[] = $statement->getFirstToken() ?? throw new LogicException;
+		}
+
+		[$a, $b, $c] = $tokens;
+		$context->report($b, 'Move $b', trivia: $b->leadingTrivia[0], risky: true, follows: $a);
+		$context->report($c, 'Move $c', trivia: $c->leadingTrivia[0], follows: $b);
 	}
 }
 
@@ -281,7 +356,7 @@ test('reports become violations with original positions and fingerprints', funct
 	[, $result] = run("<?php\n\t\$a = \$b;\n\$a;", [new ReportVariables]);
 	Assert::count(3, $result->violations);
 	[$a, $b, $a2] = $result->violations;
-	Assert::same(['test/report-variables', 'Variable $a', 2, 2, Severity::Warning, false, false], [$a->ruleName, $a->message, $a->line, $a->column, $a->severity, $a->fixable, $a->followUp]);
+	Assert::same(['test/report-variables', 'Variable $a', 2, 2, Severity::Warning, false, null], [$a->ruleName, $a->message, $a->line, $a->column, $a->severity, $a->fixable, $a->derivedFrom]);
 	Assert::same([2, 7], [$b->line, $b->column]);
 	Assert::same([3, 1], [$a2->line, $a2->column]);
 	Assert::notSame($a->fingerprint, $a2->fingerprint);
@@ -310,11 +385,75 @@ test('a fix marks the violation fixable and takes one more pass', function () {
 });
 
 
-test('stages run in order within a pass and follow-up violations are marked', function () {
+test('stages run in order within a pass', function () {
 	[$file, $result] = run('<?php $a;', [new ReportVariables, new RenameA]);
 	Assert::same('<?php $b;', (string) $file);
 	Assert::same(['Rename $a', 'Variable $b'], array_map(fn($v) => $v->message, $result->violations));
-	Assert::same([false, true], array_map(fn($v) => $v->followUp, $result->violations));
+	// a report on a tree another rule changed is not derived by that alone
+	Assert::same([null, null], array_map(fn($v) => $v->derivedFrom, $result->violations));
+});
+
+
+test('a violation about the gap of a line the fixer opened is derived from the one the break was written for', function () {
+	// the break goes in first, the blank lines wait for the next pass and their report is derived
+	[$file, $result] = run("<?php\nif (\$a) \$b;\n", [new BreakBody]);
+	Assert::same("<?php\nif (\$a)\n\n\t\$b;\n", (string) $file);
+	Assert::count(2, $result->violations);
+	$byMessage = array_column($result->violations, null, 'message');
+	$break = $byMessage['A line break before the statement'];
+	$blank = $byMessage['Expected 1 blank line before the statement, 0 found'];
+	Assert::same([null, $break->fingerprint], [$break->derivedFrom, $blank->derivedFrom]);
+	Assert::same([2, 2], [$break->line, $blank->line]);
+});
+
+
+test('a violation about the whitespace of a line the fixer closed is derived from the one the break was taken out for', function () {
+	[$file, $result] = run("<?php\nif (\$a)\n\t\$b;\n", [new JoinBody, new ReportBodySpace]);
+	Assert::same("<?php\nif (\$a) \$b;\n", (string) $file);
+	$byMessage = array_column($result->violations, null, 'message');
+	$join = $byMessage['No line break before the statement'];
+	Assert::null($join->derivedFrom);
+	Assert::same($join->fingerprint, $byMessage['Whitespace before the body']->derivedFrom);
+});
+
+
+test('a line that follows a move the run refused is not derived from it', function () {
+	$code = "<?php\n\t\$a;\n\t\$b;\n\t\$c;\n";
+	foreach ([false, true] as $fixRisky) {
+		[, $result] = run($code, [new MoveChain], fixRisky: $fixRisky);
+		$byMessage = array_column($result->violations, null, 'message');
+		Assert::same($fixRisky ? $byMessage['Move $b']->fingerprint : null, $byMessage['Move $c']->derivedFrom, $fixRisky ? 'allowed' : 'refused');
+	}
+});
+
+
+test('a line placed by the line of its construct follows that line, and its ancestor is the first', function () {
+	// $b is wrong on its own; the inner if is wrong on its own, and $d and the inner brace count from it
+	$code = "<?php\nif (\$a) {\n\$b;\nif (\$c) {\n\$d;\n}\n}\n";
+	[$file, $result] = run($code, [new IndentationRule]);
+	Assert::same("<?php\nif (\$a) {\n\t\$b;\n\tif (\$c) {\n\t\t\$d;\n\t}\n}\n", (string) $file);
+	[$b, $if, $d, $brace] = $result->violations;
+	Assert::same([3, 4, 5, 6], array_map(fn($v) => $v->line, $result->violations));
+	Assert::same([null, null, $if->fingerprint, $if->fingerprint], [$b->derivedFrom, $if->derivedFrom, $d->derivedFrom, $brace->derivedFrom]);
+
+	// the line the fixer opened is the ancestor of what is placed by it, however deep
+	[$file, $result] = run("<?php\nif (\$a) foreach (\$c as \$x) {\n\$d;\n}\n", [new BreakBody, new IndentationRule]);
+	Assert::same("<?php\nif (\$a)\n\n\tforeach (\$c as \$x) {\n\t\t\$d;\n\t}\n", (string) $file);
+	Assert::count(4, $result->violations);
+	$break = null;
+	foreach ($result->violations as $violation) {
+		if (str_starts_with($violation->message, 'A line break')) {
+			$break = $violation;
+		}
+	}
+
+	Assert::notNull($break);
+	Assert::null($break->derivedFrom);
+	foreach ($result->violations as $violation) {
+		if ($violation !== $break) {
+			Assert::same($break->fingerprint, $violation->derivedFrom, $violation->message);
+		}
+	}
 });
 
 
