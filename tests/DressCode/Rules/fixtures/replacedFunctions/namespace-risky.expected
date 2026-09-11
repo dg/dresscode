@@ -1,0 +1,10 @@
+<?php
+// risky
+// {"strlen": "mb_strlen"}
+namespace App;
+
+use function strlen as length;
+
+$a = mb_strlen($s);
+$b = \mb_strlen($s);
+$c = \mb_strlen($s);

@@ -1,0 +1,9 @@
+<?php
+// {"strlen": "mb_strlen"}
+namespace App;
+
+use function strlen as length;
+
+$a = strlen($s);
+$b = \mb_strlen($s);
+$c = \mb_strlen($s);
