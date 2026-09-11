@@ -5,6 +5,8 @@ namespace DressCode\Console;
 use DressCode\Config;
 use DressCode\Config\Loader;
 use DressCode\Config\PhpVersionSource;
+use DressCode\Config\Proposal;
+use DressCode\Config\RuleRegistry;
 use DressCode\Config\RunnerFactory;
 use DressCode\ConfigurationException;
 use DressCode\ConvergenceException;
@@ -46,6 +48,7 @@ final class Application
 		  dresscode explain <rule> [options]     what a rule is for, its options here and its examples
 		  dresscode standard [options]           the standard of the project, as Markdown
 		  dresscode rules [options]              list the known rules
+		  dresscode init [options]               write dresscode.neon from how the code of the project is written
 		  dresscode import <file>                translate a php-cs-fixer or phpcs configuration
 		  dresscode migrate-suppressions [paths...] [options]
 		                                         rewrite phpcs suppression comments to the dresscode form
@@ -57,7 +60,7 @@ final class Application
 		                            there. bare says only what is left to the user and which files
 		                            were rewritten, so a clean run says nothing at all
 		  --diff                    show the fixes as a unified diff (console format)
-		  --preset <name>...        add a preset
+		  --preset <name>...        add a preset; for init the standard to write, per by default
 		  --rule <spec>...          enable or disable a rule: name=on or name=off
 		  --only <name>...          run only these of the rules the configuration comes to, a preset
 		                            standing for all of its rules
@@ -148,6 +151,7 @@ final class Application
 				'explain' => $this->runExplain($args),
 				'standard' => $this->runStandard($args),
 				'rules' => $this->runRules($args),
+				'init' => $this->runInit($args),
 				'import' => $this->runImport($args),
 				'migrate-suppressions' => $this->runMigrateSuppressions($args),
 				default => throw new UsageException("Unknown command '{$args['command']}'."),
@@ -597,6 +601,65 @@ final class Application
 		}
 
 		$this->write("\n* enabled by the configuration\n");
+		return 0;
+	}
+
+
+	/**
+	 * Measures how the project writes what can be measured and writes dresscode.neon with it; a configuration
+	 * that exists is never overwritten, the proposal is printed instead and the exit code says so.
+	 * @param  array<string, mixed>  $args
+	 */
+	private function runInit(array $args): int
+	{
+		$root = Helpers::canonicalizePath($this->cwd ?? (string) getcwd());
+		$presets = $args['--preset'] ?: null;
+		array_map((new RuleRegistry)->resolvePreset(...), $presets ?? []); // a misspelled one before the measuring, not after it
+		$proposal = Proposal::measure($root, $presets);
+		$neon = $proposal->toNeon();
+
+		// what the file says must be what was measured, before it is anywhere a run could read it
+		$temp = sys_get_temp_dir() . '/dresscode-init-' . uniqid() . '.neon';
+		FileSystem::write($temp, $neon);
+		try {
+			$factory = new RunnerFactory;
+			$factory->createRunner(Loader::loadFile($temp), $root, cache: false);
+			$proposal->checkResolution($factory->getResolvedConfig());
+		} finally {
+			@unlink($temp); // @ - may be gone
+		}
+
+		$existing = array_filter(
+			array_merge(...array_map(fn(string $name) => [$name, $name . Loader::DistSuffix], Loader::FileNames)),
+			fn(string $name) => is_file("$root/$name"),
+		);
+		$report = $existing ? $this->writeError(...) : $this->write(...);
+		$report($this->formatName() . "\n");
+		$report($this->console->color('gray', 'Sample     ') . sprintf(
+			"%d of %d files in %s\n",
+			$proposal->countSampled(),
+			$proposal->total,
+			implode(', ', $proposal->paths),
+		));
+		$report($this->console->color('gray', 'Standard   ') . implode(', ', $proposal->presets) . ($proposal->given
+			? ", as given\n"
+			: ', not measured; the others are ' . Proposal::describeOthers() . "\n"));
+		$report($this->console->color('gray', 'Indent     ') . $proposal->indent->describe() . "\n");
+		$report($this->console->color('gray', 'Quotes     ') . $proposal->quotes->describe() . "\n");
+		$report($this->console->color('gray', 'Dry run    ') . sprintf(
+			"%d of %d sampled files would change\n",
+			$proposal->countChanged(),
+			$proposal->countSampled(),
+		));
+
+		if ($existing) {
+			$this->writeError(implode(' and ', $existing) . " exists, so the proposal is printed and nothing is written.\n");
+			$this->write($neon);
+			return 2;
+		}
+
+		FileSystem::write("$root/dresscode.neon", $neon);
+		$this->write("\ndresscode.neon written.\n");
 		return 0;
 	}
 
