@@ -1,0 +1,20 @@
+<?php
+
+namespace App;
+
+use Acme\Mail\ITransport;
+use Acme\Mail\{Message, IMessageRenderer};
+use Acme\Http\IResolver as R;
+use Acme\Http\Gone;
+use Acme\Utils;
+
+class X implements ITransport, R
+{
+	public function f(ITransport $c, \Acme\Mail\ITransport $d, Utils\IPrintable $e, Gone $g): ?IMessageRenderer
+	{
+		$a = ITransport::class;
+		$b = new \Acme\Http\Orphan;
+		$h = new \Acme\Http\Explained;
+		return $c instanceof ITransport ? null : Message::Plain;
+	}
+}

@@ -10,7 +10,7 @@ namespace DressCode\Rules;
 use DressCode\RuleContext;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{CommentPolicy, Node, SymbolKind, Token};
-use PhpSyntax\Nodes\Statement;
+use PhpSyntax\Nodes\FileNode;
 
 
 /**
@@ -21,9 +21,10 @@ final class CodeWriter
 {
 	/**
 	 * How a class is written where the node stands: fully qualified when asked so, else the shortest way that reaches
-	 * it, through an import added where none does, the scope takes one and the short name is free. A global class gets
-	 * no import, it is written with its backslash where nothing imports it, which name-notation spells as the project
-	 * does. It may add an import, so it is called only after report() returned true.
+	 * it, through an import added where none does, the scope takes one and the short name is free; a file without
+	 * a namespace imports a class of one too, rather than writing it qualified. A global class gets no import, it is
+	 * written with its backslash where nothing imports it, which name-notation spells as the project does. It may
+	 * add an import, so it is called only after report() returned true.
 	 */
 	public static function spellClass(string $class, Node $at, RuleContext $context, bool $fullyQualified = false): string
 	{
@@ -33,9 +34,9 @@ final class CodeWriter
 
 		$resolver = $context->getAnalysis(NameResolver::class);
 		$short = $resolver->getShortName($class, SymbolKind::ClassLike, $at);
-		$scope = $at->findAncestor(Statement\NamespaceNode::class);
+		$scope = NodeHelpers::findImportScope($at);
 		if (
-			str_starts_with($short, '\\')
+			(str_starts_with($short, '\\') || ($scope instanceof FileNode && str_contains($short, '\\')))
 			&& str_contains($class, '\\')
 			&& $scope !== null
 			&& NodeHelpers::canAddImport($scope)

@@ -41,6 +41,7 @@ final class RuleRegistry
 		Rules\Classes\ModernClassNameReferenceRule::class,
 		Rules\Classes\ClassNameReferenceForStringLiteralRule::class,
 		Rules\Classes\NameCasingRule::class,
+		Rules\Upgrading\NoDeprecatedClassesRule::class,
 		Rules\Upgrading\NoDeprecatedMembersRule::class,
 		Rules\Upgrading\ReplacedClassesRule::class,
 		Rules\Upgrading\ReplacedMembersRule::class,

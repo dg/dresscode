@@ -13,7 +13,7 @@ use DressCode\Rules\Whitespace\IndentationRule;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, SymbolKind, Token, TokenKind, Trivia, TriviaKind, UnqualifiedResolution};
-use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, AttributeGroupNode, CatchNode, ClosureUseNode, ElseIfNode, Expression, ExpressionNode, NameNode, NodeList, Scalar, SeparatedNodeList, Statement, StatementNode, StaticVariableNode, UseItemNode};
+use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, AttributeGroupNode, CatchNode, ClosureUseNode, ElseIfNode, Expression, ExpressionNode, FileNode, NameNode, NodeList, Scalar, SeparatedNodeList, Statement, StatementNode, StaticVariableNode, UseItemNode};
 use function array_slice, assert, count;
 
 
@@ -478,10 +478,28 @@ final class NodeHelpers
 
 
 	/**
+	 * The scope the imports of the node belong to: its namespace, or the file where the file declares none; null for
+	 * a node of a file with namespaces that stands outside them.
+	 */
+	public static function findImportScope(Node $node): FileNode|Statement\NamespaceNode|null
+	{
+		for (; $node !== null; $node = $node->parent) {
+			if ($node instanceof Statement\NamespaceNode) {
+				return $node;
+			} elseif ($node instanceof FileNode) {
+				return array_any($node->statements->getItems(), fn(Node $stmt) => $stmt instanceof Statement\NamespaceNode) ? null : $node;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
 	 * Whether a use statement can be added to the scope: a file that opens with markup has no line for one unless
 	 * an import stands in it already.
 	 */
-	public static function canAddImport(Statement\NamespaceNode $scope): bool
+	public static function canAddImport(FileNode|Statement\NamespaceNode $scope): bool
 	{
 		$items = $scope->statements->getItems();
 		$first = $items[0] ?? null;
@@ -501,7 +519,7 @@ final class NodeHelpers
 	 * declare statements, a blank line apart.
 	 */
 	public static function addImport(
-		Statement\NamespaceNode $scope,
+		FileNode|Statement\NamespaceNode $scope,
 		SymbolKind $kind,
 		string $fullName,
 		RuleContext $context,
@@ -586,9 +604,10 @@ final class NodeHelpers
 		}
 
 		$neighborFirst = ($items[$index] ?? null)?->getFirstToken();
-		$indentation = $neighborFirst?->getIndentation() ?? ($scope->openBrace ? $context->getStyle()->indent : '');
-		// a braced namespace ends the line with its brace, an unbraced one is a blank line apart from its statement
-		$leading = $scope->openBrace !== null ? [] : [$eol];
+		$braced = $scope instanceof Statement\NamespaceNode && $scope->openBrace !== null;
+		$indentation = $neighborFirst?->getIndentation() ?? ($braced ? $context->getStyle()->indent : '');
+		// a braced namespace ends the line with its brace, an unbraced one and an open tag are a blank line apart from it
+		$leading = $braced ? [] : [$eol];
 		if ($index === 0 && $neighborFirst !== null) { // an open tag stays first
 			foreach ($neighborFirst->leadingTrivia as $i => $trivia) {
 				if ($trivia->kind === TriviaKind::OpenTag) {

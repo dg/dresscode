@@ -1,0 +1,14 @@
+<?php
+
+namespace App;
+
+use Acme\Mail\ITransport;
+use Acme\Mail\MessageRenderer;
+use Acme\Mail\IMessageRenderer;
+
+class Transport
+{
+	public function f(ITransport $c, IMessageRenderer $r): void
+	{
+	}
+}

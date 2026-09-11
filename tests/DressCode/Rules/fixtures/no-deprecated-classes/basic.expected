@@ -1,0 +1,21 @@
+<?php
+
+namespace App;
+
+use Acme\Mail\Transport;
+use Acme\Mail\{Message, MessageRenderer};
+use Acme\Dns\Resolver as R;
+use Acme\Http\Gone;
+use Acme\Printable;
+use Acme\Utils;
+
+class X implements Transport, R
+{
+	public function f(Transport $c, \Acme\Mail\Transport $d, Printable $e, Gone $g): ?MessageRenderer
+	{
+		$a = Transport::class;
+		$b = new \Acme\Http\Orphan;
+		$h = new \Acme\Http\Explained;
+		return $c instanceof Transport ? null : Message::Plain;
+	}
+}

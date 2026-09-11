@@ -1,0 +1,15 @@
+5: Class Acme\Mail\ITransport is deprecated: use Acme\Mail\Transport
+6: Class Acme\Mail\IMessageRenderer is deprecated: use MessageRenderer
+7: Class Acme\Http\IResolver is deprecated: use \Acme\Dns\Resolver instead
+8: Class Acme\Http\Gone is deprecated
+11: Class Acme\Mail\ITransport is deprecated: use Acme\Mail\Transport
+11: Class Acme\Http\IResolver is deprecated: use \Acme\Dns\Resolver instead
+13: Class Acme\Mail\ITransport is deprecated: use Acme\Mail\Transport
+13: Class Acme\Mail\ITransport is deprecated: use Acme\Mail\Transport
+13: Class Acme\Utils\IPrintable is deprecated: use Acme\Printable
+13: Class Acme\Http\Gone is deprecated
+13: Class Acme\Mail\IMessageRenderer is deprecated: use MessageRenderer
+15: Class Acme\Mail\ITransport is deprecated: use Acme\Mail\Transport
+16: Class Acme\Http\Orphan is deprecated: use Acme\Missing\Replacement
+17: Class Acme\Http\Explained is deprecated: the lookup was rewritten, see the guide
+18: Class Acme\Mail\ITransport is deprecated: use Acme\Mail\Transport

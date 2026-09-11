@@ -1,5 +1,5 @@
 <?php
-// {"App\\Mailer\\SmtpMailer": "App\\Mail\\Mailer", "Legacy\\Logger": "Psr\\Log\\LoggerInterface", "\\App\\Old": "\\App\\Current", "App\\Withdrawn": "keep"}
+// {"App\\Mailer\\SmtpMailer": "App\\Mail\\Mailer", "Legacy\\Logger": "Psr\\Log\\LoggerInterface", "\\App\\Old": "\\App\\Current", "App\\Withdrawn": "keep", "App\\Obsolete": "App\\Missing"}
 
 namespace App;
 
@@ -21,6 +21,7 @@ final class Service extends Current
 		$mailer = new Mailer;
 		$class = Current::class;
 		$kept = Withdrawn::class; // an entry withdrawn with keep
+		$missing = Obsolete::class; // reported, the project having no such class
 		return $logger instanceof Current ? $logger : new Current($mailer, Mailer::Default);
 	}
 }

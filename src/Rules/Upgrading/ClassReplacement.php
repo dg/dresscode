@@ -10,59 +10,54 @@ namespace DressCode\Rules\Upgrading;
 use DressCode\RuleContext;
 use DressCode\Rules\CodeWriter;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\Nodes\{NameNode, UseItemNode};
+use PhpSyntax\Nodes\{FileNode, NameNode, UseItemNode};
 use PhpSyntax\Nodes\Statement\NamespaceNode;
 use PhpSyntax\SymbolKind;
 use function count, strlen;
 
 
 /**
- * The rewrite replaced-classes makes: every reference of a class, interface or enum in a namespace
- * rewritten to the name that replaces it, wherever the name stands, an import, a type, an instantiation, a static
- * access, an attribute. An import of the old name is rewritten in place where its alias or its short name goes on
+ * What no-deprecated-classes and replaced-classes share: every reference of a class, interface or enum in a scope of
+ * imports rewritten to the name that replaces it, wherever the name stands, an import, a type, an instantiation,
+ * a static access, an attribute. An import of the old name is rewritten in place where its alias or its short name goes on
  * naming the class, else it goes and the references import the new name the way the scope imports.
  * @internal
  */
 final class ClassReplacement
 {
 	/**
-	 * Reports every reference of a replaced class and rewrites the ones the report allows.
-	 * @param  array<string, string>  $classes  lowercased replaced name → the name written instead, both fully qualified
-	 * @param  \Closure(string, string): string  $describe  the message, given the replaced and the replacing name
+	 * Reports every reference of a class the closure has something to say about, and rewrites the ones it names
+	 * a replacement for and the report allows.
+	 * @param  \Closure(string): ?array{string, ?string}  $find  given a fully qualified class, the message and the class written instead, null for none; null for a class that is left alone
 	 */
-	public static function apply(NamespaceNode $scope, array $classes, RuleContext $context, \Closure $describe): void
+	public static function apply(FileNode|NamespaceNode $scope, RuleContext $context, \Closure $find): void
 	{
-		if ($classes === []) {
-			return;
-		}
-
 		// everything is found before anything is rewritten: a rewritten import changes what the names below it resolve to
 		$resolver = $context->getAnalysis(NameResolver::class);
 		$imports = $references = [];
 		foreach ($scope->find(NameNode::class) as $name) {
 			$item = $name->parent;
 			if ($item instanceof UseItemNode) {
-				$new = $item->kind === SymbolKind::ClassLike ? $classes[strtolower($item->fullName)] ?? null : null;
-				if ($new !== null) {
-					$imports[] = [$item, $item->fullName, $new];
+				$found = $item->kind === SymbolKind::ClassLike ? $find($item->fullName) : null;
+				if ($found !== null) {
+					$imports[] = [$item, ...$found];
 				}
 			} elseif ($name->role === SymbolKind::ClassLike && $name->isReference()) {
-				$old = $resolver->resolveClass($name);
-				$new = $classes[strtolower($old)] ?? null;
-				if ($new !== null) {
-					$references[] = [$name, $old, $new];
+				$found = $find($resolver->resolveClass($name));
+				if ($found !== null) {
+					$references[] = [$name, ...$found];
 				}
 			}
 		}
 
-		foreach ($imports as [$item, $old, $new]) {
-			if ($context->report($item->name, $describe($old, $new))) {
+		foreach ($imports as [$item, $message, $new]) {
+			if ($context->report($item->name, $message, fixable: $new !== null) && $new !== null) {
 				self::replaceImport($item, $new, $context);
 			}
 		}
 
-		foreach ($references as [$name, $old, $new]) {
-			if ($context->report($name, $describe($old, $new))) {
+		foreach ($references as [$name, $message, $new]) {
+			if ($context->report($name, $message, fixable: $new !== null) && $new !== null) {
 				$name->text = CodeWriter::spellClass($new, $name, $context, $name->isFullyQualified());
 			}
 		}

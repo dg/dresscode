@@ -1,0 +1,4 @@
+5: Class Acme\Mail\ITransport is deprecated: use Acme\Mail\Transport
+7: Class Acme\Mail\IMessageRenderer is deprecated: use MessageRenderer
+11: Class Acme\Mail\ITransport is deprecated: use Acme\Mail\Transport
+11: Class Acme\Mail\IMessageRenderer is deprecated: use MessageRenderer

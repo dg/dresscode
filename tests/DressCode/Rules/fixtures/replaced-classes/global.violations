@@ -1,0 +1,4 @@
+6: Class Acme\Mail\ITransport is replaced by Acme\Mail\Transport
+11: Class Acme\Mail\ITransport is replaced by Acme\Mail\Transport
+11: Class Legacy\Logger is replaced by Psr\Log\LoggerInterface
+13: Class Legacy\Logger is replaced by Psr\Log\LoggerInterface
