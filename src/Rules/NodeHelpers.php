@@ -543,6 +543,35 @@ final class NodeHelpers
 
 
 	/**
+	 * Removes a node standing on lines of its own between two others, a member of a class among them, and leaves one
+	 * gap where there were two, the narrower one, which Node::remove() would add up instead: none after the opening
+	 * brace for the first member and before the closing one for the last.
+	 */
+	public static function removeBetweenGaps(Node $node, string $eol): void
+	{
+		$next = $node->getLastToken()?->getNext();
+		$gap = $next !== null && $next->startsLine()
+			? min(self::countBlankLines($node->getFirstToken()), self::countBlankLines($next))
+			: null;
+		$node->remove();
+		if ($next !== null && $gap !== null) {
+			$next->setBlankLinesBefore($gap, $eol);
+		}
+	}
+
+
+	private static function countBlankLines(?Token $token): int
+	{
+		$count = 0;
+		while (($token?->leadingTrivia[$count] ?? null)?->isEndOfLine()) {
+			$count++;
+		}
+
+		return $count;
+	}
+
+
+	/**
 	 * Splits a declaration listing several items (`const A = 1, B = 2;`, `public $a, $b;`, `use A, B;`) into
 	 * one declaration per item: every item after the first gets a copy of the declaration of its own, the copies
 	 * follow the original in its list and the original keeps the first item. The slot names the list of items

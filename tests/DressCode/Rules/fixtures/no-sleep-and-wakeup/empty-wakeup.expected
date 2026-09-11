@@ -1,0 +1,74 @@
+<?php
+// php 8.5
+namespace App;
+
+final class Removed implements \JsonSerializable, \Countable
+{
+	public function count(): int
+	{
+		return 0;
+	}
+
+
+	public function jsonSerialize(): mixed
+	{
+		return null;
+	}
+}
+
+$x = new class {
+};
+
+class Last
+{
+	public function run(): void
+	{
+	}
+}
+
+// left alone
+class Child extends Base
+{
+	public function __wakeup()
+	{
+	}
+}
+
+class WithTrait
+{
+	use Wakes;
+
+	public function __wakeup()
+	{
+	}
+}
+
+class ImplementsOwn implements Wakeable
+{
+	public function __wakeup()
+	{
+	}
+}
+
+class Commented
+{
+	/** unserialization does nothing more */
+	public function __wakeup()
+	{
+	}
+}
+
+class NotEmpty
+{
+	public function __wakeup()
+	{
+		$this->connect();
+	}
+}
+
+trait Wakes
+{
+	public function __wakeup()
+	{
+	}
+}

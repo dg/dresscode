@@ -1,0 +1,2 @@
+5: Method __sleep() is deprecated since PHP 8.5, __serialize() takes its place
+11: Method __wakeup() is deprecated since PHP 8.5 and this one does nothing

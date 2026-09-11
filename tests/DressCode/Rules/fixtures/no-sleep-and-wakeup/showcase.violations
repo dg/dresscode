@@ -1,0 +1,1 @@
+5: Method __sleep() is deprecated since PHP 8.5, __serialize() takes its place
