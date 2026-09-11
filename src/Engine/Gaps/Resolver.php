@@ -425,7 +425,7 @@ final class Resolver
 	 * What the claims on the token ask for, component by component: the innermost slot first, a closure given
 	 * the gap and abstaining by null, a later claim filling in only what an earlier one left unclaimed.
 	 * @param list<array{list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>, Node|Token, ?int}> $levels
-	 * @return array{space?: array{Rule, Space, Node|Token, ?string}, line?: array{Rule, Line, Node|Token, ?string}, blank?: array{Rule, int|array{int, ?int}, Node|Token, ?string}, blankBelowComment?: array{Rule, int|array{int, ?int}, Node|Token, ?string}}  the rule, what it asks for, what the claim was made for, the reason it gives
+	 * @return array{space?: array{Rule, Space, Node|Token, ?string, ?Node}, line?: array{Rule, Line, Node|Token, ?string, ?Node}, blank?: array{Rule, int|array{int, ?int}, Node|Token, ?string, ?Node}, blankBelowComment?: array{Rule, int|array{int, ?int}, Node|Token, ?string, ?Node}}  the rule, what it asks for, what the claim was made for, the reason it gives, and the construct its closure decided about
 	 */
 	private function decide(array $levels, Token $token, string $side): array
 	{
@@ -434,8 +434,10 @@ final class Resolver
 			[$claims, $subject, $index] = $levels[$i];
 			$here = []; // component → the key of the claim deciding it at this level
 			foreach ($claims as [$rule, $claim, $key]) {
+				$construct = null;
 				if ($claim instanceof \Closure) {
 					$claim = $claim(new Gap($token, $subject, $index, $this->style, $rule, $this->memory));
+					$construct = $this->memory->takeAsked($rule);
 				}
 
 				if ($claim === null) {
@@ -446,7 +448,7 @@ final class Resolver
 				// which the check at construction cannot see through a closure; a class before '*' is by design
 				if ($claim->space !== null) {
 					if (!isset($decided['space'])) {
-						$decided['space'] = [$rule, $claim->space, $subject, $claim->because];
+						$decided['space'] = [$rule, $claim->space, $subject, $claim->because, $construct];
 						$here['space'] = $key;
 					} elseif (($here['space'] ?? null) === $key) {
 						self::refuseSecond($decided['space'][0], $rule, $side, $key);
@@ -455,7 +457,7 @@ final class Resolver
 
 				if ($claim->line !== null) {
 					if (!isset($decided['line'])) {
-						$decided['line'] = [$rule, $claim->line, $subject, $claim->because];
+						$decided['line'] = [$rule, $claim->line, $subject, $claim->because, $construct];
 						$here['line'] = $key;
 					} elseif (($here['line'] ?? null) === $key) {
 						self::refuseSecond($decided['line'][0], $rule, $side, $key);
@@ -464,7 +466,7 @@ final class Resolver
 
 				if ($claim->blank !== null) {
 					if (!isset($decided['blank'])) {
-						$decided['blank'] = [$rule, $claim->blank, $subject, $claim->because];
+						$decided['blank'] = [$rule, $claim->blank, $subject, $claim->because, $construct];
 						$here['blank'] = $key;
 					} elseif (($here['blank'] ?? null) === $key) {
 						self::refuseSecond($decided['blank'][0], $rule, $side, $key);
@@ -473,7 +475,7 @@ final class Resolver
 
 				if ($claim->blankBelowComment !== null) {
 					if (!isset($decided['blankBelowComment'])) {
-						$decided['blankBelowComment'] = [$rule, $claim->blankBelowComment, $subject, $claim->because];
+						$decided['blankBelowComment'] = [$rule, $claim->blankBelowComment, $subject, $claim->because, $construct];
 						$here['blankBelowComment'] = $key;
 					} elseif (($here['blankBelowComment'] ?? null) === $key) {
 						self::refuseSecond($decided['blankBelowComment'][0], $rule, $side, $key);
@@ -628,9 +630,9 @@ final class Resolver
 	/**
 	 * The claim that decides the line the token stands on: the next line before the same one, the claim after
 	 * the first token on a tie.
-	 * @param ?array{Rule, Line, Node|Token, ?string} $after
-	 * @param ?array{Rule, Line, Node|Token, ?string} $before
-	 * @return ?array{Rule, Line, Node|Token, ?string, string}  the claim with its side
+	 * @param ?array{Rule, Line, Node|Token, ?string, ?Node} $after
+	 * @param ?array{Rule, Line, Node|Token, ?string, ?Node} $before
+	 * @return ?array{Rule, Line, Node|Token, ?string, ?Node, string}  the claim with its side
 	 */
 	private static function resolveLine(?array $after, ?array $before): ?array
 	{
@@ -645,9 +647,9 @@ final class Resolver
 	/**
 	 * The claim that decides the whitespace of a line: the stricter of the one after the first token and the
 	 * one before the second, the former on a tie.
-	 * @param ?array{Rule, Space, Node|Token, ?string} $after
-	 * @param ?array{Rule, Space, Node|Token, ?string} $before
-	 * @return ?array{Rule, Space, Node|Token, ?string, string}
+	 * @param ?array{Rule, Space, Node|Token, ?string, ?Node} $after
+	 * @param ?array{Rule, Space, Node|Token, ?string, ?Node} $before
+	 * @return ?array{Rule, Space, Node|Token, ?string, ?Node, string}
 	 */
 	private static function resolveSpace(?array $after, ?array $before): ?array
 	{
@@ -677,8 +679,8 @@ final class Resolver
 	 * The blank lines of a break, above the comment in the gap or below it: what both claims allow, or the
 	 * narrower of two that exclude each other, the one before the second token on a tie; handed over with the
 	 * claim the count found violates.
-	 * @param ?array{Rule, int|array{int, ?int}, Node|Token, ?string} $after
-	 * @param ?array{Rule, int|array{int, ?int}, Node|Token, ?string} $before
+	 * @param ?array{Rule, int|array{int, ?int}, Node|Token, ?string, ?Node} $after
+	 * @param ?array{Rule, int|array{int, ?int}, Node|Token, ?string, ?Node} $before
 	 */
 	private function resolveBlankLines(?array $after, ?array $before, Token $token, bool $blankBelowComment): void
 	{

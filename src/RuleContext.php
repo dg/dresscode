@@ -93,7 +93,9 @@ final class RuleContext
 
 	/**
 	 * Reports what the engine decided about the gap before the token, under the name of the rule whose claim
-	 * it was; `$breaks` says the fix puts a line break in or takes one out, opening or closing the line.
+	 * it was; `$breaks` says the fix puts a line break in or takes one out, opening or closing the line. The
+	 * gaps of a construct the claim was decided about are one violation in the pass, the shape of the construct
+	 * being what is wrong and not each of its breaks: placed, silenced and known as the first of them.
 	 * @internal
 	 */
 	public function reportGap(
@@ -102,9 +104,14 @@ final class RuleContext
 		string $message,
 		?Trivia $trivia = null,
 		bool $breaks = false,
+		?Node $construct = null,
 	): bool
 	{
-		return $this->record($at, $message, Severity::Error, $trivia, risky: false, gap: $gap, follows: null, breaks: $breaks);
+		if ($construct !== null) {
+			[$at, $trivia] = $this->fingerprints->placeConstruct($construct, $this->ruleName, $at, $trivia);
+		}
+
+		return $this->record($at, $message, Severity::Error, $trivia, risky: false, gap: $gap, follows: null, breaks: $breaks, construct: $construct);
 	}
 
 
@@ -117,6 +124,7 @@ final class RuleContext
 		?Token $gap,
 		?Token $follows,
 		bool $breaks = false,
+		?Node $construct = null,
 	): bool
 	{
 		$line = self::findOriginalLine($at, $trivia);
@@ -128,7 +136,9 @@ final class RuleContext
 		// the identity is counted here, before the baseline is asked: a report a comment silenced was
 		// never counted into it either, and the numbering of the occurrences has to mean the same
 		$line ??= 1;
-		$fingerprint = $this->fingerprints->create($this->ruleName, $message, $line);
+		$fingerprint = $construct === null
+			? $this->fingerprints->create($this->ruleName, $message, $line)
+			: $this->fingerprints->createFor($construct, $this->ruleName, $message, $line);
 		$known = $this->fingerprints->isKnown($fingerprint);
 		$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, $known, $fingerprint, $line, $risky, $gap, $follows, $breaks);
 		return !$known && !($risky && !$this->fixRisky);

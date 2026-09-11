@@ -1,11 +1,6 @@
 3: A line break before the array item, the array spans several lines
-4: A line break before the closing bracket, the array spans several lines
 6: A line break before the array item, the array spans several lines
-6: A line break before the closing bracket, the array spans several lines
 8: No line break before the opening bracket, the array spans several lines
 12: A line break before the array item, the array spans several lines
-13: A line break before the closing bracket, the array spans several lines
 20: No line break before the comma, the array spans several lines
-20: A line break before the array item, the array spans several lines
 25: A line break before the array item, the array spans several lines
-26: A line break before the closing parenthesis, the array spans several lines

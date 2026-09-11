@@ -31,7 +31,7 @@ final class Fixer implements Sink
 
 	public function line(array $claim, ?Token $previous, Token $token, ?Space $space, bool $broken): void
 	{
-		[$rule, $wanted, $subject, $because, $side] = $claim;
+		[$rule, $wanted, $subject, $because, $construct, $side] = $claim;
 		if (($wanted === Line::Next) === $broken) {
 			return;
 		}
@@ -41,7 +41,7 @@ final class Fixer implements Sink
 		$at = $side === 'before' || $previous === null ? $token : $previous;
 		$message = self::withReason(Messages::line($wanted, $side, $subject, $at), $because);
 		if ($wanted === Line::Next) {
-			if (!$context->reportGap($token, $at, $message, breaks: true)) {
+			if (!$context->reportGap($token, $at, $message, breaks: true, construct: $construct)) {
 				return;
 			}
 
@@ -92,11 +92,11 @@ final class Fixer implements Sink
 
 		// a comment between the tokens has nowhere to go, so the claim is reported and left unfixed
 		if ($previous->hasCommentUpTo($token)) {
-			$context->report($at, $message);
+			$context->reportGap($token, $at, $message, construct: $construct);
 			return;
 		}
 
-		if ($context->reportGap($token, $at, $message, breaks: true)) {
+		if ($context->reportGap($token, $at, $message, breaks: true, construct: $construct)) {
 			$token->setLeadingTrivia([]);
 			$previous->setTrailingTrivia([]);
 			$previous->setTrailingSpace($space === Space::None ? '' : ' ');
@@ -122,7 +122,7 @@ final class Fixer implements Sink
 
 	public function space(array $claim, Token $previous, Token $token, string $found): void
 	{
-		[$rule, $wanted, , $because, $side] = $claim;
+		[$rule, $wanted, , $because, $construct, $side] = $claim;
 		$wrong = match ($wanted) {
 			Space::None => $found !== '',
 			Space::Single => $found !== ' ',
@@ -136,7 +136,7 @@ final class Fixer implements Sink
 
 		$context = $this->contexts[RuleInfo::of($rule)->name];
 		$at = $side === 'before' ? $token : $previous;
-		if ($context->reportGap($token, $at, self::withReason(Messages::space($wanted, $side, $at), $because))) {
+		if ($context->reportGap($token, $at, self::withReason(Messages::space($wanted, $side, $at), $because), construct: $construct)) {
 			$previous->setTrailingSpace($wanted === Space::None ? '' : ' ');
 		}
 	}
@@ -150,7 +150,7 @@ final class Fixer implements Sink
 			return;
 		}
 
-		[$rule, $count, $subject, $because, $side] = $claim;
+		[$rule, $count, $subject, $because, $construct, $side] = $claim;
 		$leading = $token->leadingTrivia;
 		if ($below === null) {
 			$where = "$side " . Messages::describe($subject);
@@ -162,7 +162,7 @@ final class Fixer implements Sink
 
 		$context = $this->contexts[RuleInfo::of($rule)->name];
 		$message = self::withReason(Messages::blankLines($count, $where, $found), $because);
-		if (!$context->reportGap($token, $token, $message, trivia: $at)) {
+		if (!$context->reportGap($token, $token, $message, trivia: $at, construct: $construct)) {
 			return;
 		}
 
