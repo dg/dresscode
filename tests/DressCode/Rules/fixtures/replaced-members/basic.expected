@@ -1,0 +1,70 @@
+<?php
+// {"Acme\\Shop\\Order::STATUS_PAID": "StatusPaid", "Acme\\Shop\\Order::recalc": "recalculate", "Acme\\Shop\\Order::$legacy": "$items", "Acme\\Shop\\Order::$counter": "$count", "Acme\\Shop\\Order::OLD": "Acme\\Shop\\Helpers::Renewed", "Acme\\Shop\\Order::make()": "Acme\\Shop\\Helpers::create()", "Acme\\Text\\Search::contains": "\\str_contains", "Acme\\Shop\\Order::hook": "attached", "Acme\\Shop\\Order::GONE": "Acme\\Missing\\Thing::Here", "Acme\\Shop\\Order::measure": "\\strlen", "Acme\\Shop\\Order::moved()": "Acme\\Shop\\Helpers::create", "Acme\\Shop\\Order::WITHDRAWN": "keep", "Acme\\Shop\\Order::unProtect": "unprotect", "Acme\\Shop\\Order::build": "Acme\\Shop\\Helpers::create"}
+
+namespace App;
+
+use Acme\Shop\Helpers;
+use Acme\Shop\Order;
+use Acme\Text\Search;
+
+class MyOrder extends Order
+{
+	public function attached(object $parent): void
+	{
+		parent::attached($parent);
+		$a = self::StatusPaid;
+		$b = Helpers::Renewed;
+		$this->recalculate();
+		$c = Helpers::create(); // a static method moves to another class
+		$d = static::make(); // one the class no longer has may be a method of the object
+	}
+
+
+	public function moved(): void
+	{
+	}
+}
+
+
+function test(Order $order, MyOrder $my, Order|\stdClass $union, $unknown): void
+{
+	$a = Order::StatusPaid;
+	$b = $order::StatusPaid;
+	$c = MyOrder::StatusPaid;
+	$my->recalculate(1, named: 2);
+	$order?->recalculate();
+	$d = $order->items;
+	$e = Order::$count;
+	$f = Helpers::Renewed;
+	$g = \Acme\Shop\Helpers::Renewed;
+	$h = Helpers::create();
+	$i = \str_contains('abc', needle: 'b');
+	$j = \str_contains(...);
+	$k = \strlen('x') . 'y';
+	$s = [
+		Helpers::Renewed,
+		Helpers::Renewed,
+	];
+	$t = $order->unprotect() . $order->unprotect(); // renamed in its letter case alone
+
+	// left alone: a receiver that may be something else, a member of another kind, the new name, a withdrawn entry
+	$union->recalc();
+	$unknown->recalc();
+	$l = Order::StatusPaid;
+	$m = $order->STATUS_PAID;
+	$n = Order::WITHDRAWN;
+
+	// reported with the reason
+	$o = $order->make();
+	$p = Order::GONE;
+	$q = $order?->measure('x');
+	$r = Order::create()->measure('x');
+}
+
+
+function nullable(?Order $order): void
+{
+	// a receiver that may be null is the class it may be
+	$order->recalculate();
+	$a = $order->items;
+}

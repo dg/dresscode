@@ -13,7 +13,7 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCallableNode};
 use PHPStan\Reflection\{ClassConstantReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
 use PHPStan\TrinaryLogic;
-use PHPStan\Type\{Type, VerbosityLevel};
+use PHPStan\Type\{Type, TypeCombinator, VerbosityLevel};
 use PhpSyntax\{Node, Printer};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, NewNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
 use PhpSyntax\Nodes\{ExpressionNode, FileNode, IdentifierNode, NameNode};
@@ -496,6 +496,8 @@ final class Types implements PassAnalysis
 				=> [MemberKind::Constructor, $scope->resolveTypeByName($parserNode->class), '__construct'],
 			default => [null, null, null],
 		};
+		// a receiver that may be null is the class it may be: where it is null, the call fails before and after alike
+		$type = $type === null ? null : TypeCombinator::removeNull($type);
 		return $kind === null || $type === null || $name === null || $type->getObjectClassNames() === []
 			? null // no class the member could be declared by: mixed, a scalar, an unknown variable
 			: [$kind, $type, $name, $scope];

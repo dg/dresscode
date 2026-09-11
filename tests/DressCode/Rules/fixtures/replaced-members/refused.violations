@@ -1,0 +1,2 @@
+9: Constant Acme\Shop\Order::OLD is replaced by strlen(), but a constant is not written as a function
+15: Method Acme\Shop\Order::hook() is replaced by Order::attached(), but the class declares attached() already

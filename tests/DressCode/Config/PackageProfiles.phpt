@@ -56,8 +56,8 @@ test('the profile a package ships applies up to its installed version, the one o
 					replaced-classes:
 						Acme\Lib\Old: Acme\Lib\Renamed
 						Acme\Lib\Older: Acme\Lib\Renamed
-					replaced-functions:
-						acme_gone: acme_kept
+					replaced-members:
+						Acme\Lib\Renamed::old: renamed
 
 				since 3.2:
 					replaced-classes:
@@ -87,7 +87,7 @@ test('the profile a package ships applies up to its installed version, the one o
 	Assert::same(
 		[
 			'replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\RenamedAgain', 'Acme\Lib\Older' => 'Acme\Lib\Renamed'],
-			'replaced-functions' => ['acme_gone' => 'acme_kept'],
+			'replaced-members' => ['Acme\Lib\Renamed::old' => 'renamed'],
 		],
 		$packages->profiles[1]->profile->rules,
 	);

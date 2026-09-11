@@ -52,7 +52,9 @@ final class ReplacedClassesRule extends NodeRule implements ConfigurableRule
 	{
 		$this->classes = [];
 		foreach ($options as $old => $new) {
-			$this->classes[strtolower(ltrim((string) $old, '\\'))] = ltrim($new, '\\');
+			if ($new !== MemberMaps::Keep) { // an entry a later layer withdrew
+				$this->classes[strtolower(ltrim((string) $old, '\\'))] = ltrim($new, '\\');
+			}
 		}
 	}
 

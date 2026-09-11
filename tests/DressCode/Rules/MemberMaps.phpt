@@ -76,7 +76,7 @@ test('a key that does not read as a member is an error that names it', function 
 		"The member 'Order.STATUS_PAID' is not written as %a%",
 	);
 	Assert::type(ValidationException::class, $e);
-	Assert::same(['dresscode.memberKey', 'dresscode.memberKey'], array_column($e->getMessageObjects(), 'code'));
+	Assert::same(['dresscode.memberMap', 'dresscode.memberMap'], array_column($e->getMessageObjects(), 'code'));
 	Assert::exception(fn() => process('A::b: [1]'), ValidationException::class);
 });
 

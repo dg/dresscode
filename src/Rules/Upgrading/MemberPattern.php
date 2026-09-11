@@ -126,6 +126,13 @@ final readonly class MemberPattern
 	}
 
 
+	/** The member as a message names it, of the kind the code reaches it by: `Constant Acme\Order::STATUS_PAID`. */
+	public function describe(MemberKind $kind): string
+	{
+		return $kind->describe($this->class, $this->name);
+	}
+
+
 	/** The lowercased name, which a rule looks a node up by before it asks the types. */
 	public function getLookupName(): string
 	{

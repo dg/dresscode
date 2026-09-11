@@ -1,0 +1,30 @@
+11: Method Acme\Shop\Order::hook() is replaced by Order::attached()
+13: Method Acme\Shop\Order::hook() is replaced by Order::attached()
+14: Constant Acme\Shop\Order::STATUS_PAID is replaced by Order::StatusPaid
+15: Constant Acme\Shop\Order::OLD is replaced by Acme\Shop\Helpers::Renewed
+16: Method Acme\Shop\Order::recalc() is replaced by Order::recalculate()
+17: Method Acme\Shop\Order::build() is replaced by Acme\Shop\Helpers::create()
+18: Method Acme\Shop\Order::make() is replaced by Acme\Shop\Helpers::create(), but static:: may call the method on the object, which the other class cannot
+22: Method Acme\Shop\Order::moved() is replaced by Acme\Shop\Helpers::create(), but a declaration cannot move out of its class
+30: Constant Acme\Shop\Order::STATUS_PAID is replaced by Order::StatusPaid
+31: Constant Acme\Shop\Order::STATUS_PAID is replaced by Order::StatusPaid
+32: Constant Acme\Shop\Order::STATUS_PAID is replaced by Order::StatusPaid
+33: Method Acme\Shop\Order::recalc() is replaced by Order::recalculate()
+34: Method Acme\Shop\Order::recalc() is replaced by Order::recalculate()
+35: Property Acme\Shop\Order::$legacy is replaced by Order::$items
+36: Static property Acme\Shop\Order::$counter is replaced by Order::$count
+37: Constant Acme\Shop\Order::OLD is replaced by Acme\Shop\Helpers::Renewed
+38: Constant Acme\Shop\Order::OLD is replaced by Acme\Shop\Helpers::Renewed
+39: Static method Acme\Shop\Order::make() is replaced by Acme\Shop\Helpers::create()
+40: Static method Acme\Text\Search::contains() is replaced by str_contains()
+41: Static method Acme\Text\Search::contains() is replaced by str_contains()
+42: Method Acme\Shop\Order::measure() is replaced by strlen()
+44: Constant Acme\Shop\Order::OLD is replaced by Acme\Shop\Helpers::Renewed
+45: Constant Acme\Shop\Order::OLD is replaced by Acme\Shop\Helpers::Renewed
+47: Method Acme\Shop\Order::unProtect() is replaced by Order::unprotect()
+57: Method Acme\Shop\Order::make() is replaced by Acme\Shop\Helpers::create(), but an object cannot be asked for a member of another class
+58: Constant Acme\Shop\Order::GONE is replaced by Acme\Missing\Thing::Here, but class Acme\Missing\Thing does not exist in the project
+59: Method Acme\Shop\Order::measure() is replaced by strlen(), but the replacement cannot skip a null as ?-> does
+60: Method Acme\Shop\Order::measure() is replaced by strlen(), which no longer evaluates what it is reached through
+67: Method Acme\Shop\Order::recalc() is replaced by Order::recalculate()
+68: Property Acme\Shop\Order::$legacy is replaced by Order::$items

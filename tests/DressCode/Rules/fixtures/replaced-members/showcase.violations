@@ -1,0 +1,3 @@
+11: Constant Acme\Shop\Order::STATUS_PAID is replaced by Order::StatusPaid
+12: Static method Acme\Text\Search::contains() is replaced by str_contains()
+13: Method Acme\Shop\Order::recalc() is replaced by Order::recalculate()

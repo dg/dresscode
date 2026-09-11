@@ -1,0 +1,5 @@
+11: Method Acme\Shop\Order::measure() is replaced by strlen()
+12: Method Acme\Shop\Order::measure() is replaced by strlen(), which no longer evaluates what it is reached through
+13: Method Acme\Shop\Order::measure() is replaced by strlen(), which no longer evaluates what it is reached through
+14: Constant Acme\Shop\Order::OLD is replaced by Acme\Shop\Helpers::Renewed
+15: Constant Acme\Shop\Order::OLD is replaced by Acme\Shop\Helpers::Renewed, which no longer evaluates what it is reached through

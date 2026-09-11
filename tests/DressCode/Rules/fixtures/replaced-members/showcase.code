@@ -1,0 +1,15 @@
+<?php
+// {"Acme\\Shop\\Order::STATUS_PAID": "StatusPaid", "Acme\\Shop\\Order::recalc": "recalculate", "Acme\\Text\\Search::contains": "\\str_contains"}
+
+namespace App;
+
+use Acme\Shop\Order;
+use Acme\Text\Search;
+
+function validate(Order $order, string $value): void
+{
+	$order->addRule(Order::STATUS_PAID);
+	if (Search::contains($value, '@')) {
+		$order->recalc();
+	}
+}

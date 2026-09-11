@@ -1,0 +1,23 @@
+<?php
+// {"Acme\\Shop\\Order::OLD": "\\strlen", "Acme\\Shop\\Order::hook": "attached"}
+
+namespace App;
+
+use Acme\Shop\Order;
+
+// reported and left: a constant is not written as a function
+echo Order::OLD;
+
+
+// reported and left: the class declares the new name already
+class BothOrder extends Order
+{
+	public function hook(object $parent): void
+	{
+	}
+
+
+	public function attached(object $parent): void
+	{
+	}
+}

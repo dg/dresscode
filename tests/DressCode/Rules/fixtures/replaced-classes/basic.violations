@@ -9,6 +9,6 @@
 19: Class App\Old is replaced by App\Current
 21: Class App\Mailer\SmtpMailer is replaced by App\Mail\Mailer
 22: Class App\Old is replaced by App\Current
-23: Class App\Old is replaced by App\Current
-23: Class App\Old is replaced by App\Current
-23: Class App\Mailer\SmtpMailer is replaced by App\Mail\Mailer
+24: Class App\Old is replaced by App\Current
+24: Class App\Old is replaced by App\Current
+24: Class App\Mailer\SmtpMailer is replaced by App\Mail\Mailer
