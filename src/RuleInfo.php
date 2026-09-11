@@ -28,8 +28,9 @@ final readonly class RuleInfo
 		public bool $modifiesComments = false,
 		/**
 		 * what the rule needs of the project, written the way the require of composer.json writes it: `php` for the versions
-		 * the code targets, with a Composer constraint every version the project is written for must satisfy, usually `>=`
-		 * and the version that brought what the rule writes; `['php' => '>=8.4']`
+		 * the code targets and a package by its name, each with a Composer constraint every version the project is written
+		 * for must satisfy, usually `>=` and the version that brought what the rule writes, `*` for a package being there
+		 * at all; `['php' => '>=8.4', 'acme/mailer' => '>=3.3 <5.0']`
 		 * @var array<string, string>
 		 */
 		public array $requires = [],
@@ -65,8 +66,8 @@ final readonly class RuleInfo
 		}
 
 		foreach ($requires as $requirement => $constraint) {
-			if ($requirement !== 'php') {
-				throw new \InvalidArgumentException("A rule requires `$requirement`, which is not `php`.");
+			if (!preg_match('~^(php|[a-z0-9_.-]+/[a-z0-9_.-]+)$~D', $requirement)) {
+				throw new \InvalidArgumentException("A rule requires `$requirement`, which is neither `php` nor a package.");
 			}
 
 			try {
@@ -118,5 +119,15 @@ final readonly class RuleInfo
 	public function getMinPhpVersion(): ?string
 	{
 		return isset($this->requires['php']) ? Versions::findLowestVersion($this->requires['php']) : null;
+	}
+
+
+	/**
+	 * The packages the rule needs, each with the Composer constraint of it.
+	 * @return array<string, string>
+	 */
+	public function getRequiredPackages(): array
+	{
+		return array_diff_key($this->requires, ['php' => true]);
 	}
 }

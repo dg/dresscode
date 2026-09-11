@@ -76,4 +76,11 @@ final class Versions
 
 		return implode('.', $parts);
 	}
+
+
+	/** The short version as a reader knows it: the newest of a development line, `3.3.9999999.9999999`, is `3.3.x-dev`. */
+	public static function formatVersion(string $version): string
+	{
+		return (string) preg_replace('~(\.9999999)+$~D', '.x-dev', $version);
+	}
 }

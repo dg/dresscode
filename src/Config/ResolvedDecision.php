@@ -27,7 +27,7 @@ final readonly class ResolvedDecision
 		/** @var list<Value>  what each layer said, from the bottom up, each with its origin */
 		public array $layers = [],
 		/**
-		 * why it takes no effect: `keep`, `nameResolution`, or `php`, `types` where none of its rules runs;
+		 * why it takes no effect: `keep`, `nameResolution`, or `php`, `package`, `types` where none of its rules runs;
 		 * null where it does
 		 */
 		public ?InactiveReason $inactive = null,
