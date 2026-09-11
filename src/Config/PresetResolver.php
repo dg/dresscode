@@ -113,21 +113,28 @@ final class PresetResolver
 			}
 		}
 
+		// --only filters what the rest comes to, so it takes a rule away and never enables one
+		$narrowed = $this->resolveOnly($config, $context);
+		$only = $narrowed === null ? null : array_fill_keys(array_merge(...array_column($narrowed, 1)), true);
 		$rules = $inactive = [];
 		foreach ($layers as $class => $ruleLayers) {
-			$resolved = $this->resolveRule($class, $ruleLayers, $context->getPhpVersion(), isset($explicit[$class]));
-			$resolved->isActive() ? $rules[] = $resolved : $inactive[] = $resolved;
+			$resolved = $this->resolveRule($class, $ruleLayers, $context->getPhpVersion(), isset($explicit[$class]), $only === null || isset($only[$class]));
+			$resolved->isActive() ? $rules[$class] = $resolved : $inactive[$class] = $resolved;
 		}
 
 		foreach ($this->registry->getRules() as $name => $class) {
 			if (!isset($layers[$class])) {
-				$inactive[] = new ResolvedRule($name, $class, [], [], inactive: 'no preset or rule of the configuration mentions it');
+				$inactive[$class] = new ResolvedRule($name, $class, [], [], inactive: 'no preset or rule of the configuration mentions it');
 			}
+		}
+
+		if ($narrowed !== null && $blocks === []) {
+			self::checkOnly($narrowed, $rules, $inactive, $this->findRulesOfBlocks($config));
 		}
 
 		[$indent, $eol] = $this->resolveStyle($config);
 		return new ResolvedConfig(
-			[...$rules, ...$inactive],
+			[...array_values($rules), ...array_values($inactive)],
 			$indent,
 			$eol,
 			$context->getPhpVersion(),
@@ -147,21 +154,112 @@ final class PresetResolver
 
 
 	/**
-	 * @param  class-string<Rule>  $class
-	 * @param  list<array{string, mixed}>  $layers
+	 * The rules a run narrowed by --only keeps, per name it was given: a rule for itself, a preset for every
+	 * rule it and its parents mention.
+	 * @return ?list<array{class-string<Rule>|class-string<Preset>, list<class-string<Rule>>}>  what a name names and the rules it lets in; null when the run is not narrowed
 	 * @throws ConfigurationException
 	 */
-	private function resolveRule(string $class, array $layers, string $phpVersion, bool $explicit): ResolvedRule
+	private function resolveOnly(Config $config, PresetContext $context): ?array
+	{
+		$names = $config->getOnly();
+		if (!$names) {
+			return null;
+		}
+
+		$narrowed = [];
+		foreach ($names as $name) {
+			$class = $this->registry->resolveRuleOrPreset($name);
+			if (!is_a($class, Preset::class, allow_string: true)) {
+				$narrowed[] = [$class, [$class]];
+				continue;
+			}
+
+			$presets = $visited = $rules = [];
+			$this->collectPreset($class, $presets, $visited);
+			foreach ($presets as $preset) {
+				foreach (array_keys((new $preset)->getRules($context)) as $rule) {
+					$rules[] = $this->registry->resolveRule($rule);
+				}
+			}
+
+			$narrowed[] = [$class, $rules];
+		}
+
+		return $narrowed;
+	}
+
+
+	/**
+	 * A name of --only that lets in nothing that runs would make a run that checks nothing and says it is
+	 * clean; a rule that runs only where a `for` block enables it is not such a name.
+	 * @param  list<array{class-string<Rule>|class-string<Preset>, list<class-string<Rule>>}>  $narrowed
+	 * @param  array<class-string<Rule>, ResolvedRule>  $active
+	 * @param  array<class-string<Rule>, ResolvedRule>  $inactive
+	 * @param  array<class-string<Rule>, true>  $ofBlocks
+	 * @throws ConfigurationException
+	 */
+	private static function checkOnly(array $narrowed, array $active, array $inactive, array $ofBlocks): void
+	{
+		foreach ($narrowed as [$class, $rules]) {
+			if (array_filter($rules, fn(string $rule) => isset($active[$rule]) || isset($ofBlocks[$rule]))) {
+				continue;
+			} elseif (is_subclass_of($class, Preset::class)) {
+				throw new ConfigurationException('Preset ' . PresetInfo::of($class)->name . ' named by --only has no rule that runs here.');
+			}
+
+			$rule = $inactive[$class];
+			throw new ConfigurationException(
+				"Rule $rule->name named by --only does not run: $rule->inactive."
+				. (str_starts_with((string) $rule->inactive, 'it needs PHP') ? '' : " Turn it on with --rule $rule->name=on."),
+			);
+		}
+	}
+
+
+	/**
+	 * The rules some `for` block of the configuration enables, whichever file it applies to.
+	 * @return array<class-string<Rule>, true>
+	 * @throws ConfigurationException
+	 */
+	private function findRulesOfBlocks(Config $config): array
+	{
+		$rules = [];
+		foreach ($config->getBlocks() as [, $blockRules]) {
+			foreach ($blockRules as $rule => $value) {
+				if (self::normalize($value) !== false) {
+					$rules[$this->registry->resolveRule($rule)] = true;
+				}
+			}
+		}
+
+		return $rules;
+	}
+
+
+	/**
+	 * @param  class-string<Rule>  $class
+	 * @param  list<array{string, mixed}>  $layers
+	 * @param  bool  $kept  whether --only keeps the rule, or the run is not narrowed
+	 * @throws ConfigurationException
+	 */
+	private function resolveRule(
+		string $class,
+		array $layers,
+		string $phpVersion,
+		bool $explicit,
+		bool $kept = true,
+	): ResolvedRule
 	{
 		$info = RuleInfo::of($class);
 		$last = $layers[count($layers) - 1][1];
+		$tooNew = $info->minPhpVersion !== null && version_compare($phpVersion, $info->minPhpVersion, '<');
 		$inactive = match (true) {
 			$last === false => 'turned off by ' . $layers[count($layers) - 1][0],
-			$info->minPhpVersion !== null && version_compare($phpVersion, $info->minPhpVersion, '<')
-				=> "it needs PHP $info->minPhpVersion and the target is $phpVersion",
+			$tooNew => "it needs PHP $info->minPhpVersion and the target is $phpVersion",
+			!$kept => 'left out by --only',
 			default => null,
 		};
-		if ($inactive !== null && $last !== false && $explicit) {
+		if ($tooNew && $last !== false && $explicit) {
 			$this->warnings[$info->name] = "Rule $info->name needs PHP $info->minPhpVersion, the target is $phpVersion; skipped.";
 		}
 

@@ -425,6 +425,71 @@ test('a rule of a construct the target version has not got is left out', functio
 });
 
 
+test('--only keeps what it names of what the configuration comes to, and enables nothing', function () {
+	$resolver = new PresetResolver(new RuleRegistry);
+	$resolve = fn(Config $config) => $resolver->resolveConfig($config, new PresetContext('8.3'));
+	$active = fn(Config $config, int ...$blocks) => array_keys($resolver->resolveConfig($config, new PresetContext('8.3'), array_values($blocks))->toArray()['rules']);
+
+	// a rule by its name or its class, with the options it has without --only
+	Assert::same(['test/c'], $active(Config::create()->preset(ChildPreset::class)->only(['test/c'])));
+	Assert::same(['test/c'], $active(Config::create()->preset(ChildPreset::class)->only([RuleC::class])));
+	Assert::same(['max' => 5, 'names' => ['x']], $resolve(Config::create()->preset(ChildPreset::class)->only(['test/c']))->getRule('test/c')?->options);
+	Assert::same('left out by --only', $resolve(Config::create()->preset(ChildPreset::class)->only(['test/c']))->getRule('test/a')?->inactive);
+
+	// a name without a vendor is the built-in one
+	Assert::same(['dresscode/string-quotes'], $active(Config::create()->preset('nette')->only(['string-quotes'])));
+
+	// a preset stands for every rule it and its parents mention, and not for what the configuration added
+	$config = fn() => Config::create()->preset(ChildPreset::class)->enable(RuleNested::class);
+	Assert::same(['test/a', 'test/c'], $active($config()->only([ChildPreset::class])));
+	Assert::same(['test/a', 'test/c'], $active($config()->only(['test/base'])));
+	Assert::same(['test/a', 'test/c', 'test/nested'], $active($config()->only(['test/base', 'test/nested'])));
+
+	// the command line is a layer below it: what --rule turned on, --only may keep
+	Assert::same(['test/b'], $active($config()->enable('test/b')->only(['test/b'])));
+	Assert::same(['test/a'], $active($config()->enable('test/b')->only(['test/a'])));
+
+	// a rule left out is not a rule skipped for its version, and says nothing
+	$resolve(Config::create()->enable(RuleFuture::class)->enable(RuleA::class)->only(['test/a']));
+	Assert::same(['Rule test/future needs PHP 8.4, the target is 8.3; skipped.'], $resolver->getWarnings());
+
+	// a rule only a block enables runs where the block applies
+	$blocks = Config::create()->preset(ChildPreset::class)->for(['tests'], ['test/nested' => true])->only(['test/nested']);
+	Assert::same([], $active($blocks));
+	Assert::same(['test/nested'], $active($blocks, 0));
+});
+
+
+test('a name of --only that lets in nothing that runs is an error, not an empty run', function () {
+	$resolve = fn(Config $config) => new PresetResolver(new RuleRegistry)->resolveConfig($config, new PresetContext('8.3'));
+	Assert::exception(
+		fn() => $resolve(Config::create()->preset(ChildPreset::class)->only(['test/b'])),
+		ConfigurationException::class,
+		'Rule test/b named by --only does not run: turned off by test/child. Turn it on with --rule test/b=on.',
+	);
+	Assert::exception(
+		fn() => $resolve(Config::create()->preset(ChildPreset::class)->only([RuleNested::class])),
+		ConfigurationException::class,
+		'Rule test/nested named by --only does not run: no preset or rule of the configuration mentions it. Turn it on with --rule test/nested=on.',
+	);
+	Assert::exception(
+		fn() => $resolve(Config::create()->enable(RuleFuture::class)->only(['test/future'])),
+		ConfigurationException::class,
+		'Rule test/future named by --only does not run: it needs PHP 8.4 and the target is 8.3.',
+	);
+	Assert::exception(
+		fn() => $resolve(Config::create()->preset(ChildPreset::class)->only([NestedPreset::class])),
+		ConfigurationException::class,
+		'Preset test/nested-preset named by --only has no rule that runs here.',
+	);
+	Assert::exception(
+		fn() => $resolve(Config::create()->preset(ChildPreset::class)->only(['test/basee'])),
+		ConfigurationException::class,
+		"Unknown rule or preset 'test/basee'. Did you mean 'test/base'?",
+	);
+});
+
+
 test('a configuration without a preset', function () {
 	Assert::same(['test/c', 'test/a'], names(resolve(Config::create()->enable(RuleC::class)->enable(RuleA::class))));
 	Assert::same([], resolve(Config::create()));

@@ -50,6 +50,9 @@ final class Config
 	/** @var ?list<string>  names or classes of the rules that only warn */
 	private ?array $warnings = null;
 
+	/** @var ?list<string>  names or classes of the rules and presets a run is narrowed to */
+	private ?array $only = null;
+
 	/** whether a fix that may change what the code does is allowed */
 	private ?bool $risky = null;
 
@@ -221,6 +224,18 @@ final class Config
 
 
 	/**
+	 * Narrows the run to these rules, a preset standing for every rule it composes. It filters what the rest
+	 * of the configuration comes to, so it can only take a rule away, never enable one or change its options.
+	 * @param list<string> $names  names or classes of rules and presets; an empty list narrows nothing
+	 */
+	public function only(array $names): static
+	{
+		$this->only = $names;
+		return $this;
+	}
+
+
+	/**
 	 * Allows a fix that may change what the code does. Such an occurrence is reported either way; without this
 	 * it waits, with it the rule rewrites it. It is per occurrence, not per rule: the same rule fixes what it
 	 * knows is safe whatever this says.
@@ -325,6 +340,7 @@ final class Config
 		}
 
 		$this->warnings = $layer->warnings ?? $this->warnings;
+		$this->only = $layer->only ?? $this->only;
 		$this->risky = $layer->risky ?? $this->risky;
 		$this->blocks = [...$this->blocks, ...$layer->blocks];
 		$this->fileExtensions = $layer->fileExtensions ?? $this->fileExtensions;
@@ -497,6 +513,16 @@ final class Config
 	public function getWarnings(): array
 	{
 		return $this->warnings ?? [];
+	}
+
+
+	/**
+	 * The rules and presets the run is narrowed to; null when it is not.
+	 * @return ?list<string>
+	 */
+	public function getOnly(): ?array
+	{
+		return $this->only;
 	}
 
 

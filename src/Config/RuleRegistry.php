@@ -336,6 +336,32 @@ final class RuleRegistry
 	}
 
 
+	/**
+	 * Class of the rule or of the preset given by name or class, for a place that takes either; a name that
+	 * belongs to both is an ambiguity, not a preference.
+	 * @return class-string<Rule>|class-string<Preset>
+	 * @throws ConfigurationException
+	 */
+	public function resolveRuleOrPreset(string $name): string
+	{
+		$isClass = class_exists($name);
+		$rule = $isClass
+			? (is_subclass_of($name, Rule::class) ? $name : null)
+			: $this->rules[$name] ?? $this->rules[self::Vendor . $name] ?? null;
+		$preset = $isClass
+			? (is_subclass_of($name, Preset::class) ? $name : null)
+			: $this->presets[$name] ?? $this->presets[self::Vendor . $name] ?? null;
+		return match (true) {
+			$rule !== null && $preset !== null => throw new ConfigurationException("'$name' names both a rule and a preset; name it by its class."),
+			$rule !== null => $this->resolveRule($rule),
+			$preset !== null => $this->resolvePreset($preset),
+			default => throw new ConfigurationException(
+				"Unknown rule or preset '$name'." . self::suggest($name, [...array_keys($this->rules), ...array_keys($this->presets)]),
+			),
+		};
+	}
+
+
 	/** @return array<string, class-string<Preset>>  name → class */
 	public function getPresets(): array
 	{
