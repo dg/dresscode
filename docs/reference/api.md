@@ -102,6 +102,7 @@ final readonly class Parameter
 	public readonly ?string $default
 	public function __construct(string $name, ?string $type = null, bool $optional = false, bool $variadic = false, bool $byReference = false, ?string $default = null)
 	public function canReplace(DressCode\Analyses\Parameter $other): bool
+	public static function findOmitted(list<DressCode\Analyses\Parameter> $parameters, int $positional, list<string> $named): ?DressCode\Analyses\Parameter
 ```
 
 ## `DressCode\Analyses\PassAnalysis`
@@ -135,7 +136,7 @@ final class PhpSignatures
 
 ```php
 final class PhpSymbols
-	public function isBuiltinFunction(string $name): bool
+	public function isBuiltinFunction(string $name, ?string $version = null): bool
 	public function findClassName(string $name): ?string
 	public function isBuiltinConstant(string $name): bool
 	public function findFramelessParameterNames(string $function, int $arguments): ?list<string>
@@ -705,6 +706,7 @@ final readonly class FunctionPattern
 ```php
 final class MemberMapGrammar
 	public const ReplacedClasses = 'upgrading.libraries.replacedClasses'
+	public const ReplacedFunctions = 'upgrading.libraries.replacedFunctions'
 ```
 
 ## `DressCode\Rules\Upgrading\MemberPattern`
@@ -1037,6 +1039,7 @@ final readonly class Violation
 - `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedPhpCallsRule`
 - `DressCode\Rules\Upgrading\ReplacedClassesRule`
+- `DressCode\Rules\Upgrading\ReplacedFunctionsRule`
 - `DressCode\Rules\Variables\NoGlobalStatementsRule`
 - `DressCode\Rules\Variables\NoRepeatedAssignmentsRule`
 - `DressCode\Rules\Variables\NoSeparateIssetsRule`

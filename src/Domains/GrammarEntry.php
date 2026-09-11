@@ -11,8 +11,8 @@ use DressCode\{Domain, Value};
 
 
 /**
- * A value read by a grammar of its own, an entry of a map of the upgrading data (the class written instead): the
- * rule owning the decision reads it and refuses what its grammar does not take when the rule is built.
+ * A value read by a grammar of its own, an entry of a map of the upgrading data (the class or the function written
+ * instead): the rule owning the decision reads it and refuses what its grammar does not take when the rule is built.
  */
 final readonly class GrammarEntry extends Domain
 {

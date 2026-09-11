@@ -235,6 +235,7 @@ final class CorePlugin implements Plugin
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Types\TypeNotationRule::class,
 				Rules\Upgrading\ReplacedClassesRule::class,
+				Rules\Upgrading\ReplacedFunctionsRule::class,
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,
@@ -342,6 +343,11 @@ final class CorePlugin implements Plugin
 					new Map(new GrammarEntry, grammar: self::createReplacedClassesGrammar(), caseInsensitive: true),
 					'A class written instead of another one, both fully qualified (`Acme\\Old\\Mailer: Acme\\Mail\\Mailer`)',
 				),
+				new Decision(
+					MemberMapGrammar::ReplacedFunctions,
+					new Map(new GrammarEntry, grammar: self::createReplacedFunctionsGrammar(), caseInsensitive: true),
+					'A function written instead of another one (`acme_send: Acme\\Mail\\send`)',
+				),
 
 				// the newer constructs, decided once for every rule writing them
 				new Decision(
@@ -420,6 +426,25 @@ final class CorePlugin implements Plugin
 				foreach ($options as $old => $new) {
 					if (strcasecmp(ltrim((string) $old, '\\'), ltrim($new, '\\')) === 0) {
 						$context->addError("The class `$old` is given as its own replacement.", 'dresscode.sameClass');
+					}
+				}
+
+				return $options;
+			});
+	}
+
+
+	private static function createReplacedFunctionsGrammar(): Schema
+	{
+		return Expect::arrayOf(
+			Expect::string()->pattern(self::QualifiedName),
+			Expect::string()->pattern(self::QualifiedName),
+		)
+			->description('The function, global or of a namespace → the function written instead')
+			->transform(function (array $options, Context $context): array {
+				foreach ($options as $old => $new) {
+					if (strcasecmp(ltrim((string) $old, '\\'), ltrim($new, '\\')) === 0) {
+						$context->addError("The function `$old()` is given as its own replacement.", 'dresscode.sameFunction');
 					}
 				}
 

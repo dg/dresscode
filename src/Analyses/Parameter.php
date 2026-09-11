@@ -64,4 +64,19 @@ final readonly class Parameter
 
 		return $types;
 	}
+
+
+	/**
+	 * The first parameter without a default the arguments leave out, the first `$positional` of them given by
+	 * position and the `$named` ones by name.
+	 * @param  list<self>  $parameters
+	 * @param  list<string>  $named
+	 */
+	public static function findOmitted(array $parameters, int $positional, array $named): ?self
+	{
+		return array_find(
+			array_slice($parameters, $positional),
+			fn(self $parameter) => !$parameter->optional && !in_array($parameter->name, $named, true),
+		);
+	}
 }

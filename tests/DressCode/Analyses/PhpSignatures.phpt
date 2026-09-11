@@ -5,7 +5,7 @@
  * of it: may an argument written for one parameter stand at the other one.
  */
 
-use DressCode\Analyses\{Parameter, PhpSignatures};
+use DressCode\Analyses\{Parameter, PhpSignatures, PhpSymbols};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -70,4 +70,20 @@ test('an argument written for one parameter standing at another', function () {
 
 	Assert::false($int->canReplace(new Parameter('offset', 'int', byReference: true)), 'the argument is taken another way');
 	Assert::true(new Parameter('matches', 'mixed', byReference: true)->canReplace(new Parameter('m', 'array', byReference: true)));
+});
+
+
+test('the version of PHP that declares a function', function () {
+	$symbols = new PhpSymbols;
+
+	Assert::true($symbols->isBuiltinFunction('mb_trim'));
+	Assert::false($symbols->isBuiltinFunction('mb_trim', '8.3'), 'PHP 8.4 added it');
+	Assert::true($symbols->isBuiltinFunction('mb_trim', '8.4'));
+	Assert::true($symbols->isBuiltinFunction('mb_trim', '8.6'), 'a target beyond the catalog keeps what the newest version has');
+
+	Assert::true($symbols->isBuiltinFunction('imap_open', '8.3'));
+	Assert::false($symbols->isBuiltinFunction('imap_open', '8.4'), 'PHP 8.4 dropped it');
+
+	Assert::true($symbols->isBuiltinFunction('mb_substr', '8.0'), 'a function every version has');
+	Assert::false($symbols->isBuiltinFunction('myOwnFunction', '8.0'));
 });

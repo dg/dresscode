@@ -1,0 +1,7 @@
+5: Function `Acme\Scope\old()` is replaced by `Acme\Scope\current()`.
+13: Function `Acme\Scope\old()` is replaced by `Acme\Scope\current()`.
+20: Function `Acme\Scope\old()` is replaced by `Acme\Scope\current()`.
+27: Function `old()` is replaced by `fresh()`.
+32: Function `old()` is replaced by `fresh()`.
+	risky NameUncertain: the namespace may declare `old()`
+33: Function `old()` is replaced by `fresh()`.
