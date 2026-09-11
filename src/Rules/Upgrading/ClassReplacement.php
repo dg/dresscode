@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\RuleContext;
+use DressCode\Analyses\Types;
+use DressCode\{RuleContext, Tristate};
 use DressCode\Rules\CodeWriter;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\Nodes\{FileNode, NameNode, SeparatedNodeList, UseItemNode};
@@ -17,54 +18,57 @@ use function count, strlen;
 
 
 /**
- * The rewrite replaced-classes makes: every reference of a class, interface or enum in a scope of imports
- * rewritten to the name that replaces it, wherever the name stands, an import, a type, an instantiation, a static
- * access, an attribute. An import of the old name is rewritten in place where its alias or its short name goes on
+ * What no-deprecated-classes and replaced-classes share: every reference of a class, interface or enum in a scope of
+ * imports rewritten to the name that replaces it, wherever the name stands, an import, a type, an instantiation,
+ * a static access, an attribute. An import of the old name is rewritten in place where its alias or its short name goes on
  * naming the class, and the fully qualified references of the new class in the scope are then written by that name;
- * else it goes and the references import the new name the way the scope imports. A name in the list of what a class
- * implements or an interface extends that the list names already, as it stands or once rewritten, goes from the list.
+ * else it goes and the references import the new name the way the scope imports. A name in the list
+ * of what a class implements or an interface extends that the list names already, as it stands or once rewritten, goes
+ * from the list; one the types say cannot stand where it would, a class to implement or an interface to extend by a
+ * class, is reported and left.
  * @internal
  */
 final class ClassReplacement
 {
 	/**
-	 * Reports every reference of a replaced class and rewrites the ones the report allows.
-	 * @param  array<string, string>  $classes  lowercased replaced name → the name written instead, both fully qualified
-	 * @param  \Closure(string, string): string  $describe  the message, given the replaced and the replacing name
+	 * Reports every reference of a class the closure has something to say about, and rewrites the ones it names
+	 * a replacement for and the report allows.
+	 * @param  \Closure(string): ?array{string, ?string}  $find  given a fully qualified class, the message and the class written instead, null for none; null for a class that is left alone
 	 */
-	public static function apply(FileNode|NamespaceNode $scope, array $classes, RuleContext $context, \Closure $describe): void
+	public static function apply(FileNode|NamespaceNode $scope, RuleContext $context, \Closure $find): void
 	{
-		if ($classes === []) {
-			return;
-		}
-
 		// everything is found before anything is rewritten: a rewritten import changes what the names below it resolve to
 		$resolver = $context->getAnalysis(NameResolver::class);
-		$imports = $references = $lists = [];
+		$types = $context->findAnalysis(Types::class);
+		$imports = $references = $kept = $lists = [];
 		foreach ($scope->find(NameNode::class) as $name) {
 			$item = $name->parent;
 			if ($item instanceof UseItemNode) {
-				$new = $item->kind === SymbolKind::ClassLike ? $classes[strtolower($item->fullName)] ?? null : null;
-				if ($new !== null) {
-					$imports[] = [$item, $item->fullName, $new];
+				$found = $item->kind === SymbolKind::ClassLike ? $find($item->fullName) : null;
+				if ($found !== null) {
+					$imports[] = [$item, $item->fullName, ...$found];
 				}
 
 			} elseif ($name->role === SymbolKind::ClassLike && $name->isReference()) {
-				$old = $resolver->resolveClass($name);
+				$class = $resolver->resolveClass($name);
 				$list = self::findInheritance($name);
 				if ($list !== null) {
-					$lists[spl_object_id($list)][strtolower($old)] = true;
+					$lists[spl_object_id($list)][strtolower($class)] = true;
 				}
 
-				$new = $classes[strtolower($old)] ?? null;
-				if ($new !== null) {
-					$references[] = [$name, $old, $new];
+				$found = $find($class);
+				$refusal = $found === null || $found[1] === null ? null : self::findRefusal($name, $found[1], $types);
+				if ($found !== null) {
+					$kept += $refusal === null ? [] : [strtolower($class) => true]; // the reference left as it is needs its import
+					$references[] = [$name, ...$found, $refusal];
 				}
 			}
 		}
 
-		foreach ($imports as [$item, $old, $new]) {
-			if ($context->report($item->name, $describe($old, $new))) {
+		foreach ($imports as [$item, $class, $message, $new]) {
+			if (isset($kept[strtolower($class)])) {
+				continue; // the short name below goes on naming the class the import brings
+			} elseif ($context->report($item->name, $message, fixable: $new !== null) && $new !== null) {
 				$local = self::replaceImport($item, $new, $context);
 				if ($local !== null) {
 					self::shortenFullyQualified($scope, $new, $local);
@@ -72,12 +76,16 @@ final class ClassReplacement
 			}
 		}
 
-		foreach ($references as [$name, $old, $new]) {
+		foreach ($references as [$name, $message, $new, $refusal]) {
 			$list = self::findInheritance($name);
-			if (!$context->report($name, $describe($old, $new))) {
+			$named = $list === null || $new === null ? null : $lists[spl_object_id($list)] ?? [];
+			if ($refusal !== null) {
+				$context->report($name, $message . $refusal, fixable: false);
+
+			} elseif (!$context->report($name, $message, fixable: $new !== null) || $new === null) {
 				continue;
 
-			} elseif ($list !== null && isset($lists[spl_object_id($list)][strtolower($new)])) {
+			} elseif ($list !== null && isset($named[strtolower($new)])) {
 				// the list names the class already; what stood behind the last item stays behind the one before it
 				$items = $list->getItems();
 				if (end($items) === $name && count($items) > 1) {
@@ -108,6 +116,18 @@ final class ClassReplacement
 			(($declaration instanceof ClassNode || $declaration instanceof EnumNode) && $declaration->implements === $list)
 			|| ($declaration instanceof InterfaceNode && $declaration->extends === $list)
 		) ? $list : null;
+	}
+
+
+	/** Why the class cannot stand where the name does, as a clause of the message; null where it can or the types cannot tell. */
+	private static function findRefusal(NameNode $name, string $new, ?Types $types): ?string
+	{
+		$isInterface = $types?->isInterface($new);
+		return match (true) {
+			$isInterface === Tristate::No && self::findInheritance($name) !== null => ", but `$new` is a class, which is not implemented",
+			$isInterface === Tristate::Yes && $name->parent instanceof ClassNode && $name->parent->extends === $name => ", but `$new` is an interface, which a class does not extend",
+			default => null,
+		};
 	}
 
 

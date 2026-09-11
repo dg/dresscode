@@ -7,6 +7,7 @@
 
 namespace DressCode\Rules\Upgrading;
 
+use DressCode\Analyses\Types;
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Context, Expect, Schema};
@@ -16,10 +17,11 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
 
 
 /**
- * A tool for replacing a class across a codebase: the project maps a class, interface or enum to the one it wants
- * written instead, and the rule rewrites every reference, an import, a type, an instantiation, a static access, an
- * attribute, importing the new name the way the scope imports. The fix is not risky, because what changes is
- * exactly what the project asked for.
+ * A tool for replacing a class across a codebase: the project, or a library it stands on, maps a class, interface
+ * or enum to the one it wants written instead, and the rule rewrites every reference, an import, a type, an
+ * instantiation, a static access, an attribute, importing the new name the way the scope imports. The fix is not
+ * risky, because what changes is exactly what the map asked for. Where the run has the types of the code, a class the project does not have
+ * is reported and not written.
  */
 #[RuleInfo(
 	'dresscode/replaced-classes',
@@ -68,8 +70,27 @@ final class ReplacedClassesRule extends NodeRule implements ConfigurableRule
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (($node instanceof FileNode || $node instanceof NamespaceNode) && NodeHelpers::findImportScope($node) === $node) {
-			ClassReplacement::apply($node, $this->classes, $context, fn(string $old, string $new) => "Class `$old` is replaced by `$new`");
+		if (
+			($node instanceof FileNode || $node instanceof NamespaceNode)
+			&& $this->classes !== []
+			&& NodeHelpers::findImportScope($node) === $node
+		) {
+			$types = $context->findAnalysis(Types::class);
+			ClassReplacement::apply($node, $context, function (string $class) use ($types): ?array {
+				$new = $this->classes[strtolower($class)] ?? null;
+				return match (true) {
+					$new === null => null,
+					$types !== null && $types->findClassName($new) === null => ["Class `$class` is replaced by `$new`, but class `$new` does not exist in the project", null],
+					default => ["Class `$class` is replaced by `$new`", $new],
+				};
+			});
 		}
+	}
+
+
+	/** Whether the map has the class, fully qualified, which is what a rule reading the deprecations asks to stay silent. */
+	public function knows(string $class): bool
+	{
+		return isset($this->classes[strtolower($class)]);
 	}
 }

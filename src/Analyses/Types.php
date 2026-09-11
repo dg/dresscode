@@ -423,6 +423,13 @@ final class Types implements PassAnalysis
 	}
 
 
+	/** Whether the class is an interface; maybe for a class nothing declares. */
+	public function isInterface(string $class): Tristate
+	{
+		return self::toTristate($this->phpstan->findClass($class)?->isInterface());
+	}
+
+
 	/** Whether the class declares the property, itself or through an ancestor; a magic one is not declared. */
 	public function hasProperty(string $class, string $property): bool
 	{
@@ -438,6 +445,16 @@ final class Types implements PassAnalysis
 			$reflection === null => Tristate::Maybe,
 			$reflection->hasNativeMethod($method) => $reflection->getNativeMethod($method)->isStatic() ? Tristate::Yes : Tristate::No,
 			default => Tristate::Maybe,
+		};
+	}
+
+
+	private static function toTristate(?bool $answer): Tristate
+	{
+		return match ($answer) {
+			true => Tristate::Yes,
+			false => Tristate::No,
+			null => Tristate::Maybe,
 		};
 	}
 
