@@ -20,9 +20,11 @@ function results(): array
 {
 	return [
 		new FileResult('src/clean.php', "<?php\n", "<?php\n"),
-		new FileResult('src/a.php', "<?php\n\$a;\n", "<?php\n\$b;\n", [
+		// the third follows from the first and ends like it; the second follows from it too but is a warning
+		new FileResult('src/a.php', "<?php\n\$a;\n\$c;\n", "<?php\n\$b;\n\$d;\n", [
 			new Violation('test/rename', 'Rename $a', 2, 1, Severity::Error, fixable: true, fingerprint: 'f1'),
-			new Violation('test/report', 'Variable "b" & <c>', 2, null, Severity::Warning, fixable: false, fingerprint: 'f2'),
+			new Violation('test/report', 'Variable "b" & <c>', 2, null, Severity::Warning, fixable: false, fingerprint: 'f2', derivedFrom: 'f1'),
+			new Violation('test/rename', 'Rename $c', 3, 1, Severity::Error, fixable: true, fingerprint: 'f3', derivedFrom: 'f1'),
 		], ['Rule test/x mutated the file without reporting a violation.']),
 		new FileResult('src/broken.php', "<?php\n\$a = ;\n", null, error: "Syntax error, unexpected ';'", errorLine: 2),
 		new FileResult('src/fail.php', "<?php\n", null, failure: 'Rule test/x failed in src/fail.php: boom'),
@@ -73,6 +75,7 @@ test('console: check lists every violation', function () {
 	Assert::match(<<<'XX'
 		src/a.php
 		  error    2:1  Rename $a           test/rename
+		                followed by test/rename on line 3
 		  warning    2  Variable "b" & <c>  test/report
 		  Rule test/x mutated the file without reporting a violation.
 
@@ -82,7 +85,7 @@ test('console: check lists every violation', function () {
 		src/fail.php
 		  Rule test/x failed in src/fail.php: boom
 
-		FAILED  1 violation, 1 warning, 1 of them fixable, 1 file with syntax errors, 1 file with failing rules in 3 of 4 files
+		FAILED  2 violations, 1 of them following from others, 1 warning, 2 of them fixable, 1 file with syntax errors, 1 file with failing rules in 3 of 4 files
 
 		XX, normalize(capture(fn($s) => new ConsoleReporter($s), fix: false)));
 });
@@ -92,14 +95,17 @@ test('console: fix lists what is left and counts what it fixed', function () {
 	Assert::match(<<<'XX'
 		src/a.php
 		  fixed    2:1  Rename $a           test/rename
+		                followed by test/rename on line 3
 		  warning    2  Variable "b" & <c>  test/report
 		  Rule test/x mutated the file without reporting a violation.
 		--- src/a.php
 		+++ src/a.php
-		@@ -1,2 +1,2 @@
+		@@ -1,3 +1,3 @@
 		 <?php
 		-$a;
+		-$c;
 		+$b;
+		+$d;
 
 		src/broken.php
 		  2  Syntax error, unexpected ';'
@@ -107,7 +113,7 @@ test('console: fix lists what is left and counts what it fixed', function () {
 		src/fail.php
 		  Rule test/x failed in src/fail.php: boom
 
-		FAILED  1 violation fixed, 1 warning, 1 file with syntax errors, 1 file with failing rules in 3 of 4 files
+		FAILED  2 violations fixed, 1 of them following from others, 1 warning, 1 file with syntax errors, 1 file with failing rules in 3 of 4 files
 
 		XX, normalize(capture(fn($s) => new ConsoleReporter($s, diff: true), fix: true)));
 });
@@ -166,6 +172,39 @@ test('github: a warning about the run is an annotation of its own', function () 
 });
 
 
+test('console: what follows from a violation is described by rule and line', function () {
+	$violation = fn(string $rule, int $line, string $fingerprint, ?string $from = null) =>
+		new Violation($rule, 'M', $line, null, Severity::Error, fixable: false, fingerprint: $fingerprint, derivedFrom: $from);
+	$stream = memory();
+	$reporter = new ConsoleReporter($stream);
+	$reporter->start(1, false);
+	$reporter->reportFile(new FileResult('a.php', '', '', [
+		$violation('test/a', 2, 'f1'),
+		$violation('test/a', 3, 'd1', 'f1'),
+		$violation('test/a', 4, 'd2', 'f1'),
+		$violation('test/b', 9, 'd3', 'f1'),
+		$violation('test/a', 5, 'd4', 'f1'),
+		$violation('test/a', 10, 'f2'),
+		$violation('test/a', 11, 'd5', 'f2'),
+		$violation('test/a', 12, 'd6', 'f2'),
+		$violation('test/a', 13, 'd7', 'f2'),
+		$violation('test/a', 14, 'd8', 'f2'),
+		$violation('test/a', 15, 'd9', 'f2'),
+		$violation('test/a', 16, 'd0', 'missing'),
+	]));
+	rewind($stream);
+	Assert::match(<<<'XX'
+		a.php
+		  error   2  M  test/a
+		             followed by test/a on lines 3, 4, 5 and test/b on line 9
+		  error  10  M  test/a
+		             followed by test/a on 5 lines from 11 to 15
+		  error  16  M  test/a
+
+		XX, normalize(stream_get_contents($stream)));
+});
+
+
 test('console: paths under the working directory are relative to it, the others absolute', function () {
 	$stream = memory();
 	$reporter = new ConsoleReporter($stream, root: '/project', cwd: '/project/src');
@@ -221,7 +260,18 @@ test('json', function () {
 		                    "fixable": false,
 		                    "risky": false,
 		                    "fingerprint": "f2",
-		                    "derivedFrom": null
+		                    "derivedFrom": "f1"
+		                },
+		                {
+		                    "rule": "test/rename",
+		                    "message": "Rename $c",
+		                    "line": 3,
+		                    "column": 1,
+		                    "severity": "error",
+		                    "fixable": true,
+		                    "risky": false,
+		                    "fingerprint": "f3",
+		                    "derivedFrom": "f1"
 		                }
 		            ],
 		            "warnings": [
@@ -256,8 +306,8 @@ test('json', function () {
 		    ],
 		    "summary": {
 		        "files": 4,
-		        "violations": 2,
-		        "fixable": 1,
+		        "violations": 3,
+		        "fixable": 2,
 		        "riskyDeferred": 0,
 		        "changedFiles": 1,
 		        "errors": 1,
@@ -276,9 +326,10 @@ test('github: annotations addressed from the checkout', function () {
 		::warning file=project/src/a.php,line=1,title=dresscode::Rule test/x mutated the file without reporting a violation.
 		::error file=project/src/a.php,line=2,col=1,title=test/rename::Rename $a
 		::warning file=project/src/a.php,line=2,title=test/report::Variable "b" & <c>
+		::error file=project/src/a.php,line=3,col=1,title=test/rename::Rename $c
 		::error file=project/src/broken.php,line=2,title=syntax error::Syntax error, unexpected ';'
 		::error file=project/src/fail.php,line=1,title=dresscode::Rule test/x failed in src/fail.php: boom
-		2 violations in 4 files
+		3 violations in 4 files
 
 		XX, capture(fn($s) => new GithubReporter($s, root: '/build/project', workspace: '/build'), fix: false));
 });
@@ -291,6 +342,7 @@ test('checkstyle', function () {
 		  <file name="src/a.php">
 		    <error line="2" column="1" severity="error" message="Rename $a" source="test/rename"/>
 		    <error line="2" severity="warning" message="Variable &quot;b&quot; &amp; &lt;c&gt;" source="test/report"/>
+		    <error line="3" column="1" severity="error" message="Rename $c" source="test/rename"/>
 		  </file>
 		  <file name="src/broken.php">
 		    <error line="2" severity="error" message="Syntax error, unexpected &apos;;&apos;" source="syntax"/>

@@ -39,6 +39,19 @@ final readonly class RunResult
 	}
 
 
+	/** Violations that follow from another one of the same file, whose fix opened, closed or moved their line. */
+	public function countDerived(?Severity $severity = null): int
+	{
+		return array_sum(array_map(
+			fn(FileResult $f) => count(array_filter(
+				$f->violations,
+				fn(Violation $v) => $v->derivedFrom !== null && ($severity === null || $v->severity === $severity),
+			)),
+			$this->files,
+		));
+	}
+
+
 	/** Fixes the run offered and was not allowed to make; a fix it made is not one of them. */
 	public function countRiskyDeferred(): int
 	{

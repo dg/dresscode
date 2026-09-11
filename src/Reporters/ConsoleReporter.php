@@ -10,7 +10,7 @@ use DressCode\Severity;
 use DressCode\Violation;
 use Nette\CommandLine\Console;
 use Nette\Utils\FileSystem;
-use function count, sprintf, strlen;
+use function array_slice, count, sprintf, strlen;
 
 
 /**
@@ -127,7 +127,9 @@ final class ConsoleReporter implements Reporter
 
 	/**
 	 * A fix run marks what it fixed; the position of such a violation belongs to the file as it was read,
-	 * because the fixes have moved the lines since.
+	 * because the fixes have moved the lines since. A violation that follows from another one is a note under
+	 * it rather than a line of its own, unless the two ended differently, when it must not hide behind a
+	 * state that is not its own.
 	 * @param list<Violation> $violations
 	 */
 	private function writeViolations(array $violations): void
@@ -136,12 +138,26 @@ final class ConsoleReporter implements Reporter
 			return;
 		}
 
-		$positions = array_map(self::formatPosition(...), $violations);
-		$positionWidth = max(array_map(strlen(...), $positions));
+		$positionWidth = max(array_map(fn(Violation $v) => strlen(self::formatPosition($v)), $violations));
 		$messageWidth = min(self::MessageWidth, max(array_map(fn(Violation $v) => strlen($v->message), $violations)));
 		$stateWidth = max(array_map(fn(Violation $v) => strlen(self::formatState($v, $this->fix)), $violations));
 
-		foreach ($violations as $i => $violation) {
+		$derived = [];
+		$listed = [];
+		$byFingerprint = $this->bare ? [] : array_column($violations, null, 'fingerprint');
+		foreach ($violations as $violation) {
+			$ancestor = $byFingerprint[$violation->derivedFrom ?? ''] ?? null;
+			if (
+				$ancestor !== null
+				&& self::formatState($ancestor, $this->fix) === self::formatState($violation, $this->fix)
+			) {
+				$derived[$ancestor->fingerprint][] = $violation;
+			} else {
+				$listed[] = $violation;
+			}
+		}
+
+		foreach ($listed as $violation) {
 			$state = self::formatState($violation, $this->fix);
 			$this->write(sprintf(
 				"  %s  %s  %s  %s\n",
@@ -150,11 +166,43 @@ final class ConsoleReporter implements Reporter
 					'warning' => 'olive',
 					default => 'maroon',
 				}, str_pad($state, $stateWidth)),
-				$this->console->color('gray', str_pad($positions[$i], $positionWidth, ' ', STR_PAD_LEFT)),
+				$this->console->color('gray', str_pad(self::formatPosition($violation), $positionWidth, ' ', STR_PAD_LEFT)),
 				str_pad($violation->message, $messageWidth),
 				$this->console->color('gray', self::formatRule($violation->ruleName)),
 			));
+			if (isset($derived[$violation->fingerprint])) {
+				$this->write(str_repeat(' ', $stateWidth + $positionWidth + 6)
+					. $this->console->color('gray', self::describeDerived($derived[$violation->fingerprint])) . "\n");
+			}
 		}
+	}
+
+
+	/**
+	 * What follows from a violation, by rule and line: `followed by indentation on lines 37, 38, 39`.
+	 * @param list<Violation> $violations
+	 */
+	private static function describeDerived(array $violations): string
+	{
+		$lines = [];
+		foreach ($violations as $violation) {
+			$lines[$violation->ruleName][$violation->line] = true;
+		}
+
+		$parts = [];
+		foreach ($lines as $rule => $ruleLines) {
+			$numbers = array_keys($ruleLines);
+			sort($numbers);
+			$parts[] = self::formatRule($rule) . ' on ' . match (true) {
+				count($numbers) === 1 => "line $numbers[0]",
+				count($numbers) <= 4 => 'lines ' . implode(', ', $numbers),
+				default => sprintf('%d lines from %d to %d', count($numbers), $numbers[0], end($numbers)),
+			};
+		}
+
+		return 'followed by ' . (count($parts) === 1
+			? $parts[0]
+			: implode(', ', array_slice($parts, 0, -1)) . ' and ' . end($parts));
 	}
 
 
@@ -195,9 +243,11 @@ final class ConsoleReporter implements Reporter
 			fn(FileResult $f) => $f->violations || $f->error !== null || $f->failure !== null,
 		));
 
+		$derived = $result->countDerived(Severity::Error);
 		$parts = array_filter([
 			$fixed ? self::plural($fixed, 'violation') . ' fixed' : null,
 			$remaining ? ($fixed ? "$remaining remaining" : self::plural($remaining, 'violation')) : null,
+			$derived ? "$derived of them following from others" : null,
 			$warnings ? self::plural($warnings, 'warning') : null,
 			!$this->fix && $result->countFixable() ? $result->countFixable() . ' of them fixable' : null,
 			$result->countErrors() ? self::plural($result->countErrors(), 'file') . ' with syntax errors' : null,
