@@ -23,6 +23,7 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
 - `composer reference`: regenerates `docs/reference/rules.md` (rules with their options) from the catalogue. Commit the output; CI diffs it.
 - `composer standard`: regenerates `docs/reference/standard.md`, the standard this repository is checked with, written out of its own configuration. Commit the output; CI diffs it too, so a change of a preset or of an option is visible as a change of the document it produces.
 - `php bin/dresscode check`: DressCode over its own sources with `dresscode.neon`; CI runs it too.
+- `php bin/dresscode init` in the root of another project: writes the `dresscode.neon` measured from its code, or prints it when a configuration exists; how it measures is in `docs/internals.md`.
 
 ## Conventions
 

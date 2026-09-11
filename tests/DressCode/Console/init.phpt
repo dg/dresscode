@@ -69,6 +69,7 @@ test('init writes what the code says, the loader reads it back as measured, and 
 		Standard   per, not measured; the others are psr12, nette and symfony
 		Indent     tab 100% of 3 files
 		Quotes     single 86%, double 14% of 7 strings
+		Conditions no conditions
 		Dry run    %d% of 3 sampled files would change
 
 		dresscode.neon written.
@@ -150,6 +151,36 @@ test('a decision the code does not make clearly is not written as a value', func
 	$factory->createRunner(Loader::loadFile("$root/dresscode.neon"), $root, cache: false);
 	Assert::false($factory->getResolvedConfig()->getRule('dresscode/string-quotes')?->isActive());
 	Assert::same("\t", $factory->getResolvedConfig()->indent); // the tab of dresscode/nette
+});
+
+
+test('the shape of the conditions is counted by condition, and both shapes pass where neither prevails', function () {
+	$perLine = "if (\n\t\$a\n\t&& \$b\n) {\n}\n";
+	$compact = "if (\$a\n\t&& \$b\n) {\n}\n";
+	$neither = "if (\$a\n\t&& \$b) {\n}\n";
+	$root = createProject('shapes', [
+		'src/a.php' => "<?php\n$perLine$perLine$neither",
+		'src/b.php' => "<?php\n$compact",
+	]);
+	[$code, $out] = runInit($root);
+	Assert::same(0, $code);
+	Assert::contains("Conditions perLine 50%, compact 25% of 4 conditions, 1 in none of them\n", $out);
+	$neon = (string) file_get_contents("$root/dresscode.neon");
+	Assert::contains("\tmulti-line-condition: {shape: [perLine, compact]}  # perLine 50%, compact 25% of 4 conditions, 1 in none of them\n", $neon);
+
+	$factory = new RunnerFactory;
+	$factory->createRunner(Loader::loadFile("$root/dresscode.neon"), $root, cache: false);
+	Assert::same(['perLine', 'compact'], $factory->getResolvedConfig()->getRule('dresscode/multi-line-condition')?->options['shape']);
+
+	// a shape at least 70 % of the conditions have is written as the shape
+	$root = createProject('shape', ['src/a.php' => "<?php\n$perLine$perLine$perLine$compact"]);
+	runInit($root);
+	Assert::contains("\tmulti-line-condition: {shape: perLine}  # perLine 75%, compact 25% of 4 conditions\n", (string) file_get_contents("$root/dresscode.neon"));
+
+	// conditions mostly in no shape the rule knows are kept, or the standard would write them all again
+	$root = createProject('no-shape', ['src/a.php' => "<?php\n$perLine$neither$neither$neither"]);
+	runInit($root);
+	Assert::contains("\tmulti-line-condition: {shape: keep}  # perLine 25% of 4 conditions, 3 in none of them\n", (string) file_get_contents("$root/dresscode.neon"));
 });
 
 

@@ -4,9 +4,10 @@ namespace DressCode\Config;
 
 use DressCode\Config;
 use DressCode\ConfigurationException;
+use DressCode\Rules\ControlFlow\MultiLineConditionRule;
 use DressCode\Rules\Literals\StringQuotesRule;
 use DressCode\Rules\Whitespace\IndentationRule;
-use function count, in_array, sprintf;
+use function count, in_array, is_array, sprintf;
 
 
 /**
@@ -51,6 +52,8 @@ final class Proposal
 		public readonly int $total,
 		public readonly Measurement $indent,
 		public readonly Measurement $quotes,
+		/** the shape of the conditions on several lines */
+		public readonly Measurement $conditions,
 		private readonly Survey $survey,
 	) {
 	}
@@ -99,6 +102,15 @@ final class Proposal
 				'single' => Config::create()->enable(StringQuotesRule::class, 'single'),
 				'double' => Config::create()->enable(StringQuotesRule::class, 'double'),
 			], 'strings'),
+			$survey->measurePlaces(
+				MultiLineConditionRule::class,
+				[
+					'perLine' => Config::create()->enable(MultiLineConditionRule::class, ['shape' => 'perLine']),
+					'compact' => Config::create()->enable(MultiLineConditionRule::class, ['shape' => 'compact']),
+				],
+				'conditions',
+				Config::create()->enable(MultiLineConditionRule::class, ['shape' => ['perLine', 'compact']]),
+			),
 			$survey,
 		);
 	}
@@ -125,6 +137,11 @@ final class Proposal
 			$config->enable('string-quotes', $quotes);
 		} elseif ($this->quotes->opportunities) {
 			$config->disable('string-quotes');
+		}
+
+		$shape = $this->findConditionShape();
+		if ($shape !== null) {
+			$config->enable('multi-line-condition', ['shape' => $shape]);
 		}
 
 		return $config;
@@ -155,10 +172,23 @@ final class Proposal
 			$sections[] = sprintf("# indent: %s; no value reaches %d%%, so the standard decides\n", $this->indent->describe(), 100 * Measurement::Threshold);
 		}
 
-		$quotes = $this->quotes->findPrevailing();
+		$rules = [];
 		if ($this->quotes->opportunities) {
 			// quotes have no tolerance, and a value half of the strings disagree with would rewrite them
-			$sections[] = sprintf("rules:\n\tstring-quotes: %s  # %s\n", $quotes ?? 'keep', $this->quotes->describe());
+			$rules[] = sprintf("\tstring-quotes: %s  # %s\n", $this->quotes->findPrevailing() ?? 'keep', $this->quotes->describe());
+		}
+
+		$shape = $this->findConditionShape();
+		if ($shape !== null) {
+			$rules[] = sprintf(
+				"\tmulti-line-condition: {shape: %s}  # %s\n",
+				is_array($shape) ? '[' . implode(', ', $shape) . ']' : $shape,
+				$this->conditions->describe(),
+			);
+		}
+
+		if ($rules) {
+			$sections[] = "rules:\n" . implode('', $rules);
 		}
 
 		$sections[] = "paths:\n" . implode('', array_map(fn(string $path) => "\t- $path\n", $this->paths));
@@ -197,11 +227,13 @@ final class Proposal
 	{
 		$indent = $this->indent->findPrevailing();
 		$quotes = $this->quotes->findPrevailing();
+		$shape = $this->findConditionShape();
 		$rule = $resolved->getRule('dresscode/string-quotes');
 		$problem = match (true) {
 			$indent !== null && $resolved->indent !== ($indent === 'tab' ? "\t" : str_repeat(' ', (int) $indent)) => "the indentation is not $indent",
 			$quotes !== null && ($rule?->options['quotes'] ?? null) !== $quotes => "string-quotes is not $quotes",
 			$quotes === null && $this->quotes->opportunities && $rule?->isActive() => 'string-quotes runs although it was kept',
+			$shape !== null && ($resolved->getRule('dresscode/multi-line-condition')?->options['shape'] ?? null) !== $shape => 'multi-line-condition has another shape',
 			default => null,
 		};
 		if ($problem !== null) {
@@ -216,6 +248,20 @@ final class Proposal
 		$others = self::OtherStandards;
 		$last = array_pop($others);
 		return implode(', ', $others) . " and $last";
+	}
+
+
+	/**
+	 * The shape the conditions on several lines are written in: the one that reaches the threshold, else the
+	 * shapes the code has, the commonest first, when together they do, else keep, since the code writes its
+	 * conditions in no shape the rule knows; null when the sample has no such condition.
+	 * @return string|list<string>|null
+	 */
+	private function findConditionShape(): string|array|null
+	{
+		return $this->conditions->opportunities
+			? $this->conditions->findPrevailing() ?? $this->conditions->findTolerated() ?? 'keep'
+			: null;
 	}
 
 

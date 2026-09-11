@@ -646,6 +646,7 @@ final class Application
 			: ', not measured; the others are ' . Proposal::describeOthers() . "\n"));
 		$report($this->console->color('gray', 'Indent     ') . $proposal->indent->describe() . "\n");
 		$report($this->console->color('gray', 'Quotes     ') . $proposal->quotes->describe() . "\n");
+		$report($this->console->color('gray', 'Conditions ') . $proposal->conditions->describe() . "\n");
 		$report($this->console->color('gray', 'Dry run    ') . sprintf(
 			"%d of %d sampled files would change\n",
 			$proposal->countChanged(),

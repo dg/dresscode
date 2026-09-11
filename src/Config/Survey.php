@@ -63,20 +63,25 @@ final class Survey
 
 
 	/**
-	 * A decision every place makes anew, where the rule of each value reports every place written the other
-	 * way, once: the places are what the values report together, and what one reports disagrees with it.
+	 * A decision every place makes anew, where the rule of each value reports every place written another way,
+	 * once: the places are what the values report together, and what one reports disagrees with it. A place in
+	 * none of the values is reported by every one of them; the layer that lets all of them pass counts those,
+	 * so that each is one place and disagrees with every value.
 	 * @param  class-string<\DressCode\Rule>  $rule
 	 * @param  array<int|string, Config>  $values  value → the layer that runs the rule with it; PHP keeps a numeric value as an int key
+	 * @param  ?Config  $any  the layer that runs the rule with every value allowed
 	 * @throws ConfigurationException
 	 */
-	public function measurePlaces(string $rule, array $values, string $unit): Measurement
+	public function measurePlaces(string $rule, array $values, string $unit, ?Config $any = null): Measurement
 	{
+		$neither = $any === null ? 0 : $this->probe($rule, $any)[1];
 		$reported = array_map(fn(Config $layer) => $this->probe($rule, $layer)[1], $values);
-		$opportunities = array_sum($reported);
+		$opportunities = array_sum($reported) - (count($values) - 1) * $neither;
 		return new Measurement(
 			array_map(fn(int $count) => $opportunities - $count, $reported),
 			$opportunities,
 			$unit,
+			$neither,
 		);
 	}
 
