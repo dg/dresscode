@@ -23,21 +23,39 @@ function createTypes(): Analyses\Types
 
 
 test('a key is read the way an upgrading guide writes a member', function () {
-	$read = fn(string $key) => get_object_vars(MemberPattern::fromKey($key));
+	$read = function (string $key): array {
+		$pattern = MemberPattern::fromKey($key);
+		$vars = array_replace(get_object_vars($pattern), ['arguments' => $pattern->arguments === null ? null : count($pattern->arguments->items)]);
+		unset($vars['instance']);
+		return $vars;
+	};
 
 	Assert::same(['class' => 'Acme\Shop\Order', 'kind' => null, 'name' => 'STATUS_PAID', 'arguments' => null], $read('Acme\Shop\Order::STATUS_PAID'));
-	Assert::same(['class' => 'Acme\Shop\Order', 'kind' => MemberKind::Method, 'name' => 'size', 'arguments' => null], $read('\Acme\Shop\Order::size()'));
+	Assert::same(['class' => 'Acme\Shop\Order', 'kind' => MemberKind::Method, 'name' => 'size', 'arguments' => 0], $read('\Acme\Shop\Order::size()'));
+	Assert::same(['class' => 'Acme\Shop\Order', 'kind' => MemberKind::Method, 'name' => 'size', 'arguments' => 1], $read('Acme\Shop\Order::size(...$args)'));
 	Assert::same(['class' => 'Acme\Shop\Order', 'kind' => MemberKind::Property, 'name' => 'paid', 'arguments' => null], $read(' Acme\Shop\Order::$paid '));
-	Assert::same(['class' => 'dibi', 'kind' => MemberKind::Method, 'name' => 'addUpload', 'arguments' => '$name, $label, true'], $read('dibi::addUpload( $name, $label, true )'));
-	Assert::same(['class' => 'A\Mapper', 'kind' => MemberKind::Constructor, 'name' => '__construct', 'arguments' => '$iterator, fn() => (1)'], $read('A\Mapper::__CONSTRUCT($iterator, fn() => (1))'));
+	Assert::same(['class' => 'dibi', 'kind' => MemberKind::Method, 'name' => 'addUpload', 'arguments' => 3], $read('dibi::addUpload( $name, $label, true )'));
+	Assert::same(['class' => 'A\Mapper', 'kind' => MemberKind::Constructor, 'name' => '__construct', 'arguments' => 2], $read('A\Mapper::__CONSTRUCT($iterator, (1))'));
 	Assert::same(['class' => 'A\Mapper', 'kind' => MemberKind::Constructor, 'name' => '__construct', 'arguments' => null], $read('A\Mapper::__construct'));
 
-	foreach (['STATUS_PAID', 'Order::', 'Order::a-b', 'Order::name(', 'Order::name() ?? 1', 'Form->name', 'A\\\\B::name', 'Order::$$name'] as $key) {
+	foreach (['STATUS_PAID', 'Order::', 'Order::a-b', 'Order::name(', 'Order::name() ?? 1', 'Order.name', 'A\\\\B::name', 'Order::$$name'] as $key) {
 		Assert::exception(fn() => MemberPattern::fromKey($key), InvalidArgumentException::class, "The member '$key' is not written as %a%");
 	}
 
 	Assert::exception(fn() => MemberPattern::fromKey('Order::$paid()'), InvalidArgumentException::class, "The member 'Order::\$paid()' is a property and takes no arguments.");
+	Assert::exception(fn() => MemberPattern::fromKey('Order::add( ... )'), InvalidArgumentException::class, "The member 'Order::add( ... )' reads as a first-class callable; a call with any arguments is written Order::add(...\$args).");
+	Assert::true(MemberPattern::fromKey('Acme\Utils\Html->text()')->instance);
+	foreach (['Html->text', 'Html->$text', 'Html->__construct()'] as $key) {
+		Assert::exception(fn() => MemberPattern::fromKey($key), InvalidArgumentException::class, "The member '$key' is %a%");
+	}
+	Assert::exception(fn() => MemberPattern::fromKey('Order::add($name, run())'), InvalidArgumentException::class, "The member 'Order::add(\$name, run())' cannot be read: 'run()' is no placeholder, %a%");
 	Assert::same('addupload', MemberPattern::fromKey('Order::addUpload()')->getLookupName());
+
+	// a method is replaced as a whole by a key that takes any arguments
+	Assert::true(MemberPattern::fromKey('Order::add')->takesAnyArguments());
+	Assert::true(MemberPattern::fromKey('Order::add(...$args)')->takesAnyArguments());
+	Assert::false(MemberPattern::fromKey('Order::add()')->takesAnyArguments());
+	Assert::false(MemberPattern::fromKey('Order::add($name, ...)')->takesAnyArguments());
 });
 
 
@@ -82,6 +100,13 @@ test('an access is of the member when its kind fits, its name agrees and every c
 	Assert::false($matches('App\MyStorage::getCacheKey', MemberKind::Method, 'getCacheKey', 'Acme\Cache\FileStorage'));
 	Assert::true($matches('Acme\Removed::run', MemberKind::Method, 'run', 'Acme\Removed'));
 	Assert::true($matches('Acme\Cache\Caching::run', MemberKind::Method, 'run')); // a trait of the parent
+
+	// a method that is not static is called with :: only where the class has it and not static, parent::name()
+	Assert::true($matches('Acme\Cache\FileStorage->create()', MemberKind::Method, 'create'));
+	Assert::false($matches('Acme\Cache\FileStorage->create()', MemberKind::StaticMethod, 'create'));
+	Assert::true($matches('Acme\Cache\FileStorage->getCacheKey()', MemberKind::StaticMethod, 'getCacheKey'));
+	Assert::false($matches('Acme\Cache\FileStorage->removed()', MemberKind::StaticMethod, 'removed'));
+	Assert::true($matches('Acme\Cache\FileStorage::create()', MemberKind::StaticMethod, 'create'));
 });
 
 
