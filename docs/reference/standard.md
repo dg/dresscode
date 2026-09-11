@@ -103,16 +103,16 @@ Reports $this used where no object is available.
 Replaces the name of the current class with self.
 
 
-### dresscode/final-internal-class
-
-Makes classes annotated as internal final.
-
-
 ### dresscode/kind-in-class-name
 
 Decides whether the name of a class, interface or trait repeats its kind.
 
 As this project has it: `kind`: `forbidden`.
+
+
+### dresscode/final-internal-class
+
+Makes classes annotated as internal final.
 
 
 ## Comments
@@ -523,14 +523,14 @@ Assigns a cast instead of calling settype().
 Reports calls of deprecated internal functions.
 
 
-### dresscode/no-unpacking-in-optimized-call
-
-Reports argument unpacking in a call of a function the compiler optimizes.
-
-
 ### dresscode/no-direct-invoke-call
 
 Calls an invokable object directly instead of its __invoke() method.
+
+
+### dresscode/no-unpacking-in-optimized-call
+
+Reports argument unpacking in a call of a function the compiler optimizes.
 
 
 ## Literals

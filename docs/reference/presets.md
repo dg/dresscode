@@ -9,7 +9,7 @@ with any standard. The rest decide how the code is laid out, and a project takes
 |---|---|---|---|---|
 | `dresscode/per` |  | `dresscode/psr12` | 19 | PER Coding Style 3.1 |
 | `dresscode/psr12` |  |  | 42 | PSR-12 Extended Coding Style |
-| `dresscode/nette` |  | `dresscode/per`, `dresscode/nette-style`, `dresscode/cleanup`, `dresscode/modern`, `dresscode/types`, `dresscode/phpdoc`, `dresscode/imports`, `dresscode/classes` | 46 | Nette Coding Standard |
+| `dresscode/nette` |  | `dresscode/per`, `dresscode/nette-style`, `dresscode/cleanup`, `dresscode/modern`, `dresscode/types`, `dresscode/phpdoc`, `dresscode/imports`, `dresscode/classes` | 48 | Nette Coding Standard |
 | `dresscode/symfony` |  | `dresscode/per` | 51 | Symfony Coding Standards as the @Symfony rule set defines them, without the phpDoc rules |
 | `dresscode/nette-style` |  |  | 19 | The layout of the Nette Coding Standard |
 | `dresscode/cleanup` | yes |  | 18 | Code that is there for nothing |

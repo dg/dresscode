@@ -31,6 +31,7 @@ final class Nette implements Preset
 				'classes' => 'PascalCase', 'methods' => 'camelCase', 'functions' => 'camelCase', 'constants' => 'PascalCase',
 				'enumCases' => 'PascalCase', 'properties' => 'camelCase', 'variables' => 'camelCase',
 			],
+			'kind-in-class-name' => 'forbidden',
 			'ordered-members' => ['order' => [
 				'use_trait', 'constant', 'constant_public', 'constant_protected', 'constant_private',
 				'property_public', 'property_protected', 'property_private',
@@ -70,6 +71,7 @@ final class Nette implements Preset
 			'no-alias-functions' => true,
 			'no-settype' => true,
 			'no-deprecated-functions' => true,
+			'no-direct-invoke-call' => true,
 			'no-unpacking-in-optimized-call' => true,
 			'type-hint-required' => 'keep',
 

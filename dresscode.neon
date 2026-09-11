@@ -7,8 +7,6 @@ rules:
 	strict-comparison: true
 	final-internal-class: true
 	ternary-for-simple-branch: true
-	no-direct-invoke-call: true
-	kind-in-class-name: forbidden
 	global-imports: {functions: optimized}
 
 paths:

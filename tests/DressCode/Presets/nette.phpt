@@ -45,3 +45,7 @@ foreach (glob(__DIR__ . '/fixtures/nette/*.code') ?: [] as $file) {
 	Assert::same($expected, $result->output, basename($file));
 	Assert::same($expected === $code, !$result->violations, basename($file));
 }
+
+// a class name does not repeat its kind, which the standard reports and leaves to the author
+$result = $processor->process('kind.php', "<?php declare(strict_types=1);\n\ninterface FooInterface\n{\n}\n");
+Assert::same(['dresscode/kind-in-class-name'], array_map(fn($violation) => $violation->ruleName, $result->violations));
