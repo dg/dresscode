@@ -131,6 +131,10 @@ final readonly class ExplainPrinter
 			$facts[] = 'needs PHP ' . $info->requires['php'];
 		}
 
+		foreach ($info->getRequiredPackages() as $package => $constraint) {
+			$facts[] = "needs $package" . ($constraint === '*' ? '' : " $constraint");
+		}
+
 		if ($info->modifiesComments) {
 			$facts[] = 'modifies comments';
 		}

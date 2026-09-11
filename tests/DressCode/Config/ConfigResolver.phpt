@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\{Config, ConfigurationException, Decision, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, Rule, RuleInfo, Stage};
-use DressCode\Config\{ConfigResolver, PluginRegistry, ResolvedRule, RuleBuilder};
+use DressCode\Config\{ConfigResolver, PluginRegistry, ProjectPackages, ResolvedRule, RuleBuilder};
 use DressCode\Domains\Count;
 use Tester\Assert;
 
@@ -99,8 +99,39 @@ final class RuleTyped extends ResolvedTestRule
 }
 
 
+#[RuleInfo(Stage::Structure, requires: ['acme/lib' => '>=3.3'])]
+final class RulePackaged extends ResolvedTestRule
+{
+	public static function getDecisions(): array
+	{
+		return [self::decide('packaged', 'Of a package')];
+	}
+}
+
+
+#[RuleInfo(Stage::Structure, requires: ['acme/any' => '*'])]
+final class RuleAnyPackage extends ResolvedTestRule
+{
+	public static function getDecisions(): array
+	{
+		return [self::decide('anyPackage', 'Of any version of a package')];
+	}
+}
+
+
+#[RuleInfo(Stage::Structure, requires: ['acme/lib' => '>=3.3 <5.0'])]
+final class RuleBoundedPackage extends ResolvedTestRule
+{
+	public static function getDecisions(): array
+	{
+		return [self::decide('boundedPackage', 'Of a range of versions of a package')];
+	}
+}
+
+
 const ResolvedTestRules = [
-	RuleA::class, RuleB::class, RuleC::class, RuleD::class, RuleFuture::class, RuleTyped::class,
+	RuleA::class, RuleB::class, RuleC::class, RuleD::class, RuleFuture::class, RuleTyped::class, RulePackaged::class, RuleAnyPackage::class,
+	RuleBoundedPackage::class,
 ];
 
 
@@ -120,6 +151,7 @@ const ResolvedTestPresets = [
 	'test/child' => "use: test/base\n\nproject:\n\tb: keep\n",
 	'test/future-preset' => "project:\n\ta: forbidden\n\tfuture: forbidden\n",
 	'test/typed-preset' => "project:\n\ta: forbidden\n\ttyped: forbidden\n",
+	'test/packaged-preset' => "project:\n\tpackaged: forbidden\n\tanyPackage: forbidden\n\tboundedPackage: forbidden\n",
 	'test/styled' => "use: test/base\n\nindentation:\n\tunit: 2 spaces\nfile:\n\tlineEnding: LF\n",
 	'test/broken' => "project:\n\tnone: forbidden\n",
 	'test/deciding' => "fixRisky: [RuleA]\n",
@@ -157,9 +189,9 @@ function createRegistry(): PluginRegistry
 }
 
 
-function createResolver(): ConfigResolver
+function createResolver(ProjectPackages $project = new ProjectPackages): ConfigResolver
 {
-	return new ConfigResolver(createRegistry());
+	return new ConfigResolver(createRegistry(), $project);
 }
 
 
@@ -241,6 +273,53 @@ test('a rule of a construct the target version has not got is left out', functio
 	Assert::same(['test/a', 'test/future'], $resolve(new Config(use: ['test/future-preset']), '8.4 - 8.6'));
 	Assert::same(['test/a'], $resolve(new Config(use: ['test/future-preset']), '^8.3'));
 	Assert::same('8.4', $resolver->resolve(new Config, '8.4 - 8.6')->phpVersion);
+});
+
+
+test('a rule requiring a package runs only where the version the project stands on has what the rule writes', function () {
+	$resolve = function (Config $config, ProjectPackages $project): array {
+		$resolver = createResolver(project: $project);
+		$inactive = [];
+		foreach ($resolver->resolve($config, '8.3')->rules as $rule) {
+			$inactive[$rule->class] = $rule->inactiveMessage;
+		}
+
+		return [$inactive, $resolver->getWarnings()];
+	};
+	$installed = fn(?string $version) => ['version' => $version, 'reference' => null];
+	$config = new Config(use: ['test/packaged-preset']);
+
+	// a package the project does not have, or has below the version: left out, silently when a preset named the rule
+	[$inactive, $warnings] = $resolve($config, new ProjectPackages(rootName: 'app/project'));
+	Assert::same('it needs a package the project does not have', $inactive[RulePackaged::class]);
+	Assert::same('it needs a package the project does not have', $inactive[RuleAnyPackage::class]);
+	Assert::same([], $warnings);
+
+	[$inactive] = $resolve($config, new ProjectPackages(installed: ['acme/lib' => $installed('3.2.1'), 'acme/any' => $installed('1.0')]));
+	Assert::notNull($inactive[RulePackaged::class]);
+	Assert::null($inactive[RuleAnyPackage::class]);
+
+	// the constraint of the project decides over the installed version
+	[$inactive] = $resolve($config, new ProjectPackages(required: ['acme/lib' => '^3.1'], installed: ['acme/lib' => $installed('3.4')]));
+	Assert::notNull($inactive[RulePackaged::class]);
+	[$inactive] = $resolve($config, new ProjectPackages(required: ['acme/lib' => '^3.3'], installed: ['acme/lib' => $installed('3.4')]));
+	Assert::null($inactive[RulePackaged::class]);
+	Assert::null($inactive[RuleBoundedPackage::class]);
+
+	// a rule writing what a later version took away runs only where no version the project allows is that one
+	[$inactive] = $resolve($config, new ProjectPackages(required: ['acme/lib' => '^4.2 || ^5.0'], installed: ['acme/lib' => $installed('5.1')]));
+	Assert::null($inactive[RulePackaged::class]);
+	Assert::notNull($inactive[RuleBoundedPackage::class]);
+
+	// any version does for the project itself and for a branch without an alias
+	[$inactive] = $resolve($config, new ProjectPackages(rootName: 'acme/lib'));
+	Assert::null($inactive[RulePackaged::class]);
+	[$inactive] = $resolve($config, new ProjectPackages(installed: ['acme/lib' => $installed(null)]));
+	Assert::null($inactive[RulePackaged::class]);
+
+	// a project making the decision hears why it does not run
+	[, $warnings] = $resolve(new Config(decisions: projectDecisions(['packaged'])), new ProjectPackages);
+	Assert::same(['Decision `project.packaged` needs `acme/lib >=3.3` and the project does not have it; skipped.'], $warnings);
 });
 
 
@@ -361,6 +440,11 @@ test('a name of --only that lets in nothing that runs is an error, not an empty 
 		fn() => narrow($resolver, new Config(use: ['test/child']), [RuleB::class]),
 		ConfigurationException::class,
 		'Option `--only` names rule `RuleB`, which cannot run here: its decisions are `keep`.',
+	);
+	Assert::exception(
+		fn() => narrow($resolver, new Config(use: ['test/child']), ['test/packaged-preset']),
+		ConfigurationException::class,
+		'Option `--only` names preset `test/packaged-preset`, which has no rule that runs here; `--use test/packaged-preset --only test/packaged-preset` runs all its rules.',
 	);
 	Assert::exception(
 		fn() => narrow($resolver, new Config(use: ['test/child']), ['project.d']),

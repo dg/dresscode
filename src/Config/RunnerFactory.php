@@ -49,7 +49,7 @@ final readonly class RunnerFactory
 		$this->registerProjectRules($config);
 		[$target, $source] = $this->getPhpTarget($config, $root);
 		$typesAvailable = $config->typeAnalysis === null || $this->isPhpStanInstalled();
-		$resolver = new ConfigResolver($this->registry, $typesAvailable, $root);
+		$resolver = new ConfigResolver($this->registry, $project, $typesAvailable, $root);
 		$resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
 		$warnings = array_fill_keys($resolver->getWarnings(), null);
 		if (!$typesAvailable) {

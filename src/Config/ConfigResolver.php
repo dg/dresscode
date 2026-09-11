@@ -35,6 +35,8 @@ final class ConfigResolver
 
 	public function __construct(
 		private readonly PluginRegistry $registry,
+		/** the packages the project stands on, which decide whether a rule requiring one runs */
+		private readonly ProjectPackages $project = new ProjectPackages,
 		/** the run can get the types the configuration asks for; without them it resolves as if it asked for none */
 		private readonly bool $typesAvailable = true,
 		/** the directory a file in `use` of the configuration and its overrides is relative to */
@@ -145,6 +147,7 @@ final class ConfigResolver
 		$resolver = new DecisionResolver(
 			$this->getCatalogue(),
 			$phpTarget,
+			$this->project,
 			typesAvailable: $config->typeAnalysis !== null && $this->typesAvailable,
 			certainNames: $resolution === 'certain',
 		);
@@ -220,7 +223,7 @@ final class ConfigResolver
 	/**
 	 * A rule runs where one of its requirements or facts takes effect and lies in the mask of the run; otherwise it says
 	 * why it does not. A preset may decide what cannot run here; a project deciding it asked for what it cannot get,
-	 * which is an error for the types and a warning for the target.
+	 * which is an error for the types and a warning for the target and for a package.
 	 * @param  class-string<Rule>  $class
 	 * @param  array<string, ResolvedDecision>  $decisions  those the rule declares
 	 * @param  ?InactiveReason  $ruleReason  why the rule does not run whatever its values
@@ -258,12 +261,15 @@ final class ConfigResolver
 				: "Decision `$asked[0]` needs the types of the code, but `phpstan/phpstan` is not installed beside DressCode.", docs: 'types#enable');
 		} elseif ($asked !== [] && $reasons === [InactiveReason::Php]) {
 			$this->warnings[$class] = "Decision `$asked[0]` needs PHP {$info->requires['php']} and the target is $phpTarget; skipped.";
+		} elseif ($asked !== [] && $reasons === [InactiveReason::Package]) {
+			$this->warnings[$class] = "Decision `$asked[0]` needs " . ($this->project->findUnmetRequirement($info->getRequiredPackages()) ?? throw new \LogicException)->describe() . '; skipped.';
 		}
 
 		[$reason, $message] = match (true) {
 			$effective !== [] && array_any($effective, fn(ResolvedDecision $decision) => $values->isSelected($decision->decision->path)) => [null, null],
 			$effective !== [] => [InactiveReason::Narrowed, 'the run is narrowed to other decisions'],
 			$reasons === [InactiveReason::Php] => [InactiveReason::Php, "it needs PHP {$info->requires['php']} and the target is $phpTarget"],
+			$reasons === [InactiveReason::Package] => [InactiveReason::Package, 'it needs a package the project does not have'],
 			$reasons === [InactiveReason::Types] => [InactiveReason::Types, $this->typesAvailable
 				? 'it needs the types of the code and the configuration sets no types'
 				: 'it needs the types of the code and phpstan/phpstan is not installed beside DressCode'],

@@ -26,6 +26,8 @@ final readonly class DecisionResolver
 		public Catalogue $catalogue,
 		/** the versions of PHP the code is written for, as a Composer constraint */
 		private string $phpTarget = Config::DefaultPhpVersion,
+		/** the packages the project stands on, which decide whether a rule requiring one runs; null runs it whatever they are */
+		private ?ProjectPackages $project = new ProjectPackages,
 		/** whether the run has the types of the code */
 		private bool $typesAvailable = false,
 		/** whether the namespaces of the configuration are complete, which turns on their guard */
@@ -109,8 +111,8 @@ final readonly class DecisionResolver
 
 
 	/**
-	 * Why the rule does not run whatever the values of its decisions: a target older than the rule needs, or types the
-	 * run does not have.
+	 * Why the rule does not run whatever the values of its decisions: a target older than the rule needs, a package the
+	 * project does not meet, or types the run does not have.
 	 * @param  class-string<Rule>  $rule
 	 */
 	public function findRuleReason(string $rule): ?InactiveReason
@@ -119,6 +121,7 @@ final readonly class DecisionResolver
 		$php = $info->requires['php'] ?? null;
 		return match (true) {
 			$php !== null && !Versions::isSubset($this->phpTarget, $php) => InactiveReason::Php,
+			$this->project?->findUnmetRequirement($info->getRequiredPackages()) !== null => InactiveReason::Package,
 			$info->typesRequired && !$this->typesAvailable => InactiveReason::Types,
 			default => null,
 		};

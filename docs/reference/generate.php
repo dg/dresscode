@@ -125,6 +125,10 @@ foreach ($bySection as $section => $decisions) {
 			$info = RuleInfo::of($rule);
 			$facts[] = 'Rule `' . $rule . '`, stage ' . $info->stage->name;
 			$ruleNeeds = [];
+			foreach ($info->getRequiredPackages() as $package => $constraint) {
+				$ruleNeeds[] = "Needs `$package`" . ($constraint === '*' ? '' : " $constraint");
+			}
+
 			if ($info->typesRequired) {
 				$ruleNeeds[] = 'Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`';
 			}
