@@ -102,13 +102,34 @@ test('a misspelled key is an error of the file', function () {
 		'Configuration file %a% is not valid NEON: %a%',
 	);
 	Assert::exception(
-		fn() => Loader::loadFile(FileMock::create("phpVersion: 8.2\n", 'neon')),
-		ConfigurationException::class,
-		"Configuration file %a%: The item 'phpVersion' expects to be string, %a% given.",
-	);
-	Assert::exception(
 		fn() => Loader::loadFile(FileMock::create("analyses: [Acme\\Nope]\n", 'neon')),
 		ConfigurationException::class,
 		'Analysis class Acme\Nope does not exist.',
 	);
+});
+
+
+test('the version of PHP is taken with quotes or without them', function () {
+	$php = fn(string $file) => Loader::loadFile(FileMock::create($file, 'neon'))->getPhp();
+	Assert::same('8.2', $php("php: '8.2'\n"));
+	Assert::same('8.2', $php("php: 8.2\n"));
+	Assert::same('8.2', $php("php: 8.2  # what composer.json says\n"));
+	Assert::same('auto', $php("php: auto\n"));
+
+	// a number is a version whose minor is a single digit, which every PHP ever released has had
+	Assert::same('8.0', $php("php: 8.0\n"));
+	Assert::same('8.0', $php("php: 8\n"));
+
+	// a value that is no version at all is an error of the file, with the file named
+	Assert::exception(
+		fn() => $php("php: yes\n"),
+		ConfigurationException::class,
+		"Configuration file %a%: The item 'php' expects to be string|int|float, true given.",
+	);
+	Assert::exception(
+		fn() => $php("php: '8'\n"),
+		ConfigurationException::class,
+		"Configuration file %a%: Invalid PHP version '8'.",
+	);
+	Assert::same('8.2', $php("php: 8.25\n")); // no such version, and the minor is one digit
 });

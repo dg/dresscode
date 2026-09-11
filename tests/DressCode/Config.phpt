@@ -30,7 +30,7 @@ test('defaults', function () {
 	$config = Config::create();
 	Assert::same([], $config->getPresets());
 	Assert::same([], $config->getRules());
-	Assert::same('auto', $config->getPhpVersion());
+	Assert::same('auto', $config->getPhp());
 	Assert::null($config->getIndent());
 	Assert::null($config->getEol());
 	Assert::same([], $config->getPaths());
@@ -46,11 +46,12 @@ test('fluent setters', function () {
 	$config = Config::create()
 		->preset('a/b')
 		->preset(stdClass::class)
-		->phpVersion('8.2')
+		->php('8.2')
 		->enable('x/y', ['opt' => 1])
 		->enable('x/z')
 		->disable('x/y')
-		->style(indent: 4, eol: 'crlf')
+		->indent(4)
+		->eol('crlf')
 		->paths(['src'])
 		->excludePaths(['tests/fixtures/*'])
 		->excludeRulePaths('x/z', ['tests'])
@@ -60,7 +61,7 @@ test('fluent setters', function () {
 		->baseline('baseline.json');
 	Assert::same(['a/b', stdClass::class], $config->getPresets());
 	Assert::same(['x/y' => false, 'x/z' => true], $config->getRules());
-	Assert::same('8.2', $config->getPhpVersion());
+	Assert::same('8.2', $config->getPhp());
 	Assert::same(4, $config->getIndent());
 	Assert::same('crlf', $config->getEol());
 	Assert::same(['src'], $config->getPaths());
@@ -85,15 +86,15 @@ test('excluded paths add up to the default list, each pattern once', function ()
 
 
 test('validation', function () {
-	Assert::exception(fn() => Config::create()->style(eol: 'unix')->getEol(), ConfigurationException::class);
-	Assert::exception(fn() => Config::create()->style(indent: 'spaces')->getIndent(), ConfigurationException::class);
-	Assert::exception(fn() => Config::create()->phpVersion('eight'), InvalidArgumentException::class);
+	Assert::exception(fn() => Config::create()->eol('unix')->getEol(), ConfigurationException::class);
+	Assert::exception(fn() => Config::create()->indent('spaces')->getIndent(), ConfigurationException::class);
+	Assert::exception(fn() => Config::create()->php('eight'), InvalidArgumentException::class);
 });
 
 
 test('a layer overrides what it sets, appends presets and rules and adds to the exclusions', function () {
-	$base = Config::create()->preset('a')->enable('x', ['a' => 1])->enable('y')->paths(['src'])->excludePaths(['build'])->excludeRulePaths('x', ['legacy'])->style(indent: 2);
-	$layer = Config::create()->preset('b')->disable('x')->enable('z')->excludePaths(['dist'])->excludeRulePaths('x', ['old'])->style(eol: 'lf');
+	$base = Config::create()->preset('a')->enable('x', ['a' => 1])->enable('y')->paths(['src'])->excludePaths(['build'])->excludeRulePaths('x', ['legacy'])->indent(2);
+	$layer = Config::create()->preset('b')->disable('x')->enable('z')->excludePaths(['dist'])->excludeRulePaths('x', ['old'])->eol('lf');
 	$base->merge($layer);
 	Assert::same(['a', 'b'], $base->getPresets());
 	Assert::same(['x' => false, 'y' => true, 'z' => true], $base->getRules());
@@ -107,9 +108,9 @@ test('a layer overrides what it sets, appends presets and rules and adds to the 
 
 test('an extension sets up a layer below the configuration, whatever the order of the calls', function () {
 	$config = Config::create()
-		->style(indent: 'tab')
+		->indent('tab')
 		->preset('project')
-		->extension(fn(Config $config) => $config->preset('extension')->style(indent: 2)->excludePaths(['expected']))
+		->extension(fn(Config $config) => $config->preset('extension')->indent(2)->excludePaths(['expected']))
 		->excludePaths(['build'])
 		->resolveExtensions();
 	Assert::same(['extension', 'project'], $config->getPresets());

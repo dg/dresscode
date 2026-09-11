@@ -44,7 +44,7 @@ test('the PHP version comes from the configuration, composer.json or the default
 	);
 	Assert::same(
 		['8.4', PhpVersionSource::Configuration],
-		[($v = $factory->resolvePhpVersion(Config::create()->phpVersion('8.4'), "$fixtures/project"))[0], $v[1]],
+		[($v = $factory->resolvePhpVersion(Config::create()->php('8.4'), "$fixtures/project"))[0], $v[1]],
 	);
 	// a directory without a composer.json of its own is answered by the nearest one above it
 	Assert::same(
@@ -77,13 +77,13 @@ test('the lowest version the constraint of require.php allows', function () use 
 
 
 test('the engine is built from the configuration', function () use ($fixtures) {
-	$config = Config::create()->enable(ReportContext::class)->style(indent: 2)->excludePaths(['sub']);
+	$config = Config::create()->enable(ReportContext::class)->indent(2)->excludePaths(['sub']);
 	$runner = (new RunnerFactory)->createRunner($config, "$fixtures/project");
 	Assert::same([], $runner->findFiles(['src']));
 	$result = $runner->processFile('x.php', "<?php\r\n\$a;\r\n");
 	Assert::same(['8.1 "  ""\r\n"'], array_map(fn($v) => $v->message, $result->violations));
 
-	$runner = (new RunnerFactory)->createRunner($config->style(eol: 'lf'), "$fixtures/project");
+	$runner = (new RunnerFactory)->createRunner($config->eol('lf'), "$fixtures/project");
 	Assert::same(['8.1 "  ""\n"'], array_map(fn($v) => $v->message, $runner->processFile('x.php', "<?php\r\n\$a;\r\n")->violations));
 });
 
@@ -98,7 +98,7 @@ test('an extension makes its rules known by name and sets up the run', function 
 	);
 
 	$runner = $factory->createRunner(
-		$config->extension(fn(Config $config) => $config->registerRules([ReportContext::class])->style(indent: 2)),
+		$config->extension(fn(Config $config) => $config->registerRules([ReportContext::class])->indent(2)),
 		"$fixtures/project",
 	);
 	Assert::same(['test/a'], array_map(fn($rule) => RuleInfo::of($rule)->name, $runner->getProcessor()->getRules()));

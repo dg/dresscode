@@ -320,7 +320,7 @@ final class Application
 		return $version . match ($source) {
 			PhpVersionSource::Configuration => '',
 			PhpVersionSource::Composer => ' from composer.json',
-			PhpVersionSource::Default => ' by default, no composer.json found; set phpVersion in the configuration',
+			PhpVersionSource::Default => ' by default, no composer.json found; set php in the configuration',
 		};
 	}
 
@@ -622,7 +622,7 @@ final class Application
 		}
 
 		if (!$translation->presets) {
-			$this->writeError("  The indentation and the line ending are not read from there; set them with style().\n");
+			$this->writeError("  The indentation and the line ending are not read from there; set them with indent and eol.\n");
 		}
 
 		return 0;

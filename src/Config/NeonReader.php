@@ -10,6 +10,7 @@ use Nette\Schema\Elements\Structure;
 use Nette\Schema\Expect;
 use Nette\Schema\Processor;
 use Nette\Schema\ValidationException;
+use function is_float, is_int, is_string, sprintf;
 
 
 /**
@@ -40,7 +41,11 @@ final class NeonReader
 			throw new ConfigurationException("Configuration file $file: " . implode(' ', $e->getMessages()), previous: $e);
 		}
 
-		return self::toConfig($data);
+		try {
+			return self::toConfig($data);
+		} catch (\InvalidArgumentException $e) { // a value the configuration API refuses is an error of the file
+			throw new ConfigurationException("Configuration file $file: {$e->getMessage()}", previous: $e);
+		}
 	}
 
 
@@ -55,11 +60,9 @@ final class NeonReader
 			'presets' => Expect::listOf('string'),
 			// a bare value is the decision of the rule; keep says "this decision enforces nothing", as false does in the PHP notation
 			'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), Expect::string(), Expect::int(), Expect::arrayOf('mixed', 'string')), 'string'),
-			'style' => Expect::structure([
-				'indent' => Expect::anyOf(Expect::int(), Expect::string()),
-				'eol' => Expect::string(),
-			])->castTo('array'),
-			'phpVersion' => Expect::string(),
+			'indent' => Expect::anyOf(Expect::int(), Expect::string()),
+			'eol' => Expect::string(),
+			'php' => Expect::anyOf(Expect::string(), Expect::int(), Expect::float()),
 			'paths' => Expect::listOf('string'),
 			'excludePaths' => Expect::listOf('string'),
 			'excludeRulePaths' => Expect::arrayOf(Expect::listOf('string'), 'string'),
@@ -99,12 +102,21 @@ final class NeonReader
 			}
 		}
 
-		/** @var array{indent: ?string, eol: ?string} $style */
-		$style = $data['style'] ?? ['indent' => null, 'eol' => null];
-		$config->style($style['indent'] ?? null, $style['eol'] ?? null);
+		if (isset($data['indent'])) {
+			$indent = $data['indent'];
+			assert(is_int($indent) || is_string($indent));
+			$config->indent($indent);
+		}
 
-		if (isset($data['phpVersion'])) {
-			$config->phpVersion((string) $data['phpVersion']);
+		if (isset($data['eol'])) {
+			$config->eol((string) $data['eol']);
+		}
+
+		if (isset($data['php'])) {
+			$version = $data['php'];
+			assert(is_int($version) || is_float($version) || is_string($version));
+			// a version written as a number has a single digit as its minor, as every PHP ever released has had
+			$config->php(is_string($version) ? $version : sprintf('%.1F', $version));
 		}
 
 		if (isset($data['paths'])) {

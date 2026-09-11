@@ -437,12 +437,12 @@ test('the style comes from the configuration, else from the last preset declarin
 	Assert::same(["\t", 'majority'], $resolver->resolveStyle(Config::create()->preset(ChildPreset::class)));
 	Assert::same(['  ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)));
 	Assert::same(['  ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->preset(ChildPreset::class)));
-	Assert::same(['    ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(indent: 4)));
-	Assert::same(['  ', "\r\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(eol: 'crlf')));
-	Assert::same(['  ', 'majority'], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(eol: 'majority')));
-	Assert::same(['  ', PHP_EOL], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->style(eol: 'platform')));
-	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->style(eol: 'unix')), ConfigurationException::class, "The line ending must be 'lf', 'crlf', 'majority' or 'platform'.");
-	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->style(indent: 'spaces')), ConfigurationException::class, "The indentation must be a number of spaces or 'tab'.");
+	Assert::same(['    ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->indent(4)));
+	Assert::same(['  ', "\r\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->eol('crlf')));
+	Assert::same(['  ', 'majority'], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->eol('majority')));
+	Assert::same(['  ', PHP_EOL], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->eol('platform')));
+	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->eol('unix')), ConfigurationException::class, "The line ending must be 'lf', 'crlf', 'majority' or 'platform'.");
+	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->indent('spaces')), ConfigurationException::class, "The indentation must be a number of spaces or 'tab'.");
 });
 
 

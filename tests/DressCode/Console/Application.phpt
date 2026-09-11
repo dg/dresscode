@@ -77,7 +77,7 @@ $root = str_replace('\\', '/', (string) realpath($root));
 Helpers::purge($root);
 @mkdir("$root/src");
 // the target is pinned, so that a rule of a newer PHP has something to be newer than
-file_put_contents("$root/dresscode.php", "<?php\nreturn DressCode\\Config::create()->enable(ConsoleRename::class)->paths(['src'])->phpVersion('8.3');\n");
+file_put_contents("$root/dresscode.php", "<?php\nreturn DressCode\\Config::create()->enable(ConsoleRename::class)->paths(['src'])->php('8.3');\n");
 file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
 file_put_contents("$root/src/b.php", "<?php\n\$x;\n");
 

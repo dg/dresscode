@@ -247,7 +247,7 @@ final class RunnerFactory
 	 */
 	public function resolvePhpVersion(Config $config, string $root): array
 	{
-		$version = $config->getPhpVersion();
+		$version = $config->getPhp();
 		if ($version !== 'auto') {
 			return [$version, PhpVersionSource::Configuration];
 		}

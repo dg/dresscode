@@ -34,7 +34,7 @@ final class Config
 	private array $rules = [];
 
 	/** 'auto' means the version of composer.json */
-	private ?string $phpVersion = null;
+	private ?string $php = null;
 	private int|string|null $indent = null;
 	private ?string $eol = null;
 
@@ -116,14 +116,14 @@ final class Config
 	}
 
 
-	/** @param string $version  'auto' or a version as major.minor */
-	public function phpVersion(string $version): static
+	/** @param string $version  the version the rules target, as major.minor, or 'auto' */
+	public function php(string $version): static
 	{
 		if ($version !== 'auto' && !preg_match('~^\d+\.\d+(?:\.\d+)?$~D', $version)) {
 			throw new \InvalidArgumentException("Invalid PHP version '$version'.");
 		}
 
-		$this->phpVersion = $version;
+		$this->php = $version;
 		return $this;
 	}
 
@@ -147,14 +147,18 @@ final class Config
 	}
 
 
-	/**
-	 * @param int|string|null $indent  a number of spaces or 'tab'
-	 * @param ?string $eol  'lf', 'crlf', 'majority' or 'platform'
-	 */
-	public function style(int|string|null $indent = null, ?string $eol = null): static
+	/** @param int|string $indent  a number of spaces or 'tab' */
+	public function indent(int|string $indent): static
 	{
-		$this->indent = $indent ?? $this->indent;
-		$this->eol = $eol ?? $this->eol;
+		$this->indent = $indent;
+		return $this;
+	}
+
+
+	/** @param string $eol  'lf', 'crlf', 'majority' or 'platform' */
+	public function eol(string $eol): static
+	{
+		$this->eol = $eol;
 		return $this;
 	}
 
@@ -311,7 +315,7 @@ final class Config
 			$this->rules[$rule] = $options;
 		}
 
-		$this->phpVersion = $layer->phpVersion ?? $this->phpVersion;
+		$this->php = $layer->php ?? $this->php;
 		$this->indent = $layer->indent ?? $this->indent;
 		$this->eol = $layer->eol ?? $this->eol;
 		$this->paths = $layer->paths ?? $this->paths;
@@ -432,9 +436,9 @@ final class Config
 
 
 	/** The configured version, or 'auto' for the one of composer.json. */
-	public function getPhpVersion(): string
+	public function getPhp(): string
 	{
-		return $this->phpVersion ?? 'auto';
+		return $this->php ?? 'auto';
 	}
 
 

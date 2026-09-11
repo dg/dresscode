@@ -10,11 +10,9 @@ rules:
 	dresscode/strict-comparison: true
 	dresscode/yoda: keep
 
-style:
-	indent: "\t"
-	eol: auto
-
-phpVersion: '8.3'
+indent: tab
+eol: lf
+php: '8.3'
 paths: [src, tests]
 excludePaths: [build, docs/generated]
 excludeRulePaths:
