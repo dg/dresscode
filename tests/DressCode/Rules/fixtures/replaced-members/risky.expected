@@ -1,0 +1,17 @@
+<?php
+// {"Acme\\Shop\\Order::measure": "\\strlen", "Acme\\Shop\\Order::OLD": "Acme\\Shop\\Helpers::Renewed"}
+// risky
+
+namespace App;
+
+use Acme\Shop\Helpers;
+use Acme\Shop\Order;
+
+function test(Order $order): void
+{
+	$a = \strlen('x');
+	$b = \strlen('x');
+	$c = \strlen(value: 'x') . 'y';
+	$d = Helpers::Renewed;
+	$e = Helpers::Renewed;
+}

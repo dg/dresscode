@@ -7,6 +7,8 @@
 
 namespace DressCode\Rules\Upgrading;
 
+use DressCode\Analyses\Types;
+use DressCode\Tristate;
 use Nette\Neon\{Entity, Neon};
 use Nette\Schema\{Context, Expect, Schema};
 use function is_bool, is_float, is_int, is_string;
@@ -24,18 +26,23 @@ final class MemberMaps
 
 	/**
 	 * A map of members, `Class::name`, `Class::name()`, `Class::$name` or `Class::name($argument, ...)`, to values of
-	 * the given schema; a key that does not read as a member is an error of the configuration.
+	 * the given schema; a key that does not read as a member is an error of the configuration, and so is a value
+	 * `$convert` throws for, the same closure `read()` is given.
+	 * @param  ?\Closure(mixed, MemberPattern): mixed  $convert
 	 */
-	public static function map(Schema $value, string $description): Schema
+	public static function map(Schema $value, string $description, ?\Closure $convert = null): Schema
 	{
 		return Expect::arrayOf(Expect::anyOf(self::Keep, $value), Expect::string())
 			->description($description)
-			->transform(function (array $map, Context $context): array {
-				foreach (array_keys($map) as $key) {
+			->transform(function (array $map, Context $context) use ($convert): array {
+				foreach ($map as $key => $item) {
 					try {
-						MemberPattern::fromKey((string) $key);
+						$pattern = MemberPattern::fromKey((string) $key);
+						if ($convert !== null && $item !== self::Keep) {
+							$convert($item, $pattern);
+						}
 					} catch (\InvalidArgumentException $e) {
-						$context->addError($e->getMessage(), 'dresscode.memberKey');
+						$context->addError($e->getMessage(), 'dresscode.memberMap');
 					}
 				}
 
@@ -107,5 +114,32 @@ final class MemberMaps
 		}
 
 		return $entries;
+	}
+
+
+	/**
+	 * The entries of one name in the order they are asked in: by the comparison given, then an entry of a class before
+	 * one of its ancestor, so that of two keys an access fits both, the one of the class nearer to it decides, then as
+	 * the map writes them.
+	 * @template T of array{MemberPattern, mixed}
+	 * @param  list<T>  $entries
+	 * @param  ?\Closure(T, T): int  $compare
+	 * @return list<T>
+	 */
+	public static function order(array $entries, Types $types, ?\Closure $compare = null): array
+	{
+		$keys = array_keys($entries);
+		usort($keys, function (int $a, int $b) use ($entries, $types, $compare): int {
+			[$first, $second] = [$entries[$a][0]->class, $entries[$b][0]->class];
+			$result = $compare === null ? 0 : $compare($entries[$a], $entries[$b]);
+			return match (true) {
+				$result !== 0 => $result,
+				strcasecmp($first, $second) === 0 => $a <=> $b,
+				$types->isSubtype($first, $second) === Tristate::Yes => -1,
+				$types->isSubtype($second, $first) === Tristate::Yes => 1,
+				default => $a <=> $b,
+			};
+		});
+		return array_map(fn(int $key) => $entries[$key], $keys);
 	}
 }

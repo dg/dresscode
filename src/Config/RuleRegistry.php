@@ -43,6 +43,7 @@ final class RuleRegistry
 		Rules\Classes\NameCasingRule::class,
 		Rules\Upgrading\NoDeprecatedMembersRule::class,
 		Rules\Upgrading\ReplacedClassesRule::class,
+		Rules\Upgrading\ReplacedMembersRule::class,
 		Rules\Upgrading\ReplacedFunctionsRule::class,
 		Rules\Upgrading\ForbiddenFunctionsRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,

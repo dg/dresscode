@@ -1,0 +1,16 @@
+<?php
+// {"Acme\\Shop\\Order::measure": "\\strlen", "Acme\\Shop\\Order::OLD": "Acme\\Shop\\Helpers::Renewed"}
+// risky
+
+namespace App;
+
+use Acme\Shop\Order;
+
+function test(Order $order): void
+{
+	$a = $order->measure('x');
+	$b = Order::create()->measure('x');
+	$c = ($order ?? Order::create())->measure(value: 'x') . 'y';
+	$d = $order::OLD;
+	$e = Order::create()::OLD;
+}
