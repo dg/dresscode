@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\{Config, ConfigurationException, NodeRule, Plugin, PluginManifest, Profile, RuleInfo, Stage};
-use DressCode\Config\{Loader, NeonReader};
+use DressCode\Config\{ConfigResolver, Loader, NeonReader, PluginRegistry};
 use Nette\Schema\Elements\Type;
 use Tester\{Assert, FileMock};
 
@@ -156,6 +156,16 @@ test('errors', function () use ($fixtures) {
 		fn() => Loader::loadFile(FileMock::create("<?php\nreturn new DressCode\\Config(use: ['nette'] paths: ['src']);\n", 'php')),
 		ConfigurationException::class,
 		'Configuration file `%a%`: syntax error, %a% on line 2',
+	);
+});
+
+
+test('a map of functions given as a list says to write a map', function () {
+	$config = Loader::loadFile(FileMock::create("upgrading:\n\tlibraries:\n\t\tforbiddenFunctions: [var_dump, dd]\n", 'neon'));
+	Assert::exception(
+		fn() => new ConfigResolver(new PluginRegistry)->resolve($config, '8.4'),
+		ConfigurationException::class,
+		'Key `upgrading.libraries.forbiddenFunctions` does not take %a%; write a map of names.',
 	);
 });
 

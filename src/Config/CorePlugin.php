@@ -227,8 +227,10 @@ final class CorePlugin implements Plugin
 				Rules\Types\ConstantTypeRequiredRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Types\TypeNotationRule::class,
+				// what a map replaces is written first, so that what it forbids is reported of what remains
 				Rules\Upgrading\ReplacedClassesRule::class,
 				Rules\Upgrading\ReplacedFunctionsRule::class,
+				Rules\Upgrading\ForbiddenFunctionsRule::class,
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,
@@ -290,6 +292,7 @@ final class CorePlugin implements Plugin
 				// the maps of what the libraries retired, which the project writes, each read by its grammar
 				new Decision('upgrading.libraries.replacedClasses', new Map(new GrammarEntry, grammar: self::createReplacedClassesGrammar(), caseInsensitive: true), 'A class written instead of another one, both fully qualified (`Acme\\Old\\Mailer: Acme\\Mail\\Mailer`)'),
 				new Decision('upgrading.libraries.replacedFunctions', new Map(new GrammarEntry, grammar: self::createReplacedFunctionsGrammar(), caseInsensitive: true), 'A function written instead of another one (`acme_send: Acme\\Mail\\send`)'),
+				new Decision('upgrading.libraries.forbiddenFunctions', new Map(new GrammarEntry, grammar: self::createForbiddenFunctionsGrammar(), caseInsensitive: true), 'A function that may not be called, with what to do instead'),
 
 				// the newer constructs, decided once for every rule writing them
 				new Decision('upgrading.functions.arraySearchFunctions', Domain::adopted(), '`array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` or an `array_filter()` that only asks what they answer'),
@@ -371,5 +374,12 @@ final class CorePlugin implements Plugin
 
 				return $options;
 			});
+	}
+
+
+	private static function createForbiddenFunctionsGrammar(): Schema
+	{
+		return Expect::arrayOf(Expect::string()->nullable())
+			->description('The forbidden function or a pattern with `*`, a name without a backslash meaning the global function → what to do instead, as the end of the message, or null for none');
 	}
 }
