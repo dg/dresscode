@@ -7,9 +7,13 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-test('the installed packages, each with the version it stands for and the source it came from', function () {
+test('the version of a package the code must work with', function () {
 	$root = createTempDir('project-packages');
-	FileSystem::write("$root/composer.json", json_encode(['name' => 'app/project'], JSON_THROW_ON_ERROR));
+	FileSystem::write("$root/composer.json", json_encode([
+		'name' => 'app/project',
+		'require' => ['acme/direct' => '^3.1 || ^4.0', 'acme/anything' => '*'],
+		'require-dev' => ['acme/tool' => '~2.5.0'],
+	], JSON_THROW_ON_ERROR));
 	FileSystem::write("$root/vendor/composer/installed.json", json_encode(['packages' => [
 		['name' => 'acme/direct', 'version' => 'v4.2.0', 'version_normalized' => '4.2.0.0'],
 		['name' => 'acme/anything', 'version' => 'v1.7.3', 'version_normalized' => '1.7.3.0'],
@@ -32,10 +36,59 @@ test('the installed packages, each with the version it stands for and the source
 	]], JSON_THROW_ON_ERROR));
 
 	$project = ProjectPackages::read("$root/src");
+	Assert::same('app/project', $project->rootName);
+
+	// required by the project: the lowest version its constraint allows, whatever is installed
+	Assert::same('3.1', $project->findVersion('acme/direct'));
+	Assert::same('2.5', $project->findVersion('acme/tool'));
+	// a constraint without a lower bound says nothing, so the installed version answers
+	Assert::same('1.7.3', $project->findVersion('acme/anything'));
+	// only coming with another package: the installed version
+	Assert::same('3.2.1', $project->findVersion('acme/transitive'));
+	// a development branch stands for the newest of the line its alias names
+	Assert::same('3.3.9999999.9999999', $project->findVersion('acme/branch'));
+	Assert::same('1.4.9999999.9999999', $project->findVersion('acme/line'));
+
+	// any version does for the project itself and for a branch without an alias
+	Assert::null($project->findVersion('app/project'));
+	Assert::true($project->has('app/project'));
+	Assert::null($project->findVersion('acme/unaliased'));
+	Assert::true($project->has('acme/unaliased'));
+
+	Assert::null($project->findVersion('acme/missing'));
+	Assert::false($project->has('acme/missing'));
 
 	// the identity says what the files of the packages are: the version each stands for and where it came from
 	$identity = $project->getIdentity();
 	Assert::same(['3.2.1', 'abc'], $identity['acme/transitive']); // the source before the dist
 	Assert::same([null, null], $identity['acme/unaliased']);
 	Assert::same(array_keys($identity), ['acme/anything', 'acme/branch', 'acme/direct', 'acme/line', 'acme/tool', 'acme/transitive', 'acme/unaliased']);
+});
+
+
+test('a project without packages has none', function () {
+	$project = new ProjectPackages;
+	Assert::false($project->has('acme/lib'));
+	Assert::null($project->findVersion('acme/lib'));
+});
+
+
+test('a requirement is met where every version the code is written for satisfies it', function () {
+	$root = createTempDir('project-packages-requirement');
+	FileSystem::write("$root/composer.json", json_encode([
+		'require' => ['acme/old' => '^3.4', 'acme/both' => '^4.2 || ^5.0', 'acme/any' => '*'],
+	], JSON_THROW_ON_ERROR));
+	FileSystem::write("$root/vendor/composer/installed.json", json_encode(['packages' => [
+		['name' => 'acme/old', 'version' => 'v3.6.0', 'version_normalized' => '3.6.0.0'],
+		['name' => 'acme/both', 'version' => 'v5.1.0', 'version_normalized' => '5.1.0.0'],
+		['name' => 'acme/any', 'version' => 'v5.1.0', 'version_normalized' => '5.1.0.0'],
+	]], JSON_THROW_ON_ERROR));
+
+	$project = ProjectPackages::read($root);
+	Assert::same('^4.2 || ^5.0', $project->findConstraint('acme/both'));
+	Assert::same('5.1', $project->findConstraint('acme/any')); // no lower bound, so the installed version
+	Assert::null($project->findUnmetRequirement(['acme/old' => '>=3.3 <5.0', 'acme/any' => '>=3.3']));
+	Assert::same(['acme/both', '>=3.3 <5.0', '^4.2 || ^5.0'], $project->findUnmetRequirement(['acme/both' => '>=3.3 <5.0']));
+	Assert::same(['acme/any', '<5.0', '5.1'], $project->findUnmetRequirement(['acme/any' => '<5.0']));
+	Assert::same(['acme/missing', '*', null], $project->findUnmetRequirement(['acme/missing' => '*']));
 });

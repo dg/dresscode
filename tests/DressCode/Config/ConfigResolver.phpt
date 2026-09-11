@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\{Config, ConfigurableRule, ConfigurationException, NodeRule, Override, Preset, PresetInfo, Profile, Rule, RuleInfo, Stage};
-use DressCode\Config\{ConfigResolver, ResolvedRule, RuleBuilder, RuleRegistry};
+use DressCode\Config\{ConfigResolver, ProjectPackages, ResolvedRule, RuleBuilder, RuleRegistry};
 use DressCode\Rules\Namespaces\NameNotationRule;
 use Nette\Schema\{Expect, Processor, Schema};
 use Tester\Assert;
@@ -165,6 +165,46 @@ final class TypedPreset implements Preset
 	public function getProfile(): Profile
 	{
 		return new Profile(rules: [RuleA::class => true, RuleTyped::class => true]);
+	}
+}
+
+
+#[RuleInfo('test/packaged', Stage::Structure, requires: ['acme/lib' => '>=3.3'])]
+final class RulePackaged extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+}
+
+
+#[RuleInfo('test/anyPackage', Stage::Structure, requires: ['acme/any' => '*'])]
+final class RuleAnyPackage extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+}
+
+
+#[RuleInfo('test/boundedPackage', Stage::Structure, requires: ['acme/lib' => '>=3.3 <5.0'])]
+final class RuleBoundedPackage extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+}
+
+
+#[PresetInfo('test/packaged-preset')]
+final class PackagedPreset implements Preset
+{
+	public function getProfile(): Profile
+	{
+		return new Profile(rules: [RulePackaged::class => true, RuleAnyPackage::class => true, RuleBoundedPackage::class => true]);
 	}
 }
 
@@ -428,6 +468,53 @@ test('a rule of a construct the target version has not got is left out', functio
 	Assert::same(['test/a', 'test/future'], $resolve(new Config(presets: [FuturePreset::class]), '8.4 - 8.6'));
 	Assert::same(['test/a'], $resolve(new Config(presets: [FuturePreset::class]), '^8.3'));
 	Assert::same('8.4', $resolver->resolve(new Config, '8.4 - 8.6')->phpVersion);
+});
+
+
+test('a rule requiring a package runs only where the version the project stands on has what the rule writes', function () {
+	$resolve = function (Config $config, ProjectPackages $project): array {
+		$resolver = new ConfigResolver(new RuleRegistry, $project);
+		$inactive = [];
+		foreach ($resolver->resolve($config, '8.3')->rules as $rule) {
+			$inactive[$rule->name] = $rule->inactive;
+		}
+
+		return [$inactive, $resolver->getWarnings()];
+	};
+	$installed = fn(?string $version) => ['version' => $version, 'reference' => null, 'path' => null, 'extra' => []];
+	$config = new Config(presets: [PackagedPreset::class]);
+
+	// a package the project does not have, or has below the version: left out, silently when a preset named the rule
+	[$inactive, $warnings] = $resolve($config, new ProjectPackages(rootName: 'app/project'));
+	Assert::same('it needs acme/lib >=3.3 and the project does not have it', $inactive['test/packaged']);
+	Assert::same('it needs acme/any and the project does not have it', $inactive['test/anyPackage']);
+	Assert::same([], $warnings);
+
+	[$inactive] = $resolve($config, new ProjectPackages(installed: ['acme/lib' => $installed('3.2.1'), 'acme/any' => $installed('1.0')]));
+	Assert::same('it needs acme/lib >=3.3 and the project is written for 3.2.1', $inactive['test/packaged']);
+	Assert::null($inactive['test/anyPackage']);
+
+	// the constraint of the project decides over the installed version
+	[$inactive] = $resolve($config, new ProjectPackages(required: ['acme/lib' => '^3.1'], installed: ['acme/lib' => $installed('3.4')]));
+	Assert::same('it needs acme/lib >=3.3 and the project is written for ^3.1', $inactive['test/packaged']);
+	[$inactive] = $resolve($config, new ProjectPackages(required: ['acme/lib' => '^3.3'], installed: ['acme/lib' => $installed('3.4')]));
+	Assert::null($inactive['test/packaged']);
+	Assert::null($inactive['test/boundedPackage']);
+
+	// a rule writing what a later version took away runs only where no version the project allows is that one
+	[$inactive] = $resolve($config, new ProjectPackages(required: ['acme/lib' => '^4.2 || ^5.0'], installed: ['acme/lib' => $installed('5.1')]));
+	Assert::null($inactive['test/packaged']);
+	Assert::same('it needs acme/lib >=3.3 <5.0 and the project is written for ^4.2 || ^5.0', $inactive['test/boundedPackage']);
+
+	// any version does for the project itself and for a branch without an alias
+	[$inactive] = $resolve($config, new ProjectPackages(rootName: 'acme/lib'));
+	Assert::null($inactive['test/packaged']);
+	[$inactive] = $resolve($config, new ProjectPackages(installed: ['acme/lib' => $installed(null)]));
+	Assert::null($inactive['test/packaged']);
+
+	// a project naming the rule hears why it does not run
+	[, $warnings] = $resolve(new Config(rules: [RulePackaged::class => true]), new ProjectPackages);
+	Assert::same(['Rule `test/packaged` needs `acme/lib >=3.3` and the project does not have it; skipped.'], $warnings);
 });
 
 

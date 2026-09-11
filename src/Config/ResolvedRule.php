@@ -35,7 +35,7 @@ final readonly class ResolvedRule
 		public bool $fixRisky = false,
 		/** the violations of the rule only warn */
 		public bool $warnOnly = false,
-		/** why the rule does not run, as a word: `turnedOff`, `php`, `types`, `narrowed`, `onlyOverride` or `notMentioned` */
+		/** why the rule does not run, as a word: `turnedOff`, `php`, `package`, `types`, `narrowed`, `onlyOverride` or `notMentioned` */
 		public ?string $inactiveReason = null,
 	) {
 	}

@@ -37,7 +37,7 @@ final class NoInfo extends NodeRule
 }
 
 
-#[RuleInfo('test/requiring', Stage::Structure, requires: ['php' => '>=8.4'])]
+#[RuleInfo('test/requiring', Stage::Structure, requires: ['php' => '>=8.4', 'acme/lib' => '>=3.3 <5.0', 'acme/other' => '*'])]
 final class RequiringRule extends NodeRule
 {
 	public function getVisitedTypes(): array
@@ -47,7 +47,7 @@ final class RequiringRule extends NodeRule
 }
 
 
-#[RuleInfo('test/badVersion', Stage::Structure, requires: ['php' => '8.3'])]
+#[RuleInfo('test/badVersion', Stage::Structure, requires: ['acme/lib' => '3.3'])]
 final class BadVersionRule extends NodeRule
 {
 	public function getVisitedTypes(): array
@@ -57,8 +57,18 @@ final class BadVersionRule extends NodeRule
 }
 
 
-#[RuleInfo('test/exactVersion', Stage::Structure, requires: ['php' => '==8.3'])]
+#[RuleInfo('test/exactVersion', Stage::Structure, requires: ['acme/lib' => '==3.3'])]
 final class ExactVersionRule extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+}
+
+
+#[RuleInfo('test/branch', Stage::Structure, requires: ['acme/lib' => 'dev-master'])]
+final class BranchRule extends NodeRule
 {
 	public function getVisitedTypes(): array
 	{
@@ -139,20 +149,28 @@ test('errors', function () {
 });
 
 
-test('what a rule requires is php, a Composer constraint', function () {
-	Assert::same('8.4', RuleInfo::of(RequiringRule::class)->getMinPhpVersion());
+test('what a rule requires is php and packages, each a Composer constraint, and a package may be any version', function () {
+	$info = RuleInfo::of(RequiringRule::class);
+	Assert::same('8.4', $info->getMinPhpVersion());
+	Assert::same(['acme/lib' => '>=3.3 <5.0', 'acme/other' => '*'], $info->getRequiredPackages());
 	Assert::null(RuleInfo::of(RuleOne::class)->getMinPhpVersion());
+	Assert::same([], RuleInfo::of(RuleOne::class)->getRequiredPackages());
 
 	// a bare version is a single one for Composer, which would turn the rule off for every other release
 	Assert::exception(
 		fn() => RuleInfo::of(BadVersionRule::class),
 		ConfigurationException::class,
-		'Class `BadVersionRule`: Rule `test/badVersion` requires `php 8.3`, a single version; a requirement is a range, usually `>=` with the version that brought what the rule writes.',
+		'Class `BadVersionRule`: Rule `test/badVersion` requires `acme/lib 3.3`, a single version; a requirement is a range, usually `>=` with the version that brought what the rule writes.',
 	);
 	Assert::exception(
 		fn() => RuleInfo::of(ExactVersionRule::class),
 		ConfigurationException::class,
-		'Class `ExactVersionRule`: Rule `test/exactVersion` requires `php ==8.3`, a single version; %a%',
+		'Class `ExactVersionRule`: Rule `test/exactVersion` requires `acme/lib ==3.3`, a single version; %a%',
+	);
+	Assert::exception(
+		fn() => RuleInfo::of(BranchRule::class),
+		ConfigurationException::class,
+		'Class `BranchRule`: Rule `test/branch` requires `acme/lib dev-master`, a single version; %a%',
 	);
 	Assert::exception(
 		fn() => RuleInfo::of(BadPhpRule::class),
@@ -162,7 +180,7 @@ test('what a rule requires is php, a Composer constraint', function () {
 	Assert::exception(
 		fn() => RuleInfo::of(BadNameRule::class),
 		ConfigurationException::class,
-		'Class `BadNameRule`: Rule `test/badName` requires `ext-mbstring`, which is not `php`.',
+		'Class `BadNameRule`: Rule `test/badName` requires `ext-mbstring`, which is neither `php` nor a package.',
 	);
 	Assert::exception(
 		fn() => RuleInfo::of(KebabNameRule::class),

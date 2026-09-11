@@ -97,7 +97,7 @@ final class RunnerFactory
 		$layers = [...$this->loadPlugins($config->plugins, $visited), $config];
 		$this->registerNamedClasses($config);
 		[$target, $source] = $this->resolvePhpTarget($config, $root);
-		$resolver = new ConfigResolver($this->registry);
+		$resolver = new ConfigResolver($this->registry, $project);
 		$this->resolved = $resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
 		// an override is resolved for a file it matches, so a name or an option it gets wrong would pass unnoticed until
 		// such a file comes; each of them is resolved as soon as the run is built

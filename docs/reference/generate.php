@@ -164,6 +164,10 @@ foreach ($rules as $name => $class) {
 		$facts[] = "Needs PHP {$info->requires['php']}";
 	}
 
+	foreach ($info->getRequiredPackages() as $package => $constraint) {
+		$facts[] = "Needs `$package`" . ($constraint === '*' ? '' : " $constraint");
+	}
+
 	if ($info->typesRequired) {
 		$facts[] = 'Needs the types of the code, so it runs only with `types: phpstan`';
 	}

@@ -36,6 +36,8 @@ final class ConfigResolver
 
 	public function __construct(
 		private readonly RuleRegistry $registry,
+		/** the packages the project stands on, which decide whether a rule requiring one runs */
+		private readonly ProjectPackages $project = new ProjectPackages,
 	) {
 	}
 
@@ -569,6 +571,7 @@ final class ConfigResolver
 		$last = $layers[count($layers) - 1][1];
 		$php = $info->requires['php'] ?? null;
 		$tooNew = $php !== null && !Versions::isSubset($phpTarget, $php);
+		$unmet = $this->project->findUnmetRequirement($info->getRequiredPackages());
 		$untyped = $info->typesRequired && !$types;
 		// a preset may name such a rule whatever the project has; a project naming it asked for what it cannot get
 		if ($untyped && $last !== false && $explicit) {
@@ -578,12 +581,15 @@ final class ConfigResolver
 		[$reason, $inactive] = match (true) {
 			$last === false => ['turnedOff', 'turned off by ' . $layers[count($layers) - 1][0]],
 			$tooNew => ['php', "it needs PHP $php and the target is $phpTarget"],
+			$unmet !== null => ['package', 'it needs ' . self::describeRequirement(...$unmet)],
 			$untyped => ['types', 'it needs the types of the code and the configuration sets no types'],
 			!$kept => ['narrowed', 'the run is narrowed to other rules'],
 			default => [null, null],
 		};
 		if ($tooNew && $last !== false && $explicit) {
 			$this->warnings[$info->name] = "Rule `$info->name` needs PHP $php and the target is $phpTarget; skipped.";
+		} elseif ($unmet !== null && $last !== false && $explicit) {
+			$this->warnings[$info->name] = "Rule `$info->name` needs " . self::describeRequirement(...$unmet, quote: '`') . '; skipped.';
 		}
 
 		$options = [];
@@ -605,5 +611,15 @@ final class ConfigResolver
 			$warnOnly,
 			$reason,
 		);
+	}
+
+
+	/** A package the project does not meet, said as what the rule needs and what the project has instead. */
+	private static function describeRequirement(string $package, string $constraint, ?string $current, string $quote = ''): string
+	{
+		$needs = $quote . ($constraint === '*' ? $package : "$package $constraint") . $quote;
+		return $current === null
+			? "$needs and the project does not have it"
+			: "$needs and the project is written for $current";
 	}
 }
