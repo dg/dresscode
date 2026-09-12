@@ -184,6 +184,76 @@ test('the shape of the conditions is counted by condition, and both shapes pass 
 });
 
 
+test('the scope is what the autoload names and the conventional directories beside it', function () {
+	$php = "<?php\n";
+	$composer = fn(array $autoload) => json_encode($autoload, JSON_THROW_ON_ERROR);
+
+	// psr-4 with a prefix on several paths and one that is not there, a test suite only the convention knows
+	$root = createProject('scope-psr4', [
+		'composer.json' => $composer(['autoload' => ['psr-4' => ['App\\' => 'ModuleFront', 'App\\Api\\' => ['ModuleApi/', 'gone']]], 'autoload-dev' => ['psr-4' => ['App\\Tests\\' => 'test/']]]),
+		'ModuleFront/a.php' => $php,
+		'ModuleApi/a.php' => $php,
+		'test/a.php' => $php,
+		'www.admin/index.php' => $php,
+		'cron/a.php' => $php,
+		'assets/a.php' => $php,
+	]);
+	Assert::same(['ModuleApi', 'ModuleFront', 'cron', 'test', 'www.admin'], Proposal::findPaths($root));
+
+	// a classmap names directories and single files, and the files section names no scope at all
+	$root = createProject('scope-classmap', [
+		'composer.json' => $composer(['autoload' => ['classmap' => ['src/', 'src/helpers.php'], 'files' => ['bootstrap.php']]]),
+		'src/a.php' => $php,
+		'src/helpers.php' => $php,
+		'bootstrap.php' => $php,
+		'tests/a.php' => $php,
+	]);
+	Assert::same(['src', 'tests'], Proposal::findPaths($root));
+
+	// a path inside another one is already in the scope, whichever of the two named it
+	$root = createProject('scope-nested', [
+		'composer.json' => $composer(['autoload' => ['psr-4' => ['App\\' => 'ModuleFront/', 'App\\Sub\\' => 'ModuleFront/Sub']]]),
+		'ModuleFront/a.php' => $php,
+		'ModuleFront/Sub/a.php' => $php,
+	]);
+	Assert::same(['ModuleFront'], Proposal::findPaths($root));
+
+	$root = createProject('scope-app', [
+		'composer.json' => $composer(['autoload' => ['psr-0' => ['' => 'app/Model']]]),
+		'app/Model/a.php' => $php,
+		'app/bootstrap.php' => $php,
+	]);
+	Assert::same(['app'], Proposal::findPaths($root));
+
+	// a dot segment names the same directory as the path without it, and only resolved do the two compare as one
+	$root = createProject('scope-dots', [
+		'composer.json' => $composer(['autoload' => ['psr-4' => ['App\\' => './src', 'App\\Api\\' => 'app/../ModuleApi']]]),
+		'src/a.php' => $php,
+		'ModuleApi/a.php' => $php,
+	]);
+	Assert::same(['ModuleApi', 'src'], Proposal::findPaths($root));
+
+	// an autoload pointing at the root itself is the whole scope
+	$root = createProject('scope-root', [
+		'composer.json' => $composer(['autoload' => ['psr-4' => ['App\\' => '']]]),
+		'src/a.php' => $php,
+	]);
+	Assert::same(['.'], Proposal::findPaths($root));
+
+	// the composer.json of a directory above names paths of another project, which are none of this scope
+	$root = createProject('scope-above/package', [
+		'../composer.json' => $composer(['autoload' => ['psr-4' => ['App\\' => 'src']]]),
+		'../src/a.php' => $php, // the src of the project above, which exists and is still none of this scope
+		'src/a.php' => $php,
+	]);
+	Assert::same(['src'], Proposal::findPaths($root));
+
+	// without a composer.json the convention is the whole answer
+	$root = createProject('scope-conventional', ['src/a.php' => $php, 'tests/a.php' => $php, 'storage/a.php' => $php]);
+	Assert::same(['src', 'tests'], Proposal::findPaths($root));
+});
+
+
 test('without the usual directories the root itself is the scope', function () use ($tabbed) {
 	$root = createProject('flat', ['A.php' => $tabbed]);
 	[$code] = runInit($root);

@@ -18,8 +18,11 @@ use function count, in_array, is_array, sprintf;
  */
 final class Proposal
 {
-	/** where the code of a project usually is; the ones the root has are the scope */
-	public const Paths = ['src', 'tests', 'app', 'lib'];
+	/**
+	 * Where the code of a project usually is, beside what the autoload says: the test suites the autoload-dev
+	 * rarely names and the entry points it cannot name at all. A name with a `*` is a pattern of the root.
+	 */
+	public const Paths = ['src', 'tests', 'test', 'app', 'lib', 'bin', 'cron', 'www*'];
 
 	/** directories of files nobody writes by hand, left out on top of the default exclusions */
 	public const GeneratedDirs = ['fixtures', 'Fixtures', 'expected'];
@@ -65,7 +68,7 @@ final class Proposal
 	 */
 	public static function measure(string $root, ?array $presets = null): self
 	{
-		$paths = array_values(array_filter(self::Paths, fn(string $dir) => is_dir("$root/$dir"))) ?: ['.'];
+		$paths = self::findPaths($root);
 		$scope = (new RunnerFactory)->createRunner(Config::create()->fileExtensions(['php', 'phpt']), $root, cache: false);
 		$files = $generated = [];
 		foreach ($scope->findFiles($paths) as $file) {
@@ -113,6 +116,47 @@ final class Proposal
 			),
 			$survey,
 		);
+	}
+
+
+	/**
+	 * The scope of a project: the directories its autoload names, the conventional ones the root has besides
+	 * them, and the root itself when neither says anything. A directory that lies in another one is already
+	 * in the scope, and one that does not exist would only make the run throw.
+	 * @return list<string>
+	 */
+	public static function findPaths(string $root): array
+	{
+		$paths = RunnerFactory::detectAutoloadPaths(RunnerFactory::findComposerFile($root), $root);
+		foreach (self::Paths as $name) {
+			// a pattern is matched against the names of the root, never against a path of its own, or a root
+			// holding a bracket or a star would be part of the pattern and quietly match nothing
+			$found = str_contains($name, '*')
+				? array_values(array_filter(scandir($root) ?: [], fn(string $entry) => fnmatch($name, $entry) && is_dir("$root/$entry")))
+				: (is_dir("$root/$name") ? [$name] : []);
+			$paths = [...$paths, ...$found];
+		}
+
+		$scope = [];
+		foreach (array_unique($paths) as $path) {
+			foreach ($paths as $other) {
+				if ($other !== $path && self::isInside($path, $other)) {
+					continue 2;
+				}
+			}
+
+			$scope[] = $path;
+		}
+
+		sort($scope, SORT_STRING);
+		return $scope ?: ['.'];
+	}
+
+
+	/** Whether the path lies in the directory, `.` standing for the whole root. */
+	private static function isInside(string $path, string $directory): bool
+	{
+		return $directory === '.' || str_starts_with("$path/", "$directory/");
 	}
 
 

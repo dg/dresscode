@@ -15,7 +15,7 @@ use DressCode\RuleInfo;
 use DressCode\Runner;
 use Nette\Utils\FileSystem;
 use PhpSyntax\Style;
-use function is_array, is_string;
+use function is_array, is_string, strlen;
 
 
 /**
@@ -283,12 +283,62 @@ final class RunnerFactory
 	/** The lowest version the constraint of require.php allows; a constraint naming no number has none. */
 	public static function detectPhpVersion(?string $composerFile): ?string
 	{
-		$json = $composerFile === null ? false : @file_get_contents($composerFile); // @ - the file is optional
-		$data = $json === false ? null : json_decode($json, associative: true);
-		$constraint = is_array($data) ? ($data['require']['php'] ?? null) : null;
+		$constraint = self::readComposer($composerFile)['require']['php'] ?? null;
 		return is_string($constraint) && preg_match('~(\d+)(?:\.(\d+))?~', $constraint, $m)
 			? $m[1] . '.' . ($m[2] ?? '0')
 			: null;
+	}
+
+
+	/**
+	 * The directories autoload and autoload-dev name, in the order of the file, relative to the root and with
+	 * their dot segments resolved: the only place where a project itself says where its code is. A `files`
+	 * entry is a single file, not a scope, and a classmap may name one too, so only what is a directory
+	 * counts; a directory outside the root belongs to another project, since the file may be the one of a
+	 * directory above.
+	 * @return list<string>
+	 */
+	public static function detectAutoloadPaths(?string $composerFile, string $root): array
+	{
+		$data = self::readComposer($composerFile);
+		if ($data === null) {
+			return [];
+		}
+
+		$base = Helpers::canonicalizePath(dirname((string) $composerFile));
+		$root = Helpers::canonicalizePath($root);
+		$paths = [];
+		foreach (['autoload', 'autoload-dev'] as $section) {
+			foreach (['psr-4', 'psr-0', 'classmap'] as $kind) {
+				foreach ((array) ($data[$section][$kind] ?? []) as $value) {
+					foreach ((array) $value as $path) { // a psr-4 prefix takes one path or several
+						// `./src` and `src` are the same path, and only resolved do they compare as one
+						$directory = is_string($path) ? Helpers::canonicalizePath(FileSystem::normalizePath("$base/$path")) : null;
+						if ($directory === null || !is_dir($directory)) {
+							continue;
+						} elseif ($directory === $root) {
+							$paths['.'] = true;
+						} elseif (str_starts_with($directory, "$root/")) {
+							$paths[substr($directory, strlen($root) + 1)] = true;
+						}
+					}
+				}
+			}
+		}
+
+		return array_keys($paths);
+	}
+
+
+	/**
+	 * What the composer.json holds; null when there is none, it cannot be read or it is not an object.
+	 * @return ?array<mixed>
+	 */
+	private static function readComposer(?string $composerFile): ?array
+	{
+		$json = $composerFile === null ? false : @file_get_contents($composerFile); // @ - the file is optional
+		$data = $json === false ? null : json_decode($json, associative: true);
+		return is_array($data) ? $data : null;
 	}
 
 
