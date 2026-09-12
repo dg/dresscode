@@ -240,18 +240,22 @@ final class Runner
 
 	/**
 	 * Files under the paths with one of the extensions, minus the excluded ones; an explicitly given file
-	 * is taken as is. Sorted, relative to the root.
+	 * is taken as is, unless $skipExcluded lets the excluded paths leave it out like a found one, which
+	 * is what a hook or an editor naming every file it touches wants; a file outside the root has no path
+	 * the patterns could match. Sorted, relative to the root.
 	 * @param  list<string>  $paths
 	 * @return list<string>
 	 */
-	public function findFiles(array $paths): array
+	public function findFiles(array $paths, bool $skipExcluded = false): array
 	{
 		$files = [];
 		foreach ($paths as $path) {
 			$path = $this->relativize($path);
 			$absolute = $this->toAbsolute($path);
 			if (is_file($absolute)) {
-				$files[$path] = true;
+				if (!$skipExcluded || FileSystem::isAbsolute($path) || !Helpers::matchesAny($this->excludePaths, $path)) {
+					$files[$path] = true;
+				}
 			} elseif (is_dir($absolute)) {
 				$finder = Finder::findFiles(array_map(fn($ext) => "*.$ext", $this->fileExtensions))
 					->from($absolute)

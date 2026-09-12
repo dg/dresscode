@@ -268,6 +268,23 @@ test('bare says what is left to the user and which files it rewrote', function (
 });
 
 
+test('a named file the configuration excludes is checked unless the caller asks to skip it', function () use ($root) {
+	@mkdir("$root/vendor");
+	file_put_contents("$root/vendor/v.php", "<?php\n\$a;\n");
+	try {
+		[$code, $out] = runApp($root, ['check', '-f', 'bare', 'vendor/v.php']);
+		Assert::same(1, $code);
+		Assert::match("vendor%a%v.php\n  error  2:1  Rename \$a  test/rename\n", $out);
+		[$code, $out] = runApp($root, ['fix', 'vendor/v.php', '--skip-excluded']);
+		Assert::same(0, $code);
+		Assert::match("%A%Nothing to check: %a%v.php holds no file to check\n", $out);
+		Assert::same("<?php\n\$a;\n", file_get_contents("$root/vendor/v.php"));
+	} finally {
+		unlink("$root/vendor/v.php");
+	}
+});
+
+
 test('a run inside GitHub Actions annotates without being told to', function () use ($root) {
 	putenv('GITHUB_ACTIONS=true');
 	putenv("GITHUB_WORKSPACE=$root");
