@@ -114,6 +114,7 @@ final class RuleRegistry
 		Rules\Functions\CsvEscapeArgumentRequiredRule::class,
 		Rules\Functions\NoDeprecatedArgumentsRule::class,
 		Rules\Functions\ClampForMinMaxRule::class,
+		Rules\Functions\GetDebugTypeForTypeTernaryRule::class,
 		Rules\Functions\StaticClosureRule::class,
 		Rules\Functions\StrictCallRule::class,
 		Rules\Namespaces\ImportNotationRule::class,
