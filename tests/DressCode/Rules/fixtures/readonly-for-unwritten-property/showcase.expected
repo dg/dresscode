@@ -1,0 +1,10 @@
+<?php
+final class Money
+{
+	private readonly string $currency;
+
+	public function __construct(string $currency)
+	{
+		$this->currency = $currency;
+	}
+}
