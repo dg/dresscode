@@ -9,7 +9,7 @@
 use DressCode\Config\Loader;
 use DressCode\Config\Proposal;
 use DressCode\Config\RunnerFactory;
-use DressCode\Config\Survey;
+use DressCode\Config\Sample;
 use DressCode\Console\Application;
 use Tester\Assert;
 use Tester\Helpers;
@@ -58,6 +58,7 @@ test('init writes what the code says, the loader reads it back as measured, and 
 	$root = createProject('written', [
 		'src/A.php' => $tabbed,
 		'src/B.php' => str_replace('A', 'B', $tabbed),
+		'src/C.php' => "<?php\n\n// @generated, and what a generator wrote says nothing about how the project writes\n",
 		'tests/c.phpt' => "<?php\n\nfunction c(): void\n{\n\techo \"plain\";\n}\n",
 		'tests/fixtures/generated.php' => "<?php\n    \$x = \"a\";\n",
 	]);
@@ -65,7 +66,7 @@ test('init writes what the code says, the loader reads it back as measured, and 
 	Assert::same(0, $code);
 	Assert::match(<<<'XX'
 		DRESS|CODE %a%
-		Sample     3 of 3 files in src, tests
+		Sample     3 of 4 files in src, tests, 1 generated left out
 		Standard   per, not measured; the others are psr12, nette and symfony
 		Indent     tab 100% of 3 files
 		Quotes     single 86%, double 14% of 7 strings
@@ -78,7 +79,7 @@ test('init writes what the code says, the loader reads it back as measured, and 
 
 	$neon = (string) file_get_contents("$root/dresscode.neon");
 	Assert::match(<<<'XX'
-		# Written by dresscode init from 3 of the 3 files. %A%
+		# Written by dresscode init from 3 of the 4 files. %A%
 
 		presets:
 			- per
@@ -262,12 +263,36 @@ test('without the usual directories the root itself is the scope', function () u
 });
 
 
-test('the sample is every k-th file, at most MaxFiles, the same for the same tree', function () {
-	$files = array_map(fn(int $i) => sprintf('src/f%04d.php', $i), range(1, 700));
-	$sample = Survey::pick($files);
-	Assert::same(234, count($sample));
-	Assert::same('src/f0001.php', $sample[0]);
-	Assert::same('src/f0004.php', $sample[1]);
-	Assert::same($sample, Survey::pick($files));
-	Assert::same(['a.php', 'b.php'], Survey::pick(['a.php', 'b.php']));
+test('the sample is every k-th file, the same for the same tree, without a file too large or generated', function () {
+	$files = [];
+	foreach (range(1, 400) as $i) {
+		$files[sprintf('src/f%03d.php', $i)] = "<?php\n";
+	}
+
+	$files['src/f007.php'] = "<?php\n" . str_repeat('// x', 30_000);
+	$files['src/f013.php'] = "<?php\n\n/**\n * This file is auto-generated, do not edit it.\n */\n";
+	$root = createProject('sample', $files);
+	$scope = array_keys($files);
+	sort($scope, SORT_STRING);
+
+	$sample = Sample::pick($root, $scope);
+	Assert::same(198, count($sample->files)); // every second of the 400, less the two
+	Assert::same(1, $sample->oversized);
+	Assert::same(1, $sample->generated);
+	Assert::same('src/f001.php', $sample->files[0]);
+	Assert::same('src/f003.php', $sample->files[1]);
+	Assert::notContains('src/f007.php', $sample->files);
+	Assert::notContains('src/f013.php', $sample->files);
+	Assert::same($sample->files, Sample::pick($root, $scope)->files);
+
+	// the budget of bytes is the cost of the measure, and it holds whatever the count allows
+	$files = [];
+	foreach (range(1, 30) as $i) {
+		$files[sprintf('src/g%02d.php', $i)] = "<?php\n" . str_repeat('x', 90_000);
+	}
+
+	$root = createProject('sample-bytes', $files);
+	$sample = Sample::pick($root, array_keys($files));
+	Assert::same(22, count($sample->files)); // 22 * 90 kB is the last that fits in 2 MB
+	Assert::same(8, $sample->oversized);
 });

@@ -17,10 +17,6 @@ use function count;
  */
 final class Survey
 {
-	/** the largest sample; every k-th of the sorted files, so that the same tree always gives the same one */
-	public const MaxFiles = 300;
-
-
 	public function __construct(
 		private readonly string $root,
 		/** @var list<string>  the sample, relative to the root */
@@ -28,18 +24,6 @@ final class Survey
 		/** what the configuration leaves the run to, the scope of the files above all */
 		private readonly Config $base,
 	) {
-	}
-
-
-	/**
-	 * Every k-th of the files, at most MaxFiles of them.
-	 * @param  list<string>  $files  sorted
-	 * @return list<string>
-	 */
-	public static function pick(array $files): array
-	{
-		$step = max(1, (int) ceil(count($files) / self::MaxFiles));
-		return array_values(array_filter($files, fn(int $index) => $index % $step === 0, ARRAY_FILTER_USE_KEY));
 	}
 
 

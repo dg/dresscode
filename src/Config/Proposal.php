@@ -57,6 +57,8 @@ final class Proposal
 		public readonly Measurement $quotes,
 		/** the shape of the conditions on several lines */
 		public readonly Measurement $conditions,
+		/** the files everything above was measured on */
+		public readonly Sample $sample,
 		private readonly Survey $survey,
 	) {
 	}
@@ -82,9 +84,10 @@ final class Proposal
 
 		$extensions = ['php', ...(array_filter($files, fn(string $file) => str_ends_with($file, '.phpt')) ? ['phpt'] : [])];
 		$excludePaths = array_values(array_intersect(self::GeneratedDirs, array_keys($generated)));
+		$sample = Sample::pick($root, array_values(array_filter($files, fn(string $file) => in_array(pathinfo($file, PATHINFO_EXTENSION), $extensions, true))));
 		$survey = new Survey(
 			$root,
-			Survey::pick(array_values(array_filter($files, fn(string $file) => in_array(pathinfo($file, PATHINFO_EXTENSION), $extensions, true)))),
+			$sample->files,
 			Config::create()->fileExtensions($extensions)->excludePaths($excludePaths),
 		);
 
@@ -114,6 +117,7 @@ final class Proposal
 				'conditions',
 				Config::create()->enable(MultiLineConditionRule::class, ['shape' => ['perLine', 'compact']]),
 			),
+			$sample,
 			$survey,
 		);
 	}
@@ -202,7 +206,7 @@ final class Proposal
 			sprintf(
 				"# Written by dresscode init from %d of the %d files. A number is the share of the places a decision\n"
 				. "# appears in that already agree with its value; what the file does not name, the standard decides.\n",
-				count($this->survey->files),
+				$this->countSampled(),
 				$this->total,
 			),
 			"presets:\n" . implode('', array_map(fn(string $preset) => "\t- $preset\n", $this->presets))
@@ -258,7 +262,7 @@ final class Proposal
 	/** How many files the sample has. */
 	public function countSampled(): int
 	{
-		return count($this->survey->files);
+		return count($this->sample->files);
 	}
 
 

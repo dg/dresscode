@@ -635,11 +635,16 @@ final class Application
 		);
 		$report = $existing ? $this->writeError(...) : $this->write(...);
 		$report($this->formatName() . "\n");
+		$left = array_filter([
+			$proposal->sample->oversized ? $proposal->sample->oversized . ' too large' : null,
+			$proposal->sample->generated ? $proposal->sample->generated . ' generated' : null,
+		]);
 		$report($this->console->color('gray', 'Sample     ') . sprintf(
-			"%d of %d files in %s\n",
+			"%d of %d files in %s%s\n",
 			$proposal->countSampled(),
 			$proposal->total,
 			implode(', ', $proposal->paths),
+			$left ? ', ' . implode(' and ', $left) . ' left out' : '',
 		));
 		$report($this->console->color('gray', 'Standard   ') . implode(', ', $proposal->presets) . ($proposal->given
 			? ", as given\n"
@@ -647,6 +652,7 @@ final class Application
 		$report($this->console->color('gray', 'Indent     ') . $proposal->indent->describe() . "\n");
 		$report($this->console->color('gray', 'Quotes     ') . $proposal->quotes->describe() . "\n");
 		$report($this->console->color('gray', 'Conditions ') . $proposal->conditions->describe() . "\n");
+
 		$report($this->console->color('gray', 'Dry run    ') . sprintf(
 			"%d of %d sampled files would change\n",
 			$proposal->countChanged(),
