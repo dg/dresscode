@@ -1,0 +1,14 @@
+<?php
+// risky
+// php 8.4
+class A
+{
+	/** @deprecated */
+	public function old(): void
+	{
+	}
+
+
+	/** @deprecated */
+	public const OLD = 1;
+}

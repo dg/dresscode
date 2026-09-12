@@ -1,0 +1,8 @@
+<?php
+// risky
+// php 8.4
+
+#[\Deprecated(message: 'Use render() instead', since: '2.0')]
+function renderTemplate()
+{
+}
