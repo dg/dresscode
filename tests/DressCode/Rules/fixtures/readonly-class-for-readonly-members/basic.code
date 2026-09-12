@@ -1,0 +1,81 @@
+<?php
+final class A
+{
+	private readonly string $name;
+	public readonly int $count;
+
+	public function __construct(string $name)
+	{
+		$this->name = $name;
+		$this->count = 1;
+	}
+}
+
+final class B
+{
+	public function __construct(
+		private readonly string $name,
+		private readonly int $count,
+	) {
+	}
+}
+
+class C
+{
+	public function __construct(private readonly string $name)
+	{
+	}
+}
+
+final class D
+{
+	private readonly string $name;
+	private string $other;
+
+	public function __construct()
+	{
+	}
+}
+
+final class E extends Base
+{
+	public function __construct(private readonly string $name)
+	{
+	}
+}
+
+final class F
+{
+	private static readonly string $shared;
+}
+
+final class G
+{
+	public function run(): void
+	{
+	}
+}
+
+final readonly class H
+{
+	public function __construct(private string $name)
+	{
+	}
+}
+
+final class I
+{
+	public function __construct(
+		private readonly ?string $mime = null {
+			get => $this->mime;
+		},
+	) {
+	}
+}
+
+final class J
+{
+	private readonly string $name {
+		get => $this->name;
+	}
+}
