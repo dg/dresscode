@@ -648,16 +648,32 @@ final class Application
 		));
 		$report($this->console->color('gray', 'Standard   ') . implode(', ', $proposal->presets) . ($proposal->given
 			? ", as given\n"
-			: ', not measured; the others are ' . Proposal::describeOthers() . "\n"));
+			: ", the nearest of the four below is not measured; cheaper is not nearer, and --preset writes another\n"));
 		$report($this->console->color('gray', 'Indent     ') . $proposal->indent->describe() . "\n");
 		$report($this->console->color('gray', 'Quotes     ') . $proposal->quotes->describe() . "\n");
 		$report($this->console->color('gray', 'Conditions ') . $proposal->conditions->describe() . "\n");
 
-		$report($this->console->color('gray', 'Dry run    ') . sprintf(
-			"%d of %d sampled files would change\n",
-			$proposal->countChanged(),
-			$proposal->countSampled(),
-		));
+		if ($proposal->given) {
+			$report($this->console->color('gray', 'Dry run    ') . sprintf(
+				"%d of %d sampled files would change\n",
+				$proposal->countChanged(),
+				$proposal->countSampled(),
+			));
+		} else {
+			// what a standard costs is what its first fix would change, the only number about them that measures
+			$first = true;
+			foreach ($proposal->countChangedByStandard() as $standard => $changed) {
+				$report($this->console->color('gray', $first ? 'Dry run    ' : '           ') . sprintf(
+					"%-8s %4d of %d%s%s\n",
+					$standard,
+					$changed,
+					$proposal->countSampled(),
+					$first ? ' sampled files would change' : '',
+					in_array($standard, $proposal->presets, true) ? ', the one written' : '',
+				));
+				$first = false;
+			}
+		}
 
 		if ($existing) {
 			$this->writeError(implode(' and ', $existing) . " exists, so the proposal is printed and nothing is written.\n");

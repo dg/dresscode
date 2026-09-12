@@ -67,11 +67,14 @@ test('init writes what the code says, the loader reads it back as measured, and 
 	Assert::match(<<<'XX'
 		DRESS|CODE %a%
 		Sample     3 of 4 files in src, tests, 1 generated left out
-		Standard   per, not measured; the others are psr12, nette and symfony
+		Standard   per, the nearest of the four below is not measured; cheaper is not nearer, and --preset writes another
 		Indent     tab 100% of 3 files
 		Quotes     single 86%, double 14% of 7 strings
 		Conditions no conditions
-		Dry run    %d% of 3 sampled files would change
+		Dry run    per         1 of 3 sampled files would change, the one written
+		           psr12       1 of 3
+		           nette       3 of 3
+		           symfony     3 of 3
 
 		dresscode.neon written.
 
@@ -83,7 +86,7 @@ test('init writes what the code says, the loader reads it back as measured, and 
 
 		presets:
 			- per
-			# not measured; the other complete standards are psr12, nette and symfony
+			# not chosen by measure; the other complete standards are psr12, nette and symfony
 
 		indent: tab  # tab 100% of 3 files
 
@@ -137,8 +140,13 @@ test('a decision the code does not make clearly is not written as a value', func
 		'src/a.php' => "<?php\n\nfunction a(): void\n{\n\techo 'a', 'b';\n}\n",
 		'src/b.php' => "<?php\n\nfunction b(): void\n{\n    echo \"a\", \"b\";\n}\n",
 	]);
-	[$code] = runInit($root, ['--preset', 'nette']);
+	[$code, $out] = runInit($root, ['--preset', 'nette']);
 	Assert::same(0, $code);
+	// a standard that was given is the only one priced, and the others are not even named
+	Assert::contains("Standard   nette, as given\n", $out);
+	Assert::match("%A%Dry run    %d% of 2 sampled files would change\n%A%", $out);
+	Assert::notContains('symfony', $out);
+
 	$neon = (string) file_get_contents("$root/dresscode.neon");
 	Assert::contains("presets:\n\t- nette\n\n", $neon); // given, so the file does not say it was not measured
 	// the indentation has no value to fall back to, so the standard keeps it and the comment says why

@@ -7,7 +7,7 @@ use DressCode\ConfigurationException;
 use DressCode\Rules\ControlFlow\MultiLineConditionRule;
 use DressCode\Rules\Literals\StringQuotesRule;
 use DressCode\Rules\Whitespace\IndentationRule;
-use function count, in_array, is_array, sprintf;
+use function array_slice, count, in_array, is_array, sprintf;
 
 
 /**
@@ -28,16 +28,14 @@ final class Proposal
 	public const GeneratedDirs = ['fixtures', 'Fixtures', 'expected'];
 
 	/**
-	 * The standard written when none is given; which one is nearest is not measured, because no measure tried
-	 * told the standards apart where it was checked against what the projects declare.
+	 * The complete standards, the first of them the one written when none is given. Which of them is nearest
+	 * is not measured, because no measure tried told them apart where it was checked against what the projects
+	 * declare; what is measured is what each would cost, which is a consequence and not a likeness.
 	 */
-	public const DefaultStandard = 'per';
+	public const Standards = ['per', 'psr12', 'nette', 'symfony'];
 
 	/** the indentation units measured, as the configuration writes them */
 	private const Indents = ['tab', '4', '2'];
-
-	/** the other complete standards, which the file names for its reader */
-	private const OtherStandards = ['psr12', 'nette', 'symfony'];
 
 
 	private function __construct(
@@ -97,7 +95,7 @@ final class Proposal
 		}
 
 		return new self(
-			$presets ?? [self::DefaultStandard],
+			$presets ?? [self::Standards[0]],
 			$presets !== null,
 			$paths,
 			$extensions,
@@ -164,14 +162,18 @@ final class Proposal
 	}
 
 
-	/** The configuration as data, the same the text says. */
-	public function toConfig(): Config
+	/**
+	 * The configuration as data, the same the text says; with a standard of its own what that standard would
+	 * come to over the same decisions, which is what a price is measured on.
+	 * @param  ?list<string>  $presets
+	 */
+	public function toConfig(?array $presets = null): Config
 	{
 		$config = Config::create()
 			->paths($this->paths)
 			->fileExtensions($this->fileExtensions)
 			->excludePaths($this->excludePaths);
-		foreach ($this->presets as $preset) {
+		foreach ($presets ?? $this->presets as $preset) {
 			$config->preset($preset);
 		}
 
@@ -210,7 +212,7 @@ final class Proposal
 				$this->total,
 			),
 			"presets:\n" . implode('', array_map(fn(string $preset) => "\t- $preset\n", $this->presets))
-			. ($this->given ? '' : sprintf("\t# not measured; the other complete standards are %s\n", self::describeOthers())),
+			. ($this->given ? '' : sprintf("\t# not chosen by measure; the other complete standards are %s\n", self::describeOthers())),
 		];
 
 		$indent = $this->indent->findPrevailing();
@@ -259,6 +261,25 @@ final class Proposal
 	}
 
 
+	/**
+	 * What each complete standard would cost over the same decisions, the cheapest first: the one number about
+	 * the standards that measures a consequence and not a likeness, which is why it is told and no standard is
+	 * chosen by it.
+	 * @return array<string, int>
+	 * @throws ConfigurationException
+	 */
+	public function countChangedByStandard(): array
+	{
+		$prices = [];
+		foreach (self::Standards as $standard) {
+			$prices[$standard] = $this->survey->countChanged($this->toConfig([$standard]));
+		}
+
+		asort($prices);
+		return $prices;
+	}
+
+
 	/** How many files the sample has. */
 	public function countSampled(): int
 	{
@@ -290,10 +311,10 @@ final class Proposal
 	}
 
 
-	/** What the file and the report say of the standards init did not write: "psr12, nette and symfony". */
+	/** What the file says of the complete standards beside the one it writes by itself: "psr12, nette and symfony". */
 	public static function describeOthers(): string
 	{
-		$others = self::OtherStandards;
+		$others = array_slice(self::Standards, 1);
 		$last = array_pop($others);
 		return implode(', ', $others) . " and $last";
 	}
