@@ -1,0 +1,137 @@
+<?php
+function a(): never
+{
+	throw new LogicException('no');
+}
+
+
+function b(): never
+{
+	echo 'bye';
+	exit(1);
+}
+
+
+function c(): never
+{
+	throw new LogicException('no');
+}
+
+
+function d()
+{
+	if ($x) {
+		return 1;
+	}
+
+	throw new LogicException('no');
+}
+
+
+function e(): never
+{
+	$fn = function () {
+		return 1;
+	};
+	throw new LogicException('no');
+}
+
+
+function f()
+{
+	yield 1;
+	throw new LogicException('no');
+}
+
+
+function g()
+{
+	echo 'nothing';
+}
+
+
+class H
+{
+	public function fail()
+	{
+		throw new LogicException('no');
+	}
+
+
+	protected function failProtected()
+	{
+		throw new LogicException('no');
+	}
+
+
+	private function failPrivate(): never
+	{
+		throw new LogicException('no');
+	}
+
+
+	final public function failFinal(): never
+	{
+		throw new LogicException('no');
+	}
+
+
+	public function __toString()
+	{
+		throw new LogicException('no');
+	}
+
+
+	abstract public function later();
+}
+
+
+final class I
+{
+	public function fail(): never
+	{
+		throw new LogicException('no');
+	}
+}
+
+
+trait J
+{
+	public function fail()
+	{
+		throw new LogicException('no');
+	}
+
+
+	final public function failFinal(): never
+	{
+		throw new LogicException('no');
+	}
+
+
+	private function failPrivate(): never
+	{
+		throw new LogicException('no');
+	}
+}
+
+
+enum K
+{
+	public function fail(): never
+	{
+		throw new LogicException('no');
+	}
+}
+
+
+$anonymous = new class {
+	public function fail(): never
+	{
+		throw new LogicException('no');
+	}
+};
+
+$closure = function () {
+	throw new LogicException('no');
+};
