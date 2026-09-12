@@ -1,0 +1,11 @@
+<?php
+// php 8.5
+// {"chain": "nesting"}
+$order
+	|> array_keys(...)
+		|> json_encode(...)
+		|> $form->setValue(...);
+
+$order
+			|> array_keys(...)
+	|> json_encode(...);

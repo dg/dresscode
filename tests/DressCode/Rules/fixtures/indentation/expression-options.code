@@ -14,3 +14,8 @@ $d =
 // an expression sharing its line steps in whatever the options say
 $h = $i
 && $j;
+
+// and so does one that begins its statement
+$k
+? l()
+: m();

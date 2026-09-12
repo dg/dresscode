@@ -26,10 +26,12 @@ use function count;
  * Every line indented by the construct it continues: what a construct holds stands one level below the line
  * the construct begins on, what closes or continues the construct stands at that line, and the level is
  * counted from the level the construct itself was given, never read from the text around it. Which part of
- * a construct a line is comes from the layout role of the slot it opens (PhpSyntax\LayoutData); an operator,
- * a ternary branch, a link of a chain and the cases of a switch step in as the options say. A comment on
- * a line of its own stands with the line below it, above a closing bracket with the content it closes. The
- * content of strings, heredocs and inline HTML is text and never changes.
+ * a construct a line is comes from the layout role of the slot it opens (PhpSyntax\Indentation::findRole(),
+ * which takes a pipeline for a chain); an operator, a ternary branch, a link of a chain and the cases of a
+ * switch step in as the options say, and a continuation of an expression that begins its statement by at
+ * least one level, having no line of its own to line up with. A comment on a line of its own stands with
+ * the line below it, above a closing bracket with the content it closes. The content of strings, heredocs
+ * and inline HTML is text and never changes.
  */
 #[RuleInfo(
 	'dresscode/indentation',
@@ -55,7 +57,7 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 	{
 		return Expect::structure([
 			'binary' => Expect::anyOf(Expect::int()->min(0)->max(1), 'keep')->default(0)
-				->description('Levels a binary operator opening a line steps in by when its expression has a line of its own; keep leaves such lines alone'),
+				->description('Levels a binary operator opening a line steps in by when its expression has a line of its own that is not the line of the statement; keep leaves such lines alone'),
 			'ternary' => Expect::anyOf(Expect::int()->min(0)->max(1), 'keep')->default(1)
 				->description('Levels the ? and : of a ternary opening a line step in by; keep leaves them alone'),
 			'switchCases' => Expect::int(1)->min(0)->max(1)
@@ -140,9 +142,8 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 			LayoutRole::Content => $owner instanceof NamespaceNode && $owner->openBrace === null ? 0 : 1,
 			LayoutRole::Anchor, LayoutRole::Closes => 0,
 			LayoutRole::Body => $child instanceof BlockNode ? 0 : 1,
-			// an expression sharing the line with what holds it has no line of its own to line up with
-			LayoutRole::Operator => $this->binary === null ? null : max($this->binary, $first->startsLine() ? 0 : 1),
-			LayoutRole::Branch => $this->ternary === null ? null : max($this->ternary, $first->startsLine() ? 0 : 1),
+			LayoutRole::Operator => $this->binary === null ? null : max($this->binary, self::minimumLevel($first)),
+			LayoutRole::Branch => $this->ternary === null ? null : max($this->ternary, self::minimumLevel($first)),
 			LayoutRole::Link => match ($this->chain) {
 				null => null,
 				'nesting' => $this->nestingLevel($owner, $token, $base, $style),
@@ -212,6 +213,17 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 	}
 
 
+	/**
+	 * The level a line continuing an expression may not go below: an expression sharing its line with what
+	 * holds it has no line of its own to line up with, and one beginning its statement stands at the level
+	 * of a statement, where a continuation would read as the next one.
+	 */
+	private static function minimumLevel(Token $first): int
+	{
+		return !$first->startsLine() || Indentation::opensStatement($first) ? 1 : 0;
+	}
+
+
 	/** Whether the next token continues the structure the token closes: else, elseif, catch, finally, the while of a do. */
 	private static function continuesStructure(Token $token): bool
 	{
@@ -237,7 +249,7 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 		$actual = $deeper > 0 ? intdiv($deeper, $unit) : 0;
 		$previous = 0;
 		for ($link = $owner instanceof Nodes\ExpressionNode ? self::innerLink($owner) : null; $link !== null; $link = self::innerLink($link)) {
-			$before = $link instanceof Nodes\Expression\MethodCallNode || $link instanceof Nodes\Expression\PropertyFetchNode ? $link->operator : null;
+			$before = self::linkOperator($link);
 			if ($before?->startsLine()) {
 				$given = $this->lines[$before->getLine() ?? 0] ?? $base;
 				$previous = intdiv(Indentation::width($given, $style) - Indentation::width($base, $style), $unit);
@@ -254,12 +266,25 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 	{
 		return match (true) {
 			$node instanceof Nodes\Expression\MethodCallNode, $node instanceof Nodes\Expression\PropertyFetchNode => $node->object,
+			// a pipeline is a chain of calls, every other binary operator a computation
+			$node instanceof Nodes\Expression\BinaryOpNode => $node->operator->is(TokenKind::Pipe) ? $node->left : null,
 			$node instanceof Nodes\Expression\ArrayAccessNode => $node->expression,
 			$node instanceof Nodes\Expression\FunctionCallNode => $node->name instanceof Nodes\ExpressionNode ? $node->name : null,
 			$node instanceof Nodes\Expression\StaticMethodCallNode,
 			$node instanceof Nodes\Expression\StaticPropertyFetchNode,
 			$node instanceof Nodes\Expression\ClassConstantFetchNode
 				=> $node->class instanceof Nodes\ExpressionNode ? $node->class : null,
+			default => null,
+		};
+	}
+
+
+	/** The operator that links the node to the expression it is applied to, null where nothing links it. */
+	private static function linkOperator(Nodes\ExpressionNode $node): ?Token
+	{
+		return match (true) {
+			$node instanceof Nodes\Expression\MethodCallNode, $node instanceof Nodes\Expression\PropertyFetchNode => $node->operator,
+			$node instanceof Nodes\Expression\BinaryOpNode => $node->operator->is(TokenKind::Pipe) ? $node->operator : null,
 			default => null,
 		};
 	}

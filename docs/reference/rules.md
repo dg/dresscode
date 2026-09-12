@@ -431,7 +431,7 @@ Stage: Cleanup. Covers: `array_indentation`, `indentation_type`, `method_chainin
 
 | Option | Type | Default | |
 |---|---|---|---|
-| `binary` | int | `0` | Levels a binary operator opening a line steps in by when its expression has a line of its own; keep leaves such lines alone |
+| `binary` | int | `0` | Levels a binary operator opening a line steps in by when its expression has a line of its own that is not the line of the statement; keep leaves such lines alone |
 | `ternary` | int | `1` | Levels the ? and : of a ternary opening a line step in by; keep leaves them alone |
 | `switchCases` | int | `1` | Levels the cases of a switch step in by |
 | `chain` | `single` \| `nesting` \| `keep` | `"single"` | single puts every link of a chain one level below its start, nesting lets a link stand one level deeper or shallower than the link before it; keep leaves chains alone |
