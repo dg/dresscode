@@ -7,7 +7,6 @@ rules:
 	strict-comparison: true
 	final-internal-class: true
 	ternary-for-simple-branch: true
-	global-imports: {functions: optimized}
 
 paths:
 	- src
@@ -24,6 +23,9 @@ fileExtensions:
 	- phpt
 
 for:
+	- files: [src]
+	  rules: {global-imports: {functions: optimized}}
+
 	# a test opens with its own header and stands the bootstrap apart from the imports
 	- files: [tests/**.phpt]
 	  rules: {dresscode/blank-lines: {afterImports: 2}}
