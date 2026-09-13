@@ -15,10 +15,24 @@ final class PhpSymbols
 {
 	use PhpSymbolsData;
 
-	/** Whether PHP declares the global function, whatever the letter case. */
-	public function isInternalFunction(string $name): bool
+	/**
+	 * Whether PHP declares the global function, whatever the letter case; given a version, whether that version
+	 * declares it, which is how a function dropped later (`imap_open` from PHP 8.4) and one added later
+	 * (`mb_trim` in 8.4) are told apart. An extension the source of the catalog could not see reads as added
+	 * later than it was, so the answer errs towards no.
+	 */
+	public function isInternalFunction(string $name, ?string $version = null): bool
 	{
-		return array_key_exists(strtolower($name), self::Functions);
+		$name = strtolower($name);
+		if (!array_key_exists($name, self::Functions)) {
+			return false;
+		} elseif ($version === null) {
+			return true;
+		}
+
+		[$since, $until] = explode('-', self::FunctionVersions[$name] ?? '-');
+		return ($since === '' || version_compare($version, $since, '>='))
+			&& ($until === '' || version_compare($version, $until, '<='));
 	}
 
 
