@@ -1,0 +1,14 @@
+<?php
+class Formatter
+{
+	public function format(string $text): string
+	{
+		return $this->trim($text);
+	}
+
+
+	private function trim(string $text): string
+	{
+		return trim($text);
+	}
+}

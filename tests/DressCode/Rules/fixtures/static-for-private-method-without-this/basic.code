@@ -1,0 +1,134 @@
+<?php
+// risky
+namespace App;
+
+class Formatter
+{
+	private int $width = 80;
+
+
+	public function format(string $text): string
+	{
+		return $this->trim($text) . $this->pad($text) . $this->wrap($text) . $this->trim(...)('x');
+	}
+
+
+	private function trim(string $text): string
+	{
+		return trim($text);
+	}
+
+
+	final private function pad(string $text): string
+	{
+		return self::fill($text, static::Width) . fn() => strlen($text);
+	}
+
+
+	private static function fill(string $text, int $width): string
+	{
+		return str_pad($text, $width);
+	}
+
+
+	private function wrap(string $text): string
+	{
+		return $this->trim($text);
+	}
+
+
+	private function build(): object
+	{
+		return new class {
+			public function get()
+			{
+				return $this;
+			}
+		};
+	}
+
+
+	// left alone
+
+	private function usesThis(): int
+	{
+		return $this->width;
+	}
+
+
+	private function usesThisInClosure(): \Closure
+	{
+		return fn() => $this->width;
+	}
+
+
+	private function callsParent(): string
+	{
+		return parent::format('x');
+	}
+
+
+	private function callsInstanceMethod(): string
+	{
+		return self::format('x');
+	}
+
+
+	private function callsInherited(): string
+	{
+		return static::inherited();
+	}
+
+
+	private function compacts(): array
+	{
+		return compact('this');
+	}
+
+
+	private function variableVariable(string $name): mixed
+	{
+		return $$name;
+	}
+
+
+	public function notPrivate(): int
+	{
+		return 1;
+	}
+
+
+	private function __clone()
+	{
+	}
+
+
+	abstract private function withoutBody(): void;
+
+
+	private function recursive(int $n): int
+	{
+		return $n === 0 ? 0 : $this->recursive($n - 1);
+	}
+}
+
+$x = new class {
+	private function helper(): int
+	{
+		return 1;
+	}
+
+
+	public function run(): int
+	{
+		return $this->helper() + $other->helper();
+	}
+};
+
+trait Helpers
+{
+	private function helper(): int
+	{
+		return 1;
+	}
+}
