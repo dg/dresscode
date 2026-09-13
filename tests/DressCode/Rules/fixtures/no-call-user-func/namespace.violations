@@ -1,0 +1,5 @@
+8: The callable must be called directly, not through call_user_func()
+9: The callable must be called directly, not through call_user_func(), unless the namespace declares call_user_func()
+10: The callable must be called directly, not through call_user_func()
+11: The callable must be called directly, not through call_user_func()
+12: The callable must be called directly, not through call_user_func_array()

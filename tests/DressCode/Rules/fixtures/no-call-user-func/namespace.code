@@ -1,0 +1,12 @@
+<?php declare(strict_types=1);
+// php 8.1
+
+namespace App;
+
+use function call_user_func_array;
+
+$a = \call_user_func($callback, 1);
+$b = call_user_func($callback, 1);
+$c = \call_user_func('strtoupper', 'a');
+$d = \call_user_func('Lib\format', 'a');
+$e = call_user_func_array($callback, [1]);
