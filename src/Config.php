@@ -54,7 +54,7 @@ final class Config
 	private ?bool $risky = null;
 
 	/** @var list<array{list<string>, array<string, bool|string|int|array<string, mixed>>}>  patterns and the rules of that part of the tree */
-	private array $blocks = [];
+	private array $overrides = [];
 
 	/** @var ?list<string> */
 	private ?array $fileExtensions = null;
@@ -184,14 +184,14 @@ final class Config
 
 	/**
 	 * Other rules for a part of the tree: a file the patterns match gets these on top of everything above,
-	 * in the order the blocks were written. A part of a project with a convention of its own needs another
+	 * in the order the overrides were written. A part of a project with a convention of its own needs another
 	 * number, not a rule turned off everywhere.
-	 * @param list<string> $files  patterns, relative to the root
+	 * @param list<string> $paths  patterns, relative to the root
 	 * @param array<string, bool|string|int|array<string, mixed>> $rules  names or classes, as `rules` takes them
 	 */
-	public function for(array $files, array $rules): static
+	public function override(array $paths, array $rules): static
 	{
-		$this->blocks[] = [$files, $rules];
+		$this->overrides[] = [$paths, $rules];
 		return $this;
 	}
 
@@ -323,7 +323,7 @@ final class Config
 		$this->warnings = $layer->warnings ?? $this->warnings;
 		$this->only = $layer->only ?? $this->only;
 		$this->risky = $layer->risky ?? $this->risky;
-		$this->blocks = [...$this->blocks, ...$layer->blocks];
+		$this->overrides = [...$this->overrides, ...$layer->overrides];
 		$this->fileExtensions = $layer->fileExtensions ?? $this->fileExtensions;
 		$this->skipWhen = $layer->skipWhen ?? $this->skipWhen;
 		$this->baseline = $layer->baseline ?? $this->baseline;
@@ -507,9 +507,9 @@ final class Config
 
 
 	/** @return list<array{list<string>, array<string, bool|string|int|array<string, mixed>>}> */
-	public function getBlocks(): array
+	public function getOverrides(): array
 	{
-		return $this->blocks;
+		return $this->overrides;
 	}
 
 

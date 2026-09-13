@@ -55,7 +55,7 @@ final class ResultCache
 
 
 	/**
-	 * The identity of a content under one configuration; a `for` block gives two files of the same text
+	 * The identity of a content under one configuration; an override gives two files of the same text
 	 * different rules, so the verdict of one says nothing about the other.
 	 */
 	public static function hashContent(string $code, string $variant = ''): string

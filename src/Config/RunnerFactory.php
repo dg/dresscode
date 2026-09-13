@@ -86,7 +86,7 @@ final class RunnerFactory
 			$this->registry->registerPreset($class);
 		}
 
-		$this->checkRulesOfBlocks($config);
+		$this->checkRulesOfOverrides($config);
 		[$phpVersion] = $this->phpVersion = $this->resolvePhpVersion($config, $root);
 		$resolver = new PresetResolver($this->registry);
 		$context = new PresetContext($phpVersion);
@@ -100,13 +100,13 @@ final class RunnerFactory
 		$baseline = self::loadBaseline($config, $root);
 		$warningRules = $this->resolveWarnings($config);
 		$fixRisky = $config->getRisky();
-		$this->resolveFor = fn(array $blocks) => $blocks === []
+		$this->resolveFor = fn(array $overrides) => $overrides === []
 			? $resolved
-			: $resolver->resolveConfig($config, $context, array_values($blocks));
+			: $resolver->resolveConfig($config, $context, array_values($overrides));
 		$processors = new FileProcessors(
-			array_map(fn(array $block) => $block[0], $config->getBlocks()),
-			function (array $blocks) use ($analyses, $phpVersion, $strict, $baseline, $warningRules, $fixRisky, $resolver): FileProcessor {
-				$variant = $this->resolveConfigFor($blocks);
+			array_map(fn(array $override) => $override[0], $config->getOverrides()),
+			function (array $overrides) use ($analyses, $phpVersion, $strict, $baseline, $warningRules, $fixRisky, $resolver): FileProcessor {
+				$variant = $this->resolveConfigFor($overrides);
 				return new FileProcessor(
 					$resolver->build($variant),
 					$analyses,
@@ -125,7 +125,7 @@ final class RunnerFactory
 			? ResultCache::load(
 				self::resolveCacheFile($config, $root),
 				// the baseline decides what a rule reports, so a file clean under one is not clean under another
-				self::hashConfiguration([$resolved->toArray(), $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $baseline?->getHash(), $config->getBlocks(), $fixRisky]),
+				self::hashConfiguration([$resolved->toArray(), $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $baseline?->getHash(), $config->getOverrides(), $fixRisky]),
 			)
 			: null;
 		return new Runner(
@@ -141,12 +141,12 @@ final class RunnerFactory
 
 
 	/**
-	 * What the configuration comes to for a file matching those blocks; the same resolution the run uses.
-	 * @param  list<int>  $blocks
+	 * What the configuration comes to for a file matching those overrides; the same resolution the run uses.
+	 * @param  list<int>  $overrides
 	 */
-	public function resolveConfigFor(array $blocks): ResolvedConfig
+	public function resolveConfigFor(array $overrides): ResolvedConfig
 	{
-		return ($this->resolveFor ?? throw new \LogicException('No engine has been built yet.'))($blocks);
+		return ($this->resolveFor ?? throw new \LogicException('No engine has been built yet.'))($overrides);
 	}
 
 
@@ -179,13 +179,13 @@ final class RunnerFactory
 
 
 	/**
-	 * A block is resolved only for a file it matches, so a name no rule owns would otherwise pass unnoticed
+	 * An override is resolved only for a file it matches, so a name no rule owns would otherwise pass unnoticed
 	 * until such a file comes; it is an error of the configuration as soon as the run is built.
 	 * @throws ConfigurationException
 	 */
-	private function checkRulesOfBlocks(Config $config): void
+	private function checkRulesOfOverrides(Config $config): void
 	{
-		foreach ($config->getBlocks() as [, $rules]) {
+		foreach ($config->getOverrides() as [, $rules]) {
 			foreach (array_keys($rules) as $rule) {
 				$this->registry->resolveRule($rule);
 			}

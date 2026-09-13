@@ -22,10 +22,10 @@ fileExtensions:
 	- php
 	- phpt
 
-for:
-	- files: [src]
+overrides:
+	- paths: [src]
 	  rules: {global-imports: {functions: optimized}}
 
 	# a test opens with its own header and stands the bootstrap apart from the imports
-	- files: [tests/**.phpt]
+	- paths: [tests/**.phpt]
 	  rules: {dresscode/blank-lines: {afterImports: 2}}

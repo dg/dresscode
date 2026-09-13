@@ -197,12 +197,12 @@ final class Runner
 
 
 	/**
-	 * Indexes of the `for` blocks that apply to the file.
+	 * Indexes of the overrides that apply to the file.
 	 * @return list<int>
 	 */
-	public function findBlocksFor(string $path): array
+	public function findOverridesFor(string $path): array
 	{
-		return $this->processors->findBlocks($this->relativize($path));
+		return $this->processors->findOverrides($this->relativize($path));
 	}
 
 

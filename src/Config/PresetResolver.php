@@ -75,10 +75,10 @@ final class PresetResolver
 	 * The configuration as data: what every rule ends up with, where it came from, and why a rule that
 	 * does not run does not. The run, the result cache and whoever prints the configuration read this one
 	 * result, so that none of them can say something the others do not.
-	 * @param  list<int>  $blocks  indexes of the `for` blocks that match the file this is resolved for
+	 * @param  list<int>  $overrides  indexes of the overrides that match the file this is resolved for
 	 * @throws ConfigurationException
 	 */
-	public function resolveConfig(Config $config, PresetContext $context, array $blocks = []): ResolvedConfig
+	public function resolveConfig(Config $config, PresetContext $context, array $overrides = []): ResolvedConfig
 	{
 		$presets = $this->listPresets($config);
 		/** @var array<class-string<Rule>, list<array{string, mixed}>> $layers */
@@ -101,11 +101,11 @@ final class PresetResolver
 			$explicit[$class] = true;
 		}
 
-		// the blocks come last and in the order they were written, so that a later one has the last word
-		$all = $config->getBlocks();
-		foreach ($blocks as $index) {
-			[$files, $rules] = $all[$index];
-			$source = 'for ' . implode(', ', $files);
+		// the overrides come last and in the order they were written, so that a later one has the last word
+		$all = $config->getOverrides();
+		foreach ($overrides as $index) {
+			[$paths, $rules] = $all[$index];
+			$source = 'the override for ' . implode(', ', $paths);
 			foreach ($rules as $rule => $value) {
 				$class = $this->registry->resolveRule($rule);
 				$layers[$class][] = [$source, self::normalize($value)];
@@ -128,8 +128,8 @@ final class PresetResolver
 			}
 		}
 
-		if ($narrowed !== null && $blocks === []) {
-			self::checkOnly($narrowed, $rules, $inactive, $this->findRulesOfBlocks($config));
+		if ($narrowed !== null && $overrides === []) {
+			self::checkOnly($narrowed, $rules, $inactive, $this->findRulesOfOverrides($config));
 		}
 
 		[$indent, $eol] = $this->resolveStyle($config);
@@ -191,17 +191,17 @@ final class PresetResolver
 
 	/**
 	 * A name of --only that lets in nothing that runs would make a run that checks nothing and says it is
-	 * clean; a rule that runs only where a `for` block enables it is not such a name.
+	 * clean; a rule that runs only where an override enables it is not such a name.
 	 * @param  list<array{class-string<Rule>|class-string<Preset>, list<class-string<Rule>>}>  $narrowed
 	 * @param  array<class-string<Rule>, ResolvedRule>  $active
 	 * @param  array<class-string<Rule>, ResolvedRule>  $inactive
-	 * @param  array<class-string<Rule>, true>  $ofBlocks
+	 * @param  array<class-string<Rule>, true>  $ofOverrides
 	 * @throws ConfigurationException
 	 */
-	private static function checkOnly(array $narrowed, array $active, array $inactive, array $ofBlocks): void
+	private static function checkOnly(array $narrowed, array $active, array $inactive, array $ofOverrides): void
 	{
 		foreach ($narrowed as [$class, $rules]) {
-			if (array_filter($rules, fn(string $rule) => isset($active[$rule]) || isset($ofBlocks[$rule]))) {
+			if (array_filter($rules, fn(string $rule) => isset($active[$rule]) || isset($ofOverrides[$rule]))) {
 				continue;
 			} elseif (is_subclass_of($class, Preset::class)) {
 				throw new ConfigurationException('Preset ' . PresetInfo::of($class)->name . ' named by --only has no rule that runs here.');
@@ -217,15 +217,15 @@ final class PresetResolver
 
 
 	/**
-	 * The rules some `for` block of the configuration enables, whichever file it applies to.
+	 * The rules some override of the configuration enables, whichever file it applies to.
 	 * @return array<class-string<Rule>, true>
 	 * @throws ConfigurationException
 	 */
-	private function findRulesOfBlocks(Config $config): array
+	private function findRulesOfOverrides(Config $config): array
 	{
 		$rules = [];
-		foreach ($config->getBlocks() as [, $blockRules]) {
-			foreach ($blockRules as $rule => $value) {
+		foreach ($config->getOverrides() as [, $overrideRules]) {
+			foreach ($overrideRules as $rule => $value) {
 				if (self::normalize($value) !== false) {
 					$rules[$this->registry->resolveRule($rule)] = true;
 				}

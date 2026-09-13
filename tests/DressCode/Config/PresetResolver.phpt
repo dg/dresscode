@@ -428,7 +428,7 @@ test('a rule of a construct the target version has not got is left out', functio
 test('--only keeps what it names of what the configuration comes to, and enables nothing', function () {
 	$resolver = new PresetResolver(new RuleRegistry);
 	$resolve = fn(Config $config) => $resolver->resolveConfig($config, new PresetContext('8.3'));
-	$active = fn(Config $config, int ...$blocks) => array_keys($resolver->resolveConfig($config, new PresetContext('8.3'), array_values($blocks))->toArray()['rules']);
+	$active = fn(Config $config, int ...$overrides) => array_keys($resolver->resolveConfig($config, new PresetContext('8.3'), array_values($overrides))->toArray()['rules']);
 
 	// a rule by its name or its class, with the options it has without --only
 	Assert::same(['test/c'], $active(Config::create()->preset(ChildPreset::class)->only(['test/c'])));
@@ -453,10 +453,10 @@ test('--only keeps what it names of what the configuration comes to, and enables
 	$resolve(Config::create()->enable(RuleFuture::class)->enable(RuleA::class)->only(['test/a']));
 	Assert::same(['Rule test/future needs PHP 8.4, the target is 8.3; skipped.'], $resolver->getWarnings());
 
-	// a rule only a block enables runs where the block applies
-	$blocks = Config::create()->preset(ChildPreset::class)->for(['tests'], ['test/nested' => true])->only(['test/nested']);
-	Assert::same([], $active($blocks));
-	Assert::same(['test/nested'], $active($blocks, 0));
+	// a rule only an override enables runs where the override applies
+	$overridden = Config::create()->preset(ChildPreset::class)->override(['tests'], ['test/nested' => true])->only(['test/nested']);
+	Assert::same([], $active($overridden));
+	Assert::same(['test/nested'], $active($overridden, 0));
 });
 
 

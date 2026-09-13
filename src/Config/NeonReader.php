@@ -66,8 +66,8 @@ final class NeonReader
 			'paths' => Expect::listOf('string'),
 			'excludePaths' => Expect::listOf('string'),
 			'warnings' => Expect::listOf('string'),
-			'for' => Expect::listOf(Expect::structure([
-				'files' => Expect::listOf('string')->required(),
+			'overrides' => Expect::listOf(Expect::structure([
+				'paths' => Expect::listOf('string')->required(),
 				'rules' => Expect::arrayOf(Expect::anyOf(Expect::bool(), Expect::string(), Expect::int(), Expect::arrayOf('mixed', 'string')), 'string'),
 			])->castTo('array')),
 			'risky' => Expect::bool(),
@@ -124,15 +124,15 @@ final class NeonReader
 
 		$config->excludePaths(self::listOfStrings($data, 'excludePaths'));
 
-		/** @var list<array{files: list<string>, rules: array<string, bool|string|int|array<string, mixed>>}> $blocks */
-		$blocks = $data['for'] ?? [];
-		foreach ($blocks as $block) {
+		/** @var list<array{paths: list<string>, rules: array<string, bool|string|int|array<string, mixed>>}> $overrides */
+		$overrides = $data['overrides'] ?? [];
+		foreach ($overrides as $override) {
 			$rules = [];
-			foreach ($block['rules'] as $rule => $value) {
+			foreach ($override['rules'] as $rule => $value) {
 				$rules[$rule] = $value === 'keep' ? false : $value;
 			}
 
-			$config->for($block['files'], $rules);
+			$config->override($override['paths'], $rules);
 		}
 
 		if (isset($data['warnings'])) {

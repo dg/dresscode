@@ -8,19 +8,19 @@ use function implode;
 
 
 /**
- * The processors of a run: the one every file gets, and one for every combination of `for` blocks a file
+ * The processors of a run: the one every file gets, and one for every combination of overrides a file
  * can match. A variant is built once and reused, because a rule carries the options it was configured with
  * and must never be reconfigured under a file that is already being processed.
  * @internal
  */
 final class FileProcessors
 {
-	/** @var array<string, FileProcessor>  key of the matching blocks → the processor of that combination */
+	/** @var array<string, FileProcessor>  key of the matching overrides → the processor of that combination */
 	private array $processors = [];
 
 
 	public function __construct(
-		/** @var list<list<string>>  the patterns of every block, in the order they were written */
+		/** @var list<list<string>>  the patterns of every override, in the order they were written */
 		private readonly array $patterns,
 		/** @var \Closure(list<int>): FileProcessor */
 		private readonly \Closure $build,
@@ -28,7 +28,7 @@ final class FileProcessors
 	}
 
 
-	/** A run with no blocks: one processor for every file. */
+	/** A run with no overrides: one processor for every file. */
 	public static function of(FileProcessor $processor): self
 	{
 		return new self([], fn() => $processor);
@@ -43,40 +43,40 @@ final class FileProcessors
 
 	public function get(string $path): FileProcessor
 	{
-		$blocks = $this->findBlocks($path);
-		return $blocks === []
+		$overrides = $this->findOverrides($path);
+		return $overrides === []
 			? $this->getBase()
-			: $this->processors[self::keyOf($blocks)] ??= ($this->build)($blocks);
+			: $this->processors[self::keyOf($overrides)] ??= ($this->build)($overrides);
 	}
 
 
 	/** What tells one configuration of a file from another, for whatever remembers a result. */
 	public function getKey(string $path): string
 	{
-		return self::keyOf($this->findBlocks($path));
+		return self::keyOf($this->findOverrides($path));
 	}
 
 
 	/**
-	 * Indexes of the blocks the path matches, in the order they were written.
+	 * Indexes of the overrides the path matches, in the order they were written.
 	 * @return list<int>
 	 */
-	public function findBlocks(string $path): array
+	public function findOverrides(string $path): array
 	{
-		$blocks = [];
+		$overrides = [];
 		foreach ($this->patterns as $index => $patterns) {
 			if (Helpers::matchesAny($patterns, $path)) {
-				$blocks[] = $index;
+				$overrides[] = $index;
 			}
 		}
 
-		return $blocks;
+		return $overrides;
 	}
 
 
-	/** @param list<int> $blocks */
-	private static function keyOf(array $blocks): string
+	/** @param list<int> $overrides */
+	private static function keyOf(array $overrides): string
 	{
-		return implode(',', $blocks);
+		return implode(',', $overrides);
 	}
 }

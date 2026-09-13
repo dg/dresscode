@@ -519,7 +519,7 @@ final class Application
 		$runner = $factory->createRunner($config, $root, cache: false);
 		$file = $args['--file'];
 		$resolved = is_string($file)
-			? $factory->resolveConfigFor($runner->findBlocksFor($file))
+			? $factory->resolveConfigFor($runner->findOverridesFor($file))
 			: $factory->getResolvedConfig();
 		$printer = new ConfigPrinter($resolved);
 		if ($args['--json']) {
