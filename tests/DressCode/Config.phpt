@@ -51,7 +51,7 @@ test('fluent setters', function () {
 		->enable('x/z')
 		->disable('x/y')
 		->indent(4)
-		->eol('crlf')
+		->eol('CRLF')
 		->paths(['src'])
 		->excludePaths(['tests/fixtures/*'])
 		->excludeRulePaths('x/z', ['tests'])
@@ -63,7 +63,7 @@ test('fluent setters', function () {
 	Assert::same(['x/y' => false, 'x/z' => true], $config->getRules());
 	Assert::same('8.2', $config->getPhp());
 	Assert::same(4, $config->getIndent());
-	Assert::same('crlf', $config->getEol());
+	Assert::same('CRLF', $config->getEol());
 	Assert::same(['src'], $config->getPaths());
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'tests/fixtures/*'], $config->getExcludePaths());
 	Assert::same(['x/z' => ['tests'], 'x/y' => ['legacy']], $config->getRuleExcludePaths());
@@ -87,6 +87,7 @@ test('excluded paths add up to the default list, each pattern once', function ()
 
 test('validation', function () {
 	Assert::exception(fn() => Config::create()->eol('unix')->getEol(), ConfigurationException::class);
+	Assert::exception(fn() => Config::create()->eol('crlf')->getEol(), ConfigurationException::class);
 	Assert::exception(fn() => Config::create()->indent('spaces')->getIndent(), ConfigurationException::class);
 	Assert::exception(fn() => Config::create()->php('eight'), InvalidArgumentException::class);
 });
@@ -94,7 +95,7 @@ test('validation', function () {
 
 test('a layer overrides what it sets, appends presets and rules and adds to the exclusions', function () {
 	$base = Config::create()->preset('a')->enable('x', ['a' => 1])->enable('y')->paths(['src'])->excludePaths(['build'])->excludeRulePaths('x', ['legacy'])->indent(2);
-	$layer = Config::create()->preset('b')->disable('x')->enable('z')->excludePaths(['dist'])->excludeRulePaths('x', ['old'])->eol('lf');
+	$layer = Config::create()->preset('b')->disable('x')->enable('z')->excludePaths(['dist'])->excludeRulePaths('x', ['old'])->eol('LF');
 	$base->merge($layer);
 	Assert::same(['a', 'b'], $base->getPresets());
 	Assert::same(['x' => false, 'y' => true, 'z' => true], $base->getRules());
@@ -102,7 +103,7 @@ test('a layer overrides what it sets, appends presets and rules and adds to the 
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'build', 'dist'], $base->getExcludePaths());
 	Assert::same(['x' => ['legacy', 'old']], $base->getRuleExcludePaths());
 	Assert::same(2, $base->getIndent());
-	Assert::same('lf', $base->getEol());
+	Assert::same('LF', $base->getEol());
 });
 
 

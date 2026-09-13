@@ -158,7 +158,7 @@ final class Config
 	}
 
 
-	/** @param string $eol  'lf', 'crlf', 'majority' or 'platform' */
+	/** @param string $eol  'LF', 'CRLF', 'majority' or 'platform' */
 	public function eol(string $eol): static
 	{
 		$this->eol = $eol;
@@ -474,13 +474,13 @@ final class Config
 
 	/**
 	 * The configured line ending; null leaves it to the presets.
-	 * @return 'lf'|'crlf'|'majority'|'platform'|null
+	 * @return 'LF'|'CRLF'|'majority'|'platform'|null
 	 */
 	public function getEol(): ?string
 	{
 		return match ($this->eol) {
-			null, 'lf', 'crlf', 'majority', 'platform' => $this->eol,
-			default => throw new ConfigurationException("The line ending must be 'lf', 'crlf', 'majority' or 'platform'."),
+			null, 'LF', 'CRLF', 'majority', 'platform' => $this->eol,
+			default => throw new ConfigurationException("The line ending must be 'LF', 'CRLF', 'majority' or 'platform'."),
 		};
 	}
 

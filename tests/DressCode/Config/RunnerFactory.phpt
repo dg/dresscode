@@ -83,7 +83,7 @@ test('the engine is built from the configuration', function () use ($fixtures) {
 	$result = $runner->processFile('x.php', "<?php\r\n\$a;\r\n");
 	Assert::same(['8.1 "  ""\r\n"'], array_map(fn($v) => $v->message, $result->violations));
 
-	$runner = (new RunnerFactory)->createRunner($config->eol('lf'), "$fixtures/project");
+	$runner = (new RunnerFactory)->createRunner($config->eol('LF'), "$fixtures/project");
 	Assert::same(['8.1 "  ""\n"'], array_map(fn($v) => $v->message, $runner->processFile('x.php', "<?php\r\n\$a;\r\n")->violations));
 });
 

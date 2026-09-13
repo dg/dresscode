@@ -370,11 +370,11 @@ final class PresetResolver
 		}
 
 		$eol = match ($config->getEol() ?? $eol ?? 'majority') {
-			'lf' => "\n",
-			'crlf' => "\r\n",
+			'LF' => "\n",
+			'CRLF' => "\r\n",
 			'platform' => PHP_EOL === "\r\n" ? "\r\n" : "\n",
 			'majority' => 'majority',
-			default => throw new ConfigurationException("The line ending must be 'lf', 'crlf', 'majority' or 'platform'."),
+			default => throw new ConfigurationException("The line ending must be 'LF', 'CRLF', 'majority' or 'platform'."),
 		};
 
 		$indent = $config->getIndent() ?? $indent ?? 'tab';

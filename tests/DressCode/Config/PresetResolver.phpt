@@ -232,7 +232,7 @@ final class OffPreset implements Preset
 }
 
 
-#[PresetInfo('test/styled', indent: 2, eol: 'lf')]
+#[PresetInfo('test/styled', indent: 2, eol: 'LF')]
 final class StyledPreset implements Preset
 {
 	public function getRules(PresetContext $context): array
@@ -503,10 +503,11 @@ test('the style comes from the configuration, else from the last preset declarin
 	Assert::same(['  ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)));
 	Assert::same(['  ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->preset(ChildPreset::class)));
 	Assert::same(['    ', "\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->indent(4)));
-	Assert::same(['  ', "\r\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->eol('crlf')));
+	Assert::same(['  ', "\r\n"], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->eol('CRLF')));
 	Assert::same(['  ', 'majority'], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->eol('majority')));
 	Assert::same(['  ', PHP_EOL], $resolver->resolveStyle(Config::create()->preset(StyledPreset::class)->eol('platform')));
-	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->eol('unix')), ConfigurationException::class, "The line ending must be 'lf', 'crlf', 'majority' or 'platform'.");
+	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->eol('unix')), ConfigurationException::class, "The line ending must be 'LF', 'CRLF', 'majority' or 'platform'.");
+	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->eol('lf')), ConfigurationException::class, "The line ending must be 'LF', 'CRLF', 'majority' or 'platform'.");
 	Assert::exception(fn() => $resolver->resolveStyle(Config::create()->indent('spaces')), ConfigurationException::class, "The indentation must be a number of spaces or 'tab'.");
 });
 

@@ -14,7 +14,7 @@ final readonly class PresetInfo
 		public string $description = '',
 		/** a number of spaces or 'tab' */
 		public int|string|null $indent = null,
-		/** 'lf', 'crlf', 'majority' or 'platform' */
+		/** 'LF', 'CRLF', 'majority' or 'platform' */
 		public ?string $eol = null,
 		/** a preset of hygiene alone, which decides nothing about the layout and therefore composes with any standard */
 		public bool $fragment = false,

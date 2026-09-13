@@ -11,7 +11,7 @@ rules:
 	dresscode/yoda: keep
 
 indent: tab
-eol: lf
+eol: LF
 php: '8.3'
 paths: [src, tests]
 excludePaths: [build, docs/generated]
