@@ -56,11 +56,8 @@ final class FileProcessor
 	}
 
 
-	/**
-	 * @param ?list<Rule> $rules  a subset of the rules for this file
-	 * @throws RuleException|ConvergenceException
-	 */
-	public function process(string $path, string $code, ?array $rules = null): FileResult
+	/** @throws RuleException|ConvergenceException */
+	public function process(string $path, string $code): FileResult
 	{
 		$style = $this->detectEol ? $this->style->withEol(Style::detectEol($code)) : $this->style;
 		$text = $code;
@@ -79,7 +76,7 @@ final class FileProcessor
 					: new FileResult($path, $code, output: null, failure: "The fixed code no longer parses: {$e->getMessage()} on line $e->sourceLine.");
 			}
 
-			$runner = new PassRunner($rules ?? $this->rules, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline, $this->warningRules, $this->fixRisky);
+			$runner = new PassRunner($this->rules, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline, $this->warningRules, $this->fixRisky);
 			$result = $runner->run($file, $text, $path, $style, $this->phpVersion);
 			$first ??= $result;
 			$passes += $result->passes;

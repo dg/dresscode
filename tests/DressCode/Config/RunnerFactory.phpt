@@ -106,13 +106,13 @@ test('an extension makes its rules known by name and sets up the run', function 
 });
 
 
-test('a rule is left out of paths under its class as under its name, an unknown one is an error', function () use ($fixtures) {
-	$byClass = Config::create()->enable(ReportContext::class)->excludeRulePaths(ReportContext::class, ['sub']);
+test('a block turns a rule off under its class as under its name, an unknown one is an error before any file', function () use ($fixtures) {
+	$byClass = Config::create()->enable(ReportContext::class)->for(['sub'], [ReportContext::class => false]);
 	$runner = (new RunnerFactory)->createRunner($byClass, "$fixtures/project");
 	Assert::same([], $runner->processFile('src/sub/x.php', "<?php\n\$a;\n")->violations);
 	Assert::count(1, $runner->processFile('src/x.php', "<?php\n\$a;\n")->violations);
 
-	$unknown = Config::create()->enable(ReportContext::class)->excludeRulePaths('test/nope', ['sub']);
+	$unknown = Config::create()->enable(ReportContext::class)->for(['sub'], ['test/nope' => false]);
 	Assert::exception(
 		fn() => (new RunnerFactory)->createRunner($unknown, "$fixtures/project"),
 		ConfigurationException::class,

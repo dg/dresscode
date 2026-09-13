@@ -44,9 +44,6 @@ final class Config
 	/** @var list<string>  what the default list is extended with */
 	private array $excludePaths = [];
 
-	/** @var array<string, list<string>>  rule name → patterns */
-	private array $ruleExcludePaths = [];
-
 	/** @var ?list<string>  names or classes of the rules that only warn */
 	private ?array $warnings = null;
 
@@ -181,18 +178,6 @@ final class Config
 	public function excludePaths(array $paths): static
 	{
 		$this->excludePaths = [...$this->excludePaths, ...$paths];
-		return $this;
-	}
-
-
-	/**
-	 * Paths the rule is not applied to; the file is checked by the rest of the rules.
-	 * @param string $rule  name or class
-	 * @param list<string> $paths  patterns, relative to the root
-	 */
-	public function excludeRulePaths(string $rule, array $paths): static
-	{
-		$this->ruleExcludePaths[$rule] = [...$this->ruleExcludePaths[$rule] ?? [], ...$paths];
 		return $this;
 	}
 
@@ -335,10 +320,6 @@ final class Config
 		$this->eol = $layer->eol ?? $this->eol;
 		$this->paths = $layer->paths ?? $this->paths;
 		$this->excludePaths = [...$this->excludePaths, ...$layer->excludePaths];
-		foreach ($layer->ruleExcludePaths as $rule => $patterns) {
-			$this->ruleExcludePaths[$rule] = [...$this->ruleExcludePaths[$rule] ?? [], ...$patterns];
-		}
-
 		$this->warnings = $layer->warnings ?? $this->warnings;
 		$this->only = $layer->only ?? $this->only;
 		$this->risky = $layer->risky ?? $this->risky;
@@ -499,13 +480,6 @@ final class Config
 	public function getExcludePaths(): array
 	{
 		return array_values(array_unique([...self::DefaultExcludePaths, ...$this->excludePaths]));
-	}
-
-
-	/** @return array<string, list<string>> */
-	public function getRuleExcludePaths(): array
-	{
-		return $this->ruleExcludePaths;
 	}
 
 

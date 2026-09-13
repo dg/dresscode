@@ -35,7 +35,6 @@ test('defaults', function () {
 	Assert::null($config->getEol());
 	Assert::same([], $config->getPaths());
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'], $config->getExcludePaths());
-	Assert::same([], $config->getRuleExcludePaths());
 	Assert::same(['php'], $config->getFileExtensions());
 	Assert::null($config->getSkipWhen());
 	Assert::null($config->getBaseline());
@@ -54,8 +53,6 @@ test('fluent setters', function () {
 		->eol('CRLF')
 		->paths(['src'])
 		->excludePaths(['tests/fixtures/*'])
-		->excludeRulePaths('x/z', ['tests'])
-		->excludeRulePaths('x/y', ['legacy'])
 		->fileExtensions(['php', 'phpt'])
 		->skipWhen(fn(string $content, string $path) => $path === 'skip.php')
 		->baseline('baseline.json');
@@ -66,7 +63,6 @@ test('fluent setters', function () {
 	Assert::same('CRLF', $config->getEol());
 	Assert::same(['src'], $config->getPaths());
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'tests/fixtures/*'], $config->getExcludePaths());
-	Assert::same(['x/z' => ['tests'], 'x/y' => ['legacy']], $config->getRuleExcludePaths());
 	Assert::same(['php', 'phpt'], $config->getFileExtensions());
 	$skipWhen = $config->getSkipWhen();
 	Assert::notNull($skipWhen);
@@ -76,12 +72,10 @@ test('fluent setters', function () {
 
 
 test('excluded paths add up to the default list, each pattern once', function () {
-	$config = Config::create()->excludePaths(['build'])->excludeRulePaths('x/y', ['legacy']);
+	$config = Config::create()->excludePaths(['build']);
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'build'], $config->getExcludePaths());
-	Assert::same(['x/y' => ['legacy']], $config->getRuleExcludePaths());
-	$config->excludePaths(['dist', 'build'])->excludeRulePaths('x/y', ['old']);
+	$config->excludePaths(['dist', 'build']);
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'build', 'dist'], $config->getExcludePaths());
-	Assert::same(['x/y' => ['legacy', 'old']], $config->getRuleExcludePaths());
 });
 
 
@@ -94,14 +88,13 @@ test('validation', function () {
 
 
 test('a layer overrides what it sets, appends presets and rules and adds to the exclusions', function () {
-	$base = Config::create()->preset('a')->enable('x', ['a' => 1])->enable('y')->paths(['src'])->excludePaths(['build'])->excludeRulePaths('x', ['legacy'])->indent(2);
-	$layer = Config::create()->preset('b')->disable('x')->enable('z')->excludePaths(['dist'])->excludeRulePaths('x', ['old'])->eol('LF');
+	$base = Config::create()->preset('a')->enable('x', ['a' => 1])->enable('y')->paths(['src'])->excludePaths(['build'])->indent(2);
+	$layer = Config::create()->preset('b')->disable('x')->enable('z')->excludePaths(['dist'])->eol('LF');
 	$base->merge($layer);
 	Assert::same(['a', 'b'], $base->getPresets());
 	Assert::same(['x' => false, 'y' => true, 'z' => true], $base->getRules());
 	Assert::same(['src'], $base->getPaths());
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*', 'build', 'dist'], $base->getExcludePaths());
-	Assert::same(['x' => ['legacy', 'old']], $base->getRuleExcludePaths());
 	Assert::same(2, $base->getIndent());
 	Assert::same('LF', $base->getEol());
 });

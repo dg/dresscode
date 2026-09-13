@@ -521,7 +521,7 @@ final class Application
 		$resolved = is_string($file)
 			? $factory->resolveConfigFor($runner->findBlocksFor($file))
 			: $factory->getResolvedConfig();
-		$printer = new ConfigPrinter($resolved, is_string($file) ? $runner->getExcludedRules($file) : []);
+		$printer = new ConfigPrinter($resolved);
 		if ($args['--json']) {
 			$this->write($printer->printJson());
 			return 0;

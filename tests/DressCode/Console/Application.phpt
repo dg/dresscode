@@ -463,8 +463,9 @@ test('config says what every rule ends up with, where it came from and why one d
 			dresscode/name-casing: keep
 			dresscode/ordered-imports: {order: alphabetical}
 
-		excludeRulePaths:
-			dresscode/indentation: [src/generated]
+		for:
+			- files: [src/generated]
+			  rules: {dresscode/indentation: keep}
 
 		paths: [src]
 
@@ -483,7 +484,7 @@ test('config says what every rule ends up with, where it came from and why one d
 	// for one file it is what the run uses for that file
 	[, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--file', 'src/generated/x.php']);
 	Assert::match('%A%File       src%a%generated%a%x.php%A%', $out);
-	Assert::match('%A%  dresscode/indentation %a%the configuration keeps it away from this path%A%', $out);
+	Assert::match('%A%  dresscode/indentation %a%turned off by for src/generated%A%', $out);
 
 	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--json']);
 	Assert::same(0, $code);

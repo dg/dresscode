@@ -109,21 +109,19 @@ foreach (
 
 /**
  * @param list<string> $excludePaths
- * @param array<string, list<string>> $ruleExcludePaths
  * @param list<string> $fileExtensions
  * @param ?Closure(string, string): bool $skipWhen
  */
 function engine(
 	string $root,
 	array $excludePaths = ['vendor', 'fixtures*'],
-	array $ruleExcludePaths = [],
 	array $fileExtensions = ['php'],
 	?Closure $skipWhen = null,
 	bool $thrower = false,
 ): Runner
 {
 	$processor = new FileProcessor($thrower ? [new EngineRename, new EngineThrower] : [new EngineRename], new Analyses\Registry, fn(string $name) => [$name], Config::DefaultPhpVersion);
-	return new Runner($processor, $root, $excludePaths, $ruleExcludePaths, $fileExtensions, $skipWhen);
+	return new Runner($processor, $root, $excludePaths, $fileExtensions, $skipWhen);
 }
 
 
@@ -174,11 +172,11 @@ test('check reports and writes nothing', function () use ($root) {
 
 test('fix writes the changed files', function () use ($root) {
 	$reporter = new RecordingReporter;
-	$runner = engine($root, ruleExcludePaths: ['test/rename' => ['src/sub']]);
-	$result = $runner->run($runner->findFiles(['src/a.php', 'src/sub']), fix: true, reporter: $reporter);
-	Assert::same(['start 2 true', 'file src/a.php true true', 'file src/sub/d.php false false', 'finish 1'], $reporter->events);
+	$runner = engine($root);
+	$result = $runner->run(['src/a.php', 'src/b.php'], fix: true, reporter: $reporter);
+	Assert::same(['start 2 true', 'file src/a.php true true', 'file src/b.php false false', 'finish 1'], $reporter->events);
 	Assert::same("<?php\n\$b;\n", file_get_contents("$root/src/a.php"));
-	Assert::same("<?php\n\$a;\n", file_get_contents("$root/src/sub/d.php"));
+	Assert::same("<?php\n\$x;\n", file_get_contents("$root/src/b.php"));
 	Assert::same(0, $result->getExitCode());
 });
 
@@ -199,10 +197,9 @@ test('a failing rule fails the file, the run goes on, nothing is written', funct
 });
 
 
-test('processFile applies the rule exclusions to the given path and writes nothing', function () use ($root) {
-	$runner = engine($root, ruleExcludePaths: ['test/rename' => ['src/sub']]);
+test('processFile processes a text for the given path and writes nothing', function () use ($root) {
+	$runner = engine($root);
 	Assert::true($runner->processFile("$root/src/x.php", "<?php\n\$a;\n")->isChanged());
-	Assert::false($runner->processFile('src/sub/x.php', "<?php\n\$a;\n")->isChanged());
 	Assert::same('src/x.php', $runner->processFile("$root/src/x.php", '<?php')->path);
 	Assert::true($runner->hasExtension('src/x.PHP'));
 	Assert::false($runner->hasExtension('src/x.phpt'));

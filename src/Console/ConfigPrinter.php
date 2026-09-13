@@ -18,8 +18,6 @@ final class ConfigPrinter
 {
 	public function __construct(
 		private readonly ResolvedConfig $config,
-		/** @var array<string, string>  rule name → why it does not run in this file, on top of the resolution */
-		private readonly array $excluded = [],
 	) {
 	}
 
@@ -31,8 +29,7 @@ final class ConfigPrinter
 
 		$active = $inactive = [];
 		foreach ($this->config->rules as $rule) {
-			$reason = $this->excluded[$rule->name] ?? $rule->inactive;
-			$reason === null ? $active[] = $rule : $inactive[$rule->name] = $reason;
+			$rule->inactive === null ? $active[] = $rule : $inactive[$rule->name] = $rule->inactive;
 		}
 
 		$out .= $console->color('gray', 'Rules      ')
@@ -85,11 +82,10 @@ final class ConfigPrinter
 				$origins[$path] = array_map(fn(array $layer) => ['source' => $layer[0], 'value' => $layer[1]], $layers);
 			}
 
-			$reason = $this->excluded[$rule->name] ?? $rule->inactive;
 			$rules[$rule->name] = [
 				'class' => $rule->class,
-				'active' => $reason === null,
-				'inactive' => $reason,
+				'active' => $rule->inactive === null,
+				'inactive' => $rule->inactive,
 				'options' => $rule->options === [] ? new \stdClass : $rule->options,
 				'origins' => $origins === [] ? new \stdClass : $origins,
 			];

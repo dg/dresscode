@@ -86,7 +86,7 @@ final class RunnerFactory
 			$this->registry->registerPreset($class);
 		}
 
-		$ruleExcludePaths = $this->resolveRuleExcludePaths($config);
+		$this->checkRulesOfBlocks($config);
 		[$phpVersion] = $this->phpVersion = $this->resolvePhpVersion($config, $root);
 		$resolver = new PresetResolver($this->registry);
 		$context = new PresetContext($phpVersion);
@@ -125,14 +125,13 @@ final class RunnerFactory
 			? ResultCache::load(
 				self::resolveCacheFile($config, $root),
 				// the baseline decides what a rule reports, so a file clean under one is not clean under another
-				self::hashConfiguration([$resolved->toArray(), $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $ruleExcludePaths, $baseline?->getHash(), $config->getBlocks(), $fixRisky]),
+				self::hashConfiguration([$resolved->toArray(), $config->getAnalyses() === [] ? [] : array_keys($config->getAnalyses()), $baseline?->getHash(), $config->getBlocks(), $fixRisky]),
 			)
 			: null;
 		return new Runner(
 			$processors,
 			$root,
 			$config->getExcludePaths(),
-			$ruleExcludePaths,
 			$config->getFileExtensions(),
 			$config->getSkipWhen(),
 			$baseline,
@@ -162,9 +161,8 @@ final class RunnerFactory
 
 
 	/**
-	 * Identity of everything a result depends on besides the file: the effective rules with their options and
-	 * the paths they are left out of, the style, the PHP version and the versions (with their git references)
-	 * of every installed package.
+	 * Identity of everything a result depends on besides the file: the effective rules with their options, the
+	 * style, the PHP version and the versions (with their git references) of every installed package.
 	 * @param  array<mixed>  $configuration
 	 */
 	public static function hashConfiguration(array $configuration): string
@@ -181,20 +179,17 @@ final class RunnerFactory
 
 
 	/**
-	 * The excluded paths under the name of the rule the engine will ask by, so that a class stands for its
-	 * rule here as it does everywhere else and a name no rule owns is an error instead of a silent no-op.
-	 * @return array<string, list<string>>
+	 * A block is resolved only for a file it matches, so a name no rule owns would otherwise pass unnoticed
+	 * until such a file comes; it is an error of the configuration as soon as the run is built.
 	 * @throws ConfigurationException
 	 */
-	private function resolveRuleExcludePaths(Config $config): array
+	private function checkRulesOfBlocks(Config $config): void
 	{
-		$resolved = [];
-		foreach ($config->getRuleExcludePaths() as $rule => $patterns) {
-			$name = RuleInfo::of($this->registry->resolveRule($rule))->name;
-			$resolved[$name] = [...$resolved[$name] ?? [], ...$patterns];
+		foreach ($config->getBlocks() as [, $rules]) {
+			foreach (array_keys($rules) as $rule) {
+				$this->registry->resolveRule($rule);
+			}
 		}
-
-		return $resolved;
 	}
 
 

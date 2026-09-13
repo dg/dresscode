@@ -15,8 +15,6 @@ eol: LF
 php: '8.3'
 paths: [src, tests]
 excludePaths: [build, docs/generated]
-excludeRulePaths:
-	dresscode/ordered-imports: [src/Legacy]
 warnings: [dresscode/line-length]
 fileExtensions: [php, phpt]
 baseline: dresscode-baseline.neon

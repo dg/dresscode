@@ -93,9 +93,3 @@ test('the style follows the line ending of the file unless told otherwise', func
 	Assert::same(['"\r\n"'], array_map(fn($v) => $v->message, processor([new ReportEol])->process('a.php', "<?php\r\n\$x;\r\n")->violations));
 	Assert::same(['"\n"'], array_map(fn($v) => $v->message, processor([new ReportEol], detectEol: false)->process('a.php', "<?php\r\n\$x;\r\n")->violations));
 });
-
-
-test('a subset of the rules', function () {
-	$result = processor([new ProcessorRename])->process('a.php', "<?php\n\$a;\n", []);
-	Assert::false($result->isChanged());
-});

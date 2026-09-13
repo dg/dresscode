@@ -65,7 +65,6 @@ final class NeonReader
 			'php' => Expect::anyOf(Expect::string(), Expect::int(), Expect::float()),
 			'paths' => Expect::listOf('string'),
 			'excludePaths' => Expect::listOf('string'),
-			'excludeRulePaths' => Expect::arrayOf(Expect::listOf('string'), 'string'),
 			'warnings' => Expect::listOf('string'),
 			'for' => Expect::listOf(Expect::structure([
 				'files' => Expect::listOf('string')->required(),
@@ -124,11 +123,6 @@ final class NeonReader
 		}
 
 		$config->excludePaths(self::listOfStrings($data, 'excludePaths'));
-		/** @var array<string, list<string>> $ruleExcludePaths */
-		$ruleExcludePaths = $data['excludeRulePaths'] ?? [];
-		foreach ($ruleExcludePaths as $rule => $patterns) {
-			$config->excludeRulePaths($rule, $patterns);
-		}
 
 		/** @var list<array{files: list<string>, rules: array<string, bool|string|int|array<string, mixed>>}> $blocks */
 		$blocks = $data['for'] ?? [];

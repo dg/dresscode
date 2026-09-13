@@ -26,8 +26,6 @@ final class Runner
 		string $root,
 		/** @var list<string> patterns of paths left out */
 		private readonly array $excludePaths = [],
-		/** @var array<string, list<string>> rule name → patterns of paths the rule is not applied to */
-		private readonly array $ruleExcludePaths = [],
 		/** @var list<string> */
 		private readonly array $fileExtensions = ['php'],
 		/** @var ?\Closure(string $content, string $path): bool files left out by their content */
@@ -192,19 +190,7 @@ final class Runner
 	public function processFile(string $path, string $code): FileResult
 	{
 		$path = $this->relativize($path);
-		$processor = $this->processors->get($path);
-		$rules = null;
-		if ($this->ruleExcludePaths) {
-			$rules = [];
-			foreach ($processor->getRules() as $rule) {
-				$patterns = $this->ruleExcludePaths[RuleInfo::of($rule)->name] ?? [];
-				if (!Helpers::matchesAny($patterns, $path)) {
-					$rules[] = $rule;
-				}
-			}
-		}
-
-		$result = $processor->process($path, $code, $rules);
+		$result = $this->processors->get($path)->process($path, $code);
 		$this->baseline?->markUsed($result->path, $result->baselined);
 		return $result;
 	}
@@ -217,24 +203,6 @@ final class Runner
 	public function findBlocksFor(string $path): array
 	{
 		return $this->processors->findBlocks($this->relativize($path));
-	}
-
-
-	/**
-	 * Rules the configuration keeps away from the file, by name, with the reason a reader wants.
-	 * @return array<string, string>
-	 */
-	public function getExcludedRules(string $path): array
-	{
-		$path = $this->relativize($path);
-		$excluded = [];
-		foreach ($this->ruleExcludePaths as $rule => $patterns) {
-			if (Helpers::matchesAny($patterns, $path)) {
-				$excluded[$rule] = 'the configuration keeps it away from this path';
-			}
-		}
-
-		return $excluded;
 	}
 
 
