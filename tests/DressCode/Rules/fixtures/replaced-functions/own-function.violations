@@ -1,0 +1,2 @@
+4: Function substr() is replaced by App\substring()
+5: Function myOldOne() is replaced by myNewOne()

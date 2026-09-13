@@ -1,0 +1,7 @@
+4: Function strlen() is replaced by mb_strlen()
+5: Function substr() is replaced by mb_substr()
+6: Function strpos() is replaced by mb_strpos()
+7: Function strtolower() is replaced by mb_strtolower()
+8: Function getrandmax() is replaced by mt_getrandmax()
+9: Function substr_count() is replaced by mb_substr_count()
+10: Function strlen() is replaced by mb_strlen()

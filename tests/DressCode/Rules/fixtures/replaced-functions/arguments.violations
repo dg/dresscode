@@ -1,0 +1,8 @@
+4: Function substr_count() is replaced by mb_substr_count(), but the argument #3 of mb_substr_count() takes string|null where substr_count() takes int
+5: Function substr_count() is replaced by mb_substr_count(), but the argument #3 of mb_substr_count() takes string|null where substr_count() takes int
+6: Function substr() is replaced by mb_substr(), but mb_substr() has no parameter $offset
+7: Function substr() is replaced by mb_substr(), but what the unpacked argument holds is unknown
+8: Function strlen() is replaced by mb_strlen(), but strlen() has no argument #2
+9: Function substr() is replaced by mb_substr()
+10: Function strlen() is replaced by mb_strlen()
+11: Function substr_count() is replaced by mb_substr_count()

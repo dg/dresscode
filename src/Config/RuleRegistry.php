@@ -92,6 +92,7 @@ final class RuleRegistry
 		Rules\Functions\ArrowFunctionRule::class,
 		Rules\Functions\FirstClassCallableNotationRule::class,
 		Rules\Functions\ForbiddenFunctionsRule::class,
+		Rules\Functions\ReplacedFunctionsRule::class,
 		Rules\Functions\MultiLineCallRule::class,
 		Rules\Functions\NoDirnameOfFileRule::class,
 		Rules\Functions\MultiLineSignatureRule::class,

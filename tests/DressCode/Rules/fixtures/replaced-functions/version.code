@@ -1,0 +1,7 @@
+<?php
+// {"str_pad": "mb_str_pad", "trim": "mb_trim", "strlen": "mb_strlen"}
+// php 8.3
+
+$a = str_pad($s, 10);
+$b = trim($s);
+$c = strlen($s);
