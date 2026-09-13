@@ -102,11 +102,15 @@ final class Application
 	/** the script the workers are started with */
 	private string $scriptFile = 'dresscode';
 
+	/** PHP runs with Xdebug, which makes a run many times slower */
+	private readonly bool $xdebug;
+
 
 	/**
 	 * @param ?resource $stdout
 	 * @param ?resource $stderr
 	 * @param ?resource $stdin
+	 * @param ?bool $xdebug  whether Xdebug is loaded; detected when the output is the process's own
 	 */
 	public function __construct(
 		$stdout = null,
@@ -116,12 +120,14 @@ final class Application
 		private readonly ?string $script = null,
 		/** what applies when the project has no configuration file */
 		private readonly ?Config $defaultConfig = null,
+		?bool $xdebug = null,
 	) {
 		$this->stdout = $stdout ?? STDOUT;
 		$this->stderr = $stderr ?? STDERR;
 		$this->stdin = $stdin ?? STDIN;
 		$this->console = new Console;
 		$this->console->useColors($stdout === null && Console::detectColors());
+		$this->xdebug = $xdebug ?? ($stdout === null && extension_loaded('xdebug'));
 	}
 
 
@@ -250,6 +256,10 @@ final class Application
 		$files = $runner->findFiles($paths, skipExcluded: (bool) $args['--skip-excluded']);
 		// the machine-readable formats must not be prefaced, and a generated baseline is not a report
 		if (!$generate && in_array($format, ['console', 'github'], true)) {
+			if ($this->xdebug) {
+				$this->writeError($this->console->color('red', 'Warning: Xdebug is loaded and makes the run many times slower.') . "\n");
+			}
+
 			$this->writeHeader($configFile, $config, self::describePhpVersion($factory));
 			$this->writeScope(files: $files, paths: $paths, root: $root, fix: $fix);
 		}

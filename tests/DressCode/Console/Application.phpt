@@ -137,6 +137,19 @@ test('check with the configured paths', function () use ($root) {
 });
 
 
+test('a run under Xdebug warns that it is slower, in the formats a person reads', function () use ($root) {
+	$run = function (array $args) use ($root): string {
+		$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+		$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+		new Application($out, $err, null, $root, script: __DIR__ . '/../../../bin/dresscode', xdebug: true)->run(['dresscode', ...$args, '--jobs', '1']);
+		rewind($err);
+		return (string) stream_get_contents($err);
+	};
+	Assert::same("Warning: Xdebug is loaded and makes the run many times slower.\n", $run(['check']));
+	Assert::same('', $run(['check', '--format', 'json']));
+});
+
+
 test('check of a clean path with options from the command line', function () use ($root) {
 	[$code, $out] = runApp($root, ['check', 'src/b.php', '--rule', 'test/rename=off']);
 	Assert::same(0, $code);
