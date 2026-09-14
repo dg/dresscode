@@ -15,8 +15,8 @@ use const PHP_EOL;
 
 
 /**
- * Lays the profiles that decide for a file one over another, each above the presets it names, and resolves every
- * rule once into a ResolvedConfig.
+ * Lays the profiles that decide for a file one over another, each above the presets it names, what the installed
+ * packages say under them all, and resolves every rule once into a ResolvedConfig.
  * @internal
  */
 final class ConfigResolver
@@ -36,6 +36,8 @@ final class ConfigResolver
 
 	public function __construct(
 		private readonly RuleRegistry $registry,
+		/** @var list<PackageProfile>  what the installed packages say, laid under everything; a rule a file feeds is turned on by the group of the file */
+		private readonly array $packageProfiles = [],
 		/** the packages the project stands on, which decide whether a rule requiring one runs */
 		private readonly ProjectPackages $project = new ProjectPackages,
 	) {
@@ -74,6 +76,16 @@ final class ConfigResolver
 		$explicit = $fixRisky = $warningRules = $presets = $groups = [];
 		$symbols = [SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
 		$indent = $eol = $lineLength = $php = $resolution = null;
+		$named = [];
+		// what the packages declare lies under every layer, which may add to it
+		foreach ($this->packageProfiles as $package) {
+			foreach ([[SymbolKind::Function, 'functions'], [SymbolKind::Constant, 'constants']] as [$kind, $key]) {
+				foreach ($package->profile->namespaces[$key] as $name) {
+					$symbols[$kind->name][self::toSymbolKey($kind, $name)] ??= [$name, $package->source];
+				}
+			}
+		}
+
 		foreach ($this->collectLayers(self::listProfiles($config, $overrides, $commandLine)) as [$source, $profile, $isPreset]) {
 			try {
 				if ($isPreset) {
@@ -113,6 +125,7 @@ final class ConfigResolver
 
 				foreach ($profile->rules as $rule => $value) {
 					$class = $this->registry->resolveRule($rule);
+					$named[$class] = true;
 					$layers[$class][] = [$source, self::normalize($value)];
 					if (!$isPreset) {
 						$explicit[$class] = true;
@@ -136,6 +149,7 @@ final class ConfigResolver
 			$layers = self::removeGuardLayer($layers);
 		}
 
+		[$layers, $seeded] = $this->seedPackageLayers($layers, $named, $groups);
 		[$phpTarget, $phpVersion] = $this->resolveTargetPhp($php ?? $phpTarget);
 
 		// `only` filters what the rest comes to, so it takes a rule away and never enables one
@@ -152,6 +166,7 @@ final class ConfigResolver
 				kept: $kept === null || isset($kept[$class]),
 				fixRisky: isset($fixRisky[$class]),
 				warnOnly: isset($warningRules[$class]),
+				packageLayers: $seeded[$class] ?? 0,
 			);
 			$resolved->isActive() ? $active[$class] = $resolved : $inactive[$class] = $resolved;
 		}
@@ -241,6 +256,41 @@ final class ConfigResolver
 		$this->warnings['php'] = 'The target PHP ' . ($version ?? $target) . ' is older than PHP ' . Config::MinPhpVersion . ', the oldest DressCode fixes code for;'
 			. ' the code is checked as PHP ' . Config::MinPhpVersion . ', so a fix may write syntax the target does not have.';
 		return [Config::MinPhpVersion, Config::MinPhpVersion];
+	}
+
+
+	/**
+	 * The layers with what the installed packages say laid under those of each rule some layer turns on, and how many
+	 * layers of each rule that is; the data of a group the project did not turn on are heard only by a rule it names.
+	 * @param  array<class-string<Rule>, list<array{string, mixed}>>  $layers
+	 * @param  array<class-string<Rule>, true>  $named  the rules a layer names
+	 * @param  array<string, true>  $groups  the groups the layers turn on
+	 * @return array{array<class-string<Rule>, list<array{string, mixed}>>, array<class-string<Rule>, int>}
+	 */
+	private function seedPackageLayers(array $layers, array $named, array $groups): array
+	{
+		/** @var array<class-string<Rule>, list<array{string, mixed, RuleGroup}>> $packageLayers */
+		$packageLayers = [];
+		foreach ($this->packageProfiles as $package) {
+			foreach ($package->profile->rules as $rule => $value) {
+				try {
+					$packageLayers[$this->registry->resolveRule($rule)][] = [$package->source, $value, $package->group];
+				} catch (ConfigurationException) {
+					$this->warnings["$package->source $rule"] = "Rule `$rule`, which " . self::formatLayer($package->source) . ' sets, is not known to this DressCode; skipped.';
+				}
+			}
+		}
+
+		$seeded = [];
+		foreach ($packageLayers as $class => $below) {
+			$below = isset($named[$class]) ? $below : array_filter($below, fn(array $layer) => isset($groups[$layer[2]->value]));
+			if (isset($layers[$class]) && $below !== []) {
+				$layers[$class] = [...array_map(fn(array $layer) => [$layer[0], $layer[1]], array_values($below)), ...$layers[$class]];
+				$seeded[$class] = count($below);
+			}
+		}
+
+		return [$layers, $seeded];
 	}
 
 
@@ -388,6 +438,8 @@ final class ConfigResolver
 			return $prefix . '`' . implode('`, `', explode(', ', substr($layer, strlen($prefix)))) . '`';
 		} elseif (preg_match('~^(preset|group) (.+)$~', $layer, $m)) {
 			return "$m[1] `$m[2]`";
+		} elseif (preg_match('~^(.+) of (.+)$~', $layer, $m)) { // the upgrading file of a package
+			return "`$m[1]` of `$m[2]`";
 		}
 
 		return "`$layer`";
@@ -534,15 +586,27 @@ final class ConfigResolver
 
 
 	/**
-	 * The rules the group turns on, those that carry it.
+	 * The rules the group turns on: those that carry it, and those an upgrading file of that group feeds, its intent
+	 * being a matter of the data and not of the rule reading them.
 	 * @return list<class-string<Rule>>
 	 */
 	private function findRulesOfGroup(RuleGroup $group): array
 	{
-		return array_values(array_filter(
+		$rules = array_values(array_filter(
 			$this->registry->rules,
 			fn(string $class) => RuleInfo::of($class)->group === $group,
 		));
+		foreach ($this->packageProfiles as $package) {
+			foreach ($package->group === $group ? array_keys($package->profile->rules) : [] as $rule) {
+				try {
+					$rules[] = $this->registry->resolveRule($rule);
+				} catch (ConfigurationException) {
+					// an unknown rule is warned about where its data are laid
+				}
+			}
+		}
+
+		return array_values(array_unique($rules));
 	}
 
 
@@ -554,6 +618,7 @@ final class ConfigResolver
 	 * @param  bool  $kept  whether `only` keeps the rule, or the run is not narrowed
 	 * @param  bool  $fixRisky  whether the project accepts its fixes that may change what the code does
 	 * @param  bool  $warnOnly  whether its violations only warn
+	 * @param  int  $packageLayers  how many of the first layers are what the installed packages say
 	 * @throws ConfigurationException
 	 */
 	private function resolveRule(
@@ -565,6 +630,7 @@ final class ConfigResolver
 		bool $kept,
 		bool $fixRisky,
 		bool $warnOnly,
+		int $packageLayers = 0,
 	): ResolvedRule
 	{
 		$info = RuleInfo::of($class);
@@ -594,7 +660,7 @@ final class ConfigResolver
 
 		$options = [];
 		if ($inactive === null) {
-			[$options, $warnings] = RuleBuilder::processOptions($class, $layers);
+			[$options, $warnings] = RuleBuilder::processOptions($class, $layers, $packageLayers);
 			foreach ($warnings as $message) {
 				$this->warnings["$info->name $message"] = "Rule `$info->name`: $message";
 			}
@@ -609,6 +675,7 @@ final class ConfigResolver
 			$last instanceof \Closure ? $last : null,
 			$fixRisky,
 			$warnOnly,
+			$packageLayers,
 			$reason,
 		);
 	}

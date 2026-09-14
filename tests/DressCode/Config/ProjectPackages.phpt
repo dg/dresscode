@@ -22,6 +22,7 @@ test('the version of a package the code must work with', function () {
 			'name' => 'acme/transitive',
 			'version' => 'v3.2.1',
 			'version_normalized' => '3.2.1.0',
+			'install-path' => '../acme/transitive',
 			'source' => ['reference' => 'abc'],
 			'dist' => ['reference' => 'def'],
 		],
@@ -37,6 +38,8 @@ test('the version of a package the code must work with', function () {
 
 	$project = ProjectPackages::read("$root/src");
 	Assert::same('app/project', $project->rootName);
+	Assert::same($root, $project->rootPath);
+	Assert::same("$root/vendor/acme/transitive", $project->installed['acme/transitive']['path']);
 
 	// required by the project: the lowest version its constraint allows, whatever is installed
 	Assert::same('3.1', $project->findVersion('acme/direct'));
@@ -68,6 +71,7 @@ test('the version of a package the code must work with', function () {
 
 test('a project without packages has none', function () {
 	$project = new ProjectPackages;
+	Assert::null($project->rootPath);
 	Assert::false($project->has('acme/lib'));
 	Assert::null($project->findVersion('acme/lib'));
 });

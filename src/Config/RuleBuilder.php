@@ -74,29 +74,32 @@ final class RuleBuilder
 	 * a sentence of its own, such as that its options decide nothing or that one of them is deprecated.
 	 * @param  class-string<Rule>  $class
 	 * @param  list<array{string, mixed}>  $layers  who says it and what
+	 * @param  int  $packageLayers  how many of the first layers are what the installed packages say
 	 * @return array{array<string, mixed>, list<string>}
 	 * @throws ConfigurationException
 	 */
-	public static function processOptions(string $class, array $layers): array
+	public static function processOptions(string $class, array $layers, int $packageLayers = 0): array
 	{
 		$info = RuleInfo::of($class);
-		return self::validateOptions($class, $info->name, self::stackLayers($layers, $info), self::describeSources($layers));
+		return self::validateOptions($class, $info->name, self::stackLayers($layers, $info, $packageLayers), self::describeSources($layers));
 	}
 
 
 	/**
 	 * The layers a rule ends up with, as the schema takes them: turning the rule off drops everything said
-	 * before it, so a map written after it starts from the defaults of the schema again.
+	 * before it but what the installed packages say, so a map written after it starts from the defaults of
+	 * the schema and the packages again.
 	 * @param  list<array{string, mixed}>  $layers
+	 * @param  int  $packageLayers  how many of the first layers are what the installed packages say
 	 * @return list<array<string, mixed>>
 	 * @throws ConfigurationException
 	 */
-	private static function stackLayers(array $layers, RuleInfo $info): array
+	private static function stackLayers(array $layers, RuleInfo $info, int $packageLayers = 0): array
 	{
 		$stack = [];
 		foreach ($layers as [$source, $value]) {
 			if ($value === false) {
-				$stack = [];
+				$stack = array_slice($stack, 0, $packageLayers);
 			} elseif (is_array($value)) {
 				$stack[] = self::markLists($value, top: true);
 			} elseif (is_string($value) || is_int($value)) {
