@@ -718,9 +718,15 @@ final class MemberMapGrammar
 ```php
 final readonly class MemberPattern
 	public readonly string $class
+	public readonly ?DressCode\Analyses\MemberKind $kind
 	public readonly string $name
 	public readonly ?DressCode\Rules\Upgrading\ArgumentPattern $arguments
+	public readonly bool $nonStatic
+	public readonly ?string $hook
 	public static function fromKey(string $key): DressCode\Rules\Upgrading\MemberPattern
+	public function matches(DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types): bool
+	public function getArgumentPattern(): DressCode\Rules\Upgrading\ArgumentPattern
+	public function getLookupName(): string
 ```
 
 ## `DressCode\Severity`
