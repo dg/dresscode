@@ -29,7 +29,8 @@ final readonly class Gap
 
 	/**
 	 * What the rule decides about the node, made from the shape the node has when the first of its gaps is
-	 * reached and answered the same at every gap after it until the pass ends.
+	 * reached and answered the same at every gap after it until the pass ends. A decision other than null, false
+	 * or an empty array makes the claims following from it one violation of the node.
 	 * @template T
 	 * @param \Closure(): T $decide
 	 * @return T
