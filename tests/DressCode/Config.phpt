@@ -28,6 +28,7 @@ test('defaults', function () {
 	Assert::null($config->baseline);
 	Assert::null($config->cacheDir);
 	Assert::same([], $config->analyses);
+	Assert::null($config->types);
 });
 
 
@@ -79,6 +80,7 @@ test('a value a profile cannot hold is refused when it is written', function () 
 	Assert::exception(fn() => new Profile(php: 'eight'), InvalidArgumentException::class, "Invalid PHP version 'eight'.");
 	Assert::exception(fn() => new Profile(nameResolution: 'sure'), InvalidArgumentException::class, "The name resolution must be 'certain' or 'uncertain', 'sure' given.");
 	Assert::exception(fn() => new Profile(namespaces: ['classes' => []]), InvalidArgumentException::class, "The namespaces declare functions and constants, not 'classes'.");
+	Assert::exception(fn() => new Profile(types: 'psalm'), InvalidArgumentException::class, "The types come from 'phpstan', 'psalm' given.");
 });
 
 

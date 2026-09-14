@@ -226,6 +226,18 @@ test('the version of PHP is taken with quotes or without them', function () {
 });
 
 
+test('the types of the code come from phpstan or from nowhere', function () {
+	$types = fn(string $file) => Loader::loadFile(FileMock::create($file, 'neon'))->types;
+	Assert::same('phpstan', $types("types: phpstan\n"));
+	Assert::null($types("paths: [src]\n"));
+	Assert::exception(
+		fn() => $types("types: psalm\n"),
+		ConfigurationException::class,
+		"Configuration file %a%: The item 'types' expects to be %a%",
+	);
+});
+
+
 test('extensions name rules, presets and extensions, and what the namespaces declare is a map', function () {
 	$config = Loader::loadFile(FileMock::create(<<<'XX'
 		extensions: [LoaderRule, DressCode\Presets\Per]
