@@ -2,8 +2,9 @@
 
 namespace DressCode\Console;
 
+use Nette\CommandLine\Ansi;
 use Nette\CommandLine\Console;
-use function sprintf, strlen;
+use function sprintf;
 
 
 /**
@@ -23,26 +24,14 @@ final class ProgressBar
 	/** a file processed longer than this is worth naming */
 	private const SlowFile = 2.0;
 
-	/** a line wrapped by the terminal would survive the carriage return only in half */
-	private const LineWidth = 78;
-
-	/** @var resource */
-	private $stream;
-
 	private readonly float $started;
 	private float $drawn = 0.0;
 
-	/** visible length of the line on the screen */
-	private int $width = 0;
 
-
-	/** @param resource $stream */
 	public function __construct(
-		$stream,
 		private readonly Console $console,
 		private readonly int $total,
 	) {
-		$this->stream = $stream;
 		$this->started = microtime(as_float: true);
 	}
 
@@ -64,46 +53,24 @@ final class ProgressBar
 
 		$this->drawn = $now;
 		$filled = (int) round(self::BarWidth * $done / $this->total);
-		$counter = sprintf('  %d/%d', $done, $this->total);
 		$line = '  ' . $this->console->color('gray', '[' . str_repeat('=', $filled) . str_repeat(' ', self::BarWidth - $filled) . ']')
-			. $counter;
-		$width = 2 + self::BarWidth + 2 + strlen($counter);
+			. sprintf('  %d/%d', $done, $this->total);
 
 		asort($running);
 		$slowest = array_key_first($running);
 		if ($slowest !== null && $now - $running[$slowest] > self::SlowFile) {
-			$seconds = sprintf('  %ds', (int) ($now - $running[$slowest]));
-			$path = self::shorten($slowest, self::LineWidth - $width - strlen($seconds) - 2);
-			$line .= $this->console->color('gray', "  $path") . $this->console->color('yellow', $seconds);
+			$seconds = sprintf('%ds', (int) ($now - $running[$slowest]));
+			$room = $this->console->getWidth() - Ansi::measure($line) - Ansi::measure($seconds) - 4;
+			$line .= $this->console->color('gray', '  ' . Ansi::truncate($slowest, max(1, $room), keepEnd: true))
+				. $this->console->color('yellow', "  $seconds");
 		}
 
-		$this->draw($line);
+		$this->console->setStatus($line);
 	}
 
 
 	public function finish(): void
 	{
-		$this->draw('');
-	}
-
-
-	private function draw(string $line): void
-	{
-		$visible = strlen((string) preg_replace('~\e\[[\d;]*m~', '', $line));
-		if ($visible === 0 && $this->width === 0) {
-			return;
-		}
-
-		fwrite($this->stream, "\r" . $line . str_repeat(' ', max(0, $this->width - $visible)) . "\r");
-		$this->width = $visible;
-	}
-
-
-	/** Keeps the end of the path, where the file name is. */
-	private static function shorten(string $path, int $width): string
-	{
-		return strlen($path) > $width
-			? '...' . substr($path, -max(1, $width - 3))
-			: $path;
+		$this->console->clearStatus();
 	}
 }
