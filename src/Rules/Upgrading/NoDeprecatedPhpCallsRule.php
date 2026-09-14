@@ -137,7 +137,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 				&& !isset($this->except[$name])
 				&& version_compare($context->phpVersion, $entry->appliesFrom, '>=')
 				&& self::isVariableOf($call->object, $entry->pattern->class, $context)
-				&& ($bindings = ($entry->pattern->arguments ?? ArgumentPattern::any())->bind($call->arguments)) !== null
+				&& ($bindings = $entry->pattern->getArgumentPattern()->bind($call->arguments, null)) !== null
 				&& self::rewriteCall($entry, $call, $call->name->text . '()', $bindings, $context)
 			) {
 				return;

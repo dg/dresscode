@@ -645,7 +645,9 @@ final readonly class ArgumentPattern
 	public readonly array $items
 	public static function any(): DressCode\Rules\Upgrading\ArgumentPattern
 	public static function parse(string $arguments): DressCode\Rules\Upgrading\ArgumentPattern
-	public function bind(PhpSyntax\Nodes\ArgumentListNode $arguments): ?DressCode\Rules\Upgrading\ArgumentBindings
+	public function bind(PhpSyntax\Nodes\ArgumentListNode $arguments, ?array $parameters): ?DressCode\Rules\Upgrading\ArgumentBindings
+	public function takesAnyArguments(): bool
+	public function compareSpecificity(DressCode\Rules\Upgrading\ArgumentPattern $other): int
 ```
 
 ## `DressCode\Rules\Upgrading\ArgumentPatternItem`
@@ -674,9 +676,20 @@ final readonly class FunctionPattern
 ```php
 final readonly class MemberPattern
 	public readonly string $class
+	public readonly ?DressCode\Analyses\MemberKind $kind
 	public readonly string $name
 	public readonly ?DressCode\Rules\Upgrading\ArgumentPattern $arguments
+	public readonly bool $nonStatic
+	public readonly ?string $hook
 	public static function fromKey(string $key): DressCode\Rules\Upgrading\MemberPattern
+	public function matches(DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types): bool
+	public function bind(DressCode\Analyses\MemberAccess $access, PhpSyntax\Nodes\ArgumentListNode $arguments, ?array $parameters, DressCode\Analyses\Types $types): ?DressCode\Rules\Upgrading\ArgumentBindings
+	public function matchesMethodDeclaration(string $declaringClass, string $method, DressCode\Analyses\Types $types): bool
+	public function takesAnyArguments(): bool
+	public function compareSpecificity(DressCode\Rules\Upgrading\MemberPattern $other): int
+	public function getArgumentPattern(): DressCode\Rules\Upgrading\ArgumentPattern
+	public function describe(DressCode\Analyses\MemberKind $kind): string
+	public function getLookupName(): string
 ```
 
 ## `DressCode\Severity`

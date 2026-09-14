@@ -48,6 +48,6 @@ final readonly class FunctionPattern
 	/** What the arguments of a call are in the words of the key; null where the call is of another shape. */
 	public function bind(ArgumentListNode $arguments): ?ArgumentBindings
 	{
-		return ($this->arguments ?? ArgumentPattern::any())->bind($arguments);
+		return ($this->arguments ?? ArgumentPattern::any())->bind($arguments, null);
 	}
 }
