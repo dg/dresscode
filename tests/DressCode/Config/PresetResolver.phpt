@@ -850,7 +850,7 @@ test('a value NEON read as an entity is shown among the origins the way a file w
 
 
 test('what the packages say lies under every layer, never turns a rule on and survives the rule being turned off', function () {
-	$packages = [new Config\PackageProfile('upgrading.neon of acme/lib', new Profile(rules: [RuleC::class => ['max' => 1], RuleA::class => []]), Group::Deprecations)];
+	$packages = [new Config\PackageProfile('upgrading.neon of acme/lib', 'acme/lib', new Profile(rules: [RuleC::class => ['max' => 1], RuleA::class => []]), Group::Deprecations)];
 	$options = function (Config $config) use ($packages): ?array {
 		$resolver = new PresetResolver(new RuleRegistry, $packages);
 		$resolved = $resolver->resolve($config, '8.3');
@@ -877,7 +877,7 @@ test('what the packages say lies under every layer, never turns a rule on and su
 	Assert::same('no preset or rule of the configuration mentions it', $rules['test/a']->inactive);
 
 	// a rule this DressCode does not know is a warning, not an error, because the package may be newer
-	$resolver = new PresetResolver(new RuleRegistry, [new Config\PackageProfile('upgrading.neon of acme/lib', new Profile(rules: ['acme/from-the-future' => []]), Group::Deprecations)]);
+	$resolver = new PresetResolver(new RuleRegistry, [new Config\PackageProfile('upgrading.neon of acme/lib', 'acme/lib', new Profile(rules: ['acme/from-the-future' => []]), Group::Deprecations)]);
 	$resolver->resolve(new Config, '8.3');
 	Assert::same(['Rule `acme/from-the-future`, which `upgrading.neon` of `acme/lib` sets, is not known to this DressCode; skipped.'], $resolver->getWarnings());
 });
@@ -885,8 +885,8 @@ test('what the packages say lies under every layer, never turns a rule on and su
 
 test('the group of an upgrading file turns on the rules it feeds, which hear its data where the group is on or the rule is named', function () {
 	$packages = [
-		new Config\PackageProfile('retired.neon of acme/lib', new Profile(rules: [RuleC::class => ['max' => 1]]), Group::Deprecations),
-		new Config\PackageProfile('modern.neon of acme/lib', new Profile(rules: [RuleC::class => ['names' => ['m']]]), Group::Modernization),
+		new Config\PackageProfile('retired.neon of acme/lib', 'acme/lib', new Profile(rules: [RuleC::class => ['max' => 1]]), Group::Deprecations),
+		new Config\PackageProfile('modern.neon of acme/lib', 'acme/lib', new Profile(rules: [RuleC::class => ['names' => ['m']]]), Group::Modernization),
 	];
 	$options = function (Config $config) use ($packages): ?array {
 		$resolver = new PresetResolver(new RuleRegistry, $packages);
