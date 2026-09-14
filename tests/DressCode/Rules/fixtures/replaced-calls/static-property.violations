@@ -1,0 +1,3 @@
+13: Static property Acme\KernelCase::$container is replaced by getContainer()
+14: Static property Acme\KernelCase::$container is replaced by getContainer()
+17: Static property Acme\KernelCase::$container is replaced by getContainer(), but nothing says what an assignment to it becomes

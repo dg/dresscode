@@ -26,7 +26,7 @@ test('a key is read the way an upgrading guide writes a member', function () {
 	$read = function (string $key): array {
 		$pattern = MemberPattern::fromKey($key);
 		$vars = array_replace(get_object_vars($pattern), ['arguments' => $pattern->arguments === null ? null : count($pattern->arguments->items)]);
-		unset($vars['instance']);
+		unset($vars['instance'], $vars['hook']);
 		return $vars;
 	};
 
@@ -45,6 +45,12 @@ test('a key is read the way an upgrading guide writes a member', function () {
 	Assert::exception(fn() => MemberPattern::fromKey('Order::$paid()'), InvalidArgumentException::class, "The member 'Order::\$paid()' is a property and takes no arguments.");
 	Assert::exception(fn() => MemberPattern::fromKey('Order::add( ... )'), InvalidArgumentException::class, "The member 'Order::add( ... )' reads as a first-class callable; a call with any arguments is written Order::add(...\$args).");
 	Assert::true(MemberPattern::fromKey('Acme\Utils\Html->text()')->instance);
+	Assert::same('set', MemberPattern::fromKey('Acme\Shop\Order::$paid::set')->hook);
+	Assert::true(MemberPattern::fromKey('Order::$paid::get')->matchesHook('isset'));
+	Assert::false(MemberPattern::fromKey('Order::$paid::get')->matchesHook('set'));
+	Assert::true(MemberPattern::fromKey('Order::$paid::set')->matchesHook('unset'));
+	Assert::true(MemberPattern::fromKey('Order::$paid')->matchesHook('set'));
+	Assert::exception(fn() => MemberPattern::fromKey('Order::paid::get'), InvalidArgumentException::class, "The member 'Order::paid::get' names a hook, which only a property has, Class::\$name::get.");
 	foreach (['Html->text', 'Html->$text', 'Html->__construct()'] as $key) {
 		Assert::exception(fn() => MemberPattern::fromKey($key), InvalidArgumentException::class, "The member '$key' is %a%");
 	}

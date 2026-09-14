@@ -1,0 +1,3 @@
+11: Method Acme\Playlist::addTrack() is replaced by addAlbum($name, $label)
+12: Method Acme\Settings::getOption() is replaced by getOption($key) ?? $default
+13: Static method Acme\Invoker::wrap() is replaced by \Closure::fromCallable($callable)

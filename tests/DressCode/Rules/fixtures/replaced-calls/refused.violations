@@ -1,0 +1,3 @@
+16: Constructor Acme\Mapper::__construct() is replaced by \Acme\Sequence::map($iterator, $callback), but parent::__construct() creates no object to replace
+24: Constructor Acme\Layout::__construct() is replaced by $this->configure($shape), but an instantiation has no object to call it on
+27: Property Acme\Message::$subject is replaced by setSubject($value), but nothing says what a read of it becomes

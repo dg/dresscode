@@ -16,7 +16,8 @@ use DressCode\Analyses\{Access, MemberKind, Types};
  * `Class::name($a, true)` a method called with arguments of that shape, `Class::name()` one called without any and
  * `Class::name(...$args)` one called with any, `Class::$name` a property and `Class::__construct($a)` an instantiation;
  * the arguments are for the rule to bind, and one that rewrites the name alone takes the parentheses for a method
- * whatever they hold.
+ * whatever they hold. A property is used through one of its two hooks, as PHP names them: `Class::$name::get` is
+ * a read of it, `isset()` among them, `Class::$name::set` a write, an assignment of any kind and `unset()`.
  * A method is static or not alike, the same one being reached as `$this->name()` and `parent::name()`;
  * `Class->name()` is one that is not static, for a class whose later version has a static method of that name.
  * A bare `Class::name(...)` is refused, being a first-class callable in PHP.
@@ -33,6 +34,8 @@ final readonly class MemberPattern
 		public ?ArgumentPattern $arguments = null,
 		/** a method written Class->name(), which is not static */
 		public bool $instance = false,
+		/** the hook of a property the key is of, 'get' or 'set'; null for both */
+		public ?string $hook = null,
 	) {
 	}
 
@@ -40,13 +43,15 @@ final readonly class MemberPattern
 	/** @throws \InvalidArgumentException  saying what is wrong with the key */
 	public static function fromKey(string $key): self
 	{
-		if (!preg_match('~^\\\\?(\w+(?:\\\\\w+)*)(::|->)(\$)?(\w+)(?:\((.*)\))?$~Ds', trim($key), $m, PREG_UNMATCHED_AS_NULL)) {
-			throw new \InvalidArgumentException("The member '$key' is not written as Class::name, Class::name(), Class->name(), Class::\$name or Class::name(\$argument, ...).");
+		if (!preg_match('~^\\\\?(\w+(?:\\\\\w+)*)(::|->)(\$)?(\w+)(?:::(get|set))?(?:\((.*)\))?$~Ds', trim($key), $m, PREG_UNMATCHED_AS_NULL)) {
+			throw new \InvalidArgumentException("The member '$key' is not written as Class::name, Class::name(), Class->name(), Class::\$name, Class::\$name::get or Class::name(\$argument, ...).");
 		}
 
-		[, $class, $operator, $dollar, $name, $parentheses] = $m;
+		[, $class, $operator, $dollar, $name, $hook, $parentheses] = $m;
 		$instance = $operator === '->';
-		if ($dollar !== null && $parentheses !== null) {
+		if ($hook !== null && $dollar === null) {
+			throw new \InvalidArgumentException("The member '$key' names a hook, which only a property has, Class::\$name::$hook.");
+		} elseif ($dollar !== null && $parentheses !== null) {
 			throw new \InvalidArgumentException("The member '$key' is a property and takes no arguments.");
 		} elseif ($parentheses !== null && trim($parentheses) === '...') {
 			throw new \InvalidArgumentException("The member '$key' reads as a first-class callable; a call with any arguments is written $class$operator$name(...\$args).");
@@ -61,7 +66,7 @@ final readonly class MemberPattern
 		}
 
 		return match (true) {
-			$dollar !== null => new self($class, MemberKind::Property, $name),
+			$dollar !== null => new self($class, MemberKind::Property, $name, hook: $hook),
 			strcasecmp($name, '__construct') === 0 => new self($class, MemberKind::Constructor, '__construct', $arguments),
 			$parentheses !== null => new self($class, MemberKind::Method, $name, $arguments, $instance),
 			default => new self($class, null, $name),
@@ -103,6 +108,21 @@ final readonly class MemberPattern
 		}
 
 		return true;
+	}
+
+
+	/**
+	 * Whether the use of a property goes through the hook of the key: a read and `isset()` through get, a write and
+	 * `unset()` through set, and any of them for a key naming no hook.
+	 * @param  'get'|'set'|'isset'|'unset'  $use
+	 */
+	public function matchesHook(string $use): bool
+	{
+		return match ($this->hook) {
+			null => true,
+			'get' => $use === 'get' || $use === 'isset',
+			default => $use === 'set' || $use === 'unset',
+		};
 	}
 
 

@@ -17,8 +17,9 @@ use function count, in_array;
 /**
  * The shape of the arguments a key of a map of members asks of a call, written as the arguments of a call are:
  * `$name, $label, true`, `miss: $f, ...`, `$callable, ...$args`. A placeholder stands for any expression,
- * a literal for the same value however written, an item under a name for an argument passed by that name, and the
- * rest of the arguments has to be asked for, with `...` or `...$args`, or the call may have none.
+ * `$this` alone for none, being what the call is made on in the expression written instead; a literal stands for
+ * the same value however written, an item under a name for an argument passed by that name, and the rest of the
+ * arguments has to be asked for, with `...` or `...$args`, or the call may have none.
  */
 final readonly class ArgumentPattern
 {
@@ -55,7 +56,9 @@ final readonly class ArgumentPattern
 			$name = $argument->name?->text;
 			$placeholder = $value instanceof VariableNode ? $value->plainName : null;
 			$variadic = $argument instanceof ArgumentNode && $argument->ellipsis !== null;
-			if ($placeholder !== null && in_array($placeholder, $placeholders, true)) {
+			if ($placeholder === 'this') {
+				throw new \InvalidArgumentException('$this is no placeholder; in the expression written instead it stands for what the call is made on.');
+			} elseif ($placeholder !== null && in_array($placeholder, $placeholders, true)) {
 				throw new \InvalidArgumentException("the placeholder \$$placeholder stands for two arguments.");
 			} elseif ($name === null && $named && !$variadic) {
 				throw new \InvalidArgumentException("the positional '$argument->text' stands behind a named item.");

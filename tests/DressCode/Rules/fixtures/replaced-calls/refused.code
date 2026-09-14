@@ -1,0 +1,28 @@
+<?php
+// {"Acme\\Mapper::__construct($iterator, $callback)": "\\Acme\\Sequence::map($iterator, $callback)", "Acme\\Layout::__construct($shape, $strict)": "$this->configure($shape)", "Acme\\Message::$subject::set": "setSubject($value)"}
+
+namespace App;
+
+use Acme\Layout;
+use Acme\Mapper;
+use Acme\Message;
+
+
+class ListMapper extends Mapper
+{
+	public function __construct(iterable $iterator)
+	{
+		// reported and left: the parent constructor is no instantiation the function could stand for
+		parent::__construct($iterator, fn($item) => $item);
+	}
+}
+
+
+function test(Message $mail): void
+{
+	// reported and left: an instantiation has nothing to call a method on
+	$layout = new Layout([], true);
+
+	// reported and left: the map says nothing of a read
+	echo $mail->subject;
+}

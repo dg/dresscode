@@ -1,0 +1,81 @@
+<?php
+// {"Acme\\Settings::getOption($key, $default)": "getOption($key) ?? $default", "Acme\\Settings::measure($text)": "\\strlen($text)", "Acme\\Settings::isBetween($value, $min, $max)": "$value >= $min && $value <= $max", "Acme\\Settings::isDebug(...$args)": "hasMode('debug')", "Acme\\Settings::reset($soft)": "getEntries()", "Acme\\Settings::flip($first, $second)": "\\Acme\\Sequence::map($second, $first)", "Acme\\Section::offsetGet($key)": "get($key)", "Acme\\Section::__get($name)": "get($name)", "Acme\\Settings::matchesMask($value, $mask)": "find($value)?->matches($mask)", "Acme\\Settings::describe($separator)": "\\Acme\\Formatter::describe($this, $separator)"}
+// risky
+
+namespace App;
+
+use Acme\Settings;
+
+class MySettings extends Settings
+{
+	// the method is replaced as a whole, which a declaration cannot follow
+	public function isDebug(): bool
+	{
+		return parent::isDebug();
+	}
+
+
+	// only a call of some shape is replaced, the method stays
+	public function getOption(string $key): mixed
+	{
+		return parent::getOption($key, []);
+	}
+
+
+	// $this stands for an object, which parent:: is not
+	public function describeSelf(): string
+	{
+		return parent::describe(', ');
+	}
+}
+
+
+function test(Settings $settings, int $x): void
+{
+	// an argument evaluated only sometimes, or no longer at all
+	$a = $settings->getOption('x', compute());
+	$b = $settings->getOption('x', $x);
+	$c = $settings->reset(compute());
+	$d = $settings->reset(true);
+	$n = $settings->matchesMask(compute(), compute());
+
+	// what the call was made on is no longer evaluated
+	$e = create()->measure('text');
+	$f = $settings->measure('text');
+	$g = $settings?->measure('text');
+
+	// an argument written twice is fine where reading it again is free, and refused where it is not
+	$h = $settings->isBetween($x, 1, 10);
+	$i = $settings->isBetween(compute(), 1, 10);
+	$j = $settings->isBetween($x, compute(), 10);
+
+	// $this takes what the call was made on, which a nullsafe call would lose
+	$o = $settings->describe(', ');
+	$p = $settings?->describe(', ');
+
+	// arguments written in another order, which matters once two of them do something
+	$k = $settings->flip($x, compute());
+	$l = $settings->flip(compute(), compute());
+	$m = create()->flip($x, compute());
+}
+
+
+// the left of ?? asks whether the thing is set before it reads it, which a call does not
+function read(\Acme\Section $section): void
+{
+	$a = $section['user'] ?? 'none';
+	$b = $section->user ?? 'none';
+	$c = $section['user'];
+}
+
+
+function create(): Settings
+{
+	return new Settings;
+}
+
+
+function compute(): int
+{
+	return 1;
+}

@@ -1,0 +1,88 @@
+<?php
+// {"Acme\\Playlist::addTrack($name, $label, true)": "addAlbum($name, $label)", "Acme\\Playlist::addTrack($name, $label, false)": "addTrack($name, $label)", "Acme\\Settings::getOption($key, $default)": "getOption($key) ?? $default", "Acme\\Settings::isDebug()": "hasMode('debug')", "Acme\\Settings::setStrictMode($state)": "setFlag(\\Acme\\Flag::Strict, $state)", "Acme\\Settings::count()": "\\count(getEntries())", "Acme\\Store::load(miss: $f, ...)": "load(factory: $f, ...)", "Acme\\Invoker::wrap($callable)": "\\Closure::fromCallable($callable)", "Acme\\Invoker::call($callable, ...$args)": "$callable(...$args)", "Acme\\Invoker::callArray($callable, $args)": "$callable(...$args)", "Acme\\Invoker::defaultOf($parameter)": "$parameter->getDefaultValue()", "Acme\\Mapper::__construct($iterator, $callback)": "\\Acme\\Sequence::map($iterator, $callback)", "Acme\\Formatter::format($var)": "(new \\Acme\\Formatter)->render($var)", "Acme\\Formatter::legacy($var)": "\\Acme\\Formatter::format($var)", "Acme\\Mapper::create($options)": "new \\Acme\\Layout(...$options)","Acme\\Layout::__construct(items: $shape, ...)": "new \\Acme\\Layout(shape: $shape, ...)", "Acme\\Settings::notify(...$args)": "\\Acme\\Sequence::invokeAll($this->listeners, ...$args)", "Acme\\Playlist::copyTrack($name)": "(new \\Acme\\Editor($this))->copyTrack($name)"}
+
+namespace App;
+
+use Acme\Formatter;
+use Acme\Invoker;
+use Acme\Layout;
+use Acme\Mapper;
+use Acme\MySettings;
+use Acme\Playlist;
+use Acme\Settings;
+use Acme\SortedMapper;
+use Acme\Store;
+
+function test(Playlist $playlist, Settings $settings, MySettings $my, ?Settings $nullable, Store $store, array $items, callable $cb): void
+{
+	$playlist->addTrack('file', 'File', true);
+	$playlist->addTrack('file', 'File', false);
+	$playlist->addTrack('file', multiple: true, label: 'File');
+	$playlist->addTrack('file', 'File');
+	$playlist
+		->addTrack('file', 'File', true)
+		->setOption('class', 'multi');
+	$playlist->addTrack('file', 'File', $flag);
+
+	$a = $settings->getOption('x', 'default');
+	$b = $my->getOption('x', $items['y']) . 'suffix';
+	$c = $nullable?->getOption('x', null);
+	$d = $settings->getOption('x');
+
+	if ($settings->isDebug() && $my->count() > 1) {
+		$settings->setStrictMode(false);
+	}
+
+	$e = $store->load('key', miss: $cb);
+	$f = $store->load('key', $cb);
+	$g = $store->load('key', tags: $items, miss: $cb);
+
+	$h = Invoker::wrap($cb);
+	$i = Invoker::call($cb, 1, ...$items);
+	$j = Invoker::call($cb);
+	$q = Invoker::callArray($cb, $items);
+	$k = Invoker::defaultOf($items[0]);
+	$l = new Mapper($items, $cb);
+	$m = Formatter::format($items) . "\n";
+
+	// a chain: what the first replacement writes is replaced again, reported on the line of the call
+	Formatter::legacy($items);
+
+	// an array literal unpacked is written out as the arguments PHP makes of it, unless it says more than that
+	$v = Mapper::create(['shape' => $items, 'strict' => true]);
+	$w = Mapper::create([$items, 'strict' => true]);
+	$x = Mapper::create([]);
+	$y = Mapper::create($items);
+	$z = Mapper::create([1 => $items]);
+
+	// $this is what the call was made on
+	$settings->notify(1, ...$items);
+	$playlist->copyTrack('intro');
+
+	// reported with the reason: evaluated twice, a comment, a closure instead of a call is left alone
+	$n = $settings->getOption('x', /* the default */ 1);
+	$o = $settings->isDebug(...);
+
+	// refused: a child that declares no constructor would be created as the class
+	$p = new SortedMapper($items, $cb);
+
+	// a renamed parameter of a constructor, in an instantiation of the class, of a child that declares no constructor
+	// and in parent::__construct(); a child that declares its own is left alone
+	$q = new Layout(items: $items);
+	$r = new PlainLayout(items: $items, strict: true);
+	$s = new OwnLayout(items: $items);
+}
+
+
+class PlainLayout extends Layout
+{
+}
+
+
+class OwnLayout extends Layout
+{
+	public function __construct(array $items)
+	{
+		parent::__construct(items: $items);
+	}
+}

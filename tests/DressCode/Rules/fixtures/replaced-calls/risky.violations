@@ -1,0 +1,23 @@
+12: Method Acme\Settings::isDebug() is replaced by hasMode('debug'), but a declaration is nothing an expression could stand for
+14: Method Acme\Settings::isDebug() is replaced by hasMode('debug')
+21: Method Acme\Settings::getOption() is replaced by getOption($key) ?? $default
+28: Method Acme\Settings::describe() is replaced by \Acme\Formatter::describe($this, $separator), but the replacement needs an object and the call is static
+36: Method Acme\Settings::getOption() is replaced by getOption($key) ?? $default, which evaluates compute() only sometimes
+37: Method Acme\Settings::getOption() is replaced by getOption($key) ?? $default
+38: Method Acme\Settings::reset() is replaced by getEntries(), which no longer evaluates compute()
+39: Method Acme\Settings::reset() is replaced by getEntries()
+40: Method Acme\Settings::matchesMask() is replaced by find($value)?->matches($mask), which evaluates compute() only sometimes
+43: Method Acme\Settings::measure() is replaced by \strlen($text), which no longer evaluates what it is reached through
+44: Method Acme\Settings::measure() is replaced by \strlen($text)
+45: Method Acme\Settings::measure() is replaced by \strlen($text), but the replacement cannot skip a null as ?-> does
+48: Method Acme\Settings::isBetween() is replaced by $value >= $min && $value <= $max
+49: Method Acme\Settings::isBetween() is replaced by $value >= $min && $value <= $max, but compute() would be evaluated 2 times
+50: Method Acme\Settings::isBetween() is replaced by $value >= $min && $value <= $max
+53: Method Acme\Settings::describe() is replaced by \Acme\Formatter::describe($this, $separator)
+54: Method Acme\Settings::describe() is replaced by \Acme\Formatter::describe($this, $separator), but the replacement cannot skip a null as ?-> does
+57: Method Acme\Settings::flip() is replaced by \Acme\Sequence::map($second, $first)
+58: Method Acme\Settings::flip() is replaced by \Acme\Sequence::map($second, $first), which evaluates its arguments in another order
+59: Method Acme\Settings::flip() is replaced by \Acme\Sequence::map($second, $first), which no longer evaluates what it is reached through
+66: Method Acme\Section::offsetGet() is replaced by get($key), which no longer asks first whether it is set, as ?? does
+67: Method Acme\Section::__get() is replaced by get($name), which no longer asks first whether it is set, as ?? does
+68: Method Acme\Section::offsetGet() is replaced by get($key)
