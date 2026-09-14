@@ -1,0 +1,11 @@
+11: Method Nette\Forms\Form::invalidateControl() is deprecated: use redrawControl()
+12: Constant Nette\Forms\Form::FILLED is deprecated: use Form::Filled
+13: Constant Nette\Forms\Form::EQUAL is deprecated: use Form::Equal
+20: Constant Nette\Forms\Form::FILLED is deprecated: use Form::Filled
+21: Constant Nette\Forms\Form::FILLED is deprecated: use Form::Filled
+22: Constant Nette\Forms\Form::FILLED is deprecated: use Form::Filled
+24: Method Nette\Forms\Form::invalidateControl() is deprecated: use redrawControl()
+25: Method Nette\Forms\Form::invalidateControl() is deprecated: use redrawControl()
+26: Constant Nette\Forms\Form::OLD is deprecated
+27: Constant Nette\Forms\Form::EMAIL is deprecated: use Nette\Forms\Validator::validateEmail()
+28: Static method Nette\Forms\Form::make() is deprecated: use Helpers::create() instead

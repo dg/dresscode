@@ -1,0 +1,31 @@
+<?php
+
+namespace App;
+
+use Nette\Forms\Form;
+
+class MyForm extends Form
+{
+	public function check(): void
+	{
+		$this->invalidateControl();
+		$x = self::FILLED;
+		$y = static::EQUAL;
+	}
+}
+
+
+function test(Form $form, MyForm $my, $unknown): void
+{
+	$a = $form::FILLED;
+	$b = Form::FILLED;
+	$c = MyForm::FILLED;
+	$d = $form::Filled;
+	$form->invalidateControl();
+	$form?->invalidateControl();
+	$e = Form::OLD;
+	$f = Form::EMAIL;
+	Form::make();
+	$unknown->invalidateControl();
+	$unknown::FILLED;
+}
