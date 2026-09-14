@@ -143,6 +143,7 @@ final class PassRunner
 
 			$this->mutatedRules = [];
 			$this->fingerprints->startPass();
+			$this->analyses->beginPass($file);
 			$revision = $file->revision;
 			foreach ($this->stages as $stage => $rules) {
 				$this->runStage($stage, $rules, $style);

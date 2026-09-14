@@ -28,7 +28,7 @@ final readonly class Config extends Profile
 	/** @var ?\Closure(string, string): bool  files left out by their content and path */
 	public ?\Closure $skipWhen;
 
-	/** @var array<class-string, ?\Closure(FileNode): object>  analysis → its factory, or null when the engine builds it with the file or with nothing */
+	/** @var array<class-string, ?\Closure(FileNode, string): object>  analysis → its factory given the file and its path, or null when the engine builds it with the file or with nothing */
 	public array $analyses;
 
 
@@ -41,7 +41,7 @@ final readonly class Config extends Profile
 	 * @param list<string> $warnings
 	 * @param list<string> $excludePaths  left out of the run on top of the default list
 	 * @param ?callable(string $content, string $path): bool $skipWhen
-	 * @param array<string|int, string|callable(FileNode): object> $analyses  a class the engine builds itself, or a class with its factory
+	 * @param array<string|int, string|callable(FileNode, string): object> $analyses  a class the engine builds itself, or a class with its factory given the file and its path
 	 */
 	public function __construct(
 		/** @var list<string|Extension>  classes of extensions, and rules and presets made known by their names; a run looks them up */
@@ -78,8 +78,8 @@ final readonly class Config extends Profile
 
 
 	/**
-	 * @param  array<string|int, string|callable(FileNode): object>  $analyses
-	 * @return array<class-string, ?\Closure(FileNode): object>
+	 * @param  array<string|int, string|callable(FileNode, string): object>  $analyses
+	 * @return array<class-string, ?\Closure(FileNode, string): object>
 	 */
 	private static function normalizeAnalyses(array $analyses): array
 	{

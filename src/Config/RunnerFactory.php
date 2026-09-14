@@ -295,7 +295,7 @@ final class RunnerFactory
 	 * The modification times of the files the rules, presets and analyses of the run are declared in, their parents
 	 * and traits included, where no installed package holds them: the version of a package stands for its files,
 	 * while a rule of the project itself changes under the same version of the project.
-	 * @param  array<class-string, ?\Closure(FileNode): object>  $analyses
+	 * @param  array<class-string, ?\Closure(FileNode, string): object>  $analyses
 	 * @return array<string, int|false>  file → modification time
 	 */
 	private function collectSourceTimes(ResolvedConfig $resolved, array $analyses): array
@@ -343,7 +343,7 @@ final class RunnerFactory
 
 	/**
 	 * Whether a closure builds a rule or an analysis of the run, which the resolved configuration cannot describe.
-	 * @param  array<class-string, ?\Closure(FileNode): object>  $analyses
+	 * @param  array<class-string, ?\Closure(FileNode, string): object>  $analyses
 	 */
 	private static function hasClosures(Config $config, ResolvedConfig $resolved, array $analyses): bool
 	{

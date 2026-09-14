@@ -198,7 +198,7 @@ final class RuleContext
 	 */
 	public function getAnalysis(string $class): object
 	{
-		return $this->analyses->get($this->file, $class);
+		return $this->analyses->get($this->file, $class, $this->path);
 	}
 
 

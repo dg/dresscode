@@ -57,3 +57,30 @@ test('the resolver of names is built with what the namespaces declare outside th
 	$unknown = (new Analyses\Registry)->get($file, NameResolver::class);
 	Assert::same(UnqualifiedResolution::Uncertain, $unknown->getUnqualifiedResolution('g', SymbolKind::Function, $g));
 });
+
+
+final class PassAnalysisStub implements Analyses\PassAnalysis
+{
+}
+
+
+test('an analysis of the pass survives the mutations in it and is dropped when the next pass begins', function () {
+	$registry = new Analyses\Registry;
+	/** @var ArrayObject<int, string> $created */
+	$created = new ArrayObject;
+	$registry->register(PassAnalysisStub::class, function (FileNode $file, string $path) use ($created) {
+		$created[] = $path;
+		return new PassAnalysisStub;
+	});
+
+	$file = (new Parser)->parse('<?php f(); g();');
+	$analysis = $registry->get($file, PassAnalysisStub::class, 'a.php');
+	Assert::same(['a.php'], $created->getArrayCopy());
+
+	$file->statements->getItems()[0]->remove();
+	Assert::same($analysis, $registry->get($file, PassAnalysisStub::class, 'a.php'));
+
+	$registry->beginPass($file);
+	Assert::notSame($analysis, $registry->get($file, PassAnalysisStub::class, 'a.php'));
+	Assert::same(['a.php', 'a.php'], $created->getArrayCopy());
+});
