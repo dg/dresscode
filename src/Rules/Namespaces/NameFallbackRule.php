@@ -4,7 +4,6 @@ namespace DressCode\Rules\Namespaces;
 
 use DressCode\Analyses\PhpSymbols;
 use DressCode\ConfigurableRule;
-use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
@@ -54,7 +53,6 @@ use function count;
 	'dresscode/name-fallback',
 	Stage::Structure,
 	description: 'Writes a global function or constant in a namespace qualified, or bare and reached by the fallback at run time',
-	group: Group::OptimizedCalls,
 )]
 final class NameFallbackRule extends NodeRule implements ConfigurableRule
 {

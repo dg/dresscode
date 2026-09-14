@@ -2,7 +2,6 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
@@ -42,7 +41,6 @@ use function count;
 	'dresscode/readonly-for-unwritten-property',
 	Stage::Structure,
 	description: 'Marks a property written only in the constructor as readonly',
-	group: Group::Modernization,
 	requires: ['php' => '>=8.1'],
 )]
 final class ReadonlyForUnwrittenPropertyRule extends NodeRule

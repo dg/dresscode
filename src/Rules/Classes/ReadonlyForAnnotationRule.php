@@ -3,7 +3,6 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\PhpDoc;
-use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
@@ -44,7 +43,6 @@ use function in_array;
 	'dresscode/readonly-for-annotation',
 	Stage::Structure,
 	description: 'Replaces the @readonly annotation with the readonly keyword',
-	group: Group::Modernization,
 	modifiesComments: true,
 	requires: ['php' => '>=8.1'],
 	risky: true,

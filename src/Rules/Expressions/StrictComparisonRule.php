@@ -2,7 +2,6 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
@@ -21,7 +20,6 @@ use PhpSyntax\TokenKind;
 	'dresscode/strict-comparison',
 	Stage::Structure,
 	description: 'Replaces loose comparisons with strict ones',
-	group: Group::Correctness,
 	risky: true,
 )]
 final class StrictComparisonRule extends NodeRule

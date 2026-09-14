@@ -12,6 +12,7 @@ final readonly class Override extends Profile
 {
 	/**
 	 * @param list<string> $presets
+	 * @param list<string|Group> $groups
 	 * @param array<string, bool|string|int|array<string, mixed>|\Closure(): Rule> $rules
 	 * @param array{functions?: list<string>, constants?: list<string>} $namespaces
 	 * @param list<string> $fixRisky
@@ -21,6 +22,7 @@ final readonly class Override extends Profile
 		/** @var list<string>  patterns, relative to the root */
 		public array $paths,
 		array $presets = [],
+		array $groups = [],
 		array $rules = [],
 		int|string|null $indent = null,
 		?string $eol = null,
@@ -35,6 +37,6 @@ final readonly class Override extends Profile
 			throw new \InvalidArgumentException('An override needs the paths it applies to.');
 		}
 
-		parent::__construct($presets, $rules, $indent, $eol, $lineLength, $php, $namespaces, $nameResolution, $fixRisky, $warnings);
+		parent::__construct($presets, $groups, $rules, $indent, $eol, $lineLength, $php, $namespaces, $nameResolution, $fixRisky, $warnings);
 	}
 }

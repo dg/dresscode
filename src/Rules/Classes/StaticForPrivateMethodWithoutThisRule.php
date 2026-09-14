@@ -2,7 +2,6 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
@@ -43,7 +42,6 @@ use function in_array;
 	'dresscode/static-for-private-method-without-this',
 	Stage::Structure,
 	description: 'Marks a private method that does not use $this as static',
-	group: Group::Cleanup,
 	risky: true,
 )]
 final class StaticForPrivateMethodWithoutThisRule extends NodeRule

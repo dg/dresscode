@@ -2,7 +2,6 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
@@ -33,7 +32,6 @@ use PhpSyntax\TriviaKind;
 	'dresscode/readonly-class-for-readonly-members',
 	Stage::Structure,
 	description: 'Marks a class whose every property is readonly as readonly',
-	group: Group::Modernization,
 	requires: ['php' => '>=8.2'],
 )]
 final class ReadonlyClassForReadonlyMembersRule extends NodeRule

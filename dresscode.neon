@@ -16,5 +16,7 @@ fileExtensions:
 
 overrides:
 	- paths: [src]
-	  presets: [optimizations]
+	  groups: [optimized-calls]
+	  rules:
+	  	name-fallback: {optimizedFunctions: qualified, optimizedConstants: qualified}
 	  nameResolution: certain
