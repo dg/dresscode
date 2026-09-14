@@ -228,6 +228,17 @@ test('files are found under the paths, sorted, relative, with slashes, without t
 });
 
 
+test('a directory named that holds configured paths is narrowed to them, anything else is taken as named', function () use ($root) {
+	$runner = engine($root);
+	$configured = ['src/sub', 'vendor/f.php'];
+	Assert::same(['src/sub', 'vendor/f.php'], $runner->narrowPaths(['.'], $configured));
+	Assert::same(['src/sub'], $runner->narrowPaths(['src', "$root/src/"], $configured));
+	Assert::same(['src/sub/d.php', 'src/su', 'src/fixtures'], $runner->narrowPaths(['src/sub/d.php', 'src/su', 'src/fixtures'], $configured));
+	Assert::same(['vendor/f.php'], $runner->narrowPaths(['vendor/f.php'], $configured));
+	Assert::same(['.'], $runner->narrowPaths(['.'], []));
+});
+
+
 test('check reports and writes nothing', function () use ($root) {
 	$reporter = new RecordingReporter;
 	$runner = engine($root, skipWhen: fn(string $content) => str_contains($content, '// skip me'));
