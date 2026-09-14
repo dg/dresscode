@@ -19,6 +19,8 @@ final readonly class PackageProfile
 	public function __construct(
 		/** the file and the package shipping it, as a message names them */
 		public string $source,
+		/** the package whose versions the sections of the file are of */
+		public string $package,
 		public Profile $profile,
 		/** @var list<string>  the versions of the sections left out as not reached yet, ascending */
 		public array $unreached = [],
