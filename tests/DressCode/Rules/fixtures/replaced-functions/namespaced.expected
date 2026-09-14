@@ -1,0 +1,27 @@
+<?php
+// {"Acme\\Template\\escape": "Acme\\Template\\escape_html", "Acme\\Template\\raw": "trim"}
+
+namespace Acme\Template {
+	function render(string $text): string
+	{
+		return escape_html($text) . trim($text) . \Acme\Template\escape_html($text);
+	}
+}
+
+
+namespace App {
+	use function Acme\Template\escape;
+	use Acme\Template;
+	use function Acme\Template\escape_html;
+
+	function show(string $text): string
+	{
+		return escape_html($text) . Template\escape_html($text) . \trim($text);
+	}
+
+
+	function other(string $text): string
+	{
+		return \App\escape($text);
+	}
+}

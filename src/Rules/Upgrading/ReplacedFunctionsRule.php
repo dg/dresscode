@@ -12,10 +12,10 @@ use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Context, Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token};
+use PhpSyntax\{Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{ArgumentNode, NameNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
-use function array_find, count, is_int;
+use function array_find, count, is_int, strlen;
 
 
 /**
@@ -31,9 +31,12 @@ use function array_find, count, is_int;
  * encoding where the replaced one has the offset. Where either function is not PHP's own, its parameters are
  * unknown and the map is taken at its word, since whoever wrote the map knows it.
  *
- * The replaced function is a global one, which is what a call reaches through the fallback of a namespace; the
- * replacement is written the way the scope writes a global function, or fully qualified when it has a namespace
- * of its own, the rules of the notation of names then writing it as the project spells such a name.
+ * The replaced function is a global one, which is what a call reaches through the fallback of a namespace, or one of
+ * a namespace, `Acme\Template\escape`, which a call reaches through an import, by its qualified name, or unqualified
+ * inside that namespace. The replacement is written the way the scope writes a global function, by its short name
+ * inside its own namespace or imported where the call reached the replaced one unqualified, by the qualified name the
+ * call wrote where both share a namespace, or fully qualified elsewhere, the rules of the notation of names then
+ * writing it as the project spells such a name.
  */
 #[RuleInfo(
 	'dresscode/replaced-functions',
@@ -51,9 +54,9 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 	{
 		return Expect::arrayOf(
 			Expect::string()->pattern('\\\\?\w+(\\\\\w+)*'),
-			Expect::string()->pattern('\\\\?\w+'),
+			Expect::string()->pattern('\\\\?\w+(\\\\\w+)*'),
 		)
-			->description('The global function → the function written instead, which is written fully qualified when it has a namespace of its own')
+			->description('The function, global or of a namespace → the function written instead')
 			->transform(function (array $options, Context $context): array {
 				foreach ($options as $old => $new) {
 					if (strcasecmp(ltrim((string) $old, '\\'), ltrim($new, '\\')) === 0) {
@@ -87,16 +90,17 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
 		$resolver = $context->getAnalysis(NameResolver::class);
-		if (
-			!$node instanceof FunctionCallNode
-			|| !$node->name instanceof NameNode
-			|| !$resolver->isGlobalFunctionCall($node)
-		) {
+		if (!$node instanceof FunctionCallNode || !$node->name instanceof NameNode || $node->name->isKeyword()) {
 			return;
 		}
 
-		// the function the name reaches, which an import may call by another name
-		$replacement = $this->functions[strtolower($resolver->resolveFunction($node->name))] ?? null;
+		// the function the name reaches, which an import may call by another name; an unqualified name inside
+		// a namespace reaches the function of that namespace where the map names one, the global one otherwise
+		$namespace = $resolver->getNamespace($node);
+		$local = $namespace !== '' && !str_contains($node->name->text, '\\')
+			? $this->functions[strtolower("$namespace\\{$node->name->text}")] ?? null
+			: null;
+		$replacement = $local ?? $this->functions[strtolower($resolver->resolveFunction($node->name))] ?? null;
 		if ($replacement === null) {
 			return;
 		}
@@ -104,7 +108,7 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 		[$old, $new] = $replacement;
 
 		$refusal = $this->findRefusal($old, $new, $node, $context);
-		$uncertainty = $refusal === null ? NodeHelpers::findUncertainty($node, $context) : null;
+		$uncertainty = $refusal === null && !str_contains($old, '\\') ? NodeHelpers::findUncertainty($node, $context) : null;
 		if (!$context->report(
 			$node->name,
 			"Function $old() is replaced by $new()" . ($refusal ?? $uncertainty ?? ''),
@@ -114,9 +118,47 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$node->name->text = str_contains($new, '\\')
-			? '\\' . $new
-			: NodeHelpers::spellGlobalFunction($new, $node->name, $context);
+		$newNamespace = self::extractNamespace($new);
+		$short = substr($new, strlen($newNamespace) + 1);
+		$written = $node->name->text;
+		$qualified = str_contains($written, '\\');
+		$node->name->text = match (true) {
+			$newNamespace === '' => NodeHelpers::spellGlobalFunction($new, $node->name, $context),
+			!$qualified && strcasecmp($newNamespace, $namespace) === 0 => $short,
+			// a qualified name of the same namespace keeps the way it reaches it
+			$qualified && strcasecmp($newNamespace, self::extractNamespace($old)) === 0 => substr($written, 0, (int) strrpos($written, '\\') + 1) . $short,
+			!$qualified && str_contains($old, '\\') && self::importFunction($new, $short, $node->name, $context) => $short,
+			default => '\\' . $new,
+		};
+	}
+
+
+	/**
+	 * Whether the scope imports the function under its short name, as it imported the one a call reached through an
+	 * import; the import is added where the name is free.
+	 */
+	private static function importFunction(string $function, string $short, NameNode $at, RuleContext $context): bool
+	{
+		$resolver = $context->getAnalysis(NameResolver::class);
+		$imported = $resolver->getFunctionImports($at)[strtolower($short)] ?? null;
+		if ($imported !== null) {
+			return strcasecmp($imported, $function) === 0;
+		}
+
+		$scope = NodeHelpers::findImportScope($at);
+		if ($scope === null || !NodeHelpers::canAddImport($scope) || !$resolver->isAliasFree($short, SymbolKind::Function, $at)) {
+			return false;
+		}
+
+		NodeHelpers::addImport($scope, SymbolKind::Function, $function, $context);
+		return true;
+	}
+
+
+	/** The namespace of the fully qualified name, '' for a global one. */
+	private static function extractNamespace(string $name): string
+	{
+		return substr($name, 0, max(0, (int) strrpos($name, '\\')));
 	}
 
 
