@@ -280,14 +280,39 @@ final class RunnerFactory
 	 */
 	private static function hashConfiguration(array $configuration): string
 	{
+		$packages = array_map(fn(array $package) => [$package['version'], $package['reference']], self::getInstalledPackages());
+		return hash('xxh128', json_encode([$configuration, $packages], JSON_THROW_ON_ERROR | JSON_PARTIAL_OUTPUT_ON_ERROR));
+	}
+
+
+	/**
+	 * The packages installed with the project, read from the raw data of Composer: InstalledVersions answers from
+	 * every registered loader, the one inside the phar of PHPStan included once it is started, and would then name
+	 * its packages, its versions and its root instead of the project's.
+	 * @return array<string, array{version: ?string, reference: ?string, path: ?string}>  path null for the root package
+	 */
+	private static function getInstalledPackages(): array
+	{
+		if (!class_exists(InstalledVersions::class)) {
+			return [];
+		}
+
 		$packages = [];
-		if (class_exists(InstalledVersions::class)) {
-			foreach (InstalledVersions::getInstalledPackages() as $package) {
-				$packages[$package] = [InstalledVersions::getVersion($package), InstalledVersions::getReference($package)];
+		foreach (InstalledVersions::getAllRawData() as $data) {
+			if (str_starts_with($data['root']['install_path'], 'phar://')) {
+				continue;
+			}
+
+			foreach ($data['versions'] as $name => $package) {
+				$packages[$name] ??= [
+					'version' => $package['version'] ?? null,
+					'reference' => $package['reference'] ?? null,
+					'path' => $name === $data['root']['name'] ? null : ($package['install_path'] ?? null),
+				];
 			}
 		}
 
-		return hash('xxh128', json_encode([$configuration, $packages], JSON_THROW_ON_ERROR | JSON_PARTIAL_OUTPUT_ON_ERROR));
+		return $packages;
 	}
 
 
@@ -300,14 +325,14 @@ final class RunnerFactory
 	 */
 	private function collectSourceTimes(ResolvedConfig $resolved, array $analyses): array
 	{
-		if (!class_exists(InstalledVersions::class)) {
+		$installed = self::getInstalledPackages();
+		if ($installed === []) {
 			return [];
 		}
 
 		$packages = [];
-		foreach (InstalledVersions::getInstalledPackages() as $package) {
-			$path = $package === InstalledVersions::getRootPackage()['name'] ? null : InstalledVersions::getInstallPath($package);
-			$path = $path === null ? false : realpath($path);
+		foreach ($installed as $package) {
+			$path = $package['path'] === null ? false : realpath($package['path']);
 			if ($path !== false) {
 				$packages[] = Helpers::canonicalizePath($path) . '/';
 			}
