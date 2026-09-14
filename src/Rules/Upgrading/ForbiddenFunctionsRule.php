@@ -21,7 +21,7 @@ use PhpSyntax\Nodes\NameNode;
  */
 #[RuleInfo(
 	Stage::Structure,
-	decisions: ['upgrading.libraries.forbiddenFunctions'],
+	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.forbiddenFunctions'],
 	analyses: [NameResolver::class],
 )]
 final class ForbiddenFunctionsRule extends NodeRule

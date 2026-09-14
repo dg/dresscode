@@ -16,6 +16,9 @@ enum LayerKind
 	case Override;
 	case Preset;
 
+	/** an upgrading file of a package, or what DressCode itself knows of one */
+	case Package;
+
 	/** a name a caller asks about, outside every layer of the configuration */
 	case Caller;
 }

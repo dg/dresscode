@@ -30,7 +30,7 @@ final readonly class ResolvedProject
 		 * of the manual that says more, if any
 		 */
 		public array $warnings,
-		/** @var list<PluginManifest>  the plugins of the configuration, a plugin after those it builds on */
+		/** @var list<PluginManifest>  the plugins of the packages and of the configuration, a plugin after those it builds on */
 		public array $pluginManifests,
 		public ProjectPackages $projectPackages,
 		/** laid over the configuration and its overrides, as --use is */

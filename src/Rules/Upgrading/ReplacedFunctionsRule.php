@@ -18,10 +18,10 @@ use function count, is_int, strlen;
 
 
 /**
- * A tool for replacing calls across a codebase: the project maps a function to the function it wants written instead,
- * and the rule rewrites every call. The fix is not risky, because what changes is exactly what the map asked for; only
- * a call in a namespace that may reach a function of that namespace instead of the global one is, since there the code,
- * not the map, decides which function it calls.
+ * A tool for replacing calls across a codebase: the project, or a library it stands on, maps a function to the function
+ * it wants written instead, and the rule rewrites every call. The fix is not risky, because what changes is exactly
+ * what the map asked for; only a call in a namespace that may reach a function of that namespace instead of the global
+ * one is, since there the code, not the map, decides which function it calls.
  *
  * A call is rewritten only where the replacement takes every argument of it: the parameter standing at the position
  * of a positional argument takes what the replaced one took, a named argument names a parameter of the replacement
@@ -39,7 +39,7 @@ use function count, is_int, strlen;
  */
 #[RuleInfo(
 	Stage::Structure,
-	decisions: ['upgrading.libraries.replacedFunctions'],
+	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedFunctions'],
 	analyses: [PhpSignatures::class, PhpSymbols::class, NameResolver::class],
 )]
 final class ReplacedFunctionsRule extends NodeRule

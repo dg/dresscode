@@ -9,9 +9,10 @@ namespace DressCode;
 
 
 /**
- * What a package brings to a project that names it among its plugins: rules and presets known by their names, the
- * analyses it builds, the paths it leaves out and the files it skips. How the code is written is not among them;
- * that is a preset, which the project names.
+ * What a package brings to a project that names it among its plugins, or that has the package installed when its
+ * composer.json names it under `extra.dresscode.plugin`: rules and presets known by their names, the analyses it
+ * builds, the paths it leaves out and the files it skips. How the code is written is not among them; that is a preset,
+ * which the project names.
  */
 interface Plugin
 {

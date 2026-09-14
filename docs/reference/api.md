@@ -264,7 +264,8 @@ final class Catalogue
 final readonly class Layer
 	public readonly DressCode\Config\LayerKind $kind
 	public readonly ?string $name
-	public function __construct(DressCode\Config\LayerKind $kind, ?string $name = null)
+	public readonly ?string $package
+	public function __construct(DressCode\Config\LayerKind $kind, ?string $name = null, ?string $package = null)
 	public function describe(): string
 	public function format(): string
 	public function isProject(): bool
@@ -278,6 +279,7 @@ enum LayerKind
 	case CommandLine
 	case Override
 	case Preset
+	case Package
 	case Caller
 ```
 

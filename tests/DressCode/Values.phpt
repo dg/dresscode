@@ -82,10 +82,22 @@ test('the mask selects requirements by path or prefix and changes no value', fun
 
 test('a map is read by its grammar without the entries a layer withdrew', function () {
 	$decision = new Decision('upgrading.map', new Map(new GrammarEntry, grammar: Expect::arrayOf(Expect::string())), 'A map');
-	$below = $decision->accept(['A' => 'old', 'B' => 'other'])->withOrigin(new Layer(LayerKind::Preset, 'dresscode/nette'));
+	$below = $decision->accept(['A' => 'old', 'B' => 'other'])->withOrigin(new Layer(LayerKind::Package, 'upgrading.neon', 'acme/lib'));
 	$above = $decision->accept(['A' => 'keep'])->withOrigin(new Layer(LayerKind::Configuration));
 	$values = new Values(['upgrading.map' => $decision], ['upgrading.map' => $decision->domain->merge($below, $above)]);
 	Assert::same(['B' => 'other'], $values->readMap('upgrading.map'));
+});
+
+
+test('a map whose every entry a layer withdrew turns nothing on, its tombstones still merged with a map above', function () {
+	$decision = new Decision('upgrading.map', new Map(new GrammarEntry, grammar: Expect::arrayOf(Expect::string())), 'A map');
+	$tombstones = $decision->accept(['A' => 'keep'])->withOrigin(new Layer(LayerKind::Package, 'upgrading.neon', 'acme/lib'));
+	$values = new Values(['upgrading.map' => $decision], ['upgrading.map' => $tombstones]);
+	Assert::true($values->isKept('upgrading.map'));
+	Assert::false($values->isSelected('upgrading.map'));
+
+	$above = $decision->accept(['B' => 'other'])->withOrigin(new Layer(LayerKind::Configuration));
+	Assert::same(['A' => 'keep', 'B' => 'other'], $decision->domain->merge($tombstones, $above)->toData());
 });
 
 
