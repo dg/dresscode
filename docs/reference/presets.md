@@ -11,5 +11,5 @@ as its base, and the description of every other preset says what it adds to it.
 | `dresscode/psr12` |  | 42 | PSR-12 Extended Coding Style |
 | `dresscode/nette` | `dresscode/per`, `dresscode/nette-style` | 60 | Nette Coding Standard |
 | `dresscode/symfony` | `dresscode/per`, `dresscode/symfony-configurator` | 52 | Symfony Coding Standards as the @Symfony rule set defines them, without the phpDoc rules |
-| `dresscode/nette-style` |  | 20 | The layout of the Nette Coding Standard |
+| `dresscode/nette-style` |  | 22 | The layout of the Nette Coding Standard |
 | `dresscode/symfony-configurator` |  | 0 | The functions the container configurator of Symfony declares in its namespace |

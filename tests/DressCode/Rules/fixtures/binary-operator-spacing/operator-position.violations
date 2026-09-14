@@ -1,0 +1,10 @@
+3: A line break before the ?? operator
+5: A line break before the + operator
+7: A line break before the && operator
+15: No line break after the && operator
+17: A line break before the + operator
+18: A line break before the - operator
+20: No line break after the === operator
+22: A line break before the || operator
+27: A line break before the ?? operator
+35: A line break before the === operator

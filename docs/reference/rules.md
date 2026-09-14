@@ -139,6 +139,7 @@ Stage: Formatting. Covers: `binary_operator_spaces`, `Squiz.WhiteSpace.LogicalOp
 | Option | Type | Default | |
 |---|---|---|---|
 | `alignment` | `none` \| `spaces` \| `tabs` \| `keep` | `"spaces"` | Which alignment around an operator stays: none collapses it to a single space, spaces and tabs keep the one written with them, keep keeps any |
+| `operatorPosition` | `keep` \| `start` | `"keep"` | Where a binary operator at a line break stands, except a boolean operator chaining a condition, which dresscode/multi-line-condition places: keep leaves it where it is, start moves one ending a line to the start of the next unless a comment follows it or the rule joins the lines |
 
 ### dresscode/blank-lines
 
@@ -296,6 +297,7 @@ Stage: Formatting. Covers: `concat_space`, `Squiz.Strings.ConcatenationSpacing`.
 | Option | Type | Default | |
 |---|---|---|---|
 | `spacing` | `single` \| `none` | `"single"` |  |
+| `operatorPosition` | `keep` \| `start` | `"keep"` | Where the concatenation operator at a line break stands: keep leaves it where it is, start moves one ending a line to the start of the next unless a comment follows it |
 
 ### dresscode/constant-casing
 
@@ -598,6 +600,7 @@ Stage: Formatting. Covers: `SlevomatCodingStandard.ControlStructures.RequireMult
 | Option | Type | Default | |
 |---|---|---|---|
 | `shape` | list of `perLine` \| `compact` | `"perLine"` | The shape of a condition on several lines: perLine begins it on the line after the parenthesis, compact on the line of it, both closing the parenthesis on a line of its own; a list of the two lets either pass and writes anything else in the first, keep leaves every condition as it is |
+| `operatorPosition` | `keep` \| `start` | `"keep"` | Where a boolean operator of the condition at a line break stands: keep leaves it where it is, start moves one ending a line to the start of the next unless a comment follows it |
 
 ### dresscode/multi-line-signature
 
@@ -1310,6 +1313,7 @@ Stage: Formatting. Covers: `ternary_operator_spaces`.
 | Option | Type | Default | |
 |---|---|---|---|
 | `spacing` | `atLeastSingle` \| `single` | `"atLeastSingle"` | atLeastSingle keeps any number of spaces around the operators, single collapses them to one |
+| `operatorPosition` | `keep` \| `start` | `"keep"` | Where ? and : of a ternary at a line break stand: keep leaves them where they are, start moves one ending a line to the start of the next unless a comment follows it |
 
 ### dresscode/trailing-comma
 

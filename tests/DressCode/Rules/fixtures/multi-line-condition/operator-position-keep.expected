@@ -1,0 +1,12 @@
+<?php
+// {"shape": "keep", "operatorPosition": "start"}
+if ($a
+	&& $b) {
+}
+if ($a
+	&& $b) {
+}
+if ($a && $b) {
+} elseif ($a
+	|| $b) {
+}

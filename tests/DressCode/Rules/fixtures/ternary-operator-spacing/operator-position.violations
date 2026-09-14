@@ -1,0 +1,5 @@
+3: A line break after the expression, the ? operator ends its line
+10: A line break after the expression, the : operator ends its line
+12: A line break after the expression, the ?: operator ends its line
+19: A line break after the expression, the ? operator ends its line
+20: A line break after the expression, the : operator ends its line
