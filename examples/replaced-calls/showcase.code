@@ -1,0 +1,14 @@
+<?php
+// {"Acme\\Playlist::addTrack($name, $label, true)": "addAlbum($name, $label)", "Acme\\Settings::getOption($key, $default)": "getOption($key) ?? $default", "Acme\\Invoker::wrap($callable)": "\\Closure::fromCallable($callable)"}
+
+namespace App;
+
+use Acme\Invoker;
+use Acme\Playlist;
+
+function build(Playlist $playlist, callable $handler): void
+{
+	$track = $playlist->addTrack('songs', 'Songs', true);
+	$class = $track->getOption('class', 'track') . ' multiple';
+	$closure = Invoker::wrap($handler);
+}

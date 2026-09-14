@@ -1,0 +1,19 @@
+<?php
+// {"Acme\\KernelCase::$container::get": "getContainer()"}
+
+namespace App;
+
+use Acme\KernelCase;
+
+class MailerTest extends KernelCase
+{
+	public function testSend(): void
+	{
+		// a read of a static property is a call on the class it is read through
+		$a = self::getContainer();
+		$b = static::getContainer();
+
+		// what writes it cannot be a call
+		static::$container = null;
+	}
+}

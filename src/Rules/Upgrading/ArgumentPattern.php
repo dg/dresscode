@@ -7,9 +7,10 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\Analyses\Parameter;
+use DressCode\Analyses\{Parameter, Types};
+use DressCode\{Helpers, Tristate};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, VariadicPlaceholderNode};
-use PhpSyntax\Nodes\Expression\{FunctionCallNode, VariableNode};
+use PhpSyntax\Nodes\Expression\{ArrayNode, FunctionCallNode, VariableNode};
 use PhpSyntax\{ParseException, Parser};
 use function count, in_array;
 
@@ -17,8 +18,9 @@ use function count, in_array;
 /**
  * The shape of the arguments a key of a map of members asks of a call, written as the arguments of a call are:
  * `$name, $label, true`, `miss: $f, ...`, `$callable, ...$args`. A placeholder stands for any expression,
- * a literal for the same value however written, an item under a name for an argument passed by that name, and the
- * rest of the arguments has to be asked for, with `...` or `...$args`, or the call may have none.
+ * `$this` alone for none, being what the call is made on in the expression written instead; a literal stands for
+ * the same value however written, an item under a name for an argument passed by that name, and the rest of the
+ * arguments has to be asked for, with `...` or `...$args`, or the call may have none.
  */
 final readonly class ArgumentPattern
 {
@@ -43,7 +45,7 @@ final readonly class ArgumentPattern
 		$named = false;
 		foreach ($call->arguments->items as $argument) {
 			if ($items !== [] && $items[count($items) - 1]->variadic) {
-				throw new \InvalidArgumentException(\DressCode\Helpers::formatCode($argument->text) . ' stands behind the item that takes the rest of the arguments.');
+				throw new \InvalidArgumentException(Helpers::formatCode($argument->text) . ' stands behind the item that takes the rest of the arguments.');
 			}
 
 			if ($argument instanceof VariadicPlaceholderNode) {
@@ -55,10 +57,12 @@ final readonly class ArgumentPattern
 			$name = $argument->name?->text;
 			$placeholder = $value instanceof VariableNode ? $value->plainName : null;
 			$variadic = $argument instanceof ArgumentNode && $argument->ellipsis !== null;
-			if ($placeholder !== null && in_array($placeholder, $placeholders, true)) {
+			if ($placeholder === 'this') {
+				throw new \InvalidArgumentException('`$this` is no placeholder; in the expression written instead it stands for what the call is made on.');
+			} elseif ($placeholder !== null && in_array($placeholder, $placeholders, true)) {
 				throw new \InvalidArgumentException("the placeholder `\$$placeholder` stands for two arguments.");
 			} elseif ($name === null && $named && !$variadic) {
-				throw new \InvalidArgumentException('the positional ' . \DressCode\Helpers::formatCode($argument->text) . ' stands behind a named item.');
+				throw new \InvalidArgumentException('the positional ' . Helpers::formatCode($argument->text) . ' stands behind a named item.');
 			}
 
 			$named = $named || $name !== null;
@@ -82,13 +86,13 @@ final readonly class ArgumentPattern
 	 * passing it by name is of no shape. A call that leaves arguments open with `?` or `...` is none either.
 	 * @param  ?list<Parameter>  $parameters  of the method called, null where nothing declares it
 	 */
-	public function bind(ArgumentListNode $arguments, ?array $parameters): ?ArgumentBindings
+	public function bind(ArgumentListNode $arguments, ?array $parameters, ?Types $types = null): ?ArgumentBindings
 	{
 		if ($arguments->isPartialApplication()) {
 			return null;
 		}
 
-		$bound = $taken = [];
+		$bound = $taken = $unseen = [];
 		$tail = null;
 		foreach ($this->items as $index => $item) {
 			if ($item->variadic) {
@@ -110,6 +114,13 @@ final readonly class ArgumentPattern
 			$taken[] = $argument;
 			if ($item->placeholder !== null) {
 				$bound[$item->placeholder] = $argument;
+				if (
+					!$argument->value instanceof ArrayNode
+					&& !$argument->value->hasValue()
+					&& $types?->isOfType($argument->value, 'list') !== Tristate::Yes
+				) {
+					$unseen[] = $item->placeholder;
+				}
 			}
 		}
 
@@ -121,14 +132,14 @@ final readonly class ArgumentPattern
 		}
 
 		if ($tail === null) {
-			return $rest === [] ? new ArgumentBindings($bound) : null;
+			return $rest === [] ? new ArgumentBindings($bound, unseenKeys: $unseen) : null;
 		} elseif ($tail->placeholder === null) {
-			return new ArgumentBindings($bound, $rest);
+			return new ArgumentBindings($bound, $rest, $unseen);
 		} elseif (array_any($rest, fn(ArgumentNode $argument) => $argument->name !== null)) {
 			return null; // a name has no place among the arguments a variadic placeholder writes elsewhere
 		}
 
-		return new ArgumentBindings($bound + [$tail->placeholder => $rest]);
+		return new ArgumentBindings($bound + [$tail->placeholder => $rest], unseenKeys: $unseen);
 	}
 
 
