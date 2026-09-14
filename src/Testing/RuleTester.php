@@ -36,6 +36,9 @@ final class RuleTester
 	/** the widest line a fixture is checked with unless its header says another */
 	private const DefaultLineLength = 120;
 
+	/** @var array<string, Analyses\PhpStan>  by the stubs and the file of the code, so that a text seen before shares its PHPStan */
+	private static array $phpstan = [];
+
 
 	/**
 	 * Runs every *.code fixture in the directory: the output must equal <name>.expected (the input when
@@ -43,7 +46,9 @@ final class RuleTester
 	 * comments that open it: the options of the rule `// {"option": value}`, the version of PHP it is
 	 * written for `// php 8.4`, the widest line `// lineLength 80` (120 without it), that the run allows a fix that changes what the code does `// risky`, and what the
 	 * namespaces declare outside it `// namespacedFunctions App\helper, App\Utils\{format}`,
-	 * `// namespacedConstants App\LIMIT` and `// nameResolution certain`. Returns the count.
+	 * `// namespacedConstants App\LIMIT` and `// nameResolution certain`. A rule that needs the types of the code
+	 * gets them from the PHPStan of this project over the fixture and the declarations in the `stubs` directory
+	 * beside it. Returns the count.
 	 * @param class-string<Rule>|\Closure(array<string, mixed>): Rule $rule
 	 * @throws TestFailure
 	 */
@@ -87,6 +92,7 @@ final class RuleTester
 				self::readRisky($code),
 				self::readNamespacedSymbols($code, $file),
 				self::readLineLength($code, $file),
+				self::findStubs($file),
 			);
 		} catch (TestFailure $e) {
 			throw new TestFailure("$file: {$e->getMessage()}", previous: $e);
@@ -124,6 +130,7 @@ final class RuleTester
 	 * @param ?string $expected  the output; null when the rule must leave the code as it is
 	 * @param ?list<string> $violations  "line: message" each; null to skip the check
 	 * @param NamespacedSymbols $namespacedSymbols  what the namespaces declare outside the code
+	 * @param ?string $stubs  directory of the declarations the types of the code are computed with, for a rule that needs them
 	 * @throws TestFailure
 	 */
 	public static function check(
@@ -136,11 +143,12 @@ final class RuleTester
 		bool $fixRisky = false,
 		NamespacedSymbols $namespacedSymbols = new NamespacedSymbols,
 		int $lineLength = self::DefaultLineLength,
+		?string $stubs = null,
 	): void
 	{
 		$expected ??= $code;
 		$phpVersion ??= self::defaultPhpVersion($rule);
-		[$file, $result] = self::process($rule, $code, $phpVersion, $name, $fixRisky, $namespacedSymbols, $lineLength);
+		[$file, $result] = self::process($rule, $code, $phpVersion, $name, $fixRisky, $namespacedSymbols, $lineLength, $stubs);
 		self::checkParents($file);
 		$output = Printer::print($file);
 		if ($output !== $expected) {
@@ -161,7 +169,7 @@ final class RuleTester
 			self::checkComments($code, $output);
 		}
 
-		[, $again] = self::process($rule, $output, $phpVersion, $name, $fixRisky, $namespacedSymbols, $lineLength);
+		[, $again] = self::process($rule, $output, $phpVersion, $name, $fixRisky, $namespacedSymbols, $lineLength, $stubs);
 		if ($again->mutated) {
 			throw new TestFailure(
 				'The rule is not idempotent: it fixes its own output again'
@@ -181,7 +189,7 @@ final class RuleTester
 
 		if ($result->violations && preg_match('~<\?php\b~i', $code)) {
 			$ignored = (string) preg_replace('~<\?php(\s)~i', '<?php /* dresscode:ignore-file */$1', $code, 1);
-			[$ignoredFile, $ignoredResult] = self::process($rule, $ignored, $phpVersion, $name, $fixRisky, $namespacedSymbols, $lineLength);
+			[$ignoredFile, $ignoredResult] = self::process($rule, $ignored, $phpVersion, $name, $fixRisky, $namespacedSymbols, $lineLength, $stubs);
 			if ($ignoredResult->violations || Printer::print($ignoredFile) !== $ignored) {
 				throw new TestFailure('The rule ignores the dresscode:ignore-file comment: it still reports or changes the file.');
 			}
@@ -208,7 +216,16 @@ final class RuleTester
 			self::readRisky($code),
 			self::readNamespacedSymbols($code, $file),
 			self::readLineLength($code, $file),
+			self::findStubs($file),
 		);
+	}
+
+
+	/** The directory of declarations beside the fixture, when there is one. */
+	private static function findStubs(string $file): ?string
+	{
+		$dir = dirname($file) . '/stubs';
+		return is_dir($dir) ? $dir : null;
 	}
 
 
@@ -224,6 +241,7 @@ final class RuleTester
 		bool $fixRisky,
 		NamespacedSymbols $namespacedSymbols,
 		int $lineLength,
+		?string $stubs = null,
 	): array
 	{
 		try {
@@ -232,7 +250,12 @@ final class RuleTester
 			throw new TestFailure("The code does not parse: {$e->getMessage()}");
 		}
 
-		$runner = new PassRunner([$rule], new Analyses\Registry($namespacedSymbols), fn(string $rule) => [$rule], strict: true, fixRisky: $fixRisky);
+		$registry = new Analyses\Registry($namespacedSymbols);
+		if (RuleInfo::of($rule)->requiresTypes) {
+			self::registerTypes($registry, $stubs);
+		}
+
+		$runner = new PassRunner([$rule], $registry, fn(string $rule) => [$rule], strict: true, fixRisky: $fixRisky);
 		try {
 			$result = $runner->run($file, $code, $name, new Style(eol: Style::detectEol($code), lineLength: $lineLength), $phpVersion);
 		} catch (RuleException $e) {
@@ -242,6 +265,31 @@ final class RuleTester
 		}
 
 		return [$file, $result];
+	}
+
+
+	/**
+	 * The types of the code from the PHPStan of this project. PHPStan reads the declarations of a file from the
+	 * disk, so the code goes to a file of its own, named by its text; a text seen before shares its PHPStan.
+	 */
+	private static function registerTypes(Analyses\Registry $registry, ?string $stubs): void
+	{
+		$registry->register(Analyses\Types::class, function (FileNode $file) use ($stubs): Analyses\Types {
+			$dir = sys_get_temp_dir() . '/dresscode-tests/types';
+			@mkdir($dir, recursive: true);
+			$code = Printer::print($file);
+			$path = $dir . '/' . hash('xxh128', $code) . '.php';
+			if (!is_file($path)) {
+				file_put_contents($path, $code);
+			}
+
+			$phpstan = self::$phpstan["$stubs|$path"] ??= new Analyses\PhpStan(
+				$stubs ?? $dir,
+				array_values(array_filter([$stubs, $path])),
+				"$dir/cache",
+			);
+			return new Analyses\Types($file, $path, $phpstan);
+		});
 	}
 
 

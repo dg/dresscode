@@ -117,6 +117,15 @@ final class RunnerFactory
 		$this->warnings = $resolver->getWarnings();
 		$this->phpVersion = [$resolved->phpVersion, $source];
 		$analyses = array_merge(...array_map(fn(Config $layer) => $layer->analyses, $layers));
+		if ($resolved->types === 'phpstan') {
+			if (!Analyses\PhpStan::isAvailable()) {
+				throw new ConfigurationException("The configuration sets 'types: phpstan', but phpstan/phpstan is not installed in the project.");
+			}
+
+			$phpstan = new Analyses\PhpStan($root, self::resolveAnalysedPaths($config, $root), self::resolveCacheDir($config, $root) . '/phpstan');
+			$analyses[Analyses\Types::class] = fn(FileNode $file, string $path) => new Analyses\Types($file, $path, $phpstan);
+		}
+
 		$baselineFile = $baseline ? self::loadBaseline($config, $root) : null;
 
 		// the processors are built lazily, so they must not ask the factory, which may have built another runner since
@@ -266,9 +275,30 @@ final class RunnerFactory
 	/** The cache file of the project root: in the configured directory, else in the system temp. */
 	private static function resolveCacheFile(Config $config, string $root): string
 	{
+		return self::resolveCacheDir($config, $root) . '/' . substr(hash('xxh128', Helpers::canonicalizePath($root)), 0, 16) . '.json';
+	}
+
+
+	private static function resolveCacheDir(Config $config, string $root): string
+	{
 		$root = Helpers::canonicalizePath($root);
 		$dir = $config->cacheDir === null ? sys_get_temp_dir() . '/dresscode' : self::toAbsolutePath($config->cacheDir, $root);
-		return Helpers::canonicalizePath($dir) . '/' . substr(hash('xxh128', $root), 0, 16) . '.json';
+		return Helpers::canonicalizePath($dir);
+	}
+
+
+	/**
+	 * Where PHPStan looks for the declarations of the project besides its Composer autoload: the configured paths
+	 * that exist, else the root.
+	 * @return list<string>
+	 */
+	private static function resolveAnalysedPaths(Config $config, string $root): array
+	{
+		$paths = array_values(array_filter(
+			array_map(fn(string $path) => self::toAbsolutePath($path, $root), $config->paths),
+			fn(string $path) => is_dir($path) || is_file($path),
+		));
+		return $paths === [] ? [$root] : $paths;
 	}
 
 
