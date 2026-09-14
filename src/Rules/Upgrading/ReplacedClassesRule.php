@@ -17,17 +17,17 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
 
 
 /**
- * A tool for replacing a class across a codebase: the project maps a class, interface or enum to the one it wants
- * written instead, and the rule rewrites every reference, an import, a type, an instantiation, a static access, an
- * attribute, a type or a reference in a doc comment, importing the new name the way the scope imports; a class a
- * comment only mentions in its text is left as it is. The fix is not risky, because what changes is exactly what the
- * map asked for. Where the run has the types of the code, a class the project does not have is
+ * A tool for replacing a class across a codebase: the project, or a library it stands on, maps a class, interface or
+ * enum to the one it wants written instead, and the rule rewrites every reference, an import, a type, an instantiation,
+ * a static access, an attribute, a type or a reference in a doc comment, importing the new name the way the scope
+ * imports; a class a comment only mentions in its text is left as it is. The fix is not risky, because what changes is
+ * exactly what the map asked for. Where the run has the types of the code, a class the project does not have is
  * reported and not written.
  */
 #[RuleInfo(
 	Stage::Structure,
 	modifiesComments: true,
-	decisions: ['upgrading.libraries.replacedClasses'],
+	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedClasses'],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class ReplacedClassesRule extends NodeRule

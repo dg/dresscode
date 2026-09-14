@@ -41,17 +41,20 @@ final readonly class RunnerFactory
 	public function resolve(Config $config, string $root, ?Profile $commandLine = null, ?array $only = null): ResolvedProject
 	{
 		$project = ProjectPackages::read($root);
+		$packages = PackageDiscovery::discover($project);
+		[$packagePlugins, $unnamed] = $this->admitPackagePlugins($packages->plugins, $config, $commandLine, $project->rootName);
 		$visited = [];
 		$plugins = [
+			...$this->loadPlugins($packagePlugins, $visited),
 			...$this->loadPlugins($config->plugins, $visited),
 			...$this->loadPlugins($commandLine instanceof Config ? $commandLine->plugins : [], $visited),
 		];
 		$this->registerProjectRules($config);
 		[$target, $source] = $this->getPhpTarget($config, $root);
 		$typesAvailable = $config->typeAnalysis === null || $this->isPhpStanInstalled();
-		$resolver = new ConfigResolver($this->registry, $project, $typesAvailable, $root);
+		$resolver = new ConfigResolver($this->registry, $packages->upgradingData, $project, $typesAvailable, $root);
 		$resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
-		$warnings = array_fill_keys($resolver->getWarnings(), null);
+		$warnings = array_fill_keys([...$packages->warnings, ...$unnamed, ...$resolver->getWarnings()], null);
 		if (!$typesAvailable) {
 			$warnings['The configuration sets `typeAnalysis: phpstan`, but `phpstan/phpstan` is not installed beside DressCode, so the run goes without the types of the code.'] = 'types#enable';
 		}
@@ -173,6 +176,34 @@ final readonly class RunnerFactory
 	private function isPhpStanInstalled(): bool
 	{
 		return $this->phpstanInstalled ?? Analyses\PhpStan::isAvailable();
+	}
+
+
+	/**
+	 * The plugins of the packages the project lets in, by naming the package or the plugin in `use`, its own package
+	 * needing no name, and a warning for each of the others; a package named makes its name no preset.
+	 * @param  array<string, class-string<Plugin>>  $plugins  package => its plugin
+	 * @return array{list<class-string<Plugin>>, list<string>}
+	 */
+	private function admitPackagePlugins(array $plugins, Config $config, ?Profile $commandLine, ?string $rootName): array
+	{
+		$named = [
+			...$config->use,
+			...$config->plugins,
+			...$commandLine->use ?? [],
+			...($commandLine instanceof Config ? $commandLine->plugins : []),
+		];
+		$admitted = $warnings = [];
+		foreach ($plugins as $package => $plugin) {
+			if ($package === $rootName || in_array($package, $named, true) || in_array($plugin, $named, true)) {
+				$admitted[] = $plugin;
+				$this->registry->registerPluginPackage($package);
+			} else {
+				$warnings[] = "Package `$package` brings the plugin `$plugin`, which loads only where `use` names the package or the plugin; skipped.";
+			}
+		}
+
+		return [$admitted, $warnings];
 	}
 
 

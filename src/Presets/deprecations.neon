@@ -1,7 +1,8 @@
 # Deprecations
 #
-# What a newer PHP deprecated or removed, fixed where a replacement exists and reported where none does. A deprecation
-# is reported whatever the target, the code meeting it wherever it runs on the version that made it.
+# What a newer PHP deprecated or removed, fixed where a replacement exists and reported where none does, and what the
+# upgrading files of the installed packages list as retired. A deprecation is reported whatever the target, the code
+# meeting it wherever it runs on the version that made it.
 
 builtin:
 	castType: short                           # `(int)`, not `(integer)`, PHP 8.5
@@ -13,6 +14,8 @@ expressions:
 	backticks: forbidden                      # `shell_exec()`, PHP 8.5
 
 upgrading:
+	libraries:
+		packages: adopted                     # as the upgrading files of the packages say
 	declarations:
 		deprecatedMember: replaced
 	php:

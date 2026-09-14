@@ -289,7 +289,12 @@ final class CorePlugin implements Plugin
 				// the classes a native type takes as iterable
 				new Decision('types.traversableClasses', new Names, 'Classes treated like `array` and `iterable`, whose annotation says what their items are', parameter: true, default: ['Traversable']),
 
-				// the maps of what the libraries retired, which the project writes, each read by its grammar
+				// the maps of what the libraries retired, those the project writes and those the upgrading files of the installed
+				// packages lay under them, each read by its grammar
+				new Decision('upgrading.libraries.packages', new Words([
+					'adopted' => 'the maps of the upgrading files of the installed packages lie under those the project writes',
+					'ignored' => 'the maps are those the project writes alone',
+				]), 'Whether what the upgrading files of the installed packages say is written as they say', parameter: true, default: 'ignored'),
 				new Decision('upgrading.libraries.replacedClasses', new Map(new GrammarEntry, grammar: self::createReplacedClassesGrammar(), caseInsensitive: true), 'A class written instead of another one, both fully qualified (`Acme\\Old\\Mailer: Acme\\Mail\\Mailer`)'),
 				new Decision('upgrading.libraries.replacedFunctions', new Map(new GrammarEntry, grammar: self::createReplacedFunctionsGrammar(), caseInsensitive: true), 'A function written instead of another one (`acme_send: Acme\\Mail\\send`)'),
 				new Decision('upgrading.libraries.forbiddenFunctions', new Map(new GrammarEntry, grammar: self::createForbiddenFunctionsGrammar(), caseInsensitive: true), 'A function that may not be called, with what to do instead'),

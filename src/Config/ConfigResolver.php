@@ -9,17 +9,21 @@ namespace DressCode\Config;
 
 use DressCode\{Config, ConfigurationException, Decision, Plugin, Profile, Rule, RuleInfo, Value, Values};
 use DressCode\Domains\Map;
+use DressCode\Engine\Helpers;
 use PhpSyntax\SymbolKind;
 use function count, is_array, is_string;
 
 
 /**
- * Lays the profiles that decide for a file one over another, each above the presets it uses, and resolves every
- * decision and the rule owning it once into a ResolvedConfig.
+ * Lays the profiles that decide for a file one over another, each above the presets it uses, what the installed
+ * packages say under them all, and resolves every decision and the rule owning it once into a ResolvedConfig.
  * @internal
  */
 final class ConfigResolver
 {
+	/** the decision that lays the maps of the upgrading data of the packages under those of the project */
+	private const PackagesDecision = 'upgrading.libraries.packages';
+
 	/** @var array<string, string> */
 	private array $warnings = [];
 
@@ -35,6 +39,8 @@ final class ConfigResolver
 
 	public function __construct(
 		private readonly PluginRegistry $registry,
+		/** @var list<UpgradingData>  what the installed packages say, the maps of each laid under the project where it says `upgrading.libraries.packages: adopted` */
+		private readonly array $upgradingData = [],
 		/** the packages the project stands on, which decide whether a rule requiring one runs */
 		private readonly ProjectPackages $project = new ProjectPackages,
 		/** the run can get the types the configuration asks for; without them it resolves as if it asked for none */
@@ -77,6 +83,15 @@ final class ConfigResolver
 		$symbols = [SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
 		$php = $resolution = null;
 		$decisionLayers = [];
+		// what the packages declare lies under every layer, which may add to it
+		foreach ($this->upgradingData as $package) {
+			foreach ([[SymbolKind::Function, 'functions'], [SymbolKind::Constant, 'constants']] as [$kind, $key]) {
+				foreach ($package->namespaces[$key] as $name) {
+					$symbols[$kind->name][self::toSymbolKey($kind, $name)] ??= [$name, $package->layer->describe()];
+				}
+			}
+		}
+
 		['layers' => $collected, 'repeated' => $repeated] = $this->collectLayers(self::listProfiles($config, $overrides, $commandLine));
 		foreach ($collected as [$layer, $profile]) {
 			try {
@@ -152,6 +167,10 @@ final class ConfigResolver
 			certainNames: $resolution === 'certain',
 		);
 		$decisions = $resolver->resolve($decisionLayers);
+		if ($packageLayers = $this->collectPackageMaps($decisions)) {
+			$decisions = $resolver->resolve([...$packageLayers, ...$decisionLayers]);
+		}
+
 		$values = $resolver->createValues($decisions, $narrowed === null ? null : $this->collectSelection($narrowed));
 		foreach ($this->getCatalogue()->getDecisions() as $path => $decision) {
 			// a map the run is narrowed away from is refused where its entries are wrong all the same, no rule reading it
@@ -217,6 +236,37 @@ final class ConfigResolver
 	public function getCatalogue(): Catalogue
 	{
 		return $this->registry->getCatalogue();
+	}
+
+
+	/**
+	 * The maps of the upgrading files of the installed packages, as layers under every other one, where
+	 * `upgrading.libraries.packages` is `adopted`: a map of the libraries by its name, the map of a rule of a plugin by the
+	 * path of its decision.
+	 * @param  array<string, ResolvedDecision>  $decisions
+	 * @return list<array{Layer, array<string, mixed>}>
+	 */
+	private function collectPackageMaps(array $decisions): array
+	{
+		$layers = [];
+		foreach ($this->upgradingData as $package) {
+			$layer = [];
+			foreach ($package->maps as $map => $entries) {
+				if ($this->getCatalogue()->find("upgrading.libraries.$map")?->domain instanceof Map) {
+					$layer['upgrading']['libraries'][$map] = $entries;
+				} elseif ($this->getCatalogue()->find($map)?->domain instanceof Map) {
+					$layer = Helpers::placeValue($layer, $map, $entries);
+				} else {
+					$this->warnings[$package->layer->describe() . " $map"] = "Map `$map`, which " . $package->layer->format() . ' sets, is not known to this DressCode; skipped.';
+				}
+			}
+
+			if ($layer !== [] && ($decisions[self::PackagesDecision] ?? null)?->value->getWord() === 'adopted') {
+				$layers[] = [$package->layer, $layer];
+			}
+		}
+
+		return $layers;
 	}
 
 
@@ -420,6 +470,10 @@ final class ConfigResolver
 	private function collectUsed(Profile $profile, Layer $source, array &$layers, array &$visited, array &$repeated): void
 	{
 		foreach ($profile->use as $entry) {
+			if ($this->registry->isPluginPackage($entry)) { // it lets the plugin of the package in, which is no layer
+				continue;
+			}
+
 			try {
 				// a preset by its name, or a file of the same shape by its path, which is its name too
 				$name = str_ends_with($entry, '.neon') ? NeonReader::resolvePresetFile($entry, $this->root) : $this->registry->resolvePreset($entry);

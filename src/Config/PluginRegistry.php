@@ -32,6 +32,9 @@ final class PluginRegistry
 	/** @var array<string, string>  name => the file of the preset */
 	public private(set) array $presets = [];
 
+	/** @var array<string, true>  the packages whose plugins the project lets in */
+	private array $pluginPackages = [];
+
 	/** @var array<class-string<Rule>, string>  rule => the address of its page */
 	private array $urls = [];
 
@@ -208,6 +211,19 @@ final class PluginRegistry
 	public static function abbreviate(string $name): string
 	{
 		return str_starts_with($name, self::Vendor) ? substr($name, strlen(self::Vendor)) : $name;
+	}
+
+
+	/** Makes the name of a package whose plugin the project lets in known, so that `use` naming it names no preset. */
+	public function registerPluginPackage(string $name): void
+	{
+		$this->pluginPackages[$name] = true;
+	}
+
+
+	public function isPluginPackage(string $name): bool
+	{
+		return isset($this->pluginPackages[$name]);
 	}
 
 

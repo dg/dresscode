@@ -7,7 +7,7 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-test('the packages a project has, each with the version it stands for and the source it came from', function () {
+test('the version of a package the code must work with', function () {
 	$root = createTempDir('project-packages');
 	FileSystem::write("$root/composer.json", json_encode([
 		'name' => 'app/project',
@@ -22,6 +22,7 @@ test('the packages a project has, each with the version it stands for and the so
 			'name' => 'acme/transitive',
 			'version' => 'v3.2.1',
 			'version_normalized' => '3.2.1.0',
+			'install-path' => '../acme/transitive',
 			'source' => ['reference' => 'abc'],
 			'dist' => ['reference' => 'def'],
 		],
@@ -37,9 +38,27 @@ test('the packages a project has, each with the version it stands for and the so
 
 	$project = ProjectPackages::read("$root/src");
 	Assert::same('app/project', $project->rootName);
+	Assert::same($root, $project->rootPath);
+	Assert::same("$root/vendor/acme/transitive", $project->installed['acme/transitive']['path']);
 
+	// required by the project: the lowest version its constraint allows, whatever is installed
+	Assert::same('3.1', $project->findVersion('acme/direct'));
+	Assert::same('2.5', $project->findVersion('acme/tool'));
+	// a constraint without a lower bound says nothing, so the installed version answers
+	Assert::same('1.7.3', $project->findVersion('acme/anything'));
+	// only coming with another package: the installed version
+	Assert::same('3.2.1', $project->findVersion('acme/transitive'));
+	// a development branch stands for the newest of the line its alias names
+	Assert::same('3.3.9999999.9999999', $project->findVersion('acme/branch'));
+	Assert::same('1.4.9999999.9999999', $project->findVersion('acme/line'));
+
+	// any version does for the project itself and for a branch without an alias
+	Assert::null($project->findVersion('app/project'));
 	Assert::true($project->has('app/project'));
+	Assert::null($project->findVersion('acme/unaliased'));
 	Assert::true($project->has('acme/unaliased'));
+
+	Assert::null($project->findVersion('acme/missing'));
 	Assert::false($project->has('acme/missing'));
 
 	// the identity says what the files of the packages are: the version each stands for and where it came from
@@ -52,7 +71,9 @@ test('the packages a project has, each with the version it stands for and the so
 
 test('a project without packages has none', function () {
 	$project = new ProjectPackages;
+	Assert::null($project->rootPath);
 	Assert::false($project->has('acme/lib'));
+	Assert::null($project->findVersion('acme/lib'));
 });
 
 

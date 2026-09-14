@@ -1,7 +1,8 @@
 # Modernizations
 #
 # The construct a newer PHP has, written where an older one says the same, each where the target version of the
-# project has it. It decides nothing about the layout, so it goes with any standard.
+# project has it, and the newer form the upgrading files of the installed packages offer. It decides nothing about the
+# layout, so it goes with any standard.
 
 functions:
 	closureReturningOneExpression: forbidden         # `fn() =>` instead
@@ -24,6 +25,8 @@ literals:
 	longArraySyntax: forbidden                 # `[1, 2]`, not `array(1, 2)`
 
 upgrading:
+	libraries:
+		packages: adopted                      # as the upgrading files of the packages say
 	php:
 		sleepAndWakeup: forbidden              # `__serialize()` and `__unserialize()` instead
 	syntax:

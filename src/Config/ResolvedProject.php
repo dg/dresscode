@@ -32,7 +32,7 @@ final readonly class ResolvedProject
 		public PhpVersionSource $phpVersionSource,
 		/** @var array<string, ?string>  what the user should be told about the configuration, each thing once => the page of the manual that says more, if any */
 		public array $warnings,
-		/** @var list<PluginManifest>  the plugins of the configuration, a plugin after those it builds on */
+		/** @var list<PluginManifest>  the plugins of the packages and of the configuration, a plugin after those it builds on */
 		public array $pluginManifests,
 		public ProjectPackages $projectPackages,
 		/** laid over the configuration and its overrides, as --use is */
