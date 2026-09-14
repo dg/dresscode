@@ -1,0 +1,30 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\Upgrading;
+
+
+/**
+ * One item of a pattern of arguments: a placeholder `$name`, a literal, either of them under the name the argument
+ * is passed by (`fallback: $f`), or the rest of the arguments, `...$args` under a placeholder and `...` as they are.
+ */
+final readonly class ArgumentPatternItem
+{
+	public function __construct(
+		/** without the dollar; null for a literal and for `...` */
+		public ?string $placeholder = null,
+		/** the item is a literal */
+		public bool $hasLiteral = false,
+		/** the value of a literal, meaningful where there is one */
+		public mixed $literal = null,
+		/** the name the argument has to be passed by; null for a positional one */
+		public ?string $parameterName = null,
+		/** stands for the rest of the arguments */
+		public bool $variadic = false,
+	) {
+	}
+}

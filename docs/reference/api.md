@@ -463,6 +463,64 @@ final class GlobalCalls
 	public static function findUncertainty(PhpSyntax\Nodes\Expression\FunctionCallNode $call, DressCode\RuleContext $context): ?string
 ```
 
+## `DressCode\Rules\Upgrading\ArgumentBindings`
+
+```php
+final readonly class ArgumentBindings
+	public readonly array $arguments
+	public readonly array $rest
+	public function __construct(array $arguments, array $rest = [], array $unseenKeys = [])
+```
+
+## `DressCode\Rules\Upgrading\ArgumentPattern`
+
+```php
+final readonly class ArgumentPattern
+	public readonly array $items
+	public static function any(): DressCode\Rules\Upgrading\ArgumentPattern
+	public static function parse(string $arguments): DressCode\Rules\Upgrading\ArgumentPattern
+	public function bind(PhpSyntax\Nodes\ArgumentListNode $arguments, ?array $parameters, ?DressCode\Analyses\Types $types = null): ?DressCode\Rules\Upgrading\ArgumentBindings
+	public function takesRest(): bool
+	public function takesAny(): bool
+	public function compareSpecificity(DressCode\Rules\Upgrading\ArgumentPattern $other): int
+```
+
+## `DressCode\Rules\Upgrading\ArgumentPatternItem`
+
+```php
+final readonly class ArgumentPatternItem
+	public readonly ?string $placeholder
+	public readonly bool $hasLiteral
+	public readonly mixed $literal
+	public readonly ?string $parameterName
+	public readonly bool $variadic
+	public function __construct(?string $placeholder = null, bool $hasLiteral = false, mixed $literal = null, ?string $parameterName = null, bool $variadic = false)
+```
+
+## `DressCode\Rules\Upgrading\MemberPattern`
+
+```php
+final readonly class MemberPattern
+	public readonly string $class
+	public readonly ?DressCode\Analyses\MemberKind $kind
+	public readonly string $name
+	public readonly ?DressCode\Rules\Upgrading\ArgumentPattern $arguments
+	public readonly bool $instance
+	public readonly ?string $hook
+	public static function fromKey(string $key): DressCode\Rules\Upgrading\MemberPattern
+	public static function forMethod(string $class, string $name, ?DressCode\Rules\Upgrading\ArgumentPattern $arguments = null): DressCode\Rules\Upgrading\MemberPattern
+	public function matches(DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types): bool
+	public function bind(DressCode\Analyses\MemberAccess $access, PhpSyntax\Nodes\ArgumentListNode $arguments, ?array $parameters, DressCode\Analyses\Types $types): ?DressCode\Rules\Upgrading\ArgumentBindings
+	public function matchesHook(string $use): bool
+	public function matchesMethodDeclaration(string $declaringClass, string $method, DressCode\Analyses\Types $types): bool
+	public function takesAnyArguments(): bool
+	public function compareSpecificity(DressCode\Rules\Upgrading\MemberPattern $other): int
+	public function getArgumentPattern(): DressCode\Rules\Upgrading\ArgumentPattern
+	public function describe(DressCode\Analyses\MemberKind $kind): string
+	public function describeAccess(DressCode\Analyses\MemberAccess $access, PhpSyntax\Node $node): string
+	public function getLookupName(): string
+```
+
 ## `DressCode\Severity`
 
 ```php
