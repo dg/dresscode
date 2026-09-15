@@ -29,6 +29,8 @@ final readonly class ResolvedRule
 		public bool $fixRisky = false,
 		/** the violations of the rule only warn */
 		public bool $warning = false,
+		/** how many of the first layers are what the installed packages say, which turning the rule off keeps */
+		public int $packageLayers = 0,
 	) {
 	}
 
@@ -54,10 +56,14 @@ final readonly class ResolvedRule
 	 */
 	public function getOrigins(): array
 	{
-		$origins = [];
-		foreach ($this->layers as [$source, $value]) {
+		$origins = $seed = [];
+		foreach ($this->layers as $index => [$source, $value]) {
+			if ($index === $this->packageLayers) {
+				$seed = $origins;
+			}
+
 			if ($value === false) {
-				$origins = []; // turning the rule off drops what was said before it
+				$origins = $seed; // turning the rule off drops what was said before it, but what the packages say
 			} elseif (is_array($value)) {
 				self::collectOrigins($value, $source, '', $origins);
 			}

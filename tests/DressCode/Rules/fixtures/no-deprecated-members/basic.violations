@@ -9,3 +9,6 @@
 26: Constant Nette\Forms\Form::OLD is deprecated
 27: Constant Nette\Forms\Form::EMAIL is deprecated: use Nette\Forms\Validator::validateEmail()
 28: Static method Nette\Forms\Form::make() is deprecated: use Helpers::create() instead
+29: Property Nette\Forms\Form::$legacy is deprecated: use $items
+30: Property Nette\Forms\Form::$legacy is deprecated: use $items
+32: Static property Nette\Forms\Form::$counter is deprecated: use $count

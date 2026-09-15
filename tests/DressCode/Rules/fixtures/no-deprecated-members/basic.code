@@ -26,6 +26,11 @@ function test(Form $form, MyForm $my, $unknown): void
 	$e = Form::OLD;
 	$f = Form::EMAIL;
 	Form::make();
+	$g = $form->legacy;
+	$h = $form?->legacy;
+	$i = $form->items;
+	$j = Form::$counter;
+	$k = MyForm::$count;
 	$unknown->invalidateControl();
 	$unknown::FILLED;
 }
