@@ -8,6 +8,7 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassConstantReflection;
 use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ExtendedPropertyReflection;
+use PHPStan\TrinaryLogic;
 use PHPStan\Type\Type;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression\ClassConstantFetchNode;
@@ -20,6 +21,7 @@ use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\Nodes\IdentifierNode;
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Printer;
+use function count;
 
 
 /**
@@ -158,6 +160,72 @@ final class Types implements PassAnalysis
 		}
 
 		return null;
+	}
+
+
+	/**
+	 * Whether the parent class declares the method the way the declaration does, so that a caller sees no difference
+	 * between the two: the same visibility and staticness, the same parameters by name, order, default, reference,
+	 * variadic and native type, and the same native return type. False for a declaration the pass began without,
+	 * for one no parent class declares, and for one whose parent declaration is private or abstract.
+	 */
+	public function hasParentSignature(Node $declaration): bool
+	{
+		if (!$declaration instanceof MethodNode || !isset($this->declarations[$declaration])) {
+			return false;
+		}
+
+		$name = $declaration->name->text;
+		$class = $this->declarations[$declaration]->getClassReflection();
+		$parent = $class?->getParentClass();
+		if ($class === null || $parent === null || !$class->hasNativeMethod($name) || !$parent->hasNativeMethod($name)) {
+			return false;
+		}
+
+		$own = $class->getNativeMethod($name);
+		$inherited = $parent->getNativeMethod($name);
+		$abstract = $inherited->isAbstract();
+		if (
+			$inherited->isPrivate()
+			|| ($abstract instanceof TrinaryLogic ? !$abstract->no() : $abstract)
+			|| $own->isPublic() !== $inherited->isPublic()
+			|| $own->isPrivate() !== $inherited->isPrivate()
+			|| $own->isStatic() !== $inherited->isStatic()
+			|| count($own->getVariants()) !== 1
+			|| count($inherited->getVariants()) !== 1
+		) {
+			return false;
+		}
+
+		$ownVariant = $own->getOnlyVariant();
+		$inheritedVariant = $inherited->getOnlyVariant();
+		$ownParameters = $ownVariant->getParameters();
+		$inheritedParameters = $inheritedVariant->getParameters();
+		if (
+			count($ownParameters) !== count($inheritedParameters)
+			|| !$ownVariant->getNativeReturnType()->equals($inheritedVariant->getNativeReturnType())
+		) {
+			return false;
+		}
+
+		foreach ($ownParameters as $i => $parameter) {
+			$other = $inheritedParameters[$i];
+			$default = $parameter->getDefaultValue();
+			$otherDefault = $other->getDefaultValue();
+			if (
+				$parameter->getName() !== $other->getName()
+				|| $parameter->isOptional() !== $other->isOptional()
+				|| $parameter->isVariadic() !== $other->isVariadic()
+				|| !$parameter->passedByReference()->equals($other->passedByReference())
+				|| !$parameter->getNativeType()->equals($other->getNativeType())
+				|| ($default === null) !== ($otherDefault === null)
+				|| ($default !== null && $otherDefault !== null && !$default->equals($otherDefault))
+			) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 

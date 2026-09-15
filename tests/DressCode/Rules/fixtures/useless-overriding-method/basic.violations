@@ -1,0 +1,4 @@
+7: The method __construct() only calls the parent method and says nothing more
+13: The method render() only calls the parent method and says nothing more
+19: The method load() only calls the parent method and says nothing more
+25: The method save() only calls the parent method and says nothing more

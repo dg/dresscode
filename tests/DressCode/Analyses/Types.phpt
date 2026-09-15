@@ -111,6 +111,64 @@ test('the type of an expression, the callee an access or a call reaches, and wha
 });
 
 
+test('a declaration with the signature of the parent declaration', function () {
+	$file = (new Parser)->parse(<<<'PHP'
+		<?php
+		namespace App;
+
+		class Base
+		{
+			public function same(int $a, string ...$rest): string { return ''; }
+			protected function visibility($a) {}
+			public function type(int $a) {}
+			public function name(int $a) {}
+			public function defaultValue(int $a = 1) {}
+			public function reference(array &$a) {}
+			public function returnType(): string { return ''; }
+			public static function staticness() {}
+			private function hidden() {}
+			public function self(): self { return $this; }
+		}
+
+		class Child extends Base
+		{
+			public function same(int $a, string ...$rest): string { return ''; }
+			public function visibility($a) {}
+			public function type(string $a) {}
+			public function name(int $b) {}
+			public function defaultValue(int $a = 2) {}
+			public function reference(array $a) {}
+			public function returnType(): ?string { return ''; }
+			public function staticness() {}
+			public function hidden() {}
+			public function self(): self { return $this; }
+			public function own() {}
+		}
+		PHP);
+	$types = analyse($file);
+	$methods = [];
+	foreach ($file->find(PhpSyntax\Nodes\Member\MethodNode::class) as $method) {
+		if ($method->findAncestor(PhpSyntax\Nodes\Statement\ClassNode::class)?->name->text === 'Child') {
+			$methods[$method->name->text] = $types->hasParentSignature($method);
+		}
+	}
+
+	Assert::same([
+		'same' => true,
+		'visibility' => false,
+		'type' => false,
+		'name' => false,
+		'defaultValue' => false,
+		'reference' => false,
+		'returnType' => false,
+		'staticness' => false,
+		'hidden' => false,
+		'self' => false,
+		'own' => false,
+	], $methods);
+});
+
+
 test('a deprecation names its replacement in a shape a tool can read, or it does not', function () {
 	Assert::equal(new Deprecation('use Form::Filled', 'Form', 'Filled'), Deprecation::fromDescription('use Form::Filled'));
 	Assert::equal(new Deprecation('use \Nette\Forms\Form::Filled instead.', 'Nette\Forms\Form', 'Filled'), Deprecation::fromDescription('use \Nette\Forms\Form::Filled instead.'));
