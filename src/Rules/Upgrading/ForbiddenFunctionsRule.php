@@ -55,7 +55,9 @@ final class ForbiddenFunctionsRule extends NodeRule implements ConfigurableRule
 	{
 		$this->functions = [];
 		foreach ($options as $pattern => $sentence) {
-			$this->functions[] = ['~^' . str_replace('\*', '.*', preg_quote(ltrim((string) $pattern, '\\'), '~')) . '$~i', $sentence];
+			if ($sentence !== MemberMaps::Keep) { // an entry a later layer withdrew
+				$this->functions[] = ['~^' . str_replace('\*', '.*', preg_quote(ltrim((string) $pattern, '\\'), '~')) . '$~i', $sentence];
+			}
 		}
 	}
 

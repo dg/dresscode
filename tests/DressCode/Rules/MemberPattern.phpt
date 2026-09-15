@@ -2,7 +2,8 @@
 
 use DressCode\Analyses;
 use DressCode\Analyses\{MemberAccess, MemberKind};
-use DressCode\Rules\Upgrading\MemberPattern;
+use DressCode\Rules\Upgrading\{MemberMaps, MemberPattern};
+use PhpSyntax\Nodes\Expression\FunctionCallNode;
 use PhpSyntax\Parser;
 use Tester\Assert;
 
@@ -130,4 +131,48 @@ test('a method declaration is of the member when a subtype of its class declares
 
 	Assert::false($matches('Acme\Cache\FileStorage::$getCacheKey', 'App\MyStorage', 'getCacheKey'));
 	Assert::false($matches('Acme\Cache\FileStorage::__construct', 'App\MyStorage', '__construct'));
+});
+
+
+test('an entry is found under the key of the nearest class, and under the first whose arguments the call binds to', function () {
+	$types = createTypes();
+	/** @return ?array{string, string, ?list<string>, ?int}  the value and the class of the key, the placeholders bound and the arguments left to `...` */
+	$find = function (array $map, ?string $call, string ...$classes) use ($types): ?array {
+		$entries = MemberMaps::indexEntries($map, fn(string $value) => $value)['getcachekey'];
+		$access = new MemberAccess(MemberKind::Method, 'getCacheKey', array_values($classes ?: ['App\MyStorage']), declared: true);
+		$node = $call === null ? null : (new Parser)->parseExpression($call);
+		$entry = MemberMaps::findEntry($entries, $access, $types, $node instanceof FunctionCallNode ? $node->arguments : null);
+		return $entry === null
+			? null
+			: [
+				$entry->value,
+				$entry->pattern->class,
+				$entry->bindings === null ? null : array_keys($entry->bindings->arguments),
+				$entry->bindings === null ? null : count($entry->bindings->rest),
+			];
+	};
+
+	// the key of a child before that of its ancestor, whichever the map writes first
+	$map = ['Acme\Cache\Storage::getCacheKey' => 'parent', 'Acme\Cache\FileStorage::getCacheKey' => 'child'];
+	Assert::same(['child', 'Acme\Cache\FileStorage', null, null], $find($map, null));
+	Assert::same(['parent', 'Acme\Cache\Storage', null, null], $find($map, null, 'Acme\Cache\Storage'));
+
+	// a call whose arguments a key does not take is of the next one
+	$map = ['Acme\Cache\FileStorage::getCacheKey($part, $depth)' => 'two', 'Acme\Cache\Storage::getCacheKey($part)' => 'one'];
+	Assert::same(['one', 'Acme\Cache\Storage', ['part'], 0], $find($map, 'f($a)'));
+	Assert::same(['two', 'Acme\Cache\FileStorage', ['part', 'depth'], 0], $find($map, 'f($a, $b)'));
+	Assert::same(['two', 'Acme\Cache\FileStorage', null, null], $find($map, null));
+	Assert::same(['any', 'Acme\Cache\FileStorage', [], 2], $find(['Acme\Cache\FileStorage::getCacheKey' => 'any'], 'f($a, $b)'));
+
+	// of two keys of one class a call fits, the one of the more specific shape, whichever the map writes first
+	$general = 'Acme\Cache\FileStorage::getCacheKey(...$rest)';
+	$specific = 'Acme\Cache\FileStorage::getCacheKey($part)';
+	foreach ([[$general => 'general', $specific => 'specific'], [$specific => 'specific', $general => 'general']] as $shapes) {
+		Assert::same(['specific', 'Acme\Cache\FileStorage', ['part'], 0], $find($shapes, 'f($a)'));
+		Assert::same(['general', 'Acme\Cache\FileStorage', ['rest'], 0], $find($shapes, 'f($a, $b)'));
+	}
+
+	// none where nothing fits
+	Assert::null($find($map, 'f()'));
+	Assert::null($find($map, 'f($a)', 'Acme\Cache\Unrelated'));
 });

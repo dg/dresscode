@@ -497,6 +497,29 @@ final readonly class ArgumentPatternItem
 	public function __construct(?string $placeholder = null, bool $hasLiteral = false, mixed $literal = null, ?string $parameterName = null, bool $variadic = false)
 ```
 
+## `DressCode\Rules\Upgrading\MapEntry`
+
+```php
+final readonly class MapEntry
+	public readonly DressCode\Rules\Upgrading\MemberPattern $pattern
+	public readonly mixed $value
+	public readonly ?DressCode\Rules\Upgrading\ArgumentBindings $bindings
+	public function __construct(DressCode\Rules\Upgrading\MemberPattern $pattern, mixed $value, ?DressCode\Rules\Upgrading\ArgumentBindings $bindings = null)
+```
+
+## `DressCode\Rules\Upgrading\MemberMaps`
+
+```php
+final class MemberMaps
+	public const Keep = 'keep'
+	public static function map(Nette\Schema\Schema $value, string $description, ?Closure $convert = null): Nette\Schema\Elements\Type
+	public static function code(): Nette\Schema\Elements\AnyOf
+	public static function indexEntries(array $options, Closure $convert): array
+	public static function findEntry(array $entries, DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types, ?PhpSyntax\Nodes\ArgumentListNode $arguments = null, ?array $parameters = null): ?DressCode\Rules\Upgrading\MapEntry
+	public static function findLookupName(PhpSyntax\Nodes\Expression\ClassConstantFetchNode|PhpSyntax\Nodes\Expression\MethodCallNode|PhpSyntax\Nodes\Expression\StaticMethodCallNode|PhpSyntax\Nodes\Expression\PropertyFetchNode|PhpSyntax\Nodes\Expression\StaticPropertyFetchNode|PhpSyntax\Nodes\Expression\NewNode $node): ?string
+	public static function order(array $entries, DressCode\Analyses\Types $types, bool $specificFirst = false): array
+```
+
 ## `DressCode\Rules\Upgrading\MemberPattern`
 
 ```php

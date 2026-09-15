@@ -727,7 +727,8 @@ final class Types implements PassAnalysis
 
 	/**
 	 * Whether the class has the member of that kind, itself or through an ancestor; a magic one it does not have, and
-	 * a class nothing declares has none.
+	 * a class nothing declares has none: what the maps of members ask is whether the code still reaches a declaration,
+	 * a member a library removed together with its class being as undeclared as one removed from the class alone.
 	 */
 	public function hasMember(string $class, MemberKind $kind, string $name): bool
 	{

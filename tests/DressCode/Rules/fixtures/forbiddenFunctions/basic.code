@@ -1,5 +1,5 @@
 <?php
-// {"var_dump": null, "sizeof": "use `count()`", "dd*": null, "App\\Debug\\*": null}
+// {"var_dump": null, "sizeof": "use `count()`", "dd*": null, "App\\Debug\\*": null, "count": "keep"}
 namespace App;
 use function App\Debug\dump;
 var_dump($a);
@@ -12,3 +12,4 @@ Debug\trace($a);
 $f = 'var_dump';
 $f($a);
 $g = var_dump(...);
+count($a);
