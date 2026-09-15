@@ -708,9 +708,12 @@ final readonly class FunctionPattern
 
 ```php
 final class MemberMapGrammar
+	public const Keep = 'keep'
 	public const ReplacedClasses = 'upgrading.libraries.replacedClasses'
 	public const ReplacedFunctions = 'upgrading.libraries.replacedFunctions'
 	public const ForbiddenFunctions = 'upgrading.libraries.forbiddenFunctions'
+	public static function createMapSchema(Nette\Schema\Schema $value, string $description, ?Closure(mixed, DressCode\Rules\Upgrading\MemberPattern): mixed $convert = null): Nette\Schema\Elements\Type
+	public static function createCodeSchema(): Nette\Schema\Elements\AnyOf
 ```
 
 ## `DressCode\Rules\Upgrading\MemberPattern`
