@@ -77,6 +77,37 @@ test('what the rules refuse is said with the rule, in whatever section it stands
 });
 
 
+test('a sentence of a forbidden map reads as the end of the message', function () {
+	Assert::same([], check(<<<'XX'
+		package: acme/lib
+
+		since 3.0:
+			forbidden-classes:
+				Acme\Lib\IOldest: 'Acme\Lib\Control replaces it; call render() on it'
+				Acme\Lib\IControl: INI files are read by Acme\Lib\Loader
+		XX));
+	Assert::same(
+		[
+			'forbidden-classes: The sentence of Acme\Lib\IOldest ends with a period.',
+			'forbidden-classes: The sentence of Acme\Lib\IControl holds a backtick or a double quote.',
+			'forbidden-classes: The sentence of Acme\Lib\IControl begins with a capital letter and no name.',
+			"forbidden-classes: The sentence of Acme\\Lib\\Control says 'should'.",
+			'forbidden-classes: The sentence of Acme\Lib\Form is longer than 160 characters.',
+		],
+		check(<<<'XX'
+			package: acme/lib
+
+			since 3.0:
+				forbidden-classes:
+					Acme\Lib\IOldest: there is no replacement.
+					Acme\Lib\IControl: 'There is `render()`'
+					Acme\Lib\Control: credentials should not be used
+					Acme\Lib\Form: 'there is no replacement, and the text goes on and on about why, what the library did instead, where the manual tells more and what a project may write in the meantime'
+			XX),
+	);
+});
+
+
 test('a replacement that does not exist at the installed version, even at the end of what it leads to, and a circle are problems', function () {
 	Assert::same(
 		[

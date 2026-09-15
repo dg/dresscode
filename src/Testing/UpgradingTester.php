@@ -13,7 +13,7 @@ use DressCode\Config\{PackageProfiles, ProjectPackages, RuleRegistry, RunnerFact
 use DressCode\Rules\Upgrading\{MemberMaps, MemberPattern, MemberTarget};
 use Nette\Schema\{Processor, ValidationException};
 use Nette\Utils\FileSystem;
-use function count;
+use function count, is_string;
 
 
 /**
@@ -26,6 +26,10 @@ use function count;
  */
 final class UpgradingTester
 {
+	/** the longest sentence a forbidden-* map may give, the message around it not counted */
+	public const MaxSentence = 160;
+
+
 	/**
 	 * @param  string  $root  the project whose vendor holds the library, which the classes are loaded from
 	 * @param  list<class-string<Rule>>  $rules  the rules the package ships itself, which its files may name
@@ -53,7 +57,8 @@ final class UpgradingTester
 		}
 
 		assert($all !== null && $reached !== null);
-		[$problems] = self::validate($all->profile->rules, $rules);
+		[$problems, $every] = self::validate($all->profile->rules, $rules);
+		$problems = [...$problems, ...self::checkSentences($every)];
 		return $problems === [] ? self::checkExistence(self::validate($reached->profile->rules, $rules)[1]) : $problems;
 	}
 
@@ -114,6 +119,38 @@ final class UpgradingTester
 		}
 
 		return [$problems, $normalized];
+	}
+
+
+	/**
+	 * The sentences of the forbidden-* maps, which end the message after "… is forbidden:": in lower case unless they
+	 * begin with a name, without a period at the end, backticks, double quotes or "should", and at most MaxSentence long.
+	 * @param  array<string, array<string, mixed>>  $rules  rule → its options, those of every section
+	 * @return list<string>
+	 */
+	private static function checkSentences(array $rules): array
+	{
+		$problems = [];
+		foreach (['forbidden-classes', 'forbidden-members'] as $rule) {
+			foreach ($rules[$rule] ?? [] as $key => $sentence) {
+				if (!is_string($sentence) || $sentence === MemberMaps::Keep) {
+					continue;
+				}
+
+				$flaws = array_filter([
+					'ends with a period' => str_ends_with($sentence, '.'),
+					'holds a backtick or a double quote' => strpbrk($sentence, '`"') !== false,
+					'begins with a capital letter and no name' => preg_match('~^[A-Z][a-z]*\b(?![\\\\:(])~', $sentence) === 1,
+					"says 'should'" => preg_match('~\bshould\b~i', $sentence) === 1,
+					'is longer than ' . self::MaxSentence . ' characters' => mb_strlen($sentence) > self::MaxSentence,
+				]);
+				foreach (array_keys($flaws) as $flaw) {
+					$problems[] = "$rule: The sentence of $key $flaw.";
+				}
+			}
+		}
+
+		return $problems;
 	}
 
 
