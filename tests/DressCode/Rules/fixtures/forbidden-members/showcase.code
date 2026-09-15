@@ -1,0 +1,13 @@
+<?php
+// {"Acme\\Url::getUser": "there is no replacement, credentials in a URL should not be used", "Acme\\Passwords::hash($password, $options)": "construct Passwords with the options and call hash($password) on the instance"}
+
+namespace App;
+
+use Acme\Passwords;
+use Acme\Url;
+
+function register(Url $url, Passwords $passwords, string $password): string
+{
+	$user = $url->getUser();
+	return $passwords->hash($password, ['cost' => 12]);
+}

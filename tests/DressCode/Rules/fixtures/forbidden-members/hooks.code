@@ -1,0 +1,22 @@
+<?php
+// {"Acme\\Request::$query::set": "pass the query to the constructor", "Acme\\Request::$trusted::get": "call trustedProxies()"}
+
+namespace App;
+
+use Acme\Request;
+
+function handle(Request $request): array
+{
+	$request->query = ['page' => 1];
+	$request->query += ['sort' => 'name'];
+	unset($request->query);
+	$request->query['page'] = 2;
+	$page = $request->query['page'] ?? 1;
+	$set = isset($request->query);
+
+	Request::$trusted = ['10.0.0.1'];
+	$trusted = Request::$trusted;
+	$known = isset(Request::$trusted);
+
+	return [$page, $set, $trusted, $known];
+}

@@ -19,8 +19,8 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * References of classes, interfaces and enums their declaration deprecates, wherever the name stands, an import,
  * a type, an instantiation, a static access, an attribute. Where the deprecation names the class to use instead,
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
- * follow; any other is reported with what the deprecation says. A class the map of replaced-classes has is not
- * reported.
+ * follow; any other is reported with what the deprecation says. A class the map of replaced-classes or of
+ * forbidden-classes has is not reported.
  */
 #[RuleInfo(
 	'dresscode/no-deprecated-classes',
@@ -45,8 +45,9 @@ final class NoDeprecatedClassesRule extends NodeRule
 
 		$types = $context->getAnalysis(Types::class);
 		$replaced = $context->findRule(ReplacedClassesRule::class);
-		ClassReplacement::apply($node, $context, function (string $class) use ($types, $replaced): ?array {
-			$deprecation = $replaced?->knows($class) ? null : $types->getClassDeprecation($class);
+		$forbidden = $context->findRule(ForbiddenClassesRule::class);
+		ClassReplacement::apply($node, $context, function (string $class) use ($types, $replaced, $forbidden): ?array {
+			$deprecation = $replaced?->knows($class) || $forbidden?->knows($class) ? null : $types->getClassDeprecation($class);
 			return $deprecation === null
 				? null
 				: [

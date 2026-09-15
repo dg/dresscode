@@ -1,0 +1,11 @@
+13: Method Acme\Component::attached() is forbidden: the framework no longer calls it; pass the logic as the callback of monitor()
+15: Method Acme\Component::attached() is forbidden: the framework no longer calls it; pass the logic as the callback of monitor()
+22: Method Acme\Url::getUser() is forbidden: there is no replacement, credentials in a URL should not be used
+23: Property Acme\Url::$user is forbidden: there is no replacement
+24: Constant Acme\Url::PORTS is forbidden: ask Url::getDefaultPort()
+25: Method Acme\Passwords::hash() is forbidden: construct Passwords with the algorithm and the options and call hash($password) on the instance
+26: Constructor Acme\Passwords::__construct() is forbidden: PHP generates the salt itself
+27: Method Acme\Url::getHost() is forbidden: ask getAuthority()
+28: Method Acme\Url::text() is forbidden: ask getText()
+29: Method Acme\Registry::__get() is forbidden: call get()
+30: Method Acme\Registry::offsetSet() is forbidden: call add()

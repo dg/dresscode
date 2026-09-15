@@ -1,0 +1,19 @@
+<?php
+// {"Acme\\Security\\IAuthenticator": "implement Acme\\Security\\Authenticator with authenticate(string $user, string $password)", "\\Acme\\Legacy": "there is no replacement", "Acme\\Kept": "keep"}
+
+namespace App;
+
+use Acme\Kept;
+use Acme\Legacy as Old;
+use Acme\Security\IAuthenticator;
+
+final class MyAuthenticator implements IAuthenticator
+{
+	public function check(Old $old, \Acme\Legacy $legacy, Kept $kept): ?IAuthenticator
+	{
+		$a = Old::class;
+		$b = new \Acme\Security\IAuthenticator;
+		$c = 'Acme\Legacy';
+		return $old instanceof Old ? $this : null;
+	}
+}

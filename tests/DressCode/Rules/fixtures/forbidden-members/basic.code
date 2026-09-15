@@ -1,0 +1,41 @@
+<?php
+// {"Acme\\Url::getUser": "there is no replacement, credentials in a URL should not be used", "Acme\\Url::$user": "there is no replacement", "Acme\\Url::PORTS": "ask Url::getDefaultPort()", "Acme\\Passwords::hash($password, $options)": "construct Passwords with the algorithm and the options and call hash($password) on the instance", "Acme\\Passwords::__construct($algorithm, $options, $salt)": "PHP generates the salt itself", "Acme\\Component::attached": "the framework no longer calls it; pass the logic as the callback of monitor()", "Acme\\Url::kept": "keep", "Acme\\Url::getHost()": "ask getAuthority()", "Acme\\Url->text()": "ask getText()", "Acme\\Registry::__get($name)": "call get()", "Acme\\Registry::offsetSet(null, $value)": "call add()"}
+
+namespace App;
+
+use Acme\Component;
+use Acme\Passwords;
+use Acme\Registry;
+use Acme\Url;
+
+class MyComponent extends Component
+{
+	protected function attached(object $parent): void
+	{
+		parent::attached($parent);
+	}
+}
+
+
+function test(Url $url, Passwords $passwords, Registry $registry, $unknown): void
+{
+	$a = $url->getUser();
+	$b = $url->user;
+	$c = Url::PORTS;
+	$d = $passwords->hash('secret', ['cost' => 12]);
+	$e = new Passwords('bcrypt', [], 'salt');
+	$k = $url->getHost();
+	$l = $url->text();
+	$n = $registry->user;
+	$registry[] = 1;
+
+	// left alone: another shape of the call, a withdrawn entry, a receiver nobody knows
+	$f = $passwords->hash('secret');
+	$g = new Passwords('bcrypt');
+	$h = $url->kept();
+	$i = $url->getHost(true);
+	$m = Url::text('x');
+	$registry['key'] = 1;
+	$registry->user = 1;
+	$j = $unknown->getUser();
+}

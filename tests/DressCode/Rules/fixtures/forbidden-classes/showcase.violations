@@ -1,0 +1,1 @@
+8: Class Acme\Security\IAuthenticator is forbidden: implement Acme\Security\Authenticator with authenticate(string $user, string $password)

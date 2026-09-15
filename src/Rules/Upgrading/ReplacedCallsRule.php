@@ -400,6 +400,10 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 				];
 			}
 
+			if ($context->findRule(ForbiddenMembersRule::class)?->knows($access, $types)) {
+				return null; // a property forbidden-members names is not what a magic method stands for
+			}
+
 		}
 
 		$call = $methods === [] ? null : MagicCall::find($node, $use, $values, $types);

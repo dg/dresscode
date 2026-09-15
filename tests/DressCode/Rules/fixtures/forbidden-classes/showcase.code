@@ -1,0 +1,10 @@
+<?php
+// {"Acme\\Security\\IAuthenticator": "implement Acme\\Security\\Authenticator with authenticate(string $user, string $password)"}
+
+namespace App;
+
+use Acme\Security\IAuthenticator;
+
+final class MyAuthenticator implements IAuthenticator
+{
+}

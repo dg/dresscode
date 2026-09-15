@@ -1,0 +1,5 @@
+10: Writing to property Acme\Request::$query is forbidden: pass the query to the constructor
+11: Writing to property Acme\Request::$query is forbidden: pass the query to the constructor
+12: Writing to property Acme\Request::$query is forbidden: pass the query to the constructor
+18: Reading static property Acme\Request::$trusted is forbidden: call trustedProxies()
+19: Reading static property Acme\Request::$trusted is forbidden: call trustedProxies()
