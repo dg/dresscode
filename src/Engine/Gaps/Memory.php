@@ -17,32 +17,38 @@ final class Memory
 	/** @var array<int, array<int, array{Node, mixed}>>  rule → node → the node, kept to tell a recycled id apart, and the decision */
 	private array $decisions = [];
 
-	/** @var array<int, Node>  rule → the first node it decided about since the engine last asked */
+	/** @var array<int, Node>  rule → the first node it decided something about since the engine last asked */
 	private array $asked = [];
 
 
 	/**
+	 * The decision of the rule about the node, made once per pass; one other than null, false or an empty array
+	 * makes the node the construct the claim follows from.
 	 * @template T
 	 * @param \Closure(): T $decide
 	 * @return T
 	 */
 	public function once(Rule $rule, Node $node, \Closure $decide): mixed
 	{
-		$this->asked[spl_object_id($rule)] ??= $node;
 		$decided = $this->decisions[spl_object_id($rule)][spl_object_id($node)] ?? null;
 		if ($decided !== null && $decided[0] === $node) {
-			return $decided[1];
+			$decision = $decided[1];
+		} else {
+			$decision = $decide();
+			$this->decisions[spl_object_id($rule)][spl_object_id($node)] = [$node, $decision];
 		}
 
-		$decision = $decide();
-		$this->decisions[spl_object_id($rule)][spl_object_id($node)] = [$node, $decision];
+		if ($decision !== null && $decision !== false && $decision !== []) {
+			$this->asked[spl_object_id($rule)] ??= $node;
+		}
+
 		return $decision;
 	}
 
 
 	/**
-	 * The construct the claim of the rule just made follows from: the node its closure decided about, whose
-	 * gaps are then one decision and one violation; null when the closure decided about none.
+	 * The construct the claim of the rule just made follows from: the node its closure decided something about,
+	 * whose gaps are then one decision and one violation; null when the closure decided nothing about any.
 	 */
 	public function takeAsked(Rule $rule): ?Node
 	{
