@@ -261,7 +261,7 @@ final class Application
 		}
 
 		$stdinPath = $args['--stdin'];
-		$paths = $args['paths'];
+		$paths = array_values(array_unique(array_map($this->resolvePath(...), self::parsePaths($args))));
 
 		if (is_string($stdinPath)) {
 			if ($paths) {
@@ -273,7 +273,7 @@ final class Application
 			$reporter = $this->createReporter($args, $fix ? $this->stderr : $this->stdout, $root, $format);
 			$code = (string) stream_get_contents($this->stdin);
 			$reporter->start(1, $fix);
-			$result = $runner->processFile($stdinPath, $code);
+			$result = $runner->processFile($this->resolvePath($stdinPath), $code);
 			$reporter->reportFile($result);
 			$run = new RunResult([$result], $fix);
 			$reporter->finish($run);
@@ -284,8 +284,8 @@ final class Application
 			return $run->getExitCode();
 		}
 
-		$paths = $paths ?: $config->paths;
-		if (!$paths) {
+		$scope = $paths ? $runner->narrowPaths($paths, $config->paths) : $config->paths;
+		if (!$scope) {
 			throw new UsageException('No paths given and none configured.');
 		}
 
@@ -297,7 +297,7 @@ final class Application
 			throw new UsageException('The baseline is generated with the risky fixes the configuration accepts, not with --fix-risky.');
 		}
 
-		$files = $runner->findFiles($paths, skipExcluded: (bool) $args['--skip-excluded']);
+		$files = $runner->findFiles($scope, skipExcluded: (bool) $args['--skip-excluded']);
 		// the machine-readable formats must not be prefaced, and a generated baseline is not a report
 		if (!$generate && in_array($format, ['console', 'github'], true)) {
 			if ($this->xdebug) {
@@ -305,7 +305,7 @@ final class Application
 			}
 
 			$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
-			$this->writeScope(files: $files, paths: $paths, root: $root, fix: $fix);
+			$this->writeScope(files: $files, paths: $scope, root: $root, fix: $fix, narrowed: $paths && $scope !== $paths);
 		}
 
 		// a worker costs about the processing of a few files to start, so by default one for every four files at most
@@ -352,15 +352,17 @@ final class Application
 	 * not where the run was started.
 	 * @param  list<string>  $files  relative to the root, or absolute when outside it
 	 * @param  list<string>  $paths  they were found under these
+	 * @param  bool  $narrowed  a directory named on the command line was narrowed to the configured paths
 	 */
-	private function writeScope(array $files, array $paths, string $root, bool $fix): void
+	private function writeScope(array $files, array $paths, string $root, bool $fix, bool $narrowed): void
 	{
 		$absolute = array_map(fn(string $file) => FileSystem::isAbsolute($file) ? $file : "$root/$file", $files);
 		$scope = count($files) === 1
 			? FileSystem::platformSlashes($absolute[0])
 			: sprintf('%d files in %s', count($files), FileSystem::platformSlashes(self::findCommonDirectory($absolute) ?: $root));
 		$this->write($files
-			? $this->console->color('gray', $fix ? 'Fixing     ' : 'Checking   ') . "$scope\n\n"
+			? $this->console->color('gray', $fix ? 'Fixing     ' : 'Checking   ') . $scope
+				. ($narrowed ? $this->console->color('gray', ', narrowed to the configured paths') : '') . "\n\n"
 			: $this->console->color('yellow', sprintf(
 				'Nothing to check: %s holds no file to check',
 				implode(', ', array_map(FileSystem::platformSlashes(...), $paths)),
@@ -526,7 +528,8 @@ final class Application
 		$factory = new RunnerFactory;
 		[$config, $root, , $commandLine] = $this->loadConfig($args);
 		$runner = $factory->createRunner($config, $root, $commandLine);
-		$paths = $args['paths'] ?: $config->paths;
+		$named = array_map($this->resolvePath(...), self::parsePaths($args));
+		$paths = $named ? $runner->narrowPaths($named, $config->paths) : $config->paths;
 		if (!$paths) {
 			throw new UsageException('No paths given and none configured.');
 		}
@@ -825,6 +828,26 @@ final class Application
 		/** @var list<string> $only */
 		$only = $args['--only'];
 		return $only ?: null;
+	}
+
+
+	/** @return list<string> */
+	private static function parsePaths(Result $args): array
+	{
+		/** @var list<string> $paths */
+		$paths = $args['paths'];
+		return $paths;
+	}
+
+
+	/**
+	 * A path named on the command line is relative to the working directory, unlike those of the configuration,
+	 * and spelled the way the root is, so that it is recognized under it.
+	 */
+	private function resolvePath(string $path): string
+	{
+		$resolved = FileSystem::resolvePath($this->cwd ?? (string) getcwd(), $path);
+		return Helpers::canonicalizePath(realpath($resolved) ?: $resolved);
 	}
 
 
