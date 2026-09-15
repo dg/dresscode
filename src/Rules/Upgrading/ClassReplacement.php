@@ -34,8 +34,9 @@ final class ClassReplacement
 	 * Reports every reference of a class the closure has something to say about, and rewrites the ones it names
 	 * a replacement for and the report allows.
 	 * @param  \Closure(string): ?array{string, ?string}  $find  given a fully qualified class, the message and the class written instead, null for none; null for a class that is left alone
+	 * @param  ?\Closure(NameNode): bool  $keeps  whether the reference goes on naming the class, which nothing is said about and whose import stays with it
 	 */
-	public static function apply(FileNode|NamespaceNode $scope, RuleContext $context, \Closure $find): void
+	public static function apply(FileNode|NamespaceNode $scope, RuleContext $context, \Closure $find, ?\Closure $keeps = null): void
 	{
 		// everything is found before anything is rewritten: a rewritten import changes what the names below it resolve to
 		$resolver = $context->getAnalysis(NameResolver::class);
@@ -58,7 +59,11 @@ final class ClassReplacement
 
 				$found = $find($class);
 				$refusal = $found === null || $found[1] === null ? null : self::findRefusal($name, $found[1], $types);
-				if ($found !== null) {
+				if ($found === null) {
+					continue;
+				} elseif ($keeps !== null && $keeps($name)) {
+					$kept[strtolower($class)] = true;
+				} else {
 					$kept += $refusal === null ? [] : [strtolower($class) => true]; // the reference left as it is needs its import
 					$references[] = [$name, ...$found, $refusal];
 				}

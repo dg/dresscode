@@ -21,7 +21,7 @@ use function in_array;
  * says `@deprecated use Order::StatusPaid`, whatever the expression that reaches them: the member is decided by the class
  * declaring it. A replacement in the same class is fixed by writing its name, where the class has it and it takes the
  * use as it is, a method every call of the deprecated one; any other is reported with what the deprecation says.
- * A member the maps of replaced-members or replaced-calls have is not reported.
+ * A member the maps of replaced-members, replaced-calls or forbidden-members have is not reported.
  */
 #[RuleInfo(
 	'dresscode/no-deprecated-members',
@@ -69,6 +69,7 @@ final class NoDeprecatedMembersRule extends NodeRule
 			|| ($access !== null && (
 				$context->findRule(ReplacedMembersRule::class)?->knows($access, $types)
 				|| $context->findRule(ReplacedCallsRule::class)?->knows($access, $types)
+				|| $context->findRule(ForbiddenMembersRule::class)?->knows($access, $types)
 			))
 		) {
 			return;
