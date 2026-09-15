@@ -94,6 +94,7 @@ final class PackageProfiles
 	/**
 	 * The file as a profile, cut to the sections the version the project stands on of the package it names reaches:
 	 * every one where any version does, none for a package the project does not have, in which case it is null.
+	 * A value is taken as NEON gives it, an entity too, for the schema of the rule to read.
 	 * @throws ConfigurationException
 	 */
 	private static function readFile(string $file, string $source, ProjectPackages $project): ?PackageProfile

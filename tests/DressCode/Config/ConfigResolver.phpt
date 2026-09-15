@@ -841,6 +841,20 @@ test('a group is one of the groups, and the name of one narrows the run to its r
 });
 
 
+test('a value NEON read as an entity is shown among the origins the way a file writes it', function () {
+	$rule = new ResolvedRule('test/c', RuleC::class, [], [
+		['upgrading.neon of acme/lib', ['Acme\Order::$paid' => new Nette\Neon\Entity('isPaid'), 'Acme\Order::OLD' => 'New']],
+	]);
+	Assert::same(
+		[
+			'Acme\Order::$paid' => [['upgrading.neon of acme/lib', 'isPaid()']],
+			'Acme\Order::OLD' => [['upgrading.neon of acme/lib', 'New']],
+		],
+		$rule->getOrigins(),
+	);
+});
+
+
 test('what the packages say lies under every layer, never turns a rule on and survives the rule being turned off', function () {
 	$packages = [new Config\PackageProfile('upgrading.neon of acme/lib', new Profile(rules: [RuleC::class => ['max' => 1], RuleA::class => []]), RuleGroup::Deprecations)];
 	$options = function (Config $config) use ($packages): ?array {
