@@ -1,10 +1,13 @@
 <?php declare(strict_types=1);
 
 use DressCode\Console\ProgressBar;
+use Nette\CommandLine\Ansi;
 use Nette\CommandLine\Console;
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
+
+putenv('COLUMNS=80');
 
 
 /** @return resource */
@@ -25,9 +28,7 @@ function read($stream): string
 /** @param resource $stream */
 function bar($stream): ProgressBar
 {
-	$console = new Console;
-	$console->useColors(false);
-	return new ProgressBar($stream, $console, 10);
+	return new ProgressBar(new Console($stream, colors: false, terminal: true), 10);
 }
 
 
@@ -45,7 +46,7 @@ test('the bar shows the share done and the file that takes long', function () {
 	$bar = bar($stream);
 	usleep(350_000);
 	$bar->advance(5, ['src/quick.php' => microtime(as_float: true)]);
-	Assert::same("\r  [==========          ]  5/10\r", read($stream));
+	Assert::same("\e[?25l  [==========          ]  5/10\r", read($stream));
 
 	usleep(150_000);
 	$bar->advance(6, ['src/slow.php' => microtime(as_float: true) - 3]);
@@ -57,14 +58,27 @@ test('a large file nothing is heard of is named at once with its size, until the
 	$stream = stream();
 	$bar = bar($stream);
 	$bar->advance(0, ['src/large.php' => microtime(as_float: true)], 250_000);
-	Assert::same("\r  [                    ]  0/10  src/large.php  250 kB\r", read($stream));
+	Assert::same("\e[?25l  [                    ]  0/10  src/large.php  250 kB\r", read($stream));
 
 	$bar->advance(1, ['src/small.php' => microtime(as_float: true)], 2_000);
 	Assert::same(
-		"\r  [                    ]  0/10  src/large.php  250 kB\r"
-		. "\r  [==                  ]  1/10" . str_repeat(' ', 23) . "\r",
+		"\e[?25l  [                    ]  0/10  src/large.php  250 kB\r"
+		. "\e[J  [==                  ]  1/10\r",
 		read($stream),
 	);
+});
+
+
+test('the path of a file is cut at the front, so that its name stays', function () {
+	putenv('COLUMNS=70');
+	$stream = stream();
+	$bar = bar($stream);
+	$bar->advance(0, ['src/DressCode/Rules/Whitespace/LongNameRule.php' => microtime(as_float: true)], 250_000);
+	$line = str_replace(["\e[?25l", "\r"], '', read($stream));
+	Assert::contains('…', $line); // the front of the path is gone
+	Assert::contains('LongNameRule.php  250 kB', $line);
+	Assert::same(70, Ansi::measure($line));
+	putenv('COLUMNS=80');
 });
 
 
@@ -74,5 +88,5 @@ test('the last file erases the line', function () {
 	usleep(350_000);
 	$bar->advance(5);
 	$bar->advance(10);
-	Assert::match('%A%' . str_repeat(' ', 30) . "\r", read($stream));
+	Assert::match('%A%' . "\e[J\e[?25h", read($stream));
 });

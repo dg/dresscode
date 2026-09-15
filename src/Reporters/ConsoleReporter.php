@@ -8,6 +8,7 @@ use DressCode\Reporter;
 use DressCode\RunResult;
 use DressCode\Severity;
 use DressCode\Violation;
+use Nette\CommandLine\Ansi;
 use Nette\CommandLine\Console;
 use Nette\Utils\FileSystem;
 use function array_slice, count, sprintf, strlen;
@@ -26,10 +27,6 @@ final class ConsoleReporter implements Reporter
 	/** a run shorter than this is not worth timing */
 	private const LongRun = 1.0;
 
-	/** @var resource */
-	private $stream;
-	private Console $console;
-
 	/** the bare format has no room for it */
 	private readonly bool $diff;
 
@@ -44,30 +41,16 @@ final class ConsoleReporter implements Reporter
 	private bool $separate = false;
 
 
-	/**
-	 * @param ?resource $stream
-	 * @param ?Console $console  colors; plain output when omitted
-	 */
 	public function __construct(
-		$stream = null,
+		private readonly Console $console,
 		bool $diff = false,
-		?Console $console = null,
 		/** the paths of the results are relative to it */
 		private readonly string $root = '',
 		/** a file under it is reported relative to it, the others absolutely */
 		private readonly string $cwd = '',
 		/** only what is left to the user and which files were rewritten, nothing else */
 		private readonly bool $bare = false,
-		/** @var ?\Closure(): void called before anything is written, so that a line drawn over the output can be erased first */
-		private readonly ?\Closure $beforeWrite = null,
 	) {
-		$this->stream = $stream ?? STDOUT;
-		if ($console === null) {
-			$console = new Console;
-			$console->useColors(false);
-		}
-
-		$this->console = $console;
 		$this->diff = $diff && !$bare;
 	}
 
@@ -138,9 +121,9 @@ final class ConsoleReporter implements Reporter
 			return;
 		}
 
-		$positionWidth = max(array_map(fn(Violation $v) => strlen(self::formatPosition($v)), $violations));
-		$messageWidth = min(self::MessageWidth, max(array_map(fn(Violation $v) => strlen($v->message), $violations)));
-		$stateWidth = max(array_map(fn(Violation $v) => strlen(self::formatState($v)), $violations));
+		$positionWidth = max(array_map(fn(Violation $v) => Ansi::measure(self::formatPosition($v)), $violations));
+		$messageWidth = min(self::MessageWidth, max(array_map(fn(Violation $v) => Ansi::measure($v->message), $violations)));
+		$stateWidth = max(array_map(fn(Violation $v) => Ansi::measure(self::formatState($v)), $violations));
 
 		$derived = [];
 		$listed = [];
@@ -158,9 +141,9 @@ final class ConsoleReporter implements Reporter
 			$state = self::formatState($violation);
 			$this->write(sprintf(
 				"  %s  %s  %s  %s\n",
-				$this->console->color($state === 'warning' ? 'olive' : 'maroon', str_pad($state, $stateWidth)),
-				$this->console->color('gray', str_pad(self::formatPosition($violation), $positionWidth, ' ', STR_PAD_LEFT)),
-				str_pad($violation->message, $messageWidth),
+				$this->console->color($state === 'warning' ? 'olive' : 'maroon', Ansi::pad($state, $stateWidth)),
+				$this->console->color('gray', Ansi::pad(self::formatPosition($violation), $positionWidth, STR_PAD_LEFT)),
+				Ansi::pad($violation->message, $messageWidth),
 				$this->console->color('gray', self::formatRule($violation->ruleName)),
 			));
 			if (isset($derived[$violation->fingerprint])) {
@@ -334,10 +317,6 @@ final class ConsoleReporter implements Reporter
 
 	private function write(string $text): void
 	{
-		if ($this->beforeWrite !== null) {
-			($this->beforeWrite)();
-		}
-
-		fwrite($this->stream, $text);
+		$this->console->write($text);
 	}
 }

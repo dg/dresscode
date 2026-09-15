@@ -5,12 +5,13 @@ namespace DressCode\Console;
 use DressCode\Config\ResolvedRule;
 use DressCode\ConfigurableRule;
 use DressCode\RuleInfo;
+use Nette\CommandLine\Ansi;
 use Nette\CommandLine\Console;
 use Nette\Schema\Elements\AnyOf;
 use Nette\Schema\Elements\Structure;
 use Nette\Schema\Elements\Type;
 use Nette\Schema\Processor;
-use function count, is_bool, is_string, strlen, strval;
+use function count, is_bool, is_string, strval;
 
 
 /**
@@ -106,11 +107,11 @@ final class ExplainPrinter
 		$origins = $this->rule->getOrigins();
 		$out = "\n" . $console->color('white', "Options\n");
 		// the widest name decides the column, so a long one does not run into its value
-		$width = max(26, ...array_map(strlen(...), array_map(strval(...), array_keys($schema->getShape()))));
+		$width = max(26, ...array_map(Ansi::measure(...), array_map(strval(...), array_keys($schema->getShape()))));
 		foreach ($schema->getShape() as $option => $element) {
 			$value = $this->rule->options[$option] ?? $defaults[$option] ?? null;
 			$layers = $origins[(string) $option] ?? [];
-			$out .= '  ' . str_pad((string) $option, $width + 1) . str_pad(self::format($value), 24)
+			$out .= '  ' . Ansi::pad((string) $option, $width + 1) . Ansi::pad(self::format($value), 24)
 				. $console->color('gray', $layers === [] ? '(default)' : $layers[count($layers) - 1][0]) . "\n";
 			$description = $element instanceof Type || $element instanceof AnyOf || $element instanceof Structure
 				? $element->describe()['description'] ?? null
