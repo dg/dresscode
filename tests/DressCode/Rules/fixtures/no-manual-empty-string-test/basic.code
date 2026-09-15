@@ -1,0 +1,34 @@
+<?php
+function test(string $s, ?string $nullable, int $number, Stringable $object, array $list, string $t): void
+{
+	$a = strlen($s) === 0;
+	$b = strlen($s) !== 0;
+	$c = strlen($s) == 0;
+	$d = strlen($s) != 0;
+	$e = strlen($s) > 0;
+	$f = strlen($s) >= 1;
+	$g = strlen($s) < 1;
+	$h = strlen($s) <= 0;
+	$i = 0 === strlen($s);
+	$j = 0 < strlen($s);
+	$k = 1 > strlen($s);
+	$l = !strlen($s);
+	$m = mb_strlen($s) > 0;
+	$n = \strlen($s ?: $t) === 0;
+	$o = strlen($s) > 0 && strlen($t) === 0;
+	$p = !strlen($s) . 'x';
+	$q = strlen($s) > 0 == $flag;
+	if (strlen(trim($s)) > 0) {
+	}
+
+	// left alone
+	$r = strlen($nullable) === 0;
+	$s2 = strlen($number) === 0;
+	$t2 = strlen($object) === 0;
+	$u = strlen($s) === 1;
+	$v = strlen($s) > 1;
+	$w = strlen($s) >= 0;
+	$x = mb_strlen($s, 'UTF-8') === 0;
+	$y = strlen(...$list) === 0;
+	$z = strlen($s) + 0 === 0;
+}

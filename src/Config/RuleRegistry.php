@@ -115,6 +115,7 @@ final class RuleRegistry
 		Rules\Functions\OptimizedCallNotationRule::class,
 		Rules\Functions\NoSettypeRule::class,
 		Rules\Functions\NoManualSubstringTestRule::class,
+		Rules\Functions\NoManualEmptyStringTestRule::class,
 		Rules\Functions\JsonValidateForDecodeTestRule::class,
 		Rules\Functions\ArrayFirstForEdgeElementRule::class,
 		Rules\Functions\UselessSetAccessibleRule::class,

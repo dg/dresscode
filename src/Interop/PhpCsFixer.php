@@ -26,6 +26,7 @@ final class PhpCsFixer
 			'PhpCsFixerCustomFixers/no_leading_slash_in_global_namespace' => 'dresscode/no-leading-backslash-in-global-namespace',
 			'PhpCsFixerCustomFixers/no_superfluous_concatenation' => 'dresscode/useless-string-concat',
 			'PhpCsFixerCustomFixers/no_useless_dirname_call' => 'dresscode/no-dirname-of-file',
+			'PhpCsFixerCustomFixers/no_useless_strlen' => 'dresscode/no-manual-empty-string-test',
 			'PhpCsFixerCustomFixers/numeric_literal_separator' => 'dresscode/numeric-literal-separator',
 			'PhpCsFixerCustomFixers/phpdoc_array_style' => fn(array $o, Translation $t) => $t->enable('dresscode/phpdoc-canonical-types', ['arrayNotation' => 'generic']),
 			'PhpCsFixerCustomFixers/phpdoc_type_list' => function (array $o, Translation $t) {
@@ -385,6 +386,7 @@ final class PhpCsFixer
 				}
 				$t->enable('dresscode/no-implicit-backslash');
 			},
+			'string_length_to_empty' => 'dresscode/no-manual-empty-string-test',
 			'switch_case_semicolon_to_colon' => 'dresscode/switch-case-colon',
 			'switch_case_space' => 'dresscode/switch-case-spacing',
 			'switch_continue_to_break' => 'dresscode/no-continue-in-switch',
