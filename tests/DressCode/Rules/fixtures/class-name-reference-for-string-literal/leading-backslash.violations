@@ -1,0 +1,2 @@
+3: The class name must be written as App\Model\User::class, not as a string
+4: The class name must be written as DateTimeImmutable::class, not as a string

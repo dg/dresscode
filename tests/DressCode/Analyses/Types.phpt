@@ -103,6 +103,11 @@ test('the type of an expression, the callee an access or a call reaches, and wha
 	Assert::same('2', $describe($types->getType($sum)));
 
 	Assert::exception(fn() => $types->getDeprecation(new Analyses\Callee(MemberKind::Constant, 'X', 'Y')), InvalidArgumentException::class);
+
+	// the declared spelling of a class the project or PHP declares, whatever the letter case of the question
+	Assert::same('Nette\Forms\Form', $types->findClassName('nette\forms\FORM'));
+	Assert::same('DateTimeImmutable', $types->findClassName('datetimeimmutable'));
+	Assert::null($types->findClassName('Nette\Forms\Missing'));
 });
 
 

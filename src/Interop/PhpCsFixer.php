@@ -77,6 +77,7 @@ final class PhpCsFixer
 			'class_definition' => fn(array $o, Translation $t) => $t->enable('dresscode/class-definition-spacing', [
 				'beforeParenthesis' => ($o['space_before_parenthesis'] ?? false) ? 'single' : 'none',
 			]),
+			'class_keyword' => 'dresscode/class-name-reference-for-string-literal',
 			'class_reference_name_casing' => 'dresscode/class-reference-name-casing',
 			'combine_consecutive_issets' => 'dresscode/combined-issets',
 			'combine_nested_dirname' => 'dresscode/no-dirname-of-file',

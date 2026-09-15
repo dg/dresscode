@@ -1,0 +1,5 @@
+8: The class name must be written as App\Model\User::class, not as a string
+10: The class name must be written as App\Model\Repository::class, not as a string
+10: The class name must be written as App\Model\Status::class, not as a string
+13: The class name must be written as App\Model\User::class, not as a string
+15: The class name must be written as App\Model\Repository::class, not as a string
