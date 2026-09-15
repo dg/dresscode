@@ -119,6 +119,7 @@ final readonly class PackageDiscovery
 	/**
 	 * The file as upgrading data, cut to the sections the version the project stands on of the package it names reaches:
 	 * every one where any version does, none for a package the project does not have, in which case it is null.
+	 * A value is taken as NEON gives it, an entity too, for the grammar of the map to read.
 	 * @throws ConfigurationException
 	 */
 	private static function readFile(string $file, Layer $layer, ProjectPackages $project): ?UpgradingData
