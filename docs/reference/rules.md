@@ -76,6 +76,22 @@ A project asks for a group by name (`groups: [cleanup]`) and gets every rule of 
 
 **optimized-calls** (5): [no-conversion-functions](#dresscodeno-conversion-functions), [no-dirname-of-file](#dresscodeno-dirname-of-file), [no-is-null](#dresscodeno-is-null), [no-settype](#dresscodeno-settype), [optimized-call-notation](#dresscodeoptimized-call-notation)
 
+## By the version of PHP a rule needs
+
+A rule writing a construct older than PHP 8.0, which every target has, is in none of these.
+
+**PHP 8.1** (7): [first-class-callable-notation](#dresscodefirst-class-callable-notation), [never-for-throwing-function](#dresscodenever-for-throwing-function), [no-manual-list-test](#dresscodeno-manual-list-test), [octal-notation](#dresscodeoctal-notation), [readonly-for-annotation](#dresscodereadonly-for-annotation), [readonly-for-unwritten-property](#dresscodereadonly-for-unwritten-property), [useless-set-accessible](#dresscodeuseless-set-accessible)
+
+**PHP 8.2** (2): [readonly-class-for-readonly-members](#dresscodereadonly-class-for-readonly-members), [sensitive-parameter-required](#dresscodesensitive-parameter-required)
+
+**PHP 8.3** (3): [class-constant-fetch-for-constant-call](#dresscodeclass-constant-fetch-for-constant-call), [json-validate-for-decode-test](#dresscodejson-validate-for-decode-test), [override-attribute-required](#dresscodeoverride-attribute-required)
+
+**PHP 8.4** (4): [array-function-for-foreach](#dresscodearray-function-for-foreach), [deprecated-attribute-for-annotation](#dresscodedeprecated-attribute-for-annotation), [rounding-mode-notation](#dresscoderounding-mode-notation), [useless-parentheses-around-new](#dresscodeuseless-parentheses-around-new)
+
+**PHP 8.5** (2): [array-first-for-edge-element](#dresscodearray-first-for-edge-element), [pipe-operator](#dresscodepipe-operator)
+
+**PHP 8.6** (1): [clamp-for-min-max](#dresscodeclamp-for-min-max)
+
 ## The rules
 
 ### dresscode/annotation-name
@@ -1142,11 +1158,15 @@ Writes the class the project writes instead of another one.
 
 Stage: Structure.
 
+Options: The class → the class written instead, both fully qualified.
+
 ### dresscode/replaced-functions
 
 Calls the function the project writes instead of another one.
 
 Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+
+Options: The global function → the function written instead, which is written fully qualified when it has a namespace of its own.
 
 ### dresscode/rounding-mode-notation
 
