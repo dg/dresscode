@@ -1,0 +1,6 @@
+4: A line break before the && operator
+14: A line break before the && operator
+25: A line break before the and keyword
+31: A line break before the || operator
+41: A line break before the && operator
+45: A line break before the expression, the condition is not written in the 'perLine' shape

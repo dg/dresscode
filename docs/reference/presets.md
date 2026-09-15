@@ -11,7 +11,7 @@ as its base, and the description of every other preset says what it adds to it.
 | `dresscode/psr12` |  | 42 | PSR-12 Extended Coding Style |
 | `dresscode/nette` | `dresscode/per`, `dresscode/nette-style`, `dresscode/cleanup`, `dresscode/modern`, `dresscode/types`, `dresscode/phpdoc`, `dresscode/imports`, `dresscode/classes` | 48 | Nette Coding Standard |
 | `dresscode/symfony` | `dresscode/per`, `dresscode/symfony-configurator` | 52 | Symfony Coding Standards as the @Symfony rule set defines them, without the phpDoc rules |
-| `dresscode/nette-style` |  | 20 | The layout of the Nette Coding Standard |
+| `dresscode/nette-style` |  | 22 | The layout of the Nette Coding Standard |
 | `dresscode/cleanup` |  | 18 | Code that is there for nothing |
 | `dresscode/modern` |  | 9 | The syntax the target version of PHP has |
 | `dresscode/types` |  | 3 | Types written where PHP can read them |

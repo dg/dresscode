@@ -8,6 +8,7 @@ use DressCode\Gap;
 use DressCode\GapRule;
 use DressCode\Line;
 use DressCode\RuleInfo;
+use DressCode\Rules\NodeHelpers;
 use DressCode\Stage;
 use DressCode\Style;
 use Nette\Schema\Expect;
@@ -22,7 +23,7 @@ use PhpSyntax\Nodes\ExpressionNode;
 use PhpSyntax\Nodes\Statement\DoWhileNode;
 use PhpSyntax\Nodes\Statement\IfNode;
 use PhpSyntax\Nodes\Statement\WhileNode;
-use PhpSyntax\TokenKind;
+use PhpSyntax\Token;
 use function count, in_array, is_array;
 
 
@@ -31,11 +32,12 @@ use function count, in_array, is_array;
  * `perLine` begins it on the line after the opening parenthesis, `compact` on the line of it, and both leave
  * the closing parenthesis on a line of its own, so that the brace of the body stands apart from the condition.
  * How the parts are spread over the lines between is the author's; a condition in neither shape is written
- * again with a line per part, and so is one that stands on a single line wider than the line length of the style. The option
- * names the shapes that pass, the first of them the one anything else is written in. The width is measured
- * as dresscode/line-length measures a line, a tab counting to the next stop of the style, and up to the
- * closing parenthesis, because what follows belongs to other rules and may still move. Where the lines stand
- * is the matter of dresscode/indentation.
+ * again with a line per part, and so is one that stands on a single line wider than the line length of the style.
+ * The shape option names the shapes that pass, the first of them the one anything else is written in, and
+ * operatorPosition may move a boolean operator ending a line to the start of the next one, where a condition
+ * written again has it. The width is measured as dresscode/line-length measures a line, a tab counting to the
+ * next stop of the style, and up to the closing parenthesis, because what follows belongs to other rules and may
+ * still move. Where the lines stand is the matter of dresscode/indentation.
  */
 #[RuleInfo(
 	'dresscode/multi-line-condition',
@@ -47,13 +49,12 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 	private const PerLine = 'perLine';
 	private const Compact = 'compact';
 	private const Keep = 'keep';
-
-	private const BooleanOperators = [
-		TokenKind::BooleanAnd, TokenKind::BooleanOr, TokenKind::LogicalAnd, TokenKind::LogicalOr, TokenKind::LogicalXor,
-	];
+	private const Start = 'start';
 
 	/** @var list<string>  the shapes that pass, the first of them the one a condition in none of them is written in */
 	private array $shapes = [self::PerLine];
+
+	private string $operatorPosition = self::Keep;
 
 
 	public static function getOptionsSchema(): Schema
@@ -62,6 +63,8 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 			'shape' => Expect::anyOf(self::PerLine, self::Compact, self::Keep, Expect::listOf(Expect::anyOf(self::PerLine, self::Compact))->min(1))
 				->default(self::PerLine)
 				->description('The shape of a condition on several lines: perLine begins it on the line after the parenthesis, compact on the line of it, both closing the parenthesis on a line of its own; a list of the two lets either pass and writes anything else in the first, keep leaves every condition as it is'),
+			'operatorPosition' => Expect::anyOf(self::Keep, self::Start)->default(self::Keep)
+				->description('Where a boolean operator of the condition at a line break stands: keep leaves it where it is, start moves one ending a line to the start of the next unless a comment follows it'),
 		]);
 	}
 
@@ -73,6 +76,7 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 			$options['shape'] === self::Keep => [],
 			default => [$options['shape']],
 		};
+		$this->operatorPosition = $options['operatorPosition'];
 	}
 
 
@@ -90,8 +94,8 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 			BinaryOpNode::class => [
 				// the part begins with its operator, so what follows the operator stays on its line
 				'operator' => [
-					fn(Gap $gap) => $this->claimForPart($gap, $gap->token->parent, Line::Next),
-					fn(Gap $gap) => $this->claimForPart($gap, $gap->token->parent, Line::Same),
+					fn(Gap $gap) => $this->claimForPart($gap, Line::Next),
+					fn(Gap $gap) => $this->claimForPart($gap, Line::Same),
 				],
 			],
 		];
@@ -117,33 +121,40 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 
 
 	/**
-	 * The break of the condition the part belongs to, when the part lies on the way from that condition down
-	 * through the boolean operators of its chain, which is where the shape reaches.
+	 * The break around a boolean operator of the condition, when the operator lies on the way from that condition
+	 * down through the boolean operators of its chain, which is where the shape reaches: the one the condition
+	 * written again has, or with the operators at the start the break after an operator ending a line moved in
+	 * front of it.
 	 */
-	private function claimForPart(Gap $gap, ?Node $part, Line $line): ?Claim
+	private function claimForPart(Gap $gap, Line $line): ?Claim
 	{
-		if (!self::isChained($part)) {
+		$part = $gap->token->parent;
+		$statement = $part instanceof BinaryOpNode ? NodeHelpers::findConditionStatement($part) : null;
+		if ($statement === null) {
 			return null;
 		}
 
-		for ($node = $part; $node !== null; $node = $parent) {
-			$parent = $node->parent;
-			if (
-				$parent instanceof IfNode
-				|| $parent instanceof ElseIfNode
-				|| $parent instanceof WhileNode
-				|| $parent instanceof DoWhileNode
-			) {
-				$decision = $parent->condition === $node ? $this->decide($gap, $parent) : null;
-				return $decision === null ? null : new Claim(line: $line, because: $decision[1]);
-			}
+		$decision = $this->decide($gap, $statement);
+		return match (true) {
+			$decision !== null => new Claim(line: $line, because: $decision[1]),
+			$this->operatorPosition === self::Start && in_array($gap->token, $this->findOperatorsEndingLine($gap, $statement), true)
+				=> $line === Line::Next ? Claim::nextLine() : Claim::sameLine(),
+			default => null,
+		};
+	}
 
-			if (!self::isChained($parent)) {
-				return null;
-			}
-		}
 
-		return null;
+	/**
+	 * The boolean operators of the chain of the condition that end their line, decided once per pass about the
+	 * statement.
+	 * @return list<Token>
+	 */
+	private function findOperatorsEndingLine(Gap $gap, IfNode|ElseIfNode|WhileNode|DoWhileNode $statement): array
+	{
+		return $gap->once($statement, fn() => array_values(array_filter(
+			self::collectChainOperators($statement->condition),
+			NodeHelpers::isLineBrokenAfter(...),
+		)));
 	}
 
 
@@ -215,10 +226,15 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 	}
 
 
-	/** The chain reaches through boolean operators only, so a part on its own line is a part of the condition. */
-	private static function isChained(?Node $expr): bool
+	/**
+	 * The boolean operators of the chain, in the order they are written; parentheses and negations end it.
+	 * @return list<Token>
+	 */
+	private static function collectChainOperators(ExpressionNode $expr): array
 	{
-		return $expr instanceof BinaryOpNode && $expr->operator->is(...self::BooleanOperators);
+		return NodeHelpers::isLogicalOperation($expr)
+			? [...self::collectChainOperators($expr->left), $expr->operator, ...self::collectChainOperators($expr->right)]
+			: [];
 	}
 
 
@@ -229,9 +245,7 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 	private static function countOperators(ExpressionNode $expr): int
 	{
 		return match (true) {
-			$expr instanceof BinaryOpNode => self::isChained($expr)
-				? 1 + self::countOperators($expr->left) + self::countOperators($expr->right)
-				: 0,
+			NodeHelpers::isLogicalOperation($expr) => 1 + self::countOperators($expr->left) + self::countOperators($expr->right),
 			$expr instanceof ParenthesizedNode, $expr instanceof UnaryOpNode => self::countOperators($expr->expression),
 			default => 0,
 		};

@@ -1,0 +1,17 @@
+<?php
+// {"operatorPosition": "start"}
+$a = 'a'
+	. 'b';
+$a = 'a'
+	. 'b';
+$a = 'a' . 'b';
+$a = 'a' . // why
+	'b';
+$a = 'a'
+	. 'b'
+	. 'c';
+$a = $b +
+	$c;
+$a = 'a' .
+
+	'b';

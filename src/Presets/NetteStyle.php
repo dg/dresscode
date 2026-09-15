@@ -11,8 +11,8 @@ use DressCode\Profile;
  * The layout of the Nette Coding Standard, which is PER with tabs and the places where it departs from it:
  * the declare on the line of the opening tag, two blank lines between methods, none inside the braces of
  * a body, a tab that may align commas, the brace of a multi-line signature below a return type, promoted
- * properties on lines of their own, an expression on the line of its return, and a chain, an array or
- * a condition that may keep the shape it has.
+ * properties on lines of their own, an expression on the line of its return, an operator at a line break at
+ * the start of the next line, and a chain, an array or a condition that may keep the shape it has.
  * It says nothing about which rules a project runs, so it composes with any set of them.
  */
 #[PresetInfo('dresscode/nette-style', 'The layout of the Nette Coding Standard')]
@@ -34,7 +34,7 @@ final class NetteStyle implements Preset
 
 			// the whitespace of a line: exactly one space around a ternary, a tab may align commas, a space after the
 			// slashes of a comment
-			'ternary-operator-spacing' => ['spacing' => 'single'],
+			'ternary-operator-spacing' => ['spacing' => 'single', 'operatorPosition' => 'start'],
 			'comment-spacing' => true,
 			'semicolon-spacing' => ['after' => 'single', 'allowOwnLine' => false],
 			'comma-spacing' => ['alignment' => 'tabs'],
@@ -44,9 +44,13 @@ final class NetteStyle implements Preset
 			'offset-bracket-spacing' => true,
 			'class-definition-spacing' => ['beforeParenthesis' => 'single'],
 
-			// breaks: the brace of a multi-line signature below its return type, promoted properties on lines of their
-			// own, the first link of a chain and several items of an array may share a line, an array wider than 110 characters is spread, a broken condition
-			// may begin on the line of its parenthesis or below it, and an expression begins on the line of its return
+			// breaks: the brace of a multi-line signature below its return type, promoted properties on lines of
+			// their own, the first link of a chain and several items of an array may share a line, an array
+			// wider than 110 characters is spread, a broken condition may begin on the line of its parenthesis
+			// or below it, an operator at a line break begins the next line, and an expression begins on the
+			// line of its return
+			'binary-operator-spacing' => ['operatorPosition' => 'start'],
+			'concat-spacing' => ['operatorPosition' => 'start'],
 			'construct-spacing' => ['allowMultiLineExpression' => false],
 			'braces-position' => [
 				'multiLineParameters' => 'nextLineAfterReturnType', 'emptyBodies' => 'ownLine',
@@ -57,7 +61,7 @@ final class NetteStyle implements Preset
 			'multi-line-signature' => ['promotedProperties' => 'ownLines'],
 			'multi-line-chain' => ['leadingLinks' => 'sameLine'],
 			'multi-line-array' => ['shape' => 'keep', 'maxWidth' => 110],
-			'multi-line-condition' => ['shape' => ['perLine', 'compact']],
+			'multi-line-condition' => ['shape' => ['perLine', 'compact'], 'operatorPosition' => 'start'],
 			'trailing-comma' => ['multiLine' => ['arrays', 'arguments', 'parameters']],
 			'phpdoc-alignment' => true,
 		]);

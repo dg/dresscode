@@ -395,14 +395,17 @@ $enabled = [
 		'betweenMembers' => 1, 'beforeDocumentedMember' => 1, 'afterPhpDoc' => 0,
 		'before' => ['return' => 1], 'afterBlockBrace' => 0, 'beforeBlockBrace' => 0,
 	],
+	// an operator ending a line is moved, so that the fixpoint holds with the moves among the fixes
+	'dresscode/multi-line-condition' => ['operatorPosition' => 'start'],
 ];
 // PER leaves some gaps to taste and some to nobody; the damage can only be undone where a rule governs
 // the gap exactly, so every spacing rule of the catalogue is on, with its exact choice where it has one
 foreach (array_keys($registry->getRules()) as $name) {
 	if (str_ends_with($name, '-spacing')) {
 		$enabled[$name] = match ($name) {
-			'dresscode/binary-operator-spacing' => ['alignment' => 'none'],
-			'dresscode/ternary-operator-spacing' => ['spacing' => 'single'],
+			'dresscode/binary-operator-spacing' => ['alignment' => 'none', 'operatorPosition' => 'start'],
+			'dresscode/concat-spacing' => ['operatorPosition' => 'start'],
+			'dresscode/ternary-operator-spacing' => ['spacing' => 'single', 'operatorPosition' => 'start'],
 			'dresscode/comma-spacing' => ['alignment' => 'none'],
 			'dresscode/comment-spacing' => ['before' => 'single'],
 			default => true,
