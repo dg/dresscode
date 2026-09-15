@@ -671,6 +671,30 @@ final readonly class FunctionPattern
 	public function bind(PhpSyntax\Nodes\ArgumentListNode $arguments): ?DressCode\Rules\Upgrading\ArgumentBindings
 ```
 
+## `DressCode\Rules\Upgrading\MapMatch`
+
+```php
+final readonly class MapMatch
+	public readonly DressCode\Rules\Upgrading\MemberPattern $pattern
+	public readonly mixed $value
+	public readonly DressCode\Analyses\MemberAccess $access
+	public readonly ?DressCode\Rules\Upgrading\ArgumentBindings $bindings
+	public function __construct(DressCode\Rules\Upgrading\MemberPattern $pattern, mixed $value, DressCode\Analyses\MemberAccess $access, ?DressCode\Rules\Upgrading\ArgumentBindings $bindings = null)
+```
+
+## `DressCode\Rules\Upgrading\MemberMaps`
+
+```php
+final class MemberMaps
+	public const Keep = 'keep'
+	public static function createMapSchema(Nette\Schema\Schema $value, string $description, ?Closure $convert = null): Nette\Schema\Elements\Type
+	public static function createCodeSchema(): Nette\Schema\Elements\AnyOf
+	public static function findEntry(array $entries, DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types, ?PhpSyntax\Nodes\ArgumentListNode $arguments = null, ?array $parameters = null): ?DressCode\Rules\Upgrading\MapMatch
+	public static function findDeclarationEntry(array $entries, PhpSyntax\Nodes\Member\MethodNode $declaration, DressCode\Analyses\Types $types, bool $anyArguments = false, bool $specificFirst = false): ?array
+	public static function findLookupName(PhpSyntax\Nodes\Expression\ClassConstantFetchNode|PhpSyntax\Nodes\Expression\MethodCallNode|PhpSyntax\Nodes\Expression\StaticMethodCallNode|PhpSyntax\Nodes\Expression\PropertyFetchNode|PhpSyntax\Nodes\Expression\StaticPropertyFetchNode|PhpSyntax\Nodes\Expression\NewNode $node): ?string
+	public static function findDecidingEntry(array $entries, DressCode\Analyses\Types $types, Closure $accepts, bool $specificFirst = false): ?array
+```
+
 ## `DressCode\Rules\Upgrading\MemberPattern`
 
 ```php
