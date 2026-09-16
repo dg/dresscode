@@ -49,6 +49,8 @@ final class PresetResolver
 		private readonly RuleRegistry $registry,
 		/** @var list<array{string, Profile}>  what the installed packages say, laid under everything and never turning a rule on */
 		private readonly array $packageProfiles = [],
+		/** the packages the project stands on, which decide whether a rule requiring one runs */
+		private readonly ProjectPackages $project = new ProjectPackages,
 	) {
 	}
 
@@ -451,7 +453,7 @@ final class PresetResolver
 			$rule = $inactive[$class];
 			throw new ConfigurationException(
 				"Rule $rule->name the run is narrowed to does not run: $rule->inactive."
-				. (str_starts_with((string) $rule->inactive, 'it needs PHP') ? '' : " Turn it on with --rule $rule->name=on."),
+				. (str_starts_with((string) $rule->inactive, 'it needs ') ? '' : " Turn it on with --rule $rule->name=on."),
 			);
 		}
 	}
@@ -545,6 +547,7 @@ final class PresetResolver
 		$last = $layers[count($layers) - 1][1];
 		$minPhpVersion = $info->getMinPhpVersion();
 		$tooNew = $minPhpVersion !== null && version_compare($phpVersion, $minPhpVersion, '<');
+		$unmet = $this->describeUnmetPackage($info);
 		$untyped = $info->requiresTypes && !$types;
 		// a preset may name such a rule whatever the project has; a project naming it asked for what it cannot get
 		if ($untyped && $last !== false && $explicit) {
@@ -554,12 +557,15 @@ final class PresetResolver
 		$inactive = match (true) {
 			$last === false => 'turned off by ' . $layers[count($layers) - 1][0],
 			$tooNew => "it needs PHP $minPhpVersion and the target is $phpVersion",
+			$unmet !== null => "it needs $unmet",
 			$untyped => 'it needs the types of the code and the configuration sets no types',
 			!$kept => 'the run is narrowed to other rules',
 			default => null,
 		};
 		if ($tooNew && $last !== false && $explicit) {
 			$this->warnings[$info->name] = "Rule $info->name needs PHP $minPhpVersion, the target is $phpVersion; skipped.";
+		} elseif ($unmet !== null && $last !== false && $explicit) {
+			$this->warnings[$info->name] = "Rule $info->name needs $unmet; skipped.";
 		}
 
 		$options = [];
@@ -581,6 +587,28 @@ final class PresetResolver
 			$warning,
 			$packageLayers,
 		);
+	}
+
+
+	/**
+	 * The first package the rule requires that the project does not meet, said as what the rule needs and what the
+	 * project has instead; null where it meets every one.
+	 */
+	private function describeUnmetPackage(RuleInfo $info): ?string
+	{
+		foreach ($info->getRequiredPackages() as $package => $version) {
+			$needs = $version === null ? $package : "$package $version";
+			if (!$this->project->has($package)) {
+				return "$needs and the project does not have it";
+			}
+
+			$current = $this->project->findVersion($package);
+			if ($version !== null && $current !== null && version_compare($current, $version, '<')) {
+				return "$needs and the project is on $current";
+			}
+		}
+
+		return null;
 	}
 
 

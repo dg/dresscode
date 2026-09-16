@@ -419,6 +419,37 @@ test('a rule of the project itself is part of the identity by the time its file 
 });
 
 
+test('a package the project upgrades is part of the identity, however the tool itself was installed', function () {
+	$root = __DIR__ . '/../../temp/runner-factory-packages';
+	@mkdir("$root/vendor/composer", recursive: true); // @ - may exist
+	Tester\Helpers::purge("$root/cache");
+	file_put_contents("$root/composer.json", '{"name": "app/project", "require": {"acme/lib": "^3.1"}}');
+	file_put_contents("$root/x.php", "<?php\n");
+	$installed = fn(string $reference) => file_put_contents(
+		"$root/vendor/composer/installed.json",
+		json_encode(['packages' => [[
+			'name' => 'acme/lib',
+			'version' => 'dev-master',
+			'version_normalized' => 'dev-master',
+			'source' => ['reference' => $reference],
+		]]], JSON_THROW_ON_ERROR),
+	);
+	$cached = fn() => (new RunnerFactory)
+		->createRunner(new Config(rules: ['no-bom' => true], cacheDir: "$root/cache"), $root)
+		->run(['x.php'], false, new NullReporter)
+		->files[0]->cached;
+
+	$installed('aaaaaaa');
+	Assert::false($cached());
+	Assert::true($cached());
+
+	// the same version of the same branch, another commit: the files are other files
+	$installed('bbbbbbb');
+	Assert::false($cached());
+	Assert::true($cached());
+});
+
+
 test('the name of the baseline is judged even before the file exists', function () use ($fixtures) {
 	Assert::null(RunnerFactory::loadBaseline(new Config, $fixtures));
 	Assert::null(RunnerFactory::loadBaseline(new Config(baseline: 'baseline.neon'), $fixtures)); // no file yet

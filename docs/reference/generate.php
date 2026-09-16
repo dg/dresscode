@@ -165,6 +165,10 @@ foreach ($rules as $name => $class) {
 		$facts[] = "Needs PHP $minPhpVersion";
 	}
 
+	foreach ($info->getRequiredPackages() as $package => $version) {
+		$facts[] = "Needs `$package`" . ($version === null ? '' : " $version");
+	}
+
 	if ($info->requiresTypes) {
 		$facts[] = 'Needs the types of the code, so it runs only with `types: phpstan`';
 	}

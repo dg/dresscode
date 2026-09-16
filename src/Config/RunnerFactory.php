@@ -3,7 +3,6 @@
 namespace DressCode\Config;
 
 use Composer\InstalledVersions;
-use Composer\Semver\VersionParser;
 use DressCode\Analyses;
 use DressCode\Config;
 use DressCode\ConfigurationException;
@@ -103,11 +102,12 @@ final class RunnerFactory
 		bool $baseline = true,
 	): Runner
 	{
-		$packages = PackageProfiles::discover($root);
+		$project = ProjectPackages::read($root);
+		$packages = PackageProfiles::discover($project);
 		$visited = [];
 		$layers = [...$this->loadExtensions([...$packages->extensions, ...$config->extensions], $visited), $config];
 		[$version, $source] = $this->resolvePhpVersion($config, $root);
-		$resolver = new PresetResolver($this->registry, $packages->profiles);
+		$resolver = new PresetResolver($this->registry, $packages->profiles, $project);
 		$this->resolved = $resolved = $resolver->resolve($config, $version, [], $commandLine, $only);
 		// an override is resolved for a file it matches, so a name or an option it gets wrong would pass unnoticed until
 		// such a file comes; each of them is resolved as soon as the run is built
@@ -183,7 +183,7 @@ final class RunnerFactory
 					$fixRisky,
 					$configFile === null ? null : hash_file('xxh128', $configFile),
 					$this->collectSourceTimes($resolved, $analyses),
-				]),
+				], $project),
 			)
 			: null;
 		return new Runner(
@@ -305,24 +305,25 @@ final class RunnerFactory
 
 	/**
 	 * Identity of everything a result depends on besides the file: the effective rules with their options, the
-	 * style, the PHP version and the versions (with their git references) of every installed package, with the
-	 * sources no package version stands for among the configuration.
+	 * style, the PHP version and the packages the project stands on, with the sources no package version stands
+	 * for among the configuration. The packages are those of the project, never those of the running process,
+	 * which are the tool's own wherever it is not installed in the project.
 	 * @param  array<mixed>  $configuration
 	 */
-	private static function hashConfiguration(array $configuration): string
+	private static function hashConfiguration(array $configuration, ProjectPackages $project): string
 	{
-		$packages = array_map(fn(array $package) => [$package['version'], $package['reference']], self::getInstalledPackages());
-		return hash('xxh128', json_encode([$configuration, $packages], JSON_THROW_ON_ERROR | JSON_PARTIAL_OUTPUT_ON_ERROR));
+		return hash('xxh128', json_encode([$configuration, $project->getIdentity()], JSON_THROW_ON_ERROR | JSON_PARTIAL_OUTPUT_ON_ERROR));
 	}
 
 
 	/**
-	 * The packages installed with the project, read from the raw data of Composer: InstalledVersions answers from
-	 * every registered loader, the one inside the phar of PHPStan included once it is started, and would then name
-	 * its packages, its versions and its root instead of the project's.
-	 * @return array<string, array{version: ?string, reference: ?string, path: ?string}>  path null for the root package
+	 * Where the packages of the running process lie, which is what tells a file of a rule the run builds from
+	 * a package apart from a file of the project itself: InstalledVersions answers from every registered loader,
+	 * the one inside the phar of PHPStan included once it is started, so a root of a phar is left out. The path
+	 * of the root package is null, its files being the ones the caller weighs.
+	 * @return array<string, ?string>  package → where it lies
 	 */
-	private static function getInstalledPackages(): array
+	private static function getProcessPackagePaths(): array
 	{
 		if (!class_exists(InstalledVersions::class)) {
 			return [];
@@ -335,11 +336,7 @@ final class RunnerFactory
 			}
 
 			foreach ($data['versions'] as $name => $package) {
-				$packages[$name] ??= [
-					'version' => $package['version'] ?? null,
-					'reference' => $package['reference'] ?? null,
-					'path' => $name === $data['root']['name'] ? null : ($package['install_path'] ?? null),
-				];
+				$packages[$name] ??= $name === $data['root']['name'] ? null : ($package['install_path'] ?? null);
 			}
 		}
 
@@ -356,14 +353,14 @@ final class RunnerFactory
 	 */
 	private function collectSourceTimes(ResolvedConfig $resolved, array $analyses): array
 	{
-		$installed = self::getInstalledPackages();
+		$installed = self::getProcessPackagePaths();
 		if ($installed === []) {
 			return [];
 		}
 
 		$packages = [];
-		foreach ($installed as $package) {
-			$path = $package['path'] === null ? false : realpath($package['path']);
+		foreach ($installed as $path) {
+			$path = $path === null ? false : realpath($path);
 			if ($path !== false) {
 				$packages[] = Helpers::canonicalizePath($path) . '/';
 			}
@@ -470,24 +467,8 @@ final class RunnerFactory
 	public static function detectPhpVersion(?string $composerFile): ?string
 	{
 		$constraint = self::readComposer($composerFile)['require']['php'] ?? null;
-		$version = is_string($constraint) ? self::findLowestVersion($constraint) : null;
-		return $version === null ? null : implode('.', array_slice(explode('.', $version), 0, 2));
-	}
-
-
-	/**
-	 * The lowest version a Composer constraint allows, numeric and without its stability (`8.1.0.0`); null where the
-	 * constraint has no lower bound or cannot be parsed.
-	 */
-	private static function findLowestVersion(string $constraint): ?string
-	{
-		try {
-			$bound = (new VersionParser)->parseConstraints($constraint)->getLowerBound();
-		} catch (\UnexpectedValueException) {
-			return null;
-		}
-
-		return $bound->isZero() ? null : (string) preg_replace('~-.*$~', '', $bound->getVersion());
+		$version = is_string($constraint) ? ProjectPackages::findLowestVersion($constraint) : null;
+		return $version === null ? null : implode('.', array_slice([...explode('.', $version), '0'], 0, 2));
 	}
 
 
