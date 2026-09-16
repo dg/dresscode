@@ -21,6 +21,7 @@ use function in_array;
  * is decided by the class declaring it. A replacement in the same class is fixed by writing its name, where the class
  * has it at least as visible, for a property at least as writable and of the same type, and it takes the use as it is,
  * a method every call of the deprecated one; any other is reported with what the deprecation says.
+ * A member the map of replacedMembers has is not reported.
  */
 #[RuleInfo(
 	'dresscode/noDeprecatedMembers',
@@ -62,7 +63,8 @@ final class NoDeprecatedMembersRule extends NodeRule
 		}
 
 		$deprecation = $types->findDeprecation($member);
-		if ($deprecation === null) {
+		$access = $deprecation === null ? null : $types->findMemberAccess($node);
+		if ($deprecation === null || ($access !== null && $context->findRule(ReplacedMembersRule::class)?->hasMember($access, $types))) {
 			return;
 		}
 

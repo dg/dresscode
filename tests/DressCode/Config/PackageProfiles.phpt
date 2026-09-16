@@ -56,6 +56,8 @@ test('the profile a package ships applies up to its installed version, the one o
 					replacedClasses:
 						Acme\Lib\Old: Acme\Lib\Renamed
 						Acme\Lib\Older: Acme\Lib\Renamed
+					replacedMembers:
+						Acme\Lib\Renamed::old: renamed
 
 				since 3.2:
 					replacedClasses:
@@ -85,8 +87,45 @@ test('the profile a package ships applies up to its installed version, the one o
 	Assert::same(
 		[
 			'replacedClasses' => ['Acme\Lib\Old' => 'Acme\Lib\RenamedAgain', 'Acme\Lib\Older' => 'Acme\Lib\Renamed'],
+			'replacedMembers' => ['Acme\Lib\Renamed::old' => 'renamed'],
 		],
 		$packages->profiles[1]->profile->rules,
+	);
+});
+
+
+test('a later section has the last word on an entry, and a value NEON reads as an entity stays one for the schema of the rule', function () {
+	$root = project(
+		'keep',
+		['acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']]],
+		[
+			'vendor/acme/lib/upgrading.neon' => <<<'XX'
+				package: acme/lib
+				group: deprecations
+
+				since 3:
+					replacedMembers:
+						Acme\Lib\Order::OLD: New
+						Acme\Lib\Order::$paid: isPaid()
+
+				since 3.2:
+					replacedMembers:
+						Acme\Lib\Order::OLD: keep
+
+				since 4:
+					replacedMembers:
+						Acme\Lib\Order::$paid: keep
+
+				since 3.10:
+					replacedMembers: []
+				XX,
+		],
+	);
+
+	[$profile] = PackageProfiles::discover(ProjectPackages::read($root))->profiles;
+	Assert::equal(
+		['replacedMembers' => ['Acme\Lib\Order::OLD' => 'keep', 'Acme\Lib\Order::$paid' => new Nette\Neon\Entity('isPaid')]],
+		$profile->profile->rules,
 	);
 });
 

@@ -1,0 +1,69 @@
+<?php
+// {"Acme\\Shop\\Order::STATUS_PAID": "StatusPaid", "Acme\\Shop\\Order::recalc": "recalculate", "Acme\\Shop\\Order::$legacy": "$items", "Acme\\Shop\\Order::$counter": "$count", "Acme\\Shop\\Order::OLD": "Acme\\Shop\\Helpers::Renewed", "Acme\\Shop\\Order::make()": "Acme\\Shop\\Helpers::create()", "Acme\\Text\\Search::contains": "\\str_contains", "Acme\\Shop\\Order::hook": "attached", "Acme\\Shop\\Order::GONE": "Acme\\Missing\\Thing::Here", "Acme\\Shop\\Order::measure": "\\strlen", "Acme\\Shop\\Order::moved()": "Acme\\Shop\\Helpers::create", "Acme\\Shop\\Order::WITHDRAWN": "keep", "Acme\\Shop\\Order::unProtect": "unprotect", "Acme\\Shop\\Order::build": "Acme\\Shop\\Helpers::create"}
+
+namespace App;
+
+use Acme\Shop\Order;
+use Acme\Text\Search;
+
+class MyOrder extends Order
+{
+	public function hook(object $parent): void
+	{
+		parent::hook($parent);
+		$a = self::STATUS_PAID;
+		$b = static::OLD;
+		$this->recalc();
+		$c = self::build(); // a static method moves to another class
+		$d = static::make(); // one the class no longer has may be a method of the object
+	}
+
+
+	public function moved(): void
+	{
+	}
+}
+
+
+function test(Order $order, MyOrder $my, Order|\stdClass $union, $unknown): void
+{
+	$a = Order::STATUS_PAID;
+	$b = $order::STATUS_PAID;
+	$c = MyOrder::STATUS_PAID;
+	$my->recalc(1, named: 2);
+	$order?->RECALC();
+	$d = $order->legacy;
+	$e = Order::$counter;
+	$f = Order::OLD;
+	$g = \Acme\Shop\Order::OLD;
+	$h = Order::make();
+	$i = Search::contains('abc', needle: 'b');
+	$j = Search::contains(...);
+	$k = $order->measure('x') . 'y';
+	$s = [
+		Order::OLD,
+		$order::OLD,
+	];
+	$t = $order->unProtect() . $order->unprotect(); // renamed in its letter case alone
+
+	// left alone: a receiver that may be something else, a member of another kind, the new name, a withdrawn entry
+	$union->recalc();
+	$unknown->recalc();
+	$l = Order::StatusPaid;
+	$m = $order->STATUS_PAID;
+	$n = Order::WITHDRAWN;
+
+	// reported with the reason
+	$o = $order->make();
+	$p = Order::GONE;
+	$q = $order?->measure('x');
+	$r = Order::create()->measure('x');
+}
+
+
+function nullable(?Order $order): void
+{
+	// a receiver that may be null is the class it may be
+	$order->recalc();
+	$a = $order->legacy;
+}

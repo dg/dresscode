@@ -15,6 +15,7 @@ use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCal
 use PHPStan\Reflection\{ClassConstantReflection, ClassMemberReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
 use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\TrinaryLogic;
+use PHPStan\Type\Constant\{ConstantIntegerType, ConstantStringType};
 use PHPStan\Type\{MixedType, Type, TypeCombinator, VerbosityLevel};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Printer, Token, Visibility};
@@ -299,6 +300,45 @@ final class Types implements PassAnalysis
 
 		$declaring = $this->findMember($node)?->declaringClass;
 		return new MemberAccess(MemberKind::Constructor, '__construct', $declaring === null ? $access->classes : [$declaring], $access->declared);
+	}
+
+
+	/**
+	 * The method a value in the shape of a callable names, `[$object, 'name']`, `[Order::class, 'name']` or
+	 * `'Acme\Order::name'`, as an access of the class of the object or of the one named. Whether a class declares the
+	 * method is not asked, a method the library removed being named as well as any. Null for a value of another shape.
+	 */
+	public function findCallableMethodAccess(ExpressionNode $callable): ?MemberAccess
+	{
+		$type = $this->getType($callable);
+		$strings = $type?->getConstantStrings() ?? [];
+		$arrays = $type?->getConstantArrays() ?? [];
+		$pair = count($arrays) === 1 && array_map(fn(ConstantIntegerType|ConstantStringType $key) => $key->getValue(), $arrays[0]->getKeyTypes()) === [0, 1]
+			? $arrays[0]->getValueTypes()
+			: null;
+		$names = $pair === null ? [] : $pair[1]->getConstantStrings();
+		if (count($strings) === 1 && str_contains($strings[0]->getValue(), '::')) {
+			[$class, $name] = explode('::', $strings[0]->getValue(), 2);
+			$classes = [ltrim($class, '\\')];
+			$named = true;
+		} elseif ($pair !== null && count($names) === 1) {
+			$name = $names[0]->getValue();
+			$classes = $pair[0]->getObjectClassNames();
+			$named = $classes === [];
+			$classes = $named ? array_map(fn(ConstantStringType $class) => ltrim($class->getValue(), '\\'), $pair[0]->getConstantStrings()) : $classes;
+		} else {
+			return null;
+		}
+
+		if ($classes === [] || !preg_match('~^[a-z_\x80-\xff][\w\x80-\xff]*$~Di', $name)) {
+			return null;
+		}
+
+		// a class named by its name calls a method that is not static too, where a container makes the object
+		$kind = $named && array_all($classes, fn(string $class) => $this->isStaticMethod($class, $name) === Tristate::Yes)
+			? MemberKind::StaticMethod
+			: MemberKind::Method;
+		return new MemberAccess($kind, $name, $classes, array_any($classes, fn(string $class) => $this->hasMember($class, $kind, $name)));
 	}
 
 

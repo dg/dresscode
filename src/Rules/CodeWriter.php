@@ -10,16 +10,18 @@ namespace DressCode\Rules;
 use DressCode\RuleContext;
 use DressCode\Rules\Namespaces\ImportNotationRule;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{CommentPolicy, NameForm, Node, Parser, SymbolKind, Trivia, UnqualifiedResolution};
-use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, FileNode, NameNode, Statement, UseItemNode};
+use PhpSyntax\{CommentPolicy, NameForm, Node, Parser, Printer, SymbolKind, Trivia, UnqualifiedResolution};
+use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, ExpressionNode, FileNode, NameNode, Statement, UseItemNode};
+use PhpSyntax\Nodes\Expression\{ArrayAccessNode, MethodCallNode, PropertyFetchNode, ShellExecNode, VariableNode};
+use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode, InterpolationNode};
 use function count;
 
 
 /**
  * What a rule writing code into a file needs so that the code takes the shape the file has: a class or a function
- * spelled the way the file reaches it, an import written the way the file writes its imports, a node removed with one
- * gap left of the two around it, an attribute on a line of its own above a declaration. A rule shipped by a package
- * writes with it too.
+ * spelled the way the file reaches it, an import written the way the file writes its imports, an expression written in a string the
+ * way its interpolation takes it, a node removed with one gap left of the two around it, an attribute on a line of its
+ * own above a declaration. A rule shipped by a package writes with it too.
  */
 final class CodeWriter
 {
@@ -240,6 +242,78 @@ final class CodeWriter
 		return $stmt->isGroup()
 			&& $pos !== false
 			&& strcasecmp(ltrim($stmt->prefix->text, '\\'), substr($name, 0, $pos)) === 0;
+	}
+
+
+	/**
+	 * Whether `replaceExpression()` can write the expression in place of the node: one standing in an interpolation
+	 * of a string takes a variable and what is read or called on it alone, and one inside a chain written without
+	 * braces nothing else. For an expression that may stand in the interpolation of a string, which
+	 * `ExpressionNode::replaceWithExpression()` does not handle; outside a string the two do the same.
+	 */
+	public static function canReplaceExpression(ExpressionNode $node, ExpressionNode $expression): bool
+	{
+		$interpolation = self::findInterpolation($node);
+		return $interpolation === null
+			|| (self::isInterpolable($expression) && ($interpolation[0] === 'braced' || $interpolation[1] === $node));
+	}
+
+
+	/**
+	 * Writes the expression in place of the node, in braces where it stands in a string without them. For an
+	 * expression that may stand in the interpolation of a string, which `ExpressionNode::replaceWithExpression()`
+	 * does not handle; outside a string the two do the same.
+	 */
+	public static function replaceExpression(ExpressionNode $node, ExpressionNode $expression): void
+	{
+		if ((self::findInterpolation($node)[0] ?? null) !== 'bare') {
+			$node->replaceWithExpression($expression);
+			return;
+		}
+
+		$string = (new Parser)->parseExpression('"{' . Printer::print($expression) . '}"');
+		assert($string instanceof InterpolatedStringNode);
+		$node->replaceWith($string->parts->getItems()[0]->withoutEdgeTrivia());
+	}
+
+
+	/**
+	 * How the node stands in a string, braced as `{$a->b}` or bare as `$a->b`, with the chain it heads there; null outside one.
+	 * @return ?array{'braced'|'bare', Node}
+	 */
+	private static function findInterpolation(Node $node): ?array
+	{
+		while (
+			($parent = $node->parent) instanceof PropertyFetchNode
+			|| $parent instanceof MethodCallNode
+			|| $parent instanceof ArrayAccessNode
+		) {
+			if (($parent instanceof ArrayAccessNode ? $parent->expression : $parent->object) !== $node) {
+				return null;
+			}
+
+			$node = $parent;
+		}
+
+		return match (true) {
+			$parent instanceof InterpolationNode => ['braced', $node],
+			$parent?->parent instanceof InterpolatedStringNode,
+			$parent?->parent instanceof HeredocNode,
+			$parent?->parent instanceof ShellExecNode => ['bare', $node],
+			default => null,
+		};
+	}
+
+
+	/** Whether an interpolation takes the expression: a variable and what is read or called on it. */
+	private static function isInterpolable(ExpressionNode $expression): bool
+	{
+		return match (true) {
+			$expression instanceof VariableNode => true,
+			$expression instanceof PropertyFetchNode, $expression instanceof MethodCallNode => self::isInterpolable($expression->object),
+			$expression instanceof ArrayAccessNode => self::isInterpolable($expression->expression),
+			default => false,
+		};
 	}
 
 

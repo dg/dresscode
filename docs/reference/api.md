@@ -125,6 +125,7 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function findMember(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\Member
 	public function findMemberAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
 	public function findConstructorAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
+	public function findCallableMethodAccess(PhpSyntax\Nodes\ExpressionNode $callable): ?DressCode\Analyses\MemberAccess
 	public function findParameters(DressCode\Analyses\MemberAccess $access): ?array
 	public function findMethodParameters(string $class, string $method): ?array
 	public function findDeclaringClass(PhpSyntax\Nodes\Member\MethodNode $declaration): ?string
@@ -451,6 +452,8 @@ final class CodeWriter
 	public static function findImportScope(PhpSyntax\Node $node): PhpSyntax\Nodes\FileNode|PhpSyntax\Nodes\Statement\NamespaceNode|null
 	public static function canAddImport(PhpSyntax\Nodes\FileNode|PhpSyntax\Nodes\Statement\NamespaceNode $scope): bool
 	public static function addImport(PhpSyntax\Nodes\FileNode|PhpSyntax\Nodes\Statement\NamespaceNode $scope, PhpSyntax\SymbolKind $kind, string $fullName, DressCode\RuleContext $context): void
+	public static function canReplaceExpression(PhpSyntax\Nodes\ExpressionNode $node, PhpSyntax\Nodes\ExpressionNode $expression): bool
+	public static function replaceExpression(PhpSyntax\Nodes\ExpressionNode $node, PhpSyntax\Nodes\ExpressionNode $expression): void
 	public static function removeBetweenGaps(PhpSyntax\Node $node, DressCode\RuleContext $context, PhpSyntax\CommentPolicy $comments = PhpSyntax\CommentPolicy::MoveToNextToken): void
 	public static function addAttributes(PhpSyntax\Nodes\AttributeAwareNode&PhpSyntax\Node $declaration, array $codes, DressCode\RuleContext $context): void
 ```
@@ -819,6 +822,7 @@ final readonly class Violation
 - `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
 - `DressCode\Rules\Upgrading\ReplacedClassesRule`
 - `DressCode\Rules\Upgrading\ReplacedFunctionsRule`
+- `DressCode\Rules\Upgrading\ReplacedMembersRule`
 - `DressCode\Rules\Variables\CombinedIssetsRule`
 - `DressCode\Rules\Variables\CombinedUnsetsRule`
 - `DressCode\Rules\Variables\NoDuplicateAssignmentsRule`

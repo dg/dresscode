@@ -1,0 +1,12 @@
+12: Method `Acme\Shop\Order::recalc()` is replaced by `Order::recalculate()`
+13: Static method `Acme\Shop\Order::make()` is replaced by `Acme\Shop\Helpers::create()`
+14: Method `Acme\Shop\Order::measure()` is replaced by `strlen()`
+17: Method `Acme\Shop\Order::total()` is replaced by `Order::getTotal()`
+18: Method `Acme\Shop\Order::total()` is replaced by `Order::getTotal()`
+19: Static method `Acme\Shop\Order::create()` is replaced by `Order::produce()`
+20: Static method `Acme\Shop\Order::create()` is replaced by `Order::produce()`
+	risky BehaviorChanges: the string may name the method for something else than a call
+21: Method `Acme\Shop\Order::total()` is replaced by `Order::getTotal()`
+22: Method `Acme\Shop\Order::recalc()` is replaced by `Order::recalculate()`
+25: Static method `Acme\Shop\Order::build()` is replaced by `Acme\Shop\Helpers::create()`, but a callable value takes only a method of its class
+26: Static method `Acme\Shop\Order::build()` is replaced by `Acme\Shop\Helpers::create()`, but a callable value takes only a method of its class
