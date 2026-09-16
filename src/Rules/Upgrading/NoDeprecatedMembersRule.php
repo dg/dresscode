@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Deprecation, Member, MemberKind, Types};
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
 use DressCode\Rules\QualifiedNames;
 use PhpSyntax\{Node, Token};
@@ -21,10 +21,15 @@ use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, Property
  * is decided by the class declaring it. A replacement in the same class is fixed by writing its name, where the class
  * has it at least as visible, for a property at least as writable and of the same type, and it takes the use as it is,
  * a method every call of the deprecated one; any other is reported with what the deprecation says.
+ * A member the map of replacedMembers has is not reported.
  */
-#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class])]
+#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class], reads: [MemberMapGrammar::ReplacedMembers])]
 final class NoDeprecatedMembersRule extends NodeRule
 {
+	/** @var MemberMap<null>  the keys of the map of replacedMembers */
+	private MemberMap $mapped;
+
+
 	public static function getDecisions(): array
 	{
 		return [new Decision(
@@ -32,6 +37,12 @@ final class NoDeprecatedMembersRule extends NodeRule
 			new Words(['replaced' => 'replaced by the member the deprecation names, reported where it names none']),
 			'A constant, method or property whose declaration is `@deprecated`',
 		)];
+	}
+
+
+	public function configure(Values $values): void
+	{
+		$this->mapped = MemberMap::fromEntries($values->readMap(MemberMapGrammar::ReplacedMembers), fn() => null);
 	}
 
 
@@ -66,7 +77,11 @@ final class NoDeprecatedMembersRule extends NodeRule
 		}
 
 		$deprecation = $types->findDeprecation($member);
-		if ($deprecation === null) {
+		$access = $deprecation === null ? null : $types->findMemberAccess($node);
+		if (
+			$deprecation === null
+			|| ($access !== null && $this->mapped->has($access, $types))
+		) {
 			return;
 		}
 

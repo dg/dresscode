@@ -11,8 +11,8 @@ use DressCode\{Domain, Value};
 
 
 /**
- * A value read by a grammar of its own, an entry of a map of the upgrading data (the class or the function written
- * instead, the sentence of a ban or null for none): the rule owning the decision reads it and refuses what its
+ * A value read by a grammar of its own, an entry of a map of the upgrading data (`setSubject($value)`, an
+ * entity of NEON, null for a ban without a sentence): the rule owning the decision reads it and refuses what its
  * grammar does not take when the rule is built.
  */
 final readonly class GrammarEntry extends Domain

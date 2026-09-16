@@ -234,7 +234,7 @@ test('the access a node makes is decided by the receiver, whether or not anythin
 	Assert::same([MemberKind::Method, 'removedMethod', ['Acme\Cache\FileStorage'], false], $accessOf($removed));
 	Assert::null($types->findMember($removed));
 
-	// a member the child overrides is an access of the child
+	// a member the child overrides is an access of the child, which the map of the parent is asked about
 	Assert::same([MemberKind::Method, 'getCacheKey', ['App\MyStorage'], true], $accessOf($overridden));
 	Assert::same('App\MyStorage', $types->findMember($overridden)?->declaringClass);
 

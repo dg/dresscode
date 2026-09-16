@@ -1,0 +1,8 @@
+11: Method `Acme\Shop\Order::recalc()` is replaced by `Order::recalculate()`.
+12: Property `Acme\Shop\Order::$legacy` is replaced by `Order::$items`.
+13: Property `Acme\Shop\Order::$legacy` is replaced by `Order::$items`.
+14: Static property `Acme\Shop\Order::$counter` is replaced by `Order::$count`.
+17: Property `Acme\Shop\Order::$legacy` is replaced by `Order::$items`.
+17: Method `Acme\Shop\Order::measure()` is replaced by `strlen()`.
+20: Method `Acme\Shop\Order::measure()` is replaced by `strlen()`, but expression `\strlen('x')` cannot be written inside a string, which takes a variable, an element, a property or a call reached from a variable.
+21: Static method `Acme\Shop\Order::make()` is replaced by `Acme\Shop\Helpers::create()`, but expression `Acme\Shop\Helpers::create()` cannot be written inside a string, which takes a variable, an element, a property or a call reached from a variable.

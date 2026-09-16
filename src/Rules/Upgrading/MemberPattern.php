@@ -9,6 +9,9 @@ namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{MemberAccess, MemberKind, Types};
 use DressCode\{Tristate, Violation};
+use PhpSyntax\Node;
+use PhpSyntax\Nodes\Expression\StaticMethodCallNode;
+use PhpSyntax\Nodes\NameNode;
 
 
 /**
@@ -127,6 +130,19 @@ final readonly class MemberPattern
 
 
 	/**
+	 * Whether a method declared in the class overrides this member, or did before the library removed it: the key can
+	 * be of a method, the name agrees and the class is a subtype of the class of the member other than that class itself.
+	 */
+	public function matchesMethodDeclaration(string $declaringClass, string $method, Types $types): bool
+	{
+		return $this->canBeMethod()
+			&& strcasecmp($method, $this->name) === 0
+			&& strcasecmp($declaringClass, $this->class) !== 0
+			&& $types->isSubtype($declaringClass, $this->class) === Tristate::Yes;
+	}
+
+
+	/**
 	 * Whether the key can be of a method: it is written as one, or it is a bare name with a lower-case letter, a name
 	 * without one being a constant, which a method of that name in another case is not.
 	 */
@@ -136,9 +152,41 @@ final readonly class MemberPattern
 	}
 
 
+	/** Whether a call of the member is of the key whatever its arguments, so that the key replaces the method as a whole. */
+	public function takesAnyArguments(): bool
+	{
+		return $this->arguments === null || $this->arguments->takesAnyArguments();
+	}
+
+
 	public function getArgumentPattern(): ArgumentPattern
 	{
 		return $this->arguments ?? ArgumentPattern::any();
+	}
+
+
+	/** The member as a message names it, of the kind the code reaches it by: ``Constant `Acme\Order::STATUS_PAID` ``. */
+	public function describe(MemberKind $kind): string
+	{
+		return $kind->describe($this->class, $this->name);
+	}
+
+
+	/**
+	 * The member as a message names it for the access the node makes, of the kind of the access, but a method for
+	 * `self::name()`, `static::name()` and `parent::name()`, which are written as static calls and say nothing of the
+	 * method being one.
+	 */
+	public function describeAccess(MemberAccess $access, Node $node): string
+	{
+		return $this->describe(
+			$access->kind === MemberKind::StaticMethod
+			&& $node instanceof StaticMethodCallNode
+			&& $node->class instanceof NameNode
+			&& $node->class->isSpecialClass()
+				? MemberKind::Method
+				: $access->kind,
+		);
 	}
 
 

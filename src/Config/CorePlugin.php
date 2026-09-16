@@ -10,7 +10,7 @@ namespace DressCode\Config;
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Decision, DecisionKind, Domain, Plugin, PluginManifest, Rules};
 use DressCode\Domains\{Count, GrammarEntry, Map, Names, Words};
-use DressCode\Rules\Upgrading\MemberMapGrammar;
+use DressCode\Rules\Upgrading\{MemberMapGrammar, MemberTarget};
 use Nette\Schema\{Context, Expect, Schema};
 use function dirname;
 
@@ -237,6 +237,7 @@ final class CorePlugin implements Plugin
 				// what a map replaces is written first, so that what it forbids is reported of what remains
 				Rules\Upgrading\ReplacedClassesRule::class,
 				Rules\Upgrading\ReplacedFunctionsRule::class,
+				Rules\Upgrading\ReplacedMembersRule::class,
 				Rules\Upgrading\ForbiddenFunctionsRule::class,
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
@@ -356,6 +357,11 @@ final class CorePlugin implements Plugin
 					'A function written instead of another one (`acme_send: Acme\\Mail\\send`)',
 				),
 				new Decision(
+					MemberMapGrammar::ReplacedMembers,
+					new Map(new GrammarEntry, grammar: self::createReplacedMembersGrammar()),
+					'A constant, a method or a property written instead of another one of the class (`Acme\\Mail\\Mailer::send(): sendMessage()`)',
+				),
+				new Decision(
 					MemberMapGrammar::ForbiddenFunctions,
 					new Map(new GrammarEntry, grammar: self::createForbiddenFunctionsGrammar(), caseInsensitive: true),
 					'A function that may not be called, with what to do instead',
@@ -462,6 +468,16 @@ final class CorePlugin implements Plugin
 
 				return $options;
 			});
+	}
+
+
+	private static function createReplacedMembersGrammar(): Schema
+	{
+		return MemberMapGrammar::createMapSchema(
+			MemberMapGrammar::createCodeSchema(),
+			'The replaced member, `Class::name` (a constant or a method), `Class::name()` (a method) or `Class::$name` (a property) → the member written instead: its name alone in the same class, `Other::name` in another one, or `\function` for the global function a method becomes',
+			MemberTarget::fromCode(...),
+		);
 	}
 
 

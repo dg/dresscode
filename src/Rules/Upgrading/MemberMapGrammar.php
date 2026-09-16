@@ -25,13 +25,14 @@ final class MemberMapGrammar
 	/** the paths of the maps of `upgrading.libraries` */
 	public const ReplacedClasses = 'upgrading.libraries.replacedClasses';
 	public const ReplacedFunctions = 'upgrading.libraries.replacedFunctions';
+	public const ReplacedMembers = 'upgrading.libraries.replacedMembers';
 	public const ForbiddenFunctions = 'upgrading.libraries.forbiddenFunctions';
 
 
 	/**
 	 * A map of members, `Class::name`, `Class::name()`, `Class::$name` or `Class::name($argument, ...)`, to values of
 	 * the given schema; a key that does not read as a member is an error of the configuration, and so is a value
-	 * `$convert` throws for.
+	 * `$convert` throws for, the same closure `MemberMap::fromValues()` is given.
 	 * @param  ?\Closure(mixed, MemberPattern): mixed  $convert
 	 */
 	public static function createMapSchema(Schema $value, string $description, ?\Closure $convert = null): Type

@@ -2,7 +2,8 @@
 
 use DressCode\Analyses;
 use DressCode\Analyses\{MemberAccess, MemberKind};
-use DressCode\Rules\Upgrading\MemberPattern;
+use DressCode\Rules\Upgrading\{MemberMap, MemberPattern};
+use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Parser;
 use Tester\Assert;
 
@@ -94,6 +95,12 @@ test('a key is read the way an upgrading guide writes a member', function () {
 		"The member `Order::add(\$name, run())` cannot be read: `run()` is no placeholder, %a%",
 	);
 	Assert::same('addupload', MemberPattern::fromKey('Order::addUpload()')->getLookupName());
+
+	// a method is replaced as a whole by a key that takes any arguments
+	Assert::true(MemberPattern::fromKey('Order::add')->takesAnyArguments());
+	Assert::true(MemberPattern::fromKey('Order::add(...$args)')->takesAnyArguments());
+	Assert::false(MemberPattern::fromKey('Order::add()')->takesAnyArguments());
+	Assert::false(MemberPattern::fromKey('Order::add($name, ...)')->takesAnyArguments());
 });
 
 
@@ -166,3 +173,72 @@ test(
 		Assert::true($matches('Acme\Cache\FileStorage::create()', MemberKind::StaticMethod, 'create'));
 	},
 );
+
+
+test('a method declaration is of the member when a subtype of its class declares it', function () {
+	$types = createTypes();
+	$matches = fn(string $key, string $class, string $method) => MemberPattern::fromKey($key)->matchesMethodDeclaration(
+		$class,
+		$method,
+		$types,
+	);
+
+	Assert::true($matches('Acme\Cache\FileStorage::getCacheKey', 'App\MyStorage', 'getcachekey'));
+	Assert::true($matches('Acme\Cache\Storage::getCacheKey($part)', 'Acme\Cache\OldStorage', 'getCacheKey'));
+	Assert::false($matches('Acme\Cache\FileStorage::getCacheKey', 'App\MyStorage', 'getCacheKeys'));
+	Assert::false($matches('Acme\Cache\FileStorage::getCacheKey', 'Acme\Cache\Unrelated', 'getCacheKey'));
+	Assert::false($matches('Acme\Cache\FileStorage::ALLOW', 'App\MyStorage', 'allow')); // a name in capitals is a constant
+
+	// the class of the member declares the member itself, which overrides nothing
+	Assert::false($matches('Acme\Cache\FileStorage::getCacheKey', 'acme\cache\filestorage', 'getCacheKey'));
+
+	Assert::false($matches('Acme\Cache\FileStorage::$getCacheKey', 'App\MyStorage', 'getCacheKey'));
+	Assert::false($matches('Acme\Cache\FileStorage::__construct', 'App\MyStorage', '__construct'));
+});
+
+
+test('an entry is found under the key of the nearest class', function () {
+	$types = createTypes();
+	/** @return ?array{string, string}  the value and the class of the key */
+	$find = function (array $map, string ...$classes) use ($types): ?array {
+		$memberMap = MemberMap::fromEntries($map, fn(string $value) => $value);
+		$access = new MemberAccess(MemberKind::Method, 'getCacheKey', array_values($classes ?: ['App\MyStorage']), declared: true);
+		$entry = $memberMap->findAccess($access, $types);
+		return $entry === null ? null : [$entry->value, $entry->pattern->class];
+	};
+
+	// the key of a child before that of its ancestor, whichever the map writes first
+	$map = ['Acme\Cache\Storage::getCacheKey' => 'parent', 'Acme\Cache\FileStorage::getCacheKey' => 'child'];
+	Assert::same(['child', 'Acme\Cache\FileStorage'], $find($map));
+	Assert::same(['parent', 'Acme\Cache\Storage'], $find($map, 'Acme\Cache\Storage'));
+	$map = [
+		'Acme\Cache\Storage::getCacheKey' => 'parent',
+		'Acme\Cache\Unrelated::getCacheKey' => 'unrelated',
+		'Acme\Cache\FileStorage::getCacheKey' => 'child',
+	];
+	Assert::same(['child', 'Acme\Cache\FileStorage'], $find($map));
+
+	// none where nothing fits
+	Assert::null($find(['Acme\Cache\FileStorage::getCacheKey' => 'child'], 'Acme\Cache\Unrelated'));
+});
+
+
+test('a declaration is found under the key of the nearest class, and of two keys neither of which is nearer, under the first', function () {
+	$code = "<?php\nnamespace App;\nclass LockedStorage extends \\Acme\\Cache\\FileStorage implements \\Acme\\Cache\\Lockable {\n"
+		. "public bool \$locked = false;\npublic function lock(): void {}\npublic function getCacheKey(string ...\$parts): array { return []; }\n}\n";
+	$path = createTempDir('member-pattern-declaration') . '/LockedStorage.php';
+	file_put_contents($path, $code);
+	$stubs = __DIR__ . '/../Analyses/fixtures/types/stubs';
+	$file = (new Parser)->parse($code);
+	$types = new Analyses\Types($file, $path, new Analyses\PhpStan($stubs, [$stubs, $path], dirname($path) . '/cache'));
+	$declaration = $file->find(MethodNode::class, fn(MethodNode $method) => $method->name->text === 'getCacheKey')[0];
+	$find = fn(array $map) => MemberMap::fromEntries($map, fn(string $value) => $value)->findDeclaration($declaration, $types)[1] ?? null;
+
+	Assert::same('parent', $find(['Acme\Cache\Storage::getCacheKey' => 'grandparent', 'Acme\Cache\FileStorage::getCacheKey' => 'parent']));
+	Assert::same('interface', $find([
+		'Acme\Cache\Storage::getCacheKey' => 'grandparent',
+		'Acme\Cache\Lockable::getCacheKey' => 'interface',
+		'Acme\Cache\FileStorage::getCacheKey' => 'parent',
+	]));
+	Assert::null($find(['Acme\Cache\Unrelated::getCacheKey' => 'unrelated']));
+});

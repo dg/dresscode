@@ -1,0 +1,23 @@
+<?php
+// {"libraries": {"replacedMembers": {"Acme\\Shop\\Order::measure": "\\strlen", "Acme\\Shop\\Order::recalc": "recalculate", "Acme\\Shop\\Order::$legacy": "$items", "Acme\\Shop\\Order::$counter": "$count", "Acme\\Shop\\Order::make()": "Acme\\Shop\\Helpers::create()"}}}
+
+namespace App;
+
+use Acme\Shop\Order;
+
+function test(Order $order): string
+{
+	// a member of the same class keeps what the interpolation reads it on
+	$a = "x {$order->recalculate()}";
+	$b = "x $order->items";
+	$c = "x {$order->items}";
+	$d = "x {$order::$count}";
+
+	// an index of an interpolation takes any expression
+	$e = "x {$order->items[\strlen('x')]}";
+
+	// reported and left: a function and a member of another class are nothing an interpolation takes
+	$f = "x {$order->measure('x')}";
+	$g = "x {$order::make()}";
+	return $a . $b . $c . $d . $e . $f . $g;
+}

@@ -54,6 +54,8 @@ test('a pattern is read as the arguments of a call', function () {
 		ArgumentPattern::parse('$callable, ...$args')->items,
 	);
 	Assert::equal(ArgumentPattern::parse('...'), ArgumentPattern::any());
+	Assert::true(ArgumentPattern::any()->takesAnyArguments());
+	Assert::false(ArgumentPattern::parse('$a, ...')->takesAnyArguments());
 
 	$errors = [
 		'$a, run()' => "`run()` is no placeholder, no literal, and neither `...` nor `...\$name`.",
