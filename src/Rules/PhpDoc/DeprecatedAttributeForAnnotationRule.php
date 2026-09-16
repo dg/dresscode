@@ -10,8 +10,7 @@ namespace DressCode\Rules\PhpDoc;
 use DressCode\Analyses\PhpDoc;
 use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{DeprecatedTagValueNode, PhpDocTagNode};
-use PhpSyntax\{Node, Parser, Token, Trivia, TriviaKind};
-use PhpSyntax\Nodes\{AttributeGroupNode, NodeList};
+use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Member\{ClassConstNode, EnumCaseNode, MethodNode};
 use PhpSyntax\Nodes\Statement\FunctionNode;
 
@@ -54,7 +53,7 @@ final class DeprecatedAttributeForAnnotationRule extends NodeRule
 			$attributes === null
 			|| $docComment === null
 			|| $docComment->inInterpolation
-			|| self::isMarked($attributes)
+			|| AnnotationToAttribute::has($attributes, 'Deprecated')
 		) {
 			return;
 		}
@@ -81,26 +80,8 @@ final class DeprecatedAttributeForAnnotationRule extends NodeRule
 			return;
 		}
 
-		// the doc comment is edited while it still stands where the node looks for it, in front of this token
-		$first = $node->getFirstToken();
 		$tree->children = $kept;
-		if (PhpDoc::isEmpty($tree)) {
-			$node->removeDocComment();
-		} else {
-			$node->replaceDocComment($phpDoc->print($tree, $docComment));
-		}
-
-		$template = (new Parser)->parseFragment(AttributeGroupNode::class, "#[\\Deprecated$arguments]");
-		$attributes->append($template);
-		if ($first !== null) {
-			// the attribute takes over what stood in front of the declaration, the doc comment among it
-			$indentation = $first->getIndentation();
-			$template->getFirstToken()?->setLeadingTrivia($first->leadingTrivia);
-			$first->setLeadingTrivia([
-				new Trivia(TriviaKind::EndOfLine, $context->getStyle()->eol),
-				new Trivia(TriviaKind::Whitespace, $indentation),
-			]);
-		}
+		AnnotationToAttribute::apply($node, $attributes, $docComment, $tree, ["\\Deprecated$arguments"], $phpDoc, $context);
 	}
 
 
@@ -120,18 +101,5 @@ final class DeprecatedAttributeForAnnotationRule extends NodeRule
 		}
 
 		return $written === [] ? '' : '(' . implode(', ', $written) . ')';
-	}
-
-
-	/**
-	 * Whether the declaration carries the attribute already, whichever way its name is written.
-	 * @param  NodeList<AttributeGroupNode>  $attributes
-	 */
-	private static function isMarked(NodeList $attributes): bool
-	{
-		return array_any(
-			$attributes->getItems(),
-			fn(Node $group) => preg_match('~(^|\W)Deprecated\b~i', $group->text) === 1,
-		);
 	}
 }

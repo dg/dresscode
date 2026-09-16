@@ -1,0 +1,9 @@
+10: Annotation @cached is replaced by the attribute #[Acme\Attributes\Cached]
+13: Annotation @cached is replaced by the attribute #[Acme\Attributes\Cached]
+19: Annotation @cached is replaced by the attribute #[Acme\Attributes\Cached]
+24: Annotation @secured is replaced by the attribute #[Acme\Attributes\Access(public: false)]
+33: Annotation @cached is replaced by the attribute #[Acme\Attributes\Cached]
+33: Annotation @secured is replaced by the attribute #[Acme\Attributes\Access(public: false)]
+42: Annotation @filter is replaced by the attribute #[Acme\View\TemplateFilter]
+67: Annotation @cached is replaced by the attribute #[Acme\Attributes\Cached], but the text after it has no place there
+71: Annotation @cached is replaced by the attribute #[Acme\Attributes\Cached], but the text after it has no place there

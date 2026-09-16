@@ -11,7 +11,7 @@ use DressCode\Analyses\Types;
 use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Nodes\{FileNode, NameNode};
 use PhpSyntax\Nodes\Statement\NamespaceNode;
 
 
@@ -20,7 +20,7 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * a type, an instantiation, a static access, an attribute. Where the deprecation names the class to use instead,
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
  * follow; any other is reported with what the deprecation says. A class the map of replaced-classes or of
- * forbidden-classes has is not reported.
+ * forbidden-classes has is not reported, nor an attribute attribute-for-annotation writes another one instead of.
  */
 #[RuleInfo(
 	'dresscode/no-deprecated-classes',
@@ -46,6 +46,7 @@ final class NoDeprecatedClassesRule extends NodeRule
 		$types = $context->getAnalysis(Types::class);
 		$replaced = $context->findRule(ReplacedClassesRule::class);
 		$forbidden = $context->findRule(ForbiddenClassesRule::class);
+		$attributes = $context->findRule(AttributeForAnnotationRule::class);
 		ClassReplacement::apply($node, $context, function (string $class) use ($types, $replaced, $forbidden): ?array {
 			$deprecation = $replaced?->knows($class) || $forbidden?->knows($class) ? null : $types->getClassDeprecation($class);
 			return $deprecation === null
@@ -54,6 +55,6 @@ final class NoDeprecatedClassesRule extends NodeRule
 					"Class $class is deprecated" . NodeHelpers::formatDeprecation($deprecation),
 					$deprecation->replacementClass,
 				];
-		});
+		}, $attributes === null ? null : fn(NameNode $name) => $attributes->knowsAttribute($name, $context));
 	}
 }

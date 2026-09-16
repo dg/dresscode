@@ -1,0 +1,73 @@
+<?php
+// {"cached": "Acme\\Attributes\\Cached", "secured": "Acme\\Attributes\\Access(public: false)", "@filter": "Acme\\View\\TemplateFilter", "kept": "keep"}
+
+namespace App;
+
+use Acme\Attributes\Access;
+use Acme\Attributes\Cached;
+use Acme\View\TemplateFilter;
+
+class ProductController
+{
+	#[Cached]
+	public int $page = 1;
+
+	/**
+	 * The language of the page.
+	 */
+	#[Cached]
+	public string $lang = 'en';
+
+	#[Deprecated]
+	#[Cached]
+	public string $view = 'grid';
+
+
+	/**
+	 * @param  array<string>  $items
+	 */
+	#[Access(public: false)]
+	public function sort(array $items): void
+	{
+	}
+
+
+	#[Cached]
+	#[Access(public: false)]
+	public function both(): void
+	{
+	}
+
+
+	#[TemplateFilter]
+	public function shortify(string $s): string
+	{
+		return $s;
+	}
+
+
+	// left alone: the attribute is there already, a withdrawn entry, another annotation
+	/** @secured */
+	#[Access(public: false)]
+	public function done(): void
+	{
+	}
+
+
+	/**
+	 * @kept
+	 * @return void
+	 */
+	public function other(): void
+	{
+	}
+
+
+	// reported: nothing says where the text would go
+	/** @cached across requests */
+	public string $note = '';
+
+	// reported: after a name the parentheses are text too, not the arguments of a Doctrine annotation
+	/** @cached(menu) */
+	public string $menu = '';
+}

@@ -56,6 +56,8 @@ final class ClassReplacement
 			}
 		}
 
+		// an annotation read as an attribute resolves through the import until it is one
+		$kept += $context->findRule(AttributeForAnnotationRule::class)?->findAnnotatedClasses($scope, $context) ?? [];
 		foreach ($imports as [$item, $class, $message, $new]) {
 			if (isset($kept[strtolower($class)])) {
 				continue; // the short name below goes on naming the class the import brings

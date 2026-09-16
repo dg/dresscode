@@ -1,0 +1,2 @@
+8: Annotation @cached is replaced by the attribute #[Acme\Attributes\Cached]
+12: Annotation @secured is replaced by the attribute #[Acme\Attributes\Access(public: false)]

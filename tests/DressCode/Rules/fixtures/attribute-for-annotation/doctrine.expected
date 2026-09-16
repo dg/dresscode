@@ -1,0 +1,53 @@
+<?php
+// {"Acme\\Http\\Annotation\\Endpoint": "Acme\\Http\\Attribute\\Endpoint", "Acme\\Validation\\*": "Acme\\Validation\\*", "Acme\\Security\\Annotation\\*": "Acme\\Security\\Attribute\\*", "Acme\\Marked": "Acme\\Marker(strict: true)"}
+
+namespace App\Controller;
+
+use Acme\Http\Annotation\Endpoint;
+use Acme\Marked;
+use Acme\Security\Annotation\RequiresRole;
+use Acme\Validation as Check;
+
+#[\Acme\Http\Attribute\Endpoint('/blog', name: 'blog_')]
+class BlogController
+{
+	/**
+	 * Lists the posts.
+	 */
+	#[\Acme\Http\Attribute\Endpoint('/{page}', name: 'index', patterns: ['page' => '\d+'], verbs: ['GET', 'HEAD'], defaults: ['format' => 'html'], weight: -1)]
+	#[\Acme\Security\Attribute\RequiresRole('user')]
+	public function index(int $page = 1): void
+	{
+	}
+
+
+	#[\Acme\Http\Attribute\Endpoint(path: '/new', name: 'new', guard: null, protocols: ['https'], flags: ['utf8' => true])]
+	public function create(): void
+	{
+	}
+}
+
+
+class Post
+{
+	public const MaxTitle = 100;
+
+	#[Check\Required]
+	#[Check\Size(min: 3, max: Post::MaxTitle, message: 'Too short, "really" it\'s')]
+	public string $title = '';
+
+	#[Check\Each([new Check\Required(), new Check\Size(min: 5)])]
+	public array $tags = [];
+
+	/**
+	 * @Marked(1)
+	 * @Check\Size(3, 4)
+	 * @Check\Size(min=3) and some text
+	 * @Check\Group
+	 * @Check\Missing
+	 */
+	public string $refused = '';
+
+	#[Check\Size(min: 3)]
+	public string $attribute = '';
+}

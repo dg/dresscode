@@ -417,6 +417,13 @@ final class Types implements PassAnalysis
 	}
 
 
+	/** Whether PHP reads the class as an attribute, `#[\Attribute]` standing on it; null for a class nothing declares. */
+	public function isAttributeClass(string $class): ?bool
+	{
+		return $this->phpstan->findClass($class)?->isAttributeClass();
+	}
+
+
 	/** Whether the class declares the property, itself or through an ancestor; a magic one is not declared. */
 	public function hasProperty(string $class, string $property): bool
 	{

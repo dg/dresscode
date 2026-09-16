@@ -1,0 +1,2 @@
+11: Annotation @Endpoint is replaced by the attribute #[Acme\Http\Attribute\Endpoint]
+22: Annotation @Validation\Size is replaced by the attribute #[Acme\Validation\Size]

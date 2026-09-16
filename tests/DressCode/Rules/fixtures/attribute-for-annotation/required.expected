@@ -1,0 +1,32 @@
+<?php
+// {"Acme\\Validation\\*": "Acme\\Validation\\*", "Acme\\Legacy\\Matches": "Acme\\Validation\\Pattern"}
+
+namespace App\Entity;
+
+use Acme\Legacy\Matches;
+use Acme\Validation as Check;
+
+class Product
+{
+	#[Check\Pattern('[A-Z]+')]
+	public string $code = '';
+
+	#[Check\Pattern(regex: '\d+', message: 'Digits only')]
+	public string $number = '';
+
+	/**
+	 * @Check\Pattern
+	 */
+	public string $guessed = '';
+
+	/**
+	 * @Check\Pattern(message="Letters only")
+	 */
+	public string $described = '';
+
+	#[Check\Pattern('[a-z]+')]
+	public string $slug = '';
+
+	#[Matches]
+	public string $name = '';
+}

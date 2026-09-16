@@ -1,0 +1,12 @@
+11: Annotation @Endpoint is replaced by the attribute #[Acme\Http\Attribute\Endpoint]
+16: Annotation @Endpoint is replaced by the attribute #[Acme\Http\Attribute\Endpoint]
+16: Annotation @RequiresRole is replaced by the attribute #[Acme\Security\Attribute\RequiresRole]
+27: Annotation @Endpoint is replaced by the attribute #[Acme\Http\Attribute\Endpoint]
+40: Annotation @Check\Required is replaced by the attribute #[Acme\Validation\Required]
+40: Annotation @Check\Size is replaced by the attribute #[Acme\Validation\Size]
+46: Annotation @Check\Each is replaced by the attribute #[Acme\Validation\Each]
+54: Annotation @Marked is replaced by the attribute #[Acme\Marker(strict: true)], but the attribute has arguments of its own
+54: Annotation @Check\Size is replaced by the attribute #[Acme\Validation\Size], but its arguments are not what an attribute can be given
+54: Annotation @Check\Size is replaced by the attribute #[Acme\Validation\Size], but the text after it has no place there
+54: Annotation @Check\Group is replaced by the attribute #[Acme\Validation\Group], but Acme\Validation\Group is no attribute
+54: Annotation @Check\Missing is replaced by the attribute #[Acme\Validation\Missing], but Acme\Validation\Missing does not exist

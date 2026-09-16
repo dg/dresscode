@@ -1,0 +1,24 @@
+<?php
+// {"Acme\\Http\\Annotation\\*": "Acme\\Http\\Attribute\\*", "Acme\\Validation\\*": "Acme\\Validation\\*"}
+
+namespace App;
+
+use Acme\Http\Annotation\Endpoint;
+use Acme\Validation;
+
+class BlogController
+{
+	/**
+	 * @Endpoint("/blog/{page}", name="blog_index", patterns={"page"="\d+"})
+	 */
+	public function index(int $page): void
+	{
+	}
+}
+
+
+class Post
+{
+	/** @Validation\Size(min=3, max=100) */
+	public string $title = '';
+}

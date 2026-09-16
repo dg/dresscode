@@ -1,0 +1,22 @@
+<?php
+// {"cached": "Acme\\Attributes\\Cached", "secured": "Acme\\Attributes\\Access(public: false)"}
+
+namespace App;
+
+use Acme\Attributes\Access;
+use Acme\Attributes\Cached;
+
+class ProductController
+{
+	#[Cached]
+	public int $page = 1;
+
+
+	/**
+	 * Sorts the items, for a signed-in user only.
+	 */
+	#[Access(public: false)]
+	public function sort(): void
+	{
+	}
+}

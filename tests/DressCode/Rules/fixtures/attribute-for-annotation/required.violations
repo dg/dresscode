@@ -1,0 +1,6 @@
+11: Annotation @Check\Pattern is replaced by the attribute #[Acme\Validation\Pattern]
+16: Annotation @Check\Pattern is replaced by the attribute #[Acme\Validation\Pattern]
+21: Annotation @Check\Pattern is replaced by the attribute #[Acme\Validation\Pattern], but the attribute requires $regex, which is not given
+26: Annotation @Check\Pattern is replaced by the attribute #[Acme\Validation\Pattern], but the attribute requires $regex, which is not given
+31: Attribute #[Acme\Legacy\Matches] is replaced by #[Acme\Validation\Pattern]
+34: Attribute #[Acme\Legacy\Matches] is replaced by #[Acme\Validation\Pattern], but the attribute requires $regex, which is not given

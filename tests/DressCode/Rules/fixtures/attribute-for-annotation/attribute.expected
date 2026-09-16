@@ -1,0 +1,51 @@
+<?php
+// {"Acme\\Attributes\\Secured": "Acme\\Attributes\\Access(public: false)", "\\Old\\Marker": "New\\Marker"}
+
+namespace App;
+
+use Acme\Attributes\Secured;
+use Acme\Attributes\Access;
+use New\Marker;
+
+class ProductController
+{
+	#[Access(public: false)]
+	public function sort(): void
+	{
+	}
+
+
+	// written anew where it stands, among the others of its group
+	#[\Deprecated, Access(public: false)]
+	public function move(): void
+	{
+	}
+
+
+	// the other attribute is there already: reported and left
+	#[Secured]
+	#[Access(methods: 'POST')]
+	public function drop(): void
+	{
+	}
+
+
+	// the arguments go over, unless the map gives the attribute some of its own
+	#[Marker('x')]
+	public function show(): void
+	{
+	}
+
+
+	#[Secured(level: 2)]
+	public function edit(): void
+	{
+	}
+
+
+	// what is not an attribute is left to the rules of classes
+	public function isSecured(object $o): bool
+	{
+		return $o instanceof Secured;
+	}
+}
