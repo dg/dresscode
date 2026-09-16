@@ -7,7 +7,7 @@ use DressCode\Profile;
 return new Config(
 	use: ['dresscode/psr12', 'acme/default', Acme\DressCode\Plugin::class],
 	rules: [Acme\DressCode\Rules\NoVarDumpRule::class],
-	targets: ['php' => '8.3'],
+	targets: ['php' => '8.3', 'acme/mailer' => '3.3'],
 	namespaces: ['functions' => ['App\helper', 'App\Utils\{format, parse}'], 'constants' => ['App\LIMIT']],
 	nameResolution: 'certain',
 	fixRisky: ['dresscode/strictComparisonArgumentRequired'],

@@ -22,6 +22,9 @@ final readonly class Override
 	) {
 		if ($paths === []) {
 			throw new \InvalidArgumentException('An override needs the paths it applies to.');
+		} elseif ($packages = array_diff_key($profile->targets, ['php' => true])) {
+			$package = array_key_first($packages);
+			throw new \InvalidArgumentException('The override for `' . implode(', ', $paths) . "` targets the version of PHP alone, `$package` given; the version of a package is one the whole project is written for, so it goes into `targets` of the configuration.");
 		}
 
 		Config\ManifestFields::checkGlobs($paths, 'overrides');

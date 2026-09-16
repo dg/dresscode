@@ -70,6 +70,11 @@ test('an override is a profile for the paths it names', function () {
 	Assert::same($profile, $override->profile);
 	Assert::exception(fn() => new Override([], new Profile), InvalidArgumentException::class, 'An override needs the paths it applies to.');
 	Assert::same(['php' => '8.3'], new Override(['tests'], new Profile(targets: ['php' => '8.3']))->profile->targets);
+	Assert::exception(
+		fn() => new Override(['tests'], new Profile(targets: ['acme/mailer' => '3.3'])),
+		InvalidArgumentException::class,
+		'The override for `tests` targets the version of PHP alone, `acme/mailer` given; the version of a package is one the whole project is written for, so it goes into `targets` of the configuration.',
+	);
 });
 
 
