@@ -72,7 +72,7 @@ test('a rule is in a group, chosen by a standard, or turned on by name on purpos
 		'static-for-private-method-without-this', // how a class is built, which no group decides for it
 		'static-closure', // a decision of the project about what its code means
 		// the rules of maps, which a project turns on by name for its own list
-		'forbidden-classes', 'forbidden-functions', 'forbidden-members',
+		'attribute-for-annotation', 'forbidden-classes', 'forbidden-functions', 'forbidden-members',
 		'replaced-calls', 'replaced-classes', 'replaced-functions', 'replaced-members',
 	];
 

@@ -443,6 +443,13 @@ final class Types implements PassAnalysis
 	}
 
 
+	/** Whether PHP reads the class as an attribute, `#[\Attribute]` standing on it; maybe for a class nothing declares. */
+	public function isAttributeClass(string $class): Tristate
+	{
+		return self::toTristate($this->phpstan->findClass($class)?->isAttributeClass());
+	}
+
+
 	/** Whether the class is an interface; maybe for a class nothing declares. */
 	public function isInterface(string $class): Tristate
 	{
