@@ -31,7 +31,7 @@ final class MemberMaps
 	/**
 	 * A map of members, `Class::name`, `Class::name()`, `Class::$name` or `Class::name($argument, ...)`, to values of
 	 * the given schema; a key that does not read as a member is an error of the configuration, and so is a value
-	 * `$convert` throws for.
+	 * `$convert` throws for, the same closure `MemberMap::fromValues()` is given.
 	 * @param  ?\Closure(mixed, MemberPattern): mixed  $convert
 	 */
 	public static function createMapSchema(Schema $value, string $description, ?\Closure $convert = null): Type
@@ -104,7 +104,7 @@ final class MemberMaps
 	 * where the arguments of the call are given, whose arguments they bind to, with the types, the key whose arguments
 	 * have the more specific shape asked first; null where none is.
 	 * @template T
-	 * @param  list<array{MemberPattern, T}>  $entries  of the name of the member
+	 * @param  list<array{MemberPattern, T}>  $entries  of the name of the member, as `MemberMap::getEntries()` gives them
 	 * @param  ?list<Parameter>  $parameters  of the method called, null where nothing declares it
 	 * @return ?MapMatch<T>
 	 */
@@ -145,7 +145,7 @@ final class MemberMaps
 	 * first where `$specificFirst` asks for it; with `$anyArguments` only a key taking any arguments, the declaration
 	 * being of no call; null where none is.
 	 * @template T
-	 * @param  list<array{MemberPattern, T}>  $entries  of the name of the method
+	 * @param  list<array{MemberPattern, T}>  $entries  of the name of the method, as `MemberMap::getEntries()` gives them
 	 * @return ?array{MemberPattern, T}
 	 */
 	public static function findDeclarationEntry(
@@ -170,7 +170,7 @@ final class MemberMaps
 
 
 	/**
-	 * The lowercased name a map of members is looked up by for a node reaching a member, `__construct` for
+	 * The lowercased name `MemberMap::getEntries()` is asked by for a node reaching a member, `__construct` for
 	 * an instantiation; null where the name is an expression.
 	 */
 	public static function findLookupName(

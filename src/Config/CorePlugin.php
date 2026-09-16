@@ -10,6 +10,7 @@ namespace DressCode\Config;
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Decision, Domain, ImportStyle, Plugin, PluginManifest, Rules};
 use DressCode\Domains\{Count, GrammarEntry, Map, Names, Words};
+use DressCode\Rules\Upgrading\{MemberMaps, MemberTarget};
 use Nette\Schema\{Context, Expect, Schema};
 use function dirname;
 
@@ -230,6 +231,7 @@ final class CorePlugin implements Plugin
 				// what a map replaces is written first, so that what it forbids is reported of what remains
 				Rules\Upgrading\ReplacedClassesRule::class,
 				Rules\Upgrading\ReplacedFunctionsRule::class,
+				Rules\Upgrading\ReplacedMembersRule::class,
 				Rules\Upgrading\ForbiddenFunctionsRule::class,
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
@@ -297,6 +299,7 @@ final class CorePlugin implements Plugin
 				]), 'Whether what the upgrading files of the installed packages say is written as they say', parameter: true, default: 'ignored'),
 				new Decision('upgrading.libraries.replacedClasses', new Map(new GrammarEntry, grammar: self::createReplacedClassesGrammar(), caseInsensitive: true), 'A class written instead of another one, both fully qualified (`Acme\\Old\\Mailer: Acme\\Mail\\Mailer`)'),
 				new Decision('upgrading.libraries.replacedFunctions', new Map(new GrammarEntry, grammar: self::createReplacedFunctionsGrammar(), caseInsensitive: true), 'A function written instead of another one (`acme_send: Acme\\Mail\\send`)'),
+				new Decision('upgrading.libraries.replacedMembers', new Map(new GrammarEntry, grammar: self::createReplacedMembersGrammar()), 'A constant, a method or a property written instead of another one of the class (`Acme\\Mail\\Mailer::send(): sendMessage()`)'),
 				new Decision('upgrading.libraries.forbiddenFunctions', new Map(new GrammarEntry, grammar: self::createForbiddenFunctionsGrammar(), caseInsensitive: true), 'A function that may not be called, with what to do instead'),
 
 				// the newer constructs, decided once for every rule writing them
@@ -379,6 +382,16 @@ final class CorePlugin implements Plugin
 
 				return $options;
 			});
+	}
+
+
+	private static function createReplacedMembersGrammar(): Schema
+	{
+		return MemberMaps::createMapSchema(
+			MemberMaps::createCodeSchema(),
+			'The replaced member, `Class::name` (a constant or a method), `Class::name()` (a method) or `Class::$name` (a property) → the member written instead: its name alone in the same class, `Other::name` in another one, or `\function` for the global function a method becomes',
+			MemberTarget::fromCode(...),
+		);
 	}
 
 

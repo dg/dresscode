@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
-use DressCode\Rules\Upgrading\MemberMaps;
+use DressCode\Analyses\MemberKind;
+use DressCode\Rules\Upgrading\{MemberMap, MemberMaps, MemberPattern};
 use Nette\Neon\Neon;
 use Nette\Schema\{Expect, Processor, ValidationException};
 use Tester\Assert;
@@ -77,6 +78,17 @@ test('a key that does not read as a member is an error that names it', function 
 	Assert::type(ValidationException::class, $e);
 	Assert::same(['dresscode.memberMap', 'dresscode.memberMap'], array_column($e->getMessageObjects(), 'code'));
 	Assert::exception(fn() => process('A::b: [1]'), ValidationException::class);
+});
+
+
+test('the entries are indexed by the lowercased name of the member', function () {
+	$options = process("'A::old()': renamed\nA::\$old: \$new\nB::Old: other");
+	$map = MemberMap::fromEntries($options, fn(string $value, MemberPattern $pattern) => "$pattern->class: $value");
+	Assert::same(
+		[[MemberKind::Method, 'A: renamed'], [MemberKind::Property, 'A: $new'], [null, 'B: other']],
+		array_map(fn(array $entry) => [$entry[0]->kind, $entry[1]], $map->getEntries('old')),
+	);
+	Assert::same([], $map->getEntries('Old'));
 });
 
 

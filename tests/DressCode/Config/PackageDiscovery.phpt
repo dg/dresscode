@@ -55,6 +55,8 @@ test('the upgrading data a package ships applies up to its installed version, th
 					replacedClasses:
 						Acme\Lib\Old: Acme\Lib\Renamed
 						Acme\Lib\Older: Acme\Lib\Renamed
+					replacedMembers:
+						Acme\Lib\Renamed::old: renamed
 
 				since 3.2:
 					replacedClasses:
@@ -83,6 +85,7 @@ test('the upgrading data a package ships applies up to its installed version, th
 	Assert::same(
 		[
 			'replacedClasses' => ['Acme\Lib\Old' => 'Acme\Lib\RenamedAgain', 'Acme\Lib\Older' => 'Acme\Lib\Renamed'],
+			'replacedMembers' => ['Acme\Lib\Renamed::old' => 'renamed'],
 		],
 		$packages->upgradingData[1]->maps,
 	);

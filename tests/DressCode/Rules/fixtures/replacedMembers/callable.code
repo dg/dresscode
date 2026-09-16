@@ -1,0 +1,33 @@
+<?php
+// {"libraries": {"replacedMembers": {"Acme\\Shop\\Order::recalc": "recalculate", "Acme\\Shop\\Order::measure": "\\strlen", "Acme\\Shop\\Order::make()": "Acme\\Shop\\Helpers::create()", "Acme\\Shop\\Order::total": "getTotal", "Acme\\Shop\\Order::build": "Acme\\Shop\\Helpers::create", "Acme\\Shop\\Order::create": "produce"}}}
+// risky
+
+namespace App;
+
+use Acme\Shop\Order;
+
+function test(Order $order, array $data): void
+{
+	// a first-class callable of a renamed method takes the new name as a call does
+	$a = $order->recalc(...);
+	$b = Order::make(...);
+	$c = $order->measure(...);
+
+	// a value in the shape of a callable, whose class the types tell, the method declared or not; a string is risky
+	$d = [$order, 'total'];
+	usort($data, [$order, "total"]);
+	$e = [Order::class, 'create'];
+	$f = 'Acme\Shop\Order::create';
+	$l = [Order::class, 'total'];
+	$m = [$order, 'recalc']; // the library removed the method
+
+	// reported and left: a callable written as a value cannot move to another class
+	$g = [Order::class, 'build'];
+	$h = 'Acme\Shop\Order::build';
+
+	// left alone: another shape, or not the method
+	$i = [$order, 'unknown'];
+	$j = ['total', 'total'];
+	$k = 'Acme\Shop\Order::total()';
+	$n = [1 => $order, 0 => 'total'];
+}

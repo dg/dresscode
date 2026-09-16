@@ -334,6 +334,17 @@ test('the types of the code come from the PHPStan of the project when the config
 		array_map(fn($violation) => "$violation->line: $violation->message", $result->violations),
 	);
 
+	// a member the map of replacedMembers has is left to that rule, the deprecation being the fallback of a library without data
+	$upgrading = [
+		'declarations' => ['deprecatedMember' => 'replaced'],
+		'libraries' => ['replacedMembers' => ['Acme\Shop\Order::STATUS_PAID' => 'StatusPaid']],
+	];
+	$runner = $factory->createRunner($factory->resolve(new Config(paths: ['stubs'], typeAnalysis: 'phpstan', decisions: ['upgrading' => $upgrading]), $root), cache: false);
+	Assert::same(
+		['9: Constant `Acme\Shop\Order::STATUS_PAID` is replaced by `Order::StatusPaid`.'],
+		array_map(fn($violation) => "$violation->line: $violation->message", $runner->processCode("$root/Check.php", $code)->violations),
+	);
+
 	// without the types a decision the project makes is refused, not left out
 	Assert::exception(
 		fn() => $factory->resolve(new Config(decisions: ['upgrading' => ['declarations' => ['deprecatedMember' => 'replaced']]]), $root),

@@ -144,6 +144,7 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function findMember(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\Member
 	public function findMemberAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
 	public function findConstructorAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
+	public function findCallableMethodAccess(PhpSyntax\Nodes\ExpressionNode $callable): ?DressCode\Analyses\MemberAccess
 	public function findParameters(DressCode\Analyses\MemberAccess $access): ?array
 	public function findMethodParameters(string $class, string $method): ?array
 	public function findDeclaringClass(PhpSyntax\Nodes\Member\MethodNode $declaration): ?string
@@ -682,6 +683,17 @@ final readonly class MapMatch
 	public function __construct(DressCode\Rules\Upgrading\MemberPattern $pattern, mixed $value, DressCode\Analyses\MemberAccess $access, ?DressCode\Rules\Upgrading\ArgumentBindings $bindings = null)
 ```
 
+## `DressCode\Rules\Upgrading\MemberMap`
+
+```php
+final readonly class MemberMap
+	public static function fromValues(DressCode\Values $values, string $path, ?Closure $convert = null): DressCode\Rules\Upgrading\MemberMap
+	public static function fromEntries(array $options, Closure $convert): DressCode\Rules\Upgrading\MemberMap
+	public function getEntries(string $name): array
+	public function has(DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types): bool
+	public function findCall(PhpSyntax\Nodes\Expression\MethodCallNode|PhpSyntax\Nodes\Expression\StaticMethodCallNode|PhpSyntax\Nodes\Expression\NewNode $node, DressCode\RuleContext $context): ?DressCode\Rules\Upgrading\MapMatch
+```
+
 ## `DressCode\Rules\Upgrading\MemberMaps`
 
 ```php
@@ -713,6 +725,7 @@ final readonly class MemberPattern
 	public function compareSpecificity(DressCode\Rules\Upgrading\MemberPattern $other): int
 	public function getArgumentPattern(): DressCode\Rules\Upgrading\ArgumentPattern
 	public function describe(DressCode\Analyses\MemberKind $kind): string
+	public function describeAccess(DressCode\Analyses\MemberAccess $access, PhpSyntax\Node $node): string
 	public function getLookupName(): string
 ```
 
@@ -1029,6 +1042,7 @@ final readonly class Violation
 - `DressCode\Rules\Upgrading\NoDeprecatedPhpCallsRule`
 - `DressCode\Rules\Upgrading\ReplacedClassesRule`
 - `DressCode\Rules\Upgrading\ReplacedFunctionsRule`
+- `DressCode\Rules\Upgrading\ReplacedMembersRule`
 - `DressCode\Rules\Variables\NoGlobalStatementsRule`
 - `DressCode\Rules\Variables\NoRepeatedAssignmentsRule`
 - `DressCode\Rules\Variables\NoSeparateIssetsRule`

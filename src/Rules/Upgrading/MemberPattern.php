@@ -9,7 +9,9 @@ namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{MemberAccess, MemberKind, Parameter, Types};
 use DressCode\{Tristate, Violation};
-use PhpSyntax\Nodes\ArgumentListNode;
+use PhpSyntax\Node;
+use PhpSyntax\Nodes\{ArgumentListNode, NameNode};
+use PhpSyntax\Nodes\Expression\StaticMethodCallNode;
 
 
 /**
@@ -176,6 +178,24 @@ final readonly class MemberPattern
 	public function describe(MemberKind $kind): string
 	{
 		return $kind->describe($this->class, $this->name);
+	}
+
+
+	/**
+	 * The member as a message names it for the access the node makes, of the kind of the access, but a method for
+	 * `self::name()`, `static::name()` and `parent::name()`, which are written as static calls and say nothing of the
+	 * method being one.
+	 */
+	public function describeAccess(MemberAccess $access, Node $node): string
+	{
+		return $this->describe(
+			$access->kind === MemberKind::StaticMethod
+			&& $node instanceof StaticMethodCallNode
+			&& $node->class instanceof NameNode
+			&& $node->class->isSpecialClass()
+				? MemberKind::Method
+				: $access->kind,
+		);
 	}
 
 

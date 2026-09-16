@@ -52,6 +52,18 @@ function createTempDir(string $name): string
 }
 
 
+/**
+ * The grammar of the map the rule reads, as its decision carries it.
+ * @param  class-string<DressCode\Rule>  $rule
+ */
+function grammarOf(string $rule): Nette\Schema\Schema
+{
+	$domain = array_find(DressCode\Config\Catalogue::collectDecisions($rule), fn(DressCode\Decision $decision) => $decision->domain instanceof DressCode\Domains\Map)?->domain;
+	assert($domain instanceof DressCode\Domains\Map && $domain->grammar !== null);
+	return $domain->grammar;
+}
+
+
 /** A rule of a test that decides one requirement of the project, `project.<its slug>`. */
 trait ProjectDecision
 {

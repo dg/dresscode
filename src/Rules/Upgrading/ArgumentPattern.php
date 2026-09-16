@@ -16,7 +16,7 @@ use function count;
 
 
 /**
- * The shape of the arguments a key of the upgrading data asks of a call, written as the arguments of a call are:
+ * The shape of the arguments a key of a map of members asks of a call, written as the arguments of a call are:
  * `$name, $label, true`, `miss: $f, ...`, `$callable, ...$args`. A placeholder stands for any expression,
  * `$this` being none; a literal stands for the same value however written, an item under a name for an argument
  * passed by that name, and the rest of the arguments has to be asked for, with `...` or `...$args`, or the call
