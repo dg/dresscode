@@ -663,10 +663,10 @@ test('config writes every decision a layer set in the shape of the file, with th
 });
 
 
-test('config names the targets and the plugins of the configuration', function () use ($root) {
+test('config names the targets of the packages and the plugins of the configuration', function () use ($root) {
 	file_put_contents("$root/targets.neon", <<<'XX'
 		use: [dresscode/psr12, ConsolePlugin]
-		targets: {php: '8.4'}
+		targets: {php: '8.4', acme/mailer: '3.3'}
 		paths: [src]
 
 		XX);
@@ -675,11 +675,11 @@ test('config names the targets and the plugins of the configuration', function (
 	Assert::same('', $err);
 	Assert::same(0, $code);
 	Assert::match('%A%Use        ConsolePlugin, dresscode/psr12%A%', $out);
-	Assert::match('%A%Targets    php 8.4%A%', $out);
+	Assert::match('%A%Targets    php 8.4, acme/mailer 3.3%A%', $out);
 
 	[, $out] = runApp($root, ['config', '--config', "$root/targets.neon", '--format', 'json']);
 	$data = json_decode($out, associative: true);
-	Assert::same(['php' => '8.4'], $data['targets']);
+	Assert::same(['php' => '8.4', 'acme/mailer' => '3.3'], $data['targets']);
 	Assert::same(['ConsolePlugin', 'psr12'], $data['use']);
 });
 

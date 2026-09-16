@@ -246,6 +246,33 @@ test('the version of PHP is taken with quotes or without them', function () {
 });
 
 
+test('the version of a package the code is written for is taken in quotes, a whole number without them', function () {
+	$packages = fn(string $file) => array_diff_key(Loader::loadFile(FileMock::create($file, 'neon'))->targets, ['php' => true]);
+	Assert::same(['acme/mailer' => '3.10', 'acme/lib' => '4'], $packages("targets:\n\tacme/mailer: '3.10'\n\tacme/lib: 4\n"));
+	Assert::same(['php' => '8.2', 'acme/mailer' => '3.3'], Loader::loadFile(FileMock::create("targets: {php: 8.2, acme/mailer: '3.3'}\n", 'neon'))->targets);
+	Assert::same([], $packages("paths: [src]\n"));
+
+	// NEON reads a bare 3.10 as the number 3.1, so a number with a fraction is refused rather than guessed
+	Assert::exception(
+		fn() => $packages("targets:\n\tacme/mailer: 3.10\n"),
+		ConfigurationException::class,
+		'Configuration file `%a%`: The version of package `acme/mailer` must be in quotes, because NEON reads a bare `3.10` as the number `3.1`.',
+	);
+	Assert::exception(
+		fn() => $packages("targets:\n\tacme/mailer: ^3.3\n"),
+		ConfigurationException::class,
+		'Configuration file `%a%`: Invalid version `^3.3` of package `acme/mailer`.',
+	);
+
+	// it is a decision of the project, which an override does not make
+	Assert::exception(
+		fn() => $packages("overrides:\n\t- paths: [src]\n\t  targets: {acme/mailer: '3.3'}\n"),
+		ConfigurationException::class,
+		'Configuration file `%a%`: The override for `src` targets the version of PHP alone, `acme/mailer` given;%a%',
+	);
+});
+
+
 test('the types of the code come from phpstan or from nowhere', function () {
 	$types = fn(string $file) => Loader::loadFile(FileMock::create($file, 'neon'))->typeAnalysis;
 	Assert::same('phpstan', $types("typeAnalysis: phpstan\n"));

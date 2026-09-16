@@ -45,7 +45,8 @@ readonly class Profile
 		array $use = [],
 		/**
 		 * what the code is written for: `php` => the version the rules target, major.minor with an optional patch, without
-		 * one that of composer.json, else `Config::DefaultPhpVersion`
+		 * one that of composer.json, else `Config::DefaultPhpVersion`; in the configuration of the project also a package
+		 * => the version of it the code is written for
 		 * @var array<string, string>
 		 */
 		public array $targets = [],

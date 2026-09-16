@@ -45,6 +45,8 @@ final readonly class ResolvedConfig
 		public int $tabWidth = 4,
 		/** `'phpstan'` when the types of the code come from the PHPStan of the project; null when the rules have none */
 		public ?string $typeAnalysis = null,
+		/** @var array<string, string>  package => the version the configuration says its code is written for */
+		public array $packageTargets = [],
 		/** @var list<class-string>  the plugins the configuration and the command line use */
 		public array $plugins = [],
 		/** @var array<string, list<string>>  pattern of a comment => the decisions it silences where it stands */

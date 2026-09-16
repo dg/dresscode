@@ -133,7 +133,7 @@ final readonly class ConfigPrinter
 		return Json::encode([
 			'version' => self::Version,
 			'use' => [...$this->config->plugins, ...array_map(PluginRegistry::abbreviate(...), $this->config->use)],
-			'targets' => ['php' => $this->config->phpVersion],
+			'targets' => ['php' => $this->config->phpVersion, ...$this->config->packageTargets],
 			'typeAnalysis' => $this->config->typeAnalysis,
 			'indent' => $this->config->indent === "\t" ? 'tab' : strlen($this->config->indent),
 			'lineEnding' => match ($this->config->lineEnding) {
@@ -159,10 +159,11 @@ final readonly class ConfigPrinter
 	}
 
 
-	/** The version of PHP the code is written for. */
+	/** The version of PHP and of the packages the code is written for. */
 	private static function describeTargets(ResolvedConfig $config): string
 	{
-		return "php $config->phpVersion";
+		$targets = ['php' => $config->phpVersion, ...$config->packageTargets];
+		return implode(', ', array_map(fn(string $package, string $version) => "$package $version", array_keys($targets), $targets));
 	}
 
 

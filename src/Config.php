@@ -51,7 +51,7 @@ final readonly class Config extends Profile
 	 * @param array<int|class-string<Rule>, class-string<Rule>|\Closure(): Rule> $rules  the rules of the project, each by its class, or its class with the factory of a rule with dependencies
 	 * @param array{functions?: list<string>, constants?: list<string>} $namespaces
 	 * @param list<string> $fixRisky
-	 * @param array<string, string> $targets  `php` => the version the code is written for
+	 * @param array<string, string> $targets  `php` and the packages, each => the version the code is written for
 	 * @param list<string> $warnOnly
 	 * @param array<string, string|list<string>> $suppressionComments
 	 * @param list<string> $excludePaths  left out of the run on top of the default list
@@ -92,6 +92,16 @@ final readonly class Config extends Profile
 		$this->rules = self::normalizeRules($rules);
 		if ($typeAnalysis !== null && $typeAnalysis !== 'phpstan') {
 			throw new \InvalidArgumentException("The type analysis must be `phpstan`, `$typeAnalysis` given.");
+		}
+
+		// a package is targeted in place of the lowest version its constraint allows, so that code is fixed for a version
+		// before the project moves to it
+		foreach (array_diff_key($targets, ['php' => true]) as $package => $version) {
+			if (!preg_match('~^[a-z0-9_.-]+/[a-z0-9_.-]+$~D', $package)) {
+				throw new \InvalidArgumentException("Invalid target `$package`, `php` or the name of a package is expected.");
+			} elseif (!Config\Versions::isVersion($version)) {
+				throw new \InvalidArgumentException("Invalid version `$version` of package `$package`.");
+			}
 		}
 
 		Config\ManifestFields::checkRuleUrl($ruleUrl);

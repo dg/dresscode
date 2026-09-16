@@ -218,6 +218,7 @@ final class ConfigResolver
 			lineLength: self::resolveLineLength($values->get('file.maxLineLength')),
 			tabWidth: $values->get('indentation.tabWidth')->getCount()[0],
 			typeAnalysis: $this->typesAvailable ? $config->typeAnalysis : null,
+			packageTargets: array_diff_key($config->targets, ['php' => true]),
 			plugins: array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, [...$config->plugins, ...$commandLine instanceof Config ? $commandLine->plugins : []]),
 			suppressionComments: $suppressionComments,
 			decisions: $decisions,

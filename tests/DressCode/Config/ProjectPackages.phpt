@@ -61,6 +61,18 @@ test('the version of a package the code must work with', function () {
 	Assert::null($project->findVersion('acme/missing'));
 	Assert::false($project->has('acme/missing'));
 
+	// the version the configuration says the code is written for comes before the constraint and the installed one,
+	// and says nothing of a package the project does not have
+	$targeted = $project->withTargets(['acme/direct' => '4.1', 'acme/transitive' => '4.0', 'acme/unaliased' => '2.0', 'acme/missing' => '1.0']);
+	Assert::same('4.1', $targeted->findVersion('acme/direct'));
+	Assert::same('4.0', $targeted->findVersion('acme/transitive'));
+	Assert::same('2.0', $targeted->findVersion('acme/unaliased'));
+	Assert::same('2.5', $targeted->findVersion('acme/tool'));
+	Assert::null($targeted->findVersion('acme/missing'));
+	Assert::false($targeted->has('acme/missing'));
+	Assert::same('3.1', $project->findVersion('acme/direct'));
+	Assert::same($project->getIdentity(), $targeted->getIdentity());
+
 	// the identity says what the files of the packages are: the version each stands for and where it came from
 	$identity = $project->getIdentity();
 	Assert::same(['3.2.1', 'abc'], $identity['acme/transitive']); // the source before the dist
@@ -95,4 +107,5 @@ test('a requirement is met where every version the code is written for satisfies
 	Assert::equal(new UnmetRequirement('acme/both', '>=3.3 <5.0', '^4.2 || ^5.0'), $project->findUnmetRequirement(['acme/both' => '>=3.3 <5.0']));
 	Assert::equal(new UnmetRequirement('acme/any', '<5.0', '5.1'), $project->findUnmetRequirement(['acme/any' => '<5.0']));
 	Assert::equal(new UnmetRequirement('acme/missing', '*', null), $project->findUnmetRequirement(['acme/missing' => '*']));
+	Assert::null($project->withTargets(['acme/both' => '4.3'])->findUnmetRequirement(['acme/both' => '>=3.3 <5.0']));
 });

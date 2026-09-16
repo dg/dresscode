@@ -12,7 +12,7 @@ use Nette\Neon\{Entity, Exception as NeonException, Neon};
 use Nette\Schema\Elements\Structure;
 use Nette\Schema\{Expect, Processor, Schema, ValidationException};
 use Nette\Utils\Helpers;
-use function is_array, is_int, is_object, is_string;
+use function is_array, is_float, is_int, is_object, is_string;
 
 
 /**
@@ -204,7 +204,9 @@ final class NeonReader
 			$data['targets'][$target] = match (true) {
 				is_string($version) => $version,
 				// a version of PHP written as a number has a single digit as its minor, as every PHP ever released has had
-				default => sprintf('%.1F', $version),
+				$target === 'php' => sprintf('%.1F', $version),
+				is_float($version) => throw new \InvalidArgumentException("The version of package `$target` must be in quotes, because NEON reads a bare `3.10` as the number `3.1`."),
+				default => (string) $version,
 			};
 		}
 

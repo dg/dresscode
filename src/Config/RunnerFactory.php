@@ -40,7 +40,8 @@ final readonly class RunnerFactory
 	 */
 	public function resolve(Config $config, string $root, ?Profile $commandLine = null, ?array $only = null): ResolvedProject
 	{
-		$project = ProjectPackages::read($root);
+		$packageTargets = array_diff_key($config->targets, ['php' => true]);
+		$project = ProjectPackages::read($root)->withTargets($packageTargets);
 		$packages = PackageDiscovery::discover($project);
 		[$packagePlugins, $unnamed] = $this->admitPackagePlugins($packages->plugins, $config, $commandLine, $project->rootName);
 		$visited = [];
@@ -54,7 +55,11 @@ final readonly class RunnerFactory
 		$typesAvailable = $config->typeAnalysis === null || $this->isPhpStanInstalled();
 		$resolver = new ConfigResolver($this->registry, $packages->upgradingData, $project, $typesAvailable, $root);
 		$resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
-		$warnings = array_fill_keys([...$packages->warnings, ...$unnamed, ...$resolver->getWarnings()], null);
+		$missing = array_map(
+			fn(string $package) => "The configuration names package `$package` in `targets`, but it is not installed; skipped.",
+			array_keys(array_diff_key($packageTargets, $project->installed)),
+		);
+		$warnings = array_fill_keys([...$packages->warnings, ...$unnamed, ...$missing, ...$resolver->getWarnings()], null);
 		if (!$typesAvailable) {
 			$warnings['The configuration sets `typeAnalysis: phpstan`, but `phpstan/phpstan` is not installed beside DressCode, so the run goes without the types of the code.'] = 'types#enable';
 		}
