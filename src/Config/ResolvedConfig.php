@@ -41,6 +41,8 @@ final readonly class ResolvedConfig
 		public ?int $lineLength = null,
 		/** `'phpstan'` when the types of the code come from the PHPStan of the project; null when the rules have none */
 		public ?string $types = null,
+		/** @var array<string, string>  package => the version the configuration says its code is written for */
+		public array $packageTargets = [],
 		/** @var list<class-string>  the plugins the configuration names */
 		public array $plugins = [],
 	) {

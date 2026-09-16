@@ -19,7 +19,7 @@ use function dirname, is_array, is_string;
  * constraint allows, the installed one where the constraint has no lower bound, because code written for a newer one
  * breaks wherever the constraint lets an older one in; for a package that only comes with another it is the installed
  * one; and any version does for the project itself and for a development branch without an alias, whose version says
- * nothing.
+ * nothing. The `targets` of the configuration say the one version of an installed package outright (`withTargets()`).
  * @internal
  */
 final class ProjectPackages
@@ -35,6 +35,8 @@ final class ProjectPackages
 		private readonly array $required = [],
 		/** @var array<string, array{version: ?string, reference: ?string, path: ?string, extra: array<mixed>}>  installed package => the version it stands for (null for any), the source it came from, where it lies and its extra */
 		public readonly array $installed = [],
+		/** @var array<string, string>  package => the version the configuration says the code is written for */
+		private readonly array $targets = [],
 	) {
 	}
 
@@ -88,6 +90,17 @@ final class ProjectPackages
 	}
 
 
+	/**
+	 * The same project with the versions of packages its code is written for said outright, which `findConstraint()`
+	 * answers with before it asks the constraint: code is fixed for a version before the project moves to it.
+	 * @param  array<string, string>  $versions  package => version
+	 */
+	public function withTargets(array $versions): self
+	{
+		return new self($this->rootName, $this->rootPath, $this->rootExtra, $this->required, $this->installed, $versions);
+	}
+
+
 	/** Whether the project has the package: it is the project itself, or it is installed. */
 	public function has(string $package): bool
 	{
@@ -109,7 +122,7 @@ final class ProjectPackages
 			return null;
 		}
 
-		return $required ?? $this->installed[$package]['version'];
+		return $this->targets[$package] ?? $required ?? $this->installed[$package]['version'];
 	}
 
 

@@ -63,6 +63,11 @@ test('an override is a profile for the paths it names', function () {
 	Assert::same(['strictCall'], $override->fixRisky);
 	Assert::exception(fn() => new Override([]), InvalidArgumentException::class, 'An override needs the paths it applies to.');
 	Assert::same(['php' => '8.3'], new Override(['tests'], targets: ['php' => '8.3'])->targets);
+	Assert::exception(
+		fn() => new Override(['tests'], targets: ['acme/mailer' => '3.3']),
+		InvalidArgumentException::class,
+		'An override targets the version of PHP alone, `acme/mailer` given; the version of a package is one the whole project is written for, so it goes into `targets` of the configuration.',
+	);
 });
 
 

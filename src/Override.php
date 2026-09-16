@@ -41,6 +41,9 @@ final readonly class Override extends Profile
 	) {
 		if ($paths === []) {
 			throw new \InvalidArgumentException('An override needs the paths it applies to.');
+		} elseif ($packages = array_diff_key($targets, ['php' => true])) {
+			$package = array_key_first($packages);
+			throw new \InvalidArgumentException("An override targets the version of PHP alone, `$package` given; the version of a package is one the whole project is written for, so it goes into `targets` of the configuration.");
 		}
 
 		parent::__construct($presets, $groups, $rules, $indent, $lineEnding, $lineLength, $targets, $namespaces, $nameResolution, $fixRisky, $warnOnly);

@@ -115,7 +115,7 @@ final class ConfigPrinter
 			'presets' => array_map(RuleRegistry::abbreviate(...), $this->config->presets),
 			'groups' => $this->config->groups,
 			'plugins' => $this->config->plugins,
-			'targets' => ['php' => $this->config->phpVersion],
+			'targets' => ['php' => $this->config->phpVersion, ...$this->config->packageTargets],
 			'types' => $this->config->types,
 			'indent' => $this->config->indent === "\t" ? 'tab' : strlen($this->config->indent),
 			'lineEnding' => match ($this->config->lineEnding) {
@@ -143,10 +143,11 @@ final class ConfigPrinter
 	}
 
 
-	/** The version of PHP the code is written for. */
+	/** The version of PHP and of the packages the code is written for. */
 	private static function describeTargets(ResolvedConfig $config): string
 	{
-		return "php $config->phpVersion";
+		$targets = ['php' => $config->phpVersion, ...$config->packageTargets];
+		return implode(', ', array_map(fn(string $package, string $version) => "$package $version", array_keys($targets), $targets));
 	}
 
 

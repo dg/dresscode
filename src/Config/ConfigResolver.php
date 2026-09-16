@@ -201,6 +201,7 @@ final class ConfigResolver
 			nameResolution: $resolution ?? 'uncertain',
 			lineLength: $lineLength ?: null,
 			types: $config->types,
+			packageTargets: array_diff_key($config->targets, ['php' => true]),
 			plugins: array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, $config->plugins),
 		);
 	}

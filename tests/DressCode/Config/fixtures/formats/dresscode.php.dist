@@ -16,7 +16,7 @@ return new Config(
 	indent: 'tab',
 	lineEnding: 'LF',
 	lineLength: 160,
-	targets: ['php' => '8.3'],
+	targets: ['php' => '8.3', 'acme/mailer' => '3.3'],
 	namespaces: ['functions' => ['App\helper', 'App\Utils\{format, parse}'], 'constants' => ['App\LIMIT']],
 	nameResolution: 'certain',
 	fixRisky: ['dresscode/strictCall'],
