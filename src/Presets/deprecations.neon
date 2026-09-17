@@ -17,6 +17,7 @@ upgrading:
 	libraries:
 		packages: adopted                     # as the upgrading files of the packages say
 	declarations:
+		deprecatedClass: replaced             # by what `@deprecated` names
 		deprecatedMember: replaced
 	php:
 		nullArrayKey: forbidden               # `['' => 1]`, not `[null => 1]`, PHP 8.5
