@@ -7,6 +7,7 @@
 
 namespace DressCode\Rules\Upgrading;
 
+use DressCode\Analyses\Types;
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\{Context, Expect, Schema};
@@ -20,7 +21,8 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * or enum to the one it wants written instead, and the rule rewrites every reference, an import, a type, an
  * instantiation, a static access, an attribute, a type or a reference in a doc comment, importing the new name the
  * way the scope imports; a class a comment only mentions in its text is left as it is. The fix is not
- * risky, because what changes is exactly what the map asked for.
+ * risky, because what changes is exactly what the map asked for. Where the run has the types of the code, a class the project does not have
+ * is reported and not written.
  */
 #[RuleInfo(
 	'dresscode/replacedClasses',
@@ -75,11 +77,26 @@ final class ReplacedClassesRule extends NodeRule implements ConfigurableRule
 			&& $this->classes !== []
 			&& CodeWriter::findImportScope($node) === $node
 		) {
-			$find = function (string $class): ?array {
+			$types = $context->findAnalysis(Types::class);
+			$find = function (string $class) use ($types): ?array {
 				$new = $this->classes[strtolower($class)] ?? null;
-				return $new === null ? null : ["Class `$class` is replaced by `$new`", $new];
+				return match (true) {
+					$new === null => null,
+					$types !== null && $types->findClassName($new) === null => ["Class `$class` is replaced by `$new`, but class `$new` does not exist in the project", null],
+					default => ["Class `$class` is replaced by `$new`", $new],
+				};
 			};
 			ClassReplacement::apply($node, $context, $find, $find);
 		}
+	}
+
+
+	/**
+	 * Whether the map has the class, fully qualified, which is what a rule reading the deprecations asks to stay silent.
+	 * @internal
+	 */
+	public function hasClass(string $class): bool
+	{
+		return isset($this->classes[strtolower($class)]);
 	}
 }

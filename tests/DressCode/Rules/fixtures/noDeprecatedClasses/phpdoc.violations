@@ -1,0 +1,3 @@
+5: Class `Acme\Http\Gone` is deprecated
+6: Class `Acme\Mail\ITransport` is deprecated: use Acme\Mail\Transport
+10: Class `Acme\Mail\ITransport` is deprecated: use Acme\Mail\Transport

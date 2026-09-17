@@ -1,5 +1,5 @@
 <?php
-// {"App\\Mailer\\SmtpMailer": "App\\Mail\\Mailer", "App\\Kind": "App\\Token"}
+// {"App\\Mailer\\SmtpMailer": "App\\Mail\\Mailer", "App\\Kind": "App\\Token", "App\\Obsolete": "App\\Missing"}
 
 namespace App;
 
@@ -14,7 +14,7 @@ use App\Mail\Mailer;
  */
 class Service
 {
-	/** @var list<Mailer> */
+	/** @var list<Mailer>|list<Obsolete>  a class the project does not have is reported and left */
 	private array $mailers = [];
 
 

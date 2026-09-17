@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+use Acme\Mail\MessageRenderer;
+use Acme\Mail\Transport;
+
+// a file that declares no namespace
+function test(Transport $control, MessageRenderer $renderer): void
+{
+}
