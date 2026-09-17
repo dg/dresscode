@@ -10,7 +10,7 @@ namespace DressCode\Rules\Upgrading;
 use PhpSyntax\{Node, ParseException, Parser};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, ExpressionNode, MatchArmNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClassConstantFetchNode, ClosureNode, FunctionCallNode, MethodCallNode, NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, TernaryNode, VariableNode};
-use function in_array, is_string;
+use function count, in_array, is_string;
 
 
 /**
@@ -21,7 +21,8 @@ use function in_array, is_string;
  * anywhere an expression stands, `\Acme\Events::dispatch($this->listeners, ...$args)`; only a call made on
  * an object has one. `...` writes the arguments the key left unnamed, `...$args` those a variadic placeholder
  * stands for or the values of an array one does, an array literal written out as the arguments PHP makes of it,
- * `new Range(...['min' => $m])` as `new Range(min: $m)`. A call made with `?->` is written only where the
+ * `new Range(...['min' => $m])` as `new Range(min: $m)`, and `...$options` in an array the other items of an array
+ * the key took apart, `['follow' => $f, ...$options]`. A call made with `?->` is written only where the
  * expression calls a bare name and writes no `$this`, the operator carrying over to that call; anything else is
  * refused, for it would call on null what the call did not.
  *
@@ -73,18 +74,23 @@ final class CallTemplate
 				continue;
 			}
 
-			$item = array_find($items, fn(ArgumentPatternItem $item) => $item->placeholder !== null && $item->placeholder === $variable->plainName);
-			$unpacked = $variable->parent instanceof ArgumentNode && $variable->parent->ellipsis !== null;
+			$name = (string) $variable->plainName;
+			$item = array_find($items, fn(ArgumentPatternItem $item) => $item->placeholder === $name
+				|| in_array($name, $item->keys ?? [], true)
+				|| $item->otherItems === $name);
+			$unpacked = ($variable->parent instanceof ArgumentNode || $variable->parent instanceof ArrayItemNode) && $variable->parent->ellipsis !== null;
+			$others = $item !== null && $item->otherItems === $name;
 			if ($item === null) {
-				throw new \InvalidArgumentException("The code '$code' uses \${$variable->plainName}, which the key $key->class::$key->name does not name.");
+				throw new \InvalidArgumentException("The code '$code' uses \$$name, which the key $key->class::$key->name does not name.");
 			} elseif ($item->variadic && !$unpacked) {
-				throw new \InvalidArgumentException("The code '$code' must write \${$item->placeholder} as the arguments it stands for, '...\${$item->placeholder}'.");
+				throw new \InvalidArgumentException("The code '$code' must write \$$name as the arguments it stands for, '...\$$name'.");
+			} elseif ($others && !($unpacked && $variable->parent instanceof ArrayItemNode)) {
+				throw new \InvalidArgumentException("The code '$code' must write \$$name as the items it stands for, '...\$$name' in an array.");
 			}
 
-			$name = (string) $item->placeholder;
 			$uses[$name] = ($uses[$name] ?? 0) + 1;
 			$lazy += self::isLazy($variable) ? [$name => true] : [];
-			$unpackedItems += $unpacked && !$item->variadic ? [$name => true] : [];
+			$unpackedItems += $unpacked && !$item->variadic && !$others ? [$name => true] : [];
 		}
 
 		foreach ($holder->find(FunctionCallNode::class, self::isBareCall(...)) as $call) {
@@ -148,6 +154,11 @@ final class CallTemplate
 		}
 
 		foreach ($arguments->items as $argument) {
+			if ($argument instanceof ArgumentNode && isset($bindings->takenApart[spl_object_id($argument)])) {
+				array_push($judged, ...$bindings->takenApart[spl_object_id($argument)][2]); // an array literal is its items
+				continue;
+			}
+
 			$name = $names[spl_object_id($argument)] ?? null;
 			if ($argument instanceof ArgumentNode && ($name !== null || !$this->writesRest)) {
 				$judged[] = [$name, $argument->value];
@@ -202,6 +213,10 @@ final class CallTemplate
 	{
 		// what the template wrote is found before anything of the call is written into it
 		$holder = $this->holder->withoutEdgeTrivia();
+		foreach ($holder->find(ArrayNode::class) as $array) {
+			self::renameKeys($array, $bindings);
+		}
+
 		$variables = $holder->find(VariableNode::class);
 		$rests = $holder->find(VariadicPlaceholderNode::class);
 		$calls = $holder->find(FunctionCallNode::class, self::isBareCall(...));
@@ -258,8 +273,50 @@ final class CallTemplate
 
 
 	/**
-	 * Writes the arguments in place of the item of a list that stood for them.
-	 * @param  list<ArgumentNode>  $arguments
+	 * An array of the template that writes nothing but the keys of an array of the call under other names, and its
+	 * other items, becomes that array with those keys renamed, so that its layout, its comments and the order of its
+	 * items stay as the call has them.
+	 */
+	private static function renameKeys(ArrayNode $template, ArgumentBindings $bindings): void
+	{
+		$keys = [];
+		$others = null;
+		foreach ($template->items->getItems() as $item) {
+			$placeholder = $item instanceof ArrayItemNode && $item->value instanceof VariableNode ? (string) $item->value->plainName : null;
+			if ($placeholder === null || $item->ampersand !== null) {
+				return;
+			} elseif ($item->ellipsis !== null && $item->key === null) {
+				$others = $placeholder;
+			} elseif ($item->ellipsis === null && is_string($item->key?->hasValue() ? $item->key->toValue() : null)) {
+				$keys[$placeholder] = $item->key;
+			} else {
+				return;
+			}
+		}
+
+		foreach ($bindings->takenApart as [$original, $otherItems, $order]) {
+			$named = array_values(array_unique(array_filter(array_column($order, 0), fn(string $name) => $name !== $otherItems)));
+			if ($others !== $otherItems || count($named) !== count($keys) || array_diff($named, array_keys($keys)) !== []) {
+				continue;
+			}
+
+			$copy = $original->withoutEdgeTrivia();
+			foreach ($copy->items->getItems() as $index => $item) {
+				$key = $keys[$order[$index][0]] ?? null;
+				if ($key !== null && $item instanceof ArrayItemNode) {
+					$item->key?->replaceWithExpression($key->withoutEdgeTrivia());
+				}
+			}
+
+			$template->replaceWithExpression($copy);
+			return;
+		}
+	}
+
+
+	/**
+	 * Writes the arguments, or the items of an array, in place of the item of a list that stood for them.
+	 * @param  list<ArgumentNode>|list<ArrayItemNode>  $arguments
 	 * @return SeparatedNodeList<Node>
 	 */
 	private static function writeArguments(?Node $placeholder, array $arguments): SeparatedNodeList

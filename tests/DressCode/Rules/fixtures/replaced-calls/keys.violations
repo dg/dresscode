@@ -1,0 +1,4 @@
+10: Method Acme\Copier::mirror() is replaced by mirror($from, $to, $iterator, ['follow_links' => $links, ...$options])
+11: Method Acme\Copier::mirror() is replaced by mirror($from, $to, $iterator, ['follow_links' => $links, ...$options])
+15: Method Acme\Copier::mirror() is replaced by mirror($from, $to, options: ['follow_links' => $links, ...$options])
+16: Method Acme\Copier::mirror() is replaced by mirror($from, $to, $iterator, ['delete' => !$keep])

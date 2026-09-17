@@ -2,7 +2,7 @@
 
 use DressCode\Analyses\Parameter;
 use DressCode\Rules\Upgrading\{ArgumentPattern, ArgumentPatternItem};
-use PhpSyntax\Nodes\ArgumentNode;
+use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
 use PhpSyntax\Parser;
 use Tester\Assert;
@@ -32,7 +32,7 @@ function bind(string $pattern, string $call, ?array $parameters = null): ?array
 	foreach ($bindings->arguments + ($bindings->rest === [] ? [] : ['...' => $bindings->rest]) as $placeholder => $bound) {
 		$result[$placeholder] = $bound instanceof ArgumentNode
 			? $bound->text
-			: array_map(fn(ArgumentNode $argument) => $argument->text, $bound);
+			: array_map(fn(ArgumentNode|ArrayItemNode $item) => $item->text, $bound);
 	}
 
 	return $result;
@@ -57,7 +57,12 @@ test('a pattern is read as the arguments of a call', function () {
 	Assert::equal([new ArgumentPatternItem('callable'), new ArgumentPatternItem('args', variadic: true)], ArgumentPattern::parse('$callable, ...$args')->items);
 
 	$errors = [
-		'$a, run()' => "'run()' is no placeholder, no literal, and neither '...' nor '...\$name'.",
+		'$a, run()' => "'run()' is no placeholder, no literal, no array of keys, and neither '...' nor '...\$name'.",
+		"\$a, ['k' => f()]" => "%a% in an array is neither a string key with the placeholder of its value nor '...\$name'.",
+		'$a, [$b]' => "'\$b' in an array is neither %a%",
+		"\$a, [...\$o, 'k' => \$b]" => '%a% stands behind the placeholder of the other items of the array.',
+		"\$a, ['k' => \$a]" => 'the placeholder $a stands for two arguments.',
+		'$a, [...$o]' => "the array '[...\$o]' names no key.",
 		'$a, PHP_EOL' => "'PHP_EOL' is no placeholder, %a%",
 		'$a, ?' => "'?' is no placeholder, %a%",
 		'&$a' => "'&\$a' is no placeholder, %a%",
@@ -129,6 +134,18 @@ test('a placeholder with a type takes an argument of that type, a literal by its
 
 	Assert::exception(fn() => ArgumentPattern::parse('?int|string $id'), InvalidArgumentException::class, "'?int|string \$id' does not write a type as PHP writes one.");
 	Assert::exception(fn() => ArgumentPattern::parse('array ...$rest'), InvalidArgumentException::class); // the rest has no type
+});
+
+
+test('an array of keys takes an array literal with those keys apart, its other items under their placeholder or none', function () {
+	Assert::same(['m' => "'x'", 'o' => ["'a' => 1"]], bind("['mode' => \$m, ...\$o]", "f(['a' => 1, 'mode' => 'x'])"));
+	Assert::same(['m' => '$x', 'o' => []], bind("['mode' => \$m, ...\$o]", "f(['mode' => \$x])"));
+	Assert::same(['m' => '$x'], bind("['mode' => \$m]", "f(['mode' => \$x])"));
+	Assert::null(bind("['mode' => \$m]", "f(['a' => 1, 'mode' => 'x'])"));
+	Assert::null(bind("['mode' => \$m, ...\$o]", "f(['a' => 1])"));
+	Assert::null(bind("['mode' => \$m, ...\$o]", 'f($options)'));
+	Assert::null(bind("['mode' => \$m, ...\$o]", "f([...\$base, 'mode' => 1])"));
+	Assert::null(bind("['mode' => \$m, ...\$o]", "f([\$key => 1, 'mode' => 1])"));
 });
 
 

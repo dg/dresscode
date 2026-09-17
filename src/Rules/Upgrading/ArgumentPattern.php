@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Parameter, Types};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, ExpressionNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\{ArrayNode, FunctionCallNode, VariableNode};
 use PhpSyntax\{ParseException, Parser};
 use function count, in_array, is_array, is_bool, is_float, is_int, is_string;
@@ -20,9 +20,10 @@ use function count, in_array, is_array, is_bool, is_float, is_int, is_string;
  * `$this` alone for none, being what the call is made on in the expression written instead; a placeholder with
  * a type in front of it, as a parameter has one, only for an argument of that type for certain, `array $options`
  * for an array, so that `new Range(3)` is not what `Range::__construct(array $options)` asks for, `list $choices`
- * for a list, `bool $strict`, `?Acme\Clock $clock`; a literal stands for the same value however written, an item
- * under a name for an argument passed by that name, and the rest of the arguments has to be asked for, with `...`
- * or `...$args`, or the call may have none.
+ * for a list, `bool $strict`, `?Acme\Clock $clock`; a literal stands for the same value however written, an array
+ * of string keys with placeholders, `['mode' => $mode, ...$options]`, for an array literal that has those keys, its
+ * other items under `...$name` or none, an item under a name for an argument passed by that name, and the rest of
+ * the arguments has to be asked for, with `...` or `...$args`, or the call may have none.
  */
 final readonly class ArgumentPattern
 {
@@ -78,11 +79,54 @@ final readonly class ArgumentPattern
 				$variadic && $placeholder !== null && $name === null => new ArgumentPatternItem($placeholder, variadic: true),
 				!$variadic && $placeholder !== null => new ArgumentPatternItem($placeholder, parameterName: $name, type: $type),
 				!$variadic && $value?->hasValue() => new ArgumentPatternItem(literal: [$value->toValue()], parameterName: $name),
-				default => throw new \InvalidArgumentException("'$argument->text' is no placeholder, no literal, and neither '...' nor '...\$name'."),
+				!$variadic && $value instanceof ArrayNode => self::parseKeys($value, $name, $placeholders),
+				default => throw new \InvalidArgumentException("'$argument->text' is no placeholder, no literal, no array of keys, and neither '...' nor '...\$name'."),
 			};
 		}
 
 		return new self($items);
+	}
+
+
+	/**
+	 * The item of an array literal the argument has to be, `['mode' => $mode, ...$options]`: string keys, each with
+	 * the placeholder of its value, and last the placeholder of the other items, without which the array has none.
+	 * @param  list<?string>  $placeholders  those of the pattern so far, which the array adds its own to
+	 * @throws \InvalidArgumentException
+	 */
+	private static function parseKeys(ArrayNode $array, ?string $name, array &$placeholders): ArgumentPatternItem
+	{
+		$keys = [];
+		$others = null;
+		foreach ($array->items->getItems() as $item) {
+			if (!$item instanceof ArrayItemNode) {
+				throw new \InvalidArgumentException("the array '$array->text' has an empty item.");
+			}
+
+			$placeholder = $item->value instanceof VariableNode ? $item->value->plainName : null;
+			$key = $item->key?->hasValue() ? $item->key->toValue() : null;
+			if ($others !== null) {
+				throw new \InvalidArgumentException("'$item->text' stands behind the placeholder of the other items of the array.");
+			} elseif ($placeholder === 'this') {
+				throw new \InvalidArgumentException('$this is no placeholder; in the expression written instead it stands for what the call is made on.');
+			} elseif ($placeholder !== null && in_array($placeholder, $placeholders, true)) {
+				throw new \InvalidArgumentException("the placeholder \$$placeholder stands for two arguments.");
+			} elseif ($placeholder !== null && $item->ellipsis !== null && $item->key === null) {
+				$others = $placeholder;
+			} elseif ($placeholder !== null && is_string($key) && $item->ellipsis === null && $item->ampersand === null) {
+				$keys[$key] = $placeholder;
+			} else {
+				throw new \InvalidArgumentException("'$item->text' in an array is neither a string key with the placeholder of its value nor '...\$name'.");
+			}
+
+			$placeholders[] = $placeholder;
+		}
+
+		if ($keys === []) {
+			throw new \InvalidArgumentException("the array '$array->text' names no key.");
+		}
+
+		return new ArgumentPatternItem(parameterName: $name, keys: $keys, otherItems: $others);
 	}
 
 
@@ -162,7 +206,7 @@ final readonly class ArgumentPattern
 			return null;
 		}
 
-		$bound = $taken = $unseen = [];
+		$bound = $taken = $unseen = $takenApart = [];
 		$tail = null;
 		foreach ($this->items as $index => $item) {
 			if ($item->variadic) {
@@ -183,7 +227,16 @@ final readonly class ArgumentPattern
 			}
 
 			$taken[] = $argument;
-			if ($item->placeholder !== null) {
+			if ($item->keys !== null) {
+				$keys = self::bindKeys($item, $argument);
+				if ($keys === null) {
+					return null;
+				}
+
+				[$values, $takenApart[spl_object_id($argument)]] = $keys;
+				$bound += $values;
+
+			} elseif ($item->placeholder !== null) {
 				$bound[$item->placeholder] = $argument;
 				if (!$argument->value instanceof ArrayNode && !$argument->value->hasValue() && !$types?->isOfType($argument->value, 'list')) {
 					$unseen[] = $item->placeholder;
@@ -199,14 +252,64 @@ final readonly class ArgumentPattern
 		}
 
 		if ($tail === null) {
-			return $rest === [] ? new ArgumentBindings($bound, unseenKeys: $unseen) : null;
+			return $rest === [] ? new ArgumentBindings($bound, unseenKeys: $unseen, takenApart: $takenApart) : null;
 		} elseif ($tail->placeholder === null) {
-			return new ArgumentBindings($bound, $rest, $unseen);
+			return new ArgumentBindings($bound, $rest, $unseen, $takenApart);
 		} elseif (array_any($rest, fn(ArgumentNode $argument) => $argument->name !== null)) {
 			return null; // a name has no place among the arguments a variadic placeholder writes elsewhere
 		}
 
-		return new ArgumentBindings($bound + [$tail->placeholder => $rest], unseenKeys: $unseen);
+		return new ArgumentBindings($bound + [$tail->placeholder => $rest], unseenKeys: $unseen, takenApart: $takenApart);
+	}
+
+
+	/**
+	 * The values of the keys of the array literal the argument is, each as an argument of its own, and its other items,
+	 * with the placeholders and the values of all of them in the order of the array. Null where the argument is no
+	 * array literal, lacks a key, or has an item the pattern cannot tell: unpacked, taken by reference, under a key
+	 * that is no literal, or one the pattern has no placeholder for.
+	 * @return ?array{array<string, ArgumentNode|list<ArrayItemNode>>, array{ArrayNode, ?string, list<array{string, ExpressionNode}>}}
+	 */
+	private static function bindKeys(ArgumentPatternItem $item, ArgumentNode $argument): ?array
+	{
+		$array = $argument->value;
+		if ($argument->ellipsis !== null || !$array instanceof ArrayNode || $array->hasComment()) {
+			return null;
+		}
+
+		$bound = $others = $order = [];
+		foreach ($array->items->getItems() as $arrayItem) {
+			if (
+				!$arrayItem instanceof ArrayItemNode
+				|| $arrayItem->ellipsis !== null
+				|| $arrayItem->ampersand !== null
+				|| !$arrayItem->value instanceof ExpressionNode
+				|| ($arrayItem->key !== null && !$arrayItem->key->hasValue())
+			) {
+				return null;
+			}
+
+			$key = $arrayItem->key?->toValue();
+			$placeholder = is_string($key) ? $item->keys[$key] ?? null : null;
+			if ($placeholder !== null && !isset($bound[$placeholder])) {
+				$call = (new Parser)->parseExpression('f(0)');
+				assert($call instanceof FunctionCallNode && $call->arguments->items->getItems()[0] instanceof ArgumentNode);
+				$bound[$placeholder] = $call->arguments->items->getItems()[0];
+				$bound[$placeholder]->value->replaceWithExpression($arrayItem->value->withoutEdgeTrivia());
+				$order[] = [$placeholder, $arrayItem->value];
+			} elseif ($item->otherItems !== null) {
+				$others[] = $arrayItem->withoutEdgeTrivia();
+				$order[] = [$item->otherItems, $arrayItem->value];
+			} else {
+				return null;
+			}
+		}
+
+		if (count($bound) !== count((array) $item->keys)) {
+			return null;
+		}
+
+		return [$item->otherItems === null ? $bound : $bound + [$item->otherItems => $others], [$array, $item->otherItems, $order]];
 	}
 
 
@@ -246,14 +349,15 @@ final readonly class ArgumentPattern
 
 
 	/**
-	 * Which of two patterns of one method is asked first, as a comparison function: the one with more literals, then
+	 * Which of two patterns of one method is asked first, as a comparison function: the one with more literals, a key
+	 * of an array counting as one, then
 	 * the one with more types, `list` counting as narrower than any other, then the one that takes no rest, then the
 	 * longer one.
 	 */
 	public function compareSpecificity(self $other): int
 	{
 		$measure = fn(self $pattern) => [
-			count(array_filter($pattern->items, fn(ArgumentPatternItem $item) => $item->literal !== null)),
+			array_sum(array_map(fn(ArgumentPatternItem $item) => $item->literal !== null ? 1 : count($item->keys ?? []), $pattern->items)),
 			array_sum(array_map(fn(ArgumentPatternItem $item) => match ($item->type) {
 				null => 0,
 				'list' => 2,

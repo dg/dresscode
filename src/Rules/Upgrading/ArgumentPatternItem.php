@@ -9,9 +9,9 @@ namespace DressCode\Rules\Upgrading;
 
 
 /**
- * One item of a pattern of arguments: a placeholder `$name`, one of a type `array $name`, a literal, any of them
- * under the name the argument is passed by (`fallback: $f`), or the rest of the arguments, `...$args` under
- * a placeholder and `...` as they are.
+ * One item of a pattern of arguments: a placeholder `$name`, one of a type `array $name`, a literal, an array literal
+ * with the keys it has to have, `['mode' => $mode, ...$options]`, any of them under the name the argument is passed by
+ * (`fallback: $f`), or the rest of the arguments, `...$args` under a placeholder and `...` as they are.
  */
 final readonly class ArgumentPatternItem
 {
@@ -26,6 +26,10 @@ final readonly class ArgumentPatternItem
 		public bool $variadic = false,
 		/** the type the argument of the placeholder has for certain, as PHP writes a type, `list` besides; null for any */
 		public ?string $type = null,
+		/** @var ?array<string, string>  the keys an array literal has to have → the placeholders of their values; null for no array */
+		public ?array $keys = null,
+		/** the placeholder of the other items of such an array, without the dollar; null where it may have none */
+		public ?string $otherItems = null,
 	) {
 	}
 }
