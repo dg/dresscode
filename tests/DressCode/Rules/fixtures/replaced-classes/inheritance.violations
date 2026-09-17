@@ -1,0 +1,9 @@
+6: Class Acme\Codec\CacheableNormalizer is replaced by Acme\Codec\Normalizer
+7: Class Acme\Codec\ContextAwareNormalizer is replaced by Acme\Codec\Normalizer
+13: Class Acme\Codec\ContextAwareNormalizer is replaced by Acme\Codec\Normalizer
+18: Class Acme\Codec\ContextAwareNormalizer is replaced by Acme\Codec\Normalizer
+18: Class Acme\Codec\CacheableNormalizer is replaced by Acme\Codec\Normalizer
+23: Class Acme\Codec\ContextAwareNormalizer is replaced by Acme\Codec\Normalizer
+29: Class Acme\Codec\EnvelopeInterface is replaced by Acme\Codec\Envelope, but Acme\Codec\Envelope is a class, which is not implemented
+34: Class Acme\Codec\LegacyEnvelope is replaced by Acme\Codec\Normalizer, but Acme\Codec\Normalizer is an interface, which a class does not extend
+39: Class Acme\Codec\EnvelopeInterface is replaced by Acme\Codec\Envelope

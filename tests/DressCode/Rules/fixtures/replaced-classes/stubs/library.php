@@ -27,3 +27,15 @@ namespace Acme\Mail;
 interface Transport
 {
 }
+
+
+namespace Acme\Codec;
+
+interface Normalizer
+{
+}
+
+
+class Envelope
+{
+}

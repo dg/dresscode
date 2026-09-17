@@ -521,6 +521,13 @@ final class Types implements PassAnalysis
 	}
 
 
+	/** Whether the class is an interface; null for a class nothing declares. */
+	public function isInterface(string $class): ?bool
+	{
+		return $this->phpstan->findClass($class)?->isInterface();
+	}
+
+
 	/** Whether the class has the member of that kind, itself or through an ancestor; a magic one it does not have. */
 	public function hasMember(string $class, MemberKind $kind, string $name): bool
 	{
