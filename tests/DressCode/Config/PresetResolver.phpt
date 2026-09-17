@@ -808,6 +808,11 @@ test('a group turns on every rule that carries it, under the rules of its own pr
 	Assert::same([], $resolver->getWarnings());
 	Assert::same(['deprecations'], $resolved->groups);
 
+	// a rule comes with the group of its intent, not with the group of what it writes
+	Assert::same([['group deprecations', true]], $byName['dresscode/override-signature']->layers);
+	$byName = array_column($resolver->resolve(new Config(groups: ['types']), '8.3')->rules, null, 'name');
+	Assert::same([], $byName['dresscode/override-signature']->layers);
+
 	// the group of the command line lies over the configuration, and the value of a rule is where it was said
 	$rules = resolve(new Config(rules: ['dresscode/useless-else' => false]), commandLine: new Profile(groups: ['cleanup']));
 	Assert::contains('dresscode/useless-else', names($rules));

@@ -68,6 +68,7 @@ final class RuleRegistry
 		Rules\Classes\NoNullDebugInfoReturnRule::class,
 		Rules\Classes\NoSleepAndWakeupRule::class,
 		Rules\Classes\OverrideAttributeRequiredRule::class,
+		Rules\Classes\OverrideSignatureRule::class,
 		Rules\Classes\SingleMemberPerDeclarationRule::class,
 		Rules\Classes\SingleMemberPerLineRule::class,
 		Rules\Classes\UselessModifierRule::class,

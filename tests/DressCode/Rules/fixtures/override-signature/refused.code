@@ -1,0 +1,37 @@
+<?php
+
+namespace App;
+
+use Lib\Widget;
+
+
+class Panel extends Widget
+{
+	// reported and left: a type no declaration writes as it is described
+	public function getParts(): ?\Countable
+	{
+		return null;
+	}
+
+
+	// reported and left: a required parameter, and a default no code writes
+	public function draw(string $caption): void
+	{
+	}
+
+
+	// reported and left: a function in the body may see the variable by its name
+	public function setCaption(string $text): void
+	{
+		$fn = function () use ($text) {
+			return $text;
+		};
+	}
+
+
+	// reported and left: the name is taken in the method
+	public function setWidth(int $size): void
+	{
+		$width = $size * 2;
+	}
+}

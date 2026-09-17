@@ -299,6 +299,29 @@ test('a declaration with the signature of the parent declaration', function () {
 });
 
 
+test('an overriding declaration is read from the text of the pass, while the disk still has the text of the first one', function () {
+	$code = "<?php\nnamespace App;\n\nabstract class Base\n{\n\tabstract protected function run(string \$name): int;\n}\n\nclass Child extends Base\n{\n\tprotected function %s\n\t{\n\t\treturn 1;\n\t}\n}\n";
+	$dir = createTempDir('stale');
+	$path = "$dir/Child.php";
+	file_put_contents($path, sprintf($code, 'run(int $name)'));
+	$phpstan = new Analyses\PhpStan($dir, [$path], "$dir/cache");
+
+	$signatureOf = function (string $declaration) use ($code, $path, $phpstan): Analyses\Signature {
+		$file = (new Parser)->parse(sprintf($code, $declaration));
+		$method = $file->find(PhpSyntax\Nodes\Member\MethodNode::class)[1];
+		return new Analyses\Types($file, $path, $phpstan)->findOverriddenSignature($method) ?? throw new LogicException('No signature.');
+	};
+
+	$first = $signatureOf('run(int $name)');
+	Assert::true($first->returnWidened);
+	Assert::true($first->parameters[0]->narrowed);
+
+	$fixed = $signatureOf('run(string $name): int');
+	Assert::false($fixed->returnWidened);
+	Assert::false($fixed->parameters[0]->narrowed);
+});
+
+
 test('the bootstrap files the configuration of PHPStan names run before the analysis, as an extension needs them', function () {
 	$dir = createTempDir('bootstrap');
 	file_put_contents("$dir/phpstan.neon", "parameters:\n\tbootstrapFiles:\n\t\t- bootstrap.php\n");
