@@ -245,7 +245,7 @@ final class RuleTester
 
 		$registry = new Analyses\Registry($namespacedSymbols);
 		if (RuleInfo::of($rule)->requiresTypes || $stubs !== null) {
-			self::registerTypes($registry, $stubs);
+			self::registerTypes($registry, $code, $stubs);
 		}
 
 		$runner = new PassRunner([$rule], $registry, fn(string $rule) => [$rule], strict: true, fixRisky: $fixRisky);
@@ -263,16 +263,16 @@ final class RuleTester
 
 	/**
 	 * The types of the code from the PHPStan of this project. PHPStan reads the declarations of a file from the
-	 * disk, so the code goes to a file of its own, named by its text; a text seen before shares its PHPStan.
+	 * disk, so the code the run begins with goes to a file of its own, named by its text, and a later pass reads
+	 * its own text as the command line does; a text seen before shares its PHPStan.
 	 */
-	private static function registerTypes(Analyses\Registry $registry, ?string $stubs): void
+	private static function registerTypes(Analyses\Registry $registry, string $code, ?string $stubs): void
 	{
-		$registry->register(Analyses\Types::class, function (FileNode $file) use ($stubs): Analyses\Types {
-			$dir = sys_get_temp_dir() . '/dresscode-tests/types';
-			@mkdir($dir, recursive: true); // @ - the directory may exist
-			$code = Printer::print($file);
-			$path = $dir . '/' . hash('xxh128', $code) . '.php';
+		$dir = sys_get_temp_dir() . '/dresscode-tests/types';
+		$path = $dir . '/' . hash('xxh128', $code) . '.php';
+		$registry->register(Analyses\Types::class, function (FileNode $file) use ($code, $stubs, $dir, $path): Analyses\Types {
 			if (!is_file($path)) {
+				@mkdir($dir, recursive: true); // @ - the directory may exist
 				file_put_contents($path, $code);
 			}
 

@@ -324,6 +324,28 @@ test('an overriding declaration is read from the text of the pass, while the dis
 });
 
 
+test('a class whose parent the pass renamed has the hierarchy of the text of the pass, while the disk still has the old parent', function () {
+	$code = "<?php\nnamespace App;\n\nclass Child extends %s\n{\n\tpublic function run(): string\n\t{\n\t\treturn \$this->greet() . get_class(new class {});\n\t}\n}\n";
+	$dir = sys_get_temp_dir() . '/dresscode-tests/types/renamed-' . getmypid();
+	@mkdir($dir, recursive: true);
+	file_put_contents("$dir/Base.php", "<?php\nnamespace App;\n\nclass NewBase\n{\n\tpublic function greet(): string\n\t{\n\t\treturn '';\n\t}\n}\n");
+	$path = "$dir/Child.php";
+	file_put_contents($path, sprintf($code, 'OldBase'));
+	$phpstan = new Analyses\PhpStan($dir, [$dir], dirname($dir) . '/cache');
+
+	$hierarchyOf = function (string $parent) use ($code, $path, $phpstan): array {
+		$file = (new Parser)->parse(sprintf($code, $parent));
+		$types = new Analyses\Types($file, $path, $phpstan);
+		return [$types->isSubtype('App\Child', 'App\NewBase'), $types->findAccess($file->find(MethodCallNode::class)[0])?->declared];
+	};
+
+	Assert::same([false, false], $hierarchyOf('OldBase'));
+	Assert::same([true, true], $hierarchyOf('NewBase'));
+	Assert::same([false, false], $hierarchyOf('OldBase'));
+	Nette\Utils\FileSystem::delete($dir);
+});
+
+
 test('a deprecation names its replacement in a shape a tool can read, or it does not', function () {
 	Assert::equal(new Deprecation('use Order::StatusPaid', 'Order', 'StatusPaid'), Deprecation::fromDescription('use Order::StatusPaid'));
 	Assert::equal(new Deprecation('use \Acme\Shop\Order::StatusPaid instead.', 'Acme\Shop\Order', 'StatusPaid'), Deprecation::fromDescription('use \Acme\Shop\Order::StatusPaid instead.'));

@@ -42,17 +42,19 @@ final class Types implements PassAnalysis
 	/** @var array<string, bool>  lowercased "class ancestor" → whether the one is the other's subtype */
 	private array $subtypes = [];
 
+	private readonly PhpStan $phpstan;
 
-	public function __construct(
-		FileNode $file,
-		string $path,
-		private readonly PhpStan $phpstan,
-	) {
+
+	public function __construct(FileNode $file, string $path, PhpStan $phpstan)
+	{
 		$this->expressions = new \SplObjectStorage;
 		$this->declarations = new \SplObjectStorage;
 		$this->reflections = new \WeakMap;
 		$index = $file->getIndex();
-		$phpstan->resolveScopes($path, $phpstan->parse(Printer::print($file)), function (ParserNode $node, Scope $scope) use ($index): void {
+		$code = Printer::print($file);
+		$ast = $phpstan->parse($code);
+		$this->phpstan = $phpstan->deriveFor($path, $code, $ast);
+		$this->phpstan->resolveScopes($path, $ast, function (ParserNode $node, Scope $scope) use ($index): void {
 			if ($node instanceof Expr) {
 				$expression = $index->findNode($node->getStartFilePos(), $node->getEndFilePos() + 1, ExpressionNode::class);
 				if ($expression !== null && !isset($this->expressions[$expression])) {
