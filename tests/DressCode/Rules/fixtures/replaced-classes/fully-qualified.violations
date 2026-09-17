@@ -1,0 +1,4 @@
+6: Class Acme\Codec\Message is replaced by Acme\Codec\Envelope
+7: Class Acme\Mail\SmtpMailer is replaced by App\Mail\Mailer
+13: Class Acme\Mail\SmtpMailer is replaced by App\Mail\Mailer
+25: Class Acme\Codec\Message is replaced by Acme\Codec\Envelope

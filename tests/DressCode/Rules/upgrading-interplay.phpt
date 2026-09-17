@@ -85,9 +85,9 @@ test('a member written under another name takes the class written instead with i
 
 test('an annotation is read through the import it was written with, whatever renames the class', function () {
 	// the import stays for the annotation until it is an attribute, and then goes as any other reference of it; the
-	// attribute is written while the short name still names the old class, the rules of notation shorten it
+	// attribute is written in full while the short name still names the old class, and the renamed import shortens it
 	$code = "<?php\n\nnamespace App;\n\nuse Old\\Annotation\\Route;\n\nclass Blog\n{\n\t/** @Route(\"/blog\") */\n\tpublic function list(): void\n\t{\n\t}\n}\n";
-	$expected = "<?php\n\nnamespace App;\n\nuse Fresh\\Attribute\\Route;\n\nclass Blog\n{\n\t#[\\Fresh\\Attribute\\Route('/blog')]\n\tpublic function list(): void\n\t{\n\t}\n}\n";
+	$expected = "<?php\n\nnamespace App;\n\nuse Fresh\\Attribute\\Route;\n\nclass Blog\n{\n\t#[Route('/blog')]\n\tpublic function list(): void\n\t{\n\t}\n}\n";
 	Assert::same([
 		'5: Class Old\Annotation\Route is replaced by Fresh\Attribute\Route',
 		'9: Annotation @Route is replaced by the attribute #[Fresh\Attribute\Route]',

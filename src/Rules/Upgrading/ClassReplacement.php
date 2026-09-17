@@ -21,7 +21,8 @@ use function count, strlen;
  * What no-deprecated-classes and replaced-classes share: every reference of a class, interface or enum in a scope of
  * imports rewritten to the name that replaces it, wherever the name stands, an import, a type, an instantiation,
  * a static access, an attribute. An import of the old name is rewritten in place where its alias or its short name goes on
- * naming the class, else it goes and the references import the new name the way the scope imports. A name in the list
+ * naming the class, and the fully qualified references of the new class in the scope are then written by that name;
+ * else it goes and the references import the new name the way the scope imports. A name in the list
  * of what a class implements or an interface extends that the list names already, as it stands or once rewritten, goes
  * from the list; one the types say cannot stand where it would, a class to implement or an interface to extend by a
  * class, is reported and left.
@@ -75,7 +76,10 @@ final class ClassReplacement
 			if (isset($kept[strtolower($class)])) {
 				continue; // the short name below goes on naming the class the import brings
 			} elseif ($context->report($item->name, $message, fixable: $new !== null) && $new !== null) {
-				self::replaceImport($item, $new, $context);
+				$local = self::replaceImport($item, $new, $context);
+				if ($local !== null) {
+					self::shortenFullyQualified($scope, $new, $local);
+				}
 			}
 		}
 
@@ -137,12 +141,13 @@ final class ClassReplacement
 	/**
 	 * The import stays where its alias or its short name goes on naming the class and, in a group, the prefix still
 	 * names the namespace; else it goes and the references import the new name anew.
+	 * @return ?string  the name the import stays under, null where it went
 	 */
-	private static function replaceImport(UseItemNode $item, string $new, RuleContext $context): void
+	private static function replaceImport(UseItemNode $item, string $new, RuleContext $context): ?string
 	{
 		$stmt = $item->getStatement();
 		if ($stmt === null) {
-			return;
+			return null;
 		}
 
 		$prefix = $stmt->isGroup() ? ltrim($stmt->prefix->text, '\\') . '\\' : '';
@@ -154,10 +159,32 @@ final class ClassReplacement
 				|| $context->getAnalysis(NameResolver::class)->isAliasFree($short, SymbolKind::ClassLike, $item))
 		) {
 			$item->name->text = substr($new, strlen($prefix));
+			return $item->alias->text ?? $short;
 		} elseif (count($stmt->items) === 1) {
 			$stmt->remove();
 		} else {
 			$stmt->items->removeItem($item);
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * The fully qualified references of the class in the scope written by the name its import brings: a rule that
+	 * wrote the class while the name still stood for the replaced one had to write it in full.
+	 */
+	private static function shortenFullyQualified(FileNode|NamespaceNode $scope, string $class, string $local): void
+	{
+		foreach ($scope->find(NameNode::class) as $name) {
+			if (
+				$name->role === SymbolKind::ClassLike
+				&& $name->isReference()
+				&& $name->isFullyQualified()
+				&& strcasecmp(ltrim($name->text, '\\'), $class) === 0
+			) {
+				$name->text = $local;
+			}
 		}
 	}
 
