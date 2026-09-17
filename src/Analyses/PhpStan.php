@@ -12,7 +12,9 @@ use Nette\Utils\FileSystem;
 use PHPStan\Analyser\{NodeScopeResolver, Scope, ScopeContext, ScopeFactory};
 use PHPStan\DependencyInjection\{Container, ContainerFactory};
 use PHPStan\Parser\Parser;
+use PHPStan\PhpDoc\TypeStringResolver;
 use PHPStan\Reflection\{ClassReflection, ReflectionProvider};
+use PHPStan\Type\Type;
 
 
 /**
@@ -87,6 +89,13 @@ final class PhpStan
 	{
 		$provider = $this->getContainer()->getByType(ReflectionProvider::class);
 		return $provider->hasClass($name) ? $provider->getClass($name) : null;
+	}
+
+
+	/** The type written as a phpDoc writes it, its classes fully qualified. */
+	public function resolveType(string $type): Type
+	{
+		return $this->getContainer()->getByType(TypeStringResolver::class)->resolve($type);
 	}
 
 

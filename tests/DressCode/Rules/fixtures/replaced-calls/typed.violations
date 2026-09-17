@@ -1,0 +1,5 @@
+14: Constructor Acme\Range::__construct() is replaced by new \Acme\Range(...$options)
+17: Constructor Acme\Range::__construct() is replaced by new \Acme\Range(...$options), which unpacks $options, whose keys may not be the names of parameters
+27: Constructor Acme\Pick::__construct() is replaced by new \Acme\Pick(values: $values)
+28: Constructor Acme\Pick::__construct() is replaced by new \Acme\Pick(values: $values)
+29: Constructor Acme\Pick::__construct() is replaced by new \Acme\Pick(...$options)

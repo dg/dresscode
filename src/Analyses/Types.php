@@ -81,6 +81,17 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * Whether the expression is of the type for certain, the type written as PHP writes one, `list` besides, its
+	 * classes fully qualified; false where the types cannot tell, and for an expression the pass began without.
+	 */
+	public function isOfType(ExpressionNode $expression, string $type): bool
+	{
+		$actual = $this->getType($expression);
+		return $actual !== null && $this->phpstan->resolveType($type)->isSuperTypeOf($actual)->yes();
+	}
+
+
+	/**
 	 * The classes the expression is an instance of, fully qualified; none for anything that is no object.
 	 * @return list<string>
 	 */

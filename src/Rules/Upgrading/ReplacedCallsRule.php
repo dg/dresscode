@@ -187,7 +187,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 		$parameters = $types->findParameters($access);
 		foreach ($entries as [$pattern, $template]) {
 			$bindings = $pattern->matches($access, $types)
-				? ($pattern->arguments ?? ArgumentPattern::parse('...'))->bind($arguments, $parameters)
+				? ($pattern->arguments ?? ArgumentPattern::parse('...'))->bind($arguments, $parameters, $types)
 				: null;
 			if ($bindings !== null) {
 				return [$pattern, $template, $bindings, $access];

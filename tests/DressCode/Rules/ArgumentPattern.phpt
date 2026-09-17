@@ -103,6 +103,42 @@ test('a literal is the same value, however written', function () {
 });
 
 
+test('a placeholder with a type takes an argument of that type, a literal by its value, and without the types nothing else', function () {
+	Assert::equal(
+		[
+			new ArgumentPatternItem('options', type: 'array'),
+			new ArgumentPatternItem('strict', parameterName: 'strict', type: 'bool'),
+		],
+		ArgumentPattern::parse('array $options, strict: bool $strict')->items,
+	);
+	Assert::equal([new ArgumentPatternItem('clock', type: '?Acme\Clock')], ArgumentPattern::parse('?\Acme\Clock $clock')->items);
+	Assert::equal([new ArgumentPatternItem('id', type: 'int|string')], ArgumentPattern::parse('int | String $id')->items);
+	Assert::equal([new ArgumentPatternItem(literal: ['a, b $c'])], ArgumentPattern::parse("'a, b \$c'")->items);
+
+	Assert::same(['options' => "['min' => 3]"], bind('array $options', "f(['min' => 3])"));
+	Assert::same(['options' => '[]'], bind('array $options', 'f([])'));
+	Assert::null(bind('array $options', 'f(3)'));
+	Assert::null(bind('array $options', 'f(null)'));
+	Assert::null(bind('array $options', 'f($options)')); // no types, nothing known
+	Assert::null(bind('array $options', 'f(...$options)'));
+	Assert::same(['choices' => "['a', 'b']"], bind('list $choices', "f(['a', 'b'])"));
+	Assert::null(bind('list $choices', "f(['min' => 3])"));
+	Assert::same(['flag' => 'false'], bind('bool $flag', 'f(false)'));
+	Assert::null(bind('bool $flag', 'f(0)'));
+	Assert::same(['value' => 'null'], bind('?string $value', 'f(null)'));
+
+	Assert::exception(fn() => ArgumentPattern::parse('?int|string $id'), InvalidArgumentException::class, "'?int|string \$id' does not write a type as PHP writes one.");
+	Assert::exception(fn() => ArgumentPattern::parse('array ...$rest'), InvalidArgumentException::class); // the rest has no type
+});
+
+
+test('of two patterns a literal comes before a type, a list before any other type, and a type before none', function () {
+	$patterns = ['$x', 'array $x', 'true', 'list $x'];
+	usort($patterns, fn(string $a, string $b) => ArgumentPattern::parse($a)->compareSpecificity(ArgumentPattern::parse($b)));
+	Assert::same(['true', 'list $x', 'array $x', '$x'], $patterns);
+});
+
+
 test('an argument passed by name is the one of its parameter, which takes the parameters of the method', function () {
 	$parameters = ['name', 'label', 'multiple'];
 	Assert::same(['name' => "'a'", 'label' => "label: 'b'"], bind('$name, $label, true', "f('a', multiple: true, label: 'b')", $parameters));

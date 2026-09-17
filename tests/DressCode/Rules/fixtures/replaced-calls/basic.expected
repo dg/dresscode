@@ -43,7 +43,7 @@ function test(Playlist $playlist, Settings $settings, MySettings $my, ?Settings 
 	$h = \Closure::fromCallable($cb);
 	$i = $cb(1, ...$items);
 	$j = $cb();
-	$q = $cb(...$items);
+	$q = Invoker::callArray($cb, $items);
 	$k = $items[0]->getDefaultValue();
 	$l = Sequence::map($items, $cb);
 	$m = (new Formatter)->render($items) . "\n";
@@ -55,7 +55,7 @@ function test(Playlist $playlist, Settings $settings, MySettings $my, ?Settings 
 	$v = new Layout(shape: $items, strict: true);
 	$w = new Layout($items, strict: true);
 	$x = new Layout();
-	$y = new Layout(...$items);
+	$y = Mapper::create($items);
 	$z = new Layout(...[1 => $items]);
 
 	// $this is what the call was made on

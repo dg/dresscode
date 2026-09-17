@@ -84,7 +84,7 @@ final readonly class MagicCall
 		// $object[] = $value passes null as the key, which only a key saying null means
 		return $pattern->matches($this->access, $types)
 			&& (!$this->appends || ($pattern->arguments?->items[0]->literal ?? null) === [null])
-			? ($pattern->arguments ?? ArgumentPattern::parse('...'))->bind($this->arguments, null)
+			? ($pattern->arguments ?? ArgumentPattern::parse('...'))->bind($this->arguments, null, $types)
 			: null;
 	}
 }

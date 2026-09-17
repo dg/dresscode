@@ -20,6 +20,8 @@ final readonly class ArgumentBindings
 		public array $arguments,
 		/** @var list<ArgumentNode>  what `...` stands for, in the order of the call, the named ones among them */
 		public array $rest = [],
+		/** @var list<string>  the placeholders bound to an expression whose keys are not seen, being neither an array literal nor a list */
+		public array $unseenKeys = [],
 	) {
 	}
 }

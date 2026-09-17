@@ -129,7 +129,7 @@ final class ForbiddenMembersRule extends NodeRule implements ConfigurableRule
 			if (
 				$pattern->matches($access, $types)
 				&& $pattern->matchesHook($use)
-				&& ($pattern->arguments === null || ($isCall && $pattern->arguments->bind($node->arguments ?? ArgumentListNode::of(), $types->findParameters($access)) !== null))
+				&& ($pattern->arguments === null || ($isCall && $pattern->arguments->bind($node->arguments ?? ArgumentListNode::of(), $types->findParameters($access), $types) !== null))
 			) {
 				// parent::name() is written as a static call and says nothing of the method being one
 				$kind = $access->kind === MemberKind::StaticMethod && $node instanceof StaticMethodCallNode && $node->class instanceof NameNode && $node->class->isSpecialClass()

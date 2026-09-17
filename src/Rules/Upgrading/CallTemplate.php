@@ -47,6 +47,8 @@ final class CallTemplate
 		private readonly bool $writesRest,
 		/** the receiver is written as $this, which takes an expression, not a class */
 		private readonly bool $writesThis,
+		/** @var array<string, true>  placeholders of one argument the template unpacks, `...$options` */
+		private readonly array $unpacked = [],
 	) {
 	}
 
@@ -61,7 +63,7 @@ final class CallTemplate
 		}
 
 		$items = $key->arguments->items ?? [];
-		$uses = $lazy = [];
+		$uses = $lazy = $unpackedItems = [];
 		$writesThis = false;
 		foreach ($holder->find(VariableNode::class) as $variable) {
 			if ($variable->isThis()) {
@@ -82,6 +84,7 @@ final class CallTemplate
 			$name = (string) $item->placeholder;
 			$uses[$name] = ($uses[$name] ?? 0) + 1;
 			$lazy += self::isLazy($variable) ? [$name => true] : [];
+			$unpackedItems += $unpacked && !$item->variadic ? [$name => true] : [];
 		}
 
 		foreach ($holder->find(FunctionCallNode::class, self::isBareCall(...)) as $call) {
@@ -107,7 +110,7 @@ final class CallTemplate
 			throw new \InvalidArgumentException("The code '$code' writes ..., which the key $key->class::$key->name does not take.");
 		}
 
-		return new self($code, $holder, $uses, $lazy, $rests !== [], $writesThis);
+		return new self($code, $holder, $uses, $lazy, $rests !== [], $writesThis, $unpackedItems);
 	}
 
 
@@ -175,6 +178,13 @@ final class CallTemplate
 		$written = array_values(array_intersect(array_keys($this->uses), $evaluated));
 		if ($written !== array_values(array_intersect($evaluated, $written))) {
 			$risk ??= ', which evaluates its arguments in another order';
+		}
+
+		foreach ($bindings->unseenKeys as $placeholder) {
+			$bound = $bindings->arguments[$placeholder];
+			if (isset($this->unpacked[$placeholder]) && $bound instanceof ArgumentNode) {
+				$risk ??= ", which unpacks {$bound->value->text}, whose keys may not be the names of parameters";
+			}
 		}
 
 		[$expression, $classes] = $this->build($bindings, $receiver, $static, $nullsafe);

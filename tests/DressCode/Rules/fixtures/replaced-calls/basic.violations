@@ -13,7 +13,7 @@
 40: Static method Acme\Invoker::wrap() is replaced by \Closure::fromCallable($callable)
 41: Static method Acme\Invoker::call() is replaced by $callable(...$args)
 42: Static method Acme\Invoker::call() is replaced by $callable(...$args)
-43: Static method Acme\Invoker::callArray() is replaced by $callable(...$args)
+43: Static method Acme\Invoker::callArray() is replaced by $callable(...$args), which unpacks $items, whose keys may not be the names of parameters
 44: Static method Acme\Invoker::defaultOf() is replaced by $parameter->getDefaultValue()
 45: Constructor Acme\Mapper::__construct() is replaced by \Acme\Sequence::map($iterator, $callback)
 46: Static method Acme\Formatter::format() is replaced by (new \Acme\Formatter)->render($var)
@@ -22,7 +22,7 @@
 52: Static method Acme\Mapper::create() is replaced by new \Acme\Layout(...$options)
 53: Static method Acme\Mapper::create() is replaced by new \Acme\Layout(...$options)
 54: Static method Acme\Mapper::create() is replaced by new \Acme\Layout(...$options)
-55: Static method Acme\Mapper::create() is replaced by new \Acme\Layout(...$options)
+55: Static method Acme\Mapper::create() is replaced by new \Acme\Layout(...$options), which unpacks $items, whose keys may not be the names of parameters
 56: Static method Acme\Mapper::create() is replaced by new \Acme\Layout(...$options)
 59: Method Acme\Settings::notify() is replaced by \Acme\Sequence::invokeAll($this->listeners, ...$args)
 60: Method Acme\Playlist::copyTrack() is replaced by (new \Acme\Editor($this))->copyTrack($name)
