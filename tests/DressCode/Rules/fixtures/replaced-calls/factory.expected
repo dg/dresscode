@@ -1,5 +1,5 @@
 <?php
-// {"Acme\\Reply::create(...$args)": "new \\Acme\\Reply(...$args)"}
+// {"Acme\\Reply::create(...$args)": "new \\Acme\\Reply(...$args)", "Acme\\JsonReply::create(...$args)": "new \\Acme\\JsonReply(...$args)"}
 
 namespace App;
 
@@ -19,5 +19,7 @@ class MyReply extends Reply
 function test(): void
 {
 	$a = new Reply('hello');
-	$b = JsonReply::create('{}');
+
+	// the key of the child decides, wherever the map writes it
+	$b = new JsonReply('{}');
 }

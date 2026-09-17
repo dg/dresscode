@@ -1,3 +1,3 @@
 14: Method Acme\Reply::create() is replaced by new \Acme\Reply(...$args), but it is called through a child, which the replacement does not create
 21: Static method Acme\Reply::create() is replaced by new \Acme\Reply(...$args)
-22: Static method Acme\Reply::create() is replaced by new \Acme\Reply(...$args), but it is called through a child, which the replacement does not create
+24: Static method Acme\JsonReply::create() is replaced by new \Acme\JsonReply(...$args)

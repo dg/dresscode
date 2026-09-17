@@ -105,7 +105,7 @@ final class ReplacedMembersRule extends NodeRule implements ConfigurableRule
 		$access = $types->findAccess($node);
 		$entry = $access === null
 			? null
-			: array_find($entries, fn(array $entry) => $entry[0]->matches($access, $types));
+			: array_find(MemberMaps::order($entries, $types), fn(array $entry) => $entry[0]->matches($access, $types));
 		if (
 			$access === null
 			|| $entry === null

@@ -125,7 +125,7 @@ final class ForbiddenMembersRule extends NodeRule implements ConfigurableRule
 
 		$isCall = $node instanceof MethodCallNode || $node instanceof StaticMethodCallNode || $node instanceof NewNode;
 		$use = $node instanceof PropertyFetchNode || $node instanceof StaticPropertyFetchNode ? self::detectHookUse($node) : 'get';
-		foreach ($entries as [$pattern, $message]) {
+		foreach (MemberMaps::order($entries, $types) as [$pattern, $message]) {
 			if (
 				$pattern->matches($access, $types)
 				&& $pattern->matchesHook($use)

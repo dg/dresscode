@@ -7,6 +7,7 @@
 
 namespace DressCode\Rules\Upgrading;
 
+use DressCode\Analyses\Types;
 use Nette\Neon\{Entity, Neon};
 use Nette\Schema\{Context, Expect, Schema};
 use Nette\Schema\Elements\AnyOf;
@@ -113,5 +114,32 @@ final class MemberMaps
 		}
 
 		return $entries;
+	}
+
+
+	/**
+	 * The entries of one name in the order they are asked in: by the comparison given, then an entry of a class before
+	 * one of its ancestor, so that of two keys an access fits both, the one of the class nearer to it decides, then as
+	 * the map writes them.
+	 * @template T of array{MemberPattern, mixed}
+	 * @param  list<T>  $entries
+	 * @param  ?\Closure(T, T): int  $compare
+	 * @return list<T>
+	 */
+	public static function order(array $entries, Types $types, ?\Closure $compare = null): array
+	{
+		$keys = array_keys($entries);
+		usort($keys, function (int $a, int $b) use ($entries, $types, $compare): int {
+			[$first, $second] = [$entries[$a][0]->class, $entries[$b][0]->class];
+			$result = $compare === null ? 0 : $compare($entries[$a], $entries[$b]);
+			return match (true) {
+				$result !== 0 => $result,
+				strcasecmp($first, $second) === 0 => $a <=> $b,
+				$types->isSubtype($first, $second) => -1,
+				$types->isSubtype($second, $first) => 1,
+				default => $a <=> $b,
+			};
+		});
+		return array_map(fn(int $key) => $entries[$key], $keys);
 	}
 }

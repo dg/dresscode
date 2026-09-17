@@ -76,9 +76,18 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 	{
 		$this->byName = MemberMaps::read($options, self::createTemplate(...));
 		foreach ($this->byName as &$entries) {
-			usort($entries, fn(array $a, array $b) => ($a[0]->arguments ?? ArgumentPattern::parse('...'))
-				->compareSpecificity($b[0]->arguments ?? ArgumentPattern::parse('...')));
+			usort($entries, self::compareSpecificity(...));
 		}
+	}
+
+
+	/**
+	 * @param  array{MemberPattern, mixed}  $a
+	 * @param  array{MemberPattern, mixed}  $b
+	 */
+	private static function compareSpecificity(array $a, array $b): int
+	{
+		return ($a[0]->arguments ?? ArgumentPattern::parse('...'))->compareSpecificity($b[0]->arguments ?? ArgumentPattern::parse('...'));
 	}
 
 
@@ -192,7 +201,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 
 		$arguments = $node->arguments ?? ArgumentListNode::of();
 		$parameters = $types->findParameters($access);
-		foreach ($entries as [$pattern, $template]) {
+		foreach (MemberMaps::order($entries, $types, self::compareSpecificity(...)) as [$pattern, $template]) {
 			$bindings = $pattern->matches($access, $types)
 				? ($pattern->arguments ?? ArgumentPattern::parse('...'))->bind($arguments, $parameters, $types)
 				: null;
