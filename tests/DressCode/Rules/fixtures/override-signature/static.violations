@@ -1,0 +1,3 @@
+9: Method provideCases() is not static while Lib\TestCase::provideCases() is
+15: Method createSubject() is not static while Lib\TestCase::createSubject() is, and its body uses the object
+21: Method describe() is static while Lib\TestCase::describe() is not

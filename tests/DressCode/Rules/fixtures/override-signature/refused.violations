@@ -1,0 +1,5 @@
+11: Method getParts() returns ?\Countable while Lib\Widget::getParts() returns (Countable&Traversable)|null, but that type cannot be written
+18: Method draw() lacks the parameter $width that Lib\Widget::draw() declares, but the parameter is required
+18: Method draw() lacks the parameter $styles that Lib\Widget::draw() declares, but its default cannot be written
+24: Parameter $text of setCaption() is named $caption in Lib\Widget::setCaption(), but a function in the body may see the variable by its name
+33: Parameter $size of setWidth() is named $width in Lib\Widget::setWidth(), but $width is taken in the method

@@ -1,0 +1,31 @@
+<?php
+
+namespace App;
+
+use Lib\TestCase;
+
+class MailerTest extends TestCase
+{
+	public static function provideCases(): iterable
+	{
+		yield ['smtp://localhost'];
+	}
+
+
+	public function createSubject(): object
+	{
+		return $this->makeMailer();
+	}
+
+
+	public static function describe(): string
+	{
+		return 'mailer';
+	}
+
+
+	private function makeMailer(): object
+	{
+		return new \stdClass;
+	}
+}

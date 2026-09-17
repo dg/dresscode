@@ -1,0 +1,9 @@
+13: Method getValue() declares no return type while Lib\Control::getValue() returns mixed, which the body may not return
+20: Method getItems() returns iterable while Lib\Control::getItems() returns array, which the body may not return
+27: Method render() lacks the parameter $attrs that Lib\Control::render() declares
+27: Method render() lacks the parameter $strict that Lib\Control::render() declares
+37: Parameter $val of setValue() takes string while that of Lib\Control::setValue() takes mixed
+37: Parameter $val of setValue() is named $value in Lib\Control::setValue(), which a caller passing it by name notices
+45: Method attach() is protected while Lib\Control::attach() is public
+51: Method getName() overrides the final Lib\Control::getName()
+61: Parameter $file of load() is named $name in Lib\Loader::load(), but the body names a variable indirectly

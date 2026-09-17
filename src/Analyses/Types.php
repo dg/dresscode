@@ -13,12 +13,12 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCallableNode};
 use PHPStan\Reflection\{ClassConstantReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
 use PHPStan\TrinaryLogic;
-use PHPStan\Type\{Type, TypeCombinator, VerbosityLevel};
+use PHPStan\Type\{MixedType, Type, TypeCombinator, VerbosityLevel};
 use PhpSyntax\{Node, Printer};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, NewNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
 use PhpSyntax\Nodes\{ExpressionNode, FileNode, IdentifierNode, NameNode};
 use PhpSyntax\Nodes\Member\MethodNode;
-use function count;
+use function count, is_bool;
 
 
 /**
@@ -33,7 +33,7 @@ final class Types implements PassAnalysis
 	/** @var \SplObjectStorage<ExpressionNode, array{Expr, Scope}> */
 	private \SplObjectStorage $expressions;
 
-	/** @var \SplObjectStorage<MethodNode, Scope> */
+	/** @var \SplObjectStorage<MethodNode, array{ParserNode\Stmt\ClassMethod, Scope}> */
 	private \SplObjectStorage $declarations;
 
 	/** @var \WeakMap<Callee, ClassConstantReflection|ExtendedMethodReflection|ExtendedPropertyReflection> */
@@ -61,7 +61,7 @@ final class Types implements PassAnalysis
 			} elseif ($node instanceof ParserNode\Stmt\ClassMethod) {
 				$method = $index->findNode($node->getStartFilePos(), $node->getEndFilePos() + 1, MethodNode::class);
 				if ($method !== null && !isset($this->declarations[$method])) {
-					$this->declarations[$method] = $scope;
+					$this->declarations[$method] = [$node, $scope];
 				}
 			}
 		});
@@ -215,7 +215,7 @@ final class Types implements PassAnalysis
 	public function findDeclaringClass(Node $declaration): ?string
 	{
 		return $declaration instanceof MethodNode && isset($this->declarations[$declaration])
-			? $this->declarations[$declaration]->getClassReflection()?->getName()
+			? $this->declarations[$declaration][1]->getClassReflection()?->getName()
 			: null;
 	}
 
@@ -231,7 +231,7 @@ final class Types implements PassAnalysis
 			return null;
 		}
 
-		$scope = $this->declarations[$declaration];
+		$scope = $this->declarations[$declaration][1];
 		$class = $scope->getClassReflection();
 		if ($class === null) {
 			return null;
@@ -271,7 +271,7 @@ final class Types implements PassAnalysis
 		}
 
 		$name = $declaration->name->text;
-		$class = $this->declarations[$declaration]->getClassReflection();
+		$class = $this->declarations[$declaration][1]->getClassReflection();
 		$parent = $class?->getParentClass();
 		if ($class === null || $parent === null || !$class->hasNativeMethod($name) || !$parent->hasNativeMethod($name)) {
 			return false;
@@ -321,6 +321,92 @@ final class Types implements PassAnalysis
 		}
 
 		return true;
+	}
+
+
+	/**
+	 * The method the declaration overrides as the parent class or an interface declares it natively, the first of
+	 * them that declares it and not privately, with where the declaration departs from it; null where it overrides
+	 * nothing, either has more than one variant, or the pass began without the declaration.
+	 */
+	public function findOverriddenSignature(Node $declaration): ?Signature
+	{
+		if (!$declaration instanceof MethodNode || !isset($this->declarations[$declaration])) {
+			return null;
+		}
+
+		// the declaration is read from the text of the pass, the reflection of its class is the file on the disk
+		[$method, $scope] = $this->declarations[$declaration];
+		$class = $scope->getClassReflection();
+		$name = $declaration->name->text;
+		if ($class === null || !$class->hasNativeMethod($name)) {
+			return null;
+		}
+
+		$ownReturnType = $scope->getFunctionType($method->returnType, false, false);
+		$ownTypes = array_map(fn(ParserNode\Param $param) => $scope->getFunctionType(
+			$param->type,
+			$param->default instanceof Expr\ConstFetch && $param->default->name->toLowerString() === 'null',
+			false,
+		), $method->params);
+		$parent = $class->getParentClass();
+		foreach ([...($parent === null ? [] : [$parent]), ...$class->getInterfaces()] as $ancestor) {
+			if (!$ancestor->hasNativeMethod($name)) {
+				continue;
+			}
+
+			$inherited = $ancestor->getNativeMethod($name);
+			if ($inherited->isPrivate()) {
+				continue; // a private method of an ancestor is not overridden, it is hidden
+			} elseif (count($inherited->getVariants()) !== 1) {
+				return null;
+			}
+
+			$variant = $inherited->getOnlyVariant();
+			$returnType = $variant->getNativeReturnType();
+			return new Signature(
+				$inherited->getDeclaringClass()->getName(),
+				$inherited->isFinal()->yes(),
+				$inherited->isStatic(),
+				$inherited->isPublic() ? 'public' : 'protected',
+				self::describeNative($returnType),
+				self::describeNative($returnType) !== null
+				&& (self::describeNative($ownReturnType) === null || !$returnType->isSuperTypeOf($ownReturnType)->yes()),
+				array_map(fn(ExtendedParameterReflection $parameter, int $i) => new SignatureParameter(
+					$parameter->getName(),
+					self::describeNative($parameter->getNativeType()),
+					$parameter->isOptional(),
+					$parameter->isVariadic(),
+					$parameter->passedByReference()->yes(),
+					self::writeValue($parameter->getDefaultValue()),
+					isset($ownTypes[$i]) && !$ownTypes[$i]->isSuperTypeOf($parameter->getNativeType())->yes(),
+				), $variant->getParameters(), array_keys($variant->getParameters())),
+			);
+		}
+
+		return null;
+	}
+
+
+	/** The native type as PHP describes it; null for a declaration without one. */
+	private static function describeNative(Type $type): ?string
+	{
+		return $type instanceof MixedType && !$type->isExplicitMixed() ? null : $type->describe(VerbosityLevel::typeOnly());
+	}
+
+
+	/** The value as PHP code; null for none and for a value that is no scalar, null or empty array. */
+	private static function writeValue(?Type $value): ?string
+	{
+		$scalars = $value?->getConstantScalarValues() ?? [];
+		return match (true) {
+			$value === null => null,
+			$value->isNull()->yes() => 'null',
+			count($scalars) === 1 && is_bool($scalars[0]) => $scalars[0] ? 'true' : 'false',
+			count($scalars) === 1 && $scalars[0] !== null => var_export($scalars[0], true),
+			$value->isArray()->yes() && $value->isIterableAtLeastOnce()->no() => '[]',
+			default => null,
+		};
 	}
 
 
