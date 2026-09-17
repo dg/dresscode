@@ -18,6 +18,8 @@ final readonly class UpgradingData
 	public function __construct(
 		/** the file and the package shipping it */
 		public Layer $layer,
+		/** the package whose versions the sections of the file are of */
+		public string $package,
 		/** @var array{functions: list<string>, constants: list<string>}  what the package declares in its namespaces, fully qualified */
 		public array $namespaces,
 		/** @var array<string, array<string, mixed>>  map => its entries */

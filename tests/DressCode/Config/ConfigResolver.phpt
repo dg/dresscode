@@ -671,6 +671,7 @@ test('the version of PHP a profile says is the target of its files, raised to th
 test('what the namespaces declare adds up over the layers, and only the configuration makes it certain', function () {
 	$declaring = [new Config\UpgradingData(
 		new Config\Layer(Config\LayerKind::Package, package: 'fw/config'),
+		'fw/config',
 		new Profile(namespaces: ['functions' => ['Fw\Config\{service, param}'], 'constants' => ['Fw\VERSION']])->namespaces,
 		[],
 	)];
@@ -779,11 +780,13 @@ test('the maps of the upgrading files lie under those of the project where it sa
 	$packages = [
 		new Config\UpgradingData(
 			new Config\Layer(Config\LayerKind::Package, 'retired.neon', 'acme/lib'),
+			'acme/lib',
 			['functions' => [], 'constants' => []],
 			['replacedClasses' => ['Acme\Old' => 'Acme\New']],
 		),
 		new Config\UpgradingData(
 			new Config\Layer(Config\LayerKind::Package, 'modern.neon', 'acme/lib'),
+			'acme/lib',
 			['functions' => [], 'constants' => []],
 			['replacedClasses' => ['Acme\Legacy' => 'Acme\Modern']],
 		),
@@ -821,6 +824,7 @@ test('the maps of the upgrading files lie under those of the project where it sa
 	// the map of a rule of a plugin or of the project is named by the path of its decision, and its data turn it on
 	$renames = [new Config\UpgradingData(
 		new Config\Layer(Config\LayerKind::Package, 'upgrading.neon', 'acme/lib'),
+		'acme/lib',
 		['functions' => [], 'constants' => []],
 		['project.renames' => ['old' => 'new']],
 	)];
@@ -833,6 +837,7 @@ test('the maps of the upgrading files lie under those of the project where it sa
 	$resolver = createResolver(
 		[new Config\UpgradingData(
 			new Config\Layer(Config\LayerKind::Package, 'upgrading.neon', 'acme/lib'),
+			'acme/lib',
 			['functions' => [], 'constants' => []],
 			['replacedThings' => []],
 		)],
