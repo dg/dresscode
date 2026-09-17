@@ -1,0 +1,30 @@
+<?php
+// {"Acme\\Range::__construct(array $options)": "new \\Acme\\Range(...$options)", "Acme\\Pick::__construct(array $options)": "new \\Acme\\Pick(...$options)", "Acme\\Pick::__construct(list $values)": "new \\Acme\\Pick(values: $values)"}
+// risky
+
+namespace App;
+
+use Acme\Pick;
+use Acme\Range;
+
+/** @param list<string> $names */
+function test(array $options, array $names, $unknown, int $exactly): void
+{
+	// an array literal is written out as the arguments PHP makes of it
+	$a = new Range(['min' => 3, 'max' => 10]);
+
+	// an array only the types tell is unpacked, risky, since its keys are not seen
+	$b = new Range($options);
+
+	// no array: the constructor takes it as it is
+	$c = new Range(3);
+	$d = new Range($exactly);
+	$e = new Range($unknown);
+	$f = new Range(null);
+	$g = new Range(...$options);
+
+	// a list is another key than an array with keys, whatever order the map writes them in
+	$h = new Pick(['a', 'b']);
+	$i = new Pick($names);
+	$j = new Pick(['multiple' => true]);
+}

@@ -157,7 +157,6 @@ class Formatter
 }
 
 
-
 class Range
 {
 	public function __construct(int|array|null $exactly = null, ?int $min = null, ?int $max = null)
@@ -182,6 +181,14 @@ class Reply
 
 class JsonReply extends Reply
 {
+}
+
+
+class Pick
+{
+	public function __construct(?array $options = null, ?array $values = null, bool $multiple = false)
+	{
+	}
 }
 
 
