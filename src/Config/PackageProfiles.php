@@ -23,7 +23,7 @@ use function is_array, is_string;
 final class PackageProfiles
 {
 	/** the keys of `extra.dresscode` a package may use */
-	private const Keys = ['upgrading', 'plugin'];
+	public const Keys = ['upgrading', 'plugin'];
 
 	private const SectionPattern = '~^since (\d+(?:\.\d+)*)$~D';
 	private const PackagePattern = '~^[a-z0-9_.-]+/[a-z0-9_.-]+$~D';
@@ -97,7 +97,7 @@ final class PackageProfiles
 	 * A value is taken as NEON gives it, an entity too, for the schema of the rule to read.
 	 * @throws ConfigurationException
 	 */
-	private static function readFile(string $file, string $source, ProjectPackages $project): ?PackageProfile
+	public static function readFile(string $file, string $source, ProjectPackages $project): ?PackageProfile
 	{
 		// an installed package names the file as "<file> of <package>"
 		$label = preg_match('~^(.+) of (.+)$~', $source, $m) ? "`$m[1]` of `$m[2]`" : "`$source`";
@@ -163,6 +163,6 @@ final class PackageProfiles
 			throw new ConfigurationException("Upgrading file $label: {$e->getMessage()}", previous: $e);
 		}
 
-		return new PackageProfile($source, $profile, $group);
+		return new PackageProfile($source, $package, $profile, $group);
 	}
 }
