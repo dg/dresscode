@@ -792,6 +792,14 @@ final class RuleTester
 final class TestFailure extends Exception implements Stringable, Throwable
 ```
 
+## `DressCode\Testing\UpgradingTester`
+
+```php
+final class UpgradingTester
+	public static function collectProblems(string $file, string $root, array $packageRules = []): array
+	public static function runSample(string $code, string $root, array $decisions = [], string $name = 'sample'): DressCode\FileResult
+```
+
 ## `DressCode\Tristate`
 
 ```php

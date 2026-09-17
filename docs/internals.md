@@ -16,10 +16,10 @@ Public:
 - `Rule`, `NodeRule`, `GapRule`, `RuleInfo`, `RuleContext`, `Claim`, `Space`, `Line`, `Gap`, `Style`, `ImportStyle`, `Violation`: the API of a rule
 - `Stage`, `Severity`, `Tristate`, `Risk`: the enums
 - `exceptions.php`, `Testing\exceptions.php`: the exceptions
-- `FileResult`: the result of a file
+- `FileResult`: the result of a file, which `Testing\UpgradingTester::runSample()` gives
 - `Console\Application`, `Console\UsageException`: a program embedding a run goes through them
 - `Analyses\*`, `Rules\*`: the analyses and the rules, the helpers of the maps included
-- `Testing\RuleTester`: the tester
+- `Testing\RuleTester`, `Testing\UpgradingTester`: the testers
 
 Internal:
 

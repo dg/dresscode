@@ -25,7 +25,7 @@ use function array_key_exists, is_array, is_string;
 final readonly class PackageDiscovery
 {
 	/** the keys of `extra.dresscode` a package may use */
-	private const Keys = ['upgrading', 'plugin'];
+	public const Keys = ['upgrading', 'plugin'];
 
 	private const SectionPattern = '~^since (\d+(?:\.\d+)*)$~D';
 	private const PackagePattern = '~^[a-z0-9_.-]+/[a-z0-9_.-]+$~D';
@@ -122,7 +122,7 @@ final readonly class PackageDiscovery
 	 * A value is taken as NEON gives it, an entity too, for the grammar of the map to read.
 	 * @throws ConfigurationException
 	 */
-	private static function readFile(string $file, Layer $layer, ProjectPackages $project): ?UpgradingData
+	public static function readFile(string $file, Layer $layer, ProjectPackages $project): ?UpgradingData
 	{
 		$label = $layer->format();
 		if (!is_file($file)) {
@@ -183,6 +183,6 @@ final readonly class PackageDiscovery
 			throw new ConfigurationException("Upgrading file $label: {$e->getMessage()}", previous: $e);
 		}
 
-		return new UpgradingData($layer, $namespaces, $maps);
+		return new UpgradingData($layer, $package, $namespaces, $maps);
 	}
 }

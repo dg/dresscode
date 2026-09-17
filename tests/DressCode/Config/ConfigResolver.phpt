@@ -581,7 +581,7 @@ test('the version of PHP a profile says is the target of its files, raised to th
 
 
 test('what the namespaces declare adds up over the layers, and only the configuration makes it certain', function () {
-	$declaring = [new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, package: 'fw/config'), new Profile(namespaces: ['functions' => ['Fw\Config\{service, param}'], 'constants' => ['Fw\VERSION']])->namespaces, [])];
+	$declaring = [new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, package: 'fw/config'), 'fw/config', new Profile(namespaces: ['functions' => ['Fw\Config\{service, param}'], 'constants' => ['Fw\VERSION']])->namespaces, [])];
 	$resolver = createResolver($declaring);
 	// one symbol spelled twice is listed once, as PHP reads the letter case of a function and of a namespace
 	$uncertain = $resolver->resolve(
@@ -669,8 +669,8 @@ test('use lays its presets in the order written, each where it is named first, a
 
 test('the maps of the upgrading files lie under those of the project where it says upgrading.libraries.packages', function () {
 	$packages = [
-		new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, 'retired.neon', 'acme/lib'), ['functions' => [], 'constants' => []], ['replacedClasses' => ['Acme\Old' => 'Acme\New']]),
-		new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, 'modern.neon', 'acme/lib'), ['functions' => [], 'constants' => []], ['replacedClasses' => ['Acme\Legacy' => 'Acme\Modern']]),
+		new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, 'retired.neon', 'acme/lib'), 'acme/lib', ['functions' => [], 'constants' => []], ['replacedClasses' => ['Acme\Old' => 'Acme\New']]),
+		new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, 'modern.neon', 'acme/lib'), 'acme/lib', ['functions' => [], 'constants' => []], ['replacedClasses' => ['Acme\Legacy' => 'Acme\Modern']]),
 	];
 	$map = function (Config $config) use ($packages): ?array {
 		$resolved = createResolver($packages)->resolve($config, '8.3');
@@ -690,14 +690,14 @@ test('the maps of the upgrading files lie under those of the project where it sa
 	Assert::null($map(new Config));
 
 	// the map of a rule of a plugin or of the project is named by the path of its decision, and its data turn it on
-	$renames = [new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, 'upgrading.neon', 'acme/lib'), ['functions' => [], 'constants' => []], ['project.renames' => ['old' => 'new']])];
+	$renames = [new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, 'upgrading.neon', 'acme/lib'), 'acme/lib', ['functions' => [], 'constants' => []], ['project.renames' => ['old' => 'new']])];
 	Assert::false(createResolver($renames)->resolve(new Config, '8.3')->findRule(RuleRenames::class)?->isActive());
 	$resolved = createResolver($renames)->resolve(new Config(decisions: ['upgrading' => ['libraries' => $consent]]), '8.3');
 	Assert::true($resolved->findRule(RuleRenames::class)?->isActive());
 	Assert::same(['old' => 'new'], array_map(fn($value) => $value->toData(), $resolved->values->get('project.renames')->getEntries()));
 
 	// a map this DressCode does not know is a warning, not an error, because the package may be newer
-	$resolver = createResolver([new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, 'upgrading.neon', 'acme/lib'), ['functions' => [], 'constants' => []], ['replacedThings' => []])]);
+	$resolver = createResolver([new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, 'upgrading.neon', 'acme/lib'), 'acme/lib', ['functions' => [], 'constants' => []], ['replacedThings' => []])]);
 	$resolver->resolve(new Config, '8.3');
 	Assert::same(['Map `replacedThings`, which `upgrading.neon` of `acme/lib` sets, is not known to this DressCode; skipped.'], $resolver->getWarnings());
 });
