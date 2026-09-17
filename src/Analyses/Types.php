@@ -521,6 +521,18 @@ final class Types implements PassAnalysis
 	}
 
 
+	/** Whether the class has the member of that kind, itself or through an ancestor; a magic one it does not have. */
+	public function hasMember(string $class, MemberKind $kind, string $name): bool
+	{
+		$reflection = $this->phpstan->findClass($class);
+		return $reflection !== null && match ($kind) {
+			MemberKind::Constant => $reflection->hasConstant($name),
+			MemberKind::Method, MemberKind::StaticMethod, MemberKind::Constructor => $reflection->hasNativeMethod($name),
+			MemberKind::Property, MemberKind::StaticProperty => $reflection->hasNativeProperty($name),
+		};
+	}
+
+
 	/** Whether the class declares the property, itself or through an ancestor; a magic one is not declared. */
 	public function hasProperty(string $class, string $property): bool
 	{

@@ -1,0 +1,2 @@
+12: Constructor Acme\Range::__construct() is replaced by new \Acme\Range(...$options)
+19: Constructor Acme\Layout::__construct() is replaced by \Acme\Mapper::create($shape), but an attribute takes only the arguments of its own class

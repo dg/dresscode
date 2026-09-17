@@ -11,8 +11,9 @@ use DressCode\Analyses\{Access, MemberKind, Types};
 use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\Schema;
+use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList};
+use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode, ListNode, MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\{ExpressionStatementNode, ForeachNode, UnsetNode};
@@ -34,7 +35,8 @@ use function count;
  *
  * A property is a key by its hook, `Class::$name::get` for the expression a read becomes, `isPaid()`, and
  * `Class::$name::set` for the one an assignment does, `setPaid($value)`, a static one the call on the class it is
- * reached through, `self::$container` as `self::getContainer()`. And a magic method is a key for the syntax PHP calls it by:
+ * reached through, `self::$container` as `self::getContainer()`. An attribute is an instantiation of its class, so a key of the
+ * constructor rewrites its arguments where the code written instead creates the same class. And a magic method is a key for the syntax PHP calls it by:
  * `__get($name)` is a read of a property no class declares, `__set($name, $value)` an assignment to one, `__isset()`
  * and `__unset()` what their names say, and `offsetGet($key)`, `offsetSet($key, $value)`, `offsetExists()` and
  * `offsetUnset()` the same for `$object[$key]`, `offsetSet(null, $value)` being `$object[] = $value`. An assignment
@@ -104,6 +106,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			IssetNode::class,
 			UnsetNode::class,
 			MethodNode::class,
+			AttributeNode::class,
 		];
 	}
 
@@ -116,6 +119,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			$node instanceof AssignmentNode => $this->enterAssignment($node, $context),
 			$node instanceof IssetNode, $node instanceof UnsetNode => $this->enterIssetOrUnset($node, $context),
 			$node instanceof MethodNode => $this->enterDeclaration($node, $context),
+			$node instanceof AttributeNode => $this->enterAttribute($node, $context),
 			default => null,
 		};
 	}
@@ -333,6 +337,49 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 				$statement->expression = self::write($rewrite, $node, $context);
 				$node->replaceWith($statement);
 			}
+		}
+	}
+
+
+	/**
+	 * An attribute is an instantiation of its class, so a key of the constructor takes it, where the code written instead
+	 * creates the same class, whose arguments the attribute then takes over.
+	 */
+	private function enterAttribute(AttributeNode $node, RuleContext $context): void
+	{
+		$entries = $this->byName['__construct'] ?? [];
+		if ($entries === []) {
+			return;
+		}
+
+		$class = $context->getAnalysis(NameResolver::class)->resolveClass($node->name);
+		$types = $context->getAnalysis(Types::class);
+		$access = new Access(MemberKind::Constructor, '__construct', [$class], $types->hasMember($class, MemberKind::Constructor, '__construct'));
+		$arguments = $node->arguments ?? ArgumentListNode::of();
+		foreach (MemberMaps::order($entries, $types, self::compareSpecificity(...)) as [$pattern, $template]) {
+			$bindings = $pattern->matches($access, $types)
+				? ($pattern->arguments ?? ArgumentPattern::parse('...'))->bind($arguments, $types->findParameters($access), $types)
+				: null;
+			if ($bindings === null) {
+				continue;
+			}
+
+			$rewrite = $template->instantiate($bindings, $arguments, null);
+			$new = $rewrite->expression;
+			if (
+				$rewrite->expression !== null
+				&& (!$new instanceof NewNode || !$new->class instanceof NameNode || strcasecmp(ltrim($new->class->text, '\\'), $class) !== 0)
+			) {
+				$rewrite = new Rewrite(null, ', but an attribute takes only the arguments of its own class');
+			}
+
+			if (self::report($node->name, $pattern->describe(MemberKind::Constructor) . " is replaced by $template->code", $rewrite, $context)) {
+				assert($new instanceof NewNode);
+				$group = (new Parser)->parseFragment(AttributeGroupNode::class, '#[' . $node->name->text . ($new->arguments->text ?? '') . ']');
+				$node->replaceWith($group->attributes->getItems()[0]->withoutEdgeTrivia());
+			}
+
+			return;
 		}
 	}
 

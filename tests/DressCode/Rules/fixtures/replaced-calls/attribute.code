@@ -1,0 +1,21 @@
+<?php
+// {"Acme\\Range::__construct(array $options)": "new \\Acme\\Range(...$options)", "Acme\\Layout::__construct($shape, $strict)": "\\Acme\\Mapper::create($shape)"}
+
+namespace App;
+
+use Acme\Layout;
+use Acme\Range;
+
+class Post
+{
+	// an attribute is an instantiation of its class
+	#[Range(['min' => 3, 'max' => 10])]
+	public string $title = '';
+
+	#[Range(3)]
+	public string $code = '';
+
+	// what creates something else is no attribute
+	#[Layout([1], true)]
+	public array $shape = [];
+}
