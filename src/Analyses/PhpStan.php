@@ -9,19 +9,27 @@ namespace DressCode\Analyses;
 
 use DressCode\Helpers;
 use Nette\Utils\FileSystem;
+use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Stmt\{Class_, ClassLike, Enum_, EnumCase, Interface_};
+use PhpParser\NodeFinder;
 use PHPStan\Analyser\{NodeScopeResolver, Scope, ScopeContext, ScopeFactory};
 use PHPStan\DependencyInjection\{Container, ContainerFactory};
 use PHPStan\ExtensionInstaller\GeneratedConfig;
 use PHPStan\Parser\Parser;
 use PHPStan\PhpDoc\TypeStringResolver;
+use PHPStan\Reflection\BetterReflection\BetterReflectionProvider;
 use PHPStan\Reflection\{ClassReflection, ReflectionProvider};
 use PHPStan\Type\Type;
+use function is_string;
 
 
 /**
  * PHPStan of the project in the process, the one `phpstan/phpstan` in its vendor: a container built once from
  * the configuration of the project, the parser and the scope resolver the types come from. Only what PHPStan
- * marks @api is used, so that a minor version of it changes nothing here.
+ * marks @api is used, so that a minor version of it changes nothing here, with two exceptions, both about the
+ * reflection living in static state of PHPStan: the container created last takes it over, and handing it back to
+ * another container is internal, as PHPStan does it itself where it switches between two; and its cache of anonymous
+ * classes holds the container that reflected each, so it is emptied before a PHPStan of another text of a pass is made.
  * @internal
  */
 final class PhpStan
@@ -30,6 +38,15 @@ final class PhpStan
 
 	private ?Container $container = null;
 
+	/** @var ?array{string, string}  the path whose declarations are read from the other file, a text of a pass */
+	private ?array $replacement = null;
+
+	/** @var array<string, array{string, list<list<string>>}>  path => hash of its text on the disk and what it declares */
+	private array $diskDeclarations = [];
+
+	/** @var ?array{string, self}  hash of the text of a pass and the PHPStan reading it */
+	private ?array $derived = null;
+
 
 	public function __construct(
 		private readonly string $root,
@@ -37,6 +54,14 @@ final class PhpStan
 		private readonly array $analysedPaths,
 		private readonly string $tempDir,
 	) {
+	}
+
+
+	public function __destruct()
+	{
+		if ($this->replacement !== null) {
+			@unlink($this->replacement[1]); // @ - the file may be gone
+		}
 	}
 
 
@@ -58,6 +83,56 @@ final class PhpStan
 
 
 	/**
+	 * The PHPStan for a text of the file other than the one on the disk, from which PHPStan reads the declarations
+	 * of the file: this one where the text declares the same classes with the same parents, interfaces and traits,
+	 * otherwise one reading the declarations of the file from the text, as the editor mode of PHPStan does. A class
+	 * whose parent another file of the run renamed still has the hierarchy the disk gives it.
+	 * @param  array<\PhpParser\Node\Stmt>  $ast  the text parsed
+	 */
+	public function deriveFor(string $path, string $code, array $ast): self
+	{
+		$path = $this->toAbsolutePath($path);
+		$disk = @file_get_contents($path); // @ - the file may not exist, as the code of stdin does not
+		if ($disk === $code) {
+			return $this;
+		}
+
+		$diskHash = hash('xxh128', (string) $disk);
+		if (($this->diskDeclarations[$path][0] ?? null) !== $diskHash) {
+			$this->diskDeclarations[$path] = [$diskHash, $disk === false ? [] : self::collectDeclarations($this->parse($disk))];
+		}
+
+		if ($this->diskDeclarations[$path][1] === self::collectDeclarations($ast)) {
+			return $this;
+		}
+
+		$hash = hash('xxh128', "$path|$code");
+		if ($this->derived === null || $this->derived[0] !== $hash) {
+			self::forgetAnonymousClasses();
+			$file = Helpers::canonicalizePath($this->tempDir) . '/pass/' . getmypid() . "-$hash.php";
+			FileSystem::write($file, $code);
+			$derived = clone $this;
+			$derived->container = null;
+			$derived->replacement = [$path, $file];
+			$derived->diskDeclarations = [];
+			$derived->derived = null;
+			$this->derived = [$hash, $derived];
+		}
+
+		return $this->derived[1];
+	}
+
+
+	/** Empties the cache of anonymous classes of PHPStan; should PHPStan rename or drop it, nothing is emptied. */
+	private static function forgetAnonymousClasses(): void
+	{
+		if (class_exists(BetterReflectionProvider::class, false) && property_exists(BetterReflectionProvider::class, 'anonymousClasses')) {
+			\Closure::bind(static function (): void { self::$anonymousClasses = []; }, null, BetterReflectionProvider::class)();
+		}
+	}
+
+
+	/**
 	 * Computes the scope of every node of the file and hands each to the callback. The path is the one of the run,
 	 * relative to the root; PHPStan reads the declarations of a file from the disk and resolves a relative path
 	 * against the working directory, which is not the root of the run, so it is given an absolute one.
@@ -66,7 +141,8 @@ final class PhpStan
 	 */
 	public function resolveScopes(string $path, array $ast, callable $callback): void
 	{
-		$path = FileSystem::isAbsolute($path) ? $path : Helpers::canonicalizePath($this->root) . '/' . $path;
+		$path = $this->toAbsolutePath($path);
+		$path = $this->replacement !== null && $path === $this->replacement[0] ? $this->replacement[1] : $path;
 		$container = $this->getContainer();
 		$resolver = $container->getByType(NodeScopeResolver::class);
 		$resolver->setAnalysedFiles([$path]);
@@ -102,34 +178,37 @@ final class PhpStan
 
 	private function getContainer(): Container
 	{
-		if ($this->container === null) {
-			$config = null;
-			foreach (self::ConfigFiles as $file) {
-				if (is_file("$this->root/$file")) {
-					$config = "$this->root/$file";
-					break;
-				}
-			}
-
-			try {
-				$container = new ContainerFactory($this->root)->create(
-					$this->tempDir,
-					[...self::findExtensionConfigs(), ...($config === null ? [] : [$config])],
-					$this->analysedPaths,
-					[$this->root],
-				);
-				// the container does not run them, the command of PHPStan does; an extension such as Larastan needs them
-				foreach ($container->getParameter('bootstrapFiles') as $file) {
-					(static function (string $file): void { require_once $file; })($file);
-				}
-			} catch (\Throwable $e) {
-				throw new \RuntimeException('PHPStan could not be started' . ($config ? ' with ' . Helpers::formatCode($config) : '') . ": {$e->getMessage()}", previous: $e);
-			}
-
-			$this->container = $container;
+		if ($this->container !== null) {
+			ContainerFactory::postInitializeContainer($this->container);
+			return $this->container;
 		}
 
-		return $this->container;
+		$config = null;
+		foreach (self::ConfigFiles as $file) {
+			if (is_file("$this->root/$file")) {
+				$config = "$this->root/$file";
+				break;
+			}
+		}
+
+		try {
+			$container = new ContainerFactory($this->root)->create(
+				$this->tempDir,
+				[...self::findExtensionConfigs(), ...($config === null ? [] : [$config])],
+				$this->analysedPaths,
+				[$this->root],
+				singleReflectionFile: $this->replacement[1] ?? null,
+				singleReflectionInsteadOfFile: $this->replacement[0] ?? null,
+			);
+			// the container does not run them, the command of PHPStan does; an extension such as Larastan needs them
+			foreach ($container->getParameter('bootstrapFiles') as $file) {
+				(static function (string $file): void { require_once $file; })($file);
+			}
+		} catch (\Throwable $e) {
+			throw new \RuntimeException('PHPStan could not be started' . ($config ? ' with ' . Helpers::formatCode($config) : '') . ": {$e->getMessage()}", previous: $e);
+		}
+
+		return $this->container = $container;
 	}
 
 
@@ -156,5 +235,74 @@ final class PhpStan
 		}
 
 		return $configs;
+	}
+
+
+	/**
+	 * The classes, interfaces, traits and enums the code declares by name, each with its parents, the interfaces it
+	 * implements, the traits it uses and the names of its members, which is what the reflection PHPStan reads answers
+	 * about; the signatures of the members are left out, a question about them being read from the text of the pass.
+	 * @param  array<\PhpParser\Node\Stmt>  $ast
+	 * @return list<list<string>>
+	 */
+	private static function collectDeclarations(array $ast): array
+	{
+		$declarations = [];
+		foreach ((new NodeFinder)->findInstanceOf($ast, ClassLike::class) as $class) {
+			if (!isset($class->namespacedName)) { // an anonymous class has none
+				continue;
+			}
+
+			$names = match (true) {
+				$class instanceof Class_ => [$class->extends, ...$class->implements],
+				$class instanceof Interface_ => $class->extends,
+				$class instanceof Enum_ => $class->implements,
+				default => [],
+			};
+			foreach ($class->getTraitUses() as $use) {
+				$names = [...$names, ...$use->traits];
+			}
+
+			$declaration = [$class->namespacedName->toLowerString()];
+			foreach ($names as $name) {
+				$declaration[] = $name?->toLowerString() ?? '';
+			}
+
+			$members = [];
+			foreach ($class->getMethods() as $method) {
+				$members[] = $method->name->toLowerString() . '()';
+				foreach ($method->params as $param) {
+					$members[] = $param->flags !== 0 && $param->var instanceof Variable && is_string($param->var->name) ? '$' . $param->var->name : null;
+				}
+			}
+
+			foreach ($class->getProperties() as $property) {
+				foreach ($property->props as $item) {
+					$members[] = '$' . $item->name->toString();
+				}
+			}
+
+			foreach ($class->getConstants() as $constant) {
+				foreach ($constant->consts as $item) {
+					$members[] = $item->name->toString();
+				}
+			}
+
+			foreach ($class->stmts as $stmt) {
+				$members[] = $stmt instanceof EnumCase ? $stmt->name->toString() : null;
+			}
+
+			$members = array_filter($members);
+			sort($members);
+			$declarations[] = [...$declaration, ...$members];
+		}
+
+		return $declarations;
+	}
+
+
+	private function toAbsolutePath(string $path): string
+	{
+		return FileSystem::isAbsolute($path) ? $path : Helpers::canonicalizePath($this->root) . '/' . $path;
 	}
 }

@@ -322,6 +322,43 @@ test('an overriding declaration is read from the text of the pass, while the dis
 });
 
 
+test('a class whose parent the pass renamed has the hierarchy of the text of the pass, while the disk still has the old parent', function () {
+	$code = "<?php\nnamespace App;\n\nclass Child extends %s\n{\n\tpublic function run(): string\n\t{\n\t\treturn \$this->greet() . get_class(new class {});\n\t}\n}\n";
+	$dir = createTempDir('renamed');
+	file_put_contents("$dir/Base.php", "<?php\nnamespace App;\n\nclass NewBase\n{\n\tpublic function greet(): string\n\t{\n\t\treturn '';\n\t}\n}\n");
+	$path = "$dir/Child.php";
+	file_put_contents($path, sprintf($code, 'OldBase'));
+	$phpstan = new Analyses\PhpStan($dir, [$dir], dirname($dir) . '/cache');
+
+	$hierarchyOf = function (string $parent) use ($code, $path, $phpstan): array {
+		$file = (new Parser)->parse(sprintf($code, $parent));
+		$types = new Analyses\Types($file, $path, $phpstan);
+		return [$types->isSubtype('App\Child', 'App\NewBase'), $types->findAccess($file->find(MethodCallNode::class)[0])?->declared];
+	};
+
+	Assert::same([Tristate::No, false], $hierarchyOf('OldBase'));
+	Assert::same([Tristate::Yes, true], $hierarchyOf('NewBase'));
+	Assert::same([Tristate::No, false], $hierarchyOf('OldBase'));
+});
+
+
+test('a member the pass added is one the class has, while the disk still has the class without it', function () {
+	$code = "<?php\nnamespace App;\n\nclass Widget\n{\n%s}\n";
+	$dir = createTempDir('added');
+	$path = "$dir/Widget.php";
+	file_put_contents($path, sprintf($code, ''));
+	$phpstan = new Analyses\PhpStan($dir, [$dir], dirname($dir) . '/cache');
+
+	$has = function (string $members) use ($code, $path, $phpstan): array {
+		$types = new Analyses\Types((new Parser)->parse(sprintf($code, $members)), $path, $phpstan);
+		return [$types->hasMember('App\Widget', MemberKind::Constructor, '__construct'), $types->hasProperty('App\Widget', 'size')];
+	};
+
+	Assert::same([false, false], $has(''));
+	Assert::same([true, true], $has("\tpublic function __construct(\n\t\tprivate int \$size,\n\t) {\n\t}\n"));
+});
+
+
 test('the bootstrap files the configuration of PHPStan names run before the analysis, as an extension needs them', function () {
 	$dir = createTempDir('bootstrap');
 	file_put_contents("$dir/phpstan.neon", "parameters:\n\tbootstrapFiles:\n\t\t- bootstrap.php\n");
@@ -330,7 +367,7 @@ test('the bootstrap files the configuration of PHPStan names run before the anal
 	$phpstan = new Analyses\PhpStan($dir, [$dir], dirname($dir) . '/cache');
 
 	Assert::false(defined('DressCodeTestBootstrap'));
-	new Analyses\Types((new Parser)->parse((string) file_get_contents("$dir/Widget.php")), "$dir/Widget.php", $phpstan);
+	new Analyses\Types((new Parser)->parse((string) file_get_contents("$dir/Widget.php")), "$dir/Widget.php", $phpstan)->hasProperty('App\Widget', 'size');
 	Assert::true(defined('DressCodeTestBootstrap'));
 });
 

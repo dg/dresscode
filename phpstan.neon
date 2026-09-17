@@ -19,8 +19,9 @@ parameters:
 		-
 			identifier: phpstanApi.instanceofAssumption
 			path: src/Analyses/Types.php
-		# the class phpstan/extension-installer generates is internal to it; should it be renamed or dropped, the
-		# extensions go unread, which costs what they add to the types, not a wrong answer
+		# the class phpstan/extension-installer generates and the cache of anonymous classes are internal; should either
+		# be renamed or dropped, the extensions go unread or nothing is emptied, which costs what the extensions add to
+		# the types or memory, not a wrong answer
 		-
 			identifier: phpstanApi.classConstant
 			path: src/Analyses/PhpStan.php
