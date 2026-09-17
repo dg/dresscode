@@ -165,6 +165,25 @@ class Range
 }
 
 
+class Reply
+{
+	public function __construct(string $body = '')
+	{
+	}
+
+
+	public static function create(string $body = ''): static
+	{
+		return new static($body);
+	}
+}
+
+
+class JsonReply extends Reply
+{
+}
+
+
 class Pick
 {
 	public function __construct(?array $options = null, ?array $values = null, bool $multiple = false)

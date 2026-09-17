@@ -140,6 +140,13 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 		if ($access->kind === MemberKind::Constructor) {
 			$created = $node instanceof NewNode ? $types->findAccess($node)->classes ?? [] : [];
 			$rewrite = self::keepConstructorCall($rewrite, $pattern, $node, ofChild: array_any($created, fn(string $class) => strcasecmp($class, $pattern->class) !== 0));
+		} elseif (
+			$access->kind === MemberKind::StaticMethod
+			&& array_any($access->classes, fn(string $class) => strcasecmp($class, $pattern->class) !== 0)
+			&& array_any($rewrite->classes, fn(NameNode $name) => $name->parent instanceof NewNode && strcasecmp(ltrim($name->text, '\\'), $pattern->class) === 0)
+		) {
+			// a static factory creates the class it is called through, the replacement the one it names
+			$rewrite = new Rewrite(null, ', but it is called through a child, which the replacement does not create');
 		}
 
 		// parent::name() is written as a static call and says nothing of the method being one

@@ -1,0 +1,23 @@
+<?php
+// {"Acme\\Reply::create(...$args)": "new \\Acme\\Reply(...$args)"}
+
+namespace App;
+
+use Acme\JsonReply;
+use Acme\Reply;
+
+class MyReply extends Reply
+{
+	public function copy(): static
+	{
+		// a factory called through a child creates the child, which the replacement does not
+		return static::create('copy');
+	}
+}
+
+
+function test(): void
+{
+	$a = Reply::create('hello');
+	$b = JsonReply::create('{}');
+}
