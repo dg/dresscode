@@ -24,7 +24,7 @@ use function count, is_array, strlen;
 
 
 /**
- * The rewrite replacedClasses makes: every reference of a class, interface or enum in a scope of
+ * What noDeprecatedClasses and replacedClasses share: every reference of a class, interface or enum in a scope of
  * imports rewritten to the name that replaces it, wherever the name stands, an import, a type, an instantiation,
  * a static access, an attribute. An import of the old name is rewritten in place where its alias or its short name goes on
  * naming the class, and the fully qualified references of the new class in the scope are then written by that name;

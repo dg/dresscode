@@ -1,0 +1,17 @@
+<?php
+
+namespace App;
+
+use Acme\Http\Gone;
+use Acme\Mail\Transport;
+
+class Y
+{
+	/**
+	 * @param  Transport  $transport  rewritten, the deprecation names what to use instead
+	 * @return Gone  left alone, the deprecation names nothing
+	 */
+	public function send($transport)
+	{
+	}
+}
