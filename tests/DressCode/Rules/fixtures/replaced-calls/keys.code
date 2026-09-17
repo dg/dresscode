@@ -1,0 +1,22 @@
+<?php
+// {"Acme\\Copier::mirror($from, $to, $iterator, ['copy_links' => $links, ...$options])": "mirror($from, $to, $iterator, ['follow_links' => $links, ...$options])", "Acme\\Copier::mirror($from, $to, options: ['copy_links' => $links, ...$options])": "mirror($from, $to, options: ['follow_links' => $links, ...$options])", "Acme\\Copier::mirror($from, $to, $iterator, ['keep' => $keep])": "mirror($from, $to, $iterator, ['delete' => !$keep])"}
+
+namespace App;
+
+use Acme\Copier;
+
+function deploy(Copier $copier, array $base, bool $links): void
+{
+	$copier->mirror('src', 'dist', null, ['copy_links' => true, 'override' => true]);
+	$copier->mirror('src', 'dist', null, [
+		'delete' => false,
+		'copy_links' => $links,
+	]);
+	$copier->mirror('src', 'dist', options: ['copy_links' => $links]);
+	$copier->mirror('src', 'dist', null, ['keep' => $links]);
+
+	// left alone: no such key, no array literal, keys that are not seen
+	$copier->mirror('src', 'dist', null, ['override' => true]);
+	$copier->mirror('src', 'dist', null, $base);
+	$copier->mirror('src', 'dist', null, [...$base, 'copy_links' => true]);
+}
