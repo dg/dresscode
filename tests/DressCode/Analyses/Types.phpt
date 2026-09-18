@@ -346,6 +346,25 @@ test('a class whose parent the pass renamed has the hierarchy of the text of the
 });
 
 
+test('a member the pass added is one the class has, while the disk still has the class without it', function () {
+	$code = "<?php\nnamespace App;\n\nclass Widget\n{\n%s}\n";
+	$dir = sys_get_temp_dir() . '/dresscode-tests/types/added-' . getmypid();
+	@mkdir($dir, recursive: true);
+	$path = "$dir/Widget.php";
+	file_put_contents($path, sprintf($code, ''));
+	$phpstan = new Analyses\PhpStan($dir, [$dir], dirname($dir) . '/cache');
+
+	$has = function (string $members) use ($code, $path, $phpstan): array {
+		$types = new Analyses\Types((new Parser)->parse(sprintf($code, $members)), $path, $phpstan);
+		return [$types->hasMember('App\Widget', MemberKind::Constructor, '__construct'), $types->hasProperty('App\Widget', 'size')];
+	};
+
+	Assert::same([false, false], $has(''));
+	Assert::same([true, true], $has("\tpublic function __construct(\n\t\tprivate int \$size,\n\t) {\n\t}\n"));
+	Nette\Utils\FileSystem::delete($dir);
+});
+
+
 test('a deprecation names its replacement in a shape a tool can read, or it does not', function () {
 	Assert::equal(new Deprecation('use Order::StatusPaid', 'Order', 'StatusPaid'), Deprecation::fromDescription('use Order::StatusPaid'));
 	Assert::equal(new Deprecation('use \Acme\Shop\Order::StatusPaid instead.', 'Acme\Shop\Order', 'StatusPaid'), Deprecation::fromDescription('use \Acme\Shop\Order::StatusPaid instead.'));

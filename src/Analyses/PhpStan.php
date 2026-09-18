@@ -9,7 +9,8 @@ namespace DressCode\Analyses;
 
 use DressCode\Helpers;
 use Nette\Utils\FileSystem;
-use PhpParser\Node\Stmt\{Class_, ClassLike, Enum_, Interface_};
+use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Stmt\{Class_, ClassLike, Enum_, EnumCase, Interface_};
 use PhpParser\NodeFinder;
 use PHPStan\Analyser\{NodeScopeResolver, Scope, ScopeContext, ScopeFactory};
 use PHPStan\DependencyInjection\{Container, ContainerFactory};
@@ -17,6 +18,7 @@ use PHPStan\Parser\Parser;
 use PHPStan\PhpDoc\TypeStringResolver;
 use PHPStan\Reflection\{ClassReflection, ReflectionProvider};
 use PHPStan\Type\Type;
+use function is_string;
 
 
 /**
@@ -195,7 +197,8 @@ final class PhpStan
 
 	/**
 	 * The classes, interfaces, traits and enums the code declares by name, each with its parents, the interfaces it
-	 * implements and the traits it uses, which is what the hierarchy PHPStan reads depends on.
+	 * implements, the traits it uses and the names of its members, which is what the reflection PHPStan reads answers
+	 * about; the signatures of the members are left out, a question about them being read from the text of the pass.
 	 * @param  array<\PhpParser\Node\Stmt>  $ast
 	 * @return list<list<string>>
 	 */
@@ -222,7 +225,33 @@ final class PhpStan
 				$declaration[] = $name?->toLowerString() ?? '';
 			}
 
-			$declarations[] = $declaration;
+			$members = [];
+			foreach ($class->getMethods() as $method) {
+				$members[] = $method->name->toLowerString() . '()';
+				foreach ($method->params as $param) {
+					$members[] = $param->flags !== 0 && $param->var instanceof Variable && is_string($param->var->name) ? '$' . $param->var->name : null;
+				}
+			}
+
+			foreach ($class->getProperties() as $property) {
+				foreach ($property->props as $item) {
+					$members[] = '$' . $item->name->toString();
+				}
+			}
+
+			foreach ($class->getConstants() as $constant) {
+				foreach ($constant->consts as $item) {
+					$members[] = $item->name->toString();
+				}
+			}
+
+			foreach ($class->stmts as $stmt) {
+				$members[] = $stmt instanceof EnumCase ? $stmt->name->toString() : null;
+			}
+
+			$members = array_filter($members);
+			sort($members);
+			$declarations[] = [...$declaration, ...$members];
 		}
 
 		return $declarations;
