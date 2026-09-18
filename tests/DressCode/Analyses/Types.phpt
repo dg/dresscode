@@ -365,6 +365,21 @@ test('a member the pass added is one the class has, while the disk still has the
 });
 
 
+test('the bootstrap files the configuration of PHPStan names run before the analysis, as an extension needs them', function () {
+	$dir = sys_get_temp_dir() . '/dresscode-tests/types/bootstrap-' . getmypid();
+	@mkdir($dir, recursive: true);
+	file_put_contents("$dir/phpstan.neon", "parameters:\n\tbootstrapFiles:\n\t\t- bootstrap.php\n");
+	file_put_contents("$dir/bootstrap.php", "<?php\ndefine('DressCodeTestBootstrap', true);\n");
+	file_put_contents("$dir/Widget.php", "<?php\nnamespace App;\n\nclass Widget\n{\n}\n");
+	$phpstan = new Analyses\PhpStan($dir, [$dir], dirname($dir) . '/cache');
+
+	Assert::false(defined('DressCodeTestBootstrap'));
+	new Analyses\Types((new Parser)->parse((string) file_get_contents("$dir/Widget.php")), "$dir/Widget.php", $phpstan)->hasProperty('App\Widget', 'size');
+	Assert::true(defined('DressCodeTestBootstrap'));
+	Nette\Utils\FileSystem::delete($dir);
+});
+
+
 test('a deprecation names its replacement in a shape a tool can read, or it does not', function () {
 	Assert::equal(new Deprecation('use Order::StatusPaid', 'Order', 'StatusPaid'), Deprecation::fromDescription('use Order::StatusPaid'));
 	Assert::equal(new Deprecation('use \Acme\Shop\Order::StatusPaid instead.', 'Acme\Shop\Order', 'StatusPaid'), Deprecation::fromDescription('use \Acme\Shop\Order::StatusPaid instead.'));

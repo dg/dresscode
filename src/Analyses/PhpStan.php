@@ -179,7 +179,7 @@ final class PhpStan
 		}
 
 		try {
-			$this->container = new ContainerFactory($this->root)->create(
+			$container = new ContainerFactory($this->root)->create(
 				$this->tempDir,
 				$configs,
 				$this->analysedPaths,
@@ -187,11 +187,15 @@ final class PhpStan
 				singleReflectionFile: $this->replacement[1] ?? null,
 				singleReflectionInsteadOfFile: $this->replacement[0] ?? null,
 			);
+			// the container does not run them, the command of PHPStan does; an extension such as Larastan needs them
+			foreach ($container->getParameter('bootstrapFiles') as $file) {
+				(static function (string $file): void { require_once $file; })($file);
+			}
 		} catch (\Throwable $e) {
 			throw new \RuntimeException('PHPStan could not be started' . ($configs ? " with $configs[0]" : '') . ": {$e->getMessage()}", previous: $e);
 		}
 
-		return $this->container;
+		return $this->container = $container;
 	}
 
 
