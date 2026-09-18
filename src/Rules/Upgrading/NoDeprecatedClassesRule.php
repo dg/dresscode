@@ -22,14 +22,14 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * a type, an instantiation, a static access, an attribute. Where the deprecation names the class to use instead,
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
  * follow; any other is reported with what the deprecation says. In a doc comment only a class the deprecation names
- * a replacement for is rewritten, one without it being left as it is. A class the map of replacedClasses has is not
- * reported.
+ * a replacement for is rewritten, one without it being left as it is. A class the map of replacedClasses or of
+ * forbiddenClasses has is not reported.
  */
 #[RuleInfo(
 	Stage::Structure,
 	typesRequired: true,
 	modifiesComments: true,
-	reads: [MemberMapGrammar::ReplacedClasses],
+	reads: [MemberMapGrammar::ReplacedClasses, MemberMapGrammar::ForbiddenClasses],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class NoDeprecatedClassesRule extends NodeRule
@@ -51,7 +51,10 @@ final class NoDeprecatedClassesRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->mapped = [];
-		foreach (array_keys($values->readMap(MemberMapGrammar::ReplacedClasses)) as $class) {
+		foreach ([
+			...array_keys($values->readMap(MemberMapGrammar::ReplacedClasses)),
+			...array_keys($values->readMap(MemberMapGrammar::ForbiddenClasses)),
+		] as $class) {
 			$this->mapped[strtolower(ltrim((string) $class, '\\'))] = true;
 		}
 	}

@@ -239,6 +239,7 @@ final class CorePlugin implements Plugin
 				Rules\Upgrading\ReplacedFunctionsRule::class,
 				Rules\Upgrading\ReplacedMembersRule::class,
 				Rules\Upgrading\ReplacedCallsRule::class,
+				Rules\Upgrading\ForbiddenClassesRule::class,
 				Rules\Upgrading\ForbiddenFunctionsRule::class,
 				Rules\Upgrading\NoDeprecatedClassesRule::class,
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
@@ -369,6 +370,11 @@ final class CorePlugin implements Plugin
 					'A call written as the template says (`Acme\\Mail\\Mailer::send($to, $body): send(new Message($to, $body))`)',
 				),
 				new Decision(
+					MemberMapGrammar::ForbiddenClasses,
+					new Map(new GrammarEntry, grammar: self::createForbiddenClassesGrammar(), caseInsensitive: true),
+					'A class that may not be used, with what to do instead (`Acme\\Legacy\\Db: "use the repository"`)',
+				),
+				new Decision(
 					MemberMapGrammar::ForbiddenFunctions,
 					new Map(new GrammarEntry, grammar: self::createForbiddenFunctionsGrammar(), caseInsensitive: true),
 					'A function that may not be called, with what to do instead',
@@ -495,6 +501,13 @@ final class CorePlugin implements Plugin
 			'The replaced use, `Class::name($a, true)`, `Class::name(...$args)` with any arguments, `Class::name()` without any, `Class::__construct($a)`, `Class::$name::get`, `Class::$name::set` or a magic method for the syntax PHP calls it by → the expression written instead, with the placeholders of the key, `$value` what is assigned',
 			CallTemplate::fromEntry(...),
 		)->transform(CallTemplate::checkCycles(...));
+	}
+
+
+	private static function createForbiddenClassesGrammar(): Schema
+	{
+		return Expect::arrayOf(Expect::string()->nullable(), Expect::string()->pattern(self::QualifiedName))
+			->description('The forbidden class, fully qualified → what to do instead, as the end of the message, or null for none');
 	}
 
 

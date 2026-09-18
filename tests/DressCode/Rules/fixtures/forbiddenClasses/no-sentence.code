@@ -1,0 +1,7 @@
+<?php
+// {"libraries": {"forbiddenClasses": {"Acme\\Legacy": null}}}
+namespace App;
+
+use Acme\Legacy;
+
+new Legacy;
