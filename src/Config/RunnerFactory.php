@@ -33,6 +33,9 @@ final class RunnerFactory
 
 	private ?ResolvedConfig $resolved = null;
 
+	/** @var list<array{PackageProfile, ?string}> */
+	private array $packages = [];
+
 	/** @var ?\Closure(list<int>): ResolvedConfig */
 	private ?\Closure $resolveFor = null;
 
@@ -72,6 +75,17 @@ final class RunnerFactory
 
 
 	/**
+	 * The upgrading files of the installed packages the last built engine heard, each with the version of its package
+	 * the code must work with, null where any does.
+	 * @return list<array{PackageProfile, ?string}>
+	 */
+	public function getPackages(): array
+	{
+		return $this->packages;
+	}
+
+
+	/**
 	 * @param  ?Profile  $commandLine  laid over the configuration and its overrides, as --preset and --rule are
 	 * @param  ?list<string>  $only  names or classes of the rules and presets the run is narrowed to
 	 * @param  bool  $strict  a broken rule contract throws instead of warning
@@ -97,6 +111,7 @@ final class RunnerFactory
 	{
 		$project = ProjectPackages::read($root)->withTargets($config->packages);
 		$packages = PackageProfiles::discover($project);
+		$this->packages = array_map(fn(PackageProfile $profile) => [$profile, $project->findVersion($profile->package)], $packages->profiles);
 		$visited = [];
 		$layers = [...$this->loadExtensions([...$packages->extensions, ...$config->extensions], $visited), $config];
 		[$version, $source] = $this->resolvePhpVersion($config, $root);

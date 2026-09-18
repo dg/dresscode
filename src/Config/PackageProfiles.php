@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{ConfigurationException, Extension, Profile};
+use DressCode\{ConfigurationException, Extension, Group, Profile};
 use Nette\Neon\{Exception as NeonException, Neon};
 use function is_array, is_string;
 
@@ -16,7 +16,8 @@ use function is_array, is_string;
  * What the installed packages bring to a project without being named in its configuration: the upgrading files under
  * `extra.dresscode.upgrading`, cut to the sections the version of their package reaches (ProjectPackages::findVersion()),
  * a later one having the last word on an entry, and the extension under `extra.dresscode.extension`. The root package
- * takes part too, and a file about the root itself applies whole. Such a file never turns a rule on.
+ * takes part too, and a file about the root itself applies whole. Such a file never turns a rule on itself; its
+ * `group`, `deprecations` unless it says another, does, where the project turns that group on.
  * @internal
  */
 final class PackageProfiles
@@ -105,13 +106,19 @@ final class PackageProfiles
 			throw new ConfigurationException("Upgrading file $source: The key 'package' must name the package the sections are versions of, as vendor/name.");
 		}
 
+		$group = is_string($data['group'] ?? null) ? Group::tryFrom($data['group']) : null;
+		if ($group === null) {
+			$names = implode("', '", array_map(fn(Group $group) => $group->value, Group::cases()));
+			throw new ConfigurationException("Upgrading file $source: The key 'group' must name the group the data are of, one of '$names'.");
+		}
+
 		/** @var array<string, array<string, array<string, mixed>>> $sections  version → rule → its options */
 		$sections = [];
 		foreach ($data as $key => $section) {
-			if ($key === 'package') {
+			if ($key === 'package' || $key === 'group') {
 				continue;
 			} elseif (!is_string($key) || !preg_match(self::SectionPattern, $key, $m)) {
-				throw new ConfigurationException("Upgrading file $source: Unexpected key '$key'; the file holds 'package' and sections 'since <version>'.");
+				throw new ConfigurationException("Upgrading file $source: Unexpected key '$key'; the file holds 'package', 'group' and sections 'since <version>'.");
 			} elseif (!is_array($section) || (array_is_list($section) && $section !== [])) {
 				throw new ConfigurationException("Upgrading file $source: The section '$key' must be a map of rules to their options.");
 			}
@@ -143,6 +150,6 @@ final class PackageProfiles
 			}
 		}
 
-		return new PackageProfile($source, $package, new Profile(rules: $rules), $unreached);
+		return new PackageProfile($source, $package, new Profile(rules: $rules), $group, $unreached);
 	}
 }

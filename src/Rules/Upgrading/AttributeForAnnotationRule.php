@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Access, MemberKind, PhpDoc, Types};
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\CodeWriter;
 use DressCode\Rules\PhpDoc\AnnotationToAttribute;
 use Nette\Schema\{Context, Expect, Schema};
@@ -54,7 +54,6 @@ use function strlen;
 	'dresscode/attribute-for-annotation',
 	Stage::Structure,
 	description: 'Writes the attribute a project or its libraries read instead of an annotation',
-	group: Group::Deprecations,
 	modifiesComments: true,
 )]
 final class AttributeForAnnotationRule extends NodeRule implements ConfigurableRule

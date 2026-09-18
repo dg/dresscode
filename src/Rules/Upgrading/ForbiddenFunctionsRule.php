@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -25,7 +25,6 @@ use function is_int;
 	'dresscode/forbidden-functions',
 	Stage::Structure,
 	description: 'Reports calls of the configured functions',
-	group: Group::Deprecations,
 )]
 final class ForbiddenFunctionsRule extends NodeRule implements ConfigurableRule
 {

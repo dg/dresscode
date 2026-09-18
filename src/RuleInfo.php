@@ -20,7 +20,7 @@ final readonly class RuleInfo
 		public string $name,
 		public Stage $stage,
 		public string $description = '',
-		/** what the rule gives a project beyond the looks of the code, its one intent; null for a rule a standard chooses or the project names */
+		/** what the rule gives a project beyond the looks of the code, its one intent; none for a rule a standard chooses, the project names or the data of a package turn on */
 		public ?Group $group = null,
 		/** the rule changes the text of comments; otherwise a changed or lost comment is a bug */
 		public bool $modifiesComments = false,

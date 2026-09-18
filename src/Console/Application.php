@@ -512,7 +512,7 @@ final class Application
 		$resolved = is_string($file)
 			? $factory->resolveConfigFor($runner->findOverridesFor($file))
 			: $factory->getResolvedConfig();
-		$printer = new ConfigPrinter($resolved);
+		$printer = new ConfigPrinter($resolved, $factory->getPackages());
 		if ($args['--json']) {
 			$this->write($printer->printJson());
 			return 0;

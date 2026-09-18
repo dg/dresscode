@@ -7,11 +7,12 @@
 
 namespace DressCode\Config;
 
-use DressCode\Profile;
+use DressCode\{Group, Profile};
 
 
 /**
- * What one upgrading file says to the project: the options of the sections the version the project stands on reaches.
+ * What one upgrading file says to the project: the options of the sections the version the project stands on reaches,
+ * and the intent of them, the group that turns on the rules they feed.
  * @internal
  */
 final readonly class PackageProfile
@@ -22,6 +23,7 @@ final readonly class PackageProfile
 		/** the package whose versions the sections of the file are of */
 		public string $package,
 		public Profile $profile,
+		public Group $group,
 		/** @var list<string>  the versions of the sections left out as not reached yet, ascending */
 		public array $unreached = [],
 	) {

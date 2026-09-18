@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Access, MemberKind, Types};
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{ArgumentListNode, IdentifierNode, NameNode, SeparatedNodeList};
@@ -35,7 +35,6 @@ use PhpSyntax\Nodes\Statement\UnsetNode;
 	'dresscode/forbidden-members',
 	Stage::Structure,
 	description: 'Reports uses and declarations of the configured members with what to do instead',
-	group: Group::Deprecations,
 	requiresTypes: true,
 )]
 final class ForbiddenMembersRule extends NodeRule implements ConfigurableRule

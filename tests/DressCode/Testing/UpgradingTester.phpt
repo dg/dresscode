@@ -28,6 +28,7 @@ function check(string $content): array
 test('a sound file has no problems: what exists at the installed version, a withdrawn entry, a section not reached', function () {
 	Assert::same([], check(<<<'XX'
 		package: acme/lib
+		group: deprecations
 
 		since 3.0:
 			replaced-classes:
@@ -63,23 +64,24 @@ test('a sound file has no problems: what exists at the installed version, a with
 test('what the rules refuse is said with the rule, in whatever section it stands', function () {
 	Assert::match(
 		"replaced-members: The replacement 'items' of Acme\\Lib\\Form::legacy is not of its kind: %a%",
-		check("package: acme/lib\n\nsince 9.0:\n\treplaced-members:\n\t\tAcme\\Lib\\Form::\$legacy: items\n")[0],
+		check("package: acme/lib\ngroup: deprecations\n\nsince 9.0:\n\treplaced-members:\n\t\tAcme\\Lib\\Form::\$legacy: items\n")[0],
 	);
 	Assert::same(
 		["Unknown rule 'replaced-things'."],
-		check("package: acme/lib\n\nsince 3.0:\n\treplaced-things:\n\t\tA: B\n"),
+		check("package: acme/lib\ngroup: deprecations\n\nsince 3.0:\n\treplaced-things:\n\t\tA: B\n"),
 	);
 	Assert::same(
-		["Upgrading file lib.neon: Unexpected key 'rules'; the file holds 'package' and sections 'since <version>'."],
-		check("package: acme/lib\n\nrules: []\n"),
+		["Upgrading file lib.neon: Unexpected key 'rules'; the file holds 'package', 'group' and sections 'since <version>'."],
+		check("package: acme/lib\ngroup: deprecations\n\nrules: []\n"),
 	);
-	Assert::match('Upgrading file lib.neon: The package it is about is not installed in %a%', check("package: acme/other\n\nsince 1.0:\n\treplaced-classes: []\n")[0]);
+	Assert::match('Upgrading file lib.neon: The package it is about is not installed in %a%', check("package: acme/other\ngroup: deprecations\n\nsince 1.0:\n\treplaced-classes: []\n")[0]);
 });
 
 
 test('a sentence of a forbidden map reads as the end of the message', function () {
 	Assert::same([], check(<<<'XX'
 		package: acme/lib
+		group: deprecations
 
 		since 3.0:
 			forbidden-classes:
@@ -96,6 +98,7 @@ test('a sentence of a forbidden map reads as the end of the message', function (
 		],
 		check(<<<'XX'
 			package: acme/lib
+			group: deprecations
 
 			since 3.0:
 				forbidden-classes:
@@ -128,6 +131,7 @@ test('a replacement that does not exist at the installed version, even at the en
 		],
 		check(<<<'XX'
 			package: acme/lib
+			group: deprecations
 
 			since 3.0:
 				replaced-classes:

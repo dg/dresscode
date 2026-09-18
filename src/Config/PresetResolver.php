@@ -38,7 +38,7 @@ final class PresetResolver
 
 	public function __construct(
 		private readonly RuleRegistry $registry,
-		/** @var list<PackageProfile>  what the installed packages say, laid under everything and never turning a rule on */
+		/** @var list<PackageProfile>  what the installed packages say, laid under everything; a rule a file feeds is turned on by the group of the file */
 		private readonly array $packageProfiles = [],
 		/** the packages the project stands on, which decide whether a rule requiring one runs */
 		private readonly ProjectPackages $project = new ProjectPackages,
@@ -80,11 +80,13 @@ final class PresetResolver
 		$indent = $eol = $lineLength = $php = $resolution = $types = null;
 
 		// what the packages say lies under every layer and is heard only of a rule some layer turns on
+		/** @var array<class-string<Rule>, list<array{string, mixed, Group}>> $packageLayers */
 		$packageLayers = [];
+		$named = [];
 		foreach ($this->packageProfiles as $package) {
 			foreach ($package->profile->rules as $rule => $value) {
 				try {
-					$packageLayers[$this->registry->resolveRule($rule)][] = [$package->source, $value];
+					$packageLayers[$this->registry->resolveRule($rule)][] = [$package->source, $value, $package->group];
 				} catch (ConfigurationException) {
 					$this->warnings["$package->source $rule"] = "Rule $rule, which $package->source sets, is not known to this DressCode; skipped.";
 				}
@@ -124,15 +126,14 @@ final class PresetResolver
 				// is one nobody asked for by name and is left out in silence where it cannot run
 				foreach ($profile->groups as $group) {
 					$groups[$group->value] = true;
-					foreach ($this->registry->getRules() as $class) {
-						if (RuleInfo::of($class)->group === $group) {
-							$layers[$class][] = ["group $group->value", true];
-						}
+					foreach ($this->findRulesOfGroup($group) as $class) {
+						$layers[$class][] = ["group $group->value", true];
 					}
 				}
 
 				foreach ($profile->rules as $rule => $value) {
 					$class = $this->registry->resolveRule($rule);
+					$named[$class] = true;
 					$layers[$class][] = [$source, self::normalize($value)];
 					if (!$isPreset) {
 						$explicit[$class] = true;
@@ -170,8 +171,10 @@ final class PresetResolver
 
 		$seeded = [];
 		foreach ($packageLayers as $class => $below) {
-			if (isset($layers[$class])) {
-				$layers[$class] = [...$below, ...$layers[$class]];
+			// the data of a group the project did not turn on are heard only by a rule it names itself
+			$below = isset($named[$class]) ? $below : array_filter($below, fn(array $layer) => isset($groups[$layer[2]->value]));
+			if (isset($layers[$class]) && $below !== []) {
+				$layers[$class] = [...array_map(fn(array $layer) => [$layer[0], $layer[1]], array_values($below)), ...$layers[$class]];
 				$seeded[$class] = count($below);
 			}
 		}
@@ -382,8 +385,8 @@ final class PresetResolver
 
 
 	/**
-	 * The rules a run narrowed by `only` keeps, per name it was given: a rule for itself, a group for every rule
-	 * that carries it, a preset for every rule it and its parents mention.
+	 * The rules a run narrowed by `only` keeps, per name it was given: a rule for itself, a group for every rule it
+	 * turns on, a preset for every rule it and its parents mention.
 	 * @param  list<string>  $names
 	 * @return list<array{string, ?class-string<Rule>, list<class-string<Rule>>}>  what the name was, the rule it names, and the rules it lets in
 	 * @throws ConfigurationException
@@ -394,11 +397,7 @@ final class PresetResolver
 		foreach ($names as $name) {
 			$group = Group::tryFrom($name);
 			if ($group !== null) {
-				$rules = array_values(array_filter(
-					$this->registry->getRules(),
-					fn(string $class) => RuleInfo::of($class)->group === $group,
-				));
-				$narrowed[] = ["group $name", null, $rules];
+				$narrowed[] = ["group $name", null, $this->findRulesOfGroup($group)];
 				continue;
 			}
 
@@ -489,10 +488,8 @@ final class PresetResolver
 			foreach ($this->collectLayers([[self::describeOverride($override), $override]]) as [$source, $profile, $isPreset]) {
 				try {
 					foreach ($profile->groups as $group) {
-						foreach ($this->registry->getRules() as $class) {
-							if (RuleInfo::of($class)->group === $group) {
-								$rules[$class] = true;
-							}
+						foreach ($this->findRulesOfGroup($group) as $class) {
+							$rules[$class] = true;
 						}
 					}
 
@@ -509,6 +506,31 @@ final class PresetResolver
 		}
 
 		return $rules;
+	}
+
+
+	/**
+	 * The rules the group turns on: those that carry it, and those an upgrading file of that group feeds, its intent
+	 * being a matter of the data and not of the rule reading them.
+	 * @return list<class-string<Rule>>
+	 */
+	private function findRulesOfGroup(Group $group): array
+	{
+		$rules = array_values(array_filter(
+			$this->registry->getRules(),
+			fn(string $class) => RuleInfo::of($class)->group === $group,
+		));
+		foreach ($this->packageProfiles as $package) {
+			foreach ($package->group === $group ? array_keys($package->profile->rules) : [] as $rule) {
+				try {
+					$rules[] = $this->registry->resolveRule($rule);
+				} catch (ConfigurationException) {
+					// an unknown rule is warned about where its data are laid
+				}
+			}
+		}
+
+		return array_values(array_unique($rules));
 	}
 
 

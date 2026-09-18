@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, SymbolKind, Token};
@@ -24,7 +24,6 @@ use PhpSyntax\Nodes\{NameNode, UseItemNode};
 	'dresscode/forbidden-classes',
 	Stage::Structure,
 	description: 'Reports references of the configured classes with what to do instead',
-	group: Group::Deprecations,
 )]
 final class ForbiddenClassesRule extends NodeRule implements ConfigurableRule
 {

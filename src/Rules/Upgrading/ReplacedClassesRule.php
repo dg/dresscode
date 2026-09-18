@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\Types;
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Context, Expect, Schema};
 use PhpSyntax\{Node, Token};
@@ -32,7 +32,6 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
 	'dresscode/replaced-classes',
 	Stage::Structure,
 	description: 'Writes the class a project or its libraries write instead of another one',
-	group: Group::Deprecations,
 )]
 final class ReplacedClassesRule extends NodeRule implements ConfigurableRule
 {

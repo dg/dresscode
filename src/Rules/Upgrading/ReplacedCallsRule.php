@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Access, MemberKind, Types};
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\Schema;
 use PhpSyntax\Analyses\NameResolver;
@@ -55,7 +55,6 @@ use function count;
 	'dresscode/replaced-calls',
 	Stage::Structure,
 	description: 'Writes a call, an access or an instantiation the way a project or its libraries write it instead',
-	group: Group::Deprecations,
 	requiresTypes: true,
 )]
 final class ReplacedCallsRule extends NodeRule implements ConfigurableRule

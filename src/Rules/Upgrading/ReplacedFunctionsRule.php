@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Parameter, PhpSignatures, PhpSymbols};
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Context, Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
@@ -42,7 +42,6 @@ use function array_find, count, is_int, strlen;
 	'dresscode/replaced-functions',
 	Stage::Structure,
 	description: 'Calls the function a project or its libraries write instead of another one',
-	group: Group::Deprecations,
 )]
 final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 {

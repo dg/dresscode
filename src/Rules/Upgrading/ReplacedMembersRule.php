@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Access, MemberKind, Types};
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\Schema;
 use PhpSyntax\{Node, Token};
@@ -39,7 +39,6 @@ use PhpSyntax\Nodes\Member\MethodNode;
 	'dresscode/replaced-members',
 	Stage::Structure,
 	description: 'Writes the member a project or its libraries write instead of another one',
-	group: Group::Deprecations,
 	requiresTypes: true,
 )]
 final class ReplacedMembersRule extends NodeRule implements ConfigurableRule
