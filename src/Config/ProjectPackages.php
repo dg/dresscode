@@ -18,8 +18,9 @@ use function count, dirname, is_array, is_string;
  * and the version of each the code must work with. For a package the project requires itself that is the lowest version
  * its constraint allows, the installed one where the constraint has no lower bound, because code written for a newer one breaks wherever the constraint lets an older one in; for
  * a package that only comes with another it is the installed one; and any version does for the project itself and for
- * a development branch without an alias, whose version says nothing. The `packages` of the configuration say the
- * version of an installed package outright (withTargets()).
+ * a development branch without an alias, whose version says nothing. A package an installed one replaces with its own
+ * version, a part of a monorepo installed as the whole, is had in the version of the one replacing it. The `packages` of
+ * the configuration say the version of an installed package outright (withTargets()).
  * @internal
  */
 final class ProjectPackages
@@ -37,6 +38,8 @@ final class ProjectPackages
 		public readonly array $installed = [],
 		/** @var array<string, string>  package → the version the configuration says the code is written for */
 		private readonly array $targets = [],
+		/** @var array<string, string>  package → the installed one that replaces it with its own version */
+		private readonly array $replaced = [],
 	) {
 	}
 
@@ -62,7 +65,7 @@ final class ProjectPackages
 			}
 		}
 
-		$installed = [];
+		$installed = $replaced = [];
 		$data = self::readJson("$vendor/composer/installed.json") ?? [];
 		foreach (is_array($data['packages'] ?? null) ? $data['packages'] : $data as $package) {
 			if (!is_array($package) || !is_string($package['name'] ?? null)) {
@@ -78,6 +81,11 @@ final class ProjectPackages
 					: null,
 				'extra' => is_array($package['extra'] ?? null) ? $package['extra'] : [],
 			];
+			foreach (is_array($package['replace'] ?? null) ? $package['replace'] : [] as $name => $constraint) {
+				if ($constraint === 'self.version') {
+					$replaced[(string) $name] = $package['name'];
+				}
+			}
 		}
 
 		return new self(
@@ -86,6 +94,7 @@ final class ProjectPackages
 			is_array($composer['extra'] ?? null) ? $composer['extra'] : [],
 			$required,
 			$installed,
+			replaced: array_diff_key($replaced, $installed),
 		);
 	}
 
@@ -97,14 +106,14 @@ final class ProjectPackages
 	 */
 	public function withTargets(array $versions): self
 	{
-		return new self($this->rootName, $this->rootPath, $this->rootExtra, $this->required, $this->installed, $versions);
+		return new self($this->rootName, $this->rootPath, $this->rootExtra, $this->required, $this->installed, $versions, $this->replaced);
 	}
 
 
-	/** Whether the project has the package: it is the project itself, or it is installed. */
+	/** Whether the project has the package: it is the project itself, it is installed, or an installed one replaces it. */
 	public function has(string $package): bool
 	{
-		return $package === $this->rootName || isset($this->installed[$package]);
+		return $package === $this->rootName || isset($this->installed[$package]) || isset($this->replaced[$package]);
 	}
 
 
@@ -114,7 +123,10 @@ final class ProjectPackages
 	 */
 	public function findVersion(string $package): ?string
 	{
-		if ($package === $this->rootName || !isset($this->installed[$package])) {
+		if (isset($this->replaced[$package])) {
+			$lowest = isset($this->required[$package]) ? self::findLowestVersion($this->required[$package]) : null;
+			return $this->targets[$package] ?? $lowest ?? $this->findVersion($this->replaced[$package]);
+		} elseif ($package === $this->rootName || !isset($this->installed[$package])) {
 			return null;
 		}
 

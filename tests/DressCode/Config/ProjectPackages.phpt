@@ -82,6 +82,33 @@ test('the version of a package the code must work with', function () {
 });
 
 
+test('a package an installed one replaces is had in the version of the one replacing it', function () {
+	$root = str_replace('\\', '/', (string) realpath(__DIR__ . '/../..')) . '/temp/project-packages-replace';
+	FileSystem::delete($root);
+	FileSystem::write("$root/composer.json", json_encode([
+		'require' => ['acme/monorepo' => '^6.4', 'acme/part-required' => '^7.1'],
+	], JSON_THROW_ON_ERROR));
+	FileSystem::write("$root/vendor/composer/installed.json", json_encode(['packages' => [
+		[
+			'name' => 'acme/monorepo',
+			'version' => 'v7.4.2',
+			'version_normalized' => '7.4.2.0',
+			'replace' => ['acme/part' => 'self.version', 'acme/part-required' => 'self.version', 'acme/polyfill' => '*'],
+		],
+	]], JSON_THROW_ON_ERROR));
+
+	$project = ProjectPackages::read($root);
+	Assert::true($project->has('acme/part'));
+	Assert::same('6.4', $project->findVersion('acme/part')); // the lowest version the monorepo is required in
+	Assert::same('7.1', $project->findVersion('acme/part-required')); // required itself
+	Assert::same('7.0', $project->withTargets(['acme/part' => '7.0'])->findVersion('acme/part'));
+
+	// a package replaced by any version says nothing of the one it stands for
+	Assert::false($project->has('acme/polyfill'));
+	Assert::false(isset($project->installed['acme/part']));
+});
+
+
 test('a project without packages has none', function () {
 	$project = new ProjectPackages;
 	Assert::null($project->rootPath);
