@@ -59,7 +59,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'upgrading.classes.SensitiveParameter', // the list of what is sensitive is the project's
 		// the maps: a set lets the upgrading files of the packages in, a project writes its own
 		'upgrading.libraries.forbiddenFunctions',
-		'upgrading.libraries.replacedClasses', 'upgrading.libraries.replacedFunctions',
+		'upgrading.libraries.replacedCalls', 'upgrading.libraries.replacedClasses', 'upgrading.libraries.replacedFunctions',
 		'upgrading.libraries.replacedMembers',
 	];
 

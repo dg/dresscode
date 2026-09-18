@@ -1,0 +1,38 @@
+<?php
+// {"libraries": {"replacedCalls": {"Acme\\Mapper::__construct($iterator, $callback)": "\\Acme\\Sequence::map($iterator, $callback)", "Acme\\Layout::__construct($shape, $strict)": "$this->configure($shape)", "Acme\\Message::$subject::set": "setSubject($value)", "Acme\\Settings::spread($first, ...)": "\\Acme\\Sequence::invokeAll($first, ...) + \\Acme\\Sequence::invokeAll(...)"}}}
+
+namespace App;
+
+use Acme\Layout;
+use Acme\Mapper;
+use Acme\Message;
+use Acme\Settings;
+
+
+class ListMapper extends Mapper
+{
+	public function __construct(iterable $iterator)
+	{
+		// reported and left: the parent constructor is no instantiation the function could stand for
+		parent::__construct($iterator, fn($item) => $item);
+	}
+}
+
+
+function test(Message $mail, Settings $settings): void
+{
+	// reported and left: an instantiation has nothing to call a method on
+	$layout = new Layout([], true);
+
+	// reported and left: the map says nothing of a read
+	echo $mail->subject;
+
+	// reported and left: the replacement would evaluate the rest of the arguments twice
+	echo $settings->spread(1, compute());
+}
+
+
+function compute(): int
+{
+	return 1;
+}

@@ -1,0 +1,7 @@
+14: Property `Acme\Letter::$subject` is replaced by `getTitle()`.
+15: Property `Acme\Message::$subject` is replaced by `getSubject()`.
+16: Method `Acme\Chapter::__get()` is replaced by `fetch($name)`.
+17: Method `Acme\Section::__get()` is replaced by `get($name)`.
+18: Method `Acme\Letter::isSent()` is replaced by `getTitle()`.
+19: Method `Acme\Message::isSent()` is replaced by `getSubject()`.
+25: Method `Acme\Letter::isSent()` is replaced by `getTitle()`, but a declaration is nothing an expression could stand for.

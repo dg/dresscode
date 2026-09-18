@@ -57,7 +57,12 @@ test('a pattern is read as the arguments of a call', function () {
 	Assert::equal([new ArgumentPatternItem('callable'), new ArgumentPatternItem('args', rest: true)], ArgumentPattern::parse('$callable, ...$args')->items);
 	Assert::equal(ArgumentPattern::parse('...'), ArgumentPattern::any());
 	Assert::true(ArgumentPattern::any()->takesAnyArguments());
+	Assert::true(ArgumentPattern::any()->takesRest());
+	Assert::true(ArgumentPattern::parse('$a, ...')->takesRest());
 	Assert::false(ArgumentPattern::parse('$a, ...')->takesAnyArguments());
+	Assert::false(ArgumentPattern::parse('$a, ...$rest')->takesRest());
+	Assert::false(ArgumentPattern::parse('$a')->takesRest());
+	Assert::false(ArgumentPattern::parse('')->takesRest());
 
 	$errors = [
 		'$a, run()' => "`run()` is no placeholder, no literal, and neither `...` nor `...\$name`.",
@@ -66,7 +71,7 @@ test('a pattern is read as the arguments of a call', function () {
 		'&$a' => "`&\$a` is no placeholder, %a%",
 		'$$a' => "`\$\$a` is no placeholder, %a%",
 		'...[1]' => '`...[1]` is no placeholder, %a%',
-		'$a, $this' => '`$this` is no placeholder.',
+		'$a, $this' => '`$this` is no placeholder; in the expression written instead it stands for what the call is made on.',
 		'$a, $b, $a' => 'the placeholder `$a` stands for two arguments.',
 		'a: $a, $b' => "the positional `\$b` stands behind a named item.",
 		'..., $a' => "`\$a` stands behind the item that takes the rest of the arguments.",

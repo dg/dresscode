@@ -1,0 +1,50 @@
+12: Method `Acme\Settings::isDebug()` is replaced by `hasMode('debug')`, but a declaration is nothing an expression could stand for.
+14: Method `Acme\Settings::isDebug()` is replaced by `hasMode('debug')`.
+21: Method `Acme\Settings::getOption()` is replaced by `getOption($key) ?? $default`.
+28: Method `Acme\Settings::describe()` is replaced by `\Acme\Formatter::describe($this, $separator)`, but the replacement needs an object and the call is static.
+36: Method `Acme\Settings::getOption()` is replaced by `getOption($key) ?? $default`.
+	risky BehaviorChanges: the replacement evaluates `compute()` only sometimes
+37: Method `Acme\Settings::getOption()` is replaced by `getOption($key) ?? $default`.
+38: Method `Acme\Settings::reset()` is replaced by `getEntries()`.
+	risky BehaviorChanges: the replacement no longer evaluates `compute()`
+39: Method `Acme\Settings::reset()` is replaced by `getEntries()`.
+40: Method `Acme\Settings::matchesMask()` is replaced by `find($value)?->matches($mask)`.
+	risky BehaviorChanges: the replacement evaluates `compute()` only sometimes
+41: Method `Acme\Settings::gather()` is replaced by `$first ?: \Acme\Sequence::invokeAll(...)`.
+	risky BehaviorChanges: the replacement evaluates `compute()` only sometimes
+44: Method `Acme\Settings::measure()` is replaced by `\strlen($text)`.
+	risky BehaviorChanges: the replacement no longer evaluates what it is reached through
+45: Method `Acme\Settings::measure()` is replaced by `\strlen($text)`.
+46: Method `Acme\Settings::measure()` is replaced by `\strlen($text)`, but the replacement cannot skip a null as `?->` does.
+49: Method `Acme\Settings::isBetween()` is replaced by `$value >= $min && $value <= $max`.
+50: Method `Acme\Settings::isBetween()` is replaced by `$value >= $min && $value <= $max`, but `compute()` would be evaluated 2 times.
+51: Method `Acme\Settings::isBetween()` is replaced by `$value >= $min && $value <= $max`.
+54: Method `Acme\Settings::describe()` is replaced by `\Acme\Formatter::describe($this, $separator)`.
+55: Method `Acme\Settings::describe()` is replaced by `\Acme\Formatter::describe($this, $separator)`, but the replacement cannot skip a null as `?->` does.
+58: Method `Acme\Settings::flip()` is replaced by `\Acme\Sequence::map($second, $first)`.
+59: Method `Acme\Settings::flip()` is replaced by `\Acme\Sequence::map($second, $first)`.
+	risky BehaviorChanges: the replacement evaluates the arguments in another order
+60: Method `Acme\Settings::flip()` is replaced by `\Acme\Sequence::map($second, $first)`.
+	risky BehaviorChanges: the replacement no longer evaluates what it is reached through
+61: Method `Acme\Settings::rotate()` is replaced by `\Acme\Sequence::invokeAll(..., $first)`.
+	risky BehaviorChanges: the replacement evaluates the arguments in another order
+62: Method `Acme\Settings::rotate()` is replaced by `\Acme\Sequence::invokeAll(..., $first)`.
+63: Method `Acme\Settings::combine()` is replaced by `\Acme\Sequence::invokeAll(...$parts)`.
+70: Method `Acme\Section::offsetGet()` is replaced by `get($key)`.
+	risky BehaviorChanges: the replacement no longer asks first whether it is set, as `??` does
+71: Method `Acme\Section::__get()` is replaced by `get($name)`.
+	risky BehaviorChanges: the replacement no longer asks first whether it is set, as `??` does
+72: Method `Acme\Section::offsetGet()` is replaced by `get($key)`.
+73: Property `Acme\Message::$subject` is replaced by `\Acme\Formatter::describe($this)`.
+	risky BehaviorChanges: the replacement no longer asks first whether it is set, as `??` does
+80: Method `Acme\Section::__isset()` is replaced by `has($name)`.
+	risky BehaviorChanges: the replacement gives null for a null object, where `isset()` gives false
+81: Method `Acme\Section::__isset()` is replaced by `has($name)`.
+	risky BehaviorChanges: the replacement fails on a null object, where `isset()` gives false
+82: Method `Acme\Section::__isset()` is replaced by `has($name)`.
+	risky BehaviorChanges: the replacement gives null for a null object, where `isset()` gives false
+83: Method `Acme\Section::__isset()` is replaced by `has($name)`.
+	risky BehaviorChanges: the replacement fails on a null object, where `isset()` gives false
+84: Method `Acme\Section::offsetExists()` is replaced by `has($key)`.
+	risky BehaviorChanges: the replacement gives null for a null object, where `isset()` gives false
+85: Method `Acme\Section::__isset()` is replaced by `has($name)`.

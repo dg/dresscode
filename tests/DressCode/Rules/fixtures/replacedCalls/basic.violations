@@ -1,0 +1,34 @@
+18: Method `Acme\Playlist::addTrack()` is replaced by `addAlbum($name, $label)`.
+19: Method `Acme\Playlist::addTrack()` is replaced by `addTrack($name, $label)`.
+20: Method `Acme\Playlist::addTrack()` is replaced by `addAlbum($name, $label)`.
+23: Method `Acme\Playlist::addTrack()` is replaced by `addAlbum($name, $label)`.
+27: Method `Acme\Settings::getOption()` is replaced by `getOption($key) ?? $default`.
+28: Method `Acme\Settings::getOption()` is replaced by `getOption($key) ?? $default`.
+31: Method `Acme\Settings::isDebug()` is replaced by `hasMode('debug')`.
+31: Method `Acme\Settings::count()` is replaced by `\count(getEntries())`.
+32: Method `Acme\Settings::setStrictMode()` is replaced by `setFlag(\Acme\Flag::Strict, $state)`.
+35: Method `Acme\Store::load()` is replaced by `load(factory: $f, ...)`.
+37: Method `Acme\Store::load()` is replaced by `load(factory: $f, ...)`.
+39: Static method `Acme\Invoker::wrap()` is replaced by `\Closure::fromCallable($callable)`.
+40: Static method `Acme\Invoker::call()` is replaced by `$callable(...$args)`.
+41: Static method `Acme\Invoker::call()` is replaced by `$callable(...$args)`.
+42: Static method `Acme\Invoker::callArray()` is replaced by `$callable(...$args)`.
+	risky BehaviorChanges: the replacement unpacks `$items`, whose keys may not be the names of parameters
+43: Static method `Acme\Invoker::defaultOf()` is replaced by `$parameter->getDefaultValue()`.
+44: Constructor `Acme\Mapper::__construct()` is replaced by `\Acme\Sequence::map($iterator, $callback)`.
+45: Static method `Acme\Formatter::format()` is replaced by `(new \Acme\Formatter)->render($var)`.
+48: Static method `Acme\Formatter::format()` is replaced by `(new \Acme\Formatter)->render($var)`.
+48: Static method `Acme\Formatter::legacy()` is replaced by `\Acme\Formatter::format($var)`.
+51: Static method `Acme\Mapper::create()` is replaced by `new \Acme\Layout(...$options)`.
+52: Static method `Acme\Mapper::create()` is replaced by `new \Acme\Layout(...$options)`.
+53: Static method `Acme\Mapper::create()` is replaced by `new \Acme\Layout(...$options)`.
+54: Static method `Acme\Mapper::create()` is replaced by `new \Acme\Layout(...$options)`.
+	risky BehaviorChanges: the replacement unpacks `$items`, whose keys may not be the names of parameters
+55: Static method `Acme\Mapper::create()` is replaced by `new \Acme\Layout(...$options)`.
+58: Method `Acme\Settings::notify()` is replaced by `\Acme\Sequence::invokeAll($this->listeners, ...$args)`.
+59: Method `Acme\Playlist::copyTrack()` is replaced by `(new \Acme\Editor($this))->copyTrack($name)`.
+62: Method `Acme\Settings::getOption()` is replaced by `getOption($key) ?? $default`, but a comment stands among its arguments.
+65: Constructor `Acme\Mapper::__construct()` is replaced by `\Acme\Sequence::map($iterator, $callback)`, but it creates a child, which the replacement does not.
+69: Constructor `Acme\Layout::__construct()` is replaced by `new \Acme\Layout(shape: $shape, ...)`.
+70: Constructor `Acme\Layout::__construct()` is replaced by `new \Acme\Layout(shape: $shape, ...)`.
+84: Constructor `Acme\Layout::__construct()` is replaced by `new \Acme\Layout(shape: $shape, ...)`.

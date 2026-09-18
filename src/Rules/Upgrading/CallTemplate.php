@@ -1,0 +1,572 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Rules\Upgrading;
+
+use DressCode\Analyses\MemberKind;
+use DressCode\Violation;
+use Nette\Schema\Context;
+use PhpSyntax\{Builder, NameForm, Node, ParseException, SymbolKind, Token};
+use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, ExpressionNode, IdentifierNode, MatchArmNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClassConstantFetchNode, ClosureNode, FunctionCallNode, MethodCallNode, NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, TernaryNode, VariableNode};
+use function in_array, is_string;
+
+
+/**
+ * What replacedCalls writes instead of a call, as one expression of PHP with the placeholders of the key in it:
+ * `getOption($key) ?? $default`, `\Closure::fromCallable($callable)`, `$callable(...$args)`. A call of a bare name,
+ * `hasMode('debug')`, is a call of that member on what the replaced one was called on, in the same way, `->`, `?->`
+ * or `::`; a qualified name is a function or a class of its own. Such a name, and the bare one of a class, is the
+ * whole name with the leading backslash or without it, `Acme\Events` as `\Acme\Events`, the code standing in no
+ * namespace. `$this` is what the call was made on, written anywhere an expression stands,
+ * `\Acme\Events::dispatch($this->listeners, ...$args)`; only a call made on an object has one.
+ * `...` writes the arguments the key left unnamed, `...$args` those a variadic placeholder
+ * stands for or the values of an array one does, an array literal written out as the arguments PHP makes of it,
+ * `new Range(...['min' => $m])` as `new Range(min: $m)`. A call made with `?->` is written only where the
+ * expression is a chain of accesses on what it was made on, a call of a bare name or `$this` read or called on,
+ * the operator carrying over to its first link, `$this->size` as `$object?->size`; anything else is refused, for it
+ * would call on null what the call did not, or give something else than the null the call did.
+ *
+ * Where an argument ends up decides what the rewrite is: one written twice would be evaluated twice, which no consent
+ * mends, so the call is refused unless reading it again is free; one that moved where PHP evaluates only sometimes
+ * (the right of `??`, `&&`, `||`, a branch of `?:` or of `match`, the body of a closure, past `?->`) or that is
+ * written nowhere is no longer evaluated as it was, which is risky where evaluating it may do something, and so are two such
+ * arguments written in another order than the call has them. What the call was made on is judged the same way.
+ * @internal
+ */
+final readonly class CallTemplate
+{
+	private const Receiver = "\0receiver";
+	private const Rest = "\0rest";
+
+
+	private function __construct(
+		public string $code,
+		private ParenthesizedNode $holder,
+		/** @var array<string, int>  placeholder, the receiver or `...` => how many times the template writes it, in the order it first does */
+		private array $uses,
+		/** @var array<string, true>  placeholders, the receiver or `...`, written where PHP evaluates only sometimes */
+		private array $lazy,
+		/** the receiver is written as `$this`, which takes an expression, not a class */
+		private bool $writesThis,
+		/** @var array<string, true>  placeholders of one argument the template unpacks, `...$options` */
+		private array $unpacked = [],
+		/** the expression is a chain of accesses on what the call was made on, which `?->` on its first link skips as a whole */
+		private bool $chainsReceiver = false,
+	) {
+	}
+
+
+	/** @throws \InvalidArgumentException  saying why the code cannot stand for a call of the key */
+	public static function fromCode(string $code, MemberPattern $key): self
+	{
+		try {
+			$builder = new Builder;
+			$holder = $builder->parenthesize($builder->expression($code));
+		} catch (ParseException $e) {
+			throw new \InvalidArgumentException('The code ' . Violation::formatCode($code) . " written instead of `$key->class::$key->name` does not read as an expression: {$e->getMessage()}", previous: $e);
+		}
+
+		foreach ($holder->find(NameNode::class, self::isMeantFullyQualified(...)) as $name) {
+			$name->text = '\\' . $name->text;
+		}
+
+		$items = $key->arguments->items ?? [];
+		$uses = $lazy = $unpackedItems = [];
+		$writesThis = false;
+		foreach ($holder->find(VariableNode::class) as $variable) {
+			if ($variable->isThis()) {
+				$writesThis = true;
+				$uses[self::Receiver] = ($uses[self::Receiver] ?? 0) + 1;
+				if (self::isLazy($variable)) {
+					$lazy[self::Receiver] = true;
+				}
+
+				continue;
+			}
+
+			$name = (string) $variable->plainName;
+			$item = array_find($items, fn(ArgumentPatternItem $item) => $item->placeholder === $name);
+			$unpacked = ($variable->parent instanceof ArgumentNode || $variable->parent instanceof ArrayItemNode) && $variable->parent->ellipsis !== null;
+			if ($item === null) {
+				throw new \InvalidArgumentException('The code ' . Violation::formatCode($code) . " uses `\$$name`, which the key `$key->class::$key->name` does not name.");
+			} elseif ($item->rest && !$unpacked) {
+				throw new \InvalidArgumentException('The code ' . Violation::formatCode($code) . " must write `\$$name` as the arguments it stands for, `...\$$name`.");
+			}
+
+			$uses[$name] = ($uses[$name] ?? 0) + 1;
+			if (self::isLazy($variable)) {
+				$lazy[$name] = true;
+			}
+
+			if ($unpacked && !$item->rest) {
+				$unpackedItems[$name] = true;
+			}
+		}
+
+		foreach ($holder->find(FunctionCallNode::class, self::isBareCall(...)) as $call) {
+			$uses[self::Receiver] = ($uses[self::Receiver] ?? 0) + 1;
+			if (self::isLazy($call)) {
+				$lazy[self::Receiver] = true;
+			}
+		}
+
+		$rests = $holder->find(VariadicPlaceholderNode::class);
+		foreach ($rests as $rest) {
+			$uses[self::Rest] = ($uses[self::Rest] ?? 0) + 1;
+			if (self::isLazy($rest)) {
+				$lazy[self::Rest] = true;
+			}
+		}
+
+		// in the order the expression evaluates them, which is the order it writes them in
+		$order = [];
+		foreach ($holder->find(Node::class) as $node) {
+			$name = match (true) {
+				$node instanceof VariableNode => $node->isThis() ? self::Receiver : (string) $node->plainName,
+				$node instanceof FunctionCallNode && self::isBareCall($node) => self::Receiver,
+				$node instanceof VariadicPlaceholderNode => self::Rest,
+				default => null,
+			};
+			if ($name !== null) {
+				$order[$name] ??= 0;
+			}
+		}
+
+		$uses = array_replace($order, $uses);
+		if ($rests !== [] && !$key->getArgumentPattern()->takesRest()) {
+			throw new \InvalidArgumentException('The code ' . Violation::formatCode($code) . " writes `...`, which the key `$key->class::$key->name` does not take.");
+		}
+
+		$chainsReceiver = ($uses[self::Receiver] ?? 0) === 1 && self::findChainBase($holder->expression) !== null;
+		return new self($code, $holder, $uses, $lazy, $writesThis, $unpackedItems, $chainsReceiver);
+	}
+
+
+	/**
+	 * The template the map of replacedCalls gives its key: of a method or an instantiation as it is, of a property by
+	 * its hook, the read as a call taking nothing and the assignment as one taking `$value`.
+	 * @throws \InvalidArgumentException  saying why the code cannot stand for a use of the key
+	 */
+	public static function fromEntry(string $code, MemberPattern $key): self
+	{
+		$member = "$key->class::" . ($key->kind === MemberKind::Property ? '$' : '') . $key->name;
+		return match (true) {
+			$key->kind === MemberKind::Property && $key->hook === null => throw new \InvalidArgumentException(
+				"The property `$member` is replaced through its hooks: `$member::get` for what a read of it becomes, `$member::set` for what an assignment to it does.",
+			),
+			$key->kind === MemberKind::Property => self::fromCode(
+				$code,
+				MemberPattern::forMethod($key->class, $key->name, $key->hook === 'set' ? ArgumentPattern::parse('$value') : null),
+			),
+			$key->kind === MemberKind::Method, $key->kind === MemberKind::Constructor => self::fromCode($code, $key),
+			default => throw new \InvalidArgumentException(
+				"The member `$member` cannot be replaced by an expression: only a call can, `$member(...\$args)` or one with the shape of its arguments, or a property through its hooks.",
+			),
+		};
+	}
+
+
+	/**
+	 * A key of the map whose code calls a method, on what the replaced call was made on, in a shape a key of its class
+	 * takes, leads the rule to that key; one it leads back to itself would be rewritten without end, `is(...$kinds)` as
+	 * `is([...$kinds])`.
+	 * @param  array<string, mixed>  $map
+	 * @return array<string, mixed>
+	 */
+	public static function checkCycles(array $map, Context $context): array
+	{
+		$entries = [];
+		foreach ($map as $key => $value) {
+			try {
+				$pattern = MemberPattern::fromKey((string) $key);
+				if (is_string($value) && $value !== MemberMaps::Keep) {
+					$entries[(string) $key] = [$pattern, self::fromEntry($value, $pattern)];
+				}
+			} catch (\InvalidArgumentException) {
+				// the map reports it
+			}
+		}
+
+		$leads = [];
+		foreach ($entries as $key => [$source, $template]) {
+			foreach ($template->findReceiverCalls() as [$name, $arguments]) {
+				foreach ($entries as $target => [$pattern]) {
+					if (
+						$pattern->kind === MemberKind::Method
+						&& strcasecmp($pattern->name, $name) === 0
+						&& strcasecmp($pattern->class, $source->class) === 0
+						&& ($pattern->arguments ?? ArgumentPattern::any())->bind($arguments, null) !== null
+					) {
+						$leads[$key][$target] = true;
+					}
+				}
+			}
+		}
+
+		foreach ($leads as $key => $reached) {
+			$done = [];
+			while (($next = array_key_first(array_diff_key($reached, $done))) !== null) {
+				$done[$next] = true;
+				$reached += $leads[$next] ?? [];
+			}
+
+			if (isset($reached[$key])) {
+				$code = Violation::formatCode($entries[$key][1]->code);
+				$context->addError("The code $code written instead of `$key` is a call the keys take again, so the rewrite would never end.", 'dresscode.rewriteCycle');
+			}
+		}
+
+		return $map;
+	}
+
+
+	/** Whether the code unpacks an argument of the call into the arguments of another, `new Range(...$options)`. */
+	public function hasUnpackedArgument(): bool
+	{
+		return $this->unpacked !== [];
+	}
+
+
+	/**
+	 * The methods the code calls on what the replaced call was made on, a bare name or one called on `$this`, each with
+	 * its arguments as the code writes them.
+	 * @return list<array{string, ArgumentListNode}>
+	 */
+	private function findReceiverCalls(): array
+	{
+		$calls = [];
+		foreach ($this->holder->find(ExpressionNode::class) as $node) {
+			if ($node instanceof FunctionCallNode && self::isBareCall($node)) {
+				$calls[] = [$node->name->text, $node->arguments];
+			} elseif (
+				$node instanceof MethodCallNode
+				&& $node->object instanceof VariableNode
+				&& $node->object->isThis()
+				&& $node->name instanceof IdentifierNode
+			) {
+				$calls[] = [$node->name->text, $node->arguments];
+			}
+		}
+
+		return $calls;
+	}
+
+
+	/**
+	 * The expression written instead of the call, or why there is none, and why writing it may change what the code does.
+	 * @param  NameNode|ExpressionNode|null  $receiver  what the call is made on, the object or the class; null for an instantiation
+	 * @param  bool  $static  the call is written with `::`
+	 */
+	public function instantiate(
+		ArgumentBindings $bindings,
+		ArgumentListNode $arguments,
+		NameNode|ExpressionNode|null $receiver,
+		bool $static = false,
+		bool $nullsafe = false,
+	): Rewrite
+	{
+		if (($this->uses[self::Receiver] ?? 0) > 0 && $receiver === null) {
+			return new Rewrite(null, ', but an instantiation has no object to call it on');
+		} elseif ($this->writesThis && !$receiver instanceof ExpressionNode) {
+			return new Rewrite(null, ', but the replacement needs an object and the call is static');
+		} elseif ($arguments->hasInnerComment()) {
+			return new Rewrite(null, ', but a comment stands among its arguments');
+		} elseif ($nullsafe && !$this->chainsReceiver) {
+			return new Rewrite(null, ', but the replacement cannot skip a null as `?->` does');
+		}
+
+		// what is judged, in the order the call evaluates it: what the call was made on and every expression a placeholder
+		// or `...` stands for
+		$judged = $receiver instanceof ExpressionNode ? [[self::Receiver, $receiver]] : []; // a class written by its name is nothing to evaluate
+		$names = [];
+		foreach ($bindings->arguments as $placeholder => $bound) {
+			foreach ($bound instanceof ArgumentNode ? [$bound] : $bound as $argument) {
+				$names[spl_object_id($argument)] = $placeholder;
+			}
+		}
+
+		foreach ($bindings->rest as $argument) {
+			$names[spl_object_id($argument)] = self::Rest;
+		}
+
+		foreach ($arguments->items as $argument) {
+			$name = $names[spl_object_id($argument)] ?? null;
+			if ($argument instanceof ArgumentNode) {
+				$judged[] = [$name, $argument->value];
+			}
+		}
+
+		$risk = null;
+		$positions = array_flip(array_keys($this->uses));
+		$written = []; // where the template writes what does something when evaluated, in the order of the call
+		foreach ($judged as [$name, $expression]) {
+			if ($expression->isRepeatableRead() || $expression->hasValue()) {
+				continue; // evaluating it does nothing, however many times
+			}
+
+			$uses = $name === null ? 0 : $this->uses[$name] ?? 0;
+			$what = $name === self::Receiver ? 'what it is reached through' : Violation::formatCode($expression->text);
+			if ($uses > 1) {
+				return new Rewrite(null, ", but $what would be evaluated $uses times");
+			} elseif ($uses === 0) {
+				$risk ??= "the replacement no longer evaluates $what";
+				continue;
+			} elseif (isset($this->lazy[$name])) {
+				$risk ??= "the replacement evaluates $what only sometimes";
+			}
+
+			$written[] = $positions[$name];
+		}
+
+		$sorted = $written;
+		sort($sorted);
+		if ($written !== $sorted) {
+			$risk ??= 'the replacement evaluates the arguments in another order';
+		}
+
+		foreach ($bindings->unseenKeys as $placeholder) {
+			$bound = $bindings->arguments[$placeholder];
+			if (isset($this->unpacked[$placeholder]) && $bound instanceof ArgumentNode) {
+				$risk ??= 'the replacement unpacks ' . Violation::formatCode($bound->value->text) . ', whose keys may not be the names of parameters';
+			}
+		}
+
+		[$expression, $classes] = $this->build($bindings, $receiver, $static, $nullsafe);
+		return new Rewrite($expression, because: $risk, classes: $classes);
+	}
+
+
+	/** @return array{ExpressionNode, list<NameNode>} */
+	private function build(
+		ArgumentBindings $bindings,
+		NameNode|ExpressionNode|null $receiver,
+		bool $static,
+		bool $nullsafe,
+	): array
+	{
+		// what the template wrote is found before anything of the call is written into it
+		$holder = $this->holder->withoutEdgeTrivia();
+		$variables = $holder->find(VariableNode::class);
+		$rests = $holder->find(VariadicPlaceholderNode::class);
+		$calls = $holder->find(FunctionCallNode::class, self::isBareCall(...));
+		$classes = $holder->find(NameNode::class, fn(NameNode $name) => $name->form === NameForm::FullyQualified
+			&& ($name->parent instanceof StaticMethodCallNode
+				|| $name->parent instanceof NewNode
+				|| $name->parent instanceof ClassConstantFetchNode
+				|| $name->parent instanceof StaticPropertyFetchNode)
+			&& $name->parent->class === $name);
+		$base = self::findChainBase($holder->expression);
+		if ($nullsafe && $base instanceof VariableNode) {
+			$link = $base->parent;
+			assert($link instanceof MethodCallNode || $link instanceof PropertyFetchNode);
+			$link->operator->replaceWith(Token::fromText('?->'));
+		}
+
+		$lists = [];
+		foreach ($variables as $variable) {
+			if ($variable->isThis()) {
+				assert($receiver instanceof ExpressionNode);
+				$variable->replaceWithExpression($receiver->withoutEdgeTrivia());
+				continue;
+			}
+
+			$bound = $bindings->arguments[(string) $variable->plainName];
+			$spread = $bound instanceof ArgumentNode && $variable->parent instanceof ArgumentNode && $variable->parent->ellipsis !== null
+				? self::spreadArray($bound->value)
+				: null;
+			if ($spread !== null) {
+				$lists[] = self::writeArguments($variable->parent, $spread);
+			} elseif ($bound instanceof ArgumentNode) {
+				$variable->replaceWithExpression($bound->value->withoutEdgeTrivia());
+			} else {
+				$lists[] = self::writeArguments($variable->parent, $bound);
+			}
+		}
+
+		foreach ($rests as $rest) {
+			$lists[] = self::writeArguments($rest, $bindings->rest);
+		}
+
+		foreach ($lists as $list) {
+			self::movePositionalFirst($list);
+		}
+
+		// the innermost first, so that a call in the arguments of another is there when the outer one is written
+		$builder = new Builder;
+		foreach (array_reverse($calls) as $call) {
+			assert($call->name instanceof NameNode && $receiver !== null);
+			$on = $receiver->withoutEdgeTrivia();
+			// the arguments move, so the classes found above stay in the expression; what follows them stays with the call
+			$arguments = $call->arguments;
+			$call->arguments = $builder->arguments([]);
+			$call->arguments->setEdgeTrivia(null, $arguments->getLastToken()->trailingTrivia);
+			$call->replaceWithExpression($static || !$on instanceof ExpressionNode
+				? $builder->staticMethodCall($on, $call->name->text, $arguments)
+				: $builder->methodCall($on, $call->name->text, $arguments, $nullsafe));
+		}
+
+		return [$holder->expression, $classes]; // the holder has no file, so a write takes the expression out of it
+	}
+
+
+	/**
+	 * Writes the arguments in place of the item of a list that stood for them.
+	 * @param  list<ArgumentNode>  $arguments
+	 * @return SeparatedNodeList<Node>
+	 */
+	private static function writeArguments(?Node $placeholder, array $arguments): SeparatedNodeList
+	{
+		$list = $placeholder?->parent;
+		assert($placeholder !== null && $list instanceof SeparatedNodeList);
+		$index = $list->indexOf($placeholder);
+		foreach ($arguments as $offset => $argument) {
+			$list->insert($index + $offset, $argument->withoutEdgeTrivia());
+		}
+
+		$list->removeItem($placeholder);
+		return $list;
+	}
+
+
+	/**
+	 * The items of an array literal unpacked into the arguments, written as the arguments PHP makes of them: a value
+	 * without a key positional, one under a string key named by it. Null where the literal says more than that: a key
+	 * that is no name, an item unpacked or taken by reference, a positional one behind a named one, a comment.
+	 * @return ?list<ArgumentNode>
+	 */
+	private static function spreadArray(ExpressionNode $array): ?array
+	{
+		if (!$array instanceof ArrayNode || $array->hasInnerComment()) {
+			return null;
+		}
+
+		$arguments = [];
+		$named = false;
+		foreach ($array->items->getItems() as $item) {
+			$key = $item instanceof ArrayItemNode && $item->key?->hasValue() ? $item->key->toValue() : null;
+			if (
+				!$item instanceof ArrayItemNode
+				|| $item->ampersand !== null
+				|| $item->ellipsis !== null
+				|| !$item->value instanceof ExpressionNode
+				|| ($item->key !== null && !(is_string($key) && preg_match('~^[a-z_\x80-\xff][\w\x80-\xff]*$~Di', $key)))
+				|| ($item->key === null && $named)
+			) {
+				return null;
+			}
+
+			$named = $named || $item->key !== null;
+			$arguments[] = (new Builder)->fragment(ArgumentNode::class, ($item->key === null ? '' : "$key: ") . '$value', value: $item->value);
+		}
+
+		return $arguments;
+	}
+
+
+	/**
+	 * PHP takes no positional argument behind a named one, which is where `...` after a named item may have written one.
+	 * @param  SeparatedNodeList<Node>  $list
+	 */
+	private static function movePositionalFirst(SeparatedNodeList $list): void
+	{
+		$named = null;
+		foreach ($list->getItems() as $index => $item) {
+			if (!$item instanceof ArgumentNode) {
+				continue;
+			} elseif ($item->name !== null) {
+				$named ??= $index;
+			} elseif ($named !== null) {
+				$list->removeItem($item);
+				$list->insert($named++, $item);
+			}
+		}
+	}
+
+
+	/**
+	 * What the expression, a chain of accesses, stands on where that is what the call was made on: `$this` read or
+	 * called on, or a call of a bare name; null for any other expression.
+	 */
+	private static function findChainBase(ExpressionNode $expression): VariableNode|FunctionCallNode|null
+	{
+		while (true) {
+			$inner = match (true) {
+				$expression instanceof MethodCallNode, $expression instanceof PropertyFetchNode => $expression->object,
+				$expression instanceof ArrayAccessNode => $expression->expression,
+				default => null,
+			};
+			if ($inner === null) {
+				return $expression instanceof FunctionCallNode && self::isBareCall($expression) ? $expression : null;
+			} elseif ($inner instanceof VariableNode && $inner->isThis()) {
+				return $expression instanceof ArrayAccessNode ? null : $inner;
+			}
+
+			$expression = $inner;
+		}
+	}
+
+
+	/** A call of a bare name, which the template means as a member of what the replaced call was made on. */
+	private static function isBareCall(FunctionCallNode $call): bool
+	{
+		return $call->name instanceof NameNode && $call->name->form === NameForm::Unqualified;
+	}
+
+
+	/**
+	 * A name written without the leading backslash that is the whole name all the same, the code standing in no
+	 * namespace: a qualified one, and a bare one of a class.
+	 */
+	private static function isMeantFullyQualified(NameNode $name): bool
+	{
+		return match ($name->form) {
+			NameForm::Qualified => true,
+			NameForm::Unqualified => $name->symbolKind === SymbolKind::ClassLike && $name->isReference(),
+			default => false,
+		};
+	}
+
+
+	/** Whether the node stands where PHP evaluates only sometimes, or later. */
+	private static function isLazy(Node $node): bool
+	{
+		for (; $node->parent !== null; $node = $node->parent) {
+			$parent = $node->parent;
+			if (
+				$parent instanceof ClosureNode
+				|| $parent instanceof ArrowFunctionNode
+				|| $parent instanceof MatchArmNode
+				|| ($parent instanceof TernaryNode && $node !== $parent->condition)
+				|| ($parent instanceof BinaryOpNode && $node === $parent->right && in_array(strtolower($parent->operator->text), ['??', '&&', '||', 'and', 'or'], true))
+				|| (($parent instanceof MethodCallNode || $parent instanceof PropertyFetchNode) && $node !== $parent->object && self::isNullsafeChain($parent))
+				|| ($parent instanceof ArrayAccessNode && $node !== $parent->expression && self::isNullsafeChain($parent->expression))
+			) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	/** Whether the chain has a nullsafe step, past which PHP evaluates nothing on null. */
+	private static function isNullsafeChain(ExpressionNode $chain): bool
+	{
+		while ($chain instanceof MethodCallNode || $chain instanceof PropertyFetchNode || $chain instanceof ArrayAccessNode) {
+			if ($chain instanceof ArrayAccessNode) {
+				$chain = $chain->expression;
+			} elseif ($chain->nullsafe) {
+				return true;
+			} else {
+				$chain = $chain->object;
+			}
+		}
+
+		return false;
+	}
+}

@@ -1,0 +1,21 @@
+<?php
+// {"libraries": {"replacedCalls": {"Acme\\Settings::hasAny($a, $b)": "hasAny([$a, $b])", "Acme\\Settings::hasAny($a, $b, $c)": "hasAny([$a, $b, $c])", "Acme\\Layout::__construct($shape, $strict)": "new \\Acme\\Layout($shape)", "Acme\\Settings::notify(...$args)": "\\Acme\\Sequence::invokeAll($this->listeners, ...$args)"}}}
+
+namespace App;
+
+use Acme\Layout;
+use Acme\Settings;
+
+function test(Settings $settings, array $kinds): void
+{
+	// a key that takes any arguments takes unpacked ones too
+	$settings->notify(...$kinds);
+
+	// reported and left: the keys name the arguments one by one
+	$a = $settings->hasAny(...$kinds);
+	$b = $settings->hasAny('x', ...$kinds);
+	$c = new Layout(...$kinds);
+
+	// left alone: a call of a shape the keys do not name
+	$d = $settings->hasAny('x');
+}

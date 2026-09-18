@@ -78,6 +78,13 @@ final readonly class MemberPattern
 	}
 
 
+	/** A method of the class, called with the arguments of the shape given, or with any. */
+	public static function forMethod(string $class, string $name, ?ArgumentPattern $arguments = null): self
+	{
+		return new self($class, MemberKind::Method, $name, $arguments);
+	}
+
+
 	/**
 	 * Whether the access is one of this member: the kind fits, the name agrees, a method whatever its letter case,
 	 * and every class of the receiver is the class or its subtype; a constructor only where the class itself declares
@@ -126,7 +133,7 @@ final readonly class MemberPattern
 	public function bind(MemberAccess $access, ArgumentListNode $arguments, ?array $parameters, Types $types): ?ArgumentBindings
 	{
 		return $this->matches($access, $types)
-			? $this->getArgumentPattern()->bind($arguments, $parameters)
+			? $this->getArgumentPattern()->bind($arguments, $parameters, $types)
 			: null;
 	}
 

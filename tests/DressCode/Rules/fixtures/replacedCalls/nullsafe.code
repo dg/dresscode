@@ -1,0 +1,28 @@
+<?php
+// {"libraries": {"replacedCalls": {"Acme\\Settings::getListeners()": "$this->listeners", "Acme\\Settings::getFirstListener()": "$this->listeners[0]", "Acme\\Settings::describeAll()": "$this->describe(', ')", "Acme\\Settings::getSorted()": "getEntries()->sort()", "Acme\\Settings::countListeners()": "\\count($this->listeners)", "Acme\\Settings::getOptionOr($key, $default)": "getOption($key) ?? $default", "Acme\\Settings::getSelf()": "$this"}}}
+
+namespace App;
+
+use Acme\Settings;
+
+function test(?Settings $settings, Settings $plain): void
+{
+	// a chain of accesses on the object skips a null as a whole, the operator carried over to its first link
+	$a = $settings?->getListeners();
+	$b = $settings?->getFirstListener();
+	$c = $settings?->describeAll();
+	$d = $settings?->getSorted();
+	$e = $plain->getListeners();
+	$f = $plain?->getListeners()['x'];
+
+	// reported and left: the replacement would give something else than null
+	$g = $settings?->countListeners();
+	$h = $settings?->getOptionOr('key', 'default');
+	$i = $settings?->getSelf();
+
+	// a chain broken before its operator stays broken
+	$j = $settings
+		?->getListeners();
+	$k = $plain
+		->getSorted();
+}

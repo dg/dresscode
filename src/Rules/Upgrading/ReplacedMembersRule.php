@@ -26,13 +26,14 @@ use PhpSyntax\Nodes\Scalar\StringNode;
  * found as well as one a child overrides; a receiver that may be of another class too is left alone.
  *
  * A key spells a member the way PHP reads it: `Class::name` is a constant or a method, `Class::name()` a method
- * whatever its call passes, the parentheses marking the kind alone, `Class::$name` a property. The value is the name
- * alone for a member of the same class, `Other::name` for one of another class, which only a static access and a
- * constant can be moved to, and `\function` for a global function a method becomes, the only change of kind there is,
- * because the two are called the same way; the function is written fully qualified, for the rules of the notation of
- * names to spell as the project does. The arguments stay as they are. A callable written as a value,
- * `[$order, 'recalc']` or `'Acme\Shop\Order::create'`, takes the new name where the types tell its class, whether or
- * not the class still declares the method. What cannot be rewritten is reported with the reason.
+ * whatever its call passes, the parentheses marking the kind alone, while in `replacedCalls` they are the shape of a
+ * call without arguments, `Class::$name` a property. The value is the name alone for a member of the same class,
+ * `Other::name` for one of another class, which only a static access and a constant can be moved to, and `\function`
+ * for a global function a method becomes, the only change of kind there is, because the two are called the same way;
+ * the function is written fully qualified, for the rules of the notation of names to spell as the project does. The
+ * arguments stay as they are. A callable written as a value, `[$order, 'recalc']` or `'Acme\Shop\Order::create'`, takes
+ * the new name where the types tell its class, whether or not the class still declares the method. What cannot be
+ * rewritten is reported with the reason.
  *
  * The fix is not risky, the replacement being the word of whoever wrote the map; only what is written without the
  * expression the member was reached through, a function and a member of another class, is risky where evaluating
@@ -43,19 +44,25 @@ use PhpSyntax\Nodes\Scalar\StringNode;
 	Stage::Structure,
 	typesRequired: true,
 	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedMembers'],
+	reads: [self::ReplacedCalls],
 	analyses: [Types::class, NameResolver::class],
 )]
 final class ReplacedMembersRule extends NodeRule
 {
 	public const Map = 'upgrading.libraries.replacedMembers';
+	private const ReplacedCalls = 'upgrading.libraries.replacedCalls';
 
 	/** @var MemberMap<MemberTarget> */
 	private MemberMap $map;
+
+	/** @var MemberMap<mixed>  whose keys take a call by the shape of its arguments, which is more specific than its name */
+	private MemberMap $calls;
 
 
 	public function configure(Values $values): void
 	{
 		$this->map = MemberMap::fromValues($values, self::Map, MemberTarget::fromCode(...));
+		$this->calls = MemberMap::fromValues($values, self::ReplacedCalls);
 	}
 
 
@@ -102,8 +109,12 @@ final class ReplacedMembersRule extends NodeRule
 		$types = $context->getAnalysis(Types::class);
 		$access = $types->findMemberAccess($node);
 		$entry = $access === null ? null : MemberMaps::findEntry($entries, $access, $types);
-		if ($access === null || $entry === null) {
-			return;
+		if (
+			$access === null
+			|| $entry === null
+			|| (($node instanceof MethodCallNode || $node instanceof StaticMethodCallNode) && $this->calls->findCall($node, $context) !== null)
+		) {
+			return; // the shape of the arguments of a call is more specific than its name
 		}
 
 		$pattern = $entry->pattern;

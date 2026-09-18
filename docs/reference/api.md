@@ -636,7 +636,7 @@ final class QualifiedNames
 final readonly class ArgumentBindings
 	public readonly array $arguments
 	public readonly array $rest
-	public function __construct(array $arguments, array $rest = [])
+	public function __construct(array $arguments, array $rest = [], array $unseenKeys = [])
 ```
 
 ## `DressCode\Rules\Upgrading\ArgumentPattern`
@@ -646,7 +646,8 @@ final readonly class ArgumentPattern
 	public readonly array $items
 	public static function any(): DressCode\Rules\Upgrading\ArgumentPattern
 	public static function parse(string $arguments): DressCode\Rules\Upgrading\ArgumentPattern
-	public function bind(PhpSyntax\Nodes\ArgumentListNode $arguments, ?array $parameters): ?DressCode\Rules\Upgrading\ArgumentBindings
+	public function bind(PhpSyntax\Nodes\ArgumentListNode $arguments, ?array $parameters, ?DressCode\Analyses\Types $types = null): ?DressCode\Rules\Upgrading\ArgumentBindings
+	public function takesRest(): bool
 	public function takesAnyArguments(): bool
 	public function compareSpecificity(DressCode\Rules\Upgrading\ArgumentPattern $other): int
 ```
@@ -718,6 +719,7 @@ final readonly class MemberPattern
 	public readonly bool $nonStatic
 	public readonly ?string $hook
 	public static function fromKey(string $key): DressCode\Rules\Upgrading\MemberPattern
+	public static function forMethod(string $class, string $name, ?DressCode\Rules\Upgrading\ArgumentPattern $arguments = null): DressCode\Rules\Upgrading\MemberPattern
 	public function matches(DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types): bool
 	public function bind(DressCode\Analyses\MemberAccess $access, PhpSyntax\Nodes\ArgumentListNode $arguments, ?array $parameters, DressCode\Analyses\Types $types): ?DressCode\Rules\Upgrading\ArgumentBindings
 	public function matchesMethodDeclaration(string $declaringClass, string $method, DressCode\Analyses\Types $types): bool
@@ -1049,6 +1051,7 @@ final readonly class Violation
 - `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedPhpCallsRule`
+- `DressCode\Rules\Upgrading\ReplacedCallsRule`
 - `DressCode\Rules\Upgrading\ReplacedClassesRule`
 - `DressCode\Rules\Upgrading\ReplacedFunctionsRule`
 - `DressCode\Rules\Upgrading\ReplacedMembersRule`

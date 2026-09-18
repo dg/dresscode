@@ -1,0 +1,8 @@
+17: Method `Acme\Settings::getListeners()` is replaced by `$this->listeners`.
+18: Static method `Acme\Mapper::create()` is replaced by `new \Acme\Layout`.
+21: Method `Acme\Settings::getOptionOr()` is replaced by `getOption($key) ?? $default`, but a first-class callable gets its arguments only when called.
+22: Method `Acme\Settings::isDebug()` is replaced by `hasMode('debug')`, but a first-class callable gets its arguments only when called.
+25: Method `Acme\Settings::getListeners()` is replaced by `$this->listeners`, but a closure would read its object only when called.
+28: Method `Acme\Settings::getEntries()` is replaced by `$this->entries`, but no expression stands for a callable value.
+29: Static method `Acme\Formatter::describe()` is replaced by `$settings->describe($separator)`, but no expression stands for a callable value.
+31: Method `Acme\Settings::getListeners()` is replaced by `$this->listeners`, but no expression stands for a callable value.

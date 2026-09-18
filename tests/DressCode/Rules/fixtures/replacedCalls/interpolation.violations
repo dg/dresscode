@@ -1,0 +1,11 @@
+12: Property `Acme\Message::$subject` is replaced by `getSubject()`.
+13: Property `Acme\Message::$subject` is replaced by `getSubject()`.
+14: Property `Acme\Message::$subject` is replaced by `getSubject()`.
+16: Property `Acme\Message::$subject` is replaced by `getSubject()`.
+17: Property `Acme\Message::$subject` is replaced by `getSubject()`.
+19: Property `Acme\Message::$subject` is replaced by `getSubject()`.
+22: Property `Acme\Message::$sent` is replaced by `$this->isSent() === true`, but expression `$mail->isSent() === true` cannot be written inside a string, which takes a variable, an element, a property or a call reached from a variable.
+23: Property `Acme\Message::$sent` is replaced by `$this->isSent() === true`, but expression `$mail->isSent() === true` cannot be written inside a string, which takes a variable, an element, a property or a call reached from a variable.
+24: Property `Acme\Message::$subject` is replaced by `getSubject()`, but braces cannot be written right after the dollar of the text `Cost: $`, which would read as `${`.
+25: Property `Acme\Message::$subject` is replaced by `getSubject()`, but braces cannot be written right after the dollar of the text `Path: \\$`, which would read as `${`.
+28: Property `Acme\Message::$sent` is replaced by `$this->isSent() === true`.
