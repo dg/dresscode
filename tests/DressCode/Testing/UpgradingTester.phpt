@@ -65,7 +65,7 @@ test('what the maps refuse is said with the map, in whatever section it stands',
 		check("package: acme/lib\n\nsince 9.0:\n\treplacedMembers:\n\t\tAcme\\Lib\\Form::\$legacy: items\n")[0],
 	);
 	Assert::same(
-		['Unknown map `replacedThings`; an upgrading file holds `replacedClasses`, `replacedFunctions`, `replacedMembers`, `replacedCalls`, `forbiddenFunctions` and the maps of the rules of its package by the paths of their decisions.'],
+		['Unknown map `replacedThings`; an upgrading file holds `replacedClasses`, `replacedFunctions`, `replacedMembers`, `replacedCalls`, `forbiddenClasses`, `forbiddenFunctions` and the maps of the rules of its package by the paths of their decisions.'],
 		check("package: acme/lib\n\nsince 3.0:\n\treplacedThings:\n\t\tA: B\n"),
 	);
 	Assert::same(
@@ -81,28 +81,28 @@ test('a sentence of a forbidden map reads as the end of the message', function (
 		package: acme/lib
 
 		since 3.0:
-			forbiddenFunctions:
-				acme_oldest: 'Acme\Lib\Control::render() replaces it'
-				acme_read_ini: INI files are read by Acme\Lib\Loader
-				acme_render: 'call `render()` on the control, or `renderTo()` where the output goes to a stream, which the old function wrote into its own buffer whatever the caller asked'
+			forbiddenClasses:
+				Acme\Lib\IOldest: 'Acme\Lib\Control replaces it; call render() on it'
+				Acme\Lib\IControl: INI files are read by Acme\Lib\Loader
+				Acme\Lib\IRenderer: 'call `render()` on it, or `renderTo()` where the output goes to a stream, which the old interface wrote into its own buffer whatever the caller asked of it first'
 		XX));
 	Assert::same(
 		[
-			'`forbiddenFunctions`: The sentence of `acme_oldest` ends with a period.',
-			'`forbiddenFunctions`: The sentence of `acme_render` holds a double quote.',
-			'`forbiddenFunctions`: The sentence of `acme_render` begins with a capital letter, but not with a name.',
-			'`forbiddenFunctions`: The sentence of `acme_connect` says `should`.',
-			'`forbiddenFunctions`: The sentence of `acme_format` is longer than 160 characters.',
+			'`forbiddenClasses`: The sentence of `Acme\Lib\IOldest` ends with a period.',
+			'`forbiddenClasses`: The sentence of `Acme\Lib\IControl` holds a double quote.',
+			'`forbiddenClasses`: The sentence of `Acme\Lib\IControl` begins with a capital letter, but not with a name.',
+			'`forbiddenClasses`: The sentence of `Acme\Lib\Control` says `should`.',
+			'`forbiddenClasses`: The sentence of `Acme\Lib\Form` is longer than 160 characters.',
 		],
 		check(<<<'XX'
 			package: acme/lib
 
 			since 3.0:
-				forbiddenFunctions:
-					acme_oldest: there is no replacement.
-					acme_render: 'There is "render()"'
-					acme_connect: credentials should not be used
-					acme_format: 'there is no replacement, and the text goes on and on about why, what the library did instead, where the manual tells more and what a project may write in the meantime'
+				forbiddenClasses:
+					Acme\Lib\IOldest: there is no replacement.
+					Acme\Lib\IControl: 'There is "render()"'
+					Acme\Lib\Control: credentials should not be used
+					Acme\Lib\Form: 'there is no replacement, and the text goes on and on about why, what the library did instead, where the manual tells more and what a project may write in the meantime'
 			XX),
 	);
 });
@@ -169,10 +169,14 @@ test('a forbidden map of a package must give every entry a sentence', function (
 		package: acme/lib
 
 		since 3.0:
+			forbiddenClasses:
+				Acme\Lib\IOldest:
+				Acme\Lib\IControl: there is no replacement
 			forbiddenFunctions:
 				acme_old:
 				acme_make: 'use `Acme\Lib\Helpers::create()`'
 		XX);
+	Assert::contains('`forbiddenClasses`: The entry `Acme\Lib\IOldest` must give a sentence saying what to write instead.', $problems);
 	Assert::contains('`forbiddenFunctions`: The entry `acme_old` must give a sentence saying what to write instead.', $problems);
-	Assert::count(1, array_filter($problems, fn(string $problem) => str_contains($problem, 'must give a sentence')));
+	Assert::count(2, array_filter($problems, fn(string $problem) => str_contains($problem, 'must give a sentence')));
 });

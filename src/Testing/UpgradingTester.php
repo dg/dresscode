@@ -168,17 +168,19 @@ final class UpgradingTester
 
 
 	/**
-	 * The entries of the map `forbiddenFunctions` that give no sentence: a project may leave it out, the data of a
-	 * package must say what to do instead.
+	 * The entries of the forbidden* maps that give no sentence: a project may leave it out, the data of a package
+	 * must say what to do instead.
 	 * @param  array<string, mixed>  $maps  map => its entries, those of every section
 	 * @return list<string>
 	 */
 	private static function collectMissingSentenceProblems(array $maps): array
 	{
 		$problems = [];
-		foreach (is_array($maps['forbiddenFunctions'] ?? null) ? $maps['forbiddenFunctions'] : [] as $key => $sentence) {
-			if ($sentence === null) {
-				$problems[] = "`forbiddenFunctions`: The entry `$key` must give a sentence saying what to write instead.";
+		foreach (['forbiddenClasses', 'forbiddenFunctions'] as $map) {
+			foreach (is_array($maps[$map] ?? null) ? $maps[$map] : [] as $key => $sentence) {
+				if ($sentence === null) {
+					$problems[] = "`$map`: The entry `$key` must give a sentence saying what to write instead.";
+				}
 			}
 		}
 
@@ -187,29 +189,31 @@ final class UpgradingTester
 
 
 	/**
-	 * The sentences of the map `forbiddenFunctions`, which end the message after "… is forbidden:": in lower case
-	 * unless they begin with a name, without a period at the end, double quotes or "should", and at most MaxSentence
-	 * long, backticks not counted.
+	 * The sentences of the forbidden* maps, which end the message after "… is forbidden:": in lower case unless they
+	 * begin with a name, without a period at the end, double quotes or "should", and at most MaxSentence long, backticks
+	 * not counted.
 	 * @param  array<string, array<string, mixed>>  $maps  map => its entries, those of every section
 	 * @return list<string>
 	 */
 	private static function collectSentenceProblems(array $maps): array
 	{
 		$problems = [];
-		foreach ($maps['forbiddenFunctions'] ?? [] as $key => $sentence) {
-			if (!is_string($sentence) || $sentence === MemberMaps::Keep) {
-				continue;
-			}
+		foreach (['forbiddenClasses', 'forbiddenFunctions'] as $map) {
+			foreach ($maps[$map] ?? [] as $key => $sentence) {
+				if (!is_string($sentence) || $sentence === MemberMaps::Keep) {
+					continue;
+				}
 
-			$flaws = array_filter([
-				'ends with a period' => str_ends_with($sentence, '.'),
-				'holds a double quote' => str_contains($sentence, '"'),
-				'begins with a capital letter, but not with a name' => preg_match('~^[A-Z][a-z]*\b(?![\\\\:(])~', $sentence) === 1,
-				'says `should`' => preg_match('~\bshould\b~i', $sentence) === 1,
-				'is longer than ' . self::MaxSentence . ' characters' => mb_strlen(str_replace('`', '', $sentence)) > self::MaxSentence,
-			]);
-			foreach (array_keys($flaws) as $flaw) {
-				$problems[] = "`forbiddenFunctions`: The sentence of `$key` $flaw.";
+				$flaws = array_filter([
+					'ends with a period' => str_ends_with($sentence, '.'),
+					'holds a double quote' => str_contains($sentence, '"'),
+					'begins with a capital letter, but not with a name' => preg_match('~^[A-Z][a-z]*\b(?![\\\\:(])~', $sentence) === 1,
+					'says `should`' => preg_match('~\bshould\b~i', $sentence) === 1,
+					'is longer than ' . self::MaxSentence . ' characters' => mb_strlen(str_replace('`', '', $sentence)) > self::MaxSentence,
+				]);
+				foreach (array_keys($flaws) as $flaw) {
+					$problems[] = "`$map`: The sentence of `$key` $flaw.";
+				}
 			}
 		}
 

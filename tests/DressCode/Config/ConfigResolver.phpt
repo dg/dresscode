@@ -696,6 +696,15 @@ test('the maps of the upgrading files lie under those of the project where it sa
 	Assert::true($resolved->findRule(RuleRenames::class)?->isActive());
 	Assert::same(['old' => 'new'], array_map(fn($value) => $value->toData(), $resolved->values->get('project.renames')->getEntries()));
 
+	// a run narrowed to one map builds the rule of that map alone, and still refuses a wrong entry of another one
+	$libraries = ['replacedClasses' => ['Acme\Old' => 'Acme\New'], 'forbiddenClasses' => ['Acme\Legacy' => null]];
+	$built = fn(array $libraries) => array_map(
+		fn(DressCode\Rule $rule) => $rule::class,
+		RuleBuilder::buildRules(createResolver()->resolve(new Config(decisions: ['upgrading' => ['libraries' => $libraries]]), '8.3', only: ['upgrading.libraries.replacedClasses'])),
+	);
+	Assert::same([DressCode\Rules\Upgrading\ReplacedClassesRule::class], $built($libraries));
+	Assert::exception(fn() => $built(['forbiddenClasses' => ['not a class!' => null]] + $libraries), ConfigurationException::class, 'Invalid entries of `upgrading.libraries.forbiddenClasses`: %a%');
+
 	// a map this DressCode does not know is a warning, not an error, because the package may be newer
 	$resolver = createResolver([new Config\UpgradingData(new Config\Layer(Config\LayerKind::Package, 'upgrading.neon', 'acme/lib'), 'acme/lib', ['functions' => [], 'constants' => []], ['replacedThings' => []])]);
 	$resolver->resolve(new Config, '8.3');

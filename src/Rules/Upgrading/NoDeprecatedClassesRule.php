@@ -22,19 +22,20 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * a type, an instantiation, a static access, an attribute. Where the deprecation names the class to use instead,
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
  * follow; any other is reported with what the deprecation says. In a doc comment only a class the deprecation names
- * a replacement for is rewritten, one without it being left as it is. A class the map of replacedClasses has is not
- * reported.
+ * a replacement for is rewritten, one without it being left as it is. A class the map of replacedClasses or of
+ * forbiddenClasses has is not reported.
  */
 #[RuleInfo(
 	Stage::Structure,
 	typesRequired: true,
 	modifiesComments: true,
-	reads: [self::ReplacedClasses],
+	reads: [self::ReplacedClasses, self::ForbiddenClasses],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class NoDeprecatedClassesRule extends NodeRule
 {
 	private const ReplacedClasses = 'upgrading.libraries.replacedClasses';
+	private const ForbiddenClasses = 'upgrading.libraries.forbiddenClasses';
 
 	/** @var array<string, true>  lowercased class, fully qualified, that a map of the libraries has */
 	private array $mapped = [];
@@ -49,7 +50,7 @@ final class NoDeprecatedClassesRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->mapped = [];
-		foreach (array_keys($values->readMap(self::ReplacedClasses)) as $class) {
+		foreach ([...array_keys($values->readMap(self::ReplacedClasses)), ...array_keys($values->readMap(self::ForbiddenClasses))] as $class) {
 			$this->mapped[strtolower(ltrim((string) $class, '\\'))] = true;
 		}
 	}
