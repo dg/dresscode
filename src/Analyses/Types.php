@@ -188,22 +188,27 @@ final class Types implements PassAnalysis
 	}
 
 
-	/** The type of the expression as PHPStan sees it; null for an expression the analysis was made without. */
-	private function getType(ExpressionNode $expression): ?Type
+	/**
+	 * The type of the expression as PHPStan sees it, with `$at` as it sees it where that node stands; null for an
+	 * expression the analysis was made without.
+	 */
+	private function getType(ExpressionNode $expression, ?ExpressionNode $at = null): ?Type
 	{
 		$found = $this->findExpression($expression);
-		return $found === null ? null : $found[1]->getType($found[0]);
+		$scope = $at === null ? $found[1] ?? null : $this->findExpression($at)[1] ?? null;
+		return $found === null || $scope === null ? null : $scope->getType($found[0]);
 	}
 
 
 	/**
 	 * Whether the expression is of the type, written in the syntax of PHPDoc as PHPStan reads it (`int|string`,
 	 * `list<int>`, `non-empty-string`), its classes fully qualified; maybe where it may or may not be, and for an
-	 * expression the analysis was made without.
+	 * expression the analysis was made without. With `$at` the expression is asked about where that node stands, which
+	 * a part of the variable of `isset()` needs: PHPStan takes it there as not null, since `isset()` would not fail on it.
 	 */
-	public function isOfType(ExpressionNode $expression, string $type): Tristate
+	public function isOfType(ExpressionNode $expression, string $type, ?ExpressionNode $at = null): Tristate
 	{
-		$actual = $this->getType($expression);
+		$actual = $this->getType($expression, $at);
 		if ($actual === null) {
 			return Tristate::Maybe;
 		}

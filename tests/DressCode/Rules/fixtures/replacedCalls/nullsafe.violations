@@ -1,0 +1,11 @@
+11: Method `Acme\Settings::getListeners()` is replaced by `$this->listeners`.
+12: Method `Acme\Settings::getFirstListener()` is replaced by `$this->listeners[0]`.
+13: Method `Acme\Settings::describeAll()` is replaced by `$this->describe(', ')`.
+14: Method `Acme\Settings::getSorted()` is replaced by `getEntries()->sort()`.
+15: Method `Acme\Settings::getListeners()` is replaced by `$this->listeners`.
+16: Method `Acme\Settings::getListeners()` is replaced by `$this->listeners`.
+19: Method `Acme\Settings::countListeners()` is replaced by `\count($this->listeners)`, but the replacement cannot skip a null as `?->` does.
+20: Method `Acme\Settings::getOptionOr()` is replaced by `getOption($key) ?? $default`, but the replacement cannot skip a null as `?->` does.
+21: Method `Acme\Settings::getSelf()` is replaced by `$this`, but the replacement cannot skip a null as `?->` does.
+25: Method `Acme\Settings::getListeners()` is replaced by `$this->listeners`.
+27: Method `Acme\Settings::getSorted()` is replaced by `getEntries()->sort()`.

@@ -1,0 +1,29 @@
+<?php
+// {"libraries": {"replacedCalls": {"Acme\\Message::$subject::get": "getSubject()", "Acme\\Letter::$subject::get": "getTitle()", "Acme\\Section::__get($name)": "get($name)", "Acme\\Chapter::__get($name)": "fetch($name)", "Acme\\Message::isSent(...$args)": "getSubject()", "Acme\\Letter::isSent(...$args)": "getTitle()"}}}
+
+namespace App;
+
+use Acme\Chapter;
+use Acme\Letter;
+use Acme\Message;
+use Acme\Section;
+
+// of a key of a class and one of its ancestor, the one of the class decides, whichever the map lists first
+function test(Letter $letter, Message $message, Chapter $chapter, Section $section): void
+{
+	$a = $letter->getTitle();
+	$b = $message->getSubject();
+	$c = $chapter->fetch('user');
+	$d = $section->get('user');
+	$e = $letter->getTitle();
+	$f = $message->getSubject();
+}
+
+
+class Note extends Letter
+{
+	public function isSent(): bool
+	{
+		return false;
+	}
+}

@@ -21,12 +21,14 @@ use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, Property
  * is decided by the class declaring it. A replacement in the same class is fixed by writing its name, where the class
  * has it at least as visible, for a property at least as writable and of the same type, and it takes the use as it is,
  * a method every call of the deprecated one; any other is reported with what the deprecation says.
- * A member the map of replacedMembers has is not reported.
+ * A member the maps of replacedMembers or replacedCalls have is not reported.
  */
-#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class], reads: [MemberMapGrammar::ReplacedMembers])]
+#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class], reads: self::Maps)]
 final class NoDeprecatedMembersRule extends NodeRule
 {
-	/** @var MemberMap<null>  the keys of the map of replacedMembers */
+	private const Maps = [MemberMapGrammar::ReplacedMembers, MemberMapGrammar::ReplacedCalls];
+
+	/** @var MemberMap<null>  the keys of every map of members */
 	private MemberMap $mapped;
 
 
@@ -42,7 +44,8 @@ final class NoDeprecatedMembersRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->mapped = MemberMap::fromEntries($values->readMap(MemberMapGrammar::ReplacedMembers), fn() => null);
+		$keys = array_merge(...array_map(fn(string $path) => $values->readMap($path), self::Maps));
+		$this->mapped = MemberMap::fromEntries($keys, fn() => null);
 	}
 
 

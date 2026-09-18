@@ -7,19 +7,20 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\Violation;
+use DressCode\Analyses\{Parameter, Types};
+use DressCode\{Tristate, Violation};
 use PhpSyntax\{Builder, ParseException};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, VariadicPlaceholderNode};
-use PhpSyntax\Nodes\Expression\{FunctionCallNode, VariableNode};
+use PhpSyntax\Nodes\Expression\{ArrayNode, FunctionCallNode, VariableNode};
 use function count;
 
 
 /**
  * The shape of the arguments a key of a map of members asks of a call, written as the arguments of a call are:
  * `$name, $label, true`, `miss: $f, ...`, `$callable, ...$args`. A placeholder stands for any expression,
- * `$this` being none; a literal stands for the same value however written, an item under a name for an argument
- * passed by that name, and the rest of the arguments has to be asked for, with `...` or `...$args`, or the call
- * may have none.
+ * `$this` alone for none, being what the call is made on in the expression written instead; a literal stands for
+ * the same value however written, an item under a name for an argument passed by that name, and the rest of the
+ * arguments has to be asked for, with `...` or `...$args`, or the call may have none.
  */
 final readonly class ArgumentPattern
 {
@@ -63,7 +64,7 @@ final readonly class ArgumentPattern
 			$placeholder = $value instanceof VariableNode ? $value->plainName : null;
 			$variadic = $argument instanceof ArgumentNode && $argument->ellipsis !== null;
 			if ($placeholder === 'this') {
-				throw new \InvalidArgumentException('`$this` is no placeholder.');
+				throw new \InvalidArgumentException('`$this` is no placeholder; in the expression written instead it stands for what the call is made on.');
 			} elseif ($placeholder !== null && in_array($placeholder, $placeholders, true)) {
 				throw new \InvalidArgumentException("the placeholder `\$$placeholder` stands for two arguments.");
 			} elseif ($name === null && $named && !$variadic) {
@@ -86,16 +87,18 @@ final readonly class ArgumentPattern
 
 	/**
 	 * The arguments of the call in the words of the pattern, or null where the call is not of its shape: an item has
-	 * no argument, a literal another value, an argument is left that nothing asked for. A call that leaves arguments
-	 * open with `?` or `...` is none either.
+	 * no argument, a literal another value, an argument is left that nothing asked for. A positional item takes the
+	 * argument passed by the name of its parameter too, which needs the parameters of the method; without them a call
+	 * passing it by name is of no shape. A call that leaves arguments open with `?` or `...` is none either.
+	 * @param  ?list<Parameter>  $parameters  of the method called, null where nothing declares it
 	 */
-	public function bind(ArgumentListNode $arguments): ?ArgumentBindings
+	public function bind(ArgumentListNode $arguments, ?array $parameters, ?Types $types = null): ?ArgumentBindings
 	{
 		if ($arguments->isPartialApplication()) {
 			return null;
 		}
 
-		$bound = $taken = [];
+		$bound = $taken = $unseen = [];
 		$tail = null;
 		foreach ($this->items as $index => $item) {
 			if ($item->rest) {
@@ -105,7 +108,7 @@ final readonly class ArgumentPattern
 
 			// the positional items stand first, so the index of one is its position
 			$argument = $item->parameterName === null
-				? $arguments->findArgument(null, $index)
+				? $arguments->findArgument($parameters[$index]->name ?? null, $index)
 				: $arguments->findArgument($item->parameterName, null);
 			if (
 				$argument === null
@@ -117,6 +120,13 @@ final readonly class ArgumentPattern
 			$taken[] = $argument;
 			if ($item->placeholder !== null) {
 				$bound[$item->placeholder] = $argument;
+				if (
+					!$argument->value instanceof ArrayNode
+					&& !$argument->value->hasValue()
+					&& $types?->isOfType($argument->value, 'list') !== Tristate::Yes
+				) {
+					$unseen[] = $item->placeholder;
+				}
 			}
 		}
 
@@ -128,14 +138,22 @@ final readonly class ArgumentPattern
 		}
 
 		if ($tail === null) {
-			return $rest === [] ? new ArgumentBindings($bound) : null;
+			return $rest === [] ? new ArgumentBindings($bound, unseenKeys: $unseen) : null;
 		} elseif ($tail->placeholder === null) {
-			return new ArgumentBindings($bound, $rest);
+			return new ArgumentBindings($bound, $rest, $unseen);
 		} elseif (array_any($rest, fn(ArgumentNode $argument) => $argument->name !== null)) {
 			return null; // a name has no place among the arguments a variadic placeholder writes elsewhere
 		}
 
-		return new ArgumentBindings($bound + [$tail->placeholder => $rest]);
+		return new ArgumentBindings($bound + [$tail->placeholder => $rest], unseenKeys: $unseen);
+	}
+
+
+	/** Whether the pattern ends with `...`, which takes the arguments it names in no other way. */
+	public function takesRest(): bool
+	{
+		$last = $this->items[count($this->items) - 1] ?? null;
+		return $last !== null && $last->rest && $last->placeholder === null;
 	}
 
 
@@ -143,5 +161,20 @@ final readonly class ArgumentPattern
 	public function takesAnyArguments(): bool
 	{
 		return count($this->items) === 1 && $this->items[0]->rest;
+	}
+
+
+	/**
+	 * Which of two patterns of one method is asked first, as a comparison function: the one with more literals, then
+	 * the one that takes no rest, then the longer one.
+	 */
+	public function compareSpecificity(self $other): int
+	{
+		$measure = fn(self $pattern) => [
+			count(array_filter($pattern->items, fn(ArgumentPatternItem $item) => $item->literal !== null)),
+			(int) !array_any($pattern->items, fn(ArgumentPatternItem $item) => $item->rest),
+			count($pattern->items),
+		];
+		return $measure($other) <=> $measure($this);
 	}
 }

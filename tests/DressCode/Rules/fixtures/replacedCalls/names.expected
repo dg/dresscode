@@ -1,0 +1,34 @@
+<?php
+// {"libraries": {"replacedCalls": {"Acme\\Settings::notify(...$args)": "Acme\\Sequence::invokeAll($this->listeners, ...$args)", "Acme\\Settings::isDebug()": "$this->hasMode(Acme\\Mapper::class)", "Acme\\Formatter::format($var)": "(new Acme\\Formatter)->render($var)", "Acme\\Invoker::wrap($callable)": "Closure::fromCallable($callable)", "Acme\\Settings::count()": "Acme\\count(getEntries()) . PHP_EOL", "Acme\\Settings::isStrict()": "$this instanceof Acme\\MySettings", "Acme\\Reply::create(...$args)": "new static(...$args)"}}}
+
+namespace App;
+
+use Acme\Formatter;
+use Acme\Invoker;
+use Acme\Mapper;
+use Acme\Reply;
+use Acme\Sequence;
+use Acme\Settings;
+
+// a name the code writes without the leading backslash is the whole name, not one of this namespace
+function test(Settings $settings, array $items, callable $cb): void
+{
+	Sequence::invokeAll($settings->listeners, 1);
+	$settings->hasMode(Mapper::class);
+	$a = (new Formatter)->render($items);
+	$b = \Closure::fromCallable($cb);
+
+	// a function, and a class where the rule spells none, are written with the backslash
+	$c = \Acme\count($settings->getEntries()) . PHP_EOL;
+	$d = $settings instanceof \Acme\MySettings;
+}
+
+
+class ShortReply extends Reply
+{
+	public static function createEmpty(): static
+	{
+		// static is the class where it is written
+		return new static('');
+	}
+}

@@ -1,0 +1,19 @@
+<?php
+// {"libraries": {"replacedCalls": {"Acme\\Settings::removedOption($key, $default)": "getOption($key) ?? $default", "Acme\\Settings::getOption($key, $default)": "getOption($key) ?? $default"}}}
+
+namespace App;
+
+use Acme\Settings;
+
+function test(Settings $settings): void
+{
+	// positional arguments are of the shape, the method declared or removed
+	$a = $settings->getOption('key') ?? 1;
+	$b = $settings->getOption('key') ?? 2;
+
+	// reported and left: no declaration of the removed method is left to tell the position of a name
+	$c = $settings->removedOption(key: 'key', default: 3);
+
+	// left alone: the declaration gives the names, and the call is of no shape the keys have
+	$d = $settings->getOption(key: 'key');
+}

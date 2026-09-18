@@ -11,7 +11,8 @@ use DressCode\Analyses\MemberAccess;
 
 
 /**
- * The entry of a map of members an access was found under: its key, what the rule keeps of its value and the access.
+ * The entry of a map of members an access was found under: its key, what the rule keeps of its value, the access, and
+ * how the arguments of the call bind to the key where the call was asked about.
  * @template T
  */
 final readonly class MapMatch
@@ -21,6 +22,8 @@ final readonly class MapMatch
 		/** @var T */
 		public mixed $value,
 		public MemberAccess $access,
+		/** null where the arguments were not asked about */
+		public ?ArgumentBindings $bindings = null,
 	) {
 	}
 }

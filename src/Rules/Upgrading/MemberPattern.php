@@ -7,11 +7,11 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\Analyses\{MemberAccess, MemberKind, Types};
+use DressCode\Analyses\{MemberAccess, MemberKind, Parameter, Types};
 use DressCode\{Tristate, Violation};
 use PhpSyntax\Node;
+use PhpSyntax\Nodes\{ArgumentListNode, NameNode};
 use PhpSyntax\Nodes\Expression\StaticMethodCallNode;
-use PhpSyntax\Nodes\NameNode;
 
 
 /**
@@ -86,6 +86,13 @@ final readonly class MemberPattern
 	}
 
 
+	/** A method of the class, called with the arguments of the shape given, or with any. */
+	public static function forMethod(string $class, string $name, ?ArgumentPattern $arguments = null): self
+	{
+		return new self($class, MemberKind::Method, $name, $arguments);
+	}
+
+
 	/**
 	 * Whether the access is one of this member: the kind fits, the name agrees, a method whatever its letter case,
 	 * and every class of the receiver is the class or its subtype; a constructor only where the class itself declares
@@ -130,6 +137,19 @@ final readonly class MemberPattern
 
 
 	/**
+	 * The arguments of the call in the words of the key, or null where the access is not of the key or the arguments
+	 * are of no shape it has; a key naming no arguments takes any.
+	 * @param  ?list<Parameter>  $parameters  of the method called, null where nothing declares it
+	 */
+	public function bind(MemberAccess $access, ArgumentListNode $arguments, ?array $parameters, Types $types): ?ArgumentBindings
+	{
+		return $this->matches($access, $types)
+			? $this->getArgumentPattern()->bind($arguments, $parameters, $types)
+			: null;
+	}
+
+
+	/**
 	 * Whether a method declared in the class overrides this member, or did before the library removed it: the key can
 	 * be of a method, the name agrees and the class is a subtype of the class of the member other than that class itself.
 	 */
@@ -156,6 +176,13 @@ final readonly class MemberPattern
 	public function takesAnyArguments(): bool
 	{
 		return $this->arguments === null || $this->arguments->takesAnyArguments();
+	}
+
+
+	/** Of two keys of one member, the one whose arguments have the more specific shape comes first. */
+	public function compareSpecificity(self $other): int
+	{
+		return $this->getArgumentPattern()->compareSpecificity($other->getArgumentPattern());
 	}
 
 

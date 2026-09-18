@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
 
+use DressCode\Analyses\Parameter;
 use DressCode\Rules\Upgrading\{ArgumentPattern, ArgumentPatternItem};
 use PhpSyntax\Builder;
 use PhpSyntax\Nodes\ArgumentNode;
@@ -12,13 +13,17 @@ require __DIR__ . '/../../bootstrap.php';
 /**
  * What the pattern makes of the arguments of the call: placeholder → the text of its argument, those of a variadic one
  * in a list, and `...` → the texts of the rest; null where the call is not of the shape.
+ * @param  ?list<string>  $parameters  the names of the parameters of the method called
  * @return ?array<string, string|list<string>>
  */
-function bind(string $pattern, string $call): ?array
+function bind(string $pattern, string $call, ?array $parameters = null): ?array
 {
 	$node = (new Builder)->expression($call);
 	assert($node instanceof FunctionCallNode);
-	$bindings = ArgumentPattern::parse($pattern)->bind($node->arguments);
+	$bindings = ArgumentPattern::parse($pattern)->bind(
+		$node->arguments,
+		$parameters === null ? null : array_map(fn(string $name) => new Parameter($name, 'mixed'), $parameters),
+	);
 	if ($bindings === null) {
 		return null;
 	}
@@ -55,7 +60,12 @@ test('a pattern is read as the arguments of a call', function () {
 	);
 	Assert::equal(ArgumentPattern::parse('...'), ArgumentPattern::any());
 	Assert::true(ArgumentPattern::any()->takesAnyArguments());
+	Assert::true(ArgumentPattern::any()->takesRest());
+	Assert::true(ArgumentPattern::parse('$a, ...')->takesRest());
 	Assert::false(ArgumentPattern::parse('$a, ...')->takesAnyArguments());
+	Assert::false(ArgumentPattern::parse('$a, ...$rest')->takesRest());
+	Assert::false(ArgumentPattern::parse('$a')->takesRest());
+	Assert::false(ArgumentPattern::parse('')->takesRest());
 
 	$errors = [
 		'$a, run()' => "`run()` is no placeholder, no literal, and neither `...` nor `...\$name`.",
@@ -64,7 +74,7 @@ test('a pattern is read as the arguments of a call', function () {
 		'&$a' => "`&\$a` is no placeholder, %a%",
 		'$$a' => "`\$\$a` is no placeholder, %a%",
 		'...[1]' => '`...[1]` is no placeholder, %a%',
-		'$a, $this' => '`$this` is no placeholder.',
+		'$a, $this' => '`$this` is no placeholder; in the expression written instead it stands for what the call is made on.',
 		'$a, $b, $a' => 'the placeholder `$a` stands for two arguments.',
 		'a: $a, $b' => "the positional `\$b` stands behind a named item.",
 		'..., $a' => "`\$a` stands behind the item that takes the rest of the arguments.",
@@ -105,9 +115,24 @@ test('a literal is the same value, however written', function () {
 });
 
 
-test('a named item takes only the argument passed by that name', function () {
+test('an argument passed by name is the one of its parameter, which takes the parameters of the method', function () {
+	$parameters = ['name', 'label', 'multiple'];
+	Assert::same(
+		['name' => "'a'", 'label' => "label: 'b'"],
+		bind('$name, $label, true', "f('a', multiple: true, label: 'b')", $parameters),
+	);
+	Assert::null(bind('$name, $label, true', "f('a', multiple: true)", $parameters));
+	Assert::null(bind('$name, $label, true', "f('a', label: 'b', multiple: false)", $parameters));
+
+	// without them a name cannot be placed, and the call is of no shape
+	Assert::null(bind('$name, $label, true', "f('a', multiple: true, label: 'b')"));
+	Assert::same(['name' => "'a'", 'label' => "'b'"], bind('$name, $label, true', "f('a', 'b', true)"));
+});
+
+
+test('a named item takes only the argument passed by that name, with the parameters or without them', function () {
 	Assert::same(['f' => 'miss: $cb', '...' => ['$key']], bind('miss: $f, ...', 'f($key, miss: $cb)'));
-	Assert::null(bind('miss: $f, ...', 'f($key, $cb)'));
+	Assert::null(bind('miss: $f, ...', 'f($key, $cb)', ['key', 'miss']));
 	Assert::null(bind('miss: $f, ...', 'f($key, factory: $cb)'));
 	Assert::same([], bind('strict: true', 'f(strict: true)'));
 	Assert::null(bind('strict: true', 'f(strict: false)'));
@@ -121,4 +146,11 @@ test('the rest of the arguments goes to ... as written, or under a variadic plac
 	Assert::same(['callable' => '$cb', 'args' => ['1', '...$more']], bind('$callable, ...$args', 'f($cb, 1, ...$more)'));
 	Assert::null(bind('$callable, ...$args', 'f($cb, 1, name: 2)'));
 	Assert::null(bind('$key, ...', 'f()'));
+});
+
+
+test('of the patterns of one method the more specific is asked first', function () {
+	$patterns = ['$a, ...', '$a, $b', '$a, true', '$a, $b, ...', '...', 'true, false', '$a'];
+	usort($patterns, fn(string $a, string $b) => ArgumentPattern::parse($a)->compareSpecificity(ArgumentPattern::parse($b)));
+	Assert::same(['true, false', '$a, true', '$a, $b', '$a', '$a, $b, ...', '$a, ...', '...'], $patterns);
 });

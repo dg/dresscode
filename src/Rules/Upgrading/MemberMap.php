@@ -7,10 +7,11 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\Analyses\{MemberAccess, Types};
-use DressCode\{Tristate, Values};
+use DressCode\Analyses\{MemberAccess, Parameter, Types};
+use DressCode\{RuleContext, Tristate, Values};
+use PhpSyntax\Builder;
+use PhpSyntax\Nodes\{ArgumentListNode, IdentifierNode};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, NewNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
-use PhpSyntax\Nodes\IdentifierNode;
 use PhpSyntax\Nodes\Member\MethodNode;
 
 
@@ -78,26 +79,70 @@ final readonly class MemberMap
 
 
 	/**
-	 * The entry the access is of, the first `findDecidingEntry()` gives of those whose key the access is of; null where
-	 * none is.
+	 * The entry the access is of, the first `findDecidingEntry()` gives of those whose key the access is of and, where
+	 * the arguments of the call are given, whose arguments they bind to, the key whose arguments have the more specific
+	 * shape asked first; null where none is.
+	 * @param  ?list<Parameter>  $parameters  of the method called, null where nothing declares it
 	 * @return ?MapMatch<T>
 	 */
-	public function findAccess(MemberAccess $access, Types $types): ?MapMatch
+	public function findAccess(
+		MemberAccess $access,
+		Types $types,
+		?ArgumentListNode $arguments = null,
+		?array $parameters = null,
+	): ?MapMatch
 	{
+		$bindings = [];
 		$entry = $this->findDecidingEntry(
 			strtolower($access->name),
 			$types,
-			fn(array $entry) => $entry[0]->matches($access, $types),
+			function (array $entry) use ($access, $types, $arguments, $parameters, &$bindings): bool {
+				if ($arguments === null) {
+					return $entry[0]->matches($access, $types);
+				}
+
+				$bound = $entry[0]->bind($access, $arguments, $parameters, $types);
+				if ($bound !== null) {
+					$bindings[spl_object_id($entry[0])] = $bound;
+				}
+
+				return $bound !== null;
+			},
+			specificFirst: $arguments !== null,
 		);
-		return $entry === null ? null : new MapMatch($entry[0], $entry[1], $access);
+		return $entry === null
+			? null
+			: new MapMatch($entry[0], $entry[1], $access, $bindings[spl_object_id($entry[0])] ?? null);
 	}
 
 
 	/**
-	 * The entry whose key is the method the declaration overrides; null where none is.
+	 * The entry the call is of by the shape of its arguments, the most specific one, with what it binds them to; null
+	 * for none. An instantiation is an access of the constructor of the class it creates.
+	 * @return ?MapMatch<T>
+	 */
+	public function findCall(MethodCallNode|StaticMethodCallNode|NewNode $node, RuleContext $context): ?MapMatch
+	{
+		$name = self::findLookupName($node);
+		if ($name === null || $this->getEntries($name) === []) {
+			return null; // the types are asked only about a name the map knows
+		}
+
+		$types = $context->getAnalysis(Types::class);
+		$access = $types->findConstructorAccess($node) ?? $types->findMemberAccess($node);
+		return $access === null
+			? null
+			: $this->findAccess($access, $types, $node->arguments ?? (new Builder)->arguments([]), $types->findParameters($access));
+	}
+
+
+	/**
+	 * The entry whose key is the method the declaration overrides, the key whose arguments have the more specific shape
+	 * first where `$specificFirst` asks for it; with `$anyArguments` only a key taking any arguments, the declaration
+	 * being of no call; null where none is.
 	 * @return ?array{MemberPattern, T}
 	 */
-	public function findDeclaration(MethodNode $declaration, Types $types): ?array
+	public function findDeclaration(MethodNode $declaration, Types $types, bool $anyArguments = false, bool $specificFirst = false): ?array
 	{
 		$name = strtolower($declaration->name->text);
 		$class = $this->getEntries($name) === [] ? null : $types->findDeclaringClass($declaration);
@@ -106,32 +151,37 @@ final readonly class MemberMap
 			: $this->findDecidingEntry(
 				$name,
 				$types,
-				fn(array $entry) => $entry[0]->matchesMethodDeclaration($class, $declaration->name->text, $types),
+				fn(array $entry) => (!$anyArguments || $entry[0]->takesAnyArguments())
+					&& $entry[0]->matchesMethodDeclaration($class, $declaration->name->text, $types),
+				specificFirst: $specificFirst,
 			);
 	}
 
 
 	/**
 	 * The entry of the lowercased name that decides among those `$accepts` takes, the first as the map writes them that
-	 * no other one taken precedes: the key of a class precedes that of its ancestor, so that of two keys an access fits
-	 * both, the one of the class nearer to it decides; null where none is taken.
+	 * no other one taken precedes: with `$specificFirst` the key whose arguments have the more specific shape precedes,
+	 * then the key of a class precedes that of its ancestor, so that of two keys an access fits both, the one of the
+	 * class nearer to it decides; null where none is taken.
 	 * @param  \Closure(array{MemberPattern, T}): bool  $accepts
 	 * @return ?array{MemberPattern, T}
 	 */
-	public function findDecidingEntry(string $name, Types $types, \Closure $accepts): ?array
+	public function findDecidingEntry(string $name, Types $types, \Closure $accepts, bool $specificFirst = false): ?array
 	{
 		// the order is partial, which a sort cannot be given
 		$accepted = array_filter($this->getEntries($name), $accepts);
 		return array_find(
 			$accepted,
-			fn(array $entry) => !array_any($accepted, fn(array $other) => self::precedes($other[0], $entry[0], $types)),
+			fn(array $entry) => !array_any($accepted, fn(array $other) => self::precedes($other[0], $entry[0], $types, $specificFirst)),
 		);
 	}
 
 
-	private static function precedes(MemberPattern $a, MemberPattern $b, Types $types): bool
+	private static function precedes(MemberPattern $a, MemberPattern $b, Types $types, bool $specificFirst): bool
 	{
-		return strcasecmp($a->class, $b->class) !== 0 && $types->isSubtype($a->class, $b->class) === Tristate::Yes;
+		$result = $specificFirst ? $a->compareSpecificity($b) : 0;
+		return $result < 0
+			|| ($result === 0 && strcasecmp($a->class, $b->class) !== 0 && $types->isSubtype($a->class, $b->class) === Tristate::Yes);
 	}
 
 
