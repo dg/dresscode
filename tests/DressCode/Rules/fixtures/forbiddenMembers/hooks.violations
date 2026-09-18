@@ -1,0 +1,8 @@
+10: Writing to property `Acme\Request::$query` is forbidden: pass the query to the constructor.
+11: Writing to property `Acme\Request::$query` is forbidden: pass the query to the constructor.
+12: Writing to property `Acme\Request::$query` is forbidden: pass the query to the constructor.
+18: Reading static property `Acme\Request::$trusted` is forbidden: call `trustedProxies()`.
+19: Reading static property `Acme\Request::$trusted` is forbidden: call `trustedProxies()`.
+21: Writing to property `Acme\Request::$page` is forbidden: pass the page to the constructor.
+22: Writing to property `Acme\Request::$page` is forbidden: pass the page to the constructor.
+23: Writing to property `Acme\Request::$page` is forbidden: pass the page to the constructor.

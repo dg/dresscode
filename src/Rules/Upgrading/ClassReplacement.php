@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\Analyses\{PhpDoc, Types};
+use DressCode\Analyses\{MemberKind, PhpDoc, Types};
 use DressCode\{RuleContext, Tristate};
 use DressCode\Rules\{CodeWriter, QualifiedNames};
 use PHPStan\PhpDocParser\Ast\{Attribute, Node as PhpDocAstNode};
@@ -45,13 +45,18 @@ final class ClassReplacement
 	 * a replacement for and the report allows.
 	 * @param  \Closure(string): ?array{string, ?string}  $find  given a fully qualified class, the message and the class
 	 *   written instead, null for none; null for a class that is left alone
-	 * @param  \Closure(string): ?array{string, ?string}  $findInDocs  the same as `$find` for a class a doc comment names
+	 * @param  \Closure(string, ?array{string, MemberKind}): (array{string, ?string}|false|null)  $findInDocs  the same as
+	 *   `$find` for a class a doc comment names, with the member it names, false for one that goes on naming the class
+	 *   and keeps its import
+	 * @param  ?\Closure(NameNode): bool  $keeps  whether the reference goes on naming the class, which nothing is said
+	 *   about and whose import stays with it
 	 */
 	public static function rewriteReferences(
 		FileNode|NamespaceNode $scope,
 		RuleContext $context,
 		\Closure $find,
 		\Closure $findInDocs,
+		?\Closure $keeps = null,
 	): void
 	{
 		// everything is found before anything is rewritten: a rewritten import changes what the names below it resolve to
@@ -60,9 +65,11 @@ final class ClassReplacement
 		$imports = $references = $kept = $lists = $docs = [];
 		foreach (self::findDocReferences($scope, $context) as [$token, $trivia, $tokens, $names]) {
 			$found = [];
-			foreach ($names as [$index, $class]) {
-				$result = $findInDocs($class);
-				if ($result !== null) {
+			foreach ($names as [$index, $class, $member]) {
+				$result = $findInDocs($class, $member);
+				if ($result === false) {
+					$kept[strtolower($class)] = true;
+				} elseif ($result !== null) {
 					$found[] = [$index, ...$result];
 				}
 			}
@@ -89,7 +96,11 @@ final class ClassReplacement
 
 				$found = $find($class);
 				$refusal = $found === null || $found[1] === null ? null : self::findRefusal($name, $found[1], $types);
-				if ($found !== null) {
+				if ($found === null) {
+					continue;
+				} elseif ($keeps !== null && $keeps($name)) {
+					$kept[strtolower($class)] = true;
+				} else {
 					$references[] = [$name, ...$found, $refusal];
 					if ($refusal !== null) {
 						$kept[strtolower($class)] = true; // the reference left as it is needs its import
@@ -144,8 +155,8 @@ final class ClassReplacement
 	/**
 	 * The classes the doc comments of the scope name: in a type, in a class constant, as the target of a tag such as
 	 * `@see` and of an inline tag such as `{@link}`.
-	 * @return list<array{Token, Trivia, list<array{string, int, int}>, list<array{int, string}>}>  the token holding the doc
-	 *   comment, the comment, its tokens, and per name the index of its token and the class
+	 * @return list<array{Token, Trivia, list<array{string, int, int}>, list<array{int, string, ?array{string, MemberKind}}>}>  the token
+	 *   holding the doc comment, the comment, its tokens, and per name the index of its token, the class and the member it names
 	 */
 	private static function findDocReferences(FileNode|NamespaceNode $scope, RuleContext $context): array
 	{
@@ -157,7 +168,11 @@ final class ClassReplacement
 				$tokens = $phpDoc->getTokens($trivia);
 				$names = [];
 				foreach (self::findDocNames($phpDoc->parse($trivia), $tokens) as $index) {
-					$names[] = [$index, $resolver->resolveClass(NameNode::fromText($tokens[$index][0]), $token)];
+					$names[] = [
+						$index,
+						$resolver->resolveClass(NameNode::fromText($tokens[$index][0]), $token),
+						self::findDocMember($tokens, $index),
+					];
 				}
 
 				if ($names !== []) {
@@ -215,6 +230,23 @@ final class ClassReplacement
 
 		return array_values(array_unique(array_filter($indexes, fn(int $index) => $type($index) === Lexer::TOKEN_IDENTIFIER
 			&& preg_match('~^' . self::ClassPattern . '$~D', $tokens[$index][Lexer::VALUE_OFFSET]))));
+	}
+
+
+	/**
+	 * The member the name of a class in a doc comment is followed by, `Foo::BAR` a constant, `Foo::bar()` a method.
+	 * @param  list<array{string, int, int}>  $tokens
+	 * @return ?array{string, MemberKind}
+	 */
+	private static function findDocMember(array $tokens, int $index): ?array
+	{
+		$type = fn(int $offset) => $tokens[$index + $offset][Lexer::TYPE_OFFSET] ?? null;
+		return $type(1) === Lexer::TOKEN_DOUBLE_COLON && $type(2) === Lexer::TOKEN_IDENTIFIER
+			? [
+				$tokens[$index + 2][Lexer::VALUE_OFFSET],
+				$type(3) === Lexer::TOKEN_OPEN_PARENTHESES ? MemberKind::Method : MemberKind::Constant,
+			]
+			: null;
 	}
 
 

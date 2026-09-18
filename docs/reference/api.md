@@ -745,6 +745,7 @@ final class MemberMapGrammar
 	public const ReplacedCalls = 'upgrading.libraries.replacedCalls'
 	public const ForbiddenClasses = 'upgrading.libraries.forbiddenClasses'
 	public const ForbiddenFunctions = 'upgrading.libraries.forbiddenFunctions'
+	public const ForbiddenMembers = 'upgrading.libraries.forbiddenMembers'
 	public static function createMapSchema(Nette\Schema\Schema $value, string $description, ?Closure(mixed, DressCode\Rules\Upgrading\MemberPattern): mixed $convert = null): Nette\Schema\Elements\Type
 	public static function createCodeSchema(): Nette\Schema\Elements\AnyOf
 ```
@@ -763,7 +764,9 @@ final readonly class MemberPattern
 	public static function forMethod(string $class, string $name, ?DressCode\Rules\Upgrading\ArgumentPattern $arguments = null): DressCode\Rules\Upgrading\MemberPattern
 	public function matches(DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types): bool
 	public function bind(DressCode\Analyses\MemberAccess $access, PhpSyntax\Nodes\ArgumentListNode $arguments, ?list<DressCode\Analyses\Parameter> $parameters, DressCode\Analyses\Types $types): ?DressCode\Rules\Upgrading\ArgumentBindings
+	public function matchesHook('get'|'set'|'isset'|'unset' $use): bool
 	public function matchesMethodDeclaration(string $declaringClass, string $method, DressCode\Analyses\Types $types): bool
+	public function matchesPropertyDeclaration(string $declaringClass, string $property, DressCode\Analyses\Types $types): bool
 	public function takesAnyArguments(): bool
 	public function compareSpecificity(DressCode\Rules\Upgrading\MemberPattern $other): int
 	public function getArgumentPattern(): DressCode\Rules\Upgrading\ArgumentPattern
@@ -1099,6 +1102,7 @@ final readonly class Violation
 - `DressCode\Rules\Types\TypeNotationRule`
 - `DressCode\Rules\Upgrading\ForbiddenClassesRule`
 - `DressCode\Rules\Upgrading\ForbiddenFunctionsRule`
+- `DressCode\Rules\Upgrading\ForbiddenMembersRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedPhpCallsRule`

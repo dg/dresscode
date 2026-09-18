@@ -29,6 +29,7 @@ final class MemberMapGrammar
 	public const ReplacedCalls = 'upgrading.libraries.replacedCalls';
 	public const ForbiddenClasses = 'upgrading.libraries.forbiddenClasses';
 	public const ForbiddenFunctions = 'upgrading.libraries.forbiddenFunctions';
+	public const ForbiddenMembers = 'upgrading.libraries.forbiddenMembers';
 
 
 	/**

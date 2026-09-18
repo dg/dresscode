@@ -241,6 +241,7 @@ final class CorePlugin implements Plugin
 				Rules\Upgrading\ReplacedCallsRule::class,
 				Rules\Upgrading\ForbiddenClassesRule::class,
 				Rules\Upgrading\ForbiddenFunctionsRule::class,
+				Rules\Upgrading\ForbiddenMembersRule::class,
 				Rules\Upgrading\NoDeprecatedClassesRule::class,
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
@@ -379,6 +380,11 @@ final class CorePlugin implements Plugin
 					new Map(new GrammarEntry, grammar: self::createForbiddenFunctionsGrammar(), caseInsensitive: true),
 					'A function that may not be called, with what to do instead',
 				),
+				new Decision(
+					MemberMapGrammar::ForbiddenMembers,
+					new Map(new GrammarEntry, grammar: self::createForbiddenMembersGrammar()),
+					'A constant, a method or a property that may not be used, with what to do instead',
+				),
 
 				// the newer constructs, decided once for every rule writing them
 				new Decision(
@@ -515,5 +521,14 @@ final class CorePlugin implements Plugin
 	{
 		return Expect::arrayOf(Expect::string()->nullable())
 			->description('The forbidden function or a pattern with `*`, a name without a backslash meaning the global function → what to do instead, as the end of the message, or null for none');
+	}
+
+
+	private static function createForbiddenMembersGrammar(): Schema
+	{
+		return MemberMapGrammar::createMapSchema(
+			Expect::string()->nullable(),
+			'The forbidden member, `Class::name` (a constant or a method), `Class::name(...$args)` (a method), `Class::$name` (a property), `Class::$name::get` or `::set` (a read or a write of it), `Class::__construct(...$args)`, or a call with the shape of its arguments, `Class::name()` being one without any → what to do instead, as the end of the message, or null for none',
+		);
 	}
 }

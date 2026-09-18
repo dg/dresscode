@@ -1,0 +1,3 @@
+12: Property `Acme\Job::$retryAfter` is forbidden: declare the property `$backoff`.
+14: Static property `Acme\Job::$tries` is forbidden: there is no replacement.
+28: Property `Acme\Sized::$size` is forbidden: call `getSize()`.
