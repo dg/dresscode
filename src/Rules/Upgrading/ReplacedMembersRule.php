@@ -26,7 +26,7 @@ use PhpSyntax\Nodes\Scalar\StringNode;
  * found as well as one a child overrides; a receiver that may be of another class too is left alone.
  *
  * A key spells a member the way PHP reads it: `Class::name` is a constant or a method, `Class::name()` a method
- * whatever its call passes, the parentheses marking the kind alone, while in replacedCalls they
+ * whatever its call passes, the parentheses marking the kind alone, while in replacedCalls and forbiddenMembers they
  * are the shape of a call without arguments,
  * `Class::$name` a property. The value is the name alone for a member of the same class, `Other::name` for one of
  * another class, which only a static access and a constant can be moved to, and `\function` for a global function

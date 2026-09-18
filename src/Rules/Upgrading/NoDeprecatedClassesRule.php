@@ -20,8 +20,8 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * a type, an instantiation, a static access, an attribute. Where the deprecation names the class to use instead,
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
  * follow; any other is reported with what the deprecation says. In a doc comment only a class the deprecation names
- * a replacement for is rewritten, one without it being left as it is. A class the map of replacedClasses has is not
- * reported.
+ * a replacement for is rewritten, one without it being left as it is. A class the map of replacedClasses or of
+ * forbiddenClasses has is not reported.
  */
 #[RuleInfo(
 	'dresscode/noDeprecatedClasses',
@@ -47,8 +47,9 @@ final class NoDeprecatedClassesRule extends NodeRule
 
 		$types = $context->getAnalysis(Types::class);
 		$replaced = $context->findRule(ReplacedClassesRule::class);
-		$find = function (string $class) use ($types, $replaced): ?array {
-			$deprecation = $replaced?->hasClass($class) ? null : $types->findClassDeprecation($class);
+		$forbidden = $context->findRule(ForbiddenClassesRule::class);
+		$find = function (string $class) use ($types, $replaced, $forbidden): ?array {
+			$deprecation = $replaced?->hasClass($class) || $forbidden?->hasClass($class) ? null : $types->findClassDeprecation($class);
 			return $deprecation === null
 				? null
 				: [

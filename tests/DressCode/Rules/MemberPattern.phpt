@@ -134,6 +134,19 @@ test('a method declaration is of the member when a subtype of its class declares
 });
 
 
+test('a property declaration is of the member when a subtype of its class declares it, a key of a hook being of its uses', function () {
+	$types = createTypes();
+	$matches = fn(string $key, string $class, string $property) => MemberPattern::fromKey($key)->matchesPropertyDeclaration($class, $property, $types);
+
+	Assert::true($matches('Acme\Cache\FileStorage::$directory', 'App\MyStorage', 'directory'));
+	Assert::false($matches('Acme\Cache\FileStorage::$directory', 'App\MyStorage', 'Directory'));
+	Assert::false($matches('Acme\Cache\FileStorage::$directory', 'Acme\Cache\Unrelated', 'directory'));
+	Assert::false($matches('Acme\Cache\FileStorage::$directory', 'acme\cache\filestorage', 'directory'));
+	Assert::false($matches('Acme\Cache\FileStorage::$directory::get', 'App\MyStorage', 'directory'));
+	Assert::false($matches('Acme\Cache\FileStorage::directory', 'App\MyStorage', 'directory'));
+});
+
+
 test('an entry is found under the key of the nearest class, and under the first whose arguments the call binds to', function () {
 	$types = createTypes();
 	/** @return ?array{string, string, ?list<string>, ?int}  the value and the class of the key, the placeholders bound and the arguments left to `...` */

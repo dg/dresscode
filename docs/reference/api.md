@@ -539,6 +539,7 @@ final readonly class MemberPattern
 	public function bind(DressCode\Analyses\MemberAccess $access, PhpSyntax\Nodes\ArgumentListNode $arguments, ?array $parameters, DressCode\Analyses\Types $types): ?DressCode\Rules\Upgrading\ArgumentBindings
 	public function matchesHook(string $use): bool
 	public function matchesMethodDeclaration(string $declaringClass, string $method, DressCode\Analyses\Types $types): bool
+	public function matchesPropertyDeclaration(string $declaringClass, string $property, DressCode\Analyses\Types $types): bool
 	public function takesAnyArguments(): bool
 	public function compareSpecificity(DressCode\Rules\Upgrading\MemberPattern $other): int
 	public function getArgumentPattern(): DressCode\Rules\Upgrading\ArgumentPattern
@@ -826,7 +827,9 @@ final readonly class Violation
 - `DressCode\Rules\Types\TypeHintRequiredRule`
 - `DressCode\Rules\Types\TypeHintSpacingRule`
 - `DressCode\Rules\Types\UnionTypeNotationRule`
+- `DressCode\Rules\Upgrading\ForbiddenClassesRule`
 - `DressCode\Rules\Upgrading\ForbiddenFunctionsRule`
+- `DressCode\Rules\Upgrading\ForbiddenMembersRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
 - `DressCode\Rules\Upgrading\ReplacedCallsRule`

@@ -167,6 +167,21 @@ final readonly class MemberPattern
 	}
 
 
+	/**
+	 * Whether a property declared in the class is this member, as a property an interface declares or a framework
+	 * reads is declared by the class implementing it: the name agrees and the class is a subtype of the class of the
+	 * member other than that class itself. A key of a hook is of the reads or the writes, not of the declaration.
+	 */
+	public function matchesPropertyDeclaration(string $declaringClass, string $property, Types $types): bool
+	{
+		return $this->kind === MemberKind::Property
+			&& $this->hook === null
+			&& $property === $this->name
+			&& strcasecmp($declaringClass, $this->class) !== 0
+			&& $types->isSubtype($declaringClass, $this->class) === Tristate::Yes;
+	}
+
+
 	/** Whether a call of the member is of the key whatever its arguments, so that the key replaces the method as a whole. */
 	public function takesAnyArguments(): bool
 	{
