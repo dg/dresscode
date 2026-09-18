@@ -829,6 +829,7 @@ final readonly class Violation
 - `DressCode\Rules\Upgrading\ForbiddenFunctionsRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`
 - `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`
+- `DressCode\Rules\Upgrading\ReplacedCallsRule`
 - `DressCode\Rules\Upgrading\ReplacedClassesRule`
 - `DressCode\Rules\Upgrading\ReplacedFunctionsRule`
 - `DressCode\Rules\Upgrading\ReplacedMembersRule`

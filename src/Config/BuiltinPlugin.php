@@ -48,6 +48,7 @@ final class BuiltinPlugin implements Plugin
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
 				Rules\Upgrading\ReplacedClassesRule::class,
 				Rules\Upgrading\ReplacedMembersRule::class,
+				Rules\Upgrading\ReplacedCallsRule::class,
 				Rules\Upgrading\ReplacedFunctionsRule::class,
 				Rules\Upgrading\ForbiddenFunctionsRule::class,
 				Rules\Expressions\UselessParenthesesAroundNewRule::class,

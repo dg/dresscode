@@ -1,0 +1,27 @@
+<?php
+// {"Acme\\Message::$subject::get": "getSubject()", "Acme\\Message::$sent::get": "$this->isSent() === true"}
+
+namespace App;
+
+use Acme\Message;
+
+/** @param list<Message> $mails */
+function test(Message $mail, array $mails): string
+{
+	// an interpolation takes a variable and what is read or called on it, braces written where the string has none
+	$a = "Subject: {$mail->getSubject()}";
+	$b = "Subject: {$mail->getSubject()}!";
+	$c = "First: {$mails[0]->getSubject()}";
+	$d = <<<TEXT
+		Subject: {$mail->getSubject()}
+		Again: {$mail->getSubject()}
+		TEXT;
+
+	// reported and left: an expression an interpolation cannot take
+	$e = "Sent: {$mail->sent}";
+	$f = "Sent: $mail->sent";
+
+	// an argument of a call in an interpolation takes any expression
+	$g = "Length: {$mail->pad($mail->isSent() === true)}";
+	return $a . $b . $c . $d . $e . $f . $g;
+}

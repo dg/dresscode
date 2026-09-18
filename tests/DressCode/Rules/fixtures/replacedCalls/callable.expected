@@ -1,0 +1,34 @@
+<?php
+// {"Acme\\Settings::getListeners()": "$this->listeners", "Acme\\Settings::getOptionOr($key, $default)": "getOption($key) ?? $default", "Acme\\Settings::isDebug(...$args)": "hasMode('debug')", "Acme\\Mapper::create()": "new \\Acme\\Layout", "Acme\\Settings::getEntries()": "$this->entries", "Acme\\Formatter::describe($settings, $separator)": "$settings->describe($separator)"}
+
+namespace App;
+
+use Acme\Layout;
+use Acme\Mapper;
+use Acme\Settings;
+
+class Holder
+{
+	public Settings $settings;
+
+
+	public function test(Settings $settings): void
+	{
+		// a closure of what reads the same when it is made as when it is called
+		$a = fn() => $settings->listeners;
+		$b = fn() => new Layout;
+
+		// reported and left: the arguments are known only when the closure is called
+		$c = $settings->getOptionOr(...);
+		$d = $settings->isDebug(...);
+
+		// reported and left: a closure would read the property only when it is called
+		$e = $this->settings->getListeners(...);
+
+		// reported and left: a value in the shape of a callable, whose class the types tell, the method declared or not
+		$f = [$settings, 'getEntries'];
+		$g = 'Acme\Formatter::describe';
+		$h = [$settings, 'unknown'];
+		$i = [$settings, 'getListeners'];
+	}
+}

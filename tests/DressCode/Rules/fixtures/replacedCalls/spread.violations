@@ -1,0 +1,4 @@
+12: Method `Acme\Settings::notify()` is replaced by `\Acme\Sequence::invokeAll($this->listeners, ...$args)`
+15: Method `Acme\Settings::hasAny()` is replaced by `hasAny([$a, $b, $c])`, but the call unpacks arguments the keys name one by one
+16: Method `Acme\Settings::hasAny()` is replaced by `hasAny([$a, $b, $c])`, but the call unpacks arguments the keys name one by one
+17: Constructor `Acme\Layout::__construct()` is replaced by `new \Acme\Layout($shape)`, but the call unpacks arguments the keys name one by one

@@ -1,0 +1,7 @@
+14: Method `Acme\Settings::notify()` is replaced by `Acme\Sequence::invokeAll($this->listeners, ...$args)`
+15: Method `Acme\Settings::isDebug()` is replaced by `$this->hasMode(Acme\Mapper::class)`
+16: Static method `Acme\Formatter::format()` is replaced by `(new Acme\Formatter)->render($var)`
+17: Static method `Acme\Invoker::wrap()` is replaced by `Closure::fromCallable($callable)`
+20: Method `Acme\Settings::count()` is replaced by `Acme\count(getEntries()) . PHP_EOL`
+21: Method `Acme\Settings::isStrict()` is replaced by `$this instanceof Acme\MySettings`
+30: Method `Acme\Reply::create()` is replaced by `new static(...$args)`
