@@ -170,10 +170,10 @@ final class PhpStan
 			return $this->container;
 		}
 
-		$configs = [];
+		$config = null;
 		foreach (self::ConfigFiles as $file) {
 			if (is_file("$this->root/$file")) {
-				$configs[] = "$this->root/$file";
+				$config = "$this->root/$file";
 				break;
 			}
 		}
@@ -181,7 +181,7 @@ final class PhpStan
 		try {
 			$container = new ContainerFactory($this->root)->create(
 				$this->tempDir,
-				$configs,
+				[...self::findExtensionConfigs(), ...($config === null ? [] : [$config])],
 				$this->analysedPaths,
 				[$this->root],
 				singleReflectionFile: $this->replacement[1] ?? null,
@@ -192,10 +192,37 @@ final class PhpStan
 				(static function (string $file): void { require_once $file; })($file);
 			}
 		} catch (\Throwable $e) {
-			throw new \RuntimeException('PHPStan could not be started' . ($configs ? " with $configs[0]" : '') . ": {$e->getMessage()}", previous: $e);
+			throw new \RuntimeException('PHPStan could not be started' . ($config ? " with $config" : '') . ": {$e->getMessage()}", previous: $e);
 		}
 
 		return $this->container = $container;
+	}
+
+
+	/**
+	 * The configurations of the extensions phpstan/extension-installer registered, which the command of PHPStan
+	 * includes before the one of the project.
+	 * @return list<string>
+	 */
+	private static function findExtensionConfigs(): array
+	{
+		$class = 'PHPStan\ExtensionInstaller\GeneratedConfig';
+		if (!class_exists($class)) {
+			return [];
+		}
+
+		$generated = new \ReflectionClass($class);
+		$dir = dirname((string) $generated->getFileName());
+		/** @var array<array{relative_install_path: string, extra: array{includes?: list<string>}}> $extensions  generated for the project */
+		$extensions = $generated->getConstant('EXTENSIONS');
+		$configs = [];
+		foreach ($extensions as $extension) {
+			foreach ($extension['extra']['includes'] ?? [] as $include) {
+				$configs[] = "$dir/$extension[relative_install_path]/$include";
+			}
+		}
+
+		return $configs;
 	}
 
 
