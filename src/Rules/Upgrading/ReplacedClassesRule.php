@@ -7,12 +7,13 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\Analyses\{PhpDoc, Types};
+use DressCode\Analyses\{MemberAccess, MemberKind, PhpDoc, Types};
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\CodeWriter;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
+use PhpSyntax\Nodes\{FileNode, NameNode};
 use PhpSyntax\Nodes\Statement\NamespaceNode;
 
 
@@ -23,19 +24,28 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * imports; a class a comment only mentions in its text is left as it is. The fix is not risky, because what changes is
  * exactly what the map asked for. Where the run has the types of the code, a class the project does not have is
  * reported and not written.
+ *
+ * Where the run has the types, the class of an access to a member `forbiddenMembers` names stays as it is, its import
+ * with it: such a member has no place in the class written instead, so writing that class there would name a member it
+ * never had. The ban is the only thing said of the access; every other reference of the class is rewritten as usual.
  */
 #[RuleInfo(
 	Stage::Structure,
 	modifiesComments: true,
 	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedClasses'],
+	reads: [self::ForbiddenMembers],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class ReplacedClassesRule extends NodeRule
 {
 	public const Map = 'upgrading.libraries.replacedClasses';
+	private const ForbiddenMembers = 'upgrading.libraries.forbiddenMembers';
 
 	/** @var array<string, string>  lowercased replaced name => the name written instead, both fully qualified */
 	private array $classes = [];
+
+	/** @var MemberMap<mixed> */
+	private MemberMap $forbiddenMembers;
 
 
 	public function configure(Values $values): void
@@ -45,6 +55,8 @@ final class ReplacedClassesRule extends NodeRule
 		foreach ($options as $old => $new) {
 			$this->classes[strtolower(ltrim((string) $old, '\\'))] = ltrim($new, '\\');
 		}
+
+		$this->forbiddenMembers = MemberMap::fromValues($values, self::ForbiddenMembers);
 	}
 
 
@@ -70,7 +82,47 @@ final class ReplacedClassesRule extends NodeRule
 					default => ["Class `$class` is replaced by `$new`", $new],
 				};
 			};
-			ClassReplacement::rewriteReferences($node, $context, $find, $find);
+			ClassReplacement::rewriteReferences(
+				$node,
+				$context,
+				$find,
+				$types === null ? null : fn(NameNode $name) => $this->isForbiddenAccess($name, $types),
+				fn(string $class, ?array $member) => $types !== null && $member !== null && $this->isBannedMember($class, ...$member, types: $types)
+					? false
+					: $find($class),
+			);
 		}
+	}
+
+
+	/**
+	 * Whether the name is the class of an access to a member forbiddenMembers names.
+	 */
+	private function isForbiddenAccess(NameNode $name, Types $types): bool
+	{
+		$node = $name->parent;
+		if (
+			!($node instanceof ClassConstantFetchNode || $node instanceof StaticMethodCallNode || $node instanceof StaticPropertyFetchNode)
+			|| $node->class !== $name
+		) {
+			return false;
+		}
+
+		// the types are asked only about a name the map knows
+		$lookup = MemberMaps::findLookupName($node);
+		if ($lookup === null || $this->forbiddenMembers->getEntries($lookup) === []) {
+			return false;
+		}
+
+		$access = $types->findMemberAccess($node);
+		return $access !== null && $this->forbiddenMembers->has($access, $types);
+	}
+
+
+	/** The same for a member of the class a doc comment names. */
+	private function isBannedMember(string $class, string $member, MemberKind $kind, Types $types): bool
+	{
+		return $this->forbiddenMembers->getEntries(strtolower($member)) !== []
+			&& $this->forbiddenMembers->has(new MemberAccess($kind, $member, [$class], $types->hasMember($class, $kind, $member)), $types);
 	}
 }

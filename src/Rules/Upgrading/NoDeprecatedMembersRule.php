@@ -21,12 +21,12 @@ use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, Property
  * is decided by the class declaring it. A replacement in the same class is fixed by writing its name, where the class
  * has it at least as visible, for a property at least as writable and of the same type, and it takes the use as it is,
  * a method every call of the deprecated one; any other is reported with what the deprecation says.
- * A member the maps of replacedMembers or replacedCalls have is not reported.
+ * A member the maps of replacedMembers, replacedCalls or forbiddenMembers have is not reported.
  */
 #[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class], reads: self::Maps)]
 final class NoDeprecatedMembersRule extends NodeRule
 {
-	private const Maps = ['upgrading.libraries.replacedMembers', 'upgrading.libraries.replacedCalls'];
+	private const Maps = ['upgrading.libraries.replacedMembers', 'upgrading.libraries.replacedCalls', 'upgrading.libraries.forbiddenMembers'];
 
 	/** @var MemberMap<null>  the keys of every map of members, which the libraries say more of than a deprecation */
 	private MemberMap $mapped;

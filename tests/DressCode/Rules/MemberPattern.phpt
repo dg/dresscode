@@ -48,6 +48,10 @@ test('a key is read the way an upgrading guide writes a member', function () {
 	Assert::exception(fn() => MemberPattern::fromKey('Order::add( ... )'), InvalidArgumentException::class, "The member `Order::add( ... )` reads as a first-class callable; a call with any arguments is written `Order::add(...\$args)`.");
 	Assert::true(MemberPattern::fromKey('Acme\Utils\Html->text()')->nonStatic);
 	Assert::same('set', MemberPattern::fromKey('Acme\Shop\Order::$paid::set')->hook);
+	Assert::true(MemberPattern::fromKey('Order::$paid::get')->matchesHook('isset'));
+	Assert::false(MemberPattern::fromKey('Order::$paid::get')->matchesHook('set'));
+	Assert::true(MemberPattern::fromKey('Order::$paid::set')->matchesHook('unset'));
+	Assert::true(MemberPattern::fromKey('Order::$paid')->matchesHook('set'));
 	Assert::exception(fn() => MemberPattern::fromKey('Order::paid::get'), InvalidArgumentException::class, "The member `Order::paid::get` names a hook, which only a property has, `Class::\$name::get`.");
 	foreach (['Html->text', 'Html->$text', 'Html->__construct()'] as $key) {
 		Assert::exception(fn() => MemberPattern::fromKey($key), InvalidArgumentException::class, "The member `$key` is %a%");
@@ -129,6 +133,19 @@ test('a method declaration is of the member when a subtype of its class declares
 
 	Assert::false($matches('Acme\Cache\FileStorage::$getCacheKey', 'App\MyStorage', 'getCacheKey'));
 	Assert::false($matches('Acme\Cache\FileStorage::__construct', 'App\MyStorage', '__construct'));
+});
+
+
+test('a property declaration is of the member when a subtype of its class declares it, a key of a hook being of its uses', function () {
+	$types = createTypes();
+	$matches = fn(string $key, string $class, string $property) => MemberPattern::fromKey($key)->matchesPropertyDeclaration($class, $property, $types);
+
+	Assert::true($matches('Acme\Cache\FileStorage::$directory', 'App\MyStorage', 'directory'));
+	Assert::false($matches('Acme\Cache\FileStorage::$directory', 'App\MyStorage', 'Directory'));
+	Assert::false($matches('Acme\Cache\FileStorage::$directory', 'Acme\Cache\Unrelated', 'directory'));
+	Assert::false($matches('Acme\Cache\FileStorage::$directory', 'acme\cache\filestorage', 'directory'));
+	Assert::false($matches('Acme\Cache\FileStorage::$directory::get', 'App\MyStorage', 'directory'));
+	Assert::false($matches('Acme\Cache\FileStorage::directory', 'App\MyStorage', 'directory'));
 });
 
 

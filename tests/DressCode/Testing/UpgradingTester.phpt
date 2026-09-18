@@ -65,7 +65,7 @@ test('what the maps refuse is said with the map, in whatever section it stands',
 		check("package: acme/lib\n\nsince 9.0:\n\treplacedMembers:\n\t\tAcme\\Lib\\Form::\$legacy: items\n")[0],
 	);
 	Assert::same(
-		['Unknown map `replacedThings`; an upgrading file holds `replacedClasses`, `replacedFunctions`, `replacedMembers`, `replacedCalls`, `forbiddenClasses`, `forbiddenFunctions` and the maps of the rules of its package by the paths of their decisions.'],
+		['Unknown map `replacedThings`; an upgrading file holds `replacedClasses`, `replacedFunctions`, `replacedMembers`, `replacedCalls`, `forbiddenClasses`, `forbiddenFunctions`, `forbiddenMembers` and the maps of the rules of its package by the paths of their decisions.'],
 		check("package: acme/lib\n\nsince 3.0:\n\treplacedThings:\n\t\tA: B\n"),
 	);
 	Assert::same(
@@ -172,11 +172,64 @@ test('a forbidden map of a package must give every entry a sentence', function (
 			forbiddenClasses:
 				Acme\Lib\IOldest:
 				Acme\Lib\IControl: there is no replacement
+			forbiddenMembers:
+				Acme\Lib\Form::$legacy:
 			forbiddenFunctions:
 				acme_old:
 				acme_make: 'use `Acme\Lib\Helpers::create()`'
 		XX);
 	Assert::contains('`forbiddenClasses`: The entry `Acme\Lib\IOldest` must give a sentence saying what to write instead.', $problems);
+	Assert::contains('`forbiddenMembers`: The entry `Acme\Lib\Form::$legacy` must give a sentence saying what to write instead.', $problems);
 	Assert::contains('`forbiddenFunctions`: The entry `acme_old` must give a sentence saying what to write instead.', $problems);
-	Assert::count(2, array_filter($problems, fn(string $problem) => str_contains($problem, 'must give a sentence')));
+	Assert::count(3, array_filter($problems, fn(string $problem) => str_contains($problem, 'must give a sentence')));
+});
+
+
+test('a sample reads its classes from its own code, not from those other samples left in the temp directory', function () {
+	$root = createTempDir('upgrading-sample');
+	FileSystem::write("$root/composer.json", '{"name": "acme/rules", "require-dev": {"acme/lib": "^3.0"}, "extra": {"dresscode": {"upgrading": ["upgrading/lib.neon"]}}}');
+	FileSystem::write("$root/vendor/composer/installed.json", json_encode(['packages' => [
+		['name' => 'acme/lib', 'version' => 'v3.2.0', 'version_normalized' => '3.2.0.0', 'install-path' => '../acme/lib'],
+	]], JSON_THROW_ON_ERROR));
+	FileSystem::write("$root/upgrading/lib.neon", <<<'XX'
+		package: acme/lib
+
+		since 3.0:
+			forbiddenMembers:
+				Acme\Lib\Control::$limit: there is no replacement
+		XX);
+	$implementing = <<<'XX'
+		<?php
+
+		namespace Acme\Lib {
+			interface Control {}
+		}
+
+		namespace App {
+			class Job implements \Acme\Lib\Control {}
+		}
+		XX;
+	$own = <<<'XX'
+		<?php
+
+		namespace Acme\Lib {
+			interface Control {}
+		}
+
+		namespace App {
+			class Job {}
+
+			function run(Job $job): mixed
+			{
+				return $job->limit;
+			}
+		}
+		XX;
+	$run = fn(string $code, string $name) => UpgradingTester::runSample($code, $root, name: $name)->violations;
+
+	// the class of the sample implements nothing, whichever sample ran before
+	$run($implementing, 'a');
+	Assert::same([], $run($own, 'b'));
+	$run($implementing, 'c');
+	Assert::same([], $run($own, 'b'));
 });

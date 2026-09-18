@@ -1,0 +1,49 @@
+<?php
+// {"libraries": {"forbiddenMembers": {"Acme\\Job::$retryAfter": "declare the property `$backoff`", "Acme\\Job::$tries": "there is no replacement", "Acme\\Sized::$size": "call `getSize()`", "Acme\\Request::$query::get": "call `getQuery()`"}}}
+
+namespace App;
+
+use Acme\Job;
+use Acme\Request;
+use Acme\Sized;
+
+class SendMail implements Job
+{
+	public $retryAfter = 30;
+
+	public static int $tries = 3;
+
+
+	public function run(): int
+	{
+		// the property the class declares is none of the interface
+		return $this->retryAfter;
+	}
+}
+
+
+class Upload implements Sized
+{
+	public function __construct(
+		public int $size,
+	) {
+	}
+}
+
+
+// left alone: the property of another class, a key of a hook, a parameter that promotes nothing
+class Report
+{
+	public $retryAfter = 30;
+}
+
+
+class SearchRequest extends Request
+{
+	public array $query = [];
+
+
+	public function __construct(int $size)
+	{
+	}
+}

@@ -176,7 +176,7 @@ final class UpgradingTester
 	private static function collectMissingSentenceProblems(array $maps): array
 	{
 		$problems = [];
-		foreach (['forbiddenClasses', 'forbiddenFunctions'] as $map) {
+		foreach (['forbiddenClasses', 'forbiddenMembers', 'forbiddenFunctions'] as $map) {
 			foreach (is_array($maps[$map] ?? null) ? $maps[$map] : [] as $key => $sentence) {
 				if ($sentence === null) {
 					$problems[] = "`$map`: The entry `$key` must give a sentence saying what to write instead.";
@@ -198,7 +198,7 @@ final class UpgradingTester
 	private static function collectSentenceProblems(array $maps): array
 	{
 		$problems = [];
-		foreach (['forbiddenClasses', 'forbiddenFunctions'] as $map) {
+		foreach (['forbiddenClasses', 'forbiddenMembers', 'forbiddenFunctions'] as $map) {
 			foreach ($maps[$map] ?? [] as $key => $sentence) {
 				if (!is_string($sentence) || $sentence === MemberMaps::Keep) {
 					continue;

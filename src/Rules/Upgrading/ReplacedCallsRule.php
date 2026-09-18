@@ -65,13 +65,14 @@ use function count;
 	Stage::Structure,
 	typesRequired: true,
 	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedCalls'],
-	reads: [self::ReplacedMembers],
+	reads: [self::ReplacedMembers, self::ForbiddenMembers],
 	analyses: [Types::class, NameResolver::class],
 )]
 final class ReplacedCallsRule extends NodeRule
 {
 	public const Map = 'upgrading.libraries.replacedCalls';
 	private const ReplacedMembers = 'upgrading.libraries.replacedMembers';
+	private const ForbiddenMembers = 'upgrading.libraries.forbiddenMembers';
 
 	/** @var MemberMap<CallTemplate> */
 	private MemberMap $map;
@@ -79,11 +80,15 @@ final class ReplacedCallsRule extends NodeRule
 	/** @var MemberMap<mixed>  which renames a member a callable reaches, its arguments being no shape to bind */
 	private MemberMap $members;
 
+	/** @var MemberMap<mixed>  whose property is not what a magic method stands for */
+	private MemberMap $forbiddenMembers;
+
 
 	public function configure(Values $values): void
 	{
 		$this->map = MemberMap::fromValues($values, self::Map, CallTemplate::fromEntry(...));
 		$this->members = MemberMap::fromValues($values, self::ReplacedMembers);
+		$this->forbiddenMembers = MemberMap::fromValues($values, self::ForbiddenMembers);
 	}
 
 
@@ -487,6 +492,11 @@ final class ReplacedCallsRule extends NodeRule
 					$arguments,
 				];
 			}
+
+			if ($this->forbiddenMembers->has($access, $types)) {
+				return null; // a property forbiddenMembers names is not what a magic method stands for
+			}
+
 		}
 
 		$call = $methods === [] ? null : MagicCall::find($node, $use, $values, $types);

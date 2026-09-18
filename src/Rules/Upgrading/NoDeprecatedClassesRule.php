@@ -82,7 +82,7 @@ final class NoDeprecatedClassesRule extends NodeRule
 			$node,
 			$context,
 			$find,
-			fn(string $class) => ($found = $find($class)) !== null && $found[1] !== null ? $found : null,
+			findInDocs: fn(string $class) => ($found = $find($class)) !== null && $found[1] !== null ? $found : null,
 		);
 	}
 }

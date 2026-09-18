@@ -139,6 +139,21 @@ final readonly class MemberPattern
 
 
 	/**
+	 * Whether the use of a property goes through the hook of the key: a read and `isset()` through get, a write and
+	 * `unset()` through set, and any of them for a key naming no hook.
+	 * @param  'get'|'set'|'isset'|'unset'  $use
+	 */
+	public function matchesHook(string $use): bool
+	{
+		return match ($this->hook) {
+			null => true,
+			'get' => $use === 'get' || $use === 'isset',
+			default => $use === 'set' || $use === 'unset',
+		};
+	}
+
+
+	/**
 	 * Whether a method declared in the class overrides this member, or did before the library removed it: the key can
 	 * be of a method, the name agrees and the class is a subtype of the class of the member other than that class itself.
 	 */
@@ -158,6 +173,21 @@ final readonly class MemberPattern
 	private function canBeMethod(): bool
 	{
 		return $this->kind === MemberKind::Method || ($this->kind === null && preg_match('~[a-z]~', $this->name) === 1);
+	}
+
+
+	/**
+	 * Whether a property declared in the class is this member, as a property an interface declares or a framework
+	 * reads is declared by the class implementing it: the name agrees and the class is a subtype of the class of the
+	 * member other than that class itself. A key of a hook is of the reads or the writes, not of the declaration.
+	 */
+	public function matchesPropertyDeclaration(string $declaringClass, string $property, Types $types): bool
+	{
+		return $this->kind === MemberKind::Property
+			&& $this->hook === null
+			&& $property === $this->name
+			&& strcasecmp($declaringClass, $this->class) !== 0
+			&& $types->isSubtype($declaringClass, $this->class) === Tristate::Yes;
 	}
 
 
