@@ -1,5 +1,5 @@
 <?php
-// {"strlen": "mb_strlen", "substr": "mb_substr", "strpos": "mb_strpos", "strtolower": "mb_strtolower", "substr_count": "mb_substr_count", "getrandmax": "mt_getrandmax"}
+// {"strlen": "mb_strlen", "substr": "mb_substr", "strpos": "mb_strpos", "strtolower": "mb_strtolower", "substr_count": "mb_substr_count", "getrandmax": "mt_getrandmax", "strrev": "keep"}
 
 $a = mb_strlen($s);
 $b = \mb_substr($s, 1, 2);
@@ -11,3 +11,4 @@ $g = mb_strlen(...);
 $h = $obj->strlen($s);
 $i = Foo\strlen($s);
 $j = 'strlen';
+$k = strrev($s); // an entry withdrawn with keep

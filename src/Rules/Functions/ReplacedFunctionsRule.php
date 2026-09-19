@@ -10,6 +10,7 @@ use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
+use DressCode\Rules\Classes\MemberMaps;
 use DressCode\Rules\NodeHelpers;
 use DressCode\Stage;
 use Nette\Schema\Context;
@@ -76,8 +77,10 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 	{
 		$this->functions = [];
 		foreach ($options as $old => $new) {
-			// both as the project spells them, which is what its message quotes back at it
-			$this->functions[strtolower(ltrim((string) $old, '\\'))] = [ltrim((string) $old, '\\'), ltrim($new, '\\')];
+			if ($new !== MemberMaps::Keep) { // an entry a later layer withdrew
+				// both as the project spells them, which is what its message quotes back at it
+				$this->functions[strtolower(ltrim((string) $old, '\\'))] = [ltrim((string) $old, '\\'), ltrim($new, '\\')];
+			}
 		}
 	}
 
