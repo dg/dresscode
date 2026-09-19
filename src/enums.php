@@ -37,7 +37,7 @@ enum Group: string
 	/** types written where PHP reads them */
 	case Types = 'types';
 
-	/** what the target version deprecated or dropped */
+	/** what the target version of PHP or a library the project stands on deprecated or dropped */
 	case Deprecations = 'deprecations';
 
 	/** what is most likely a mistake */

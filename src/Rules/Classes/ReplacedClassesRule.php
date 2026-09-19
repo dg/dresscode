@@ -3,6 +3,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\ConfigurableRule;
+use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
@@ -24,7 +25,8 @@ use PhpSyntax\Token;
 #[RuleInfo(
 	'dresscode/replaced-classes',
 	Stage::Structure,
-	description: 'Writes the class the project writes instead of another one',
+	description: 'Writes the class a project or its libraries write instead of another one',
+	group: Group::Deprecations,
 )]
 final class ReplacedClassesRule extends NodeRule implements ConfigurableRule
 {
@@ -38,10 +40,6 @@ final class ReplacedClassesRule extends NodeRule implements ConfigurableRule
 		return Expect::arrayOf($name(), $name())
 			->description('The class → the class written instead, both fully qualified')
 			->transform(function (array $options, Context $context): array {
-				if ($options === []) {
-					$context->addWarning('No class is given, so nothing is reported.', 'dresscode.noEffect');
-				}
-
 				foreach ($options as $old => $new) {
 					if (strcasecmp(ltrim((string) $old, '\\'), ltrim($new, '\\')) === 0) {
 						$context->addError("The class $old is given as its own replacement.", 'dresscode.sameClass');

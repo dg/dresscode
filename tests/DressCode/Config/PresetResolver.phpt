@@ -749,12 +749,11 @@ test('a rule whose options decide nothing says so through its schema, and name-n
 		'dresscode/name-notation' => true,
 		'dresscode/name-fallback' => true, // no key given, so it stays the only rule of its group that decides nothing
 		'dresscode/name-casing' => ['ignorePatterns' => ['~^x~']], // a pattern of what not to report, and still no case to report
-		'dresscode/forbidden-functions' => true,
+		'dresscode/forbidden-functions' => true, // a list the packages of the project may fill, so an empty one is no mistake
 	]), '8.4');
 	$warnings = $resolver->getWarnings();
 	sort($warnings);
 	Assert::same([
-		'Rule dresscode/forbidden-functions: No function is given, so nothing is reported.',
 		'Rule dresscode/name-casing: No kind of name is given a case, so nothing is reported.',
 		'Rule dresscode/name-fallback: No key such as functions or optimizedFunctions is given, so every name stays as it is.',
 		'Rule dresscode/name-notation: No key such as classes or globalFunctions is given, so every name stays as it is.',

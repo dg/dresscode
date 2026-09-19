@@ -3,11 +3,11 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\ConfigurableRule;
+use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
 use DressCode\Stage;
-use Nette\Schema\Context;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use PhpSyntax\Analyses\NameResolver;
@@ -27,6 +27,7 @@ use function is_int;
 	'dresscode/forbidden-functions',
 	Stage::Structure,
 	description: 'Reports calls of the configured functions',
+	group: Group::Deprecations,
 )]
 final class ForbiddenFunctionsRule extends NodeRule implements ConfigurableRule
 {
@@ -39,13 +40,7 @@ final class ForbiddenFunctionsRule extends NodeRule implements ConfigurableRule
 		return Expect::structure([
 			'functions' => Expect::arrayOf('?string', 'string|int')
 				->description('Names or patterns with *, or name => replacement to suggest as written; a name without a backslash means the global function'),
-		])->transform(function (mixed $options, Context $context): mixed {
-			if (((array) $options)['functions'] === []) {
-				$context->addWarning('No function is given, so nothing is reported.', 'dresscode.noEffect');
-			}
-
-			return $options;
-		});
+		]);
 	}
 
 

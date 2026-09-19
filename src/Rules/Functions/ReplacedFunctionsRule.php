@@ -6,6 +6,7 @@ use DressCode\Analyses\Parameter;
 use DressCode\Analyses\PhpSignatures;
 use DressCode\Analyses\PhpSymbols;
 use DressCode\ConfigurableRule;
+use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
@@ -43,7 +44,8 @@ use function array_find, count;
 #[RuleInfo(
 	'dresscode/replaced-functions',
 	Stage::Structure,
-	description: 'Calls the function the project writes instead of another one',
+	description: 'Calls the function a project or its libraries write instead of another one',
+	group: Group::Deprecations,
 )]
 final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 {
@@ -59,10 +61,6 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 		)
 			->description('The global function → the function written instead, which is written fully qualified when it has a namespace of its own')
 			->transform(function (array $options, Context $context): array {
-				if ($options === []) {
-					$context->addWarning('No function is given, so nothing is reported.', 'dresscode.noEffect');
-				}
-
 				foreach ($options as $old => $new) {
 					if (strcasecmp(ltrim((string) $old, '\\'), ltrim($new, '\\')) === 0) {
 						$context->addError("The function $old() is given as its own replacement.", 'dresscode.sameFunction');

@@ -64,7 +64,6 @@ test('a rule is in a group, chosen by a standard, or turned on by name on purpos
 	$onRequest = [
 		'early-exit', // the shape of a function body, which no standard prescribes
 		'final-internal-class', // what a project does with its own internals
-		'forbidden-functions', 'replaced-functions', 'replaced-classes', // policies whose list the project brings
 		'line-length', // a value of the style, which a standard sets where it has one
 		'name-fallback', // the decision needs an option, and a group carries none
 		'no-unlisted-namespaced-declaration', // the guard of a certain name resolution, which turns itself on
