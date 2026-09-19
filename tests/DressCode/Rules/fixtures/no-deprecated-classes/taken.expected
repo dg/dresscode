@@ -1,0 +1,12 @@
+<?php
+
+namespace App;
+
+use Nette\Forms\FormRenderer;
+
+class Control
+{
+	public function f(\Nette\Forms\Control $c, FormRenderer $r): void
+	{
+	}
+}

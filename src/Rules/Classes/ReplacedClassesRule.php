@@ -70,8 +70,18 @@ final class ReplacedClassesRule extends NodeRule implements ConfigurableRule
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if ($node instanceof NamespaceNode) {
-			ClassReplacement::apply($node, $this->classes, $context, fn(string $old, string $new) => "Class $old is replaced by $new");
+		if ($node instanceof NamespaceNode && $this->classes !== []) {
+			ClassReplacement::apply($node, $context, function (string $class): ?array {
+				$new = $this->classes[strtolower($class)] ?? null;
+				return $new === null ? null : ["Class $class is replaced by $new", $new];
+			});
 		}
+	}
+
+
+	/** Whether the map has the class, fully qualified, which is what a rule reading the deprecations asks to stay silent. */
+	public function knows(string $class): bool
+	{
+		return isset($this->classes[strtolower($class)]);
 	}
 }

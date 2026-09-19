@@ -1,0 +1,14 @@
+<?php
+
+namespace App;
+
+use Nette\Forms\IControl;
+use Nette\Forms\FormRenderer;
+use Nette\Forms\IFormRenderer;
+
+class Control
+{
+	public function f(IControl $c, IFormRenderer $r): void
+	{
+	}
+}

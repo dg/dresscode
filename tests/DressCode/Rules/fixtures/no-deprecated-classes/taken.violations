@@ -1,0 +1,4 @@
+5: Class Nette\Forms\IControl is deprecated: use Nette\Forms\Control
+7: Class Nette\Forms\IFormRenderer is deprecated: use FormRenderer
+11: Class Nette\Forms\IControl is deprecated: use Nette\Forms\Control
+11: Class Nette\Forms\IFormRenderer is deprecated: use FormRenderer

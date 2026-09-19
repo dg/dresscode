@@ -1,0 +1,15 @@
+5: Class Nette\Forms\IControl is deprecated: use Nette\Forms\Control
+6: Class Nette\Forms\IFormRenderer is deprecated: use FormRenderer
+7: Class Nette\Application\IRouter is deprecated: use \Nette\Routing\Router instead.
+8: Class Nette\Application\Gone is deprecated
+11: Class Nette\Forms\IControl is deprecated: use Nette\Forms\Control
+11: Class Nette\Application\IRouter is deprecated: use \Nette\Routing\Router instead.
+13: Class Nette\Forms\IControl is deprecated: use Nette\Forms\Control
+13: Class Nette\Forms\IControl is deprecated: use Nette\Forms\Control
+13: Class Nette\Utils\IHtmlString is deprecated: use Nette\HtmlStringable
+13: Class Nette\Application\Gone is deprecated
+13: Class Nette\Forms\IFormRenderer is deprecated: use FormRenderer
+15: Class Nette\Forms\IControl is deprecated: use Nette\Forms\Control
+16: Class Nette\Application\Orphan is deprecated: use Nette\Missing\Replacement
+17: Class Nette\Application\Explained is deprecated: the routing was rewritten, see the guide
+18: Class Nette\Forms\IControl is deprecated: use Nette\Forms\Control

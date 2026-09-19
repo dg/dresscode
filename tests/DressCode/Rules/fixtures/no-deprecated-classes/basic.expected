@@ -1,0 +1,21 @@
+<?php
+
+namespace App;
+
+use Nette\Forms\Control;
+use Nette\Forms\{Form, FormRenderer};
+use Nette\Routing\Router as R;
+use Nette\Application\Gone;
+use Nette\HtmlStringable;
+use Nette\Utils;
+
+class X implements Control, R
+{
+	public function f(Control $c, \Nette\Forms\Control $d, HtmlStringable $e, Gone $g): ?FormRenderer
+	{
+		$a = Control::class;
+		$b = new \Nette\Application\Orphan;
+		$h = new \Nette\Application\Explained;
+		return $c instanceof Control ? null : Form::Filled;
+	}
+}

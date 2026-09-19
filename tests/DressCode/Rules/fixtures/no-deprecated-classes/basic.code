@@ -1,0 +1,20 @@
+<?php
+
+namespace App;
+
+use Nette\Forms\IControl;
+use Nette\Forms\{Form, IFormRenderer};
+use Nette\Application\IRouter as R;
+use Nette\Application\Gone;
+use Nette\Utils;
+
+class X implements IControl, R
+{
+	public function f(IControl $c, \Nette\Forms\IControl $d, Utils\IHtmlString $e, Gone $g): ?IFormRenderer
+	{
+		$a = IControl::class;
+		$b = new \Nette\Application\Orphan;
+		$h = new \Nette\Application\Explained;
+		return $c instanceof IControl ? null : Form::Filled;
+	}
+}
