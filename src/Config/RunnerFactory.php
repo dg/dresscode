@@ -102,7 +102,7 @@ final class RunnerFactory
 		bool $baseline = true,
 	): Runner
 	{
-		$project = ProjectPackages::read($root);
+		$project = ProjectPackages::read($root)->withTargets($config->packages);
 		$packages = PackageProfiles::discover($project);
 		$visited = [];
 		$layers = [...$this->loadExtensions([...$packages->extensions, ...$config->extensions], $visited), $config];
@@ -115,7 +115,11 @@ final class RunnerFactory
 			$resolver->resolve($config, $version, [$index], $commandLine, $only);
 		}
 
-		$this->warnings = [...$packages->warnings, ...$resolver->getWarnings()];
+		$missing = array_map(
+			fn(string $package) => "The configuration says the version of $package in 'packages', which is not installed; skipped.",
+			array_keys(array_diff_key($config->packages, $project->installed)),
+		);
+		$this->warnings = [...$packages->warnings, ...$missing, ...$resolver->getWarnings()];
 		$this->phpVersion = [$resolved->phpVersion, $source];
 		$analyses = array_merge(...array_map(fn(Config $layer) => $layer->analyses, $layers));
 		if ($resolved->types === 'phpstan') {

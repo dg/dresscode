@@ -29,4 +29,5 @@ return new Config(
 	baseline: 'dresscode-baseline.neon',
 	cacheDir: 'temp/dresscode',
 	analyses: [Acme\DressCode\Analyses\FunctionCalls::class],
+	packages: ['nette/forms' => '3.3'],
 );

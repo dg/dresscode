@@ -74,6 +74,7 @@ final class NeonReader
 			'skipWhen' => Expect::type(Entity::class),
 			'baseline' => Expect::string(),
 			'cacheDir' => Expect::string(),
+			'packages' => Expect::arrayOf(Expect::anyOf(Expect::string(), Expect::int(), Expect::float()), Expect::string()),
 			// a class the engine builds itself, or a class with the entity of its factory
 			'analyses' => Expect::arrayOf(Expect::anyOf(Expect::string(), Expect::type(Entity::class))),
 		])->skipDefaults()->castTo('array');
@@ -138,6 +139,17 @@ final class NeonReader
 		}
 
 		$data['analyses'] = $analyses;
+
+		/** @var array<string, string|int|float> $packages */
+		$packages = $data['packages'] ?? [];
+		foreach ($packages as $package => $version) {
+			if (is_float($version)) {
+				throw new \InvalidArgumentException("The version of package $package has to be in quotes, because NEON reads a bare 3.10 as the number 3.1.");
+			}
+
+			$data['packages'][$package] = (string) $version;
+		}
+
 		return new Config(...$data);
 	}
 

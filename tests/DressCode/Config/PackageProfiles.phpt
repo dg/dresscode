@@ -165,6 +165,17 @@ test('a package the project requires itself is measured by the lowest version it
 	// the code still has to run on 3.1, where the name of 3.3 does not exist yet
 	$packages = PackageProfiles::discover(ProjectPackages::read($root));
 	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0]->profile->rules);
+	Assert::same(['3.3'], $packages->profiles[0]->unreached);
+
+	// unless the configuration says the code is written for 3.3 already
+	$packages = PackageProfiles::discover(ProjectPackages::read($root)->withTargets(['acme/lib' => '3.3']));
+	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Later']], $packages->profiles[0]->profile->rules);
+	Assert::same([], $packages->profiles[0]->unreached);
+
+	$factory = new RunnerFactory;
+	$runner = $factory->createRunner(new Config(rules: ['replaced-classes' => true], packages: ['acme/lib' => '3.3', 'acme/ghost' => '1.0']), $root, cache: false);
+	Assert::same("<?php\n\nnamespace App;\n\nnew \\Acme\\Lib\\Later;\n", $runner->processFile("$root/f.php", "<?php\n\nnamespace App;\n\nnew \\Acme\\Lib\\Old;\n")->output);
+	Assert::same(["The configuration says the version of acme/ghost in 'packages', which is not installed; skipped."], $factory->getWarnings());
 });
 
 

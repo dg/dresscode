@@ -70,8 +70,16 @@ final readonly class Config extends Profile
 		public ?string $cacheDir = null,
 		array $analyses = [],
 		?string $types = null,
+		/** @var array<string, string>  installed package → the version the code is written for, in place of the lowest its constraint allows, so that code is fixed for a version before the project moves to it */
+		public array $packages = [],
 	) {
 		parent::__construct($presets, $groups, $rules, $indent, $eol, $lineLength, $php, $namespaces, $nameResolution, $fixRisky, $warnings, $types);
+		foreach ($packages as $package => $version) {
+			if (!preg_match('~^\d+(\.\d+){0,3}$~D', $version)) {
+				throw new \InvalidArgumentException("Invalid version '$version' of package $package.");
+			}
+		}
+
 		$this->excludePaths = array_values(array_unique([...self::DefaultExcludePaths, ...$excludePaths]));
 		$this->skipWhen = $skipWhen === null ? null : $skipWhen(...);
 		$this->analyses = self::normalizeAnalyses($analyses);
