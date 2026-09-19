@@ -63,7 +63,7 @@ final class PackageProfiles
 				}
 
 				$source = "$file of $name";
-				$profile = self::readUpgrading("$path/$file", $source, $project);
+				$profile = self::readFile("$path/$file", $source, $project);
 				if ($profile !== null) {
 					$profiles[] = $profile;
 				}
@@ -89,7 +89,7 @@ final class PackageProfiles
 	 * A value is taken as NEON gives it, an entity too, for the schema of the rule to read.
 	 * @throws ConfigurationException
 	 */
-	private static function readUpgrading(string $file, string $source, ProjectPackages $project): ?PackageProfile
+	public static function readFile(string $file, string $source, ProjectPackages $project): ?PackageProfile
 	{
 		if (!is_file($file)) {
 			throw new ConfigurationException("Upgrading file $source does not exist.");
@@ -144,6 +144,6 @@ final class PackageProfiles
 			}
 		}
 
-		return new PackageProfile($source, new Profile(rules: $rules), $unreached);
+		return new PackageProfile($source, $package, new Profile(rules: $rules), $unreached);
 	}
 }
