@@ -24,21 +24,39 @@ function createTypes(): Analyses\Types
 
 
 test('a key is read the way an upgrading guide writes a member', function () {
-	$read = fn(string $key) => get_object_vars(MemberPattern::fromKey($key));
+	$read = function (string $key): array {
+		$pattern = MemberPattern::fromKey($key);
+		$vars = array_replace(get_object_vars($pattern), ['arguments' => $pattern->arguments === null ? null : count($pattern->arguments->items)]);
+		unset($vars['instance']);
+		return $vars;
+	};
 
 	Assert::same(['class' => 'Nette\Forms\Form', 'kind' => null, 'name' => 'FILLED', 'arguments' => null], $read('Nette\Forms\Form::FILLED'));
-	Assert::same(['class' => 'Nette\Forms\Form', 'kind' => MemberKind::Method, 'name' => 'size', 'arguments' => null], $read('\Nette\Forms\Form::size()'));
+	Assert::same(['class' => 'Nette\Forms\Form', 'kind' => MemberKind::Method, 'name' => 'size', 'arguments' => 0], $read('\Nette\Forms\Form::size()'));
+	Assert::same(['class' => 'Nette\Forms\Form', 'kind' => MemberKind::Method, 'name' => 'size', 'arguments' => 1], $read('Nette\Forms\Form::size(...$args)'));
 	Assert::same(['class' => 'Nette\Forms\Form', 'kind' => MemberKind::Property, 'name' => 'filled', 'arguments' => null], $read(' Nette\Forms\Form::$filled '));
-	Assert::same(['class' => 'dibi', 'kind' => MemberKind::Method, 'name' => 'addUpload', 'arguments' => '$name, $label, true'], $read('dibi::addUpload( $name, $label, true )'));
-	Assert::same(['class' => 'A\Mapper', 'kind' => MemberKind::Constructor, 'name' => '__construct', 'arguments' => '$iterator, fn() => (1)'], $read('A\Mapper::__CONSTRUCT($iterator, fn() => (1))'));
+	Assert::same(['class' => 'dibi', 'kind' => MemberKind::Method, 'name' => 'addUpload', 'arguments' => 3], $read('dibi::addUpload( $name, $label, true )'));
+	Assert::same(['class' => 'A\Mapper', 'kind' => MemberKind::Constructor, 'name' => '__construct', 'arguments' => 2], $read('A\Mapper::__CONSTRUCT($iterator, (1))'));
 	Assert::same(['class' => 'A\Mapper', 'kind' => MemberKind::Constructor, 'name' => '__construct', 'arguments' => null], $read('A\Mapper::__construct'));
 
-	foreach (['FILLED', 'Form::', 'Form::a-b', 'Form::name(', 'Form::name() ?? 1', 'Form->name', 'A\\\\B::name', 'Form::$$name'] as $key) {
+	foreach (['FILLED', 'Form::', 'Form::a-b', 'Form::name(', 'Form::name() ?? 1', 'Form.name', 'A\\\\B::name', 'Form::$$name'] as $key) {
 		Assert::exception(fn() => MemberPattern::fromKey($key), InvalidArgumentException::class, "The member '$key' is not written as %a%");
 	}
 
 	Assert::exception(fn() => MemberPattern::fromKey('Form::$filled()'), InvalidArgumentException::class, "The member 'Form::\$filled()' is a property and takes no arguments.");
+	Assert::exception(fn() => MemberPattern::fromKey('Form::add( ... )'), InvalidArgumentException::class, "The member 'Form::add( ... )' reads as a first-class callable; a call with any arguments is written Form::add(...\$args).");
+	Assert::true(MemberPattern::fromKey('Nette\Utils\Html->text()')->instance);
+	foreach (['Html->text', 'Html->$text', 'Html->__construct()'] as $key) {
+		Assert::exception(fn() => MemberPattern::fromKey($key), InvalidArgumentException::class, "The member '$key' is %a%");
+	}
+	Assert::exception(fn() => MemberPattern::fromKey('Form::add($name, run())'), InvalidArgumentException::class, "The member 'Form::add(\$name, run())' cannot be read: `run()` is no placeholder, %a%");
 	Assert::same('addupload', MemberPattern::fromKey('Form::addUpload()')->getLookupName());
+
+	// a method is replaced as a whole by a key that takes any arguments
+	Assert::true(MemberPattern::fromKey('Form::add')->takesAnyArguments());
+	Assert::true(MemberPattern::fromKey('Form::add(...$args)')->takesAnyArguments());
+	Assert::false(MemberPattern::fromKey('Form::add()')->takesAnyArguments());
+	Assert::false(MemberPattern::fromKey('Form::add($name, ...)')->takesAnyArguments());
 });
 
 
@@ -83,6 +101,13 @@ test('an access is of the member when its kind fits, its name agrees and every c
 	Assert::false($matches('App\MyLoader::getCacheKey', MemberKind::Method, 'getCacheKey', 'Nette\Loaders\RobotLoader'));
 	Assert::true($matches('Nette\Removed::run', MemberKind::Method, 'run', 'Nette\Removed'));
 	Assert::true($matches('Nette\Loaders\Caching::run', MemberKind::Method, 'run')); // a trait of the parent
+
+	// a method that is not static is called with :: only where the class has it and not static, parent::name()
+	Assert::true($matches('Nette\Loaders\RobotLoader->create()', MemberKind::Method, 'create'));
+	Assert::false($matches('Nette\Loaders\RobotLoader->create()', MemberKind::StaticMethod, 'create'));
+	Assert::true($matches('Nette\Loaders\RobotLoader->getCacheKey()', MemberKind::StaticMethod, 'getCacheKey'));
+	Assert::false($matches('Nette\Loaders\RobotLoader->removed()', MemberKind::StaticMethod, 'removed'));
+	Assert::true($matches('Nette\Loaders\RobotLoader::create()', MemberKind::StaticMethod, 'create'));
 });
 
 

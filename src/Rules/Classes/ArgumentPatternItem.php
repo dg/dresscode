@@ -1,0 +1,24 @@
+<?php declare(strict_types=1);
+
+namespace DressCode\Rules\Classes;
+
+
+/**
+ * One item of a pattern of arguments: a placeholder `$name`, a literal, either of them under the name the argument
+ * is passed by (`fallback: $f`), or the rest of the arguments, `...$args` under a placeholder and `...` as they are.
+ * @internal
+ */
+final readonly class ArgumentPatternItem
+{
+	public function __construct(
+		/** without the dollar; null for a literal and for `...` */
+		public ?string $placeholder = null,
+		/** @var ?array{mixed}  the value of a literal, in a list so that null can be one */
+		public ?array $literal = null,
+		/** the name the argument has to be passed by; null for a positional one */
+		public ?string $parameterName = null,
+		/** stands for the rest of the arguments */
+		public bool $variadic = false,
+	) {
+	}
+}
