@@ -59,7 +59,7 @@ final class ClassReplacement
 
 		foreach ($references as [$name, $old, $new]) {
 			if ($context->report($name, $describe($old, $new))) {
-				self::replaceReference($scope, $name, $new, $context);
+				$name->text = NodeHelpers::spellClass($new, $name, $context, $name->isFullyQualified());
 			}
 		}
 	}
@@ -90,37 +90,6 @@ final class ClassReplacement
 		} else {
 			$stmt->items->removeItem($item);
 		}
-	}
-
-
-	/**
-	 * The new name as the scope writes it: fully qualified where the old one was, else the shortest way that reaches
-	 * it, through an import added where none does and the short name is free.
-	 */
-	private static function replaceReference(
-		NamespaceNode $scope,
-		NameNode $name,
-		string $new,
-		RuleContext $context,
-	): void
-	{
-		if ($name->isFullyQualified()) {
-			$name->text = '\\' . $new;
-			return;
-		}
-
-		$resolver = $context->getAnalysis(NameResolver::class);
-		$short = $resolver->getShortName($new, SymbolKind::ClassLike, $name);
-		if (
-			str_starts_with($short, '\\')
-			&& NodeHelpers::canAddImport($scope)
-			&& $resolver->isAliasFree(self::shortName($new), SymbolKind::ClassLike, $name)
-		) {
-			NodeHelpers::addImport($scope, SymbolKind::ClassLike, $new, $context);
-			$short = $context->getAnalysis(NameResolver::class)->getShortName($new, SymbolKind::ClassLike, $name);
-		}
-
-		$name->text = $short;
 	}
 
 

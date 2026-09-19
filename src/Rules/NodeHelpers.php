@@ -266,6 +266,33 @@ final class NodeHelpers
 
 
 	/**
+	 * How a class is written where the node stands: fully qualified when asked so, else the shortest way that reaches
+	 * it, through an import added where none does, the scope takes one and the short name is free.
+	 */
+	public static function spellClass(string $class, Node $at, RuleContext $context, bool $fullyQualified = false): string
+	{
+		if ($fullyQualified) {
+			return '\\' . $class;
+		}
+
+		$resolver = $context->getAnalysis(NameResolver::class);
+		$short = $resolver->getShortName($class, SymbolKind::ClassLike, $at);
+		$scope = $at->findAncestor(Statement\NamespaceNode::class);
+		if (
+			str_starts_with($short, '\\')
+			&& $scope !== null
+			&& self::canAddImport($scope)
+			&& $resolver->isAliasFree(substr($class, (int) strrpos('\\' . $class, '\\')), SymbolKind::ClassLike, $at)
+		) {
+			self::addImport($scope, SymbolKind::ClassLike, $class, $context);
+			$short = $context->getAnalysis(NameResolver::class)->getShortName($class, SymbolKind::ClassLike, $at);
+		}
+
+		return $short;
+	}
+
+
+	/**
 	 * Whether PHP optimizes the call of the global function with its arguments: most of the functions it optimizes with
 	 * any, some only with every argument constant, sprintf() only with a constant format of %s and %d alone, in_array()
 	 * only with a constant array it looks up in a hash and array_slice() only of func_get_args(); none with a named
