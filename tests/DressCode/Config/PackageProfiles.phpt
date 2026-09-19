@@ -46,9 +46,9 @@ function project(string $name, array $packages, array $files, array $root = []):
 test('the profile a package ships applies up to its installed version, the one of the root package whole', function () {
 	$root = project(
 		'versions',
-		['acme/lib' => ['3.2.0.0', ['deprecations' => 'deprecations.neon']]],
+		['acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']]],
 		[
-			'vendor/acme/lib/deprecations.neon' => <<<'XX'
+			'vendor/acme/lib/upgrading.neon' => <<<'XX'
 				package: acme/lib
 
 				since 3.5:
@@ -74,16 +74,17 @@ test('the profile a package ships applies up to its installed version, the one o
 						App\Old: App\Renamed
 				XX,
 		],
-		['extra' => ['dresscode' => ['deprecations' => 'root.neon']]],
+		['extra' => ['dresscode' => ['upgrading' => 'root.neon']]],
 	);
 
 	$packages = PackageProfiles::discover(ProjectPackages::read($root));
 	Assert::same([], $packages->warnings);
 	Assert::same([], $packages->extensions);
-	Assert::same(['root.neon of app/project', 'deprecations.neon of acme/lib'], array_column($packages->profiles, 0));
+	Assert::same(['root.neon of app/project', 'upgrading.neon of acme/lib'], array_column($packages->profiles, 'source'));
 
 	// every section of the root package, whose version says nothing
-	Assert::same(['replaced-classes' => ['App\Old' => 'App\Renamed']], $packages->profiles[0][1]->rules);
+	Assert::same([], $packages->profiles[0]->unreached);
+	Assert::same(['replaced-classes' => ['App\Old' => 'App\Renamed']], $packages->profiles[0]->profile->rules);
 
 	// the sections up to 3.2 in the order of their versions, a later one having the last word on a key; 3.5 is not reached
 	Assert::same(
@@ -91,8 +92,45 @@ test('the profile a package ships applies up to its installed version, the one o
 			'replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\RenamedAgain', 'Acme\Lib\Older' => 'Acme\Lib\Renamed'],
 			'replaced-classes' => ['Acme\Lib\Gone' => 'Acme\Lib\Kept'],
 		],
-		$packages->profiles[1][1]->rules,
+		$packages->profiles[1]->profile->rules,
 	);
+	Assert::same(['3.5'], $packages->profiles[1]->unreached);
+});
+
+
+test('a later section has the last word on an entry, and a value NEON reads as an entity stays one for the schema of the rule', function () {
+	$root = project(
+		'keep',
+		['acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']]],
+		[
+			'vendor/acme/lib/upgrading.neon' => <<<'XX'
+				package: acme/lib
+
+				since 3:
+					replaced-members:
+						Acme\Lib\Form::OLD: New
+						Acme\Lib\Form::$filled: isFilled()
+
+				since 3.2:
+					replaced-members:
+						Acme\Lib\Form::OLD: keep
+
+				since 4:
+					replaced-members:
+						Acme\Lib\Form::$filled: keep
+
+				since 3.10:
+					replaced-members: []
+				XX,
+		],
+	);
+
+	[$profile] = PackageProfiles::discover(ProjectPackages::read($root))->profiles;
+	Assert::equal(
+		['replaced-members' => ['Acme\Lib\Form::OLD' => 'keep', 'Acme\Lib\Form::$filled' => new Nette\Neon\Entity('isFilled')]],
+		$profile->profile->rules,
+	);
+	Assert::same(['3.10', '4'], $profile->unreached);
 });
 
 
@@ -101,32 +139,32 @@ test('a profile for a package that is not installed is left out, and a package m
 		'carrier',
 		[
 			'acme/lib' => ['3.2.0.0', []],
-			'acme/rules' => ['9999999-dev', ['deprecations' => ['deprecations/other.neon', 'deprecations/lib.neon']]],
+			'acme/rules' => ['9999999-dev', ['upgrading' => ['upgrading/other.neon', 'upgrading/lib.neon']]],
 		],
 		[
-			'vendor/acme/rules/deprecations/other.neon' => "package: acme/other\n\nsince 1.0:\n\treplaced-classes:\n\t\tAcme\\Other\\Old: Acme\\Other\\Renamed\n",
-			'vendor/acme/rules/deprecations/lib.neon' => "package: acme/lib\n\nsince 3.0:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Renamed\n\nsince 3.3:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Later\n",
+			'vendor/acme/rules/upgrading/other.neon' => "package: acme/other\n\nsince 1.0:\n\treplaced-classes:\n\t\tAcme\\Other\\Old: Acme\\Other\\Renamed\n",
+			'vendor/acme/rules/upgrading/lib.neon' => "package: acme/lib\n\nsince 3.0:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Renamed\n\nsince 3.3:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Later\n",
 		],
 	);
 
 	$packages = PackageProfiles::discover(ProjectPackages::read($root));
-	Assert::same(['deprecations/lib.neon of acme/rules'], array_column($packages->profiles, 0));
+	Assert::same(['upgrading/lib.neon of acme/rules'], array_column($packages->profiles, 'source'));
 	// measured against the version of acme/lib, not of the package carrying the file
-	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0][1]->rules);
+	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0]->profile->rules);
 });
 
 
 test('a package the project requires itself is measured by the lowest version its constraint allows, not the installed one', function () {
 	$root = project(
 		'required',
-		['acme/lib' => ['3.4.0.0', ['deprecations' => 'deprecations.neon']]],
-		['vendor/acme/lib/deprecations.neon' => "package: acme/lib\n\nsince 3.0:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Renamed\n\nsince 3.3:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Later\n"],
+		['acme/lib' => ['3.4.0.0', ['upgrading' => 'upgrading.neon']]],
+		['vendor/acme/lib/upgrading.neon' => "package: acme/lib\n\nsince 3.0:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Renamed\n\nsince 3.3:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Later\n"],
 		['require' => ['acme/lib' => '^3.1']],
 	);
 
 	// the code still has to run on 3.1, where the name of 3.3 does not exist yet
 	$packages = PackageProfiles::discover(ProjectPackages::read($root));
-	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0][1]->rules);
+	Assert::same(['replaced-classes' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->profiles[0]->profile->rules);
 });
 
 
@@ -152,30 +190,30 @@ test('a package names its extension, and one whose class is missing is a warning
 test('a profile that turns a rule on, names an unknown key or is missing is an error naming it', function () {
 	$errors = [
 		"package: acme/lib\n\nsince 1.0:\n\treplaced-classes: true\n"
-			=> "Deprecations deprecations.neon of acme/lib: 'replaced-classes' in 'since 1.0' must be a map of options; a package turns no rule on.",
+			=> "Upgrading file upgrading.neon of acme/lib: 'replaced-classes' in 'since 1.0' must be a map of options; a package turns no rule on.",
 		"package: acme/lib\n\nrules:\n\treplaced-classes: []\n"
-			=> "Deprecations deprecations.neon of acme/lib: unexpected key 'rules'; the file holds 'package' and sections 'since <version>'.",
+			=> "Upgrading file upgrading.neon of acme/lib: unexpected key 'rules'; the file holds 'package' and sections 'since <version>'.",
 		"since 1.0:\n\treplaced-classes: []\n"
-			=> "Deprecations deprecations.neon of acme/lib: 'package' must name the package the sections are versions of, as vendor/name.",
+			=> "Upgrading file upgrading.neon of acme/lib: 'package' must name the package the sections are versions of, as vendor/name.",
 		"package: acme/lib\n\nsince 1.0: [a, b]\n"
-			=> "Deprecations deprecations.neon of acme/lib: 'since 1.0' must be a map of rules to their options.",
-		"package: acme/lib\n\nsince 1.0:\n\treplaced-classes: [a: b\n" => 'Deprecations deprecations.neon of acme/lib: %a%',
+			=> "Upgrading file upgrading.neon of acme/lib: 'since 1.0' must be a map of rules to their options.",
+		"package: acme/lib\n\nsince 1.0:\n\treplaced-classes: [a: b\n" => 'Upgrading file upgrading.neon of acme/lib: %a%',
 	];
 	foreach ($errors as $content => $message) {
-		$root = project('errors', ['acme/lib' => ['1.0.0.0', ['deprecations' => 'deprecations.neon']]], ['vendor/acme/lib/deprecations.neon' => $content]);
+		$root = project('errors', ['acme/lib' => ['1.0.0.0', ['upgrading' => 'upgrading.neon']]], ['vendor/acme/lib/upgrading.neon' => $content]);
 		Assert::exception(fn() => PackageProfiles::discover(ProjectPackages::read($root)), ConfigurationException::class, $message);
 	}
 
-	$root = project('missing', ['acme/lib' => ['1.0.0.0', ['deprecations' => 'deprecations.neon']]], []);
-	Assert::exception(fn() => PackageProfiles::discover(ProjectPackages::read($root)), ConfigurationException::class, 'Deprecations deprecations.neon of acme/lib do not exist.');
+	$root = project('missing', ['acme/lib' => ['1.0.0.0', ['upgrading' => 'upgrading.neon']]], []);
+	Assert::exception(fn() => PackageProfiles::discover(ProjectPackages::read($root)), ConfigurationException::class, 'Upgrading file upgrading.neon of acme/lib does not exist.');
 });
 
 
 test('what a package says is heard of a rule the project runs, and never turns one on', function () {
 	$root = project(
 		'run',
-		['acme/lib' => ['3.2.0.0', ['deprecations' => 'deprecations.neon']]],
-		['vendor/acme/lib/deprecations.neon' => "package: acme/lib\n\nsince 3.0:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Renamed\n"],
+		['acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']]],
+		['vendor/acme/lib/upgrading.neon' => "package: acme/lib\n\nsince 3.0:\n\treplaced-classes:\n\t\tAcme\\Lib\\Old: Acme\\Lib\\Renamed\n"],
 	);
 	$code = <<<'XX'
 		<?php
@@ -210,7 +248,7 @@ test('what a package says is heard of a rule the project runs, and never turns o
 	Assert::same('dresscode/replaced-classes', $rule->name);
 	Assert::same(
 		[
-			'Acme\Lib\Old' => [['deprecations.neon of acme/lib', 'Acme\Lib\Renamed']],
+			'Acme\Lib\Old' => [['upgrading.neon of acme/lib', 'Acme\Lib\Renamed']],
 			'App\Aged' => [['the configuration', 'App\Fresh']],
 		],
 		$rule->getOrigins(),

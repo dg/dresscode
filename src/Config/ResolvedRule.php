@@ -3,6 +3,8 @@
 namespace DressCode\Config;
 
 use DressCode\Rule;
+use Nette\Neon\Entity;
+use Nette\Neon\Neon;
 use function count, is_array;
 
 
@@ -84,7 +86,8 @@ final readonly class ResolvedRule
 			if (is_array($item) && !array_is_list($item)) {
 				self::collectOrigins($item, $source, $path, $origins);
 			} else {
-				$origins[$path][] = [$source, $item];
+				// what NEON read as an entity is shown the way the file writes it
+				$origins[$path][] = [$source, $item instanceof Entity ? Neon::encode($item) : $item];
 			}
 		}
 	}

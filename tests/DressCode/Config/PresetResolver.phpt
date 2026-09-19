@@ -851,8 +851,22 @@ test('a group is one of the groups, and the name of one narrows the run to its r
 });
 
 
+test('a value NEON read as an entity is shown among the origins the way a file writes it', function () {
+	$rule = new ResolvedRule('test/c', RuleC::class, [], [
+		['upgrading.neon of acme/lib', ['Acme\Form::$filled' => new Nette\Neon\Entity('isFilled'), 'Acme\Form::OLD' => 'New']],
+	]);
+	Assert::same(
+		[
+			'Acme\Form::$filled' => [['upgrading.neon of acme/lib', 'isFilled()']],
+			'Acme\Form::OLD' => [['upgrading.neon of acme/lib', 'New']],
+		],
+		$rule->getOrigins(),
+	);
+});
+
+
 test('what the packages say lies under every layer, never turns a rule on and survives the rule being turned off', function () {
-	$packages = [['deprecations.neon of acme/lib', new Profile(rules: [RuleC::class => ['max' => 1], RuleA::class => []])]];
+	$packages = [new Config\PackageProfile('upgrading.neon of acme/lib', new Profile(rules: [RuleC::class => ['max' => 1], RuleA::class => []]))];
 	$options = function (Config $config) use ($packages): ?array {
 		$resolver = new PresetResolver(new RuleRegistry, $packages);
 		$resolved = $resolver->resolve($config, '8.3');
@@ -879,9 +893,9 @@ test('what the packages say lies under every layer, never turns a rule on and su
 	Assert::same('no preset or rule of the configuration mentions it', $rules['test/a']->inactive);
 
 	// a rule this DressCode does not know is a warning, not an error, because the package may be newer
-	$resolver = new PresetResolver(new RuleRegistry, [['deprecations.neon of acme/lib', new Profile(rules: ['acme/from-the-future' => []])]]);
+	$resolver = new PresetResolver(new RuleRegistry, [new Config\PackageProfile('upgrading.neon of acme/lib', new Profile(rules: ['acme/from-the-future' => []]))]);
 	$resolver->resolve(new Config, '8.3');
-	Assert::same(['Rule acme/from-the-future, which deprecations.neon of acme/lib sets, is unknown here; skipped.'], $resolver->getWarnings());
+	Assert::same(['Rule acme/from-the-future, which upgrading.neon of acme/lib sets, is unknown here; skipped.'], $resolver->getWarnings());
 });
 
 

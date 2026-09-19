@@ -47,7 +47,7 @@ final class PresetResolver
 
 	public function __construct(
 		private readonly RuleRegistry $registry,
-		/** @var list<array{string, Profile}>  what the installed packages say, laid under everything and never turning a rule on */
+		/** @var list<PackageProfile>  what the installed packages say, laid under everything and never turning a rule on */
 		private readonly array $packageProfiles = [],
 		/** the packages the project stands on, which decide whether a rule requiring one runs */
 		private readonly ProjectPackages $project = new ProjectPackages,
@@ -91,12 +91,12 @@ final class PresetResolver
 
 		// what the packages say lies under every layer and is heard only of a rule some layer turns on
 		$packageLayers = [];
-		foreach ($this->packageProfiles as [$source, $profile]) {
-			foreach ($profile->rules as $rule => $value) {
+		foreach ($this->packageProfiles as $package) {
+			foreach ($package->profile->rules as $rule => $value) {
 				try {
-					$packageLayers[$this->registry->resolveRule($rule)][] = [$source, $value];
+					$packageLayers[$this->registry->resolveRule($rule)][] = [$package->source, $value];
 				} catch (ConfigurationException) {
-					$this->warnings["$source $rule"] = "Rule $rule, which $source sets, is unknown here; skipped.";
+					$this->warnings["$package->source $rule"] = "Rule $rule, which $package->source sets, is unknown here; skipped.";
 				}
 			}
 		}
