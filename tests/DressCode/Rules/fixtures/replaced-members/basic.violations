@@ -1,0 +1,28 @@
+11: Method Nette\Forms\Form::hook() is replaced by Form::attached()
+13: Method Nette\Forms\Form::hook() is replaced by Form::attached()
+14: Constant Nette\Forms\Form::FILLED is replaced by Form::Filled
+15: Constant Nette\Forms\Form::OLD is replaced by Nette\Forms\Helpers::Renewed
+16: Method Nette\Forms\Form::invalidateControl() is replaced by Form::redrawControl()
+17: Method Nette\Forms\Form::build() is replaced by Nette\Forms\Helpers::create()
+18: Method Nette\Forms\Form::make() is replaced by Nette\Forms\Helpers::create(), but static:: may call a method of the object, which another class does not have
+22: Method Nette\Forms\Form::moved() is replaced by Nette\Forms\Helpers::create(), but a declaration cannot move out of its class
+30: Constant Nette\Forms\Form::FILLED is replaced by Form::Filled
+31: Constant Nette\Forms\Form::FILLED is replaced by Form::Filled
+32: Constant Nette\Forms\Form::FILLED is replaced by Form::Filled
+33: Method Nette\Forms\Form::invalidateControl() is replaced by Form::redrawControl()
+34: Method Nette\Forms\Form::invalidateControl() is replaced by Form::redrawControl()
+35: Property Nette\Forms\Form::$legacy is replaced by Form::$items
+36: Static property Nette\Forms\Form::$counter is replaced by Form::$count
+37: Constant Nette\Forms\Form::OLD is replaced by Nette\Forms\Helpers::Renewed
+38: Constant Nette\Forms\Form::OLD is replaced by Nette\Forms\Helpers::Renewed
+39: Static method Nette\Forms\Form::make() is replaced by Nette\Forms\Helpers::create()
+40: Static method Nette\Utils\Strings::contains() is replaced by str_contains()
+41: Static method Nette\Utils\Strings::contains() is replaced by str_contains()
+42: Method Nette\Forms\Form::measure() is replaced by strlen()
+44: Constant Nette\Forms\Form::OLD is replaced by Nette\Forms\Helpers::Renewed
+45: Constant Nette\Forms\Form::OLD is replaced by Nette\Forms\Helpers::Renewed
+47: Method Nette\Forms\Form::unProtect() is replaced by Form::unprotect()
+57: Method Nette\Forms\Form::make() is replaced by Nette\Forms\Helpers::create(), but an object cannot be asked for a member of another class
+58: Constant Nette\Forms\Form::GONE is replaced by Nette\Missing\Thing::Here, but class Nette\Missing\Thing does not exist in the project
+59: Method Nette\Forms\Form::measure() is replaced by strlen(), but a nullsafe call calls nothing on null, which a function cannot say
+60: Method Nette\Forms\Form::measure() is replaced by strlen(), which no longer evaluates the expression the member was reached through

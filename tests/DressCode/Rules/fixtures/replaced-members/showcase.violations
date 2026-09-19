@@ -1,0 +1,3 @@
+11: Constant Nette\Forms\Form::FILLED is replaced by Form::Filled
+12: Static method Nette\Utils\Strings::contains() is replaced by str_contains()
+13: Method Nette\Forms\Form::invalidateControl() is replaced by Form::redrawControl()

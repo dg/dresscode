@@ -20,13 +20,6 @@ final readonly class Callee
 
 	public function describe(): string
 	{
-		return match ($this->kind) {
-			MemberKind::Constant => "Constant $this->declaringClass::$this->name",
-			MemberKind::Method => "Method $this->declaringClass::$this->name()",
-			MemberKind::StaticMethod => "Static method $this->declaringClass::$this->name()",
-			MemberKind::Property => "Property $this->declaringClass::\$$this->name",
-			MemberKind::StaticProperty => "Static property $this->declaringClass::\$$this->name",
-			MemberKind::Constructor => "Constructor $this->declaringClass::$this->name()",
-		};
+		return $this->kind->describe($this->declaringClass, $this->name);
 	}
 }

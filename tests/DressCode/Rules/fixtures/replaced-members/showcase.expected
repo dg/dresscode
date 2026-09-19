@@ -1,0 +1,15 @@
+<?php
+// {"Nette\\Forms\\Form::FILLED": "Filled", "Nette\\Forms\\Form::invalidateControl": "redrawControl", "Nette\\Utils\\Strings::contains": "\\str_contains"}
+
+namespace App;
+
+use Nette\Forms\Form;
+use Nette\Utils\Strings;
+
+function validate(Form $form, string $value): void
+{
+	$form->addRule(Form::Filled);
+	if (\str_contains($value, '@')) {
+		$form->redrawControl();
+	}
+}

@@ -1,0 +1,5 @@
+11: Method Nette\Forms\Form::measure() is replaced by strlen()
+12: Method Nette\Forms\Form::measure() is replaced by strlen(), which no longer evaluates the expression the member was reached through
+13: Method Nette\Forms\Form::measure() is replaced by strlen(), which no longer evaluates the expression the member was reached through
+14: Constant Nette\Forms\Form::OLD is replaced by Nette\Forms\Helpers::Renewed
+15: Constant Nette\Forms\Form::OLD is replaced by Nette\Forms\Helpers::Renewed, which no longer evaluates the expression the member was reached through

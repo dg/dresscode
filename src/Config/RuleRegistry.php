@@ -45,6 +45,7 @@ final class RuleRegistry
 		Rules\Classes\NameCasingRule::class,
 		Rules\Classes\NoDeprecatedMembersRule::class,
 		Rules\Classes\ReplacedClassesRule::class,
+		Rules\Classes\ReplacedMembersRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Expressions\NewArgumentParenthesesRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,

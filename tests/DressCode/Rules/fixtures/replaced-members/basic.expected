@@ -1,0 +1,62 @@
+<?php
+// {"Nette\\Forms\\Form::FILLED": "Filled", "Nette\\Forms\\Form::invalidateControl": "redrawControl", "Nette\\Forms\\Form::$legacy": "$items", "Nette\\Forms\\Form::$counter": "$count", "Nette\\Forms\\Form::OLD": "Nette\\Forms\\Helpers::Renewed", "Nette\\Forms\\Form::make()": "Nette\\Forms\\Helpers::create()", "Nette\\Utils\\Strings::contains": "\\str_contains", "Nette\\Forms\\Form::hook": "attached", "Nette\\Forms\\Form::GONE": "Nette\\Missing\\Thing::Here", "Nette\\Forms\\Form::measure": "\\strlen", "Nette\\Forms\\Form::moved()": "Nette\\Forms\\Helpers::create", "Nette\\Forms\\Form::WITHDRAWN": "keep", "Nette\\Forms\\Form::unProtect": "unprotect", "Nette\\Forms\\Form::build": "Nette\\Forms\\Helpers::create"}
+
+namespace App;
+
+use Nette\Forms\Form;
+use Nette\Forms\Helpers;
+use Nette\Utils\Strings;
+
+class MyForm extends Form
+{
+	public function attached(object $parent): void
+	{
+		parent::attached($parent);
+		$a = self::Filled;
+		$b = Helpers::Renewed;
+		$this->redrawControl();
+		$c = Helpers::create(); // a static method moves to another class
+		$d = static::make(); // one the class no longer has may be a method of the object
+	}
+
+
+	public function moved(): void
+	{
+	}
+}
+
+
+function test(Form $form, MyForm $my, Form|\stdClass $union, $unknown): void
+{
+	$a = Form::Filled;
+	$b = $form::Filled;
+	$c = MyForm::Filled;
+	$my->redrawControl(1, named: 2);
+	$form?->redrawControl();
+	$d = $form->items;
+	$e = Form::$count;
+	$f = Helpers::Renewed;
+	$g = \Nette\Forms\Helpers::Renewed;
+	$h = Helpers::create();
+	$i = \str_contains('abc', needle: 'b');
+	$j = \str_contains(...);
+	$k = \strlen('x') . 'y';
+	$s = [
+		Helpers::Renewed,
+		Helpers::Renewed,
+	];
+	$t = $form->unprotect() . $form->unprotect(); // renamed in its letter case alone
+
+	// left alone: a receiver that may be something else, a member of another kind, the new name, a withdrawn entry
+	$union->invalidateControl();
+	$unknown->invalidateControl();
+	$l = Form::Filled;
+	$m = $form->FILLED;
+	$n = Form::WITHDRAWN;
+
+	// reported with the reason
+	$o = $form->make();
+	$p = Form::GONE;
+	$q = $form?->measure('x');
+	$r = Form::create()->measure('x');
+}

@@ -166,6 +166,14 @@ test('the types of the code come from the PHPStan of the project when the config
 		array_map(fn($violation) => "$violation->line: $violation->message", $result->violations),
 	);
 
+	// a member the map of replaced-members has is left to that rule, the deprecation being the fallback of a library without data
+	$rules = ['no-deprecated-members' => true, 'replaced-members' => ['Nette\Forms\Form::FILLED' => 'Filled']];
+	$runner = $factory->createRunner(new Config(rules: $rules, paths: ['stubs'], types: 'phpstan'), $root, cache: false);
+	Assert::same(
+		['9: Constant Nette\Forms\Form::FILLED is replaced by Form::Filled'],
+		array_map(fn($violation) => "$violation->line: $violation->message", $runner->processFile("$root/Check.php", $code)->violations),
+	);
+
 	// without the types the rule the project names is refused, not left out
 	Assert::exception(
 		fn() => $factory->createRunner(new Config(rules: ['no-deprecated-members' => true]), $root, cache: false),

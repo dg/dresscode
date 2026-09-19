@@ -1,0 +1,17 @@
+<?php
+// {"Nette\\Forms\\Form::measure": "\\strlen", "Nette\\Forms\\Form::OLD": "Nette\\Forms\\Helpers::Renewed"}
+// risky
+
+namespace App;
+
+use Nette\Forms\Form;
+use Nette\Forms\Helpers;
+
+function test(Form $form): void
+{
+	$a = \strlen('x');
+	$b = \strlen('x');
+	$c = \strlen(value: 'x') . 'y';
+	$d = Helpers::Renewed;
+	$e = Helpers::Renewed;
+}

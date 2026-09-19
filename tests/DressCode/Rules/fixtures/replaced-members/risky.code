@@ -1,0 +1,16 @@
+<?php
+// {"Nette\\Forms\\Form::measure": "\\strlen", "Nette\\Forms\\Form::OLD": "Nette\\Forms\\Helpers::Renewed"}
+// risky
+
+namespace App;
+
+use Nette\Forms\Form;
+
+function test(Form $form): void
+{
+	$a = $form->measure('x');
+	$b = Form::create()->measure('x');
+	$c = ($form ?? Form::create())->measure(value: 'x') . 'y';
+	$d = $form::OLD;
+	$e = Form::create()::OLD;
+}
