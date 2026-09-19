@@ -9,6 +9,7 @@
 19: Class App\Old is replaced by App\Current
 21: Class App\Mailer\SmtpMailer is replaced by App\Mail\Mailer
 22: Class App\Old is replaced by App\Current
-24: Class App\Old is replaced by App\Current
-24: Class App\Old is replaced by App\Current
-24: Class App\Mailer\SmtpMailer is replaced by App\Mail\Mailer
+24: Class App\Obsolete is replaced by App\Missing, but class App\Missing does not exist in the project
+25: Class App\Old is replaced by App\Current
+25: Class App\Old is replaced by App\Current
+25: Class App\Mailer\SmtpMailer is replaced by App\Mail\Mailer

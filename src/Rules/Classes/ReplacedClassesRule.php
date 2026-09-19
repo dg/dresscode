@@ -2,6 +2,7 @@
 
 namespace DressCode\Rules\Classes;
 
+use DressCode\Analyses\Types;
 use DressCode\ConfigurableRule;
 use DressCode\Group;
 use DressCode\NodeRule;
@@ -22,7 +23,8 @@ use PhpSyntax\Token;
  * A tool for replacing a class across a codebase: the project maps a class, interface or enum to the one it wants
  * written instead, and the rule rewrites every reference, an import, a type, an instantiation, a static access, an
  * attribute, importing the new name the way the scope imports. The fix is not risky, because what changes is
- * exactly what the project asked for.
+ * exactly what the project asked for. Where the run has the types of the code, a class the project does not have
+ * is reported and not written.
  */
 #[RuleInfo(
 	'dresscode/replaced-classes',
@@ -77,9 +79,14 @@ final class ReplacedClassesRule extends NodeRule implements ConfigurableRule
 			&& $this->classes !== []
 			&& NodeHelpers::findImportScope($node) === $node
 		) {
-			ClassReplacement::apply($node, $context, function (string $class): ?array {
+			$types = $context->findAnalysis(Types::class);
+			ClassReplacement::apply($node, $context, function (string $class) use ($types): ?array {
 				$new = $this->classes[strtolower($class)] ?? null;
-				return $new === null ? null : ["Class $class is replaced by $new", $new];
+				return match (true) {
+					$new === null => null,
+					$types !== null && $types->findClassName($new) === null => ["Class $class is replaced by $new, but class $new does not exist in the project", null],
+					default => ["Class $class is replaced by $new", $new],
+				};
 			});
 		}
 	}
