@@ -111,6 +111,142 @@ test('the type of an expression, the callee an access or a call reaches, and wha
 });
 
 
+test('the access a node makes is decided by the receiver, whether or not anything declares the member', function () {
+	$file = (new Parser)->parse(<<<'PHP'
+		<?php
+		namespace App;
+
+		use Nette\Loaders\OldLoader;
+		use Nette\Loaders\RobotLoader;
+		use Nette\Loaders\Unrelated;
+
+		class MyLoader extends RobotLoader
+		{
+			public function getCacheKey(string ...$parts): array
+			{
+				self::RetryLimit;
+				static::$count;
+				return parent::getCacheKey();
+			}
+		}
+
+		function test(RobotLoader $loader, MyLoader $my, ?RobotLoader $nullable, RobotLoader|Unrelated $union, MyLoader|OldLoader $alike, int $number, $unknown, string $class): void
+		{
+			$loader->removedMethod(1);
+			$my->getCacheKey();
+			$nullable?->tempDirectory;
+			$union->getCacheKey();
+			$alike->getCacheKey();
+			$loader->magic;
+			new MyLoader('temp');
+			$number->getCacheKey();
+			$unknown->getCacheKey();
+			$loader->{'getCacheKey'}();
+			$my->getCacheKey(...);
+			new $class;
+			new class extends RobotLoader {
+				public function run(): void
+				{
+				}
+			};
+		}
+		PHP);
+	$types = analyse($file);
+	[$removed, $overridden, $ofUnion, $ofAlike, $onNumber, $onUnknown, $dynamicName, $callable] = $file->find(MethodCallNode::class);
+	[$constant] = $file->find(ClassConstantFetchNode::class);
+	[$staticProperty] = $file->find(PhpSyntax\Nodes\Expression\StaticPropertyFetchNode::class);
+	[$parentCall] = $file->find(StaticMethodCallNode::class);
+	[$property, $magicProperty] = $file->find(PhpSyntax\Nodes\Expression\PropertyFetchNode::class);
+	[$new, $newDynamic, $newAnonymous] = $file->find(PhpSyntax\Nodes\Expression\NewNode::class);
+	$accessOf = function (ExpressionNode $node) use ($types): ?array {
+		$access = $types->findAccess($node);
+		return $access === null ? null : [$access->kind, $access->name, $access->classes, $access->declared];
+	};
+
+	// a member no class declares any more has no callee, and an access all the same
+	Assert::same([MemberKind::Method, 'removedMethod', ['Nette\Loaders\RobotLoader'], false], $accessOf($removed));
+	Assert::null($types->findCallee($removed));
+
+	// a member the child overrides is an access of the child, which the map of the parent is asked about
+	Assert::same([MemberKind::Method, 'getCacheKey', ['App\MyLoader'], true], $accessOf($overridden));
+	Assert::same('App\MyLoader', $types->findCallee($overridden)?->declaringClass);
+
+	Assert::same([MemberKind::Constant, 'RetryLimit', ['App\MyLoader'], true], $accessOf($constant));
+	Assert::same([MemberKind::StaticProperty, 'count', ['App\MyLoader'], true], $accessOf($staticProperty));
+	Assert::same([MemberKind::StaticMethod, 'getCacheKey', ['Nette\Loaders\RobotLoader'], true], $accessOf($parentCall));
+	Assert::same([MemberKind::Property, 'tempDirectory', ['Nette\Loaders\RobotLoader'], true], $accessOf($property));
+	Assert::same([MemberKind::Property, 'magic', ['Nette\Loaders\RobotLoader'], false], $accessOf($magicProperty));
+	Assert::same([MemberKind::Constructor, '__construct', ['App\MyLoader'], true], $accessOf($new));
+	Assert::same('Constructor Nette\Loaders\RobotLoader::__construct()', $types->findCallee($new)?->describe());
+
+	// the constructor runs as the class that declares it, which a child without its own does not
+	$constructor = $types->findConstructorAccess($new);
+	Assert::same([MemberKind::Constructor, '__construct', ['Nette\Loaders\RobotLoader'], true], $constructor === null ? null : [$constructor->kind, $constructor->name, $constructor->classes, $constructor->declared]);
+	Assert::null($types->findConstructorAccess($parentCall)); // parent::getCacheKey() is no constructor
+
+	// a first-class callable reaches the member as a call does
+	Assert::same([MemberKind::Method, 'getCacheKey', ['App\MyLoader'], true], $accessOf($callable));
+	Assert::same('App\MyLoader', $types->findCallee($callable)?->declaringClass);
+
+	// every class of a union is there for the asker to refuse the one it does not know
+	Assert::same([MemberKind::Method, 'getCacheKey', ['Nette\Loaders\RobotLoader', 'Nette\Loaders\Unrelated'], true], $accessOf($ofUnion));
+
+	// no access without an object to receive it, with a name that is an expression, or of a class that has no name
+	foreach ([$onNumber, $onUnknown, $dynamicName, $newDynamic, $newAnonymous] as $node) {
+		Assert::null($types->findAccess($node));
+	}
+
+	$parametersOf = function (ExpressionNode $node) use ($types): ?array {
+		$parameters = $types->findParameters($types->findAccess($node) ?? throw new LogicException('No access.'));
+		return $parameters === null ? null : array_map(fn(Analyses\Parameter $parameter) => get_object_vars($parameter), $parameters);
+	};
+	Assert::same([
+		['name' => 'tempDirectory', 'type' => 'string|null', 'variadic' => false, 'byReference' => false, 'optional' => true],
+		['name' => 'autoRebuild', 'type' => 'bool', 'variadic' => false, 'byReference' => false, 'optional' => true],
+	], $parametersOf($new));
+	Assert::same([['name' => 'parts', 'type' => 'string', 'variadic' => true, 'byReference' => false, 'optional' => true]], $parametersOf($overridden));
+	Assert::null($parametersOf($removed)); // nothing declares it
+	Assert::null($parametersOf($ofUnion)); // the classes of the union declare it differently
+	Assert::same(['App\MyLoader', 'Nette\Loaders\OldLoader'], $types->findAccess($ofAlike)?->classes);
+	Assert::same($parametersOf($overridden), $parametersOf($ofAlike)); // and these two alike
+	Assert::null($parametersOf($constant));
+
+	// a parameter is no expression PHPStan visits; the variable read in the body is
+	[, $union] = array_values(array_filter($file->find(VariableNode::class), fn(VariableNode $node) => $node->getFirstToken()?->text === '$union'));
+	Assert::same(['Nette\Loaders\RobotLoader', 'Nette\Loaders\Unrelated'], $types->findClasses($union));
+	[, $number] = array_values(array_filter($file->find(VariableNode::class), fn(VariableNode $node) => $node->getFirstToken()?->text === '$number'));
+	Assert::same([], $types->findClasses($number));
+
+	Assert::true($types->isSubtype('App\MyLoader', 'nette\loaders\ROBOTLOADER'));
+	Assert::true($types->isSubtype('App\MyLoader', 'Nette\Loaders\Loader'));
+	Assert::true($types->isSubtype('Nette\Loaders\RobotLoader', 'Nette\Loaders\RobotLoader'));
+	Assert::false($types->isSubtype('Nette\Loaders\RobotLoader', 'App\MyLoader'));
+	Assert::false($types->isSubtype('Nette\Loaders\Unrelated', 'Nette\Loaders\RobotLoader'));
+	Assert::true($types->isSubtype('Nette\Removed', 'nette\removed'));
+	Assert::false($types->isSubtype('App\MyLoader', 'Nette\Removed'));
+	Assert::true($types->isSubtype('App\MyLoader', 'nette\loaders\caching')); // the trait of the parent
+	Assert::false($types->isSubtype('Nette\Loaders\Unrelated', 'Nette\Loaders\Caching'));
+
+	Assert::true($types->hasProperty('App\MyLoader', 'tempDirectory'));
+	Assert::false($types->hasProperty('App\MyLoader', 'magic'));
+	Assert::false($types->hasProperty('Nette\Removed', 'any'));
+
+	Assert::false($types->isStaticMethod('App\MyLoader', 'GETCACHEKEY'));
+	Assert::true($types->isStaticMethod('Nette\Loaders\RobotLoader', 'create'));
+	Assert::null($types->isStaticMethod('Nette\Loaders\RobotLoader', 'removedMethod'));
+	Assert::null($types->isStaticMethod('Nette\Removed', 'run'));
+
+	[$override, $anonymous] = $file->find(PhpSyntax\Nodes\Member\MethodNode::class);
+	Assert::same('App\MyLoader', $types->findDeclaringClass($override));
+	Assert::true($types->isSubtype((string) $types->findDeclaringClass($anonymous), 'Nette\Loaders\Loader'));
+	Assert::null($types->findDeclaringClass($file));
+
+	Assert::equal(new Deprecation('use Nette\Loaders\RobotLoader', 'Nette\Loaders\RobotLoader'), $types->getClassDeprecation('nette\loaders\oldloader'));
+	Assert::null($types->getClassDeprecation('Nette\Loaders\RobotLoader'));
+	Assert::null($types->getClassDeprecation('Nette\Removed'));
+});
+
+
 test('a declaration with the signature of the parent declaration', function () {
 	$file = (new Parser)->parse(<<<'PHP'
 		<?php

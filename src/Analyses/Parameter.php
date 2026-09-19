@@ -6,7 +6,7 @@ use function in_array;
 
 
 /**
- * A parameter of a function PHP declares: its name, the type as PHP writes it, and how it takes the argument.
+ * A parameter of a function PHP declares or of a method of a class: its name, the type as PHP writes it, and how it takes the argument.
  */
 final readonly class Parameter
 {
