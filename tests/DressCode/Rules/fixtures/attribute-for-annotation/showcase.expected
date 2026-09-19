@@ -1,0 +1,22 @@
+<?php
+// {"persistent": "Nette\\Application\\Attributes\\Persistent", "crossOrigin": "Nette\\Application\\Attributes\\Requires(sameOrigin: false)"}
+
+namespace App;
+
+use Nette\Application\Attributes\Persistent;
+use Nette\Application\Attributes\Requires;
+
+class ProductPresenter
+{
+	#[Persistent]
+	public int $page = 1;
+
+
+	/**
+	 * Receives the order of the items from another site.
+	 */
+	#[Requires(sameOrigin: false)]
+	public function handleSort(): void
+	{
+	}
+}

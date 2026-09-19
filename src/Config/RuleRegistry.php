@@ -179,6 +179,7 @@ final class RuleRegistry
 		Rules\PhpDoc\AnnotationNameRule::class,
 		Rules\PhpDoc\AttributeAfterPhpDocRule::class,
 		Rules\PhpDoc\DeprecatedAttributeForAnnotationRule::class,
+		Rules\PhpDoc\AttributeForAnnotationRule::class,
 		Rules\PhpDoc\PhpDocAlignmentRule::class,
 		Rules\PhpDoc\ForbiddenAnnotationsRule::class,
 		Rules\PhpDoc\ForbiddenPhpDocLinesRule::class,

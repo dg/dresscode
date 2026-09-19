@@ -1,0 +1,8 @@
+10: Annotation @persistent is replaced by the attribute #[Nette\Application\Attributes\Persistent]
+13: Annotation @persistent is replaced by the attribute #[Nette\Application\Attributes\Persistent]
+19: Annotation @persistent is replaced by the attribute #[Nette\Application\Attributes\Persistent]
+24: Annotation @crossOrigin is replaced by the attribute #[Nette\Application\Attributes\Requires(sameOrigin: false)]
+33: Annotation @persistent is replaced by the attribute #[Nette\Application\Attributes\Persistent]
+33: Annotation @crossOrigin is replaced by the attribute #[Nette\Application\Attributes\Requires(sameOrigin: false)]
+42: Annotation @filter is replaced by the attribute #[Latte\Attributes\TemplateFilter]
+67: Annotation @persistent is replaced by the attribute #[Nette\Application\Attributes\Persistent], but nothing says where what stands after it would go

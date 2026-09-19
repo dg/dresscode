@@ -1,0 +1,69 @@
+<?php
+// {"persistent": "Nette\\Application\\Attributes\\Persistent", "crossOrigin": "Nette\\Application\\Attributes\\Requires(sameOrigin: false)", "@filter": "Latte\\Attributes\\TemplateFilter", "kept": "keep"}
+
+namespace App;
+
+use Latte\Attributes\TemplateFilter;
+use Nette\Application\Attributes\Persistent;
+use Nette\Application\Attributes\Requires;
+
+class ProductPresenter
+{
+	#[Persistent]
+	public int $page = 1;
+
+	/**
+	 * The language of the page.
+	 */
+	#[Persistent]
+	public string $lang = 'en';
+
+	#[Deprecated]
+	#[Persistent]
+	public string $view = 'grid';
+
+
+	/**
+	 * @param  array<string>  $items
+	 */
+	#[Requires(sameOrigin: false)]
+	public function handleSort(array $items): void
+	{
+	}
+
+
+	#[Persistent]
+	#[Requires(sameOrigin: false)]
+	public function handleBoth(): void
+	{
+	}
+
+
+	#[TemplateFilter]
+	public function shortify(string $s): string
+	{
+		return $s;
+	}
+
+
+	// left alone: the attribute is there already, a withdrawn entry, another annotation
+	/** @crossOrigin */
+	#[Requires(sameOrigin: false)]
+	public function handleDone(): void
+	{
+	}
+
+
+	/**
+	 * @kept
+	 * @return void
+	 */
+	public function other(): void
+	{
+	}
+
+
+	// reported: nothing says where the text would go
+	/** @persistent across requests */
+	public string $note = '';
+}

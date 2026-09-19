@@ -1,0 +1,2 @@
+8: Annotation @persistent is replaced by the attribute #[Nette\Application\Attributes\Persistent]
+12: Annotation @crossOrigin is replaced by the attribute #[Nette\Application\Attributes\Requires(sameOrigin: false)]
