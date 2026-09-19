@@ -1,0 +1,70 @@
+<?php
+// {"Acme\\Control::getOption($key, $default)": "getOption($key) ?? $default", "Acme\\Control::measure($text)": "\\strlen($text)", "Acme\\Control::isBetween($value, $min, $max)": "$value >= $min && $value <= $max", "Acme\\Control::isPost(...$args)": "isMethod('POST')", "Acme\\Control::reset($soft)": "getRouters()", "Acme\\Control::flip($first, $second)": "\\Acme\\Iterables::map($second, $first)", "Acme\\Section::offsetGet($key)": "get($key)", "Acme\\Section::__get($name)": "get($name)", "Acme\\Control::matchesMask($value, $mask)": "find($value)?->matches($mask)"}
+// risky
+
+namespace App;
+
+use Acme\Control;
+
+class MyControl extends Control
+{
+	// the method is replaced as a whole, which a declaration cannot follow
+	public function isPost(): bool
+	{
+		return parent::isPost();
+	}
+
+
+	// only a call of some shape is replaced, the method stays
+	public function getOption(string $key): mixed
+	{
+		return parent::getOption($key, []);
+	}
+}
+
+
+function test(Control $control, int $x): void
+{
+	// an argument evaluated only sometimes, or no longer at all
+	$a = $control->getOption('x', compute());
+	$b = $control->getOption('x', $x);
+	$c = $control->reset(compute());
+	$d = $control->reset(true);
+	$n = $control->matchesMask(compute(), compute());
+
+	// what the call was made on is no longer evaluated
+	$e = create()->measure('text');
+	$f = $control->measure('text');
+	$g = $control?->measure('text');
+
+	// an argument written twice is fine where reading it again is free, and refused where it is not
+	$h = $control->isBetween($x, 1, 10);
+	$i = $control->isBetween(compute(), 1, 10);
+	$j = $control->isBetween($x, compute(), 10);
+
+	// arguments written in another order, which matters once two of them do something
+	$k = $control->flip($x, compute());
+	$l = $control->flip(compute(), compute());
+	$m = create()->flip($x, compute());
+}
+
+
+// the left of ?? asks whether the thing is set before it reads it, which a call does not
+function read(\Acme\Section $section): void
+{
+	$a = $section['user'] ?? 'none';
+	$b = $section->user ?? 'none';
+	$c = $section['user'];
+}
+
+
+function create(): Control
+{
+	return new Control;
+}
+
+
+function compute(): int
+{
+	return 1;
+}

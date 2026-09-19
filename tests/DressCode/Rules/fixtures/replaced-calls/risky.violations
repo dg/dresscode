@@ -1,0 +1,20 @@
+12: Method Acme\Control::isPost() is replaced by isMethod('POST'), but a declaration is nothing an expression could stand for
+14: Method Acme\Control::isPost() is replaced by isMethod('POST')
+21: Method Acme\Control::getOption() is replaced by getOption($key) ?? $default
+29: Method Acme\Control::getOption() is replaced by getOption($key) ?? $default, which evaluates `compute()` only sometimes
+30: Method Acme\Control::getOption() is replaced by getOption($key) ?? $default
+31: Method Acme\Control::reset() is replaced by getRouters(), which no longer evaluates `compute()`
+32: Method Acme\Control::reset() is replaced by getRouters()
+33: Method Acme\Control::matchesMask() is replaced by find($value)?->matches($mask), which evaluates `compute()` only sometimes
+36: Method Acme\Control::measure() is replaced by \strlen($text), which no longer evaluates what it is called on
+37: Method Acme\Control::measure() is replaced by \strlen($text)
+38: Method Acme\Control::measure() is replaced by \strlen($text), but a nullsafe call calls nothing on null, which the replacement cannot say
+41: Method Acme\Control::isBetween() is replaced by $value >= $min && $value <= $max
+42: Method Acme\Control::isBetween() is replaced by $value >= $min && $value <= $max, but `compute()` would be evaluated 2 times
+43: Method Acme\Control::isBetween() is replaced by $value >= $min && $value <= $max
+46: Method Acme\Control::flip() is replaced by \Acme\Iterables::map($second, $first)
+47: Method Acme\Control::flip() is replaced by \Acme\Iterables::map($second, $first), which evaluates its arguments in another order
+48: Method Acme\Control::flip() is replaced by \Acme\Iterables::map($second, $first), which no longer evaluates what it is called on
+55: Method Acme\Section::offsetGet() is replaced by get($key), which no longer asks first whether it is set, as ?? does
+56: Method Acme\Section::__get() is replaced by get($name), which no longer asks first whether it is set, as ?? does
+57: Method Acme\Section::offsetGet() is replaced by get($key)

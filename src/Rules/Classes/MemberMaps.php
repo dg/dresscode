@@ -5,6 +5,7 @@ namespace DressCode\Rules\Classes;
 use Nette\Neon\Entity;
 use Nette\Neon\Neon;
 use Nette\Schema\Context;
+use Nette\Schema\Elements\AnyOf;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use function is_bool, is_float, is_int, is_string;
@@ -55,7 +56,7 @@ final class MemberMaps
 	 * string a string, whether quoted or not, so `isMethod(POST)` is `isMethod('POST')`. Whatever that cannot say,
 	 * a global constant or an operator, is written as a string holding the whole code.
 	 */
-	public static function code(): Schema
+	public static function code(): AnyOf
 	{
 		return Expect::anyOf(Expect::string(), Expect::type(Entity::class))
 			->transform(function (string|Entity $value, Context $context): string {

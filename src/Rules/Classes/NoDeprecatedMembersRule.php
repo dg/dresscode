@@ -69,7 +69,13 @@ final class NoDeprecatedMembersRule extends NodeRule
 
 		$deprecation = $types->getDeprecation($callee);
 		$access = $deprecation === null ? null : $types->findAccess($node);
-		if ($deprecation === null || ($access !== null && $context->findRule(ReplacedMembersRule::class)?->knows($access, $types))) {
+		if (
+			$deprecation === null
+			|| ($access !== null && (
+				$context->findRule(ReplacedMembersRule::class)?->knows($access, $types)
+				|| $context->findRule(ReplacedCallsRule::class)?->knows($access, $types)
+			))
+		) {
 			return;
 		}
 

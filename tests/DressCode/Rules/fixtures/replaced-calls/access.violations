@@ -1,0 +1,22 @@
+13: Property Acme\Message::$subject is replaced by getSubject()
+14: Property Acme\Message::$subject is replaced by getSubject()
+15: Property Acme\Message::$subject is replaced by setSubject($value)
+16: Property Acme\Message::$sent is replaced by isSent()
+21: Method Acme\Section::__get() is replaced by get($name)
+22: Method Acme\Section::__set() is replaced by set($name, $value)
+23: Method Acme\Section::__isset() is replaced by has($name)
+24: Method Acme\Section::__unset() is replaced by remove($name)
+25: Method Acme\Section::offsetGet() is replaced by get($key)
+26: Method Acme\Section::offsetSet() is replaced by set($key, $value)
+27: Method Acme\Section::offsetSet() is replaced by add($value)
+28: Method Acme\Section::offsetExists() is replaced by has($key)
+29: Method Acme\Section::offsetUnset() is replaced by remove($key)
+30: Method Acme\Registry::offsetSet() is replaced by store($key, $value)
+39: Property Acme\Message::$sent is replaced by isSent(), but nothing says what an assignment to it becomes
+40: Property Acme\Message::$subject is replaced by setSubject($value), but the value of the assignment is used
+41: Property Acme\Message::$subject is replaced by getSubject(), but it is written to here, which a call cannot be
+42: Method Acme\Section::__isset() is replaced by has($name), but it stands there along with others
+43: Method Acme\Section::__unset() is replaced by remove($name), but it stands there along with others
+43: Method Acme\Section::__unset() is replaced by remove($name), but it stands there along with others
+44: Method Acme\Section::__get() is replaced by get($name), but it is written to here, which a call cannot be
+56: Property Acme\Message::$legacy is replaced by getLegacy()

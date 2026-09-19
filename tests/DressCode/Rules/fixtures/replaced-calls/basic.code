@@ -1,0 +1,74 @@
+<?php
+// {"Acme\\Container::addUpload($name, $label, true)": "addMultiUpload($name, $label)", "Acme\\Container::addUpload($name, $label, false)": "addUpload($name, $label)", "Acme\\Control::getOption($key, $default)": "getOption($key) ?? $default", "Acme\\Control::isPost()": "isMethod('POST')", "Acme\\Control::setStrictParsing($state)": "setFeature(\\Acme\\Feature::StrictParsing, $state)", "Acme\\Control::count()": "\\count(getRouters())", "Acme\\Cache::load(fallback: $f, ...)": "load(generator: $f, ...)", "Acme\\Callback::closure($callable)": "\\Closure::fromCallable($callable)", "Acme\\Callback::invoke($callable, ...$args)": "$callable(...$args)", "Acme\\Callback::invokeArgs($callable, $args)": "$callable(...$args)", "Acme\\Callback::getDefault($parameter)": "$parameter->getDefaultValue()", "Acme\\Mapper::__construct($iterator, $callback)": "\\Acme\\Iterables::map($iterator, $callback)", "Acme\\Dumper::format($var)": "(new \\Acme\\Dumper)->dump($var)", "Acme\\Structure::__construct(items: $shape, ...)": "new \\Acme\\Structure(shape: $shape, ...)"}
+
+namespace App;
+
+use Acme\Cache;
+use Acme\Callback;
+use Acme\Container;
+use Acme\Control;
+use Acme\Dumper;
+use Acme\Mapper;
+use Acme\MyControl;
+use Acme\SortedMapper;
+use Acme\Structure;
+
+function test(Container $form, Control $control, MyControl $my, ?Control $nullable, Cache $cache, array $items, callable $cb): void
+{
+	$form->addUpload('file', 'File', true);
+	$form->addUpload('file', 'File', false);
+	$form->addUpload('file', multiple: true, label: 'File');
+	$form->addUpload('file', 'File');
+	$form
+		->addUpload('file', 'File', true)
+		->setOption('class', 'multi');
+	$form->addUpload('file', 'File', $flag);
+
+	$a = $control->getOption('x', 'fallback');
+	$b = $my->getOption('x', $items['y']) . 'suffix';
+	$c = $nullable?->getOption('x', null);
+	$d = $control->getOption('x');
+
+	if ($control->isPost() && $my->count() > 1) {
+		$control->setStrictParsing(false);
+	}
+
+	$e = $cache->load('key', fallback: $cb);
+	$f = $cache->load('key', $cb);
+	$g = $cache->load('key', dependencies: $items, fallback: $cb);
+
+	$h = Callback::closure($cb);
+	$i = Callback::invoke($cb, 1, ...$items);
+	$j = Callback::invoke($cb);
+	$q = Callback::invokeArgs($cb, $items);
+	$k = Callback::getDefault($items[0]);
+	$l = new Mapper($items, $cb);
+	$m = Dumper::format($items) . "\n";
+
+	// reported with the reason: evaluated twice, a comment, a closure instead of a call is left alone
+	$n = $control->getOption('x', /* the default */ 1);
+	$o = $control->isPost(...);
+
+	// refused: a child that declares no constructor would be created as the class
+	$p = new SortedMapper($items, $cb);
+
+	// a renamed parameter of a constructor, in an instantiation of the class, of a child that declares no constructor
+	// and in parent::__construct(); a child that declares its own is left alone
+	$q = new Structure(items: $items);
+	$r = new PlainStructure(items: $items, strict: true);
+	$s = new OwnStructure(items: $items);
+}
+
+
+class PlainStructure extends Structure
+{
+}
+
+
+class OwnStructure extends Structure
+{
+	public function __construct(array $items)
+	{
+		parent::__construct(items: $items);
+	}
+}

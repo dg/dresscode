@@ -1,0 +1,58 @@
+<?php
+// {"Acme\\Message::$subject": {"get": "getSubject()", "set": "setSubject($value)"}, "Acme\\Message::$sent": {"get": "isSent()"}, "Acme\\Message::$legacy": {"get": "getLegacy()"},"Acme\\Section::__get($name)": "get($name)", "Acme\\Section::__set($name, $value)": "set($name, $value)", "Acme\\Section::__isset($name)": "has($name)", "Acme\\Section::__unset($name)": "remove($name)", "Acme\\Section::offsetGet($key)": "get($key)", "Acme\\Section::offsetSet(null, $value)": "add($value)", "Acme\\Section::offsetSet($key, $value)": "set($key, $value)", "Acme\\Section::offsetExists($key)": "has($key)", "Acme\\Section::offsetUnset($key)": "remove($key)", "Acme\\Registry::offsetSet($key, $value)": "store($key, $value)"}
+
+namespace App;
+
+use Acme\Message;
+use Acme\Registry;
+use Acme\Section;
+
+function test(Message $mail, ?Message $nullable, Section $section, Registry $registry, string $key, array $plain): void
+{
+	// a property with a getter and a setter
+	$a = $mail->subject . '!';
+	$b = $nullable?->subject;
+	$mail->subject = 'Hello ' . $key;
+	if ($mail->sent) {
+		return;
+	}
+
+	// what PHP calls a magic method for
+	$c = $section->user;
+	$section->user = $key;
+	$d = isset($section->user) ? 1 : 0;
+	unset($section->user);
+	$e = $section['fallback'];
+	$section[$key] = 1;
+	$section[] = 2;
+	$f = isset($section['x']);
+	unset($section[$key]);
+	$registry[$key] = 3;
+
+	// left alone: a property the class declares, an array, another class, an append the key does not say
+	$g = $section->declared;
+	$h = $plain[$key];
+	$plain[] = 1;
+	$registry[] = 3;
+
+	// reported with the reason
+	$mail->sent = true;
+	$i = $mail->subject = 'used';
+	$mail->subject .= '!';
+	$j = isset($section->user, $key);
+	unset($section->user, $section->other);
+	$section->list[] = 1;
+}
+
+
+// a property the class does not declare is replaced, and one a child declares under its name is the child's own
+class Letter extends Message
+{
+	private string $legacy = '';
+
+
+	public function describe(Message $other): string
+	{
+		return $this->legacy . $other->legacy;
+	}
+}

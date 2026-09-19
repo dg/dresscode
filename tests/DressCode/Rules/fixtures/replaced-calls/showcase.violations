@@ -1,0 +1,3 @@
+11: Method Acme\Container::addUpload() is replaced by addMultiUpload($name, $label)
+12: Method Acme\Control::getOption() is replaced by getOption($key) ?? $default
+13: Static method Acme\Callback::closure() is replaced by \Closure::fromCallable($callable)

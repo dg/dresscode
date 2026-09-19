@@ -1,0 +1,24 @@
+18: Method Acme\Container::addUpload() is replaced by addMultiUpload($name, $label)
+19: Method Acme\Container::addUpload() is replaced by addUpload($name, $label)
+20: Method Acme\Container::addUpload() is replaced by addMultiUpload($name, $label)
+23: Method Acme\Container::addUpload() is replaced by addMultiUpload($name, $label)
+27: Method Acme\Control::getOption() is replaced by getOption($key) ?? $default
+28: Method Acme\Control::getOption() is replaced by getOption($key) ?? $default
+29: Method Acme\Control::getOption() is replaced by getOption($key) ?? $default
+32: Method Acme\Control::isPost() is replaced by isMethod('POST')
+32: Method Acme\Control::count() is replaced by \count(getRouters())
+33: Method Acme\Control::setStrictParsing() is replaced by setFeature(\Acme\Feature::StrictParsing, $state)
+36: Method Acme\Cache::load() is replaced by load(generator: $f, ...)
+38: Method Acme\Cache::load() is replaced by load(generator: $f, ...)
+40: Static method Acme\Callback::closure() is replaced by \Closure::fromCallable($callable)
+41: Static method Acme\Callback::invoke() is replaced by $callable(...$args)
+42: Static method Acme\Callback::invoke() is replaced by $callable(...$args)
+43: Static method Acme\Callback::invokeArgs() is replaced by $callable(...$args)
+44: Static method Acme\Callback::getDefault() is replaced by $parameter->getDefaultValue()
+45: Constructor Acme\Mapper::__construct() is replaced by \Acme\Iterables::map($iterator, $callback)
+46: Static method Acme\Dumper::format() is replaced by (new \Acme\Dumper)->dump($var)
+49: Method Acme\Control::getOption() is replaced by getOption($key) ?? $default, but a comment stands among its arguments
+53: Constructor Acme\Mapper::__construct() is replaced by \Acme\Iterables::map($iterator, $callback), but it creates a child of the class, which the code does not
+57: Constructor Acme\Structure::__construct() is replaced by new \Acme\Structure(shape: $shape, ...)
+58: Constructor Acme\Structure::__construct() is replaced by new \Acme\Structure(shape: $shape, ...)
+72: Constructor Acme\Structure::__construct() is replaced by new \Acme\Structure(shape: $shape, ...)

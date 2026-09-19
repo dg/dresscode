@@ -116,8 +116,12 @@ final class ReplacedMembersRule extends NodeRule implements ConfigurableRule
 		$entry = $access === null
 			? null
 			: array_find($entries, fn(array $entry) => $entry[0]->matches($access, $types));
-		if ($access === null || $entry === null) {
-			return;
+		if (
+			$access === null
+			|| $entry === null
+			|| (($node instanceof MethodCallNode || $node instanceof StaticMethodCallNode) && $context->findRule(ReplacedCallsRule::class)?->knowsCall($node, $context))
+		) {
+			return; // the shape of the arguments of a call is more specific than its name
 		}
 
 		[$pattern, $target] = $entry;

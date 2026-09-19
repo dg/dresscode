@@ -1,0 +1,15 @@
+<?php
+// {"Acme\\Container::addUpload($name, $label, true)": "addMultiUpload($name, $label)", "Acme\\Control::getOption($key, $default)": "getOption($key) ?? $default", "Acme\\Callback::closure($callable)": "\\Closure::fromCallable($callable)"}
+
+namespace App;
+
+use Acme\Callback;
+use Acme\Container;
+use Closure;
+
+function build(Container $form, callable $handler): void
+{
+	$upload = $form->addMultiUpload('photos', 'Photos');
+	$class = ($upload->getOption('class') ?? 'upload') . ' multiple';
+	$closure = Closure::fromCallable($handler);
+}
