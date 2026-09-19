@@ -1,0 +1,2 @@
+11: Method Acme\Url::getUser() is forbidden: there is no replacement, credentials in a URL should not be used
+12: Method Acme\Passwords::hash() is forbidden: construct Passwords with the options and call hash($password) on the instance

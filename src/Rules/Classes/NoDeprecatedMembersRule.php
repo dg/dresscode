@@ -74,6 +74,7 @@ final class NoDeprecatedMembersRule extends NodeRule
 			|| ($access !== null && (
 				$context->findRule(ReplacedMembersRule::class)?->knows($access, $types)
 				|| $context->findRule(ReplacedCallsRule::class)?->knows($access, $types)
+				|| $context->findRule(ForbiddenMembersRule::class)?->knows($access, $types)
 			))
 		) {
 			return;

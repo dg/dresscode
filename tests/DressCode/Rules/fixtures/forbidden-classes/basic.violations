@@ -1,0 +1,7 @@
+10: Class Acme\Security\IAuthenticator is forbidden: implement Acme\Security\Authenticator with authenticate(string $user, string $password)
+12: Class Acme\Legacy is forbidden: there is no replacement
+12: Class Acme\Legacy is forbidden: there is no replacement
+12: Class Acme\Security\IAuthenticator is forbidden: implement Acme\Security\Authenticator with authenticate(string $user, string $password)
+14: Class Acme\Legacy is forbidden: there is no replacement
+15: Class Acme\Security\IAuthenticator is forbidden: implement Acme\Security\Authenticator with authenticate(string $user, string $password)
+17: Class Acme\Legacy is forbidden: there is no replacement

@@ -407,6 +407,9 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 					];
 				}
 			}
+			if ($context->findRule(ForbiddenMembersRule::class)?->knows($access, $types)) {
+				return null; // a property the project names is not what a magic method stands for
+			}
 
 		}
 

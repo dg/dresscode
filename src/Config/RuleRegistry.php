@@ -48,6 +48,8 @@ final class RuleRegistry
 		Rules\Classes\ReplacedClassesRule::class,
 		Rules\Classes\ReplacedMembersRule::class,
 		Rules\Classes\ReplacedCallsRule::class,
+		Rules\Classes\ForbiddenMembersRule::class,
+		Rules\Classes\ForbiddenClassesRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Expressions\NewArgumentParenthesesRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,
