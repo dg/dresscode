@@ -1,0 +1,12 @@
+14: Method Acme\Json::encode() takes pretty: true instead of `self::PRETTY`
+14: Method Acme\Json::encode() takes asciiSafe: true instead of `static::ESCAPE_UNICODE`
+21: Static method Acme\Json::encode() takes pretty: true instead of `Json::PRETTY`
+22: Static method Acme\Json::encode() takes pretty: true, asciiSafe: true instead of `Json::PRETTY | Json::ESCAPE_UNICODE`
+23: Static method Acme\Json::encode() takes pretty: true, asciiSafe: true instead of `PrettyJson::PRETTY | $json::ESCAPE_UNICODE`
+24: Static method Acme\Strings::match() takes captureOffset: true, unmatchedAsNull: true instead of `PREG_OFFSET_CAPTURE | \PREG_UNMATCHED_AS_NULL`
+25: Static method Acme\Json::encode() takes pretty: true instead of `(\Acme\Json::PRETTY)`
+26: Static method Acme\Strings::match() takes captureOffset: true instead of `PREG_SET_ORDER | PREG_OFFSET_CAPTURE`
+27: Static method Acme\Strings::match() takes captureOffset: true instead of `PREG_OFFSET_CAPTURE`
+36: Static method Acme\Json::encode() takes named arguments instead of `$flags`, but `$flags` is no flag the map names
+37: Static method Acme\Json::encode() takes named arguments instead of `Json::PRETTY | Json::OTHER`, but `Json::OTHER` is no flag the map names
+38: Static method Acme\Strings::match() takes captureOffset: true instead of `PREG_OFFSET_CAPTURE`, but an argument stands behind the flags by its position and the method gives it no name

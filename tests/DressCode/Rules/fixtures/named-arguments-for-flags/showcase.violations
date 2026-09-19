@@ -1,0 +1,1 @@
+10: Static method Acme\Json::encode() takes pretty: true, asciiSafe: true instead of `Json::PRETTY | Json::ESCAPE_UNICODE`

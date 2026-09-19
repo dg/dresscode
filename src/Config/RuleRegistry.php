@@ -48,6 +48,7 @@ final class RuleRegistry
 		Rules\Classes\ReplacedClassesRule::class,
 		Rules\Classes\ReplacedMembersRule::class,
 		Rules\Classes\ReplacedCallsRule::class,
+		Rules\Classes\NamedArgumentsForFlagsRule::class,
 		Rules\Classes\ForbiddenMembersRule::class,
 		Rules\Classes\ForbiddenClassesRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,

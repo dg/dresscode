@@ -1,0 +1,39 @@
+<?php
+// {"Acme\\Json::encode($value, $flags)": {"Acme\\Json::PRETTY": {"pretty": true}, "Acme\\Json::ESCAPE_UNICODE": {"asciiSafe": true}}, "Acme\\Strings::match($subject, $pattern, $flags, ...)": {"PREG_OFFSET_CAPTURE": {"captureOffset": true}, "\\PREG_UNMATCHED_AS_NULL": {"unmatchedAsNull": true}, "PREG_SET_ORDER": {}}}
+
+namespace App;
+
+use Acme\Json;
+use Acme\PrettyJson;
+use Acme\Strings;
+
+class Export extends PrettyJson
+{
+	public function run(mixed $value): string
+	{
+		return self::encode($value, self::PRETTY) . parent::encode($value, static::ESCAPE_UNICODE);
+	}
+}
+
+
+function test(mixed $value, int $flags, Json $json): void
+{
+	$a = Json::encode($value, Json::PRETTY);
+	$b = Json::encode($value, Json::PRETTY | Json::ESCAPE_UNICODE);
+	$c = Json::encode($value, PrettyJson::PRETTY | $json::ESCAPE_UNICODE); // the class that declares the constant
+	$d = Strings::match('abc', '~b~', PREG_OFFSET_CAPTURE | \PREG_UNMATCHED_AS_NULL);
+	$e = \Acme\Json::encode($value, (\Acme\Json::PRETTY));
+	$l = Strings::match('abc', '~b~', PREG_SET_ORDER | PREG_OFFSET_CAPTURE); // a flag the method now always applies
+	$m = Strings::match('abc', '~b~', PREG_OFFSET_CAPTURE, 1); // the offset takes the name of its parameter
+
+	// left alone: no flags, and the call the method takes now, a literal among them
+	$f = Json::encode($value);
+	$g = Json::encode($value, pretty: true);
+	$h = Json::encode($value, true);
+	$n = Json::encode($value, 0);
+
+	// reported with the reason
+	$i = Json::encode($value, $flags);
+	$j = Json::encode($value, Json::PRETTY | Json::OTHER);
+	$k = Strings::match('abc', '~b~', PREG_OFFSET_CAPTURE, 1, 2, 3, 4);
+}

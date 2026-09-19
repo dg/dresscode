@@ -1,0 +1,11 @@
+<?php
+// {"Acme\\Json::encode($value, $flags)": {"Acme\\Json::PRETTY": {"pretty": true}, "Acme\\Json::ESCAPE_UNICODE": {"asciiSafe": true}}}
+
+namespace App;
+
+use Acme\Json;
+
+function export(array $data): string
+{
+	return Json::encode($data, pretty: true, asciiSafe: true);
+}
