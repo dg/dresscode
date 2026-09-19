@@ -1,0 +1,15 @@
+<?php
+// {"Nette\\Forms\\IControl": "Nette\\Forms\\Control", "Legacy\\Logger": "Psr\\Log\\LoggerInterface"}
+
+declare(strict_types=1);
+
+use Nette\Forms\Control;
+use Psr\Log\LoggerInterface;
+
+require __DIR__ . '/bootstrap.php';
+
+// a file that declares no namespace imports into itself
+function test(Control $control, \Psr\Log\LoggerInterface $fully): void
+{
+	$logger = new LoggerInterface;
+}

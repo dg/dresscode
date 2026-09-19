@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+use Nette\Forms\Control;
+use Nette\Forms\FormRenderer;
+
+// a file that declares no namespace
+function test(Control $control, FormRenderer $renderer): void
+{
+}

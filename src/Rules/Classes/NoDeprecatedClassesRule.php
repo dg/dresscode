@@ -7,8 +7,10 @@ use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
+use DressCode\Rules\NodeHelpers;
 use DressCode\Stage;
 use PhpSyntax\Node;
+use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\Nodes\Statement\NamespaceNode;
 use PhpSyntax\Token;
 
@@ -31,13 +33,13 @@ final class NoDeprecatedClassesRule extends NodeRule
 {
 	public function getVisitedTypes(): array
 	{
-		return [NamespaceNode::class];
+		return [FileNode::class, NamespaceNode::class];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (!$node instanceof NamespaceNode) {
+		if ((!$node instanceof FileNode && !$node instanceof NamespaceNode) || NodeHelpers::findImportScope($node) !== $node) {
 			return;
 		}
 

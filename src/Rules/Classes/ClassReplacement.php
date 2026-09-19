@@ -5,6 +5,7 @@ namespace DressCode\Rules\Classes;
 use DressCode\RuleContext;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\Nodes\NameNode;
 use PhpSyntax\Nodes\Statement\NamespaceNode;
 use PhpSyntax\Nodes\UseItemNode;
@@ -26,7 +27,7 @@ final class ClassReplacement
 	 * a replacement for and the report allows.
 	 * @param  \Closure(string): ?array{string, ?string}  $find  given a fully qualified class, the message and the class written instead, null for none; null for a class that is left alone
 	 */
-	public static function apply(NamespaceNode $scope, RuleContext $context, \Closure $find): void
+	public static function apply(FileNode|NamespaceNode $scope, RuleContext $context, \Closure $find): void
 	{
 		// everything is found before anything is rewritten: a rewritten import changes what the names below it resolve to
 		$resolver = $context->getAnalysis(NameResolver::class);

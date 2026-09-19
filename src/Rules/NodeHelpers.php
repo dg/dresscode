@@ -14,6 +14,7 @@ use PhpSyntax\Nodes\AttributeGroupNode;
 use PhpSyntax\Nodes\ElseIfNode;
 use PhpSyntax\Nodes\Expression;
 use PhpSyntax\Nodes\ExpressionNode;
+use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\Nodes\NameNode;
 use PhpSyntax\Nodes\NodeList;
 use PhpSyntax\Nodes\Scalar;
@@ -267,7 +268,8 @@ final class NodeHelpers
 
 	/**
 	 * How a class is written where the node stands: fully qualified when asked so, else the shortest way that reaches
-	 * it, through an import added where none does, the scope takes one and the short name is free.
+	 * it, through an import added where none does, the scope takes one and the short name is free; a file without
+	 * a namespace imports a class of one too, rather than writing it qualified.
 	 */
 	public static function spellClass(string $class, Node $at, RuleContext $context, bool $fullyQualified = false): string
 	{
@@ -277,9 +279,9 @@ final class NodeHelpers
 
 		$resolver = $context->getAnalysis(NameResolver::class);
 		$short = $resolver->getShortName($class, SymbolKind::ClassLike, $at);
-		$scope = $at->findAncestor(Statement\NamespaceNode::class);
+		$scope = self::findImportScope($at);
 		if (
-			str_starts_with($short, '\\')
+			(str_starts_with($short, '\\') || ($scope instanceof FileNode && str_contains($short, '\\')))
 			&& $scope !== null
 			&& self::canAddImport($scope)
 			&& $resolver->isAliasFree(substr($class, (int) strrpos('\\' . $class, '\\')), SymbolKind::ClassLike, $at)
@@ -464,10 +466,28 @@ final class NodeHelpers
 
 
 	/**
+	 * The scope the imports of the node belong to: its namespace, or the file where the file declares none; null for
+	 * a node of a file with namespaces that stands outside them.
+	 */
+	public static function findImportScope(Node $node): FileNode|Statement\NamespaceNode|null
+	{
+		for (; $node !== null; $node = $node->parent) {
+			if ($node instanceof Statement\NamespaceNode) {
+				return $node;
+			} elseif ($node instanceof FileNode) {
+				return array_any($node->statements->getItems(), fn(Node $stmt) => $stmt instanceof Statement\NamespaceNode) ? null : $node;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
 	 * Whether a use statement can be added to the scope: a file that opens with markup has no line for one unless
 	 * an import stands in it already.
 	 */
-	public static function canAddImport(Statement\NamespaceNode $scope): bool
+	public static function canAddImport(FileNode|Statement\NamespaceNode $scope): bool
 	{
 		$items = $scope->statements->getItems();
 		$first = $items[0] ?? null;
@@ -486,7 +506,7 @@ final class NodeHelpers
 	 * in the scope behind its declare statements, a blank line apart.
 	 */
 	public static function addImport(
-		Statement\NamespaceNode $scope,
+		FileNode|Statement\NamespaceNode $scope,
 		SymbolKind $kind,
 		string $fullName,
 		RuleContext $context,
@@ -566,9 +586,10 @@ final class NodeHelpers
 		}
 
 		$neighborFirst = ($items[$index] ?? null)?->getFirstToken();
-		$indentation = $neighborFirst?->getIndentation() ?? ($scope->openBrace ? $context->getStyle()->indent : '');
-		// a braced namespace ends the line with its brace, an unbraced one is a blank line apart from its statement
-		$leading = $scope->openBrace !== null ? [] : [$eol];
+		$braced = $scope instanceof Statement\NamespaceNode && $scope->openBrace !== null;
+		$indentation = $neighborFirst?->getIndentation() ?? ($braced ? $context->getStyle()->indent : '');
+		// a braced namespace ends the line with its brace, an unbraced one and an open tag are a blank line apart from it
+		$leading = $braced ? [] : [$eol];
 		if ($index === 0 && $neighborFirst !== null) { // an open tag stays first
 			foreach ($neighborFirst->leadingTrivia as $i => $trivia) {
 				if ($trivia->kind === TriviaKind::OpenTag) {

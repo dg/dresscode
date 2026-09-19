@@ -7,11 +7,13 @@ use DressCode\Group;
 use DressCode\NodeRule;
 use DressCode\RuleContext;
 use DressCode\RuleInfo;
+use DressCode\Rules\NodeHelpers;
 use DressCode\Stage;
 use Nette\Schema\Context;
 use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use PhpSyntax\Node;
+use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\Nodes\Statement\NamespaceNode;
 use PhpSyntax\Token;
 
@@ -64,13 +66,17 @@ final class ReplacedClassesRule extends NodeRule implements ConfigurableRule
 
 	public function getVisitedTypes(): array
 	{
-		return [NamespaceNode::class];
+		return [FileNode::class, NamespaceNode::class];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if ($node instanceof NamespaceNode && $this->classes !== []) {
+		if (
+			($node instanceof FileNode || $node instanceof NamespaceNode)
+			&& $this->classes !== []
+			&& NodeHelpers::findImportScope($node) === $node
+		) {
 			ClassReplacement::apply($node, $context, function (string $class): ?array {
 				$new = $this->classes[strtolower($class)] ?? null;
 				return $new === null ? null : ["Class $class is replaced by $new", $new];

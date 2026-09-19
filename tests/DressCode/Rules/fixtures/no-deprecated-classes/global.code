@@ -1,0 +1,10 @@
+<?php
+
+declare(strict_types=1);
+
+use Nette\Forms\IControl;
+
+// a file that declares no namespace
+function test(IControl $control, Nette\Forms\IFormRenderer $renderer): void
+{
+}
