@@ -1,0 +1,65 @@
+<?php
+// risky
+
+namespace App;
+
+use Lib\Control;
+use Lib\Loader;
+
+
+class TextInput extends Control
+{
+	// the return type the parent declares
+	public function getValue(): mixed
+	{
+		return 'text';
+	}
+
+
+	// a wider return type
+	public function getItems(): array
+	{
+		return [];
+	}
+
+
+	// the parameters the parent added
+	public function render(string $caption, array $attrs = [], bool $strict = false): string
+	{
+		return $caption;
+	}
+
+
+	// a parameter named otherwise and narrowed, its uses and its annotation with it
+	/**
+	 * @param  string  $value
+	 */
+	public function setValue(mixed $value): static
+	{
+		echo $value;
+		return $this;
+	}
+
+
+	// a narrower visibility
+	public function attach(?\Lib\Form $form, string ...$names): void
+	{
+	}
+
+
+	// reported and left: a final method
+	public function getName(): string
+	{
+		return '';
+	}
+}
+
+
+// reported and left: a name the body reaches otherwise
+class FileLoader implements Loader
+{
+	public function load(string $file, array $options = []): string
+	{
+		return compact('file')['file'];
+	}
+}
