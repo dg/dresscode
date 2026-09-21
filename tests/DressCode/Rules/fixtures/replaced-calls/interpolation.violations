@@ -1,0 +1,8 @@
+12: Property Acme\Message::$subject is replaced by getSubject()
+13: Property Acme\Message::$subject is replaced by getSubject()
+14: Property Acme\Message::$subject is replaced by getSubject()
+16: Property Acme\Message::$subject is replaced by getSubject()
+17: Property Acme\Message::$subject is replaced by getSubject()
+21: Property Acme\Message::$sent is replaced by $this->isSent() === true, but it stands in a string, whose interpolation takes a variable and what is read or called on it alone
+22: Property Acme\Message::$sent is replaced by $this->isSent() === true, but it stands in a string, whose interpolation takes a variable and what is read or called on it alone
+25: Property Acme\Message::$sent is replaced by $this->isSent() === true

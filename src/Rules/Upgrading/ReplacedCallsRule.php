@@ -12,10 +12,11 @@ use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\Schema;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Node, Parser, Printer, Token};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode, ListNode, MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
+use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode, ListNode, MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, ShellExecNode, StaticMethodCallNode, StaticPropertyFetchNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
+use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode, InterpolationNode};
 use PhpSyntax\Nodes\Statement\{ExpressionStatementNode, ForeachNode, UnsetNode};
 use function count;
 
@@ -43,7 +44,9 @@ use function count;
  * is rewritten where it is a statement, its value being otherwise used, `isset()` and `unset()` where they hold
  * nothing else, and what writes the property any other way is reported and left as it is; a read on the left of
  * `??` is risky, PHP asking there whether the property is set before it reads it. That a function takes its argument
- * by reference is not seen, so a property passed to one is read as any other.
+ * by reference is not seen, so a property passed to one is read as any other. In an interpolation of a string the
+ * expression is written only where it is a variable and what is read or called on it, in braces, and reported
+ * otherwise.
  *
  * The fix is not risky where every argument is evaluated once, as before. Where the expression written instead
  * evaluates one only sometimes, not at all, or two of them in another order, the use is risky unless evaluating
@@ -166,8 +169,9 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			? MemberKind::Method
 			: $access->kind;
 		$message = $pattern->describe($kind) . " is replaced by $template->code";
+		$rewrite = self::fitInterpolation($node, $rewrite);
 		if (self::report($node instanceof NewNode ? $node->class : $node->name, $message, $rewrite, $context)) {
-			$node->replaceWithExpression(self::write($rewrite, $node, $context));
+			self::replace($node, self::write($rewrite, $node, $context));
 		}
 	}
 
@@ -282,8 +286,9 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			$rewrite = new Rewrite($rewrite->expression, risk: $rewrite->risk ?? ', which no longer asks first whether it is set, as ?? does');
 		}
 
+		$rewrite = self::fitInterpolation($node, $rewrite);
 		if (self::report($node instanceof ArrayAccessNode ? $node->openBracket : $node->name, $message, $rewrite, $context)) {
-			$node->replaceWithExpression(self::write($rewrite, $node, $context));
+			self::replace($node, self::write($rewrite, $node, $context));
 		}
 	}
 
@@ -573,6 +578,74 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 		}
 
 		return $expression;
+	}
+
+
+	/**
+	 * The rewrite of a use that stands in an interpolation of a string, which takes a variable and what is read or
+	 * called on it alone; a use inside a chain written without braces takes nothing else either.
+	 */
+	private static function fitInterpolation(Node $node, Rewrite $rewrite): Rewrite
+	{
+		$interpolation = self::findInterpolation($node);
+		return $rewrite->expression !== null && $interpolation !== null
+			&& (!self::isInterpolable($rewrite->expression) || ($interpolation[0] === 'bare' && $interpolation[1] !== $node))
+			? new Rewrite(null, ', but it stands in a string, whose interpolation takes a variable and what is read or called on it alone')
+			: $rewrite;
+	}
+
+
+	/**
+	 * How the use stands in a string, braced as {$a->b} or bare as $a->b, with the chain it heads there; null outside one.
+	 * @return ?array{'braced'|'bare', Node}
+	 */
+	private static function findInterpolation(Node $node): ?array
+	{
+		while (
+			($parent = $node->parent) instanceof PropertyFetchNode
+			|| $parent instanceof MethodCallNode
+			|| $parent instanceof ArrayAccessNode
+		) {
+			if (($parent instanceof ArrayAccessNode ? $parent->expression : $parent->object) !== $node) {
+				return null;
+			}
+
+			$node = $parent;
+		}
+
+		return match (true) {
+			$parent instanceof InterpolationNode => ['braced', $node],
+			$parent?->parent instanceof InterpolatedStringNode,
+			$parent?->parent instanceof HeredocNode,
+			$parent?->parent instanceof ShellExecNode => ['bare', $node],
+			default => null,
+		};
+	}
+
+
+	/** Whether an interpolation takes the expression: a variable and what is read or called on it. */
+	private static function isInterpolable(ExpressionNode $expression): bool
+	{
+		return match (true) {
+			$expression instanceof VariableNode => true,
+			$expression instanceof PropertyFetchNode, $expression instanceof MethodCallNode => self::isInterpolable($expression->object),
+			$expression instanceof ArrayAccessNode => self::isInterpolable($expression->expression),
+			default => false,
+		};
+	}
+
+
+	/** Writes the expression in place of the use, in braces where the string has none around it. */
+	private static function replace(ExpressionNode $node, ExpressionNode $expression): void
+	{
+		if ((self::findInterpolation($node)[0] ?? null) !== 'bare') {
+			$node->replaceWithExpression($expression);
+			return;
+		}
+
+		$string = (new Parser)->parseExpression('"{' . Printer::print($expression) . '}"');
+		assert($string instanceof InterpolatedStringNode);
+		$node->replaceWith($string->parts->getItems()[0]->withoutEdgeTrivia());
 	}
 
 
