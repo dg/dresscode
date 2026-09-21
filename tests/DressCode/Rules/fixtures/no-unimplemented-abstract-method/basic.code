@@ -1,0 +1,67 @@
+<?php
+
+namespace App;
+
+use Acme\Paths\Measured;
+use Acme\Paths\Path;
+use Acme\Paths\Walker;
+
+class RoutePath implements Path
+{
+	public function length(): int
+	{
+		return 1;
+	}
+}
+
+
+class TrailWalker extends Walker implements Path
+{
+	public function length(): int
+	{
+		return 2;
+	}
+}
+
+
+class MeasuredPath implements Path
+{
+	use Measured;
+}
+
+
+abstract class PartialPath implements Path
+{
+}
+
+
+enum Direction implements Path
+{
+	case North;
+
+
+	public function length(): int
+	{
+		return 0;
+	}
+}
+
+
+class CompletePath extends Walker implements Path
+{
+	public function length(): int
+	{
+		return 3;
+	}
+
+
+	public function isNullSafe(): bool
+	{
+		return true;
+	}
+
+
+	protected function step(): void
+	{
+	}
+}

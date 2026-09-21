@@ -225,6 +225,15 @@ test('the access a node makes is decided by the receiver, whether or not anythin
 	Assert::false($types->hasProperty('App\MyStorage', 'magic'));
 	Assert::false($types->hasProperty('Acme\Removed', 'any'));
 
+	Assert::same(Tristate::Yes, $types->isInterface('Acme\Cache\Storage'));
+	Assert::same(Tristate::No, $types->isInterface('Acme\Cache\FileStorage'));
+	Assert::same(Tristate::Maybe, $types->isInterface('Acme\Removed'));
+	Assert::same(Tristate::No, $types->isFinalClass('Acme\Cache\FileStorage'));
+	Assert::same(Tristate::Maybe, $types->isFinalClass('Acme\Removed'));
+	Assert::same(Tristate::Yes, $types->isAttributeClass('Attribute'));
+	Assert::same(Tristate::No, $types->isAttributeClass('Acme\Cache\FileStorage'));
+	Assert::same(Tristate::Maybe, $types->isAttributeClass('Acme\Removed'));
+
 	Assert::same(Tristate::No, $types->isStaticMethod('App\MyStorage', 'GETCACHEKEY'));
 	Assert::same(Tristate::Yes, $types->isStaticMethod('Acme\Cache\FileStorage', 'create'));
 	Assert::same(Tristate::Maybe, $types->isStaticMethod('Acme\Cache\FileStorage', 'removedMethod'));
