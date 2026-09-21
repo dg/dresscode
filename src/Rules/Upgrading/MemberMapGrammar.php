@@ -30,6 +30,7 @@ final class MemberMapGrammar
 	public const ForbiddenClasses = 'upgrading.libraries.forbiddenClasses';
 	public const ForbiddenFunctions = 'upgrading.libraries.forbiddenFunctions';
 	public const ForbiddenMembers = 'upgrading.libraries.forbiddenMembers';
+	public const AttributeForAnnotation = 'upgrading.libraries.attributeForAnnotation';
 
 
 	/**

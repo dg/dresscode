@@ -1,0 +1,6 @@
+11: Attribute `#[Acme\Attributes\Secured]` is replaced by `#[Acme\Attributes\Access(public: false)]`.
+18: Attribute `#[Acme\Attributes\Secured]` is replaced by `#[Acme\Attributes\Access(public: false)]`.
+25: Attribute `#[Acme\Attributes\Secured]` is replaced by `#[Acme\Attributes\Access(public: false)]`, but the declaration carries that attribute already.
+33: Attribute `#[Old\Marker]` is replaced by `#[New\Marker]`.
+39: Attribute `#[Acme\Attributes\Secured]` is replaced by `#[Acme\Attributes\Access(public: false)]`, but the attribute written instead has arguments of its own.
+53: Attribute `#[Acme\Attributes\Cached]` is replaced by `#[Acme\Attributes\Cached(ttl: 60)]`.

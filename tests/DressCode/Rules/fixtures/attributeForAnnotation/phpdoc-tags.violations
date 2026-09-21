@@ -1,0 +1,2 @@
+11: Annotation `@Size` is replaced by the attribute `#[Acme\Validation\Size]`.
+17: Annotation `@required` is replaced by the attribute `#[Acme\Validation\Required]`.

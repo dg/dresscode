@@ -13,7 +13,7 @@ use DressCode\Domains\Words;
 use DressCode\Rules\CodeWriter;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Nodes\{AttributeNode, FileNode, NameNode};
 use PhpSyntax\Nodes\Statement\NamespaceNode;
 
 
@@ -23,19 +23,25 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
  * follow; any other is reported with what the deprecation says. In a doc comment only a class the deprecation names
  * a replacement for is rewritten, one without it being left as it is. A class the map of replacedClasses or of
- * forbiddenClasses has is not reported.
+ * forbiddenClasses has is not reported, nor an attribute attributeForAnnotation writes another one instead of.
  */
 #[RuleInfo(
 	Stage::Structure,
 	typesRequired: true,
 	modifiesComments: true,
-	reads: [MemberMapGrammar::ReplacedClasses, MemberMapGrammar::ForbiddenClasses],
+	reads: [
+		MemberMapGrammar::ReplacedClasses,
+		MemberMapGrammar::ForbiddenClasses,
+		MemberMapGrammar::AttributeForAnnotation,
+	],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class NoDeprecatedClassesRule extends NodeRule
 {
 	/** @var array<string, true>  lowercased class, fully qualified, that a map of the libraries has */
 	private array $mapped = [];
+
+	private AnnotationMap $annotations;
 
 
 	public static function getDecisions(): array
@@ -57,6 +63,8 @@ final class NoDeprecatedClassesRule extends NodeRule
 		] as $class) {
 			$this->mapped[strtolower(ltrim((string) $class, '\\'))] = true;
 		}
+
+		$this->annotations = AnnotationMap::fromValues($values);
 	}
 
 
@@ -82,11 +90,16 @@ final class NoDeprecatedClassesRule extends NodeRule
 					$deprecation->replacementClass,
 				];
 		};
+		$resolver = $context->getAnalysis(NameResolver::class);
 		ClassReplacement::rewriteReferences(
 			$node,
 			$context,
 			$find,
 			fn(string $class) => ($found = $find($class)) !== null && $found[1] !== null ? $found : null,
+			// an attribute the map writes another one instead of is the map's
+			$this->annotations->isEmpty() ? null : fn(NameNode $name) => $name->parent instanceof AttributeNode
+				&& $this->annotations->findReplacedAttribute($resolver->resolveClass($name)) !== null,
+			$this->annotations,
 		);
 	}
 }

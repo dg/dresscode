@@ -55,6 +55,17 @@ class Modern
 }
 
 
+namespace Fresh\Attribute;
+
+#[\Attribute]
+class Route
+{
+	public function __construct(?string $path = null, ?string $name = null)
+	{
+	}
+}
+
+
 namespace Old\Bus;
 
 /** @deprecated write the attribute AsHandler */

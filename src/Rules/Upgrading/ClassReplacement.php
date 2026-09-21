@@ -50,6 +50,8 @@ final class ClassReplacement
 	 *   and keeps its import
 	 * @param  ?\Closure(NameNode): bool  $keeps  whether the reference goes on naming the class, which nothing is said
 	 *   about and whose import stays with it
+	 * @param  ?AnnotationMap  $annotations  the map of annotations read as attributes, whose annotations keep the import
+	 *   of their class until they are attributes
 	 */
 	public static function rewriteReferences(
 		FileNode|NamespaceNode $scope,
@@ -57,6 +59,7 @@ final class ClassReplacement
 		\Closure $find,
 		\Closure $findInDocs,
 		?\Closure $keeps = null,
+		?AnnotationMap $annotations = null,
 	): void
 	{
 		// everything is found before anything is rewritten: a rewritten import changes what the names below it resolve to
@@ -109,6 +112,8 @@ final class ClassReplacement
 			}
 		}
 
+		// an annotation read as an attribute resolves through the import until it is one
+		$kept += $annotations?->findAnnotatedClasses($scope, $context) ?? [];
 		foreach ($imports as [$item, $class, $message, $new]) {
 			if (isset($kept[strtolower($class)])) {
 				continue; // the short name below goes on naming the class the import brings
