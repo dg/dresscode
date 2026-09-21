@@ -29,3 +29,14 @@ class Modern
 {
 	public const NewName = 1;
 }
+
+
+namespace Fresh\Attribute;
+
+#[\Attribute]
+class Route
+{
+	public function __construct(?string $path = null, ?string $name = null)
+	{
+	}
+}

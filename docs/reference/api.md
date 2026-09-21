@@ -827,6 +827,7 @@ final readonly class Violation
 - `DressCode\Rules\Types\TypeHintRequiredRule`
 - `DressCode\Rules\Types\TypeHintSpacingRule`
 - `DressCode\Rules\Types\UnionTypeNotationRule`
+- `DressCode\Rules\Upgrading\AttributeForAnnotationRule`
 - `DressCode\Rules\Upgrading\ForbiddenClassesRule`
 - `DressCode\Rules\Upgrading\ForbiddenFunctionsRule`
 - `DressCode\Rules\Upgrading\ForbiddenMembersRule`
