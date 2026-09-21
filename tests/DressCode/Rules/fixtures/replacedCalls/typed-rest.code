@@ -1,0 +1,32 @@
+<?php
+// {"Acme\\Settings::hasKinds(int|string ...$kinds)": "hasKinds([...$kinds])"}
+
+namespace App;
+
+use Acme\Settings;
+
+class Checker
+{
+	private const Kinds = [1, 'x'];
+
+
+	/**
+	 * @param  list<int>  $numbers
+	 * @param  array<string, int>  $named
+	 */
+	public function test(Settings $settings, int $kind, array $numbers, array $named, array $any, $unknown): void
+	{
+		// every argument, and every value one unpacks, is of the type
+		$a = $settings->hasKinds(1, 'x');
+		$b = $settings->hasKinds($kind, 2);
+		$c = $settings->hasKinds(...self::Kinds);
+		$d = $settings->hasKinds(...$numbers);
+		$e = $settings->hasKinds();
+
+		// left alone: an argument not of the type for certain, which the code written instead is too
+		$f = $settings->hasKinds([1, 2]);
+		$g = $settings->hasKinds($unknown);
+		$h = $settings->hasKinds(...$any);
+		$i = $settings->hasKinds(...$named); // a string key unpacks as a name
+	}
+}
