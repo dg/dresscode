@@ -27,10 +27,11 @@ use function count;
  * A key is a MemberPattern, a method or an instantiation with the shape of its arguments (ArgumentPattern),
  * `Class::name($a, true)` or `Class::__construct($a)`, and `Class::name()` a call without any, unlike in replacedMembers,
  * where the parentheses only mark a method; a call that fits no key is left alone, and of the keys it fits the most
- * specific one decides. A call that unpacks its arguments fits only a key taking the rest, `Class::name(...$args)`,
- * and is reported where the keys of its member name the arguments one by one. A positional item of a key takes an
- * argument passed by the name of its parameter, which only a declaration of the method tells, so a call passing one
- * by name to a method the library removed is reported too.
+ * specific one decides. A call that unpacks its arguments fits only a key taking the rest, `Class::name(...$args)`
+ * or `Class::name(int|string ...$kinds)` where the values it unpacks are of that type, and is reported where the keys
+ * of its member name the arguments one by one. A positional item of a key takes an argument passed by the name of its
+ * parameter, which only a declaration of the method tells, so a call passing one by name to a method the library
+ * removed is reported too.
  * The value is the expression written instead, with the placeholders of the key: a call of a bare name is a call on
  * what the replaced call was made on, `addAlbum($name, $label)`, `$this` the same thing as an expression,
  * `\Acme\Events::dispatch($this->listeners)`, a qualified name a function or a class of its own,
