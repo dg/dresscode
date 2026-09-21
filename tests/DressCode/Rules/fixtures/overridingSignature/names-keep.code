@@ -1,0 +1,22 @@
+<?php
+// risky
+// {"overridingParameterNames": "keep"}
+
+namespace App;
+
+use Lib\Control;
+
+
+class Input extends Control
+{
+	public function getValue()
+	{
+		return 1;
+	}
+
+
+	public function render(string $label, array $attrs = [], bool $strict = false): string
+	{
+		return $label;
+	}
+}

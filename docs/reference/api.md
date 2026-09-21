@@ -889,6 +889,7 @@ final readonly class Violation
 - `DressCode\Rules\Classes\NoSleepAndWakeupRule`
 - `DressCode\Rules\Classes\NoThisOutsideObjectRule`
 - `DressCode\Rules\Classes\OverrideAttributeRequiredRule`
+- `DressCode\Rules\Classes\OverridingSignatureRule`
 - `DressCode\Rules\Classes\PromotedPropertyForAssignmentRule`
 - `DressCode\Rules\Classes\PublicWithSetVisibilityRule`
 - `DressCode\Rules\Classes\ReadonlyClassForReadonlyPropertiesRule`

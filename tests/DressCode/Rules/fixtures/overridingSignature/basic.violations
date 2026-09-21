@@ -1,0 +1,12 @@
+13: Method `getValue()` must declare the return type `mixed`, as in `Lib\Control::getValue()`.
+	risky TypeUnknown: the body may return a value of another type
+20: Method `getItems()` must declare the return type `array`, as in `Lib\Control::getItems()`.
+	risky TypeUnknown: the body may return a value of another type
+27: Method `render()` must declare the parameter `$attrs`, as in `Lib\Control::render()`.
+27: Method `render()` must declare the parameter `$strict`, as in `Lib\Control::render()`.
+37: Parameter `$val` of `setValue()` must take `mixed`, as in `Lib\Control::setValue()`.
+37: Parameter `$val` of `setValue()` must be named `$value`, as in `Lib\Control::setValue()`.
+	risky BehaviorChanges: a call naming the argument `val:` stops working
+45: Method `attach()` must be public, as in `Lib\Control::attach()`.
+51: Method `getName()` overrides the final `Lib\Control::getName()`.
+61: Parameter `$file` of `load()` must be named `$name`, as in `Lib\Loader::load()`, but the body names a variable indirectly.

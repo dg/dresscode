@@ -7,6 +7,10 @@
 builtin:
 	castType: short                           # `(int)`, not `(integer)`, PHP 8.5
 
+classes:
+	overridingSignature: asAncestor           # a child matching a parent changed by an upgrade
+	overridingParameterNames: asAncestor
+
 controlFlow:
 	switchCaseTerminator: colon               # `case 1:`, not `case 1;`, PHP 8.5
 
