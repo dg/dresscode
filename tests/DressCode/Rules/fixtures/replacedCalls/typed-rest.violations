@@ -1,0 +1,5 @@
+20: Method `Acme\Settings::hasKinds()` is replaced by `hasKinds([...$kinds])`.
+21: Method `Acme\Settings::hasKinds()` is replaced by `hasKinds([...$kinds])`.
+22: Method `Acme\Settings::hasKinds()` is replaced by `hasKinds([...$kinds])`.
+23: Method `Acme\Settings::hasKinds()` is replaced by `hasKinds([...$kinds])`.
+24: Method `Acme\Settings::hasKinds()` is replaced by `hasKinds([...$kinds])`.

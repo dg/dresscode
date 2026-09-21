@@ -646,7 +646,7 @@ final readonly class ArgumentPattern
 	public readonly array $items
 	public static function any(): DressCode\Rules\Upgrading\ArgumentPattern
 	public static function parse(string $arguments): DressCode\Rules\Upgrading\ArgumentPattern
-	public function bind(PhpSyntax\Nodes\ArgumentListNode $arguments, ?array $parameters, ?DressCode\Analyses\Types $types = null): ?DressCode\Rules\Upgrading\ArgumentBindings
+	public function bind(PhpSyntax\Nodes\ArgumentListNode $arguments, ?array $parameters, ?DressCode\Analyses\Types $types = null, bool $acceptUncertainTypes = false): ?DressCode\Rules\Upgrading\ArgumentBindings
 	public function takesRest(): bool
 	public function takesAnyArguments(): bool
 	public function compareSpecificity(DressCode\Rules\Upgrading\ArgumentPattern $other): int
@@ -660,7 +660,8 @@ final readonly class ArgumentPatternItem
 	public readonly ?array $literal
 	public readonly ?string $parameterName
 	public readonly bool $rest
-	public function __construct(?string $placeholder = null, ?array $literal = null, ?string $parameterName = null, bool $rest = false)
+	public readonly ?string $type
+	public function __construct(?string $placeholder = null, ?array $literal = null, ?string $parameterName = null, bool $rest = false, ?string $type = null)
 ```
 
 ## `DressCode\Rules\Upgrading\FunctionPattern`

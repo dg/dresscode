@@ -174,7 +174,8 @@ final readonly class CallTemplate
 	/**
 	 * A key of the map whose code calls a method, on what the replaced call was made on, in a shape a key of its class
 	 * takes, leads the rule to that key; one it leads back to itself would be rewritten without end, `is(...$kinds)` as
-	 * `is([...$kinds])`.
+	 * `is([...$kinds])`. What the code writes is known only by its shape, so a type the shape does not settle counts as
+	 * held.
 	 * @param  array<string, mixed>  $map
 	 * @return array<string, mixed>
 	 */
@@ -200,7 +201,7 @@ final readonly class CallTemplate
 						$pattern->kind === MemberKind::Method
 						&& strcasecmp($pattern->name, $name) === 0
 						&& strcasecmp($pattern->class, $source->class) === 0
-						&& ($pattern->arguments ?? ArgumentPattern::any())->bind($arguments, null) !== null
+						&& ($pattern->arguments ?? ArgumentPattern::any())->bind($arguments, null, acceptUncertainTypes: true) !== null
 					) {
 						$leads[$key][$target] = true;
 					}

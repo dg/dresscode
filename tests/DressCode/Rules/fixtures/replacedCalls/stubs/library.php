@@ -184,6 +184,14 @@ class JsonReply extends Reply
 }
 
 
+class Pick
+{
+	public function __construct(?array $options = null, ?array $values = null, bool $multiple = false)
+	{
+	}
+}
+
+
 class KernelCase
 {
 	protected static ?object $container = null;
