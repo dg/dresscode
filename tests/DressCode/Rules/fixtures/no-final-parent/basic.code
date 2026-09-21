@@ -1,0 +1,28 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\Cart;
+use Acme\Shop\Order;
+
+class WishList extends Cart
+{
+}
+
+
+class PaidOrder extends Order
+{
+}
+
+
+final class Checkout
+{
+	public function __construct(
+		private Cart $cart,
+	) {
+	}
+}
+
+
+$gift = new class extends \Acme\Shop\Order {
+};

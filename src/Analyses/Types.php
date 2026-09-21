@@ -530,6 +530,36 @@ final class Types implements PassAnalysis
 	}
 
 
+	/** Whether the class is declared final; null for a class nothing declares. */
+	public function isFinalClass(string $class): ?bool
+	{
+		return $this->phpstan->findClass($class)?->isFinalByKeyword();
+	}
+
+
+	/**
+	 * The abstract methods a class or an enum that is not abstract itself inherits from its parents and interfaces and
+	 * implements nowhere, as `Ancestor::method`; none for an abstract class, an interface and a class nothing declares.
+	 * @return list<string>
+	 */
+	public function findUnimplementedMethods(string $class): array
+	{
+		$reflection = $this->phpstan->findClass($class);
+		if ($reflection === null || $reflection->isAbstract() || $reflection->isInterface() || $reflection->isTrait()) {
+			return [];
+		}
+
+		$methods = [];
+		foreach ($reflection->getNativeReflection()->getMethods() as $method) {
+			if ($method->isAbstract()) {
+				$methods[] = $method->getDeclaringClass()->getName() . '::' . $method->getName();
+			}
+		}
+
+		return $methods;
+	}
+
+
 	/** Whether the class has the member of that kind, itself or through an ancestor; a magic one it does not have. */
 	public function hasMember(string $class, MemberKind $kind, string $name): bool
 	{

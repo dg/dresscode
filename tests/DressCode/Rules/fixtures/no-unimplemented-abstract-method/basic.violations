@@ -1,0 +1,4 @@
+9: Class RoutePath does not implement the abstract Acme\Paths\Path::isNullSafe()
+18: Class TrailWalker does not implement the abstract Acme\Paths\Walker::step()
+18: Class TrailWalker does not implement the abstract Acme\Paths\Path::isNullSafe()
+38: Enum Direction does not implement the abstract Acme\Paths\Path::isNullSafe()

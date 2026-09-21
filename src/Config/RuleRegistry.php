@@ -67,6 +67,8 @@ final class RuleRegistry
 		Rules\Classes\StaticForPrivateMethodWithoutThisRule::class,
 		Rules\Classes\NoNullDebugInfoReturnRule::class,
 		Rules\Classes\NoSleepAndWakeupRule::class,
+		Rules\Classes\NoFinalParentRule::class,
+		Rules\Classes\NoUnimplementedAbstractMethodRule::class,
 		Rules\Classes\OverrideAttributeRequiredRule::class,
 		Rules\Classes\OverrideSignatureRule::class,
 		Rules\Classes\SingleMemberPerDeclarationRule::class,
