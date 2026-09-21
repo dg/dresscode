@@ -1,0 +1,21 @@
+<?php
+// php 8.2
+
+namespace App;
+
+use Lib\Widget;
+
+
+class Panel extends Widget
+{
+	// an intersection in a union is written in parentheses
+	public function getParts(): ?\Countable
+	{
+		return null;
+	}
+
+
+	public function attach(): void
+	{
+	}
+}

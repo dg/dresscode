@@ -4,6 +4,11 @@
 # upgrading files of the installed packages list as retired. A deprecation is reported whatever the target, the code
 # meeting it wherever it runs on the version that made it.
 
+classes:
+	overriding:
+		signature: asAncestor                 # a child matching a parent changed by an upgrade
+		parameterName: asAncestor
+
 controlFlow:
 	switch:
 		caseTerminator: colon                 # `case 1:`, not `case 1;`, PHP 8.5

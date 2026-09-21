@@ -1,0 +1,2 @@
+18: The parameter `$label` of `render()` must be named `$caption`, as in `Lib\Control::render()`.
+	risky BehaviorChanges: a call naming the argument `label:` stops working
