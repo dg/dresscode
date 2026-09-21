@@ -33,7 +33,7 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
 	Stage::Structure,
 	modifiesComments: true,
 	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedClasses'],
-	reads: [self::ForbiddenMembers],
+	reads: [self::ForbiddenMembers, AnnotationMap::Path],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class ReplacedClassesRule extends NodeRule
@@ -47,6 +47,8 @@ final class ReplacedClassesRule extends NodeRule
 	/** @var MemberMap<mixed> */
 	private MemberMap $forbiddenMembers;
 
+	private AnnotationMap $annotations;
+
 
 	public function configure(Values $values): void
 	{
@@ -57,6 +59,7 @@ final class ReplacedClassesRule extends NodeRule
 		}
 
 		$this->forbiddenMembers = MemberMap::fromValues($values, self::ForbiddenMembers);
+		$this->annotations = AnnotationMap::fromValues($values);
 	}
 
 
@@ -90,6 +93,7 @@ final class ReplacedClassesRule extends NodeRule
 				fn(string $class, ?array $member) => $types !== null && $member !== null && $this->isBannedMember($class, ...$member, types: $types)
 					? false
 					: $find($class),
+				$this->annotations,
 			);
 		}
 	}

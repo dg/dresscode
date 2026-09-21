@@ -1,0 +1,39 @@
+<?php
+// {"libraries": {"attributeForAnnotation": {"Acme\\Validation\\*": "Acme\\Validation\\*"}}}
+
+namespace Acme\Validation;
+
+use Acme\Validation\Required as required;
+
+/** @internal */
+class Form
+{
+	/**
+	 * @var string
+	 */
+	#[Size(min: 3)]
+	public string $title = '';
+
+	/**
+	 * @param int $page
+	 * @phpstan-param positive-int $page
+	 */
+	#[required]
+	public function show(int $page): void
+	{
+	}
+}
+
+
+/**
+ * @Annotation
+ * @Target({"PROPERTY", "METHOD"})
+ * @TODO check the length in bytes
+ */
+final class Length
+{
+	/** @SuppressWarnings(PHPMD.UnusedFormalParameter) */
+	public function __construct(int $max)
+	{
+	}
+}

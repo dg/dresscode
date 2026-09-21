@@ -1,0 +1,15 @@
+<?php
+// {"libraries": {"attributeForAnnotation": {"Acme\\Validation\\*": "Acme\\Constraints\\*"}}}
+
+namespace App;
+
+use Acme\Validation as Check;
+
+class Post
+{
+	// reported and left: the class of the nested annotation is not imported
+	/**
+	 * @Check\Each({@Check\Required}) and some text
+	 */
+	public array $tags = [];
+}

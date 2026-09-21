@@ -8,9 +8,9 @@
 namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
-use DressCode\{Decision, Domain, ImportStyle, Plugin, PluginManifest, Rules};
+use DressCode\{Decision, Domain, ImportStyle, Plugin, PluginManifest, Rules, Violation};
 use DressCode\Domains\{Count, GrammarEntry, Map, Names, Words};
-use DressCode\Rules\Upgrading\{CallTemplate, MemberMaps, MemberTarget};
+use DressCode\Rules\Upgrading\{AttributeTarget, CallTemplate, MemberMaps, MemberTarget};
 use Nette\Schema\{Context, Expect, Schema};
 use function dirname;
 
@@ -236,6 +236,7 @@ final class CorePlugin implements Plugin
 				Rules\Upgrading\ForbiddenClassesRule::class,
 				Rules\Upgrading\ForbiddenFunctionsRule::class,
 				Rules\Upgrading\ForbiddenMembersRule::class,
+				Rules\Upgrading\AttributeForAnnotationRule::class,
 				Rules\Upgrading\NoDeprecatedClassesRule::class,
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
 				Rules\Upgrading\NoDeprecatedPhpCallsRule::class,
@@ -308,6 +309,7 @@ final class CorePlugin implements Plugin
 				new Decision('upgrading.libraries.forbiddenClasses', new Map(new GrammarEntry, grammar: self::createForbiddenClassesGrammar(), caseInsensitive: true), 'A class that may not be used, with what to do instead (`Acme\\Legacy\\Db: "use the repository"`)'),
 				new Decision('upgrading.libraries.forbiddenFunctions', new Map(new GrammarEntry, grammar: self::createForbiddenFunctionsGrammar(), caseInsensitive: true), 'A function that may not be called, with what to do instead'),
 				new Decision('upgrading.libraries.forbiddenMembers', new Map(new GrammarEntry, grammar: self::createForbiddenMembersGrammar()), 'A constant, a method or a property that may not be used, with what to do instead'),
+				new Decision('upgrading.libraries.attributeForAnnotation', new Map(new GrammarEntry, grammar: self::createAttributeForAnnotationGrammar()), 'An attribute written for an annotation (`@ORM\\Entity: ORM\\Entity`)'),
 
 				// the newer constructs, decided once for every rule writing them
 				new Decision('upgrading.functions.arraySearchFunctions', Domain::adopted(), '`array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` or an `array_filter()` that only asks what they answer'),
@@ -432,5 +434,26 @@ final class CorePlugin implements Plugin
 			Expect::string()->nullable(),
 			'The forbidden member, `Class::name` (a constant or a method), `Class::name(...$args)` (a method), `Class::$name` (a property), `Class::$name::get` or `::set` (a read or a write of it), `Class::__construct(...$args)`, or a call with the shape of its arguments, `Class::name()` being one without any → what to do instead, as the end of the message, or null for none',
 		);
+	}
+
+
+	private static function createAttributeForAnnotationGrammar(): Schema
+	{
+		return Expect::arrayOf(MemberMaps::createCodeSchema(), Expect::string()->pattern('@?[\w-]+|\\\\?\w+(?:\\\\\w+)+|\\\\\w+|\\\\?\w+(?:\\\\\w+)*\\\\\*'))
+			->description('The annotation, without the `@`, the class of an attribute, fully qualified, or a namespace of annotations, `Acme\Validation\*` → the attribute written instead, its class fully qualified, with its arguments where it has any, or the namespace of the attributes, `Acme\Validation\*`')
+			->transform(function (array $options, Context $context): array {
+				foreach ($options as $key => $code) {
+					if (str_ends_with((string) $key, '*')) {
+						if ($code !== MemberMaps::Keep && AttributeTarget::findNamespace($code) === null) {
+							$context->addError("The namespace `$key` is written instead as " . Violation::formatCode($code) . ', which is not a namespace ending with `\\*`.', 'dresscode.attributeCode');
+						}
+					} elseif ($code !== MemberMaps::Keep && AttributeTarget::fromCode($code) === null) {
+						$old = str_contains((string) $key, '\\') ? '#[' . ltrim((string) $key, '\\') . ']' : '@' . ltrim((string) $key, '@');
+						$context->addError('The attribute ' . Violation::formatCode($code) . " written instead of `$old` is not a class with its arguments, `Class` or `Class(arguments)`.", 'dresscode.attributeCode');
+					}
+				}
+
+				return $options;
+			});
 	}
 }

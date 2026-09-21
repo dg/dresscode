@@ -1,0 +1,22 @@
+<?php
+// {"libraries": {"attributeForAnnotation": {"Acme\\Validation\\*": "Acme\\Validation\\*"}}}
+// types off
+
+namespace Acme\Validation;
+
+/**
+ * @Annotation
+ * @Target({"PROPERTY", "METHOD"})
+ * @internal
+ */
+final class Length
+{
+	/**
+	 * @param int $max
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+	 * @Size(max=3)
+	 */
+	public function __construct(int $max)
+	{
+	}
+}

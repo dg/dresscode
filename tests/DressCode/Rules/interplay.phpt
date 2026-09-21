@@ -15,7 +15,7 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-/** @param array<class-string<DressCode\Rule>, true|array<string, mixed>> $rules  the values of the decisions of each rule */
+/** @param array<class-string<DressCode\Rule>, true|array<string, mixed>> $rules  the values of the decisions of each rule, or the map of a rule of maps */
 function interplay(
 	array $rules,
 	string $code,
@@ -27,7 +27,7 @@ function interplay(
 	$values = [];
 	foreach ($rules as $class => $value) {
 		$value = $value === true ? [] : $value;
-		$values = [...$values, ...$value];
+		$values = [...$values, ...defined("$class::Map") ? [$class::Map => $value] : $value];
 	}
 
 	$resolved = RuleBuilder::resolveValues(array_keys($rules), $values);
@@ -259,4 +259,14 @@ test('a call the qualification writes qualified gets its arguments positionally 
 		"<?php\nnamespace App;\n\n\$a = \\count(\$list, COUNT_RECURSIVE);\n\$b = \\strlen(\$s);\n",
 		new Analyses\Registry(new NamespacedSymbols(complete: true)),
 	);
+});
+
+
+test('an attribute written instead of an annotation stands where attributePosition wants it', function () {
+	$rules = [
+		Rules\Upgrading\AttributeForAnnotationRule::class => ['persistent' => 'Acme\Persistent'],
+		Rules\Whitespace\AttributePositionRule::class => ['multiline.attributes' => 'ownLines', 'multiline.parameterAttributes' => 'ownLines'],
+	];
+	interplay($rules, "<?php\nclass P\n{\n\t/** @persistent */\n\tpublic \$lang;\n}\n", "<?php\n\nuse Acme\\Persistent;\n\nclass P\n{\n\t#[Persistent]\n\tpublic \$lang;\n}\n");
+	interplay($rules, "<?php\nclass P\n{\n\t/** @persistent */\n\t#[Other]\n\tpublic \$lang;\n}\n", "<?php\n\nuse Acme\\Persistent;\n\nclass P\n{\n\t#[Other]\n\t#[Persistent]\n\tpublic \$lang;\n}\n");
 });
