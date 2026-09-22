@@ -222,6 +222,12 @@ final class UpgradingTester
 			}
 		}
 
+		foreach ($rules['attribute-for-member'] ?? [] as $key => $attribute) {
+			if ($attribute !== MemberMaps::Keep && !self::isClass(ltrim((string) strstr("$attribute(", '(', true), '\\'))) {
+				$problems[] = "attribute-for-member: $key is replaced by the attribute $attribute, which does not exist.";
+			}
+		}
+
 		return $problems;
 	}
 

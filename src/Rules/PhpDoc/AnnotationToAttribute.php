@@ -9,8 +9,9 @@ namespace DressCode\Rules\PhpDoc;
 
 use DressCode\Analyses\PhpDoc;
 use DressCode\RuleContext;
+use DressCode\Rules\CodeWriter;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
-use PhpSyntax\{Node, Parser, Trivia, TriviaKind};
+use PhpSyntax\{Node, Trivia};
 use PhpSyntax\Nodes\{AttributeGroupNode, NodeList};
 
 
@@ -38,35 +39,13 @@ final class AnnotationToAttribute
 		RuleContext $context,
 	): void
 	{
-		// the doc comment is edited while it still stands where the node looks for it, in front of this token
-		$first = $declaration->getFirstToken();
 		if (PhpDoc::isEmpty($tree)) {
 			$declaration->removeDocComment();
 		} else {
 			$declaration->replaceDocComment($phpDoc->print($tree, $docComment));
 		}
 
-		// a trivia stands in one place, so each is made anew
-		$eol = fn() => new Trivia(TriviaKind::EndOfLine, $context->getStyle()->eol);
-		$indentation = fn() => new Trivia(TriviaKind::Whitespace, $first?->getIndentation() ?? '');
-		$hadAttributes = !$attributes->isEmpty();
-		foreach ($codes as $index => $code) {
-			$group = (new Parser)->parseFragment(AttributeGroupNode::class, "#[$code]");
-			$attributes->append($group);
-			if ($first === null) {
-				continue;
-			} elseif ($hadAttributes) {
-				// the attribute before it ends its line, and so does this one, for what stands behind it
-				$group->getFirstToken()?->setLeadingTrivia([$indentation()]);
-				$group->getLastToken()?->setTrailingTrivia([$eol()]);
-			} elseif ($index === 0) {
-				// what stood in front of the declaration, the doc comment among it
-				$group->getFirstToken()?->setLeadingTrivia($first->leadingTrivia);
-				$first->setLeadingTrivia([$eol(), $indentation()]);
-			} else {
-				$group->getFirstToken()?->setLeadingTrivia([$eol(), $indentation()]);
-			}
-		}
+		CodeWriter::addAttributes($declaration, $attributes, $codes, $context);
 	}
 
 

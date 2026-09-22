@@ -1,0 +1,8 @@
+13: Property Acme\Console\Command::$defaultName is replaced by the attribute #[Acme\Console\AsCommand], but the class is abstract, and the library may not read the attribute of a child from it
+19: Property Acme\Console\Command::$defaultName is replaced by the attribute #[Acme\Console\AsCommand], but the class reads it itself
+32: Property Acme\Console\Command::$defaultName is replaced by the attribute #[Acme\Console\AsCommand], but the attribute gives name another value
+38: Property Acme\Console\Command::$defaultName is replaced by the attribute #[Acme\Console\AsCommand], but it is declared together with other properties
+44: Property Acme\Console\Command::$defaultName is replaced by the attribute #[Acme\Console\AsCommand], but it has no value to write
+50: Property Acme\Console\Command::$defaultDescription is replaced by the attribute #[Acme\Console\AsCommand], but the attribute requires $name, which the class gives no value of
+54: Interface Acme\Bus\Handler is replaced by the attribute #[Acme\Bus\AsHandler], but the class inherits it, and the library may not read the attribute of a child from its parent
+64: Method Acme\Orm\Model::getRouteKey() is replaced by the attribute #[Acme\Orm\RouteKey], but its body does more than return a constant expression

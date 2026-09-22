@@ -1,0 +1,68 @@
+<?php
+// {"Acme\\Console\\Command::$defaultName": "Acme\\Console\\AsCommand(name: $value)", "Acme\\Console\\Command::$defaultDescription": "Acme\\Console\\AsCommand(description: $value)", "Acme\\Bus\\Handler": "Acme\\Bus\\AsHandler", "Acme\\Orm\\Model::getRouteKey()": "Acme\\Orm\\RouteKey($value)"}
+
+namespace App;
+
+use Acme\Bus\Subscriber;
+use Acme\Console\AsCommand;
+use Acme\Console\Command;
+use Acme\Orm\Model;
+
+abstract class BaseCommand extends Command
+{
+	protected static ?string $defaultName = 'app:base';
+}
+
+
+class NamedCommand extends Command
+{
+	protected static ?string $defaultName = 'app:named';
+
+
+	public function describe(): string
+	{
+		return self::$defaultName;
+	}
+}
+
+
+#[AsCommand(name: 'app:other')]
+class RenamedCommand extends Command
+{
+	protected static ?string $defaultName = 'app:renamed';
+}
+
+
+class PairCommand extends Command
+{
+	protected static ?string $defaultName = 'app:pair', $alias = 'pair';
+}
+
+
+class UnnamedCommand extends Command
+{
+	protected static ?string $defaultName;
+}
+
+
+class DescribedCommand extends Command
+{
+	protected static string $defaultDescription = 'Named in configure()';
+}
+
+
+class OrderSubscriber implements Subscriber
+{
+}
+
+
+class Product extends Model
+{
+	private string $key = 'sku';
+
+
+	public function getRouteKey(): string
+	{
+		return $this->key;
+	}
+}

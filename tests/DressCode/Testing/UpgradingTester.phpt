@@ -153,3 +153,19 @@ test('a replacement that does not exist at the installed version, even at the en
 			XX),
 	);
 });
+
+
+test('an attribute written instead of a member that does not exist is a problem', function () {
+	Assert::same(
+		['attribute-for-member: Acme\Lib\Form::$caption is replaced by the attribute Acme\Lib\Caption($value), which does not exist.'],
+		check(<<<'XX'
+			package: acme/lib
+			group: deprecations
+
+			since 3.0:
+				attribute-for-member:
+					Acme\Lib\Form::$caption: 'Acme\Lib\Caption($value)'
+					Acme\Lib\IOldest: Acme\Lib\Form
+			XX),
+	);
+});

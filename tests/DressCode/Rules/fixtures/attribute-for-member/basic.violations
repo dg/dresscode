@@ -1,0 +1,8 @@
+16: Property Acme\Console\Command::$defaultName is replaced by the attribute #[Acme\Console\AsCommand]
+18: Property Acme\Console\Command::$defaultDescription is replaced by the attribute #[Acme\Console\AsCommand]
+32: Property Acme\Console\Command::$defaultName is replaced by the attribute #[Acme\Console\AsCommand]
+36: Interface Acme\Bus\Handler is replaced by the attribute #[Acme\Bus\AsHandler]
+45: Interface Acme\Bus\Handler is replaced by the attribute #[Acme\Bus\AsHandler]
+54: Interface Acme\Bus\Handler is replaced by the attribute #[Acme\Bus\AsHandler]
+61: Property Acme\Orm\Model::$timestamps is replaced by the attribute #[Acme\Orm\WithoutTimestamps]
+72: Method Acme\Orm\Model::getRouteKey() is replaced by the attribute #[Acme\Orm\RouteKey]

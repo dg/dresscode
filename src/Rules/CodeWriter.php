@@ -9,13 +9,14 @@ namespace DressCode\Rules;
 
 use DressCode\RuleContext;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{CommentPolicy, Node, SymbolKind, Token};
-use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\{CommentPolicy, Node, Parser, SymbolKind, Token, Trivia, TriviaKind};
+use PhpSyntax\Nodes\{AttributeGroupNode, FileNode, NodeList};
 
 
 /**
  * What a rule writing code into a file needs so that the code takes the shape the file has: a class spelled the way
- * the file reaches it, a node removed with one gap left of the two around it. A rule shipped by a package writes with it too.
+ * the file reaches it, a node removed with one gap left of the two around it, an attribute on a line of its own above
+ * a declaration. A rule shipped by a package writes with it too.
  */
 final class CodeWriter
 {
@@ -65,6 +66,39 @@ final class CodeWriter
 		$node->remove($comments);
 		if ($next !== null && $gap !== null) {
 			$next->setBlankLinesBefore($gap, $eol);
+		}
+	}
+
+
+	/**
+	 * Writes the attributes above the declaration, each in a group on a line of its own, behind the attributes it
+	 * carries already: the first one of a declaration without any takes over what stood in front of it, its doc
+	 * comment among it. The code is that of an attribute without `#[]`, its class spelled already.
+	 * @param  NodeList<AttributeGroupNode>  $attributes  of the declaration
+	 * @param  list<string>  $codes
+	 */
+	public static function addAttributes(Node $declaration, NodeList $attributes, array $codes, RuleContext $context): void
+	{
+		// a trivia stands in one place, so each is made anew
+		$first = $declaration->getFirstToken();
+		$eol = fn() => new Trivia(TriviaKind::EndOfLine, $context->getStyle()->eol);
+		$indentation = fn() => new Trivia(TriviaKind::Whitespace, $first?->getIndentation() ?? '');
+		$hadAttributes = !$attributes->isEmpty();
+		foreach ($codes as $index => $code) {
+			$group = (new Parser)->parseFragment(AttributeGroupNode::class, "#[$code]");
+			$attributes->append($group);
+			if ($first === null) {
+				continue;
+			} elseif ($hadAttributes) {
+				// the attribute before it ends its line, and so does this one, for what stands behind it
+				$group->getFirstToken()?->setLeadingTrivia([$indentation()]);
+				$group->getLastToken()?->setTrailingTrivia([$eol()]);
+			} elseif ($index === 0) {
+				$group->getFirstToken()?->setLeadingTrivia($first->leadingTrivia);
+				$first->setLeadingTrivia([$eol(), $indentation()]);
+			} else {
+				$group->getFirstToken()?->setLeadingTrivia([$eol(), $indentation()]);
+			}
 		}
 	}
 

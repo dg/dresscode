@@ -51,6 +51,7 @@ final class RuleRegistry
 		Rules\Upgrading\ForbiddenClassesRule::class,
 		Rules\Upgrading\ForbiddenFunctionsRule::class,
 		Rules\Upgrading\AttributeForAnnotationRule::class,
+		Rules\Upgrading\AttributeForMemberRule::class,
 		Rules\Expressions\UselessParenthesesAroundNewRule::class,
 		Rules\Expressions\NewArgumentParenthesesRule::class,
 		Rules\Classes\UselessNullPropertyInitializationRule::class,

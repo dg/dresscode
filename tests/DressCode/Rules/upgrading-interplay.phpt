@@ -18,7 +18,7 @@ require __DIR__ . '/../../bootstrap.php';
 
 /**
  * Runs the rules over the code with the types of the declarations beside it, and returns what they say.
- * @param  array<class-string<DressCode\Rule>, array<string, mixed>>  $rules
+ * @param  array<class-string<DressCode\Rule>, array<string, mixed>|true>  $rules
  * @return list<string>  `line: message` each
  */
 function upgrade(array $rules, string $code, string $expected): array
@@ -94,5 +94,17 @@ test('an annotation is read through the import it was written with, whatever ren
 	], upgrade([
 		Upgrading\ReplacedClassesRule::class => ['Old\Annotation\Route' => 'Fresh\Attribute\Route'],
 		Upgrading\AttributeForAnnotationRule::class => ['Old\Annotation\*' => 'Fresh\Attribute\*'],
+	], $code, $expected));
+});
+
+
+test('an interface an attribute is written instead of is no deprecated class to report', function () {
+	$code = "<?php\n\nnamespace App;\n\nuse Old\\Bus\\Handler;\n\nclass Orders implements Handler\n{\n}\n";
+	$expected = "<?php\n\nnamespace App;\n\nuse Fresh\\Bus\\AsHandler;\nuse Old\\Bus\\Handler;\n\n#[AsHandler]\nclass Orders\n{\n}\n";
+	Assert::same([
+		'7: Interface Old\Bus\Handler is replaced by the attribute #[Fresh\Bus\AsHandler]',
+	], upgrade([
+		Upgrading\NoDeprecatedClassesRule::class => true,
+		Upgrading\AttributeForMemberRule::class => ['Old\Bus\Handler' => 'Fresh\Bus\AsHandler'],
 	], $code, $expected));
 });
