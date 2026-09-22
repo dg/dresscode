@@ -472,7 +472,7 @@ final class GlobalCalls
 final readonly class ArgumentBindings
 	public readonly array $arguments
 	public readonly array $rest
-	public function __construct(array $arguments, array $rest = [], array $unseenKeys = [])
+	public function __construct(array $arguments, array $rest = [], array $unseenKeys = [], array $takenApart = [])
 ```
 
 ## `DressCode\Rules\Upgrading\ArgumentPattern`
@@ -498,7 +498,9 @@ final readonly class ArgumentPatternItem
 	public readonly ?string $parameterName
 	public readonly bool $variadic
 	public readonly ?string $type
-	public function __construct(?string $placeholder = null, bool $hasLiteral = false, mixed $literal = null, ?string $parameterName = null, bool $variadic = false, ?string $type = null)
+	public readonly ?array $keys
+	public readonly ?string $otherItems
+	public function __construct(?string $placeholder = null, bool $hasLiteral = false, mixed $literal = null, ?string $parameterName = null, bool $variadic = false, ?string $type = null, ?array $keys = null, ?string $otherItems = null)
 ```
 
 ## `DressCode\Rules\Upgrading\MapEntry`
