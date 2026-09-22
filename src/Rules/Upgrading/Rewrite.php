@@ -101,7 +101,7 @@ final readonly class Rewrite
 	 * @param  \Closure(Node): list<string>  $read
 	 * @return array{list<list<string>>, array<string, list<string>>}
 	 */
-	private static function readArguments(?ArgumentListNode $arguments, \Closure $read): array
+	public static function readArguments(?ArgumentListNode $arguments, \Closure $read): array
 	{
 		$positional = $named = [];
 		foreach ($arguments?->items->getItems() ?? [] as $argument) {

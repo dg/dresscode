@@ -11,7 +11,7 @@ use DressCode\Analyses\{MemberAccess, MemberKind, Types};
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Tristate, Values, Violation};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, DestructuringNode, ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, DestructuringNode, ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode, MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Scalar\StringNode;
@@ -42,19 +42,20 @@ use function count;
  *
  * A property is a key by its hook, `Class::$name::get` for the expression a read becomes, `isPaid()`, and
  * `Class::$name::set` for the one an assignment does, `setPaid($value)`, a static one the call on the class it is
- * reached through, `self::$container` as `self::getContainer()`. And a magic method is a key for the syntax PHP calls
- * it by: `__get($name)` is a read of a property no class declares, `__set($name, $value)` an assignment to one,
- * `__isset()` and `__unset()` what their names say, and `offsetGet($key)`, `offsetSet($key, $value)`, `offsetExists()`
- * and `offsetUnset()` the same for `$object[$key]`, `offsetSet(null, $value)` being `$object[] = $value`. An assignment
- * is rewritten where it is a statement, its value being otherwise used, `isset()` and `unset()` where they hold nothing
- * else, and what writes the property any other way is reported and left as it is; a read on the left of `??` is risky,
- * PHP asking there whether the property is set before it reads it. That a function takes its argument by reference is
- * not seen, so a property passed to one is read as any other. In an interpolation of a string the expression is written
- * only where it is a variable and what is read or called on it, in braces, and reported otherwise. A first-class
- * callable of a key that takes no arguments becomes an arrow function of the expression, `fn() => $token->line`, where
- * what it is made on is a variable or a class, which reads the same when the closure is made as when it is called; any
- * other is reported and left as it is, and so is a callable written as a value, `[$token, 'getLine']`, where the types
- * tell its class.
+ * reached through, `self::$container` as `self::getContainer()`. An attribute is an instantiation of its class, so a
+ * key of the constructor rewrites its arguments where the code written instead creates the same class. And a magic
+ * method is a key for the syntax PHP calls it by: `__get($name)` is a read of a property no class declares,
+ * `__set($name, $value)` an assignment to one, `__isset()` and `__unset()` what their names say, and `offsetGet($key)`,
+ * `offsetSet($key, $value)`, `offsetExists()` and `offsetUnset()` the same for `$object[$key]`,
+ * `offsetSet(null, $value)` being `$object[] = $value`. An assignment is rewritten where it is a statement, its value
+ * being otherwise used, `isset()` and `unset()` where they hold nothing else, and what writes the property any other
+ * way is reported and left as it is; a read on the left of `??` is risky, PHP asking there whether the property is set
+ * before it reads it. That a function takes its argument by reference is not seen, so a property passed to one is read
+ * as any other. In an interpolation of a string the expression is written only where it is a variable and what is read
+ * or called on it, in braces, and reported otherwise. A first-class callable of a key that takes no arguments becomes
+ * an arrow function of the expression, `fn() => $token->line`, where what it is made on is a variable or a class, which
+ * reads the same when the closure is made as when it is called; any other is reported and left as it is, and so is a
+ * callable written as a value, `[$token, 'getLine']`, where the types tell its class.
  *
  * The fix is not risky where every argument is evaluated once, as before. Where the expression written instead
  * evaluates one only sometimes, not at all, or two of them in another order, the use is risky unless evaluating
@@ -106,6 +107,7 @@ final class ReplacedCallsRule extends NodeRule
 			IssetNode::class,
 			UnsetNode::class,
 			MethodNode::class,
+			AttributeNode::class,
 			ArrayNode::class,
 			StringNode::class,
 		];
@@ -120,6 +122,7 @@ final class ReplacedCallsRule extends NodeRule
 			$node instanceof AssignmentNode => $this->enterAssignment($node, $context),
 			$node instanceof IssetNode, $node instanceof UnsetNode => $this->enterIssetOrUnset($node, $context),
 			$node instanceof MethodNode => $this->enterDeclaration($node, $context),
+			$node instanceof AttributeNode => $this->enterAttribute($node, $context),
 			$node instanceof ArrayNode, $node instanceof StringNode => $this->enterCallableValue($node, $context),
 			default => null,
 		};
@@ -421,6 +424,51 @@ final class ReplacedCallsRule extends NodeRule
 			} else {
 				$node->replaceWith((new Builder)->statement('$value;', value: $rewrite->write($node, $context)));
 			}
+		}
+	}
+
+
+	/**
+	 * An attribute is an instantiation of its class, so a key of the constructor takes it, where the code written instead
+	 * creates the same class, whose arguments the attribute then takes over.
+	 */
+	private function enterAttribute(AttributeNode $node, RuleContext $context): void
+	{
+		$entries = $this->map->getEntries('__construct');
+		if ($entries === []) {
+			return;
+		}
+
+		$class = $context->getAnalysis(NameResolver::class)->resolveClass($node->name);
+		$types = $context->getAnalysis(Types::class);
+		$access = new MemberAccess(MemberKind::Constructor, '__construct', [$class], $types->hasMember($class, MemberKind::Constructor, '__construct'));
+		$arguments = $node->arguments ?? (new Builder)->arguments([]);
+		$parameters = $types->findParameters($access);
+		$entry = MemberMaps::findEntry($entries, $access, $types, $arguments, $parameters);
+		if ($entry === null) {
+			return;
+		}
+
+		assert($entry->bindings !== null);
+		$template = $entry->value;
+		$rewrite = $template->instantiate($entry->bindings, $arguments, null);
+		$new = $rewrite->expression;
+		if (
+			$rewrite->expression !== null
+			&& (!$new instanceof NewNode || !$new->class instanceof NameNode || strcasecmp(ltrim($new->class->text, '\\'), $class) !== 0)
+		) {
+			$rewrite = new Rewrite(null, ', but an attribute takes only the arguments of its own class');
+		} elseif (
+			$new instanceof NewNode
+			&& Rewrite::readArguments($new->arguments, fn(Node $node) => $node->getTokenTexts()) === Rewrite::readArguments($node->arguments, fn(Node $node) => $node->getTokenTexts())
+		) {
+			return;
+		}
+
+		if ($rewrite->report($node->name, $entry->pattern->describe(MemberKind::Constructor) . ' is replaced by ' . Violation::formatCode($template->code), $context)) {
+			assert($new instanceof NewNode);
+			$group = (new Builder)->fragment(AttributeGroupNode::class, '#[' . $node->name->text . ($new->arguments->text ?? '') . ']');
+			$node->replaceWith($group->items->getItems()[0]->withoutEdgeTrivia());
 		}
 	}
 
