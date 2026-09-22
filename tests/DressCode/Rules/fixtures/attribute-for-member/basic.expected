@@ -1,0 +1,71 @@
+<?php
+// {"Acme\\Console\\Command::$defaultName": "Acme\\Console\\AsCommand(name: $value)", "Acme\\Console\\Command::$defaultDescription": "Acme\\Console\\AsCommand(description: $value)", "Acme\\Bus\\Handler": "Acme\\Bus\\AsHandler", "Acme\\Orm\\Model::$timestamps = false": "Acme\\Orm\\WithoutTimestamps", "Acme\\Orm\\Model::getRouteKey()": "Acme\\Orm\\RouteKey($value)"}
+
+namespace App;
+
+use Acme\Bus\AsHandler;
+use Acme\Bus\Handler;
+use Acme\Console\AsCommand;
+use Acme\Console\Command;
+use Acme\Orm\Model;
+use Acme\Orm\RouteKey;
+use Acme\Orm\WithoutTimestamps;
+
+/**
+ * Greets.
+ */
+#[AsCommand(name: 'app:hello', description: 'Says hello')]
+final class HelloCommand extends Command
+{
+	public function run(): int
+	{
+		echo LegacyTool::$defaultName;
+		return 0;
+	}
+}
+
+
+#[AsCommand(description: 'Imports the data', name: 'app:import')]
+class ImportCommand extends Command
+{
+}
+
+
+#[AsHandler]
+class OrderHandler implements \Countable
+{
+	public function count(): int
+	{
+		return 0;
+	}
+}
+
+
+#[AsHandler]
+class MailHandler implements \Countable
+{
+	public function count(): int
+	{
+		return 0;
+	}
+}
+
+
+#[AsHandler]
+class InvoiceHandler
+{
+}
+
+
+#[WithoutTimestamps]
+class Log extends Model
+{
+	public $table = 'log';
+}
+
+
+#[RouteKey('slug')]
+class Order extends Model
+{
+	public $timestamps = true;
+}

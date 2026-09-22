@@ -40,3 +40,19 @@ class Route
 	{
 	}
 }
+
+
+namespace Old\Bus;
+
+/** @deprecated write the attribute AsHandler */
+interface Handler
+{
+}
+
+
+namespace Fresh\Bus;
+
+#[\Attribute(\Attribute::TARGET_CLASS)]
+class AsHandler
+{
+}
