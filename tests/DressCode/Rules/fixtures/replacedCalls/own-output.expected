@@ -12,6 +12,18 @@ $a = new Range(min: 1, max: 5);
 $b = new Range(min: 1, max: 5);
 $c = new Range(max: 5, min: 1); // named arguments bind by their names, whatever order they are written in
 
+class Post
+{
+	#[Range(min: 3, max: 10)]
+	public string $title = '';
+
+	#[Range(min: 3, max: 10)]
+	public string $code = '';
+
+	#[Range(max: 10, min: 3)]
+	public string $name = '';
+}
+
 // a class the key writes fully qualified is compared as the code spells it
 function describe(Settings $settings): void
 {
