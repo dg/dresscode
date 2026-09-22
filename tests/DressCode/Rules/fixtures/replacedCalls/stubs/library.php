@@ -202,3 +202,11 @@ class KernelCase
 		return new \stdClass;
 	}
 }
+
+
+class Copier
+{
+	public function mirror(string $from, string $to, ?\Traversable $iterator = null, array $options = []): void
+	{
+	}
+}

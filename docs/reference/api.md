@@ -669,9 +669,9 @@ final class QualifiedNames
 
 ```php
 final readonly class ArgumentBindings
-	public readonly array<string, PhpSyntax\Nodes\ArgumentNode|list<PhpSyntax\Nodes\ArgumentNode>> $arguments
+	public readonly array<string, PhpSyntax\Nodes\ArgumentNode|list<PhpSyntax\Nodes\ArgumentNode>|list<PhpSyntax\Nodes\ArrayItemNode>> $arguments
 	public readonly list<PhpSyntax\Nodes\ArgumentNode> $rest
-	public function __construct(array $arguments, array $rest = [], array $unseenKeys = [])
+	public function __construct(array $arguments, array $rest = [], array $unseenKeys = [], array $takenApart = [])
 ```
 
 ## `DressCode\Rules\Upgrading\ArgumentPattern`
@@ -696,7 +696,9 @@ final readonly class ArgumentPatternItem
 	public readonly ?string $parameterName
 	public readonly bool $rest
 	public readonly ?string $type
-	public function __construct(?string $placeholder = null, ?array $literal = null, ?string $parameterName = null, bool $rest = false, ?string $type = null)
+	public readonly ?array<string, string> $keys
+	public readonly ?string $otherItems
+	public function __construct(?string $placeholder = null, ?array $literal = null, ?string $parameterName = null, bool $rest = false, ?string $type = null, ?array $keys = null, ?string $otherItems = null)
 ```
 
 ## `DressCode\Rules\Upgrading\FunctionPattern`
