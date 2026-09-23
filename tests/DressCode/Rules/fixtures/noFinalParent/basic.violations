@@ -1,0 +1,2 @@
+8: Class `WishList` extends the final `Acme\Shop\Cart`.
+30: Anonymous class extends the final `Acme\Shop\Cart`.

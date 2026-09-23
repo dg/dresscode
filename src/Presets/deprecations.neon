@@ -17,6 +17,10 @@ controlFlow:
 expressions:
 	backticks: forbidden                      # `shell_exec()`, PHP 8.5
 
+# what a library or PHP breaks in a major version, reported
+correctness:
+	finalParent: forbidden                    # a class extending a final one
+
 upgrading:
 	libraries:
 		packages: adopted                     # as the upgrading files of the packages say
