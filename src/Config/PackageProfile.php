@@ -24,6 +24,8 @@ final readonly class PackageProfile
 		public string $package,
 		public Profile $profile,
 		public RuleGroup $group,
+		/** @var list<string>  the versions of the sections left out as not reached yet, ascending */
+		public array $unreached = [],
 	) {
 	}
 }

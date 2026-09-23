@@ -148,12 +148,15 @@ final class PackageProfiles
 
 		$version = $project->findVersion($package);
 		uksort($sections, fn(string $a, string $b) => version_compare($a, $b));
-		$rules = [];
+		$rules = $unreached = [];
 		foreach ($sections as $since => $section) {
-			if ($version === null || version_compare($version, (string) $since, '>=')) {
-				foreach ($section as $rule => $options) {
-					$rules[$rule] = array_replace($rules[$rule] ?? [], $options);
-				}
+			if ($version !== null && version_compare($version, (string) $since, '<')) {
+				$unreached[] = (string) $since;
+				continue;
+			}
+
+			foreach ($section as $rule => $options) {
+				$rules[$rule] = array_replace($rules[$rule] ?? [], $options);
 			}
 		}
 
@@ -163,6 +166,6 @@ final class PackageProfiles
 			throw new ConfigurationException("Upgrading file $label: {$e->getMessage()}", previous: $e);
 		}
 
-		return new PackageProfile($source, $package, $profile, $group);
+		return new PackageProfile($source, $package, $profile, $group, $unreached);
 	}
 }

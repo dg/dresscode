@@ -7,7 +7,7 @@
 
 namespace DressCode\Console;
 
-use DressCode\Config\{ResolvedConfig, ResolvedRule, RuleRegistry};
+use DressCode\Config\{PackageProfile, ResolvedConfig, ResolvedRule, RuleRegistry};
 use Nette\CommandLine\{Ansi, Console};
 use Nette\Utils\Json;
 use function array_slice, count, is_bool, is_string, sprintf, strlen;
@@ -23,6 +23,8 @@ final class ConfigPrinter
 {
 	public function __construct(
 		private readonly ResolvedConfig $config,
+		/** @var list<array{PackageProfile, ?string}>  the upgrading files of the packages, each with the version of its package the code must work with */
+		private readonly array $packages = [],
 	) {
 	}
 
@@ -38,6 +40,15 @@ final class ConfigPrinter
 		foreach ([[$this->config->namespacedFunctions, '()'], [$this->config->namespacedConstants, '']] as [$names, $suffix]) {
 			foreach ($names as $name => $source) {
 				$out .= '      ' . self::pad($name . $suffix, 56) . $console->color('gray', $source) . "\n";
+			}
+		}
+
+		if ($this->packages !== []) {
+			$out .= $console->color('gray', 'Packages   ') . count($this->packages) . ' upgrading ' . (count($this->packages) === 1 ? 'file' : 'files') . "\n";
+			// what the version of the package has not reached yet is what an upgrade still offers
+			foreach ($this->packages as [$profile, $version]) {
+				$out .= '      ' . self::pad($profile->package . ($version === null ? '' : " $version"), 32)
+					. $console->color('gray', $profile->source . ($profile->unreached === [] ? '' : ', upgrading further to ' . implode(', ', $profile->unreached))) . "\n";
 			}
 		}
 
@@ -129,6 +140,12 @@ final class ConfigPrinter
 				'functions' => $this->config->namespacedFunctions ?: new \stdClass,
 				'constants' => $this->config->namespacedConstants ?: new \stdClass,
 			],
+			'packageProfiles' => array_map(fn(array $package) => [
+				'source' => $package[0]->source,
+				'package' => $package[0]->package,
+				'version' => $package[1],
+				'unreached' => $package[0]->unreached,
+			], $this->packages),
 			'rules' => $rules,
 		], pretty: true) . "\n";
 	}
