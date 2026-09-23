@@ -934,6 +934,7 @@ final readonly class Violation
 - `DressCode\Rules\Classes\MultilineImplementsRule`
 - `DressCode\Rules\Classes\NameCasingRule`
 - `DressCode\Rules\Classes\NoConstructorReturnValuesRule`
+- `DressCode\Rules\Classes\NoFinalParentRule`
 - `DressCode\Rules\Classes\NoGroupedDeclarationsRule`
 - `DressCode\Rules\Classes\NoMembersSharingLineRule`
 - `DressCode\Rules\Classes\NoNullDebugInfoRule`
