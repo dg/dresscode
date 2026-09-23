@@ -71,6 +71,7 @@ final readonly class RunnerFactory
 			$resolved->phpVersion,
 			$source,
 			$warnings,
+			array_map(fn(UpgradingData $data) => [$data, $project->findVersion($data->package)], $packages->upgradingData),
 			$plugins,
 			$project,
 			$commandLine,

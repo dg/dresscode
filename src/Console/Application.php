@@ -568,7 +568,7 @@ final class Application
 		$resolved = is_string($file)
 			? $resolution->resolveFor($factory->createRunner($resolution, cache: false, baseline: false)->findOverridesFor($this->resolvePath($file)))
 			: $resolution->resolvedConfig;
-		$printer = new ConfigPrinter($resolved);
+		$printer = new ConfigPrinter($resolved, $resolution->upgradingData);
 		if ($args['--format'] === 'json') {
 			$this->out->write($printer->printJson());
 			return 0;

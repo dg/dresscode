@@ -24,6 +24,8 @@ final readonly class UpgradingData
 		public array $namespaces,
 		/** @var array<string, array<string, mixed>>  map => its entries */
 		public array $maps,
+		/** @var list<string>  the versions of the sections left out as not reached yet, ascending */
+		public array $unreached = [],
 	) {
 	}
 }

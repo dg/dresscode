@@ -12,8 +12,8 @@ use DressCode\{Config, ConfigurationException, PluginManifest, Profile};
 
 /**
  * What a configuration comes to in a project: the resolved configuration of a file no override matches, the version
- * the code targets and what the user should be told, together with what a runner built from it and the configuration
- * of a file matching some overrides are resolved from.
+ * the code targets, what the packages contribute and what the user should be told, together with what a runner
+ * built from it and the configuration of a file matching some overrides are resolved from.
  * @internal
  */
 final readonly class ResolvedProject
@@ -32,6 +32,8 @@ final readonly class ResolvedProject
 		public PhpVersionSource $phpVersionSource,
 		/** @var array<string, ?string>  what the user should be told about the configuration, each thing once => the page of the manual that says more, if any */
 		public array $warnings,
+		/** @var list<array{UpgradingData, ?string}>  the upgrading files of the installed packages, each with the version of its package the code must work with, null where any does */
+		public array $upgradingData,
 		/** @var list<PluginManifest>  the plugins of the packages and of the configuration, a plugin after those it builds on */
 		public array $pluginManifests,
 		public ProjectPackages $projectPackages,

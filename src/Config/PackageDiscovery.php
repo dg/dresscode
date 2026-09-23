@@ -166,9 +166,10 @@ final readonly class PackageDiscovery
 
 		$version = $project->findVersion($package);
 		uksort($sections, fn(string $a, string $b) => version_compare($a, $b));
-		$maps = [];
+		$maps = $unreached = [];
 		foreach ($sections as $since => $section) {
 			if ($version !== null && version_compare($version, (string) $since, '<')) {
+				$unreached[] = (string) $since;
 				continue;
 			}
 
@@ -183,6 +184,6 @@ final readonly class PackageDiscovery
 			throw new ConfigurationException("Upgrading file $label: {$e->getMessage()}", previous: $e);
 		}
 
-		return new UpgradingData($layer, $package, $namespaces, $maps);
+		return new UpgradingData($layer, $package, $namespaces, $maps, $unreached);
 	}
 }

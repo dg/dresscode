@@ -2,6 +2,8 @@
 
 use DressCode\{Config, ConfigurationException};
 use DressCode\Config\{PackageDiscovery, ProjectPackages, RunnerFactory};
+use DressCode\Console\ConfigPrinter;
+use Nette\CommandLine\{ColorDepth, Console};
 use Nette\Utils\FileSystem;
 use Tester\Assert;
 
@@ -79,6 +81,7 @@ test('the upgrading data a package ships applies up to its installed version, th
 	Assert::same(['root.neon of app/project', 'upgrading.neon of acme/lib'], array_map(fn($data) => $data->layer->describe(), $packages->upgradingData));
 
 	// every section of the root package, whose version says nothing
+	Assert::same([], $packages->upgradingData[0]->unreached);
 	Assert::same(['replacedClasses' => ['App\Old' => 'App\Renamed']], $packages->upgradingData[0]->maps);
 
 	// the sections up to 3.2 in the order of their versions, a later one having the last word on a key; 3.5 is not reached
@@ -89,6 +92,7 @@ test('the upgrading data a package ships applies up to its installed version, th
 		],
 		$packages->upgradingData[1]->maps,
 	);
+	Assert::same(['3.5'], $packages->upgradingData[1]->unreached);
 });
 
 
@@ -124,6 +128,7 @@ test('a later section has the last word on an entry, and a value NEON reads as a
 		['replacedMembers' => ['Acme\Lib\Order::OLD' => 'keep', 'Acme\Lib\Order::$paid' => new Nette\Neon\Entity('isPaid')]],
 		$data->maps,
 	);
+	Assert::same(['3.10', '4'], $data->unreached);
 });
 
 
@@ -158,10 +163,12 @@ test('a package the project requires itself is measured by the lowest version it
 	// the code still has to run on 3.1, where the name of 3.3 does not exist yet
 	$packages = PackageDiscovery::discover(ProjectPackages::read($root));
 	Assert::same(['replacedClasses' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']], $packages->upgradingData[0]->maps);
+	Assert::same(['3.3'], $packages->upgradingData[0]->unreached);
 
 	// unless the configuration says the code is written for 3.3 already
 	$packages = PackageDiscovery::discover(ProjectPackages::read($root)->withTargets(['acme/lib' => '3.3']));
 	Assert::same(['replacedClasses' => ['Acme\Lib\Old' => 'Acme\Lib\Later']], $packages->upgradingData[0]->maps);
+	Assert::same([], $packages->upgradingData[0]->unreached);
 
 	$factory = new RunnerFactory;
 	$resolution = $factory->resolve(new Config(targets: ['acme/lib' => '3.3', 'acme/ghost' => '1.0'], decisions: ['upgrading' => ['libraries' => ['packages' => 'adopted']]]), $root);
@@ -306,6 +313,24 @@ test('what a package says lies under the maps of the project where it says upgra
 	// nothing of the project lets the packages in, so the package turns nothing on
 	$rules = array_column($factory->resolve(new Config, $root)->resolvedConfig->rules, null, 'class');
 	Assert::same('no preset or layer of the configuration names its decisions', $rules[DressCode\Rules\Upgrading\ReplacedClassesRule::class]->inactiveMessage);
+});
+
+
+test('dresscode config lists the upgrading files with the sections the version of the package has not reached yet', function () {
+	$root = project(
+		'config',
+		['acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']]],
+		['vendor/acme/lib/upgrading.neon' => "package: acme/lib\n\nsince 3.0:\n\treplacedClasses: {}\n\nsince 3.3:\n\treplacedClasses: {}\n\nsince 4.0:\n\treplacedClasses: {}\n"],
+	);
+
+	$factory = new RunnerFactory;
+	$resolution = $factory->resolve(new Config, $root);
+	$printer = new ConfigPrinter($resolution->resolvedConfig, $resolution->upgradingData);
+	Assert::match('%A%Packages   1 upgrading file%A%      acme/lib 3.2 %a%upgrading.neon of acme/lib, upgrading further to 3.3, 4.0%A%', $printer->print(new Console(colorDepth: ColorDepth::None)));
+	Assert::same(
+		[['source' => 'upgrading.neon of acme/lib', 'package' => 'acme/lib', 'version' => '3.2', 'unreached' => ['3.3', '4.0']]],
+		json_decode($printer->printJson(), associative: true)['upgradingData'],
+	);
 });
 
 
