@@ -13,7 +13,7 @@ use PhpParser\Node\Expr;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCallableNode};
 use PHPStan\Reflection\{ClassConstantReflection, ClassMemberReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
-use PHPStan\Reflection\Php\PhpPropertyReflection;
+use PHPStan\Reflection\Php\{PhpMethodReflection, PhpPropertyReflection};
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\Constant\{ConstantIntegerType, ConstantStringType};
 use PHPStan\Type\{MixedType, Type, TypeCombinator, VerbosityLevel};
@@ -762,6 +762,32 @@ final class Types implements PassAnalysis
 	public function isFinalClass(string $class): Tristate
 	{
 		return self::toTristate($this->phpstan->findClass($class)?->isFinalByKeyword());
+	}
+
+
+	/**
+	 * The abstract methods a class or an enum that is not abstract itself inherits from its parents, interfaces and
+	 * traits and implements nowhere, each as the member of the ancestor or the trait declaring it; none for an abstract class, an
+	 * interface, a trait and a class nothing declares.
+	 * @return list<Member>
+	 */
+	public function findUnimplementedMethods(string $class): array
+	{
+		$reflection = $this->phpstan->findClass($class);
+		if ($reflection === null || $reflection->isAbstract() || $reflection->isInterface() || $reflection->isTrait()) {
+			return [];
+		}
+
+		$methods = [];
+		foreach ($reflection->getNativeReflection()->getMethods() as $method) {
+			if ($method->isAbstract()) {
+				$native = $reflection->getNativeMethod($method->getName());
+				$declaring = ($native instanceof PhpMethodReflection ? $native->getDeclaringTrait() : null) ?? $native->getDeclaringClass();
+				$methods[] = new Member($method->isStatic() ? MemberKind::StaticMethod : MemberKind::Method, $method->getName(), $declaring->getName());
+			}
+		}
+
+		return $methods;
 	}
 
 

@@ -1,0 +1,6 @@
+11: Class `RoutePath` does not implement the abstract `Acme\Paths\Path::isNullSafe()`
+20: Class `TrailWalker` does not implement the abstract `Acme\Paths\Walker::step()`
+20: Class `TrailWalker` does not implement the abstract `Acme\Paths\Path::isNullSafe()`
+40: Enum `Direction` does not implement the abstract `Acme\Paths\Path::isNullSafe()`
+72: Class `LabelledPath` does not implement the abstract `Acme\Paths\Labelled::label()`
+90: Class `TitledPath` does not implement the abstract `Acme\Paths\Labelled::label()`

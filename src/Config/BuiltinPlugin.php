@@ -70,6 +70,8 @@ final class BuiltinPlugin implements Plugin
 				Rules\Classes\StaticForMethodWithoutThisRule::class,
 				Rules\Classes\NoNullDebugInfoRule::class,
 				Rules\Classes\NoSleepAndWakeupRule::class,
+				Rules\Classes\NoFinalParentsRule::class,
+				Rules\Classes\NoUnimplementedAbstractMethodsRule::class,
 				Rules\Classes\OverrideAttributeRequiredRule::class,
 				Rules\Classes\OverrideSignatureRule::class,
 				Rules\Classes\SingleMemberPerDeclarationRule::class,

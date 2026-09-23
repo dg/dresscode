@@ -139,6 +139,7 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function isAttributeClass(string $class): DressCode\Tristate
 	public function isInterface(string $class): DressCode\Tristate
 	public function isFinalClass(string $class): DressCode\Tristate
+	public function findUnimplementedMethods(string $class): array
 	public function hasMember(string $class, DressCode\Analyses\MemberKind $kind, string $name): bool
 	public function isPlainProperty(PhpSyntax\Nodes\ExpressionNode $access): DressCode\Tristate
 	public function isStaticMethod(string $class, string $method): DressCode\Tristate
@@ -661,9 +662,11 @@ final readonly class Violation
 - `DressCode\Rules\Classes\GetClassNotationRule`
 - `DressCode\Rules\Classes\KindInClassNameRule`
 - `DressCode\Rules\Classes\NameCasingRule`
+- `DressCode\Rules\Classes\NoFinalParentsRule`
 - `DressCode\Rules\Classes\NoNullDebugInfoRule`
 - `DressCode\Rules\Classes\NoSleepAndWakeupRule`
 - `DressCode\Rules\Classes\NoStaticThisRule`
+- `DressCode\Rules\Classes\NoUnimplementedAbstractMethodsRule`
 - `DressCode\Rules\Classes\OrderedMembersRule`
 - `DressCode\Rules\Classes\OverrideAttributeRequiredRule`
 - `DressCode\Rules\Classes\OverrideSignatureRule`
