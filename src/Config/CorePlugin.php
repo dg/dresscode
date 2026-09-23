@@ -64,6 +64,7 @@ final class CorePlugin implements Plugin
 				Rules\Classes\NoNullDebugInfoRule::class,
 				Rules\Classes\NoSleepAndWakeupRule::class,
 				Rules\Classes\NoThisOutsideObjectRule::class,
+				Rules\Classes\NoUnimplementedAbstractMethodsRule::class,
 				Rules\Classes\MemberOrderRule::class,
 				Rules\Classes\OverrideAttributeRequiredRule::class,
 				Rules\Classes\OverridingSignatureRule::class,

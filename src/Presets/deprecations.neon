@@ -20,6 +20,7 @@ expressions:
 # what a library or PHP breaks in a major version, reported
 correctness:
 	finalParent: forbidden                    # a class extending a final one
+	unimplementedAbstractMethods: forbidden
 
 upgrading:
 	libraries:
