@@ -57,7 +57,7 @@ final readonly class RunnerFactory
 		$resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
 		$missing = array_map(
 			fn(string $package) => "The configuration names package `$package` in `targets`, but it is not installed; skipped.",
-			array_keys(array_diff_key($packageTargets, $project->installed)),
+			array_filter(array_keys($packageTargets), fn(string $package) => !$project->has($package) || $package === $project->rootName),
 		);
 		$warnings = array_fill_keys([...$packages->warnings, ...$unnamed, ...$missing, ...$resolver->getWarnings()], null);
 		if (!$typesAvailable) {
