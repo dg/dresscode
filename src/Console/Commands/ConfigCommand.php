@@ -75,7 +75,7 @@ final readonly class ConfigCommand
 				$factory->createRunner($resolution, cache: false, baseline: false)->findOverridesFor($this->context->resolvePath($file)),
 			)
 			: $resolution->resolvedConfig;
-		$printer = new ConfigPrinter($resolved);
+		$printer = new ConfigPrinter($resolved, $resolution->upgradingData);
 		$out = $this->context->out;
 		if ($format === 'json') {
 			$out->write($printer->printJson());
