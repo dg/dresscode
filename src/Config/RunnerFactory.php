@@ -128,7 +128,7 @@ final class RunnerFactory
 
 		$missing = array_map(
 			fn(string $package) => "The configuration names package `$package` in `targets`, but it is not installed; skipped.",
-			array_keys(array_diff_key($packageTargets, $project->installed)),
+			array_filter(array_keys($packageTargets), fn(string $package) => !$project->has($package) || $package === $project->rootName),
 		);
 		$this->warnings = [...$packages->warnings, ...$missing, ...$resolver->getWarnings()];
 		$this->phpVersion = [$resolved->phpVersion, $source];
