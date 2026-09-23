@@ -171,6 +171,22 @@ test('an attribute written instead of a member that does not exist is a problem'
 });
 
 
+test('a function replaced by a static method that does not exist is a problem', function () {
+	Assert::same(
+		['`replaced-functions`: `acme_old` is replaced by `Acme\Lib\Helpers::missing`, which does not exist.'],
+		check(<<<'XX'
+			package: acme/lib
+			group: deprecations
+
+			since 3.0:
+				replaced-functions:
+					acme_make: Acme\Lib\Helpers::create
+					acme_old: Acme\Lib\Helpers::missing
+			XX),
+	);
+});
+
+
 test('a sample reads its classes from its own code, not from those other samples left in the temp directory', function () {
 	$root = createTempDir('upgrading-sample');
 	FileSystem::write("$root/composer.json", '{"name": "acme/rules", "require-dev": {"acme/lib": "^3.0"}, "extra": {"dresscode": {"upgrading": ["upgrading/lib.neon"]}}}');
