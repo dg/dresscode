@@ -8,7 +8,7 @@
 namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, Helpers, Preset, PresetInfo, Profile, Reporter, Reporters, RuleException, RuleInfo, RunResult};
-use DressCode\Config\{Loader, PhpVersionSource, RunnerFactory};
+use DressCode\Config\{Loader, PhpVersionSource, Proposal, RuleRegistry, RunnerFactory};
 use DressCode\Engine\{Baseline, WorkerClient, WorkerPool};
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Utils\FileSystem;
@@ -100,6 +100,7 @@ final class Application
 				'config' => $this->runConfig($args),
 				'explain' => $this->runExplain($args),
 				'rules' => $this->runRules($args),
+				'init' => $this->runInit($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
 
@@ -142,7 +143,7 @@ final class Application
 			alias: '-c',
 			valueName: 'file',
 		);
-		$program->addOption('--preset', 'add a preset, which also runs without a configuration file', valueName: 'name', repeatable: true);
+		$program->addOption('--preset', 'add a preset, which also runs without a configuration file; for `init` the standard to write, `per` by default', valueName: 'name', repeatable: true);
 		$program->addOption('--group', 'add a group of rules, such as `cleanup` or `modernization`, which also runs without a configuration file', valueName: 'name', repeatable: true);
 		$program->addOption('--rule', 'enable or disable a rule: `name=on` or `name=off`', valueName: 'spec', repeatable: true);
 		$program->addFlag('--no-color', 'plain output');
@@ -154,6 +155,7 @@ final class Application
 		$config = $program->addCommand('config', 'print the configuration as the run resolves it');
 		$explain = $program->addCommand('explain', 'explain what a rule is for, its options here and its examples; every rule that runs when none is named');
 		$rules = $program->addCommand('rules', 'list the known rules');
+		$program->addCommand('init', 'take the measurements of the project\'s code and write `dresscode.neon` to fit');
 		$program->addText('Exit codes: `0` clean, `1` violations or syntax errors, `2` failure.');
 
 		foreach ([$check, $fix] as $command) {
@@ -638,6 +640,91 @@ final class Application
 		}
 
 		$this->out->writeLine("\n* enabled by the configuration");
+		return 0;
+	}
+
+
+	/**
+	 * Measures how the project writes what can be measured and writes dresscode.neon with it; a configuration
+	 * that exists is never overwritten, the proposal is printed instead and the exit code says so.
+	 */
+	private function runInit(ParseResult $args): int
+	{
+		$root = Helpers::canonicalizePath($this->cwd ?? (string) getcwd());
+		$presets = $args['--preset'] ?: null;
+		array_map((new RuleRegistry)->resolvePreset(...), $presets ?? []); // a misspelled one before the measuring, not after it
+		$proposal = Proposal::measure($root, $presets);
+		$neon = $proposal->toNeon();
+
+		// what the file says must be what was measured, before it is anywhere a run could read it
+		$temp = sys_get_temp_dir() . '/dresscode-init-' . uniqid() . '.neon';
+		FileSystem::write($temp, $neon);
+		try {
+			$factory = new RunnerFactory;
+			$factory->createRunner(Loader::loadFile($temp), $root, cache: false);
+			$proposal->checkResolution($factory->getResolvedConfig());
+		} finally {
+			@unlink($temp); // @ - may be gone
+		}
+
+		$existing = array_filter(
+			array_merge(...array_map(fn(string $name) => [$name, $name . Loader::DistSuffix], Loader::FileNames)),
+			fn(string $name) => is_file("$root/$name"),
+		);
+		$console = $existing ? $this->err : $this->out;
+		$report = fn(string $text) => $console->write(Markup::highlightCode($console, $text));
+		$report($this->formatName($console) . "\n");
+		$left = array_filter([
+			$proposal->sample->oversized ? $proposal->sample->oversized . ' too large' : null,
+			$proposal->sample->generated ? $proposal->sample->generated . ' generated' : null,
+		]);
+		$report($console->color('gray', 'Sample     ') . sprintf(
+			"%d of %d files in %s%s\n",
+			$proposal->countSampled(),
+			$proposal->total,
+			implode(', ', $proposal->paths),
+			$left ? ', ' . implode(' and ', $left) . ' left out' : '',
+		));
+		$report($console->color('gray', 'Standard   ') . implode(', ', $proposal->presets) . ($proposal->given
+			? ", as given\n"
+			: ", not chosen by measure; the dry runs below count what each would change, not which is nearest, and `--preset` writes another\n"));
+		$report($console->color('gray', 'Indent     ') . $proposal->indent->describe() . "\n");
+		$report($console->color('gray', 'Quotes     ') . $proposal->quotes->describe() . "\n");
+		$report($console->color('gray', 'Conditions ') . $proposal->conditions->describe() . "\n");
+		$report($console->color('gray', 'Namespaces ') . $proposal->describeNamespaces() . "\n");
+
+		if ($proposal->given) {
+			[$changed, $failed] = $proposal->countChanged();
+			$report($console->color('gray', 'Dry run    ') . sprintf(
+				"%d of %d sampled files would change%s\n",
+				$changed,
+				$proposal->countSampled(),
+				$failed ? ", $failed failing" : '',
+			));
+		} else {
+			$first = true;
+			foreach ($proposal->countChangedByStandard() as $standard => [$changed, $failed]) {
+				$report($console->color('gray', $first ? 'Dry run    ' : '           ') . sprintf(
+					"%-8s %4d of %d%s%s%s\n",
+					$standard,
+					$changed,
+					$proposal->countSampled(),
+					$first ? ' sampled files would change' : '',
+					in_array($standard, $proposal->presets, true) ? ', the one written' : '',
+					$failed ? ", $failed failing" : '',
+				));
+				$first = false;
+			}
+		}
+
+		if ($existing) {
+			$this->writeNote('`' . implode('` and `', $existing) . '`' . (count($existing) > 1 ? ' exist' : ' exists') . ", so the proposal is printed and nothing is written.\n");
+			$this->out->write($neon);
+			return 2;
+		}
+
+		FileSystem::write("$root/dresscode.neon", $neon);
+		$this->write("\n`dresscode.neon` written, made to measure.\n");
 		return 0;
 	}
 

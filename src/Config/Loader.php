@@ -25,7 +25,7 @@ final class Loader
 
 	/**
 	 * @param  ?string  $file  the configuration file, or null to search from the directory upwards
-	 * @param  ?Config  $default  what applies when there is no configuration file; without one it is an error
+	 * @param  ?Config  $default  what applies when there is no configuration file
 	 * @return array{Config, string, ?string}  the configuration, the root directory with slashes, and the file it came from
 	 * @throws ConfigurationException
 	 */
@@ -33,7 +33,10 @@ final class Loader
 	{
 		$file ??= self::find($directory);
 		if ($file === null) {
-			$config = $default ?? throw new ConfigurationException("No configuration file found in $directory or above it.");
+			$config = $default ?? throw new ConfigurationException(
+				"No `dresscode.neon` or `dresscode.php` found in `$directory` or above it, so there is no dress code to check against. Run `dresscode init` to have one made to measure from the code, or name a preset with `--preset`.",
+				docs: 'cli#init',
+			);
 			$root = $directory;
 		} else {
 			$config = self::loadFile($file);

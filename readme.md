@@ -44,8 +44,8 @@ Installation and first run
 ==========================
 
 **1️⃣ Install it: `composer global require dresscode/dresscode`**<br>
-**2️⃣ Check your code: `dresscode check src --preset per`**<br>
-**3️⃣ Let it fix what it found: `dresscode fix src --preset per`**
+**2️⃣ Have a configuration made to measure: `dresscode init`**<br>
+**3️⃣ Check your code and fix it: `dresscode check`, `dresscode fix`**
 
 DressCode is a tool, not a library, so it does not have to be installed in the project it checks, and a
 global installation is the simplest way; just make sure the directory of global Composer binaries is in your
@@ -63,7 +63,7 @@ A check looks like this:
 
 ```
 DRESS|CODE 1.0.0
-Config     none, preset per
+Config     /var/www/shop/dresscode.neon
 Target     PHP 8.2 from `composer.json`
 Checking   214 files in /var/www/shop
 
@@ -82,9 +82,10 @@ A clean run ends with `OK  214 files, all up to the dress code`, and the exit co
 1 violations or syntax errors found, 2 a failure of the run.
 
 DressCode has no style of its own, so without a configuration it does not start: a silent default would
-rewrite nearly every line of a project written another way. To just try the tool, name a standard with
-`--preset`, as above. Your own choice goes into `dresscode.neon` in the root of the project (or into
-`dresscode.php` with the same keys):
+rewrite nearly every line of a project written another way. `dresscode init` measures your code (the
+indentation, the quotes, the shape of conditions) and writes `dresscode.neon` into the root of the project;
+to just try the tool, name a standard instead with `dresscode check src --preset per`. The configuration
+can also be written by hand, in NEON or as `dresscode.php` with the same keys:
 
 ```neon
 paths:
