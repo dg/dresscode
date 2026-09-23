@@ -1,0 +1,141 @@
+<?php
+
+namespace App;
+
+use Acme\Paths\Labelled;
+use Acme\Paths\Measured;
+use Acme\Paths\Path;
+use Acme\Paths\Titled;
+use Acme\Paths\Walker;
+
+class RoutePath implements Path
+{
+	public function length(): int
+	{
+		return 1;
+	}
+}
+
+
+class TrailWalker extends Walker implements Path
+{
+	public function length(): int
+	{
+		return 2;
+	}
+}
+
+
+class MeasuredPath implements Path
+{
+	use Measured;
+}
+
+
+abstract class PartialPath implements Path
+{
+}
+
+
+enum Direction implements Path
+{
+	case North;
+
+
+	public function length(): int
+	{
+		return 0;
+	}
+}
+
+
+class CompletePath extends Walker implements Path
+{
+	public function length(): int
+	{
+		return 3;
+	}
+
+
+	public function isNullSafe(): bool
+	{
+		return true;
+	}
+
+
+	protected function step(): void
+	{
+	}
+}
+
+
+class LabelledPath implements Path
+{
+	use Labelled;
+
+
+	public function length(): int
+	{
+		return 4;
+	}
+
+
+	public function isNullSafe(): bool
+	{
+		return true;
+	}
+}
+
+
+class TitledPath implements Path
+{
+	use Titled;
+
+
+	public function length(): int
+	{
+		return 5;
+	}
+
+
+	public function isNullSafe(): bool
+	{
+		return true;
+	}
+}
+
+
+class FullPath implements Path
+{
+	use Labelled;
+
+
+	public function length(): int
+	{
+		return 6;
+	}
+
+
+	public function isNullSafe(): bool
+	{
+		return true;
+	}
+
+
+	public function label(): string
+	{
+		return '';
+	}
+}
+
+
+$walker = new class extends Walker implements Path {
+	public function length(): int
+	{
+		return 7;
+	}
+};
+
+$measured = new class implements Path {
+	use Measured;
+};

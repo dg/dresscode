@@ -10,7 +10,7 @@ namespace DressCode\Analyses;
 use DressCode\Rules\QualifiedNames;
 use DressCode\Tristate;
 use PHPStan\Reflection\{ClassConstantReflection, ClassMemberReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection};
-use PHPStan\Reflection\Php\PhpPropertyReflection;
+use PHPStan\Reflection\Php\{PhpMethodReflection, PhpPropertyReflection};
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\{MixedType, Type, VerbosityLevel};
 use function count, is_bool;
@@ -243,6 +243,31 @@ final class Declarations
 	public function isFinalClass(string $class): Tristate
 	{
 		return self::toTristate($this->phpstan->findClass($class)?->isFinalByKeyword());
+	}
+
+
+	/** @return list<Member> */
+	public function findUnimplementedMethods(string $class): array
+	{
+		$reflection = $this->phpstan->findClass($class);
+		if ($reflection === null || $reflection->isAbstract() || $reflection->isInterface() || $reflection->isTrait()) {
+			return [];
+		}
+
+		$methods = [];
+		foreach ($reflection->getNativeReflection()->getMethods() as $method) {
+			if ($method->isAbstract()) {
+				$native = $reflection->getNativeMethod($method->getName());
+				$declaring = ($native instanceof PhpMethodReflection ? $native->getDeclaringTrait() : null) ?? $native->getDeclaringClass();
+				$methods[] = new Member(
+					$method->isStatic() ? MemberKind::StaticMethod : MemberKind::Method,
+					$method->getName(),
+					$declaring->getName(),
+				);
+			}
+		}
+
+		return $methods;
 	}
 
 

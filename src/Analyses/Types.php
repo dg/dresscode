@@ -791,6 +791,18 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * The abstract methods a class or an enum that is not abstract itself inherits from its parents, interfaces and
+	 * traits and implements nowhere, each as the member of the ancestor or the trait declaring it; none for an
+	 * abstract class, an interface, a trait and a class nothing declares.
+	 * @return list<Member>
+	 */
+	public function findUnimplementedMethods(string $class): array
+	{
+		return $this->declarations->findUnimplementedMethods($class);
+	}
+
+
+	/**
 	 * Whether the class has the member of that kind, itself or through an ancestor; a magic one it does not have, and
 	 * a class nothing declares has none: what the maps of members ask is whether the code still reaches a declaration,
 	 * a member a library removed together with its class being as undeclared as one removed from the class alone.
