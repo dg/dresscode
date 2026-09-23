@@ -21,6 +21,7 @@ expressions:
 correctness:
 	finalParent: forbidden                    # a class extending a final one
 	unimplementedAbstractMethods: forbidden
+	__serialize: required                     # beside `Serializable`, PHP 8.1
 
 upgrading:
 	libraries:

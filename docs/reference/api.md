@@ -902,6 +902,7 @@ final readonly class Violation
 - `DressCode\Rules\Classes\ReadonlyForAnnotationRule`
 - `DressCode\Rules\Classes\ReadonlyForUnwrittenPropertyRule`
 - `DressCode\Rules\Classes\SelfForCurrentClassRule`
+- `DressCode\Rules\Classes\SerializeMethodsRequiredRule`
 - `DressCode\Rules\Classes\StaticForMethodWithoutThisRule`
 - `DressCode\Rules\Classes\StaticSetStateRequiredRule`
 - `DressCode\Rules\Classes\StringableRequiredRule`
