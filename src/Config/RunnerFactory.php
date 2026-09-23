@@ -59,7 +59,7 @@ final readonly class RunnerFactory
 			fn(string $package) => $package === $project->rootName
 				? "The configuration names package `$package` in `targets`, but that is the project itself, whose code is any version of it; skipped."
 				: "The configuration names package `$package` in `targets`, but it is not installed; skipped.",
-			array_keys(array_diff_key($packageTargets, $project->installed)),
+			array_filter(array_keys($packageTargets), fn(string $package) => !$project->has($package) || $package === $project->rootName),
 		);
 		$warnings = array_fill_keys([...$packages->warnings, ...$unnamed, ...$missing, ...$resolver->getWarnings()], null);
 		if (!$typesAvailable) {
