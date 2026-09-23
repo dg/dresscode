@@ -1,0 +1,3 @@
+6: A class implementing the deprecated `Serializable` must implement `__serialize()` and `__unserialize()`.
+18: A class implementing the deprecated `Serializable` must implement `__serialize()` and `__unserialize()`.
+53: A class implementing the deprecated `Serializable` must implement `__serialize()` and `__unserialize()`.

@@ -1,0 +1,62 @@
+<?php
+namespace App;
+
+use Serializable;
+
+class Legacy implements Serializable
+{
+	public function serialize()
+	{
+	}
+
+
+	public function unserialize($data)
+	{
+	}
+}
+
+final class Half implements \Countable, \Serializable
+{
+	public function __serialize(): array
+	{
+		return [];
+	}
+}
+
+// left alone
+
+class Both implements Serializable
+{
+	public function __serialize(): array
+	{
+		return [];
+	}
+
+
+	public function __unserialize(array $data): void
+	{
+	}
+}
+
+abstract class Base implements Serializable
+{
+}
+
+class Child extends Both implements Serializable
+{
+}
+
+class Other implements Acme\Serializable
+{
+}
+
+$anonymous = new class implements Serializable {
+	public function serialize()
+	{
+	}
+
+
+	public function unserialize($data)
+	{
+	}
+};
