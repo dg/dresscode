@@ -10,6 +10,7 @@ namespace DressCode\Console;
 use DressCode\{Config, ConfigurationException, ConvergenceException, Helpers, Preset, PresetInfo, Profile, Reporter, Reporters, RuleException, RuleInfo, RunResult};
 use DressCode\Config\{Loader, PhpVersionSource, Proposal, RuleRegistry, RunnerFactory};
 use DressCode\Engine\{Baseline, WorkerClient, WorkerPool};
+use DressCode\Interop\{PhpCodeSniffer, PhpCsFixer, Translator};
 use Nette\CommandLine\{Ansi, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, Result};
 use Nette\Utils\FileSystem;
 use function array_slice, count, extension_loaded, in_array, is_string, sprintf;
@@ -100,6 +101,7 @@ final class Application
 				'explain' => $this->runExplain($args),
 				'rules' => $this->runRules($args),
 				'init' => $this->runInit($args),
+				'import' => $this->runImport($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
 
@@ -147,6 +149,7 @@ final class Application
 		$explain = $program->addCommand('explain', 'explain what a rule is for, its options here and its examples; every rule that runs when none is named');
 		$rules = $program->addCommand('rules', 'list the known rules');
 		$program->addCommand('init', 'write dresscode.neon from how the code of the project is written');
+		$import = $program->addCommand('import', 'translate a php-cs-fixer or phpcs configuration');
 		$program->addText('Exit codes: 0 clean, 1 violations or syntax errors, 2 failure.');
 
 		foreach ([$check, $fix] as $command) {
@@ -154,6 +157,7 @@ final class Application
 		}
 
 		$explain->addArgument('rule', 'name of the rule; every rule that runs when omitted', optional: true);
+		$import->addArgument('file', 'php-cs-fixer or phpcs configuration file');
 
 		foreach ([$check, $fix] as $command) {
 			$command->addOption(
@@ -583,11 +587,13 @@ final class Application
 		ksort($rules, SORT_STRING);
 		foreach ($rules as $name => $class) {
 			$info = RuleInfo::of($class);
+			$covers = $registry->getTranslator()->findForeignNames($name);
 			$this->out->writeLine(
 				(isset($enabled[$name]) ? '*' : ' ')
 				. ' ' . Ansi::pad($this->out->color(isset($enabled[$name]) ? 'white' : null, $name), 45)
 				. ' ' . Ansi::pad($info->stage->name, 10)
-				. ' ' . $info->description,
+				. ' ' . $info->description
+				. ($covers ? $this->out->color('gray', '  (covers ' . implode(', ', $covers) . ')') : ''),
 			);
 		}
 
@@ -677,6 +683,39 @@ final class Application
 
 		FileSystem::write("$root/dresscode.neon", $neon);
 		$this->write("\ndresscode.neon written.\n");
+		return 0;
+	}
+
+
+	private function runImport(Result $args): int
+	{
+		$file = $args['file'];
+		[$rules, $unread] = preg_match('~\.xml(\.dist)?$~Di', $file)
+			? PhpCodeSniffer::readConfig($file)
+			: [PhpCsFixer::readConfig($file), []];
+		$translation = (new Translator)->translate($rules);
+		foreach ($unread as $warning) {
+			$translation->warn($warning);
+		}
+
+		$this->write($translation->toConfig());
+		$disabled = count(array_filter($translation->rules, fn($options) => $options === false));
+		$count = fn(int $n, string $noun) => $n . ' ' . $noun . ($n === 1 ? '' : 's');
+		$this->writeError(sprintf(
+			"\nRead %s; enabled %s and %s%s.\n",
+			$count(count($rules), 'rule'),
+			$count(count($translation->rules) - $disabled, 'rule'),
+			$count(count($translation->presets), 'preset'),
+			$disabled ? ', turned off ' . $count($disabled, 'rule') : '',
+		));
+		foreach ($translation->warnings as $warning) {
+			$this->writeError("  $warning\n");
+		}
+
+		if (!$translation->presets) {
+			$this->writeError("  The indentation and the line ending are not translated; set them with the keys 'indent' and 'eol'.\n");
+		}
+
 		return 0;
 	}
 

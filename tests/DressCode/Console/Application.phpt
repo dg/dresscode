@@ -208,6 +208,55 @@ test('rules', function () use ($root) {
 });
 
 
+test('import translates a foreign configuration and says what it could not', function () use ($root) {
+	file_put_contents("$root/phpcs.xml", <<<'XX'
+		<?xml version="1.0"?>
+		<ruleset name="Demo">
+			<rule ref="PSR12"/>
+			<rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/>
+			<rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInCall"/>
+			<rule ref="Squiz.WhiteSpace.FunctionSpacing">
+				<properties>
+					<property name="spacing" value="1"/>
+					<property name="spacingBeforeFirst" value="0"/>
+					<property name="spacingAfterLast" value="0"/>
+				</properties>
+			</rule>
+			<rule ref="Squiz.Nonsense.DoesNotExist"/>
+		</ruleset>
+		XX);
+	[$code, $out, $err] = runApp($root, ['import', "$root/phpcs.xml"]);
+	Assert::same(0, $code);
+	Assert::same(
+		"<?php declare(strict_types=1);\n\n"
+		. "use DressCode\\Config;\n\n"
+		. "return new Config(\n"
+		. "\tpresets: ['dresscode/psr12'],\n"
+		. "\trules: [\n"
+		. "\t\t'dresscode/blank-lines' => ['betweenDeclarations' => 1, 'betweenMethods' => 1, 'beforeFirstMethod' => 0, 'afterLastMethod' => 0],\n"
+		. "\t\t'dresscode/trailing-comma' => ['multiLine' => ['arrays', 'arguments'], 'singleLine' => false],\n"
+		. "\t],\n"
+		. ");\n",
+		$out,
+	);
+	Assert::same(
+		"\nRead 5 rules; enabled 2 rules and 1 preset.\n"
+		. "  FunctionSpacing leaves the blank lines around classes alone, which DressCode counts with the spacing of functions.\n"
+		. "  No DressCode rule covers Squiz.Nonsense.DoesNotExist.\n",
+		$err,
+	);
+
+	file_put_contents("$root/fixer.php", "<?php\nreturn new class {\n\tpublic function getRules(): array\n\t{\n\t\treturn ['cast_spaces' => ['space' => 'none']];\n\t}\n};\n");
+	[$code, $out] = runApp($root, ['import', "$root/fixer.php"]);
+	Assert::same(0, $code);
+	Assert::contains("'dresscode/cast-spacing' => ['spacing' => 'none'],", $out);
+
+	[$code, , $err] = runApp($root, ['import']);
+	Assert::same(2, $code);
+	Assert::match('Error: Missing required argument <file>.%A%', $err);
+});
+
+
 test('errors go to stderr with exit code 2', function () use ($root) {
 	[$code, $out, $err] = runApp($root, ['check', '--nope']);
 	Assert::same(2, $code);
