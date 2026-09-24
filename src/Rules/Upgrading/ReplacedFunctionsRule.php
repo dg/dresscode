@@ -11,7 +11,7 @@ use DressCode\Analyses\{Parameter, PhpSignatures, PhpSymbols};
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\{CodeWriter, GlobalCalls, QualifiedNames};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, SymbolKind, Token};
+use PhpSyntax\{Builder, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{ArgumentNode, NameNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
 use function count, is_int, strlen;
@@ -35,7 +35,8 @@ use function count, is_int, strlen;
  * inside that namespace. The replacement is written the way the scope writes a global function, by its short name
  * inside its own namespace or imported where the call reached the replaced one unqualified, by the qualified name the
  * call wrote where both share a namespace, or fully qualified elsewhere, the rules of the notation of names then
- * writing it as the project spells such a name.
+ * writing it as the project spells such a name. A replacement written `Acme\Text::slug` is a static method, called
+ * with the arguments of the call and its class spelled the way the code reaches it.
  */
 #[RuleInfo(
 	Stage::Structure,
@@ -99,6 +100,13 @@ final class ReplacedFunctionsRule extends NodeRule
 			risk: $uncertainty === null ? null : Risk::NameUncertain,
 			because: $uncertainty,
 		)) {
+			return;
+		}
+
+		if (str_contains($new, '::')) {
+			[$class, $method] = explode('::', $new);
+			$call = (new Builder)->staticMethodCall(CodeWriter::writeClass($class, $node, $context), $method, $node->arguments->withoutEdgeTrivia());
+			$node->replaceWithExpression($call);
 			return;
 		}
 

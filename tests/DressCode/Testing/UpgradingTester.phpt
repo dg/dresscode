@@ -168,6 +168,21 @@ test('an attribute written instead of a member that does not exist is a problem'
 });
 
 
+test('a function replaced by a static method that does not exist is a problem', function () {
+	Assert::same(
+		['`replacedFunctions`: `acme_old` is replaced by `Acme\Lib\Helpers::missing`, which does not exist.'],
+		check(<<<'XX'
+			package: acme/lib
+
+			since 3.0:
+				replacedFunctions:
+					acme_make: Acme\Lib\Helpers::create
+					acme_old: Acme\Lib\Helpers::missing
+			XX),
+	);
+});
+
+
 test('a key under extra.dresscode that DressCode does not read is a problem', function () {
 	$file = "package: acme/lib\n\nsince 3.0:\n\treplacedClasses:\n\t\tAcme\\Lib\\IControl: Acme\\Lib\\Control\n";
 	Assert::same([], check($file, '{"name": "acme/rules", "extra": {"dresscode": {"upgrading": ["upgrading/lib.neon"], "plugin": "Acme\\\\Rules"}}}'));
