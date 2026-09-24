@@ -751,6 +751,7 @@ final class MemberMapGrammar
 	public const ForbiddenFunctions = 'upgrading.libraries.forbiddenFunctions'
 	public const ForbiddenMembers = 'upgrading.libraries.forbiddenMembers'
 	public const AttributeForAnnotation = 'upgrading.libraries.attributeForAnnotation'
+	public const AttributeForMember = 'upgrading.libraries.attributeForMember'
 	public static function createMapSchema(Nette\Schema\Schema $value, string $description, ?Closure(mixed, DressCode\Rules\Upgrading\MemberPattern): mixed $convert = null): Nette\Schema\Elements\Type
 	public static function createCodeSchema(): Nette\Schema\Elements\AnyOf
 ```
@@ -1110,6 +1111,7 @@ final readonly class Violation
 - `DressCode\Rules\Types\TypeDeclarationSpacingRule`
 - `DressCode\Rules\Types\TypeNotationRule`
 - `DressCode\Rules\Upgrading\AttributeForAnnotationRule`
+- `DressCode\Rules\Upgrading\AttributeForMemberRule`
 - `DressCode\Rules\Upgrading\ForbiddenClassesRule`
 - `DressCode\Rules\Upgrading\ForbiddenFunctionsRule`
 - `DressCode\Rules\Upgrading\ForbiddenMembersRule`

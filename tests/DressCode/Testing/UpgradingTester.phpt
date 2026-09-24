@@ -65,7 +65,7 @@ test('what the maps refuse is said with the map, in whatever section it stands',
 		check("package: acme/lib\n\nsince 9.0:\n\treplacedMembers:\n\t\tAcme\\Lib\\Form::\$legacy: items\n")[0],
 	);
 	Assert::same(
-		['Unknown map `replacedThings`; an upgrading file holds `replacedClasses`, `replacedFunctions`, `replacedMembers`, `replacedCalls`, `forbiddenClasses`, `forbiddenFunctions`, `forbiddenMembers`, `attributeForAnnotation` and the maps of the rules of its package by the paths of their decisions.'],
+		['Unknown map `replacedThings`; an upgrading file holds `replacedClasses`, `replacedFunctions`, `replacedMembers`, `replacedCalls`, `forbiddenClasses`, `forbiddenFunctions`, `forbiddenMembers`, `attributeForAnnotation`, `attributeForMember` and the maps of the rules of its package by the paths of their decisions.'],
 		check("package: acme/lib\n\nsince 3.0:\n\treplacedThings:\n\t\tA: B\n"),
 	);
 	Assert::same(
@@ -157,6 +157,21 @@ test(
 		);
 	},
 );
+
+
+test('an attribute written instead of a member that does not exist is a problem', function () {
+	Assert::same(
+		['`attributeForMember`: `Acme\Lib\Form::$caption` is replaced by the attribute `Acme\Lib\Caption($value)`, which does not exist.'],
+		check(<<<'XX'
+			package: acme/lib
+
+			since 3.0:
+				attributeForMember:
+					Acme\Lib\Form::$caption: 'Acme\Lib\Caption($value)'
+					Acme\Lib\IOldest: Acme\Lib\Form
+			XX),
+	);
+});
 
 
 test('a key under extra.dresscode that DressCode does not read is a problem', function () {
