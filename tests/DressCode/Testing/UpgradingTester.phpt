@@ -155,6 +155,22 @@ test('a replacement that does not exist at the installed version, even at the en
 });
 
 
+test('an attribute written instead of a member that does not exist is a problem', function () {
+	Assert::same(
+		['`attributeForMember`: `Acme\Lib\Form::$caption` is replaced by the attribute `Acme\Lib\Caption($value)`, which does not exist.'],
+		check(<<<'XX'
+			package: acme/lib
+			group: deprecations
+
+			since 3.0:
+				attributeForMember:
+					Acme\Lib\Form::$caption: 'Acme\Lib\Caption($value)'
+					Acme\Lib\IOldest: Acme\Lib\Form
+			XX),
+	);
+});
+
+
 test('a key under extra.dresscode that DressCode does not read is a problem', function () {
 	$file = "package: acme/lib\ngroup: deprecations\n\nsince 3.0:\n\treplacedClasses:\n\t\tAcme\\Lib\\IControl: Acme\\Lib\\Control\n";
 	Assert::same([], check($file, '{"name": "acme/rules", "extra": {"dresscode": {"upgrading": ["upgrading/lib.neon"], "plugin": "Acme\\\\Rules"}}}'));

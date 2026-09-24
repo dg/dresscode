@@ -1,0 +1,54 @@
+<?php
+// {"Acme\\Orm\\Model::$fillable": "Acme\\Orm\\Fillable($value)", "Acme\\Orm\\Model::$timestamps = false": "Acme\\Orm\\WithoutTimestamps", "Acme\\Orm\\Model::getRouteKey()": "Acme\\Orm\\RouteKey($value)"}
+
+namespace App;
+
+use Acme\Orm\Model;
+
+// the doc comment of a member goes with it, another comment stays, and a value spread over lines is indented
+// as the attribute is
+class User extends Model
+{
+	// columns
+
+	/**
+	 * The attributes that are mass assignable.
+	 *
+	 * @var list<string>
+	 */
+	protected array $fillable = [
+		'name',
+		'email',
+	];
+
+	/** Whether the model keeps its timestamps. */
+	public bool $timestamps = false;
+
+
+	/**
+	 * Get the attributes that should be cast.
+	 */
+	protected function casts(): array
+	{
+		return [];
+	}
+
+
+	/** The key of the route. */
+	public function getRouteKey(): string
+	{
+		return 'slug';
+	}
+}
+
+
+class Post extends Model
+{
+	/** The columns. */
+	protected array $fillable = [
+		'title',
+		'meta' => [
+			'author',
+		],
+	];
+}

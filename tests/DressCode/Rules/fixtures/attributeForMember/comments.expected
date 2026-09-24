@@ -1,0 +1,41 @@
+<?php
+// {"Acme\\Orm\\Model::$fillable": "Acme\\Orm\\Fillable($value)", "Acme\\Orm\\Model::$timestamps = false": "Acme\\Orm\\WithoutTimestamps", "Acme\\Orm\\Model::getRouteKey()": "Acme\\Orm\\RouteKey($value)"}
+
+namespace App;
+
+use Acme\Orm\Fillable;
+use Acme\Orm\Model;
+use Acme\Orm\RouteKey;
+use Acme\Orm\WithoutTimestamps;
+
+// the doc comment of a member goes with it, another comment stays, and a value spread over lines is indented
+// as the attribute is
+#[WithoutTimestamps]
+#[Fillable([
+	'name',
+	'email',
+])]
+#[RouteKey('slug')]
+class User extends Model
+{
+	// columns
+
+	/**
+	 * Get the attributes that should be cast.
+	 */
+	protected function casts(): array
+	{
+		return [];
+	}
+}
+
+
+#[Fillable([
+	'title',
+	'meta' => [
+		'author',
+	],
+])]
+class Post extends Model
+{
+}

@@ -21,7 +21,8 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
  * follow; any other is reported with what the deprecation says. In a doc comment only a class the deprecation names
  * a replacement for is rewritten, one without it being left as it is. A class the map of replacedClasses or of
- * forbiddenClasses has is not reported, nor an attribute attributeForAnnotation writes another one instead of.
+ * forbiddenClasses has is not reported, nor an interface attributeForMember writes an attribute instead of, nor an
+ * attribute attributeForAnnotation writes another one instead of.
  */
 #[RuleInfo(
 	'dresscode/noDeprecatedClasses',
@@ -49,8 +50,9 @@ final class NoDeprecatedClassesRule extends NodeRule
 		$replaced = $context->findRule(ReplacedClassesRule::class);
 		$forbidden = $context->findRule(ForbiddenClassesRule::class);
 		$attributes = $context->findRule(AttributeForAnnotationRule::class);
-		$find = function (string $class) use ($types, $replaced, $forbidden): ?array {
-			$deprecation = $replaced?->hasClass($class) || $forbidden?->hasClass($class) ? null : $types->findClassDeprecation($class);
+		$members = $context->findRule(AttributeForMemberRule::class);
+		$find = function (string $class) use ($types, $replaced, $forbidden, $members): ?array {
+			$deprecation = $replaced?->hasClass($class) || $forbidden?->hasClass($class) || $members?->hasInterface($class) ? null : $types->findClassDeprecation($class);
 			return $deprecation === null
 				? null
 				: [
