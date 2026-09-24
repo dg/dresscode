@@ -490,10 +490,10 @@ final class CorePlugin implements Plugin
 	private static function createReplacedFunctionsGrammar(): Schema
 	{
 		return Expect::arrayOf(
-			Expect::string()->pattern(self::QualifiedName),
+			Expect::string()->pattern(self::QualifiedName . '(::\w+)?'),
 			Expect::string()->pattern(self::QualifiedName),
 		)
-			->description('The function, global or of a namespace → the function written instead')
+			->description('The function, global or of a namespace → the function or the static method written instead')
 			->transform(function (array $options, Context $context): array {
 				foreach ($options as $old => $new) {
 					if (strcasecmp(ltrim((string) $old, '\\'), ltrim($new, '\\')) === 0) {
