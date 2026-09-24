@@ -1058,6 +1058,7 @@ final readonly class Violation
 - `DressCode\Rules\Types\TypeDeclarationSpacingRule`
 - `DressCode\Rules\Types\TypeNotationRule`
 - `DressCode\Rules\Upgrading\AttributeForAnnotationRule`
+- `DressCode\Rules\Upgrading\AttributeForMemberRule`
 - `DressCode\Rules\Upgrading\ForbiddenClassesRule`
 - `DressCode\Rules\Upgrading\ForbiddenFunctionsRule`
 - `DressCode\Rules\Upgrading\ForbiddenMembersRule`

@@ -72,3 +72,11 @@ namespace Old\Bus;
 interface Handler
 {
 }
+
+
+namespace Fresh\Bus;
+
+#[\Attribute(\Attribute::TARGET_CLASS)]
+class AsHandler
+{
+}

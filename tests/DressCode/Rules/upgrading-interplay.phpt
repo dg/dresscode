@@ -115,6 +115,18 @@ test('an annotation is read through the import it was written with, whatever ren
 });
 
 
+test('an interface an attribute is written instead of is no deprecated class to report', function () {
+	$code = "<?php\n\nnamespace App;\n\nuse Old\\Bus\\Handler;\n\nclass Orders implements Handler\n{\n}\n";
+	$expected = "<?php\n\nnamespace App;\n\nuse Fresh\\Bus\\AsHandler;\nuse Old\\Bus\\Handler;\n\n#[AsHandler]\nclass Orders\n{\n}\n";
+	Assert::same([
+		'7: Interface `Old\Bus\Handler` is replaced by the attribute `#[Fresh\Bus\AsHandler]`.',
+	], upgrade([
+		Upgrading\NoDeprecatedClassesRule::class => true,
+		Upgrading\AttributeForMemberRule::class => ['Old\Bus\Handler' => 'Fresh\Bus\AsHandler'],
+	], $code, $expected));
+});
+
+
 test('a deprecated member a map has is the map\'s, whether or not its rule runs', function () {
 	$code = "<?php\n\nnamespace App;\n\nfunction test(\\Old\\Mailer \$mailer): void\n{\n\t\$mailer->post('a');\n}\n";
 	$fixed = str_replace('post', 'transmit', $code);

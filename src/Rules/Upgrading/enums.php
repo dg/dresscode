@@ -23,3 +23,15 @@ enum UpgradingOperation
 	/** the call does nothing and goes, with the statement it makes */
 	case Remove;
 }
+
+
+/**
+ * What a class declares by convention for a library to read.
+ * @internal
+ */
+enum AttributeForMemberKind
+{
+	case Property;
+	case Method;
+	case Interface;
+}

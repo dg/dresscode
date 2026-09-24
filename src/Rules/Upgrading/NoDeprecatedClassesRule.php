@@ -23,13 +23,14 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
  * follow; any other is reported with what the deprecation says. In a doc comment only a class the deprecation names
  * a replacement for is rewritten, one without it being left as it is. A class the map of replacedClasses or of
- * forbiddenClasses has is not reported, nor an attribute attributeForAnnotation writes another one instead of.
+ * forbiddenClasses has is not reported, nor an interface attributeForMember writes an attribute instead of, nor an
+ * attribute attributeForAnnotation writes another one instead of.
  */
 #[RuleInfo(
 	Stage::Structure,
 	typesRequired: true,
 	modifiesComments: true,
-	reads: [self::ReplacedClasses, self::ForbiddenClasses, AnnotationMap::Path],
+	reads: [self::ReplacedClasses, self::ForbiddenClasses, AttributeForMemberEntry::Path, AnnotationMap::Path],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class NoDeprecatedClassesRule extends NodeRule
@@ -54,6 +55,12 @@ final class NoDeprecatedClassesRule extends NodeRule
 		$this->mapped = [];
 		foreach ([...array_keys($values->readMap(self::ReplacedClasses)), ...array_keys($values->readMap(self::ForbiddenClasses))] as $class) {
 			$this->mapped[strtolower(ltrim((string) $class, '\\'))] = true;
+		}
+
+		foreach (AttributeForMemberEntry::fromValues($values) as $entry) {
+			if ($entry->kind === AttributeForMemberKind::Interface) {
+				$this->mapped[strtolower($entry->class)] = true;
+			}
 		}
 
 		$this->annotations = AnnotationMap::fromValues($values);
