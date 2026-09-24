@@ -409,7 +409,10 @@ function findFiles(string $dir): array
 	$files = [];
 	$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));
 	foreach ($iterator as $file) {
-		if (preg_match('~\.(php|phpt|inc)$~', $file->getFilename())) {
+		if (
+			preg_match('~\.(php|phpt|inc)$~', $file->getFilename())
+			&& !preg_match('~(dresscode:ignore-file|phpcs:ignoreFile)~', (string) file_get_contents($file->getPathname())) // silenced, it measures nothing
+		) {
 			$files[] = str_replace('\\', '/', $file->getPathname());
 		}
 	}
