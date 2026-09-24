@@ -1256,7 +1256,7 @@ Calls the function a project or its libraries write instead of another one.
 
 Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
-Options: The function, global or of a namespace → the function written instead.
+Options: The function, global or of a namespace → the function or the static method written instead.
 
 ### dresscode/replacedMembers
 

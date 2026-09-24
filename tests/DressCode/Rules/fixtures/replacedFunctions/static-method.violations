@@ -1,0 +1,8 @@
+12: Function `str_slug()` is replaced by `Acme\Support\Str::slug()`
+	risky NameUncertain: the namespace may declare `str_slug()`
+13: Function `str_slug()` is replaced by `Acme\Support\Str::slug()`
+14: Function `array_get()` is replaced by `Acme\Support\Arr::get()`
+	risky NameUncertain: the namespace may declare `array_get()`
+15: Function `Acme\Legacy\studly()` is replaced by `Acme\Support\Str::studly()`
+16: Function `str_slug()` is replaced by `Acme\Support\Str::slug()`
+	risky NameUncertain: the namespace may declare `str_slug()`
