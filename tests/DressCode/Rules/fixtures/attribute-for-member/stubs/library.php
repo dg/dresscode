@@ -45,6 +45,8 @@ abstract class Model
 {
 	public bool $timestamps = true;
 
+	protected array $fillable = [];
+
 
 	public function getRouteKey(): string
 	{
@@ -63,6 +65,15 @@ class WithoutTimestamps
 class RouteKey
 {
 	public function __construct(string $name)
+	{
+	}
+}
+
+
+#[\Attribute(\Attribute::TARGET_CLASS)]
+class Fillable
+{
+	public function __construct(array $columns)
 	{
 	}
 }

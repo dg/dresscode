@@ -23,7 +23,8 @@ use function count, in_array;
 /**
  * A tool for a member a class declares for a library to read, which the library reads from an attribute of the class
  * now: the project, or a library it stands on, maps the member of an ancestor to the attribute written instead, and
- * a class declaring the member gets the attribute and loses the declaration. `Acme\Console\Command::$defaultName:
+ * a class declaring the member gets the attribute and loses the declaration with its doc comment, a value spread over
+ * lines indented as the attribute is. `Acme\Console\Command::$defaultName:
  * Acme\Console\AsCommand(name: $value)` writes the default of the property as the argument, `'Acme\Orm\Model::$timestamps
  * = false': Acme\Orm\WithoutTimestamps` stands for that default only, `Acme\Orm\Model::getRouteKey(): Acme\Orm\RouteKey($value)`
  * for a method whose body returns a constant expression, and a key that is an interface, `Acme\Bus\Handler:
@@ -41,6 +42,7 @@ use function count, in_array;
 	'dresscode/attribute-for-member',
 	Stage::Structure,
 	description: 'Writes the attribute of a class a library reads instead of a member the class declares',
+	modifiesComments: true,
 )]
 final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 {
@@ -267,7 +269,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 				$member instanceof PropertyNode => $member->items->getItems()[0],
 				default => $member,
 			};
-			$arguments = $refusal === null ? $this->writeArguments($entry, $value) : [];
+			$arguments = $refusal === null ? $this->writeArguments($entry, $value, self::findIndentation($value ?? $member, $member), $class->getFirstToken()?->getIndentation() ?? '') : [];
 			$refusal ??= $this->findConflict($class, $attribute, $arguments, $planned, $context);
 			if ($refusal === null) {
 				$planned[strtolower($attribute)] = [$attribute, [...($planned[strtolower($attribute)][1] ?? []), ...$arguments]];
@@ -312,6 +314,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 			if ($member instanceof NameNode) {
 				self::removeInterface($class, $member);
 			} else {
+				self::removeDocComment($member);
 				CodeWriter::removeBetweenGaps($member, $context->getStyle()->eol);
 			}
 		}
@@ -321,11 +324,12 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 
 
 	/**
-	 * The arguments of the attribute of the entry, `$value` standing for the value of the member.
+	 * The arguments of the attribute of the entry, `$value` standing for the value of the member; the lines a value
+	 * spreads over move from the indentation of the member to the one of the attribute.
 	 * @param  array{string, string, string, ?array{mixed}, string, string}  $entry
 	 * @return list<array{?string, string}>  the name of each, null for a positional one, and the argument as written
 	 */
-	private function writeArguments(array $entry, ?ExpressionNode $value): array
+	private function writeArguments(array $entry, ?ExpressionNode $value, string $from, string $to): array
 	{
 		if ($entry[5] === '') {
 			return [];
@@ -338,7 +342,18 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 			}
 		}
 
-		return self::listArguments($group->attributes->getItems()[0]);
+		return array_map(
+			fn(array $argument) => [$argument[0], str_replace("\n$from", "\n$to", $argument[1])],
+			self::listArguments($group->attributes->getItems()[0]),
+		);
+	}
+
+
+	/** The indentation of the line the value of the member begins on: the return of a method, or the member itself. */
+	private static function findIndentation(Node $value, Node $member): string
+	{
+		$line = $value->parent instanceof ReturnNode ? $value->parent : $member;
+		return $line->getFirstToken()?->getIndentation() ?? '';
 	}
 
 
@@ -496,6 +511,24 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 		$before?->setTrailingTrivia($interface->getLastToken()->trailingTrivia ?? []);
 		$class->implements = null;
 		$class->implementsKeyword = null;
+	}
+
+
+	/** Drops the doc comment of the member, which describes what goes; a comment standing apart from it stays. */
+	private static function removeDocComment(Node $member): void
+	{
+		$first = $member->getFirstToken();
+		$trivia = $first->leadingTrivia ?? [];
+		for ($i = count($trivia) - 1; $i >= 0 && !$trivia[$i]->isComment(); $i--);
+		$after = array_slice($trivia, $i + 1);
+		if (
+			$first !== null
+			&& $i >= 0
+			&& $trivia[$i]->isDocComment()
+			&& count(array_filter($after, fn($trivia) => $trivia->isEndOfLine())) <= 1
+		) {
+			$first->setLeadingTrivia(array_slice($trivia, 0, $i));
+		}
 	}
 
 

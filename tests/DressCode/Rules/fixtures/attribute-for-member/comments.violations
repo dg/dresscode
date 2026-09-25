@@ -1,0 +1,4 @@
+19: Property Acme\Orm\Model::$fillable is replaced by the attribute #[Acme\Orm\Fillable]
+25: Property Acme\Orm\Model::$timestamps is replaced by the attribute #[Acme\Orm\WithoutTimestamps]
+38: Method Acme\Orm\Model::getRouteKey() is replaced by the attribute #[Acme\Orm\RouteKey]
+48: Property Acme\Orm\Model::$fillable is replaced by the attribute #[Acme\Orm\Fillable]
