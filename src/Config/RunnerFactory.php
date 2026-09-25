@@ -12,7 +12,7 @@ use DressCode\{Analyses, Config, ConfigurationException, Override, Plugin, Plugi
 use DressCode\Engine\{Baseline, FileProcessor, Helpers, ResultCache, Runner};
 use Nette\Utils\FileSystem;
 use PhpSyntax\Nodes\FileNode;
-use function count, dirname, is_array, is_string;
+use function count, dirname, is_array, is_string, strlen;
 use const JSON_PARTIAL_OUTPUT_ON_ERROR, JSON_THROW_ON_ERROR;
 
 
@@ -493,6 +493,46 @@ final class RunnerFactory
 	{
 		$constraint = self::readComposer($composerFile)['require']['php'] ?? null;
 		return is_string($constraint) && Versions::findLowestVersion($constraint) !== null ? $constraint : null;
+	}
+
+
+	/**
+	 * The directories autoload and autoload-dev name, in the order of the file, relative to the root and with
+	 * their dot segments resolved: the only place where a project itself says where its code is. A `files`
+	 * entry is a single file, not a scope, and a classmap may name one too, so only what is a directory
+	 * counts; a directory outside the root belongs to another project, since the file may be the one of a
+	 * directory above.
+	 * @return list<string>
+	 */
+	public static function detectAutoloadPaths(?string $composerFile, string $root): array
+	{
+		$data = self::readComposer($composerFile);
+		if ($data === null) {
+			return [];
+		}
+
+		$base = Helpers::canonicalizePath(dirname((string) $composerFile));
+		$root = Helpers::canonicalizePath($root);
+		$paths = [];
+		foreach (['autoload', 'autoload-dev'] as $section) {
+			foreach (['psr-4', 'psr-0', 'classmap'] as $kind) {
+				foreach ((array) ($data[$section][$kind] ?? []) as $value) {
+					foreach ((array) $value as $path) { // a psr-4 prefix takes one path or several
+						// `./src` and `src` are the same path, and only resolved do they compare as one
+						$directory = is_string($path) ? Helpers::canonicalizePath(FileSystem::normalizePath("$base/$path")) : null;
+						if ($directory === null || !is_dir($directory)) {
+							continue;
+						} elseif ($directory === $root) {
+							$paths['.'] = true;
+						} elseif (str_starts_with($directory, "$root/")) {
+							$paths[substr($directory, strlen($root) + 1)] = true;
+						}
+					}
+				}
+			}
+		}
+
+		return array_keys($paths);
 	}
 
 

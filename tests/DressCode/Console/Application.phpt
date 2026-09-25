@@ -322,7 +322,7 @@ test('without a configuration file neither check nor fix runs, unless a preset o
 	foreach (['check', 'fix'] as $command) {
 		[$code, , $err] = runApp($dir, [$command]);
 		Assert::same(3, $code);
-		Assert::match("Error: No `dresscode.neon` or `dresscode.php` found in `%a%` or above it, so there is no dress code to check against. Name a preset with `--preset`.\n", $err);
+		Assert::match("Error: No `dresscode.neon` or `dresscode.php` found in `%a%` or above it, so there is no dress code to check against. Run `dresscode init`%A%.\nSee https://dresscode.run/cli#init\n", $err);
 	}
 
 	[$code, , $err] = runApp($dir, ['check', '--preset', 'perCs']);

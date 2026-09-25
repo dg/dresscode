@@ -36,7 +36,8 @@ final class Loader
 		$file ??= self::find($directory);
 		if ($file === null) {
 			$config = $default ?? throw new ConfigurationException(
-				"No `dresscode.neon` or `dresscode.php` found in `$directory` or above it, so there is no dress code to check against. Name a preset with `--preset`.",
+				"No `dresscode.neon` or `dresscode.php` found in `$directory` or above it, so there is no dress code to check against. Run `dresscode init` to have one made to measure from the code, or name a preset with `--preset`.",
+				docs: 'cli#init',
 			);
 			$root = $directory;
 		} else {
@@ -77,6 +78,19 @@ final class Loader
 
 			$directory = $parent;
 		}
+	}
+
+
+	/**
+	 * The configuration files lying in the directory itself, the local ones and the .dist templates.
+	 * @return list<string>  their names
+	 */
+	public static function listFiles(string $directory): array
+	{
+		return array_values(array_filter(
+			array_merge(...array_map(fn(string $name) => [$name, $name . self::DistSuffix], self::FileNames)),
+			fn(string $name) => is_file("$directory/$name"),
+		));
 	}
 
 
