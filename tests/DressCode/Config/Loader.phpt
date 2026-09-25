@@ -122,7 +122,7 @@ test('load: without a file and without a default there is no style to run', func
 	Assert::exception(
 		fn() => Loader::load(null, sys_get_temp_dir()),
 		ConfigurationException::class,
-		'No `dresscode.neon` or `dresscode.php` found in `%a%` or above it, so there is no dress code to check against. Name a standard with `--use`.',
+		'No `dresscode.neon` or `dresscode.php` found in `%a%` or above it, so there is no dress code to check against. Run `dresscode init` to have one made to measure from the code, or name a standard with `--use`.',
 	);
 });
 

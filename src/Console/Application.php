@@ -135,7 +135,7 @@ final readonly class Application
 		);
 		$program->addOption(
 			'--use',
-			'Add a preset or a plugin over the configuration, even without a configuration file',
+			'Add a preset or a plugin over the configuration, even without a configuration file; for `init` the standard to write, `perCs` by default',
 			valueName: 'name',
 			repeatable: true,
 			normalizer: CommandContext::checkPreset(...),
@@ -157,6 +157,7 @@ final readonly class Application
 			new Commands\ConfigCommand($context),
 			new Commands\ExplainCommand($context),
 			new Commands\CatalogueCommand($context),
+			new Commands\InitCommand($context),
 		] as $handlers) {
 			$program->addCommandsFrom($handlers);
 		}
