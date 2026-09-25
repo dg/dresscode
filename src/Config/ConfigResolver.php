@@ -284,7 +284,7 @@ final class ConfigResolver
 
 		$seeded = [];
 		foreach ($packageLayers as $class => $below) {
-			$below = isset($named[$class]) ? $below : array_filter($below, fn(array $layer) => isset($groups[$layer[2]->value]));
+			$below = isset($named[$class]) ? $below : array_filter($below, fn(array $layer) => $layer[2] !== null && isset($groups[$layer[2]->value]));
 			if (isset($layers[$class]) && $below !== []) {
 				$layers[$class] = [...array_map(fn(array $layer) => [$layer[0], $layer[1]], array_values($below)), ...$layers[$class]];
 				$seeded[$class] = count($below);

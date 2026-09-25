@@ -2,6 +2,7 @@
 
 use DressCode\{Config, ConfigurableRule, ConfigurationException, NodeRule, Override, Preset, PresetInfo, Profile, Rule, RuleGroup, RuleInfo, Stage};
 use DressCode\Config\{ConfigResolver, ProjectPackages, ResolvedRule, RuleBuilder, RuleRegistry};
+use DressCode\Presets\Symfony;
 use DressCode\Rules\Namespaces\NameNotationRule;
 use Nette\Schema\{Expect, Processor, Schema};
 use Tester\Assert;
@@ -773,7 +774,14 @@ test('a rule whose options decide nothing says so through its schema, and nameNo
 		'%a%optimizedFunction%a%',
 	);
 
-	// a plain value over a map replaces it with its names
+	// a map of the configuration merges with the plain value of the preset as with its pattern *, and a plain value reads back plain
+	$merged = $resolver->resolve(new Config(presets: [Symfony::class], rules: ['dresscode/nameNotation' => ['globalFunction' => ['strlen' => 'import']]]), '8.4');
+	$rule = $merged->getRule('dresscode/nameNotation');
+	Assert::notNull($rule);
+	Assert::same(['*' => 'backslash', 'strlen' => 'import'], $rule->options['globalFunction']);
+	Assert::same('backslash', $rule->options['globalClass']);
+
+	// while a plain value over a map replaces it with its names
 	$options = (new Processor)->processMultiple(NameNotationRule::getOptionsSchema(), [
 		['globalFunction' => ['*' => 'import', 'strlen' => 'backslash']],
 		['globalFunction' => 'backslash'],

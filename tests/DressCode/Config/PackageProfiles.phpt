@@ -320,11 +320,12 @@ test('dresscode config lists the upgrading files with the sections the version o
 });
 
 
-test('what a package declares in its namespaces lies under the lists of the project', function () {
+test('what a package declares in its namespaces lies under the lists of the project, and DressCode knows that of the configurator of Symfony', function () {
 	$root = project(
 		'namespaces',
 		[
 			'acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']],
+			'symfony/dependency-injection' => ['7.3.0.0', []],
 		],
 		[
 			'vendor/acme/lib/upgrading.neon' => <<<'XX'
@@ -341,4 +342,5 @@ test('what a package declares in its namespaces lies under the lists of the proj
 	$functions = $factory->getResolvedConfig()->namespacedFunctions;
 	Assert::same('the configuration', $functions['App\format']);
 	Assert::same('upgrading.neon of acme/lib', $functions['Acme\Lib\helper']);
+	Assert::same('DressCode for symfony/dependency-injection', $functions['Symfony\Component\DependencyInjection\Loader\Configurator\service']);
 });

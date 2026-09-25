@@ -356,6 +356,13 @@ final class Psr12 implements DressCode\Preset
 	public function getProfile(): DressCode\Profile
 ```
 
+## `DressCode\Presets\Symfony`
+
+```php
+final class Symfony implements DressCode\Preset
+	public function getProfile(): DressCode\Profile
+```
+
 ## `DressCode\Profile`
 
 ```php

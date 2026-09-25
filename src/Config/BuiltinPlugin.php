@@ -23,6 +23,7 @@ final class BuiltinPlugin implements Plugin
 				Presets\PerCs::class,
 				Presets\Psr12::class,
 				Presets\Nette::class,
+				Presets\Symfony::class,
 			],
 			rules: [
 				Rules\Expressions\OffsetBracketSpacingRule::class,

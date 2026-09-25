@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Repository;
+
+use App\Entity\User;
+use Psr\Log\LoggerInterface;
+
+/**
+ * A repository written the Symfony way.
+ */
+final class UserRepository
+{
+    private const DEFAULT_LIMIT = 10;
+
+    /**
+     * @var array<int, string>
+     */
+    private array $names = [];
+
+    public function __construct(
+        private readonly Connection $connection,
+        private readonly ?LoggerInterface $logger = null,
+    ) {
+    }
+
+    /**
+     * @param list<string> $names
+     *
+     * @return list<User>
+     */
+    public function findByNames(array $names, int $limit = self::DEFAULT_LIMIT): array
+    {
+        $rows = $this->connection->fetchAll($names, $limit);
+        $labels = array_map(fn ($row) => $row->name, $rows);
+        $matrix = [
+            1, 2, 3,
+            4, 5, 6,
+        ];
+
+        try {
+            return array_map(static function ($row) {
+                return new User($row->id, $row->name);
+            }, $rows);
+        } catch (\RuntimeException|\LogicException $e) {
+            $this->logger?->error($e->getMessage());
+
+            throw new RepositoryException($e->getMessage(), 0, $e);
+        }
+    }
+
+    public function count(): int
+    {
+        if (0 === \count($this->names)) {
+            return 0;
+        }
+
+        return $this->connection->count();
+    }
+}

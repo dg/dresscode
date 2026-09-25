@@ -2,7 +2,7 @@
 
 use DressCode\Config\RuleRegistry;
 use DressCode\{ConfigurationException, NodeRule, Preset, PresetInfo, Profile, RuleInfo, Stage};
-use DressCode\Presets\{Nette, PerCs, Psr12};
+use DressCode\Presets\{Nette, PerCs, Psr12, Symfony};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -200,7 +200,7 @@ test('presets', function () {
 	Assert::same(
 		[
 			'dresscode/perCs' => PerCs::class, 'dresscode/psr12' => Psr12::class, 'dresscode/nette' => Nette::class,
-			'test/preset' => TestPreset::class,
+			'dresscode/symfony' => Symfony::class, 'test/preset' => TestPreset::class,
 		],
 		$registry->presets,
 	);

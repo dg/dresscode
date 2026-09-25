@@ -11,8 +11,9 @@ use DressCode\{Profile, RuleGroup};
 
 
 /**
- * What one upgrading file says to the project: the options of the sections the version the project stands on reaches,
- * the intent of them, the group that turns on the rules they feed, and what the package declares in its namespaces.
+ * What one upgrading file or a profile DressCode knows for a package says to the project: the options of the sections
+ * the version the project stands on reaches, the intent of them, the group that turns on the rules they feed, and what
+ * the package declares in its namespaces.
  * @internal
  */
 final readonly class PackageProfile
@@ -23,7 +24,8 @@ final readonly class PackageProfile
 		/** the package whose versions the sections of the file are of */
 		public string $package,
 		public Profile $profile,
-		public RuleGroup $group,
+		/** null for a profile that feeds no rule */
+		public ?RuleGroup $group,
 		/** @var list<string>  the versions of the sections left out as not reached yet, ascending */
 		public array $unreached = [],
 	) {

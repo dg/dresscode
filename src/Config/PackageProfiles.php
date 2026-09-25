@@ -25,6 +25,19 @@ final class PackageProfiles
 	/** the keys of `extra.dresscode` a package may use */
 	public const Keys = ['upgrading', 'plugin'];
 
+	/**
+	 * What packages declare in their namespaces for the files a project writes into them, which a package does not say
+	 * itself yet: the container configurator of Symfony, whose functions the files that configure the services call
+	 * without importing them.
+	 */
+	private const Builtin = [
+		'symfony/dependency-injection' => [
+			'functions' => [
+				'Symfony\Component\DependencyInjection\Loader\Configurator\{abstract_arg, closure, env, expr, inline_service, iterator, lazy_proxy, param, service, service_closure, service_locator, tagged_class_map, tagged_iterator, tagged_locator}',
+			],
+		],
+	];
+
 	private const SectionPattern = '~^since (\d+(?:\.\d+)*)$~D';
 	private const PackagePattern = '~^[a-z0-9_.-]+/[a-z0-9_.-]+$~D';
 
@@ -84,6 +97,12 @@ final class PackageProfiles
 				} else {
 					$warnings[] = "Package `$name` names the plugin `$plugin`, which does not exist or is not a plugin; skipped.";
 				}
+			}
+		}
+
+		foreach (self::Builtin as $package => $namespaces) {
+			if ($project->has($package)) {
+				$profiles[] = new PackageProfile("DressCode for $package", $package, new Profile(namespaces: $namespaces), null);
 			}
 		}
 
