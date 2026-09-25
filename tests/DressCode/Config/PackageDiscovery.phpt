@@ -391,23 +391,31 @@ test('dresscode config lists the upgrading data with the sections the version of
 });
 
 
-test('what a package declares in its namespaces lies under the lists of the project', function () {
-	$root = project(
-		'namespaces',
-		[
-			'acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']],
-		],
-		[
-			'vendor/acme/lib/upgrading.neon' => <<<'XX'
-				package: acme/lib
-				namespaces:
-					functions: ['Acme\Lib\{helper}']
+test(
+	'what a package declares in its namespaces lies under the lists of the project, and DressCode knows that of the configurator of Symfony',
+	function () {
+		$root = project(
+			'namespaces',
+			[
+				'acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']],
+				'symfony/dependency-injection' => ['7.3.0.0', []],
+			],
+			[
+				'vendor/acme/lib/upgrading.neon' => <<<'XX'
+					package: acme/lib
+					namespaces:
+						functions: ['Acme\Lib\{helper}']
 
-				XX,
-		],
-	);
-	$factory = new RunnerFactory;
-	$functions = $factory->resolve(new Config(namespaces: ['functions' => ['App\format']]), $root)->resolvedConfig->namespacedFunctions;
-	Assert::same('the configuration', $functions['App\format']);
-	Assert::same('upgrading.neon of acme/lib', $functions['Acme\Lib\helper']);
-});
+					XX,
+			],
+		);
+		$factory = new RunnerFactory;
+		$functions = $factory->resolve(new Config(namespaces: ['functions' => ['App\format']]), $root)->resolvedConfig->namespacedFunctions;
+		Assert::same('the configuration', $functions['App\format']);
+		Assert::same('upgrading.neon of acme/lib', $functions['Acme\Lib\helper']);
+		Assert::same(
+			'DressCode for symfony/dependency-injection',
+			$functions['Symfony\Component\DependencyInjection\Loader\Configurator\service'],
+		);
+	},
+);

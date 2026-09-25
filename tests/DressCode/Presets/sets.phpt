@@ -12,7 +12,7 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-const Standards = ['dresscode/perCs', 'dresscode/psr12', 'dresscode/nette'];
+const Standards = ['dresscode/perCs', 'dresscode/psr12', 'dresscode/nette', 'dresscode/symfony'];
 
 $registry = new PluginRegistry;
 $resolver = new ConfigResolver($registry);
@@ -40,7 +40,7 @@ test('a set decides nothing about the layout', function () use ($written) {
 test('a decision is made by a set or a standard, or written by the project on purpose', function () use ($written, $resolver) {
 	// a decision outside every set and every standard is one a project writes itself, and the reason is here
 	$onRequest = [
-		'blankLines.afterStatement', 'blankLines.beforeStatement', // where a statement stands apart is the shape of a body, which no standard prescribes
+		'blankLines.afterStatement', // where a statement stands apart is the shape of a body, which no standard prescribes
 		'classes.internal.final', // what a project does with its own internals
 		'classes.visibility.publicWithSet', // PER Coding Style lets the `public` a set visibility implies be written or not
 		'classes.staticMethod', // how a class is built, which no set decides for it
@@ -53,7 +53,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'indentation.singleLevel', // a measure of the shape of a body, not its layout
 		'literals.concatenatedLiterals.overLines', // a literal spread over lines on purpose
 		'phpdoc.types.nullable', 'phpdoc.types.unionOrder', 'types.unionOrder', // an order or a notation a project chooses
-		'qualification.constant.otherNamespace', 'qualification.class.global', 'qualification.staticInFinalClass', 'qualification.function.otherNamespace', // how far a name is written out is the project's
+		'qualification.constant.otherNamespace', 'qualification.staticInFinalClass', 'qualification.function.otherNamespace', // how far a name is written out is the project's
 		'types.declaration.constant', // a typed constant, which the code before PHP 8.3 cannot have
 		'upgrading.classes.Override', // a guarantee the code takes on, which no older construct gave
 		'upgrading.phpdoc.readonly', // an annotation may promise what the code does not keep, which only the project knows

@@ -244,7 +244,7 @@ final class ConfigResolver
 
 
 	/**
-	 * The decisions each of the three standards makes, resolved alone.
+	 * The decisions each of the four standards makes, resolved alone.
 	 * @return array<string, array<string, ResolvedDecision>>  standard => path => its decision
 	 * @throws ConfigurationException
 	 */
