@@ -13,6 +13,7 @@ use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Stmt\{Class_, ClassLike, Enum_, EnumCase, Interface_};
 use PhpParser\NodeFinder;
 use PHPStan\Analyser\{NodeScopeResolver, Scope, ScopeContext, ScopeFactory};
+use PHPStan\BetterReflection\Reflection\Exception\CircularReference;
 use PHPStan\DependencyInjection\{Container, ContainerFactory};
 use PHPStan\Parser\Parser;
 use PHPStan\PhpDoc\TypeStringResolver;
@@ -122,7 +123,8 @@ final class PhpStan
 	/**
 	 * Computes the scope of every node of the file and hands each to the callback. The path is the one of the run,
 	 * relative to the root; PHPStan reads the declarations of a file from the disk and resolves a relative path
-	 * against the working directory, which is not the root of the run, so it is given an absolute one.
+	 * against the working directory, which is not the root of the run, so it is given an absolute one. A class whose
+	 * ancestors run in a circle stops PHPStan, and the nodes after it get no scope.
 	 * @param  array<\PhpParser\Node\Stmt>  $ast
 	 * @param  callable(\PhpParser\Node, Scope): void  $callback
 	 */
@@ -134,13 +136,17 @@ final class PhpStan
 		$resolver = $container->getByType(NodeScopeResolver::class);
 		$resolver->setAnalysedFiles([$path]);
 		$scope = $container->getByType(ScopeFactory::class)->create(ScopeContext::create($path));
-		$resolver->processNodes($ast, $scope, $callback);
+		try {
+			$resolver->processNodes($ast, $scope, $callback);
+		} catch (CircularReference) {
+		}
 	}
 
 
 	/**
 	 * The declared spelling of a class, interface, trait or enum the project, its packages or PHP declare, given its
-	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares.
+	 * fully qualified name in any letter case without a leading backslash; null for a name nothing declares or PHP
+	 * refuses to load.
 	 */
 	public function findClassName(string $name): ?string
 	{
@@ -148,11 +154,28 @@ final class PhpStan
 	}
 
 
-	/** The class, interface, trait or enum of that fully qualified name, in any letter case; null for a name nothing declares. */
+	/**
+	 * The class, interface, trait or enum of that fully qualified name, in any letter case; null for a name nothing
+	 * declares, and for one whose ancestors run in a circle, which PHP refuses to load.
+	 */
 	public function findClass(string $name): ?ClassReflection
 	{
 		$provider = $this->getContainer()->getByType(ReflectionProvider::class);
-		return $provider->hasClass($name) ? $provider->getClass($name) : null;
+		$class = $provider->hasClass($name) ? $provider->getClass($name) : null;
+		return $class === null || self::hasCircularAncestors($class) ? null : $class;
+	}
+
+
+	/** Whether the ancestors of the class run in a circle, which PHPStan answers any question about them with an exception. */
+	public static function hasCircularAncestors(ClassReflection $class): bool
+	{
+		try {
+			$class->getParents();
+			$class->getInterfaces();
+			return false;
+		} catch (CircularReference) {
+			return true;
+		}
 	}
 
 

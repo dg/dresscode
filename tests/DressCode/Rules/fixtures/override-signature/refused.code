@@ -35,3 +35,12 @@ class Panel extends Widget
 		$width = $size * 2;
 	}
 }
+
+
+// left: a class whose ancestors run in a circle overrides nothing PHP could load
+class Loop extends Loop
+{
+	public function run($a)
+	{
+	}
+}

@@ -66,3 +66,9 @@ class Product extends Model
 		return $this->key;
 	}
 }
+
+
+class LoopingCommand extends LoopingCommand
+{
+	protected static ?string $defaultName = 'app:loop';
+}

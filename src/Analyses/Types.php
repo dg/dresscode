@@ -54,8 +54,12 @@ final class Types implements PassAnalysis
 		$code = Printer::print($file);
 		$ast = $phpstan->parse($code);
 		$this->phpstan = $phpstan->deriveFor($path, $code, $ast);
-		$this->phpstan->resolveScopes($path, $ast, function (ParserNode $node, Scope $scope) use ($index): void {
-			if ($node instanceof Expr) {
+		$circular = []; // class → whether its ancestors run in a circle, which leaves the nodes inside it without types
+		$this->phpstan->resolveScopes($path, $ast, function (ParserNode $node, Scope $scope) use ($index, &$circular): void {
+			$class = $scope->getClassReflection();
+			if ($class !== null && ($circular[$class->getName()] ??= PhpStan::hasCircularAncestors($class))) {
+				return;
+			} elseif ($node instanceof Expr) {
 				$expression = $index->findNode($node->getStartFilePos(), $node->getEndFilePos() + 1, ExpressionNode::class);
 				if ($expression !== null && !isset($this->expressions[$expression])) {
 					$this->expressions[$expression] = [$node, $scope];
@@ -495,7 +499,8 @@ final class Types implements PassAnalysis
 
 	/**
 	 * Whether the class is the ancestor, extends it, implements it or uses it as a trait, both fully qualified, in any
-	 * letter case; a class nothing declares is only ever itself.
+	 * letter case; a class nothing declares is only ever itself, and so is one whose ancestors run in a circle, which PHP
+	 * refuses to load.
 	 */
 	public function isSubtype(string $class, string $ancestor): bool
 	{
