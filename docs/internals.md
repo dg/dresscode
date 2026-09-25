@@ -23,7 +23,7 @@ Public:
 
 Internal:
 
-- `Engine\*`, `Config\*`, `Console\*`: the engine, the configuration and the console
+- `Engine\*`, `Config\*`, `Measuring\*`, `Console\*`: the engine, the configuration, the measuring of `init` and the console
 - `Reporter`, `Reporters\*`: the formats of the output, whose contract is the output itself, and the interface they implement next to them; they print the `Engine\RunResult` of a run
 - `Rules\NodeHelpers`, `Rules\Compiler`, `Rules\NativeType`, `Rules\Classes\PropertyWrites`, `Rules\Classes\MemberModifiers`, `Rules\Functions\ForwardingClosure`, `Rules\Namespaces\NameReferences`, `Rules\Namespaces\QualificationPolicy`, `Rules\PhpDoc\AnnotationReplacement`, `Rules\PhpDoc\PhpdocTypeNotationVisitor`: what the rules share among themselves or a rule does in a class of its own
 - `Rules\Upgrading\AnnotationArguments`, `Rules\Upgrading\CallableLiteral`, `Rules\Upgrading\DeprecatedArguments`, `Rules\Upgrading\CallTemplate`, `Rules\Upgrading\ClassReplacement`, `Rules\Upgrading\MagicCall`, `Rules\Upgrading\MemberTarget`, `Rules\Upgrading\AttributeTarget`, `Rules\Upgrading\Rewrite`, `Rules\Upgrading\PhpUpgradingData`, `Rules\Upgrading\UpgradingEntry`, `Rules\Upgrading\AttributeForMemberEntry`, `Rules\Upgrading\AnnotationMap`, `Rules\Upgrading\enums.php`: the helpers of the rules fed by maps that are not the grammar of the maps

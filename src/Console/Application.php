@@ -10,6 +10,7 @@ namespace DressCode\Console;
 use DressCode\{Config, ConfigurationException, ConvergenceException, Plugin, Profile, Reporter, Reporters, RuleException};
 use DressCode\Config\{Catalogue, ConfigResolver, CorePlugin, Loader, PhpVersionSource, PluginRegistry, ResolvedProject, RunnerFactory};
 use DressCode\Engine\{Baseline, FileSummary, Helpers, RunInfo, Runner, RunResult, Worker, WorkerPool};
+use DressCode\Measuring\Proposal;
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, Normalizers, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Neon\{Exception as NeonException, Neon};
 use Nette\Utils\{FileSystem, Helpers as UtilsHelpers, Json};
@@ -105,6 +106,7 @@ final class Application
 				'config' => $this->runConfig($args),
 				'explain' => $this->runExplain($args),
 				'catalogue' => $this->runCatalogue($args),
+				'init' => $this->runInit($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
 
@@ -153,7 +155,7 @@ final class Application
 		);
 		$program->addOption(
 			'--use',
-			'Add a preset or a plugin over the configuration, even without a configuration file',
+			'Add a preset or a plugin over the configuration, even without a configuration file; for `init` the standard to write, `perCs` by default',
 			valueName: 'name',
 			repeatable: true,
 		);
@@ -173,6 +175,7 @@ final class Application
 		$config = $program->addCommand('config', 'Print the configuration as the run resolves it');
 		$explain = $program->addCommand('explain', 'Explain a decision, its values and its value in this configuration; every decision the configuration makes when none is named');
 		$catalogue = $program->addCommand('catalogue', 'List every decision the rules of the run declare, those this configuration makes marked');
+		$program->addCommand('init', 'Measure the code of the project and write a `dresscode.neon` to fit');
 		$program->addText('Exit codes: `0` clean, `1` violations, syntax errors or a refused baseline, `2` a file failed, `3` a mistake of the command line or of the configuration.');
 
 		$explain->addArgument('decision', 'A decision, or a section or structure of them; the whole configuration when omitted', optional: true);
@@ -680,6 +683,36 @@ final class Application
 		}
 
 		return $standards;
+	}
+
+
+	/**
+	 * Measures how the project writes what can be measured and writes dresscode.neon with it; a configuration
+	 * that exists is never overwritten, the proposal is printed instead and the exit code says so.
+	 */
+	private function runInit(ParseResult $args): int
+	{
+		$root = Helpers::canonicalizePath($this->workingDirectory);
+		/** @var list<string> $use */
+		$use = $args['--use'];
+		$presets = $use ?: null;
+		array_map((new PluginRegistry)->resolvePreset(...), $presets ?? []); // a misspelled one before the measuring, not after it
+		$proposal = Proposal::measure($root, $presets);
+		$proposal->verify($root);
+		$neon = $proposal->toNeon();
+
+		$existing = Loader::listFiles($root);
+		$console = $existing ? $this->err : $this->out;
+		$console->write(Markup::highlightCode($console, $this->formatName($console) . "\n" . new InitPrinter($proposal)->print($console)));
+		if ($existing) {
+			$this->writeNote('`' . implode('` and `', $existing) . '`' . (count($existing) > 1 ? ' exist' : ' exists') . ", so the proposal is printed and nothing is written.\n");
+			$this->out->write($neon);
+			return 3;
+		}
+
+		FileSystem::write("$root/dresscode.neon", $neon);
+		$this->write("\n`dresscode.neon` written, made to measure.\n");
+		return 0;
 	}
 
 
