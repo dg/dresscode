@@ -7,7 +7,31 @@ How DressCode works: the facts an agent or a contributor needs before touching t
 - `phpsyntax/phpsyntax` (namespace `PhpSyntax`, a repository of its own): lexer, parser, tree, printer, navigation, mutation. Its internals are documented there; what a rule of DressCode uses from it is below.
 - `DressCode` (`src/`): engine, rules API, rules, configuration, CLI. Rules use only the public API of `PhpSyntax`; whatever a built-in rule needs from it is public API for plugins too.
 
-The public, semver-stable surface of `DressCode` is `Config` with `Profile`, `Override` and `Extension`, `Rule` with `NodeRule` and `GapRule`, `ConfigurableRule`, `Claim`, `Space`, `Line`, `Gap` and `Style`, `RuleInfo`, `RuleContext`, `Preset`, `PresetInfo`, `Presets\*`, `Violation`, the enums `Stage`, `Severity` and `Group`, the exceptions of `exceptions.php` and `Testing\exceptions.php`, `Reporter` with `FileResult`, `RunResult` and `Reporters\*`, `Console\Application` with `Console\UsageException`, `Config\Loader`, `Analyses\*`, `Rules\*`, `Testing\RuleTester` and `Testing\UpgradingTester`. `Engine\*`, `Interop\*` and the rest of `Config\*` and `Console\*` are `@internal`, as are `Runner`, whose instance only the run builds, so that a program embedding a run goes through `Console\Application` and `Config\Loader`, `Helpers`, `Rules\NodeHelpers`, `Rules\BlankLines`, `Rules\Namespaces\NameReferences`, `Rules\PhpDoc\AnnotationToAttribute`, the helpers of `Rules\Upgrading` that are not the grammar of the maps (`ClassReplacement`, `CallTemplate`, `MagicCall`, `MemberTarget`, `PropertyTemplates`, `Rewrite`), `Analyses\Registry`, `Analyses\PhpStan`, `Analyses\PhpSymbolsData`, `Analyses\PhpSignaturesData` and `Testing\GapSurvey`; the constructors of `Gap` and `RuleContext` and the methods marked `@internal` (`RuleContext::reportGap()`, `hasReports()`, `takeReports()`, `Profile::toSymbolKey()`) are the engine's alone.
+The public, semver-stable surface of `DressCode` is what the first list names, and the second names what is `@internal`. Every class of `src/` is in one of them, the more specific name deciding (a class before a namespace, a longer namespace before a shorter one), and `tests/DressCode/api.phpt` checks both lists against the code. An item names its classes, namespaces or files first, the explanation follows a colon.
+
+Public:
+
+- `Config`, `Profile`, `Override`, `Extension`: the configuration
+- `Rule`, `NodeRule`, `GapRule`, `ConfigurableRule`, `RuleInfo`, `RuleContext`, `Claim`, `Space`, `Line`, `Gap`, `Style`, `Violation`: the API of a rule
+- `Stage`, `Severity`, `Group`: the enums
+- `exceptions.php`, `Testing\exceptions.php`: the exceptions
+- `Preset`, `PresetInfo`, `Presets\*`: the presets
+- `Reporter`, `FileResult`, `RunResult`, `Reporters\*`: the reporters and what they report
+- `Console\Application`, `Console\UsageException`, `Config\Loader`: a program embedding a run goes through them
+- `Analyses\*`, `Rules\*`: the analyses and the rules, the helpers of the maps included
+- `Testing\RuleTester`, `Testing\UpgradingTester`: the testers
+
+Internal:
+
+- `Engine\*`, `Interop\*`, `Config\*`, `Console\*`: the engine, the translation of foreign configurations and the rest of the configuration and the console
+- `Runner`: its instance only the run builds
+- `Helpers`
+- `Rules\NodeHelpers`, `Rules\BlankLines`, `Rules\Namespaces\NameReferences`, `Rules\PhpDoc\AnnotationToAttribute`: what the rules share among themselves
+- `Rules\Upgrading\AnnotationArguments`, `Rules\Upgrading\CallTemplate`, `Rules\Upgrading\ClassReplacement`, `Rules\Upgrading\MagicCall`, `Rules\Upgrading\MemberTarget`, `Rules\Upgrading\Rewrite`: the helpers of the rules fed by maps that are not the grammar of the maps
+- `Analyses\Registry`, `Analyses\PhpStan`, `Analyses\PhpSymbolsData`, `Analyses\PhpSignaturesData`: the machinery of the analyses
+- `Testing\GapSurvey`
+
+Of the public classes, the constructors of `Gap` and `RuleContext` and the methods marked `@internal` (`RuleContext::reportGap()`, `hasReports()`, `takeReports()`, `Profile::toSymbolKey()`) are the engine's alone.
 
 ## The tree a rule works with
 
