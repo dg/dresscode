@@ -1,0 +1,126 @@
+# Symfony Coding Standards as the `@Symfony` rule set defines them, without most of its phpDoc rules
+#
+# The Symfony Coding Standards as the @Symfony rule set of PHP CS Fixer defines them, without most of its rules about
+# phpDoc, of which it takes only an empty doc comment, the trimming and the canonical types: PER Coding Style, which the
+# set builds on, with the casing, the imports, the blank lines and the whitespace Symfony adds, and without the rules
+# that would break a construct over lines, which Symfony leaves to the author.
+
+use: perCs
+
+file:
+	maxLineLength: none
+
+indentation:
+	binaryOperator: keep
+	chain: keep
+	heredoc: keep                             # heredoc_indentation belongs to another set
+
+builtin:
+	magicConstant: uppercase
+	class: declared                           # `DateTime`, not `datetime`
+	function: declared                        # `strlen()`, not `StrLen()`
+
+# global_namespace_import imports nothing: a class is written with the backslash, a function and a constant too where
+# they are qualified, and a bare one stays bare
+qualification:
+	globalClass: backslashed                  # `\DateTime`
+	globalFunction: [backslashed, bare]       # `\strlen()` or `strlen()`, never imported
+	globalConstant: [backslashed, bare]
+
+imports:
+	order: alphabetical                       # classes, functions, constants, each alphabetically
+	class: separate                           # `use A; use B;`
+	function: separate
+	constant: separate
+	groupUse: forbidden                       # not `use Acme\{A, B};`
+	unused: forbidden
+
+spacing:
+	fnKeyword: 'fn ($x) => $x'
+	commaAlignment: any                       # aligning spaces and tabs may stay
+	afterSemicolon: 'for ($i = 0; $i < 5; $i++)'
+	unaryOperatorsWithSpace: []               # `!$x`, never `! $x`
+	binaryOperatorAlignment: none             # no extra spaces around an operator
+	concatenation: '$a.$b'
+	objectOperator: '$a->b()'
+	offsetBrackets: '$a[0]'
+	arrayBrackets: '[1, 2]'
+	anonymousClass: 'new class($a)'
+	comment: '// text'                        # also `#` and `/* */`
+	commentAfterCode: '$a; // text'           # at least one space
+
+multiline:
+	operatorPosition:
+		# operator_linebreak moves only a boolean operator, which no option here tells from the others
+		binary: keep
+		concatenation: keep
+		ternary: keep
+		condition: keep
+	signatureOverMaxLength: keep
+	signature: keep
+	call: keep
+	# no fixer of the set breaks a chain, a condition, a ternary or an array
+	chain: keep
+	condition: keep
+	ternary: keep
+	array: keep
+	trailingComma:
+		argument: optional                    # may stay or not where spread, never on one line
+		closureUse: keep
+	parameterAttributes: keep
+
+braces:
+	emptyBody: ownLines                       # not `{}` as in PER Coding Style
+	emptyAnonymousClass: keep
+	singlelineClosure: keep
+	bareStatementGroup: forbidden             # no `{ ... }` that nothing opens
+	alternativeSyntax: forbidden              # no `if: ... endif;`
+
+# a range `[0, 1]` leaves the choice to the author, `[1, null]` is one or more
+blankLines:
+	betweenDeclarations: [0, 1]               # around one among statements
+	betweenMethods: 1
+	betweenInterfaceMethods: 1
+	betweenTraitUses: keep
+	afterTraitUses: keep
+	afterPhpdoc: 0
+	beforeStatement: {return: [1, null]}      # a `return` set apart from the code above it
+
+classes:
+	untypedPropertyNullInitialization: forbidden   # `public $a;`, not `public $a = null;`
+
+functions:
+	trailingBareReturn: forbidden             # no `return;` closing a function
+
+controlFlow:
+	elseAfterExit: forbidden                  # the `else` after a `return` goes, its body following the `if`
+
+expressions:
+	notEquals: '!='                           # not `<>`
+	incrementByAssignment: forbidden          # `$i++`, not `$i += 1`
+	doubleNegation: forbidden                 # `(bool) $a`, not `!!$a`
+	parenthesesAfterConstruct: forbidden      # `return $x;`, not `return ($x);`
+	backticks: forbidden                      # `shell_exec()`
+
+literals:
+	quotes: single
+	heredocWithoutInterpolation: keep         # heredoc_to_nowdoc belongs to another set
+
+comments:
+	singleline: '//'                          # not `#`
+	empty: forbidden
+
+phpdoc:
+	blankLines: trimmed
+	empty: forbidden
+	types:
+		builtin: canonical                    # `int`, not `integer`, each type of a union once
+		nullPosition: last
+
+correctness:
+	continueInSwitch: forbidden               # a `continue` only leaving a `switch`, reported
+
+upgrading:
+	php:
+		dollarBraceInterpolation: forbidden   # `{$name}`, not `${name}`
+		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`

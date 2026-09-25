@@ -105,7 +105,7 @@ test('explain of a decision writes what it is, its value here and those of the s
 	Assert::same(0, $code);
 	Assert::contains('`spacing.call`', $text);
 	Assert::contains('Here `compact`, set by dresscode/psr12.', $text);
-	Assert::contains('The standards: perCs `compact`, psr12 `compact`, nette `compact`.', $text);
+	Assert::contains('The standards: perCs `compact`, psr12 `compact`, nette `compact`, symfony `compact`.', $text);
 	Assert::contains('See https://dresscode.run/decisions/spacing.call', $text);
 });
 

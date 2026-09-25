@@ -184,8 +184,9 @@ test('presets', function () {
 	Assert::same('dresscode/perCs', $registry->resolvePreset('perCs'));
 	Assert::same('test/preset', $registry->resolvePreset('test/preset'));
 	Assert::same([
-		'dresscode/perCs', 'dresscode/psr12', 'dresscode/nette', 'dresscode/cleanup', 'dresscode/compilerOptimizations',
-		'dresscode/correctness', 'dresscode/deprecations', 'dresscode/modernizations', 'dresscode/types', 'test/preset',
+		'dresscode/perCs', 'dresscode/psr12', 'dresscode/nette', 'dresscode/symfony', 'dresscode/cleanup',
+		'dresscode/compilerOptimizations', 'dresscode/correctness', 'dresscode/deprecations', 'dresscode/modernizations', 'dresscode/types',
+		'test/preset',
 	], array_keys($registry->presets));
 	Assert::match('%a%/src/Presets/perCs.neon', $registry->presets['dresscode/perCs']);
 	Assert::exception(fn() => $registry->resolvePreset('none'), ConfigurationException::class, 'Unknown preset `none`.');

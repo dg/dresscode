@@ -9,8 +9,8 @@ namespace DressCode\Config;
 
 
 /**
- * What one upgrading file says to the project: the maps of the sections the version the project stands on reaches,
- * and what the package declares in its namespaces.
+ * What one upgrading file, or what DressCode itself knows of a package, says to the project: the maps of the sections the
+ * version the project stands on reaches, and what the package declares in its namespaces.
  * @internal
  */
 final readonly class UpgradingData

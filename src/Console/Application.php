@@ -667,7 +667,7 @@ final class Application
 
 
 	/**
-	 * The decisions each of the three standards makes, resolved alone.
+	 * The decisions each of the four standards makes, resolved alone.
 	 * @return array<string, array<string, Config\ResolvedDecision>>  standard => path => its decision
 	 */
 	private static function resolveStandards(PluginRegistry $registry, string $phpVersion): array
