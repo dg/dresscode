@@ -1,0 +1,20 @@
+<?php
+// risky
+// {"str_slug": "Acme\\Support\\Str::slug", "array_get": "\\Acme\\Support\\Arr::get", "Acme\\Legacy\\studly": "Acme\\Support\\Str::studly"}
+
+namespace App {
+	use Acme\Support\Arr;
+	use function Acme\Legacy\studly;
+
+	// with a risky fix the unqualified calls, which a function of the namespace could take, are written too
+	function test(array $config): array
+	{
+		return [
+			str_slug($config['title'], separator: '_'),
+			\str_slug('Hello World'),
+			array_get($config, 'name', 'default'),
+			studly('snake_case'),
+			array_map(str_slug(...), ['A B']),
+		];
+	}
+}

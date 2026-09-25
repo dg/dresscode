@@ -206,6 +206,18 @@ final class UpgradingTester
 			}
 		}
 
+		// a function of a library is declared by a file loaded with its first use, so only a static method is checked
+		foreach ($rules['replaced-functions'] ?? [] as $old => $new) {
+			if (!is_string($new) || !str_contains($new, '::')) {
+				continue;
+			}
+
+			[$class, $method] = explode('::', ltrim($new, '\\'), 2);
+			if (!self::hasMember($class, $method, MemberKind::Method)) {
+				$problems[] = "replaced-functions: $old is replaced by $new, which does not exist.";
+			}
+		}
+
 		foreach ($members as $member => [$class, $name, $kind]) {
 			$first = "$class::$name";
 			for ($steps = count($members); isset($members[$next = strtolower($class) . "::$name"]) && $steps > 0; $steps--) {

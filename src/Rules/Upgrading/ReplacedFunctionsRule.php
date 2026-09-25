@@ -9,12 +9,12 @@ namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Parameter, PhpSignatures, PhpSymbols};
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
-use DressCode\Rules\NodeHelpers;
+use DressCode\Rules\{CodeWriter, NodeHelpers};
 use Nette\Schema\{Context, Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, SymbolKind, Token};
+use PhpSyntax\{Node, Parser, SymbolKind, Token};
 use PhpSyntax\Nodes\{ArgumentNode, NameNode, VariadicPlaceholderNode};
-use PhpSyntax\Nodes\Expression\FunctionCallNode;
+use PhpSyntax\Nodes\Expression\{FunctionCallNode, StaticMethodCallNode};
 use function array_find, count, is_int, strlen;
 
 
@@ -36,7 +36,8 @@ use function array_find, count, is_int, strlen;
  * inside that namespace. The replacement is written the way the scope writes a global function, by its short name
  * inside its own namespace or imported where the call reached the replaced one unqualified, by the qualified name the
  * call wrote where both share a namespace, or fully qualified elsewhere, the rules of the notation of names then
- * writing it as the project spells such a name.
+ * writing it as the project spells such a name. A replacement written `Acme\Text::slug` is a static method, called
+ * with the arguments of the call and its class spelled the way the code reaches it.
  */
 #[RuleInfo(
 	'dresscode/replaced-functions',
@@ -52,10 +53,10 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 	public static function getOptionsSchema(): Schema
 	{
 		return Expect::arrayOf(
-			Expect::string()->pattern('\\\\?\w+(\\\\\w+)*'),
+			Expect::string()->pattern('\\\\?\w+(\\\\\w+)*(::\w+)?'),
 			Expect::string()->pattern('\\\\?\w+(\\\\\w+)*'),
 		)
-			->description('The function, global or of a namespace → the function written instead')
+			->description('The function, global or of a namespace → the function or the static method written instead')
 			->transform(function (array $options, Context $context): array {
 				foreach ($options as $old => $new) {
 					if (strcasecmp(ltrim((string) $old, '\\'), ltrim($new, '\\')) === 0) {
@@ -114,6 +115,15 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 			fixable: $refusal === null,
 			risky: $uncertainty !== null,
 		)) {
+			return;
+		}
+
+		if (str_contains($new, '::')) {
+			[$class, $method] = explode('::', $new);
+			$call = (new Parser)->parseExpression(CodeWriter::spellClass($class, $node, $context) . "::$method()");
+			assert($call instanceof StaticMethodCallNode);
+			$call->arguments = $node->arguments->withoutEdgeTrivia();
+			$node->replaceWithExpression($call);
 			return;
 		}
 
