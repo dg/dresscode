@@ -60,6 +60,7 @@ final class NeonReader
 		return Expect::structure([
 			'extensions' => Expect::listOf(Expect::anyOf(Expect::string(), Expect::type(Entity::class))),
 			...self::getProfileSchema(),
+			'types' => Expect::anyOf('phpstan'),
 			'overrides' => Expect::listOf(Expect::structure([
 				'paths' => Expect::listOf('string')->required(),
 				...self::getProfileSchema(),
@@ -99,7 +100,6 @@ final class NeonReader
 			'nameResolution' => Expect::anyOf('certain', 'uncertain'),
 			'fixRisky' => Expect::listOf('string'),
 			'warnings' => Expect::listOf('string'),
-			'types' => Expect::anyOf('phpstan'),
 		];
 	}
 

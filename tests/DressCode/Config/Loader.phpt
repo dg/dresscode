@@ -253,6 +253,13 @@ test('the types of the code come from phpstan or from nowhere', function () {
 		ConfigurationException::class,
 		"Configuration file %a%: The item 'types' expects to be %a%",
 	);
+
+	// the types are known for the whole project, which an override does not decide
+	Assert::exception(
+		fn() => $types("overrides:\n\t- paths: [src]\n\t  types: phpstan\n"),
+		ConfigurationException::class,
+		"Configuration file %a%: Unexpected item 'overrides\u{a0}›\u{a0}0\u{a0}›\u{a0}types'%a%",
+	);
 });
 
 
