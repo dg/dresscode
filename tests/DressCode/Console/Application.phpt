@@ -745,6 +745,10 @@ test('exit codes: violations, warnings, the warning threshold, a syntax error an
 	Assert::match('%A%  warning  2:1  Rename $a  test/rename%A%FOUND  3 warnings, a fix leaves 2 in 2 files%A%', $out);
 	Assert::same(0, $run(['--max-warnings', '3']));
 	Assert::same(1, $run(['--max-warnings', '2']));
+	// and so it is over stdin
+	$stdin = fn(array $args) => runApp($root, ['check', '--config', "$root/exit.php", '--no-cache', ...$args, '--stdin', 'src/b.php'], "<?php\n\$x;\n")[0];
+	Assert::same(0, $stdin([]));
+	Assert::same(1, $stdin(['--max-warnings', '0']));
 
 	// a rule left as an error decides the exit code whatever the threshold says
 	$write(', warnings: [ConsoleReport::class]');

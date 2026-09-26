@@ -245,6 +245,7 @@ final class Application
 
 		$stdinPath = $args['--stdin'];
 		$paths = array_values(array_unique(array_map($this->resolvePath(...), self::parsePaths($args))));
+		$maxWarnings = $args['--max-warnings'] === null ? null : max(0, (int) $args['--max-warnings']);
 
 		if (is_string($stdinPath)) {
 			if ($paths) {
@@ -261,7 +262,7 @@ final class Application
 			$reporter->start(1, $fix);
 			$result = $runner->processFile($this->resolvePath($stdinPath), $code);
 			$reporter->reportFile($result);
-			$run = new RunResult([$result], $fix);
+			$run = new RunResult([$result], $fix, maxWarnings: $maxWarnings);
 			$reporter->finish($run);
 			if ($fix) {
 				$this->out->write($result->output ?? $code);
@@ -309,7 +310,6 @@ final class Application
 		$onProgress = $progress === null ? null : $progress->advance(...);
 		$reporter = $this->createReporter($args, $this->out, $this->stdout, $root, $format);
 
-		$maxWarnings = $args['--max-warnings'] === null ? null : max(0, (int) $args['--max-warnings']);
 		try {
 			return $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings)->getExitCode();
 		} finally {
