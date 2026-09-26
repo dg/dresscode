@@ -20,3 +20,8 @@ parameters:
 		-
 			identifier: phpstanApi.instanceofAssumption
 			path: src/Analyses/Types.php
+		# the cache of anonymous classes is static state of an internal class; should PHPStan rename or drop it, nothing
+		# is emptied, which costs memory, not a wrong answer
+		-
+			identifier: phpstanApi.classConstant
+			path: src/Analyses/PhpStan.php

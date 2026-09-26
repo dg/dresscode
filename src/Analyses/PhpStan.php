@@ -17,6 +17,7 @@ use PHPStan\BetterReflection\Reflection\Exception\CircularReference;
 use PHPStan\DependencyInjection\{Container, ContainerFactory};
 use PHPStan\Parser\Parser;
 use PHPStan\PhpDoc\TypeStringResolver;
+use PHPStan\Reflection\BetterReflection\BetterReflectionProvider;
 use PHPStan\Reflection\{ClassReflection, ReflectionProvider};
 use PHPStan\Type\Type;
 use function is_string;
@@ -25,9 +26,10 @@ use function is_string;
 /**
  * PHPStan of the project in the process, the one `phpstan/phpstan` in its vendor: a container built once from
  * the configuration of the project, the parser and the scope resolver the types come from. Only what PHPStan
- * marks @api is used, so that a minor version of it changes nothing here, with one exception: the reflection
- * lives in static state of PHPStan, which the container created last takes over, and handing it back to another
- * container is internal, as PHPStan does it itself where it switches between two.
+ * marks @api is used, so that a minor version of it changes nothing here, with two exceptions, both about the
+ * reflection living in static state of PHPStan: the container created last takes it over, and handing it back to
+ * another container is internal, as PHPStan does it itself where it switches between two; and its cache of anonymous
+ * classes holds the container that reflected each, so it is emptied before a PHPStan of another text of a pass is made.
  * @internal
  */
 final class PhpStan
@@ -106,6 +108,7 @@ final class PhpStan
 
 		$hash = hash('xxh128', "$path|$code");
 		if ($this->derived === null || $this->derived[0] !== $hash) {
+			self::forgetAnonymousClasses();
 			$file = Helpers::canonicalizePath($this->tempDir) . '/pass/' . getmypid() . "-$hash.php";
 			FileSystem::write($file, $code);
 			$derived = clone $this;
@@ -117,6 +120,15 @@ final class PhpStan
 		}
 
 		return $this->derived[1];
+	}
+
+
+	/** Empties the cache of anonymous classes of PHPStan; should PHPStan rename or drop it, nothing is emptied. */
+	private static function forgetAnonymousClasses(): void
+	{
+		if (class_exists(BetterReflectionProvider::class, false) && property_exists(BetterReflectionProvider::class, 'anonymousClasses')) {
+			\Closure::bind(static function (): void { self::$anonymousClasses = []; }, null, BetterReflectionProvider::class)();
+		}
 	}
 
 
