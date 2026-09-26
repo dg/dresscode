@@ -405,15 +405,17 @@ final class Application
 
 	/**
 	 * The command line of a worker: the same PHP with the same ini file (the binary alone would load the default
-	 * one), the same command and configuration; the paths come over the connection.
+	 * one) and the settings the process has beyond it, the same command and configuration; the paths come over the
+	 * connection.
 	 * @return list<string>
 	 */
 	private function buildWorkerCommand(Result $args, bool $fix): array
 	{
 		$ini = php_ini_loaded_file();
+		$php = [PHP_BINARY, ...($ini === false ? (php_ini_scanned_files() === false ? ['-n'] : []) : ['-c', $ini])];
 		$command = [
-			PHP_BINARY,
-			...($ini === false ? (php_ini_scanned_files() === false ? ['-n'] : []) : ['-c', $ini]),
+			...$php,
+			...self::findIniOverrides($php),
 			$this->scriptFile,
 			$fix ? 'fix' : 'check',
 			'--no-color',
@@ -440,6 +442,41 @@ final class Application
 		}
 
 		return $command;
+	}
+
+
+	/**
+	 * The settings the process has and the PHP of the command alone would not, those given by -d above all, as the
+	 * options -d that give them to a worker; PHP tells no process the options it started with, so the PHP of the
+	 * command is asked for its settings and they are compared.
+	 * @param  list<string>  $php
+	 * @return list<string>
+	 */
+	private static function findIniOverrides(array $php): array
+	{
+		$null = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
+		$process = @proc_open([...$php, '-r', 'echo serialize(ini_get_all(null, false));'], [1 => ['pipe', 'w'], 2 => ['file', $null, 'w']], $pipes); // @ - no settings then
+		if ($process === false) {
+			return [];
+		}
+
+		$base = @unserialize((string) stream_get_contents($pipes[1])); // @ - a PHP that failed to start gives none
+		fclose($pipes[1]);
+		proc_close($process);
+		$own = ini_get_all(null, false);
+		if (!is_array($base) || $own === false) {
+			return [];
+		}
+
+		$options = [];
+		foreach ($own as $name => $value) {
+			if (array_key_exists($name, $base) && $base[$name] !== $value) {
+				$options[] = '-d';
+				$options[] = "$name=$value";
+			}
+		}
+
+		return $options;
 	}
 
 
