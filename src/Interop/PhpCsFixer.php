@@ -440,7 +440,15 @@ final class PhpCsFixer
 			throw new ConfigurationException("File $file does not exist.");
 		}
 
-		$config = require $file;
+		try {
+			$config = require $file;
+		} catch (\Error $e) {
+			$hint = preg_match('~^Class ".+" not found$~', $e->getMessage())
+				? '; run the dresscode installed in the project beside PHP CS Fixer, which loads its classes'
+				: '';
+			throw new ConfigurationException("File $file cannot be read: {$e->getMessage()}$hint.", previous: $e);
+		}
+
 		if (is_array($config)) {
 			return $config;
 		}

@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Config\RuleRegistry;
-use DressCode\ConfigurableRule;
+use DressCode\{ConfigurableRule, ConfigurationException};
 use DressCode\Interop\{PhpCodeSniffer, PhpCsFixer, Translation, Translator};
 use DressCode\Rules\Namespaces\NameNotationRule;
 use Nette\Schema\Processor;
@@ -236,6 +236,28 @@ test('a ruleset switches off a sniff it excludes inside a rule, and says it leav
 		"The paths the ruleset excludes are not carried over; set them with the key 'excludePaths'.",
 		'The paths excluded from PSR12 are not carried over; turn its rules off there with an override.',
 	], $warnings);
+});
+
+
+test('a .php-cs-fixer.php that cannot be run is an error of the configuration, not the end of the run', function () {
+	$dir = __DIR__ . '/../../temp/translator';
+	@mkdir($dir, recursive: true); // @ - may exist
+
+	// a class it misses is most likely PHP CS Fixer, which only the dresscode of the project sees
+	file_put_contents("$dir/.php-cs-fixer.php", "<?php\nreturn (new Acme\\Missing\\Config)->setRules(['@PSR12' => true]);\n");
+	Assert::exception(
+		fn() => PhpCsFixer::readConfig("$dir/.php-cs-fixer.php"),
+		ConfigurationException::class,
+		'File %a%.php-cs-fixer.php cannot be read: Class "Acme\\Missing\\Config" not found; run the dresscode installed in the project beside PHP CS Fixer, which loads its classes.',
+	);
+
+	// any other error of the file is said as it is
+	file_put_contents("$dir/.php-cs-fixer.php", "<?php\nreturn [\n");
+	Assert::exception(
+		fn() => PhpCsFixer::readConfig("$dir/.php-cs-fixer.php"),
+		ConfigurationException::class,
+		"File %a%.php-cs-fixer.php cannot be read: Unclosed '[' on line 2.",
+	);
 });
 
 
