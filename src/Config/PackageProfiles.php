@@ -16,8 +16,8 @@ use function is_array, is_string;
  * What the installed packages bring to a project without being named in its configuration: the upgrading files under
  * `extra.dresscode.upgrading`, cut to the sections the version of their package reaches (ProjectPackages::findVersion()),
  * a later one having the last word on an entry, and the extension under `extra.dresscode.extension`. The root package
- * takes part too, and a file about the root itself applies whole. Such a file never turns a rule on itself; its
- * `group`, `deprecations` unless it says another, does, where the project turns that group on.
+ * takes part too, and a file about the root itself applies whole. Such a file never turns a rule on itself; the
+ * `group` it has to name does, where the project turns that group on.
  * @internal
  */
 final class PackageProfiles
