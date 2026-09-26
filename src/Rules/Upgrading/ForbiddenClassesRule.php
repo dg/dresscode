@@ -27,7 +27,7 @@ use PhpSyntax\Nodes\{NameNode, UseItemNode};
 )]
 final class ForbiddenClassesRule extends NodeRule implements ConfigurableRule
 {
-	/** @var array<string, array{string, string}>  lowercased class → the class as the map spells it and what to do instead */
+	/** @var array<string, array{string, string}>  lowercased class => the class as the map spells it and what to do instead */
 	private array $classes = [];
 
 

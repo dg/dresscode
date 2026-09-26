@@ -32,13 +32,13 @@ final class ProjectPackages
 		public readonly ?string $rootPath = null,
 		/** @var array<mixed>  what the composer.json of the root package says under extra */
 		public readonly array $rootExtra = [],
-		/** @var array<string, string>  package the project requires itself → its constraint */
+		/** @var array<string, string>  package the project requires itself => its constraint */
 		private readonly array $required = [],
-		/** @var array<string, array{version: ?string, reference: ?string, path: ?string, extra: array<mixed>}>  installed package → the version it stands for (null for any), the source it came from, where it lies and its extra */
+		/** @var array<string, array{version: ?string, reference: ?string, path: ?string, extra: array<mixed>}>  installed package => the version it stands for (null for any), the source it came from, where it lies and its extra */
 		public readonly array $installed = [],
-		/** @var array<string, string>  package → the version the configuration says the code is written for */
+		/** @var array<string, string>  package => the version the configuration says the code is written for */
 		private readonly array $targets = [],
-		/** @var array<string, string>  package → the installed one that replaces it with its own version */
+		/** @var array<string, string>  package => the installed one that replaces it with its own version */
 		private readonly array $replaced = [],
 	) {
 	}
@@ -102,7 +102,7 @@ final class ProjectPackages
 	/**
 	 * The same project with the versions of packages its code is written for said outright, which findVersion()
 	 * answers with before it asks the constraint: code is fixed for a version before the project moves to it.
-	 * @param  array<string, string>  $versions  package → version
+	 * @param  array<string, string>  $versions  package => version
 	 */
 	public function withTargets(array $versions): self
 	{

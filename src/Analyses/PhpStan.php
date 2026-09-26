@@ -41,7 +41,7 @@ final class PhpStan
 	/** @var ?array{string, string}  the path whose declarations are read from the other file, a text of a pass */
 	private ?array $replacement = null;
 
-	/** @var array<string, array{string, list<list<string>>}>  path → hash of its text on the disk and what it declares */
+	/** @var array<string, array{string, list<list<string>>}>  path => hash of its text on the disk and what it declares */
 	private array $diskDeclarations = [];
 
 	/** @var ?array{string, self}  hash of the text of a pass and the PHPStan reading it */

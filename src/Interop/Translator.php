@@ -18,16 +18,16 @@ use function array_slice, is_array, is_string;
  */
 final class Translator
 {
-	/** @var array<string, string|\Closure(array<string, mixed>, Translation): mixed>  foreign rule → rule name, or a closure building the rules from the foreign options */
+	/** @var array<string, string|\Closure(array<string, mixed>, Translation): mixed>  foreign rule => rule name, or a closure building the rules from the foreign options */
 	private readonly array $translations;
 
-	/** @var array<string, string>  foreign rule set → preset */
+	/** @var array<string, string>  foreign rule set => preset */
 	private readonly array $sets;
 
-	/** @var array<string, list<string>>  foreign rule → the rules it stands for */
+	/** @var array<string, list<string>>  foreign rule => the rules it stands for */
 	private array $rules = [];
 
-	/** @var ?array<string, list<string>>  rule → the foreign rules it covers */
+	/** @var ?array<string, list<string>>  rule => the foreign rules it covers */
 	private ?array $foreignNames = null;
 
 

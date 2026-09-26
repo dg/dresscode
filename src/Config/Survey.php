@@ -35,7 +35,7 @@ final class Survey
 	 * nothing in it, and a file no value reports has none of the decision in it and does not count. Neither does a
 	 * file the rule fails in under any of the values, which would otherwise agree with that one.
 	 * @param  class-string<\DressCode\Rule>  $rule
-	 * @param  array<int|string, Profile>  $values  value → the profile that runs the rule with it; PHP keeps a numeric value as an int key
+	 * @param  array<int|string, Profile>  $values  value => the profile that runs the rule with it; PHP keeps a numeric value as an int key
 	 * @throws ConfigurationException
 	 */
 	public function measureFiles(string $rule, array $values): Measurement
@@ -60,7 +60,7 @@ final class Survey
 	 * so that each is one place and disagrees with every value. The places of a file the rule fails in under any
 	 * of the profiles are left out of all of them.
 	 * @param  class-string<\DressCode\Rule>  $rule
-	 * @param  array<int|string, Profile>  $values  value → the profile that runs the rule with it; PHP keeps a numeric value as an int key
+	 * @param  array<int|string, Profile>  $values  value => the profile that runs the rule with it; PHP keeps a numeric value as an int key
 	 * @param  ?Profile  $any  the profile that runs the rule with every value allowed
 	 * @throws ConfigurationException
 	 */

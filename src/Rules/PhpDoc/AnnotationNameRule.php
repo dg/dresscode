@@ -124,7 +124,7 @@ final class AnnotationNameRule extends NodeRule
 	}
 
 
-	/** @return array<string, string>  lowercased name with the @ → canonical name */
+	/** @return array<string, string>  lowercased name with the @ => canonical name */
 	private static function getCanonicalNames(): array
 	{
 		static $names = null;

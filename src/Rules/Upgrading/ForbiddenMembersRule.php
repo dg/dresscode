@@ -39,7 +39,7 @@ use PhpSyntax\Nodes\Statement\UnsetNode;
 )]
 final class ForbiddenMembersRule extends NodeRule implements ConfigurableRule
 {
-	/** @var array<string, list<array{MemberPattern, string}>>  lowercased name → the entries of that name with what to do instead */
+	/** @var array<string, list<array{MemberPattern, string}>>  lowercased name => the entries of that name with what to do instead */
 	private array $byName = [];
 
 

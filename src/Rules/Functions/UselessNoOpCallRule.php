@@ -33,7 +33,7 @@ use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 )]
 final class UselessNoOpCallRule extends NodeRule
 {
-	/** function → the version since which it frees nothing */
+	/** function => the version since which it frees nothing */
 	private const Functions = [
 		'curl_close' => '8.0',
 		'curl_share_close' => '8.0',

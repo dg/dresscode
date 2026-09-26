@@ -19,10 +19,10 @@ use function count, in_array, is_array, is_string;
  */
 final class Baseline
 {
-	/** @var array<string, array<string, array{rule: string, message: string}>>  path → fingerprint → entry */
+	/** @var array<string, array<string, array{rule: string, message: string}>>  path => fingerprint => entry */
 	private array $entries = [];
 
-	/** @var array<string, array<string, true>>  path → fingerprints no violation matched yet */
+	/** @var array<string, array<string, true>>  path => fingerprints no violation matched yet */
 	private array $unused = [];
 
 	private int $matched = 0;
@@ -191,7 +191,7 @@ final class Baseline
 	/**
 	 * Entries of the files of the run that no violation matched. An entry of a file the run did not process says
 	 * nothing, and neither does one of a rule the run was narrowed away from.
-	 * @param array<string, ?list<string>> $scope  path of a processed file → the rules that ran on it, null for any rule
+	 * @param array<string, ?list<string>> $scope  path of a processed file => the rules that ran on it, null for any rule
 	 */
 	public function countUnused(array $scope): int
 	{

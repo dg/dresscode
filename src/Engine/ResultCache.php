@@ -21,7 +21,7 @@ final class ResultCache
 {
 	private const Expiration = 30 * 24 * 3600;
 
-	/** @var array<string, array{int, list<string>}>  content hash → time last confirmed and the fingerprints the baseline silenced */
+	/** @var array<string, array{int, list<string>}>  content hash => time last confirmed and the fingerprints the baseline silenced */
 	private array $entries = [];
 
 	/** @var array<string, true> */

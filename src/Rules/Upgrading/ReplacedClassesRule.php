@@ -35,7 +35,7 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
 )]
 final class ReplacedClassesRule extends NodeRule implements ConfigurableRule
 {
-	/** @var array<string, string>  lowercased replaced name → the name written instead, both fully qualified */
+	/** @var array<string, string>  lowercased replaced name => the name written instead, both fully qualified */
 	private array $classes = [];
 
 

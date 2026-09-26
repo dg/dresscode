@@ -89,7 +89,7 @@ final class UpgradingTester
 
 	/**
 	 * What the rules say of their options, and the options as the rules get them, a value NEON read as an entity as code.
-	 * @param  array<string, mixed>  $rules  rule → its options
+	 * @param  array<string, mixed>  $rules  rule => its options
 	 * @param  list<class-string<Rule>>  $own  the rules of the package, known by their names besides those of DressCode
 	 * @return array{list<string>, array<string, array<string, mixed>>}
 	 */
@@ -125,7 +125,7 @@ final class UpgradingTester
 	/**
 	 * The sentences of the forbidden-* maps, which end the message after "… is forbidden:": in lower case unless they
 	 * begin with a name, without a period at the end, backticks, double quotes or "should", and at most MaxSentence long.
-	 * @param  array<string, array<string, mixed>>  $rules  rule → its options, those of every section
+	 * @param  array<string, array<string, mixed>>  $rules  rule => its options, those of every section
 	 * @return list<string>
 	 */
 	private static function checkSentences(array $rules): array
@@ -155,12 +155,12 @@ final class UpgradingTester
 
 
 	/**
-	 * @param  array<string, array<string, mixed>>  $rules  rule → its options, those of the sections the installed version reaches
+	 * @param  array<string, array<string, mixed>>  $rules  rule => its options, those of the sections the installed version reaches
 	 * @return list<string>
 	 */
 	private static function checkExistence(array $rules): array
 	{
-		// lowercased class → the class written instead, and lowercased class::name in its case → [class, name, the entry as written]
+		// lowercased class => the class written instead, and lowercased class::name in its case => [class, name, the entry as written]
 		$classes = $members = $written = [];
 		foreach ($rules['replaced-classes'] ?? [] as $old => $new) {
 			if ($new !== MemberMaps::Keep) {

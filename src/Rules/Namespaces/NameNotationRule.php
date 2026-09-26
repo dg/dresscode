@@ -47,7 +47,7 @@ final class NameNotationRule extends NodeRule implements ConfigurableRule
 		SymbolKind::Constant->name => ['globalConstants', 'constants'],
 	];
 
-	/** @var array<string, string|array<string, string>|null>  key → its value, null when not given */
+	/** @var array<string, string|array<string, string>|null>  key => its value, null when not given */
 	private array $options = [];
 
 
@@ -201,7 +201,7 @@ final class NameNotationRule extends NodeRule implements ConfigurableRule
 		$resolver = $context->getAnalysis(NameResolver::class);
 		$canImport = NodeHelpers::canAddImport($node);
 		$targets = self::collectShortNameTargets($node, $resolver);
-		$imported = []; // name of the kind → key of the alias → the full name the rule imported under it
+		$imported = []; // name of the kind => key of the alias => the full name the rule imported under it
 		foreach ($node->find(NameNode::class) as $name) {
 			if (!$name->isReference()) {
 				continue;
@@ -254,7 +254,7 @@ final class NameNotationRule extends NodeRule implements ConfigurableRule
 	/**
 	 * What each unqualified class name of the namespace resolves to, and what the first part of each qualified name
 	 * does, both of which an import of a global class of that name would redirect.
-	 * @return array<string, array<string, true>>  lowercased short name → lowercased resolved names
+	 * @return array<string, array<string, true>>  lowercased short name => lowercased resolved names
 	 */
 	private static function collectClassTargets(NamespaceNode $scope, NameResolver $resolver): array
 	{
@@ -304,7 +304,7 @@ final class NameNotationRule extends NodeRule implements ConfigurableRule
 	/**
 	 * What each short name an import could take over resolves to in the scope, by kind: an unqualified name, which the
 	 * import would redirect, and a fully qualified global class, a dropped leading backslash away from being one.
-	 * @return array<string, array<string, array<string, true>>>  name of the kind → key of the alias → resolved names
+	 * @return array<string, array<string, array<string, true>>>  name of the kind => key of the alias => resolved names
 	 */
 	private static function collectShortNameTargets(NamespaceNode $scope, NameResolver $resolver): array
 	{

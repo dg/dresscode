@@ -62,7 +62,7 @@ use function count;
 )]
 final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 {
-	/** @var array<string, list<array{MemberPattern, CallTemplate}>>  lowercased name → the entries of that name, the most specific first */
+	/** @var array<string, list<array{MemberPattern, CallTemplate}>>  lowercased name => the entries of that name, the most specific first */
 	private array $byName = [];
 
 

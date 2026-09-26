@@ -332,7 +332,7 @@ final class RunnerFactory
 	 * a package apart from a file of the project itself: InstalledVersions answers from every registered loader,
 	 * the one inside the phar of PHPStan included once it is started, so a root of a phar is left out. The path
 	 * of the root package is null, its files being the ones the caller weighs.
-	 * @return array<string, ?string>  package → where it lies
+	 * @return array<string, ?string>  package => where it lies
 	 */
 	private static function getProcessPackagePaths(): array
 	{
@@ -361,7 +361,7 @@ final class RunnerFactory
 	 * a package stands for its files, while a rule of the project itself changes under the same version of the
 	 * project. A process without Composer knows no package, so every file outside a phar counts.
 	 * @param  array<class-string, ?\Closure(FileNode, string): object>  $analyses
-	 * @return array<string, int|false>  file → modification time
+	 * @return array<string, int|false>  file => modification time
 	 */
 	private function collectSourceTimes(ResolvedConfig $resolved, array $analyses): array
 	{

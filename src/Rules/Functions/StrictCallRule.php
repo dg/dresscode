@@ -34,7 +34,7 @@ use function array_slice, count, in_array;
 final class StrictCallRule extends NodeRule
 {
 	/**
-	 * function → arguments up to $strict; null for one the call must have already, being required or what
+	 * function => arguments up to $strict; null for one the call must have already, being required or what
 	 * $strict compares with
 	 */
 	private const StrictArguments = [

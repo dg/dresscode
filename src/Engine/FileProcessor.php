@@ -26,7 +26,7 @@ final class FileProcessor
 		/** @var list<Rule> in configuration order */
 		private readonly array $rules,
 		private readonly Analyses\Registry $analyses,
-		/** @var \Closure(string): list<string> a name in a suppression comment → the rules it stands for */
+		/** @var \Closure(string): list<string> a name in a suppression comment => the rules it stands for */
 		private readonly \Closure $resolveNames,
 		/** the version the checked code is written for; it has no default, only the configuration knows it */
 		private readonly string $phpVersion,

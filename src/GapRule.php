@@ -19,8 +19,8 @@ namespace DressCode;
 abstract class GapRule extends Rule
 {
 	/**
-	 * Node class, or '*' for every node with the slot → slot (`'body'`), an item of a list
-	 * (`'statements:item'`) or its separators (`'items:separator'`) → [before, after]: the claim,
+	 * Node class, or '*' for every node with the slot => slot (`'body'`), an item of a list
+	 * (`'statements:item'`) or its separators (`'items:separator'`) => [before, after]: the claim,
 	 * null for none, or a closure deciding by the gap and returning null to abstain. A claim on a slot holding
 	 * a node applies to its first (before) or last (after) token; a claim of a class comes before one of '*'.
 	 * @return array<string, array<string, array{Claim|\Closure(Gap): ?Claim|null, Claim|\Closure(Gap): ?Claim|null}>>

@@ -47,7 +47,7 @@ readonly class Profile
 		public array $presets = [],
 		/** @var list<string|Group>  groups of rules, by the name of the group (`cleanup`) or by the case itself */
 		array $groups = [],
-		/** @var array<string, bool|string|int|array<string, mixed>|\Closure(): Rule>  name or class → enabled, the value of its decision, options, or a factory for a rule with dependencies */
+		/** @var array<string, bool|string|int|array<string, mixed>|\Closure(): Rule>  name or class => enabled, the value of its decision, options, or a factory for a rule with dependencies */
 		public array $rules = [],
 		/** a number of spaces or 'tab' */
 		public int|string|null $indent = null,

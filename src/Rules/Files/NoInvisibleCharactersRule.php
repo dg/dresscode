@@ -30,7 +30,7 @@ use function sprintf, strlen;
 )]
 final class NoInvisibleCharactersRule extends NodeRule
 {
-	/** character → its replacement in a comment */
+	/** character => its replacement in a comment */
 	private const Characters = [
 		"\u{00A0}" => ' ', "\u{2007}" => ' ', "\u{202F}" => ' ',
 		"\u{200B}" => '', "\u{2060}" => '', "\u{FEFF}" => '',

@@ -31,7 +31,7 @@ final class ImportNotationRule extends NodeRule implements ConfigurableRule
 {
 	private const Kinds = ['classes', 'functions', 'constants'];
 
-	/** @var array<string, ?string>  kind → single, combined or null */
+	/** @var array<string, ?string>  kind => single, combined or null */
 	private array $shapes = ['classes' => 'single', 'functions' => 'single', 'constants' => 'single'];
 	private string $groupUse = 'expand';
 

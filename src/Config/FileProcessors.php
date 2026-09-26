@@ -20,7 +20,7 @@ use function implode;
  */
 final class FileProcessors
 {
-	/** @var array<string, FileProcessor>  key of the matching overrides → the processor of that combination */
+	/** @var array<string, FileProcessor>  key of the matching overrides => the processor of that combination */
 	private array $processors = [];
 
 

@@ -35,7 +35,7 @@ use function strlen;
 )]
 final class CommentedOutFunctionRule extends NodeRule implements ConfigurableRule
 {
-	/** function → the parameter switching it from printing to returning, by name and position */
+	/** function => the parameter switching it from printing to returning, by name and position */
 	private const ReturnParameters = [
 		'print_r' => ['return', 1],
 		'var_export' => ['return', 1],

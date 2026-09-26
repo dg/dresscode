@@ -41,7 +41,7 @@ final class CallTemplate
 	private function __construct(
 		public readonly string $code,
 		private readonly ParenthesizedNode $holder,
-		/** @var array<string, int>  placeholder, or the receiver → how many times the template writes it, in the order it first does */
+		/** @var array<string, int>  placeholder, or the receiver => how many times the template writes it, in the order it first does */
 		private readonly array $uses,
 		/** @var array<string, true>  placeholders, or the receiver, written where PHP evaluates only sometimes */
 		private readonly array $lazy,

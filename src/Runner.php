@@ -142,7 +142,7 @@ final class Runner
 	 * any and more than one file, or a single one with the progress watched, since only the workers let it tick while
 	 * a file is processed; else one by one, each file read when its turn comes.
 	 * @param  list<string>  $paths
-	 * @param  array<string, int>  $sizes  path → the length of its content
+	 * @param  array<string, int>  $sizes  path => the length of its content
 	 * @param  ?\Closure(int, array<string, float>, ?int): void  $onProgress
 	 * @param  int  $done  files done before, the cached ones
 	 * @return \Generator<string, FileResult>

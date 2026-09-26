@@ -98,7 +98,7 @@ final class NameReferences
 	/**
 	 * The references of global names in the namespace and how each is written: imported, with the leading backslash, or
 	 * bare, a function or a constant reached by the fallback at run time; by kind and name.
-	 * @return array<string, array<string, list<array{NameNode, string, string}>>>  name of the kind → key of the global name → name, form and global name
+	 * @return array<string, array<string, list<array{NameNode, string, string}>>>  name of the kind => key of the global name => name, form and global name
 	 */
 	public static function collectGlobalUses(NamespaceNode $scope, NameResolver $resolver): array
 	{

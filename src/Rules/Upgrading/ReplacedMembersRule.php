@@ -43,7 +43,7 @@ use PhpSyntax\Nodes\Member\MethodNode;
 )]
 final class ReplacedMembersRule extends NodeRule implements ConfigurableRule
 {
-	/** @var array<string, list<array{MemberPattern, MemberTarget}>>  lowercased name → the entries of that name */
+	/** @var array<string, list<array{MemberPattern, MemberTarget}>>  lowercased name => the entries of that name */
 	private array $byName = [];
 
 

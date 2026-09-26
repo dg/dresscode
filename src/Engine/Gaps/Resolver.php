@@ -24,22 +24,22 @@ use function count, in_array, is_array, is_int, sprintf, strlen;
  */
 final class Resolver
 {
-	/** @var array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>  'Class.slot' or '*.slot' → the claims, several where they claim different components or decide by a closure */
+	/** @var array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>  'Class.slot' or '*.slot' => the claims, several where they claim different components or decide by a closure */
 	private array $before = [];
 
 	/** @var array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>> */
 	private array $after = [];
 
-	/** @var array<string, array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>>  class → slot → the claims before it, of the class then of '*' */
+	/** @var array<string, array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>>  class => slot => the claims before it, of the class then of '*' */
 	private array $beforeOf = [];
 
 	/** @var array<string, array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>> */
 	private array $afterOf = [];
 
-	/** @var array<string, list<string>>  class → its slots somebody claims a side of */
+	/** @var array<string, list<string>>  class => its slots somebody claims a side of */
 	private array $claimedSlots = [];
 
-	/** @var array<int, list<array{list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>, Node|Token, ?int}>>  token id → the claims before it with what they were made for and its index in a list, slot by slot, the innermost last */
+	/** @var array<int, list<array{list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>, Node|Token, ?int}>>  token id => the claims before it with what they were made for and its index in a list, slot by slot, the innermost last */
 	private array $beforeToken = [];
 
 	/** @var array<int, list<array{list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>, Node|Token, ?int}>> */
@@ -405,7 +405,7 @@ final class Resolver
 		$decided = [];
 		for ($i = count($levels) - 1; $i >= 0; $i--) {
 			[$claims, $subject, $index] = $levels[$i];
-			$here = []; // component → the key of the claim deciding it at this level
+			$here = []; // component => the key of the claim deciding it at this level
 			foreach ($claims as [$rule, $claim, $key]) {
 				$construct = null;
 				if ($claim instanceof \Closure) {

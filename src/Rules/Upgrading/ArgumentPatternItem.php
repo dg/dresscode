@@ -26,7 +26,7 @@ final readonly class ArgumentPatternItem
 		public bool $variadic = false,
 		/** the type the argument of the placeholder has for certain, as PHP writes a type, `list` besides; null for any */
 		public ?string $type = null,
-		/** @var ?array<string, string>  the keys an array literal has to have → the placeholders of their values; null for no array */
+		/** @var ?array<string, string>  the keys an array literal has to have => the placeholders of their values; null for no array */
 		public ?array $keys = null,
 		/** the placeholder of the other items of such an array, without the dollar; null where it may have none */
 		public ?string $otherItems = null,

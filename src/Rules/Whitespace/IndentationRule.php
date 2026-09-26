@@ -39,13 +39,13 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 	private int $switchCases = 1;
 	private ?string $chain = 'single';
 
-	/** @var array<int, string>  line → the indentation it is given, or has where nothing governs it */
+	/** @var array<int, string>  line => the indentation it is given, or has where nothing governs it */
 	private array $lines = [];
 
-	/** @var array<int, Token>  line → the token opening it */
+	/** @var array<int, Token>  line => the token opening it */
 	private array $openers = [];
 
-	/** @var array<int, array{Token, string, string, string, ?Token}>  line → its opener, the indentation it and a comment above it are given, what it is, and the opener of the line it follows */
+	/** @var array<int, array{Token, string, string, string, ?Token}>  line => its opener, the indentation it and a comment above it are given, what it is, and the opener of the line it follows */
 	private array $placements = [];
 
 	/** the file and its revision the placements were made for */

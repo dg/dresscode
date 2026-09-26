@@ -62,13 +62,13 @@ final class AttributeForAnnotationRule extends NodeRule implements ConfigurableR
 
 	private const NamespacePattern = '~^\\\\?(\w+(?:\\\\\w+)*)\\\\\*$~D';
 
-	/** @var array<string, array{string, string}>  lowercased annotation without @ → the class of the attribute and what follows it */
+	/** @var array<string, array{string, string}>  lowercased annotation without @ => the class of the attribute and what follows it */
 	private array $attributes = [];
 
-	/** @var array<string, array{string, string}>  lowercased class of an attribute, fully qualified → the class of the attribute written instead and what follows it */
+	/** @var array<string, array{string, string}>  lowercased class of an attribute, fully qualified => the class of the attribute written instead and what follows it */
 	private array $replacedAttributes = [];
 
-	/** @var array<string, string>  lowercased namespace of annotations → the namespace of the attributes written instead */
+	/** @var array<string, string>  lowercased namespace of annotations => the namespace of the attributes written instead */
 	private array $namespaces = [];
 
 

@@ -39,7 +39,7 @@ final class Types implements PassAnalysis
 	/** @var \WeakMap<Callee, ClassConstantReflection|ExtendedMethodReflection|ExtendedPropertyReflection> */
 	private \WeakMap $reflections;
 
-	/** @var array<string, bool>  lowercased "class ancestor" → whether the one is the other's subtype */
+	/** @var array<string, bool>  lowercased "class ancestor" => whether the one is the other's subtype */
 	private array $subtypes = [];
 
 	private readonly PhpStan $phpstan;
@@ -54,7 +54,7 @@ final class Types implements PassAnalysis
 		$code = Printer::print($file);
 		$ast = $phpstan->parse($code);
 		$this->phpstan = $phpstan->deriveFor($path, $code, $ast);
-		$circular = []; // class → whether its ancestors run in a circle, which leaves the nodes inside it without types
+		$circular = []; // class => whether its ancestors run in a circle, which leaves the nodes inside it without types
 		$this->phpstan->resolveScopes($path, $ast, function (ParserNode $node, Scope $scope) use ($index, &$circular): void {
 			$class = $scope->getClassReflection();
 			if ($class !== null && ($circular[$class->getName()] ??= PhpStan::hasCircularAncestors($class))) {

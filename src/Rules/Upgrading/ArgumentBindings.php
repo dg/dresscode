@@ -18,7 +18,7 @@ final readonly class ArgumentBindings
 {
 	public function __construct(
 		/**
-		 * placeholder → its argument, those of a variadic one in a list; the value of a key of an array literal as an
+		 * placeholder => its argument, those of a variadic one in a list; the value of a key of an array literal as an
 		 * argument of its own, and the other items of it in a list
 		 * @var array<string, ArgumentNode|list<ArgumentNode>|list<ArrayItemNode>>
 		 */
@@ -28,7 +28,7 @@ final readonly class ArgumentBindings
 		/** @var list<string>  the placeholders bound to an expression whose keys are not seen, being neither an array literal nor a list */
 		public array $unseenKeys = [],
 		/**
-		 * argument taken apart, by its object id → its array literal, the placeholder of its other items, and the
+		 * argument taken apart, by its object id => its array literal, the placeholder of its other items, and the
 		 * placeholder and the value of each of its items in their order
 		 * @var array<int, array{ArrayNode, ?string, list<array{string, ExpressionNode}>}>
 		 */

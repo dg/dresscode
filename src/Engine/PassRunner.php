@@ -21,16 +21,16 @@ use function strlen;
  */
 final class PassRunner
 {
-	/** @var array<string, list<NodeRule>>  stage name → node rules in configuration order */
+	/** @var array<string, list<NodeRule>>  stage name => node rules in configuration order */
 	private array $stages = [];
 
-	/** @var array<string, array<class-string, list<array{NodeRule, RuleContext, string}>>>  stage → node class → rules entering it, with their contexts and names */
+	/** @var array<string, array<class-string, list<array{NodeRule, RuleContext, string}>>>  stage => node class => rules entering it, with their contexts and names */
 	private array $entering = [];
 
 	/** @var array<string, array<class-string, list<array{NodeRule, RuleContext, string}>>>  the same for leave() */
 	private array $leaving = [];
 
-	/** @var array<string, bool>  stage → some rule of it overrides leave() */
+	/** @var array<string, bool>  stage => some rule of it overrides leave() */
 	private array $leaves = [];
 
 	/** @var array<string, RuleContext> */
@@ -45,10 +45,10 @@ final class PassRunner
 	/** @var array<string, Violation>  by fingerprint, so that a pass repeating a report adds nothing */
 	private array $violations = [];
 
-	/** @var \WeakMap<Token, string>  a token whose line the fixer opened or closed → the fingerprint of the violation it did it for, the first of its chain */
+	/** @var \WeakMap<Token, string>  a token whose line the fixer opened or closed => the fingerprint of the violation it did it for, the first of its chain */
 	private \WeakMap $opened;
 
-	/** @var \WeakMap<Token, string>  a token whose line a rule moved → the fingerprint of the violation the move follows from */
+	/** @var \WeakMap<Token, string>  a token whose line a rule moved => the fingerprint of the violation the move follows from */
 	private \WeakMap $moved;
 
 	/** @var list<string> */
@@ -68,7 +68,7 @@ final class PassRunner
 		/** @var list<Rule> in configuration order */
 		private readonly array $rules,
 		private readonly Analyses\Registry $analyses,
-		/** @var \Closure(string): list<string> a name in a suppression comment → the rules it stands for */
+		/** @var \Closure(string): list<string> a name in a suppression comment => the rules it stands for */
 		private readonly \Closure $resolveNames,
 		private readonly int $maxPasses = 10,
 		/** a broken rule contract throws instead of warning */

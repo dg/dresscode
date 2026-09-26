@@ -25,7 +25,7 @@ final class AnnotationArguments
 {
 	/**
 	 * The arguments as code without the parentheses; null for an annotation PHP cannot write so.
-	 * @param  \Closure(string): string  $spellClass  the name of a nested annotation as written → the class written
+	 * @param  \Closure(string): string  $spellClass  the name of a nested annotation as written => the class written
 	 */
 	public static function write(DoctrineAnnotation $annotation, \Closure $spellClass): ?string
 	{

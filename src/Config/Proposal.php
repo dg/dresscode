@@ -71,7 +71,7 @@ final class Proposal
 		public readonly array $namespacedConstants,
 		/** @var list<string>  the files of the scope that do not parse, whose declarations are therefore unknown */
 		public readonly array $unparsed,
-		/** @var array<string, string>  preset → the installed package it is proposed for */
+		/** @var array<string, string>  preset => the installed package it is proposed for */
 		public readonly array $frameworkPresets,
 		/** the files everything above was measured on */
 		public readonly Sample $sample,
@@ -220,7 +220,7 @@ final class Proposal
 	/**
 	 * The presets of the frameworks whose packages the project has, told by the lock file beside its composer.json
 	 * or, without one, by what Composer installed, because an application rarely requires such a package itself.
-	 * @return array<string, string>  preset → package
+	 * @return array<string, string>  preset => package
 	 */
 	private static function findFrameworkPresets(string $root): array
 	{

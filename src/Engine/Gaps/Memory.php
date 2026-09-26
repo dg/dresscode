@@ -19,10 +19,10 @@ use PhpSyntax\Node;
  */
 final class Memory
 {
-	/** @var array<int, array<int, array{Node, mixed}>>  rule → node → the node, kept to tell a recycled id apart, and the decision */
+	/** @var array<int, array<int, array{Node, mixed}>>  rule => node => the node, kept to tell a recycled id apart, and the decision */
 	private array $decisions = [];
 
-	/** @var array<int, Node>  rule → the first node it decided something about since the engine last asked */
+	/** @var array<int, Node>  rule => the first node it decided something about since the engine last asked */
 	private array $asked = [];
 
 

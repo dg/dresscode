@@ -23,7 +23,7 @@ final readonly class Measurement
 
 
 	public function __construct(
-		/** @var array<int|string, int>  value → places that agree with it */
+		/** @var array<int|string, int>  value => places that agree with it */
 		public array $agreeing,
 		/** places the decision appears in at all */
 		public int $opportunities,

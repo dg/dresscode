@@ -53,7 +53,7 @@ final class NameFallbackRule extends NodeRule implements ConfigurableRule
 		SymbolKind::Constant->name => ['optimizedConstants', 'constants'],
 	];
 
-	/** @var array<string, string|array<string, string>|null>  key → its value, null when not given */
+	/** @var array<string, string|array<string, string>|null>  key => its value, null when not given */
 	private array $options = [];
 
 

@@ -20,13 +20,13 @@ use function strval;
  */
 final class Fingerprints
 {
-	/** @var array<string, int>  rule\nmessage\nline content → occurrences so far */
+	/** @var array<string, int>  rule\nmessage\nline content => occurrences so far */
 	private array $occurrences = [];
 
 	/** @var array<string, true>  fingerprints the baseline silenced */
 	private array $silenced = [];
 
-	/** @var \WeakMap<Node, array<string, array{Node|Token, ?Trivia, ?string}>>  a construct → rule → the place of its violation in this pass and its fingerprint */
+	/** @var \WeakMap<Node, array<string, array{Node|Token, ?Trivia, ?string}>>  a construct => rule => the place of its violation in this pass and its fingerprint */
 	private \WeakMap $constructs;
 
 

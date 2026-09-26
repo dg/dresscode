@@ -48,7 +48,7 @@ final class ProgressBar
 
 
 	/**
-	 * @param array<string, float> $running  path in progress → the time it started
+	 * @param array<string, float> $running  path in progress => the time it started
 	 * @param  ?int  $size  of the file in progress when nothing is heard of it until it is done
 	 */
 	public function advance(int $done, array $running = [], ?int $size = null): void

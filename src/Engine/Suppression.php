@@ -22,7 +22,7 @@ final class Suppression
 {
 	private const All = '*';
 
-	/** @var array<string, list<array{int, int}>>  rule name (or *) → line ranges */
+	/** @var array<string, list<array{int, int}>>  rule name (or *) => line ranges */
 	private array $ranges = [];
 
 

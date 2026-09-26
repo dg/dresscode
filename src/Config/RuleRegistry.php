@@ -236,10 +236,10 @@ final class RuleRegistry
 		Rules\Whitespace\SingleLevelIndentationRule::class,
 	];
 
-	/** @var array<string, class-string<Rule>>  name → class */
+	/** @var array<string, class-string<Rule>>  name => class */
 	private array $rules = [];
 
-	/** @var array<string, class-string<Preset>>  name → class */
+	/** @var array<string, class-string<Preset>>  name => class */
 	private array $presets = [];
 
 
@@ -335,7 +335,7 @@ final class RuleRegistry
 	}
 
 
-	/** @return array<string, class-string<Rule>>  name → class */
+	/** @return array<string, class-string<Rule>>  name => class */
 	public function getRules(): array
 	{
 		return $this->rules;
@@ -409,7 +409,7 @@ final class RuleRegistry
 	}
 
 
-	/** @return array<string, class-string<Preset>>  name → class */
+	/** @return array<string, class-string<Preset>>  name => class */
 	public function getPresets(): array
 	{
 		return $this->presets;

@@ -96,7 +96,7 @@ final class UnusedImportsRule extends NodeRule implements ConfigurableRule
 
 
 	/**
-	 * @return array<string, array<string, true>>  kind → alias (lowercased except constants) → used
+	 * @return array<string, array<string, true>>  kind => alias (lowercased except constants) => used
 	 */
 	private function collectUsages(FileNode|NamespaceNode $scope, RuleContext $context): array
 	{

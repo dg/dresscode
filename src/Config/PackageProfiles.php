@@ -112,7 +112,7 @@ final class PackageProfiles
 			throw new ConfigurationException("Upgrading file $source: The key 'group' must name the group the data are of, one of '$names'.");
 		}
 
-		/** @var array<string, array<string, array<string, mixed>>> $sections  version → rule → its options */
+		/** @var array<string, array<string, array<string, mixed>>> $sections  version => rule => its options */
 		$sections = [];
 		foreach ($data as $key => $section) {
 			if ($key === 'package' || $key === 'group') {

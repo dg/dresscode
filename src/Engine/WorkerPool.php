@@ -38,7 +38,7 @@ final class WorkerPool
 	/** @var array<int, array{string, float, string}>  path in progress with the time it started and its content, by socket id */
 	private array $inProgress = [];
 
-	/** @var ?\Closure(string): string  path → content, read when the path is handed out */
+	/** @var ?\Closure(string): string  path => content, read when the path is handed out */
 	private ?\Closure $read = null;
 
 	/** @var list<array{resource, string}>  process, file with its output */
@@ -76,7 +76,7 @@ final class WorkerPool
 	 * The results by path, each as soon as it arrives; the content of a file is read when it is handed out, so that
 	 * only the files in progress are held.
 	 * @param  list<string>  $paths
-	 * @param  \Closure(string): string  $read  path → content
+	 * @param  \Closure(string): string  $read  path => content
 	 * @param  ?\Closure(int, array<string, float>): void  $onProgress  files done and the paths in progress
 	 * @return \Generator<string, FileResult>
 	 * @throws \RuntimeException  when a worker fails
@@ -318,7 +318,7 @@ final class WorkerPool
 	}
 
 
-	/** @return array<string, float>  path in progress → the time it started */
+	/** @return array<string, float>  path in progress => the time it started */
 	private function getInProgress(): array
 	{
 		$paths = [];

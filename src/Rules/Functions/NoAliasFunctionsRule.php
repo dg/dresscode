@@ -109,7 +109,7 @@ final class NoAliasFunctionsRule extends NodeRule implements ConfigurableRule
 		],
 	];
 
-	/** @var array<string, string>  alias → canonical name */
+	/** @var array<string, string>  alias => canonical name */
 	private array $aliases = [];
 
 
