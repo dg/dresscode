@@ -85,7 +85,7 @@ final class ConfigPrinter
 				if (str_starts_with((string) $rule->inactive, 'no preset') && !$rule->fixRisky) {
 					$unmentioned++;
 				} else {
-					$out .= '  ' . Ansi::pad($rule->name, 40)
+					$out .= '  ' . self::pad($rule->name, 40)
 						. $console->color('gray', $rule->inactive . ($rule->fixRisky ? ', risky fixes accepted' : '')) . "\n";
 				}
 			}

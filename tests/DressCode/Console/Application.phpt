@@ -548,6 +548,7 @@ test('config says what every rule ends up with, where it came from and why one d
 			dresscode/line-length: {ignoreImports: false}
 			dresscode/name-casing: keep
 			dresscode/ordered-imports: {order: alphabetical}
+			dresscode/class-name-reference-for-string-literal: false
 
 		overrides:
 			- paths: [src/generated]
@@ -566,6 +567,8 @@ test('config says what every rule ends up with, where it came from and why one d
 	// a value the project changed says what it overrode, one that only repeats the preset does not
 	Assert::match('%A%      order %a%alphabetical %a%the configuration (over dresscode/psr12 byKind)%A%', $out);
 	Assert::match('%A%Not running%A%  dresscode/name-casing %a%turned off by the configuration%A%', $out);
+	// a name wider than its column still stands apart from the reason
+	Assert::contains('  dresscode/class-name-reference-for-string-literal turned off by the configuration', $out);
 	Assert::notContains('dresscode/indentation ', substr($out, strpos($out, 'Not running') ?: 0));
 
 	// for one file it is what the run uses for that file
