@@ -1,0 +1,6 @@
+<?php
+// a call that is the body of a construct without braces has no list to leave, so it is only reported
+if ($ch) curl_close($ch);
+foreach ($handles as $h) curl_close($h);
+if ($ch) {
+}

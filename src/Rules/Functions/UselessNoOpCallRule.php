@@ -10,7 +10,7 @@ namespace DressCode\Rules\Functions;
 use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ArgumentNode, NameNode};
+use PhpSyntax\Nodes\{ArgumentNode, NameNode, NodeList};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
 use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 
@@ -22,7 +22,8 @@ use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
  *
  * Only a call standing as a statement is removed, and only one whose arguments would do nothing when they
  * ran: a call whose value something takes is left alone, being a question about the code rather than
- * a freeing, and so is a call where the target version still frees the resource with it.
+ * a freeing, and so is a call where the target version still frees the resource with it. A call that is the
+ * body of a construct without braces, `if ($h) curl_close($h);`, is only reported, having no list to leave.
  */
 #[RuleInfo(
 	'dresscode/useless-no-op-call',
@@ -66,9 +67,11 @@ final class UselessNoOpCallRule extends NodeRule
 			if (
 				$resolver->isGlobalFunctionCall($call, $function)
 				&& version_compare($context->getPhpVersion(), $version, '>=')
-				&& $context->report($call, "Useless $function() call, PHP frees the object by itself since $version")
 			) {
-				$node->remove();
+				if ($context->report($call, "Useless $function() call, PHP frees the object by itself since $version", fixable: $node->parent instanceof NodeList)) {
+					$node->remove();
+				}
+
 				return;
 			}
 		}
