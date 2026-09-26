@@ -9,8 +9,8 @@ namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\Types;
 use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token, Trivia, TriviaKind};
-use PhpSyntax\Nodes\AttributeGroupNode;
+use DressCode\Rules\CodeWriter;
+use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\TraitNode;
 use function in_array;
@@ -60,18 +60,7 @@ final class OverrideAttributeRequiredRule extends NodeRule
 			return;
 		}
 
-		$attribute = (new Parser)->parseFragment(AttributeGroupNode::class, '#[\Override]');
-		$first = $node->getFirstToken();
-		$node->attributes->append($attribute);
-		if ($first !== null) {
-			// the attribute takes over what stood in front of the method, the doc comment among it
-			$indentation = $first->getIndentation();
-			$attribute->getFirstToken()?->setLeadingTrivia($first->leadingTrivia);
-			$first->setLeadingTrivia([
-				new Trivia(TriviaKind::EndOfLine, $context->getStyle()->eol),
-				new Trivia(TriviaKind::Whitespace, $indentation),
-			]);
-		}
+		CodeWriter::addAttributes($node, $node->attributes, ['\Override'], $context);
 	}
 
 

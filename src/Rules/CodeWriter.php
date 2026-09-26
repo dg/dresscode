@@ -81,24 +81,24 @@ final class CodeWriter
 	{
 		// a trivia stands in one place, so each is made anew
 		$first = $declaration->getFirstToken();
-		$eol = fn() => new Trivia(TriviaKind::EndOfLine, $context->getStyle()->eol);
-		$indentation = fn() => new Trivia(TriviaKind::Whitespace, $first?->getIndentation() ?? '');
-		$hadAttributes = !$attributes->isEmpty();
-		foreach ($codes as $index => $code) {
+		$eolText = $context->getStyle()->eol;
+		$indentationText = $first?->getIndentation() ?? '';
+		$indentation = fn() => new Trivia(TriviaKind::Whitespace, $indentationText);
+		$takesOver = $attributes->isEmpty();
+		foreach ($codes as $code) {
 			$group = (new Parser)->parseFragment(AttributeGroupNode::class, "#[$code]");
 			$attributes->append($group);
 			if ($first === null) {
 				continue;
-			} elseif ($hadAttributes) {
-				// the attribute before it ends its line, and so does this one, for what stands behind it
-				$group->getFirstToken()?->setLeadingTrivia([$indentation()]);
-				$group->getLastToken()?->setTrailingTrivia([$eol()]);
-			} elseif ($index === 0) {
+			} elseif ($takesOver) {
 				$group->getFirstToken()?->setLeadingTrivia($first->leadingTrivia);
-				$first->setLeadingTrivia([$eol(), $indentation()]);
+				$first->setLeadingTrivia([$indentation()]);
+				$takesOver = false;
 			} else {
-				$group->getFirstToken()?->setLeadingTrivia([$eol(), $indentation()]);
+				$group->getFirstToken()?->setLeadingTrivia([$indentation()]);
 			}
+
+			$group->getLastToken()?->setTrailingTrivia([new Trivia(TriviaKind::EndOfLine, $eolText)]);
 		}
 	}
 

@@ -205,6 +205,16 @@ test('an import a bare name would be taken over by is reported, and added once n
 });
 
 
+test('an attribute written instead of an annotation stands where attribute-position wants it', function () {
+	$rules = [
+		Rules\Upgrading\AttributeForAnnotationRule::class => ['persistent' => 'Acme\Persistent'],
+		Rules\Whitespace\AttributePositionRule::class => true,
+	];
+	interplay($rules, "<?php\nclass P\n{\n\t/** @persistent */\n\tpublic \$lang;\n}\n", "<?php\n\nuse Acme\\Persistent;\n\nclass P\n{\n\t#[Persistent]\n\tpublic \$lang;\n}\n");
+	interplay($rules, "<?php\nclass P\n{\n\t/** @persistent */\n\t#[Other]\n\tpublic \$lang;\n}\n", "<?php\n\nuse Acme\\Persistent;\n\nclass P\n{\n\t#[Other]\n\t#[Persistent]\n\tpublic \$lang;\n}\n");
+});
+
+
 test('an import name-notation asks for and the markup leaves no line for is reported once, not written with the backslash', function () {
 	$result = interplay([
 		Rules\Namespaces\NameFallbackRule::class => ['optimizedFunctions' => 'qualified'],

@@ -1,0 +1,13 @@
+<?php
+
+namespace App;
+
+class Other extends Base
+{
+	/** Runs it. */
+	#[\Deprecated]
+	#[\Override]
+	public function run(): void
+	{
+	}
+}
