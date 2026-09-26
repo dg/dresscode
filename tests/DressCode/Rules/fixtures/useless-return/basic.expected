@@ -18,7 +18,7 @@ function c()
 
 function d()
 {
-// last
+	// last
 }
 
 $f = function () {
