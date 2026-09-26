@@ -12,7 +12,7 @@ use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\Schema;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, Printer, Token};
+use PhpSyntax\{Node, Parser, Printer, SymbolKind, Token};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode, ListNode, MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, ShellExecNode, StaticMethodCallNode, StaticPropertyFetchNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -170,6 +170,10 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			: $access->kind;
 		$message = $pattern->describe($kind) . " is replaced by $template->code";
 		$rewrite = self::fitInterpolation($node, $rewrite);
+		if (self::isWrittenAlready($rewrite, $node, $context)) {
+			return;
+		}
+
 		if (self::report($node instanceof NewNode ? $node->class : $node->name, $message, $rewrite, $context)) {
 			self::replace($node, self::write($rewrite, $node, $context));
 		}
@@ -375,6 +379,8 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 				&& (!$new instanceof NewNode || !$new->class instanceof NameNode || strcasecmp(ltrim($new->class->text, '\\'), $class) !== 0)
 			) {
 				$rewrite = new Rewrite(null, ', but an attribute takes only the arguments of its own class');
+			} elseif ($new instanceof NewNode && ($new->arguments?->getTokenTexts() ?? []) === ($node->arguments?->getTokenTexts() ?? [])) {
+				return;
 			}
 
 			if (self::report($node->name, $pattern->describe(MemberKind::Constructor) . " is replaced by $template->code", $rewrite, $context)) {
@@ -559,6 +565,24 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			fixable: $rewrite->expression !== null,
 			risky: $rewrite->risk !== null,
 		) && $rewrite->expression !== null;
+	}
+
+
+	/** Whether the rewrite writes the node as it stands, the classes of the template spelled the way the code there reaches them. */
+	private static function isWrittenAlready(Rewrite $rewrite, Node $node, RuleContext $context): bool
+	{
+		if ($rewrite->expression === null) {
+			return false;
+		}
+
+		$resolver = $context->getAnalysis(NameResolver::class);
+		$spelled = [];
+		foreach ($rewrite->classes as $class) {
+			$spelled[spl_object_id($class->token)] = $resolver->getShortName(ltrim($class->text, '\\'), SymbolKind::ClassLike, $node);
+		}
+
+		$texts = array_map(fn(Token $token) => $spelled[spl_object_id($token)] ?? $token->text, $rewrite->expression->getTokens());
+		return $texts === $node->getTokenTexts();
 	}
 
 

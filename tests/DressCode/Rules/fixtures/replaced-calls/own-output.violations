@@ -1,0 +1,3 @@
+11: Constructor Acme\Range::__construct() is replaced by new Acme\Range(min: $min, max: $max)
+16: Constructor Acme\Range::__construct() is replaced by new Acme\Range(min: $min, max: $max)
+26: Static method Acme\Formatter::describe() is replaced by \Acme\Formatter::describe(settings: $settings, separator: $separator)

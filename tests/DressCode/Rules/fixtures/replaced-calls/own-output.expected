@@ -1,0 +1,28 @@
+<?php
+// {"Acme\\Range::__construct($exactly, $min, $max)": "new Acme\\Range(min: $min, max: $max)", "Acme\\Formatter::describe($settings, $separator)": "\\Acme\\Formatter::describe(settings: $settings, separator: $separator)"}
+
+namespace App;
+
+use Acme\Formatter;
+use Acme\Range;
+use Acme\Settings;
+
+// the code the key writes matches the key again, and is left as it is
+$a = new Range(min: 1, max: 5);
+$b = new Range(min: 1, max: 5);
+
+class Post
+{
+	#[Range(min: 3, max: 10)]
+	public string $title = '';
+
+	#[Range(min: 3, max: 10)]
+	public string $code = '';
+}
+
+// a class the key writes fully qualified is compared as the code spells it
+function describe(Settings $settings): void
+{
+	Formatter::describe(settings: $settings, separator: ', ');
+	Formatter::describe(settings: $settings, separator: ', ');
+}
