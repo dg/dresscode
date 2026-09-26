@@ -8,7 +8,7 @@
 namespace DressCode\Engine;
 
 use PhpSyntax\{Node, Token, Trivia, TriviaKind};
-use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Nodes\{FileNode, NodeList, SeparatedNodeList};
 use function count;
 
 
@@ -195,10 +195,13 @@ final class Suppression
 	}
 
 
-	/** The outermost node whose first token starts at the line. */
+	/** The outermost node whose first token starts at the line: an item, not the list of items it opens. */
 	private static function findNodeStartingAt(FileNode $file, int $line): ?Node
 	{
-		return array_find($file->find(Node::class), fn($node) => $node->getFirstToken()?->originalLine === $line);
+		return array_find(
+			$file->find(Node::class),
+			fn($node) => !$node instanceof NodeList && !$node instanceof SeparatedNodeList && $node->getFirstToken()?->originalLine === $line,
+		);
 	}
 
 

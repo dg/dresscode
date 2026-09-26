@@ -40,6 +40,40 @@ test('ignore on the same line and on its own line', function () use ($resolve) {
 });
 
 
+test('ignore on its own line above the first item of a list covers that item, not those after it', function () use ($resolve) {
+	$s = suppression(<<<'XX'
+		<?php
+		// dresscode:ignore dresscode/a
+		$a;
+		$b;
+		function f()
+		{
+			// dresscode:ignore dresscode/a
+			$c;
+			$d;
+		}
+		foo(
+			// dresscode:ignore dresscode/a
+			$e,
+			$f,
+		);
+		$g = [
+			// dresscode:ignore dresscode/a
+			1,
+			2,
+		];
+		XX, $resolve);
+	Assert::true($s->isSuppressed('dresscode/a', 3));
+	Assert::false($s->isSuppressed('dresscode/a', 4));
+	Assert::true($s->isSuppressed('dresscode/a', 8));
+	Assert::false($s->isSuppressed('dresscode/a', 9));
+	Assert::true($s->isSuppressed('dresscode/a', 13));
+	Assert::false($s->isSuppressed('dresscode/a', 14));
+	Assert::true($s->isSuppressed('dresscode/a', 18));
+	Assert::false($s->isSuppressed('dresscode/a', 19));
+});
+
+
 test('disable and enable, also without a matching enable', function () use ($resolve) {
 	$s = suppression(<<<'XX'
 		<?php
