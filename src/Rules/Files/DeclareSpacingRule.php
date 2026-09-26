@@ -13,7 +13,7 @@ use PhpSyntax\Nodes\Statement\DeclareNode;
 
 
 /**
- * No whitespace inside a declare statement: `declare(strict_types=1);`.
+ * No whitespace inside a `declare` statement: `declare(strict_types=1);`.
  */
 #[RuleInfo(
 	'dresscode/declare-spacing',

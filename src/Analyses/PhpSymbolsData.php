@@ -6215,7 +6215,7 @@ trait PhpSymbolsData
 		'trim' => [[1, 2], ['string', 'characters']],
 	];
 
-	/** @var array<string, string>  lowercased name => 'first-last' version having it, the last empty when it still has it; only for the functions not every version has */
+	/** @var array<string, string>  lowercased name => `'first-last'` version having it, the last empty when it still has it; only for the functions not every version has */
 	private const FunctionVersions = [
 		'array_all' => '8.4-',
 		'array_any' => '8.4-',

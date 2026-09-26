@@ -18,7 +18,7 @@ use function count;
 /**
  * A property the constructor sets and nothing else touches is `readonly`, which says so and makes PHP keep
  * it. The property must carry a type and no default value, which is what readonly takes, and every write of
- * it must go through $this and stand in the constructor itself: a closure inside the constructor is not it,
+ * it must go through `$this` and stand in the constructor itself: a closure inside the constructor is not it,
  * and a write to a clone is what readonly refuses. A promoted parameter is read the same way, promotion being
  * the write it needs.
  *

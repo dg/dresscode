@@ -47,8 +47,8 @@ final class Runner
 	/**
 	 * Processes the files; a file whose rules fail is reported as a failure and the run goes on. A file is reported
 	 * as soon as the files before it are, and the run keeps its result without the texts, so that a large tree is
-	 * never held in memory as a whole; the texts are what a reporter sees in reportFile().
-	 * @param list<string> $files  as findFiles() returned them
+	 * never held in memory as a whole; the texts are what a reporter sees in `reportFile()`.
+	 * @param list<string> $files  as `findFiles()` returned them
 	 * @param ?\Closure(int, array<string, float>, ?int): void $onProgress  files done, the paths in progress and, when
 	 *   nothing is heard of the one in progress until it is done, its size
 	 */
@@ -271,7 +271,7 @@ final class Runner
 
 	/**
 	 * Files under the paths with one of the extensions, minus the excluded ones; an explicitly given file
-	 * is taken as is, unless $skipExcluded lets the excluded paths leave it out like a found one, which
+	 * is taken as is, unless `$skipExcluded` lets the excluded paths leave it out like a found one, which
 	 * is what a hook or an editor naming every file it touches wants; a file outside the root has no path
 	 * the patterns could match. Sorted, relative to the root.
 	 * @param  list<string>  $paths

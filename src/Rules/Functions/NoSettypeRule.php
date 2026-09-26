@@ -20,7 +20,7 @@ use function array_key_exists, count, in_array;
 
 /**
  * An assignment with a cast instead of a `settype()` statement: `$a = (int) $a;`, not `settype($a, 'int');`.
- * The cast reads the variable, which warns where it is undefined and settype() does not, so the call stays in
+ * The cast reads the variable, which warns where it is undefined and `settype()` does not, so the call stays in
  * a scope that reaches variables by names it does not spell out, where a variable may exist only at run time.
  * It stays on `$this` and `$GLOBALS` too, which cannot be assigned.
  */

@@ -14,7 +14,7 @@ use PhpSyntax\Nodes\FileNode;
 /**
  * Creates analyses on demand and keeps them per file until the file mutates, or until the pass ends for
  * a PassAnalysis. An analysis is any class that can be built from the file (and its path), or from nothing;
- * a rule asks for one through RuleContext::getAnalysis(). What the namespaces of the project declare outside
+ * a rule asks for one through `RuleContext::getAnalysis()`. What the namespaces of the project declare outside
  * the file is one of them, and the resolver of names is built with it.
  * @internal
  */
@@ -40,7 +40,7 @@ final class Registry
 
 
 	/**
-	 * Registers an analysis; without a factory it is created as new $class($file), or new $class when
+	 * Registers an analysis; without a factory it is created as `new $class($file)`, or `new $class` when
 	 * its constructor takes no parameter.
 	 * @param  class-string  $class
 	 * @param  ?\Closure(FileNode, string): object  $factory  given the file and its path

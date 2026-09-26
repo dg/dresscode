@@ -25,8 +25,8 @@ readonly class Profile
 	public array $namespaces;
 
 	/**
-	 * 'certain' says the namespaces declare nothing beyond the lists, so that an unqualified name no list names is global,
-	 * a fix resting on that is not risky and a declaration missing from the lists is reported; 'uncertain' takes such a
+	 * `'certain'` says the namespaces declare nothing beyond the lists, so that an unqualified name no list names is global,
+	 * a fix resting on that is not risky and a declaration missing from the lists is reported; `'uncertain'` takes such a
 	 * name as global without knowing, which is the default
 	 * @var 'certain'|'uncertain'|null
 	 */
@@ -39,7 +39,7 @@ readonly class Profile
 	/**
 	 * @param list<string|Group> $groups
 	 * @param array{functions?: list<string>, constants?: list<string>} $namespaces  functions and constants the namespaces
-	 *   declare, each written as an item of a use statement writes it ('App\helper', 'App\Utils\{format, parse}'): an
+	 *   declare, each written as an item of a `use` statement writes it (`'App\helper'`, `'App\Utils\{format, parse}'`): an
 	 *   unqualified call in a namespace reaches such a function before the global one, which no file that calls it shows
 	 */
 	public function __construct(
@@ -49,13 +49,13 @@ readonly class Profile
 		array $groups = [],
 		/** @var array<string, bool|string|int|array<string, mixed>|\Closure(): Rule>  name or class => enabled, the value of its decision, options, or a factory for a rule with dependencies */
 		public array $rules = [],
-		/** a number of spaces or 'tab' */
+		/** a number of spaces or `'tab'` */
 		public int|string|null $indent = null,
-		/** 'LF', 'CRLF', 'majority' or 'platform' */
+		/** `'LF'`, `'CRLF'`, `'majority'` or `'platform'` */
 		public ?string $eol = null,
 		/** the widest line as the reader sees it, which the rules that break or report long lines keep to; false for none */
 		public int|false|null $lineLength = null,
-		/** the version the rules target, major.minor with an optional patch; without one that of composer.json, else Config::DefaultPhpVersion */
+		/** the version the rules target, major.minor with an optional patch; without one that of composer.json, else `Config::DefaultPhpVersion` */
 		public ?string $php = null,
 		array $namespaces = [],
 		?string $nameResolution = null,
@@ -63,7 +63,7 @@ readonly class Profile
 		public array $fixRisky = [],
 		/** @var list<string>  names or classes of the rules whose violations only warn */
 		public array $warnings = [],
-		/** 'phpstan' takes the types of the code from the PHPStan of the project; without it no rule that needs them runs */
+		/** `'phpstan'` takes the types of the code from the PHPStan of the project; without it no rule that needs them runs */
 		public ?string $types = null,
 	) {
 		if ($indent !== null && $indent !== 'tab' && !(is_int($indent) && $indent >= 1)) {
@@ -115,7 +115,7 @@ readonly class Profile
 
 
 	/**
-	 * The fully qualified names the items of a use statement of the kind stand for, a group for each of its names.
+	 * The fully qualified names the items of a `use` statement of the kind stand for, a group for each of its names.
 	 * @param  list<string>  $items
 	 * @return list<string>
 	 */

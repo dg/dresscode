@@ -54,7 +54,7 @@ final class Helpers
 
 	/**
 	 * The form every path is kept in here: slashes whatever the platform, no trailing one. It leaves `..`
-	 * and `.` alone, unlike FileSystem::normalizePath(), which also returns the separator of the platform.
+	 * and `.` alone, unlike `FileSystem::normalizePath()`, which also returns the separator of the platform.
 	 */
 	public static function canonicalizePath(string $path): string
 	{

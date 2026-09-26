@@ -164,7 +164,7 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 	}
 
 
-	/** The namespace of the fully qualified name, '' for a global one. */
+	/** The namespace of the fully qualified name, `''` for a global one. */
 	private static function extractNamespace(string $name): string
 	{
 		return substr($name, 0, max(0, (int) strrpos($name, '\\')));

@@ -18,7 +18,7 @@ use function count, in_array, is_array;
 
 
 /**
- * A condition of if, elseif, while and do-while joined by boolean operators is written in one of two shapes:
+ * A condition of `if`, `elseif`, `while` and `do-while` joined by boolean operators is written in one of two shapes:
  * `perLine` begins it on the line after the opening parenthesis, `compact` on the line of it, and both leave
  * the closing parenthesis on a line of its own, so that the brace of the body stands apart from the condition.
  * How the parts are spread over the lines between is the author's; a condition in no shape the configuration
@@ -227,7 +227,7 @@ final class MultiLineConditionRule extends GapRule implements ConfigurableRule
 
 	/**
 	 * Boolean operators the condition is built of, seen through the parentheses and the negations around them;
-	 * one inside an argument, a match arm or a closure is not the condition's and does not count.
+	 * one inside an argument, a `match` arm or a closure is not the condition's and does not count.
 	 */
 	private static function countOperators(ExpressionNode $expr): int
 	{

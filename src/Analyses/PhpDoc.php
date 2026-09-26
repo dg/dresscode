@@ -44,7 +44,7 @@ final class PhpDoc
 
 
 	/**
-	 * A copy of the tree of the doc comment to read or edit; print() turns it back into a trivia.
+	 * A copy of the tree of the doc comment to read or edit; `print()` turns it back into a trivia.
 	 */
 	public function parse(Trivia $docComment): PhpDocNode
 	{

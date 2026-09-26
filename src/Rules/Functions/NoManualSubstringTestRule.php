@@ -123,8 +123,8 @@ final class NoManualSubstringTestRule extends NodeRule
 
 
 	/**
-	 * The test a comparison of substr() with the needle makes: the length the call cuts is the length of the
-	 * needle, either measured by strlen() of the needle itself or written as the length of a literal.
+	 * The test a comparison of `substr()` with the needle makes: the length the call cuts is the length of the
+	 * needle, either measured by `strlen()` of the needle itself or written as the length of a literal.
 	 * @param  list<ExpressionNode>  $arguments
 	 * @return ?array{string, ExpressionNode, ExpressionNode, bool, bool}
 	 */
@@ -186,7 +186,7 @@ final class NoManualSubstringTestRule extends NodeRule
 	}
 
 
-	/** The argument of a call of strlen(), null for any other expression. */
+	/** The argument of a call of `strlen()`, null for any other expression. */
 	private static function readStrlen(ExpressionNode $expression, RuleContext $context): ?ExpressionNode
 	{
 		$arguments = self::readArguments($expression, $context);

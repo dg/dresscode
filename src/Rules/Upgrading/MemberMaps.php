@@ -27,7 +27,7 @@ final class MemberMaps
 	/**
 	 * A map of members, `Class::name`, `Class::name()`, `Class::$name` or `Class::name($argument, ...)`, to values of
 	 * the given schema; a key that does not read as a member is an error of the configuration, and so is a value
-	 * $convert throws for, the same closure read() is given.
+	 * `$convert` throws for, the same closure `read()` is given.
 	 * @param  ?\Closure(mixed, MemberPattern): mixed  $convert
 	 */
 	public static function map(Schema $value, string $description, ?\Closure $convert = null): Schema

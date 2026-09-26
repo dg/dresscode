@@ -25,7 +25,7 @@ final class CodeWriter
 	 * it, through an import added where none does, the scope takes one and the short name is free; a file without
 	 * a namespace imports a class of one too, rather than writing it qualified. A global class gets no import, it is
 	 * written with its backslash where nothing imports it, which name-notation spells as the project does. It may
-	 * add an import, so it is called only after report() returned true.
+	 * add an import, so it is called only after `report()` returned true.
 	 */
 	public static function spellClass(string $class, Node $at, RuleContext $context, bool $fullyQualified = false): string
 	{
@@ -53,7 +53,7 @@ final class CodeWriter
 
 	/**
 	 * Removes a node standing on lines of its own between two others, a member of a class among them, and leaves one
-	 * gap where there were two, the narrower one, which Node::remove() would add up instead: none after the opening
+	 * gap where there were two, the narrower one, which `Node::remove()` would add up instead: none after the opening
 	 * brace for the first member and before the closing one for the last. The comments of the node go where the policy
 	 * says, to the next token by default.
 	 */

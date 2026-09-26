@@ -25,7 +25,7 @@ use function count, is_bool;
  * The types of the code, from the PHPStan of the project: what an expression is, which member a call or an
  * access reaches, and what the declaration of that member says about it. The answers are those of the text the
  * pass began with; a node inserted during the pass has none, and a rule asking for one asks with `?->`.
- * A rule asks questions, and getType() is the one answer in the words of PHPStan, for what the questions do
+ * A rule asks questions, and `getType()` is the one answer in the words of PHPStan, for what the questions do
  * not cover; nothing else of the API names it.
  */
 final class Types implements PassAnalysis

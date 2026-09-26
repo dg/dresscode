@@ -686,7 +686,7 @@ final class PresetResolver
 
 	/**
 	 * A map merges with the layer below it key by key, a list replaces it whole; the marker is how every
-	 * merge() of nette/schema is told the second, and without it a list of a preset and a list of the
+	 * `merge()` of nette/schema is told the second, and without it a list of a preset and a list of the
 	 * project would be appended to one another.
 	 */
 	private static function markLists(mixed $value, bool $top = false): mixed

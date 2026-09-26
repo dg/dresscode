@@ -28,7 +28,7 @@ final class FileResult
 
 	public function __construct(
 		public readonly string $path,
-		/** the text that was processed; empty in the results a run keeps, see withoutTexts() */
+		/** the text that was processed; empty in the results a run keeps, see `withoutTexts()` */
 		public readonly string $code,
 		/** the text after the fixes; null when the file could not be parsed or failed, empty in the results a run keeps */
 		public readonly ?string $output,
@@ -105,7 +105,7 @@ final class FileResult
 	}
 
 
-	/** @param array<string, mixed> $data  as toArray() made it, for the given code */
+	/** @param array<string, mixed> $data  as `toArray()` made it, for the given code */
 	public static function fromArray(array $data, string $code): self
 	{
 		$output = $data['output'];

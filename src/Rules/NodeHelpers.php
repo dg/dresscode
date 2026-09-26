@@ -65,7 +65,7 @@ final class NodeHelpers
 
 	/**
 	 * Whether the expression yields a boolean whatever its operands: a comparison, a logical operation,
-	 * a negation, instanceof, isset(), empty(), a bool cast or a boolean literal.
+	 * a negation, `instanceof`, `isset()`, `empty()`, a bool cast or a boolean literal.
 	 */
 	public static function isBoolean(ExpressionNode $expression): bool
 	{
@@ -81,7 +81,7 @@ final class NodeHelpers
 
 
 	/**
-	 * The if, elseif, while or do-while whose condition the operation is a part of, reached from the condition down
+	 * The `if`, `elseif`, `while` or `do-while` whose condition the operation is a part of, reached from the condition down
 	 * through logical operators alone, not through parentheses or a negation; null for any other operation.
 	 */
 	public static function findConditionStatement(
@@ -189,8 +189,8 @@ final class NodeHelpers
 
 
 	/**
-	 * Whether the block ends with a statement after which the code does not go on: return, break, continue,
-	 * goto, throw or exit.
+	 * Whether the block ends with a statement after which the code does not go on: `return`, `break`, `continue`,
+	 * `goto`, `throw` or `exit`.
 	 */
 	public static function endsWithExit(Statement\BlockNode $block): bool
 	{
@@ -209,7 +209,7 @@ final class NodeHelpers
 
 	/**
 	 * The constructs inside the node that may reach a variable by a name they do not spell out: variable
-	 * variables, calls of compact(), extract() and get_defined_vars(), and eval and include, whose code runs in
+	 * variables, calls of `compact()`, `extract()` and `get_defined_vars()`, and `eval` and `include`, whose code runs in
 	 * the scope they are written in.
 	 * @return list<Node>
 	 */
@@ -307,9 +307,9 @@ final class NodeHelpers
 
 	/**
 	 * Whether PHP optimizes the call of the global function with its arguments: most of the functions it optimizes with
-	 * any, some only with every argument constant, sprintf() only with a constant format of %s and %d alone, in_array()
-	 * only with a constant array it looks up in a hash and array_slice() only of func_get_args(); none with a named
-	 * argument, and none with an unpacked one unless $unpacked asks about the call the unpacked last argument would make
+	 * any, some only with every argument constant, `sprintf()` only with a constant format of `%s` and `%d` alone, `in_array()`
+	 * only with a constant array it looks up in a hash and `array_slice()` only of `func_get_args()`; none with a named
+	 * argument, and none with an unpacked one unless `$unpacked` asks about the call the unpacked last argument would make
 	 * if it passed its values one by one, none of them constant.
 	 */
 	public static function isOptimizedCall(
@@ -358,8 +358,8 @@ final class NodeHelpers
 
 
 	/**
-	 * Whether sprintf() with the arguments is compiled into a concatenation: the format is a string known while compiling
-	 * with no placeholder but %s and %d, one for each value, or for each value and some an unpacked argument passes.
+	 * Whether `sprintf()` with the arguments is compiled into a concatenation: the format is a string known while compiling
+	 * with no placeholder but `%s` and `%d`, one for each value, or for each value and some an unpacked argument passes.
 	 * @param  list<Node>  $values
 	 */
 	private static function isConcatenatedFormat(array $values, bool $rest): bool
@@ -377,7 +377,7 @@ final class NodeHelpers
 
 
 	/**
-	 * Whether in_array() with the arguments looks the needle up in a hash built while compiling: the haystack is an array
+	 * Whether `in_array()` with the arguments looks the needle up in a hash built while compiling: the haystack is an array
 	 * of strings and integers with constant keys, the strict flag is constant if given, and without it every item is
 	 * a string that is not numeric.
 	 * @param  list<Node>  $values
@@ -420,7 +420,7 @@ final class NodeHelpers
 
 	/**
 	 * Whether the value of the expression is known while compiling: a literal, an operation on known values, or a constant
-	 * of PHP the compiler reads, which is one written qualified, imported or in the global namespace, and with $unqualified
+	 * of PHP the compiler reads, which is one written qualified, imported or in the global namespace, and with `$unqualified`
 	 * also one written bare in a namespace, which PHP reaches by the fallback at run time.
 	 */
 	public static function isConstantExpression(?Node $node, RuleContext $context, bool $unqualified = false): bool
@@ -439,7 +439,7 @@ final class NodeHelpers
 	}
 
 
-	/** Whether the fetch reads a constant of PHP while compiling, or with $unqualified at least reaches one by the fallback. */
+	/** Whether the fetch reads a constant of PHP while compiling, or with `$unqualified` at least reaches one by the fallback. */
 	private static function isReadConstant(
 		Expression\ConstantFetchNode $fetch,
 		RuleContext $context,
@@ -495,7 +495,7 @@ final class NodeHelpers
 
 
 	/**
-	 * Whether a use statement can be added to the scope: a file that opens with markup has no line for one unless
+	 * Whether a `use` statement can be added to the scope: a file that opens with markup has no line for one unless
 	 * an import stands in it already.
 	 */
 	public static function canAddImport(FileNode|Statement\NamespaceNode $scope): bool
@@ -515,7 +515,7 @@ final class NodeHelpers
 	 * default, so other options of it may still find the order wrong), into a group use standing under the namespace of
 	 * the name where that rule keeps groups, into the statement of its kind standing there when the shape is combined
 	 * or that statement lists several names, else with a statement of its own, else first in the scope behind its
-	 * declare statements, a blank line apart.
+	 * `declare` statements, a blank line apart.
 	 */
 	public static function addImport(
 		FileNode|Statement\NamespaceNode $scope,
@@ -652,7 +652,7 @@ final class NodeHelpers
 
 	/**
 	 * The functions and constants the node declares into a namespace, with a declaration inside a condition or a
-	 * function body and a constant define() names with a string: the kind, the fully qualified name and the node that
+	 * function body and a constant `define()` names with a string: the kind, the fully qualified name and the node that
 	 * names it, in the order they are written. What is declared into the global namespace is not among them.
 	 * @return list<array{SymbolKind, string, Node}>
 	 */
@@ -726,7 +726,7 @@ final class NodeHelpers
 
 
 	/**
-	 * A comment standing inside the node or at the end of its last line, which Node::hasComment() does not count;
+	 * A comment standing inside the node or at the end of its last line, which `Node::hasComment()` does not count;
 	 * true for a node without tokens, which nothing can be said of.
 	 */
 	public static function hasComment(Node $node): bool

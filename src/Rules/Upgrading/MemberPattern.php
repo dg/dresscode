@@ -32,9 +32,9 @@ final readonly class MemberPattern
 		public string $name,
 		/** the shape the arguments of a call have to have; null for a key without parentheses, which takes any */
 		public ?ArgumentPattern $arguments = null,
-		/** a method written Class->name(), which is not static */
+		/** a method written `Class->name()`, which is not static */
 		public bool $instance = false,
-		/** the hook of a property the key is of, 'get' or 'set'; null for both */
+		/** the hook of a property the key is of, `'get'` or `'set'`; null for both */
 		public ?string $hook = null,
 	) {
 	}
@@ -77,7 +77,7 @@ final readonly class MemberPattern
 	/**
 	 * Whether the access is one of this member: the kind fits, the name agrees, a method whatever its letter case,
 	 * and every class of the receiver is the class or its subtype; a constructor only where the class itself declares
-	 * the one that runs, which it does for a child declaring none and for parent::__construct(), a child with
+	 * the one that runs, which it does for a child declaring none and for `parent::__construct()`, a child with
 	 * a constructor of its own being another class. A key written `Class->name()` is not of a call with `::`, unless
 	 * every class has the method and not static, `parent::name()`, and a property the class does not declare is not
 	 * the one a child declares under its name. The arguments are not looked at.

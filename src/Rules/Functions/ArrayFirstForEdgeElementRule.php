@@ -70,7 +70,7 @@ final class ArrayFirstForEdgeElementRule extends NodeRule
 
 
 	/**
-	 * The array a call of reset() or end() reads the edge element of, where something takes the value.
+	 * The array a call of `reset()` or `end()` reads the edge element of, where something takes the value.
 	 * @return array{?string, ?ExpressionNode, bool}
 	 */
 	private function readPointerCall(Expression\FunctionCallNode $call, RuleContext $context): array

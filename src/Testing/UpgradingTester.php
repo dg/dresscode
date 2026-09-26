@@ -22,7 +22,7 @@ use function count, is_string;
  * in replaced-classes and replaced-members, by classes, members and functions that exist. A replacement the file replaces in its turn is followed to its end,
  * the way the passes of a run follow it, and one that leads back to where it started is a problem. What is replaced
  * is not looked up: a library has usually removed it. Works from any test framework: the problems come back as
- * sentences, none when the file is sound. What the files make of code written for the old API runSample() says.
+ * sentences, none when the file is sound. What the files make of code written for the old API `runSample()` says.
  */
 final class UpgradingTester
 {

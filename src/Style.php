@@ -12,7 +12,7 @@ use PhpSyntax;
 
 /**
  * How the code of a project is written: the unit of indentation, the line ending, the width of a tab and the
- * widest line. PhpSyntax measures and writes whitespace with the first three, which toPhpSyntax() hands over;
+ * widest line. PhpSyntax measures and writes whitespace with the first three, which `toPhpSyntax()` hands over;
  * the widest line is for the rules that break or report long lines.
  */
 final readonly class Style
@@ -31,7 +31,7 @@ final readonly class Style
 	}
 
 
-	/** Returns the prevailing line ending of the code; "\n" when there is none or the counts are equal. */
+	/** Returns the prevailing line ending of the code; `"\n"` when there is none or the counts are equal. */
 	public static function detectEol(string $code): string
 	{
 		return PhpSyntax\Style::detectEol($code);

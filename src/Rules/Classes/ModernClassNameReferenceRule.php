@@ -105,7 +105,7 @@ final class ModernClassNameReferenceRule extends NodeRule implements Configurabl
 	}
 
 
-	/** Whether the fetch is `$this::class`, which names the class the object really has, as static::class does. */
+	/** Whether the fetch is `$this::class`, which names the class the object really has, as `static::class` does. */
 	private static function isThisClass(Expression\ClassConstantFetchNode $fetch): bool
 	{
 		return $fetch->class instanceof Expression\VariableNode
@@ -115,7 +115,7 @@ final class ModernClassNameReferenceRule extends NodeRule implements Configurabl
 	}
 
 
-	/** Whether the call stands in a class that extends another one; elsewhere parent::class does not compile. */
+	/** Whether the call stands in a class that extends another one; elsewhere `parent::class` does not compile. */
 	private static function hasParent(Node $node): bool
 	{
 		$class = $node->findAncestor(Nodes\ClassLikeNode::class);

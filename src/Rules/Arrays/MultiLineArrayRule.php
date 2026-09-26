@@ -79,7 +79,7 @@ final class MultiLineArrayRule extends GapRule implements ConfigurableRule
 
 
 	/**
-	 * What the rule asks of an array spread over lines, as decideNow() gives it; null for an array that stays as it
+	 * What the rule asks of an array spread over lines, as `decideNow()` gives it; null for an array that stays as it
 	 * is, and for the frame of an array its author spread, which keep leaves alone.
 	 * @return ?array{bool, list<Claim>, Claim, Claim, Claim}
 	 */

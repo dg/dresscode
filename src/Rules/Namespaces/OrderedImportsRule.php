@@ -16,7 +16,7 @@ use function count, is_int, strlen;
 
 
 /**
- * Consecutive use statements sorted by name: classes first, then functions, then constants. The names of
+ * Consecutive `use` statements sorted by name: classes first, then functions, then constants. The names of
  * the whole block are sorted together and poured back into statements of the original shape, so a statement
  * importing two names keeps importing two. A group use keeps the names it holds, sorted under its prefix, and
  * stands where the first of them belongs. A group use that writes a type per item stands for several kinds at

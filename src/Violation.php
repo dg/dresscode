@@ -49,7 +49,7 @@ final readonly class Violation
 	}
 
 
-	/** @param array<string, mixed> $data  as toArray() made it */
+	/** @param array<string, mixed> $data  as `toArray()` made it */
 	public static function fromArray(array $data): self
 	{
 		return new self(
@@ -66,7 +66,7 @@ final readonly class Violation
 	}
 
 
-	/** @param string $lineContent  normalized by normalizeLineContent() */
+	/** @param string $lineContent  normalized by `normalizeLineContent()` */
 	public static function createFingerprint(
 		string $ruleName,
 		string $message,

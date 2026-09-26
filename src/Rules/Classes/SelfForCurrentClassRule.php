@@ -125,7 +125,7 @@ final class SelfForCurrentClassRule extends NodeRule implements ConfigurableRule
 	}
 
 
-	/** Whether the name stands for a class in an expression: a static access, an instantiation, an instanceof. */
+	/** Whether the name stands for a class in an expression: a static access, an instantiation, an `instanceof`. */
 	private static function isClassReference(NameNode $name): bool
 	{
 		$parent = $name->parent;

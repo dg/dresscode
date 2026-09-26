@@ -72,7 +72,7 @@ final class NoManualListTestRule extends NodeRule
 
 	/**
 	 * The array the two sides ask about together, the call that named it, and whether the answer may differ
-	 * from the one array_is_list() gives; null where they ask about something else.
+	 * from the one `array_is_list()` gives; null where they ask about something else.
 	 * @return ?array{ExpressionNode, Expression\FunctionCallNode, bool}
 	 */
 	private function describe(ExpressionNode $call, ExpressionNode $compared, RuleContext $context): ?array

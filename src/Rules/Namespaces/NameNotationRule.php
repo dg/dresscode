@@ -21,7 +21,7 @@ use function array_slice, count, strlen;
  * A name referenced in a namespace is written imported (`use Foo\Bar;` and `Bar`) or with the leading backslash
  * (`\Foo\Bar`, `\strlen()`), the way the options say. The keys go from the general to the particular, the `global*`
  * ones speaking of the names of the global namespace, and the most particular answer decides
- * (NameReferences::findOption()). A name no key speaks of stays, and so does a qualified name, which is relative to
+ * (`NameReferences::findOption()`). A name no key speaks of stays, and so does a qualified name, which is relative to
  * the import of its prefix or to the namespace, and every name of a file without a namespace, where
  * dresscode/no-leading-backslash-in-global-namespace decides.
  *

@@ -14,7 +14,7 @@ use PhpSyntax\TokenKind;
 
 /**
  * Whitespace around a semicolon: none before it, which keeps it on the line of what it ends, a single space after
- * it when more follows on the line, as in the head of a for loop; `for (;;)` stays. By the option a semicolon may take
+ * it when more follows on the line, as in the head of a `for` loop; `for (;;)` stays. By the option a semicolon may take
  * a line of its own below a statement spanning several lines. Either side can be left alone by keep.
  */
 #[RuleInfo(
@@ -56,7 +56,7 @@ final class SemicolonSpacingRule extends GapRule implements ConfigurableRule
 
 
 	/**
-	 * A close tag ending a statement, as in a template's echo, is no semicolon to write tight; a semicolon below the end
+	 * A close tag ending a statement, as in a template's `echo`, is no semicolon to write tight; a semicolon below the end
 	 * of a heredoc, where PHP before 7.3 wanted it, keeps its line, and by the option so does one below a statement
 	 * spanning several lines.
 	 */
@@ -75,7 +75,7 @@ final class SemicolonSpacingRule extends GapRule implements ConfigurableRule
 	}
 
 
-	/** Nothing follows the `;` of `for (;;)`, and what follows the one of __halt_compiler() or stands before ?> is not code. */
+	/** Nothing follows the `;` of `for (;;)`, and what follows the one of `__halt_compiler()` or stands before `?>` is not code. */
 	private static function after(Gap $gap): ?Claim
 	{
 		$token = $gap->token;

@@ -13,7 +13,7 @@ use PhpSyntax\Nodes\Expression\{BinaryOpNode, IssetNode};
 
 
 /**
- * `isset($a) && isset($b)` becomes `isset($a, $b)`; the last isset() of a longer `&&` chain merges into
+ * `isset($a) && isset($b)` becomes `isset($a, $b)`; the last `isset()` of a longer `&&` chain merges into
  * the one before it. A comment between the two stops the merge.
  */
 #[RuleInfo(
@@ -58,7 +58,7 @@ final class CombinedIssetsRule extends NodeRule
 	}
 
 
-	/** The isset() an isset() joined by && would merge into: the left operand itself, or the right end of a left-nested && chain. */
+	/** The `isset()` an `isset()` joined by `&&` would merge into: the left operand itself, or the right end of a left-nested `&&` chain. */
 	private static function findPrecedingIsset(Node $left): ?IssetNode
 	{
 		return match (true) {

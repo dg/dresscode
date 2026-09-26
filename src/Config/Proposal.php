@@ -37,7 +37,7 @@ final class Proposal
 
 	/**
 	 * The complete standards, the first of them the one written when none is given. Which is nearest is not
-	 * measured, only what each would cost (countChangedByStandard()).
+	 * measured, only what each would cost (`countChangedByStandard()`).
 	 */
 	public const Standards = ['per', 'psr12', 'nette', 'symfony'];
 
@@ -178,7 +178,7 @@ final class Proposal
 	/**
 	 * The functions and constants the namespaces of the scope declare, read from every file and not from the sample,
 	 * because a declaration left out would be taken as global where nothing reports it. Every file naming a namespace
-	 * or define() is parsed, since a declaration can stand anywhere a statement can; one that does not parse is listed,
+	 * or `define()` is parsed, since a declaration can stand anywhere a statement can; one that does not parse is listed,
 	 * its declarations unknown.
 	 * @param  list<string>  $files
 	 * @return array{list<string>, list<string>, list<string>}  functions, constants and the files that do not parse

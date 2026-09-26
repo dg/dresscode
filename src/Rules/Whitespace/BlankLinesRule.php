@@ -308,7 +308,7 @@ final class BlankLinesRule extends GapRule implements ConfigurableRule
 
 	/**
 	 * The count the statement's kind asks for on the side of its neighbor at the index, when that neighbor is
-	 * a statement the kinds speak of, not one isForeign() leaves to the options of the header and the declarations.
+	 * a statement the kinds speak of, not one `isForeign()` leaves to the options of the header and the declarations.
 	 * @param array<string, int|array{int, ?int}|null> $counts
 	 */
 	private function byKind(Node|Token $stmt, int $neighbor, array $counts): ?Claim

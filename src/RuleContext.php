@@ -14,7 +14,7 @@ use function in_array;
 
 
 /**
- * What a rule sees of the file it runs on: the tree, the style, analyses, its storage, and report().
+ * What a rule sees of the file it runs on: the tree, the style, analyses, its storage, and `report()`.
  */
 final class RuleContext
 {
@@ -63,7 +63,7 @@ final class RuleContext
 	}
 
 
-	/** The version the checked code is written for; compare it with version_compare(). */
+	/** The version the checked code is written for; compare it with `version_compare()`. */
 	public function getPhpVersion(): string
 	{
 		return $this->phpVersion;
@@ -194,7 +194,7 @@ final class RuleContext
 	 * An analysis of the file: any class built from the FileNode (or from nothing), kept until the file mutates, or
 	 * until the pass ends for a PassAnalysis; the built-in ones are in DressCode\Analyses and PhpSyntax\Analyses,
 	 * a plugin registers its own under the key analyses of the configuration. Throws for one the run does not have,
-	 * which findAnalysis() answers with null.
+	 * which `findAnalysis()` answers with null.
 	 * @template T of object
 	 * @param  class-string<T>  $class
 	 * @return T

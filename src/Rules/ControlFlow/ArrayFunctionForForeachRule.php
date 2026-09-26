@@ -222,7 +222,7 @@ final class ArrayFunctionForForeachRule extends NodeRule
 
 	/**
 	 * Whether the loop goes through an array for certain: an array literal, a parameter declared as an array that
-	 * nothing writes, or a property of $this the class declares as one.
+	 * nothing writes, or a property of `$this` the class declares as one.
 	 */
 	private static function isArray(Statement\ForeachNode $foreach): bool
 	{

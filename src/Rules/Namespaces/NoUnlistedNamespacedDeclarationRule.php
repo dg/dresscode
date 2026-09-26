@@ -17,7 +17,7 @@ use PhpSyntax\Nodes\FileNode;
 /**
  * A function or a constant declared in a namespace is listed in the namespaces of the configuration once it says
  * nameResolution: certain, because an unqualified name in that namespace is then taken as global
- * wherever the lists do not name it. A declaration inside a condition counts, and so does define() with the name
+ * wherever the lists do not name it. A declaration inside a condition counts, and so does `define()` with the name
  * written as a string. The key turns the rule on, and under an uncertain resolution it has nothing to guard.
  */
 #[RuleInfo(

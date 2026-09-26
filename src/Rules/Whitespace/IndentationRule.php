@@ -19,7 +19,7 @@ use function count;
  * Every line indented by the construct it continues: what a construct holds stands one level below the line
  * the construct begins on, what closes or continues the construct stands at that line, and the level is
  * counted from the level the construct itself was given, never read from the text around it. Which part of
- * a construct a line is comes from the layout role of the slot it opens (PhpSyntax\Indentation::findRole(),
+ * a construct a line is comes from the layout role of the slot it opens (`PhpSyntax\Indentation::findRole()`,
  * which takes a pipeline for a chain); an operator, a ternary branch, a link of a chain and the cases of a
  * switch step in as the options say, an operator and a branch never by less than a level where the expression
  * shares its line with what holds it or begins its statement. A comment on a line of its own stands with
@@ -252,7 +252,7 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 	}
 
 
-	/** Whether the next token continues the structure the token closes: else, elseif, catch, finally, the while of a do. */
+	/** Whether the next token continues the structure the token closes: `else`, `elseif`, `catch`, `finally`, the `while` of a `do`. */
 	private static function continuesStructure(Token $token): bool
 	{
 		return $token->getNext()?->is(TokenKind::Else, TokenKind::Elseif, TokenKind::Catch, TokenKind::Finally, TokenKind::While) ?? false;

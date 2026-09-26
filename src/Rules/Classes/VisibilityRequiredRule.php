@@ -16,7 +16,7 @@ use PhpSyntax\Nodes\Statement\{ClassNode, TraitNode};
 
 /**
  * Every property, method and constant of a class or trait declares its visibility (`var` becomes `public`),
- * and the modifiers come in a fixed order: abstract or final, visibility, set visibility, static, readonly.
+ * and the modifiers come in a fixed order: `abstract` or `final`, visibility, set visibility, `static`, `readonly`.
  */
 #[RuleInfo(
 	'dresscode/visibility-required',

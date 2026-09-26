@@ -46,7 +46,7 @@ final class CallTemplate
 		/** @var array<string, true>  placeholders, or the receiver, written where PHP evaluates only sometimes */
 		private readonly array $lazy,
 		private readonly bool $writesRest,
-		/** the receiver is written as $this, which takes an expression, not a class */
+		/** the receiver is written as `$this`, which takes an expression, not a class */
 		private readonly bool $writesThis,
 		/** @var array<string, true>  placeholders of one argument the template unpacks, `...$options` */
 		private readonly array $unpacked = [],
@@ -123,7 +123,7 @@ final class CallTemplate
 	/**
 	 * The expression written instead of the call, or why there is none, and why writing it may change what the code does.
 	 * @param  NameNode|ExpressionNode|null  $receiver  what the call is made on, the object or the class; null for an instantiation
-	 * @param  bool  $static  the call is written with ::
+	 * @param  bool  $static  the call is written with `::`
 	 */
 	public function instantiate(
 		ArgumentBindings $bindings,

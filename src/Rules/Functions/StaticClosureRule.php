@@ -98,7 +98,7 @@ final class StaticClosureRule extends NodeRule
 	}
 
 
-	/** Whether $this at the node is the one of the closure: no function, method or static closure in between. */
+	/** Whether `$this` at the node is the one of the closure: no function, method or static closure in between. */
 	private static function belongsTo(Node $node, Expression\ClosureNode|Expression\ArrowFunctionNode $closure): bool
 	{
 		for ($ancestor = $node->parent; $ancestor !== null && $ancestor !== $closure; $ancestor = $ancestor->parent) {

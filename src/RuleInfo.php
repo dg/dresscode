@@ -69,7 +69,7 @@ final readonly class RuleInfo
 	}
 
 
-	/** The lowest version of PHP the rule needs, "8.4"; null for a rule every target has. */
+	/** The lowest version of PHP the rule needs, `"8.4"`; null for a rule every target has. */
 	public function getMinPhpVersion(): ?string
 	{
 		return isset($this->requires['php']) ? substr($this->requires['php'], 2) : null;

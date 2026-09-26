@@ -25,7 +25,7 @@ use function in_array;
  *
  * The method is left alone where the static context could change what its body does: `$this` anywhere in it, a
  * closure that inherits it included and an anonymous class that has its own excluded, a variable variable,
- * `compact()`, `extract()`, `get_defined_vars()`, eval and include, which could reach it by name,
+ * `compact()`, `extract()`, `get_defined_vars()`, `eval` and `include`, which could reach it by name,
  * `debug_backtrace()`, which shows the object, `parent::` and a call through `self::`, `static::` or the name of
  * the class or an ancestor of a method the class does not declare static, which PHP makes with the object; without
  * the types, any class a class extending another names may be an ancestor. A method calling itself through `$this`

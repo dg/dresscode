@@ -86,7 +86,7 @@ final class ClampForMinMaxRule extends NodeRule
 	}
 
 
-	/** Whether both bounds are written out and the smaller one is the minimum, which is what clamp() takes. */
+	/** Whether both bounds are written out and the smaller one is the minimum, which is what `clamp()` takes. */
 	private static function isOrdered(ExpressionNode $min, ExpressionNode $max): bool
 	{
 		if (!$min->hasValue() || !$max->hasValue()) {

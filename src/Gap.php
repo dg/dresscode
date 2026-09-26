@@ -15,7 +15,7 @@ use PhpSyntax\{Node, Token};
  * The gap a closure of a gap rule is asked about: the token at its edge on the side of the claim, the value
  * of the slot or the item or separator the claim was made for and, in a list, its index, with the style of
  * the file. A claim that depends on the shape of the text must give every gap of a construct the same answer
- * whatever the engine has done to the gaps before it: once() keeps a decision about a node for the pass.
+ * whatever the engine has done to the gaps before it: `once()` keeps a decision about a node for the pass.
  */
 final readonly class Gap
 {
@@ -48,7 +48,7 @@ final readonly class Gap
 
 
 	/**
-	 * The rule of the class as it is configured for this file, as RuleContext::findRule() gives it; null when that
+	 * The rule of the class as it is configured for this file, as `RuleContext::findRule()` gives it; null when that
 	 * rule does not run on the file.
 	 * @template T of Rule
 	 * @param  class-string<T>  $class

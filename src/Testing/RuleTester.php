@@ -383,7 +383,7 @@ final class RuleTester
 
 
 	/**
-	 * What the namespaces declare outside the fixture, the names listed the way a use statement lists them; without
+	 * What the namespaces declare outside the fixture, the names listed the way a `use` statement lists them; without
 	 * a header nothing is listed and nothing is known.
 	 * @throws TestFailure
 	 */
@@ -412,7 +412,7 @@ final class RuleTester
 
 
 	/**
-	 * The items of a header, split at the commas outside a group, because a use statement takes a group of its own.
+	 * The items of a header, split at the commas outside a group, because a `use` statement takes a group of its own.
 	 * @return list<string>
 	 */
 	private static function splitItems(string $items): array

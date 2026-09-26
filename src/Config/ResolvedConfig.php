@@ -25,7 +25,7 @@ final readonly class ResolvedConfig
 		public array $rules,
 		/** the characters of one level of indentation */
 		public string $indent,
-		/** "\n", "\r\n" or 'majority' */
+		/** `"\n"`, `"\r\n"` or `'majority'` */
 		public string $eol,
 		public string $phpVersion,
 		/** @var list<string>  names of the presets, parents first */
@@ -40,7 +40,7 @@ final readonly class ResolvedConfig
 		public string $nameResolution = 'uncertain',
 		/** the widest line the rules keep to; null for none */
 		public ?int $lineLength = null,
-		/** 'phpstan' when the types of the code come from the PHPStan of the project; null when the rules have none */
+		/** `'phpstan'` when the types of the code come from the PHPStan of the project; null when the rules have none */
 		public ?string $types = null,
 	) {
 	}

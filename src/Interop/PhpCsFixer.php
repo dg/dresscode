@@ -20,7 +20,7 @@ final class PhpCsFixer
 {
 	/**
 	 * @return array<string, string|\Closure(array<string, mixed>, Translation): mixed>  fixer => rule name, or what to
-	 *     enable for its options; every option is read through ?? so that a fixer enabled with none translates too
+	 *     enable for its options; every option is read through `??` so that a fixer enabled with none translates too
 	 */
 	public static function getTranslations(): array
 	{

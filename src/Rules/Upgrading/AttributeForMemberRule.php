@@ -460,7 +460,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 	}
 
 
-	/** Whether the class reads the member of that name itself, through $this, self::, static:: or its name. */
+	/** Whether the class reads the member of that name itself, through `$this`, `self::`, `static::` or its name. */
 	private static function readsMember(ClassNode $class, string $kind, string $name, RuleContext $context): bool
 	{
 		$resolver = $context->getAnalysis(NameResolver::class);

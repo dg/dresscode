@@ -19,7 +19,7 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
 /**
  * Spaces around binary operators, assignments, `instanceof`, `=>` and the `=` of a default or a constant:
  * one on each side, unless the operator sits at a line break. An assignment, `=` and the `=>` of an array item,
- * a match arm, a yield or a foreach stay on the line of what is before them unless that spans several lines or
+ * a `match` arm, a `yield` or a `foreach` stay on the line of what is before them unless that spans several lines or
  * the line would grow wider than the line length of the style, what follows them may begin below, and
  * `instanceof` stays on the line of both its operands. What follows a comparison, a bitwise operator or a shift
  * stays on the line of the operator, unless the line would grow wider than the line length. An operator ending
@@ -142,7 +142,7 @@ final class BinaryOperatorSpacingRule extends GapRule implements ConfigurableRul
 
 	/**
 	 * The operator joins the line of what is before it, unless that spans several lines itself, as the conditions
-	 * of a match arm may, or the joined line would be wider than the line length.
+	 * of a `match` arm may, or the joined line would be wider than the line length.
 	 */
 	private function claimBeforeAssignment(Gap $gap): Claim
 	{

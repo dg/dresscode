@@ -116,7 +116,7 @@ final class UselessOverridingMethodRule extends NodeRule
 	}
 
 
-	/** Whether the method returns no value a call of the parent could give it: void, never, or a constructor or destructor. */
+	/** Whether the method returns no value a call of the parent could give it: `void`, `never`, or a constructor or destructor. */
 	private static function returnsNothing(MethodNode $method): bool
 	{
 		return in_array(strtolower($method->name->text), ['__construct', '__destruct'], true)

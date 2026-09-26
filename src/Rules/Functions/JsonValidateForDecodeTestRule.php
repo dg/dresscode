@@ -79,7 +79,7 @@ final class JsonValidateForDecodeTestRule extends NodeRule
 	}
 
 
-	/** The call of json_decode() whose result the expression only compares with null, the value thrown away. */
+	/** The call of `json_decode()` whose result the expression only compares with null, the value thrown away. */
 	private function readDecodedJson(ExpressionNode $expression, RuleContext $context): ?Expression\FunctionCallNode
 	{
 		if (

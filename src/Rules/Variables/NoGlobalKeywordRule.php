@@ -13,7 +13,7 @@ use PhpSyntax\Nodes\Statement\GlobalNode;
 
 
 /**
- * The global statement is reported; there is no safe automatic fix.
+ * The `global` statement is reported; there is no safe automatic fix.
  */
 #[RuleInfo(
 	'dresscode/no-global-keyword',

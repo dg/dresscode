@@ -27,10 +27,10 @@ final class PassRunner
 	/** @var array<string, array<class-string, list<array{NodeRule, RuleContext, string}>>>  stage => node class => rules entering it, with their contexts and names */
 	private array $entering = [];
 
-	/** @var array<string, array<class-string, list<array{NodeRule, RuleContext, string}>>>  the same for leave() */
+	/** @var array<string, array<class-string, list<array{NodeRule, RuleContext, string}>>>  the same for `leave()` */
 	private array $leaving = [];
 
-	/** @var array<string, bool>  stage => some rule of it overrides leave() */
+	/** @var array<string, bool>  stage => some rule of it overrides `leave()` */
 	private array $leaves = [];
 
 	/** @var array<string, RuleContext> */
@@ -245,7 +245,7 @@ final class PassRunner
 
 
 	/**
-	 * The rules of the stage whose enter() or leave() wants the class of the node, remembered for the next node of it.
+	 * The rules of the stage whose `enter()` or `leave()` wants the class of the node, remembered for the next node of it.
 	 * @return list<array{NodeRule, RuleContext, string}>
 	 */
 	private function resolveRules(string $stage, Node|Token $node, bool $enter): array

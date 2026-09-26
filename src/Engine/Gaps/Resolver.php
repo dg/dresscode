@@ -24,13 +24,13 @@ use function count, in_array, is_array, is_int, sprintf, strlen;
  */
 final class Resolver
 {
-	/** @var array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>  'Class.slot' or '*.slot' => the claims, several where they claim different components or decide by a closure */
+	/** @var array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>  `'Class.slot'` or `'*.slot'` => the claims, several where they claim different components or decide by a closure */
 	private array $before = [];
 
 	/** @var array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>> */
 	private array $after = [];
 
-	/** @var array<string, array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>>  class => slot => the claims before it, of the class then of '*' */
+	/** @var array<string, array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>>  class => slot => the claims before it, of the class then of `'*'` */
 	private array $beforeOf = [];
 
 	/** @var array<string, array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>> */
@@ -132,7 +132,7 @@ final class Resolver
 
 
 	/**
-	 * The node classes the claim reaches that have the slot: the one named, or every one for '*'.
+	 * The node classes the claim reaches that have the slot: the one named, or every one for `'*'`.
 	 * @return list<class-string<Node>>
 	 */
 	private static function findOwners(string $class, string $slot): array
@@ -377,7 +377,7 @@ final class Resolver
 
 
 	/**
-	 * The claims on the side of a slot of a class: those of the class, then those of '*', and for the
+	 * The claims on the side of a slot of a class: those of the class, then those of `'*'`, and for the
 	 * items or separators of a list those of every list; remembered per class and slot.
 	 * @param array<string, array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>>> $cache
 	 * @param array<string, list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>> $side

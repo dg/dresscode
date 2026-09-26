@@ -82,7 +82,7 @@ final class Diff
 
 
 	/**
-	 * Edit script as [' ' | '-' | '+', line]; the common prefix and suffix are matched directly, the rest
+	 * Edit script as [`' '` | `'-'` | `'+'`, line]; the common prefix and suffix are matched directly, the rest
 	 * by the longest common subsequence.
 	 * @param  list<string>  $a
 	 * @param  list<string>  $b

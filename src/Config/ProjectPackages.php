@@ -20,7 +20,7 @@ use function count, dirname, is_array, is_string;
  * a package that only comes with another it is the installed one; and any version does for the project itself and for
  * a development branch without an alias, whose version says nothing. A package an installed one replaces with its own
  * version, a part of a monorepo installed as the whole, is had in the version of the one replacing it. The `packages` of
- * the configuration say the version of an installed package outright (withTargets()).
+ * the configuration say the version of an installed package outright (`withTargets()`).
  * @internal
  */
 final class ProjectPackages
@@ -100,7 +100,7 @@ final class ProjectPackages
 
 
 	/**
-	 * The same project with the versions of packages its code is written for said outright, which findVersion()
+	 * The same project with the versions of packages its code is written for said outright, which `findVersion()`
 	 * answers with before it asks the constraint: code is fixed for a version before the project moves to it.
 	 * @param  array<string, string>  $versions  package => version
 	 */
@@ -119,7 +119,7 @@ final class ProjectPackages
 
 	/**
 	 * The version of the package the code must work with, `3.1` or `3.2.1`; null where any version does, and for
-	 * a package the project does not have, which has() tells apart.
+	 * a package the project does not have, which `has()` tells apart.
 	 */
 	public function findVersion(string $package): ?string
 	{

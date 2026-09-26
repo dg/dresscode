@@ -18,7 +18,7 @@ use function count;
  * so in one expression instead of repeating the assignment and the break. Several labels sharing a body
  * become the values of one arm.
  *
- * The switch must end with a default, because a match with no arm for the subject raises an error where the
+ * The switch must end with a `default`, because a match with no arm for the subject raises an error where the
  * switch went on quietly, and every case must hold the assignment and its break and nothing else, a body
  * falling through into the next one among the things it must not hold. A comment anywhere in the switch keeps
  * it as it is, the arms of a match having nowhere to put one.

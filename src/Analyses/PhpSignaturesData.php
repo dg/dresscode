@@ -13,7 +13,7 @@ namespace DressCode\Analyses;
  */
 trait PhpSignaturesData
 {
-	/** @var array<string, string>  lowercased name => its parameters as 'type name', comma separated, a variadic one written '...name', one taken by reference '&name' and an optional one 'name=' */
+	/** @var array<string, string>  lowercased name => its parameters as `'type name'`, comma separated, a variadic one written `'...name'`, one taken by reference `'&name'` and an optional one `'name='` */
 	private const Signatures = [
 		'_' => 'string message',
 		'abs' => 'int|float num',

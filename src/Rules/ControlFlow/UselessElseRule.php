@@ -116,7 +116,7 @@ final class UselessElseRule extends NodeRule implements ConfigurableRule
 
 
 	/**
-	 * The elseif becomes an if statement of its own after the if, taking the later branches with it.
+	 * The `elseif` becomes an `if` statement of its own after the `if`, taking the later branches with it.
 	 * @param NodeList<Node> $list
 	 */
 	private function splitElseif(IfNode $node, ElseIfNode $elseif, NodeList $list, RuleContext $context): void

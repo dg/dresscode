@@ -16,7 +16,7 @@ use function count;
 final readonly class RunResult
 {
 	public function __construct(
-		/** @var list<FileResult>  without their code and output, which a reporter sees in reportFile() */
+		/** @var list<FileResult>  without their code and output, which a reporter sees in `reportFile()` */
 		public array $files,
 		public bool $fix,
 		/** violations the baseline silenced */

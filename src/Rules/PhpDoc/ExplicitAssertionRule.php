@@ -19,11 +19,11 @@ use function in_array;
 
 
 /**
- * An inline `@var` annotation of a variable assigned by the statement below it (also in foreach and while)
- * becomes an `assert()` of the type after the statement, or at the start of the loop body. Types that assert()
+ * An inline `@var` annotation of a variable assigned by the statement below it (also in `foreach` and `while`)
+ * becomes an `assert()` of the type after the statement, or at the start of the loop body. Types that `assert()`
  * cannot express (generics, shapes, pseudo-types, `@template` names) keep their annotation.
  *
- * Every fix is risky: the assert() runs where assertions are on and fails where the annotation was wrong, which
+ * Every fix is risky: the `assert()` runs where assertions are on and fails where the annotation was wrong, which
  * the annotation never did.
  */
 #[RuleInfo(
@@ -156,8 +156,8 @@ final class ExplicitAssertionRule extends NodeRule
 
 
 	/**
-	 * The condition asserting the type, null when assert() cannot express it. assert() itself cannot be declared in a
-	 * namespace, so it is written bare; a function of the condition is spelled by $spell.
+	 * The condition asserting the type, null when `assert()` cannot express it. `assert()` itself cannot be declared in a
+	 * namespace, so it is written bare; a function of the condition is spelled by `$spell`.
 	 * @param  list<string>  $templates
 	 * @param  \Closure(string): string  $spell
 	 */

@@ -15,7 +15,7 @@ use function strlen;
 
 /**
  * Rule and preset classes known to a run, by name or class; a name may belong to one class only.
- * A name without a vendor is the built-in one of that name, so 'per' is 'dresscode/per'.
+ * A name without a vendor is the built-in one of that name, so `'per'` is `'dresscode/per'`.
  * @internal
  */
 final class RuleRegistry
@@ -308,7 +308,7 @@ final class RuleRegistry
 
 
 	/**
-	 * " Did you mean 'x'?" for the nearest of the known names, empty when none is near enough; the name
+	 * `" Did you mean 'x'?"` for the nearest of the known names, empty when none is near enough; the name
 	 * is compared without its vendor as well, so that a slug typed alone finds its rule.
 	 * @param  list<string>  $known
 	 */

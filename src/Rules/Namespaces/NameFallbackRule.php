@@ -23,7 +23,7 @@ use function count;
  * name is reached by the fallback of PHP at run time, after a function or a constant of that name in the namespace,
  * which is also why the compiler optimizes a call or puts a constant in place only for a qualified name. The keys go
  * from the general to the particular and the most particular answer decides, as in dresscode/name-notation;
- * `optimizedFunctions` speaks of a call PHP optimizes with its arguments (NodeHelpers::isOptimizedCall()),
+ * `optimizedFunctions` speaks of a call PHP optimizes with its arguments (`NodeHelpers::isOptimizedCall()`),
  * `optimizedConstants` of a constant PHP declares where the compiler computes with it: in a constant expression, as
  * a constant condition or as an operand of a logical operator, and not where it is only passed or compared with
  * a variable.

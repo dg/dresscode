@@ -12,7 +12,7 @@ use PhpSyntax\{Node, Token, Trivia};
 
 
 /**
- * One call of RuleContext::report() as the pass runner accounts for it: what was reported and where, the
+ * One call of `RuleContext::report()` as the pass runner accounts for it: what was reported and where, the
  * revision of the file at the time, whether a comment silenced it, whether its fix is risky or missing, and whether
  * the baseline knows it.
  * @internal
@@ -24,7 +24,7 @@ final readonly class Report
 		public ?Trivia $trivia,
 		public string $message,
 		public Severity $severity,
-		/** FileNode::$revision when the report was made */
+		/** `FileNode::$revision` when the report was made */
 		public int $revision,
 		/** a suppression comment silenced it: no violation is recorded and the rule must not fix it */
 		public bool $silenced,

@@ -20,7 +20,7 @@ final class PhpCodeSniffer
 {
 	/**
 	 * @return array<string, string|\Closure(array<string, mixed>, Translation): mixed>  sniff => rule name, or what to
-	 *     enable for its properties; every property is read through ?? so that a sniff with none translates too
+	 *     enable for its properties; every property is read through `??` so that a sniff with none translates too
 	 */
 	public static function getTranslations(): array
 	{

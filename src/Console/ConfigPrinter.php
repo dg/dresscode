@@ -179,7 +179,7 @@ final class ConfigPrinter
 	}
 
 
-	/** Unlike Ansi::pad(), a column always ends with a space, so a name too long does not run into the next one. */
+	/** Unlike `Ansi::pad()`, a column always ends with a space, so a name too long does not run into the next one. */
 	private static function pad(string $text, int $width): string
 	{
 		return $text . str_repeat(' ', max(1, $width - Ansi::measure($text)));

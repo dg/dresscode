@@ -72,7 +72,7 @@ final class NoDirnameOfFileRule extends NodeRule
 
 
 	/**
-	 * The path argument and the levels of a dirname() call written in the plain way; null for any other.
+	 * The path argument and the levels of a `dirname()` call written in the plain way; null for any other.
 	 * @return ?array{ExpressionNode, int}
 	 */
 	private static function parse(FunctionCallNode $call): ?array

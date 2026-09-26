@@ -496,7 +496,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 
 
 	/**
-	 * How the property or the offset is used where it stands: read, read on the left of ??, which asks whether it is
+	 * How the property or the offset is used where it stands: read, read on the left of `??`, which asks whether it is
 	 * set before it reads, written in a way this rule rewrites where the writing stands (null), or written in a way
 	 * no call can be.
 	 * @return 'read'|'guarded'|'written'|null
@@ -620,7 +620,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 
 
 	/**
-	 * How the use stands in a string, braced as {$a->b} or bare as $a->b, with the chain it heads there; null outside one.
+	 * How the use stands in a string, braced as `{$a->b}` or bare as `$a->b`, with the chain it heads there; null outside one.
 	 * @return ?array{'braced'|'bare', Node}
 	 */
 	private static function findInterpolation(Node $node): ?array
