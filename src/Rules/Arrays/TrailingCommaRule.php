@@ -148,8 +148,7 @@ final class TrailingCommaRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$comma = new Token(ord(','), ',');
-		$comma->setTrailingTrivia($lastToken->trailingTrivia);
+		$comma = (new Token(ord(','), ','))->setTrailingTrivia($lastToken->trailingTrivia);
 		$lastToken->setTrailingTrivia([]);
 		$list->setTrailingSeparator($comma);
 	}

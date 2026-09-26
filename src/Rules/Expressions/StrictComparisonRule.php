@@ -50,9 +50,8 @@ final class StrictComparisonRule extends NodeRule
 			return;
 		}
 
-		$operator = new Token($kind, $text);
-		$operator->setLeadingTrivia($node->operator->leadingTrivia);
-		$operator->setTrailingTrivia($node->operator->trailingTrivia);
-		$node->operator = $operator;
+		$node->operator = (new Token($kind, $text))
+			->setLeadingTrivia($node->operator->leadingTrivia)
+			->setTrailingTrivia($node->operator->trailingTrivia);
 	}
 }

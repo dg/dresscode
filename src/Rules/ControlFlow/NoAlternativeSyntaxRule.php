@@ -128,12 +128,12 @@ final class NoAlternativeSyntaxRule extends NodeRule
 		}
 
 		$last = $closeTag === null ? $node->semicolon ?? $end : $end;
-		$openBrace = new Token(ord('{'), '{');
-		$openBrace->setLeadingTrivia(self::braceLeading($colon));
-		$openBrace->setTrailingTrivia($colon->trailingTrivia);
-		$closeBrace = new Token(ord('}'), '}');
-		$closeBrace->setLeadingTrivia($end->leadingTrivia);
-		$closeBrace->setTrailingTrivia($last->trailingTrivia);
+		$openBrace = (new Token(ord('{'), '{'))
+			->setLeadingTrivia(self::braceLeading($colon))
+			->setTrailingTrivia($colon->trailingTrivia);
+		$closeBrace = (new Token(ord('}'), '}'))
+			->setLeadingTrivia($end->leadingTrivia)
+			->setTrailingTrivia($last->trailingTrivia);
 		$node->colon = null;
 		$node->endKeyword = null;
 		$node->semicolon = null;
@@ -155,9 +155,10 @@ final class NoAlternativeSyntaxRule extends NodeRule
 
 		$statement = (new Parser)->parseStatement('?' . '>');
 		assert($statement instanceof EmptyStatementNode);
-		$statement->semicolon->setText($closeTag->text);
-		$statement->semicolon->setLeadingTrivia($closeTag->leadingTrivia);
-		$statement->semicolon->setTrailingTrivia($closeTag->trailingTrivia);
+		$statement->semicolon
+			->setText($closeTag->text)
+			->setLeadingTrivia($closeTag->leadingTrivia)
+			->setTrailingTrivia($closeTag->trailingTrivia);
 		$list->insert($list->indexOf($node) + 1, $statement);
 	}
 
@@ -171,10 +172,12 @@ final class NoAlternativeSyntaxRule extends NodeRule
 	{
 		$block = (new Parser)->parseStatement('{}');
 		assert($block instanceof BlockNode);
-		$block->openBrace->setLeadingTrivia(self::braceLeading($colon));
-		$block->openBrace->setTrailingTrivia($colon->trailingTrivia);
-		$block->closeBrace->setLeadingTrivia($closeLeading);
-		$block->closeBrace->setTrailingTrivia($closeTrailing);
+		$block->openBrace
+			->setLeadingTrivia(self::braceLeading($colon))
+			->setTrailingTrivia($colon->trailingTrivia);
+		$block->closeBrace
+			->setLeadingTrivia($closeLeading)
+			->setTrailingTrivia($closeTrailing);
 		foreach ($stmts->getItems() as $stmt) {
 			$stmts->removeItem($stmt);
 			$block->statements->append($stmt);

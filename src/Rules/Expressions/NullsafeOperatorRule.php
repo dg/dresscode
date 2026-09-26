@@ -70,10 +70,9 @@ final class NullsafeOperatorRule extends NodeRule
 		$replacement = $chain->withoutEdgeTrivia();
 		$link = self::findFirstLink($replacement, $subject);
 		assert($link !== null);
-		$operator = new Token(TokenKind::NullsafeObjectOperator, '?->');
-		$operator->setLeadingTrivia($link->operator->leadingTrivia);
-		$operator->setTrailingTrivia($link->operator->trailingTrivia);
-		$link->operator = $operator;
+		$link->operator = (new Token(TokenKind::NullsafeObjectOperator, '?->'))
+			->setLeadingTrivia($link->operator->leadingTrivia)
+			->setTrailingTrivia($link->operator->trailingTrivia);
 		$node->replaceWith($replacement);
 	}
 

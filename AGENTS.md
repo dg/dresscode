@@ -31,6 +31,7 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
 - Naming:
   - methods are actions and start with a verb (`getFirstToken()`, `replaceChild()`, `report()`); a bare noun is not a method name;
   - `get*` returns something that belongs to the object (may be `null`), `find*` searches and `null` means not found;
+  - a setter, a method whose only job is to write one value, returns `static` so that writes chain, as the setters of PhpSyntax do (`$token->setText('+=')->setTrailingSpace(' ')`); a method that decides what to change, such as `ensureLeadingNewline()` or `removeTrailingWhitespace()`, returns `void`;
   - boolean queries `is*`/`has*`/`can*`, never `check*`, which is the name of a method that answers nothing and raises the problem itself, by throwing or by reporting;
   - rule classes end with `Rule`; presets and analyses carry bare names in `Presets/` and `Analyses/`;
   - a gap rule names the slots it claims as strings (`'openParen'`, `'statements:item'`), which no type checks, so a claim on a slot that is gone shows up only in the fixture of the rule; the names are in the node reference of PhpSyntax;

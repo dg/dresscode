@@ -44,12 +44,12 @@ final class ShortArraySyntaxRule extends NodeRule
 			return;
 		}
 
-		$open = new Token(ord('['), '[');
-		$open->setLeadingTrivia($keyword->leadingTrivia);
-		$open->setTrailingTrivia($node->openDelimiter->trailingTrivia);
-		$close = new Token(ord(']'), ']');
-		$close->setLeadingTrivia($node->closeDelimiter->leadingTrivia);
-		$close->setTrailingTrivia($node->closeDelimiter->trailingTrivia);
+		$open = (new Token(ord('['), '['))
+			->setLeadingTrivia($keyword->leadingTrivia)
+			->setTrailingTrivia($node->openDelimiter->trailingTrivia);
+		$close = (new Token(ord(']'), ']'))
+			->setLeadingTrivia($node->closeDelimiter->leadingTrivia)
+			->setTrailingTrivia($node->closeDelimiter->trailingTrivia);
 		if ($node instanceof ArrayNode) {
 			$node->arrayKeyword = null;
 		} else {

@@ -175,9 +175,7 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 		// the gap behind the parenthesis moves behind the type
 		$trailing = $node->closeParen->trailingTrivia;
 		$node->closeParen->setTrailingTrivia([]);
-		$colon = new Token(ord(':'), ':');
-		$colon->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
-		$node->colon = $colon;
+		$node->colon = (new Token(ord(':'), ':'))->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
 		$node->returnType = $type;
 		$type->getLastToken()?->setTrailingTrivia($trailing);
 	}

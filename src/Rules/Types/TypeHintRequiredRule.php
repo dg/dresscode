@@ -185,9 +185,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 					continue;
 				}
 
-				$type = (new Parser)->parseType($native);
-				$type->setEdgeTrivia(trailing: [new Trivia(TriviaKind::Whitespace, ' ')]);
-				$param->type = $type;
+				$param->type = (new Parser)->parseType($native)->setEdgeTrivia(trailing: [new Trivia(TriviaKind::Whitespace, ' ')]);
 			}
 
 			$bare = ltrim($native, '?');
@@ -361,9 +359,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 				return;
 			}
 
-			$type = (new Parser)->parseType($native);
-			$type->setEdgeTrivia(trailing: [new Trivia(TriviaKind::Whitespace, ' ')]);
-			$node->type = $type;
+			$node->type = (new Parser)->parseType($native)->setEdgeTrivia(trailing: [new Trivia(TriviaKind::Whitespace, ' ')]);
 		}
 
 		$traversable = NativeType::isTraversable(ltrim($native, '?'), $this->traversableTypeHints, $resolve);
@@ -403,9 +399,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$type = (new Parser)->parseType($native);
-		$type->setEdgeTrivia(trailing: [new Trivia(TriviaKind::Whitespace, ' ')]);
-		$node->type = $type;
+		$node->type = (new Parser)->parseType($native)->setEdgeTrivia(trailing: [new Trivia(TriviaKind::Whitespace, ' ')]);
 	}
 
 
@@ -428,12 +422,10 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 	private static function addReturnType(FunctionNode|MethodNode|Expression\ClosureNode $node, string $native): void
 	{
 		$type = (new Parser)->parseType($native);
-		$colon = new Token(ord(':'), ':');
-		$colon->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
 		$anchor = $node instanceof Expression\ClosureNode && $node->uses !== null ? $node->uses->closeParen : $node->closeParen;
 		$type->setEdgeTrivia(trailing: $anchor->trailingTrivia);
 		$anchor->setTrailingTrivia([]);
-		$node->colon = $colon;
+		$node->colon = (new Token(ord(':'), ':'))->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
 		$node->returnType = $type;
 	}
 

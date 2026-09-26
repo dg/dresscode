@@ -182,10 +182,9 @@ final class NodeHelpers
 			return null;
 		}
 
-		$new = new Token($kind, $text);
-		$new->setLeadingTrivia($operator->leadingTrivia);
-		$new->setTrailingTrivia($operator->trailingTrivia);
-		return $new;
+		return (new Token($kind, $text))
+			->setLeadingTrivia($operator->leadingTrivia)
+			->setTrailingTrivia($operator->trailingTrivia);
 	}
 
 

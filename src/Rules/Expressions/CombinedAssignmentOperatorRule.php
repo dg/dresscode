@@ -65,8 +65,9 @@ final class CombinedAssignmentOperatorRule extends NodeRule
 
 		$replacement = (new Parser)->parseExpression('$x ' . $combined . ' 0');
 		assert($replacement instanceof Expression\CombinedAssignmentNode);
-		$replacement->operator->setLeadingTrivia($node->operator->leadingTrivia);
-		$replacement->operator->setTrailingTrivia($node->operator->trailingTrivia);
+		$replacement->operator
+			->setLeadingTrivia($node->operator->leadingTrivia)
+			->setTrailingTrivia($node->operator->trailingTrivia);
 		$replacement->target = clone $var;
 		$replacement->expression = clone $binary->right;
 		$replacement->setEdgeTrivia([], []);

@@ -50,8 +50,9 @@ final class ElseifKeywordRule extends NodeRule
 		$branch->condition = clone $inner->condition;
 		$branch->closeParen = clone $inner->closeParen;
 		$branch->body = clone $inner->body;
-		$branch->elseifKeyword->setLeadingTrivia($node->elseKeyword->leadingTrivia);
-		$branch->elseifKeyword->setTrailingTrivia($inner->ifKeyword->trailingTrivia);
+		$branch->elseifKeyword
+			->setLeadingTrivia($node->elseKeyword->leadingTrivia)
+			->setTrailingTrivia($inner->ifKeyword->trailingTrivia);
 
 		$tail = array_map(fn($elseif) => clone $elseif, $inner->elseifs->getItems());
 		$else = $inner->else ? clone $inner->else : null;

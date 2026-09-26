@@ -40,9 +40,8 @@ final class SwitchCaseColonRule extends NodeRule
 			return;
 		}
 
-		$colon = new Token(ord(':'), ':');
-		$colon->setLeadingTrivia($node->separator->leadingTrivia);
-		$colon->setTrailingTrivia($node->separator->trailingTrivia);
-		$node->separator = $colon;
+		$node->separator = (new Token(ord(':'), ':'))
+			->setLeadingTrivia($node->separator->leadingTrivia)
+			->setTrailingTrivia($node->separator->trailingTrivia);
 	}
 }

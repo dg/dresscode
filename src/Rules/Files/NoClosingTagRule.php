@@ -53,9 +53,9 @@ final class NoClosingTagRule extends NodeRule
 			$statement->remove();
 		} else {
 			$last->getPrevious()?->removeTrailingWhitespace();
-			$semicolon = new Token(ord(';'), ';');
-			$semicolon->setLeadingTrivia($last->leadingTrivia);
-			$semicolon->setTrailingTrivia([new Trivia(TriviaKind::EndOfLine, $context->getStyle()->eol)]);
+			$semicolon = (new Token(ord(';'), ';'))
+				->setLeadingTrivia($last->leadingTrivia)
+				->setTrailingTrivia([new Trivia(TriviaKind::EndOfLine, $context->getStyle()->eol)]);
 			$statement?->replaceChild($last, $semicolon);
 		}
 	}
