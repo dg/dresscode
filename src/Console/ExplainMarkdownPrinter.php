@@ -21,8 +21,6 @@ final class ExplainMarkdownPrinter
 {
 	public function __construct(
 		private readonly ResolvedConfig $config,
-		/** the directory the fixtures of the rules live in */
-		private readonly string $fixtures,
 	) {
 	}
 
@@ -81,7 +79,7 @@ final class ExplainMarkdownPrinter
 			$out .= 'As this project has it: ' . implode(', ', $options) . ".\n\n";
 		}
 
-		foreach (new ExplainPrinter($rule, $this->fixtures)->findExamples() as [$before, $after]) {
+		foreach (new ExplainPrinter($rule)->findExamples() as [$before, $after]) {
 			$out .= "```php\n" . self::strip($before) . "```\n";
 			if ($after !== null && $after !== $before) {
 				$out .= "becomes\n\n```php\n" . self::strip($after) . "```\n";

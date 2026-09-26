@@ -13,3 +13,4 @@ tests/          export-ignore
 bin/dresscode   text eol=lf
 tests/corpus/**            -text
 tests/**/fixtures/**       -text
+examples/**                -text

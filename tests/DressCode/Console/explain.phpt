@@ -15,19 +15,18 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-$fixtures = __DIR__ . '/../Rules/fixtures';
 $registry = new RuleRegistry;
 $resolved = new PresetResolver($registry)->resolve(new Config(presets: ['dresscode/nette']), Config::DefaultPhpVersion);
 
 
-test('every example belongs to a rule and every rule can be explained', function () use ($fixtures, $registry, $resolved) {
+test('every example belongs to a rule and every rule can be explained', function () use ($registry, $resolved) {
 	$console = new Console;
 	$console->useColors(false);
 	$examples = 0;
 	foreach ($registry->getRules() as $name => $class) {
 		$rule = $resolved->getRule($name);
 		Assert::type(DressCode\Config\ResolvedRule::class, $rule, $name);
-		$printer = new ExplainPrinter($rule, $fixtures);
+		$printer = new ExplainPrinter($rule);
 		Assert::contains($name, $printer->print($console), $name);
 		foreach ($printer->findExamples() as [$before, $after, $options]) {
 			$examples++;
@@ -37,13 +36,13 @@ test('every example belongs to a rule and every rule can be explained', function
 
 	Assert::true($examples > 0);
 
-	// a showcase in a directory no rule owns would never be run against anything
+	// an example in a directory no rule owns would never be run against anything
 	$slugs = [];
 	foreach (array_keys($registry->getRules()) as $name) {
 		$slugs[substr($name, strpos($name, '/') + 1)] = true;
 	}
 
-	foreach (glob("$fixtures/*/showcase*.code") ?: [] as $file) {
+	foreach (glob(__DIR__ . '/../../../examples/*/*.code') ?: [] as $file) {
 		Assert::true(isset($slugs[basename(dirname($file))]), $file);
 	}
 });

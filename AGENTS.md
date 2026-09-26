@@ -19,7 +19,7 @@ Rules use only the public API of `PhpSyntax`; whatever a rule in DressCode needs
 
 - `composer tester`: Nette Tester over `tests/`.
 - `composer phpstan`: PHPStan level 8, no baseline; `ignoreErrors` only with a reason.
-- `composer verify-examples`: the examples `dresscode explain` shows, run against the rules they belong to; they are fixtures named `showcase*.code`, so `composer tester` covers them too.
+- `composer verify-examples`: the examples `dresscode explain` shows, run against the rules they belong to; they are fixtures in `examples/<rule>/`, shipped with the package, and `composer tester` covers them too.
 - `composer reference`: regenerates `docs/reference/rules.md` (rules with their options) from the catalogue. Commit the output; CI diffs it.
 - `php bin/dresscode check`: DressCode over its own sources with `dresscode.neon`; CI runs it too.
 - `php bin/dresscode init` in the root of another project: writes the `dresscode.neon` measured from its code, or prints it when a configuration exists; how it measures is in `docs/internals.md`.

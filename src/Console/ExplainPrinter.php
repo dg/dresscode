@@ -25,23 +25,20 @@ final class ExplainPrinter
 {
 	public function __construct(
 		private readonly ResolvedRule $rule,
-		/** the directory the fixtures of the rules live in */
-		private readonly string $fixtures,
 	) {
 	}
 
 
 	/**
-	 * The examples of a rule: `<slug>/showcase*.code` with the `.expected` beside it when it fixes, and the
-	 * options its header sets, which is the configuration the example is true under.
+	 * The examples of a rule: `examples/<slug>/*.code` in the package its class comes from, with the `.expected`
+	 * beside it when it fixes, and the options its header sets, which is the configuration the example is true under.
 	 * @return list<array{string, ?string, string}>
 	 */
 	public function findExamples(): array
 	{
-		$slug = substr($this->rule->name, strpos($this->rule->name, '/') + 1);
-		$dir = "$this->fixtures/$slug";
+		$dir = self::findExamplesDir($this->rule->name, $this->rule->class);
 		$examples = [];
-		foreach (glob("$dir/showcase*.code") ?: [] as $file) {
+		foreach ($dir === null ? [] : (glob("$dir/*.code") ?: []) as $file) {
 			$code = (string) file_get_contents($file);
 			$expected = (string) preg_replace('~\.code$~', '.expected', $file);
 			$examples[] = [
@@ -52,6 +49,26 @@ final class ExplainPrinter
 		}
 
 		return $examples;
+	}
+
+
+	/**
+	 * The directory of the examples of a rule, `examples/<slug>` beside the composer.json of the package its class
+	 * comes from, so that an extension ships the examples of its own rules; null when the class is in no package.
+	 * @param  class-string  $class
+	 */
+	public static function findExamplesDir(string $name, string $class): ?string
+	{
+		$dir = dirname((string) new \ReflectionClass($class)->getFileName());
+		while (!is_file("$dir/composer.json")) {
+			if (dirname($dir) === $dir) {
+				return null;
+			}
+
+			$dir = dirname($dir);
+		}
+
+		return "$dir/examples/" . substr($name, strpos($name, '/') + 1);
 	}
 
 

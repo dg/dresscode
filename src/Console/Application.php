@@ -600,7 +600,6 @@ final class Application
 		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
 		$factory->createRunner($config, $root, $commandLine, self::parseOnly($args), cache: false);
 		$resolved = $factory->getResolvedConfig();
-		$fixtures = __DIR__ . '/../../tests/DressCode/Rules/fixtures';
 		$rules = $resolved->getActiveRules();
 		if (is_string($name)) {
 			$rule = $resolved->getRule(RuleInfo::of($factory->getRegistry()->resolveRule($name))->name);
@@ -613,7 +612,7 @@ final class Application
 
 		$file = $args['--output'];
 		if (is_string($file)) {
-			$printer = new ExplainMarkdownPrinter($resolved, $fixtures);
+			$printer = new ExplainMarkdownPrinter($resolved);
 			FileSystem::write($file, is_string($name) ? $printer->printRule($rules[0]) : $printer->print());
 			$this->write('Written to ' . FileSystem::platformSlashes($file) . ".\n");
 			return 0;
@@ -621,7 +620,7 @@ final class Application
 
 		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
 		foreach ($rules as $rule) {
-			$this->out->write("\n" . new ExplainPrinter($rule, $fixtures)->print($this->out));
+			$this->out->write("\n" . new ExplainPrinter($rule)->print($this->out));
 		}
 
 		return 0;
