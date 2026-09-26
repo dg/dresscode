@@ -11,7 +11,7 @@ use DressCode\Analyses\PhpDoc;
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
-use PhpSyntax\{Node, Token, TokenKind, Trivia, TriviaKind};
+use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\Statement\ClassNode;
 
 
@@ -87,22 +87,12 @@ final class FinalInternalClassRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$final = new Token(TokenKind::Final, 'final');
 		$others = $node->modifiers->getTokens();
-		if ($others === []) {
-			$final->setLeadingTrivia($node->classKeyword->leadingTrivia);
-			$node->classKeyword->setLeadingTrivia([]);
-		} else {
-			$final->setLeadingTrivia($others[0]->leadingTrivia);
-			$others[0]->setLeadingTrivia([]);
-		}
-
-		$final->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
 		foreach ($others as $other) {
 			$node->modifiers->removeToken($other);
 		}
 
-		$node->modifiers->append($final);
+		$node->modifiers->append(new Token(TokenKind::Final, 'final'));
 		foreach ($others as $other) {
 			$node->modifiers->append($other);
 		}

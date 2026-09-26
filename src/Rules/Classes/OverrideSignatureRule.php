@@ -124,9 +124,7 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 		if ($needsObject) {
 			$context->report($node->name, $message . ', and its body uses the object', fixable: false);
 		} elseif ($context->report($node->name, $message)) {
-			$token = new Token(TokenKind::Static, 'static');
-			$token->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
-			$node->modifiers->append($token);
+			$node->modifiers->append(new Token(TokenKind::Static, 'static'));
 		}
 	}
 

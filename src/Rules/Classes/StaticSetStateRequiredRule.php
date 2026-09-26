@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Token, TokenKind, Trivia, TriviaKind};
+use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\Member\MethodNode;
 
 
@@ -42,13 +42,6 @@ final class StaticSetStateRequiredRule extends NodeRule
 			return;
 		}
 
-		$token = new Token(TokenKind::Static, 'static');
-		if ($node->modifiers->isEmpty()) {
-			$token->setLeadingTrivia($node->functionKeyword->leadingTrivia);
-			$node->functionKeyword->setLeadingTrivia([]);
-		}
-
-		$token->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
-		$node->modifiers->append($token);
+		$node->modifiers->append(new Token(TokenKind::Static, 'static'));
 	}
 }

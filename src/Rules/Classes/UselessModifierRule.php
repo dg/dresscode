@@ -10,7 +10,7 @@ namespace DressCode\Rules\Classes;
 use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\Analyses\Scope;
 use PhpSyntax\{Node, Token, TokenKind};
-use PhpSyntax\Nodes\{AnonymousClassNode, ModifiersNode, ParameterNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ParameterNode};
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
 use PhpSyntax\Nodes\Statement\{ClassNode, EnumNode};
 use function count;
@@ -65,7 +65,7 @@ final class UselessModifierRule extends NodeRule
 
 		foreach ($node->modifiers->getTokens() as $token) {
 			if ($token->is($kind) && $context->report($token, $message)) {
-				self::removeModifier($node->modifiers, $token);
+				$node->modifiers->removeToken($token);
 			}
 		}
 	}
@@ -77,16 +77,5 @@ final class UselessModifierRule extends NodeRule
 		return $method->modifiers->isPrivate()
 			&& $method->modifiers->isFinal()
 			&& strcasecmp($method->name->text, '__construct') !== 0;
-	}
-
-
-	/** The first modifier hands its leading trivia over to what follows it, a later one goes with its trailing space. */
-	private static function removeModifier(ModifiersNode $modifiers, Token $token): void
-	{
-		if ($modifiers->getTokens()[0] === $token && ($next = $token->getNext())) {
-			$next->setLeadingTrivia([...$token->leadingTrivia, ...$next->leadingTrivia]);
-		}
-
-		$modifiers->removeToken($token);
 	}
 }

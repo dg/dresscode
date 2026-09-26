@@ -9,7 +9,7 @@ namespace DressCode\Rules\Classes;
 
 use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
-use PhpSyntax\{Node, Token, Trivia, TriviaKind};
+use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{ClassLikeNode, Expression, ParameterNode, Statement, TypeNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyNode};
 use function count;
@@ -143,18 +143,11 @@ final class PromotedPropertyForAssignedParameterRule extends NodeRule
 	}
 
 
-	/** Moves the modifiers of the property in front of the parameter, which the leading trivia follows. */
+	/** Writes the modifiers of the property in front of the parameter. */
 	private function promote(ParameterNode $parameter, PropertyNode $property): void
 	{
-		$first = ($parameter->type ?? $parameter->variable)->getFirstToken();
-		assert($first !== null); // a parameter always spells its variable
-		$leading = $first->leadingTrivia;
-		$first->setLeadingTrivia([]);
-		foreach ($property->modifiers->getTokens() as $i => $modifier) {
-			$token = new Token($modifier->kind, $modifier->text);
-			$token->setLeadingTrivia($i === 0 ? $leading : []);
-			$token->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
-			$parameter->modifiers->append($token);
+		foreach ($property->modifiers->getTokens() as $modifier) {
+			$parameter->modifiers->append(new Token($modifier->kind, $modifier->text));
 		}
 	}
 

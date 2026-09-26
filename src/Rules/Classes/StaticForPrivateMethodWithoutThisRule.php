@@ -11,7 +11,7 @@ use DressCode\Analyses\Types;
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token, TokenKind, Trivia, TriviaKind};
+use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, IdentifierNode, NameNode};
 use PhpSyntax\Nodes\Expression\{MethodCallNode, StaticMethodCallNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -63,9 +63,7 @@ final class StaticForPrivateMethodWithoutThisRule extends NodeRule
 				continue;
 			}
 
-			$token = new Token(TokenKind::Static, 'static');
-			$token->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
-			$method->modifiers->append($token);
+			$method->modifiers->append(new Token(TokenKind::Static, 'static'));
 			$this->replaceCalls($node, $method->name->text);
 		}
 	}

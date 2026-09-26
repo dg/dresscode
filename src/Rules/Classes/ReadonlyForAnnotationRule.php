@@ -10,7 +10,7 @@ namespace DressCode\Rules\Classes;
 use DressCode\Analyses\PhpDoc;
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocChildNode, PhpDocTagNode};
-use PhpSyntax\{Node, Token, TokenKind, Trivia, TriviaKind};
+use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\{AnonymousClassNode, ModifiersNode, ParameterNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyItemNode, PropertyNode, TraitUseNode};
 use PhpSyntax\Nodes\Statement\ClassNode;
@@ -169,8 +169,6 @@ final class ReadonlyForAnnotationRule extends NodeRule
 
 	private static function appendReadonly(ModifiersNode $modifiers): void
 	{
-		$token = new Token(TokenKind::Readonly, 'readonly');
-		$token->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
-		$modifiers->append($token);
+		$modifiers->append(new Token(TokenKind::Readonly, 'readonly'));
 	}
 }

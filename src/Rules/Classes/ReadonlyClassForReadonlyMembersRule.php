@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Token, TokenKind, Trivia, TriviaKind};
+use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\AnonymousClassNode;
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyNode, TraitUseNode};
 use PhpSyntax\Nodes\Statement\ClassNode;
@@ -86,13 +86,6 @@ final class ReadonlyClassForReadonlyMembersRule extends NodeRule
 			return;
 		}
 
-		$token = new Token(TokenKind::Readonly, 'readonly');
-		if ($node->modifiers->isEmpty()) { // the modifier becomes the first token and takes over its place
-			$token->setLeadingTrivia($node->classKeyword->leadingTrivia);
-			$node->classKeyword->setLeadingTrivia([]);
-		}
-
-		$token->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
-		$node->modifiers->append($token);
+		$node->modifiers->append(new Token(TokenKind::Readonly, 'readonly'));
 	}
 }

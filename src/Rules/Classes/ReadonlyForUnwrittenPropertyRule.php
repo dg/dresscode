@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Token, TokenKind, Trivia, TriviaKind};
+use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ArrayItemNode, Expression, FunctionLikeNode, IdentifierNode, ModifiersNode, ParameterNode, SeparatedNodeList, Statement};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyNode};
 use PhpSyntax\Nodes\Statement\ClassNode;
@@ -116,9 +116,7 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 			return;
 		}
 
-		$token = new Token(TokenKind::Readonly, 'readonly');
-		$token->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
-		$modifiers->append($token);
+		$modifiers->append(new Token(TokenKind::Readonly, 'readonly'));
 	}
 
 

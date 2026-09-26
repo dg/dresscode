@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Token, TokenKind, Trivia, TriviaKind};
+use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\AnonymousClassNode;
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
 use PhpSyntax\Nodes\Statement\{ClassNode, TraitNode};
@@ -82,17 +82,12 @@ final class VisibilityRequiredRule extends NodeRule
 			return;
 		}
 
-		$leading = $first->leadingTrivia;
-		$first->setLeadingTrivia([]);
 		foreach ($tokens as $token) {
 			$node->modifiers->removeToken($token);
 		}
 
-		foreach ($desired as $i => [$kind, $text]) {
-			$token = new Token($kind, $text);
-			$token->setLeadingTrivia($i === 0 ? $leading : []);
-			$token->setTrailingTrivia([new Trivia(TriviaKind::Whitespace, ' ')]);
-			$node->modifiers->append($token);
+		foreach ($desired as [$kind, $text]) {
+			$node->modifiers->append(new Token($kind, $text));
 		}
 	}
 }
