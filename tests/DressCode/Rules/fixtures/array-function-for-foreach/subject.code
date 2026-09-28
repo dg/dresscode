@@ -1,4 +1,6 @@
 <?php
+// types off
+
 function literal(): bool
 {
 	foreach (['cat', 'dog'] as $animal) {
@@ -21,6 +23,17 @@ function iterator(Iterator $animals): bool
 	return false;
 }
 
+function nullableIterator(?Iterator $animals): bool
+{
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 function rewritten(array $animals): bool
 {
 	$animals = new ArrayIterator($animals);
@@ -33,10 +46,47 @@ function rewritten(array $animals): bool
 	return false;
 }
 
+function variadic(string ...$animals): bool
+{
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function nullable(?array $animals): bool
+{
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function union(array|Traversable $animals): bool
+{
+	foreach ($animals as $animal) {
+		if (str_starts_with($animal, 'c')) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 class Zoo
 {
+	private const Species = ['cat', 'dog'];
+	private const array Mammals = ['cat', 'dog'];
 	private array $animals = [];
 	private iterable $visitors = [];
+	private CageList $cages;
+	private static array $registered = [];
 
 
 	public function __construct(
@@ -78,5 +128,147 @@ class Zoo
 		}
 
 		return false;
+	}
+
+
+	public function hasEmptyCage(): bool
+	{
+		foreach ($this->cages as $cage) {
+			if ($cage->isEmpty()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasRegistered(): bool
+	{
+		foreach ($this->registered as $animal) {
+			if ($animal->isRegistered()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasFeline(): bool
+	{
+		foreach (self::Species as $species) {
+			if (str_starts_with($species, 'c')) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasCanine(): bool
+	{
+		foreach (static::Species as $species) {
+			if (str_starts_with($species, 'd')) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasMammal(): bool
+	{
+		foreach (static::Mammals as $mammal) {
+			if (str_starts_with($mammal, 'c')) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasSleepingAnimal(): bool
+	{
+		foreach ($this->walkAnimals() as $animal) {
+			if ($animal->isAsleep()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasHungryAnimal(): bool
+	{
+		foreach ($this->listAnimals() as $animal) {
+			if ($animal->isHungry()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasVisitingKeeper(Keeper $keeper): bool
+	{
+		foreach ($keeper->visits as $visit) {
+			if ($visit->isToday()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function hasTamedAnimal(): Closure
+	{
+		return function () {
+			foreach ($this->animals as $animal) {
+				if ($animal->isTamed()) {
+					return true;
+				}
+			}
+
+			return false;
+		};
+	}
+
+
+	private function walkAnimals(): Generator
+	{
+		yield from $this->animals;
+	}
+
+
+	private function listAnimals(): array
+	{
+		return $this->animals;
+	}
+}
+
+trait Feeding
+{
+	public function hasFedAnimal(): bool
+	{
+		foreach ($this->listFed() as $animal) {
+			if ($animal->isFed()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	private function listFed(): array
+	{
+		return [];
 	}
 }

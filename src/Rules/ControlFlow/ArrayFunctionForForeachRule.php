@@ -7,14 +7,15 @@
 
 namespace DressCode\Rules\ControlFlow;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Parser, Token};
-use PhpSyntax\Nodes\{ArgumentNode, ClassLikeNode, Expression, ExpressionNode, FunctionLikeNode, NameNode, NodeList, ParameterNode, Statement, StatementNode, TypeNode};
-use PhpSyntax\Nodes\Member\{MethodNode, PropertyItemNode, PropertyNode};
+use PhpSyntax\Nodes\{ArgumentNode, ClassLikeNode, ConstItemNode, Expression, ExpressionNode, FunctionLikeNode, IdentifierNode, NameNode, NodeList, ParameterNode, Statement, StatementNode, TypeNode};
+use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyItemNode, PropertyNode};
 use PhpSyntax\Nodes\Scalar\{BooleanNode, NullNode};
-use PhpSyntax\Nodes\Type\NamedTypeNode;
-use function count;
+use PhpSyntax\Nodes\Type\{IntersectionTypeNode, NamedTypeNode, NullableTypeNode, UnionTypeNode};
+use function count, in_array;
 
 
 /**
@@ -28,9 +29,9 @@ use function count;
  * else, the loop must take its items by value, and the variables of the loop must appear nowhere else in their
  * scope: the loop writes them for the code around it, the closure of the call does not.
  *
- * The functions take an array and a foreach any iterable, so the fix is risky wherever the loop may go through
- * something else; without the types, only an array literal and what a declaration in sight says is an array are
- * told from a Traversable.
+ * The functions take an array and a foreach any iterable, so a loop over what is no array is left alone and the
+ * fix is risky wherever the loop may go through something else. Without the types, only an array literal and what
+ * a declaration in sight says are told from a Traversable.
  */
 #[RuleInfo(
 	'dresscode/array-function-for-foreach',
@@ -74,9 +75,15 @@ final class ArrayFunctionForForeachRule extends NodeRule
 			default => [null, false],
 		};
 		$overArray = self::isArray($foreach);
+		if ($overArray === Tristate::Maybe) {
+			$overArray = $context->findAnalysis(Types::class)?->isOfType($foreach->expression, 'array') ?? Tristate::Maybe;
+		}
+
+		$risky = $overArray === Tristate::Maybe;
 		if (
 			$function === null
-			|| !$context->report($foreach, "The loop must be written with `$function()`" . ($overArray ? '' : ', which takes an array only'), risky: !$overArray)
+			|| $overArray === Tristate::No
+			|| !$context->report($foreach, "The loop must be written with `$function()`" . ($risky ? ', which takes an array only' : ''), risky: $risky)
 		) {
 			return;
 		}
@@ -221,38 +228,52 @@ final class ArrayFunctionForForeachRule extends NodeRule
 
 
 	/**
-	 * Whether the loop goes through an array for certain: an array literal, a parameter declared as an array that
-	 * nothing writes, or a property of `$this` the class declares as one.
+	 * Whether the loop goes through an array, as the declarations in sight tell: an array literal, a variadic
+	 * parameter, and by its declared type a parameter nothing writes, and inside a method a property or a method of
+	 * `$this` and a constant of the class. The type of a property or of what a method returns holds in a child too,
+	 * which may not turn it into another; a constant is certain only through `self` or with a type, the untyped one
+	 * a child may declare again.
 	 */
-	private static function isArray(Statement\ForeachNode $foreach): bool
+	private static function isArray(Statement\ForeachNode $foreach): Tristate
 	{
 		$subject = $foreach->expression;
 		$function = $foreach->findAncestor(FunctionLikeNode::class);
+		$class = $function instanceof MethodNode ? $function->findAncestor(ClassLikeNode::class) : null;
 		if ($subject instanceof Expression\ArrayNode) {
-			return true;
+			return Tristate::Yes;
+
 		} elseif ($subject instanceof Expression\VariableNode) {
 			$parameter = array_find(
 				$function?->parameters?->getItems() ?? [],
 				fn(ParameterNode $parameter) => $parameter->variable->plainName === $subject->plainName,
 			);
-			return self::isArrayType($parameter?->type)
-				&& $function?->find(
+			return match (true) {
+				$parameter === null,
+				$function?->find(
 					Expression\VariableNode::class,
 					fn(Expression\VariableNode $variable) => $variable->plainName === $subject->plainName && NodeHelpers::isWritten($variable),
-				) === [];
+				) !== [] => Tristate::Maybe,
+				$parameter->ellipsis !== null => Tristate::Yes,
+				default => self::isArrayType($parameter->type),
+			};
+
+		} elseif ($class === null) {
+			return Tristate::Maybe;
+
 		} elseif (
 			$subject instanceof Expression\PropertyFetchNode
 			&& $subject->isOfThis()
 			&& !$subject->isNullsafe()
 			&& ($name = $subject->plainName) !== null
 		) {
-			foreach ($foreach->findAncestor(ClassLikeNode::class)->members ?? [] as $member) {
+			foreach ($class->members as $member) {
 				if (
 					$member instanceof PropertyNode
 					&& array_any($member->items->getItems(), fn(PropertyItemNode $item) => $item->plainName === $name)
 				) {
-					return self::isArrayType($member->type);
-				} elseif ($member instanceof MethodNode && strcasecmp($member->name->text, '__construct') === 0) {
+					// a static property is not what `$this->` reads
+					return $member->modifiers->isStatic() ? Tristate::Maybe : self::isArrayType($member->type);
+				} elseif ($member instanceof MethodNode && $member->isConstructor()) {
 					$promoted = array_find(
 						$member->parameters->getItems(),
 						fn(ParameterNode $parameter) => $parameter->isPromoted() && $parameter->variable->plainName === $name,
@@ -262,15 +283,64 @@ final class ArrayFunctionForForeachRule extends NodeRule
 					}
 				}
 			}
+
+		} elseif (
+			$subject instanceof Expression\MethodCallNode
+			&& $subject->object instanceof Expression\VariableNode
+			&& $subject->object->isThis()
+			&& !$subject->isNullsafe()
+			&& $subject->name instanceof IdentifierNode
+			&& !$class instanceof Statement\TraitNode // the class using the trait may declare the method anew, in any type
+		) {
+			foreach ($class->members as $member) {
+				if ($member instanceof MethodNode && strcasecmp($member->name->text, $subject->name->text) === 0) {
+					return self::isArrayType($member->returnType);
+				}
+			}
+
+		} elseif (
+			$subject instanceof Expression\ClassConstantFetchNode
+			&& $subject->class instanceof NameNode
+			&& in_array($own = strtolower($subject->class->text), ['self', 'static'], true)
+			&& $subject->name instanceof IdentifierNode
+		) {
+			$name = $subject->name->text;
+			foreach ($class->members as $member) {
+				if (
+					$member instanceof ClassConstNode
+					&& ($item = array_find($member->items->getItems(), fn(ConstItemNode $item) => $item->name->text === $name)) !== null
+				) {
+					return match (true) {
+						$member->type !== null => self::isArrayType($member->type),
+						$own === 'self' && $item->value instanceof Expression\ArrayNode => Tristate::Yes,
+						default => Tristate::Maybe,
+					};
+				}
+			}
 		}
 
-		return false;
+		return Tristate::Maybe;
 	}
 
 
-	private static function isArrayType(?TypeNode $type): bool
+	/** Whether a value of the declared type is an array; no type at all may be anything. */
+	private static function isArrayType(?TypeNode $type): Tristate
 	{
-		return $type instanceof NamedTypeNode && strcasecmp($type->name->text, 'array') === 0;
+		if ($type instanceof NamedTypeNode) {
+			return match (strtolower($type->name->text)) {
+				'array' => Tristate::Yes,
+				'iterable', 'callable', 'mixed' => Tristate::Maybe,
+				default => Tristate::No,
+			};
+		} elseif ($type instanceof NullableTypeNode) {
+			return self::isArrayType($type->type) === Tristate::No ? Tristate::No : Tristate::Maybe;
+		} elseif ($type instanceof UnionTypeNode) {
+			return array_all($type->types->getItems(), fn(TypeNode $member) => self::isArrayType($member) === Tristate::No)
+				? Tristate::No
+				: Tristate::Maybe;
+		}
+
+		return $type instanceof IntersectionTypeNode ? Tristate::No : Tristate::Maybe;
 	}
 
 

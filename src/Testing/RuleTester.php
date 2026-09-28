@@ -41,7 +41,8 @@ final class RuleTester
 	 * `// namespacedFunctions App\helper, App\Utils\{format}`, `// namespacedConstants App\LIMIT` and
 	 * `// nameResolution certain`. A rule that needs the types of the code
 	 * gets them from the PHPStan of this project over the fixture and the declarations in the `stubs` directory
-	 * beside it, and so does one that only does better with them where that directory is there. Returns the count.
+	 * beside it, and so does one that only does better with them where that directory is there, unless the fixture
+	 * says `// types off`. Returns the count.
 	 * @param class-string<Rule>|\Closure(array<string, mixed>): Rule $rule
 	 * @throws TestFailure
 	 */
@@ -85,7 +86,7 @@ final class RuleTester
 				self::readRisky($code),
 				self::readNamespacedSymbols($code, $file),
 				self::readLineLength($code, $file),
-				self::findStubs($file),
+				self::findStubs($file, $code, $instance),
 			);
 		} catch (TestFailure $e) {
 			throw new TestFailure("`$file`: {$e->getMessage()}", previous: $e);
@@ -209,16 +210,26 @@ final class RuleTester
 			self::readRisky($code),
 			self::readNamespacedSymbols($code, $file),
 			self::readLineLength($code, $file),
-			self::findStubs($file),
+			self::findStubs($file, $code, $instance),
 		);
 	}
 
 
-	/** The directory of declarations beside the fixture, when there is one. */
-	private static function findStubs(string $file): ?string
+	/**
+	 * The directory of declarations beside the fixture, when there is one and the header does not turn the types off
+	 * with `// types off`, which a rule that needs them cannot run with.
+	 * @throws TestFailure
+	 */
+	private static function findStubs(string $file, string $code, Rule $rule): ?string
 	{
-		$dir = dirname($file) . '/stubs';
-		return is_dir($dir) ? $dir : null;
+		if (!array_any(self::readHeader($code), fn(string $line) => preg_match('~^//\s*types\s+off\s*$~i', $line) === 1)) {
+			$dir = dirname($file) . '/stubs';
+			return is_dir($dir) ? $dir : null;
+		} elseif (RuleInfo::of($rule)->requiresTypes) {
+			throw new TestFailure("`$file`: A rule that needs the types cannot run with `types off`.");
+		}
+
+		return null;
 	}
 
 

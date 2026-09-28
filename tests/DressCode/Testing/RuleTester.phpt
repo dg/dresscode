@@ -147,6 +147,21 @@ final class TestedUncertain extends NodeRule
 }
 
 
+#[RuleInfo('test/typed', Stage::Structure, requiresTypes: true)]
+final class TestedTyped extends NodeRule
+{
+	public function getVisitedTypes(): array
+	{
+		return [];
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+	}
+}
+
+
 test('fixtures of a rule', function () {
 	Assert::same(3, RuleTester::run(TestedRename::class, __DIR__ . '/fixtures/rename'));
 	Assert::same(3, RuleTester::run(fn(array $options) => PresetResolver::createRule(TestedRename::class, $options ?: true), __DIR__ . '/fixtures/rename'));
@@ -191,5 +206,6 @@ test('what the namespaces declare outside the code is given to the run, by a fix
 
 test('fixture errors', function () {
 	Assert::exception(fn() => RuleTester::run(TestedRename::class, __DIR__ . '/fixtures/none'), TestFailure::class, 'No `*.code` fixtures in `%a%`.');
+	Assert::exception(fn() => RuleTester::run(TestedTyped::class, __DIR__ . '/fixtures/types-off'), TestFailure::class, '%a%A rule that needs the types cannot run with `types off`.');
 	Assert::exception(fn() => RuleTester::runFixture(TestedRename::class, __DIR__ . '/fixtures/rename/clean.expected'), TestFailure::class, 'Cannot read `%a%');
 });
