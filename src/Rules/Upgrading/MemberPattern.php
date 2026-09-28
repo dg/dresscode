@@ -102,7 +102,11 @@ final readonly class MemberPattern
 		foreach ($access->classes as $class) {
 			if (
 				($this->kind === MemberKind::Constructor ? strcasecmp($class, $this->class) !== 0 : $types->isSubtype($class, $this->class) !== Tristate::Yes)
-				|| ($this->instance && $access->kind === MemberKind::StaticMethod && $types->isStaticMethod($class, $this->name) !== Tristate::No)
+				|| (
+					$this->instance
+					&& $access->kind === MemberKind::StaticMethod
+					&& ($types->isStaticMethod($class, $this->name) !== Tristate::No || !$types->hasMember($class, MemberKind::Method, $this->name))
+				)
 			) {
 				return false;
 			}

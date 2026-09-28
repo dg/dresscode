@@ -236,7 +236,7 @@ test('the access a node makes is decided by the receiver, whether or not anythin
 
 	Assert::same(Tristate::No, $types->isStaticMethod('App\MyStorage', 'GETCACHEKEY'));
 	Assert::same(Tristate::Yes, $types->isStaticMethod('Acme\Cache\FileStorage', 'create'));
-	Assert::same(Tristate::Maybe, $types->isStaticMethod('Acme\Cache\FileStorage', 'removedMethod'));
+	Assert::same(Tristate::No, $types->isStaticMethod('Acme\Cache\FileStorage', 'removedMethod'));
 	Assert::same(Tristate::Maybe, $types->isStaticMethod('Acme\Removed', 'run'));
 
 	[$override, $anonymous] = $file->find(PhpSyntax\Nodes\Member\MethodNode::class);
@@ -345,9 +345,9 @@ test('a class whose parent the pass renamed has the hierarchy of the text of the
 		return [$types->isSubtype('App\Child', 'App\NewBase'), $types->findAccess($file->find(MethodCallNode::class)[0])?->declared];
 	};
 
-	Assert::same([Tristate::No, false], $hierarchyOf('OldBase'));
+	Assert::same([Tristate::Maybe, false], $hierarchyOf('OldBase')); // a parent nothing declares hides the rest of the hierarchy
 	Assert::same([Tristate::Yes, true], $hierarchyOf('NewBase'));
-	Assert::same([Tristate::No, false], $hierarchyOf('OldBase'));
+	Assert::same([Tristate::Maybe, false], $hierarchyOf('OldBase'));
 });
 
 

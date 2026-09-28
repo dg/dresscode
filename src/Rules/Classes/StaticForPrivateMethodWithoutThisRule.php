@@ -112,7 +112,7 @@ final class StaticForPrivateMethodWithoutThisRule extends NodeRule
 			$own = $resolver->getDeclaredName($class);
 			if ($own === null || strcasecmp($named, $own) !== 0) {
 				$types = $context->findAnalysis(Types::class);
-				return $class->extends === null || ($own !== null && $types !== null && $types->isSubtype($own, $named) !== Tristate::Yes);
+				return $class->extends === null || ($own !== null && $types?->isSubtype($own, $named) === Tristate::No);
 			}
 		}
 

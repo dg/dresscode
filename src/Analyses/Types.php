@@ -12,7 +12,7 @@ use PhpParser\Node as ParserNode;
 use PhpParser\Node\Expr;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCallableNode};
-use PHPStan\Reflection\{ClassConstantReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
+use PHPStan\Reflection\{ClassConstantReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\{MixedType, Type, TypeCombinator, VerbosityLevel};
 use PhpSyntax\{Node, Printer};
@@ -42,6 +42,9 @@ final class Types implements PassAnalysis
 
 	/** @var array<string, Tristate>  lowercased "class ancestor" => whether the one is the other's subtype */
 	private array $subtypes = [];
+
+	/** @var array<string, bool>  lowercased class => whether something declares every ancestor it names */
+	private array $seenWhole = [];
 
 	private readonly PhpStan $phpstan;
 
@@ -511,7 +514,7 @@ final class Types implements PassAnalysis
 	/**
 	 * Whether the class is the ancestor, extends it, implements it or uses it as a trait, both fully qualified, in any
 	 * letter case; maybe where either is a class nothing declares, or one whose ancestors run in a circle, which PHP
-	 * refuses to load.
+	 * refuses to load, and where an ancestor of the class is, so that its hierarchy is not seen whole.
 	 */
 	public function isSubtype(string $class, string $ancestor): Tristate
 	{
@@ -528,7 +531,8 @@ final class Types implements PassAnalysis
 				$ancestorReflection->isTrait()
 					? $reflection->hasTraitUse($ancestorReflection->getName())
 					: $reflection->isSubclassOfClass($ancestorReflection) => Tristate::Yes,
-				default => Tristate::No,
+				$this->isSeenWhole($reflection) => Tristate::No,
+				default => Tristate::Maybe,
 			};
 		}
 
@@ -599,15 +603,35 @@ final class Types implements PassAnalysis
 	}
 
 
-	/** Whether the method the class has is static, in any letter case of either; maybe where the class has no such method. */
+	/**
+	 * Whether the class has the method, in any letter case of either, and it is static; no for a class that has no such
+	 * method, maybe for a class nothing declares and for one whose hierarchy is not seen whole and has no such method.
+	 */
 	public function isStaticMethod(string $class, string $method): Tristate
 	{
 		$reflection = $this->phpstan->findClass($class);
 		return match (true) {
 			$reflection === null => Tristate::Maybe,
 			$reflection->hasNativeMethod($method) => $reflection->getNativeMethod($method)->isStatic() ? Tristate::Yes : Tristate::No,
+			$this->isSeenWhole($reflection) => Tristate::No,
 			default => Tristate::Maybe,
 		};
+	}
+
+
+	/** Whether every ancestor the class and its ancestors name, its parent, interfaces and traits, is one something declares. */
+	private function isSeenWhole(ClassReflection $class): bool
+	{
+		return $this->seenWhole[strtolower($class->getName())] ??= array_all(
+			$class->getAncestors(),
+			function (ClassReflection $ancestor): bool {
+				$native = $ancestor->getNativeReflection()->getBetterReflection();
+				return array_all(
+					array_filter([$native->getParentClassName(), ...$native->getInterfaceClassNames(), ...$native->getTraitClassNames()]),
+					fn(string $name) => $this->phpstan->findClass($name) !== null,
+				);
+			},
+		);
 	}
 
 
