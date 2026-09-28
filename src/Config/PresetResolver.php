@@ -140,8 +140,10 @@ final class PresetResolver
 					}
 				}
 
-				foreach ($profile->fixRisky as $rule) {
-					$fixRisky[$this->registry->resolveRule($rule)] = true;
+				foreach ($profile->fixRisky as $name) {
+					foreach ($this->expandName($name)[2] as $class) {
+						$fixRisky[$class] = true;
+					}
 				}
 
 				foreach ($profile->warnings as $rule) {
@@ -402,40 +404,44 @@ final class PresetResolver
 
 
 	/**
-	 * The rules a run narrowed by `only` keeps, per name it was given: a rule for itself, a group for every rule it
-	 * turns on, a preset for every rule it and its parents mention.
+	 * The rules a run narrowed by `only` keeps, per name it was given.
 	 * @param  list<string>  $names
 	 * @return list<array{string, ?class-string<Rule>, list<class-string<Rule>>}>  what the name was, the rule it names, and the rules it lets in
 	 * @throws ConfigurationException
 	 */
 	private function resolveOnly(array $names): array
 	{
-		$narrowed = [];
-		foreach ($names as $name) {
-			$group = Group::tryFrom($name);
-			if ($group !== null) {
-				$narrowed[] = ["group $name", null, $this->findRulesOfGroup($group)];
-				continue;
-			}
+		return array_map($this->expandName(...), $names);
+	}
 
-			$class = $this->registry->resolveRuleOrPreset($name);
-			if (!is_a($class, Preset::class, allow_string: true)) {
-				$narrowed[] = [RuleInfo::of($class)->name, $class, [$class]];
-				continue;
-			}
 
-			$layers = $visited = $rules = [];
-			$this->collectPreset($class, $layers, $visited);
-			foreach ($layers as [, $profile]) {
-				foreach (array_keys($profile->rules) as $rule) {
-					$rules[] = $this->registry->resolveRule($rule);
-				}
-			}
-
-			$narrowed[] = ['preset ' . PresetInfo::of($class)->name, null, $rules];
+	/**
+	 * The rules a name of `only` or `fixRisky` stands for: a rule for itself, a group for every rule it turns on,
+	 * a preset for every rule it and its parents mention.
+	 * @return array{string, ?class-string<Rule>, list<class-string<Rule>>}  what the name was, the rule it names, and the rules it stands for
+	 * @throws ConfigurationException
+	 */
+	private function expandName(string $name): array
+	{
+		$group = Group::tryFrom($name);
+		if ($group !== null) {
+			return ["group $name", null, $this->findRulesOfGroup($group)];
 		}
 
-		return $narrowed;
+		$class = $this->registry->resolveRuleOrPreset($name);
+		if (!is_a($class, Preset::class, allow_string: true)) {
+			return [RuleInfo::of($class)->name, $class, [$class]];
+		}
+
+		$layers = $visited = $rules = [];
+		$this->collectPreset($class, $layers, $visited);
+		foreach ($layers as [, $profile]) {
+			foreach (array_keys($profile->rules) as $rule) {
+				$rules[] = $this->registry->resolveRule($rule);
+			}
+		}
+
+		return ['preset ' . PresetInfo::of($class)->name, null, $rules];
 	}
 
 
@@ -476,16 +482,16 @@ final class PresetResolver
 	private function checkFixRisky(Config $config, array $active, array $ofOverrides): void
 	{
 		foreach (self::listProfiles($config, array_keys($config->overrides)) as [$source, $profile]) {
-			foreach ($profile->fixRisky as $rule) {
+			foreach ($profile->fixRisky as $entry) {
 				try {
-					$class = $this->registry->resolveRule($rule);
+					[$name, $rule, $rules] = $this->expandName($entry);
 				} catch (ConfigurationException $e) {
 					throw self::locate($e, $source);
 				}
 
-				if (!isset($active[$class]) && !isset($ofOverrides[$class])) {
-					$name = RuleInfo::of($class)->name;
-					$this->warnings["fixRisky $name"] = "Rule `$name` is named in `fixRisky` but runs nowhere; the entry does nothing.";
+				if (!array_filter($rules, fn(string $class) => isset($active[$class]) || isset($ofOverrides[$class]))) {
+					$this->warnings["fixRisky $name"] = ($rule === null ? ucfirst(self::formatLayer($name)) : "Rule `$name`")
+						. ' is named in `fixRisky` but runs nowhere; the entry does nothing.';
 				}
 			}
 		}

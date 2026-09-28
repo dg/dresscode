@@ -815,6 +815,15 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
 	Assert::notContains('risky fix', $out);
 
+	// or only for the rules, presets and groups it names, with workers as without them
+	foreach (['1', '2'] as $jobs) {
+		file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
+		Assert::same(1, runApp($root, ['fix', '--config', $config, '--no-cache', '--jobs', $jobs, '--fix-risky=strict-call'])[0]);
+		Assert::same("<?php\n\$r;\n", (string) file_get_contents("$root/src/r.php"));
+		Assert::same(0, runApp($root, ['fix', '--config', $config, '--no-cache', '--jobs', $jobs, '--fix-risky=test/risky-rename'])[0]);
+		Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
+	}
+
 	// and so does the configuration, for the rules it names
 	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
 	$write(', fixRisky: [ConsoleRiskyRename::class]');

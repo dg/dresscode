@@ -190,7 +190,13 @@ final class Application
 				'exit with `1` when more than `n` warnings are left; without it any number of them keeps the run clean',
 				valueName: 'n',
 			);
-			$command->addFlag('--fix-risky', 'also make the fixes that may change what the code does, not only those of the rules the configuration names in `fixRisky`; they are reported either way');
+			$command->addOption(
+				'--fix-risky',
+				'also make the fixes that may change what the code does, not only those of the rules the configuration names in `fixRisky`: of every rule, or with `=name` of that rule, preset or group; they are reported either way',
+				valueName: 'name',
+				valueOptional: true,
+				repeatable: true,
+			);
 			$command->addFlag('--no-cache', 'process every file, even one whose content is known to be clean');
 			$command->addOption(
 				'--jobs',
@@ -234,7 +240,7 @@ final class Application
 				$only,
 				strict: (bool) $args['--strict-rules'],
 				cache: false,
-				fixRisky: (bool) $args['--fix-risky'],
+				fixRisky: in_array(true, (array) $args['--fix-risky'], true),
 				baseline: !isset($args['--generate-baseline']),
 				profiler: $profiler,
 			);
@@ -249,7 +255,7 @@ final class Application
 			strict: (bool) $args['--strict-rules'],
 			cache: !$args['--no-cache'] && !$profiler, // a file served from the cache has nothing to measure
 			configFile: $configFile,
-			fixRisky: (bool) $args['--fix-risky'],
+			fixRisky: in_array(true, (array) $args['--fix-risky'], true),
 			profiler: $profiler,
 		);
 		foreach ($factory->getWarnings() as $warning) { // a worker says nothing, the parent already did
@@ -452,8 +458,8 @@ final class Application
 			$command[] = '--strict-rules';
 		}
 
-		if ($args['--fix-risky']) { // what a worker may fix has to be what the parent was asked for
-			$command[] = '--fix-risky';
+		foreach ((array) $args['--fix-risky'] as $value) { // what a worker may fix has to be what the parent was asked for
+			$command[] = is_string($value) ? "--fix-risky=$value" : '--fix-risky';
 		}
 
 		if (isset($args['--generate-baseline'])) { // the workers of such a run must see what the baseline knows too
@@ -864,11 +870,13 @@ final class Application
 			$rules[$m[1]] = $m[2] === 'on';
 		}
 
+		// the rules, presets and groups whose risky fixes the run allows; a bare `--fix-risky` allows every one elsewhere
+		$fixRisky = array_values(array_filter((array) ($args['--fix-risky'] ?? []), is_string(...)));
 		return [
 			$config,
 			$root,
 			$file,
-			$presets || $groups || $rules ? new Profile(presets: $presets, groups: $groups, rules: $rules) : null,
+			$presets || $groups || $rules || $fixRisky ? new Profile(presets: $presets, groups: $groups, rules: $rules, fixRisky: $fixRisky) : null,
 		];
 	}
 
