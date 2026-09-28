@@ -634,6 +634,18 @@ test('a configuration without a preset', function () {
 });
 
 
+test('fixRisky names a preset for every rule it mentions, as only does, and the command line adds to it', function () {
+	$resolver = new ConfigResolver(new RuleRegistry);
+	$accepted = fn(Config $config, ?Profile $commandLine = null) => array_map(
+		fn(string $name) => $resolver->resolve($config, '8.3', commandLine: $commandLine)->getRule($name)?->fixRisky,
+		['test/a', 'test/b', 'test/d'],
+	);
+	Assert::same([true, true, false], $accepted(new Config(presets: [BasePreset::class], rules: [RuleD::class => true], fixRisky: ['test/base'])));
+	Assert::same([false, false, true], $accepted(new Config(presets: [BasePreset::class], rules: [RuleD::class => true]), new Profile(fixRisky: ['test/d'])));
+	Assert::exception(fn() => $accepted(new Config(fixRisky: ['test/nope'])), ConfigurationException::class, 'Unknown rule or preset `test/nope`.%a?%');
+});
+
+
 test('an override lays a profile of its own over the configuration, its presets included', function () {
 	$resolver = new ConfigResolver(new RuleRegistry);
 	$config = new Config(
@@ -937,7 +949,7 @@ test('errors', function () {
 	Assert::exception(fn() => resolve(new Config(presets: [DecidingPreset::class])), ConfigurationException::class, 'Preset `test/deciding` sets `fixRisky`, which the project decides, not a preset.');
 	Assert::exception(fn() => resolve(new Config(presets: [TargetingPreset::class])), ConfigurationException::class, 'Preset `test/targeting` sets `targets`, which the project decides, not a preset.');
 	Assert::exception(fn() => resolve(new Config(overrides: [new Override(['tests'], presets: ['test/nope'])])), ConfigurationException::class, 'The override for `tests`: Unknown preset `test/nope`.');
-	Assert::exception(fn() => resolve(new Config(overrides: [new Override(['tests'], fixRisky: ['test/nope'])])), ConfigurationException::class, 'The override for `tests`: Unknown rule `test/nope`.');
+	Assert::exception(fn() => resolve(new Config(overrides: [new Override(['tests'], fixRisky: ['test/nope'])])), ConfigurationException::class, 'The override for `tests`: Unknown rule or preset `test/nope`.');
 	Assert::exception(
 		fn() => new ConfigResolver(new RuleRegistry)->resolve(new Config(overrides: [new Override(['tests'], warnOnly: ['test/nope'])]), '8.3', [0]),
 		ConfigurationException::class,

@@ -193,7 +193,13 @@ final class Application
 					'exit with `1` when more than `n` warnings are left; without it any number of them keeps the run clean',
 					valueName: 'n',
 				);
-				$command->addFlag('--fix-risky', 'also make the fixes that may change what the code does, not only those of the rules the configuration names in `fixRisky`; they are reported either way');
+				$command->addOption(
+					'--fix-risky',
+					'also make the fixes that may change what the code does, not only those of the rules the configuration names in `fixRisky`: of every rule, or with `=name` of that rule, preset or group; they are reported either way',
+					valueName: 'name',
+					valueOptional: true,
+					repeatable: true,
+				);
 			}
 
 			$command->addFlag('--no-cache', 'process every file, even one whose content is known to be clean');
@@ -235,7 +241,7 @@ final class Application
 				$only,
 				strict: (bool) $args['--strict-rules'],
 				cache: false,
-				fixRisky: (bool) ($args['--fix-risky'] ?? false),
+				fixRisky: in_array(true, (array) ($args['--fix-risky'] ?? []), true),
 				baseline: $args->command->name !== 'baseline',
 			);
 			($runner->warmUp)?->__invoke(); // before connecting, which is what starts the other workers
@@ -250,7 +256,7 @@ final class Application
 			strict: (bool) $args['--strict-rules'],
 			cache: !$args['--no-cache'],
 			configFile: $configFile,
-			fixRisky: (bool) ($args['--fix-risky'] ?? false),
+			fixRisky: in_array(true, (array) ($args['--fix-risky'] ?? []), true),
 		);
 		foreach ($factory->getWarnings() as $warning) { // only the parent warns, a worker has returned above
 			$this->err->writeLine(Markup::highlightCode($this->err, "Warning: $warning", 'yellow'));
@@ -452,8 +458,8 @@ final class Application
 			$command[] = '--strict-rules';
 		}
 
-		if ($args['--fix-risky'] ?? false) { // what a worker may fix has to be what the parent was asked for
-			$command[] = '--fix-risky';
+		foreach ((array) ($args['--fix-risky'] ?? []) as $value) { // what a worker may fix has to be what the parent was asked for
+			$command[] = is_string($value) ? "--fix-risky=$value" : '--fix-risky';
 		}
 
 		return $command;
@@ -680,11 +686,13 @@ final class Application
 			$rules[$name] = $decoded;
 		}
 
+		// the rules, presets and groups whose risky fixes the run allows; a bare `--fix-risky` allows every one elsewhere
+		$fixRisky = array_values(array_filter((array) ($args['--fix-risky'] ?? []), is_string(...)));
 		return [
 			$config,
 			$root,
 			$file,
-			$presets || $groups || $rules ? new Profile(presets: $presets, groups: $groups, rules: $rules) : null,
+			$presets || $groups || $rules || $fixRisky ? new Profile(presets: $presets, groups: $groups, rules: $rules, fixRisky: $fixRisky) : null,
 		];
 	}
 

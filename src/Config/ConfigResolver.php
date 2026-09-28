@@ -132,8 +132,10 @@ final class ConfigResolver
 					}
 				}
 
-				foreach ($profile->fixRisky as $rule) {
-					$fixRisky[$this->registry->resolveRule($rule)] = true;
+				foreach ($profile->fixRisky as $name) {
+					foreach ($this->expandName($name)[2] as $class) {
+						$fixRisky[$class] = true;
+					}
 				}
 
 				foreach ($profile->warnOnly as $rule) {
@@ -470,7 +472,7 @@ final class ConfigResolver
 
 
 	/**
-	 * The rules a name of `only` stands for: a rule for itself, a group for every rule it turns on,
+	 * The rules a name of `only` or `fixRisky` stands for: a rule for itself, a group for every rule it turns on,
 	 * a preset for every rule it and its parents mention.
 	 * @return array{string, ?class-string<Rule>, list<class-string<Rule>>}  what the name was, the rule it names, and the rules it stands for
 	 * @throws ConfigurationException
@@ -536,16 +538,16 @@ final class ConfigResolver
 	private function checkFixRisky(Config $config, array $active, array $ofOverrides): void
 	{
 		foreach (self::listProfiles($config, array_keys($config->overrides)) as [$source, $profile]) {
-			foreach ($profile->fixRisky as $rule) {
+			foreach ($profile->fixRisky as $entry) {
 				try {
-					$class = $this->registry->resolveRule($rule);
+					[$name, $rule, $rules] = $this->expandName($entry);
 				} catch (ConfigurationException $e) {
 					throw self::locate($e, $source);
 				}
 
-				if (!isset($active[$class]) && !isset($ofOverrides[$class])) {
-					$name = RuleInfo::of($class)->name;
-					$this->warnings["fixRisky $name"] = "Rule `$name` is named in `fixRisky` but runs nowhere; the entry does nothing.";
+				if (!array_filter($rules, fn(string $class) => isset($active[$class]) || isset($ofOverrides[$class]))) {
+					$this->warnings["fixRisky $name"] = ($rule === null ? ucfirst(self::formatLayer($name)) : "Rule `$name`")
+						. ' is named in `fixRisky` but runs nowhere; the entry does nothing.';
 				}
 			}
 		}
