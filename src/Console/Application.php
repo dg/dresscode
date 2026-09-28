@@ -205,7 +205,13 @@ final class Application
 					valueName: 'n',
 					normalizer: Normalizers::int(min: 0),
 				);
-				$command->addFlag('--fix-risky', 'Also make the fixes that may change what the code does, beyond those `fixRisky` allows; they are reported either way');
+				$command->addOption(
+					'--fix-risky',
+					'Also make the fixes that may change what the code does, of every rule, or with `=name` of that decision, rule or preset, beyond those `fixRisky` allows; they are reported either way',
+					valueName: 'name',
+					valueOptional: true,
+					repeatable: true,
+				);
 			}
 
 			$command->addFlag('--no-cache', 'Process every file, even one whose content is known to be clean');
@@ -243,7 +249,7 @@ final class Application
 		['config' => $config, 'root' => $root, 'file' => $configFile, 'commandLine' => $commandLine] = $this->loadConfig($args);
 		$only = self::parseOnly($args);
 		$resolution = $factory->resolve($config, $root, $commandLine, $only);
-		$fixRisky = (bool) ($args['--fix-risky'] ?? false);
+		$fixRisky = in_array(true, (array) ($args['--fix-risky'] ?? []), true); // a bare `--fix-risky`, the names given go to the configuration
 		$generate = $args->command->name === 'baseline'; // the baseline command writes the configured baseline, it never reads it
 		if (is_string($args['--worker'])) { // the parent keeps the cache; the baseline decides what is reported
 			$runner = $factory->createRunner(
@@ -475,8 +481,8 @@ final class Application
 			$command[] = '--strict-rules';
 		}
 
-		if ($args['--fix-risky'] ?? false) { // what a worker may fix has to be what the parent was asked for
-			$command[] = '--fix-risky';
+		foreach ((array) ($args['--fix-risky'] ?? []) as $value) { // what a worker may fix has to be what the parent was asked for
+			$command[] = is_string($value) ? "--fix-risky=$value" : '--fix-risky';
 		}
 
 		return $command;
@@ -751,8 +757,10 @@ final class Application
 			$decisions = Helpers::placeValue($decisions, $parts[0], self::decodeValue($spec, $parts[1]));
 		}
 
+		// the decisions, rules and presets whose risky fixes the run allows; a bare `--fix-risky` allows every one elsewhere
+		$fixRisky = array_values(array_filter((array) ($args['--fix-risky'] ?? []), is_string(...)));
 		try {
-			$commandLine = $use || $decisions ? new Config(use: $use, decisions: $decisions) : null;
+			$commandLine = $use || $fixRisky || $decisions ? new Config(use: $use, fixRisky: $fixRisky, decisions: $decisions) : null;
 		} catch (\InvalidArgumentException $e) {
 			throw new UsageException("Option `--use`: {$e->getMessage()}", previous: $e);
 		}
