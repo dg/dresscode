@@ -8,7 +8,7 @@
 namespace DressCode;
 
 use DressCode\Config\FileProcessors;
-use DressCode\Engine\{Baseline, FileProcessor, ResultCache, WorkerPool};
+use DressCode\Engine\{Baseline, FileProcessor, Profiler, ResultCache, WorkerPool};
 use Nette\Utils\{FileSystem, Finder};
 use function count, sprintf, strlen;
 
@@ -38,6 +38,8 @@ final class Runner
 		private readonly ?ResultCache $cache = null,
 		/** the run is narrowed to some of the rules, so it says nothing about the baseline entries of the others */
 		private readonly bool $narrowed = false,
+		/** adds up what the workers measured */
+		private readonly ?Profiler $profiler = null,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
 		$this->processors = $processors instanceof FileProcessor ? FileProcessors::of($processors) : $processors;
@@ -161,6 +163,10 @@ final class Runner
 				? null
 				: fn(int $processed, array $running) => $onProgress($done + $processed, $running, null);
 			foreach ($workers->process($paths, $this->read(...), $progress) as $path => $result) {
+				if ($result->profile !== null) {
+					$this->profiler?->merge($result->profile);
+				}
+
 				$this->baseline?->markUsed($result->path, $result->baselined);
 				yield $path => $result;
 			}

@@ -20,7 +20,7 @@ use const JSON_INVALID_UTF8_SUBSTITUTE, JSON_THROW_ON_ERROR;
 final class WorkerClient
 {
 	/** @return int  exit code */
-	public static function serve(string $address, Runner $runner, bool $fix): int
+	public static function serve(string $address, Runner $runner, bool $fix, ?Profiler $profiler = null): int
 	{
 		$context = stream_context_create(['socket' => ['tcp_nodelay' => true]]); // Nagle would delay every small message by an ACK
 		$socket = @stream_socket_client("tcp://$address", $errno, $error, timeout: 10, context: $context); // @ - reported below
@@ -38,6 +38,7 @@ final class WorkerClient
 			}
 
 			$result = $runner->processPath($path, $fix);
+			$result->profile = $profiler?->takeRecords();
 			fwrite($socket, json_encode($result->toArray(), JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE) . "\n");
 		}
 

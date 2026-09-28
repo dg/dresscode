@@ -206,6 +206,8 @@ With `--jobs` above 1 (by default the processor count, capped at one worker per 
 
 A worker only processes and, when fixing, writes; the parent keeps the cache and the baseline, reads a file again when it hands it out, reports every file in the order of the input as soon as the files before it are done and keeps its result without the code and the output (`FileResult::withoutTexts()`), so that only the files in progress and those waiting for an earlier one are held as text, and turns a worker that dies or exits with an error into a failure of the run.
 
+The hidden option `--profile <file>` of `check` and `fix` writes where the time of the run went as JSON (`Engine\Profiler`): the phases of processing a file (parse, passes, print, each round counted, and the gaps the engine decides along the traversal, the claims of the rules included), the callbacks of every rule with the calls that changed the tree, the time of the closures of every gap rule's claims, the start of PHPStan, its derived containers and scopes, the fifty slowest files with the phases of each, the size and the time of every file, and the peak memory of every process. A worker hands over what it measured with every file (`FileResult::$profile`) and the parent adds it up, so the counts do not depend on `--jobs`; the result cache is off, since a file it serves has nothing to measure. Off, the profiler costs a null check around each callback of a rule; on, it costs the clock read twice around each, so its times say where the time goes and the times of a run without it how much there is.
+
 ## Configuration
 
 ### The file

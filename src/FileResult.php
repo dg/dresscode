@@ -22,6 +22,9 @@ final class FileResult
 	/** the content was known to be clean, so it was not processed */
 	public bool $cached = false;
 
+	/** @var ?array<string, mixed>  what a worker measured with this file for `--profile`, see `Profiler::takeRecords()` */
+	public ?array $profile = null;
+
 	/** whether the output differs from the code, kept by a result without its texts */
 	private ?bool $changed = null;
 
@@ -105,6 +108,7 @@ final class FileResult
 			'baselined' => $this->baselined,
 			'remaining' => array_map(fn(Violation $v) => $v->toArray(), $this->remaining),
 			'written' => $this->written,
+			'profile' => $this->profile,
 		];
 	}
 
@@ -128,6 +132,7 @@ final class FileResult
 			array_values(array_map(Violation::fromArray(...), is_array($data['remaining']) ? $data['remaining'] : [])),
 		);
 		$result->written = (bool) $data['written'];
+		$result->profile = is_array($data['profile'] ?? null) ? $data['profile'] : null;
 		return $result;
 	}
 }

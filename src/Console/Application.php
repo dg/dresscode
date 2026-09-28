@@ -9,13 +9,13 @@ namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, Helpers, Preset, PresetInfo, Profile, Reporter, Reporters, RuleException, RuleInfo, RunResult};
 use DressCode\Config\{Loader, PhpVersionSource, Proposal, RuleRegistry, RunnerFactory};
-use DressCode\Engine\{Baseline, SuppressionMigration, WorkerClient, WorkerPool};
+use DressCode\Engine\{Baseline, Profiler, SuppressionMigration, WorkerClient, WorkerPool};
 use DressCode\Interop\{PhpCodeSniffer, PhpCsFixer, Translator};
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Utils\FileSystem;
 use PhpSyntax\{ParseException, Printer};
 use function array_key_exists, array_slice, count, extension_loaded, in_array, is_array, is_string, sprintf;
-use const PHP_OS_FAMILY;
+use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES, PHP_OS_FAMILY;
 
 
 /**
@@ -199,6 +199,7 @@ final class Application
 			);
 			$command->addFlag('--strict-rules', 'a rule breaking its contract is an error, not a warning');
 			$command->addOption('--worker', hidden: true); // the address of the parent; a worker started by WorkerPool
+			$command->addOption('--profile', hidden: true); // a file to write where the time of the run went, see Profiler
 		}
 
 		$check->addFlag('--generate-baseline', 'write the violations found into the configured baseline file instead of reporting them, once a fix changes nothing');
@@ -224,6 +225,7 @@ final class Application
 		$factory = new RunnerFactory;
 		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
 		$only = self::parseOnly($args);
+		$profiler = is_string($args['--profile']) ? new Profiler : null;
 		if (is_string($args['--worker'])) { // the parent keeps the cache; the baseline decides what is reported
 			$runner = $factory->createRunner(
 				$config,
@@ -234,8 +236,9 @@ final class Application
 				cache: false,
 				fixRisky: (bool) $args['--fix-risky'],
 				baseline: !isset($args['--generate-baseline']),
+				profiler: $profiler,
 			);
-			return WorkerClient::serve($args['--worker'], $runner, $fix);
+			return WorkerClient::serve($args['--worker'], $runner, $fix, $profiler);
 		}
 
 		$runner = $factory->createRunner(
@@ -244,9 +247,10 @@ final class Application
 			$commandLine,
 			$only,
 			strict: (bool) $args['--strict-rules'],
-			cache: !$args['--no-cache'],
+			cache: !$args['--no-cache'] && !$profiler, // a file served from the cache has nothing to measure
 			configFile: $configFile,
 			fixRisky: (bool) $args['--fix-risky'],
+			profiler: $profiler,
 		);
 		foreach ($factory->getWarnings() as $warning) { // a worker says nothing, the parent already did
 			$this->err->writeLine(Markup::highlightCode($this->err, "Warning: $warning", 'yellow'));
@@ -319,10 +323,16 @@ final class Application
 		$onProgress = $progress === null ? null : $progress->advance(...);
 		$reporter = $this->createReporter($args, $this->out, $this->stdout, $root, $format);
 
+		$profiler?->addPhase('start of the process', (int) ((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1e9));
+		$start = hrtime(true);
 		try {
 			return $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings)->getExitCode();
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
+			if ($profiler && is_string($args['--profile'])) {
+				$profiler->addPhase('run', hrtime(true) - $start);
+				FileSystem::write($this->resolvePath($args['--profile']), json_encode($profiler->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n");
+			}
 		}
 	}
 
@@ -448,6 +458,10 @@ final class Application
 
 		if (isset($args['--generate-baseline'])) { // the workers of such a run must see what the baseline knows too
 			$command[] = '--generate-baseline';
+		}
+
+		if (is_string($args['--profile'])) { // a worker measures and hands it over with every file, the parent writes
+			array_push($command, '--profile', $args['--profile']);
 		}
 
 		return $command;

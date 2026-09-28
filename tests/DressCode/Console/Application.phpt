@@ -2,6 +2,7 @@
 
 use DressCode\Console\Application;
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
+use Nette\Utils\FileSystem;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use Tester\Assert;
@@ -418,6 +419,37 @@ test('workers give the same results as the in-process run', function () use ($ro
 	[$code, $out] = runApp($root, ['check', ...$config, '--jobs', '2']);
 	Assert::same(0, $code);
 	Assert::match("%A%OK  3 files, all up to the dress code\n", $out);
+});
+
+
+test('a profile counts the same with workers as in the process', function () use ($root) {
+	file_put_contents("$root/profile.php", "<?php\nreturn new DressCode\\Config(rules: ['dresscode/no-trailing-whitespace' => true, 'dresscode/keyword-casing' => true], paths: ['profile']);\n");
+	@mkdir("$root/profile");
+	for ($i = 0; $i < 8; $i++) {
+		file_put_contents("$root/profile/$i.php", "<?php\nIF (\$a) { \$b; }\t\n");
+	}
+
+	$counts = [];
+	foreach (['1', '2'] as $jobs) {
+		[$code, , $err] = runApp($root, ['check', '--config', "$root/profile.php", '--jobs', $jobs, '--profile', "$root/profile-$jobs.json"]);
+		Assert::same('', $err);
+		Assert::same(1, $code);
+		$profile = json_decode(FileSystem::read("$root/profile-$jobs.json"), associative: true);
+		Assert::same(8, $profile['files']);
+		Assert::true($profile['rules']['dresscode/keyword-casing']['calls'] > 0);
+		Assert::same(8, $profile['rules']['dresscode/keyword-casing']['mutating']);
+		Assert::true($profile['phases']['passes']['time'] >= array_sum(array_column($profile['rules'], 'time')));
+		$count = [
+			array_map(fn($entry) => [$entry['calls'], $entry['mutating']], $profile['rules']),
+			array_map(fn($entry) => $entry['calls'], $profile['claims']),
+			array_map(fn($entry) => $entry['calls'], array_intersect_key($profile['phases'], ['parse' => 0, 'passes' => 0, 'print' => 0, 'gaps' => 0])),
+		];
+		array_walk($count, ksort(...)); // the tables are ordered by time, which differs between runs
+		$counts[] = $count;
+	}
+
+	Assert::same($counts[0], $counts[1]);
+	Assert::count(2 + 1, json_decode(FileSystem::read("$root/profile-2.json"), associative: true)['peakMemory']); // the parent and two workers
 });
 
 

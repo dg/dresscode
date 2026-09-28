@@ -8,6 +8,7 @@
 namespace DressCode\Engine\Gaps;
 
 use DressCode\{Claim, ConfigurationException, Gap, GapRule, Line, Rule, RuleInfo, Space, Style};
+use DressCode\Engine\Profiler;
 use PhpSyntax\{LayoutData, LayoutRole, Node, Token, TokenKind, Trivia, TriviaKind};
 use PhpSyntax\Nodes\Expression\ShellExecNode;
 use PhpSyntax\Nodes\{FileNode, NodeList, SeparatedNodeList};
@@ -65,6 +66,7 @@ final class Resolver
 	public function __construct(
 		/** @var list<Rule> */
 		private array $rules,
+		private readonly ?Profiler $profiler = null,
 	) {
 		foreach ($rules as $rule) {
 			if (!$rule instanceof GapRule) {
@@ -180,7 +182,28 @@ final class Resolver
 			}
 		}
 
+		if ($claim instanceof \Closure && $this->profiler) {
+			$claim = self::measureClaim($claim, RuleInfo::of($rule)->name, $this->profiler);
+		}
+
 		$side[$key][] = [$rule, $claim, $key];
+	}
+
+
+	/**
+	 * @param \Closure(Gap): ?Claim $claim
+	 * @return \Closure(Gap): ?Claim
+	 */
+	private static function measureClaim(\Closure $claim, string $rule, Profiler $profiler): \Closure
+	{
+		return static function (Gap $gap) use ($claim, $rule, $profiler): ?Claim {
+			$start = hrtime(true);
+			try {
+				return $claim($gap);
+			} finally {
+				$profiler->addClaim($rule, hrtime(true) - $start);
+			}
+		};
 	}
 
 

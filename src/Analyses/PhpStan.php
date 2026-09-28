@@ -7,6 +7,7 @@
 
 namespace DressCode\Analyses;
 
+use DressCode\Engine\Profiler;
 use DressCode\Helpers;
 use Nette\Utils\FileSystem;
 use PhpParser\Node\Expr\Variable;
@@ -54,6 +55,7 @@ final class PhpStan
 		/** @var list<string> where the classes of the project are declared, besides its Composer autoload */
 		private readonly array $analysedPaths,
 		private readonly string $tempDir,
+		private readonly ?Profiler $profiler = null,
 	) {
 	}
 
@@ -149,10 +151,13 @@ final class PhpStan
 		$resolver = $container->getByType(NodeScopeResolver::class);
 		$resolver->setAnalysedFiles([$path]);
 		$scope = $container->getByType(ScopeFactory::class)->create(ScopeContext::create($path));
+		$start = $this->profiler ? hrtime(true) : 0;
 		try {
 			$resolver->processNodes($ast, $scope, $callback);
 		} catch (CircularReference) {
 		}
+
+		$this->profiler?->addPhase('phpstan: scopes', hrtime(true) - $start);
 	}
 
 
@@ -214,6 +219,7 @@ final class PhpStan
 			}
 		}
 
+		$start = $this->profiler ? hrtime(true) : 0;
 		try {
 			$container = new ContainerFactory($this->root)->create(
 				$this->tempDir,
@@ -231,6 +237,7 @@ final class PhpStan
 			throw new \RuntimeException('PHPStan could not be started' . ($config ? ' with ' . Helpers::formatCode($config) : '') . ": {$e->getMessage()}", previous: $e);
 		}
 
+		$this->profiler?->addPhase($this->replacement === null ? 'phpstan: container' : 'phpstan: derived container build', hrtime(true) - $start);
 		return $this->container = $container;
 	}
 
