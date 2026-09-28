@@ -3,3 +3,4 @@
 4: The value held between bounds must be written with `clamp()`
 5: The value held between bounds must be written with `clamp()`
 6: The value held between bounds must be written with `clamp()`
+	risky BehaviorChanges: `clamp()` refuses a minimum above its maximum with an error

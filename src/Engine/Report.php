@@ -7,7 +7,7 @@
 
 namespace DressCode\Engine;
 
-use DressCode\Severity;
+use DressCode\{Risk, Severity};
 use PhpSyntax\{Node, Token, Trivia};
 
 
@@ -34,7 +34,7 @@ final readonly class Report
 		public ?string $fingerprint,
 		/** line in the original file */
 		public int $line,
-		public bool $risky,
+		public ?Risk $risky,
 		/** the token whose gap before it holds the whitespace the report is about */
 		public ?Token $gap = null,
 		/** the token opening the line the reported whitespace is counted from */
@@ -45,6 +45,8 @@ final readonly class Report
 		public bool $breaks = false,
 		/** the rule has a fix for it; false when it only reports it */
 		public bool $fixable = true,
+		/** what may go wrong at this risky occurrence */
+		public ?string $because = null,
 	) {
 	}
 }

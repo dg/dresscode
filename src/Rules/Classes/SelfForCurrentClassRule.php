@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -94,7 +94,12 @@ final class SelfForCurrentClassRule extends NodeRule implements ConfigurableRule
 				|| strcasecmp($resolver->resolveClass($name), $ownFullName) !== 0
 				|| !self::isClassReference($name)
 				|| $name->findAncestor(ClassLikeNode::class) !== $class
-				|| !$context->report($name, "The current class `$own` must be referenced as `self`", risky: $name->parent instanceof StaticMethodCallNode)
+				|| !$context->report(
+					$name,
+					"The current class `$own` must be referenced as `self`",
+					risky: $name->parent instanceof StaticMethodCallNode ? Risk::BehaviorChanges : null,
+					because: 'a method called through `self::` sees the subclass as `static`',
+				)
 			) {
 				continue;
 			}
@@ -114,7 +119,8 @@ final class SelfForCurrentClassRule extends NodeRule implements ConfigurableRule
 				|| !$context->report(
 					$name,
 					'`static` can mean no class but the current one here and must be written as `self`',
-					risky: self::isInClosure($name, $class),
+					risky: self::isInClosure($name, $class) ? Risk::BehaviorChanges : null,
+					because: 'a closure bound to another class sees `static` and `self` apart',
 				)
 			) {
 				continue;

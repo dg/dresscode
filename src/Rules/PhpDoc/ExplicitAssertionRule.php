@@ -8,7 +8,7 @@
 namespace DressCode\Rules\PhpDoc;
 
 use DressCode\Analyses\PhpDoc;
-use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocTagNode, VarTagValueNode};
 use PHPStan\PhpDocParser\Ast\Type;
 use PhpSyntax\Analyses\NameResolver;
@@ -31,7 +31,6 @@ use function in_array;
 	Stage::Structure,
 	description: 'Replaces an inline `@var` annotation with an `assert()` of the type',
 	modifiesComments: true,
-	risky: true,
 )]
 final class ExplicitAssertionRule extends NodeRule
 {
@@ -73,7 +72,7 @@ final class ExplicitAssertionRule extends NodeRule
 
 		if (
 			$assertions === []
-			|| !$context->report($node, 'An inline `@var` annotation must be an `assert()` of the type', trivia: $docComment)
+			|| !$context->report($node, 'An inline `@var` annotation must be an `assert()` of the type', trivia: $docComment, risky: Risk::BehaviorChanges)
 		) {
 			return;
 		}

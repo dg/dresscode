@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\{Analyses, Claim, Config, ConvergenceException, GapRule, Line, NodeRule, Rule, RuleContext, RuleException, RuleInfo, Severity, Stage, Style};
+use DressCode\{Analyses, Claim, Config, ConvergenceException, GapRule, Line, NodeRule, Risk, Rule, RuleContext, RuleException, RuleInfo, Severity, Stage, Style};
 use DressCode\Engine\PassRunner;
 use DressCode\Rules\Whitespace\IndentationRule;
 use PhpSyntax\{Node, Parser, Token};
@@ -55,7 +55,7 @@ final class RenamePair extends NodeRule
 				continue;
 			}
 
-			if ($context->report($variable, "Variable {$name->text}", risky: $name->text === '$b')) {
+			if ($context->report($variable, "Variable {$name->text}", risky: $name->text === '$b' ? Risk::TypeUnknown : null, because: 'b may be anything')) {
 				$name->setText($upper);
 			}
 		}
@@ -147,7 +147,7 @@ final class MoveChain extends NodeRule
 		}
 
 		[$a, $b, $c] = $tokens;
-		$context->report($b, 'Move $b', trivia: $b->leadingTrivia[0], risky: true, follows: $a);
+		$context->report($b, 'Move $b', trivia: $b->leadingTrivia[0], risky: Risk::BehaviorChanges, follows: $a);
 		$context->report($c, 'Move $c', trivia: $c->leadingTrivia[0], follows: $b);
 	}
 }
@@ -548,8 +548,9 @@ test('a risky occurrence is reported and left alone, and the safe one beside it 
 		Assert::same("<?php\n\$A + \$b;\n", (string) $file, $order);
 		Assert::same([], $result->warnings, $order);
 		Assert::count(2, $result->violations);
-		Assert::same([false, true], array_map(fn($v) => $v->risky, $result->violations), $order);
+		Assert::same([null, Risk::TypeUnknown], array_map(fn($v) => $v->risky, $result->violations), $order);
 		Assert::same([false, true], array_map(fn($v) => $v->refused, $result->violations), $order);
+		Assert::same([null, 'b may be anything'], array_map(fn($v) => $v->because, $result->violations), $order);
 	}
 });
 
@@ -558,12 +559,12 @@ test('with the fixes allowed the risky occurrence is fixed and says it was risky
 	[$file, $result] = run("<?php\n\$a + \$b;\n", [new RenamePair], fixRisky: true);
 	Assert::same("<?php\n\$A + \$B;\n", (string) $file);
 	Assert::count(2, $result->violations);
-	Assert::same([false, true], array_map(fn($v) => $v->risky, $result->violations));
+	Assert::same([null, Risk::TypeUnknown], array_map(fn($v) => $v->risky, $result->violations));
 	Assert::same([false, false], array_map(fn($v) => $v->refused, $result->violations));
 });
 
 
-#[RuleInfo('test/risky-rule', Stage::Structure, risky: true)]
+#[RuleInfo('test/risky-rule', Stage::Structure)]
 final class RiskyRule extends NodeRule
 {
 	public function getVisitedTypes(): array
@@ -578,22 +579,12 @@ final class RiskyRule extends NodeRule
 			$node instanceof VariableNode
 			&& $node->name instanceof Token
 			&& $node->name->text === '$a'
-			&& $context->report($node, 'Rename $a')
+			&& $context->report($node, 'Rename $a', risky: Risk::BehaviorChanges)
 		) {
 			$node->name->setText('$b');
 		}
 	}
 }
-
-
-test('a rule whose every fix may change what the code does makes every report of it risky', function () {
-	foreach ([false, true] as $fixRisky) {
-		[$file, $result] = run("<?php\n\$a;\n", [new RiskyRule], fixRisky: $fixRisky);
-		Assert::same($fixRisky ? "<?php\n\$b;\n" : "<?php\n\$a;\n", (string) $file);
-		Assert::same([true], array_map(fn($v) => $v->risky, $result->violations));
-		Assert::same([!$fixRisky], array_map(fn($v) => $v->refused, $result->violations));
-	}
-});
 
 
 test('a rule the project names in fixRisky has its risky fixes made without the switch of the run, and no other rule does', function () {
@@ -606,7 +597,7 @@ test('a rule the project names in fixRisky has its risky fixes made without the 
 });
 
 
-#[RuleInfo('test/report-without-fix', Stage::Structure, risky: true)]
+#[RuleInfo('test/report-without-fix', Stage::Structure)]
 final class ReportWithoutFix extends NodeRule
 {
 	public function __construct(
@@ -627,7 +618,7 @@ final class ReportWithoutFix extends NodeRule
 			$node instanceof VariableNode
 			&& $node->name instanceof Token
 			&& $node->name->text === '$a'
-			&& ($context->report($node, 'Report $a', fixable: false) || $this->ignoresAnswer)
+			&& ($context->report($node, 'Report $a', risky: Risk::BehaviorChanges, fixable: false) || $this->ignoresAnswer)
 		) {
 			$node->name->setText('$b');
 		}
@@ -639,7 +630,7 @@ test('a report without a fix is never risky, never refused and never lets the ru
 	foreach ([false, true] as $fixRisky) {
 		[$file, $result] = run("<?php\n\$a;\n", [new ReportWithoutFix], fixRisky: $fixRisky);
 		Assert::same("<?php\n\$a;\n", (string) $file);
-		Assert::same([[false, false]], array_map(fn($v) => [$v->risky, $v->refused], $result->violations));
+		Assert::same([[null, false]], array_map(fn($v) => [$v->risky, $v->refused], $result->violations));
 	}
 
 	Assert::exception(

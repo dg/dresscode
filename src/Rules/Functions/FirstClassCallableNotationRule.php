@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, Helpers, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, Helpers, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{AccessKind, Node, Parser, Token};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, Expression, ExpressionNode, IdentifierNode, NameNode, ParameterNode};
@@ -54,7 +54,12 @@ final class FirstClassCallableNotationRule extends NodeRule
 			: [$this->readForwarding($node), !self::forwardsVariadic($node)];
 		if (
 			$callable === null
-			|| !$context->report($node, 'The callable must be written ' . Helpers::formatCode("$callable(...)"), risky: $risky)
+			|| !$context->report(
+				$node,
+				'The callable must be written ' . Helpers::formatCode("$callable(...)"),
+				risky: $risky ? Risk::BehaviorChanges : null,
+				because: 'arguments passed beyond the parameters of the closure reach the call',
+			)
 		) {
 			return;
 		}

@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Types;
 
 use DressCode\Analyses\{NativeType, PhpDoc};
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{ParamTagValueNode, PhpDocNode, PhpDocTagNode, ReturnTagValueNode, TypelessParamTagValueNode, VarTagValueNode};
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
@@ -30,6 +30,8 @@ use function count, in_array, ord;
  * place and the one that asks to be turned on: its type comes from the value it is written as, no annotation
  * saying what a constant is, and PHP 8.3 is where a constant may declare one at all. Each place can be turned
  * off on its own.
+ *
+ * A native type written is risky: PHP enforces it, and an annotation that was wrong becomes a TypeError.
  */
 #[RuleInfo(
 	'dresscode/type-hint-required',
@@ -37,7 +39,6 @@ use function count, in_array, ord;
 	description: 'Adds native types from annotations and reports declarations without any type',
 	group: Group::Types,
 	modifiesComments: true,
-	risky: true,
 )]
 final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 {
@@ -180,7 +181,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 				if (
 					$native === null
 					|| ($param->isPromoted() && strtolower($native) === 'callable')
-					|| !$context->report($param->variable, "Parameter `$name` must have the native type `$native` from its `@param` annotation")
+					|| !$context->report($param->variable, "Parameter `$name` must have the native type `$native` from its `@param` annotation", risky: Risk::BehaviorChanges)
 				) {
 					continue;
 				}
@@ -252,7 +253,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 				$native = NativeType::fromAnnotation($annotation, NativeType::Return, $php, $this->traversableTypeHints, $phpDoc->findTemplates($node), $resolve);
 				if (
 					$native === null
-					|| !$context->report($node->closeParen, "The function must have the native return type `$native` from its `@return` annotation")
+					|| !$context->report($node->closeParen, "The function must have the native return type `$native` from its `@return` annotation", risky: Risk::BehaviorChanges)
 				) {
 					return [];
 				}
@@ -264,7 +265,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 
 				return [];
 
-			} elseif (!$context->report($node->closeParen, 'The function must have the `void` return type')) {
+			} elseif (!$context->report($node->closeParen, 'The function must have the `void` return type', risky: Risk::BehaviorChanges)) {
 				return [];
 
 			} else {
@@ -278,7 +279,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 			&& $annotation instanceof IdentifierTypeNode
 			&& strtolower($annotation->name) === 'never'
 			&& version_compare($php, '8.1', '>=')
-			&& $context->report($node->closeParen, 'The return type must be `never` instead of `void`, as the `@return` annotation says')
+			&& $context->report($node->closeParen, 'The return type must be `never` instead of `void`, as the `@return` annotation says', risky: Risk::BehaviorChanges)
 		) {
 			$node->returnType->replaceWith((new Parser)->parseType('never'));
 			$native = 'never';
@@ -355,7 +356,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 				$native = str_contains($native, '|') ? "$native|null" : "?$native";
 			}
 
-			if (!$context->report($item, "Property `$name` must have the native type `$native` from its `@var` annotation")) {
+			if (!$context->report($item, "Property `$name` must have the native type `$native` from its `@var` annotation", risky: Risk::BehaviorChanges)) {
 				return;
 			}
 
@@ -394,7 +395,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 		$native = self::readValueType($item->value);
 		if (
 			$native === null
-			|| !$context->report($item, "Constant `{$item->name->text}` must have the native type `$native` of its value")
+			|| !$context->report($item, "Constant `{$item->name->text}` must have the native type `$native` of its value", risky: Risk::BehaviorChanges)
 		) {
 			return;
 		}

@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\Types;
-use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Tristate};
+use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token, TokenKind};
@@ -38,7 +38,6 @@ use function in_array;
 	'dresscode/static-for-private-method-without-this',
 	Stage::Structure,
 	description: 'Marks a private method that does not use `$this` as static',
-	risky: true,
 )]
 final class StaticForPrivateMethodWithoutThisRule extends NodeRule
 {
@@ -58,7 +57,7 @@ final class StaticForPrivateMethodWithoutThisRule extends NodeRule
 			if (
 				!$method instanceof MethodNode
 				|| !$this->canBeStatic($method, $node, $context)
-				|| !$context->report($method->name, "The private method `{$method->name->text}()` uses no `\$this` and must be static")
+				|| !$context->report($method->name, "The private method `{$method->name->text}()` uses no `\$this` and must be static", risky: Risk::BehaviorChanges)
 			) {
 				continue;
 			}

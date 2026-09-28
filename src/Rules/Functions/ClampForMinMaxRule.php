@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -76,7 +76,13 @@ final class ClampForMinMaxRule extends NodeRule
 		[$min, $max] = $inner === 'min' ? [$outerBound, $innerBound] : [$innerBound, $outerBound];
 		assert($node->name instanceof NameNode);
 		$uncertainty = NodeHelpers::findUncertainty($node, $context);
-		if (!$context->report($node, 'The value held between bounds must be written with `clamp()`' . $uncertainty, risky: !self::isOrdered($min, $max) || $uncertainty !== null)) {
+		$ordered = self::isOrdered($min, $max);
+		if (!$context->report(
+			$node,
+			'The value held between bounds must be written with `clamp()`',
+			risky: $ordered ? ($uncertainty === null ? null : Risk::NameUncertain) : Risk::BehaviorChanges,
+			because: $ordered ? $uncertainty : '`clamp()` refuses a minimum above its maximum with an error',
+		)) {
 			return;
 		}
 

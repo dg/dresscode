@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\{Signature, SignatureParameter, Types};
-use DressCode\{ConfigurableRule, Group, Helpers, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, Group, Helpers, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, NodeHelpers};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{Node, Parser, Token, TokenKind, Trivia, TriviaKind};
@@ -159,9 +159,10 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 			. " while `$signature->class::{$node->name->text}()` returns " . Helpers::formatCode($signature->returnType);
 		if (!$context->report(
 			$node->returnType ?? $node->name,
-			$message . ($writable ? ', which the body may not return' : ', but that type cannot be written'),
+			$message . ($writable ? '' : ', but that type cannot be written'),
 			fixable: $writable,
-			risky: $writable,
+			risky: Risk::TypeUnknown,
+			because: 'the body may return something else',
 		)) {
 			return;
 		}
@@ -225,9 +226,10 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 		$refusal = self::findRenameRefusal($node, $parameter->name, $context);
 		if ($context->report(
 			$mine->variable,
-			"Parameter `\$$name` of `{$node->name->text}()` is named `\$$parameter->name` in `$method`" . ($refusal ?? ', which a caller passing it by name notices'),
+			"Parameter `\$$name` of `{$node->name->text}()` is named `\$$parameter->name` in `$method`" . $refusal,
 			fixable: $refusal === null,
-			risky: true,
+			risky: Risk::BehaviorChanges,
+			because: 'a caller passing it by name notices',
 		)) {
 			self::renameParameter($node, $name, $parameter->name);
 		}

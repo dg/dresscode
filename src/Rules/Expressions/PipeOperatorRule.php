@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\{PhpSignatures, Types};
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{AccessKind, Node, Parser, SymbolKind, Token};
 use PhpSyntax\Analyses\NameResolver;
@@ -89,14 +89,14 @@ final class PipeOperatorRule extends NodeRule implements ConfigurableRule
 			$inner = $argument->value;
 		}
 
-		$unknown = in_array(null, $byValue, true);
 		if (
 			count($steps) < $this->minimumCalls
 			|| in_array(false, $byValue, true)
 			|| !$context->report(
 				$node,
-				'The nested calls must be written with the pipe operator' . ($unknown ? ', which fails on a parameter by reference' : ''),
-				risky: $unknown,
+				'The nested calls must be written with the pipe operator',
+				risky: in_array(null, $byValue, true) ? Risk::TypeUnknown : null,
+				because: 'a step may take its argument by reference, which the pipe cannot pass',
 			)
 		) {
 			return;

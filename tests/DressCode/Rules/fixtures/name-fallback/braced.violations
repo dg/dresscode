@@ -1,2 +1,4 @@
 7: Global function `count()` must be imported
+	risky NameUncertain
 11: Global function `strlen()` must be imported
+	risky NameUncertain

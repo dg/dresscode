@@ -178,9 +178,7 @@ foreach ($rules as $name => $class) {
 		$facts[] = 'Modifies comments';
 	}
 
-	if ($info->risky) {
-		$facts[] = 'Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`';
-	} elseif (hasRiskyFixture($name)) {
+	if (hasRiskyFixture($name)) {
 		$facts[] = 'May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`';
 	}
 

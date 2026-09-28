@@ -1,3 +1,6 @@
 3: The assignment must be written `??=` instead of repeating its target
+	risky TypeUnknown: the property may be reached through `__get`, `__set` or a hook
 4: The assignment must be written `.=` instead of repeating its target
+	risky TypeUnknown: the property may be reached through `__get`, `__set` or a hook
 5: The assignment must be written `+=` instead of repeating its target
+	risky TypeUnknown: the property may be reached through `__get`, `__set` or a hook

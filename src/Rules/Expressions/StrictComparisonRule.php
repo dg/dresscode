@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\Expression\BinaryOpNode;
 
@@ -21,7 +22,6 @@ use PhpSyntax\Nodes\Expression\BinaryOpNode;
 	'dresscode/strict-comparison',
 	Stage::Structure,
 	description: 'Replaces loose comparisons with strict ones',
-	risky: true,
 )]
 final class StrictComparisonRule extends NodeRule
 {
@@ -45,7 +45,11 @@ final class StrictComparisonRule extends NodeRule
 		if (
 			$kind === null
 			|| $text === null
-			|| !$context->report($node->operator, "The `{$node->operator->text}` comparison must be written `$text`")
+			|| !$context->report(
+				$node->operator,
+				"The `{$node->operator->text}` comparison must be written `$text`",
+				risky: NodeHelpers::isComparedAlike([$node->left, $node->right], $context) ? null : Risk::TypeUnknown,
+			)
 		) {
 			return;
 		}

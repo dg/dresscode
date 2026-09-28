@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Literals;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Scalar\{InterpolatedStringPartNode, StringNode};
 use PhpSyntax\Nodes\Statement\InlineHtmlNode;
@@ -22,7 +22,6 @@ use PhpSyntax\Nodes\Statement\InlineHtmlNode;
 	Stage::Structure,
 	description: 'Removes trailing whitespace from string lines',
 	group: Group::Correctness,
-	risky: true,
 )]
 final class NoTrailingWhitespaceInStringRule extends NodeRule
 {
@@ -47,7 +46,7 @@ final class NoTrailingWhitespaceInStringRule extends NodeRule
 		$stripped = preg_replace('~[ \t]+(?=\R)~', '', $token->text);
 		if (
 			$stripped === $token->text
-			|| !$context->report($token, 'Trailing whitespace in a string')
+			|| !$context->report($token, 'Trailing whitespace in a string', risky: Risk::BehaviorChanges)
 		) {
 			return;
 		}

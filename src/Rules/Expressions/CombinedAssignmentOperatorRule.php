@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Parser, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, Expression, ExpressionNode};
 
@@ -58,8 +58,12 @@ final class CombinedAssignmentOperatorRule extends NodeRule
 		}
 
 		$property = $var instanceof Expression\PropertyFetchNode || $var instanceof Expression\StaticPropertyFetchNode;
-		$risky = $property && ($combined === '??=' || self::mayRunCode($binary->right));
-		if (!$context->report($node, "The assignment must be written `$combined` instead of repeating its target", risky: $risky)) {
+		if (!$context->report(
+			$node,
+			"The assignment must be written `$combined` instead of repeating its target",
+			risky: $property && ($combined === '??=' || self::mayRunCode($binary->right)) ? Risk::TypeUnknown : null,
+			because: 'the property may be reached through `__get`, `__set` or a hook',
+		)) {
 			return;
 		}
 

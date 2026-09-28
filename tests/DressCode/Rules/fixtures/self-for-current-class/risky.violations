@@ -1,2 +1,3 @@
 8: The current class `Foo` must be referenced as `self`
+	risky BehaviorChanges: a method called through `self::` sees the subclass as `static`
 8: The current class `Foo` must be referenced as `self`

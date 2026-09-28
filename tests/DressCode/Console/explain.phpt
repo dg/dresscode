@@ -64,16 +64,6 @@ test('explain writes what the rule is, what it does here, and its example', func
 });
 
 
-test('explain says of a rule whose every fix may change the code that the fix waits for the run to allow it', function () use ($root) {
-	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
-	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
-	$code = new Application($out, $err, cwd: $root)->run(['dresscode', 'explain', 'strict-call']);
-	rewind($out);
-	Assert::same(0, $code);
-	Assert::contains('every fix may change what the code does, so it is made once the rule is named in fixRisky or with --fix-risky', (string) stream_get_contents($out));
-});
-
-
 test('explain without a rule writes every rule that runs, in Markdown into the output', function () use ($root) {
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;

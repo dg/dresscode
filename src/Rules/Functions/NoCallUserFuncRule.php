@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\Analyses\{Parameter, PhpSignatures, PhpSymbols};
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{NameKind, Node, ParseException, Parser, Token};
@@ -100,15 +100,20 @@ final class NoCallUserFuncRule extends NodeRule
 		// a comment between the name and the arguments the call keeps would be lost with them
 		$fixable = $node->name->getLastToken()?->hasCommentUpTo($end) === false;
 		$uncertainty = NodeHelpers::findUncertainty($node, $context);
-		$risky = $uncertainty !== null
-			|| (array_any($passed, fn(ExpressionNode $value) => $value->isWritable()) && !$this->isWithoutReferences($callable->value, $context))
-			|| ($passed !== [] && self::declaresStrictTypes($context) && !$this->isCompiledDirectly($node, $function, $context));
+		$because = match (true) {
+			array_any($passed, fn(ExpressionNode $value) => $value->isWritable()) && !$this->isWithoutReferences($callable->value, $context)
+				=> 'the callable may take a parameter by reference, which the direct call passes as one',
+			$passed !== [] && self::declaresStrictTypes($context) && !$this->isCompiledDirectly($node, $function, $context)
+				=> 'under `strict_types` the direct call refuses an argument `' . $function . '()` converted',
+			default => null,
+		};
 
 		if (!$context->report(
 			$node->name,
-			"The callable must be called directly, not through `$function()`" . $uncertainty,
+			"The callable must be called directly, not through `$function()`",
 			fixable: $fixable,
-			risky: $fixable && $risky,
+			risky: $because !== null ? Risk::BehaviorChanges : ($uncertainty === null ? null : Risk::NameUncertain),
+			because: $because ?? $uncertainty,
 		)) {
 			return;
 		}

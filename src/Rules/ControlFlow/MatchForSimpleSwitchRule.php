@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\ControlFlow;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Parser, Token};
 use PhpSyntax\Nodes\{CaseNode, Expression, ExpressionNode, Statement, StatementNode};
 use function count;
@@ -23,7 +24,7 @@ use function count;
  * falling through into the next one among the things it must not hold. A comment anywhere in the switch keeps
  * it as it is, the arms of a match having nowhere to put one.
  *
- * Every fix is risky: a switch compares loosely and a match strictly, so a case of `1` catches `'1'` and `true`
+ * The fix is risky: a switch compares loosely and a match strictly, so a case of `1` catches `'1'` and `true`
  * and an arm of `1` catches neither. Without the types, a subject of the type of the labels is not told from
  * one of another type.
  */
@@ -33,7 +34,6 @@ use function count;
 	description: 'Writes a `switch` whose every case assigns or returns one value as a `match`',
 	group: Group::Modernization,
 	requires: ['php' => '>=8.0'],
-	risky: true,
 )]
 final class MatchForSimpleSwitchRule extends NodeRule
 {
@@ -52,7 +52,11 @@ final class MatchForSimpleSwitchRule extends NodeRule
 		$arms = self::readArms($node);
 		if (
 			$arms === null
-			|| !$context->report($node->switchKeyword, 'The switch giving one value must be written as a match')
+			|| !$context->report(
+				$node->switchKeyword,
+				'The switch giving one value must be written as a match',
+				risky: NodeHelpers::isComparedAlike([$node->subject, ...array_merge(...array_column($arms, 0))], $context) ? null : Risk::TypeUnknown,
+			)
 		) {
 			return;
 		}

@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\{NameResolver, Scope};
 use PhpSyntax\{Node, Parser, Token};
@@ -78,8 +78,9 @@ final class NoSettypeRule extends NodeRule
 			|| self::hasDynamicVariables($call, $context)
 			|| !$context->report(
 				$call,
-				'The `settype()` call must be written as an assignment of a cast' . ($uncertainty = NodeHelpers::findUncertainty($call, $context)),
-				risky: $uncertainty !== null,
+				'The `settype()` call must be written as an assignment of a cast',
+				risky: ($uncertainty = NodeHelpers::findUncertainty($call, $context)) === null ? null : Risk::NameUncertain,
+				because: $uncertainty,
 			)
 		) {
 			return;

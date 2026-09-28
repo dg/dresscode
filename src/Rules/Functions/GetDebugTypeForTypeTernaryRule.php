@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -19,10 +20,10 @@ use function count;
  * `is_object($v) ? get_class($v) : gettype($v)` asks what a value is in three calls, which is what
  * `get_debug_type()` of PHP 8.0 answers in one; the negated ternary is read the same way.
  *
- * Every fix is risky, because the two do not spell the same answer: `gettype()` says `integer`, `double`,
- * `boolean` and `NULL` where `get_debug_type()` says `int`, `float`, `bool` and `null`, and a message or
- * a comparison built on those words says something else afterwards. Without the types, a value that is
- * never one of those is not told from one that may be.
+ * The two do not spell the same answer: `gettype()` says `integer`, `double`, `boolean` and `NULL` where
+ * `get_debug_type()` says `int`, `float`, `bool` and `null`, and a message or a comparison built on those words
+ * says something else afterwards, so the fix is risky but for a string or an array, which both name alike.
+ * Without the types, such a value is not told from another.
  */
 #[RuleInfo(
 	'dresscode/get-debug-type-for-type-ternary',
@@ -30,7 +31,6 @@ use function count;
 	description: 'Replaces a ternary asking whether a value is an object with `get_debug_type()`',
 	group: Group::Modernization,
 	requires: ['php' => '>=8.0'],
-	risky: true,
 )]
 final class GetDebugTypeForTypeTernaryRule extends NodeRule
 {
@@ -64,7 +64,17 @@ final class GetDebugTypeForTypeTernaryRule extends NodeRule
 
 		assert($test instanceof Expression\FunctionCallNode && $test->name instanceof NameNode);
 		$uncertainty = NodeHelpers::findUncertainty($test, $context);
-		if (!$context->report($node, 'The type of the value must be asked for with `get_debug_type()`' . $uncertainty)) {
+		$sameAnswer = $context->findAnalysis(Types::class)?->isOfType($subject, 'string|array') === Tristate::Yes;
+		if (!$context->report(
+			$node,
+			'The type of the value must be asked for with `get_debug_type()`',
+			risky: match (true) {
+				!$sameAnswer => Risk::TypeUnknown,
+				$uncertainty !== null => Risk::NameUncertain,
+				default => null,
+			},
+			because: $sameAnswer ? $uncertainty : 'the value may be one whose type `gettype()` spells another way',
+		)) {
 			return;
 		}
 

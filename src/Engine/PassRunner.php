@@ -119,7 +119,7 @@ final class PassRunner
 		$suppression = Suppression::fromFile($file, $this->resolveNames, $code);
 		foreach ($this->rules as $rule) {
 			$name = RuleInfo::of($rule)->name;
-			$this->contexts[$name] = new RuleContext($file, $path, $style, $phpVersion, $this->analyses, $suppression, $this->fingerprints, $name, $this->fixRisky || isset($this->fixRiskyRules[$name]), RuleInfo::of($rule)->risky, $this->rules);
+			$this->contexts[$name] = new RuleContext($file, $path, $style, $phpVersion, $this->analyses, $suppression, $this->fingerprints, $name, $this->fixRisky || isset($this->fixRiskyRules[$name]), $this->rules);
 		}
 
 		$seen = [hash('xxh3', $code) => true];
@@ -327,7 +327,7 @@ final class PassRunner
 		$reports = $context->takeReports();
 		foreach ($reports as $i => $report) {
 			$fingerprint = $report->fingerprint;
-			$refused = $report->risky && !$this->fixRisky && !isset($this->fixRiskyRules[$name]);
+			$refused = $report->risky !== null && !$this->fixRisky && !isset($this->fixRiskyRules[$name]);
 			$denied = !$report->fixable || $report->silenced || $refused;
 			if ($denied && ($reports[$i + 1]->revision ?? $after) > $report->revision) {
 				$this->violateContract($name, $report->fixable
@@ -351,6 +351,7 @@ final class PassRunner
 					fingerprint: $fingerprint,
 					risky: $report->risky,
 					refused: $refused,
+					because: $report->because,
 					derivedFrom: $derivedFrom === $fingerprint ? null : $derivedFrom,
 				);
 			}

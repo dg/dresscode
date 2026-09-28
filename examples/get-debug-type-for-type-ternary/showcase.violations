@@ -1,1 +1,2 @@
 3: The type of the value must be asked for with `get_debug_type()`
+	risky TypeUnknown: the value may be one whose type `gettype()` spells another way

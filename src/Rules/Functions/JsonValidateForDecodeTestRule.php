@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token, TokenKind};
@@ -31,7 +31,6 @@ use function count;
 	description: 'Replaces `json_decode()` called only to test the input with `json_validate()`',
 	group: Group::Modernization,
 	requires: ['php' => '>=8.3'],
-	risky: true,
 )]
 final class JsonValidateForDecodeTestRule extends NodeRule
 {
@@ -59,7 +58,7 @@ final class JsonValidateForDecodeTestRule extends NodeRule
 		$decode = $this->readDecodedJson($chained === null ? $node->left : $chained->right, $context);
 		if (
 			$decode === null
-			|| !$context->report($node, 'The test for JSON must be written with `json_validate()`')
+			|| !$context->report($node, 'The test for JSON must be written with `json_validate()`', risky: Risk::BehaviorChanges, because: '`json_validate()` takes the document `null` for JSON, the test does not')
 		) {
 			return;
 		}

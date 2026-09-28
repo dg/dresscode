@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\{Node, Parser, Token};
 use PhpSyntax\Nodes\Expression\{CombinedAssignmentNode, PostfixOpNode};
 use PhpSyntax\Nodes\Scalar\IntegerNode;
@@ -16,14 +17,13 @@ use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 
 /**
  * `$a++` and `$a--` instead of `$a += 1` and `$a -= 1`, only as a whole statement, where the value
- * of the expression cannot be observed. Risky: null and a string that is no number count differently,
- * `null--` staying null and `'a'++` being `'b'`; without the types, an int is not told from them.
+ * of the expression cannot be observed. Risky but for a number: null and a string that is no number count
+ * differently, `null--` staying null and `'a'++` being `'b'`. Without the types, a number is not told from them.
  */
 #[RuleInfo(
 	'dresscode/increment-operator',
 	Stage::Structure,
 	description: 'Uses `++` and `--` instead of `+= 1` and `-= 1`',
-	risky: true,
 )]
 final class IncrementOperatorRule extends NodeRule
 {
@@ -50,7 +50,11 @@ final class IncrementOperatorRule extends NodeRule
 		if (
 			$last === null
 			|| $last->hasCommentUpTo($node->expression->token)
-			|| !$context->report($node, "The `{$node->operator->text} 1` assignment must be written `$operator`")
+			|| !$context->report(
+				$node,
+				"The `{$node->operator->text} 1` assignment must be written `$operator`",
+				risky: $context->findAnalysis(Types::class)?->isOfType($node->target, 'int|float') === Tristate::Yes ? null : Risk::TypeUnknown,
+			)
 		) {
 			return;
 		}

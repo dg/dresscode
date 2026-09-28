@@ -15,5 +15,8 @@
 16: The `substr()` comparison must be written with `str_starts_with()`
 17: The `substr()` comparison must be written with `str_ends_with()`
 30: The `substr()` comparison must be written with `str_ends_with()`
+	risky BehaviorChanges: `str_ends_with()` finds an empty needle in any haystack
 31: The `mb_strpos()` comparison must be written with `str_contains()`
+	risky BehaviorChanges: the `mb_` function counts characters, the new one bytes
 32: The `mb_strstr()` comparison must be written with `str_contains()`
+	risky BehaviorChanges: the `mb_` function counts characters, the new one bytes

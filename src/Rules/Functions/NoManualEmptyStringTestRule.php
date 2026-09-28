@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\Analyses\Types;
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -73,9 +73,10 @@ final class NoManualEmptyStringTestRule extends NodeRule
 			&& $value->getLastToken()?->hasCommentUpTo($node->getLastToken() ?? $call->arguments->closeParen) === false;
 		if (!$context->report(
 			$node,
-			'The empty string must be tested with ' . ($empty ? "`=== ''`" : "`!== ''`") . ", not through `$function()`" . $uncertainty,
+			'The empty string must be tested with ' . ($empty ? "`=== ''`" : "`!== ''`") . ", not through `$function()`",
 			fixable: $fixable,
-			risky: $fixable && $uncertainty !== null,
+			risky: $uncertainty === null ? null : Risk::NameUncertain,
+			because: $uncertainty,
 		)) {
 			return;
 		}

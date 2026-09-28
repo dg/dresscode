@@ -3,7 +3,10 @@
 4: The assignment must be written `??=` instead of repeating its target
 7: The assignment must be written `*=` instead of repeating its target
 12: The assignment must be written `??=` instead of repeating its target
+	risky TypeUnknown: the property may be reached through `__get`, `__set` or a hook
 13: The assignment must be written `.=` instead of repeating its target
+	risky TypeUnknown: the property may be reached through `__get`, `__set` or a hook
 14: The assignment must be written `+=` instead of repeating its target
+	risky TypeUnknown: the property may be reached through `__get`, `__set` or a hook
 15: The assignment must be written `+=` instead of repeating its target
 16: The assignment must be written `.=` instead of repeating its target

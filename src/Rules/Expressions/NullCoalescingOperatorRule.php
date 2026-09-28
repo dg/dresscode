@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, BinaryOpNode, IssetNode, PropertyFetchNode, TernaryNode};
 use PhpSyntax\Nodes\ExpressionNode;
@@ -72,7 +72,12 @@ final class NullCoalescingOperatorRule extends NodeRule
 		$risky = $cond instanceof IssetNode
 			? $subject instanceof PropertyFetchNode
 			: self::canAskObject($subject);
-		if (!$context->report($node->question, 'A ternary testing for null must be written with `??`', risky: $risky)) {
+		if (!$context->report(
+			$node->question,
+			'A ternary testing for null must be written with `??`',
+			risky: $risky ? Risk::TypeUnknown : null,
+			because: '`??` may ask an object through its magic methods, which the test did not',
+		)) {
 			return;
 		}
 

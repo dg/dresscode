@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Access, MemberKind, Types};
-use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage, Tristate};
+use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\Schema;
 use PhpSyntax\{Node, Token};
@@ -126,9 +126,10 @@ final class ReplacedMembersRule extends NodeRule implements ConfigurableRule
 			: $access->kind;
 		if (!$context->report(
 			$node->name,
-			$pattern->describe($kind) . ' is replaced by ' . $target->describe($kind, $pattern) . ($refusal ?? $risk ?? ''),
+			$pattern->describe($kind) . ' is replaced by ' . $target->describe($kind, $pattern) . $refusal,
 			fixable: $refusal === null,
-			risky: $risk !== null,
+			risky: $risk === null ? null : Risk::BehaviorChanges,
+			because: $risk,
 		)) {
 			return;
 		}
@@ -243,7 +244,7 @@ final class ReplacedMembersRule extends NodeRule implements ConfigurableRule
 			default => null,
 		};
 		return $receiver !== null && !$receiver->isRepeatableRead()
-			? ', which no longer evaluates what it is reached through'
+			? 'the replacement no longer evaluates what the member is reached through'
 			: null;
 	}
 }

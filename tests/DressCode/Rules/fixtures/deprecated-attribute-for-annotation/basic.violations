@@ -1,6 +1,12 @@
 5: The deprecation must be written with the `#[\Deprecated]` attribute
+	risky BehaviorChanges
 13: The deprecation must be written with the `#[\Deprecated]` attribute
+	risky BehaviorChanges
 22: The deprecation must be written with the `#[\Deprecated]` attribute
+	risky BehaviorChanges
 31: The deprecation must be written with the `#[\Deprecated]` attribute
+	risky BehaviorChanges
 37: The deprecation must be written with the `#[\Deprecated]` attribute
+	risky BehaviorChanges
 50: The deprecation must be written with the `#[\Deprecated]` attribute
+	risky BehaviorChanges

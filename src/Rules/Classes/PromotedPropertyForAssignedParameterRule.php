@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{ClassLikeNode, Expression, ParameterNode, Statement, TypeNode};
@@ -73,7 +73,7 @@ final class PromotedPropertyForAssignedParameterRule extends NodeRule
 			$assignment = $property === null ? null : $this->findPromotable($constructor, $constructor->body, $parameter, $property, $name);
 			if (
 				$assignment === null
-				|| !$context->report($property, 'The property must be promoted to a constructor parameter', risky: $property->type === null)
+				|| !$context->report($property, 'The property must be promoted to a constructor parameter', risky: $property->type === null ? Risk::BehaviorChanges : null)
 			) {
 				continue;
 			}

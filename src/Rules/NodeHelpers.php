@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules;
 
-use DressCode\{Analyses, Gap, RuleContext};
+use DressCode\{Analyses, Gap, RuleContext, Tristate};
 use DressCode\Rules\Namespaces\ImportNotationRule;
 use DressCode\Rules\Whitespace\IndentationRule;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
@@ -265,7 +265,7 @@ final class NodeHelpers
 	/**
 	 * Why a call taken as a call of a global function may call another one: its name is unqualified in a namespace
 	 * that may declare a function of that name elsewhere (`UnqualifiedResolution::Uncertain`). A rule rewriting such a call
-	 * reports it as risky with this reason after the message; null when the call is certain.
+	 * reports it with `Risk::NameUncertain` and this as the reason; null when the call is certain.
 	 */
 	public static function findUncertainty(Expression\FunctionCallNode $call, RuleContext $context): ?string
 	{
@@ -273,8 +273,24 @@ final class NodeHelpers
 		return $name instanceof NameNode
 			&& $name->isUnqualified()
 			&& $context->getAnalysis(NameResolver::class)->getUnqualifiedResolution($name->text, SymbolKind::Function, $call) === UnqualifiedResolution::Uncertain
-			? ', unless the namespace declares `' . strtolower($name->text) . '()`'
+			? 'the namespace may declare `' . strtolower($name->text) . '()`'
 			: null;
+	}
+
+
+	/**
+	 * Whether the types tell that the expressions are all of one type the loose and the strict comparison compare
+	 * alike: integers, booleans or enum cases; two strings are not, `'1' == '01'` comparing them as numbers. False
+	 * where the run has no types.
+	 * @param list<ExpressionNode> $expressions
+	 */
+	public static function isComparedAlike(array $expressions, RuleContext $context): bool
+	{
+		$types = $context->findAnalysis(Analyses\Types::class);
+		return $types !== null && array_any(
+			['int', 'bool', \UnitEnum::class],
+			fn(string $type) => array_all($expressions, fn(ExpressionNode $expression) => $types->isOfType($expression, $type) === Tristate::Yes),
+		);
 	}
 
 

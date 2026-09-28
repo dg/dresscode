@@ -1,4 +1,5 @@
 <?php
+// types off
 // risky
 switch ($input) {
 	case Lexer::T_SELECT:

@@ -8,7 +8,6 @@
 namespace DressCode\Console;
 
 use DressCode\Config\{PackageProfile, ResolvedConfig, ResolvedRule};
-use DressCode\RuleInfo;
 use Nette\CommandLine\{Ansi, Console};
 use Nette\Utils\Json;
 use function array_slice, count, is_bool, is_string, sprintf, strlen;
@@ -142,16 +141,11 @@ final class ConfigPrinter
 
 
 	/**
-	 * What the run does with the risky fixes of the rule, made where fixRisky names it and only reported otherwise,
-	 * and whether its violations only warn.
+	 * Whether the project accepts the risky fixes of the rule, and whether its violations only warn.
 	 */
 	private static function describeRisk(ResolvedRule $rule): string
 	{
-		return match (true) {
-			$rule->fixRisky => ', risky fixes accepted',
-			RuleInfo::of($rule->class)->risky => ', risky fixes only reported',
-			default => '',
-		} . ($rule->warning ? ', only warns' : '');
+		return ($rule->fixRisky ? ', risky fixes accepted' : '') . ($rule->warning ? ', only warns' : '');
 	}
 
 

@@ -2,14 +2,20 @@
 3: A ternary testing for null must be written with `??`
 4: A ternary testing for null must be written with `??`
 5: A ternary testing for null must be written with `??`
+	risky TypeUnknown: `??` may ask an object through its magic methods, which the test did not
 6: A ternary testing for null must be written with `??`
 10: A ternary testing for null must be written with `??`
 14: A ternary testing for null must be written with `??`
+	risky TypeUnknown: `??` may ask an object through its magic methods, which the test did not
 15: A ternary testing for null must be written with `??`
+	risky TypeUnknown: `??` may ask an object through its magic methods, which the test did not
 16: A ternary testing for null must be written with `??`
 17: A ternary testing for null must be written with `??`
+	risky TypeUnknown: `??` may ask an object through its magic methods, which the test did not
 18: A ternary testing for null must be written with `??`
 19: A ternary testing for null must be written with `??`
 20: A ternary testing for null must be written with `??`
+	risky TypeUnknown: `??` may ask an object through its magic methods, which the test did not
 21: A ternary testing for null must be written with `??`
+	risky TypeUnknown: `??` may ask an object through its magic methods, which the test did not
 22: A ternary testing for null must be written with `??`

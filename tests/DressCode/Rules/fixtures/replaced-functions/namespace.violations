@@ -1,3 +1,4 @@
-7: Function `strlen()` is replaced by `mb_strlen()`, unless the namespace declares `strlen()`
+7: Function `strlen()` is replaced by `mb_strlen()`
+	risky NameUncertain: the namespace may declare `strlen()`
 8: Function `strlen()` is replaced by `mb_strlen()`
 9: Function `strlen()` is replaced by `mb_strlen()`

@@ -1,1 +1,2 @@
 5: An inline `@var` annotation must be an `assert()` of the type
+	risky BehaviorChanges

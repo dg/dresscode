@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, Token};
@@ -62,8 +62,9 @@ final class NoConversionFunctionsRule extends NodeRule
 			|| $arg->ellipsis !== null
 			|| !$context->report(
 				$node,
-				"The conversion function must be written as the `($cast)` cast" . ($uncertainty = NodeHelpers::findUncertainty($node, $context)),
-				risky: $uncertainty !== null,
+				"The conversion function must be written as the `($cast)` cast",
+				risky: ($uncertainty = NodeHelpers::findUncertainty($node, $context)) === null ? null : Risk::NameUncertain,
+				because: $uncertainty,
 			)
 		) {
 			return;

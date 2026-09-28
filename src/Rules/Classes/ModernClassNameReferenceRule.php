@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{ConfigurableRule, Group, Helpers, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, Group, Helpers, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{AccessKind, Node, Nodes, Parser, Token};
@@ -71,7 +71,12 @@ final class ModernClassNameReferenceRule extends NodeRule implements Configurabl
 		}
 
 		$uncertainty = $node instanceof Expression\FunctionCallNode ? NodeHelpers::findUncertainty($node, $context) : null;
-		if (!$context->report($node, 'The class name must be obtained with ' . Helpers::formatCode($replacement) . $uncertainty, risky: $uncertainty !== null)) {
+		if (!$context->report(
+			$node,
+			'The class name must be obtained with ' . Helpers::formatCode($replacement),
+			risky: $uncertainty === null ? null : Risk::NameUncertain,
+			because: $uncertainty,
+		)) {
 			return;
 		}
 

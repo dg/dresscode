@@ -8,7 +8,7 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\Analyses\Types;
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage, Tristate};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Parser, Token};
 use PhpSyntax\Nodes\{ArgumentNode, ClassLikeNode, ConstItemNode, Expression, ExpressionNode, FunctionLikeNode, IdentifierNode, NameNode, NodeList, ParameterNode, Statement, StatementNode, TypeNode};
@@ -79,11 +79,15 @@ final class ArrayFunctionForForeachRule extends NodeRule
 			$overArray = $context->findAnalysis(Types::class)?->isOfType($foreach->expression, 'array') ?? Tristate::Maybe;
 		}
 
-		$risky = $overArray === Tristate::Maybe;
 		if (
 			$function === null
 			|| $overArray === Tristate::No
-			|| !$context->report($foreach, "The loop must be written with `$function()`" . ($risky ? ', which takes an array only' : ''), risky: $risky)
+			|| !$context->report(
+				$foreach,
+				"The loop must be written with `$function()`",
+				risky: $overArray === Tristate::Maybe ? Risk::TypeUnknown : null,
+				because: 'the loop may go through an object, which `' . $function . '()` does not take',
+			)
 		) {
 			return;
 		}

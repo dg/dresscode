@@ -1,2 +1,3 @@
 10: The loop must be written with `array_any()`
-34: The loop must be written with `array_any()`, which takes an array only
+34: The loop must be written with `array_any()`
+	risky TypeUnknown: the loop may go through an object, which `array_any()` does not take

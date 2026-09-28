@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\Types;
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\CodeWriter;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ClassLikeNode, IdentifierNode, NameNode};
@@ -38,7 +38,6 @@ use function count, in_array;
 	description: 'Removes a method that only calls the parent method with the same arguments',
 	group: Group::Cleanup,
 	requiresTypes: true,
-	risky: true,
 )]
 final class UselessOverridingMethodRule extends NodeRule
 {
@@ -59,7 +58,7 @@ final class UselessOverridingMethodRule extends NodeRule
 			|| !$this->isRepetition($node)
 			|| array_any($node->getTokens(), fn(Token $token) => $token->hasComment())
 			|| !$context->getAnalysis(Types::class)->hasParentSignature($node)
-			|| !$context->report($node->name, "Useless method `{$node->name->text}()`, it only calls the parent method")
+			|| !$context->report($node->name, "Useless method `{$node->name->text}()`, it only calls the parent method", risky: Risk::BehaviorChanges)
 		) {
 			return;
 		}

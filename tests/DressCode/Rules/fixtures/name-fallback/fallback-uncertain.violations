@@ -1,2 +1,4 @@
 5: Global function `strlen()` must not be imported
+	risky NameUncertain
 7: Global function `count()` must be written without the leading backslash
+	risky NameUncertain

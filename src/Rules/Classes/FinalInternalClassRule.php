@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\PhpDoc;
-use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\{Node, Token, TokenKind};
@@ -26,7 +26,6 @@ use PhpSyntax\Nodes\Statement\ClassNode;
 	'dresscode/final-internal-class',
 	Stage::Structure,
 	description: 'Makes classes annotated as internal final',
-	risky: true,
 )]
 final class FinalInternalClassRule extends NodeRule implements ConfigurableRule
 {
@@ -82,7 +81,7 @@ final class FinalInternalClassRule extends NodeRule implements ConfigurableRule
 		if (
 			array_diff($this->include, $tags) !== []
 			|| array_intersect($this->exclude, $tags) !== []
-			|| !$context->report($node->classKeyword, 'An internal class must be final')
+			|| !$context->report($node->classKeyword, 'An internal class must be final', risky: Risk::BehaviorChanges)
 		) {
 			return;
 		}

@@ -35,8 +35,6 @@ final readonly class RuleInfo
 		public bool $requiresTypes = false,
 		/** the option a bare value written for the rule fills, for a rule that is one decision */
 		public ?string $decision = null,
-		/** every fix of the rule may change what the code does, because the code cannot tell a safe occurrence */
-		public bool $risky = false,
 	) {
 		foreach ($requires as $requirement => $constraint) {
 			if (!preg_match('~^(php|[a-z0-9_.-]+/[a-z0-9_.-]+)$~D', $requirement)) {

@@ -1,2 +1,4 @@
-3: The switch giving one value must be written as a match
-16: The switch giving one value must be written as a match
+4: The switch giving one value must be written as a match
+	risky TypeUnknown
+17: The switch giving one value must be written as a match
+	risky TypeUnknown

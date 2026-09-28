@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Namespaces;
 
 use DressCode\Analyses\PhpSymbols;
-use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Context, Expect, Schema};
 use PhpSyntax\Analyses\{NameResolver, NamespacedSymbols};
@@ -183,7 +183,7 @@ final class NameFallbackRule extends NodeRule implements ConfigurableRule
 	): void
 	{
 		$resolver = $context->getAnalysis(NameResolver::class);
-		$risky = !$context->getAnalysis(NamespacedSymbols::class)->complete;
+		$risky = $context->getAnalysis(NamespacedSymbols::class)->complete ? null : Risk::NameUncertain;
 		$subject = NameReferences::describe($kind, $global);
 		$asked = $context->findRule(NameNotationRule::class)?->findShape($kind, $global);
 		$item = $imports[0][1] ?? null;
@@ -264,7 +264,7 @@ final class NameFallbackRule extends NodeRule implements ConfigurableRule
 			}
 
 			$message = $form === NameReferences::Import ? "$subject must be written without the import" : "$subject must be written without the leading backslash";
-			if ($context->report($name, $message, risky: !$namespaced->complete)) {
+			if ($context->report($name, $message, risky: $namespaced->complete ? null : Risk::NameUncertain)) {
 				$name->text = $global;
 			} else {
 				$importStays = $importStays || $form === NameReferences::Import;
@@ -272,7 +272,7 @@ final class NameFallbackRule extends NodeRule implements ConfigurableRule
 		}
 
 		foreach ($importStays ? [] : $imports as [$statement, $item]) {
-			if ($context->report($item, "$subject must not be imported", risky: !$namespaced->complete)) {
+			if ($context->report($item, "$subject must not be imported", risky: $namespaced->complete ? null : Risk::NameUncertain)) {
 				count($statement->items) === 1 ? $statement->remove() : $statement->items->removeItem($item);
 			}
 		}

@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Arrays;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token, TokenKind};
@@ -59,7 +59,12 @@ final class NoManualListTestRule extends NodeRule
 
 		assert($call->name instanceof NameNode);
 		$uncertainty = NodeHelpers::findUncertainty($call, $context);
-		if (!$context->report($node, 'The test for a list must be written with `array_is_list()`' . $uncertainty, risky: $risky || $uncertainty !== null)) {
+		if (!$context->report(
+			$node,
+			'The test for a list must be written with `array_is_list()`',
+			risky: $risky ? Risk::BehaviorChanges : ($uncertainty === null ? null : Risk::NameUncertain),
+			because: $risky ? '`array_is_list()` takes an empty array for a list, the comparison with `range()` does not' : $uncertainty,
+		)) {
 			return;
 		}
 

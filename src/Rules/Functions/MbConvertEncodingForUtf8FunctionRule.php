@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, Token};
@@ -28,7 +28,6 @@ use function count;
 	Stage::Structure,
 	description: 'Replaces the deprecated `utf8_encode()` and `utf8_decode()` with `mb_convert_encoding()`',
 	group: Group::Deprecations,
-	risky: true,
 )]
 final class MbConvertEncodingForUtf8FunctionRule extends NodeRule
 {
@@ -63,8 +62,7 @@ final class MbConvertEncodingForUtf8FunctionRule extends NodeRule
 				continue;
 			}
 
-			$uncertainty = NodeHelpers::findUncertainty($node, $context);
-			if (!$context->report($node, "The deprecated `$function()` call must be written with `mb_convert_encoding()`" . $uncertainty)) {
+			if (!$context->report($node, "The deprecated `$function()` call must be written with `mb_convert_encoding()`", risky: Risk::BehaviorChanges, because: 'a build without mbstring answers the call with an error')) {
 				return;
 			}
 

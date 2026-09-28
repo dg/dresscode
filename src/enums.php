@@ -31,6 +31,22 @@ enum Tristate
 }
 
 
+/**
+ * Why the fix of an occurrence may change what the code does: what would decide that it does not.
+ */
+enum Risk
+{
+	/** the type of a value, which neither the declarations in sight nor the types tell */
+	case TypeUnknown;
+
+	/** whether an unqualified name reaches a function or a constant of the namespace, which `nameResolution: certain` tells */
+	case NameUncertain;
+
+	/** a human: changing what the code does is what the fix is for, or it depends on code the run does not see */
+	case BehaviorChanges;
+}
+
+
 enum Severity
 {
 	case Error;

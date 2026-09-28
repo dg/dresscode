@@ -1,1 +1,2 @@
 3: The test for JSON must be written with `json_validate()`
+	risky BehaviorChanges: `json_validate()` takes the document `null` for JSON, the test does not

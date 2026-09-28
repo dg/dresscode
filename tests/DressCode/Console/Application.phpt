@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Console\Application;
-use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use Nette\Utils\FileSystem;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
@@ -42,7 +42,7 @@ final class ConsoleRiskyRename extends NodeRule
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
 		if ($node instanceof VariableNode && $node->name instanceof Token && $node->name->text === '$r') {
-			if ($context->report($node, 'Rename $r', risky: true)) {
+			if ($context->report($node, 'Rename $r', risky: Risk::BehaviorChanges)) {
 				$node->name->setText('$s');
 			}
 		}
@@ -820,11 +820,11 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 	Assert::same(0, runApp($root, ['fix', '--config', $config, '--no-cache'])[0]);
 	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
 
-	// the JSON says of every violation whether it was risky and how many are waiting
+	// the JSON says of every violation why it was risky and how many are waiting
 	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
 	$write('');
 	[, $out] = runApp($root, ['check', '--config', $config, '--no-cache', '--format', 'json']);
-	Assert::contains('"risky": true', $out);
+	Assert::contains('"risky": "BehaviorChanges"', $out);
 	Assert::contains('"riskyDeferred": 1', $out);
 
 	// a comment silences it like any other violation
@@ -869,7 +869,7 @@ test('config says of a rule with risky fixes whether the project accepts them, a
 	[$code, $out] = runApp($root, ['config', '--config', $config]);
 	Assert::same(0, $code);
 	Assert::match('%A%  test/risky-rename %a%the configuration, risky fixes accepted%A%', $out);
-	Assert::match('%A%  dresscode/strict-call %a%the configuration, risky fixes only reported%A%', $out);
+	Assert::match("%A%  dresscode/strict-call %a%the configuration\n%A%", $out);
 	Assert::match('%A%Not running%A%  dresscode/static-closure %s%only an override turns it on, risky fixes accepted%A%', $out);
 	Assert::match('%A%Not running%A%  dresscode/final-internal-class %s%no preset or rule of the configuration mentions it, risky fixes accepted%A%', $out);
 

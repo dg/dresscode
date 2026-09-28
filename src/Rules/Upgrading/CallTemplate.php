@@ -180,22 +180,22 @@ final class CallTemplate
 			if ($uses > 1) {
 				return new Rewrite(null, ", but $what would be evaluated $uses times");
 			} elseif ($uses === 0) {
-				$risk ??= ", which no longer evaluates $what";
+				$risk ??= "the replacement no longer evaluates $what";
 			} elseif (isset($this->lazy[$name])) {
-				$risk ??= ", which evaluates $what only sometimes";
+				$risk ??= "the replacement evaluates $what only sometimes";
 			}
 		}
 
 		// what does something when evaluated, in the order of the call and in the order the template writes it
 		$written = array_values(array_intersect(array_keys($this->uses), $evaluated));
 		if ($written !== array_values(array_intersect($evaluated, $written))) {
-			$risk ??= ', which evaluates its arguments in another order';
+			$risk ??= 'the replacement evaluates the arguments in another order';
 		}
 
 		foreach ($bindings->unseenKeys as $placeholder) {
 			$bound = $bindings->arguments[$placeholder];
 			if (isset($this->unpacked[$placeholder]) && $bound instanceof ArgumentNode) {
-				$risk ??= ', which unpacks ' . Helpers::formatCode($bound->value->text) . ', whose keys may not be the names of parameters';
+				$risk ??= 'the replacement unpacks ' . Helpers::formatCode($bound->value->text) . ', whose keys may not be the names of parameters';
 			}
 		}
 

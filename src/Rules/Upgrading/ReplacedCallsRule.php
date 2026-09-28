@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Access, MemberKind, Types};
-use DressCode\{ConfigurableRule, Helpers, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, Helpers, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\Schema;
 use PhpSyntax\Analyses\NameResolver;
@@ -287,7 +287,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			),
 		};
 		if ($use === 'guarded' && $rewrite->expression !== null) {
-			$rewrite = new Rewrite($rewrite->expression, risk: $rewrite->risk ?? ', which no longer asks first whether it is set, as `??` does');
+			$rewrite = new Rewrite($rewrite->expression, risk: $rewrite->risk ?? 'the replacement no longer asks first whether it is set, as `??` does');
 		}
 
 		$rewrite = self::fitInterpolation($node, $rewrite);
@@ -569,9 +569,10 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 	{
 		return $context->report(
 			$at,
-			$message . ($rewrite->refusal ?? $rewrite->risk ?? ''),
+			$message . $rewrite->refusal,
 			fixable: $rewrite->expression !== null,
-			risky: $rewrite->risk !== null,
+			risky: $rewrite->risk === null ? null : Risk::BehaviorChanges,
+			because: $rewrite->risk,
 		) && $rewrite->expression !== null;
 	}
 

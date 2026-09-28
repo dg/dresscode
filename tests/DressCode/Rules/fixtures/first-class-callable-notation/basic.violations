@@ -6,6 +6,9 @@
 7: The callable must be written `\Foo\Bar::run(...)`
 8: The callable must be written `$obj->run(...)`
 16: The callable must be written `strlen(...)`
+	risky BehaviorChanges: arguments passed beyond the parameters of the closure reach the call
 17: The callable must be written `trim(...)`
+	risky BehaviorChanges: arguments passed beyond the parameters of the closure reach the call
 18: The callable must be written `$this->compare(...)`
+	risky BehaviorChanges: arguments passed beyond the parameters of the closure reach the call
 19: The callable must be written `Helper::make(...)`

@@ -1,2 +1,3 @@
-4: The `is_null()` call must be written as a comparison with `null`, unless the namespace declares `is_null()`
+4: The `is_null()` call must be written as a comparison with `null`
+	risky NameUncertain: the namespace may declare `is_null()`
 5: The `is_null()` call must be written as a comparison with `null`

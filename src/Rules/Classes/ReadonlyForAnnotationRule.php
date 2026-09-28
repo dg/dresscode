@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\PhpDoc;
-use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocChildNode, PhpDocTagNode};
 use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\{AnonymousClassNode, ModifiersNode, ParameterNode};
@@ -38,7 +38,6 @@ use function in_array;
 	description: 'Replaces the `@readonly` annotation with the `readonly` keyword',
 	modifiesComments: true,
 	requires: ['php' => '>=8.1'],
-	risky: true,
 )]
 final class ReadonlyForAnnotationRule extends NodeRule
 {
@@ -62,7 +61,7 @@ final class ReadonlyForAnnotationRule extends NodeRule
 			&& version_compare($context->getPhpVersion(), '8.2', '>=')
 			&& $this->hasTag($node, $context)
 			&& $this->canBeReadonlyClass($node)
-			&& $context->report($node->classKeyword, 'The class the annotation marks as readonly must be declared readonly', trivia: $node->getDocComment())
+			&& $context->report($node->classKeyword, 'The class the annotation marks as readonly must be declared readonly', trivia: $node->getDocComment(), risky: Risk::BehaviorChanges)
 		) {
 			$this->removeTag($node, $context);
 			foreach ($node->members as $member) {
@@ -87,7 +86,7 @@ final class ReadonlyForAnnotationRule extends NodeRule
 				// a visibility written out, because readonly does not go with var
 				&& ($member->modifiers->isPrivate() || ($final && ($member->modifiers->isProtected() || $member->modifiers->has(TokenKind::Public))))
 				&& $this->hasTag($member, $context)
-				&& $context->report($member, 'The property the annotation marks as readonly must be declared readonly', trivia: $member->getDocComment())
+				&& $context->report($member, 'The property the annotation marks as readonly must be declared readonly', trivia: $member->getDocComment(), risky: Risk::BehaviorChanges)
 			) {
 				$this->removeTag($member, $context);
 				self::appendReadonly($member->modifiers);

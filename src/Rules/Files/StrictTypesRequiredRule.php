@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Files;
 
-use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Nodes\DeclareItemNode;
 use PhpSyntax\Nodes\Statement\{DeclareNode, InlineHtmlNode};
@@ -21,13 +21,13 @@ use function array_slice;
  * followed the tag stays with the code below; the blank lines around belong to dresscode/blank-lines.
  * A file starting with markup is left alone, because PHP refuses the declaration there.
  *
- * Every fix is risky: an argument of a scalar type the calls of the file coerced becomes a TypeError.
+ * A declaration added or set to `1` is risky: an argument of a scalar type the calls of the file coerced becomes
+ * a TypeError.
  */
 #[RuleInfo(
 	'dresscode/strict-types-required',
 	Stage::Structure,
 	description: 'Requires `declare(strict_types=1)` as the first statement of a file',
-	risky: true,
 )]
 final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 {
@@ -69,7 +69,7 @@ final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 
 		$item = $first instanceof DeclareNode ? self::findStrictTypes($first) : null;
 		if ($item === null) {
-			if ($context->report($token, 'Missing `declare(strict_types=1)`', trivia: $tag)) {
+			if ($context->report($token, 'Missing `declare(strict_types=1)`', trivia: $tag, risky: Risk::BehaviorChanges)) {
 				$this->insert($index, $token, $tag, $context);
 			}
 
@@ -78,7 +78,7 @@ final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 
 		if (
 			trim((string) $item->value) !== '1'
-			&& $context->report($item, '`strict_types` must be set to `1`')
+			&& $context->report($item, '`strict_types` must be set to `1`', risky: Risk::BehaviorChanges)
 		) {
 			$item->value->replaceWith((new Parser)->parseExpression('1'));
 		}

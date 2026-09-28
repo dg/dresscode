@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -57,7 +57,12 @@ final class ArrayFirstForEdgeElementRule extends NodeRule
 
 		$uncertainty = $node instanceof Expression\FunctionCallNode ? NodeHelpers::findUncertainty($node, $context) : null;
 		$element = $function === 'array_first' ? 'first' : 'last';
-		if (!$context->report($node, "The $element item must be read with `$function()`" . $uncertainty, risky: $risky || $uncertainty !== null)) {
+		if (!$context->report(
+			$node,
+			"The $element item must be read with `$function()`",
+			risky: $risky ? Risk::BehaviorChanges : ($uncertainty === null ? null : Risk::NameUncertain),
+			because: $risky ? '`reset()` and `end()` move the pointer of the array and answer an empty one with false' : $uncertainty,
+		)) {
 			return;
 		}
 

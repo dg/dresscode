@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Parameter, PhpSignatures, PhpSymbols};
-use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, NodeHelpers};
 use Nette\Schema\{Context, Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
@@ -111,9 +111,10 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 		$uncertainty = $refusal === null && !str_contains($old, '\\') ? NodeHelpers::findUncertainty($node, $context) : null;
 		if (!$context->report(
 			$node->name,
-			"Function `$old()` is replaced by `$new()`" . ($refusal ?? $uncertainty ?? ''),
+			"Function `$old()` is replaced by `$new()`" . $refusal,
 			fixable: $refusal === null,
-			risky: $uncertainty !== null,
+			risky: $uncertainty === null ? null : Risk::NameUncertain,
+			because: $uncertainty,
 		)) {
 			return;
 		}

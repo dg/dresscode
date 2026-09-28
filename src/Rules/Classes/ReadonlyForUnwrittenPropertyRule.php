@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ArrayItemNode, Expression, FunctionLikeNode, IdentifierNode, ModifiersNode, ParameterNode, SeparatedNodeList, Statement};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyNode};
@@ -111,8 +111,12 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 			return;
 		}
 
-		$risky = !$modifiers->isPrivate();
-		if (!$context->report($member, 'The property nothing but the constructor writes must be readonly', risky: $risky)) {
+		if (!$context->report(
+			$member,
+			'The property nothing but the constructor writes must be readonly',
+			risky: $modifiers->isPrivate() ? null : Risk::BehaviorChanges,
+			because: 'code outside the file may write it',
+		)) {
 			return;
 		}
 

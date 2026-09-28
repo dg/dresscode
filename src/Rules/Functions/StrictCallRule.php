@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, Token};
@@ -19,17 +20,16 @@ use function array_slice, count, in_array;
 
 /**
  * Functions with a `$strict` parameter are called with it set to `true`: a missing one is added, together with
- * the default values of the parameters before it; an explicit `false` is only reported. Every such fix changes
- * what the call answers for a value only the loose mode accepted, so it waits for the run to allow it. Without
- * the types, an integer needle searched among integers, which the fix leaves as it was, is not told from
- * another.
+ * the default values of the parameters before it; an explicit `false` is only reported. Such a fix changes what
+ * the call answers for a value only the loose mode accepted, so it waits for the run to allow it, but for an
+ * integer needle searched among integers, which it leaves as it was. Without the types, such a search is not told
+ * from another.
  */
 #[RuleInfo(
 	'dresscode/strict-call',
 	Stage::Structure,
 	description: 'Calls `in_array()`, `array_search()`, `array_keys()`, `base64_decode()` and `mb_detect_encoding()` with `$strict = true`',
 	group: Group::Correctness,
-	risky: true,
 )]
 final class StrictCallRule extends NodeRule
 {
@@ -89,7 +89,23 @@ final class StrictCallRule extends NodeRule
 		}
 
 		$missing = array_slice($params, $given);
-		if (in_array(null, $missing, true) || !$context->report($node, $message)) {
+		if (in_array(null, $missing, true)) {
+			return;
+		}
+
+		// the needle and the haystack of a search, which compare alike either way where both are integers
+		[$needle, $haystack] = match ($function) {
+			'in_array', 'array_search' => [$args[0], $args[1]],
+			'array_keys' => [$args[1], $args[0]],
+			default => [null, null],
+		};
+		$types = $context->findAnalysis(Types::class);
+		$risk = match (true) {
+			!$needle instanceof ArgumentNode || !$haystack instanceof ArgumentNode => Risk::BehaviorChanges,
+			$types?->isOfType($needle->value, 'int') === Tristate::Yes && $types->isOfType($haystack->value, 'array<int>') === Tristate::Yes => null,
+			default => Risk::TypeUnknown,
+		};
+		if (!$context->report($node, $message, risky: $risk)) {
 			return;
 		}
 

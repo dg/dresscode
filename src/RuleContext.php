@@ -37,8 +37,6 @@ final class RuleContext
 		private readonly string $ruleName,
 		/** whether the run may make a fix that changes what the code does */
 		private readonly bool $fixRisky = false,
-		/** every fix of the rule may change what the code does, so every report of it is risky */
-		private readonly bool $alwaysRisky = false,
 		/** @var list<Rule>  the rules that run on the file, as configured for it */
 		private readonly array $rules = [],
 	) {
@@ -74,9 +72,10 @@ final class RuleContext
 	 * Reports a violation at the node, or at one of the trivia of the token when the problem lies in whitespace
 	 * or a comment; returns false when a comment silences it, and then the rule must not fix it. A violation the
 	 * baseline knows is not recorded, and the rule fixes it like any other.
-	 * `$risky` says that fixing this occurrence may change what the code does: the violation is reported either
-	 * way, and false says the run does not allow the fix, so the rule must leave the code alone. A rule whose every
-	 * fix may change it says so once with `risky` in its RuleInfo instead.
+	 * `$risky` says that fixing this occurrence may change what the code does, and what would decide that it does
+	 * not: the violation is reported either way, and false says the run does not allow the fix, so the rule must
+	 * leave the code alone. `$because` says what may go wrong at this occurrence, where the risk alone does not
+	 * say it; it stands beside the message, which stays the same whatever the run knows.
 	 * `$follows` names the token opening the line the reported whitespace is counted from, and says that the rule
 	 * writes the whitespace of the reported line: where that line was opened, closed or moved by a violation of
 	 * this run, the report is recorded as derived from it.
@@ -90,10 +89,11 @@ final class RuleContext
 		string $message,
 		Severity $severity = Severity::Error,
 		?Trivia $trivia = null,
-		bool $risky = false,
+		?Risk $risky = null,
 		?Token $follows = null,
 		bool $byLine = false,
 		bool $fixable = true,
+		?string $because = null,
 	): bool
 	{
 		$gap = $trivia === null ? null : self::findGap($at, $trivia);
@@ -101,7 +101,7 @@ final class RuleContext
 			$gap ??= $at instanceof Token ? $at : $at->getFirstToken();
 		}
 
-		return $this->record($at, $message, $severity, $trivia, $risky, $gap, $follows, byLine: $byLine, fixable: $fixable);
+		return $this->record($at, $message, $severity, $trivia, $risky, $gap, $follows, byLine: $byLine, fixable: $fixable, because: $because);
 	}
 
 
@@ -125,7 +125,7 @@ final class RuleContext
 			[$at, $trivia] = $this->fingerprints->placeConstruct($construct, $this->ruleName, $at, $trivia);
 		}
 
-		return $this->record($at, $message, Severity::Error, $trivia, risky: false, gap: $gap, follows: null, breaks: $breaks, construct: $construct);
+		return $this->record($at, $message, Severity::Error, $trivia, risky: null, gap: $gap, follows: null, breaks: $breaks, construct: $construct);
 	}
 
 
@@ -142,18 +142,19 @@ final class RuleContext
 		string $message,
 		Severity $severity,
 		?Trivia $trivia,
-		bool $risky,
+		?Risk $risky,
 		?Token $gap,
 		?Token $follows,
 		bool $byLine = false,
 		bool $breaks = false,
 		?Node $construct = null,
 		bool $fixable = true,
+		?string $because = null,
 	): bool
 	{
 		$line = self::findOriginalLine($at, $trivia);
 		if ($line !== null && $this->suppression->isSuppressed($this->ruleName, $line)) {
-			$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, silenced: true, known: false, fingerprint: null, line: $line, risky: false);
+			$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, silenced: true, known: false, fingerprint: null, line: $line, risky: null);
 			return false;
 		}
 
@@ -164,9 +165,9 @@ final class RuleContext
 			? $this->fingerprints->create($this->ruleName, $message, $line)
 			: $this->fingerprints->createFor($construct, $this->ruleName, $message, $line);
 		$known = $this->fingerprints->isKnown($fingerprint);
-		$risky = ($risky || $this->alwaysRisky) && $fixable;
-		$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, false, $known, $fingerprint, $line, $risky, $gap, $follows, $byLine, $breaks, $fixable);
-		return $fixable && !($risky && !$this->fixRisky);
+		$risky = $fixable ? $risky : null;
+		$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, false, $known, $fingerprint, $line, $risky, $gap, $follows, $byLine, $breaks, $fixable, $risky === null ? null : $because);
+		return $fixable && ($risky === null || $this->fixRisky);
 	}
 
 

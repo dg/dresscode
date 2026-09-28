@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\Analyses\PhpSymbols;
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{NameKind, Node, Token};
@@ -105,9 +105,10 @@ final class OptimizedCallNotationRule extends NodeRule
 		$uncertainty = $hasComment ? null : NodeHelpers::findUncertainty($node, $context);
 		if (!$context->report(
 			$named[0],
-			"A named argument disables the compiler optimization of `$name()`" . $uncertainty,
-			risky: $uncertainty !== null,
+			"A named argument disables the compiler optimization of `$name()`",
+			risky: $uncertainty === null ? null : Risk::NameUncertain,
 			fixable: !$hasComment,
+			because: $uncertainty,
 		)) {
 			return;
 		}

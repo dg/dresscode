@@ -19,10 +19,12 @@ final readonly class Violation
 		public Severity $severity,
 		/** stable identity for baselines: rule, message, normalized line content and the occurrence index */
 		public string $fingerprint,
-		/** the fix of this occurrence may change what the code does, so it waits until the run allows one */
-		public bool $risky = false,
+		/** the fix of this occurrence may change what the code does, so it waits until the run allows one; what would decide */
+		public ?Risk $risky = null,
 		/** the run did not allow the fix of this risky occurrence */
 		public bool $refused = false,
+		/** what may go wrong at this risky occurrence, where the risk alone does not say it */
+		public ?string $because = null,
 		/**
 		 * fingerprint of the violation of the same file this one follows from: its fix opened, closed or moved
 		 * the line the whitespace reported here stands on, so the code the user wrote was not what was found
@@ -41,8 +43,9 @@ final readonly class Violation
 			'line' => $this->line,
 			'column' => $this->column,
 			'severity' => $this->severity === Severity::Error ? 'error' : 'warning',
-			'risky' => $this->risky,
+			'risky' => $this->risky?->name,
 			'refused' => $this->refused,
+			'because' => $this->because,
 			'fingerprint' => $this->fingerprint,
 			'derivedFrom' => $this->derivedFrom,
 		];
@@ -59,8 +62,9 @@ final readonly class Violation
 			$data['column'] === null ? null : (int) $data['column'],
 			$data['severity'] === 'error' ? Severity::Error : Severity::Warning,
 			(string) $data['fingerprint'],
-			(bool) $data['risky'],
+			$data['risky'] === null ? null : Risk::{$data['risky']},
 			(bool) $data['refused'],
+			$data['because'] === null ? null : (string) $data['because'],
 			$data['derivedFrom'] === null ? null : (string) $data['derivedFrom'],
 		);
 	}

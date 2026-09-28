@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
@@ -159,8 +159,9 @@ final class NoAliasFunctionsRule extends NodeRule implements ConfigurableRule
 			|| ($canonical === 'time' && !$node->arguments->items->isEmpty())
 			|| !$context->report(
 				$node->name,
-				"The function `$alias()` is an alias of `$canonical()`" . ($uncertainty = NodeHelpers::findUncertainty($node, $context)),
-				risky: $uncertainty !== null,
+				"The function `$alias()` is an alias of `$canonical()`",
+				risky: ($uncertainty = NodeHelpers::findUncertainty($node, $context)) === null ? null : Risk::NameUncertain,
+				because: $uncertainty,
 			)
 		) {
 			return;

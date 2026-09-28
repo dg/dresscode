@@ -90,10 +90,6 @@ final class ExplainPrinter
 			$facts[] = 'modifies comments';
 		}
 
-		if ($info->risky) {
-			$facts[] = 'every fix may change what the code does, so it is made once the rule is named in fixRisky or with --fix-risky';
-		}
-
 		$out .= $console->color('gray', implode(', ', $facts)) . "\n";
 		$out .= "\n" . ($this->rule->isActive()
 			? $console->color('gray', 'It runs in this project') . ($this->rule->getSource() === null ? '' : ', set by ' . $this->rule->getSource())

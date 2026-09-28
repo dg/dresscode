@@ -25,6 +25,7 @@
 57: Method `Acme\Shop\Order::make()` is replaced by `Acme\Shop\Helpers::create()`, but an object cannot be asked for a member of another class
 58: Constant `Acme\Shop\Order::GONE` is replaced by `Acme\Missing\Thing::Here`, but class `Acme\Missing\Thing` does not exist in the project
 59: Method `Acme\Shop\Order::measure()` is replaced by `strlen()`, but the replacement cannot skip a null as `?->` does
-60: Method `Acme\Shop\Order::measure()` is replaced by `strlen()`, which no longer evaluates what it is reached through
+60: Method `Acme\Shop\Order::measure()` is replaced by `strlen()`
+	risky BehaviorChanges: the replacement no longer evaluates what the member is reached through
 67: Method `Acme\Shop\Order::recalc()` is replaced by `Order::recalculate()`
 68: Property `Acme\Shop\Order::$legacy` is replaced by `Order::$items`

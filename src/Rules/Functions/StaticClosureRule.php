@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Token, TokenKind, Trivia, TriviaKind};
 use PhpSyntax\Nodes\{ArgumentNode, Expression, IdentifierNode, NameNode};
@@ -28,7 +28,6 @@ use function in_array;
 	'dresscode/static-closure',
 	Stage::Structure,
 	description: 'Declares a closure that does not use `$this` as `static`',
-	risky: true,
 )]
 final class StaticClosureRule extends NodeRule
 {
@@ -50,7 +49,7 @@ final class StaticClosureRule extends NodeRule
 		}
 
 		$keyword = $node instanceof Expression\ClosureNode ? $node->functionKeyword : $node->fnKeyword;
-		if (!$context->report($keyword, 'A closure not using `$this` must be static')) {
+		if (!$context->report($keyword, 'A closure not using `$this` must be static', risky: Risk::BehaviorChanges, because: 'a closure bound to an object elsewhere is not seen')) {
 			return;
 		}
 

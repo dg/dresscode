@@ -8,7 +8,7 @@
 namespace DressCode\Rules\PhpDoc;
 
 use DressCode\Analyses\PhpDoc;
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{DeprecatedTagValueNode, PhpDocTagNode};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Member\{ClassConstNode, EnumCaseNode, MethodNode};
@@ -33,7 +33,6 @@ use PhpSyntax\Nodes\Statement\FunctionNode;
 	group: Group::Modernization,
 	modifiesComments: true,
 	requires: ['php' => '>=8.4'],
-	risky: true,
 )]
 final class DeprecatedAttributeForAnnotationRule extends NodeRule
 {
@@ -67,7 +66,7 @@ final class DeprecatedAttributeForAnnotationRule extends NodeRule
 				!$child instanceof PhpDocTagNode
 				|| !$child->value instanceof DeprecatedTagValueNode
 				|| $arguments !== null // a second annotation stays where it is
-				|| !$context->report($node, 'The deprecation must be written with the `#[\Deprecated]` attribute', trivia: $docComment)
+				|| !$context->report($node, 'The deprecation must be written with the `#[\Deprecated]` attribute', trivia: $docComment, risky: Risk::BehaviorChanges)
 			) {
 				$kept[] = $child;
 				continue;

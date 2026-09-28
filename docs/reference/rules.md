@@ -318,7 +318,7 @@ Stage: Cleanup. Covers: `PhpCsFixerCustomFixers/comment_surrounded_by_spaces`, `
 
 Comments out statements calling the configured debugging functions.
 
-Stage: Structure. Covers: `PhpCsFixerCustomFixers/commented_out_function`. Modifies comments. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `PhpCsFixerCustomFixers/commented_out_function`. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -380,7 +380,7 @@ Stage: Formatting. Covers: `declare_equal_normalize`, `declare_parentheses`.
 
 Replaces the `@deprecated` annotation with the `#[\Deprecated]` attribute.
 
-Stage: Structure. Needs PHP 8.4. Modifies comments. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Needs PHP 8.4. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/double-colon-spacing
 
@@ -414,7 +414,7 @@ Stage: Formatting. Covers: `single_blank_line_at_eof`, `PSR2.Files.EndFileNewlin
 
 Replaces an inline `@var` annotation with an `assert()` of the type.
 
-Stage: Structure. Covers: `SlevomatCodingStandard.PHP.RequireExplicitAssertion`. Modifies comments. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `SlevomatCodingStandard.PHP.RequireExplicitAssertion`. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/explicit-operator-precedence
 
@@ -436,7 +436,7 @@ Stage: Structure. Covers: `no_break_comment`. Modifies comments.
 
 Makes classes annotated as internal final.
 
-Stage: Structure. Covers: `final_internal_class`. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `final_internal_class`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -511,7 +511,7 @@ Stage: Formatting. Covers: `no_spaces_after_function_name`, `Generic.Functions.F
 
 Replaces a ternary asking whether a value is an object with `get_debug_type()`.
 
-Stage: Structure. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/group-import
 
@@ -550,7 +550,7 @@ Stage: Structure. Covers: `group_import`, `single_import_per_statement`, `Slevom
 
 Uses `++` and `--` instead of `+= 1` and `-= 1`.
 
-Stage: Structure. Covers: `standardize_increment`. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `standardize_increment`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/indentation
 
@@ -569,7 +569,7 @@ Stage: Cleanup. Covers: `array_indentation`, `indentation_type`, `method_chainin
 
 Replaces `json_decode()` called only to test the input with `json_validate()`.
 
-Stage: Structure. Needs PHP 8.3. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Needs PHP 8.3. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/keyword-casing
 
@@ -614,13 +614,13 @@ Stage: Structure. Covers: `magic_constant_casing`.
 
 Writes a `switch` whose every case assigns or returns one value as a `match`.
 
-Stage: Structure. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/mb-convert-encoding-for-utf8-function
 
 Replaces the deprecated `utf8_encode()` and `utf8_decode()` with `mb_convert_encoding()`.
 
-Stage: Structure. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/modern-class-name-reference
 
@@ -1022,7 +1022,7 @@ Stage: Cleanup. Covers: `no_trailing_whitespace`, `no_trailing_whitespace_in_com
 
 Removes trailing whitespace from string lines.
 
-Stage: Structure. Covers: `no_trailing_whitespace_in_string`. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `no_trailing_whitespace_in_string`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/no-unimplemented-abstract-method
 
@@ -1234,7 +1234,7 @@ Stage: Structure. Needs PHP 8.2.
 
 Replaces the `@readonly` annotation with the `readonly` keyword.
 
-Stage: Structure. Covers: `phpdoc_readonly_class_comment_to_keyword`. Needs PHP 8.1. Modifies comments. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `phpdoc_readonly_class_comment_to_keyword`. Needs PHP 8.1. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/readonly-for-unwritten-property
 
@@ -1378,13 +1378,13 @@ Stage: Formatting. Covers: `SlevomatCodingStandard.Operators.SpreadOperatorSpaci
 
 Declares a closure that does not use `$this` as `static`.
 
-Stage: Structure. Covers: `static_lambda`, `SlevomatCodingStandard.Functions.StaticClosure`. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `static_lambda`, `SlevomatCodingStandard.Functions.StaticClosure`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/static-for-private-method-without-this
 
 Marks a private method that does not use `$this` as static.
 
-Stage: Structure. Covers: `static_private_method`. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `static_private_method`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/static-set-state-required
 
@@ -1396,19 +1396,19 @@ Stage: Structure.
 
 Calls `in_array()`, `array_search()`, `array_keys()`, `base64_decode()` and `mb_detect_encoding()` with `$strict = true`.
 
-Stage: Structure. Covers: `strict_param`, `SlevomatCodingStandard.Functions.StrictCall`. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `strict_param`, `SlevomatCodingStandard.Functions.StrictCall`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/strict-comparison
 
 Replaces loose comparisons with strict ones.
 
-Stage: Structure. Covers: `strict_comparison`. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `strict_comparison`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/strict-types-required
 
 Requires `declare(strict_types=1)` as the first statement of a file.
 
-Stage: Structure. Covers: `PhpCsFixerCustomFixers/declare_after_opening_tag`, `declare_strict_types`, `Generic.PHP.RequireStrictTypes`, `SlevomatCodingStandard.TypeHints.DeclareStrictTypes`. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `PhpCsFixerCustomFixers/declare_after_opening_tag`, `declare_strict_types`, `Generic.PHP.RequireStrictTypes`, `SlevomatCodingStandard.TypeHints.DeclareStrictTypes`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1480,7 +1480,7 @@ Stage: Structure. Covers: `no_trailing_comma_in_singleline`, `trailing_comma_in_
 
 Adds native types from annotations and reports declarations without any type.
 
-Stage: Structure. Covers: `SlevomatCodingStandard.TypeHints.ParameterTypeHint`, `SlevomatCodingStandard.TypeHints.PropertyTypeHint`, `SlevomatCodingStandard.TypeHints.ReturnTypeHint`. Modifies comments. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `SlevomatCodingStandard.TypeHints.ParameterTypeHint`, `SlevomatCodingStandard.TypeHints.PropertyTypeHint`, `SlevomatCodingStandard.TypeHints.ReturnTypeHint`. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1624,7 +1624,7 @@ Stage: Structure. Covers: `no_null_property_initialization`.
 
 Removes a method that only calls the parent method with the same arguments.
 
-Stage: Structure. Needs the types of the code, so it runs only with `types: phpstan`. Every fix may change what the code does, so it is made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Needs the types of the code, so it runs only with `types: phpstan`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/useless-parameter-default
 

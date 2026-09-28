@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, Token};
@@ -51,20 +51,21 @@ final class NoDirnameOfFileRule extends NodeRule
 		$inner = $path instanceof FunctionCallNode && $resolver->isGlobalFunctionCall($path, 'dirname') ? self::parse($path) : null;
 		$uncertainty = NodeHelpers::findUncertainty($node, $context)
 			?? ($inner !== null ? NodeHelpers::findUncertainty($path, $context) : null);
+		$risk = $uncertainty === null ? null : Risk::NameUncertain;
 		$function = $node->name instanceof NameNode
 			? NodeHelpers::spellGlobalFunction('dirname', $node->name, $context)
 			: 'dirname';
 		if ($inner !== null) {
 			if (
 				!$node->hasComment()
-				&& $context->report($node, 'Nested `dirname()` calls must be one call with the `levels` argument' . $uncertainty, risky: $uncertainty !== null)
+				&& $context->report($node, 'Nested `dirname()` calls must be one call with the `levels` argument', risky: $risk, because: $uncertainty)
 			) {
 				self::replace($node, $inner[0], $levels + $inner[1], $function);
 			}
 		} elseif (
 			self::isFile($path)
 			&& !$node->hasComment()
-			&& $context->report($node, 'The `dirname(__FILE__)` call must be written `__DIR__`' . $uncertainty, risky: $uncertainty !== null)
+			&& $context->report($node, 'The `dirname(__FILE__)` call must be written `__DIR__`', risky: $risk, because: $uncertainty)
 		) {
 			self::replace($node, $path, $levels, $function);
 		}

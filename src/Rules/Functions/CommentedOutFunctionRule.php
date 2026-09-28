@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{ConfigurableRule, Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{CommentPolicy, Node, Token, TokenKind, Trivia, TriviaKind};
@@ -31,7 +31,6 @@ use function strlen;
 	description: 'Comments out statements calling the configured debugging functions',
 	group: Group::Cleanup,
 	modifiesComments: true,
-	risky: true,
 )]
 final class CommentedOutFunctionRule extends NodeRule implements ConfigurableRule
 {
@@ -97,7 +96,7 @@ final class CommentedOutFunctionRule extends NodeRule implements ConfigurableRul
 
 		if (
 			(!$endsLine && str_contains($code, '*/'))
-			|| !$context->report($node, "The call of `$function()` must be commented out")
+			|| !$context->report($node, "The call of `$function()` must be commented out", risky: Risk::BehaviorChanges)
 		) {
 			return;
 		}

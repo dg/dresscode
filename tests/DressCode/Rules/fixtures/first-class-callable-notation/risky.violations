@@ -1,4 +1,8 @@
 3: The callable must be written `strlen(...)`
+	risky BehaviorChanges: arguments passed beyond the parameters of the closure reach the call
 4: The callable must be written `trim(...)`
+	risky BehaviorChanges: arguments passed beyond the parameters of the closure reach the call
 5: The callable must be written `$this->compare(...)`
+	risky BehaviorChanges: arguments passed beyond the parameters of the closure reach the call
 6: The callable must be written `Helper::make(...)`
+	risky BehaviorChanges: arguments passed beyond the parameters of the closure reach the call

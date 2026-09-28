@@ -1,0 +1,14 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\Counter;
+
+
+function step(Counter $counter): void
+{
+	$counter->count++;
+	$counter->total--;
+	$counter->limit += 1;
+	$counter->code += 1;
+}

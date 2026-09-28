@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\{FileResult, Reporter, RunResult, Severity, Violation};
+use DressCode\{FileResult, Reporter, Risk, RunResult, Severity, Violation};
 use DressCode\Reporters\{CheckstyleReporter, ConsoleReporter, GithubReporter, JsonReporter};
 use Nette\CommandLine\{ColorDepth, Console};
 use Tester\Assert;
@@ -91,6 +91,24 @@ test('console: check lists every violation and says what a fix would leave', fun
 		FAILED  2 violations, 1 of them following from others, 1 warning, a fix leaves 1, 1 file with syntax errors, 1 failed file in 3 of 4 files
 
 		XX, normalize(capture(fn($s) => new ConsoleReporter(plain($s)), fix: false)));
+});
+
+
+test('console: what may go wrong at a risky violation stands below it', function () {
+	$stream = memory();
+	$reporter = new ConsoleReporter(plain($stream));
+	$result = new FileResult('src/a.php', "<?php\n\$a;\n", "<?php\n\$a;\n", [
+		new Violation('test/loop', 'The loop must be written with `array_any()`', 2, 1, Severity::Error, fingerprint: 'f1', risky: Risk::TypeUnknown, refused: true, because: '`$a` may be an object'),
+	]);
+	$reporter->start(1, false);
+	$reporter->reportFile($result);
+	rewind($stream);
+	Assert::match(<<<'XX'
+		src/a.php
+		  error  2:1  The loop must be written with `array_any()`  test/loop
+		              `$a` may be an object
+
+		XX, normalize((string) stream_get_contents($stream)));
 });
 
 
@@ -306,8 +324,9 @@ test('json', function () {
 		                    "line": 2,
 		                    "column": 1,
 		                    "severity": "error",
-		                    "risky": false,
+		                    "risky": null,
 		                    "refused": false,
+		                    "because": null,
 		                    "fingerprint": "f1",
 		                    "derivedFrom": null
 		                },
@@ -317,8 +336,9 @@ test('json', function () {
 		                    "line": 2,
 		                    "column": null,
 		                    "severity": "warning",
-		                    "risky": false,
+		                    "risky": null,
 		                    "refused": false,
+		                    "because": null,
 		                    "fingerprint": "f2",
 		                    "derivedFrom": "f1"
 		                },
@@ -328,8 +348,9 @@ test('json', function () {
 		                    "line": 3,
 		                    "column": 1,
 		                    "severity": "error",
-		                    "risky": false,
+		                    "risky": null,
 		                    "refused": false,
+		                    "because": null,
 		                    "fingerprint": "f3",
 		                    "derivedFrom": "f1"
 		                }
@@ -341,8 +362,9 @@ test('json', function () {
 		                    "line": 2,
 		                    "column": null,
 		                    "severity": "warning",
-		                    "risky": false,
+		                    "risky": null,
 		                    "refused": false,
+		                    "because": null,
 		                    "fingerprint": "f2",
 		                    "derivedFrom": null
 		                }

@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token, TokenKind};
@@ -67,7 +67,14 @@ final class NoManualSubstringTestRule extends NodeRule
 		assert($call->name instanceof NameNode);
 		$uncertainty = NodeHelpers::findUncertainty($call, $context);
 		$message = "The `{$test['source']}()` comparison must be written with `{$test['function']}()`";
-		if (!$context->report($node, $message . $uncertainty, risky: $test['risky'] || $uncertainty !== null)) {
+		if (!$context->report(
+			$node,
+			$message,
+			risky: $test['risky'] ? Risk::BehaviorChanges : ($uncertainty === null ? null : Risk::NameUncertain),
+			because: $test['risky']
+				? (str_starts_with($test['source'], 'mb_') ? 'the `mb_` function counts characters, the new one bytes' : '`str_ends_with()` finds an empty needle in any haystack')
+				: $uncertainty,
+		)) {
 			return;
 		}
 

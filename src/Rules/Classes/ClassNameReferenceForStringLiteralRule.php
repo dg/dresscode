@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\Types;
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, SymbolKind, Token};
 use PhpSyntax\Nodes\Expression\ClassConstantFetchNode;
@@ -54,7 +54,12 @@ final class ClassNameReferenceForStringLiteralRule extends NodeRule
 		if (
 			!str_contains($node->value, '\\')
 			|| $context->getAnalysis(Types::class)->findClassName($name) !== $name
-			|| !$context->report($node, "The class name must be written `$name::class`, not as a string", risky: str_starts_with($node->value, '\\'))
+			|| !$context->report(
+				$node,
+				"The class name must be written `$name::class`, not as a string",
+				risky: str_starts_with($node->value, '\\') ? Risk::BehaviorChanges : null,
+				because: '`::class` drops the leading backslash of the string',
+			)
 		) {
 			return;
 		}

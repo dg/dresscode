@@ -22,7 +22,7 @@ final readonly class Rewrite
 		public ?ExpressionNode $expression,
 		/** a clause of the message, `, but ...` */
 		public ?string $refusal = null,
-		/** a clause of the message, `, which ...` */
+		/** what may go wrong where the fix is risky, the reason of the report */
 		public ?string $risk = null,
 		/** @var list<NameNode>  the classes the template names fully qualified, to be spelled the way the code reaches them */
 		public array $classes = [],

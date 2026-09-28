@@ -34,7 +34,8 @@ final class RuleTester
 
 	/**
 	 * Runs every *.code fixture in the directory: the output must equal <name>.expected (the input when
-	 * there is none), the violations <name>.violations when present. A fixture sets what its run is given in the
+	 * there is none), the violations <name>.violations when present, a risky one followed by an indented line
+	 * `risky <Risk>` with `: <because>` where the rule says it. A fixture sets what its run is given in the
 	 * comments that open it: the options of the rule `// {"option": value}`, the version of PHP it is
 	 * written for `// php 8.4`, the widest line `// lineLength 80` (120 without it), that the run allows a fix that
 	 * changes what the code does `// risky`, and what the namespaces declare outside it
@@ -104,7 +105,7 @@ final class RuleTester
 	public static function collectViolations(string|\Closure $rule, string $file, ?string $phpVersion = null): array
 	{
 		[, $result] = self::processFixture($rule, $file, $phpVersion);
-		return array_map(fn(Violation $v) => "$v->line: $v->message", $result->violations);
+		return self::formatViolations($result->violations);
 	}
 
 
@@ -122,7 +123,7 @@ final class RuleTester
 
 	/**
 	 * @param ?string $expected  the output; null when the rule must leave the code as it is
-	 * @param ?list<string> $violations  "line: message" each; null to skip the check
+	 * @param ?list<string> $violations  "line: message" each, and the line of the risk after a risky one; null to skip the check
 	 * @param NamespacedSymbols $namespacedSymbols  what the namespaces declare outside the code
 	 * @param ?string $stubs  directory of the declarations the types of the code are computed with, which a rule that does not need them gets too
 	 * @throws TestFailure
@@ -150,7 +151,7 @@ final class RuleTester
 		}
 
 		if ($violations !== null) {
-			$actual = array_map(fn(Violation $v) => "$v->line: $v->message", $result->violations);
+			$actual = self::formatViolations($result->violations);
 			if ($actual !== $violations) {
 				throw new TestFailure(
 					"The violations differ from the expected ones:\n"
@@ -172,7 +173,7 @@ final class RuleTester
 			);
 		}
 
-		$left = $fixRisky ? array_filter($again->violations, fn(Violation $v) => $v->risky) : [];
+		$left = $fixRisky ? array_filter($again->violations, fn(Violation $v) => $v->risky !== null) : [];
 		if ($left) {
 			throw new TestFailure(
 				'The rule leaves a risky violation although the run allowed its fix ('
@@ -294,6 +295,25 @@ final class RuleTester
 			);
 			return new Analyses\Types($file, $path, $phpstan);
 		});
+	}
+
+
+	/**
+	 * The violations as the .violations file records them.
+	 * @param list<Violation> $violations
+	 * @return list<string>
+	 */
+	private static function formatViolations(array $violations): array
+	{
+		$lines = [];
+		foreach ($violations as $v) {
+			$lines[] = "$v->line: $v->message";
+			if ($v->risky !== null) {
+				$lines[] = "\trisky {$v->risky->name}" . ($v->because === null ? '' : ": $v->because");
+			}
+		}
+
+		return $lines;
 	}
 
 

@@ -1,0 +1,34 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\Status;
+
+
+function describeCode(int $code): string
+{
+	return match ($code) {
+		1 => 'one',
+		default => 'other',
+	};
+}
+
+
+function describeStatus(Status $status): string
+{
+	return match ($status) {
+		Status::Paid => 'paid',
+		default => 'open',
+	};
+}
+
+
+function describeName(string $name): string
+{
+	switch ($name) {
+		case '1':
+			return 'one';
+		default:
+			return 'other';
+	}
+}

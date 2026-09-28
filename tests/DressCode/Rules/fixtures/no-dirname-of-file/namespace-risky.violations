@@ -1,2 +1,3 @@
-7: Nested `dirname()` calls must be one call with the `levels` argument, unless the namespace declares `dirname()`
+7: Nested `dirname()` calls must be one call with the `levels` argument
+	risky NameUncertain: the namespace may declare `dirname()`
 8: Nested `dirname()` calls must be one call with the `levels` argument

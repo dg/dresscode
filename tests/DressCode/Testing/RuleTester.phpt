@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Config\PresetResolver;
-use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Testing\{RuleTester, TestFailure};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\{NameResolver, NamespacedSymbols};
@@ -101,7 +101,7 @@ final class Broken extends NodeRule
 }
 
 
-#[RuleInfo('test/risky-report', Stage::Structure, risky: true)]
+#[RuleInfo('test/risky-report', Stage::Structure)]
 final class RiskyReport extends NodeRule
 {
 	public function __construct(
@@ -119,7 +119,7 @@ final class RiskyReport extends NodeRule
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
 		if ($node instanceof VariableNode) {
-			$context->report($node, 'x', fixable: !$this->declared);
+			$context->report($node, 'x', risky: Risk::BehaviorChanges, fixable: !$this->declared);
 		}
 	}
 }
@@ -186,7 +186,7 @@ test('contract checks', function () {
 
 
 test('a risky violation left although the run allowed its fix needs a report without a fix', function () {
-	RuleTester::check(new RiskyReport(declared: false), "<?php\n\$a;\n");
+	RuleTester::check(new RiskyReport(declared: false), "<?php\n\$a;\n", violations: ['2: x', "\trisky BehaviorChanges"]);
 	Assert::exception(
 		fn() => RuleTester::check(new RiskyReport(declared: false), "<?php\n\$a;\n", fixRisky: true),
 		TestFailure::class,

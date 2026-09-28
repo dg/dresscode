@@ -1,16 +1,25 @@
 6: The loop must be written with `array_any()`
-40: The loop must be written with `array_any()`, which takes an array only
+40: The loop must be written with `array_any()`
+	risky TypeUnknown: the loop may go through an object, which `array_any()` does not take
 51: The loop must be written with `array_any()`
-62: The loop must be written with `array_any()`, which takes an array only
-73: The loop must be written with `array_any()`, which takes an array only
+62: The loop must be written with `array_any()`
+	risky TypeUnknown: the loop may go through an object, which `array_any()` does not take
+73: The loop must be written with `array_any()`
+	risky TypeUnknown: the loop may go through an object, which `array_any()` does not take
 100: The loop must be written with `array_any()`
-112: The loop must be written with `array_any()`, which takes an array only
+112: The loop must be written with `array_any()`
+	risky TypeUnknown: the loop may go through an object, which `array_any()` does not take
 124: The loop must be written with `array_any()`
-148: The loop must be written with `array_any()`, which takes an array only
+148: The loop must be written with `array_any()`
+	risky TypeUnknown: the loop may go through an object, which `array_any()` does not take
 160: The loop must be written with `array_any()`
-172: The loop must be written with `array_any()`, which takes an array only
+172: The loop must be written with `array_any()`
+	risky TypeUnknown: the loop may go through an object, which `array_any()` does not take
 184: The loop must be written with `array_any()`
 208: The loop must be written with `array_any()`
-220: The loop must be written with `array_any()`, which takes an array only
-233: The loop must be written with `array_any()`, which takes an array only
-260: The loop must be written with `array_any()`, which takes an array only
+220: The loop must be written with `array_any()`
+	risky TypeUnknown: the loop may go through an object, which `array_any()` does not take
+233: The loop must be written with `array_any()`
+	risky TypeUnknown: the loop may go through an object, which `array_any()` does not take
+260: The loop must be written with `array_any()`
+	risky TypeUnknown: the loop may go through an object, which `array_any()` does not take

@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Group, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, Token};
@@ -54,8 +54,9 @@ final class NoIsNullRule extends NodeRule
 			|| $target->hasComment()
 			|| !$context->report(
 				$call,
-				'The `is_null()` call must be written as a comparison with `null`' . ($uncertainty = NodeHelpers::findUncertainty($call, $context)),
-				risky: $uncertainty !== null,
+				'The `is_null()` call must be written as a comparison with `null`',
+				risky: ($uncertainty = NodeHelpers::findUncertainty($call, $context)) === null ? null : Risk::NameUncertain,
+				because: $uncertainty,
 			)
 		) {
 			return;

@@ -154,9 +154,13 @@ final class ConsoleReporter implements Reporter
 				Ansi::pad($show($violation), $messageWidth),
 				$this->console->color('gray', RuleRegistry::abbreviate($violation->ruleName)),
 			));
+			$indent = str_repeat(' ', $stateWidth + $positionWidth + 6);
+			if ($violation->because !== null) {
+				$this->write($indent . Markup::highlightCode($this->console, $violation->because, 'gray') . "\n");
+			}
+
 			if (isset($derived[$violation->fingerprint])) {
-				$this->write(str_repeat(' ', $stateWidth + $positionWidth + 6)
-					. $this->console->color('gray', self::describeDerived($derived[$violation->fingerprint])) . "\n");
+				$this->write($indent . $this->console->color('gray', self::describeDerived($derived[$violation->fingerprint])) . "\n");
 			}
 		}
 	}
