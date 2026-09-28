@@ -391,7 +391,9 @@ final class PassRunner
 			}
 
 			$reported = true;
-			$severity = isset($this->warningRules[$name]) ? Severity::Warning : Severity::Error;
+			$severity = isset($this->warningRules[$name]) || ($refused && $report->risk->isResolvable())
+				? Severity::Warning
+				: Severity::Error;
 			$this->reported[] = [$name, $report, $refused, $severity];
 			$derivedFrom = self::findAncestor($report, $this->opened, $this->moved);
 			if (!$report->known) { // what the baseline knows is not recorded, though the rule may have fixed it

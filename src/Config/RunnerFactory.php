@@ -211,6 +211,12 @@ final class RunnerFactory
 			$resultCache,
 			narrowed: (bool) $only,
 			warmUp: isset($phpstan) ? $phpstan->warmUp(...) : null,
+			types: match (true) {
+				$resolved->types !== null => true,
+				Analyses\PhpStan::isAvailable() => false,
+				default => null,
+			},
+			namespacesListed: $resolved->namespacedFunctions !== [] || $resolved->namespacedConstants !== [],
 		);
 	}
 

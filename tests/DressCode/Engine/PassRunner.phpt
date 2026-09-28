@@ -574,6 +574,7 @@ test('a risky occurrence is reported and left alone, and the safe one beside it 
 		Assert::same([null, Risk::TypeUnknown], array_map(fn($v) => $v->risk, $result->violations), $order);
 		Assert::same([false, true], array_map(fn($v) => $v->refused, $result->violations), $order);
 		Assert::same([null, 'b may be anything'], array_map(fn($v) => $v->because, $result->violations), $order);
+		Assert::same([Severity::Error, Severity::Warning], array_map(fn($v) => $v->severity, $result->violations), $order);
 	}
 });
 
@@ -584,6 +585,7 @@ test('with the fixes allowed the risky occurrence is fixed and says it was risky
 	Assert::count(2, $result->violations);
 	Assert::same([null, Risk::TypeUnknown], array_map(fn($v) => $v->risk, $result->violations));
 	Assert::same([false, false], array_map(fn($v) => $v->refused, $result->violations));
+	Assert::same([Severity::Error, Severity::Error], array_map(fn($v) => $v->severity, $result->violations));
 });
 
 
@@ -617,6 +619,7 @@ test('a rule the project names in fixRisky has its risky fixes made without the 
 	[$file, $result] = run("<?php\n\$a;\n", [new RiskyRule], fixRiskyRules: ['test/other' => true]);
 	Assert::same("<?php\n\$a;\n", (string) $file);
 	Assert::true($result->violations[0]->refused);
+	Assert::same(Severity::Error, $result->violations[0]->severity); // a change of what the code does stays an error
 });
 
 

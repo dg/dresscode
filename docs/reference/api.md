@@ -388,6 +388,7 @@ enum Risk
 	case TypeUnknown
 	case NameUncertain
 	case BehaviorChanges
+	public function isResolvable(): bool
 ```
 
 ## `DressCode\Rule`

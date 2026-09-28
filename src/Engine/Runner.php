@@ -40,6 +40,10 @@ final class Runner
 		private readonly bool $narrowed = false,
 		/** @var ?\Closure(): void  fills the cache the workers share, which those started together would all write at once */
 		public readonly ?\Closure $warmUp = null,
+		/** the types of the code: true where the run has them, false where the project can turn them on, null where PHPStan is not installed */
+		public readonly ?bool $types = null,
+		/** the configuration lists functions or constants the namespaces declare */
+		public readonly bool $namespacesListed = false,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
 		$this->processors = $processors instanceof FileProcessor ? FileProcessors::of($processors) : $processors;
@@ -63,7 +67,7 @@ final class Runner
 		?int $maxWarnings = null,
 	): RunResult
 	{
-		$reporter->start(new RunInfo($this->root, $fix, count($files)));
+		$reporter->start(new RunInfo($this->root, $fix, count($files), $this->types, $this->namespacesListed));
 		/** @var array<string, FileResult|list<string>> $ready the finished files, a cached one by what it silenced */
 		$ready = [];
 		$order = $pending = $sizes = [];

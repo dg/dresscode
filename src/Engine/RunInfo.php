@@ -19,6 +19,10 @@ final readonly class RunInfo
 		public string $root,
 		public bool $fix,
 		public int $fileCount,
+		/** the types of the code: true where the run has them, false where the project can turn them on, null where PHPStan is not installed */
+		public ?bool $types = null,
+		/** the configuration lists functions or constants the namespaces declare */
+		public bool $namespacesListed = false,
 	) {
 	}
 }

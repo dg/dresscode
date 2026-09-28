@@ -762,16 +762,19 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 	$config = "$root/risky.php";
 	$write = fn(string $tail) => file_put_contents($config, "<?php\nreturn new DressCode\\Config(rules: [ConsoleRiskyRename::class => true], paths: ['src']$tail);\n");
 
-	// refused: reported, counted apart, not fixed, and the exit code says the code is not clean
+	// refused: reported, counted apart with the way to decide it, not fixed, and a change of what the code does
+	// is an error the exit code says
 	$write('');
-	[$code] = runApp($root, ['fix', '--config', $config, '--no-cache']);
+	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache']);
 	Assert::same(1, $code);
+	Assert::contains('1 risky fix changes what the code does: decide them in `fixRisky` or by hand. See https://dresscode.run/configuration#risky-fixes', $out);
 	Assert::same("<?php\n\$r;\n", (string) file_get_contents("$root/src/r.php"));
 
 	// the flag of the run allows it
-	[$code] = runApp($root, ['fix', '--config', $config, '--no-cache', '--fix-risky']);
+	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache', '--fix-risky']);
 	Assert::same(0, $code);
 	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
+	Assert::notContains('risky fix', $out);
 
 	// and so does the configuration, for the rules it names
 	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
@@ -809,7 +812,29 @@ test('a violation the rule has no fix for is no fix waiting, with the consent or
 		[, $out] = runApp($root, ['check', '--config', $config, '--no-cache', '--format', 'json']);
 		$summary = json_decode($out, associative: true)['summary'];
 		Assert::same([$remaining, $deferred], [$summary['remaining'], $summary['refused']], "$call$tail");
+
+		[, $out] = runApp($root, ['check', '--config', $config, '--no-cache']);
+		if ($deferred) {
+			Assert::contains('1 risky fix waits, the type is unknown', $out);
+		} else {
+			Assert::notContains('risky fix', $out);
+		}
 	}
+});
+
+
+test('a risky fix only the types could decide is a warning until it is made, and the summary says how to decide it', function () {
+	$root = createTempDir('type-unknown');
+	mkdir("$root/src");
+	file_put_contents("$root/src/a.php", "<?php\nin_array(\$a, \$b);\n");
+	$config = "$root/strictCall.php";
+	file_put_contents($config, "<?php\nreturn new DressCode\\Config(rules: ['strictCall' => true], paths: ['src']);\n");
+
+	[$code, $out] = runApp($root, ['check', '--config', $config, '--no-cache']);
+	Assert::same(0, $code);
+	Assert::match('%A%  warning  2:1  The `in_array()` call must pass `$strict = true`%A%', $out);
+	Assert::match('%A%1 risky fix waits, the type is unknown: set `types: phpstan`. See https://dresscode.run/types#enable%A%', $out);
+	Assert::same(1, runApp($root, ['check', '--config', $config, '--no-cache', '--max-warnings', '0'])[0]);
 });
 
 
