@@ -22,6 +22,8 @@ final class RuleRegistry
 {
 	private const Vendor = 'dresscode/';
 
+	private const BuiltinRuleUrl = 'https://dresscode.run/rules/{slug}';
+
 	private const BuiltinRules = [
 		Rules\Expressions\OffsetBracketSpacingRule::class,
 		Rules\Arrays\ArraySpacingRule::class,
@@ -239,6 +241,9 @@ final class RuleRegistry
 	/** @var array<string, class-string<Rule>>  name => class */
 	private array $rules = [];
 
+	/** @var array<string, string>  name => url */
+	private array $urls = [];
+
 	/** @var array<string, class-string<Preset>>  name => class */
 	private array $presets = [];
 
@@ -253,7 +258,7 @@ final class RuleRegistry
 		$this->registerPreset(Presets\NetteStyle::class);
 		$this->registerPreset(Presets\SymfonyConfigurator::class);
 		foreach (self::BuiltinRules as $class) {
-			$this->registerRule($class);
+			$this->registerRule($class, self::BuiltinRuleUrl);
 		}
 	}
 
@@ -263,7 +268,7 @@ final class RuleRegistry
 	 * @param  class-string<Rule>  $class
 	 * @throws ConfigurationException  when the name belongs to another rule
 	 */
-	public function registerRule(string $class): string
+	public function registerRule(string $class, ?string $url = null): string
 	{
 		if (!is_subclass_of($class, Rule::class)) {
 			throw new ConfigurationException("Class `$class` is not a rule.");
@@ -276,7 +281,17 @@ final class RuleRegistry
 		}
 
 		$this->rules[$info->name] = $class;
+		if ($url !== null) {
+			$this->urls[$info->name] = str_replace('{slug}', substr($info->name, strpos($info->name, '/') + 1), $url);
+		}
+
 		return $info->name;
+	}
+
+
+	public function getRuleUrl(string $name): ?string
+	{
+		return $this->urls[$name] ?? null;
 	}
 
 

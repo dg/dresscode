@@ -7,20 +7,21 @@
 
 namespace DressCode\Console;
 
-use DressCode\Config\{ResolvedConfig, ResolvedRule};
+use DressCode\Config\{ResolvedConfig, ResolvedRule, RuleRegistry};
 use DressCode\RuleInfo;
 use function count, is_bool, is_string, strlen;
 
 
 /**
  * Explains the rules that run in Markdown: what the configuration is composed of and, for every rule, what it
- * asks for and the options this project gives it. What no rule covers is not here.
+ * asks for, the options this project gives it and a link to its page. What no rule covers is not here.
  * @internal
  */
 final class ExplainMarkdownPrinter
 {
 	public function __construct(
 		private readonly ResolvedConfig $config,
+		private readonly RuleRegistry $registry,
 	) {
 	}
 
@@ -62,7 +63,8 @@ final class ExplainMarkdownPrinter
 	public function printRule(ResolvedRule $rule): string
 	{
 		$info = RuleInfo::of($rule->class);
-		$out = "\n### $rule->name\n\n";
+		$url = $this->registry->getRuleUrl($rule->name);
+		$out = "\n### " . ($url === null ? $rule->name : "[$rule->name]($url)") . "\n\n";
 		$out .= ($info->description === '' ? '' : "$info->description.\n\n");
 
 		$options = [];

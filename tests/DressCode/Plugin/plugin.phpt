@@ -77,6 +77,13 @@ test('the plugin rule is known by name', function () {
 });
 
 
+test('the page of a plugin rule is where its extension says', function () {
+	[$code, $out] = runPlugin(['explain', 'acme/no-var-dump']);
+	Assert::same(0, $code);
+	Assert::contains('See https://acme.dev/dresscode/no-var-dump', $out);
+});
+
+
 test('a default configuration stands in for a missing file', function () {
 	$root = str_replace('\\', '/', (string) realpath(sys_get_temp_dir())) . '/dresscode-plugin';
 	@mkdir($root, recursive: true); // @ - may exist

@@ -97,7 +97,10 @@ final class UpgradingTester
 	private static function validate(array $rules, array $own): array
 	{
 		$registry = new RuleRegistry;
-		array_walk($own, $registry->registerRule(...));
+		foreach ($own as $class) {
+			$registry->registerRule($class);
+		}
+
 		$problems = $normalized = [];
 		foreach ($rules as $rule => $options) {
 			try {

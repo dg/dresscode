@@ -12,6 +12,7 @@ final class Extension implements \DressCode\Extension
 		return new Config(
 			extensions: [Rules\NoVarDumpRule::class, Presets\Acme::class],
 			excludePaths: ['generated'],
+			ruleUrl: 'https://acme.dev/dresscode/{slug}',
 		);
 	}
 }

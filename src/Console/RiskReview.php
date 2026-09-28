@@ -35,6 +35,7 @@ final class RiskReview
 		/** @var resource */
 		private $input,
 		private readonly string $root,
+		private readonly RuleRegistry $registry,
 	) {
 	}
 
@@ -100,7 +101,7 @@ final class RiskReview
 		$this->console->write(
 			"\n" . $this->console->color('white', "$path:$violation->line") . '  '
 			. Markup::highlightCode($this->console, $violation->message) . '  '
-			. $this->console->color('gray', RuleRegistry::abbreviate($violation->ruleName)) . "\n"
+			. $this->console->color('gray', Markup::formatRuleName($this->console, $violation->ruleName, $this->registry->getRuleUrl($violation->ruleName))) . "\n"
 			. ($violation->because === null ? '' : Markup::highlightCode($this->console, $violation->because, 'gray') . "\n")
 			. Markup::highlightDiff($this->console, Diff::unified($text, $proposed, $path)),
 		);

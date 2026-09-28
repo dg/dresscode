@@ -279,6 +279,18 @@ test('extensions name rules, presets and extensions, and what the namespaces dec
 });
 
 
+test('the page of the rules the extensions name is an address with the slug in it', function () {
+	$ruleUrl = fn(string $file) => Loader::loadFile(FileMock::create($file, 'neon'))->ruleUrl;
+	Assert::same('https://wiki.acme.dev/rules/{slug}', $ruleUrl("ruleUrl: 'https://wiki.acme.dev/rules/{slug}'\n"));
+	Assert::null($ruleUrl("paths: [src]\n"));
+	Assert::exception(
+		fn() => $ruleUrl("ruleUrl: 'wiki page'\n"),
+		ConfigurationException::class,
+		'Configuration file `%a%`: Invalid `ruleUrl` `wiki page`, an address such as `https://acme.dev/rules/{slug}` is expected.',
+	);
+});
+
+
 test('an override takes every key of a profile, the entity of a rule included', function () {
 	$config = Loader::loadFile(FileMock::create(<<<'XX'
 		overrides:

@@ -16,8 +16,8 @@ namespace DressCode;
 interface Extension
 {
 	/**
-	 * A configuration that sets nothing but extensions, analyses, excludePaths and skipWhen; it lies below the project,
-	 * whose excluded paths add to its own, whose skipWhen skips a file too and whose analysis of the same class wins.
+	 * A configuration that sets nothing but extensions, analyses, excludePaths, skipWhen and ruleUrl; it lies below the
+	 * project, whose excluded paths add to its own, whose skipWhen skips a file too and whose analysis of the same class wins.
 	 */
 	public function getConfig(): Config;
 }

@@ -331,6 +331,25 @@ test('console: paths under the working directory are relative to it, the others 
 });
 
 
+test('console: in a terminal the name of a rule links to its page, elsewhere it stays bare', function () {
+	$findUrl = fn(string $rule) => $rule === 'acme/no-y' ? 'https://acme.dev/no-y' : null;
+	$violations = [
+		new Violation('acme/no-x', 'No x', 1, null, Severity::Error, fingerprint: 'f1'),
+		new Violation('acme/no-y', 'No y', 2, null, Severity::Error, fingerprint: 'f2'),
+	];
+	foreach ([true, false] as $terminal) {
+		$stream = memory();
+		$reporter = new ConsoleReporter(new Console($stream, colorDepth: ColorDepth::Ansi256, terminal: $terminal), findRuleUrl: $findUrl);
+		$reporter->reportFile(new FileResult('a.php', '', '', $violations));
+		rewind($stream);
+		$output = (string) stream_get_contents($stream);
+		Assert::same($terminal, str_contains($output, "\e]8;;https://acme.dev/no-y\e\\acme/no-y\e]8;;\e\\"));
+		Assert::same(1, substr_count(Nette\CommandLine\Ansi::strip($output), 'acme/no-y'));
+		Assert::notContains('https://', Nette\CommandLine\Ansi::strip($output));
+	}
+});
+
+
 test('console: a status drawn over the output is erased before anything is written, a clean file writes nothing', function () {
 	putenv('COLUMNS=80');
 	$stream = memory();

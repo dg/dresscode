@@ -291,8 +291,8 @@ final class Application
 			$format = self::resolveFormat($args, detect: false);
 			// a fix writes the fixed code to stdout, so its report goes to stderr
 			$reporter = $fix
-				? $this->createReporter($args, $this->err, $this->stderr, $root, $format)
-				: $this->createReporter($args, $this->out, $this->stdout, $root, $format);
+				? $this->createReporter($args, $this->err, $this->stderr, $root, $format, $factory->getRegistry())
+				: $this->createReporter($args, $this->out, $this->stdout, $root, $format, $factory->getRegistry());
 			$code = (string) stream_get_contents($this->stdin);
 			$reporter->start(1, $fix);
 			$result = $runner->processFile($this->resolvePath($stdinPath), $code);
@@ -343,13 +343,15 @@ final class Application
 			? new ProgressBar($this->out, count($files))
 			: null;
 		$onProgress = $progress === null ? null : $progress->advance(...);
-		$reporter = $this->createReporter($args, $this->out, $this->stdout, $root, $format);
+		$reporter = $this->createReporter($args, $this->out, $this->stdout, $root, $format, $factory->getRegistry());
 
 		$profiler?->addPhase('start of the process', (int) ((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1e9));
 		$start = hrtime(true);
 		try {
 			$result = $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings);
-			return $review ? $this->review($runner, $result, $files, $root, $maxWarnings) : $result->getExitCode();
+			return $review
+				? $this->review($runner, $result, $files, $root, $maxWarnings, $factory->getRegistry())
+				: $result->getExitCode();
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
 			if ($profiler && is_string($args['--profile'])) {
@@ -365,13 +367,13 @@ final class Application
 	 * the files as the review left them.
 	 * @param  list<string>  $files
 	 */
-	private function review(Runner $runner, RunResult $result, array $files, string $root, ?int $maxWarnings): int
+	private function review(Runner $runner, RunResult $result, array $files, string $root, ?int $maxWarnings, RuleRegistry $registry): int
 	{
 		if ($result->countRiskyDeferred() === 0) {
 			return $result->getExitCode();
 		}
 
-		$made = new RiskReview($runner, $this->out, $this->stdin, $root)->review($result);
+		$made = new RiskReview($runner, $this->out, $this->stdin, $root, $registry)->review($result);
 		$final = $runner->run($files, true, new Reporters\NullReporter, maxWarnings: $maxWarnings);
 		$left = $final->countRiskyDeferred();
 		$this->out->writeLine(
@@ -722,7 +724,7 @@ final class Application
 
 		$file = $args['--output'];
 		if (is_string($file)) {
-			$printer = new ExplainMarkdownPrinter($resolved);
+			$printer = new ExplainMarkdownPrinter($resolved, $factory->getRegistry());
 			FileSystem::write($file, is_string($name) ? $printer->printRule($rules[0]) : $printer->print());
 			$this->write('Written to `' . FileSystem::platformSlashes($file) . "`.\n");
 			return 0;
@@ -730,7 +732,7 @@ final class Application
 
 		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
 		foreach ($rules as $rule) {
-			$this->out->write("\n" . new ExplainPrinter($rule)->print($this->out));
+			$this->out->write("\n" . new ExplainPrinter($rule, $factory->getRegistry()->getRuleUrl($rule->name))->print($this->out));
 		}
 
 		return 0;
@@ -964,6 +966,7 @@ final class Application
 		$stream,
 		string $root,
 		string $format,
+		RuleRegistry $registry,
 	): Reporter
 	{
 		return match ($format) {
@@ -976,6 +979,7 @@ final class Application
 				root: $root,
 				cwd: Helpers::canonicalizePath($this->cwd ?? (string) getcwd()),
 				bare: $format === 'bare',
+				findRuleUrl: $registry->getRuleUrl(...),
 			),
 		};
 	}

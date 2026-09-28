@@ -52,6 +52,8 @@ final class ConsoleReporter implements Reporter
 		private readonly string $cwd = '',
 		/** only what is left to the user and which files were rewritten, nothing else */
 		private readonly bool $bare = false,
+		/** @var ?\Closure(string): ?string  rule name => url */
+		private readonly ?\Closure $findRuleUrl = null,
 	) {
 		$this->diff = $diff && !$bare;
 	}
@@ -152,7 +154,11 @@ final class ConsoleReporter implements Reporter
 				$this->console->color($state === 'warning' ? 'olive' : 'maroon', Ansi::pad($state, $stateWidth)),
 				$this->console->color('gray', Ansi::pad(self::formatPosition($violation), $positionWidth, STR_PAD_LEFT)),
 				Ansi::pad($show($violation), $messageWidth),
-				$this->console->color('gray', RuleRegistry::abbreviate($violation->ruleName)),
+				$this->console->color('gray', Markup::formatRuleName(
+					$this->console,
+					$violation->ruleName,
+					$this->findRuleUrl === null ? null : ($this->findRuleUrl)($violation->ruleName),
+				)),
 			));
 			$indent = str_repeat(' ', $stateWidth + $positionWidth + 6);
 			if ($violation->because !== null) {

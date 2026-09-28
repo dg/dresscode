@@ -77,12 +77,18 @@ final readonly class Config extends Profile
 		?string $types = null,
 		/** @var array<string, string>  installed package => the version the code is written for, in place of the lowest its constraint allows, so that code is fixed for a version before the project moves to it */
 		public array $packages = [],
+		/** the address of the page of each rule `extensions` names, `{slug}` standing for the name without its vendor */
+		public ?string $ruleUrl = null,
 	) {
 		parent::__construct($presets, $groups, $rules, $indent, $eol, $lineLength, $php, $namespaces, $nameResolution, $fixRisky, $warnings, $types);
 		foreach ($packages as $package => $version) {
 			if (!preg_match('~^\d+(\.\d+){0,3}$~D', $version)) {
 				throw new \InvalidArgumentException("Invalid version `$version` of package `$package`.");
 			}
+		}
+
+		if ($ruleUrl !== null && !preg_match('~^[a-z][a-z0-9+.-]*://[^\x00-\x20\x7F]+$~Di', $ruleUrl)) {
+			throw new \InvalidArgumentException("Invalid `ruleUrl` `$ruleUrl`, an address such as `https://acme.dev/rules/{slug}` is expected.");
 		}
 
 		$this->excludePaths = array_values(array_unique([...self::DefaultExcludePaths, ...$excludePaths]));

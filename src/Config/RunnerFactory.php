@@ -23,7 +23,7 @@ use const JSON_PARTIAL_OUTPUT_ON_ERROR, JSON_THROW_ON_ERROR;
 final class RunnerFactory
 {
 	/** what an extension may set; everything else is for the project to decide */
-	private const ExtensionKeys = ['extensions', 'analyses', 'excludePaths', 'skipWhen'];
+	private const ExtensionKeys = ['extensions', 'analyses', 'excludePaths', 'skipWhen', 'ruleUrl'];
 
 	/** @var list<string> */
 	private array $warnings = [];
@@ -114,7 +114,11 @@ final class RunnerFactory
 		$packages = PackageProfiles::discover($project);
 		$this->packages = array_map(fn(PackageProfile $profile) => [$profile, $project->findVersion($profile->package)], $packages->profiles);
 		$visited = [];
-		$layers = [...$this->loadExtensions([...$packages->extensions, ...$config->extensions], $visited), $config];
+		$layers = [
+			...$this->loadExtensions($packages->extensions, $visited),
+			...$this->loadExtensions($config->extensions, $visited, $config->ruleUrl),
+			$config,
+		];
 		[$version, $source] = $this->resolvePhpVersion($config, $root);
 		$resolver = new PresetResolver($this->registry, $packages->profiles, $project);
 		$this->resolved = $resolved = $resolver->resolve($config, $version, [], $commandLine, $only);
@@ -238,7 +242,7 @@ final class RunnerFactory
 	 * @return list<Config>
 	 * @throws ConfigurationException
 	 */
-	private function loadExtensions(array $extensions, array &$visited): array
+	private function loadExtensions(array $extensions, array &$visited, ?string $ruleUrl = null): array
 	{
 		$configs = [];
 		foreach ($extensions as $extension) {
@@ -251,7 +255,7 @@ final class RunnerFactory
 				if (!class_exists($extension)) {
 					throw new ConfigurationException("Extension class `$extension` does not exist.");
 				} elseif (is_subclass_of($extension, Rule::class)) {
-					$this->registry->registerRule($extension);
+					$this->registry->registerRule($extension, $ruleUrl);
 					continue;
 				} elseif (is_subclass_of($extension, Preset::class)) {
 					$this->registry->registerPreset($extension);
@@ -271,7 +275,7 @@ final class RunnerFactory
 				}
 			}
 
-			$configs = [...$configs, ...$this->loadExtensions($provided->extensions, $visited), $provided];
+			$configs = [...$configs, ...$this->loadExtensions($provided->extensions, $visited, $provided->ruleUrl), $provided];
 		}
 
 		return $configs;

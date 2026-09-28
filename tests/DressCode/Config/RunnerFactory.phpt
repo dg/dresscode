@@ -250,12 +250,24 @@ test('an extension makes its rules known by name, and brings the paths it leaves
 });
 
 
+test('the page of a rule is where the configuration that names it among its extensions says', function () use ($fixtures) {
+	$factory = new RunnerFactory;
+	$factory->createRunner(new Config(extensions: [ReportContext::class], ruleUrl: 'https://wiki.acme.dev/{slug}'), "$fixtures/project", cache: false);
+	Assert::same('https://wiki.acme.dev/a', $factory->getRegistry()->getRuleUrl('test/a'));
+	Assert::same('https://dresscode.run/rules/useless-return', $factory->getRegistry()->getRuleUrl('dresscode/useless-return'));
+
+	$factory = new RunnerFactory;
+	$factory->createRunner(new Config(extensions: [ProjectExtension::class], ruleUrl: 'https://wiki.acme.dev/{slug}'), "$fixtures/project", cache: false);
+	Assert::null($factory->getRegistry()->getRuleUrl('test/a'));
+});
+
+
 test('an extension brings only what a package can, and a class that is none of the three says so', function () use ($fixtures) {
 	$create = fn(Config $config) => (new RunnerFactory)->createRunner($config, "$fixtures/project", cache: false);
 	Assert::exception(
 		fn() => $create(new Config(extensions: [DecidingExtension::class])),
 		ConfigurationException::class,
-		'Extension `DecidingExtension` sets `presets`, which the project decides; an extension sets `extensions`, `analyses`, `excludePaths`, `skipWhen`.',
+		'Extension `DecidingExtension` sets `presets`, which the project decides; an extension sets `extensions`, `analyses`, `excludePaths`, `skipWhen`, `ruleUrl`.',
 	);
 	Assert::exception(
 		fn() => $create(new Config(extensions: ['DressCode\Missing'])),

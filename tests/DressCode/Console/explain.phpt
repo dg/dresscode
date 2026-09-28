@@ -35,6 +35,7 @@ test('explain writes what the rule is and what it does here', function () use ($
 	Assert::same(0, $code);
 	Assert::contains('dresscode/useless-return', $text);
 	Assert::contains('It runs in this project, set by group cleanup.', $text);
+	Assert::contains('See https://dresscode.run/rules/useless-return', $text);
 });
 
 
@@ -48,7 +49,7 @@ test('explain without a rule writes every rule that runs, in Markdown into the o
 	Assert::contains("# Rules this project enforces\n", $text);
 	Assert::contains('- Composed of: `dresscode/psr12`, `dresscode/per`, `dresscode/nette-style`', $text);
 	Assert::contains('- Indentation: a tab', $text);
-	Assert::contains("### dresscode/useless-return\n", $text);
+	Assert::contains("### [dresscode/useless-return](https://dresscode.run/rules/useless-return)\n", $text);
 	// what does not run is not explained
 	Assert::notContains('dresscode/line-length', $text);
 });

@@ -74,6 +74,7 @@ final class NeonReader
 			'packages' => Expect::arrayOf(Expect::anyOf(Expect::string(), Expect::int(), Expect::float()), Expect::string()),
 			// a class the engine builds itself, or a class with the entity of its factory
 			'analyses' => Expect::arrayOf(Expect::anyOf(Expect::string(), Expect::type(Entity::class))),
+			'ruleUrl' => Expect::string(),
 		])->skipDefaults()->castTo('array');
 	}
 

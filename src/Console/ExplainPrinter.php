@@ -16,13 +16,14 @@ use function count, is_bool, is_string, strval;
 
 
 /**
- * Explains one rule: what it is for and the options it has under this configuration.
+ * Explains one rule: what it is for, the options it has under this configuration and where its page is.
  * @internal
  */
 final class ExplainPrinter
 {
 	public function __construct(
 		private readonly ResolvedRule $rule,
+		private readonly ?string $url = null,
 	) {
 	}
 
@@ -50,7 +51,8 @@ final class ExplainPrinter
 			? $console->color('gray', 'It runs in this project') . ($this->rule->getSource() === null ? '' : ', set by ' . $this->rule->getSource())
 			: $console->color('gray', 'It does not run in this project: ') . $this->rule->inactive) . ".\n";
 
-		return $out . $this->printOptions($console);
+		$out .= $this->printOptions($console);
+		return $out . ($this->url === null ? '' : "\n" . Markup::formatLink($console, $this->url) . "\n");
 	}
 
 

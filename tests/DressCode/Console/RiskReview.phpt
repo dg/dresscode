@@ -23,13 +23,14 @@ function review(array $files, string $answers): array
 		file_put_contents("$root/$path", $content);
 	}
 
-	$runner = (new RunnerFactory)->createRunner(new Config(rules: ['strict-call' => true], paths: ['src']), $root, cache: false);
+	$factory = new RunnerFactory;
+	$runner = $factory->createRunner(new Config(rules: ['strict-call' => true], paths: ['src']), $root, cache: false);
 	$result = $runner->run($runner->findFiles(['src']), true, new NullReporter);
 	$output = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$input = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	fwrite($input, $answers);
 	rewind($input);
-	$made = new RiskReview($runner, new Console($output, colorDepth: ColorDepth::None), $input, $root)->review($result);
+	$made = new RiskReview($runner, new Console($output, colorDepth: ColorDepth::None), $input, $root, $factory->getRegistry())->review($result);
 	rewind($output);
 	return [
 		$made,

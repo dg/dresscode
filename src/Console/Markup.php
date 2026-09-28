@@ -7,6 +7,7 @@
 
 namespace DressCode\Console;
 
+use DressCode\Config\RuleRegistry;
 use Nette\CommandLine\{Console, HelpRenderer};
 
 
@@ -46,7 +47,21 @@ final class Markup
 	 */
 	public static function formatDocsLink(Console $console, string $docs): string
 	{
-		return $console->color('gray', 'See ' . $console->link(self::DocsUrl . $docs));
+		return self::formatLink($console, self::DocsUrl . $docs);
+	}
+
+
+	public static function formatLink(Console $console, string $url): string
+	{
+		return $console->color('gray', 'See ' . $console->link($url));
+	}
+
+
+	/** The name of a rule, in a terminal a link to its page. */
+	public static function formatRuleName(Console $console, string $name, ?string $url): string
+	{
+		$short = RuleRegistry::abbreviate($name);
+		return $url !== null && $console->isTerminal() ? $console->link($url, $short) : $short;
 	}
 
 
