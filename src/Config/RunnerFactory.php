@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use Composer\InstalledVersions;
-use DressCode\{Analyses, Config, ConfigurationException, Extension, Helpers, Override, Preset, Profile, Rule, Runner, Style};
+use DressCode\{Analyses, Config, ConfigurationException, Extension, Helpers, Override, Profile, Runner, Style};
 use DressCode\Engine\{Baseline, FileProcessor, Profiler, ResultCache};
 use Nette\Utils\FileSystem;
 use PhpSyntax\Nodes\FileNode;
@@ -254,11 +254,7 @@ final class RunnerFactory
 				$visited[$extension] = true;
 				if (!class_exists($extension)) {
 					throw new ConfigurationException("Extension class `$extension` does not exist.");
-				} elseif (is_subclass_of($extension, Rule::class)) {
-					$this->registry->registerRule($extension, $ruleUrl);
-					continue;
-				} elseif (is_subclass_of($extension, Preset::class)) {
-					$this->registry->registerPreset($extension);
+				} elseif ($this->registry->registerClass($extension, $ruleUrl)) {
 					continue;
 				} elseif (!is_subclass_of($extension, Extension::class)) {
 					throw new ConfigurationException("Extension `$extension` is not an extension, a rule or a preset.");

@@ -7,10 +7,10 @@
 
 namespace DressCode\Config;
 
-use DressCode\{ConfigurationException, Preset, PresetInfo, Presets, Rule, RuleInfo, Rules};
+use DressCode\{BuiltinExtension, ConfigurationException, Preset, PresetInfo, Rule, RuleInfo};
 use DressCode\Interop\Translator;
 use Nette\Utils\Helpers;
-use function strlen;
+use function is_string, strlen;
 
 
 /**
@@ -21,222 +21,6 @@ use function strlen;
 final class RuleRegistry
 {
 	private const Vendor = 'dresscode/';
-
-	private const BuiltinRuleUrl = 'https://dresscode.run/rules/{slug}';
-
-	private const BuiltinRules = [
-		Rules\Expressions\OffsetBracketSpacingRule::class,
-		Rules\Arrays\ArraySpacingRule::class,
-		Rules\Arrays\ShortArraySyntaxRule::class,
-		Rules\Arrays\TrailingCommaRule::class,
-		Rules\Arrays\MultiLineArrayRule::class,
-		Rules\Arrays\NoManualListTestRule::class,
-		Rules\Arrays\NoNullArrayKeyRule::class,
-		Rules\Whitespace\AttributeSpacingRule::class,
-		Rules\Expressions\UselessAttributeParenthesesRule::class,
-		Rules\Whitespace\AttributePositionRule::class,
-		Rules\Whitespace\BracesPositionRule::class,
-		Rules\ControlFlow\ControlStructureBracesRule::class,
-		Rules\ControlFlow\UselessBracesRule::class,
-		Rules\Classes\ClassDefinitionSpacingRule::class,
-		Rules\Namespaces\ClassReferenceNameCasingRule::class,
-		Rules\Classes\FinalInternalClassRule::class,
-		Rules\Classes\ModernClassNameReferenceRule::class,
-		Rules\Classes\ClassNameReferenceForStringLiteralRule::class,
-		Rules\Classes\NameCasingRule::class,
-		Rules\Upgrading\NoDeprecatedClassesRule::class,
-		Rules\Upgrading\NoDeprecatedMembersRule::class,
-		Rules\Upgrading\ReplacedClassesRule::class,
-		Rules\Upgrading\ReplacedMembersRule::class,
-		Rules\Upgrading\ReplacedCallsRule::class,
-		Rules\Upgrading\ReplacedFunctionsRule::class,
-		Rules\Upgrading\ForbiddenMembersRule::class,
-		Rules\Upgrading\ForbiddenClassesRule::class,
-		Rules\Upgrading\ForbiddenFunctionsRule::class,
-		Rules\Upgrading\AttributeForAnnotationRule::class,
-		Rules\Upgrading\AttributeForMemberRule::class,
-		Rules\Expressions\UselessParenthesesAroundNewRule::class,
-		Rules\Expressions\NewArgumentParenthesesRule::class,
-		Rules\Classes\UselessNullPropertyInitializationRule::class,
-		Rules\Classes\KindInClassNameRule::class,
-		Rules\Classes\OrderedMembersRule::class,
-		Rules\Classes\PromotedPropertyForAssignedParameterRule::class,
-		Rules\Classes\ReadonlyForUnwrittenPropertyRule::class,
-		Rules\Classes\ReadonlyClassForReadonlyMembersRule::class,
-		Rules\Classes\ReadonlyForAnnotationRule::class,
-		Rules\Classes\ClassConstantFetchForConstantCallRule::class,
-		Rules\Classes\SelfForCurrentClassRule::class,
-		Rules\Classes\StringableRequiredRule::class,
-		Rules\Classes\StaticSetStateRequiredRule::class,
-		Rules\Classes\StaticForPrivateMethodWithoutThisRule::class,
-		Rules\Classes\NoNullDebugInfoReturnRule::class,
-		Rules\Classes\NoSleepAndWakeupRule::class,
-		Rules\Classes\NoFinalParentRule::class,
-		Rules\Classes\NoUnimplementedAbstractMethodRule::class,
-		Rules\Classes\OverrideAttributeRequiredRule::class,
-		Rules\Classes\OverrideSignatureRule::class,
-		Rules\Classes\SingleMemberPerDeclarationRule::class,
-		Rules\Classes\SingleMemberPerLineRule::class,
-		Rules\Classes\UselessModifierRule::class,
-		Rules\Classes\UselessOverridingMethodRule::class,
-		Rules\Classes\VisibilityRequiredRule::class,
-		Rules\Comments\CommentSpacingRule::class,
-		Rules\Comments\NoEmptyCommentRule::class,
-		Rules\Comments\NoHashCommentRule::class,
-		Rules\ControlFlow\NoUnreachableCatchRule::class,
-		Rules\ControlFlow\EarlyExitRule::class,
-		Rules\ControlFlow\ElseifKeywordRule::class,
-		Rules\ControlFlow\TernaryForSimpleBranchRule::class,
-		Rules\ControlFlow\MatchForSimpleSwitchRule::class,
-		Rules\ControlFlow\ArrayFunctionForForeachRule::class,
-		Rules\ControlFlow\MultiLineConditionRule::class,
-		Rules\ControlFlow\NoAlternativeSyntaxRule::class,
-		Rules\ControlFlow\FallThroughCommentRule::class,
-		Rules\ControlFlow\NoEmptyStatementRule::class,
-		Rules\ControlFlow\UselessConstructParenthesesRule::class,
-		Rules\ControlFlow\UselessElseRule::class,
-		Rules\ControlFlow\UselessReturnRule::class,
-		Rules\ControlFlow\UselessCatchVariableRule::class,
-		Rules\ControlFlow\ReferenceThrowableOnlyRule::class,
-		Rules\ControlFlow\SwitchCaseColonRule::class,
-		Rules\ControlFlow\SwitchCaseSpacingRule::class,
-		Rules\ControlFlow\NoContinueInSwitchRule::class,
-		Rules\ControlFlow\UselessIfConditionWithReturnRule::class,
-		Rules\Files\NoBomRule::class,
-		Rules\Files\NoInvisibleCharactersRule::class,
-		Rules\Files\FullOpeningTagRule::class,
-		Rules\Files\LineEndingRule::class,
-		Rules\Files\LineLengthRule::class,
-		Rules\Files\NoClosingTagRule::class,
-		Rules\Files\StrictTypesRequiredRule::class,
-		Rules\Functions\ArrowFunctionRule::class,
-		Rules\Functions\CommentedOutFunctionRule::class,
-		Rules\Functions\FirstClassCallableNotationRule::class,
-		Rules\Functions\MultiLineCallRule::class,
-		Rules\Functions\NoDirnameOfFileRule::class,
-		Rules\Functions\MultiLineSignatureRule::class,
-		Rules\Functions\NamedArgumentSpacingRule::class,
-		Rules\Functions\NativeFunctionCasingRule::class,
-		Rules\Functions\NoAliasFunctionsRule::class,
-		Rules\Functions\NoDeprecatedFunctionsRule::class,
-		Rules\Functions\NoDirectInvokeCallRule::class,
-		Rules\Functions\NoCallUserFuncRule::class,
-		Rules\Functions\NoInnerFunctionsRule::class,
-		Rules\Functions\FunctionNameSpacingRule::class,
-		Rules\Functions\UselessParameterDefaultRule::class,
-		Rules\Functions\OptimizedCallNotationRule::class,
-		Rules\Functions\NoSettypeRule::class,
-		Rules\Functions\NoManualSubstringTestRule::class,
-		Rules\Functions\NoManualEmptyStringTestRule::class,
-		Rules\Functions\JsonValidateForDecodeTestRule::class,
-		Rules\Functions\ArrayFirstForEdgeElementRule::class,
-		Rules\Functions\UselessSetAccessibleRule::class,
-		Rules\Functions\UselessNoOpCallRule::class,
-		Rules\Functions\MbConvertEncodingForUtf8FunctionRule::class,
-		Rules\Functions\SensitiveParameterRequiredRule::class,
-		Rules\Functions\RoundingModeNotationRule::class,
-		Rules\Functions\CsvEscapeArgumentRequiredRule::class,
-		Rules\Functions\NoDeprecatedArgumentsRule::class,
-		Rules\Functions\ClampForMinMaxRule::class,
-		Rules\Functions\GetDebugTypeForTypeTernaryRule::class,
-		Rules\Functions\StaticClosureRule::class,
-		Rules\Functions\StrictCallRule::class,
-		Rules\Namespaces\ImportNotationRule::class,
-		Rules\Namespaces\GroupImportRule::class,
-		Rules\Namespaces\MultiLineImportRule::class,
-		Rules\Namespaces\NoLeadingBackslashInImportRule::class,
-		Rules\Namespaces\NoUnlistedNamespacedDeclarationRule::class,
-		Rules\Namespaces\OrderedImportsRule::class,
-		Rules\Namespaces\NameNotationRule::class,
-		Rules\Namespaces\NameFallbackRule::class,
-		Rules\Namespaces\UnusedImportsRule::class,
-		Rules\Namespaces\UseFromSameNamespaceRule::class,
-		Rules\Namespaces\UselessAliasRule::class,
-		Rules\Literals\ConstantCasingRule::class,
-		Rules\Literals\KeywordCasingRule::class,
-		Rules\Namespaces\NoLeadingBackslashInGlobalNamespaceRule::class,
-		Rules\Literals\NumericLiteralSeparatorRule::class,
-		Rules\Literals\OctalNotationRule::class,
-		Rules\Expressions\BinaryOperatorSpacingRule::class,
-		Rules\Functions\NoConversionFunctionsRule::class,
-		Rules\Expressions\CastSpacingRule::class,
-		Rules\Expressions\CastCanonicalTypeRule::class,
-		Rules\Expressions\CombinedAssignmentOperatorRule::class,
-		Rules\Expressions\ConcatSpacingRule::class,
-		Rules\Expressions\DoubleColonSpacingRule::class,
-		Rules\Expressions\ExplicitOperatorPrecedenceRule::class,
-		Rules\Functions\NoIsNullRule::class,
-		Rules\Expressions\NoShortBoolCastRule::class,
-		Rules\Expressions\YodaRule::class,
-		Rules\Expressions\NotEqualsOperatorRule::class,
-		Rules\Expressions\NullCoalescingOperatorRule::class,
-		Rules\Expressions\NullsafeOperatorRule::class,
-		Rules\Expressions\PipeOperatorRule::class,
-		Rules\Expressions\ObjectOperatorSpacingRule::class,
-		Rules\Expressions\MultiLineChainRule::class,
-		Rules\Expressions\ReferenceSpacingRule::class,
-		Rules\Expressions\SpreadOperatorSpacingRule::class,
-		Rules\Expressions\IncrementOperatorRule::class,
-		Rules\Expressions\StrictComparisonRule::class,
-		Rules\Expressions\SymbolicLogicalOperatorsRule::class,
-		Rules\Expressions\TernaryOperatorSpacingRule::class,
-		Rules\Expressions\MultiLineTernaryRule::class,
-		Rules\Expressions\ShortTernaryOperatorRule::class,
-		Rules\Expressions\UnaryOperatorSpacingRule::class,
-		Rules\Expressions\UselessTernaryOperatorRule::class,
-		Rules\PhpDoc\AnnotationNameRule::class,
-		Rules\PhpDoc\AttributeAfterPhpDocRule::class,
-		Rules\PhpDoc\DeprecatedAttributeForAnnotationRule::class,
-		Rules\PhpDoc\PhpDocAlignmentRule::class,
-		Rules\PhpDoc\ForbiddenAnnotationsRule::class,
-		Rules\PhpDoc\ForbiddenPhpDocLinesRule::class,
-		Rules\PhpDoc\NoConsecutivePhpDocRule::class,
-		Rules\PhpDoc\NoDuplicateReturnAnnotationRule::class,
-		Rules\PhpDoc\NoEmptyPhpDocRule::class,
-		Rules\PhpDoc\NoUnknownParamAnnotationRule::class,
-		Rules\PhpDoc\PhpDocNullLastRule::class,
-		Rules\PhpDoc\PropertyPhpDocSingleLineRule::class,
-		Rules\PhpDoc\PhpDocCanonicalTypesRule::class,
-		Rules\PhpDoc\PhpDocTrimRule::class,
-		Rules\PhpDoc\PropertyPhpDocRequiredRule::class,
-		Rules\PhpDoc\PropertyVarAnnotationRule::class,
-		Rules\PhpDoc\PromotedPropertyAnnotationPositionRule::class,
-		Rules\PhpDoc\NoEmptyVarAnnotationRule::class,
-		Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
-		Rules\PhpDoc\UselessFunctionPhpDocRule::class,
-		Rules\PhpDoc\UselessInheritDocRule::class,
-		Rules\Literals\NoBacktickOperatorRule::class,
-		Rules\Literals\ComplexStringVariableRule::class,
-		Rules\Literals\NoImplicitBackslashRule::class,
-		Rules\Literals\HeredocIndentationRule::class,
-		Rules\Literals\NowdocWithoutInterpolationRule::class,
-		Rules\Literals\MagicConstantCasingRule::class,
-		Rules\Literals\NoTrailingWhitespaceInStringRule::class,
-		Rules\Literals\UselessStringConcatRule::class,
-		Rules\Literals\StringQuotesRule::class,
-		Rules\PhpDoc\ExplicitAssertionRule::class,
-		Rules\Types\NullableTypeForDefaultNullRule::class,
-		Rules\Types\TypeHintRequiredRule::class,
-		Rules\Types\NeverForThrowingFunctionRule::class,
-		Rules\Types\TypeHintSpacingRule::class,
-		Rules\Types\UnionTypeFormatRule::class,
-		Rules\Variables\CombinedIssetsRule::class,
-		Rules\Variables\CombinedUnsetsRule::class,
-		Rules\Variables\NoDuplicateAssignmentRule::class,
-		Rules\Variables\NoGlobalKeywordRule::class,
-		Rules\Classes\NoThisInStaticContextRule::class,
-		Rules\Whitespace\CommaSpacingRule::class,
-		Rules\Files\DeclareSpacingRule::class,
-		Rules\Whitespace\BlankLinesRule::class,
-		Rules\Whitespace\SemicolonSpacingRule::class,
-		Rules\Whitespace\ParenthesesSpacingRule::class,
-		Rules\Files\NoTrailingWhitespaceRule::class,
-		Rules\ControlFlow\SingleStatementPerLineRule::class,
-		Rules\Files\EofNewlineRule::class,
-		Rules\Whitespace\ConstructSpacingRule::class,
-		Rules\Whitespace\IndentationRule::class,
-		Rules\Whitespace\SingleLevelIndentationRule::class,
-	];
 
 	/** @var array<string, class-string<Rule>>  name => class */
 	private array $rules = [];
@@ -251,15 +35,30 @@ final class RuleRegistry
 	public function __construct(
 		private readonly Translator $translator = new Translator,
 	) {
-		$this->registerPreset(Presets\Per::class);
-		$this->registerPreset(Presets\Psr12::class);
-		$this->registerPreset(Presets\Nette::class);
-		$this->registerPreset(Presets\Symfony::class);
-		$this->registerPreset(Presets\NetteStyle::class);
-		$this->registerPreset(Presets\SymfonyConfigurator::class);
-		foreach (self::BuiltinRules as $class) {
-			$this->registerRule($class, self::BuiltinRuleUrl);
+		$builtin = (new BuiltinExtension)->getConfig();
+		foreach ($builtin->extensions as $class) {
+			if (is_string($class)) {
+				$this->registerClass($class, $builtin->ruleUrl);
+			}
 		}
+	}
+
+
+	/**
+	 * Makes a rule or a preset known by its name; false for a class that is neither.
+	 * @throws ConfigurationException  when the name belongs to another class
+	 */
+	public function registerClass(string $class, ?string $ruleUrl = null): bool
+	{
+		if (is_subclass_of($class, Rule::class)) {
+			$this->registerRule($class, $ruleUrl);
+			return true;
+		} elseif (is_subclass_of($class, Preset::class)) {
+			$this->registerPreset($class);
+			return true;
+		}
+
+		return false;
 	}
 
 

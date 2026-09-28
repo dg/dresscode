@@ -25,6 +25,7 @@ Internal:
 
 - `Engine\*`, `Interop\*`, `Config\*`, `Console\*`: the engine, the translation of foreign configurations and the rest of the configuration and the console
 - `Runner`: its instance only the run builds
+- `BuiltinExtension`: the built-in presets and rules, which every `Config\RuleRegistry` knows from the start
 - `Helpers`
 - `Rules\NodeHelpers`, `Rules\BlankLines`, `Rules\Namespaces\NameReferences`, `Rules\PhpDoc\AnnotationToAttribute`: what the rules share among themselves
 - `Rules\Upgrading\AnnotationArguments`, `Rules\Upgrading\CallTemplate`, `Rules\Upgrading\ClassReplacement`, `Rules\Upgrading\MagicCall`, `Rules\Upgrading\MemberTarget`, `Rules\Upgrading\Rewrite`: the helpers of the rules fed by maps that are not the grammar of the maps
