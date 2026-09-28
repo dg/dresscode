@@ -351,7 +351,7 @@ final class Application
 			? $this->createReporter($args, $this->err, $this->stderr, $root, $format, $registry)
 			: $this->createReporter($args, $this->out, $this->stdout, $root, $format, $registry);
 		$code = (string) stream_get_contents($this->stdin);
-		$reporter->start(new RunInfo($root, $fix, 1));
+		$reporter->start(new RunInfo($root, $fix, 1, $runner->typeAnalysis, $runner->namespacesListed));
 		$result = $runner->processPath($this->resolvePath($path), fix: false, code: $code);
 		$reporter->reportFile($result);
 		$run = new RunResult([FileSummary::of($result)], $fix, maxWarnings: $maxWarnings);

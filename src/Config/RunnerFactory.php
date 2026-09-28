@@ -9,7 +9,7 @@ namespace DressCode\Config;
 
 use Composer\InstalledVersions;
 use DressCode\{Analyses, Config, ConfigurationException, Override, Plugin, PluginManifest, Profile, Rule};
-use DressCode\Engine\{Baseline, FileProcessor, FileProcessors, Helpers, ReportPolicy, ResultCache, Runner};
+use DressCode\Engine\{Baseline, FileProcessor, FileProcessors, Helpers, ReportPolicy, ResultCache, Runner, TypeAnalysisStatus};
 use Nette\Utils\{FileSystem, Finder};
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\FileNode;
@@ -175,6 +175,12 @@ final readonly class RunnerFactory
 			$resultCache,
 			narrowed: (bool) $resolution->only,
 			warmUp: isset($phpstan) ? $phpstan->warmUp(...) : null,
+			typeAnalysis: match (true) {
+				$resolved->typeAnalysis !== null => TypeAnalysisStatus::Enabled,
+				$this->isPhpStanInstalled() => TypeAnalysisStatus::Available,
+				default => TypeAnalysisStatus::Unavailable,
+			},
+			namespacesListed: $resolved->namespacedFunctions !== [] || $resolved->namespacedConstants !== [],
 		);
 	}
 

@@ -19,6 +19,9 @@ final readonly class RunInfo
 		public string $root,
 		public bool $fix,
 		public int $fileCount,
+		public TypeAnalysisStatus $typeAnalysis = TypeAnalysisStatus::Unavailable,
+		/** the configuration lists functions or constants the namespaces declare */
+		public bool $namespacesListed = false,
 	) {
 	}
 }

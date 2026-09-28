@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\Engine\{FileSummary, RunInfo, RunResult};
+use DressCode\Engine\{FileSummary, RunInfo, RunResult, TypeAnalysisStatus};
 use DressCode\{FileResult, Reporter, Risk, Severity, Violation};
 use DressCode\Reporters\{CheckstyleReporter, ConsoleReporter, GithubReporter, JsonReporter};
 use Nette\CommandLine\{ColorDepth, Console};
@@ -110,6 +110,48 @@ test('console: what may go wrong at a risky violation stands below it', function
 		              Risky because `$a` may be an object.
 
 		XX, normalize((string) stream_get_contents($stream)));
+});
+
+
+test('console: the refused risky fixes are counted by their risk, with the advice the run allows', function () {
+	$refused = fn(string $fingerprint, Risk $risk) => new Violation('test/r', 'R.', 2, 1, Severity::Warning, fingerprint: $fingerprint, risk: $risk, refused: true);
+	$result = new FileResult('src/a.php', "<?php\n", "<?php\n", [], remaining: [
+		$refused('f1', Risk::TypeUnknown),
+		$refused('f2', Risk::TypeUnknown),
+		$refused('f3', Risk::NameUncertain),
+	]);
+	foreach ([
+		[
+			TypeAnalysisStatus::Available,
+			false,
+			'2 risky fixes wait, the type is unknown: set `typeAnalysis: phpstan`.',
+			'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing',
+		],
+		[
+			TypeAnalysisStatus::Enabled,
+			true,
+			'2 risky fixes wait, not even the types tell: check them by hand.',
+			'set `nameResolution: certain`',
+		],
+		[
+			TypeAnalysisStatus::Unavailable,
+			false,
+			'2 risky fixes wait, the type is unknown: check them by hand.',
+			'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing',
+		],
+	] as [$typeAnalysis, $listed, $advice, $names]) {
+		$stream = memory();
+		$reporter = new ConsoleReporter(plain($stream));
+		$reporter->start(new RunInfo('', false, 1, $typeAnalysis, $listed));
+		$reporter->finish(new RunResult([FileSummary::of($result)], false));
+		rewind($stream);
+		Assert::match(<<<XX
+			$advice See https://dresscode.run/types#enable
+			1 risky fix waits, a name may reach a function of the namespace: $names. See https://dresscode.run/namespaces#name-resolution
+
+			%A%
+			XX, (string) stream_get_contents($stream));
+	}
 });
 
 

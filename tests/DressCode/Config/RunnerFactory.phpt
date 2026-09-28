@@ -3,7 +3,7 @@
 use Composer\InstalledVersions;
 use DressCode\{Config, ConfigurationException, Decision, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, RuleContext, RuleInfo, Stage};
 use DressCode\Config\{Composer, PhpVersionSource, RunnerFactory};
-use DressCode\Engine\Runner;
+use DressCode\Engine\{Runner, TypeAnalysisStatus};
 use DressCode\Reporters\NullReporter;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
@@ -369,6 +369,7 @@ test('types without PHPStan beside DressCode are a warning, and the run goes wit
 		['The configuration sets `typeAnalysis: phpstan`, but `phpstan/phpstan` is not installed beside DressCode, so the run goes without the types of the code.' => 'types#enable'],
 		$resolution->warnings,
 	);
+	Assert::same(TypeAnalysisStatus::Unavailable, $factory->createRunner($resolution, cache: false)->typeAnalysis);
 
 	// a decision the project makes cannot be left out, so it is refused
 	Assert::exception(

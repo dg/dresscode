@@ -39,6 +39,9 @@ final readonly class Runner
 		private bool $narrowed = false,
 		/** @var ?\Closure(): void  fills the cache the workers share, which those started together would all write at once */
 		public ?\Closure $warmUp = null,
+		public TypeAnalysisStatus $typeAnalysis = TypeAnalysisStatus::Unavailable,
+		/** the configuration lists functions or constants the namespaces declare */
+		public bool $namespacesListed = false,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
 		$this->processors = $processors instanceof FileProcessor ? FileProcessors::of($processors) : $processors;
@@ -62,7 +65,7 @@ final readonly class Runner
 		?int $maxWarnings = null,
 	): RunResult
 	{
-		$reporter->start(new RunInfo($this->root, $fix, count($files)));
+		$reporter->start(new RunInfo($this->root, $fix, count($files), $this->typeAnalysis, $this->namespacesListed));
 		/** @var array<string, FileResult|string> $ready the finished files, a cached one by the hash of its content */
 		$ready = [];
 		$order = $pending = $sizes = [];
