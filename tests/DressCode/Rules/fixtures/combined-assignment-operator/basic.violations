@@ -1,12 +1,12 @@
-2: The assignment must be written `+=` instead of repeating its target
-3: The assignment must be written `.=` instead of repeating its target
-4: The assignment must be written `??=` instead of repeating its target
-7: The assignment must be written `*=` instead of repeating its target
-12: The assignment must be written `??=` instead of repeating its target
-	risky TypeUnknown: the property may be reached through `__get`, `__set` or a hook
-13: The assignment must be written `.=` instead of repeating its target
-	risky TypeUnknown: the property may be reached through `__get`, `__set` or a hook
-14: The assignment must be written `+=` instead of repeating its target
-	risky TypeUnknown: the property may be reached through `__get`, `__set` or a hook
+3: The assignment must be written `+=` instead of repeating its target
+4: The assignment must be written `.=` instead of repeating its target
+5: The assignment must be written `??=` instead of repeating its target
+8: The assignment must be written `*=` instead of repeating its target
+13: The assignment must be written `??=` instead of repeating its target
+	risky TypeUnknown: the property may be readonly, hooked or magic, and `??=` does not write a value that is not null
+14: The assignment must be written `.=` instead of repeating its target
+	risky BehaviorChanges: the right side may change the property before `.=` reads it
 15: The assignment must be written `+=` instead of repeating its target
-16: The assignment must be written `.=` instead of repeating its target
+	risky BehaviorChanges: the right side may change the property before `+=` reads it
+16: The assignment must be written `+=` instead of repeating its target
+17: The assignment must be written `.=` instead of repeating its target

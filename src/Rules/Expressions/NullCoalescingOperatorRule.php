@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\{Node, Token, TokenKind};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, BinaryOpNode, IssetNode, PropertyFetchNode, TernaryNode};
 use PhpSyntax\Nodes\ExpressionNode;
@@ -69,13 +70,14 @@ final class NullCoalescingOperatorRule extends NodeRule
 			return;
 		}
 
-		$risky = $cond instanceof IssetNode
-			? $subject instanceof PropertyFetchNode
-			: self::canAskObject($subject);
+		$asked = $cond instanceof IssetNode
+			? ($subject instanceof PropertyFetchNode ? [$subject] : [])
+			: self::findAskable($subject);
+		$types = $context->findAnalysis(Types::class);
 		if (!$context->report(
 			$node->question,
 			'A ternary testing for null must be written with `??`',
-			risky: $risky ? Risk::TypeUnknown : null,
+			risky: array_all($asked, fn(ExpressionNode $read) => self::isPlainRead($read, $types)) ? null : Risk::TypeUnknown,
 			because: '`??` may ask an object through its magic methods, which the test did not',
 		)) {
 			return;
@@ -85,9 +87,26 @@ final class NullCoalescingOperatorRule extends NodeRule
 	}
 
 
-	/** Whether the expression reads a property or an offset, which an object may answer through its methods. */
-	private static function canAskObject(ExpressionNode $expr): bool
+	/**
+	 * The reads of a property or an offset in the expression, which an object may answer through its methods.
+	 * @return list<ExpressionNode>
+	 */
+	private static function findAskable(ExpressionNode $expr): array
 	{
-		return array_any([PropertyFetchNode::class, ArrayAccessNode::class], fn(string $class) => $expr instanceof $class || $expr->find($class) !== []);
+		return array_values(array_filter(
+			[$expr, ...$expr->find(ExpressionNode::class)],
+			fn(ExpressionNode $node) => $node instanceof PropertyFetchNode || $node instanceof ArrayAccessNode,
+		));
+	}
+
+
+	/** Whether the types tell that the read goes straight to a value: a plain property, or an offset of an array. */
+	private static function isPlainRead(ExpressionNode $read, ?Types $types): bool
+	{
+		return match (true) {
+			$read instanceof PropertyFetchNode => $types?->isPlainProperty($read) === Tristate::Yes,
+			$read instanceof ArrayAccessNode => $types?->isOfType($read->expression, 'array') === Tristate::Yes,
+			default => false,
+		};
 	}
 }

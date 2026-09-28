@@ -596,6 +596,42 @@ final class Types implements PassAnalysis
 	}
 
 
+	/**
+	 * Whether the property the access reaches holds a plain value its reads and writes go straight to: declared,
+	 * neither readonly, virtual nor hooked, and one no child can hook, being private or final or of a final class.
+	 * No for a property reached through `__get` and `__set` and for a readonly, virtual or hooked one; maybe where
+	 * a child may hook it, and for an access the types cannot tell or the pass began without.
+	 */
+	public function isPlainProperty(Node $access): Tristate
+	{
+		$callee = $this->findCallee($access);
+		if ($callee === null) {
+			// a property no class declares is magic where every class of the receiver answers through __get or __set
+			$classes = $this->findAccess($access)->classes ?? [];
+			return $classes !== [] && array_all($classes, fn(string $name) => ($class = $this->phpstan->findClass($name)) !== null
+				&& ($class->hasNativeMethod('__get') || $class->hasNativeMethod('__set')))
+				? Tristate::No
+				: Tristate::Maybe;
+		}
+
+		$class = $callee->kind === MemberKind::Property || $callee->kind === MemberKind::StaticProperty
+			? $this->phpstan->findClass($callee->declaringClass)
+			: null;
+		if ($class === null) {
+			return Tristate::Maybe;
+		} elseif (!$class->hasNativeProperty($callee->name)) {
+			return Tristate::No;
+		}
+
+		$property = $class->getNativeProperty($callee->name);
+		return match (true) {
+			$property->isReadOnly(), $property->isVirtual()->yes(), $property->hasHook('get'), $property->hasHook('set') => Tristate::No,
+			$property->isPrivate(), $property->isFinal()->yes(), $class->isFinalByKeyword() => Tristate::Yes,
+			default => Tristate::Maybe,
+		};
+	}
+
+
 	/** Whether the class declares the property, itself or through an ancestor; a magic one is not declared. */
 	public function hasProperty(string $class, string $property): bool
 	{

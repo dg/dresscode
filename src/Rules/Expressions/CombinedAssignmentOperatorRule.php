@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{Group, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\{Node, Parser, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, Expression, ExpressionNode};
 
@@ -18,7 +19,8 @@ use PhpSyntax\Nodes\{AnonymousClassNode, Expression, ExpressionNode};
  * because on a string offset the combined operator throws an Error, and without the types a string is
  * not told from an array. A property is a risky target: `??=` writes nothing where the value is not null,
  * so a readonly property, `__set` or a hook is not reached, and the combined operator reads the property
- * only after a right side that may have changed it. A variable reads the same either way.
+ * only after a right side that may have changed it. A variable reads the same either way. Without the types,
+ * a plain property, which `??=` may skip writing, is not told from another.
  */
 #[RuleInfo(
 	'dresscode/combined-assignment-operator',
@@ -58,11 +60,21 @@ final class CombinedAssignmentOperatorRule extends NodeRule
 		}
 
 		$property = $var instanceof Expression\PropertyFetchNode || $var instanceof Expression\StaticPropertyFetchNode;
+		[$risk, $because] = match (true) {
+			!$property => [null, null],
+			$combined === '??=' => match ($context->findAnalysis(Types::class)?->isPlainProperty($var) ?? Tristate::Maybe) {
+				Tristate::Yes => [null, null],
+				Tristate::No => [Risk::BehaviorChanges, '`??=` does not write a value that is not null, which the property notices'],
+				Tristate::Maybe => [Risk::TypeUnknown, 'the property may be readonly, hooked or magic, and `??=` does not write a value that is not null'],
+			},
+			self::mayRunCode($binary->right) => [Risk::BehaviorChanges, "the right side may change the property before `$combined` reads it"],
+			default => [null, null],
+		};
 		if (!$context->report(
 			$node,
 			"The assignment must be written `$combined` instead of repeating its target",
-			risky: $property && ($combined === '??=' || self::mayRunCode($binary->right)) ? Risk::TypeUnknown : null,
-			because: 'the property may be reached through `__get`, `__set` or a hook',
+			risky: $risk,
+			because: $because,
 		)) {
 			return;
 		}
