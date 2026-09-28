@@ -78,8 +78,8 @@ final readonly class CommandContext
 
 
 	/**
-	 * The layer the command line lays over the configuration: the presets of `--use` and the decisions of `--set`; null
-	 * where it says neither.
+	 * The layer the command line lays over the configuration: the presets of `--use`, the decisions of `--set` and
+	 * what `--fix-risky` allows; null where it says none of them.
 	 * @throws UsageException
 	 */
 	public function readCommandLine(ParseResult $args): ?Config
@@ -96,8 +96,10 @@ final readonly class CommandContext
 			$decisions = Helpers::placeValue($decisions, $path, Neon::decode($value));
 		}
 
+		// the decisions, rules and presets whose risky fixes the run allows; a bare `--fix-risky` allows every one elsewhere
+		$fixRisky = array_values(array_filter((array) ($args['--fix-risky'] ?? []), is_string(...)));
 		try {
-			return $use || $decisions ? new Config(use: $use, decisions: $decisions) : null;
+			return $use || $fixRisky || $decisions ? new Config(use: $use, fixRisky: $fixRisky, decisions: $decisions) : null;
 		} catch (\InvalidArgumentException $e) {
 			throw new UsageException("Option `--use`: {$e->getMessage()}", $args->command, $e);
 		}

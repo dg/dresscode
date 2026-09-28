@@ -28,8 +28,14 @@ final readonly class CheckOptions
 			normalizer: [self::class, 'parseMaxWarnings'],
 		)]
 		public ?int $maxWarnings = null,
-		#[Cli\Flag('Also make the fixes that may change what the code does, beyond those `fixRisky` allows; they are reported either way')]
-		public ?bool $fixRisky = null,
+		/** @var list<(string | true)> */
+		#[Cli\Option(
+			'Also make the fixes that may change what the code does, of every rule, or with `=name` of that decision, rule or preset, beyond those `fixRisky` allows; they are reported either way',
+			valueName: 'name',
+			valueOptional: true,
+			repeatable: true,
+		)]
+		public array $fixRisky = [],
 		/** @var list<string> */
 		#[Cli\Option(
 			'Only these: a decision, a section, a rule or a preset, narrowed to what the configuration runs; the values stay as the configuration resolves them',
