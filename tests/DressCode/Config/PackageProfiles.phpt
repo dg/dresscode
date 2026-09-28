@@ -2,6 +2,8 @@
 
 use DressCode\{Config, ConfigurationException, Group};
 use DressCode\Config\{PackageProfiles, ProjectPackages, RunnerFactory};
+use DressCode\Console\ConfigPrinter;
+use Nette\CommandLine\Console;
 use Nette\Utils\FileSystem;
 use Tester\Assert;
 
@@ -202,7 +204,7 @@ test('a profile that turns a rule on, names an unknown key or is missing is an e
 		"package: acme/lib\ngroup: deprecations\n\nsince 1.0:\n\treplaced-classes: true\n"
 			=> 'Upgrading file `upgrading.neon` of `acme/lib`: The rule `replaced-classes` in `since 1.0` must be a map of options; a package turns no rule on.',
 		"package: acme/lib\ngroup: deprecations\n\nrules:\n\treplaced-classes: []\n"
-			=> "Upgrading file `upgrading.neon` of `acme/lib`: Unexpected key `rules`; the file holds `package`, `group` and sections `since <version>`.",
+			=> 'Upgrading file `upgrading.neon` of `acme/lib`: Unexpected key `rules`; the file holds `package`, `group` and sections `since <version>`.',
 		"since 1.0:\n\treplaced-classes: []\n"
 			=> 'Upgrading file `upgrading.neon` of `acme/lib`: The key `package` must name the package the sections are versions of, as `vendor/name`.',
 		"package: acme/lib\ngroup: deprecations\n\nsince 1.0: [a, b]\n"
@@ -286,4 +288,22 @@ test('what a package says is heard of a rule the project runs, and never turns o
 	$factory->createRunner(new Config, $root, cache: false);
 	$rules = array_column($factory->getResolvedConfig()->rules, null, 'name');
 	Assert::same('no preset or rule of the configuration mentions it', $rules['dresscode/replaced-classes']->inactive);
+});
+
+
+test('dresscode config lists the upgrading files with the sections the version of the package has not reached yet', function () {
+	$root = project(
+		'config',
+		['acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']]],
+		['vendor/acme/lib/upgrading.neon' => "package: acme/lib\ngroup: deprecations\n\nsince 3.0:\n\treplaced-classes: {}\n\nsince 3.3:\n\treplaced-classes: {}\n\nsince 4.0:\n\treplaced-classes: {}\n"],
+	);
+
+	$factory = new RunnerFactory;
+	$factory->createRunner(new Config, $root, cache: false);
+	$printer = new ConfigPrinter($factory->getResolvedConfig(), $factory->getPackages());
+	Assert::match('%A%Packages   1 upgrading file%A%      acme/lib 3.2 %a%upgrading.neon of acme/lib, upgrading further to 3.3, 4.0%A%', $printer->print(new Console));
+	Assert::same(
+		[['source' => 'upgrading.neon of acme/lib', 'package' => 'acme/lib', 'version' => '3.2', 'unreached' => ['3.3', '4.0']]],
+		json_decode($printer->printJson(), associative: true)['packages'],
+	);
 });

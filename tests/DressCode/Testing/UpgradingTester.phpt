@@ -70,7 +70,7 @@ test('what the rules refuse is said with the rule, in whatever section it stands
 		check("package: acme/lib\ngroup: deprecations\n\nsince 3.0:\n\treplaced-things:\n\t\tA: B\n"),
 	);
 	Assert::same(
-		["Upgrading file `lib.neon`: Unexpected key `rules`; the file holds `package`, `group` and sections `since <version>`."],
+		['Upgrading file `lib.neon`: Unexpected key `rules`; the file holds `package`, `group` and sections `since <version>`.'],
 		check("package: acme/lib\ngroup: deprecations\n\nrules: []\n"),
 	);
 	Assert::match('Upgrading file `lib.neon`: The package it is about is not installed in %a%', check("package: acme/other\ngroup: deprecations\n\nsince 1.0:\n\treplaced-classes: []\n")[0]);
@@ -166,8 +166,8 @@ test('a sample reads its classes from its own code, not from those other samples
 		group: deprecations
 
 		since 3.0:
-			replaced-members:
-				Acme\Lib\Control::$limit: $max
+			forbidden-members:
+				Acme\Lib\Control::$limit: there is no replacement
 		XX);
 	$implementing = <<<'XX'
 		<?php
@@ -196,7 +196,7 @@ test('a sample reads its classes from its own code, not from those other samples
 			}
 		}
 		XX;
-	$run = fn(string $code, string $name) => UpgradingTester::runSample($code, $root, ['replaced-members'], $name)->violations;
+	$run = fn(string $code, string $name) => UpgradingTester::runSample($code, $root, ['forbidden-members'], $name)->violations;
 
 	// the class of the sample implements nothing, whichever sample ran before
 	$run($implementing, 'a');
