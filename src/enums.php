@@ -44,6 +44,19 @@ enum Risk: string
 
 	/** a human: changing what the code does is what the fix is for, or it depends on code the run does not see */
 	case BehaviorChanges = 'behaviorChanges';
+
+
+	/**
+	 * Whether what the project can tell the tool, the types or a certain resolution of names, would decide that the
+	 * fix keeps what the code does, as opposed to a human.
+	 */
+	public function isResolvable(): bool
+	{
+		return match ($this) {
+			self::TypeUnknown, self::NameUncertain => true,
+			self::BehaviorChanges => false,
+		};
+	}
 }
 
 

@@ -79,17 +79,25 @@ test('what is reported differs from what a fix leaves when the check has violati
 });
 
 
-test('refused fixes are those of the remaining violations marked so, in a check as in a fix', function () use ($files) {
-	foreach ([false, true] as $fix) {
-		Assert::same(2, new RunResult($files, $fix)->countRefused());
-	}
-});
+test(
+	'refused fixes are those of the remaining violations marked so, in a check as in a fix, counted by their risk',
+	function () use ($files) {
+		foreach ([false, true] as $fix) {
+			$run = new RunResult($files, $fix);
+			Assert::same(2, $run->countRefused());
+			Assert::same(1, $run->countRefusedBy(Risk::TypeUnknown));
+			Assert::same(1, $run->countRefusedBy(Risk::NameUncertain));
+			Assert::same(0, $run->countRefusedBy(Risk::BehaviorChanges));
+		}
+	},
+);
 
 
 test('a refused violation of the code that the fix removed is not a refused fix of the run', function () {
 	$refused = makeViolation('test/type', Severity::Warning, Risk::TypeUnknown, refused: true);
 	$run = new RunResult([FileSummary::of(new FileResult('a.php', "<?php\n", "<?php\n", [$refused], remaining: []))], fix: true);
 	Assert::same(0, $run->countRefused());
+	Assert::same(0, $run->countRefusedBy(Risk::TypeUnknown));
 });
 
 

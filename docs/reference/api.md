@@ -584,6 +584,7 @@ enum Risk: string
 	case TypeUnknown = 'typeUnknown'
 	case NameUncertain = 'nameUncertain'
 	case BehaviorChanges = 'behaviorChanges'
+	public function isResolvable(): bool
 ```
 
 ## `DressCode\Rule`

@@ -7,7 +7,7 @@
 
 namespace DressCode\Engine;
 
-use DressCode\{Severity, Violation};
+use DressCode\{Risk, Severity, Violation};
 use function count;
 
 
@@ -59,6 +59,13 @@ final readonly class RunResult
 	public function countRefused(): int
 	{
 		return count($this->listRefused());
+	}
+
+
+	/** Fixes a fix leaves because the run did not allow them, of those the risk would decide. */
+	public function countRefusedBy(Risk $risk): int
+	{
+		return count(array_filter($this->listRefused(), fn(Violation $v) => $v->risk === $risk));
 	}
 
 
