@@ -14,7 +14,7 @@ use function count, is_bool, is_string, strlen;
 
 /**
  * Explains the rules that run in Markdown: what the configuration is composed of and, for every rule, what it
- * asks for, the options this project gives it and the examples chosen for it. What no rule covers is not here.
+ * asks for and the options this project gives it. What no rule covers is not here.
  * @internal
  */
 final class ExplainMarkdownPrinter
@@ -58,7 +58,7 @@ final class ExplainMarkdownPrinter
 	}
 
 
-	/** One rule: its description, the options this project gives it and its examples. */
+	/** One rule: its description and the options this project gives it. */
 	public function printRule(ResolvedRule $rule): string
 	{
 		$info = RuleInfo::of($rule->class);
@@ -76,17 +76,10 @@ final class ExplainMarkdownPrinter
 		}
 
 		if ($options) {
-			$out .= 'As this project has it: ' . implode(', ', $options) . ".\n\n";
+			$out .= 'As this project has it: ' . implode(', ', $options) . ".\n";
 		}
 
-		foreach (new ExplainPrinter($rule)->findExamples() as [$before, $after]) {
-			$out .= "```php\n" . self::strip($before) . "```\n";
-			if ($after !== null && $after !== $before) {
-				$out .= "becomes\n\n```php\n" . self::strip($after) . "```\n";
-			}
-		}
-
-		return $out;
+		return rtrim($out) . "\n";
 	}
 
 
@@ -95,13 +88,6 @@ final class ExplainMarkdownPrinter
 	{
 		$parts = explode('\\', $rule->class);
 		return $parts[count($parts) - 2];
-	}
-
-
-	private static function strip(string $code): string
-	{
-		$code = (string) preg_replace('~^<\?php\r?\n(?://[^\r\n]*\r?\n)*~', '', $code);
-		return rtrim($code, "\r\n") . "\n";
 	}
 
 

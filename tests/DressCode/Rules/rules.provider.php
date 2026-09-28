@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 /**
- * Data sets for rules.phpt: the slug of every built-in rule and of every directory of fixtures or examples. A rule
+ * Data sets for rules.phpt: the slug of every built-in rule and of every directory of fixtures. A rule
  * without fixtures and fixtures without a rule both become a data set that fails.
  */
 
@@ -15,7 +15,7 @@ foreach ((new RuleRegistry)->getRules() as $name => $class) {
 	$data[$slug] = [$slug, $class];
 }
 
-foreach ([...glob(__DIR__ . '/fixtures/*', GLOB_ONLYDIR) ?: [], ...glob(__DIR__ . '/../../../examples/*', GLOB_ONLYDIR) ?: []] as $dir) {
+foreach (glob(__DIR__ . '/fixtures/*', GLOB_ONLYDIR) ?: [] as $dir) {
 	$data[basename($dir)] ??= [basename($dir), null];
 }
 

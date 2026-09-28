@@ -468,7 +468,7 @@ Documentation
 - [dresscode.run](https://dresscode.run) - the user manual
 - [docs/reference/rules.md](docs/reference/rules.md) - every rule with its options, generated from the code
 - [docs/reference/presets.md](docs/reference/presets.md) - what each preset turns on
-- `dresscode explain <rule>` - what a rule is for, its options in your project and its examples
+- `dresscode explain <rule>` - what a rule is for and its options in your project
 
  <!---->
 

@@ -163,7 +163,7 @@ final class Application
 		$check = $program->addCommand('check', 'report violations');
 		$fix = $program->addCommand('fix', 'fix what the rules can and report the rest');
 		$config = $program->addCommand('config', 'print the configuration as the run resolves it');
-		$explain = $program->addCommand('explain', 'explain what a rule is for, its options here and its examples; every rule that runs when none is named');
+		$explain = $program->addCommand('explain', 'explain what a rule is for and its options here; every rule that runs when none is named');
 		$rules = $program->addCommand('rules', 'list the known rules');
 		$program->addCommand('init', 'take the measurements of the project\'s code and write `dresscode.neon` to fit');
 		$import = $program->addCommand('import', 'translate a php-cs-fixer or phpcs configuration');
@@ -700,7 +700,7 @@ final class Application
 
 	/**
 	 * Explains a rule, or every rule that runs when none is named: what it is for, the options it has under
-	 * this configuration, and the examples someone chose for it; with --output as Markdown into that file.
+	 * this configuration; with --output as Markdown into that file.
 	 * @throws UsageException
 	 */
 	private function runExplain(ParseResult $args): int

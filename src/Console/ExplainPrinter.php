@@ -16,9 +16,7 @@ use function count, is_bool, is_string, strval;
 
 
 /**
- * Explains one rule: what it is for, the options it has under this configuration, and the examples someone
- * chose for it. The examples are fixtures of the rule, so the test suite runs them against the rule itself
- * and an example that stopped being true cannot survive.
+ * Explains one rule: what it is for and the options it has under this configuration.
  * @internal
  */
 final class ExplainPrinter
@@ -26,49 +24,6 @@ final class ExplainPrinter
 	public function __construct(
 		private readonly ResolvedRule $rule,
 	) {
-	}
-
-
-	/**
-	 * The examples of a rule: `examples/<slug>/*.code` in the package its class comes from, with the `.expected`
-	 * beside it when it fixes, and the options its header sets, which is the configuration the example is true under.
-	 * @return list<array{string, ?string, string}>
-	 */
-	public function findExamples(): array
-	{
-		$dir = self::findExamplesDir($this->rule->name, $this->rule->class);
-		$examples = [];
-		foreach ($dir === null ? [] : (glob("$dir/*.code") ?: []) as $file) {
-			$code = (string) file_get_contents($file);
-			$expected = (string) preg_replace('~\.code$~', '.expected', $file);
-			$examples[] = [
-				$code,
-				is_file($expected) ? (string) file_get_contents($expected) : null,
-				preg_match('~^//\s*(\{.*\})~m', $code, $m) ? $m[1] : '',
-			];
-		}
-
-		return $examples;
-	}
-
-
-	/**
-	 * The directory of the examples of a rule, `examples/<slug>` beside the composer.json of the package its class
-	 * comes from, so that an extension ships the examples of its own rules; null when the class is in no package.
-	 * @param  class-string  $class
-	 */
-	public static function findExamplesDir(string $name, string $class): ?string
-	{
-		$dir = dirname((string) new \ReflectionClass($class)->getFileName());
-		while (!is_file("$dir/composer.json")) {
-			if (dirname($dir) === $dir) {
-				return null;
-			}
-
-			$dir = dirname($dir);
-		}
-
-		return "$dir/examples/" . substr($name, strpos($name, '/') + 1);
 	}
 
 
@@ -95,18 +50,7 @@ final class ExplainPrinter
 			? $console->color('gray', 'It runs in this project') . ($this->rule->getSource() === null ? '' : ', set by ' . $this->rule->getSource())
 			: $console->color('gray', 'It does not run in this project: ') . $this->rule->inactive) . ".\n";
 
-		$out .= $this->printOptions($console);
-		$examples = $this->findExamples();
-		foreach ($examples as $i => [$before, $after, $options]) {
-			$out .= "\n" . $console->color('white', 'Example' . (count($examples) > 1 ? ' ' . ($i + 1) : ''))
-				. ($options === '' ? '' : $console->color('gray', "  with $options")) . "\n";
-			$out .= self::indent(self::strip($before));
-			if ($after !== null && $after !== $before) {
-				$out .= $console->color('gray', "  becomes\n") . self::indent(self::strip($after));
-			}
-		}
-
-		return $out;
+		return $out . $this->printOptions($console);
 	}
 
 
@@ -140,19 +84,6 @@ final class ExplainPrinter
 		}
 
 		return $out;
-	}
-
-
-	/** The header of a fixture is its options, which the example shows in the caption, not in the code. */
-	private static function strip(string $code): string
-	{
-		return (string) preg_replace('~^(<\?php\r?\n)(?://[^\r\n]*\r?\n)+~', '$1', $code);
-	}
-
-
-	private static function indent(string $code): string
-	{
-		return '  ' . rtrim(str_replace("\n", "\n  ", rtrim($code, "\n"))) . "\n";
 	}
 
 

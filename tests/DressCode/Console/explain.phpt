@@ -1,11 +1,5 @@
 <?php declare(strict_types=1);
 
-/**
- * Every example of a rule is a fixture of that rule, so the suite runs it against the rule itself and an
- * example that stopped being true cannot survive; this asks the other half, that explain renders every
- * rule and that no example belongs to nothing.
- */
-
 use DressCode\Config;
 use DressCode\Config\{PresetResolver, RuleRegistry};
 use DressCode\Console\{Application, ExplainPrinter};
@@ -21,36 +15,18 @@ $root = createTempDir('explain');
 file_put_contents("$root/dresscode.neon", "presets: [dresscode/nette]\npaths: [src]\n");
 
 
-test('every example belongs to a rule and every rule can be explained', function () use ($registry, $resolved) {
+test('every rule can be explained', function () use ($registry, $resolved) {
 	$console = new Console;
 	$console->setColorDepth(ColorDepth::None);
-	$examples = 0;
-	foreach ($registry->getRules() as $name => $class) {
+	foreach (array_keys($registry->getRules()) as $name) {
 		$rule = $resolved->getRule($name);
 		Assert::type(DressCode\Config\ResolvedRule::class, $rule, $name);
-		$printer = new ExplainPrinter($rule);
-		Assert::contains($name, $printer->print($console), $name);
-		foreach ($printer->findExamples() as [$before, $after, $options]) {
-			$examples++;
-			Assert::contains('<?php', $before, $name);
-		}
-	}
-
-	Assert::true($examples > 0);
-
-	// an example in a directory no rule owns would never be run against anything
-	$slugs = [];
-	foreach (array_keys($registry->getRules()) as $name) {
-		$slugs[substr($name, strpos($name, '/') + 1)] = true;
-	}
-
-	foreach (glob(__DIR__ . '/../../../examples/*/*.code') ?: [] as $file) {
-		Assert::true(isset($slugs[basename(dirname($file))]), $file);
+		Assert::contains($name, new ExplainPrinter($rule)->print($console), $name);
 	}
 });
 
 
-test('explain writes what the rule is, what it does here, and its example', function () use ($root) {
+test('explain writes what the rule is and what it does here', function () use ($root) {
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$code = new Application($out, $err, cwd: $root)->run(['dresscode', 'explain', 'useless-return']);
@@ -59,8 +35,6 @@ test('explain writes what the rule is, what it does here, and its example', func
 	Assert::same(0, $code);
 	Assert::contains('dresscode/useless-return', $text);
 	Assert::contains('It runs in this project, set by group cleanup.', $text);
-	Assert::contains("\techo \$message;\n  \treturn;", $text);
-	Assert::contains('becomes', $text);
 });
 
 
@@ -75,8 +49,6 @@ test('explain without a rule writes every rule that runs, in Markdown into the o
 	Assert::contains('- Composed of: `dresscode/psr12`, `dresscode/per`, `dresscode/nette-style`', $text);
 	Assert::contains('- Indentation: a tab', $text);
 	Assert::contains("### dresscode/useless-return\n", $text);
-	Assert::contains("```php\nfunction announce(string \$message): void", $text);
-	Assert::contains("becomes\n", $text);
 	// what does not run is not explained
 	Assert::notContains('dresscode/line-length', $text);
 });
