@@ -44,6 +44,19 @@ enum Risk
 
 	/** a human: changing what the code does is what the fix is for, or it depends on code the run does not see */
 	case BehaviorChanges;
+
+
+	/**
+	 * Whether only what the tool does not know would decide that the fix keeps what the code does, as opposed to
+	 * the tool knowing that it changes it.
+	 */
+	public function isUncertain(): bool
+	{
+		return match ($this) {
+			self::TypeUnknown, self::NameUncertain => true,
+			self::BehaviorChanges => false,
+		};
+	}
 }
 
 

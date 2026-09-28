@@ -10,7 +10,7 @@ namespace DressCode\Reporters;
 use DressCode\Config\RuleRegistry;
 use DressCode\Console\Markup;
 use DressCode\Engine\Diff;
-use DressCode\{FileResult, Reporter, RunResult, Severity, Violation};
+use DressCode\{FileResult, Reporter, Risk, RunResult, Severity, Violation};
 use Nette\CommandLine\{Ansi, Console};
 use Nette\Utils\FileSystem;
 use function array_slice, count, sprintf, strlen;
@@ -208,6 +208,16 @@ final class ConsoleReporter implements Reporter
 			$this->write(Markup::highlightCode($this->console, "Warning: $warning", 'yellow') . "\n\n");
 		}
 
+		// the fixes left for want of consent, by what would decide them, each with how its risk is taken away
+		$risks = array_filter(Risk::cases(), fn(Risk $risk) => $result->countRiskyDeferredBy($risk) > 0);
+		foreach ($risks as $risk) {
+			$this->write($this->formatRefused($risk, $result) . "\n");
+		}
+
+		if ($risks) {
+			$this->write("\n");
+		}
+
 		$this->write($this->console->color(
 			match (true) {
 				$result->getExitCode() !== 0 => 'white/red',
@@ -216,6 +226,35 @@ final class ConsoleReporter implements Reporter
 			},
 			$this->formatVerdict($result),
 		) . "\n");
+	}
+
+
+	/**
+	 * The line of the summary for the fixes the run refused for the risk: how many, why, how the risk is taken away,
+	 * and the page of the manual that says so.
+	 */
+	private function formatRefused(Risk $risk, RunResult $result): string
+	{
+		$count = $result->countRiskyDeferredBy($risk);
+		$wait = $count === 1 ? '1 risky fix waits' : "$count risky fixes wait";
+		$text = match ($risk) {
+			Risk::NameUncertain => "$wait, a name may reach a function of the namespace: " . ($result->namespacesListed
+				? 'set `nameResolution: certain`'
+				: 'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing'),
+			Risk::TypeUnknown => match ($result->types) {
+				false => "$wait, the type is unknown: set `types: phpstan`",
+				true => "$wait, not even the types tell: check them by hand",
+				null => "$wait, the type is unknown: check them by hand",
+			},
+			Risk::BehaviorChanges => ($count === 1 ? '1 risky fix changes' : "$count risky fixes change")
+				. ' what the code does: decide them in `fixRisky` or by hand',
+		};
+		$docs = match ($risk) {
+			Risk::TypeUnknown => 'types#enable',
+			Risk::NameUncertain => 'namespaces#name-resolution',
+			Risk::BehaviorChanges => 'configuration#risky-fixes',
+		};
+		return Markup::highlightCode($this->console, "$text.") . ' ' . Markup::formatDocsLink($this->console, $docs);
 	}
 
 
@@ -244,10 +283,6 @@ final class ConsoleReporter implements Reporter
 				!$this->fix && $remaining > 0 => self::plural($remaining, 'violation'),
 				default => null,
 			},
-			$result->countRiskyDeferred()
-				? $result->countRiskyDeferred() . ' of them risky (' . implode(', ', array_map(RuleRegistry::abbreviate(...), $result->listRiskyDeferredRules()))
-					. '), fixed once their rules are named in fixRisky or with --fix-risky'
-				: null,
 			$derived ? "$derived of them following from others" : null,
 			$warnings ? self::plural($warnings, 'warning') : null,
 			!$this->fix && $left !== $result->countViolations() ? 'a fix leaves ' . ($left ?: 'none') : null,

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\{ConfigurationException, FileResult, Severity, Violation};
+use DressCode\{ConfigurationException, FileResult, Risk, Severity, Violation};
 use DressCode\Engine\Baseline;
 use Tester\Assert;
 
@@ -45,6 +45,18 @@ test('generated from results, saved and loaded back', function () use ($file, $a
 
 		XX, (string) file_get_contents($file));
 	Assert::same(3, Baseline::load($file)?->count());
+});
+
+
+test('of the refused risky fixes it holds only those changing what the code does, the others being warnings', function () {
+	$refused = fn(string $rule, Risk $risk) => new Violation($rule, 'M', 1, null, Severity::Warning, fingerprint: $rule, risky: $risk, refused: true);
+	$baseline = Baseline::fromResults([new FileResult('src/a.php', '', '', [
+		$refused('test/type', Risk::TypeUnknown),
+		$refused('test/name', Risk::NameUncertain),
+		$refused('test/behavior', Risk::BehaviorChanges),
+	])]);
+	Assert::same(1, $baseline->count());
+	Assert::true($baseline->knows('src/a.php', 'test/behavior'));
 });
 
 

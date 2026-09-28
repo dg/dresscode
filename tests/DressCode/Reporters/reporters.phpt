@@ -112,6 +112,43 @@ test('console: what may go wrong at a risky violation stands below it', function
 });
 
 
+test('console: the refused risky fixes are counted by their risk, with the advice the run allows', function () {
+	$refused = fn(string $fingerprint, Risk $risk) => new Violation('test/r', 'R', 2, 1, Severity::Warning, fingerprint: $fingerprint, risky: $risk, refused: true);
+	$result = new FileResult('src/a.php', "<?php\n", "<?php\n", [], remaining: [
+		$refused('f1', Risk::TypeUnknown),
+		$refused('f2', Risk::TypeUnknown),
+		$refused('f3', Risk::NameUncertain),
+	]);
+	foreach ([
+		[
+			false,
+			false,
+			'2 risky fixes wait, the type is unknown: set `types: phpstan`.',
+			'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing',
+		],
+		[true, true, '2 risky fixes wait, not even the types tell: check them by hand.', 'set `nameResolution: certain`'],
+		[
+			null,
+			false,
+			'2 risky fixes wait, the type is unknown: check them by hand.',
+			'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing',
+		],
+	] as [$types, $listed, $advice, $names]) {
+		$stream = memory();
+		$reporter = new ConsoleReporter(plain($stream));
+		$reporter->start(1, false);
+		$reporter->finish(new RunResult([$result], false, types: $types, namespacesListed: $listed));
+		rewind($stream);
+		Assert::match(<<<XX
+			$advice See https://dresscode.run/types#enable
+			1 risky fix waits, a name may reach a function of the namespace: $names. See https://dresscode.run/namespaces#name-resolution
+
+			%A%
+			XX, (string) stream_get_contents($stream));
+	}
+});
+
+
 test('console: fix lists what the fixed text still violates and says which file it rewrote', function () {
 	Assert::match(<<<'XX'
 		src/a.php  rewritten

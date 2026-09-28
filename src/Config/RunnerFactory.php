@@ -210,6 +210,12 @@ final class RunnerFactory
 			$resultCache,
 			narrowed: (bool) $only,
 			profiler: $profiler,
+			types: match (true) {
+				$resolved->types !== null => true,
+				Analyses\PhpStan::isAvailable() => false,
+				default => null,
+			},
+			namespacesListed: $resolved->namespacedFunctions !== [] || $resolved->namespacedConstants !== [],
 		);
 	}
 

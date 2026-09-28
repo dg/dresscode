@@ -75,7 +75,10 @@ final class Baseline
 		$baseline = new self;
 		foreach ($results as $result) {
 			foreach ($result->violations as $violation) {
-				$baseline->add($result->path, $violation->fingerprint, $violation->ruleName, $violation->message);
+				// a refused risky fix that is only uncertain waits for what the project can tell, not for the baseline
+				if (!$violation->refused || !$violation->risky?->isUncertain()) {
+					$baseline->add($result->path, $violation->fingerprint, $violation->ruleName, $violation->message);
+				}
 			}
 		}
 

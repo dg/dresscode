@@ -275,7 +275,7 @@ final class Application
 			$reporter->start(1, $fix);
 			$result = $runner->processFile($this->resolvePath($stdinPath), $code);
 			$reporter->reportFile($result);
-			$run = new RunResult([$result], $fix, maxWarnings: $maxWarnings);
+			$run = new RunResult([$result], $fix, maxWarnings: $maxWarnings, types: $runner->types, namespacesListed: $runner->namespacesListed);
 			$reporter->finish($run);
 			if ($fix) {
 				$this->out->write($result->output ?? $code);

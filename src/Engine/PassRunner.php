@@ -347,7 +347,9 @@ final class PassRunner
 					$report->message,
 					$report->line,
 					$report->trivia === null ? $this->findOriginalColumn($report->at) : null,
-					isset($this->warningRules[$name]) ? Severity::Warning : $report->severity,
+					isset($this->warningRules[$name]) || ($refused && $report->risky->isUncertain())
+						? Severity::Warning
+						: $report->severity,
 					fingerprint: $fingerprint,
 					risky: $report->risky,
 					refused: $refused,

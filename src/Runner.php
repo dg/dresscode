@@ -40,6 +40,10 @@ final class Runner
 		private readonly bool $narrowed = false,
 		/** adds up what the workers measured */
 		private readonly ?Profiler $profiler = null,
+		/** the types of the code: true where the run has them, false where the project can turn them on, null where PHPStan is not installed */
+		public readonly ?bool $types = null,
+		/** the configuration lists functions or constants the namespaces declare */
+		public readonly bool $namespacesListed = false,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
 		$this->processors = $processors instanceof FileProcessor ? FileProcessors::of($processors) : $processors;
@@ -133,6 +137,8 @@ final class Runner
 				$unused === 1 ? 'matches' : 'match',
 			)] : [],
 			maxWarnings: $maxWarnings,
+			types: $this->types,
+			namespacesListed: $this->namespacesListed,
 		);
 		$reporter->finish($result);
 		return $result;

@@ -25,6 +25,10 @@ final readonly class RunResult
 		public array $warnings = [],
 		/** how many warnings the run tolerates before the exit code says so; null for any number */
 		public ?int $maxWarnings = null,
+		/** the types of the code: true where the run has them, false where the project can turn them on, null where PHPStan is not installed */
+		public ?bool $types = null,
+		/** the configuration lists functions or constants the namespaces declare */
+		public bool $namespacesListed = false,
 	) {
 	}
 
@@ -60,13 +64,10 @@ final readonly class RunResult
 	}
 
 
-	/**
-	 * The rules of the fixes a fix leaves because the run did not allow them, each once.
-	 * @return list<string>
-	 */
-	public function listRiskyDeferredRules(): array
+	/** Fixes a fix leaves because the run did not allow them, of those the risk would decide. */
+	public function countRiskyDeferredBy(Risk $risk): int
 	{
-		return array_values(array_unique(array_map(fn(Violation $v) => $v->ruleName, $this->listRiskyDeferred())));
+		return count(array_filter($this->listRiskyDeferred(), fn(Violation $v) => $v->risky === $risk));
 	}
 
 

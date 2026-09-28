@@ -194,7 +194,8 @@ to the care of each rule's author; the core of the tool enforces it.
   if it does not. From one file you cannot tell, so rewriting it to `str_contains()` is a risky fix. DressCode
   reports it and waits until you allow it, for one rule in the key `fixRisky` or for one run with
   `--fix-risky`. Or you tell it the truth once, `nameResolution: certain` (or list what your namespaces do
-  declare under `namespaces`), and such fixes stop being risky at all.
+  declare under `namespaces`), and such fixes stop being risky at all. Until then they only warn, and the
+  summary says for every kind of risk what would decide it; where the types would, `types: phpstan` does.
 - **No priorities.** When two rules touch the same code, their order matters. DressCode does not number the
   rules; it runs them again and again until the code stops changing. Two rules pulling the same code back
   and forth are detected, and the run names them.
