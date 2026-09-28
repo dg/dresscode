@@ -39,6 +39,8 @@ final class RuleContext
 		private readonly bool $fixRisky = false,
 		/** @var list<Rule>  the rules that run on the file, as configured for it */
 		private readonly array $rules = [],
+		/** @var array<string, true>  fingerprints of the occurrences whose fix that may change what the code does is allowed */
+		private readonly array $acceptedRisks = [],
 	) {
 	}
 
@@ -167,7 +169,7 @@ final class RuleContext
 		$known = $this->fingerprints->isKnown($fingerprint);
 		$risky = $fixable ? $risky : null;
 		$this->reports[] = new Engine\Report($at, $trivia, $message, $severity, $this->file->revision, false, $known, $fingerprint, $line, $risky, $gap, $follows, $byLine, $breaks, $fixable, $risky === null ? null : $because);
-		return $fixable && ($risky === null || $this->fixRisky);
+		return $fixable && ($risky === null || $this->fixRisky || isset($this->acceptedRisks[$fingerprint]));
 	}
 
 

@@ -126,11 +126,11 @@ test('console: the refused risky fixes are counted by their risk, with the advic
 			'2 risky fixes wait, the type is unknown: set `types: phpstan`.',
 			'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing',
 		],
-		[true, true, '2 risky fixes wait, not even the types tell: check them by hand.', 'set `nameResolution: certain`'],
+		[true, true, '2 risky fixes wait, not even the types tell: check them with `fix --review`.', 'set `nameResolution: certain`'],
 		[
 			null,
 			false,
-			'2 risky fixes wait, the type is unknown: check them by hand.',
+			'2 risky fixes wait, the type is unknown: check them with `fix --review`.',
 			'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing',
 		],
 	] as [$types, $listed, $advice, $names]) {

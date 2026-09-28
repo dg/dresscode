@@ -58,8 +58,11 @@ final class FileProcessor
 	}
 
 
-	/** @throws RuleException|ConvergenceException|ConfigurationException */
-	public function process(string $path, string $code): FileResult
+	/**
+	 * @param  array<string, true>  $acceptedRisks  fingerprints of the occurrences whose risky fix is allowed on top of what the configuration allows
+	 * @throws RuleException|ConvergenceException|ConfigurationException
+	 */
+	public function process(string $path, string $code, array $acceptedRisks = []): FileResult
 	{
 		$style = $this->detectEol ? $this->style->withEol(Style::detectEol($code)) : $this->style;
 		$text = $code;
@@ -87,7 +90,7 @@ final class FileProcessor
 				$lap = hrtime(true);
 			}
 
-			$runner = new PassRunner($this->rules, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline, $this->warningRules, $this->fixRisky, $this->fixRiskyRules, $this->profiler);
+			$runner = new PassRunner($this->rules, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline, $this->warningRules, $this->fixRisky, $this->fixRiskyRules, $this->profiler, $acceptedRisks);
 			$result = $runner->run($file, $text, $path, $style, $this->phpVersion);
 			$first ??= $result;
 			$passes += $result->passes;

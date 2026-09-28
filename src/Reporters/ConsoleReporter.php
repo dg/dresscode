@@ -243,11 +243,11 @@ final class ConsoleReporter implements Reporter
 				: 'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing'),
 			Risk::TypeUnknown => match ($result->types) {
 				false => "$wait, the type is unknown: set `types: phpstan`",
-				true => "$wait, not even the types tell: check them by hand",
-				null => "$wait, the type is unknown: check them by hand",
+				true => "$wait, not even the types tell: check them with `fix --review`",
+				null => "$wait, the type is unknown: check them with `fix --review`",
 			},
 			Risk::BehaviorChanges => ($count === 1 ? '1 risky fix changes' : "$count risky fixes change")
-				. ' what the code does: decide them in `fixRisky` or by hand',
+				. ' what the code does: decide them with `fix --review` or in `fixRisky`',
 		};
 		$docs = match ($risk) {
 			Risk::TypeUnknown => 'types#enable',
