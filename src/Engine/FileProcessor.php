@@ -52,8 +52,11 @@ final class FileProcessor
 	}
 
 
-	/** @throws RuleException|ConvergenceException|ConfigurationException */
-	public function process(string $path, string $code): FileResult
+	/**
+	 * @param  array<string, true>  $acceptedRisks  fingerprints of the occurrences whose risky fix is allowed on top of what the configuration allows
+	 * @throws RuleException|ConvergenceException|ConfigurationException
+	 */
+	public function process(string $path, string $code, array $acceptedRisks = []): FileResult
 	{
 		$style = $this->detectLineEnding ? $this->style->withLineEnding(Style::detectLineEnding($code)) : $this->style;
 		$text = $code;
@@ -77,7 +80,7 @@ final class FileProcessor
 			}
 
 			$this->plan ??= new RulePlan($this->rules);
-			$runner = new PassRunner($this->plan, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline, $this->warningRules, $this->fixRisky, $this->fixRiskyRules);
+			$runner = new PassRunner($this->plan, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline, $this->warningRules, $this->fixRisky, $this->fixRiskyRules, $acceptedRisks);
 			$result = $runner->run($file, $text, $path, $style, $this->phpVersion);
 			$first ??= $result;
 			$passes += $result->passes;

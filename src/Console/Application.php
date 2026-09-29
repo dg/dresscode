@@ -41,6 +41,9 @@ final class Application
 	/** PHP runs with Xdebug, which makes a run many times slower */
 	private readonly bool $xdebug;
 
+	/** a person answers at a terminal, which `fix --review` asks */
+	private readonly bool $interactive;
+
 	/** the directory the paths of the command line are relative to */
 	private readonly string $workingDirectory;
 
@@ -50,6 +53,7 @@ final class Application
 	 * @param  ?resource  $stderr
 	 * @param  ?resource  $stdin
 	 * @param  ?bool  $xdebug  whether Xdebug is loaded; detected when the output is the process's own
+	 * @param  ?bool  $interactive  whether a person answers at a terminal; detected from the output and the input
 	 */
 	public function __construct(
 		$stdout = null,
@@ -60,6 +64,7 @@ final class Application
 		/** what applies when the project has no configuration file */
 		private readonly ?Config $defaultConfig = null,
 		?bool $xdebug = null,
+		?bool $interactive = null,
 	) {
 		$this->stdout = $stdout ?? STDOUT;
 		$this->stderr = $stderr ?? STDERR;
@@ -68,6 +73,7 @@ final class Application
 		$this->out = new Console($this->stdout, colorDepth: $stdout === null ? null : ColorDepth::None);
 		$this->err = new Console($this->stderr, colorDepth: $stderr === null ? null : ColorDepth::None);
 		$this->xdebug = $xdebug ?? ($stdout === null && extension_loaded('xdebug'));
+		$this->interactive = $interactive ?? ($this->out->isTerminal() && stream_isatty($this->stdin));
 		$this->workingDirectory = $cwd ?? (string) getcwd();
 	}
 
@@ -212,6 +218,8 @@ final class Application
 			$command->addOption('--worker', hidden: true); // the address of the parent; a worker started by WorkerPool
 		}
 
+		$fix->addFlag('--review', 'after the fix, ask about every risky fix left, one at a time with its diff, and make those accepted; needs an interactive terminal');
+
 		foreach ([$check, $fix, $config, $explain, $rules] as $command) {
 			$command->addOption(
 				'--only',
@@ -265,6 +273,16 @@ final class Application
 		$stdinPath = $args['--stdin'] ?? null;
 		$paths = array_values(array_unique(array_map($this->resolvePath(...), self::parsePaths($args))));
 		$maxWarnings = ($args['--max-warnings'] ?? null) === null ? null : max(0, (int) $args['--max-warnings']);
+		$review = $fix && isset($args['--review']) && $args['--review'];
+		if ($review && ($args['--fix-risky'] || is_string($stdinPath))) {
+			throw new UsageException('`--review` asks about the risky fixes one by one, so it goes with neither `--fix-risky` nor `--stdin`.');
+		} elseif (
+			$review
+			&& (self::resolveFormat($args, detect: true) !== 'console' || !$this->interactive)
+		) {
+			throw new UsageException('`--review` asks in an interactive terminal; without one, allow the risky fixes with `--fix-risky=<name>`.');
+		}
+
 		if (is_string($stdinPath)) {
 			if ($paths) {
 				throw new UsageException('Paths cannot be combined with `--stdin`.');
@@ -307,7 +325,10 @@ final class Application
 		$reporter = $this->createReporter($args, $this->out, $this->stdout, $root, $format, $factory->registry);
 
 		try {
-			return $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings)->getExitCode();
+			$result = $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings);
+			return $review
+				? $this->review($runner, $result, $files, $root, $maxWarnings, $factory->registry)
+				: $result->getExitCode();
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
 		}
@@ -344,6 +365,30 @@ final class Application
 		}
 
 		return $run->getExitCode();
+	}
+
+
+	/**
+	 * Asks about the risky fixes the fix left and makes those accepted, then says how it ended; the exit code is that of
+	 * the files as the review left them.
+	 * @param  list<string>  $files
+	 */
+	private function review(Runner $runner, RunResult $result, array $files, string $root, ?int $maxWarnings, RuleRegistry $registry): int
+	{
+		if ($result->countRefused() === 0) {
+			return $result->getExitCode();
+		}
+
+		$made = new RiskReview($runner, $this->out, $this->stdin, $root, $registry)->review($result);
+		$final = $runner->run($files, true, new Reporters\NullReporter, maxWarnings: $maxWarnings);
+		$left = $final->countRefused();
+		$this->out->writeLine(
+			"\n" . $this->out->color(
+				$final->getExitCode() === 0 ? 'white/green' : 'white/red',
+				sprintf('REVIEWED  %d risky %s made, %s', $made, $made === 1 ? 'fix' : 'fixes', $left ? "$left left" : 'none left'),
+			),
+		);
+		return $final->getExitCode();
 	}
 
 

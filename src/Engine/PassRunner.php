@@ -77,6 +77,8 @@ final class PassRunner
 		private readonly bool $fixRisky = false,
 		/** @var array<string, true>  rules whose fixes that may change what the code does are allowed */
 		private readonly array $fixRiskyRules = [],
+		/** @var array<string, true>  fingerprints of the occurrences whose fix that may change what the code does is allowed */
+		private readonly array $acceptedRisks = [],
 	) {
 		$this->gaps = new Resolver($plan->claims);
 	}
@@ -101,7 +103,7 @@ final class PassRunner
 		$suppression = Suppression::fromFile($file, $this->resolveNames, $code);
 		foreach ($this->plan->rules as $rule) {
 			$name = RuleInfo::of($rule)->name;
-			$this->contexts[$name] = new RuleContext($file, $path, $style, $phpVersion, $this->analyses, $suppression, $this->fingerprints, $name, $this->fixRisky || isset($this->fixRiskyRules[$name]), $this->plan->rules, $this->strict);
+			$this->contexts[$name] = new RuleContext($file, $path, $style, $phpVersion, $this->analyses, $suppression, $this->fingerprints, $name, $this->fixRisky || isset($this->fixRiskyRules[$name]), $this->plan->rules, $this->acceptedRisks, $this->strict);
 		}
 
 		$seen = [hash('xxh3', $code) => true];
@@ -378,7 +380,10 @@ final class PassRunner
 		$reports = $context->takeReports();
 		foreach ($reports as $i => $report) {
 			$fingerprint = $report->fingerprint;
-			$refused = $report->risk !== null && !$this->fixRisky && !isset($this->fixRiskyRules[$name]);
+			$refused = $report->risk !== null
+				&& !$this->fixRisky
+				&& !isset($this->fixRiskyRules[$name])
+				&& !isset($this->acceptedRisks[(string) $fingerprint]);
 			$denied = !$report->fixable || $report->silenced || $refused;
 			if ($denied && ($reports[$i + 1]->revision ?? $after) > $report->revision) {
 				$this->violateContract($name, $report->fixable
