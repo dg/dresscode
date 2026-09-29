@@ -72,8 +72,11 @@ final class PassLoop
 	}
 
 
-	/** @throws RuleException|ConvergenceException|ConfigurationException */
-	public function run(FileNode $file, string $code, string $path, Style $style, string $phpVersion): PassResult
+	/**
+	 * @param  array<string, true>  $acceptedRisks  fingerprints of the occurrences whose fix that may change what the code does is allowed
+	 * @throws RuleException|ConvergenceException|ConfigurationException
+	 */
+	public function run(FileNode $file, string $code, string $path, Style $style, string $phpVersion, array $acceptedRisks = []): PassResult
 	{
 		$this->file = $file;
 		$this->path = $path;
@@ -92,7 +95,7 @@ final class PassLoop
 
 		foreach ($this->plan->rules as $rule) {
 			$ruleClass = $rule::class;
-			$this->contexts[$ruleClass] = new RuleContext($file, $path, $style, $phpVersion, $this->analyses, $suppression, $this->fingerprints, $this->policy, $this->plan->gates[$ruleClass], RuleInfo::of($rule));
+			$this->contexts[$ruleClass] = new RuleContext($file, $path, $style, $phpVersion, $this->analyses, $suppression, $this->fingerprints, $acceptedRisks, $this->policy, $this->plan->gates[$ruleClass], RuleInfo::of($rule));
 		}
 
 		$seen = [hash('xxh3', $code) => true];

@@ -140,7 +140,7 @@ $root = createConsoleProject();
  * @param  list<string>  $args
  * @return array{int, string, string}
  */
-function runApp(string $root, array $args, string $stdin = '', bool $xdebug = false): array
+function runApp(string $root, array $args, string $stdin = '', bool $xdebug = false, bool $interactive = false): array
 {
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
@@ -151,7 +151,7 @@ function runApp(string $root, array $args, string $stdin = '', bool $xdebug = fa
 		$args = [...$args, '--jobs', '1']; // the rules of this file do not exist in a worker process
 	}
 
-	$code = new Application($out, $err, $in, $root, script: __DIR__ . '/../../../bin/dresscode', xdebug: $xdebug)->run(['dresscode', ...$args]);
+	$code = new Application($out, $err, $in, $root, script: __DIR__ . '/../../../bin/dresscode', xdebug: $xdebug, interactive: $interactive)->run(['dresscode', ...$args]);
 	rewind($out);
 	rewind($err);
 	// how long a run took is up to the machine, which a busy one makes long enough to be said
@@ -899,7 +899,7 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 	$write('');
 	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache']);
 	Assert::same(1, $code);
-	Assert::contains('1 risky fix changes what the code does: accept its decision in `fixRisky` or decide it by hand. See https://dresscode.run/configuration#risky-fixes', $out);
+	Assert::contains('1 risky fix changes what the code does: decide it with `fix --ask-risky`, or accept its decision in `fixRisky`. See https://dresscode.run/configuration#risky-fixes', $out);
 	Assert::same("<?php\n\$r;\n", (string) file_get_contents("$root/src/r.php"));
 
 	// the flag of the run allows it
@@ -907,6 +907,28 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 	Assert::same(0, $code);
 	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
 	Assert::notContains('risky fix', $out);
+
+	// a review asks in a terminal and about each fix, so neither a pipe nor a consent given beforehand goes with it
+	[$code, , $err] = runApp($root, ['fix', '--config', $config, '--no-cache', '--ask-risky']);
+	Assert::same(3, $code);
+	Assert::contains('`--ask-risky` asks in an interactive terminal; without one, allow the risky fixes with `--fix-risky=<name>`.', $err);
+	[, , $err] = runApp($root, ['fix', '--config', $config, '--no-cache', '--ask-risky', '--fix-risky']);
+	Assert::contains('`--ask-risky` asks about the risky fixes one by one, so it goes with neither `--fix-risky` nor `--stdin`.', $err);
+
+	// at a terminal it asks after the fix, and the exit code is that of the files as the answers left them
+	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
+	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache', '--ask-risky'], "n\n", interactive: true);
+	Assert::same(1, $code);
+	Assert::match("%A%Apply this risky fix? [y,n,a,q] \nREVIEWED  0 risky fixes made, 1 left\n", $out);
+	Assert::same("<?php\n\$r;\n", (string) file_get_contents("$root/src/r.php"));
+	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache', '--ask-risky'], "y\n", interactive: true);
+	Assert::same(0, $code);
+	Assert::match("%A%-\$r;\n+\$s;\nApply this risky fix? [y,n,a,q] \nREVIEWED  1 risky fix made, none left\n", $out);
+	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
+	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache', '--ask-risky'], interactive: true);
+	Assert::same(0, $code);
+	Assert::match("%A%\nREVIEWED  no risky fixes to ask about\n", $out);
+	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
 
 	// or only for the decisions, rules and presets it names, with workers as without them
 	foreach (['1', '2'] as $jobs) {

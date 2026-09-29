@@ -57,8 +57,11 @@ final readonly class FileProcessor
 	}
 
 
-	/** @throws RuleException|ConvergenceException|ConfigurationException */
-	public function process(string $path, string $code): FileResult
+	/**
+	 * @param  array<string, true>  $acceptedRisks  fingerprints of the occurrences whose risky fix is allowed on top of what the configuration allows
+	 * @throws RuleException|ConvergenceException|ConfigurationException
+	 */
+	public function process(string $path, string $code, array $acceptedRisks = []): FileResult
 	{
 		$style = $this->detectLineEnding ? $this->style->withLineEnding(Style::detectLineEnding($code)) : $this->style;
 		$text = $code;
@@ -83,7 +86,7 @@ final readonly class FileProcessor
 			}
 
 			$runner ??= new PassLoop($this->plan, $this->analyses, $this->policy);
-			$result = $runner->run($file, $text, $path, $style, $this->phpVersion);
+			$result = $runner->run($file, $text, $path, $style, $this->phpVersion, $acceptedRisks);
 			$first ??= $result;
 			$passes += $result->passes;
 			$printed = $result->mutated ? Printer::print($file) : $text;

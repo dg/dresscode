@@ -130,13 +130,13 @@ test('console: the refused risky fixes are counted by their risk, with the advic
 		[
 			TypeAnalysisStatus::Enabled,
 			true,
-			'2 risky fixes wait, not even the types tell: check them by hand.',
+			'2 risky fixes wait, not even the types tell: check them with `fix --ask-risky`.',
 			'set `nameResolution: certain`',
 		],
 		[
 			TypeAnalysisStatus::Unavailable,
 			false,
-			'2 risky fixes wait, the type is unknown: check them by hand.',
+			'2 risky fixes wait, the type is unknown: check them with `fix --ask-risky`.',
 			'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing',
 		],
 	] as [$typeAnalysis, $listed, $advice, $names]) {

@@ -289,12 +289,13 @@ final readonly class Runner
 
 	/**
 	 * Processes a text that stands for the file at the path, with the rules that apply to it; nothing is written.
+	 * @param  array<string, true>  $acceptedRisks  fingerprints of the occurrences whose risky fix is allowed on top of what the configuration allows
 	 * @throws RuleException|ConvergenceException
 	 */
-	public function processCode(string $path, string $code): FileResult
+	public function processCode(string $path, string $code, array $acceptedRisks = []): FileResult
 	{
 		$path = $this->relativize($path);
-		$result = $this->processors->get($path)->process($path, $code);
+		$result = $this->processors->get($path)->process($path, $code, $acceptedRisks);
 		$this->baseline?->markMatched($result->path, $result->baselined);
 		return $result;
 	}

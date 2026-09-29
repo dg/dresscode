@@ -34,6 +34,8 @@ final class RuleContext
 		private readonly Analyses\Registry $analyses,
 		private readonly Suppression $suppression,
 		private readonly Engine\Fingerprints $fingerprints,
+		/** @var array<string, true>  fingerprints of the occurrences whose fix that may change what the code does is allowed */
+		private readonly array $acceptedRisks = [],
 		private readonly Engine\ReportPolicy $policy = new Engine\ReportPolicy,
 		/** the gate of the reports of the rule: which of its decisions the run reports */
 		private readonly Engine\Gate $gate = new Engine\Gate,
@@ -165,7 +167,7 @@ final class RuleContext
 			: $this->fingerprints->createFor($construct, $decision, $message, $line);
 		$baselined = $this->fingerprints->matchBaseline($fingerprint);
 		$risk = $fixable ? $risk : null;
-		$refused = $risk !== null && !$this->policy->acceptsRisk($decision);
+		$refused = $risk !== null && !$this->policy->acceptsRisk($decision) && !isset($this->acceptedRisks[$fingerprint]);
 		$this->reports[] = new Engine\Report(
 			decision: $decision,
 			at: $at,
