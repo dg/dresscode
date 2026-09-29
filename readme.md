@@ -9,9 +9,9 @@ DressCode
 
 <h3>
 
-✅ Fixes style, [upgrades PHP](#upgrading-code-to-newer-php-from-80-to-86), in one run<br>
+✅ Fixes style, [upgrades PHP and libraries](#upgrading-code-to-newer-php-from-80-to-86), in one run<br>
 ✅ Changes only what it fixes, [not a byte more](#changes-only-what-it-touches-a-lossless-syntax-tree-instead-of-a-token-array)<br>
-✅ [PER Coding Style, PSR-12, Nette](#coding-standards-and-rule-groups-per-coding-style-31-psr-12-nette) built in<br>
+✅ [PER Coding Style, PSR-12, Nette, Symfony](#coding-standards-and-rule-groups-per-coding-style-31-psr-12-nette-symfony) built in<br>
 ✅ Made to work hand in hand with [AI coding agents](#continuous-integration-git-hooks-and-ai-coding-agents)
 
 </h3>
@@ -44,13 +44,16 @@ Installation and first run
 ==========================
 
 **1️⃣ Install it: `composer global require dresscode/dresscode`**<br>
-**2️⃣ Check your code and fix it: `dresscode check`, `dresscode fix`**
+**2️⃣ Have a configuration made to measure: `dresscode init`**<br>
+**3️⃣ Check your code and fix it: `dresscode check`, `dresscode fix`**
 
 DressCode is a tool, not a library, so it does not have to be installed in the project it checks, and a
 global installation is the simplest way; just make sure the directory of global Composer binaries is in your
 `PATH`. For CI, where you want the version of the tool pinned, install it into a directory of its own with
 `composer create-project dresscode/dresscode temp/dresscode`. It can also be a development dependency of your
-project (`composer require --dev dresscode/dresscode`); the project then has to run on PHP 8.4 to 8.6 too.
+project (`composer require --dev dresscode/dresscode`), which is the way to go once you want DressCode to
+ask your PHPStan about the [types of your code](#types-from-phpstan); the project then has to run on
+PHP 8.4 to 8.6 too.
 
 DressCode itself runs on PHP 8.4 to 8.6. **That is the PHP of the tool, not the PHP your code is written for.**
 The second number DressCode reads from `require.php` in your `composer.json`, and it never writes syntax that
@@ -81,9 +84,10 @@ A clean run ends with `OK  214 files, all up to the dress code`, and the exit co
 of the configuration.
 
 DressCode has no style of its own, so without a configuration it does not start: a silent default would
-rewrite nearly every line of a project written another way. The configuration is `dresscode.neon` in the
-root of the project, or `dresscode.php` with the same keys; to just try the tool, name a standard instead
-with `dresscode check src --preset perCs`:
+rewrite nearly every line of a project written another way. `dresscode init` measures your code (the
+indentation, the quotes, the shape of conditions) and writes `dresscode.neon` into the root of the project;
+to just try the tool, name a standard instead with `dresscode check src --preset perCs`. The configuration
+can also be written by hand, in NEON or as `dresscode.php` with the same keys:
 
 ```neon
 paths:
@@ -136,10 +140,10 @@ of an upgrade contains the upgrade and nothing else.
 
  <!---->
 
-Coding standards and rule groups: PER Coding Style 3.1, PSR-12, Nette
-=====================================================================
+Coding standards and rule groups: PER Coding Style 3.1, PSR-12, Nette, Symfony
+==============================================================================
 
-DressCode has 194 rules, and you do not have to go through them one by one. The configuration comes down to
+DressCode has 211 rules, and you do not have to go through them one by one. The configuration comes down to
 two questions you can answer right away.
 
 **What should the code look like?** That is a standard, just one, chosen by name:
@@ -149,6 +153,7 @@ two questions you can answer right away.
 | `perCs` | [PER Coding Style 3.1](https://www.php-fig.org/per/coding-style/) in full, the successor of PSR-12 |
 | `psr12` | [PSR-12](https://www.php-fig.org/psr/psr-12/), section by section |
 | `nette` | [Nette Coding Standard](https://doc.nette.org/en/contributing/coding-standard), PER Coding Style with tabs and a few departures |
+| `symfony` | Symfony Coding Standards, as the `@Symfony` set of PHP CS Fixer has them |
 
 **What else do you want from the code?** That is a group of rules, and there are exactly six:
 
@@ -157,13 +162,13 @@ two questions you can answer right away.
 | `cleanup` | code that is there for nothing |
 | `modernization` | the construct newer PHP has, where an older one says the same |
 | `types` | types written where PHP reads them |
-| `deprecations` | what newer PHP deprecated or removed |
+| `deprecations` | what newer PHP or a library deprecated or removed |
 | `correctness` | what is most likely a mistake |
 | `optimizedCalls` | calls in the form PHP optimizes when it compiles the code |
 
 A group names what you want, not a list of rules: instead of twenty rule names you write `cleanup`, and
 every rule that removes code which is there for nothing runs. A rule that cannot run in your project,
-because it writes a newer PHP than yours, quietly stays out, so turning
+because it writes a newer PHP than yours or needs types you have not set up, quietly stays out, so turning
 on a group never breaks anything.
 
 Your configuration still has the last word. Any rule is switched off or set up by the name it reports under.
@@ -190,7 +195,8 @@ to the care of each rule's author; the core of the tool enforces it.
   if it does not. From one file you cannot tell, so rewriting it to `str_contains()` is a risky fix. DressCode
   reports it and waits until you allow it, for one rule in the key `fixRisky` or for one run with
   `--fix-risky`. Or you tell it the truth once, `nameResolution: certain` (or list what your namespaces do
-  declare under `namespaces`), and such fixes stop being risky at all.
+  declare under `namespaces`), and such fixes stop being risky at all. Until then they only warn, and the
+  summary says for every kind of risk what would decide it; where the types would, `types: phpstan` does.
 - **No priorities.** When two rules touch the same code, their order matters. DressCode does not number the
   rules; it runs them again and again until the code stops changing. Two rules pulling the same code back
   and forth are detected, and the run names them.
@@ -245,7 +251,7 @@ What gets rewritten, by the version of PHP that brought it:
 | before 8.0 | a closure returning one expression to `fn`, a ternary testing `null` to `??`, a ternary repeating its condition to `?:`, `array()` and `list()` to `[]`, `$a = $a + $b` to `+=` and its kin |
 | 8.0 | `strpos() !== false` to `str_contains()`, `substr()` comparisons to `str_starts_with()` and `str_ends_with()`, a simple `switch` to `match`, a property assigned in the constructor to one declared there, a ternary testing `null` to `?->`, `Stringable`, `get_debug_type()` |
 | 8.1 | `$this->save(...)` instead of `[$this, 'save']`, `array_is_list()`, octal numbers as `0o755` |
-| 8.3 | `json_validate()` instead of `json_decode()` called only as a test, `Foo::{$name}` instead of `constant()` |
+| 8.3 | `json_validate()` instead of `json_decode()` called only as a test, `Foo::{$name}` instead of `constant()`, `#[\Override]` on a method overriding its parent (with [types](#types-from-phpstan)) |
 | 8.4 | a loop that only searches or tests items to `array_any()`, `array_all()`, `array_find()` or `array_find_key()`, the `RoundingMode` enum in `round()`, `#[\Deprecated]` instead of `@deprecated` |
 | 8.5 | nested calls to the pipe operator `\|>`, `array_first()` and `array_last()` |
 | 8.6 | `max()` around `min()` to `clamp()` |
@@ -263,6 +269,69 @@ both at once: the rewrite and the formatting happen in the same run, with one co
 DressCode understands the syntax of new PHP even when it runs on an older one: it fills in the pieces of
 syntax the running PHP does not know yet, so DressCode on PHP 8.4 reads a file with the pipe operator of
 PHP 8.5, a file PHP 8.4 itself would reject.
+
+ <!---->
+
+Upgrading libraries: Nette and more
+===================================
+
+When a library renames a class, a constant, a method or a parameter, DressCode rewrites your code for you,
+and what it cannot rewrite it reports together with what to write instead. What changed in which version
+comes as data in a package of rules for the ecosystem: `dresscode/rules-nette` knows all twenty Nette
+libraries, most of them from version 3.0 to the current one. Install the package and DressCode finds it by
+itself:
+
+```diff
+- /** @persistent */
++ #[Persistent]
+
+- $this->invalidateControl('list');
++ $this->redrawControl('list');
+
+- $form->addText('title')->addRule(Form::MAX_LENGTH, null, 100);
++ $form->addText('title')->addRule(Form::MaxLength, null, 100);
+
+- $page = $this->getParameter('page', 1);
++ $page = $this->getParameter('page') ?? 1;
+
+- Json::encode($values, Json::PRETTY)
++ Json::encode($values, pretty: true)
+```
+
+None of this is a search and replace: an annotation became an attribute along with its import, the default
+of a parameter moved behind `??` and a flag became a named argument. And DressCode knows that `$form` is a
+form and `$this` a presenter, because it asks PHPStan about the types. The data are turned on by the group
+`deprecations`; most of the rewrites also need the [types](#types-from-phpstan), and without them only
+classes, functions and annotations are fixed:
+
+```neon
+types: phpstan
+
+groups:
+	- deprecations
+```
+
+A package of rules can be written for any library, and it can ship rules of its own besides the data.
+
+ <!---->
+
+Types from PHPStan
+==================
+
+The syntax tree knows every byte of a file, but not that `$form` is a form, what a class inherits, or what
+the declaration of a method says. If your project has PHPStan, DressCode asks it, with your `phpstan.neon`
+and its extensions, so the answers are as good as the analysis you already trust. For that, DressCode has
+to be installed in the project next to PHPStan (`composer require --dev phpstan/phpstan dresscode/dresscode`),
+and one line of the configuration does the rest:
+
+```neon
+types: phpstan
+```
+
+That unlocks the rules a style tool cannot otherwise have: the deprecated API of a library rewritten
+according to what the variable really is, `#[\Override]` on a method that overrides its parent, and
+`UserRepository::class` in place of a string naming an existing class. PHPStan only answers; it rewrites
+and reports nothing. Without the key, the rules that need types quietly stay out of every group.
 
  <!---->
 
@@ -371,7 +440,9 @@ Against PHP_CodeSniffer, fixing is where the difference shows: `dresscode fix` t
 the time `phpcbf` needs for PSR-12. `phpcs`, which only reports, is faster at reporting than
 `dresscode check`, which works the fixes out in memory as well.
 
-Upgrading code takes a fraction of what Rector needs, 1.6 s against 128.5 s over Symfony 3.4.
+Upgrading code takes a fraction of what Rector needs, 1.6 s against 128.5 s over Symfony 3.4, and with
+the [types from PHPStan](#types-from-phpstan) it is still faster: 4.4 s against 10.5 s over Laravel with
+PHPStan's cache warm, 9.0 s against 195 s with it cold.
 
 Measured in October 2026 on PHP 8.5, against PHP CS Fixer 3.95, PHP_CodeSniffer 4.0 and Rector 2.6, as the
 median of three runs.
@@ -384,6 +455,8 @@ Limits
 - **It runs on PHP 8.4 to 8.6.** The code it checks can be written for PHP 8.0 and newer; code for
   an older version is checked as PHP 8.0, with a warning.
 - **A file that does not parse is left alone.** It is reported as a syntax error and not touched.
+- **Types come from PHPStan.** Without PHPStan in the project, DressCode does not know what a variable is
+  or what a class inherits, and the rules that would need to know stay out.
 
  <!---->
 
