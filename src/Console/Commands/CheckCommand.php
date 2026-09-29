@@ -9,7 +9,7 @@ namespace DressCode\Console\Commands;
 
 use DressCode\{Config, Reporter, Reporters};
 use DressCode\Config\{Loader, PluginRegistry};
-use DressCode\Console\{CommandContext, Markup, ProgressBar};
+use DressCode\Console\{CommandContext, Markup, ProgressBar, RiskReview};
 use DressCode\Engine\{Baseline, FileSummary, Helpers, Runner, RunResult, Worker, WorkerPool};
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
@@ -36,9 +36,15 @@ final readonly class CheckCommand
 
 
 	#[Cli\Command('Fix what the rules can and report the rest')]
-	public function fix(ParseResult $args, RunOptions $run, CheckOptions $check): int
+	public function fix(
+		ParseResult $args,
+		RunOptions $run,
+		CheckOptions $check,
+		#[Cli\Flag('Fix as usual, then ask about every risky fix left, one at a time with its diff, and make those accepted; needs an interactive terminal')]
+		?bool $askRisky = null,
+	): int
 	{
-		return $this->run($args, $run, $check, fix: true);
+		return $this->run($args, $run, $check, fix: true, askRisky: (bool) $askRisky);
 	}
 
 
@@ -59,6 +65,7 @@ final readonly class CheckCommand
 		?CheckOptions $check = null,
 		bool $fix = false,
 		bool $generate = false,
+		bool $askRisky = false,
 	): int
 	{
 		[$factory, $resolution, $configFile] = $this->context->resolveProject($args, $check->only ?? []);
@@ -97,6 +104,17 @@ final readonly class CheckCommand
 		$paths = array_values(array_unique(array_map($this->context->resolvePath(...), $run->paths)));
 		$maxWarnings = $check?->maxWarnings;
 		$format = self::resolveFormat($args, detect: true);
+		if ($askRisky && ($check?->fixRisky || is_string($stdinPath))) {
+			throw new UsageException(
+				'`--ask-risky` asks about the risky fixes one by one, so it goes with neither `--fix-risky` nor `--stdin`.',
+				$args->command,
+			);
+		} elseif ($askRisky && ($format !== 'console' || !$this->context->prompt->isInteractive())) {
+			throw new UsageException(
+				'`--ask-risky` asks in an interactive terminal; without one, allow the risky fixes with `--fix-risky=<name>`.',
+				$args->command,
+			);
+		}
 
 		if (is_string($stdinPath)) {
 			if ($paths) {
@@ -149,7 +167,10 @@ final readonly class CheckCommand
 			}
 
 			$reporter = $this->createReporter($args, $out, $this->context->stdout, $root, $format, $factory->registry);
-			return $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings)->getExitCode();
+			$result = $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings);
+			return $askRisky
+				? $this->review($runner, $result, $files, $root, $maxWarnings, $factory->registry)
+				: $result->getExitCode();
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
 		}
@@ -186,6 +207,32 @@ final readonly class CheckCommand
 		}
 
 		return $run->getExitCode();
+	}
+
+
+	/**
+	 * Asks about the risky fixes the fix left and makes those accepted, then says how it ended; the exit code is that of
+	 * the files as the review left them.
+	 * @param  list<string>  $files
+	 */
+	private function review(Runner $runner, RunResult $result, array $files, string $root, ?int $maxWarnings, PluginRegistry $registry): int
+	{
+		$out = $this->context->out;
+		if ($result->countRefused() === 0) {
+			$out->writeLine("\n" . $out->color($result->getExitCode() === 0 ? 'white/green' : 'white/red', 'REVIEWED  no risky fixes to ask about'));
+			return $result->getExitCode();
+		}
+
+		$made = new RiskReview($runner, $out, $this->context->prompt, $root, $registry)->review($result);
+		$final = $runner->run($files, true, new Reporters\NullReporter, maxWarnings: $maxWarnings);
+		$left = $final->countRefused();
+		$out->writeLine(
+			"\n" . $out->color(
+				$final->getExitCode() === 0 ? 'white/green' : 'white/red',
+				sprintf('REVIEWED  %d risky %s made, %s', $made, $made === 1 ? 'fix' : 'fixes', $left ? "$left left" : 'none left'),
+			),
+		);
+		return $final->getExitCode();
 	}
 
 

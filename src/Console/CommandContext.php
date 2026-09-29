@@ -10,7 +10,7 @@ namespace DressCode\Console;
 use DressCode\{Config, Plugin, Violation};
 use DressCode\Config\{Loader, PhpVersionSource, ResolvedProject, RunnerFactory};
 use DressCode\Engine\Helpers;
-use Nette\CommandLine\{Console, ParseResult, UsageException};
+use Nette\CommandLine\{Console, ParseResult, Prompt, UsageException};
 use Nette\Neon\{Exception as NeonException, Neon};
 use Nette\Utils\FileSystem;
 use function count, is_string;
@@ -40,6 +40,8 @@ final readonly class CommandContext
 		public ?Config $defaultConfig,
 		/** PHP runs with Xdebug, which makes a run many times slower */
 		public bool $xdebug,
+		/** asks a person at a terminal, which `fix --ask-risky` does */
+		public Prompt $prompt,
 	) {
 	}
 

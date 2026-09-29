@@ -8,7 +8,7 @@
 namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, RuleException};
-use Nette\CommandLine\{ColorDepth, Command, Console, HelpRenderer, Parser as CommandLineParser, UsageException};
+use Nette\CommandLine\{ColorDepth, Command, Console, HelpRenderer, Parser as CommandLineParser, Prompt, UsageException};
 use Nette\Utils\FileSystem;
 use function extension_loaded;
 
@@ -30,6 +30,7 @@ final readonly class Application
 	 * @param  ?string  $script  the script the workers are started with, the one the process was started with by default
 	 * @param  ?Config  $defaultConfig  what applies when the project has no configuration file
 	 * @param  ?bool  $xdebug  whether Xdebug is loaded; detected when the output is the process's own
+	 * @param  ?bool  $interactive  whether the output and the input are a terminal a person answers at; detected from each
 	 */
 	public function __construct(
 		$stdout = null,
@@ -39,9 +40,10 @@ final readonly class Application
 		?string $script = null,
 		?Config $defaultConfig = null,
 		?bool $xdebug = null,
+		?bool $interactive = null,
 	) {
 		// what the caller hands in is captured output, which FORCE_COLOR must not color
-		$out = new Console($stdout ?? STDOUT, colorDepth: $stdout === null ? null : ColorDepth::None);
+		$out = new Console($stdout ?? STDOUT, colorDepth: $stdout === null ? null : ColorDepth::None, terminal: $interactive);
 		$err = new Console($stderr ?? STDERR, colorDepth: $stderr === null ? null : ColorDepth::None);
 		$this->context = new CommandContext(
 			stdout: $stdout ?? STDOUT,
@@ -53,6 +55,7 @@ final readonly class Application
 			scriptFile: $script ?? $_SERVER['argv'][0] ?? 'dresscode',
 			defaultConfig: $defaultConfig,
 			xdebug: $xdebug ?? ($stdout === null && extension_loaded('xdebug')),
+			prompt: new Prompt($out, $stdin ?? STDIN, inputTerminal: $interactive),
 		);
 	}
 

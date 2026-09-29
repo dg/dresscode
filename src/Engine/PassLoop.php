@@ -78,8 +78,11 @@ final class PassLoop
 	}
 
 
-	/** @throws RuleException|ConvergenceException|ConfigurationException */
-	public function run(FileNode $file, string $code, string $path, Style $style, string $phpVersion): PassResult
+	/**
+	 * @param  array<string, true>  $acceptedRisks  fingerprints of the occurrences whose fix that may change what the code does is allowed
+	 * @throws RuleException|ConvergenceException|ConfigurationException
+	 */
+	public function run(FileNode $file, string $code, string $path, Style $style, string $phpVersion, array $acceptedRisks = []): PassResult
 	{
 		$this->file = $file;
 		$this->path = $path;
@@ -108,6 +111,7 @@ final class PassLoop
 				$this->analyses,
 				$suppression,
 				$this->fingerprints,
+				$acceptedRisks,
 				$this->policy,
 				$this->plan->gates[$ruleClass],
 				RuleInfo::of($rule),
