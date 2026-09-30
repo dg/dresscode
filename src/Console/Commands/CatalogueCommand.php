@@ -14,8 +14,8 @@ use Nette\Utils\Json;
 
 
 /**
- * The command `catalogue`: every decision of the catalogue with its description, those the configuration makes marked;
- * or the catalogue as data, the values of the standards included.
+ * The command `catalogue`: every decision of the catalogue with its description and the names of other tools standing
+ * for it, those the configuration makes marked; or the catalogue as data, the values of the standards included.
  * @internal
  */
 final readonly class CatalogueCommand
@@ -44,6 +44,7 @@ final readonly class CatalogueCommand
 	{
 		[$factory, $resolution] = $this->context->resolveProject($args, $only);
 		$catalogue = $resolution->getCatalogue();
+		$translator = $factory->registry->translator;
 		$out = $this->context->out;
 		if ($format === 'json') {
 			$data = $catalogue->toArray();
@@ -57,6 +58,11 @@ final readonly class CatalogueCommand
 				}
 			}
 
+			foreach ($data['decisions'] as $path => &$decision) {
+				$decision['covers'] = $translator->findForeignNames([$path]);
+			}
+
+			unset($decision);
 			$out->write(Json::encode($data, pretty: true) . "\n");
 			return 0;
 		}
@@ -71,10 +77,12 @@ final readonly class CatalogueCommand
 		);
 		foreach ($decisions as $path => $decision) {
 			$set = isset($made[$path]) && $made[$path]->layers !== [] && !$made[$path]->value->isKept();
+			$covers = $translator->findForeignNames([$path]);
 			$out->writeLine(
 				($set ? '*' : ' ')
 				. ' ' . Ansi::pad($out->color($set ? 'white' : null, $path), 50)
-				. ' ' . Markup::highlightCode($out, $decision->description),
+				. ' ' . Markup::highlightCode($out, $decision->description)
+				. ($covers ? $out->color('gray', '  (covers ' . implode(', ', $covers) . ')') : ''),
 			);
 		}
 

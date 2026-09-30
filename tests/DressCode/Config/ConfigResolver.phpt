@@ -546,6 +546,19 @@ test('a state written as `warning` is its word with the violations only warning,
 });
 
 
+test('an unknown key is looked up in the tables of the translator of the run, as an unknown name is', function () {
+	$resolver = new ConfigResolver(new PluginRegistry(new DressCode\Interop\Translator(
+		['acme_spacing' => ['spacing.call' => 'compact']],
+		[],
+	)));
+	Assert::exception(
+		fn() => $resolver->resolve(new Config(decisions: ['acme_spacing' => true]), '8.3'),
+		ConfigurationException::class,
+		'Key `acme_spacing` is unknown. It is the name of a rule of another tool, covered by `spacing.call`;%a%',
+	);
+});
+
+
 test('a rule an override turns on runs somewhere, however the override decides it', function () {
 	// a word on a structure decides every decision under it
 	$config = new Config(

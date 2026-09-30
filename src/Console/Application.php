@@ -161,6 +161,7 @@ final readonly class Application
 			new Commands\ExplainCommand($context),
 			new Commands\CatalogueCommand($context),
 			new Commands\InitCommand($context),
+			new Commands\ImportCommand($context),
 		] as $handlers) {
 			$program->addCommandsFrom($handlers);
 		}

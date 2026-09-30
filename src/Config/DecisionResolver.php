@@ -8,6 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{Config, ConfigurationException, DecisionKind, Rule, RuleInfo, Value, Values};
+use DressCode\Interop\Translator;
 use Nette\Utils\Helpers;
 use function is_array, is_int, is_string, strlen;
 
@@ -32,6 +33,8 @@ final readonly class DecisionResolver
 		private bool $typesAnalyzed = false,
 		/** whether the namespaces of the configuration are complete, which turns on their guard */
 		private bool $certainNames = false,
+		/** knows the names of the rules of other tools and the decisions that cover them */
+		private Translator $translator = new Translator,
 	) {
 	}
 
@@ -190,7 +193,14 @@ final readonly class DecisionResolver
 			}
 		}
 
+		$covered = $prefix === '' ? $this->translator->findPaths($path) : [];
 		$hint = Helpers::getSuggestion(array_keys($known), $path);
-		throw new ConfigurationException("Key `$path` is unknown" . ($hint !== null ? "; write `$hint`." : '.'));
+		throw new ConfigurationException("Key `$path` is unknown" . match (true) {
+			$covered !== [] => '. It is the name of a rule of another tool, covered by `'
+				. implode('` and `', $covered)
+				. '`; `dresscode import` translates a configuration of another tool.',
+			$hint !== null => "; write `$hint`.",
+			default => '.',
+		}, docs: $covered !== [] ? 'migration#import' : null);
 	}
 }

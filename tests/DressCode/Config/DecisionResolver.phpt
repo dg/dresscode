@@ -82,6 +82,11 @@ test('a path the catalogue does not know is named with the nearest known one', f
 		'Key `spacng` is unknown; write `spacing`.',
 	);
 	Assert::exception(
+		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['native_function_invocation' => true]]]),
+		ConfigurationException::class,
+		'Key `native_function_invocation` is unknown. It is the name of a rule of another tool, covered by %a%; `dresscode import` translates a configuration of another tool.',
+	);
+	Assert::exception(
 		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['qualification' => 'bare']]]),
 		ConfigurationException::class,
 		'Key `qualification` holds keys of its own; write a map of them or `keep`.',
