@@ -8,6 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{ConfigurationException, Decision, Rule};
+use DressCode\Interop\Translator;
 use DressCode\Rules\QualifiedNames;
 use Nette\Utils\Helpers;
 use function array_key_exists, strlen;
@@ -15,7 +16,7 @@ use function array_key_exists, strlen;
 
 /**
  * What a run knows of its plugins: the rules by their classes, the presets by name, the pages of their documentation,
- * the sections and the catalogue. A name of a preset without a vendor is the
+ * the sections, the translator and the catalogue. A name of a preset without a vendor is the
  * one of the core of that name, so `'perCs'` is `'dresscode/perCs'`.
  * @internal
  */
@@ -53,8 +54,9 @@ final class PluginRegistry
 	private ?Catalogue $catalogue = null;
 
 
-	public function __construct()
-	{
+	public function __construct(
+		public readonly Translator $translator = new Translator,
+	) {
 		$core = (new CorePlugin)->getManifest();
 		$this->rules = $core->rules;
 		$this->coreDecisions = $core->decisions;
@@ -145,6 +147,19 @@ final class PluginRegistry
 
 
 	/**
+	 * A name nobody owns, with the decisions that cover it where it belongs to another tool, else the suggestion.
+	 */
+	private function createUnknownNameException(string $name, string $message, string $suggestion): ConfigurationException
+	{
+		$covered = $this->translator->findPaths($name);
+		return match (true) {
+			$covered !== [] => new ConfigurationException("$message It is covered by `" . implode('` and `', $covered) . '`; `dresscode import` translates a configuration of another tool.', docs: 'migration#import'),
+			default => new ConfigurationException($message . $suggestion),
+		};
+	}
+
+
+	/**
 	 * ``" Did you mean `x`?"`` for the nearest of the known names, empty when none is near enough; a name of the core
 	 * is compared without its vendor as well, so that a name typed alone finds its preset.
 	 * @param  list<string>  $known
@@ -159,7 +174,8 @@ final class PluginRegistry
 
 	/**
 	 * What a name in a suppression comment stands for, as a report is told by: a decision or a section for itself, the
-	 * class of a rule for its requirements; empty when nothing does.
+	 * class of a rule for its requirements, and a name of another tool for the requirements standing for it; empty when
+	 * nothing does.
 	 * @return list<string>
 	 */
 	public function expandSuppressedName(string $name): array
@@ -172,7 +188,10 @@ final class PluginRegistry
 			return array_values(array_map(fn(Decision $decision) => $decision->path, $requirements));
 		}
 
-		return [];
+		return array_values(array_filter(
+			$this->translator->findPaths($name),
+			fn(string $path) => $catalogue->find($path)?->parameter === false,
+		));
 	}
 
 
@@ -279,7 +298,11 @@ final class PluginRegistry
 
 		return match (true) {
 			isset($this->presets[$name]), isset($this->presets[self::Vendor . $name]) => new RuleOrPreset(preset: $this->resolvePreset($name)),
-			default => throw new ConfigurationException("Unknown decision, preset or rule `$name`." . self::suggest($name, array_keys($this->presets))),
+			default => throw $this->createUnknownNameException(
+				$name,
+				"Unknown decision, preset or rule `$name`.",
+				self::suggest($name, array_keys($this->presets)),
+			),
 		};
 	}
 }

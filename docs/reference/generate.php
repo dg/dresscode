@@ -141,6 +141,10 @@ foreach ($bySection as $section => $decisions) {
 			$facts[] = 'Read by rule `' . $rule . '`, which this decision does not turn on';
 		}
 
+		if ($covers = $registry->translator->findForeignNames([$path])) {
+			$facts[] = 'Covers: ' . implode(', ', array_map(fn($a) => "`$a`", $covers));
+		}
+
 		if (isset($phpNeeds[$path])) {
 			$facts[] = "Needs PHP $phpNeeds[$path]";
 		}

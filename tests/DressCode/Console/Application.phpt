@@ -279,6 +279,72 @@ test('catalogue lists every decision, those the configuration makes marked, and 
 	$data = json_decode($out, associative: true);
 	Assert::same(DressCode\Config\Catalogue::Version, $data['version']);
 	Assert::same('compact', $data['decisions']['spacing.call']['standards']['nette']);
+	Assert::contains('no_spaces_after_function_name', $data['decisions']['spacing.call']['covers']);
+});
+
+
+test('import translates a foreign configuration and says what it could not', function () use ($root) {
+	file_put_contents("$root/phpcs.xml", <<<'XX'
+		<?xml version="1.0"?>
+		<ruleset name="Demo">
+			<rule ref="PSR12"/>
+			<rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/>
+			<rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInCall"/>
+			<rule ref="Squiz.WhiteSpace.FunctionSpacing">
+				<properties>
+					<property name="spacing" value="1"/>
+					<property name="spacingBeforeFirst" value="0"/>
+					<property name="spacingAfterLast" value="0"/>
+				</properties>
+			</rule>
+			<rule ref="Squiz.Nonsense.DoesNotExist"/>
+		</ruleset>
+		XX);
+	[$code, $out, $err] = runApp($root, ['import', "$root/phpcs.xml"]);
+	Assert::same(0, $code);
+	Assert::same(
+		"<?php declare(strict_types=1);\n\n"
+		. "use DressCode\\Config;\n\n"
+		. "return new Config(\n"
+		. "\tuse: ['psr12'],\n"
+		. "\tdecisions: [\n"
+		. "\t\t'multiline' => [\n"
+		. "\t\t\t'trailingComma' => [\n"
+		. "\t\t\t\t'array' => 'required',\n"
+		. "\t\t\t\t'argument' => 'required',\n"
+		. "\t\t\t\t'parameter' => 'keep',\n"
+		. "\t\t\t\t'matchArm' => 'keep',\n"
+		. "\t\t\t\t'closureUse' => 'keep',\n"
+		. "\t\t\t\t'import' => 'keep',\n"
+		. "\t\t\t\t'list' => 'keep',\n"
+		. "\t\t\t],\n"
+		. "\t\t],\n"
+		. "\t\t'blankLines' => [\n"
+		. "\t\t\t'betweenDeclarations' => 1,\n"
+		. "\t\t\t'betweenMethods' => 1,\n"
+		. "\t\t\t'betweenInterfaceMethods' => 1,\n"
+		. "\t\t\t'beforeFirstMethod' => 0,\n"
+		. "\t\t\t'afterLastMethod' => 0,\n"
+		. "\t\t],\n"
+		. "\t],\n"
+		. ");\n",
+		$out,
+	);
+	Assert::same(
+		"\nRead 5 rules; set 12 decisions and 1 preset.\n"
+		. "  `Squiz.WhiteSpace.FunctionSpacing` leaves the blank lines around classes alone, while `blankLines` sets them together with those around functions.\n"
+		. "  No DressCode rule covers `Squiz.Nonsense.DoesNotExist`.\n",
+		$err,
+	);
+
+	file_put_contents("$root/fixer.php", "<?php\nreturn new class {\n\tpublic function getRules(): array\n\t{\n\t\treturn ['cast_spaces' => ['space' => 'none']];\n\t}\n};\n");
+	[$code, $out] = runApp($root, ['import', "$root/fixer.php"]);
+	Assert::same(0, $code);
+	Assert::contains("\t\t'spacing' => [\n\t\t\t'cast' => 'compact',\n\t\t],\n", $out);
+
+	[$code, , $err] = runApp($root, ['import']);
+	Assert::same(3, $code);
+	Assert::match('Error: Missing required argument <file>.%A%', $err);
 });
 
 

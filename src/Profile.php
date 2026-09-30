@@ -57,8 +57,8 @@ readonly class Profile
 		/** @var list<string>  decisions, sections, presets or classes of rules whose violations only warn */
 		public array $warnOnly = [],
 		/**
-		 * a comment the project already writes to say a line is meant as it is: pattern => the rules or decisions it
-		 * silences where it stands, as `dresscode:ignore` does
+		 * a comment the project already writes to say a line is meant as it is: pattern => the rules, decisions or names
+		 * of other tools it silences where it stands, as `dresscode:ignore` does
 		 * @var array<string, string|list<string>>
 		 */
 		public array $suppressionComments = [],

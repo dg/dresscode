@@ -56,6 +56,7 @@ $resolver = new DecisionResolver(new Catalogue([QualificationRule::class, Resolv
 test('a path the catalogue does not know is named with the nearest known one', function () use ($resolver) {
 	Assert::exception(fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['spacing' => ['cal' => 'foo()']]]]), ConfigurationException::class, 'Key `spacing.cal` is unknown; write `spacing.call`.');
 	Assert::exception(fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['spacng' => ['call' => 'foo()']]]]), ConfigurationException::class, 'Key `spacng` is unknown; write `spacing`.');
+	Assert::exception(fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['native_function_invocation' => true]]]), ConfigurationException::class, 'Key `native_function_invocation` is unknown. It is the name of a rule of another tool, covered by %a%; `dresscode import` translates a configuration of another tool.');
 	Assert::exception(fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['qualification' => 'bare']]]), ConfigurationException::class, 'Key `qualification` holds keys of its own; write a map of them or `keep`.');
 	Assert::exception(fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['spacing' => ['call' => 'foo( )']]]]), ConfigurationException::class, 'Key `spacing.call` does not take `foo( )`; write `compact` (`"foo()"`), `spaced` (`"foo ()"`) or `keep`.');
 });

@@ -10,6 +10,7 @@ namespace DressCode\Console;
 use DressCode\{Config, ConfigurationException, ConvergenceException, Plugin, Profile, Reporter, Reporters, RuleException};
 use DressCode\Config\{Catalogue, ConfigResolver, CorePlugin, Loader, PhpVersionSource, PluginRegistry, ResolvedProject, RunnerFactory};
 use DressCode\Engine\{Baseline, FileSummary, Helpers, RunInfo, Runner, RunResult, Worker, WorkerPool};
+use DressCode\Interop\{PhpCodeSniffer, PhpCsFixer, Translator};
 use DressCode\Measuring\Proposal;
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, Normalizers, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Neon\{Exception as NeonException, Neon};
@@ -113,6 +114,7 @@ final class Application
 				'explain' => $this->runExplain($args),
 				'catalogue' => $this->runCatalogue($args),
 				'init' => $this->runInit($args),
+				'import' => $this->runImport($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
 
@@ -182,9 +184,11 @@ final class Application
 		$explain = $program->addCommand('explain', 'Explain a decision, its values and its value in this configuration; every decision the configuration makes when none is named');
 		$catalogue = $program->addCommand('catalogue', 'List every decision the rules of the run declare, those this configuration makes marked');
 		$program->addCommand('init', 'Measure the code of the project and write a `dresscode.neon` to fit');
+		$import = $program->addCommand('import', 'Translate a PHP CS Fixer or PHP_CodeSniffer configuration');
 		$program->addText('Exit codes: `0` clean, `1` violations, syntax errors or a refused baseline, `2` a file failed, `3` a mistake of the command line or of the configuration.');
 
 		$explain->addArgument('decision', 'A decision, or a section or structure of them; the whole configuration when omitted', optional: true);
+		$import->addArgument('file', 'Configuration file of PHP CS Fixer or PHP_CodeSniffer');
 
 		foreach ([$check, $fix, $baseline] as $command) {
 			$command->addArgument('paths', 'Files or directories; the configured paths when omitted', optional: true, repeatable: true);
@@ -679,8 +683,8 @@ final class Application
 
 
 	/**
-	 * Lists every decision of the catalogue with its description, those the configuration makes marked; or writes the
-	 * catalogue as data, the values of the standards included.
+	 * Lists every decision of the catalogue with its description and the names of other tools standing for it, those
+	 * the configuration makes marked; or writes the catalogue as data, the values of the standards included.
 	 */
 	private function runCatalogue(ParseResult $args): int
 	{
@@ -688,6 +692,7 @@ final class Application
 		['config' => $config, 'root' => $root, 'commandLine' => $commandLine] = $this->loadConfig($args);
 		$resolution = $factory->resolve($config, $root, $commandLine, self::parseOnly($args));
 		$catalogue = $resolution->getCatalogue();
+		$translator = $factory->registry->translator;
 		if ($args['--format'] === 'json') {
 			$data = $catalogue->toArray();
 			foreach (self::resolveStandards($factory->registry, $resolution->resolvedConfig->phpVersion) as $standard => $decisions) {
@@ -698,6 +703,11 @@ final class Application
 				}
 			}
 
+			foreach ($data['decisions'] as $path => &$decision) {
+				$decision['covers'] = $translator->findForeignNames([$path]);
+			}
+
+			unset($decision);
 			$this->out->write(Json::encode($data, pretty: true) . "\n");
 			return 0;
 		}
@@ -709,10 +719,12 @@ final class Application
 		uksort($decisions, fn(string $a, string $b) => ($order[explode('.', $a)[0]] ?? PHP_INT_MAX) <=> ($order[explode('.', $b)[0]] ?? PHP_INT_MAX));
 		foreach ($decisions as $path => $decision) {
 			$set = isset($made[$path]) && !$made[$path]->value->isKept();
+			$covers = $translator->findForeignNames([$path]);
 			$this->out->writeLine(
 				($set ? '*' : ' ')
 				. ' ' . Ansi::pad($this->out->color($set ? 'white' : null, $path), 50)
-				. ' ' . Markup::highlightCode($this->out, $decision->description),
+				. ' ' . Markup::highlightCode($this->out, $decision->description)
+				. ($covers ? $this->out->color('gray', '  (covers ' . implode(', ', $covers) . ')') : ''),
 			);
 		}
 
@@ -764,6 +776,49 @@ final class Application
 
 		FileSystem::write("$root/dresscode.neon", $neon);
 		$this->write("\n`dresscode.neon` written, made to measure.\n");
+		return 0;
+	}
+
+
+	private function runImport(ParseResult $args): int
+	{
+		$file = $args['file'];
+		if (preg_match('~\.xml(\.dist)?$~Di', $file)) {
+			[$rules, $unread] = PhpCodeSniffer::readConfig($file);
+			$translation = (new Translator)->translate($rules);
+		} else {
+			[$rules, $indent, $lineEnding] = PhpCsFixer::readConfig($file);
+			$unread = [];
+			$translation = (new Translator)->translate($rules, $indent, $lineEnding);
+		}
+
+		foreach ($unread as $warning) {
+			$translation->warn($warning);
+		}
+
+		$this->out->write($translation->toPhp());
+		$count = fn(int $n, string $noun) => $n . ' ' . $noun . ($n === 1 ? '' : 's');
+		$this->writeNote(sprintf(
+			"\nRead %s; set %s and %s.\n",
+			$count(count($rules), 'rule'),
+			$count(count($translation->getPaths()), 'decision'),
+			$count(count($translation->presets), 'preset'),
+		));
+		foreach ($translation->warnings as $warning) {
+			$this->writeNote("  $warning\n");
+		}
+
+		$untranslated = array_diff_key(['indentation.unit' => 'the indentation', 'file.lineEnding' => 'the line ending'], array_flip($translation->getPaths()));
+		if (!$translation->presets && $untranslated) {
+			$this->writeNote(sprintf(
+				"  %s %s not translated; set %s with `%s`.\n",
+				ucfirst(implode(' and ', $untranslated)),
+				count($untranslated) > 1 ? 'are' : 'is',
+				count($untranslated) > 1 ? 'them' : 'it',
+				implode('` and `', array_keys($untranslated)),
+			));
+		}
+
 		return 0;
 	}
 

@@ -107,6 +107,8 @@ test('names of a suppression comment: a decision or a section for itself, a rule
 	Assert::same(['imports.order'], $registry->expandSuppressedName('imports.order'));
 	Assert::same(['imports'], $registry->expandSuppressedName('imports'));
 	Assert::same([], $registry->expandSuppressedName('importOrder'));
+	Assert::same(['imports.order'], $registry->expandSuppressedName('ordered_imports'));
+	Assert::same(['imports.order'], $registry->expandSuppressedName('SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses'));
 	Assert::same([], $registry->expandSuppressedName('test/unknown'));
 	Assert::same([], $registry->expandSuppressedName('imports.ord'));
 });
@@ -127,6 +129,11 @@ test('errors', function () {
 	Assert::exception(fn() => $registry->registerRuleOrResolvePreset('quite/different'), ConfigurationException::class, 'Unknown decision, preset or rule `quite/different`.');
 	Assert::exception(fn() => $registry->registerRuleOrResolvePreset('nete'), ConfigurationException::class, 'Unknown decision, preset or rule `nete`. Did you mean `nette`?');
 	Assert::exception(fn() => $registry->resolvePreset('dresscode/nete'), ConfigurationException::class, 'Unknown preset `dresscode/nete`. Did you mean `dresscode/nette`?');
+	Assert::exception(
+		fn() => $registry->registerRuleOrResolvePreset('cast_spaces'),
+		ConfigurationException::class,
+		'Unknown decision, preset or rule `cast_spaces`. It is covered by `spacing.cast`; `dresscode import` translates a configuration of another tool.',
+	);
 	Assert::exception(
 		fn() => $registry->registerRuleOrResolvePreset('importOrder'),
 		ConfigurationException::class,
