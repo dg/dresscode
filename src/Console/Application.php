@@ -9,12 +9,13 @@ namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, Plugin, Profile, Reporter, Reporters, RuleException};
 use DressCode\Config\{Catalogue, ConfigResolver, CorePlugin, Loader, PhpVersionSource, PluginRegistry, ResolvedProject, RunnerFactory};
-use DressCode\Engine\{Baseline, FileSummary, Helpers, RunInfo, Runner, RunResult, Worker, WorkerPool};
+use DressCode\Engine\{Baseline, FileSummary, Helpers, RunInfo, Runner, RunResult, SuppressionMigration, Worker, WorkerPool};
 use DressCode\Interop\{PhpCodeSniffer, PhpCsFixer, Translator};
 use DressCode\Measuring\Proposal;
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, Normalizers, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Neon\{Exception as NeonException, Neon};
 use Nette\Utils\{FileSystem, Helpers as UtilsHelpers, Json};
+use PhpSyntax\{ParseException, Printer};
 use function count, extension_loaded, in_array, is_string, sprintf;
 
 
@@ -115,6 +116,7 @@ final class Application
 				'catalogue' => $this->runCatalogue($args),
 				'init' => $this->runInit($args),
 				'import' => $this->runImport($args),
+				'migrate-suppressions' => $this->runMigrateSuppressions($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
 
@@ -185,13 +187,17 @@ final class Application
 		$catalogue = $program->addCommand('catalogue', 'List every decision the rules of the run declare, those this configuration makes marked');
 		$program->addCommand('init', 'Measure the code of the project and write a `dresscode.neon` to fit');
 		$import = $program->addCommand('import', 'Translate a PHP CS Fixer or PHP_CodeSniffer configuration');
+		$migrate = $program->addCommand('migrate-suppressions', 'Rewrite the suppression comments of PHP_CodeSniffer to the DressCode form');
 		$program->addText('Exit codes: `0` clean, `1` violations, syntax errors or a refused baseline, `2` a file failed, `3` a mistake of the command line or of the configuration.');
+
+		foreach ([$check, $fix, $baseline, $migrate] as $command) {
+			$command->addArgument('paths', 'Files or directories; the configured paths when omitted', optional: true, repeatable: true);
+		}
 
 		$explain->addArgument('decision', 'A decision, or a section or structure of them; the whole configuration when omitted', optional: true);
 		$import->addArgument('file', 'Configuration file of PHP CS Fixer or PHP_CodeSniffer');
 
 		foreach ([$check, $fix, $baseline] as $command) {
-			$command->addArgument('paths', 'Files or directories; the configured paths when omitted', optional: true, repeatable: true);
 			$command->addOption(
 				'--format',
 				'Output format, `github` by default in GitHub Actions; `bare` prints only what is left to the user and which files were rewritten, so a clean run prints nothing',
@@ -599,6 +605,59 @@ final class Application
 	private static function getDefaultBaselineName(?string $configFile): string
 	{
 		return 'dresscode-baseline.' . (Loader::detectFormat($configFile ?? '') ?? 'neon');
+	}
+
+
+	/**
+	 * Rewrites the phpcs suppression comments of the files to the dresscode form and writes them back.
+	 */
+	private function runMigrateSuppressions(ParseResult $args): int
+	{
+		$factory = new RunnerFactory;
+		['config' => $config, 'root' => $root, 'commandLine' => $commandLine] = $this->loadConfig($args);
+		$runner = $factory->createRunner($factory->resolve($config, $root, $commandLine), baseline: false);
+		$named = array_map($this->resolvePath(...), self::parsePaths($args));
+		$paths = $named ? $runner->narrowPaths($named, $config->paths) : $config->paths;
+		if (!$paths) {
+			throw new UsageException('No paths given and none configured.');
+		}
+
+		$migration = new SuppressionMigration($factory->registry->expandSuppressedName(...));
+		$parser = new \PhpSyntax\Parser;
+		$files = 0;
+		foreach ($runner->findFiles($paths) as $path) {
+			$absolute = $runner->toAbsolute($path);
+			$code = @file_get_contents($absolute); // @ is escalated to exception
+			if ($code === false) {
+				throw new \RuntimeException("Cannot read file `$path`.");
+			}
+
+			try {
+				$file = $parser->parse($code);
+			} catch (ParseException $e) {
+				$this->write("`$path`: skipped, {$e->getMessage()}\n");
+				continue;
+			}
+
+			if ($migration->migrate($file)) {
+				if (@file_put_contents($absolute, Printer::print($file)) === false) { // @ is escalated to exception
+					throw new \RuntimeException("Cannot write file `$path`.");
+				}
+
+				$files++;
+			}
+		}
+
+		$this->write(sprintf("Migrated %d suppression comment%s in %d file%s.\n", $migration->count, $migration->count === 1 ? '' : 's', $files, $files === 1 ? '' : 's'));
+		if ($migration->unknownNames) {
+			$this->write('Warning: The names DressCode does not know are kept as they are: `' . implode('`, `', array_keys($migration->unknownNames)) . "`.\n");
+		}
+
+		if ($migration->ownLineIgnore) {
+			$this->write("Note: A `dresscode:ignore` on a line of its own covers the whole statement below it, not just the next line; review the migrated ones.\n");
+		}
+
+		return 0;
 	}
 
 
