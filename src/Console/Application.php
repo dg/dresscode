@@ -9,11 +9,12 @@ namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, Preset, PresetInfo, Profile, Reporter, Reporters, RuleException, RuleInfo};
 use DressCode\Config\{Loader, PhpVersionSource, Proposal, RuleRegistry, RunnerFactory};
-use DressCode\Engine\{Baseline, FileSummary, Helpers, RunInfo, Runner, RunResult, WorkerClient, WorkerPool};
+use DressCode\Engine\{Baseline, FileSummary, Helpers, RunInfo, Runner, RunResult, SuppressionMigration, WorkerClient, WorkerPool};
 use DressCode\Interop\{PhpCodeSniffer, PhpCsFixer, Translator};
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, ParseResult};
 use Nette\Neon\{Exception as NeonException, Neon};
 use Nette\Utils\FileSystem;
+use PhpSyntax\{ParseException, Printer};
 use function array_slice, count, extension_loaded, in_array, is_array, is_bool, is_int, is_string, sprintf;
 
 
@@ -114,6 +115,7 @@ final class Application
 				'rules' => $this->runRules($args),
 				'init' => $this->runInit($args),
 				'import' => $this->runImport($args),
+				'migrate-suppressions' => $this->runMigrateSuppressions($args),
 				default => throw new \LogicException("Command '{$command->name}' has no handler."),
 			};
 
@@ -171,9 +173,10 @@ final class Application
 		$rules = $program->addCommand('rules', 'list the known rules');
 		$program->addCommand('init', 'take the measurements of the project\'s code and write `dresscode.neon` to fit');
 		$import = $program->addCommand('import', 'translate a php-cs-fixer or phpcs configuration');
+		$migrate = $program->addCommand('migrate-suppressions', 'rewrite phpcs suppression comments to the dresscode form');
 		$program->addText('Exit codes: `0` clean, `1` violations, syntax errors or a refused baseline, `2` a file failed, `3` a mistake of the command line or of the configuration.');
 
-		foreach ([$check, $fix, $baseline] as $command) {
+		foreach ([$check, $fix, $baseline, $migrate] as $command) {
 			$command->addArgument('paths', 'files or directories; the configured paths when omitted', optional: true, repeatable: true);
 		}
 
@@ -577,6 +580,59 @@ final class Application
 	private static function defaultBaselineName(?string $configFile): string
 	{
 		return 'dresscode-baseline.' . (Loader::detectFormat($configFile ?? '') ?? 'neon');
+	}
+
+
+	/**
+	 * Rewrites the phpcs suppression comments of the files to the dresscode form and writes them back.
+	 */
+	private function runMigrateSuppressions(ParseResult $args): int
+	{
+		$factory = new RunnerFactory;
+		[$config, $root, , $commandLine] = $this->loadConfig($args);
+		$runner = $factory->createRunner($config, $root, $commandLine);
+		$named = array_map($this->resolvePath(...), self::parsePaths($args));
+		$paths = $named ? $runner->narrowPaths($named, $config->paths) : $config->paths;
+		if (!$paths) {
+			throw new UsageException('No paths given and none configured.');
+		}
+
+		$migration = new SuppressionMigration($factory->registry->resolveNames(...));
+		$parser = new \PhpSyntax\Parser;
+		$files = 0;
+		foreach ($runner->findFiles($paths) as $path) {
+			$absolute = $runner->toAbsolute($path);
+			$code = @file_get_contents($absolute); // @ - reported as exception
+			if ($code === false) {
+				throw new \RuntimeException("Cannot read file `$path`.");
+			}
+
+			try {
+				$file = $parser->parse($code);
+			} catch (ParseException $e) {
+				$this->write("`$path`: skipped, {$e->getMessage()}\n");
+				continue;
+			}
+
+			if ($migration->migrate($file)) {
+				if (@file_put_contents($absolute, Printer::print($file)) === false) { // @ - reported as exception
+					throw new \RuntimeException("Cannot write file `$path`.");
+				}
+
+				$files++;
+			}
+		}
+
+		$this->write(sprintf("Migrated %d suppression comment%s in %d file%s.\n", $migration->count, $migration->count === 1 ? '' : 's', $files, $files === 1 ? '' : 's'));
+		if ($migration->unknownNames) {
+			$this->write('Warning: The names DressCode does not know are kept as they are: `' . implode('`, `', array_keys($migration->unknownNames)) . "`.\n");
+		}
+
+		if ($migration->ownLineIgnore) {
+			$this->write("Note: A `dresscode:ignore` on a line of its own covers the whole statement below it, not just the next line; review the migrated ones.\n");
+		}
+
+		return 0;
 	}
 
 

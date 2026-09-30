@@ -183,7 +183,7 @@ Its format follows the extension of its file, so it is written in whichever of t
 
 ### Suppression
 
-Suppression is read once from the original comments before any mutation: `dresscode:ignore [names]` on a line silences that line, on its own line the nearest node starting on the next line, `disable`/`enable` a range, `ignoreFile` everything; what follows ` -- ` says why, as in ESLint and phpcs, and names no rule. The forms of PHP_CodeSniffer (`phpcs:ignore`, `phpcs:disable`, `phpcs:enable`, `phpcs:ignoreFile` and the `@phpcsSuppress` annotation) name the rules of another tool, which `Interop\Translator` translates, one name possibly standing for several rules, or the rules of DressCode by their own names.
+Suppression is read once from the original comments before any mutation: `dresscode:ignore [names]` on a line silences that line, on its own line the nearest node starting on the next line, `disable`/`enable` a range, `ignoreFile` everything; what follows ` -- ` says why, as in ESLint and phpcs, and names no rule. The forms of PHP_CodeSniffer (`phpcs:ignore`, `phpcs:disable`, `phpcs:enable`, `phpcs:ignoreFile` and the `@phpcsSuppress` annotation) name the rules of another tool, which `Interop\Translator` translates, one name possibly standing for several rules, or the rules of DressCode by their own names; `dresscode migrate-suppressions` rewrites them to the dresscode form with the canonical names, the annotation keeping its tag, which has no form of ours, and lists the names no rule covers.
 
 ### Processing a file
 

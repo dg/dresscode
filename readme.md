@@ -339,7 +339,7 @@ Migrating from PHP CS Fixer and PHP_CodeSniffer
 ===============================================
 
 DressCode knows its rules not only by their own names, but also by the names they have in PHP CS Fixer,
-PHP_CodeSniffer and Slevomat. So the move takes two steps, and you can stop after the first.
+PHP_CodeSniffer and Slevomat. So the move takes three steps, and you can stop after any of them.
 
 First, leave the code as it is. Comments `// phpcs:ignore`, `phpcs:disable`, `phpcs:enable`,
 `phpcs:ignoreFile` and the annotation `@phpcsSuppress` keep working: DressCode translates the foreign rule
@@ -359,6 +359,9 @@ Read 4 rules; enabled 2 rules and 1 preset.
 
 `.php-cs-fixer.dist.php` is translated the same way, as long as PHP CS Fixer is still installed in the
 project, because that file is PHP which has to run.
+
+Third, rewrite the comments when you like: `dresscode migrate-suppressions src tests` turns
+`phpcs:ignore SlevomatCodingStandard.Namespaces.UnusedUses` into `dresscode:ignore unusedImports`.
 
  <!---->
 
