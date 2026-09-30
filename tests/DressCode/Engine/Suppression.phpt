@@ -7,7 +7,8 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-$resolve = fn(string $name) => str_starts_with($name, 'dresscode/') ? [$name] : [];
+$foreign = ['Generic.Files.LineLength' => ['dresscode/lineLength']];
+$resolve = fn(string $name) => $foreign[$name] ?? (str_starts_with($name, 'dresscode/') ? [$name] : []);
 
 
 /** @param Closure(string): list<string> $resolve */
@@ -111,13 +112,56 @@ test('disable and enable, also without a matching enable', function () use ($res
 });
 
 
-test('ignoreFile silences the whole file', function () use ($resolve) {
+test('ignoreFile and phpcs forms with alias translation', function () use ($resolve) {
 	$s = suppression("<?php\n// dresscode:ignoreFile\n\$a;", $resolve);
+	Assert::true($s->isSuppressed('dresscode/x', 3));
+
+	$s = suppression(<<<'XX'
+		<?php
+		$a; // phpcs:ignore Generic.Files.LineLength
+		// phpcs:disable Generic.Files.LineLength
+		$b;
+		// phpcs:enable
+		/**
+		 * @phpcsSuppress Generic.Files.LineLength
+		 */
+		function f() {
+			$c;
+		}
+		$d;
+		XX, $resolve);
+	Assert::true($s->isSuppressed('dresscode/lineLength', 2));
+	Assert::true($s->isSuppressed('dresscode/lineLength', 4));
+	Assert::false($s->isSuppressed('dresscode/lineLength', 5));
+	Assert::true($s->isSuppressed('dresscode/lineLength', 10));
+	Assert::false($s->isSuppressed('dresscode/lineLength', 12));
+
+	$s = suppression("<?php\n// phpcs:ignoreFile\n\$a;", $resolve);
 	Assert::true($s->isSuppressed('dresscode/x', 3));
 });
 
 
 test('the hyphenated ignore-file is no directive', function () use ($resolve) {
-	$s = suppression("<?php\n// dresscode:ignore-file\n\$a;", $resolve);
-	Assert::false($s->isSuppressed('dresscode/x', 3));
+	foreach (['dresscode', 'phpcs'] as $prefix) {
+		$s = suppression("<?php\n// $prefix:ignore-file\n\$a;", $resolve);
+		Assert::false($s->isSuppressed('dresscode/x', 3));
+	}
+});
+
+
+test('@phpcsSuppress with our names, several in one tag', function () use ($resolve) {
+	$s = suppression(<<<'XX'
+		<?php
+		/**
+		 * @phpcsSuppress dresscode/a, dresscode/b
+		 * @phpcsSuppress dresscode/c
+		 */
+		function f() {
+			$c;
+		}
+		XX, $resolve);
+	Assert::true($s->isSuppressed('dresscode/a', 7));
+	Assert::true($s->isSuppressed('dresscode/b', 7));
+	Assert::true($s->isSuppressed('dresscode/c', 7));
+	Assert::false($s->isSuppressed('dresscode/d', 7));
 });

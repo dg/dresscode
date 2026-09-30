@@ -13,7 +13,8 @@ use DressCode\Config\Versions;
 
 /**
  * What the engine and the resolver know of a rule: its name (vendor/slug), which is its identity, the stage it
- * runs in and what it needs of the project.
+ * runs in and what it needs of the project. What a rule of another tool means here is not part of it; that lives
+ * in DressCode\Interop, where it can carry the options too.
  */
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final readonly class RuleInfo

@@ -335,6 +335,33 @@ and reports nothing. Without the key, the rules that need types quietly stay out
 
  <!---->
 
+Migrating from PHP CS Fixer and PHP_CodeSniffer
+===============================================
+
+DressCode knows its rules not only by their own names, but also by the names they have in PHP CS Fixer,
+PHP_CodeSniffer and Slevomat. So the move takes two steps, and you can stop after the first.
+
+First, leave the code as it is. Comments `// phpcs:ignore`, `phpcs:disable`, `phpcs:enable`,
+`phpcs:ignoreFile` and the annotation `@phpcsSuppress` keep working: DressCode translates the foreign rule
+name to its own, and the suppression holds.
+
+Second, translate the configuration. `import` reads it and writes its equivalent, and it tells you what it
+could not carry over:
+
+```shell
+dresscode import phpcs.xml > dresscode.php
+```
+
+```
+Read 4 rules; enabled 2 rules and 1 preset.
+  No DressCode rule covers Squiz.Commenting.FunctionComment.
+```
+
+`.php-cs-fixer.dist.php` is translated the same way, as long as PHP CS Fixer is still installed in the
+project, because that file is PHP which has to run.
+
+ <!---->
+
 Continuous integration, Git hooks and AI coding agents
 ======================================================
 
@@ -429,7 +456,10 @@ DressCode is made to run after every edit, so what counts most is the time one f
 to a half of what PHP CS Fixer needs, 118 ms for a small file against 323 ms. Over a whole project, doing
 the same work, it is faster too. Run with only the rules that match the PER Coding Style set of PHP CS
 Fixer, DressCode takes 64 to 90 percent of its time in one process, and 46 to 64 percent in parallel
-processes, over Laravel, WordPress, Symfony and Nette.
+processes, over Laravel, WordPress, Symfony and Nette. Symfony with its own configuration of PHP CS Fixer,
+translated by `dresscode import`, is checked in 56 percent of the time, 14.2 s against 25.3 s over its
+7,704 files; PHP CS Fixer runs a hundred more rules there, on phpDoc and PHPUnit, that have no
+counterpart in DressCode.
 
 The preset `perCs` does more than that set: it also breaks long signatures, conditions, chains and arrays
 over lines and fixes the casing of names, none of which the set does. Preset against preset, a run

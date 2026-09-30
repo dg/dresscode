@@ -100,7 +100,7 @@ A rule writing a construct older than PHP 8.0, which every target has, is in non
 
 Writes known annotations in their canonical case.
 
-Stage: Structure. Modifies comments.
+Stage: Structure. Covers: `SlevomatCodingStandard.Commenting.AnnotationName`. Modifies comments.
 
 ### dresscode/arrayFirstNotation
 
@@ -118,13 +118,13 @@ Stage: Structure. Needs PHP >=8.4.
 
 Removes whitespace inside the brackets of an array.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `trim_array_spaces`, `SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace`.
 
 ### dresscode/arrowFunction
 
 Replaces a closure returning a single expression with an arrow function.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.Functions.RequireArrowFunction`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -134,7 +134,7 @@ Stage: Structure.
 
 Moves a doc comment written after the attributes above them.
 
-Stage: Structure. Modifies comments.
+Stage: Structure. Covers: `SlevomatCodingStandard.Attributes.RequireAttributeAfterDocComment`. Modifies comments.
 
 ### dresscode/attributeForAnnotation
 
@@ -156,19 +156,19 @@ Options: The member of an ancestor, `Class::$name`, `'Class::$name = literal'`, 
 
 Puts the attributes of a declaration on lines of their own above it.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine`.
 
 ### dresscode/attributeSpacing
 
 Removes whitespace inside the brackets of an attribute group.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `attribute_block_no_spaces`.
 
 ### dresscode/binaryOperatorSpacing
 
 Puts spaces around binary operators.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `binary_operator_spaces`, `PSR12.Operators.OperatorSpacing`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.WhiteSpace.LogicalOperatorSpacing`, `Squiz.WhiteSpace.OperatorSpacing`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -179,7 +179,7 @@ Stage: Formatting.
 
 Puts blank lines where the standard asks for them, in the header, the class, the block and between statements.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `blank_line_after_namespace`, `blank_line_after_opening_tag`, `blank_line_before_statement`, `blank_line_between_import_groups`, `blank_lines_before_namespace`, `no_blank_lines_after_class_opening`, `no_blank_lines_after_phpdoc`, `no_extra_blank_lines`, `single_line_after_imports`, `PSR12.Classes.OpeningBraceSpace`, `PSR12.Files.FileHeader`, `PSR12.Files.OpenTag`, `PSR12.Traits.UseDeclaration`, `PSR2.Methods.FunctionClosingBrace`, `PSR2.Namespaces.UseDeclaration`, `SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing`, `SlevomatCodingStandard.Classes.ConstantSpacing`, `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`, `SlevomatCodingStandard.Classes.PropertySpacing`, `SlevomatCodingStandard.Classes.TraitUseSpacing`, `SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing`, `SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing`, `Squiz.WhiteSpace.ControlStructureSpacing`, `Squiz.WhiteSpace.FunctionOpeningBraceSpace`, `Squiz.WhiteSpace.FunctionSpacing`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -212,7 +212,7 @@ Stage: Formatting.
 
 Positions the braces of classes, functions and control structures, and the keywords between them.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `braces_position`, `control_structure_continuation_position`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.Files.DeclareStatement`, `PSR2.Classes.ClassDeclaration`, `Squiz.ControlStructures.ControlSignature`, `Squiz.Functions.MultiLineFunctionDeclaration`, `Squiz.WhiteSpace.ScopeClosingBrace`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -230,13 +230,13 @@ Stage: Formatting.
 
 Writes a cast with the short type name in lowercase.
 
-Stage: Structure.
+Stage: Structure. Covers: `lowercase_cast`, `short_scalar_cast`, `Generic.PHP.LowerCaseType`, `PSR12.Keywords.ShortFormTypeKeywords`, `SlevomatCodingStandard.PHP.TypeCast`, `Squiz.WhiteSpace.CastSpacing`.
 
 ### dresscode/castSpacing
 
 Puts a single space between a cast and its operand.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `cast_spaces`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -258,7 +258,7 @@ Stage: Structure. Needs PHP >=8.3.
 
 Puts single spaces in the head of a class declaration.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `class_definition`, `PSR12.Classes.AnonClassDeclaration`, `PSR2.Classes.ClassDeclaration.SpaceBeforeKeyword`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -268,31 +268,31 @@ Stage: Formatting.
 
 Writes a class name held in a string as `::class`.
 
-Stage: Structure. Needs the types of the code, so it runs only with `types: phpstan`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `class_keyword`. Needs the types of the code, so it runs only with `types: phpstan`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/combinedAssignmentForRepeatedTarget
 
 Uses `+=` and friends where an assignment repeats its target.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `assign_null_coalescing_to_coalesce_equal`, `SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator`, `SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/combinedIssets
 
 Asks about several variables in one `isset()` instead of a chain joined by `&&`.
 
-Stage: Structure.
+Stage: Structure. Covers: `combine_consecutive_issets`.
 
 ### dresscode/combinedUnsets
 
 Drops several variables in one `unset` instead of consecutive statements.
 
-Stage: Structure.
+Stage: Structure. Covers: `combine_consecutive_unsets`.
 
 ### dresscode/commaSpacing
 
 Puts a single space after a comma and none before it.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `no_whitespace_before_comma_in_array`, `whitespace_after_comma_in_array`, `Generic.Functions.FunctionCallArgumentSpacing`, `Squiz.Functions.FunctionDeclarationArgumentSpacing`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -302,7 +302,7 @@ Stage: Formatting.
 
 Puts a space after the marker of a comment and before a comment following code.
 
-Stage: Finishing. Modifies comments.
+Stage: Finishing. Covers: `PhpCsFixerCustomFixers/comment_surrounded_by_spaces`, `single_line_comment_spacing`. Modifies comments.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -312,7 +312,7 @@ Stage: Finishing. Modifies comments.
 
 Comments out statements calling the configured debugging functions.
 
-Stage: Structure. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `PhpCsFixerCustomFixers/commented_out_function`. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -322,13 +322,13 @@ Stage: Structure. Modifies comments. May have risky fixes, made once the rule is
 
 Replaces the deprecated `${name}` interpolation with `{$name}`.
 
-Stage: Structure.
+Stage: Structure. Covers: `simple_to_complex_string_variable`.
 
 ### dresscode/concatSpacing
 
 Puts a single space around the concatenation operator.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `concat_space`, `PSR12.Operators.OperatorSpacing`, `Squiz.Strings.ConcatenationSpacing`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -339,7 +339,7 @@ Stage: Formatting.
 
 Puts a single space around language constructs.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `function_declaration`, `single_space_around_construct`, `Generic.WhiteSpace.LanguageConstructSpacing`, `PSR12.Traits.UseDeclaration`, `PSR2.ControlStructures.SwitchDeclaration`, `SlevomatCodingStandard.Functions.ArrowFunctionDeclaration`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.Functions.FunctionDeclaration`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -350,7 +350,7 @@ Stage: Formatting.
 
 Encloses the body of every control structure in braces.
 
-Stage: Structure.
+Stage: Structure. Covers: `control_structure_braces`, `Generic.ControlStructures.InlineControlStructure`.
 
 ### dresscode/csvEscapeArgumentRequired
 
@@ -362,7 +362,7 @@ Stage: Structure.
 
 Removes whitespace inside a `declare` statement.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `declare_equal_normalize`, `declare_parentheses`, `PSR12.Files.DeclareStatement`.
 
 ### dresscode/deprecatedAttributeForAnnotation
 
@@ -374,13 +374,13 @@ Stage: Structure. Needs PHP >=8.4. Modifies comments. May have risky fixes, made
 
 Removes whitespace around the double colon.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `no_space_around_double_colon`, `Squiz.WhiteSpace.ScopeKeywordSpacing`.
 
 ### dresscode/earlyExit
 
 Turns a trailing `if` into a guard that leaves early, and an `else` that leaves into the first branch.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.ControlStructures.EarlyExit`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -390,31 +390,31 @@ Stage: Structure.
 
 Replaces `else if` with `elseif`.
 
-Stage: Structure.
+Stage: Structure. Covers: `elseif`, `PSR2.ControlStructures.ElseIfDeclaration`.
 
 ### dresscode/eofLineEnding
 
 Ends the file with exactly one line ending.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `single_blank_line_at_eof`, `PSR2.Files.EndFileNewline`.
 
 ### dresscode/explicitAssertion
 
 Replaces an inline `@var` annotation with an `assert()` of the type.
 
-Stage: Structure. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `SlevomatCodingStandard.PHP.RequireExplicitAssertion`. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/explicitOperatorPrecedence
 
 Parenthesizes an operand where the precedence of logical or bitwise operators is easy to misread.
 
-Stage: Structure.
+Stage: Structure. Covers: `Generic.CodeAnalysis.RequireExplicitBooleanOperatorPrecedence`.
 
 ### dresscode/fallThroughComment
 
 Requires a comment on an intentional case fall-through.
 
-Stage: Structure. Modifies comments.
+Stage: Structure. Covers: `no_break_comment`, `PSR2.ControlStructures.SwitchDeclaration`. Modifies comments.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -424,7 +424,7 @@ Stage: Structure. Modifies comments.
 
 Makes classes annotated as internal final.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `final_internal_class`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -441,7 +441,7 @@ Stage: Structure. Needs PHP >=8.1. May have risky fixes, made once the rule is n
 
 Removes the configured annotations from doc comments.
 
-Stage: Structure. Modifies comments.
+Stage: Structure. Covers: `SlevomatCodingStandard.Commenting.ForbiddenAnnotations`. Modifies comments.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -459,7 +459,7 @@ Options: The forbidden class, fully qualified → what to do instead, as the end
 
 Reports calls of the configured functions with what to do instead.
 
-Stage: Structure.
+Stage: Structure. Covers: `Generic.PHP.ForbiddenFunctions`, `Generic.PHP.SAPIUsage`, `Squiz.PHP.DiscouragedFunctions`.
 
 Options: The forbidden function or a pattern with `*`, a name without a backslash meaning the global function → what to do instead, as the end of the message, or null for none.
 
@@ -475,7 +475,7 @@ Options: The forbidden member, `Class::name` (a constant or a method), `Class::n
 
 Removes description lines matching the configured patterns from doc comments.
 
-Stage: Structure. Modifies comments.
+Stage: Structure. Covers: `SlevomatCodingStandard.Commenting.ForbiddenComments`. Modifies comments.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -485,19 +485,19 @@ Stage: Structure. Modifies comments.
 
 Requires the `<?php` opening tag.
 
-Stage: Structure.
+Stage: Structure. Covers: `full_opening_tag`, `Generic.PHP.DisallowShortOpenTag`.
 
 ### dresscode/functionNameSpacing
 
 Removes whitespace between a function name and its parentheses.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `no_spaces_after_function_name`, `Generic.Functions.FunctionCallArgumentSpacing.SpaceBeforeOpenBracket`, `PSR2.Methods.FunctionCallSignature`, `Squiz.Functions.FunctionDeclaration`.
 
 ### dresscode/getClassNotation
 
 Uses `::class` instead of `get_class()` and `__CLASS__`.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `SlevomatCodingStandard.Classes.ModernClassNameReference`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -513,7 +513,7 @@ Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky
 
 Writes the imports of one namespace as a single group use declaration, and a group of too few of them as imports of their own.
 
-Stage: Structure.
+Stage: Structure. Covers: `group_import`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -523,7 +523,7 @@ Stage: Structure.
 
 Indents the body and the closing marker of a heredoc relative to its starting line.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `heredoc_indentation`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -533,7 +533,7 @@ Stage: Formatting.
 
 Writes the imports of each kind one per use statement or all in one, and expands group use declarations.
 
-Stage: Structure.
+Stage: Structure. Covers: `group_import`, `single_import_per_statement`, `SlevomatCodingStandard.Namespaces.DisallowGroupUse`, `SlevomatCodingStandard.Namespaces.MultipleUsesPerLine`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -546,13 +546,13 @@ Stage: Structure.
 
 Uses `++` and `--` instead of `+= 1` and `-= 1`.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `standardize_increment`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/indentation
 
 Indents every line by the construct it continues, one level per nesting.
 
-Stage: Finishing. Modifies comments.
+Stage: Finishing. Covers: `array_indentation`, `indentation_type`, `method_chaining_indentation`, `no_leading_namespace_whitespace`, `statement_indentation`, `Generic.WhiteSpace.DisallowSpaceIndent`, `Generic.WhiteSpace.DisallowTabIndent`, `Generic.WhiteSpace.ScopeIndent`, `PEAR.WhiteSpace.ObjectOperatorIndent`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.SwitchDeclaration`, `PSR2.Methods.FunctionCallSignature`, `PSR2.Namespaces.NamespaceDeclaration`, `SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement`, `Squiz.WhiteSpace.ScopeClosingBrace`. Modifies comments.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -571,13 +571,13 @@ Stage: Structure. Needs PHP >=8.3. May have risky fixes, made once the rule is n
 
 Writes keywords in lowercase.
 
-Stage: Structure.
+Stage: Structure. Covers: `lowercase_keywords`, `lowercase_static_reference`, `Generic.PHP.LowerCaseKeyword`, `Generic.PHP.LowerCaseType`, `PSR2.ControlStructures.SwitchDeclaration`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.LowercaseDeclaration`, `Squiz.Functions.LowercaseFunctionKeywords`.
 
 ### dresscode/kindInClassName
 
 Decides whether the name of a class, interface or trait repeats its kind.
 
-Stage: Structure. One decision, so a value written for the rule fills `kind`.
+Stage: Structure. Covers: `SlevomatCodingStandard.Classes.SuperfluousAbstractClassNaming`, `SlevomatCodingStandard.Classes.SuperfluousErrorNaming`, `SlevomatCodingStandard.Classes.SuperfluousInterfaceNaming`, `SlevomatCodingStandard.Classes.SuperfluousTraitNaming`. One decision, so a value written for the rule fills `kind`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -587,13 +587,13 @@ Stage: Structure. One decision, so a value written for the rule fills `kind`.
 
 Unifies line endings.
 
-Stage: Finishing.
+Stage: Finishing. Covers: `line_ending`, `Generic.Files.LineEndings`.
 
 ### dresscode/lineLength
 
 Reports lines longer than the line length.
 
-Stage: Finishing.
+Stage: Finishing. Covers: `Generic.Files.LineLength`, `SlevomatCodingStandard.Files.LineLength`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -604,7 +604,7 @@ Stage: Finishing.
 
 Writes magic constants in uppercase.
 
-Stage: Structure.
+Stage: Structure. Covers: `magic_constant_casing`.
 
 ### dresscode/matchForSwitch
 
@@ -633,7 +633,7 @@ Stage: Formatting.
 
 Puts every argument of a multi-line call on its own line.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `method_argument_space`, `PSR2.Methods.FunctionCallSignature`.
 
 ### dresscode/multilineChain
 
@@ -649,7 +649,7 @@ Stage: Formatting.
 
 Writes a condition of `if`, `elseif`, `while` and `do-while` in the shape the configuration asks for.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `PSR12.ControlStructures.BooleanOperatorPlacement`, `PSR12.ControlStructures.ControlStructureSpacing`, `SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -666,7 +666,7 @@ Stage: Formatting.
 
 Splits long signatures and constructors with promoted properties into one parameter per line.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `multiline_promoted_properties`, `SlevomatCodingStandard.Classes.RequireMultiLineMethodSignature`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -682,7 +682,7 @@ Stage: Formatting.
 
 Reports declared names that do not follow the case convention configured for their kind.
 
-Stage: Structure.
+Stage: Structure. Covers: `Generic.NamingConventions.CamelCapsFunctionName`, `Generic.NamingConventions.UpperCaseConstantName`, `PSR1.Methods.CamelCapsMethodName`, `Squiz.Classes.ValidClassName`, `Squiz.NamingConventions.ValidFunctionName`, `Squiz.NamingConventions.ValidVariableName`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -699,7 +699,7 @@ Stage: Structure.
 
 Writes a global function or constant in a namespace qualified, or bare and reached by the fallback at run time.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `native_function_invocation`, `native_constant_invocation`, `SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants`, `SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -712,7 +712,7 @@ Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky
 
 Writes a referenced name imported or with the leading backslash.
 
-Stage: Structure.
+Stage: Structure. Covers: `fully_qualified_strict_types`, `global_namespace_import`, `native_function_invocation`, `native_constant_invocation`, `SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants`, `SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions`, `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -727,19 +727,19 @@ Stage: Structure.
 
 Normalizes whitespace around the colon of a named argument.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `SlevomatCodingStandard.Functions.NamedArgumentSpacing`.
 
 ### dresscode/nativeClassCasing
 
 Writes the names of internal classes, interfaces and enums in their declared case.
 
-Stage: Structure.
+Stage: Structure. Covers: `class_reference_name_casing`.
 
 ### dresscode/nativeFunctionCasing
 
 Calls native functions in lowercase.
 
-Stage: Structure.
+Stage: Structure. Covers: `native_function_casing`, `Squiz.PHP.LowercasePHPFunctions`.
 
 ### dresscode/neverForThrowingFunction
 
@@ -755,7 +755,7 @@ Stage: Structure. Needs PHP >=8.1.
 
 Requires or forbids the empty parentheses of an instantiation.
 
-Stage: Structure.
+Stage: Structure. Covers: `new_with_braces`, `new_with_parentheses`, `PSR12.Classes.ClassInstantiation`, `SlevomatCodingStandard.ControlStructures.NewWithoutParentheses`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -766,7 +766,7 @@ Stage: Structure.
 
 Calls a function by its canonical name instead of an alias.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `no_alias_functions`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -776,31 +776,31 @@ Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky
 
 Replaces the alternative syntax with braces.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_alternative_syntax`.
 
 ### dresscode/noBacktickOperators
 
 Runs a command through `shell_exec()` instead of backticks.
 
-Stage: Structure.
+Stage: Structure. Covers: `backtick_to_shell_exec`.
 
 ### dresscode/noBom
 
 Removes the UTF-8 byte order mark.
 
-Stage: Structure.
+Stage: Structure. Covers: `encoding`, `Generic.Files.ByteOrderMark`.
 
 ### dresscode/noCallUserFunc
 
 Calls a callable directly instead of through `call_user_func()`.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `regular_callable_call`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/noClosingTag
 
 Removes the closing tag at the end of the file.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_closing_tag`, `PSR2.Files.ClosingTag`.
 
 ### dresscode/noConsecutivePhpdocs
 
@@ -812,13 +812,13 @@ Stage: Finishing.
 
 Leaves a `switch` with `break`, never with `continue`.
 
-Stage: Structure.
+Stage: Structure. Covers: `switch_continue_to_break`, `SlevomatCodingStandard.ControlStructures.DisallowContinueWithoutIntegerOperandInSwitch`.
 
 ### dresscode/noConversionFunctions
 
 Uses a cast instead of `intval()` and friends.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `modernize_types_casting`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/noDeprecatedArguments
 
@@ -836,7 +836,7 @@ Stage: Structure. Needs the types of the code, so it runs only with `types: phps
 
 Reports calls of internal functions deprecated in the targeted version of PHP.
 
-Stage: Structure.
+Stage: Structure. Covers: `Generic.PHP.DeprecatedFunctions`.
 
 ### dresscode/noDeprecatedMembers
 
@@ -848,43 +848,43 @@ Stage: Structure. Needs the types of the code, so it runs only with `types: phps
 
 Calls an invokable object directly instead of its `__invoke()` method.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall`.
 
 ### dresscode/noDirnameOfFile
 
 Replaces `dirname(__FILE__)` with `__DIR__` and nested `dirname()` calls with the `levels` argument.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `PhpCsFixerCustomFixers/no_useless_dirname_call`, `combine_nested_dirname`, `dir_constant`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/noDuplicateAssignments
 
 Reports an assignment repeated to the same variable in one expression.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.Variables.DuplicateAssignmentToVariable`.
 
 ### dresscode/noDuplicateReturnAnnotations
 
 Reports more than one `@return` in a function doc comment.
 
-Stage: Structure.
+Stage: Structure. Covers: `Squiz.Commenting.FunctionComment.DuplicateReturn`.
 
 ### dresscode/noEmptyComments
 
 Removes empty comments.
 
-Stage: Finishing. Modifies comments.
+Stage: Finishing. Covers: `no_empty_comment`. Modifies comments.
 
 ### dresscode/noEmptyPhpdocs
 
 Removes empty doc comments.
 
-Stage: Finishing. Modifies comments.
+Stage: Finishing. Covers: `no_empty_phpdoc`. Modifies comments.
 
 ### dresscode/noEmptyStatements
 
 Removes empty statements.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_empty_statement`, `SlevomatCodingStandard.PHP.UselessSemicolon`.
 
 ### dresscode/noEmptyVarAnnotations
 
@@ -902,43 +902,43 @@ Stage: Structure. Needs the types of the code, so it runs only with `types: phps
 
 Forbids the `global` statement.
 
-Stage: Structure.
+Stage: Structure. Covers: `Squiz.PHP.GlobalKeyword`.
 
 ### dresscode/noHashComments
 
 Writes single-line comments with `//`, not `#`.
 
-Stage: Finishing. Modifies comments.
+Stage: Finishing. Covers: `single_line_comment_style`, `PEAR.Commenting.InlineComment`. Modifies comments.
 
 ### dresscode/noImplicitBackslashes
 
 Writes every backslash of a string escaped.
 
-Stage: Structure.
+Stage: Structure. Covers: `escape_implicit_backslashes`, `string_implicit_backslashes`.
 
 ### dresscode/noInnerFunctions
 
 Reports a function declared inside another function.
 
-Stage: Structure.
+Stage: Structure. Covers: `Squiz.PHP.InnerFunctions`.
 
 ### dresscode/noInvisibleCharacters
 
 Removes or escapes invisible characters in comments and strings, reports them in names.
 
-Stage: Structure. Modifies comments.
+Stage: Structure. Covers: `non_printable_character`. Modifies comments.
 
 ### dresscode/noIsNull
 
 Replaces `is_null()` with a comparison with `null`.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `is_null`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/noManualEmptyStringTests
 
 Tests whether a string is empty by comparing it with the empty string.
 
-Stage: Structure. Needs the types of the code, so it runs only with `types: phpstan`.
+Stage: Structure. Covers: `PhpCsFixerCustomFixers/no_useless_strlen`, `string_length_to_empty`. Needs the types of the code, so it runs only with `types: phpstan`.
 
 ### dresscode/noManualListTests
 
@@ -950,7 +950,7 @@ Stage: Structure. Needs PHP >=8.1. May have risky fixes, made once the rule is n
 
 Replaces a hand-written test for a substring with `str_contains()`, `str_starts_with()` or `str_ends_with()`.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `modernize_strpos`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/noNullArrayKeys
 
@@ -968,13 +968,13 @@ Stage: Structure.
 
 Assigns a cast instead of calling `settype()`.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `set_type_to_cast`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/noShortBoolCasts
 
 Replaces `!!` with a `(bool)` cast.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_short_bool_cast`.
 
 ### dresscode/noSleepAndWakeup
 
@@ -986,19 +986,19 @@ Stage: Structure.
 
 Reports `$this` used where no object is available.
 
-Stage: Structure.
+Stage: Structure. Covers: `Squiz.Scope.StaticThisUsage`.
 
 ### dresscode/noTrailingWhitespace
 
 Removes whitespace at the end of lines.
 
-Stage: Finishing.
+Stage: Finishing. Covers: `no_trailing_whitespace`, `no_trailing_whitespace_in_comment`, `no_whitespace_in_blank_line`, `Squiz.WhiteSpace.SuperfluousWhitespace`.
 
 ### dresscode/noTrailingWhitespaceInString
 
 Removes trailing whitespace from string lines.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `no_trailing_whitespace_in_string`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/noUnimplementedAbstractMethods
 
@@ -1010,7 +1010,7 @@ Stage: Structure. Needs the types of the code, so it runs only with `types: phps
 
 Reports a `@param` of a parameter the function does not declare.
 
-Stage: Structure.
+Stage: Structure. Covers: `Squiz.Commenting.FunctionComment.ExtraParamComment`.
 
 ### dresscode/noUnlistedNamespacedDeclarations
 
@@ -1022,31 +1022,31 @@ Stage: Structure.
 
 Reports a `catch` block following one that catches `Throwable`.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.Exceptions.DeadCatch`.
 
 ### dresscode/notEqualsNotation
 
 Writes `!=` instead of `<>`.
 
-Stage: Structure.
+Stage: Structure. Covers: `standardize_not_equals`.
 
 ### dresscode/nowdocWithoutInterpolation
 
 Uses nowdoc where a heredoc interpolates nothing.
 
-Stage: Structure.
+Stage: Structure. Covers: `heredoc_to_nowdoc`, `SlevomatCodingStandard.PHP.RequireNowdoc`.
 
 ### dresscode/nullCoalescingForNullTernary
 
 Replaces a ternary testing for null with the null coalescing operator.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `ternary_to_null_coalescing`, `SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/nullableTypeForDefaultNull
 
 Marks the type of a parameter defaulting to `null` as nullable.
 
-Stage: Structure.
+Stage: Structure. Covers: `nullable_type_declaration_for_default_null_value`, `SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue`.
 
 ### dresscode/nullsafeForGuardedAccess
 
@@ -1058,7 +1058,7 @@ Stage: Structure.
 
 Groups the digits of long numbers with underscores.
 
-Stage: Structure.
+Stage: Structure. Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1069,31 +1069,31 @@ Stage: Structure.
 
 Removes whitespace around the object operator.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `object_operator_without_whitespace`, `Squiz.WhiteSpace.ObjectOperatorSpacing`.
 
 ### dresscode/octalNotation
 
 Writes octal numbers with the `0o` prefix.
 
-Stage: Structure. Needs PHP >=8.1.
+Stage: Structure. Covers: `octal_notation`. Needs PHP >=8.1.
 
 ### dresscode/offsetBracketSpacing
 
 Removes whitespace around the brackets of an offset access.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `no_spaces_around_offset`, `Squiz.Arrays.ArrayBracketSpacing`.
 
 ### dresscode/optimizedCallNotation
 
 Writes the arguments of a call PHP optimizes positionally and reports unpacking in it.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `SlevomatCodingStandard.PHP.OptimizedFunctionsWithoutUnpacking`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/orderedImports
 
 Sorts use statements alphabetically, classes before functions before constants.
 
-Stage: Structure.
+Stage: Structure. Covers: `ordered_imports`, `SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1104,7 +1104,7 @@ Stage: Structure.
 
 Orders class members by kind and visibility.
 
-Stage: Structure.
+Stage: Structure. Covers: `ordered_class_elements`, `PSR12.Traits.UseDeclaration`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1130,19 +1130,19 @@ Stage: Structure. Needs the types of the code, so it runs only with `types: phps
 
 Removes whitespace inside parentheses.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`.
 
 ### dresscode/phpdocAlignment
 
 Aligns the stars of a doc comment with its opening.
 
-Stage: Formatting. Modifies comments.
+Stage: Formatting. Covers: `Squiz.Commenting.DocCommentAlignment`. Modifies comments.
 
 ### dresscode/phpdocCanonicalTypes
 
 Writes the types in doc comments in their canonical form: short lowercase built-ins, one array notation, no repeated type in a union.
 
-Stage: Finishing. Modifies comments.
+Stage: Finishing. Covers: `PhpCsFixerCustomFixers/phpdoc_array_style`, `PhpCsFixerCustomFixers/phpdoc_type_list`, `phpdoc_array_type`, `phpdoc_list_type`, `phpdoc_scalar`, `phpdoc_types`, `phpdoc_types_no_duplicates`, `SlevomatCodingStandard.TypeHints.DisallowArrayTypeHintSyntax`, `SlevomatCodingStandard.TypeHints.LongTypeHints`. Modifies comments.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1152,7 +1152,7 @@ Stage: Finishing. Modifies comments.
 
 Moves `null` to the chosen end of union types in doc comments.
 
-Stage: Structure. Modifies comments.
+Stage: Structure. Covers: `SlevomatCodingStandard.TypeHints.NullTypeHintOnLastPosition`. Modifies comments.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1162,7 +1162,7 @@ Stage: Structure. Modifies comments.
 
 Removes extra blank lines in a doc comment.
 
-Stage: Finishing. Modifies comments.
+Stage: Finishing. Covers: `phpdoc_trim`, `phpdoc_trim_consecutive_blank_line_separation`. Modifies comments.
 
 ### dresscode/pipeOperator
 
@@ -1190,13 +1190,13 @@ Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky
 
 Reports a plain comment in place of a property doc comment.
 
-Stage: Structure.
+Stage: Structure. Covers: `Squiz.Commenting.VariableComment`.
 
 ### dresscode/propertyPhpdocSingleline
 
 Writes a property doc comment with a single line of content on one line.
 
-Stage: Formatting. Modifies comments.
+Stage: Formatting. Covers: `SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment`. Modifies comments.
 
 ### dresscode/propertyVarAnnotation
 
@@ -1214,7 +1214,7 @@ Stage: Structure. Needs PHP >=8.2.
 
 Replaces the `@readonly` annotation with the `readonly` keyword.
 
-Stage: Structure. Needs PHP >=8.1. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `phpdoc_readonly_class_comment_to_keyword`. Needs PHP >=8.1. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/readonlyForUnwrittenProperty
 
@@ -1226,13 +1226,13 @@ Stage: Structure. Needs PHP >=8.1. May have risky fixes, made once the rule is n
 
 Removes whitespace between `&` and its operand.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `SlevomatCodingStandard.Operators.ReferenceSpacing`.
 
 ### dresscode/referenceThrowableOnly
 
 Reports references to the general `Exception` where `Throwable` belongs.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly`.
 
 ### dresscode/replacedCalls
 
@@ -1270,7 +1270,7 @@ Options: The replaced member, `Class::name` (a constant or a method), `Class::na
 
 Replaces an `if` returning `true` or `false` with a `return` of the condition.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.ControlStructures.UselessIfConditionWithReturn`.
 
 ### dresscode/roundingModeNotation
 
@@ -1282,7 +1282,7 @@ Stage: Structure. Needs PHP >=8.4.
 
 Replaces the name of the current class with `self`.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `self_accessor`, `self_static_accessor`, `SlevomatCodingStandard.Classes.UselessLateStaticBinding`, `Squiz.Classes.SelfMemberReference`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1292,7 +1292,7 @@ Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky
 
 Removes whitespace before a semicolon and puts a single space after it.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `no_singleline_whitespace_before_semicolons`, `space_after_semicolon`, `PSR12.Traits.UseDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`, `Squiz.Functions.FunctionDeclaration`, `Squiz.WhiteSpace.SemicolonSpacing`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1314,13 +1314,13 @@ Stage: Structure. Needs PHP >=8.2. One decision, so a value written for the rule
 
 Writes arrays and destructuring with the short syntax.
 
-Stage: Structure.
+Stage: Structure. Covers: `array_syntax`, `list_syntax`, `Generic.Arrays.DisallowLongArraySyntax`, `SlevomatCodingStandard.PHP.ShortList`.
 
 ### dresscode/shortTernaryForRepeatedCondition
 
 Uses `?:` where the ternary repeats its condition.
 
-Stage: Structure.
+Stage: Structure. Covers: `ternary_to_elvis_operator`, `SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator`.
 
 ### dresscode/singleLevelIndentation
 
@@ -1336,7 +1336,7 @@ Stage: Finishing.
 
 Splits a declaration of several constants, properties or traits into one per member.
 
-Stage: Structure.
+Stage: Structure. Covers: `single_class_element_per_statement`, `single_trait_insert_per_statement`, `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition`, `SlevomatCodingStandard.Classes.DisallowMultiPropertyDefinition`, `SlevomatCodingStandard.Classes.TraitUseDeclaration`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1346,31 +1346,31 @@ Stage: Structure.
 
 Puts every member of a class on its own line.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `PSR12.Classes.ClosingBrace`.
 
 ### dresscode/singleStatementPerLine
 
 Puts every statement on its own line.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `no_multiple_statements_per_line`, `Generic.Formatting.DisallowMultipleStatements`, `PSR12.Classes.ClosingBrace`, `PSR2.ControlStructures.SwitchDeclaration`.
 
 ### dresscode/spreadOperatorSpacing
 
 Removes whitespace between `...` and its operand.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `SlevomatCodingStandard.Operators.SpreadOperatorSpacing`.
 
 ### dresscode/staticClosure
 
 Declares a closure that does not use `$this` as `static`.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `static_lambda`, `SlevomatCodingStandard.Functions.StaticClosure`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/staticForMethodWithoutThis
 
 Marks a private method that does not use `$this` as static.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `static_private_method`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/staticSetStateRequired
 
@@ -1382,19 +1382,19 @@ Stage: Structure.
 
 Calls `in_array()`, `array_search()`, `array_keys()`, `base64_decode()` and `mb_detect_encoding()` with `$strict = true`.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `strict_param`, `SlevomatCodingStandard.Functions.StrictCall`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/strictComparison
 
 Replaces loose comparisons with strict ones.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `strict_comparison`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 ### dresscode/strictTypesRequired
 
 Requires `declare(strict_types=1)` as the first statement of a file.
 
-Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `PhpCsFixerCustomFixers/declare_after_opening_tag`, `declare_strict_types`, `Generic.PHP.RequireStrictTypes`, `SlevomatCodingStandard.TypeHints.DeclareStrictTypes`. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1404,7 +1404,7 @@ Stage: Structure. May have risky fixes, made once the rule is named in `fixRisky
 
 Decides which quotes a string that needs neither kind is written with.
 
-Stage: Structure. One decision, so a value written for the rule fills `quotes`.
+Stage: Structure. Covers: `single_quote`, `Squiz.Strings.DoubleQuoteUsage`. One decision, so a value written for the rule fills `quotes`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1420,31 +1420,31 @@ Stage: Structure.
 
 Ends `case` and `default` with a colon.
 
-Stage: Structure.
+Stage: Structure. Covers: `switch_case_semicolon_to_colon`, `PSR2.ControlStructures.SwitchDeclaration`.
 
 ### dresscode/switchCaseSpacing
 
 Removes whitespace before the colon of a `case`.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `switch_case_space`, `PSR2.ControlStructures.SwitchDeclaration`, `PSR2.ControlStructures.SwitchDeclaration.SpaceBeforeColonCASE`.
 
 ### dresscode/symbolicLogicalOperators
 
 Uses `&&` and `||` instead of `and` and `or`.
 
-Stage: Structure.
+Stage: Structure. Covers: `Squiz.Operators.ValidLogicalOperators`.
 
 ### dresscode/ternaryForIf
 
 Uses the ternary operator where an `if`-`else` only picks one of two values.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.ControlStructures.RequireTernaryOperator`.
 
 ### dresscode/ternaryOperatorSpacing
 
 Puts whitespace around the ternary operators.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `ternary_operator_spaces`, `PSR12.Operators.OperatorSpacing`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1455,7 +1455,7 @@ Stage: Formatting.
 
 Puts the trailing comma into a multi-line list or removes it, and removes it from a one-line one.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_trailing_comma_in_singleline`, `trailing_comma_in_multiline`, `SlevomatCodingStandard.Arrays.TrailingArrayComma`, `SlevomatCodingStandard.Functions.RequireTrailingCommaInCall`, `SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1471,13 +1471,13 @@ Stage: Structure.
 
 Lowercases `true`, `false` and `null`.
 
-Stage: Structure.
+Stage: Structure. Covers: `constant_case`, `Generic.PHP.LowerCaseConstant`.
 
 ### dresscode/typeHintRequired
 
 Adds native types from annotations and reports declarations without any type.
 
-Stage: Structure. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
+Stage: Structure. Covers: `SlevomatCodingStandard.TypeHints.ParameterTypeHint`, `SlevomatCodingStandard.TypeHints.PropertyTypeHint`, `SlevomatCodingStandard.TypeHints.ReturnTypeHint`. Modifies comments. May have risky fixes, made once the rule is named in `fixRisky` or with `--fix-risky`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1491,7 +1491,7 @@ Stage: Structure. Modifies comments. May have risky fixes, made once the rule is
 
 Normalizes whitespace in type declarations.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `compact_nullable_type_declaration`, `return_type_declaration`, `PSR12.Functions.NullableTypeDeclaration`, `PSR12.Functions.ReturnTypeDeclaration`, `SlevomatCodingStandard.Classes.BackedEnumTypeSpacing`, `SlevomatCodingStandard.TypeHints.ParameterTypeHintSpacing`, `SlevomatCodingStandard.TypeHints.PropertyTypeHintSpacing`, `SlevomatCodingStandard.TypeHints.ReturnTypeHintSpacing`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1501,13 +1501,13 @@ Stage: Formatting.
 
 Removes whitespace between a unary operator and its operand.
 
-Stage: Formatting.
+Stage: Formatting. Covers: `unary_operator_spaces`, `Generic.WhiteSpace.IncrementDecrementSpacing`, `SlevomatCodingStandard.Operators.NegationOperatorSpacing`, `Squiz.WhiteSpace.OperatorSpacing.Unary`.
 
 ### dresscode/unionTypeNotation
 
 Writes a nullable type as `?T`, puts `null` last in a union type and may sort the rest.
 
-Stage: Structure.
+Stage: Structure. Covers: `ordered_types`, `SlevomatCodingStandard.TypeHints.DNFTypeHintFormat`, `SlevomatCodingStandard.TypeHints.UnionTypeHintFormat`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1519,7 +1519,7 @@ Stage: Structure.
 
 Removes imports that nothing uses.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_unused_imports`, `SlevomatCodingStandard.Namespaces.UnusedUses`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1529,49 +1529,49 @@ Stage: Structure.
 
 Removes an import alias equal to the imported name.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.Namespaces.UselessAlias`.
 
 ### dresscode/uselessAttributeParentheses
 
 Removes the empty parentheses after the name of an attribute.
 
-Stage: Structure.
+Stage: Structure. Covers: `attribute_empty_parentheses`.
 
 ### dresscode/uselessBackslashInGlobalNamespace
 
 Removes the leading backslash of names referenced in the global namespace.
 
-Stage: Structure.
+Stage: Structure. Covers: `PhpCsFixerCustomFixers/no_leading_slash_in_global_namespace`.
 
 ### dresscode/uselessBraces
 
 Removes braces around a bare statement group.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_unneeded_braces`, `no_unneeded_curly_braces`.
 
 ### dresscode/uselessCatchVariable
 
 Removes the variable of a `catch` clause that is never used.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.Exceptions.RequireNonCapturingCatch`.
 
 ### dresscode/uselessConstantVarAnnotation
 
 Removes a useless `@var` from a class constant.
 
-Stage: Finishing. Modifies comments.
+Stage: Finishing. Covers: `SlevomatCodingStandard.TypeHints.UselessConstantTypeHint`. Modifies comments.
 
 ### dresscode/uselessConstructParentheses
 
 Removes parentheses around the operand of a language construct.
 
-Stage: Structure.
+Stage: Structure. Covers: `include`, `no_unneeded_control_parentheses`, `SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses`, `Squiz.Strings.EchoedStrings`.
 
 ### dresscode/uselessElse
 
 Removes an `else` after branches which always leave, and may turn an `elseif` there into an `if`.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_superfluous_elseif`, `no_useless_else`, `SlevomatCodingStandard.ControlStructures.EarlyExit`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1581,7 +1581,7 @@ Stage: Structure.
 
 Removes a function doc comment that only repeats the native types.
 
-Stage: Structure. Modifies comments.
+Stage: Structure. Covers: `SlevomatCodingStandard.Commenting.UselessFunctionDocComment`. Modifies comments.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1591,19 +1591,19 @@ Stage: Structure. Modifies comments.
 
 Removes the leading backslash from imported names.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_leading_import_slash`, `PSR12.Files.ImportStatement`, `SlevomatCodingStandard.Namespaces.UseDoesNotStartWithBackslash`.
 
 ### dresscode/uselessInheritdoc
 
 Removes a doc comment consisting of `@inheritDoc` only.
 
-Stage: Structure. Modifies comments.
+Stage: Structure. Covers: `SlevomatCodingStandard.Commenting.UselessInheritDocComment`. Modifies comments.
 
 ### dresscode/uselessModifier
 
 Removes a member modifier the class already implies.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_redundant_readonly_property`, `no_unneeded_final_method`, `Generic.CodeAnalysis.UnnecessaryFinalModifier`.
 
 ### dresscode/uselessNoOpCall
 
@@ -1615,7 +1615,7 @@ Stage: Structure.
 
 Removes the explicit `null` initialization of untyped properties.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_null_property_initialization`.
 
 ### dresscode/uselessOverridingMethod
 
@@ -1627,25 +1627,25 @@ Stage: Structure. Needs the types of the code, so it runs only with `types: phps
 
 Removes a default value that a required parameter makes unreachable.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_unreachable_default_argument_value`, `PEAR.Functions.ValidDefaultValue`, `SlevomatCodingStandard.Functions.UselessParameterDefaultValue`.
 
 ### dresscode/uselessParenthesesAroundNew
 
 Removes the parentheses around `new` when a member of the new object is accessed.
 
-Stage: Structure. Needs PHP >=8.4.
+Stage: Structure. Covers: `new_expression_parentheses`. Needs PHP >=8.4.
 
 ### dresscode/uselessReturn
 
 Removes a bare `return` at the end of a function body.
 
-Stage: Structure.
+Stage: Structure. Covers: `no_useless_return`.
 
 ### dresscode/uselessSameNamespaceImport
 
 Removes imports of names from the current namespace.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.Namespaces.UseFromSameNamespace`.
 
 ### dresscode/uselessSetAccessible
 
@@ -1657,7 +1657,7 @@ Stage: Structure. Needs PHP >=8.1.
 
 Joins two string literals concatenated on one line and drops concatenation with an empty string.
 
-Stage: Structure.
+Stage: Structure. Covers: `PhpCsFixerCustomFixers/no_superfluous_concatenation`, `Generic.Strings.UnnecessaryStringConcat`.
 
 | Option | Type | Default | |
 |---|---|---|---|
@@ -1667,19 +1667,19 @@ Stage: Structure.
 
 Replaces a ternary operator choosing between `true` and `false` with the condition.
 
-Stage: Structure.
+Stage: Structure. Covers: `SlevomatCodingStandard.ControlStructures.UselessTernaryOperator`.
 
 ### dresscode/visibilityRequired
 
 Requires visibility on class members and orders their modifiers.
 
-Stage: Structure.
+Stage: Structure. Covers: `modifier_keywords`, `visibility_required`, `PSR12.Properties.ConstantVisibility`, `PSR2.Classes.PropertyDeclaration`, `PSR2.Methods.MethodDeclaration`, `SlevomatCodingStandard.Classes.ClassConstantVisibility`, `SlevomatCodingStandard.Classes.PropertyDeclaration`, `Squiz.Scope.MethodScope`.
 
 ### dresscode/yoda
 
 Decides which side of a comparison the constant stands on.
 
-Stage: Structure. One decision, so a value written for the rule fills `comparisons`.
+Stage: Structure. Covers: `SlevomatCodingStandard.ControlStructures.DisallowYodaComparison`. One decision, so a value written for the rule fills `comparisons`.
 
 | Option | Type | Default | |
 |---|---|---|---|

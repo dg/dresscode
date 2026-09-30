@@ -7,7 +7,7 @@ How DressCode works: the facts an agent or a contributor needs before touching t
 - `phpsyntax/phpsyntax` (namespace `PhpSyntax`, a repository of its own): lexer, parser, tree, printer, navigation, mutation. Its internals are documented there; what a rule of DressCode uses from it is below.
 - `DressCode` (`src/`): engine, rules API, rules, configuration, CLI. Rules use only the public API of `PhpSyntax`; whatever a built-in rule needs from it is public API for plugins too.
 
-The public, semver-stable surface of `DressCode` is what the first list names, and the second names what is `@internal`. Every class of `src/` is in one of them, the more specific name deciding (a class before a namespace, a longer namespace before a shorter one). An item names its classes, namespaces or files first, the explanation follows a colon.
+The public, semver-stable surface of `DressCode` is what the first list names, and the second names what is `@internal`. Every class of `src/` is in one of them, the more specific name deciding (a class before a namespace, a longer namespace before a shorter one), and `tests/DressCode/api.phpt` checks both lists against the code. An item names its classes, namespaces or files first, the explanation follows a colon.
 
 Public:
 
@@ -23,7 +23,7 @@ Public:
 
 Internal:
 
-- `Engine\*`, `Config\*`, `Console\*`: the engine, the configuration and the console
+- `Engine\*`, `Interop\*`, `Config\*`, `Console\*`: the engine, the translation of foreign configurations and the rest of the configuration and the console
 - `Reporter`, `Reporters\*`: the formats of the output, whose contract is the output itself, and the interface they implement next to them; they print the `Engine\RunResult` of a run
 - `Rules\NodeHelpers`, `Rules\Compiler`, `Rules\NativeType`, `Rules\BlankLines`, `Rules\Namespaces\NameReferences`, `Rules\PhpDoc\AnnotationToAttribute`: what the rules share among themselves
 - `Rules\Upgrading\AnnotationArguments`, `Rules\Upgrading\CallableLiteral`, `Rules\Upgrading\CallTemplate`, `Rules\Upgrading\ClassReplacement`, `Rules\Upgrading\MagicCall`, `Rules\Upgrading\MemberTarget`, `Rules\Upgrading\Rewrite`: the helpers of the rules fed by maps that are not the grammar of the maps
@@ -131,7 +131,7 @@ A gap rule is made of claims alone: `GapRule` and `NodeRule` are the two shapes 
 
 ### Identity
 
-A rule is one instance per run and stateless across files; the state of a pass over a file lives in `RuleContext::$storage`, which every pass begins empty, so that the last pass reports all it finds. Its identity is the `#[RuleInfo]` name (`vendor/slug`); `RuleRegistry` maps names and classes and refuses a name owned by two classes.
+A rule is one instance per run and stateless across files; the state of a pass over a file lives in `RuleContext::$storage`, which every pass begins empty, so that the last pass reports all it finds. Its identity is the `#[RuleInfo]` name (`vendor/slug`); `RuleRegistry` maps names and classes and refuses a name owned by two classes. What a rule of another tool means here is not part of that identity: it lives in `DressCode\Interop`, where a translation carries the options too.
 
 ### Report before mutation
 
@@ -183,7 +183,7 @@ Its format follows the extension of its file, so it is written in whichever of t
 
 ### Suppression
 
-Suppression is read once from the original comments before any mutation: `dresscode:ignore [names]` on a line silences that line, on its own line the nearest node starting on the next line, `disable`/`enable` a range, `ignoreFile` everything; what follows ` -- ` says why, as in ESLint and phpcs, and names no rule.
+Suppression is read once from the original comments before any mutation: `dresscode:ignore [names]` on a line silences that line, on its own line the nearest node starting on the next line, `disable`/`enable` a range, `ignoreFile` everything; what follows ` -- ` says why, as in ESLint and phpcs, and names no rule. The forms of PHP_CodeSniffer (`phpcs:ignore`, `phpcs:disable`, `phpcs:enable`, `phpcs:ignoreFile` and the `@phpcsSuppress` annotation) name the rules of another tool, which `Interop\Translator` translates, one name possibly standing for several rules, or the rules of DressCode by their own names.
 
 ### Processing a file
 
@@ -332,3 +332,24 @@ Everything in such a message that is code stands in backticks, as in Markdown: a
 `Testing\UpgradingTester` is for a package that ships upgrading files: `collectProblems($file, $root, $packageRules)` reads a file the way a run would, in the project whose vendor holds the library, the rules the package ships itself known besides those of DressCode, and gives back sentences. A key under `extra.dresscode` of the nearest `composer.json` at or above the file that `PackageProfiles` does not read is a problem too (a run only warns of it, the package may be newer than the tool). Every section, reached or not, has to be what the rules it names accept, and what the sections come to at the installed version has to replace, in `replacedClasses` and `replacedMembers`, by classes, members and functions that exist, asked of the loaded code; the other maps are held to their schema alone. A replacement the file replaces in its turn (`REALPATH`, then `Realpath`, then `RealPath`) is followed to its end, the way the passes of a run follow it, and one that leads back to where it started is a problem; an entry withdrawn with `keep` is thereby not checked, and one whose withdrawal was forgotten shows as a replacement that does not exist. What is replaced is not looked up, a library having usually removed it. The sentence of a `forbidden…` map is read as the end of the message it completes: in lower case unless it begins with a name, with its code in backticks, with no period, double quote or "should", and at most 160 characters, the backticks not counted; an entry of a `forbidden…` map that gives none (a project may leave it out) is a problem in the data of a package. `runSample($code, $root, $rules)` is the other half: code written for the old API as the named rules fix and report it, every section the installed version reaches applying, whatever the constraint of the project allows, the types taken from the PHPStan of the project, which reads the code from `temp/` of the root, and no result cache; it gives the `FileResult`, so that a package tests its data without reaching for the `@internal` factory of the run.
 
 What no fixture catches, the runs over the corpus do: the whitespace fuzz damages the whitespace of a fixed file and requires the fixer to come back to it, and `name-meaning.phpt` runs the rules that write names and imports over the corpus and requires every name outside the imports to resolve to what it resolved to before, because an import moved into a statement writing its items differently, or dropped while something still uses it, leaves code that parses and round-trips and says nothing else.
+
+## Interop: the rules of other tools
+
+- `Interop` is the only place that knows the names of PHP CS Fixer and PHP_CodeSniffer. Two tables, one per
+  configuration format: `PhpCsFixer` holds the fixers (friendsofphp, the custom fixers of kubawerlos) and
+  `PhpCodeSniffer` the sniffs (the standards shipped with phpcs, slevomat). The two name spaces do not overlap, a fixer is snake_case and a sniff is
+  `Standard.Category.Name`, so `Translator` searches one merged table and a mixed configuration translates too.
+  The tables are given to its constructor, the two built-in ones when none are; `RuleRegistry` holds the
+  instance the run uses.
+- A translation is a rule name, or a closure of the foreign options building the rules with theirs; it may
+  produce several rules, and it warns about what it could not carry over instead of dropping it in silence.
+  Every closure reads its options through `??`, which is what lets the test call each of them with none and
+  validate the result against the schema of the target rule: a translation naming a rule that does not exist,
+  or giving it an option it does not take, fails there.
+- Enabling one rule from two foreign ones merges their options: a list becomes the union, a map merges key by
+  key, a boolean is true when either says so, anything else is the value written last. Rules of one DressCode
+  rule split across several foreign ones (`blankLines`, `trailingComma`, `typeHintRequired`) depend on it.
+- The tables also answer the reverse question, which rules a foreign name stands for, and that is what makes
+  `phpcs:ignore <foreign name>` work and what the reference and `dresscode rules` print as "covers". A foreign
+  name is not a valid key in the configuration: `dresscode import` translates a whole configuration file once,
+  options included, and `resolveRule()` says so when it meets one.

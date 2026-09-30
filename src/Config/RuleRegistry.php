@@ -8,6 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{ConfigurationException, Preset, PresetInfo, Rule, RuleInfo};
+use DressCode\Interop\Translator;
 use Nette\Utils\Helpers;
 use function strlen;
 
@@ -31,8 +32,9 @@ final class RuleRegistry
 	private array $urls = [];
 
 
-	public function __construct()
-	{
+	public function __construct(
+		public readonly Translator $translator = new Translator,
+	) {
 		$builtin = (new BuiltinPlugin)->getManifest();
 		foreach ($builtin->rules as $class) {
 			// known by the name its class spells, so that a run loads only the rules it runs
@@ -89,7 +91,8 @@ final class RuleRegistry
 
 
 	/**
-	 * Class of the rule given by name or class; a class is registered on the way.
+	 * Class of the rule given by name or class; a class is registered on the way. A name of another tool
+	 * is not a name here: it is translated together with its options by `dresscode import`.
 	 * @return class-string<Rule>
 	 * @throws ConfigurationException
 	 */
@@ -106,7 +109,11 @@ final class RuleRegistry
 			return $class;
 		}
 
-		throw new ConfigurationException("Unknown rule `$rule`." . self::suggest($rule, array_keys($this->rules)));
+		$covered = $this->translator->findRules($rule);
+		$hint = $covered
+			? ' It is covered by `' . implode('` and `', $covered) . '`; `dresscode import` translates a configuration of another tool.'
+			: self::suggest($rule, array_keys($this->rules));
+		throw new ConfigurationException("Unknown rule `$rule`.$hint", docs: $covered ? 'migration#import' : null);
 	}
 
 
@@ -124,7 +131,8 @@ final class RuleRegistry
 
 
 	/**
-	 * Rules a name in a suppression comment stands for: its own; empty when nothing does.
+	 * Rules a name in a suppression comment stands for: its own, or those covering it when it belongs
+	 * to another tool; empty when nothing does.
 	 * @return list<string>
 	 */
 	public function resolveNames(string $rule): array
@@ -132,7 +140,7 @@ final class RuleRegistry
 		return match (true) {
 			isset($this->rules[$rule]) => [$rule],
 			isset($this->rules[self::Vendor . $rule]) => [self::Vendor . $rule],
-			default => [],
+			default => $this->translator->findRules($rule),
 		};
 	}
 

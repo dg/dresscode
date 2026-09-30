@@ -158,6 +158,9 @@ foreach ($rules as $name => $class) {
 	$out .= "### $name\n\n";
 	$out .= ($info->description === '' ? '' : $info->description . ".\n\n");
 	$facts = ["Stage: {$info->stage->name}"];
+	if ($covers = $registry->translator->findForeignNames($name)) {
+		$facts[] = 'Covers: ' . implode(', ', array_map(fn($a) => "`$a`", $covers));
+	}
 
 	$minPhpVersion = $info->getMinPhpVersion();
 	if ($minPhpVersion !== null && version_compare($minPhpVersion, Config::MinPhpVersion, '>')) {

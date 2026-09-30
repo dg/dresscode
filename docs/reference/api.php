@@ -6,7 +6,7 @@
  * Generates api.md, the public surface as reflection sees it: every class of src/ not marked @internal with its public
  * members not marked @internal, a built-in rule by its class alone. Run by `composer api`; the output is committed and
  * CI diffs it, so that a change of the surface shows in the diff of the commit making it. Which class is public is
- * decided by its @internal tag.
+ * decided by its @internal tag, which tests/DressCode/api.phpt holds to the lists of docs/internals.md.
  */
 use DressCode\Rule;
 

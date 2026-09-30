@@ -132,6 +132,8 @@ test('names of a suppression comment', function () {
 	$registry->registerRule(RuleOne::class);
 	Assert::same(['test/one'], $registry->resolveNames('test/one'));
 	Assert::same(['dresscode/orderedImports'], $registry->resolveNames('orderedImports'));
+	Assert::same(['dresscode/orderedImports'], $registry->resolveNames('ordered_imports'));
+	Assert::same(['dresscode/orderedImports'], $registry->resolveNames('SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses'));
 	Assert::same([], $registry->resolveNames('test/unknown'));
 });
 
@@ -143,6 +145,11 @@ test('errors', function () {
 	Assert::exception(fn() => $registry->resolveRule('test/none'), ConfigurationException::class, 'Unknown rule `test/none`. Did you mean `test/one`?');
 	Assert::exception(fn() => $registry->resolveRule('indentaton'), ConfigurationException::class, 'Unknown rule `indentaton`. Did you mean `indentation`?');
 	Assert::exception(fn() => $registry->resolvePreset('dresscode/nete'), ConfigurationException::class, 'Unknown preset `dresscode/nete`. Did you mean `dresscode/nette`?');
+	Assert::exception(
+		fn() => $registry->resolveRule('cast_spaces'),
+		ConfigurationException::class,
+		'Unknown rule `cast_spaces`. It is covered by `dresscode/castSpacing`; `dresscode import` translates a configuration of another tool.',
+	);
 	Assert::exception(fn() => $registry->registerRule(RuleOneClone::class), ConfigurationException::class, 'Rule name `test/one` is used by both `RuleOne` and `RuleOneClone`.');
 	Assert::exception(fn() => $registry->registerRule(NoInfo::class), ConfigurationException::class, 'Rule `NoInfo` has no `#[RuleInfo]` attribute.');
 	Assert::exception(fn() => $registry->resolveRule(stdClass::class), ConfigurationException::class, 'Class `stdClass` is not a rule.');
