@@ -9,7 +9,7 @@ namespace DressCode\Config;
 
 use Composer\InstalledVersions;
 use DressCode\{Analyses, Config, ConfigurationException, Override, Plugin, PluginManifest, Profile, Rule};
-use DressCode\Engine\{Baseline, FileProcessor, FileProcessors, Helpers, ReportPolicy, ResultCache, Runner, TypeAnalysisStatus};
+use DressCode\Engine\{Baseline, FileProcessor, FileProcessors, Helpers, Profiler, ReportPolicy, ResultCache, Runner, TypeAnalysisStatus};
 use Nette\Utils\Finder;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\FileNode;
@@ -100,6 +100,7 @@ final readonly class RunnerFactory
 		?string $configFile = null,
 		bool $fixRisky = false,
 		bool $baseline = true,
+		?Profiler $profiler = null,
 	): Runner
 	{
 		$config = $resolution->config;
@@ -119,6 +120,7 @@ final readonly class RunnerFactory
 				self::resolveAnalysedPaths($config, $root),
 				self::resolveCacheDir($config, $root) . '/phpstan',
 				$phpVersion,
+				$profiler,
 			);
 			$analyses[Analyses\Types::class] = fn(FileNode $file, string $path) => new Analyses\Types($file, $path, $phpstan);
 		}
@@ -128,7 +130,9 @@ final readonly class RunnerFactory
 		$registry = $this->registry;
 		$processors = new FileProcessors(
 			array_map(fn(Override $override) => $override->paths, $config->overrides),
-			function (array $overrides) use ($resolution, $registry, $analyses, $strict, $baselineFile, $fixRisky): FileProcessor {
+			function (array $overrides) use (
+				$resolution, $registry, $analyses, $strict, $baselineFile, $fixRisky, $profiler,
+			): FileProcessor {
 				$variant = $resolution->resolveFor($overrides);
 				$style = $variant->createStyle();
 				$analysisRegistry = $variant->createAnalyses($style);
@@ -150,6 +154,7 @@ final readonly class RunnerFactory
 						fixRisky: $fixRisky ?: $variant->fixRisky,
 						strict: $strict,
 					),
+					profiler: $profiler,
 					gates: $variant->getGates(),
 				);
 			},
@@ -180,6 +185,7 @@ final readonly class RunnerFactory
 			$baselineFile,
 			$resultCache,
 			narrowed: (bool) $resolution->only,
+			profiler: $profiler,
 			warmUp: isset($phpstan) ? $phpstan->warmUp(...) : null,
 			typeAnalysis: match (true) {
 				$resolved->typeAnalysis !== null => TypeAnalysisStatus::Enabled,

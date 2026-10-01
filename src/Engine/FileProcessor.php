@@ -9,6 +9,7 @@ namespace DressCode\Engine;
 
 use DressCode\{Analyses, ConfigurationException, ConvergenceException, FileResult, Rule, RuleException, Style};
 use PhpSyntax\{ParseException, Parser};
+use function strlen;
 
 
 /**
@@ -34,11 +35,12 @@ final readonly class FileProcessor
 		/** the line ending of the style follows the prevailing one of each file */
 		private bool $detectLineEnding = true,
 		private ReportPolicy $policy = new ReportPolicy,
+		private ?Profiler $profiler = null,
 		/** @var array<class-string, Gate>  the class of a rule => the gate of its reports */
 		private array $gates = [],
 	) {
 		$this->parser = new Parser;
-		$this->plan = new RulePlan($this->rules, $this->gates);
+		$this->plan = new RulePlan($this->rules, $this->profiler, $this->gates);
 	}
 
 
@@ -71,15 +73,18 @@ final readonly class FileProcessor
 		$seen = [];
 		$settled = false;
 		$remaining = null;
+		$start = $this->profiler ? hrtime(true) : 0;
+		$times = ['parse' => 0, 'passes' => 0];
 
 		// a mutated tree is not the tree the parser would build from the printed text, so a rule can miss what another
 		// one has just written; the strict run makes the text settle in rounds, the others take what the last pass
 		// of the tree left for what a round over the text would report, which spares a pass; they only parse the printed
 		// text, so that a broken rule never writes code PHP refuses
-		$passLoop = new PassLoop($this->plan, $this->analyses, $this->policy);
+		$passLoop = new PassLoop($this->plan, $this->analyses, $this->policy, $this->profiler);
 		$rounds = 0;
 		while (!$settled) {
 			$rounds++;
+			$lap = $this->profiler ? hrtime(true) : 0;
 			try {
 				$file = $this->parser->parse($text);
 			} catch (ParseException $e) {
@@ -88,9 +93,18 @@ final readonly class FileProcessor
 					: self::createParseFailure($path, $code, $e);
 			}
 
+			if ($this->profiler) {
+				$times['parse'] += hrtime(true) - $lap;
+				$lap = hrtime(true);
+			}
+
 			$result = $passLoop->run($file, $text, $path, $style, $this->phpVersion, $acceptedRisks);
 			$first ??= $result;
 			$passes += $result->passes;
+			if ($this->profiler) {
+				$times['passes'] += hrtime(true) - $lap;
+			}
+
 			$printed = $result->output ?? $text;
 			$settled = $printed === $text;
 			$seen[hash('xxh3', $text)] = true;
@@ -101,15 +115,36 @@ final readonly class FileProcessor
 
 			$text = $printed;
 			if (!$settled && !$this->policy->strict && $result->remaining !== null) {
+				$lap = $this->profiler ? hrtime(true) : 0;
 				try {
 					$this->parser->parse($text);
 				} catch (ParseException $e) {
 					return self::createParseFailure($path, $code, $e);
 				}
 
+				if ($this->profiler) {
+					$times['parse'] += hrtime(true) - $lap;
+				}
+
 				$remaining = $result->remaining;
+				$rounds++; // the parse of the printed text stands for the round over it
 				break;
 			}
+		}
+
+		if ($this->profiler) {
+			foreach ($times as $phase => $time) {
+				$this->profiler->addPhase($phase, $time, $rounds);
+			}
+
+			$this->profiler->addFile([
+				'path' => $path,
+				'size' => strlen($code),
+				'time' => hrtime(true) - $start,
+				...$times,
+				'rounds' => $rounds,
+				'passCount' => $passes,
+			]);
 		}
 
 		return new FileResult(

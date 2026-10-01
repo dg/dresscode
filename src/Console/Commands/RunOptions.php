@@ -41,6 +41,9 @@ final readonly class RunOptions
 		/** the address of the parent; a worker started by WorkerPool */
 		#[Cli\Option(hidden: true)]
 		public ?string $worker = null,
+		/** a file to write where the time of the run went, see Profiler */
+		#[Cli\Option(hidden: true)]
+		public ?string $profile = null,
 	) {
 	}
 

@@ -10,10 +10,11 @@ namespace DressCode\Console\Commands;
 use DressCode\{Config, Reporter, Reporters};
 use DressCode\Config\{Loader, PluginRegistry};
 use DressCode\Console\{CommandContext, Markup, ProgressBar, RiskReview};
-use DressCode\Engine\{Baseline, FileSummary, Helpers, Runner, RunResult, Worker, WorkerPool};
+use DressCode\Engine\{Baseline, FileSummary, Helpers, Profiler, Runner, RunResult, Worker, WorkerPool};
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use function count, in_array, is_string, sprintf;
+use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES;
 
 
 /**
@@ -70,6 +71,7 @@ final readonly class CheckCommand
 	{
 		[$factory, $resolution, $configFile] = $this->context->resolveProject($args, $check->only ?? []);
 		[$config, $root] = [$resolution->config, $resolution->root];
+		$profiler = $run->profile === null ? null : new Profiler;
 		$fixRisky = in_array(true, $check->fixRisky ?? [], true); // a bare `--fix-risky`, the names given go to the configuration
 		if ($run->worker !== null) { // the parent keeps the cache; the baseline decides what is reported
 			$runner = $factory->createRunner(
@@ -78,19 +80,21 @@ final readonly class CheckCommand
 				cache: false,
 				fixRisky: $fixRisky,
 				baseline: !$generate,
+				profiler: $profiler,
 			);
 			($runner->warmUp)?->__invoke(); // before connecting, which is what starts the other workers
-			return Worker::run($run->worker, $runner, $fix);
+			return Worker::run($run->worker, $runner, $fix, $profiler);
 		}
 
 		$runner = $factory->createRunner(
 			$resolution,
 			strict: (bool) $run->strictRules,
-			// the counts of a file served from the cache are those the baseline left
-			cache: !$generate && !$run->noCache,
+			// a file served from the cache has nothing to measure, and its counts are those the baseline left
+			cache: !$generate && !$run->noCache && !$profiler,
 			configFile: $configFile,
 			fixRisky: $fixRisky,
 			baseline: !$generate,
+			profiler: $profiler,
 		);
 		[$out, $err] = [$this->context->out, $this->context->err];
 		foreach ($resolution->warnings as $warning => $docs) { // only the parent warns, a worker has returned above
@@ -154,13 +158,15 @@ final readonly class CheckCommand
 		$jobs = $run->jobs ?? max(1, min(WorkerPool::detectCpuCount(), intdiv(count($files), 4)));
 		$command = $jobs > 1 && $files ? $this->buildWorkerCommand($args) : null;
 		$workers = $command
-			? new WorkerPool($command, $jobs, $this->context->workingDirectory, warmFirst: $runner->warmUp !== null)
+			? new WorkerPool($command, $jobs, $this->context->workingDirectory, profiler: $profiler, warmFirst: $runner->warmUp !== null)
 			: null;
 		$progress = !$generate && $format === 'console' && count($files) > 1 && $out->isTerminal()
 			? new ProgressBar($out, count($files))
 			: null;
 		$onProgress = $progress === null ? null : $progress->advance(...);
 
+		$profiler?->addPhase('start of the process', (int) ((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1e9));
+		$start = hrtime(true);
 		try {
 			if ($generate) {
 				return $this->generateBaseline($runner, $config, $root, $configFile, $files, $workers, $format);
@@ -173,6 +179,13 @@ final readonly class CheckCommand
 				: $result->getExitCode();
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
+			if ($profiler) {
+				$profiler->addPhase('run', hrtime(true) - $start);
+				FileSystem::write(
+					$this->context->resolvePath($args['--profile']),
+					json_encode($profiler->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n",
+				);
+			}
 		}
 	}
 
@@ -319,6 +332,10 @@ final readonly class CheckCommand
 
 		foreach ((array) ($args['--fix-risky'] ?? []) as $value) { // what a worker may fix has to be what the parent was asked for
 			$command[] = is_string($value) ? "--fix-risky=$value" : '--fix-risky';
+		}
+
+		if (is_string($args['--profile'])) { // a worker measures and hands it over with every file, the parent writes
+			$command[] = "--profile={$args['--profile']}";
 		}
 
 		return $command;
