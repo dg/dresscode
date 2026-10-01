@@ -8,7 +8,7 @@
 namespace DressCode\Analyses;
 
 use Composer\InstalledVersions;
-use DressCode\Engine\Helpers;
+use DressCode\Engine\{Helpers, Profiler};
 use DressCode\Violation;
 use Nette\Utils\FileSystem;
 use PhpParser\Node\Expr\Variable;
@@ -60,6 +60,7 @@ final class PhpStan
 		private readonly string $tempDir,
 		/** the version of PHP the code is written for, which PHPStan parses it as where the running PHP is older */
 		private readonly ?string $phpVersion = null,
+		private readonly ?Profiler $profiler = null,
 	) {
 	}
 
@@ -159,10 +160,13 @@ final class PhpStan
 		$resolver = $container->getByType(NodeScopeResolver::class);
 		$resolver->setAnalysedFiles([$path]);
 		$scope = $container->getByType(ScopeFactory::class)->create(ScopeContext::create($path));
+		$start = $this->profiler ? hrtime(true) : 0;
 		try {
 			$resolver->processNodes($ast, $scope, $callback);
 		} catch (CircularReference) {
 		}
+
+		$this->profiler?->addPhase('phpstan: scopes', hrtime(true) - $start);
 	}
 
 
@@ -234,6 +238,7 @@ final class PhpStan
 			}
 		}
 
+		$start = $this->profiler ? hrtime(true) : 0;
 		try {
 			$container = new ContainerFactory($this->root)->create(
 				$this->tempDir,
@@ -251,6 +256,7 @@ final class PhpStan
 			throw new \RuntimeException('PHPStan could not be started' . ($config ? ' with ' . Violation::formatCode($config) : '') . ": {$e->getMessage()}", previous: $e);
 		}
 
+		$this->profiler?->addPhase($this->replacement === null ? 'phpstan: container' : 'phpstan: derived container build', hrtime(true) - $start);
 		return $this->container = $container;
 	}
 

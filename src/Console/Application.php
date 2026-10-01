@@ -9,7 +9,7 @@ namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, Plugin, Profile, Reporter, Reporters, RuleException};
 use DressCode\Config\{Catalogue, ConfigResolver, CorePlugin, Loader, PhpVersionSource, PluginRegistry, ResolvedProject, RunnerFactory};
-use DressCode\Engine\{Baseline, FileSummary, Helpers, RunInfo, Runner, RunResult, SuppressionMigration, Worker, WorkerPool};
+use DressCode\Engine\{Baseline, FileSummary, Helpers, Profiler, RunInfo, Runner, RunResult, SuppressionMigration, Worker, WorkerPool};
 use DressCode\Interop\{PhpCodeSniffer, PhpCsFixer, Translator};
 use DressCode\Measuring\Proposal;
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, Normalizers, ParseException as CommandLineException, Parser, ParseResult};
@@ -17,6 +17,7 @@ use Nette\Neon\{Exception as NeonException, Neon};
 use Nette\Utils\{FileSystem, Helpers as UtilsHelpers, Json};
 use PhpSyntax\{ParseException, Printer};
 use function count, extension_loaded, in_array, is_string, sprintf;
+use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES;
 
 
 /**
@@ -239,6 +240,7 @@ final class Application
 			);
 			$command->addFlag('--strict-rules', 'Treat a rule breaking its contract as an error, not a warning');
 			$command->addOption('--worker', hidden: true); // the address of the parent; a worker started by WorkerPool
+			$command->addOption('--profile', hidden: true); // a file to write where the time of the run went, see Profiler
 		}
 
 		$fix->addFlag('--ask-risky', 'Fix as usual, then ask about every risky fix left, one at a time with its diff, and make those accepted; needs an interactive terminal');
@@ -266,6 +268,7 @@ final class Application
 		$factory = new RunnerFactory;
 		['config' => $config, 'root' => $root, 'file' => $configFile, 'commandLine' => $commandLine] = $this->loadConfig($args);
 		$only = self::parseOnly($args);
+		$profiler = is_string($args['--profile']) ? new Profiler : null;
 		$resolution = $factory->resolve($config, $root, $commandLine, $only);
 		$fixRisky = in_array(true, (array) ($args['--fix-risky'] ?? []), true); // a bare `--fix-risky`, the names given go to the configuration
 		$generate = $args->command->name === 'baseline'; // the baseline command writes the configured baseline, it never reads it
@@ -276,18 +279,21 @@ final class Application
 				cache: false,
 				fixRisky: $fixRisky,
 				baseline: !$generate,
+				profiler: $profiler,
 			);
 			($runner->warmUp)?->__invoke(); // before connecting, which is what starts the other workers
-			return Worker::run($args['--worker'], $runner, $fix);
+			return Worker::run($args['--worker'], $runner, $fix, $profiler);
 		}
 
 		$runner = $factory->createRunner(
 			$resolution,
 			strict: (bool) $args['--strict-rules'],
-			cache: !$generate && !$args['--no-cache'], // the counts of a file served from the cache are those the baseline left
+			// a file served from the cache has nothing to measure, and its counts are those the baseline left
+			cache: !$generate && !$args['--no-cache'] && !$profiler,
 			configFile: $configFile,
 			fixRisky: $fixRisky,
 			baseline: !$generate,
+			profiler: $profiler,
 		);
 		foreach ($resolution->warnings as $warning => $docs) { // only the parent warns, a worker has returned above
 			$this->err->writeLine(Markup::highlightCode($this->err, "Warning: $warning", 'yellow'));
@@ -346,7 +352,7 @@ final class Application
 
 		// a worker costs about the processing of a few files to start, so by default one for every four files at most
 		$jobs = $args['--jobs'] ?? max(1, min(WorkerPool::detectCpuCount(), intdiv(count($files), 4)));
-		$workers = $jobs > 1 && $files ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->cwd, warmFirst: $runner->warmUp !== null) : null;
+		$workers = $jobs > 1 && $files ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->cwd, profiler: $profiler, warmFirst: $runner->warmUp !== null) : null;
 		if ($generate) {
 			return $this->generateBaseline($runner, $config, $root, $configFile, $files, $workers, $format);
 		}
@@ -357,6 +363,8 @@ final class Application
 		$onProgress = $progress === null ? null : $progress->advance(...);
 		$reporter = $this->createReporter($args, $this->out, $this->stdout, $root, $format, $factory->registry);
 
+		$profiler?->addPhase('start of the process', (int) ((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1e9));
+		$start = hrtime(true);
 		try {
 			$result = $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings);
 			return $askRisky
@@ -364,6 +372,10 @@ final class Application
 				: $result->getExitCode();
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
+			if ($profiler && is_string($args['--profile'])) {
+				$profiler->addPhase('run', hrtime(true) - $start);
+				FileSystem::write($this->resolvePath($args['--profile']), json_encode($profiler->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n");
+			}
 		}
 	}
 
@@ -539,6 +551,10 @@ final class Application
 
 		foreach ((array) ($args['--fix-risky'] ?? []) as $value) { // what a worker may fix has to be what the parent was asked for
 			$command[] = is_string($value) ? "--fix-risky=$value" : '--fix-risky';
+		}
+
+		if (is_string($args['--profile'])) { // a worker measures and hands it over with every file, the parent writes
+			array_push($command, '--profile', $args['--profile']);
 		}
 
 		return $command;

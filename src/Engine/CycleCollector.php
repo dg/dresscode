@@ -24,8 +24,9 @@ final class CycleCollector
 	private int $threshold = self::Floor;
 
 
-	public function __construct()
-	{
+	public function __construct(
+		private readonly ?Profiler $profiler = null,
+	) {
 		$this->enabled = gc_enabled();
 		gc_disable();
 	}
@@ -37,7 +38,9 @@ final class CycleCollector
 			return;
 		}
 
+		$start = $this->profiler ? hrtime(true) : 0;
 		gc_collect_cycles();
+		$this->profiler?->addPhase('gc', hrtime(true) - $start);
 		$this->threshold = max(self::Floor, min(2 * memory_get_usage(), self::findCeiling()));
 	}
 

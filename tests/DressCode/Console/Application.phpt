@@ -4,6 +4,7 @@ use DressCode\Console\Application;
 use DressCode\{Decision, Domain, NodeRule, Plugin, PluginManifest, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\Classes\FinalForInternalClassRule;
 use DressCode\Rules\Functions\StaticForClosureWithoutThisRule;
+use Nette\Utils\FileSystem;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use Tester\Assert;
@@ -583,6 +584,37 @@ test('rules that do not fit are a configuration error with workers too', functio
 	[$code, , $err] = runApp($root, ['check', '--config', "$root/typo.php", '--no-cache', '--jobs', '2']);
 	Assert::same(3, $code);
 	Assert::match('%A%Rule `ConsoleTypo` visits `Acme\Shop\NoSuchNode`, which is no class of a node or a token.%A%', $err);
+});
+
+
+test('a profile counts the same with workers as in the process', function () use ($root) {
+	file_put_contents("$root/profile.php", "<?php\nreturn new DressCode\\Config(paths: ['profile'], decisions: ['builtin' => ['keyword' => 'lowercase'], 'file' => ['trailingWhitespace' => 'forbidden']]);\n");
+	@mkdir("$root/profile"); // @ directory may already exist
+	for ($i = 0; $i < 8; $i++) {
+		file_put_contents("$root/profile/$i.php", "<?php\nIF (\$a) { \$b; }\t\n");
+	}
+
+	$counts = [];
+	foreach (['1', '2'] as $jobs) {
+		[$code, , $err] = runApp($root, ['check', '--config', "$root/profile.php", '--jobs', $jobs, '--profile', "$root/profile-$jobs.json"]);
+		Assert::same('', $err);
+		Assert::same(1, $code);
+		$profile = json_decode(FileSystem::read("$root/profile-$jobs.json"), associative: true);
+		Assert::same(8, $profile['files']);
+		Assert::true($profile['rules'][DressCode\Rules\Literals\BuiltinCasingRule::class]['calls'] > 0);
+		Assert::same(8, $profile['rules'][DressCode\Rules\Literals\BuiltinCasingRule::class]['mutating']);
+		Assert::true($profile['phases']['passes']['time'] >= array_sum(array_column($profile['rules'], 'time')));
+		$count = [
+			array_map(fn($entry) => [$entry['calls'], $entry['mutating']], $profile['rules']),
+			array_map(fn($entry) => $entry['calls'], $profile['claims']),
+			array_map(fn($entry) => $entry['calls'], array_intersect_key($profile['phases'], ['parse' => 0, 'passes' => 0, 'print' => 0, 'gaps' => 0])),
+		];
+		array_walk($count, ksort(...)); // the tables are ordered by time, which differs between runs
+		$counts[] = $count;
+	}
+
+	Assert::same($counts[0], $counts[1]);
+	Assert::count(2 + 1, json_decode(FileSystem::read("$root/profile-2.json"), associative: true)['peakMemory']); // the parent and two workers
 });
 
 

@@ -12,14 +12,18 @@ use function is_array;
 
 
 /**
- * The result of a file as a worker sends it to the parent: the output only where it differs from the code, which
- * the parent has, the output and the path base64-encoded since neither need be UTF-8.
+ * The result of a file as a worker sends it to the parent, with what it measured for `--profile`: the output only
+ * where it differs from the code, which the parent has, the output and the path base64-encoded since neither need
+ * be UTF-8.
  * @internal
  */
 final class WorkerCodec
 {
-	/** @return array<string, mixed> */
-	public static function encode(FileResult $result): array
+	/**
+	 * @param  ?array<string, mixed>  $profile  see `Profiler::takeRecords()`
+	 * @return array<string, mixed>
+	 */
+	public static function encode(FileResult $result, ?array $profile): array
 	{
 		return [
 			'path' => base64_encode($result->path),
@@ -35,6 +39,7 @@ final class WorkerCodec
 			'remaining' => array_map(self::encodeViolation(...), $result->remaining),
 			'written' => $result->written,
 			'cached' => $result->cached,
+			'profile' => $profile,
 		];
 	}
 
@@ -42,11 +47,12 @@ final class WorkerCodec
 	/**
 	 * @param  array<string, mixed>  $data  as `encode()` made it
 	 * @param  string  $code  the content the parent handed the worker
+	 * @return array{FileResult, ?array<string, mixed>}  the result and what the worker measured with it
 	 */
-	public static function decode(array $data, string $code): FileResult
+	public static function decode(array $data, string $code): array
 	{
 		$output = $data['output'];
-		return new FileResult(
+		$result = new FileResult(
 			path: (string) base64_decode((string) $data['path'], strict: true),
 			code: $code,
 			output: $output === true ? $code : ($output === null ? null : (string) base64_decode((string) $output, strict: true)),
@@ -62,6 +68,7 @@ final class WorkerCodec
 			written: (bool) $data['written'],
 			cached: (bool) $data['cached'],
 		);
+		return [$result, is_array($data['profile']) ? $data['profile'] : null];
 	}
 
 

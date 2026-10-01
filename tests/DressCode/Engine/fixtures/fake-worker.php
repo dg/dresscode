@@ -41,6 +41,7 @@ while (($line = fgets($socket)) !== false) {
 		'remaining' => [],
 		'written' => false,
 		'cached' => false,
+		'profile' => null,
 	], JSON_THROW_ON_ERROR) . "\n";
 
 	if ($mode === 'other-path') {
