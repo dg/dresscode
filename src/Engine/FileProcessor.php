@@ -9,6 +9,7 @@ namespace DressCode\Engine;
 
 use DressCode\{Analyses, ConfigurationException, ConvergenceException, FileResult, Rule, RuleException, Style};
 use PhpSyntax\{ParseException, Parser, Printer};
+use function strlen;
 
 
 /**
@@ -47,6 +48,7 @@ final class FileProcessor
 		private readonly bool $fixRisky = false,
 		/** @var array<string, true>  rules whose fixes that may change what the code does are allowed */
 		private readonly array $fixRiskyRules = [],
+		private readonly ?Profiler $profiler = null,
 	) {
 		$this->parser = new Parser;
 	}
@@ -65,12 +67,15 @@ final class FileProcessor
 		$seen = [];
 		$settled = false;
 		$remaining = null;
+		$start = $this->profiler ? hrtime(true) : 0;
+		$times = ['parse' => 0, 'passes' => 0, 'print' => 0];
 
 		// a mutated tree is not the tree the parser would build from the printed text, so a rule can miss what another
 		// one has just written; the strict run makes the text settle in rounds, the others take what the last pass
 		// of the tree left for what a round over the text would report, which spares a pass; they only parse the printed
 		// text, so that a broken rule never writes code PHP refuses
 		for ($round = 1; !$settled; $round++) {
+			$lap = $this->profiler ? hrtime(true) : 0;
 			try {
 				$file = $this->parser->parse($text);
 			} catch (ParseException $e) {
@@ -79,12 +84,26 @@ final class FileProcessor
 					: self::createParseFailure($path, $code, $e);
 			}
 
-			$this->plan ??= new RulePlan($this->rules);
-			$runner = new PassRunner($this->plan, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline, $this->warningRules, $this->fixRisky, $this->fixRiskyRules, $acceptedRisks);
+			if ($this->profiler) {
+				$times['parse'] += hrtime(true) - $lap;
+				$lap = hrtime(true);
+			}
+
+			$this->plan ??= new RulePlan($this->rules, $this->profiler);
+			$runner = new PassRunner($this->plan, $this->analyses, $this->resolveNames, $this->maxPasses, $this->strict, $this->baseline, $this->warningRules, $this->fixRisky, $this->fixRiskyRules, $this->profiler, $acceptedRisks);
 			$result = $runner->run($file, $text, $path, $style, $this->phpVersion);
 			$first ??= $result;
 			$passes += $result->passes;
+			if ($this->profiler) {
+				$times['passes'] += hrtime(true) - $lap;
+				$lap = hrtime(true);
+			}
+
 			$printed = $result->mutated ? Printer::print($file) : $text;
+			if ($this->profiler) {
+				$times['print'] += hrtime(true) - $lap;
+			}
+
 			$settled = $printed === $text;
 			$seen[hash('xxh3', $text)] = true;
 			// a text seen before is a cycle, and one still changing in the last round is a broken rule too
@@ -94,15 +113,36 @@ final class FileProcessor
 
 			$text = $printed;
 			if (!$settled && !$this->strict && $result->remaining !== null) {
+				$lap = $this->profiler ? hrtime(true) : 0;
 				try {
 					$this->parser->parse($text);
 				} catch (ParseException $e) {
 					return self::createParseFailure($path, $code, $e);
 				}
 
+				if ($this->profiler) {
+					$times['parse'] += hrtime(true) - $lap;
+				}
+
 				$remaining = $result->remaining;
+				$round++;
 				break;
 			}
+		}
+
+		if ($this->profiler) {
+			foreach ($times as $phase => $time) {
+				$this->profiler->addPhase($phase, $time, $round - 1);
+			}
+
+			$this->profiler->addFile([
+				'path' => $path,
+				'size' => strlen($code),
+				'time' => hrtime(true) - $start,
+				...$times,
+				'rounds' => $round - 1,
+				'passCount' => $passes,
+			]);
 		}
 
 		return new FileResult(

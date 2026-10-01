@@ -9,7 +9,7 @@ namespace DressCode\Config;
 
 use Composer\InstalledVersions;
 use DressCode\{Analyses, Config, ConfigurationException, Override, Plugin, PluginManifest, Preset, Profile, Rule, Style};
-use DressCode\Engine\{Baseline, FileProcessor, Helpers, ResultCache, Runner};
+use DressCode\Engine\{Baseline, FileProcessor, Helpers, Profiler, ResultCache, Runner};
 use Nette\Utils\FileSystem;
 use PhpSyntax\Nodes\FileNode;
 use function count, dirname, is_array, is_string, strlen;
@@ -104,6 +104,7 @@ final class RunnerFactory
 		?string $configFile = null,
 		bool $fixRisky = false,
 		bool $baseline = true,
+		?Profiler $profiler = null,
 	): Runner
 	{
 		$packageTargets = array_diff_key($config->targets, ['php' => true]);
@@ -138,7 +139,7 @@ final class RunnerFactory
 				throw new ConfigurationException('The configuration sets `types: phpstan`, but `phpstan/phpstan` is not installed in the project.', docs: 'types#enable');
 			}
 
-			$phpstan = new Analyses\PhpStan($root, self::resolveAnalysedPaths($config, $root), self::resolveCacheDir($config, $root) . '/phpstan');
+			$phpstan = new Analyses\PhpStan($root, self::resolveAnalysedPaths($config, $root), self::resolveCacheDir($config, $root) . '/phpstan', $profiler);
 			$analyses[Analyses\Types::class] = fn(FileNode $file, string $path) => new Analyses\Types($file, $path, $phpstan);
 		}
 
@@ -151,7 +152,7 @@ final class RunnerFactory
 		$registry = $this->registry;
 		$processors = new FileProcessors(
 			array_map(fn(Override $override) => $override->paths, $config->overrides),
-			function (array $overrides) use ($resolveFor, $registry, $analyses, $strict, $baselineFile, $fixRisky): FileProcessor {
+			function (array $overrides) use ($resolveFor, $registry, $analyses, $strict, $baselineFile, $fixRisky, $profiler): FileProcessor {
 				$variant = $resolveFor($overrides);
 				$analysisRegistry = new Analyses\Registry($variant->toNamespacedSymbols());
 				foreach ($analyses as $class => $factory) {
@@ -181,6 +182,7 @@ final class RunnerFactory
 					warningRules: $warningRules,
 					fixRisky: $fixRisky,
 					fixRiskyRules: $fixRiskyRules,
+					profiler: $profiler,
 				);
 			},
 		);
@@ -210,6 +212,7 @@ final class RunnerFactory
 			$baselineFile,
 			$resultCache,
 			narrowed: (bool) $only,
+			profiler: $profiler,
 			warmUp: isset($phpstan) ? $phpstan->warmUp(...) : null,
 			types: match (true) {
 				$resolved->types !== null => true,

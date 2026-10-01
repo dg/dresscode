@@ -38,6 +38,8 @@ final class Runner
 		private readonly ?ResultCache $cache = null,
 		/** the run is narrowed to some of the rules, so it says nothing about the baseline entries of the others */
 		private readonly bool $narrowed = false,
+		/** adds up what the workers measured */
+		private readonly ?Profiler $profiler = null,
 		/** @var ?\Closure(): void  fills the cache the workers share, which those started together would all write at once */
 		public readonly ?\Closure $warmUp = null,
 		/** the types of the code: true where the run has them, false where the project can turn them on, null where PHPStan is not installed */
@@ -179,7 +181,7 @@ final class Runner
 			return;
 		}
 
-		$collector = new CycleCollector;
+		$collector = new CycleCollector($this->profiler);
 		try {
 			foreach ($paths as $path) {
 				if ($onProgress !== null) {

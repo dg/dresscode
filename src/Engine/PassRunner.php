@@ -77,6 +77,7 @@ final class PassRunner
 		private readonly bool $fixRisky = false,
 		/** @var array<string, true>  rules whose fixes that may change what the code does are allowed */
 		private readonly array $fixRiskyRules = [],
+		private readonly ?Profiler $profiler = null,
 		/** @var array<string, true>  fingerprints of the occurrences whose fix that may change what the code does is allowed */
 		private readonly array $acceptedRisks = [],
 	) {
@@ -122,7 +123,9 @@ final class PassRunner
 				$context->storage = [];
 			}
 
+			$start = $this->profiler ? hrtime(true) : 0;
 			$this->analyses->beginPass($file);
+			$this->profiler?->addPhase('analyses: begin pass', hrtime(true) - $start);
 			$revision = $file->revision;
 			foreach ($this->plan->stages as $stage => $rules) {
 				$this->runStage($stage, $rules, $style);
@@ -265,8 +268,10 @@ final class PassRunner
 				return;
 			}
 
+			$start = $this->profiler ? hrtime(true) : 0;
 			try {
 				$node instanceof Token ? $gaps->enterToken($node) : $gaps->enterNode($node);
+				$this->profiler?->addPhase('gaps', hrtime(true) - $start);
 			} catch (ConfigurationException $e) { // two claims deciding one gap: the configuration is wrong, not the file
 				throw $e;
 			} catch (\Throwable $e) {
@@ -305,14 +310,17 @@ final class PassRunner
 
 		$parent = $node->parent;
 		$file = $this->file;
+		$profiler = $this->profiler;
 		foreach ($rules as [$rule, $context, $name]) {
 			$before = $file->revision;
+			$start = $profiler ? hrtime(true) : 0;
 			try {
 				$enter ? $rule->enter($node, $context) : $rule->leave($node, $context);
 			} catch (\Throwable $e) {
 				throw new RuleException($name, $this->path, $e);
 			}
 
+			$profiler?->addRule($name, hrtime(true) - $start, $file->revision !== $before);
 			if ($file->revision !== $before || $context->hasReports()) {
 				$this->account($name, $context, $before);
 			}
@@ -355,12 +363,14 @@ final class PassRunner
 		$name = RuleInfo::of($rule)->name;
 		$context = $this->contexts[$name];
 		$before = $this->file->revision;
+		$start = $this->profiler ? hrtime(true) : 0;
 		try {
 			$callback($context);
 		} catch (\Throwable $e) {
 			throw new RuleException($name, $this->path, $e);
 		}
 
+		$this->profiler?->addRule($name, hrtime(true) - $start, $this->file->revision !== $before);
 		$this->account($name, $context, $before);
 	}
 
