@@ -249,7 +249,7 @@ final class NameNotationRule extends NodeRule implements ConfigurableRule
 			}
 
 			$kind = $name->symbolKind;
-			$full = NameReferences::resolve($resolver, $name);
+			$full = $resolver->resolve($name);
 			$form = self::findNamespacedForm($resolver, $name, $full);
 			$shape = $form === null ? null : $this->findShape($kind, $full);
 			if ($shape === null || $form === $shape) {
@@ -317,7 +317,7 @@ final class NameNotationRule extends NodeRule implements ConfigurableRule
 	/** What the first part of a qualified name stands for, which the class imports decide whatever the name is of. */
 	private static function resolvePrefix(NameResolver $resolver, NameNode $name): string
 	{
-		$resolved = NameReferences::resolve($resolver, $name);
+		$resolved = $resolver->resolve($name);
 		return substr($resolved, 0, strlen($resolved) - strlen($name->text) + strlen($name->parts[0]));
 	}
 
@@ -337,7 +337,7 @@ final class NameNotationRule extends NodeRule implements ConfigurableRule
 			return null;
 		}
 
-		$target = NameReferences::getImports($resolver, $name->symbolKind, $name)[NameReferences::toKey($name->symbolKind, $name->shortName)] ?? null;
+		$target = $resolver->getImports($name->symbolKind, $name)[NameReferences::toKey($name->symbolKind, $name->shortName)] ?? null;
 		return $target !== null && strcasecmp($target, $full) === 0 ? NameReferences::Import : null;
 	}
 
@@ -364,7 +364,7 @@ final class NameNotationRule extends NodeRule implements ConfigurableRule
 				continue;
 			}
 
-			$targets[$kind->name][NameReferences::toKey($kind, $name->shortName)][strtolower(NameReferences::resolve($resolver, $name))] = true;
+			$targets[$kind->name][NameReferences::toKey($kind, $name->shortName)][strtolower($resolver->resolve($name))] = true;
 		}
 
 		return $targets;

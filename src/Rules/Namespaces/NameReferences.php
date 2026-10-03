@@ -10,7 +10,7 @@ namespace DressCode\Rules\Namespaces;
 use Nette\Schema\Elements\AnyOf;
 use Nette\Schema\{Expect, Helpers};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{NameForm, Node, SymbolKind, Token};
+use PhpSyntax\{NameForm, SymbolKind};
 use PhpSyntax\Nodes\{NameNode, UseItemNode};
 use PhpSyntax\Nodes\Statement\{NamespaceNode, UseNode};
 use function in_array, is_array, is_string, strlen;
@@ -113,7 +113,7 @@ final class NameReferences
 			}
 
 			$kind = $name->symbolKind;
-			$global = self::resolve($resolver, $name);
+			$global = $resolver->resolve($name);
 			if (
 				str_contains($global, '\\')
 				|| ($kind === SymbolKind::Constant && in_array(strtolower($global), ['true', 'false', 'null'], true))
@@ -125,7 +125,7 @@ final class NameReferences
 			$form = match (true) {
 				$name->form === NameForm::FullyQualified => self::Backslash,
 				$name->form !== NameForm::Unqualified => null,
-				$kind === SymbolKind::ClassLike, isset(self::getImports($resolver, $kind, $name)[self::toKey($kind, $name->text)]) => self::Import,
+				$kind === SymbolKind::ClassLike, isset($resolver->getImports($kind, $name)[self::toKey($kind, $name->text)]) => self::Import,
 				default => self::Bare,
 			};
 			if ($form !== null) {
@@ -167,28 +167,6 @@ final class NameReferences
 			SymbolKind::Function => "Global function `$global()`",
 			SymbolKind::Constant => "Global constant `$global`",
 			SymbolKind::ClassLike => "Global class `$global`",
-		};
-	}
-
-
-	/** @return array<string, string> */
-	public static function getImports(NameResolver $resolver, SymbolKind $kind, Node|Token $at): array
-	{
-		return match ($kind) {
-			SymbolKind::ClassLike => $resolver->getImports(SymbolKind::ClassLike, $at),
-			SymbolKind::Function => $resolver->getImports(SymbolKind::Function, $at),
-			SymbolKind::Constant => $resolver->getImports(SymbolKind::Constant, $at),
-		};
-	}
-
-
-	/** What the name stands for, without a leading backslash. */
-	public static function resolve(NameResolver $resolver, NameNode $name): string
-	{
-		return match ($name->symbolKind) {
-			SymbolKind::ClassLike => $resolver->resolveClass($name),
-			SymbolKind::Function => $resolver->resolveFunction($name),
-			SymbolKind::Constant => $resolver->resolveConstant($name),
 		};
 	}
 

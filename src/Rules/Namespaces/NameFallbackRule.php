@@ -294,7 +294,7 @@ final class NameFallbackRule extends NodeRule implements ConfigurableRule
 		string $global,
 	): bool
 	{
-		$import = NameReferences::getImports($resolver, $kind, $scope)[NameReferences::toKey($kind, $global)] ?? null;
+		$import = $resolver->getImports($kind, $scope)[NameReferences::toKey($kind, $global)] ?? null;
 		if ($import === null) {
 			return $resolver->getUnqualifiedResolution($global, $kind, $scope) !== UnqualifiedResolution::Namespaced;
 		}
