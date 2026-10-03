@@ -9,7 +9,7 @@ namespace DressCode\Rules\Classes;
 
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Token, Visibility};
+use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\ClassLikeNode;
 use PhpSyntax\Nodes\Member\{ClassConstNode, EnumCaseNode, MethodNode, PropertyNode, TraitUseNode};
 use function count;
@@ -134,7 +134,7 @@ final class OrderedMembersRule extends NodeRule implements ConfigurableRule
 			return [];
 		}
 
-		$visibility = strtolower(($modifiers->visibility ?? Visibility::Public)->name);
+		$visibility = strtolower($modifiers->visibility->name);
 		$kinds = [];
 		if ($member instanceof MethodNode) {
 			$name = strtolower($member->name->token->text);

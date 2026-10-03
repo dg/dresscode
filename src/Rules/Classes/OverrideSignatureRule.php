@@ -131,10 +131,10 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 
 	private function widenVisibility(MethodNode $node, OverriddenSignature $signature, RuleContext $context): void
 	{
-		$own = $node->modifiers->visibility ?? Visibility::Public;
+		$own = $node->modifiers->visibility;
 		$ownWord = strtolower($own->name);
 		$word = strtolower($signature->visibility->name);
-		$token = array_find($node->modifiers->getTokens(), fn(Token $token) => strtolower($token->text) === $ownWord);
+		$token = $node->modifiers->getVisibilityToken();
 		if (
 			$own !== $signature->visibility
 			&& ($own === Visibility::Private || $signature->visibility === Visibility::Public)
