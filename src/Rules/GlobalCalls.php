@@ -9,7 +9,7 @@ namespace DressCode\Rules;
 
 use DressCode\RuleContext;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{NameForm, SymbolKind, UnqualifiedResolution};
+use PhpSyntax\{NameForm, UnqualifiedResolution};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
 use PhpSyntax\Nodes\NameNode;
 use function array_key_exists;
@@ -29,16 +29,10 @@ final class GlobalCalls
 	public static function findFunction(FunctionCallNode $call, array $names, RuleContext $context): ?string
 	{
 		$name = $call->name;
-		if (
-			!$name instanceof NameNode
-			|| $name->isKeyword()
+		return !$name instanceof NameNode
 			|| (!array_key_exists(strtolower($name->shortName), $names) && !NodeHelpers::importsFunctionAs($context))
-		) {
-			return null;
-		}
-
-		$function = strtolower($context->getAnalysis(NameResolver::class)->resolveFunction($name));
-		return array_key_exists($function, $names) ? $function : null;
+			? null
+			: $context->getAnalysis(NameResolver::class)->findGlobalFunction($call, array_keys($names));
 	}
 
 
@@ -52,7 +46,7 @@ final class GlobalCalls
 		$name = $call->name;
 		return $name instanceof NameNode
 			&& $name->form === NameForm::Unqualified
-			&& $context->getAnalysis(NameResolver::class)->getUnqualifiedResolution($name->text, SymbolKind::Function, $call) === UnqualifiedResolution::Uncertain
+			&& $context->getAnalysis(NameResolver::class)->getUnqualifiedResolution($name) === UnqualifiedResolution::Uncertain
 			? 'the namespace may declare `' . strtolower($name->text) . '()`'
 			: null;
 	}
