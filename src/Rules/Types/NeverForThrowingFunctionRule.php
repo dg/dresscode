@@ -84,16 +84,7 @@ final class NeverForThrowingFunctionRule extends NodeRule implements Configurabl
 			return;
 		}
 
-		$template = (new Builder)->statement('function dressCodeTemplate(): never {}');
-		assert($template instanceof Statement\FunctionNode && $template->colon !== null && $template->returnType !== null);
-		[$colon, $type] = [$template->colon, $template->returnType];
-		$template->colon = null;
-		$template->returnType = null;
-		$trailing = $node->closeParen->trailingTrivia;
-		$node->closeParen->setTrailingTrivia([]);
-		$node->colon = $colon;
-		$node->returnType = $type;
-		$type->getLastToken()?->setTrailingTrivia($trailing);
+		$node->setReturnType((new Builder)->type('never'));
 	}
 
 

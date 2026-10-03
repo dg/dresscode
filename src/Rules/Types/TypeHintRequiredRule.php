@@ -18,7 +18,7 @@ use PhpSyntax\{Builder, Node, Token, Trivia};
 use PhpSyntax\Nodes\{ClassLikeNode, Expression, Scalar};
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
 use PhpSyntax\Nodes\Statement\{FunctionNode, ReturnNode};
-use function count, in_array, ord;
+use function count, in_array;
 
 
 /**
@@ -187,7 +187,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 					continue;
 				}
 
-				$param->type = (new Builder)->type($native)->setEdgeTrivia(trailing: [new Trivia(Trivia::Whitespace, ' ')]);
+				$param->setType((new Builder)->type($native));
 			}
 
 			$bare = ltrim($native, '?');
@@ -282,7 +282,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 			&& version_compare($php, '8.1', '>=')
 			&& $context->report($node->closeParen, 'The return type must be `never` instead of `void`, as the `@return` annotation says', risk: Risk::BehaviorChanges)
 		) {
-			$node->returnType->replaceWith((new Builder)->type('never'));
+			$node->setReturnType((new Builder)->type('never'));
 			$native = 'never';
 		}
 
@@ -361,7 +361,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 				return;
 			}
 
-			$node->type = (new Builder)->type($native)->setEdgeTrivia(trailing: [new Trivia(Trivia::Whitespace, ' ')]);
+			$node->setType((new Builder)->type($native));
 		}
 
 		$traversable = NativeType::isTraversable(ltrim($native, '?'), $this->traversableTypeHints, $resolve);
@@ -423,12 +423,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 
 	private static function addReturnType(FunctionNode|MethodNode|Expression\ClosureNode $node, string $native): void
 	{
-		$type = (new Builder)->type($native);
-		$anchor = $node instanceof Expression\ClosureNode && $node->uses !== null ? $node->uses->closeParen : $node->closeParen;
-		$type->setEdgeTrivia(trailing: $anchor->trailingTrivia);
-		$anchor->setTrailingTrivia([]);
-		$node->colon = new Token(ord(':'), ':')->setTrailingTrivia([new Trivia(Trivia::Whitespace, ' ')]);
-		$node->returnType = $type;
+		$node->setReturnType((new Builder)->type($native));
 	}
 
 

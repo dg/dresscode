@@ -11,7 +11,7 @@ use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\ParameterNode;
 use PhpSyntax\Nodes\Scalar\NullNode;
-use PhpSyntax\Nodes\Type\{NamedTypeNode, NullableTypeNode};
+use PhpSyntax\Nodes\Type\NamedTypeNode;
 use function in_array;
 
 
@@ -46,12 +46,6 @@ final class NullableTypeForDefaultNullRule extends NodeRule
 			return;
 		}
 
-		$nullable = (new Builder)->type('?int');
-		assert($nullable instanceof NullableTypeNode);
-		$inner = clone $type;
-		$nullable->question->setLeadingTrivia($inner->name->token->leadingTrivia);
-		$inner->name->token->setLeadingTrivia([]);
-		$nullable->type = $inner;
-		$node->type = $nullable;
+		$node->setType((new Builder)->type('?' . $type->text));
 	}
 }

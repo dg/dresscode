@@ -14,9 +14,9 @@ use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{Builder, Node, Token, Trivia, Visibility};
 use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClosureNode, StaticMethodCallNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
-use PhpSyntax\Nodes\{NameNode, ParameterNode, TypeNode};
+use PhpSyntax\Nodes\{NameNode, ParameterNode};
 use PhpSyntax\Nodes\Statement\{FunctionNode, TraitNode};
-use function count, in_array, ord;
+use function count, in_array;
 
 
 /**
@@ -165,18 +165,7 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$type = self::parseType((string) self::writeType($signature->returnType, $node, $context));
-		if ($node->returnType !== null) {
-			$node->returnType->replaceWith($type);
-			return;
-		}
-
-		// the gap behind the parenthesis moves behind the type
-		$trailing = $node->closeParen->trailingTrivia;
-		$node->closeParen->setTrailingTrivia([]);
-		$node->colon = new Token(ord(':'), ':')->setTrailingTrivia([new Trivia(Trivia::Whitespace, ' ')]);
-		$node->returnType = $type;
-		$type->getLastToken()?->setTrailingTrivia($trailing);
+		$node->setReturnType((new Builder)->type((string) self::writeType($signature->returnType, $node, $context)));
 	}
 
 
@@ -212,9 +201,7 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 			$message = "Parameter `\$$name` of `{$node->name->text}()` takes " . ($mine->type === null ? 'anything' : Violation::formatCode($mine->type->text))
 				. ' while that of `' . $method . '` takes ' . ($parameter->type === null ? 'anything' : Violation::formatCode($parameter->type));
 			if ($context->report($mine->type ?? $mine, $message . ($writable ? '' : ', but that type cannot be written'), fixable: $writable)) {
-				$parameter->type === null
-					? $mine->type = null
-					: $mine->type?->replaceWith(self::parseType((string) self::writeType($parameter->type, $node, $context)));
+				$mine->setType($parameter->type === null ? null : (new Builder)->type((string) self::writeType($parameter->type, $node, $context)));
 			}
 		}
 
@@ -319,13 +306,5 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 		return count($members) === 2 && count($others) === 1 && !str_contains($others[0], '&') && $others[0] !== 'mixed'
 			? '?' . $others[0]
 			: implode('|', $members);
-	}
-
-
-	private static function parseType(string $code): TypeNode
-	{
-		$parameter = (new Builder)->fragment(ParameterNode::class, "$code \$x");
-		assert($parameter->type !== null);
-		return $parameter->type->withoutEdgeTrivia();
 	}
 }
