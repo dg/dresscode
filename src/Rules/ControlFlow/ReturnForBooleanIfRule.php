@@ -52,14 +52,15 @@ final class ReturnForBooleanIfRule extends NodeRule
 		if ($node->else) {
 			$elseValue = $node->else->body instanceof BlockNode ? self::findReturnedLiteral($node->else->body) : null;
 		} else {
-			$tail = $node->getNextSibling();
-			$elseValue = $tail instanceof ReturnNode && $tail->expression instanceof BooleanNode
+			$next = $node->getNextSibling();
+			$tail = $next instanceof ReturnNode ? $next : null;
+			$elseValue = $tail?->expression instanceof BooleanNode
 				? $tail->expression->value
 				: null;
 		}
 
 		$last = ($tail ?? $node)->getLastToken();
-		if ($elseValue === null || $elseValue === $ifValue || $last === null) {
+		if ($elseValue === null || $elseValue === $ifValue) {
 			return;
 		}
 
@@ -74,7 +75,7 @@ final class ReturnForBooleanIfRule extends NodeRule
 		$node->replaceWith((new Builder)->statement('return $value;', value: $expr));
 		if ($tail) {
 			$first = $tail->getFirstToken();
-			if ($first !== null && $first->startsLine()) {
+			if ($first->startsLine()) {
 				$first->setBlankLinesBefore(0, "\n");
 			}
 

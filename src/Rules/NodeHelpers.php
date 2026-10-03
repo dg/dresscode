@@ -173,10 +173,10 @@ final class NodeHelpers
 	}
 
 
-	/** A comment standing inside the node or after it at the end of its last line. */
-	public static function hasCommentUpToLineEnding(Node $node): bool
+	/** A comment standing inside the statement or after it at the end of its last line. */
+	public static function hasCommentUpToLineEnding(Statement\UseNode $stmt): bool
 	{
-		return $node->hasInnerComment() || $node->hasTrailingComment();
+		return $stmt->hasInnerComment() || $stmt->hasTrailingComment();
 	}
 
 

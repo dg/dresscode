@@ -12,3 +12,8 @@ $j = (new Foo() /* c */)->bar();
 $k = (
 	// c
 	new Foo())->bar();
+$l =
+	/* c */ (new Foo())->bar();
+$m = (new Foo()) /* c */ ->bar();
+$n = (new Foo() // c
+)->bar();

@@ -45,7 +45,7 @@ final class Fixer implements Sink
 			}
 
 			$style = $context->style;
-			$eol = new Trivia(Trivia::LineEnding, $style->lineEnding);
+			$eol = Trivia::fromText($style->lineEnding);
 			$tag = $leading[0] ?? null;
 			if ($tag?->id === Trivia::OpenTag && !$tag->isLineEnding()) {
 				// the code on the line of the open tag goes below it
@@ -178,7 +178,7 @@ final class Fixer implements Sink
 			return;
 		}
 
-		$eol = new Trivia(Trivia::LineEnding, $context->style->lineEnding);
+		$eol = Trivia::fromText($context->style->lineEnding);
 		$token->setLeadingTrivia([
 			...array_slice($leading, 0, $from),
 			...array_fill(0, $found < $min ? $min : (int) $max, $eol),

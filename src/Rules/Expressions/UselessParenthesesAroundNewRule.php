@@ -38,10 +38,8 @@ final class UselessParenthesesAroundNewRule extends NodeRule
 			|| !($new = $node->expression) instanceof NewNode
 			|| $new->arguments === null
 			|| !$node->isDereferenced()
-			|| $node->openParen->hasComment()
-			|| $node->closeParen->hasComment()
-			|| $new->hasLeadingComment()
-			|| $new->hasTrailingComment()
+			|| $node->openParen->hasCommentUpTo($new->getFirstToken())
+			|| $new->getLastToken()->hasCommentUpTo($node->closeParen)
 			|| !$context->report($node->openParen, 'Useless parentheses around `new`, a member is accessible without them')
 		) {
 			return;
