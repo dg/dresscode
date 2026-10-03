@@ -16,12 +16,14 @@ function test(Message $mail, array $mails): string
 		Subject: {$mail->getSubject()}
 		Again: {$mail->getSubject()}
 		TEXT;
+	$h = "Cost: \${$mail->getSubject()}";
 
-	// reported and left: an expression an interpolation cannot take
+	// reported and left: an expression an interpolation cannot take, and braces after a dollar, which read as ${
 	$e = "Sent: {$mail->sent}";
 	$f = "Sent: $mail->sent";
+	$i = "Cost: $$mail->subject";
 
 	// an argument of a call in an interpolation takes any expression
 	$g = "Length: {$mail->pad($mail->isSent() === true)}";
-	return $a . $b . $c . $d . $e . $f . $g;
+	return $a . $b . $c . $d . $e . $f . $g . $h . $i;
 }

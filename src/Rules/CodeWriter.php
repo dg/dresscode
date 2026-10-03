@@ -11,9 +11,9 @@ use DressCode\RuleContext;
 use DressCode\Rules\Namespaces\ImportNotationRule;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, NameForm, Node, SymbolKind, Trivia, UnqualifiedResolution};
-use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, ExpressionNode, FileNode, NameNode, Statement, UseItemNode};
+use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, ExpressionNode, FileNode, NameNode, NodeList, Statement, UseItemNode};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, MethodCallNode, PropertyFetchNode, ShellExecNode};
-use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode, InterpolationNode};
+use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode, InterpolatedStringPartNode, InterpolationNode};
 use function count;
 
 
@@ -248,13 +248,27 @@ final class CodeWriter
 	/**
 	 * Whether `ExpressionNode::replaceWithExpression()` can write the expression in place of the node: one standing
 	 * in an interpolation of a string takes what `ExpressionNode::canStandInString()` lets stand there, and one inside
-	 * a chain written without braces nothing else, the text after it reading on as the chain.
+	 * a chain written without braces nothing else, the text after it reading on as the chain; a part written bare
+	 * right after a dollar of the text takes nothing, braces there reading as `${`.
 	 */
 	public static function canReplaceExpression(ExpressionNode $node, ExpressionNode $expression): bool
 	{
 		$interpolation = self::findInterpolation($node);
 		return $interpolation === null
-			|| ($expression->canStandInString() && ($interpolation[0] === 'braced' || $interpolation[1] === $node));
+			|| ($expression->canStandInString() && match ($interpolation[0]) {
+				'braced' => true,
+				'bare' => $interpolation[1] === $node && !self::followsDollar($node),
+			});
+	}
+
+
+	/** Whether the text before the part of a string ends with a dollar no backslash escapes. */
+	private static function followsDollar(Node $part): bool
+	{
+		$list = $part->parent;
+		$previous = $list instanceof NodeList ? ($list->getItems()[$list->indexOf($part) - 1] ?? null) : null;
+		return $previous instanceof InterpolatedStringPartNode
+			&& preg_match('~(?<!\\\\)(?:\\\\\\\\)*\$$~D', $previous->token->text) === 1;
 	}
 
 
