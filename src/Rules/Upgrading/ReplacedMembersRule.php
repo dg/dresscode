@@ -156,7 +156,7 @@ final class ReplacedMembersRule extends NodeRule implements ConfigurableRule
 			$replacement->class->text = $replacement->class->form === NameForm::FullyQualified ? '\\' . $target->class : CodeWriter::writeClass($target->class, $node, $context);
 		}
 
-		CodeWriter::replaceExpression($node, $replacement);
+		$node->replaceWithExpression($replacement);
 	}
 
 

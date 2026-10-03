@@ -248,7 +248,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 		}
 
 		if ($rewrite->report($node instanceof NewNode ? $node->class : $node->name, $message, $context)) {
-			CodeWriter::replaceExpression($node, $rewrite->write($node, $context));
+			$node->replaceWithExpression($rewrite->write($node, $context));
 		}
 	}
 
@@ -478,7 +478,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 
 		$rewrite = self::fitInterpolation($node, $rewrite);
 		if ($rewrite->report($node instanceof ArrayAccessNode ? $node->openBracket : $node->name, $message, $context)) {
-			CodeWriter::replaceExpression($node, $rewrite->write($node, $context));
+			$node->replaceWithExpression($rewrite->write($node, $context));
 		}
 	}
 
