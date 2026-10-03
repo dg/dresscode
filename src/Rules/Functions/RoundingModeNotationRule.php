@@ -10,7 +10,7 @@ namespace DressCode\Rules\Functions;
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\GlobalCalls;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression;
 
 
@@ -67,6 +67,6 @@ final class RoundingModeNotationRule extends NodeRule
 			return;
 		}
 
-		$mode->replaceWith((new Parser)->parseExpression("\\RoundingMode::$case"));
+		$mode->replaceWith((new Builder)->expression("\\RoundingMode::$case"));
 	}
 }

@@ -12,7 +12,7 @@ use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocTagNode, VarTagValueNode};
 use PHPStan\PhpDocParser\Ast\Type;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, SymbolKind, Token, Trivia};
+use PhpSyntax\{Builder, Node, SymbolKind, Token, Trivia};
 use PhpSyntax\Nodes\{DestructuringNode, Expression, ExpressionNode, PlainNodeList, Statement, StatementNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function in_array;
@@ -86,10 +86,10 @@ final class ExplicitAssertionRule extends NodeRule
 
 		$eol = $context->style->lineEnding;
 		foreach ($assertions as $i => $condition) {
-			$assert = (new Parser)->parseStatement("assert($condition);");
+			$assert = (new Builder)->statement("assert($condition);");
 			$assert->setEdgeTrivia($indentation === '' ? [] : [new Trivia(Trivia::Whitespace, $indentation)], [new Trivia(Trivia::LineEnding, $eol)]);
 			$list->insert($index + $i, $assert);
-			$assert->getFirstToken()?->ensureStartsLine($eol);
+			$assert->getFirstToken()->ensureStartsLine($eol);
 		}
 	}
 
@@ -104,7 +104,7 @@ final class ExplicitAssertionRule extends NodeRule
 		string $indent,
 	): ?array
 	{
-		$indentation = $node->getFirstToken()?->getLineIndentation() ?? '';
+		$indentation = $node->getFirstToken()->getLineIndentation();
 		if ($node instanceof Statement\ExpressionStatementNode) {
 			$list = $node->parent;
 			return $list instanceof PlainNodeList && $node->expression instanceof Expression\AssignmentNode

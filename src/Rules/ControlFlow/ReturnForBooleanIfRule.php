@@ -9,7 +9,7 @@ namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\PlainNodeList;
 use PhpSyntax\Nodes\Scalar\BooleanNode;
 use PhpSyntax\Nodes\Statement\{BlockNode, IfNode, ReturnNode};
@@ -66,12 +66,12 @@ final class ReturnForBooleanIfRule extends NodeRule
 		$expr = $ifValue
 			? $node->condition->withoutEdgeTrivia()
 			: NodeHelpers::negate($node->condition);
-		$fixable = !($node->getFirstToken()?->hasCommentUpTo($last) ?? true) && $expr->evaluatesToBoolean();
+		$fixable = !$node->getFirstToken()->hasCommentUpTo($last) && $expr->evaluatesToBoolean();
 		if (!$context->report($node, 'Useless condition, the condition itself is the result', fixable: $fixable)) {
 			return;
 		}
 
-		$return = (new Parser)->parseStatement('return 0;');
+		$return = (new Builder)->statement('return 0;');
 		assert($return instanceof ReturnNode && $return->expression !== null);
 		$return->expression->replaceWith($expr);
 		$node->replaceWith($return);

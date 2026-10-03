@@ -10,8 +10,8 @@ namespace DressCode\Rules\Functions;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, GlobalCalls, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, Expression, ExpressionNode, NameNode};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{ArgumentNode, Expression, ExpressionNode, NameNode};
 use PhpSyntax\Nodes\Scalar\{BooleanNode, IntegerNode, StringNode};
 use function count, strlen;
 
@@ -79,8 +79,7 @@ final class NoManualSubstringTestsRule extends NodeRule
 		}
 
 		$spelling = CodeWriter::spellFunction($test['function'], $call->name, $context);
-		$arguments = ArgumentListNode::of($test['haystack']->withoutEdgeTrivia(), $test['needle']->withoutEdgeTrivia());
-		$rewritten = Expression\FunctionCallNode::of(NameNode::fromText($spelling), $arguments);
+		$rewritten = (new Builder)->call($spelling, [$test['haystack'], $test['needle']]);
 		$node->replaceWith($test['positive'] ? $rewritten : NodeHelpers::negate($rewritten));
 	}
 

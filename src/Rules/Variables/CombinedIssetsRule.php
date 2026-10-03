@@ -49,7 +49,7 @@ final class CombinedIssetsRule extends NodeRule
 		foreach ($node->right->variables->getItems() as $var) {
 			$var = clone $var;
 			$var->setEdgeTrivia(leading: []);
-			$var->getLastToken()?->removeTrailingWhitespace();
+			$var->getLastToken()->removeTrailingWhitespace();
 			$merged->variables->append($var);
 		}
 

@@ -10,7 +10,7 @@ namespace DressCode\Rules\Functions;
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClosureNode};
 use PhpSyntax\Nodes\Statement\ReturnNode;
 use function count;
@@ -83,7 +83,7 @@ final class ArrowFunctionRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$fn = (new Parser)->parseExpression(
+		$fn = (new Builder)->expression(
 			($node->staticKeyword ? 'static ' : '')
 			. 'fn' . ($node->ampersand ? '&' : '') . '()'
 			. ($node->returnType ? ': ' . trim((string) $node->returnType) : '')

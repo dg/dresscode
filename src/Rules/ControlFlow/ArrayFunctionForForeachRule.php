@@ -10,7 +10,7 @@ namespace DressCode\Rules\ControlFlow;
 use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Tristate};
 use DressCode\Rules\{CodeWriter, NodeHelpers};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, ClassLikeNode, ConstItemNode, Expression, ExpressionNode, FunctionLikeNode, IdentifierNode, NameNode, ParameterNode, PlainNodeList, Statement, StatementNode, TypeNode};
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyItemNode, PropertyNode};
 use PhpSyntax\Nodes\Scalar\{BooleanNode, NullNode};
@@ -95,7 +95,7 @@ final class ArrayFunctionForForeachRule extends NodeRule
 		$parameters = $key !== null && $condition->find(Expression\VariableNode::class, fn(Expression\VariableNode $v) => self::isVariable($v, $key)) !== []
 			? $value->text . ', ' . $key->text
 			: $value->text;
-		$call = (new Parser)->parseExpression("$function(0, fn($parameters) => 0)");
+		$call = (new Builder)->expression("$function(0, fn($parameters) => 0)");
 		assert($call instanceof Expression\FunctionCallNode);
 		[$array, $callback] = $call->arguments->items->getItems();
 		assert($array instanceof ArgumentNode && $callback instanceof ArgumentNode);
@@ -105,7 +105,7 @@ final class ArrayFunctionForForeachRule extends NodeRule
 		$arrow->expression->replaceWith($negate ? NodeHelpers::negate($condition) : $condition->withoutEdgeTrivia());
 
 		if ($node instanceof Statement\ForeachNode) {
-			$return = (new Parser)->parseFragment(Statement\ReturnNode::class, 'return 0;');
+			$return = (new Builder)->fragment(Statement\ReturnNode::class, 'return 0;');
 			assert($return->expression !== null);
 			$return->expression->replaceWith($call);
 			self::removeStatement(self::nextStatement($foreach));

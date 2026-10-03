@@ -9,7 +9,7 @@ namespace DressCode\Rules\Arrays;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression;
 use PhpSyntax\Nodes\Scalar\NullNode;
 
@@ -54,6 +54,6 @@ final class NoNullArrayKeysRule extends NodeRule
 			return;
 		}
 
-		$key->replaceWith((new Parser)->parseExpression("''"));
+		$key->replaceWith((new Builder)->expression("''"));
 	}
 }

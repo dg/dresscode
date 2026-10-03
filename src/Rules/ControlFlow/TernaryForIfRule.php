@@ -8,7 +8,7 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\{AssignmentNode, BinaryOpNode, ClosureNode, TernaryNode};
 use PhpSyntax\Nodes\ExpressionNode;
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -74,13 +74,13 @@ final class TernaryForIfRule extends NodeRule
 			return;
 		}
 
-		$ternary = (new Parser)->parseExpression('0 ? 0 : 0');
+		$ternary = (new Builder)->expression('0 ? 0 : 0');
 		assert($ternary instanceof TernaryNode && $ternary->then !== null);
 		$ternary->condition->replaceWithExpression($node->condition->withoutEdgeTrivia());
 		$ternary->then->replaceWithExpression($a->withoutEdgeTrivia());
 		$ternary->else->replaceWithExpression($b->withoutEdgeTrivia());
 
-		$statement = (new Parser)->parseStatement($target === null ? 'return 0;' : '$x = 0;');
+		$statement = (new Builder)->statement($target === null ? 'return 0;' : '$x = 0;');
 		if ($statement instanceof ReturnNode && $statement->expression !== null) {
 			$statement->expression->replaceWith($ternary);
 		} elseif (

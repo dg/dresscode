@@ -11,8 +11,8 @@ use DressCode\Analyses\{MemberAccess, MemberKind, Types};
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ClassLikeNode, IdentifierNode, ParameterNode, SeparatedNodeList};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{ClassLikeNode, IdentifierNode, ParameterNode, SeparatedNodeList};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, AssignmentByReferenceNode, AssignmentNode, ClassConstantFetchNode, CombinedAssignmentNode, IssetNode, MethodCallNode, NewNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyItemNode, PropertyNode};
 use PhpSyntax\Nodes\Statement\UnsetNode;
@@ -131,7 +131,7 @@ final class ForbiddenMembersRule extends NodeRule implements ConfigurableRule
 			if (
 				$pattern->matches($access, $types)
 				&& $pattern->matchesHook($use)
-				&& ($pattern->arguments === null || ($isCall && $pattern->arguments->bind($node->arguments ?? ArgumentListNode::of(), $types->findParameters($access), $types) !== null))
+				&& ($pattern->arguments === null || ($isCall && $pattern->arguments->bind($node->arguments ?? (new Builder)->arguments([]), $types->findParameters($access), $types) !== null))
 			) {
 				$member = $pattern->describeAccess($access, $node);
 				$described = match ($pattern->hook) {

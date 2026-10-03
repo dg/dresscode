@@ -8,7 +8,7 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token, Trivia};
+use PhpSyntax\{Builder, Node, Token, Trivia};
 use PhpSyntax\Nodes\{ElseifNode, ElseNode, StatementNode};
 use PhpSyntax\Nodes\Statement\{BlockNode, DoWhileNode, EmptyStatementNode, ForeachNode, ForNode, IfNode, WhileNode};
 use function count;
@@ -59,7 +59,7 @@ final class ControlStructureBracesRule extends NodeRule
 			|| ($node instanceof ElseNode && $body instanceof IfNode)
 			// a body that ends by leaving PHP has no place for the closing brace: what follows the close
 			// tag is markup, and a brace written there would be text
-			|| ($body->getLastToken()?->is(Token::CloseTag) ?? false)
+			|| $body->getLastToken()->is(Token::CloseTag)
 			|| !$context->report($body, 'The body of a control structure must be enclosed in braces')
 		) {
 			return;
@@ -74,15 +74,15 @@ final class ControlStructureBracesRule extends NodeRule
 		$style = $context->style;
 		$first = $body->getFirstToken();
 		$last = $body->getLastToken();
-		$indentation = $first ? ($first->getPrevious() ?? $first)->getLineIndentation() : '';
-		$ownLine = $first?->startsLine() ?? false;
+		$indentation = ($first->getPrevious() ?? $first)->getLineIndentation();
+		$ownLine = $first->startsLine();
 
-		$block = (new Parser)->parseStatement('{}');
+		$block = (new Builder)->statement('{}');
 		if (!$block instanceof BlockNode) {
 			return;
 		}
 
-		$trailing = $last ? $last->trailingTrivia : [];
+		$trailing = $last->trailingTrivia;
 		$body->replaceWith($block);
 		$block->statements->append($body);
 
@@ -103,24 +103,22 @@ final class ControlStructureBracesRule extends NodeRule
 		$block->closeBrace->setLeadingTrivia([new Trivia(Trivia::Whitespace, $indentation)]);
 		$block->closeBrace->setTrailingTrivia([new Trivia(Trivia::LineEnding, $style->lineEnding)]);
 
-		if ($first && $last) {
-			$first->setLeadingTrivia([new Trivia(Trivia::Whitespace, $indentation . $style->indent)]);
-			if (!$ownLine) {
-				for ($token = $first->getNext(); $token && $token !== $last->getNext(); $token = $token->getNext()) {
-					if ($token->startsLine()) {
-						$token->setIndentation($style->indent . $token->getIndentation());
-					}
+		$first->setLeadingTrivia([new Trivia(Trivia::Whitespace, $indentation . $style->indent)]);
+		if (!$ownLine) {
+			for ($token = $first->getNext(); $token && $token !== $last->getNext(); $token = $token->getNext()) {
+				if ($token->startsLine()) {
+					$token->setIndentation($style->indent . $token->getIndentation());
 				}
 			}
+		}
 
-			$eol = new Trivia(Trivia::LineEnding, $style->lineEnding);
-			if ($trailing && $trailing[count($trailing) - 1]->isLineEnding()) {
-				$last->setTrailingTrivia($trailing);
-				$last->removeTrailingWhitespace();
-			} else { // something follows on the line: it follows the closing brace now
-				$last->setTrailingTrivia([$eol]);
-				$block->closeBrace->setTrailingTrivia($trailing);
-			}
+		$eol = new Trivia(Trivia::LineEnding, $style->lineEnding);
+		if ($trailing && $trailing[count($trailing) - 1]->isLineEnding()) {
+			$last->setTrailingTrivia($trailing);
+			$last->removeTrailingWhitespace();
+		} else { // something follows on the line: it follows the closing brace now
+			$last->setTrailingTrivia([$eol]);
+			$block->closeBrace->setTrailingTrivia($trailing);
 		}
 	}
 }

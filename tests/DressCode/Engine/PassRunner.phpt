@@ -3,7 +3,7 @@
 use DressCode\{Analyses, Claim, Config, ConvergenceException, GapRule, Line, NodeRule, Risk, Rule, RuleContext, RuleException, RuleInfo, Severity, Stage, Style};
 use DressCode\Engine\{PassRunner, RulePlan};
 use DressCode\Rules\Whitespace\IndentationRule;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Parser, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use PhpSyntax\Nodes\Statement\{ExpressionStatementNode, IfNode};
 use Tester\Assert;
@@ -144,7 +144,7 @@ final class MoveChain extends NodeRule
 	{
 		$tokens = [];
 		foreach ($context->file->find(ExpressionStatementNode::class) as $statement) {
-			$tokens[] = $statement->getFirstToken() ?? throw new LogicException;
+			$tokens[] = $statement->getFirstToken();
 		}
 
 		[$a, $b, $c] = $tokens;
@@ -248,7 +248,7 @@ final class ReplaceVariable extends NodeRule
 	{
 		if ($node instanceof VariableNode && $node->name instanceof Token && $node->name->text === '$a') {
 			if ($context->report($node, 'Replace $a')) {
-				$node->replaceWith((new Parser)->parseExpression('$b'));
+				$node->replaceWith((new Builder)->expression('$b'));
 			}
 		}
 	}

@@ -10,8 +10,8 @@ namespace DressCode\Rules\Functions;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, Expression, ExpressionNode, NameNode};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{ArgumentNode, Expression, ExpressionNode, NameNode};
 use function count, is_float, is_int;
 
 
@@ -87,8 +87,7 @@ final class ClampForMinMaxRule extends NodeRule
 		}
 
 		$spelling = CodeWriter::spellFunction('clamp', $node->name, $context);
-		$arguments = ArgumentListNode::of($value->withoutEdgeTrivia(), $min->withoutEdgeTrivia(), $max->withoutEdgeTrivia());
-		$node->replaceWith(Expression\FunctionCallNode::of(NameNode::fromText($spelling), $arguments));
+		$node->replaceWith((new Builder)->call($spelling, [$value, $min, $max]));
 	}
 
 

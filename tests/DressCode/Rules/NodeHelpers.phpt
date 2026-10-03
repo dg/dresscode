@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
 use DressCode\Rules\NodeHelpers;
+use PhpSyntax\Builder;
 use PhpSyntax\Nodes\ExpressionNode;
-use PhpSyntax\Parser;
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -10,7 +10,7 @@ require __DIR__ . '/../../bootstrap.php';
 
 function expr(string $code): ExpressionNode
 {
-	return (new Parser)->parseExpression($code);
+	return (new Builder)->expression($code);
 }
 
 

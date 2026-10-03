@@ -9,7 +9,7 @@ namespace DressCode\Rules\Types;
 
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, Token, Visibility};
+use PhpSyntax\{Builder, Node, Token, Visibility};
 use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, Expression, FunctionLikeNode, Statement, StatementNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count;
@@ -84,7 +84,7 @@ final class NeverForThrowingFunctionRule extends NodeRule implements Configurabl
 			return;
 		}
 
-		$template = (new Parser)->parseStatement('function dressCodeTemplate(): never {}');
+		$template = (new Builder)->statement('function dressCodeTemplate(): never {}');
 		assert($template instanceof Statement\FunctionNode && $template->colon !== null && $template->returnType !== null);
 		[$colon, $type] = [$template->colon, $template->returnType];
 		$template->colon = null;

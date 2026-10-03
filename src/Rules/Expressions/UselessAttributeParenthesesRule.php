@@ -39,7 +39,6 @@ final class UselessAttributeParenthesesRule extends NodeRule
 		$name = $node->name->getLastToken();
 		if (
 			$args === null
-			|| $name === null
 			|| !$args->items->isEmpty()
 			|| $args->openParen->hasCommentUpTo($args->closeParen)
 			|| !$context->report($args, 'Useless empty parentheses after an attribute name')

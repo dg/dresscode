@@ -45,10 +45,9 @@ final class CombinedUnsetsRule extends NodeRule
 
 		while (
 			($next = $list->getItems()[$list->indexOf($node) + 1] ?? null) instanceof UnsetNode
-			&& ($last = $next->getLastToken()) !== null
 			&& !$node->semicolon->hasComment()
-			&& !$node->semicolon->hasCommentUpTo($last)
-			&& !$last->hasComment()
+			&& !$node->semicolon->hasCommentUpTo($next->getLastToken())
+			&& !$next->getLastToken()->hasComment()
 			&& $context->report($next, 'Consecutive `unset` statements must be combined into one')
 		) {
 			foreach ($next->variables->getItems() as $var) {

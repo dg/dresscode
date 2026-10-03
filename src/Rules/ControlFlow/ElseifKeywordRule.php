@@ -8,7 +8,7 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\ElseNode;
 use PhpSyntax\Nodes\Statement\IfNode;
 
@@ -43,7 +43,7 @@ final class ElseifKeywordRule extends NodeRule
 			return;
 		}
 
-		$template = (new Parser)->parseStatement('if (0) {} elseif (0) {}');
+		$template = (new Builder)->statement('if (0) {} elseif (0) {}');
 		assert($template instanceof IfNode);
 		$branch = clone $template->elseifs->getItems()[0];
 		$branch->openParen = clone $inner->openParen;

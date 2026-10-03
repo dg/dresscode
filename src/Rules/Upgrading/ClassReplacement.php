@@ -131,7 +131,7 @@ final class ClassReplacement
 				// the list names the class already; what stood behind the last item stays behind the one before it
 				$items = $list->getItems();
 				if (end($items) === $name && count($items) > 1) {
-					$items[count($items) - 2]->getLastToken()?->setTrailingTrivia($name->getLastToken()->trailingTrivia ?? []);
+					$items[count($items) - 2]->getLastToken()->setTrailingTrivia($name->getLastToken()->trailingTrivia);
 				}
 
 				$list->removeItem($name);

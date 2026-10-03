@@ -44,7 +44,7 @@ final class UselessNullInitializationRule extends NodeRule
 				!$default instanceof NullNode
 				|| $item->equals === null
 				|| $item->hasInnerComment()
-				|| array_any($default->getLastToken()->trailingTrivia ?? [], fn(Trivia $trivia) => $trivia->isComment())
+				|| array_any($default->getLastToken()->trailingTrivia, fn(Trivia $trivia) => $trivia->isComment())
 				|| !$context->report($default, 'Useless initialization with `null`, an untyped property is null by default')
 			) {
 				continue;

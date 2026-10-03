@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{Expression, ExpressionNode, OperatorNode};
 
 
@@ -44,7 +44,7 @@ final class SymbolicLogicalOperatorsRule extends NodeRule
 			return;
 		}
 
-		$symbolic = (new Parser)->parseExpression("0 $text 0");
+		$symbolic = (new Builder)->expression("0 $text 0");
 		assert($symbolic instanceof Expression\BinaryOpNode);
 		$precedence = $symbolic->precedence;
 		if (

@@ -117,10 +117,6 @@ final class YodaRule extends NodeRule implements ConfigurableRule
 
 		$first = $expr->getFirstToken();
 		$last = $expr->getLastToken();
-		if ($first === null || $last === null) {
-			return null;
-		}
-
 		$beforeLast = $last->getPrevious();
 		return match (true) {
 			$first->id === Token::Variable => self::Variable,
@@ -139,6 +135,6 @@ final class YodaRule extends NodeRule implements ConfigurableRule
 	/** Gives the copy the trivia the original had on its edges, so that the spacing around the operator stays. */
 	private static function keepEdges(ExpressionNode $original, ExpressionNode $copy): void
 	{
-		$copy->setEdgeTrivia($original->getFirstToken()->leadingTrivia ?? [], $original->getLastToken()->trailingTrivia ?? []);
+		$copy->setEdgeTrivia($original->getFirstToken()->leadingTrivia, $original->getLastToken()->trailingTrivia);
 	}
 }

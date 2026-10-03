@@ -11,7 +11,7 @@ use DressCode\Analyses\{MemberAccess, MemberKind, Types};
 use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\Schema;
-use PhpSyntax\{NameForm, Node, Token};
+use PhpSyntax\{Builder, NameForm, Node, Token};
 use PhpSyntax\Nodes\Expression\{ArrayNode, ClassConstantFetchNode, FunctionCallNode, MethodCallNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
 use PhpSyntax\Nodes\{ExpressionNode, IdentifierNode, NameNode, PlainNodeList};
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -303,7 +303,7 @@ final class ReplacedMembersRule extends NodeRule implements ConfigurableRule
 	{
 		if ($target->isFunction) {
 			assert($node instanceof MethodCallNode || $node instanceof StaticMethodCallNode);
-			return FunctionCallNode::of(NameNode::fromText('\\' . $target->name), $node->arguments->withoutEdgeTrivia());
+			return (new Builder)->call('\\' . $target->name, $node->arguments);
 		} elseif ($target->class === null) {
 			return null;
 		}

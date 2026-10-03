@@ -9,7 +9,7 @@ namespace DressCode\Rules\Functions;
 
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\GlobalCalls;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, Expression};
 use function count;
 
@@ -61,8 +61,7 @@ final class NoIsNullRule extends NodeRule
 			return;
 		}
 
-		$null = (new Parser)->parseExpression('null');
-		$target->replaceWithExpression(Expression\BinaryOpNode::of($arg->value->withoutEdgeTrivia(), $negated ? '!==' : '===', $null));
+		$target->replaceWithExpression((new Builder)->binary($arg->value, $negated ? '!==' : '===', null));
 	}
 
 

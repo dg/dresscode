@@ -9,7 +9,7 @@ namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, Token, Trivia};
+use PhpSyntax\{Builder, Node, Token, Trivia};
 use PhpSyntax\Nodes\{ClassLikeNode, ElseifNode, FileNode, PlainNodeList};
 use PhpSyntax\Nodes\Statement\{BlockNode, FunctionNode, IfNode, NamespaceNode};
 
@@ -120,7 +120,7 @@ final class UselessElseRule extends NodeRule implements ConfigurableRule
 	 */
 	private function splitElseif(IfNode $node, ElseifNode $elseif, PlainNodeList $list, RuleContext $context): void
 	{
-		$new = (new Parser)->parseStatement('if (0) {}');
+		$new = (new Builder)->statement('if (0) {}');
 		assert($new instanceof IfNode && $elseif->body !== null);
 		$cond = $elseif->condition->withoutEdgeTrivia();
 		$body = $elseif->body;
@@ -138,7 +138,7 @@ final class UselessElseRule extends NodeRule implements ConfigurableRule
 		$new->else = $else;
 
 		$style = $context->style;
-		$indentation = $node->getFirstToken()?->getLineIndentation() ?? '';
+		$indentation = $node->getFirstToken()->getLineIndentation();
 		$node->setEdgeTrivia(trailing: [new Trivia(Trivia::LineEnding, $style->lineEnding)]);
 		$new->setEdgeTrivia(leading: $indentation === '' ? [] : [new Trivia(Trivia::Whitespace, $indentation)]);
 		$list->insert($list->indexOf($node) + 1, $new);

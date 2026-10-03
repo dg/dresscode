@@ -71,13 +71,13 @@ final class UselessConstructParenthesesRule extends NodeRule
 
 		$inner = clone $expression;
 		$first = $inner->getFirstToken();
-		if ($first !== null && $first->getTrailingSpace() !== null) {
+		if ($first->getTrailingSpace() !== null) {
 			$first->setLeadingTrivia([]);
 		}
 
-		$inner->getLastToken()?->removeTrailingWhitespace();
+		$inner->getLastToken()->removeTrailingWhitespace();
 		$node->replaceWith($inner);
-		$previous = $inner->getFirstToken()?->getPrevious();
+		$previous = $inner->getFirstToken()->getPrevious();
 		if ($previous?->getTrailingSpace() === '') {
 			$previous->setTrailingTrivia([new Trivia(Trivia::Whitespace, ' ')]);
 		}
@@ -91,8 +91,8 @@ final class UselessConstructParenthesesRule extends NodeRule
 		$last = $node->expression->getLastToken();
 		return $node->openParen->hasComment()
 			|| $node->closeParen->hasComment()
-			|| ($first !== null && self::hasComment($first->leadingTrivia))
-			|| ($last !== null && self::hasComment($last->trailingTrivia));
+			|| self::hasComment($first->leadingTrivia)
+			|| self::hasComment($last->trailingTrivia);
 	}
 
 

@@ -52,7 +52,7 @@ final class MultilineImportRule extends GapRule
 		return $gap->once($node, function () use ($node, $gap): ?array {
 			$lineLength = $gap->style->lineLength;
 			$first = $node->getFirstToken();
-			if ($lineLength === null || $first === null || !NodeHelpers::isLineInPlace($gap, $first)) {
+			if ($lineLength === null || !NodeHelpers::isLineInPlace($gap, $first)) {
 				return null; // a line not indented yet is measured a pass later
 			}
 
@@ -77,10 +77,6 @@ final class MultilineImportRule extends GapRule
 	private static function measureFlat(UseNode $node, Style $style): ?int
 	{
 		$first = $node->getFirstToken();
-		if ($first === null) {
-			return null;
-		}
-
 		// the keyword with its space, the type with its space, the prefix, and the backslash, the braces and the semicolon
 		$width = Indentation::measure($first->getLineIndentation(), $style->toPhpSyntax())
 			+ 4
@@ -109,7 +105,7 @@ final class MultilineImportRule extends GapRule
 	{
 		$break = new Claim(line: Line::Next, because: $because);
 		$follow = new Claim(line: Line::Same, because: $because);
-		$indentation = Indentation::measure($node->getFirstToken()?->getLineIndentation() . $style->indent, $style->toPhpSyntax());
+		$indentation = Indentation::measure($node->getFirstToken()->getLineIndentation() . $style->indent, $style->toPhpSyntax());
 		$claims = [];
 		$column = 0;
 		foreach ($node->items->getItems() as $i => $item) {

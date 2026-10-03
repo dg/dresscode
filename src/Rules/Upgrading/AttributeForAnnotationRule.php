@@ -15,7 +15,7 @@ use Nette\Schema\{Context, Expect, Schema};
 use PHPStan\PhpDocParser\Ast\PhpDoc\Doctrine\DoctrineTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\{GenericTagValueNode, PhpDocTagNode, PhpDocTextNode};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, SymbolKind, Token};
+use PhpSyntax\{Builder, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{ArgumentNode, AttributeGroupNode, AttributeNode, FileNode, NameNode, PlainNodeList};
 use PhpSyntax\Nodes\Member\{ClassConstNode, EnumCaseNode, MethodNode, PropertyNode};
 use PhpSyntax\Nodes\Statement\{ClassNode, EnumNode, FunctionNode, InterfaceNode, NamespaceNode, TraitNode};
@@ -284,7 +284,7 @@ final class AttributeForAnnotationRule extends NodeRule implements ConfigurableR
 		if ($context->report($node, "Attribute `#[$class]` is replaced by " . Violation::formatCode("#[$attribute[0]$attribute[1]]") . ($refusal ?? ''), fixable: $refusal === null)) {
 			// the arguments go over as they are, the library reading them the same way
 			$code = CodeWriter::writeClass($attribute[0], $node, $context) . ($arguments === '' ? $attribute[1] : $arguments);
-			$group = (new Parser)->parseFragment(AttributeGroupNode::class, "#[$code]");
+			$group = (new Builder)->fragment(AttributeGroupNode::class, "#[$code]");
 			$node->replaceWith($group->items->getItems()[0]->withoutEdgeTrivia());
 		}
 	}
@@ -303,7 +303,7 @@ final class AttributeForAnnotationRule extends NodeRule implements ConfigurableR
 			return null;
 		}
 
-		$group = (new Parser)->parseFragment(AttributeGroupNode::class, "#[Attribute$arguments]");
+		$group = (new Builder)->fragment(AttributeGroupNode::class, "#[Attribute$arguments]");
 		$positional = 0;
 		$named = [];
 		foreach ($group->items->getItems()[0]->arguments?->items->getItems() ?? [] as $argument) {

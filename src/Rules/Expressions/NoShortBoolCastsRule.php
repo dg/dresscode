@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\{CastNode, UnaryOpNode};
 
 
@@ -35,13 +35,13 @@ final class NoShortBoolCastsRule extends NodeRule
 			|| !$node->operator->is('!')
 			|| !($inner = $node->expression) instanceof UnaryOpNode
 			|| !$inner->operator->is('!')
-			|| ($inner->expression->getFirstToken() !== null && $node->operator->hasCommentUpTo($inner->expression->getFirstToken()))
+			|| $node->operator->hasCommentUpTo($inner->expression->getFirstToken())
 			|| !$context->report($node, 'Double negation must be written as a `(bool)` cast')
 		) {
 			return;
 		}
 
-		$cast = (new Parser)->parseExpression('(bool) 0');
+		$cast = (new Builder)->expression('(bool) 0');
 		assert($cast instanceof CastNode);
 		$operand = clone $inner->expression;
 		$operand->setEdgeTrivia(leading: []);

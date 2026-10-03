@@ -9,7 +9,7 @@ namespace DressCode\Rules\Expressions;
 
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, Token, Trivia};
+use PhpSyntax\{Builder, Node, Token, Trivia};
 use PhpSyntax\Nodes\AnonymousClassNode;
 use PhpSyntax\Nodes\Expression\NewNode;
 use function count;
@@ -83,7 +83,7 @@ final class NewArgumentParenthesesRule extends NodeRule implements ConfigurableR
 			return;
 		}
 
-		$template = (new Parser)->parseExpression('new Foo()');
+		$template = (new Builder)->expression('new Foo()');
 		assert($template instanceof NewNode && $template->arguments !== null);
 		$args = $template->arguments;
 		$template->arguments = null;

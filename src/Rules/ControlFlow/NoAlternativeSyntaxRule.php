@@ -8,7 +8,7 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token, Trivia};
+use PhpSyntax\{Builder, Node, Token, Trivia};
 use PhpSyntax\Nodes\{ElseifNode, ElseNode, PlainNodeList, StatementNode};
 use PhpSyntax\Nodes\Statement\{BlockNode, DeclareNode, EmptyStatementNode, ForeachNode, ForNode, IfNode, SwitchNode, WhileNode};
 use function ord;
@@ -153,7 +153,7 @@ final class NoAlternativeSyntaxRule extends NodeRule
 			return;
 		}
 
-		$statement = (new Parser)->parseStatement('?' . '>');
+		$statement = (new Builder)->statement('?' . '>');
 		assert($statement instanceof EmptyStatementNode);
 		$statement->semicolon
 			->setText($closeTag->text)
@@ -170,7 +170,7 @@ final class NoAlternativeSyntaxRule extends NodeRule
 	 */
 	private function buildBlock(Token $colon, PlainNodeList $stmts, array $closeLeading, array $closeTrailing): BlockNode
 	{
-		$block = (new Parser)->parseStatement('{}');
+		$block = (new Builder)->statement('{}');
 		assert($block instanceof BlockNode);
 		$block->openBrace
 			->setLeadingTrivia(self::braceLeading($colon))

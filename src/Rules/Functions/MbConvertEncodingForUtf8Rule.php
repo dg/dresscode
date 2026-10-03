@@ -9,7 +9,7 @@ namespace DressCode\Rules\Functions;
 
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, Expression, ExpressionNode, NameNode};
 use function count;
 
@@ -64,7 +64,7 @@ final class MbConvertEncodingForUtf8Rule extends NodeRule
 		}
 
 		$spelling = CodeWriter::spellFunction('mb_convert_encoding', $name, $context);
-		$call = (new Parser)->parseExpression("$spelling(0, " . self::Conversions[$function] . ')');
+		$call = (new Builder)->expression("$spelling(0, " . self::Conversions[$function] . ')');
 		assert($call instanceof Expression\FunctionCallNode);
 		$first = $call->arguments->items->getItems()[0];
 		assert($first instanceof ArgumentNode);

@@ -10,8 +10,8 @@ namespace DressCode\Rules\Arrays;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, GlobalCalls, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, Expression, ExpressionNode, NameNode};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{ArgumentNode, Expression, ExpressionNode, NameNode};
 use PhpSyntax\Nodes\Scalar\IntegerNode;
 use function count;
 
@@ -70,7 +70,7 @@ final class NoManualListTestsRule extends NodeRule
 
 		$positive = $node->operator->is(Token::IsIdentical);
 		$spelling = CodeWriter::spellFunction('array_is_list', $call->name, $context);
-		$test = Expression\FunctionCallNode::of(NameNode::fromText($spelling), ArgumentListNode::of($array->withoutEdgeTrivia()));
+		$test = (new Builder)->call($spelling, [$array]);
 		$node->replaceWith($positive ? $test : NodeHelpers::negate($test));
 	}
 

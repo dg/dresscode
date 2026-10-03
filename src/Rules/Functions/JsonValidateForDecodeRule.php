@@ -10,8 +10,8 @@ namespace DressCode\Rules\Functions;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, Expression, ExpressionNode, NameNode};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{Expression, ExpressionNode, NameNode};
 use PhpSyntax\Nodes\Scalar\NullNode;
 use function count;
 
@@ -67,14 +67,15 @@ final class JsonValidateForDecodeRule extends NodeRule
 		$spelling = CodeWriter::spellFunction('json_validate', $decode->name, $context);
 		$json = $decode->arguments->findArgument('json', 0)?->value;
 		assert($json !== null);
-		$call = Expression\FunctionCallNode::of(NameNode::fromText($spelling), ArgumentListNode::of($json->withoutEdgeTrivia()));
+		$builder = new Builder;
+		$call = $builder->call($spelling, [$json]);
 
 		if ($chained === null) {
 			$node->replaceWith($call);
 			return;
 		}
 
-		$node->replaceWith(Expression\BinaryOpNode::of($chained->left->withoutEdgeTrivia(), '&&', $call));
+		$node->replaceWith($builder->binary($chained->left, '&&', $call));
 	}
 
 

@@ -10,9 +10,9 @@ namespace DressCode\Rules\Classes;
 use DressCode\{Analyses, ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Context, Expect, Schema};
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
-use PhpSyntax\Analyses\{NameResolver, Scope};
+use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{AttributeGroupNode, Member, ParameterNode, PlainNodeList, Statement};
+use PhpSyntax\Nodes\{AttributeGroupNode, FunctionLikeNode, Member, ParameterNode, PlainNodeList, Statement};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use function in_array;
 
@@ -181,7 +181,7 @@ final class NameCasingRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$scope = $context->getAnalysis(Scope::class)->findFunction($node);
+		$scope = $node->findAncestor(FunctionLikeNode::class);
 		$key = ($scope === null ? 0 : spl_object_id($scope)) . $text;
 		if (isset($context->storage[$key])) {
 			return;

@@ -2,9 +2,9 @@
 
 use DressCode\Analyses\Parameter;
 use DressCode\Rules\Upgrading\{ArgumentPattern, ArgumentPatternItem};
+use PhpSyntax\Builder;
 use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
-use PhpSyntax\Parser;
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -18,7 +18,7 @@ require __DIR__ . '/../../bootstrap.php';
  */
 function bind(string $pattern, string $call, ?array $parameters = null): ?array
 {
-	$node = (new Parser)->parseExpression($call);
+	$node = (new Builder)->expression($call);
 	assert($node instanceof FunctionCallNode);
 	$bindings = ArgumentPattern::parse($pattern)->bind(
 		$node->arguments,
@@ -158,7 +158,7 @@ test('a type in front of the rest is that of each of its arguments and of each v
 	Assert::null(bind('int|string ...$kinds', 'f($kind)')); // no types, nothing known
 
 	// whoever asks whether a call may be of the shape takes what the types cannot settle, an array literal being an array
-	$call = (new Parser)->parseExpression('f($kind, [...$more])');
+	$call = (new Builder)->expression('f($kind, [...$more])');
 	assert($call instanceof FunctionCallNode);
 	Assert::notNull(ArgumentPattern::parse('mixed ...$kinds')->bind($call->arguments, null, acceptUncertainTypes: true));
 	Assert::notNull(ArgumentPattern::parse('$a, array ...$kinds')->bind($call->arguments, null, acceptUncertainTypes: true));

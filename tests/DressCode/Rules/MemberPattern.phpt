@@ -3,8 +3,8 @@
 use DressCode\Analyses;
 use DressCode\Analyses\{MemberAccess, MemberKind};
 use DressCode\Rules\Upgrading\{MemberMaps, MemberPattern};
+use PhpSyntax\{Builder, Parser};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
-use PhpSyntax\Parser;
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -153,7 +153,7 @@ test('an entry is found under the key of the nearest class, and under the first 
 	$find = function (array $map, ?string $call, string ...$classes) use ($types): ?array {
 		$entries = MemberMaps::indexEntries($map, fn(string $value) => $value)['getcachekey'];
 		$access = new MemberAccess(MemberKind::Method, 'getCacheKey', array_values($classes ?: ['App\MyStorage']), declared: true);
-		$node = $call === null ? null : (new Parser)->parseExpression($call);
+		$node = $call === null ? null : (new Builder)->expression($call);
 		$entry = MemberMaps::findEntry($entries, $access, $types, $node instanceof FunctionCallNode ? $node->arguments : null);
 		return $entry === null
 			? null

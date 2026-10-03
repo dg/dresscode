@@ -9,9 +9,9 @@ namespace DressCode\Rules\Files;
 
 use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
+use PhpSyntax\{Builder, Token, Trivia};
 use PhpSyntax\Nodes\DeclareItemNode;
 use PhpSyntax\Nodes\Statement\{DeclareNode, InlineHtmlNode};
-use PhpSyntax\{Parser, Token, Trivia};
 use function array_slice;
 
 
@@ -80,7 +80,7 @@ final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 			trim((string) $item->value) !== '1'
 			&& $context->report($item, '`strict_types` must be set to `1`', risk: Risk::BehaviorChanges)
 		) {
-			$item->value->replaceWith((new Parser)->parseExpression('1'));
+			$item->value->replaceWith((new Builder)->expression('1'));
 		}
 
 		$onOwnLine = false;
@@ -113,7 +113,7 @@ final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 	private function insert(int $index, Token $token, Trivia $tag, RuleContext $context): void
 	{
 		$eol = $context->style->lineEnding;
-		$statement = (new Parser)->parseStatement('declare(strict_types=1);');
+		$statement = (new Builder)->statement('declare(strict_types=1);');
 		$text = rtrim($tag->text) . ($this->placement === 'ownLine' ? $eol : ' ');
 		$statement->setEdgeTrivia([new Trivia(Trivia::OpenTag, $text)], [new Trivia(Trivia::LineEnding, $eol)]);
 		$rest = array_slice($token->leadingTrivia, 1);
@@ -146,7 +146,7 @@ final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 		$token = $declare->declareKeyword;
 		$rest = array_slice($token->leadingTrivia, 1);
 		$token->setLeadingTrivia([new Trivia(Trivia::OpenTag, rtrim($tag->text) . ' ')]);
-		$next = $declare->getLastToken()?->getNext();
+		$next = $declare->getLastToken()->getNext();
 		if ($next !== null && $rest !== []) {
 			$next->setLeadingTrivia([...$rest, ...$next->leadingTrivia]);
 		}

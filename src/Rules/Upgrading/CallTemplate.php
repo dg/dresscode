@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Violation;
-use PhpSyntax\{NameForm, Node, ParseException, Parser, SymbolKind, Token};
+use PhpSyntax\{Builder, NameForm, Node, ParseException, SymbolKind, Token};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, ExpressionNode, IdentifierNode, MatchArmNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClassConstantFetchNode, ClosureNode, FunctionCallNode, MethodCallNode, NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, TernaryNode, VariableNode};
 use function count, in_array, is_string;
@@ -64,7 +64,8 @@ final class CallTemplate
 	public static function fromCode(string $code, MemberPattern $key): self
 	{
 		try {
-			$holder = ParenthesizedNode::of((new Parser)->parseExpression($code));
+			$builder = new Builder;
+			$holder = $builder->parenthesize($builder->expression($code));
 		} catch (ParseException $e) {
 			throw new \InvalidArgumentException('The code ' . Violation::formatCode($code) . " written instead of `$key->class::$key->name` does not read as an expression: {$e->getMessage()}", previous: $e);
 		}
@@ -307,16 +308,17 @@ final class CallTemplate
 		}
 
 		// the innermost first, so that a call in the arguments of another is there when the outer one is written
+		$builder = new Builder;
 		foreach (array_reverse($calls) as $call) {
 			assert($call->name instanceof NameNode && $receiver !== null);
 			$on = $receiver->withoutEdgeTrivia();
 			// the arguments move, so the classes found above stay in the expression; what follows them stays with the call
 			$arguments = $call->arguments;
-			$call->arguments = ArgumentListNode::of();
-			$call->arguments->setEdgeTrivia(null, $arguments->getLastToken()->trailingTrivia ?? []);
+			$call->arguments = $builder->arguments([]);
+			$call->arguments->setEdgeTrivia(null, $arguments->getLastToken()->trailingTrivia);
 			$call->replaceWithExpression($static || !$on instanceof ExpressionNode
-				? StaticMethodCallNode::of($on, $call->name->text, $arguments)
-				: MethodCallNode::of($on, $call->name->text, $arguments, $nullsafe));
+				? $builder->staticMethodCall($on, $call->name->text, $arguments)
+				: $builder->methodCall($on, $call->name->text, $arguments, $nullsafe));
 		}
 
 		return [$holder->expression, $classes]; // the holder has no file, so a write takes the expression out of it
@@ -412,7 +414,7 @@ final class CallTemplate
 			}
 
 			$named = $named || $item->key !== null;
-			$call = (new Parser)->parseExpression($item->key === null ? 'f(0)' : "f($key: 0)");
+			$call = (new Builder)->expression($item->key === null ? 'f(0)' : "f($key: 0)");
 			assert($call instanceof FunctionCallNode && $call->arguments->items->getItems()[0] instanceof ArgumentNode);
 			$argument = $call->arguments->items->getItems()[0];
 			$argument->value->replaceWithExpression($item->value->withoutEdgeTrivia());

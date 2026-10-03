@@ -10,7 +10,7 @@ namespace DressCode\Rules\Functions;
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{AttributeGroupNode, NameNode, ParameterNode};
 use function in_array;
 
@@ -68,13 +68,13 @@ final class SensitiveParameterRequiredRule extends NodeRule implements Configura
 			return;
 		}
 
-		$template = (new Parser)->parseFragment(ParameterNode::class, '#[\SensitiveParameter] $template');
+		$template = (new Builder)->fragment(ParameterNode::class, '#[\SensitiveParameter] $template');
 		$group = $template->attributes->getItems()[0];
 		$template->attributes->removeItem($group);
 		$first = ($node->modifiers->getTokens()[0] ?? null) ?? ($node->type ?? $node->variable)->getFirstToken();
 		if ($first !== null) {
 			// the attribute takes over what stood in front of the parameter and brings its own space along
-			$group->getFirstToken()?->setLeadingTrivia($first->leadingTrivia);
+			$group->getFirstToken()->setLeadingTrivia($first->leadingTrivia);
 			$first->setLeadingTrivia([]);
 		}
 

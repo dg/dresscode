@@ -9,7 +9,7 @@ namespace DressCode\Rules\ControlFlow;
 
 use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{CaseNode, Expression, ExpressionNode, Statement, StatementNode};
 use function count;
 
@@ -62,7 +62,7 @@ final class MatchForSwitchRule extends NodeRule
 		}
 
 		$style = $context->style;
-		$indentation = $node->getFirstToken()?->getIndentation() ?? '';
+		$indentation = $node->getFirstToken()->getIndentation();
 		$lines = [];
 		foreach ($arms as [$labels, $body]) {
 			$values = $labels === [] ? 'default' : implode(', ', array_fill(0, count($labels), '0'));
@@ -74,7 +74,7 @@ final class MatchForSwitchRule extends NodeRule
 			. 'match (0) {' . $style->lineEnding
 			. implode($style->lineEnding, $lines) . $style->lineEnding
 			. $indentation . '};';
-		$statement = (new Parser)->parseStatement($text);
+		$statement = (new Builder)->statement($text);
 		self::fill($statement, $node, $arms);
 		$node->replaceWith($statement);
 	}

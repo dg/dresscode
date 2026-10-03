@@ -10,10 +10,10 @@ namespace DressCode\Rules\Functions;
 use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Tristate};
 use DressCode\Rules\GlobalCalls;
-use PhpSyntax\{Node, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, ExpressionNode, NameNode};
 use PhpSyntax\Nodes\Expression\{BinaryOpNode, FunctionCallNode, ParenthesizedNode, UnaryOpNode};
-use PhpSyntax\Nodes\Scalar\{IntegerNode, StringNode};
+use PhpSyntax\Nodes\Scalar\IntegerNode;
 use function count;
 
 
@@ -66,8 +66,8 @@ final class NoManualEmptyStringTestsRule extends NodeRule
 
 		$value = $argument->value;
 		$uncertainty = GlobalCalls::findUncertainty($call, $context);
-		$fixable = $node->getFirstToken()?->hasCommentUpTo($value->getFirstToken() ?? $call->arguments->closeParen) === false
-			&& $value->getLastToken()?->hasCommentUpTo($node->getLastToken() ?? $call->arguments->closeParen) === false;
+		$fixable = !$node->getFirstToken()->hasCommentUpTo($value->getFirstToken())
+			&& !$value->getLastToken()->hasCommentUpTo($node->getLastToken());
 		if (!$context->report(
 			$node,
 			'The empty string must be tested with ' . ($empty ? "`=== ''`" : "`!== ''`") . ", not through `$function()`",
@@ -79,7 +79,7 @@ final class NoManualEmptyStringTestsRule extends NodeRule
 		}
 
 		// an equality binds more loosely than the comparison or the negation it takes the place of
-		$node->replaceWithExpression(BinaryOpNode::of($value->withoutEdgeTrivia(), $empty ? '===' : '!==', StringNode::fromValue('')));
+		$node->replaceWithExpression((new Builder)->binary($value, $empty ? '===' : '!==', ''));
 	}
 
 

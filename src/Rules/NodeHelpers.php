@@ -10,7 +10,7 @@ namespace DressCode\Rules;
 use DressCode\{Gap, RuleContext};
 use DressCode\Rules\Whitespace\IndentationRule;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, SymbolKind, Token, Trivia};
+use PhpSyntax\{Builder, Node, SymbolKind, Token, Trivia};
 use PhpSyntax\Nodes\{ElseifNode, Expression, ExpressionNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode};
 use PhpSyntax\Nodes\Expression\BinaryOpNode;
 use function array_slice, assert, count;
@@ -72,10 +72,10 @@ final class NodeHelpers
 			$inner = $copy->expression instanceof Expression\ParenthesizedNode ? $copy->expression->expression : $copy->expression;
 			return $inner->withoutEdgeTrivia();
 		} elseif ($copy instanceof Scalar\BooleanNode) {
-			return (new Parser)->parseExpression($copy->value ? 'false' : 'true');
+			return (new Builder)->expression($copy->value ? 'false' : 'true');
 		}
 
-		$negation = (new Parser)->parseExpression('!0');
+		$negation = (new Builder)->expression('!0');
 		assert($negation instanceof Expression\UnaryOpNode);
 		$negation->expression->replaceWithExpression($copy);
 		return $negation;
@@ -146,7 +146,7 @@ final class NodeHelpers
 	 */
 	public static function expandGroup(Statement\UseNode $node, PlainNodeList $list, string $lineEnding): void
 	{
-		$parser = new Parser;
+		$builder = new Builder;
 		$statements = [];
 		foreach ($node->items->getItems() as $item) {
 			$type = match ($item->symbolKind) {
@@ -155,10 +155,10 @@ final class NodeHelpers
 				SymbolKind::ClassLike => '',
 			};
 			$alias = $item->alias === null ? '' : ' as ' . $item->alias->text;
-			$statements[] = $parser->parseStatement("use $type{$item->fullName}$alias;");
+			$statements[] = $builder->statement("use $type{$item->fullName}$alias;");
 		}
 
-		$indentation = $node->getFirstToken()?->getIndentation() ?? '';
+		$indentation = $node->getFirstToken()->getIndentation();
 		$last = array_pop($statements);
 		if ($last === null) {
 			return;
@@ -167,8 +167,7 @@ final class NodeHelpers
 		$index = $list->indexOf($node);
 		$node->replaceWith($last);
 		foreach ($statements as $i => $statement) {
-			$head = $last->getFirstToken();
-			$leading = $i === 0 && $head ? $head->leadingTrivia : [new Trivia(Trivia::Whitespace, $indentation)];
+			$leading = $i === 0 ? $last->getFirstToken()->leadingTrivia : [new Trivia(Trivia::Whitespace, $indentation)];
 			$statement->setEdgeTrivia($leading, [new Trivia(Trivia::LineEnding, $lineEnding)]);
 			$list->insert($index + $i, $statement);
 		}

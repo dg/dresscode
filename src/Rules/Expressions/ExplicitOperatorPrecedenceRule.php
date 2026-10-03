@@ -8,8 +8,8 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\Expression\{BinaryOpNode, ParenthesizedNode};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\Expression\BinaryOpNode;
 use PhpSyntax\Nodes\ExpressionNode;
 
 
@@ -70,7 +70,7 @@ final class ExplicitOperatorPrecedenceRule extends NodeRule
 	private function parenthesize(ExpressionNode $operand, RuleContext $context): void
 	{
 		if ($context->report($operand, 'Parentheses must make the precedence of the operators explicit')) {
-			$operand->replaceWith(ParenthesizedNode::of($operand->withoutEdgeTrivia()));
+			$operand->replaceWith((new Builder)->parenthesize($operand));
 		}
 	}
 }

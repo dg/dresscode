@@ -121,7 +121,7 @@ final readonly class Rewrite
 		$link = $this->expression;
 		while ($node instanceof MethodCallNode && $link !== null) {
 			if (($link instanceof MethodCallNode || $link instanceof PropertyFetchNode) && $link->object->matches($node->object)) {
-				$link->object->getLastToken()?->setTrailingTrivia($node->object->getLastToken()->trailingTrivia ?? []);
+				$link->object->getLastToken()->setTrailingTrivia($node->object->getLastToken()->trailingTrivia);
 				$link->operator->setLeadingTrivia($node->operator->leadingTrivia);
 				break;
 			}

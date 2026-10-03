@@ -10,7 +10,7 @@ namespace DressCode\Rules\ControlFlow;
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, Token, Trivia};
+use PhpSyntax\{Builder, Node, Token, Trivia};
 use PhpSyntax\Nodes\{ClassLikeNode, FileNode, PlainNodeList, StatementNode};
 use PhpSyntax\Nodes\Expression\ClosureNode;
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -86,7 +86,7 @@ final class EarlyExitRule extends NodeRule implements ConfigurableRule
 			}
 
 			if ($this->report($node, $body, 'A trailing if must leave early instead of nesting the rest of the body', $context)) {
-				$this->invert($node, $body, $list, (new Parser)->parseStatement($exit), $context);
+				$this->invert($node, $body, $list, (new Builder)->statement($exit), $context);
 			}
 
 		} elseif ($else->body?->interruptsFlow()) {
@@ -161,7 +161,7 @@ final class EarlyExitRule extends NodeRule implements ConfigurableRule
 	): void
 	{
 		$style = $context->style;
-		$indentation = $node->getFirstToken()?->getLineIndentation() ?? '';
+		$indentation = $node->getFirstToken()->getLineIndentation();
 		$exit->setEdgeTrivia([new Trivia(Trivia::Whitespace, $indentation . $style->indent)], [new Trivia(Trivia::LineEnding, $style->lineEnding)]);
 
 		$index = $list->indexOf($node);

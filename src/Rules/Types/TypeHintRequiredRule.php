@@ -14,7 +14,7 @@ use Nette\Schema\{Expect, Schema};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{ParamTagValueNode, PhpDocNode, PhpDocTagNode, ReturnTagValueNode, TypelessParamTagValueNode, VarTagValueNode};
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, Token, Trivia};
+use PhpSyntax\{Builder, Node, Token, Trivia};
 use PhpSyntax\Nodes\{ClassLikeNode, Expression, Scalar};
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
 use PhpSyntax\Nodes\Statement\{FunctionNode, ReturnNode};
@@ -160,7 +160,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 
 		$phpDoc = $context->getAnalysis(PhpDoc::class);
 		$resolver = $context->getAnalysis(NameResolver::class);
-		$resolve = fn(string $class) => $resolver->resolveClass((new Parser)->parseName($class), $node);
+		$resolve = fn(string $class) => $resolver->resolveClass((new Builder)->name($class), $node);
 		$templates = $phpDoc->findTemplates($node);
 		$removed = [];
 		foreach ($node->parameters->getItems() as $param) {
@@ -187,7 +187,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 					continue;
 				}
 
-				$param->type = (new Parser)->parseType($native)->setEdgeTrivia(trailing: [new Trivia(Trivia::Whitespace, ' ')]);
+				$param->type = (new Builder)->type($native)->setEdgeTrivia(trailing: [new Trivia(Trivia::Whitespace, ' ')]);
 			}
 
 			$bare = ltrim($native, '?');
@@ -245,7 +245,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 		$annotation = $value instanceof ReturnTagValueNode ? $value->type : null;
 		$phpDoc = $context->getAnalysis(PhpDoc::class);
 		$resolver = $context->getAnalysis(NameResolver::class);
-		$resolve = fn(string $class) => $resolver->resolveClass((new Parser)->parseName($class), $node);
+		$resolve = fn(string $class) => $resolver->resolveClass((new Builder)->name($class), $node);
 		$php = $context->phpVersion;
 		$native = $node->returnType === null ? null : trim((string) $node->returnType);
 
@@ -282,7 +282,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 			&& version_compare($php, '8.1', '>=')
 			&& $context->report($node->closeParen, 'The return type must be `never` instead of `void`, as the `@return` annotation says', risk: Risk::BehaviorChanges)
 		) {
-			$node->returnType->replaceWith((new Parser)->parseType('never'));
+			$node->returnType->replaceWith((new Builder)->type('never'));
 			$native = 'never';
 		}
 
@@ -329,7 +329,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 		$value = $tag?->value;
 		$annotation = $value instanceof VarTagValueNode ? $value->type : null;
 		$resolver = $context->getAnalysis(NameResolver::class);
-		$resolve = fn(string $class) => $resolver->resolveClass((new Parser)->parseName($class), $node);
+		$resolve = fn(string $class) => $resolver->resolveClass((new Builder)->name($class), $node);
 		$item = $node->items->getItems()[0];
 		$name = $item->name->text;
 		$native = $node->type === null ? null : trim((string) $node->type);
@@ -361,7 +361,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 				return;
 			}
 
-			$node->type = (new Parser)->parseType($native)->setEdgeTrivia(trailing: [new Trivia(Trivia::Whitespace, ' ')]);
+			$node->type = (new Builder)->type($native)->setEdgeTrivia(trailing: [new Trivia(Trivia::Whitespace, ' ')]);
 		}
 
 		$traversable = NativeType::isTraversable(ltrim($native, '?'), $this->traversableTypeHints, $resolve);
@@ -401,7 +401,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$node->type = (new Parser)->parseType($native)->setEdgeTrivia(trailing: [new Trivia(Trivia::Whitespace, ' ')]);
+		$node->type = (new Builder)->type($native)->setEdgeTrivia(trailing: [new Trivia(Trivia::Whitespace, ' ')]);
 	}
 
 
@@ -423,7 +423,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 
 	private static function addReturnType(FunctionNode|MethodNode|Expression\ClosureNode $node, string $native): void
 	{
-		$type = (new Parser)->parseType($native);
+		$type = (new Builder)->type($native);
 		$anchor = $node instanceof Expression\ClosureNode && $node->uses !== null ? $node->uses->closeParen : $node->closeParen;
 		$type->setEdgeTrivia(trailing: $anchor->trailingTrivia);
 		$anchor->setTrailingTrivia([]);

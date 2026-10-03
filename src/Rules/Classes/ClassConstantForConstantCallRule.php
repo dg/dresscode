@@ -9,7 +9,7 @@ namespace DressCode\Rules\Classes;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\GlobalCalls;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, Expression, ExpressionNode, IdentifierNode, NameNode};
 use PhpSyntax\Nodes\Scalar\StringNode;
 use function count;
@@ -68,7 +68,7 @@ final class ClassConstantForConstantCallRule extends NodeRule
 		}
 
 		assert($prefix->left instanceof Expression\ClassConstantFetchNode);
-		$fetch = (new Parser)->parseExpression($prefix->left->class->text . '::{0}');
+		$fetch = (new Builder)->expression($prefix->left->class->text . '::{0}');
 		assert($fetch instanceof Expression\ClassConstantFetchNode && $fetch->name instanceof ExpressionNode);
 		$fetch->name->replaceWith($concat->right->withoutEdgeTrivia());
 		$node->replaceWith($fetch);

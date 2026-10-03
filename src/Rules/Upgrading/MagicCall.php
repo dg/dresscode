@@ -8,10 +8,10 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{MemberAccess, MemberKind, Types};
+use PhpSyntax\Builder;
 use PhpSyntax\Nodes\{ArgumentListNode, ExpressionNode, IdentifierNode};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, PropertyFetchNode};
 use PhpSyntax\Nodes\Scalar\StringNode;
-use PhpSyntax\Parser;
 
 
 /**
@@ -56,12 +56,12 @@ final readonly class MagicCall
 
 		} else {
 			$classes = $types->findClasses($node->expression);
-			$key = $node->index?->withoutEdgeTrivia() ?? (new Parser)->parseExpression('null');
+			$key = $node->index;
 		}
 
 		return $classes === [] ? null : new self(
 			new MemberAccess(MemberKind::Method, self::getMethod($node, $use), $classes, declared: true),
-			ArgumentListNode::of($key, ...$values),
+			(new Builder)->arguments([$key, ...$values]),
 			$node instanceof ArrayAccessNode && $node->index === null,
 		);
 	}

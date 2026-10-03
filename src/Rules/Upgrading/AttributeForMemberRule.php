@@ -12,7 +12,7 @@ use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage, Tristat
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\{Context, Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, ParseException, Parser, Token};
+use PhpSyntax\{Builder, Node, ParseException, Token};
 use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, ExpressionNode, IdentifierNode, NameNode};
 use PhpSyntax\Nodes\Expression\{ArrayNode, ClassConstantFetchNode, MethodCallNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, VariableNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyNode};
@@ -98,7 +98,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 
 		$arguments = $attribute[2] ?? '';
 		try {
-			(new Parser)->parseFragment(AttributeGroupNode::class, "#[$attribute[1]$arguments]");
+			(new Builder)->fragment(AttributeGroupNode::class, "#[$attribute[1]$arguments]");
 		} catch (ParseException $e) {
 			throw new \InvalidArgumentException('The attribute ' . Violation::formatCode($value) . ' for ' . Violation::formatCode($key) . " does not read as an attribute: {$e->getMessage()}", previous: $e);
 		}
@@ -124,7 +124,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 	private static function readLiteral(string $code, string $key): mixed
 	{
 		try {
-			$expression = (new Parser)->parseExpression($code);
+			$expression = (new Builder)->expression($code);
 		} catch (ParseException) {
 			$expression = null;
 		}
@@ -269,7 +269,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 				$member instanceof PropertyNode => $member->items->getItems()[0],
 				default => $member,
 			};
-			$arguments = $refusal === null ? $this->writeArguments($entry, $value, self::findIndentation($value ?? $member, $member), $class->getFirstToken()?->getIndentation() ?? '') : [];
+			$arguments = $refusal === null ? $this->writeArguments($entry, $value, self::findIndentation($value ?? $member, $member), $class->getFirstToken()->getIndentation()) : [];
 			$refusal ??= $this->findConflict($class, $attribute, $arguments, $planned, $context);
 			if ($refusal === null) {
 				$planned[strtolower($attribute)] = [$attribute, [...($planned[strtolower($attribute)][1] ?? []), ...$arguments]];
@@ -304,7 +304,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 		foreach ($attributes as [$attribute, $arguments]) {
 			$existing = self::findAttribute($class, $attribute, $context);
 			if ($existing !== null) {
-				$existing->replaceWith((new Parser)->parseFragment(AttributeGroupNode::class, '#[' . self::writeAttribute($existing->name->text, [...self::listArguments($existing), ...$arguments]) . ']')->items->getItems()[0]->withoutEdgeTrivia());
+				$existing->replaceWith((new Builder)->fragment(AttributeGroupNode::class, '#[' . self::writeAttribute($existing->name->text, [...self::listArguments($existing), ...$arguments]) . ']')->items->getItems()[0]->withoutEdgeTrivia());
 			} else {
 				$codes[] = self::writeAttribute(CodeWriter::writeClass($attribute, $class, $context), $arguments);
 			}
@@ -335,7 +335,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 			return [];
 		}
 
-		$group = (new Parser)->parseFragment(AttributeGroupNode::class, "#[$entry[4]$entry[5]]");
+		$group = (new Builder)->fragment(AttributeGroupNode::class, "#[$entry[4]$entry[5]]");
 		foreach ($group->find(VariableNode::class, fn(VariableNode $variable) => $variable->plainName === 'value') as $variable) {
 			if ($value !== null) {
 				$variable->replaceWithExpression($value->withoutEdgeTrivia());
@@ -499,7 +499,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 		} elseif (count($list->getItems()) > 1) {
 			$items = $list->getItems();
 			if (end($items) === $interface) {
-				$items[count($items) - 2]->getLastToken()?->setTrailingTrivia($interface->getLastToken()->trailingTrivia ?? []);
+				$items[count($items) - 2]->getLastToken()->setTrailingTrivia($interface->getLastToken()->trailingTrivia);
 			}
 
 			$list->removeItem($interface);
@@ -508,7 +508,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 
 		// what stood behind the list, the line ending before the brace among it, goes behind what stood before the keyword
 		$before = ($class->extends ?? $class->name)->getLastToken();
-		$before?->setTrailingTrivia($interface->getLastToken()->trailingTrivia ?? []);
+		$before->setTrailingTrivia($interface->getLastToken()->trailingTrivia);
 		$class->implements = null;
 		$class->implementsKeyword = null;
 	}

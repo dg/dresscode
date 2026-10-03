@@ -11,8 +11,8 @@ use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Tristate};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, Expression, ExpressionNode, NameNode};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{ArgumentNode, Expression, ExpressionNode, NameNode};
 use function count;
 
 
@@ -79,7 +79,7 @@ final class GetDebugTypeForTernaryRule extends NodeRule
 		}
 
 		$spelling = CodeWriter::spellFunction('get_debug_type', $test->name, $context);
-		$node->replaceWith(Expression\FunctionCallNode::of(NameNode::fromText($spelling), ArgumentListNode::of($subject->withoutEdgeTrivia())));
+		$node->replaceWith((new Builder)->call($spelling, [$subject]));
 	}
 
 

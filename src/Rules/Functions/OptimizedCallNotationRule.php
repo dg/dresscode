@@ -106,7 +106,7 @@ final class OptimizedCallNotationRule extends NodeRule
 		}
 
 		// a comment between the name and the value would be lost with them
-		$hasComment = array_any($named, fn(ArgumentNode $arg) => ($value = $arg->value->getFirstToken()) === null || $arg->name?->token->hasCommentUpTo($value));
+		$hasComment = array_any($named, fn(ArgumentNode $arg) => $arg->name?->token->hasCommentUpTo($arg->value->getFirstToken()) === true);
 		$uncertainty = $hasComment ? null : GlobalCalls::findUncertainty($node, $context);
 		if (!$context->report(
 			$named[0],
@@ -119,7 +119,7 @@ final class OptimizedCallNotationRule extends NodeRule
 		}
 
 		foreach ($named as $arg) {
-			$arg->value->getFirstToken()?->setLeadingTrivia($arg->name?->token->leadingTrivia ?? []);
+			$arg->value->getFirstToken()->setLeadingTrivia($arg->name?->token->leadingTrivia ?? []);
 			$arg->name = null;
 			$arg->colon = null;
 		}

@@ -78,7 +78,7 @@ final class RuleContext
 	{
 		$gap = $trivia === null ? null : self::findGap($at, $trivia);
 		if ($follows !== null) {
-			$gap ??= $at instanceof Token ? $at : $at->getFirstToken();
+			$gap ??= $at->getFirstToken();
 		}
 
 		return $this->record($at, $message, $trivia, $risk, $gap, $follows, byLine: $byLine, fixable: $fixable, because: $because);
@@ -164,12 +164,12 @@ final class RuleContext
 			return null;
 		}
 
-		$first = $at instanceof Token ? $at : $at->getFirstToken();
+		$first = $at->getFirstToken();
 		if ($first !== null && in_array($trivia, $first->leadingTrivia, true)) {
 			return $first;
 		}
 
-		$last = $at instanceof Token ? $at : $at->getLastToken();
+		$last = $at->getLastToken();
 		return $last !== null && in_array($trivia, $last->trailingTrivia, true) ? $last->getNext() : null;
 	}
 
@@ -249,7 +249,7 @@ final class RuleContext
 			return $trivia->line;
 		}
 
-		$token = $at instanceof Token ? $at : $at->getFirstToken();
+		$token = $at->getFirstToken();
 		if ($token === null || $token->line >= 0) {
 			return $token?->line;
 		}

@@ -9,8 +9,8 @@ namespace DressCode\Rules\Functions;
 
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
-use PhpSyntax\{Node, Parser, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ExpressionNode, NameNode};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{ArgumentNode, ExpressionNode, NameNode};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
 use PhpSyntax\Nodes\Scalar\{IntegerNode, MagicConstantNode};
 use function count;
@@ -105,9 +105,9 @@ final class NoDirnameOfFileRule extends NodeRule
 	 */
 	private static function replace(FunctionCallNode $node, ExpressionNode $path, int $levels, string $function): void
 	{
-		$parser = new Parser;
+		$builder = new Builder;
 		if (self::isFile($path)) {
-			$path = $parser->parseExpression('__DIR__');
+			$path = $builder->expression('__DIR__');
 			$levels--;
 		} else {
 			$path = $path->withoutEdgeTrivia();
@@ -118,9 +118,6 @@ final class NoDirnameOfFileRule extends NodeRule
 			return;
 		}
 
-		$arguments = $levels === 1
-			? ArgumentListNode::of($path)
-			: ArgumentListNode::of($path, $parser->parseExpression((string) $levels));
-		$node->replaceWith(FunctionCallNode::of(NameNode::fromText($function), $arguments));
+		$node->replaceWith($builder->call($function, $levels === 1 ? [$path] : [$path, $levels]));
 	}
 }

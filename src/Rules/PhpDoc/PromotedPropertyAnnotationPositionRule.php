@@ -140,10 +140,6 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 	private static function annotate(ParameterNode $param, array $lines, Style $style): void
 	{
 		$first = $param->getFirstToken();
-		if ($first === null) {
-			return;
-		}
-
 		$eol = $style->lineEnding;
 		if (!$first->startsLine()) {
 			if (count($lines) > 1) {

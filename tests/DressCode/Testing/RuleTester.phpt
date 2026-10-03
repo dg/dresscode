@@ -5,7 +5,7 @@ use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage, S
 use DressCode\Testing\{RuleTester, TestFailure};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\{NameResolver, NamespacedSymbols};
-use PhpSyntax\{NameForm, Node, SymbolKind, Token, UnqualifiedResolution};
+use PhpSyntax\{NameForm, Node, Token, UnqualifiedResolution};
 use PhpSyntax\Nodes\Expression\{FunctionCallNode, VariableNode};
 use PhpSyntax\Nodes\{FileNode, NameNode};
 use Tester\Assert;
@@ -147,7 +147,7 @@ final class TestedUncertain extends NodeRule
 		if ($node instanceof FunctionCallNode && $node->name instanceof NameNode) {
 			$resolver = $context->getAnalysis(NameResolver::class);
 			$uncertain = $node->name->form === NameForm::Unqualified
-				&& $resolver->getUnqualifiedResolution($node->name->text, SymbolKind::Function, $node) === UnqualifiedResolution::Uncertain;
+				&& $resolver->getUnqualifiedResolution($node->name) === UnqualifiedResolution::Uncertain;
 			$context->report($node, $resolver->resolveFunction($node->name) . ($uncertain ? ' uncertain' : ''), fixable: false);
 		}
 	}

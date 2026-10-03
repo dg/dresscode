@@ -14,7 +14,7 @@ use PhpSyntax\Nodes\{ArgumentListNode, ClosureUseListNode, DestructuringNode, Va
 use PhpSyntax\Nodes\Expression\{ArrayNode, ArrowFunctionNode, ClosureNode, MatchNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\{FunctionNode, UseNode};
-use function count, ord;
+use function count;
 
 
 /**
@@ -110,24 +110,13 @@ final class TrailingCommaRule extends NodeRule implements ConfigurableRule
 		assert($open instanceof Token && $close instanceof Token);
 		$items = $list->getItems();
 		$last = $items === [] ? null : $items[count($items) - 1];
-		if ($last === null || $last instanceof VariadicPlaceholderNode) {
-			return;
-		}
-
-		$lastToken = $last->getLastToken();
-		if ($lastToken === null) {
+		if ($last === null || $last instanceof VariadicPlaceholderNode || $last->getLastToken() === null) {
 			return;
 		}
 
 		if (!self::isSpread($open, $items, $close)) {
-			if (!$list->hasTrailingSeparator()) {
-				return;
-			}
-
-			$separators = $list->getSeparators();
-			$comma = $separators[count($separators) - 1];
-			if ($context->report($comma, 'No trailing comma in a one-line list')) {
-				$lastToken->setTrailingTrivia([...$lastToken->trailingTrivia, ...$comma->trailingTrivia]);
+			$comma = $list->getTrailingSeparator();
+			if ($comma !== null && $context->report($comma, 'No trailing comma in a one-line list')) {
 				$list->setTrailingSeparator(null);
 			}
 
@@ -141,11 +130,10 @@ final class TrailingCommaRule extends NodeRule implements ConfigurableRule
 			$message = $mode === self::Forbidden
 				? "No trailing comma in a multi-line $what"
 				: "No trailing comma before a closing bracket on the line of the last item of a multi-line $what";
-			if ($list->hasTrailingSeparator() && $context->report($close, $message)) {
-				$separators = $list->getSeparators();
-				$comma = $separators[count($separators) - 1];
-				if ($comma->getTrailingSpace() === null) { // a line ending or a comment follows the comma
-					$lastToken->setTrailingTrivia([...$lastToken->trailingTrivia, ...$comma->trailingTrivia]);
+			$comma = $list->getTrailingSeparator();
+			if ($comma !== null && $context->report($close, $message)) {
+				if ($comma->getTrailingSpace() !== null) { // the space before the bracket goes with the comma
+					$comma->setTrailingTrivia([]);
 				}
 
 				$list->setTrailingSeparator(null);
@@ -161,9 +149,7 @@ final class TrailingCommaRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$comma = new Token(ord(','), ',')->setTrailingTrivia($lastToken->trailingTrivia);
-		$lastToken->setTrailingTrivia([]);
-		$list->setTrailingSeparator($comma);
+		$list->setTrailingSeparator(Token::fromText(','));
 	}
 
 

@@ -206,7 +206,7 @@ final class MultilineConditionRule extends GapRule implements ConfigurableRule
 	private static function shapeOf(IfNode|ElseifNode|WhileNode|DoWhileNode $node): ?string
 	{
 		$first = $node->condition->getFirstToken();
-		if ($first === null || !$node->closeParen->startsLine()) {
+		if (!$node->closeParen->startsLine()) {
 			return null;
 		}
 

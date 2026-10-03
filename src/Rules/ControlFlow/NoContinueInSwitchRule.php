@@ -8,7 +8,7 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClosureNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\{ContinueNode, DoWhileNode, ForeachNode, ForNode, FunctionNode, SwitchNode, WhileNode};
@@ -58,7 +58,7 @@ final class NoContinueInSwitchRule extends NodeRule
 			$ancestor instanceof SwitchNode
 			&& $context->report($node, 'A switch must be left with `break`, not `continue`')
 		) {
-			$node->replaceWith((new Parser)->parseStatement('break;'));
+			$node->replaceWith((new Builder)->statement('break;'));
 		}
 	}
 }

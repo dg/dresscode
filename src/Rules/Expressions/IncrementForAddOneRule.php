@@ -9,7 +9,7 @@ namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\{CombinedAssignmentNode, PostfixOpNode};
 use PhpSyntax\Nodes\Scalar\IntegerNode;
 use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
@@ -48,8 +48,7 @@ final class IncrementForAddOneRule extends NodeRule
 		$operator = $node->operator->is('+=') ? '++' : '--';
 		$last = $node->target->getLastToken();
 		if (
-			$last === null
-			|| $last->hasCommentUpTo($node->expression->token)
+			$last->hasCommentUpTo($node->expression->token)
 			|| !$context->report(
 				$node,
 				"The `{$node->operator->text} 1` assignment must be written `$operator`",
@@ -59,11 +58,11 @@ final class IncrementForAddOneRule extends NodeRule
 			return;
 		}
 
-		$postfix = (new Parser)->parseExpression('$x' . $operator);
+		$postfix = (new Builder)->expression('$x' . $operator);
 		assert($postfix instanceof PostfixOpNode);
 		$var = clone $node->target;
 		$var->setEdgeTrivia(leading: []);
-		$var->getLastToken()?->removeTrailingWhitespace();
+		$var->getLastToken()->removeTrailingWhitespace();
 		$postfix->target = $var;
 		$node->replaceWith($postfix);
 	}

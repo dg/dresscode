@@ -10,7 +10,7 @@ namespace DressCode\Rules;
 use DressCode\RuleContext;
 use DressCode\Rules\Namespaces\ImportNotationRule;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{CommentPolicy, NameForm, Node, Parser, Printer, SymbolKind, Trivia, UnqualifiedResolution};
+use PhpSyntax\{Builder, CommentPolicy, NameForm, Node, Printer, SymbolKind, Trivia, UnqualifiedResolution};
 use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, ExpressionNode, FileNode, NameNode, Statement, UseItemNode};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, MethodCallNode, PropertyFetchNode, ShellExecNode, VariableNode};
 use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode, InterpolationNode};
@@ -63,7 +63,7 @@ final class CodeWriter
 		return $replaced->form === NameForm::Unqualified
 			&& $resolver->isAliasFree($function, SymbolKind::Function, $replaced)
 			&& (
-				$resolver->getUnqualifiedResolution($replaced->text, SymbolKind::Function, $replaced) === UnqualifiedResolution::Uncertain
+				$resolver->getUnqualifiedResolution($replaced) === UnqualifiedResolution::Uncertain
 				|| $resolver->getUnqualifiedResolution($function, SymbolKind::Function, $replaced) === UnqualifiedResolution::Global
 			)
 			? $function
@@ -170,7 +170,7 @@ final class CodeWriter
 			SymbolKind::Constant => 'const ',
 			SymbolKind::ClassLike => '',
 		};
-		$statement = (new Parser)->parseStatement("use $keyword$fullName;");
+		$statement = (new Builder)->statement("use $keyword$fullName;");
 		$eol = new Trivia(Trivia::LineEnding, $context->style->lineEnding);
 		$indentOf = fn(?Node $node): array => ($indentation = $node?->getFirstToken()?->getIndentation() ?? '') === ''
 			? []
@@ -186,8 +186,8 @@ final class CodeWriter
 			// the import takes the place of the first one, with what stands above it, and that one keeps its indentation
 			$first = $items[$before]->getFirstToken();
 			$indent = $indentOf($items[$before]);
-			$statement->setEdgeTrivia($first->leadingTrivia ?? [], [$eol]);
-			$first?->setLeadingTrivia($indent);
+			$statement->setEdgeTrivia($first->leadingTrivia, [$eol]);
+			$first->setLeadingTrivia($indent);
 			$list->insert($before, $statement);
 			return;
 		}
@@ -271,7 +271,7 @@ final class CodeWriter
 			return;
 		}
 
-		$string = (new Parser)->parseExpression('"{' . Printer::print($expression) . '}"');
+		$string = (new Builder)->expression('"{' . Printer::print($expression) . '}"');
 		assert($string instanceof InterpolatedStringNode);
 		$node->replaceWith($string->parts->getItems()[0]->withoutEdgeTrivia());
 	}
@@ -356,19 +356,19 @@ final class CodeWriter
 		$indentation = fn() => new Trivia(Trivia::Whitespace, $indentationText);
 		$takesOver = $attributes->isEmpty();
 		foreach ($codes as $code) {
-			$group = (new Parser)->parseFragment(AttributeGroupNode::class, "#[$code]");
+			$group = (new Builder)->fragment(AttributeGroupNode::class, "#[$code]");
 			$attributes->append($group);
 			if ($first === null) {
 				continue;
 			} elseif ($takesOver) {
-				$group->getFirstToken()?->setLeadingTrivia($first->leadingTrivia);
+				$group->getFirstToken()->setLeadingTrivia($first->leadingTrivia);
 				$first->setLeadingTrivia([$indentation()]);
 				$takesOver = false;
 			} else {
-				$group->getFirstToken()?->setLeadingTrivia([$indentation()]);
+				$group->getFirstToken()->setLeadingTrivia([$indentation()]);
 			}
 
-			$group->getLastToken()?->setTrailingTrivia([new Trivia(Trivia::LineEnding, $eolText)]);
+			$group->getLastToken()->setTrailingTrivia([new Trivia(Trivia::LineEnding, $eolText)]);
 		}
 	}
 }

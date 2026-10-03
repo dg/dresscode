@@ -175,7 +175,7 @@ final class PassRunner
 		$moved = new \WeakMap;
 		$violations = [];
 		foreach ($this->reported as [$name, $report, $refused, $severity]) {
-			$token = $report->at instanceof Token ? $report->at : $report->at->getFirstToken();
+			$token = $report->at->getFirstToken();
 			$line = self::findCurrentLine($token, $report->trivia);
 			$fingerprint = $report->construct === null
 				? $fingerprints->create($name, $report->message, $line)
@@ -448,7 +448,7 @@ final class PassRunner
 	private static function findAncestor(Report $report, \WeakMap $opened, \WeakMap $moved): ?string
 	{
 		if ($report->byLine) {
-			$token = $report->at instanceof Token ? $report->at : $report->at->getFirstToken();
+			$token = $report->at->getFirstToken();
 			return $token === null ? null : $opened[$token] ?? null;
 		}
 
@@ -513,7 +513,7 @@ final class PassRunner
 	 */
 	private function findOriginalColumn(Node|Token $at): ?int
 	{
-		$token = $at instanceof Token ? $at : $at->getFirstToken();
+		$token = $at->getFirstToken();
 		if ($token === null || $token->pos < 0 || $token->line < 0) {
 			return null;
 		}

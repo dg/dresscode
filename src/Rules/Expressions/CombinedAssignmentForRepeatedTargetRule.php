@@ -9,7 +9,7 @@ namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Tristate};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, Expression, ExpressionNode};
 
 
@@ -52,8 +52,7 @@ final class CombinedAssignmentForRepeatedTargetRule extends NodeRule
 			|| ($combined = self::Operators[$binary->operator->text] ?? null) === null
 			|| !$var->isRepeatableRead()
 			|| !$var->matches($binary->left)
-			|| ($right = $binary->right->getFirstToken()) === null
-			|| $node->equals->currentLine !== $right->currentLine
+			|| $node->equals->currentLine !== ($right = $binary->right->getFirstToken())->currentLine
 			|| $node->equals->hasCommentUpTo($right)
 		) {
 			return;
@@ -79,7 +78,7 @@ final class CombinedAssignmentForRepeatedTargetRule extends NodeRule
 			return;
 		}
 
-		$replacement = (new Parser)->parseExpression('$x ' . $combined . ' 0');
+		$replacement = (new Builder)->expression('$x ' . $combined . ' 0');
 		assert($replacement instanceof Expression\CombinedAssignmentNode);
 		$replacement->operator
 			->setLeadingTrivia($node->equals->leadingTrivia)

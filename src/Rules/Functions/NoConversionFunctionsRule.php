@@ -9,7 +9,7 @@ namespace DressCode\Rules\Functions;
 
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\GlobalCalls;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, Expression};
 use function count;
 
@@ -71,8 +71,8 @@ final class NoConversionFunctionsRule extends NodeRule
 
 		$operand = clone $arg->value;
 		$operand->setEdgeTrivia(leading: []);
-		$operand->getLastToken()?->removeTrailingWhitespace();
-		$template = (new Parser)->parseExpression("($cast) 0");
+		$operand->getLastToken()->removeTrailingWhitespace();
+		$template = (new Builder)->expression("($cast) 0");
 		assert($template instanceof Expression\CastNode);
 		$template->expression->replaceWithExpression($operand);
 		$node->replaceWith($template);

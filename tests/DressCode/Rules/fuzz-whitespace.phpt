@@ -128,7 +128,7 @@ function isShapedByAuthor(Token $token): bool
 		if (
 			($owner instanceof AssignmentNode || $owner instanceof CombinedAssignmentNode || $owner instanceof ArrayItemNode || $owner instanceof MatchArmNode)
 			&& (str_ends_with($operator->text, '=') || $operator->text === '=>')
-			&& $owner->getFirstToken()?->currentLine !== $operator->getPrevious()?->currentLine
+			&& $owner->getFirstToken()->currentLine !== $operator->getPrevious()?->currentLine
 		) {
 			return true;
 		}

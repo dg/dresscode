@@ -10,7 +10,7 @@ namespace DressCode\Rules\Namespaces;
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, SymbolKind, Token};
+use PhpSyntax\{Builder, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{FileNode, PlainNodeList, StatementNode, UseItemNode};
 use PhpSyntax\Nodes\Statement\{NamespaceNode, UseNode};
 use function count, strlen;
@@ -199,7 +199,7 @@ final class GroupImportRule extends NodeRule implements ConfigurableRule
 				. ($item->alias === null ? '' : ' as ' . $item->alias->text),
 			$stmt->items->getItems(),
 		);
-		$group = (new Parser)->parseStatement("use $type$namespace\\{" . implode(', ', $names) . '};');
+		$group = (new Builder)->statement("use $type$namespace\\{" . implode(', ', $names) . '};');
 		return $group instanceof UseNode ? $group : null;
 	}
 }

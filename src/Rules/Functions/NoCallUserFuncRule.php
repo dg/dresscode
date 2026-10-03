@@ -11,7 +11,7 @@ use DressCode\Analyses\{Parameter, PhpSignatures, PhpSymbols};
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\{Compiler, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{NameForm, Node, ParseException, Parser, SymbolKind, Token};
+use PhpSyntax\{Builder, NameForm, Node, ParseException, SymbolKind, Token};
 use PhpSyntax\Nodes\{ArgumentNode, ExpressionNode, NameNode, ParameterNode};
 use PhpSyntax\Nodes\Expression\{ArrayNode, ArrowFunctionNode, ClosureNode, FunctionCallNode};
 use PhpSyntax\Nodes\Scalar\StringNode;
@@ -95,7 +95,7 @@ final class NoCallUserFuncRule extends NodeRule
 		}
 
 		// a comment between the name and the arguments the call keeps would be lost with them
-		$fixable = $node->name->getLastToken()?->hasCommentUpTo($end) === false;
+		$fixable = !$node->name->getLastToken()->hasCommentUpTo($end);
 		$uncertainty = GlobalCalls::findUncertainty($node, $context);
 		$because = match (true) {
 			array_any($passed, fn(ExpressionNode $value) => $value->isWritable()) && !$this->isWithoutReferences($callable->value, $context)
@@ -115,9 +115,9 @@ final class NoCallUserFuncRule extends NodeRule
 			return;
 		}
 
-		$call = $named ?? FunctionCallNode::of(clone $callable->value);
+		$call = $named ?? (new Builder)->call($callable->value);
 		if ($function === 'call_user_func_array') {
-			$template = (new Parser)->parseExpression('f(...$a)');
+			$template = (new Builder)->expression('f(...$a)');
 			assert($template instanceof FunctionCallNode && $template->arguments->items->getItems()[0] instanceof ArgumentNode);
 			$value = $passed[0]->withoutEdgeTrivia();
 			$template->arguments->items->getItems()[0]->value->replaceWith($value);
@@ -148,7 +148,7 @@ final class NoCallUserFuncRule extends NodeRule
 		$resolver = $context->getAnalysis(NameResolver::class);
 		$bare = $resolver->getNamespace($callable) === '' && !isset($resolver->getImports(SymbolKind::Function, $callable)[strtolower($name)]);
 		try {
-			$call = (new Parser)->parseExpression(($bare ? '' : '\\') . $name . '()');
+			$call = (new Builder)->expression(($bare ? '' : '\\') . $name . '()');
 		} catch (ParseException) {
 			return null;
 		}

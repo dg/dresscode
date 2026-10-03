@@ -9,9 +9,8 @@ namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
-use PhpSyntax\Analyses\Scope;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{CatchNode, Statement};
+use PhpSyntax\Nodes\{CatchNode, FunctionLikeNode, Statement};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use function in_array;
 
@@ -49,7 +48,7 @@ final class UselessCatchVariableRule extends NodeRule
 		}
 
 		$name = $node->variable->name->text;
-		$scope = $context->getAnalysis(Scope::class)->findFunction($node) ?? $context->file;
+		$scope = $node->findAncestor(FunctionLikeNode::class) ?? $context->file;
 		foreach (NodeHelpers::findDynamicVariableAccesses($scope, $context) as $access) {
 			if (self::mayRunAfter($access, $node, $scope, $context)) {
 				return;
@@ -66,7 +65,7 @@ final class UselessCatchVariableRule extends NodeRule
 			return;
 		}
 
-		$previous = $node->variable->getFirstToken()?->getPrevious();
+		$previous = $node->variable->getFirstToken()->getPrevious();
 		if ($previous?->getTrailingSpace() !== null) {
 			$previous->setTrailingSpace('');
 		}
@@ -81,9 +80,8 @@ final class UselessCatchVariableRule extends NodeRule
 	 */
 	private static function mayRunAfter(Node $access, CatchNode $catch, Node $scope, RuleContext $context): bool
 	{
-		$scopes = $context->getAnalysis(Scope::class);
-		$function = $scopes->findFunction($catch);
-		if ($scopes->findFunction($access) !== $function) {
+		$function = $catch->findAncestor(FunctionLikeNode::class);
+		if ($access->findAncestor(FunctionLikeNode::class) !== $function) {
 			return false;
 		}
 
@@ -91,7 +89,6 @@ final class UselessCatchVariableRule extends NodeRule
 		$catchToken = $catch->getFirstToken();
 		if (
 			$accessToken === null
-			|| $catchToken === null
 			|| $catchToken->isBefore($accessToken)
 		) {
 			return true;
@@ -115,6 +112,6 @@ final class UselessCatchVariableRule extends NodeRule
 			}
 		}
 
-		return $scope->findFirst(Statement\GotoNode::class, fn(Statement\GotoNode $goto) => $scopes->findFunction($goto) === $function) !== null;
+		return $scope->findFirst(Statement\GotoNode::class, fn(Statement\GotoNode $goto) => $goto->findAncestor(FunctionLikeNode::class) === $function) !== null;
 	}
 }

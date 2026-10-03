@@ -9,7 +9,7 @@ namespace DressCode\Rules\Functions;
 
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Violation};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{DereferenceKind, Node, Parser, Token};
+use PhpSyntax\{Builder, DereferenceKind, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, Expression, ExpressionNode, IdentifierNode, NameNode, ParameterNode};
 use PhpSyntax\Nodes\Scalar\StringNode;
 use PhpSyntax\Nodes\Statement\ReturnNode;
@@ -65,7 +65,7 @@ final class FirstClassCallableNotationRule extends NodeRule
 			return;
 		}
 
-		$node->replaceWith((new Parser)->parseExpression("$callable(...)"));
+		$node->replaceWith((new Builder)->expression("$callable(...)"));
 	}
 
 

@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Types;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\ParameterNode;
 use PhpSyntax\Nodes\Scalar\NullNode;
 use PhpSyntax\Nodes\Type\{NamedTypeNode, NullableTypeNode};
@@ -46,7 +46,7 @@ final class NullableTypeForDefaultNullRule extends NodeRule
 			return;
 		}
 
-		$nullable = (new Parser)->parseType('?int');
+		$nullable = (new Builder)->type('?int');
 		assert($nullable instanceof NullableTypeNode);
 		$inner = clone $type;
 		$nullable->question->setLeadingTrivia($inner->name->token->leadingTrivia);

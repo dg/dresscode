@@ -9,7 +9,7 @@ namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Tristate};
-use PhpSyntax\{Node, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, BinaryOpNode, IssetNode, PropertyFetchNode, TernaryNode};
 use PhpSyntax\Nodes\ExpressionNode;
 use PhpSyntax\Nodes\Scalar\NullNode;
@@ -84,7 +84,7 @@ final class NullCoalescingForNullTernaryRule extends NodeRule
 			return;
 		}
 
-		$node->replaceWith(BinaryOpNode::of($subject->withoutEdgeTrivia(), '??', $default->withoutEdgeTrivia()));
+		$node->replaceWith((new Builder)->binary($subject, '??', $default));
 	}
 
 

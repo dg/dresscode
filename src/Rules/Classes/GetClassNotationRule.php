@@ -10,7 +10,7 @@ namespace DressCode\Rules\Classes;
 use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Violation};
 use DressCode\Rules\GlobalCalls;
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{DereferenceKind, Node, Nodes, Parser, Token};
+use PhpSyntax\{Builder, DereferenceKind, Node, Nodes, Token};
 use PhpSyntax\Nodes\Expression;
 use PhpSyntax\Nodes\Scalar\MagicConstantNode;
 use function count;
@@ -78,7 +78,7 @@ final class GetClassNotationRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$node->replaceWith((new Parser)->parseExpression($replacement));
+		$node->replaceWith((new Builder)->expression($replacement));
 	}
 
 

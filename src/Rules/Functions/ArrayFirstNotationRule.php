@@ -10,8 +10,8 @@ namespace DressCode\Rules\Functions;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, DestructuringNode, Expression, ExpressionNode, NameNode, PlainNodeList, SeparatedNodeList, Statement};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, DestructuringNode, Expression, ExpressionNode, NameNode, PlainNodeList, SeparatedNodeList, Statement};
 use PhpSyntax\Nodes\Scalar\IntegerNode;
 use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 use function count;
@@ -67,7 +67,7 @@ final class ArrayFirstNotationRule extends NodeRule
 		}
 
 		$name = NameNode::fromText($function);
-		$node->replaceWith(Expression\FunctionCallNode::of($name, ArgumentListNode::of($array->withoutEdgeTrivia())));
+		$node->replaceWith((new Builder)->call($name, [$array]));
 
 		// the name is spelled once the call stands where the namespace can be read off it
 		$name->text = CodeWriter::spellFunction($function, $name, $context);

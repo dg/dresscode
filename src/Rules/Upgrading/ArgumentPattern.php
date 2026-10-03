@@ -9,9 +9,9 @@ namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Parameter, Types};
 use DressCode\{Tristate, Violation};
+use PhpSyntax\{Builder, ParseException};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, ExpressionNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\{ArrayNode, FunctionCallNode, VariableNode};
-use PhpSyntax\{ParseException, Parser};
 use function count, in_array, is_array, is_bool, is_float, is_int, is_string;
 
 
@@ -53,7 +53,7 @@ final readonly class ArgumentPattern
 	{
 		[$arguments, $types] = self::extractTypes($arguments);
 		try {
-			$call = (new Parser)->parseExpression("f($arguments)");
+			$call = (new Builder)->expression("f($arguments)");
 		} catch (ParseException $e) {
 			throw new \InvalidArgumentException("the arguments do not read as those of a call: {$e->getMessage()}", previous: $e);
 		}
@@ -322,7 +322,7 @@ final readonly class ArgumentPattern
 			$key = $arrayItem->key?->toValue();
 			$placeholder = is_string($key) ? $item->keys[$key] ?? null : null;
 			if ($placeholder !== null && !isset($bound[$placeholder])) {
-				$call = (new Parser)->parseExpression('f(0)');
+				$call = (new Builder)->expression('f(0)');
 				assert($call instanceof FunctionCallNode && $call->arguments->items->getItems()[0] instanceof ArgumentNode);
 				$bound[$placeholder] = $call->arguments->items->getItems()[0];
 				$bound[$placeholder]->value->replaceWithExpression($arrayItem->value->withoutEdgeTrivia());

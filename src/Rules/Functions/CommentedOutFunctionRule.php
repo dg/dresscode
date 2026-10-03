@@ -76,12 +76,12 @@ final class CommentedOutFunctionRule extends NodeRule implements ConfigurableRul
 			|| !($call = $node->expression) instanceof FunctionCallNode
 			|| ($found = GlobalCalls::findFunction($call, $this->functions, $context)) === null
 			|| self::canReturn($call, $function = $this->functions[$found])
-			|| !($first = $node->getFirstToken())
 			|| !($next = $node->semicolon->getNext())
 		) {
 			return;
 		}
 
+		$first = $node->getFirstToken();
 		$code = (string) $node;
 		$leading = implode('', array_map(fn(Trivia $trivia) => $trivia->text, $first->leadingTrivia));
 		$trailing = implode('', array_map(fn(Trivia $trivia) => $trivia->text, $node->semicolon->trailingTrivia));

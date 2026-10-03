@@ -9,7 +9,7 @@ namespace DressCode\Rules\Functions;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\GlobalCalls;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, Expression};
 use function count;
 
@@ -56,7 +56,7 @@ final class CsvEscapeArgumentRequiredRule extends NodeRule
 			return;
 		}
 
-		$template = (new Parser)->parseExpression("f(escape: '\\\\')");
+		$template = (new Builder)->expression("f(escape: '\\\\')");
 		assert($template instanceof Expression\FunctionCallNode);
 		$argument = $template->arguments->items->getItems()[0];
 		assert($argument instanceof ArgumentNode);

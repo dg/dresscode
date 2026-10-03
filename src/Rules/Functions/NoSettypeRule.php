@@ -9,9 +9,9 @@ namespace DressCode\Rules\Functions;
 
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\{GlobalCalls, NodeHelpers};
-use PhpSyntax\Analyses\{NameResolver, Scope};
-use PhpSyntax\{Node, Parser, Token};
-use PhpSyntax\Nodes\ArgumentNode;
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\{ArgumentNode, FunctionLikeNode};
 use PhpSyntax\Nodes\Expression\{FunctionCallNode, VariableNode};
 use PhpSyntax\Nodes\Scalar\StringNode;
 use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
@@ -88,18 +88,17 @@ final class NoSettypeRule extends NodeRule
 
 		$name = $var->value->name->text;
 		$cast = self::Casts[$cast];
-		$call->replaceWith((new Parser)->parseExpression($cast === null ? "$name = null" : "$name = ($cast) $name"));
+		$call->replaceWith((new Builder)->expression($cast === null ? "$name = null" : "$name = ($cast) $name"));
 	}
 
 
 	/** Whether the function or the file the node stands in reaches a variable by a name it does not spell out. */
 	private static function hasDynamicVariables(Node $node, RuleContext $context): bool
 	{
-		$scopes = $context->getAnalysis(Scope::class);
-		$function = $scopes->findFunction($node);
+		$function = $node->findAncestor(FunctionLikeNode::class);
 		return array_any(
 			NodeHelpers::findDynamicVariableAccesses($function ?? $context->file, $context),
-			fn(Node $access) => $scopes->findFunction($access) === $function,
+			fn(Node $access) => $access->findAncestor(FunctionLikeNode::class) === $function,
 		);
 	}
 }

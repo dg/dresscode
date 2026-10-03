@@ -9,7 +9,7 @@ namespace DressCode\Rules\Types;
 
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleGroup, RuleInfo, Stage, Violation};
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Type\{IntersectionTypeNode, NamedTypeNode, UnionTypeNode};
 use function count;
 
@@ -84,7 +84,7 @@ final class UnionTypeNotationRule extends NodeRule implements ConfigurableRule
 
 		if ($nulls !== [] && $this->shortNullable && count($others) === 1 && !$dnf) {
 			if ($context->report($node, 'The nullable type must be written ' . Violation::formatCode('?' . $others[0]))) {
-				$node->replaceWith((new Parser)->parseType('?' . $others[0]));
+				$node->replaceWith((new Builder)->type('?' . $others[0]));
 			}
 
 			return;
@@ -108,7 +108,7 @@ final class UnionTypeNotationRule extends NodeRule implements ConfigurableRule
 			? 'The types of a union type must be in alphabetical order'
 			: "`null` must come {$this->nullPosition} in a union type";
 		if ($context->report($node, $message)) {
-			$node->replaceWith((new Parser)->parseType(implode('|', $expected)));
+			$node->replaceWith((new Builder)->type(implode('|', $expected)));
 		}
 	}
 }

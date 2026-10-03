@@ -11,7 +11,7 @@ use DressCode\Analyses\{PhpSignatures, Types};
 use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{DereferenceKind, Node, Parser, SymbolKind, Token};
+use PhpSyntax\{Builder, DereferenceKind, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, Expression, ExpressionNode, IdentifierNode, NameNode, OperatorNode};
 use function count;
 
@@ -103,7 +103,7 @@ final class PipeOperatorRule extends NodeRule implements ConfigurableRule
 		}
 
 		$pipe = implode(' |> ', array_map(fn(string $callee) => "$callee(...)", array_reverse($steps)));
-		$replacement = (new Parser)->parseExpression("0 |> $pipe");
+		$replacement = (new Builder)->expression("0 |> $pipe");
 		$first = $replacement;
 		while ($first instanceof Expression\BinaryOpNode) {
 			$first = $first->left;

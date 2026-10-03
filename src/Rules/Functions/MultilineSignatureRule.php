@@ -94,7 +94,7 @@ final class MultilineSignatureRule extends GapRule implements ConfigurableRule
 				$open->getTrailingSpace() === null
 				&& !$open->hasComment()
 			)
-			|| $node->parameters->getItems()[0]->getFirstToken()?->startsLine()
+			|| $node->parameters->getItems()[0]->getFirstToken()->startsLine()
 			|| $node->closeParen->startsLine()
 		) {
 			return 'the signature spans several lines';

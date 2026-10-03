@@ -7,8 +7,8 @@
 
 namespace DressCode;
 
+use PhpSyntax\{Builder, ParseException, SymbolKind};
 use PhpSyntax\Nodes\Statement\UseNode;
-use PhpSyntax\{ParseException, Parser, SymbolKind};
 use function in_array, is_int;
 
 
@@ -111,7 +111,7 @@ readonly class Profile
 		$names = [];
 		foreach ($items as $item) {
 			try {
-				$statement = (new Parser)->parseStatement("use $keyword $item;");
+				$statement = (new Builder)->statement("use $keyword $item;");
 			} catch (ParseException $e) {
 				throw new \InvalidArgumentException("`$item` is not a name the way a `use $keyword` statement writes it: {$e->getMessage()}", previous: $e);
 			}

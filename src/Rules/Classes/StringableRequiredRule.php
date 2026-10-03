@@ -10,7 +10,7 @@ namespace DressCode\Rules\Classes;
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\CodeWriter;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, Token, Trivia};
+use PhpSyntax\{Builder, Node, Token, Trivia};
 use PhpSyntax\Nodes\{AnonymousClassNode, NameNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\ClassNode;
@@ -51,7 +51,7 @@ final class StringableRequiredRule extends NodeRule
 			return;
 		}
 
-		$template = (new Parser)->parseStatement('class Template implements ' . CodeWriter::writeClass('Stringable', $node, $context) . ' {}');
+		$template = (new Builder)->statement('class Template implements ' . CodeWriter::writeClass('Stringable', $node, $context) . ' {}');
 		assert($template instanceof ClassNode && $template->implements !== null && $template->implementsKeyword !== null);
 		if ($node->implements === null) {
 			[$keyword, $names] = [$template->implementsKeyword, $template->implements];
@@ -69,7 +69,7 @@ final class StringableRequiredRule extends NodeRule
 			$name->setEdgeTrivia([], []);
 			$trailing = self::takeTrailing($node->implements->getLastToken(), '');
 			$node->implements->append($name);
-			$name->getLastToken()?->setTrailingTrivia($trailing);
+			$name->getLastToken()->setTrailingTrivia($trailing);
 		}
 	}
 

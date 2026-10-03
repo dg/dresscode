@@ -2,9 +2,9 @@
 
 use DressCode\{Analyses, Tristate};
 use DressCode\Analyses\{Deprecation, MemberKind};
+use PhpSyntax\{Builder, Parser, Printer};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, StaticMethodCallNode, VariableNode};
 use PhpSyntax\Nodes\{ExpressionNode, FileNode};
-use PhpSyntax\{Parser, Printer};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -60,7 +60,7 @@ test('whether an expression is of a type, and maybe for a node the pass began wi
 	$types = analyse($file);
 
 	// a parameter is no expression PHPStan visits; the variable read in the body is
-	[, $order] = array_values(array_filter($file->find(VariableNode::class), fn(VariableNode $node) => $node->getFirstToken()?->text === '$order'));
+	[, $order] = array_values(array_filter($file->find(VariableNode::class), fn(VariableNode $node) => $node->getFirstToken()->text === '$order'));
 	Assert::same(Tristate::Yes, $types->isOfType($order, 'Acme\Shop\Order'));
 	Assert::same(Tristate::No, $types->isOfType($order, 'string'));
 	$sum = $file->find(PhpSyntax\Nodes\Expression\BinaryOpNode::class)[0];
@@ -70,7 +70,7 @@ test('whether an expression is of a type, and maybe for a node the pass began wi
 	Assert::same(Tristate::Yes, $types->isOfType($myConstant, 'non-empty-string'));
 
 	// a node inserted after the pass began has no type
-	$inserted = (new Parser)->parseExpression('$order');
+	$inserted = (new Builder)->expression('$order');
 	$sum->left->replaceWith($inserted);
 	Assert::same(Tristate::Maybe, $types->isOfType($inserted, 'Acme\Shop\Order'));
 	Assert::same(Tristate::Yes, $types->isOfType($sum, '2'));
@@ -280,9 +280,9 @@ test('the access a node makes is decided by the receiver, whether or not anythin
 	Assert::null($types->findMethodParameters('Acme\NoSuchClass', '__construct'));
 
 	// a parameter is no expression PHPStan visits; the variable read in the body is
-	[, $union] = array_values(array_filter($file->find(VariableNode::class), fn(VariableNode $node) => $node->getFirstToken()?->text === '$union'));
+	[, $union] = array_values(array_filter($file->find(VariableNode::class), fn(VariableNode $node) => $node->getFirstToken()->text === '$union'));
 	Assert::same(['Acme\Cache\FileStorage', 'Acme\Cache\Unrelated'], $types->findClasses($union));
-	[, $number] = array_values(array_filter($file->find(VariableNode::class), fn(VariableNode $node) => $node->getFirstToken()?->text === '$number'));
+	[, $number] = array_values(array_filter($file->find(VariableNode::class), fn(VariableNode $node) => $node->getFirstToken()->text === '$number'));
 	Assert::same([], $types->findClasses($number));
 });
 

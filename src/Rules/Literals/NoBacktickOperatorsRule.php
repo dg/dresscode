@@ -9,7 +9,7 @@ namespace DressCode\Rules\Literals;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, SymbolKind, Token};
+use PhpSyntax\{Builder, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\Expression\ShellExecNode;
 use PhpSyntax\Nodes\Scalar\InterpolatedStringPartNode;
 
@@ -54,6 +54,6 @@ final class NoBacktickOperatorsRule extends NodeRule
 		}
 
 		$function = $context->getAnalysis(NameResolver::class)->shortenName('shell_exec', SymbolKind::Function, $node);
-		$node->replaceWith((new Parser)->parseExpression($function . '("' . $command . '")'));
+		$node->replaceWith((new Builder)->expression($function . '("' . $command . '")'));
 	}
 }

@@ -10,7 +10,7 @@ namespace DressCode\Rules\Functions;
 use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Tristate};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, NameNode};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
 use PhpSyntax\Nodes\Scalar\BooleanNode;
@@ -112,7 +112,7 @@ final class StrictCallRule extends NodeRule
 			$value = str_ends_with($value, '()') && $node->name instanceof NameNode
 				? CodeWriter::spellFunction(substr($value, 0, -2), $node->name, $context) . '()'
 				: $value;
-			$call = (new Parser)->parseExpression("f($value)");
+			$call = (new Builder)->expression("f($value)");
 			assert($call instanceof FunctionCallNode);
 			$node->arguments->items->append(clone $call->arguments->items->getItems()[0]);
 		}

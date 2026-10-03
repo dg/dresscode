@@ -9,7 +9,7 @@ namespace DressCode\Rules\Literals;
 
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\{BinaryOpNode, CastNode};
 use PhpSyntax\Nodes\ExpressionNode;
 use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode, StringNode};
@@ -97,7 +97,7 @@ final class UselessStringConcatRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$node->replaceWith((new Parser)->parseExpression("'" . substr($l, 1, -1) . substr($r, 1, -1) . "'"));
+		$node->replaceWith((new Builder)->expression("'" . substr($l, 1, -1) . substr($r, 1, -1) . "'"));
 	}
 
 
@@ -129,7 +129,7 @@ final class UselessStringConcatRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$cast = (new Parser)->parseExpression('(string) 0');
+		$cast = (new Builder)->expression('(string) 0');
 		assert($cast instanceof CastNode);
 		$cast->expression->replaceWithExpression($copy);
 		$node->replaceWith($cast);

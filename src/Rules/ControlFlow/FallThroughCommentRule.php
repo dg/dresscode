@@ -73,14 +73,12 @@ final class FallThroughCommentRule extends NodeRule implements ConfigurableRule
 		if ($fallsThrough && $comment === null) {
 			if ($context->report($next, 'An intentional fall-through must be marked with a ' . Violation::formatCode($this->comment) . ' comment')) {
 				$first = $next->getFirstToken();
-				if ($first) {
-					$first->setLeadingTrivia([
-						new Trivia(Trivia::Whitespace, $stmts[0]->getFirstToken()?->getLineIndentation() ?? ''),
-						new Trivia(Trivia::Comment, '// ' . $this->comment),
-						new Trivia(Trivia::LineEnding, $context->style->lineEnding),
-						...$first->leadingTrivia,
-					]);
-				}
+				$first->setLeadingTrivia([
+					new Trivia(Trivia::Whitespace, $stmts[0]->getFirstToken()->getLineIndentation()),
+					new Trivia(Trivia::Comment, '// ' . $this->comment),
+					new Trivia(Trivia::LineEnding, $context->style->lineEnding),
+					...$first->leadingTrivia,
+				]);
 			}
 		} elseif (!$fallsThrough && $comment !== null && $token !== null) {
 			if ($context->report($token, 'Useless ' . Violation::formatCode($this->comment) . ' comment', trivia: $comment)) {
@@ -156,8 +154,8 @@ final class FallThroughCommentRule extends NodeRule implements ConfigurableRule
 		$pattern = '~' . str_replace(' ', '\s+', preg_quote($this->comment, '~')) . '~i';
 		$last = $node->getLastToken();
 		$first = $next->getFirstToken();
-		foreach ([[$last, $last?->trailingTrivia], [$first, $first?->leadingTrivia]] as [$token, $trivias]) {
-			foreach ($trivias ?? [] as $trivia) {
+		foreach ([[$last, $last->trailingTrivia], [$first, $first->leadingTrivia]] as [$token, $trivias]) {
+			foreach ($trivias as $trivia) {
 				if ($trivia->isComment() && preg_match($pattern, $trivia->text) === 1) {
 					return [$token, $trivia];
 				}

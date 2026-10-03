@@ -11,7 +11,7 @@ use DressCode\Analyses\{OverriddenSignature, Parameter, Types};
 use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage, Violation};
 use DressCode\Rules\{CodeWriter, NodeHelpers};
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, Token, Trivia, Visibility};
+use PhpSyntax\{Builder, Node, Token, Trivia, Visibility};
 use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClosureNode, StaticMethodCallNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\{NameNode, ParameterNode, TypeNode};
@@ -259,10 +259,9 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 		}
 
 		$first = $node->getFirstToken();
-		foreach ($first->leadingTrivia ?? [] as $trivia) {
+		foreach ($first->leadingTrivia as $trivia) {
 			if (
-				$first !== null
-				&& $trivia->id === Trivia::DocComment
+				$trivia->id === Trivia::DocComment
 				&& preg_match('~\$' . preg_quote($old, '~') . '\b~', $trivia->text)
 			) {
 				$first->replaceTrivia($trivia, $trivia->withText((string) preg_replace('~\$' . preg_quote($old, '~') . '\b~', '$' . $new, $trivia->text)));
@@ -291,7 +290,7 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 			. ($parameter->variadic ? '...' : '')
 			. '$' . $parameter->name
 			. ($parameter->variadic ? '' : ' = ' . $parameter->default);
-		$new = (new Parser)->parseFragment(ParameterNode::class, $code);
+		$new = (new Builder)->fragment(ParameterNode::class, $code);
 		$node->parameters->insert(count($node->parameters->getItems()), $new);
 	}
 
@@ -325,7 +324,7 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 
 	private static function parseType(string $code): TypeNode
 	{
-		$parameter = (new Parser)->parseFragment(ParameterNode::class, "$code \$x");
+		$parameter = (new Builder)->fragment(ParameterNode::class, "$code \$x");
 		assert($parameter->type !== null);
 		return $parameter->type->withoutEdgeTrivia();
 	}

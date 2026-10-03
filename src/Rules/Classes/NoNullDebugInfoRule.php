@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\FunctionLikeNode;
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Scalar\NullNode;
@@ -55,7 +55,7 @@ final class NoNullDebugInfoRule extends NodeRule
 				continue;
 			}
 
-			$replacement = (new Parser)->parseFragment(ReturnNode::class, 'return [];');
+			$replacement = (new Builder)->fragment(ReturnNode::class, 'return [];');
 			$array = $replacement->expression;
 			assert($array !== null);
 			if ($return->expression === null) {

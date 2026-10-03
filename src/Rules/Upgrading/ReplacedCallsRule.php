@@ -12,7 +12,7 @@ use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage, Violati
 use DressCode\Rules\CodeWriter;
 use Nette\Schema\{Context, Schema};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, DestructuringNode, ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode, MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -223,7 +223,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 
 		[$pattern, $template, $bindings, $access] = $found;
 		$types = $context->getAnalysis(Types::class);
-		$arguments = $node->arguments ?? ArgumentListNode::of();
+		$arguments = $node->arguments ?? (new Builder)->arguments([]);
 		$rewrite = match (true) {
 			$node instanceof MethodCallNode => $template->instantiate($bindings, $arguments, $node->object, nullsafe: $node->isNullsafe()),
 			$node instanceof StaticMethodCallNode => $template->instantiate($bindings, $arguments, $node->class, static: true),
@@ -278,11 +278,11 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			$pattern->arguments?->items !== [] => new Rewrite(null, ', but a first-class callable gets its arguments only when called'),
 			$receiver instanceof ExpressionNode && !($receiver instanceof VariableNode && $receiver->plainName !== null)
 				=> new Rewrite(null, ', but a closure would read its object only when called'),
-			default => $template->instantiate(new ArgumentBindings([]), ArgumentListNode::of(), $receiver, static: $node instanceof StaticMethodCallNode),
+			default => $template->instantiate(new ArgumentBindings([]), (new Builder)->arguments([]), $receiver, static: $node instanceof StaticMethodCallNode),
 		};
 
 		if ($rewrite->report($node->name, self::describeCall($node, $access, $pattern, $template), $context)) {
-			$closure = (new Parser)->parseExpression('fn() => 0');
+			$closure = (new Builder)->expression('fn() => 0');
 			assert($closure instanceof ArrowFunctionNode);
 			$closure->expression->replaceWithExpression($rewrite->write($node, $context));
 			$node->replaceWithExpression($closure);
@@ -402,7 +402,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			return null;
 		}
 
-		$arguments = $node->arguments ?? ArgumentListNode::of();
+		$arguments = $node->arguments ?? (new Builder)->arguments([]);
 		$parameters = $types->findParameters($access);
 		$entry = MemberMaps::findEntry($entries, $access, $types, $arguments, $parameters);
 		assert($entry === null || $entry->bindings !== null);
@@ -439,9 +439,10 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 
 		$classes = array_values(array_filter($rewrite->classes, fn(NameNode $class) => $class !== $new->class));
 		if ($node instanceof StaticMethodCallNode) {
-			$arguments = $new->arguments ?? ArgumentListNode::of();
+			$builder = new Builder;
+			$arguments = $new->arguments ?? $builder->arguments([]);
 			$new->arguments = null;
-			return new Rewrite(StaticMethodCallNode::of($node->class->withoutEdgeTrivia(), '__construct', $arguments), risk: $rewrite->risk, classes: $classes);
+			return new Rewrite($builder->staticMethodCall($node->class, '__construct', $arguments), risk: $rewrite->risk, classes: $classes);
 		}
 
 		assert($node instanceof NewNode);
@@ -525,7 +526,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			} elseif ($node instanceof IssetNode) {
 				$node->replaceWithExpression($rewrite->write($node, $context));
 			} else {
-				$statement = (new Parser)->parseStatement('0;');
+				$statement = (new Builder)->statement('0;');
 				assert($statement instanceof ExpressionStatementNode);
 				$statement->expression = $rewrite->write($node, $context);
 				$node->replaceWith($statement);
@@ -548,7 +549,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 		$class = $context->getAnalysis(NameResolver::class)->resolveClass($node->name);
 		$types = $context->getAnalysis(Types::class);
 		$access = new MemberAccess(MemberKind::Constructor, '__construct', [$class], $types->hasMember($class, MemberKind::Constructor, '__construct'));
-		$arguments = $node->arguments ?? ArgumentListNode::of();
+		$arguments = $node->arguments ?? (new Builder)->arguments([]);
 		$parameters = $types->findParameters($access);
 		$entry = MemberMaps::findEntry($entries, $access, $types, $arguments, $parameters);
 		if ($entry === null) {
@@ -573,7 +574,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 
 		if ($rewrite->report($node->name, $entry->pattern->describe(MemberKind::Constructor) . ' is replaced by ' . Violation::formatCode($template->code), $context)) {
 			assert($new instanceof NewNode);
-			$group = (new Parser)->parseFragment(AttributeGroupNode::class, '#[' . $node->name->text . ($new->arguments->text ?? '') . ']');
+			$group = (new Builder)->fragment(AttributeGroupNode::class, '#[' . $node->name->text . ($new->arguments->text ?? '') . ']');
 			$node->replaceWith($group->items->getItems()[0]->withoutEdgeTrivia());
 		}
 	}
@@ -644,7 +645,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			$known = $hooks['get'] ?? $hooks['set'] ?? null;
 			if ($known !== null) {
 				$template = $hooks[$use][1] ?? null;
-				$arguments = ArgumentListNode::of(...$values);
+				$arguments = (new Builder)->arguments($values);
 				$bound = $arguments->findArgument(null, 0);
 				return [
 					$known[0]->describe($access->kind) . ' is replaced by ' . Violation::formatCode(($template ?? $known[1])->code),

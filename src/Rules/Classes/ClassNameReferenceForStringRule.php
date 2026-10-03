@@ -10,7 +10,7 @@ namespace DressCode\Rules\Classes;
 use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, SymbolKind, Token};
+use PhpSyntax\{Builder, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\Expression\ClassConstantFetchNode;
 use PhpSyntax\Nodes\Scalar\StringNode;
 
@@ -66,7 +66,7 @@ final class ClassNameReferenceForStringRule extends NodeRule
 		}
 
 		$short = $context->getAnalysis(NameResolver::class)->shortenName($name, SymbolKind::ClassLike, $node);
-		$fetch = (new Parser)->parseExpression("$short::class");
+		$fetch = (new Builder)->expression("$short::class");
 		assert($fetch instanceof ClassConstantFetchNode);
 		$node->replaceWith($fetch);
 	}

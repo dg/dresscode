@@ -11,7 +11,7 @@ use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token, Visibility};
+use PhpSyntax\{Builder, Node, Token, Visibility};
 use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, IdentifierNode, NameNode};
 use PhpSyntax\Nodes\Expression\{MethodCallNode, StaticMethodCallNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -137,12 +137,12 @@ final class StaticForMethodWithoutThisRule extends NodeRule
 				|| $call->object->plainName !== 'this'
 				|| !$call->name instanceof IdentifierNode
 				|| !$call->name->equals($method)
-				|| $call->object->getLastToken()?->hasCommentUpTo($call->arguments->openParen) !== false
+				|| $call->object->getLastToken()->hasCommentUpTo($call->arguments->openParen) !== false
 			) {
 				continue;
 			}
 
-			$call->replaceWith(StaticMethodCallNode::of(NameNode::fromText('self'), $method, clone $call->arguments));
+			$call->replaceWith((new Builder)->staticMethodCall('self', $method, $call->arguments));
 		}
 	}
 }

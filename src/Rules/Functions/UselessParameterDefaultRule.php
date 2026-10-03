@@ -43,10 +43,9 @@ final class UselessParameterDefaultRule extends NodeRule
 			|| self::keepsImplicitNullability($node)
 			|| !($params = $node->parent) instanceof SeparatedNodeList
 			|| !self::hasRequiredAfter($params, $node)
-			|| ($last = $node->getLastToken()) === null
 			|| $node->equals->hasComment()
-			|| $node->equals->hasCommentUpTo($last)
-			|| $last->hasComment()
+			|| $node->equals->hasCommentUpTo($node->getLastToken())
+			|| $node->getLastToken()->hasComment()
 			|| !$context->report($node->default, 'Useless default value, a parameter without one follows')
 		) {
 			return;
@@ -54,7 +53,7 @@ final class UselessParameterDefaultRule extends NodeRule
 
 		$node->equals = null;
 		$node->default = null;
-		$node->variable->getLastToken()?->removeTrailingWhitespace();
+		$node->variable->getLastToken()->removeTrailingWhitespace();
 	}
 
 

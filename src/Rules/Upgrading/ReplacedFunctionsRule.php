@@ -12,7 +12,7 @@ use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use Nette\Schema\{Context, Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Parser, SymbolKind, Token};
+use PhpSyntax\{Builder, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{ArgumentNode, NameNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\{FunctionCallNode, StaticMethodCallNode};
 use function array_find, count, is_int, strlen;
@@ -122,7 +122,7 @@ final class ReplacedFunctionsRule extends NodeRule implements ConfigurableRule
 
 		if (str_contains($new, '::')) {
 			[$class, $method] = explode('::', $new);
-			$call = (new Parser)->parseExpression(CodeWriter::writeClass($class, $node, $context) . "::$method()");
+			$call = (new Builder)->expression(CodeWriter::writeClass($class, $node, $context) . "::$method()");
 			assert($call instanceof StaticMethodCallNode);
 			$call->arguments = $node->arguments->withoutEdgeTrivia();
 			$node->replaceWithExpression($call);

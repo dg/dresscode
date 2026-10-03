@@ -73,6 +73,6 @@ final class MultilineCallRule extends GapRule
 			return true;
 		}
 
-		return array_any($list->items->getItems(), fn(Node $arg) => $arg->getFirstToken()?->startsLine() === true);
+		return array_any($list->items->getItems(), fn(Node $arg) => $arg->getFirstToken()->startsLine());
 	}
 }

@@ -11,6 +11,7 @@ use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\Analyses\Scope;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClosureNode, VariableNode};
+use PhpSyntax\Nodes\FunctionLikeNode;
 
 
 /**
@@ -42,7 +43,7 @@ final class NoStaticThisRule extends NodeRule
 		}
 
 		$scope = $context->getAnalysis(Scope::class);
-		$function = $scope->findFunction($node);
+		$function = $node->findAncestor(FunctionLikeNode::class);
 		if ($function === null || $scope->hasThis($node)) {
 			return;
 		}

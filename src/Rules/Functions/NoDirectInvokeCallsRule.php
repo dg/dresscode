@@ -8,8 +8,8 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
-use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\Expression\{FunctionCallNode, MethodCallNode};
+use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\Expression\MethodCallNode;
 use PhpSyntax\Nodes\IdentifierNode;
 
 
@@ -38,12 +38,12 @@ final class NoDirectInvokeCallsRule extends NodeRule
 			|| !$node->operator->is('->')
 			|| !$node->name instanceof IdentifierNode
 			|| !$node->name->equals('__invoke')
-			|| $node->object->getLastToken()?->hasCommentUpTo($node->arguments->openParen) !== false
+			|| $node->object->getLastToken()->hasCommentUpTo($node->arguments->openParen) !== false
 			|| !$context->report($node->name, 'An invokable object must be called directly, not through `__invoke()`')
 		) {
 			return;
 		}
 
-		$node->replaceWith(FunctionCallNode::of(clone $node->object, clone $node->arguments));
+		$node->replaceWith((new Builder)->call($node->object, $node->arguments));
 	}
 }

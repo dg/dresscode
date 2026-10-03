@@ -9,7 +9,7 @@ namespace DressCode\Rules\Namespaces;
 
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
-use PhpSyntax\{Node, Parser, Token};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\Nodes\Statement\{NamespaceNode, UseNode};
 use function count, is_int, strlen;
@@ -118,7 +118,7 @@ final class OrderedImportsRule extends NodeRule implements ConfigurableRule
 			}
 		}
 
-		$parser = new Parser;
+		$builder = new Builder;
 		foreach ($run as $i => $stmt) {
 			if (self::describe($stmt) === $statements[$i]) {
 				continue;
@@ -128,7 +128,7 @@ final class OrderedImportsRule extends NodeRule implements ConfigurableRule
 				return;
 			}
 
-			$stmt->replaceWith($parser->parseStatement($statements[$i]));
+			$stmt->replaceWith($builder->statement($statements[$i]));
 		}
 	}
 

@@ -8,9 +8,8 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
-use PhpSyntax\Analyses\Scope;
 use PhpSyntax\{Node, Token, Visibility};
-use PhpSyntax\Nodes\{AnonymousClassNode, ParameterNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, ParameterNode};
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
 use PhpSyntax\Nodes\Statement\{ClassNode, EnumNode};
 use function count;
@@ -39,7 +38,7 @@ final class UselessModifierRule extends NodeRule
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		$class = $context->getAnalysis(Scope::class)->findClass($node);
+		$class = $node->findAncestor(ClassLikeNode::class);
 		if ($node instanceof MethodNode || $node instanceof ClassConstNode) {
 			[$kind, $message] = match (true) {
 				$class instanceof ClassNode && $class->modifiers->isFinal() => [Token::Final, 'Useless `final` modifier in a final class'],
