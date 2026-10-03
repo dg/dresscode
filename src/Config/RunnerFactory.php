@@ -17,35 +17,12 @@ use const JSON_PARTIAL_OUTPUT_ON_ERROR, JSON_THROW_ON_ERROR;
 
 
 /**
- * Builds the runner of a run from a configuration, and reads what the composer.json of the project says of it.
+ * Resolves a configuration in a project and builds the runner of a run from it, and reads what the composer.json of
+ * the project says of it.
  * @internal
  */
 final class RunnerFactory
 {
-	/** @var list<string>  what the last built engine has to say about the configuration it was built from */
-	public private(set) array $warnings = [];
-
-	/**
-	 * The version the last built engine targets and where it came from; the caller must not resolve it
-	 * again, or the header could name something else than the rules were chosen for.
-	 * @var array{string, PhpVersionSource}
-	 */
-	public private(set) array $phpVersion;
-
-	/** the configuration the last built engine came from, as data */
-	public private(set) ResolvedConfig $resolvedConfig;
-
-	/**
-	 * The upgrading files of the installed packages the last built engine heard, each with the version of its package
-	 * the code must work with, null where any does.
-	 * @var list<array{PackageProfile, ?string}>
-	 */
-	public private(set) array $packages = [];
-
-	/** @var \Closure(list<int>): ResolvedConfig */
-	private \Closure $resolveFor;
-
-
 	public function __construct(
 		public readonly RuleRegistry $registry = new RuleRegistry,
 	) {
@@ -53,8 +30,54 @@ final class RunnerFactory
 
 
 	/**
+	 * Makes the rules and presets of the plugins and of the configuration known and resolves the configuration, every
+	 * override included.
 	 * @param  ?Profile  $commandLine  laid over the configuration and its overrides, as --preset and --rule are
 	 * @param  ?list<string>  $only  names or classes of the rules and presets the run is narrowed to
+	 * @throws ConfigurationException
+	 */
+	public function resolve(Config $config, string $root, ?Profile $commandLine = null, ?array $only = null): Resolution
+	{
+		$packageTargets = array_diff_key($config->targets, ['php' => true]);
+		$project = ProjectPackages::read($root)->withTargets($packageTargets);
+		$packages = PackageProfiles::discover($project);
+		$visited = [];
+		$plugins = [
+			...$this->loadPlugins($packages->plugins, $visited),
+			...$this->loadPlugins($config->plugins, $visited),
+		];
+		$this->registerNamedClasses($config);
+		[$target, $source] = $this->resolvePhpTarget($config, $root);
+		$resolver = new ConfigResolver($this->registry, $packages->profiles, $project);
+		$resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
+		// an override is resolved for a file it matches, so a name or an option it gets wrong would pass unnoticed until
+		// such a file comes; each of them is resolved as soon as the configuration is
+		foreach (array_keys($config->overrides) as $index) {
+			$resolver->resolve($config, $target, [$index], $commandLine, $only);
+		}
+
+		$missing = array_map(
+			fn(string $package) => "The configuration names package `$package` in `targets`, but it is not installed; skipped.",
+			array_filter(array_keys($packageTargets), fn(string $package) => !$project->has($package) || $package === $project->rootName),
+		);
+		return new Resolution(
+			$config,
+			$root,
+			$resolved,
+			[$resolved->phpVersion, $source],
+			[...$packages->warnings, ...$missing, ...$resolver->getWarnings()],
+			array_map(fn(PackageProfile $profile) => [$profile, $project->findVersion($profile->package)], $packages->profiles),
+			$plugins,
+			$project,
+			$commandLine,
+			$only,
+			$resolver,
+			$target,
+		);
+	}
+
+
+	/**
 	 * @param  bool  $strict  a broken rule contract throws instead of warning
 	 * @param  bool  $cache  clean files are remembered and skipped next time
 	 * @param  ?string  $configFile  the file the configuration was read from; its text is all the cache knows about
@@ -65,10 +88,7 @@ final class RunnerFactory
 	 * @throws ConfigurationException
 	 */
 	public function createRunner(
-		Config $config,
-		string $root,
-		?Profile $commandLine = null,
-		?array $only = null,
+		Resolution $resolution,
 		bool $strict = false,
 		bool $cache = true,
 		?string $configFile = null,
@@ -77,32 +97,10 @@ final class RunnerFactory
 		?Profiler $profiler = null,
 	): Runner
 	{
-		$packageTargets = array_diff_key($config->targets, ['php' => true]);
-		$project = ProjectPackages::read($root)->withTargets($packageTargets);
-		$packages = PackageProfiles::discover($project);
-		$this->packages = array_map(fn(PackageProfile $profile) => [$profile, $project->findVersion($profile->package)], $packages->profiles);
-		$visited = [];
-		$layers = [
-			...$this->loadPlugins($packages->plugins, $visited),
-			...$this->loadPlugins($config->plugins, $visited),
-			$config,
-		];
-		$this->registerNamedClasses($config);
-		[$target, $source] = $this->resolvePhpTarget($config, $root);
-		$resolver = new ConfigResolver($this->registry, $packages->profiles, $project);
-		$this->resolvedConfig = $resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
-		// an override is resolved for a file it matches, so a name or an option it gets wrong would pass unnoticed until
-		// such a file comes; each of them is resolved as soon as the run is built
-		foreach (array_keys($config->overrides) as $index) {
-			$resolver->resolve($config, $target, [$index], $commandLine, $only);
-		}
-
-		$missing = array_map(
-			fn(string $package) => "The configuration names package `$package` in `targets`, but it is not installed; skipped.",
-			array_filter(array_keys($packageTargets), fn(string $package) => !$project->has($package) || $package === $project->rootName),
-		);
-		$this->warnings = [...$packages->warnings, ...$missing, ...$resolver->getWarnings()];
-		$this->phpVersion = [$resolved->phpVersion, $source];
+		$config = $resolution->config;
+		$root = $resolution->root;
+		$resolved = $resolution->resolvedConfig;
+		$layers = [...$resolution->plugins, $config];
 		$analyses = array_merge(...array_map(fn(Config|PluginManifest $layer) => $layer->analyses, $layers));
 		if ($resolved->types === 'phpstan') {
 			if (!Analyses\PhpStan::isAvailable()) {
@@ -115,15 +113,11 @@ final class RunnerFactory
 
 		$baselineFile = $baseline ? self::loadBaseline($config, $root) : null;
 
-		// the processors are built lazily, so they must not ask the factory, which may have built another runner since
-		$this->resolveFor = $resolveFor = fn(array $overrides) => $overrides === []
-			? $resolved
-			: $resolver->resolve($config, $target, array_values($overrides), $commandLine, $only);
 		$registry = $this->registry;
 		$processors = new FileProcessors(
 			array_map(fn(Override $override) => $override->paths, $config->overrides),
-			function (array $overrides) use ($resolveFor, $registry, $analyses, $strict, $baselineFile, $fixRisky, $profiler): FileProcessor {
-				$variant = $resolveFor($overrides);
+			function (array $overrides) use ($resolution, $registry, $analyses, $strict, $baselineFile, $fixRisky, $profiler): FileProcessor {
+				$variant = $resolution->resolveFor($overrides);
 				$analysisRegistry = new Analyses\Registry($variant->toNamespacedSymbols());
 				foreach ($analyses as $class => $factory) {
 					$analysisRegistry->register($class, $factory);
@@ -165,12 +159,12 @@ final class RunnerFactory
 					array_keys($analyses),
 					$baselineFile?->getHash(),
 					$config->overrides,
-					$commandLine,
-					$only,
+					$resolution->commandLine,
+					$resolution->only,
 					$fixRisky,
 					$configFile === null ? null : hash_file('xxh128', $configFile),
 					$this->collectSourceTimes($resolved, $analyses),
-				], $project),
+				], $resolution->project),
 			)
 			: null;
 		return new Runner(
@@ -181,7 +175,7 @@ final class RunnerFactory
 			self::combineSkipWhen($layers),
 			$baselineFile,
 			$resultCache,
-			narrowed: (bool) $only,
+			narrowed: (bool) $resolution->only,
 			profiler: $profiler,
 			warmUp: isset($phpstan) ? $phpstan->warmUp(...) : null,
 			types: match (true) {
@@ -191,16 +185,6 @@ final class RunnerFactory
 			},
 			namespacesListed: $resolved->namespacedFunctions !== [] || $resolved->namespacedConstants !== [],
 		);
-	}
-
-
-	/**
-	 * What the configuration comes to for a file matching those overrides; the same resolution the run uses.
-	 * @param  list<int>  $overrides
-	 */
-	public function resolveConfigFor(array $overrides): ResolvedConfig
-	{
-		return ($this->resolveFor)($overrides);
 	}
 
 

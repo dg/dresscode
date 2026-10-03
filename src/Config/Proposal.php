@@ -85,7 +85,8 @@ final class Proposal
 	public static function measure(string $root, ?array $presets = null): self
 	{
 		$paths = self::findPaths($root);
-		$scope = (new RunnerFactory)->createRunner(new Config(fileExtensions: ['php', 'phpt']), $root, cache: false);
+		$factory = new RunnerFactory;
+		$scope = $factory->createRunner($factory->resolve(new Config(fileExtensions: ['php', 'phpt']), $root), cache: false);
 		$files = $generated = [];
 		foreach ($scope->findFiles($paths) as $file) {
 			$dirs = array_intersect(self::GeneratedDirs, explode('/', $file));
@@ -420,9 +421,7 @@ final class Proposal
 		$temp = sys_get_temp_dir() . '/dresscode-init-' . uniqid() . '.neon';
 		FileSystem::write($temp, $this->toNeon());
 		try {
-			$factory = new RunnerFactory;
-			$factory->createRunner(Loader::loadFile($temp), $root, cache: false);
-			$this->checkResolution($factory->resolvedConfig);
+			$this->checkResolution((new RunnerFactory)->resolve(Loader::loadFile($temp), $root)->resolvedConfig);
 		} finally {
 			@unlink($temp); // @ - may be gone
 		}

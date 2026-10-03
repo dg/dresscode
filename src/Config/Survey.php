@@ -90,7 +90,8 @@ final class Survey
 	 */
 	public function countChanged(Config $config): array
 	{
-		$runner = (new RunnerFactory)->createRunner($config, $this->root, cache: false);
+		$factory = new RunnerFactory;
+		$runner = $factory->createRunner($factory->resolve($config, $this->root), cache: false);
 		$run = $runner->run($this->files, fix: false, reporter: new NullReporter);
 		return [$run->countChangedFiles(), $run->countFailures()];
 	}
@@ -105,7 +106,8 @@ final class Survey
 	 */
 	private function probe(string $rule, Profile $layer): array
 	{
-		$runner = (new RunnerFactory)->createRunner($this->base, $this->root, commandLine: $layer, cache: false);
+		$factory = new RunnerFactory;
+		$runner = $factory->createRunner($factory->resolve($this->base, $this->root, $layer), cache: false);
 		$name = RuleInfo::of($rule)->name;
 		$reported = $failed = [];
 		foreach ($runner->run($this->files, fix: false, reporter: new NullReporter)->files as $result) {

@@ -24,7 +24,7 @@ function review(array $files, string $answers): array
 	}
 
 	$factory = new RunnerFactory;
-	$runner = $factory->createRunner(new Config(rules: ['strictCall' => true], paths: ['src']), $root, cache: false);
+	$runner = $factory->createRunner($factory->resolve(new Config(rules: ['strictCall' => true], paths: ['src']), $root), cache: false);
 	$result = $runner->run($runner->findFiles(['src']), true, new NullReporter);
 	$output = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$input = fopen('php://memory', 'w+') ?: throw new RuntimeException;

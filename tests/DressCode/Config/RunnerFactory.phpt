@@ -2,6 +2,7 @@
 
 use DressCode\{Config, ConfigurationException, NodeRule, Override, Plugin, PluginManifest, Preset, PresetInfo, Profile, RuleContext, RuleInfo, Stage};
 use DressCode\Config\{PhpVersionSource, RunnerFactory};
+use DressCode\Engine\Runner;
 use DressCode\Reporters\NullReporter;
 use DressCode\Rules\Literals\StringQuotesRule;
 use PhpSyntax\{Node, Token};
@@ -11,6 +12,14 @@ use Tester\{Assert, FileMock};
 require __DIR__ . '/../../bootstrap.php';
 
 $fixtures = str_replace('\\', '/', __DIR__) . '/fixtures';
+
+
+/** A runner built by a factory of its own, as every run of the tool builds one. */
+function buildRunner(Config $config, string $root, ?Profile $commandLine = null, ?string $configFile = null): Runner
+{
+	$factory = new RunnerFactory;
+	return $factory->createRunner($factory->resolve($config, $root, $commandLine), configFile: $configFile);
+}
 
 
 #[RuleInfo('test/a', Stage::Structure)]
@@ -105,8 +114,7 @@ test('the PHP target comes from the configuration, composer.json or the default'
 	Assert::same([Config::DefaultPhpVersion, PhpVersionSource::Default], $factory->resolvePhpTarget(new Config, sys_get_temp_dir()));
 
 	// the version the rules ask about is the lowest of the target
-	$factory->createRunner(new Config, "$fixtures/project", cache: false);
-	Assert::same(['8.1', PhpVersionSource::Composer], $factory->phpVersion);
+	Assert::same(['8.1', PhpVersionSource::Composer], $factory->resolve(new Config, "$fixtures/project")->phpVersion);
 });
 
 
@@ -116,15 +124,16 @@ test('a target older than the oldest PHP DressCode fixes code for is raised to i
 	$warning = 'The target PHP 7.4 is older than PHP 8.0, the oldest DressCode fixes code for; the code is checked as PHP 8.0, so a fix may write syntax the target does not have.';
 
 	$factory = new RunnerFactory;
-	$runner = $factory->createRunner(new Config(rules: [ReportContext::class => true]), $root, cache: false);
-	Assert::same(['8.0', PhpVersionSource::Composer], $factory->phpVersion);
-	Assert::same([$warning], $factory->warnings);
+	$resolution = $factory->resolve(new Config(rules: [ReportContext::class => true]), $root);
+	$runner = $factory->createRunner($resolution, cache: false);
+	Assert::same(['8.0', PhpVersionSource::Composer], $resolution->phpVersion);
+	Assert::same([$warning], $resolution->warnings);
 	Assert::match('8.0 %a%', $runner->processFile('x.php', "<?php\n\$a;\n")->violations[0]->message);
 
-	// every engine the factory builds starts with warnings of its own
-	$factory->createRunner(new Config(targets: ['php' => '7.4']), $root, cache: false);
-	Assert::same(['8.0', PhpVersionSource::Configuration], $factory->phpVersion);
-	Assert::same([$warning], $factory->warnings);
+	// every resolution starts with warnings of its own
+	$resolution = $factory->resolve(new Config(targets: ['php' => '7.4']), $root);
+	Assert::same(['8.0', PhpVersionSource::Configuration], $resolution->phpVersion);
+	Assert::same([$warning], $resolution->warnings);
 });
 
 
@@ -149,7 +158,7 @@ test('the types of the code come from the PHPStan of the project when the config
 	file_put_contents("$root/Check.php", $code);
 
 	$factory = new RunnerFactory;
-	$runner = $factory->createRunner(new Config(rules: ['noDeprecatedMembers' => true], paths: ['stubs'], types: 'phpstan'), $root, cache: false);
+	$runner = $factory->createRunner($factory->resolve(new Config(rules: ['noDeprecatedMembers' => true], paths: ['stubs'], types: 'phpstan'), $root), cache: false);
 	// the run names the file relative to the root, while the working directory is another
 	$result = $runner->processFile("$root/Check.php", $code);
 	Assert::same(
@@ -159,7 +168,7 @@ test('the types of the code come from the PHPStan of the project when the config
 
 	// a member the map of replacedMembers has is left to that rule, the deprecation being the fallback of a library without data
 	$rules = ['noDeprecatedMembers' => true, 'replacedMembers' => ['Acme\Shop\Order::STATUS_PAID' => 'StatusPaid']];
-	$runner = $factory->createRunner(new Config(rules: $rules, paths: ['stubs'], types: 'phpstan'), $root, cache: false);
+	$runner = $factory->createRunner($factory->resolve(new Config(rules: $rules, paths: ['stubs'], types: 'phpstan'), $root), cache: false);
 	Assert::same(
 		['9: Constant `Acme\Shop\Order::STATUS_PAID` is replaced by `Order::StatusPaid`'],
 		array_map(fn($violation) => "$violation->line: $violation->message", $runner->processFile("$root/Check.php", $code)->violations),
@@ -167,7 +176,7 @@ test('the types of the code come from the PHPStan of the project when the config
 
 	// without the types the rule the project names is refused, not left out
 	Assert::exception(
-		fn() => $factory->createRunner(new Config(rules: ['noDeprecatedMembers' => true]), $root, cache: false),
+		fn() => $factory->resolve(new Config(rules: ['noDeprecatedMembers' => true]), $root),
 		ConfigurationException::class,
 		'Rule `dresscode/noDeprecatedMembers` needs the types of the code; %a%',
 	);
@@ -192,22 +201,21 @@ test('the constraint of require.php', function () use ($fixtures) {
 
 
 test('the engine is built from the configuration', function () use ($fixtures) {
-	$runner = (new RunnerFactory)->createRunner(new Config(rules: [ReportContext::class => true], indent: 2, excludePaths: ['sub']), "$fixtures/project");
+	$runner = buildRunner(new Config(rules: [ReportContext::class => true], indent: 2, excludePaths: ['sub']), "$fixtures/project");
 	Assert::same([], $runner->findFiles(['src']));
 	$result = $runner->processFile('x.php', "<?php\r\n\$a;\r\n");
 	Assert::same(['8.1 "  ""\r\n"'], array_map(fn($v) => $v->message, $result->violations));
 
-	$runner = (new RunnerFactory)->createRunner(new Config(rules: [ReportContext::class => true], indent: 2, lineEnding: 'LF'), "$fixtures/project");
+	$runner = buildRunner(new Config(rules: [ReportContext::class => true], indent: 2, lineEnding: 'LF'), "$fixtures/project");
 	Assert::same(['8.1 "  ""\n"'], array_map(fn($v) => $v->message, $runner->processFile('x.php', "<?php\r\n\$a;\r\n")->violations));
 });
 
 
 test('the command line lies over the configuration', function () use ($fixtures) {
-	$runner = (new RunnerFactory)->createRunner(
+	$runner = buildRunner(
 		new Config(rules: [ReportContext::class => true]),
 		"$fixtures/project",
 		commandLine: new Profile(rules: [ReportContext::class => false, ReportVariable::class => true]),
-		cache: false,
 	);
 	Assert::same(['test/b'], array_map(fn($v) => $v->ruleName, $runner->processFile('x.php', "<?php\n\$a;\n")->violations));
 });
@@ -215,7 +223,7 @@ test('the command line lies over the configuration', function () use ($fixtures)
 
 test('a plugin makes its rules known by name, and brings the paths it leaves out and the files it skips', function () use ($fixtures) {
 	Assert::exception(
-		fn() => (new RunnerFactory)->createRunner(new Config(rules: ['test/a' => true]), "$fixtures/project"),
+		fn() => (new RunnerFactory)->resolve(new Config(rules: ['test/a' => true]), "$fixtures/project"),
 		ConfigurationException::class,
 		'Unknown rule `test/a`.',
 	);
@@ -227,16 +235,16 @@ test('a plugin makes its rules known by name, and brings the paths it leaves out
 	file_put_contents("$root/skipped.php", "<?php // @skip\n\$a;\n");
 	file_put_contents("$root/sub/excluded.php", "<?php\n\$a;\n");
 	$factory = new RunnerFactory;
-	$runner = $factory->createRunner(
+	$resolution = $factory->resolve(
 		new Config(
 			plugins: [ProjectPlugin::class],
 			rules: ['test/a' => true],
 			skipWhen: fn(string $content) => str_contains($content, '@skip'),
 		),
 		$root,
-		cache: false,
 	);
-	Assert::same(['test/a'], array_map(fn($rule) => $rule->name, $factory->resolvedConfig->getActiveRules()));
+	$runner = $factory->createRunner($resolution, cache: false);
+	Assert::same(['test/a'], array_map(fn($rule) => $rule->name, $resolution->resolvedConfig->getActiveRules()));
 
 	// the paths of every layer add up, and a file any layer skips is skipped
 	$files = $runner->findFiles(['.']);
@@ -247,12 +255,12 @@ test('a plugin makes its rules known by name, and brings the paths it leaves out
 
 test('the page of a rule is where the configuration that names it by class says, or the plugin that brings it', function () use ($fixtures) {
 	$factory = new RunnerFactory;
-	$factory->createRunner(new Config(rules: [ReportContext::class => true], ruleUrl: 'https://wiki.acme.dev/{slug}'), "$fixtures/project", cache: false);
+	$factory->resolve(new Config(rules: [ReportContext::class => true], ruleUrl: 'https://wiki.acme.dev/{slug}'), "$fixtures/project");
 	Assert::same('https://wiki.acme.dev/a', $factory->registry->getRuleUrl('test/a'));
 	Assert::same('https://dresscode.run/rules/uselessReturn', $factory->registry->getRuleUrl('dresscode/uselessReturn'));
 
 	$factory = new RunnerFactory;
-	$factory->createRunner(new Config(plugins: [ProjectPlugin::class], ruleUrl: 'https://wiki.acme.dev/{slug}'), "$fixtures/project", cache: false);
+	$factory->resolve(new Config(plugins: [ProjectPlugin::class], ruleUrl: 'https://wiki.acme.dev/{slug}'), "$fixtures/project");
 	Assert::null($factory->registry->getRuleUrl('test/a'));
 });
 
@@ -284,13 +292,13 @@ test('plugins takes plugins alone, a rule and a preset are named in their own ke
 
 test('an override turns a rule off under its class as under its name, an unknown one is an error before any file', function () use ($fixtures) {
 	$byClass = new Config(rules: [ReportContext::class => true], overrides: [new Override(['sub'], rules: [ReportContext::class => false])]);
-	$runner = (new RunnerFactory)->createRunner($byClass, "$fixtures/project");
+	$runner = buildRunner($byClass, "$fixtures/project");
 	Assert::same([], $runner->processFile('src/sub/x.php', "<?php\n\$a;\n")->violations);
 	Assert::count(1, $runner->processFile('src/x.php', "<?php\n\$a;\n")->violations);
 
 	$unknown = new Config(rules: [ReportContext::class => true], overrides: [new Override(['sub'], rules: ['test/nope' => false])]);
 	Assert::exception(
-		fn() => (new RunnerFactory)->createRunner($unknown, "$fixtures/project"),
+		fn() => (new RunnerFactory)->resolve($unknown, "$fixtures/project"),
 		ConfigurationException::class,
 		'The override for `sub`: Unknown rule `test/nope`.',
 	);
@@ -298,7 +306,7 @@ test('an override turns a rule off under its class as under its name, an unknown
 	// so is an option no rule takes, which would otherwise wait for a file of the override
 	$invalid = new Config(overrides: [new Override(['sub'], rules: ['stringQuotes' => ['quote' => 'single']])]);
 	Assert::exception(
-		fn() => (new RunnerFactory)->createRunner($invalid, "$fixtures/project"),
+		fn() => (new RunnerFactory)->resolve($invalid, "$fixtures/project"),
 		ConfigurationException::class,
 		"Invalid options of rule `dresscode/stringQuotes` set by the override for `sub`: Unexpected item 'quote', did you mean 'quotes'?",
 	);
@@ -307,7 +315,7 @@ test('an override turns a rule off under its class as under its name, an unknown
 
 test('an override brings its presets, its style, its name resolution and its warnings to its files', function () use ($fixtures) {
 	$factory = new RunnerFactory;
-	$runner = $factory->createRunner(
+	$resolution = $factory->resolve(
 		new Config(
 			plugins: [DoubleQuotesPlugin::class],
 			rules: [ReportContext::class => true],
@@ -315,8 +323,8 @@ test('an override brings its presets, its style, its name resolution and its war
 			overrides: [new Override(['sub'], presets: ['test/double'], indent: 2, nameResolution: 'uncertain', warnOnly: [ReportContext::class])],
 		),
 		"$fixtures/project",
-		cache: false,
 	);
+	$runner = $factory->createRunner($resolution, cache: false);
 	$describe = fn(string $path) => array_map(
 		fn($violation) => "$violation->ruleName {$violation->severity->name} $violation->message",
 		$runner->processFile($path, "<?php\n\$a = 'text';\n")->violations,
@@ -328,8 +336,8 @@ test('an override brings its presets, its style, its name resolution and its war
 	Assert::match('dresscode/stringQuotes Error %a%', $sub[1]);
 
 	$guard = 'dresscode/noUnlistedNamespacedDeclarations';
-	$sub = $factory->resolveConfigFor($runner->findOverridesFor('src/sub/x.php'));
-	Assert::same(['certain', true], [$factory->resolvedConfig->nameResolution, $factory->resolvedConfig->getRule($guard)?->isActive()]);
+	$sub = $resolution->resolveFor($runner->findOverridesFor('src/sub/x.php'));
+	Assert::same(['certain', true], [$resolution->resolvedConfig->nameResolution, $resolution->resolvedConfig->getRule($guard)?->isActive()]);
 	Assert::same(['uncertain', false], [$sub->nameResolution, $sub->getRule($guard)?->isActive()]);
 });
 
@@ -337,11 +345,10 @@ test('an override brings its presets, its style, its name resolution and its war
 test('a runner keeps the configuration it was built from, whatever the factory builds after it', function () use ($fixtures) {
 	$factory = new RunnerFactory;
 	$runner = $factory->createRunner(
-		new Config(rules: [ReportContext::class => true], overrides: [new Override(['sub'], rules: [ReportContext::class => false])]),
-		"$fixtures/project",
+		$factory->resolve(new Config(rules: [ReportContext::class => true], overrides: [new Override(['sub'], rules: [ReportContext::class => false])]), "$fixtures/project"),
 		cache: false,
 	);
-	$factory->createRunner(new Config(rules: [ReportVariable::class => true]), "$fixtures/project", cache: false);
+	$factory->createRunner($factory->resolve(new Config(rules: [ReportVariable::class => true]), "$fixtures/project"), cache: false);
 
 	// both processors are built lazily, the base one and the one of the override, and both after the second runner
 	Assert::same(['test/a'], array_map(fn($v) => $v->ruleName, $runner->processFile('src/x.php', "<?php\n\$a;\n")->violations));
@@ -356,8 +363,7 @@ test('a rule built by a closure is cached only under the text of the file the co
 	file_put_contents("$root/loud.php", '<?php // loud');
 	$quiet = fn() => new Config(rules: [ReportVariable::class => fn() => new ReportVariable(report: false)], cacheDir: "$root/cache");
 	$loud = fn() => new Config(rules: [ReportVariable::class => fn() => new ReportVariable], cacheDir: "$root/cache");
-	$run = fn(Config $config, ?string $file = null) => (new RunnerFactory)
-		->createRunner($config, $root, configFile: $file)
+	$run = fn(Config $config, ?string $file = null) => buildRunner($config, $root, configFile: $file)
 		->run(['x.php'], false, new NullReporter);
 
 	// without the file nothing tells the two closures apart, so nothing is cached
@@ -381,8 +387,7 @@ test('the options of a rule built by a closure are part of the identity, whateve
 		rules: [StringQuotesRule::class => fn() => new StringQuotesRule],
 		cacheDir: $cacheDir,
 	);
-	$run = fn(?Profile $commandLine, string $cacheDir) => (new RunnerFactory)
-		->createRunner($config($cacheDir), $root, $commandLine, configFile: "$root/config.php")
+	$run = fn(?Profile $commandLine, string $cacheDir) => buildRunner($config($cacheDir), $root, $commandLine, "$root/config.php")
 		->run(['x.php'], false, new NullReporter);
 
 	// a preset from the command line changes the options, not the text of the file
@@ -406,8 +411,7 @@ test('a rule of the project itself is part of the identity by the time its file 
 	}
 
 	file_put_contents("$root/x.php", "<?php\n");
-	$cached = fn() => (new RunnerFactory)
-		->createRunner(new Config(rules: ['TouchedRule' => true], cacheDir: "$root/cache"), $root)
+	$cached = fn() => buildRunner(new Config(rules: ['TouchedRule' => true], cacheDir: "$root/cache"), $root)
 		->run(['x.php'], false, new NullReporter)
 		->files[0]->cached;
 
@@ -434,8 +438,7 @@ test('a package the project upgrades is part of the identity, however the tool i
 			'source' => ['reference' => $reference],
 		]]], JSON_THROW_ON_ERROR),
 	);
-	$cached = fn() => (new RunnerFactory)
-		->createRunner(new Config(rules: ['noBom' => true], cacheDir: "$root/cache"), $root)
+	$cached = fn() => buildRunner(new Config(rules: ['noBom' => true], cacheDir: "$root/cache"), $root)
 		->run(['x.php'], false, new NullReporter)
 		->files[0]->cached;
 

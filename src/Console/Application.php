@@ -8,7 +8,7 @@
 namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, Preset, PresetInfo, Profile, Reporter, Reporters, RuleException, RuleInfo};
-use DressCode\Config\{Loader, PhpVersionSource, Proposal, RuleRegistry, RunnerFactory};
+use DressCode\Config\{Loader, PhpVersionSource, Proposal, Resolution, RuleRegistry, RunnerFactory};
 use DressCode\Engine\{Baseline, FileSummary, Helpers, Profiler, RunInfo, Runner, RunResult, SuppressionMigration, WorkerClient, WorkerPool};
 use DressCode\Interop\{PhpCodeSniffer, PhpCsFixer, Translator};
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, ParseException as CommandLineException, Parser, ParseResult};
@@ -251,12 +251,10 @@ final class Application
 		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
 		$only = self::parseOnly($args);
 		$profiler = is_string($args['--profile']) ? new Profiler : null;
+		$resolution = $factory->resolve($config, $root, $commandLine, $only);
 		if (is_string($args['--worker'])) { // the parent keeps the cache; the baseline decides what is reported
 			$runner = $factory->createRunner(
-				$config,
-				$root,
-				$commandLine,
-				$only,
+				$resolution,
 				strict: (bool) $args['--strict-rules'],
 				cache: false,
 				fixRisky: in_array(true, (array) ($args['--fix-risky'] ?? []), true),
@@ -268,17 +266,14 @@ final class Application
 		}
 
 		$runner = $factory->createRunner(
-			$config,
-			$root,
-			$commandLine,
-			$only,
+			$resolution,
 			strict: (bool) $args['--strict-rules'],
 			cache: !$args['--no-cache'] && !$profiler, // a file served from the cache has nothing to measure
 			configFile: $configFile,
 			fixRisky: in_array(true, (array) ($args['--fix-risky'] ?? []), true),
 			profiler: $profiler,
 		);
-		foreach ($factory->warnings as $warning) { // only the parent warns, a worker has returned above
+		foreach ($resolution->warnings as $warning) { // only the parent warns, a worker has returned above
 			$this->err->writeLine(Markup::highlightCode($this->err, "Warning: $warning", 'yellow'));
 		}
 
@@ -317,7 +312,7 @@ final class Application
 				$this->err->writeLine('Warning: Xdebug is loaded and makes the run many times slower.', 'red');
 			}
 
-			$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
+			$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($resolution));
 			$this->writeScope(files: $files, paths: $scope, root: $root, fix: $fix, narrowed: $paths && $scope !== $paths);
 		}
 
@@ -457,9 +452,9 @@ final class Application
 
 
 	/** The version the rules target, said with where it was taken from when the user did not choose it. */
-	private static function describePhpVersion(RunnerFactory $factory): string
+	private static function describePhpVersion(Resolution $resolution): string
 	{
-		[$version, $source] = $factory->phpVersion;
+		[$version, $source] = $resolution->phpVersion;
 		return $version . match ($source) {
 			PhpVersionSource::Configuration => '',
 			PhpVersionSource::Composer => ' from `composer.json`',
@@ -552,7 +547,7 @@ final class Application
 	{
 		$name = $config->baseline ?? self::defaultBaselineName($configFile);
 		$file = RunnerFactory::toAbsolutePath($name, $root);
-		$runner = $factory->createRunner($config, $root, $commandLine, cache: false, baseline: false);
+		$runner = $factory->createRunner($factory->resolve($config, $root, $commandLine), cache: false, baseline: false);
 		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter, workers: $workers);
 		$changed = $failed = [];
 		foreach ($run->files as $result) {
@@ -605,7 +600,7 @@ final class Application
 	{
 		$factory = new RunnerFactory;
 		[$config, $root, , $commandLine] = $this->loadConfig($args);
-		$runner = $factory->createRunner($config, $root, $commandLine);
+		$runner = $factory->createRunner($factory->resolve($config, $root, $commandLine));
 		$named = array_map($this->resolvePath(...), self::parsePaths($args));
 		$paths = $named ? $runner->narrowPaths($named, $config->paths) : $config->paths;
 		if (!$paths) {
@@ -659,18 +654,18 @@ final class Application
 	{
 		$factory = new RunnerFactory;
 		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
-		$runner = $factory->createRunner($config, $root, $commandLine, self::parseOnly($args), cache: false);
+		$resolution = $factory->resolve($config, $root, $commandLine, self::parseOnly($args));
 		$file = $args['--file'];
 		$resolved = is_string($file)
-			? $factory->resolveConfigFor($runner->findOverridesFor($file))
-			: $factory->resolvedConfig;
-		$printer = new ConfigPrinter($resolved, $factory->packages);
+			? $resolution->resolveFor($factory->createRunner($resolution, cache: false, baseline: false)->findOverridesFor($file))
+			: $resolution->resolvedConfig;
+		$printer = new ConfigPrinter($resolved, $resolution->packages);
 		if ($args['--format'] === 'json') {
 			$this->out->write($printer->printJson());
 			return 0;
 		}
 
-		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
+		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($resolution));
 		if (is_string($file)) {
 			$this->out->writeLine($this->out->color('gray', 'File       ') . FileSystem::platformSlashes($file));
 		}
@@ -691,8 +686,8 @@ final class Application
 		$name = $args['rule'];
 		$factory = new RunnerFactory;
 		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
-		$factory->createRunner($config, $root, $commandLine, self::parseOnly($args), cache: false);
-		$resolved = $factory->resolvedConfig;
+		$resolution = $factory->resolve($config, $root, $commandLine, self::parseOnly($args));
+		$resolved = $resolution->resolvedConfig;
 		$printer = new ExplainPrinter($factory->registry);
 		if (is_string($name)) {
 			$rule = $resolved->getRule(RuleInfo::of($factory->registry->resolveRule($name))->name);
@@ -711,7 +706,7 @@ final class Application
 			return 0;
 		}
 
-		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($factory));
+		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($resolution));
 		$this->out->write("\n" . Markup::renderMarkdown($this->out, $markdown));
 		return 0;
 	}
@@ -721,9 +716,8 @@ final class Application
 	{
 		$factory = new RunnerFactory;
 		[$config, $root, , $commandLine] = $this->loadConfig($args);
-		$factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
 		$enabled = [];
-		foreach ($factory->resolvedConfig->getActiveRules() as $rule) {
+		foreach ($factory->resolve($config, $root, $commandLine, self::parseOnly($args))->resolvedConfig->getActiveRules() as $rule) {
 			$enabled[$rule->name] = true;
 		}
 

@@ -87,9 +87,9 @@ final class UpgradingTester
 			fn(array $package) => $package['version'],
 			ProjectPackages::read($root)->installed,
 		));
-		$runner = (new RunnerFactory)->createRunner(
-			new Config(paths: ["temp/$name.php"], rules: array_fill_keys($rules, true), types: 'phpstan', targets: $installed),
-			$root,
+		$factory = new RunnerFactory;
+		$runner = $factory->createRunner(
+			$factory->resolve(new Config(paths: ["temp/$name.php"], rules: array_fill_keys($rules, true), types: 'phpstan', targets: $installed), $root),
 			cache: false,
 		);
 		return $runner->processFile($file, $code);

@@ -108,8 +108,7 @@ test('init writes what the code says, the loader reads it back as measured, and 
 
 	// the round trip: what the run resolves the written file to is what was measured
 	$factory = new RunnerFactory;
-	$factory->createRunner(Loader::loadFile("$root/dresscode.neon"), $root, cache: false);
-	$resolved = $factory->resolvedConfig;
+	$resolved = $factory->resolve(Loader::loadFile("$root/dresscode.neon"), $root)->resolvedConfig;
 	Assert::same("\t", $resolved->indent);
 	Assert::same(['quotes' => 'single'], $resolved->getRule('dresscode/stringQuotes')?->options);
 	Assert::noError(fn() => Proposal::measure($root)->checkResolution($resolved));
@@ -168,8 +167,7 @@ test('init lists what the namespaces declare from every file, and proposes the p
 		XX, (string) file_get_contents("$root/dresscode.neon"));
 
 	$factory = new RunnerFactory;
-	$factory->createRunner(Loader::loadFile("$root/dresscode.neon"), $root, cache: false);
-	$resolved = $factory->resolvedConfig;
+	$resolved = $factory->resolve(Loader::loadFile("$root/dresscode.neon"), $root)->resolvedConfig;
 	Assert::same('certain', $resolved->nameResolution);
 	Assert::same('the configuration', $resolved->namespacedFunctions['App\Compat\first']);
 	Assert::same('DressCode for symfony/dependency-injection', $resolved->namespacedFunctions['Symfony\Component\DependencyInjection\Loader\Configurator\service']);
@@ -236,9 +234,9 @@ test('a decision the code does not make clearly is not written as a value', func
 	Assert::notContains('fixRisky', $neon);
 
 	$factory = new RunnerFactory;
-	$factory->createRunner(Loader::loadFile("$root/dresscode.neon"), $root, cache: false);
-	Assert::false($factory->resolvedConfig->getRule('dresscode/stringQuotes')?->isActive());
-	Assert::same("\t", $factory->resolvedConfig->indent); // the tab of dresscode/nette
+	$resolved = $factory->resolve(Loader::loadFile("$root/dresscode.neon"), $root)->resolvedConfig;
+	Assert::false($resolved->getRule('dresscode/stringQuotes')?->isActive());
+	Assert::same("\t", $resolved->indent); // the tab of dresscode/nette
 });
 
 
@@ -257,8 +255,8 @@ test('the shape of the conditions is counted by condition, and both shapes pass 
 	Assert::contains("\tmultilineCondition: {shape: [perLine, compact]}  # perLine 50%, compact 25% of 4 conditions, 1 in none of them\n", $neon);
 
 	$factory = new RunnerFactory;
-	$factory->createRunner(Loader::loadFile("$root/dresscode.neon"), $root, cache: false);
-	Assert::same(['perLine', 'compact'], $factory->resolvedConfig->getRule('dresscode/multilineCondition')?->options['shape']);
+	$resolved = $factory->resolve(Loader::loadFile("$root/dresscode.neon"), $root)->resolvedConfig;
+	Assert::same(['perLine', 'compact'], $resolved->getRule('dresscode/multilineCondition')?->options['shape']);
 
 	// a shape at least 70 % of the conditions have is written as the shape
 	$root = createProject('shape', ['src/a.php' => "<?php\n$perLine$perLine$perLine$compact"]);
