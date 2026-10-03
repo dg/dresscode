@@ -70,7 +70,7 @@ final class UnusedImportsRule extends NodeRule implements ConfigurableRule
 				foreach ($stmt->items->getItems() as $item) {
 					$kind = self::kindOf($item->symbolKind);
 					$alias = $item->alias === null ? $item->name->shortName : $item->alias->text;
-					$imports[] = [$stmt, $item, $kind, $alias, $kind === self::Constants ? $alias : strtolower($alias)];
+					$imports[] = [$item, $kind, $alias, $kind === self::Constants ? $alias : strtolower($alias)];
 				}
 			}
 		}
@@ -83,22 +83,18 @@ final class UnusedImportsRule extends NodeRule implements ConfigurableRule
 		// a doc comment can use only a class, so it is read when the code leaves an imported class unused
 		if (
 			$this->annotations
-			&& array_any($imports, fn(array $import) => $import[2] === self::Classes && !isset($used[self::Classes][$import[4]]))
+			&& array_any($imports, fn(array $import) => $import[1] === self::Classes && !isset($used[self::Classes][$import[3]]))
 		) {
 			$used[self::Classes] += self::collectAnnotationUsages($node, $context);
 		}
 
-		foreach ($imports as [$stmt, $item, $kind, $alias, $key]) {
+		foreach ($imports as [$item, $kind, $alias, $key]) {
 			$shown = $kind === self::Functions ? "$alias()" : $alias;
 			if (isset($used[$kind][$key]) || !$context->report($item, "The import of `$shown` is unused")) {
 				continue;
 			}
 
-			if (count($stmt->items) === 1) {
-				$stmt->remove();
-			} else {
-				$stmt->items->removeItem($item);
-			}
+			$item->remove();
 		}
 	}
 

@@ -15,7 +15,6 @@ use PhpSyntax\Analyses\{NameResolver, NamespacedSymbols};
 use PhpSyntax\{Node, SymbolKind, Token, UnqualifiedResolution};
 use PhpSyntax\Nodes\{Expression, NameNode, UseItemNode};
 use PhpSyntax\Nodes\Statement\{NamespaceNode, UseNode};
-use function count;
 
 
 /**
@@ -274,9 +273,9 @@ final class NameFallbackRule extends NodeRule implements ConfigurableRule
 			}
 		}
 
-		foreach ($importStays ? [] : $imports as [$statement, $item]) {
+		foreach ($importStays ? [] : $imports as [, $item]) {
 			if ($context->report($item, "$subject must not be imported", risk: $namespaced->complete ? null : Risk::NameUncertain)) {
-				count($statement->items) === 1 ? $statement->remove() : $statement->items->removeItem($item);
+				$item->remove();
 			}
 		}
 	}

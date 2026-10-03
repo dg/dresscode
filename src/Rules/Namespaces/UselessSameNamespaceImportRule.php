@@ -11,7 +11,6 @@ use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, SymbolKind, Token};
 use PhpSyntax\Nodes\Statement\UseNode;
-use function count;
 
 
 /**
@@ -54,12 +53,7 @@ final class UselessSameNamespaceImportRule extends NodeRule
 				continue;
 			}
 
-			if (count($node->items) === 1) {
-				$node->remove();
-				return;
-			}
-
-			$node->items->removeItem($item);
+			$item->remove();
 		}
 	}
 }

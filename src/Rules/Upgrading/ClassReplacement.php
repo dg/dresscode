@@ -328,11 +328,9 @@ final class ClassReplacement
 		) {
 			$item->name->text = substr($new, strlen($prefix));
 			return $item->alias->text ?? $short;
-		} elseif (count($stmt->items) === 1) {
-			$stmt->remove();
-		} else {
-			$stmt->items->removeItem($item);
 		}
+
+		$item->remove();
 
 		return null;
 	}

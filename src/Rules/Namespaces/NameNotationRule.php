@@ -220,9 +220,9 @@ final class NameNotationRule extends NodeRule implements ConfigurableRule
 					continue;
 				}
 
-				foreach ($imports[$kind->name][$key] ?? [] as [$statement, $useItem]) {
+				foreach ($imports[$kind->name][$key] ?? [] as [, $useItem]) {
 					if ($context->report($useItem, "$subject must not be imported")) {
-						count($statement->items) === 1 ? $statement->remove() : $statement->items->removeItem($useItem);
+						$useItem->remove();
 					}
 				}
 			}
