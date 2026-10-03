@@ -9,7 +9,6 @@ namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\PhpSymbols;
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
-use DressCode\Rules\CodeWriter;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, NameNode};
@@ -57,7 +56,7 @@ final class NoSleepAndWakeupRule extends NodeRule
 
 		if ($this->isRemovable($node, $context)) {
 			if ($context->report($node->name, "Method `{$node->name->text}()` is deprecated since PHP 8.5, and its body is empty")) {
-				CodeWriter::removeBetweenGaps($node, $context);
+				$node->remove(mergeBlankLines: true);
 			}
 
 			return;

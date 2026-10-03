@@ -9,7 +9,6 @@ namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
-use DressCode\Rules\CodeWriter;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ClassLikeNode, IdentifierNode, NameNode};
 use PhpSyntax\Nodes\Expression\{StaticMethodCallNode, VariableNode};
@@ -63,7 +62,7 @@ final class UselessOverridingMethodRule extends NodeRule
 			return;
 		}
 
-		CodeWriter::removeBetweenGaps($node, $context);
+		$node->remove(mergeBlankLines: true);
 	}
 
 

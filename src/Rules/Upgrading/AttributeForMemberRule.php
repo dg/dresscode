@@ -315,7 +315,7 @@ final class AttributeForMemberRule extends NodeRule implements ConfigurableRule
 				self::removeInterface($class, $member);
 			} else {
 				self::removeDocComment($member);
-				CodeWriter::removeBetweenGaps($member, $context);
+				$member->remove(mergeBlankLines: true);
 			}
 		}
 

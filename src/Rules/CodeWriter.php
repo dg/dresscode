@@ -10,7 +10,7 @@ namespace DressCode\Rules;
 use DressCode\RuleContext;
 use DressCode\Rules\Namespaces\ImportNotationRule;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Builder, CommentPolicy, NameForm, Node, Printer, SymbolKind, Trivia, UnqualifiedResolution};
+use PhpSyntax\{Builder, NameForm, Node, Printer, SymbolKind, Trivia, UnqualifiedResolution};
 use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, ExpressionNode, FileNode, NameNode, Statement, UseItemNode};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, MethodCallNode, PropertyFetchNode, ShellExecNode, VariableNode};
 use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode, InterpolationNode};
@@ -20,8 +20,7 @@ use function count;
 /**
  * What a rule writing code into a file needs so that the code takes the shape the file has: a class or a function
  * spelled the way the file reaches it, an import written the way the file writes its imports, an expression written in a string the
- * way its interpolation takes it, a node removed with one gap left of the two around it, an attribute on a line of its
- * own above a declaration. A rule shipped by a package writes with it too.
+ * way its interpolation takes it, an attribute on a line of its own above a declaration. A rule shipped by a package writes with it too.
  */
 final class CodeWriter
 {
@@ -314,29 +313,6 @@ final class CodeWriter
 			$expression instanceof ArrayAccessNode => self::isInterpolable($expression->expression),
 			default => false,
 		};
-	}
-
-
-	/**
-	 * Removes a node standing on lines of its own between two others, a member of a class among them, and leaves one
-	 * gap where there were two, the narrower one, which `Node::remove()` would add up instead: none after the opening
-	 * brace for the first member and before the closing one for the last. The comments of the node go where the policy
-	 * says, to the next token by default.
-	 */
-	public static function removeBetweenGaps(
-		Node $node,
-		RuleContext $context,
-		CommentPolicy $comments = CommentPolicy::MoveToNextToken,
-	): void
-	{
-		$next = $node->getLastToken()?->getNext();
-		$gap = $next !== null && $next->startsLine()
-			? min($node->getFirstToken()?->countBlankLinesBefore() ?? 0, $next->countBlankLinesBefore())
-			: null;
-		$node->remove($comments);
-		if ($next !== null && $gap !== null) {
-			$next->setBlankLinesBefore($gap, $context->style->lineEnding);
-		}
 	}
 
 
