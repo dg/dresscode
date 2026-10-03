@@ -93,15 +93,15 @@ final class ControlStructureBracesRule extends NodeRule
 		}
 
 		if ($before && !$hasComment) {
-			$before->setTrailingTrivia([new Trivia(Trivia::Whitespace, ' ')]);
+			$before->setTrailingTrivia([Trivia::fromText(' ')]);
 			$block->openBrace->setLeadingTrivia([]);
 		} else {
 			$block->openBrace->setLeadingTrivia([new Trivia(Trivia::Whitespace, $indentation)]);
 		}
 
-		$block->openBrace->setTrailingTrivia([new Trivia(Trivia::LineEnding, $style->lineEnding)]);
+		$block->openBrace->setTrailingTrivia([Trivia::fromText($style->lineEnding)]);
 		$block->closeBrace->setLeadingTrivia([new Trivia(Trivia::Whitespace, $indentation)]);
-		$block->closeBrace->setTrailingTrivia([new Trivia(Trivia::LineEnding, $style->lineEnding)]);
+		$block->closeBrace->setTrailingTrivia([Trivia::fromText($style->lineEnding)]);
 
 		$first->setLeadingTrivia([new Trivia(Trivia::Whitespace, $indentation . $style->indent)]);
 		if (!$ownLine) {
@@ -112,7 +112,7 @@ final class ControlStructureBracesRule extends NodeRule
 			}
 		}
 
-		$eol = new Trivia(Trivia::LineEnding, $style->lineEnding);
+		$eol = Trivia::fromText($style->lineEnding);
 		if ($trailing && $trailing[count($trailing) - 1]->isLineEnding()) {
 			$last->setTrailingTrivia($trailing);
 			$last->removeTrailingWhitespace();

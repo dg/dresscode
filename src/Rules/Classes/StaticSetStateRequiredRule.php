@@ -42,6 +42,6 @@ final class StaticSetStateRequiredRule extends NodeRule
 			return;
 		}
 
-		$node->modifiers->append(new Token(Token::Static, 'static'));
+		$node->modifiers->append(Token::fromText('static'));
 	}
 }

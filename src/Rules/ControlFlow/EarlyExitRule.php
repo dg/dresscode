@@ -162,7 +162,7 @@ final class EarlyExitRule extends NodeRule implements ConfigurableRule
 	{
 		$style = $context->style;
 		$indentation = $node->getFirstToken()->getLineIndentation();
-		$exit->setEdgeTrivia([new Trivia(Trivia::Whitespace, $indentation . $style->indent)], [new Trivia(Trivia::LineEnding, $style->lineEnding)]);
+		$exit->setEdgeTrivia([new Trivia(Trivia::Whitespace, $indentation . $style->indent)], [Trivia::fromText($style->lineEnding)]);
 
 		$index = $list->indexOf($node);
 		foreach ($body->statements->getItems() as $stmt) {

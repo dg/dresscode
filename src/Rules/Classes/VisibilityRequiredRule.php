@@ -86,8 +86,8 @@ final class VisibilityRequiredRule extends NodeRule
 			$node->modifiers->removeToken($token);
 		}
 
-		foreach ($desired as [$kind, $text]) {
-			$node->modifiers->append(new Token($kind, $text));
+		foreach ($desired as [, $text]) {
+			$node->modifiers->append(Token::fromText($text));
 		}
 	}
 }

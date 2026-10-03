@@ -82,7 +82,7 @@ final class CommentSpacingRule extends NodeRule implements ConfigurableRule
 						$gap !== null
 						&& $context->report($node, ($this->before === 'single' ? 'A single space' : 'At least one space') . ' before a comment following code', trivia: $item)
 					) {
-						$gap === 'missing' ? $result[] = new Trivia(Trivia::Whitespace, ' ') : $result[count($result) - 1] = new Trivia(Trivia::Whitespace, ' ');
+						$gap === 'missing' ? $result[] = Trivia::fromText(' ') : $result[count($result) - 1] = Trivia::fromText(' ');
 						$changed = true;
 					}
 				}

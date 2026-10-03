@@ -87,7 +87,7 @@ final class ExplicitAssertionRule extends NodeRule
 		$eol = $context->style->lineEnding;
 		foreach ($assertions as $i => $condition) {
 			$assert = (new Builder)->statement("assert($condition);");
-			$assert->setEdgeTrivia($indentation === '' ? [] : [new Trivia(Trivia::Whitespace, $indentation)], [new Trivia(Trivia::LineEnding, $eol)]);
+			$assert->setEdgeTrivia($indentation === '' ? [] : [new Trivia(Trivia::Whitespace, $indentation)], [Trivia::fromText($eol)]);
 			$list->insert($index + $i, $assert);
 			$assert->getFirstToken()->ensureStartsLine($eol);
 		}

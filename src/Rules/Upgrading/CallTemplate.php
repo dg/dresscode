@@ -273,9 +273,7 @@ final class CallTemplate
 		if ($nullsafe && $base instanceof VariableNode) {
 			$link = $base->parent;
 			assert($link instanceof MethodCallNode || $link instanceof PropertyFetchNode);
-			$link->operator = new Token(Token::NullsafeObjectOperator, '?->')
-				->setLeadingTrivia($link->operator->leadingTrivia)
-				->setTrailingTrivia($link->operator->trailingTrivia);
+			$link->operator->replaceWith(Token::fromText('?->'));
 		}
 
 		$lists = [];

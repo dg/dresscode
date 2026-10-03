@@ -163,7 +163,7 @@ final class NodeHelpers
 		$node->replaceWith($last);
 		foreach ($statements as $i => $statement) {
 			$leading = $i === 0 ? $last->getFirstToken()->leadingTrivia : [new Trivia(Trivia::Whitespace, $indentation)];
-			$statement->setEdgeTrivia($leading, [new Trivia(Trivia::LineEnding, $lineEnding)]);
+			$statement->setEdgeTrivia($leading, [Trivia::fromText($lineEnding)]);
 			$list->insert($index + $i, $statement);
 		}
 
@@ -222,7 +222,7 @@ final class NodeHelpers
 		$index = $list->indexOf($node);
 		$indentation = $node->getFirstToken()?->getIndentation() ?? '';
 		$trailing = $node->getLastToken()->trailingTrivia ?? [];
-		$end = new Trivia(Trivia::LineEnding, $lineEnding);
+		$end = Trivia::fromText($lineEnding);
 		foreach (array_slice($members, 1) as $i => $member) {
 			$copy = clone $node;
 			$copied = $copy->$slot;

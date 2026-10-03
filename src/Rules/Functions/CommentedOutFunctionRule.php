@@ -141,7 +141,7 @@ final class CommentedOutFunctionRule extends NodeRule implements ConfigurableRul
 		$trivia = [];
 		foreach (preg_split('~\r\n|\n|\r~', $code) ?: [] as $i => $line) {
 			if ($i > 0) {
-				$trivia[] = new Trivia(Trivia::LineEnding, $eol);
+				$trivia[] = Trivia::fromText($eol);
 				if ($indentation !== '') {
 					$trivia[] = new Trivia(Trivia::Whitespace, $indentation);
 				}

@@ -148,8 +148,8 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 	{
 		foreach ($property->modifiers->getTokens() as $modifier) {
 			$parameter->modifiers->append($modifier->is(Token::Var)
-				? new Token(Token::Public, 'public')
-				: new Token($modifier->id, $modifier->text));
+				? Token::fromText('public')
+				: Token::fromText($modifier->text));
 		}
 	}
 

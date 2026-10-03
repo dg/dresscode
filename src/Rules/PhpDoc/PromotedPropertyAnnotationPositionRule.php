@@ -147,7 +147,7 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 				$first->setIndentation(Indentation::infer($first, $style->toPhpSyntax()));
 			} elseif ($previous = $first->getPrevious()) {
 				$docComment = new Trivia(Trivia::DocComment, "/** $lines[0] */");
-				$previous->setTrailingTrivia([...$previous->trailingTrivia, $docComment, new Trivia(Trivia::Whitespace, ' ')]);
+				$previous->setTrailingTrivia([...$previous->trailingTrivia, $docComment, Trivia::fromText(' ')]);
 				return;
 			}
 		}
@@ -156,7 +156,7 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 		$text = count($lines) === 1
 			? "/** $lines[0] */"
 			: '/**' . implode('', array_map(fn(string $line) => rtrim("$eol$indentation * $line"), $lines)) . "$eol$indentation */";
-		$trivia = [...$first->leadingTrivia, new Trivia(Trivia::DocComment, $text), new Trivia(Trivia::LineEnding, $eol)];
+		$trivia = [...$first->leadingTrivia, new Trivia(Trivia::DocComment, $text), Trivia::fromText($eol)];
 		if ($indentation !== '') {
 			$trivia[] = new Trivia(Trivia::Whitespace, $indentation);
 		}

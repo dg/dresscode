@@ -115,7 +115,7 @@ final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 		$eol = $context->style->lineEnding;
 		$statement = (new Builder)->statement('declare(strict_types=1);');
 		$text = rtrim($tag->text) . ($this->placement === 'ownLine' ? $eol : ' ');
-		$statement->setEdgeTrivia([new Trivia(Trivia::OpenTag, $text)], [new Trivia(Trivia::LineEnding, $eol)]);
+		$statement->setEdgeTrivia([new Trivia(Trivia::OpenTag, $text)], [Trivia::fromText($eol)]);
 		$rest = array_slice($token->leadingTrivia, 1);
 		if (($rest[0] ?? null)?->id === Trivia::Whitespace && !$tag->isLineEnding()) {
 			array_shift($rest);

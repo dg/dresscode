@@ -37,14 +37,13 @@ final class StrictComparisonRule extends NodeRule
 			return;
 		}
 
-		[$kind, $text] = match ($node->operator->id) {
-			Token::IsEqual => [Token::IsIdentical, '==='],
-			Token::IsNotEqual => [Token::IsNotIdentical, '!=='],
-			default => [null, null],
+		$text = match ($node->operator->id) {
+			Token::IsEqual => '===',
+			Token::IsNotEqual => '!==',
+			default => null,
 		};
 		if (
-			$kind === null
-			|| $text === null
+			$text === null
 			|| !$context->report(
 				$node->operator,
 				"The `{$node->operator->text}` comparison must be written `$text`",
@@ -54,8 +53,6 @@ final class StrictComparisonRule extends NodeRule
 			return;
 		}
 
-		$node->operator = new Token($kind, $text)
-			->setLeadingTrivia($node->operator->leadingTrivia)
-			->setTrailingTrivia($node->operator->trailingTrivia);
+		$node->operator->replaceWith(Token::fromText($text));
 	}
 }

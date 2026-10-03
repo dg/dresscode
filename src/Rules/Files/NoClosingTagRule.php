@@ -10,7 +10,6 @@ namespace DressCode\Rules\Files;
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\Nodes\Statement\EmptyStatementNode;
 use PhpSyntax\{Token, Trivia};
-use function ord;
 
 
 /**
@@ -53,9 +52,9 @@ final class NoClosingTagRule extends NodeRule
 			$statement->remove();
 		} else {
 			$last->getPrevious()?->removeTrailingWhitespace();
-			$semicolon = new Token(ord(';'), ';')
+			$semicolon = Token::fromText(';')
 				->setLeadingTrivia($last->leadingTrivia)
-				->setTrailingTrivia([new Trivia(Trivia::LineEnding, $context->style->lineEnding)]);
+				->setTrailingTrivia([Trivia::fromText($context->style->lineEnding)]);
 			$statement?->replaceChild($last, $semicolon);
 		}
 	}

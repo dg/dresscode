@@ -62,7 +62,7 @@ final class StaticForMethodWithoutThisRule extends NodeRule
 				continue;
 			}
 
-			$method->modifiers->append(new Token(Token::Static, 'static'));
+			$method->modifiers->append(Token::fromText('static'));
 			$this->replaceCalls($node, $method->name->text);
 		}
 	}

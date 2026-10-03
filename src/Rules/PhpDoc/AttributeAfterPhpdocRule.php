@@ -72,7 +72,7 @@ final class AttributeAfterPhpdocRule extends NodeRule
 			...$leading,
 			...($indentation ? [new Trivia(Trivia::Whitespace, $indentation->text)] : []),
 			$docComment,
-			new Trivia(Trivia::LineEnding, $context->style->lineEnding),
+			Trivia::fromText($context->style->lineEnding),
 			...($indentation ? [$indentation] : []),
 		]);
 	}

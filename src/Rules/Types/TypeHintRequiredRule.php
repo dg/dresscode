@@ -401,7 +401,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$node->type = (new Builder)->type($native)->setEdgeTrivia(trailing: [new Trivia(Trivia::Whitespace, ' ')]);
+		$node->type = (new Builder)->type($native)->setEdgeTrivia(trailing: [Trivia::fromText(' ')]);
 	}
 
 

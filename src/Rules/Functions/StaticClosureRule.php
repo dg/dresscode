@@ -53,9 +53,9 @@ final class StaticClosureRule extends NodeRule
 			return;
 		}
 
-		$static = new Token(Token::Static, 'static')
+		$static = Token::fromText('static')
 			->setLeadingTrivia($keyword->leadingTrivia)
-			->setTrailingTrivia([new Trivia(Trivia::Whitespace, ' ')]);
+			->setTrailingTrivia([Trivia::fromText(' ')]);
 		$keyword->setLeadingTrivia([]);
 		$node->staticKeyword = $static;
 	}

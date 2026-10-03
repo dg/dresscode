@@ -137,7 +137,7 @@ final class UselessElseRule extends NodeRule implements ConfigurableRule
 
 		$style = $context->style;
 		$indentation = $node->getFirstToken()->getLineIndentation();
-		$node->setEdgeTrivia(trailing: [new Trivia(Trivia::LineEnding, $style->lineEnding)]);
+		$node->setEdgeTrivia(trailing: [Trivia::fromText($style->lineEnding)]);
 		$new->setEdgeTrivia(leading: $indentation === '' ? [] : [new Trivia(Trivia::Whitespace, $indentation)]);
 		$list->insertAfter($node, $new);
 	}

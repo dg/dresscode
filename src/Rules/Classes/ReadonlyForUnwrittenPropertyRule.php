@@ -141,10 +141,10 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 
 		if ($var = $modifiers->findToken(Token::Var)) { // readonly does not go with var
 			$modifiers->removeToken($var);
-			$modifiers->append(new Token(Token::Public, 'public'));
+			$modifiers->append(Token::fromText('public'));
 		}
 
-		$modifiers->append(new Token(Token::Readonly, 'readonly'));
+		$modifiers->append(Token::fromText('readonly'));
 	}
 
 

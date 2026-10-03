@@ -11,7 +11,6 @@ use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\DestructuringNode;
 use PhpSyntax\Nodes\Expression\ArrayNode;
-use function ord;
 
 
 /**
@@ -45,12 +44,9 @@ final class ShortArraySyntaxRule extends NodeRule
 			return;
 		}
 
-		$open = new Token(ord('['), '[')
+		$open = Token::fromText('[')
 			->setLeadingTrivia($keyword->leadingTrivia)
 			->setTrailingTrivia($node->openDelimiter->trailingTrivia);
-		$close = new Token(ord(']'), ']')
-			->setLeadingTrivia($node->closeDelimiter->leadingTrivia)
-			->setTrailingTrivia($node->closeDelimiter->trailingTrivia);
 		if ($node instanceof ArrayNode) {
 			$node->arrayKeyword = null;
 		} else {
@@ -58,6 +54,6 @@ final class ShortArraySyntaxRule extends NodeRule
 		}
 
 		$node->openDelimiter = $open;
-		$node->closeDelimiter = $close;
+		$node->closeDelimiter->replaceWith(Token::fromText(']'));
 	}
 }

@@ -79,7 +79,7 @@ final class UselessConstructParenthesesRule extends NodeRule
 		$node->replaceWith($inner);
 		$previous = $inner->getFirstToken()->getPrevious();
 		if ($previous?->getTrailingSpace() === '') {
-			$previous->setTrailingTrivia([new Trivia(Trivia::Whitespace, ' ')]);
+			$previous->setTrailingTrivia([Trivia::fromText(' ')]);
 		}
 	}
 

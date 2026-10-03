@@ -171,7 +171,7 @@ final class CodeWriter
 			SymbolKind::ClassLike => '',
 		};
 		$statement = (new Builder)->statement("use $keyword$fullName;");
-		$eol = new Trivia(Trivia::LineEnding, $context->style->lineEnding);
+		$eol = Trivia::fromText($context->style->lineEnding);
 		$indentOf = fn(?Node $node): array => ($indentation = $node?->getFirstToken()?->getIndentation() ?? '') === ''
 			? []
 			: [new Trivia(Trivia::Whitespace, $indentation)];
@@ -314,7 +314,7 @@ final class CodeWriter
 				$group->getFirstToken()->setLeadingTrivia([$indentation()]);
 			}
 
-			$group->getLastToken()->setTrailingTrivia([new Trivia(Trivia::LineEnding, $eolText)]);
+			$group->getLastToken()->setTrailingTrivia([Trivia::fromText($eolText)]);
 		}
 	}
 }

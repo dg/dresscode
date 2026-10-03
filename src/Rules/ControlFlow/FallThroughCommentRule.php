@@ -75,7 +75,7 @@ final class FallThroughCommentRule extends NodeRule implements ConfigurableRule
 				$first->setLeadingTrivia([
 					new Trivia(Trivia::Whitespace, $stmts[0]->getFirstToken()->getLineIndentation()),
 					new Trivia(Trivia::Comment, '// ' . $this->comment),
-					new Trivia(Trivia::LineEnding, $context->style->lineEnding),
+					Trivia::fromText($context->style->lineEnding),
 					...$first->leadingTrivia,
 				]);
 			}

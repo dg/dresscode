@@ -10,7 +10,6 @@ namespace DressCode\Rules\ControlFlow;
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\CaseNode;
-use function ord;
 
 
 /**
@@ -40,8 +39,6 @@ final class SwitchCaseColonRule extends NodeRule
 			return;
 		}
 
-		$node->separator = new Token(ord(':'), ':')
-			->setLeadingTrivia($node->separator->leadingTrivia)
-			->setTrailingTrivia($node->separator->trailingTrivia);
+		$node->separator->replaceWith(Token::fromText(':'));
 	}
 }

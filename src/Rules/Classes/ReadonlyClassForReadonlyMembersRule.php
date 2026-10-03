@@ -86,6 +86,6 @@ final class ReadonlyClassForReadonlyMembersRule extends NodeRule
 			return;
 		}
 
-		$node->modifiers->append(new Token(Token::Readonly, 'readonly'));
+		$node->modifiers->append(Token::fromText('readonly'));
 	}
 }

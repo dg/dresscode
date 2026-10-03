@@ -124,7 +124,7 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 		if ($needsObject) {
 			$context->report($node->name, $message . ', and its body uses the object', fixable: false);
 		} elseif ($context->report($node->name, $message)) {
-			$node->modifiers->append(new Token(Token::Static, 'static'));
+			$node->modifiers->append(Token::fromText('static'));
 		}
 	}
 
@@ -141,7 +141,7 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 			&& $token !== null
 			&& $context->report($token, "Method `{$node->name->text}()` is $ownWord while `$signature->declaringClass::{$node->name->text}()` is $word")
 		) {
-			$token->replaceWith(new Token($signature->visibility === Visibility::Public ? Token::Public : Token::Protected, $word));
+			$token->replaceWith(Token::fromText($word));
 		}
 	}
 

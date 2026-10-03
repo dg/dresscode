@@ -91,7 +91,7 @@ final class FinalInternalClassRule extends NodeRule implements ConfigurableRule
 			$node->modifiers->removeToken($other);
 		}
 
-		$node->modifiers->append(new Token(Token::Final, 'final'));
+		$node->modifiers->append(Token::fromText('final'));
 		foreach ($others as $other) {
 			$node->modifiers->append($other);
 		}

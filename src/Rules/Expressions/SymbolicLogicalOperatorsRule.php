@@ -35,12 +35,12 @@ final class SymbolicLogicalOperatorsRule extends NodeRule
 			return;
 		}
 
-		[$kind, $text] = match (true) {
-			$node->operator->is(Token::LogicalAnd) => [Token::BooleanAnd, '&&'],
-			$node->operator->is(Token::LogicalOr) => [Token::BooleanOr, '||'],
-			default => [null, null],
+		$text = match (true) {
+			$node->operator->is(Token::LogicalAnd) => '&&',
+			$node->operator->is(Token::LogicalOr) => '||',
+			default => null,
 		};
-		if ($kind === null || $text === null) {
+		if ($text === null) {
 			return;
 		}
 
@@ -55,9 +55,7 @@ final class SymbolicLogicalOperatorsRule extends NodeRule
 			return;
 		}
 
-		$node->operator = new Token($kind, $text)
-			->setLeadingTrivia($node->operator->leadingTrivia)
-			->setTrailingTrivia($node->operator->trailingTrivia);
+		$node->operator->replaceWith(Token::fromText($text));
 	}
 
 

@@ -168,6 +168,6 @@ final class ReadonlyForAnnotationRule extends NodeRule
 
 	private static function appendReadonly(ModifiersNode $modifiers): void
 	{
-		$modifiers->append(new Token(Token::Readonly, 'readonly'));
+		$modifiers->append(Token::fromText('readonly'));
 	}
 }

@@ -70,9 +70,7 @@ final class NullsafeForGuardedAccessRule extends NodeRule
 		$replacement = $chain->withoutEdgeTrivia();
 		$link = self::findFirstLink($replacement, $subject);
 		assert($link !== null);
-		$link->operator = new Token(Token::NullsafeObjectOperator, '?->')
-			->setLeadingTrivia($link->operator->leadingTrivia)
-			->setTrailingTrivia($link->operator->trailingTrivia);
+		$link->operator->replaceWith(Token::fromText('?->'));
 		$node->replaceWith($replacement);
 	}
 

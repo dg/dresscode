@@ -11,7 +11,6 @@ use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Builder, Node, Token, Trivia};
 use PhpSyntax\Nodes\{ElseifNode, ElseNode, PlainNodeList, StatementNode};
 use PhpSyntax\Nodes\Statement\{BlockNode, DeclareNode, EmptyStatementNode, ForeachNode, ForNode, IfNode, SwitchNode, WhileNode};
-use function ord;
 
 
 /**
@@ -101,7 +100,7 @@ final class NoAlternativeSyntaxRule extends NodeRule
 				default => null,
 			};
 			[$closeLeading, $closeTrailing] = $nextKeyword !== null
-				? [$nextKeyword->leadingTrivia, [new Trivia(Trivia::Whitespace, ' ')]]
+				? [$nextKeyword->leadingTrivia, [Trivia::fromText(' ')]]
 				: [$end->leadingTrivia, $last->trailingTrivia];
 			$block = $this->buildBlock($branch->colon, $branch->statements, $closeLeading, $closeTrailing);
 			if ($nextKeyword !== null) {
@@ -128,10 +127,10 @@ final class NoAlternativeSyntaxRule extends NodeRule
 		}
 
 		$last = $closeTag === null ? $node->semicolon ?? $end : $end;
-		$openBrace = new Token(ord('{'), '{')
+		$openBrace = Token::fromText('{')
 			->setLeadingTrivia(self::braceLeading($colon))
 			->setTrailingTrivia($colon->trailingTrivia);
-		$closeBrace = new Token(ord('}'), '}')
+		$closeBrace = Token::fromText('}')
 			->setLeadingTrivia($end->leadingTrivia)
 			->setTrailingTrivia($last->trailingTrivia);
 		$node->colon = null;
@@ -194,7 +193,7 @@ final class NoAlternativeSyntaxRule extends NodeRule
 	private static function braceLeading(Token $colon): array
 	{
 		return $colon->getPrevious()?->getTrailingSpace() === '' && $colon->leadingTrivia === []
-			? [new Trivia(Trivia::Whitespace, ' ')]
+			? [Trivia::fromText(' ')]
 			: $colon->leadingTrivia;
 	}
 }
