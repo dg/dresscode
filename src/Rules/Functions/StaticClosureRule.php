@@ -10,7 +10,7 @@ namespace DressCode\Rules\Functions;
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Token, Trivia};
-use PhpSyntax\Nodes\{ArgumentNode, Expression, IdentifierNode, NameNode};
+use PhpSyntax\Nodes\{AnonymousFunctionNode, ArgumentNode, Expression, IdentifierNode, NameNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode};
 use PhpSyntax\Nodes\Statement\FunctionNode;
 use function in_array;
@@ -105,7 +105,7 @@ final class StaticClosureRule extends NodeRule
 				$ancestor instanceof FunctionNode
 				|| $ancestor instanceof MethodNode
 				|| $ancestor instanceof PropertyHookNode
-				|| (($ancestor instanceof Expression\ClosureNode || $ancestor instanceof Expression\ArrowFunctionNode) && $ancestor->staticKeyword !== null)
+				|| ($ancestor instanceof AnonymousFunctionNode && $ancestor->staticKeyword !== null)
 			) {
 				return false;
 			}

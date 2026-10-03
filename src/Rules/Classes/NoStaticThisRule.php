@@ -10,8 +10,8 @@ namespace DressCode\Rules\Classes;
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\Analyses\Scope;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClosureNode, VariableNode};
-use PhpSyntax\Nodes\FunctionLikeNode;
+use PhpSyntax\Nodes\{AnonymousFunctionNode, FunctionLikeNode};
+use PhpSyntax\Nodes\Expression\VariableNode;
 
 
 /**
@@ -50,7 +50,7 @@ final class NoStaticThisRule extends NodeRule
 
 		// a closure that is not static can be bound to an object later, whoever wrote it and where,
 		// so its $this is a promise, not a mistake; only a static one can never receive an object
-		$bindable = ($function instanceof ClosureNode || $function instanceof ArrowFunctionNode)
+		$bindable = $function instanceof AnonymousFunctionNode
 			&& $function->staticKeyword === null;
 		if (!$bindable) {
 			$context->report($node, '`$this` is not available in a static context', fixable: false);

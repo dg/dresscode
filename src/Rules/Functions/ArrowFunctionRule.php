@@ -11,6 +11,7 @@ use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleGroup, RuleInfo, Sta
 use DressCode\Rules\NodeHelpers;
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\Nodes\AnonymousFunctionNode;
 use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClosureNode};
 use PhpSyntax\Nodes\Statement\ReturnNode;
 use function count;
@@ -67,7 +68,7 @@ final class ArrowFunctionRule extends NodeRule implements ConfigurableRule
 			|| !$return instanceof ReturnNode
 			|| $return->expression === null
 			|| $node->closeParen->hasCommentUpTo($node->body->closeBrace)
-			|| (!$this->nested && ($node->body->find(ClosureNode::class) || $node->body->find(ArrowFunctionNode::class)))
+			|| (!$this->nested && $node->body->find(AnonymousFunctionNode::class))
 			|| NodeHelpers::findDynamicVariableAccesses($node->body, $context) !== []
 		) {
 			return;

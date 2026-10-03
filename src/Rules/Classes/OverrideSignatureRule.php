@@ -12,9 +12,9 @@ use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleGroup, RuleInf
 use DressCode\Rules\{CodeWriter, NodeHelpers};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{Builder, Node, Token, Trivia, Visibility};
-use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClosureNode, StaticMethodCallNode, VariableNode};
+use PhpSyntax\Nodes\{AnonymousFunctionNode, NameNode, ParameterNode};
+use PhpSyntax\Nodes\Expression\{StaticMethodCallNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
-use PhpSyntax\Nodes\{NameNode, ParameterNode};
 use PhpSyntax\Nodes\Statement\{FunctionNode, TraitNode};
 use function count, in_array;
 
@@ -228,7 +228,7 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 		$body = $node->body;
 		return match (true) {
 			$body === null => null,
-			$body->find(ClosureNode::class) !== [] || $body->find(ArrowFunctionNode::class) !== [] || $body->find(FunctionNode::class) !== []
+			$body->find(AnonymousFunctionNode::class) !== [] || $body->find(FunctionNode::class) !== []
 				=> ', but a function in the body may see the variable by its name',
 			NodeHelpers::findDynamicVariableAccesses($body, $context) !== [] => ', but the body names a variable indirectly',
 			array_any($node->find(VariableNode::class), fn(VariableNode $variable) => $variable->plainName === $name) => ", but `\$$name` is taken in the method",

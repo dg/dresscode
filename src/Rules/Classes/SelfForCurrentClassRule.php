@@ -11,8 +11,8 @@ use DressCode\{ConfigurableRule, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, NameNode};
-use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClassConstantFetchNode, ClosureNode, InstanceofNode, NewNode, StaticMethodCallNode, StaticPropertyFetchNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, AnonymousFunctionNode, ClassLikeNode, NameNode};
+use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, InstanceofNode, NewNode, StaticMethodCallNode, StaticPropertyFetchNode};
 use PhpSyntax\Nodes\Statement\{ClassNode, EnumNode};
 use function count;
 
@@ -151,7 +151,7 @@ final class SelfForCurrentClassRule extends NodeRule implements ConfigurableRule
 	private static function isInClosure(NameNode $name, Node $class): bool
 	{
 		for ($node = $name->parent; $node !== null && $node !== $class; $node = $node->parent) {
-			if ($node instanceof ClosureNode || $node instanceof ArrowFunctionNode) {
+			if ($node instanceof AnonymousFunctionNode) {
 				return true;
 			}
 		}
