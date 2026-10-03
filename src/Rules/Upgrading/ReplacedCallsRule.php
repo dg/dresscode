@@ -9,7 +9,6 @@ namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{MemberAccess, MemberKind, Types};
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage, Violation};
-use DressCode\Rules\CodeWriter;
 use Nette\Schema\{Context, Schema};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
@@ -242,7 +241,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 		}
 
 		$message = self::describeCall($node, $access, $pattern, $template);
-		$rewrite = self::fitInterpolation($node, $rewrite);
+		$rewrite = self::fitPlace($node, $rewrite);
 		if ($rewrite->isWrittenAlready($node, $context)) {
 			return;
 		}
@@ -473,7 +472,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			$rewrite = new Rewrite($rewrite->expression, risk: $rewrite->risk ?? 'the replacement no longer asks first whether it is set, as `??` does');
 		}
 
-		$rewrite = self::fitInterpolation($node, $rewrite);
+		$rewrite = self::fitPlace($node, $rewrite);
 		if ($rewrite->report($node instanceof ArrayAccessNode ? $node->openBracket : $node->name, $message, $context)) {
 			$node->replaceWithExpression($rewrite->write($node, $context));
 		}
@@ -734,15 +733,20 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 	}
 
 
-	/**
-	 * The rewrite of a use that stands in an interpolation of a string, which takes a variable and what is read or
-	 * called on it alone; a use inside a chain written without braces takes nothing else either.
-	 */
-	private static function fitInterpolation(ExpressionNode $node, Rewrite $rewrite): Rewrite
+	/** The rewrite of a use, refused where its place cannot take the expression, as in a string. */
+	private static function fitPlace(ExpressionNode $node, Rewrite $rewrite): Rewrite
 	{
-		return $rewrite->expression !== null && !CodeWriter::canReplaceExpression($node, $rewrite->expression)
-			? new Rewrite(null, ', but it stands in a string, whose interpolation takes a variable and what is read or called on it alone')
-			: $rewrite;
+		if ($rewrite->expression === null) {
+			return $rewrite;
+		}
+
+		try {
+			$node->checkReplaceWithExpression($rewrite->expression);
+		} catch (\InvalidArgumentException $e) {
+			return new Rewrite(null, ', but ' . lcfirst(rtrim($e->getMessage(), '.')));
+		}
+
+		return $rewrite;
 	}
 
 

@@ -127,8 +127,12 @@ final class ReplacedMembersRule extends NodeRule implements ConfigurableRule
 
 		$refusal = self::findRefusal($node, $access, $target, $types);
 		$replacement = $refusal === null ? self::createReplacement($node, $target) : null;
-		if ($replacement !== null && !CodeWriter::canReplaceExpression($node, $replacement)) {
-			$refusal = ', but it stands in a string, whose interpolation takes a variable and what is read or called on it alone';
+		try {
+			if ($replacement !== null) {
+				$node->checkReplaceWithExpression($replacement);
+			}
+		} catch (\InvalidArgumentException $e) {
+			$refusal = ', but ' . lcfirst(rtrim($e->getMessage(), '.'));
 		}
 
 		$risk = $refusal === null ? self::findRisk($node, $target) : null;

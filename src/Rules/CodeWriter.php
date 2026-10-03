@@ -11,17 +11,14 @@ use DressCode\RuleContext;
 use DressCode\Rules\Namespaces\ImportNotationRule;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, NameForm, Node, SymbolKind, Trivia, UnqualifiedResolution};
-use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, ExpressionNode, FileNode, NameNode, NodeList, Statement, UseItemNode};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, MethodCallNode, PropertyFetchNode, ShellExecNode};
-use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode, InterpolatedStringPartNode, InterpolationNode};
+use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, FileNode, NameNode, Statement, UseItemNode};
 use function count;
 
 
 /**
  * What a rule writing code into a file needs so that the code takes the shape the file has: a class or a function
- * spelled the way the file reaches it, an import written the way the file writes its imports, an expression asked
- * whether its interpolation takes it in a string, an attribute on a line of its own above a declaration. A rule
- * shipped by a package writes with it too.
+ * spelled the way the file reaches it, an import written the way the file writes its imports, an attribute on a line
+ * of its own above a declaration. A rule shipped by a package writes with it too.
  */
 final class CodeWriter
 {
@@ -242,61 +239,6 @@ final class CodeWriter
 		return $stmt->isGroup()
 			&& $pos !== false
 			&& strcasecmp(ltrim($stmt->prefix->text, '\\'), substr($name, 0, $pos)) === 0;
-	}
-
-
-	/**
-	 * Whether `ExpressionNode::replaceWithExpression()` can write the expression in place of the node: one standing
-	 * in an interpolation of a string takes what `ExpressionNode::canStandInString()` lets stand there, and one inside
-	 * a chain written without braces nothing else, the text after it reading on as the chain; a part written bare
-	 * right after a dollar of the text takes nothing, braces there reading as `${`.
-	 */
-	public static function canReplaceExpression(ExpressionNode $node, ExpressionNode $expression): bool
-	{
-		$interpolation = self::findInterpolation($node);
-		return $interpolation === null
-			|| ($expression->canStandInString() && match ($interpolation[0]) {
-				'braced' => true,
-				'bare' => $interpolation[1] === $node && !self::followsDollar($node),
-			});
-	}
-
-
-	/** Whether the text before the part of a string ends with a dollar no backslash escapes. */
-	private static function followsDollar(Node $part): bool
-	{
-		$list = $part->parent;
-		$previous = $list instanceof NodeList ? ($list->getItems()[$list->indexOf($part) - 1] ?? null) : null;
-		return $previous instanceof InterpolatedStringPartNode
-			&& preg_match('~(?<!\\\\)(?:\\\\\\\\)*\$$~D', $previous->token->text) === 1;
-	}
-
-
-	/**
-	 * How the node stands in a string, braced as `{$a->b}` or bare as `$a->b`, with the chain it heads there; null outside one.
-	 * @return ?array{'braced'|'bare', Node}
-	 */
-	private static function findInterpolation(Node $node): ?array
-	{
-		while (
-			($parent = $node->parent) instanceof PropertyFetchNode
-			|| $parent instanceof MethodCallNode
-			|| $parent instanceof ArrayAccessNode
-		) {
-			if (($parent instanceof ArrayAccessNode ? $parent->expression : $parent->object) !== $node) {
-				return null;
-			}
-
-			$node = $parent;
-		}
-
-		return match (true) {
-			$parent instanceof InterpolationNode => ['braced', $node],
-			$parent?->parent instanceof InterpolatedStringNode,
-			$parent?->parent instanceof HeredocNode,
-			$parent?->parent instanceof ShellExecNode => ['bare', $node],
-			default => null,
-		};
 	}
 
 

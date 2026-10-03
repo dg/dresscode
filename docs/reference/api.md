@@ -461,7 +461,6 @@ final class CodeWriter
 	public static function findImportScope(PhpSyntax\Node $node): PhpSyntax\Nodes\FileNode|PhpSyntax\Nodes\Statement\NamespaceNode|null
 	public static function canAddImport(PhpSyntax\Nodes\FileNode|PhpSyntax\Nodes\Statement\NamespaceNode $scope): bool
 	public static function addImport(PhpSyntax\Nodes\FileNode|PhpSyntax\Nodes\Statement\NamespaceNode $scope, PhpSyntax\SymbolKind $kind, string $fullName, DressCode\RuleContext $context): void
-	public static function canReplaceExpression(PhpSyntax\Nodes\ExpressionNode $node, PhpSyntax\Nodes\ExpressionNode $expression): bool
 	public static function addAttributes(PhpSyntax\Nodes\AttributeAwareNode&PhpSyntax\Node $declaration, array $codes, DressCode\RuleContext $context): void
 ```
 

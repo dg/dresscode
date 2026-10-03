@@ -22,8 +22,9 @@ function test(Message $mail, array $mails): string
 	$e = "Sent: {$mail->sent}";
 	$f = "Sent: $mail->sent";
 	$i = "Cost: $$mail->subject";
+	$j = "Path: \\$$mail->subject";
 
 	// an argument of a call in an interpolation takes any expression
 	$g = "Length: {$mail->pad($mail->sent)}";
-	return $a . $b . $c . $d . $e . $f . $g . $h . $i;
+	return $a . $b . $c . $d . $e . $f . $g . $h . $i . $j;
 }
