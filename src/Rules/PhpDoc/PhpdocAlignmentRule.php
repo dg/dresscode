@@ -40,16 +40,16 @@ final class PhpdocAlignmentRule extends NodeRule
 		foreach ($trivias as $i => $trivia) {
 			$before = $trivias[$i - 1] ?? null;
 			if (
-				$trivia->id !== Trivia::DocComment
+				!$trivia->is(Trivia::DocComment)
 				|| $trivia->inInterpolation
 				|| !str_contains($trivia->text, "\n")
-				|| ($before !== null && !$before->isLineEnding() && $before->id !== Trivia::Whitespace)
-				|| ($before?->id === Trivia::Whitespace && isset($trivias[$i - 2]) && !$trivias[$i - 2]->isLineEnding())
+				|| ($before !== null && !$before->isLineEnding() && !$before->is(Trivia::Whitespace))
+				|| ($before?->is(Trivia::Whitespace) && isset($trivias[$i - 2]) && !$trivias[$i - 2]->isLineEnding())
 			) {
 				continue;
 			}
 
-			$indentation = $before?->id === Trivia::Whitespace ? $before->text : '';
+			$indentation = $before?->is(Trivia::Whitespace) ? $before->text : '';
 			$aligned = self::align($trivia->text, $indentation);
 			if ($aligned !== $trivia->text && $context->report($node, 'Misaligned doc comment', trivia: $trivia)) {
 				$node->replaceTrivia($trivia, new Trivia(Trivia::DocComment, $aligned));

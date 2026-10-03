@@ -53,7 +53,7 @@ final class AttributeAfterPhpdocRule extends NodeRule
 
 		$docComment = null;
 		foreach ($after->leadingTrivia as $trivia) {
-			if ($trivia->id === Trivia::DocComment && !$trivia->inInterpolation) {
+			if ($trivia->is(Trivia::DocComment) && !$trivia->inInterpolation) {
 				$docComment = $trivia;
 			}
 		}
@@ -67,7 +67,7 @@ final class AttributeAfterPhpdocRule extends NodeRule
 
 		$after->removeTrivia($docComment);
 		$leading = $first->leadingTrivia;
-		$indentation = $leading && $leading[count($leading) - 1]->id === Trivia::Whitespace ? array_pop($leading) : null;
+		$indentation = $leading && $leading[count($leading) - 1]->is(Trivia::Whitespace) ? array_pop($leading) : null;
 		$first->setLeadingTrivia([
 			...$leading,
 			...($indentation ? [new Trivia(Trivia::Whitespace, $indentation->text)] : []),

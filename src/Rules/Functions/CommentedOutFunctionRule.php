@@ -87,7 +87,7 @@ final class CommentedOutFunctionRule extends NodeRule implements ConfigurableRul
 		$trailing = implode('', array_map(fn(Trivia $trivia) => $trivia->text, $node->semicolon->trailingTrivia));
 		$code = substr($code, strlen($leading), strlen($code) - strlen($leading) - strlen($trailing));
 
-		$endsLine = $next->id === Token::EndOfFile;
+		$endsLine = $next->is(Token::EndOfFile);
 		foreach ($node->semicolon->trailingTrivia as $trivia) {
 			$endsLine = $endsLine || $trivia->isLineEnding();
 		}

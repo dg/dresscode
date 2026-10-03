@@ -163,7 +163,7 @@ final class ClassReplacement
 		$result = [];
 		for ($token = $scope->getFirstToken(), $last = $scope->getLastToken(); $token !== null; $token = $token->getNext()) {
 			foreach ([...$token->leadingTrivia, ...$token->trailingTrivia] as $trivia) {
-				if ($trivia->id !== Trivia::DocComment || $trivia->inInterpolation) {
+				if (!$trivia->is(Trivia::DocComment) || $trivia->inInterpolation) {
 					continue;
 				}
 

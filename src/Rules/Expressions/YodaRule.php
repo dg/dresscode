@@ -119,14 +119,14 @@ final class YodaRule extends NodeRule implements ConfigurableRule
 		$last = $expr->getLastToken();
 		$beforeLast = $last->getPrevious();
 		return match (true) {
-			$first->id === Token::Variable => self::Variable,
+			$first->is(Token::Variable) => self::Variable,
 			$last->is(')') => $expr instanceof ArrayNode ? self::Literal : self::Call,
 			$expr instanceof BooleanNode, $expr instanceof NullNode => self::Literal,
 			$expr instanceof ConstantFetchNode => self::Constant,
-			$beforeLast?->is('::') && $last->id === Token::Variable => self::Variable,
-			$beforeLast?->is('::') && $last->id === Token::Identifier => self::Constant,
+			$beforeLast?->is('::') && $last->is(Token::Variable) => self::Variable,
+			$beforeLast?->is('::') && $last->is(Token::Identifier) => self::Constant,
 			$first->is([Token::Integer, Token::Float, Token::ConstantEncapsedString, Token::Array, '[']) => self::Literal,
-			$first->id === Token::Identifier => self::Call,
+			$first->is(Token::Identifier) => self::Call,
 			default => null,
 		};
 	}

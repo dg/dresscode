@@ -50,7 +50,7 @@ final class PropertyPhpdocRequiredRule extends NodeRule
 			$comment !== null
 			&& $lineBreaks < 2
 			&& !$comment->inInterpolation
-			&& $comment->id !== Trivia::DocComment
+			&& !$comment->is(Trivia::DocComment)
 		) {
 			$context->report($node, 'A property must be documented with a doc comment, not a plain comment', trivia: $comment, fixable: false);
 		}

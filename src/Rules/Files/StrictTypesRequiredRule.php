@@ -63,7 +63,7 @@ final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 		$first = $stmts[$index] ?? null;
 		$token = $first?->getFirstToken();
 		$tag = $token?->leadingTrivia[0] ?? null;
-		if ($first instanceof InlineHtmlNode || $token === null || $tag?->id !== Trivia::OpenTag) {
+		if ($first instanceof InlineHtmlNode || $token === null || !$tag?->is(Trivia::OpenTag)) {
 			return;
 		}
 
@@ -117,7 +117,7 @@ final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 		$text = rtrim($tag->text) . ($this->placement === 'ownLine' ? $eol : ' ');
 		$statement->setEdgeTrivia([new Trivia(Trivia::OpenTag, $text)], [Trivia::fromText($eol)]);
 		$rest = array_slice($token->leadingTrivia, 1);
-		if (($rest[0] ?? null)?->id === Trivia::Whitespace && !$tag->isLineEnding()) {
+		if (($rest[0] ?? null)?->is(Trivia::Whitespace) && !$tag->isLineEnding()) {
 			array_shift($rest);
 		}
 
@@ -131,7 +131,7 @@ final class StrictTypesRequiredRule extends NodeRule implements ConfigurableRule
 	{
 		$token->replaceTrivia($tag, new Trivia(Trivia::OpenTag, rtrim($tag->text) . $eol));
 		$next = $token->leadingTrivia[1] ?? null;
-		if ($next?->id === Trivia::Whitespace) {
+		if ($next?->is(Trivia::Whitespace)) {
 			$token->removeTrivia($next);
 		}
 	}

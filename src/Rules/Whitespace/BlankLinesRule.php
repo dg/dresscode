@@ -378,7 +378,7 @@ final class BlankLinesRule extends GapRule implements ConfigurableRule
 			}
 		}
 
-		return $at !== null && $leading[$at]->id === Trivia::DocComment && !self::isFileHeader($leading, $at)
+		return $at !== null && $leading[$at]->is(Trivia::DocComment) && !self::isFileHeader($leading, $at)
 			? $this->afterPhpdoc
 			: null;
 	}
@@ -489,7 +489,7 @@ final class BlankLinesRule extends GapRule implements ConfigurableRule
 		$stmts = $file->statements->getItems();
 		$first = $stmts[0] ?? null;
 		$stmt = $first instanceof Statement\InlineHtmlNode ? $stmts[1] ?? null : $first;
-		return ($stmt?->getFirstToken()?->leadingTrivia[0] ?? null)?->id === Trivia::OpenTag ? $stmt : null;
+		return ($stmt?->getFirstToken()?->leadingTrivia[0] ?? null)?->is(Trivia::OpenTag) ? $stmt : null;
 	}
 
 
@@ -560,7 +560,7 @@ final class BlankLinesRule extends GapRule implements ConfigurableRule
 	 */
 	private static function isFileHeader(array $leading, int $at): bool
 	{
-		if (($leading[0] ?? null)?->id !== Trivia::OpenTag) {
+		if (!($leading[0] ?? null)?->is(Trivia::OpenTag)) {
 			return false;
 		}
 

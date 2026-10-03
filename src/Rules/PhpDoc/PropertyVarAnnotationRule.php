@@ -41,7 +41,7 @@ final class PropertyVarAnnotationRule extends NodeRule
 		$comments = $node->getLeadingComments();
 		$comment = $comments[count($comments) - 1] ?? null;
 
-		if ($comment === null || $comment->inInterpolation || $comment->id !== Trivia::DocComment) {
+		if ($comment === null || $comment->inInterpolation || !$comment->is(Trivia::DocComment)) {
 			return;
 		}
 

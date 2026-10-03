@@ -34,7 +34,7 @@ final class FullOpeningTagRule extends NodeRule
 		}
 
 		foreach ($node->leadingTrivia as $trivia) {
-			if ($trivia->id !== Trivia::OpenTag) {
+			if (!$trivia->is(Trivia::OpenTag)) {
 				continue;
 			}
 

@@ -33,7 +33,7 @@ final class NoTrailingWhitespaceRule extends NodeRule
 			return;
 		}
 
-		$leading = $this->clean($node, $node->leadingTrivia, $node->id === Token::EndOfFile, $context);
+		$leading = $this->clean($node, $node->leadingTrivia, $node->is(Token::EndOfFile), $context);
 		if ($leading !== null) {
 			$node->setLeadingTrivia($leading);
 		}
@@ -59,9 +59,9 @@ final class NoTrailingWhitespaceRule extends NodeRule
 			$next = $trivia[$i + 1] ?? null;
 			$replacement = match (true) {
 				$item->inInterpolation => $item,
-				$item->id === Trivia::Whitespace && ($next === null ? $atEnd : $next->id === Trivia::LineEnding) => null,
-				($item->id === Trivia::OpenTag && $next?->id === Trivia::LineEnding)
-				|| ($item->id === Trivia::Comment && !str_starts_with($item->text, '/*')) => self::trim($item),
+				$item->is(Trivia::Whitespace) && ($next === null ? $atEnd : $next->is(Trivia::LineEnding)) => null,
+				($item->is(Trivia::OpenTag) && $next?->is(Trivia::LineEnding))
+				|| ($item->is(Trivia::Comment) && !str_starts_with($item->text, '/*')) => self::trim($item),
 				default => $item,
 			};
 

@@ -48,7 +48,7 @@ final class PhpDoc
 	 */
 	public function parse(Trivia $docComment): PhpDocNode
 	{
-		if ($docComment->id !== Trivia::DocComment) {
+		if (!$docComment->is(Trivia::DocComment)) {
 			throw new \InvalidArgumentException('Not a doc comment.');
 		}
 

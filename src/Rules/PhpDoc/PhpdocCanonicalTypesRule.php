@@ -80,7 +80,7 @@ final class PhpdocCanonicalTypesRule extends NodeRule implements ConfigurableRul
 			$trivia = $node->$side;
 			$changed = false;
 			foreach ($trivia as $i => $item) {
-				if ($item->id !== Trivia::DocComment || $item->inInterpolation) {
+				if (!$item->is(Trivia::DocComment) || $item->inInterpolation) {
 					continue;
 				}
 

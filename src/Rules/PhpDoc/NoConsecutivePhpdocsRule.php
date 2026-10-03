@@ -39,12 +39,12 @@ final class NoConsecutivePhpdocsRule extends NodeRule
 		$own = [...$node->leadingTrivia, ...$node->trailingTrivia];
 		$previous = null;
 		foreach ([...$node->getPrevious()->trailingTrivia ?? [], ...$own] as $trivia) {
-			if ($trivia->id === Trivia::DocComment && !$trivia->inInterpolation) {
+			if ($trivia->is(Trivia::DocComment) && !$trivia->inInterpolation) {
 				if ($previous && in_array($trivia, $own, true)) {
 					$context->report($node, 'Two doc comments in a row', trivia: $previous, fixable: false);
 				}
 				$previous = $trivia;
-			} elseif ($trivia->id !== Trivia::Whitespace && $trivia->id !== Trivia::LineEnding) {
+			} elseif (!$trivia->is(Trivia::Whitespace) && !$trivia->is(Trivia::LineEnding)) {
 				$previous = null;
 			}
 		}

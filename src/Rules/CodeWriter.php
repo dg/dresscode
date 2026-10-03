@@ -204,7 +204,7 @@ final class CodeWriter
 		$leading = $braced ? [] : [$eol];
 		if ($index === 0 && $neighborFirst !== null) { // an open tag stays first
 			foreach ($neighborFirst->leadingTrivia as $i => $trivia) {
-				if ($trivia->id === Trivia::OpenTag) {
+				if ($trivia->is(Trivia::OpenTag)) {
 					$leading = [...array_slice($neighborFirst->leadingTrivia, 0, $i + 1), ...$leading];
 					$neighborFirst->setLeadingTrivia(array_slice($neighborFirst->leadingTrivia, $i + 1));
 					break;
@@ -218,7 +218,7 @@ final class CodeWriter
 
 		$statement->setEdgeTrivia($leading, [$eol]);
 		$list->insert($index, $statement);
-		if ($neighborFirst !== null && ($neighborFirst->leadingTrivia[0] ?? null)?->id !== Trivia::LineEnding) {
+		if ($neighborFirst !== null && !($neighborFirst->leadingTrivia[0] ?? null)?->is(Trivia::LineEnding)) {
 			$neighborFirst->setBlankLinesBefore(1, $context->style->lineEnding);
 		}
 	}

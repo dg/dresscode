@@ -39,7 +39,7 @@ final class NoHashCommentsRule extends NodeRule
 			$changed = false;
 			foreach ($trivia as $i => $item) {
 				if (
-					$item->id === Trivia::Comment
+					$item->is(Trivia::Comment)
 					&& !$item->inInterpolation
 					&& str_starts_with($item->text, '#')
 					&& $context->report($node, 'A single-line comment must start with `//`, not `#`', trivia: $item)

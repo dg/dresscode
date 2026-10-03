@@ -108,12 +108,12 @@ final class NewArgumentParenthesesRule extends NodeRule implements ConfigurableR
 		$node->arguments = null;
 		$onlyWhitespace = true;
 		foreach ($trailing as $trivia) {
-			$onlyWhitespace = $onlyWhitespace && $trivia->id === Trivia::Whitespace;
+			$onlyWhitespace = $onlyWhitespace && $trivia->is(Trivia::Whitespace);
 		}
 
 		$beforeTrailing = $before->trailingTrivia ?? [];
 		$beforeEndsWithSpace = $beforeTrailing !== []
-			&& $beforeTrailing[count($beforeTrailing) - 1]->id === Trivia::Whitespace;
+			&& $beforeTrailing[count($beforeTrailing) - 1]->is(Trivia::Whitespace);
 		if ($before !== null && $trailing !== [] && !($onlyWhitespace && $beforeEndsWithSpace)) {
 			$before->setTrailingTrivia([...$beforeTrailing, ...$trailing]);
 		}

@@ -37,7 +37,7 @@ final class NoEmptyPhpdocsRule extends NodeRule
 
 		foreach ([...$node->leadingTrivia, ...$node->trailingTrivia] as $trivia) {
 			if (
-				$trivia->id === Trivia::DocComment
+				$trivia->is(Trivia::DocComment)
 				&& !$trivia->inInterpolation
 				&& trim(substr($trivia->text, 3, -2), " \t\r\n*") === ''
 				&& $context->report($node, 'Empty doc comment', trivia: $trivia)

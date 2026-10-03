@@ -151,7 +151,7 @@ final class UnusedImportsRule extends NodeRule implements ConfigurableRule
 		$last = $scope->getLastToken();
 		for ($token = $first; $token !== null; $token = $token->getNext()) {
 			foreach ([...$token->leadingTrivia, ...$token->trailingTrivia] as $trivia) {
-				if ($trivia->id === Trivia::DocComment) {
+				if ($trivia->is(Trivia::DocComment)) {
 					$result[] = $trivia;
 				}
 			}

@@ -248,7 +248,7 @@ final class OverrideSignatureRule extends NodeRule implements ConfigurableRule
 		$first = $node->getFirstToken();
 		foreach ($first->leadingTrivia as $trivia) {
 			if (
-				$trivia->id === Trivia::DocComment
+				$trivia->is(Trivia::DocComment)
 				&& preg_match('~\$' . preg_quote($old, '~') . '\b~', $trivia->text)
 			) {
 				$first->replaceTrivia($trivia, $trivia->withText((string) preg_replace('~\$' . preg_quote($old, '~') . '\b~', '$' . $new, $trivia->text)));

@@ -15,7 +15,7 @@ function docComments(FileNode $file): array
 	$result = [];
 	foreach ($file->getTokens() as $token) {
 		foreach ([...$token->leadingTrivia, ...$token->trailingTrivia] as $trivia) {
-			if ($trivia->id === Trivia::DocComment) {
+			if ($trivia->is(Trivia::DocComment)) {
 				$result[] = $trivia;
 			}
 		}

@@ -70,8 +70,8 @@ final class UselessStringConcatRule extends NodeRule implements ConfigurableRule
 		if (
 			!$left instanceof StringNode
 			|| !$right instanceof StringNode
-			|| $left->token->id !== Token::ConstantEncapsedString
-			|| $right->token->id !== Token::ConstantEncapsedString
+			|| !$left->token->is(Token::ConstantEncapsedString)
+			|| !$right->token->is(Token::ConstantEncapsedString)
 		) {
 			return;
 		}
@@ -122,7 +122,7 @@ final class UselessStringConcatRule extends NodeRule implements ConfigurableRule
 			|| $other instanceof InterpolatedStringNode
 			|| $other instanceof HeredocNode
 			|| ($other instanceof BinaryOpNode && $other->operator->is('.'))
-			|| ($other instanceof CastNode && $other->operator->id === Token::StringCast)
+			|| ($other instanceof CastNode && $other->operator->is(Token::StringCast))
 			|| ($node->parent instanceof BinaryOpNode && $node->parent->operator->is('.'));
 		if ($isString) {
 			$node->replaceWith($copy);

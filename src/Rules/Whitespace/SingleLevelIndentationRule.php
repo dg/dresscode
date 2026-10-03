@@ -81,7 +81,7 @@ final class SingleLevelIndentationRule extends NodeRule implements ConfigurableR
 				$indentation = '';
 				$opens = true;
 
-			} elseif ($trivia->id === Trivia::Whitespace) {
+			} elseif ($trivia->is(Trivia::Whitespace)) {
 				$indentation = $trivia->text;
 
 			} elseif ($trivia->isComment()) {

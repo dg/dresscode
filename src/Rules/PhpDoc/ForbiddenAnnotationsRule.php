@@ -67,7 +67,7 @@ final class ForbiddenAnnotationsRule extends NodeRule implements ConfigurableRul
 		}
 
 		foreach ([...$node->leadingTrivia, ...$node->trailingTrivia] as $trivia) {
-			if ($trivia->id !== Trivia::DocComment || $trivia->inInterpolation) {
+			if (!$trivia->is(Trivia::DocComment) || $trivia->inInterpolation) {
 				continue;
 			}
 

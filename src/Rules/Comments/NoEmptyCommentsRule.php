@@ -91,7 +91,7 @@ final class NoEmptyCommentsRule extends NodeRule
 			}
 
 			foreach ($line as $comment) {
-				if ($comment->id === Trivia::Comment && !$comment->inInterpolation) {
+				if ($comment->is(Trivia::Comment) && !$comment->inInterpolation) {
 					$blocks[] = [$comment];
 				}
 			}

@@ -61,7 +61,7 @@ final class CommentSpacingRule extends NodeRule implements ConfigurableRule
 			$result = [];
 			$changed = false;
 			foreach ($trivia as $i => $item) {
-				if ($item->id === Trivia::Comment && !$item->inInterpolation) {
+				if ($item->is(Trivia::Comment) && !$item->inInterpolation) {
 					$text = self::space($item->text);
 					if (
 						$text !== $item->text
@@ -74,7 +74,7 @@ final class CommentSpacingRule extends NodeRule implements ConfigurableRule
 					$previous = $result === [] ? null : $result[count($result) - 1];
 					$gap = match (true) {
 						$isLeading || $this->before === null || !self::endsLine($trivia, $i) => null,
-						$previous?->id !== Trivia::Whitespace => 'missing',
+						!$previous?->is(Trivia::Whitespace) => 'missing',
 						$this->before === 'single' && $previous->text !== ' ' => 'wide',
 						default => null,
 					};
