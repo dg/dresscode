@@ -56,11 +56,6 @@ final class CsvEscapeArgumentRequiredRule extends NodeRule
 			return;
 		}
 
-		$template = (new Builder)->expression("f(escape: '\\\\')");
-		assert($template instanceof Expression\FunctionCallNode);
-		$argument = $template->arguments->items->getItems()[0];
-		assert($argument instanceof ArgumentNode);
-		$template->arguments->items->removeItem($argument);
-		$node->arguments->items->append($argument);
+		$node->arguments->items->append((new Builder)->fragment(ArgumentNode::class, "escape: '\\\\'"));
 	}
 }

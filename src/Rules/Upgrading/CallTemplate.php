@@ -414,11 +414,7 @@ final class CallTemplate
 			}
 
 			$named = $named || $item->key !== null;
-			$call = (new Builder)->expression($item->key === null ? 'f(0)' : "f($key: 0)");
-			assert($call instanceof FunctionCallNode && $call->arguments->items->getItems()[0] instanceof ArgumentNode);
-			$argument = $call->arguments->items->getItems()[0];
-			$argument->value->replaceWithExpression($item->value->withoutEdgeTrivia());
-			$arguments[] = $argument;
+			$arguments[] = (new Builder)->fragment(ArgumentNode::class, ($item->key === null ? '' : "$key: ") . '$value', value: $item->value);
 		}
 
 		return $arguments;

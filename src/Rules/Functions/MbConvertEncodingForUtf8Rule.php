@@ -64,12 +64,7 @@ final class MbConvertEncodingForUtf8Rule extends NodeRule
 		}
 
 		$spelling = CodeWriter::spellFunction('mb_convert_encoding', $name, $context);
-		$call = (new Builder)->expression("$spelling(0, " . self::Conversions[$function] . ')');
-		assert($call instanceof Expression\FunctionCallNode);
-		$first = $call->arguments->items->getItems()[0];
-		assert($first instanceof ArgumentNode);
-		$first->value->replaceWith($argument->withoutEdgeTrivia());
-		$node->replaceWith($call);
+		$node->replaceWith((new Builder)->expression($spelling . '($string, ' . self::Conversions[$function] . ')', string: $argument));
 	}
 
 

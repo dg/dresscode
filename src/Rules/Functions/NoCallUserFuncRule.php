@@ -117,11 +117,8 @@ final class NoCallUserFuncRule extends NodeRule
 
 		$call = $named ?? (new Builder)->call($callable->value);
 		if ($function === 'call_user_func_array') {
-			$template = (new Builder)->expression('f(...$a)');
-			assert($template instanceof FunctionCallNode && $template->arguments->items->getItems()[0] instanceof ArgumentNode);
-			$value = $passed[0]->withoutEdgeTrivia();
-			$template->arguments->items->getItems()[0]->value->replaceWith($value);
-			$call->arguments = clone $template->arguments;
+			$builder = new Builder;
+			$call->arguments = $builder->arguments([$builder->fragment(ArgumentNode::class, '...$arguments', arguments: $passed[0])]);
 		} else {
 			// what follows the call stays with the node it replaces, so the arguments must not bring it a second time
 			$arguments = clone $node->arguments;

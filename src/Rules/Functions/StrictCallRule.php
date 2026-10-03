@@ -112,9 +112,7 @@ final class StrictCallRule extends NodeRule
 			$value = str_ends_with($value, '()') && $node->name instanceof NameNode
 				? CodeWriter::spellFunction(substr($value, 0, -2), $node->name, $context) . '()'
 				: $value;
-			$call = (new Builder)->expression("f($value)");
-			assert($call instanceof FunctionCallNode);
-			$node->arguments->items->append(clone $call->arguments->items->getItems()[0]);
+			$node->arguments->items->append((new Builder)->fragment(ArgumentNode::class, $value));
 		}
 	}
 }

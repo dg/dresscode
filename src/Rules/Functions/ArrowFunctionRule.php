@@ -83,18 +83,16 @@ final class ArrowFunctionRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$fn = (new Builder)->expression(
+		$fn = (new Builder)->fragment(
+			ArrowFunctionNode::class,
 			($node->staticKeyword ? 'static ' : '')
 			. 'fn' . ($node->ampersand ? '&' : '') . '()'
 			. ($node->returnType ? ': ' . trim((string) $node->returnType) : '')
-			. ' => 0',
+			. ' => $value',
+			value: $return->expression,
 		);
-		assert($fn instanceof ArrowFunctionNode);
 		$fn->attributes = clone $node->attributes;
 		$fn->parameters = clone $node->parameters;
-
-		$expr = $return->expression->withoutEdgeTrivia();
-		$fn->expression->replaceWith($expr);
 		$node->replaceWith($fn);
 	}
 }

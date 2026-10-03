@@ -9,7 +9,7 @@ namespace DressCode\Rules\Expressions;
 
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\Expression\{CastNode, UnaryOpNode};
+use PhpSyntax\Nodes\Expression\UnaryOpNode;
 
 
 /**
@@ -41,12 +41,7 @@ final class NoShortBoolCastsRule extends NodeRule
 			return;
 		}
 
-		$cast = (new Builder)->expression('(bool) 0');
-		assert($cast instanceof CastNode);
-		$operand = clone $inner->expression;
-		$operand->setEdgeTrivia(leading: []);
-		// `!` binds looser than a cast, so an operand like `$a instanceof B` would lose itself to the cast
-		$cast->expression->replaceWithExpression($operand);
-		$node->replaceWith($cast);
+		// `!` binds looser than a cast, so an operand like `$a instanceof B` goes into parentheses
+		$node->replaceWith((new Builder)->cast('bool', $inner->expression));
 	}
 }

@@ -9,7 +9,7 @@ namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\Expression\{AssignmentNode, BinaryOpNode, ClosureNode, TernaryNode};
+use PhpSyntax\Nodes\Expression\{AssignmentNode, BinaryOpNode, ClosureNode};
 use PhpSyntax\Nodes\ExpressionNode;
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\{BlockNode, ExpressionStatementNode, FunctionNode, IfNode, ReturnNode};
@@ -74,26 +74,11 @@ final class TernaryForIfRule extends NodeRule
 			return;
 		}
 
-		$ternary = (new Builder)->expression('0 ? 0 : 0');
-		assert($ternary instanceof TernaryNode && $ternary->then !== null);
-		$ternary->condition->replaceWithExpression($node->condition->withoutEdgeTrivia());
-		$ternary->then->replaceWithExpression($a->withoutEdgeTrivia());
-		$ternary->else->replaceWithExpression($b->withoutEdgeTrivia());
-
-		$statement = (new Builder)->statement($target === null ? 'return 0;' : '$x = 0;');
-		if ($statement instanceof ReturnNode && $statement->expression !== null) {
-			$statement->expression->replaceWith($ternary);
-		} elseif (
-			$statement instanceof ExpressionStatementNode
-			&& $statement->expression instanceof AssignmentNode
-			&& $target !== null
-		) {
-			$copy = $target->withoutEdgeTrivia();
-			$statement->expression->target->replaceWith($copy);
-			$statement->expression->expression->replaceWith($ternary);
-		}
-
-		$node->replaceWith($statement);
+		$builder = new Builder;
+		$ternary = $builder->ternary($node->condition, $a, $b);
+		$node->replaceWith($target === null
+			? $builder->statement('return $value;', value: $ternary)
+			: $builder->statement('$target = $value;', target: $target, value: $ternary));
 	}
 
 

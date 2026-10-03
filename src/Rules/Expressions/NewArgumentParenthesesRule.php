@@ -83,10 +83,7 @@ final class NewArgumentParenthesesRule extends NodeRule implements ConfigurableR
 			return;
 		}
 
-		$template = (new Builder)->expression('new Foo()');
-		assert($template instanceof NewNode && $template->arguments !== null);
-		$args = $template->arguments;
-		$template->arguments = null;
+		$args = (new Builder)->arguments([]);
 		$args->closeParen->setTrailingTrivia($before->trailingTrivia);
 		$before->setTrailingTrivia([]);
 		$node->arguments = $args;

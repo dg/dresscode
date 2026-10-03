@@ -129,9 +129,6 @@ final class UselessStringConcatRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		$cast = (new Builder)->expression('(string) 0');
-		assert($cast instanceof CastNode);
-		$cast->expression->replaceWithExpression($copy);
-		$node->replaceWith($cast);
+		$node->replaceWith((new Builder)->cast('string', $copy));
 	}
 }

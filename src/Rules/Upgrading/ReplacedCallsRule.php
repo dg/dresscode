@@ -14,7 +14,7 @@ use Nette\Schema\{Context, Schema};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, DestructuringNode, ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode, MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, VariableNode};
+use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode, MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Scalar\StringNode;
 use PhpSyntax\Nodes\Statement\{ExpressionStatementNode, ForeachNode, UnsetNode};
@@ -282,10 +282,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 		};
 
 		if ($rewrite->report($node->name, self::describeCall($node, $access, $pattern, $template), $context)) {
-			$closure = (new Builder)->expression('fn() => 0');
-			assert($closure instanceof ArrowFunctionNode);
-			$closure->expression->replaceWithExpression($rewrite->write($node, $context));
-			$node->replaceWithExpression($closure);
+			$node->replaceWithExpression((new Builder)->expression('fn() => $value', value: $rewrite->write($node, $context)));
 		}
 	}
 
@@ -526,10 +523,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 			} elseif ($node instanceof IssetNode) {
 				$node->replaceWithExpression($rewrite->write($node, $context));
 			} else {
-				$statement = (new Builder)->statement('0;');
-				assert($statement instanceof ExpressionStatementNode);
-				$statement->expression = $rewrite->write($node, $context);
-				$node->replaceWith($statement);
+				$node->replaceWith((new Builder)->statement('$value;', value: $rewrite->write($node, $context)));
 			}
 		}
 	}

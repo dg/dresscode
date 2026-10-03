@@ -120,12 +120,10 @@ final class UselessElseRule extends NodeRule implements ConfigurableRule
 	 */
 	private function splitElseif(IfNode $node, ElseifNode $elseif, PlainNodeList $list, RuleContext $context): void
 	{
-		$new = (new Builder)->statement('if (0) {}');
-		assert($new instanceof IfNode && $elseif->body !== null);
-		$cond = $elseif->condition->withoutEdgeTrivia();
+		$new = (new Builder)->fragment(IfNode::class, 'if ($condition) {}', condition: $elseif->condition);
 		$body = $elseif->body;
+		assert($body !== null);
 		$elseif->body = null;
-		$new->condition = $cond;
 		$new->body = $body;
 		$node->elseifs->removeItem($elseif);
 		foreach ($node->elseifs->getItems() as $later) {

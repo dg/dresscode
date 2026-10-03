@@ -10,7 +10,7 @@ namespace DressCode\Rules\Expressions;
 use DressCode\Analyses\Types;
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\Expression\{CombinedAssignmentNode, PostfixOpNode};
+use PhpSyntax\Nodes\Expression\CombinedAssignmentNode;
 use PhpSyntax\Nodes\Scalar\IntegerNode;
 use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 
@@ -58,12 +58,6 @@ final class IncrementForAddOneRule extends NodeRule
 			return;
 		}
 
-		$postfix = (new Builder)->expression('$x' . $operator);
-		assert($postfix instanceof PostfixOpNode);
-		$var = clone $node->target;
-		$var->setEdgeTrivia(leading: []);
-		$var->getLastToken()->removeTrailingWhitespace();
-		$postfix->target = $var;
-		$node->replaceWith($postfix);
+		$node->replaceWith((new Builder)->expression('$target' . $operator, target: $node->target));
 	}
 }

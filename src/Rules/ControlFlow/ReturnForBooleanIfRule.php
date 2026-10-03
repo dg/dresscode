@@ -71,10 +71,7 @@ final class ReturnForBooleanIfRule extends NodeRule
 			return;
 		}
 
-		$return = (new Builder)->statement('return 0;');
-		assert($return instanceof ReturnNode && $return->expression !== null);
-		$return->expression->replaceWith($expr);
-		$node->replaceWith($return);
+		$node->replaceWith((new Builder)->statement('return $value;', value: $expr));
 		if ($tail) {
 			$first = $tail->getFirstToken();
 			if ($first !== null && $first->startsLine()) {

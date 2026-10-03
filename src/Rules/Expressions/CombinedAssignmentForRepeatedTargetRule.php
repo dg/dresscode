@@ -78,14 +78,11 @@ final class CombinedAssignmentForRepeatedTargetRule extends NodeRule
 			return;
 		}
 
-		$replacement = (new Builder)->expression('$x ' . $combined . ' 0');
-		assert($replacement instanceof Expression\CombinedAssignmentNode);
+		$replacement = (new Builder)->combinedAssign($var, $combined, $binary->right);
+		$replacement->target->setEdgeTrivia(trailing: $var->trailingTrivia);
 		$replacement->operator
 			->setLeadingTrivia($node->equals->leadingTrivia)
 			->setTrailingTrivia($node->equals->trailingTrivia);
-		$replacement->target = clone $var;
-		$replacement->expression = clone $binary->right;
-		$replacement->setEdgeTrivia([], []);
 		$node->replaceWith($replacement);
 	}
 

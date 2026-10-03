@@ -322,10 +322,7 @@ final readonly class ArgumentPattern
 			$key = $arrayItem->key?->toValue();
 			$placeholder = is_string($key) ? $item->keys[$key] ?? null : null;
 			if ($placeholder !== null && !isset($bound[$placeholder])) {
-				$call = (new Builder)->expression('f(0)');
-				assert($call instanceof FunctionCallNode && $call->arguments->items->getItems()[0] instanceof ArgumentNode);
-				$bound[$placeholder] = $call->arguments->items->getItems()[0];
-				$bound[$placeholder]->value->replaceWithExpression($arrayItem->value->withoutEdgeTrivia());
+				$bound[$placeholder] = (new Builder)->fragment(ArgumentNode::class, '$value', value: $arrayItem->value);
 				$order[] = [$placeholder, $arrayItem->value];
 			} elseif ($item->otherItems !== null) {
 				$others[] = $arrayItem->withoutEdgeTrivia();
