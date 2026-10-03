@@ -103,10 +103,7 @@ final class EarlyExitRule extends NodeRule implements ConfigurableRule
 	 */
 	private function report(IfNode $node, BlockNode $body, string $message, RuleContext $context): bool
 	{
-		$commented = $node->openParen->hasCommentUpTo($node->closeParen);
-		foreach ($body->closeBrace->leadingTrivia as $trivia) {
-			$commented = $commented || $trivia->isComment();
-		}
+		$commented = $node->openParen->hasCommentUpTo($node->closeParen) || $body->closeBrace->hasLeadingComment();
 
 		return $context->report($node, $message, fixable: !$commented);
 	}

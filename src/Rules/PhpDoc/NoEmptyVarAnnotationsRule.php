@@ -12,6 +12,7 @@ use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{GenericTagValueNode, InvalidTagValueNode, PhpDocTagNode};
 use PhpSyntax\{Node, Token, Trivia};
 use PhpSyntax\Nodes\Member\PropertyNode;
+use function count;
 
 
 /**
@@ -34,16 +35,12 @@ final class NoEmptyVarAnnotationsRule extends NodeRule
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (!$node instanceof PropertyNode || ($first = $node->getFirstToken()) === null) {
+		if (!$node instanceof PropertyNode) {
 			return;
 		}
 
-		$comment = null;
-		foreach ($first->leadingTrivia as $trivia) {
-			if ($trivia->isComment()) {
-				$comment = $trivia;
-			}
-		}
+		$comments = $node->getLeadingComments();
+		$comment = $comments[count($comments) - 1] ?? null;
 
 		if ($comment === null || $comment->inInterpolation || $comment->id !== Trivia::DocComment) {
 			return;

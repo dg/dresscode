@@ -87,12 +87,7 @@ final class ControlStructureBracesRule extends NodeRule
 		$block->statements->append($body);
 
 		$before = $block->openBrace->getPrevious();
-		$hasComment = false;
-		foreach ($before ? $before->trailingTrivia : [] as $trivia) {
-			$hasComment = $hasComment || $trivia->isComment();
-		}
-
-		if ($before && !$hasComment) {
+		if ($before && !$before->hasTrailingComment()) {
 			$before->setTrailingTrivia([Trivia::fromText(' ')]);
 			$block->openBrace->setLeadingTrivia([]);
 		} else {

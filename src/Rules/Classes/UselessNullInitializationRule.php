@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
-use PhpSyntax\{Node, Token, Trivia};
+use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Member\PropertyNode;
 use PhpSyntax\Nodes\Scalar\NullNode;
 
@@ -44,7 +44,7 @@ final class UselessNullInitializationRule extends NodeRule
 				!$default instanceof NullNode
 				|| $item->equals === null
 				|| $item->hasInnerComment()
-				|| array_any($default->getLastToken()->trailingTrivia, fn(Trivia $trivia) => $trivia->isComment())
+				|| $default->hasTrailingComment()
 				|| !$context->report($default, 'Useless initialization with `null`, an untyped property is null by default')
 			) {
 				continue;

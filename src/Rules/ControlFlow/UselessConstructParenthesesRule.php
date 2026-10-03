@@ -87,18 +87,9 @@ final class UselessConstructParenthesesRule extends NodeRule
 	/** Whether a comment stands between the parentheses and what they hold, which dropping them would lose. */
 	private static function holdsComment(ParenthesizedNode $node): bool
 	{
-		$first = $node->expression->getFirstToken();
-		$last = $node->expression->getLastToken();
 		return $node->openParen->hasComment()
 			|| $node->closeParen->hasComment()
-			|| self::hasComment($first->leadingTrivia)
-			|| self::hasComment($last->trailingTrivia);
-	}
-
-
-	/** @param list<Trivia> $trivia */
-	private static function hasComment(array $trivia): bool
-	{
-		return array_any($trivia, fn(Trivia $item) => $item->isComment());
+			|| $node->expression->hasLeadingComment()
+			|| $node->expression->hasTrailingComment();
 	}
 }
