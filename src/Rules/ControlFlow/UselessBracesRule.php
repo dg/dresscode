@@ -35,18 +35,12 @@ final class UselessBracesRule extends NodeRule
 	{
 		if (
 			!$node instanceof BlockNode
-			|| !($list = $node->parent) instanceof PlainNodeList
+			|| !$node->parent instanceof PlainNodeList
 			|| !$context->report($node, 'Useless braces')
 		) {
 			return;
 		}
 
-		$index = $list->indexOf($node);
-		foreach ($node->statements->getItems() as $stmt) {
-			$node->statements->removeItem($stmt);
-			$list->insert(++$index, $stmt); // after the block, so that remove() hands the brace trivia to the first one
-		}
-
-		$node->remove();
+		$node->unwrap();
 	}
 }
