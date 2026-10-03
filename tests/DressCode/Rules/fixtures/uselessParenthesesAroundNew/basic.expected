@@ -8,3 +8,7 @@ $f = (new Foo());
 $g = (new Foo()) . 'x';
 $h = (new class () {})->bar();
 $i = (/* c */ new Foo())->bar();
+$j = (new Foo() /* c */)->bar();
+$k = (
+	// c
+	new Foo())->bar();
