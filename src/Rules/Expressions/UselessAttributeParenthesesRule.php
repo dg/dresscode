@@ -40,6 +40,7 @@ final class UselessAttributeParenthesesRule extends NodeRule
 		if (
 			$args === null
 			|| !$args->items->isEmpty()
+			|| $args->openParen->hasLeadingComment()
 			|| $args->openParen->hasCommentUpTo($args->closeParen)
 			|| !$context->report($args, 'Useless empty parentheses after an attribute name')
 		) {
