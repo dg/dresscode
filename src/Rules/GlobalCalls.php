@@ -32,7 +32,7 @@ final class GlobalCalls
 		return !$name instanceof NameNode
 			|| (!array_key_exists(strtolower($name->shortName), $names) && !NodeHelpers::importsFunctionAs($context))
 			? null
-			: $context->getAnalysis(NameResolver::class)->findGlobalFunction($call, array_keys($names));
+			: $context->getAnalysis(NameResolver::class)->findGlobalFunction($call, $names);
 	}
 
 
