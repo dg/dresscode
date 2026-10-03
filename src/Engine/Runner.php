@@ -380,10 +380,4 @@ final class Runner
 
 		return implode('/', array_filter(explode('/', $path), fn(string $segment) => $segment !== '.')); // "./a" and "." would match the ".*" exclusion
 	}
-
-
-	public function getProcessor(): FileProcessor
-	{
-		return $this->processors->getBase();
-	}
 }

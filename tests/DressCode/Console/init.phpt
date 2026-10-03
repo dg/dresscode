@@ -109,7 +109,7 @@ test('init writes what the code says, the loader reads it back as measured, and 
 	// the round trip: what the run resolves the written file to is what was measured
 	$factory = new RunnerFactory;
 	$factory->createRunner(Loader::loadFile("$root/dresscode.neon"), $root, cache: false);
-	$resolved = $factory->getResolvedConfig();
+	$resolved = $factory->resolvedConfig;
 	Assert::same("\t", $resolved->indent);
 	Assert::same(['quotes' => 'single'], $resolved->getRule('dresscode/stringQuotes')?->options);
 	Assert::noError(fn() => Proposal::measure($root)->checkResolution($resolved));
@@ -169,7 +169,7 @@ test('init lists what the namespaces declare from every file, and proposes the p
 
 	$factory = new RunnerFactory;
 	$factory->createRunner(Loader::loadFile("$root/dresscode.neon"), $root, cache: false);
-	$resolved = $factory->getResolvedConfig();
+	$resolved = $factory->resolvedConfig;
 	Assert::same('certain', $resolved->nameResolution);
 	Assert::same('the configuration', $resolved->namespacedFunctions['App\Compat\first']);
 	Assert::same('DressCode for symfony/dependency-injection', $resolved->namespacedFunctions['Symfony\Component\DependencyInjection\Loader\Configurator\service']);
@@ -237,8 +237,8 @@ test('a decision the code does not make clearly is not written as a value', func
 
 	$factory = new RunnerFactory;
 	$factory->createRunner(Loader::loadFile("$root/dresscode.neon"), $root, cache: false);
-	Assert::false($factory->getResolvedConfig()->getRule('dresscode/stringQuotes')?->isActive());
-	Assert::same("\t", $factory->getResolvedConfig()->indent); // the tab of dresscode/nette
+	Assert::false($factory->resolvedConfig->getRule('dresscode/stringQuotes')?->isActive());
+	Assert::same("\t", $factory->resolvedConfig->indent); // the tab of dresscode/nette
 });
 
 
@@ -258,7 +258,7 @@ test('the shape of the conditions is counted by condition, and both shapes pass 
 
 	$factory = new RunnerFactory;
 	$factory->createRunner(Loader::loadFile("$root/dresscode.neon"), $root, cache: false);
-	Assert::same(['perLine', 'compact'], $factory->getResolvedConfig()->getRule('dresscode/multilineCondition')?->options['shape']);
+	Assert::same(['perLine', 'compact'], $factory->resolvedConfig->getRule('dresscode/multilineCondition')?->options['shape']);
 
 	// a shape at least 70 % of the conditions have is written as the shape
 	$root = createProject('shape', ['src/a.php' => "<?php\n$perLine$perLine$perLine$compact"]);

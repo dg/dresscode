@@ -278,7 +278,7 @@ final class Application
 			fixRisky: in_array(true, (array) ($args['--fix-risky'] ?? []), true),
 			profiler: $profiler,
 		);
-		foreach ($factory->getWarnings() as $warning) { // only the parent warns, a worker has returned above
+		foreach ($factory->warnings as $warning) { // only the parent warns, a worker has returned above
 			$this->err->writeLine(Markup::highlightCode($this->err, "Warning: $warning", 'yellow'));
 		}
 
@@ -459,7 +459,7 @@ final class Application
 	/** The version the rules target, said with where it was taken from when the user did not choose it. */
 	private static function describePhpVersion(RunnerFactory $factory): string
 	{
-		[$version, $source] = $factory->getPhpVersion();
+		[$version, $source] = $factory->phpVersion;
 		return $version . match ($source) {
 			PhpVersionSource::Configuration => '',
 			PhpVersionSource::Composer => ' from `composer.json`',
@@ -663,8 +663,8 @@ final class Application
 		$file = $args['--file'];
 		$resolved = is_string($file)
 			? $factory->resolveConfigFor($runner->findOverridesFor($file))
-			: $factory->getResolvedConfig();
-		$printer = new ConfigPrinter($resolved, $factory->getPackages());
+			: $factory->resolvedConfig;
+		$printer = new ConfigPrinter($resolved, $factory->packages);
 		if ($args['--format'] === 'json') {
 			$this->out->write($printer->printJson());
 			return 0;
@@ -692,7 +692,7 @@ final class Application
 		$factory = new RunnerFactory;
 		[$config, $root, $configFile, $commandLine] = $this->loadConfig($args);
 		$factory->createRunner($config, $root, $commandLine, self::parseOnly($args), cache: false);
-		$resolved = $factory->getResolvedConfig();
+		$resolved = $factory->resolvedConfig;
 		$printer = new ExplainPrinter($factory->registry);
 		if (is_string($name)) {
 			$rule = $resolved->getRule(RuleInfo::of($factory->registry->resolveRule($name))->name);
@@ -721,10 +721,10 @@ final class Application
 	{
 		$factory = new RunnerFactory;
 		[$config, $root, , $commandLine] = $this->loadConfig($args);
-		$runner = $factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
+		$factory->createRunner($config, $root, $commandLine, self::parseOnly($args));
 		$enabled = [];
-		foreach ($runner->getProcessor()->rules as $rule) {
-			$enabled[RuleInfo::of($rule)->name] = true;
+		foreach ($factory->resolvedConfig->getActiveRules() as $rule) {
+			$enabled[$rule->name] = true;
 		}
 
 		$registry = $factory->registry;

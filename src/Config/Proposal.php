@@ -422,7 +422,7 @@ final class Proposal
 		try {
 			$factory = new RunnerFactory;
 			$factory->createRunner(Loader::loadFile($temp), $root, cache: false);
-			$this->checkResolution($factory->getResolvedConfig());
+			$this->checkResolution($factory->resolvedConfig);
 		} finally {
 			@unlink($temp); // @ - may be gone
 		}

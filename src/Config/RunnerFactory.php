@@ -22,63 +22,33 @@ use const JSON_PARTIAL_OUTPUT_ON_ERROR, JSON_THROW_ON_ERROR;
  */
 final class RunnerFactory
 {
-	/** @var list<string> */
-	private array $warnings = [];
+	/** @var list<string>  what the last built engine has to say about the configuration it was built from */
+	public private(set) array $warnings = [];
 
-	/** @var ?array{string, PhpVersionSource} */
-	private ?array $phpVersion = null;
+	/**
+	 * The version the last built engine targets and where it came from; the caller must not resolve it
+	 * again, or the header could name something else than the rules were chosen for.
+	 * @var array{string, PhpVersionSource}
+	 */
+	public private(set) array $phpVersion;
 
-	private ?ResolvedConfig $resolved = null;
+	/** the configuration the last built engine came from, as data */
+	public private(set) ResolvedConfig $resolvedConfig;
 
-	/** @var list<array{PackageProfile, ?string}> */
-	private array $packages = [];
+	/**
+	 * The upgrading files of the installed packages the last built engine heard, each with the version of its package
+	 * the code must work with, null where any does.
+	 * @var list<array{PackageProfile, ?string}>
+	 */
+	public private(set) array $packages = [];
 
-	/** @var ?\Closure(list<int>): ResolvedConfig */
-	private ?\Closure $resolveFor = null;
+	/** @var \Closure(list<int>): ResolvedConfig */
+	private \Closure $resolveFor;
 
 
 	public function __construct(
 		public readonly RuleRegistry $registry = new RuleRegistry,
 	) {
-	}
-
-
-	/**
-	 * What the last built engine has to say about the configuration it was built from.
-	 * @return list<string>
-	 */
-	public function getWarnings(): array
-	{
-		return $this->warnings;
-	}
-
-
-	/**
-	 * The version the last built engine targets and where it came from; the caller must not resolve it
-	 * again, or the header could name something else than the rules were chosen for.
-	 * @return array{string, PhpVersionSource}
-	 */
-	public function getPhpVersion(): array
-	{
-		return $this->phpVersion ?? throw new \LogicException('No engine has been built yet.');
-	}
-
-
-	/** The configuration the last built engine came from, as data. */
-	public function getResolvedConfig(): ResolvedConfig
-	{
-		return $this->resolved ?? throw new \LogicException('No engine has been built yet.');
-	}
-
-
-	/**
-	 * The upgrading files of the installed packages the last built engine heard, each with the version of its package
-	 * the code must work with, null where any does.
-	 * @return list<array{PackageProfile, ?string}>
-	 */
-	public function getPackages(): array
-	{
-		return $this->packages;
 	}
 
 
@@ -120,7 +90,7 @@ final class RunnerFactory
 		$this->registerNamedClasses($config);
 		[$target, $source] = $this->resolvePhpTarget($config, $root);
 		$resolver = new ConfigResolver($this->registry, $packages->profiles, $project);
-		$this->resolved = $resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
+		$this->resolvedConfig = $resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
 		// an override is resolved for a file it matches, so a name or an option it gets wrong would pass unnoticed until
 		// such a file comes; each of them is resolved as soon as the run is built
 		foreach (array_keys($config->overrides) as $index) {
@@ -230,7 +200,7 @@ final class RunnerFactory
 	 */
 	public function resolveConfigFor(array $overrides): ResolvedConfig
 	{
-		return ($this->resolveFor ?? throw new \LogicException('No engine has been built yet.'))($overrides);
+		return ($this->resolveFor)($overrides);
 	}
 
 

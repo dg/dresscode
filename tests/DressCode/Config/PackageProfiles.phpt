@@ -176,7 +176,7 @@ test('a package the project requires itself is measured by the lowest version it
 	$factory = new RunnerFactory;
 	$runner = $factory->createRunner(new Config(rules: ['replacedClasses' => true], targets: ['acme/lib' => '3.3', 'acme/ghost' => '1.0']), $root, cache: false);
 	Assert::same("<?php\n\nnamespace App;\n\nnew \\Acme\\Lib\\Later;\n", $runner->processFile("$root/f.php", "<?php\n\nnamespace App;\n\nnew \\Acme\\Lib\\Old;\n")->output);
-	Assert::same(['The configuration names package `acme/ghost` in `targets`, but it is not installed; skipped.'], $factory->getWarnings());
+	Assert::same(['The configuration names package `acme/ghost` in `targets`, but it is not installed; skipped.'], $factory->warnings);
 });
 
 
@@ -205,7 +205,7 @@ test('a key under extra.dresscode that DressCode does not read is a warning of t
 	$factory->createRunner(new Config, $root, cache: false);
 	Assert::same(
 		['Package `acme/lib`: `extra.dresscode` in its `composer.json` holds the key `upgrades`, which this DressCode does not know; skipped.'],
-		$factory->getWarnings(),
+		$factory->warnings,
 	);
 });
 
@@ -285,7 +285,7 @@ test('what a package says is heard of a rule the project runs, and never turns o
 			XX,
 		$result->output,
 	);
-	$rule = $factory->getResolvedConfig()->rules[0];
+	$rule = $factory->resolvedConfig->rules[0];
 	Assert::same('dresscode/replacedClasses', $rule->name);
 	Assert::same(
 		[
@@ -297,7 +297,7 @@ test('what a package says is heard of a rule the project runs, and never turns o
 
 	// nothing of the project mentions the rule, so the package does not turn it on
 	$factory->createRunner(new Config, $root, cache: false);
-	$rules = array_column($factory->getResolvedConfig()->rules, null, 'name');
+	$rules = array_column($factory->resolvedConfig->rules, null, 'name');
 	Assert::same('no preset or rule of the configuration mentions it', $rules['dresscode/replacedClasses']->inactive);
 });
 
@@ -311,7 +311,7 @@ test('dresscode config lists the upgrading files with the sections the version o
 
 	$factory = new RunnerFactory;
 	$factory->createRunner(new Config, $root, cache: false);
-	$printer = new ConfigPrinter($factory->getResolvedConfig(), $factory->getPackages());
+	$printer = new ConfigPrinter($factory->resolvedConfig, $factory->packages);
 	Assert::match('%A%Packages   1 upgrading file%A%      acme/lib 3.2 %a%upgrading.neon of acme/lib, upgrading further to 3.3, 4.0%A%', $printer->print(new Console));
 	Assert::same(
 		[['source' => 'upgrading.neon of acme/lib', 'package' => 'acme/lib', 'version' => '3.2', 'unreached' => ['3.3', '4.0']]],
@@ -339,7 +339,7 @@ test('what a package declares in its namespaces lies under the lists of the proj
 	);
 	$factory = new RunnerFactory;
 	$factory->createRunner(new Config(namespaces: ['functions' => ['App\format']]), $root, cache: false);
-	$functions = $factory->getResolvedConfig()->namespacedFunctions;
+	$functions = $factory->resolvedConfig->namespacedFunctions;
 	Assert::same('the configuration', $functions['App\format']);
 	Assert::same('upgrading.neon of acme/lib', $functions['Acme\Lib\helper']);
 	Assert::same('DressCode for symfony/dependency-injection', $functions['Symfony\Component\DependencyInjection\Loader\Configurator\service']);

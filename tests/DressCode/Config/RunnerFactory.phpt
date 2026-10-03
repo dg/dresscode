@@ -106,7 +106,7 @@ test('the PHP target comes from the configuration, composer.json or the default'
 
 	// the version the rules ask about is the lowest of the target
 	$factory->createRunner(new Config, "$fixtures/project", cache: false);
-	Assert::same(['8.1', PhpVersionSource::Composer], $factory->getPhpVersion());
+	Assert::same(['8.1', PhpVersionSource::Composer], $factory->phpVersion);
 });
 
 
@@ -117,14 +117,14 @@ test('a target older than the oldest PHP DressCode fixes code for is raised to i
 
 	$factory = new RunnerFactory;
 	$runner = $factory->createRunner(new Config(rules: [ReportContext::class => true]), $root, cache: false);
-	Assert::same(['8.0', PhpVersionSource::Composer], $factory->getPhpVersion());
-	Assert::same([$warning], $factory->getWarnings());
+	Assert::same(['8.0', PhpVersionSource::Composer], $factory->phpVersion);
+	Assert::same([$warning], $factory->warnings);
 	Assert::match('8.0 %a%', $runner->processFile('x.php', "<?php\n\$a;\n")->violations[0]->message);
 
 	// every engine the factory builds starts with warnings of its own
 	$factory->createRunner(new Config(targets: ['php' => '7.4']), $root, cache: false);
-	Assert::same(['8.0', PhpVersionSource::Configuration], $factory->getPhpVersion());
-	Assert::same([$warning], $factory->getWarnings());
+	Assert::same(['8.0', PhpVersionSource::Configuration], $factory->phpVersion);
+	Assert::same([$warning], $factory->warnings);
 });
 
 
@@ -226,7 +226,8 @@ test('a plugin makes its rules known by name, and brings the paths it leaves out
 	file_put_contents("$root/generated.php", "<?php // @generated\n\$a;\n");
 	file_put_contents("$root/skipped.php", "<?php // @skip\n\$a;\n");
 	file_put_contents("$root/sub/excluded.php", "<?php\n\$a;\n");
-	$runner = (new RunnerFactory)->createRunner(
+	$factory = new RunnerFactory;
+	$runner = $factory->createRunner(
 		new Config(
 			plugins: [ProjectPlugin::class],
 			rules: ['test/a' => true],
@@ -235,7 +236,7 @@ test('a plugin makes its rules known by name, and brings the paths it leaves out
 		$root,
 		cache: false,
 	);
-	Assert::same(['test/a'], array_map(fn($rule) => RuleInfo::of($rule)->name, $runner->getProcessor()->rules));
+	Assert::same(['test/a'], array_map(fn($rule) => $rule->name, $factory->resolvedConfig->getActiveRules()));
 
 	// the paths of every layer add up, and a file any layer skips is skipped
 	$files = $runner->findFiles(['.']);
@@ -328,7 +329,7 @@ test('an override brings its presets, its style, its name resolution and its war
 
 	$guard = 'dresscode/noUnlistedNamespacedDeclarations';
 	$sub = $factory->resolveConfigFor($runner->findOverridesFor('src/sub/x.php'));
-	Assert::same(['certain', true], [$factory->getResolvedConfig()->nameResolution, $factory->getResolvedConfig()->getRule($guard)?->isActive()]);
+	Assert::same(['certain', true], [$factory->resolvedConfig->nameResolution, $factory->resolvedConfig->getRule($guard)?->isActive()]);
 	Assert::same(['uncertain', false], [$sub->nameResolution, $sub->getRule($guard)?->isActive()]);
 });
 
