@@ -64,41 +64,36 @@ final class NodeHelpers
 	 */
 	public static function negate(ExpressionNode $expression): ExpressionNode
 	{
-		$copy = $expression->withoutEdgeTrivia();
-		if ($copy instanceof Expression\BinaryOpNode && ($operator = self::negateComparison($copy->operator))) {
+		if ($expression instanceof Expression\BinaryOpNode && ($operator = self::negateComparison($expression->operator))) {
+			$copy = $expression->withoutEdgeTrivia();
 			$copy->operator = $operator;
 			return $copy;
-		} elseif ($copy instanceof Expression\UnaryOpNode && $copy->operator->is('!')) {
-			$inner = $copy->expression instanceof Expression\ParenthesizedNode ? $copy->expression->expression : $copy->expression;
+		} elseif ($expression instanceof Expression\UnaryOpNode && $expression->operator->is('!')) {
+			$inner = $expression->expression instanceof Expression\ParenthesizedNode ? $expression->expression->expression : $expression->expression;
 			return $inner->withoutEdgeTrivia();
-		} elseif ($copy instanceof Scalar\BooleanNode) {
-			return (new Builder)->expression($copy->value ? 'false' : 'true');
+		} elseif ($expression instanceof Scalar\BooleanNode) {
+			return (new Builder)->value(!$expression->value);
 		}
 
-		$negation = (new Builder)->expression('!0');
-		assert($negation instanceof Expression\UnaryOpNode);
-		$negation->expression->replaceWithExpression($copy);
-		return $negation;
+		return (new Builder)->unary('!', $expression);
 	}
 
 
 	/** The operator of the opposite equality with the trivia of the given one, null for other operators. */
 	private static function negateComparison(Token $operator): ?Token
 	{
-		[$kind, $text] = match (true) {
-			$operator->is(Token::IsEqual) => [Token::IsNotEqual, '!='],
-			$operator->is(Token::IsNotEqual) => [Token::IsEqual, '=='],
-			$operator->is(Token::IsIdentical) => [Token::IsNotIdentical, '!=='],
-			$operator->is(Token::IsNotIdentical) => [Token::IsIdentical, '==='],
-			default => [null, null],
+		$text = match (true) {
+			$operator->is(Token::IsEqual) => '!=',
+			$operator->is(Token::IsNotEqual) => '==',
+			$operator->is(Token::IsIdentical) => '!==',
+			$operator->is(Token::IsNotIdentical) => '===',
+			default => null,
 		};
-		if ($kind === null || $text === null) {
-			return null;
-		}
-
-		return new Token($kind, $text)
-			->setLeadingTrivia($operator->leadingTrivia)
-			->setTrailingTrivia($operator->trailingTrivia);
+		return $text === null
+			? null
+			: Token::fromText($text)
+				->setLeadingTrivia($operator->leadingTrivia)
+				->setTrailingTrivia($operator->trailingTrivia);
 	}
 
 
@@ -178,15 +173,10 @@ final class NodeHelpers
 	}
 
 
-	/**
-	 * A comment standing inside the node or at the end of its last line, which `Node::hasComment()` does not count;
-	 * true for a node without tokens, which nothing can be said of.
-	 */
+	/** A comment standing inside the node or after it at the end of its last line. */
 	public static function hasCommentUpToLineEnding(Node $node): bool
 	{
-		$first = $node->getFirstToken();
-		$last = $node->getLastToken();
-		return $first === null || $last === null || $first->hasCommentUpTo($last) || $last->hasComment();
+		return $node->hasInnerComment() || $node->hasTrailingComment();
 	}
 
 
