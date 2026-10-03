@@ -13,7 +13,7 @@ use DressCode\Rules\CodeWriter;
 use Nette\Schema\{Context, Schema};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, ExpressionNode, IdentifierNode, ListNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, DestructuringNode, ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode, MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, VariableNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Scalar\StringNode;
@@ -701,7 +701,7 @@ final class ReplacedCallsRule extends NodeRule implements ConfigurableRule
 		$written = $node;
 		while (
 			($parent instanceof ArrayAccessNode && $parent->expression === $written)
-			|| $parent instanceof ListNode
+			|| $parent instanceof DestructuringNode
 			|| $parent instanceof ArrayNode
 			|| $parent instanceof ArrayItemNode
 			|| $parent instanceof SeparatedNodeList

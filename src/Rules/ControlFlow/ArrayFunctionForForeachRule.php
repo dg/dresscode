@@ -146,7 +146,7 @@ final class ArrayFunctionForForeachRule extends NodeRule
 		$outcome = $inner instanceof Statement\ExpressionStatementNode ? $inner->expression : null;
 		return count($statements) === 2
 			&& $statements[1] instanceof Statement\BreakNode
-			&& $statements[1]->expression === null
+			&& $statements[1]->level === null
 			&& $outcome instanceof Expression\AssignmentNode
 			&& $outcome->target instanceof Expression\VariableNode
 			&& self::isVariable($outcome->target, $assignment->target)

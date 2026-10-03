@@ -229,7 +229,7 @@ final class ForbiddenMembersRule extends NodeRule implements ConfigurableRule
 	private function enterPropertyDeclaration(PropertyNode|ParameterNode $node, RuleContext $context): void
 	{
 		$declared = $node instanceof PropertyNode
-			? array_map(fn(PropertyItemNode $item) => [$item->plainName, $item->variable], $node->items->getItems())
+			? array_map(fn(PropertyItemNode $item) => [$item->plainName, $item->name], $node->items->getItems())
 			: ($node->isPromoted() ? [[(string) $node->variable->plainName, $node->variable]] : []);
 		$declared = array_filter($declared, fn(array $property) => isset($this->byName[strtolower($property[0])]));
 		$classLike = $declared === [] ? null : $node->findAncestor(ClassLikeNode::class);

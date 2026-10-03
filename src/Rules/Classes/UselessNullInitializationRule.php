@@ -52,7 +52,7 @@ final class UselessNullInitializationRule extends NodeRule
 
 			$item->default = null;
 			$item->equals = null;
-			$item->variable->setTrailingTrivia([]);
+			$item->name->setTrailingTrivia([]);
 		}
 	}
 }

@@ -10,7 +10,7 @@ namespace DressCode\Rules\Whitespace;
 use DressCode\{Claim, ConfigurableRule, Gap, GapRule, Line, RuleInfo, Space, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{CatchNode, ClosureUsesNode, ElseifNode, ElseNode, FinallyNode, ParameterNode, SeparatedNodeList, Statement, UseItemNode};
+use PhpSyntax\Nodes\{CatchNode, ClosureUseListNode, ElseifNode, ElseNode, FinallyNode, ParameterNode, SeparatedNodeList, Statement, UseItemNode};
 use PhpSyntax\Nodes\Expression\{ClosureNode, MatchNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode, PropertyNode, TraitAliasNode, TraitUseNode};
 use function count, in_array;
@@ -130,14 +130,14 @@ final class ConstructSpacingRule extends GapRule implements ConfigurableRule
 		}
 
 		// the use of a closure stays on the line of its parameters
-		$claims[ClosureUsesNode::class]['useKeyword'] = [$joined, null];
+		$claims[ClosureUseListNode::class]['useKeyword'] = [$joined, null];
 
 		foreach (self::Coloned as $class) {
 			$claims[$class]['colon'] = [Claim::noSpace(), null];
 		}
 
 		// the braces of a group import, which the plain form leaves empty
-		$claims[Statement\UseNode::class]['namespaceSeparator'] = [Claim::noSpace(), Claim::noSpace()];
+		$claims[Statement\UseNode::class]['backslash'] = [Claim::noSpace(), Claim::noSpace()];
 		$claims[Statement\UseNode::class]['openBrace'] = [Claim::noSpace(), Claim::noSpace()];
 		$claims[Statement\UseNode::class]['closeBrace'] = [Claim::noSpace(), null];
 		// the function or const of an import, in front of the name it qualifies

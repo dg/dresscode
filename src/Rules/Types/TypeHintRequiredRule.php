@@ -331,7 +331,7 @@ final class TypeHintRequiredRule extends NodeRule implements ConfigurableRule
 		$resolver = $context->getAnalysis(NameResolver::class);
 		$resolve = fn(string $class) => $resolver->resolveClass((new Parser)->parseName($class), $node);
 		$item = $node->items->getItems()[0];
-		$name = $item->variable->text;
+		$name = $item->name->text;
 		$native = $node->type === null ? null : trim((string) $node->type);
 		if ($native === null && $annotation === null) {
 			if (!$prefixed) {

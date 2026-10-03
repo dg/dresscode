@@ -13,7 +13,7 @@ use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocTagNode, VarTagValueNode};
 use PHPStan\PhpDocParser\Ast\Type;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Parser, SymbolKind, Token, Trivia};
-use PhpSyntax\Nodes\{Expression, ExpressionNode, ListNode, PlainNodeList, Statement, StatementNode};
+use PhpSyntax\Nodes\{DestructuringNode, Expression, ExpressionNode, PlainNodeList, Statement, StatementNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function in_array;
 
@@ -134,12 +134,12 @@ final class ExplicitAssertionRule extends NodeRule
 	 * directly in a destructuring list.
 	 * @return list<string>
 	 */
-	private static function collectVariables(ExpressionNode|ListNode $target): array
+	private static function collectVariables(ExpressionNode|DestructuringNode $target): array
 	{
 		if ($target instanceof Expression\VariableNode) {
 			return $target->name instanceof Token && $target->dollar === null ? [$target->name->text] : [];
 
-		} elseif ($target instanceof Expression\ArrayNode || $target instanceof ListNode) {
+		} elseif ($target instanceof Expression\ArrayNode || $target instanceof DestructuringNode) {
 			$names = [];
 			foreach ($target->items->getItems() as $item) {
 				if (isset($item->value) && $item->value instanceof Expression\VariableNode) {

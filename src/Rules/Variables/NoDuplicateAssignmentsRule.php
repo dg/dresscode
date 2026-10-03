@@ -9,8 +9,8 @@ namespace DressCode\Rules\Variables;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\{Node, Token};
+use PhpSyntax\Nodes\{DestructuringNode, ExpressionNode};
 use PhpSyntax\Nodes\Expression\{AssignmentNode, VariableNode};
-use PhpSyntax\Nodes\{ExpressionNode, ListNode};
 
 
 /**
@@ -45,7 +45,7 @@ final class NoDuplicateAssignmentsRule extends NodeRule
 	}
 
 
-	private static function getVariableName(ExpressionNode|ListNode $expr): ?string
+	private static function getVariableName(ExpressionNode|DestructuringNode $expr): ?string
 	{
 		return $expr instanceof VariableNode && $expr->name instanceof Token && $expr->dollar === null
 			? $expr->name->text

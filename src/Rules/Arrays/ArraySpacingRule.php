@@ -8,8 +8,8 @@
 namespace DressCode\Rules\Arrays;
 
 use DressCode\{Claim, GapRule, Line, RuleInfo, Space, Stage};
+use PhpSyntax\Nodes\DestructuringNode;
 use PhpSyntax\Nodes\Expression\ArrayNode;
-use PhpSyntax\Nodes\ListNode;
 
 
 /**
@@ -31,7 +31,7 @@ final class ArraySpacingRule extends GapRule
 				'openDelimiter' => [null, Claim::noSpace()],
 				'closeDelimiter' => [Claim::noSpace(), null],
 			],
-			ListNode::class => [
+			DestructuringNode::class => [
 				'openDelimiter' => [null, Claim::noSpace()],
 				'closeDelimiter' => [Claim::noSpace(), null],
 			],

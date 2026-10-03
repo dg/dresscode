@@ -10,7 +10,7 @@ namespace DressCode\Rules\Arrays;
 use DressCode\{ConfigurableRule, NodeRule, RuleContext, RuleInfo, Stage};
 use Nette\Schema\{Expect, Schema};
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ClosureUsesNode, ListNode, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\{ArgumentListNode, ClosureUseListNode, DestructuringNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\{ArrayNode, ArrowFunctionNode, ClosureNode, MatchNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\{FunctionNode, UseNode};
@@ -77,13 +77,13 @@ final class TrailingCommaRule extends NodeRule implements ConfigurableRule
 		return [
 			ArrayNode::class,
 			ArgumentListNode::class,
-			ListNode::class,
+			DestructuringNode::class,
 			FunctionNode::class,
 			MethodNode::class,
 			ClosureNode::class,
 			ArrowFunctionNode::class,
 			MatchNode::class,
-			ClosureUsesNode::class,
+			ClosureUseListNode::class,
 			UseNode::class,
 		];
 	}
@@ -94,11 +94,11 @@ final class TrailingCommaRule extends NodeRule implements ConfigurableRule
 		[$place, $list, $open, $close, $what] = match (true) {
 			$node instanceof ArrayNode => ['array', $node->items, $node->openDelimiter, $node->closeDelimiter, 'array'],
 			$node instanceof ArgumentListNode => ['argument', $node->items, $node->openParen, $node->closeParen, 'argument list'],
-			$node instanceof ListNode => ['list', $node->items, $node->openDelimiter, $node->closeDelimiter, 'destructuring'],
+			$node instanceof DestructuringNode => ['list', $node->items, $node->openDelimiter, $node->closeDelimiter, 'destructuring'],
 			$node instanceof FunctionNode, $node instanceof MethodNode, $node instanceof ClosureNode, $node instanceof ArrowFunctionNode
 				=> ['parameter', $node->parameters, $node->openParen, $node->closeParen, 'parameter list'],
 			$node instanceof MatchNode => ['matchArm', $node->arms, $node->openBrace, $node->closeBrace, 'match'],
-			$node instanceof ClosureUsesNode => ['closureUse', $node->variables, $node->openParen, $node->closeParen, 'closure use list'],
+			$node instanceof ClosureUseListNode => ['closureUse', $node->items, $node->openParen, $node->closeParen, 'closure use list'],
 			$node instanceof UseNode && $node->isGroup() => ['import', $node->items, $node->openBrace, $node->closeBrace, 'group use'],
 			default => [null, null, null, null, null],
 		};

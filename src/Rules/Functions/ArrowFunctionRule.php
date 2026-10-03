@@ -73,7 +73,7 @@ final class ArrowFunctionRule extends NodeRule implements ConfigurableRule
 			return;
 		}
 
-		foreach ($node->uses?->variables->getItems() ?? [] as $use) {
+		foreach ($node->uses?->items->getItems() ?? [] as $use) {
 			if ($use->ampersand !== null) {
 				return;
 			}

@@ -171,7 +171,7 @@ final class MatchForSwitchRule extends NodeRule
 
 		$assignment = $first instanceof Statement\ExpressionStatementNode ? $first->expression : null;
 		$break = $statements[1] ?? null;
-		$ends = $break instanceof Statement\BreakNode && $break->expression === null
+		$ends = $break instanceof Statement\BreakNode && $break->level === null
 			? count($statements) === 2
 			: $isLast && count($statements) === 1;
 		$target = $assignment instanceof Expression\AssignmentNode ? $assignment->target : null;

@@ -9,8 +9,8 @@ namespace DressCode\Rules\Arrays;
 
 use DressCode\{NodeRule, RuleContext, RuleGroup, RuleInfo, Stage};
 use PhpSyntax\{Node, Token};
+use PhpSyntax\Nodes\DestructuringNode;
 use PhpSyntax\Nodes\Expression\ArrayNode;
-use PhpSyntax\Nodes\ListNode;
 use function ord;
 
 
@@ -28,13 +28,13 @@ final class ShortArraySyntaxRule extends NodeRule
 {
 	public function getVisitedTypes(): array
 	{
-		return [ArrayNode::class, ListNode::class];
+		return [ArrayNode::class, DestructuringNode::class];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (!$node instanceof ArrayNode && !$node instanceof ListNode) {
+		if (!$node instanceof ArrayNode && !$node instanceof DestructuringNode) {
 			return;
 		}
 

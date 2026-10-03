@@ -61,7 +61,7 @@ final class CommaSpacingRule extends GapRule implements ConfigurableRule
 		$after = fn(Gap $gap): ?Claim => $gap->token->is(',') ? $this->alignment : null;
 		return [
 			'*' => ['*:separator' => [$before, $after]],
-			MatchArmNode::class => ['defaultComma' => [$hug, $this->alignment]],
+			MatchArmNode::class => ['comma' => [$hug, $this->alignment]],
 		];
 	}
 }

@@ -342,7 +342,7 @@ final class IndentationRule extends NodeRule implements ConfigurableRule
 			$item instanceof Nodes\MemberNode => 'a member',
 			$item instanceof Nodes\ParameterNode => 'a parameter',
 			$item instanceof Nodes\ArgumentNode, $item instanceof Nodes\VariadicPlaceholderNode => 'an argument',
-			$item instanceof Nodes\ArrayItemNode, $item instanceof Nodes\EmptyArrayItemNode => 'an array item',
+			$item instanceof Nodes\ArrayItemNode, $item instanceof Nodes\SkippedArrayItemNode => 'an array item',
 			$item instanceof Nodes\MatchArmNode => 'a match arm',
 			$item instanceof Nodes\AttributeGroupNode, $item instanceof Nodes\AttributeNode => 'an attribute',
 			$item instanceof PropertyHookNode => 'a property hook',

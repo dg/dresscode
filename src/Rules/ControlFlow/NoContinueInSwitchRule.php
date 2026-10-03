@@ -33,7 +33,7 @@ final class NoContinueInSwitchRule extends NodeRule
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (!$node instanceof ContinueNode || $node->expression !== null) {
+		if (!$node instanceof ContinueNode || $node->level !== null) {
 			return;
 		}
 

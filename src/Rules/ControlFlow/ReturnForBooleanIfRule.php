@@ -66,7 +66,7 @@ final class ReturnForBooleanIfRule extends NodeRule
 		$expr = $ifValue
 			? $node->condition->withoutEdgeTrivia()
 			: NodeHelpers::negate($node->condition);
-		$fixable = !($node->getFirstToken()?->hasCommentUpTo($last) ?? true) && $expr->isBoolean();
+		$fixable = !($node->getFirstToken()?->hasCommentUpTo($last) ?? true) && $expr->evaluatesToBoolean();
 		if (!$context->report($node, 'Useless condition, the condition itself is the result', fixable: $fixable)) {
 			return;
 		}

@@ -132,7 +132,7 @@ final class NameCasingRule extends NodeRule implements ConfigurableRule
 	{
 		$alternative = $node instanceof Member\ClassConstNode && $node->parent?->parent instanceof Statement\EnumNode ? $this->cases['enumCase'] : null;
 		foreach ($node->items->getItems() as $item) {
-			$token = $item instanceof Member\PropertyItemNode ? $item->variable : $item->name->token;
+			$token = $item instanceof Member\PropertyItemNode ? $item->name : $item->name->token;
 			$name = ltrim($token->text, '$');
 			if ($alternative === null || !preg_match(self::Patterns[$alternative], $name)) {
 				$this->check($kind, $item, $name, $context, $node);

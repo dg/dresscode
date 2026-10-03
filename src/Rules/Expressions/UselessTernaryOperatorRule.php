@@ -58,7 +58,7 @@ final class UselessTernaryOperatorRule extends NodeRule
 			? NodeHelpers::negate($node->condition)
 			: $node->condition->withoutEdgeTrivia();
 
-		if (!$replacement->isBoolean()) {
+		if (!$replacement->evaluatesToBoolean()) {
 			if ($ifValue !== null) { // `$x ?: false` is not $x unless $x is a boolean, so it is no violation then
 				$context->report($node->question, 'Useless ternary operator', fixable: false);
 			}

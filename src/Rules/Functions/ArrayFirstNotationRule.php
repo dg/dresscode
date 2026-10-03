@@ -11,7 +11,7 @@ use DressCode\{NodeRule, Risk, RuleContext, RuleGroup, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, Expression, ExpressionNode, ListNode, NameNode, PlainNodeList, SeparatedNodeList, Statement};
+use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, DestructuringNode, Expression, ExpressionNode, NameNode, PlainNodeList, SeparatedNodeList, Statement};
 use PhpSyntax\Nodes\Scalar\IntegerNode;
 use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 use function count;
@@ -190,7 +190,7 @@ final class ArrayFirstNotationRule extends NodeRule
 		while (
 			($parent instanceof Expression\ArrayAccessNode && $parent->expression === $node)
 			|| ($parent instanceof Expression\PropertyFetchNode && $parent->object === $node)
-			|| $parent instanceof ListNode
+			|| $parent instanceof DestructuringNode
 			|| $parent instanceof Expression\ArrayNode
 			|| $parent instanceof ArrayItemNode
 			// the variables of an unset, the items of a destructuring

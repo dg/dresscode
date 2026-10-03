@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\{Claim, Gap, GapRule, Line, RuleInfo, Space, Stage};
-use PhpSyntax\Nodes\{AttributeNode, ListNode};
+use PhpSyntax\Nodes\{AttributeNode, DestructuringNode};
 use PhpSyntax\Nodes\Expression\{EmptyNode, EvalNode, ExitNode, FunctionCallNode, IssetNode, MethodCallNode, NewNode, StaticMethodCallNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode};
 use PhpSyntax\Nodes\Statement\{FunctionNode, HaltCompilerNode, UnsetNode};
@@ -47,7 +47,7 @@ final class FunctionNameSpacingRule extends GapRule
 			IssetNode::class => $hugs('issetKeyword'),
 			UnsetNode::class => $hugs('unsetKeyword'),
 			EmptyNode::class => $hugs('emptyKeyword'),
-			ListNode::class => $hugs('listKeyword'),
+			DestructuringNode::class => $hugs('listKeyword'),
 			EvalNode::class => $hugs('evalKeyword'),
 			HaltCompilerNode::class => $hugs('haltCompilerKeyword'),
 		];

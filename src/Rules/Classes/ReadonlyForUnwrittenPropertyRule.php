@@ -11,7 +11,7 @@ use DressCode\Analyses\{PhpSignatures, Types};
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, SymbolKind, Token, Visibility};
-use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ArrayItemNode, Expression, FunctionLikeNode, IdentifierNode, ListNode, ModifiersNode, NameNode, ParameterNode, SeparatedNodeList, Statement};
+use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ArrayItemNode, DestructuringNode, Expression, FunctionLikeNode, IdentifierNode, ModifiersNode, NameNode, ParameterNode, SeparatedNodeList, Statement};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode, PropertyNode};
 use PhpSyntax\Nodes\Statement\ClassNode;
 use function count;
@@ -156,7 +156,7 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 		while (
 			($parent instanceof ArrayItemNode && $parent->value === $node && $parent->ampersand === null)
 			|| $parent instanceof SeparatedNodeList
-			|| $parent instanceof ListNode
+			|| $parent instanceof DestructuringNode
 			|| $parent instanceof Expression\ArrayNode
 		) {
 			[$node, $parent] = [$parent, $parent->parent];
@@ -204,7 +204,7 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 			($parent instanceof Expression\ArrayAccessNode && $parent->expression === $node)
 			|| ($parent instanceof Expression\PropertyFetchNode && $parent->object === $node)
 			|| ($parent instanceof ArrayItemNode && $parent->value === $node)
-			|| $parent instanceof ListNode
+			|| $parent instanceof DestructuringNode
 			|| $parent instanceof Expression\ArrayNode
 			|| $parent instanceof SeparatedNodeList
 		) {
@@ -217,7 +217,7 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 
 		$byReference = match (true) {
 			$parent instanceof Expression\AssignmentNode => $parent->target === $node
-				|| (($parent->target instanceof ListNode || $parent->target instanceof Expression\ArrayNode)
+				|| (($parent->target instanceof DestructuringNode || $parent->target instanceof Expression\ArrayNode)
 					&& $parent->target->find(ArrayItemNode::class, fn(ArrayItemNode $item) => $item->ampersand !== null) !== []),
 			$parent instanceof Expression\CombinedAssignmentNode => $parent->target === $node,
 			$parent instanceof Expression\AssignmentByReferenceNode,
