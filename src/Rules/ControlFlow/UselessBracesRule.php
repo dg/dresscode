@@ -36,11 +36,22 @@ final class UselessBracesRule extends NodeRule
 		if (
 			!$node instanceof BlockNode
 			|| !$node->parent instanceof PlainNodeList
+			|| self::isNextToOutput($node)
 			|| !$context->report($node, 'Useless braces')
 		) {
 			return;
 		}
 
 		$node->unwrap();
+	}
+
+
+	/** Whether a brace stands next to a close tag or inline HTML, where the whitespace it leaves would be output. */
+	private static function isNextToOutput(BlockNode $block): bool
+	{
+		return array_any(
+			[$block->openBrace, $block->closeBrace],
+			fn(Token $brace) => $brace->getPrevious()?->is([Token::CloseTag, Token::InlineHtml]) || $brace->getNext()?->is(Token::CloseTag),
+		);
 	}
 }
