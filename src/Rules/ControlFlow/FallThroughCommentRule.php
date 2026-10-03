@@ -55,14 +55,13 @@ final class FallThroughCommentRule extends NodeRule implements ConfigurableRule
 	{
 		if (
 			!$node instanceof Nodes\CaseNode
-			|| !($list = $node->parent) instanceof Nodes\PlainNodeList
+			|| !$node->parent instanceof Nodes\PlainNodeList
 			|| $node->statements->isEmpty()
 		) {
 			return;
 		}
 
-		$items = $list->getItems();
-		$next = $items[$list->indexOf($node) + 1] ?? null;
+		$next = $node->getNextSibling();
 		if (!$next instanceof Nodes\CaseNode) {
 			return;
 		}

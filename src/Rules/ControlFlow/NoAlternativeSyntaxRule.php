@@ -159,7 +159,7 @@ final class NoAlternativeSyntaxRule extends NodeRule
 			->setText($closeTag->text)
 			->setLeadingTrivia($closeTag->leadingTrivia)
 			->setTrailingTrivia($closeTag->trailingTrivia);
-		$list->insert($list->indexOf($node) + 1, $statement);
+		$list->insertAfter($node, $statement);
 	}
 
 

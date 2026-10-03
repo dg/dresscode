@@ -40,7 +40,7 @@ final class ReturnForBooleanIfRule extends NodeRule
 	{
 		if (
 			!$node instanceof IfNode
-			|| !($list = $node->parent) instanceof PlainNodeList
+			|| !$node->parent instanceof PlainNodeList
 			|| !$node->body instanceof BlockNode
 			|| !$node->elseifs->isEmpty()
 			|| ($ifValue = self::findReturnedLiteral($node->body)) === null
@@ -52,7 +52,7 @@ final class ReturnForBooleanIfRule extends NodeRule
 		if ($node->else) {
 			$elseValue = $node->else->body instanceof BlockNode ? self::findReturnedLiteral($node->else->body) : null;
 		} else {
-			$tail = $list->getItems()[$list->indexOf($node) + 1] ?? null;
+			$tail = $node->getNextSibling();
 			$elseValue = $tail instanceof ReturnNode && $tail->expression instanceof BooleanNode
 				? $tail->expression->value
 				: null;

@@ -33,18 +33,16 @@ final class CombinedUnsetsRule extends NodeRule
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (!$node instanceof UnsetNode || !($list = $node->parent) instanceof PlainNodeList) {
+		if (!$node instanceof UnsetNode || !$node->parent instanceof PlainNodeList) {
 			return;
 		}
 
-		$items = $list->getItems();
-		$index = $list->indexOf($node);
-		if (isset($items[$index - 1]) && $items[$index - 1] instanceof UnsetNode) {
+		if ($node->getPreviousSibling() instanceof UnsetNode) {
 			return; // merged into the first of the run
 		}
 
 		while (
-			($next = $list->getItems()[$list->indexOf($node) + 1] ?? null) instanceof UnsetNode
+			($next = $node->getNextSibling()) instanceof UnsetNode
 			&& !$node->semicolon->hasComment()
 			&& !$node->semicolon->hasCommentUpTo($next->getLastToken())
 			&& !$next->getLastToken()->hasComment()

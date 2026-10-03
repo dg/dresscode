@@ -375,8 +375,7 @@ final class ArrayFunctionForForeachRule extends NodeRule
 
 	private static function nextStatement(Node $statement): ?Node
 	{
-		$list = $statement->parent;
-		return $list instanceof PlainNodeList ? $list->getItems()[$list->indexOf($statement) + 1] ?? null : null;
+		return $statement->parent instanceof PlainNodeList ? $statement->getNextSibling() : null;
 	}
 
 
