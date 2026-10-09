@@ -44,7 +44,7 @@ use function in_array;
 #[RuleInfo(Stage::Structure, analyses: [Types::class, NameResolver::class])]
 final class StaticForMethodWithoutThisRule extends NodeRule
 {
-	private const Visibilities = 'classes.staticMethodWithoutThisVisibilities';
+	private const Visibilities = 'functions.staticWithoutThis.methodVisibility';
 
 	/** @var list<Visibility> */
 	private array $visibilities = [Visibility::Private];
@@ -53,7 +53,7 @@ final class StaticForMethodWithoutThisRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('classes.staticMethodWithoutThis', new Words(['required' => 'declared `static`']), 'The `static` keyword of a method that does not use `$this`, of the visibilities `classes.staticMethodWithoutThisVisibilities` names'),
+			new Decision('functions.staticWithoutThis.method', new Words(['required' => 'declared `static`']), 'The `static` keyword of a method that does not use `$this`, of the visibilities `functions.staticWithoutThis.methodVisibility` names'),
 			new Decision(self::Visibilities, new Names([
 				'private' => 'a private method',
 				'protected' => 'a protected method, where no child and no ancestor can declare it',

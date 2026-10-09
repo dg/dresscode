@@ -21,7 +21,7 @@ final class NotEqualsNotationRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('expressions.notEquals', new Shapes(['exclamation' => ['!=', '`!=`, never `<>`']]), 'The operator of inequality')];
+		return [new Decision('expressions.comparison.notEquals', new Shapes(['exclamation' => ['!=', '`!=`, never `<>`']]), 'The operator of inequality')];
 	}
 
 

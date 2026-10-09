@@ -1,5 +1,5 @@
 <?php
-// {"globalFunction":"bare","globalConstant":"bare"}
+// {"global.function":"bare","global.constant":"bare"}
 // namespacedFunctions App\count
 // nameResolution certain
 namespace App;

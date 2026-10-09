@@ -1,5 +1,5 @@
 <?php
-// {"optimizedFunction":["imported","backslashed"]}
+// {"optimized.function":["imported","backslashed"]}
 // risky
 namespace App {
 	use Foo\Bar;

@@ -1,4 +1,5 @@
 upgrading:
 	syntax:
-		pipe: adopted
-		pipeMinCalls: 3
+		pipe:
+			nestedCalls: adopted
+			minCalls: 3

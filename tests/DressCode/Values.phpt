@@ -18,7 +18,7 @@ function createValues(array $raw, ?array $selection = null): Values
 	$decisions = [];
 	foreach ([
 		new Decision('spacing.call', new Shapes(['compact' => ['foo()', ''], 'spaced' => ['foo ()', '']]), 'The space before the parenthesis'),
-		new Decision('spacing.comma', new Shapes(['spaced' => ['$a, $b', '']]), 'The space around a comma'),
+		new Decision('spacing.comma.around', new Shapes(['spaced' => ['$a, $b', '']]), 'The space around a comma'),
 		new Decision('controlFlow.trailingIf', Domain::state(), 'An `if` ending a body becomes a guard'),
 		new Decision('controlFlow.trailingIfMinStatements', new Count(1), 'The statements its body has at least', parameter: true, default: 2),
 		new Decision('namespaces.functions', new Names, 'The functions the namespaces declare', fact: true, default: []),
@@ -40,7 +40,7 @@ test('a value is what a layer said, a default where none did, keep for a require
 	Assert::same('spaced', $values->get('spacing.call')->getShape());
 	Assert::same('the configuration', $values->get('spacing.call')->origin?->describe());
 	Assert::false($values->isKept('spacing.call'));
-	Assert::true($values->isKept('spacing.comma'));
+	Assert::true($values->isKept('spacing.comma.around'));
 	Assert::same([2, 2], $values->get('controlFlow.trailingIfMinStatements')->getCount());
 	Assert::null($values->get('controlFlow.trailingIfMinStatements')->origin);
 	Assert::exception(fn() => $values->get('spacing.cal'), ConfigurationException::class, 'Decision `spacing.cal` is unknown; write `spacing.call`.');
@@ -51,7 +51,7 @@ test('the mask selects requirements by path or prefix and changes no value', fun
 	$all = createValues(['spacing.call' => 'foo()', 'controlFlow.trailingIf' => 'forbidden']);
 	Assert::true($all->isSelected('spacing.call'));
 	Assert::true($all->isSelected('controlFlow.trailingIf'));
-	Assert::false($all->isSelected('spacing.comma'), 'keep is never selected');
+	Assert::false($all->isSelected('spacing.comma.around'), 'keep is never selected');
 	Assert::false($all->isSelected('controlFlow.trailingIfMinStatements'), 'a parameter reports nothing of its own');
 
 	$narrowed = createValues(['spacing.call' => 'foo()', 'controlFlow.trailingIf' => 'forbidden'], ['spacing']);

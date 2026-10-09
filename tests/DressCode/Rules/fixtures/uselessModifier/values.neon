@@ -1,2 +1,3 @@
 classes:
-	impliedModifiers: forbidden
+	modifiers:
+		implied: forbidden

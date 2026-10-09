@@ -27,7 +27,7 @@ final class UselessModifierRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('classes.impliedModifiers', Domain::state('forbidden'), 'A modifier the class already implies, `final` in a final class')];
+		return [new Decision('classes.modifiers.implied', Domain::state('forbidden'), 'A modifier the class already implies, `final` in a final class')];
 	}
 
 

@@ -93,8 +93,8 @@ test('a preset written as a file carries decisions, what it uses and the comment
 	Assert::exception(fn() => resolveFile("$dir/dresscode.neon"), ConfigurationException::class, 'Preset file `%a%/base.neon` sets `paths`, which the project decides, not a preset.');
 	$dir = createDecisionsProject(['base.neon' => "use: [[nette]]\n", 'dresscode.neon' => "use: base.neon\n"]);
 	Assert::exception(fn() => resolveFile("$dir/dresscode.neon"), ConfigurationException::class, "Preset file `%a%/base.neon`: The item 'use%a%0' expects to be string|Nette\\Neon\\Entity, array given.");
-	$dir = createDecisionsProject(['base.neon' => "suppressionComments:\n\t'~ok~': expressions.comparison\n", 'dresscode.neon' => "use: base.neon\n"]);
-	Assert::same(['~ok~' => ['expressions.comparison']], resolveFile("$dir/dresscode.neon")->suppressionComments);
+	$dir = createDecisionsProject(['base.neon' => "suppressionComments:\n\t'~ok~': expressions.comparison.equality\n", 'dresscode.neon' => "use: base.neon\n"]);
+	Assert::same(['~ok~' => ['expressions.comparison.equality']], resolveFile("$dir/dresscode.neon")->suppressionComments);
 });
 
 
@@ -119,7 +119,7 @@ test('the run narrowed to a path reports that decision alone and changes no valu
 
 
 test('the command line sets a decision over everything, and fixRisky and warnOnly take a path', function () {
-	$dir = createDecisionsProject(['dresscode.neon' => "use: nette\nfixRisky: [types.parameter]\nwarnOnly: [blankLines]\ntypes:\n\tparameter: required\n"]);
+	$dir = createDecisionsProject(['dresscode.neon' => "use: nette\nfixRisky: [types.declaration.parameter]\nwarnOnly: [blankLines]\ntypes:\n\tdeclaration:\n\t\tparameter: required\n"]);
 	$resolved = resolveFile("$dir/dresscode.neon", new Profile(decisions: ['blankLines' => ['betweenMethods' => 3]]));
 	Assert::same([3, 3], $resolved->decisions['blankLines.betweenMethods']->value->getCount());
 	Assert::same('the command line', $resolved->decisions['blankLines.betweenMethods']->value->origin?->describe());

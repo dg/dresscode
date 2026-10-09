@@ -32,15 +32,15 @@ final class BracesPositionRule extends GapRule
 	private const OwnLines = 'ownLines';
 	private const AfterReturnType = 'nextLineAfterReturnType';
 
-	private const ClassLike = 'braces.class';
-	private const FunctionBody = 'braces.function';
-	private const MultilineSignature = 'braces.afterMultilineSignature';
-	private const Closure = 'braces.closure';
-	private const AnonymousClass = 'braces.anonymousClass';
-	private const ControlStructure = 'braces.controlStructure';
-	private const ContinuingKeyword = 'braces.continuingKeyword';
-	private const EmptyBody = 'braces.emptyBody';
-	private const EmptyAnonymousClass = 'braces.emptyAnonymousClass';
+	private const ClassLike = 'braces.position.class';
+	private const FunctionBody = 'braces.position.function';
+	private const MultilineSignature = 'braces.position.multilineSignature';
+	private const Closure = 'braces.position.closure';
+	private const AnonymousClass = 'braces.position.anonymousClass';
+	private const ControlStructure = 'braces.position.controlStructure';
+	private const ContinuingKeyword = 'braces.position.continuingKeyword';
+	private const EmptyBody = 'braces.empty.body';
+	private const EmptyAnonymousClass = 'braces.empty.anonymousClass';
 	private const SinglelineClosure = 'braces.singlelineClosure';
 
 	private const ClassLikes = [
@@ -97,7 +97,7 @@ final class BracesPositionRule extends GapRule
 			new Decision(self::EmptyAnonymousClass, new Words([
 				self::OwnLines => '`{` and `}` placed as those of any other anonymous class',
 				self::SameLine => '`{}` on the line of the head, one holding a comment staying on its line as written',
-			]), 'How an empty anonymous class is written, whatever `braces.emptyBody` says; one written on one line stays where it is kept'),
+			]), 'How an empty anonymous class is written, whatever `braces.empty.body` says; one written on one line stays where it is kept'),
 			new Decision(self::SinglelineClosure, Domain::state('forbidden'), 'Whether a closure written whole on one line may stay so'),
 		];
 	}

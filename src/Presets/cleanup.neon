@@ -17,7 +17,8 @@ braces:
 	bareStatementGroup: forbidden            # no `{ ... }` that nothing opens
 
 classes:
-	impliedModifiers: forbidden              # `final` in a final class
+	modifiers:
+		implied: forbidden                   # `final` in a final class
 	untypedPropertyNullInitialization: forbidden   # `public $a;`, not `public $a = null;`
 	methodOnlyCallingParent: forbidden       # one only forwarding to `parent::`, risky
 	ReturnTypeWillChange: forbidden          # on a method declaring its return type
@@ -37,16 +38,20 @@ cleanup:
 
 controlFlow:
 	emptyStatement: forbidden                # `foo();;`
-	ifReturningBoolean: forbidden            # `return $a > 1;` for an `if` returning `true` or `false`
-	elseAfterExit: forbidden                 # the `else` after a `return` goes, its body following the `if`
+	ifReturning:
+		boolean: forbidden                   # `return $a > 1;` for an `if` returning `true` or `false`
+	afterExit:
+		else: forbidden                      # the `else` after a `return` goes, its body following the `if`
 
 expressions:
 	parenthesesAfterConstruct: forbidden     # `return $x;`, not `return ($x);`
-	ternaryOfTrueAndFalse: forbidden         # `$a > 1`, not `$a > 1 ? true : false`
+	ternary:
+		ofTrueAndFalse: forbidden            # `$a > 1`, not `$a > 1 ? true : false`
 
 literals:
 	classNameInString: forbidden             # `Order::class`, not `'Acme\Shop\Order'`
-	concatenatedLiterals: joined             # `'ab'`, not `'a' . 'b'`
+	concatenatedLiterals:
+		sameLine: joined                     # `'ab'`, not `'a' . 'b'`
 
 comments:
 	empty: forbidden
@@ -58,7 +63,8 @@ phpdoc:
 	inheritdocOnly: forbidden                # one holding only `{@inheritDoc}`
 
 correctness:
-	debugOutput: commentedOut                # `// var_dump($a);`, risky
+	debugOutput:
+		statement: commentedOut              # `// var_dump($a);`, risky
 
 upgrading:
 	php:

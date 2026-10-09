@@ -21,9 +21,9 @@ use function count;
 #[RuleInfo(Stage::Finishing, modifiesComments: true)]
 final class CommentSpacingRule extends NodeRule
 {
-	private const Marker = 'spacing.comment';
-	private const AfterCode = 'spacing.commentAfterCode';
-	private const Alignment = 'spacing.commentAfterCodeAlignment';
+	private const Marker = 'spacing.comment.marker';
+	private const AfterCode = 'spacing.comment.afterCode';
+	private const Alignment = 'spacing.comment.alignment';
 
 	private bool $marker = true;
 

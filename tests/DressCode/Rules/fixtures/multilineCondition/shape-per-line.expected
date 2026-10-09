@@ -1,5 +1,5 @@
 <?php
-// {"condition": "perLine"}
+// {"shape.condition": "perLine"}
 if (
 	$a
 	&& $b

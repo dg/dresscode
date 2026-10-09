@@ -1,4 +1,4 @@
 <?php declare(strict_types=1);
-// {"strictTypesPosition": "openingTagLine"}
+// {"strictTypes.position": "openingTagLine"}
 // risky
 namespace Foo;

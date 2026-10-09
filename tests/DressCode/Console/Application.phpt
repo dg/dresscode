@@ -588,7 +588,7 @@ test('rules that do not fit are a configuration error with workers too', functio
 
 
 test('a profile counts the same with workers as in the process', function () use ($root) {
-	file_put_contents("$root/profile.php", "<?php\nreturn new DressCode\\Config(paths: ['profile'], decisions: ['builtin' => ['keyword' => 'lowercase'], 'file' => ['trailingWhitespace' => 'forbidden']]);\n");
+	file_put_contents("$root/profile.php", "<?php\nreturn new DressCode\\Config(paths: ['profile'], decisions: ['builtin' => ['casing' => ['keyword' => 'lowercase']], 'file' => ['trailingWhitespace' => 'forbidden']]);\n");
 	@mkdir("$root/profile"); // @ directory may already exist
 	for ($i = 0; $i < 8; $i++) {
 		file_put_contents("$root/profile/$i.php", "<?php\nIF (\$a) { \$b; }\t\n");
@@ -737,7 +737,7 @@ test('config writes every decision a layer set in the shape of the file, with th
 			- dresscode/psr12
 
 		suppressionComments:
-			"~intentionally ==~": [expressions.comparison]
+			"~intentionally ==~": [expressions.comparison.equality]
 
 		qualification: keep
 
@@ -746,9 +746,10 @@ test('config writes every decision a layer set in the shape of the file, with th
 				promotedProperties: keep
 
 		file:
-			maxLineLength: 100
-			longLinesExcept: []
-			longLines: forbidden
+			lineLength:
+				max: 100
+				except: []
+				overMax: forbidden
 
 		overrides:
 			- paths: [src/generated]
@@ -761,11 +762,11 @@ test('config writes every decision a layer set in the shape of the file, with th
 	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon"]);
 	Assert::same(0, $code);
 	Assert::match('%A%Use        dresscode/psr12%A%', $out);
-	Assert::match('%A%Comments   silence decisions on their line%A%      ~intentionally ==~ %a%expressions.comparison%A%', $out);
+	Assert::match('%A%Comments   silence decisions on their line%A%      ~intentionally ==~ %a%expressions.comparison.equality%A%', $out);
 	Assert::match('%A%Style%a%4 spaces, the line ending each file mostly has, lines of up to 100 characters%A%', $out);
 	Assert::match('%A%Decisions  %d% of %d% set by a layer, the others asking for nothing%A%', $out);
-	Assert::match("%A%\nfile:\n%A%\tmaxLineLength: 100 %s%# the configuration\n%A?%", $out);
-	Assert::match("%A%\nqualification:\n%A%\tglobalFunction: keep %s%# the configuration\n%A?%", $out);
+	Assert::match("%A%\nfile:\n%A%\tlineLength:\n%A?%\t\tmax: 100 %s%# the configuration\n%A?%", $out);
+	Assert::match("%A%\nqualification:\n%A%\tglobal:\n%A?%\t\tfunction: keep %s%# the configuration\n%A?%", $out);
 	Assert::match("%A%\tcall: compact %s%# dresscode/psr12\n%A?%", $out);
 	Assert::match("%A%\tsyntax:\n\t\tpromotedProperties: keep %s%# the configuration\n%A?%", $out);
 
@@ -778,7 +779,7 @@ test('config writes every decision a layer set in the shape of the file, with th
 	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--preset', 'psr12']);
 	Assert::same(0, $code);
 	Assert::match('%A%Config     none, using psr12%A%', $out);
-	Assert::match("%A%\tmaxLineLength: 120 %s%# dresscode/psr12\n%A?%", $out);
+	Assert::match("%A%\tlineLength:\n%A?%\t\tmax: 120 %s%# dresscode/psr12\n%A?%", $out);
 
 	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--format', 'json']);
 	Assert::same(0, $code);
@@ -789,8 +790,8 @@ test('config writes every decision a layer set in the shape of the file, with th
 	Assert::same(4, $data['indent']);
 	Assert::same(100, $data['lineLength']);
 	Assert::same('uncertain', $data['nameResolution']);
-	Assert::same(['~intentionally ==~' => ['expressions.comparison']], $data['suppressionComments']);
-	Assert::same([], $data['decisions']['file.longLinesExcept']['value']);
+	Assert::same(['~intentionally ==~' => ['expressions.comparison.equality']], $data['suppressionComments']);
+	Assert::same([], $data['decisions']['file.lineLength.except']['value']);
 	Assert::false($data['rules'][DressCode\Rules\Namespaces\GlobalNameQualificationRule::class]['active']);
 	Assert::same(['reason' => 'turnedOff', 'message' => 'its decisions are `keep`'], $data['rules'][DressCode\Rules\Namespaces\GlobalNameQualificationRule::class]['inactive']);
 	Assert::same('notMentioned', $data['rules'][StaticForClosureWithoutThisRule::class]['inactive']['reason']);
@@ -1138,14 +1139,14 @@ test('a risky fix only the types could decide is a warning until it is made, and
 test('config says of a decision with risky fixes whether the project accepts them, and a name that does nothing is a warning', function () use ($root) {
 	$config = "$root/risky-config.php";
 	file_put_contents($config, "<?php\nreturn new DressCode\\Config(rules: ConsoleRules, decisions: ['project' => ['riskyRename' => 'forbidden'], 'correctness' => ['strictComparisonArgument' => 'required']],"
-		. " overrides: [new DressCode\\Override(['src'], new DressCode\\Profile(decisions: ['file' => ['strictTypes' => 'required']])), new DressCode\\Override(['legacy'], new DressCode\\Profile(decisions: ['file' => ['lineEnding' => 'LF']]))], fixRisky: [ConsoleRiskyRename::class, 'file.strictTypes', 'classes.markedInternal'], paths: ['src']);\n");
+		. " overrides: [new DressCode\\Override(['src'], new DressCode\\Profile(decisions: ['file' => ['strictTypes' => ['declaration' => 'required']]])), new DressCode\\Override(['legacy'], new DressCode\\Profile(decisions: ['file' => ['lineEnding' => 'LF']]))], fixRisky: [ConsoleRiskyRename::class, 'file.strictTypes.declaration', 'classes.markedInternal.class'], paths: ['src']);\n");
 
 	[$code, $out] = runApp($root, ['config', '--config', $config]);
 	Assert::same(0, $code);
 	Assert::match("%A%\triskyRename: forbidden %s%# the configuration, risky fixes accepted\n%A?%", $out);
 	Assert::match("%A%\tstrictComparisonArgument: required %s%# the configuration\n%A?%", $out);
-	Assert::match("%A%\tstrictTypes: keep %s%# no layer, risky fixes accepted\n%A?%", $out);
-	Assert::match("%A%\tmarkedInternal: keep %s%# no layer, risky fixes accepted\n%A?%", $out);
+	Assert::match("%A%\tstrictTypes:\n\t\tdeclaration: keep %s%# no layer, risky fixes accepted\n%A?%", $out);
+	Assert::match("%A%\tmarkedInternal:\n\t\tclass: keep %s%# no layer, risky fixes accepted\n%A?%", $out);
 
 	[, $out] = runApp($root, ['config', '--config', $config, '--format', 'json']);
 	$rules = json_decode($out, associative: true)['rules'];
@@ -1161,6 +1162,6 @@ test('config says of a decision with risky fixes whether the project accepts the
 
 	// a rule an override turns on runs somewhere, one that nothing turns on makes the entry a line that does nothing
 	[, , $err] = runApp($root, ['check', '--config', $config, '--no-cache']);
-	Assert::contains('Decision `classes.markedInternal` is named in `fixRisky` but runs nowhere; the entry does nothing.', $err);
-	Assert::notContains('file.strictTypes', $err);
+	Assert::contains('Decision `classes.markedInternal.class` is named in `fixRisky` but runs nowhere; the entry does nothing.', $err);
+	Assert::notContains('file.strictTypes.declaration', $err);
 });

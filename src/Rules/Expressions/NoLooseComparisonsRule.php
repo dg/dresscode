@@ -25,7 +25,7 @@ final class NoLooseComparisonsRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('expressions.comparison', new Words(['strict' => '`===` and `!==`, never `==` and `!=`']), 'A comparison of equality')];
+		return [new Decision('expressions.comparison.equality', new Words(['strict' => '`===` and `!==`, never `==` and `!=`']), 'A comparison of equality')];
 	}
 
 

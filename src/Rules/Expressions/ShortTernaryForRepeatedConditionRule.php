@@ -21,7 +21,7 @@ final class ShortTernaryForRepeatedConditionRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('expressions.ternaryReturningItsCondition', Domain::state('forbidden'), '`$a ? $a : $b` is `$a ?: $b`')];
+		return [new Decision('expressions.ternary.returningItsCondition', Domain::state('forbidden'), '`$a ? $a : $b` is `$a ?: $b`')];
 	}
 
 

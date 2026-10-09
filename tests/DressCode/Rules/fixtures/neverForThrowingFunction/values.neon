@@ -1,4 +1,5 @@
 upgrading:
 	syntax:
-		neverReturnType: adopted
-		neverReturnTypeOnClosures: no
+		neverReturnType:
+			function: adopted
+			closure: no

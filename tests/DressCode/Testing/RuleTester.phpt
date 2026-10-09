@@ -257,7 +257,7 @@ test('the decisions a fixture makes a risky fix under are those of the reports w
 	Assert::same(['cleanup.classNameNotation'], RuleTester::collectRiskyDecisions(ClassNameNotationRule::class, "$dir/classNameNotation/namespace-risky.code"));
 	Assert::same(['cleanup.get_class'], RuleTester::collectRiskyDecisions(ClassNameNotationRule::class, "$dir/classNameNotation/objects-namespace-risky.code"));
 	Assert::same([], RuleTester::collectRiskyDecisions(ClassNameNotationRule::class, "$dir/classNameNotation/namespace.code"));
-	Assert::same(['file.strictTypes'], RuleTester::collectRiskyDecisions(DressCode\Rules\Files\StrictTypesRequiredRule::class, "$dir/strictTypesRequired/tag-line-missing.code"));
+	Assert::same(['file.strictTypes.declaration'], RuleTester::collectRiskyDecisions(DressCode\Rules\Files\StrictTypesRequiredRule::class, "$dir/strictTypesRequired/tag-line-missing.code"));
 });
 
 

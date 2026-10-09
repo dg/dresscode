@@ -22,7 +22,7 @@ use function count;
  * a line inside a multi-line comment is reported on the line the comment starts. The rule runs last, after the rules
  * that break long lines, so it reports what nothing could break.
  */
-#[RuleInfo(Stage::Finishing, decisions: ['file.maxLineLength'])]
+#[RuleInfo(Stage::Finishing, decisions: ['file.lineLength.max'])]
 final class LineLengthRule extends NodeRule
 {
 	private bool $ignoreImports = true;
@@ -34,8 +34,8 @@ final class LineLengthRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('file.longLines', Domain::state('forbidden'), 'A line wider than `file.maxLineLength`, which nothing could split, is reported'),
-			new Decision('file.longLinesExcept', new Names, 'The lines never reported: `imports` for a `use` import, which cannot be broken, and regular expressions of others', parameter: true, default: ['imports']),
+			new Decision('file.lineLength.overMax', Domain::state('forbidden'), 'A line wider than `file.lineLength.max`, which nothing could split, is reported'),
+			new Decision('file.lineLength.except', new Names, 'The lines never reported: `imports` for a `use` import, which cannot be broken, and regular expressions of others', parameter: true, default: ['imports']),
 		];
 	}
 
@@ -43,12 +43,12 @@ final class LineLengthRule extends NodeRule
 	/** @throws ConfigurationException for an ignored line that is neither `imports` nor a regular expression */
 	public function configure(Values $values): void
 	{
-		$ignores = $values->get('file.longLinesExcept')->getNames();
+		$ignores = $values->get('file.lineLength.except')->getNames();
 		$this->ignoreImports = in_array('imports', $ignores, true);
 		$this->ignorePatterns = array_values(array_diff($ignores, ['imports']));
 		foreach ($this->ignorePatterns as $pattern) {
 			if (@preg_match($pattern, '') === false) { // @ the error is the answer
-				throw new ConfigurationException("Key `file.longLinesExcept` takes `imports` and regular expressions, not `$pattern`.");
+				throw new ConfigurationException("Key `file.lineLength.except` takes `imports` and regular expressions, not `$pattern`.");
 			}
 		}
 	}

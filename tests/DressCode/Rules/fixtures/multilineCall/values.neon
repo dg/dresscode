@@ -1,2 +1,3 @@
 multiline:
-	call: perLine
+	shape:
+		call: perLine

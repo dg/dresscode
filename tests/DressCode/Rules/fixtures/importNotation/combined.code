@@ -1,5 +1,5 @@
 <?php
-// {"function": "combined", "constant": "combined"}
+// {"statement.function": "combined", "statement.constant": "combined"}
 namespace A;
 use B, C;
 use function e;

@@ -1,4 +1,5 @@
 qualification:
-	classOfAnotherNamespace: keep
-	functionOfAnotherNamespace: keep
-	constantOfAnotherNamespace: keep
+	otherNamespace:
+		class: keep
+		function: keep
+		constant: keep

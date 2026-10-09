@@ -1,5 +1,5 @@
 <?php
-// {"globalConstant":["imported","backslashed"],"optimizedConstant":"bare"}
+// {"global.constant":["imported","backslashed"],"optimized.constant":"bare"}
 // nameResolution certain
 namespace App;
 

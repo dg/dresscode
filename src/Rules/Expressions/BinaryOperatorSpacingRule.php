@@ -27,15 +27,15 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
  * a line may be moved to the start of the next one, as `multiline.operatorPosition.binary` says: a comparison, a
  * bitwise operator or a shift only where the joined line would be too wide, and a boolean operator chaining a
  * condition never, because `MultilineConditionRule` places it. Whitespace wider than a space aligns a column
- * of assignments or of array items, and `spacing.binaryOperatorAlignment` says which of it stays. Concatenation
+ * of assignments or of array items, and `spacing.binaryOperator.alignment` says which of it stays. Concatenation
  * is the matter of `ConcatenationSpacingRule`.
  */
 #[RuleInfo(Stage::Formatting, analyses: [IndentationPlan::class])]
 final class BinaryOperatorSpacingRule extends GapRule
 {
 	private const JoinedOperators = ['==', '!=', '<>', '===', '!==', '<', '<=', '>', '>=', '<=>', '&', '|', '^', '<<', '>>'];
-	private const Spacing = 'spacing.binaryOperator';
-	private const Alignment = 'spacing.binaryOperatorAlignment';
+	private const Spacing = 'spacing.binaryOperator.around';
+	private const Alignment = 'spacing.binaryOperator.alignment';
 	private const Position = 'multiline.operatorPosition.binary';
 
 	/** the space around an operator, null where it is kept */

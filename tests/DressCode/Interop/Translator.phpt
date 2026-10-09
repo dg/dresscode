@@ -150,7 +150,7 @@ test('a decision that needs the types of the code is left out and said so, a kee
 test('the kinds of ordered_class_elements are translated to the kinds of memberOrder', function () {
 	$translation = (new Translator)->translate(['ordered_class_elements' => ['order' => ['use_trait', 'constant_public', 'method_public_static', 'construct', 'magic']]]);
 	Assert::same(
-		['classes.memberOrder' => ['traitUse', 'publicConstant', 'publicStaticMethod', 'constructor', 'magicMethod']],
+		['classes.members.order' => ['traitUse', 'publicConstant', 'publicStaticMethod', 'constructor', 'magicMethod']],
 		$translation->decisions,
 	);
 });
@@ -159,11 +159,11 @@ test('the kinds of ordered_class_elements are translated to the kinds of memberO
 test('the kinds of ordered_class_elements without an equivalent are left out and named', function () {
 	$translation = (new Translator)->translate(['ordered_class_elements' => ['order' => ['use_trait', 'property_static', 'case', 'method:__construct', 'public', 'method_public']]]);
 	Assert::same(
-		['classes.memberOrder' => ['traitUse', 'enumCase', 'publicMethod']],
+		['classes.members.order' => ['traitUse', 'enumCase', 'publicMethod']],
 		$translation->decisions,
 	);
 	Assert::same(
-		['The kinds `property_static`, `method:__construct`, `public` of `ordered_class_elements` have no equivalent in `memberOrder` and were left out.'],
+		['The kinds `property_static`, `method:__construct`, `public` of `ordered_class_elements` have no equivalent in `classes.members.order` and were left out.'],
 		$translation->warnings,
 	);
 });
@@ -185,7 +185,7 @@ test('foreign rules covering one rule are merged, not overwritten', function () 
 		array_filter($translation->decisions, fn(string $path) => str_starts_with($path, 'multiline.trailingComma.'), ARRAY_FILTER_USE_KEY),
 	);
 	Assert::same(
-		['types.parameter' => 'required', 'types.return' => 'required'],
+		['types.declaration.parameter' => 'required', 'types.declaration.return' => 'required'],
 		array_filter($translation->decisions, fn(string $path) => str_starts_with($path, 'types.'), ARRAY_FILTER_USE_KEY),
 	);
 
@@ -209,12 +209,12 @@ test('foreign rules deciding one thing come to the same translation in either or
 
 	// a fixer of the space before a comma leaves its alignment to the one of the space after it
 	foreach ($translate(['no_whitespace_before_comma_in_array' => true, 'whitespace_after_comma_in_array' => true]) as $translation) {
-		Assert::same(['spacing.comma' => 'spaced', 'spacing.commaAlignment' => 'any'], $translation->decisions);
+		Assert::same(['spacing.comma.around' => 'spaced', 'spacing.comma.alignment' => 'any'], $translation->decisions);
 	}
 
 	// an order set in full wins over the one place another rule only prefers, and two different orders contradict
 	foreach ($translate(['ordered_class_elements' => ['order' => ['constant_public', 'use_trait']], 'PSR12.Traits.UseDeclaration' => true]) as $translation) {
-		Assert::same(['publicConstant', 'traitUse'], $translation->decisions['classes.memberOrder']);
+		Assert::same(['publicConstant', 'traitUse'], $translation->decisions['classes.members.order']);
 	}
 
 	$translator = new Translator([
@@ -230,7 +230,7 @@ test('foreign rules deciding one thing come to the same translation in either or
 		'SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition' => true,
 		'SlevomatCodingStandard.Classes.DisallowMultiPropertyDefinition' => true,
 	]) as $translation) {
-		Assert::same(['traitUse'], $translation->decisions['classes.groupedDeclarationAllowedFor']);
+		Assert::same(['traitUse'], $translation->decisions['classes.members.groupable']);
 	}
 
 	// counts of blank lines widen to the range of both, a count a map gives included
@@ -318,13 +318,13 @@ test('a translation of the trailing comma leaves the places it does not name as 
 
 test('a translation of empty parentheses leaves the places it does not name as they are', function () {
 	$translation = (new Translator)->translate(['attribute_empty_parentheses' => true]);
-	Assert::equal(['classes.attributeParentheses' => 'forbidden'], $translation->decisions);
+	Assert::equal(['classes.emptyParentheses.attribute' => 'forbidden'], $translation->decisions);
 
 	$rules = ['new_with_parentheses' => ['anonymous_class' => false], 'attribute_empty_parentheses' => ['use_parentheses' => true]];
 	$expected = [
-		'classes.newParentheses' => 'required',
-		'classes.anonymousClassParentheses' => 'forbidden',
-		'classes.attributeParentheses' => 'required',
+		'classes.emptyParentheses.instantiation' => 'required',
+		'classes.emptyParentheses.anonymousClass' => 'forbidden',
+		'classes.emptyParentheses.attribute' => 'required',
 	];
 	foreach ([$rules, array_reverse($rules, true)] as $order) {
 		Assert::equal($expected, (new Translator)->translate($order)->decisions);
@@ -332,20 +332,20 @@ test('a translation of empty parentheses leaves the places it does not name as t
 
 	// the sniff removes the parentheses of a named class and passes an anonymous one by
 	$translation = (new Translator)->translate(['SlevomatCodingStandard.ControlStructures.NewWithoutParentheses' => true]);
-	Assert::equal(['classes.newParentheses' => 'forbidden'], $translation->decisions);
+	Assert::equal(['classes.emptyParentheses.instantiation' => 'forbidden'], $translation->decisions);
 });
 
 
 test('a fixer of the case of one kind of native names leaves the other kinds as they are', function () {
 	Assert::equal(
-		['builtin.type' => 'lowercase'],
+		['builtin.casing.type' => 'lowercase'],
 		(new Translator)->translate(['native_type_declaration_casing' => true])->decisions,
 	);
 
 	$rules = ['native_function_casing' => true, 'class_reference_name_casing' => true];
 	foreach ([$rules, array_reverse($rules, true)] as $order) {
 		Assert::equal(
-			['builtin.class' => 'declared', 'builtin.function' => 'declared'],
+			['builtin.casing.class' => 'declared', 'builtin.casing.function' => 'declared'],
 			(new Translator)->translate($order)->decisions,
 		);
 	}
@@ -365,9 +365,9 @@ test('a fixer of the imports leaves the names of the global namespace to a fixer
 
 test('a fixer of the case of constants leaves the keywords alone', function () {
 	$translate = fn(array $rules) => (new Translator)->translate($rules)->decisions;
-	Assert::equal(['builtin.trueFalseNull' => 'uppercase'], $translate(['constant_case' => ['case' => 'upper']]));
+	Assert::equal(['builtin.casing.trueFalseNull' => 'uppercase'], $translate(['constant_case' => ['case' => 'upper']]));
 	Assert::equal(
-		['builtin.keyword' => 'lowercase', 'builtin.magicConstant' => 'uppercase'],
+		['builtin.casing.keyword' => 'lowercase', 'builtin.casing.magicConstant' => 'uppercase'],
 		$translate(['magic_constant_casing' => true, 'lowercase_keywords' => true]),
 	);
 });
@@ -539,10 +539,10 @@ test('a fixer of a declaration translates the parentheses, the comma and the bra
 	Assert::same(['`function_declaration` with `trailing_comma_single_line=true` has no equivalent; DressCode removes the trailing comma of parameters on one line.'], $translation->warnings);
 
 	$translation = $translate(['braces_position' => true]);
-	Assert::same(['nextLine', 'sameLine'], [$translation->decisions['braces.function'], $translation->decisions['braces.afterMultilineSignature']]);
+	Assert::same(['nextLine', 'sameLine'], [$translation->decisions['braces.position.function'], $translation->decisions['braces.position.multilineSignature']]);
 	$translation = $translate(['braces_position' => ['functions_opening_brace' => 'same_line']]);
-	Assert::false(isset($translation->decisions['braces.function']));
-	Assert::same('sameLine', $translation->decisions['braces.afterMultilineSignature']);
+	Assert::false(isset($translation->decisions['braces.position.function']));
+	Assert::same('sameLine', $translation->decisions['braces.position.multilineSignature']);
 	Assert::same(['`braces_position` with `functions_opening_brace=same_line` has no equivalent; DressCode puts the brace of a function with its parameters on one line on the next line.'], $translation->warnings);
 
 	// the destructuring of the fixer alone has no place of its own
@@ -742,10 +742,10 @@ test('the sniffs of PSR12 listed one by one translate, all but four that no rule
 	}
 
 	Assert::noError(fn() => resolveTranslation($translation));
-	Assert::same('required', $translation->decisions['classes.newParentheses']);
-	Assert::false(isset($translation->decisions['classes.anonymousClassParentheses']));
-	Assert::same(['traitUse'], $translation->decisions['classes.memberOrder']);
-	Assert::same(['constant', 'property'], $translation->decisions['classes.groupedDeclarationAllowedFor']);
+	Assert::same('required', $translation->decisions['classes.emptyParentheses.instantiation']);
+	Assert::false(isset($translation->decisions['classes.emptyParentheses.anonymousClass']));
+	Assert::same(['traitUse'], $translation->decisions['classes.members.order']);
+	Assert::same(['constant', 'property'], $translation->decisions['classes.members.groupable']);
 	Assert::same('spaced', $translation->decisions['spacing.concatenation']);
 });
 
@@ -773,11 +773,11 @@ test('the properties of the sniffs of PSR12 translate, or say they have no equiv
 		'`PSR2.Methods.FunctionCallSignature` with spaces inside the parentheses has no equivalent; DressCode writes none.',
 		'`Squiz.ControlStructures.ForLoopDeclaration` with spaces inside the parentheses has no equivalent; DressCode writes none.',
 	], $translation->warnings);
-	Assert::same('frame', $translation->decisions['multiline.call']);
+	Assert::same('frame', $translation->decisions['multiline.shape.call']);
 
 	$translation = (new Translator)->translate(['method_argument_space' => ['on_multiline' => 'ignore']]);
 	Assert::same([], $translation->warnings);
-	Assert::false(isset($translation->decisions['multiline.call']));
+	Assert::false(isset($translation->decisions['multiline.shape.call']));
 });
 
 
@@ -790,14 +790,14 @@ test('a message excluded from a sniff turns off its rule, which the sniff covers
 	$translation = (new Translator)->translate(['PSR12' => true, 'PSR2.ControlStructures.SwitchDeclaration' => false]);
 	Assert::same(
 		[
-			'controlFlow.switchCaseTerminator' => 'keep',
+			'controlFlow.switch.caseTerminator' => 'keep',
 			'spacing.switchCase' => 'keep',
-			'controlFlow.switchFallThrough' => 'keep',
+			'controlFlow.switch.fallThroughComment' => 'keep',
 			'indentation.switchCase' => 'keep',
 		],
 		$translation->decisions,
 	);
-	Assert::match('`PSR2.ControlStructures.SwitchDeclaration` is turned off, but `builtin.keyword`, %a% also stand for `Generic.PHP.LowerCaseKeyword`, `Generic.PHP.LowerCaseType`%a%', $translation->warnings[0] ?? '');
+	Assert::match('`PSR2.ControlStructures.SwitchDeclaration` is turned off, but `builtin.casing.keyword`, %a% also stand for `Generic.PHP.LowerCaseKeyword`, `Generic.PHP.LowerCaseType`%a%', $translation->warnings[0] ?? '');
 
 	// a sniff turned off in the configuration stands for nothing there
 	$translation = (new Translator)->translate(['PSR12' => true, 'Generic.WhiteSpace.DisallowTabIndent' => false, 'Generic.WhiteSpace.DisallowSpaceIndent' => false]);
@@ -883,16 +883,20 @@ test('two foreign rules writing names merge into the decisions of the qualificat
 		. "return new Config(\n"
 		. "\tdecisions: [\n"
 		. "\t\t'qualification' => [\n"
-		. "\t\t\t'globalClass' => 'imported',\n"
-		. "\t\t\t'globalFunction' => 'bare',\n"
-		. "\t\t\t'optimizedFunction' => 'backslashed',\n"
-		. "\t\t\t'globalConstant' => ['backslashed', 'bare'],\n"
+		. "\t\t\t'global' => [\n"
+		. "\t\t\t\t'class' => 'imported',\n"
+		. "\t\t\t\t'function' => 'bare',\n"
+		. "\t\t\t\t'constant' => ['backslashed', 'bare'],\n"
+		. "\t\t\t],\n"
+		. "\t\t\t'optimized' => [\n"
+		. "\t\t\t\t'function' => 'backslashed',\n"
+		. "\t\t\t],\n"
 		. "\t\t],\n"
 		. "\t],\n"
 		. ");\n",
 		$translation->toPhp(),
 	);
-	Assert::contains('qualification.globalFunction', $translation->getPaths());
+	Assert::contains('qualification.global.function', $translation->getPaths());
 	Assert::noError(fn() => resolveTranslation($translation));
 });
 
@@ -901,8 +905,8 @@ test('native_function_invocation takes the backslash from a function it does not
 	$qualification = function (array $options): array {
 		$decisions = resolveTranslation((new Translator)->translate(['native_function_invocation' => $options + ['scope' => 'namespaced']]))->decisions;
 		return [
-			$decisions['qualification.globalFunction']->value->toWrittenData(),
-			$decisions['qualification.optimizedFunction']->value->toWrittenData(),
+			$decisions['qualification.global.function']->value->toWrittenData(),
+			$decisions['qualification.optimized.function']->value->toWrittenData(),
 		];
 	};
 	Assert::same(['bare', 'backslashed'], $qualification([]));
@@ -916,7 +920,7 @@ test('a function or a constant the fixers and the sniffs name one by one follows
 		[['native_function_invocation' => ['include' => ['@all'], 'exclude' => ['dump'], 'scope' => 'namespaced']],
 			['optimizedFunction' => 'backslashed', 'globalFunction' => 'backslashed'],
 			['function' => 'qualified'],
-			['`native_function_invocation` names functions one by one (`dump`), which DressCode decides by group; a function named follows `qualification.globalFunction`, or `qualification.optimizedFunction` where the compiler optimizes it.']],
+			['`native_function_invocation` names functions one by one (`dump`), which DressCode decides by group; a function named follows `qualification.global.function`, or `qualification.optimized.function` where the compiler optimizes it.']],
 		[['native_function_invocation' => [
 			'include' => ['@compiler_optimized', 'dump'],
 			'exclude' => ['var_dump'],
@@ -925,7 +929,7 @@ test('a function or a constant the fixers and the sniffs name one by one follows
 		]],
 			['optimizedFunction' => 'backslashed'],
 			['optimizedFunction' => 'qualified'],
-			['`native_function_invocation` names functions one by one (`dump`, `var_dump`), which DressCode decides by group; a function named follows `qualification.globalFunction`, or `qualification.optimizedFunction` where the compiler optimizes it.']],
+			['`native_function_invocation` names functions one by one (`dump`, `var_dump`), which DressCode decides by group; a function named follows `qualification.global.function`, or `qualification.optimized.function` where the compiler optimizes it.']],
 		// fix_built_in asks for the constants PHP declares, qualified where the compiler computes with them, and strict takes the backslash from the rest
 		[['native_constant_invocation' => ['scope' => 'namespaced']],
 			['optimizedConstant' => 'backslashed'],
@@ -934,7 +938,7 @@ test('a function or a constant the fixers and the sniffs name one by one follows
 		[['native_constant_invocation' => ['fix_built_in' => false, 'include' => ['PHP_EOL'], 'exclude' => ['DEBUG', 'null'], 'scope' => 'namespaced']],
 			['optimizedConstant' => 'backslashed'],
 			['constant' => 'bare'],
-			['`native_constant_invocation` names constants one by one (`PHP_EOL`, `DEBUG`), which DressCode decides by group; a constant named follows `qualification.globalConstant`, or `qualification.optimizedConstant` where the compiler computes with it.']],
+			['`native_constant_invocation` names constants one by one (`PHP_EOL`, `DEBUG`), which DressCode decides by group; a constant named follows `qualification.global.constant`, or `qualification.optimized.constant` where the compiler computes with it.']],
 		// the special functions join an empty include instead of naming every function
 		[['SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions' => ['includeSpecialFunctions' => true]],
 			['optimizedFunction' => 'backslashed'],
@@ -944,11 +948,11 @@ test('a function or a constant the fixers and the sniffs name one by one follows
 		[['SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions' => ['include' => ['dump'], 'exclude' => ['var_dump']]],
 			[],
 			[],
-			['`SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions` names functions one by one (`dump`, `var_dump`), which DressCode decides by group; a function named follows `qualification.globalFunction`, or `qualification.optimizedFunction` where the compiler optimizes it.']],
+			['`SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions` names functions one by one (`dump`, `var_dump`), which DressCode decides by group; a function named follows `qualification.global.function`, or `qualification.optimized.function` where the compiler optimizes it.']],
 		[['SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants' => ['include' => ['PHP_EOL'], 'exclude' => ['DEBUG']]],
 			[],
 			[],
-			['`SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants` names constants one by one (`PHP_EOL`, `DEBUG`), which DressCode decides by group; a constant named follows `qualification.globalConstant`.']],
+			['`SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants` names constants one by one (`PHP_EOL`, `DEBUG`), which DressCode decides by group; a constant named follows `qualification.global.constant`.']],
 		[['SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly' => ['allowFullyQualifiedGlobalFunctions' => true, 'allowFallbackGlobalConstants' => false]],
 			[
 				'class' => 'imported',

@@ -1,5 +1,5 @@
 <?php
-// {"commentAfterCodeAlignment": "none"}
+// {"comment.alignment": "none"}
 $b = 2; // aligned
 $c = 3; # tab
 $d = 4; /* c */

@@ -4,10 +4,11 @@
 # object is, a `catch` nothing reaches, a doc comment contradicting itself, invisible characters in the code.
 
 phpdoc:
-	paramOfMissingParameter: forbidden          # a `@param` of no parameter
-	duplicateReturn: forbidden
-	emptyAnnotation: forbidden                  # `@param`, `@return`, `@var`, `@see` without content
-	duplicateVar: forbidden
+	annotation:
+		paramOfMissingParameter: forbidden      # a `@param` of no parameter
+		duplicateReturn: forbidden
+		empty: forbidden                        # `@param`, `@return`, `@var`, `@see` without content
+		duplicateVar: forbidden
 
 correctness:
 	__debugInfo: array                          # `[]`, not `null`

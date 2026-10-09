@@ -271,7 +271,7 @@ final class CorePlugin implements Plugin
 					'CRLF' => 'every line ends with CRLF',
 					'majority' => 'every line ends as most lines of the file do, LF on a tie',
 				]), 'The line ending of every line, which the code written new takes too; under `keep` that follows the file'),
-				new Decision('file.maxLineLength', new Count(1, range: false, words: ['none' => 'no line is too wide']), 'The widest line, by which what spreads over lines is split', parameter: true, default: 'none'),
+				new Decision('file.lineLength.max', new Count(1, range: false, words: ['none' => 'no line is too wide']), 'The widest line, by which what spreads over lines is split', parameter: true, default: 'none'),
 				new Decision('indentation.unit', new Words([
 					'tab' => 'one tab per level',
 					'4 spaces' => 'four spaces per level',
@@ -283,16 +283,16 @@ final class CorePlugin implements Plugin
 
 				// how far a global function is written out, which decides the arguments of its optimized call too
 				Rules\Namespaces\QualificationPolicy::createGlobalDecision(
-					'qualification.globalFunction',
-					'A global function called in a namespace, `strlen()`, those the compiler optimizes included unless `optimizedFunction` requires a form for them',
+					'qualification.global.function',
+					'A global function called in a namespace, `strlen()`, those the compiler optimizes included unless `optimized.function` requires a form for them',
 					'`strlen()`',
 					'`use function strlen;` and `strlen()`',
 					'`\strlen()`',
 					'Not a function of the namespace of the file, nor a name in a file without a namespace, which `inFileWithoutNamespace` decides.',
 				),
 				Rules\Namespaces\QualificationPolicy::createOptimizedDecision(
-					'qualification.optimizedFunction',
-					'A global function whose call PHP compiles to one opcode once it knows the function is global, `count()`, `strlen()`, `is_int()` and the others; where this key requires a form, it decides such a function over `globalFunction`, and a call of it written imported or with the backslash, by either key, has its arguments passed positionally and an unpacked one reported',
+					'qualification.optimized.function',
+					'A global function whose call PHP compiles to one opcode once it knows the function is global, `count()`, `strlen()`, `is_int()` and the others; where this key requires a form, it decides such a function over `global.function`, and a call of it written imported or with the backslash, by either key, has its arguments passed positionally and an unpacked one reported',
 					'`strlen()`',
 					'`use function strlen;`',
 					'`\strlen()`',
@@ -355,9 +355,9 @@ final class CorePlugin implements Plugin
 			'combined' => 'all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration',
 		]);
 		return [
-			new Decision('imports.class', $shapes, 'How the imports of classes are spread over `use` statements'),
-			new Decision('imports.function', $shapes, 'How the imports of functions are spread over `use` statements'),
-			new Decision('imports.constant', $shapes, 'How the imports of constants are spread over `use` statements'),
+			new Decision('imports.statement.class', $shapes, 'How the imports of classes are spread over `use` statements'),
+			new Decision('imports.statement.function', $shapes, 'How the imports of functions are spread over `use` statements'),
+			new Decision('imports.statement.constant', $shapes, 'How the imports of constants are spread over `use` statements'),
 			new Decision(ImportStyle::GroupUse, new Words([
 				'forbidden' => 'a group use of a kind decided above is expanded into the shape of that kind',
 				'required' => 'the imports of one namespace are written as one group use, `use Acme\Shop\{Order, Cart};`',

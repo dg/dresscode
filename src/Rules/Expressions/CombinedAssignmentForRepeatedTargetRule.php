@@ -33,7 +33,7 @@ final class CombinedAssignmentForRepeatedTargetRule extends NodeRule
 
 	public static function getDecisions(): array
 	{
-		return [new Decision('expressions.assignmentRepeatingTarget', Domain::state('forbidden'), '`$a = $a + $b` is `$a += $b`')];
+		return [new Decision('expressions.assignment.repeatingTarget', Domain::state('forbidden'), '`$a = $a + $b` is `$a += $b`')];
 	}
 
 

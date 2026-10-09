@@ -1,4 +1,5 @@
 spacing:
-	comment: '// text'
-	commentAfterCode: '$a; // text'
-	commentAfterCodeAlignment: any
+	comment:
+		marker: '// text'
+		afterCode: '$a; // text'
+		alignment: any

@@ -20,8 +20,8 @@ use PhpSyntax\Nodes\Expression\TernaryNode;
 #[RuleInfo(Stage::Formatting)]
 final class TernaryOperatorSpacingRule extends GapRule
 {
-	private const Spacing = 'spacing.ternary';
-	private const Alignment = 'spacing.ternaryAlignment';
+	private const Spacing = 'spacing.ternary.around';
+	private const Alignment = 'spacing.ternary.alignment';
 	private const Position = 'multiline.operatorPosition.ternary';
 
 	/** the space around an operator, null where it is kept */

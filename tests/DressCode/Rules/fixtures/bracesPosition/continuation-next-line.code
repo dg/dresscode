@@ -1,5 +1,5 @@
 <?php
-// {"continuingKeyword": "nextLine"}
+// {"position.continuingKeyword": "nextLine"}
 if ($a) {
 	x();
 } elseif ($b) {

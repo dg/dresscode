@@ -1,5 +1,5 @@
 <?php
-// {"elseAfterExit": "keep", "elseifAfterExit": "forbidden"}
+// {"afterExit.else": "keep", "afterExit.elseif": "forbidden"}
 function f($x)
 {
 	if ($x === 1) {

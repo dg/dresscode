@@ -104,11 +104,11 @@ test('names of a suppression comment: a decision or a section for itself, a rule
 	$registry = new PluginRegistry;
 	$registry->registerRule(RuleOne::class);
 	Assert::same(['project.ruleOne'], $registry->expandSuppressedName(RuleOne::class));
-	Assert::same(['imports.order'], $registry->expandSuppressedName('imports.order'));
+	Assert::same(['imports.order.withinKind'], $registry->expandSuppressedName('imports.order.withinKind'));
 	Assert::same(['imports'], $registry->expandSuppressedName('imports'));
 	Assert::same([], $registry->expandSuppressedName('importOrder'));
-	Assert::same(['imports.order'], $registry->expandSuppressedName('ordered_imports'));
-	Assert::same(['imports.order'], $registry->expandSuppressedName('SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses'));
+	Assert::same(['imports.order.withinKind'], $registry->expandSuppressedName('ordered_imports'));
+	Assert::same(['imports.order.withinKind'], $registry->expandSuppressedName('SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses'));
 	Assert::same([], $registry->expandSuppressedName('test/unknown'));
 	Assert::same([], $registry->expandSuppressedName('imports.ord'));
 });

@@ -18,15 +18,15 @@ use PhpSyntax\Nodes\Statement\{BlockNode, IfNode};
  * An `else` after branches that all end by leaving (`return`, `throw`, `break`, `continue`, `exit`, `goto`) is dropped
  * and its statements follow the `if`; an empty `else` is dropped too. At the top of a file, an `else` declaring a
  * function or a class stays, because out of the `else` PHP would bind the declaration before the code runs; in a
- * function or a loop it binds it where it stands. With `controlFlow.elseifAfterExit`, an `elseif` after such an `if`
+ * function or a loop it binds it where it stands. With `controlFlow.afterExit.elseif`, an `elseif` after such an `if`
  * becomes an `if` of its own, with the later branches; a chain of `elseif` that reads as one is a matter of taste, so
  * it stays by default.
  */
 #[RuleInfo(Stage::Structure)]
 final class UselessElseRule extends NodeRule
 {
-	private const ElseAfterExit = 'controlFlow.elseAfterExit';
-	private const ElseifAfterExit = 'controlFlow.elseifAfterExit';
+	private const ElseAfterExit = 'controlFlow.afterExit.else';
+	private const ElseifAfterExit = 'controlFlow.afterExit.elseif';
 
 	private bool $else = true;
 

@@ -340,7 +340,7 @@ final class Translation
 		}
 
 		if ($this->lineLength !== null) {
-			$decisions['file.maxLineLength'] = $this->lineLength;
+			$decisions['file.lineLength.max'] = $this->lineLength;
 		}
 
 		return $decisions;
@@ -357,10 +357,10 @@ final class Translation
 	private static function translateQualification(array $shape, array $fallback, bool $optimizedCalls): array
 	{
 		$values = [
-			'qualification.classOfAnotherNamespace' => $shape['class'] ?? 'keep',
-			'qualification.globalClass' => $shape['globalClass'] ?? $shape['class'] ?? 'keep',
-			'qualification.functionOfAnotherNamespace' => $shape['function'] ?? 'keep',
-			'qualification.constantOfAnotherNamespace' => $shape['constant'] ?? 'keep',
+			'qualification.otherNamespace.class' => $shape['class'] ?? 'keep',
+			'qualification.global.class' => $shape['globalClass'] ?? $shape['class'] ?? 'keep',
+			'qualification.otherNamespace.function' => $shape['function'] ?? 'keep',
+			'qualification.otherNamespace.constant' => $shape['constant'] ?? 'keep',
 		];
 		foreach (['Function', 'Constant'] as $kind) {
 			$form = $shape['global' . $kind] ?? $shape[lcfirst($kind)] ?? null;
@@ -375,8 +375,8 @@ final class Translation
 				$optimized = 'imported';
 			}
 
-			$values['qualification.global' . $kind] = $global;
-			$values['qualification.optimized' . $kind] = $optimized === $global ? 'keep' : $optimized;
+			$values['qualification.global.' . lcfirst($kind)] = $global;
+			$values['qualification.optimized.' . lcfirst($kind)] = $optimized === $global ? 'keep' : $optimized;
 		}
 
 		return $values;

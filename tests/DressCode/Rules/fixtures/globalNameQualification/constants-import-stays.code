@@ -1,5 +1,5 @@
 <?php
-// {"optimizedFunction":["imported","backslashed"],"globalConstant":["imported","backslashed"]}
+// {"optimized.function":["imported","backslashed"],"global.constant":["imported","backslashed"]}
 // risky
 namespace App;
 

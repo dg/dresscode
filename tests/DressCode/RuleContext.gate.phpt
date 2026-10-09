@@ -24,8 +24,8 @@ final class SpacingRule extends GapRule
 	{
 		return [
 			new Decision('spacing.call', new Shapes(['compact' => ['foo()', '']]), 'The space before the parenthesis'),
-			new Decision('spacing.comma', new Shapes(['spaced' => ['$a, $b', '']]), 'The space around a comma'),
-			new Decision('spacing.commaAlignment', Domain::state(), 'Tabs aligning a column stay', parameter: true, default: 'forbidden'),
+			new Decision('spacing.comma.around', new Shapes(['spaced' => ['$a, $b', '']]), 'The space around a comma'),
+			new Decision('spacing.comma.alignment', Domain::state(), 'Tabs aligning a column stay', parameter: true, default: 'forbidden'),
 		];
 	}
 
@@ -68,14 +68,14 @@ $token = $file->getFirstToken();
 
 
 test('a selected requirement is reported, one the run does not report records nothing', function () use ($file, $token) {
-	$context = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma' => 'keep']);
+	$context = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma.around' => 'keep']);
 	Assert::true($context->report($token, 'Expected no whitespace.', decision: 'spacing.call'));
-	Assert::false($context->report($token, 'Expected a single space.', decision: 'spacing.comma'));
+	Assert::false($context->report($token, 'Expected a single space.', decision: 'spacing.comma.around'));
 	Assert::count(1, $context->takeReports());
-	Assert::true($context->isSilenced($token, decision: 'spacing.comma'));
+	Assert::true($context->isSilenced($token, decision: 'spacing.comma.around'));
 	Assert::false($context->isSilenced($token, decision: 'spacing.call'));
 
-	$narrowed = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma' => 'spaced'], ['spacing.comma']);
+	$narrowed = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma.around' => 'spaced'], ['spacing.comma.around']);
 	Assert::false($narrowed->report($token, 'Expected no whitespace.', decision: 'spacing.call'));
 	Assert::false($narrowed->reportGap($token, $token, 'Expected no whitespace.', decision: 'spacing.call'));
 	Assert::false($narrowed->hasReports());
@@ -86,7 +86,7 @@ test('a path the rule does not declare and a parameter are a mistake of the rule
 	foreach ([false, true] as $strict) {
 		$context = createContext($file, ['spacing.call' => 'foo()'], strict: $strict);
 		Assert::exception(fn() => $context->report($token, 'Wrong.', decision: 'spacing.cast'), LogicException::class, 'It reported under `spacing.cast`, a decision it does not declare.');
-		Assert::exception(fn() => $context->report($token, 'Wrong.', decision: 'spacing.commaAlignment'), LogicException::class, 'It reported under `spacing.commaAlignment`, a parameter, which reports nothing of its own.');
+		Assert::exception(fn() => $context->report($token, 'Wrong.', decision: 'spacing.comma.alignment'), LogicException::class, 'It reported under `spacing.comma.alignment`, a parameter, which reports nothing of its own.');
 		Assert::exception(fn() => $context->report($token, 'Wrong.'), LogicException::class, 'It reported under no decision, which only a rule of one requirement may.');
 		Assert::exception(fn() => $context->isSilenced($token, decision: 'spacing.cast'), LogicException::class);
 		Assert::false($context->hasReports());
@@ -103,20 +103,23 @@ test('the only requirement of a rule is the one a report without a path is under
 
 
 test('the gate names the requirements the run reports', function () {
-	Assert::same(['spacing.call', 'spacing.comma'], Gate::open(SpacingRule::getDecisions())->getAdmitted());
+	Assert::same(['spacing.call', 'spacing.comma.around'], Gate::open(SpacingRule::getDecisions())->getAdmitted());
 
 	$decisions = [];
 	foreach (SpacingRule::getDecisions() as $decision) {
 		$decisions[$decision->path] = $decision;
 	}
 
-	$values = new Values($decisions, ['spacing.call' => $decisions['spacing.call']->accept('foo()'), 'spacing.comma' => $decisions['spacing.comma']->accept('keep')]);
+	$values = new Values($decisions, [
+		'spacing.call' => $decisions['spacing.call']->accept('foo()'),
+		'spacing.comma.around' => $decisions['spacing.comma.around']->accept('keep'),
+	]);
 	Assert::same(['spacing.call'], Gate::fromValues(SpacingRule::getDecisions(), $values)->getAdmitted());
 });
 
 
 test('the engine reports a gap under the decision of the claim that decided it', function () use ($file) {
-	$context = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma' => 'spaced'], ['spacing.comma']);
+	$context = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma.around' => 'spaced'], ['spacing.comma.around']);
 	$fixer = new Fixer([SpacingRule::class => $context]);
 	$comma = $file->find(PhpSyntax\Nodes\ArgumentListNode::class)[0]->getFirstToken()->getNext()?->getNext() ?? throw new LogicException;
 	$next = $comma->getNext() ?? throw new LogicException;
@@ -125,7 +128,7 @@ test('the engine reports a gap under the decision of the claim that decided it',
 	$fixer->takeSpace(new DecidedClaim($rule, Space::Single, $comma, Claim::singleSpace()->withDecision('spacing.call'), null, 'after'), $comma, $next, '');
 	Assert::false($context->hasReports(), 'a claim of a decision narrowed away');
 
-	$fixer->takeSpace(new DecidedClaim($rule, Space::Single, $comma, Claim::singleSpace()->withDecision('spacing.comma'), null, 'after'), $comma, $next, '');
+	$fixer->takeSpace(new DecidedClaim($rule, Space::Single, $comma, Claim::singleSpace()->withDecision('spacing.comma.around'), null, 'after'), $comma, $next, '');
 	Assert::count(1, $context->takeReports());
 	Assert::same(' ', $comma->getTrailingSpace());
 });

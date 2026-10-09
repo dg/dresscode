@@ -1,6 +1,6 @@
 <?php
 // lineLength 51
-// {"signature": "keep"}
+// {"shape.signature": "keep"}
 class A
 {
 	public function __construct(private int $a) {}

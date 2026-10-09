@@ -1,5 +1,5 @@
 <?php
-// {"globalFunction":"imported"}
+// {"global.function":"imported"}
 namespace App;
 
 $a = strlen($x);

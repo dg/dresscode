@@ -1,3 +1,4 @@
 literals:
-	concatenatedLiterals: joined
-	concatenatedLiteralsOverLines: keep
+	concatenatedLiterals:
+		sameLine: joined
+		overLines: keep

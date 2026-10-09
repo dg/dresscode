@@ -23,8 +23,8 @@ use function count;
 #[RuleInfo(Stage::Finishing)]
 final class SingleLevelIndentationRule extends NodeRule
 {
-	private const Code = 'indentation.singleLevel';
-	private const Comment = 'indentation.singleLevelInComments';
+	private const Code = 'indentation.singleLevel.code';
+	private const Comment = 'indentation.singleLevel.comment';
 
 	private bool $singlelineComment = false;
 

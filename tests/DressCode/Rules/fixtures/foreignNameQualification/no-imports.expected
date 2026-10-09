@@ -1,5 +1,5 @@
 <?php
-// {"classOfAnotherNamespace":"imported"}
+// {"otherNamespace.class":"imported"}
 declare(strict_types=1);
 namespace App;
 

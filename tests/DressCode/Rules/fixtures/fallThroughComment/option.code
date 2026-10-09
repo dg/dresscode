@@ -1,5 +1,5 @@
 <?php
-// {"switchFallThrough": "break omitted"}
+// {"switch.fallThroughComment": "break omitted"}
 switch ($a) {
 	case 1:
 		one();

@@ -1,5 +1,5 @@
 <?php
-// {"order": "groupedByKind"}
+// {"order.withinKind": "asWritten"}
 use function Foo\{b, a};
 use Zed;
 use Abc;

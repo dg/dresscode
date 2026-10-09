@@ -1,6 +1,6 @@
 <?php
 // php 8.1
-// {"return": "keep"}
+// {"declaration.return": "keep"}
 // risky
 interface A {}
 interface B {}

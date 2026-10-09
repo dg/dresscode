@@ -215,7 +215,7 @@ final class ConfigResolver
 			namespacedFunctions: $bySource($symbols[SymbolKind::Function->name]),
 			namespacedConstants: $bySource($symbols[SymbolKind::Constant->name]),
 			nameResolution: $resolution ?? 'uncertain',
-			lineLength: self::resolveLineLength($values->get('file.maxLineLength')),
+			lineLength: self::resolveLineLength($values->get('file.lineLength.max')),
 			tabWidth: $values->get('indentation.tabWidth')->getCount()[0],
 			typeAnalysis: $this->typesAvailable ? $config->typeAnalysis : null,
 			packageTargets: array_diff_key($config->targets, ['php' => true]),

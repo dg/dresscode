@@ -26,7 +26,7 @@ use function count;
 #[RuleInfo(Stage::Structure)]
 final class NoGroupedDeclarationsRule extends NodeRule
 {
-	private const Path = 'classes.groupedDeclarationAllowedFor';
+	private const Path = 'classes.members.groupable';
 
 	/** @var list<string>  the kinds whose declaration may stay grouped */
 	private array $grouped = [];

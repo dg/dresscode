@@ -1,5 +1,5 @@
 <?php
-// {"newParentheses": "forbidden", "anonymousClassParentheses": "forbidden"}
+// {"emptyParentheses.instantiation": "forbidden", "emptyParentheses.anonymousClass": "forbidden"}
 $h = new Foo()->bar();
 $i = new Foo()['x'];
 $j = new Foo()::X;

@@ -1,6 +1,6 @@
 spacing:
-	beforeSemicolon: '$a;'
-	afterSemicolon: 'for ($i = 0; $i < 5; $i++)'
-
+	semicolon:
+		before: '$a;'
+		after: 'for ($i = 0; $i < 5; $i++)'
 multiline:
 	semicolonOnOwnLine: forbidden

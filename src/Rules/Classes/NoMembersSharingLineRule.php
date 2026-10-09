@@ -20,7 +20,7 @@ final class NoMembersSharingLineRule extends GapRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('classes.membersPerLine', new Count(1, 1, range: false), 'How many members of a class stand on one line')];
+		return [new Decision('classes.members.perLine', new Count(1, 1, range: false), 'How many members of a class stand on one line')];
 	}
 
 

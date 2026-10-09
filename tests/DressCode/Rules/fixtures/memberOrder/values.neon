@@ -1,2 +1,3 @@
 classes:
-	memberOrder: [traitUse, constant, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]
+	members:
+		order: [traitUse, constant, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]

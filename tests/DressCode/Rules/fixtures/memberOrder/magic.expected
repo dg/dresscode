@@ -1,5 +1,5 @@
 <?php
-// {"memberOrder": ["magicMethod", "method", "privateMethod"]}
+// {"members.order": ["magicMethod", "method", "privateMethod"]}
 class A
 {
 	public function __toString() {}

@@ -29,7 +29,7 @@ final class NullCoalescingForNullTernaryRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('expressions.ternaryTestingNull', Domain::state('forbidden'), '`isset($a) ? $a : $b`, `$a !== null ? $a : $b` are `$a ?? $b`')];
+		return [new Decision('expressions.ternary.testingNull', Domain::state('forbidden'), '`isset($a) ? $a : $b`, `$a !== null ? $a : $b` are `$a ?? $b`')];
 	}
 
 

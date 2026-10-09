@@ -1,3 +1,4 @@
 spacing:
-	unaryOperator: '-$x'
-	unaryOperatorsWithSpace: []
+	unaryOperator:
+		after: '-$x'
+		withSpace: []

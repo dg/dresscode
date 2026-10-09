@@ -1,5 +1,5 @@
 <?php
-// {"array": "asWritten"}
+// {"shape.array": "asWritten"}
 $a = [1, 2,
 	3, 4];
 $b = [

@@ -1,6 +1,8 @@
 qualification:
-	globalClass: keep
-	globalFunction: keep
-	optimizedFunction: keep
-	globalConstant: keep
-	optimizedConstant: keep
+	global:
+		class: keep
+		function: keep
+		constant: keep
+	optimized:
+		function: keep
+		constant: keep

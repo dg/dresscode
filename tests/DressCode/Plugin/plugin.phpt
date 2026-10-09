@@ -39,8 +39,8 @@ test('check with the plugin preset', function () {
 		Checking   %a%project%a%src%a%a.php
 
 		src%a%a.php
-		  error   5:1  Expected `use A;` here, as the imports are sorted by name.  imports.order
-		  error   6:1  Expected `use B;` here, as the imports are sorted by name.  imports.order
+		  error   5:1  Expected `use A;` here, as the imports are sorted by name.  imports.order.withinKind
+		  error   6:1  Expected `use B;` here, as the imports are sorted by name.  imports.order.withinKind
 		  error  10:5  Call of print_r() is forbidden.                             acme.debugCalls
 		  error  11:5  Call of var_dump() is forbidden.                            acme.debugCalls
 		--- src/a.php
@@ -69,7 +69,7 @@ test('the decisions of a plugin rule are in the catalogue, under its section', f
 	[$code, $out] = runPlugin([
 		'check',
 		'--set', 'acme.debugCalls=keep',
-		'--set', 'imports.order=keep',
+		'--set', 'imports.order.withinKind=keep',
 		'--set', 'file.trailingWhitespace=keep',
 	]);
 	Assert::same(0, $code);

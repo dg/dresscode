@@ -272,11 +272,11 @@ test('the shape of the conditions is counted by condition, and both shapes pass 
 	Assert::same(0, $code);
 	Assert::contains("Conditions perLine 50%, compact 25% of 4 conditions, 1 in none of them\n", $out);
 	$neon = (string) file_get_contents("$root/dresscode.neon");
-	Assert::match("%A%multiline:\n\t# The shape of a condition %A%\n\tcondition: [perLine, compact]  # perLine 50%, compact 25% of 4 conditions, 1 in none of them\n%A?%", $neon);
+	Assert::match("%A%multiline:\n\tshape:\n\t\t# The shape of a condition %A%\n\t\tcondition: [perLine, compact]  # perLine 50%, compact 25% of 4 conditions, 1 in none of them\n%A?%", $neon);
 
 	$factory = new RunnerFactory;
 	$resolved = $factory->resolve(Loader::loadFile("$root/dresscode.neon"), $root)->resolvedConfig;
-	Assert::same(['perLine', 'compact'], $resolved->decisions['multiline.condition']->value->getWords());
+	Assert::same(['perLine', 'compact'], $resolved->decisions['multiline.shape.condition']->value->getWords());
 
 	// a shape at least 70 % of the conditions have is written as the shape
 	$root = createProject('shape', ['src/a.php' => "<?php\n$perLine$perLine$perLine$compact"]);

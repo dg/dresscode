@@ -1,6 +1,6 @@
 <?php
 // risky
-// {"overridingParameterNames": "keep"}
+// {"overriding.parameterName": "keep"}
 
 namespace App;
 

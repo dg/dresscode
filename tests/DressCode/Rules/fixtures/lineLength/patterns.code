@@ -1,5 +1,5 @@
 <?php
 // lineLength 40
-// {"longLinesExcept": ["~https?://~"]}
+// {"lineLength.except": ["~https://~"]}
 // see https://example.com/a/very/long/url/path
 use Some\Very\Long\Namespace\ClassName\Here;

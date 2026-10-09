@@ -633,7 +633,7 @@ test('what an override comes to is part of the identity, a preset only it uses i
 	$root = createTempDir('runner-factory-override');
 	file_put_contents("$root/x.php", "<?php\n\$x;\n");
 	file_put_contents("$root/config.php", '<?php // the same text for both runs');
-	file_put_contents("$root/style.neon", "file:\n\tstrictTypes: keep\n");
+	file_put_contents("$root/style.neon", "file:\n\tstrictTypes:\n\t\tdeclaration: keep\n");
 	$run = fn() => buildRunner(
 		new Config(cacheDir: "$root/cache", overrides: [new Override(['x.php'], new Profile(use: ["$root/style.neon"]))]),
 		$root,
@@ -642,7 +642,7 @@ test('what an override comes to is part of the identity, a preset only it uses i
 
 	Assert::same(0, $run()->countViolations());
 	Assert::true($run()->files[0]->cached);
-	file_put_contents("$root/style.neon", "file:\n\tstrictTypes: required\n");
+	file_put_contents("$root/style.neon", "file:\n\tstrictTypes:\n\t\tdeclaration: required\n");
 	$result = $run();
 	Assert::false($result->files[0]->cached);
 	Assert::same(1, $result->countViolations());

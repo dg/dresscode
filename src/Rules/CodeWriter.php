@@ -25,7 +25,7 @@ final class CodeWriter
 	 * How a class is written where the node stands: the shortest way that reaches it, through an import added where
 	 * none does, the scope takes one and the short name is free; a file without a namespace imports a class of one
 	 * too, rather than writing it qualified. A global class gets no import, it is written with its backslash where
-	 * nothing imports it, which `qualification.globalClass` decides. It may add an import, so it is called only
+	 * nothing imports it, which `qualification.global.class` decides. It may add an import, so it is called only
 	 * after `report()` returned true.
 	 */
 	public static function writeClass(string $class, Node $at, RuleContext $context): string

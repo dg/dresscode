@@ -1,5 +1,5 @@
 <?php
-// {"return": "keep"}
+// {"declaration.return": "keep"}
 // risky
 namespace App;
 

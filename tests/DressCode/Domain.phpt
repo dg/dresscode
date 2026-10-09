@@ -18,11 +18,11 @@ test('a word is one of the words, a tolerance a list of them with the first writ
 	Assert::exception(fn() => $words->accept(['LF'], 'file.lineEnding'), ConfigurationException::class, 'Key `file.lineEnding` does not take `["LF"]`; write `LF` or `CRLF`.');
 
 	$tolerance = new Words(['perLine' => '', 'compact' => ''], tolerance: true);
-	Assert::same(['compact', 'perLine'], $tolerance->accept(['compact', 'perLine'], 'multiline.condition')->getWords());
-	Assert::same('compact', $tolerance->accept(['compact', 'perLine'], 'multiline.condition')->getWord());
-	Assert::same(['perLine'], $tolerance->accept('perLine', 'multiline.condition')->getWords());
-	Assert::exception(fn() => $tolerance->accept(['compact', 'compact'], 'multiline.condition'), ConfigurationException::class, 'Key `multiline.condition` does not take `["compact","compact"]`, a word given twice; write each word once.');
-	Assert::exception(fn() => $tolerance->accept(['compact', 'frame'], 'multiline.condition'), ConfigurationException::class, 'Key `multiline.condition` does not take `frame`; write `perLine`, `compact` or a list of them.');
+	Assert::same(['compact', 'perLine'], $tolerance->accept(['compact', 'perLine'], 'multiline.shape.condition')->getWords());
+	Assert::same('compact', $tolerance->accept(['compact', 'perLine'], 'multiline.shape.condition')->getWord());
+	Assert::same(['perLine'], $tolerance->accept('perLine', 'multiline.shape.condition')->getWords());
+	Assert::exception(fn() => $tolerance->accept(['compact', 'compact'], 'multiline.shape.condition'), ConfigurationException::class, 'Key `multiline.shape.condition` does not take `["compact","compact"]`, a word given twice; write each word once.');
+	Assert::exception(fn() => $tolerance->accept(['compact', 'frame'], 'multiline.shape.condition'), ConfigurationException::class, 'Key `multiline.shape.condition` does not take `frame`; write `perLine`, `compact` or a list of them.');
 
 	Assert::exception(fn() => new Words([]), InvalidArgumentException::class);
 	Assert::exception(fn() => new Words(['keep' => '']), InvalidArgumentException::class);
@@ -68,14 +68,14 @@ test('a count is a number, a range in any notation, an open one, or a word', fun
 
 
 test('a flag is yes or no', function () {
-	Assert::true(new Flag()->accept(true, 'imports.orderCaseSensitive')->getFlag());
-	Assert::exception(fn() => new Flag()->accept('yes', 'imports.orderCaseSensitive'), ConfigurationException::class, 'Key `imports.orderCaseSensitive` does not take `yes`; write `yes` or `no`.');
+	Assert::true(new Flag()->accept(true, 'imports.order.caseSensitive')->getFlag());
+	Assert::exception(fn() => new Flag()->accept('yes', 'imports.order.caseSensitive'), ConfigurationException::class, 'Key `imports.order.caseSensitive` does not take `yes`; write `yes` or `no`.');
 });
 
 
 test('a text is the text of the project, written as it is given', function () {
-	Assert::same('break omitted', new Text()->accept('break omitted', 'controlFlow.switchFallThrough')->getText());
-	Assert::exception(fn() => new Text()->accept(' ', 'controlFlow.switchFallThrough', keep: true), ConfigurationException::class, 'Key `controlFlow.switchFallThrough` does not take ` `; write a text or `keep`.');
+	Assert::same('break omitted', new Text()->accept('break omitted', 'controlFlow.switch.fallThroughComment')->getText());
+	Assert::exception(fn() => new Text()->accept(' ', 'controlFlow.switch.fallThroughComment', keep: true), ConfigurationException::class, 'Key `controlFlow.switch.fallThroughComment` does not take ` `; write a text or `keep`.');
 	Assert::same(['kind' => 'text'], new Text()->toArray());
 });
 
@@ -186,10 +186,10 @@ test('a requirement takes keep, a parameter does not', function () {
 	Assert::true($requirement->takesKeep());
 	Assert::same('`forbidden` (never there); `keep`', $requirement->describeValues());
 
-	$parameter = new Decision('correctness.debugOutputFunctions', new Names, 'The functions printing debug output', parameter: true, default: ['var_dump']);
+	$parameter = new Decision('correctness.debugOutput.functions', new Names, 'The functions printing debug output', parameter: true, default: ['var_dump']);
 	Assert::false($parameter->isRequirement());
 	Assert::false($parameter->takesKeep());
-	Assert::exception(fn() => $parameter->accept('keep'), ConfigurationException::class, 'Key `correctness.debugOutputFunctions` does not take `keep`; write a list of names.');
+	Assert::exception(fn() => $parameter->accept('keep'), ConfigurationException::class, 'Key `correctness.debugOutput.functions` does not take `keep`; write a list of names.');
 
 	// a map withdraws its entries one by one, never itself
 	$map = new Decision('upgrading.replacedFunctions', new Map(new Text), 'A function written instead of another one');

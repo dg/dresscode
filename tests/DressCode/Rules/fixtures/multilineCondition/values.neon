@@ -1,4 +1,5 @@
 multiline:
-	condition: perLine
+	shape:
+		condition: perLine
 	operatorPosition:
 		condition: keep

@@ -1,4 +1,5 @@
 classes:
-	markedInternal: final
-	markedInternalAnnotations: ['@internal']
-	markedInternalExcept: ['@final', '@Entity', '@ORM\Entity', '@ORM\Mapping\Entity', '@Mapping\Entity', '@Document', '@ODM\Document']
+	markedInternal:
+		class: final
+		annotations: ['@internal']
+		except: ['@final', '@Entity', '@ORM\Entity', '@ORM\Mapping\Entity', '@Mapping\Entity', '@Document', '@ODM\Document']

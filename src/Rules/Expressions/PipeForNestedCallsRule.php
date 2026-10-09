@@ -20,7 +20,7 @@ use function count;
  * Calls nested one in another, each handing its result to the next, are the pipe operator of PHP 8.5, which
  * puts them in the order they run: `trim(strtolower($s))` reads outwards in and `$s |> strtolower(...) |> trim(...)`
  * downwards. Every call of the nest must take the one argument and name what it calls, so that the step is
- * a first-class callable; `upgrading.syntax.pipeMinCalls` says how deep a nest must be before the pipe pays for
+ * a first-class callable; `upgrading.syntax.pipe.minCalls` says how deep a nest must be before the pipe pays for
  * itself.
  *
  * A nest standing inside an operator that binds tighter than the pipe stays as it is: the pipe binds loosely,
@@ -44,15 +44,15 @@ final class PipeForNestedCallsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('upgrading.syntax.pipe', Domain::adopted(), 'Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x |> a(...) |> b(...)` for `b(a($x))`'),
-			new Decision('upgrading.syntax.pipeMinCalls', new Count(2, range: false), 'The calls a nest has at least for the pipe operator to be written', parameter: true, default: 3),
+			new Decision('upgrading.syntax.pipe.nestedCalls', Domain::adopted(), 'Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x |> a(...) |> b(...)` for `b(a($x))`'),
+			new Decision('upgrading.syntax.pipe.minCalls', new Count(2, range: false), 'The calls a nest has at least for the pipe operator to be written', parameter: true, default: 3),
 		];
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->minCalls = $values->get('upgrading.syntax.pipeMinCalls')->getCount()[0];
+		$this->minCalls = $values->get('upgrading.syntax.pipe.minCalls')->getCount()[0];
 	}
 
 

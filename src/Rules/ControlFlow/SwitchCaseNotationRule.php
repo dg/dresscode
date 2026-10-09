@@ -21,7 +21,7 @@ final class SwitchCaseNotationRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('controlFlow.switchCaseTerminator', new Shapes(['colon' => [':', 'a colon, never a semicolon']]), 'What ends `case` and `default`')];
+		return [new Decision('controlFlow.switch.caseTerminator', new Shapes(['colon' => [':', 'a colon, never a semicolon']]), 'What ends `case` and `default`')];
 	}
 
 

@@ -1,7 +1,7 @@
 <?php
 // types off
 // risky
-// {"staticMethodWithoutThisVisibilities": ["public"]}
+// {"staticWithoutThis.methodVisibility": ["public"]}
 final class Report
 {
 	public static function title(): string

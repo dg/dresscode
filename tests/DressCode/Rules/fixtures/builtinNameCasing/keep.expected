@@ -1,5 +1,5 @@
 <?php
-// {"class": "keep", "function": "keep"}
+// {"casing.class": "keep", "casing.function": "keep"}
 $a = new StdClass;
 $b = StrLen('x');
 

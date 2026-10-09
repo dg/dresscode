@@ -17,7 +17,7 @@ use function in_array;
 
 
 /**
- * Two string literals of the same kind concatenated on one line, or with `literals.concatenatedLiteralsOverLines`
+ * Two string literals of the same kind concatenated on one line, or with `literals.concatenatedLiterals.overLines`
  * on any lines, are one literal. Single-quoted ones are joined; double-quoted ones are only reported, because an
  * escape sequence could span the joint. Concatenation with an empty string converts to string and nothing else, so
  * `$x . ''` is `(string) $x`, and inside a longer concatenation the empty literal simply goes away. A comment
@@ -26,8 +26,8 @@ use function in_array;
 #[RuleInfo(Stage::Structure)]
 final class UselessStringConcatenationRule extends NodeRule
 {
-	private const OneLine = 'literals.concatenatedLiterals';
-	private const OverLines = 'literals.concatenatedLiteralsOverLines';
+	private const OneLine = 'literals.concatenatedLiterals.sameLine';
+	private const OverLines = 'literals.concatenatedLiterals.overLines';
 
 	private bool $oneLine = true;
 	private bool $overLines = false;

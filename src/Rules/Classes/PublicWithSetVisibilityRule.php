@@ -17,13 +17,13 @@ use function count;
 /**
  * The `public` of a property with a set visibility, which PHP 8.4 implies: `protected(set) int $x` is read publicly
  * as `public protected(set) int $x` is. A promoted property is one too. The `public` is written in front of the set
- * visibility, where `classes.modifierOrder` wants it; a declaration with a comment among its modifiers is only
+ * visibility, where `classes.modifiers.order` wants it; a declaration with a comment among its modifiers is only
  * reported.
  */
 #[RuleInfo(Stage::Structure, requires: ['php' => '>=8.4'])]
 final class PublicWithSetVisibilityRule extends NodeRule
 {
-	private const Path = 'classes.publicWithSetVisibility';
+	private const Path = 'classes.visibility.publicWithSet';
 	private const SetVisibilities = [Token::PublicSet, Token::ProtectedSet, Token::PrivateSet];
 
 	private bool $required = true;

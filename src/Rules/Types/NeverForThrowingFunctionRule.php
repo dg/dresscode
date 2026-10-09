@@ -28,14 +28,14 @@ use function count;
  * in hand is a fatal error. That leaves a private method, a final one and a class nothing can extend, which
  * is a final one, an enum and an anonymous one.
  *
- * A closure is left alone unless `upgrading.syntax.neverReturnTypeOnClosures` asks for it: what it returns is
+ * A closure is left alone unless `upgrading.syntax.neverReturnType.closure` asks for it: what it returns is
  * usually read off the call it is written into, not declared.
  */
 #[RuleInfo(Stage::Structure, requires: ['php' => '>=8.1'])]
 final class NeverForThrowingFunctionRule extends NodeRule
 {
-	private const Named = 'upgrading.syntax.neverReturnType';
-	private const Closure = 'upgrading.syntax.neverReturnTypeOnClosures';
+	private const Named = 'upgrading.syntax.neverReturnType.function';
+	private const Closure = 'upgrading.syntax.neverReturnType.closure';
 
 	private bool $closure = false;
 

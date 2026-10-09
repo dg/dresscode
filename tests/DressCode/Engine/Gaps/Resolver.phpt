@@ -42,16 +42,16 @@ test('the stricter side of a gap wins: nothing before the semicolon, whatever th
 			'spacing.fnKeyword' => 'compact', 'multiline.expressionBelowReturn' => 'forbidden',
 		]),
 		RuleBuilder::createRule(Rules\Whitespace\SemicolonSpacingRule::class, [
-			'spacing.beforeSemicolon' => 'compact',
-			'spacing.afterSemicolon' => 'spaced',
+			'spacing.semicolon.before' => 'compact',
+			'spacing.semicolon.after' => 'spaced',
 			'multiline.semicolonOnOwnLine' => 'forbidden',
 		]),
 	], "<?php\nreturn  ;\nreturn  \$a ;\n");
 	Assert::same("<?php\nreturn;\nreturn \$a;\n", $output);
 	Assert::same([
-		'2: Expected no whitespace before the semicolon. [spacing.beforeSemicolon]',
+		'2: Expected no whitespace before the semicolon. [spacing.semicolon.before]',
 		'3: Expected a single space after the `return` keyword. [spacing.languageConstruct]',
-		'3: Expected no whitespace before the semicolon. [spacing.beforeSemicolon]',
+		'3: Expected no whitespace before the semicolon. [spacing.semicolon.before]',
 	], $violations);
 });
 
@@ -59,13 +59,13 @@ test('the stricter side of a gap wins: nothing before the semicolon, whatever th
 test('a claim on the whitespace and the line reports the line under its own decision where it names one', function () {
 	[$output, $violations] = apply([
 		RuleBuilder::createRule(Rules\Whitespace\SemicolonSpacingRule::class, [
-			'spacing.beforeSemicolon' => 'compact',
+			'spacing.semicolon.before' => 'compact',
 			'multiline.semicolonOnOwnLine' => 'forbidden',
 		]),
 	], "<?php\nfoo(\n\t1\n) ;\nbar(\n\t2\n)\n;\n");
 	Assert::same("<?php\nfoo(\n\t1\n);\nbar(\n\t2\n);\n", $output);
 	Assert::same([
-		'4: Expected no whitespace before the semicolon. [spacing.beforeSemicolon]',
+		'4: Expected no whitespace before the semicolon. [spacing.semicolon.before]',
 		'8: Expected no line break before the semicolon. [multiline.semicolonOnOwnLine]',
 	], $violations);
 });
@@ -83,13 +83,13 @@ test('a keyword alone knows what closes it', function () {
 
 test('two rules may govern one operator when each abstains where the other decides', function () {
 	[$output, $violations] = apply([
-		RuleBuilder::createRule(Rules\Expressions\BinaryOperatorSpacingRule::class, ['spacing.binaryOperator' => 'spaced', 'spacing.binaryOperatorAlignment' => 'none']),
+		RuleBuilder::createRule(Rules\Expressions\BinaryOperatorSpacingRule::class, ['spacing.binaryOperator.around' => 'spaced', 'spacing.binaryOperator.alignment' => 'none']),
 		RuleBuilder::createRule(Rules\Expressions\ConcatenationSpacingRule::class, ['spacing.concatenation' => 'compact']),
 	], "<?php\n\$a = \$b  +  \$c . \$d;\n");
 	Assert::same("<?php\n\$a = \$b + \$c.\$d;\n", $output);
 	Assert::same([
-		'2: Expected a single space before the `+` operator. [spacing.binaryOperator]',
-		'2: Expected a single space after the `+` operator. [spacing.binaryOperator]',
+		'2: Expected a single space before the `+` operator. [spacing.binaryOperator.around]',
+		'2: Expected a single space after the `+` operator. [spacing.binaryOperator.around]',
 		'2: Expected no whitespace before the `.` operator. [spacing.concatenation]',
 		'2: Expected no whitespace after the `.` operator. [spacing.concatenation]',
 	], $violations);

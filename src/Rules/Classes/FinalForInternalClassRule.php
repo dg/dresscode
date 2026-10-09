@@ -25,8 +25,8 @@ use PhpSyntax\Nodes\Statement\ClassNode;
 #[RuleInfo(Stage::Structure, analyses: [PhpDoc::class])]
 final class FinalForInternalClassRule extends NodeRule
 {
-	private const Required = 'classes.markedInternalAnnotations';
-	private const Exempt = 'classes.markedInternalExcept';
+	private const Required = 'classes.markedInternal.annotations';
+	private const Exempt = 'classes.markedInternal.except';
 	private const DefaultExempt = ['@final', '@Entity', '@ORM\Entity', '@ORM\Mapping\Entity', '@Mapping\Entity', '@Document', '@ODM\Document'];
 
 	/** @var list<string> */
@@ -39,7 +39,7 @@ final class FinalForInternalClassRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('classes.markedInternal', new Words(['final' => 'declared final']), 'A class its author marked `@internal`, which nothing outside the package may extend'),
+			new Decision('classes.markedInternal.class', new Words(['final' => 'declared final']), 'A class its author marked `@internal`, which nothing outside the package may extend'),
 			new Decision(self::Required, new Names, 'The annotations a class must all carry to count as internal', parameter: true, default: ['@internal']),
 			new Decision(self::Exempt, new Names, 'The annotations that keep an internal class as it is, an entity for instance', parameter: true, default: self::DefaultExempt),
 		];

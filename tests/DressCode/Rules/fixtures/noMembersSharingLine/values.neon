@@ -1,2 +1,3 @@
 classes:
-	membersPerLine: 1
+	members:
+		perLine: 1

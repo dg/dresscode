@@ -22,7 +22,7 @@ final class MultilineTernaryRule extends GapRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('multiline.ternary', new Words(['perLine' => '`?` and `:` each opening a line of its own']), 'A ternary spread over lines')];
+		return [new Decision('multiline.shape.ternary', new Words(['perLine' => '`?` and `:` each opening a line of its own']), 'A ternary spread over lines')];
 	}
 
 

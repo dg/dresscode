@@ -1,6 +1,6 @@
 <?php
 // php 8.2
-// {"parameter": "keep", "property": "keep"}
+// {"declaration.parameter": "keep", "declaration.property": "keep"}
 // risky
 class A
 {

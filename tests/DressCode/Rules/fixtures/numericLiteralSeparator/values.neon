@@ -1,3 +1,4 @@
 literals:
-	digitGroupsFrom: 4
-	fractionDigitGroupsFrom: 4
+	digitGroupsFrom:
+		integer: 4
+		fraction: 4

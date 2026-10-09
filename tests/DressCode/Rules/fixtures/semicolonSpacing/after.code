@@ -1,5 +1,5 @@
 <?php
-// {"spacing.beforeSemicolon": "keep", "multiline.semicolonOnOwnLine": "keep"}
+// {"spacing.semicolon.before": "keep", "multiline.semicolonOnOwnLine": "keep"}
 for ($i = 0;$i < 1;$i++) {}
 for ($i = 0;  $i < 1;   $i++) {}
 for (;;) {}

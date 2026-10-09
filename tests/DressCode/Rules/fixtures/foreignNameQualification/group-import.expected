@@ -1,5 +1,5 @@
 <?php
-// {"classOfAnotherNamespace":"imported"}
+// {"otherNamespace.class":"imported"}
 namespace App;
 
 use Lib\{Bar, Foo, Zed};

@@ -41,19 +41,19 @@ test('a decision is made by a set or a standard, or written by the project on pu
 	// a decision outside every set and every standard is one a project writes itself, and the reason is here
 	$onRequest = [
 		'blankLines.afterStatement', // where a statement stands apart is the shape of a body, which no standard prescribes
-		'classes.markedInternal', // what a project does with its own internals
-		'classes.publicWithSetVisibility', // PER Coding Style lets the `public` a set visibility implies be written or not
-		'classes.staticMethodWithoutThis', // how a class is built, which no set decides for it
+		'classes.markedInternal.class', // what a project does with its own internals
+		'classes.visibility.publicWithSet', // PER Coding Style lets the `public` a set visibility implies be written or not
+		'functions.staticWithoutThis.method', // how a class is built, which no set decides for it
 		'controlFlow.trailingIf', // the shape of a function body, which no standard prescribes
-		'controlFlow.elseifAfterExit', // an `elseif` split into an `if` reads as another question, which a project chooses
-		'file.longLines', // a line nothing could split, which a standard asks a tool only to warn about
-		'functions.staticClosureWithoutThis', // what the code means when it binds a closure, which only the project knows
-		'multiline.groupUseOverMaxLength', // the shape of a group use, which a project chooses together with writing one
-		'indentation.singleLevel', // a measure of the shape of a body, not its layout
-		'literals.concatenatedLiteralsOverLines', // a literal spread over lines on purpose
+		'controlFlow.afterExit.elseif', // an `elseif` split into an `if` reads as another question, which a project chooses
+		'file.lineLength.overMax', // a line nothing could split, which a standard asks a tool only to warn about
+		'functions.staticWithoutThis.closure', // what the code means when it binds a closure, which only the project knows
+		'multiline.split.groupUse', // the shape of a group use, which a project chooses together with writing one
+		'indentation.singleLevel.code', // a measure of the shape of a body, not its layout
+		'literals.concatenatedLiterals.overLines', // a literal spread over lines on purpose
 		'phpdoc.types.nullable', 'phpdoc.types.unionOrder', 'types.unionOrder', // an order or a notation a project chooses
-		'qualification.constantOfAnotherNamespace', 'qualification.staticInFinalClass', 'qualification.functionOfAnotherNamespace', // how far a name is written out is the project's
-		'types.constant', // a typed constant, which the code before PHP 8.3 cannot have
+		'qualification.otherNamespace.constant', 'qualification.staticInFinalClass', 'qualification.otherNamespace.function', // how far a name is written out is the project's
+		'types.declaration.constant', // a typed constant, which the code before PHP 8.3 cannot have
 		'upgrading.classes.Override', // a guarantee the code takes on, which no older construct gave
 		'upgrading.phpdoc.readonly', // an annotation may promise what the code does not keep, which only the project knows
 		'upgrading.classes.SensitiveParameter', // the list of what is sensitive is the project's

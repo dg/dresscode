@@ -388,7 +388,7 @@ test('--only keeps what it names of what the configuration comes to, and turns n
 	// a decision of the core runs its rule alone
 	Assert::same([DressCode\Rules\ControlFlow\FallThroughCommentRule::class], array_map(
 		fn(ResolvedRule $rule) => $rule->class,
-		$resolver->resolve(new Config(use: ['nette']), '8.3', only: ['controlFlow.switchFallThrough'])->getActiveRules(),
+		$resolver->resolve(new Config(use: ['nette']), '8.3', only: ['controlFlow.switch.fallThroughComment'])->getActiveRules(),
 	));
 
 	// a preset stands for every rule owning a decision it and its parents make, and not for what the configuration

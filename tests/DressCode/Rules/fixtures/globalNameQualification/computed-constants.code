@@ -1,5 +1,5 @@
 <?php
-// {"optimizedConstant":["imported","backslashed"]}
+// {"optimized.constant":["imported","backslashed"]}
 // nameResolution certain
 namespace App;
 

@@ -1,5 +1,5 @@
 <?php
-// {"keyword": "keep", "trueFalseNull": "uppercase", "magicConstant": "lowercase"}
+// {"casing.keyword": "keep", "casing.trueFalseNull": "uppercase", "casing.magicConstant": "lowercase"}
 IF ($a === TRUE) {
 	RETURN [NULL, FALSE, __dir__, __class__];
 }

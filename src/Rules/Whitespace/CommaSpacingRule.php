@@ -16,12 +16,12 @@ use PhpSyntax\Token;
 /**
  * No whitespace before a comma, which stays on the line of what is before it, and a single space after it
  * unless the line ends there. Whitespace wider than that aligns the columns of a table, and
- * `spacing.commaAlignment` says which of it stays: the one made of tabs, the one made of spaces, either, or none.
+ * `spacing.comma.alignment` says which of it stays: the one made of tabs, the one made of spaces, either, or none.
  */
 #[RuleInfo(Stage::Formatting)]
 final class CommaSpacingRule extends GapRule
 {
-	private const Alignment = 'spacing.commaAlignment';
+	private const Alignment = 'spacing.comma.alignment';
 
 	private Claim $spaceAfterComma;
 
@@ -29,7 +29,7 @@ final class CommaSpacingRule extends GapRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('spacing.comma', new Shapes(['spaced' => ['$a, $b', 'none before, a single space after']]), 'The whitespace around a comma, which stays on the line of what is before it, a line ending after it being free'),
+			new Decision('spacing.comma.around', new Shapes(['spaced' => ['$a, $b', 'none before, a single space after']]), 'The whitespace around a comma, which stays on the line of what is before it, a line ending after it being free'),
 			new Decision(self::Alignment, Domain::alignment(), 'Which whitespace wider than a single space after a comma stays, aligning the columns of a table; alignment is never made', parameter: true, default: 'tabs'),
 		];
 	}

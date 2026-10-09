@@ -35,20 +35,20 @@ final class ForeignNameQualificationRule extends NodeRule
 	{
 		return [
 			QualificationPolicy::createQualifiedDecision(
-				'qualification.classOfAnotherNamespace',
+				'qualification.otherNamespace.class',
 				'A class, interface, trait or enum of a namespace other than that of the file',
 				'`use Acme\Shop\Order;` and `Order`',
 				'`\Acme\Shop\Order`',
 				'A name relative to an import or to the namespace, `Shop\Order`, stays as it is.',
 			),
 			QualificationPolicy::createQualifiedDecision(
-				'qualification.functionOfAnotherNamespace',
+				'qualification.otherNamespace.function',
 				'A function of a namespace other than that of the file',
 				'`use function Acme\Text\normalize;` and `normalize()`',
 				'`\Acme\Text\normalize()`',
 			),
 			QualificationPolicy::createQualifiedDecision(
-				'qualification.constantOfAnotherNamespace',
+				'qualification.otherNamespace.constant',
 				'A constant of a namespace other than that of the file',
 				'`use const Acme\Shop\STATUS_PAID;` and `STATUS_PAID`',
 				'`\Acme\Shop\STATUS_PAID`',
@@ -60,9 +60,9 @@ final class ForeignNameQualificationRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		foreach ([
-			SymbolKind::ClassLike->name => 'qualification.classOfAnotherNamespace',
-			SymbolKind::Function->name => 'qualification.functionOfAnotherNamespace',
-			SymbolKind::Constant->name => 'qualification.constantOfAnotherNamespace',
+			SymbolKind::ClassLike->name => 'qualification.otherNamespace.class',
+			SymbolKind::Function->name => 'qualification.otherNamespace.function',
+			SymbolKind::Constant->name => 'qualification.otherNamespace.constant',
 		] as $kind => $decision) {
 			$forms = $values->find($decision)?->getWords();
 			if ($forms !== null) {

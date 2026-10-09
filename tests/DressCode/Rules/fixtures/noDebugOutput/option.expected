@@ -1,5 +1,5 @@
 <?php
-// {"debugOutputFunctions": ["dump"]}
+// {"debugOutput.functions": ["dump"]}
 // risky
 // dump($x);
 var_dump($x);

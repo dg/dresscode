@@ -40,7 +40,7 @@ final class YodaRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('expressions.yoda', new Words([
+			new Decision('expressions.comparison.yoda', new Words([
 				self::Forbidden => 'the variable on the left and the constant on the right, `$a === 1`',
 				self::Required => 'the constant on the left, `1 === $a`, so that an accidental assignment does not compile',
 			]), 'Which side of a comparison holds the constant, a comparison of two variables or calls staying as it is'),
@@ -50,7 +50,7 @@ final class YodaRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->yoda = $values->get('expressions.yoda')->getWord();
+		$this->yoda = $values->get('expressions.comparison.yoda')->getWord();
 	}
 
 

@@ -185,9 +185,9 @@ final class StructureRule extends TestRule
 test('the catalogue knows every decision, its rules, and runs the rules in the order of the registration', function () {
 	$catalogue = new Catalogue([TrailingIfRule::class, CallRule::class, GuardRule::class], ['acme' => [PresenterRule::class]], [NoDbRule::class]);
 	Assert::same('spacing.call', $catalogue->find('spacing.call')?->path);
-	Assert::null($catalogue->find('spacing.comma'));
+	Assert::null($catalogue->find('spacing.comma.around'));
 	Assert::same([TrailingIfRule::class], $catalogue->getRulesOf('controlFlow.trailingIfMinStatements'));
-	Assert::same([], $catalogue->getRulesOf('spacing.comma'));
+	Assert::same([], $catalogue->getRulesOf('spacing.comma.around'));
 	Assert::same(['controlFlow.trailingIf', 'controlFlow.trailingIfMinStatements'], array_keys($catalogue->getDecisionsUnder('controlFlow')));
 	Assert::same(['controlFlow.trailingIf'], array_keys($catalogue->getDecisionsUnder('controlFlow.trailingIf')));
 	Assert::same([TrailingIfRule::class, CallRule::class, GuardRule::class, PresenterRule::class, NoDbRule::class], $catalogue->getRuleOrder());

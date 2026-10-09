@@ -33,7 +33,7 @@ final readonly class QualificationPolicy
 	public function __construct(Values $values)
 	{
 		$forms = [];
-		foreach (['globalClass', 'globalFunction', 'optimizedFunction', 'globalConstant', 'optimizedConstant'] as $key) {
+		foreach (['global.class', 'global.function', 'optimized.function', 'global.constant', 'optimized.constant'] as $key) {
 			$forms["qualification.$key"] = $values->find("qualification.$key")?->getWords();
 		}
 
@@ -102,9 +102,9 @@ final readonly class QualificationPolicy
 	public function findGlobal(SymbolKind $kind, bool $optimized): ?array
 	{
 		$decision = 'qualification.' . match ($kind) {
-			SymbolKind::ClassLike => 'globalClass',
-			SymbolKind::Function => $optimized && $this->isCompilerDecisive($kind) ? 'optimizedFunction' : 'globalFunction',
-			SymbolKind::Constant => $optimized && $this->isCompilerDecisive($kind) ? 'optimizedConstant' : 'globalConstant',
+			SymbolKind::ClassLike => 'global.class',
+			SymbolKind::Function => $optimized && $this->isCompilerDecisive($kind) ? 'optimized.function' : 'global.function',
+			SymbolKind::Constant => $optimized && $this->isCompilerDecisive($kind) ? 'optimized.constant' : 'global.constant',
 		};
 		return $this->forms[$decision] === null ? null : [$this->forms[$decision], $decision];
 	}
@@ -115,8 +115,8 @@ final readonly class QualificationPolicy
 	{
 		return match ($kind) {
 			SymbolKind::ClassLike => false,
-			SymbolKind::Function => $this->forms['qualification.optimizedFunction'] !== null,
-			SymbolKind::Constant => $this->forms['qualification.optimizedConstant'] !== null,
+			SymbolKind::Function => $this->forms['qualification.optimized.function'] !== null,
+			SymbolKind::Constant => $this->forms['qualification.optimized.constant'] !== null,
 		};
 	}
 }

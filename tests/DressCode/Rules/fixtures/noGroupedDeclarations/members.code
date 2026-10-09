@@ -1,5 +1,5 @@
 <?php
-// {"groupedDeclarationAllowedFor": ["constant", "traitUse"]}
+// {"members.groupable": ["constant", "traitUse"]}
 class A
 {
 	const X = 1, Y = 2;

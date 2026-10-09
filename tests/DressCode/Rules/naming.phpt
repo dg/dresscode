@@ -91,7 +91,7 @@ test('every name is built in the shape of its kind', function () use ($rules) {
 	// names kept as they are by decision, though they step outside the shapes
 	$exceptions = [
 		'overridingSignature', // one word, `asAncestor`, is the whole value
-		'modifierOrder', // named after its decision, `classes.modifierOrder`, whose one value is `canonical`
+		'modifierOrder', // named after its decision, `classes.modifiers.order`, whose one value is `canonical`
 		'finalLineEndings', // the count is fixed at one, so there is no value to give
 		'lineLength', // the example of a decision: the noun of the construct, the width its value
 		'redundantArguments', // named after its decision, `cleanup.redundantArguments`

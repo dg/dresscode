@@ -1,6 +1,6 @@
 <?php
 // php 8.4
-// {"signatureWithPromotedProperties": "asSignature"}
+// {"split.promotedProperty": "asSignature"}
 class A
 {
 	public function __construct(public int $g {

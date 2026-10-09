@@ -26,9 +26,9 @@ use PhpSyntax\Nodes\Statement\FunctionNode;
 #[RuleInfo(Stage::Formatting, analyses: [IndentationPlan::class])]
 final class MultilineSignatureRule extends GapRule
 {
-	private const OverMaxLength = 'multiline.signatureOverMaxLength';
-	private const Promoted = 'multiline.signatureWithPromotedProperties';
-	private const Shape = 'multiline.signature';
+	private const OverMaxLength = 'multiline.split.signature';
+	private const Promoted = 'multiline.split.promotedProperty';
+	private const Shape = 'multiline.shape.signature';
 
 	private bool $overMaxLength = true;
 
@@ -41,11 +41,11 @@ final class MultilineSignatureRule extends GapRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision(self::OverMaxLength, new Words(['split' => 'every parameter on a line of its own']), 'A signature on a line longer than the maximum is spread over lines'),
+			new Decision(self::OverMaxLength, new Words(['overMaxLength' => 'spread where its line is longer than the maximum']), 'When a signature written on one line is spread over lines'),
 			new Decision(self::Promoted, new Words([
-				'split' => 'spread over lines whatever its length',
+				'always' => 'spread over lines whatever its length',
 				'asSignature' => 'spread only when its line is too long, as any signature',
-			]), 'A signature declaring a promoted property', parameter: true, default: 'split'),
+			]), 'When a signature declaring a promoted property is spread over lines', parameter: true, default: 'always'),
 			new Decision(self::Shape, new Words(['perLine' => 'every parameter on a line of its own']), 'The parameters of a signature spread over lines, or with a parameter whose hooks span lines, each comma on the line of its parameter and the closing parenthesis on the next'),
 		];
 	}
@@ -54,7 +54,7 @@ final class MultilineSignatureRule extends GapRule
 	public function configure(Values $values): void
 	{
 		$this->overMaxLength = !$values->isKept(self::OverMaxLength);
-		$this->promotedProperty = $values->get(self::Promoted)->getWord() === 'split';
+		$this->promotedProperty = $values->get(self::Promoted)->getWord() === 'always';
 		$this->multiline = !$values->isKept(self::Shape);
 	}
 

@@ -26,8 +26,8 @@ use PhpSyntax\Nodes\Statement\{DeclareNode, InlineHtmlNode};
 #[RuleInfo(Stage::Structure)]
 final class StrictTypesRequiredRule extends NodeRule
 {
-	private const StrictTypes = 'file.strictTypes';
-	private const Placement = 'file.strictTypesPosition';
+	private const StrictTypes = 'file.strictTypes.declaration';
+	private const Placement = 'file.strictTypes.position';
 
 	private bool $strictTypes = true;
 

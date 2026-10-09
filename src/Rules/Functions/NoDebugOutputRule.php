@@ -42,8 +42,8 @@ final class NoDebugOutputRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('correctness.debugOutput', new Words(['commentedOut' => 'the statement changed into a comment, `// var_dump($a);`']), 'A statement calling a debugging function to print, a call that may return its output instead, `print_r($a, true)`, staying'),
-			new Decision('correctness.debugOutputFunctions', new Names, 'The debugging functions whose calls print', parameter: true, default: ['print_r', 'var_dump', 'var_export']),
+			new Decision('correctness.debugOutput.statement', new Words(['commentedOut' => 'the statement changed into a comment, `// var_dump($a);`']), 'A statement calling a debugging function to print, a call that may return its output instead, `print_r($a, true)`, staying'),
+			new Decision('correctness.debugOutput.functions', new Names, 'The debugging functions whose calls print', parameter: true, default: ['print_r', 'var_dump', 'var_export']),
 		];
 	}
 
@@ -51,7 +51,7 @@ final class NoDebugOutputRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->functions = [];
-		foreach ($values->get('correctness.debugOutputFunctions')->getNames() as $function) {
+		foreach ($values->get('correctness.debugOutput.functions')->getNames() as $function) {
 			$this->functions[strtolower($function)] ??= $function;
 		}
 	}

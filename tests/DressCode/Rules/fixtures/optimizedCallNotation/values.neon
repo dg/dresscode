@@ -1,3 +1,5 @@
 qualification:
-	globalFunction: keep
-	optimizedFunction: imported
+	global:
+		function: keep
+	optimized:
+		function: imported

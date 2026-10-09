@@ -1,5 +1,5 @@
 <?php
-// {"spacing.binaryOperatorAlignment": "any"}
+// {"spacing.binaryOperator.alignment": "any"}
 $a  =  1;
 $c	=	3;
 $d=4;

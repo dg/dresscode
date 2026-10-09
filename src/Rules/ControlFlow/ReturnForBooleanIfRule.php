@@ -27,7 +27,7 @@ final class ReturnForBooleanIfRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('controlFlow.ifReturningBoolean', Domain::state('forbidden'), '`if ($a > 1) { return true; } return false;` is `return $a > 1;`')];
+		return [new Decision('controlFlow.ifReturning.boolean', Domain::state('forbidden'), '`if ($a > 1) { return true; } return false;` is `return $a > 1;`')];
 	}
 
 

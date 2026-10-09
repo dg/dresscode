@@ -1,5 +1,5 @@
 <?php
-// {"memberOrder": ["publicMethod", "privateMethod"]}
+// {"members.order": ["publicMethod", "privateMethod"]}
 class A
 {
 	public function b() {}

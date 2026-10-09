@@ -21,11 +21,11 @@ final readonly class Deprecation
 final class IndentationPlan
 	public const Unit = 'indentation.unit'
 	public const Binary = 'indentation.binaryOperator'
-	public const Ternary = 'indentation.ternary'
-	public const TernaryBelowCondition = 'indentation.ternaryBelowCondition'
+	public const Ternary = 'indentation.ternary.level'
+	public const TernaryBelowCondition = 'indentation.ternary.belowCondition'
 	public const SwitchCase = 'indentation.switchCase'
 	public const Chain = 'indentation.chain'
-	public const Decisions = ['indentation.unit', 'indentation.binaryOperator', 'indentation.ternary', 'indentation.ternaryBelowCondition', 'indentation.switchCase', 'indentation.chain']
+	public const Decisions = ['indentation.unit', 'indentation.binaryOperator', 'indentation.ternary.level', 'indentation.ternary.belowCondition', 'indentation.switchCase', 'indentation.chain']
 	public function __construct(PhpSyntax\Nodes\FileNode $file, DressCode\Style $style, bool $placesLines = true, ?int $binary = 0, ?int $ternary = 1, bool $ternaryBelowCondition = false, ?int $switchCase = 1, ?string $chain = 'flat')
 	public static function createFactory(DressCode\Values $values, DressCode\Style $style): Closure
 	public function getPlacements(): array
@@ -469,7 +469,7 @@ abstract class GapRule extends DressCode\Rule
 final readonly class ImportStyle
 	public const Kinds = ['ClassLike' => 'class', 'Function' => 'function', 'Constant' => 'constant']
 	public const GroupUse = 'imports.groupUse'
-	public const Decisions = ['imports.class', 'imports.function', 'imports.constant', 'imports.groupUse']
+	public const Decisions = ['imports.statement.class', 'imports.statement.function', 'imports.statement.constant', 'imports.groupUse']
 	public function __construct(array $shapes = [], bool $groupsKept = true)
 	public static function fromValues(DressCode\Values $values): DressCode\ImportStyle
 	public function getShape(PhpSyntax\SymbolKind $kind): ?string

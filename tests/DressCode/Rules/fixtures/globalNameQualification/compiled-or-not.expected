@@ -1,5 +1,5 @@
 <?php
-// {"globalFunction":["imported","bare"],"optimizedFunction":["imported","backslashed"]}
+// {"global.function":["imported","bare"],"optimized.function":["imported","backslashed"]}
 // nameResolution certain
 namespace App;
 

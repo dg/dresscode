@@ -1,2 +1,3 @@
 expressions:
-	assignmentRepeatingTarget: forbidden
+	assignment:
+		repeatingTarget: forbidden

@@ -35,7 +35,7 @@ final class MultilineConditionRule extends GapRule
 {
 	private const PerLine = 'perLine';
 	private const Compact = 'compact';
-	private const Shape = 'multiline.condition';
+	private const Shape = 'multiline.shape.condition';
 	private const Position = 'multiline.operatorPosition.condition';
 
 	/** @var list<string>  the shapes that pass, the first of them the one a condition in none of them is written in */

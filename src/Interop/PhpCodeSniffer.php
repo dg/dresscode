@@ -44,13 +44,13 @@ final class PhpCodeSniffer
 		return [
 			'Generic.Arrays.DisallowLongArraySyntax' => ['literals.longArraySyntax' => 'forbidden'],
 			'Generic.CodeAnalysis.RequireExplicitBooleanOperatorPrecedence' => ['expressions.explicitPrecedence' => 'required'],
-			'Generic.CodeAnalysis.UnnecessaryFinalModifier' => ['classes.impliedModifiers' => 'forbidden'],
+			'Generic.CodeAnalysis.UnnecessaryFinalModifier' => ['classes.modifiers.implied' => 'forbidden'],
 			'Generic.ControlStructures.InlineControlStructure' => ['braces.bracelessBody' => 'forbidden'],
 			'Generic.Files.ByteOrderMark' => ['file.bom' => 'forbidden'],
 			'Generic.Files.LineEndings' => ['file.lineEnding' => 'majority'],
-			'Generic.Files.LineLength' => fn(array $o, Translation $t) => $t->setLineLength(($o['absoluteLineLimit'] ?? 100) ?: ($o['lineLimit'] ?? 80))->setAll(['file.longLines' => 'forbidden', 'file.longLinesExcept' => ['imports']]),
+			'Generic.Files.LineLength' => fn(array $o, Translation $t) => $t->setLineLength(($o['absoluteLineLimit'] ?? 100) ?: ($o['lineLimit'] ?? 80))->setAll(['file.lineLength.overMax' => 'forbidden', 'file.lineLength.except' => ['imports']]),
 			'Generic.Formatting.DisallowMultipleStatements' => ['file.statementsPerLine' => 1],
-			'Generic.Functions.FunctionCallArgumentSpacing' => ['spacing.comma' => 'spaced', 'spacing.commaAlignment' => 'tabs'],
+			'Generic.Functions.FunctionCallArgumentSpacing' => ['spacing.comma.around' => 'spaced', 'spacing.comma.alignment' => 'tabs'],
 			'Generic.Functions.FunctionCallArgumentSpacing.SpaceBeforeOpenBracket' => ['spacing.call' => 'compact'],
 			'Generic.NamingConventions.CamelCapsFunctionName' => fn(array $o, Translation $t) => $t->setAll(['naming.method' => 'camelCase', 'naming.function' => 'camelCase']),
 			'Generic.NamingConventions.UpperCaseConstantName' => function (array $o, Translation $t) {
@@ -64,20 +64,20 @@ final class PhpCodeSniffer
 				// the sniff reads the value `null` of a ruleset as no replacement
 				array_map(fn($v) => $v === null || $v === 'null' ? null : "use `$v()`", $o['forbiddenFunctions'] ?? ['sizeof' => 'count', 'delete' => 'unset']),
 			),
-			'Generic.PHP.LowerCaseConstant' => ['builtin.trueFalseNull' => 'lowercase'],
-			'Generic.PHP.LowerCaseKeyword' => ['builtin.keyword' => 'lowercase'],
+			'Generic.PHP.LowerCaseConstant' => ['builtin.casing.trueFalseNull' => 'lowercase'],
+			'Generic.PHP.LowerCaseKeyword' => ['builtin.casing.keyword' => 'lowercase'],
 			// `array`, `self` and the like are keywords of a declaration
-			'Generic.PHP.LowerCaseType' => ['builtin.castType' => 'short', 'builtin.type' => 'lowercase', 'builtin.keyword' => 'lowercase'],
-			'Generic.PHP.RequireStrictTypes' => ['file.strictTypes' => 'required', 'file.strictTypesPosition' => 'ownLine'],
+			'Generic.PHP.LowerCaseType' => ['builtin.castType' => 'short', 'builtin.casing.type' => 'lowercase', 'builtin.casing.keyword' => 'lowercase'],
+			'Generic.PHP.RequireStrictTypes' => ['file.strictTypes.declaration' => 'required', 'file.strictTypes.position' => 'ownLine'],
 			'Generic.PHP.SAPIUsage' => fn(array $o, Translation $t) => $t->set('upgrading.libraries.forbiddenFunctions', ['php_sapi_name' => 'use `PHP_SAPI`']),
 			'Generic.Strings.UnnecessaryStringConcat' => fn(array $o, Translation $t) => $t->setAll([
-				'literals.concatenatedLiterals' => 'joined',
-				'literals.concatenatedLiteralsOverLines' => ($o['allowMultiline'] ?? false) ? 'keep' : 'joined',
+				'literals.concatenatedLiterals.sameLine' => 'joined',
+				'literals.concatenatedLiterals.overLines' => ($o['allowMultiline'] ?? false) ? 'keep' : 'joined',
 			]),
 			'Generic.WhiteSpace.DisallowSpaceIndent' => ['indentation.unit' => 'tab'],
 			// spaces of a width the sniff does not say, four unless a sniff naming the width decides it, in either order
 			'Generic.WhiteSpace.DisallowTabIndent' => fn(array $o, Translation $t) => $t->prefer('indentation.unit', '4 spaces'),
-			'Generic.WhiteSpace.IncrementDecrementSpacing' => ['spacing.unaryOperator' => 'compact', 'spacing.unaryOperatorsWithSpace' => []],
+			'Generic.WhiteSpace.IncrementDecrementSpacing' => ['spacing.unaryOperator.after' => 'compact', 'spacing.unaryOperator.withSpace' => []],
 			'Generic.WhiteSpace.LanguageConstructSpacing' => ['spacing.languageConstruct' => 'spaced'],
 			'Generic.WhiteSpace.ScopeIndent' => function (array $o, Translation $t) {
 				$unit = ($o['tabIndent'] ?? false) ? 'tab' : match ($o['indent'] ?? 4) {
@@ -103,16 +103,16 @@ final class PhpCodeSniffer
 			'PSR12.Classes.AnonClassDeclaration' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.Classes.AnonClassDeclaration` also puts each interface of a multi-line `implements` list on its own line, which DressCode does not.');
 				$t->setAll([
-					'braces.anonymousClass' => 'sameLine',
+					'braces.position.anonymousClass' => 'sameLine',
 					'spacing.classHead' => 'spaced',
 					'spacing.anonymousClass' => 'spaced',
 					'spacing.parentheses' => 'compact',
 				]);
 			},
-			'PSR12.Classes.ClassInstantiation' => ['classes.newParentheses' => 'required'],
+			'PSR12.Classes.ClassInstantiation' => ['classes.emptyParentheses.instantiation' => 'required'],
 			'PSR12.Classes.ClosingBrace' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.Classes.ClosingBrace` also forbids a comment after the closing brace of a class or a function, which DressCode does not.');
-				$t->setAll(['classes.membersPerLine' => 1, 'file.statementsPerLine' => 1]);
+				$t->setAll(['classes.members.perLine' => 1, 'file.statementsPerLine' => 1]);
 			},
 			'PSR12.Classes.OpeningBraceSpace' => fn(array $o, Translation $t) => $t->setAll(['blankLines.beforeFirstMember' => 0, 'blankLines.beforeFirstMethod' => 0]),
 			'PSR12.ControlStructures.BooleanOperatorPlacement' => function (array $o, Translation $t) {
@@ -128,11 +128,11 @@ final class PhpCodeSniffer
 			},
 			'PSR12.ControlStructures.ControlStructureSpacing' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.ControlStructures.ControlStructureSpacing` also puts the parentheses of a multi-line `for`, `foreach`, `switch`, `catch` and `match` on lines of their own, which DressCode does not.');
-				$t->setAll(['spacing.parentheses' => 'compact', 'multiline.condition' => 'perLine']);
+				$t->setAll(['spacing.parentheses' => 'compact', 'multiline.shape.condition' => 'perLine']);
 			},
 			'PSR12.Files.DeclareStatement' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.Files.DeclareStatement` also checks the case of the directive of a `declare`, which DressCode does not.');
-				$t->setAll(['spacing.declare' => 'compact', 'braces.controlStructure' => 'sameLine']);
+				$t->setAll(['spacing.declare' => 'compact', 'braces.position.controlStructure' => 'sameLine']);
 			},
 			'PSR12.Files.FileHeader' => [
 				'blankLines.afterOpeningTag' => 1,
@@ -150,14 +150,14 @@ final class PhpCodeSniffer
 			'PSR12.Functions.ReturnTypeDeclaration' => ['spacing.typeDeclaration' => 'compact'],
 			'PSR12.Keywords.ShortFormTypeKeywords' => ['builtin.castType' => 'short'],
 			'PSR12.Operators.OperatorSpacing' => fn(array $o, Translation $t) => $t->setAll([
-				'spacing.binaryOperator' => 'spaced',
-				'spacing.binaryOperatorAlignment' => 'spaces',
-				'spacing.ternary' => 'spaced',
-				'spacing.ternaryAlignment' => 'any',
+				'spacing.binaryOperator.around' => 'spaced',
+				'spacing.binaryOperator.alignment' => 'spaces',
+				'spacing.ternary.around' => 'spaced',
+				'spacing.ternary.alignment' => 'any',
 				'spacing.concatenation' => 'spaced',
 			]),
 			'PSR12.Properties.ConstantVisibility' => [
-				'classes.memberVisibility' => 'required',
+				'classes.visibility.member' => 'required',
 			],
 			'PSR12.Traits.UseDeclaration' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.Traits.UseDeclaration` also lays out the conflict block of a trait use, its opening brace on the line of `use` and a rule per line, which DressCode does not.');
@@ -169,27 +169,27 @@ final class PhpCodeSniffer
 					// the space after `use`, around `as` and `insteadof`, and none before the semicolon
 					'spacing.languageConstruct' => 'spaced',
 					'spacing.connectingKeyword' => 'spaced',
-					'spacing.beforeSemicolon' => 'compact',
+					'spacing.semicolon.before' => 'compact',
 				]);
-				$t->setAllowed('classes.groupedDeclarationAllowedFor', ['constant', 'property']);
+				$t->setAllowed('classes.members.groupable', ['constant', 'property']);
 				// a full order another rule sets puts the trait uses where it says
-				$t->prefer('classes.memberOrder', ['traitUse']);
+				$t->prefer('classes.members.order', ['traitUse']);
 			},
-			'PSR2.Classes.ClassDeclaration' => ['braces.class' => 'nextLine', 'spacing.classHead' => 'spaced'],
+			'PSR2.Classes.ClassDeclaration' => ['braces.position.class' => 'nextLine', 'spacing.classHead' => 'spaced'],
 			'PSR2.Classes.ClassDeclaration.SpaceBeforeKeyword' => ['spacing.classHead' => 'spaced'],
 			'PSR2.Classes.PropertyDeclaration' => [
-				'classes.memberVisibility' => 'required',
-				'classes.modifierOrder' => 'canonical',
+				'classes.visibility.member' => 'required',
+				'classes.modifiers.order' => 'canonical',
 			],
 			'PSR2.ControlStructures.ControlStructureSpacing' => ['spacing.parentheses' => 'compact'],
 			'PSR2.ControlStructures.ElseIfDeclaration' => ['controlFlow.elseif' => 'oneWord'],
 			'PSR2.ControlStructures.SwitchDeclaration' => function (array $o, Translation $t) {
 				$t->warn('`PSR2.ControlStructures.SwitchDeclaration` also starts the body of a case on the line below it and forbids braces around it, which DressCode does not.');
 				$t->setAll([
-					'controlFlow.switchCaseTerminator' => 'colon',
+					'controlFlow.switch.caseTerminator' => 'colon',
 					'spacing.switchCase' => 'compact',
-					'controlFlow.switchFallThrough' => 'no break',
-					'builtin.keyword' => 'lowercase',
+					'controlFlow.switch.fallThroughComment' => 'no break',
+					'builtin.casing.keyword' => 'lowercase',
 					'spacing.languageConstruct' => 'spaced',
 					'file.statementsPerLine' => 1,
 					'indentation.switchCase' => 1,
@@ -205,40 +205,40 @@ final class PhpCodeSniffer
 				$t->setAll([
 					'spacing.call' => 'compact',
 					'spacing.parentheses' => 'compact',
-					'multiline.call' => ($o['allowMultipleArguments'] ?? false) ? 'frame' : 'perLine',
+					'multiline.shape.call' => ($o['allowMultipleArguments'] ?? false) ? 'frame' : 'perLine',
 				]);
 			},
 			'PSR2.Methods.FunctionClosingBrace' => fn(array $o, Translation $t) => $t->set('blankLines.beforeBlockClosingBrace', 0),
 			'PSR2.Methods.MethodDeclaration' => function (array $o, Translation $t) {
 				$t->warn('`PSR2.Methods.MethodDeclaration` also rules on the underscore prefix of method names, which DressCode does not.');
-				$t->set('classes.modifierOrder', 'canonical');
+				$t->set('classes.modifiers.order', 'canonical');
 			},
 			'PSR2.Namespaces.NamespaceDeclaration' => ['blankLines.afterNamespace' => 1],
 			'PSR2.Namespaces.UseDeclaration' => [
 				'blankLines.afterImports' => 1,
-				'imports.class' => 'separate',
-				'imports.function' => 'separate',
-				'imports.constant' => 'separate',
+				'imports.statement.class' => 'separate',
+				'imports.statement.function' => 'separate',
+				'imports.statement.constant' => 'separate',
 				'imports.groupUse' => 'forbidden',
 			],
-			'SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement' => fn(array $o, Translation $t) => $t->warn('`SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement` puts the closing bracket of a multi-line array where its opening bracket stands, which DressCode decides only together with its items, by `multiline.array`.'),
+			'SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement' => fn(array $o, Translation $t) => $t->warn('`SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement` puts the closing bracket of a multi-line array where its opening bracket stands, which DressCode decides only together with its items, by `multiline.shape.array`.'),
 			'SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace' => ['spacing.arrayBrackets' => 'compact'],
 			'SlevomatCodingStandard.Arrays.TrailingArrayComma' => fn(array $o, Translation $t) => $t->set('multiline.trailingComma.array', 'required'),
 			'SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing' => fn(array $o, Translation $t) => $t->set('blankLines.afterPhpdoc', $o['linesCountBetweenAttributeAndTarget'] ?? 0),
 			'SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine' => [
-				'multiline.attributes' => 'ownLines',
-				'multiline.parameterAttributes' => 'ownLines',
+				'multiline.attributes.declaration' => 'ownLines',
+				'multiline.attributes.parameter' => 'ownLines',
 			],
 			'SlevomatCodingStandard.Attributes.RequireAttributeAfterDocComment' => ['phpdoc.aboveAttributes' => 'required'],
 			'SlevomatCodingStandard.Classes.BackedEnumTypeSpacing' => [
 				'spacing.typeDeclaration' => 'compact',
 			],
 			'SlevomatCodingStandard.Classes.ClassConstantVisibility' => [
-				'classes.memberVisibility' => 'required',
+				'classes.visibility.member' => 'required',
 			],
 			'SlevomatCodingStandard.Classes.ConstantSpacing' => $memberSpacing,
-			'SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition' => fn(array $o, Translation $t) => $t->setAllowed('classes.groupedDeclarationAllowedFor', ['property', 'traitUse']),
-			'SlevomatCodingStandard.Classes.DisallowMultiPropertyDefinition' => fn(array $o, Translation $t) => $t->setAllowed('classes.groupedDeclarationAllowedFor', ['constant', 'traitUse']),
+			'SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition' => fn(array $o, Translation $t) => $t->setAllowed('classes.members.groupable', ['property', 'traitUse']),
+			'SlevomatCodingStandard.Classes.DisallowMultiPropertyDefinition' => fn(array $o, Translation $t) => $t->setAllowed('classes.members.groupable', ['constant', 'traitUse']),
 			'SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces' => fn(array $o, Translation $t) => $t->setAll([
 				'blankLines.beforeFirstMember' => $o['linesCountAfterOpeningBrace'] ?? 1,
 				'blankLines.beforeFirstMethod' => $o['linesCountAfterOpeningBrace'] ?? 1,
@@ -253,7 +253,7 @@ final class PhpCodeSniffer
 				'cleanup.get_class' => ($o['enableOnObjects'] ?? false) ? 'forbidden' : 'keep',
 			]),
 			'SlevomatCodingStandard.Classes.PropertyDeclaration' => [
-				'classes.modifierOrder' => 'canonical',
+				'classes.modifiers.order' => 'canonical',
 			],
 			'SlevomatCodingStandard.Classes.PropertySpacing' => $memberSpacing,
 			'SlevomatCodingStandard.Classes.RequireMultiLineMethodSignature' => function (array $o, Translation $t) {
@@ -264,25 +264,25 @@ final class PhpCodeSniffer
 				}
 
 				$t->setAll([
-					'multiline.signatureOverMaxLength' => 'split',
-					'multiline.signatureWithPromotedProperties' => ($o['withPromotedProperties'] ?? false) ? 'split' : 'asSignature',
-					'multiline.signature' => 'perLine',
+					'multiline.split.signature' => 'overMaxLength',
+					'multiline.split.promotedProperty' => ($o['withPromotedProperties'] ?? false) ? 'always' : 'asSignature',
+					'multiline.shape.signature' => 'perLine',
 				]);
 			},
 			'SlevomatCodingStandard.Classes.SuperfluousAbstractClassNaming' => fn(array $o, Translation $t) => $t->set('naming.classKindInName', 'forbidden'),
 			'SlevomatCodingStandard.Classes.SuperfluousErrorNaming' => fn(array $o, Translation $t) => $t->set('naming.classKindInName', 'forbidden'),
 			'SlevomatCodingStandard.Classes.SuperfluousInterfaceNaming' => fn(array $o, Translation $t) => $t->set('naming.classKindInName', 'forbidden'),
 			'SlevomatCodingStandard.Classes.SuperfluousTraitNaming' => fn(array $o, Translation $t) => $t->set('naming.classKindInName', 'forbidden'),
-			'SlevomatCodingStandard.Classes.TraitUseDeclaration' => fn(array $o, Translation $t) => $t->setAllowed('classes.groupedDeclarationAllowedFor', ['constant', 'property']),
+			'SlevomatCodingStandard.Classes.TraitUseDeclaration' => fn(array $o, Translation $t) => $t->setAllowed('classes.members.groupable', ['constant', 'property']),
 			'SlevomatCodingStandard.Classes.TraitUseSpacing' => fn(array $o, Translation $t) => $t->setAll([
 				'blankLines.betweenTraitUses' => $o['linesCountBetweenUses'] ?? 0,
 				'blankLines.afterTraitUses' => $o['linesCountAfterLastUse'] ?? 1,
 			]),
 			'SlevomatCodingStandard.Classes.UselessLateStaticBinding' => fn(array $o, Translation $t) => $t->setAll(['qualification.currentClass' => 'self', 'qualification.staticInFinalClass' => 'self']),
-			'SlevomatCodingStandard.Commenting.AnnotationName' => ['phpdoc.annotations' => 'canonicalCase'],
+			'SlevomatCodingStandard.Commenting.AnnotationName' => ['phpdoc.annotation.casing' => 'canonicalCase'],
 			'SlevomatCodingStandard.Commenting.ForbiddenAnnotations' => fn(array $o, Translation $t) => $t->set('phpdoc.forbiddenAnnotations', $o['forbiddenAnnotations'] ?? []),
 			'SlevomatCodingStandard.Commenting.ForbiddenComments' => fn(array $o, Translation $t) => $t->set('phpdoc.forbiddenLines', $o['forbiddenCommentPatterns'] ?? []),
-			'SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment' => ['phpdoc.singlelineProperty' => 'singleline'],
+			'SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment' => ['phpdoc.property.shape' => 'singleline'],
 			'SlevomatCodingStandard.Commenting.UselessFunctionDocComment' => fn(array $o, Translation $t) => $t->set('phpdoc.repeatingNativeTypes', 'forbidden'),
 			'SlevomatCodingStandard.Commenting.UselessInheritDocComment' => ['phpdoc.inheritdocOnly' => 'forbidden'],
 			'SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing' => function (array $o, Translation $t) {
@@ -301,13 +301,13 @@ final class PhpCodeSniffer
 				}
 			},
 			'SlevomatCodingStandard.ControlStructures.DisallowContinueWithoutIntegerOperandInSwitch' => ['correctness.continueInSwitch' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.DisallowYodaComparison' => fn(array $o, Translation $t) => $t->set('expressions.yoda', 'forbidden'),
+			'SlevomatCodingStandard.ControlStructures.DisallowYodaComparison' => fn(array $o, Translation $t) => $t->set('expressions.comparison.yoda', 'forbidden'),
 			'SlevomatCodingStandard.ControlStructures.EarlyExit' => function (array $o, Translation $t) {
 				$t->setAll([
 					'controlFlow.trailingIf' => 'forbidden',
 					'controlFlow.trailingIfMinStatements' => ($o['ignoreTrailingIfWithOneInstruction'] ?? false) ? 2 : 1,
-					'controlFlow.elseAfterExit' => 'forbidden',
-					'controlFlow.elseifAfterExit' => 'forbidden',
+					'controlFlow.afterExit.else' => 'forbidden',
+					'controlFlow.afterExit.elseif' => 'forbidden',
 				]);
 			},
 			'SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing' => fn(array $o, Translation $t) => $t->setAll([
@@ -315,7 +315,7 @@ final class PhpCodeSniffer
 				'blankLines.afterStatement' => array_fill_keys(array_intersect($o['jumpStatements'] ?? ['break', 'continue', 'return', 'throw', 'yield'], ['break', 'continue', 'return', 'throw', 'yield']), $o['linesCountAfter'] ?? 1),
 			]),
 			'SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses' => ['expressions.parenthesesAfterConstruct' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.NewWithoutParentheses' => ['classes.newParentheses' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.NewWithoutParentheses' => ['classes.emptyParentheses.instantiation' => 'forbidden'],
 			'SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition' => function (array $o, Translation $t) {
 				if (($min = $o['minLineLength'] ?? 121) > 1) {
 					$t->setLineLength($min - 1);
@@ -323,20 +323,20 @@ final class PhpCodeSniffer
 					$t->warn("`SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition` with `minLineLength=$min` has no equivalent; DressCode spreads over lines only a condition longer than the line.");
 				}
 
-				$t->set('multiline.condition', ($o['alwaysSplitAllConditionParts'] ?? false) ? 'perLine' : 'compact');
+				$t->set('multiline.shape.condition', ($o['alwaysSplitAllConditionParts'] ?? false) ? 'perLine' : 'compact');
 			},
-			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator' => ['expressions.assignmentRepeatingTarget' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator' => ['expressions.ternaryTestingNull' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator' => ['expressions.ternaryReturningItsCondition' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.RequireTernaryOperator' => ['controlFlow.ifReturningOneOfTwoValues' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.UselessIfConditionWithReturn' => ['controlFlow.ifReturningBoolean' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.UselessTernaryOperator' => ['expressions.ternaryOfTrueAndFalse' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator' => ['expressions.assignment.repeatingTarget' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator' => ['expressions.ternary.testingNull' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator' => ['expressions.ternary.returningItsCondition' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.RequireTernaryOperator' => ['controlFlow.ifReturning.oneOfTwoValues' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.UselessIfConditionWithReturn' => ['controlFlow.ifReturning.boolean' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.UselessTernaryOperator' => ['expressions.ternary.ofTrueAndFalse' => 'forbidden'],
 			'SlevomatCodingStandard.Exceptions.DeadCatch' => ['correctness.unreachableCatch' => 'forbidden'],
 			'SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly' => ['correctness.exceptionWhereThrowableBelongs' => 'forbidden'],
 			'SlevomatCodingStandard.Exceptions.RequireNonCapturingCatch' => ['cleanup.catchWithoutVariable' => 'required'],
 			'SlevomatCodingStandard.Files.LineLength' => fn(array $o, Translation $t) => $t->setLineLength($o['lineLengthLimit'] ?? 120)->setAll([
-				'file.longLines' => 'forbidden',
-				'file.longLinesExcept' => ($o['ignoreImports'] ?? true) ? ['imports'] : [],
+				'file.lineLength.overMax' => 'forbidden',
+				'file.lineLength.except' => ($o['ignoreImports'] ?? true) ? ['imports'] : [],
 			]),
 			'SlevomatCodingStandard.Functions.ArrowFunctionDeclaration' => fn(array $o, Translation $t) => match ($o['spacesCountAfterKeyword'] ?? 1) {
 				0 => $t->set('spacing.fnKeyword', 'compact'),
@@ -350,18 +350,18 @@ final class PhpCodeSniffer
 			]),
 			'SlevomatCodingStandard.Functions.RequireTrailingCommaInCall' => fn(array $o, Translation $t) => $t->set('multiline.trailingComma.argument', 'required'),
 			'SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration' => fn(array $o, Translation $t) => $t->set('multiline.trailingComma.parameter', 'required'),
-			'SlevomatCodingStandard.Functions.StaticClosure' => ['functions.staticClosureWithoutThis' => 'required'],
+			'SlevomatCodingStandard.Functions.StaticClosure' => ['functions.staticWithoutThis.closure' => 'required'],
 			'SlevomatCodingStandard.Functions.StrictCall' => ['correctness.strictComparisonArgument' => 'required'],
 			'SlevomatCodingStandard.Functions.UselessParameterDefaultValue' => ['functions.uselessParameterDefault' => 'forbidden'],
 			'SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses' => fn(array $o, Translation $t) => $t->setAll([
-				'imports.order' => 'alphabetical',
-				'imports.orderCaseSensitive' => $o['caseSensitive'] ?? false,
+				'imports.order.withinKind' => 'alphabetical',
+				'imports.order.caseSensitive' => $o['caseSensitive'] ?? false,
 			]),
 			'SlevomatCodingStandard.Namespaces.DisallowGroupUse' => fn(array $o, Translation $t) => $t->set('imports.groupUse', 'forbidden'),
 			'SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants' => function (array $o, Translation $t) {
 				$named = [...$o['include'] ?? [], ...$o['exclude'] ?? []];
 				if ($named !== []) {
-					$t->warn('`SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants` names constants one by one (`' . implode('`, `', $named) . '`), which DressCode decides by group; a constant named follows `qualification.globalConstant`.');
+					$t->warn('`SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants` names constants one by one (`' . implode('`, `', $named) . '`), which DressCode decides by group; a constant named follows `qualification.global.constant`.');
 				}
 
 				// only an include left empty names every constant
@@ -373,7 +373,7 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions' => function (array $o, Translation $t) {
 				$named = [...$o['include'] ?? [], ...$o['exclude'] ?? []];
 				if ($named !== []) {
-					$t->warn('`SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions` names functions one by one (`' . implode('`, `', $named) . '`), which DressCode decides by group; a function named follows `qualification.globalFunction`, or `qualification.optimizedFunction` where the compiler optimizes it.');
+					$t->warn('`SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions` names functions one by one (`' . implode('`, `', $named) . '`), which DressCode decides by group; a function named follows `qualification.global.function`, or `qualification.optimized.function` where the compiler optimizes it.');
 				}
 
 				// the special functions join the include, and only an include left empty names every function
@@ -387,9 +387,9 @@ final class PhpCodeSniffer
 			},
 			// a comma between the names of a group use is one too
 			'SlevomatCodingStandard.Namespaces.MultipleUsesPerLine' => [
-				'imports.class' => 'separate',
-				'imports.function' => 'separate',
-				'imports.constant' => 'separate',
+				'imports.statement.class' => 'separate',
+				'imports.statement.function' => 'separate',
+				'imports.statement.constant' => 'separate',
 				'imports.groupUse' => 'forbidden',
 			],
 			'SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly' => function (array $o, Translation $t) {
@@ -420,15 +420,15 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.Namespaces.UseFromSameNamespace' => ['imports.ofCurrentNamespace' => 'forbidden'],
 			'SlevomatCodingStandard.Namespaces.UselessAlias' => ['imports.aliasEqualToName' => 'forbidden'],
 			'SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator' => fn(array $o, Translation $t) => $t->setAll([
-				'literals.digitGroupsFrom' => $o['minDigitsBeforeDecimalPoint'] ?? 4,
-				'literals.fractionDigitGroupsFrom' => $o['minDigitsAfterDecimalPoint'] ?? 4,
+				'literals.digitGroupsFrom.integer' => $o['minDigitsBeforeDecimalPoint'] ?? 4,
+				'literals.digitGroupsFrom.fraction' => $o['minDigitsAfterDecimalPoint'] ?? 4,
 			]),
 			'SlevomatCodingStandard.Operators.NegationOperatorSpacing' => [
-				'spacing.unaryOperator' => 'compact',
-				'spacing.unaryOperatorsWithSpace' => [],
+				'spacing.unaryOperator.after' => 'compact',
+				'spacing.unaryOperator.withSpace' => [],
 			],
 			'SlevomatCodingStandard.Operators.ReferenceSpacing' => ['spacing.reference' => 'compact'],
-			'SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator' => ['expressions.assignmentRepeatingTarget' => 'forbidden'],
+			'SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator' => ['expressions.assignment.repeatingTarget' => 'forbidden'],
 			'SlevomatCodingStandard.Operators.SpreadOperatorSpacing' => ['spacing.spread' => 'compact'],
 			'SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall' => ['cleanup.__invoke' => 'forbidden'],
 			'SlevomatCodingStandard.PHP.OptimizedFunctionsWithoutUnpacking' => fn(array $o, Translation $t) => $t->optimizeCalls(),
@@ -442,8 +442,8 @@ final class PhpCodeSniffer
 					$t->warn('`SlevomatCodingStandard.TypeHints.DeclareStrictTypes` with spaces around the equals sign has no equivalent; DressCode writes `declare(strict_types=1)` without spaces.');
 				}
 				$t->setAll([
-					'file.strictTypes' => 'required',
-					'file.strictTypesPosition' => ($o['declareOnFirstLine'] ?? false) ? 'openingTagLine' : 'ownLine',
+					'file.strictTypes.declaration' => 'required',
+					'file.strictTypes.position' => ($o['declareOnFirstLine'] ?? false) ? 'openingTagLine' : 'ownLine',
 				]);
 			},
 			'SlevomatCodingStandard.TypeHints.DisallowArrayTypeHintSyntax' => fn(array $o, Translation $t) => $t->set('phpdoc.types.array', 'generic'),
@@ -453,7 +453,7 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue' => ['upgrading.php.implicitNullable' => 'forbidden'],
 			'SlevomatCodingStandard.TypeHints.ParameterTypeHint' => fn(array $o, Translation $t) => $t
 				->setAll(array_filter([
-					'types.parameter' => 'required',
+					'types.declaration.parameter' => 'required',
 					'types.traversableClasses' => $o['traversableTypeHints'] ?? null,
 				], fn($v) => $v !== null)),
 			'SlevomatCodingStandard.TypeHints.ParameterTypeHintSpacing' => [
@@ -461,7 +461,7 @@ final class PhpCodeSniffer
 			],
 			'SlevomatCodingStandard.TypeHints.PropertyTypeHint' => fn(array $o, Translation $t) => $t
 				->setAll(array_filter([
-					'types.property' => 'required',
+					'types.declaration.property' => 'required',
 					'types.traversableClasses' => $o['traversableTypeHints'] ?? null,
 				], fn($v) => $v !== null)),
 			'SlevomatCodingStandard.TypeHints.PropertyTypeHintSpacing' => [
@@ -469,7 +469,7 @@ final class PhpCodeSniffer
 			],
 			'SlevomatCodingStandard.TypeHints.ReturnTypeHint' => fn(array $o, Translation $t) => $t
 				->setAll(array_filter([
-					'types.return' => 'required',
+					'types.declaration.return' => 'required',
 					'types.traversableClasses' => $o['traversableTypeHints'] ?? null,
 				], fn($v) => $v !== null)),
 			'SlevomatCodingStandard.TypeHints.ReturnTypeHintSpacing' => [
@@ -482,16 +482,16 @@ final class PhpCodeSniffer
 			'Squiz.Classes.SelfMemberReference' => ['qualification.currentClass' => 'self'],
 			'Squiz.Classes.ValidClassName' => fn(array $o, Translation $t) => $t->set('naming.class', 'PascalCase'),
 			'Squiz.Commenting.DocCommentAlignment' => ['phpdoc.stars' => 'aligned'],
-			'Squiz.Commenting.FunctionComment.DuplicateReturn' => ['phpdoc.duplicateReturn' => 'forbidden'],
-			'Squiz.Commenting.FunctionComment.ExtraParamComment' => ['phpdoc.paramOfMissingParameter' => 'forbidden'],
+			'Squiz.Commenting.FunctionComment.DuplicateReturn' => ['phpdoc.annotation.duplicateReturn' => 'forbidden'],
+			'Squiz.Commenting.FunctionComment.ExtraParamComment' => ['phpdoc.annotation.paramOfMissingParameter' => 'forbidden'],
 			'Squiz.Commenting.VariableComment' => fn(array $o, Translation $t) => $t->setAll([
-				'phpdoc.propertyComment' => 'phpdoc',
-				'phpdoc.duplicateVar' => 'forbidden',
-				'phpdoc.emptyAnnotation' => 'forbidden',
+				'phpdoc.property.comment' => 'phpdoc',
+				'phpdoc.annotation.duplicateVar' => 'forbidden',
+				'phpdoc.annotation.empty' => 'forbidden',
 			]),
 			'Squiz.ControlStructures.ControlSignature' => fn(array $o, Translation $t) => $t->setAll([
-				'braces.controlStructure' => 'sameLine',
-				'braces.continuingKeyword' => 'sameLine',
+				'braces.position.controlStructure' => 'sameLine',
+				'braces.position.continuingKeyword' => 'sameLine',
 				'spacing.controlKeyword' => 'spaced',
 				'spacing.connectingKeyword' => 'spaced',
 			]),
@@ -499,11 +499,11 @@ final class PhpCodeSniffer
 				if (($o['requiredSpacesAfterOpen'] ?? 0) > 0 || ($o['requiredSpacesBeforeClose'] ?? 0) > 0) {
 					$t->warn('`Squiz.ControlStructures.ForEachLoopDeclaration` with spaces inside the parentheses has no equivalent; DressCode writes none.');
 				}
-				$t->warn('`Squiz.ControlStructures.ForEachLoopDeclaration` also puts a single space around the `=>` of a `foreach`, which DressCode decides for every binary operator together, by `spacing.binaryOperator`.');
+				$t->warn('`Squiz.ControlStructures.ForEachLoopDeclaration` also puts a single space around the `=>` of a `foreach`, which DressCode decides for every binary operator together, by `spacing.binaryOperator.around`.');
 				$t->setAll([
 					'spacing.parentheses' => 'compact',
 					'spacing.connectingKeyword' => 'spaced',
-					'builtin.keyword' => 'lowercase',
+					'builtin.casing.keyword' => 'lowercase',
 				]);
 			},
 			'Squiz.ControlStructures.ForLoopDeclaration' => function (array $o, Translation $t) {
@@ -512,19 +512,19 @@ final class PhpCodeSniffer
 				}
 				$t->setAll([
 					'spacing.parentheses' => 'compact',
-					'spacing.beforeSemicolon' => 'compact',
-					'spacing.afterSemicolon' => 'spaced',
+					'spacing.semicolon.before' => 'compact',
+					'spacing.semicolon.after' => 'spaced',
 				]);
 			},
-			'Squiz.ControlStructures.LowercaseDeclaration' => ['builtin.keyword' => 'lowercase'],
+			'Squiz.ControlStructures.LowercaseDeclaration' => ['builtin.casing.keyword' => 'lowercase'],
 			'Squiz.Functions.FunctionDeclaration' => ['spacing.functionKeyword' => 'spaced', 'spacing.call' => 'compact'],
-			'Squiz.Functions.FunctionDeclarationArgumentSpacing' => ['spacing.comma' => 'spaced', 'spacing.commaAlignment' => 'tabs'],
-			'Squiz.Functions.LowercaseFunctionKeywords' => ['builtin.keyword' => 'lowercase'],
+			'Squiz.Functions.FunctionDeclarationArgumentSpacing' => ['spacing.comma.around' => 'spaced', 'spacing.comma.alignment' => 'tabs'],
+			'Squiz.Functions.LowercaseFunctionKeywords' => ['builtin.casing.keyword' => 'lowercase'],
 			'Squiz.Functions.MultiLineFunctionDeclaration' => [
-				'braces.function' => 'nextLine',
-				'braces.afterMultilineSignature' => 'sameLine',
-				'braces.closure' => 'sameLine',
-				'multiline.signature' => 'perLine',
+				'braces.position.function' => 'nextLine',
+				'braces.position.multilineSignature' => 'sameLine',
+				'braces.position.closure' => 'sameLine',
+				'multiline.shape.signature' => 'perLine',
 			],
 			'Squiz.NamingConventions.ValidFunctionName' => fn(array $o, Translation $t) => $t->setAll(['naming.method' => 'camelCase', 'naming.function' => 'camelCase']),
 			'Squiz.NamingConventions.ValidVariableName' => function (array $o, Translation $t) {
@@ -535,8 +535,8 @@ final class PhpCodeSniffer
 			'Squiz.PHP.DiscouragedFunctions' => fn(array $o, Translation $t) => $t->set('upgrading.libraries.forbiddenFunctions', ['error_log' => null, 'print_r' => null, 'var_dump' => null]),
 			'Squiz.PHP.GlobalKeyword' => ['correctness.globalStatement' => 'forbidden'],
 			'Squiz.PHP.InnerFunctions' => ['functions.innerFunctions' => 'forbidden'],
-			'Squiz.PHP.LowercasePHPFunctions' => ['builtin.function' => 'declared'],
-			'Squiz.Scope.MethodScope' => ['classes.memberVisibility' => 'required', 'classes.interfaceMethodVisibility' => 'required'],
+			'Squiz.PHP.LowercasePHPFunctions' => ['builtin.casing.function' => 'declared'],
+			'Squiz.Scope.MethodScope' => ['classes.visibility.member' => 'required', 'classes.visibility.interfaceMethod' => 'required'],
 			'Squiz.Scope.StaticThisUsage' => ['correctness.thisOutsideObject' => 'forbidden'],
 			'Squiz.Strings.ConcatenationSpacing' => fn(array $o, Translation $t) => $t->set('spacing.concatenation', ($o['spacing'] ?? 0) > 0 ? 'spaced' : 'compact'),
 			'Squiz.Strings.DoubleQuoteUsage' => fn(array $o, Translation $t) => $t->set('literals.quotes', 'single'),
@@ -562,13 +562,13 @@ final class PhpCodeSniffer
 					'blankLines.afterLastMethod' => $o['spacingAfterLast'] ?? 2,
 				]);
 			},
-			'Squiz.WhiteSpace.LogicalOperatorSpacing' => ['spacing.binaryOperator' => 'spaced', 'spacing.binaryOperatorAlignment' => 'spaces'],
+			'Squiz.WhiteSpace.LogicalOperatorSpacing' => ['spacing.binaryOperator.around' => 'spaced', 'spacing.binaryOperator.alignment' => 'spaces'],
 			'Squiz.WhiteSpace.ObjectOperatorSpacing' => ['spacing.objectOperator' => 'compact'],
-			'Squiz.WhiteSpace.OperatorSpacing' => ['spacing.binaryOperator' => 'spaced', 'spacing.binaryOperatorAlignment' => 'spaces'],
-			'Squiz.WhiteSpace.OperatorSpacing.Unary' => ['spacing.unaryOperator' => 'compact', 'spacing.unaryOperatorsWithSpace' => []],
+			'Squiz.WhiteSpace.OperatorSpacing' => ['spacing.binaryOperator.around' => 'spaced', 'spacing.binaryOperator.alignment' => 'spaces'],
+			'Squiz.WhiteSpace.OperatorSpacing.Unary' => ['spacing.unaryOperator.after' => 'compact', 'spacing.unaryOperator.withSpace' => []],
 			'Squiz.WhiteSpace.ScopeClosingBrace' => fn(array $o, Translation $t) => $t->warn('`Squiz.WhiteSpace.ScopeClosingBrace` puts a closing brace on a line of its own at the indentation of the line opening it, which DressCode does wherever `braces` places the opening brace and `indentation.unit` indents.'),
 			'Squiz.WhiteSpace.ScopeKeywordSpacing' => ['spacing.doubleColon' => 'compact'],
-			'Squiz.WhiteSpace.SemicolonSpacing' => ['spacing.beforeSemicolon' => 'compact', 'multiline.semicolonOnOwnLine' => 'forbidden'],
+			'Squiz.WhiteSpace.SemicolonSpacing' => ['spacing.semicolon.before' => 'compact', 'multiline.semicolonOnOwnLine' => 'forbidden'],
 			'Squiz.WhiteSpace.SuperfluousWhitespace' => ['file.trailingWhitespace' => 'forbidden'],
 		];
 	}

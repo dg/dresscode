@@ -1,4 +1,4 @@
 <?php
-// {"syntax.pipeMinCalls": 2}
+// {"syntax.pipe.minCalls": 2}
 $a = trim(strtolower($input));
 $b = trim($input);

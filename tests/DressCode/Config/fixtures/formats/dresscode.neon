@@ -42,7 +42,8 @@ controlFlow:
 	trailingIfMinStatements: 3
 file:
 	lineEnding: LF
-	maxLineLength: 160
-	longLinesExcept: []
+	lineLength:
+		max: 160
+		except: []
 indentation:
 	unit: tab

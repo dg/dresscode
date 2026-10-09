@@ -1,5 +1,5 @@
 <?php
-// {"class": "keep", "emptyBody": "keep", "emptyAnonymousClass": "ownLines"}
+// {"position.class": "keep", "empty.body": "keep", "empty.anonymousClass": "ownLines"}
 class A {
 	public function f()
 	{

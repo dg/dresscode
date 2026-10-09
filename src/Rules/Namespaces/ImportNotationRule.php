@@ -59,7 +59,7 @@ final class ImportNotationRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		foreach (ImportStyle::Kinds as $kind => $word) {
-			$this->shapes[$kind] = $values->find("imports.$word")?->getWord();
+			$this->shapes[$kind] = $values->find("imports.statement.$word")?->getWord();
 		}
 
 		$this->groupUse = $values->find(ImportStyle::GroupUse)?->getWord();
@@ -135,7 +135,7 @@ final class ImportNotationRule extends NodeRule
 	 */
 	private function split(UseNode $node, string $kind, PlainNodeList $list, RuleContext $context): void
 	{
-		if ($context->report($node, 'Expected one import per `use` statement, ' . count($node->items) . ' found.', decision: 'imports.' . ImportStyle::Kinds[$kind], fixable: !$node->items->hasInnerComment())) {
+		if ($context->report($node, 'Expected one import per `use` statement, ' . count($node->items) . ' found.', decision: 'imports.statement.' . ImportStyle::Kinds[$kind], fixable: !$node->items->hasInnerComment())) {
 			NodeHelpers::splitItems($node, $list, 'items', $context->style->lineEnding);
 		}
 	}
@@ -154,7 +154,7 @@ final class ImportNotationRule extends NodeRule
 		}
 
 		foreach (array_slice($uses, 1) as $use) {
-			if (!$context->report($use, 'Expected all imports of ' . self::Plurals[$kind] . ' in one `use` statement.', decision: 'imports.' . ImportStyle::Kinds[$kind])) {
+			if (!$context->report($use, 'Expected all imports of ' . self::Plurals[$kind] . ' in one `use` statement.', decision: 'imports.statement.' . ImportStyle::Kinds[$kind])) {
 				continue;
 			}
 

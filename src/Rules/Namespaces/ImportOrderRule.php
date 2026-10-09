@@ -27,8 +27,8 @@ use function count, is_int, strlen;
 final class ImportOrderRule extends NodeRule
 {
 	private const Types = ['', 'function', 'const'];
-	private const Order = 'imports.order';
-	private const CaseSensitive = 'imports.orderCaseSensitive';
+	private const Order = 'imports.order.withinKind';
+	private const CaseSensitive = 'imports.order.caseSensitive';
 
 	/** whether the names of a kind are sorted, not only the kinds */
 	private bool $sortNames = true;
@@ -39,9 +39,9 @@ final class ImportOrderRule extends NodeRule
 	{
 		return [
 			new Decision(self::Order, new Words([
-				'alphabetical' => 'classes, then functions, then constants, each alphabetical',
-				'groupedByKind' => 'classes, then functions, then constants, each in the order written',
-			]), 'The order of consecutive imports, the names of a statement poured back into statements of the shapes written'),
+				'alphabetical' => 'the names of a kind sorted alphabetically',
+				'asWritten' => 'the names of a kind in the order written',
+			]), 'The order of the names of one kind among consecutive imports, classes standing before functions and functions before constants, the names of a statement poured back into statements of the shapes written'),
 			new Decision(self::CaseSensitive, new Flag, 'Whether `Acme` sorts before `acme` rather than with it', parameter: true, default: false),
 		];
 	}

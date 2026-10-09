@@ -22,9 +22,9 @@ use function count, in_array;
 #[RuleInfo(Stage::Structure)]
 final class BuiltinCasingRule extends NodeRule
 {
-	private const Keyword = 'builtin.keyword';
-	private const TrueFalseNull = 'builtin.trueFalseNull';
-	private const MagicConstant = 'builtin.magicConstant';
+	private const Keyword = 'builtin.casing.keyword';
+	private const TrueFalseNull = 'builtin.casing.trueFalseNull';
+	private const MagicConstant = 'builtin.casing.magicConstant';
 
 	private const Keywords = [
 		Token::Throw, Token::Include, Token::IncludeOnce, Token::Eval, Token::Require, Token::RequireOnce,

@@ -1,3 +1,4 @@
 classes:
-	memberVisibility: required
-	interfaceMethodVisibility: required
+	visibility:
+		member: required
+		interfaceMethod: required

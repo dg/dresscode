@@ -1,4 +1,5 @@
 builtin:
-	keyword: lowercase
-	trueFalseNull: lowercase
-	magicConstant: uppercase
+	casing:
+		keyword: lowercase
+		trueFalseNull: lowercase
+		magicConstant: uppercase

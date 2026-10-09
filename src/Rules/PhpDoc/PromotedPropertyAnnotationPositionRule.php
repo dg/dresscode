@@ -30,7 +30,7 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('phpdoc.promotedPropertyAnnotation', new Shapes(['atProperty' => ['@var', 'a `@var` at the property, not a `@param` of the constructor']]), 'The annotation of a promoted property')];
+		return [new Decision('phpdoc.property.promoted', new Shapes(['atProperty' => ['@var', 'a `@var` at the property, not a `@param` of the constructor']]), 'The annotation of a promoted property')];
 	}
 
 

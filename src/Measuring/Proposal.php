@@ -120,11 +120,11 @@ final readonly class Proposal
 			$survey->measurePlaces(
 				MultilineConditionRule::class,
 				[
-					'perLine' => new Profile(decisions: ['multiline' => ['condition' => 'perLine']]),
-					'compact' => new Profile(decisions: ['multiline' => ['condition' => 'compact']]),
+					'perLine' => new Profile(decisions: ['multiline' => ['shape' => ['condition' => 'perLine']]]),
+					'compact' => new Profile(decisions: ['multiline' => ['shape' => ['condition' => 'compact']]]),
 				],
 				'conditions',
-				new Profile(decisions: ['multiline' => ['condition' => ['perLine', 'compact']]]),
+				new Profile(decisions: ['multiline' => ['shape' => ['condition' => ['perLine', 'compact']]]]),
 			),
 			$functions,
 			$constants,
@@ -261,7 +261,7 @@ final readonly class Proposal
 			fileExtensions: $this->fileExtensions,
 			decisions: array_filter([
 				'indentation' => $indent === null ? null : ['unit' => self::toUnit($indent)],
-				'multiline' => $shape === null ? null : ['condition' => $shape],
+				'multiline' => $shape === null ? null : ['shape' => ['condition' => $shape]],
 				'literals' => $this->quotes->opportunities ? ['quotes' => $quotes ?? 'keep'] : null,
 			]),
 		);
@@ -327,7 +327,7 @@ final readonly class Proposal
 		if ($shape !== null) {
 			$sections[] = self::writeDecision(
 				MultilineConditionRule::class,
-				'multiline.condition',
+				'multiline.shape.condition',
 				is_array($shape) ? '[' . implode(', ', $shape) . ']' : $shape,
 				$this->conditions->describe(),
 			);
@@ -350,12 +350,19 @@ final readonly class Proposal
 	{
 		$decision = array_find(Config\Catalogue::collectDecisions($rule), fn(Decision $decision) => $decision->path === $path)
 			?? throw new \LogicException("Rule `$rule` does not declare `$path`.");
-		[$section, $key] = explode('.', $path, 2);
+		$links = explode('.', $path);
+		$key = array_pop($links);
+		$out = '';
+		foreach ($links as $depth => $link) {
+			$out .= str_repeat("\t", $depth) . "$link:\n";
+		}
+
 		// a line never breaks inside code
 		$comment = $decision->description . '. Values: ' . $decision->describeValues();
 		$comment = preg_replace_callback('~`[^`]*`~', fn(array $m) => str_replace(' ', "\0", $m[0]), $comment);
 		$comment = str_replace("\0", ' ', wordwrap($comment, 110, "\n"));
-		return "$section:\n" . preg_replace('~^~m', "\t# ", $comment) . "\n\t$key: $value  # $measured\n";
+		$indent = str_repeat("\t", count($links));
+		return $out . preg_replace('~^~m', "$indent# ", $comment) . "\n$indent$key: $value  # $measured\n";
 	}
 
 
@@ -460,12 +467,12 @@ final readonly class Proposal
 		$quotes = $this->quotes->findPrevailing();
 		$shape = $this->findConditionShape();
 		$quotesValue = ($resolved->decisions['literals.quotes'] ?? null)?->value;
-		$conditionValue = ($resolved->decisions['multiline.condition'] ?? null)?->value;
+		$conditionValue = ($resolved->decisions['multiline.shape.condition'] ?? null)?->value;
 		$problem = match (true) {
 			$indent !== null && $resolved->indent !== ($indent === 'tab' ? "\t" : str_repeat(' ', (int) $indent)) => "the indentation is not `$indent`",
 			$quotes !== null && ($quotesValue === null || $quotesValue->isKept() || $quotesValue->getWord() !== $quotes) => "`literals.quotes` is not `$quotes`",
 			$quotes === null && $this->quotes->opportunities && $quotesValue?->isKept() === false => '`literals.quotes` is not `keep`',
-			$shape !== null && $conditionValue?->toData() !== (is_string($shape) && $shape !== 'keep' ? [$shape] : $shape) => '`multiline.condition` has another shape',
+			$shape !== null && $conditionValue?->toData() !== (is_string($shape) && $shape !== 'keep' ? [$shape] : $shape) => '`multiline.shape.condition` has another shape',
 			($resolved->nameResolution === 'certain') !== ($this->unparsed === []) => 'the name resolution is not what the files that parse allow',
 			array_diff($this->namespacedFunctions, array_keys($resolved->namespacedFunctions)) !== [] => 'a function the namespaces declare is not listed',
 			array_diff($this->namespacedConstants, array_keys($resolved->namespacedConstants)) !== [] => 'a constant the namespaces declare is not listed',

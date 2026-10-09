@@ -14,17 +14,19 @@ naming:
 spacing:
 	attribute: '#[Foo($a)]'
 	fnKeyword: 'fn($x) => $x'
-	beforeSemicolon: '$a;'
+	semicolon:
+		before: '$a;'
 	catchType: 'catch (A|B $e)'             # as a union type
 	namedArgument: 'foo(name: $x)'
 
 multiline:
+	shape:
+		chain: perLine                       # a link per line once spread
+		ternary: perLine                     # `?` and `:` each on a line once spread
+		array: perLine                       # an item per line once spread
 	operatorPosition:
 		concatenation: lineStart             # `. $b` opens the line
 		ternary: lineStart                   # `? $b` and `: $c` open the lines
-	chain: perLine                           # a link per line once spread
-	ternary: perLine                         # `?` and `:` each on a line once spread
-	array: perLine                           # an item per line once spread
 	# a comma after the last item where the closing bracket has a line of its own, none on one line
 	trailingComma:
 		array: required
@@ -34,18 +36,22 @@ multiline:
 		closureUse: required
 		import: optional
 		list: optional
-	attributes: ownLines                     # a group per line above the declaration
-	parameterAttributes: ownLines            # so in parameters spread over lines
+	attributes:
+		declaration: ownLines                # a group per line above the declaration
+		parameter: ownLines                  # so in parameters spread over lines
 
 braces:
-	emptyBody: sameLine                      # `function foo(): void {}`
-	emptyAnonymousClass: sameLine            # `new class {}`
+	empty:
+		body: sameLine                       # `function foo(): void {}`
+		anonymousClass: sameLine             # `new class {}`
 
 classes:
-	groupedDeclarationAllowedFor: []         # `const A = 1, B = 2;` is split
-	membersPerLine: 1
-	anonymousClassParentheses: forbidden     # `new class {}`, not `new class() {}`
-	attributeParentheses: forbidden          # `#[Foo]`, not `#[Foo()]`
+	members:
+		groupable: []                        # `const A = 1, B = 2;` is split
+		perLine: 1
+	emptyParentheses:
+		anonymousClass: forbidden            # `new class {}`, not `new class() {}`
+		attribute: forbidden                 # `#[Foo]`, not `#[Foo()]`
 
 types:
 	nullable: '?int'                         # not `int|null`

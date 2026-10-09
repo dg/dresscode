@@ -18,8 +18,8 @@ use function count;
 
 
 /**
- * The arguments of a call of a global function the decisions write qualified for the compiler, `optimizedFunction` or,
- * where that key requires no form, `globalFunction`, in the form the optimization takes. The compiler turns calls of
+ * The arguments of a call of a global function the decisions write qualified for the compiler, `optimized.function` or,
+ * where that key requires no form, `global.function`, in the form the optimization takes. The compiler turns calls of
  * some functions into opcodes, but only where it knows while compiling that the call is global, in the global namespace
  * or with the name imported or fully qualified, and never with an unpacked argument, which is reported where the call
  * would be optimized with the values passed one by one, nor with a named one. PHP 8.4 calls some functions without a
@@ -29,7 +29,7 @@ use function count;
  */
 #[RuleInfo(
 	Stage::Structure,
-	decisions: ['qualification.globalFunction', 'qualification.optimizedFunction'],
+	decisions: ['qualification.global.function', 'qualification.optimized.function'],
 	analyses: [PhpSignatures::class, PhpSymbols::class, NameResolver::class],
 )]
 final class OptimizedCallNotationRule extends NodeRule
@@ -40,7 +40,7 @@ final class OptimizedCallNotationRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		foreach (['qualification.optimizedFunction', 'qualification.globalFunction'] as $decision) {
+		foreach (['qualification.optimized.function', 'qualification.global.function'] as $decision) {
 			$forms = $values->find($decision)?->getWords();
 			if ($forms !== null) {
 				$this->decision = in_array($forms[0], [QualificationPolicy::Imported, QualificationPolicy::Backslashed], true) ? $decision : null;

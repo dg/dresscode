@@ -1,3 +1,4 @@
 file:
-	strictTypes: required
-	strictTypesPosition: ownLine
+	strictTypes:
+		declaration: required
+		position: ownLine

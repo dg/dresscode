@@ -1,6 +1,6 @@
 <?php
 // risky
-// {"globalFunction":"backslashed","optimizedFunction":"backslashed"}
+// {"global.function":"backslashed","optimized.function":"backslashed"}
 namespace App;
 
 // each occurrence keeps the letter case it is written in

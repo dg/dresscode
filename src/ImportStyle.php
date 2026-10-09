@@ -16,13 +16,13 @@ use PhpSyntax\SymbolKind;
  */
 final readonly class ImportStyle
 {
-	/** the name of a kind => its word in the path of its decision, `imports.class` */
+	/** the name of a kind => its word in the path of its decision, `imports.statement.class` */
 	public const Kinds = ['ClassLike' => 'class', 'Function' => 'function', 'Constant' => 'constant'];
 
 	public const GroupUse = 'imports.groupUse';
 
 	/** the decisions of a tree of the core the style is read from, which every catalogue knows */
-	public const Decisions = ['imports.class', 'imports.function', 'imports.constant', self::GroupUse];
+	public const Decisions = ['imports.statement.class', 'imports.statement.function', 'imports.statement.constant', self::GroupUse];
 
 
 	public function __construct(
@@ -39,7 +39,7 @@ final readonly class ImportStyle
 	{
 		$shapes = [];
 		foreach (self::Kinds as $kind => $word) {
-			$shape = $values->find("imports.$word")?->getWord();
+			$shape = $values->find("imports.statement.$word")?->getWord();
 			if ($shape !== null) {
 				$shapes[$kind] = $shape;
 			}

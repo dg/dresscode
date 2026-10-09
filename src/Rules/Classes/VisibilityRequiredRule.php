@@ -18,7 +18,7 @@ use function count;
 /**
  * Every property, method and constant of a class, interface, trait or enum declares its visibility (`var` becomes
  * `public`, a set visibility being one); the order of the modifiers is `ModifierOrderRule`'s. A method of an
- * interface, public whatever it says, follows `classes.interfaceMethodVisibility`.
+ * interface, public whatever it says, follows `classes.visibility.interfaceMethod`.
  */
 #[RuleInfo(Stage::Structure)]
 final class VisibilityRequiredRule extends NodeRule
@@ -26,8 +26,8 @@ final class VisibilityRequiredRule extends NodeRule
 	private const Required = 'required';
 	private const Forbidden = 'forbidden';
 	private const Keep = 'keep';
-	private const Members = 'classes.memberVisibility';
-	private const InterfaceMethod = 'classes.interfaceMethodVisibility';
+	private const Members = 'classes.visibility.member';
+	private const InterfaceMethod = 'classes.visibility.interfaceMethod';
 
 	private bool $members = true;
 
@@ -92,7 +92,7 @@ final class VisibilityRequiredRule extends NodeRule
 		$hasVisibility = false;
 		foreach ($tokens as $token) {
 			$visibility = MemberModifiers::rank($token) === MemberModifiers::Visibility;
-			// a set visibility alone is one too, the `public` it implies being `classes.publicWithSetVisibility`
+			// a set visibility alone is one too, the `public` it implies being `classes.visibility.publicWithSet`
 			$hasVisibility = $hasVisibility || $visibility || MemberModifiers::rank($token) === MemberModifiers::SetVisibility;
 			if (!$visibility || $mode !== self::Forbidden) {
 				$desired[] = $token->is(Token::Var) && $mode === self::Required ? 'public' : $token->text;

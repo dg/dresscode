@@ -1,4 +1,4 @@
 <?php
-// {"class": "combined"}
+// {"statement.class": "combined"}
 namespace A;
 use \B\C, \D as E;

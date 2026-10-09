@@ -29,7 +29,7 @@ final class ConstantTypeRequiredRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('types.constant', Domain::state('required'), 'A class constant declares the type of its value')];
+		return [new Decision('types.declaration.constant', Domain::state('required'), 'A class constant declares the type of its value')];
 	}
 
 

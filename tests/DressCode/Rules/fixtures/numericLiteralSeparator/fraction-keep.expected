@@ -1,5 +1,5 @@
 <?php
-// {"fractionDigitGroupsFrom": "keep"}
+// {"digitGroupsFrom.fraction": "keep"}
 $a = 1_000_000;
 $b = 1.23456;
 $c = 12_345.678901;

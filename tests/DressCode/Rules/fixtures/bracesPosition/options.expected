@@ -1,5 +1,5 @@
 <?php
-// {"class": "sameLine", "controlStructure": "nextLine", "closure": "nextLine", "singlelineClosure": "forbidden"}
+// {"position.class": "sameLine", "position.controlStructure": "nextLine", "position.closure": "nextLine", "singlelineClosure": "forbidden"}
 class A {
 }
 if ($a)

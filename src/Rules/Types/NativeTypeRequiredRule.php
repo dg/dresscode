@@ -43,7 +43,7 @@ use function count;
 )]
 final class NativeTypeRequiredRule extends NodeRule
 {
-	private const Annotations = ['types.parameter' => '@param', 'types.return' => '@return', 'types.property' => '@var'];
+	private const Annotations = ['types.declaration.parameter' => '@param', 'types.declaration.return' => '@return', 'types.declaration.property' => '@var'];
 
 	private bool $parameter = true;
 	private bool $property = true;
@@ -56,9 +56,9 @@ final class NativeTypeRequiredRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('types.parameter', Domain::state('required'), 'A parameter declares its type, taken from `@param` where it has one and nullable where it defaults to null, and the annotation goes where it then says nothing more', ['A parameter with neither a type nor an annotation is reported']),
-			new Decision('types.property', Domain::state('required'), 'A property declares its type, taken from `@var` where it has one and nullable where it defaults to null'),
-			new Decision('types.return', Domain::state('required'), 'A function declares its return type, taken from `@return`, `void` where it returns no value and `never` where the annotation says so'),
+			new Decision('types.declaration.parameter', Domain::state('required'), 'A parameter declares its type, taken from `@param` where it has one and nullable where it defaults to null, and the annotation goes where it then says nothing more', ['A parameter with neither a type nor an annotation is reported']),
+			new Decision('types.declaration.property', Domain::state('required'), 'A property declares its type, taken from `@var` where it has one and nullable where it defaults to null'),
+			new Decision('types.declaration.return', Domain::state('required'), 'A function declares its return type, taken from `@return`, `void` where it returns no value and `never` where the annotation says so'),
 		];
 	}
 
@@ -66,7 +66,7 @@ final class NativeTypeRequiredRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		[$this->parameter, $this->property, $this->return] = array_map(
-			fn(string $place) => !$values->isKept("types.$place"),
+			fn(string $place) => !$values->isKept("types.declaration.$place"),
 			['parameter', 'property', 'return'],
 		);
 		$this->traversableClasses = array_map(
@@ -151,7 +151,7 @@ final class NativeTypeRequiredRule extends NodeRule
 
 			$inherited = $overridden->parameters[$i] ?? $variadic;
 			$removed[] = $this->checkDeclaration(
-				'types.parameter',
+				'types.declaration.parameter',
 				"Parameter `$name->text`",
 				$param->variable,
 				$param->type?->text,
@@ -200,7 +200,7 @@ final class NativeTypeRequiredRule extends NodeRule
 				self::describeFunction($node) . ' must have the `void` return type.',
 				risk: $overridable ? Risk::BehaviorChanges : null,
 				because: $overridable ? 'a child returning a value then fails' : null,
-				decision: 'types.return',
+				decision: 'types.declaration.return',
 			)) {
 				return null;
 			}
@@ -216,14 +216,14 @@ final class NativeTypeRequiredRule extends NodeRule
 			&& $annotation instanceof IdentifierTypeNode
 			&& strtolower($annotation->name) === 'never'
 			&& version_compare($context->phpVersion, '8.1', '>=')
-			&& $context->report($node->closeParen, 'The return type of ' . lcfirst(self::describeFunction($node)) . ' must be `never` instead of `void`, as the `@return` annotation says.', risk: Risk::BehaviorChanges, because: 'PHP then throws a `TypeError` where the function returns after all', decision: 'types.return')
+			&& $context->report($node->closeParen, 'The return type of ' . lcfirst(self::describeFunction($node)) . ' must be `never` instead of `void`, as the `@return` annotation says.', risk: Risk::BehaviorChanges, because: 'PHP then throws a `TypeError` where the function returns after all', decision: 'types.declaration.return')
 		) {
 			$node->setReturnType((new Builder)->type('never'));
 			$native = 'never';
 		}
 
 		return $this->checkDeclaration(
-			'types.return',
+			'types.declaration.return',
 			self::describeFunction($node),
 			$node->closeParen,
 			$native,
@@ -280,7 +280,7 @@ final class NativeTypeRequiredRule extends NodeRule
 		[$tags, $prefixed] = self::findTags($tree, '@var');
 		$item = $node->items->getItems()[0];
 		$tag = $this->checkDeclaration(
-			'types.property',
+			'types.declaration.property',
 			"Property `{$item->name->text}`",
 			$item,
 			$node->type?->text,
@@ -324,7 +324,7 @@ final class NativeTypeRequiredRule extends NodeRule
 		?\Closure $isRefused = null,
 	): ?PhpDocTagNode
 	{
-		$return = $decision === 'types.return';
+		$return = $decision === 'types.declaration.return';
 		$typeWord = $return ? 'return type' : 'type';
 		$tagName = self::Annotations[$decision];
 		$value = $tag?->value;

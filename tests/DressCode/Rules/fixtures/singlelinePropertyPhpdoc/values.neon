@@ -1,2 +1,3 @@
 phpdoc:
-	singlelineProperty: singleline
+	property:
+		shape: singleline

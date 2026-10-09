@@ -1,6 +1,7 @@
 spacing:
-	binaryOperator: '$a + $b'
-	binaryOperatorAlignment: spaces
+	binaryOperator:
+		around: '$a + $b'
+		alignment: spaces
 multiline:
 	operatorPosition:
 		binary: keep

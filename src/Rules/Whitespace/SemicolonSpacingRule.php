@@ -21,8 +21,8 @@ use PhpSyntax\Token;
 #[RuleInfo(Stage::Formatting)]
 final class SemicolonSpacingRule extends GapRule
 {
-	private const Before = 'spacing.beforeSemicolon';
-	private const After = 'spacing.afterSemicolon';
+	private const Before = 'spacing.semicolon.before';
+	private const After = 'spacing.semicolon.after';
 	private const OwnLine = 'multiline.semicolonOnOwnLine';
 
 	private bool $before = true;

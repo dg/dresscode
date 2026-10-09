@@ -26,7 +26,7 @@ final class IncrementForAddOneRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('expressions.incrementByAssignment', Domain::state('forbidden'), '`$i += 1` is `$i++`')];
+		return [new Decision('expressions.assignment.addingOne', Domain::state('forbidden'), '`$i += 1` is `$i++`')];
 	}
 
 

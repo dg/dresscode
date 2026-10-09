@@ -28,7 +28,7 @@ final class MultilineImportRule extends GapRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('multiline.groupUseOverMaxLength', new Words(['split' => 'spread over lines, its names filling them']), 'A group use too long for its line')];
+		return [new Decision('multiline.split.groupUse', new Words(['overMaxLength' => 'spread over lines where its line is longer than the maximum, its names filling them']), 'When a group use written on one line is spread over lines')];
 	}
 
 

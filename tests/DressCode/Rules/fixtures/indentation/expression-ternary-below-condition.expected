@@ -1,5 +1,5 @@
 <?php
-// {"ternaryBelowCondition": "stepped"}
+// {"ternary.belowCondition": "stepped"}
 // below a condition spread over lines a ternary steps in from the last line of the condition
 $a = $b
 	&& $c

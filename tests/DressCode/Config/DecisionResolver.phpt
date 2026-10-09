@@ -36,8 +36,8 @@ final class ResolvedDebugRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('correctness.debugOutput', Domain::state(), 'A statement printing debug output'),
-			new Decision('correctness.debugOutputFunctions', new Names, 'The functions printing it', parameter: true, default: ['var_dump']),
+			new Decision('correctness.debugOutput.statement', Domain::state(), 'A statement printing debug output'),
+			new Decision('correctness.debugOutput.functions', new Names, 'The functions printing it', parameter: true, default: ['var_dump']),
 			new Decision('spacing.call', new Shapes(['compact' => ['foo()', ''], 'spaced' => ['foo ()', '']]), 'The space before the parenthesis'),
 		];
 	}
@@ -64,22 +64,25 @@ test('a path the catalogue does not know is named with the nearest known one', f
 
 test('the layers merge by path, each value with its origin, a decision nobody named takes its default', function () use ($resolver) {
 	$resolved = $resolver->resolve([
-		[new Layer(LayerKind::Preset, 'perCs'), ['spacing' => ['call' => 'foo()'], 'correctness' => ['debugOutput' => 'forbidden']]],
+		[
+			new Layer(LayerKind::Preset, 'perCs'),
+			['spacing' => ['call' => 'foo()'], 'correctness' => ['debugOutput' => ['statement' => 'forbidden']]],
+		],
 		[new Layer(LayerKind::Configuration), ['spacing' => ['call' => 'foo ()']]],
 	]);
 	Assert::same('spaced', $resolved['spacing.call']->value->getShape());
 	Assert::same(['perCs', 'the configuration'], array_map(fn($value) => $value->origin?->describe(), $resolved['spacing.call']->layers));
 	Assert::null($resolved['spacing.call']->inactive);
-	Assert::same(['var_dump'], $resolved['correctness.debugOutputFunctions']->value->getNames());
+	Assert::same(['var_dump'], $resolved['correctness.debugOutput.functions']->value->getNames());
 	Assert::same(InactiveReason::Keep, $resolved['qualification.globalClass']->inactive, 'a requirement nobody named requires nothing');
-	Assert::null($resolved['correctness.debugOutputFunctions']->inactive, 'a parameter is never inactive by its value');
+	Assert::null($resolved['correctness.debugOutput.functions']->inactive, 'a parameter is never inactive by its value');
 });
 
 
 test('a parameter alone turns nothing on', function () use ($resolver) {
-	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['correctness' => ['debugOutputFunctions' => ['dump']]]]]);
-	Assert::same(InactiveReason::Keep, $resolved['correctness.debugOutput']->inactive);
-	Assert::same(['dump'], $resolved['correctness.debugOutputFunctions']->value->getNames());
+	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['correctness' => ['debugOutput' => ['functions' => ['dump']]]]]]);
+	Assert::same(InactiveReason::Keep, $resolved['correctness.debugOutput.statement']->inactive);
+	Assert::same(['dump'], $resolved['correctness.debugOutput.functions']->value->getNames());
 });
 
 
@@ -118,9 +121,12 @@ test('a word of a structure is the word of each of its requirements, its paramet
 
 
 test('the values carry the mask of the run without changing what was resolved', function () use ($resolver) {
-	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['spacing' => ['call' => 'foo()'], 'correctness' => ['debugOutput' => 'forbidden']]]]);
+	$resolved = $resolver->resolve([[
+		new Layer(LayerKind::Configuration),
+		['spacing' => ['call' => 'foo()'], 'correctness' => ['debugOutput' => ['statement' => 'forbidden']]],
+	]]);
 	$values = $resolver->createValues($resolved, ['spacing']);
 	Assert::true($values->isSelected('spacing.call'));
-	Assert::false($values->isSelected('correctness.debugOutput'));
-	Assert::same('forbidden', $values->get('correctness.debugOutput')->getWord());
+	Assert::false($values->isSelected('correctness.debugOutput.statement'));
+	Assert::same('forbidden', $values->get('correctness.debugOutput.statement')->getWord());
 });

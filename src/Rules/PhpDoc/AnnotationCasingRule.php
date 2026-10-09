@@ -55,7 +55,7 @@ final class AnnotationCasingRule extends NodeRule
 
 	public static function getDecisions(): array
 	{
-		return [new Decision('phpdoc.annotations', new Words(['canonicalCase' => 'as it is known, `@inheritDoc`, `@phpstan-var`']), 'The letter case of a known annotation')];
+		return [new Decision('phpdoc.annotation.casing', new Words(['canonicalCase' => 'as it is known, `@inheritDoc`, `@phpstan-var`']), 'The letter case of a known annotation')];
 	}
 
 

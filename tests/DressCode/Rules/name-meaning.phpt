@@ -70,27 +70,27 @@ function corpusFiles(string $dir): array
 $rules = [];
 foreach ([
 	Rules\Namespaces\GlobalNameQualificationRule::class => [
-		'qualification.globalClass' => 'imported',
-		'qualification.globalFunction' => 'imported',
-		'qualification.globalConstant' => 'imported',
+		'qualification.global.class' => 'imported',
+		'qualification.global.function' => 'imported',
+		'qualification.global.constant' => 'imported',
 	],
 	Rules\Namespaces\ForeignNameQualificationRule::class => [
-		'qualification.classOfAnotherNamespace' => 'imported',
-		'qualification.functionOfAnotherNamespace' => 'imported',
-		'qualification.constantOfAnotherNamespace' => 'imported',
+		'qualification.otherNamespace.class' => 'imported',
+		'qualification.otherNamespace.function' => 'imported',
+		'qualification.otherNamespace.constant' => 'imported',
 	],
-	Rules\Namespaces\OptimizedCallNotationRule::class => ['qualification.globalFunction' => 'imported'],
+	Rules\Namespaces\OptimizedCallNotationRule::class => ['qualification.global.function' => 'imported'],
 	Rules\Namespaces\UselessLeadingBackslashRule::class => [
 		'qualification.uselessBackslash' => 'forbidden',
 		'qualification.inFileWithoutNamespace' => 'keep',
 	],
 	Rules\Namespaces\ImportNotationRule::class => [
-		'imports.class' => 'combined',
-		'imports.function' => 'separate',
-		'imports.constant' => 'separate',
+		'imports.statement.class' => 'combined',
+		'imports.statement.function' => 'separate',
+		'imports.statement.constant' => 'separate',
 		'imports.groupUse' => 'forbidden',
 	],
-	Rules\Namespaces\ImportOrderRule::class => ['imports.order' => 'alphabetical'],
+	Rules\Namespaces\ImportOrderRule::class => ['imports.order.withinKind' => 'alphabetical'],
 	Rules\Namespaces\NoUnusedImportsRule::class => [],
 	Rules\Namespaces\UselessCurrentNamespaceImportRule::class => [],
 	Rules\Namespaces\UselessAliasRule::class => [],

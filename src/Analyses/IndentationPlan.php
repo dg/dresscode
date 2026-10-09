@@ -26,8 +26,8 @@ final class IndentationPlan
 {
 	public const Unit = 'indentation.unit';
 	public const Binary = 'indentation.binaryOperator';
-	public const Ternary = 'indentation.ternary';
-	public const TernaryBelowCondition = 'indentation.ternaryBelowCondition';
+	public const Ternary = 'indentation.ternary.level';
+	public const TernaryBelowCondition = 'indentation.ternary.belowCondition';
 	public const SwitchCase = 'indentation.switchCase';
 	public const Chain = 'indentation.chain';
 

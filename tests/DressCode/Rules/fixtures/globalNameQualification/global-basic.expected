@@ -1,5 +1,5 @@
 <?php
-// {"globalFunction":["imported","bare"],"globalConstant":["imported","bare"]}
+// {"global.function":["imported","bare"],"global.constant":["imported","bare"]}
 namespace App;
 
 use Foo\Bar;

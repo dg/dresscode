@@ -1,5 +1,5 @@
 <?php
-// {"globalFunction":"bare"}
+// {"global.function":"bare"}
 // risky
 namespace App;
 

@@ -28,7 +28,7 @@ final class TernaryForIfRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('controlFlow.ifReturningOneOfTwoValues', Domain::state('forbidden'), '`if ($c) { return 1; } else { return 2; }` is `return $c ? 1 : 2;`')];
+		return [new Decision('controlFlow.ifReturning.oneOfTwoValues', Domain::state('forbidden'), '`if ($c) { return 1; } else { return 2; }` is `return $c ? 1 : 2;`')];
 	}
 
 

@@ -139,9 +139,9 @@ test('a fix changes the output and keeps the original', function () {
 test('a claim a comment keeps from being fixed remains, whatever the rest of the traversal fixed after it', function () {
 	$code = "<?php\nif (\$a) {\n\t\$b;\n}\n// why\nelseif (\$c) {\n\t\$d;\n}\nif (\$e)\n{\n\t\$f;\n}\n";
 	$result = processor([RuleBuilder::createRule(DressCode\Rules\Whitespace\BracesPositionRule::class, [
-		'braces.class' => 'nextLine', 'braces.function' => 'nextLine', 'braces.afterMultilineSignature' => 'sameLine',
-		'braces.closure' => 'sameLine', 'braces.anonymousClass' => 'sameLine', 'braces.controlStructure' => 'sameLine',
-		'braces.continuingKeyword' => 'sameLine', 'braces.emptyBody' => 'ownLines', 'braces.emptyAnonymousClass' => 'keep',
+		'braces.position.class' => 'nextLine', 'braces.position.function' => 'nextLine', 'braces.position.multilineSignature' => 'sameLine',
+		'braces.position.closure' => 'sameLine', 'braces.position.anonymousClass' => 'sameLine', 'braces.position.controlStructure' => 'sameLine',
+		'braces.position.continuingKeyword' => 'sameLine', 'braces.empty.body' => 'ownLines', 'braces.empty.anonymousClass' => 'keep',
 		'braces.singlelineClosure' => 'keep',
 	])])->process('a.php', $code);
 	Assert::same("<?php\nif (\$a) {\n\t\$b;\n}\n// why\nelseif (\$c) {\n\t\$d;\n}\nif (\$e) {\n\t\$f;\n}\n", $result->output);
@@ -193,11 +193,11 @@ test('a fix another round has to finish settles in that round', function () {
 test('a decision by the width of a line waits a round for the line to be indented', function () {
 	$classes = [DressCode\Rules\Whitespace\IndentationRule::class, DressCode\Rules\Functions\MultilineSignatureRule::class];
 	$values = RuleBuilder::resolveValues($classes, [
-		'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary' => 1,
-		'indentation.ternaryBelowCondition' => 'aligned', 'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
-		'multiline.signatureOverMaxLength' => 'split',
-		'multiline.signatureWithPromotedProperties' => 'split',
-		'multiline.signature' => 'perLine',
+		'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary.level' => 1,
+		'indentation.ternary.belowCondition' => 'aligned', 'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
+		'multiline.split.signature' => 'overMaxLength',
+		'multiline.split.promotedProperty' => 'always',
+		'multiline.shape.signature' => 'perLine',
 	]);
 	$style = new Style(maxLineLength: 50);
 	$registry = new Analyses\Registry;

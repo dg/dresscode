@@ -1,5 +1,5 @@
 <?php
-// {"newParentheses": "forbidden", "anonymousClassParentheses": "forbidden"}
+// {"emptyParentheses.instantiation": "forbidden", "emptyParentheses.anonymousClass": "forbidden"}
 $a = new Foo()();
 $b = new Foo()()();
 $c = new Foo();

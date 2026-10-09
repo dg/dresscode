@@ -28,9 +28,9 @@ use function strlen;
 #[RuleInfo(Stage::Structure, analyses: [PhpSymbols::class, NameResolver::class])]
 final class BuiltinNameCasingRule extends NodeRule
 {
-	private const ClassDecision = 'builtin.class';
-	private const FunctionDecision = 'builtin.function';
-	private const TypeDecision = 'builtin.type';
+	private const ClassDecision = 'builtin.casing.class';
+	private const FunctionDecision = 'builtin.casing.function';
+	private const TypeDecision = 'builtin.casing.type';
 
 	private const Types = ['bool', 'false', 'float', 'int', 'iterable', 'mixed', 'never', 'null', 'object', 'string', 'true', 'void'];
 

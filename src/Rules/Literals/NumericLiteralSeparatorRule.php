@@ -18,13 +18,13 @@ use function strlen;
  * Long decimal numbers get the underscore separator every three digits from the configured length on
  * (`1_000_000`, `1.234_567`). A number in another base is left alone: the digits of an address, a mask or
  * a code point are grouped by what they mean, not by threes. A number written with a separator already stays
- * as it is. A number both of whose parts change is reported once, under `digitGroupsFrom`.
+ * as it is. A number both of whose parts change is reported once, under `digitGroupsFrom.integer`.
  */
 #[RuleInfo(Stage::Structure)]
 final class NumericLiteralSeparatorRule extends NodeRule
 {
-	private const Integer = 'literals.digitGroupsFrom';
-	private const Fraction = 'literals.fractionDigitGroupsFrom';
+	private const Integer = 'literals.digitGroupsFrom.integer';
+	private const Fraction = 'literals.digitGroupsFrom.fraction';
 
 	/** the digits from which a part is grouped, null where it is kept */
 	private ?int $minIntegerDigits = 4;

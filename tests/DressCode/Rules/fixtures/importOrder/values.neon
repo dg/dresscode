@@ -1,3 +1,4 @@
 imports:
-	order: alphabetical
-	orderCaseSensitive: no
+	order:
+		withinKind: alphabetical
+		caseSensitive: no

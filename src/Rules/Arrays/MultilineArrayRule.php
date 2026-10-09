@@ -21,7 +21,7 @@ use function count;
  * An array spread over lines has every item on a line of its own and the closing bracket on a line of its
  * own; with `asWritten` the items stand as their author spread them and the closing bracket mirrors the opening
  * one, following the last item where the first item follows the opening bracket. An array of several items on one
- * line wider than `multiline.arrayMaxWidth` is spread in either shape, and with `asWritten` more than five items
+ * line wider than `multiline.split.array` is spread in either shape, and with `asWritten` more than five items
  * fill its lines up to the line length instead. Whatever the frame, the opening bracket stays on the line of the code
  * before it (an assignment, a return, a double arrow) and each comma on the line of its item, and any other array
  * kept on one line is left alone. Where the lines stand is the matter of `IndentationRule`.
@@ -29,8 +29,8 @@ use function count;
 #[RuleInfo(Stage::Formatting, analyses: [IndentationPlan::class])]
 final class MultilineArrayRule extends GapRule
 {
-	private const Shape = 'multiline.array';
-	private const MaxWidth = 'multiline.arrayMaxWidth';
+	private const Shape = 'multiline.shape.array';
+	private const MaxWidth = 'multiline.split.array';
 	private const PerLine = 'perLine';
 	private const AsWritten = 'asWritten';
 
@@ -50,7 +50,7 @@ final class MultilineArrayRule extends GapRule
 			]), 'The items of an array spread over lines, by its author or for its width, the opening bracket staying on the line of the code before it'),
 			new Decision(self::MaxWidth, new Count(1, range: false, words: [
 				'none' => 'never spread for its width',
-			]), 'The width from bracket to bracket over which an array of several items written on one line is spread over lines, more than five items filling its lines where `array` is `asWritten`', parameter: true, default: 'none'),
+			]), 'The width from bracket to bracket over which an array of several items written on one line is spread over lines, more than five items filling its lines where `shape.array` is `asWritten`', parameter: true, default: 'none'),
 		];
 	}
 

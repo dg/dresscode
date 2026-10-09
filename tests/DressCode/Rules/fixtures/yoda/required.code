@@ -1,5 +1,5 @@
 <?php
-// {"yoda": "required"}
+// {"comparison.yoda": "required"}
 if ($a === 1) {}
 if ($a->b !== null) {}
 if ($a[0] == 'x') {}

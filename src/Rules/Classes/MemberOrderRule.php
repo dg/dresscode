@@ -30,7 +30,7 @@ final class MemberOrderRule extends NodeRule
 		'method', 'publicMethod', 'protectedMethod', 'privateMethod', 'publicStaticMethod', 'protectedStaticMethod', 'privateStaticMethod',
 		'constructor', 'destructor', 'magicMethod',
 	];
-	private const Path = 'classes.memberOrder';
+	private const Path = 'classes.members.order';
 
 	/** @var list<string> */
 	private array $order = [

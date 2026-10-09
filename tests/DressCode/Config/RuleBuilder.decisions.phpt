@@ -32,15 +32,15 @@ final class DebugRule extends TestRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('correctness.debugOutput', Domain::state(), 'A statement printing debug output'),
-			new Decision('correctness.debugOutputFunctions', new Names, 'The functions printing it', parameter: true, default: ['var_dump']),
+			new Decision('correctness.debugOutput.statement', Domain::state(), 'A statement printing debug output'),
+			new Decision('correctness.debugOutput.functions', new Names, 'The functions printing it', parameter: true, default: ['var_dump']),
 		];
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->functions = $values->get('correctness.debugOutputFunctions')->getNames();
+		$this->functions = $values->get('correctness.debugOutput.functions')->getNames();
 	}
 }
 
@@ -70,7 +70,7 @@ final class OverrideRule extends TestRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('classes.overridingSignature', Domain::adopted(), 'Types as the ancestor declares them')];
+		return [new Decision('classes.overriding.signature', Domain::adopted(), 'Types as the ancestor declares them')];
 	}
 }
 
@@ -103,9 +103,9 @@ $catalogue = Catalogue::fromRules([
 $everything = [[
 	new Layer(LayerKind::Configuration),
 	[
-		'correctness' => ['debugOutput' => 'forbidden', 'debugOutputFunctions' => ['dump']],
+		'correctness' => ['debugOutput' => ['statement' => 'forbidden', 'functions' => ['dump']]],
 		'upgrading' => ['match' => 'adopted', 'pipe' => 'adopted', 'syntax' => ['firstClassCallables' => 'adopted']],
-		'classes' => ['overridingSignature' => 'adopted'],
+		'classes' => ['overriding' => ['signature' => 'adopted']],
 	],
 ]];
 
@@ -114,12 +114,12 @@ test('a rule that cannot run here leaves its decisions a reason', function () us
 	$resolved = new DecisionResolver($catalogue, phpTarget: '8.2')->resolve($everything);
 	Assert::same(InactiveReason::Php, $resolved['upgrading.pipe']->inactive);
 	Assert::null($resolved['upgrading.match']->inactive);
-	Assert::same(InactiveReason::Types, $resolved['classes.overridingSignature']->inactive);
+	Assert::same(InactiveReason::Types, $resolved['classes.overriding.signature']->inactive);
 	Assert::same(InactiveReason::NameResolution, $resolved['namespaces.functions']->inactive);
 
 	$typed = new DecisionResolver($catalogue, phpTarget: '8.5', typesAvailable: true, certainNames: true)->resolve($everything);
 	Assert::null($typed['upgrading.pipe']->inactive);
-	Assert::null($typed['classes.overridingSignature']->inactive);
+	Assert::null($typed['classes.overriding.signature']->inactive);
 	Assert::null($typed['namespaces.functions']->inactive);
 });
 
@@ -136,7 +136,7 @@ test('the rules taking effect are built in the order of the registration and con
 
 test('a parameter alone builds no rule', function () use ($catalogue) {
 	$resolver = new DecisionResolver($catalogue);
-	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['correctness' => ['debugOutputFunctions' => ['dump']]]]]);
+	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['correctness' => ['debugOutput' => ['functions' => ['dump']]]]]]);
 	Assert::same([], RuleBuilder::buildFromDecisions($resolver, $resolved, $resolver->createValues($resolved)));
 });
 

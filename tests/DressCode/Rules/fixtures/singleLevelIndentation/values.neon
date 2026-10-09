@@ -1,3 +1,4 @@
 indentation:
-	singleLevel: required
-	singleLevelInComments: yes
+	singleLevel:
+		code: required
+		comment: yes

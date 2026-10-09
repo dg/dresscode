@@ -15,13 +15,16 @@ use:
 	- correctness
 
 file:
-	strictTypes: required             # risky, `'1'` passed to `int` then throws
-	strictTypesPosition: openingTagLine
-	maxLineLength: 140                # a tab counts as 4 columns
+	strictTypes:
+		declaration: required         # risky, `'1'` passed to `int` then throws
+		position: openingTagLine
+	lineLength:
+		max: 140                      # a tab counts as 4 columns
 
 indentation:
 	unit: tab
-	ternaryBelowCondition: stepped    # `?` and `:` one level below a multi-line condition
+	ternary:
+		belowCondition: stepped       # `?` and `:` one level below a multi-line condition
 	chain: nested                     # a link may stand one level deeper than the one before
 
 # names are reported, never renamed
@@ -33,48 +36,61 @@ naming:
 	classKindInName: forbidden        # `FooInterface`, `FooTrait`, `AbstractFoo`
 
 builtin:
-	magicConstant: uppercase
-	class: declared                   # `DateTime`, not `datetime`
-	function: declared                # `strlen()`, not `StrLen()`
+	casing:
+		magicConstant: uppercase
+		class: declared               # `DateTime`, not `datetime`
+		function: declared            # `strlen()`, not `StrLen()`
 
 qualification:
-	classOfAnotherNamespace: imported
+	otherNamespace:
+		class: imported
 	currentClass: self                # `self::bar()` inside `Foo`, not `Foo::bar()`
 
 imports:
-	order: alphabetical               # classes, functions, constants, each alphabetically
-	class: separate                   # `use A; use B;`
-	function: combined                # `use function a, b;`
-	constant: combined                # `use const A, B;`
+	order:
+		withinKind: alphabetical      # classes, functions, constants, each alphabetically
+	statement:
+		class: separate               # `use A; use B;`
+		function: combined            # `use function a, b;`
+		constant: combined            # `use const A, B;`
 
 spacing:
-	commaAlignment: tabs              # tabs aligning columns may stay
-	afterSemicolon: 'for ($i = 0; $i < 5; $i++)'
-	unaryOperatorsWithSpace: []       # `!$x`, never `! $x`
-	ternaryAlignment: none            # no extra spaces around `?` and `:`
+	comma:
+		alignment: tabs               # tabs aligning columns may stay
+	semicolon:
+		after: 'for ($i = 0; $i < 5; $i++)'
+	unaryOperator:
+		withSpace: []                 # `!$x`, never `! $x`
+	ternary:
+		alignment: none               # no extra spaces around `?` and `:`
 	doubleColon: 'Foo::bar()'
 	objectOperator: '$a->b()'
 	offsetBrackets: '$a[0]'
 	arrayBrackets: '[1, 2]'
-	comment: '// text'                # also `#` and `/* */`
-	commentAfterCode: '$a; // text'   # at least one space
+	comment:
+		marker: '// text'             # also `#` and `/* */`
+		afterCode: '$a; // text'      # at least one space
 
 multiline:
+	split:
+		promotedProperty: always              # however short
+		array: 130
+	shape:
+		chainFirstLinks: sameLine             # `$form->addText()` above `->setRequired()`
+		condition: [perLine, compact]         # `if (` above `$a`, or `if ($a` above `&& $b`
+		array: asWritten                      # items may share a line
 	expressionBelowReturn: forbidden          # `return [`, not `return` above `[`
 	semicolonOnOwnLine: forbidden
-	signatureWithPromotedProperties: split    # however short
-	chainFirstLinks: sameLine                 # `$form->addText()` above `->setRequired()`
-	condition: [perLine, compact]             # `if (` above `$a`, or `if ($a` above `&& $b`
-	array: asWritten                          # items may share a line
-	arrayMaxWidth: 130
 	trailingComma:
 		matchArm: keep
 		closureUse: keep
 
 braces:
-	afterMultilineSignature: nextLineAfterReturnType   # `{` below `): Foo`, otherwise `) {`
-	emptyBody: ownLines                      # not `{}` as in PER Coding Style
-	emptyAnonymousClass: keep
+	position:
+		multilineSignature: nextLineAfterReturnType   # `{` below `): Foo`, otherwise `) {`
+	empty:
+		body: ownLines                       # not `{}` as in PER Coding Style
+		anonymousClass: keep
 	singlelineClosure: keep
 	alternativeSyntax: forbidden             # no `if: ... endif;`
 
@@ -95,18 +111,21 @@ blankLines:
 	betweenCases: lastStatementSetApart      # likewise before `case`
 
 classes:
-	interfaceMethodVisibility: forbidden     # public anyway
-	# the methods then in the order written
-	memberOrder: [traitUse, constant, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]
-	groupedDeclarationAllowedFor: [constant] # `const A = 1, B = 2;` may stay
-	newParentheses: forbidden                # `new Foo`, but `new Foo()->bar()`
+	visibility:
+		interfaceMethod: forbidden           # public anyway
+	members:
+		# the methods then in the order written
+		order: [traitUse, constant, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]
+		groupable: [constant]                # `const A = 1, B = 2;` may stay
+	emptyParentheses:
+		instantiation: forbidden             # `new Foo`, but `new Foo()->bar()`
 
 types:
 	inlineVarAnnotation: forbidden   # becomes `assert()`, risky
-	# a type only where it says something
-	parameter: keep
-	property: keep
-	return: keep
+	declaration:                     # a type only where it says something
+		parameter: keep
+		property: keep
+		return: keep
 
 functions:
 	innerFunctions: forbidden
@@ -122,40 +141,49 @@ cleanup:
 	get_class: forbidden                      # `$o::class`
 
 controlFlow:
-	switchFallThrough: break omitted          # the comment of a fall-through
-	elseAfterExit: keep                       # may stay
+	switch:
+		fallThroughComment: break omitted     # the comment of a fall-through
+	afterExit:
+		else: keep                            # may stay
 
 expressions:
-	comparison: strict                        # risky
-	notEquals: '!='
-	yoda: forbidden                           # `$a === 1`
+	comparison:
+		equality: strict                      # risky
+		notEquals: '!='
+		yoda: forbidden                       # `$a === 1`
+	assignment:
+		addingOne: forbidden                  # `$i++`, not `$i += 1`
+		repeatingTarget: forbidden            # `$a += $b`, not `$a = $a + $b`
+	ternary:
+		returningItsCondition: forbidden      # `$a ?: $b`
+		testingNull: forbidden                # `$a ?? $b`
+	separate:
+		isset: forbidden                      # `isset($a, $b)`
+		unset: forbidden                      # `unset($a, $b);`
 	wordLogicalOperators: forbidden
 	explicitPrecedence: required              # `($a && $b) || $c`
-	incrementByAssignment: forbidden          # `$i++`, not `$i += 1`
-	assignmentRepeatingTarget: forbidden      # `$a += $b`, not `$a = $a + $b`
 	doubleNegation: forbidden                 # `(bool) $a`, not `!!$a`
-	ternaryReturningItsCondition: forbidden   # `$a ?: $b`
-	ternaryTestingNull: forbidden             # `$a ?? $b`
-	separateIssets: forbidden                 # `isset($a, $b)`
-	separateUnsets: forbidden                 # `unset($a, $b);`
 	backticks: forbidden                      # `shell_exec()`
 
 literals:
 	quotes: single
 	backslashes: escaped                      # `"\\d"`, not `"\d"`
-	digitGroupsFrom: 7                        # `1_000_000`
-	fractionDigitGroupsFrom: 20
+	digitGroupsFrom:
+		integer: 7                            # `1_000_000`
+		fraction: 20
 
 comments:
 	singleline: '//'                          # not `#`
 
 phpdoc:
-	annotations: canonicalCase                # `@inheritDoc`, not `@inheritdoc`
+	annotation:
+		casing: canonicalCase                 # `@inheritDoc`, not `@inheritdoc`
 	stars: aligned                            # below the first `*` of `/**`
 	blankLines: trimmed
-	propertyComment: phpdoc                   # not `//` or `/* */`
-	singlelineProperty: singleline            # `/** @var int */`
-	promotedPropertyAnnotation: '@var'        # not `@param` of the constructor
+	property:
+		comment: phpdoc                       # not `//` or `/* */`
+		shape: singleline                     # `/** @var int */`
+		promoted: '@var'                      # not `@param` of the constructor
 	forbiddenAnnotations: [@access, @author, @copyright, @created, @license, @package, @since, @subpackage, @todo, @version]
 	# `Constructor.`, `Name getter.`
 	forbiddenLines: ['~^(?:(?!private|protected|static)\S+ )?(?:con|de)structor\.\z~i', '~^\S+ [gs]etter\.\z~i']
@@ -165,7 +193,8 @@ phpdoc:
 
 correctness:
 	globalStatement: forbidden
-	debugOutput: keep                         # may stay
+	debugOutput:
+		statement: keep                       # may stay
 
 upgrading:
 	php:
@@ -178,5 +207,5 @@ upgrading:
 
 # comments that silence a decision on their line
 suppressionComments:
-	'~\bintentionally\s+[!=]=~': expressions.comparison   # `// intentionally ==`
-	'~^//\s*@\s+\S~': correctness.errorSuppression        # `// @ why`
+	'~\bintentionally\s+[!=]=~': expressions.comparison.equality   # `// intentionally ==`
+	'~^//\s*@\s+\S~': correctness.errorSuppression                 # `// @ why`

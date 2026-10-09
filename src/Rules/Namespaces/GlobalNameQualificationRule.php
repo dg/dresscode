@@ -38,7 +38,7 @@ use PhpSyntax\Nodes\Statement\{DoWhileNode, IfNode, NamespaceNode, UseNode, Whil
  */
 #[RuleInfo(
 	Stage::Structure,
-	decisions: ['qualification.globalFunction', 'qualification.optimizedFunction'],
+	decisions: ['qualification.global.function', 'qualification.optimized.function'],
 	analyses: [PhpDoc::class, PhpSymbols::class, NameResolver::class, NamespacedSymbols::class],
 )]
 final class GlobalNameQualificationRule extends NodeRule
@@ -50,21 +50,21 @@ final class GlobalNameQualificationRule extends NodeRule
 	{
 		return [
 			QualificationPolicy::createQualifiedDecision(
-				'qualification.globalClass',
+				'qualification.global.class',
 				'A class of the global namespace referenced in a namespace, `DateTime`, which a bare name there does not reach',
 				'`use DateTime;` and `DateTime`',
 				'`\DateTime`',
 			),
 			QualificationPolicy::createGlobalDecision(
-				'qualification.globalConstant',
-				'A global constant in a namespace, `PHP_EOL`, those the compiler computes with included unless `optimizedConstant` requires a form for them',
+				'qualification.global.constant',
+				'A global constant in a namespace, `PHP_EOL`, those the compiler computes with included unless `optimized.constant` requires a form for them',
 				'`PHP_EOL`',
 				'`use const PHP_EOL;` and `PHP_EOL`',
 				'`\PHP_EOL`',
 			),
 			QualificationPolicy::createOptimizedDecision(
-				'qualification.optimizedConstant',
-				'A constant of PHP the compiler computes with once it knows the constant is global, `PHP_VERSION_ID` in a condition, `PHP_INT_MAX` in a constant expression; where this key requires a form, it decides such a constant over `globalConstant`',
+				'qualification.optimized.constant',
+				'A constant of PHP the compiler computes with once it knows the constant is global, `PHP_VERSION_ID` in a condition, `PHP_INT_MAX` in a constant expression; where this key requires a form, it decides such a constant over `global.constant`',
 				'`PHP_VERSION_ID`',
 				'`use const PHP_VERSION_ID;`',
 				'`\PHP_VERSION_ID`',

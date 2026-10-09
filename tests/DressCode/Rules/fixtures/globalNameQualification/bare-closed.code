@@ -1,5 +1,5 @@
 <?php
-// {"globalFunction":["bare","backslashed"]}
+// {"global.function":["bare","backslashed"]}
 // namespacedFunctions App\strlen
 // nameResolution certain
 namespace App;

@@ -21,7 +21,7 @@ use function count;
 #[RuleInfo(Stage::Structure, modifiesComments: true)]
 final class FallThroughCommentRule extends NodeRule
 {
-	private const Comment = 'controlFlow.switchFallThrough';
+	private const Comment = 'controlFlow.switch.fallThroughComment';
 
 	private string $comment = 'no break';
 

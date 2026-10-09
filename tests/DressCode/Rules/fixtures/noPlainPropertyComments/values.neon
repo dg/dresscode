@@ -1,2 +1,3 @@
 phpdoc:
-	propertyComment: phpdoc
+	property:
+		comment: phpdoc

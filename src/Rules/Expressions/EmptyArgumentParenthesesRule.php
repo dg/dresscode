@@ -23,9 +23,9 @@ use function count;
 #[RuleInfo(Stage::Structure)]
 final class EmptyArgumentParenthesesRule extends NodeRule
 {
-	private const NamedClass = 'classes.newParentheses';
-	private const AnonymousClass = 'classes.anonymousClassParentheses';
-	private const Attribute = 'classes.attributeParentheses';
+	private const NamedClass = 'classes.emptyParentheses.instantiation';
+	private const AnonymousClass = 'classes.emptyParentheses.anonymousClass';
+	private const Attribute = 'classes.emptyParentheses.attribute';
 
 	private ?string $namedClass = null;
 	private ?string $anonymousClass = null;

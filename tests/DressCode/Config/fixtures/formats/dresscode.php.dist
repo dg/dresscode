@@ -26,7 +26,7 @@ return new Config(
 		'spacing' => ['fnKeyword' => 'fn ($x) => $x'],
 		'types' => ['traversableClasses' => ['Traversable', 'Iterator']],
 		'controlFlow' => ['trailingIfMinStatements' => 3],
-		'file' => ['lineEnding' => 'LF', 'maxLineLength' => 160, 'longLinesExcept' => []],
+		'file' => ['lineEnding' => 'LF', 'lineLength' => ['max' => 160, 'except' => []]],
 		'indentation' => ['unit' => 'tab'],
 	],
 );

@@ -23,7 +23,7 @@ final class ModifierOrderRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('classes.modifierOrder', new Words(['canonical' => '`abstract` or `final`, visibility, set visibility, `static`, `readonly`']), 'The order of the modifiers of a property, a method and a constant')];
+		return [new Decision('classes.modifiers.order', new Words(['canonical' => '`abstract` or `final`, visibility, set visibility, `static`, `readonly`']), 'The order of the modifiers of a property, a method and a constant')];
 	}
 
 

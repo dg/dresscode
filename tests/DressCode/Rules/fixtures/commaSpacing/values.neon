@@ -1,3 +1,4 @@
 spacing:
-	comma: '$a, $b'
-	commaAlignment: tabs
+	comma:
+		around: '$a, $b'
+		alignment: tabs

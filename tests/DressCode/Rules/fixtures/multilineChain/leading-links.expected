@@ -1,5 +1,5 @@
 <?php
-// {"chainFirstLinks": "sameLine"}
+// {"shape.chainFirstLinks": "sameLine"}
 $a->b()->c();
 $a->b()
 	->c();

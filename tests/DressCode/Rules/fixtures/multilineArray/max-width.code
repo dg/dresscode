@@ -1,5 +1,5 @@
 <?php
-// {"arrayMaxWidth": 40}
+// {"split.array": 40}
 $short = ['a' => 1, 'b' => 2];
 $wide = ['first' => 'one', 'second' => 'two', 'third' => 'three'];
 foo(['first' => 'one', 'second' => 'two', 'third' => 'three'], $b);

@@ -1,5 +1,5 @@
 <?php
-// {"interfaceMethodVisibility": "keep"}
+// {"visibility.interfaceMethod": "keep"}
 interface I
 {
 	public function f();

@@ -1,5 +1,5 @@
 <?php
-// {"concatenatedLiterals": "keep", "concatenatedLiteralsOverLines": "joined"}
+// {"concatenatedLiterals.sameLine": "keep", "concatenatedLiterals.overLines": "joined"}
 $a = 'foo' . 'bar';
 $b = 'foo'
 	. 'bar';

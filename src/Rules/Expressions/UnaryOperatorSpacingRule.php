@@ -15,13 +15,13 @@ use function count;
 
 /**
  * No whitespace between a unary operator and its operand, which stay on one line: `!$a`, `-$b`, `$i++`, nor
- * inside a variable variable, `$$a` and `${'a'}`. An operator `spacing.unaryOperatorsWithSpace` names keeps the
+ * inside a variable variable, `$$a` and `${'a'}`. An operator `spacing.unaryOperator.withSpace` names keeps the
  * whitespace written beside it.
  */
 #[RuleInfo(Stage::Formatting)]
 final class UnaryOperatorSpacingRule extends GapRule
 {
-	private const WithSpace = 'spacing.unaryOperatorsWithSpace';
+	private const WithSpace = 'spacing.unaryOperator.withSpace';
 
 	/** @var list<string> */
 	private array $withSpace = [];
@@ -30,7 +30,7 @@ final class UnaryOperatorSpacingRule extends GapRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('spacing.unaryOperator', new Shapes(['compact' => ['-$x', 'no space after the operator']]), 'The whitespace between a unary operator and its operand, which stay on one line, and inside a variable variable, `$$a` and `${\'a\'}`'),
+			new Decision('spacing.unaryOperator.after', new Shapes(['compact' => ['-$x', 'no space after the operator']]), 'The whitespace between a unary operator and its operand, which stay on one line, and inside a variable variable, `$$a` and `${\'a\'}`'),
 			new Decision(self::WithSpace, new Names([
 				'++' => 'increment',
 				'--' => 'decrement',

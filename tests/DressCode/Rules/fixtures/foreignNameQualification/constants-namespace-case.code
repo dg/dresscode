@@ -1,5 +1,5 @@
 <?php
-// {"constantOfAnotherNamespace":"imported"}
+// {"otherNamespace.constant":"imported"}
 namespace App;
 
 $a = \Lib\FOO;

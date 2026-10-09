@@ -1,5 +1,5 @@
 <?php
-// {"optimizedFunction":["imported","backslashed"]}
+// {"optimized.function":["imported","backslashed"]}
 // nameResolution certain
 namespace KeyedStrict {
 	use function in_array;

@@ -1,6 +1,7 @@
 indentation:
 	unit: tab
 	binaryOperator: 0
-	ternary: 1
+	ternary:
+		level: 1
 	switchCase: 1
 	chain: flat

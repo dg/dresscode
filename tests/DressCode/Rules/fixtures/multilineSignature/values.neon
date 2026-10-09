@@ -1,4 +1,6 @@
 multiline:
-	signatureOverMaxLength: split
-	signatureWithPromotedProperties: split
-	signature: perLine
+	split:
+		signature: overMaxLength
+		promotedProperty: always
+	shape:
+		signature: perLine

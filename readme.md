@@ -70,17 +70,17 @@ Target     PHP 8.2 from `composer.json`
 Checking   214 files in /var/www/shop
 
 src/Cart.php
-  error   9:52  Expected a line break before the opening brace.         braces.class
+  error   9:52  Expected a line break before the opening brace.         braces.position.class
   error  10:18  The array must be written `[…]` instead of `array(…)`.  literals.longArraySyntax
-  error  11:22  Expected at least one space before the `==` operator.   spacing.binaryOperator
-  error  11:22  Expected at least one space after the `==` operator.    spacing.binaryOperator
+  error  11:22  Expected at least one space before the `==` operator.   spacing.binaryOperator.around
+  error  11:22  Expected at least one space after the `==` operator.    spacing.binaryOperator.around
 
 FOUND  4 violations, a fix leaves none in 1 file
 ```
 
 Every finding ends with the key of the configuration it breaks. That key is all you need: to give it another
 value, to leave the thing alone with `keep`, to suppress it on one line, or to read what it is for with
-`dresscode explain braces.class`.
+`dresscode explain braces.position.class`.
 A clean run ends with `OK  214 files, all up to the dress code`, and the exit code is the verdict: 0 clean,
 1 violations, syntax errors or a refused baseline, 2 a file that failed, 3 a mistake of the command line or
 of the configuration.
@@ -147,22 +147,25 @@ written, thing by thing: every key names a thing in the code, and its value says
 
 ```neon
 braces:
-	class: nextLine          # the brace of a class on a line of its own
+	position:
+		class: nextLine      # the brace of a class on a line of its own
 spacing:
 	call: compact            # or the shape itself, "foo($a, $b)"
 cleanup:
 	is_null: forbidden       # `$x === null` instead
 ```
 
-What other tools spread over several rules takes two lines here. Global functions written bare, except those
+What other tools spread over several rules takes two keys here. Global functions written bare, except those
 PHP optimizes when it compiles the code, which are imported: in PHP CS Fixer that is
 `native_function_invocation` with three options and `global_namespace_import` turning its backslashes into
 imports, and PHP_CodeSniffer with Slevomat cannot import those alone. In DressCode it reads as it is meant:
 
 ```neon
 qualification:
-	globalFunction: bare
-	optimizedFunction: imported
+	global:
+		function: bare
+	optimized:
+		function: imported
 ```
 
 You do not have to write hundreds of keys either, because the configuration comes down to two questions
@@ -238,7 +241,7 @@ multi-line list ends with a comma. PHP CS Fixer implements PER Coding Style 3.0,
 
 The same with PSR-12 and PHP_CodeSniffer: after `dresscode fix --use psr12`, PHP_CodeSniffer finds 83
 problems over the whole of Laravel, apart from lines longer than 120 characters, which PSR-12 wants a tool
-only to warn about and which DressCode reports once you set `file.longLines: forbidden`. The other way round,
+only to warn about and which DressCode reports once you set `file.lineLength.overMax: forbidden`. The other way round,
 DressCode still finds 772 places after `phpcbf`, among them the visibility of constants, which PSR-12 requires
 and `phpcbf` reports but cannot add.
 
@@ -257,7 +260,7 @@ what exactly may break. Two small files checked against PER Coding Style with a 
 
 ```
 src/Settings.php
-  risky  7:37  Parameter `$name` of `offsetGet()` must be named `$key`, as in `ArrayObject::offsetGet()`.  classes.overridingParameterNames
+  risky  7:37  Parameter `$name` of `offsetGet()` must be named `$key`, as in `ArrayObject::offsetGet()`.  classes.overriding.parameterName
                Risky because a call naming the argument `name:` stops working.
 
 src/Users.php
@@ -537,7 +540,7 @@ final class ShortTernaryForRepeatedConditionRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('expressions.ternaryReturningItsCondition', Domain::state('forbidden'), '`$a ? $a : $b` is `$a ?: $b`')];
+		return [new Decision('expressions.ternary.returningItsCondition', Domain::state('forbidden'), '`$a ? $a : $b` is `$a ?: $b`')];
 	}
 
 
@@ -567,7 +570,7 @@ final class ShortTernaryForRepeatedConditionRule extends NodeRule
 }
 ```
 
-The rule declares the one decision it makes, `expressions.ternaryReturningItsCondition`, which a configuration
+The rule declares the one decision it makes, `expressions.ternary.returningItsCondition`, which a configuration
 sets to `forbidden` and every finding of the rule is reported under. The conditions read like a sentence: it is a ternary, it has a middle part, its condition can be evaluated
 twice without side effects, the middle part is the same code as the condition, both are on one line, there
 is no comment between them, and nobody suppressed the rule here. A question like "is it safe to read this

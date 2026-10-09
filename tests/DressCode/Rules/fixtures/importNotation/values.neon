@@ -1,6 +1,7 @@
 imports:
-	class: separate
-	function: separate
-	constant: separate
+	statement:
+		class: separate
+		function: separate
+		constant: separate
 	groupUse: forbidden
 	groupUseMinNames: 2

@@ -12,7 +12,7 @@ use function is_bool;
 
 
 /**
- * `yes` or `no`, only where the decision is a boolean by its nature (`imports.orderCaseSensitive`), never as
+ * `yes` or `no`, only where the decision is a boolean by its nature (`imports.order.caseSensitive`), never as
  * turning something on.
  */
 final readonly class Flag extends Domain

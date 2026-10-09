@@ -1,2 +1,3 @@
 controlFlow:
-	switchCaseTerminator: ':'
+	switch:
+		caseTerminator: ':'

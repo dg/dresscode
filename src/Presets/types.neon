@@ -4,9 +4,10 @@
 # shortest notation of a type, `never` on a function that only throws, `Stringable` on a class with `__toString()`.
 
 types:
-	parameter: required            # from `@param`, risky
-	property: required             # from `@var`, risky
-	return: required               # from `@return`, `void` where nothing returns, risky
+	declaration:
+		parameter: required        # from `@param`, risky
+		property: required         # from `@var`, risky
+		return: required           # from `@return`, `void` where nothing returns, risky
 	nullable: questionMark         # `?int`, not `int|null`
 	nullPosition: last             # `int|string|null`
 
@@ -17,6 +18,7 @@ phpdoc:
 
 upgrading:
 	syntax:
-		neverReturnType: adopted   # on a function that always throws
+		neverReturnType:
+			function: adopted      # on a function that always throws
 	classes:
 		Stringable: adopted        # on a class with `__toString()`

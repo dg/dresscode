@@ -1,5 +1,5 @@
 <?php
-// {"globalClass":"imported","imports.class":"combined"}
+// {"global.class":"imported","imports.statement.class":"combined"}
 namespace App;
 
 use Exception, Lib\Foo;

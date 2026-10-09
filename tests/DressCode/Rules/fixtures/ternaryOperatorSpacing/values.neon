@@ -1,6 +1,7 @@
 spacing:
-	ternary: '$a ? $b : $c'
-	ternaryAlignment: any
+	ternary:
+		around: '$a ? $b : $c'
+		alignment: any
 multiline:
 	operatorPosition:
 		ternary: keep

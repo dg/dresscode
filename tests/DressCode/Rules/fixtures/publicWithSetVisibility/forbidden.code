@@ -1,5 +1,5 @@
 <?php
-// {"publicWithSetVisibility": "forbidden"}
+// {"visibility.publicWithSet": "forbidden"}
 class A
 {
 	private(set) string $a;

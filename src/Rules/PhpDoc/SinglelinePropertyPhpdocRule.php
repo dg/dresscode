@@ -25,7 +25,7 @@ final class SinglelinePropertyPhpdocRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('phpdoc.singlelineProperty', new Words(['singleline' => 'on one line, `/** @var int */`']), 'A property doc comment with a single line of content')];
+		return [new Decision('phpdoc.property.shape', new Words(['singleline' => 'on one line, `/** @var int */`']), 'A property doc comment with a single line of content')];
 	}
 
 

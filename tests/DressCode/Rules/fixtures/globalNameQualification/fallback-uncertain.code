@@ -1,5 +1,5 @@
 <?php
-// {"globalFunction":"bare"}
+// {"global.function":"bare"}
 namespace App;
 
 use function strlen;

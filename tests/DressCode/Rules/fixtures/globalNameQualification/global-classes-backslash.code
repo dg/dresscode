@@ -1,5 +1,5 @@
 <?php
-// {"globalClass":"backslashed"}
+// {"global.class":"backslashed"}
 namespace App;
 
 use DateTime;

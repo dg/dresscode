@@ -106,17 +106,17 @@ test('explicitPrecedenceRequired and logicalOperatorNotation agree on and/or', f
 test('indentation and multilineCall settle on one shape', function () {
 	interplay([
 		Rules\Whitespace\IndentationRule::class => [
-			'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary' => 1,
-			'indentation.ternaryBelowCondition' => 'aligned', 'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
+			'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary.level' => 1,
+			'indentation.ternary.belowCondition' => 'aligned', 'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
 		],
-		Rules\Functions\MultilineCallRule::class => ['multiline.call' => 'perLine'],
+		Rules\Functions\MultilineCallRule::class => ['multiline.shape.call' => 'perLine'],
 	], "<?php\nfunction f()\n{\n  \$a = \$foo\n  ->bar(\n    1,\n      2,\n    )\n        ->baz();\n}\n", "<?php\nfunction f()\n{\n\t\$a = \$foo\n\t\t->bar(\n\t\t\t1,\n\t\t\t2,\n\t\t)\n\t\t->baz();\n}\n");
 });
 
 
 test('a comma asked for only because another rule spread the array follows that rule', function () {
 	$result = interplay([
-		Rules\Arrays\MultilineArrayRule::class => ['multiline.array' => 'perLine', 'multiline.arrayMaxWidth' => 30],
+		Rules\Arrays\MultilineArrayRule::class => ['multiline.shape.array' => 'perLine', 'multiline.split.array' => 30],
 		Rules\Arrays\TrailingCommaRule::class => [
 			'multiline.trailingComma.array' => 'required', 'multiline.trailingComma.argument' => 'optional',
 			'multiline.trailingComma.parameter' => 'keep', 'multiline.trailingComma.matchArm' => 'keep',
@@ -126,22 +126,22 @@ test('a comma asked for only because another rule spread the array follows that 
 	], "<?php\n\$a = ['alpha' => 1, 'beta' => 2, 'gamma' => 3];\n", "<?php\n\$a = [\n\t'alpha' => 1,\n\t'beta' => 2,\n\t'gamma' => 3,\n];\n");
 	Assert::count(2, $result->violations);
 	$byRule = array_column($result->violations, null, 'decision');
-	Assert::null($byRule['multiline.array']->derivedFrom);
-	Assert::same($byRule['multiline.array']->fingerprint, $byRule['multiline.trailingComma.array']->derivedFrom);
+	Assert::null($byRule['multiline.shape.array']->derivedFrom);
+	Assert::same($byRule['multiline.shape.array']->fingerprint, $byRule['multiline.trailingComma.array']->derivedFrom);
 
 	// the same holds for the arguments of a call, the report standing on the closing bracket whatever the list is
 	$result = interplay([
-		Rules\Functions\MultilineCallRule::class => ['multiline.call' => 'perLine'],
+		Rules\Functions\MultilineCallRule::class => ['multiline.shape.call' => 'perLine'],
 		Rules\Arrays\TrailingCommaRule::class => ['multiline.trailingComma.argument' => 'required'],
 	], "<?php\nfoo(\n\t1, 2);\n", "<?php\nfoo(\n\t1,\n\t2,\n);\n");
 	Assert::count(2, $result->violations);
 	$byRule = array_column($result->violations, null, 'decision');
-	Assert::null($byRule['multiline.call']->derivedFrom);
-	Assert::same($byRule['multiline.call']->fingerprint, $byRule['multiline.trailingComma.argument']->derivedFrom);
+	Assert::null($byRule['multiline.shape.call']->derivedFrom);
+	Assert::same($byRule['multiline.shape.call']->fingerprint, $byRule['multiline.trailingComma.argument']->derivedFrom);
 
 	// an array the file itself spread owes the comma to nobody
 	$result = interplay([
-		Rules\Arrays\MultilineArrayRule::class => ['multiline.array' => 'perLine', 'multiline.arrayMaxWidth' => 'none'],
+		Rules\Arrays\MultilineArrayRule::class => ['multiline.shape.array' => 'perLine', 'multiline.split.array' => 'none'],
 		Rules\Arrays\TrailingCommaRule::class => [
 			'multiline.trailingComma.array' => 'required', 'multiline.trailingComma.argument' => 'optional',
 			'multiline.trailingComma.parameter' => 'keep', 'multiline.trailingComma.matchArm' => 'keep',
@@ -160,8 +160,8 @@ test('a comma asked for only because another rule spread the array follows that 
 			'multiline.trailingComma.list' => 'optional',
 		],
 		Rules\Whitespace\IndentationRule::class => [
-			'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary' => 1,
-			'indentation.ternaryBelowCondition' => 'aligned', 'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
+			'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary.level' => 1,
+			'indentation.ternary.belowCondition' => 'aligned', 'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
 		],
 	], "<?php\n\$a = [\n\t1,\n\t2\n] + [\n\t\t3,\n];\n", "<?php\n\$a = [\n\t1,\n\t2,\n] + [\n\t3,\n];\n");
 	Assert::same([null, null], array_map(fn(Violation $violation) => $violation->derivedFrom, $result->violations));
@@ -202,7 +202,7 @@ test('publicWithSetVisibility and visibilityRequired agree that a set visibility
 	];
 	foreach ($expected as $value => $output) {
 		interplay([
-			Rules\Classes\PublicWithSetVisibilityRule::class => ['classes.publicWithSetVisibility' => $value],
+			Rules\Classes\PublicWithSetVisibilityRule::class => ['classes.visibility.publicWithSet' => $value],
 			Rules\Classes\VisibilityRequiredRule::class => true,
 			Rules\Classes\ModifierOrderRule::class => true,
 		], $code, $output);
@@ -212,7 +212,7 @@ test('publicWithSetVisibility and visibilityRequired agree that a set visibility
 
 test('a comment commentSpacing rewrites keeps its line for the rule that reports it next', function () {
 	$result = interplay([
-		Rules\Comments\CommentSpacingRule::class => ['spacing.comment' => 'spaced'],
+		Rules\Comments\CommentSpacingRule::class => ['spacing.comment.marker' => 'spaced'],
 		Rules\Comments\NoHashCommentsRule::class => true,
 	], "<?php\n\$a = 1;\n#foo\n\$b = 2;\n", "<?php\n\$a = 1;\n// foo\n\$b = 2;\n");
 	Assert::same([3, 3], array_map(fn(Violation $violation) => $violation->line, $result->violations));
@@ -221,16 +221,16 @@ test('a comment commentSpacing rewrites keeps its line for the rule that reports
 
 test('importNotation combines what importOrder then sorts', function () {
 	interplay([
-		Rules\Namespaces\ImportNotationRule::class => ['imports.class' => 'separate', 'imports.function' => 'combined', 'imports.constant' => 'separate'],
-		Rules\Namespaces\ImportOrderRule::class => ['imports.order' => 'alphabetical', 'imports.orderCaseSensitive' => false],
+		Rules\Namespaces\ImportNotationRule::class => ['imports.statement.class' => 'separate', 'imports.statement.function' => 'combined', 'imports.statement.constant' => 'separate'],
+		Rules\Namespaces\ImportOrderRule::class => ['imports.order.withinKind' => 'alphabetical', 'imports.order.caseSensitive' => false],
 	], "<?php\nnamespace A;\nuse function b;\nuse function a;\nuse D, C;\n", "<?php\nnamespace A;\nuse C;\nuse D;\nuse function a, b;\n");
 });
 
 
 test('an import the qualification adds takes the shape importNotation gives it, so that nothing else is reported', function () {
 	$rules = fn(string $shape) => [
-		Rules\Namespaces\GlobalNameQualificationRule::class => ['qualification.optimizedFunction' => ['imported', 'backslashed']],
-		Rules\Namespaces\ImportNotationRule::class => ['imports.class' => 'separate', 'imports.function' => $shape, 'imports.constant' => 'separate'],
+		Rules\Namespaces\GlobalNameQualificationRule::class => ['qualification.optimized.function' => ['imported', 'backslashed']],
+		Rules\Namespaces\ImportNotationRule::class => ['imports.statement.class' => 'separate', 'imports.statement.function' => $shape, 'imports.statement.constant' => 'separate'],
 	];
 	$certain = new Analyses\Registry(new NamespacedSymbols(complete: true));
 	$reported = fn(FileResult $result) => array_values(array_unique(array_map(fn(Violation $violation) => $violation->decision, $result->violations)));
@@ -238,18 +238,18 @@ test('an import the qualification adds takes the shape importNotation gives it, 
 	// one import of the kind fits either shape, so the shape comes from the rule
 	$code = "<?php\nnamespace A;\n\nuse function count;\n\ncount(\$a);\nstrlen(\$b);\n";
 	$result = interplay($rules('combined'), $code, "<?php\nnamespace A;\n\nuse function count, strlen;\n\ncount(\$a);\nstrlen(\$b);\n", $certain);
-	Assert::same(['qualification.optimizedFunction'], $reported($result));
+	Assert::same(['qualification.optimized.function'], $reported($result));
 	$result = interplay($rules('separate'), $code, "<?php\nnamespace A;\n\nuse function count;\nuse function strlen;\n\ncount(\$a);\nstrlen(\$b);\n", $certain);
-	Assert::same(['qualification.optimizedFunction'], $reported($result));
+	Assert::same(['qualification.optimized.function'], $reported($result));
 
 	// and two imports the rule adds itself go into one statement
 	$result = interplay($rules('combined'), "<?php\nnamespace A;\n\nstrlen(\$a);\ncount(\$b);\n", "<?php\nnamespace A;\n\nuse function count, strlen;\n\nstrlen(\$a);\ncount(\$b);\n", $certain);
-	Assert::same(['qualification.optimizedFunction'], $reported($result));
+	Assert::same(['qualification.optimized.function'], $reported($result));
 });
 
 
 test('a call the qualification writes qualified gets its arguments positionally from optimizedCallNotation', function () {
-	$values = ['qualification.globalFunction' => 'bare', 'qualification.optimizedFunction' => 'backslashed'];
+	$values = ['qualification.global.function' => 'bare', 'qualification.optimized.function' => 'backslashed'];
 	interplay(
 		[
 			Rules\Namespaces\GlobalNameQualificationRule::class => $values,
@@ -265,7 +265,7 @@ test('a call the qualification writes qualified gets its arguments positionally 
 test('an attribute written instead of an annotation stands where attributePosition wants it', function () {
 	$rules = [
 		Rules\Upgrading\AttributeForAnnotationRule::class => ['persistent' => 'Acme\Persistent'],
-		Rules\Whitespace\AttributePositionRule::class => ['multiline.attributes' => 'ownLines', 'multiline.parameterAttributes' => 'ownLines'],
+		Rules\Whitespace\AttributePositionRule::class => ['multiline.attributes.declaration' => 'ownLines', 'multiline.attributes.parameter' => 'ownLines'],
 	];
 	interplay($rules, "<?php\nclass P\n{\n\t/** @persistent */\n\tpublic \$lang;\n}\n", "<?php\n\nuse Acme\\Persistent;\n\nclass P\n{\n\t#[Persistent]\n\tpublic \$lang;\n}\n");
 	interplay($rules, "<?php\nclass P\n{\n\t/** @persistent */\n\t#[Other]\n\tpublic \$lang;\n}\n", "<?php\n\nuse Acme\\Persistent;\n\nclass P\n{\n\t#[Other]\n\t#[Persistent]\n\tpublic \$lang;\n}\n");

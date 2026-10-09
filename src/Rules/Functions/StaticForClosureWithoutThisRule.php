@@ -31,7 +31,7 @@ final class StaticForClosureWithoutThisRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('functions.staticClosureWithoutThis', new Words(['required' => 'declared `static`']), 'The `static` keyword of a closure or an arrow function that does not use `$this`')];
+		return [new Decision('functions.staticWithoutThis.closure', new Words(['required' => 'declared `static`']), 'The `static` keyword of a closure or an arrow function that does not use `$this`')];
 	}
 
 

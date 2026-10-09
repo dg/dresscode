@@ -12,14 +12,18 @@ cleanup:
 	classNameNotation: classKeyword            # `self::class`, `static::class`
 
 controlFlow:
-	ifReturningOneOfTwoValues: forbidden       # `return $c ? 1 : 2;`
+	ifReturning:
+		oneOfTwoValues: forbidden              # `return $c ? 1 : 2;`
 
 expressions:
-	assignmentRepeatingTarget: forbidden       # `$a += $b`, not `$a = $a + $b`
-	ternaryTestingNull: forbidden              # `$a ?? $b`
-	ternaryReturningItsCondition: forbidden    # `$a ?: $b`
-	separateIssets: forbidden                  # `isset($a, $b)`
-	separateUnsets: forbidden                  # `unset($a, $b);`
+	assignment:
+		repeatingTarget: forbidden             # `$a += $b`, not `$a = $a + $b`
+	ternary:
+		testingNull: forbidden                 # `$a ?? $b`
+		returningItsCondition: forbidden       # `$a ?: $b`
+	separate:
+		isset: forbidden                       # `isset($a, $b)`
+		unset: forbidden                       # `unset($a, $b);`
 
 literals:
 	longArraySyntax: forbidden                 # `[1, 2]`, not `array(1, 2)`
@@ -36,7 +40,8 @@ upgrading:
 		throwExpression: adopted               # `$a ?? throw new E`
 		cloneWith: adopted                     # `clone($o, [...])`
 		nullsafe: adopted                      # `$a?->b`, not `$a ? $a->b : null`
-		pipe: adopted                          # `$x |> a(...) |> b(...)`, not `b(a($x))`
+		pipe:
+			nestedCalls: adopted               # `$x |> a(...) |> b(...)`, not `b(a($x))`
 		newWithoutWrapping: adopted            # `new Foo()->bar()`, not `(new Foo())->bar()`
 		firstClassCallables: adopted           # `foo(...)`, not `Closure::fromCallable('foo')`
 		octalPrefix: adopted                   # `0o17`, not `017`

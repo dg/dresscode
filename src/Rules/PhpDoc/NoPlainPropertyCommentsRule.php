@@ -22,7 +22,7 @@ final class NoPlainPropertyCommentsRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('phpdoc.propertyComment', new Words(['phpdoc' => 'a doc comment, never a plain comment']), 'The comment describing a property, `/** */` and not `//` or `/* */`')];
+		return [new Decision('phpdoc.property.comment', new Words(['phpdoc' => 'a doc comment, never a plain comment']), 'The comment describing a property, `/** */` and not `//` or `/* */`')];
 	}
 
 

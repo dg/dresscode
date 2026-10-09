@@ -1,2 +1,3 @@
 controlFlow:
-	ifReturningOneOfTwoValues: forbidden
+	ifReturning:
+		oneOfTwoValues: forbidden

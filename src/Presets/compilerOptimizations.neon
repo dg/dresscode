@@ -5,7 +5,9 @@
 # written bare.
 
 qualification:
-	globalFunction: bare                            # `array_map()`, reached by the fallback at run time
-	optimizedFunction: imported                     # `use function strlen;`, its arguments positional
-	globalConstant: bare                            # `E_ALL`
-	optimizedConstant: [imported, backslashed]      # `PHP_VERSION_ID` imported or `\PHP_VERSION_ID`
+	global:
+		function: bare                              # `array_map()`, reached by the fallback at run time
+		constant: bare                              # `E_ALL`
+	optimized:
+		function: imported                          # `use function strlen;`, its arguments positional
+		constant: [imported, backslashed]           # `PHP_VERSION_ID` imported or `\PHP_VERSION_ID`

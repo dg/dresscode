@@ -24,8 +24,8 @@ use PhpSyntax\Nodes\{Member, ParameterNode, SeparatedNodeList, Statement};
 #[RuleInfo(Stage::Formatting)]
 final class AttributePositionRule extends GapRule
 {
-	private const Declaration = 'multiline.attributes';
-	private const Parameter = 'multiline.parameterAttributes';
+	private const Declaration = 'multiline.attributes.declaration';
+	private const Parameter = 'multiline.attributes.parameter';
 
 	private const Declarations = [
 		Statement\ClassNode::class, Statement\InterfaceNode::class, Statement\TraitNode::class, Statement\EnumNode::class,

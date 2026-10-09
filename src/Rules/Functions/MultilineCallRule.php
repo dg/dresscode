@@ -32,7 +32,7 @@ final class MultilineCallRule extends GapRule
 
 	public static function getDecisions(): array
 	{
-		return [new Decision('multiline.call', new Words([
+		return [new Decision('multiline.shape.call', new Words([
 			self::PerLine => 'every argument on a line of its own',
 			self::Frame => 'only the parentheses on lines of their own',
 		]), 'The arguments of a call spread over lines, which is one where an argument or the closing parenthesis begins a line, the closing parenthesis then standing on a line of its own and each comma on the line of its argument')];
@@ -41,7 +41,7 @@ final class MultilineCallRule extends GapRule
 
 	public function configure(Values $values): void
 	{
-		$this->shape = $values->get('multiline.call')->getWord();
+		$this->shape = $values->get('multiline.shape.call')->getWord();
 	}
 
 

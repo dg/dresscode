@@ -24,7 +24,7 @@ final class MultilineChainRule extends GapRule
 {
 	private const OwnLine = 'ownLine';
 	private const SameLine = 'sameLine';
-	private const FirstLinks = 'multiline.chainFirstLinks';
+	private const FirstLinks = 'multiline.shape.chainFirstLinks';
 
 	private string $firstLinks = self::OwnLine;
 
@@ -32,7 +32,7 @@ final class MultilineChainRule extends GapRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('multiline.chain', new Words(['perLine' => 'every link on a line of its own']), 'The links of a chain of method calls and property accesses spread over lines'),
+			new Decision('multiline.shape.chain', new Words(['perLine' => 'every link on a line of its own']), 'The links of a chain of method calls and property accesses spread over lines'),
 			new Decision(self::FirstLinks, new Words([
 				self::OwnLine => 'the first link begins a line too',
 				self::SameLine => 'the links before the first one beginning a line stay on the line the chain starts on',

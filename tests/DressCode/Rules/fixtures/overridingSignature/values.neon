@@ -1,3 +1,4 @@
 classes:
-	overridingSignature: asAncestor
-	overridingParameterNames: asAncestor
+	overriding:
+		signature: asAncestor
+		parameterName: asAncestor

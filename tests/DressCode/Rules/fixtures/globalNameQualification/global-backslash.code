@@ -1,5 +1,5 @@
 <?php
-// {"globalFunction":["backslashed","bare"],"globalConstant":["backslashed","bare"]}
+// {"global.function":["backslashed","bare"],"global.constant":["backslashed","bare"]}
 namespace App;
 
 use function App\local;

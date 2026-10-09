@@ -41,9 +41,9 @@ test('every decision can be explained', function () use ($registry, $resolved) {
 
 
 test('a decision in detail is Markdown, and the console draws it', function () use ($registry, $resolved) {
-	$markdown = new ExplainPrinter($registry, ['nette' => $resolved->decisions])->printDecision($resolved->decisions['qualification.classOfAnotherNamespace']);
+	$markdown = new ExplainPrinter($registry, ['nette' => $resolved->decisions])->printDecision($resolved->decisions['qualification.otherNamespace.class']);
 	Assert::match(<<<'XX'
-		## `qualification.classOfAnotherNamespace`
+		## `qualification.otherNamespace.class`
 
 		A class, interface, trait or enum of a namespace other than that of the file.
 
@@ -59,14 +59,14 @@ test('a decision in detail is Markdown, and the console draws it', function () u
 
 		Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure.
 
-		See <https://dresscode.run/decisions/qualification.classOfAnotherNamespace>
+		See <https://dresscode.run/decisions/qualification.otherNamespace.class>
 
 		XX, $markdown);
 
 	$console = new Console;
 	$console->setColorDepth(ColorDepth::None);
 	Assert::match(<<<'XX'
-		`qualification.classOfAnotherNamespace`
+		`qualification.otherNamespace.class`
 
 		%A%
 
@@ -74,7 +74,7 @@ test('a decision in detail is Markdown, and the console draws it', function () u
 
 		%A%
 
-		See https://dresscode.run/decisions/qualification.classOfAnotherNamespace
+		See https://dresscode.run/decisions/qualification.otherNamespace.class
 
 		XX, Markup::renderMarkdown($console, $markdown));
 });

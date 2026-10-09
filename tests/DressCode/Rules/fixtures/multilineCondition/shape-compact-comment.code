@@ -1,5 +1,5 @@
 <?php
-// {"condition": "compact"}
+// {"shape.condition": "compact"}
 if (
 	// the first condition
 	$a

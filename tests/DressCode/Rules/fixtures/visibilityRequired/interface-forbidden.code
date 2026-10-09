@@ -1,5 +1,5 @@
 <?php
-// {"interfaceMethodVisibility": "forbidden"}
+// {"visibility.interfaceMethod": "forbidden"}
 interface I
 {
 	public function f();

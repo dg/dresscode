@@ -40,22 +40,22 @@ final class PhpCsFixer
 		};
 
 		return [
-			'PhpCsFixerCustomFixers/declare_after_opening_tag' => fn(array $o, Translation $t) => $t->set('file.strictTypesPosition', 'openingTagLine'),
-			'PhpCsFixerCustomFixers/comment_surrounded_by_spaces' => ['spacing.comment' => 'spaced'],
+			'PhpCsFixerCustomFixers/declare_after_opening_tag' => fn(array $o, Translation $t) => $t->set('file.strictTypes.position', 'openingTagLine'),
+			'PhpCsFixerCustomFixers/comment_surrounded_by_spaces' => ['spacing.comment.marker' => 'spaced'],
 			'PhpCsFixerCustomFixers/commented_out_function' => fn(array $o, Translation $t) => $t->setAll([
-				'correctness.debugOutput' => 'commentedOut',
-				'correctness.debugOutputFunctions' => array_values(array_unique($o['functions'] ?? ['print_r', 'var_dump', 'var_export'])),
+				'correctness.debugOutput.statement' => 'commentedOut',
+				'correctness.debugOutput.functions' => array_values(array_unique($o['functions'] ?? ['print_r', 'var_dump', 'var_export'])),
 			]),
 			'PhpCsFixerCustomFixers/no_leading_slash_in_global_namespace' => fn(array $o, Translation $t) => $t->setAll(['qualification.uselessBackslash' => 'forbidden', 'qualification.inFileWithoutNamespace' => 'bare']),
 			'PhpCsFixerCustomFixers/no_superfluous_concatenation' => [
-				'literals.concatenatedLiterals' => 'joined',
-				'literals.concatenatedLiteralsOverLines' => 'keep',
+				'literals.concatenatedLiterals.sameLine' => 'joined',
+				'literals.concatenatedLiterals.overLines' => 'keep',
 			],
 			'PhpCsFixerCustomFixers/no_useless_dirname_call' => ['cleanup.dirnameOfFile' => 'forbidden'],
 			'PhpCsFixerCustomFixers/no_useless_strlen' => ['cleanup.strlenEmptyTest' => 'forbidden'],
 			'PhpCsFixerCustomFixers/numeric_literal_separator' => [
-				'literals.digitGroupsFrom' => 4,
-				'literals.fractionDigitGroupsFrom' => 4,
+				'literals.digitGroupsFrom.integer' => 4,
+				'literals.digitGroupsFrom.fraction' => 4,
 			],
 			'PhpCsFixerCustomFixers/phpdoc_array_style' => fn(array $o, Translation $t) => $t->set('phpdoc.types.array', 'generic'),
 			'PhpCsFixerCustomFixers/phpdoc_type_list' => function (array $o, Translation $t) {
@@ -66,9 +66,9 @@ final class PhpCsFixer
 			'array_syntax' => fn(array $o, Translation $t) => ($o['syntax'] ?? 'short') === 'short'
 				? $t->set('literals.longArraySyntax', 'forbidden')
 				: $t->warn('`array_syntax` with `syntax=long` has no equivalent; DressCode writes the short syntax only.'),
-			'assign_null_coalescing_to_coalesce_equal' => ['expressions.assignmentRepeatingTarget' => 'forbidden'],
+			'assign_null_coalescing_to_coalesce_equal' => ['expressions.assignment.repeatingTarget' => 'forbidden'],
 			'attribute_block_no_spaces' => ['spacing.attribute' => 'compact'],
-			'attribute_empty_parentheses' => fn(array $o, Translation $t) => $t->set('classes.attributeParentheses', ($o['use_parentheses'] ?? false) ? 'required' : 'forbidden'),
+			'attribute_empty_parentheses' => fn(array $o, Translation $t) => $t->set('classes.emptyParentheses.attribute', ($o['use_parentheses'] ?? false) ? 'required' : 'forbidden'),
 			'backtick_to_shell_exec' => ['expressions.backticks' => 'forbidden'],
 			'binary_operator_spaces' => function (array $o, Translation $t) {
 				$default = $o['default'] ?? 'single_space';
@@ -76,8 +76,8 @@ final class PhpCsFixer
 					$t->warn('`binary_operator_spaces` aligns operators; DressCode only keeps an alignment that is already there.');
 				}
 				$t->setAll([
-					'spacing.binaryOperator' => 'spaced',
-					'spacing.binaryOperatorAlignment' => $default === 'single_space' ? 'none' : 'spaces',
+					'spacing.binaryOperator.around' => 'spaced',
+					'spacing.binaryOperator.alignment' => $default === 'single_space' ? 'none' : 'spaces',
 				]);
 			},
 			'blank_line_after_namespace' => fn(array $o, Translation $t) => $t->set('blankLines.afterNamespace', 1),
@@ -97,17 +97,17 @@ final class PhpCsFixer
 				if (($o['functions_opening_brace'] ?? 'next_line_unless_newline_at_signature_end') === 'same_line') {
 					$t->warn('`braces_position` with `functions_opening_brace=same_line` has no equivalent; DressCode puts the brace of a function with its parameters on one line on the next line.');
 				} else {
-					$t->set('braces.function', 'nextLine');
+					$t->set('braces.position.function', 'nextLine');
 				}
 
 				$t->setAll([
-					'braces.afterMultilineSignature' => 'sameLine',
-					'braces.class' => ($o['classes_opening_brace'] ?? 'next_line') === 'same_line' ? 'sameLine' : 'nextLine',
-					'braces.anonymousClass' => ($o['anonymous_classes_opening_brace'] ?? 'same_line') === 'same_line' ? 'sameLine' : 'nextLine',
-					'braces.closure' => ($o['anonymous_functions_opening_brace'] ?? 'same_line') === 'same_line' ? 'sameLine' : 'nextLine',
-					'braces.controlStructure' => ($o['control_structures_opening_brace'] ?? 'same_line') === 'same_line' ? 'sameLine' : 'nextLine',
+					'braces.position.multilineSignature' => 'sameLine',
+					'braces.position.class' => ($o['classes_opening_brace'] ?? 'next_line') === 'same_line' ? 'sameLine' : 'nextLine',
+					'braces.position.anonymousClass' => ($o['anonymous_classes_opening_brace'] ?? 'same_line') === 'same_line' ? 'sameLine' : 'nextLine',
+					'braces.position.closure' => ($o['anonymous_functions_opening_brace'] ?? 'same_line') === 'same_line' ? 'sameLine' : 'nextLine',
+					'braces.position.controlStructure' => ($o['control_structures_opening_brace'] ?? 'same_line') === 'same_line' ? 'sameLine' : 'nextLine',
 					'braces.singlelineClosure' => ($o['allow_single_line_anonymous_functions'] ?? true) ? 'keep' : 'forbidden',
-					'braces.emptyAnonymousClass' => ($o['allow_single_line_empty_anonymous_classes'] ?? true) ? 'keep' : 'ownLines',
+					'braces.empty.anonymousClass' => ($o['allow_single_line_empty_anonymous_classes'] ?? true) ? 'keep' : 'ownLines',
 				]);
 			},
 			'cast_spaces' => fn(array $o, Translation $t) => $t->set('spacing.cast', ($o['space'] ?? 'single') === 'single' ? 'spaced' : 'compact'),
@@ -141,30 +141,30 @@ final class PhpCsFixer
 					$t->setBlankLines('blankLines.beforeDocumentedMember', min($documented), max($documented));
 				}
 			},
-			'class_reference_name_casing' => fn(array $o, Translation $t) => $t->set('builtin.class', 'declared'),
-			'combine_consecutive_issets' => ['expressions.separateIssets' => 'forbidden'],
+			'class_reference_name_casing' => fn(array $o, Translation $t) => $t->set('builtin.casing.class', 'declared'),
+			'combine_consecutive_issets' => ['expressions.separate.isset' => 'forbidden'],
 			'combine_nested_dirname' => ['cleanup.dirnameOfFile' => 'forbidden'],
-			'combine_consecutive_unsets' => ['expressions.separateUnsets' => 'forbidden'],
+			'combine_consecutive_unsets' => ['expressions.separate.unset' => 'forbidden'],
 			'compact_nullable_type_declaration' => ['spacing.typeDeclaration' => 'compact'],
 			'concat_space' => fn(array $o, Translation $t) => $t->set('spacing.concatenation', ($o['spacing'] ?? 'none') === 'one' ? 'spaced' : 'compact'),
-			'constant_case' => fn(array $o, Translation $t) => $t->set('builtin.trueFalseNull', ($o['case'] ?? 'lower') === 'lower' ? 'lowercase' : 'uppercase'),
+			'constant_case' => fn(array $o, Translation $t) => $t->set('builtin.casing.trueFalseNull', ($o['case'] ?? 'lower') === 'lower' ? 'lowercase' : 'uppercase'),
 			'control_structure_braces' => ['braces.bracelessBody' => 'forbidden'],
-			'control_structure_continuation_position' => fn(array $o, Translation $t) => $t->set('braces.continuingKeyword', ($o['position'] ?? 'same_line') === 'next_line' ? 'nextLine' : 'sameLine'),
+			'control_structure_continuation_position' => fn(array $o, Translation $t) => $t->set('braces.position.continuingKeyword', ($o['position'] ?? 'same_line') === 'next_line' ? 'nextLine' : 'sameLine'),
 			'declare_equal_normalize' => fn(array $o, Translation $t) => ($o['space'] ?? 'none') === 'none'
 				? $t->set('spacing.declare', 'compact')
 				: $t->warn('`declare_equal_normalize` with `space=single` has no equivalent; DressCode writes `declare(strict_types=1)` without spaces.'),
 			'declare_parentheses' => ['spacing.declare' => 'compact'],
 			'declare_strict_types' => fn(array $o, Translation $t) => ($o['strategy'] ?? 'enforce') === 'remove'
 				? $t->warn('`declare_strict_types` with `strategy=remove` has no equivalent; DressCode requires the declaration.')
-				: $t->setAll(['file.strictTypes' => 'required', 'file.strictTypesPosition' => 'ownLine']),
+				: $t->setAll(['file.strictTypes.declaration' => 'required', 'file.strictTypes.position' => 'ownLine']),
 			'dir_constant' => ['cleanup.dirnameOfFile' => 'forbidden'],
 			'elseif' => ['controlFlow.elseif' => 'oneWord'],
 			'encoding' => ['file.bom' => 'forbidden'],
 			'escape_implicit_backslashes' => ['literals.backslashes' => 'escaped'],
 			'final_internal_class' => fn(array $o, Translation $t) => $t->setAll(array_filter([
-				'classes.markedInternal' => 'final',
-				'classes.markedInternalAnnotations' => $o['annotation_include'] ?? null,
-				'classes.markedInternalExcept' => $o['annotation_exclude'] ?? null,
+				'classes.markedInternal.class' => 'final',
+				'classes.markedInternal.annotations' => $o['annotation_include'] ?? null,
+				'classes.markedInternal.except' => $o['annotation_exclude'] ?? null,
 			], fn($v) => $v !== null)),
 			'full_opening_tag' => ['file.openingTag' => 'full'],
 			'fully_qualified_strict_types' => function (array $o, Translation $t) {
@@ -223,12 +223,12 @@ final class PhpCsFixer
 				? $t->set('literals.longArraySyntax', 'forbidden')
 				: $t->warn('`list_syntax` with `syntax=long` has no equivalent; DressCode writes the short syntax only.'),
 			'lowercase_cast' => ['builtin.castType' => 'short'],
-			'lowercase_keywords' => ['builtin.keyword' => 'lowercase'],
-			'lowercase_static_reference' => ['builtin.keyword' => 'lowercase'],
-			'magic_constant_casing' => ['builtin.magicConstant' => 'uppercase'],
+			'lowercase_keywords' => ['builtin.casing.keyword' => 'lowercase'],
+			'lowercase_static_reference' => ['builtin.casing.keyword' => 'lowercase'],
+			'magic_constant_casing' => ['builtin.casing.magicConstant' => 'uppercase'],
 			'method_chaining_indentation' => ['indentation.chain' => 'flat'],
 			'method_argument_space' => fn(array $o, Translation $t) => match ($o['on_multiline'] ?? 'ensure_fully_multiline') {
-				'ensure_fully_multiline' => $t->set('multiline.call', 'perLine'),
+				'ensure_fully_multiline' => $t->set('multiline.shape.call', 'perLine'),
 				'ignore' => $t,
 				default => $t->warn("`method_argument_space` with `on_multiline={$o['on_multiline']}` has no equivalent; DressCode never joins a multi-line call into one line."),
 			},
@@ -241,21 +241,21 @@ final class PhpCsFixer
 			},
 			'modernize_types_casting' => ['cleanup.conversionFunctions' => 'forbidden'],
 			'modifier_keywords' => [
-				'classes.memberVisibility' => 'required',
-				'classes.modifierOrder' => 'canonical',
-				'classes.interfaceMethodVisibility' => 'required',
+				'classes.visibility.member' => 'required',
+				'classes.modifiers.order' => 'canonical',
+				'classes.visibility.interfaceMethod' => 'required',
 			],
-			'multiline_promoted_properties' => fn(array $o, Translation $t) => $t->set('multiline.signatureWithPromotedProperties', 'split'),
-			'native_function_casing' => ['builtin.function' => 'declared'],
-			'native_type_declaration_casing' => ['builtin.type' => 'lowercase'],
+			'multiline_promoted_properties' => fn(array $o, Translation $t) => $t->set('multiline.split.promotedProperty', 'always'),
+			'native_function_casing' => ['builtin.casing.function' => 'declared'],
+			'native_type_declaration_casing' => ['builtin.casing.type' => 'lowercase'],
 			'new_expression_parentheses' => ['upgrading.syntax.newWithoutWrapping' => 'adopted'],
 			'new_with_braces' => fn(array $o, Translation $t) => $t->setAll([
-				'classes.newParentheses' => ($o['named_class'] ?? true) ? 'required' : 'forbidden',
-				'classes.anonymousClassParentheses' => ($o['anonymous_class'] ?? true) ? 'required' : 'forbidden',
+				'classes.emptyParentheses.instantiation' => ($o['named_class'] ?? true) ? 'required' : 'forbidden',
+				'classes.emptyParentheses.anonymousClass' => ($o['anonymous_class'] ?? true) ? 'required' : 'forbidden',
 			]),
 			'new_with_parentheses' => fn(array $o, Translation $t) => $t->setAll([
-				'classes.newParentheses' => ($o['named_class'] ?? true) ? 'required' : 'forbidden',
-				'classes.anonymousClassParentheses' => ($o['anonymous_class'] ?? true) ? 'required' : 'forbidden',
+				'classes.emptyParentheses.instantiation' => ($o['named_class'] ?? true) ? 'required' : 'forbidden',
+				'classes.emptyParentheses.anonymousClass' => ($o['anonymous_class'] ?? true) ? 'required' : 'forbidden',
 			]),
 			'native_function_invocation' => function (array $o, Translation $t) {
 				if (($o['scope'] ?? 'all') === 'all') {
@@ -287,7 +287,7 @@ final class PhpCsFixer
 
 				$named = [...$named, ...$o['exclude'] ?? []];
 				if ($named !== []) {
-					$t->warn('`native_function_invocation` names functions one by one (`' . implode('`, `', $named) . '`), which DressCode decides by group; a function named follows `qualification.globalFunction`, or `qualification.optimizedFunction` where the compiler optimizes it.');
+					$t->warn('`native_function_invocation` names functions one by one (`' . implode('`, `', $named) . '`), which DressCode decides by group; a function named follows `qualification.global.function`, or `qualification.optimized.function` where the compiler optimizes it.');
 				}
 
 				// the fixer qualifies with the backslash; a function neither the include nor strict reaches stays as it is
@@ -318,7 +318,7 @@ final class PhpCsFixer
 				// true, false and null are left alone by the rule, so the default exclusion names nothing
 				$named = [...$o['include'] ?? [], ...array_diff($o['exclude'] ?? [], ['null', 'false', 'true'])];
 				if ($named !== []) {
-					$t->warn('`native_constant_invocation` names constants one by one (`' . implode('`, `', $named) . '`), which DressCode decides by group; a constant named follows `qualification.globalConstant`, or `qualification.optimizedConstant` where the compiler computes with it.');
+					$t->warn('`native_constant_invocation` names constants one by one (`' . implode('`, `', $named) . '`), which DressCode decides by group; a constant named follows `qualification.global.constant`, or `qualification.optimized.constant` where the compiler computes with it.');
 				}
 
 				// the fixer qualifies with the backslash
@@ -341,7 +341,7 @@ final class PhpCsFixer
 			'no_alternative_syntax' => ['braces.alternativeSyntax' => 'forbidden'],
 			'no_blank_lines_after_class_opening' => ['blankLines.beforeFirstMember' => 0, 'blankLines.beforeFirstMethod' => 0],
 			'no_blank_lines_after_phpdoc' => fn(array $o, Translation $t) => $t->set('blankLines.afterPhpdoc', 0),
-			'no_break_comment' => fn(array $o, Translation $t) => $t->set('controlFlow.switchFallThrough', $o['comment_text'] ?? 'no break'),
+			'no_break_comment' => fn(array $o, Translation $t) => $t->set('controlFlow.switch.fallThroughComment', $o['comment_text'] ?? 'no break'),
 			'no_closing_tag' => ['file.closingTagAtEnd' => 'forbidden'],
 			'no_empty_comment' => ['comments.empty' => 'forbidden'],
 			'no_empty_phpdoc' => ['phpdoc.empty' => 'forbidden'],
@@ -375,9 +375,9 @@ final class PhpCsFixer
 			'no_leading_namespace_whitespace' => $indentByConfig,
 			'no_multiple_statements_per_line' => ['file.statementsPerLine' => 1],
 			'no_null_property_initialization' => ['classes.untypedPropertyNullInitialization' => 'forbidden'],
-			'no_redundant_readonly_property' => ['classes.impliedModifiers' => 'forbidden'],
+			'no_redundant_readonly_property' => ['classes.modifiers.implied' => 'forbidden'],
 			'no_short_bool_cast' => ['expressions.doubleNegation' => 'forbidden'],
-			'no_singleline_whitespace_before_semicolons' => ['spacing.beforeSemicolon' => 'compact'],
+			'no_singleline_whitespace_before_semicolons' => ['spacing.semicolon.before' => 'compact'],
 			'no_space_around_double_colon' => ['spacing.doubleColon' => 'compact'],
 			'no_spaces_after_function_name' => ['spacing.call' => 'compact'],
 			'no_spaces_around_offset' => ['spacing.offsetBrackets' => 'compact'],
@@ -411,7 +411,7 @@ final class PhpCsFixer
 					$t->warn('`no_unneeded_final_method` with `private_methods=false` keeps `final` on a private method, which DressCode removes anyway.');
 				}
 
-				$t->set('classes.impliedModifiers', 'forbidden');
+				$t->set('classes.modifiers.implied', 'forbidden');
 			},
 			'no_unneeded_curly_braces' => function (array $o, Translation $t) {
 				if ($o['namespaces'] ?? false) {
@@ -421,10 +421,10 @@ final class PhpCsFixer
 			},
 			'no_unreachable_default_argument_value' => ['functions.uselessParameterDefault' => 'forbidden'],
 			'no_unused_imports' => ['imports.unused' => 'forbidden', 'phpdoc.namesUseImports' => true],
-			'no_superfluous_elseif' => fn(array $o, Translation $t) => $t->set('controlFlow.elseifAfterExit', 'forbidden'),
-			'no_useless_else' => ['controlFlow.elseAfterExit' => 'forbidden'],
+			'no_superfluous_elseif' => fn(array $o, Translation $t) => $t->set('controlFlow.afterExit.elseif', 'forbidden'),
+			'no_useless_else' => ['controlFlow.afterExit.else' => 'forbidden'],
 			'no_useless_return' => ['functions.trailingBareReturn' => 'forbidden'],
-			'no_whitespace_before_comma_in_array' => fn(array $o, Translation $t) => $t->set('spacing.comma', 'spaced')->prefer('spacing.commaAlignment', 'any'),
+			'no_whitespace_before_comma_in_array' => fn(array $o, Translation $t) => $t->set('spacing.comma.around', 'spaced')->prefer('spacing.comma.alignment', 'any'),
 			'no_whitespace_in_blank_line' => ['file.trailingWhitespace' => 'forbidden'],
 			'non_printable_character' => function (array $o, Translation $t) {
 				if (!($o['use_escape_sequences_in_strings'] ?? true)) {
@@ -436,7 +436,7 @@ final class PhpCsFixer
 				if (($o['strategy'] ?? 'use_separator') === 'no_separator') {
 					$t->warn('`numeric_literal_separator` with `strategy=no_separator` has no equivalent; DressCode adds the separator.');
 				} else {
-					$t->setAll(['literals.digitGroupsFrom' => 4, 'literals.fractionDigitGroupsFrom' => 4]);
+					$t->setAll(['literals.digitGroupsFrom.integer' => 4, 'literals.digitGroupsFrom.fraction' => 4]);
 				}
 			},
 			'nullable_type_declaration_for_default_null_value' => fn(array $o, Translation $t) => ($o['use_nullable_type_declaration'] ?? true)
@@ -463,11 +463,11 @@ final class PhpCsFixer
 					$order = array_values(array_filter(array_map(fn($kind) => $kinds[$kind] ?? null, $o['order'])));
 					$unknown = array_diff($o['order'], array_keys($kinds));
 					if ($unknown) {
-						$t->warn('The kinds `' . implode('`, `', $unknown) . '` of `ordered_class_elements` have no equivalent in `memberOrder` and were left out.');
+						$t->warn('The kinds `' . implode('`, `', $unknown) . '` of `ordered_class_elements` have no equivalent in `classes.members.order` and were left out.');
 					}
 				}
 
-				$t->setOrder('classes.memberOrder', $order ?: [
+				$t->setOrder('classes.members.order', $order ?: [
 					'traitUse', 'constant', 'publicConstant', 'protectedConstant', 'privateConstant',
 					'publicProperty', 'protectedProperty', 'privateProperty',
 				]);
@@ -486,8 +486,8 @@ final class PhpCsFixer
 					$t->warn('`ordered_imports` with `sort_algorithm=length` has no equivalent; DressCode sorts alphabetically.');
 				}
 				$t->setAll([
-					'imports.order' => $sort === 'none' ? 'groupedByKind' : 'alphabetical',
-					'imports.orderCaseSensitive' => $o['case_sensitive'] ?? false,
+					'imports.order.withinKind' => $sort === 'none' ? 'asWritten' : 'alphabetical',
+					'imports.order.caseSensitive' => $o['case_sensitive'] ?? false,
 				]);
 			},
 			'phpdoc_array_type' => fn(array $o, Translation $t) => $t->set('phpdoc.types.array', 'generic'),
@@ -524,13 +524,13 @@ final class PhpCsFixer
 			'short_scalar_cast' => ['builtin.castType' => 'short'],
 			'simple_to_complex_string_variable' => ['upgrading.php.dollarBraceInterpolation' => 'forbidden'],
 			'single_blank_line_at_eof' => ['file.finalLineEndings' => 1],
-			'single_class_element_per_statement' => fn(array $o, Translation $t) => $t->setAllowed('classes.groupedDeclarationAllowedFor', array_values(array_diff(['constant', 'property', 'traitUse'], array_map(fn(string $e) => match ($e) {
+			'single_class_element_per_statement' => fn(array $o, Translation $t) => $t->setAllowed('classes.members.groupable', array_values(array_diff(['constant', 'property', 'traitUse'], array_map(fn(string $e) => match ($e) {
 				'const' => 'constant',
 				'trait' => 'traitUse',
 				default => $e,
 			}, $o['elements'] ?? ['const', 'property'])))),
 			'single_import_per_statement' => function (array $o, Translation $t) {
-				$t->setAll(['imports.class' => 'separate', 'imports.function' => 'separate', 'imports.constant' => 'separate']);
+				$t->setAll(['imports.statement.class' => 'separate', 'imports.statement.function' => 'separate', 'imports.statement.constant' => 'separate']);
 				if ($o['group_to_single_imports'] ?? true) {
 					$t->set('imports.groupUse', 'forbidden');
 				} else {
@@ -538,7 +538,7 @@ final class PhpCsFixer
 				}
 			},
 			'single_line_after_imports' => ['blankLines.afterImports' => 1],
-			'single_line_comment_spacing' => ['spacing.comment' => 'spaced'],
+			'single_line_comment_spacing' => ['spacing.comment.marker' => 'spaced'],
 			'single_line_comment_style' => fn(array $o, Translation $t) => in_array('hash', $o['comment_types'] ?? ['asterisk', 'hash'], true)
 				? $t->set('comments.singleline', 'slashes')
 				: $t->warn('`single_line_comment_style` without `hash` has no equivalent; DressCode only rewrites the hash comment.'),
@@ -565,22 +565,22 @@ final class PhpCsFixer
 					}
 				}
 			},
-			'single_trait_insert_per_statement' => fn(array $o, Translation $t) => $t->setAllowed('classes.groupedDeclarationAllowedFor', ['constant', 'property']),
+			'single_trait_insert_per_statement' => fn(array $o, Translation $t) => $t->setAllowed('classes.members.groupable', ['constant', 'property']),
 			'space_after_semicolon' => function (array $o, Translation $t) {
 				if ($o['remove_in_empty_for_expressions'] ?? false) {
 					$t->warn('`space_after_semicolon` with `remove_in_empty_for_expressions=true` removes the space in an empty expression of a `for`, which DressCode does not tell apart.');
 				}
-				$t->set('spacing.afterSemicolon', 'spaced');
+				$t->set('spacing.semicolon.after', 'spaced');
 			},
 			'spaces_inside_parentheses' => fn(array $o, Translation $t) => ($o['space'] ?? 'none') === 'none'
 				? $t->set('spacing.parentheses', 'compact')
 				: $t->warn('`spaces_inside_parentheses` with `space=single` has no equivalent; DressCode writes no space inside parentheses.'),
-			'standardize_increment' => ['expressions.incrementByAssignment' => 'forbidden'],
-			'standardize_not_equals' => ['expressions.notEquals' => 'exclamation'],
+			'standardize_increment' => ['expressions.assignment.addingOne' => 'forbidden'],
+			'standardize_not_equals' => ['expressions.comparison.notEquals' => 'exclamation'],
 			'statement_indentation' => $indentByConfig,
-			'static_lambda' => ['functions.staticClosureWithoutThis' => 'required'],
-			'static_private_method' => ['classes.staticMethodWithoutThis' => 'required'],
-			'strict_comparison' => ['expressions.comparison' => 'strict'],
+			'static_lambda' => ['functions.staticWithoutThis.closure' => 'required'],
+			'static_private_method' => ['functions.staticWithoutThis.method' => 'required'],
+			'strict_comparison' => ['expressions.comparison.equality' => 'strict'],
 			'strict_param' => ['correctness.strictComparisonArgument' => 'required'],
 			'string_implicit_backslashes' => function (array $o, Translation $t) {
 				$modes = [$o['double_quoted'] ?? 'escape', $o['heredoc'] ?? 'escape', $o['single_quoted'] ?? 'unescape'];
@@ -590,15 +590,15 @@ final class PhpCsFixer
 				$t->set('literals.backslashes', 'escaped');
 			},
 			'string_length_to_empty' => ['cleanup.strlenEmptyTest' => 'forbidden'],
-			'switch_case_semicolon_to_colon' => ['controlFlow.switchCaseTerminator' => 'colon'],
+			'switch_case_semicolon_to_colon' => ['controlFlow.switch.caseTerminator' => 'colon'],
 			'switch_case_space' => ['spacing.switchCase' => 'compact'],
 			'switch_continue_to_break' => ['correctness.continueInSwitch' => 'forbidden'],
 			'ternary_operator_spaces' => [
-				'spacing.ternary' => 'spaced',
-				'spacing.ternaryAlignment' => 'any',
+				'spacing.ternary.around' => 'spaced',
+				'spacing.ternary.alignment' => 'any',
 			],
-			'ternary_to_elvis_operator' => ['expressions.ternaryReturningItsCondition' => 'forbidden'],
-			'ternary_to_null_coalescing' => ['expressions.ternaryTestingNull' => 'forbidden'],
+			'ternary_to_elvis_operator' => ['expressions.ternary.returningItsCondition' => 'forbidden'],
+			'ternary_to_null_coalescing' => ['expressions.ternary.testingNull' => 'forbidden'],
 			'trailing_comma_in_multiline' => function (array $o, Translation $t) {
 				$elements = $o['elements'] ?? ['arrays'];
 				if (in_array('array_destructuring', $elements, true)) {
@@ -615,15 +615,15 @@ final class PhpCsFixer
 				$t->setAll(array_fill_keys(array_values(array_intersect_key($places, array_flip($elements))), 'required'));
 			},
 			'trim_array_spaces' => ['spacing.arrayBrackets' => 'compact'],
-			'unary_operator_spaces' => fn(array $o, Translation $t) => $t->setAll(['spacing.unaryOperator' => 'compact'] + (($o['only_dec_inc'] ?? false) ? ['spacing.unaryOperatorsWithSpace' => ['!', '-', '+', '~', '@']] : [])),
+			'unary_operator_spaces' => fn(array $o, Translation $t) => $t->setAll(['spacing.unaryOperator.after' => 'compact'] + (($o['only_dec_inc'] ?? false) ? ['spacing.unaryOperator.withSpace' => ['!', '-', '+', '~', '@']] : [])),
 			'visibility_required' => [
-				'classes.memberVisibility' => 'required',
-				'classes.modifierOrder' => 'canonical',
-				'classes.interfaceMethodVisibility' => 'required',
+				'classes.visibility.member' => 'required',
+				'classes.modifiers.order' => 'canonical',
+				'classes.visibility.interfaceMethod' => 'required',
 			],
 			'whitespace_after_comma_in_array' => fn(array $o, Translation $t) => $t->setAll([
-				'spacing.comma' => 'spaced',
-				'spacing.commaAlignment' => ($o['ensure_single_space'] ?? false) ? 'none' : 'any',
+				'spacing.comma.around' => 'spaced',
+				'spacing.comma.alignment' => ($o['ensure_single_space'] ?? false) ? 'none' : 'any',
 			]),
 		];
 	}

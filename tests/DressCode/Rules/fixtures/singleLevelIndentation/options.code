@@ -1,5 +1,5 @@
 <?php
-// {"singleLevelInComments": false}
+// {"singleLevel.comment": false}
 function f(): void
 {
 			// a note put beside the code, left alone

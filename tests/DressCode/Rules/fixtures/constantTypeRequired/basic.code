@@ -1,6 +1,6 @@
 <?php
 // risky
-// {"constant": "required"}
+// {"declaration.constant": "required"}
 class A
 {
 	public const NAME = "a";

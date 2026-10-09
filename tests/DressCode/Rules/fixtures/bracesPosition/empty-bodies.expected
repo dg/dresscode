@@ -1,5 +1,5 @@
 <?php
-// {"emptyBody": "sameLine", "emptyAnonymousClass": "sameLine"}
+// {"empty.body": "sameLine", "empty.anonymousClass": "sameLine"}
 class MyException extends RuntimeException {}
 interface Marker {}
 final class Point

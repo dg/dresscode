@@ -1,6 +1,6 @@
 <?php
 // lineLength 40
-// {"arrayMaxWidth": 40}
+// {"split.array": 40}
 $list = [
 	11,
 	12,

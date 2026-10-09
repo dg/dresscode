@@ -1,5 +1,5 @@
 <?php
-// {"condition": "keep"}
+// {"shape.condition": "keep"}
 if ($a
 	&& $b) {
 }

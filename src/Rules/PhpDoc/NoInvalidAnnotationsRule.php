@@ -25,10 +25,10 @@ use function in_array;
 #[RuleInfo(Stage::Structure, analyses: [PhpDoc::class])]
 final class NoInvalidAnnotationsRule extends NodeRule
 {
-	private const MissingParameter = 'phpdoc.paramOfMissingParameter';
-	private const DuplicateReturn = 'phpdoc.duplicateReturn';
-	private const DuplicateVar = 'phpdoc.duplicateVar';
-	private const Empty = 'phpdoc.emptyAnnotation';
+	private const MissingParameter = 'phpdoc.annotation.paramOfMissingParameter';
+	private const DuplicateReturn = 'phpdoc.annotation.duplicateReturn';
+	private const DuplicateVar = 'phpdoc.annotation.duplicateVar';
+	private const Empty = 'phpdoc.annotation.empty';
 
 
 	public static function getDecisions(): array

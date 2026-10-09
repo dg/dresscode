@@ -26,7 +26,7 @@ final class UselessTernaryOperatorRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('expressions.ternaryOfTrueAndFalse', Domain::state('forbidden'), '`$a > 1 ? true : false` is the condition itself, where it is a boolean')];
+		return [new Decision('expressions.ternary.ofTrueAndFalse', Domain::state('forbidden'), '`$a > 1 ? true : false` is the condition itself, where it is a boolean')];
 	}
 
 
