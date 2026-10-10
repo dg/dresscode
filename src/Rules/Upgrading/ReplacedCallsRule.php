@@ -215,7 +215,14 @@ final class ReplacedCallsRule extends NodeRule
 		CallTemplate $template,
 	): string
 	{
-		return $pattern->describeAccess($access, $node) . ' is replaced by ' . Violation::formatCode($template->code);
+		return self::describeReplacement($pattern->describeAccess($access, $node), $template);
+	}
+
+
+	/** `Method `Acme\Order::pay()` is replaced by `$order->settle()``, as the messages say it. */
+	private static function describeReplacement(string $member, CallTemplate $template): string
+	{
+		return $member . ' is replaced by ' . Violation::formatCode($template->code);
 	}
 
 
@@ -285,7 +292,7 @@ final class ReplacedCallsRule extends NodeRule
 		if ($access !== null && $entry !== null && !$this->replacedMembers->has($access, $types)) {
 			$context->report(
 				$callable->literal,
-				$entry[0]->describe($access->kind) . ' is replaced by ' . Violation::formatCode($entry[1]->code) . ', but no expression stands for a callable value.',
+				self::describeReplacement($entry[0]->describe($access->kind), $entry[1]) . ', but no expression stands for a callable value.',
 				fixable: false,
 			);
 		}
@@ -462,7 +469,7 @@ final class ReplacedCallsRule extends NodeRule
 			return;
 		}
 
-		if ($rewrite->report($node->name, $entry->pattern->describe(MemberKind::Constructor) . ' is replaced by ' . Violation::formatCode($template->code), $context)) {
+		if ($rewrite->report($node->name, self::describeReplacement($entry->pattern->describe(MemberKind::Constructor), $template), $context)) {
 			assert($new instanceof NewNode);
 			$group = (new Builder)->fragment(AttributeGroupNode::class, '#[' . $node->name->text . ($new->arguments->text ?? '') . ']');
 			$node->replaceWith($group->items->getItems()[0]->withoutEdgeTrivia());
@@ -479,7 +486,7 @@ final class ReplacedCallsRule extends NodeRule
 			$kind = $node->modifiers->static ? MemberKind::StaticMethod : MemberKind::Method;
 			$context->report(
 				$node->name,
-				$entry[0]->describe($kind) . ' is replaced by ' . Violation::formatCode($entry[1]->code) . ', but a declaration is nothing an expression could stand for.',
+				self::describeReplacement($entry[0]->describe($kind), $entry[1]) . ', but a declaration is nothing an expression could stand for.',
 				fixable: false,
 			);
 		}
@@ -534,7 +541,7 @@ final class ReplacedCallsRule extends NodeRule
 				$arguments = (new Builder)->arguments($values);
 				$bound = $arguments->findArgument(null, 0);
 				return [
-					$known[0]->describe($access->kind) . ' is replaced by ' . Violation::formatCode(($template ?? $known[1])->code),
+					self::describeReplacement($known[0]->describe($access->kind), $template ?? $known[1]),
 					$template,
 					new ArgumentBindings($bound === null ? [] : ['value' => $bound]),
 					$arguments,
@@ -569,7 +576,7 @@ final class ReplacedCallsRule extends NodeRule
 		return $entry === null
 			? null
 			: [
-				$entry[0]->describe(MemberKind::Method) . ' is replaced by ' . Violation::formatCode($entry[1]->code),
+				self::describeReplacement($entry[0]->describe(MemberKind::Method), $entry[1]),
 				$entry[1],
 				$bindings[spl_object_id($entry[0])],
 				$call->arguments,
