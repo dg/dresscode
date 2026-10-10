@@ -136,6 +136,7 @@ final class ForbiddenMembersRule extends NodeRule
 				&& ($entry[0]->arguments === null || ($arguments !== null && ($arguments->isPartialApplication()
 					? $entry[0]->arguments->takesAnyArguments()
 					: $entry[0]->arguments->bind($arguments, $types->findParameters($access), $types) !== null))),
+			specificFirst: $arguments !== null,
 		);
 		if ($entry === null) {
 			return false;
@@ -181,7 +182,9 @@ final class ForbiddenMembersRule extends NodeRule
 
 		$types = $context->getAnalysis(Types::class);
 		$call = MagicCall::find($node, $use, $values, $types);
-		$entry = $call === null ? null : array_find($entries, fn(array $entry) => $call->bind($entry[0], $types) !== null);
+		$entry = $call === null
+			? null
+			: MemberMaps::findDecidingEntry($entries, $types, fn(array $entry) => $call->bind($entry[0], $types) !== null, specificFirst: true);
 		if ($entry !== null) {
 			$context->report(
 				$node instanceof PropertyFetchNode ? $node->name : $node->openBracket,
@@ -238,7 +241,11 @@ final class ForbiddenMembersRule extends NodeRule
 		$types = $context->getAnalysis(Types::class);
 		$kind = $node->modifiers->static ? MemberKind::StaticProperty : MemberKind::Property;
 		foreach ($declared as [$name, $at]) {
-			$entry = array_find($this->map->getEntries(strtolower($name)), fn(array $entry) => $entry[0]->matchesPropertyDeclaration($class, $name, $types));
+			$entry = MemberMaps::findDecidingEntry(
+				$this->map->getEntries(strtolower($name)),
+				$types,
+				fn(array $entry) => $entry[0]->matchesPropertyDeclaration($class, $name, $types),
+			);
 			if ($entry !== null) {
 				$context->report($at, $entry[0]->describe($kind) . " is forbidden$entry[1].", fixable: false);
 			}

@@ -9,6 +9,8 @@
 28: Method `Acme\Url::text()` is forbidden: ask `getText()`.
 29: Method `Acme\Registry::__get()` is forbidden: call `get()`.
 30: Method `Acme\Registry::offsetSet()` is forbidden: call `add()`.
-31: Method `Acme\Url::getScheme()` is forbidden: there is no replacement.
-32: Method `Acme\Url::getUser()` is forbidden: there is no replacement, credentials in a URL should not be used.
+31: Method `Acme\Registry::offsetSet()` is forbidden: call `set()`.
+32: Method `Acme\Registry::offsetSet()` is forbidden: call `add()`.
 33: Method `Acme\Url::getScheme()` is forbidden: there is no replacement.
+34: Method `Acme\Url::getUser()` is forbidden: there is no replacement, credentials in a URL should not be used.
+35: Method `Acme\Url::getScheme()` is forbidden: there is no replacement.
