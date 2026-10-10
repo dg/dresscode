@@ -296,33 +296,27 @@ final class ConfigResolver
 	{
 		$own = array_filter($decisions, fn(ResolvedDecision $decision) => $decision->decision->kind !== DecisionKind::Parameter);
 		$effective = $ruleReason === null ? array_filter($own, fn(ResolvedDecision $decision) => $decision->inactive === null) : [];
-		$reasons = $ruleReason === null ? [] : [$ruleReason];
-		foreach ($ruleReason === null ? $own : [] as $decision) {
-			if (!in_array($decision->inactive, $reasons, true)) {
-				$reasons[] = $decision->inactive;
-			}
-		}
 		$asked = array_keys(array_filter($own, function (ResolvedDecision $decision): bool {
 			$top = $decision->layers[count($decision->layers) - 1] ?? null;
 			return $top?->origin?->isProject() === true && !$top->isKept();
 		}));
 		$info = RuleInfo::of($class);
-		if ($asked !== [] && $reasons === [InactiveReason::Types]) {
+		if ($asked !== [] && $ruleReason === InactiveReason::Types) {
 			throw new ConfigurationException($this->typesAvailable
 				? "Decision `$asked[0]` needs the types of the code; set `typeAnalysis: phpstan` in the configuration and install `phpstan/phpstan` beside DressCode."
 				: "Decision `$asked[0]` needs the types of the code, but `phpstan/phpstan` is not installed beside DressCode.", docs: 'types#enable');
-		} elseif ($asked !== [] && $reasons === [InactiveReason::Php]) {
+		} elseif ($asked !== [] && $ruleReason === InactiveReason::Php) {
 			$this->warnings[$class] = "Decision `$asked[0]` needs PHP {$info->requires['php']} and the target is $phpTarget; skipped.";
-		} elseif ($asked !== [] && $reasons === [InactiveReason::Package]) {
+		} elseif ($asked !== [] && $ruleReason === InactiveReason::Package) {
 			$this->warnings[$class] = "Decision `$asked[0]` needs " . ($this->project->findUnmetRequirement($info->getRequiredPackages()) ?? throw new \LogicException)->describe() . '; skipped.';
 		}
 
 		[$reason, $message] = match (true) {
 			$effective !== [] && array_any($effective, fn(ResolvedDecision $decision) => $values->isSelected($decision->decision->path)) => [null, null],
 			$effective !== [] => [InactiveReason::Narrowed, 'the run is narrowed to other decisions'],
-			$reasons === [InactiveReason::Php] => [InactiveReason::Php, "it needs PHP {$info->requires['php']} and the target is $phpTarget"],
-			$reasons === [InactiveReason::Package] => [InactiveReason::Package, 'it needs a package the project does not have'],
-			$reasons === [InactiveReason::Types] => [InactiveReason::Types, $this->typesAvailable
+			$ruleReason === InactiveReason::Php => [InactiveReason::Php, "it needs PHP {$info->requires['php']} and the target is $phpTarget"],
+			$ruleReason === InactiveReason::Package => [InactiveReason::Package, 'it needs a package the project does not have'],
+			$ruleReason === InactiveReason::Types => [InactiveReason::Types, $this->typesAvailable
 				? 'it needs the types of the code and the configuration sets no types'
 				: 'it needs the types of the code and phpstan/phpstan is not installed beside DressCode'],
 			array_any($own, fn(ResolvedDecision $decision) => $decision->layers !== []) => [InactiveReason::TurnedOff, 'its decisions are `keep`'],
