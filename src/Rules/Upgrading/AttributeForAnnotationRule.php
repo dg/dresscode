@@ -103,7 +103,7 @@ final class AttributeForAnnotationRule extends NodeRule
 		$kept = $codes = [];
 		foreach ($tree->children as $child) {
 			$attribute = $child instanceof PhpDocTagNode ? $this->map->findAttribute($child, $node, $context) : null;
-			if ($attribute === null || AnnotationReplacement::has($node->attributes, $attribute->class)) {
+			if ($attribute === null || AnnotationReplacement::hasAttribute($node->attributes, $attribute->class)) {
 				$kept[] = $child;
 				continue;
 			}

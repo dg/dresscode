@@ -125,10 +125,10 @@ test('the engine reports a gap under the decision of the claim that decided it',
 	$next = $comma->getNext() ?? throw new LogicException;
 	$rule = new SpacingRule;
 
-	$fixer->takeSpace(new DecidedClaim($rule, Space::Single, $comma, Claim::singleSpace()->withDecision('spacing.call'), null, 'after'), $comma, $next, '');
+	$fixer->acceptSpace(new DecidedClaim($rule, Space::Single, $comma, Claim::singleSpace()->withDecision('spacing.call'), null, 'after'), $comma, $next, '');
 	Assert::false($context->hasReports(), 'a claim of a decision narrowed away');
 
-	$fixer->takeSpace(new DecidedClaim($rule, Space::Single, $comma, Claim::singleSpace()->withDecision('spacing.comma.around'), null, 'after'), $comma, $next, '');
+	$fixer->acceptSpace(new DecidedClaim($rule, Space::Single, $comma, Claim::singleSpace()->withDecision('spacing.comma.around'), null, 'after'), $comma, $next, '');
 	Assert::count(1, $context->takeReports());
 	Assert::same(' ', $comma->getTrailingSpace());
 });

@@ -92,13 +92,7 @@ final class Markup
 	 */
 	public static function formatDocsLink(Console $console, string $docs): string
 	{
-		return self::formatLink($console, self::DocsUrl . $docs);
-	}
-
-
-	private static function formatLink(Console $console, string $url): string
-	{
-		return $console->color('gray', 'See ' . $console->link($url));
+		return $console->color('gray', 'See ' . $console->link(self::DocsUrl . $docs));
 	}
 
 

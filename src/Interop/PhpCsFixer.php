@@ -172,7 +172,7 @@ final class PhpCsFixer
 					$t->warn('`fully_qualified_strict_types` without `import_symbols` shortens a name only to an import the file has; DressCode adds the import it lacks.');
 				}
 
-				$t->qualifyShape(['class' => 'imported', 'globalClass' => 'keep']);
+				$t->setQualificationShape(['class' => 'imported', 'globalClass' => 'keep']);
 			},
 			'function_declaration' => function (array $o, Translation $t) {
 				if (($o['closure_function_spacing'] ?? 'one') === 'none') {
@@ -202,7 +202,7 @@ final class PhpCsFixer
 					false => 'backslashed',
 					null => 'keep',
 				};
-				$t->qualifyShape([
+				$t->setQualificationShape([
 					'globalClass' => $shape(array_key_exists('import_classes', $o) ? $o['import_classes'] : true),
 					'globalFunction' => $shape(array_key_exists('import_functions', $o) ? $o['import_functions'] : false),
 					'globalConstant' => $shape(array_key_exists('import_constants', $o) ? $o['import_constants'] : false),
@@ -296,8 +296,8 @@ final class PhpCsFixer
 					$shape['globalFunction'] = 'backslashed';
 				}
 
-				$t->qualifyShape($shape);
-				$t->qualifyFallback($fallback);
+				$t->setQualificationShape($shape);
+				$t->setQualificationFallback($fallback);
 			},
 			'native_constant_invocation' => function (array $o, Translation $t) {
 				if (($o['scope'] ?? 'all') === 'all') {
@@ -322,8 +322,8 @@ final class PhpCsFixer
 				}
 
 				// the fixer qualifies with the backslash
-				$t->qualifyShape(['optimizedConstant' => 'backslashed']);
-				$t->qualifyFallback($fallback);
+				$t->setQualificationShape(['optimizedConstant' => 'backslashed']);
+				$t->setQualificationFallback($fallback);
 			},
 			'no_alias_functions' => function (array $o, Translation $t) {
 				$sets = $o['sets'] ?? null;

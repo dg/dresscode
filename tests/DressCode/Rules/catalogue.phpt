@@ -74,19 +74,19 @@ test('every claim of a gap rule is made for a decision of that rule', function (
 		public array $decided = [];
 
 
-		public function takeLine(Gaps\DecidedClaim $claim, ?Token $previous, Token $token, ?Space $space, bool $broken): void
+		public function acceptLine(Gaps\DecidedClaim $claim, ?Token $previous, Token $token, ?Space $space, bool $broken): void
 		{
 			$this->decided[] = $claim->claim->decisionLine ?? $claim->claim->decision;
 		}
 
 
-		public function takeSpace(Gaps\DecidedClaim $claim, Token $previous, Token $token, string $found): void
+		public function acceptSpace(Gaps\DecidedClaim $claim, Token $previous, Token $token, string $found): void
 		{
 			$this->decided[] = $claim->claim->decision;
 		}
 
 
-		public function takeBlankLines(Gaps\DecidedClaim $claim, Token $token, array $range, int $from, int $found, ?Trivia $below): void
+		public function acceptBlankLines(Gaps\DecidedClaim $claim, Token $token, array $range, int $from, int $found, ?Trivia $below): void
 		{
 			$this->decided[] = $below === null ? $claim->claim->decision : $claim->claim->decisionBelowComment ?? $claim->claim->decision;
 		}

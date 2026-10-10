@@ -78,7 +78,7 @@ final class ReplacedCallsRule extends NodeRule
 	private MemberMap $map;
 
 	/** @var MemberMap<mixed>  which renames a member a callable reaches, its arguments being no shape to bind */
-	private MemberMap $members;
+	private MemberMap $replacedMembers;
 
 	/** @var MemberMap<mixed>  whose property is not what a magic method stands for */
 	private MemberMap $forbiddenMembers;
@@ -87,7 +87,7 @@ final class ReplacedCallsRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->map = MemberMap::fromValues($values, self::Map, CallTemplate::fromEntry(...));
-		$this->members = MemberMap::fromValues($values, MemberMapGrammar::ReplacedMembers);
+		$this->replacedMembers = MemberMap::fromValues($values, MemberMapGrammar::ReplacedMembers);
 		$this->forbiddenMembers = MemberMap::fromValues($values, MemberMapGrammar::ForbiddenMembers);
 	}
 
@@ -186,7 +186,7 @@ final class ReplacedCallsRule extends NodeRule
 		$types = $context->getAnalysis(Types::class);
 		$access = $types->findMemberAccess($node);
 		$entry = $access === null ? null : $this->findEntry($access, $types);
-		if ($access === null || $entry === null || $this->members->has($access, $types)) {
+		if ($access === null || $entry === null || $this->replacedMembers->has($access, $types)) {
 			return;
 		}
 
@@ -282,7 +282,7 @@ final class ReplacedCallsRule extends NodeRule
 		$types = $context->getAnalysis(Types::class);
 		$access = $types->findCallableMethodAccess($node);
 		$entry = $access === null ? null : $this->findEntry($access, $types);
-		if ($access !== null && $entry !== null && !$this->members->has($access, $types)) {
+		if ($access !== null && $entry !== null && !$this->replacedMembers->has($access, $types)) {
 			$context->report(
 				$callable->literal,
 				$entry[0]->describe($access->kind) . ' is replaced by ' . Violation::formatCode($entry[1]->code) . ', but no expression stands for a callable value.',

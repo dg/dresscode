@@ -50,7 +50,7 @@ final class AnnotationReplacement
 	 * one of another class of that short name counts too.
 	 * @param  PlainNodeList<AttributeGroupNode>  $attributes
 	 */
-	public static function has(PlainNodeList $attributes, string $class): bool
+	public static function hasAttribute(PlainNodeList $attributes, string $class): bool
 	{
 		$shortName = QualifiedNames::stripNamespace($class);
 		return array_any(

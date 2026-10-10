@@ -25,7 +25,7 @@ final readonly class UnmetRequirement
 
 
 	/** What the rule needs and what the project has instead, as a message says it. */
-	public function describe(): string
+	public function format(): string
 	{
 		$needs = '`' . ($this->constraint === '*' ? $this->package : "$this->package $this->constraint") . '`';
 		return $this->current === null

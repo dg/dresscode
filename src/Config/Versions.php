@@ -32,7 +32,7 @@ final class Versions
 	}
 
 
-	/** Whether the string is one released version, `8.2` or `3.3.1`, and not a constraint or a branch. */
+	/** Whether the string is a version, `8.2`, `3.3.1` or `8.2-beta1`, and not a constraint or a branch. */
 	public static function isVersion(string $version): bool
 	{
 		try {

@@ -113,7 +113,7 @@ final class ImportOrderRule extends NodeRule
 			}
 		}
 
-		$changed = array_filter($run, fn(UseNode $stmt, int $i) => self::writeCanonically($stmt) !== $statements[$i], ARRAY_FILTER_USE_BOTH);
+		$changed = array_filter($run, fn(UseNode $stmt, int $i) => self::spellCanonically($stmt) !== $statements[$i], ARRAY_FILTER_USE_BOTH);
 		$last = $run[count($run) - 1]->getLastToken();
 		if ($changed === [] || $run[0]->getFirstToken()->hasCommentUpTo($last) || $last->hasTrailingComment()) {
 			return;
@@ -184,7 +184,7 @@ final class ImportOrderRule extends NodeRule
 	}
 
 
-	private static function writeCanonically(UseNode $stmt): string
+	private static function spellCanonically(UseNode $stmt): string
 	{
 		$items = array_map(fn($item) => $item->text, $stmt->items->getItems());
 		return $stmt->isGroup()

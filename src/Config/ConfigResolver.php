@@ -308,7 +308,7 @@ final class ConfigResolver
 		} elseif ($asked !== [] && $ruleReason === InactiveReason::Php) {
 			$this->warnings[$class] = "Decision `$asked[0]` needs PHP {$info->requires['php']} and the target is $phpTarget; skipped.";
 		} elseif ($asked !== [] && $ruleReason === InactiveReason::Package) {
-			$this->warnings[$class] = "Decision `$asked[0]` needs " . ($this->project->findUnmetRequirement($info->getRequiredPackages()) ?? throw new \LogicException)->describe() . '; skipped.';
+			$this->warnings[$class] = "Decision `$asked[0]` needs " . ($this->project->findUnmetRequirement($info->getRequiredPackages()) ?? throw new \LogicException)->format() . '; skipped.';
 		}
 
 		[$reason, $message] = match (true) {

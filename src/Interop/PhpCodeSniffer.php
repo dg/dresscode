@@ -366,8 +366,8 @@ final class PhpCodeSniffer
 
 				// only an include left empty names every constant
 				if (($o['include'] ?? []) === []) {
-					$t->qualifyShape(['globalConstant' => 'backslashed']);
-					$t->qualifyFallback(['constant' => 'qualified']);
+					$t->setQualificationShape(['globalConstant' => 'backslashed']);
+					$t->setQualificationFallback(['constant' => 'qualified']);
 				}
 			},
 			'SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions' => function (array $o, Translation $t) {
@@ -378,11 +378,11 @@ final class PhpCodeSniffer
 
 				// the special functions join the include, and only an include left empty names every function
 				if ($o['includeSpecialFunctions'] ?? false) {
-					$t->qualifyShape(['optimizedFunction' => 'backslashed']);
-					$t->qualifyFallback(['optimizedFunction' => 'qualified']);
+					$t->setQualificationShape(['optimizedFunction' => 'backslashed']);
+					$t->setQualificationFallback(['optimizedFunction' => 'qualified']);
 				} elseif (($o['include'] ?? []) === []) {
-					$t->qualifyShape(['globalFunction' => 'backslashed']);
-					$t->qualifyFallback(['function' => 'qualified']);
+					$t->setQualificationShape(['globalFunction' => 'backslashed']);
+					$t->setQualificationFallback(['function' => 'qualified']);
 				}
 			},
 			// a comma between the names of a group use is one too
@@ -395,7 +395,7 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly' => function (array $o, Translation $t) {
 				// a global name written with the backslash may stay so, and a bare one may stand on the fallback, or else it is imported
 				$shape = fn(bool $backslash) => $backslash ? 'keep' : 'imported';
-				$t->qualifyShape([
+				$t->setQualificationShape([
 					'class' => 'imported',
 					'globalClass' => ($o['allowFullyQualifiedGlobalClasses'] ?? false) ? 'keep' : 'imported',
 					'function' => 'imported',
@@ -407,7 +407,7 @@ final class PhpCodeSniffer
 					'function' => ($o['allowFallbackGlobalFunctions'] ?? true) ? null : 'qualified',
 					'constant' => ($o['allowFallbackGlobalConstants'] ?? true) ? null : 'qualified',
 				]);
-				$t->qualifyFallback($fallback);
+				$t->setQualificationFallback($fallback);
 				if (($o['allowPartialUses'] ?? true) === false) {
 					$t->warn('`SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly` with `allowPartialUses=false` has no equivalent; DressCode lets a partial name stand.');
 				}
@@ -431,7 +431,7 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator' => ['expressions.assignment.repeatingTarget' => 'forbidden'],
 			'SlevomatCodingStandard.Operators.SpreadOperatorSpacing' => ['spacing.spread' => 'compact'],
 			'SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall' => ['cleanup.__invoke' => 'forbidden'],
-			'SlevomatCodingStandard.PHP.OptimizedFunctionsWithoutUnpacking' => fn(array $o, Translation $t) => $t->optimizeCalls(),
+			'SlevomatCodingStandard.PHP.OptimizedFunctionsWithoutUnpacking' => fn(array $o, Translation $t) => $t->markCallsOptimized(),
 			'SlevomatCodingStandard.PHP.RequireExplicitAssertion' => ['types.inlineVarAnnotation' => 'forbidden'],
 			'SlevomatCodingStandard.PHP.RequireNowdoc' => ['literals.heredocWithoutInterpolation' => 'forbidden'],
 			'SlevomatCodingStandard.PHP.ShortList' => ['literals.longArraySyntax' => 'forbidden'],

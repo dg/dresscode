@@ -83,7 +83,7 @@ final class MultilineSignatureRule extends GapRule
 		}
 
 		return $gap->once($node, function () use ($node, $gap): ?array {
-			[$because, $decision] = $this->reasonToSplit($node, $gap) ?? [null, null];
+			[$because, $decision] = $this->findReasonToSplit($node, $gap) ?? [null, null];
 			return $because === null
 				? null
 				: [
@@ -99,7 +99,7 @@ final class MultilineSignatureRule extends GapRule
 	 * width counts a tab to the next stop of the style, and waits for the line to be indented.
 	 * @return ?array{string, string}
 	 */
-	private function reasonToSplit(FunctionNode|MethodNode $node, Gap $gap): ?array
+	private function findReasonToSplit(FunctionNode|MethodNode $node, Gap $gap): ?array
 	{
 		$open = $node->openParen;
 		if ($this->multiline && NodeHelpers::isMultiline($open, $node->parameters->getItems(), $node->closeParen)) {

@@ -18,7 +18,7 @@ use function in_array;
 
 
 /**
- * PHP 8.5 soft-deprecated `__sleep()` and `__wakeup()` in favour of `__serialize()` and `__unserialize()`.
+ * PHP 8.5 soft-deprecated `__sleep()` and `__wakeup()` in favor of `__serialize()` and `__unserialize()`.
  * The rule reports them and rewrites neither: `__sleep()` returns the names of the properties to keep and
  * `__serialize()` their values, and a class that gains `__serialize()` writes a serialized form the old one
  * cannot read, so every payload already stored somewhere stops loading. What to do with those is the

@@ -28,7 +28,7 @@ final readonly class Fixer implements Sink
 	}
 
 
-	public function takeLine(DecidedClaim $claim, ?Token $previous, Token $token, ?Space $space, bool $breaksLine): void
+	public function acceptLine(DecidedClaim $claim, ?Token $previous, Token $token, ?Space $space, bool $breaksLine): void
 	{
 		$wanted = $claim->wanted;
 		if (($wanted === Line::Next) === $breaksLine) {
@@ -123,7 +123,7 @@ final readonly class Fixer implements Sink
 	}
 
 
-	public function takeSpace(DecidedClaim $claim, Token $previous, Token $token, string $found): void
+	public function acceptSpace(DecidedClaim $claim, Token $previous, Token $token, string $found): void
 	{
 		$wanted = $claim->wanted;
 		if ($wanted === Space::None && $found !== '' && !self::canAdjoin($previous, $token)) {
@@ -161,7 +161,7 @@ final readonly class Fixer implements Sink
 
 
 	/** The count is moved to the nearest bound of the range and reported under the claim it violates. */
-	public function takeBlankLines(DecidedClaim $claim, Token $token, array $range, int $from, int $found, ?Trivia $below): void
+	public function acceptBlankLines(DecidedClaim $claim, Token $token, array $range, int $from, int $found, ?Trivia $below): void
 	{
 		[$min, $max] = $range;
 		if ($found >= $min && ($max === null || $found <= $max)) {

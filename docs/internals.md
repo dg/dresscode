@@ -361,7 +361,7 @@ What no fixture catches, the runs over the corpus do: the whitespace fuzz damage
   range of both and says so; the places of the trailing comma and the counts of `blankLines`, split across several
   foreign rules, depend on it. A value only preferred, or `keep`, gives way to one set, and values that contradict each
   other leave the decision out with a warning. How far a name is written out the foreign tools decide on two axes, the form of a qualified name
-  (`qualifyShape()`) and whether a global name stands bare (`qualifyFallback()`), which `Translation` puts together
+  (`setQualificationShape()`) and whether a global name stands bare (`setQualificationFallback()`), which `Translation` puts together
   into the decisions of `qualification`. A foreign rule turned off makes the requirements it stands for `keep`, unless
   another foreign rule the configuration may run stands for them too.
 - The tables also answer the reverse question, which decisions a foreign name stands for (`Translator::findPaths()`),

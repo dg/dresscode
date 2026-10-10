@@ -242,7 +242,7 @@ final class Translation
 	 * `optimizedFunction` and `optimizedConstant` of one the compiler works with.
 	 * @param  array<string, string>  $shapes
 	 */
-	public function qualifyShape(array $shapes): static
+	public function setQualificationShape(array $shapes): static
 	{
 		$this->qualification['shape'] = $shapes + $this->qualification['shape'];
 		return $this;
@@ -255,7 +255,7 @@ final class Translation
 	 * computes with.
 	 * @param  array<string, string>  $fallbacks
 	 */
-	public function qualifyFallback(array $fallbacks): static
+	public function setQualificationFallback(array $fallbacks): static
 	{
 		$this->qualification['fallback'] = $fallbacks + $this->qualification['fallback'];
 		return $this;
@@ -263,7 +263,7 @@ final class Translation
 
 
 	/** A call the compiler optimizes is written in the form the optimization takes, its arguments included. */
-	public function optimizeCalls(): static
+	public function markCallsOptimized(): static
 	{
 		$this->qualification['optimizedCalls'] = true;
 		return $this;

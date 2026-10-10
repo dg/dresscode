@@ -24,10 +24,10 @@ interface Sink
 	 * @param ?Space $space  what the whitespace must be when the two tokens come to share a line
 	 * @param bool $breaksLine  whether a line break stands in the gap
 	 */
-	function takeLine(DecidedClaim $claim, ?Token $previous, Token $token, ?Space $space, bool $breaksLine): void;
+	function acceptLine(DecidedClaim $claim, ?Token $previous, Token $token, ?Space $space, bool $breaksLine): void;
 
 	/** @param DecidedClaim<Space> $claim */
-	function takeSpace(DecidedClaim $claim, Token $previous, Token $token, string $found): void;
+	function acceptSpace(DecidedClaim $claim, Token $previous, Token $token, string $found): void;
 
 	/**
 	 * @param DecidedClaim<int|array{int, ?int}> $claim  the claim the count violates, when it does
@@ -35,5 +35,5 @@ interface Sink
 	 * @param int $from  where the counted line endings begin in the leading trivia of the token
 	 * @param ?Trivia $below  the comment the counted line endings stand below, null when they are the gap's own
 	 */
-	function takeBlankLines(DecidedClaim $claim, Token $token, array $range, int $from, int $found, ?Trivia $below): void;
+	function acceptBlankLines(DecidedClaim $claim, Token $token, array $range, int $from, int $found, ?Trivia $below): void;
 }

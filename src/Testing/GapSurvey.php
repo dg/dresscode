@@ -39,19 +39,19 @@ final class GapSurvey implements Sink
 	}
 
 
-	public function takeLine(DecidedClaim $claim, ?Token $previous, Token $token, ?Space $space, bool $breaksLine): void
+	public function acceptLine(DecidedClaim $claim, ?Token $previous, Token $token, ?Space $space, bool $breaksLine): void
 	{
 		$this->gaps[] = ['line', $token, $claim->wanted];
 	}
 
 
-	public function takeSpace(DecidedClaim $claim, Token $previous, Token $token, string $found): void
+	public function acceptSpace(DecidedClaim $claim, Token $previous, Token $token, string $found): void
 	{
 		$this->gaps[] = ['space', $token, $claim->wanted];
 	}
 
 
-	public function takeBlankLines(DecidedClaim $claim, Token $token, array $range, int $from, int $found, ?Trivia $below): void
+	public function acceptBlankLines(DecidedClaim $claim, Token $token, array $range, int $from, int $found, ?Trivia $below): void
 	{
 		$this->gaps[] = ['blank', $token, $range, $found, $token->leadingTrivia[$from + $found] ?? null];
 	}

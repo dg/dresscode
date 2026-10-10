@@ -89,7 +89,7 @@ final class ReplacedClassesRule extends NodeRule
 				$context,
 				$find,
 				$types === null ? null : fn(NameNode $name) => $this->isForbiddenAccess($name, $types),
-				fn(string $class, ?array $member) => $types !== null && $member !== null && $this->isBannedMember($class, ...$member, types: $types)
+				fn(string $class, ?array $member) => $types !== null && $member !== null && $this->isForbiddenMember($class, ...$member, types: $types)
 					? false
 					: $find($class),
 				$this->annotations,
@@ -123,7 +123,7 @@ final class ReplacedClassesRule extends NodeRule
 
 
 	/** The same for a member of the class a doc comment names. */
-	private function isBannedMember(string $class, string $member, MemberKind $kind, Types $types): bool
+	private function isForbiddenMember(string $class, string $member, MemberKind $kind, Types $types): bool
 	{
 		return $this->forbiddenMembers->getEntries(strtolower($member)) !== []
 			&& $this->forbiddenMembers->has(new MemberAccess($kind, $member, [$class], $types->hasMember($class, $kind, $member)), $types);

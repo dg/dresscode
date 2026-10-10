@@ -27,19 +27,19 @@ use PhpSyntax\Nodes\Statement\{DeclareNode, InlineHtmlNode};
 final class StrictTypesRequiredRule extends NodeRule
 {
 	private const StrictTypes = 'file.strictTypes.declaration';
-	private const Placement = 'file.strictTypes.position';
+	private const Position = 'file.strictTypes.position';
 
 	private bool $strictTypes = true;
 
 	/** ownLine, openingTagLine or null for keep */
-	private ?string $placement = 'ownLine';
+	private ?string $position = 'ownLine';
 
 
 	public static function getDecisions(): array
 	{
 		return [
 			new Decision(self::StrictTypes, Domain::state('required'), 'Every file of PHP code declares `strict_types=1` as its first statement, a file starting with markup excepted'),
-			new Decision(self::Placement, new Words([
+			new Decision(self::Position, new Words([
 				'openingTagLine' => '`<?php declare(strict_types=1);` on one line',
 				'ownLine' => 'on the line below the opening tag',
 			]), 'Where the declaration of `strict_types` stands'),
@@ -50,7 +50,7 @@ final class StrictTypesRequiredRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->strictTypes = !$values->isKept(self::StrictTypes);
-		$this->placement = $values->find(self::Placement)?->getWord();
+		$this->position = $values->find(self::Position)?->getWord();
 	}
 
 
@@ -113,12 +113,12 @@ final class StrictTypesRequiredRule extends NodeRule
 			$onOwnLine = $onOwnLine || $trivia->isLineEnding();
 		}
 
-		if ($this->placement === 'ownLine' && !$onOwnLine) {
-			if ($context->report($token, '`declare(strict_types=1)` must be on the line after the opening tag.', decision: self::Placement, trivia: $tag)) {
+		if ($this->position === 'ownLine' && !$onOwnLine) {
+			if ($context->report($token, '`declare(strict_types=1)` must be on the line after the opening tag.', decision: self::Position, trivia: $tag)) {
 				self::moveToOwnLine($token, $tag, $context->style->lineEnding);
 			}
-		} elseif ($this->placement === 'openingTagLine' && $onOwnLine) {
-			if ($context->report($token, '`declare(strict_types=1)` must be on the line of the opening tag.', decision: self::Placement, trivia: $tag)) {
+		} elseif ($this->position === 'openingTagLine' && $onOwnLine) {
+			if ($context->report($token, '`declare(strict_types=1)` must be on the line of the opening tag.', decision: self::Position, trivia: $tag)) {
 				self::moveToTagLine($first, $tag);
 			}
 		}
@@ -133,7 +133,7 @@ final class StrictTypesRequiredRule extends NodeRule
 	{
 		$eol = $context->style->lineEnding;
 		$statement = (new Builder)->statement('declare(strict_types=1);');
-		$text = rtrim($tag->text) . ($this->placement === 'openingTagLine' ? ' ' : $eol);
+		$text = rtrim($tag->text) . ($this->position === 'openingTagLine' ? ' ' : $eol);
 		$statement->setEdgeTrivia([new Trivia(Trivia::OpenTag, $text)], [Trivia::fromText($eol)]);
 		$rest = array_slice($token->leadingTrivia, 1);
 		if (($rest[0] ?? null)?->is(Trivia::Whitespace) && !$tag->isLineEnding()) {

@@ -55,13 +55,13 @@ final class ReplacedMembersRule extends NodeRule
 	private MemberMap $map;
 
 	/** @var MemberMap<mixed>  whose keys take a call by the shape of its arguments, which is more specific than its name */
-	private MemberMap $calls;
+	private MemberMap $replacedCalls;
 
 
 	public function configure(Values $values): void
 	{
 		$this->map = MemberMap::fromValues($values, self::Map, MemberTarget::fromCode(...));
-		$this->calls = MemberMap::fromValues($values, MemberMapGrammar::ReplacedCalls);
+		$this->replacedCalls = MemberMap::fromValues($values, MemberMapGrammar::ReplacedCalls);
 	}
 
 
@@ -110,7 +110,7 @@ final class ReplacedMembersRule extends NodeRule
 		if (
 			$access === null
 			|| $entry === null
-			|| (($node instanceof MethodCallNode || $node instanceof StaticMethodCallNode) && $this->calls->findCall($node, $context) !== null)
+			|| (($node instanceof MethodCallNode || $node instanceof StaticMethodCallNode) && $this->replacedCalls->findCall($node, $context) !== null)
 		) {
 			return; // the shape of the arguments of a call is more specific than its name
 		}

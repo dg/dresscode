@@ -182,7 +182,7 @@ final class Resolver
 		$line = $closeTag || $inMarkup ? null : self::resolveLine($after['line'] ?? null, $before['line'] ?? null);
 		$claim = self::resolveSpace($after['space'] ?? null, $before['space'] ?? null);
 		if ($line !== null) {
-			$this->sink->takeLine($line, $previous, $token, $claim?->wanted, $breaksLine);
+			$this->sink->acceptLine($line, $previous, $token, $claim?->wanted, $breaksLine);
 			if (($line->wanted === Line::Next) !== $breaksLine) {
 				return; // the whitespace of the line, or its blank lines, are the business of the next pass
 			}
@@ -190,7 +190,7 @@ final class Resolver
 
 		if ($space !== null) {
 			if ($claim !== null) {
-				$this->sink->takeSpace($claim, $previous, $token, $space);
+				$this->sink->acceptSpace($claim, $previous, $token, $space);
 			}
 		} elseif ($breaksLine) {
 			$this->resolveBlankLines($after['blankLines'] ?? null, $before['blankLines'] ?? null, $token, blankBelowComment: false);
@@ -478,7 +478,7 @@ final class Resolver
 
 		[$from, $found] = $run;
 		$claim = $before !== null && ($after === null || !self::within($found, $before->wanted)) ? $before : $after;
-		$this->sink->takeBlankLines($claim, $token, $range, $from, $found, $run[2] ?? null);
+		$this->sink->acceptBlankLines($claim, $token, $range, $from, $found, $run[2] ?? null);
 	}
 
 
