@@ -1,6 +1,4 @@
-11: Method `getParts()` must declare the return type `(Countable&Traversable)|null`, as in `Lib\Widget::getParts()`, but that type cannot be written.
-18: Method `draw()` must declare the parameter `$width`, as in `Lib\Widget::draw()`, but the parameter is required.
-18: Method `draw()` must declare the parameter `$styles`, as in `Lib\Widget::draw()`, but its default cannot be written.
-24: Method `attach()` must declare the parameter `$parts`, as in `Lib\Widget::attach()`, but its type `(Countable&Traversable)|null` cannot be written.
-30: Parameter `$text` of `setCaption()` must be named `$caption`, as in `Lib\Widget::setCaption()`, but a closure in the body may use it by its name.
-39: Parameter `$size` of `setWidth()` must be named `$width`, as in `Lib\Widget::setWidth()`, but `$width` is taken in the method.
+11: Method `draw()` must declare the parameter `$width`, as in `Lib\Widget::draw()`, but the parameter is required.
+11: Method `draw()` must declare the parameter `$styles`, as in `Lib\Widget::draw()`, but its default cannot be written.
+17: Parameter `$text` of `setCaption()` must be named `$caption`, as in `Lib\Widget::setCaption()`, but a closure in the body may use it by its name.
+26: Parameter `$size` of `setWidth()` must be named `$width`, as in `Lib\Widget::setWidth()`, but `$width` is taken in the method.

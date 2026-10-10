@@ -1,0 +1,3 @@
+12: Method `getParts()` must declare the return type `(Countable&Traversable)|null`, as in `Lib\Widget::getParts()`.
+	risky TypeUnknown: the body may return a value of another type
+18: Method `attach()` must declare the parameter `$parts`, as in `Lib\Widget::attach()`.

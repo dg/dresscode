@@ -285,14 +285,20 @@ final class OverridingSignatureRule extends NodeRule
 	}
 
 
-	/** Whether the type is one PHP writes as it is described: no generic, no static of a class. */
+	/**
+	 * Whether the type is one PHP writes as it is described: no generic, no static of a class, parentheses only around
+	 * an intersection in a union.
+	 */
 	private static function canWriteType(string $type): bool
 	{
-		return !preg_match('~[<>(){}\[\]\s]~', $type);
+		return !preg_match('~[<>(){}\[\]\s]~', (string) preg_replace('~\(([\w\\\\]+(?:&[\w\\\\]+)+)\)~', '$1', $type));
 	}
 
 
-	/** The type as code, its classes spelled the way the file writes them, a union of one type with null written with ?. */
+	/**
+	 * The type as code, its classes spelled the way the file writes them, an intersection in a union in parentheses, a
+	 * union of one type with null written with ?.
+	 */
 	private static function writeType(string $type, Node $at, RuleContext $context): string
 	{
 		$members = [];
@@ -301,8 +307,12 @@ final class OverridingSignatureRule extends NodeRule
 				fn(string $name) => in_array(strtolower($name), NativeType::Builtin, true)
 					? strtolower($name)
 					: CodeWriter::writeClass($name, $at, $context),
-				explode('&', $member),
+				explode('&', trim($member, '()')),
 			));
+		}
+
+		if (count($members) > 1) {
+			$members = array_map(fn(string $member) => str_contains($member, '&') ? "($member)" : $member, $members);
 		}
 
 		$others = array_values(array_diff($members, ['null']));
