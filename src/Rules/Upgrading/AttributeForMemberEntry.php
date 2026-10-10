@@ -19,7 +19,7 @@ use PhpSyntax\Nodes\AttributeGroupNode;
  */
 final readonly class AttributeForMemberEntry
 {
-	public const Path = 'upgrading.libraries.attributeForMember';
+	public const Path = MemberMapGrammar::AttributeForMember;
 
 	private const ClassPattern = '\\\\?(\w+(?:\\\\\w+)*)';
 

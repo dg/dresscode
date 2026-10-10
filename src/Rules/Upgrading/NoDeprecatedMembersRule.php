@@ -26,7 +26,7 @@ use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, Property
 #[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class], reads: self::Maps)]
 final class NoDeprecatedMembersRule extends NodeRule
 {
-	private const Maps = ['upgrading.libraries.replacedMembers', 'upgrading.libraries.replacedCalls', 'upgrading.libraries.forbiddenMembers'];
+	private const Maps = [MemberMapGrammar::ReplacedMembers, MemberMapGrammar::ReplacedCalls, MemberMapGrammar::ForbiddenMembers];
 
 	/** @var MemberMap<null>  the keys of every map of members, which the libraries say more of than a deprecation */
 	private MemberMap $mapped;

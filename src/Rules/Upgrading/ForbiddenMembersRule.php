@@ -43,7 +43,7 @@ use PhpSyntax\Nodes\Scalar\StringNode;
 )]
 final class ForbiddenMembersRule extends NodeRule
 {
-	public const Map = 'upgrading.libraries.forbiddenMembers';
+	public const Map = MemberMapGrammar::ForbiddenMembers;
 
 	/** @var MemberMap<string>  the entries with the end of the message */
 	private MemberMap $map;

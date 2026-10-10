@@ -26,7 +26,7 @@ use function strlen;
  */
 final readonly class AnnotationMap
 {
-	public const Path = 'upgrading.libraries.attributeForAnnotation';
+	public const Path = MemberMapGrammar::AttributeForAnnotation;
 
 	/** The declarations whose doc comment holds the annotations. */
 	public const Declarations = [

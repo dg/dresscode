@@ -45,7 +45,7 @@ use function count, is_int, strlen;
 )]
 final class ReplacedFunctionsRule extends NodeRule
 {
-	public const Map = 'upgrading.libraries.replacedFunctions';
+	public const Map = MemberMapGrammar::ReplacedFunctions;
 
 	/** @var array<string, array{string, string}>  lowercased replaced name => the replaced and the replacing name as the project spells them */
 	private array $functions = [];

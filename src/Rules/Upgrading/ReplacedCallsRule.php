@@ -67,14 +67,12 @@ use function count;
 	Stage::Structure,
 	typesRequired: true,
 	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedCalls'],
-	reads: [self::ReplacedMembers, self::ForbiddenMembers],
+	reads: [MemberMapGrammar::ReplacedMembers, MemberMapGrammar::ForbiddenMembers],
 	analyses: [Types::class, NameResolver::class],
 )]
 final class ReplacedCallsRule extends NodeRule
 {
-	public const Map = 'upgrading.libraries.replacedCalls';
-	private const ReplacedMembers = 'upgrading.libraries.replacedMembers';
-	private const ForbiddenMembers = 'upgrading.libraries.forbiddenMembers';
+	public const Map = MemberMapGrammar::ReplacedCalls;
 
 	/** @var MemberMap<CallTemplate> */
 	private MemberMap $map;
@@ -89,8 +87,8 @@ final class ReplacedCallsRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->map = MemberMap::fromValues($values, self::Map, CallTemplate::fromEntry(...));
-		$this->members = MemberMap::fromValues($values, self::ReplacedMembers);
-		$this->forbiddenMembers = MemberMap::fromValues($values, self::ForbiddenMembers);
+		$this->members = MemberMap::fromValues($values, MemberMapGrammar::ReplacedMembers);
+		$this->forbiddenMembers = MemberMap::fromValues($values, MemberMapGrammar::ForbiddenMembers);
 	}
 
 

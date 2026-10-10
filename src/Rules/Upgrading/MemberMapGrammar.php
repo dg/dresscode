@@ -22,6 +22,17 @@ final class MemberMapGrammar
 	/** The value by which a later layer of the configuration withdraws an entry of an earlier one. */
 	public const Keep = 'keep';
 
+	/** the paths of the maps of `upgrading.libraries` */
+	public const ReplacedClasses = 'upgrading.libraries.replacedClasses';
+	public const ReplacedFunctions = 'upgrading.libraries.replacedFunctions';
+	public const ReplacedMembers = 'upgrading.libraries.replacedMembers';
+	public const ReplacedCalls = 'upgrading.libraries.replacedCalls';
+	public const ForbiddenClasses = 'upgrading.libraries.forbiddenClasses';
+	public const ForbiddenFunctions = 'upgrading.libraries.forbiddenFunctions';
+	public const ForbiddenMembers = 'upgrading.libraries.forbiddenMembers';
+	public const AttributeForAnnotation = 'upgrading.libraries.attributeForAnnotation';
+	public const AttributeForMember = 'upgrading.libraries.attributeForMember';
+
 
 	/**
 	 * A map of members, `Class::name`, `Class::name()`, `Class::$name` or `Class::name($argument, ...)`, to values of

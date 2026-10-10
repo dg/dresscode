@@ -26,7 +26,7 @@ use PhpSyntax\Nodes\NameNode;
 )]
 final class ForbiddenFunctionsRule extends NodeRule
 {
-	public const Map = 'upgrading.libraries.forbiddenFunctions';
+	public const Map = MemberMapGrammar::ForbiddenFunctions;
 
 	/** @var list<array{string, ?string}>  regular expression, what to do instead */
 	private array $functions = [];

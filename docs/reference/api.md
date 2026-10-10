@@ -718,6 +718,15 @@ final readonly class MemberMap
 ```php
 final class MemberMapGrammar
 	public const Keep = 'keep'
+	public const ReplacedClasses = 'upgrading.libraries.replacedClasses'
+	public const ReplacedFunctions = 'upgrading.libraries.replacedFunctions'
+	public const ReplacedMembers = 'upgrading.libraries.replacedMembers'
+	public const ReplacedCalls = 'upgrading.libraries.replacedCalls'
+	public const ForbiddenClasses = 'upgrading.libraries.forbiddenClasses'
+	public const ForbiddenFunctions = 'upgrading.libraries.forbiddenFunctions'
+	public const ForbiddenMembers = 'upgrading.libraries.forbiddenMembers'
+	public const AttributeForAnnotation = 'upgrading.libraries.attributeForAnnotation'
+	public const AttributeForMember = 'upgrading.libraries.attributeForMember'
 	public static function createMapSchema(Nette\Schema\Schema $value, string $description, ?Closure $convert = null): Nette\Schema\Elements\Type
 	public static function createCodeSchema(): Nette\Schema\Elements\AnyOf
 ```

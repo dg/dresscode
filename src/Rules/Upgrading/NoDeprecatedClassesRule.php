@@ -30,14 +30,11 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
 	Stage::Structure,
 	typesRequired: true,
 	modifiesComments: true,
-	reads: [self::ReplacedClasses, self::ForbiddenClasses, AttributeForMemberEntry::Path, AnnotationMap::Path],
+	reads: [MemberMapGrammar::ReplacedClasses, MemberMapGrammar::ForbiddenClasses, AttributeForMemberEntry::Path, AnnotationMap::Path],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class NoDeprecatedClassesRule extends NodeRule
 {
-	private const ReplacedClasses = 'upgrading.libraries.replacedClasses';
-	private const ForbiddenClasses = 'upgrading.libraries.forbiddenClasses';
-
 	/** @var array<string, true>  lowercased class, fully qualified, that a map of the libraries has */
 	private array $mapped = [];
 
@@ -53,7 +50,10 @@ final class NoDeprecatedClassesRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->mapped = [];
-		foreach ([...array_keys($values->readMap(self::ReplacedClasses)), ...array_keys($values->readMap(self::ForbiddenClasses))] as $class) {
+		foreach ([
+			...array_keys($values->readMap(MemberMapGrammar::ReplacedClasses)),
+			...array_keys($values->readMap(MemberMapGrammar::ForbiddenClasses)),
+		] as $class) {
 			$this->mapped[strtolower(ltrim((string) $class, '\\'))] = true;
 		}
 

@@ -26,7 +26,7 @@ use PhpSyntax\Nodes\{NameNode, UseItemNode};
 )]
 final class ForbiddenClassesRule extends NodeRule
 {
-	public const Map = 'upgrading.libraries.forbiddenClasses';
+	public const Map = MemberMapGrammar::ForbiddenClasses;
 
 	/** @var array<string, array{string, string}>  lowercased class => the class as the map spells it and the end of the message */
 	private array $classes = [];

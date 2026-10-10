@@ -44,13 +44,12 @@ use PhpSyntax\Nodes\Scalar\StringNode;
 	Stage::Structure,
 	typesRequired: true,
 	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedMembers'],
-	reads: [self::ReplacedCalls],
+	reads: [MemberMapGrammar::ReplacedCalls],
 	analyses: [Types::class, NameResolver::class],
 )]
 final class ReplacedMembersRule extends NodeRule
 {
-	public const Map = 'upgrading.libraries.replacedMembers';
-	private const ReplacedCalls = 'upgrading.libraries.replacedCalls';
+	public const Map = MemberMapGrammar::ReplacedMembers;
 
 	/** @var MemberMap<MemberTarget> */
 	private MemberMap $map;
@@ -62,7 +61,7 @@ final class ReplacedMembersRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->map = MemberMap::fromValues($values, self::Map, MemberTarget::fromCode(...));
-		$this->calls = MemberMap::fromValues($values, self::ReplacedCalls);
+		$this->calls = MemberMap::fromValues($values, MemberMapGrammar::ReplacedCalls);
 	}
 
 

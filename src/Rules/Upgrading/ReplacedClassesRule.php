@@ -33,13 +33,12 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
 	Stage::Structure,
 	modifiesComments: true,
 	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedClasses'],
-	reads: [self::ForbiddenMembers, AnnotationMap::Path],
+	reads: [MemberMapGrammar::ForbiddenMembers, AnnotationMap::Path],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class ReplacedClassesRule extends NodeRule
 {
-	public const Map = 'upgrading.libraries.replacedClasses';
-	private const ForbiddenMembers = 'upgrading.libraries.forbiddenMembers';
+	public const Map = MemberMapGrammar::ReplacedClasses;
 
 	/** @var array<string, string>  lowercased replaced name => the name written instead, both fully qualified */
 	private array $classes = [];
@@ -58,7 +57,7 @@ final class ReplacedClassesRule extends NodeRule
 			$this->classes[strtolower(ltrim((string) $old, '\\'))] = ltrim($new, '\\');
 		}
 
-		$this->forbiddenMembers = MemberMap::fromValues($values, self::ForbiddenMembers);
+		$this->forbiddenMembers = MemberMap::fromValues($values, MemberMapGrammar::ForbiddenMembers);
 		$this->annotations = AnnotationMap::fromValues($values);
 	}
 
