@@ -11,6 +11,7 @@ use DressCode\{ConfigurationException, Decision, Domain, NodeRule, RuleContext, 
 use DressCode\Domains\Names;
 use PhpSyntax\{Indentation, Token, Trivia};
 use PhpSyntax\Nodes\Scalar\HeredocNode;
+use PhpSyntax\Nodes\Statement\UseNode;
 use function count;
 
 
@@ -152,7 +153,7 @@ final class LineLengthRule extends NodeRule
 			&& $width > $limit
 			&& !$line['content']
 			&& !self::isHeredocLine($line['token'])
-			&& !($this->ignoreImports && preg_match('~^\s*use\s~i', $text))
+			&& !($this->ignoreImports && $line['token']?->findAncestor(UseNode::class) !== null)
 			&& !$this->matchesPattern($text)
 		) {
 			$message = "The line is $width characters long, more than $limit.";

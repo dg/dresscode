@@ -15,3 +15,13 @@ $u = "one $line" . 'string that is long';
 /*
  * a block comment line that is longer than forty characters
  */
+$f = function ()
+	use ($aVeryLongVariableName, $another) {
+};
+class C
+{
+	use Some\Very\Long\Namespace\TraitNameHere;
+}
+use Some\Long\{
+	Space\ClassNameThatIsLongerThanForty,
+};
