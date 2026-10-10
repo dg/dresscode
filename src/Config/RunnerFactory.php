@@ -10,7 +10,7 @@ namespace DressCode\Config;
 use Composer\InstalledVersions;
 use DressCode\{Analyses, Config, ConfigurationException, Override, Plugin, PluginManifest, Profile, Rule};
 use DressCode\Engine\{Baseline, FileProcessor, FileProcessors, Helpers, Profiler, ReportPolicy, ResultCache, Runner, TypeAnalysisStatus};
-use Nette\Utils\{FileSystem, Finder};
+use Nette\Utils\Finder;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\FileNode;
 use function count, is_string;
@@ -321,7 +321,7 @@ final readonly class RunnerFactory
 	private static function resolveCacheDir(Config $config, string $root): string
 	{
 		$root = Helpers::canonicalizePath($root);
-		$dir = $config->cacheDir === null ? sys_get_temp_dir() . '/dresscode' : self::toAbsolutePath($config->cacheDir, $root);
+		$dir = $config->cacheDir === null ? sys_get_temp_dir() . '/dresscode' : Helpers::toAbsolutePath($config->cacheDir, $root);
 		return Helpers::canonicalizePath($dir);
 	}
 
@@ -334,7 +334,7 @@ final readonly class RunnerFactory
 	private static function resolveAnalysedPaths(Config $config, string $root): array
 	{
 		$paths = array_values(array_filter(
-			array_map(fn(string $path) => self::toAbsolutePath($path, $root), $config->paths),
+			array_map(fn(string $path) => Helpers::toAbsolutePath($path, $root), $config->paths),
 			fn(string $path) => is_dir($path) || is_file($path),
 		));
 		return $paths === [] ? [$root] : $paths;
@@ -479,16 +479,7 @@ final readonly class RunnerFactory
 	/** The configured baseline when its file exists; before the first generation there is none. */
 	public static function loadBaseline(Config $config, string $root): ?Baseline
 	{
-		return $config->baseline === null ? null : Baseline::load(self::toAbsolutePath($config->baseline, $root));
-	}
-
-
-	/** A path of the configuration as the filesystem takes it: an absolute one stands, a relative one is under the root. */
-	public static function toAbsolutePath(string $path, string $root): string
-	{
-		return FileSystem::isAbsolute($path)
-			? $path
-			: Helpers::canonicalizePath($root) . '/' . $path;
+		return $config->baseline === null ? null : Baseline::load(Helpers::toAbsolutePath($config->baseline, $root));
 	}
 
 

@@ -9,6 +9,7 @@ namespace DressCode\Measuring;
 
 use DressCode\{Analyses, Config, ConfigurationException, Decision, Profile, Rule};
 use DressCode\Config\{Composer, ConfigResolver, CorePlugin, Loader, ResolvedConfig, RunnerFactory};
+use DressCode\Engine\Helpers;
 use DressCode\Rules\ControlFlow\MultilineConditionRule;
 use DressCode\Rules\Literals\StringQuotesRule;
 use DressCode\Rules\Whitespace\IndentationRule;
@@ -184,7 +185,7 @@ final readonly class Proposal
 		$names = [SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
 		$unparsed = [];
 		foreach ($files as $file) {
-			$code = @file_get_contents(RunnerFactory::toAbsolutePath($file, $root)); // @ file may have been deleted meanwhile
+			$code = @file_get_contents(Helpers::toAbsolutePath($file, $root)); // @ file may have been deleted meanwhile
 			if ($code === false || (stripos($code, 'namespace') === false && stripos($code, 'define') === false)) {
 				continue;
 			}

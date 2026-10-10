@@ -7,7 +7,7 @@
 
 namespace DressCode\Console;
 
-use DressCode\Config\{PluginRegistry, RunnerFactory};
+use DressCode\Config\PluginRegistry;
 use DressCode\Engine\{Diff, FileSummary, Helpers, Runner, RunResult};
 use DressCode\Violation;
 use Nette\CommandLine\Console;
@@ -56,7 +56,7 @@ final class RiskReview
 	/** Asks about the risky fixes of the file and writes those accepted; false when the answer was to stop. */
 	private function reviewFile(FileSummary $file): bool
 	{
-		$path = RunnerFactory::toAbsolutePath($file->path, $this->root);
+		$path = Helpers::toAbsolutePath($file->path, $this->root);
 		$original = $text = FileSystem::read($path);
 		$declined = []; // the fingerprints of the occurrences answered
 		$made = 0;

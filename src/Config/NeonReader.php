@@ -8,6 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{Config, ConfigurationException, Override, Plugin, Profile};
+use DressCode\Engine\Helpers as EngineHelpers;
 use Nette\Neon\{Entity, Exception as NeonException, Neon};
 use Nette\Schema\Elements\Structure;
 use Nette\Schema\{Expect, Processor, Schema, ValidationException};
@@ -278,7 +279,7 @@ final class NeonReader
 			return $preset;
 		}
 
-		$real = realpath(RunnerFactory::toAbsolutePath($preset, $directory));
+		$real = realpath(EngineHelpers::toAbsolutePath($preset, $directory));
 		return $real === false
 			? throw new \InvalidArgumentException("Preset file `$preset` in `use` does not exist.")
 			: strtr($real, '\\', '/');

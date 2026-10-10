@@ -578,7 +578,7 @@ final class Application
 	): int
 	{
 		$name = $config->baseline ?? self::getDefaultBaselineName($configFile);
-		$file = RunnerFactory::toAbsolutePath($name, $root);
+		$file = Helpers::toAbsolutePath($name, $root);
 		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter, workers: $workers);
 		$changed = $failed = [];
 		foreach ($run->files as $result) {
@@ -929,7 +929,7 @@ final class Application
 			}
 
 			// a file named on the command line is relative to the working directory, not to the root
-			$use[] = str_ends_with($spec, '.neon') ? RunnerFactory::toAbsolutePath($spec, $this->workingDirectory) : $spec;
+			$use[] = str_ends_with($spec, '.neon') ? Helpers::toAbsolutePath($spec, $this->workingDirectory) : $spec;
 		}
 
 		$decisions = [];

@@ -55,7 +55,7 @@ final readonly class ProjectPackages
 		$base = Helpers::canonicalizePath(dirname($composerFile));
 		$composer = Composer::read($composerFile) ?? [];
 		$vendorDir = $composer['config']['vendor-dir'] ?? 'vendor';
-		$vendor = Helpers::canonicalizePath(RunnerFactory::toAbsolutePath(is_string($vendorDir) ? $vendorDir : 'vendor', $base));
+		$vendor = Helpers::canonicalizePath(Helpers::toAbsolutePath(is_string($vendorDir) ? $vendorDir : 'vendor', $base));
 
 		$required = [];
 		foreach (['require', 'require-dev'] as $section) {

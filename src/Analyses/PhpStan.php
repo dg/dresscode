@@ -103,7 +103,7 @@ final class PhpStan
 	 */
 	public function deriveFor(string $path, string $code, \Closure $parse): self
 	{
-		$path = $this->toAbsolutePath($path);
+		$path = Helpers::toAbsolutePath($path, $this->root);
 		$disk = @file_get_contents($path); // @ the file may not exist, as the code of stdin does not
 		if ($disk === $code) {
 			return $this;
@@ -154,7 +154,7 @@ final class PhpStan
 	 */
 	public function resolveScopes(string $path, array $ast, callable $callback): void
 	{
-		$path = $this->toAbsolutePath($path);
+		$path = Helpers::toAbsolutePath($path, $this->root);
 		$path = $this->replacement !== null && $path === $this->replacement[0] ? $this->replacement[1] : $path;
 		$container = $this->getContainer();
 		$resolver = $container->getByType(NodeScopeResolver::class);
@@ -374,11 +374,5 @@ final class PhpStan
 		}
 
 		return $declarations;
-	}
-
-
-	private function toAbsolutePath(string $path): string
-	{
-		return FileSystem::isAbsolute($path) ? $path : Helpers::canonicalizePath($this->root) . '/' . $path;
 	}
 }

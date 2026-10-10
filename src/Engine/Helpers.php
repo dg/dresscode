@@ -87,6 +87,13 @@ final class Helpers
 	}
 
 
+	/** An absolute path as it is, a relative one under the directory, in the form `canonicalizePath()` gives the directory. */
+	public static function toAbsolutePath(string $path, string $directory): string
+	{
+		return FileSystem::isAbsolute($path) ? $path : self::canonicalizePath($directory) . '/' . $path;
+	}
+
+
 	/**
 	 * The tree of sections with the value at the path of a decision, its links separated by dots; a link on the way
 	 * holding no section becomes one.
