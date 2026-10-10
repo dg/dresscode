@@ -1,0 +1,20 @@
+<?php
+namespace App;
+
+use Acme\Shop\Basket;
+
+class Generated implements \IteratorAggregate
+{
+	public function getIterator(): \Generator
+	{
+		yield 1;
+	}
+}
+
+class Nested implements \IteratorAggregate
+{
+	public function getIterator(): Basket
+	{
+		return $this->basket;
+	}
+}

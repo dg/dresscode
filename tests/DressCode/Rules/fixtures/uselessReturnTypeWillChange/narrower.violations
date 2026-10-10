@@ -1,0 +1,2 @@
+8: Useless `#[\ReturnTypeWillChange]`, because the method declares its return type.
+17: Useless `#[\ReturnTypeWillChange]`, because the method declares its return type.
