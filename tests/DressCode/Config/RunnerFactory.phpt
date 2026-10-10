@@ -282,7 +282,7 @@ test('the PHP target comes from the configuration, composer.json or the default'
 
 	// the version the rules ask about is the lowest of the target
 	$resolution = $factory->resolve(new Config, "$fixtures/project");
-	Assert::same(['8.1', PhpVersionSource::Composer], [$resolution->phpVersion, $resolution->phpVersionSource]);
+	Assert::same(['8.1', PhpVersionSource::Composer], [$resolution->resolvedConfig->phpVersion, $resolution->phpVersionSource]);
 });
 
 
@@ -294,13 +294,13 @@ test('a target older than the oldest PHP DressCode fixes code for is raised to i
 	$factory = new RunnerFactory;
 	$resolution = $factory->resolve(new Config(rules: [ReportContext::class], decisions: ReportsContext), $root);
 	$runner = $factory->createRunner($resolution, cache: false);
-	Assert::same(['8.0', PhpVersionSource::Composer], [$resolution->phpVersion, $resolution->phpVersionSource]);
+	Assert::same(['8.0', PhpVersionSource::Composer], [$resolution->resolvedConfig->phpVersion, $resolution->phpVersionSource]);
 	Assert::same([$warning => null], $resolution->warnings);
 	Assert::match('8.0 %a%', $runner->processCode('x.php', "<?php\n\$a;\n")->violations[0]->message);
 
 	// every resolution starts with warnings of its own
 	$resolution = $factory->resolve(new Config(targets: ['php' => '7.4']), $root);
-	Assert::same(['8.0', PhpVersionSource::Configuration], [$resolution->phpVersion, $resolution->phpVersionSource]);
+	Assert::same(['8.0', PhpVersionSource::Configuration], [$resolution->resolvedConfig->phpVersion, $resolution->phpVersionSource]);
 	Assert::same([$warning => null], $resolution->warnings);
 });
 

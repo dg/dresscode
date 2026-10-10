@@ -23,12 +23,7 @@ final readonly class ResolvedProject
 		public string $root,
 		/** what the configuration comes to for a file no override matches */
 		public ResolvedConfig $resolvedConfig,
-		/**
-		 * The version the code targets; the caller must not resolve it again, or the header could name something else
-		 * than the rules were chosen for.
-		 */
-		public string $phpVersion,
-		/** where the version the code targets came from */
+		/** where the version the code targets, `ResolvedConfig::$phpVersion`, came from */
 		public PhpVersionSource $phpVersionSource,
 		/** @var array<string, ?string>  what the user should be told about the configuration, each thing once => the page of the manual that says more, if any */
 		public array $warnings,

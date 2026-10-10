@@ -488,7 +488,7 @@ final class Application
 	/** The version the rules target, said with where it was taken from when the user did not choose it. */
 	private static function describePhpVersion(ResolvedProject $resolution): string
 	{
-		return $resolution->phpVersion . match ($resolution->phpVersionSource) {
+		return $resolution->resolvedConfig->phpVersion . match ($resolution->phpVersionSource) {
 			PhpVersionSource::Configuration => '',
 			PhpVersionSource::Composer => ' from `composer.json`',
 			PhpVersionSource::Default => ' by default, `composer.json` names no PHP version in `require`; set `targets: {php: …}` in the configuration',
