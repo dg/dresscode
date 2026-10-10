@@ -53,3 +53,17 @@ $x = new class {
 	/** @readonly */
 	public string $name;
 };
+
+final class Child extends Base
+{
+	/** @readonly */
+	protected int $inherited;
+
+	/** @readonly */
+	private int $own;
+}
+
+$y = new class extends Base {
+	/** @readonly */
+	public string $inherited;
+};

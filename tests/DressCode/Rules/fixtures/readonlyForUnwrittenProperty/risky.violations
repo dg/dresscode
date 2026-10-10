@@ -2,3 +2,4 @@
 	risky BehaviorChanges: code outside the file may write it
 15: The property `$name`, written only by the constructor, must be readonly.
 	risky BehaviorChanges: code outside the file may write it
+39: The property `$own`, written only by the constructor, must be readonly.

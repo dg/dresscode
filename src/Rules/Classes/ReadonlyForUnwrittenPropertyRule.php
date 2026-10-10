@@ -29,11 +29,12 @@ use function count;
  * constructor included.
  *
  * Who else may write the property the code shows by its visibility: a private one nothing outside the class
- * reaches, whatever the class is, and any other one only where the class is final. A property that is not
- * private is a risky subject in a final class, the code that writes it from outside not being in the file; one of
- * a class that can be extended is left alone altogether, because a child redeclaring it would then be
- * a fatal error rather than a changed behaviour. A class using a trait is left alone too: the properties of
- * the trait are not in sight, and one it declares as well would then be incompatible, which is a fatal error.
+ * reaches, whatever the class is, and any other one only where the class is final and extends nothing. A property
+ * that is not private is a risky subject in such a class, the code that writes it from outside not being in the
+ * file; one of a class that can be extended or that has a parent is left alone altogether, because a child
+ * redeclaring it, or a parent declaring it without readonly, would then be a fatal error rather than a changed
+ * behaviour. A class using a trait is left alone too: the properties of the trait are not in sight, and one it
+ * declares as well would then be incompatible, which is a fatal error.
  * A hooked property cannot be readonly at all.
  */
 #[RuleInfo(
@@ -106,7 +107,7 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 			|| ($hasDefault ? version_compare($context->phpVersion, '8.6', '<') : $constructor === null)
 			|| $member->type === null
 			|| $member->hooks !== null
-			|| ($modifiers->visibility !== Visibility::Private && !$final)
+			|| ($modifiers->visibility !== Visibility::Private && (!$final || $class->extends !== null))
 		) {
 			return;
 		}

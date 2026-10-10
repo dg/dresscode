@@ -46,3 +46,16 @@ final class Closed
 $x = new class {
 	public readonly string $name;
 };
+
+final class Child extends Base
+{
+	/** @readonly */
+	protected int $inherited;
+
+	private readonly int $own;
+}
+
+$y = new class extends Base {
+	/** @readonly */
+	public string $inherited;
+};

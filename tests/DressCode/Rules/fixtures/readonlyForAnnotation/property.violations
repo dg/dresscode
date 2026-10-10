@@ -12,3 +12,5 @@
 	risky BehaviorChanges: a write the annotation let through throws an Error
 53: The property `$name` annotated as readonly must be declared readonly.
 	risky BehaviorChanges: a write the annotation let through throws an Error
+62: The property `$own` annotated as readonly must be declared readonly.
+	risky BehaviorChanges: a write the annotation let through throws an Error

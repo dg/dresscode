@@ -24,8 +24,9 @@ use PhpSyntax\Nodes\Statement\ClassNode;
  *
  * The keyword is written only where the file shows that PHP compiles it. A property must carry a type and no default
  * value, and be neither static nor hooked; from PHP 8.6 a default value is the initialization, so a property with one
- * takes the keyword where nothing in the class writes it. Since a child redeclaring a readonly property as a plain
- * one is a fatal error, it must be private or stand in a class nothing extends, a final or an anonymous one. A class
+ * takes the keyword where nothing in the class writes it. Since a readonly property redeclared as a plain one is
+ * a fatal error, and so is the other way round, it must be private or stand in a final or an anonymous class that
+ * extends nothing. A class
  * must be final and extend nothing, a readonly parent not being told from another without the types, use no trait,
  * whose properties are elsewhere, allow no dynamic properties, and every property of it must be one the keyword
  * could stand on.
@@ -95,7 +96,7 @@ final class ReadonlyForAnnotationRule extends NodeRule
 				$member instanceof PropertyNode
 				&& !$member->modifiers->readonly
 				&& self::canBeReadonlyProperty($member, $context->phpVersion)
-				&& ($member->modifiers->visibility === Visibility::Private || $final)
+				&& ($member->modifiers->visibility === Visibility::Private || ($final && $node->extends === null))
 				&& $this->hasTag($member, $context)
 				&& self::isDefaultUnwritten($member, $node, $context)
 				&& $context->report(

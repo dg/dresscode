@@ -31,3 +31,25 @@ final class WithTrait
 		$this->value = 1;
 	}
 }
+
+final class Child extends Base
+{
+	protected int $inherited;
+
+	private int $own;
+
+	public function __construct()
+	{
+		$this->inherited = 1;
+		$this->own = 1;
+	}
+}
+
+$x = new class extends Base {
+	public int $inherited;
+
+	public function __construct()
+	{
+		$this->inherited = 1;
+	}
+};
