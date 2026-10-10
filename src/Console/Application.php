@@ -857,7 +857,7 @@ final class Application
 
 	private function runImport(ParseResult $args): int
 	{
-		$file = $args['file'];
+		$file = $this->resolvePath($args['file']);
 		if (preg_match('~\.xml(\.dist)?$~Di', $file)) {
 			[$rules, $unread] = PhpCodeSniffer::readConfig($file);
 			$translation = (new Translator)->translate($rules);

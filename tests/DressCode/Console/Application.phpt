@@ -340,7 +340,7 @@ test('import translates a foreign configuration and says what it could not', fun
 	);
 
 	file_put_contents("$root/fixer.php", "<?php\nreturn new class {\n\tpublic function getRules(): array\n\t{\n\t\treturn ['cast_spaces' => ['space' => 'none']];\n\t}\n};\n");
-	[$code, $out] = runApp($root, ['import', "$root/fixer.php"]);
+	[$code, $out] = runApp($root, ['import', 'fixer.php']); // relative to the working directory of the run
 	Assert::same(0, $code);
 	Assert::contains("\t\t'spacing' => [\n\t\t\t'cast' => 'compact',\n\t\t],\n", $out);
 
