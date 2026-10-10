@@ -39,8 +39,8 @@ final class Application
 	private readonly Console $out;
 	private readonly Console $err;
 
-	/** the script the workers are started with */
-	private string $scriptFile = 'dresscode';
+	/** the script the workers are started with, the one the process was started with unless the caller names another */
+	private ?string $scriptFile;
 
 	/** PHP runs with Xdebug, which makes a run many times slower */
 	private readonly bool $xdebug;
@@ -63,8 +63,8 @@ final class Application
 		$stdout = null,
 		$stderr = null,
 		$stdin = null,
-		private readonly ?string $cwd = null,
-		private readonly ?string $script = null,
+		?string $cwd = null,
+		?string $script = null,
 		/** what applies when the project has no configuration file */
 		private readonly ?Config $defaultConfig = null,
 		?bool $xdebug = null,
@@ -79,6 +79,7 @@ final class Application
 		$this->xdebug = $xdebug ?? ($stdout === null && extension_loaded('xdebug'));
 		$this->interactive = $interactive ?? ($this->out->isTerminal() && stream_isatty($this->stdin));
 		$this->workingDirectory = $cwd ?? (string) getcwd();
+		$this->scriptFile = $script;
 	}
 
 
@@ -89,7 +90,7 @@ final class Application
 	 */
 	public function run(array $argv): int
 	{
-		$this->scriptFile = $this->script ?? $argv[0] ?? 'dresscode';
+		$this->scriptFile ??= $argv[0] ?? 'dresscode';
 		$program = self::defineCommandLine();
 		$command = $program;
 		try {
@@ -265,11 +266,9 @@ final class Application
 
 	private function runCheckOrFix(ParseResult $args, bool $fix): int
 	{
-		$factory = new RunnerFactory;
-		['config' => $config, 'root' => $root, 'file' => $configFile, 'commandLine' => $commandLine] = $this->loadConfig($args);
-		$only = self::parseOnly($args);
+		[$factory, $resolution, $configFile] = $this->resolveProject($args);
+		[$config, $root] = [$resolution->config, $resolution->root];
 		$profiler = is_string($args['--profile']) ? new Profiler : null;
-		$resolution = $factory->resolve($config, $root, $commandLine, $only);
 		$fixRisky = in_array(true, (array) ($args['--fix-risky'] ?? []), true); // a bare `--fix-risky`, the names given go to the configuration
 		$generate = $args->command->name === 'baseline'; // the baseline command writes the configured baseline, it never reads it
 		if (is_string($args['--worker'])) { // the parent keeps the cache; the baseline decides what is reported
@@ -306,11 +305,12 @@ final class Application
 		$paths = array_values(array_unique(array_map($this->resolvePath(...), self::parsePaths($args))));
 		$maxWarnings = $args['--max-warnings'] ?? null;
 		$askRisky = $fix && isset($args['--ask-risky']) && $args['--ask-risky'];
+		$format = self::resolveFormat($args, detect: true);
 		if ($askRisky && ($args['--fix-risky'] || is_string($stdinPath))) {
 			throw new UsageException('`--ask-risky` asks about the risky fixes one by one, so it goes with neither `--fix-risky` nor `--stdin`.');
 		} elseif (
 			$askRisky
-			&& (self::resolveFormat($args, detect: true) !== 'console' || !$this->interactive)
+			&& ($format !== 'console' || !$this->interactive)
 		) {
 			throw new UsageException('`--ask-risky` asks in an interactive terminal; without one, allow the risky fixes with `--fix-risky=<name>`.');
 		}
@@ -328,7 +328,6 @@ final class Application
 			throw new UsageException('No paths given and none configured.');
 		}
 
-		$format = self::resolveFormat($args, detect: true);
 		// the machine-readable formats must not be prefaced, and a generated baseline is not a report
 		$preface = !$generate && in_array($format, ['console', 'github'], true);
 		if ($preface) {
@@ -336,7 +335,7 @@ final class Application
 				$this->err->writeLine('Warning: Xdebug is loaded and makes the run many times slower.', 'red');
 			}
 
-			$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($resolution));
+			$this->writeHeader($configFile, $resolution);
 			$this->out->setStatus($this->out->color('gray', $fix ? 'Fixing     ' : 'Checking   ') . 'looking for files…');
 		}
 
@@ -352,7 +351,7 @@ final class Application
 
 		// a worker costs about the processing of a few files to start, so by default one for every four files at most
 		$jobs = $args['--jobs'] ?? max(1, min(WorkerPool::detectCpuCount(), intdiv(count($files), 4)));
-		$workers = $jobs > 1 && $files ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->cwd, profiler: $profiler, warmFirst: $runner->warmUp !== null) : null;
+		$workers = $jobs > 1 && $files ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->workingDirectory, profiler: $profiler, warmFirst: $runner->warmUp !== null) : null;
 		$progress = !$generate && $format === 'console' && count($files) > 1 && $this->out->isTerminal()
 			? new ProgressBar($this->out, count($files))
 			: null;
@@ -439,18 +438,19 @@ final class Application
 
 
 	/** Where the rules come from, which is nothing the command line shows. */
-	private function writeHeader(?string $configFile, Config $config, ?Config $commandLine, string $phpVersion): void
+	private function writeHeader(?string $configFile, ResolvedProject $resolution): void
 	{
+		[$config, $commandLine] = [$resolution->config, $resolution->commandLine];
 		$this->out->writeLine(self::formatName($this->out));
 		$use = [
-			...array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, [...$config->plugins, ...$commandLine->plugins ?? []]),
+			...array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, [...$config->plugins, ...$commandLine instanceof Config ? $commandLine->plugins : []]),
 			...$config->use,
 			...$commandLine->use ?? [],
 		];
 		$this->out->writeLine($this->out->color('gray', 'Config     ') . ($configFile === null
 			? 'none, using ' . (implode(', ', $use) ?: 'nothing')
 			: FileSystem::platformSlashes($configFile)));
-		$this->out->writeLine($this->out->color('gray', 'Target     ') . Markup::highlightCode($this->out, "PHP $phpVersion"));
+		$this->out->writeLine($this->out->color('gray', 'Target     ') . Markup::highlightCode($this->out, 'PHP ' . self::describePhpVersion($resolution)));
 	}
 
 
@@ -532,7 +532,7 @@ final class Application
 	{
 		$command = [
 			...WorkerPool::buildPhpCommand(),
-			$this->scriptFile,
+			$this->scriptFile ?? 'dresscode',
 			$fix ? 'fix' : ($args->command->name === 'baseline' ? 'baseline' : 'check'),
 			'--no-color',
 		];
@@ -629,9 +629,9 @@ final class Application
 	 */
 	private function runMigrateSuppressions(ParseResult $args): int
 	{
-		$factory = new RunnerFactory;
-		['config' => $config, 'root' => $root, 'commandLine' => $commandLine] = $this->loadConfig($args);
-		$runner = $factory->createRunner($factory->resolve($config, $root, $commandLine), baseline: false);
+		[$factory, $resolution] = $this->resolveProject($args);
+		$config = $resolution->config;
+		$runner = $factory->createRunner($resolution, baseline: false);
 		$named = array_map($this->resolvePath(...), self::parsePaths($args));
 		$paths = $named ? $runner->narrowPaths($named, $config->paths) : $config->paths;
 		if (!$paths) {
@@ -708,7 +708,7 @@ final class Application
 			return 0;
 		}
 
-		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($resolution));
+		$this->writeHeader($configFile, $resolution);
 		if (is_string($file)) {
 			$this->out->writeLine($this->out->color('gray', 'File       ') . FileSystem::platformSlashes($file));
 		}
@@ -727,9 +727,7 @@ final class Application
 	private function runExplain(ParseResult $args): int
 	{
 		$path = $args['decision'];
-		$factory = new RunnerFactory;
-		['config' => $config, 'root' => $root, 'file' => $configFile, 'commandLine' => $commandLine] = $this->loadConfig($args);
-		$resolution = $factory->resolve($config, $root, $commandLine, self::parseOnly($args));
+		[$factory, $resolution, $configFile] = $this->resolveProject($args);
 		$resolved = $resolution->resolvedConfig;
 		if (!is_string($path)) {
 			$markdown = new ExplainPrinter($factory->registry)->printConfig($resolved);
@@ -751,7 +749,7 @@ final class Application
 			return 0;
 		}
 
-		$this->writeHeader($configFile, $config, $commandLine, self::describePhpVersion($resolution));
+		$this->writeHeader($configFile, $resolution);
 		$this->out->write("\n" . Markup::renderMarkdown($this->out, $markdown));
 		return 0;
 	}
@@ -763,9 +761,7 @@ final class Application
 	 */
 	private function runCatalogue(ParseResult $args): int
 	{
-		$factory = new RunnerFactory;
-		['config' => $config, 'root' => $root, 'commandLine' => $commandLine] = $this->loadConfig($args);
-		$resolution = $factory->resolve($config, $root, $commandLine, self::parseOnly($args));
+		[$factory, $resolution] = $this->resolveProject($args);
 		$catalogue = $resolution->getCatalogue();
 		$translator = $factory->registry->translator;
 		if ($args['--format'] === 'json') {
@@ -895,6 +891,20 @@ final class Application
 		}
 
 		return 0;
+	}
+
+
+	/**
+	 * The project as the command line names it, resolved: the factory that resolved it, its resolution and the file
+	 * of the configuration.
+	 * @return array{RunnerFactory, ResolvedProject, ?string}
+	 * @throws UsageException
+	 */
+	private function resolveProject(ParseResult $args): array
+	{
+		$factory = new RunnerFactory;
+		['config' => $config, 'root' => $root, 'file' => $file, 'commandLine' => $commandLine] = $this->loadConfig($args);
+		return [$factory, $factory->resolve($config, $root, $commandLine, self::parseOnly($args)), $file];
 	}
 
 
