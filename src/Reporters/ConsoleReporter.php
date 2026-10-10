@@ -301,7 +301,7 @@ final class ConsoleReporter implements Reporter
 		$remaining = $result->countReported(Severity::Error);
 		$warnings = $result->countReported(Severity::Warning);
 		$found = $result->countViolations(Severity::Error);
-		$left = $result->countRemaining();
+		$left = $result->countRemaining(Severity::Error);
 		$changed = $this->fix ? $result->countChangedFiles() : 0;
 		$failures = $result->countFailures();
 		$affected = count(array_filter(
@@ -318,7 +318,7 @@ final class ConsoleReporter implements Reporter
 			},
 			$derived ? "$derived of them following from others" : null,
 			$warnings ? self::formatCount($warnings, 'warning') : null,
-			!$this->fix && $left !== $result->countViolations() ? 'a fix leaves ' . ($left ?: 'none') : null,
+			!$this->fix && $left !== $found ? 'a fix leaves ' . ($left ?: 'none') : null,
 			$result->countSyntaxErrors() ? self::formatCount($result->countSyntaxErrors(), 'syntax error') : null,
 			$failures ? self::formatCount($failures, 'failed file') : null,
 			$result->baselined ? self::formatCount($result->baselined, 'violation') . ' in the baseline' : null,

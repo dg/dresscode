@@ -975,7 +975,7 @@ test('exit codes: violations, warnings, the warning threshold, a syntax error an
 	$write(', warnOnly: [ConsoleRename::class, ConsoleReport::class]');
 	[$code, $out] = runApp($root, ['check', '--config', "$root/exit.php", '--no-cache']);
 	Assert::same(0, $code);
-	Assert::match('%A%  warning  2:1  Rename $a.  project.rename%A%FOUND  3 warnings, a fix leaves 2 in 2 files%A%', $out);
+	Assert::match('%A%  warning  2:1  Rename $a.  project.rename%A%FOUND  3 warnings in 2 files%A%', $out);
 	Assert::same(0, $run(['--max-warnings', '3']));
 	Assert::same(1, $run(['--max-warnings', '2']));
 	// and so it is over stdin

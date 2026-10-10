@@ -89,7 +89,7 @@ test('console: check lists every violation and says what a fix would leave', fun
 		src/fail.php
 		  Rule test/x failed in src/fail.php: boom
 
-		FAILED  2 violations, 1 of them following from others, 1 warning, a fix leaves 1, 1 syntax error, 1 failed file in 3 of 4 files
+		FAILED  2 violations, 1 of them following from others, 1 warning, a fix leaves none, 1 syntax error, 1 failed file in 3 of 4 files
 
 		XX, normalize(capture(fn($s) => new ConsoleReporter(plain($s)), fix: false)));
 });
