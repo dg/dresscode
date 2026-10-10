@@ -1,7 +1,0 @@
-2: Expected 1 blank line before the class, 0 found.
-6: Expected no blank line after the doc comment, 1 found.
-11: Expected no blank line after the attribute, 1 found.
-13: Expected 2 blank lines before the method, 1 found.
-16: Expected no blank line after the doc comment, 1 found.
-21: Expected 2 blank lines before the function, 1 found.
-22: Expected no blank line after the doc comment, 1 found.

@@ -254,7 +254,9 @@ final class CorePlugin implements Plugin
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Whitespace\AttributePositionRule::class,
 				Rules\Whitespace\AttributeSpacingRule::class,
-				Rules\Whitespace\BlankLinesRule::class,
+				Rules\Whitespace\StatementBlankLinesRule::class,
+				Rules\Whitespace\MemberBlankLinesRule::class,
+				Rules\Whitespace\BlockBlankLinesRule::class,
 				Rules\Whitespace\BracesPositionRule::class,
 				Rules\Whitespace\CommaSpacingRule::class,
 				Rules\Whitespace\ConstructSpacingRule::class,
@@ -300,6 +302,9 @@ final class CorePlugin implements Plugin
 					'optimizes it',
 					'A function is optimized in a namespace where one of its calls there is, an unpacked or named argument aside, and every reference to it in that namespace is then written so.',
 				),
+
+				// the lines below a doc comment or an attribute, of a member as of a declaration among statements
+				new Decision('blankLines.afterPhpdoc', Domain::blankLines(), 'Between a doc comment or an attribute and the declaration it belongs to'),
 
 				// the classes a native type takes as iterable
 				new Decision('types.traversableClasses', new Names, 'Classes treated like `array` and `iterable`, whose annotation says what their items are', parameter: true, default: ['Traversable']),

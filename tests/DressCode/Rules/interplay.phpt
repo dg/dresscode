@@ -46,6 +46,21 @@ function interplay(
 
 
 /**
+ * The three rules of blankLines with the counts most standards give them, under the values given.
+ * @param  array<string, mixed>  $values
+ * @return array<class-string<DressCode\Rule>, array<string, mixed>>
+ */
+function blankLinesRules(array $values): array
+{
+	return [
+		Rules\Whitespace\StatementBlankLinesRule::class => blankLinesValues($values),
+		Rules\Whitespace\MemberBlankLinesRule::class => [],
+		Rules\Whitespace\BlockBlankLinesRule::class => [],
+	];
+}
+
+
+/**
  * The decisions of blankLines with the counts most standards give them, under the values given.
  * @param  array<string, mixed>  $values
  * @return array<string, mixed>
@@ -66,24 +81,16 @@ function blankLinesValues(array $values): array
 
 test('the areas of blankLines never pull against one another', function () {
 	// the first statement of a block gets no blank line before it: that gap belongs to the brace
-	interplay([
-		Rules\Whitespace\BlankLinesRule::class => blankLinesValues(['blankLines.afterOpeningTag' => 'keep']),
-	], "<?php\nfunction f()\n{\n\n\treturn 1;\n}\n", "<?php\nfunction f()\n{\n\treturn 1;\n}\n");
+	interplay(blankLinesRules(['blankLines.afterOpeningTag' => 'keep']), "<?php\nfunction f()\n{\n\n\treturn 1;\n}\n", "<?php\nfunction f()\n{\n\treturn 1;\n}\n");
 
 	// a declaration nested in a body is a declaration, not a statement of a kind
-	interplay([
-		Rules\Whitespace\BlankLinesRule::class => blankLinesValues(['blankLines.afterOpeningTag' => 'keep', 'blankLines.afterStatement' => ['if' => 1]]),
-	], "<?php\nfunction f()\n{\n\tif (\$x) {\n\t}\n\tfunction g()\n\t{\n\t}\n}\n", "<?php\nfunction f()\n{\n\tif (\$x) {\n\t}\n\n\n\tfunction g()\n\t{\n\t}\n}\n");
+	interplay(blankLinesRules(['blankLines.afterOpeningTag' => 'keep', 'blankLines.afterStatement' => ['if' => 1]]), "<?php\nfunction f()\n{\n\tif (\$x) {\n\t}\n\tfunction g()\n\t{\n\t}\n}\n", "<?php\nfunction f()\n{\n\tif (\$x) {\n\t}\n\n\n\tfunction g()\n\t{\n\t}\n}\n");
 
 	// the statement after the imports is the header's business, whatever its kind asks for
-	interplay([
-		Rules\Whitespace\BlankLinesRule::class => blankLinesValues(['blankLines.beforeStatement' => ['if' => 0]]),
-	], "<?php\n\nuse A;\n\nif (\$x) {\n}\n");
+	interplay(blankLinesRules(['blankLines.beforeStatement' => ['if' => 0]]), "<?php\n\nuse A;\n\nif (\$x) {\n}\n");
 
 	// and so is a function after them, where the header and the declarations meet
-	interplay([
-		Rules\Whitespace\BlankLinesRule::class => blankLinesValues([]),
-	], "<?php\n\nuse A;\n\n\nfunction f()\n{\n}\n", "<?php\n\nuse A;\n\nfunction f()\n{\n}\n");
+	interplay(blankLinesRules([]), "<?php\n\nuse A;\n\n\nfunction f()\n{\n}\n", "<?php\n\nuse A;\n\nfunction f()\n{\n}\n");
 });
 
 

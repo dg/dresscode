@@ -40,7 +40,7 @@ test('the sections of a file are its decisions, laid over the preset it uses', f
 	Assert::same([1, 2], $resolved->decisions['blankLines.betweenDeclarations']->value->getCount());
 	Assert::same('dresscode/nette', $resolved->decisions['blankLines.betweenDeclarations']->value->origin?->describe());
 	Assert::contains('dresscode/nette', $resolved->use);
-	Assert::true($resolved->findRule(DressCode\Rules\Whitespace\BlankLinesRule::class)?->isActive());
+	Assert::true($resolved->findRule(DressCode\Rules\Whitespace\MemberBlankLinesRule::class)?->isActive());
 });
 
 
@@ -113,7 +113,7 @@ test('the run narrowed to a path reports that decision alone and changes no valu
 	Assert::true($narrowed->values->isSelected('blankLines.betweenMethods'));
 	Assert::false($narrowed->values->isSelected('blankLines.afterImports'));
 	Assert::same([1, 1], $narrowed->values->get('blankLines.afterImports')->getCount());
-	Assert::true($narrowed->findRule(DressCode\Rules\Whitespace\BlankLinesRule::class)?->isActive());
+	Assert::true($narrowed->findRule(DressCode\Rules\Whitespace\MemberBlankLinesRule::class)?->isActive());
 	Assert::same(DressCode\Config\InactiveReason::Narrowed, $narrowed->findRule(DressCode\Rules\Whitespace\ConstructSpacingRule::class)?->inactiveReason);
 });
 
@@ -124,7 +124,7 @@ test('the command line sets a decision over everything, and fixRisky and warnOnl
 	Assert::same([3, 3], $resolved->decisions['blankLines.betweenMethods']->value->getCount());
 	Assert::same('the command line', $resolved->decisions['blankLines.betweenMethods']->value->origin?->describe());
 	Assert::true($resolved->findRule(DressCode\Rules\Types\NativeTypeRequiredRule::class)?->fixRisky);
-	Assert::true($resolved->findRule(DressCode\Rules\Whitespace\BlankLinesRule::class)?->warnOnly);
+	Assert::true($resolved->findRule(DressCode\Rules\Whitespace\MemberBlankLinesRule::class)?->warnOnly);
 
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;

@@ -835,6 +835,7 @@ final readonly class Value
 	public function getWords(): array
 	public function getShape(): string
 	public function getCount(): array
+	public function hasWord(): bool
 	public function getText(): string
 	public function getFlag(): bool
 	public function getNames(): array
@@ -1077,12 +1078,14 @@ final readonly class Violation
 - `DressCode\Rules\Variables\NoSeparateUnsetsRule`
 - `DressCode\Rules\Whitespace\AttributePositionRule`
 - `DressCode\Rules\Whitespace\AttributeSpacingRule`
-- `DressCode\Rules\Whitespace\BlankLinesRule`
+- `DressCode\Rules\Whitespace\BlockBlankLinesRule`
 - `DressCode\Rules\Whitespace\BracesPositionRule`
 - `DressCode\Rules\Whitespace\CommaSpacingRule`
 - `DressCode\Rules\Whitespace\ConstructSpacingRule`
 - `DressCode\Rules\Whitespace\IndentationRule`
+- `DressCode\Rules\Whitespace\MemberBlankLinesRule`
 - `DressCode\Rules\Whitespace\NoStatementsSharingLineRule`
 - `DressCode\Rules\Whitespace\ParenthesesSpacingRule`
 - `DressCode\Rules\Whitespace\SemicolonSpacingRule`
 - `DressCode\Rules\Whitespace\SingleLevelIndentationRule`
+- `DressCode\Rules\Whitespace\StatementBlankLinesRule`
