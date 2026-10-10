@@ -784,6 +784,8 @@ test('config writes every decision a layer set in the shape of the file, with th
 	Assert::same(0, $code);
 	Assert::match('%A%Config     none, using psr12%A%', $out);
 	Assert::match("%A%\tlineLength:\n%A?%\t\tmax: 120 %s%# dresscode/psr12\n%A?%", $out);
+	[, $out] = runApp($root, ['config', '--preset', 'psr12', '--set', 'file.lineLength.max=90']);
+	Assert::match("%A%\tlineLength:\n%A?%\t\tmax: 90 %s%# the command line\n%A?%", $out);
 
 	[$code, $out] = runApp($root, ['config', '--config', "$root/conf.neon", '--format', 'json']);
 	Assert::same(0, $code);

@@ -7,7 +7,7 @@
 
 namespace DressCode\Console;
 
-use DressCode\{Config, ConfigurationException, ConvergenceException, Plugin, Profile, Reporter, Reporters, RuleException};
+use DressCode\{Config, ConfigurationException, ConvergenceException, Plugin, Reporter, Reporters, RuleException};
 use DressCode\Config\{Catalogue, ConfigResolver, CorePlugin, Loader, PhpVersionSource, PluginRegistry, ResolvedProject, RunnerFactory};
 use DressCode\Engine\{Baseline, FileSummary, Helpers, Profiler, RunInfo, Runner, RunResult, SuppressionMigration, Worker, WorkerPool};
 use DressCode\Interop\{PhpCodeSniffer, PhpCsFixer, Translator};
@@ -439,11 +439,11 @@ final class Application
 
 
 	/** Where the rules come from, which is nothing the command line shows. */
-	private function writeHeader(?string $configFile, Config $config, ?Profile $commandLine, string $phpVersion): void
+	private function writeHeader(?string $configFile, Config $config, ?Config $commandLine, string $phpVersion): void
 	{
 		$this->out->writeLine($this->formatName($this->out));
 		$use = [
-			...array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, [...$config->plugins, ...$commandLine instanceof Config ? $commandLine->plugins : []]),
+			...array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, [...$config->plugins, ...$commandLine->plugins ?? []]),
 			...$config->use,
 			...$commandLine->use ?? [],
 		];
@@ -692,7 +692,7 @@ final class Application
 				throw new UsageException("Option `--preset`: {$e->getMessage()}", previous: $e);
 			}
 
-			[$root, $configFile, $commandLine] = [Helpers::canonicalizePath($this->workingDirectory), null, null];
+			[$root, $configFile, $commandLine] = [Helpers::canonicalizePath($this->workingDirectory), null, $this->readCommandLine($args)];
 
 		} else {
 			['config' => $config, 'root' => $root, 'file' => $configFile, 'commandLine' => $commandLine] = $this->loadConfig($args);
@@ -899,22 +899,31 @@ final class Application
 
 
 	/**
-	 * The configuration, the root directory, the file it came from, and the profile the command line lays over them.
-	 * @return array{config: Config, root: string, file: ?string, commandLine: ?Profile}
+	 * The configuration, the root directory, the file it came from, and the layer the command line lays over them.
+	 * @return array{config: Config, root: string, file: ?string, commandLine: ?Config}
 	 * @throws UsageException
 	 */
 	private function loadConfig(ParseResult $args): array
 	{
-		/** @var list<string> $specs */
-		$specs = $args['--use'];
 		[$config, $root, $file] = Loader::load(
 			$args['--config'],
 			$this->workingDirectory,
 			// without a configuration file the run has only what the command line uses
-			$this->defaultConfig ?? ($specs ? new Config : null),
+			$this->defaultConfig ?? ($args['--use'] ? new Config : null),
 		);
+		return ['config' => $config, 'root' => $root, 'file' => $file, 'commandLine' => $this->readCommandLine($args)];
+	}
+
+
+	/**
+	 * The layer the command line lays over the configuration: the presets of `--use`, the decisions of `--set` and
+	 * what `--fix-risky` allows; null where it says none of them.
+	 * @throws UsageException
+	 */
+	private function readCommandLine(ParseResult $args): ?Config
+	{
 		$use = [];
-		foreach ($specs as $spec) {
+		foreach ($args['--use'] as $spec) {
 			if (str_contains($spec, '=')) {
 				throw new UsageException("Option `--use` takes a preset or a plugin, `$spec` given; a decision is set by `--set path=value`.");
 			}
@@ -936,12 +945,10 @@ final class Application
 		// the decisions, rules and presets whose risky fixes the run allows; a bare `--fix-risky` allows every one elsewhere
 		$fixRisky = array_values(array_filter((array) ($args['--fix-risky'] ?? []), is_string(...)));
 		try {
-			$commandLine = $use || $fixRisky || $decisions ? new Config(use: $use, fixRisky: $fixRisky, decisions: $decisions) : null;
+			return $use || $fixRisky || $decisions ? new Config(use: $use, fixRisky: $fixRisky, decisions: $decisions) : null;
 		} catch (\InvalidArgumentException $e) {
 			throw new UsageException("Option `--use`: {$e->getMessage()}", previous: $e);
 		}
-
-		return ['config' => $config, 'root' => $root, 'file' => $file, 'commandLine' => $commandLine];
 	}
 
 
