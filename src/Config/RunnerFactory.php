@@ -137,7 +137,7 @@ final readonly class RunnerFactory
 					$analysisRegistry,
 					$variant->phpVersion,
 					$style,
-					detectLineEnding: $variant->lineEnding === 'majority',
+					detectLineEnding: $variant->lineEnding === null,
 					policy: new ReportPolicy(
 						expandName: $registry->expandSuppressedName(...),
 						suppressionComments: $variant->suppressionComments,

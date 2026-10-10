@@ -80,7 +80,7 @@ Assert::same(
 	],
 	array_map(fn($rule) => ruleSlug($rule), $rules),
 );
-Assert::same(['    ', 'majority'], [$resolved->indent, $resolved->lineEnding]);
+Assert::same(['    ', null], [$resolved->indent, $resolved->lineEnding]);
 $style = $resolved->createStyle();
 $processor = new FileProcessor($rules, $resolved->createAnalyses($style), Config::DefaultPhpVersion, $style, policy: new ReportPolicy($registry->expandSuppressedName(...)));
 

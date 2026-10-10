@@ -394,13 +394,13 @@ final class ConfigResolver
 	}
 
 
-	/** The line ending the decision names, or `majority` for the one each file uses most. */
-	private static function resolveLineEnding(Value $lineEnding): string
+	/** The line ending the decision names; null for the one each file uses most. */
+	private static function resolveLineEnding(Value $lineEnding): ?string
 	{
-		return match ($lineEnding->isKept() ? 'majority' : $lineEnding->getWord()) {
+		return match ($lineEnding->isKept() ? null : $lineEnding->getWord()) {
 			'LF' => "\n",
 			'CRLF' => "\r\n",
-			default => 'majority',
+			default => null,
 		};
 	}
 

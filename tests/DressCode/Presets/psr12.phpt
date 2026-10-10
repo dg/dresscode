@@ -38,7 +38,7 @@ Assert::same(array_values(array_diff($names('perCs'), $perOnly)), $names('psr12'
 Assert::same($names('psr12'), $names('dresscode/psr12'));
 
 $resolved = $resolver->resolve(new Config(use: ['psr12']), Config::DefaultPhpVersion);
-Assert::same(['    ', 'majority'], [$resolved->indent, $resolved->lineEnding]);
+Assert::same(['    ', null], [$resolved->indent, $resolved->lineEnding]);
 $rules = RuleBuilder::buildRules($resolved);
 $style = $resolved->createStyle();
 $processor = new FileProcessor($rules, $resolved->createAnalyses($style), Config::DefaultPhpVersion, $style, policy: new ReportPolicy($registry->expandSuppressedName(...)));

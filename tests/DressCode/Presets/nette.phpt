@@ -24,7 +24,7 @@ Assert::same([], array_diff($names('perCs'), $names('nette')));
 Assert::same($names('nette'), $names('dresscode/nette'));
 
 $resolved = $resolver->resolve(new Config(use: ['nette']), Config::DefaultPhpVersion);
-Assert::same(["\t", 'majority'], [$resolved->indent, $resolved->lineEnding]);
+Assert::same(["\t", null], [$resolved->indent, $resolved->lineEnding]);
 $rules = RuleBuilder::buildRules($resolved);
 // the fixtures show what the standard rewrites, which in a namespace of uncertain resolution it would only report
 $symbols = new NamespacedSymbols(complete: true);

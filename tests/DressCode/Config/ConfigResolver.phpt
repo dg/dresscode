@@ -278,7 +278,7 @@ test('a rule of a construct the target version has not got is left out', functio
 	$future = $resolved->findRule(RuleFuture::class);
 	Assert::type(ResolvedRule::class, $future);
 	Assert::same('it needs PHP >=8.4 and the target is 8.3', $future->inactiveMessage);
-	Assert::same(['8.3', "\t", 'majority'], [$resolved->phpVersion, $resolved->indent, $resolved->lineEnding]);
+	Assert::same(['8.3', "\t", null], [$resolved->phpVersion, $resolved->indent, $resolved->lineEnding]);
 
 	// a target given as the constraint of composer.json runs the rule where every version it allows has the construct
 	Assert::same(['test/a', 'test/future'], $resolve(new Config(use: ['test/future-preset']), '8.4 - 8.6'));
@@ -549,7 +549,7 @@ test('an override lays a profile of its own over the configuration, its presets 
 	Assert::same(['test/a', 'test/c', 'test/d'], names(RuleBuilder::buildRules($tests)));
 	Assert::same(7, $tests->values->get('project.cMax')->getCount()[0]);
 	Assert::same('its decisions are `keep`', $tests->findRule(RuleB::class)?->inactiveMessage);
-	Assert::same([["\t", 'majority'], ['  ', "\n"]], [[$base->indent, $base->lineEnding], [$tests->indent, $tests->lineEnding]]);
+	Assert::same([["\t", null], ['  ', "\n"]], [[$base->indent, $base->lineEnding], [$tests->indent, $tests->lineEnding]]);
 
 	// a certain resolution turns on the guard of its lists, and a file that ends up uncertain has none to guard
 	Assert::same(['certain', 'uncertain'], [$base->nameResolution, $tests->nameResolution]);
@@ -642,14 +642,14 @@ test('the style is what the decisions of the last layer say, else a tab and the 
 		$resolved = $resolver->resolve($config, '8.3');
 		return [$resolved->indent, $resolved->lineEnding];
 	};
-	Assert::same(["\t", 'majority'], $style(new Config));
-	Assert::same(["\t", 'majority'], $style(new Config(use: ['test/child'])));
+	Assert::same(["\t", null], $style(new Config));
+	Assert::same(["\t", null], $style(new Config(use: ['test/child'])));
 	Assert::same(['  ', "\n"], $style(new Config(use: ['test/styled'])));
 	Assert::same(['  ', "\n"], $style(new Config(use: ['test/styled', 'test/child'])));
 	Assert::same(['    ', "\n"], $style(new Config(use: ['test/styled'], decisions: ['indentation' => ['unit' => '4 spaces']])));
 	Assert::same(['  ', "\r\n"], $style(new Config(use: ['test/styled'], decisions: ['file' => ['lineEnding' => 'CRLF']])));
-	Assert::same(['  ', 'majority'], $style(new Config(use: ['test/styled'], decisions: ['file' => ['lineEnding' => 'majority']])));
-	Assert::same(["\t", 'majority'], $style(new Config(use: ['test/styled'], decisions: ['indentation' => ['unit' => 'keep'], 'file' => ['lineEnding' => 'keep']])));
+	Assert::same(['  ', null], $style(new Config(use: ['test/styled'], decisions: ['file' => ['lineEnding' => 'majority']])));
+	Assert::same(["\t", null], $style(new Config(use: ['test/styled'], decisions: ['indentation' => ['unit' => 'keep'], 'file' => ['lineEnding' => 'keep']])));
 });
 
 

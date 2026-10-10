@@ -26,8 +26,8 @@ final readonly class ResolvedConfig
 		public array $rules,
 		/** the characters of one level of indentation */
 		public string $indent,
-		/** `"\n"`, `"\r\n"` or `'majority'` */
-		public string $lineEnding,
+		/** `"\n"` or `"\r\n"`; null for the one each file uses most */
+		public ?string $lineEnding,
 		public string $phpVersion,
 		/** @var list<string>  names of the presets in the order they are laid, what a preset uses before it */
 		public array $use,
@@ -111,7 +111,7 @@ final readonly class ResolvedConfig
 	{
 		return new Style(
 			$this->indent,
-			$this->lineEnding === 'majority' ? "\n" : $this->lineEnding,
+			$this->lineEnding ?? "\n",
 			$this->tabWidth,
 			$this->lineLength,
 			ImportStyle::fromValues($this->values),
