@@ -1722,7 +1722,7 @@ The order of the members of a class by kind, a member taking the most particular
 
 - A requirement
 - Takes: an order of `traitUse` (a trait use); `enumCase` (a case of an enum); `constant` (a constant of any visibility); `publicConstant` (a public constant); `protectedConstant` (a protected constant); `privateConstant` (a private constant); `property` (a property of any visibility); `publicProperty` (a public property); `protectedProperty` (a protected property); `privateProperty` (a private property); `publicStaticProperty` (a public static property); `protectedStaticProperty` (a protected static property); `privateStaticProperty` (a private static property); `method` (a method of any visibility); `publicMethod` (a public method); `protectedMethod` (a protected method); `privateMethod` (a private method); `publicStaticMethod` (a public static method); `protectedStaticMethod` (a protected static method); `privateStaticMethod` (a private static method); `constructor` (the constructor); `destructor` (the destructor); `magicMethod` (a method whose name begins with `__`); `keep`
-- The standards: perCs `["traitUse"]`, psr12 `["traitUse"]`, nette `["traitUse","constant","publicConstant","protectedConstant","privateConstant","publicProperty","protectedProperty","privateProperty"]`, symfony `["traitUse"]`
+- The standards: perCs `["traitUse"]`, psr12 `["traitUse"]`, nette `["traitUse","enumCase","constant","publicConstant","protectedConstant","privateConstant","publicProperty","protectedProperty","privateProperty"]`, symfony `["traitUse"]`
 - Rule `DressCode\Rules\Classes\MemberOrderRule`, stage Structure
 - Covers: `ordered_class_elements`, `PSR12.Traits.UseDeclaration`
 

@@ -16,7 +16,7 @@ use function count;
 
 
 /**
- * Members of a class in a configured order of kinds (by default trait uses, then constants and properties by
+ * Members of a class in a configured order of kinds (by default trait uses, then enum cases, constants and properties by
  * visibility); members of kinds not in the order follow the ordered ones in the order written. A class where
  * a comment other than a doc comment would move with a member is left as it is, the comment possibly heading a section.
  */
@@ -34,7 +34,7 @@ final class MemberOrderRule extends NodeRule
 
 	/** @var list<string> */
 	private array $order = [
-		'traitUse', 'constant', 'publicConstant', 'protectedConstant', 'privateConstant',
+		'traitUse', 'enumCase', 'constant', 'publicConstant', 'protectedConstant', 'privateConstant',
 		'publicProperty', 'protectedProperty', 'privateProperty',
 	];
 

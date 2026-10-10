@@ -468,7 +468,7 @@ final class PhpCsFixer
 				}
 
 				$t->setOrder('classes.members.order', $order ?: [
-					'traitUse', 'constant', 'publicConstant', 'protectedConstant', 'privateConstant',
+					'traitUse', 'enumCase', 'constant', 'publicConstant', 'protectedConstant', 'privateConstant',
 					'publicProperty', 'protectedProperty', 'privateProperty',
 				]);
 			},

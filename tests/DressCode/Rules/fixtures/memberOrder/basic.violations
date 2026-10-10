@@ -1,1 +1,2 @@
 4: The trait use must come before the method.
+19: The enum case must come before the public constant.

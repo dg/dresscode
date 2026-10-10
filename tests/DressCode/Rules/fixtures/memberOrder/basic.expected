@@ -12,3 +12,10 @@ class A
 	public function f() {}
 	public function g() {}
 }
+
+enum Suit
+{
+	case Hearts;
+	case Spades;
+	const Wild = self::Hearts;
+}
