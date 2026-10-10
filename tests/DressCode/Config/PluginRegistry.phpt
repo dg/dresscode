@@ -95,8 +95,7 @@ test('a rule is known by its class, once however often it is registered', functi
 	$registry->registerRule(RuleOne::class);
 	Assert::same($count + 1, count($registry->rules));
 	Assert::same(RuleOne::class, $registry->rules[$count]);
-	Assert::same(RuleOne::class, $registry->registerRuleOrResolvePreset(RuleOne::class)->rule);
-	Assert::same('dresscode/nette', $registry->registerRuleOrResolvePreset('nette')->preset);
+	Assert::same('dresscode/nette', $registry->findPreset('nette'));
 });
 
 
@@ -126,18 +125,12 @@ test('a rule a suppression comment names is asked for its decisions, never regis
 test('errors', function () {
 	$registry = new PluginRegistry;
 	$registry->registerRule(RuleOne::class);
-	Assert::exception(fn() => $registry->registerRuleOrResolvePreset('quite/different'), ConfigurationException::class, 'Unknown decision, preset or rule `quite/different`.');
-	Assert::exception(fn() => $registry->registerRuleOrResolvePreset('nete'), ConfigurationException::class, 'Unknown decision, preset or rule `nete`. Did you mean `nette`?');
+	Assert::same('Unknown decision, preset or rule `quite/different`.', $registry->createUnknownNameException('quite/different')->getMessage());
+	Assert::same('Unknown decision, preset or rule `nete`. Did you mean `nette`?', $registry->createUnknownNameException('nete')->getMessage());
 	Assert::exception(fn() => $registry->resolvePreset('dresscode/nete'), ConfigurationException::class, 'Unknown preset `dresscode/nete`. Did you mean `dresscode/nette`?');
-	Assert::exception(
-		fn() => $registry->registerRuleOrResolvePreset('cast_spaces'),
-		ConfigurationException::class,
+	Assert::same(
 		'Unknown decision, preset or rule `cast_spaces`. It is covered by `spacing.cast`; `dresscode import` translates a configuration of another tool.',
-	);
-	Assert::exception(
-		fn() => $registry->registerRuleOrResolvePreset('importOrder'),
-		ConfigurationException::class,
-		'Unknown decision, preset or rule `importOrder`.%a?%',
+		$registry->createUnknownNameException('cast_spaces')->getMessage(),
 	);
 	Assert::exception(fn() => RuleInfo::of(NoInfo::class), ConfigurationException::class, 'Rule `NoInfo` has no `#[RuleInfo]` attribute.');
 	// @phpstan-ignore argument.type (a class that is no rule is what the check refuses)

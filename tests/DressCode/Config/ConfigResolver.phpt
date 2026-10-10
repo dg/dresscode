@@ -467,6 +467,11 @@ test('a name of --only that lets in nothing that runs is an error, not an empty 
 		ConfigurationException::class,
 		'Unknown decision, preset or rule `test/basee`. Did you mean `test/base`?',
 	);
+	Assert::exception(
+		fn() => narrow($resolver, new Config(use: ['test/child']), [ResolvedTestRule::class]),
+		ConfigurationException::class,
+		'Rule `ResolvedTestRule` is not registered; add it to `rules` of the configuration.',
+	);
 });
 
 

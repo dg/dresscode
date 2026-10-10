@@ -117,61 +117,6 @@ final class PluginRegistry
 	}
 
 
-	/** @param  class-string<Rule>  $class */
-	public function findRuleUrl(string $class): ?string
-	{
-		return $this->urls[$class] ?? null;
-	}
-
-
-	/**
-	 * The registered rules by where they come from, each in the order of its registration: those of the core, those of
-	 * each plugin under its section, and those of the project.
-	 * @return array{list<class-string<Rule>>, array<string, list<class-string<Rule>>>, list<class-string<Rule>>}
-	 */
-	public function getRulesByOrigin(): array
-	{
-		$core = $plugins = $project = [];
-		foreach ($this->rules as $class) {
-			if (!array_key_exists($class, $this->sections)) {
-				$core[] = $class;
-			} elseif ($this->sections[$class] === null) {
-				$project[] = $class;
-			} else {
-				$plugins[$this->sections[$class]][] = $class;
-			}
-		}
-
-		return [$core, $plugins, $project];
-	}
-
-
-	/**
-	 * A name nobody owns, with the decisions that cover it where it belongs to another tool, else the suggestion.
-	 */
-	private function createUnknownNameException(string $name, string $message, string $suggestion): ConfigurationException
-	{
-		$covered = $this->translator->findPaths($name);
-		return match (true) {
-			$covered !== [] => new ConfigurationException("$message It is covered by `" . implode('` and `', $covered) . '`; `dresscode import` translates a configuration of another tool.', docs: 'migration#import'),
-			default => new ConfigurationException($message . $suggestion),
-		};
-	}
-
-
-	/**
-	 * ``" Did you mean `x`?"`` for the nearest of the known names, empty when none is near enough; a name of the core
-	 * is compared without its vendor as well, so that a name typed alone finds its preset.
-	 * @param  list<string>  $known
-	 */
-	private static function suggest(string $name, array $known): string
-	{
-		$bare = array_map(self::abbreviate(...), $known);
-		$hint = Helpers::getSuggestion($known, $name) ?? Helpers::getSuggestion($bare, $name);
-		return $hint === null ? '' : " Did you mean `$hint`?";
-	}
-
-
 	/**
 	 * What a name in a suppression comment stands for, as a report is told by: a decision or a section for itself, the
 	 * class of a rule for its requirements, and a name of another tool for the requirements standing for it; empty when
@@ -192,6 +137,13 @@ final class PluginRegistry
 			$this->translator->findPaths($name),
 			fn(string $path) => ($catalogue->find($path)->kind ?? DecisionKind::Parameter) !== DecisionKind::Parameter,
 		));
+	}
+
+
+	/** @param  class-string<Rule>  $class */
+	public function findRuleUrl(string $class): ?string
+	{
+		return $this->urls[$class] ?? null;
 	}
 
 
@@ -223,6 +175,28 @@ final class PluginRegistry
 		}
 
 		return $this->catalogue;
+	}
+
+
+	/**
+	 * The registered rules by where they come from, each in the order of its registration: those of the core, those of
+	 * each plugin under its section, and those of the project.
+	 * @return array{list<class-string<Rule>>, array<string, list<class-string<Rule>>>, list<class-string<Rule>>}
+	 */
+	private function getRulesByOrigin(): array
+	{
+		$core = $plugins = $project = [];
+		foreach ($this->rules as $class) {
+			if (!array_key_exists($class, $this->sections)) {
+				$core[] = $class;
+			} elseif ($this->sections[$class] === null) {
+				$project[] = $class;
+			} else {
+				$plugins[$this->sections[$class]][] = $class;
+			}
+		}
+
+		return [$core, $plugins, $project];
 	}
 
 
@@ -286,23 +260,29 @@ final class PluginRegistry
 
 
 	/**
-	 * The class of the rule, registered on the way, or the name of the preset, for a place that takes either.
-	 * @throws ConfigurationException
+	 * The error of a name of `only`, `fixRisky` or `warnOnly` nobody owns, with the decisions that cover it where it belongs
+	 * to another tool, else the nearest preset.
 	 */
-	public function registerRuleOrResolvePreset(string $name): RuleOrPreset
+	public function createUnknownNameException(string $name): ConfigurationException
 	{
-		if (class_exists($name) && is_subclass_of($name, Rule::class)) {
-			$this->registerRule($name);
-			return new RuleOrPreset(rule: $name);
-		}
-
+		$message = "Unknown decision, preset or rule `$name`.";
+		$covered = $this->translator->findPaths($name);
 		return match (true) {
-			isset($this->presets[$name]), isset($this->presets[self::Vendor . $name]) => new RuleOrPreset(preset: $this->resolvePreset($name)),
-			default => throw $this->createUnknownNameException(
-				$name,
-				"Unknown decision, preset or rule `$name`.",
-				self::suggest($name, array_keys($this->presets)),
-			),
+			$covered !== [] => new ConfigurationException("$message It is covered by `" . implode('` and `', $covered) . '`; `dresscode import` translates a configuration of another tool.', docs: 'migration#import'),
+			default => new ConfigurationException($message . self::suggest($name, array_keys($this->presets))),
 		};
+	}
+
+
+	/**
+	 * ``" Did you mean `x`?"`` for the nearest of the known names, empty when none is near enough; a name of the core
+	 * is compared without its vendor as well, so that a name typed alone finds its preset.
+	 * @param  list<string>  $known
+	 */
+	private static function suggest(string $name, array $known): string
+	{
+		$bare = array_map(self::abbreviate(...), $known);
+		$hint = Helpers::getSuggestion($known, $name) ?? Helpers::getSuggestion($bare, $name);
+		return $hint === null ? '' : " Did you mean `$hint`?";
 	}
 }

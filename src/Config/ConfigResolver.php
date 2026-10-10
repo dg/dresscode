@@ -556,15 +556,13 @@ final class ConfigResolver
 		$preset = null;
 		if ($paths === [] && $section !== null) {
 			throw new ConfigurationException("Unknown section `$section`.");
+		} elseif ($paths === [] && in_array($name, $this->registry->rules, true)) {
+			$requirements = array_filter($this->getCatalogue()->getDecisionsOf($name), fn(Decision $decision) => $decision->kind !== DecisionKind::Parameter);
+			return new ExpandedName($name, false, $name, [$name], array_keys($requirements));
+		} elseif ($paths === [] && class_exists($name) && is_subclass_of($name, Rule::class)) {
+			throw new ConfigurationException("Rule `$name` is not registered; add it to `rules` of the configuration.");
 		} elseif ($paths === []) {
-			$resolved = $this->registry->registerRuleOrResolvePreset($name);
-			$class = $resolved->rule;
-			if ($class !== null) {
-				$requirements = array_filter($this->getCatalogue()->getDecisionsOf($class), fn(Decision $decision) => $decision->kind !== DecisionKind::Parameter);
-				return new ExpandedName($class, false, $class, [$class], array_keys($requirements));
-			}
-
-			$preset = (string) $resolved->preset;
+			$preset = $this->registry->findPreset($name) ?? throw $this->registry->createUnknownNameException($name);
 			foreach ($this->collectLayers([[new Layer(LayerKind::Caller), new Profile(use: [$preset])]])['layers'] as [, $profile]) {
 				array_push($paths, ...$this->collectPaths($profile->decisions));
 			}
