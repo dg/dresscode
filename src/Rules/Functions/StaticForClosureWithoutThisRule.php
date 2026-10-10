@@ -15,7 +15,6 @@ use PhpSyntax\{Node, Token, Trivia};
 use PhpSyntax\Nodes\{AnonymousFunctionNode, ArgumentNode, Expression, IdentifierNode, NameNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode};
 use PhpSyntax\Nodes\Statement\FunctionNode;
-use function in_array;
 
 
 /**
@@ -127,7 +126,7 @@ final class StaticForClosureWithoutThisRule extends NodeRule
 			return $call instanceof Expression\MethodCallNode
 				&& $call->object === $parent
 				&& $call->name instanceof IdentifierNode
-				&& in_array(strtolower($call->name->token->text), ['bindto', 'call'], true);
+				&& ($call->name->equals('bindTo') || $call->name->equals('call'));
 		}
 
 		$call = $parent instanceof ArgumentNode ? $parent->parent?->parent?->parent : null;
@@ -135,7 +134,7 @@ final class StaticForClosureWithoutThisRule extends NodeRule
 			&& $call->class instanceof NameNode
 			&& strcasecmp($context->getAnalysis(NameResolver::class)->resolveClass($call->class), 'Closure') === 0
 			&& $call->name instanceof IdentifierNode
-			&& strtolower($call->name->token->text) === 'bind'
+			&& $call->name->equals('bind')
 			&& ($call->arguments->items->getItems()[0] ?? null) === $parent;
 	}
 }

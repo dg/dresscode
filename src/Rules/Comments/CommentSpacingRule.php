@@ -98,7 +98,12 @@ final class CommentSpacingRule extends NodeRule
 						$gap !== null
 						&& $context->report($node, ($this->before === Space::Single ? 'Expected a single space' : 'Expected at least one space') . ' before a comment following code.', decision: self::AfterCode, trivia: $item)
 					) {
-						$gap === 'missing' ? $result[] = Trivia::fromText(' ') : $result[count($result) - 1] = Trivia::fromText(' ');
+						if ($gap === 'missing') {
+							$result[] = Trivia::fromText(' ');
+						} else {
+							$result[count($result) - 1] = Trivia::fromText(' ');
+						}
+
 						$changed = true;
 					}
 				}
