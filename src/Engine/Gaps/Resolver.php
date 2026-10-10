@@ -31,6 +31,9 @@ final class Resolver
 	/** @var array<int, list<array{list<array{Rule, Claim|\Closure(Gap): ?Claim, string}>, Node|Token, ?int}>> */
 	private array $afterToken = [];
 
+	/** @var array<int, Token>  the tokens of the ids above, held so that no other token takes one of the ids in the pass */
+	private array $held = [];
+
 	private ?Token $previous = null;
 
 	/** how many strings the traversal is inside of, where whitespace is the value */
@@ -59,7 +62,7 @@ final class Resolver
 	 */
 	public function beginPass(Style $style, Sink $sink, \Closure $findAnalysis): void
 	{
-		$this->beforeToken = $this->afterToken = [];
+		$this->beforeToken = $this->afterToken = $this->held = [];
 		$this->previous = null;
 		$this->inString = 0;
 		$this->style = $style;
@@ -233,7 +236,8 @@ final class Resolver
 			$first = $child instanceof Token ? $child : $child->getFirstToken();
 			if ($first !== null) {
 				$subject = $child instanceof PlainNodeList || $child instanceof SeparatedNodeList ? $child->getItems()[0] ?? $child : $child;
-				$this->beforeToken[spl_object_id($first)][] = [$before, $subject, $index];
+				$this->beforeToken[$id = spl_object_id($first)][] = [$before, $subject, $index];
+				$this->held[$id] = $first;
 			}
 		}
 
@@ -241,7 +245,8 @@ final class Resolver
 			$last = $child instanceof Token ? $child : $child->getLastToken();
 			if ($last !== null) {
 				$subject = $child instanceof PlainNodeList || $child instanceof SeparatedNodeList ? $child->getItems()[count($child->getItems()) - 1] ?? $child : $child;
-				$this->afterToken[spl_object_id($last)][] = [$after, $subject, $index];
+				$this->afterToken[$id = spl_object_id($last)][] = [$after, $subject, $index];
+				$this->held[$id] = $last;
 			}
 		}
 	}
