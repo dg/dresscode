@@ -62,3 +62,12 @@ class D
 		return;
 	}
 }
+class Inline
+{
+	public function __construct($x) { if ($x) return; return 1; }
+}
+class InlineEnd
+{
+	public function __construct($x) { if ($x) return; return 1;
+	}
+}

@@ -79,7 +79,17 @@ final class NoConstructorReturnValuesRule extends NodeRule
 
 		$builder = new Builder;
 		if ($silent && $last) {
+			// the space before a statement sharing its line stays, so the space after it goes with it
+			$end = $return->getLastToken();
+			if (
+				!$return->getFirstToken()->startsLine()
+				&& array_all($end->trailingTrivia, fn(Trivia $trivia) => $trivia->id === Trivia::Whitespace)
+			) {
+				$end->setTrailingTrivia([]);
+			}
+
 			$return->remove();
+
 		} elseif ($silent) {
 			$return->expression = null;
 			$return->returnKeyword->setTrailingTrivia([]);

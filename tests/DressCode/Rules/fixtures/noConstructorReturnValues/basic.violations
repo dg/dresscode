@@ -6,3 +6,5 @@
 34: Returning a value from a destructor is deprecated since PHP 8.6.
 42: Making a constructor a generator is deprecated since PHP 8.6.
 48: Making a destructor a generator is deprecated since PHP 8.6.
+67: Returning a value from a constructor is deprecated since PHP 8.6.
+71: Returning a value from a constructor is deprecated since PHP 8.6.
