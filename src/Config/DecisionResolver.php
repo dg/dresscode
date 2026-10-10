@@ -33,6 +33,8 @@ final readonly class DecisionResolver
 		private bool $typesAvailable = false,
 		/** whether the namespaces of the configuration are complete, which turns on their guard */
 		private bool $certainNames = false,
+		/** knows the names of the rules of other tools, those the plugins translate among them */
+		private Translator $translator = new Translator,
 	) {
 	}
 
@@ -187,7 +189,7 @@ final readonly class DecisionResolver
 			}
 		}
 
-		$covered = $prefix === '' ? (new Translator)->findPaths($path) : [];
+		$covered = $prefix === '' ? $this->translator->findPaths($path) : [];
 		$hint = Helpers::getSuggestion(array_keys($known), $path);
 		throw new ConfigurationException("Key `$path` is unknown" . match (true) {
 			$covered !== [] => '. It is the name of a rule of another tool, covered by `' . implode('` and `', $covered) . '`; `dresscode import` translates a configuration of another tool.',

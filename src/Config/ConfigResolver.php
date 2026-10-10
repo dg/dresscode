@@ -112,7 +112,7 @@ final class ConfigResolver
 				}
 
 				if ($profile->decisions !== []) {
-					new DecisionResolver($this->getCatalogue())->checkLayer($profile->decisions);
+					new DecisionResolver($this->getCatalogue(), translator: $this->registry->translator)->checkLayer($profile->decisions);
 					$decisionLayers[] = [$layer, $profile->decisions];
 				}
 
@@ -165,6 +165,7 @@ final class ConfigResolver
 			$this->project,
 			typesAvailable: $config->typeAnalysis !== null && $this->typesAvailable,
 			certainNames: $resolution === 'certain',
+			translator: $this->registry->translator,
 		);
 		$decisions = $resolver->resolve($decisionLayers);
 		if ($packageLayers = $this->collectPackageMaps($decisions)) {
