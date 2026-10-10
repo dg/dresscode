@@ -220,9 +220,8 @@ final class BracesPositionRule extends GapRule
 	 */
 	private function readShape(?Node $node, Gap $gap): ?array
 	{
-		$none = [null, null, false, null, self::FunctionBody, null, false, null];
-		[$open, $close, $empty, $nextLine, $decision, $inside, $singleline, $emptyDecision] = match (true) {
-			$node instanceof Statement\FunctionNode, $node instanceof MethodNode => $node->body === null ? $none : [
+		$shape = match (true) {
+			$node instanceof Statement\FunctionNode, $node instanceof MethodNode => $node->body === null ? null : [
 				$node->body->openBrace,
 				$node->body->closeBrace,
 				$node->body->statements->isEmpty(),
@@ -273,7 +272,7 @@ final class BracesPositionRule extends GapRule
 			$node instanceof Statement\ForNode, $node instanceof Statement\ForeachNode, $node instanceof Statement\WhileNode,
 			$node instanceof Statement\DoWhileNode, $node instanceof Statement\DeclareNode => $node->body instanceof Statement\BlockNode
 				? [$node->body->openBrace, $node->body->closeBrace, false, ...$this->readControlStructureShape()]
-				: $none,
+				: null,
 			$node instanceof Statement\TryNode, $node instanceof Nodes\CatchNode, $node instanceof Nodes\FinallyNode
 				=> [$node->body->openBrace, $node->body->closeBrace, false, ...$this->readControlStructureShape()],
 			$node instanceof Statement\SwitchNode, $node instanceof MatchNode
@@ -289,7 +288,7 @@ final class BracesPositionRule extends GapRule
 				self::isAbbreviated($node->hooks?->getItems() ?? []),
 				null,
 			],
-			$node instanceof PropertyHookNode => $node->body === null ? $none : [
+			$node instanceof PropertyHookNode => $node->body === null ? null : [
 				$node->body->openBrace,
 				$node->body->closeBrace,
 				$node->body->statements->isEmpty(),
@@ -299,9 +298,14 @@ final class BracesPositionRule extends GapRule
 				false,
 				self::EmptyBody,
 			],
-			default => $none,
+			default => null,
 		};
-		if ($node === null || $open === null || $close === null) {
+		if ($node === null || $shape === null) {
+			return null;
+		}
+
+		[$open, $close, $empty, $nextLine, $decision, $inside, $singleline, $emptyDecision] = $shape;
+		if ($open === null || $close === null) {
 			return null;
 		}
 
