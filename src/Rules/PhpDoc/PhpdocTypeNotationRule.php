@@ -93,7 +93,7 @@ final class PhpdocTypeNotationRule extends NodeRule
 			new NodeTraverser([$visitor])->traverse([$tree]);
 			$messages = $visitor->messages;
 			$fix = $messages !== [];
-			foreach ($messages as $message => $decision) {
+			foreach ($messages as [$message, $decision]) {
 				$fix = $context->report($node, $message, decision: $decision, trivia: $trivia) && $fix;
 			}
 

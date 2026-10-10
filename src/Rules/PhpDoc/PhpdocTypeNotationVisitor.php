@@ -33,7 +33,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 		'object', 'parent', 'resource', 'scalar', 'self', 'static', 'string', 'true', 'void',
 	];
 
-	/** @var array<string, string>  message => decision */
+	/** @var list<array{string, string}>  the message and the decision of each */
 	public array $messages = [];
 
 	/** @var \SplObjectStorage<Node, null>  shape keys are names, not types */
@@ -73,12 +73,12 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 		if ($node instanceof IdentifierTypeNode && !isset($this->keys[$node])) {
 			$canonical = $this->findCanonical($node->name);
 			if ($this->canonical && $canonical !== null && $node->name !== $canonical) {
-				$this->messages["The type `$node->name` in a doc comment must be written `$canonical`."] = 'phpdoc.types.builtin';
+				$this->messages[] = ["The type `$node->name` in a doc comment must be written `$canonical`.", 'phpdoc.types.builtin'];
 				$node->name = $canonical;
 			}
 
 		} elseif ($node instanceof ArrayTypeNode && $this->arrayNotation === 'generic') {
-			$this->messages['An array type in a doc comment must be written `array<T>`.'] = 'phpdoc.types.array';
+			$this->messages[] = ['An array type in a doc comment must be written `array<T>`.', 'phpdoc.types.array'];
 			return new GenericTypeNode(new IdentifierTypeNode('array'), [$node->type]);
 
 		} elseif (
@@ -92,7 +92,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 				|| $node->genericTypes[0] instanceof GenericTypeNode
 			)
 		) {
-			$this->messages['An array type in a doc comment must be written `T[]`.'] = 'phpdoc.types.array';
+			$this->messages[] = ['An array type in a doc comment must be written `T[]`.', 'phpdoc.types.array'];
 			return new ArrayTypeNode($node->genericTypes[0]);
 
 		} elseif ($node instanceof UnionTypeNode) {
@@ -115,7 +115,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 		}
 
 		if (count($unique) < count($node->types)) {
-			$this->messages['A union type in a doc comment names a type twice.'] = 'phpdoc.types.builtin';
+			$this->messages[] = ['A union type in a doc comment names a type twice.', 'phpdoc.types.builtin'];
 		}
 
 		$nulls = $others = [];
@@ -128,7 +128,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 		}
 
 		if ($nulls && count($others) === 1 && $this->shortNullable && self::canBeNullable($others[0])) {
-			$this->messages['A nullable type in a doc comment must be written `?T`.'] = 'phpdoc.types.nullable';
+			$this->messages[] = ['A nullable type in a doc comment must be written `?T`.', 'phpdoc.types.nullable'];
 			return new NullableTypeNode($others[0]);
 		}
 
@@ -136,7 +136,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 			$sorted = $others;
 			usort($sorted, fn(TypeNode $a, TypeNode $b) => strcasecmp(ltrim((string) $a, '('), ltrim((string) $b, '('))); // (A&B) sorts by A
 			if ($sorted !== $others) {
-				$this->messages['The types of a union type in a doc comment must be in alphabetical order.'] = 'phpdoc.types.unionOrder';
+				$this->messages[] = ['The types of a union type in a doc comment must be in alphabetical order.', 'phpdoc.types.unionOrder'];
 				$others = $sorted;
 			}
 		}
@@ -152,7 +152,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 		if ($this->nullPosition !== null && $nulls && $others) {
 			$types = $this->nullPosition === 'first' ? [...$nulls, ...$others] : [...$others, ...$nulls];
 			if ($types !== $kept) {
-				$this->messages["`null` must come {$this->nullPosition} in a union type in a doc comment."] = 'phpdoc.types.nullPosition';
+				$this->messages[] = ["`null` must come {$this->nullPosition} in a union type in a doc comment.", 'phpdoc.types.nullPosition'];
 			}
 		}
 

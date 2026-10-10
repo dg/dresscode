@@ -1,3 +1,6 @@
 3: A nullable type in a doc comment must be written `?T`.
 3: The types of a union type in a doc comment must be in alphabetical order.
 3: `null` must come last in a union type in a doc comment.
+3: `null` must come last in a union type in a doc comment.
+3: The types of a union type in a doc comment must be in alphabetical order.
+3: A nullable type in a doc comment must be written `?T`.
