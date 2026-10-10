@@ -21,7 +21,9 @@ use function strlen;
 
 /**
  * The map `attributeForAnnotation` as the project resolved it: the attribute written for an annotation by its name,
- * for the class of a Doctrine annotation or of an attribute, and for the classes of a namespace of annotations.
+ * for the class of a Doctrine annotation or of an attribute, and for the classes of a namespace of annotations. A key
+ * without a backslash is the name of an annotation, one with it a class, `\Route` for a class of the global namespace,
+ * and one ending in `\*` a namespace.
  * @internal
  */
 final readonly class AnnotationMap
