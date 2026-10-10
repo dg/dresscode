@@ -7,7 +7,7 @@
 
 namespace DressCode\Console;
 
-use DressCode\Config\{Catalogue, PluginRegistry, ResolvedConfig, ResolvedDecision, UpgradingData};
+use DressCode\Config\{Catalogue, PluginRegistry, ResolvedConfig, ResolvedDecision, UpgradingData, Versions};
 use DressCode\Engine\Helpers;
 use Nette\CommandLine\{Ansi, Console};
 use Nette\Neon\Neon;
@@ -58,7 +58,7 @@ final readonly class ConfigPrinter
 			$out .= $console->color('gray', 'Packages   ') . count($this->packages) . ' upgrading ' . (count($this->packages) === 1 ? 'file' : 'files') . "\n";
 			// what the version of the package has not reached yet is what an upgrade still offers
 			foreach ($this->packages as [$data, $version]) {
-				$out .= '      ' . self::pad($data->package . ($version === null ? '' : " $version"), 32)
+				$out .= '      ' . self::pad($data->package . ($version === null ? '' : ' ' . Versions::formatVersion($version)), 32)
 					. $console->color('gray', $data->layer->describe() . ($data->unreached === [] ? '' : ', upgrading further to ' . implode(', ', $data->unreached))) . "\n";
 			}
 		}

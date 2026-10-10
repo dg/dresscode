@@ -30,6 +30,6 @@ final readonly class UnmetRequirement
 		$needs = '`' . ($this->constraint === '*' ? $this->package : "$this->package $this->constraint") . '`';
 		return $this->current === null
 			? "$needs and the project does not have it"
-			: "$needs and the project is written for $this->current";
+			: "$needs and the project is written for " . Versions::formatVersion($this->current);
 	}
 }

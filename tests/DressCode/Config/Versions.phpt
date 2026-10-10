@@ -27,6 +27,14 @@ test('the lowest version a constraint allows', function () {
 });
 
 
+test('a reader sees the newest of a development line as the branch', function () {
+	Assert::same('3.3.x-dev', Versions::formatVersion('3.3.9999999.9999999'));
+	Assert::same('3.3.1', Versions::formatVersion('3.3.1'));
+	Assert::same('3.x-dev', Versions::formatVersion('3.9999999.9999999.9999999'));
+	Assert::same('`acme/lib >=3.4` and the project is written for 3.3.x-dev', new DressCode\Config\UnmetRequirement('acme/lib', '>=3.4', '3.3.9999999.9999999')->describe());
+});
+
+
 test('a version is one release, not a constraint or a branch', function () {
 	Assert::true(Versions::isVersion('8.2'));
 	Assert::true(Versions::isVersion('8'));
