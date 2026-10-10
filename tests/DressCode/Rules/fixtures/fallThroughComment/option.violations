@@ -1,1 +1,1 @@
-6: A case falling through to the next one must end with `break` or be marked with a `break omitted` comment.
+5: A case falling through to the next one must end with `break` or be marked with a `break omitted` comment.

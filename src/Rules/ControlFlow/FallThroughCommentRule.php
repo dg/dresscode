@@ -66,7 +66,7 @@ final class FallThroughCommentRule extends NodeRule
 		// a comment saying more than the marker marks the case, but is not removed where the case cannot fall through
 		[$token, $comment] = $this->findComment($node, $next, exact: !$fallsThrough);
 		if ($fallsThrough && $comment === null) {
-			$context->report($next, 'A case falling through to the next one must end with `break` or be marked with a ' . Violation::formatCode($this->comment) . ' comment.', fixable: false);
+			$context->report($stmts[count($stmts) - 1], 'A case falling through to the next one must end with `break` or be marked with a ' . Violation::formatCode($this->comment) . ' comment.', fixable: false);
 		} elseif (!$fallsThrough && $comment !== null && $token !== null) {
 			if ($context->report($token, 'Useless ' . Violation::formatCode($this->comment) . ' comment, because the case cannot fall through.', trivia: $comment)) {
 				$token->removeTrivia($comment);
