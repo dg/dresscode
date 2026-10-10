@@ -15,7 +15,23 @@ class SystemClock implements Clock
 
 class Schedule
 {
+	public function __construct(?Clock $clock = null)
+	{
+	}
+
+
 	public function load(?Clock $clock = null): void
 	{
 	}
+
+
+	private function plan(?Clock $clock = null): void
+	{
+	}
+}
+
+
+abstract class Task
+{
+	abstract public function __construct(?Clock $clock = null);
 }

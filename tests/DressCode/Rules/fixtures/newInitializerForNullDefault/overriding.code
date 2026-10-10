@@ -3,10 +3,16 @@
 
 namespace App;
 
-use Acme\Time\{Clock, Schedule, SystemClock};
+use Acme\Time\{Clock, Schedule, SystemClock, Task};
 
 class Calendar extends Schedule
 {
+	public function __construct(?Clock $clock = null)
+	{
+		$clock ??= new SystemClock;
+	}
+
+
 	public function load(?Clock $clock = null): void
 	{
 		$clock ??= new SystemClock;
@@ -14,6 +20,21 @@ class Calendar extends Schedule
 
 
 	public function save(?Clock $clock = null): void
+	{
+		$clock ??= new SystemClock;
+	}
+
+
+	private function plan(?Clock $clock = null): void
+	{
+		$clock ??= new SystemClock;
+	}
+}
+
+
+class Job extends Task
+{
+	public function __construct(?Clock $clock = null)
 	{
 		$clock ??= new SystemClock;
 	}

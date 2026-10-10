@@ -8,8 +8,8 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\Analyses\Types;
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Builder, Node, Token};
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
+use PhpSyntax\{Builder, Node, Token, Visibility};
 use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ClassLikeNode, NameNode, ParameterNode, StatementNode, TypeNode};
 use PhpSyntax\Nodes\Expression\{AssignmentNode, BinaryOpNode, CombinedAssignmentNode, NewNode, PropertyFetchNode, VariableNode};
 use PhpSyntax\Nodes\Member\{MethodNode, TraitUseNode};
@@ -27,8 +27,9 @@ use function count;
  * a default asks, and its class a name of its own; a statement whose object is not ends the run of such statements,
  * since it may read a parameter, and so does a second one for the same parameter. Every fix is risky: the parameter no longer takes null, so a caller passing it gets a TypeError.
  * A method that may override another one is left alone, PHP forbidding it to narrow the type of a parameter, and so is
- * every method of a trait or of a class using one. Without the types, a method that overrides another one is not told
- * from one that does not, so every method of a class that extends or implements anything is left alone.
+ * every method of a trait or of a class using one. A private method overrides nothing, and a constructor is held to
+ * the signature only of an abstract one. Without the types, a method that overrides another one is not told from one
+ * that does not, so every method but a private one of a class that extends or implements anything is left alone.
  */
 #[RuleInfo(Stage::Structure, requires: ['php' => '>=8.1'], analyses: [Types::class])]
 final class NewInitializerForNullDefaultRule extends NodeRule
@@ -180,7 +181,10 @@ final class NewInitializerForNullDefaultRule extends NodeRule
 	}
 
 
-	/** Whether the method may override another one, whose parameter PHP forbids it to narrow. */
+	/**
+	 * Whether the method may override another one, whose parameter PHP forbids it to narrow. A private method overrides
+	 * nothing, and a constructor only an abstract one, of an interface or an abstract class.
+	 */
 	private static function mayOverride(MethodNode $method, RuleContext $context): bool
 	{
 		$class = $method->findAncestor(ClassLikeNode::class);
@@ -189,6 +193,8 @@ final class NewInitializerForNullDefaultRule extends NodeRule
 			|| array_any($class?->members->getItems() ?? [], fn(Node $member) => $member instanceof TraitUseNode) // the trait may declare it abstract
 		) {
 			return true;
+		} elseif ($method->modifiers->visibility === Visibility::Private) {
+			return false;
 		}
 
 		$inherits = match (true) {
@@ -197,7 +203,13 @@ final class NewInitializerForNullDefaultRule extends NodeRule
 			default => true,
 		};
 		$types = $context->findAnalysis(Types::class);
-		return $inherits
-			&& ($types?->findDeclaringClass($method) === null || $types->findOverridden($method) !== null);
+		if (!$inherits) {
+			return false;
+		} elseif ($types?->findDeclaringClass($method) === null) {
+			return true;
+		}
+
+		$overridden = $types->findOverridden($method);
+		return $overridden !== null && (!$method->isConstructor() || $types->isAbstract($overridden) !== Tristate::No);
 	}
 }

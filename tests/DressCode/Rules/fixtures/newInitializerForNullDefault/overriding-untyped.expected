@@ -20,8 +20,7 @@ class Calendar extends Schedule
 	}
 
 
-	private function plan(?Clock $clock = null): void
+	private function plan(Clock $clock = new SystemClock): void
 	{
-		$clock ??= new SystemClock;
 	}
 }
