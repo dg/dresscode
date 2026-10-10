@@ -101,10 +101,10 @@ final class Application
 			}
 
 			if ($args['--version']) {
-				$this->out->writeLine($this->formatName($this->out));
+				$this->out->writeLine(self::formatName($this->out));
 				return 0;
 			} elseif ($args['--help'] || $command === $program) {
-				$this->out->writeLine($this->formatName($this->out) . "\n");
+				$this->out->writeLine(self::formatName($this->out) . "\n");
 				new HelpRenderer($this->out)->render($command);
 				return $command === $program && !$args['--help'] ? 3 : 0;
 			}
@@ -441,7 +441,7 @@ final class Application
 	/** Where the rules come from, which is nothing the command line shows. */
 	private function writeHeader(?string $configFile, Config $config, ?Config $commandLine, string $phpVersion): void
 	{
-		$this->out->writeLine($this->formatName($this->out));
+		$this->out->writeLine(self::formatName($this->out));
 		$use = [
 			...array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, [...$config->plugins, ...$commandLine->plugins ?? []]),
 			...$config->use,
@@ -478,7 +478,7 @@ final class Application
 
 
 	/** The name of the tool as it is written everywhere it appears. */
-	private function formatName(Console $console): string
+	private static function formatName(Console $console): string
 	{
 		return $console->color('white', 'DRESS') . $console->color('red', '|')
 			. $console->color('white', 'CODE') . ' ' . $console->color('gray', self::Version);
@@ -842,7 +842,7 @@ final class Application
 
 		$existing = Loader::listFiles($root);
 		$console = $existing ? $this->err : $this->out;
-		$console->write(Markup::highlightCode($console, $this->formatName($console) . "\n" . new InitPrinter($proposal)->print($console)));
+		$console->write(Markup::highlightCode($console, self::formatName($console) . "\n" . new InitPrinter($proposal)->print($console)));
 		if ($existing) {
 			$this->writeNote('`' . implode('` and `', $existing) . '`' . (count($existing) > 1 ? ' exist' : ' exists') . ", so the proposal is printed and nothing is written.\n");
 			$this->out->write($neon);

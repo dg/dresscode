@@ -16,8 +16,11 @@ use function count, sprintf;
  */
 final class Diff
 {
+	private const Context = 3;
+
+
 	/** @param ?string $newPath  the label of the new side, the same as the old one when null */
-	public static function unified(string $old, string $new, string $path, int $context = 3, ?string $newPath = null): string
+	public static function unified(string $old, string $new, string $path, ?string $newPath = null): string
 	{
 		if ($old === $new) {
 			return '';
@@ -35,7 +38,7 @@ final class Diff
 				continue;
 			}
 
-			$start = max(0, $i - $context);
+			$start = max(0, $i - self::Context);
 			$end = $i;
 			while ($end < $count) {
 				if ($edits[$end][0] !== ' ') {
@@ -44,7 +47,7 @@ final class Diff
 				}
 
 				$next = $end;
-				while ($next < $count && $edits[$next][0] === ' ' && $next - $end < $context * 2) {
+				while ($next < $count && $edits[$next][0] === ' ' && $next - $end < self::Context * 2) {
 					$next++;
 				}
 
@@ -55,7 +58,7 @@ final class Diff
 				$end = $next;
 			}
 
-			$end = min($count, $end + $context);
+			$end = min($count, $end + self::Context);
 			$oldLines = $newLines = 0;
 			$oldStart = $newStart = 0;
 			for ($j = 0; $j < $start; $j++) {

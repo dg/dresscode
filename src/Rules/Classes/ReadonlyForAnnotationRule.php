@@ -66,8 +66,8 @@ final class ReadonlyForAnnotationRule extends NodeRule
 		if (
 			$node instanceof ClassNode
 			&& version_compare($context->phpVersion, '8.2', '>=')
-			&& $this->hasTag($node, $context)
-			&& $this->canBeReadonlyClass($node, $context)
+			&& self::hasTag($node, $context)
+			&& self::canBeReadonlyClass($node, $context)
 			&& $context->report(
 				$node->classKeyword,
 				"The class `{$node->name->token->text}` annotated as readonly must be declared readonly.",
@@ -76,10 +76,10 @@ final class ReadonlyForAnnotationRule extends NodeRule
 				because: 'a write the annotation let through throws an Error',
 			)
 		) {
-			$this->removeTag($node, $context);
+			self::removeTag($node, $context);
 			foreach ($node->members as $member) {
 				if ($member instanceof PropertyNode) {
-					$this->removeTag($member, $context);
+					self::removeTag($member, $context);
 				}
 			}
 
@@ -97,7 +97,7 @@ final class ReadonlyForAnnotationRule extends NodeRule
 				&& !$member->modifiers->readonly
 				&& self::canBeReadonlyProperty($member, $context->phpVersion)
 				&& ($member->modifiers->visibility === Visibility::Private || ($final && $node->extends === null))
-				&& $this->hasTag($member, $context)
+				&& self::hasTag($member, $context)
 				&& self::isDefaultUnwritten($member, $node, $context)
 				&& $context->report(
 					$member,
@@ -107,14 +107,14 @@ final class ReadonlyForAnnotationRule extends NodeRule
 					because: 'a write the annotation let through throws an Error',
 				)
 			) {
-				$this->removeTag($member, $context);
+				self::removeTag($member, $context);
 				self::appendReadonly($member->modifiers);
 			}
 		}
 	}
 
 
-	private function canBeReadonlyClass(ClassNode $class, RuleContext $context): bool
+	private static function canBeReadonlyClass(ClassNode $class, RuleContext $context): bool
 	{
 		if (
 			$class->modifiers->readonly
@@ -168,7 +168,7 @@ final class ReadonlyForAnnotationRule extends NodeRule
 	}
 
 
-	private function hasTag(Node $node, RuleContext $context): bool
+	private static function hasTag(Node $node, RuleContext $context): bool
 	{
 		$docComment = $node->getDocComment();
 		return $docComment !== null
@@ -180,10 +180,10 @@ final class ReadonlyForAnnotationRule extends NodeRule
 	}
 
 
-	private function removeTag(Node $node, RuleContext $context): void
+	private static function removeTag(Node $node, RuleContext $context): void
 	{
 		$docComment = $node->getDocComment();
-		if ($docComment === null || !$this->hasTag($node, $context)) {
+		if ($docComment === null || !self::hasTag($node, $context)) {
 			return;
 		}
 

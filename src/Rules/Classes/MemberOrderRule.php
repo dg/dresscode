@@ -83,7 +83,7 @@ final class MemberOrderRule extends NodeRule
 			$sorted[] = [$this->rank($member), $i, $member];
 		}
 
-		usort($sorted, fn($a, $b) => [$a[0], $a[1]] <=> [$b[0], $b[1]]);
+		usort($sorted, fn($a, $b) => $a[0] <=> $b[0]);
 		$misplaced = null;
 		foreach ($sorted as $i => [, , $member]) {
 			if ($member !== $members[$i]) {

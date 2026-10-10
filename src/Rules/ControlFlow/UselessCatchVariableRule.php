@@ -50,7 +50,7 @@ final class UselessCatchVariableRule extends NodeRule
 		$name = $node->variable->name->text;
 		$scope = $node->findAncestor(FunctionLikeNode::class) ?? $context->file;
 		foreach (NodeHelpers::findDynamicVariableAccesses($scope, $context) as $access) {
-			if (self::mayRunAfter($access, $node, $scope, $context)) {
+			if (self::mayRunAfter($access, $node, $scope)) {
 				return;
 			}
 		}
@@ -78,7 +78,7 @@ final class UselessCatchVariableRule extends NodeRule
 	 * Whether the access runs in the scope of the catch and may run after it: it is written after the catch or in
 	 * a loop around it, or the scope jumps with goto.
 	 */
-	private static function mayRunAfter(Node $access, CatchNode $catch, Node $scope, RuleContext $context): bool
+	private static function mayRunAfter(Node $access, CatchNode $catch, Node $scope): bool
 	{
 		$function = $catch->findAncestor(FunctionLikeNode::class);
 		if ($access->findAncestor(FunctionLikeNode::class) !== $function) {

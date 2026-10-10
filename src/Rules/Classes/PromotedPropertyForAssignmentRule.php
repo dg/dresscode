@@ -74,7 +74,7 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 				? null
 				: $parameter->variable->plainName;
 			$property = $name === null ? null : $properties[$name] ?? null;
-			$assignment = $property === null ? null : $this->findPromotable($constructor, $constructor->body, $parameter, $property, $name);
+			$assignment = $property === null ? null : self::findPromotable($constructor, $constructor->body, $parameter, $property, $name);
 			if (
 				$assignment === null
 				|| !$context->report($property, "The property `\$$name` must be promoted to a constructor parameter.", risk: $property->type === null ? Risk::BehaviorChanges : null, because: $property->type === null ? 'promotion sets the untyped property before the body runs' : null)
@@ -82,7 +82,7 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 				continue;
 			}
 
-			$this->promote($parameter, $property);
+			self::promote($parameter, $property);
 			$assignment->remove();
 			$property->remove();
 		}
@@ -93,7 +93,7 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 	 * The statement assigning the parameter to the property, where the two may take each other's place;
 	 * null wherever anything else in the constructor would notice.
 	 */
-	private function findPromotable(
+	private static function findPromotable(
 		MethodNode $constructor,
 		Statement\BlockNode $body,
 		ParameterNode $parameter,
@@ -153,7 +153,7 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 
 
 	/** Writes the modifiers of the property in front of the parameter, `var` as `public`. */
-	private function promote(ParameterNode $parameter, PropertyNode $property): void
+	private static function promote(ParameterNode $parameter, PropertyNode $property): void
 	{
 		foreach ($property->modifiers->getTokens() as $modifier) {
 			$parameter->modifiers->append($modifier->is(Token::Var)

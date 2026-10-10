@@ -45,7 +45,7 @@ final class NoLongArraySyntaxRule extends NodeRule
 			}
 
 		} elseif ($node instanceof DestructuringNode && !$node->parent instanceof ArrayItemNode) {
-			$nest = $this->collectNest($node);
+			$nest = self::collectNest($node);
 			foreach ($nest as [$list, $keyword]) {
 				if ($keyword->hasCommentUpTo($list->openDelimiter) || $context->isSilenced($keyword)) {
 					return;
@@ -65,12 +65,12 @@ final class NoLongArraySyntaxRule extends NodeRule
 	 * The `list()` destructurings of the nest the node opens, each with its keyword.
 	 * @return list<array{DestructuringNode, Token}>
 	 */
-	private function collectNest(DestructuringNode $node): array
+	private static function collectNest(DestructuringNode $node): array
 	{
 		$nest = $node->listKeyword === null ? [] : [[$node, $node->listKeyword]];
 		foreach ($node->items as $item) {
 			if ($item instanceof ArrayItemNode && $item->value instanceof DestructuringNode) {
-				array_push($nest, ...$this->collectNest($item->value));
+				array_push($nest, ...self::collectNest($item->value));
 			}
 		}
 

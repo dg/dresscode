@@ -180,7 +180,7 @@ final class ImportNotationRule extends NodeRule
 		$found = [];
 		foreach ($list->getItems() as $stmt) {
 			$namespace = $stmt instanceof UseNode && !$stmt->hasInnerComment() && !$stmt->hasTrailingComment() ? self::findNamespace($stmt) : null;
-			if ($namespace === null || ($this->shapes[$stmt->symbolKind->name] ?? null) === 'combined') {
+			if ($namespace === null || $this->shapes[$stmt->symbolKind->name] === 'combined') {
 				continue;
 			}
 
