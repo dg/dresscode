@@ -10,7 +10,7 @@ namespace DressCode\Rules\Whitespace;
 use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
 use DressCode\Domains\Shapes;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{CaseNode, CatchNode, ClosureUseListNode, ElseifNode, ElseNode, FinallyNode, ModifiersNode, ParameterNode, SeparatedNodeList, Statement, UseItemNode};
+use PhpSyntax\Nodes\{CaseNode, CatchNode, ClassLikeNode, ClosureUseListNode, ElseifNode, ElseNode, FinallyNode, ModifiersNode, ParameterNode, SeparatedNodeList, Statement, UseItemNode};
 use PhpSyntax\Nodes\Expression\{ClosureNode, MatchNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode, PropertyNode, TraitAliasNode, TraitUseNode};
 use function count;
@@ -137,8 +137,11 @@ final class ConstructSpacingRule extends GapRule
 		// the keyword of an echo is `<?=` as well, and what follows the open tag is the template's
 		$any['echoKeyword'] = [null, fn(Gap $gap) => $gap->token->is(Token::OpenTagWithEcho) ? null : $this->claimAfterKeyword($gap, self::Construct)];
 		$any['fnKeyword'] = [null, $this->spaceAfterFn];
-		// a pair of braces with nothing between them is written {}
-		$any['closeBrace'] = [fn(Gap $gap) => $gap->token->getPrevious()?->is('{') ?? false ? $controlNone : null, null];
+		// a pair of braces with nothing between them is written {}, unless it is a body, which `braces.empty.body` writes
+		$any['closeBrace'] = [
+			fn(Gap $gap) => ($gap->token->getPrevious()?->is('{') ?? false) && !self::isBody($gap->token->parent) ? $controlNone : null,
+			null,
+		];
 		// and an empty body of the alternative syntax is written `: endif`
 		$any['endKeyword'] = [fn(Gap $gap) => $gap->token->getPrevious()?->is(':') ?? false ? $controlSingle : null, null];
 		$claims = ['*' => $any];
@@ -239,5 +242,18 @@ final class ConstructSpacingRule extends GapRule
 		}
 
 		return $node;
+	}
+
+
+	/** Whether the braces enclose the body of a class or of a function, whose empty form `BracesPositionRule` writes. */
+	private static function isBody(?Node $braced): bool
+	{
+		return $braced instanceof ClassLikeNode
+			|| ($braced instanceof Statement\BlockNode && (
+				$braced->parent instanceof Statement\FunctionNode
+				|| $braced->parent instanceof MethodNode
+				|| $braced->parent instanceof ClosureNode
+				|| $braced->parent instanceof PropertyHookNode
+			));
 	}
 }

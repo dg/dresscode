@@ -41,7 +41,7 @@ do {
 switch ($a) {
 }
 $m = match ($a) {default => 1};
-function n() {}
+function n() { }
 use A\{B , C};
 use function f;
 use A\{const X, function g};
@@ -53,3 +53,5 @@ $q = $a ? $b : $c;
 $r = match ($a) { 1 =>   2 };
 if ($a): endif;
 while ($a): endwhile;
+class Hollow { }
+if ($a) {}
