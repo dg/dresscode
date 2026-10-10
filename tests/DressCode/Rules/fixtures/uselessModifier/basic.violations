@@ -11,3 +11,5 @@
 37: Useless `final` modifier, because no child overrides a private method.
 38: Useless `final` modifier, because no child overrides a private method.
 47: Useless `readonly` modifier, because the class is readonly.
+50: Useless `final` modifier, because nothing can extend an anonymous class.
+51: Useless `final` modifier, because nothing can extend an anonymous class.

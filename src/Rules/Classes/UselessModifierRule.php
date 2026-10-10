@@ -17,7 +17,7 @@ use function count;
 
 /**
  * A modifier the enclosing class already implies is dropped: `final` on a method or a constant of a final
- * class or of an enum, `readonly` on a property or a promoted parameter of a readonly class, unless it is the only
+ * class, an anonymous class or an enum, `readonly` on a property or a promoted parameter of a readonly class, unless it is the only
  * modifier, without which a parameter would not be promoted and a property would not parse. `final` goes from
  * a private method as well, which no class can override anyway; the constructor keeps it, because there final
  * still forbids a child one of its own.
@@ -44,6 +44,7 @@ final class UselessModifierRule extends NodeRule
 			[$kind, $message] = match (true) {
 				$class instanceof ClassNode && $class->modifiers->final => [Token::Final, 'Useless `final` modifier, because the class is final.'],
 				$class instanceof EnumNode => [Token::Final, 'Useless `final` modifier, because an enum is final.'],
+				$class instanceof AnonymousClassNode => [Token::Final, 'Useless `final` modifier, because nothing can extend an anonymous class.'],
 				$node instanceof MethodNode && self::isFinalPrivateMethod($node) => [Token::Final, 'Useless `final` modifier, because no child overrides a private method.'],
 				default => [null, null],
 			};

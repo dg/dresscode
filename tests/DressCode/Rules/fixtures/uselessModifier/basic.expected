@@ -46,3 +46,7 @@ readonly class S
 	readonly int $a;
 	public int $b;
 }
+$x = new class {
+	public function f() {}
+	public const A = 1;
+};
