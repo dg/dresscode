@@ -8,6 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{Decision, Rule, Value};
+use function count;
 
 
 /**
@@ -28,6 +29,13 @@ final readonly class ResolvedDecision
 		/** why it takes no effect: `keep`, `nameResolution`, or `php`, `package`, `types` where none of its rules runs; null where it does */
 		public ?InactiveReason $inactive = null,
 	) {
+	}
+
+
+	/** What the topmost layer saying anything said, with its origin; null where none did. */
+	public function findTopLayer(): ?Value
+	{
+		return $this->layers[count($this->layers) - 1] ?? null;
 	}
 
 

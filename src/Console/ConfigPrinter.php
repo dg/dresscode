@@ -120,7 +120,7 @@ final readonly class ConfigPrinter
 	private function describeOrigin(ResolvedDecision $decision): string
 	{
 		$path = $decision->decision->path;
-		return (($decision->layers[count($decision->layers) - 1] ?? null)?->origin?->describe() ?? 'no layer')
+		return ($decision->findTopLayer()?->origin?->describe() ?? 'no layer')
 			. ($decision->inactive === null || $decision->value->isKept() ? '' : ", no effect: {$decision->inactive->value}")
 			. ($decision->decision->isRequirement() && !$decision->value->isKept() && !$this->config->values->isSelected($path) ? ', outside --only' : '')
 			. (isset($this->config->fixRisky[$path]) ? ', risky fixes accepted' : '')
@@ -169,7 +169,7 @@ final readonly class ConfigPrinter
 			'rules' => $rules,
 			'decisions' => array_map(fn(ResolvedDecision $decision) => [
 				'value' => $decision->value->toData(),
-				'layer' => $decision->value->origin?->describe(),
+				'layer' => $decision->findTopLayer()?->origin?->describe(),
 				'inactive' => $decision->inactive?->value,
 				'selected' => $decision->decision->kind !== DecisionKind::Parameter && $this->config->values->isSelected($decision->decision->path),
 			], $this->config->decisions) ?: new \stdClass,

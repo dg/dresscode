@@ -297,7 +297,7 @@ final class ConfigResolver
 		$own = array_filter($decisions, fn(ResolvedDecision $decision) => $decision->decision->kind !== DecisionKind::Parameter);
 		$effective = $ruleReason === null ? array_filter($own, fn(ResolvedDecision $decision) => $decision->inactive === null) : [];
 		$asked = array_keys(array_filter($own, function (ResolvedDecision $decision): bool {
-			$top = $decision->layers[count($decision->layers) - 1] ?? null;
+			$top = $decision->findTopLayer();
 			return $top?->origin?->isProject() === true && !$top->isKept();
 		}));
 		$info = RuleInfo::of($class);

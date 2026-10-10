@@ -9,7 +9,7 @@ namespace DressCode\Console;
 
 use DressCode\Config\{PluginRegistry, ResolvedConfig, ResolvedDecision};
 use DressCode\{DecisionKind, RuleInfo, Value, Violation};
-use function count, is_bool, is_string, strlen;
+use function is_bool, is_string, strlen;
 
 
 /**
@@ -84,7 +84,7 @@ final readonly class ExplainPrinter
 		} . "\n\n";
 		$out .= 'Takes: ' . self::escape($decision->describeValues()) . "\n\n";
 
-		$top = $resolved->layers[count($resolved->layers) - 1] ?? null;
+		$top = $resolved->findTopLayer();
 		$out .= 'Here ' . self::formatValue($resolved->value) . ', ' . ($top === null ? 'which no layer sets' : 'set by ' . $top->origin?->describe())
 			. ($resolved->inactive === null ? '' : ", taking no effect ({$resolved->inactive->value})") . ".\n\n";
 		if ($this->standards !== []) {
@@ -115,7 +115,7 @@ final readonly class ExplainPrinter
 	{
 		$out = '';
 		foreach ($decisions as $path => $decision) {
-			$top = $decision->layers[count($decision->layers) - 1] ?? null;
+			$top = $decision->findTopLayer();
 			$out .= "- `$path`: " . self::formatValue($decision->value) . ' _(' . ($top?->origin?->describe() ?? 'default') . ')_' . "\n";
 			$out .= $detailed ? "\n  " . self::escape($decision->decision->description) . "\n\n" : '';
 		}
