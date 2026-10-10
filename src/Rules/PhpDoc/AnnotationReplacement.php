@@ -11,10 +11,8 @@ use DressCode\Analyses\PhpDoc;
 use DressCode\RuleContext;
 use DressCode\Rules\{CodeWriter, QualifiedNames};
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
-use PhpSyntax\Nodes\{AttributeGroupNode, AttributeNode, PlainNodeList};
-use PhpSyntax\Nodes\Member\{ClassConstNode, EnumCaseNode, MethodNode, PropertyNode};
-use PhpSyntax\Nodes\Statement\{ClassNode, ConstNode, EnumNode, FunctionNode, InterfaceNode, TraitNode};
-use PhpSyntax\Trivia;
+use PhpSyntax\{Node, Trivia};
+use PhpSyntax\Nodes\{AttributeAwareNode, AttributeGroupNode, AttributeNode, PlainNodeList};
 
 
 /**
@@ -31,7 +29,7 @@ final class AnnotationReplacement
 	 * @param  PhpDoc  $phpDoc  the analysis that parsed the doc comment; after a mutation the file has another one
 	 */
 	public static function writeAttributes(
-		ClassNode|InterfaceNode|TraitNode|EnumNode|FunctionNode|ConstNode|MethodNode|PropertyNode|ClassConstNode|EnumCaseNode $declaration,
+		AttributeAwareNode&Node $declaration,
 		Trivia $docComment,
 		PhpDocNode $tree,
 		array $codes,

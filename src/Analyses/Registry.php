@@ -108,25 +108,20 @@ final class Registry
 	public static function isConstructible(string $class): bool
 	{
 		static $known = [];
-		return $known[$class] ??= self::canBeBuilt($class);
-	}
-
-
-	/** @param class-string $class */
-	private static function canBeBuilt(string $class): bool
-	{
-		$reflection = new \ReflectionClass($class);
-		$constructor = $reflection->getConstructor();
-		if (!$reflection->isInstantiable()) {
-			return false;
-		} elseif ($constructor === null || $constructor->getNumberOfParameters() === 0) {
-			return true;
+		if (isset($known[$class])) {
+			return $known[$class];
 		}
 
-		$type = $constructor->getParameters()[0]->getType();
-		return $constructor->getNumberOfRequiredParameters() <= 1
-			&& $type instanceof \ReflectionNamedType
-			&& is_a(FileNode::class, $type->getName(), allow_string: true);
+		$reflection = new \ReflectionClass($class);
+		$constructor = $reflection->getConstructor();
+		$type = ($constructor?->getParameters()[0] ?? null)?->getType();
+		return $known[$class] = $reflection->isInstantiable() && (
+			$constructor === null
+			|| $constructor->getNumberOfParameters() === 0
+			|| ($constructor->getNumberOfRequiredParameters() <= 1
+				&& $type instanceof \ReflectionNamedType
+				&& is_a(FileNode::class, $type->getName(), allow_string: true))
+		);
 	}
 
 
