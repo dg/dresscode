@@ -11,8 +11,8 @@ use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Names;
 use DressCode\Rules\CodeWriter;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Builder, Node, Token, Trivia};
-use PhpSyntax\Nodes\{AttributeGroupNode, ParameterNode};
+use PhpSyntax\{Node, Token};
+use PhpSyntax\Nodes\ParameterNode;
 
 
 /**
@@ -60,17 +60,6 @@ final class SensitiveParameterRequiredRule extends NodeRule
 			return;
 		}
 
-		$group = (new Builder)->fragment(AttributeGroupNode::class, '#[' . CodeWriter::writeClass(\SensitiveParameter::class, $node, $context) . ']');
-		$group->getLastToken()->setTrailingTrivia([Trivia::fromText(' ')]);
-		$first = $node->modifiers->getTokens()[0]
-			?? $node->type?->getFirstToken()
-			?? $node->ampersand
-			?? $node->ellipsis
-			?? $node->variable->getFirstToken();
-		// the attribute takes over what stood in front of the parameter
-		$group->getFirstToken()->setLeadingTrivia($first->leadingTrivia);
-		$first->setLeadingTrivia([]);
-
-		$node->attributes->append($group);
+		CodeWriter::addAttributes($node, [CodeWriter::writeClass(\SensitiveParameter::class, $node, $context)], $context, inline: true);
 	}
 }

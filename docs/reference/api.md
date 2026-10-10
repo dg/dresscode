@@ -635,7 +635,7 @@ final class CodeWriter
 	public static function addImport(PhpSyntax\Nodes\FileNode|PhpSyntax\Nodes\Statement\NamespaceNode $scope, PhpSyntax\SymbolKind $kind, string $fullName, DressCode\RuleContext $context): void
 	public static function spellImportKind(PhpSyntax\SymbolKind $kind): string
 	public static function importsFunctionAs(DressCode\RuleContext $context): bool
-	public static function addAttributes(PhpSyntax\Nodes\AttributeAwareNode&PhpSyntax\Node $declaration, array $codes, DressCode\RuleContext $context): void
+	public static function addAttributes(PhpSyntax\Nodes\AttributeAwareNode&PhpSyntax\Node $declaration, array $codes, DressCode\RuleContext $context, bool $inline = false): void
 ```
 
 ## `DressCode\Rules\GlobalCalls`

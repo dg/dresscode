@@ -284,21 +284,26 @@ final class CodeWriter
 
 	/**
 	 * Writes the attributes in front of the declaration, behind the attributes it carries already, each in a group on
-	 * a line of its own where the declaration starts its line, else on the line of the declaration: the first one of a
-	 * declaration without any takes over what stood in front of it, its doc comment among it. The code is that of an
-	 * attribute without `#[]`, its class spelled already.
+	 * a line of its own where the declaration starts its line and they are not inline, else on the line of the
+	 * declaration: the first one of a declaration without any, or the first inline one, takes over what stood in front
+	 * of it, its doc comment among it. The code is that of an attribute without `#[]`, its class spelled already.
 	 * @param  list<string>  $codes
 	 */
-	public static function addAttributes(AttributeAwareNode&Node $declaration, array $codes, RuleContext $context): void
+	public static function addAttributes(
+		AttributeAwareNode&Node $declaration,
+		array $codes,
+		RuleContext $context,
+		bool $inline = false,
+	): void
 	{
 		$attributes = $declaration->attributes;
 		$anchor = $attributes->isEmpty() ? $declaration->getFirstToken() : $attributes->getLastToken()?->getNext();
-		$ownLine = $anchor?->startsLine() ?? false;
+		$ownLine = !$inline && ($anchor?->startsLine() ?? false);
 		$eolText = $context->style->lineEnding;
 		$indentationText = $anchor?->getIndentation() ?? '';
 		// a trivia stands in one place, so each is made anew
 		$indentation = fn() => $indentationText === '' ? [] : [new Trivia(Trivia::Whitespace, $indentationText)];
-		$takesOver = $attributes->isEmpty();
+		$takesOver = $attributes->isEmpty() || $inline;
 		foreach ($codes as $code) {
 			$group = (new Builder)->fragment(AttributeGroupNode::class, "#[$code]");
 			$attributes->append($group);
