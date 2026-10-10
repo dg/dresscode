@@ -7,11 +7,10 @@
 
 namespace DressCode\Engine\Gaps;
 
-use DressCode\{Line, Space, Violation};
+use DressCode\{Claim, Line, Space, Violation};
 use PhpSyntax\{Node, Nodes, Token, Trivia};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use PhpSyntax\Nodes\{IdentifierNode, NameNode};
-use function is_int;
 
 
 /**
@@ -52,7 +51,7 @@ final class Messages
 	/** @param int|array{int, ?int} $count */
 	public static function formatBlankLines(int|array $count, string $where, int $found): string
 	{
-		[$min, $max] = is_int($count) ? [$count, $count] : $count;
+		[$min, $max] = Claim::toRange($count);
 		$lines = fn(int $n) => match ($n) {
 			0 => 'no blank line',
 			1 => '1 blank line',

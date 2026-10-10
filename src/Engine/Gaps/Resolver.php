@@ -14,7 +14,7 @@ use PhpSyntax\Nodes\Expression\ShellExecNode;
 use PhpSyntax\Nodes\{FileNode, ModifiersNode, PlainNodeList, SeparatedNodeList};
 use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode};
 use PhpSyntax\Nodes\Statement\InlineHtmlNode;
-use function count, is_array, is_int;
+use function count, is_array;
 
 
 /**
@@ -470,8 +470,8 @@ final class Resolver
 		}
 
 		$range = $after === null
-			? self::toRange($before->wanted)
-			: ($before === null ? self::toRange($after->wanted) : self::intersect(self::toRange($after->wanted), self::toRange($before->wanted)));
+			? Claim::toRange($before->wanted)
+			: ($before === null ? Claim::toRange($after->wanted) : self::intersect(Claim::toRange($after->wanted), Claim::toRange($before->wanted)));
 		$run = $blankBelowComment ? self::findBelowCommentRun($token) : self::findBlankRun($token, self::closes($token));
 		if ($run === null) {
 			return;
@@ -483,20 +483,10 @@ final class Resolver
 	}
 
 
-	/**
-	 * @param int|array{int, ?int} $count
-	 * @return array{int, ?int}
-	 */
-	private static function toRange(int|array $count): array
-	{
-		return is_int($count) ? [$count, $count] : $count;
-	}
-
-
 	/** @param int|array{int, ?int} $count */
 	private static function within(int $found, int|array $count): bool
 	{
-		[$min, $max] = self::toRange($count);
+		[$min, $max] = Claim::toRange($count);
 		return $found >= $min && ($max === null || $found <= $max);
 	}
 

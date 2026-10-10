@@ -117,6 +117,17 @@ final readonly class Claim
 	}
 
 
+	/**
+	 * A count of blank lines as the range it allows, an exact count being the range of itself.
+	 * @param int|array{int, ?int} $count
+	 * @return array{int, ?int}
+	 */
+	public static function toRange(int|array $count): array
+	{
+		return is_int($count) ? [$count, $count] : $count;
+	}
+
+
 	/** The same claim made for the decision, and for another one below a comment and for the line where given. */
 	public function withDecision(string $decision, ?string $belowComment = null, ?string $lineDecision = null): self
 	{

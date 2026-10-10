@@ -189,6 +189,7 @@ final readonly class Claim
 	public static function sameLine(): DressCode\Claim
 	public static function nextLine(): DressCode\Claim
 	public static function blankLines(array|int $count): DressCode\Claim
+	public static function toRange(array|int $count): array
 	public function withDecision(string $decision, ?string $belowComment = null, ?string $lineDecision = null): DressCode\Claim
 	public function overlaps(DressCode\Claim $other): bool
 ```
