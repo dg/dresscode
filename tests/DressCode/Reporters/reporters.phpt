@@ -544,6 +544,7 @@ test('checkstyle', function () {
 		<?xml version="1.0" encoding="UTF-8"?>
 		<checkstyle version="1.0">
 		  <file name="src/a.php">
+		    <error line="1" severity="warning" message="Rule test/x is faulty: it changed the file without reporting a violation." source="dresscode"/>
 		    <error line="2" column="1" severity="error" message="Rename $a." source="test/rename"/>
 		    <error line="2" severity="warning" message="Variable &quot;b&quot; &amp; &lt;c&gt;." source="test/report"/>
 		    <error line="3" column="1" severity="error" message="Rename $c." source="test/rename"/>
@@ -562,6 +563,7 @@ test('checkstyle', function () {
 		<?xml version="1.0" encoding="UTF-8"?>
 		<checkstyle version="1.0">
 		  <file name="src/a.php">
+		    <error line="1" severity="warning" message="Rule test/x is faulty: it changed the file without reporting a violation." source="dresscode"/>
 		    <error line="2" severity="warning" message="Variable &quot;b&quot; &amp; &lt;c&gt;." source="test/report"/>
 		  </file>
 		  <file name="src/broken.php">

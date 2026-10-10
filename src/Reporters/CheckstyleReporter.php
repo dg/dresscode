@@ -42,7 +42,7 @@ final class CheckstyleReporter implements Reporter
 	public function reportFile(FileResult $result): void
 	{
 		$violations = $this->fix ? $result->remaining : $result->violations; // in a fix, positioned in the fixed text
-		if (!$violations && $result->syntaxError === null && $result->failure === null) {
+		if (!$violations && !$result->warnings && $result->syntaxError === null && $result->failure === null) {
 			return;
 		}
 
@@ -57,6 +57,10 @@ final class CheckstyleReporter implements Reporter
 				$result->syntaxErrorLine ?? 1,
 				self::escape($result->syntaxError),
 			);
+		}
+
+		foreach ($result->warnings as $warning) {
+			$xml .= sprintf("    <error line=\"1\" severity=\"warning\" message=\"%s\" source=\"dresscode\"/>\n", self::escape($warning));
 		}
 
 		foreach ($violations as $violation) {
