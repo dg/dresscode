@@ -79,15 +79,15 @@ final readonly class FileProcessor
 		// one has just written; the strict run makes the text settle in rounds, the others take what the last pass
 		// of the tree left for what a round over the text would report, which spares a pass; they only parse the printed
 		// text, so that a broken rule never writes code PHP refuses
-		$runner = null;
+		$passLoop = new PassLoop($this->plan, $this->analyses, $this->policy, $this->profiler);
 		$rounds = 0;
-		for ($round = 1; !$settled; $round++) {
-			$rounds = $round;
+		while (!$settled) {
+			$rounds++;
 			$lap = $this->profiler ? hrtime(true) : 0;
 			try {
 				$file = $this->parser->parse($text);
 			} catch (ParseException $e) {
-				return $round === 1
+				return $rounds === 1
 					? new FileResult($path, $code, output: null, syntaxError: $e->getMessage(), syntaxErrorLine: $e->sourceLine)
 					: self::createParseFailure($path, $code, $e);
 			}
@@ -97,8 +97,7 @@ final readonly class FileProcessor
 				$lap = hrtime(true);
 			}
 
-			$runner ??= new PassLoop($this->plan, $this->analyses, $this->policy, $this->profiler);
-			$result = $runner->run($file, $text, $path, $style, $this->phpVersion, $acceptedRisks);
+			$result = $passLoop->run($file, $text, $path, $style, $this->phpVersion, $acceptedRisks);
 			$first ??= $result;
 			$passes += $result->passes;
 			if ($this->profiler) {
@@ -109,7 +108,7 @@ final readonly class FileProcessor
 			$settled = $printed === $text;
 			$seen[hash('xxh3', $text)] = true;
 			// a text seen before is a cycle, and one still changing in the last round is a broken rule too
-			if (!$settled && ($round === self::MaxRounds || isset($seen[hash('xxh3', $printed)]))) {
+			if (!$settled && ($rounds === self::MaxRounds || isset($seen[hash('xxh3', $printed)]))) {
 				throw new ConvergenceException($path, $result->mutatedRules, Diff::unified($text, $printed, $path));
 			}
 
