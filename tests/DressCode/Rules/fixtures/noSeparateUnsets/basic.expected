@@ -7,3 +7,5 @@ unset($f);
 if (true) {
 	unset($g, $h);
 }
+unset($i); // why
+unset($j, $k);

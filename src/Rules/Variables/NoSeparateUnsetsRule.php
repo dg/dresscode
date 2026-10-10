@@ -38,15 +38,14 @@ final class NoSeparateUnsetsRule extends NodeRule
 			return;
 		}
 
-		if ($node->getPreviousSibling() instanceof UnsetNode) {
+		$previous = $node->getPreviousSibling();
+		if ($previous instanceof UnsetNode && self::canMerge($previous, $node)) {
 			return; // merged into the first of the run
 		}
 
 		while (
 			($next = $node->getNextSibling()) instanceof UnsetNode
-			&& !$node->semicolon->hasComment()
-			&& !$node->semicolon->hasCommentUpTo($next->getLastToken())
-			&& !$next->getLastToken()->hasComment()
+			&& self::canMerge($node, $next)
 			&& $context->report($next, 'Consecutive `unset` statements must be combined into one.')
 		) {
 			foreach ($next->variables->getItems() as $var) {
@@ -55,5 +54,14 @@ final class NoSeparateUnsetsRule extends NodeRule
 
 			$next->remove();
 		}
+	}
+
+
+	/** Whether no comment stands between the two statements or inside the second one. */
+	private static function canMerge(UnsetNode $node, UnsetNode $next): bool
+	{
+		return !$node->semicolon->hasComment()
+			&& !$node->semicolon->hasCommentUpTo($next->getLastToken())
+			&& !$next->getLastToken()->hasComment();
 	}
 }

@@ -10,3 +10,6 @@ if (true) {
 	unset($g);
 	unset($h);
 }
+unset($i); // why
+unset($j);
+unset($k);
