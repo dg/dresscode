@@ -11,7 +11,7 @@ use DressCode\Analyses\{IndentationPlan, Parameter, PhpSignatures, Types};
 use DressCode\{Claim, Gap, Line, RuleContext, Tristate};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, SymbolKind, Token, Trivia};
-use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, IdentifierNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, IdentifierNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count, in_array, strlen;
 
@@ -161,14 +161,7 @@ final class NodeHelpers
 			$function = $resolver->resolveFunction($call->name);
 			$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
 			return match (true) {
-				$declaration !== null => array_map(
-					fn(ParameterNode $parameter) => new Parameter(
-						(string) $parameter->variable->plainName,
-						variadic: $parameter->ellipsis !== null,
-						byReference: $parameter->ampersand !== null,
-					),
-					$declaration->parameters->getItems(),
-				),
+				$declaration !== null => array_map(fn(ParameterNode $parameter) => self::toParameter($parameter, $resolver), $declaration->parameters->getItems()),
 				$resolver->isGlobalFunctionCall($call) => $context->getAnalysis(PhpSignatures::class)->findParameters($function),
 				default => null,
 			};
@@ -177,6 +170,47 @@ final class NodeHelpers
 		$types = $context->findAnalysis(Types::class);
 		$access = $call instanceof Expression\NewNode ? $types?->findConstructorAccess($call) : $types?->findMemberAccess($call);
 		return $access === null ? null : $types->findParameters($access);
+	}
+
+
+	/** The parameter as the declaration says it, the type and the default written as `Parameter` keeps them. */
+	public static function toParameter(ParameterNode $parameter, NameResolver $resolver): Parameter
+	{
+		$default = $parameter->default;
+		return new Parameter(
+			(string) $parameter->variable->plainName,
+			$parameter->type === null ? null : self::describeType($parameter->type, $parameter, $resolver),
+			optional: $default !== null || $parameter->ellipsis !== null,
+			variadic: $parameter->ellipsis !== null,
+			byReference: $parameter->ampersand !== null,
+			default: $default instanceof Scalar\StringNode
+				|| $default instanceof Scalar\IntegerNode
+				|| $default instanceof Scalar\FloatNode
+				|| $default instanceof Scalar\BooleanNode
+				|| $default instanceof Scalar\NullNode
+				|| ($default instanceof Expression\ArrayNode && $default->items->isEmpty())
+					? $default->text
+					: null,
+		);
+	}
+
+
+	/** The type as PHP describes it, a class fully qualified without a leading backslash and `?T` as `T|null`. */
+	private static function describeType(TypeNode $type, Node $at, NameResolver $resolver): string
+	{
+		return match (true) {
+			$type instanceof Type\NullableTypeNode => self::describeType($type->type, $at, $resolver) . '|null',
+			$type instanceof Type\UnionTypeNode => implode('|', array_map(
+				fn(TypeNode $member) => $member instanceof Type\IntersectionTypeNode
+					? '(' . self::describeType($member, $at, $resolver) . ')'
+					: self::describeType($member, $at, $resolver),
+				$type->types->getItems(),
+			)),
+			$type instanceof Type\IntersectionTypeNode => implode('&', array_map(fn(TypeNode $member) => self::describeType($member, $at, $resolver), $type->types->getItems())),
+			$type instanceof Type\NamedTypeNode && $type->isBuiltin() => strtolower($type->name->text),
+			$type instanceof Type\NamedTypeNode => $resolver->resolveClass($type->name, $at),
+			default => $type->text,
+		};
 	}
 
 

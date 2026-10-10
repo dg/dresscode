@@ -10,6 +10,7 @@ namespace DressCode\Rules\Classes;
 use DressCode\Analyses\Parameter;
 use DressCode\{RuleContext, Tristate};
 use DressCode\Rules\NodeHelpers;
+use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ArrayItemNode, DestructuringNode, Expression, FunctionLikeNode, IdentifierNode, NameNode, ParameterNode, SeparatedNodeList, Statement};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\ClassNode;
@@ -174,7 +175,7 @@ final readonly class PropertyWrites
 			|| $call instanceof Expression\MethodCallNode
 			|| $call instanceof Expression\StaticMethodCallNode
 			|| $call instanceof Expression\NewNode
-				? self::findOwnParameters($call, $class) ?? NodeHelpers::findParameters($call, $context)
+				? self::findOwnParameters($call, $class, $context) ?? NodeHelpers::findParameters($call, $context)
 				: null;
 		if ($parameters === null || !$list instanceof SeparatedNodeList) {
 			return null;
@@ -209,6 +210,7 @@ final readonly class PropertyWrites
 	private static function findOwnParameters(
 		Expression\FunctionCallNode|Expression\MethodCallNode|Expression\StaticMethodCallNode|Expression\NewNode $call,
 		ClassNode|AnonymousClassNode $class,
+		RuleContext $context,
 	): ?array
 	{
 		$own = match (true) {
@@ -222,14 +224,8 @@ final readonly class PropertyWrites
 
 		foreach ($class->members as $member) {
 			if ($member instanceof MethodNode && $member->name->equals($call->name->text)) {
-				return array_map(
-					fn(ParameterNode $parameter) => new Parameter(
-						(string) $parameter->variable->plainName,
-						variadic: $parameter->ellipsis !== null,
-						byReference: $parameter->ampersand !== null,
-					),
-					$member->parameters->getItems(),
-				);
+				$resolver = $context->getAnalysis(NameResolver::class);
+				return array_map(fn(ParameterNode $parameter) => NodeHelpers::toParameter($parameter, $resolver), $member->parameters->getItems());
 			}
 		}
 

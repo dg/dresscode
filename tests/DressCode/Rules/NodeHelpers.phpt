@@ -1,8 +1,10 @@
 <?php declare(strict_types=1);
 
+use DressCode\Analyses\Parameter;
 use DressCode\Rules\NodeHelpers;
-use PhpSyntax\Builder;
-use PhpSyntax\Nodes\ExpressionNode;
+use PhpSyntax\Analyses\NameResolver;
+use PhpSyntax\{Builder, Parser};
+use PhpSyntax\Nodes\{ExpressionNode, ParameterNode};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -41,4 +43,19 @@ test('negate()', function () {
 		Assert::null($negated->parent);
 		Assert::same($code, (string) $original);
 	}
+});
+
+
+test('toParameter()', function () {
+	$file = (new Parser)->parse('<?php namespace App; use Acme\Mail\Message; function f(int $a, ?Message $b = null, int|string ...$c) {} function g(&$d = [], $e = PHP_EOL, (Countable&Message)|null $f = 1.5) {}');
+	$resolver = new NameResolver($file);
+	$parameters = array_map(fn(ParameterNode $parameter) => NodeHelpers::toParameter($parameter, $resolver), $file->find(ParameterNode::class));
+	Assert::equal([
+		new Parameter('a', 'int'),
+		new Parameter('b', 'Acme\Mail\Message|null', optional: true, default: 'null'),
+		new Parameter('c', 'int|string', optional: true, variadic: true),
+		new Parameter('d', optional: true, byReference: true, default: '[]'),
+		new Parameter('e', optional: true),
+		new Parameter('f', '(App\Countable&Acme\Mail\Message)|null', optional: true, default: '1.5'),
+	], $parameters);
 });
