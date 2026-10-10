@@ -793,7 +793,7 @@ final class Application
 		$order = array_flip(Catalogue::CoreSections);
 		uksort($decisions, fn(string $a, string $b) => ($order[explode('.', $a)[0]] ?? PHP_INT_MAX) <=> ($order[explode('.', $b)[0]] ?? PHP_INT_MAX));
 		foreach ($decisions as $path => $decision) {
-			$set = isset($made[$path]) && !$made[$path]->value->isKept();
+			$set = isset($made[$path]) && $made[$path]->layers !== [] && !$made[$path]->value->isKept();
 			$covers = $translator->findForeignNames([$path]);
 			$this->out->writeLine(
 				($set ? '*' : ' ')

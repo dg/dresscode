@@ -273,6 +273,7 @@ test('catalogue lists every decision, those the configuration makes marked, and 
 	[$code, $out] = runApp($root, ['catalogue']);
 	Assert::same(0, $code);
 	Assert::match("%A?%  file.finalLineEndings %s%%a%\n%A%* project.rename %s%%a%\n%A%\n* made by the configuration\n", $out);
+	Assert::same(2, preg_match_all('~^\*~m', $out), 'a default nobody wrote is not made by the configuration');
 	Assert::true(strpos($out, 'file.finalLineEndings') < strpos($out, 'spacing.call'), 'the sections stand in the order of the core');
 
 	[$code, $out] = runApp($root, ['catalogue', '--format', 'json']);
