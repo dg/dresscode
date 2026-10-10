@@ -47,7 +47,7 @@ final class OverridingSignatureRule extends NodeRule
 	private const Signature = 'classes.overriding.signature';
 	private const ParameterNames = 'classes.overriding.parameterName';
 
-	private bool $signature = true;
+	private bool $fixesSignature = true;
 
 	private bool $parameterNames = true;
 
@@ -63,7 +63,7 @@ final class OverridingSignatureRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->signature = !$values->isKept(self::Signature);
+		$this->fixesSignature = !$values->isKept(self::Signature);
 		$this->parameterNames = !$values->isKept(self::ParameterNames);
 	}
 
@@ -89,14 +89,14 @@ final class OverridingSignatureRule extends NodeRule
 		if ($signature === null) {
 			return;
 		} elseif ($signature->final) {
-			if ($this->signature) {
+			if ($this->fixesSignature) {
 				$context->report($node->name, "Method `{$node->name->text}()` overrides the final `$signature->declaringClass::{$node->name->text}()`.", fixable: false, decision: self::Signature);
 			}
 
 			return;
 		}
 
-		if ($this->signature) {
+		if ($this->fixesSignature) {
 			if ($signature->static !== $node->modifiers->static) {
 				$this->fixStatic($node, $signature, $context);
 			}
@@ -179,7 +179,7 @@ final class OverridingSignatureRule extends NodeRule
 				$this->fixParameter($node, $mine, $parameter, in_array($i, $signature->narrowedParameters, true), $signature, $context);
 			} elseif (array_any($own, fn(ParameterNode $item) => $item->ellipsis !== null)) {
 				return; // a variadic parameter takes whatever follows
-			} elseif ($this->signature) {
+			} elseif ($this->fixesSignature) {
 				self::addParameter($node, $parameter, $signature, $context);
 			}
 		}
@@ -197,7 +197,7 @@ final class OverridingSignatureRule extends NodeRule
 	{
 		$method = "$signature->declaringClass::{$node->name->text}()";
 		$name = (string) $mine->variable->plainName;
-		if ($narrowed && $this->signature) {
+		if ($narrowed && $this->fixesSignature) {
 			$writable = $parameter->type === null || self::canWriteType($parameter->type);
 			$message = "Parameter `\$$name` of `{$node->name->text}()` must take "
 				. ($parameter->type === null ? 'any value' : Violation::formatCode($parameter->type)) . ", as in `$method`";

@@ -28,9 +28,9 @@ final class UselessElseRule extends NodeRule
 	private const ElseAfterExit = 'controlFlow.afterExit.else';
 	private const ElseifAfterExit = 'controlFlow.afterExit.elseif';
 
-	private bool $else = true;
+	private bool $dropsElse = true;
 
-	private bool $elseif = false;
+	private bool $splitsElseif = false;
 
 
 	public static function getDecisions(): array
@@ -44,8 +44,8 @@ final class UselessElseRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->else = !$values->isKept(self::ElseAfterExit);
-		$this->elseif = !$values->isKept(self::ElseifAfterExit);
+		$this->dropsElse = !$values->isKept(self::ElseAfterExit);
+		$this->splitsElseif = !$values->isKept(self::ElseifAfterExit);
 	}
 
 
@@ -66,7 +66,7 @@ final class UselessElseRule extends NodeRule
 		}
 
 		$elseif = $node->elseifs->getItems()[0] ?? null;
-		if ($elseif !== null && $this->elseif && $node->body->alwaysLeaves()) {
+		if ($elseif !== null && $this->splitsElseif && $node->body->alwaysLeaves()) {
 			$condition = $elseif->condition;
 			if (
 				($body = $elseif->body) instanceof BlockNode
@@ -82,10 +82,10 @@ final class UselessElseRule extends NodeRule
 		}
 
 		if (
-			!$this->else
+			!$this->dropsElse
 			|| !($else = $node->else)
 			|| ($body = $else->body) === null
-			|| ($body instanceof IfNode && !$this->elseif) // `else if` is an elseif written in two words
+			|| ($body instanceof IfNode && !$this->splitsElseif) // `else if` is an elseif written in two words
 			|| $else->elseKeyword->hasComment()
 			|| ($body instanceof BlockNode && (
 				$body->openBrace->getNext()?->is(Token::CloseTag)

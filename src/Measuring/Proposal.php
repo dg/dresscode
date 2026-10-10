@@ -45,7 +45,7 @@ final readonly class Proposal
 		/** @var list<string> */
 		public array $presets,
 		/** the presets were given, not the default */
-		public bool $given,
+		public bool $presetsGiven,
 		/** @var list<string> */
 		public array $paths,
 		/** @var list<string> */
@@ -283,7 +283,7 @@ final readonly class Proposal
 			),
 			self::writeUse(
 				$this->presets,
-				$this->given ? '' : '  # not chosen by measure; the other complete standards are ' . self::describeOthers(),
+				$this->presetsGiven ? '' : '  # not chosen by measure; the other complete standards are ' . self::describeOthers(),
 			),
 		];
 

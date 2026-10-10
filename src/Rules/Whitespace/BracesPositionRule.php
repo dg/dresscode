@@ -69,7 +69,7 @@ final class BracesPositionRule extends GapRule
 	private ?string $emptyAnonymousClass = null;
 
 	/** a closure written whole on one line may stay so */
-	private bool $singlelineClosure = true;
+	private bool $singlelineClosureKept = true;
 
 	/** @var array<string, Claim>  the claims made for the decisions */
 	private array $claims = [];
@@ -114,7 +114,7 @@ final class BracesPositionRule extends GapRule
 		$this->continuingKeyword = $values->find(self::ContinuingKeyword)?->getWord();
 		$this->emptyBody = $values->find(self::EmptyBody)?->getWord();
 		$this->emptyAnonymousClass = $values->find(self::EmptyAnonymousClass)?->getWord();
-		$this->singlelineClosure = $values->isKept(self::SinglelineClosure);
+		$this->singlelineClosureKept = $values->isKept(self::SinglelineClosure);
 	}
 
 
@@ -241,10 +241,10 @@ final class BracesPositionRule extends GapRule
 				self::Closure,
 				match (true) {
 					$this->closure !== null => self::Closure,
-					$this->singlelineClosure => null,
+					$this->singlelineClosureKept => null,
 					default => self::SinglelineClosure,
 				},
-				$this->singlelineClosure,
+				$this->singlelineClosureKept,
 				self::EmptyBody,
 			],
 			$node instanceof Statement\ClassNode, $node instanceof Statement\InterfaceNode,

@@ -40,7 +40,7 @@ final readonly class InitPrinter
 			implode(', ', $proposal->paths),
 			$left ? ', ' . implode(' and ', $left) . ' left out' : '',
 		);
-		$out .= $console->color('gray', 'Standard   ') . implode(', ', $proposal->presets) . ($proposal->given
+		$out .= $console->color('gray', 'Standard   ') . implode(', ', $proposal->presets) . ($proposal->presetsGiven
 			? ", as given\n"
 			: ", not chosen by measure; the dry runs below count what each would change, not which is nearest, and `--use` writes another\n");
 		$out .= $console->color('gray', 'Indent     ') . $proposal->indent->describe() . "\n";
@@ -48,7 +48,7 @@ final readonly class InitPrinter
 		$out .= $console->color('gray', 'Conditions ') . $proposal->conditions->describe() . "\n";
 		$out .= $console->color('gray', 'Namespaces ') . $proposal->describeNamespaces() . "\n";
 
-		if ($proposal->given) {
+		if ($proposal->presetsGiven) {
 			[$changed, $failed] = $proposal->countChanged();
 			return $out . $console->color('gray', 'Dry run    ') . sprintf(
 				"%d of %d sampled files would change%s\n",
