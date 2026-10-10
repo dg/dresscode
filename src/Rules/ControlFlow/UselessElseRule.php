@@ -20,7 +20,7 @@ use PhpSyntax\Nodes\Statement\{BlockNode, IfNode};
  * function or a class stays, because out of the `else` PHP would bind the declaration before the code runs; in a
  * function or a loop it binds it where it stands. With `controlFlow.afterExit.elseif`, an `elseif` after such an `if`
  * becomes an `if` of its own, with the later branches; a chain of `elseif` that reads as one is a matter of taste, so
- * it stays by default.
+ * it stays by default, and so does `else if`, which is an `elseif` written in two words.
  */
 #[RuleInfo(Stage::Structure)]
 final class UselessElseRule extends NodeRule
@@ -84,17 +84,19 @@ final class UselessElseRule extends NodeRule
 		if (
 			!$this->else
 			|| !($else = $node->else)
-			|| !($body = $else->body) instanceof BlockNode
+			|| ($body = $else->body) === null
+			|| ($body instanceof IfNode && !$this->elseif) // `else if` is an elseif written in two words
 			|| $else->elseKeyword->hasComment()
-			|| $body->openBrace->getNext()?->is(Token::CloseTag)
-			|| $body->closeBrace->getNext()?->is(Token::CloseTag)
-			|| $body->closeBrace->getPrevious()?->is([Token::CloseTag, Token::InlineHtml])
+			|| ($body instanceof BlockNode && (
+				$body->openBrace->getNext()?->is(Token::CloseTag)
+				|| $body->closeBrace->getNext()?->is(Token::CloseTag)
+				|| $body->closeBrace->getPrevious()?->is([Token::CloseTag, Token::InlineHtml])
+			))
 		) {
 			return;
 		}
 
-		$stmts = $body->statements->getItems();
-		$empty = $stmts === [] && !$body->openBrace->hasCommentUpTo($body->closeBrace);
+		$empty = $body instanceof BlockNode && $body->statements->isEmpty() && !$body->openBrace->hasCommentUpTo($body->closeBrace);
 		$branches = [$node->body];
 		foreach ($node->elseifs->getItems() as $elseif) {
 			$branches[] = $elseif->body;
@@ -106,20 +108,22 @@ final class UselessElseRule extends NodeRule
 			}
 		}
 
-		if (NodeHelpers::hasHoistableDeclaration($list, $body)) {
-			return;
-		}
-
-		if (!$context->report($else, $empty ? 'Useless else, because it is empty.' : 'Useless else, because the branches before it always leave.', decision: self::ElseAfterExit)) {
+		if (
+			($body instanceof BlockNode && NodeHelpers::hasHoistableDeclaration($list, $body))
+			|| !$context->report($else, $empty ? 'Useless else, because it is empty.' : 'Useless else, because the branches before it always leave.', decision: self::ElseAfterExit)
+		) {
 			return;
 		}
 
 		$node->else = null;
 		$else->body = null;
 		$list->insertAfter($node, $body);
-		$body->openBrace->ensureStartsLine($context->style->lineEnding);
-		$body->openBrace->setIndentation($node->getFirstToken()->getLineIndentation());
-		$body->unwrap();
+		$first = $body->getFirstToken();
+		$first->ensureStartsLine($context->style->lineEnding);
+		$first->setIndentation($node->getFirstToken()->getLineIndentation());
+		if ($body instanceof BlockNode) {
+			$body->unwrap();
+		}
 	}
 
 

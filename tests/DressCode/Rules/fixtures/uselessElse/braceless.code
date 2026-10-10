@@ -21,15 +21,21 @@ function c($x) {
 		}
 	}
 }
+function e($x) {
+	if ($x) return 1;
+	else y();
+}
 
-// left alone: a branch without braces that goes on, an else without braces
+// left alone: a branch without braces that goes on, an elseif written in two words
 function d($x) {
 	if ($x) x();
 	else {
 		y();
 	}
 }
-function e($x) {
+function f($x) {
 	if ($x) return 1;
-	else y();
+	else if ($y) {
+		y();
+	}
 }
