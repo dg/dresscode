@@ -67,17 +67,16 @@ final class TypeNotationRule extends NodeRule
 		}
 
 		$members = $node->types->getItems();
-		$nulls = $others = $actual = [];
+		$nulls = $others = [];
 		$nullIndex = 0;
 		$dnf = false;
 		foreach ($members as $member) {
 			$dnf = $dnf || $member instanceof IntersectionTypeNode;
 			if ($member instanceof NamedTypeNode && strtolower($member->name->text) === 'null') {
 				$nulls[] = $member;
-				$nullIndex = count($actual);
-				$actual[] = 'null';
+				$nullIndex = count($others);
 			} else {
-				$actual[] = $others[] = $member->text;
+				$others[] = $member->text;
 			}
 		}
 
@@ -93,34 +92,37 @@ final class TypeNotationRule extends NodeRule
 			return;
 		}
 
-		if ($this->order === null && ($nulls === [] || $this->nullPosition === null)) {
-			return;
-		}
-
+		$changed = false;
 		if ($this->order === self::ByName) {
-			usort($others, fn(string $a, string $b) => strcasecmp(ltrim($a, '('), ltrim($b, '('))); // (A&B) sorts by A
+			$sorted = $others;
+			usort($sorted, fn(string $a, string $b) => strcasecmp(ltrim($a, '('), ltrim($b, '('))); // (A&B) sorts by A
+			if (
+				$sorted !== $others
+				&& $context->report($node, 'The types of a union type must be in alphabetical order.', decision: self::UnionOrder)
+			) {
+				[$others, $changed] = [$sorted, true];
+			}
 		}
 
-		$expected = $others;
-		if ($nulls !== []) {
-			$index = match ($this->nullPosition) {
-				'first' => 0,
-				'last' => count($others),
-				default => $nullIndex,
-			};
-			array_splice($expected, $index, 0, 'null');
+		$wanted = match ($this->nullPosition) {
+			'first' => 0,
+			'last' => count($others),
+			default => $nullIndex,
+		};
+		if (
+			$nulls !== []
+			&& $wanted !== $nullIndex
+			&& $context->report($node, "`null` must come {$this->nullPosition} in a union type.", decision: self::NullPosition)
+		) {
+			[$nullIndex, $changed] = [$wanted, true];
 		}
 
-		if ($actual === $expected) {
-			return;
-		}
+		if ($changed) {
+			if ($nulls !== []) {
+				array_splice($others, $nullIndex, 0, 'null');
+			}
 
-		[$message, $decision] = $this->nullPosition === null
-			|| ($this->order === self::ByName && array_values(array_diff($actual, ['null'])) !== $others)
-				? ['The types of a union type must be in alphabetical order.', self::UnionOrder]
-				: ["`null` must come {$this->nullPosition} in a union type.", self::NullPosition];
-		if ($context->report($node, $message, decision: $decision)) {
-			$node->replaceWith((new Builder)->type(implode('|', $expected)));
+			$node->replaceWith((new Builder)->type(implode('|', $others)));
 		}
 	}
 }
