@@ -46,7 +46,8 @@ final class LogicalOperatorNotationRule extends NodeRule
 			return;
 		}
 
-		$precedence = (new Builder)->binary(0, $text, 0)->precedence;
+		static $precedences = [];
+		$precedence = $precedences[$text] ??= (new Builder)->binary(0, $text, 0)->precedence;
 		if (
 			self::bindsLooser($node->left, $precedence, right: false)
 			|| self::bindsLooser($node->right, $precedence, right: true)

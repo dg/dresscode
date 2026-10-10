@@ -53,6 +53,10 @@ final class SinglelinePropertyPhpdocRule extends NodeRule
 			}
 		}
 
+		if (count($lines) !== 1) {
+			return;
+		}
+
 		$tree = $context->getAnalysis(PhpDoc::class)->parse($docComment);
 		foreach ($tree->children as $child) {
 			if ($child instanceof PhpDocTextNode && trim($child->text) !== '') {
@@ -62,8 +66,7 @@ final class SinglelinePropertyPhpdocRule extends NodeRule
 
 		$tags = array_filter($tree->children, fn($child) => $child instanceof PhpDocTagNode);
 		if (
-			count($lines) !== 1
-			|| count($tags) !== 1
+			count($tags) !== 1
 			|| !$context->report($node, 'The doc comment with a single line of content must be written on one line.', trivia: $docComment)
 		) {
 			return;
