@@ -50,3 +50,11 @@ function h($object)
 	$prop = new ReflectionProperty($object, 'value');
 	$prop->setAccessible(true, false);
 }
+
+function i($object, array $handles)
+{
+	$prop = new ReflectionProperty($object, 'value');
+	foreach ($handles as $prop) {
+		$prop->setAccessible(true);
+	}
+}

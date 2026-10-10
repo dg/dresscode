@@ -241,7 +241,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 				continue; // a variable of a nested function is another variable of the same name
 			} elseif ($parent instanceof Expression\AssignmentNode && $parent->target === $occurrence) {
 				$assignments[] = $parent->expression;
-			} elseif (self::isWritten($occurrence)) {
+			} elseif ($occurrence->isWritten()) {
 				return false;
 			}
 		}
@@ -250,17 +250,5 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 		return $new instanceof Expression\NewNode
 			&& $new->class instanceof NameNode
 			&& strcasecmp($context->getAnalysis(NameResolver::class)->resolveClass($new->class), $class) === 0;
-	}
-
-
-	/** Whether something other than a plain assignment writes the variable, which makes its value unknown. */
-	private static function isWritten(Expression\VariableNode $variable): bool
-	{
-		$parent = $variable->parent;
-		return $parent instanceof Expression\AssignmentByReferenceNode
-			|| $parent instanceof Expression\CombinedAssignmentNode
-			|| $parent instanceof Expression\PrefixOpNode
-			|| $parent instanceof Expression\PostfixOpNode
-			|| ($parent instanceof ArgumentNode && $parent->ampersand !== null);
 	}
 }
