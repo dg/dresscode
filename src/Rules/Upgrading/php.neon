@@ -62,7 +62,7 @@ since 8.2:
 		utf8_decode: deprecated
 		utf8_encode: deprecated
 	replacedCalls:
-		'utf8_decode($string)': {write: "mb_convert_encoding($string, 'ISO-8859-1')", risk: behaviorChanges, because: a build without mbstring answers the call with an error, from: '8.0'}
+		'utf8_decode($string)': {write: "mb_convert_encoding($string, 'ISO-8859-1', 'UTF-8')", risk: behaviorChanges, because: a build without mbstring answers the call with an error, from: '8.0'}
 		'utf8_encode($string)': {write: "mb_convert_encoding($string, 'UTF-8', 'ISO-8859-1')", risk: behaviorChanges, because: a build without mbstring answers the call with an error, from: '8.0'}
 
 since 8.1:
