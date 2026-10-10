@@ -55,6 +55,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'qualification.otherNamespace.constant', 'qualification.staticInFinalClass', 'qualification.otherNamespace.function', // how far a name is written out is the project's
 		'types.declaration.constant', // a typed constant, which the code before PHP 8.3 cannot have
 		'upgrading.classes.Override', // a guarantee the code takes on, which no older construct gave
+		'upgrading.syntax.neverReturnType.closure', // the signature of a closure usually belongs to the call it is passed to
 		'upgrading.phpdoc.readonly', // an annotation may promise what the code does not keep, which only the project knows
 		'upgrading.classes.SensitiveParameter', // the list of what is sensitive is the project's
 		// the maps: a set lets the upgrading files of the packages in, a project writes its own
@@ -85,5 +86,6 @@ test('every construct and function newer PHP brought or retired is in a set', fu
 		$resolver->getCatalogue()->getDecisions(),
 		fn(DressCode\Decision $decision) => $decision->isRequirement() && preg_match('~^upgrading\.(syntax|functions|php)\.~', $decision->path),
 	));
-	Assert::same([], array_values(array_diff($upgrading, $sets)));
+	// a closure is no construct of its own, only a place the project may give the type of a function too
+	Assert::same([], array_values(array_diff($upgrading, $sets, ['upgrading.syntax.neverReturnType.closure'])));
 });

@@ -25,7 +25,7 @@ final class NoBacktickOperatorsRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('expressions.backticks', Domain::state('forbidden'), '`shell_exec()` for the backtick operator')];
+		return [new Decision('upgrading.php.backticks', Domain::state('forbidden'), '`shell_exec()` for the backtick operator')];
 	}
 
 

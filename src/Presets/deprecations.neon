@@ -16,9 +16,6 @@ controlFlow:
 	switch:
 		caseTerminator: colon                 # `case 1:`, not `case 1;`, PHP 8.5
 
-expressions:
-	backticks: forbidden                      # `shell_exec()`, PHP 8.5
-
 # what a library or PHP breaks in a major version, reported
 correctness:
 	finalParent: forbidden                    # a class extending a final one
@@ -41,5 +38,6 @@ upgrading:
 		csvEscapeArgument: required           # the `escape` of `fgetcsv()` written out, PHP 8.4
 		dollarBraceInterpolation: forbidden   # `{$name}`, not `${name}`, PHP 8.2
 		reservedNames: forbidden              # `let`, `is`, `_`, PHP 8.6
+		backticks: forbidden                  # `shell_exec()`, PHP 8.5
 	syntax:
 		firstClassCallables: adopted          # `foo(...)`, not `Closure::fromCallable('foo')`

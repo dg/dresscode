@@ -69,7 +69,7 @@ final class PhpCsFixer
 			'assign_null_coalescing_to_coalesce_equal' => ['expressions.assignment.repeatingTarget' => 'forbidden'],
 			'attribute_block_no_spaces' => ['spacing.attribute' => 'compact'],
 			'attribute_empty_parentheses' => fn(array $o, Translation $t) => $t->set('classes.emptyParentheses.attribute', ($o['use_parentheses'] ?? false) ? 'required' : 'forbidden'),
-			'backtick_to_shell_exec' => ['expressions.backticks' => 'forbidden'],
+			'backtick_to_shell_exec' => ['upgrading.php.backticks' => 'forbidden'],
 			'binary_operator_spaces' => function (array $o, Translation $t) {
 				$default = $o['default'] ?? 'single_space';
 				if (str_starts_with((string) $default, 'align')) {

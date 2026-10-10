@@ -1,5 +1,5 @@
 <?php
-// {"syntax.neverReturnType.closure": true}
+// {"syntax.neverReturnType.closure": "adopted"}
 $fail = function (): never {
 	throw new LogicException('no');
 };

@@ -2,4 +2,4 @@ upgrading:
 	syntax:
 		neverReturnType:
 			function: adopted
-			closure: no
+			closure: keep

@@ -117,7 +117,6 @@ expressions:
 		addingOne: forbidden                  # `$i++`, not `$i += 1`
 	doubleNegation: forbidden                 # `(bool) $a`, not `!!$a`
 	parenthesesAfterConstruct: forbidden      # `return $x;`, not `return ($x);`
-	backticks: forbidden                      # `shell_exec()`
 
 literals:
 	quotes: single
@@ -141,3 +140,4 @@ upgrading:
 	php:
 		dollarBraceInterpolation: forbidden   # `{$name}`, not `${name}`
 		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`
+		backticks: forbidden                  # `shell_exec()`

@@ -163,7 +163,6 @@ expressions:
 	wordLogicalOperators: forbidden
 	explicitPrecedence: required              # `($a && $b) || $c`
 	doubleNegation: forbidden                 # `(bool) $a`, not `!!$a`
-	backticks: forbidden                      # `shell_exec()`
 
 literals:
 	quotes: single
@@ -200,6 +199,7 @@ upgrading:
 	php:
 		dollarBraceInterpolation: forbidden   # `{$name}`, not `${name}`
 		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`
+		backticks: forbidden                  # `shell_exec()`
 	syntax:
 		octalPrefix: adopted                  # `0o17`, not `017`
 	classes:

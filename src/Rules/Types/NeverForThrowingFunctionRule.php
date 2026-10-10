@@ -7,8 +7,7 @@
 
 namespace DressCode\Rules\Types;
 
-use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Domains\Flag;
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{Expression, FunctionLikeNode, Statement, StatementNode};
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -28,14 +27,16 @@ use function count;
  * in hand is a fatal error. That leaves a private method, a final one and a class nothing can extend, which
  * is a final one, an enum and an anonymous one.
  *
- * A closure is left alone unless `upgrading.syntax.neverReturnType.closure` asks for it: what it returns is
- * usually read off the call it is written into, not declared.
+ * A closure is a place of its own, `upgrading.syntax.neverReturnType.closure`, which a project may leave alone: what
+ * it returns is usually read off the call it is written into, not declared.
  */
 #[RuleInfo(Stage::Structure, requires: ['php' => '>=8.1'])]
 final class NeverForThrowingFunctionRule extends NodeRule
 {
 	private const Named = 'upgrading.syntax.neverReturnType.function';
 	private const Closure = 'upgrading.syntax.neverReturnType.closure';
+
+	private bool $function = false;
 
 	private bool $closure = false;
 
@@ -44,20 +45,24 @@ final class NeverForThrowingFunctionRule extends NodeRule
 	{
 		return [
 			new Decision(self::Named, Domain::adopted(), 'The return type `never` of PHP 8.1 on a function or a method that always throws or exits, a method only where no descendant can declare it again'),
-			new Decision(self::Closure, new Flag, 'Whether a closure that always throws or exits gets the return type `never` too, though its signature usually belongs to the call it is passed to', kind: DecisionKind::Parameter, default: false),
+			new Decision(self::Closure, Domain::adopted(), 'The return type `never` on a closure that always throws or exits, though its signature usually belongs to the call it is passed to'),
 		];
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->closure = $values->get(self::Closure)->getFlag();
+		$this->function = !$values->isKept(self::Named);
+		$this->closure = !$values->isKept(self::Closure);
 	}
 
 
 	public function getVisitedNodes(): array
 	{
-		return [Statement\FunctionNode::class, MethodNode::class, Expression\ClosureNode::class];
+		return [
+			...($this->function ? [Statement\FunctionNode::class, MethodNode::class] : []),
+			...($this->closure ? [Expression\ClosureNode::class] : []),
+		];
 	}
 
 
@@ -75,13 +80,12 @@ final class NeverForThrowingFunctionRule extends NodeRule
 			$node->returnType !== null
 			|| $node->body === null
 			|| ($node instanceof MethodNode && (str_starts_with($node->name->text, '__') || $node->isOverridable()))
-			|| ($node instanceof Expression\ClosureNode && !$this->closure)
 			|| !self::alwaysLeaves($node, $node->body)
 			|| !$context->report($node->closeParen, match (true) {
 				$node instanceof MethodNode => "The method `{$node->name->text}()`",
 				$node instanceof Expression\ClosureNode => 'The closure',
 				default => "The function `{$node->name->text}()`",
-			} . ' never returns and must have the return type `never`.')
+			} . ' never returns and must have the return type `never`.', decision: $node instanceof Expression\ClosureNode ? self::Closure : self::Named)
 		) {
 			return;
 		}
