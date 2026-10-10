@@ -114,7 +114,10 @@ final class NoManualSubstringTestsRule extends NodeRule
 			'substr' => self::readSubstrTest($arguments, $compared, $identical, $context),
 			'strncmp' => count($arguments) === 3
 				&& self::isZero($compared)
-				&& self::repeats(self::readStrlen($arguments[2], $context), $arguments[1])
+				&& (
+					self::repeats(self::readStrlen($arguments[2], $context), $arguments[1])
+					|| (($length = self::readLiteralLength($arguments[1])) !== null && self::isInteger($arguments[2], $length))
+				)
 					? ['str_starts_with', $arguments[0], $arguments[1], $identical, false]
 					: null,
 			default => null,
