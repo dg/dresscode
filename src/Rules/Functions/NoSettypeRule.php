@@ -24,8 +24,7 @@ use function array_key_exists, count, is_string;
  * elsewhere the fix is risky unless the variable is evidently defined before the call: a parameter, a variable of
  * the `use` of a closure, one an enclosing `foreach` or `catch` binds, or one a statement before the call in a block
  * enclosing it assigns, destructures or declares `global` or `static`, and no `unset()` of it may run in between;
- * `settype($x, 'null')` reads nothing. It stays
- * on `$this` and `$GLOBALS` too, which cannot be assigned.
+ * `settype($x, 'null')` reads nothing. It stays on `$this` and `$GLOBALS` too, which cannot be assigned.
  */
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
 final class NoSettypeRule extends NodeRule

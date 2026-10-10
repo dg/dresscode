@@ -98,7 +98,7 @@ final class BracesPositionRule extends GapRule
 				self::OwnLines => '`{` and `}` placed as those of any other anonymous class',
 				self::SameLine => '`{}` on the line of the head, one holding a comment staying on its line as written',
 			]), 'How an empty anonymous class is written, whatever `braces.empty.body` says; one written on one line stays where it is kept'),
-			new Decision(self::SinglelineClosure, Domain::state('forbidden'), 'Whether a closure written whole on one line may stay so'),
+			new Decision(self::SinglelineClosure, Domain::state('forbidden'), 'A closure written whole on one line'),
 		];
 	}
 

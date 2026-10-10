@@ -16,7 +16,7 @@ use PhpSyntax\Nodes\Expression\{EmptyNode, IssetNode, VariableNode};
 
 /**
  * `$this` in a static method, a static closure or a plain function fails at runtime, unless `isset()` or `empty()`
- * asks for it; reported.
+ * asks for it; reported. The main code of a file has no function around it and is left alone.
  */
 #[RuleInfo(Stage::Structure, analyses: [Scope::class])]
 final class NoThisOutsideObjectRule extends NodeRule

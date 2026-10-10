@@ -67,7 +67,7 @@ final readonly class ConfigPrinter
 		$set = array_filter($this->config->decisions, fn(ResolvedDecision $decision) => $decision->layers !== []);
 		$out .= $console->color('gray', 'Decisions  ')
 			. sprintf('%d of %d set by a layer, the others asking for nothing', count($set), count($this->config->decisions)) . "\n\n";
-		// a decision the execution names stands there too, so that a name doing nothing shows
+		// a decision the configuration names stands there too, so that a name doing nothing shows
 		$named = array_filter(
 			$this->config->decisions,
 			fn(ResolvedDecision $decision, string $path) => isset($this->config->fixRisky[$path]) || isset($this->config->warnOnly[$path]),

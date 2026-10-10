@@ -16,9 +16,9 @@ use PhpSyntax\Nodes\Scalar\InterpolatedStringPartNode;
 
 /**
  * `shell_exec("...")` instead of the backticks PHP 8.5 deprecated; a command containing a quote or a backtick
- * stays, because its escaping would have to change. The backticks always run the global function, so the call
- * is written the shortest way that reaches it for certain: fully qualified where an import takes the name, or
- * in a namespace whose name resolution is uncertain.
+ * stays as written. The backticks always run the global function, so the call is written the shortest way that
+ * reaches it for certain: fully qualified where an import takes the name, or in a namespace whose name resolution is
+ * uncertain.
  */
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
 final class NoBacktickOperatorsRule extends NodeRule

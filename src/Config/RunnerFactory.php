@@ -17,8 +17,8 @@ use function count, is_string;
 
 
 /**
- * Resolves a configuration in a project and builds the runner of a run from it, and reads what the composer.json of
- * the project says of it.
+ * Resolves a configuration in a project and builds the runner of a run from it; what the composer.json of the
+ * project says is read by `Composer` and `ProjectPackages`.
  * @internal
  */
 final readonly class RunnerFactory

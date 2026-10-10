@@ -684,7 +684,7 @@ An import nothing uses is removed.
 
 ### imports.ofCurrentNamespace
 
-An import of a class of the namespace it stands in, `use Acme\Shop\Order;` inside `namespace Acme\Shop`.
+An import of a class of the namespace it stands in, `use Acme\Shop\Order;` inside `namespace Acme\Shop`, and in the global namespace a function or a constant too.
 
 - A requirement
 - Takes: `forbidden` (never there); `keep`
@@ -1438,7 +1438,7 @@ How an empty anonymous class is written, whatever `braces.empty.body` says; one 
 
 ### braces.singlelineClosure
 
-Whether a closure written whole on one line may stay so.
+A closure written whole on one line.
 
 - A requirement
 - Takes: `forbidden` (never there); `keep`

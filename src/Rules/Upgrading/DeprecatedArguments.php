@@ -20,7 +20,7 @@ use function is_int, strlen;
  * `trigger_error()`, a byte out of range given to `chr()` and a string not one byte long to `ord()`, an integer given to
  * a `ctype_*()` function, the directory handle left out or null for `readdir()`, `rewinddir()` and `closedir()`, and
  * a length other than 0 given to `openssl_pkey_derive()`, which truncates an ECDH secret and fails for DH; a length
- * not written out is reported too, being passed only to truncate.
+ * that is not a literal is reported too, being passed only to truncate.
  * The rule reports it and rewrites nothing: what takes its place, an exception, the right byte, a string, the
  * handle or the secret cut to length, is for the author to write.
  * @internal

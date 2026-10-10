@@ -24,7 +24,7 @@ final class UselessCurrentNamespaceImportRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('imports.ofCurrentNamespace', Domain::state('forbidden'), 'An import of a class of the namespace it stands in, `use Acme\\Shop\\Order;` inside `namespace Acme\\Shop`')];
+		return [new Decision('imports.ofCurrentNamespace', Domain::state('forbidden'), 'An import of a class of the namespace it stands in, `use Acme\\Shop\\Order;` inside `namespace Acme\\Shop`, and in the global namespace a function or a constant too')];
 	}
 
 

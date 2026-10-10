@@ -357,7 +357,6 @@ final class ConfigResolver
 	/**
 	 * The key two spellings of one symbol share, the way PHP reads them: a function in any letter case, a constant
 	 * in any letter case of its namespace but not of its own name.
-	 * @internal
 	 */
 	public static function toSymbolKey(SymbolKind $kind, string $name): string
 	{

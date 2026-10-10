@@ -25,7 +25,8 @@ use function count;
  * the statements the body opens with is `Clock $clock = new SystemClock`, the statement keeping
  * `$this->clock = $clock;`, and `$clock ??= new SystemClock;` disappears. The arguments of `new` must be constant, as
  * a default asks, and its class a name of its own; a statement whose object is not ends the run of such statements,
- * since it may read a parameter, and so does a second one for the same parameter. Every fix is risky: the parameter no longer takes null, so a caller passing it gets a TypeError.
+ * since it may read a parameter, and so does a second one for the same parameter. Every fix is risky: the parameter
+ * no longer takes null, so a caller passing it gets a TypeError.
  * A method that may override another one is left alone, PHP forbidding it to narrow the type of a parameter, and so is
  * every method of a trait or of a class using one. A private method overrides nothing, and a constructor is held to
  * the signature only of an abstract one. Without the types, a method that overrides another one is not told from one
