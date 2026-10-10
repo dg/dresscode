@@ -52,6 +52,8 @@ final class PhpStan
 	/** @var ?array{string, self}  hash of the text of a pass and the PHPStan reading it */
 	private ?array $derived = null;
 
+	private ?Declarations $declarations = null;
+
 
 	public function __construct(
 		private readonly string $root,
@@ -128,10 +130,18 @@ final class PhpStan
 			$derived->replacement = [$path, $file];
 			$derived->diskDeclarations = [];
 			$derived->derived = null;
+			$derived->declarations = null;
 			$this->derived = [$hash, $derived];
 		}
 
 		return $this->derived[1];
+	}
+
+
+	/** What the declarations this PHPStan reads say of the classes, asked by their names and kept as long as it lives. */
+	public function getDeclarations(): Declarations
+	{
+		return $this->declarations ??= new Declarations($this);
 	}
 
 
