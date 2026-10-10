@@ -1,0 +1,1 @@
+13: Unreachable catch block, because a previous one catches `Acme\Shop\PaymentDeclined`.

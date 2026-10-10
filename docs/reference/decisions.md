@@ -2894,7 +2894,7 @@ A `continue` that only leaves a `switch` is `break`.
 
 ### correctness.unreachableCatch
 
-A `catch` after one catching `Throwable`.
+A `catch` after one catching `Throwable` or a class it catches.
 
 - A requirement
 - Takes: `forbidden` (never there); `keep`
