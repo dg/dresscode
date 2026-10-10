@@ -9,6 +9,7 @@ namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{ConfigurationException, Decision, ImportStyle, Plugin, Rule, RuleInfo};
+use Nette\Utils\Helpers;
 use function count, is_string;
 
 
@@ -376,12 +377,15 @@ final class Catalogue
 	/** @throws ConfigurationException */
 	private static function checkPluginSection(string $section): void
 	{
+		$keys = [...self::ReservedKeys, ...NeonReader::OtherKeys];
 		if (
-			in_array($section, self::ReservedKeys, true)
+			in_array($section, $keys, true)
 			|| in_array($section, self::CoreSections, true)
 			|| $section === self::ProjectSection
 		) {
 			throw new ConfigurationException("Plugin section `$section` is a key of the configuration or a section of the core; name the section after the plugin.");
+		} elseif (($key = Helpers::getSuggestion($keys, $section)) !== null) {
+			throw new ConfigurationException("Plugin section `$section` is one letter off the key `$key` of the configuration, which a file would read as a typo of it; name the section after the plugin.");
 		}
 	}
 

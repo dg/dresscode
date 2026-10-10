@@ -25,7 +25,7 @@ use function is_array, is_float, is_int, is_object, is_string;
 final class NeonReader
 {
 	/** the keys of Config beside those a file reserves for good, and `only`, which belongs to the command line */
-	private const OtherKeys = ['ruleUrl', 'decisions', 'only'];
+	public const OtherKeys = ['ruleUrl', 'decisions', 'only'];
 
 
 	/** @throws ConfigurationException */
