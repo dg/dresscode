@@ -1,4 +1,5 @@
 9: Method `provideCases()` must be static, as in `Lib\TestCase::provideCases()`.
 15: Method `createSubject()` must be static, as in `Lib\TestCase::createSubject()`, but its body uses the object.
-21: Method `describe()` must be public, as in `Lib\TestCase::describe()`.
-21: Method `describe()` must not be static, as in `Lib\TestCase::describe()`.
+21: Method `createDefault()` must be static, as in `Lib\TestCase::createDefault()`, but its body uses the object.
+27: Method `describe()` must be public, as in `Lib\TestCase::describe()`.
+27: Method `describe()` must not be static, as in `Lib\TestCase::describe()`.

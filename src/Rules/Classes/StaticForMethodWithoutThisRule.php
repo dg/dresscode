@@ -8,16 +8,15 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\Types;
-use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate, Values};
+use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\{Names, Words};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token, Visibility};
-use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, IdentifierNode, NameNode};
-use PhpSyntax\Nodes\Expression\{MethodCallNode, StaticMethodCallNode, VariableNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, IdentifierNode};
+use PhpSyntax\Nodes\Expression\MethodCallNode;
 use PhpSyntax\Nodes\Member\{MethodNode, TraitUseNode};
 use PhpSyntax\Nodes\Statement\ClassNode;
-use function in_array;
 
 
 /**
@@ -106,33 +105,11 @@ final class StaticForMethodWithoutThisRule extends NodeRule
 	private function canBeStatic(MethodNode $method, ClassNode|AnonymousClassNode $class, RuleContext $context): bool
 	{
 		$visibility = $method->modifiers->visibility ?? Visibility::Public;
-		if (
-			!in_array($visibility, $this->visibilities, true)
-			|| $method->modifiers->static
-			|| $method->body === null
-			|| str_starts_with($method->name->text, '__')
-			|| ($visibility !== Visibility::Private && !self::isDeclaredOnlyHere($method, $class))
-			|| NodeHelpers::findDynamicVariableAccesses($method->body, $context) !== []
-		) {
-			return false;
-		}
-
-		$resolver = $context->getAnalysis(NameResolver::class);
-		foreach ($method->body->find(Node::class) as $inner) {
-			if ($inner->findAncestor(ClassLikeNode::class) !== $class) {
-				continue; // what an anonymous class inside does is its own
-			}
-
-			if (
-				($inner instanceof VariableNode && $inner->isThis())
-				|| ($inner instanceof StaticMethodCallNode && !$this->canCallWithoutObject($inner, $class, $context))
-				|| $resolver->isGlobalFunctionCall($inner, 'debug_backtrace')
-			) {
-				return false;
-			}
-		}
-
-		return true;
+		return in_array($visibility, $this->visibilities, true)
+			&& !$method->modifiers->static
+			&& !str_starts_with($method->name->text, '__')
+			&& ($visibility === Visibility::Private || self::isDeclaredOnlyHere($method, $class))
+			&& !NodeHelpers::needsObject($method, $context);
 	}
 
 
@@ -147,33 +124,6 @@ final class StaticForMethodWithoutThisRule extends NodeRule
 			&& $class->extends === null
 			&& $class->implements === null
 			&& !array_any($class->members->getItems(), fn(Node $member) => $member instanceof TraitUseNode);
-	}
-
-
-	/** Whether the static call does the same in a static method, where it has no object to pass on. */
-	private function canCallWithoutObject(StaticMethodCallNode $call, ClassNode|AnonymousClassNode $class, RuleContext $context): bool
-	{
-		if (!$call->class instanceof NameNode) {
-			return true;
-		} elseif ($call->class->equals('parent') || !$call->name instanceof IdentifierNode) {
-			return false;
-		} elseif (!in_array(strtolower($call->class->text), ['self', 'static'], true)) {
-			$resolver = $context->getAnalysis(NameResolver::class);
-			$named = $resolver->resolveClass($call->class);
-			$own = $resolver->getDeclaredName($class);
-			if ($own === null || strcasecmp($named, $own) !== 0) {
-				$types = $context->findAnalysis(Types::class);
-				return $class->extends === null || ($own !== null && $types?->isSubtype($own, $named) === Tristate::No);
-			}
-		}
-
-		foreach ($class->members as $member) {
-			if ($member instanceof MethodNode && $member->name->equals($call->name->text)) {
-				return $member->modifiers->static;
-			}
-		}
-
-		return false;
 	}
 
 

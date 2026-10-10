@@ -94,6 +94,12 @@ abstract class TestCase
 	}
 
 
+	public static function createDefault(): object
+	{
+		return new \stdClass;
+	}
+
+
 	public function describe(): string
 	{
 		return '';

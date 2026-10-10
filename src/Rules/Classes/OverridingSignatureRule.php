@@ -13,8 +13,8 @@ use DressCode\Domains\Words;
 use DressCode\Rules\{CodeWriter, NativeType, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token, Trivia, Visibility};
-use PhpSyntax\Nodes\{AnonymousFunctionNode, NameNode, ParameterNode};
-use PhpSyntax\Nodes\Expression\{StaticMethodCallNode, VariableNode};
+use PhpSyntax\Nodes\{AnonymousFunctionNode, ParameterNode};
+use PhpSyntax\Nodes\Expression\VariableNode;
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\{FunctionNode, TraitNode};
 use function count;
@@ -121,15 +121,8 @@ final class OverridingSignatureRule extends NodeRule
 			return;
 		}
 
-		$needsObject = $node->body === null
-			|| NodeHelpers::findDynamicVariableAccesses($node->body, $context) !== []
-			|| array_any(
-				$node->body->find(Node::class),
-				fn(Node $inner) => ($inner instanceof VariableNode && $inner->isThis())
-					|| ($inner instanceof StaticMethodCallNode && $inner->class instanceof NameNode && $inner->class->equals('parent')),
-			);
 		$message = "Method `$name()` must be static, as in `$signature->declaringClass::$name()`";
-		if ($needsObject) {
+		if (NodeHelpers::needsObject($node, $context)) {
 			$context->report($node->name, $message . ', but its body uses the object.', fixable: false, decision: self::Signature);
 		} elseif ($context->report($node->name, $message . '.', decision: self::Signature)) {
 			$node->modifiers->append(Token::fromText('static'));

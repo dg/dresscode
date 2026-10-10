@@ -8,11 +8,12 @@
 namespace DressCode\Rules;
 
 use DressCode\Analyses\{IndentationPlan, Parameter, PhpSignatures, Types};
-use DressCode\{Claim, Gap, Line, RuleContext};
+use DressCode\{Claim, Gap, Line, RuleContext, Tristate};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, SymbolKind, Token, Trivia};
-use PhpSyntax\Nodes\{ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode};
-use function count, strlen;
+use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, IdentifierNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode};
+use PhpSyntax\Nodes\Member\MethodNode;
+use function count, in_array, strlen;
 
 
 /**
@@ -194,6 +195,72 @@ final class NodeHelpers
 				$inner instanceof Expression\FunctionCallNode
 				&& GlobalCalls::findFunction($inner, ['compact' => true, 'extract' => true, 'get_defined_vars' => true], $context) !== null
 			));
+	}
+
+
+	/**
+	 * Whether the static context could change what the body of the method does: `$this` anywhere in it, a closure
+	 * that inherits it included and an anonymous class that has its own excluded, what `findDynamicVariableAccesses()`
+	 * finds, `debug_backtrace()`, which shows the object, `parent::` and a call through `self::`, `static::` or the name
+	 * of the class or an ancestor of a method the class does not declare static, which PHP makes with the object;
+	 * without the types, any class a class extending another names may be an ancestor. True for a method without
+	 * a body.
+	 */
+	public static function needsObject(MethodNode $method, RuleContext $context): bool
+	{
+		$class = $method->findAncestor(ClassLikeNode::class);
+		if ($method->body === null || $class === null || self::findDynamicVariableAccesses($method->body, $context) !== []) {
+			return true;
+		}
+
+		$resolver = $context->getAnalysis(NameResolver::class);
+		foreach ($method->body->find(Node::class) as $inner) {
+			if ($inner->findAncestor(ClassLikeNode::class) !== $class) {
+				continue; // what an anonymous class inside does is its own
+			}
+
+			if (
+				($inner instanceof Expression\VariableNode && $inner->isThis())
+				|| ($inner instanceof Expression\StaticMethodCallNode && !self::canCallWithoutObject($inner, $class, $context))
+				|| $resolver->isGlobalFunctionCall($inner, 'debug_backtrace')
+			) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	/** Whether the static call does the same in a static method, where it has no object to pass on. */
+	private static function canCallWithoutObject(
+		Expression\StaticMethodCallNode $call,
+		ClassLikeNode&Node $class,
+		RuleContext $context,
+	): bool
+	{
+		if (!$call->class instanceof NameNode) {
+			return true;
+		} elseif ($call->class->equals('parent') || !$call->name instanceof IdentifierNode) {
+			return false;
+		} elseif (!in_array(strtolower($call->class->text), ['self', 'static'], true)) {
+			$resolver = $context->getAnalysis(NameResolver::class);
+			$named = $resolver->resolveClass($call->class);
+			$own = $resolver->getDeclaredName($class);
+			if ($own === null || strcasecmp($named, $own) !== 0) {
+				$extends = $class instanceof Statement\ClassNode || $class instanceof AnonymousClassNode ? $class->extends : null;
+				$types = $context->findAnalysis(Types::class);
+				return $extends === null || ($own !== null && $types?->isSubtype($own, $named) === Tristate::No);
+			}
+		}
+
+		foreach ($class->members as $member) {
+			if ($member instanceof MethodNode && $member->name->equals($call->name->text)) {
+				return $member->modifiers->static;
+			}
+		}
+
+		return false;
 	}
 
 

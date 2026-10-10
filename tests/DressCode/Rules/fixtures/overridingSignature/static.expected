@@ -18,6 +18,12 @@ class MailerTest extends TestCase
 	}
 
 
+	public function createDefault(): object
+	{
+		return self::makeMailer();
+	}
+
+
 	public static function describe(): string
 	{
 		return 'mailer';
