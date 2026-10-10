@@ -40,13 +40,21 @@ final class SuppressionMigration
 	{
 		$changed = false;
 		foreach ($file->getTokens() as $token) {
-			foreach ([$token->leadingTrivia, $token->trailingTrivia] as $ownLine => $trivias) {
-				foreach ($trivias as $trivia) {
-					$text = $trivia->isComment() ? $this->rewrite($trivia->text, ownLine: $ownLine === 0) : $trivia->text;
-					if ($text !== $trivia->text) {
-						$token->replaceTrivia($trivia, $trivia->withText($text));
-						$changed = true;
+			// whether a comment has a line of its own is read before the first of them is rewritten
+			$comments = [];
+			foreach ([$token->leadingTrivia, $token->trailingTrivia] as $trivias) {
+				foreach ($trivias as $index => $trivia) {
+					if ($trivia->isComment()) {
+						$comments[] = [$trivia, Suppression::isAlone($trivias, $index, $token)];
 					}
+				}
+			}
+
+			foreach ($comments as [$trivia, $ownLine]) {
+				$text = $this->rewrite($trivia->text, $ownLine);
+				if ($text !== $trivia->text) {
+					$token->replaceTrivia($trivia, $trivia->withText($text));
+					$changed = true;
 				}
 			}
 		}

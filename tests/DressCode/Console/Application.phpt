@@ -699,6 +699,11 @@ test('migrate-suppressions rewrites phpcs comments to the dresscode form', funct
 	[$code, $out] = runApp($root, ['migrate-suppressions', 'src/s.php']);
 	Assert::same(0, $code);
 	Assert::same("Migrated 0 suppression comments in 0 files.\n", $out);
+
+	// an ignore before code on its line keeps covering that line, so there is nothing to review
+	file_put_contents("$root/src/t.php", "<?php\nfoo();\n/* phpcs:ignore Squiz.WhiteSpace.SuperfluousWhitespace */ \$a = 1;\n");
+	[, $out] = runApp($root, ['migrate-suppressions', 'src/t.php']);
+	Assert::same("Migrated 1 suppression comment in 1 file.\n", $out);
 });
 
 

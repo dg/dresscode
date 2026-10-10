@@ -215,7 +215,7 @@ final class Suppression
 	 * Whether the comment has a line of its own.
 	 * @param list<Trivia> $trivias
 	 */
-	private static function isAlone(array $trivias, int $index, Token $token): bool
+	public static function isAlone(array $trivias, int $index, Token $token): bool
 	{
 		if ($trivias !== $token->leadingTrivia) {
 			return false;
