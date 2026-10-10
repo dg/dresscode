@@ -114,7 +114,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\ThrowExpressionForNullGuardRule::class,
 				Rules\ControlFlow\UselessBracesRule::class,
 				Rules\ControlFlow\UselessCatchVariableRule::class,
-				Rules\ControlFlow\UselessParenthesesAfterConstructRule::class,
+				Rules\Expressions\UselessParenthesesAfterConstructRule::class,
 				Rules\ControlFlow\UselessElseRule::class,
 				Rules\ControlFlow\UselessReturnRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,

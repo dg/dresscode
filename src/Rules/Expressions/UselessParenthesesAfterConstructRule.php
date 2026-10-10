@@ -5,7 +5,7 @@
  * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
  */
 
-namespace DressCode\Rules\ControlFlow;
+namespace DressCode\Rules\Expressions;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Token, Trivia};

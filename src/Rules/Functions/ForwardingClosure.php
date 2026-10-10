@@ -65,7 +65,7 @@ final class ForwardingClosure
 					: null,
 			default => $call->name instanceof IdentifierNode
 				&& $call->class instanceof NameNode
-				&& !self::isScopeRelative($call->class->text)
+				&& !$call->class->isSpecialClass()
 					? $call->class->text . '::' . $call->name->text
 					: null,
 		};

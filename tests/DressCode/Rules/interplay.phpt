@@ -97,7 +97,7 @@ test('the areas of blankLines never pull against one another', function () {
 test('explicitPrecedenceRequired adds what uselessParenthesesAfterConstruct does not remove', function () {
 	interplay([
 		Rules\Expressions\ExplicitPrecedenceRequiredRule::class => true,
-		Rules\ControlFlow\UselessParenthesesAfterConstructRule::class => true,
+		Rules\Expressions\UselessParenthesesAfterConstructRule::class => true,
 	], "<?php\nreturn \$a && \$b || \$c;\necho (\$a);\n", "<?php\nreturn (\$a && \$b) || \$c;\necho \$a;\n");
 });
 

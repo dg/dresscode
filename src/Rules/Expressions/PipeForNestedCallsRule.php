@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\{PhpSignatures, Types};
-use DressCode\{Decision, DecisionKind, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate, Values};
 use DressCode\Domains\Count;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, DereferenceKind, Node, SymbolKind, Token};
@@ -89,8 +89,8 @@ final class PipeForNestedCallsRule extends NodeRule
 			return;
 		}
 
-		$byValue = array_map(fn(ExpressionNode $call) => self::takesByValue($call, $context), $calls);
-		if (in_array(false, $byValue, true)) {
+		$byValue = array_map(fn(ExpressionNode $call) => self::isPassedByValue($call, $context), $calls);
+		if (in_array(Tristate::No, $byValue, true)) {
 			return;
 		}
 
@@ -99,9 +99,9 @@ final class PipeForNestedCallsRule extends NodeRule
 				&& $call->object->hasEffect()
 				&& ($i < count($calls) - 1 || $inner->hasEffect()))
 				=> [Risk::BehaviorChanges, 'a receiver runs code, which the pipe runs after the code its call takes'],
-			array_any($calls, fn(ExpressionNode $call, int $i) => $byValue[$i] === null && $call instanceof Expression\FunctionCallNode)
+			array_any($calls, fn(ExpressionNode $call, int $i) => $byValue[$i] === Tristate::Maybe && $call instanceof Expression\FunctionCallNode)
 				=> [Risk::BehaviorChanges, 'a function of another file may take its argument by reference, which the pipe cannot pass'],
-			in_array(null, $byValue, true) => [Risk::TypeUnknown, 'a step may take its argument by reference, which the pipe cannot pass'],
+			in_array(Tristate::Maybe, $byValue, true) => [Risk::TypeUnknown, 'a step may take its argument by reference, which the pipe cannot pass'],
 			default => [null, null],
 		};
 		if (!$context->report($node, 'The nested calls must be written with the pipe operator.', risk: $risk, because: $because)) {
@@ -159,16 +159,16 @@ final class PipeForNestedCallsRule extends NodeRule
 
 	/**
 	 * Whether the call takes its argument by value, as the declaration in the file or the one of PHP says, and of
-	 * a method the types; null where nothing tells.
+	 * a method the types: Yes by value, No by reference, Maybe where nothing tells.
 	 */
-	private static function takesByValue(ExpressionNode $call, RuleContext $context): ?bool
+	private static function isPassedByValue(ExpressionNode $call, RuleContext $context): Tristate
 	{
 		if ($call instanceof Expression\FunctionCallNode && $call->name instanceof NameNode) {
 			$resolver = $context->getAnalysis(NameResolver::class);
 			$function = $resolver->resolveFunction($call->name);
 			$declaration = $resolver->findDeclaration($function, SymbolKind::Function);
 			if ($declaration !== null) {
-				return ($declaration->parameters->getItems()[0] ?? null)?->ampersand === null;
+				return ($declaration->parameters->getItems()[0] ?? null)?->ampersand === null ? Tristate::Yes : Tristate::No;
 			}
 
 			$parameters = $resolver->isGlobalFunctionCall($call)
@@ -181,7 +181,11 @@ final class PipeForNestedCallsRule extends NodeRule
 			$parameters = $access === null ? null : $types->findParameters($access);
 		}
 
-		return $parameters === null ? null : !($parameters[0]->byReference ?? false);
+		return match (true) {
+			$parameters === null => Tristate::Maybe,
+			$parameters[0]->byReference ?? false => Tristate::No,
+			default => Tristate::Yes,
+		};
 	}
 
 

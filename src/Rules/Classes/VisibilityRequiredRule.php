@@ -9,7 +9,6 @@ namespace DressCode\Rules\Classes;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\ClassLikeNode;
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
 use PhpSyntax\Nodes\Statement\InterfaceNode;
 use function count;
@@ -63,12 +62,7 @@ final class VisibilityRequiredRule extends NodeRule
 			return;
 		}
 
-		$class = $node->parent?->parent;
-		if (!$class instanceof ClassLikeNode) {
-			return;
-		}
-
-		$interfaceMethod = $node instanceof MethodNode && $class instanceof InterfaceNode;
+		$interfaceMethod = $node instanceof MethodNode && $node->parent?->parent instanceof InterfaceNode;
 		$mode = match (true) {
 			$interfaceMethod => $this->interfaceMethod,
 			$this->members => self::Required,

@@ -2320,7 +2320,7 @@ An `elseif` after an `if` that always leaves, which becomes an `if` of its own w
 - A requirement
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
-- Rule `DressCode\Rules\ControlFlow\UselessParenthesesAfterConstructRule`, stage Structure
+- Rule `DressCode\Rules\Expressions\UselessParenthesesAfterConstructRule`, stage Structure
 - Covers: `include`, `no_unneeded_control_parentheses`, `SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses`, `Squiz.Strings.EchoedStrings`
 
 ### expressions.assignment.repeatingTarget

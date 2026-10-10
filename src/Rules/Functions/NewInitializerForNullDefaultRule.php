@@ -172,7 +172,7 @@ final class NewInitializerForNullDefaultRule extends NodeRule
 	private static function isConstantNew(NewNode $new): bool
 	{
 		return $new->class instanceof NameNode
-			&& !ForwardingClosure::isScopeRelative($new->class->text)
+			&& !$new->class->isSpecialClass()
 			&& array_all(
 				$new->arguments?->items->getItems() ?? [],
 				fn(Node $argument) => $argument instanceof ArgumentNode

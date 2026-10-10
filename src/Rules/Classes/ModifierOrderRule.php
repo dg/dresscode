@@ -10,7 +10,6 @@ namespace DressCode\Rules\Classes;
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Domains\Words;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\ClassLikeNode;
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
 
 
@@ -35,10 +34,7 @@ final class ModifierOrderRule extends NodeRule
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (
-			(!$node instanceof PropertyNode && !$node instanceof MethodNode && !$node instanceof ClassConstNode)
-			|| !$node->parent?->parent instanceof ClassLikeNode
-		) {
+		if (!$node instanceof PropertyNode && !$node instanceof MethodNode && !$node instanceof ClassConstNode) {
 			return;
 		}
 

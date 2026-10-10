@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\{AssignmentNode, CloneNode, ParenthesizedNode, PropertyFetchNode, VariableNode};
 use PhpSyntax\Nodes\{ExpressionNode, IdentifierNode, PlainNodeList};
@@ -61,11 +61,11 @@ final class CloneWithNotationRule extends NodeRule
 		$properties = [];
 		$risky = false;
 		while (($found = self::readPropertyAssignment($statements[$index + count($properties) + 1] ?? null, $name)) !== null) {
-			$read = self::classifyValue($found[1], $name);
-			if ($read === null || in_array($found[0], array_column($properties, 0), true)) {
+			$telling = self::isEarlyEvaluationTelling($found[1], $name);
+			if ($telling === Tristate::Yes || in_array($found[0], array_column($properties, 0), true)) {
 				break; // a property assigned twice is written twice, which one item of the array would not do
 			}
-			$risky = $risky || $read;
+			$risky = $risky || $telling === Tristate::Maybe;
 			$properties[] = $found;
 		}
 
@@ -132,21 +132,21 @@ final class CloneWithNotationRule extends NodeRule
 
 
 	/**
-	 * Whether evaluating the value before the clone is made may tell: false where it may not, true for a read of a
-	 * property or an element, null for a value that does something or reads the clone.
+	 * Whether evaluating the value before the clone is made tells: not where it cannot, maybe for a read of a property or
+	 * an element, yes for a value that does something or reads the clone.
 	 */
-	private static function classifyValue(ExpressionNode $value, string $clone): ?bool
+	private static function isEarlyEvaluationTelling(ExpressionNode $value, string $clone): Tristate
 	{
 		foreach ([$value, ...$value->find(VariableNode::class)] as $variable) {
 			if ($variable instanceof VariableNode && $variable->plainName === $clone) {
-				return null;
+				return Tristate::Yes;
 			}
 		}
 
 		return match (true) {
-			$value->hasValue(), $value instanceof VariableNode, $value->isConstantRead() => false,
-			$value->isRepeatableRead() => true,
-			default => null,
+			$value->hasValue(), $value instanceof VariableNode, $value->isConstantRead() => Tristate::No,
+			$value->isRepeatableRead() => Tristate::Maybe,
+			default => Tristate::Yes,
 		};
 	}
 }

@@ -971,7 +971,6 @@ final readonly class Violation
 - `DressCode\Rules\ControlFlow\UselessBracesRule`
 - `DressCode\Rules\ControlFlow\UselessCatchVariableRule`
 - `DressCode\Rules\ControlFlow\UselessElseRule`
-- `DressCode\Rules\ControlFlow\UselessParenthesesAfterConstructRule`
 - `DressCode\Rules\ControlFlow\UselessReturnRule`
 - `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`
 - `DressCode\Rules\Expressions\CastCanonicalTypeRule`
@@ -1001,6 +1000,7 @@ final readonly class Violation
 - `DressCode\Rules\Expressions\SpreadOperatorSpacingRule`
 - `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`
 - `DressCode\Rules\Expressions\UnaryOperatorSpacingRule`
+- `DressCode\Rules\Expressions\UselessParenthesesAfterConstructRule`
 - `DressCode\Rules\Expressions\UselessParenthesesAroundNewRule`
 - `DressCode\Rules\Expressions\UselessTernaryOperatorRule`
 - `DressCode\Rules\Expressions\YodaRule`
