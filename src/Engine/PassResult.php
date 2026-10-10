@@ -29,6 +29,8 @@ final readonly class PassResult
 		public array $mutatedRules = [],
 		/** @var ?list<Violation> what the fixed text violates, as a run over it would report it; null where the passes changed nothing or a baseline decides */
 		public ?array $remaining = null,
+		/** the tree printed after the passes; null where they changed nothing */
+		public ?string $output = null,
 	) {
 	}
 }

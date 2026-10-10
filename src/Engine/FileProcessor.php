@@ -8,7 +8,7 @@
 namespace DressCode\Engine;
 
 use DressCode\{Analyses, ConfigurationException, ConvergenceException, FileResult, Rule, RuleException, Style};
-use PhpSyntax\{ParseException, Parser, Printer};
+use PhpSyntax\{ParseException, Parser};
 use function strlen;
 
 
@@ -73,7 +73,7 @@ final readonly class FileProcessor
 		$settled = false;
 		$remaining = null;
 		$start = $this->profiler ? hrtime(true) : 0;
-		$times = ['parse' => 0, 'passes' => 0, 'print' => 0];
+		$times = ['parse' => 0, 'passes' => 0];
 
 		// a mutated tree is not the tree the parser would build from the printed text, so a rule can miss what another
 		// one has just written; the strict run makes the text settle in rounds, the others take what the last pass
@@ -103,14 +103,9 @@ final readonly class FileProcessor
 			$passes += $result->passes;
 			if ($this->profiler) {
 				$times['passes'] += hrtime(true) - $lap;
-				$lap = hrtime(true);
 			}
 
-			$printed = $result->mutated ? Printer::print($file) : $text;
-			if ($this->profiler) {
-				$times['print'] += hrtime(true) - $lap;
-			}
-
+			$printed = $result->output ?? $text;
 			$settled = $printed === $text;
 			$seen[hash('xxh3', $text)] = true;
 			// a text seen before is a cycle, and one still changing in the last round is a broken rule too

@@ -130,7 +130,9 @@ final class PassLoop
 
 			$mutated = true;
 			$mutatedRules += $this->mutatedRules;
+			$start = $this->profiler ? hrtime(true) : 0;
 			$output = Printer::print($file);
+			$this->profiler?->addPhase('print', hrtime(true) - $start);
 			$hash = hash('xxh3', $output);
 			if (isset($seen[$hash])) { // a state seen before: the rules cycle
 				throw new ConvergenceException($path, array_keys($this->mutatedRules), Diff::unified($last, $output, $path));
@@ -150,6 +152,7 @@ final class PassLoop
 			array_keys($mutatedRules),
 			// what the baseline holds is decided by the lines of the fixed text, which only another run has
 			remaining: $mutated && $this->policy->baseline === null ? $this->collectRemaining($last) : null,
+			output: $mutated ? $last : null,
 		);
 	}
 
