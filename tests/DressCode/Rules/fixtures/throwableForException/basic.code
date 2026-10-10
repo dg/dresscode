@@ -26,3 +26,14 @@ $i = fn(): \Exception => $x;
 try {
 } catch (\LogicException | \Exception $e) {
 }
+function h(\Exception|\Error $e, ?\Exception $f) {}
+try {
+} catch (\Exception | \Error $e) {
+}
+class Baz
+{
+	public function __construct(
+		private \Exception $previous,
+	) {
+	}
+}

@@ -2913,7 +2913,7 @@ A `catch` after one catching `Throwable`.
 
 ### correctness.exceptionWhereThrowableBelongs
 
-`catch (Exception)` and `@throws Exception` where `Throwable` is meant.
+`catch (Exception)` and a parameter of the type `Exception` where `Throwable` is meant.
 
 - A requirement
 - Takes: `forbidden` (never there); `keep`
