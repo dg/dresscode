@@ -20,7 +20,7 @@ use function count;
 /**
  * Inside a class, the class refers to itself as `self`, not by its own name: `self::create()`, `new self`.
  * A static method call is a risky fix: `self::` forwards late static binding, so a method using `static` sees
- * the subclass the calling method runs through instead of this class. A closure rebound to another scope,
+ * the subclass the calling method runs through instead of this class; a final class has none. A closure rebound to another scope,
  * where `self` means that scope, is out of sight of the rule.
  *
  * With `qualification.staticInFinalClass`, where no subclass can exist, in a final class, an anonymous class and
@@ -96,7 +96,7 @@ final class SelfForCurrentClassRule extends NodeRule
 		$ownFullName = (string) $resolver->getDeclaredName($class);
 		foreach ($class->find(NameNode::class) as $name) {
 			$parts = $name->parts;
-			$risky = $name->parent instanceof StaticMethodCallNode;
+			$risky = $name->parent instanceof StaticMethodCallNode && !$class->modifiers->final;
 			if (
 				count($parts) !== 1
 				|| strcasecmp($parts[0], $own) !== 0

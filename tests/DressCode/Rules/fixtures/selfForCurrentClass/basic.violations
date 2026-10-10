@@ -4,3 +4,4 @@
 7: The current class `Foo` must be referenced as `self`.
 	risky BehaviorChanges: a method called through `self::` sees the subclass as `static`
 7: The current class `Foo` must be referenced as `self`.
+17: The current class `Sealed` must be referenced as `self`.

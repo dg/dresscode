@@ -12,3 +12,7 @@ class Foo extends Bar
 	}
 }
 class Other { public function f() { return Foo::X; } }
+final class Sealed
+{
+	public function f() { return self::make(); }
+}
