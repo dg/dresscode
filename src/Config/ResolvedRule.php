@@ -21,6 +21,8 @@ final readonly class ResolvedRule
 		public string $class,
 		/** the layer that said the value of a decision that runs it, or of the last one that turned it off; null for neither */
 		public ?Layer $source = null,
+		/** why the rule does not run; null when it does */
+		public ?InactiveReason $inactiveReason = null,
 		/** why the rule does not run, as a sentence; null when it does */
 		public ?string $inactiveMessage = null,
 		/** @var ?\Closure(): Rule  a rule the configuration builds itself */
@@ -29,8 +31,6 @@ final readonly class ResolvedRule
 		public bool $fixRisky = false,
 		/** the violations of the rule only warn */
 		public bool $warnOnly = false,
-		/** why the rule does not run; null when it does */
-		public ?InactiveReason $inactiveReason = null,
 	) {
 	}
 

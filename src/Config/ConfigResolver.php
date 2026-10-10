@@ -327,7 +327,7 @@ final class ConfigResolver
 		$said = $reason === null ? $effective : array_filter($own, fn(ResolvedDecision $decision) => $decision->layers !== []);
 		$top = array_values($said)[0]->layers ?? [];
 		$source = $top === [] ? null : $top[count($top) - 1]->origin;
-		return new ResolvedRule($class, $source, $message, $factory, $fixRisky, $warnOnly, $reason);
+		return new ResolvedRule($class, $source, $reason, $message, $factory, $fixRisky, $warnOnly);
 	}
 
 
