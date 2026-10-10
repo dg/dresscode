@@ -189,8 +189,9 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 		} elseif ($context->report(
 			$call,
 			"The deprecated `$subject` call must be written with `$m[1]()`.",
-			risk: $entry->risk ?? ($uncertainty === null ? null : Risk::NameUncertain),
-			because: $entry->risk === null ? $uncertainty : $entry->because,
+			// a name that may call another function makes what the entry says of this one moot
+			risk: $uncertainty === null ? $entry->risk : Risk::NameUncertain,
+			because: $uncertainty ?? $entry->because,
 		)) {
 			$values = array_map(fn(ArgumentNode|array $argument) => $argument instanceof ArgumentNode ? $argument->value : null, $bindings->arguments);
 			$code = CodeWriter::spellFunction($m[1], $name, $context) . substr($write, strlen($m[1]));
