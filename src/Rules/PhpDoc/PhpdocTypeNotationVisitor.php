@@ -7,6 +7,7 @@
 
 namespace DressCode\Rules\PhpDoc;
 
+use DressCode\Rules\NativeType;
 use PHPStan\PhpDocParser\Ast\{AbstractNodeVisitor, Node, NodeTraverser};
 use PHPStan\PhpDocParser\Ast\PhpDoc\Doctrine\DoctrineTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\{ArrayShapeItemNode, ArrayTypeNode, GenericTypeNode, IdentifierTypeNode, NullableTypeNode, ObjectShapeItemNode, TypeNode, UnionTypeNode};
@@ -19,11 +20,8 @@ use function count, in_array;
  */
 final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 {
-	private const Short = [
-		'boolean' => 'bool',
+	private const Short = NativeType::Synonyms + [
 		'callback' => 'callable',
-		'double' => 'float',
-		'integer' => 'int',
 		'real' => 'float',
 		'str' => 'string',
 	];

@@ -29,10 +29,12 @@ final class NativeType
 		'false', 'true', 'self', 'static', 'parent',
 	];
 
+	/** the other names PHP gives a scalar type, which a doc comment may write */
+	public const Synonyms = ['integer' => 'int', 'boolean' => 'bool', 'double' => 'float'];
+
 	private const Iterable = ['array', 'iterable'];
 
-	private const Aliases = [
-		'integer' => 'int', 'boolean' => 'bool', 'double' => 'float',
+	private const Aliases = self::Synonyms + [
 		'positive-int' => 'int', 'non-positive-int' => 'int', 'negative-int' => 'int', 'non-negative-int' => 'int',
 		'literal-int' => 'int', 'int-mask' => 'int', 'callable-array' => 'callable', 'callable-string' => 'callable',
 		'non-empty-array' => 'array', 'list' => 'array', 'non-empty-list' => 'array',

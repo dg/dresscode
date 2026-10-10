@@ -9,6 +9,7 @@ namespace DressCode\Rules\PhpDoc;
 
 use DressCode\Analyses\PhpDoc;
 use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\NativeType;
 use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocTagNode, VarTagValueNode};
 use PHPStan\PhpDocParser\Ast\Type;
 use PhpSyntax\Analyses\NameResolver;
@@ -185,11 +186,11 @@ final class AssertForInlineVarRule extends NodeRule
 			return null;
 		}
 
-		$name = $type->name;
+		$name = NativeType::Synonyms[strtolower($type->name)] ?? $type->name;
 		$function = match (strtolower($name)) {
-			'int', 'integer' => 'is_int',
+			'int' => 'is_int',
 			'string' => 'is_string',
-			'bool', 'boolean' => 'is_bool',
+			'bool' => 'is_bool',
 			'array' => 'is_array',
 			'callable' => 'is_callable',
 			'iterable' => 'is_iterable',
@@ -201,7 +202,7 @@ final class AssertForInlineVarRule extends NodeRule
 		};
 		return match (true) {
 			$function !== null => $spell($function) . "($variable)",
-			in_array(strtolower($name), ['float', 'double'], true) => $spell('is_float') . "($variable) || " . $spell('is_int') . "($variable)",
+			strtolower($name) === 'float' => $spell('is_float') . "($variable) || " . $spell('is_int') . "($variable)",
 			in_array(strtolower($name), ['true', 'false', 'null'], true) => "$variable === " . strtolower($name),
 			in_array(strtolower($name), ['self', 'static'], true) => "$variable instanceof " . strtolower($name),
 			preg_match('~^\\\?[A-Z][\w\\\]*$~', $name) && !in_array($name, $localTypes, true) => "$variable instanceof $name",
