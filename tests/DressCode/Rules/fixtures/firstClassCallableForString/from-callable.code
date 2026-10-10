@@ -1,3 +1,4 @@
 <?php
 $aw = Closure::fromCallable(["parent", "run"]);
 $bz = Closure::fromCallable('parent::run');
+$cx = \closure::fromCallable('parent::run');

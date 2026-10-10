@@ -8,5 +8,6 @@
 8: The callable must be written `\Foo\Bar::run(...)`.
 9: The callable must be written `$obj->run(...)`.
 	risky TypeUnknown: the value may be the name of a class, not an object
-20: The callable must be written `Helper::make(...)`.
+10: The callable must be written `\trim(...)`.
+21: The callable must be written `Helper::make(...)`.
 	risky TypeUnknown: the call may take an argument by reference, where the closure passed a copy

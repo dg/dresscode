@@ -7,6 +7,7 @@ $d = Closure::fromCallable([$this->service, 'run']);
 $e = Closure::fromCallable([Foo::class, 'run']);
 $f = Closure::fromCallable(['Foo\Bar', 'run']);
 $g = \Closure::fromCallable([$obj, 'run']);
+$ga = \closure::fromCallable('trim');
 $h = Closure::fromCallable($callable);
 $i = Closure::fromCallable([$obj, $name]);
 $j = Closure::fromCallable('not a name');

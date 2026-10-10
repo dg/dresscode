@@ -124,7 +124,7 @@ final class FirstClassCallableForStringRule extends NodeRule
 			return $call->class instanceof NameNode
 				&& $call->name instanceof IdentifierNode
 				&& $call->name->equals('fromCallable')
-				&& $resolver->resolveClass($call->class) === 'Closure'
+				&& strcasecmp($resolver->resolveClass($call->class), 'Closure') === 0
 				&& $argument !== null
 					? [$argument]
 					: [];

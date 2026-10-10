@@ -137,7 +137,7 @@ final class CallableNotationRule extends NodeRule
 			|| count($arguments) !== 1
 			|| !$argument instanceof ArgumentNode
 			|| $argument->name !== null || $argument->ampersand !== null || $argument->ellipsis !== null
-			|| $context->getAnalysis(NameResolver::class)->resolveClass($call->class) !== 'Closure'
+			|| strcasecmp($context->getAnalysis(NameResolver::class)->resolveClass($call->class), 'Closure') !== 0
 		) {
 			return null;
 		}
