@@ -27,8 +27,8 @@ use function count;
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
 final class CsvEscapeArgumentRequiredRule extends NodeRule
 {
-	/** function => the position the escape parameter stands at */
-	private const Functions = ['fputcsv' => 4, 'fgetcsv' => 4, 'str_getcsv' => 3];
+	/** function => the position the escape parameter stands at, which PHP 8.4 deprecated leaving out */
+	public const Functions = ['fputcsv' => 4, 'fgetcsv' => 4, 'str_getcsv' => 3];
 
 
 	public static function getDecisions(): array

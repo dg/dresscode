@@ -41,9 +41,6 @@ final class RedundantArgumentsRule extends NodeRule
 	/** functions whose behaviour depends on how many arguments they were given */
 	private const CountingFunctions = ['func_get_arg' => true, 'func_get_args' => true, 'func_num_args' => true];
 
-	/** function => the parameter PHP 8.4 deprecated leaving out, its default though it is */
-	private const Required = ['fgetcsv' => 'escape', 'fputcsv' => 'escape', 'str_getcsv' => 'escape'];
-
 
 	public static function getDecisions(): array
 	{
@@ -189,7 +186,7 @@ final class RedundantArgumentsRule extends NodeRule
 		$function = ltrim($function, '\\');
 		$defaults = [];
 		foreach ($parameters as $parameter) {
-			$required = (self::Required[strtolower($function)] ?? null) === $parameter->name;
+			$required = isset(CsvEscapeArgumentRequiredRule::Functions[strtolower($function)]) && $parameter->name === 'escape';
 			$defaults[$parameter->name] = $parameter->variadic || $required ? null : $parameter->default;
 		}
 		return [$function, $defaults, GlobalCalls::findUncertainty($call, $context)];
