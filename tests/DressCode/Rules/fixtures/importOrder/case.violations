@@ -1,2 +1,2 @@
-3: Expected `use B;` here, as the imports are sorted by name.
-4: Expected `use a;` here, as the imports are sorted by name.
+3: Expected `use B;` here, because the imports are sorted by name.
+4: Expected `use a;` here, because the imports are sorted by name.

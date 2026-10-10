@@ -112,7 +112,7 @@ final class VisibilityRequiredRule extends NodeRule
 		$member = MemberModifiers::describeMember($node);
 		[$message, $decision] = match (true) {
 			$mode === self::Forbidden => ["The $member of an interface must not declare its visibility.", self::InterfaceMethod],
-			$hasVisibility => ["The modifiers of the $member must be written `" . implode(' ', $desired) . '`.', self::Members],
+			$hasVisibility && !array_any($tokens, fn(Token $token) => strtolower($token->text) === 'var') => ["The modifiers of the $member must be written `" . implode(' ', $desired) . '`.', self::Members],
 			default => ["The $member must declare its visibility.", $interfaceMethod ? self::InterfaceMethod : self::Members],
 		};
 		$first = $tokens[0] ?? match (true) {

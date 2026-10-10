@@ -52,7 +52,7 @@ final class ConstantTypeRequiredRule extends NodeRule
 			$native === null
 			|| !$context->report(
 				$item,
-				"Constant `{$item->name->text}` must have the native type `$native` of its value.",
+				"The constant `{$item->name->text}` must have the native type `$native` of its value.",
 				risk: $overridable ? Risk::BehaviorChanges : null,
 				because: $overridable ? 'a child declaring the constant again must keep its type' : null,
 			)

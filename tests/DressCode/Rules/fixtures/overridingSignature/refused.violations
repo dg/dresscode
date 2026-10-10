@@ -1,4 +1,4 @@
-11: Method `draw()` must declare the parameter `$width`, as in `Lib\Widget::draw()`, but the parameter is required.
-11: Method `draw()` must declare the parameter `$styles`, as in `Lib\Widget::draw()`, but its default cannot be written.
-17: Parameter `$text` of `setCaption()` must be named `$caption`, as in `Lib\Widget::setCaption()`, but a closure in the body may use it by its name.
-26: Parameter `$size` of `setWidth()` must be named `$width`, as in `Lib\Widget::setWidth()`, but `$width` is taken in the method.
+11: The method `draw()` must declare the parameter `$width`, as in `Lib\Widget::draw()`, but the parameter is required.
+11: The method `draw()` must declare the parameter `$styles`, as in `Lib\Widget::draw()`, but its default cannot be written.
+17: The parameter `$text` of `setCaption()` must be named `$caption`, as in `Lib\Widget::setCaption()`, but a closure in the body may use it by its name.
+26: The parameter `$size` of `setWidth()` must be named `$width`, as in `Lib\Widget::setWidth()`, but `$width` is taken in the method.

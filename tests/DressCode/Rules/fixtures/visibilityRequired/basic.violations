@@ -1,4 +1,4 @@
-4: The modifiers of the property `$a` must be written `public`.
+4: The property `$a` must declare its visibility.
 5: The property `$b` must declare its visibility.
 6: The constant `X` must declare its visibility.
 8: The method `g()` must declare its visibility.

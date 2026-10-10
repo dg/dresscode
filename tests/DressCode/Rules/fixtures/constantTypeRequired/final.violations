@@ -1,11 +1,11 @@
-5: Constant `PRIVATE` must have the native type `string` of its value.
-6: Constant `FINAL` must have the native type `int` of its value.
-7: Constant `OPEN` must have the native type `float` of its value.
+5: The constant `PRIVATE` must have the native type `string` of its value.
+6: The constant `FINAL` must have the native type `int` of its value.
+7: The constant `OPEN` must have the native type `float` of its value.
 	risky BehaviorChanges: a child declaring the constant again must keep its type
-8: Constant `PROTECTED` must have the native type `bool` of its value.
+8: The constant `PROTECTED` must have the native type `bool` of its value.
 	risky BehaviorChanges: a child declaring the constant again must keep its type
-13: Constant `NAME` must have the native type `string` of its value.
-18: Constant `NAME` must have the native type `string` of its value.
-23: Constant `NAME` must have the native type `string` of its value.
+13: The constant `NAME` must have the native type `string` of its value.
+18: The constant `NAME` must have the native type `string` of its value.
+23: The constant `NAME` must have the native type `string` of its value.
 	risky BehaviorChanges: a child declaring the constant again must keep its type
-27: Constant `NAME` must have the native type `string` of its value.
+27: The constant `NAME` must have the native type `string` of its value.

@@ -90,7 +90,7 @@ final class OverridingSignatureRule extends NodeRule
 			return;
 		} elseif ($signature->final) {
 			if ($this->fixesSignature) {
-				$context->report($node->name, "Method `{$node->name->text}()` overrides the final `$signature->declaringClass::{$node->name->text}()`.", fixable: false, decision: self::Signature);
+				$context->report($node->name, "The method `{$node->name->text}()` overrides the final `$signature->declaringClass::{$node->name->text}()`.", fixable: false, decision: self::Signature);
 			}
 
 			return;
@@ -117,11 +117,11 @@ final class OverridingSignatureRule extends NodeRule
 	{
 		$name = $node->name->text;
 		if (!$signature->static) {
-			$context->report($node->name, "Method `$name()` must not be static, as in `$signature->declaringClass::$name()`.", fixable: false, decision: self::Signature);
+			$context->report($node->name, "The method `$name()` must not be static, as in `$signature->declaringClass::$name()`.", fixable: false, decision: self::Signature);
 			return;
 		}
 
-		$message = "Method `$name()` must be static, as in `$signature->declaringClass::$name()`";
+		$message = "The method `$name()` must be static, as in `$signature->declaringClass::$name()`";
 		if (NodeHelpers::needsObject($node, $context)) {
 			$context->report($node->name, $message . ', but its body uses the object.', fixable: false, decision: self::Signature);
 		} elseif ($context->report($node->name, $message . '.', decision: self::Signature)) {
@@ -139,7 +139,7 @@ final class OverridingSignatureRule extends NodeRule
 			$own !== $signature->visibility
 			&& ($own === Visibility::Private || $signature->visibility === Visibility::Public)
 			&& $token !== null
-			&& $context->report($token, "Method `{$node->name->text}()` must be $word, as in `$signature->declaringClass::{$node->name->text}()`.", decision: self::Signature)
+			&& $context->report($token, "The method `{$node->name->text}()` must be $word, as in `$signature->declaringClass::{$node->name->text}()`.", decision: self::Signature)
 		) {
 			$token->replaceWith(Token::fromText($word));
 		}
@@ -153,7 +153,7 @@ final class OverridingSignatureRule extends NodeRule
 		}
 
 		$writable = self::canWriteType($signature->returnType);
-		$message = "Method `{$node->name->text}()` must declare the return type " . Violation::formatCode($signature->returnType)
+		$message = "The method `{$node->name->text}()` must declare the return type " . Violation::formatCode($signature->returnType)
 			. ", as in `$signature->declaringClass::{$node->name->text}()`";
 		if (!$context->report(
 			$node->returnType ?? $node->name,
@@ -199,7 +199,7 @@ final class OverridingSignatureRule extends NodeRule
 		$name = (string) $mine->variable->plainName;
 		if ($narrowed && $this->fixesSignature) {
 			$writable = $parameter->type === null || self::canWriteType($parameter->type);
-			$message = "Parameter `\$$name` of `{$node->name->text}()` must take "
+			$message = "The parameter `\$$name` of `{$node->name->text}()` must take "
 				. ($parameter->type === null ? 'any value' : Violation::formatCode($parameter->type)) . ", as in `$method`";
 			if ($context->report($mine->type ?? $mine, $message . ($writable ? '' : ', but that type cannot be written') . '.', fixable: $writable, decision: self::Signature)) {
 				$mine->setType($parameter->type === null ? null : (new Builder)->type((string) self::writeType($parameter->type, $node, $context)));
@@ -213,7 +213,7 @@ final class OverridingSignatureRule extends NodeRule
 		$refusal = self::findRenameRefusal($node, $parameter->name, $context);
 		if ($context->report(
 			$mine->variable,
-			"Parameter `\$$name` of `{$node->name->text}()` must be named `\$$parameter->name`, as in `$method`" . ($refusal === null ? '' : ", but $refusal") . '.',
+			"The parameter `\$$name` of `{$node->name->text}()` must be named `\$$parameter->name`, as in `$method`" . ($refusal === null ? '' : ", but $refusal") . '.',
 			fixable: $refusal === null,
 			decision: self::ParameterNames,
 			risk: $refusal === null ? Risk::BehaviorChanges : null,
@@ -264,7 +264,7 @@ final class OverridingSignatureRule extends NodeRule
 	{
 		$writable = ($parameter->type === null || self::canWriteType($parameter->type))
 			&& ($parameter->variadic || ($parameter->optional && $parameter->default !== null));
-		$message = "Method `{$node->name->text}()` must declare the parameter `\$$parameter->name`, as in `$signature->declaringClass::{$node->name->text}()`";
+		$message = "The method `{$node->name->text}()` must declare the parameter `\$$parameter->name`, as in `$signature->declaringClass::{$node->name->text}()`";
 		$reason = match (true) {
 			$writable => '',
 			!$parameter->optional && !$parameter->variadic => ', but the parameter is required',

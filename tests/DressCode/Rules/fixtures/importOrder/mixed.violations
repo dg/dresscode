@@ -1,3 +1,3 @@
-2: Expected `use Acme\Text\Search;` here, as the imports are sorted by name.
-3: Expected `use function count, strlen;` here, as the imports are sorted by name.
-4: Expected `use const DIRECTORY_SEPARATOR, PHP_EOL;` here, as the imports are sorted by name.
+2: Expected `use Acme\Text\Search;` here, because the imports are sorted by name.
+3: Expected `use function count, strlen;` here, because the imports are sorted by name.
+4: Expected `use const DIRECTORY_SEPARATOR, PHP_EOL;` here, because the imports are sorted by name.

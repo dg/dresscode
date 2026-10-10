@@ -39,10 +39,10 @@ test('check with the plugin preset', function () {
 		Checking   %a%project%a%src%a%a.php
 
 		src%a%a.php
-		  error   5:1  Expected `use A;` here, as the imports are sorted by name.  imports.order.withinKind
-		  error   6:1  Expected `use B;` here, as the imports are sorted by name.  imports.order.withinKind
-		  error  10:5  Call of print_r() is forbidden.                             acme.debugCalls
-		  error  11:5  Call of var_dump() is forbidden.                            acme.debugCalls
+		  error   5:1  Expected `use A;` here, because the imports are sorted by name.  imports.order.withinKind
+		  error   6:1  Expected `use B;` here, because the imports are sorted by name.  imports.order.withinKind
+		  error  10:5  Call of print_r() is forbidden.                                  acme.debugCalls
+		  error  11:5  Call of var_dump() is forbidden.                                 acme.debugCalls
 		--- src/a.php
 		+++ src/a.php
 		@@ -2,8 +2,8 @@

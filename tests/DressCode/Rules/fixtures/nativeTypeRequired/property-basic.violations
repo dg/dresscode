@@ -1,15 +1,15 @@
-6: Useless `@var` annotation for property `$a`, because the native type says the same.
-7: Property `$a` must have the native type `int` from its `@var` annotation.
+6: Useless `@var` annotation for the property `$a`, because the native type says the same.
+7: The property `$a` must have the native type `int` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-9: Useless `@var` annotation for property `$b`, because the native type says the same.
-10: Property `$b` must have the native type `?Foo` from its `@var` annotation.
+9: Useless `@var` annotation for the property `$b`, because the native type says the same.
+10: The property `$b` must have the native type `?Foo` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-13: Property `$c` must have the native type `array` from its `@var` annotation.
+13: The property `$c` must have the native type `array` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-16: Property `$d` must have the native type `?Foo` from its `@var` annotation.
+16: The property `$d` must have the native type `?Foo` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-19: Property `$e` must have the native type `int` from its `@var` annotation.
+19: The property `$e` must have the native type `int` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-21: Property `$f` must have a native type or a `@var` annotation.
-23: Property `$g` of the type `array` must have a `@var` annotation saying what its items are.
-28: Useless `@var` annotation for property `$i`, because the native type says the same.
+21: The property `$f` must have a native type or a `@var` annotation.
+23: The property `$g` of the type `array` must have a `@var` annotation saying what its items are.
+28: Useless `@var` annotation for the property `$i`, because the native type says the same.

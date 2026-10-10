@@ -122,7 +122,7 @@ final class ImportOrderRule extends NodeRule
 		$builder = new Builder;
 		foreach ($changed as $i => $stmt) {
 			$expected = str_contains($statements[$i], "\n") ? (string) preg_replace('~\{.*\}~s', '{…}', $statements[$i]) : $statements[$i];
-			if (!$context->report($stmt, 'Expected ' . Violation::formatCode($expected) . ' here, as the imports are ' . ($this->sortNames ? 'sorted by name.' : 'grouped by kind.'))) {
+			if (!$context->report($stmt, 'Expected ' . Violation::formatCode($expected) . ' here, because the imports are ' . ($this->sortNames ? 'sorted by name.' : 'grouped by kind.'))) {
 				return;
 			}
 

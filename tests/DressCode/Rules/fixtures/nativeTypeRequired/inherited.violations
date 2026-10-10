@@ -1,15 +1,15 @@
-13: Useless `@var` annotation for property `$note`, because the native type says the same.
-14: Property `$note` must have the native type `string` from its `@var` annotation.
+13: Useless `@var` annotation for the property `$note`, because the native type says the same.
+14: The property `$note` must have the native type `string` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-16: Useless `@param` annotation for parameter `$mode`, because the native type says the same.
-16: Useless `@param` annotation for parameter `$tries`, because the native type says the same.
-21: Parameter `$mode` must have the native type `string` from its `@param` annotation.
+16: Useless `@param` annotation for the parameter `$mode`, because the native type says the same.
+16: Useless `@param` annotation for the parameter `$tries`, because the native type says the same.
+21: The parameter `$mode` must have the native type `string` from its `@param` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-21: Parameter `$tries` must have the native type `int` from its `@param` annotation.
+21: The parameter `$tries` must have the native type `int` from its `@param` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-33: Useless `@param` annotation for parameter `$label`, because the native type says the same.
-37: Parameter `$label` must have the native type `?string` from its `@param` annotation.
+33: Useless `@param` annotation for the parameter `$label`, because the native type says the same.
+37: The parameter `$label` must have the native type `?string` from its `@param` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-52: Useless `@param` annotation for parameter `$title`, because the native type says the same.
-56: Parameter `$title` must have the native type `string` from its `@param` annotation.
+52: Useless `@param` annotation for the parameter `$title`, because the native type says the same.
+56: The parameter `$title` must have the native type `string` from its `@param` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`

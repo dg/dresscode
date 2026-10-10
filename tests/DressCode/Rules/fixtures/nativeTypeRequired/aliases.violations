@@ -1,6 +1,6 @@
-16: Useless `@var` annotation for property `$store`, because the native type says the same.
-17: Property `$store` must have the native type `Store` from its `@var` annotation.
+16: Useless `@var` annotation for the property `$store`, because the native type says the same.
+17: The property `$store` must have the native type `Store` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-20: Useless `@param` annotation for parameter `$s`, because the native type says the same.
-25: Parameter `$s` must have the native type `Store` from its `@param` annotation.
+20: Useless `@param` annotation for the parameter `$s`, because the native type says the same.
+25: The parameter `$s` must have the native type `Store` from its `@param` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`

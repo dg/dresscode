@@ -152,7 +152,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			$inherited = $overridden->parameters[$i] ?? $variadic;
 			$removed[] = $this->declareType(
 				'types.declaration.parameter',
-				"Parameter `$name->text`",
+				"The parameter `$name->text`",
 				$param->variable,
 				$param->type?->text,
 				$tags[$name->text] ?? null,
@@ -287,7 +287,7 @@ final class NativeTypeRequiredRule extends NodeRule
 		$item = $node->items->getItems()[0];
 		$tag = $this->declareType(
 			'types.declaration.property',
-			"Property `{$item->name->text}`",
+			"The property `{$item->name->text}`",
 			$item,
 			$node->type?->text,
 			$tags[''] ?? null,

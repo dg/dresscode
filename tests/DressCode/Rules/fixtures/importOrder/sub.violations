@@ -1,2 +1,2 @@
-2: Expected `use Foo\Bar;` here, as the imports are sorted by name.
-3: Expected `use Foo\Bar\Baz;` here, as the imports are sorted by name.
+2: Expected `use Foo\Bar;` here, because the imports are sorted by name.
+3: Expected `use Foo\Bar\Baz;` here, because the imports are sorted by name.

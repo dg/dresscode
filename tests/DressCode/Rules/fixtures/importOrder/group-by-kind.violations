@@ -1,3 +1,3 @@
-3: Expected `use Zed;` here, as the imports are grouped by kind.
-4: Expected `use Abc;` here, as the imports are grouped by kind.
-5: Expected `use function Foo\{b, a};` here, as the imports are grouped by kind.
+3: Expected `use Zed;` here, because the imports are grouped by kind.
+4: Expected `use Abc;` here, because the imports are grouped by kind.
+5: Expected `use function Foo\{b, a};` here, because the imports are grouped by kind.
