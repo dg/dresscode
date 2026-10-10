@@ -113,10 +113,10 @@ final class NativeTypeRequiredRule extends NodeRule
 		// both halves read one tree and hand back the tags to drop, so it is rewritten once
 		$removed = [];
 		if ($this->parameter && !$node instanceof Expression\ClosureNode) {
-			$removed = $this->checkParameters($node, $tree, $context);
+			$removed = $this->declareParameterTypes($node, $tree, $context);
 		}
 
-		if ($this->return && ($tag = $this->checkReturn($node, $tree, $context))) {
+		if ($this->return && ($tag = $this->declareReturnType($node, $tree, $context))) {
 			$removed[] = $tag;
 		}
 
@@ -129,7 +129,7 @@ final class NativeTypeRequiredRule extends NodeRule
 	/**
 	 * @return list<PhpDocTagNode>  the annotations that say nothing the native type does not
 	 */
-	private function checkParameters(FunctionNode|MethodNode $node, ?PhpDocNode $tree, RuleContext $context): array
+	private function declareParameterTypes(FunctionNode|MethodNode $node, ?PhpDocNode $tree, RuleContext $context): array
 	{
 		[$tags, $prefixed] = self::findTags($tree, '@param');
 		$types = $context->findAnalysis(Types::class);
@@ -150,7 +150,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			}
 
 			$inherited = $overridden->parameters[$i] ?? $variadic;
-			$removed[] = $this->checkDeclaration(
+			$removed[] = $this->declareType(
 				'types.declaration.parameter',
 				"Parameter `$name->text`",
 				$param->variable,
@@ -163,9 +163,7 @@ final class NativeTypeRequiredRule extends NodeRule
 				place: $param->promoted ? NativeType::Property : NativeType::Parameter,
 				default: $param->default,
 				isRefused: $param->promoted
-					? fn() => $types === null
-						? self::hasAncestors($param)
-						: $types->findOverridden($param) !== null || $types->findTraitProperty($param) !== null
+					? fn() => self::mayRedeclare($param, $types)
 					: fn(string $native, \Closure $resolve) => $unseen || ($inherited !== null
 						&& ($inherited->type === null || !NativeType::isDescribedAs($native, $inherited->type, $resolve))),
 			);
@@ -175,7 +173,7 @@ final class NativeTypeRequiredRule extends NodeRule
 	}
 
 
-	private function checkReturn(
+	private function declareReturnType(
 		FunctionNode|MethodNode|Expression\ClosureNode $node,
 		?PhpDocNode $tree,
 		RuleContext $context,
@@ -222,7 +220,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			$native = 'never';
 		}
 
-		return $this->checkDeclaration(
+		return $this->declareType(
 			'types.declaration.return',
 			self::describeFunction($node),
 			$node->closeParen,
@@ -253,6 +251,18 @@ final class NativeTypeRequiredRule extends NodeRule
 	}
 
 
+	/**
+	 * Whether the property may redeclare one of a parent, an interface or a trait, which PHP holds its type to; without the
+	 * types, any ancestor may.
+	 */
+	private static function mayRedeclare(ParameterNode|PropertyNode $node, ?Types $types): bool
+	{
+		return $types === null
+			? self::hasAncestors($node)
+			: $types->findOverridden($node) !== null || $types->findTraitProperty($node) !== null;
+	}
+
+
 	/** `The method `run()``, `The function `run()`` or `The closure`, as a message names it. */
 	private static function describeFunction(FunctionNode|MethodNode|Expression\ClosureNode $node): string
 	{
@@ -275,7 +285,7 @@ final class NativeTypeRequiredRule extends NodeRule
 		$tree = $docComment ? $phpDoc->parse($docComment) : null;
 		[$tags, $prefixed] = self::findTags($tree, '@var');
 		$item = $node->items->getItems()[0];
-		$tag = $this->checkDeclaration(
+		$tag = $this->declareType(
 			'types.declaration.property',
 			"Property `{$item->name->text}`",
 			$item,
@@ -287,9 +297,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			$context,
 			place: NativeType::Property,
 			default: $item->default,
-			isRefused: fn() => ($types = $context->findAnalysis(Types::class)) === null
-				? self::hasAncestors($node)
-				: $types->findOverridden($node) !== null || $types->findTraitProperty($node) !== null,
+			isRefused: fn() => self::mayRedeclare($node, $context->findAnalysis(Types::class)),
 		);
 		if ($tag !== null && $tree !== null) {
 			self::removeTags($node, $tree, [$tag], $docComment, $phpDoc);
@@ -298,14 +306,14 @@ final class NativeTypeRequiredRule extends NodeRule
 
 
 	/**
-	 * Checks one declaration against its annotation: one with neither is reported, a missing native type is written
-	 * from the annotation, a traversable type asks for an annotation saying what its items are, and an annotation
-	 * saying nothing more than the native type is returned to be dropped.
+	 * Declares the native type of one declaration from its annotation: one with neither is reported, a missing native
+	 * type is written from the annotation, a traversable type asks for an annotation saying what its items are, and an
+	 * annotation saying nothing more than the native type is returned to be dropped.
 	 * @param  \Closure(TypeNode): mixed  $setType
 	 * @param  ?\Closure(string, \Closure(string): string): bool  $isRefused  whether PHP refuses the native type, given with
 	 *   the resolver of its classes, because of a declaration this one redeclares
 	 */
-	private function checkDeclaration(
+	private function declareType(
 		string $decision,
 		string $subject,
 		Node|Token $at,
