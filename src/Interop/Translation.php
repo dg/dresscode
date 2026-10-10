@@ -41,13 +41,7 @@ final class Translation
 	/** @var list<string> */
 	public private(set) array $warnings = [];
 
-	public ?int $lineLength = null;
-
-	/** The indent of the configuration object of PHP CS Fixer, which its fixers of the indentation write. */
-	public string $indent = '    ';
-
-	/** The line ending of the configuration object of PHP CS Fixer, which its `line_ending` writes. */
-	public string $lineEnding = "\n";
+	public private(set) ?int $lineLength = null;
 
 	/** @var array<string, int>  path => how firmly its value is given */
 	private array $firmness = [];
@@ -60,6 +54,15 @@ final class Translation
 
 	/** @var array<string, true>  paths whose lists name what is allowed, narrowed to what every foreign rule allows */
 	private array $allowances = [];
+
+
+	public function __construct(
+		/** the indent of the configuration object of PHP CS Fixer, which its fixers of the indentation write */
+		public readonly string $indent = '    ',
+		/** the line ending of the configuration object of PHP CS Fixer, which its `line_ending` writes */
+		public readonly string $lineEnding = "\n",
+	) {
+	}
 
 
 	public function addPreset(string $name): static
@@ -152,6 +155,8 @@ final class Translation
 	public function replace(string $path, mixed $value): static
 	{
 		$this->decisions[$path] = $value;
+		$this->firmness[$path] = self::Set;
+		unset($this->contradicted[$path]);
 		return $this;
 	}
 
@@ -159,7 +164,7 @@ final class Translation
 	/** The decision left out of the translation, whatever the foreign rules gave it. */
 	public function remove(string $path): static
 	{
-		unset($this->decisions[$path]);
+		unset($this->decisions[$path], $this->firmness[$path], $this->contradicted[$path]);
 		return $this;
 	}
 

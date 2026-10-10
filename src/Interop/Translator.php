@@ -54,9 +54,7 @@ final class Translator
 	 */
 	public function translate(array $rules, string $indent = '    ', string $lineEnding = "\n"): Translation
 	{
-		$translation = new Translation;
-		$translation->indent = $indent;
-		$translation->lineEnding = $lineEnding;
+		$translation = new Translation($indent, $lineEnding);
 		foreach ($rules as $name => $options) {
 			if ($options === false) {
 				$this->translateDisabled($name, $translation, $rules);
