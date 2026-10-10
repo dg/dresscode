@@ -19,6 +19,7 @@ final class QualificationRule extends NodeRule
 			new Decision('qualification.globalFunction.optimizedByCompiler', $words, 'A function the compiler optimizes'),
 			new Decision('qualification.globalFunction.except', new Map(new Words(['imported' => '', 'backslashed' => ''])), 'The names over the two', parameter: true, default: []),
 			new Decision('qualification.globalClass', $words, 'A global class'),
+			new Decision('qualification.renamed', new Map(new Words(['imported' => ''])), 'The names written otherwise'),
 		];
 	}
 
@@ -103,6 +104,7 @@ test('keep on a section is a tombstone of every key, a later layer brings back o
 	Assert::same(InactiveReason::Keep, $resolved['qualification.globalFunction.optimizedByCompiler']->inactive);
 	Assert::same(InactiveReason::Keep, $resolved['qualification.globalClass']->inactive);
 	Assert::same([], $resolved['qualification.globalFunction.except']->value->getEntries(), 'nothing comes back from under the tombstone');
+	Assert::same([], $resolved['qualification.renamed']->value->toData(), 'a table takes no keep as a whole, only an empty one');
 	Assert::same('the configuration', $resolved['qualification.globalFunction.except']->value->origin?->describe());
 });
 
