@@ -167,7 +167,7 @@ final readonly class CallTemplate
 			),
 			$key->kind === MemberKind::Property => self::fromCode(
 				$code,
-				MemberPattern::forMethod($key->class, $key->name, $key->hook === 'set' ? ArgumentPattern::parse('$value') : null),
+				MemberPattern::forMethod($key->class, $key->name, ArgumentPattern::parse($key->hook === 'set' ? '$value' : '')),
 			),
 			$key->kind === MemberKind::Method, $key->kind === MemberKind::Constructor => self::fromCode($code, $key),
 			default => throw new \InvalidArgumentException(

@@ -49,6 +49,11 @@ test('an expression that cannot stand for a call of its key is an error of the c
 			'setPaid($state)',
 			"The code `setPaid(\$state)` uses `\$state`, which the key `A\\Order::paid` does not name.",
 		],
+		[
+			'A\Order::$paid::get',
+			'isPaid(...)',
+			'The code `isPaid(...)` writes `...`, which the key `A\\Order::paid` does not take.',
+		],
 		['A\Order::add::get', 'addLine()', 'The member `A\\Order::add::get` names a hook, which only a property has, %a%'],
 		[
 			'A\Token::is(int ...)',
