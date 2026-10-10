@@ -51,6 +51,14 @@ class DescribedCommand extends Command
 }
 
 
+class SilencedNameCommand extends Command
+{
+	protected static string $defaultName = 'app:silenced'; // dresscode:ignore
+
+	protected static string $defaultDescription = 'The name stays a property';
+}
+
+
 class OrderSubscriber implements Subscriber
 {
 }

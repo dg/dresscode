@@ -181,7 +181,7 @@ final class AttributeForMemberRule extends NodeRule
 			};
 			$arguments = $refusal === null ? $this->writeArguments($entry, $value, self::findIndentation($value ?? $member, $member), $class->getFirstToken()->getIndentation()) : [];
 			$refusal ??= $this->findConflict($class, $attribute, $arguments, $planned, $context);
-			if ($refusal === null) {
+			if ($refusal === null && !$context->isSilenced($at)) {
 				$planned[strtolower($attribute)] = [$attribute, [...($planned[strtolower($attribute)][1] ?? []), ...$arguments]];
 			}
 
