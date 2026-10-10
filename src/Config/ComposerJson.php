@@ -24,19 +24,13 @@ final class ComposerJson
 	 */
 	public static function findFile(string $root): ?string
 	{
-		$directory = Helpers::canonicalizePath($root);
-		while (true) {
+		foreach (Helpers::walkUp($root) as $directory) {
 			if (is_file("$directory/composer.json")) {
 				return "$directory/composer.json";
 			}
-
-			$parent = dirname($directory);
-			if ($parent === $directory) {
-				return null;
-			}
-
-			$directory = $parent;
 		}
+
+		return null;
 	}
 
 

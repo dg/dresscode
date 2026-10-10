@@ -87,6 +87,20 @@ final class Helpers
 	}
 
 
+	/**
+	 * The directory and every one above it, up to the root, in the form `canonicalizePath()` gives.
+	 * @return \Generator<string>
+	 */
+	public static function walkUp(string $directory): \Generator
+	{
+		$directory = self::canonicalizePath($directory);
+		do {
+			yield $directory;
+			[$parent, $directory] = [$directory, dirname($directory)];
+		} while ($parent !== $directory);
+	}
+
+
 	/** An absolute path as it is, a relative one under the directory, in the form `canonicalizePath()` gives the directory. */
 	public static function toAbsolutePath(string $path, string $directory): string
 	{

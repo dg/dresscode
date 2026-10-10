@@ -58,8 +58,7 @@ final class Loader
 	 */
 	public static function find(string $directory): ?string
 	{
-		$directory = Helpers::canonicalizePath($directory);
-		while (true) {
+		foreach (Helpers::walkUp($directory) as $directory) {
 			foreach (['', self::DistSuffix] as $suffix) {
 				$found = array_values(array_filter(
 					array_map(fn(string $name) => "$directory/$name$suffix", self::FileNames),
@@ -71,14 +70,9 @@ final class Loader
 					return $found[0];
 				}
 			}
-
-			$parent = dirname($directory);
-			if ($parent === $directory) {
-				return null;
-			}
-
-			$directory = $parent;
 		}
+
+		return null;
 	}
 
 
