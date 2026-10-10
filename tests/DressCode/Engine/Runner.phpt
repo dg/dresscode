@@ -233,7 +233,7 @@ test('files are found under the paths, sorted, relative, with slashes, without t
 	Assert::same(['src/sub/d.php', 'vendor/f.php'], $runner->findFiles(['./src/sub', 'vendor/f.php']));
 	Assert::same(['src/sub/d.php'], $runner->findFiles(['./src/sub', 'vendor/f.php', 'src/fixtures/e.php'], skipExcluded: true));
 	Assert::same(['src/c.phtml', 'src/fixtures/e.php'], engine($root, excludePaths: [], fileExtensions: ['php', 'phtml'])->findFiles(['src/c.phtml', 'src/fixtures']));
-	Assert::exception(fn() => $runner->findFiles(['missing']), RuntimeException::class, 'Path `missing` does not exist.');
+	Assert::exception(fn() => $runner->findFiles(['missing']), ConfigurationException::class, 'Path `missing` does not exist.');
 	$outside = str_replace('\\', '/', (string) realpath(__DIR__ . '/../Config/fixtures/project/src'));
 	Assert::same(["$outside/sub/file.php"], engine($root, excludePaths: [])->findFiles([$outside]));
 	Assert::same(["$outside/sub/file.php"], $runner->findFiles(["$outside/sub/file.php"], skipExcluded: true)); // fixtures* matches nothing outside the root

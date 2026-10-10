@@ -7,7 +7,7 @@
 
 namespace DressCode\Engine;
 
-use DressCode\{ConvergenceException, FileResult, Reporter, RuleException};
+use DressCode\{ConfigurationException, ConvergenceException, FileResult, Reporter, RuleException};
 use Nette\Utils\{FileSystem, Finder};
 use function count, is_string, sprintf, strlen;
 
@@ -320,6 +320,7 @@ final readonly class Runner
 	 * the patterns could match. Sorted, relative to the root.
 	 * @param  list<string>  $paths
 	 * @return list<string>
+	 * @throws ConfigurationException  for a path that does not exist
 	 */
 	public function findFiles(array $paths, bool $skipExcluded = false): array
 	{
@@ -342,7 +343,7 @@ final readonly class Runner
 					}
 				}
 			} else {
-				throw new \RuntimeException("Path `$path` does not exist.");
+				throw new ConfigurationException("Path `$path` does not exist.");
 			}
 		}
 

@@ -378,6 +378,9 @@ test('errors go to stderr with exit code 3', function () use ($root) {
 	[$code, , $err] = runApp($root, ['check', '--config', "$root/none.php"]);
 	Assert::same(3, $code);
 	Assert::match('Error: Configuration file `%a%` does not exist.%A%', $err);
+	[$code, , $err] = runApp($root, ['check', 'none.php']);
+	Assert::same(3, $code);
+	Assert::same("Error: Path `none.php` does not exist.\n", $err);
 	[$code, , $err] = runApp($root, ['wat']);
 	Assert::same(3, $code);
 	Assert::match("Error: Unknown command 'wat'.%A%", $err);
