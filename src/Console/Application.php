@@ -656,7 +656,7 @@ final class Application
 			}
 
 			if ($migration->migrate($file)) {
-				if (@file_put_contents($absolute, Printer::print($file)) === false) { // @ is escalated to exception
+				if (!Helpers::writeFile($absolute, Printer::print($file))) {
 					throw new \RuntimeException("Cannot write file `$path`.");
 				}
 
