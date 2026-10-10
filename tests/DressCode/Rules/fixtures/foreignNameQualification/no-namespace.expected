@@ -1,0 +1,8 @@
+<?php
+// {"otherNamespace.class":"imported"}
+use Foo\Bar;
+use Lib\Foo;
+
+$a = new Foo;
+$b = new Lib\Thing;
+$c = new Bar\Baz;

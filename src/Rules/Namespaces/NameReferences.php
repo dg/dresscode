@@ -112,11 +112,11 @@ final class NameReferences
 
 
 	/**
-	 * What the first part of each class name the doc comments of the namespace write resolves to, which an import of
+	 * What the first part of each class name the doc comments of the scope write resolves to, which an import of
 	 * that name would redirect as it would a name of the code.
 	 * @return array<string, array<string, true>>  lowercased short name => lowercased resolved names
 	 */
-	public static function collectDocClassTargets(NamespaceNode $scope, NameResolver $resolver, PhpDoc $phpDoc): array
+	public static function collectDocClassTargets(FileNode|NamespaceNode $scope, NameResolver $resolver, PhpDoc $phpDoc): array
 	{
 		$targets = [];
 		foreach (self::collectDocClassNames($scope, $phpDoc) as $docName) {

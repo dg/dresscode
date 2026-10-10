@@ -12,7 +12,7 @@ use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\CodeWriter;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{NameForm, Node, SymbolKind, Token};
-use PhpSyntax\Nodes\NameNode;
+use PhpSyntax\Nodes\{FileNode, NameNode};
 use PhpSyntax\Nodes\Statement\NamespaceNode;
 use function count;
 
@@ -21,8 +21,9 @@ use function count;
  * How far a name of a namespace other than the global one is written out: `imported` or `backslashed`. A key takes a
  * word, or a list of them, every form in it passing and the first written where none matches. The names are written
  * occurrence by occurrence; a qualified name stays, being relative to the import of its prefix or to the namespace.
- * Both forms reach the same symbol, so no fix is risky. An import is added only where its alias is free and takes over
- * no name that resolves elsewhere; one the markup of the file leaves no line for is reported to be written by hand.
+ * A file that declares no namespace is the scope of its imports, as a namespace is. Both forms reach the same symbol,
+ * so no fix is risky. An import is added only where its alias is free and takes over no name that resolves elsewhere;
+ * one the markup of the file leaves no line for is reported to be written by hand.
  */
 #[RuleInfo(Stage::Structure, analyses: [PhpDoc::class, NameResolver::class])]
 final class ForeignNameQualificationRule extends NodeRule
@@ -74,19 +75,23 @@ final class ForeignNameQualificationRule extends NodeRule
 
 	public function getVisitedNodes(): array
 	{
-		return [NamespaceNode::class];
+		return [FileNode::class, NamespaceNode::class];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if ($node instanceof NamespaceNode && $node->name !== null) {
+		// a file that declares no namespace is a scope of imports of its own, as for the rules adding code
+		if (
+			($node instanceof NamespaceNode && $node->name !== null)
+			|| ($node instanceof FileNode && CodeWriter::findImportScope($node) === $node)
+		) {
 			$this->process($node, $context);
 		}
 	}
 
 
-	private function process(NamespaceNode $scope, RuleContext $context): void
+	private function process(FileNode|NamespaceNode $scope, RuleContext $context): void
 	{
 		$resolver = $context->getAnalysis(NameResolver::class);
 		$canImport = null;
@@ -174,7 +179,7 @@ final class ForeignNameQualificationRule extends NodeRule
 	 * backslash away from being one.
 	 * @return array<string, array<string, array<string, true>>>  name of the kind => key of the alias => resolved names
 	 */
-	private static function collectShortNameTargets(NamespaceNode $scope, NameResolver $resolver, PhpDoc $phpDoc): array
+	private static function collectShortNameTargets(FileNode|NamespaceNode $scope, NameResolver $resolver, PhpDoc $phpDoc): array
 	{
 		$targets = [SymbolKind::ClassLike->name => NameReferences::collectDocClassTargets($scope, $resolver, $phpDoc)];
 		foreach ($scope->find(NameNode::class) as $name) {
