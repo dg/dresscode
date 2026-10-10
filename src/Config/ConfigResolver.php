@@ -85,11 +85,7 @@ final class ConfigResolver
 		$decisionLayers = [];
 		// what the packages declare lies under every layer, which may add to it
 		foreach ($this->upgradingData as $package) {
-			foreach ([[SymbolKind::Function, 'functions'], [SymbolKind::Constant, 'constants']] as [$kind, $key]) {
-				foreach ($package->namespaces[$key] as $name) {
-					$symbols[$kind->name][self::toSymbolKey($kind, $name)] ??= [$name, $package->layer->describe()];
-				}
-			}
+			self::addSymbols($symbols, $package->namespaces, $package->layer->describe());
 		}
 
 		['layers' => $collected, 'repeated' => $repeated] = $this->collectLayers(self::listProfiles($config, $overrides, $commandLine));
@@ -102,14 +98,7 @@ final class ConfigResolver
 				$php = $profile->targets['php'] ?? $php;
 				$resolution = $profile->nameResolution ?? $resolution;
 
-				foreach ([
-					[SymbolKind::Function, $profile->namespaces['functions']],
-					[SymbolKind::Constant, $profile->namespaces['constants']],
-				] as [$kind, $names]) {
-					foreach ($names as $name) {
-						$symbols[$kind->name][self::toSymbolKey($kind, $name)] ??= [$name, $layer->describe()];
-					}
-				}
+				self::addSymbols($symbols, $profile->namespaces, $layer->describe());
 
 				if ($profile->decisions !== []) {
 					new DecisionResolver($this->getCatalogue(), translator: $this->registry->translator)->checkLayer($profile->decisions);
@@ -351,6 +340,22 @@ final class ConfigResolver
 	{
 		return $this->registry->expandSuppressedName($name)
 			?: throw new ConfigurationException("`suppressionComments` names `$name`, which is no decision, section or rule.");
+	}
+
+
+	/**
+	 * Adds the functions and the constants the namespaces of a layer declare, each spelled the way the first layer
+	 * naming it spells it.
+	 * @param  array<string, array<string, array{string, string}>>  $symbols
+	 * @param  array{functions: list<string>, constants: list<string>}  $namespaces
+	 */
+	private static function addSymbols(array &$symbols, array $namespaces, string $layer): void
+	{
+		foreach ([[SymbolKind::Function, 'functions'], [SymbolKind::Constant, 'constants']] as [$kind, $key]) {
+			foreach ($namespaces[$key] as $name) {
+				$symbols[$kind->name][self::toSymbolKey($kind, $name)] ??= [$name, $layer];
+			}
+		}
 	}
 
 
