@@ -105,12 +105,19 @@ final class YodaRule extends NodeRule
 
 	/**
 	 * How dynamic a side is: a variable (also one behind a cast, a unary sign or as the start of a longer
-	 * expression), a call or anything in parentheses, a constant, a literal; null for anything else.
+	 * expression), a call or anything in parentheses, a constant, a literal; an operation as its most dynamic operand;
+	 * null for anything else.
 	 */
 	private static function rank(ExpressionNode $expr): ?int
 	{
 		while (($expr instanceof UnaryOpNode && $expr->operator->is(['+', '-'])) || $expr instanceof CastNode) {
 			$expr = $expr->expression;
+		}
+
+		if ($expr instanceof BinaryOpNode) {
+			$left = self::rank($expr->left);
+			$right = self::rank($expr->right);
+			return $left === null || $right === null ? null : max($left, $right);
 		}
 
 		$first = $expr->getFirstToken();

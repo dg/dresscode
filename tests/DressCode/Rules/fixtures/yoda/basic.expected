@@ -23,3 +23,5 @@ if ($a->b() === null) {}
 if ($a === 'a' . 'b') {}
 if (!$a === false) {}
 if ((include('config.php')) === false) {}
+if (1 + $a === $b) {}
+if ($b === 1 + 2) {}
