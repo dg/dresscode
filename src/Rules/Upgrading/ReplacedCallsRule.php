@@ -357,7 +357,7 @@ final class ReplacedCallsRule extends NodeRule
 			),
 		};
 		if ($use === 'guarded' && $rewrite->expression !== null) {
-			$rewrite = $rewrite->withRisk('the replacement no longer asks first whether it is set, as `??` does');
+			$rewrite = $rewrite->withRisk('the replacement no longer asks first whether it is set');
 		}
 
 		$rewrite = self::fitPlace($node, $rewrite);
@@ -579,9 +579,9 @@ final class ReplacedCallsRule extends NodeRule
 
 
 	/**
-	 * How the property or the offset is used where it stands: read, read on the left of `??`, which asks whether it is
-	 * set before it reads, written in a way this rule rewrites where the writing stands (null), or written in a way
-	 * no call can be.
+	 * How the property or the offset is used where it stands: read, read on the left of `??` or in `empty()`, which
+	 * ask whether it is set before they read, written in a way this rule rewrites where the writing stands (null), or
+	 * written in a way no call can be.
 	 * @return 'read'|'guarded'|'written'|null
 	 */
 	private static function findUse(PropertyFetchNode|StaticPropertyFetchNode|ArrayAccessNode $node): ?string
@@ -603,7 +603,10 @@ final class ReplacedCallsRule extends NodeRule
 			[$written, $parent] = [$parent, $parent->parent];
 		}
 
-		if ($parent instanceof BinaryOpNode && $parent->operator->text === '??' && $parent->left === $written) {
+		if (
+			($parent instanceof BinaryOpNode && $parent->operator->text === '??' && $parent->left === $written)
+			|| $parent instanceof EmptyNode
+		) {
 			return 'guarded';
 		}
 
@@ -614,8 +617,7 @@ final class ReplacedCallsRule extends NodeRule
 			$parent instanceof PrefixOpNode,
 			$parent instanceof PostfixOpNode,
 			$parent instanceof IssetNode,
-			$parent instanceof UnsetNode,
-			$parent instanceof EmptyNode => true,
+			$parent instanceof UnsetNode => true,
 			$parent instanceof ForeachNode => $parent->key === $written || $parent->value === $written,
 			$parent instanceof ArgumentNode => $parent->ampersand !== null,
 			default => false,

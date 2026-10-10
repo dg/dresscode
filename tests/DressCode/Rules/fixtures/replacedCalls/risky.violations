@@ -31,20 +31,22 @@
 62: Method `Acme\Settings::rotate()` is replaced by `\Acme\Sequence::invokeAll(..., $first)`.
 63: Method `Acme\Settings::combine()` is replaced by `\Acme\Sequence::invokeAll(...$parts)`.
 70: Method `Acme\Section::offsetGet()` is replaced by `get($key)`.
-	risky BehaviorChanges: the replacement no longer asks first whether it is set, as `??` does
+	risky BehaviorChanges: the replacement no longer asks first whether it is set
 71: Method `Acme\Section::__get()` is replaced by `get($name)`.
-	risky BehaviorChanges: the replacement no longer asks first whether it is set, as `??` does
+	risky BehaviorChanges: the replacement no longer asks first whether it is set
 72: Method `Acme\Section::offsetGet()` is replaced by `get($key)`.
 73: Property `Acme\Message::$subject` is replaced by `\Acme\Formatter::describe($this)`.
-	risky BehaviorChanges: the replacement no longer asks first whether it is set, as `??` does
-80: Method `Acme\Section::__isset()` is replaced by `has($name)`.
-	risky BehaviorChanges: the replacement gives null for a null object, where `isset()` gives false
+	risky BehaviorChanges: the replacement no longer asks first whether it is set
+74: Method `Acme\Section::__get()` is replaced by `get($name)`.
+	risky BehaviorChanges: the replacement no longer asks first whether it is set
 81: Method `Acme\Section::__isset()` is replaced by `has($name)`.
-	risky BehaviorChanges: the replacement fails on a null object, where `isset()` gives false
+	risky BehaviorChanges: the replacement gives null for a null object, where `isset()` gives false
 82: Method `Acme\Section::__isset()` is replaced by `has($name)`.
-	risky BehaviorChanges: the replacement gives null for a null object, where `isset()` gives false
-83: Method `Acme\Section::__isset()` is replaced by `has($name)`.
 	risky BehaviorChanges: the replacement fails on a null object, where `isset()` gives false
-84: Method `Acme\Section::offsetExists()` is replaced by `has($key)`.
+83: Method `Acme\Section::__isset()` is replaced by `has($name)`.
 	risky BehaviorChanges: the replacement gives null for a null object, where `isset()` gives false
-85: Method `Acme\Section::__isset()` is replaced by `has($name)`.
+84: Method `Acme\Section::__isset()` is replaced by `has($name)`.
+	risky BehaviorChanges: the replacement fails on a null object, where `isset()` gives false
+85: Method `Acme\Section::offsetExists()` is replaced by `has($key)`.
+	risky BehaviorChanges: the replacement gives null for a null object, where `isset()` gives false
+86: Method `Acme\Section::__isset()` is replaced by `has($name)`.

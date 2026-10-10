@@ -66,13 +66,14 @@ function test(Settings $settings, int $x): void
 }
 
 
-// the left of ?? asks whether the thing is set before it reads it, which a call does not
+// the left of ?? and empty() ask whether the thing is set before they read it, which a call does not
 function read(\Acme\Section $section, \Acme\Message $mail): void
 {
 	$a = $section->get('user') ?? 'none';
 	$b = $section->get('user') ?? 'none';
 	$c = $section->get('user');
 	$d = Formatter::describe($mail) ?? 'none';
+	$e = empty($section->get('user'));
 }
 
 
