@@ -43,8 +43,8 @@ use function count;
  * reading the scope of its caller, `compact()` among them, keeps the closure. A parameter taking its argument by
  * reference makes a partial application risky, the partial passing on what the closure passed a copy of, and so does
  * a function or a method whose parameters neither the file, PHP nor the types tell, which makes a first-class callable
- * risky too; a function known to take one is not made a first-class callable of. A closure carrying an attribute
- * stays, a callable having nowhere to keep it.
+ * risky too; a function known to take one is not made a first-class callable of, nor a partial application that
+ * would read as one. A closure carrying an attribute stays, a callable having nowhere to keep it.
  *
  * A callable naming a class, `[Foo::class, 'make']` or `'Foo::make'`, resolves `static` in the method to the class of
  * `$this` where `$this` is a `Foo`, and `[self::class, 'make']` to `self` where `self::make(...)` passes a static
@@ -83,13 +83,12 @@ final class CallableNotationRule extends NodeRule
 			}
 
 		} elseif ($node instanceof Expression\ClosureNode || $node instanceof Expression\ArrowFunctionNode) {
-			if (
-				self::forwardsVariadic($node)
-				&& ($call = ForwardingClosure::findCall($node)) !== null
-				&& ($callable = self::readForwarding($node, $call)) !== null
-				&& ($reference = self::takesReference($call, $context)) !== Tristate::Yes
-				&& ($risky = self::classifyCallee($call, $node, $context)) !== null
-			) {
+			$call = self::forwardsVariadic($node) ? ForwardingClosure::findCall($node) : null;
+			$callable = $call === null ? null : self::readForwarding($node, $call);
+			$reference = $callable === null ? null : self::takesReference($call, $context);
+			if ($reference === Tristate::Yes) {
+				return; // a partial application would be the very first-class callable
+			} elseif ($reference !== null && ($risky = self::classifyCallee($call, $node, $context)) !== null) {
 				[$risk, $because] = match (true) {
 					$risky => [Risk::BehaviorChanges, 'the object is evaluated when the callable is made, not when it is called'],
 					$reference === Tristate::Maybe => [Risk::TypeUnknown, 'the call may take an argument by reference, where the closure passed a copy'],

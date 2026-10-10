@@ -30,5 +30,12 @@ class Report
 		// risky: takes an argument by reference
 		$e = fn($x) => sort($x);
 		$f = fn($x) => trimAll($x);
+
+		// left alone: would be the first-class callable, which a function taking a reference is not made
+		$g = fn(...$args) => sort(...$args);
+		$h = fn(...$args) => trimAll(...$args);
+		$i = function (...$args) {
+			return trimAll(...$args);
+		};
 	}
 }
