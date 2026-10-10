@@ -25,3 +25,13 @@ namespace App {
 		return \App\escape($text);
 	}
 }
+
+
+namespace Acme\Template {
+	use function Acme\Other\escape_html;
+
+	function page(string $text): string
+	{
+		return \Acme\Template\escape_html($text) . escape_html($text);
+	}
+}

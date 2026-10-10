@@ -116,7 +116,9 @@ final class ReplacedFunctionsRule extends NodeRule
 		$qualified = str_contains($written, '\\');
 		$node->name->text = match (true) {
 			$newNamespace === '' => CodeWriter::spellFunction($new, $node->name, $context),
-			!$qualified && strcasecmp($newNamespace, $namespace) === 0 => $short,
+			!$qualified
+			&& strcasecmp($newNamespace, $namespace) === 0
+			&& !isset($resolver->getImports(SymbolKind::Function, $node)[strtolower($short)]) => $short,
 			// a qualified name of the same namespace keeps the way it reaches it
 			$qualified && strcasecmp($newNamespace, QualifiedNames::extractNamespace($old)) === 0 => substr($written, 0, (int) strrpos($written, '\\') + 1) . $short,
 			!$qualified && str_contains($old, '\\') && self::importFunction($new, $short, $node->name, $context) => $short,

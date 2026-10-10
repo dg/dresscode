@@ -4,3 +4,4 @@
 18: Function `Acme\Template\escape()` is replaced by `Acme\Template\escape_html()`.
 18: Function `Acme\Template\escape()` is replaced by `Acme\Template\escape_html()`.
 18: Function `Acme\Template\raw()` is replaced by `trim()`.
+34: Function `Acme\Template\escape()` is replaced by `Acme\Template\escape_html()`.
