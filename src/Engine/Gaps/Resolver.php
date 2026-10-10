@@ -8,7 +8,6 @@
 namespace DressCode\Engine\Gaps;
 
 use DressCode\{Claim, Gap, Line, Rule, Space, Style};
-use DressCode\Engine\Helpers;
 use PhpSyntax\{LayoutData, LayoutRole, Node, Token, Trivia};
 use PhpSyntax\Nodes\Expression\ShellExecNode;
 use PhpSyntax\Nodes\{FileNode, ModifiersNode, PlainNodeList, SeparatedNodeList};
@@ -332,7 +331,7 @@ final class Resolver
 		$leading = $token->leadingTrivia;
 		$from = ($leading[0] ?? null)?->id === Trivia::OpenTag ? 1 : 0;
 		if ($closes) {
-			$comment = Helpers::findLastCommentIndex($leading);
+			$comment = $token->findLastLeadingCommentIndex();
 			if ($comment !== null) {
 				$from = $comment + 1;
 				while (($leading[$from] ?? null)?->id === Trivia::Whitespace) {
@@ -369,7 +368,7 @@ final class Resolver
 		}
 
 		$leading = $token->leadingTrivia;
-		$comment = Helpers::findLastCommentIndex($leading);
+		$comment = $token->findLastLeadingCommentIndex();
 		if ($comment === null || ($leading[$comment + 1] ?? null)?->id !== Trivia::LineEnding) {
 			return null;
 		}

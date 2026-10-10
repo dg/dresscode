@@ -8,8 +8,7 @@
 namespace DressCode\Engine;
 
 use Nette\Utils\FileSystem;
-use PhpSyntax\Trivia;
-use function count, ini_get, is_array;
+use function ini_get, is_array;
 
 
 /**
@@ -132,21 +131,5 @@ final class Helpers
 		}
 
 		return @file_put_contents($file, $content) !== false; // @ the failure is the result
-	}
-
-
-	/**
-	 * The index of the last comment among the trivia, null where there is none.
-	 * @param  list<Trivia>  $trivia
-	 */
-	public static function findLastCommentIndex(array $trivia): ?int
-	{
-		for ($i = count($trivia) - 1; $i >= 0; $i--) {
-			if ($trivia[$i]->isComment()) {
-				return $i;
-			}
-		}
-
-		return null;
 	}
 }

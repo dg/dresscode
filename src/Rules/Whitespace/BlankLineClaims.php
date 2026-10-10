@@ -8,7 +8,6 @@
 namespace DressCode\Rules\Whitespace;
 
 use DressCode\{Claim, Line, Value};
-use DressCode\Engine\Helpers;
 use PhpSyntax\{Node, Trivia};
 use function is_int;
 
@@ -81,8 +80,9 @@ final class BlankLineClaims
 			return null;
 		}
 
-		$leading = $node->getFirstToken()->leadingTrivia ?? [];
-		$at = Helpers::findLastCommentIndex($leading);
+		$first = $node->getFirstToken();
+		$leading = $first->leadingTrivia ?? [];
+		$at = $first?->findLastLeadingCommentIndex();
 		return $at !== null && $leading[$at]->is(Trivia::DocComment) && !self::isFileHeader($leading, $at)
 			? $afterPhpdoc
 			: null;

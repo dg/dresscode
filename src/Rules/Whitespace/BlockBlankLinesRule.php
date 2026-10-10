@@ -9,7 +9,6 @@ namespace DressCode\Rules\Whitespace;
 
 use DressCode\{Claim, Decision, Domain, Gap, GapRule, RuleInfo, Stage, Values};
 use DressCode\Domains\Count;
-use DressCode\Engine\Helpers;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{CaseNode, CatchNode, ElseifNode, ElseNode, FinallyNode, PlainNodeList, Statement, StatementNode};
 use PhpSyntax\Nodes\Expression\MatchNode;
@@ -193,7 +192,7 @@ final class BlockBlankLinesRule extends GapRule
 			return true;
 		}
 
-		$comment = Helpers::findLastCommentIndex($block->closeBrace->leadingTrivia);
+		$comment = $block->closeBrace->findLastLeadingCommentIndex();
 		return !$block->statements->isEmpty() && $comment !== null && self::hasBlankLine($block->closeBrace, $comment);
 	}
 
