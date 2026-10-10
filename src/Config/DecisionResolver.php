@@ -30,7 +30,7 @@ final readonly class DecisionResolver
 		/** the packages the project stands on, which decide whether a rule requiring one runs; null runs it whatever they are */
 		private ?ProjectPackages $project = new ProjectPackages,
 		/** whether the run has the types of the code */
-		private bool $typesAvailable = false,
+		private bool $typesAnalyzed = false,
 		/** whether the namespaces of the configuration are complete, which turns on their guard */
 		private bool $certainNames = false,
 		/** knows the names of the rules of other tools, those the plugins translate among them */
@@ -125,7 +125,7 @@ final readonly class DecisionResolver
 		return match (true) {
 			$php !== null && !Versions::isSubset($this->phpTarget, $php) => InactiveReason::Php,
 			$this->project?->findUnmetRequirement($info->getRequiredPackages()) !== null => InactiveReason::Package,
-			$info->typesRequired && !$this->typesAvailable => InactiveReason::Types,
+			$info->typesRequired && !$this->typesAnalyzed => InactiveReason::Types,
 			default => null,
 		};
 	}

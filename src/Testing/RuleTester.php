@@ -327,7 +327,7 @@ final class RuleTester
 			$catalogue,
 			phpTarget: $phpVersion ?? self::readPhpVersion($code) ?? self::getDefaultPhpVersion($class),
 			project: null,
-			typesAvailable: true,
+			typesAnalyzed: true,
 			certainNames: self::readNamespacedSymbols($code)->complete,
 		);
 		try {

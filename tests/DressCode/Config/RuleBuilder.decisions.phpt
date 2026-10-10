@@ -117,7 +117,7 @@ test('a rule that cannot run here leaves its decisions a reason', function () us
 	Assert::same(InactiveReason::Types, $resolved['classes.overriding.signature']->inactive);
 	Assert::same(InactiveReason::NameResolution, $resolved['namespaces.functions']->inactive);
 
-	$typed = new DecisionResolver($catalogue, phpTarget: '8.5', typesAvailable: true, certainNames: true)->resolve($everything);
+	$typed = new DecisionResolver($catalogue, phpTarget: '8.5', typesAnalyzed: true, certainNames: true)->resolve($everything);
 	Assert::null($typed['upgrading.pipe']->inactive);
 	Assert::null($typed['classes.overriding.signature']->inactive);
 	Assert::null($typed['namespaces.functions']->inactive);

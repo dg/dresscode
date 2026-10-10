@@ -215,10 +215,11 @@ final class Catalogue
 	 */
 	public static function collectDecisions(string $rule): array
 	{
-		static $core;
-		$core ??= (new CorePlugin)->getManifest()->decisions;
 		$named = RuleInfo::of($rule)->decisions;
-		$trees = $named === [] ? [] : array_column([...$core, ...array_merge(...array_values(self::collectPluginTrees(PackageDiscovery::findPluginOf($rule))))], null, 'path');
+		$trees = $named === [] ? [] : array_column([
+			...(new CorePlugin)->getManifest()->decisions,
+			...array_merge(...array_values(self::collectPluginTrees(PackageDiscovery::findPluginOf($rule)))),
+		], null, 'path');
 		$decisions = [];
 		foreach ($named as $path) {
 			$decisions[] = $trees[$path] ?? throw new ConfigurationException("Rule `$rule` names `$path`, which no tree declares.");

@@ -22,18 +22,15 @@ final class ManifestFields
 	/**
 	 * @param  array<mixed>  $plugins
 	 * @param  string  $advice  what to write instead of what is not a plugin
-	 * @return list<class-string<Plugin>|Plugin>
 	 * @throws \InvalidArgumentException
 	 */
-	public static function normalizePlugins(array $plugins, string $advice): array
+	public static function checkPlugins(array $plugins, string $advice): void
 	{
 		foreach ($plugins as $plugin) {
 			if (!$plugin instanceof Plugin && !(is_string($plugin) && is_subclass_of($plugin, Plugin::class))) {
 				throw new \InvalidArgumentException('Plugin `' . (is_string($plugin) ? $plugin : get_debug_type($plugin)) . "` is not a plugin; $advice.");
 			}
 		}
-
-		return array_values($plugins);
 	}
 
 

@@ -163,7 +163,7 @@ final class ConfigResolver
 			$this->getCatalogue(),
 			$phpTarget,
 			$this->project,
-			typesAvailable: $config->typeAnalysis !== null && $this->typesAvailable,
+			typesAnalyzed: $config->typeAnalysis !== null && $this->typesAvailable,
 			certainNames: $resolution === 'certain',
 			translator: $this->registry->translator,
 		);

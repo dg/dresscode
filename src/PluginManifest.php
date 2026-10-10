@@ -49,7 +49,7 @@ final readonly class PluginManifest
 		public array $decisions = [],
 	) {
 		// the rules and the presets are loaded when the run registers them, so that a run loads only the rules it runs
-		Config\ManifestFields::normalizePlugins($plugins, 'a rule is named in `rules` and a preset in `presets`');
+		Config\ManifestFields::checkPlugins($plugins, 'a rule is named in `rules` and a preset in `presets`');
 		Config\ManifestFields::checkRuleUrl($ruleUrl);
 		Config\ManifestFields::checkGlobs($excludePaths, 'excludePaths');
 		$this->excludePaths = array_values(array_unique($excludePaths));
