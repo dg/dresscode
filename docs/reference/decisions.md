@@ -3570,10 +3570,10 @@ A call PHP retired is written as the upgrading data of PHP say: a deprecated fun
 
 ### upgrading.php.deprecatedCallExcept
 
-The entries of the upgrading data of PHP withdrawn, by the name of the function or `Class::method`, each written `name: keep`.
+The entries of the upgrading data of PHP withdrawn, by the name of the function or `Class::method` in any letter case.
 
 - A parameter, which refines a requirement and turns nothing on; by default `[]`
-- Takes: a map of names and patterns with `*` to `forbidden` (never there), an entry withdrawn with `keep`
+- Takes: a list of names
 - The standards: perCs `[]`, psr12 `[]`, nette `[]`, symfony `[]`
 - Rule `DressCode\Rules\Upgrading\NoDeprecatedPhpCallsRule`, stage Structure
 

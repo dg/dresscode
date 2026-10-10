@@ -1,0 +1,5 @@
+<?php
+// {"upgrading.php.deprecatedCallExcept": ["CURL_close"]}
+$ch = curl_init();
+curl_close($ch);
+finfo_close($finfo);

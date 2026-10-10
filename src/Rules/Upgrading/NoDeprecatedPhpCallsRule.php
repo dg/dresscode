@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\{Config, Decision, DecisionKind, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Domains\Map;
+use DressCode\Domains\Names;
 use DressCode\Rules\{CodeWriter, GlobalCalls, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
@@ -59,8 +59,8 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 			),
 			new Decision(
 				'upgrading.php.deprecatedCallExcept',
-				new Map(Domain::state(), caseInsensitive: true),
-				'The entries of the upgrading data of PHP withdrawn, by the name of the function or `Class::method`, each written `name: keep`',
+				new Names,
+				'The entries of the upgrading data of PHP withdrawn, by the name of the function or `Class::method` in any letter case',
 				kind: DecisionKind::Parameter,
 				default: [],
 			),
@@ -70,12 +70,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->except = [];
-		foreach ($values->get('upgrading.php.deprecatedCallExcept')->getEntries() as $name => $entry) {
-			if ($entry->isKept()) {
-				$this->except[strtolower((string) $name)] = true;
-			}
-		}
+		$this->except = array_fill_keys(array_map(strtolower(...), $values->get('upgrading.php.deprecatedCallExcept')->getNames()), true);
 	}
 
 
