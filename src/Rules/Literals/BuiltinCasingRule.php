@@ -42,9 +42,9 @@ final class BuiltinCasingRule extends NodeRule
 	];
 
 	/** the word of each decision, null for keep */
-	private ?string $keyword;
-	private ?string $trueFalseNull;
-	private ?string $magicConstant;
+	private ?string $keyword = null;
+	private ?string $trueFalseNull = null;
+	private ?string $magicConstant = null;
 
 
 	public static function getDecisions(): array

@@ -37,7 +37,7 @@ final class PhpdocTypeNotationRule extends NodeRule
 	private bool $shortNullable = false;
 	private ?string $nullPosition = null;
 	private bool $byName = false;
-	private ?string $arrayNotation;
+	private ?string $arrayNotation = null;
 
 
 	public static function getDecisions(): array
