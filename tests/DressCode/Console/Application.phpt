@@ -619,6 +619,10 @@ test('a profile counts the same with workers as in the process', function () use
 
 	Assert::same($counts[0], $counts[1]);
 	Assert::count(2 + 1, json_decode(FileSystem::read("$root/profile-2.json"), associative: true)['peakMemory']); // the parent and two workers
+
+	// writing a baseline is a run of check too, whether it ends with one or with code a fix would change
+	runApp($root, ['baseline', '--config', "$root/profile.php", '--profile', "$root/profile-baseline.json"]);
+	Assert::same(8, json_decode(FileSystem::read("$root/profile-baseline.json"), associative: true)['files']);
 });
 
 

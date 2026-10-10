@@ -353,19 +353,19 @@ final class Application
 		// a worker costs about the processing of a few files to start, so by default one for every four files at most
 		$jobs = $args['--jobs'] ?? max(1, min(WorkerPool::detectCpuCount(), intdiv(count($files), 4)));
 		$workers = $jobs > 1 && $files ? new WorkerPool($this->buildWorkerCommand($args, $fix), $jobs, $this->cwd, profiler: $profiler, warmFirst: $runner->warmUp !== null) : null;
-		if ($generate) {
-			return $this->generateBaseline($runner, $config, $root, $configFile, $files, $workers, $format);
-		}
-
-		$progress = $format === 'console' && count($files) > 1 && $this->out->isTerminal()
+		$progress = !$generate && $format === 'console' && count($files) > 1 && $this->out->isTerminal()
 			? new ProgressBar($this->out, count($files))
 			: null;
 		$onProgress = $progress === null ? null : $progress->advance(...);
-		$reporter = $this->createReporter($args, $this->out, $this->stdout, $root, $format, $factory->registry);
 
 		$profiler?->addPhase('start of the process', (int) ((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1e9));
 		$start = hrtime(true);
 		try {
+			if ($generate) {
+				return $this->generateBaseline($runner, $config, $root, $configFile, $files, $workers, $format);
+			}
+
+			$reporter = $this->createReporter($args, $this->out, $this->stdout, $root, $format, $factory->registry);
 			$result = $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings);
 			return $askRisky
 				? $this->review($runner, $result, $files, $root, $maxWarnings, $factory->registry)
