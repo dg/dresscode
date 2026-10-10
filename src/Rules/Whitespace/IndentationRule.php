@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Whitespace;
 
-use DressCode\Analyses\IndentationPlan;
+use DressCode\Analyses\{IndentationPlan, Placement};
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Indentation, Node, Nodes, Token, Trivia};
@@ -52,35 +52,28 @@ final class IndentationRule extends NodeRule
 			return;
 		}
 
-		foreach ($context->getAnalysis(IndentationPlan::class)->getPlacements() as [$token, $indentation, $commentIndentation, $subject, $follows, $decision]) {
-			$this->indent($token, $indentation, $commentIndentation, $subject, $context, $follows, $decision);
+		foreach ($context->getAnalysis(IndentationPlan::class)->getPlacements() as $placement) {
+			$this->indent($placement, $context);
 		}
 	}
 
 
-	private function indent(
-		Token $token,
-		string $indentation,
-		string $commentIndentation,
-		string $subject,
-		RuleContext $context,
-		?Token $follows,
-		string $decision,
-	): void
+	private function indent(Placement $placement, RuleContext $context): void
 	{
-		if (Indentation::matches($token, $indentation, $commentIndentation)) {
+		if ($placement->isInPlace()) {
 			return;
 		}
 
+		[$token, $indentation, $commentIndentation] = [$placement->token, $placement->indentation, $placement->commentIndentation];
 		[$subject, $expected, $found] = $token->getIndentation() === $indentation
 			? ['the comment', $commentIndentation, self::findCommentIndentation($token, $commentIndentation)]
-			: [(string) preg_replace('~^an? ~', 'the ', $subject), $indentation, $token->getIndentation()];
+			: [(string) preg_replace('~^an? ~', 'the ', $placement->subject), $indentation, $token->getIndentation()];
 		$message = match (true) {
 			$expected === $found => 'Expected the inner lines of the comment aligned with its first line.',
 			$expected === '' => "Expected $subject without indentation, " . NodeHelpers::describeWidth($found) . ' found.',
 			default => "Expected $subject indented by " . NodeHelpers::describeWidth($expected) . ', ' . NodeHelpers::describeWidth($found) . ' found.',
 		};
-		if ($context->report($token, $message, decision: $decision, trivia: Indentation::findTrivia($token), follows: $follows)) {
+		if ($context->report($token, $message, decision: $placement->decision, trivia: Indentation::findTrivia($token), follows: $placement->follows)) {
 			Indentation::set($token, $indentation, $commentIndentation);
 		}
 	}

@@ -134,6 +134,20 @@ final class PhpSymbols
 	public function findFramelessParameterNames(string $function, int $arguments): ?array
 ```
 
+## `DressCode\Analyses\Placement`
+
+```php
+final readonly class Placement
+	public readonly PhpSyntax\Token $token
+	public readonly string $indentation
+	public readonly string $commentIndentation
+	public readonly string $subject
+	public readonly ?PhpSyntax\Token $follows
+	public readonly string $decision
+	public function __construct(PhpSyntax\Token $token, string $indentation, string $commentIndentation, string $subject, ?PhpSyntax\Token $follows, string $decision)
+	public function isInPlace(): bool
+```
+
 ## `DressCode\Analyses\Types`
 
 ```php

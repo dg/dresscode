@@ -40,7 +40,7 @@ final class IndentationPlan
 	/** @var array<int, Token>  line => the token opening it */
 	private array $openers = [];
 
-	/** @var array<int, array{Token, string, string, string, ?Token, string}>  line => its opener, the indentation it and a comment above it are given, what it is, the opener of the line it follows, and the decision it stands under */
+	/** @var array<int, Placement>  line => how it is placed */
 	private array $placements = [];
 
 
@@ -104,9 +104,8 @@ final class IndentationPlan
 
 
 	/**
-	 * The lines the plan places, by line: the token opening it, the indentation it and a comment above it are given,
-	 * what it is, the opener of the line its level counts from, and the decision that places it.
-	 * @return array<int, array{Token, string, string, string, ?Token, string}>
+	 * The lines the plan places, by line.
+	 * @return array<int, Placement>
 	 */
 	public function getPlacements(): array
 	{
@@ -118,7 +117,7 @@ final class IndentationPlan
 	public function isLineInPlace(Token $token): bool
 	{
 		$placement = $this->placements[$token->getCurrentLine() ?? 0] ?? null;
-		return $placement === null || Indentation::matches($placement[0], $placement[1], $placement[2]);
+		return $placement === null || $placement->isInPlace();
 	}
 
 
@@ -130,7 +129,7 @@ final class IndentationPlan
 		$found = Indentation::findOwner($token);
 		if ($found === null) { // the first token of the file
 			$this->lines[$line] = '';
-			$this->placements[$line] = [$token, '', '', 'a statement', null, self::Unit];
+			$this->placements[$line] = new Placement($token, '', '', 'a statement', null, self::Unit);
 			return;
 		}
 
@@ -179,7 +178,7 @@ final class IndentationPlan
 			default => $indentation,
 		};
 		// the line is placed by what the line of its construct was given, so it follows that line wherever it went
-		$this->placements[$line] = [
+		$this->placements[$line] = new Placement(
 			$token,
 			$indentation,
 			$commentIndentation,
@@ -192,7 +191,7 @@ final class IndentationPlan
 				LayoutRole::Case => self::SwitchCase,
 				default => self::Unit,
 			},
-		];
+		);
 	}
 
 
