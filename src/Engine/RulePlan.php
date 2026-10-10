@@ -10,7 +10,7 @@ namespace DressCode\Engine;
 use DressCode\Config\Catalogue;
 use DressCode\{ConfigurationException, GapRule, NodeRule, Rule, RuleInfo, Stage};
 use DressCode\Engine\Gaps\Claims;
-use PhpSyntax\{Node, Token};
+use PhpSyntax\{LayoutData, Node, Token};
 
 
 /**
@@ -103,11 +103,18 @@ final class RulePlan
 	}
 
 
-	/** @throws ConfigurationException when a class the rule visits is no class of a node or token, which would never be dispatched */
+	/**
+	 * @throws ConfigurationException when a class the rule visits is no class of a node or token, nor an interface one of
+	 * them implements, which would never be dispatched
+	 */
 	private static function checkVisitedNodes(NodeRule $rule): void
 	{
 		foreach ($rule->getVisitedNodes() as $visited) {
-			if (!is_a($visited, Node::class, true) && !is_a($visited, Token::class, true) && !interface_exists($visited)) {
+			if (
+				!is_a($visited, Node::class, true)
+				&& !is_a($visited, Token::class, true)
+				&& !(interface_exists($visited) && array_any(array_keys(LayoutData::Roles), fn(string $class) => is_a($class, $visited, true)))
+			) {
 				throw new ConfigurationException('Rule `' . $rule::class . "` visits `$visited`, which is no class of a node or a token.");
 			}
 		}

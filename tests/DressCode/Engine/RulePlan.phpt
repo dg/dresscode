@@ -128,9 +128,27 @@ final class VisitsTypo extends NodeRule
 }
 
 
+#[RuleInfo(Stage::Structure)]
+final class VisitsForeignInterface extends NodeRule
+{
+	use ProjectDecision;
+
+	public function getVisitedNodes(): array
+	{
+		return [JsonSerializable::class]; // an interface no node implements
+	}
+
+
+	public function enter(Node|Token $node, RuleContext $context): void
+	{
+	}
+}
+
+
 test('a rule that would never run is refused: one deciding nothing, one of neither kind, gap claims outside Formatting, a visited class no node is', function () {
 	Assert::exception(fn() => new RulePlan([new Undecided]), ConfigurationException::class, 'Rule `Undecided` declares no decision.');
 	Assert::exception(fn() => new RulePlan([new BareRule]), ConfigurationException::class, 'Rule `BareRule` is neither a NodeRule nor a GapRule.');
 	Assert::exception(fn() => new RulePlan([new FinishingGaps]), ConfigurationException::class, 'Rule `FinishingGaps` is a GapRule, %a% says Finishing.');
 	Assert::exception(fn() => new RulePlan([new VisitsTypo]), ConfigurationException::class, 'Rule `VisitsTypo` visits `Acme\Shop\NoSuchNode`, which is no class of a node or a token.');
+	Assert::exception(fn() => new RulePlan([new VisitsForeignInterface]), ConfigurationException::class, 'Rule `VisitsForeignInterface` visits `JsonSerializable`, which is no class of a node or a token.');
 });
