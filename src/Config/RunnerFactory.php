@@ -56,7 +56,9 @@ final readonly class RunnerFactory
 		$resolver = new ConfigResolver($this->registry, $packages->upgradingData, $project, $typesAvailable, $root);
 		$resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
 		$missing = array_map(
-			fn(string $package) => "The configuration names package `$package` in `targets`, but it is not installed; skipped.",
+			fn(string $package) => $package === $project->rootName
+				? "The configuration names package `$package` in `targets`, but that is the project itself, whose code is any version of it; skipped."
+				: "The configuration names package `$package` in `targets`, but it is not installed; skipped.",
 			array_filter(array_keys($packageTargets), fn(string $package) => !$project->has($package) || $package === $project->rootName),
 		);
 		$warnings = array_fill_keys([...$packages->warnings, ...$unnamed, ...$missing, ...$resolver->getWarnings()], null);

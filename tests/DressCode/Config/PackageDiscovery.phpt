@@ -171,10 +171,13 @@ test('a package the project requires itself is measured by the lowest version it
 	Assert::same([], $packages->upgradingData[0]->unreached);
 
 	$factory = new RunnerFactory;
-	$resolution = $factory->resolve(new Config(targets: ['acme/lib' => '3.3', 'acme/ghost' => '1.0'], decisions: ['upgrading' => ['libraries' => ['packages' => 'adopted']]]), $root);
+	$resolution = $factory->resolve(new Config(targets: ['acme/lib' => '3.3', 'acme/ghost' => '1.0', 'app/project' => '2.0'], decisions: ['upgrading' => ['libraries' => ['packages' => 'adopted']]]), $root);
 	$runner = $factory->createRunner($resolution, cache: false);
 	Assert::same("<?php\n\nnamespace App;\n\nnew \\Acme\\Lib\\Later;\n", $runner->processCode("$root/f.php", "<?php\n\nnamespace App;\n\nnew \\Acme\\Lib\\Old;\n")->output);
-	Assert::same(['The configuration names package `acme/ghost` in `targets`, but it is not installed; skipped.' => null], $resolution->warnings);
+	Assert::same([
+		'The configuration names package `acme/ghost` in `targets`, but it is not installed; skipped.' => null,
+		'The configuration names package `app/project` in `targets`, but that is the project itself, whose code is any version of it; skipped.' => null,
+	], $resolution->warnings);
 });
 
 
