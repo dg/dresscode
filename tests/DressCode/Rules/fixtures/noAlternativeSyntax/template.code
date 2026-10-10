@@ -8,3 +8,7 @@
 <?php endif; ?>
 <?php while ($a): ?>
     <?php endwhile ?>
+
+<?php if ($c) foreach ($a as $b): ?>
+    nested
+<?php endforeach ?>

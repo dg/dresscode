@@ -44,10 +44,11 @@ final class NoAlternativeSyntaxRule extends NodeRule
 		};
 		// a close tag closes the statement instead of a semicolon and the braces cannot swallow it
 		$closeTag = $semicolon?->is(Token::CloseTag) ? $semicolon : null;
+		$fixable = $closeTag === null || $node->parent instanceof PlainNodeList;
 		if (
 			$colon === null
-			|| ($closeTag !== null && !$node->parent instanceof PlainNodeList)
-			|| !$context->report($colon, 'The `' . strtolower((string) $node->getFirstToken()?->text) . '` must be written with braces instead of the alternative syntax.')
+			|| !$context->report($colon, 'The `' . strtolower((string) $node->getFirstToken()?->text) . '` must be written with braces instead of the alternative syntax.', fixable: $fixable)
+			|| !$fixable
 		) {
 			return;
 		}
