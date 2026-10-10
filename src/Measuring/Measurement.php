@@ -67,10 +67,8 @@ final readonly class Measurement
 	/** Every value some place agrees with, and its share, the commonest first: "tab 55%, 4 45% of 290 files". */
 	public function describe(): string
 	{
-		$agreeing = array_filter($this->agreeing);
-		arsort($agreeing);
 		$parts = [];
-		foreach (array_keys($agreeing) as $value) {
+		foreach ($this->sortAgreeing() as $value) {
 			$parts[] = sprintf('%s %d%%', $value, round(100 * $this->getShare((string) $value)));
 		}
 
@@ -97,8 +95,15 @@ final readonly class Measurement
 			return null;
 		}
 
+		return array_map(strval(...), $this->sortAgreeing());
+	}
+
+
+	/** @return list<int|string> */
+	private function sortAgreeing(): array
+	{
 		$agreeing = array_filter($this->agreeing);
 		arsort($agreeing);
-		return array_map(strval(...), array_keys($agreeing));
+		return array_keys($agreeing);
 	}
 }

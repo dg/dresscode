@@ -27,6 +27,7 @@ final class CorePlugin implements Plugin
 	 * presets are sets.
 	 */
 	public const Standards = ['perCs', 'psr12', 'nette', 'symfony'];
+	private const QualifiedName = '\\\\?\w+(\\\\\w+)*';
 
 
 	public function getManifest(): PluginManifest
@@ -368,7 +369,7 @@ final class CorePlugin implements Plugin
 
 	private static function createReplacedClassesGrammar(): Schema
 	{
-		$name = fn() => Expect::string()->pattern('\\\\?\w+(\\\\\w+)*');
+		$name = fn() => Expect::string()->pattern(self::QualifiedName);
 		return Expect::arrayOf($name(), $name())
 			->description('The class → the class written instead, both fully qualified')
 			->transform(function (array $options, Context $context): array {
@@ -386,8 +387,8 @@ final class CorePlugin implements Plugin
 	private static function createReplacedFunctionsGrammar(): Schema
 	{
 		return Expect::arrayOf(
-			Expect::string()->pattern('\\\\?\w+(\\\\\w+)*(::\w+)?'),
-			Expect::string()->pattern('\\\\?\w+(\\\\\w+)*'),
+			Expect::string()->pattern(self::QualifiedName . '(::\w+)?'),
+			Expect::string()->pattern(self::QualifiedName),
 		)
 			->description('The function, global or of a namespace → the function or the static method written instead')
 			->transform(function (array $options, Context $context): array {
@@ -424,7 +425,7 @@ final class CorePlugin implements Plugin
 
 	private static function createForbiddenClassesGrammar(): Schema
 	{
-		return Expect::arrayOf(Expect::string()->nullable(), Expect::string()->pattern('\\\\?\w+(\\\\\w+)*'))
+		return Expect::arrayOf(Expect::string()->nullable(), Expect::string()->pattern(self::QualifiedName))
 			->description('The forbidden class, fully qualified → what to do instead, as the end of the message, or null for none');
 	}
 

@@ -12,7 +12,7 @@ use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocChildNode, PhpDocTagNode};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token, Visibility};
-use PhpSyntax\Nodes\{AnonymousClassNode, ModifiersNode, ParameterNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ParameterNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyItemNode, PropertyNode, TraitUseNode};
 use PhpSyntax\Nodes\Statement\ClassNode;
 
@@ -83,7 +83,7 @@ final class ReadonlyForAnnotationRule extends NodeRule
 				}
 			}
 
-			self::appendReadonly($node->modifiers);
+			MemberModifiers::makeReadonly($node->modifiers);
 		}
 
 		if ($node->modifiers->readonly) {
@@ -108,7 +108,7 @@ final class ReadonlyForAnnotationRule extends NodeRule
 				)
 			) {
 				self::removeTag($member, $context);
-				self::appendReadonly($member->modifiers);
+				MemberModifiers::makeReadonly($member->modifiers);
 			}
 		}
 	}
@@ -194,16 +194,5 @@ final class ReadonlyForAnnotationRule extends NodeRule
 			fn(PhpDocChildNode $child) => !$child instanceof PhpDocTagNode || !in_array(strtolower($child->name), self::Tags, true),
 		));
 		$phpDoc->writeBack($tree, $docComment, $node);
-	}
-
-
-	private static function appendReadonly(ModifiersNode $modifiers): void
-	{
-		if ($var = $modifiers->findToken(Token::Var)) { // readonly does not go with var
-			$modifiers->removeToken($var);
-			$modifiers->append(Token::fromText('public'));
-		}
-
-		$modifiers->append(Token::fromText('readonly'));
 	}
 }

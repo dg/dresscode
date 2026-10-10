@@ -8,6 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
+use PhpSyntax\Nodes\ModifiersNode;
 use PhpSyntax\Token;
 
 
@@ -57,5 +58,17 @@ final class MemberModifiers
 		foreach ($texts as $text) {
 			$node->modifiers->append(Token::fromText($text));
 		}
+	}
+
+
+	/** Appends `readonly`, which does not go with `var`, so that one becomes `public`. */
+	public static function makeReadonly(ModifiersNode $modifiers): void
+	{
+		if ($var = $modifiers->findToken(Token::Var)) {
+			$modifiers->removeToken($var);
+			$modifiers->append(Token::fromText('public'));
+		}
+
+		$modifiers->append(Token::fromText('readonly'));
 	}
 }
