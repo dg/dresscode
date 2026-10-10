@@ -8,7 +8,7 @@
 namespace DressCode\Measuring;
 
 use DressCode\{Analyses, Config, ConfigurationException, Decision, Profile, Rule};
-use DressCode\Config\{Composer, ConfigResolver, CorePlugin, Loader, ResolvedConfig, RunnerFactory};
+use DressCode\Config\{ComposerJson, ConfigResolver, CorePlugin, Loader, ResolvedConfig, RunnerFactory};
 use DressCode\Engine\Helpers;
 use DressCode\Rules\ControlFlow\MultilineConditionRule;
 use DressCode\Rules\Literals\StringQuotesRule;
@@ -145,7 +145,7 @@ final readonly class Proposal
 	 */
 	public static function findPaths(string $root): array
 	{
-		$paths = Composer::detectAutoloadPaths(Composer::findFile($root), $root);
+		$paths = ComposerJson::detectAutoloadPaths(ComposerJson::findFile($root), $root);
 		foreach (self::Paths as $name) {
 			// a pattern is matched against the names of the root, never against a path of its own, or a root
 			// holding a bracket or a star would be part of the pattern and quietly match nothing
@@ -220,10 +220,10 @@ final readonly class Proposal
 	 */
 	private static function findInstalledPackages(string $root): array
 	{
-		$composer = Composer::findFile($root);
+		$composer = ComposerJson::findFile($root);
 		$installed = [];
 		foreach ([$composer === null ? null : dirname($composer) . '/composer.lock', "$root/vendor/composer/installed.json"] as $file) {
-			$data = Composer::read($file);
+			$data = ComposerJson::read($file);
 			if ($data === null) {
 				continue;
 			}

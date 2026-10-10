@@ -9,7 +9,7 @@ namespace DressCode\Testing;
 
 use DressCode\Analyses\MemberKind;
 use DressCode\{Config, ConfigurationException, Decision, FileResult, Rule};
-use DressCode\Config\{Composer, CorePlugin, Layer, LayerKind, PackageDiscovery, ProjectPackages, RunnerFactory};
+use DressCode\Config\{ComposerJson, CorePlugin, Layer, LayerKind, PackageDiscovery, ProjectPackages, RunnerFactory};
 use DressCode\Domains\Map;
 use DressCode\Rules\Upgrading\{MemberMapGrammar, MemberPattern, MemberTarget};
 use Nette\Neon\Neon;
@@ -149,7 +149,7 @@ final class UpgradingTester
 	 */
 	private static function collectUnknownKeyProblems(string $file): array
 	{
-		$composerFile = Composer::findFile(dirname($file));
+		$composerFile = ComposerJson::findFile(dirname($file));
 		$composer = $composerFile === null ? null : json_decode((string) file_get_contents($composerFile), associative: true);
 		$extra = is_array($composer) && is_array($composer['extra'] ?? null) ? $composer['extra']['dresscode'] ?? null : null;
 		if (!is_array($extra)) {

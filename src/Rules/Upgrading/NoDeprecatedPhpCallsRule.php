@@ -105,7 +105,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 		}
 
 		foreach ($entries[$function] as $entry) {
-			if ($entry->operation !== UpgradingOperation::Report && version_compare($context->phpVersion, $entry->appliesFrom, '>=')) {
+			if ($entry->operation !== PhpUpgradingOperation::Report && version_compare($context->phpVersion, $entry->appliesFrom, '>=')) {
 				$bindings = $entry->pattern instanceof FunctionPattern ? $entry->pattern->bind($call->arguments) : null;
 				if ($bindings !== null && self::rewriteCall($entry, $call, "$function()", $bindings, $context)) {
 					return;
@@ -113,7 +113,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 			}
 		}
 
-		$deprecation = array_find($entries[$function], fn(UpgradingEntry $entry) => $entry->operation === UpgradingOperation::Report);
+		$deprecation = array_find($entries[$function], fn(PhpUpgradingEntry $entry) => $entry->operation === PhpUpgradingOperation::Report);
 		if ($deprecation !== null && $call->name instanceof NameNode) {
 			// the oldest version DressCode targets stands for every version before it, so it names no version
 			$context->report(
@@ -148,7 +148,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 
 	/** Writes what the entry says of the call; false where it says nothing of this one. */
 	private static function rewriteCall(
-		UpgradingEntry $entry,
+		PhpUpgradingEntry $entry,
 		Expression\FunctionCallNode|Expression\MethodCallNode $call,
 		string $subject,
 		?ArgumentBindings $bindings,
@@ -156,7 +156,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 	): bool
 	{
 		$uncertainty = $call instanceof Expression\FunctionCallNode ? GlobalCalls::findUncertainty($call, $context) : null;
-		if ($entry->operation === UpgradingOperation::Remove) {
+		if ($entry->operation === PhpUpgradingOperation::Remove) {
 			$statement = $call->parent;
 			if (!$statement instanceof ExpressionStatementNode || !self::hasPlainArguments($call)) {
 				return false;
@@ -176,7 +176,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 			return true;
 		}
 
-		$write = (string) $entry->write;
+		$write = (string) $entry->replacement;
 		$name = $call->name;
 		if (
 			!$call instanceof Expression\FunctionCallNode

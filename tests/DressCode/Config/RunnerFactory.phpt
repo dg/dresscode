@@ -2,7 +2,7 @@
 
 use Composer\InstalledVersions;
 use DressCode\{Config, ConfigurationException, Decision, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, RuleContext, RuleInfo, Stage};
-use DressCode\Config\{Composer, PhpVersionSource, RunnerFactory};
+use DressCode\Config\{ComposerJson, PhpVersionSource, RunnerFactory};
 use DressCode\Engine\{Runner, TypeAnalysisStatus};
 use DressCode\Reporters\NullReporter;
 use PhpSyntax\{Node, Token};
@@ -420,7 +420,7 @@ test('the identity of the process names the packages it is loaded from, not its 
 
 
 test('the constraint of require.php', function () use ($fixtures) {
-	$detect = fn(string $json) => Composer::detectPhpTarget(FileMock::create($json, 'json'));
+	$detect = fn(string $json) => ComposerJson::detectPhpTarget(FileMock::create($json, 'json'));
 	Assert::same('8.2 - 8.5', $detect('{"require": {"php": "8.2 - 8.5"}}'));
 	Assert::same('^7.4 || ^8.0', $detect('{"require": {"php": "^7.4 || ^8.0"}}'));
 	Assert::same('>8.0', $detect('{"require": {"php": ">8.0"}}'));
@@ -431,8 +431,8 @@ test('the constraint of require.php', function () use ($fixtures) {
 	Assert::null($detect('{"require": {"php": "*"}}'));
 	Assert::null($detect('{"require": {}}'));
 	Assert::null($detect('not json'));
-	Assert::null(Composer::detectPhpTarget("$fixtures/none.json"));
-	Assert::null(Composer::detectPhpTarget(null));
+	Assert::null(ComposerJson::detectPhpTarget("$fixtures/none.json"));
+	Assert::null(ComposerJson::detectPhpTarget(null));
 });
 
 

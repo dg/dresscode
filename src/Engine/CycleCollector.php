@@ -32,7 +32,8 @@ final class CycleCollector
 	}
 
 
-	public function afterFile(): void
+	/** Collects the cycles between two files once the memory has grown past the threshold. */
+	public function collect(): void
 	{
 		if (!$this->enabled || memory_get_usage() <= $this->threshold) {
 			return;

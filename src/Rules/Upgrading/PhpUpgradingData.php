@@ -24,10 +24,10 @@ final class PhpUpgradingData
 	/** the upgrading data of PHP DressCode ships */
 	public const File = __DIR__ . '/php.neon';
 
-	/** @var ?array<lowercase-string, list<UpgradingEntry>>  the name an entry is looked up by => the entries; null until the file is read */
+	/** @var ?array<lowercase-string, list<PhpUpgradingEntry>>  the name an entry is looked up by => the entries; null until the file is read */
 	private ?array $entries = null;
 
-	/** @var array<lowercase-string, list<array{lowercase-string, UpgradingEntry}>>  the name of a method => its entries, each with the name it is looked up by */
+	/** @var array<lowercase-string, list<array{lowercase-string, PhpUpgradingEntry}>>  the name of a method => its entries, each with the name it is looked up by */
 	private array $methods = [];
 
 
@@ -47,7 +47,7 @@ final class PhpUpgradingData
 
 	/**
 	 * The entries by the name they are looked up by.
-	 * @return array<lowercase-string, list<UpgradingEntry>>
+	 * @return array<lowercase-string, list<PhpUpgradingEntry>>
 	 */
 	public function getEntries(): array
 	{
@@ -57,7 +57,7 @@ final class PhpUpgradingData
 
 	/**
 	 * The entries of a method of the name, each with the name it is looked up by.
-	 * @return list<array{lowercase-string, UpgradingEntry}>
+	 * @return list<array{lowercase-string, PhpUpgradingEntry}>
 	 */
 	public function getMethodEntries(string $method): array
 	{
@@ -68,7 +68,7 @@ final class PhpUpgradingData
 
 	/**
 	 * Reads the file, the entries and those of methods by their names.
-	 * @return array<lowercase-string, list<UpgradingEntry>>
+	 * @return array<lowercase-string, list<PhpUpgradingEntry>>
 	 */
 	private function load(): array
 	{
@@ -85,7 +85,7 @@ final class PhpUpgradingData
 	}
 
 
-	/** @return array<lowercase-string, list<UpgradingEntry>> */
+	/** @return array<lowercase-string, list<PhpUpgradingEntry>> */
 	private static function read(string $file): array
 	{
 		$entries = [];
@@ -96,29 +96,29 @@ final class PhpUpgradingData
 
 			$since = substr($key, 6);
 			foreach (array_keys((array) ($section['forbiddenFunctions'] ?? [])) as $name) {
-				$entries[strtolower((string) $name)][] = new UpgradingEntry(FunctionPattern::fromKey((string) $name), UpgradingOperation::Report, $since, Config::MinPhpVersion);
+				$entries[strtolower((string) $name)][] = new PhpUpgradingEntry(FunctionPattern::fromKey((string) $name), PhpUpgradingOperation::Report, $since, Config::MinPhpVersion);
 			}
 
 			foreach ((array) ($section['replacedCalls'] ?? []) as $call => $value) {
 				$pattern = str_contains((string) $call, '::') ? MemberPattern::fromKey((string) $call) : FunctionPattern::fromKey((string) $call);
 				$entry = match (true) {
-					$value === 'removed' => new UpgradingEntry($pattern, UpgradingOperation::Remove, $since, $since),
-					is_array($value) => new UpgradingEntry(
+					$value === 'removed' => new PhpUpgradingEntry($pattern, PhpUpgradingOperation::Remove, $since, $since),
+					is_array($value) => new PhpUpgradingEntry(
 						$pattern,
-						UpgradingOperation::Replace,
+						PhpUpgradingOperation::Replace,
 						$since,
 						(string) ($value['from'] ?? $since),
 						(string) $value['write'],
 						Risk::tryFrom((string) ($value['risk'] ?? '')),
 						isset($value['because']) ? (string) $value['because'] : null,
 					),
-					default => new UpgradingEntry($pattern, UpgradingOperation::Replace, $since, $since, (string) $value),
+					default => new PhpUpgradingEntry($pattern, PhpUpgradingOperation::Replace, $since, $since, (string) $value),
 				};
 				if (
-					$entry->operation === UpgradingOperation::Replace
-					&& ($pattern instanceof MemberPattern || !preg_match('~^\w+\(~', (string) $entry->write))
+					$entry->operation === PhpUpgradingOperation::Replace
+					&& ($pattern instanceof MemberPattern || !preg_match('~^\w+\(~', (string) $entry->replacement))
 				) {
-					throw new \LogicException("The upgrading data of PHP write `$entry->write` for `$call`, but only a call of a function is written as one of another.");
+					throw new \LogicException("The upgrading data of PHP write `$entry->replacement` for `$call`, but only a call of a function is written as one of another.");
 				}
 
 				$entries[$entry->getLookupName()][] = $entry;

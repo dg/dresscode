@@ -12,7 +12,7 @@ namespace DressCode\Rules\Upgrading;
  * What an entry of the upgrading data of PHP does with a call it matches.
  * @internal
  */
-enum UpgradingOperation
+enum PhpUpgradingOperation
 {
 	/** the call is reported, nothing taking its place */
 	case Report;

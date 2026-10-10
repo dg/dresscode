@@ -123,11 +123,11 @@ final readonly class PackageDiscovery
 	{
 		static $plugins = [];
 		$file = new \ReflectionClass($class)->getFileName();
-		$composerFile = $file === false ? null : Composer::findFile(dirname($file));
+		$composerFile = $file === false ? null : ComposerJson::findFile(dirname($file));
 		if ($composerFile === null) {
 			return null;
 		} elseif (!array_key_exists($composerFile, $plugins)) {
-			$plugin = Composer::read($composerFile)['extra']['dresscode']['plugin'] ?? null;
+			$plugin = ComposerJson::read($composerFile)['extra']['dresscode']['plugin'] ?? null;
 			$plugins[$composerFile] = is_string($plugin) && is_subclass_of($plugin, Plugin::class) ? new $plugin : null;
 		}
 

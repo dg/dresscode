@@ -44,7 +44,7 @@ final class Worker
 
 			$result = $runner->processPath($path, $fix);
 			fwrite($socket, json_encode(WorkerCodec::encode($result, $profiler?->takeRecords()), JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE) . "\n");
-			$collector->afterFile(); // once the parent has the result, which then does not wait for it
+			$collector->collect(); // once the parent has the result, which then does not wait for it
 		}
 
 		fclose($socket);

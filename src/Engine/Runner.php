@@ -211,7 +211,7 @@ final readonly class Runner
 				}
 
 				$result = $this->processPath($path, $fix);
-				$collector->afterFile();
+				$collector->collect();
 				yield $path => $result;
 			}
 		} finally {

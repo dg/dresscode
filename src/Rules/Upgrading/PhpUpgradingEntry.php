@@ -15,17 +15,17 @@ use DressCode\Risk;
  * the call and the version from which what it does is right.
  * @internal
  */
-final readonly class UpgradingEntry
+final readonly class PhpUpgradingEntry
 {
 	public function __construct(
 		public FunctionPattern|MemberPattern $pattern,
-		public UpgradingOperation $operation,
+		public PhpUpgradingOperation $operation,
 		/** the version of the section, which retired the call */
 		public string $retiredIn,
 		/** the oldest target the operation is right for */
 		public string $appliesFrom,
 		/** the code written instead, for a replacement */
-		public ?string $write = null,
+		public ?string $replacement = null,
 		public ?Risk $risk = null,
 		public ?string $because = null,
 	) {

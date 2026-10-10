@@ -81,13 +81,13 @@ final class MultilineArrayRule extends GapRule
 
 
 	/**
-	 * What the rule asks of an array spread over lines, as `decideNow()` gives it; null for an array that stays as it is.
+	 * What the rule asks of an array spread over lines, as `claimArray()` gives it; null for an array that stays as it is.
 	 * @return ?array{items: list<Claim>, close: ?Claim, separator: Claim, open: Claim}
 	 */
 	private function decide(Gap $gap, ?Node $array): ?array
 	{
 		return $array instanceof ArrayNode && !$array->items->isEmpty()
-			? $gap->once($array, fn() => $this->decideNow($array, $gap))
+			? $gap->once($array, fn() => $this->claimArray($array, $gap))
 			: null;
 	}
 
@@ -98,7 +98,7 @@ final class MultilineArrayRule extends GapRule
 	 * of lines not indented yet.
 	 * @return ?array{items: list<Claim>, close: ?Claim, separator: Claim, open: Claim}
 	 */
-	private function decideNow(ArrayNode $array, Gap $gap): ?array
+	private function claimArray(ArrayNode $array, Gap $gap): ?array
 	{
 		$style = $gap->style;
 		$multiline = NodeHelpers::isMultiline($array->openDelimiter, $array->items->getItems(), $array->closeDelimiter);

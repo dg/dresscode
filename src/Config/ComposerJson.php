@@ -17,7 +17,7 @@ use function is_array, is_string, strlen;
  * its code lies.
  * @internal
  */
-final class Composer
+final class ComposerJson
 {
 	/**
 	 * The composer.json of the root or of a directory above it, the way the configuration file is looked up.

@@ -47,13 +47,13 @@ final readonly class ProjectPackages
 
 	public static function read(string $root): self
 	{
-		$composerFile = Composer::findFile($root);
+		$composerFile = ComposerJson::findFile($root);
 		if ($composerFile === null) {
 			return new self;
 		}
 
 		$base = Helpers::canonicalizePath(dirname($composerFile));
-		$composer = Composer::read($composerFile) ?? [];
+		$composer = ComposerJson::read($composerFile) ?? [];
 		$vendorDir = $composer['config']['vendor-dir'] ?? 'vendor';
 		$vendor = Helpers::canonicalizePath(Helpers::toAbsolutePath(is_string($vendorDir) ? $vendorDir : 'vendor', $base));
 
@@ -67,7 +67,7 @@ final readonly class ProjectPackages
 		}
 
 		$installed = $replaced = [];
-		$data = Composer::read("$vendor/composer/installed.json") ?? [];
+		$data = ComposerJson::read("$vendor/composer/installed.json") ?? [];
 		foreach (is_array($data['packages'] ?? null) ? $data['packages'] : $data as $package) {
 			if (!is_array($package) || !is_string($package['name'] ?? null)) {
 				continue;

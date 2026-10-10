@@ -18,7 +18,7 @@ use function count, is_string;
 
 /**
  * Resolves a configuration in a project and builds the runner of a run from it; what the composer.json of the
- * project says is read by `Composer` and `ProjectPackages`.
+ * project says is read by `ComposerJson` and `ProjectPackages`.
  * @internal
  */
 final readonly class RunnerFactory
@@ -491,7 +491,7 @@ final readonly class RunnerFactory
 	public function getPhpTarget(Config $config, string $root): array
 	{
 		$php = $config->targets['php'] ?? null;
-		$detected = $php === null ? Composer::detectPhpTarget(Composer::findFile($root)) : null;
+		$detected = $php === null ? ComposerJson::detectPhpTarget(ComposerJson::findFile($root)) : null;
 		return match (true) {
 			$php !== null => [$php, PhpVersionSource::Configuration],
 			$detected !== null => [$detected, PhpVersionSource::Composer],

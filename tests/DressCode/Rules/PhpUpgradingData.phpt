@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\Rules\Upgrading\{NoDeprecatedPhpCallsRule, PhpUpgradingData, UpgradingOperation};
+use DressCode\Rules\Upgrading\{NoDeprecatedPhpCallsRule, PhpUpgradingData, PhpUpgradingOperation};
 use DressCode\Testing\RuleTester;
 use Tester\Assert;
 
@@ -15,7 +15,7 @@ test('the upgrading data of PHP are read from a file, the one DressCode ships un
 	file_put_contents($file, "since 8.1:\n\tforbiddenFunctions:\n\t\tacme_retired: deprecated\n\treplacedCalls:\n\t\t'Acme\\Mail\\Mailer::flush()': removed\n");
 	$data = PhpUpgradingData::fromFile($file);
 	Assert::same(['acme_retired', 'acme\mail\mailer::flush'], array_keys($data->getEntries()));
-	Assert::same(UpgradingOperation::Report, $data->getEntries()['acme_retired'][0]->operation);
+	Assert::same(PhpUpgradingOperation::Report, $data->getEntries()['acme_retired'][0]->operation);
 	Assert::same([['acme\mail\mailer::flush', $data->getEntries()['acme\mail\mailer::flush'][0]]], $data->getMethodEntries('Flush'));
 	Assert::same([], $data->getMethodEntries('send'));
 
