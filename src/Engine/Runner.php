@@ -41,12 +41,19 @@ final readonly class Runner
 		private ?Profiler $profiler = null,
 		/** @var ?\Closure(): void  fills the cache the workers share, which those started together would all write at once */
 		public ?\Closure $warmUp = null,
-		public TypeAnalysisStatus $typeAnalysis = TypeAnalysisStatus::Unavailable,
+		private TypeAnalysisStatus $typeAnalysis = TypeAnalysisStatus::Unavailable,
 		/** the configuration lists functions or constants the namespaces declare */
-		public bool $namespacesListed = false,
+		private bool $namespacesListed = false,
 	) {
 		$this->root = Helpers::canonicalizePath($root);
 		$this->processors = $processors instanceof FileProcessor ? FileProcessors::of($processors) : $processors;
+	}
+
+
+	/** What a reporter is told of the run before the first file. */
+	public function createRunInfo(bool $fix, int $fileCount): RunInfo
+	{
+		return new RunInfo($this->root, $fix, $fileCount, $this->typeAnalysis, $this->namespacesListed);
 	}
 
 
@@ -67,7 +74,7 @@ final readonly class Runner
 		?int $maxWarnings = null,
 	): RunResult
 	{
-		$reporter->start(new RunInfo($this->root, $fix, count($files), $this->typeAnalysis, $this->namespacesListed));
+		$reporter->start($this->createRunInfo($fix, count($files)));
 		/** @var array<string, FileResult|string> $ready the finished files, a cached one by the hash of its content */
 		$ready = [];
 		$order = $pending = $sizes = [];

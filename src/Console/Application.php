@@ -9,7 +9,7 @@ namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, Plugin, Reporter, Reporters, RuleException};
 use DressCode\Config\{Catalogue, ConfigResolver, CorePlugin, Loader, PhpVersionSource, PluginRegistry, ResolvedProject, RunnerFactory};
-use DressCode\Engine\{Baseline, FileSummary, Helpers, Profiler, RunInfo, Runner, RunResult, SuppressionMigration, Worker, WorkerPool};
+use DressCode\Engine\{Baseline, FileSummary, Helpers, Profiler, Runner, RunResult, SuppressionMigration, Worker, WorkerPool};
 use DressCode\Interop\{PhpCodeSniffer, PhpCsFixer, Translator};
 use DressCode\Measuring\Proposal;
 use Nette\CommandLine\{Ansi, ColorDepth, Command, Console, HelpRenderer, Normalizers, ParseException as CommandLineException, Parser, ParseResult};
@@ -400,7 +400,7 @@ final class Application
 			? $this->createReporter($args, $this->err, $this->stderr, $root, $format, $registry)
 			: $this->createReporter($args, $this->out, $this->stdout, $root, $format, $registry);
 		$code = (string) stream_get_contents($this->stdin);
-		$reporter->start(new RunInfo($root, $fix, 1, $runner->typeAnalysis, $runner->namespacesListed));
+		$reporter->start($runner->createRunInfo($fix, 1));
 		$result = $runner->processPath($this->resolvePath($path), fix: false, code: $code);
 		$reporter->reportFile($result);
 		$run = new RunResult([FileSummary::of($result)], $fix, maxWarnings: $maxWarnings);

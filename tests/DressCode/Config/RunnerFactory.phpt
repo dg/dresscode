@@ -369,7 +369,7 @@ test('types without PHPStan beside DressCode are a warning, and the run goes wit
 		['The configuration sets `typeAnalysis: phpstan`, but `phpstan/phpstan` is not installed beside DressCode, so the run goes without the types of the code.' => 'types#enable'],
 		$resolution->warnings,
 	);
-	Assert::same(TypeAnalysisStatus::Unavailable, $factory->createRunner($resolution, cache: false)->typeAnalysis);
+	Assert::same(TypeAnalysisStatus::Unavailable, $factory->createRunner($resolution, cache: false)->createRunInfo(fix: false, fileCount: 0)->typeAnalysis);
 
 	// a decision the project makes cannot be left out, so it is refused
 	Assert::exception(
