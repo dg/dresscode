@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\{Config, ConfigurationException, Decision, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, Rule, RuleInfo, Stage};
+use DressCode\{Config, ConfigurationException, Decision, DecisionKind, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, Rule, RuleInfo, Stage};
 use DressCode\Config\{ConfigResolver, PluginRegistry, ProjectPackages, ResolvedRule, RuleBuilder};
 use DressCode\Domains\{Count, GrammarEntry, Map};
 use Tester\Assert;
@@ -52,7 +52,7 @@ final class RuleC extends ResolvedTestRule
 
 	public static function getDecisions(): array
 	{
-		return [self::decide('c', 'C'), new Decision('project.cMax', new Count, 'The most of C', parameter: true, default: 3)];
+		return [self::decide('c', 'C'), new Decision('project.cMax', new Count, 'The most of C', kind: DecisionKind::Parameter, default: 3)];
 	}
 
 

@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{ConfigurationException, Decision, Rule, Values};
+use DressCode\{ConfigurationException, Decision, DecisionKind, Rule, Values};
 use function array_key_exists, is_array;
 
 
@@ -103,7 +103,7 @@ final class RuleBuilder
 			$decisions = $resolver->catalogue->getDecisionsOf($class);
 			if (
 				$resolver->findRuleReason($class) === null
-				&& array_any($decisions, fn(Decision $decision) => !$decision->parameter && $resolved[$decision->path]->inactive === null)
+				&& array_any($decisions, fn(Decision $decision) => $decision->kind !== DecisionKind::Parameter && $resolved[$decision->path]->inactive === null)
 			) {
 				$rule = new $class;
 				$rule->configure($values);

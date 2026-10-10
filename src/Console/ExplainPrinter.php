@@ -8,7 +8,7 @@
 namespace DressCode\Console;
 
 use DressCode\Config\{PluginRegistry, ResolvedConfig, ResolvedDecision};
-use DressCode\{RuleInfo, Value, Violation};
+use DressCode\{DecisionKind, RuleInfo, Value, Violation};
 use function count, is_bool, is_string, strlen;
 
 
@@ -77,9 +77,10 @@ final readonly class ExplainPrinter
 			$out .= self::escape($note) . "\n\n";
 		}
 
-		$out .= match ($decision->parameter) {
-			true => 'A parameter, which refines a requirement and turns nothing on.',
-			false => $decision->fact ? 'A fact of the project, which the rule guards.' : 'A requirement, which turns its rule on where it is not `keep`.',
+		$out .= match ($decision->kind) {
+			DecisionKind::Parameter => 'A parameter, which refines a requirement and turns nothing on.',
+			DecisionKind::Fact => 'A fact of the project, which the rule guards.',
+			DecisionKind::Requirement => 'A requirement, which turns its rule on where it is not `keep`.',
 		} . "\n\n";
 		$out .= 'Takes: ' . self::escape($decision->describeValues()) . "\n\n";
 

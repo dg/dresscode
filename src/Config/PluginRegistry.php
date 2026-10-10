@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{ConfigurationException, Decision, Rule};
+use DressCode\{ConfigurationException, Decision, DecisionKind, Rule};
 use DressCode\Interop\Translator;
 use DressCode\Rules\QualifiedNames;
 use Nette\Utils\Helpers;
@@ -184,13 +184,13 @@ final class PluginRegistry
 		if ($catalogue->getDecisionsUnder($name) !== []) {
 			return [$name];
 		} elseif (class_exists($name) && is_subclass_of($name, Rule::class)) {
-			$requirements = array_filter(Catalogue::collectDecisions($name), fn(Decision $decision) => !$decision->parameter);
+			$requirements = array_filter(Catalogue::collectDecisions($name), fn(Decision $decision) => $decision->kind !== DecisionKind::Parameter);
 			return array_values(array_map(fn(Decision $decision) => $decision->path, $requirements));
 		}
 
 		return array_values(array_filter(
 			$this->translator->findPaths($name),
-			fn(string $path) => $catalogue->find($path)?->parameter === false,
+			fn(string $path) => ($catalogue->find($path)->kind ?? DecisionKind::Parameter) !== DecisionKind::Parameter,
 		));
 	}
 

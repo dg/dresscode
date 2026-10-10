@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Config, ConfigurationException, Decision, Plugin, Profile, Rule, RuleInfo, Value, Values};
+use DressCode\{Config, ConfigurationException, Decision, DecisionKind, Plugin, Profile, Rule, RuleInfo, Value, Values};
 use DressCode\Domains\Map;
 use DressCode\Engine\Helpers;
 use PhpSyntax\SymbolKind;
@@ -294,7 +294,7 @@ final class ConfigResolver
 		bool $ofOverride,
 	): ResolvedRule
 	{
-		$own = array_filter($decisions, fn(ResolvedDecision $decision) => !$decision->decision->parameter);
+		$own = array_filter($decisions, fn(ResolvedDecision $decision) => $decision->decision->kind !== DecisionKind::Parameter);
 		$effective = $ruleReason === null ? array_filter($own, fn(ResolvedDecision $decision) => $decision->inactive === null) : [];
 		$reasons = $ruleReason === null ? [] : [$ruleReason];
 		foreach ($ruleReason === null ? $own : [] as $decision) {
@@ -567,7 +567,7 @@ final class ConfigResolver
 			$resolved = $this->registry->registerRuleOrResolvePreset($name);
 			$class = $resolved->rule;
 			if ($class !== null) {
-				$requirements = array_filter($this->getCatalogue()->getDecisionsOf($class), fn(Decision $decision) => !$decision->parameter);
+				$requirements = array_filter($this->getCatalogue()->getDecisionsOf($class), fn(Decision $decision) => $decision->kind !== DecisionKind::Parameter);
 				return new ExpandedName($class, false, $class, [$class], array_keys($requirements));
 			}
 
@@ -651,7 +651,7 @@ final class ConfigResolver
 				// a rule left out is named by its requirements, which is what the user writes
 				$names = array_map(fn(string $path) => "`$path`", array_keys(array_filter(
 					array_merge(...array_map(fn(string $rule) => $this->getCatalogue()->getDecisionsOf($rule), array_values($left))),
-					fn(Decision $decision) => !$decision->parameter,
+					fn(Decision $decision) => $decision->kind !== DecisionKind::Parameter,
 				)));
 				$this->warnings["only $expanded->name"] = 'Option `--only` keeps ' . count($running) . ' of the ' . (count($running) + count($left))
 					. ' rules of ' . $expanded->format() . ' that may run here'

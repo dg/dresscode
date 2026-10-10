@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Namespaces;
 
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Decision, DecisionKind, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Domains\Names;
 use PhpSyntax\Analyses\{NameResolver, NamespacedSymbols};
 use PhpSyntax\{Node, SymbolKind, Token};
@@ -26,8 +26,8 @@ final class NoUnlistedNamespacedDeclarationsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('namespaces.functions', new Names, 'The functions the namespaces of the project declare, each of them listed once the names are certain', fact: true, default: []),
-			new Decision('namespaces.constants', new Names, 'The constants the namespaces of the project declare, each of them listed once the names are certain', fact: true, default: []),
+			new Decision('namespaces.functions', new Names, 'The functions the namespaces of the project declare, each of them listed once the names are certain', kind: DecisionKind::Fact, default: []),
+			new Decision('namespaces.constants', new Names, 'The constants the namespaces of the project declare, each of them listed once the names are certain', kind: DecisionKind::Fact, default: []),
 		];
 	}
 

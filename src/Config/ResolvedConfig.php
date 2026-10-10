@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Analyses, ImportStyle, Rule, Style, Values};
+use DressCode\{Analyses, DecisionKind, ImportStyle, Rule, Style, Values};
 use DressCode\Engine\Gate;
 use PhpSyntax\Analyses\NamespacedSymbols;
 
@@ -154,7 +154,7 @@ final readonly class ResolvedConfig
 			'suppressionComments' => $this->suppressionComments,
 			'decisions' => array_map(fn(ResolvedDecision $decision) => $decision->value->toData(), $this->decisions),
 			'fixRisky' => array_keys($this->fixRisky),
-			'selected' => array_keys(array_filter($this->decisions, fn(ResolvedDecision $decision) => !$decision->decision->parameter && $this->values->isSelected($decision->decision->path))),
+			'selected' => array_keys(array_filter($this->decisions, fn(ResolvedDecision $decision) => $decision->decision->kind !== DecisionKind::Parameter && $this->values->isSelected($decision->decision->path))),
 			'overrides' => array_map(fn(self $override) => $override->toArray(), $this->overrides),
 		];
 	}

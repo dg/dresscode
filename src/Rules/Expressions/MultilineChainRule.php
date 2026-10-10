@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Stage, Values};
+use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression\{MethodCallNode, PropertyFetchNode};
@@ -36,7 +36,7 @@ final class MultilineChainRule extends GapRule
 			new Decision(self::FirstLinks, new Words([
 				self::OwnLine => 'the first link begins a line too',
 				self::SameLine => 'the links before the first one beginning a line stay on the line the chain starts on',
-			]), 'Where the links stand that come before the first one beginning a line', parameter: true, default: self::OwnLine),
+			]), 'Where the links stand that come before the first one beginning a line', kind: DecisionKind::Parameter, default: self::OwnLine),
 		];
 	}
 

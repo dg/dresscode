@@ -68,6 +68,22 @@ enum Severity: string
 
 
 /**
+ * What a decision is to its rule.
+ */
+enum DecisionKind: string
+{
+	/** turns its rule on wherever it is not `keep` */
+	case Requirement = 'requirement';
+
+	/** only refines a requirement and turns nothing on, so it takes no `keep` and has a default */
+	case Parameter = 'parameter';
+
+	/** a key of the environment the rule guards, which `--only` never narrows away */
+	case Fact = 'fact';
+}
+
+
+/**
  * What a gap rule asks for between two tokens sharing a line.
  */
 enum Space

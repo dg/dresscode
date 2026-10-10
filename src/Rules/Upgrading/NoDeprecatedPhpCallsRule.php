@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\{Config, Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Config, Decision, DecisionKind, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Map;
 use DressCode\Rules\{CodeWriter, GlobalCalls, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
@@ -61,7 +61,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 				'upgrading.php.deprecatedCallExcept',
 				new Map(Domain::state(), caseInsensitive: true),
 				'The entries of the upgrading data of PHP withdrawn, by the name of the function or `Class::method`, each written `name: keep`',
-				parameter: true,
+				kind: DecisionKind::Parameter,
 				default: [],
 			),
 		];

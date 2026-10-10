@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Namespaces;
 
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values, Violation};
+use DressCode\{Decision, DecisionKind, NodeRule, RuleContext, RuleInfo, Stage, Values, Violation};
 use DressCode\Domains\{Flag, Words};
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\FileNode;
@@ -42,7 +42,7 @@ final class ImportOrderRule extends NodeRule
 				'alphabetical' => 'the names of a kind sorted alphabetically',
 				'asWritten' => 'the names of a kind in the order written',
 			]), 'The order of the names of one kind among consecutive imports, classes standing before functions and functions before constants, the names of a statement poured back into statements of the shapes written'),
-			new Decision(self::CaseSensitive, new Flag, 'Whether `Acme` sorts before `acme` rather than with it', parameter: true, default: false),
+			new Decision(self::CaseSensitive, new Flag, 'Whether `Acme` sorts before `acme` rather than with it', kind: DecisionKind::Parameter, default: false),
 		];
 	}
 

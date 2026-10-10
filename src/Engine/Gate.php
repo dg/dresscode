@@ -7,7 +7,7 @@
 
 namespace DressCode\Engine;
 
-use DressCode\{Decision, Values};
+use DressCode\{Decision, DecisionKind, Values};
 use function array_key_exists, count;
 
 
@@ -39,7 +39,7 @@ final readonly class Gate
 	{
 		$map = [];
 		foreach ($decisions as $decision) {
-			$map[$decision->path] = $decision->parameter ? null : $values->isSelected($decision->path);
+			$map[$decision->path] = $decision->kind === DecisionKind::Parameter ? null : $values->isSelected($decision->path);
 		}
 
 		return new self($map);
@@ -54,7 +54,7 @@ final readonly class Gate
 	{
 		$map = [];
 		foreach ($decisions as $decision) {
-			$map[$decision->path] = $decision->parameter ? null : true;
+			$map[$decision->path] = $decision->kind === DecisionKind::Parameter ? null : true;
 		}
 
 		return new self($map);

@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Files;
 
-use DressCode\{ConfigurationException, Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{ConfigurationException, Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Names;
 use PhpSyntax\{Indentation, Token, Trivia};
 use PhpSyntax\Nodes\Scalar\HeredocNode;
@@ -36,7 +36,7 @@ final class LineLengthRule extends NodeRule
 	{
 		return [
 			new Decision('file.lineLength.overMax', Domain::state('forbidden'), 'A line wider than `file.lineLength.max`, which nothing could split, is reported'),
-			new Decision('file.lineLength.except', new Names, 'The lines never reported: `imports` for a `use` import, which cannot be broken, and regular expressions of others', parameter: true, default: ['imports']),
+			new Decision('file.lineLength.except', new Names, 'The lines never reported: `imports` for a `use` import, which cannot be broken, and regular expressions of others', kind: DecisionKind::Parameter, default: ['imports']),
 		];
 	}
 

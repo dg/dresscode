@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
+use DressCode\{Claim, Decision, DecisionKind, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
 use DressCode\Domains\Shapes;
 use PhpSyntax\Nodes\Expression\TernaryNode;
 
@@ -40,7 +40,7 @@ final class TernaryOperatorSpacingRule extends GapRule
 	{
 		return [
 			new Decision(self::Spacing, new Shapes(['spaced' => ['$a ? $b : $c', 'whitespace around `?` and `:`']]), 'The whitespace around `?` and `:` of a ternary, and around `?:` as a whole, unless the operator sits at a line break'),
-			new Decision(self::Alignment, Domain::alignment('none', 'any'), 'Whether more spaces around `?` and `:` stay', parameter: true, default: 'any'),
+			new Decision(self::Alignment, Domain::alignment('none', 'any'), 'Whether more spaces around `?` and `:` stay', kind: DecisionKind::Parameter, default: 'any'),
 			new Decision(self::Position, Domain::lineStart(), 'Where `?`, `:` and `?:` of a ternary stand at a line break'),
 		];
 	}

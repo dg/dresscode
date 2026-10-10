@@ -2,7 +2,7 @@
 
 use DressCode\Analyses\IndentationPlan;
 use DressCode\Config\{Catalogue, CorePlugin};
-use DressCode\{ConfigurationException, Decision, Domain, ImportStyle, NodeRule, RuleInfo, Stage};
+use DressCode\{ConfigurationException, Decision, DecisionKind, Domain, ImportStyle, NodeRule, RuleInfo, Stage};
 use DressCode\Domains\{Count, Names, Shapes};
 use Tester\Assert;
 
@@ -35,7 +35,7 @@ final class TrailingIfRule extends TestRule
 	{
 		return [
 			new Decision('controlFlow.trailingIf', Domain::state(), 'An `if` ending a body becomes a guard', ['A loop is no body here']),
-			new Decision('controlFlow.trailingIfMinStatements', new Count(1), 'The statements its body has at least', parameter: true, default: 2),
+			new Decision('controlFlow.trailingIfMinStatements', new Count(1), 'The statements its body has at least', kind: DecisionKind::Parameter, default: 2),
 		];
 	}
 }
@@ -46,7 +46,7 @@ final class GuardRule extends TestRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('namespaces.functions', new Names, 'The functions the namespaces declare', fact: true, default: [])];
+		return [new Decision('namespaces.functions', new Names, 'The functions the namespaces declare', kind: DecisionKind::Fact, default: [])];
 	}
 }
 

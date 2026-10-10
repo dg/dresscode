@@ -6,7 +6,7 @@
  */
 
 use DressCode\Config\{Catalogue, DecisionResolver, InactiveReason, Layer, LayerKind, RuleBuilder};
-use DressCode\{Decision, Domain, NodeRule, RuleInfo, Stage, Values};
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleInfo, Stage, Values};
 use DressCode\Domains\Names;
 use Tester\Assert;
 
@@ -33,7 +33,7 @@ final class DebugRule extends TestRule
 	{
 		return [
 			new Decision('correctness.debugOutput.statement', Domain::state(), 'A statement printing debug output'),
-			new Decision('correctness.debugOutput.functions', new Names, 'The functions printing it', parameter: true, default: ['var_dump']),
+			new Decision('correctness.debugOutput.functions', new Names, 'The functions printing it', kind: DecisionKind::Parameter, default: ['var_dump']),
 		];
 	}
 
@@ -92,7 +92,7 @@ final class GuardRule extends TestRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('namespaces.functions', new Names, 'The functions the namespaces declare', fact: true, default: [])];
+		return [new Decision('namespaces.functions', new Names, 'The functions the namespaces declare', kind: DecisionKind::Fact, default: [])];
 	}
 }
 

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\{ConfigurationException, Decision, Domain};
+use DressCode\{ConfigurationException, Decision, DecisionKind, Domain};
 use DressCode\Domains\{Count, Flag, Map, Names, Shapes, Text, Words};
 use Tester\Assert;
 
@@ -186,7 +186,7 @@ test('a requirement takes keep, a parameter does not', function () {
 	Assert::true($requirement->takesKeep());
 	Assert::same('`forbidden` (never there); `keep`', $requirement->describeValues());
 
-	$parameter = new Decision('correctness.debugOutput.functions', new Names, 'The functions printing debug output', parameter: true, default: ['var_dump']);
+	$parameter = new Decision('correctness.debugOutput.functions', new Names, 'The functions printing debug output', kind: DecisionKind::Parameter, default: ['var_dump']);
 	Assert::false($parameter->isRequirement());
 	Assert::false($parameter->takesKeep());
 	Assert::exception(fn() => $parameter->accept('keep'), ConfigurationException::class, 'Key `correctness.debugOutput.functions` does not take `keep`; write a list of names.');
@@ -201,5 +201,4 @@ test('a requirement takes keep, a parameter does not', function () {
 	Assert::exception(fn() => new Decision('calls', Domain::state(), ''), InvalidArgumentException::class, 'Decision path `calls` is not `section.key`, every link an identifier.');
 	Assert::exception(fn() => new Decision('calls.is-null', Domain::state(), ''), InvalidArgumentException::class);
 	Assert::noError(fn() => new Decision('correctness.__set_state', Domain::state(), ''));
-	Assert::exception(fn() => new Decision('a.b', new Names, '', parameter: true, fact: true, default: []), InvalidArgumentException::class);
 });

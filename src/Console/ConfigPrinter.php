@@ -8,6 +8,7 @@
 namespace DressCode\Console;
 
 use DressCode\Config\{Catalogue, PluginRegistry, ResolvedConfig, ResolvedDecision, UpgradingData, Versions};
+use DressCode\DecisionKind;
 use DressCode\Engine\Helpers;
 use Nette\CommandLine\{Ansi, Console};
 use Nette\Neon\Neon;
@@ -170,7 +171,7 @@ final readonly class ConfigPrinter
 				'value' => $decision->value->toData(),
 				'layer' => $decision->value->origin?->describe(),
 				'inactive' => $decision->inactive?->value,
-				'selected' => !$decision->decision->parameter && $this->config->values->isSelected($decision->decision->path),
+				'selected' => $decision->decision->kind !== DecisionKind::Parameter && $this->config->values->isSelected($decision->decision->path),
 			], $this->config->decisions) ?: new \stdClass,
 		], pretty: true) . "\n";
 	}

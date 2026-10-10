@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
-use DressCode\{ConfigurationException, Decision, ImportStyle, Plugin, Rule, RuleInfo};
+use DressCode\{ConfigurationException, Decision, DecisionKind, ImportStyle, Plugin, Rule, RuleInfo};
 use Nette\Utils\Helpers;
 use function count, is_string;
 
@@ -288,8 +288,8 @@ final class Catalogue
 		foreach ($declared as $decision) {
 			$path = $decision->path;
 			$section = explode('.', $path, 2)[0];
-			if ($decision->fact ? !in_array($section, self::ReservedKeys, true) : !in_array($section, $sections, true)) {
-				throw new ConfigurationException($decision->fact
+			if ($decision->kind === DecisionKind::Fact ? !in_array($section, self::ReservedKeys, true) : !in_array($section, $sections, true)) {
+				throw new ConfigurationException($decision->kind === DecisionKind::Fact
 					? "Rule `$rule` declares the fact `$path`, which is no key of the environment."
 					: "Rule `$rule` declares `$path` outside " . (count($sections) > 1 ? 'the sections' : 'the section `' . $sections[0] . '`') . " of $who.");
 			} elseif (isset($this->trees[$path])) {
@@ -341,7 +341,7 @@ final class Catalogue
 		foreach ($decisions as $decision) {
 			if (!in_array(explode('.', $decision->path, 2)[0], $sections, true)) {
 				throw new ConfigurationException("The tree of $who declares `$decision->path` outside " . (count($sections) > 1 ? 'its sections' : 'the section `' . $sections[0] . '`') . '.');
-			} elseif ($decision->fact) {
+			} elseif ($decision->kind === DecisionKind::Fact) {
 				throw new ConfigurationException("The tree of $who declares the fact `$decision->path`; a fact is declared by the rule guarding it.");
 			} elseif (isset($this->trees[$decision->path])) {
 				throw new ConfigurationException("Decision `$decision->path` is declared by two trees.");

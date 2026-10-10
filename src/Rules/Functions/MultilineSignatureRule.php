@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\Analyses\IndentationPlan;
-use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
+use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
 use DressCode\Domains\Words;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Indentation, Node};
@@ -45,7 +45,7 @@ final class MultilineSignatureRule extends GapRule
 			new Decision(self::Promoted, new Words([
 				'always' => 'spread over lines whatever its length',
 				'asSignature' => 'spread only when its line is too long, as any signature',
-			]), 'When a signature declaring a promoted property is spread over lines', parameter: true, default: 'always'),
+			]), 'When a signature declaring a promoted property is spread over lines', kind: DecisionKind::Parameter, default: 'always'),
 			new Decision(self::Shape, new Words(['perLine' => 'every parameter on a line of its own']), 'The parameters of a signature spread over lines, or with a parameter whose hooks span lines, each comma on the line of its parameter and the closing parenthesis on the next'),
 		];
 	}

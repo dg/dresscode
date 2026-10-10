@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Namespaces;
 
-use DressCode\{Decision, ImportStyle, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, DecisionKind, ImportStyle, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Count;
 use DressCode\Rules\{CodeWriter, NodeHelpers};
 use PhpSyntax\{Builder, Node, Token};
@@ -51,7 +51,7 @@ final class ImportNotationRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision(self::GroupUseMinNames, new Count(2, range: false), 'How many names of one namespace make a group use, a group of fewer written as imports of their own', parameter: true, default: 2),
+			new Decision(self::GroupUseMinNames, new Count(2, range: false), 'How many names of one namespace make a group use, a group of fewer written as imports of their own', kind: DecisionKind::Parameter, default: 2),
 		];
 	}
 

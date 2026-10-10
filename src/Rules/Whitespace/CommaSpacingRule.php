@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Whitespace;
 
-use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
+use DressCode\{Claim, Decision, DecisionKind, Domain, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
 use DressCode\Domains\Shapes;
 use PhpSyntax\Nodes\MatchArmNode;
 use PhpSyntax\Token;
@@ -30,7 +30,7 @@ final class CommaSpacingRule extends GapRule
 	{
 		return [
 			new Decision('spacing.comma.around', new Shapes(['spaced' => ['$a, $b', 'none before, a single space after']]), 'The whitespace around a comma, which stays on the line of what is before it, a line ending after it being free'),
-			new Decision(self::Alignment, Domain::alignment(), 'Which whitespace wider than a single space after a comma stays, aligning the columns of a table; alignment is never made', parameter: true, default: 'tabs'),
+			new Decision(self::Alignment, Domain::alignment(), 'Which whitespace wider than a single space after a comma stays, aligning the columns of a table; alignment is never made', kind: DecisionKind::Parameter, default: 'tabs'),
 		];
 	}
 

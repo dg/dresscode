@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Config\{Layer, LayerKind};
-use DressCode\{ConfigurationException, Decision, Domain, Values};
+use DressCode\{ConfigurationException, Decision, DecisionKind, Domain, Values};
 use DressCode\Domains\{Count, GrammarEntry, Map, Names, Shapes};
 use Nette\Schema\Expect;
 use Tester\Assert;
@@ -20,8 +20,8 @@ function createValues(array $raw, ?array $selection = null): Values
 		new Decision('spacing.call', new Shapes(['compact' => ['foo()', ''], 'spaced' => ['foo ()', '']]), 'The space before the parenthesis'),
 		new Decision('spacing.comma.around', new Shapes(['spaced' => ['$a, $b', '']]), 'The space around a comma'),
 		new Decision('controlFlow.trailingIf', Domain::state(), 'An `if` ending a body becomes a guard'),
-		new Decision('controlFlow.trailingIfMinStatements', new Count(1), 'The statements its body has at least', parameter: true, default: 2),
-		new Decision('namespaces.functions', new Names, 'The functions the namespaces declare', fact: true, default: []),
+		new Decision('controlFlow.trailingIfMinStatements', new Count(1), 'The statements its body has at least', kind: DecisionKind::Parameter, default: 2),
+		new Decision('namespaces.functions', new Names, 'The functions the namespaces declare', kind: DecisionKind::Fact, default: []),
 	] as $decision) {
 		$decisions[$decision->path] = $decision;
 	}
@@ -95,8 +95,8 @@ test('a map without a grammar is read normalized by the domain of its values', f
 
 
 test('a parameter has a default, a requirement has none', function () {
-	Assert::exception(fn() => new Decision('a.b', new Names, '', parameter: true), InvalidArgumentException::class, 'Parameter `a.b` must have a default.');
+	Assert::exception(fn() => new Decision('a.b', new Names, '', kind: DecisionKind::Parameter), InvalidArgumentException::class, 'Parameter `a.b` must have a default.');
 	Assert::exception(fn() => new Decision('a.b', Domain::state(), '', default: 'forbidden'), InvalidArgumentException::class, 'Requirement `a.b` has no default, one nobody names requiring nothing.');
 	Assert::true(new Decision('a.b', Domain::state(), '')->getDefault()->isKept());
-	Assert::same(['Traversable'], new Decision('a.b', new Names, '', parameter: true, default: ['Traversable'])->getDefault()->getNames());
+	Assert::same(['Traversable'], new Decision('a.b', new Names, '', kind: DecisionKind::Parameter, default: ['Traversable'])->getDefault()->getNames());
 });

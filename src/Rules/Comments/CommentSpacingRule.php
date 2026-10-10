@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Comments;
 
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Space, Stage, Values};
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Space, Stage, Values};
 use DressCode\Domains\Shapes;
 use PhpSyntax\{Node, Token, Trivia};
 use function count;
@@ -35,7 +35,7 @@ final class CommentSpacingRule extends NodeRule
 		return [
 			new Decision(self::Marker, new Shapes(['spaced' => ['// text', 'a single space after the marker']]), 'The space after the marker of a comment and before the closing one, unless another `/` or `*` follows the marker, as in a `////` ruler; doc comments are the matter of the phpDoc rules'),
 			new Decision(self::AfterCode, new Shapes(['spaced' => ['$a; // text', 'at least one space']]), 'The whitespace before a comment that follows code on its line'),
-			new Decision(self::Alignment, Domain::alignment('none', 'any'), 'Whether a comment following code may be aligned by more spaces', parameter: true, default: 'any'),
+			new Decision(self::Alignment, Domain::alignment('none', 'any'), 'Whether a comment following code may be aligned by more spaces', kind: DecisionKind::Parameter, default: 'any'),
 		];
 	}
 

@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\PhpDoc;
-use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, DecisionKind, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\{Names, Words};
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\{Node, Token};
@@ -40,8 +40,8 @@ final class FinalForInternalClassRule extends NodeRule
 	{
 		return [
 			new Decision('classes.markedInternal.class', new Words(['final' => 'declared final']), 'A class its author marked `@internal`, which nothing outside the package may extend'),
-			new Decision(self::Required, new Names, 'The annotations a class must all carry to count as internal', parameter: true, default: ['@internal']),
-			new Decision(self::Exempt, new Names, 'The annotations that keep an internal class as it is, an entity for instance', parameter: true, default: self::DefaultExempt),
+			new Decision(self::Required, new Names, 'The annotations a class must all carry to count as internal', kind: DecisionKind::Parameter, default: ['@internal']),
+			new Decision(self::Exempt, new Names, 'The annotations that keep an internal class as it is, an entity for instance', kind: DecisionKind::Parameter, default: self::DefaultExempt),
 		];
 	}
 

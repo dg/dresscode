@@ -84,9 +84,9 @@ final readonly class Values
 	public function isSelected(string $path): bool
 	{
 		$decision = $this->getDecision($path);
-		if ($decision->parameter || $this->isKept($path)) {
+		if ($decision->kind === DecisionKind::Parameter || $this->isKept($path)) {
 			return false;
-		} elseif ($decision->fact || $this->selection === null) {
+		} elseif ($decision->kind === DecisionKind::Fact || $this->selection === null) {
 			return true;
 		}
 

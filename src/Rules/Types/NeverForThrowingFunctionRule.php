@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Types;
 
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Flag;
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{Expression, FunctionLikeNode, Statement, StatementNode};
@@ -44,7 +44,7 @@ final class NeverForThrowingFunctionRule extends NodeRule
 	{
 		return [
 			new Decision(self::Named, Domain::adopted(), 'The return type `never` of PHP 8.1 on a function or a method that always throws or exits, a method only where no descendant can declare it again'),
-			new Decision(self::Closure, new Flag, 'Whether a closure that always throws or exits gets the return type `never` too, though its signature usually belongs to the call it is passed to', parameter: true, default: false),
+			new Decision(self::Closure, new Flag, 'Whether a closure that always throws or exits gets the return type `never` too, though its signature usually belongs to the call it is passed to', kind: DecisionKind::Parameter, default: false),
 		];
 	}
 

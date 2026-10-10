@@ -6,7 +6,7 @@
  */
 
 use DressCode\Analyses\Registry;
-use DressCode\{Claim, Decision, Domain, GapRule, RuleContext, RuleInfo, Space, Stage, Style, Values};
+use DressCode\{Claim, Decision, DecisionKind, Domain, GapRule, RuleContext, RuleInfo, Space, Stage, Style, Values};
 use DressCode\Domains\{Count, Shapes};
 use DressCode\Engine\{Fingerprints, Gate, ReportPolicy, Suppression};
 use DressCode\Engine\Gaps\{DecidedClaim, Fixer};
@@ -25,7 +25,7 @@ final class SpacingRule extends GapRule
 		return [
 			new Decision('spacing.call', new Shapes(['compact' => ['foo()', '']]), 'The space before the parenthesis'),
 			new Decision('spacing.comma.around', new Shapes(['spaced' => ['$a, $b', '']]), 'The space around a comma'),
-			new Decision('spacing.comma.alignment', Domain::state(), 'Tabs aligning a column stay', parameter: true, default: 'forbidden'),
+			new Decision('spacing.comma.alignment', Domain::state(), 'Tabs aligning a column stay', kind: DecisionKind::Parameter, default: 'forbidden'),
 		];
 	}
 

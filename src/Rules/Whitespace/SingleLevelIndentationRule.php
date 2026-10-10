@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Whitespace;
 
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Style, Values};
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Style, Values};
 use DressCode\Domains\Flag;
 use PhpSyntax\{Indentation, Node, Token, Trivia};
 use PhpSyntax\Nodes\FileNode;
@@ -33,7 +33,7 @@ final class SingleLevelIndentationRule extends NodeRule
 	{
 		return [
 			new Decision(self::Code, Domain::state('required'), 'A line steps in by one level at most, and only to a level something opened, a comment spanning several lines included'),
-			new Decision(self::Comment, new Flag, 'Whether a single-line comment standing on a line of its own steps in as a line of code does', parameter: true, default: false),
+			new Decision(self::Comment, new Flag, 'Whether a single-line comment standing on a line of its own steps in as a line of code does', kind: DecisionKind::Parameter, default: false),
 		];
 	}
 

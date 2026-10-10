@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Config\{Catalogue, DecisionResolver, InactiveReason, Layer, LayerKind};
-use DressCode\{ConfigurationException, Decision, Domain, NodeRule, RuleInfo, Stage};
+use DressCode\{ConfigurationException, Decision, DecisionKind, Domain, NodeRule, RuleInfo, Stage};
 use DressCode\Domains\{Map, Names, Shapes, Words};
 use Tester\Assert;
 
@@ -17,7 +17,7 @@ final class QualificationRule extends NodeRule
 		return [
 			new Decision('qualification.globalFunction.normally', $words, 'A global function'),
 			new Decision('qualification.globalFunction.optimizedByCompiler', $words, 'A function the compiler optimizes'),
-			new Decision('qualification.globalFunction.except', new Map(new Words(['imported' => '', 'backslashed' => ''])), 'The names over the two', parameter: true, default: []),
+			new Decision('qualification.globalFunction.except', new Map(new Words(['imported' => '', 'backslashed' => ''])), 'The names over the two', kind: DecisionKind::Parameter, default: []),
 			new Decision('qualification.globalClass', $words, 'A global class'),
 			new Decision('qualification.renamed', new Map(new Words(['imported' => ''])), 'The names written otherwise'),
 		];
@@ -38,7 +38,7 @@ final class ResolvedDebugRule extends NodeRule
 	{
 		return [
 			new Decision('correctness.debugOutput.statement', Domain::state(), 'A statement printing debug output'),
-			new Decision('correctness.debugOutput.functions', new Names, 'The functions printing it', parameter: true, default: ['var_dump']),
+			new Decision('correctness.debugOutput.functions', new Names, 'The functions printing it', kind: DecisionKind::Parameter, default: ['var_dump']),
 			new Decision('spacing.call', new Shapes(['compact' => ['foo()', ''], 'spaced' => ['foo ()', '']]), 'The space before the parenthesis'),
 		];
 	}

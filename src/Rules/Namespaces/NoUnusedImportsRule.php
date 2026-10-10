@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Namespaces;
 
 use DressCode\Analyses\PhpDoc;
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Flag;
 use PhpSyntax\{NameForm, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{FileNode, NameNode};
@@ -33,7 +33,7 @@ final class NoUnusedImportsRule extends NodeRule
 	{
 		return [
 			new Decision(self::Unused, Domain::state('forbidden'), 'An import nothing uses is removed'),
-			new Decision(self::Annotations, new Flag, 'A class name in a doc comment, the name of an annotation such as `@DB\Entity` included, is resolved through the imports, which it therefore keeps in use', parameter: true, default: true),
+			new Decision(self::Annotations, new Flag, 'A class name in a doc comment, the name of an annotation such as `@DB\Entity` included, is resolved through the imports, which it therefore keeps in use', kind: DecisionKind::Parameter, default: true),
 		];
 	}
 

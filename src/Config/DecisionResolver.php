@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Config, ConfigurationException, Rule, RuleInfo, Value, Values};
+use DressCode\{Config, ConfigurationException, DecisionKind, Rule, RuleInfo, Value, Values};
 use DressCode\Interop\Translator;
 use Nette\Utils\Helpers;
 use function is_array, is_int, is_string, strlen;
@@ -68,7 +68,7 @@ final readonly class DecisionResolver
 				$merged,
 				array_column($said[$path] ?? [], 0),
 				match (true) {
-					$decision->fact => $this->certainNames ? null : InactiveReason::NameResolution,
+					$decision->kind === DecisionKind::Fact => $this->certainNames ? null : InactiveReason::NameResolution,
 					$decision->isRequirement() && $merged->isKept() => InactiveReason::Keep,
 					default => null,
 				},

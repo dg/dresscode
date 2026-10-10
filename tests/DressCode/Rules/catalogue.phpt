@@ -7,7 +7,7 @@
  */
 
 use DressCode\Config\{Catalogue, CorePlugin, DecisionResolver, Layer, LayerKind, PluginRegistry, RuleBuilder};
-use DressCode\{Decision, Domain, GapRule, Space, Style};
+use DressCode\{Decision, DecisionKind, Domain, GapRule, Space, Style};
 use DressCode\Domains\{Count, Shapes, Words};
 use DressCode\Engine\{Gaps, RulePlan};
 use Nette\Neon\Neon;
@@ -26,7 +26,7 @@ test('every decision of the tree of the core lies in a section of the core, once
 	$paths = [];
 	foreach ((new CorePlugin)->getManifest()->decisions as $decision) {
 		Assert::contains(explode('.', $decision->path)[0], Catalogue::CoreSections, $decision->path);
-		Assert::false($decision->fact, $decision->path);
+		Assert::false($decision->kind === DecisionKind::Fact, $decision->path);
 		Assert::notSame([], $catalogue->getRulesOf($decision->path), $decision->path);
 		$paths[] = $decision->path;
 	}

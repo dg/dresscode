@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\{PhpSignatures, Types};
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Count;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, DereferenceKind, Node, SymbolKind, Token};
@@ -45,7 +45,7 @@ final class PipeForNestedCallsRule extends NodeRule
 	{
 		return [
 			new Decision('upgrading.syntax.pipe.nestedCalls', Domain::adopted(), 'Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x |> a(...) |> b(...)` for `b(a($x))`'),
-			new Decision('upgrading.syntax.pipe.minCalls', new Count(2, range: false), 'The calls a nest has at least for the pipe operator to be written', parameter: true, default: 3),
+			new Decision('upgrading.syntax.pipe.minCalls', new Count(2, range: false), 'The calls a nest has at least for the pipe operator to be written', kind: DecisionKind::Parameter, default: 3),
 		];
 	}
 

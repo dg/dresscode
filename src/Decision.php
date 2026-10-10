@@ -24,20 +24,15 @@ final readonly class Decision
 		public string $description,
 		/** @var list<string>  what the key is not about, in sentences `explain` prints; never an action of its own */
 		public array $notes = [],
-		/** the value only refines a requirement and turns nothing on, so it takes no `keep` */
-		public bool $parameter = false,
-		/** the path is a key of the environment the rule guards, which `--only` never narrows away */
-		public bool $fact = false,
+		public DecisionKind $kind = DecisionKind::Requirement,
 		/** what a parameter or a fact is where no layer says it, as a layer would write it; a requirement nobody names requires nothing */
 		public mixed $default = null,
 	) {
 		if (!preg_match('~^[a-zA-Z_]\w*(\.[a-zA-Z_]\w*)+$~D', $path)) {
 			throw new \InvalidArgumentException("Decision path `$path` is not `section.key`, every link an identifier.");
-		} elseif ($parameter && $fact) {
-			throw new \InvalidArgumentException("Decision `$path` is a parameter or a fact, not both.");
-		} elseif ($parameter && $default === null) {
+		} elseif ($kind === DecisionKind::Parameter && $default === null) {
 			throw new \InvalidArgumentException("Parameter `$path` must have a default.");
-		} elseif (!$parameter && !$fact && $default !== null) {
+		} elseif ($kind === DecisionKind::Requirement && $default !== null) {
 			throw new \InvalidArgumentException("Requirement `$path` has no default, one nobody names requiring nothing.");
 		}
 	}
@@ -46,7 +41,7 @@ final readonly class Decision
 	/** Whether the decision turns its rule on wherever it is not `keep`. */
 	public function isRequirement(): bool
 	{
-		return !$this->parameter && !$this->fact;
+		return $this->kind === DecisionKind::Requirement;
 	}
 
 
@@ -89,11 +84,7 @@ final readonly class Decision
 	public function toArray(): array
 	{
 		return [
-			'kind' => match (true) {
-				$this->parameter => 'parameter',
-				$this->fact => 'fact',
-				default => 'requirement',
-			},
+			'kind' => $this->kind->value,
 			'domain' => $this->domain->toArray(),
 			'keep' => $this->takesKeep(),
 			'description' => $this->description,

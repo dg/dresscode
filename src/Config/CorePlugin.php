@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
-use DressCode\{Decision, Domain, ImportStyle, Plugin, PluginManifest, Rules, Violation};
+use DressCode\{Decision, DecisionKind, Domain, ImportStyle, Plugin, PluginManifest, Rules, Violation};
 use DressCode\Domains\{Count, GrammarEntry, Map, Names, Words};
 use DressCode\Rules\Upgrading\{AttributeForMemberEntry, AttributeTarget, CallTemplate, MemberMaps, MemberTarget};
 use Nette\Schema\{Context, Expect, Schema};
@@ -274,13 +274,13 @@ final class CorePlugin implements Plugin
 					'CRLF' => 'every line ends with CRLF',
 					'majority' => 'every line ends as most lines of the file do, LF on a tie',
 				]), 'The line ending of every line, which the code written new takes too; under `keep` that follows the file'),
-				new Decision('file.lineLength.max', new Count(1, range: false, words: ['none' => 'no line is too wide']), 'The widest line, by which what spreads over lines is split', parameter: true, default: 'none'),
+				new Decision('file.lineLength.max', new Count(1, range: false, words: ['none' => 'no line is too wide']), 'The widest line, by which what spreads over lines is split', kind: DecisionKind::Parameter, default: 'none'),
 				new Decision('indentation.unit', new Words([
 					'tab' => 'one tab per level',
 					'4 spaces' => 'four spaces per level',
 					'2 spaces' => 'two spaces per level',
 				]), 'Every line indented by the construct it continues, one level per nesting, the level being this unit; under `keep` a line stays where it is'),
-				new Decision('indentation.tabWidth', new Count(1, 8, range: false), 'How many columns a tab counts for in the width of a line', parameter: true, default: 4),
+				new Decision('indentation.tabWidth', new Count(1, 8, range: false), 'How many columns a tab counts for in the width of a line', kind: DecisionKind::Parameter, default: 4),
 				...self::createIndentationDecisions(),
 				...self::createImportDecisions(),
 
@@ -307,14 +307,14 @@ final class CorePlugin implements Plugin
 				new Decision('blankLines.afterPhpdoc', Domain::blankLines(), 'Between a doc comment or an attribute and the declaration it belongs to'),
 
 				// the classes a native type takes as iterable
-				new Decision('types.traversableClasses', new Names, 'Classes treated like `array` and `iterable`, whose annotation says what their items are', parameter: true, default: ['Traversable']),
+				new Decision('types.traversableClasses', new Names, 'Classes treated like `array` and `iterable`, whose annotation says what their items are', kind: DecisionKind::Parameter, default: ['Traversable']),
 
 				// the maps of what the libraries retired, those the project writes and those the upgrading files of the installed
 				// packages lay under them, each read by its grammar
 				new Decision('upgrading.libraries.packages', new Words([
 					'adopted' => 'the maps of the upgrading files of the installed packages lie under those the project writes',
 					'ignored' => 'the maps are those the project writes alone',
-				]), 'Whether what the upgrading files of the installed packages say is written as they say', parameter: true, default: 'ignored'),
+				]), 'Whether what the upgrading files of the installed packages say is written as they say', kind: DecisionKind::Parameter, default: 'ignored'),
 				new Decision('upgrading.libraries.replacedClasses', new Map(new GrammarEntry, grammar: self::createReplacedClassesGrammar(), caseInsensitive: true), 'A class written instead of another one, both fully qualified (`Acme\\Old\\Mailer: Acme\\Mail\\Mailer`)'),
 				new Decision('upgrading.libraries.replacedFunctions', new Map(new GrammarEntry, grammar: self::createReplacedFunctionsGrammar(), caseInsensitive: true), 'A function written instead of another one (`acme_send: Acme\\Mail\\send`)'),
 				new Decision('upgrading.libraries.replacedMembers', new Map(new GrammarEntry, grammar: self::createReplacedMembersGrammar()), 'A constant, a method or a property written instead of another one of the class (`Acme\\Mail\\Mailer::send(): sendMessage()`)'),
@@ -343,7 +343,7 @@ final class CorePlugin implements Plugin
 			new Decision(IndentationPlan::TernaryBelowCondition, new Words([
 				'stepped' => 'from the last line of the condition',
 				'aligned' => 'lined up with the operators of the condition',
-			]), 'Where `?` and `:` below a condition spread over lines stand', parameter: true, default: 'aligned'),
+			]), 'Where `?` and `:` below a condition spread over lines stand', kind: DecisionKind::Parameter, default: 'aligned'),
 			new Decision(IndentationPlan::SwitchCase, $level, 'The levels `case` steps in by from `switch`'),
 			new Decision(IndentationPlan::Chain, new Words([
 				'flat' => 'every link one level below the start',

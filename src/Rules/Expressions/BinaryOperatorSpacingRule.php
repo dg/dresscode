@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\IndentationPlan;
-use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
+use DressCode\{Claim, Decision, DecisionKind, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
 use DressCode\Domains\Shapes;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Indentation, Token};
@@ -55,7 +55,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 	{
 		return [
 			new Decision(self::Spacing, new Shapes(['spaced' => ['$a + $b', 'a single space around']]), 'The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `=` of a default included, `.` being `spacing.concatenation`; at a line break an operator takes no space on the side of the break, an assignment and `=>` stay on the line of what is before them, and `instanceof`, a comparison, a bitwise operator and a shift keep what follows them on their line, unless the line would grow too wide'),
-			new Decision(self::Alignment, Domain::alignment(), 'Which whitespace wider than a single space around an operator stays, aligning a column of assignments or of array items; alignment is never made', parameter: true, default: 'spaces'),
+			new Decision(self::Alignment, Domain::alignment(), 'Which whitespace wider than a single space around an operator stays, aligning a column of assignments or of array items; alignment is never made', kind: DecisionKind::Parameter, default: 'spaces'),
 			new Decision(self::Position, Domain::lineStart(), 'Where a binary operator other than `.` stands at a line break, a boolean operator chaining a condition apart: a comparison, a bitwise operator or a shift moves only where the line joined after it would be too wide'),
 		];
 	}

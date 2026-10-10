@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
+use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
 use DressCode\Domains\{Names, Shapes};
 use PhpSyntax\Nodes\Expression\{PostfixOpNode, PrefixOpNode, UnaryOpNode, VariableNode};
 use function count;
@@ -39,7 +39,7 @@ final class UnaryOperatorSpacingRule extends GapRule
 				'+' => 'plus',
 				'~' => 'bitwise negation',
 				'@' => 'error suppression',
-			]), 'The operators whose operand may stand apart from them, as written, `! $x`', parameter: true, default: []),
+			]), 'The operators whose operand may stand apart from them, as written, `! $x`', kind: DecisionKind::Parameter, default: []),
 		];
 	}
 

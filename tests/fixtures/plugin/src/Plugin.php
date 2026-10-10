@@ -2,7 +2,7 @@
 
 namespace Acme\DressCode;
 
-use DressCode\{Decision, PluginManifest};
+use DressCode\{Decision, DecisionKind, PluginManifest};
 use DressCode\Domains\Names;
 
 
@@ -16,7 +16,7 @@ final class Plugin implements \DressCode\Plugin
 			excludePaths: ['generated'],
 			ruleUrl: 'https://acme.dev/dresscode/{slug}',
 			section: 'acme',
-			decisions: [new Decision('acme.debugFunctions', new Names, 'The debugging functions', parameter: true, default: ['var_dump'])],
+			decisions: [new Decision('acme.debugFunctions', new Names, 'The debugging functions', kind: DecisionKind::Parameter, default: ['var_dump'])],
 		);
 	}
 }

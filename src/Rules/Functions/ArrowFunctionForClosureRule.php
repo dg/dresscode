@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\Analyses\{Parameter, PhpSignatures, Types};
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Flag;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
@@ -49,7 +49,7 @@ final class ArrowFunctionForClosureRule extends NodeRule
 	{
 		return [
 			new Decision(self::Plain, Domain::state(), 'A closure whose body is a single `return`, which is an arrow function where that is equivalent: no variable captured by reference, none reached by a name it does not spell out, no comment lost'),
-			new Decision(self::Nested, new Flag, 'Whether such a closure holding another closure or arrow function is one too', parameter: true, default: false),
+			new Decision(self::Nested, new Flag, 'Whether such a closure holding another closure or arrow function is one too', kind: DecisionKind::Parameter, default: false),
 		];
 	}
 

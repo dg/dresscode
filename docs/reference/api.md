@@ -304,16 +304,24 @@ final readonly class Decision
 	public readonly DressCode\Domain $domain
 	public readonly string $description
 	public readonly array $notes
-	public readonly bool $parameter
-	public readonly bool $fact
+	public readonly DressCode\DecisionKind $kind
 	public readonly mixed $default
-	public function __construct(string $path, DressCode\Domain $domain, string $description, array $notes = [], bool $parameter = false, bool $fact = false, mixed $default = null)
+	public function __construct(string $path, DressCode\Domain $domain, string $description, array $notes = [], DressCode\DecisionKind $kind = DressCode\DecisionKind::Requirement, mixed $default = null)
 	public function isRequirement(): bool
 	public function takesKeep(): bool
 	public function describeValues(): string
 	public function accept(mixed $raw): DressCode\Value
 	public function getDefault(): DressCode\Value
 	public function toArray(): array
+```
+
+## `DressCode\DecisionKind`
+
+```php
+enum DecisionKind: string
+	case Requirement = 'requirement'
+	case Parameter = 'parameter'
+	case Fact = 'fact'
 ```
 
 ## `DressCode\Domain`

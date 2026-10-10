@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\ControlFlow;
 
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Count;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Builder, Node, Token, Trivia};
@@ -38,7 +38,7 @@ final class EarlyExitForTrailingIfRule extends NodeRule
 	{
 		return [
 			new Decision('controlFlow.trailingIf', Domain::state(), 'An `if` ending a function or a loop body becomes a guard that leaves early, and an `else` that leaves becomes the first branch'),
-			new Decision('controlFlow.trailingIfMinStatements', new Count(1, range: false), 'The statements the body of a trailing `if` has at least for it to become a guard', parameter: true, default: 2),
+			new Decision('controlFlow.trailingIfMinStatements', new Count(1, range: false), 'The statements the body of a trailing `if` has at least for it to become a guard', kind: DecisionKind::Parameter, default: 2),
 		];
 	}
 

@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\Types;
-use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, DecisionKind, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\{Names, Words};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
@@ -57,7 +57,7 @@ final class StaticForMethodWithoutThisRule extends NodeRule
 				'private' => 'a private method',
 				'protected' => 'a protected method, where no child and no ancestor can declare it',
 				'public' => 'a public method, where no child and no ancestor can declare it',
-			]), 'The visibilities of the methods made static', parameter: true, default: ['private']),
+			]), 'The visibilities of the methods made static', kind: DecisionKind::Parameter, default: ['private']),
 		];
 	}
 

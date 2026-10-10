@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Arrays;
 
 use DressCode\Analyses\IndentationPlan;
-use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Space, Stage, Style, Values};
+use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Space, Stage, Style, Values};
 use DressCode\Domains\{Count, Words};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Indentation, Node, Token};
@@ -50,7 +50,7 @@ final class MultilineArrayRule extends GapRule
 			]), 'The items of an array spread over lines, by its author or for its width, the opening bracket staying on the line of the code before it'),
 			new Decision(self::MaxWidth, new Count(1, range: false, words: [
 				'none' => 'never spread for its width',
-			]), 'The width from bracket to bracket over which an array of several items written on one line is spread over lines, more than five items filling its lines where `shape.array` is `asWritten`', parameter: true, default: 'none'),
+			]), 'The width from bracket to bracket over which an array of several items written on one line is spread over lines, more than five items filling its lines where `shape.array` is `asWritten`', kind: DecisionKind::Parameter, default: 'none'),
 		];
 	}
 

@@ -5,7 +5,7 @@
  * Generates the reference: decisions.md from the decisions the rule classes declare, presets.md from the
  * registered presets. Run by `composer reference`; the output is committed and CI diffs it.
  */
-use DressCode\{Config, RuleInfo};
+use DressCode\{Config, DecisionKind, RuleInfo};
 use DressCode\Config\{Catalogue, ConfigResolver, NeonReader, PluginRegistry};
 use DressCode\Testing\RuleTester;
 
@@ -108,10 +108,10 @@ foreach ($bySection as $section => $decisions) {
 			$out .= formatTableCell($note) . "\n\n";
 		}
 
-		$facts = [match (true) {
-			$decision->parameter => 'A parameter, which refines a requirement and turns nothing on; ' . ($decision->default === null ? 'no default' : 'by default ' . formatValue($decision->getDefault())),
-			$decision->fact => 'A fact of the project, which its rule guards',
-			default => 'A requirement',
+		$facts = [match ($decision->kind) {
+			DecisionKind::Parameter => 'A parameter, which refines a requirement and turns nothing on; ' . ($decision->default === null ? 'no default' : 'by default ' . formatValue($decision->getDefault())),
+			DecisionKind::Fact => 'A fact of the project, which its rule guards',
+			DecisionKind::Requirement => 'A requirement',
 		}];
 		$facts[] = 'Takes: ' . $decision->describeValues();
 		$facts[] = 'The standards: ' . implode(', ', array_map(

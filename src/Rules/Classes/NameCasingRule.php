@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{Analyses, Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Analyses, Decision, DecisionKind, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Analyses\PhpDoc;
 use DressCode\Domains\{Names, Words};
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
@@ -72,7 +72,7 @@ final class NameCasingRule extends NodeRule
 			$decisions[] = new Decision("naming.$kind", $cases, "The case of the name of $what, which is reported and never renamed");
 		}
 
-		$decisions[] = new Decision('naming.except', new Names(regularExpressions: true), 'The patterns of names never reported, whatever their kind, as the methods of a stream wrapper or a replacement for a native function', parameter: true, default: []);
+		$decisions[] = new Decision('naming.except', new Names(regularExpressions: true), 'The patterns of names never reported, whatever their kind, as the methods of a stream wrapper or a replacement for a native function', kind: DecisionKind::Parameter, default: []);
 		return $decisions;
 	}
 
