@@ -250,7 +250,7 @@ final readonly class Proposal
 	public function toConfig(?array $presets = null): Config
 	{
 		$indent = $this->indent->findPrevailing();
-		$quotes = $this->quotes->findPrevailing();
+		$quotes = $this->findQuotes();
 		$shape = $this->findConditionShape();
 		return new Config(
 			use: $presets ?? $this->presets,
@@ -263,7 +263,7 @@ final readonly class Proposal
 			decisions: array_filter([
 				'indentation' => $indent === null ? null : ['unit' => self::toUnit($indent)],
 				'multiline' => $shape === null ? null : ['shape' => ['condition' => $shape]],
-				'literals' => $this->quotes->opportunities ? ['quotes' => $quotes ?? 'keep'] : null,
+				'literals' => $quotes === null ? null : ['quotes' => $quotes],
 			]),
 		);
 	}
@@ -334,9 +334,9 @@ final readonly class Proposal
 			);
 		}
 
-		if ($this->quotes->opportunities) {
-			// quotes have no tolerance, and a value half of the strings disagree with would rewrite them
-			$sections[] = self::writeDecision(StringQuotesRule::class, 'literals.quotes', $this->quotes->findPrevailing() ?? 'keep', $this->quotes->describe());
+		$quotes = $this->findQuotes();
+		if ($quotes !== null) {
+			$sections[] = self::writeDecision(StringQuotesRule::class, 'literals.quotes', $quotes, $this->quotes->describe());
 		}
 
 		return implode("\n", $sections);
@@ -465,14 +465,13 @@ final readonly class Proposal
 	public function checkResolution(ResolvedConfig $resolved): void
 	{
 		$indent = $this->indent->findPrevailing();
-		$quotes = $this->quotes->findPrevailing();
+		$quotes = $this->findQuotes();
 		$shape = $this->findConditionShape();
 		$quotesValue = ($resolved->decisions['literals.quotes'] ?? null)?->value;
 		$conditionValue = ($resolved->decisions['multiline.shape.condition'] ?? null)?->value;
 		$problem = match (true) {
 			$indent !== null && $resolved->indent !== ($indent === 'tab' ? "\t" : str_repeat(' ', (int) $indent)) => "the indentation is not `$indent`",
-			$quotes !== null && ($quotesValue === null || $quotesValue->isKept() || $quotesValue->getWord() !== $quotes) => "`literals.quotes` is not `$quotes`",
-			$quotes === null && $this->quotes->opportunities && $quotesValue?->isKept() === false => '`literals.quotes` is not `keep`',
+			$quotes !== null && ($quotesValue === null || ($quotesValue->isKept() ? 'keep' : $quotesValue->getWord()) !== $quotes) => "`literals.quotes` is not `$quotes`",
 			$shape !== null && $conditionValue?->toData() !== (is_string($shape) && $shape !== 'keep' ? [$shape] : $shape) => '`multiline.shape.condition` has another shape',
 			($resolved->nameResolution === 'certain') !== ($this->unparsed === []) => 'the name resolution is not what the files that parse allow',
 			array_diff($this->namespacedFunctions, array_keys($resolved->namespacedFunctions)) !== [] => 'a function the namespaces declare is not listed',
@@ -507,6 +506,17 @@ final readonly class Proposal
 		return $this->conditions->opportunities
 			? $this->conditions->findPrevailing() ?? $this->conditions->findTolerated() ?? 'keep'
 			: null;
+	}
+
+
+	/**
+	 * The quotes the strings are written with: the ones that reach the threshold, else keep, since quotes have no
+	 * tolerance and a value half of the strings disagree with would rewrite them; null when the sample has no string
+	 * that could take either.
+	 */
+	private function findQuotes(): ?string
+	{
+		return $this->quotes->opportunities ? $this->quotes->findPrevailing() ?? 'keep' : null;
 	}
 
 

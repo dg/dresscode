@@ -831,7 +831,11 @@ final class Application
 		/** @var list<string> $use */
 		$use = $args['--use'];
 		$presets = $use ?: null;
-		array_map((new PluginRegistry)->resolvePreset(...), $presets ?? []); // a misspelled one before the measuring, not after it
+		$registry = new PluginRegistry;
+		foreach ($presets ?? [] as $preset) {
+			$registry->resolvePreset($preset); // a misspelled one before the measuring, not after it
+		}
+
 		$proposal = Proposal::measure($root, $presets);
 		$proposal->verify($root);
 		$neon = $proposal->toNeon();
