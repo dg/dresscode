@@ -312,16 +312,16 @@ final class ConsoleReporter implements Reporter
 		$derived = $result->countDerived(Severity::Error);
 		$parts = array_filter([
 			match (true) {
-				$this->fix && ($found || $remaining) => self::formatCount($found, 'violation') . ' found, ' . ($remaining ?: 'none') . ' remaining',
-				!$this->fix && $remaining > 0 => self::formatCount($remaining, 'violation'),
+				$this->fix && ($found || $remaining) => Markup::formatCount($found, 'violation') . ' found, ' . ($remaining ?: 'none') . ' remaining',
+				!$this->fix && $remaining > 0 => Markup::formatCount($remaining, 'violation'),
 				default => null,
 			},
 			$derived ? "$derived of them following from others" : null,
-			$warnings ? self::formatCount($warnings, 'warning') : null,
+			$warnings ? Markup::formatCount($warnings, 'warning') : null,
 			!$this->fix && $left !== $found ? 'a fix leaves ' . ($left ?: 'none') : null,
-			$result->countSyntaxErrors() ? self::formatCount($result->countSyntaxErrors(), 'syntax error') : null,
-			$failures ? self::formatCount($failures, 'failed file') : null,
-			$result->baselined ? self::formatCount($result->baselined, 'violation') . ' in the baseline' : null,
+			$result->countSyntaxErrors() ? Markup::formatCount($result->countSyntaxErrors(), 'syntax error') : null,
+			$failures ? Markup::formatCount($failures, 'failed file') : null,
+			$result->baselined ? Markup::formatCount($result->baselined, 'violation') . ' in the baseline' : null,
 		]);
 
 		$state = match (true) {
@@ -331,13 +331,13 @@ final class ConsoleReporter implements Reporter
 			default => 'OK',
 		};
 		$scope = $affected > 0 && $affected < $this->fileCount
-			? sprintf('%d of %s', $affected, self::formatCount($this->fileCount, 'file'))
-			: self::formatCount($this->fileCount, 'file');
+			? sprintf('%d of %s', $affected, Markup::formatCount($this->fileCount, 'file'))
+			: Markup::formatCount($this->fileCount, 'file');
 		$elapsed = microtime(as_float: true) - $this->started;
 
 		$summary = $parts
 			? implode(', ', $parts) . " in $scope"
-			: self::formatCount($this->fileCount, 'file') . ', ' . ($this->fileCount > 1 ? 'all ' : '') . 'up to the dress code';
+			: Markup::formatCount($this->fileCount, 'file') . ', ' . ($this->fileCount > 1 ? 'all ' : '') . 'up to the dress code';
 		return "$state  $summary" . ($elapsed < self::LongRun ? '' : sprintf(', %.1f s', $elapsed));
 	}
 
@@ -371,12 +371,6 @@ final class ConsoleReporter implements Reporter
 	private static function formatPosition(Violation $violation): string
 	{
 		return $violation->line . ($violation->column === null ? '' : ":$violation->column");
-	}
-
-
-	private static function formatCount(int $count, string $noun): string
-	{
-		return $count . ' ' . $noun . ($count === 1 ? '' : 's');
 	}
 
 

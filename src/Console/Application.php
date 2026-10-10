@@ -591,8 +591,8 @@ final class Application
 
 		if ($changed || $failed) {
 			$counts = array_filter([
-				$changed ? sprintf('a fix would change %d file%s', count($changed), count($changed) === 1 ? '' : 's') : null,
-				$failed ? sprintf('%d file%s failed', count($failed), count($failed) === 1 ? '' : 's') : null,
+				$changed ? 'a fix would change ' . Markup::formatCount(count($changed), 'file') : null,
+				$failed ? Markup::formatCount(count($failed), 'file') . ' failed' : null,
 			]);
 			$paths = [...$changed, ...$failed];
 			$this->writeError(
@@ -606,7 +606,7 @@ final class Application
 
 		$baseline = Baseline::fromResults($run->files);
 		$baseline->save($file);
-		$message = sprintf("Baseline with %d violation%s written to `%s`.\n", $baseline->count(), $baseline->count() === 1 ? '' : 's', $name);
+		$message = 'Baseline with ' . Markup::formatCount($baseline->count(), 'violation') . " written to `$name`.\n";
 		if ($config->baseline === null) {
 			$message .= "Name it under `baseline` in the configuration to make it apply.\n";
 		}
@@ -664,7 +664,7 @@ final class Application
 			}
 		}
 
-		$this->write(sprintf("Migrated %d suppression comment%s in %d file%s.\n", $migration->count, $migration->count === 1 ? '' : 's', $files, $files === 1 ? '' : 's'));
+		$this->write('Migrated ' . Markup::formatCount($migration->count, 'suppression comment') . ' in ' . Markup::formatCount($files, 'file') . ".\n");
 		if ($migration->unknownNames) {
 			$this->write('Warning: The names DressCode does not know are kept as they are: `' . implode('`, `', array_keys($migration->unknownNames)) . "`.\n");
 		}
@@ -872,12 +872,11 @@ final class Application
 		}
 
 		$this->out->write($translation->toPhp());
-		$count = fn(int $n, string $noun) => $n . ' ' . $noun . ($n === 1 ? '' : 's');
 		$this->writeNote(sprintf(
 			"\nRead %s; set %s and %s.\n",
-			$count(count($rules), 'rule'),
-			$count(count($translation->getPaths()), 'decision'),
-			$count(count($translation->presets), 'preset'),
+			Markup::formatCount(count($rules), 'rule'),
+			Markup::formatCount(count($translation->getPaths()), 'decision'),
+			Markup::formatCount(count($translation->presets), 'preset'),
 		));
 		foreach ($translation->warnings as $warning) {
 			$this->writeNote("  $warning\n");

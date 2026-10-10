@@ -115,4 +115,11 @@ final class Markup
 			preg_split('~(?<=\n)~', $diff, -1, PREG_SPLIT_NO_EMPTY) ?: [],
 		));
 	}
+
+
+	/** The count with its noun, in the plural unless it is one: `1 file`, `3 files`. */
+	public static function formatCount(int $count, string $noun): string
+	{
+		return $count . ' ' . $noun . ($count === 1 ? '' : 's');
+	}
 }

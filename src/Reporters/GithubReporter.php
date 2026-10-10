@@ -7,6 +7,7 @@
 
 namespace DressCode\Reporters;
 
+use DressCode\Console\Markup;
 use DressCode\Engine\{Helpers, RunInfo, RunResult};
 use DressCode\{FileResult, Reporter};
 use Nette\Utils\FileSystem;
@@ -83,13 +84,7 @@ final class GithubReporter implements Reporter
 		}
 
 		$violations = $result->countReported();
-		$this->write(sprintf(
-			"%d violation%s in %d file%s\n",
-			$violations,
-			$violations === 1 ? '' : 's',
-			$this->fileCount,
-			$this->fileCount === 1 ? '' : 's',
-		));
+		$this->write(Markup::formatCount($violations, 'violation') . ' in ' . Markup::formatCount($this->fileCount, 'file') . "\n");
 	}
 
 
