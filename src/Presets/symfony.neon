@@ -1,4 +1,4 @@
-# Symfony Coding Standards as the `@Symfony` rule set defines them, without most of its phpDoc rules
+# Symfony Coding Standards
 #
 # The Symfony Coding Standards as the @Symfony rule set of PHP CS Fixer defines them, without most of its rules about
 # phpDoc, of which it takes only an empty doc comment, the trimming and the canonical types: PER Coding Style, which the

@@ -10,7 +10,7 @@ as its base, and the description of every other preset says what it adds to it.
 | `dresscode/perCs` | `dresscode/psr12` | PER Coding Style 3.1 |
 | `dresscode/psr12` |  | PSR-12 Extended Coding Style |
 | `dresscode/nette` | `dresscode/perCs`, `dresscode/cleanup`, `dresscode/types`, `dresscode/correctness` | Nette Coding Standard |
-| `dresscode/symfony` | `dresscode/perCs` | Symfony Coding Standards as the `@Symfony` rule set defines them, without most of its phpDoc rules |
+| `dresscode/symfony` | `dresscode/perCs` | Symfony Coding Standards |
 | `dresscode/cleanup` |  | Cleanup |
 | `dresscode/compilerOptimizations` |  | Compiler optimizations |
 | `dresscode/correctness` |  | Correctness |
