@@ -94,7 +94,7 @@ final class AttributeForAnnotationRule extends NodeRule
 		}
 
 		$docComment = $this->map->isEmpty() ? null : $node->getDocComment();
-		if ($docComment === null || $docComment->inInterpolation) {
+		if ($docComment === null) {
 			return;
 		}
 

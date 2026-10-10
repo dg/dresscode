@@ -219,7 +219,7 @@ final class NameCasingRule extends NodeRule
 	private static function isDeprecated(Node $node, RuleContext $context): bool
 	{
 		$docComment = $node->getDocComment();
-		if ($docComment !== null && !$docComment->inInterpolation) {
+		if ($docComment !== null) {
 			foreach ($context->getAnalysis(Analyses\PhpDoc::class)->parse($docComment)->children as $child) {
 				if ($child instanceof PhpDocTagNode && strcasecmp($child->name, '@deprecated') === 0) {
 					return true;

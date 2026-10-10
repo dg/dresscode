@@ -46,7 +46,6 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 			!$node instanceof MethodNode
 			|| !$node->isConstructor()
 			|| ($docComment = $node->getDocComment()) === null
-			|| $docComment->inInterpolation
 		) {
 			return;
 		}

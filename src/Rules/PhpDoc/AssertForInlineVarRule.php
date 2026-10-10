@@ -47,7 +47,6 @@ final class AssertForInlineVarRule extends NodeRule
 		if (
 			(!$node instanceof Statement\ExpressionStatementNode && !$node instanceof Statement\ForeachNode && !$node instanceof Statement\WhileNode)
 			|| ($docComment = $node->getDocComment()) === null
-			|| $docComment->inInterpolation
 			|| ($place = self::findPlace($node, $context->style->indent)) === null
 		) {
 			return;

@@ -139,7 +139,7 @@ final readonly class AnnotationMap
 		$phpDoc = $context->getAnalysis(PhpDoc::class);
 		foreach ($scope->find(Node::class, fn(Node $node) => array_any(self::Declarations, fn(string $class) => $node instanceof $class)) as $declaration) {
 			$docComment = $declaration->getDocComment();
-			if ($docComment === null || $docComment->inInterpolation || !str_contains($docComment->text, '@')) {
+			if ($docComment === null || !str_contains($docComment->text, '@')) {
 				continue;
 			}
 

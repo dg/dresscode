@@ -53,7 +53,6 @@ final class NoInvalidAnnotationsRule extends NodeRule
 		if (
 			(!$node instanceof MethodNode && !$node instanceof FunctionNode && !$node instanceof PropertyNode)
 			|| ($docComment = $node->getDocComment()) === null
-			|| $docComment->inInterpolation
 		) {
 			return;
 		}

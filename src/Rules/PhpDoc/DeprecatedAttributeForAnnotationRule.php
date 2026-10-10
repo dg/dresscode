@@ -59,7 +59,6 @@ final class DeprecatedAttributeForAnnotationRule extends NodeRule
 		$docComment = $node->getDocComment();
 		if (
 			$docComment === null
-			|| $docComment->inInterpolation
 			|| (($node instanceof TraitNode || $node instanceof ConstNode) && version_compare($context->phpVersion, '8.5', '<'))
 			|| ($node instanceof ConstNode && count($node->items) !== 1) // PHP takes no attribute on several at once
 			|| AnnotationReplacement::has($node->attributes, 'Deprecated')

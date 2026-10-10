@@ -41,7 +41,6 @@ final class UselessInheritdocRule extends NodeRule
 		if (
 			$node instanceof Token
 			|| ($docComment = $node->getDocComment()) === null
-			|| $docComment->inInterpolation
 			|| !preg_match('~^(?:\{@inheritDoc\}|@inheritDoc)$~i', $docComment->getCommentText())
 		) {
 			return;

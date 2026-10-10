@@ -40,7 +40,6 @@ final class UselessConstantVarAnnotationRule extends NodeRule
 		if (
 			!$node instanceof ClassConstNode
 			|| ($docComment = $node->getDocComment()) === null
-			|| $docComment->inInterpolation
 		) {
 			return;
 		}

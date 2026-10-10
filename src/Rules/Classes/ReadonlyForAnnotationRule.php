@@ -172,7 +172,6 @@ final class ReadonlyForAnnotationRule extends NodeRule
 	{
 		$docComment = $node->getDocComment();
 		return $docComment !== null
-			&& !$docComment->inInterpolation
 			&& array_any(
 				$context->getAnalysis(PhpDoc::class)->parse($docComment)->children,
 				fn(PhpDocChildNode $child) => $child instanceof PhpDocTagNode && in_array(strtolower($child->name), self::Tags, true),

@@ -66,7 +66,6 @@ final class FinalForInternalClassRule extends NodeRule
 			|| $node->modifiers->final
 			|| $node->modifiers->abstract
 			|| ($docComment = $node->getDocComment()) === null
-			|| $docComment->inInterpolation
 		) {
 			return;
 		}

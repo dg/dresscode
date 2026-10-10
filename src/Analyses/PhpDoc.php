@@ -119,7 +119,7 @@ final class PhpDoc
 		$names = [];
 		foreach ([$node, $node->findAncestor(ClassLikeNode::class)] as $owner) {
 			$docComment = $owner?->getDocComment();
-			if ($docComment === null || $docComment->inInterpolation) {
+			if ($docComment === null) {
 				continue;
 			}
 

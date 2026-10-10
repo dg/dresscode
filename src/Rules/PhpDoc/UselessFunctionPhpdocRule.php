@@ -66,7 +66,6 @@ final class UselessFunctionPhpdocRule extends NodeRule
 		if (
 			(!$node instanceof MethodNode && !$node instanceof FunctionNode)
 			|| ($docComment = $node->getDocComment()) === null
-			|| $docComment->inInterpolation
 		) {
 			return;
 		}

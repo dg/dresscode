@@ -40,7 +40,6 @@ final class SinglelinePropertyPhpdocRule extends NodeRule
 		if (
 			!$node instanceof PropertyNode
 			|| ($docComment = $node->getDocComment()) === null
-			|| $docComment->inInterpolation
 			|| !str_contains($docComment->text, "\n")
 		) {
 			return;

@@ -103,7 +103,7 @@ final class NativeTypeRequiredRule extends NodeRule
 		}
 
 		$docComment = $node instanceof Expression\ClosureNode ? null : $node->getDocComment();
-		if ($docComment?->inInterpolation || self::isInherited($node, $docComment, $context)) {
+		if (self::isInherited($node, $docComment, $context)) {
 			return;
 		}
 
@@ -271,10 +271,6 @@ final class NativeTypeRequiredRule extends NodeRule
 		}
 
 		$docComment = $node->getDocComment();
-		if ($docComment?->inInterpolation) {
-			return;
-		}
-
 		$phpDoc = $context->getAnalysis(PhpDoc::class);
 		$tree = $docComment ? $phpDoc->parse($docComment) : null;
 		[$tags, $prefixed] = self::findTags($tree, '@var');
