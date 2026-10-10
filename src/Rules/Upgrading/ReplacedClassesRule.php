@@ -113,7 +113,7 @@ final class ReplacedClassesRule extends NodeRule
 		}
 
 		// the types are asked only about a name the map knows
-		$lookup = MemberMaps::findLookupName($node);
+		$lookup = MemberMap::findLookupName($node);
 		if ($lookup === null || $this->forbiddenMembers->getEntries($lookup) === []) {
 			return false;
 		}

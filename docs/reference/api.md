@@ -706,20 +706,20 @@ final readonly class MemberMap
 	public static function fromEntries(array $options, Closure $convert): DressCode\Rules\Upgrading\MemberMap
 	public function getEntries(string $name): array
 	public function has(DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types): bool
+	public function findAccess(DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types, ?PhpSyntax\Nodes\ArgumentListNode $arguments = null, ?array $parameters = null): ?DressCode\Rules\Upgrading\MapMatch
 	public function findCall(PhpSyntax\Nodes\Expression\MethodCallNode|PhpSyntax\Nodes\Expression\StaticMethodCallNode|PhpSyntax\Nodes\Expression\NewNode $node, DressCode\RuleContext $context): ?DressCode\Rules\Upgrading\MapMatch
+	public function findDeclaration(PhpSyntax\Nodes\Member\MethodNode $declaration, DressCode\Analyses\Types $types, bool $anyArguments = false, bool $specificFirst = false): ?array
+	public function findDecidingEntry(string $name, DressCode\Analyses\Types $types, Closure $accepts, bool $specificFirst = false): ?array
+	public static function findLookupName(PhpSyntax\Nodes\Expression\ClassConstantFetchNode|PhpSyntax\Nodes\Expression\MethodCallNode|PhpSyntax\Nodes\Expression\StaticMethodCallNode|PhpSyntax\Nodes\Expression\PropertyFetchNode|PhpSyntax\Nodes\Expression\StaticPropertyFetchNode|PhpSyntax\Nodes\Expression\NewNode $node): ?string
 ```
 
-## `DressCode\Rules\Upgrading\MemberMaps`
+## `DressCode\Rules\Upgrading\MemberMapGrammar`
 
 ```php
-final class MemberMaps
+final class MemberMapGrammar
 	public const Keep = 'keep'
 	public static function createMapSchema(Nette\Schema\Schema $value, string $description, ?Closure $convert = null): Nette\Schema\Elements\Type
 	public static function createCodeSchema(): Nette\Schema\Elements\AnyOf
-	public static function findEntry(array $entries, DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types, ?PhpSyntax\Nodes\ArgumentListNode $arguments = null, ?array $parameters = null): ?DressCode\Rules\Upgrading\MapMatch
-	public static function findDeclarationEntry(array $entries, PhpSyntax\Nodes\Member\MethodNode $declaration, DressCode\Analyses\Types $types, bool $anyArguments = false, bool $specificFirst = false): ?array
-	public static function findLookupName(PhpSyntax\Nodes\Expression\ClassConstantFetchNode|PhpSyntax\Nodes\Expression\MethodCallNode|PhpSyntax\Nodes\Expression\StaticMethodCallNode|PhpSyntax\Nodes\Expression\PropertyFetchNode|PhpSyntax\Nodes\Expression\StaticPropertyFetchNode|PhpSyntax\Nodes\Expression\NewNode $node): ?string
-	public static function findDecidingEntry(array $entries, DressCode\Analyses\Types $types, Closure $accepts, bool $specificFirst = false): ?array
 ```
 
 ## `DressCode\Rules\Upgrading\MemberPattern`

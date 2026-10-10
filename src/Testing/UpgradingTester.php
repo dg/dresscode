@@ -11,7 +11,7 @@ use DressCode\Analyses\MemberKind;
 use DressCode\{Config, ConfigurationException, Decision, FileResult, Rule};
 use DressCode\Config\{Composer, CorePlugin, Layer, LayerKind, PackageDiscovery, ProjectPackages, RunnerFactory};
 use DressCode\Domains\Map;
-use DressCode\Rules\Upgrading\{MemberMaps, MemberPattern, MemberTarget};
+use DressCode\Rules\Upgrading\{MemberMapGrammar, MemberPattern, MemberTarget};
 use Nette\Neon\Neon;
 use Nette\Schema\ValidationException;
 use Nette\Utils\FileSystem;
@@ -200,7 +200,7 @@ final class UpgradingTester
 		$problems = [];
 		foreach (['forbiddenClasses', 'forbiddenMembers', 'forbiddenFunctions'] as $map) {
 			foreach ($maps[$map] ?? [] as $key => $sentence) {
-				if (!is_string($sentence) || $sentence === MemberMaps::Keep) {
+				if (!is_string($sentence) || $sentence === MemberMapGrammar::Keep) {
 					continue;
 				}
 
@@ -230,7 +230,7 @@ final class UpgradingTester
 		// lowercased class => the class written instead, and lowercased class::name in its case => [class, name, the entry as written]
 		$classes = $members = $written = [];
 		foreach ($maps['replacedClasses'] ?? [] as $old => $new) {
-			if ($new !== MemberMaps::Keep) {
+			if ($new !== MemberMapGrammar::Keep) {
 				$classes[$key = strtolower(ltrim((string) $old, '\\'))] = ltrim($new, '\\');
 				$written[$key] = "`$old` is replaced by `$new`";
 			}
@@ -238,7 +238,7 @@ final class UpgradingTester
 
 		$functions = [];
 		foreach ($maps['replacedMembers'] ?? [] as $key => $code) {
-			if ($code === MemberMaps::Keep) {
+			if ($code === MemberMapGrammar::Keep) {
 				continue;
 			}
 
@@ -306,7 +306,7 @@ final class UpgradingTester
 		}
 
 		foreach ($maps['attributeForMember'] ?? [] as $key => $attribute) {
-			if ($attribute !== MemberMaps::Keep && !self::isClass(ltrim((string) strstr("$attribute(", '(', true), '\\'))) {
+			if ($attribute !== MemberMapGrammar::Keep && !self::isClass(ltrim((string) strstr("$attribute(", '(', true), '\\'))) {
 				$problems[] = "`attributeForMember`: `$key` is replaced by the attribute `$attribute`, which does not exist.";
 			}
 		}

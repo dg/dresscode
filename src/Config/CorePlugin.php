@@ -10,7 +10,7 @@ namespace DressCode\Config;
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Decision, DecisionKind, Domain, ImportStyle, Plugin, PluginManifest, Rules, Violation};
 use DressCode\Domains\{Count, GrammarEntry, Map, Names, Words};
-use DressCode\Rules\Upgrading\{AttributeForMemberEntry, AttributeTarget, CallTemplate, MemberMaps, MemberTarget};
+use DressCode\Rules\Upgrading\{AttributeForMemberEntry, AttributeTarget, CallTemplate, MemberMapGrammar, MemberTarget};
 use Nette\Schema\{Context, Expect, Schema};
 use function dirname;
 
@@ -410,8 +410,8 @@ final class CorePlugin implements Plugin
 
 	private static function createReplacedMembersGrammar(): Schema
 	{
-		return MemberMaps::createMapSchema(
-			MemberMaps::createCodeSchema(),
+		return MemberMapGrammar::createMapSchema(
+			MemberMapGrammar::createCodeSchema(),
 			'The replaced member, `Class::name` (a constant or a method), `Class::name()` (a method) or `Class::$name` (a property) → the member written instead: its name alone in the same class, `Other::name` in another one, or `\function` for the global function a method becomes',
 			MemberTarget::fromCode(...),
 		);
@@ -420,8 +420,8 @@ final class CorePlugin implements Plugin
 
 	private static function createReplacedCallsGrammar(): Schema
 	{
-		return MemberMaps::createMapSchema(
-			MemberMaps::createCodeSchema(),
+		return MemberMapGrammar::createMapSchema(
+			MemberMapGrammar::createCodeSchema(),
 			'The replaced use, `Class::name($a, true)`, `Class::name(...$args)` with any arguments, `Class::name()` without any, `Class::__construct($a)`, `Class::$name::get`, `Class::$name::set` or a magic method for the syntax PHP calls it by → the expression written instead, with the placeholders of the key, `$value` what is assigned',
 			CallTemplate::fromEntry(...),
 		)->transform(CallTemplate::checkCycles(...));
@@ -444,7 +444,7 @@ final class CorePlugin implements Plugin
 
 	private static function createForbiddenMembersGrammar(): Schema
 	{
-		return MemberMaps::createMapSchema(
+		return MemberMapGrammar::createMapSchema(
 			Expect::string()->nullable(),
 			'The forbidden member, `Class::name` (a constant or a method), `Class::name(...$args)` (a method), `Class::$name` (a property), `Class::$name::get` or `::set` (a read or a write of it), `Class::__construct(...$args)`, or a call with the shape of its arguments, `Class::name()` being one without any → what to do instead, as the end of the message, or null for none',
 		);
@@ -453,15 +453,15 @@ final class CorePlugin implements Plugin
 
 	private static function createAttributeForAnnotationGrammar(): Schema
 	{
-		return Expect::arrayOf(MemberMaps::createCodeSchema(), Expect::string()->pattern('@?[\w-]+|\\\\?\w+(?:\\\\\w+)+|\\\\\w+|\\\\?\w+(?:\\\\\w+)*\\\\\*'))
+		return Expect::arrayOf(MemberMapGrammar::createCodeSchema(), Expect::string()->pattern('@?[\w-]+|\\\\?\w+(?:\\\\\w+)+|\\\\\w+|\\\\?\w+(?:\\\\\w+)*\\\\\*'))
 			->description('The annotation, without the `@`, the class of an attribute, fully qualified, or a namespace of annotations, `Acme\Validation\*` → the attribute written instead, its class fully qualified, with its arguments where it has any, or the namespace of the attributes, `Acme\Validation\*`')
 			->transform(function (array $options, Context $context): array {
 				foreach ($options as $key => $code) {
 					if (str_ends_with((string) $key, '*')) {
-						if ($code !== MemberMaps::Keep && AttributeTarget::findNamespace($code) === null) {
+						if ($code !== MemberMapGrammar::Keep && AttributeTarget::findNamespace($code) === null) {
 							$context->addError("The namespace `$key` is written instead as " . Violation::formatCode($code) . ', which is not a namespace ending with `\\*`.', 'dresscode.attributeCode');
 						}
-					} elseif ($code !== MemberMaps::Keep && AttributeTarget::fromCode($code) === null) {
+					} elseif ($code !== MemberMapGrammar::Keep && AttributeTarget::fromCode($code) === null) {
 						$old = str_contains((string) $key, '\\') ? '#[' . ltrim((string) $key, '\\') . ']' : '@' . ltrim((string) $key, '@');
 						$context->addError('The attribute ' . Violation::formatCode($code) . " written instead of `$old` is not a class with its arguments, `Class` or `Class(arguments)`.", 'dresscode.attributeCode');
 					}
@@ -479,7 +479,7 @@ final class CorePlugin implements Plugin
 			->transform(function (array $options, Context $context): array {
 				foreach ($options as $key => $value) {
 					try {
-						if ($value !== MemberMaps::Keep) {
+						if ($value !== MemberMapGrammar::Keep) {
 							AttributeForMemberEntry::fromEntry((string) $key, $value);
 						}
 					} catch (\InvalidArgumentException $e) {

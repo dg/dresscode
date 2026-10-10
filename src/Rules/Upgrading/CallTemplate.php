@@ -191,7 +191,7 @@ final readonly class CallTemplate
 		foreach ($map as $key => $value) {
 			try {
 				$pattern = MemberPattern::fromKey((string) $key);
-				if (is_string($value) && $value !== MemberMaps::Keep) {
+				if (is_string($value) && $value !== MemberMapGrammar::Keep) {
 					$entries[(string) $key] = [$pattern, self::fromEntry($value, $pattern)];
 				}
 			} catch (\InvalidArgumentException) {

@@ -2,7 +2,7 @@
 
 use DressCode\Analyses;
 use DressCode\Analyses\{MemberAccess, MemberKind};
-use DressCode\Rules\Upgrading\{MemberMap, MemberMaps, MemberPattern};
+use DressCode\Rules\Upgrading\{MemberMap, MemberPattern};
 use PhpSyntax\{Builder, Parser};
 use PhpSyntax\Nodes\Expression\FunctionCallNode;
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -153,10 +153,10 @@ test('an entry is found under the key of the nearest class, and under the first 
 	$types = createTypes();
 	/** @return ?array{string, string, ?list<string>, ?int}  the value and the class of the key, the placeholders bound and the arguments left to `...` */
 	$find = function (array $map, ?string $call, string ...$classes) use ($types): ?array {
-		$entries = MemberMap::fromEntries($map, fn(string $value) => $value)->getEntries('getcachekey');
+		$memberMap = MemberMap::fromEntries($map, fn(string $value) => $value);
 		$access = new MemberAccess(MemberKind::Method, 'getCacheKey', array_values($classes ?: ['App\MyStorage']), declared: true);
 		$node = $call === null ? null : (new Builder)->expression($call);
-		$entry = MemberMaps::findEntry($entries, $access, $types, $node instanceof FunctionCallNode ? $node->arguments : null);
+		$entry = $memberMap->findAccess($access, $types, $node instanceof FunctionCallNode ? $node->arguments : null);
 		return $entry === null
 			? null
 			: [
@@ -208,7 +208,7 @@ test('a declaration is found under the key of the nearest class, and of two keys
 	$file = (new Parser)->parse($code);
 	$types = new Analyses\Types($file, $path, new Analyses\PhpStan($stubs, [$stubs, $path], dirname($path) . '/cache'));
 	$declaration = $file->find(MethodNode::class, fn(MethodNode $method) => $method->name->text === 'getCacheKey')[0];
-	$find = fn(array $map) => MemberMaps::findDeclarationEntry(MemberMap::fromEntries($map, fn(string $value) => $value)->getEntries('getcachekey'), $declaration, $types)[1] ?? null;
+	$find = fn(array $map) => MemberMap::fromEntries($map, fn(string $value) => $value)->findDeclaration($declaration, $types)[1] ?? null;
 
 	Assert::same('parent', $find(['Acme\Cache\Storage::getCacheKey' => 'grandparent', 'Acme\Cache\FileStorage::getCacheKey' => 'parent']));
 	Assert::same('interface', $find([

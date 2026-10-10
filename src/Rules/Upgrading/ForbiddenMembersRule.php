@@ -100,9 +100,8 @@ final class ForbiddenMembersRule extends NodeRule
 		}
 
 		// the types are asked only about a name the map knows
-		$name = MemberMaps::findLookupName($node);
-		$entries = $name === null ? [] : $this->map->getEntries($name);
-		if (!$this->reportMember($node, $entries, $context) && $node instanceof PropertyFetchNode) {
+		$name = MemberMap::findLookupName($node);
+		if (!$this->reportMember($node, $name, $context) && $node instanceof PropertyFetchNode) {
 			$this->enterMagic($node, $context);
 		}
 	}
@@ -110,15 +109,15 @@ final class ForbiddenMembersRule extends NodeRule
 
 	/**
 	 * Reports the use when it is one of the member of an entry, and says whether it was.
-	 * @param  list<array{MemberPattern, string}>  $entries
+	 * @param  ?string  $name  the lowercased name of the member, null where it is an expression
 	 */
 	private function reportMember(
 		ClassConstantFetchNode|MethodCallNode|StaticMethodCallNode|PropertyFetchNode|StaticPropertyFetchNode|NewNode $node,
-		array $entries,
+		?string $name,
 		RuleContext $context,
 	): bool
 	{
-		$types = $entries === [] ? null : $context->getAnalysis(Types::class);
+		$types = $name === null || $this->map->getEntries($name) === [] ? null : $context->getAnalysis(Types::class);
 		$access = $types?->findConstructorAccess($node) ?? $types?->findMemberAccess($node);
 		if ($types === null || $access === null) {
 			return false;
@@ -128,8 +127,8 @@ final class ForbiddenMembersRule extends NodeRule
 			? $node->arguments ?? (new Builder)->arguments([])
 			: null;
 		$use = $node instanceof PropertyFetchNode || $node instanceof StaticPropertyFetchNode ? self::findHookUse($node) : 'get';
-		$entry = MemberMaps::findDecidingEntry(
-			$entries,
+		$entry = $this->map->findDecidingEntry(
+			(string) $name,
 			$types,
 			fn(array $entry) => $entry[0]->matches($access, $types)
 				&& $entry[0]->matchesHook($use)
@@ -175,8 +174,8 @@ final class ForbiddenMembersRule extends NodeRule
 			$parent instanceof AssignmentNode && $parent->target === $node => ['set', [$parent->expression->withoutEdgeTrivia()]],
 			default => [MagicCall::findIssetOrUnsetUse($node) ?? 'get', []],
 		};
-		$entries = $this->map->getEntries(strtolower(MagicCall::getMethod($node, $use)));
-		if ($entries === [] || ($node instanceof PropertyFetchNode && !$node->name instanceof IdentifierNode)) {
+		$method = strtolower(MagicCall::getMethod($node, $use));
+		if ($this->map->getEntries($method) === [] || ($node instanceof PropertyFetchNode && !$node->name instanceof IdentifierNode)) {
 			return; // the types are asked only about a name the map knows
 		}
 
@@ -184,7 +183,7 @@ final class ForbiddenMembersRule extends NodeRule
 		$call = MagicCall::find($node, $use, $values, $types);
 		$entry = $call === null
 			? null
-			: MemberMaps::findDecidingEntry($entries, $types, fn(array $entry) => $call->bind($entry[0], $types) !== null, specificFirst: true);
+			: $this->map->findDecidingEntry($method, $types, fn(array $entry) => $call->bind($entry[0], $types) !== null, specificFirst: true);
 		if ($entry !== null) {
 			$context->report(
 				$node instanceof PropertyFetchNode ? $node->name : $node->openBracket,
@@ -199,8 +198,8 @@ final class ForbiddenMembersRule extends NodeRule
 	private function enterCallableValue(ArrayNode|StringNode $node, RuleContext $context): void
 	{
 		$callable = CallableLiteral::find($node);
-		$entries = $callable === null ? [] : $this->map->getEntries(strtolower($callable->method));
-		if ($callable === null || $entries === []) {
+		$method = $callable === null ? null : strtolower($callable->method);
+		if ($method === null || $this->map->getEntries($method) === []) {
 			return; // the types are asked only about a name the map knows
 		}
 
@@ -208,7 +207,7 @@ final class ForbiddenMembersRule extends NodeRule
 		$access = $types->findCallableMethodAccess($node);
 		$entry = $access === null
 			? null
-			: MemberMaps::findDecidingEntry($entries, $types, fn(array $entry) => $entry[0]->takesAnyArguments() && $entry[0]->matches($access, $types));
+			: $this->map->findDecidingEntry($method, $types, fn(array $entry) => $entry[0]->takesAnyArguments() && $entry[0]->matches($access, $types));
 		if ($access !== null && $entry !== null) {
 			$context->report($callable->literal, $entry[0]->describe($access->kind) . " is forbidden$entry[1].", fixable: false);
 		}
@@ -217,8 +216,9 @@ final class ForbiddenMembersRule extends NodeRule
 
 	private function enterDeclaration(MethodNode $node, RuleContext $context): void
 	{
-		$entries = $this->map->getEntries(strtolower($node->name->text));
-		$entry = $entries === [] ? null : MemberMaps::findDeclarationEntry($entries, $node, $context->getAnalysis(Types::class), anyArguments: true);
+		$entry = $this->map->getEntries(strtolower($node->name->text)) === []
+			? null
+			: $this->map->findDeclaration($node, $context->getAnalysis(Types::class), anyArguments: true);
 		if ($entry !== null) {
 			$kind = $node->modifiers->static ? MemberKind::StaticMethod : MemberKind::Method;
 			$context->report($node->name, $entry[0]->describe($kind) . " is forbidden$entry[1].", fixable: false);
@@ -241,8 +241,8 @@ final class ForbiddenMembersRule extends NodeRule
 		$types = $context->getAnalysis(Types::class);
 		$kind = $node->modifiers->static ? MemberKind::StaticProperty : MemberKind::Property;
 		foreach ($declared as [$name, $at]) {
-			$entry = MemberMaps::findDecidingEntry(
-				$this->map->getEntries(strtolower($name)),
+			$entry = $this->map->findDecidingEntry(
+				strtolower($name),
 				$types,
 				fn(array $entry) => $entry[0]->matchesPropertyDeclaration($class, $name, $types),
 			);

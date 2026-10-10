@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Analyses\MemberKind;
-use DressCode\Rules\Upgrading\{MemberMap, MemberMaps, MemberPattern};
+use DressCode\Rules\Upgrading\{MemberMap, MemberMapGrammar, MemberPattern};
 use Nette\Neon\Neon;
 use Nette\Schema\{Expect, Processor, ValidationException};
 use Tester\Assert;
@@ -11,7 +11,7 @@ require __DIR__ . '/../../bootstrap.php';
 
 function process(string ...$layers): mixed
 {
-	$schema = MemberMaps::createMapSchema(MemberMaps::createCodeSchema(), 'The member → the code written instead');
+	$schema = MemberMapGrammar::createMapSchema(MemberMapGrammar::createCodeSchema(), 'The member → the code written instead');
 	return (new Processor)->processMultiple($schema, array_map(Neon::decode(...), array_values($layers)));
 }
 
@@ -99,7 +99,7 @@ test('a later layer withdraws an entry with keep, which the grammar takes whatev
 	);
 	Assert::same(['A::OLD' => 'keep', 'A::old()' => 'renamed', 'B::Old' => 'other'], $options);
 
-	$schema = MemberMaps::createMapSchema(Expect::structure(['get' => MemberMaps::createCodeSchema()])->castTo('array'), '');
+	$schema = MemberMapGrammar::createMapSchema(Expect::structure(['get' => MemberMapGrammar::createCodeSchema()])->castTo('array'), '');
 	Assert::same(
 		['A::$a' => ['get' => 'isA()'], 'A::$b' => 'keep'],
 		(new Processor)->process($schema, Neon::decode("A::\$a: {get: isA()}\nA::\$b: keep")),

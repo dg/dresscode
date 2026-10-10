@@ -228,7 +228,7 @@ final class ReplacedCallsRule extends NodeRule
 	 */
 	private function reportUnbound(MethodCallNode|StaticMethodCallNode|NewNode $node, RuleContext $context): void
 	{
-		$name = MemberMaps::findLookupName($node);
+		$name = MemberMap::findLookupName($node);
 		$entries = $name === null ? [] : $this->map->getEntries($name);
 		$arguments = $node->arguments?->items->getItems() ?? [];
 		$items = array_merge(...array_map(fn(array $entry) => $entry[0]->arguments->items ?? [], $entries));
@@ -264,8 +264,8 @@ final class ReplacedCallsRule extends NodeRule
 	 */
 	private function findEntry(MemberAccess $access, Types $types): ?array
 	{
-		return MemberMaps::findDecidingEntry(
-			$this->map->getEntries(strtolower($access->name)),
+		return $this->map->findDecidingEntry(
+			strtolower($access->name),
 			$types,
 			fn(array $entry) => $entry[0]->matches($access, $types),
 			specificFirst: true,
@@ -434,8 +434,7 @@ final class ReplacedCallsRule extends NodeRule
 	 */
 	private function enterAttribute(AttributeNode $node, RuleContext $context): void
 	{
-		$entries = $this->map->getEntries('__construct');
-		if ($entries === []) {
+		if ($this->map->getEntries('__construct') === []) {
 			return;
 		}
 
@@ -444,7 +443,7 @@ final class ReplacedCallsRule extends NodeRule
 		$access = new MemberAccess(MemberKind::Constructor, '__construct', [$class], $types->hasMember($class, MemberKind::Constructor, '__construct'));
 		$arguments = $node->arguments ?? (new Builder)->arguments([]);
 		$parameters = $types->findParameters($access);
-		$entry = MemberMaps::findEntry($entries, $access, $types, $arguments, $parameters);
+		$entry = $this->map->findAccess($access, $types, $arguments, $parameters);
 		if ($entry === null) {
 			return;
 		}
@@ -475,8 +474,9 @@ final class ReplacedCallsRule extends NodeRule
 
 	private function enterDeclaration(MethodNode $node, RuleContext $context): void
 	{
-		$entries = $this->map->getEntries(strtolower($node->name->text));
-		$entry = $entries === [] ? null : MemberMaps::findDeclarationEntry($entries, $node, $context->getAnalysis(Types::class), anyArguments: true, specificFirst: true);
+		$entry = $this->map->getEntries(strtolower($node->name->text)) === []
+			? null
+			: $this->map->findDeclaration($node, $context->getAnalysis(Types::class), anyArguments: true, specificFirst: true);
 		if ($entry !== null) {
 			$kind = $node->modifiers->static ? MemberKind::StaticMethod : MemberKind::Method;
 			$context->report(
@@ -503,9 +503,10 @@ final class ReplacedCallsRule extends NodeRule
 		RuleContext $context,
 	): ?array
 	{
-		$name = $node instanceof ArrayAccessNode ? null : MemberMaps::findLookupName($node);
+		$name = $node instanceof ArrayAccessNode ? null : MemberMap::findLookupName($node);
+		$method = $node instanceof StaticPropertyFetchNode ? null : strtolower(MagicCall::getMethod($node, $use));
 		$properties = $name === null ? [] : $this->map->getEntries($name);
-		$methods = $node instanceof StaticPropertyFetchNode ? [] : $this->map->getEntries(strtolower(MagicCall::getMethod($node, $use)));
+		$methods = $method === null ? [] : $this->map->getEntries($method);
 		if (($properties === [] && $methods === []) || (!$node instanceof ArrayAccessNode && $name === null)) {
 			return null; // the types are asked only about a name the map knows
 		}
@@ -521,8 +522,8 @@ final class ReplacedCallsRule extends NodeRule
 			// the hooks of the property the map knows; a use through another one, isset() or unset(), is told of them
 			$hooks = [];
 			foreach (['get', 'set'] as $hook) {
-				$hooks[$hook] = MemberMaps::findDecidingEntry(
-					$properties,
+				$hooks[$hook] = $this->map->findDecidingEntry(
+					(string) $name,
 					$types,
 					fn(array $entry) => $entry[0]->kind === MemberKind::Property && $entry[0]->hook === $hook && $entry[0]->matches($access, $types),
 					specificFirst: true,
@@ -554,8 +555,8 @@ final class ReplacedCallsRule extends NodeRule
 		}
 
 		$bindings = [];
-		$entry = MemberMaps::findDecidingEntry(
-			$methods,
+		$entry = $this->map->findDecidingEntry(
+			(string) $method,
 			$types,
 			function (array $entry) use ($call, $types, &$bindings): bool {
 				$bound = $call->bind($entry[0], $types);

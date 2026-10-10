@@ -100,15 +100,14 @@ final class ReplacedMembersRule extends NodeRule
 		}
 
 		// the types are asked only about a name the map knows
-		$name = MemberMaps::findLookupName($node);
-		$entries = $name === null ? [] : $this->map->getEntries($name);
-		if ($entries === []) {
+		$name = MemberMap::findLookupName($node);
+		if ($name === null || $this->map->getEntries($name) === []) {
 			return;
 		}
 
 		$types = $context->getAnalysis(Types::class);
 		$access = $types->findMemberAccess($node);
-		$entry = $access === null ? null : MemberMaps::findEntry($entries, $access, $types);
+		$entry = $access === null ? null : $this->map->findAccess($access, $types);
 		if (
 			$access === null
 			|| $entry === null
@@ -165,8 +164,9 @@ final class ReplacedMembersRule extends NodeRule
 	/** A method a child declares under the replaced name overrides nothing any more, so it takes the new name with its calls. */
 	private function enterDeclaration(MethodNode $node, RuleContext $context): void
 	{
-		$entries = $this->map->getEntries(strtolower($node->name->text));
-		$entry = $entries === [] ? null : MemberMaps::findDeclarationEntry($entries, $node, $context->getAnalysis(Types::class));
+		$entry = $this->map->getEntries(strtolower($node->name->text)) === []
+			? null
+			: $this->map->findDeclaration($node, $context->getAnalysis(Types::class));
 		if ($entry === null) {
 			return;
 		}
@@ -208,7 +208,7 @@ final class ReplacedMembersRule extends NodeRule
 
 		$types = $context->getAnalysis(Types::class);
 		$access = $types->findCallableMethodAccess($node);
-		$entry = $access === null ? null : MemberMaps::findEntry($entries, $access, $types);
+		$entry = $access === null ? null : $this->map->findAccess($access, $types);
 		if ($access === null || $entry === null) {
 			return;
 		}
