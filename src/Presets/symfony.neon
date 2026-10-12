@@ -1,0 +1,151 @@
+# Symfony Coding Standards
+#
+# The Symfony Coding Standards as the @Symfony rule set of PHP CS Fixer defines them, without most of its rules about
+# phpDoc, of which it takes only an empty doc comment, the trimming and the canonical types: PER Coding Style, which the
+# set builds on, with the casing, the imports, the blank lines and the whitespace Symfony adds, and without the rules
+# that would break a construct over lines, which Symfony leaves to the author.
+
+use: perCs
+
+file:
+	lineLength: none
+	longLines: keep
+
+indentation:
+	binaryOperator: keep
+	chain: keep
+	heredoc: keep                             # heredoc_indentation belongs to another set
+
+casing:
+	magicConstant: uppercase
+	class: declared                           # `DateTime`, not `datetime`
+	function: declared                        # `strlen()`, not `StrLen()`
+	method: declared                          # `__toString()`, other methods with `typeAnalysis`
+	hexDigit: keep                            # integer_literal_case left to the project
+
+# global_namespace_import imports nothing: a class is written with the backslash, a function and a constant too where
+# they are qualified, and a bare one stays bare
+qualification:
+	class:
+		global: backslashed                   # `\DateTime`
+	function:
+		global: [backslashed, bare]           # `\ucfirst()` or `ucfirst()`, never imported
+		optimized: [backslashed, bare]
+	constant:
+		global: [backslashed, bare]
+		optimized: [backslashed, bare]
+
+imports:
+	order:
+		names: alphabetical                   # classes, functions, constants, each alphabetically
+	grouping: separated                       # `use A; use B;`, not `use A, B;` or `use Acme\{A, B};`
+	unused: forbidden
+	aliasEqualToName: forbidden               # `use Foo;`, not `use Foo as Foo;`
+
+spacing:
+	arrowFunction: 'fn ($x) => $x'
+	alignment:
+		comma: optional                       # aligning spaces and tabs may stay
+		binaryOperator: forbidden             # no extra spaces around an operator
+	semicolon:
+		after: 'for ($i = 0; $i < 5; $i++)'
+	logicalNot: '!$x'                         # never `! $x`
+	concatenation: '$a.$b'
+	objectOperator: '$a->b()'
+	padding:
+		array: forbidden                      # `[1, 2]`, `[$a, $b] = $x`
+		list: forbidden
+		offset: forbidden                     # `$a[0]`
+	anonymousClass: 'new class($a)'
+	comment:
+		marker: '// text'                     # also `#` and `/* */`
+		afterCode: '$a; // text'              # at least one space
+
+multiline:
+	# no fixer of the set breaks a call, a signature, a chain, a condition, a ternary, an operator or an array
+	items: keep
+	edges: keep
+	operatorPosition:                         # operator_linebreak moves only a boolean operator
+		operators: keep
+		logical: lineStart
+		condition: lineStart
+	trailingComma:
+		argument: optional                    # may stay or not where spread, never on one line
+		closureUse: keep
+	attributePosition:
+		parameter: keep
+
+braces:
+	emptyBody:                                # not `{}` as in PER Coding Style
+		class: expanded
+		function: expanded
+		closure: expanded
+		propertyHook: expanded
+		anonymousClass: keep
+	singlelineClosure: keep
+	bareStatementGroup: forbidden             # no `{ ... }` that nothing opens
+	alternativeSyntax: forbidden              # no `if: ... endif;`
+
+# a range `0-1` leaves the choice to the author, `1+` is one or more
+blankLines:
+	afterDeclare: keep                        # @Symfony leaves the line below a declare
+	aroundDeclarations: 0-1                   # around one among statements
+	aroundMethods: 1
+	aroundInterfaceMethods: 1
+	betweenTraitUses: keep
+	afterTraitUses: keep
+	beforeStatement: {return: 1+}             # a `return` set apart from the code above it
+	belowComment:
+		inlineVar: 0                          # `/** @var Order $order */` right above its statement
+
+classes:
+	visibility:
+		publicWithSet: required               # `public private(set)`, as modifier_keywords writes it
+	emptyParentheses:
+		attribute: keep                       # `#[Foo()]` stays, as in @Symfony
+	untypedPropertyNullDefault: forbidden     # `public $a;`, not `public $a = null;`
+	instantiationWrapping: keep               # @Symfony leaves the parentheses
+	protectedInFinalClass: forbidden          # `private` in a final class with no parent and no trait
+
+functions:
+	trailingBareReturn: forbidden             # no `return;` closing a function
+
+controlFlow:
+	elseAfterReturn: forbidden                # the `else` after a `return` goes, its body following the `if`
+
+expressions:
+	comparison:
+		notEquals: '!='                       # not `<>`
+		yoda: required                        # `null === $a`
+	assignment:
+		addingOne: forbidden                  # `++$i`, not `$i += 1`
+		increment: prefix                     # `++$i;`
+	doubleNegation: forbidden                 # `(bool) $a`, not `!!$a`
+	parenthesesAfterConstruct: forbidden      # `return $x;`, not `return ($x);`
+
+literals:
+	quotes: single
+	heredocWithoutInterpolation: keep         # heredoc_to_nowdoc belongs to another set
+	concatenatedLiterals: keep                # no_useless_concat_operator left to the project
+
+comments:
+	singleline: '//'                          # not `#`
+	empty: forbidden
+
+phpdoc:
+	aboveAttributes: keep                     # @Symfony leaves the order alone, unlike PER Coding Style
+	blankLines: trimmed
+	empty: forbidden
+	types:
+		builtin: canonical                    # `int`, not `integer`
+		duplicate: forbidden                  # each type of a union once
+		nullPosition: last
+
+mistakes:
+	continueInSwitch: forbidden               # a `continue` only leaving a `switch`, reported
+
+upgrading:
+	php:
+		dollarBraceInterpolation: forbidden   # `{$name}`, not `${name}`
+		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`
+		backticks: forbidden                  # `shell_exec()`

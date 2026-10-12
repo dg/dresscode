@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{ConfigurationException, Plugin};
+use DressCode\{ConfigurationException, Plugin, Profile};
 use function array_key_exists, is_array, is_string;
 
 
@@ -35,6 +35,19 @@ final readonly class PackageDiscovery
 
 	/** the requirement that lays the upgrading data of PHP, under which what they say is reported */
 	public const PhpDecision = 'upgrading.php.deprecatedApi';
+
+	/**
+	 * What packages declare in their namespaces for the files a project writes into them, which a package does not say
+	 * itself yet: the container configurator of Symfony, whose functions the files that configure the services call
+	 * without importing them.
+	 */
+	private const Known = [
+		'symfony/dependency-injection' => [
+			'functions' => [
+				'Symfony\Component\DependencyInjection\Loader\Configurator\{abstract_arg, closure, env, expr, inline_service, iterator, lazy_proxy, param, service, service_closure, service_locator, tagged_class_map, tagged_iterator, tagged_locator}',
+			],
+		],
+	];
 
 
 	private function __construct(
@@ -90,6 +103,17 @@ final readonly class PackageDiscovery
 				} else {
 					$warnings[] = "Package `$name` names the plugin `$plugin`, which is not a plugin; skipped.";
 				}
+			}
+		}
+
+		foreach (self::Known as $package => $namespaces) {
+			if ($project->has($package)) {
+				$upgradingData[] = new UpgradingData(
+					new Layer(LayerKind::Package, package: $package),
+					$package,
+					new Profile(namespaces: $namespaces)->namespaces,
+					[],
+				);
 			}
 		}
 

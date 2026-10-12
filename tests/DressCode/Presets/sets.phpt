@@ -12,7 +12,7 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-const Standards = ['dresscode/perCs', 'dresscode/psr12', 'dresscode/nette'];
+const Standards = ['dresscode/perCs', 'dresscode/psr12', 'dresscode/nette', 'dresscode/symfony'];
 
 $registry = new PluginRegistry;
 $resolver = new ConfigResolver($registry);
@@ -40,12 +40,10 @@ test('a set decides nothing about the layout', function () use ($written) {
 test('a decision is made by a set or a standard, or written by the project on purpose', function () use ($written, $resolver) {
 	// a decision outside every set and every standard is one a project writes itself, and the reason is here
 	$onRequest = [
-		'blankLines.afterStatement', 'blankLines.beforeStatement', // where a statement stands apart is the shape of a body, which no standard prescribes
-		'blankLines.belowComment.inlineVar', // the blank lines between the `@var` of a statement and the statement, which no standard sets
+		'blankLines.afterStatement', // where a statement stands apart is the shape of a body, which no standard prescribes
 		'blankLines.bodyStart.switchCase', // the first statement of a case, which no standard sets apart or not
 		'braces.emptyBody.controlStructure', // an empty branch or loop, whose braces no standard writes
 		'classes.internalClass.final', // what a project does with its own internals
-		'classes.protectedInFinalClass', // what a final class keeps open to its parent and its traits, which no standard decides
 		'classes.staticMethod', // how a class is built, which no set decides for it
 		'controlFlow.trailingIf', // the shape of a function body, which no standard prescribes
 		'controlFlow.elseifAfterReturn', // an `elseif` split into an `if` reads as another question, which a project chooses
@@ -64,8 +62,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		// the `use` of a closure and a group of attributes, which no standard spreads
 		'multiline.items.closureUse', 'multiline.edges.closureUse', 'multiline.items.attribute', 'multiline.edges.attribute',
 		'phpdoc.types.nullable', 'phpdoc.types.unionOrder', 'types.unionOrder', // an order or a notation a project chooses
-		'qualification.constant.otherNamespace', 'qualification.class.global',
-		'qualification.staticInFinalClass', 'qualification.function.otherNamespace', // how far a name is written out is the project's
+		'qualification.constant.otherNamespace', 'qualification.staticInFinalClass', 'qualification.function.otherNamespace', // how far a name is written out is the project's
 		'qualification.function.currentNamespace', 'qualification.constant.currentNamespace',
 		'types.declaration.constant', // a typed constant, which the code before PHP 8.3 cannot have
 		'upgrading.classes.Override', // a guarantee the code takes on, which no older construct gave
