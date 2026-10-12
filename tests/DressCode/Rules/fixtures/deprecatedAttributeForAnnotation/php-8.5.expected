@@ -3,7 +3,7 @@
 // risky
 namespace App;
 
-#[\Deprecated(message: 'use NewHelpers')]
+#[\Deprecated('use NewHelpers')]
 trait OldHelpers
 {
 }

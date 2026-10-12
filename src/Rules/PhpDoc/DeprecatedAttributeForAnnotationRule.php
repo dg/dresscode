@@ -105,13 +105,12 @@ final class DeprecatedAttributeForAnnotationRule extends NodeRule
 		$description = trim($description);
 		$since = preg_match('~^(\d+(\.\d+)*)(?!\S)\s*(.*)$~sD', $description, $m) === 1 ? $m[1] : null;
 		$message = trim($since === null ? $description : $m[3]);
-		$arguments = array_filter([
-			'message' => $message === '' ? null : $message,
-			'since' => $since,
-		]);
 		$written = [];
-		foreach ($arguments as $name => $value) {
-			$written[] = "$name: " . var_export(preg_replace('~\s+~', ' ', $value), return: true);
+		if ($message !== '') {
+			$written[] = var_export(preg_replace('~\s+~', ' ', $message), return: true);
+		}
+		if ($since !== null) {
+			$written[] = 'since: ' . var_export($since, return: true);
 		}
 
 		return $written === [] ? '' : '(' . implode(', ', $written) . ')';

@@ -2,7 +2,7 @@
 // risky
 // php 8.4
 
-#[\Deprecated(message: 'Use someOtherFunction() instead', since: '1.0.0')]
+#[\Deprecated('Use someOtherFunction() instead', since: '1.0.0')]
 function a()
 {
 }
@@ -17,7 +17,7 @@ function b()
 }
 
 
-#[\Deprecated(message: 'Use the other one')]
+#[\Deprecated('Use the other one')]
 function c()
 {
 }
@@ -50,7 +50,7 @@ class D
 
 enum E
 {
-	#[\Deprecated(message: 'Use NEW', since: '1.0')]
+	#[\Deprecated('Use NEW', since: '1.0')]
 	case Old;
 }
 
