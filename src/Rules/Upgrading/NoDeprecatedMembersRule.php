@@ -26,7 +26,7 @@ use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, Property
  * another class, `Text::check($s)` becoming `Encoding::isValid($s)`, written with its class; the fix is risky, the
  * deprecation naming what to use and not saying it behaves alike. Any other is reported with what the deprecation says.
  * A member the maps of replacedMembers, replacedCalls or forbiddenMembers have is not reported, nor a use inside
- * a declaration deprecated itself, which goes together with it.
+ * the class declaring it, which keeps it working, nor one inside a declaration deprecated itself, which goes together with it.
  */
 #[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class, PhpDoc::class, NameResolver::class], reads: self::Maps)]
 final class NoDeprecatedMembersRule extends NodeRule
@@ -89,6 +89,7 @@ final class NoDeprecatedMembersRule extends NodeRule
 		if (
 			$deprecation === null
 			|| ($access !== null && array_any($this->mapped, fn(MemberMap $map) => $map->has($access, $types)))
+			|| $types->findScopeClass($node) === $member->declaringClass
 			|| NodeHelpers::isInDeprecatedDeclaration($node, $context)
 		) {
 			return;

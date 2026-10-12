@@ -1,8 +1,8 @@
-70: Method `Acme\Shop\Cart::conceal()` is deprecated: use hidden().
-71: Method `Acme\Shop\Cart::guard()` is deprecated: use shielded().
+71: Method `Acme\Shop\Cart::sum()` is deprecated: use total().
+72: Constant `Acme\Shop\Cart::MAX` is deprecated: use MAX_ITEMS.
+73: Method `Acme\Shop\Cart::size()` is deprecated: use count().
 	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
-78: Method `Acme\Shop\Cart::sum()` is deprecated: use total().
-79: Constant `Acme\Shop\Cart::MAX` is deprecated: use MAX_ITEMS.
-80: Method `Acme\Shop\Cart::size()` is deprecated: use count().
+81: Property `Acme\Shop\Cart::$lines` is deprecated: use $entries.
+87: Method `Acme\Shop\Cart::conceal()` is deprecated: use hidden().
+88: Method `Acme\Shop\Cart::guard()` is deprecated: use shielded().
 	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
-88: Property `Acme\Shop\Cart::$lines` is deprecated: use $entries.

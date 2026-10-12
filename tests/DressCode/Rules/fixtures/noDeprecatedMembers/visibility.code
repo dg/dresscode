@@ -54,7 +54,7 @@ class Cart extends Base
 
 
 	/** @deprecated use hidden() */
-	private function conceal(): void
+	protected function conceal(): void
 	{
 	}
 
@@ -62,13 +62,6 @@ class Cart extends Base
 	/** @deprecated use shielded() */
 	protected function guard(): void
 	{
-	}
-
-
-	public function lock(): void
-	{
-		$this->conceal();
-		$this->guard();
 	}
 }
 
@@ -86,5 +79,12 @@ class MyCart extends Cart
 	public function test(): void
 	{
 		$a = $this->lines;
+	}
+
+
+	public function lock(): void
+	{
+		$this->conceal();
+		$this->guard();
 	}
 }

@@ -1,0 +1,3 @@
+33: Method `App\Gateway::check()` is deprecated.
+34: Property `App\Gateway::$strict` is deprecated.
+35: Constant `App\Gateway::LEGACY` is deprecated.

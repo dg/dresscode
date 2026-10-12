@@ -1,0 +1,64 @@
+<?php
+
+namespace App;
+
+class Gateway
+{
+	/** @deprecated */
+	public const LEGACY = 1;
+
+	/** @deprecated */
+	public bool $strict = false;
+
+
+	/** @deprecated */
+	public function check(): void
+	{
+	}
+
+
+	public function run(): int
+	{
+		$this->check();
+		array_map(fn() => $this->strict, []);
+		return self::LEGACY;
+	}
+}
+
+
+class StrictGateway extends Gateway
+{
+	public function run(): int
+	{
+		$this->check();
+		$this->strict = true;
+		return self::LEGACY;
+	}
+}
+
+
+trait Retrying
+{
+	/** @deprecated */
+	public function retry(): void
+	{
+	}
+
+
+	public function send(): void
+	{
+		$this->retry();
+	}
+}
+
+
+class Mailer
+{
+	use Retrying;
+
+
+	public function flush(): void
+	{
+		$this->retry();
+	}
+}
