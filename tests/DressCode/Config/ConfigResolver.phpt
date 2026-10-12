@@ -750,7 +750,7 @@ test('the version of PHP a profile says is the target of its files, raised to th
 
 test('what the namespaces declare adds up over the layers, and only the configuration makes it certain', function () {
 	$declaring = [new Config\UpgradingData(
-		new Config\Layer(Config\LayerKind::Package, 'upgrading.neon', 'fw/config'),
+		new Config\Layer(Config\LayerKind::Package, package: 'fw/config'),
 		'fw/config',
 		new Profile(namespaces: ['functions' => ['Fw\Config\{service, param}'], 'constants' => ['Fw\VERSION']])->namespaces,
 		[],
@@ -763,13 +763,13 @@ test('what the namespaces declare adds up over the layers, and only the configur
 	);
 	Assert::same(
 		[
-			'Fw\Config\service' => 'upgrading.neon of fw/config',
-			'Fw\Config\param' => 'upgrading.neon of fw/config',
+			'Fw\Config\service' => 'DressCode for fw/config',
+			'Fw\Config\param' => 'DressCode for fw/config',
 			'App\helper' => 'the configuration',
 		],
 		$uncertain->namespacedFunctions,
 	);
-	Assert::same(['Fw\VERSION' => 'upgrading.neon of fw/config', 'Fw\version' => 'the configuration'], $uncertain->namespacedConstants);
+	Assert::same(['Fw\VERSION' => 'DressCode for fw/config', 'Fw\version' => 'the configuration'], $uncertain->namespacedConstants);
 	Assert::same('uncertain', $uncertain->nameResolution);
 	Assert::false($uncertain->toNamespacedSymbols()->complete);
 	Assert::true($uncertain->toNamespacedSymbols()->hasFunction('App\helper'));
