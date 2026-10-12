@@ -6,13 +6,13 @@
  */
 
 use DressCode\Config;
-use DressCode\Config\{ConfigResolver, PluginRegistry};
+use DressCode\Config\{ConfigResolver, CorePlugin, PluginRegistry};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
 
 
-const Standards = ['dresscode/perCs', 'dresscode/psr12', 'dresscode/nette', 'dresscode/symfony'];
+define('Standards', array_map(fn(string $standard) => "dresscode/$standard", CorePlugin::Standards));
 
 $registry = new PluginRegistry;
 $resolver = new ConfigResolver($registry);
@@ -48,7 +48,6 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'controlFlow.trailingIf', // the shape of a function body, which no standard prescribes
 		'controlFlow.elseifAfterReturn', // an `elseif` split into an `if` reads as another question, which a project chooses
 		'controlFlow.ifElseReturning', // a ternary for two branches is a shape of the code, no construct a newer PHP gave
-		'casing.hexDigit', // the case of a hexadecimal digit, which no standard of the core settles
 		'naming.exceptionAffix', // how an exception is named, which projects settle each their own way
 		'mistakes.neverReturnType.anonymousFunction', // the signature of a closure usually belongs to the call it is passed to
 		'mistakes.readonlyProperty', // a guarantee the code takes on, which no older construct gave
@@ -62,7 +61,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		// the `use` of a closure and a group of attributes, which no standard spreads
 		'multiline.items.closureUse', 'multiline.edges.closureUse', 'multiline.items.attribute', 'multiline.edges.attribute',
 		'phpdoc.types.nullable', 'phpdoc.types.unionOrder', 'types.unionOrder', // an order or a notation a project chooses
-		'qualification.constant.otherNamespace', 'qualification.staticInFinalClass', 'qualification.function.otherNamespace', // how far a name is written out is the project's
+		'qualification.constant.otherNamespace', 'qualification.function.otherNamespace', // how far a name is written out is the project's
 		'qualification.function.currentNamespace', 'qualification.constant.currentNamespace',
 		'types.declaration.constant', // a typed constant, which the code before PHP 8.3 cannot have
 		'upgrading.classes.Override', // a guarantee the code takes on, which no older construct gave
