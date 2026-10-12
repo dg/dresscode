@@ -62,6 +62,11 @@ final class RuleTester
 			throw new TestFailure("Directory `$dir` has no `*.code` fixtures.");
 		}
 
+		// before any fixture, so that those without the types do not load phpdoc-parser the others would mix with
+		if (is_dir(rtrim($dir, '/\\') . '/stubs') || RuleInfo::fromRule($rule instanceof \Closure ? $rule() : $rule)->typesRequired) {
+			Analyses\PhpStan::claimPhpDocParser();
+		}
+
 		foreach ($files as $file) {
 			self::runFixture($rule, $file, $phpVersion, $analyses);
 		}
@@ -523,9 +528,18 @@ final class RuleTester
 	 * The types of the code from the PHPStan of this project. PHPStan reads the declarations of a file from the
 	 * disk, so the code the run begins with goes to a file of its own, named by its text, and a later pass reads
 	 * its own text as the command line does; a text seen before shares its PHPStan.
+	 * @throws TestFailure  where the process loaded phpdoc-parser before, which the copy of PHPStan would mix with
 	 */
 	private static function registerTypes(Analyses\Registry $registry, string $code, ?string $stubs, string $phpVersion): void
 	{
+		Analyses\PhpStan::claimPhpDocParser();
+		if (($class = Analyses\PhpStan::findMixedPhpDocParserClass()) !== null) {
+			throw new TestFailure(
+				"`$class` was loaded outside the archive of PHPStan before the types, so two copies of phpdoc-parser mix; "
+				. 'run the fixtures with the types first or in a process of their own.',
+			);
+		}
+
 		$dir = sys_get_temp_dir() . '/dresscode-tests/types';
 		$path = $dir . '/' . hash('xxh128', $code) . '.php';
 		$registry->register(Analyses\Types::class, function (FileNode $file) use ($code, $stubs, $phpVersion, $dir, $path): Analyses\Types {

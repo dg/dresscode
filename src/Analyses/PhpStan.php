@@ -115,12 +115,35 @@ final class PhpStan
 	 * starts, would otherwise mix it with the classes loaded before. The file is the one the bootstrap of PHPStan loads,
 	 * whose loader is created once.
 	 */
-	private static function claimPhpDocParser(): void
+	public static function claimPhpDocParser(): void
 	{
 		if (class_exists(PharAutoloader::class)) {
 			$dir = dirname((string) new \ReflectionClass(PharAutoloader::class)->getFileName());
 			require "phar://$dir/phpstan.phar/vendor/autoload.php";
 		}
+	}
+
+
+	/**
+	 * A class of phpdoc-parser the process loaded from outside the archive of PHPStan before claiming it, which the
+	 * classes loaded since then mix with; null where there is none.
+	 */
+	public static function findMixedPhpDocParserClass(): ?string
+	{
+		if (!class_exists(PharAutoloader::class)) {
+			return null;
+		}
+
+		foreach ([...get_declared_classes(), ...get_declared_interfaces()] as $class) {
+			if (
+				str_starts_with($class, 'PHPStan\PhpDocParser\\')
+				&& !str_starts_with((string) new \ReflectionClass($class)->getFileName(), 'phar://')
+			) {
+				return $class;
+			}
+		}
+
+		return null;
 	}
 
 
