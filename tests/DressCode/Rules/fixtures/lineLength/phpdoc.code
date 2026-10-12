@@ -1,0 +1,19 @@
+<?php
+// lineLength 40
+/**
+ * @param array<string, int> $parameterName
+ * @param int $x  a description making it long
+ * @param int $y  short
+ *   a description going on, too long as well
+ * @return array{status: string, batch: ?string}
+ * @return array{status: string,
+ *   batchIdentifiers: ?string, abc: int}  desc
+ * @method static void doSomething(int $a, int $b)
+ * @method static void run()  a description it is
+ * @template T of SomeVeryLongInterfaceName
+ * @deprecated use something else entirely
+ * @custom something generic, long as well
+ * @phpstan-type Shape array{a: int, b: string}
+ */
+/** @var array<string, int> $variablesLonger */
+$variablesLonger = [];

@@ -7,12 +7,15 @@
 
 namespace DressCode\Rules\Files;
 
+use DressCode\Analyses\PhpDoc;
 use DressCode\{Decision, Domain, LineSplits, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\NodeHelpers;
+use PHPStan\PhpDocParser\Ast\PhpDoc\{GenericTagValueNode, InvalidTagValueNode, PhpDocTagNode};
+use PHPStan\PhpDocParser\Lexer\Lexer;
 use PhpSyntax\{Indentation, Token, Trivia};
 use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringNode};
 use PhpSyntax\Nodes\Statement\UseNode;
-use function count;
+use function count, strlen;
 
 
 /**
@@ -24,12 +27,14 @@ use function count;
  * and are not measured; a line inside a multi-line comment is measured and reported as any other. Neither is
  * a line `file.lineLengthExcept` leaves: a `use` import with `imports`, a line on which a construct of a kind it names
  * stands, a line that would fit were each of its string literals an empty pair of quotes with `strings`, and a line
- * one of its regular expressions matches. The rule runs last, after the rules that break long lines, so it reports
- * what nothing could break.
+ * one of its regular expressions matches. Nor is a line of a doc comment wider than the line length already by
+ * the tag on it, its type, signature or name, which the description after them cannot shorten. The rule runs last,
+ * after the rules that break long lines, so it reports what nothing could break.
  * @phpstan-type Line array{text: string, code: ?string, blankText: string, blankCode: ?string, content: bool,
- *   token: ?Token, owner: ?Token, trivia: ?Trivia, lineInTrivia: int}
+ *   token: ?Token, owner: ?Token, trivia: ?Trivia, lineInTrivia: int, docComment: ?Trivia, lineInDocComment: int,
+ *   docCommentPrefix: string}
  */
-#[RuleInfo(Stage::Finishing, decisions: ['file.lineLength', 'file.lineLengthExcept'])]
+#[RuleInfo(Stage::Finishing, decisions: ['file.lineLength', 'file.lineLengthExcept'], analyses: [PhpDoc::class])]
 final class LineLengthRule extends NodeRule
 {
 	private bool $ignoreImports = false;
@@ -116,7 +121,8 @@ final class LineLengthRule extends NodeRule
 	/**
 	 * The line being read: its text, the text up to the end of its last token, both again with the string literals
 	 * emptied, whether content of a string or markup runs through it, the first token whose own text lands on it,
-	 * and the token and trivia it starts with, with the line of the trivia it starts on.
+	 * the token and trivia it starts with, with the line of the trivia it starts on, and the first doc comment on it,
+	 * with its line on it and the text of the line before it.
 	 * @return Line
 	 */
 	private static function createLine(): array
@@ -131,6 +137,9 @@ final class LineLengthRule extends NodeRule
 			'owner' => null,
 			'trivia' => null,
 			'lineInTrivia' => 0,
+			'docComment' => null,
+			'lineInDocComment' => 0,
+			'docCommentPrefix' => '',
 		];
 	}
 
@@ -167,6 +176,12 @@ final class LineLengthRule extends NodeRule
 
 			if ($trivia === null && $line['token'] === null) {
 				$line['token'] = $token;
+			}
+
+			if ($trivia?->is(Trivia::DocComment) && $line['docComment'] === null) {
+				$line['docComment'] = $trivia;
+				$line['lineInDocComment'] = intdiv($i, 2);
+				$line['docCommentPrefix'] = $line['text'];
 			}
 
 			$line['text'] .= $segment;
@@ -210,6 +225,7 @@ final class LineLengthRule extends NodeRule
 			&& !$this->matchesPattern($text)
 			&& !($this->ignoreStrings && Indentation::advance(0, rtrim($line['blankCode'] ?? $line['blankText']), $phpSyntax) <= $limit)
 			&& !$this->holdsIgnoredConstruct($line['token'])
+			&& !self::isTagTooWide($line, $context)
 		) {
 			$message = "The line is $width characters long, more than $limit.";
 			$line['token'] !== null
@@ -257,5 +273,99 @@ final class LineLengthRule extends NodeRule
 		}
 
 		return false;
+	}
+
+
+	/**
+	 * Whether the line is wider than the line length already by the tag of the doc comment on it, its type, signature
+	 * or name, with what precedes it on the line.
+	 * @param  Line  $line
+	 */
+	private static function isTagTooWide(array $line, RuleContext $context): bool
+	{
+		$docComment = $line['docComment'];
+		if ($docComment === null) {
+			return false;
+		}
+
+		$end = self::findTagEnds($docComment, $context->getAnalysis(PhpDoc::class))[$line['lineInDocComment']] ?? null;
+		if ($end === null) {
+			return false;
+		}
+
+		$lines = preg_split('~\r\n|\r|\n~', $docComment->text) ?: [];
+		$tag = $line['docCommentPrefix'] . substr($lines[$line['lineInDocComment']] ?? '', 0, $end);
+		return Indentation::advance(0, $tag, $context->style->toPhpSyntax()) > $context->style->maxLineLength;
+	}
+
+
+	/**
+	 * Where the tags of the doc comment end on its lines, their descriptions left out, a tag the parser does not know
+	 * being only its name: the line in the comment => the offset on it after which no tag goes on.
+	 * @return array<int, int>
+	 */
+	private static function findTagEnds(Trivia $docComment, PhpDoc $phpDoc): array
+	{
+		$tokens = $phpDoc->getTokens($docComment);
+		$inTag = [];
+		foreach ($phpDoc->parse($docComment)->children as $child) {
+			if (!$child instanceof PhpDocTagNode) {
+				continue;
+			}
+
+			$value = $child->value;
+			$start = $child->getAttribute('startIndex');
+			$end = match (true) {
+				$value instanceof GenericTagValueNode, $value instanceof InvalidTagValueNode => $start,
+				property_exists($value, 'description') && $value->description !== '' => self::findDescriptionStart(
+					$tokens,
+					$value->getAttribute('startIndex'),
+					$child->getAttribute('endIndex'),
+					$value->description,
+				) - 1,
+				default => $child->getAttribute('endIndex'),
+			};
+			for ($i = $start; $i <= $end; $i++) {
+				$inTag[$i] = true;
+			}
+		}
+
+		$ends = [];
+		$line = $column = 0;
+		foreach ($tokens as $i => [$text, $type]) {
+			if (isset($inTag[$i]) && $type !== Lexer::TOKEN_HORIZONTAL_WS && $type !== Lexer::TOKEN_PHPDOC_EOL) {
+				$ends[$line] = $column + strlen($text);
+			}
+
+			$segments = preg_split('~\r\n|\r|\n~', $text) ?: [$text];
+			$line += count($segments) - 1;
+			$column = count($segments) > 1 ? strlen(end($segments)) : $column + strlen($text);
+		}
+
+		return $ends;
+	}
+
+
+	/**
+	 * The token the description of a tag begins with, found from the end of the tag, the parser giving the description
+	 * as text whose whitespace and leading asterisks differ from the tokens.
+	 * @param  list<array{string, int, int}>  $tokens
+	 */
+	private static function findDescriptionStart(array $tokens, int $valueStart, int $end, string $description): int
+	{
+		$squeeze = fn(string $s): string => preg_replace('~[\s*]+~', '', $s);
+		$target = $squeeze($description);
+		$suffix = '';
+		$start = $end + 1;
+		for ($i = $end; $i >= $valueStart; $i--) {
+			$suffix = $squeeze($tokens[$i][0]) . $suffix;
+			if ($suffix === $target) {
+				$start = $i;
+			} elseif (strlen($suffix) > strlen($target)) {
+				break;
+			}
+		}
+
+		return $start;
 	}
 }
