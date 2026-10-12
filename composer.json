@@ -17,7 +17,7 @@
 		"nette/schema": "^1.4 || ^2.0",
 		"nette/utils": "^4.1",
 		"phpsyntax/phpsyntax": "^1.0",
-		"phpstan/phpdoc-parser": "^2.0",
+		"phpstan/phpdoc-parser": "^2.3.3",
 		"composer/semver": "^3.4"
 	},
 	"require-dev": {
@@ -26,6 +26,9 @@
 		"phpstan/phpstan": "^2.3",
 		"phpstan/extension-installer": "^1.4",
 		"nette/phpstan-rules": "^1.0"
+	},
+	"conflict": {
+		"phpstan/phpstan": "<2.2.6"
 	},
 	"bin": ["bin/dresscode"],
 	"autoload": {

@@ -23,6 +23,7 @@ use PHPStan\BetterReflection\Reflection\Exception\CircularReference;
 use PHPStan\DependencyInjection\{Container, ContainerFactory};
 use PHPStan\ExtensionInstaller\GeneratedConfig;
 use PHPStan\Parser\Parser;
+use PHPStan\PharAutoloader;
 use PHPStan\Php\PhpVersionFactory;
 use PHPStan\PhpDoc\TypeStringResolver;
 use PHPStan\Reflection\BetterReflection\BetterReflectionProvider;
@@ -85,6 +86,7 @@ final class PhpStan
 		 */
 		private readonly array $foreignPaths = [],
 	) {
+		self::claimPhpDocParser();
 	}
 
 
@@ -104,6 +106,21 @@ final class PhpStan
 	public static function isAvailable(): bool
 	{
 		return InstalledVersions::isInstalled('phpstan/phpstan');
+	}
+
+
+	/**
+	 * Makes the copy of phpdoc-parser inside the archive of PHPStan, the only one PHPStan is tested with, the one the
+	 * process loads its classes from. The autoloader of the archive, which PHPStan registers in front of the others once it
+	 * starts, would otherwise mix it with the classes loaded before. The file is the one the bootstrap of PHPStan loads,
+	 * whose loader is created once.
+	 */
+	private static function claimPhpDocParser(): void
+	{
+		if (class_exists(PharAutoloader::class)) {
+			$dir = dirname((string) new \ReflectionClass(PharAutoloader::class)->getFileName());
+			require "phar://$dir/phpstan.phar/vendor/autoload.php";
+		}
 	}
 
 
