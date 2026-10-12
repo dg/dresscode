@@ -7,7 +7,9 @@
 
 namespace DressCode\Config;
 
+use Composer\InstalledVersions;
 use DressCode\{ConfigurationException, Plugin};
+use DressCode\Engine\Helpers;
 use function array_key_exists, is_array, is_string;
 
 
@@ -129,6 +131,25 @@ final readonly class PackageDiscovery
 		$files = array_map(fn(string $file) => "$dir/" . basename($file), glob("$path/$dir/*.neon") ?: []);
 		sort($files);
 		return $files;
+	}
+
+
+	/**
+	 * The directory of the `composer.json` DressCode is installed by, globally, beside a project or as the project;
+	 * null for a phar and for a process Composer did not load.
+	 */
+	public static function findInstallationRoot(): ?string
+	{
+		$directory = self::findComposerDirectory();
+		return $directory === null ? null : Helpers::canonicalizePath(dirname($directory, 2));
+	}
+
+
+	/** The directory of what Composer wrote about the installation the process is loaded from. */
+	private static function findComposerDirectory(): ?string
+	{
+		$file = class_exists(InstalledVersions::class) ? new \ReflectionClass(InstalledVersions::class)->getFileName() : false;
+		return $file === false || str_starts_with($file, 'phar://') ? null : dirname($file);
 	}
 
 

@@ -143,6 +143,7 @@ final readonly class RunnerFactory
 				$phpVersion,
 				$resolution->projectPackages->findNewerInstalledPaths(),
 				$resolution->projectPackages->findUnboundedInstalledPaths(),
+				self::findForeignPaths($root),
 			);
 			$analyses[Analyses\Types::class] = fn(FileNode $file, string $path) => new Analyses\Types($file, $path, $phpstan);
 		}
@@ -384,6 +385,21 @@ final readonly class RunnerFactory
 			fn(string $path) => is_dir($path) || is_file($path),
 		));
 		return $paths === [] ? [$root] : $paths;
+	}
+
+
+	/**
+	 * Where the declarations are none of the project's: the installation DressCode runs from, unless the project lies
+	 * in it, as DressCode installed in the project does.
+	 * @return list<string>
+	 */
+	private static function findForeignPaths(string $root): array
+	{
+		$installation = PackageDiscovery::findInstallationRoot();
+		return $installation === null
+			|| str_starts_with(strtolower(Helpers::canonicalizePath($root) . '/'), strtolower("$installation/"))
+			? []
+			: [$installation];
 	}
 
 

@@ -413,6 +413,21 @@ test('a deprecation of a package the project supports from no particular version
 });
 
 
+test('a class only the installation DressCode runs from declares is unknown to the project', function () {
+	$file = orderSample();
+	$dir = createTempDir('types-foreign');
+	$path = "$dir/sample.php";
+	file_put_contents($path, Printer::print($file));
+	$stubs = __DIR__ . '/fixtures/types/stubs';
+	$types = new Analyses\Types($file, $path, new Analyses\PhpStan($stubs, [$stubs, $path], "$dir/cache", foreignPaths: [$stubs]));
+
+	[$thisCall] = $file->find(MethodCallNode::class);
+	Assert::null($types->findDeprecation($types->findMember($thisCall) ?? throw new LogicException('No member.')));
+	Assert::null($types->findClassDeprecation('Acme\Cache\OldStorage'));
+	Assert::null($types->findClassName('acme\shop\order'));
+});
+
+
 test('a class the process made an alias of at run time is deprecated by its own declaration', function () {
 	// PHPStan reflects such a name as the class aliased, as it does the old names of a nikic/php-parser it carries itself
 	$root = __DIR__ . '/fixtures/types-alias';

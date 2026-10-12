@@ -79,6 +79,11 @@ final class PhpStan
 		private readonly array $newerPackagePaths = [],
 		/** @var list<string>  the directories of the packages the project supports from no particular version */
 		private readonly array $unboundedPackagePaths = [],
+		/**
+		 * @var list<string>  the directories whose declarations are none of the project's, the installation DressCode runs
+		 * from, whose packages the process loads for itself and PHPStan finds through its autoloaders
+		 */
+		private readonly array $foreignPaths = [],
 	) {
 	}
 
@@ -242,12 +247,16 @@ final class PhpStan
 	}
 
 
-	/** The function of that fully qualified name, in any letter case; null for a name nothing declares. */
+	/**
+	 * The function of that fully qualified name, in any letter case; null for a name nothing declares but a package of
+	 * the installation DressCode runs from.
+	 */
 	public function findFunction(string $name): ?FunctionReflection
 	{
 		$provider = $this->getContainer()->getByType(ReflectionProvider::class);
 		$node = new FullyQualified($name);
-		return $provider->hasFunction($node, null) ? $provider->getFunction($node, null) : null;
+		$function = $provider->hasFunction($node, null) ? $provider->getFunction($node, null) : null;
+		return $function === null || self::isInPackages($function->getFileName(), $this->foreignPaths) ? null : $function;
 	}
 
 
@@ -260,13 +269,18 @@ final class PhpStan
 
 	/**
 	 * The class, interface, trait or enum of that fully qualified name, in any letter case; null for a name nothing
-	 * declares, and for one whose ancestors run in a circle, which PHP refuses to load.
+	 * declares but a package of the installation DressCode runs from, and for one whose ancestors run in a circle, which
+	 * PHP refuses to load.
 	 */
 	public function findClass(string $name): ?ClassReflection
 	{
 		$provider = $this->getContainer()->getByType(ReflectionProvider::class);
 		$class = $provider->hasClass($name) ? $provider->getClass($name) : null;
-		return $class === null || self::hasCircularAncestors($class) ? null : $class;
+		return $class === null
+			|| self::isInPackages($class->getFileName(), $this->foreignPaths)
+			|| self::hasCircularAncestors($class)
+			? null
+			: $class;
 	}
 
 
