@@ -545,7 +545,7 @@ final readonly class RunnerFactory
 		foreach ([Rule::class, Node::class] as $class) {
 			$dir = Helpers::canonicalizePath(dirname((string) new \ReflectionClass($class)->getFileName())) . '/';
 			if (!str_starts_with($dir, 'phar://') && !array_any($packages, fn(string $path) => str_starts_with($dir, $path))) {
-				foreach (Finder::findFiles('*.php', '*.neon')->from($dir) as $file) {
+				foreach (Finder::findFiles(['*.php', '*.neon'])->from($dir) as $file) {
 					$stamps[Helpers::canonicalizePath($file->getPathname())] = self::stampFile(
 						$file->getPathname(),
 						(int) $file->getMTime(),
