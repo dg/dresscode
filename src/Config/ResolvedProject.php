@@ -45,6 +45,8 @@ final readonly class ResolvedProject
 		private ConfigResolver $resolver,
 		/** the versions the code is written for unless an override says another */
 		private string $target,
+		/** @var list<string>  presets laid over those of the configuration and beneath its decisions and overrides */
+		public array $laid = [],
 	) {
 	}
 
