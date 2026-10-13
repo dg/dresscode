@@ -453,6 +453,33 @@ test('the types of the code come from the PHPStan of the project when the config
 });
 
 
+test('a configuration of PHPStan it cannot start with is a warning of the run, and the types go without it', function () {
+	$root = createTempDir('types-broken-config');
+	mkdir("$root/stubs");
+	copy(__DIR__ . '/../Analyses/fixtures/types/stubs/Order.php', "$root/stubs/Order.php");
+	// an extension the project loads from its own vendor directory, which another installation does not have
+	file_put_contents("$root/phpstan.neon", "includes:\n\t- vendor/acme/phpstan-rules/extension.neon\n");
+	file_put_contents(
+		"$root/Check.php",
+		"<?php\n\nfunction check(Acme\\Shop\\Order \$order): string\n{\n\treturn \$order::STATUS_PAID;\n}\n",
+	);
+
+	$factory = new RunnerFactory;
+	$config = new Config(
+		paths: ['Check.php', 'stubs'],
+		typeAnalysis: 'phpstan',
+		decisions: ['upgrading' => ['declarations' => ['deprecatedMember' => 'forbidden']]],
+	);
+	$runner = $factory->createRunner($factory->resolve($config, $root), cache: false);
+	$result = $runner->run(['Check.php'], false, new NullReporter);
+	Assert::same(['5: upgrading.declarations.deprecatedMember'], array_map(
+		fn($violation) => "$violation->line: $violation->decision",
+		$result->files[0]->violations,
+	));
+	Assert::match('PHPStan could not start with `phpstan.neon` of the project: %a%; the types go without it.', $result->warnings[0] ?? '');
+});
+
+
 test('types without PHPStan beside DressCode are a warning, and the run goes without them', function () {
 	$root = createTempDir('types-missing');
 	// a preset may ask for what the run cannot give, the project may not

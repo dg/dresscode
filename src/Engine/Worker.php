@@ -40,9 +40,10 @@ final class Worker
 
 			$result = $runner->processPath($path, $fix);
 			$message = WorkerCodec::encode($result);
-			// the files the results depend on, with the first result after they are known
+			// the files the results depend on and what the analyses tell, with the first result after they are known
 			if (!$sent && ($dependencies = ($runner->findDependencies)?->__invoke()) !== null) {
 				$message['dependencies'] = $dependencies;
+				$message['runWarnings'] = ($runner->findWarnings)?->__invoke() ?? [];
 				$sent = true;
 			}
 

@@ -60,6 +60,9 @@ final class WorkerPool
 	/** @var array<string, true>  the files the results depend on, as the workers sent them */
 	private array $dependencies = [];
 
+	/** @var array<string, true>  what the analyses of the workers tell the user about the run */
+	private array $warnings = [];
+
 
 	public function __construct(
 		/** @var list<string> the worker command line; --worker with the address is appended */
@@ -213,6 +216,16 @@ final class WorkerPool
 	public function getDependencies(): array
 	{
 		return array_keys($this->dependencies);
+	}
+
+
+	/**
+	 * What the analyses of the workers tell the user about the run, each thing once.
+	 * @return list<string>
+	 */
+	public function getWarnings(): array
+	{
+		return array_keys($this->warnings);
 	}
 
 
@@ -394,6 +407,10 @@ final class WorkerPool
 			unset($this->inProgress[$id]);
 			foreach (is_array($data['dependencies'] ?? null) ? $data['dependencies'] : [] as $file) {
 				$this->dependencies[(string) $file] = true;
+			}
+
+			foreach (is_array($data['runWarnings'] ?? null) ? $data['runWarnings'] : [] as $warning) {
+				$this->warnings[(string) $warning] = true;
 			}
 
 			$results[$path] = WorkerCodec::decode($data, $code);

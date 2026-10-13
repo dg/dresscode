@@ -221,6 +221,7 @@ final readonly class RunnerFactory
 			narrowed: (bool) $resolution->only,
 			warmUp: isset($phpstan) ? $phpstan->warmUp(...) : null,
 			findDependencies: isset($phpstan) ? $phpstan->getConfigurationFiles(...) : null,
+			findWarnings: isset($phpstan) ? $phpstan->getWarnings(...) : null,
 			typeAnalysis: match (true) {
 				$resolved->typeAnalysis !== null => TypeAnalysisStatus::Enabled,
 				$this->isPhpStanInstalled() => TypeAnalysisStatus::Available,

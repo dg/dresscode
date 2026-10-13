@@ -29,12 +29,13 @@ test('an answer that arrives in parts is put together into one result', function
 });
 
 
-test('the files the results depend on are gathered from every worker', function () {
+test('the files the results depend on and what the analyses tell are gathered from every worker, each once', function () {
 	$pool = new WorkerPool(fakeWorker('split'), jobs: 2);
 	processWith($pool);
 	$dependencies = $pool->getDependencies();
 	sort($dependencies);
 	Assert::same(['stubs/a.php.stub', 'stubs/b.php.stub', 'stubs/c.php.stub'], $dependencies);
+	Assert::same(['The types go without the configuration.'], $pool->getWarnings());
 });
 
 

@@ -65,6 +65,9 @@ final class PhpStan
 	/** @var ?list<string>  the files the configuration read, once a container is built */
 	private ?array $configurationFiles = null;
 
+	/** that the types go without the configuration of the project, which PHPStan could not start with */
+	private ?string $configurationWarning = null;
+
 
 	public function __construct(
 		private readonly string $root,
@@ -479,6 +482,21 @@ final class PhpStan
 	}
 
 
+	/**
+	 * What the run should be told of PHPStan: that the configuration of the project could not be loaded, once a container
+	 * is built without it.
+	 * @return list<string>
+	 */
+	public function getWarnings(): array
+	{
+		return $this->configurationWarning === null ? [] : [$this->configurationWarning];
+	}
+
+
+	/**
+	 * The container of the configuration of the project, or of none where PHPStan cannot start with it, an extension it
+	 * loads from a vendor directory of another installation above all, so that the types are those of the code alone.
+	 */
 	private function getContainer(): Container
 	{
 		if ($this->container !== null) {
@@ -499,28 +517,48 @@ final class PhpStan
 		if (ini_get('opcache.file_cache_only')) {
 			ini_set('opcache.enable', '0');
 		}
-		try {
-			$container = new ContainerFactory($this->root)->create(
-				$this->tempDir,
-				[...self::findExtensionConfigs(), ...array_filter([$this->writeVersionConfig(), $config])],
-				$this->analysedPaths,
-				[$this->root],
-				singleReflectionFile: $this->replacement[1] ?? null,
-				singleReflectionInsteadOfFile: $this->replacement[0] ?? null,
-			);
-			// the container does not run them, the command of PHPStan does; an extension such as Larastan needs them
-			foreach ($container->getParameter('bootstrapFiles') as $file) {
-				(static function (string $file): void { require_once $file; })($file);
+		$container = $failure = null;
+		foreach (array_unique([$config, null]) as $file) {
+			try {
+				$container = $this->createContainer($file);
+				break;
+			} catch (\Throwable $e) {
+				$failure ??= $e;
 			}
-		} catch (\Throwable $e) {
+		}
+
+		if ($container === null) {
 			throw new \RuntimeException(
-				'PHPStan could not be started' . ($config ? ' with ' . Violation::formatCode($config) : '') . ": {$e->getMessage()}",
-				previous: $e,
+				'PHPStan could not be started' . ($config ? ' with ' . Violation::formatCode($config) : '') . ": {$failure->getMessage()}",
+				previous: $failure,
 			);
+		} elseif ($failure !== null && $config !== null) {
+			$this->configurationWarning = 'PHPStan could not start with ' . Violation::formatCode(basename($config))
+				. ' of the project: ' . strtok($failure->getMessage(), "\n") . '; the types go without it.';
 		}
 
 		$this->configurationFiles ??= $this->collectConfigurationFiles($container);
 		return $this->container = $container;
+	}
+
+
+	/** The container of the configuration file, with the bootstrap files it names run. */
+	private function createContainer(?string $config): Container
+	{
+		$container = new ContainerFactory($this->root)->create(
+			$this->tempDir,
+			[...self::findExtensionConfigs(), ...array_filter([$this->writeVersionConfig(), $config])],
+			$this->analysedPaths,
+			[$this->root],
+			singleReflectionFile: $this->replacement[1] ?? null,
+			singleReflectionInsteadOfFile: $this->replacement[0] ?? null,
+		);
+		// the container does not run them, the command of PHPStan does; an extension such as Larastan needs them
+		foreach ($container->getParameter('bootstrapFiles') as $file) {
+			(static function (string $file): void { require_once $file; })($file);
+		}
+
+		return $container;
 	}
 
 

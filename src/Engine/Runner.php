@@ -41,6 +41,8 @@ final readonly class Runner
 		public ?\Closure $warmUp = null,
 		/** @var ?\Closure(): ?list<string>  the files the results depend on beyond the configuration, once the run knows them */
 		public ?\Closure $findDependencies = null,
+		/** @var ?\Closure(): list<string>  what the analyses have to tell the user about the run, once they know it */
+		public ?\Closure $findWarnings = null,
 		private TypeAnalysisStatus $typeAnalysis = TypeAnalysisStatus::Unavailable,
 		/** a rule the configuration turns on does not run without the types */
 		private bool $typesMissing = false,
@@ -176,14 +178,18 @@ final readonly class Runner
 			$ordered,
 			$fix,
 			baselined: $this->baseline?->countMatched() ?? 0,
-			warnings: $unmatched
-				? [sprintf(
-					'%d %s of the baseline no longer %s a violation; regenerate it with `dresscode baseline`.',
-					$unmatched,
-					$unmatched === 1 ? 'entry' : 'entries',
-					$unmatched === 1 ? 'matches' : 'match',
-				)]
-				: [],
+			warnings: array_values(array_unique([
+				...($this->findWarnings)?->__invoke() ?? [],
+				...$workers?->getWarnings() ?? [],
+				...($unmatched
+					? [sprintf(
+						'%d %s of the baseline no longer %s a violation; regenerate it with `dresscode baseline`.',
+						$unmatched,
+						$unmatched === 1 ? 'entry' : 'entries',
+						$unmatched === 1 ? 'matches' : 'match',
+					)]
+					: []),
+			])),
 			maxWarnings: $maxWarnings,
 		);
 		$reporter->finish($result);
