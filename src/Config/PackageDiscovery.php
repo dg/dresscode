@@ -136,6 +136,23 @@ final readonly class PackageDiscovery
 
 
 	/**
+	 * The packages shipping upgrading files, with the data of each.
+	 * @return array<string, list<UpgradingData>>
+	 */
+	public function getDataPackages(): array
+	{
+		$res = [];
+		foreach ($this->upgradingData as $data) {
+			if ($data->layer->name !== null && $data->layer->package !== null) {
+				$res[$data->layer->package][] = $data;
+			}
+		}
+
+		return $res;
+	}
+
+
+	/**
 	 * The upgrading files of a package, relative to where it lies: every NEON file of the directory
 	 * `extra.dresscode.upgrading-dir` names, in the order of their names.
 	 * @param  array<mixed>  $extra  `extra.dresscode` of the package

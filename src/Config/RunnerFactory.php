@@ -38,15 +38,23 @@ final readonly class RunnerFactory
 	 * override included.
 	 * @param  ?Profile  $commandLine  laid over the configuration and its overrides, as --use is
 	 * @param  ?list<string>  $only  decisions, sections, presets and classes of rules the run is narrowed to
+	 * @param  list<string>  $laid  presets laid over those of the configuration and beneath its decisions and overrides
 	 * @throws ConfigurationException
 	 */
-	public function resolve(Config $config, string $root, ?Profile $commandLine = null, ?array $only = null): ResolvedProject
+	public function resolve(
+		Config $config,
+		string $root,
+		?Profile $commandLine = null,
+		?array $only = null,
+		array $laid = [],
+	): ResolvedProject
 	{
 		[$target, $source] = $this->getPhpTarget($config, $root);
 		$project = $this->readProjectPackages($config, $root, $target);
 		$packages = PackageDiscovery::discover($project);
 		[$packagePlugins, $skipped, $unnamed] = $this->admitPackagePlugins(
 			$packages->plugins,
+			array_keys($packages->getDataPackages()),
 			$config,
 			$commandLine,
 			$project->rootName,
@@ -68,7 +76,7 @@ final readonly class RunnerFactory
 			);
 		}
 
-		$resolver = new ConfigResolver($this->registry, $packages->upgradingData, $project, $typesAvailable, $root, $skipped);
+		$resolver = new ConfigResolver($this->registry, $packages->upgradingData, $project, $typesAvailable, $root, $skipped, $laid);
 		$resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
 		$missing = array_map(
 			fn(string $package) => $package === $project->rootName
@@ -97,6 +105,7 @@ final readonly class RunnerFactory
 			$only,
 			$resolver,
 			$target,
+			$laid,
 		);
 	}
 
@@ -243,9 +252,10 @@ final readonly class RunnerFactory
 	 * without it, or the plugin in `use`, its own package needing no name, the others skipped with a warning; a package
 	 * named makes its name no preset.
 	 * @param  array<string, class-string<Plugin>>  $plugins  package => its plugin
+	 * @param  list<string>  $carriers  the packages shipping upgrading data, which `upgrade` lets in by itself
 	 * @return array{list<class-string<Plugin>>, list<string>, list<string>}  the plugins, the packages skipped, the warnings
 	 */
-	private function admitPackagePlugins(array $plugins, Config $config, ?Profile $commandLine, ?string $rootName): array
+	private function admitPackagePlugins(array $plugins, array $carriers, Config $config, ?Profile $commandLine, ?string $rootName): array
 	{
 		$named = [
 			...$config->use,
@@ -259,6 +269,11 @@ final readonly class RunnerFactory
 			if ($package === $rootName || array_any([$package, $short, $plugin], fn(string $name) => in_array($name, $named, true))) {
 				$admitted[] = $plugin;
 				$this->registry->registerPluginPackage($package, $plugin);
+			} elseif (in_array($package, $carriers, true)) {
+				$skipped[] = $package;
+				$warnings[] = "Package `$package` brings rules that run only where `use` names it"
+					. ($short === $package ? '' : ", as `$short`")
+					. ', and in `dresscode upgrade`; skipped, with what its upgrading files set for them.';
 			} else {
 				$skipped[] = $package;
 				$warnings[] = "Package `$package` brings the plugin `$plugin`, which loads only where `use` names the package or the plugin; skipped.";

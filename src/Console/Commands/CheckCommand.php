@@ -7,8 +7,11 @@
 
 namespace DressCode\Console\Commands;
 
-use DressCode\{Config, Reporter, Reporters};
-use DressCode\Config\{Loader, PluginRegistry, ResolvedProject};
+use DressCode\{Config, ConfigurationException, Reporter, Reporters};
+use DressCode\Config\{
+	Loader, PackageDiscovery, PluginRegistry, ResolvedProject, RunnerFactory, UpgradingData,
+	Versions,
+};
 use DressCode\Console\{CommandContext, Markup, ProgressBar, RiskReview};
 use DressCode\Engine\{Baseline, FileSummary, Helpers, LineRanges, Runner, RunResult, Worker, WorkerPool};
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
@@ -49,6 +52,47 @@ final readonly class CheckCommand
 	}
 
 
+	/**
+	 * @param  list<string|true>  $fixRisky
+	 * @param  list<string>  $only
+	 */
+	#[Cli\Command('Upgrade the code to the lowest versions of PHP and of the libraries composer.json allows, after raising them: the set `deprecations` and the packages of upgrading data with the types of the code, in the style the project keeps')]
+	public function upgrade(
+		ParseResult $args,
+		RunOptions $run,
+		#[Cli\Flag('Also write what newer PHP offers, the set `modernizations`')]
+		?bool $modernize,
+		#[Cli\Flag('Upgrade as usual, then ask about every risky fix left, one at a time with its diff, and make those accepted; needs an interactive terminal')]
+		?bool $askRisky,
+		ConfigOptions $configuration,
+		#[Cli\Option(
+			'Also make the fixes that may change what the code does, of every rule, or with `=name` of that decision, rule, preset or package; they are reported either way',
+			valueName: 'name',
+			valueOptional: true,
+			repeatable: true,
+		)]
+		array $fixRisky = [],
+		#[Cli\Option(
+			'Only these: a package of upgrading data for its maps and the rules reading them, or a decision, a section, a rule or a preset',
+			valueName: 'name',
+			repeatable: true,
+		)]
+		array $only = [],
+	): int
+	{
+		return $this->run(
+			$args,
+			$configuration,
+			$run,
+			new CheckOptions(fixRisky: $fixRisky, only: $only),
+			fix: true,
+			askRisky: (bool) $askRisky,
+			upgrade: $only,
+			modernize: (bool) $modernize,
+		);
+	}
+
+
 	#[Cli\Command('Write the violations a fix leaves into the baseline file of the configuration, once a fix changes nothing')]
 	public function baseline(ParseResult $args, RunOptions $run, ConfigOptions $configuration): int
 	{
@@ -59,6 +103,7 @@ final readonly class CheckCommand
 	/**
 	 * @param  ?CheckOptions  $check  what check and fix take beyond the run, null for the baseline
 	 * @param  bool  $generate  the baseline command writes the configured baseline, it never reads it
+	 * @param  ?list<string>  $upgrade  the run of `upgrade`, with the decisions a worker runs; null for another command
 	 */
 	private function run(
 		ParseResult $args,
@@ -68,6 +113,8 @@ final readonly class CheckCommand
 		bool $fix = false,
 		bool $generate = false,
 		bool $askRisky = false,
+		?array $upgrade = null,
+		bool $modernize = false,
 	): int
 	{
 		// `fix --stdin` is the formatter of an editor, which reads the text and the exit code alone
@@ -88,7 +135,9 @@ final readonly class CheckCommand
 			}
 		}
 
-		[$factory, $resolution, $configFile] = $this->context->resolveProject($args, $configuration, $check->only ?? []);
+		[$factory, $resolution, $configFile] = $upgrade === null
+			? $this->context->resolveProject($args, $configuration, $check->only ?? [])
+			: $this->resolveUpgrade($args, $configuration, $modernize, $upgrade);
 		[$config, $root] = [$resolution->config, $resolution->root];
 		$fixRisky = in_array(true, $check->fixRisky ?? [], true); // a bare `--fix-risky`, the names given go to the configuration
 		if ($run->worker !== null) { // the parent keeps the cache; the baseline decides what is reported
@@ -188,6 +237,10 @@ final readonly class CheckCommand
 			}
 
 			$this->context->writeHeader($configFile, $resolution);
+			if ($upgrade !== null) {
+				self::writeUpgradedVersions($out, $resolution);
+			}
+
 			$out->setStatus($out->color('gray', $fix ? 'Fixing     ' : 'Checking   ') . 'looking for files…');
 		}
 
@@ -220,7 +273,13 @@ final readonly class CheckCommand
 
 		// a worker costs about the processing of a few files to start, so by default one for every four files at most
 		$jobs = $run->jobs ?? max(1, min(WorkerPool::detectCpuCount(), intdiv(count($files), 4)));
-		$command = $jobs > 1 && $files ? $this->buildWorkerCommand($args, $configuration, $run, $check) : null;
+		$command = $jobs > 1 && $files
+			? $this->buildWorkerCommand($args, $configuration, $run, $check, $upgrade === null ? [] : [
+				...$modernize ? ['--modernize'] : [],
+				// what the parent narrowed the run to, unless `--only` did, which goes over as it is
+				...$upgrade ? [] : array_map(fn(string $name) => "--only=$name", $resolution->only ?? []),
+			])
+			: null;
 		$workers = $command
 			? new WorkerPool($command, $jobs, $this->context->workingDirectory, warmFirst: $runner->warmUp !== null)
 			: null;
@@ -244,14 +303,140 @@ final readonly class CheckCommand
 				$runner,
 				$resolution,
 				$run->paths,
+				$upgrade === null ? 'fix' : 'upgrade',
 			);
 			$result = $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings, $lines);
+			if ($upgrade !== null && $preface && $result->countChangedFiles()) {
+				$out->writeLine('Run `dresscode upgrade` again: the code it rewrote may hold more to upgrade.');
+			}
+
 			return $askRisky
 				? $this->review($runner, $result, $files, $root, $maxWarnings, $factory->registry)
 				: $result->getExitCode();
+
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
 		}
+	}
+
+
+	/**
+	 * What `upgrade` upgrades by: the packages of upgrading data, those installed newer than the lowest version the
+	 * project allows, whose declarations then say nothing of what that one deprecates, and those it allows in any version,
+	 * whose data are reported and never written.
+	 */
+	private static function writeUpgradedVersions(Console $out, ResolvedProject $resolution): void
+	{
+		$project = $resolution->projectPackages;
+		$packages = array_diff(
+			array_unique(array_map(fn(array $data) => $data[0]->package, $resolution->upgradingData)),
+			[PackageDiscovery::Php],
+		);
+		$out->writeLine(
+			$out->color('gray', 'Upgrading  ') . (implode(', ', $packages) ?: 'PHP alone, no installed library has upgrading data'),
+		);
+
+		$newer = [];
+		foreach ($project->findNewerInstalled() as $package => [$installed, $lowest]) {
+			$newer[] = "$package " . Versions::formatVersion($installed) . " installed, $lowest required";
+		}
+
+		if ($newer !== []) {
+			$out->writeLine(
+				$out->color('gray', 'Lowest     ')
+				. implode(', ', $newer)
+				. '; `composer update --prefer-lowest` lets the upgrade see what the lowest versions deprecate',
+			);
+		}
+
+		$unbounded = array_filter($packages, $project->isUnbounded(...));
+		if ($unbounded !== []) {
+			$out->writeLine(
+				$out->color('gray', 'Reported   ')
+				. implode(', ', $unbounded)
+				. ': not required with a lower bound, so the upgrading data are reported, never written',
+			);
+		}
+	}
+
+
+	/**
+	 * The project of `upgrade`: its configuration, or the directory as a whole where it has none, with the sets of the
+	 * upgrade laid over the presets it uses and beneath its own decisions and overrides, and the plugins of the packages
+	 * of upgrading data with the types of the code over it all, narrowed by `--only`, or where it has a configuration to
+	 * the decisions its style keeps and to the packages whose data reach the project.
+	 * @param  list<string>  $only  those of `--only`, which the parent gives a worker too
+	 * @return array{RunnerFactory, ResolvedProject, ?string}
+	 */
+	private function resolveUpgrade(ParseResult $args, ConfigOptions $configuration, bool $modernize, array $only): array
+	{
+		['config' => $config, 'root' => $root, 'file' => $file, 'commandLine' => $commandLine]
+			= $this->context->loadConfig($args, $configuration, new Config(paths: ['.']));
+		$factory = new RunnerFactory;
+		$discovered = PackageDiscovery::discover($factory->readProjectPackages($config, $root));
+		$packages = $discovered->getDataPackages();
+		$sets = $modernize ? ['deprecations', 'modernizations'] : ['deprecations'];
+		$layer = new Config(
+			use: [
+				...$commandLine->plugins ?? [],
+				...$commandLine->use ?? [],
+				...array_keys(array_intersect_key($discovered->plugins, $packages)),
+			],
+			fixRisky: $commandLine->fixRisky ?? [],
+			severity: $commandLine->severity ?? [],
+			typeAnalysis: 'phpstan',
+			decisions: $commandLine->decisions ?? [],
+		);
+		if ($file !== null && !$only) {
+			// a package for the maps and the rules of its plugin, which no set covers
+			$reached = array_filter(
+				$packages,
+				fn(array $files) => array_any($files, fn(UpgradingData $data) => $data->maps !== [] || $data->requirements !== []),
+			);
+			$only = [...$this->findKeptDecisions($config, $root, $file, $commandLine), ...$sets, ...array_keys($reached)];
+		}
+
+		return [$factory, $factory->resolve($config, $root, $layer, $only ?: null, laid: $sets), $file];
+	}
+
+
+	/**
+	 * The decisions of the configuration the code keeps everywhere: those it makes, the types left out, less each one
+	 * the code violates anywhere, whatever its severity.
+	 * @return list<string>
+	 */
+	private function findKeptDecisions(Config $config, string $root, string $file, ?Config $commandLine): array
+	{
+		try {
+			$factory = new RunnerFactory(phpstanInstalled: false);
+			$resolution = $factory->resolve($config, $root, $commandLine);
+		} catch (ConfigurationException) { // a decision of the project needs the types, so the check takes them
+			$factory = new RunnerFactory;
+			$resolution = $factory->resolve($config, $root, $commandLine);
+		}
+
+		$runner = $factory->createRunner($resolution, configFile: $file);
+		$result = $runner->run($runner->findFiles($config->paths, configured: $config->paths), false, new Reporters\NullReporter);
+		$violated = [];
+		foreach ($result->files as $summary) {
+			foreach ($summary->violations as $violation) {
+				$violated[$violation->decision] = true;
+			}
+		}
+
+		$kept = [];
+		foreach ($resolution->resolvedConfig->decisions as $path => $decision) {
+			if (
+				$decision->inactive === null
+				&& $decision->decision->isRequirement()
+				&& !$decision->value->isKept()
+				&& !isset($violated[$path])
+			) {
+				$kept[] = $path;
+			}
+		}
+
+		return $kept;
 	}
 
 
@@ -423,9 +608,16 @@ final readonly class CheckCommand
 	 * The command line of a worker: the same PHP, the same command and configuration; the paths come over the
 	 * connection. Null where there is no PHP to start one with, and the run stays in the process.
 	 * @param  ?CheckOptions  $check  null for the baseline
+	 * @param  list<string>  $extra  what the parent decided for the run beyond its command line
 	 * @return ?list<string>
 	 */
-	private function buildWorkerCommand(ParseResult $args, ConfigOptions $configuration, RunOptions $run, ?CheckOptions $check): ?array
+	private function buildWorkerCommand(
+		ParseResult $args,
+		ConfigOptions $configuration,
+		RunOptions $run,
+		?CheckOptions $check,
+		array $extra = [],
+	): ?array
 	{
 		$php = WorkerPool::buildPhpCommand();
 		if ($php === null) {
@@ -437,6 +629,7 @@ final readonly class CheckCommand
 			$this->context->scriptFile,
 			(string) $args->command->name,
 			'--no-color',
+			...$extra,
 		];
 		foreach ([
 			'--config' => (array) $configuration->config,
@@ -526,9 +719,11 @@ final readonly class CheckCommand
 
 
 	/**
+	 * @param  bool  $diff  the console shows the fixes as a unified diff
 	 * @param  resource  $stream  the same place as the console; a machine-readable format is no text of a console
 	 * @param  string  $root  the paths of the results are relative to it
 	 * @param  list<string>  $paths  the paths as the command line gave them
+	 * @param  string  $command  the command whose `--ask-risky` decides the risky fixes left
 	 */
 	private function createReporter(
 		bool $diff,
@@ -540,6 +735,7 @@ final readonly class CheckCommand
 		Runner $runner,
 		ResolvedProject $resolution,
 		array $paths,
+		string $command = 'fix',
 	): Reporter
 	{
 		return match ($format) {
@@ -573,6 +769,7 @@ final readonly class CheckCommand
 				root: $root,
 				cwd: Helpers::canonicalizePath($this->context->workingDirectory),
 				findDecisionUrl: $registry->findUrl(...),
+				command: $command,
 			),
 		};
 	}
