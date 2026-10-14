@@ -198,7 +198,8 @@ final readonly class ConfigPrinter
 				'inactive' => $decision->inactive?->value,
 				'selected' => $decision->decision->kind !== DecisionKind::Parameter
 					&& $this->config->values->isSelected($decision->decision->path),
-			], $this->config->decisions) ?: new \stdClass,
+			], $this->config->decisions)
+				?: new \stdClass,
 		], pretty: true) . "\n";
 	}
 

@@ -110,11 +110,13 @@ final class NoManualSubstringTestsRule extends NodeRule
 
 		$multibyte = str_starts_with($source, 'mb_');
 		$shape = match ($source) {
-			'strpos', 'mb_strpos' => count($arguments) === 2 ? match (true) {
-				self::isFalse($compared) => ['str_contains', $arguments[0], $arguments[1], !$identical, $multibyte],
-				self::isZero($compared) => ['str_starts_with', $arguments[0], $arguments[1], $identical, $multibyte],
-				default => null,
-			} : null,
+			'strpos', 'mb_strpos' => count($arguments) === 2
+				? match (true) {
+					self::isFalse($compared) => ['str_contains', $arguments[0], $arguments[1], !$identical, $multibyte],
+					self::isZero($compared) => ['str_starts_with', $arguments[0], $arguments[1], $identical, $multibyte],
+					default => null,
+				}
+				: null,
 			'strstr', 'mb_strstr' => count($arguments) === 2 && self::isFalse($compared)
 				? ['str_contains', $arguments[0], $arguments[1], !$identical, $multibyte]
 				: null,

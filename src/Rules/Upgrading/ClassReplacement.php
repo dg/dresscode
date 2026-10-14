@@ -393,7 +393,9 @@ final class ClassReplacement
 		return $list instanceof SeparatedNodeList && (
 			(($declaration instanceof ClassNode || $declaration instanceof EnumNode) && $declaration->implements === $list)
 			|| ($declaration instanceof InterfaceNode && $declaration->extends === $list)
-		) ? $list : null;
+		)
+			? $list
+			: null;
 	}
 
 

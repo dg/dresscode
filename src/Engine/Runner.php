@@ -166,12 +166,14 @@ final readonly class Runner
 			$ordered,
 			$fix,
 			baselined: $this->baseline?->countMatched() ?? 0,
-			warnings: $unmatched ? [sprintf(
-				'%d %s of the baseline no longer %s a violation; regenerate it with `dresscode baseline`.',
-				$unmatched,
-				$unmatched === 1 ? 'entry' : 'entries',
-				$unmatched === 1 ? 'matches' : 'match',
-			)] : [],
+			warnings: $unmatched
+				? [sprintf(
+					'%d %s of the baseline no longer %s a violation; regenerate it with `dresscode baseline`.',
+					$unmatched,
+					$unmatched === 1 ? 'entry' : 'entries',
+					$unmatched === 1 ? 'matches' : 'match',
+				)]
+				: [],
 			maxWarnings: $maxWarnings,
 		);
 		$reporter->finish($result);

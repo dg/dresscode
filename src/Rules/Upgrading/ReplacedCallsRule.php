@@ -693,7 +693,9 @@ final class ReplacedCallsRule extends NodeRule
 			$parent instanceof ForeachNode => $parent->key === $written || $parent->value === $written,
 			$parent instanceof ArgumentNode => $parent->ampersand !== null,
 			default => false,
-		} ? 'written' : 'read';
+		}
+			? 'written'
+			: 'read';
 	}
 
 
