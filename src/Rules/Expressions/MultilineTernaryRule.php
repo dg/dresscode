@@ -18,9 +18,10 @@ use function is_string;
 /**
  * A ternary split over lines takes three: the condition, then `?` with its branch, then `:` with its
  * branch; one split at either operator brings the other along, and so does the condition or the first branch spanning
- * lines, where the operators would hide at the ends of lines. A ternary on a line wider than the line length of
- * the style is split so, unless an outer construct on the line is spread first or `file.lineLengthExcept` names
- * `ternary`, and the `?:` of a short ternary stays together. Where the lines stand is the matter of `IndentationRule`.
+ * lines, where the operators would hide at the ends of lines, except a condition of `?:` closed by a bracket opening
+ * the line of the operator, `) ?: throw …`. A ternary on a line wider than the line length of the style is split so,
+ * unless an outer construct on the line is spread first or `file.lineLengthExcept` names `ternary`, and the `?:` of
+ * a short ternary stays together. Where the lines stand is the matter of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineTernaryRule extends GapRule
@@ -45,11 +46,16 @@ final class MultilineTernaryRule extends GapRule
 			}
 
 			// an operand spanning lines before the last operator spans the ternary too, the operators then hiding at the
-			// ends of its lines; the last operand may span lines after them, which stay in sight
+			// ends of its lines; the last operand may span lines after them, which stay in sight, and so does `?:` after
+			// a condition closed by a bracket opening its line
 			$last = $ternary->then === null ? $ternary->question : $ternary->colon;
+			$closing = $ternary->condition->getLastToken();
+			$first = $ternary->then === null && $closing->is([')', ']']) && $closing->startsLine()
+				? $closing
+				: $ternary->getFirstToken();
 			$because = $gap->once(
 				$ternary,
-				fn() => $ternary->getFirstToken()->getCurrentLine() === $last->getCurrentLine()
+				fn() => $first->getCurrentLine() === $last->getCurrentLine()
 					? self::findWidthReason($ternary, $gap)
 					: $break,
 			);

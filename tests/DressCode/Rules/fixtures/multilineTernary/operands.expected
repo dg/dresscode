@@ -17,3 +17,15 @@ $a = $b ? $c : foo(
 $a = $b ?: foo(
 	$c,
 );
+
+// a condition closed by a bracket opening its line keeps `?:` in sight after it
+$a = foo(
+	$b,
+) ?: throw new Exception;
+$a = [
+	$b,
+] ?: $c;
+return ($b
+	? $c
+	: $d)
+	?: [];

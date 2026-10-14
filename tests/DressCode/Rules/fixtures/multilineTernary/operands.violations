@@ -1,1 +1,2 @@
 3: Expected a line break before the `?` operator, because the ternary spans several lines.
+28: Expected a line break before the `?` operator, because the ternary spans several lines.
