@@ -926,19 +926,19 @@ final class Types implements PassAnalysis
 			$node instanceof StaticMethodCallNode && $node->name instanceof IdentifierNode && $parserNode instanceof Expr\StaticCall
 				=> [MemberKind::StaticMethod, self::getClassType($parserNode->class, $scope), $node->name->text],
 			$node instanceof MethodCallNode
-			&& $node->name instanceof IdentifierNode
-			&& ($parserNode instanceof Expr\MethodCall || $parserNode instanceof Expr\NullsafeMethodCall)
+				&& $node->name instanceof IdentifierNode
+				&& ($parserNode instanceof Expr\MethodCall || $parserNode instanceof Expr\NullsafeMethodCall)
 				=> [MemberKind::Method, $scope->getType($parserNode->var), $node->name->text],
 			$node instanceof StaticPropertyFetchNode && $node->plainName !== null && $parserNode instanceof Expr\StaticPropertyFetch
 				=> [MemberKind::StaticProperty, self::getClassType($parserNode->class, $scope), $node->plainName],
 			$node instanceof PropertyFetchNode
-			&& $node->name instanceof IdentifierNode
-			&& ($parserNode instanceof Expr\PropertyFetch || $parserNode instanceof Expr\NullsafePropertyFetch)
+				&& $node->name instanceof IdentifierNode
+				&& ($parserNode instanceof Expr\PropertyFetch || $parserNode instanceof Expr\NullsafePropertyFetch)
 				=> [MemberKind::Property, $scope->getType($parserNode->var), $node->name->text],
 			$node instanceof NewNode
-			&& $node->class instanceof NameNode
-			&& $parserNode instanceof Expr\New_
-			&& $parserNode->class instanceof ParserNode\Name
+				&& $node->class instanceof NameNode
+				&& $parserNode instanceof Expr\New_
+				&& $parserNode->class instanceof ParserNode\Name
 				=> [MemberKind::Constructor, $scope->resolveTypeByName($parserNode->class), '__construct'],
 			default => [null, null, null],
 		};

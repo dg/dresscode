@@ -186,13 +186,13 @@ final class CallableNotationRule extends NodeRule
 				...(strtolower($target->class->text) === 'static' ? [null, null] : $static),
 			],
 			$target->isDereferenceable(DereferenceKind::Fetch)
-			&& !$target->isInNullsafeChain()
-			&& ($object = self::isObject($target, $context)) !== Tristate::No => [
-				$target->text . '->' . $method->toValue(),
-				...($object === Tristate::Maybe
-					? [Risk::TypeUnknown, 'the value may be the name of a class, not an object']
-					: [null, null]),
-			],
+				&& !$target->isInNullsafeChain()
+				&& ($object = self::isObject($target, $context)) !== Tristate::No => [
+					$target->text . '->' . $method->toValue(),
+					...($object === Tristate::Maybe
+						? [Risk::TypeUnknown, 'the value may be the name of a class, not an object']
+						: [null, null]),
+				],
 			default => null,
 		};
 	}

@@ -468,7 +468,7 @@ final class ReplacedCallsRule extends NodeRule
 				$rewrite = match (true) {
 					$variable->isInNullsafeChain() => $rewrite->withRisk('the replacement gives null for a null object, where `isset()` gives false'),
 					$receiver instanceof ExpressionNode
-					&& $context->getAnalysis(Types::class)->isOfType($receiver, 'object', at: $node) !== Tristate::Yes
+						&& $context->getAnalysis(Types::class)->isOfType($receiver, 'object', at: $node) !== Tristate::Yes
 						=> $rewrite->withRisk('the replacement fails on a null object, where `isset()` gives false'),
 					default => $rewrite,
 				};

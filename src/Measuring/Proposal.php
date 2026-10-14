@@ -489,14 +489,14 @@ final readonly class Proposal
 		$conditionValue = ($resolved->decisions['multiline.condition'] ?? null)?->value;
 		$problem = match (true) {
 			$indent !== null
-			&& $resolved->indent !== ($indent === 'tab' ? "\t" : str_repeat(' ', (int) $indent)) => "the indentation is not `$indent`",
+				&& $resolved->indent !== ($indent === 'tab' ? "\t" : str_repeat(' ', (int) $indent)) => "the indentation is not `$indent`",
 			$quotes !== null
-			&& ($quotesValue === null
-				|| ($quotesValue->isKept() ? 'keep' : $quotesValue->getWord()) !== $quotes) => "`literals.quotes` is not `$quotes`",
+				&& ($quotesValue === null
+					|| ($quotesValue->isKept() ? 'keep' : $quotesValue->getWord()) !== $quotes) => "`literals.quotes` is not `$quotes`",
 			$shape !== null
-			&& $conditionValue?->toData() !== (is_string($shape) && $shape !== 'keep'
-				? [$shape]
-				: $shape) => '`multiline.condition` has another shape',
+				&& $conditionValue?->toData() !== (is_string($shape) && $shape !== 'keep'
+					? [$shape]
+					: $shape) => '`multiline.condition` has another shape',
 			($resolved->nameResolution === 'certain') !== ($this->unparsed === []) => 'the name resolution is not what the files that parse allow',
 			array_diff(
 				$this->namespacedFunctions,
@@ -508,7 +508,7 @@ final readonly class Proposal
 			) !== [] => 'a constant the namespaces declare is not listed',
 			// a DressCode without PHPStan beside it goes without the types the project can give
 			$this->phpstanInstalled !== ($resolved->typeAnalysis === 'phpstan')
-			&& Analyses\PhpStan::isAvailable() => 'the types are not what the installed packages allow',
+				&& Analyses\PhpStan::isAvailable() => 'the types are not what the installed packages allow',
 			default => null,
 		};
 		if ($problem !== null) {

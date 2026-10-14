@@ -110,8 +110,8 @@ final class FirstClassCallableForStringRule extends NodeRule
 		return match (true) {
 			str_contains($method, '::') => ['', null],
 			$first->value instanceof StringNode
-			&& ForwardingClosure::isScopeRelative($first->value->toValue())
-			&& preg_match('~^\w+$~D', $method) === 1
+				&& ForwardingClosure::isScopeRelative($first->value->toValue())
+				&& preg_match('~^\w+$~D', $method) === 1
 				=> [strtolower($first->value->toValue()), $method],
 			default => null,
 		};

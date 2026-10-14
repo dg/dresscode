@@ -252,9 +252,9 @@ final class ReplacedMembersRule extends NodeRule
 			$access->kind === MemberKind::Method || $access->kind === MemberKind::Property
 				=> ', but an object cannot be asked for a member of another class',
 			$node instanceof StaticMethodCallNode
-			&& $node->class instanceof NameNode
-			&& $node->class->isSpecialClass()
-			&& !array_all($access->classes, fn(string $class) => $types->isStaticMethod($class, $access->name) === Tristate::Yes)
+				&& $node->class instanceof NameNode
+				&& $node->class->isSpecialClass()
+				&& !array_all($access->classes, fn(string $class) => $types->isStaticMethod($class, $access->name) === Tristate::Yes)
 				=> ", but `{$node->class->text}::` may call the method on the object, which the other class cannot",
 			default => null,
 		};

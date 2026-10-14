@@ -411,8 +411,8 @@ final class ClassReplacement
 		return match (true) {
 			$inheritance !== null => [$inheritance, $name],
 			$type instanceof NamedTypeNode
-			&& $type->parent instanceof SeparatedNodeList
-			&& $type->parent->parent instanceof UnionTypeNode => [$type->parent, $type],
+				&& $type->parent instanceof SeparatedNodeList
+				&& $type->parent->parent instanceof UnionTypeNode => [$type->parent, $type],
 			default => null,
 		};
 	}
@@ -457,8 +457,8 @@ final class ClassReplacement
 		return match (true) {
 			$isInterface === Tristate::No && self::findInheritance($name) !== null => ", but `$new` is a class, which is not implemented",
 			$isInterface === Tristate::Yes
-			&& $name->parent instanceof ClassNode
-			&& $name->parent->extends === $name => ", but `$new` is an interface, which a class does not extend",
+				&& $name->parent instanceof ClassNode
+				&& $name->parent->extends === $name => ", but `$new` is an interface, which a class does not extend",
 			default => null,
 		};
 	}

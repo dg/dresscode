@@ -267,9 +267,9 @@ final class NativeType
 		$bare = ltrim($lower, '\\');
 		return match (true) {
 			$bare !== $lower
-			&& (in_array($bare, [...self::Builtin, 'resource'], true)
-				|| isset(self::Aliases[$bare])
-				|| isset(self::Unofficial[$bare])) => null,
+				&& (in_array($bare, [...self::Builtin, 'resource'], true)
+					|| isset(self::Aliases[$bare])
+					|| isset(self::Unofficial[$bare])) => null,
 			isset(self::Aliases[$lower]) => self::Aliases[$lower],
 			str_ends_with($lower, '-string') => 'string',
 			in_array($lower, self::Builtin, true), isset(self::Unofficial[$lower]) => $lower,

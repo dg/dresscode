@@ -203,10 +203,10 @@ final class ArraySearchForFilterRule extends NodeRule
 				? ltrim($callback->toValue(), '\\')
 				: null,
 			$callback instanceof FunctionCallNode
-			&& $callback->name instanceof NameNode
-			&& $callback->arguments->items->count() === 1
-			&& $callback->arguments->items->getItems()[0] instanceof VariadicPlaceholderNode
-			&& $context->getAnalysis(NameResolver::class)->isGlobalFunctionCall($callback)
+				&& $callback->name instanceof NameNode
+				&& $callback->arguments->items->count() === 1
+				&& $callback->arguments->items->getItems()[0] instanceof VariadicPlaceholderNode
+				&& $context->getAnalysis(NameResolver::class)->isGlobalFunctionCall($callback)
 				=> ltrim($context->getAnalysis(NameResolver::class)->resolveFunction($callback->name), '\\'),
 			default => null,
 		};

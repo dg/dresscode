@@ -45,8 +45,8 @@ final class NoNullArrayKeysRule extends NodeRule
 			$node instanceof Expression\ArrayAccessNode => $node->index,
 			$node instanceof ArrayItemNode => $node->key,
 			$node instanceof Expression\FunctionCallNode
-			&& !$node->arguments->isPartialApplication()
-			&& $context->getAnalysis(NameResolver::class)->isGlobalFunctionCall($node, 'array_key_exists')
+				&& !$node->arguments->isPartialApplication()
+				&& $context->getAnalysis(NameResolver::class)->isGlobalFunctionCall($node, 'array_key_exists')
 				=> $node->arguments->findArgument('key', 0)?->value,
 			default => null,
 		};

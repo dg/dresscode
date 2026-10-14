@@ -63,7 +63,7 @@ final class NoTrailingWhitespaceRule extends NodeRule
 			$replacement = match (true) {
 				$item->inInterpolation => $item,
 				$item->is(Trivia::Whitespace)
-				&& ($next === null ? $leading && $token->is(Token::EndOfFile) : $next->is(Trivia::LineEnding)) => null,
+					&& ($next === null ? $leading && $token->is(Token::EndOfFile) : $next->is(Trivia::LineEnding)) => null,
 				$item->is(Trivia::OpenTag) && $next?->is(Trivia::LineEnding) => self::trim($item),
 				$item->isComment() => match (true) {
 					str_starts_with($item->text, '/*') => self::trimLines($item),

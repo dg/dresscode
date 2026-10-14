@@ -401,16 +401,16 @@ final class AttributeForMemberRule extends NodeRule
 			foreach ($member->find(Node::class) as $node) {
 				$read = match (true) {
 					$kind === AttributeForMemberKind::Property
-					&& $node instanceof PropertyFetchNode => $node->object instanceof VariableNode && $node->object->isThis()
-						&& $node->name instanceof IdentifierNode && $node->name->text === $name,
+						&& $node instanceof PropertyFetchNode => $node->object instanceof VariableNode && $node->object->isThis()
+							&& $node->name instanceof IdentifierNode && $node->name->text === $name,
 					$kind === AttributeForMemberKind::Property && $node instanceof StaticPropertyFetchNode => $node->plainName === $name
 						&& $isOwn($node->class),
 					$kind === AttributeForMemberKind::Method
-					&& $node instanceof MethodCallNode => $node->object instanceof VariableNode && $node->object->isThis()
-						&& $node->name instanceof IdentifierNode && $node->name->equals($name),
+						&& $node instanceof MethodCallNode => $node->object instanceof VariableNode && $node->object->isThis()
+							&& $node->name instanceof IdentifierNode && $node->name->equals($name),
 					$kind === AttributeForMemberKind::Method
-					&& $node instanceof StaticMethodCallNode => $node->name instanceof IdentifierNode
-						&& $node->name->equals($name) && $isOwn($node->class),
+						&& $node instanceof StaticMethodCallNode => $node->name instanceof IdentifierNode
+							&& $node->name->equals($name) && $isOwn($node->class),
 					default => false,
 				};
 				if ($read) {

@@ -346,10 +346,10 @@ final class ConfigResolver
 
 		[$reason, $message] = match (true) {
 			$effective !== []
-			&& array_any($effective, fn(ResolvedDecision $decision) => $values->isSelected($decision->decision->path)) => [
-				null,
-				null,
-			],
+				&& array_any($effective, fn(ResolvedDecision $decision) => $values->isSelected($decision->decision->path)) => [
+					null,
+					null,
+				],
 			$effective !== [] => [InactiveReason::Narrowed, 'the run is narrowed to other decisions'],
 			$ruleReason === InactiveReason::Php => [
 				InactiveReason::Php,
