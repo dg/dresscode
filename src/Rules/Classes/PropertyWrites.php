@@ -11,7 +11,10 @@ use DressCode\Analyses\Parameter;
 use DressCode\{RuleContext, Tristate};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentNode, ArrayItemNode, DestructuringNode, Expression, FunctionLikeNode, IdentifierNode, NameNode, ParameterNode, SeparatedNodeList, Statement};
+use PhpSyntax\Nodes\{
+	AnonymousClassNode, ArgumentNode, ArrayItemNode, DestructuringNode, Expression,
+	FunctionLikeNode, IdentifierNode, NameNode, ParameterNode, SeparatedNodeList, Statement,
+};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\ClassNode;
 use function count;

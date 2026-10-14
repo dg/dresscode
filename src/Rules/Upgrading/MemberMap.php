@@ -11,7 +11,9 @@ use DressCode\Analyses\{MemberAccess, Parameter, Types};
 use DressCode\{RuleContext, Tristate, Values};
 use PhpSyntax\Builder;
 use PhpSyntax\Nodes\{ArgumentListNode, IdentifierNode};
-use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, NewNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
+use PhpSyntax\Nodes\Expression\{
+	ClassConstantFetchNode, MethodCallNode, NewNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode,
+};
 use PhpSyntax\Nodes\Member\MethodNode;
 
 

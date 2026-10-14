@@ -10,7 +10,9 @@ namespace DressCode\Rules\Types;
 use DressCode\Analyses\{Parameter, PhpDoc, Types};
 use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\NativeType;
-use PHPStan\PhpDocParser\Ast\PhpDoc\{ParamTagValueNode, PhpDocNode, PhpDocTagNode, ReturnTagValueNode, TypelessParamTagValueNode, VarTagValueNode};
+use PHPStan\PhpDocParser\Ast\PhpDoc\{
+	ParamTagValueNode, PhpDocNode, PhpDocTagNode, ReturnTagValueNode, TypelessParamTagValueNode, VarTagValueNode,
+};
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, NameForm, Node, Token, Trivia};

@@ -11,8 +11,14 @@ use DressCode\Analyses\{MemberAccess, MemberKind, Types};
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Tristate, Values, Violation};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, DestructuringNode, ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode, MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, VariableNode};
+use PhpSyntax\Nodes\{
+	ArgumentListNode, ArgumentNode, ArrayItemNode, AttributeGroupNode, AttributeNode, DestructuringNode,
+	ExpressionNode, IdentifierNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode,
+};
+use PhpSyntax\Nodes\Expression\{
+	ArrayAccessNode, ArrayNode, AssignmentByReferenceNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, EmptyNode, IssetNode,
+	MethodCallNode, NewNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, VariableNode,
+};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Scalar\StringNode;
 use PhpSyntax\Nodes\Statement\{ExpressionStatementNode, ForeachNode, UnsetNode};

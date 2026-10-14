@@ -7,7 +7,10 @@
 
 namespace DressCode\Engine;
 
-use DressCode\{Analyses, ConfigurationException, ConvergenceException, NodeRule, Rule, RuleContext, RuleException, RuleInfo, Severity, Stage, Style, Violation};
+use DressCode\{
+	Analyses, ConfigurationException, ConvergenceException, NodeRule, Rule,
+	RuleContext, RuleException, RuleInfo, Severity, Stage, Style, Violation,
+};
 use DressCode\Engine\Gaps\{Fixer, Resolver};
 use PhpSyntax\{Node, Printer, Token, Traverser, Trivia};
 use PhpSyntax\Nodes\FileNode;

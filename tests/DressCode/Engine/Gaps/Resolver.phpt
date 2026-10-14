@@ -6,7 +6,9 @@
  * long as they take turns abstaining, and what a rule leaves alone stays.
  */
 
-use DressCode\{Analyses, Claim, Config, ConfigurationException, Decision, Domain, Gap, GapRule, Line, Rule, RuleInfo, Rules, Space, Stage, Style};
+use DressCode\{
+	Analyses, Claim, Config, ConfigurationException, Decision, Domain, Gap, GapRule, Line, Rule, RuleInfo, Rules, Space, Stage, Style,
+};
 use DressCode\Config\{PluginRegistry, RuleBuilder};
 use DressCode\Engine\{FileProcessor, ReportPolicy};
 use PhpSyntax\Nodes;

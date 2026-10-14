@@ -13,8 +13,15 @@ use DressCode\Domains\Flag;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\{AnonymousFunctionNode, ArgumentNode, AttributeNode, ClosureUseNode, ConstItemNode, ExpressionNode, FunctionLikeNode, ParameterNode, SeparatedNodeList, StatementNode};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClosureNode, CombinedAssignmentNode, FunctionCallNode, MatchNode, MethodCallNode, NewNode, ParenthesizedNode, PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, TernaryNode, VariableNode};
+use PhpSyntax\Nodes\{
+	AnonymousFunctionNode, ArgumentNode, AttributeNode, ClosureUseNode, ConstItemNode,
+	ExpressionNode, FunctionLikeNode, ParameterNode, SeparatedNodeList, StatementNode,
+};
+use PhpSyntax\Nodes\Expression\{
+	ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClosureNode,
+	CombinedAssignmentNode, FunctionCallNode, MatchNode, MethodCallNode, NewNode, ParenthesizedNode,
+	PostfixOpNode, PrefixOpNode, PropertyFetchNode, StaticMethodCallNode, TernaryNode, VariableNode,
+};
 use PhpSyntax\Nodes\Member\{EnumCaseNode, PropertyItemNode};
 use PhpSyntax\Nodes\Statement\ReturnNode;
 use function count;

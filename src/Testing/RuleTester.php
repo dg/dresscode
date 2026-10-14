@@ -7,7 +7,10 @@
 
 namespace DressCode\Testing;
 
-use DressCode\{Analyses, Config, ConfigurationException, ConvergenceException, Decision, ImportStyle, LineSplits, Profile, Rule, RuleException, RuleInfo, Style, Values, Violation};
+use DressCode\{
+	Analyses, Config, ConfigurationException, ConvergenceException, Decision, ImportStyle,
+	LineSplits, Profile, Rule, RuleException, RuleInfo, Style, Values, Violation,
+};
 use DressCode\Config\{Catalogue, DecisionResolver, Layer, LayerKind, RuleBuilder};
 use DressCode\Engine\{Diff, Gate, Helpers, PassLoop, PassResult, ReportPolicy, RulePlan};
 use Nette\Neon\Neon;

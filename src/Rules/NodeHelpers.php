@@ -12,7 +12,11 @@ use DressCode\{Claim, Gap, Line, RuleContext, Style, Tristate};
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, ConstantExpressionFeature, Indentation, Node, SymbolKind, Token, Trivia};
-use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeAwareNode, AttributeNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode, UseItemNode, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\{
+	AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeAwareNode, AttributeNode, ClassLikeNode, ElseifNode,
+	Expression, ExpressionNode, FileNode, IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode, PlainNodeList,
+	Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode, UseItemNode, VariadicPlaceholderNode,
+};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count, in_array, strlen;
 

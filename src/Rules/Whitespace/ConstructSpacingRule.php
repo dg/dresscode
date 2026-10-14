@@ -10,7 +10,10 @@ namespace DressCode\Rules\Whitespace;
 use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
 use DressCode\Domains\Shapes;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{CaseNode, CatchNode, ClassLikeNode, ClosureUseListNode, ElseifNode, ElseNode, FinallyNode, ModifiersNode, ParameterNode, SeparatedNodeList, Statement, UseItemNode};
+use PhpSyntax\Nodes\{
+	CaseNode, CatchNode, ClassLikeNode, ClosureUseListNode, ElseifNode, ElseNode,
+	FinallyNode, ModifiersNode, ParameterNode, SeparatedNodeList, Statement, UseItemNode,
+};
 use PhpSyntax\Nodes\Expression\{ClosureNode, MatchNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode, PropertyNode, TraitAliasNode, TraitUseNode};
 use function count;

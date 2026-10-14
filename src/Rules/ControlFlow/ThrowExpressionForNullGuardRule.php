@@ -9,7 +9,9 @@ namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, AssignmentNode, BinaryOpNode, PropertyFetchNode, StaticPropertyFetchNode, ThrowNode, VariableNode};
+use PhpSyntax\Nodes\Expression\{
+	ArrayAccessNode, AssignmentNode, BinaryOpNode, PropertyFetchNode, StaticPropertyFetchNode, ThrowNode, VariableNode,
+};
 use PhpSyntax\Nodes\{ExpressionNode, FunctionLikeNode, PlainNodeList};
 use PhpSyntax\Nodes\Scalar\NullNode;
 use PhpSyntax\Nodes\Statement\{BlockNode, ExpressionStatementNode, IfNode, TryNode};

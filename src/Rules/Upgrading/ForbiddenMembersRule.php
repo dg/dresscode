@@ -12,7 +12,10 @@ use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Values};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ClassLikeNode, IdentifierNode, ParameterNode};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, AssignmentNode, ClassConstantFetchNode, MethodCallNode, NewNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
+use PhpSyntax\Nodes\Expression\{
+	ArrayAccessNode, ArrayNode, AssignmentNode, ClassConstantFetchNode, MethodCallNode,
+	NewNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode,
+};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyItemNode, PropertyNode};
 use PhpSyntax\Nodes\Scalar\StringNode;
 

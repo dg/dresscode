@@ -12,7 +12,9 @@ use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate, Values};
 use DressCode\Rules\CodeWriter;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, NameForm, Node, Token};
-use PhpSyntax\Nodes\Expression\{ArrayNode, ClassConstantFetchNode, FunctionCallNode, MethodCallNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
+use PhpSyntax\Nodes\Expression\{
+	ArrayNode, ClassConstantFetchNode, FunctionCallNode, MethodCallNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode,
+};
 use PhpSyntax\Nodes\{ExpressionNode, NameNode, PlainNodeList};
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Scalar\StringNode;

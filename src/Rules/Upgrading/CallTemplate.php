@@ -11,8 +11,14 @@ use DressCode\Analyses\MemberKind;
 use DressCode\Violation;
 use Nette\Schema\Context;
 use PhpSyntax\{Builder, NameForm, Node, ParseException, SymbolKind, Token};
-use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ArrayItemNode, ExpressionNode, IdentifierNode, MatchArmNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClassConstantFetchNode, ClosureNode, FunctionCallNode, MethodCallNode, NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, TernaryNode, VariableNode};
+use PhpSyntax\Nodes\{
+	ArgumentListNode, ArgumentNode, ArrayItemNode, ExpressionNode, IdentifierNode,
+	MatchArmNode, NameNode, SeparatedNodeList, VariadicPlaceholderNode,
+};
+use PhpSyntax\Nodes\Expression\{
+	ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClassConstantFetchNode, ClosureNode, FunctionCallNode, MethodCallNode,
+	NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode, TernaryNode, VariableNode,
+};
 use function count, in_array, is_string;
 
 

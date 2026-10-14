@@ -12,7 +12,10 @@ use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\{GlobalCalls, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, SymbolKind, Token};
-use PhpSyntax\Nodes\{ArgumentNode, ClassLikeNode, ConstItemNode, Expression, ExpressionNode, FunctionLikeNode, IdentifierNode, NameNode, ParameterNode, PlainNodeList, SeparatedNodeList, Statement, StatementNode, TypeNode};
+use PhpSyntax\Nodes\{
+	ArgumentNode, ClassLikeNode, ConstItemNode, Expression, ExpressionNode, FunctionLikeNode, IdentifierNode,
+	NameNode, ParameterNode, PlainNodeList, SeparatedNodeList, Statement, StatementNode, TypeNode,
+};
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyItemNode, PropertyNode};
 use PhpSyntax\Nodes\Scalar\{BooleanNode, MagicConstantNode, NullNode};
 use PhpSyntax\Nodes\Type\{IntersectionTypeNode, NamedTypeNode, NullableTypeNode, UnionTypeNode};

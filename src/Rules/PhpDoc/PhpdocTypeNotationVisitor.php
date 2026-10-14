@@ -10,7 +10,9 @@ namespace DressCode\Rules\PhpDoc;
 use DressCode\Rules\NativeType;
 use PHPStan\PhpDocParser\Ast\{AbstractNodeVisitor, Node, NodeTraverser};
 use PHPStan\PhpDocParser\Ast\PhpDoc\Doctrine\DoctrineTagValueNode;
-use PHPStan\PhpDocParser\Ast\Type\{ArrayShapeItemNode, ArrayTypeNode, GenericTypeNode, IdentifierTypeNode, NullableTypeNode, ObjectShapeItemNode, TypeNode, UnionTypeNode};
+use PHPStan\PhpDocParser\Ast\Type\{
+	ArrayShapeItemNode, ArrayTypeNode, GenericTypeNode, IdentifierTypeNode, NullableTypeNode, ObjectShapeItemNode, TypeNode, UnionTypeNode,
+};
 use function count, in_array;
 
 

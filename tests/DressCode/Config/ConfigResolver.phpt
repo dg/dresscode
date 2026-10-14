@@ -1,6 +1,9 @@
 <?php declare(strict_types=1);
 
-use DressCode\{Config, ConfigurationException, Decision, DecisionKind, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, Rule, RuleInfo, Stage};
+use DressCode\{
+	Config, ConfigurationException, Decision, DecisionKind, Domain, NodeRule,
+	Override, Plugin, PluginManifest, Profile, Rule, RuleInfo, Stage,
+};
 use DressCode\Config\{ConfigResolver, PluginRegistry, ProjectPackages, ResolvedRule, RuleBuilder};
 use DressCode\Domains\{Count, GrammarEntry, Map};
 use Tester\Assert;

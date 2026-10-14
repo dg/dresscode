@@ -11,7 +11,9 @@ use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\{GlobalCalls, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\{ArgumentNode, CatchNode, ClosureUseNode, FunctionLikeNode, ParameterNode, PlainNodeList, StatementNode, StaticVariableNode};
+use PhpSyntax\Nodes\{
+	ArgumentNode, CatchNode, ClosureUseNode, FunctionLikeNode, ParameterNode, PlainNodeList, StatementNode, StaticVariableNode,
+};
 use PhpSyntax\Nodes\Expression\{AssignmentByReferenceNode, AssignmentNode, ClosureNode, FunctionCallNode, VariableNode};
 use PhpSyntax\Nodes\Statement\{DoWhileNode, ExpressionStatementNode, ForeachNode, ForNode, GlobalNode, StaticNode, UnsetNode, WhileNode};
 use function array_key_exists, count, is_string;

@@ -9,7 +9,9 @@ namespace DressCode\Analyses;
 
 use DressCode\Rules\QualifiedNames;
 use DressCode\Tristate;
-use PHPStan\Reflection\{ClassConstantReflection, ClassMemberReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection};
+use PHPStan\Reflection\{
+	ClassConstantReflection, ClassMemberReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection,
+};
 use PHPStan\Reflection\Php\{PhpMethodReflection, PhpPropertyReflection};
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\{MixedType, Type, VerbosityLevel};

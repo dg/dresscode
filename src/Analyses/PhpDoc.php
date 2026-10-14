@@ -9,7 +9,10 @@ namespace DressCode\Analyses;
 
 use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
-use PHPStan\PhpDocParser\Ast\PhpDoc\{GenericTagValueNode, InvalidTagValueNode, PhpDocChildNode, PhpDocNode, PhpDocTagNode, PhpDocTextNode, TemplateTagValueNode, TypeAliasImportTagValueNode, TypeAliasTagValueNode};
+use PHPStan\PhpDocParser\Ast\PhpDoc\{
+	GenericTagValueNode, InvalidTagValueNode, PhpDocChildNode, PhpDocNode, PhpDocTagNode,
+	PhpDocTextNode, TemplateTagValueNode, TypeAliasImportTagValueNode, TypeAliasTagValueNode,
+};
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\{ConstExprParser, PhpDocParser, TokenIterator, TypeParser};
 use PHPStan\PhpDocParser\ParserConfig;

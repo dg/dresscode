@@ -13,7 +13,9 @@ use PhpParser\Node\Expr;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\{InstantiationCallableNode, MethodCallableNode, StaticMethodCallableNode};
 use PHPStan\Php\PhpVersion;
-use PHPStan\Reflection\{ClassConstantReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection};
+use PHPStan\Reflection\{
+	ClassConstantReflection, ClassReflection, ExtendedMethodReflection, ExtendedParameterReflection, ExtendedPropertyReflection,
+};
 use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\Constant\{ConstantIntegerType, ConstantStringType};
@@ -21,7 +23,9 @@ use PHPStan\Type\{Type, TypeCombinator};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Printer, Token, Visibility};
 use PhpSyntax\Nodes\{ClassLikeNode, ExpressionNode, FileNode, IdentifierNode, MemberNode, NameNode, ParameterNode};
-use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
+use PhpSyntax\Nodes\Expression\{
+	ClassConstantFetchNode, MethodCallNode, NewNode, ParenthesizedNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode,
+};
 use PhpSyntax\Nodes\Member\{ClassConstNode, EnumCaseNode, MethodNode, PropertyNode};
 use function count, strlen;
 

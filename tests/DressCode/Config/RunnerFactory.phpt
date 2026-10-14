@@ -1,7 +1,9 @@
 <?php declare(strict_types=1);
 
 use Composer\InstalledVersions;
-use DressCode\{Config, ConfigurationException, Decision, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, RuleContext, RuleInfo, Stage};
+use DressCode\{
+	Config, ConfigurationException, Decision, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, RuleContext, RuleInfo, Stage,
+};
 use DressCode\Config\{ComposerJson, PhpVersionSource, RunnerFactory};
 use DressCode\Engine\{Runner, TypeAnalysisStatus};
 use DressCode\Reporters\NullReporter;

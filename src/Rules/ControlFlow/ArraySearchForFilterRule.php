@@ -12,7 +12,10 @@ use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\Expression\{ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClosureNode, EmptyNode, FunctionCallNode, InstanceofNode, ParenthesizedNode, UnaryOpNode, VariableNode};
+use PhpSyntax\Nodes\Expression\{
+	ArrayAccessNode, ArrayNode, ArrowFunctionNode, BinaryOpNode, ClosureNode, EmptyNode,
+	FunctionCallNode, InstanceofNode, ParenthesizedNode, UnaryOpNode, VariableNode,
+};
 use PhpSyntax\Nodes\{ExpressionNode, NameNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Scalar\{BooleanNode, FloatNode, IntegerNode, NullNode, StringNode};
 use PhpSyntax\Nodes\Statement\ReturnNode;

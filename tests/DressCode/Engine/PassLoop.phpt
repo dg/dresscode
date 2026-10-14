@@ -1,6 +1,9 @@
 <?php declare(strict_types=1);
 
-use DressCode\{Analyses, Claim, Config, ConvergenceException, Gap, GapRule, Line, NodeRule, Risk, Rule, RuleContext, RuleException, RuleInfo, Severity, Stage, Style};
+use DressCode\{
+	Analyses, Claim, Config, ConvergenceException, Gap, GapRule, Line, NodeRule,
+	Risk, Rule, RuleContext, RuleException, RuleInfo, Severity, Stage, Style,
+};
 use DressCode\Engine\{PassLoop, ReportPolicy, RulePlan};
 use DressCode\Rules\Whitespace\IndentationRule;
 use PhpSyntax\Analyses\NameResolver;
