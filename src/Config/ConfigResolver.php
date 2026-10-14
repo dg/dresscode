@@ -678,9 +678,29 @@ final class ConfigResolver
 	 */
 	private function checkOnly(array $narrowed, array $active, array $inactive, array $ofOverrides, array $use): void
 	{
+		$skipped = [];
 		foreach ($narrowed as $expanded) {
 			[$class, $rules] = [$expanded->rule, $expanded->rules];
 			$running = array_filter($rules, fn(string $rule) => isset($active[$rule]) || isset($ofOverrides[$rule]));
+			// a name whose rules the project cannot run, too new for its target or for its packages, is skipped, so that
+			// one command of `--only` serves projects of several targets
+			if (
+				!$running
+				&& $rules !== []
+				&& array_all($rules, fn(string $rule) => in_array(
+					$inactive[$rule]->inactiveReason ?? null,
+					[InactiveReason::Php, InactiveReason::Package],
+					true,
+				))
+			) {
+				$skipped[$expanded->name] = [
+					'Option `--only` names ' . ($class === null ? $expanded->format() : "rule `$class`")
+					. ", which cannot run here: {$inactive[$rules[array_key_first($rules)]]->inactiveMessage}",
+					$rules,
+				];
+				continue;
+			}
+
 			if ($class !== null) {
 				if (!$running) {
 					throw new ConfigurationException("Option `--only` names rule `$class`, which cannot run here: {$inactive[$class]->inactiveMessage}.");
@@ -724,6 +744,17 @@ final class ConfigResolver
 							: '')
 							. ($laid ? ', which the configuration turns off.' : ", which the configuration does not decide; $hint.")
 						: "; $hint.");
+			}
+		}
+
+		if ($skipped !== [] && count($skipped) === count($narrowed)) {
+			throw new ConfigurationException(reset($skipped)[0] . '.');
+		}
+
+		foreach ($skipped as $name => [$message, $rules]) {
+			// a rule whose decision the project wrote is said to be skipped already
+			if (!array_all($rules, fn(string $rule) => isset($this->warnings[$rule]))) {
+				$this->warnings["only $name"] = "$message; it is skipped.";
 			}
 		}
 	}

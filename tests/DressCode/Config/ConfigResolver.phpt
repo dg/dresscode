@@ -471,6 +471,21 @@ test('a name of --only that lets in nothing that runs is an error, not an empty 
 		ConfigurationException::class,
 		'Option `--only` names rule `RuleFuture`, which cannot run here: it needs PHP >=8.4 and the target is 8.3.',
 	);
+
+	// one too new for the target or for the packages beside one that runs is skipped, so that one command serves
+	// projects of several targets; where the project wrote the decision, the run says so once
+	$resolver = createResolver();
+	Assert::same(
+		['test/c'],
+		narrow($resolver, new Config(use: ['test/child'], decisions: projectDecisions(['future'])), [RuleC::class, 'project.future']),
+	);
+	Assert::same(['Decision `project.future` needs PHP >=8.4 and the target is 8.3; skipped.'], $resolver->getWarnings());
+	$resolver = createResolver();
+	Assert::same(['test/c'], narrow($resolver, new Config(use: ['test/child']), [RuleC::class, 'test/packaged-preset']));
+	Assert::match(
+		'Option `--only` names preset `test/packaged-preset`, which cannot run here: %a%; it is skipped.',
+		implode("\n", $resolver->getWarnings()),
+	);
 	Assert::exception(
 		fn() => narrow($resolver, new Config(use: ['test/child']), [RuleB::class]),
 		ConfigurationException::class,
@@ -479,7 +494,7 @@ test('a name of --only that lets in nothing that runs is an error, not an empty 
 	Assert::exception(
 		fn() => narrow($resolver, new Config(use: ['test/child']), ['test/packaged-preset']),
 		ConfigurationException::class,
-		'Option `--only` names preset `test/packaged-preset`, which has no rule that runs here; `--use test/packaged-preset --only test/packaged-preset` runs all its rules.',
+		'Option `--only` names preset `test/packaged-preset`, which cannot run here: it needs a package the project does not have.',
 	);
 	Assert::exception(
 		fn() => narrow($resolver, new Config(use: ['test/child']), ['project.d']),
