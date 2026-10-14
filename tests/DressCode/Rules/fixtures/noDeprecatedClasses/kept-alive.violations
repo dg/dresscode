@@ -1,2 +1,4 @@
-47: Class `App\Kept\Identity` is deprecated: use App\Kept\SimpleIdentity.
-47: Class `Acme\Mail\ITransport` is deprecated: use Acme\Mail\Transport.
+48: Class `App\Kept\Identity` is deprecated: use App\Kept\SimpleIdentity.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+48: Class `Acme\Mail\ITransport` is deprecated: use Acme\Mail\Transport.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike

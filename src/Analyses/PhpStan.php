@@ -64,6 +64,11 @@ final class PhpStan
 		/** the version of PHP the code is written for, which PHPStan parses it as where the running PHP is older */
 		private readonly ?string $phpVersion = null,
 		private readonly ?Profiler $profiler = null,
+		/**
+		 * @var list<string>  the directories of the packages installed in a newer version than the oldest one the project
+		 * supports, whose declarations may say what that one does not
+		 */
+		private readonly array $newerPackagePaths = [],
 	) {
 	}
 
@@ -213,6 +218,26 @@ final class PhpStan
 		$provider = $this->getContainer()->getByType(ReflectionProvider::class);
 		$class = $provider->hasClass($name) ? $provider->getClass($name) : null;
 		return $class === null || self::hasCircularAncestors($class) ? null : $class;
+	}
+
+
+	/**
+	 * Whether the class is declared by a package installed in a newer version than the oldest one the project supports,
+	 * so that what its declaration deprecates may not be deprecated, nor its replacement there, in the version the code
+	 * must work with too.
+	 */
+	public function isAheadOfSupport(ClassReflection $class): bool
+	{
+		$file = $class->getFileName();
+		if ($file === null || $this->newerPackagePaths === []) {
+			return false;
+		}
+
+		$file = strtolower(Helpers::canonicalizePath($file));
+		return array_any(
+			$this->newerPackagePaths,
+			fn(string $path) => str_starts_with($file, strtolower(Helpers::canonicalizePath($path)) . '/'),
+		);
 	}
 
 

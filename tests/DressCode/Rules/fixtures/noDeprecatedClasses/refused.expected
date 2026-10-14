@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Refused;
+
+use Acme\Mail\Transport;
+use Acme\Mail\ITransport;
+
+// the replacement may behave otherwise, unless the old name only stands for it
+class Sender
+{
+	public function send(ITransport $transport, Transport $legacy): void
+	{
+	}
+}

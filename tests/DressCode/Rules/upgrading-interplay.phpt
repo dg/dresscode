@@ -51,7 +51,8 @@ function upgrade(array $rules, string $code, string $expected, array $values = [
 	});
 
 	$file = new Parser()->parse($code);
-	$runner = new PassLoop(new RulePlan($instances), $registry, new ReportPolicy(strict: true));
+	// which map decides is the question here, not whether its fix is risky
+	$runner = new PassLoop(new RulePlan($instances), $registry, new ReportPolicy(fixRisky: true, strict: true));
 	$result = $runner->run(
 		$file,
 		$code,

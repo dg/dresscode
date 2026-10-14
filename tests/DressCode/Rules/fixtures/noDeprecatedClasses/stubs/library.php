@@ -13,6 +13,12 @@ interface Transport
 }
 
 
+/** @deprecated use Acme\Mail\Transport */
+interface ILegacyTransport extends Transport
+{
+}
+
+
 /** @deprecated use MessageRenderer */
 interface IMessageRenderer
 {

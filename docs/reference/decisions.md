@@ -3605,6 +3605,7 @@ A class whose declaration is `@deprecated`.
 - Rule `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`, stage Structure
 - Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
 - Modifies comments
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### upgrading.declarations.deprecatedMember
 
@@ -3615,6 +3616,7 @@ A constant, method or property whose declaration is `@deprecated`.
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`, stage Structure
 - Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### upgrading.php.deprecatedCall
 

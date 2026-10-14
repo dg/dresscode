@@ -87,7 +87,7 @@ final class Declarations
 	{
 		$class = $this->phpstan->findClass($member->declaringClass);
 		$reflection = $class === null ? null : self::findNativeMember($class, $member->kind, $member->name);
-		return $reflection?->isDeprecated()->yes()
+		return $reflection?->isDeprecated()->yes() && !$this->phpstan->isAheadOfSupport($reflection->getDeclaringClass())
 			? Deprecation::fromDescription($reflection->getDeprecatedDescription() ?? '')
 			: null;
 	}
@@ -228,6 +228,18 @@ final class Declarations
 	}
 
 
+	public function isAlias(string $class, string $of): bool
+	{
+		$reflection = $this->phpstan->findClass($class);
+		$native = $reflection?->getNativeReflection()->getBetterReflection();
+		return $native !== null
+			&& $this->isSubtype($class, $of) === Tristate::Yes
+			&& $native->getImmediateMethods() === []
+			&& $native->getImmediateProperties() === []
+			&& $native->getImmediateConstants() === [];
+	}
+
+
 	public function isAttributeClass(string $class): Tristate
 	{
 		return self::toTristate($this->phpstan->findClass($class)?->isAttributeClass());
@@ -323,7 +335,7 @@ final class Declarations
 	public function findClassDeprecation(string $class): ?Deprecation
 	{
 		$reflection = $this->phpstan->findClass($class);
-		if (!$reflection?->isDeprecated()) {
+		if (!$reflection?->isDeprecated() || $this->phpstan->isAheadOfSupport($reflection)) {
 			return null;
 		}
 

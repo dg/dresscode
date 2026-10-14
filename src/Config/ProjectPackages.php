@@ -153,6 +153,30 @@ final readonly class ProjectPackages
 
 
 	/**
+	 * The directories of the installed packages the project supports from an older minor version than the installed one,
+	 * where a declaration may say what the oldest version does not, a deprecation and its replacement above all.
+	 * @return list<string>
+	 */
+	public function findNewerInstalledPaths(): array
+	{
+		$paths = [];
+		foreach ($this->installed as $package => ['version' => $installed, 'path' => $path]) {
+			$lowest = $this->findVersion($package);
+			if (
+				$path !== null
+				&& $installed !== null
+				&& $lowest !== null
+				&& version_compare(self::toMinorVersion($lowest), self::toMinorVersion($installed), '<')
+			) {
+				$paths[] = $path;
+			}
+		}
+
+		return $paths;
+	}
+
+
+	/**
 	 * The first of the required packages the project does not meet; null where it meets every one.
 	 * @param  array<string, string>  $required  package => Composer constraint
 	 */
@@ -185,6 +209,13 @@ final readonly class ProjectPackages
 		$identity = array_map(fn(array $package) => [$package['version'], $package['reference']], $this->installed);
 		ksort($identity);
 		return $identity;
+	}
+
+
+	/** The major and the minor version, `3.1` of `3.1.4` and of the alias `3.1.9999999.9999999-dev` of a branch. */
+	private static function toMinorVersion(string $version): string
+	{
+		return implode('.', array_slice(explode('.', $version), 0, 2));
 	}
 
 

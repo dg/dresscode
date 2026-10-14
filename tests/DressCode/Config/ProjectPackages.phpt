@@ -115,6 +115,26 @@ test('a package an installed one replaces is had in the version of the one repla
 });
 
 
+test('the packages installed in a newer minor version than the oldest one the project supports', function () {
+	$root = createTempDir('project-packages-newer');
+	FileSystem::write("$root/composer.json", json_encode([
+		'require' => ['acme/older' => '^3.1', 'acme/patch' => '^3.3', 'acme/branch' => '^2.0', 'acme/any' => '*'],
+	], JSON_THROW_ON_ERROR));
+	FileSystem::write("$root/vendor/composer/installed.json", json_encode(['packages' => [
+		['name' => 'acme/older', 'version_normalized' => '3.3.0.0', 'install-path' => '../acme/older'],
+		['name' => 'acme/patch', 'version_normalized' => '3.3.5.0', 'install-path' => '../acme/patch'],
+		['name' => 'acme/branch', 'version_normalized' => '2.4.9999999.9999999-dev', 'install-path' => '../acme/branch'],
+		['name' => 'acme/any', 'version_normalized' => '1.7.0.0', 'install-path' => '../acme/any'],
+		['name' => 'acme/transitive', 'version_normalized' => '5.1.0.0', 'install-path' => '../acme/transitive'],
+	]], JSON_THROW_ON_ERROR));
+
+	Assert::same(
+		["$root/vendor/acme/older", "$root/vendor/acme/branch"],
+		ProjectPackages::read($root)->findNewerInstalledPaths(),
+	);
+});
+
+
 test('a project without packages has none', function () {
 	$project = new ProjectPackages;
 	Assert::null($project->rootPath);

@@ -121,6 +121,7 @@ final readonly class RunnerFactory
 				self::resolveCacheDir($config, $root) . '/phpstan',
 				$phpVersion,
 				$profiler,
+				$resolution->projectPackages->findNewerInstalledPaths(),
 			);
 			$analyses[Analyses\Types::class] = fn(FileNode $file, string $path) => new Analyses\Types($file, $path, $phpstan);
 		}
@@ -173,6 +174,8 @@ final readonly class RunnerFactory
 					$fixRisky,
 					$configFile === null ? null : hash_file('xxh128', $configFile),
 					$this->collectSourceTimes($resolved, $analyses),
+					// a constraint the project widens says which deprecations of a package hold
+					$resolved->typeAnalysis === null ? null : $resolution->projectPackages->findNewerInstalledPaths(),
 				], $resolution->projectPackages),
 			)
 			: null;

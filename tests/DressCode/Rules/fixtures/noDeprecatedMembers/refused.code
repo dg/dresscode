@@ -1,0 +1,12 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\Order;
+
+// the replacement the deprecation names may behave otherwise
+function pay(Order $order): string
+{
+	$order->recalc();
+	return Order::STATUS_PAID;
+}

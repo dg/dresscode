@@ -1,0 +1,4 @@
+10: Method `Acme\Shop\Order::recalc()` is deprecated: use recalculate().
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+11: Constant `Acme\Shop\Order::STATUS_PAID` is deprecated: use Order::StatusPaid.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike

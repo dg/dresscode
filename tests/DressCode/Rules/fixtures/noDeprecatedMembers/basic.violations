@@ -1,20 +1,33 @@
-11: Method `Acme\Shop\Order::recalc()` is deprecated: use recalculate().
-12: Constant `Acme\Shop\Order::STATUS_PAID` is deprecated: use Order::StatusPaid.
-13: Constant `Acme\Shop\Order::STATUS_OPEN` is deprecated: use Order::StatusOpen.
-20: Constant `Acme\Shop\Order::STATUS_PAID` is deprecated: use Order::StatusPaid.
+12: Method `Acme\Shop\Order::recalc()` is deprecated: use recalculate().
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+13: Constant `Acme\Shop\Order::STATUS_PAID` is deprecated: use Order::StatusPaid.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+14: Constant `Acme\Shop\Order::STATUS_OPEN` is deprecated: use Order::StatusOpen.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
 21: Constant `Acme\Shop\Order::STATUS_PAID` is deprecated: use Order::StatusPaid.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
 22: Constant `Acme\Shop\Order::STATUS_PAID` is deprecated: use Order::StatusPaid.
-24: Method `Acme\Shop\Order::recalc()` is deprecated: use recalculate().
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+23: Constant `Acme\Shop\Order::STATUS_PAID` is deprecated: use Order::StatusPaid.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
 25: Method `Acme\Shop\Order::recalc()` is deprecated: use recalculate().
-26: Constant `Acme\Shop\Order::OLD` is deprecated.
-27: Constant `Acme\Shop\Order::EMAIL` is deprecated: use Acme\Shop\Validator::validateEmail().
-28: Static method `Acme\Shop\Order::make()` is deprecated: use Helpers::create() instead.
-29: Property `Acme\Shop\Order::$legacy` is deprecated: use $items.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+26: Method `Acme\Shop\Order::recalc()` is deprecated: use recalculate().
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+27: Constant `Acme\Shop\Order::OLD` is deprecated.
+28: Constant `Acme\Shop\Order::EMAIL` is deprecated: use Acme\Shop\Validator::validateEmail().
+29: Static method `Acme\Shop\Order::make()` is deprecated: use Helpers::create() instead.
 30: Property `Acme\Shop\Order::$legacy` is deprecated: use $items.
-32: Static property `Acme\Shop\Order::$counter` is deprecated: use $count.
-38: Method `Acme\Shop\Order::verifyWith()` is deprecated: use "checkWith()" instead.
-39: Method `Acme\Shop\Order::verify()` is deprecated: use "check()" instead.
-40: Constant `Acme\Shop\Order::CLOSED` is deprecated: use STATUS_CLOSED instead.
-48: Method `Acme\Shop\Order::recalc()` is deprecated: use recalculate().
-49: Static method `Acme\Shop\Order::make()` is deprecated: use Helpers::create() instead.
-58: Constructor `Acme\Shop\Cart::__construct()` is deprecated: use create().
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+31: Property `Acme\Shop\Order::$legacy` is deprecated: use $items.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+33: Static property `Acme\Shop\Order::$counter` is deprecated: use $count.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+39: Method `Acme\Shop\Order::verifyWith()` is deprecated: use "checkWith()" instead.
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+40: Method `Acme\Shop\Order::verify()` is deprecated: use "check()" instead.
+41: Constant `Acme\Shop\Order::CLOSED` is deprecated: use STATUS_CLOSED instead.
+49: Method `Acme\Shop\Order::recalc()` is deprecated: use recalculate().
+	risky BehaviorChanges: the deprecation names the replacement, not that it behaves alike
+50: Static method `Acme\Shop\Order::make()` is deprecated: use Helpers::create() instead.
+59: Constructor `Acme\Shop\Cart::__construct()` is deprecated: use create().

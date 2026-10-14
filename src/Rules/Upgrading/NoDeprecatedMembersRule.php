@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Deprecation, Member, MemberKind, PhpDoc, Types};
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
 use DressCode\Rules\{NodeHelpers, QualifiedNames};
 use PhpSyntax\Analyses\NameResolver;
@@ -21,7 +21,8 @@ use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, Property
  * `Order::STATUS_PAID` says `@deprecated use Order::StatusPaid`, whatever the expression that reaches them: the member
  * is decided by the class declaring it. A replacement in the same class is fixed by writing its name, where the class
  * has it at least as visible, for a property at least as writable and of the same type, and it takes the use as it is,
- * a method every call of the deprecated one; any other is reported with what the deprecation says.
+ * a method every call of the deprecated one; the fix is risky, the deprecation naming what to use and not saying it
+ * behaves alike. Any other is reported with what the deprecation says.
  * A member the maps of replacedMembers, replacedCalls or forbiddenMembers have is not reported, nor a use inside
  * a declaration deprecated itself, which goes together with it.
  */
@@ -29,6 +30,7 @@ use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, Property
 final class NoDeprecatedMembersRule extends NodeRule
 {
 	private const Maps = [MemberMapGrammar::ReplacedMembers, MemberMapGrammar::ReplacedCalls, MemberMapGrammar::ForbiddenMembers];
+	private const Because = 'the deprecation names the replacement, not that it behaves alike';
 
 	/** @var MemberMap<null>  the keys of every map of members */
 	private MemberMap $mapped;
@@ -95,7 +97,7 @@ final class NoDeprecatedMembersRule extends NodeRule
 		$message = $member->describe() . ' is deprecated' . $deprecation->formatDescription() . '.';
 		if ($replacement === null) {
 			$context->report($node->name, $message, fixable: false);
-		} elseif ($context->report($node->name, $message)) {
+		} elseif ($context->report($node->name, $message, risk: Risk::BehaviorChanges, because: self::Because)) {
 			$node->rename($replacement);
 		}
 	}

@@ -22,7 +22,8 @@ use PhpSyntax\Nodes\Type\{NamedTypeNode, UnionTypeNode};
  * References of classes, interfaces and enums their declaration deprecates, wherever the name stands, an import,
  * a type, an instantiation, a static access, an attribute. Where the deprecation names the class to use instead,
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
- * follow; any other is reported with what the deprecation says. In a doc comment only a class the deprecation names
+ * follow, a risky fix unless the deprecated class only stands for the replacement, extending or implementing it and
+ * declaring nothing of its own; any other is reported with what the deprecation says. In a doc comment only a class the deprecation names
  * a replacement for is rewritten, one without it being left as it is. A reference inside a declaration deprecated
  * itself goes together with it and is left, and so is one in a union type that names the replacement too, which takes
  * both on purpose. A class the map of replacedClasses or of
@@ -43,6 +44,8 @@ use PhpSyntax\Nodes\Type\{NamedTypeNode, UnionTypeNode};
 )]
 final class NoDeprecatedClassesRule extends NodeRule
 {
+	private const Because = 'the deprecation names the replacement, not that it behaves alike';
+
 	/** @var array<string, true>  lowercased class, fully qualified, that a map of the libraries has */
 	private array $mapped = [];
 
@@ -98,7 +101,8 @@ final class NoDeprecatedClassesRule extends NodeRule
 				? null
 				: [
 					"Class `$class` is deprecated" . $deprecation->formatDescription(),
-					$deprecation->replacementClass,
+					$replacement = $deprecation->replacementClass,
+					$replacement === null || $types->isAlias($class, $replacement) ? null : self::Because,
 				];
 		};
 		$resolver = $context->getAnalysis(NameResolver::class);
