@@ -16,6 +16,7 @@ use PhpSyntax\Nodes\Member\PropertyNode;
 /**
  * A property is documented with a doc comment, whatever the syntax of a plain one; a plain comment right above
  * it is reported, one separated by a blank line documents nothing, and one below a doc comment only adds to it.
+ * A comment above properties that follow one another without a blank line heads the group and is left.
  */
 #[RuleInfo(Stage::Structure)]
 final class NoPlainPropertyCommentsRule extends NodeRule
@@ -55,11 +56,15 @@ final class NoPlainPropertyCommentsRule extends NodeRule
 			}
 		}
 
+		// a comment above properties following one another on the next lines heads them all, it documents none
+		$next = $node->getNextSibling();
+		$heads = $next instanceof PropertyNode && $next->getFirstToken()?->countBlankLinesBefore() === 0;
 		if (
 			$comment !== null
 			&& $lineBreaks < 2
 			&& !$comment->inInterpolation
 			&& !$documented
+			&& !$heads
 		) {
 			$context->report(
 				$node,

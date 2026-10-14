@@ -1,0 +1,12 @@
+<?php
+class Shape
+{
+	// Modules with runtime state
+	public int $first = 1;
+	public int $second = 2;
+
+	// Describes the third.
+	public int $third = 3;
+
+	public int $fourth = 4;
+}
