@@ -1,0 +1,10 @@
+<?php
+
+namespace Dibi\Bridges;
+
+// the import serves as the prefix of a namespace, not as the class of the same name
+use Dibi;
+
+function connect(Dibi\Connection $connection): void
+{
+}

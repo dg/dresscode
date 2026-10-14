@@ -23,7 +23,8 @@ use function count, strlen;
  * `Random\Randomizer`), in a reference and in an import, functions (`strlen()`, not `StrLen()`) and the types of a
  * declaration (`int`, `void`). Without the types of the code only what PHP and the extensions shipped with it declare
  * is known, and a name of the project or of a package keeps the case it is written in. Of a name only the links
- * written are rewritten, so an alias of an import, which is a name of the project, stays; the types that are
+ * written are rewritten, so an alias of an import, which is a name of the project, stays, and so does an import of one
+ * segment that the file uses as the prefix of a namespace, `use Dibi;` beside a facade `dibi`; the types that are
  * keywords, `array`, `callable`, `static`, `self` and `parent`, are the keywords of `BuiltinCasingRule`.
  */
 #[RuleInfo(Stage::Structure, analyses: [PhpSymbols::class, NameResolver::class, Types::class])]
@@ -134,7 +135,7 @@ final class DeclaredNameCasingRule extends NodeRule
 			return;
 		}
 
-		if ($this->class && $item->symbolKind === SymbolKind::ClassLike) {
+		if ($this->class && $item->symbolKind === SymbolKind::ClassLike && !self::importsNamespace($item, $context)) {
 			$this->rewriteLinks(
 				$node,
 				$this->findClassName($item->fullName, $context),
@@ -151,6 +152,21 @@ final class DeclaredNameCasingRule extends NodeRule
 				$context,
 			);
 		}
+	}
+
+
+	/**
+	 * Whether the import of a name of one segment, `use Dibi;`, serves as the prefix of qualified names, `Dibi\Row`: it
+	 * then imports a namespace, which a class of the name declared beside it in another case says nothing about.
+	 */
+	private static function importsNamespace(UseItemNode $item, RuleContext $context): bool
+	{
+		$alias = $item->alias->text ?? $item->name->shortName;
+		return !str_contains($item->fullName, '\\')
+			&& $context->file->find(
+				NameNode::class,
+				fn(NameNode $name) => $name->form === NameForm::Qualified && strcasecmp($name->parts[0], $alias) === 0,
+			) !== [];
 	}
 
 
