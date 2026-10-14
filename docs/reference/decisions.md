@@ -111,7 +111,7 @@ The widest line, by which what spreads over lines is split.
 What a line too wide leaves as it is: a construct named is not spread over lines for its width, and a line it stands on, one a regular expression matches, or with `strings` one wide only for its string literals, is not reported.
 
 - By default `["imports"]`
-- Takes: a list of `imports` (a `use` import other than a group use on one line, which cannot be split); `strings` (a line that would fit were each of its string literals an empty pair of quotes, a string being never split); `call` (the arguments of a call, the variables of `unset()` and `isset()`); `new` (the arguments of `new`); `attribute` (the arguments of an attribute); `signature` (the parameters of a function or a method); `condition` (a condition of `if`, `elseif`, `while` and `do-while`); `chain` (a chain of method calls); `ternary` (a ternary); `for` (the header of a `for`); `binaryOperator` (the operands of a boolean operator, of concatenations or of `\|`); `array` (the items of an array, which `multiline.arrayMaxWidth` spreads all the same); `implements` (the interfaces a class implements or an interface extends); `matchArm` (the conditions of a `match` arm); regular expressions
+- Takes: a list of `imports` (a `use` import other than a group use on one line, which cannot be split); `strings` (a line that would fit were each of its string literals an empty pair of quotes, a string being never split); `call` (the arguments of a call, the variables of `unset()` and `isset()`); `new` (the arguments of `new`); `attribute` (the arguments of an attribute); `signature` (the parameters of a function or a method); `condition` (a condition of `if`, `elseif`, `while` and `do-while`); `chain` (a chain of method calls); `ternary` (a ternary); `for` (the header of a `for`); `binaryOperator` (the operands of a boolean operator, of concatenations, of `\|` or of `+`, `-` and `*`); `array` (the items of an array, which `multiline.arrayMaxWidth` spreads all the same); `implements` (the interfaces a class implements or an interface extends); `matchArm` (the conditions of a `match` arm); regular expressions
 - The standards: perCs `["imports"]`, psr12 `["imports"]`, nette `["imports","strings"]`, symfony `["imports"]`
 - Rule `DressCode\Rules\Files\LineLengthRule`, stage Finishing
 - Read by rule `DressCode\Rules\Arrays\MultilineArrayRule`, which this decision does not turn on
@@ -1220,7 +1220,7 @@ Where the concatenation operator stands at a line break.
 
 ### multiline.binaryOperator
 
-The operands of `&&`, `\|\|`, `and`, `or`, `xor`, `.` and `\|` on a line wider than the line length, outside a condition.
+The operands of `&&`, `\|\|`, `and`, `or`, `xor`, `.`, `\|`, `+`, `-` and `*` on a line wider than the line length, outside a condition.
 
 A family its author spread over lines stays as it is
 

@@ -89,13 +89,13 @@ final class NodeHelpers
 
 
 	/**
-	 * The outermost operation of the family the operation belongs to: the operands one boolean operator, `.` or `|`
-	 * joins without parentheses between them, another operator or parentheses beginning another family. Null for any
-	 * other operator, and for a boolean operator chaining a condition, which is its statement's.
+	 * The outermost operation of the family the operation belongs to: the operands one boolean operator, `.`, `|`, `+`,
+	 * `-` or `*` joins without parentheses between them, another operator or parentheses beginning another family. Null
+	 * for any other operator, and for a boolean operator chaining a condition, which is its statement's.
 	 */
 	public static function findOperatorFamily(Expression\BinaryOpNode $operation): ?Expression\BinaryOpNode
 	{
-		if (!$operation->isLogical() && !$operation->operator->is(['.', '|'])) {
+		if (!$operation->isLogical() && !$operation->operator->is(['.', '|', '+', '-', '*'])) {
 			return null;
 		}
 

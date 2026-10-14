@@ -12,7 +12,10 @@ $mixed = $aaaaaaaaaa && $bbbbbbbbbb
 	|| $cccccccccccc;
 $parens = ($aaaaaaaaaa || $bbbbbbbbbb)
 	&& $cccccccccc;
-$sum = $aaaaaaaaaa + $bbbbbbbbbb + $cccccccccc + $ddd;
+$sum = $aaaaaaaaaa
+	+ $bbbbbbbbbb
+	+ $cccccccccc
+	+ $ddd;
 $flags = JSON_PRETTY_PRINT
 	| JSON_THROW_ON_ERROR
 	| JSON_HEX_TAG;

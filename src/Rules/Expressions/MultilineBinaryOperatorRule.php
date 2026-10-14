@@ -16,14 +16,14 @@ use PhpSyntax\Nodes\Expression\BinaryOpNode;
 
 
 /**
- * A family of one boolean operator (`&&`, `||`, `and`, `or`, `xor`), of concatenations or of a bitwise `|` joining flags
- * on a line wider than the line length of the style has every operand on a line of its own, each operator opening the
- * line of the operand after it, unless an outer construct on the line is spread first or `file.lineLengthExcept` names
- * `binaryOperator`. A family is the operands one operator joins without parentheses between them; another operator or
- * parentheses begin an inner family, which is measured once the outer one is spread. A boolean operator chaining
- * a condition is the matter of `MultilineConditionRule`, a family its author spread stays as it is, and arithmetic,
- * the other bitwise operators, comparisons and `??` are not spread. Where the lines stand is the matter of
- * `IndentationRule`.
+ * A family of one boolean operator (`&&`, `||`, `and`, `or`, `xor`), of concatenations, of a bitwise `|` joining flags
+ * or of one of `+`, `-` and `*` on a line wider than the line length of the style has every operand on a line of its
+ * own, each operator opening the line of the operand after it, unless an outer construct on the line is spread first
+ * or `file.lineLengthExcept` names `binaryOperator`. A family is the operands one operator joins without parentheses
+ * between them; another operator or parentheses begin an inner family, which is measured once the outer one is spread.
+ * A boolean operator chaining a condition is the matter of `MultilineConditionRule`, a family its author spread stays
+ * as it is, and the other arithmetic and bitwise operators, comparisons and `??` are not spread. Where the lines stand
+ * is the matter of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineBinaryOperatorRule extends GapRule
@@ -33,7 +33,7 @@ final class MultilineBinaryOperatorRule extends GapRule
 		return [new Decision(
 			'multiline.binaryOperator',
 			new Words(['perLine' => 'every operand on a line of its own, the operator opening it']),
-			'The operands of `&&`, `||`, `and`, `or`, `xor`, `.` and `|` on a line wider than the line length, outside a condition',
+			'The operands of `&&`, `||`, `and`, `or`, `xor`, `.`, `|`, `+`, `-` and `*` on a line wider than the line length, outside a condition',
 			notes: ['A family its author spread over lines stays as it is'],
 		)];
 	}

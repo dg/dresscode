@@ -297,7 +297,7 @@ final class CorePlugin implements Plugin
 					'chain' => 'a chain of method calls',
 					'ternary' => 'a ternary',
 					'for' => 'the header of a `for`',
-					'binaryOperator' => 'the operands of a boolean operator, of concatenations or of `|`',
+					'binaryOperator' => 'the operands of a boolean operator, of concatenations, of `|` or of `+`, `-` and `*`',
 					'array' => 'the items of an array, which `multiline.arrayMaxWidth` spreads all the same',
 					'implements' => 'the interfaces a class implements or an interface extends',
 					'matchArm' => 'the conditions of a `match` arm',
