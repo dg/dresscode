@@ -196,11 +196,19 @@ final class LineLengthRule extends NodeRule
 	}
 
 
-	/** Strings and markup, whose lines are content when they span lines; the body of a heredoc always. */
+	/**
+	 * Strings, markup and the data after `__halt_compiler()`, whose lines are content when they span lines; the body
+	 * of a heredoc always.
+	 */
 	private static function isContent(Token $token): bool
 	{
 		return match ($token->id) {
-			Token::ConstantEncapsedString, Token::InlineHtml, Token::StartHeredoc, Token::EncapsedAndWhitespace, Token::EndHeredoc => true,
+			Token::ConstantEncapsedString,
+			Token::InlineHtml,
+			Token::HaltCompilerData,
+			Token::StartHeredoc,
+			Token::EncapsedAndWhitespace,
+			Token::EndHeredoc => true,
 			default => false,
 		};
 	}
