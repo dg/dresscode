@@ -2599,6 +2599,7 @@ The order of the types of a native union.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
+- Needs PHP >=7.4
 
 ### functions.arrowFunction.oneExpression
 
@@ -2610,6 +2611,7 @@ Not about the `static` of the arrow function, which `functions.staticClosure` de
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`
 - Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
+- Needs PHP >=7.4
 
 ### functions.arrowFunctionNested
 
@@ -2619,6 +2621,7 @@ Whether a closure holding another closure or arrow function becomes one too.
 - Takes: `yes`; `no`
 - The standards: perCs `no`, psr12 `no`, nette `yes`
 - Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
+- Needs PHP >=7.4
 
 ### functions.innerFunction
 
@@ -2637,6 +2640,7 @@ A `true` or `false` passed by position to a parameter declared `bool`, written w
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Functions\NamedArgumentForBooleanRule`, stage Structure
+- Needs PHP >=8.0
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### functions.namedBooleanArgumentExcept
@@ -2647,6 +2651,7 @@ The functions and methods whose arguments stay positional, a method written with
 - Takes: a list of names
 - The standards: perCs `[]`, psr12 `[]`, nette `[]`
 - Rule `DressCode\Rules\Functions\NamedArgumentForBooleanRule`, stage Structure
+- Needs PHP >=8.0
 
 ### functions.staticClosure
 
@@ -3712,6 +3717,7 @@ An attribute written for an annotation (`@ORM\Entity: ORM\Entity`).
 - Rule `DressCode\Rules\Upgrading\AttributeForAnnotationRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\ReplacedClassesRule`, which this decision does not turn on
 - Read by rule `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`, which this decision does not turn on
+- Needs PHP >=8.0
 - Modifies comments
 
 ### upgrading.api.attributeForMember
@@ -3723,6 +3729,7 @@ An attribute written for a member the class declares by convention.
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Upgrading\AttributeForMemberRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`, which this decision does not turn on
+- Needs PHP >=8.0
 - Modifies comments
 
 ### upgrading.api.forbiddenClasses

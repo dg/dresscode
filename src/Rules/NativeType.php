@@ -117,7 +117,10 @@ final class NativeType
 		$intersection = $type instanceof Type\IntersectionTypeNode;
 		if (
 			$names === []
-			|| ($intersection && ($nullable || (count($names) > 1 && version_compare($phpVersion, '8.1', '<'))))
+			|| ($place === self::Property && version_compare($phpVersion, '7.4', '<'))
+			|| ($nullable && version_compare($phpVersion, '7.1', '<'))
+			|| ($intersection && $nullable)
+			|| (count($names) > 1 && version_compare($phpVersion, $intersection ? '8.1' : '8.0', '<'))
 		) {
 			return null;
 		}
@@ -332,8 +335,12 @@ final class NativeType
 	{
 		$lower = strtolower($name);
 		return match ($lower) {
-			'object', 'mixed', 'iterable', 'self', 'parent' => true,
-			'static', 'void' => $place === self::Return,
+			'self', 'parent' => true,
+			'iterable' => version_compare($phpVersion, '7.1', '>='),
+			'object' => version_compare($phpVersion, '7.2', '>='),
+			'mixed' => version_compare($phpVersion, '8.0', '>='),
+			'static' => $place === self::Return && version_compare($phpVersion, '8.0', '>='),
+			'void' => $place === self::Return && version_compare($phpVersion, '7.1', '>='),
 			'never' => $place === self::Return && version_compare($phpVersion, '8.1', '>='),
 			'null', 'true' => version_compare($phpVersion, '8.2', '>='),
 			'false' => $inUnion || version_compare($phpVersion, '8.2', '>='),

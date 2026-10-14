@@ -29,7 +29,11 @@ use function count;
  * run the method, `$this->render(true)` of a class that is not final, the child may name the parameters otherwise,
  * and the fix is risky.
  */
-#[RuleInfo(Stage::Structure, analyses: [PhpSignatures::class, PhpSymbols::class, NameResolver::class, Types::class])]
+#[RuleInfo(
+	Stage::Structure,
+	analyses: [PhpSignatures::class, PhpSymbols::class, NameResolver::class, Types::class],
+	requires: ['php' => '>=8.0'],
+)]
 final class NamedArgumentForBooleanRule extends NodeRule
 {
 	private const Except = 'functions.namedBooleanArgumentExcept';

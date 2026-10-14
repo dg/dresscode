@@ -43,6 +43,7 @@ use function count, in_array;
 	modifiesComments: true,
 	decisions: ['upgrading.packages', 'upgrading.api.attributeForMember'],
 	analyses: [Types::class, NameResolver::class],
+	requires: ['php' => '>=8.0'],
 )]
 final class AttributeForMemberRule extends NodeRule
 {

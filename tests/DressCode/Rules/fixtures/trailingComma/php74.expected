@@ -1,0 +1,16 @@
+<?php
+// {"trailingComma": {"parameter": "required", "closureUse": "required", "argument": "required"}}
+// php 7.4
+// PHP 7.4 has the trailing comma of arguments, not that of parameters and of the use of a closure
+$f = function (
+	$a,
+	$b
+) use (
+	$c,
+	$d
+) {
+	return foo(
+		$a,
+		$b,
+	);
+};

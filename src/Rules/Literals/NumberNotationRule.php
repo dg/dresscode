@@ -17,7 +17,7 @@ use function strlen;
 /**
  * The digits `A` to `F` of a hexadecimal number in one case, `0xFF` or `0xff`, and the prefix of a number in another
  * base in lowercase, `0x`, `0b` and `0o`. Long decimal numbers get the underscore separator every three digits from
- * the configured length on (`1_000_000`, `1.234_567`). A number in another base is left alone: the digits of an
+ * the configured length on (`1_000_000`, `1.234_567`), from PHP 7.4 on. A number in another base is left alone: the digits of an
  * address, a mask or a code point are grouped by what they mean, not by threes. A number written with a separator
  * already stays as it is. With `forbidden` the separators go, for the integer from a number in any base and from an
  * exponent too. A number both of whose parts change is reported once, under `digitSeparator.integer`.
@@ -134,11 +134,12 @@ final class NumberNotationRule extends NodeRule
 			$written = $this->integer === 'forbidden' ? str_replace('_', '', $text) : $text;
 			$decision = self::Integer;
 		} elseif (preg_match('~^([\d_]*)(\.[\d_]*)?([eE][+-]?[\d_]+)?$~', $text, $m)) {
-			$grouped = str_contains($text, '_');
-			$integer = self::renderPart($m[1], $this->integer, $grouped ? null : $this->minIntegerDigits, fromEnd: true);
+			// a number grouped already stays, and PHP before 7.4 has no separator
+			$groups = !str_contains($text, '_') && version_compare($context->phpVersion, '7.4', '>=');
+			$integer = self::renderPart($m[1], $this->integer, $groups ? $this->minIntegerDigits : null, fromEnd: true);
 			$fraction = ($m[2] ?? '') === ''
 				? ''
-				: '.' . self::renderPart(substr($m[2], 1), $this->fraction, $grouped ? null : $this->minFractionDigits, fromEnd: false);
+				: '.' . self::renderPart(substr($m[2], 1), $this->fraction, $groups ? $this->minFractionDigits : null, fromEnd: false);
 			$exponent = $m[3] ?? '';
 			$written = $integer . $fraction . ($this->integer === 'forbidden' ? str_replace('_', '', $exponent) : $exponent);
 			$decision = $integer === $m[1] ? self::Fraction : self::Integer;

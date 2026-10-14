@@ -1,0 +1,11 @@
+<?php
+// {"hygiene.classNameNotation.object": "required"}
+// php 7.4
+// PHP 7.4 has no `$object::class`, while `static::class` is older
+class A
+{
+	public function f($obj)
+	{
+		return [get_class($obj), get_class($this)];
+	}
+}

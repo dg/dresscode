@@ -1,0 +1,20 @@
+<?php
+// {"types.declaration.parameter": "keep", "types.declaration.return": "keep"}
+// risky
+// php 7.0
+namespace App;
+
+class A
+{
+	/** @var int */
+	public $a;
+
+	/**
+	 * @param ?int $b
+	 * @param object $c
+	 * @return void
+	 */
+	public function f($b, $c)
+	{
+	}
+}

@@ -7,6 +7,7 @@ use DressCode\{
 use DressCode\Config\{ComposerJson, PhpVersionSource, RunnerFactory};
 use DressCode\Engine\{Runner, TypeAnalysisStatus};
 use DressCode\Reporters\NullReporter;
+use DressCode\Rules\ControlFlow\MatchForSwitchRule;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use Tester\{Assert, FileMock};
@@ -372,21 +373,34 @@ test('the PHP target comes from the configuration, composer.json or the default'
 });
 
 
-test('a target older than the oldest PHP DressCode fixes code for is raised to it with a warning', function () {
+test('a target older than the PHP the rules are tested for stays, with a warning, and the rules of PHP 8 stay off', function () {
 	$root = createTempDir('php-floor');
 	file_put_contents("$root/composer.json", '{"require": {"php": "^7.4 || ^8.0"}}');
-	$warning = 'The target PHP 7.4 is older than PHP 8.0, the oldest DressCode fixes code for; the code is checked as PHP 8.0, so a fix may write syntax the target does not have.';
+	$warning = 'The target PHP 7.4 is older than 8.0, which DressCode tests; the fixes of PHP 8 constructs stay off.';
 
 	$factory = new RunnerFactory;
-	$resolution = $factory->resolve(new Config(rules: [ReportContext::class], decisions: ReportsContext), $root);
+	$resolution = $factory->resolve(
+		new Config(
+			rules: [ReportContext::class, MatchForSwitchRule::class],
+			decisions: [...ReportsContext, 'upgrading' => ['syntax' => ['match' => 'required']]],
+		),
+		$root,
+	);
 	$runner = $factory->createRunner($resolution, cache: false);
-	Assert::same(['8.0', PhpVersionSource::Composer], [$resolution->resolvedConfig->phpVersion, $resolution->phpVersionSource]);
-	Assert::same([$warning => null], $resolution->warnings);
-	Assert::match('8.0 %a%', $runner->processCode('x.php', "<?php\n\$a;\n")->violations[0]->message);
+	Assert::same(['7.4', PhpVersionSource::Composer], [$resolution->resolvedConfig->phpVersion, $resolution->phpVersionSource]);
+	Assert::same(
+		[$warning => null, 'Decision `upgrading.syntax.match` needs PHP >=8.0 and the target is ^7.4 || ^8.0; skipped.' => null],
+		$resolution->warnings,
+	);
+	Assert::match('7.4 %a%', $runner->processCode('x.php', "<?php\n\$a;\n")->violations[0]->message);
+	Assert::same(
+		'it needs PHP >=8.0 and the target is ^7.4 || ^8.0',
+		$resolution->resolvedConfig->findRule(MatchForSwitchRule::class)?->inactiveMessage,
+	);
 
 	// every resolution starts with warnings of its own
 	$resolution = $factory->resolve(new Config(targets: ['php' => '7.4']), $root);
-	Assert::same(['8.0', PhpVersionSource::Configuration], [$resolution->resolvedConfig->phpVersion, $resolution->phpVersionSource]);
+	Assert::same(['7.4', PhpVersionSource::Configuration], [$resolution->resolvedConfig->phpVersion, $resolution->phpVersionSource]);
 	Assert::same([$warning => null], $resolution->warnings);
 });
 

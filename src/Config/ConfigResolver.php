@@ -159,7 +159,7 @@ final class ConfigResolver
 
 		$ofOverrides = $this->rulesOfOverrides[$config] ?? [];
 
-		[$phpTarget, $phpVersion] = $this->raiseToMinPhpVersion($php ?? $phpTarget);
+		[$phpTarget, $phpVersion] = $this->resolvePhpTarget($php ?? $phpTarget);
 		$resolver = new DecisionResolver(
 			$this->getCatalogue(),
 			$phpTarget,
@@ -554,20 +554,25 @@ final class ConfigResolver
 
 
 	/**
-	 * The versions the code is checked for and the lowest of them, the one a rule asks about: the target, or the oldest
-	 * DressCode fixes code for, with a warning.
+	 * The versions the code is checked for and the lowest of them, the one a rule asks about. A target older than the
+	 * version the rules are tested from stays as it is, with a warning, the rules of what came later leaving its code
+	 * alone; one without a lowest version is checked as that version.
 	 * @return array{string, string}
 	 */
-	private function raiseToMinPhpVersion(string $target): array
+	private function resolvePhpTarget(string $target): array
 	{
 		$version = Versions::findLowestVersion($target);
-		if ($version !== null && version_compare($version, Config::MinPhpVersion, '>=')) {
-			return [$target, $version];
+		if ($version === null) {
+			$this->warnings['php'] = "The target PHP $target names no oldest version; the code is checked as PHP " . Config::MinPhpVersion
+				. ', so a fix may write syntax the target does not have.';
+			return [Config::MinPhpVersion, Config::MinPhpVersion];
+
+		} elseif (version_compare($version, Config::MinPhpVersion, '<')) {
+			$this->warnings['php'] = "The target PHP $version is older than " . Config::MinPhpVersion
+				. ', which DressCode tests; the fixes of PHP 8 constructs stay off.';
 		}
 
-		$this->warnings['php'] = 'The target PHP ' . ($version ?? $target) . ' is older than PHP ' . Config::MinPhpVersion . ', the oldest DressCode fixes code for;'
-			. ' the code is checked as PHP ' . Config::MinPhpVersion . ', so a fix may write syntax the target does not have.';
-		return [Config::MinPhpVersion, Config::MinPhpVersion];
+		return [$target, $version];
 	}
 
 

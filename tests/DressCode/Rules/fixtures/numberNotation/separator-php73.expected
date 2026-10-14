@@ -1,0 +1,5 @@
+<?php
+// php 7.3
+// PHP 7.3 has no separator, while the case of the digits is older
+$a = 1000000;
+$b = 0xFF;

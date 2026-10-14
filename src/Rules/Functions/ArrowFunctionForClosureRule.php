@@ -38,7 +38,7 @@ use function count, in_array;
  * expression, which takes a static closure but no arrow function. A closure with an empty body is `fn() => null`
  * by `functions.arrowFunction.emptyBody`, unless it returns `void`, `never` or by reference.
  */
-#[RuleInfo(Stage::Structure, analyses: [NameResolver::class, PhpSignatures::class, Types::class])]
+#[RuleInfo(Stage::Structure, analyses: [NameResolver::class, PhpSignatures::class, Types::class], requires: ['php' => '>=7.4'])]
 final class ArrowFunctionForClosureRule extends NodeRule
 {
 	private const Plain = 'functions.arrowFunction.oneExpression';

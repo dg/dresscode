@@ -17,7 +17,8 @@ use function count;
 
 /**
  * The `::class` form for the name of the current class or its parent instead of `get_class()`, `get_called_class()`,
- * `get_parent_class()` and `__CLASS__`, and as a place of its own `$object::class` instead of `get_class($object)`.
+ * `get_parent_class()` and `__CLASS__`, and as a place of its own `$object::class` instead of `get_class($object)` from
+ * PHP 8.0 on.
  * `$this::class` is `static::class`, which says the same without reaching for the object.
  */
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
@@ -119,10 +120,15 @@ final class ClassNameNotationRule extends NodeRule
 		return match (true) {
 			$function === 'get_class' && $count === 0 => [self::isInClass($call) ? 'self::class' : null, self::CurrentClass],
 			$function === 'get_class' && $count === 1 && $isThis => [self::isInClass($call) ? 'static::class' : null, self::CurrentClass],
-			$function === 'get_class' && $count === 1 && $object !== null && $this->object && !$call->hasInnerComment() => [
-				($object->isDereferenceable(DereferenceKind::StaticAccess) ? $object->text : '(' . $object->text . ')') . '::class',
-				self::Object,
-			],
+			$function === 'get_class'
+				&& $count === 1
+				&& $object !== null
+				&& $this->object
+				&& !$call->hasInnerComment()
+				&& version_compare($context->phpVersion, '8.0', '>=') => [
+					($object->isDereferenceable(DereferenceKind::StaticAccess) ? $object->text : '(' . $object->text . ')') . '::class',
+					self::Object,
+				],
 			$function === 'get_called_class' && $count === 0 => [self::isInClass($call) ? 'static::class' : null, self::CurrentClass],
 			$function === 'get_parent_class' && $count === 0 => [self::hasParent($call) ? 'parent::class' : null, self::CurrentClass],
 			default => [null, null],

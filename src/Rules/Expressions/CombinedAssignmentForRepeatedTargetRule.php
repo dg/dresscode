@@ -20,7 +20,7 @@ use PhpSyntax\Nodes\{Expression, ExpressionNode};
  * array. A property is a risky target: `??=` writes nothing where the value is not null,
  * so a readonly property, `__set` or a hook is not reached, and the combined operator reads the property
  * only after a right side that may have changed it. A variable reads the same either way. Without the types,
- * a plain property, which `??=` may skip writing, is not told from another.
+ * a plain property, which `??=` may skip writing, is not told from another. `??=` is written from PHP 7.4 on.
  */
 #[RuleInfo(Stage::Structure, analyses: [Types::class])]
 final class CombinedAssignmentForRepeatedTargetRule extends NodeRule
@@ -56,6 +56,7 @@ final class CombinedAssignmentForRepeatedTargetRule extends NodeRule
 			|| $var instanceof Expression\ArrayAccessNode
 			|| !($binary = $node->expression) instanceof Expression\BinaryOpNode
 			|| ($combined = self::Operators[$binary->operator->text] ?? null) === null
+			|| ($combined === '??=' && version_compare($context->phpVersion, '7.4', '<'))
 			|| !$var->isRepeatableRead()
 			|| !$var->matches($binary->left)
 			|| $node->equals->getCurrentLine() !== ($right = $binary->right->getFirstToken())->getCurrentLine()

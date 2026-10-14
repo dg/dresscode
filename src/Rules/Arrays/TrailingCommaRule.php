@@ -24,7 +24,8 @@ use function count;
  * follows the last item; a list written on one line loses it wherever the place is not `keep`, because there the comma
  * is never wanted, and `keep` leaves every comma as it is. A list is spread where a line breaks after the opening bracket,
  * an item starts a line or the closing bracket does; one whose items start on the line of the bracket counts as written
- * on one line however many lines an item spans or a comma begins.
+ * on one line however many lines an item spans or a comma begins. A comma is added only where the target allows it, after
+ * parameters and in the `use` of a closure from PHP 8.0 on.
  */
 #[RuleInfo(Stage::Structure)]
 final class TrailingCommaRule extends NodeRule
@@ -33,6 +34,9 @@ final class TrailingCommaRule extends NodeRule
 	private const Optional = 'optional';
 	private const Keep = 'keep';
 	private const Path = 'multiline.trailingComma.';
+
+	/** place => the version of PHP that allows its trailing comma, where it is newer than 7.0 */
+	private const AllowedSince = ['import' => '7.2', 'argument' => '7.3', 'parameter' => '8.0', 'closureUse' => '8.0'];
 
 	/** @var array<string, string>  place => what holds in a multi-line list */
 	private array $places = [
@@ -129,7 +133,7 @@ final class TrailingCommaRule extends NodeRule
 			return;
 		}
 
-		assert($open instanceof Token && $close instanceof Token);
+		assert($place !== null && $open instanceof Token && $close instanceof Token);
 		$decision = self::Path . $place;
 		$items = $list->getItems();
 		$last = $items === [] ? null : $items[count($items) - 1];
@@ -162,6 +166,7 @@ final class TrailingCommaRule extends NodeRule
 		} elseif (
 			$mode === self::Optional
 			|| $list->hasTrailingSeparator()
+			|| version_compare($context->phpVersion, self::AllowedSince[$place] ?? '7.0', '<')
 			|| !$context->report($close, "A multi-line $what must end with a trailing comma.", decision: $decision, byLine: true)
 		) {
 			return;

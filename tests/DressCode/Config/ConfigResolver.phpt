@@ -727,7 +727,7 @@ test('the command line lies over the overrides', function () {
 });
 
 
-test('the version of PHP a profile says is the target of its files, raised to the oldest one DressCode fixes code for', function () {
+test('the version of PHP a profile says is the target of its files, one older than the rules are tested for with a warning', function () {
 	$resolver = createResolver();
 	$config = new Config(decisions: projectDecisions(['future']), overrides: [
 		new Override(['legacy'], new Profile(targets: ['php' => '8.3'])),
@@ -736,7 +736,7 @@ test('the version of PHP a profile says is the target of its files, raised to th
 	Assert::true($resolver->resolve($config, '8.4')->findRule(RuleFuture::class)?->isActive());
 	// every override is resolved with the configuration, so what it gets wrong is said before any of its files
 	Assert::contains(
-		'The target PHP 7.4 is older than PHP 8.0, the oldest DressCode fixes code for;',
+		'The target PHP 7.4 is older than 8.0, which DressCode tests; the fixes of PHP 8 constructs stay off.',
 		implode("\n", $resolver->getWarnings()),
 	);
 
@@ -744,7 +744,7 @@ test('the version of PHP a profile says is the target of its files, raised to th
 	Assert::same('8.3', $legacy->phpVersion);
 	Assert::same('it needs PHP >=8.4 and the target is 8.3', $legacy->findRule(RuleFuture::class)?->inactiveMessage);
 
-	Assert::same('8.0', $resolver->resolve($config, '8.4', [1])->phpVersion);
+	Assert::same('7.4', $resolver->resolve($config, '8.4', [1])->phpVersion);
 });
 
 

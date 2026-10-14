@@ -1,0 +1,6 @@
+<?php
+// types off
+// php 7.3
+// PHP 7.3 has no `??=`, while the other combined operators are older
+$a = $a ?? 1;
+$b += 1;

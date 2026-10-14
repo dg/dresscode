@@ -54,6 +54,7 @@ use PhpSyntax\Nodes\Statement\{ClassNode, EnumNode, FunctionNode, InterfaceNode,
 	modifiesComments: true,
 	decisions: ['upgrading.packages', 'upgrading.api.attributeForAnnotation'],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
+	requires: ['php' => '>=8.0'],
 )]
 final class AttributeForAnnotationRule extends NodeRule
 {

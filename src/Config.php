@@ -21,7 +21,8 @@ final readonly class Config extends Profile
 	public const DefaultExcludePaths = ['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'];
 
 	/**
-	 * the oldest version DressCode fixes code for; the rules never ask whether the target has what it already has
+	 * the oldest version the rules are tested for; a rule asks whether the target has what it already has only where it
+	 * writes that for an older target
 	 * @internal
 	 */
 	public const MinPhpVersion = '8.0';
