@@ -9,18 +9,15 @@ function b($c, $d) {
 	} else {
 		$z = 2;
 	}
-	if ($c && $d) {
-		return 1;
-	} else {
-		return 2;
-	}
+	return $c && $d ? 1 : 2;
+	return $c
+		? 1 // comment
+		: 2;
 	if ($c) {
-		// comment
-		return 1;
+		return $d ? 1 : 2;
 	} else {
-		return 2;
+		return 3;
 	}
-	return $c ? ($d ? 1 : 2) : 3;
 	if ($c) {
 		x();
 	} else {

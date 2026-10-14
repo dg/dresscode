@@ -8,8 +8,9 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\Expression\{AssignmentNode, BinaryOpNode};
+use DressCode\Rules\NodeHelpers;
+use PhpSyntax\{Builder, Node, Token, Trivia};
+use PhpSyntax\Nodes\Expression\{AssignmentNode, TernaryNode, UnaryOpNode};
 use PhpSyntax\Nodes\{ExpressionNode, FunctionLikeNode};
 use PhpSyntax\Nodes\Statement\{BlockNode, ExpressionStatementNode, IfNode, ReturnNode};
 use function count;
@@ -17,11 +18,13 @@ use function count;
 
 /**
  * An `if` and an `else` that each only return a value, or each only assign the same variable, are one
- * ternary: `return $c ? $a : $b;`, `$x = $c ? $a : $b;`. A comment inside, or a condition joined by logical
- * operators, keeps the statement and is only reported. A function returning by reference keeps its returns,
- * because a ternary is no variable to return a reference to. The fix is risky where the condition runs code and
- * the variable reads before it an offset that is more than a variable, a literal or a constant, or a class given by
- * an expression.
+ * ternary: `return $c ? $a : $b;`, `$x = $c ? $a : $b;`. A ternary spanning lines has `?` and `:` at the start
+ * of theirs, a negated condition then losing its negation for the branches swapped, and a comment of a branch, one
+ * at most, follows its value; any other comment keeps the statement, which is only reported, and so does nothing
+ * where a branch is a ternary itself, which reads better in the if. A function returning by reference keeps its
+ * returns, because a ternary is no variable to return a reference to. The fix is risky where the condition runs code
+ * and the variable reads before it an offset that is more than a variable, a literal or a constant, or a class given
+ * by an expression.
  */
 #[RuleInfo(Stage::Structure)]
 final class TernaryForIfRule extends NodeRule
@@ -74,8 +77,19 @@ final class TernaryForIfRule extends NodeRule
 			return;
 		}
 
-		$fixable = !$node->hasInnerComment()
-			&& !($node->condition instanceof BinaryOpNode && $node->condition->isLogical());
+		if ($a instanceof TernaryNode || $b instanceof TernaryNode) { // a ternary in a branch reads better in the if
+			return;
+		}
+
+		$comments = [self::findBranchComments($then), self::findBranchComments($otherwise)];
+		$fixable = count($comments[0]) <= 1
+			&& count($comments[1]) <= 1
+			&& array_all(
+				[...$comments[0], ...$comments[1]],
+				fn(Trivia $comment) => $comment->is(Trivia::Comment) && !str_contains($comment->text, "\n"),
+			)
+			&& count($node->getInnerComments()) === count($comments[0]) + count($comments[1])
+				+ count($node->condition->getInnerComments()) + count($a->getInnerComments()) + count($b->getInnerComments());
 		$reordered = $target !== null && $target->hasEarlyReads() && $node->condition->hasEffect();
 		if (!$context->report(
 			$node->ifKeyword,
@@ -87,13 +101,49 @@ final class TernaryForIfRule extends NodeRule
 			return;
 		}
 
+		$condition = $node->condition;
+		$multiline = $comments !== [[], []] || $condition->isMultiLine() || $a->isMultiLine() || $b->isMultiLine();
+		if ($multiline && $condition instanceof UnaryOpNode && $condition->operator->is('!')) {
+			[$condition, $a, $b, $comments] = [NodeHelpers::negate($condition), $b, $a, array_reverse($comments)];
+		}
+
 		$builder = new Builder;
-		$ternary = $builder->ternary($node->condition, $a, $b);
+		$ternary = $builder->ternary($condition, $a, $b);
 		$statement = $target === null
 			? $builder->statement('return $value;', value: $ternary)
 			: $builder->statement('$target = $value;', target: $target, value: $ternary);
 		$node->replaceWith($statement);
+		if ($multiline) { // `?` and `:` open the lines, a comment of a branch follows its value
+			$eol = $context->style->lineEnding;
+			foreach ([[$ternary->then, $comments[0]], [$statement, $comments[1]]] as [$owner, $comment]) {
+				if ($comment !== [] && ($last = $owner?->getLastToken())) {
+					$last->setTrailingTrivia([
+						Trivia::fromText(' '),
+						new Trivia($comment[0]->id, $comment[0]->text),
+						...$last->trailingTrivia,
+					]);
+				}
+			}
+
+			$indentation = $statement->getFirstToken()->getLineIndentation() . $context->style->indent;
+			foreach ([$ternary->question, $ternary->colon] as $operator) {
+				$operator->ensureStartsLine($eol);
+				$operator->setIndentation($indentation);
+			}
+		}
+
 		$context->markRewritten($statement);
+	}
+
+
+	/**
+	 * The comments of a branch that do not travel with its value: on the lines above its statement and after it.
+	 * @return list<Trivia>
+	 */
+	private static function findBranchComments(Node $statement): array
+	{
+		$trivia = [...$statement->getFirstToken()->leadingTrivia ?? [], ...$statement->getLastToken()->trailingTrivia ?? []];
+		return array_values(array_filter($trivia, fn(Trivia $trivia) => $trivia->isComment()));
 	}
 
 

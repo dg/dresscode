@@ -1,0 +1,52 @@
+<?php
+// a branch spanning lines puts `?` and `:` at the start of their lines
+function a($str, $lines)
+{
+	if ($lines) {
+		return new Position(
+			$lines,
+			strlen($str),
+		);
+	} else {
+		return new Position(
+			0,
+			strlen($str),
+		);
+	}
+}
+
+// a negated condition with a branch spanning lines loses its negation, the branches swapped
+function b($config, $builder)
+{
+	if (!$config->conventions) {
+		$conventions = null;
+	} else {
+		$conventions = $builder->addDefinition('conventions')
+			->setFactory($config->conventions)
+			->setAutowired($config->autowired);
+	}
+}
+
+// a comment of a branch follows its value, one elsewhere keeps the statement
+function c($c)
+{
+	if ($c) {
+		return 1; // the one
+	} else {
+		// the other
+		return 2;
+	}
+
+	if ($c) {
+		return 1;
+	} else /* lost */ {
+		return 2;
+	}
+
+	if ($c) {
+		/** @var int */
+		return 1;
+	} else {
+		return 2;
+	}
+}
