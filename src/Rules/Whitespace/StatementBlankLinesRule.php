@@ -10,14 +10,14 @@ namespace DressCode\Rules\Whitespace;
 use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
 use DressCode\Domains\Map;
 use PhpSyntax\{Node, Token, Trivia};
-use PhpSyntax\Nodes\{ClassLikeNode, Expression, FileNode, PlainNodeList, Statement, StatementNode};
+use PhpSyntax\Nodes\{ClassLikeNode, Expression, FileNode, FunctionLikeNode, PlainNodeList, Statement, StatementNode};
 use function count, is_int;
 
 
 /**
- * How many blank lines stand between statements: in the header of a file, around declarations among statements, and
- * before and after a statement of a kind. Comments stay with the code below the blank lines, and a doc comment counts
- * as part of what it documents.
+ * How many blank lines stand between statements: in the header of a file, around declarations among statements, in
+ * the body of a function, and before and after a statement of a kind. Comments stay with the code below the blank
+ * lines, and a doc comment counts as part of what it documents.
  */
 #[RuleInfo(Stage::Formatting, decisions: ['blankLines.afterPhpdoc'])]
 final class StatementBlankLinesRule extends GapRule
@@ -31,6 +31,7 @@ final class StatementBlankLinesRule extends GapRule
 		'betweenImportKinds' => 'Between the imports of classes, functions and constants; imports of one kind never have a blank line between them',
 		'beforeDeclaration' => 'Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of `afterNamespace` and `afterImports`',
 		'betweenDeclarations' => 'Before and after a class, interface, trait, enum or function declared among statements, where the header above it does not decide',
+		'betweenStatements' => 'Between two statements in the body of a function, a method or a closure, at any depth; a count of the kind of the statement before or after narrows it',
 		'afterPhpdoc' => null,
 	];
 
@@ -97,7 +98,10 @@ final class StatementBlankLinesRule extends GapRule
 			'*' => [
 				// a statement is asked about only where some decision can give it a count
 				'statements:item' => [
-					$this->counts['betweenDeclarations'] !== null || $this->counts['afterPhpdoc'] !== null || $this->beforeStatement !== []
+					$this->counts['betweenDeclarations'] !== null
+					|| $this->counts['betweenStatements'] !== null
+					|| $this->counts['afterPhpdoc'] !== null
+					|| $this->beforeStatement !== []
 						? fn(Gap $gap) => $this->claimBeforeStatement($gap->value, $gap->index ?? 0)
 						: null,
 					$this->counts['betweenDeclarations'] !== null || $this->afterStatement !== []
@@ -197,16 +201,29 @@ final class StatementBlankLinesRule extends GapRule
 
 	/**
 	 * Before a declaration among statements and below its doc comment, else what the kind of the statement
-	 * asks for; the two never answer for the same statement.
+	 * asks for within what a body of a function allows; the two never answer for the same statement.
 	 */
 	private function claimBeforeStatement(Node|Token $stmt, int $index): ?Claim
 	{
 		$declaration = $stmt instanceof Statement\FunctionNode || $stmt instanceof ClassLikeNode ? $stmt : null;
 		$blank = $declaration !== null && $index > 0 ? $this->counts['betweenDeclarations'] : null;
 		$below = $declaration === null ? null : BlankLineClaims::findBelowDocComment($declaration, $this->counts['afterPhpdoc']);
-		return $blank === null && $below === null
-			? $this->claimByKind($stmt, $index - 1, $this->beforeStatement, 'beforeStatement')
-			: $this->claims->claim($blank, 'betweenDeclarations', $below, 'afterPhpdoc');
+		if ($blank !== null || $below !== null) {
+			return $this->claims->claim($blank, 'betweenDeclarations', $below, 'afterPhpdoc');
+		}
+
+		$kind = $this->findCountByKind($stmt, $index - 1, $this->beforeStatement);
+		$body = $this->counts['betweenStatements'] !== null
+			&& self::isPlainPair($stmt, $index - 1)
+			&& $stmt->findAncestor(FunctionLikeNode::class) !== null
+				? $this->counts['betweenStatements']
+				: null;
+		return $body === null
+			? $this->claims->claim($kind, 'beforeStatement')
+			: $this->claims->claim(
+				self::intersect($kind === null ? [$body] : [$body, $kind]),
+				$kind === null ? 'betweenStatements' : 'beforeStatement',
+			);
 	}
 
 
@@ -223,25 +240,37 @@ final class StatementBlankLinesRule extends GapRule
 					: null;
 		}
 
-		return $this->claimByKind($stmt, $index + 1, $this->afterStatement, 'afterStatement');
+		return $this->claims->claim($this->findCountByKind($stmt, $index + 1, $this->afterStatement), 'afterStatement');
 	}
 
 
 	/**
-	 * The count the statement's kind asks for on the side of its neighbor at the index, when that neighbor is
-	 * a statement the kinds speak of, not one `isForeign()` leaves to the decisions of the header and the declarations.
+	 * The count the statement's kind asks for on the side of its neighbor at the index, when the two are a pair
+	 * the kinds speak of.
 	 * @param array<string, int|array{int, ?int}|null> $counts
+	 * @return int|array{int, ?int}|null
 	 */
-	private function claimByKind(Node|Token $stmt, int $neighbor, array $counts, string $key): ?Claim
+	private function findCountByKind(Node|Token $stmt, int $neighbor, array $counts): int|array|null
+	{
+		return self::isPlainPair($stmt, $neighbor)
+			? $counts[self::classifyStatement($stmt)] ?? null
+			: null;
+	}
+
+
+	/**
+	 * Whether the statement and its neighbor at the index are both statements, neither one `isForeign()` leaves to
+	 * the decisions of the header and the declarations.
+	 * @phpstan-assert-if-true StatementNode $stmt
+	 */
+	private static function isPlainPair(Node|Token $stmt, int $neighbor): bool
 	{
 		$list = $stmt->parent;
-		if (!$stmt instanceof StatementNode || !$list instanceof PlainNodeList || self::isForeign($stmt)) {
-			return null;
-		}
-
-		$other = $list->getItems()[$neighbor] ?? null;
-		$count = $other instanceof StatementNode && !self::isForeign($other) ? $counts[self::classifyStatement($stmt)] ?? null : null;
-		return $this->claims->claim($count, $key);
+		$other = $list instanceof PlainNodeList ? $list->getItems()[$neighbor] ?? null : null;
+		return $stmt instanceof StatementNode
+			&& $other instanceof StatementNode
+			&& !self::isForeign($stmt)
+			&& !self::isForeign($other);
 	}
 
 

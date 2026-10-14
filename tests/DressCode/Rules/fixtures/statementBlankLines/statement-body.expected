@@ -1,0 +1,29 @@
+<?php
+// {"betweenStatements": [0, 1], "beforeStatement": {"return": 2}, "afterOpeningTag": "keep", "betweenDeclarations": "keep"}
+function a()
+{
+	foo();
+
+	// a comment stays with the statement below
+	bar();
+	if ($x) {
+		baz();
+
+		baz();
+	}
+
+
+	return 1;
+}
+
+$f = function () {
+	foo();
+
+	bar();
+};
+
+// statements outside a function keep their blank lines
+foo();
+
+
+bar();
