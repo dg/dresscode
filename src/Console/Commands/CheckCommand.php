@@ -90,11 +90,12 @@ final readonly class CheckCommand
 			$resolution,
 			strict: (bool) $run->strictRules,
 			// a file served from the cache has nothing to measure, and its counts are those the baseline left
-			cache: !$generate && !$run->noCache && !$profiler,
+			cache: !$generate && !$profiler,
 			configFile: $configFile,
 			fixRisky: $fixRisky,
 			baseline: !$generate,
 			profiler: $profiler,
+			refreshCache: (bool) $run->noCache,
 		);
 		[$out, $err] = [$this->context->out, $this->context->err];
 		foreach ($resolution->warnings as $warning => $docs) { // only the parent warns, a worker has returned above

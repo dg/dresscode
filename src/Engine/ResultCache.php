@@ -31,14 +31,16 @@ final class ResultCache
 	public function __construct(
 		private readonly string $file,
 		private readonly string $configHash,
+		/** a run that processes every file serves none from the cache, and writes what it learns for the next one */
+		private readonly bool $serves = true,
 	) {
 	}
 
 
 	/** Loads the entries of the file when it belongs to the same configuration; an unreadable file is an empty cache. */
-	public static function load(string $file, string $configHash): self
+	public static function load(string $file, string $configHash, bool $serves = true): self
 	{
-		$cache = new self($file, $configHash);
+		$cache = new self($file, $configHash, $serves);
 		$json = @file_get_contents($file); // @ a missing or unreadable file is an empty cache
 		try {
 			$data = $json === false ? null : Json::decode($json, forceArrays: true);
@@ -82,7 +84,7 @@ final class ResultCache
 	 */
 	public function findClean(string $key): ?array
 	{
-		if (!isset($this->entries[$key])) {
+		if (!$this->serves || !isset($this->entries[$key])) {
 			return null;
 		}
 
@@ -96,6 +98,13 @@ final class ResultCache
 	{
 		$this->entries[$key] = [time(), $baselined];
 		$this->touched[$key] = true;
+	}
+
+
+	/** Forgets a content that is not clean, which a run that served nothing may have found known as clean. */
+	public function forget(string $key): void
+	{
+		unset($this->entries[$key], $this->touched[$key]);
 	}
 
 

@@ -13,7 +13,7 @@ use DressCode\Engine\{Baseline, FileProcessor, FileProcessors, Helpers, Profiler
 use Nette\Utils\Finder;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\FileNode;
-use function count, is_string;
+use function count, is_string, strlen;
 
 
 /**
@@ -86,6 +86,7 @@ final readonly class RunnerFactory
 	/**
 	 * @param  bool  $strict  a broken rule contract throws instead of warning
 	 * @param  bool  $cache  clean files are remembered and skipped next time
+	 * @param  bool  $refreshCache  no file is skipped, while what the run finds is remembered
 	 * @param  ?string  $configFile  the file the configuration was read from; its text is all the cache knows about
 	 *                                a rule or an analysis a closure builds
 	 * @param  bool  $fixRisky  every fix that may change what the code does is made, not only those of the decisions
@@ -101,6 +102,7 @@ final readonly class RunnerFactory
 		bool $fixRisky = false,
 		bool $baseline = true,
 		?Profiler $profiler = null,
+		bool $refreshCache = false,
 	): Runner
 	{
 		$config = $resolution->config;
@@ -174,9 +176,13 @@ final readonly class RunnerFactory
 					$fixRisky,
 					$configFile === null ? null : hash_file('xxh128', $configFile),
 					$this->collectSourceTimes($resolved, $analyses),
-					// a constraint the project widens says which deprecations of a package hold
-					$resolved->typeAnalysis === null ? null : $resolution->projectPackages->findNewerInstalledPaths(),
+					// with the types a result depends on what the rest of the project declares
+					$resolved->typeAnalysis === null ? null : [
+						$resolution->projectPackages->findNewerInstalledPaths(),
+						self::fingerprintProject($config, $root),
+					],
 				], $resolution->projectPackages),
+				serves: !$refreshCache,
 			)
 			: null;
 		return new Runner(
@@ -422,6 +428,41 @@ final readonly class RunnerFactory
 				fn(array $data) => !str_starts_with($data['root']['install_path'], 'phar://'),
 			))
 			: [];
+	}
+
+
+	/**
+	 * What the types of a file depend on besides the file itself: the time and size of every file under the analysed
+	 * paths, outside the excluded ones, the configuration of PHPStan and the packages installed. A declaration changed
+	 * anywhere then invalidates every result, which costs the cache of a run with the types its use after an edit and
+	 * keeps a clean verdict true.
+	 */
+	private static function fingerprintProject(Config $config, string $root): string
+	{
+		$hash = hash_init('xxh128');
+		foreach (['phpstan.neon', 'phpstan.neon.dist', 'phpstan.dist.neon', 'vendor/composer/installed.json'] as $name) {
+			$stat = @stat("$root/$name"); // @ an optional file may not exist
+			hash_update($hash, $name . ($stat === false ? '' : "|$stat[9]|$stat[7]") . "\n");
+		}
+
+		// the iterators of SPL rather than Finder: the walk runs at the start of every such run, and the listing of
+		// a directory gives the time and size of its files at once
+		$prefix = strlen(Helpers::canonicalizePath($root)) + 1;
+		$extensions = array_flip($config->fileExtensions);
+		foreach (self::resolveAnalysedPaths($config, $root) as $path) {
+			$files = is_file($path) ? [new \SplFileInfo($path)] : new \RecursiveIteratorIterator(new \RecursiveCallbackFilterIterator(
+				new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
+				fn(\SplFileInfo $file) => !$file->isDir()
+					|| !Helpers::matchesAny($config->excludePaths, substr(Helpers::canonicalizePath($file->getPathname()), $prefix)),
+			));
+			foreach ($files as $file) {
+				if (isset($extensions[$file->getExtension()])) {
+					hash_update($hash, $file->getPathname() . '|' . $file->getMTime() . '|' . $file->getSize() . "\n");
+				}
+			}
+		}
+
+		return hash_final($hash);
 	}
 
 

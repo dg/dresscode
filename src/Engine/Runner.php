@@ -291,13 +291,19 @@ final readonly class Runner
 	 */
 	private function remember(ResultCache $cache, FileResult $result): void
 	{
+		$key = ResultCache::hashContent($result->path, $result->code);
 		if ($result->syntaxError !== null || $result->failure !== null || $result->warnings) {
+			$cache->forget($key);
 			return;
 		}
 
 		if (!$result->violations && !$result->changed) {
-			$cache->markClean(ResultCache::hashContent($result->path, $result->code), $result->baselined);
-		} elseif (
+			$cache->markClean($key, $result->baselined);
+			return;
+		}
+
+		$cache->forget($key);
+		if (
 			$result->written
 			&& $result->output !== null
 			&& !$result->remaining

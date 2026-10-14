@@ -27,6 +27,25 @@ test('a missing file is an empty cache; entries survive a save and load under th
 });
 
 
+test('a cache that serves nothing still remembers, and forgets a content found not clean', function () use ($file) {
+	$clean = ResultCache::hashContent('src/a.php', "<?php\n");
+	$stale = ResultCache::hashContent('src/b.php', "<?php\n");
+	$cache = ResultCache::load($file, 'config-refresh');
+	$cache->markClean($clean);
+	$cache->markClean($stale);
+	$cache->save();
+
+	$cache = ResultCache::load($file, 'config-refresh', serves: false);
+	Assert::null($cache->findClean($clean));
+	$cache->forget($stale);
+	$cache->save();
+
+	$cache = ResultCache::load($file, 'config-refresh');
+	Assert::same([], $cache->findClean($clean));
+	Assert::null($cache->findClean($stale));
+});
+
+
 test('another configuration starts empty and replaces the file', function () use ($file) {
 	$cache = ResultCache::load($file, 'config-b');
 	Assert::same(0, $cache->count());
