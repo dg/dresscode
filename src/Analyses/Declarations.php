@@ -87,7 +87,7 @@ final class Declarations
 	{
 		$class = $this->phpstan->findClass($member->declaringClass);
 		$reflection = $class === null ? null : self::findNativeMember($class, $member->kind, $member->name);
-		return $reflection?->isDeprecated()->yes() && !$this->phpstan->isAheadOfSupport($reflection->getDeclaringClass())
+		return $reflection?->isDeprecated()->yes() && !$this->phpstan->isAheadOfSupport($reflection->getDeclaringClass()->getFileName())
 			? Deprecation::fromDescription($reflection->getDeprecatedDescription() ?? '')
 			: null;
 	}
@@ -231,6 +231,10 @@ final class Declarations
 	public function isAlias(string $class, string $of): bool
 	{
 		$reflection = $this->phpstan->findClass($class);
+		if ($reflection !== null && strcasecmp($reflection->getName(), $class) !== 0) {
+			return strcasecmp($reflection->getName(), $of) === 0; // an alias the process made at run time
+		}
+
 		$native = $reflection?->getNativeReflection()->getBetterReflection();
 		return $native !== null
 			&& $this->isSubtype($class, $of) === Tristate::Yes
@@ -335,12 +339,22 @@ final class Declarations
 	public function findClassDeprecation(string $class): ?Deprecation
 	{
 		$reflection = $this->phpstan->findClass($class);
-		if (!$reflection?->isDeprecated() || $this->phpstan->isAheadOfSupport($reflection)) {
+		if ($reflection === null) {
+			return null;
+		} elseif (strcasecmp($reflection->getName(), $class) === 0) {
+			$file = $reflection->getFileName();
+			$description = $reflection->isDeprecated() ? $reflection->getDeprecatedDescription() ?? '' : null;
+		} else {
+			// an alias the process made at run time is reflected as the class aliased, which is not what the name declares
+			$file = $this->phpstan->findAutoloadedFile($class);
+			$description = $file === null ? null : $this->phpstan->findDeclaredDeprecation($class, $file);
+		}
+
+		if ($description === null || $this->phpstan->isAheadOfSupport($file)) {
 			return null;
 		}
 
-		$description = $reflection->getDeprecatedDescription() ?? '';
-		$namespace = QualifiedNames::extractNamespace($reflection->getName());
+		$namespace = QualifiedNames::extractNamespace($class);
 		if (!preg_match('~^\\\\?(\w+(?:\\\\\w+)*)$~D', Deprecation::findReplacementCode($description) ?? '', $m)) {
 			return new Deprecation($description);
 		}

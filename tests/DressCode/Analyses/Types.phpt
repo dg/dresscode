@@ -371,6 +371,21 @@ test('a deprecation of a package the project supports in an older version than t
 });
 
 
+test('a class the process made an alias of at run time is deprecated by its own declaration', function () {
+	// PHPStan reflects such a name as the class aliased, as it does the old names of a nikic/php-parser it carries itself
+	$root = __DIR__ . '/fixtures/types-alias';
+	require_once "$root/src/Current.php";
+	$file = (new Parser)->parse("<?php\nnew Acme\\Alias\\Old;\n");
+	$dir = createTempDir('types-alias');
+	$path = "$dir/sample.php";
+	file_put_contents($path, Printer::print($file));
+	$types = new Analyses\Types($file, $path, new Analyses\PhpStan($root, ["$root/src", $path], "$dir/cache"));
+
+	Assert::equal(new Deprecation('use Current', 'Acme\Alias\Current'), $types->findClassDeprecation('Acme\Alias\Old'));
+	Assert::true($types->isAlias('Acme\Alias\Old', 'Acme\Alias\Current'));
+});
+
+
 test('the class a declaration stands in', function () {
 	$file = storageSample();
 	$types = analyse($file);
