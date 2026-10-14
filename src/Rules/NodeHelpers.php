@@ -359,11 +359,11 @@ final class NodeHelpers
 	 * of an array access or an interpolated string; where the line is opened by text, the end of a heredoc or markup,
 	 * which leaves the lines spread from it no indentation to count from; where a comment follows the code of the
 	 * line, which would stay on its last line, away from the code it speaks of or silences; where another construct to
-	 * spread begins after it on the line (`isFollowedBySplit()`); and where what follows it on the line, which stays on
-	 * its last line, is too wide by itself. The outer one is spread first and the
-	 * inner one measured on the line it is left on, up to the first token a spread outer frame puts at the start of
-	 * a line, which its rule moves away later in the pass: the next argument, section, operator or link, or the
-	 * closing parenthesis. The width is that of the code, a comment after it left out (`measureCodeLine()`).
+	 * spread begins after it on the line (`isFollowedBySplit()`); and where what precedes it on the line, which stays on
+	 * its first line, or what follows it, which stays on its last line, is too wide by itself. The outer one is spread
+	 * first and the inner one measured on the line it is left on, up to the first token a spread outer frame puts at
+	 * the start of a line, which its rule moves away later in the pass: the next argument, section, operator or link,
+	 * or the closing parenthesis. The width is that of the code, a comment after it left out (`measureCodeLine()`).
 	 */
 	public static function measureOverflow(Node $construct, Token $open, Gap $gap): ?int
 	{
@@ -421,7 +421,7 @@ final class NodeHelpers
 		}
 
 		$width = $stops === [] ? $width : self::measureCodeLine($open, $style, $stops);
-		if ($width <= $limit || self::isFollowedBySplit($construct, $style, $stops)) {
+		if ($width <= $limit || self::isHeadTooWide($open, $style, $stops) || self::isFollowedBySplit($construct, $style, $stops)) {
 			return null;
 		}
 
@@ -453,13 +453,33 @@ final class NodeHelpers
 		) {
 			for ($node = $token->parent; $node !== null && $node->getFirstToken() === $token; $node = $node->parent) {
 				$frame = self::findSplitFrame($node);
-				if ($frame !== null && !$frame[3] && !$frame[4] && $style->lineSplits->has($frame[0]) && !self::isHeldWhole($node)) {
+				if (
+					$frame !== null
+					&& !$frame[3]
+					&& !$frame[4]
+					&& $style->lineSplits->has($frame[0])
+					&& !self::isHeldWhole($node)
+					&& !self::isHeadTooWide($frame[1], $style, $stops)
+				) {
 					return true;
 				}
 			}
 		}
 
 		return false;
+	}
+
+
+	/**
+	 * Whether the line up to the token a construct opens with is wider than the line length by itself: it stays on the
+	 * first line of the construct spread, so spreading it narrows no line too wide for that alone.
+	 * @param  array<int, true>  $stops  the tokens by `spl_object_id()`
+	 */
+	private static function isHeadTooWide(Token $open, Style $style, array $stops): bool
+	{
+		$next = $open->getNext();
+		return $next !== null
+			&& self::measureCodeLine($open, $style, $stops + [spl_object_id($next) => true]) > $style->maxLineLength;
 	}
 
 

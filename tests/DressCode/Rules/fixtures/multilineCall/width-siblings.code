@@ -1,0 +1,6 @@
+<?php
+// lineLength 60
+$x = match (true) {
+	condition($aaaaaaaaaa, $bbbbbbbbbb, $ccccccccccc) => make($d),
+	short($a) => make($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc),
+};
