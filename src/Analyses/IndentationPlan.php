@@ -213,12 +213,24 @@ final class IndentationPlan
 
 	/**
 	 * The level a line continuing an expression may not go below: an expression sharing its line with what
-	 * holds it has no line of its own to line up with, and one beginning its statement stands at the level
-	 * of a statement, where a continuation would read as the next one.
+	 * holds it has no line of its own to line up with, and one beginning its statement or an arm of `match`
+	 * stands at the level of a statement or an arm, where a continuation would read as the next one.
 	 */
 	private static function getMinimumLevel(Token $first): int
 	{
-		return !$first->startsLine() || Indentation::opensStatement($first) ? 1 : 0;
+		return !$first->startsLine() || Indentation::opensStatement($first) || self::opensMatchArm($first) ? 1 : 0;
+	}
+
+
+	private static function opensMatchArm(Token $token): bool
+	{
+		for ($node = $token->parent; $node !== null && $node->getFirstToken() === $token; $node = $node->parent) {
+			if ($node instanceof Nodes\MatchArmNode) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 

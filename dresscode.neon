@@ -20,7 +20,7 @@ fileExtensions:
 	- phpt
 
 imports: {grouping: {class: grouped}}
-indentation: {ternaryBelowCondition: aligned}
+indentation: {ternaryBelowCondition: aligned, binaryOperator: keep}
 
 overrides:
 	-

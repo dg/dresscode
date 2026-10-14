@@ -1,0 +1,9 @@
+<?php
+// the continuation of the condition of a match arm is indented, not read as the next arm
+$x = match (true) {
+	$a instanceof First
+	&& $b instanceof First => 1,
+	$a instanceof Second => foo($a)
+	&& bar($b),
+	default => 0,
+};
