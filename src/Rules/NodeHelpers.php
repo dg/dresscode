@@ -578,14 +578,18 @@ final class NodeHelpers
 	 * The construct the sole argument of the call is, which a line too wide spreads in place of the call where the
 	 * style hugs it (`LineSplits::$huggedSoleArgument`): a call or `new` with no other call in what it is made on, or
 	 * an array, passed by its name or not, which is of a kind the run spreads, has something to spread and is not
-	 * spread yet; null where the call spreads itself.
+	 * spread yet; null where the call spreads itself, as it does where an operator on the line below continues
+	 * the expression it ends.
 	 */
 	public static function findHuggedFrame(ArgumentListNode $list, Style $style): ?Node
 	{
 		$items = $list->items->getItems();
 		$value = count($items) === 1 && $items[0] instanceof ArgumentNode && $items[0]->ellipsis === null ? $items[0]->value : null;
+		$next = $list->closeParen->getNext();
 		$inner = match (true) {
 			!$style->lineSplits->huggedSoleArgument => null,
+			// an operator below the call would continue the expression from the parentheses closing together
+			$next?->startsLine() && $next->parent instanceof Expression\BinaryOpNode && $next->parent->operator === $next => null,
 			$value instanceof Expression\FunctionCallNode,
 			$value instanceof Expression\MethodCallNode,
 			$value instanceof Expression\StaticMethodCallNode,

@@ -33,3 +33,8 @@ $this->report(sprintf(
 	$value,
 	describe($expected)
 ));
+// an operator below the call continuing the expression keeps the call from hugging its argument
+$html = render(
+	new Tag($name, $attributes, $children, $more)
+)
+	. $closing;

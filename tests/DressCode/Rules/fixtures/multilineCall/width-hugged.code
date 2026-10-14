@@ -9,3 +9,6 @@ $this->report(...collect($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $d));
 $this->report(format($aaaaaaaaaa)->other($bbbbbbbbbb, $cccccccccc));
 $this->report(format()) . $aaaaaaaaaa . $bbbbbbbbbb . $cccccccccc;
 $this->report(sprintf('%s is not %s.', $value, describe($expected)));
+// an operator below the call continuing the expression keeps the call from hugging its argument
+$html = render(new Tag($name, $attributes, $children, $more))
+	. $closing;
