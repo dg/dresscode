@@ -80,9 +80,8 @@ multiline:
 	semicolonOnOwnLine: forbidden
 	groupUse: overMaxLength                   # the names filling the lines
 	trailingComma:
-		matchArm: keep
-		closureUse: keep
 		import: required
+		list: keep
 
 braces:
 	position:
