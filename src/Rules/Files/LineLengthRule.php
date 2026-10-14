@@ -25,11 +25,11 @@ use function count, strlen;
  * last token of the line left out, as the rules that break long lines measure it; a line holding nothing but
  * a comment is measured whole. The lines of a heredoc, a string spanning lines or markup outside PHP tags are content
  * and are not measured; a line inside a multi-line comment is measured and reported as any other. Neither is
- * a line `file.lineLengthExcept` leaves: a `use` import with `imports`, a line on which a construct of a kind it names
- * stands, a line that would fit were each of its string literals an empty pair of quotes with `strings`, and a line
- * one of its regular expressions matches. Nor is a line of a doc comment wider than the line length already by
- * the tag on it, its type, signature or name, which the description after them cannot shorten. The rule runs last,
- * after the rules that break long lines, so it reports what nothing could break.
+ * a line `file.lineLengthExcept` leaves: an import but a group use on one line with `imports`, a line on which
+ * a construct of a kind it names stands, a line that would fit were each of its string literals an empty pair
+ * of quotes with `strings`, and a line one of its regular expressions matches. Nor is a line of a doc comment wider
+ * than the line length already by the tag on it, its type, signature or name, which the description after them cannot
+ * shorten. The rule runs last, after the rules that break long lines, so it reports what nothing could break.
  * @phpstan-type Line array{text: string, code: ?string, blankText: string, blankCode: ?string, content: bool,
  *   token: ?Token, owner: ?Token, trivia: ?Trivia, lineInTrivia: int, docComment: ?Trivia, lineInDocComment: int,
  *   docCommentPrefix: string}
@@ -196,6 +196,14 @@ final class LineLengthRule extends NodeRule
 	}
 
 
+	/** A line of an import, except a group use written on one line, which its names could spread. */
+	private static function isUnsplittableImport(?Token $token): bool
+	{
+		$use = $token?->findAncestor(UseNode::class);
+		return $use !== null && !($use->isGroup() && !$use->isMultiLine());
+	}
+
+
 	/**
 	 * Strings, markup and the data after `__halt_compiler()`, whose lines are content when they span lines; the body
 	 * of a heredoc always.
@@ -229,7 +237,7 @@ final class LineLengthRule extends NodeRule
 			&& $width > $limit
 			&& !$line['content']
 			&& !self::isHeredocLine($line['token'])
-			&& !($this->ignoreImports && $line['token']?->findAncestor(UseNode::class) !== null)
+			&& !($this->ignoreImports && self::isUnsplittableImport($line['token']))
 			&& !$this->matchesPattern($text)
 			&& !($this->ignoreStrings && Indentation::advance(0, rtrim($line['blankCode'] ?? $line['blankText']), $phpSyntax) <= $limit)
 			&& !$this->holdsIgnoredConstruct($line['token'])

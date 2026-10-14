@@ -78,9 +78,11 @@ multiline:
 	matchArmConditions: asWritten             # conditions may share a line
 	expressionBelowReturn: forbidden          # `return [`, not `return` above `[`
 	semicolonOnOwnLine: forbidden
+	groupUse: overMaxLength                   # the names filling the lines
 	trailingComma:
 		matchArm: keep
 		closureUse: keep
+		import: required
 
 braces:
 	position:

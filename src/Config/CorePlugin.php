@@ -287,7 +287,7 @@ final class CorePlugin implements Plugin
 					default: 'none',
 				),
 				new Decision('file.lineLengthExcept', new Names([
-					'imports' => 'a `use` import, which cannot be split',
+					'imports' => 'a `use` import other than a group use on one line, which cannot be split',
 					'strings' => 'a line that would fit were each of its string literals an empty pair of quotes, a string being never split',
 					'call' => 'the arguments of a call',
 					'new' => 'the arguments of `new`',

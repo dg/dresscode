@@ -111,7 +111,7 @@ The widest line, by which what spreads over lines is split.
 What a line too wide leaves as it is: a construct named is not spread over lines for its width, and a line it stands on, one a regular expression matches, or with `strings` one wide only for its string literals, is not reported.
 
 - By default `["imports"]`
-- Takes: a list of `imports` (a `use` import, which cannot be split); `strings` (a line that would fit were each of its string literals an empty pair of quotes, a string being never split); `call` (the arguments of a call); `new` (the arguments of `new`); `attribute` (the arguments of an attribute); `signature` (the parameters of a function or a method); `condition` (a condition of `if`, `elseif`, `while` and `do-while`); `chain` (a chain of method calls); `ternary` (a ternary); `for` (the header of a `for`); `binaryOperator` (the operands of a boolean operator, of concatenations or of `\|`); `array` (the items of an array, which `multiline.arrayMaxWidth` spreads all the same); `implements` (the interfaces a class implements or an interface extends); `matchArm` (the conditions of a `match` arm); regular expressions
+- Takes: a list of `imports` (a `use` import other than a group use on one line, which cannot be split); `strings` (a line that would fit were each of its string literals an empty pair of quotes, a string being never split); `call` (the arguments of a call); `new` (the arguments of `new`); `attribute` (the arguments of an attribute); `signature` (the parameters of a function or a method); `condition` (a condition of `if`, `elseif`, `while` and `do-while`); `chain` (a chain of method calls); `ternary` (a ternary); `for` (the header of a `for`); `binaryOperator` (the operands of a boolean operator, of concatenations or of `\|`); `array` (the items of an array, which `multiline.arrayMaxWidth` spreads all the same); `implements` (the interfaces a class implements or an interface extends); `matchArm` (the conditions of a `match` arm); regular expressions
 - The standards: perCs `["imports"]`, psr12 `["imports"]`, nette `["imports","strings"]`, symfony `["imports"]`
 - Rule `DressCode\Rules\Files\LineLengthRule`, stage Finishing
 - Read by rule `DressCode\Rules\Arrays\MultilineArrayRule`, which this decision does not turn on
@@ -1148,7 +1148,7 @@ The trailing comma of the names of a multi-line group use; any value but `keep` 
 
 - By default `keep`
 - Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `forbidden` (never there); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
-- The standards: perCs `optional`, psr12 `keep`, nette `optional`, symfony `optional`
+- The standards: perCs `optional`, psr12 `keep`, nette `required`, symfony `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`
 
@@ -1321,7 +1321,7 @@ When a group use written on one line is spread over lines.
 
 - By default `keep`
 - Takes: `overMaxLength` (spread over lines where its line is longer than the maximum, its names filling them); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `overMaxLength`, symfony `keep`
 - Rule `DressCode\Rules\Namespaces\MultilineImportRule`, stage Formatting
 
 ### multiline.attributes.declaration
