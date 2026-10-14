@@ -489,6 +489,16 @@ final class PassLoop
 			}
 		}
 
+		// the lines of code a fix wrote anew are placed by it, as the lines of a gap the fixer broke are
+		foreach ($context->takeRewritten() as [$fingerprint, $node]) {
+			$origin = $this->violations[$fingerprint]->derivedFrom ?? $fingerprint;
+			foreach ($node->getTokens() as $i => $token) {
+				if ($i === 0 || $token->startsLine()) {
+					$this->moved[$token] ??= $origin;
+				}
+			}
+		}
+
 		if ($after > $before) {
 			$this->mutatedRules[$ruleClass] = true;
 			if (!$reported && $checkRevisions) {

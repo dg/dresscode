@@ -23,6 +23,9 @@ final class RuleContext
 	/** @var list<Engine\Report>  reports of the current callback */
 	private array $reports = [];
 
+	/** @var list<array{string, Node}>  nodes the fixes of the current callback wrote anew, by the fingerprint of the report */
+	private array $rewritten = [];
+
 
 	/** @internal created by the pass loop */
 	public function __construct(
@@ -328,6 +331,32 @@ final class RuleContext
 		$reports = $this->reports;
 		$this->reports = [];
 		return $reports;
+	}
+
+
+	/**
+	 * Says that the fix of the last report wrote the node anew, so that a later report placing a line of it, its
+	 * indentation above all, follows from that report, as what the engine places by a line it broke does.
+	 */
+	public function markRewritten(Node $node): void
+	{
+		$fingerprint = $this->reports === [] ? null : $this->reports[array_key_last($this->reports)]->fingerprint;
+		if ($fingerprint !== null) {
+			$this->rewritten[] = [$fingerprint, $node];
+		}
+	}
+
+
+	/**
+	 * Takes the nodes the fixes of the reports wrote anew since the last call, each with the fingerprint of its report.
+	 * @return list<array{string, Node}>
+	 * @internal
+	 */
+	public function takeRewritten(): array
+	{
+		$rewritten = $this->rewritten;
+		$this->rewritten = [];
+		return $rewritten;
 	}
 
 

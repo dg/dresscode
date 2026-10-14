@@ -615,6 +615,7 @@ final class RuleContext
 	public function isSilenced(PhpSyntax\Node|PhpSyntax\Token $at, ?PhpSyntax\Trivia $trivia = null, ?string $decision = null): bool
 	public function getAnalysis(class-string<T> $class): T
 	public function findAnalysis(class-string<T> $class): ?T
+	public function markRewritten(PhpSyntax\Node $node): void
 ```
 
 ## `DressCode\RuleException`

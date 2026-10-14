@@ -89,9 +89,11 @@ final class TernaryForIfRule extends NodeRule
 
 		$builder = new Builder;
 		$ternary = $builder->ternary($node->condition, $a, $b);
-		$node->replaceWith($target === null
+		$statement = $target === null
 			? $builder->statement('return $value;', value: $ternary)
-			: $builder->statement('$target = $value;', target: $target, value: $ternary));
+			: $builder->statement('$target = $value;', target: $target, value: $ternary);
+		$node->replaceWith($statement);
+		$context->markRewritten($statement);
 	}
 
 
