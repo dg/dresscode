@@ -14,3 +14,10 @@ $a = $foo
 $b = $foo
 	->bar()
 	->baz();
+// links written at one level too deep all move, keeping their step from the link before
+$method->addParameter('res')
+	->setReference()
+	->setType('array');
+$method->addParameter('res')
+	->setReference()
+		->setType('array');

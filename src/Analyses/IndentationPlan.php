@@ -287,7 +287,7 @@ final class IndentationPlan
 		$unit = Indentation::measure($this->style->indent, $phpSyntax);
 		$deeper = Indentation::measure($operator->getIndentation(), $phpSyntax) - Indentation::measure($base, $phpSyntax);
 		$actual = $deeper > 0 ? intdiv($deeper, $unit) : 0;
-		$previous = 0;
+		$previous = $written = 0;
 		for (
 			$link = $owner instanceof Nodes\ExpressionNode ? self::findInnerLink($owner) : null;
 			$link !== null;
@@ -297,11 +297,16 @@ final class IndentationPlan
 			if ($before?->startsLine()) {
 				$given = $this->lines[$before->getCurrentLine() ?? 0] ?? $base;
 				$previous = intdiv(Indentation::measure($given, $phpSyntax) - Indentation::measure($base, $phpSyntax), $unit);
+				$written = intdiv(
+					max(0, Indentation::measure($before->getIndentation(), $phpSyntax) - Indentation::measure($base, $phpSyntax)),
+					$unit,
+				);
 				break;
 			}
 		}
 
-		return min(max($actual, $previous - 1, 1), $previous + 1);
+		// the step from the link before as written, which a link before moved into place carries along
+		return $previous === 0 ? 1 : max(1, $previous + max(-1, min(1, $actual - $written)));
 	}
 
 

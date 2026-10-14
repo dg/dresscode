@@ -1,3 +1,7 @@
 12: Expected the chained call indented by 1 tab, 2 spaces found.
 13: Expected the chained call indented by 1 tab, none found.
 15: Expected the chained call indented by 1 tab, 3 tabs found.
+19: Expected the chained call indented by 1 tab, 2 tabs found.
+20: Expected the chained call indented by 1 tab, 2 tabs found.
+22: Expected the chained call indented by 1 tab, 2 tabs found.
+23: Expected the chained call indented by 2 tabs, 3 tabs found.
