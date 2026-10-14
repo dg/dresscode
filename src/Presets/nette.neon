@@ -97,7 +97,7 @@ blankLines:
 	betweenImportKinds: 0
 	beforeDeclaration: 2                      # above the class of a file
 	betweenDeclarations: [1, 2]               # around one among statements
-	betweenStatementsInFunction: [0, 1]
+	betweenStatementsInFunction: [0, 2]
 	betweenMethods: 2
 	betweenInterfaceMethods: 1
 	betweenMembers: [0, 1]                    # members without a doc comment
