@@ -1,0 +1,42 @@
+<?php
+// risky
+
+namespace App;
+
+use Lib\Control;
+
+
+// renamed: the arrow function names a variable of its own only
+class MultiChoice extends Control
+{
+	public function setValue(mixed $values): static
+	{
+		$values = array_map(fn($s) => (string) $s, (array) $values);
+		return $this;
+	}
+}
+
+
+// reported and left: the name is taken, which is said first, whatever else the body holds
+class Choice extends Control
+{
+	public function setValue(mixed $values): static
+	{
+		foreach ((array) $values as $value) {
+			$print = fn() => $value;
+		}
+
+		return $this;
+	}
+}
+
+
+// reported and left: the closure uses the name
+class Single extends Control
+{
+	public function setValue(mixed $values): static
+	{
+		$check = fn() => $values !== null;
+		return $this;
+	}
+}

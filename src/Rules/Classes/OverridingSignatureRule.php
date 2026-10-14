@@ -31,10 +31,11 @@ use function count;
  * alone.
  *
  * Writing the return type is risky, the body may return something else; renaming a parameter is risky, a caller
- * passing it by name notices, and it is refused where the body has a closure or reaches a variable by its name
- * written otherwise, and where the name is taken; the names are the decision `classes.overriding.parameterName`, the
- * rest `classes.overriding.signature`. A type PHP cannot write as it describes it, a generic or a static of a class,
- * and a default that is no value to write are reported and left.
+ * passing it by name notices, and it is refused where the name is taken, where a closure of the body uses the name
+ * the rename changes, and where the body declares a function or reaches a variable by its name written otherwise;
+ * the names are the decision `classes.overriding.parameterName`, the rest `classes.overriding.signature`. A type PHP
+ * cannot write as it describes it, a generic or a static of a class, and a default that is no value to write are
+ * reported and left.
  */
 #[RuleInfo(
 	Stage::Structure,
@@ -239,7 +240,7 @@ final class OverridingSignatureRule extends NodeRule
 			return;
 		}
 
-		$refusal = self::findRenameRefusal($node, $parameter->name, $context);
+		$refusal = self::findRenameRefusal($node, $name, $parameter->name, $context);
 		if ($context->report(
 			$mine->variable,
 			"The parameter `\$$name` of `{$node->name->text}()` must be named `\$$parameter->name`, as in `$method`"
@@ -256,18 +257,20 @@ final class OverridingSignatureRule extends NodeRule
 
 
 	/** Why the parameter cannot take the name: the body reaches a variable in a way a rename does not follow, or the name is taken. */
-	private static function findRenameRefusal(MethodNode $node, string $name, RuleContext $context): ?string
+	private static function findRenameRefusal(MethodNode $node, string $old, string $name, RuleContext $context): ?string
 	{
 		$body = $node->body;
+		$names = fn(Node $node, string $name) => $node->find(
+			VariableNode::class,
+			fn(VariableNode $variable) => $variable->plainName === $name,
+		) !== [];
 		return match (true) {
 			$body === null => null,
-			$body->find(AnonymousFunctionNode::class) !== [] => 'a closure in the body may use it by its name',
+			$names($node, $name) => "`\$$name` is taken in the method",
+			array_any($body->find(AnonymousFunctionNode::class), fn(Node $function) => $names($function, $old))
+				=> 'a closure in the body uses its name',
 			$body->find(FunctionNode::class) !== [] => 'a function declared in the body has variables of its own',
 			NodeHelpers::findDynamicVariableAccesses($body, $context) !== [] => 'the body names a variable indirectly',
-			array_any(
-				$node->find(VariableNode::class),
-				fn(VariableNode $variable) => $variable->plainName === $name,
-			) => "`\$$name` is taken in the method",
 			default => null,
 		};
 	}

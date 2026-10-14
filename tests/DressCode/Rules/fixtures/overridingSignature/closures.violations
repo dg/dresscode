@@ -1,0 +1,4 @@
+12: The parameter `$values` of `setValue()` must be named `$value`, as in `Lib\Control::setValue()`.
+	risky BehaviorChanges: a call naming the argument `values:` stops working
+23: The parameter `$values` of `setValue()` must be named `$value`, as in `Lib\Control::setValue()`, but `$value` is taken in the method.
+37: The parameter `$values` of `setValue()` must be named `$value`, as in `Lib\Control::setValue()`, but a closure in the body uses its name.
