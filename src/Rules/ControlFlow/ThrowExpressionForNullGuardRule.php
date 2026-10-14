@@ -23,7 +23,8 @@ use function count;
  * holding for `false`, `0` and `''` too, and only a throw that does not read the variable, which in the expression
  * would read it before it is assigned, and no guard inside a `try`, after which the variable would stay unassigned.
  * A value read out of an element or a property makes the fix risky: `??` reads a missing one silently, where the
- * assignment warned.
+ * assignment warned. A value falling back with `??` already takes the throw at the end of its chain, and a fallback
+ * to null goes, adding nothing before it.
  */
 #[RuleInfo(Stage::Structure, requires: ['php' => '>=8.0'])]
 final class ThrowExpressionForNullGuardRule extends NodeRule
@@ -64,8 +65,17 @@ final class ThrowExpressionForNullGuardRule extends NodeRule
 			return;
 		}
 
-		$value = $assignment->expression;
-		$silenced = self::readsElement($value);
+		// `??` binds from the right, so the throw closes the chain the value is, and a fallback to null adds nothing before it
+		$operands = [];
+		for ($value = $assignment->expression; $value instanceof BinaryOpNode && $value->operator->is('??'); $value = $value->right) {
+			$operands[] = $value->left;
+		}
+
+		if (!$value instanceof NullNode || $operands === []) {
+			$operands[] = $value;
+		}
+
+		$silenced = $operands === [$assignment->expression] && self::readsElement($assignment->expression);
 		if (!$context->report(
 			$guard,
 			'The null check of the assigned value must be written with `?? throw`.',
@@ -76,7 +86,13 @@ final class ThrowExpressionForNullGuardRule extends NodeRule
 		}
 
 		$guard->remove();
-		$node->replaceWith((new Builder)->statement('$t = $v ?? $e;', t: $assignment->target, v: $value, e: $throw));
+		$values = [];
+		foreach ($operands as $i => $operand) {
+			$values["v$i"] = $operand;
+		}
+
+		$template = '$t = $' . implode(' ?? $', array_keys($values)) . ' ?? $e;';
+		$node->replaceWith((new Builder)->statement($template, ...$values, t: $assignment->target, e: $throw));
 	}
 
 

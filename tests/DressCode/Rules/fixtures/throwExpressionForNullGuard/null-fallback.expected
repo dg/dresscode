@@ -1,0 +1,11 @@
+<?php
+function expand(array $values, string $name, array $defaults): string
+{
+	// the fallback to null adds nothing before the throw
+	$value = $values[$name] ?? throw new InvalidArgumentException("Missing value for '$name'.");
+
+	// another fallback stays
+	$other = $values[$name] ?? $defaults[$name] ?? throw new InvalidArgumentException("Missing value for '$name'.");
+
+	return $value . $other;
+}
