@@ -1,0 +1,16 @@
+<?php
+// risky
+// above a literal the annotation declares the type the variable takes later
+/** @var ?Foo $open */
+$open = null;
+/** @var Foo[] $found */
+$found = [];
+/** @var int|false $last */
+$last = false;
+foreach ($list as $item) {
+	$open = new Foo;
+}
+
+// a value that is no literal is asserted
+/** @var Foo $next */
+$next = $open;

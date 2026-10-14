@@ -14,7 +14,7 @@ use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocTagNode, VarTagValueNode};
 use PHPStan\PhpDocParser\Ast\Type;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, SymbolKind, Token, Trivia};
-use PhpSyntax\Nodes\{DestructuringNode, Expression, ExpressionNode, PlainNodeList, Statement, StatementNode};
+use PhpSyntax\Nodes\{DestructuringNode, Expression, ExpressionNode, PlainNodeList, Scalar, Statement, StatementNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function in_array;
 
@@ -23,7 +23,8 @@ use function in_array;
  * An inline `@var` annotation of a variable assigned by the statement below it (also in `foreach` and `while`)
  * becomes an `assert()` of the type after the statement, or at the start of the loop body. Types that `assert()`
  * cannot express (generics, shapes, pseudo-types, `@template` names, type aliases) keep their annotation, and so
- * does a class whose name starts in lower case, which is not told from a pseudo-type.
+ * does a class whose name starts in lower case, which is not told from a pseudo-type. An annotation above the
+ * assignment of a literal, `null` or `[]`, declares the type the variable takes later and stays.
  *
  * Every fix is risky: the `assert()` runs where assertions are on and fails where the annotation was wrong, which
  * the annotation never did.
@@ -119,9 +120,11 @@ final class AssertForInlineVarRule extends NodeRule
 		$indentation = $node->getFirstToken()->getLineIndentation();
 		if ($node instanceof Statement\ExpressionStatementNode) {
 			$list = $node->parent;
-			return $list instanceof PlainNodeList && $node->expression instanceof Expression\AssignmentNode
-				? [$list, $list->indexOf($node) + 1, $indentation, self::collectVariables($node->expression->target)]
-				: null;
+			return $list instanceof PlainNodeList
+				&& $node->expression instanceof Expression\AssignmentNode
+				&& !self::isLiteral($node->expression->expression)
+					? [$list, $list->indexOf($node) + 1, $indentation, self::collectVariables($node->expression->target)]
+					: null;
 		}
 
 		$names = [];
@@ -138,6 +141,21 @@ final class AssertForInlineVarRule extends NodeRule
 		return $node->body instanceof Statement\BlockNode && $names !== []
 			? [$node->body->statements, 0, $indentation . $indent, $names]
 			: null;
+	}
+
+
+	/**
+	 * Whether the value is a literal, narrower than any annotation above it: there the annotation declares the type the
+	 * variable takes later, which no assertion could say.
+	 */
+	private static function isLiteral(ExpressionNode $value): bool
+	{
+		return $value instanceof Scalar\NullNode
+			|| $value instanceof Scalar\BooleanNode
+			|| $value instanceof Scalar\IntegerNode
+			|| $value instanceof Scalar\FloatNode
+			|| $value instanceof Scalar\StringNode
+			|| ($value instanceof Expression\ArrayNode && $value->items->getItems() === []);
 	}
 
 
