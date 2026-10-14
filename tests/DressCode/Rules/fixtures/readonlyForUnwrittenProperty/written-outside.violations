@@ -1,0 +1,2 @@
+6: The property `$message`, written only by the constructor, must be readonly.
+	risky BehaviorChanges: code outside the file may write it

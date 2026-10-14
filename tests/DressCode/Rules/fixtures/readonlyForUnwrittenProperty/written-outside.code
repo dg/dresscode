@@ -1,0 +1,28 @@
+<?php
+// risky
+final class Message
+{
+	public function __construct(
+		public string $message,
+		public array $path,
+		public array $variables = [],
+	) {
+	}
+}
+
+
+// the rest of the file writes the property on an object of the class, so it stays writable
+final class Context
+{
+	public function addError(): Message
+	{
+		return new Message('error', []);
+	}
+
+
+	public function run(Message $message, array &$variables): void
+	{
+		$this->addError()->path[] = 'key';
+		$message->variables = [];
+	}
+}

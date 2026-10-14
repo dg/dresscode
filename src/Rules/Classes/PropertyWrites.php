@@ -70,6 +70,28 @@ final readonly class PropertyWrites
 	}
 
 
+	/**
+	 * Whether code of the file outside the class may write a property of the name on some object, by any of the writes
+	 * `fromClass()` knows; the object is not asked, so another class with a property of the name counts too.
+	 */
+	public static function isWrittenOutside(ClassNode|AnonymousClassNode $class, string $name, RuleContext $context): bool
+	{
+		$inside = array_flip(array_map(spl_object_id(...), $class->find(Expression\PropertyFetchNode::class)));
+		foreach ($context->file->find(Expression\PropertyFetchNode::class) as $fetch) {
+			if (
+				!isset($inside[spl_object_id($fetch)])
+				&& !$fetch->isOfThis() // the property of the class the code stands in
+				&& (!$fetch->name instanceof IdentifierNode || $fetch->name->text === $name)
+				&& (self::isInitialization($fetch) || self::isModified($fetch, $class, $context) !== Tristate::No)
+			) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
 	/** Whether the property is the target of a plain assignment, alone or as an item of a destructuring one. */
 	private static function isInitialization(Expression\PropertyFetchNode $fetch): bool
 	{

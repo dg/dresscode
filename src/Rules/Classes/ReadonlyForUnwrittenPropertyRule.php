@@ -30,11 +30,12 @@ use function count;
  *
  * Who else may write the property the code shows by its visibility: a private one nothing outside the class
  * reaches, whatever the class is, and any other one only where the class is final and extends nothing. A property
- * that is not private is a risky subject in such a class, the code that writes it from outside not being in the
- * file; one of a class that can be extended or that has a parent is left alone altogether, because a child
- * redeclaring it, or a parent declaring it without readonly, would then be a fatal error rather than a changed
- * behaviour. A class using a trait is left alone too: the properties of the trait are not in sight, and one it
- * declares as well would then be incompatible, which is a fatal error.
+ * that is not private is left where the rest of the file writes a property of its name on any object, and is a risky
+ * subject otherwise, the code that may write it from outside not being in the file; one of a class that can be
+ * extended or that has a parent is left alone altogether, because a child redeclaring it, or a parent declaring it
+ * without readonly, would then be a fatal error rather than a changed behaviour. A class using a trait is left alone
+ * too: the properties of the trait are not in sight, and one it declares as well would then be incompatible, which
+ * is a fatal error.
  * A hooked property cannot be readonly at all.
  */
 #[RuleInfo(
@@ -117,7 +118,11 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 		}
 
 		$writes = PropertyWrites::fromClass($class, $name, $constructor, $context);
-		if ($writes === null || $writes->initializations !== ($member instanceof ParameterNode || $hasDefault ? 0 : 1)) {
+		if (
+			$writes === null
+			|| $writes->initializations !== ($member instanceof ParameterNode || $hasDefault ? 0 : 1)
+			|| ($modifiers->visibility !== Visibility::Private && PropertyWrites::isWrittenOutside($class, $name, $context))
+		) {
 			return;
 		}
 
