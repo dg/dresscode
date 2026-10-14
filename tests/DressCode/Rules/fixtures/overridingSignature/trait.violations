@@ -1,0 +1,1 @@
+21: The parameter `$file` of `load()` of trait `App\Loading` must be named `$name`, as in `Lib\Loader::load()`.

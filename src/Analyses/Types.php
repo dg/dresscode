@@ -449,6 +449,18 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * The methods the class takes from a trait that a parent or an interface declares with parameters named otherwise,
+	 * which the trait, declared without the class, cannot be checked against itself.
+	 * @return list<array{string, string, list<string>, string, list<string>}>  per method its name, the trait, the names
+	 *   of its parameters, the ancestor and the names of its parameters
+	 */
+	public function findTraitParameterNames(string $class): array
+	{
+		return $this->declarations->findTraitParameterNames($class);
+	}
+
+
+	/**
 	 * The parameters of the method as the class declares it, itself or through an ancestor, the constructor among them;
 	 * null for a method the class does not have, for a class nothing declares and for a method of several variants.
 	 * @return ?list<Parameter>

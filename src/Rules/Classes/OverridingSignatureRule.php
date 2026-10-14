@@ -13,10 +13,10 @@ use DressCode\Domains\Words;
 use DressCode\Rules\{CodeWriter, NativeType, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token, Trivia, Visibility};
-use PhpSyntax\Nodes\{AnonymousFunctionNode, ParameterNode};
+use PhpSyntax\Nodes\{AnonymousFunctionNode, NameNode, ParameterNode};
 use PhpSyntax\Nodes\Expression\VariableNode;
-use PhpSyntax\Nodes\Member\MethodNode;
-use PhpSyntax\Nodes\Statement\{FunctionNode, TraitNode};
+use PhpSyntax\Nodes\Member\{MethodNode, TraitUseNode};
+use PhpSyntax\Nodes\Statement\{ClassNode, FunctionNode, TraitNode};
 use function count;
 
 
@@ -27,8 +27,9 @@ use function count;
  * added with a default, the name of a parameter, a visibility the child narrows, `static` the ancestor added where
  * the body of the child needs no object. A final method of the ancestor is reported, nothing could make the child
  * override it, and so is a static child of a method the ancestor declares without `static`, or one whose body needs
- * the object. A constructor, a destructor and a method of a trait are left
- * alone.
+ * the object. A constructor, a destructor and a method declared in a trait are left alone; a method a class takes
+ * from a trait whose parameters an ancestor of the class names otherwise is reported at the use of the trait, to be
+ * renamed by hand where every class using it agrees.
  *
  * Writing the return type is risky, the body may return something else; renaming a parameter is risky, a caller
  * passing it by name notices, and it is refused where the name is taken, where a closure of the body uses the name
@@ -79,13 +80,20 @@ final class OverridingSignatureRule extends NodeRule
 
 	public function getVisitedNodes(): array
 	{
-		return [MethodNode::class];
+		return [MethodNode::class, TraitUseNode::class];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (
+		if ($node instanceof TraitUseNode) {
+			if ($this->parameterNames) {
+				self::checkTraitParameterNames($node, $context);
+			}
+
+			return;
+
+		} elseif (
 			!$node instanceof MethodNode
 			|| $node->isConstructor()
 			|| $node->isDestructor()
@@ -252,6 +260,39 @@ final class OverridingSignatureRule extends NodeRule
 			because: $refusal === null ? "a call naming the argument `$name:` stops working" : null,
 		)) {
 			self::renameParameter($node, $name, $parameter->name);
+		}
+	}
+
+
+	/**
+	 * Reports a method of the trait whose parameters a parent or an interface of the class names otherwise: the trait is
+	 * declared without the class, so its method is renamed by hand, where every class using it agrees.
+	 */
+	private static function checkTraitParameterNames(TraitUseNode $node, RuleContext $context): void
+	{
+		$class = $node->parent?->parent;
+		if (!$class instanceof ClassNode) {
+			return;
+		}
+
+		$resolver = $context->getAnalysis(NameResolver::class);
+		$traits = array_map(fn(NameNode $name) => strtolower($resolver->resolveClass($name)), $node->traits->getItems());
+		$className = $resolver->resolveClass(NameNode::fromText($class->name->text), $class);
+		foreach ($context->getAnalysis(Types::class)->findTraitParameterNames($className) as [$method, $trait, $own, $ancestor, $theirs]) {
+			if (!in_array(strtolower($trait), $traits, true)) {
+				continue;
+			}
+
+			foreach ($own as $i => $name) {
+				if (isset($theirs[$i]) && $theirs[$i] !== $name) {
+					$context->report(
+						$node->useKeyword,
+						"The parameter `\$$name` of `$method()` of trait `$trait` must be named `\$$theirs[$i]`, as in `$ancestor::$method()`.",
+						fixable: false,
+						decision: self::ParameterNames,
+					);
+				}
+			}
 		}
 	}
 

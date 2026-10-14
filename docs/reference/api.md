@@ -168,6 +168,7 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function findConstructorAccess(PhpSyntax\Nodes\ExpressionNode $node): ?DressCode\Analyses\MemberAccess
 	public function findCallableMethodAccess(PhpSyntax\Nodes\ExpressionNode $callable): ?DressCode\Analyses\MemberAccess
 	public function findParameters(DressCode\Analyses\MemberAccess $access): ?list<DressCode\Analyses\Parameter>
+	public function findTraitParameterNames(string $class): list<array{string, string, list<string>, string, list<string>}>
 	public function findMethodParameters(string $class, string $method): ?list<DressCode\Analyses\Parameter>
 	public function findDeclaringClass(PhpSyntax\Nodes\Member\MethodNode $declaration): ?string
 	public function findOverridden(PhpSyntax\Nodes\Member\MethodNode|PhpSyntax\Nodes\Member\ClassConstNode|PhpSyntax\Nodes\Member\EnumCaseNode|PhpSyntax\Nodes\Member\PropertyNode|PhpSyntax\Nodes\ParameterNode $declaration): ?DressCode\Analyses\Member

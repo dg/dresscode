@@ -1,0 +1,34 @@
+<?php
+
+namespace App;
+
+use Lib\Loader;
+
+
+// the method declared in the trait is left alone there
+trait Loading
+{
+	public function load(string $file, array $options = []): string
+	{
+		return $file;
+	}
+}
+
+
+// reported at the use of the trait: the interface names the parameter otherwise
+final class FileLoader implements Loader
+{
+	use Loading;
+}
+
+
+// the class declaring the method itself is checked at the method
+final class OwnLoader implements Loader
+{
+	use Loading;
+
+	public function load(string $name, array $options = []): string
+	{
+		return $name;
+	}
+}

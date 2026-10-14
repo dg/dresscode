@@ -48,6 +48,44 @@ final class Declarations
 	}
 
 
+	/**
+	 * @return list<array{string, string, list<string>, string, list<string>}>  per method the class takes from a trait
+	 *   that a parent or an interface declares with parameters named otherwise: its name, the trait, the names of its
+	 *   parameters, the ancestor and the names of its parameters
+	 */
+	public function findTraitParameterNames(string $class): array
+	{
+		$reflection = $this->phpstan->findClass($class);
+		if ($reflection === null) {
+			return [];
+		}
+
+		$result = [];
+		foreach ($reflection->getNativeReflection()->getMethods() as $native) {
+			$method = $reflection->getNativeMethod($native->getName());
+			$trait = $method instanceof PhpMethodReflection ? $method->getDeclaringTrait() : null;
+			$ancestor = $trait === null ? null : array_find(
+				[...array_slice($reflection->getParents(), 0, 1), ...array_values($reflection->getInterfaces())],
+				fn(ClassReflection $ancestor) => $ancestor->hasNativeMethod($method->getName())
+					&& !$ancestor->getNativeMethod($method->getName())->isPrivate(),
+			);
+			if ($trait === null || $ancestor === null) {
+				continue;
+			}
+
+			$names = fn(ClassReflection $class) => count($variants = $class->getNativeMethod($method->getName())->getVariants()) === 1
+				? array_map(fn(ExtendedParameterReflection $parameter) => $parameter->getName(), $variants[0]->getParameters())
+				: [];
+			[$own, $theirs] = [$names($reflection), $names($ancestor)];
+			if (array_slice($own, 0, count($theirs)) !== array_slice($theirs, 0, count($own))) {
+				$result[] = [$method->getName(), $trait->getName(), $own, $ancestor->getName(), $theirs];
+			}
+		}
+
+		return $result;
+	}
+
+
 	public static function toParameter(ExtendedParameterReflection $parameter): Parameter
 	{
 		return new Parameter(
