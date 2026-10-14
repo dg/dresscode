@@ -1,0 +1,17 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the Facade.
+ */
+
+
+/**
+ * The facade the header is set apart from.
+ */
+class Facade
+{
+	/** The header of a file only. */
+
+	/** Documents the constant. */
+	const X = 1;
+}
