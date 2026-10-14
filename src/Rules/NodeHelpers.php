@@ -253,6 +253,16 @@ final class NodeHelpers
 					self::isSoleStringArgument($node),
 				];
 
+		} elseif ($node instanceof Statement\UnsetNode || $node instanceof Expression\IssetNode) {
+			$items = $node->variables->getItems();
+			return [
+				'call',
+				$node->openParen,
+				[...array_map(fn(Node $item) => $item->getFirstToken(), $items), $node->closeParen],
+				self::isMultiline($node->openParen, $items, $node->closeParen),
+				false,
+			];
+
 		} elseif ($node instanceof Statement\FunctionNode || $node instanceof MethodNode) {
 			$params = $node->parameters->getItems();
 			return $params === []

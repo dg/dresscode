@@ -1,0 +1,20 @@
+<?php
+// lineLength 60
+// unset() and isset() spread their variables as a call spreads its arguments
+unset(
+	$a['first'],
+	$a['second'],
+	$a['third'],
+	$a['fourth_']
+);
+unset($a['first'], $a['second']);
+$set = isset(
+	$options['first'],
+	$options['second'],
+	$options['third']
+);
+unset(
+	$a['first'],
+	$a['second'],
+	$a['third']
+);

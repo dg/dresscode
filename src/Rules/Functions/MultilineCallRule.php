@@ -13,17 +13,20 @@ use DressCode\Domains\Words;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\{ArgumentListNode, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\Expression\IssetNode;
+use PhpSyntax\Nodes\Statement\UnsetNode;
 
 
 /**
- * The arguments of a call, of `new` or of an attribute spread over several lines each take a line of their own, or with `frame`
- * only the first one, the others sharing lines as their author put them; the closing parenthesis stands on a line
- * of its own and each comma on the line of its argument. A call on one line is spread so when its line is wider
- * than the line length of the style, measured as the code of the line without a comment after it, unless an outer
- * construct on the line is spread first, `file.lineLengthExcept` names it, or its sole argument is a string, which
- * is a message to leave whole; with `multiline.callSoleArgument: hugged` a sole argument that is a call, `new` or an
- * array spreads in its place, the parentheses staying together. Where the lines stand is the matter of
- * `IndentationRule`. The parentheses of a first-class callable, `strlen(...)`, stay on one line.
+ * The arguments of a call, of `new` or of an attribute, and the variables of `unset()` and `isset()`, spread over
+ * several lines each take a line of their own, or with `frame` only the first one, the others sharing lines as their
+ * author put them; the closing parenthesis stands on a line of its own and each comma on the line of its argument.
+ * A call on one line is spread so when its line is wider than the line length of the style, measured as the code of
+ * the line without a comment after it, unless an outer construct on the line is spread first, `file.lineLengthExcept`
+ * names it, or its sole argument is a string, which is a message to leave whole; with `multiline.callSoleArgument:
+ * hugged` a sole argument that is a call, `new` or an array spreads in its place, the parentheses staying together.
+ * Where the lines stand is the matter of `IndentationRule`. The parentheses of a first-class callable, `strlen(...)`,
+ * stay on one line.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineCallRule extends GapRule
@@ -58,11 +61,16 @@ final class MultilineCallRule extends GapRule
 		$callable = new Claim(line: Line::Same, because: 'a first-class callable has no arguments');
 		$decide = fn(Gap $gap, ?Node $list) => self::isCallable($list) ? $callable : self::claimsToBreak($gap, $list)[0] ?? null;
 		$perLine = $this->shape === self::PerLine;
-		return [ArgumentListNode::class => [
-			'items:item' => [fn(Gap $gap) => $perLine || $gap->index === 0 ? $decide($gap, $gap->value->parent?->parent) : null, null],
-			'items:separator' => [fn(Gap $gap) => self::claimsToBreak($gap, $gap->token->parent?->parent)[1] ?? null, null],
+		$claims = fn(string $items) => [
+			"$items:item" => [fn(Gap $gap) => $perLine || $gap->index === 0 ? $decide($gap, $gap->value->parent?->parent) : null, null],
+			"$items:separator" => [fn(Gap $gap) => self::claimsToBreak($gap, $gap->token->parent?->parent)[1] ?? null, null],
 			'closeParen' => [fn(Gap $gap) => $decide($gap, $gap->token->parent), null],
-		]];
+		];
+		return [
+			ArgumentListNode::class => $claims('items'),
+			UnsetNode::class => $claims('variables'),
+			IssetNode::class => $claims('variables'),
+		];
 	}
 
 
@@ -81,12 +89,17 @@ final class MultilineCallRule extends GapRule
 	 */
 	private static function claimsToBreak(Gap $gap, ?Node $list): ?array
 	{
-		if (!$list instanceof ArgumentListNode || $list->items->isEmpty()) {
+		$items = match (true) {
+			$list instanceof ArgumentListNode => $list->items,
+			$list instanceof UnsetNode, $list instanceof IssetNode => $list->variables,
+			default => null,
+		};
+		if ($items === null || $items->isEmpty()) {
 			return null;
 		}
 
-		return $gap->once($list, function () use ($list, $gap): ?array {
-			$because = NodeHelpers::isMultiline($list->openParen, $list->items->getItems(), $list->closeParen)
+		return $gap->once($list, function () use ($list, $items, $gap): ?array {
+			$because = NodeHelpers::isMultiline($list->openParen, $items->getItems(), $list->closeParen)
 				? 'the arguments span several lines'
 				: self::findWidthReason($list, $gap);
 			return $because === null
@@ -100,7 +113,7 @@ final class MultilineCallRule extends GapRule
 	 * Why a call on one line is spread: its line is wider than the line length of the style and no outer construct
 	 * on the line is spread first; measured once the line is indented.
 	 */
-	private static function findWidthReason(ArgumentListNode $list, Gap $gap): ?string
+	private static function findWidthReason(ArgumentListNode|UnsetNode|IssetNode $list, Gap $gap): ?string
 	{
 		// the width first, then what the call is: asking whether the line is in place costs a plan of the whole file
 		$width = NodeHelpers::measureOverflow($list, $list->openParen, $gap);
@@ -108,7 +121,7 @@ final class MultilineCallRule extends GapRule
 		return $frame !== null
 			&& !$frame[4]
 			&& $gap->style->lineSplits->has($frame[0])
-			&& NodeHelpers::findHuggedFrame($list, $gap->style) === null
+			&& (!$list instanceof ArgumentListNode || NodeHelpers::findHuggedFrame($list, $gap->style) === null)
 			&& NodeHelpers::isLineInPlace($gap, $list->openParen)
 				? "the line is $width characters long, more than {$gap->style->maxLineLength}"
 				: null;
