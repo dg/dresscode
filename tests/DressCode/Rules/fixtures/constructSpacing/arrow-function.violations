@@ -1,3 +1,6 @@
 3: Expected a single space after the `fn` keyword.
 5: Expected a single space after the `fn` keyword.
 6: Expected a single space after the `fn` keyword.
+7: Expected a single space after the `fn` keyword.
+7: Expected no whitespace after the `&` operator.
+8: Expected no whitespace after the `&` operator.

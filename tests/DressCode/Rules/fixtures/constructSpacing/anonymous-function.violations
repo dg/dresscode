@@ -2,3 +2,6 @@
 4: Expected a single space after the `function` keyword.
 5: Expected a single space after the `function` keyword.
 6: Expected a single space after the `function` keyword.
+8: Expected a single space after the `function` keyword.
+8: Expected no whitespace after the `&` operator.
+9: Expected no whitespace after the `&` operator.

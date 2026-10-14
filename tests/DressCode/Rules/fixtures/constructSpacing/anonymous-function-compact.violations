@@ -1,6 +1,9 @@
 3: Expected no whitespace after the `function` keyword.
 4: Expected no whitespace after the `function` keyword.
 5: Expected no whitespace after the `function` keyword.
-7: Expected a single space after the `function` keyword.
-9: Expected a single space after the `if` keyword.
-10: Expected a single space after the `return` keyword.
+7: Expected no whitespace after the `&` operator.
+8: Expected no whitespace after the `function` keyword.
+8: Expected no whitespace after the `&` operator.
+9: Expected a single space after the `function` keyword.
+11: Expected a single space after the `if` keyword.
+12: Expected a single space after the `return` keyword.

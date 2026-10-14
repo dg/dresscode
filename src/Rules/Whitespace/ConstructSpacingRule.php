@@ -14,7 +14,7 @@ use PhpSyntax\Nodes\{
 	AnonymousClassNode, CaseNode, CatchNode, ClassLikeNode, ClosureUseListNode, ElseifNode,
 	ElseNode, FinallyNode, ModifiersNode, ParameterNode, SeparatedNodeList, Statement, UseItemNode,
 };
-use PhpSyntax\Nodes\Expression\{ClosureNode, MatchNode};
+use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClosureNode, MatchNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode, PropertyNode, TraitAliasNode, TraitUseNode};
 use function count;
 
@@ -237,6 +237,9 @@ final class ConstructSpacingRule extends GapRule
 
 		// the use of a closure stays on the line of its parameters
 		$claims[ClosureUseListNode::class]['useKeyword'] = [$keywordJoined, null];
+		// the ampersand of an anonymous function returning a reference hugs its parenthesis: `function &($x)`
+		$claims[ClosureNode::class]['ampersand'] = [null, $this->claims[self::AnonymousFunction][2]];
+		$claims[ArrowFunctionNode::class]['ampersand'] = [null, $this->claims[self::ArrowFunction][2]];
 
 		$colon = $this->colonSpaced ? $colonSingle : $colonNone;
 		foreach (self::Coloned as $class) {

@@ -5,3 +5,5 @@ $b = static function ($x) use ($y) { return $x; };
 $c = function &($x) use ($y) { return $x; };
 $d = function ($x) use ($y) { return $x; };
 $e = function ($x) use ($y) { return $x; };
+$f = function &($x) use ($y) { return $x; };
+$g = function &($x) use ($y) { return $x; };
