@@ -1,0 +1,6 @@
+<?php
+// {"qualification": {"class": {"otherNamespace": "imported"}}}
+// the metadata of PhpStorm writes its names fully qualified by convention
+namespace PHPSTORM_META;
+
+expectedArguments(\Acme\Routing\RouteList::add(), 1, \Acme\Routing\RouteList::ONE_WAY);

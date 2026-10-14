@@ -9,7 +9,7 @@ namespace DressCode\Rules\Namespaces;
 
 use DressCode\Analyses\PhpDoc;
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Rules\CodeWriter;
+use DressCode\Rules\{CodeWriter, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{NameForm, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{FileNode, NameNode};
@@ -23,7 +23,8 @@ use function count;
  * occurrence by occurrence; a qualified name stays, being relative to the import of its prefix or to the namespace.
  * A file that declares no namespace is the scope of its imports, as a namespace is. Both forms reach the same symbol,
  * so no fix is risky. An import is added only where its alias is free and takes over no name that resolves elsewhere;
- * one the markup of the file leaves no line for is reported to be written by hand.
+ * one the markup of the file leaves no line for is reported to be written by hand. The namespace `PHPSTORM_META` of
+ * a metadata file of PhpStorm writes its names fully qualified by convention and is left alone.
  */
 #[RuleInfo(Stage::Structure, analyses: [PhpDoc::class, NameResolver::class])]
 final class ForeignNameQualificationRule extends NodeRule
@@ -83,7 +84,7 @@ final class ForeignNameQualificationRule extends NodeRule
 	{
 		// a file that declares no namespace is a scope of imports of its own, as for the rules adding code
 		if (
-			($node instanceof NamespaceNode && $node->name !== null)
+			($node instanceof NamespaceNode && $node->name !== null && !NodeHelpers::isInPhpStormMeta($node))
 			|| ($node instanceof FileNode && CodeWriter::findImportScope($node) === $node)
 		) {
 			$this->process($node, $context);

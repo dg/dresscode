@@ -122,6 +122,17 @@ final class NodeHelpers
 
 
 	/**
+	 * Whether the node stands in the namespace `PHPSTORM_META` of a metadata file of PhpStorm, which is configuration
+	 * written in PHP: its names are written fully qualified by convention, and its strings describe types.
+	 */
+	public static function isInPhpStormMeta(Node $node): bool
+	{
+		$namespace = $node instanceof Statement\NamespaceNode ? $node : $node->findAncestor(Statement\NamespaceNode::class);
+		return $namespace?->name !== null && strcasecmp($namespace->name->text, 'PHPSTORM_META') === 0;
+	}
+
+
+	/**
 	 * Whether the declaration says of itself that it is deprecated, by the `@deprecated` annotation or by the
 	 * `#[\Deprecated]` attribute of PHP 8.4.
 	 */

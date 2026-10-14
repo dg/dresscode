@@ -1,0 +1,12 @@
+<?php
+namespace App;
+
+use function PHPStan\Testing\assertType;
+
+// a type test of PHPStan describes a type, and only its first argument does
+function test(object $user): void
+{
+	assertType('App\Model\User', $user);
+	\PHPStan\Testing\assertNativeType('App\Model\User', $user, 'App\Model\User');
+	\other('App\Model\User');
+}
