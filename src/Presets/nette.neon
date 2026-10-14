@@ -24,7 +24,6 @@ file:
 
 indentation:
 	unit: tab
-	ternaryBelowCondition: stepped            # `?` and `:` one level below a multi-line condition
 	chain: nested                             # a link may stand one level deeper than the one before
 
 # names are reported, never renamed

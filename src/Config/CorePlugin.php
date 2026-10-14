@@ -431,10 +431,6 @@ final class CorePlugin implements Plugin
 				'The levels a line opened by `&&`, `+`, `.` steps in by from the start of its expression, 1 at least where the expression shares its first line',
 			),
 			new Decision(IndentationPlan::Ternary, $level, 'The levels `?` and `:` opening a line step in by'),
-			new Decision(IndentationPlan::TernaryBelowCondition, new Words([
-				'stepped' => 'from the last line of the condition',
-				'aligned' => 'lined up with the operators of the condition',
-			]), 'Where `?` and `:` below a condition spread over lines stand', kind: DecisionKind::Parameter, default: 'aligned'),
 			new Decision(IndentationPlan::SwitchCase, $level, 'The levels `case` steps in by from `switch`'),
 			new Decision(IndentationPlan::Chain, new Words([
 				'flat' => 'every link one level below the start',

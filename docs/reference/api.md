@@ -22,11 +22,10 @@ final class IndentationPlan
 	public const Unit = 'indentation.unit'
 	public const Binary = 'indentation.binaryOperator'
 	public const Ternary = 'indentation.ternary'
-	public const TernaryBelowCondition = 'indentation.ternaryBelowCondition'
 	public const SwitchCase = 'indentation.switchCase'
 	public const Chain = 'indentation.chain'
-	public const Decisions = ['indentation.unit', 'indentation.binaryOperator', 'indentation.ternary', 'indentation.ternaryBelowCondition', 'indentation.switchCase', 'indentation.chain']
-	public function __construct(PhpSyntax\Nodes\FileNode $file, DressCode\Style $style, bool $placesLines = true, ?int $binary = 0, ?int $ternary = 1, bool $ternaryBelowCondition = false, ?int $switchCase = 1, ?string $chain = 'flat')
+	public const Decisions = ['indentation.unit', 'indentation.binaryOperator', 'indentation.ternary', 'indentation.switchCase', 'indentation.chain']
+	public function __construct(PhpSyntax\Nodes\FileNode $file, DressCode\Style $style, bool $placesLines = true, ?int $binary = 0, ?int $ternary = 1, ?int $switchCase = 1, ?string $chain = 'flat')
 	public static function createFactory(DressCode\Values $values, DressCode\Style $style): Closure(PhpSyntax\Nodes\FileNode): DressCode\Analyses\IndentationPlan
 	public function getPlacements(): array<int, DressCode\Analyses\Placement>
 ```

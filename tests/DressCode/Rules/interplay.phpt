@@ -131,7 +131,7 @@ test('indentation and multilineCall settle on one shape', function () {
 	interplay([
 		Rules\Whitespace\IndentationRule::class => [
 			'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary' => 1,
-			'indentation.ternaryBelowCondition' => 'aligned', 'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
+			'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
 		],
 		Rules\Functions\MultilineCallRule::class => ['multiline.call' => 'perLine'],
 	], "<?php\nfunction f()\n{\n  \$a = \$foo\n  ->bar(\n    1,\n      2,\n    )\n        ->baz();\n}\n", "<?php\nfunction f()\n{\n\t\$a = \$foo\n\t\t->bar(\n\t\t\t1,\n\t\t\t2,\n\t\t)\n\t\t->baz();\n}\n");
@@ -185,7 +185,7 @@ test('a comma asked for only because another rule spread the array follows that 
 		],
 		Rules\Whitespace\IndentationRule::class => [
 			'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary' => 1,
-			'indentation.ternaryBelowCondition' => 'aligned', 'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
+			'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
 		],
 	], "<?php\n\$a = [\n\t1,\n\t2\n] + [\n\t\t3,\n];\n", "<?php\n\$a = [\n\t1,\n\t2,\n] + [\n\t3,\n];\n");
 	Assert::same([null, null], array_map(fn(Violation $violation) => $violation->derivedFrom, $result->violations));
@@ -197,7 +197,7 @@ test('a line a structural rewrite moves follows the rewrite, so that its new ind
 		Rules\ControlFlow\TernaryForIfRule::class => true,
 		Rules\Whitespace\IndentationRule::class => [
 			'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary' => 1,
-			'indentation.ternaryBelowCondition' => 'aligned', 'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
+			'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
 		],
 	], "<?php\nfunction f(\$a)\n{\n\tif (\$a) {\n\t\treturn g(\n\t\t\t\t1,\n\t\t);\n\t} else {\n\t\treturn 2;\n\t}\n}\n", "<?php\nfunction f(\$a)\n{\n\treturn \$a\n\t\t? g(\n\t\t\t1,\n\t\t)\n\t\t: 2;\n}\n");
 	$byRule = array_column($result->violations, null, 'decision');

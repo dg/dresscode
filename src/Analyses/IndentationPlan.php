@@ -27,12 +27,11 @@ final class IndentationPlan
 	public const Unit = 'indentation.unit';
 	public const Binary = 'indentation.binaryOperator';
 	public const Ternary = 'indentation.ternary';
-	public const TernaryBelowCondition = 'indentation.ternaryBelowCondition';
 	public const SwitchCase = 'indentation.switchCase';
 	public const Chain = 'indentation.chain';
 
 	/** the decisions of a tree of the core the plan is made by, which every catalogue knows */
-	public const Decisions = [self::Unit, self::Binary, self::Ternary, self::TernaryBelowCondition, self::SwitchCase, self::Chain];
+	public const Decisions = [self::Unit, self::Binary, self::Ternary, self::SwitchCase, self::Chain];
 
 	/** @var array<int, string>  line => the indentation it is given, or has where nothing governs it */
 	private array $lines = [];
@@ -55,7 +54,6 @@ final class IndentationPlan
 		private readonly bool $placesLines = true,
 		private readonly ?int $binary = 0,
 		private readonly ?int $ternary = 1,
-		private readonly bool $ternaryBelowCondition = false,
 		private readonly ?int $switchCase = 1,
 		private readonly ?string $chain = 'flat',
 	) {
@@ -96,10 +94,9 @@ final class IndentationPlan
 		$unit = $values->isSelected(self::Unit);
 		$binary = $count(self::Binary);
 		$ternary = $count(self::Ternary);
-		$ternaryBelowCondition = $values->get(self::TernaryBelowCondition)->getWord() === 'stepped';
 		$switchCase = $count(self::SwitchCase);
 		$chain = $values->isSelected(self::Chain) ? $values->get(self::Chain)->getWord() : null;
-		return fn(Nodes\FileNode $file) => new self($file, $style, $unit, $binary, $ternary, $ternaryBelowCondition, $switchCase, $chain);
+		return fn(Nodes\FileNode $file) => new self($file, $style, $unit, $binary, $ternary, $switchCase, $chain);
 	}
 
 
@@ -142,20 +139,13 @@ final class IndentationPlan
 		$structure = $owner instanceof BlockNode && !$owner->parent instanceof Nodes\PlainNodeList ? $owner->parent : $owner;
 		$structure = $role === LayoutRole::Operator ? self::findChainStart($structure) : $structure;
 		$first = $structure?->getFirstToken() ?? $token;
-		// a line the text opens, the end of a heredoc, gives no level to count from
-		$last = $this->ternaryBelowCondition && $role === LayoutRole::Branch && $owner instanceof Nodes\Expression\TernaryNode
-			? $owner->condition->getLastToken()
-			: null;
-		$from = $last !== null && isset($this->openers[$last->getCurrentLine() ?? 0]) ? $last : $first;
-		$base = $this->lines[$from->getCurrentLine() ?? 0] ?? Indentation::normalize($from->getLineIndentation(), $style->toPhpSyntax());
+		$base = $this->lines[$first->getCurrentLine() ?? 0] ?? Indentation::normalize($first->getLineIndentation(), $style->toPhpSyntax());
 		$level = match ($role) {
 			LayoutRole::Content => $this->placesLines ? ($owner instanceof NamespaceNode && $owner->openBrace === null ? 0 : 1) : null,
 			LayoutRole::Anchor, LayoutRole::Closer => $this->placesLines ? 0 : null,
 			LayoutRole::Body => $this->placesLines ? ($child instanceof BlockNode ? 0 : 1) : null,
 			LayoutRole::Operator => $this->binary === null ? null : max($this->binary, self::getMinimumLevel($first)),
-			LayoutRole::Branch => $this->ternary === null
-				? null
-				: max($this->ternary, $from->getCurrentLine() === $first->getCurrentLine() ? self::getMinimumLevel($first) : 1),
+			LayoutRole::Branch => $this->ternary === null ? null : max($this->ternary, self::getMinimumLevel($first)),
 			LayoutRole::Link => match ($this->chain) {
 				null => null,
 				'nested' => $this->measureNestingLevel($owner, $token, $base),
@@ -188,7 +178,7 @@ final class IndentationPlan
 			$indentation,
 			$commentIndentation,
 			self::describe($role, $item, $token),
-			$this->openers[$from->getCurrentLine() ?? 0] ?? null,
+			$this->openers[$first->getCurrentLine() ?? 0] ?? null,
 			match ($role) {
 				LayoutRole::Operator => self::Binary,
 				LayoutRole::Branch => self::Ternary,

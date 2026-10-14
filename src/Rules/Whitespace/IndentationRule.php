@@ -32,7 +32,6 @@ use PhpSyntax\{Indentation, Node, Nodes, Token, Trivia};
 		'indentation.tabWidth',
 		IndentationPlan::Binary,
 		IndentationPlan::Ternary,
-		IndentationPlan::TernaryBelowCondition,
 		IndentationPlan::SwitchCase,
 		IndentationPlan::Chain,
 	],

@@ -201,7 +201,7 @@ test('a decision by the width of a line waits a round for the line to be indente
 	$classes = [DressCode\Rules\Whitespace\IndentationRule::class, DressCode\Rules\Functions\MultilineSignatureRule::class];
 	$values = RuleBuilder::resolveValues($classes, [
 		'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary' => 1,
-		'indentation.ternaryBelowCondition' => 'aligned', 'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
+		'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
 		'multiline.signature' => 'perLine',
 	]);
 	$style = new Style(maxLineLength: 50);
