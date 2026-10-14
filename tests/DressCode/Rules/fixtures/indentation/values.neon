@@ -4,3 +4,4 @@ indentation:
 	ternary: 1
 	switchCase: 1
 	chain: flat
+	commentLines: aligned

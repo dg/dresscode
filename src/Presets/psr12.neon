@@ -24,6 +24,7 @@ indentation:
 	ternary: 1                                # `?` and `:` opening a line
 	switchCase: 1                             # `case` inside `switch`
 	chain: flat                               # every link one level below the start of the chain
+	commentLines: aligned
 
 # names are reported, never renamed
 naming:

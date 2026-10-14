@@ -49,7 +49,7 @@ final class Catalogue
 	public const Lexicon = [
 		'required' => 'always there', 'forbidden' => 'never there', 'optional' => null, 'none' => null,
 		'sameLine' => null, 'nextLine' => null, 'above' => null, 'lineStart' => null, 'lineEnd' => null,
-		'perLine' => null, 'fill' => null, 'apart' => null, 'attached' => null, 'closingApart' => null,
+		'perLine' => null, 'fill' => null, 'apart' => null, 'attached' => null, 'closingApart' => null, 'aligned' => null,
 		'collapsed' => null, 'expanded' => null, 'first' => null, 'last' => null, 'lastStatementSetApart' => null,
 		'spaces' => null, 'tabs' => null, 'bare' => null, 'imported' => null, 'backslashed' => null, 'self' => null,
 		'declared' => null, 'lowercase' => null, 'uppercase' => null,

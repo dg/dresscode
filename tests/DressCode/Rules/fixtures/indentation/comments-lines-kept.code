@@ -1,0 +1,15 @@
+<?php
+// {"commentLines": "keep"}
+// the inner lines of a comment standing in place are left as they are, and a comment moved takes them along
+class A
+{
+	/**
+	  * An inner line out of shape.
+	 */
+	public $a;
+
+		/**
+		  * Moved with its line.
+		 */
+	public $b;
+}
