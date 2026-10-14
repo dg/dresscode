@@ -1,0 +1,48 @@
+<?php
+// {"naming": {"method": "camelCase"}}
+
+// the names PHP calls a stream wrapper by
+class Wrapper
+{
+	public $context;
+
+
+	public function stream_open(string $path, string $mode, int $options, ?string &$opened): bool
+	{
+		return true;
+	}
+
+
+	public function stream_read(int $count): string
+	{
+		return '';
+	}
+
+
+	public function own_helper(): void
+	{
+	}
+}
+
+
+// a method of an interface, which the types tell
+class Handler extends \SessionHandler implements \SessionIdInterface
+{
+	public function create_sid(): string
+	{
+		return '';
+	}
+
+
+	public function other_name(): void
+	{
+	}
+}
+
+
+final class Implementation implements NameCasingContract
+{
+	public function contract_method(): void
+	{
+	}
+}
