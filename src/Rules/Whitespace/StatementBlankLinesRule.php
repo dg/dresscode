@@ -31,7 +31,7 @@ final class StatementBlankLinesRule extends GapRule
 		'betweenImportKinds' => 'Between the imports of classes, functions and constants; imports of one kind never have a blank line between them',
 		'beforeDeclaration' => 'Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of `afterNamespace` and `afterImports`',
 		'betweenDeclarations' => 'Before and after a class, interface, trait, enum or function declared among statements, where the header above it does not decide',
-		'betweenStatements' => 'Between two statements in the body of a function, a method or a closure, at any depth; a count of the kind of the statement before or after narrows it',
+		'betweenStatementsInFunction' => 'Between two statements in the body of a function, a method or a closure, at any depth; a count of the kind of the statement before or after narrows it',
 		'afterPhpdoc' => null,
 	];
 
@@ -99,7 +99,7 @@ final class StatementBlankLinesRule extends GapRule
 				// a statement is asked about only where some decision can give it a count
 				'statements:item' => [
 					$this->counts['betweenDeclarations'] !== null
-					|| $this->counts['betweenStatements'] !== null
+					|| $this->counts['betweenStatementsInFunction'] !== null
 					|| $this->counts['afterPhpdoc'] !== null
 					|| $this->beforeStatement !== []
 						? fn(Gap $gap) => $this->claimBeforeStatement($gap->value, $gap->index ?? 0)
@@ -213,16 +213,16 @@ final class StatementBlankLinesRule extends GapRule
 		}
 
 		$kind = $this->findCountByKind($stmt, $index - 1, $this->beforeStatement);
-		$body = $this->counts['betweenStatements'] !== null
+		$body = $this->counts['betweenStatementsInFunction'] !== null
 			&& self::isPlainPair($stmt, $index - 1)
 			&& $stmt->findAncestor(FunctionLikeNode::class) !== null
-				? $this->counts['betweenStatements']
+				? $this->counts['betweenStatementsInFunction']
 				: null;
 		return $body === null
 			? $this->claims->claim($kind, 'beforeStatement')
 			: $this->claims->claim(
 				self::intersect($kind === null ? [$body] : [$body, $kind]),
-				$kind === null ? 'betweenStatements' : 'beforeStatement',
+				$kind === null ? 'betweenStatementsInFunction' : 'beforeStatement',
 			);
 	}
 
