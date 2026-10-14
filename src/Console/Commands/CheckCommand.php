@@ -145,7 +145,7 @@ final readonly class CheckCommand
 		}
 
 		try {
-			$files = $runner->findFiles($scope, skipExcluded: (bool) $run->skipExcluded);
+			$files = $runner->findFiles($scope, skipExcluded: (bool) $run->skipExcluded, configured: $config->paths);
 		} finally {
 			$out->clearStatus();
 		}

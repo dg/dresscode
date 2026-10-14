@@ -244,6 +244,17 @@ test('files are found under the paths, sorted, relative, with slashes, without t
 	$outside = str_replace('\\', '/', (string) realpath(__DIR__ . '/../Config/fixtures/project/src'));
 	Assert::same(["$outside/sub/file.php"], engine($root, excludePaths: [])->findFiles([$outside]));
 	Assert::same(["$outside/sub/file.php"], $runner->findFiles(["$outside/sub/file.php"], skipExcluded: true)); // fixtures* matches nothing outside the root
+
+	// with the configured paths, a named file outside them is left out as well
+	Assert::same(
+		['src/sub/d.php'],
+		$runner->findFiles(
+			['src/sub/d.php', 'src/a.php', 'vendor/f.php', "$outside/sub/file.php"],
+			skipExcluded: true,
+			configured: ['./src/sub'],
+		),
+	);
+	Assert::same(['src/a.php'], $runner->findFiles(['src/a.php'], skipExcluded: true, configured: ['.']));
 });
 
 

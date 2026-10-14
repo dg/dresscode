@@ -26,7 +26,7 @@ final readonly class RunOptions
 			enum: ['console', 'bare', 'github', 'json', 'checkstyle'],
 		)]
 		public ?string $format = null,
-		#[Cli\Flag('Skip a named file that `excludePaths` leaves out, as a hook or an editor passing every file it touches needs')]
+		#[Cli\Flag('Skip a named file that `excludePaths` leaves out or `paths` do not hold, as a hook or an editor passing every file it touches needs')]
 		public ?bool $skipExcluded = null,
 		#[Cli\Flag('Process every file, even one whose content is known to be clean')]
 		public ?bool $noCache = null,

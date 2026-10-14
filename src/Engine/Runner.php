@@ -335,21 +335,30 @@ final readonly class Runner
 
 	/**
 	 * Files under the paths with one of the extensions, minus the excluded ones; an explicitly given file
-	 * is taken as is, unless `$skipExcluded` lets the excluded paths leave it out like a found one, which
-	 * is what a hook or an editor naming every file it touches wants; a file outside the root has no path
-	 * the patterns could match. Sorted, relative to the root.
+	 * is taken as is, unless `$skipExcluded` lets the excluded paths leave it out like a found one, and so the
+	 * configured paths where they are given, which is what a hook or an editor naming every file it touches wants;
+	 * a file outside the root has no path the patterns could match. Sorted, relative to the root.
 	 * @param  list<string>  $paths
+	 * @param  list<string>  $configured  the configured paths, outside which `$skipExcluded` leaves a named file out
 	 * @return list<string>
 	 * @throws ConfigurationException  for a path that does not exist
 	 */
-	public function findFiles(array $paths, bool $skipExcluded = false): array
+	public function findFiles(array $paths, bool $skipExcluded = false, array $configured = []): array
 	{
+		$configured = array_map($this->relativize(...), $configured);
 		$files = [];
 		foreach ($paths as $path) {
 			$path = $this->relativize($path);
 			$absolute = $this->toAbsolute($path);
 			if (is_file($absolute)) {
-				if (!$skipExcluded || FileSystem::isAbsolute($path) || !Helpers::matchesAny($this->excludePaths, $path)) {
+				$within = $configured === [] || array_any(
+					$configured,
+					fn(string $inner) => $inner === '' || $path === $inner || str_starts_with($path, "$inner/"),
+				);
+				if (
+					!$skipExcluded
+					|| (FileSystem::isAbsolute($path) ? $configured === [] : !Helpers::matchesAny($this->excludePaths, $path) && $within)
+				) {
 					$files[$path] = true;
 				}
 			} elseif (is_dir($absolute)) {

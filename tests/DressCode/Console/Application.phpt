@@ -442,6 +442,12 @@ test('a named file the configuration excludes is checked unless the caller asks 
 	Assert::same(0, $code);
 	Assert::match("%A%Nothing to fix: no file in %a%v.php\n", $out);
 	Assert::same("<?php\n\$a;\n", file_get_contents("$root/vendor/v.php"));
+
+	// and so is one the configured paths do not hold
+	file_put_contents("$root/tool.php", "<?php\n\$a;\n");
+	[$code] = runApp($root, ['fix', 'tool.php', '--skip-excluded']);
+	Assert::same(0, $code);
+	Assert::same("<?php\n\$a;\n", file_get_contents("$root/tool.php"));
 });
 
 
