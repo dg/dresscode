@@ -1,0 +1,4 @@
+10: The promoted property `$items` is documented at its declaration and by a `@param` as well.
+23: The promoted property `$items` is documented at its declaration and by a `@param` as well.
+37: The promoted property `$items` is documented at its declaration and by a `@param` as well.
+39: The promoted property `$name` is documented at its declaration and by a `@param` as well.

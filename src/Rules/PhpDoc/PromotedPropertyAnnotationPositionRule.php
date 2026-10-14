@@ -25,7 +25,9 @@ use function count, strlen;
  * becomes a doc comment of the parameter, `@var` with the type when it says more than the native one,
  * the description alone when it does not, nothing when there is neither; a constructor doc comment left with
  * nothing is removed. The description keeps the lines it was written on, so a comment of several lines stays
- * several lines. A parameter that already has a doc comment is left alone.
+ * several lines. A parameter that already has a doc comment keeps it, and a `@param` beside it goes where it has
+ * no description and the type of the `@var`, or of the declaration when there is no `@var`; any other is reported
+ * for the author to settle.
  */
 #[RuleInfo(Stage::Structure, modifiesComments: true, analyses: [PhpDoc::class])]
 final class PromotedPropertyAnnotationPositionRule extends NodeRule
@@ -56,20 +58,45 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 			return;
 		}
 
-		$promoted = [];
+		$phpDoc = $context->getAnalysis(PhpDoc::class);
+		$promoted = $documented = [];
 		foreach ($node->parameters->getItems() as $param) {
-			if ($param->promoted && $param->variable->name instanceof Token && $param->getDocComment() === null) {
+			if (!$param->promoted || !$param->variable->name instanceof Token) {
+				continue;
+			} elseif (($own = $param->getDocComment()) === null) {
 				$promoted[$param->variable->name->text] = $param;
+			} else {
+				$var = $phpDoc->parse($own)->getVarTagValues()[0] ?? null;
+				$documented[$param->variable->name->text] = [$param, $var === null ? null : (string) $var->type];
 			}
 		}
 
-		$phpDoc = $context->getAnalysis(PhpDoc::class);
 		$tree = $phpDoc->parse($docComment);
 		$tokens = $phpDoc->getTokens($docComment);
 		$kept = [];
 		$moved = [];
 		foreach ($tree->children as $child) {
 			$value = $child instanceof PhpDocTagNode && $child->value instanceof ParamTagValueNode ? $child->value : null;
+			if ($value !== null && isset($documented[$value->parameterName])) {
+				// a `@param` only repeating the declaration goes, one saying more or something else is left to the author
+				[$own, $varType] = $documented[$value->parameterName];
+				$same = trim($value->description) === '' && ($varType === null
+					? $own->type !== null && NativeType::matches($value->type, $own->type->text)
+					: $varType === (string) $value->type);
+				if (
+					!$context->report(
+						$own,
+						"The promoted property `$value->parameterName` is documented at its declaration and by a `@param` as well.",
+						fixable: $same,
+					)
+					|| !$same
+				) {
+					$kept[] = $child;
+				}
+
+				continue;
+			}
+
 			$param = $value === null ? null : $promoted[$value->parameterName] ?? null;
 			if (
 				$value === null
@@ -88,7 +115,7 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 			$moved[] = [$param, $value, self::extractType($value, $tokens)];
 		}
 
-		if ($moved === []) {
+		if (count($kept) === count($tree->children)) {
 			return;
 		}
 
@@ -161,9 +188,8 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 
 
 	/**
-	 * Puts the doc comment above the parameter on lines of its own; a single line goes in front of a parameter
-	 * that does not start a line, as trailing trivia of the token before; for several lines the parameter first moves
-	 * to a line of its own.
+	 * Puts the doc comment above the parameter on lines of its own, the parameter first moving to a line of its own,
+	 * as a property declared in the class has it.
 	 * @param list<string> $lines
 	 */
 	private static function annotate(ParameterNode $param, array $lines, Style $style): void
@@ -171,14 +197,8 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 		$first = $param->getFirstToken();
 		$eol = $style->lineEnding;
 		if (!$first->startsLine()) {
-			if (count($lines) > 1) {
-				$first->ensureStartsLine($eol);
-				$first->setIndentation(Indentation::infer($first, $style->toPhpSyntax()));
-			} elseif ($previous = $first->getPrevious()) {
-				$docComment = new Trivia(Trivia::DocComment, "/** $lines[0] */");
-				$previous->setTrailingTrivia([...$previous->trailingTrivia, $docComment, Trivia::fromText(' ')]);
-				return;
-			}
+			$first->ensureStartsLine($eol);
+			$first->setIndentation(Indentation::infer($first, $style->toPhpSyntax()));
 		}
 
 		$indentation = $first->getLineIndentation();

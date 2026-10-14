@@ -1,1 +1,2 @@
 5: The promoted property `$names` must be documented at its declaration, not by a `@param`.
+10: The promoted property `$ids` is documented at its declaration and by a `@param` as well.

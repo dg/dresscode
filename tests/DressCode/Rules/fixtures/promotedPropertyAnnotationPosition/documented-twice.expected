@@ -1,0 +1,38 @@
+<?php
+// a `@param` repeating the `@var` goes
+class A
+{
+	public function __construct(
+		/** @var list<int> */
+		private array $items,
+	) {
+	}
+}
+
+// one contradicting it is reported and left, PHPStan believing the `@var`
+class B
+{
+	/**
+	 * @param list<int> $items
+	 */
+	public function __construct(
+		/** @var list<string> */
+		private array $items,
+	) {
+	}
+}
+
+// one with a description says what the declaration does not, one of the native type nothing
+class C
+{
+	/**
+	 * @param list<int> $items  the items
+	 */
+	public function __construct(
+		/** @var list<int> */
+		private array $items,
+		/** the name */
+		private string $name,
+	) {
+	}
+}
