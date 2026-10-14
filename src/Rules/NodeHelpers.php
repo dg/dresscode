@@ -13,9 +13,9 @@ use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, ConstantExpressionFeature, Indentation, Node, SymbolKind, Token, Trivia};
 use PhpSyntax\Nodes\{
-	AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeAwareNode, AttributeNode, ClassLikeNode, ElseifNode,
-	Expression, ExpressionNode, FileNode, IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode, PlainNodeList,
-	Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode, UseItemNode, VariadicPlaceholderNode,
+	AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeAwareNode, AttributeNode, ClassLikeNode, DestructuringNode,
+	ElseifNode, Expression, ExpressionNode, FileNode, IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode,
+	PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode, UseItemNode, VariadicPlaceholderNode,
 };
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count, in_array, strlen;
@@ -331,7 +331,7 @@ final class NodeHelpers
 					false,
 				];
 
-		} elseif ($node instanceof Expression\ArrayNode) {
+		} elseif ($node instanceof Expression\ArrayNode || $node instanceof DestructuringNode) {
 			$items = $node->items->getItems();
 			return count($items) < 2
 				? null
@@ -979,6 +979,10 @@ final class NodeHelpers
 	public static function measureNode(Node $node): ?int
 	{
 		$last = $node->getLastToken();
+		if ($last === null) { // a skipped item of a destructuring
+			return 0;
+		}
+
 		$width = 0;
 		for ($token = $node->getFirstToken(); $token !== null; $token = $token->getNext()) {
 			if ($token->hasComment()) {

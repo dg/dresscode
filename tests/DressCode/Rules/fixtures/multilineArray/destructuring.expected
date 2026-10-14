@@ -1,0 +1,29 @@
+<?php
+// lineLength 60
+// a destructuring is spread as an array, a skipped item included
+[$first, $second, $third, $fourth] = $values;
+[
+	$aaaaaaaaaa,
+	$bbbbbbbbbb,
+	$cccccccccc,
+	$dddddddddd
+] = $values;
+list(
+	$aaaaaaaaaa,
+	$bbbbbbbbbb,
+	$cccccccccc,
+	$ddddddddd
+) = $values;
+[
+	,
+	$aaaaaaaaaa,
+	$bbbbbbbbbb,
+	$cccccccccc,
+	$dddddddddd
+] = $values;
+[
+	,
+	$state,
+	$stateStack,
+	$stackPos,
+] = $recovery;

@@ -60,8 +60,8 @@ final class CommaSpacingRule extends GapRule
 	{
 		$hug = new Claim(Space::None, line: Line::Same);
 		$before = fn(Gap $gap): ?Claim => match (true) {
-			// the comma after a skipped item of a destructuring list keeps its space: [$a, , $b]
-			!$gap->token->is(',') || ($gap->token->getPrevious()?->is(',') ?? false) => null,
+			// the comma after a skipped item of a destructuring list keeps its space and its line: [$a, , $b]
+			!$gap->token->is(',') || ($gap->token->getPrevious()?->is([',', '[', '(']) ?? false) => null,
 			// below the end of a heredoc, where PHP before 7.3 wanted it, a comma may keep its line
 			$gap->token->getPrevious()?->is(Token::EndHeredoc) ?? false => Claim::noSpace(),
 			default => $hug,

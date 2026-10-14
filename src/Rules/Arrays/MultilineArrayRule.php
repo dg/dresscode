@@ -12,18 +12,19 @@ use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Spac
 use DressCode\Domains\{Count, Words};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Indentation, Node, Token};
-use PhpSyntax\Nodes\ArrayItemNode;
+use PhpSyntax\Nodes\{ArrayItemNode, DestructuringNode, SkippedArrayItemNode};
 use PhpSyntax\Nodes\Expression\ArrayNode;
 use function count;
 
 
 /**
- * An array spread over lines has every item on a line of its own and the closing bracket on a line of its
- * own; with `asWritten` the items stand as their author spread them and the closing bracket mirrors the opening
- * one, following the last item where the first item follows the opening bracket. An array of several items on one
- * line wider than `multiline.arrayMaxWidth`, or on a line wider than the line length of the style where no outer
- * construct on the line is spread first and `file.lineLengthExcept` does not name `array`, is spread in either shape,
- * and with `asWritten` more than five items without keys fill its lines evenly up to the line length instead.
+ * An array, or a destructuring, spread over lines has every item on a line of its own and the closing bracket on
+ * a line of its own, the comma of a skipped item standing for it; with `asWritten` the items stand as their author
+ * spread them and the closing bracket mirrors the opening one, following the last item where the first item follows
+ * the opening bracket. An array of several items on one line wider than `multiline.arrayMaxWidth`, or on a line wider
+ * than the line length of the style where no outer construct on the line is spread first and `file.lineLengthExcept`
+ * does not name `array`, is spread in either shape, and with `asWritten` more than five items without keys fill its
+ * lines evenly up to the line length instead.
  * Whatever the frame, the opening bracket stays on the line of the code before it (an assignment, a return, a double
  * arrow) and each comma on the line of its item, and any other array kept on one line is left alone. Where the lines
  * stand is the matter of `IndentationRule`.
@@ -64,18 +65,25 @@ final class MultilineArrayRule extends GapRule
 
 	public function getClaims(): array
 	{
-		return [ArrayNode::class => [
+		$claims = [
 			'items:item' => [
 				fn(Gap $gap) => $this->decide($gap, $gap->value->parent?->parent)['items'][$gap->index ?? 0] ?? null,
 				null,
 			],
-			'items:separator' => [fn(Gap $gap) => $this->decide($gap, $gap->token->parent?->parent)['separator'] ?? null, null],
+			'items:separator' => [
+				fn(Gap $gap) => $gap->token->getPrevious()?->is(['[', '(', ','])
+					// the comma of a skipped item stands for the item, which has no token of its own
+					? $this->decide($gap, $gap->token->parent?->parent)['items'][$gap->index ?? 0] ?? null
+					: $this->decide($gap, $gap->token->parent?->parent)['separator'] ?? null,
+				null,
+			],
 			'closeDelimiter' => [fn(Gap $gap) => $this->decide($gap, $gap->token->parent)['close'] ?? null, null],
 			'openDelimiter' => [
 				fn(Gap $gap) => self::isHandedOver($gap->token) ? $this->decide($gap, $gap->token->parent)['open'] ?? null : null,
 				null,
 			],
-		]];
+		];
+		return [ArrayNode::class => $claims, DestructuringNode::class => $claims];
 	}
 
 
@@ -85,7 +93,7 @@ final class MultilineArrayRule extends GapRule
 	 */
 	private function decide(Gap $gap, ?Node $array): ?array
 	{
-		return $array instanceof ArrayNode && !$array->items->isEmpty()
+		return ($array instanceof ArrayNode || $array instanceof DestructuringNode) && !$array->items->isEmpty()
 			? $gap->once($array, fn() => $this->claimArray($array, $gap))
 			: null;
 	}
@@ -97,7 +105,7 @@ final class MultilineArrayRule extends GapRule
 	 * of lines not indented yet.
 	 * @return ?array{items: list<Claim>, close: ?Claim, separator: Claim, open: Claim}
 	 */
-	private function claimArray(ArrayNode $array, Gap $gap): ?array
+	private function claimArray(ArrayNode|DestructuringNode $array, Gap $gap): ?array
 	{
 		$style = $gap->style;
 		$multiline = NodeHelpers::isMultiline($array->openDelimiter, $array->items->getItems(), $array->closeDelimiter);
@@ -127,11 +135,11 @@ final class MultilineArrayRule extends GapRule
 	 * The claim before the closing bracket of an array its author spread over lines: it follows the last item where
 	 * the first one follows the opening bracket, and begins a line where the first one does.
 	 */
-	private static function closeAsWritten(ArrayNode $array): ?Claim
+	private static function closeAsWritten(ArrayNode|DestructuringNode $array): ?Claim
 	{
 		$close = $array->closeDelimiter;
 		return match (true) {
-			$array->items->getItems()[0]->getFirstToken()?->startsLine() === true => new Claim(
+			$array->openDelimiter->getNext()?->startsLine() === true => new Claim(
 				line: Line::Next,
 				because: 'the first item begins a line',
 			),
@@ -145,7 +153,7 @@ final class MultilineArrayRule extends GapRule
 	 * Why an array of several items on one line is spread: it is wider than maxWidth, from its opening bracket to its
 	 * closing one; an array of a single item has nothing to spread it into.
 	 */
-	private function findWidthReason(ArrayNode $array, Style $style): ?string
+	private function findWidthReason(ArrayNode|DestructuringNode $array, Style $style): ?string
 	{
 		$open = $array->openDelimiter;
 		$close = $array->closeDelimiter;
@@ -165,7 +173,7 @@ final class MultilineArrayRule extends GapRule
 	 * Why an array of several items on one line is spread for its line: the line is wider than the line length of
 	 * the style and no outer construct on it is spread first; measured once the line is indented.
 	 */
-	private static function findLineReason(ArrayNode $array, Gap $gap): ?string
+	private static function findLineReason(ArrayNode|DestructuringNode $array, Gap $gap): ?string
 	{
 		$frame = NodeHelpers::findSplitFrame($array);
 		if ($frame === null || $frame[3] || !$gap->style->lineSplits->has($frame[0])) {
@@ -186,13 +194,16 @@ final class MultilineArrayRule extends GapRule
 	 * being read one by one.
 	 * @return ?list<Claim>
 	 */
-	private static function claimPacked(ArrayNode $array, Style $style, string $because): ?array
+	private static function claimPacked(ArrayNode|DestructuringNode $array, Style $style, string $because): ?array
 	{
 		$items = $array->items->getItems();
 		if (
 			$style->maxLineLength === null
 			|| count($items) <= NodeHelpers::MaxItemsOnOwnLines
-			|| !array_all($items, fn($item) => $item instanceof ArrayItemNode && $item->key === null)
+			|| !array_all(
+				$items,
+				fn($item) => ($item instanceof ArrayItemNode && $item->key === null) || $item instanceof SkippedArrayItemNode,
+			)
 		) {
 			return null;
 		}
