@@ -8,6 +8,8 @@
 namespace DressCode\Engine;
 
 use DressCode\{Analyses, ConfigurationException, ConvergenceException, FileResult, Rule, RuleException, Style};
+use PhpSyntax\Nodes\FileNode;
+use PhpSyntax\Nodes\Statement\{NamespaceNode, UseNode};
 use PhpSyntax\{ParseException, Parser};
 use function strlen;
 
@@ -87,10 +89,9 @@ final readonly class FileProcessor
 			$lap = $this->profiler ? hrtime(true) : 0;
 			try {
 				$file = $this->parser->parse($text);
+				self::checkImports($file);
 			} catch (ParseException $e) {
-				return $rounds === 1
-					? new FileResult($path, $code, output: null, syntaxError: $e->getMessage(), syntaxErrorLine: $e->sourceLine)
-					: self::createParseFailure($path, $code, $e);
+				return self::createSyntaxError($path, $code, $e, $rounds);
 			}
 
 			if ($this->profiler) {
@@ -98,7 +99,16 @@ final readonly class FileProcessor
 				$lap = hrtime(true);
 			}
 
-			$result = $passLoop->run($file, $text, $path, $style, $this->phpVersion, $acceptedRisks);
+			try {
+				$result = $passLoop->run($file, $text, $path, $style, $this->phpVersion, $acceptedRisks);
+			} catch (RuleException $e) {
+				// the types refuse code PHP would not compile, whichever rule asks for them first
+				$previous = $e->getPrevious();
+				return $previous instanceof Analyses\UncompilableCodeException
+					? self::createSyntaxError($path, $code, new ParseException($previous->getMessage()), $rounds)
+					: throw $e;
+			}
+
 			$first ??= $result;
 			$passes += $result->passes;
 			if ($this->profiler) {
@@ -157,6 +167,47 @@ final readonly class FileProcessor
 			baselined: $first->baselined,
 			remaining: $remaining ?? $result->violations, // the last round is a check of the text the fix writes
 		);
+	}
+
+
+	/** A syntax error of the file in the first round, a failure of the fixer in a later one, over the text it wrote. */
+	private static function createSyntaxError(string $path, string $code, ParseException $e, int $round): FileResult
+	{
+		return $round === 1
+			? new FileResult($path, $code, output: null, syntaxError: $e->getMessage(), syntaxErrorLine: $e->sourceLine)
+			: self::createParseFailure($path, $code, $e);
+	}
+
+
+	/**
+	 * Refuses two imports of one kind under one name in a scope, which PHP refuses to compile as the parser of
+	 * PhpSyntax does not.
+	 * @throws ParseException
+	 */
+	private static function checkImports(FileNode|NamespaceNode $scope): void
+	{
+		$names = [];
+		foreach ($scope->statements->getItems() as $statement) {
+			if ($statement instanceof NamespaceNode) {
+				self::checkImports($statement);
+				continue;
+			} elseif (!$statement instanceof UseNode) {
+				continue;
+			}
+
+			foreach ($statement->items->getItems() as $item) {
+				$name = $item->alias->text ?? $item->name->shortName;
+				$key = $item->symbolKind->name . strtolower($name);
+				if (isset($names[$key])) {
+					throw new ParseException(
+						"Cannot use $item->fullName as $name because the name is already in use",
+						$item->getFirstToken()->line,
+					);
+				}
+
+				$names[$key] = true;
+			}
+		}
 	}
 
 

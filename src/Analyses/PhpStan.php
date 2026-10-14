@@ -97,13 +97,20 @@ final class PhpStan
 	}
 
 
-	/** @return array<\PhpParser\Node\Stmt> */
+	/**
+	 * @return array<\PhpParser\Node\Stmt>
+	 * @throws UncompilableCodeException  for code PHP would not compile, two imports under one name
+	 */
 	public function parse(string $code): array
 	{
 		// defaultAnalysisParser routes a string to the simple parser, which drops the bodies of functions
 		$parser = $this->getContainer()->getService('currentPhpVersionRichParser');
 		assert($parser instanceof Parser);
-		return $parser->parseString($code);
+		try {
+			return $parser->parseString($code);
+		} catch (\Exception $e) { // dresscode:ignore correctness.exceptionWhereThrowableBelongs -- an Error is a bug, not code PHP refuses
+			throw new UncompilableCodeException($e->getMessage(), previous: $e);
+		}
 	}
 
 
@@ -261,9 +268,15 @@ final class PhpStan
 	 */
 	public function findDeclaredDeprecation(string $class, string $file): ?string
 	{
-		$code = @file_get_contents($file); // @ the file may be gone
-		$declaration = $code === false ? null : (new NodeFinder)->findFirst(
-			$this->parse($code),
+		try {
+			$code = @file_get_contents($file); // @ the file may be gone
+			$ast = $code === false ? [] : $this->parse($code);
+		} catch (UncompilableCodeException) {
+			$ast = []; // a file of a package is no concern of the file of the run
+		}
+
+		$declaration = (new NodeFinder)->findFirst(
+			$ast,
 			fn($node) => $node instanceof ClassLike && strcasecmp((string) $node->namespacedName, $class) === 0,
 		);
 		$docComment = $declaration?->getDocComment()?->getText();

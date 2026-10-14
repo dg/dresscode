@@ -261,6 +261,19 @@ test('a syntax error is a result, not an exception', function () {
 });
 
 
+test('two imports under one name are a syntax error, which PHP refuses to compile', function () {
+	$code = "<?php\nnamespace App;\n\nuse Acme\\{Control, Form};\nuse Acme\\Form;\nuse function Acme\\form;\n";
+	$result = processor([new ProcessorRename])->process('a.php', $code);
+	Assert::null($result->output);
+	Assert::same('Cannot use Acme\Form as Form because the name is already in use', $result->syntaxError);
+	Assert::same(5, $result->syntaxErrorLine);
+
+	// in another namespace of the file, or of another kind, the name is free
+	$code = "<?php\nnamespace A {\n\tuse Acme\\Form;\n\tuse function Acme\\form;\n}\nnamespace B {\n\tuse Acme\\Form;\n}\n";
+	Assert::null(processor([new ProcessorRename])->process('a.php', $code)->syntaxError);
+});
+
+
 test('the style follows the line ending of the file unless told otherwise', function () {
 	Assert::same(
 		['"\r\n"'],

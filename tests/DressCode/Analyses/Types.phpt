@@ -386,6 +386,17 @@ test('a class the process made an alias of at run time is deprecated by its own 
 });
 
 
+test('code PHP would not compile is a syntax error of the file, not a failure of the rule asking for the types', function () {
+	$stubs = __DIR__ . '/fixtures/types/stubs';
+	$phpstan = new Analyses\PhpStan($stubs, [$stubs], createTempDir('types-compile') . '/cache');
+	Assert::exception(
+		fn() => $phpstan->parse("<?php\nnamespace A;\nuse B\\C;\nuse D\\C;\n"),
+		Analyses\UncompilableCodeException::class,
+		'Cannot use D\C as C because the name is already in use',
+	);
+});
+
+
 test('the class a declaration stands in', function () {
 	$file = storageSample();
 	$types = analyse($file);

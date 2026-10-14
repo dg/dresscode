@@ -191,6 +191,12 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function findClassDeprecation(string $class): ?DressCode\Analyses\Deprecation
 ```
 
+## `DressCode\Analyses\UncompilableCodeException`
+
+```php
+final class UncompilableCodeException extends Exception implements Stringable, Throwable
+```
+
 ## `DressCode\Claim`
 
 ```php
