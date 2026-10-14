@@ -341,8 +341,8 @@ final class PassLoop
 		// the traverser leaves every node it entered, a replaced one included; a rule sees only what is still in the tree
 		$leave = fn(Node|Token $node) => ($this->leaving[$stage][$node::class] ?? null) === []
 			|| ($node->parent === null && $node !== $this->file)
-				? null
-				: $this->visit($stage, $node, enter: false);
+			? null
+			: $this->visit($stage, $node, enter: false);
 		Traverser::traverse($this->file, $enter, $this->plan->leaves[$stage] ? $leave : null);
 
 		if ($gaps !== null) {

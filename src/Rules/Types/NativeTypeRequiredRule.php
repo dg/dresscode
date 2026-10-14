@@ -157,8 +157,8 @@ final class NativeTypeRequiredRule extends NodeRule
 			&& $node instanceof MethodNode
 			&& !$node->isConstructor()
 			&& array_any($params, fn(ParameterNode $param) => $param->type === null)
-				? $types->findOverriddenSignature($node)
-				: null;
+			? $types->findOverriddenSignature($node)
+			: null;
 		$variadic = $overridden === null ? null : array_find($overridden->parameters, fn(Parameter $parameter) => $parameter->variadic);
 		$unseen = $types === null && $node instanceof MethodNode && !$node->isConstructor() && self::hasAncestors($node);
 		$removed = [];
@@ -452,8 +452,8 @@ final class NativeTypeRequiredRule extends NodeRule
 				trivia: $owner->getDocComment(),
 				decision: $decision,
 			)
-				? $tag
-				: null;
+			? $tag
+			: null;
 	}
 
 

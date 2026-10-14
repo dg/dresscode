@@ -201,8 +201,8 @@ final readonly class PropertyWrites
 			|| $call instanceof Expression\MethodCallNode
 			|| $call instanceof Expression\StaticMethodCallNode
 			|| $call instanceof Expression\NewNode
-				? self::findOwnParameters($call, $class, $context) ?? NodeHelpers::findParameters($call, $context)
-				: null;
+			? self::findOwnParameters($call, $class, $context) ?? NodeHelpers::findParameters($call, $context)
+			: null;
 		if ($parameters === null || !$list instanceof SeparatedNodeList) {
 			return null;
 		}

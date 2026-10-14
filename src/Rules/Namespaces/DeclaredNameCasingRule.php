@@ -186,8 +186,8 @@ final class DeclaredNameCasingRule extends NodeRule
 		return count($declared) === count($written)
 			&& strcasecmp(implode('\\', $declared), implode('\\', $written)) === 0
 			&& $declared !== $written
-				? implode('\\', $declared)
-				: null;
+			? implode('\\', $declared)
+			: null;
 	}
 
 

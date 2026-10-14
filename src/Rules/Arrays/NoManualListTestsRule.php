@@ -94,8 +94,8 @@ final class NoManualListTestsRule extends NodeRule
 		$keys = self::readSingleArgument($call, 'array_keys', $context);
 		$arguments = $compared instanceof Expression\FunctionCallNode
 			&& GlobalCalls::findFunction($compared, ['range' => true], $context) !== null
-				? $compared->arguments->getPlainValues()
-				: null;
+			? $compared->arguments->getPlainValues()
+			: null;
 		if ($keys === null || $arguments === null || count($arguments) !== 2 || !self::isInteger($arguments[0], 0)) {
 			return null;
 		}
@@ -104,8 +104,8 @@ final class NoManualListTestsRule extends NodeRule
 		$counted = $arguments[1] instanceof Expression\BinaryOpNode
 			&& $arguments[1]->operator->is('-')
 			&& self::isInteger($arguments[1]->right, 1)
-				? self::readSingleArgument($arguments[1]->left, 'count', $context)
-				: null;
+			? self::readSingleArgument($arguments[1]->left, 'count', $context)
+			: null;
 		return $counted !== null && self::repeats($counted, $keys) ? [$keys, $call, true] : null;
 	}
 
@@ -122,8 +122,8 @@ final class NoManualListTestsRule extends NodeRule
 	{
 		$arguments = $call instanceof Expression\FunctionCallNode
 			&& GlobalCalls::findFunction($call, [$function => true], $context) !== null
-				? $call->arguments->getPlainValues()
-				: null;
+			? $call->arguments->getPlainValues()
+			: null;
 		return $arguments !== null && count($arguments) === 1 ? $arguments[0] : null;
 	}
 

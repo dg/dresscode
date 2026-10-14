@@ -131,8 +131,8 @@ final class CloneWithNotationRule extends NodeRule
 			&& $target->name instanceof IdentifierNode
 			&& $target->object instanceof VariableNode
 			&& $target->object->plainName === $variable
-				? [$target->name->text, $assignment->expression]
-				: null;
+			? [$target->name->text, $assignment->expression]
+			: null;
 	}
 
 

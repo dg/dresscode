@@ -66,8 +66,8 @@ final readonly class Count extends Domain
 			!$this->range => null,
 			is_string($raw) && preg_match('~^(\d+)\s*[-\x{2013}]\s*(\d+)$~uD', $raw, $m) === 1 => self::fitsInteger($m[1])
 				&& self::fitsInteger($m[2])
-					? [(int) $m[1], (int) $m[2]]
-					: null,
+				? [(int) $m[1], (int) $m[2]]
+				: null,
 			is_string($raw) && preg_match('~^(\d+)\+$~D', $raw, $m) === 1 => self::fitsInteger($m[1]) ? [(int) $m[1], null] : null,
 			is_array($raw) && array_keys($raw) === [0, 1] && is_int($raw[0]) && (is_int($raw[1]) || $raw[1] === null) => [$raw[0], $raw[1]],
 			default => null,

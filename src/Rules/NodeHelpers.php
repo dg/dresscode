@@ -801,8 +801,8 @@ final class NodeHelpers
 				|| $default instanceof Scalar\BooleanNode
 				|| $default instanceof Scalar\NullNode
 				|| ($default instanceof Expression\ArrayNode && $default->items->isEmpty())
-					? $default->text
-					: null,
+				? $default->text
+				: null,
 		);
 	}
 

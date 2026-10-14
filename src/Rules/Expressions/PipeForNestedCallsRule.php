@@ -169,8 +169,8 @@ final class PipeForNestedCallsRule extends NodeRule
 			$call instanceof Expression\MethodCallNode => $call->name instanceof IdentifierNode
 				&& $call->object->isDereferenceable(DereferenceKind::Fetch)
 				&& !$call->isInNullsafeChain()
-					? $call->object->text . $call->operator->text . $call->name->text
-					: null,
+				? $call->object->text . $call->operator->text . $call->name->text
+				: null,
 			default => $call->name instanceof IdentifierNode && $call->class instanceof NameNode
 				? $call->class->text . '::' . $call->name->text
 				: null,

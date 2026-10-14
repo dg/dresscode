@@ -135,8 +135,8 @@ final class ArrayFirstLastNotationRule extends NodeRule
 		$counted = $access->index instanceof Expression\BinaryOpNode
 			&& $access->index->operator->is('-')
 			&& self::isInteger($access->index->right, 1)
-				? self::readSingleArgument($access->index->left, ['count' => 'count'], $context)
-				: null;
+			? self::readSingleArgument($access->index->left, ['count' => 'count'], $context)
+			: null;
 		return $counted !== null && self::repeats($counted[1], $array)
 			? ['array_last', $array, $values[2]]
 			: null;

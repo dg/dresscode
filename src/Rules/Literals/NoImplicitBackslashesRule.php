@@ -60,8 +60,8 @@ final class NoImplicitBackslashesRule extends NodeRule
 			'~\\\(.)~s',
 			fn($match) => !self::startsEscape($token->text, $match[1][1], $escapes)
 				&& !self::guardsInterpolation($token->text, $match[1][1], $node)
-					? '\\\\' . $match[1][0]
-					: $match[0][0],
+				? '\\\\' . $match[1][0]
+				: $match[0][0],
 			$token->text,
 			flags: PREG_OFFSET_CAPTURE,
 		);

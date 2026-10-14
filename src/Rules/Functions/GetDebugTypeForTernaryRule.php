@@ -104,7 +104,7 @@ final class GetDebugTypeForTernaryRule extends NodeRule
 			&& $argument instanceof ArgumentNode
 			&& $argument->name === null && $argument->ampersand === null && $argument->ellipsis === null
 			&& $context->getAnalysis(NameResolver::class)->isGlobalFunctionCall($call, $function)
-				? $argument->value
-				: null;
+			? $argument->value
+			: null;
 	}
 }

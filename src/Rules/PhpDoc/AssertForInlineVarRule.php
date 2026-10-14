@@ -72,8 +72,8 @@ final class AssertForInlineVarRule extends NodeRule
 			$condition = $child instanceof PhpDocTagNode
 				&& $child->value instanceof VarTagValueNode
 				&& in_array($child->value->variableName, $names, true)
-					? self::buildCondition($child->value->variableName, $child->value->type, $localTypes, $spell)
-					: null;
+				? self::buildCondition($child->value->variableName, $child->value->type, $localTypes, $spell)
+				: null;
 			if ($condition === null) {
 				$kept[] = $child;
 			} else {
@@ -123,8 +123,8 @@ final class AssertForInlineVarRule extends NodeRule
 			return $list instanceof PlainNodeList
 				&& $node->expression instanceof Expression\AssignmentNode
 				&& !self::isLiteral($node->expression->expression)
-					? [$list, $list->indexOf($node) + 1, $indentation, self::collectVariables($node->expression->target)]
-					: null;
+				? [$list, $list->indexOf($node) + 1, $indentation, self::collectVariables($node->expression->target)]
+				: null;
 		}
 
 		$names = [];

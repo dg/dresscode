@@ -112,8 +112,8 @@ final class ArraySearchForFilterRule extends NodeRule
 				&& $access->index instanceof IntegerNode && $access->index->text === '0'
 				&& $access->expression instanceof FunctionCallNode
 				&& GlobalCalls::findFunction($access->expression, ['array_values' => true], $context) !== null
-					? ['array_find', self::findSoleArgument($access->expression), false]
-					: null;
+				? ['array_find', self::findSoleArgument($access->expression), false]
+				: null;
 		}
 
 		[$left, $right] = [$node->left, $node->right];
@@ -179,8 +179,8 @@ final class ArraySearchForFilterRule extends NodeRule
 		return $values !== null
 			&& count($values) === 2
 			&& GlobalCalls::findFunction($call, ['array_filter' => true], $context) !== null
-				? [$values[0], $values[1]]
-				: null;
+			? [$values[0], $values[1]]
+			: null;
 	}
 
 

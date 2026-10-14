@@ -207,7 +207,7 @@ final class MatchForSwitchRule extends NodeRule
 			&& $target instanceof ExpressionNode
 			&& $target->isRepeatableRead()
 			&& $ends
-				? [$assignment->expression, $target]
-				: null;
+			? [$assignment->expression, $target]
+			: null;
 	}
 }

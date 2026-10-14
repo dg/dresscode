@@ -99,8 +99,8 @@ final class MemberBlankLinesRule extends GapRule
 		$documented = $member instanceof Member\PropertyNode
 			|| $member instanceof Member\ClassConstNode
 			|| $member instanceof Member\EnumCaseNode
-				? !$member->attributes->isEmpty() || $member->getDocComment() !== null
-				: false;
+			? !$member->attributes->isEmpty() || $member->getDocComment() !== null
+			: false;
 		$key = match (true) {
 			$member instanceof Member\MethodNode => match (true) {
 				$index === 0 => 'beforeFirstMethod',

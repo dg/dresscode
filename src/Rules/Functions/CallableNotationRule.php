@@ -153,8 +153,8 @@ final class CallableNotationRule extends NodeRule
 			// the string names a function or a method of the global namespace, whatever namespace it stands in
 			return preg_match('~^\\\\?\w+(\\\\\w+)*(::\w+)?$~D', $value->toValue()) === 1
 				&& !ForwardingClosure::isScopeRelative(explode('::', $value->toValue())[0])
-					? ['\\' . ltrim($value->toValue(), '\\'), ...(str_contains($value->toValue(), '::') ? $static : [null, null])]
-					: null;
+				? ['\\' . ltrim($value->toValue(), '\\'), ...(str_contains($value->toValue(), '::') ? $static : [null, null])]
+				: null;
 		}
 
 		$items = $value instanceof Expression\ArrayNode ? $value->items->getItems() : [];
@@ -179,8 +179,8 @@ final class CallableNotationRule extends NodeRule
 		return match (true) {
 			$target instanceof StringNode => preg_match('~^\\\\?\w+(\\\\\w+)*$~D', $target->toValue()) === 1
 				&& !ForwardingClosure::isScopeRelative($target->toValue())
-					? ['\\' . ltrim($target->toValue(), '\\') . '::' . $method->toValue(), ...$static]
-					: null,
+				? ['\\' . ltrim($target->toValue(), '\\') . '::' . $method->toValue(), ...$static]
+				: null,
 			self::namesClass($target) => [
 				$target->class->text . '::' . $method->toValue(),
 				...(strtolower($target->class->text) === 'static' ? [null, null] : $static),
@@ -222,8 +222,8 @@ final class CallableNotationRule extends NodeRule
 				$parameters,
 				fn(ParameterNode $parameter, int $i) => ForwardingClosure::passesParameter($parameter, $arguments[$i]),
 			)
-				? $callee
-				: null;
+			? $callee
+			: null;
 	}
 
 

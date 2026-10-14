@@ -216,8 +216,8 @@ final class StatementBlankLinesRule extends GapRule
 		$body = $this->counts['betweenStatementsInFunction'] !== null
 			&& self::isPlainPair($stmt, $index - 1)
 			&& $stmt->findAncestor(FunctionLikeNode::class) !== null
-				? $this->counts['betweenStatementsInFunction']
-				: null;
+			? $this->counts['betweenStatementsInFunction']
+			: null;
 		return $body === null
 			? $this->claims->claim($kind, 'beforeStatement')
 			: $this->claims->claim(
@@ -236,8 +236,8 @@ final class StatementBlankLinesRule extends GapRule
 			return $next !== null
 				&& !$next instanceof Statement\FunctionNode
 				&& !$next instanceof ClassLikeNode
-					? $this->claims->claim($this->counts['betweenDeclarations'], 'betweenDeclarations')
-					: null;
+				? $this->claims->claim($this->counts['betweenDeclarations'], 'betweenDeclarations')
+				: null;
 		}
 
 		return $this->claims->claim($this->findCountByKind($stmt, $index + 1, $this->afterStatement), 'afterStatement');

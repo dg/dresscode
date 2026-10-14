@@ -63,8 +63,8 @@ final class CodeWriter
 				$resolver->getUnqualifiedResolution($replaced) === UnqualifiedResolution::Uncertain
 				|| $resolver->getUnqualifiedResolution($function, SymbolKind::Function, $replaced) === UnqualifiedResolution::Global
 			)
-				? $function
-				: '\\' . $function;
+			? $function
+			: '\\' . $function;
 	}
 
 

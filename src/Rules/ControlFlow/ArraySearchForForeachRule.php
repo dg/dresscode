@@ -105,8 +105,8 @@ final class ArraySearchForForeachRule extends NodeRule
 
 		$parameters = $key !== null
 			&& $condition->find(Expression\VariableNode::class, fn(Expression\VariableNode $v) => self::isVariable($v, $key)) !== []
-				? $value->text . ', ' . $key->text
-				: $value->text;
+			? $value->text . ', ' . $key->text
+			: $value->text;
 		$builder = new Builder;
 		$arrow = $builder->fragment(Expression\ArrowFunctionNode::class, "fn($parameters) => 0");
 		$arrow->expression->replaceWith($negate ? NodeHelpers::negate($condition) : $condition->withoutEdgeTrivia());
@@ -162,8 +162,8 @@ final class ArraySearchForForeachRule extends NodeRule
 				Expression\VariableNode::class,
 				fn(Expression\VariableNode $variable) => self::isVariable($variable, $assignment->target),
 			) === []
-				? [$foreach, $outcome->expression, $condition, $assignment->expression]
-				: $none;
+			? [$foreach, $outcome->expression, $condition, $assignment->expression]
+			: $none;
 	}
 
 
@@ -183,8 +183,8 @@ final class ArraySearchForForeachRule extends NodeRule
 			&& $after instanceof Statement\ReturnNode
 			&& $after->expression !== null
 			&& !$after->hasInnerComment()
-				? [$foreach, $statements[0]->expression, self::readCondition($foreach, $context), $after->expression]
-				: $none;
+			? [$foreach, $statements[0]->expression, self::readCondition($foreach, $context), $after->expression]
+			: $none;
 	}
 
 
@@ -201,8 +201,8 @@ final class ArraySearchForForeachRule extends NodeRule
 			&& count($if->elseifs) === 0
 			&& $if->else === null
 			&& $if->body instanceof Statement\BlockNode
-				? $if->body->statements->getItems()
-				: [];
+			? $if->body->statements->getItems()
+			: [];
 	}
 
 
@@ -230,8 +230,8 @@ final class ArraySearchForForeachRule extends NodeRule
 			&& $condition->find(Expression\VariableNode::class, fn(Expression\VariableNode $variable) => $variable->isWritten()) === []
 			&& !$changes($condition)
 			&& $condition->find(ExpressionNode::class, $changes) === []
-				? $condition
-				: null;
+			? $condition
+			: null;
 	}
 
 
@@ -290,8 +290,8 @@ final class ArraySearchForForeachRule extends NodeRule
 				|| $call instanceof Expression\MethodCallNode
 				|| $call instanceof Expression\StaticMethodCallNode
 				|| $call instanceof Expression\NewNode
-					? NodeHelpers::findParameters($call, $context)
-					: null;
+				? NodeHelpers::findParameters($call, $context)
+				: null;
 			if ($parameters === null) {
 				$result = Tristate::Maybe;
 				continue;

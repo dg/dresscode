@@ -230,8 +230,8 @@ final class Resolver
 		$next = $token->text;
 		return ($text !== '' && ($text[-1] === "\n" || $text[-1] === "\r"))
 			|| ($next !== '' && ($next[0] === "\n" || $next[0] === "\r"))
-				? null
-				: $space;
+			? null
+			: $space;
 	}
 
 

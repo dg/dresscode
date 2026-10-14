@@ -115,7 +115,7 @@ final class NoDeprecatedMembersRule extends NodeRule
 			&& $deprecation->replacementIsCall === $isCall
 			&& ($class === null || strcasecmp($class, $member->declaringClass) === 0 || strcasecmp($class, $shortName) === 0)
 			&& $types->canReplace($member, ltrim($deprecation->replacementName, '$'))
-				? ltrim($deprecation->replacementName, '$')
-				: null;
+			? ltrim($deprecation->replacementName, '$')
+			: null;
 	}
 }

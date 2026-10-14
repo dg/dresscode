@@ -123,7 +123,7 @@ final class MultilineCallRule extends GapRule
 			&& $gap->style->lineSplits->has($frame[0])
 			&& (!$list instanceof ArgumentListNode || NodeHelpers::findHuggedFrame($list, $gap->style) === null)
 			&& NodeHelpers::isLineInPlace($gap, $list->openParen)
-				? "the line is $width characters long, more than {$gap->style->maxLineLength}"
-				: null;
+			? "the line is $width characters long, more than {$gap->style->maxLineLength}"
+			: null;
 	}
 }

@@ -220,8 +220,8 @@ final class BracesPositionRule extends GapRule
 			|| $shape['collapsed']
 			|| $shape['inside'] === null
 			|| $shape['singleline']
-				? null
-				: $this->claim($shape['inside'], Line::Next);
+			? null
+			: $this->claim($shape['inside'], Line::Next);
 	}
 
 

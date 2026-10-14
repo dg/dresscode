@@ -85,8 +85,8 @@ final class ReplacedFunctionsRule extends NodeRule
 		$namespace = $resolver->getNamespace($node);
 		$local = $namespace !== '' && !str_contains($node->name->text, '\\')
 			&& !isset($resolver->getImports(SymbolKind::Function, $node)[strtolower($node->name->text)])
-				? $this->functions[strtolower("$namespace\\{$node->name->text}")] ?? null
-				: null;
+			? $this->functions[strtolower("$namespace\\{$node->name->text}")] ?? null
+			: null;
 		$replacement = $local ?? $this->functions[strtolower($resolver->resolveFunction($node->name))] ?? null;
 		if ($replacement === null) {
 			return;

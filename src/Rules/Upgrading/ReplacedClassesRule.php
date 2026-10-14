@@ -94,8 +94,8 @@ final class ReplacedClassesRule extends NodeRule
 				fn(string $class, ?array $member) => $types !== null
 					&& $member !== null
 					&& $this->isForbiddenMember($class, ...$member, types: $types)
-						? false
-						: $find($class),
+					? false
+					: $find($class),
 				$types === null ? null : fn(NameNode $name) => $this->isForbiddenAccess($name, $types),
 				$this->annotations,
 			);

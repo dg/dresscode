@@ -349,8 +349,8 @@ final class Types implements PassAnalysis
 	{
 		$access = $node instanceof NewNode
 			|| ($node instanceof StaticMethodCallNode && $node->name instanceof IdentifierNode && $node->name->equals('__construct'))
-				? $this->findMemberAccess($node)
-				: null;
+			? $this->findMemberAccess($node)
+			: null;
 		if ($access === null) {
 			return null;
 		}
@@ -377,8 +377,8 @@ final class Types implements PassAnalysis
 		$arrays = $type?->getConstantArrays() ?? [];
 		$pair = count($arrays) === 1
 			&& array_map(fn(ConstantIntegerType|ConstantStringType $key) => $key->getValue(), $arrays[0]->getKeyTypes()) === [0, 1]
-				? $arrays[0]->getValueTypes()
-				: null;
+			? $arrays[0]->getValueTypes()
+			: null;
 		$names = $pair === null ? [] : $pair[1]->getConstantStrings();
 		if (count($strings) === 1 && str_contains($strings[0]->getValue(), '::')) {
 			[$class, $name] = explode('::', $strings[0]->getValue(), 2);
@@ -854,8 +854,8 @@ final class Types implements PassAnalysis
 			$classes = $this->findMemberAccess($access)->classes ?? [];
 			return $classes !== [] && array_all($classes, fn(string $name) => ($class = $this->phpstan->findClass($name)) !== null
 				&& ($class->hasNativeMethod('__get') || $class->hasNativeMethod('__set')))
-					? Tristate::No
-					: Tristate::Maybe;
+				? Tristate::No
+				: Tristate::Maybe;
 		}
 
 		$class = $member->kind === MemberKind::Property || $member->kind === MemberKind::StaticProperty

@@ -31,8 +31,8 @@ final class GlobalCalls
 		$name = $call->name;
 		return !$name instanceof NameNode
 			|| (!array_key_exists(strtolower($name->shortName), $names) && !CodeWriter::importsFunctionAs($context))
-				? null
-				: $context->getAnalysis(NameResolver::class)->findGlobalFunction($call, $names);
+			? null
+			: $context->getAnalysis(NameResolver::class)->findGlobalFunction($call, $names);
 	}
 
 
@@ -47,8 +47,8 @@ final class GlobalCalls
 		return $name instanceof NameNode
 			&& $name->form === NameForm::Unqualified
 			&& $context->getAnalysis(NameResolver::class)->getUnqualifiedResolution($name) === UnqualifiedResolution::Uncertain
-				? 'the namespace may declare `' . strtolower($name->text) . '()`'
-				: null;
+			? 'the namespace may declare `' . strtolower($name->text) . '()`'
+			: null;
 	}
 
 

@@ -125,8 +125,8 @@ final class NoManualSubstringTestsRule extends NodeRule
 					self::repeats(self::readStrlen($arguments[2], $context), $arguments[1])
 					|| (($length = self::readLiteralLength($arguments[1])) !== null && self::isInteger($arguments[2], $length))
 				)
-					? ['str_starts_with', $arguments[0], $arguments[1], $identical, false]
-					: null,
+				? ['str_starts_with', $arguments[0], $arguments[1], $identical, false]
+				: null,
 			default => null,
 		};
 
@@ -154,8 +154,8 @@ final class NoManualSubstringTestsRule extends NodeRule
 		if (count($arguments) === 3 && self::isZero($arguments[1])) {
 			return self::repeats(self::readStrlen($arguments[2], $context), $compared)
 				|| ($length !== null && self::isInteger($arguments[2], $length))
-					? ['str_starts_with', $arguments[0], $compared, $identical, false]
-					: null;
+				? ['str_starts_with', $arguments[0], $compared, $identical, false]
+				: null;
 
 		} elseif (
 			count($arguments) === 2
@@ -185,8 +185,8 @@ final class NoManualSubstringTestsRule extends NodeRule
 	{
 		$arguments = $expression instanceof Expression\FunctionCallNode
 			&& GlobalCalls::findFunction($expression, ['strlen' => true], $context) !== null
-				? $expression->arguments->getPlainValues()
-				: null;
+			? $expression->arguments->getPlainValues()
+			: null;
 		return $arguments !== null && count($arguments) === 1 ? $arguments[0] : null;
 	}
 

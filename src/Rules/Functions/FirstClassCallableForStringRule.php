@@ -133,8 +133,8 @@ final class FirstClassCallableForStringRule extends NodeRule
 				&& $call->name->equals('fromCallable')
 				&& strcasecmp($resolver->resolveClass($call->class), 'Closure') === 0
 				&& $argument !== null
-					? [$argument]
-					: [];
+				? [$argument]
+				: [];
 		} elseif (!$call->name instanceof NameNode || !$resolver->isGlobalFunctionCall($call)) {
 			return [];
 		}
