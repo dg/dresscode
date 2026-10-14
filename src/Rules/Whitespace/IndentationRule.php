@@ -65,7 +65,7 @@ final class IndentationRule extends NodeRule
 		}
 
 		[$token, $indentation, $commentIndentation] = [$placement->token, $placement->indentation, $placement->commentIndentation];
-		[$subject, $expected, $found] = $token->getIndentation() === $indentation
+		[$subject, $expected, $found] = $token->getIndentation() === $indentation && $commentIndentation !== null
 			? ['the comment', $commentIndentation, self::findCommentIndentation($token, $commentIndentation)]
 			: [(string) preg_replace('~^an? ~', 'the ', $placement->subject), $indentation, $token->getIndentation()];
 		$message = match (true) {
@@ -84,7 +84,11 @@ final class IndentationRule extends NodeRule
 			trivia: Indentation::findTrivia($token),
 			follows: $placement->follows,
 		)) {
-			Indentation::set($token, $indentation, $commentIndentation);
+			if ($commentIndentation === null) {
+				$token->setIndentation($indentation);
+			} else {
+				Indentation::set($token, $indentation, $commentIndentation);
+			}
 		}
 	}
 

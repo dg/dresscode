@@ -20,8 +20,8 @@ final readonly class Placement
 		public Token $token,
 		/** the indentation the line is given */
 		public string $indentation,
-		/** the indentation a comment above it is given */
-		public string $commentIndentation,
+		/** the indentation a comment above it is given, null where each keeps its own */
+		public ?string $commentIndentation,
 		/** what the line is, `a statement` */
 		public string $subject,
 		/** the opener of the line its level counts from */
@@ -35,6 +35,8 @@ final readonly class Placement
 	/** Whether the line has the indentation it is given, a comment above it included. */
 	public function isInPlace(): bool
 	{
-		return Indentation::matches($this->token, $this->indentation, $this->commentIndentation);
+		return $this->commentIndentation === null
+			? $this->token->getIndentation() === $this->indentation
+			: Indentation::matches($this->token, $this->indentation, $this->commentIndentation);
 	}
 }

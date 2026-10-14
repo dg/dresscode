@@ -8,10 +8,10 @@
 namespace DressCode\Analyses;
 
 use DressCode\{Style, Values, Violation};
-use PhpSyntax\{Indentation, LayoutRole, Node, Nodes, Token};
+use PhpSyntax\{Indentation, LayoutRole, Node, Nodes, Token, Trivia};
 use PhpSyntax\Nodes\Member\PropertyHookNode;
 use PhpSyntax\Nodes\Statement\{BlockNode, NamespaceNode};
-use function count;
+use function count, strlen;
 
 
 /**
@@ -176,6 +176,7 @@ final class IndentationPlan
 		// by the next branch of a non-empty structure, which the comment then introduces; a comment above
 		// a later case belongs to the statements of the previous one
 		$commentIndentation = match (true) {
+			$role === LayoutRole::Closer && self::continuesStructure($token) && self::hasCommentsAtTwoLevels($token, $indentation) => null,
 			$role === LayoutRole::Closer && !(self::continuesStructure($token) && !$token->getPrevious()?->is('{')),
 			$role === LayoutRole::Case && !self::isFirstItem($child, $token)
 				=> $indentation . $style->indent,
@@ -237,6 +238,35 @@ final class IndentationPlan
 		$next = $token->getNext();
 		return $next?->is([Token::Else, Token::Elseif, Token::Catch, Token::Finally])
 			|| ($next?->is(Token::While) && $next->parent instanceof Nodes\Statement\DoWhileNode);
+	}
+
+
+	/**
+	 * Whether the comments above the token stand at two levels as written, the last at the indentation the token
+	 * is given, heading the branch it continues the structure with, and one deeper, belonging to the branch it closes.
+	 */
+	private static function hasCommentsAtTwoLevels(Token $token, string $indentation): bool
+	{
+		$levels = [];
+		$trailing = $token->getPrevious()->trailingTrivia ?? [];
+		$lineStart = ($trailing[count($trailing) - 1] ?? null)?->isLineEnding() ?? false;
+		$level = '';
+		foreach ($token->leadingTrivia as $trivia) {
+			if ($trivia->isLineEnding()) {
+				[$lineStart, $level] = [true, ''];
+			} elseif ($lineStart && $trivia->id === Trivia::Whitespace) {
+				$level = $trivia->text;
+			} elseif ($trivia->isComment()) {
+				if ($lineStart) {
+					$levels[] = $level;
+				}
+
+				$lineStart = false;
+			}
+		}
+
+		$last = array_pop($levels);
+		return $last === $indentation && array_any($levels, fn(string $level) => strlen($level) > strlen($last));
 	}
 
 

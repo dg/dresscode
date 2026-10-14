@@ -1,0 +1,23 @@
+<?php
+// comments at two levels above the brace each keep their own: the body's and the heading of the next branch
+if ($a) {
+	$content = 'block';
+
+// contains text
+} elseif ($b) {
+	// leave the element
+
+// contains only markup
+} else {
+	foo();
+}
+
+// the brace is placed all the same
+if ($a) {
+	foo();
+	// a note on the body
+
+// the last branch
+} else {
+	bar();
+}
