@@ -92,8 +92,8 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 			}
 
 			self::promote($parameter, $property);
-			$assignment->remove();
-			$property->remove();
+			NodeHelpers::removeMergingGaps($assignment, $context->style->lineEnding);
+			NodeHelpers::removeMergingGaps($property, $context->style->lineEnding);
 		}
 	}
 

@@ -10,6 +10,7 @@ namespace DressCode\Rules\Namespaces;
 use DressCode\Analyses\PhpDoc;
 use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Flag;
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{NameForm, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{FileNode, NameNode};
 use PhpSyntax\Nodes\Statement\{NamespaceNode, UseNode};
@@ -94,7 +95,7 @@ final class NoUnusedImportsRule extends NodeRule
 				continue;
 			}
 
-			$item->remove();
+			NodeHelpers::removeMergingGaps($item, $context->style->lineEnding);
 		}
 	}
 

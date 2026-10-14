@@ -8,6 +8,7 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\{AssignmentNode, CloneNode, ParenthesizedNode, PropertyFetchNode, VariableNode};
 use PhpSyntax\Nodes\{ExpressionNode, IdentifierNode, PlainNodeList};
@@ -110,7 +111,7 @@ final class CloneWithNotationRule extends NodeRule
 			? (new Builder)->statement("return $call;", ...$values, s: $subject)
 			: (new Builder)->statement("\$t = $call;", ...$values, s: $subject, t: $assignment->target);
 		foreach ($removed as $statement) {
-			$statement->remove();
+			NodeHelpers::removeMergingGaps($statement, $context->style->lineEnding);
 		}
 		$node->replaceWith($replacement);
 	}

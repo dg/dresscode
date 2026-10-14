@@ -3,7 +3,6 @@
 // nameResolution certain
 namespace App;
 
-
 $a = dirname($path);
 $b = in_array($x, ['a', 'b'], $strict);
 $c = \chr(65);

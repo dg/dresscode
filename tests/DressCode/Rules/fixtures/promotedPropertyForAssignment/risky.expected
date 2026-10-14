@@ -2,7 +2,6 @@
 // risky
 class A
 {
-
 	public function __construct(private $name, private $count)
 	{
 	}
@@ -10,7 +9,6 @@ class A
 
 class B
 {
-
 	function __construct( public $data )
 	{
 	}

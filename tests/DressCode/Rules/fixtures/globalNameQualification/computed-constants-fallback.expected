@@ -3,7 +3,6 @@
 // nameResolution certain
 namespace App;
 
-
 const SEPARATOR = DIRECTORY_SEPARATOR . 'x';
 
 if (PHP_VERSION_ID >= 80400) {

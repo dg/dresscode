@@ -8,6 +8,7 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{FunctionLikeNode, PlainNodeList};
 use PhpSyntax\Nodes\Statement\{BlockNode, ReturnNode};
@@ -53,7 +54,7 @@ final class UselessReturnRule extends NodeRule
 		}
 
 		if ($context->report($node, 'Useless return, because the function ends right after it.')) {
-			$node->remove();
+			NodeHelpers::removeMergingGaps($node, $context->style->lineEnding);
 		}
 	}
 }

@@ -8,6 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Builder, Node, Token, Trivia};
 use PhpSyntax\Nodes\Expression\{YieldFromNode, YieldNode};
 use PhpSyntax\Nodes\{FunctionLikeNode, PlainNodeList};
@@ -92,7 +93,7 @@ final class NoConstructorReturnValuesRule extends NodeRule
 				$end->setTrailingTrivia([]);
 			}
 
-			$return->remove();
+			NodeHelpers::removeMergingGaps($return, $context->style->lineEnding);
 
 		} elseif ($silent) {
 			$return->expression = null;

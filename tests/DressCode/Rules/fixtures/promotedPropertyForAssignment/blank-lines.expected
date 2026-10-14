@@ -1,0 +1,17 @@
+<?php
+// the blank lines the assignments stood between become one, the gap below the properties stays
+class Storage
+{
+	public int $count = 0;
+
+	public function __construct(private string $dir, private ?Journal $journal = null)
+	{
+		if (!is_dir($dir)) {
+			throw new InvalidArgumentException;
+		}
+
+		if (mt_rand() < 10) {
+			$this->clean();
+		}
+	}
+}

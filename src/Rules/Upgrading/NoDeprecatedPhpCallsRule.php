@@ -167,7 +167,7 @@ final class NoDeprecatedPhpCallsRule extends NodeRule
 					because: $uncertainty,
 				)
 			) {
-				$statement->remove();
+				NodeHelpers::removeMergingGaps($statement, $context->style->lineEnding);
 			}
 
 			return true;

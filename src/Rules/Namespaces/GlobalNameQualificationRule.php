@@ -9,7 +9,7 @@ namespace DressCode\Rules\Namespaces;
 
 use DressCode\Analyses\{PhpDoc, PhpSymbols};
 use DressCode\{NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Rules\{CodeWriter, Compiler};
+use DressCode\Rules\{CodeWriter, Compiler, NodeHelpers};
 use PhpSyntax\Analyses\{NameResolver, NamespacedSymbols};
 use PhpSyntax\{Node, SymbolKind, Token, UnqualifiedResolution};
 use PhpSyntax\Nodes\{ElseifNode, Expression, NameNode, UseItemNode};
@@ -224,7 +224,7 @@ final class GlobalNameQualificationRule extends NodeRule
 
 		foreach ($importGoes && !$importStays ? $imports : [] as [, $useItem]) {
 			if ($context->report($useItem, "$subject must not be imported.", decision: $decision, risk: $aliasSpelled ? $risk : null)) {
-				$useItem->remove();
+				NodeHelpers::removeMergingGaps($useItem, $context->style->lineEnding);
 			}
 		}
 	}

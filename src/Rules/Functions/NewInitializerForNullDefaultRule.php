@@ -112,7 +112,7 @@ final class NewInitializerForNullDefaultRule extends NodeRule
 		$parameter->setType($builder->type($written));
 		$parameter->default->replaceWith($new->withoutEdgeTrivia());
 		if ($keep === null) {
-			$statement->remove();
+			NodeHelpers::removeMergingGaps($statement, $context->style->lineEnding);
 		} else {
 			$keep->replaceWith($builder->expression('$' . $name));
 		}

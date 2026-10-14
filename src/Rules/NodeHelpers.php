@@ -12,7 +12,7 @@ use DressCode\{Claim, Gap, Line, RuleContext, Style, Tristate};
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, ConstantExpressionFeature, Indentation, Node, SymbolKind, Token, Trivia};
-use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeAwareNode, AttributeNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeAwareNode, AttributeNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode, UseItemNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count, in_array, strlen;
 
@@ -927,6 +927,34 @@ final class NodeHelpers
 		if (count($statements)) {
 			$last->setEdgeTrivia(leading: [new Trivia(Trivia::Whitespace, $indentation)]);
 		}
+	}
+
+
+	/**
+	 * Removes a statement or a member, or an import with the statement it is the only item of, the blank lines it
+	 * stood between becoming the wider of the two gaps, so that the gap setting apart the group it ended or began
+	 * stays; at the edge of its list the gap toward the edge stays.
+	 */
+	public static function removeMergingGaps(Node $node, string $lineEnding): void
+	{
+		$statement = $node instanceof UseItemNode ? $node->getStatement() : null;
+		$removed = $statement !== null && count($statement->items) === 1 ? $statement : $node;
+		$list = $removed->parent;
+		$first = $removed->getFirstToken();
+		$next = $removed->getLastToken()?->getNext();
+		if (
+			$list instanceof PlainNodeList
+			&& $first?->startsLine()
+			&& $next?->startsLine()
+			&& $list->indexOf($removed) > 0
+			&& $list->indexOf($removed) < count($list) - 1
+		) {
+			$wider = max($first->countBlankLinesBefore(), $next->countBlankLinesBefore());
+			$first->setBlankLinesBefore($wider, $lineEnding);
+			$next->setBlankLinesBefore($wider, $lineEnding);
+		}
+
+		$node->remove(mergeBlankLines: true);
 	}
 
 

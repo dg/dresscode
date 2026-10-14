@@ -8,6 +8,7 @@
 namespace DressCode\Rules\Namespaces;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, SymbolKind, Token};
 use PhpSyntax\Nodes\Statement\UseNode;
@@ -58,7 +59,7 @@ final class UselessCurrentNamespaceImportRule extends NodeRule
 				continue;
 			}
 
-			$item->remove();
+			NodeHelpers::removeMergingGaps($item, $context->style->lineEnding);
 		}
 	}
 }

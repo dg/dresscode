@@ -9,7 +9,7 @@ namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{MemberKind, PhpDoc, Types};
 use DressCode\{Risk, RuleContext, Tristate};
-use DressCode\Rules\{CodeWriter, QualifiedNames};
+use DressCode\Rules\{CodeWriter, NodeHelpers, QualifiedNames};
 use PHPStan\PhpDocParser\Ast\{Attribute, Node as PhpDocAstNode};
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\Doctrine\{DoctrineArgument, DoctrineArrayItem};
@@ -486,7 +486,7 @@ final class ClassReplacement
 			return $item->alias->text ?? $short;
 		}
 
-		$item->remove();
+		NodeHelpers::removeMergingGaps($item, $context->style->lineEnding);
 
 		return null;
 	}

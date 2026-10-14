@@ -45,7 +45,6 @@ class A
 
 class B
 {
-
 	public function __construct(private string $a = 'd', private int $b = 1)
 	{
 	}
@@ -76,7 +75,6 @@ class D
 
 class E
 {
-
 	public function __construct(public string $data)
 	{
 	}

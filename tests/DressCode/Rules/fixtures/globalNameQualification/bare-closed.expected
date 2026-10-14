@@ -4,5 +4,4 @@
 // nameResolution certain
 namespace App;
 
-
 \strlen($a);

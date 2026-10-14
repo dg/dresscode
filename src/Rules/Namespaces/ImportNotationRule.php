@@ -195,7 +195,7 @@ final class ImportNotationRule extends NodeRule
 				$first->items->append($copy);
 			}
 
-			$use->remove();
+			NodeHelpers::removeMergingGaps($use, $context->style->lineEnding);
 		}
 	}
 
@@ -314,7 +314,7 @@ final class ImportNotationRule extends NodeRule
 				$group->addImport($item->fullName, $item->alias?->text);
 			}
 
-			$stmt->remove();
+			NodeHelpers::removeMergingGaps($stmt, $context->style->lineEnding);
 		}
 	}
 

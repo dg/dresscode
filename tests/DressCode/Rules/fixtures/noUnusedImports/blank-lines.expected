@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * The header of the file stays where it is.
+ */
+
+use Lib\Used;
+
+new Used;
