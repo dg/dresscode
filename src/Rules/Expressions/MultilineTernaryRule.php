@@ -12,11 +12,13 @@ use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Stage};
 use DressCode\Domains\Words;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Nodes\Expression\TernaryNode;
+use function is_string;
 
 
 /**
  * A ternary split over lines takes three: the condition, then `?` with its branch, then `:` with its
- * branch; one split at either operator brings the other along. A ternary on a line wider than the line length of
+ * branch; one split at either operator brings the other along, and so does the condition or the first branch spanning
+ * lines, where the operators would hide at the ends of lines. A ternary on a line wider than the line length of
  * the style is split so, unless an outer construct on the line is spread first or `file.lineLengthExcept` names
  * `ternary`, and the `?:` of a short ternary stays together. Where the lines stand is the matter of `IndentationRule`.
  */
@@ -42,12 +44,16 @@ final class MultilineTernaryRule extends GapRule
 				return null;
 			}
 
-			$because = $gap->once($ternary, fn() => self::findWidthReason($ternary, $gap));
-			return match (true) {
-				$because !== null => new Claim(line: Line::Next, because: $because),
-				$ternary->question->startsLine() || $ternary->colon->startsLine() => $break,
-				default => null,
-			};
+			// an operand spanning lines before the last operator spans the ternary too, the operators then hiding at the
+			// ends of its lines; the last operand may span lines after them, which stay in sight
+			$last = $ternary->then === null ? $ternary->question : $ternary->colon;
+			$because = $gap->once(
+				$ternary,
+				fn() => $ternary->getFirstToken()->getCurrentLine() === $last->getCurrentLine()
+					? self::findWidthReason($ternary, $gap)
+					: $break,
+			);
+			return is_string($because) ? new Claim(line: Line::Next, because: $because) : $because;
 		};
 		return [TernaryNode::class => ['question' => [$operator, null], 'colon' => [$operator, null]]];
 	}

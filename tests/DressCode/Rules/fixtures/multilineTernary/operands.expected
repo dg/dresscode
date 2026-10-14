@@ -1,0 +1,19 @@
+<?php
+// an operand spanning lines before the last operator spans the ternary, `?` and `:` then hiding at the ends of lines
+return $lines
+	? new Position(
+	$line + $lines,
+	$offset,
+)
+	: new Position(
+	$line,
+	$offset,
+);
+
+// the last operand may span lines after the operators, which stay in sight
+$a = $b ? $c : foo(
+	$c,
+);
+$a = $b ?: foo(
+	$c,
+);
