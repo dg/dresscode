@@ -1,0 +1,24 @@
+<?php
+// arms sharing a line of a match spanning lines take a line each
+$color = match ($result) {
+	Test::Passed => 'lime',
+	Test::Skipped => 'yellow',
+	Test::Failed => 'white/red',
+};
+
+$color = match ($result) {
+	Test::Passed => 'lime',
+	Test::Skipped => colorize(
+		'SKIP',
+	),
+	default => null
+};
+
+$color = match ($a) {
+	1 => 'a', // one
+	2 => 'b',
+	3 => 'c',
+};
+
+// a match on one line stays
+$color = match ($a) { 1 => 'a', 2 => 'b' };

@@ -227,8 +227,13 @@ final class NameCasingRule extends NodeRule
 		}
 
 		$what = match ($kind) {
-			'class' => 'class', 'method' => 'method', 'function' => 'function', 'constant' => 'constant',
-			'enumCase' => 'enum case', 'property' => 'property', default => 'variable',
+			'class' => 'class',
+			'method' => 'method',
+			'function' => 'function',
+			'constant' => 'constant',
+			'enumCase' => 'enum case',
+			'property' => 'property',
+			default => 'variable',
 		};
 		$context->report($at, "The $what `$name` must be written in $case.", fixable: false, decision: "naming.$kind");
 	}

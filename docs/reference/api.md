@@ -1011,6 +1011,7 @@ final readonly class Violation
 - `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`
 - `DressCode\Rules\Expressions\MultilineChainRule`
 - `DressCode\Rules\Expressions\MultilineMatchArmRule`
+- `DressCode\Rules\Expressions\MultilineMatchRule`
 - `DressCode\Rules\Expressions\MultilineTernaryRule`
 - `DressCode\Rules\Expressions\NoBacktickOperatorsRule`
 - `DressCode\Rules\Expressions\NoDoubleNegationsRule`

@@ -130,6 +130,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\ExplicitPrecedenceRequiredRule::class,
 				Rules\Expressions\IncrementForAddOneRule::class,
 				Rules\Expressions\MultilineBinaryOperatorRule::class,
+				Rules\Expressions\MultilineMatchRule::class,
 				Rules\Expressions\MultilineMatchArmRule::class,
 				Rules\Expressions\MultilineChainRule::class,
 				Rules\Expressions\MultilineTernaryRule::class,

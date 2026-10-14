@@ -74,6 +74,7 @@ multiline:
 	signaturePromoted: always                 # however short
 	chainFirstLinks: sameLine                 # `$form->addText()` above `->setRequired()`
 	condition: [perLine, compact]             # `if (` above `$a`, or `if ($a` above `&& $b`
+	match: perLine
 	matchArmConditions: asWritten             # conditions may share a line
 	expressionBelowReturn: forbidden          # `return [`, not `return` above `[`
 	semicolonOnOwnLine: forbidden
