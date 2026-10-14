@@ -201,5 +201,5 @@ upgrading:
 
 # comments that silence a decision on their line
 suppressionComments:
-	'~\bintentionally\s+[!=]=~': expressions.comparison.loose   # `// intentionally ==`
-	'~^//\s*@\s+\S~': correctness.errorSuppression                 # `// @ why`
+	'~\bintentionally\s+[!=]=~': [expressions.comparison.loose, correctness.strictComparisonArgument]   # `// intentionally ==`
+	'~^//\s*@\s+\S~': correctness.errorSuppression                                                    # `// @ why`
