@@ -1,0 +1,9 @@
+<?php
+// a comment padding a column keeps its width, the space after the marker taken from the padding
+$patterns = [
+	'#ab#' /*.    */ => 'x',
+	'#a#' /*.     */ => 'y',
+	'#abcdef#'       => 'z',
+];
+
+/*one space before the end */ $a = 1;

@@ -138,9 +138,13 @@ final class CommentSpacingRule extends NodeRule
 	}
 
 
+	/** A comment on one line padded with spaces before its closing marker keeps its width, the space taken from them. */
 	private static function padOpeningMarker(string $text): string
 	{
-		return (string) preg_replace('~^(//|#(?!\[)|/\*)(?![/*\s]|$)~', '$1 ', $text);
+		$padded = (string) preg_replace('~^(//|#(?!\[)|/\*)(?![/*\s]|$)~', '$1 ', $text);
+		return $padded !== $text && !str_contains($text, "\n") && preg_match('~^/\*.*  \*+/$~', $padded)
+			? (string) preg_replace('~ (\*+/)$~', '$1', $padded)
+			: $padded;
 	}
 
 
