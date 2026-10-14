@@ -379,7 +379,7 @@ final readonly class RunnerFactory
 	}
 
 
-	private static function resolveCacheDir(Config $config, string $root): string
+	public static function resolveCacheDir(Config $config, string $root): string
 	{
 		$root = Helpers::canonicalizePath($root);
 		$dir = $config->cacheDir === null ? sys_get_temp_dir() . '/dresscode' : Helpers::toAbsolutePath($config->cacheDir, $root);

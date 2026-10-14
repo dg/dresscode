@@ -7,7 +7,9 @@
 
 namespace DressCode\Config;
 
+use Composer\InstalledVersions;
 use DressCode\{ConfigurationException, Plugin, Profile};
+use DressCode\Engine\Helpers;
 use function array_key_exists, is_array, is_string;
 
 
@@ -16,16 +18,20 @@ use function array_key_exists, is_array, is_string;
  * the directory `extra.dresscode.upgrading-dir` names, read for the versions of their package the code must work with
  * (`UpgradingFile::selectFor()`), with those of PHP for its target (`readPhpData()`), and the plugin under
  * `extra.dresscode.plugin`, which the project lets in by naming the package or the plugin in `use`, as Composer lets in
- * its own plugins. The root package takes part too, and a file about the root itself applies whole. Such a file never
- * turns a rule on itself; its maps, and the requirements of the rules of the plugin of its package, are laid under those
- * of the project where the project says `upgrading.packages: yes`, those of PHP where it says
+ * its own plugins. The root package takes part too, and a file about the root itself applies whole, and so do the
+ * packages of upgrading data installed beside DressCode, which `upgrade` installs for a project lacking them. Such a
+ * file never turns a rule on itself; its maps, and the requirements of the rules of the plugin of its package, are
+ * laid under those of the project where the project says `upgrading.packages: yes`, those of PHP where it says
  * `upgrading.php.deprecatedApi: forbidden`.
  * @internal
  */
 final readonly class PackageDiscovery
 {
 	/** the keys of `extra.dresscode` a package may use */
-	public const Keys = ['upgrading-dir', 'plugin'];
+	public const Keys = ['upgrading-dir', 'packages', 'plugin'];
+
+	/** the type of the packages that bring DressCode upgrading data or a plugin */
+	public const PackageType = 'dresscode-plugin';
 
 	/** the platform package of Composer the upgrading data of PHP are about, which DressCode ships itself */
 	public const Php = 'php';
@@ -61,15 +67,25 @@ final readonly class PackageDiscovery
 	}
 
 
-	/** @throws ConfigurationException  for a file a package ships that cannot be read */
-	public static function discover(ProjectPackages $project): self
+	/**
+	 * @param  ?array<string, string>  $installation  the packages of upgrading data installed beside DressCode => where
+	 *   they lie, by default those of the running process
+	 * @throws ConfigurationException  for a file a package ships that cannot be read
+	 */
+	public static function discover(ProjectPackages $project, ?array $installation = null): self
 	{
-		// the root package first, then the installed ones as Composer lists them
+		// the root package first, then the installed ones as Composer lists them, then the data beside DressCode
 		$packages = $project->rootPath === null
 			? []
 			: [[$project->rootName ?? 'the root package', $project->rootPath, $project->rootExtra['dresscode'] ?? null]];
 		foreach ($project->installed as $name => $package) {
 			$packages[] = [$name, $package['path'], $package['extra']['dresscode'] ?? null];
+		}
+
+		foreach ($installation ?? self::findInstalledDataPackages() as $name => $path) {
+			if (!$project->has($name)) {
+				$packages[] = [$name, $path, ComposerJson::read("$path/composer.json")['extra']['dresscode'] ?? null];
+			}
 		}
 
 		$upgradingData = $plugins = $warnings = [];
@@ -170,6 +186,80 @@ final readonly class PackageDiscovery
 		$files = array_map(fn(string $file) => "$dir/" . basename($file), glob("$path/$dir/*.neon") ?: []);
 		sort($files);
 		return $files;
+	}
+
+
+	/**
+	 * The packages of upgrading data about a library the project requires itself, which neither the project nor the
+	 * installation of DressCode holds.
+	 * @param  array<string, list<string>>  $catalogue  package => the libraries it says it is about (`DataPackageCatalogue`)
+	 * @param  ?array<string, string>  $installation  as `discover()` takes it
+	 * @return list<string>
+	 */
+	public static function findMissingDataPackages(ProjectPackages $project, array $catalogue, ?array $installation = null): array
+	{
+		$installation ??= self::findInstalledDataPackages();
+		$missing = [];
+		foreach ($catalogue as $package => $libraries) {
+			if ($project->has($package) || isset($installation[$package])) {
+				continue;
+			}
+
+			if (array_any(array_keys($project->required), fn(string $name) => self::isAbout($libraries, $name))) {
+				$missing[] = $package;
+			}
+		}
+
+		return $missing;
+	}
+
+
+	/**
+	 * Whether the library is one of those `extra.dresscode.packages` lists, a whole vendor written `vendor/`.
+	 * @param  list<string>  $libraries
+	 */
+	public static function isAbout(array $libraries, string $library): bool
+	{
+		return array_any($libraries, fn(string $name) => str_ends_with($name, '/') ? str_starts_with($library, $name) : $library === $name);
+	}
+
+
+	/**
+	 * The packages of upgrading data installed beside DressCode, as Composer says of the running process.
+	 * @return array<string, string>  package => where it lies
+	 */
+	public static function findInstalledDataPackages(): array
+	{
+		$found = [];
+		$packages = class_exists(InstalledVersions::class) ? InstalledVersions::getInstalledPackagesByType(self::PackageType) : [];
+		foreach (array_unique($packages) as $package) {
+			$path = InstalledVersions::getInstallPath($package);
+			$extra = $path === null ? null : (ComposerJson::read("$path/composer.json")['extra']['dresscode'] ?? null);
+			if (isset($extra['upgrading-dir'])) {
+				$found[$package] = Helpers::canonicalizePath(realpath($path) ?: $path);
+			}
+		}
+
+		return $found;
+	}
+
+
+	/**
+	 * The directory of the `composer.json` DressCode is installed by, globally, beside a project or as the project;
+	 * null for a phar and for a process Composer did not load.
+	 */
+	public static function findInstallationRoot(): ?string
+	{
+		$directory = self::findComposerDirectory();
+		return $directory === null ? null : Helpers::canonicalizePath(dirname($directory, 2));
+	}
+
+
+	/** The directory of what Composer wrote about the installation the process is loaded from. */
+	private static function findComposerDirectory(): ?string
+	{
+		$file = class_exists(InstalledVersions::class) ? new \ReflectionClass(InstalledVersions::class)->getFileName() : false;
+		return $file === false || str_starts_with($file, 'phar://') ? null : dirname($file);
 	}
 
 
