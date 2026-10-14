@@ -20,7 +20,7 @@ use function count;
  * The conditions of a `match` arm spread over lines by their author or on a line wider than the line length of the
  * style stand one on a line, the first where the arm begins and each comma on the line of its condition, and `=>`
  * with the result follows the last one; with `asWritten` the conditions spread by their author stand as they are,
- * and more than five on a line too wide fill the lines up to the line length instead. An arm of a single
+ * and more than five on a line too wide fill the lines evenly up to the line length instead. An arm of a single
  * condition stays, and so does one on a line where `file.lineLengthExcept` names `matchArm`. Where the lines stand
  * is the matter of `IndentationRule`.
  */

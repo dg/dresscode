@@ -18,10 +18,10 @@ use function count;
 
 /**
  * A group use whose line would be longer than the line length of the style is spread over lines: the opening brace ends
- * its line, the names fill the lines up to that length and the closing brace stands on a line of its own. The length is
- * the one the import would have on a single line, so a group already spread keeps its shape while it is short enough,
- * and a group of a single name is left alone, there being nothing to spread it into. The comma that ends the names is
- * the matter of `TrailingCommaRule` and where the lines stand of `IndentationRule`.
+ * its line, the names fill the lines evenly up to that length and the closing brace stands on a line of its own. The
+ * length is the one the import would have on a single line, so a group already spread keeps its shape while it is
+ * short enough, and a group of a single name is left alone, there being nothing to spread it into. The comma that ends
+ * the names is the matter of `TrailingCommaRule` and where the lines stand of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting, analyses: [IndentationSnapshot::class])]
 final class MultilineImportRule extends GapRule

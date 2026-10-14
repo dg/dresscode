@@ -23,10 +23,10 @@ use function count;
  * one, following the last item where the first item follows the opening bracket. An array of several items on one
  * line wider than `multiline.arrayMaxWidth`, or on a line wider than the line length of the style where no outer
  * construct on the line is spread first and `file.lineLengthExcept` does not name `array`, is spread in either shape,
- * and with `asWritten` more than five items fill its lines up to the line length instead. Whatever the frame, the
- * opening bracket stays on the line of the code before it (an assignment, a return, a double arrow) and each comma
- * on the line of its item, and any other array kept on one line is left alone. Where the lines stand is the matter
- * of `IndentationRule`.
+ * and with `asWritten` more than five items without keys fill its lines evenly up to the line length instead.
+ * Whatever the frame, the opening bracket stays on the line of the code before it (an assignment, a return, a double
+ * arrow) and each comma on the line of its item, and any other array kept on one line is left alone. Where the lines
+ * stand is the matter of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineArrayRule extends GapRule
@@ -49,7 +49,7 @@ final class MultilineArrayRule extends GapRule
 			]), 'The items of an array spread over lines, by its author or for its width, the opening bracket staying on the line of the code before it'),
 			new Decision(self::MaxWidth, new Count(1, range: false, words: [
 				'none' => 'never spread for its width',
-			]), 'The width from bracket to bracket over which an array of several items written on one line is spread over lines, more than five items filling its lines where `multiline.array` is `asWritten`', kind: DecisionKind::Parameter, default: 'none'),
+			]), 'The width from bracket to bracket over which an array of several items written on one line is spread over lines, more than five items without keys filling its lines where `multiline.array` is `asWritten`', kind: DecisionKind::Parameter, default: 'none'),
 		];
 	}
 
@@ -181,9 +181,9 @@ final class MultilineArrayRule extends GapRule
 
 
 	/**
-	 * The claims before the items of an array spread for its width with more than five items: an item follows the
-	 * one before on its line while the line fits into the line length, and begins the next one when it does not;
-	 * null for an array whose items stand one on a line, as one with a comment does.
+	 * The claims before the items of an array spread for its width with more than five items, filling its lines
+	 * evenly; null for an array whose items stand one on a line, as one with a comment or with keys does, a pair
+	 * being read one by one.
 	 * @return ?list<Claim>
 	 */
 	private static function claimPacked(ArrayNode $array, Style $style, string $because): ?array
@@ -192,7 +192,7 @@ final class MultilineArrayRule extends GapRule
 		if (
 			$style->maxLineLength === null
 			|| count($items) <= NodeHelpers::MaxItemsOnOwnLines
-			|| !array_all($items, fn($item) => $item instanceof ArrayItemNode)
+			|| !array_all($items, fn($item) => $item instanceof ArrayItemNode && $item->key === null)
 		) {
 			return null;
 		}

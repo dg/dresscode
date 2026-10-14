@@ -1087,7 +1087,7 @@ The items of an array spread over lines, by its author or for its width, the ope
 
 ### multiline.arrayMaxWidth
 
-The width from bracket to bracket over which an array of several items written on one line is spread over lines, more than five items filling its lines where `multiline.array` is `asWritten`.
+The width from bracket to bracket over which an array of several items written on one line is spread over lines, more than five items without keys filling its lines where `multiline.array` is `asWritten`.
 
 - By default `none`
 - Takes: a count from 1; `none` (never spread for its width)

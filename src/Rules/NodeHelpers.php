@@ -984,36 +984,59 @@ final class NodeHelpers
 
 
 	/**
-	 * The claims before the items of a list spread over lines by their width: an item follows the one before on its
-	 * line while the line, the comma after it included, fits into the length, and begins the next one when it does
-	 * not; null where an item cannot be measured on one line.
+	 * The claims before the items of a list spread over lines by their width, filling the lines evenly: as few lines
+	 * as filling each up to the length takes, each no longer than it needs to be for that, so that the last does not
+	 * hold a lone item; null where an item cannot be measured on one line.
 	 * @param  list<Node>  $items
 	 * @param  int  $indentation  the width of the indentation of a line of items
 	 * @return ?list<Claim>
 	 */
 	public static function packItems(array $items, int $indentation, int $lineLength, string $because): ?array
 	{
-		$break = new Claim(line: Line::Next, because: $because);
-		$follow = new Claim(line: Line::Same, because: $because);
-		$claims = [];
-		$column = 0;
-		foreach ($items as $i => $item) {
+		$widths = [];
+		foreach ($items as $item) {
 			$width = self::measureNode($item);
 			if ($width === null) {
 				return null;
 			}
 
-			$width++; // the comma after it
-			if ($i > 0 && $column + 1 + $width <= $lineLength) {
-				$claims[] = $follow;
-				$column += 1 + $width;
+			$widths[] = $width + 1; // the comma after it
+		}
+
+		$breaks = self::fillLines($widths, $indentation, $lineLength);
+		$low = $indentation + max($widths ?: [0]);
+		$high = $lineLength;
+		while ($low < $high) { // the narrowest length that still takes no more lines
+			$middle = intdiv($low + $high, 2);
+			if (count(array_filter(self::fillLines($widths, $indentation, $middle))) <= count(array_filter($breaks))) {
+				$high = $middle;
 			} else {
-				$claims[] = $break;
-				$column = $indentation + $width;
+				$low = $middle + 1;
 			}
 		}
 
-		return $claims;
+		$break = new Claim(line: Line::Next, because: $because);
+		$follow = new Claim(line: Line::Same, because: $because);
+		return array_map(fn(bool $breaks) => $breaks ? $break : $follow, self::fillLines($widths, $indentation, $low));
+	}
+
+
+	/**
+	 * Whether each item begins a line when the items fill the lines up to the length: an item follows the one before
+	 * while the line fits, and begins the next one when it does not.
+	 * @param  list<int>  $widths
+	 * @return list<bool>
+	 */
+	private static function fillLines(array $widths, int $indentation, int $lineLength): array
+	{
+		$breaks = [];
+		$column = 0;
+		foreach ($widths as $i => $width) {
+			$breaks[] = $i === 0 || $column + 1 + $width > $lineLength;
+			$column = end($breaks) ? $indentation + $width : $column + 1 + $width;
+		}
+
+		return $breaks;
 	}
 
 
