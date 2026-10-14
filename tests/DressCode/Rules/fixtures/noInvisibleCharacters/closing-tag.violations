@@ -1,0 +1,5 @@
+2: Invisible character U+200B in a comment, but it keeps `?>` from closing the code.
+3: Invisible character U+200B in a comment, but it keeps `?>` from closing the code.
+4: Invisible character U+200B in a comment.
+5: Invisible character U+00A0 in a string.
+6: Invisible character U+00A0 in a string.

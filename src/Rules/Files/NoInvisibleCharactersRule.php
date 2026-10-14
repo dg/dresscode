@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Files;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Token};
+use PhpSyntax\{Node, Printer, Token};
 use PhpSyntax\Nodes\Scalar\HeredocNode;
 use function in_array, strlen;
 
@@ -17,8 +17,9 @@ use function in_array, strlen;
  * No invisible characters in code: the no-break spaces, zero-width characters, line separators and bidi
  * controls that pasted text carries. In a comment they become a space or go away; in a string they become
  * a `\u{...}` escape, which keeps the value and shows the character, so a single-quoted string turns into
- * a double-quoted one; in a nowdoc, in a single-quoted string that double quotes would change, and in an
- * identifier or a variable name they are only reported.
+ * a double-quoted one; in a nowdoc, in a single-quoted string that double quotes would change, in a line comment
+ * where the character keeps the two characters of a closing tag apart, and in an identifier or a variable name
+ * they are only reported.
  * Markup outside PHP tags is left alone.
  */
 #[RuleInfo(Stage::Structure, modifiesComments: true)]
@@ -58,13 +59,23 @@ final class NoInvisibleCharactersRule extends NodeRule
 
 		if ($node->hasComment()) {
 			foreach ([...$node->leadingTrivia, ...$node->trailingTrivia] as $trivia) {
-				if (
-					$trivia->isComment()
-					&& !$trivia->inInterpolation
-					&& ($found = self::find($trivia->text)) !== null
-					&& $context->report($node, "Invisible character $found in a comment.", trivia: $trivia)
-				) {
-					$node->replaceTrivia($trivia, $trivia->withText(strtr($trivia->text, self::Characters)));
+				$found = $trivia->isComment() && !$trivia->inInterpolation ? self::find($trivia->text) : null;
+				if ($found === null) {
+					continue;
+				}
+
+				// a line comment ends at a closing tag, so a character keeping its two characters apart stays
+				$text = strtr($trivia->text, self::Characters);
+				$closes = $trivia->isLineComment() && str_contains($text, '?>') && !str_contains($trivia->text, '?>');
+				if ($closes) {
+					$context->report(
+						$node,
+						"Invisible character $found in a comment, but it keeps `?>` from closing the code.",
+						trivia: $trivia,
+						fixable: false,
+					);
+				} elseif ($context->report($node, "Invisible character $found in a comment.", trivia: $trivia)) {
+					$node->replaceTrivia($trivia, $trivia->withText($text));
 				}
 			}
 		}
@@ -98,7 +109,7 @@ final class NoInvisibleCharactersRule extends NodeRule
 			return;
 		}
 
-		$token->setText($prefix . '"' . self::escape($body) . '"');
+		$token->setText($prefix . '"' . self::escape($body, $context) . '"');
 	}
 
 
@@ -108,22 +119,38 @@ final class NoInvisibleCharactersRule extends NodeRule
 		$heredoc = $token->parent?->findAncestor(HeredocNode::class);
 		$nowdoc = $heredoc !== null && str_contains($heredoc->openDelimiter->text, "'");
 		if ($context->report($token, "Invisible character $found in a string.", fixable: !$nowdoc) && !$nowdoc) {
-			$token->setText(self::escape($token->text));
+			$token->setText(self::escape($token->text, $context));
 		}
 	}
 
 
-	/** The characters as escapes; a lone backslash in front of one would escape the escape, so it gets a second one. */
-	private static function escape(string $text): string
+	/**
+	 * The characters as escapes, written the way the file writes its escapes already, `\u{00A0}` where it has none;
+	 * a lone backslash in front of one would escape the escape, so it gets a second one.
+	 */
+	private static function escape(string $text, RuleContext $context): string
 	{
 		static $pattern = '~(\\\\*)('
 			. implode('|', array_map(fn(string $character) => preg_quote($character, '~'), array_keys(self::Characters)))
 			. ')~';
+		$format = $context->storage[self::class] ??= self::findEscapeFormat(Printer::print($context->file));
 		return preg_replace_callback(
 			$pattern,
-			fn(array $match) => $match[1] . (strlen($match[1]) % 2 === 1 ? '\\' : '') . sprintf('\u{%04X}', mb_ord($match[2], 'UTF-8')),
+			fn(array $match) => $match[1] . (strlen($match[1]) % 2 === 1 ? '\\' : '') . sprintf($format, mb_ord($match[2], 'UTF-8')),
 			$text,
 		) ?? $text;
+	}
+
+
+	/** The format of the first `\u{...}` escape of the code, its letters in the case it writes them and its digits padded or not. */
+	private static function findEscapeFormat(string $code): string
+	{
+		if (!preg_match('~(?<!\\\\)\\\\u\{([0-9a-fA-F]+)\}~', $code, $m)) {
+			return '\u{%04X}';
+		}
+
+		// what the escape does not show, the case of a number without letters, padding of four digits, stays the default
+		return '\u{%' . (strlen($m[1]) < 4 ? '' : '04') . (preg_match('~[a-f]~', $m[1]) ? 'x' : 'X') . '}';
 	}
 
 
