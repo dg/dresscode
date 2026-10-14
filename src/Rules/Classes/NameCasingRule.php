@@ -7,14 +7,14 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{Analyses, Decision, DecisionKind, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Analyses\PhpDoc;
+use DressCode\{Decision, DecisionKind, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\{Names, Words};
-use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\{AttributeAwareNode, FunctionLikeNode, Member, ParameterNode, Statement};
 use PhpSyntax\Nodes\Expression\VariableNode;
+use PhpSyntax\Nodes\{FunctionLikeNode, Member, ParameterNode, Statement};
 
 
 /**
@@ -212,7 +212,7 @@ final class NameCasingRule extends NodeRule
 			$case === null
 			|| preg_match(self::Patterns[$case], $name)
 			|| $this->isExcepted($name)
-			|| ($declaration !== null && self::isDeprecated($declaration, $context))
+			|| ($declaration !== null && NodeHelpers::isDeprecated($declaration, $context))
 		) {
 			return;
 		}
@@ -222,25 +222,6 @@ final class NameCasingRule extends NodeRule
 			'enumCase' => 'enum case', 'property' => 'property', default => 'variable',
 		};
 		$context->report($at, "The $what `$name` must be written in $case.", fixable: false, decision: "naming.$kind");
-	}
-
-
-	/**
-	 * Whether the declaration says of itself that it is deprecated, by the `@deprecated` annotation or by the
-	 * `#[\Deprecated]` attribute of PHP 8.4.
-	 */
-	private static function isDeprecated(Node $node, RuleContext $context): bool
-	{
-		$docComment = $node->getDocComment();
-		if ($docComment !== null) {
-			foreach ($context->getAnalysis(Analyses\PhpDoc::class)->parse($docComment)->children as $child) {
-				if ($child instanceof PhpDocTagNode && strcasecmp($child->name, '@deprecated') === 0) {
-					return true;
-				}
-			}
-		}
-
-		return $node instanceof AttributeAwareNode && $context->getAnalysis(NameResolver::class)->hasAttribute($node, \Deprecated::class);
 	}
 
 

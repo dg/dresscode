@@ -55,13 +55,18 @@ class Cart extends Base
 	/** @deprecated use hidden() */
 	private function conceal(): void
 	{
-		$this->conceal();
 	}
 
 
 	/** @deprecated use shielded() */
 	protected function guard(): void
 	{
+	}
+
+
+	public function lock(): void
+	{
+		$this->conceal();
 		$this->guard();
 	}
 }

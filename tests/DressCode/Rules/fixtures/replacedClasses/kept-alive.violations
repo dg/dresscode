@@ -1,0 +1,4 @@
+9: Class `Acme\Codec\ContextAwareNormalizer` is replaced by `Acme\Codec\Normalizer`.
+9: Class `Acme\Codec\ContextAwareNormalizer` is replaced by `Acme\Codec\Normalizer`.
+14: Class `Acme\Codec\ContextAwareNormalizer` is replaced by `Acme\Codec\Normalizer`.
+14: Class `Acme\Codec\ContextAwareNormalizer` is replaced by `Acme\Codec\Normalizer`.

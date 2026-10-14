@@ -7,10 +7,11 @@
 
 namespace DressCode\Rules\Upgrading;
 
-use DressCode\Analyses\{Deprecation, Member, MemberKind, Types};
+use DressCode\Analyses\{Deprecation, Member, MemberKind, PhpDoc, Types};
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
-use DressCode\Rules\QualifiedNames;
+use DressCode\Rules\{NodeHelpers, QualifiedNames};
+use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, PropertyFetchNode, StaticMethodCallNode, StaticPropertyFetchNode};
 
@@ -21,9 +22,10 @@ use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, MethodCallNode, Property
  * is decided by the class declaring it. A replacement in the same class is fixed by writing its name, where the class
  * has it at least as visible, for a property at least as writable and of the same type, and it takes the use as it is,
  * a method every call of the deprecated one; any other is reported with what the deprecation says.
- * A member the maps of replacedMembers, replacedCalls or forbiddenMembers have is not reported.
+ * A member the maps of replacedMembers, replacedCalls or forbiddenMembers have is not reported, nor a use inside
+ * a declaration deprecated itself, which goes together with it.
  */
-#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class], reads: self::Maps)]
+#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class, PhpDoc::class, NameResolver::class], reads: self::Maps)]
 final class NoDeprecatedMembersRule extends NodeRule
 {
 	private const Maps = [MemberMapGrammar::ReplacedMembers, MemberMapGrammar::ReplacedCalls, MemberMapGrammar::ForbiddenMembers];
@@ -84,6 +86,7 @@ final class NoDeprecatedMembersRule extends NodeRule
 		if (
 			$deprecation === null
 			|| ($access !== null && $this->mapped->has($access, $types))
+			|| NodeHelpers::isInDeprecatedDeclaration($node, $context)
 		) {
 			return;
 		}

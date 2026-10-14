@@ -1,0 +1,41 @@
+<?php
+
+namespace App;
+
+use Acme\Shop\Order;
+
+class Legacy
+{
+	/** @deprecated use Order::StatusPaid */
+	public const PAID = Order::STATUS_PAID;
+
+
+	/** @deprecated use run() */
+	public function recalc(Order $order): void
+	{
+		$order->recalc();
+	}
+
+
+	#[\Deprecated('use run()')]
+	public function status(): string
+	{
+		return Order::STATUS_PAID;
+	}
+
+
+	public function run(Order $order): void
+	{
+		$order->recalc();
+	}
+}
+
+
+/** @deprecated */
+class Old
+{
+	public function f(Order $order): void
+	{
+		$order->recalc();
+	}
+}

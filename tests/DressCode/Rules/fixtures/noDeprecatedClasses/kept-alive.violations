@@ -1,0 +1,2 @@
+47: Class `App\Kept\Identity` is deprecated: use App\Kept\SimpleIdentity.
+47: Class `Acme\Mail\ITransport` is deprecated: use Acme\Mail\Transport.

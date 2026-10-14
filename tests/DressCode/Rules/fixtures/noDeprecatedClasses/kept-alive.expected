@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Kept;
+
+use Acme\Mail\ITransport;
+use Acme\Mail\Transport;
+
+/** @deprecated use App\Kept\SimpleIdentity */
+class Identity
+{
+	/** @return ITransport */
+	public function send(ITransport $transport): ITransport
+	{
+		return $transport;
+	}
+}
+
+
+// the replacement extends the class it replaces, so that both stay interchangeable
+class SimpleIdentity extends Identity
+{
+}
+
+
+class_alias(Transport::class, ITransport::class);
+if (!interface_exists(ITransport::class)) {
+}
+
+
+class Mailer
+{
+	/**
+	 * A union naming the replacement takes both on purpose.
+	 * @param  Transport|ITransport  $transport
+	 */
+	public function send(Transport|ITransport $transport): void
+	{
+	}
+
+
+	#[\Deprecated('use send()')]
+	public function post(ITransport $transport): void
+	{
+	}
+
+
+	public function find(SimpleIdentity $identity): Transport
+	{
+	}
+
+
+	/** @param  object|class-string  $transport */
+	public function load(object|string $transport): void
+	{
+	}
+}

@@ -14,12 +14,14 @@ use PHPStan\PhpDocParser\Ast\{Attribute, Node as PhpDocAstNode};
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\Doctrine\{DoctrineArgument, DoctrineArrayItem};
 use PHPStan\PhpDocParser\Ast\PhpDoc\{GenericTagValueNode, PhpDocNode, PhpDocTagNode};
-use PHPStan\PhpDocParser\Ast\Type\{ArrayShapeItemNode, IdentifierTypeNode, ObjectShapeItemNode};
+use PHPStan\PhpDocParser\Ast\Type\{ArrayShapeItemNode, IdentifierTypeNode, ObjectShapeItemNode, UnionTypeNode as PhpDocUnionTypeNode};
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{NameForm, SymbolKind, Token, Trivia};
-use PhpSyntax\Nodes\{FileNode, NameNode, SeparatedNodeList, UseItemNode};
+use PhpSyntax\{NameForm, Node, SymbolKind, Token, Trivia};
+use PhpSyntax\Nodes\{ClassLikeNode, FileNode, NameNode, SeparatedNodeList, UseItemNode};
+use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, FunctionCallNode};
 use PhpSyntax\Nodes\Statement\{ClassNode, EnumNode, InterfaceNode, NamespaceNode};
+use PhpSyntax\Nodes\Type\{NamedTypeNode, UnionTypeNode};
 use function count, is_array, strlen;
 
 
@@ -29,9 +31,11 @@ use function count, is_array, strlen;
  * a static access, an attribute. An import of the old name is rewritten in place where its alias or its short name goes on
  * naming the class, and the fully qualified references of the new class in the scope are then written by that name;
  * else it goes and the references import the new name the way the scope imports. A name in the list
- * of what a class implements or an interface extends that the list names already, as it stands or once rewritten, goes
- * from the list; one the types say cannot stand where it would, a class to implement or an interface to extend by a
- * class, is reported and left. The names in doc comments are rewritten too, token by token
+ * of what a class implements or an interface extends, or in a union type, that the list names already, as it stands
+ * or once rewritten, goes from the list; one the types say cannot stand where it would, a class to implement or an
+ * interface to extend by a class, is reported and left. A name that keeps the old one alive is left as it is: the class
+ * `class_alias()` declares and the one `class_exists()` and its kin ask for, and the name the replacement itself
+ * extends or implements, which rewritten would name the class itself. The names in doc comments are rewritten too, token by token
  * so that the comment keeps its layout: a type, a class constant, the target of `@see` and of an inline tag.
  * @internal
  */
@@ -45,9 +49,9 @@ final class ClassReplacement
 	 * a replacement for and the report allows.
 	 * @param  \Closure(string): ?array{string, ?string}  $find  given a fully qualified class, the message and the class
 	 *   written instead, null for none; null for a class that is left alone
-	 * @param  \Closure(string, ?array{string, MemberKind}): (array{string, ?string}|false|null)  $findInDocs  the same as
-	 *   `$find` for a class a doc comment names, with the member it names, false for one that goes on naming the class
-	 *   and keeps its import
+	 * @param  \Closure(string, ?array{string, MemberKind}, Token, list<string>): (array{string, ?string}|false|null)  $findInDocs
+	 *   the same as `$find` for a class a doc comment names, with the member it names, the token holding the comment and
+	 *   the lowercased classes beside it in a union type, false for one that goes on naming the class and keeps its import
 	 * @param  ?\Closure(NameNode): bool  $keeps  whether the reference goes on naming the class, which nothing is said
 	 *   about and whose import stays with it
 	 * @param  ?AnnotationMap  $annotations  the map of annotations read as attributes, whose annotations keep the import
@@ -68,12 +72,12 @@ final class ClassReplacement
 		$imports = $references = $kept = $lists = $docs = [];
 		foreach (self::findDocReferences($scope, $context) as [$token, $trivia, $tokens, $names]) {
 			$found = [];
-			foreach ($names as [$index, $class, $member]) {
-				$result = $findInDocs($class, $member);
+			foreach ($names as [$index, $class, $member, $union]) {
+				$result = $findInDocs($class, $member, $token, $union);
 				if ($result === false) {
 					$kept[strtolower($class)] = true;
 				} elseif ($result !== null) {
-					$found[] = [$index, ...$result];
+					$found[] = [$index, ...$result, $result[1] !== null && in_array(strtolower($result[1]), $union, true)];
 				}
 			}
 
@@ -92,7 +96,7 @@ final class ClassReplacement
 
 			} elseif ($name->symbolKind === SymbolKind::ClassLike && $name->isReference()) {
 				$class = $resolver->resolveClass($name);
-				$list = self::findInheritance($name);
+				$list = self::findList($name)[0] ?? null;
 				if ($list !== null) {
 					$lists[spl_object_id($list)][strtolower($class)] = true;
 				}
@@ -101,7 +105,7 @@ final class ClassReplacement
 				$refusal = $found === null || $found[1] === null ? null : self::findRefusal($name, $found[1], $types);
 				if ($found === null) {
 					continue;
-				} elseif ($keeps !== null && $keeps($name)) {
+				} elseif (($keeps !== null && $keeps($name)) || self::keepsAlive($name, $found[1], $resolver)) {
 					$kept[strtolower($class)] = true;
 				} else {
 					$references[] = [$name, ...$found, $refusal];
@@ -126,7 +130,8 @@ final class ClassReplacement
 		}
 
 		foreach ($references as [$name, $message, $new, $refusal]) {
-			$list = self::findInheritance($name);
+			$inList = self::findList($name);
+			$list = $inList[0] ?? null;
 			$named = $list === null || $new === null ? null : $lists[spl_object_id($list)] ?? [];
 			if ($refusal !== null) {
 				$context->report($name, $message . $refusal . '.', fixable: false);
@@ -134,14 +139,15 @@ final class ClassReplacement
 			} elseif (!$context->report($name, $message . '.', fixable: $new !== null) || $new === null) {
 				continue;
 
-			} elseif ($list !== null && isset($named[strtolower($new)])) {
+			} elseif ($inList !== null && isset($named[strtolower($new)])) {
 				// the list names the class already; what stood behind the last item stays behind the one before it
+				[$list, $item] = $inList;
 				$items = $list->getItems();
-				if (end($items) === $name && count($items) > 1) {
-					$items[count($items) - 2]->getLastToken()->setTrailingTrivia($name->getLastToken()->trailingTrivia);
+				if (end($items) === $item && count($items) > 1) {
+					$items[count($items) - 2]->getLastToken()?->setTrailingTrivia($name->getLastToken()->trailingTrivia);
 				}
 
-				$list->removeItem($name);
+				$list->removeItem($item);
 
 			} else {
 				$name->text = $name->form === NameForm::FullyQualified ? '\\' . $new : CodeWriter::writeClass($new, $name, $context);
@@ -160,8 +166,9 @@ final class ClassReplacement
 	/**
 	 * The classes the doc comments of the scope name: in a type, in a class constant, as the target of a tag such as
 	 * `@see` and of an inline tag such as `{@link}`.
-	 * @return list<array{Token, Trivia, list<array{string, int, int}>, list<array{int, string, ?array{string, MemberKind}}>}>  the token
-	 *   holding the doc comment, the comment, its tokens, and per name the index of its token, the class and the member it names
+	 * @return list<array{Token, Trivia, list<array{string, int, int}>, list<array{int, string, ?array{string, MemberKind}, list<string>}>}>
+	 *   the token holding the doc comment, the comment, its tokens, and per name the index of its token, the class, the member it
+	 *   names and the lowercased classes beside it in a union type
 	 */
 	private static function findDocReferences(FileNode|NamespaceNode $scope, RuleContext $context): array
 	{
@@ -172,11 +179,13 @@ final class ClassReplacement
 			foreach ($token->getDocComments() as $trivia) {
 				$tokens = $phpDoc->getTokens($trivia);
 				$names = [];
-				foreach (self::findDocNames($phpDoc->parse($trivia), $tokens) as $index) {
+				$resolve = fn(int $index) => $resolver->resolveClass(NameNode::fromText($tokens[$index][0]), $token);
+				foreach (self::findDocNames($phpDoc->parse($trivia), $tokens) as $index => $union) {
 					$names[] = [
 						$index,
-						$resolver->resolveClass(NameNode::fromText($tokens[$index][0]), $token),
+						$resolve($index),
 						self::findDocMember($tokens, $index),
+						array_map(fn(int $index) => strtolower($resolve($index)), $union),
 					];
 				}
 
@@ -192,22 +201,31 @@ final class ClassReplacement
 
 	/**
 	 * The indexes of the tokens of a doc comment that name a class: in a type, in a class constant, as the target of
-	 * a tag the parser knows no type for, `@see Foo::bar()`, and of every inline tag, `{@link Foo}`.
+	 * a tag the parser knows no type for, `@see Foo::bar()`, and of every inline tag, `{@link Foo}`; each with the
+	 * indexes of the other names of the union type it stands in.
 	 * @param  list<array{string, int, int}>  $tokens
-	 * @return list<int>
+	 * @return array<int, list<int>>
 	 */
 	private static function findDocNames(PhpDocNode $tree, array $tokens): array
 	{
 		$type = fn(int $index) => $tokens[$index][Lexer::TYPE_OFFSET] ?? null;
 		// the target of a tag stands after it on the same line
 		$target = fn(int $tag) => $type($tag + 1) === Lexer::TOKEN_HORIZONTAL_WS ? $tag + 2 : -1;
-		$indexes = [];
-		$walk = function (PhpDocAstNode $node) use (&$walk, &$indexes, $target): void {
+		$indexes = $unions = [];
+		$walk = function (PhpDocAstNode $node) use (&$walk, &$indexes, &$unions, $target): void {
 			$index = $node->getAttribute(Attribute::START_INDEX);
 			if ($node instanceof IdentifierTypeNode || ($node instanceof ConstFetchNode && $node->className !== '')) {
 				$indexes[] = $index;
 			} elseif ($node instanceof PhpDocTagNode && $node->value instanceof GenericTagValueNode) {
 				$indexes[] = $target($index);
+			} elseif ($node instanceof PhpDocUnionTypeNode) {
+				$names = array_map(
+					fn(IdentifierTypeNode $type) => $type->getAttribute(Attribute::START_INDEX),
+					array_filter($node->types, fn($type) => $type instanceof IdentifierTypeNode),
+				);
+				foreach ($names as $name) {
+					$unions[$name] = array_values(array_diff($names, [$name]));
+				}
 			}
 
 			foreach (get_object_vars($node) as $value) {
@@ -233,8 +251,14 @@ final class ClassReplacement
 			}
 		}
 
-		return array_values(array_unique(array_filter($indexes, fn(int $index) => $type($index) === Lexer::TOKEN_IDENTIFIER
-			&& preg_match('~^' . self::ClassPattern . '$~D', $tokens[$index][Lexer::VALUE_OFFSET]))));
+		$isName = fn(int $index) => $type($index) === Lexer::TOKEN_IDENTIFIER
+			&& preg_match('~^' . self::ClassPattern . '$~D', $tokens[$index][Lexer::VALUE_OFFSET]);
+		$result = [];
+		foreach (array_filter(array_unique($indexes), $isName) as $index) {
+			$result[$index] = array_values(array_filter($unions[$index] ?? [], $isName));
+		}
+
+		return $result;
 	}
 
 
@@ -259,16 +283,26 @@ final class ClassReplacement
 	 * Reports every name of a doc comment, and writes the class that replaces it where the report allows, token by
 	 * token, so that the rest of the comment stays as it is written.
 	 * @param  list<array{string, int, int}>  $tokens
-	 * @param  list<array{int, string, ?string}>  $found  per name the index of its token, the message and the class written instead
+	 * @param  list<array{int, string, ?string, bool}>  $found  per name the index of its token, the message, the class written
+	 *   instead and whether the union type it stands in names that class already
 	 */
 	private static function replaceInDocComment(Token $token, Trivia $trivia, array $tokens, array $found, RuleContext $context): void
 	{
 		$changed = false;
 		$unfixable = [];
-		foreach ($found as [$index, $message, $new]) {
+		foreach ($found as [$index, $message, $new, $named]) {
 			if ($new === null || $token->parent === null) {
 				$unfixable[] = $message; // reported once the comment is written, nothing changing after them
-			} elseif ($context->report($token, $message . '.', trivia: $trivia)) {
+			} elseif (!$context->report($token, $message . '.', trivia: $trivia)) {
+				continue;
+			} elseif ($named) {
+				foreach (self::findDocUnionSpan($tokens, $index) as $i) {
+					$tokens[$i][Lexer::VALUE_OFFSET] = '';
+				}
+
+				$changed = true;
+
+			} else {
 				$name = $tokens[$index][Lexer::VALUE_OFFSET];
 				$tokens[$index][Lexer::VALUE_OFFSET] = str_starts_with($name, '\\')
 					? '\\' . $new
@@ -288,6 +322,39 @@ final class ClassReplacement
 
 
 	/**
+	 * The tokens that take the name out of the union type of a doc comment: the name and the `|` that joins it to its
+	 * neighbour, with the whitespace between them.
+	 * @param  array<int, array<int, int|string>>  $tokens
+	 * @return list<int>
+	 */
+	private static function findDocUnionSpan(array $tokens, int $index): array
+	{
+		$isSpace = fn(int $i) => ($tokens[$i][Lexer::TYPE_OFFSET] ?? null) === Lexer::TOKEN_HORIZONTAL_WS;
+		$before = $index - 1;
+		while ($isSpace($before)) {
+			$before--;
+		}
+
+		if (($tokens[$before][Lexer::TYPE_OFFSET] ?? null) === Lexer::TOKEN_UNION) {
+			return range($before, $index);
+		}
+
+		// the first of the union: the `|` after it goes, and the whitespace around it
+		$after = $index + 1;
+		while ($isSpace($after)) {
+			$after++;
+		}
+
+		$after++;
+		while ($isSpace($after)) {
+			$after++;
+		}
+
+		return range($index, $after - 1);
+	}
+
+
+	/**
 	 * The list of what a class or an enum implements, or of what an interface extends, that holds the name.
 	 * @return ?SeparatedNodeList<NameNode>
 	 */
@@ -299,6 +366,57 @@ final class ClassReplacement
 			(($declaration instanceof ClassNode || $declaration instanceof EnumNode) && $declaration->implements === $list)
 			|| ($declaration instanceof InterfaceNode && $declaration->extends === $list)
 		) ? $list : null;
+	}
+
+
+	/**
+	 * The list a name goes from where the list names its replacement already, what a class implements or an interface
+	 * extends, or the types of a union, with the item holding the name.
+	 * @return ?array{SeparatedNodeList<covariant Node>, Node}
+	 */
+	private static function findList(NameNode $name): ?array
+	{
+		$inheritance = self::findInheritance($name);
+		$type = $name->parent;
+		return match (true) {
+			$inheritance !== null => [$inheritance, $name],
+			$type instanceof NamedTypeNode
+			&& $type->parent instanceof SeparatedNodeList
+			&& $type->parent->parent instanceof UnionTypeNode => [$type->parent, $type],
+			default => null,
+		};
+	}
+
+
+	/**
+	 * Whether the name keeps the old class alive rather than uses it: the class `class_alias()` declares and the one
+	 * `class_exists()` and its kin ask for, and the name the replacement itself extends or implements.
+	 */
+	private static function keepsAlive(NameNode $name, ?string $new, NameResolver $resolver): bool
+	{
+		$fetch = $name->parent;
+		$call = $fetch?->parent?->parent?->parent?->parent; // the argument, the list, the parentheses, the call
+		if (
+			$fetch instanceof ClassConstantFetchNode
+			&& $fetch->class === $name
+			&& $fetch->plainName !== null
+			&& strcasecmp($fetch->plainName, 'class') === 0
+			&& $call instanceof FunctionCallNode
+			&& $resolver->findGlobalFunction(
+				$call,
+				['class_alias', 'class_exists', 'interface_exists', 'trait_exists', 'enum_exists'],
+			) !== null
+		) {
+			return true;
+		}
+
+		$parent = $name->parent;
+		$declaration = self::findInheritance($name)->parent
+			?? ($parent instanceof ClassNode && $parent->extends === $name ? $parent : null);
+		return $new !== null
+			&& $declaration instanceof ClassLikeNode
+			&& $declaration->name !== null
+			&& strcasecmp($resolver->resolveClass(NameNode::fromText($declaration->name->text), $declaration), $new) === 0;
 	}
 
 

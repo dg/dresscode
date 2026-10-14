@@ -10,11 +10,12 @@ namespace DressCode\Rules\Upgrading;
 use DressCode\Analyses\{PhpDoc, Types};
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
-use DressCode\Rules\CodeWriter;
+use DressCode\Rules\{CodeWriter, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{AttributeNode, FileNode, NameNode};
 use PhpSyntax\Nodes\Statement\NamespaceNode;
+use PhpSyntax\Nodes\Type\{NamedTypeNode, UnionTypeNode};
 
 
 /**
@@ -22,7 +23,9 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * a type, an instantiation, a static access, an attribute. Where the deprecation names the class to use instead,
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
  * follow; any other is reported with what the deprecation says. In a doc comment only a class the deprecation names
- * a replacement for is rewritten, one without it being left as it is. A class the map of replacedClasses or of
+ * a replacement for is rewritten, one without it being left as it is. A reference inside a declaration deprecated
+ * itself goes together with it and is left, and so is one in a union type that names the replacement too, which takes
+ * both on purpose. A class the map of replacedClasses or of
  * forbiddenClasses has is not reported, nor an interface attributeForMember writes an attribute instead of, nor an
  * attribute attributeForAnnotation writes another one instead of.
  */
@@ -103,11 +106,34 @@ final class NoDeprecatedClassesRule extends NodeRule
 			$node,
 			$context,
 			$find,
-			fn(string $class) => ($found = $find($class)) !== null && $found[1] !== null ? $found : null,
-			// an attribute the map writes another one instead of is the map's
-			$this->annotations->isEmpty() ? null : fn(NameNode $name) => $name->parent instanceof AttributeNode
-				&& $this->annotations->findReplacedAttribute($resolver->resolveClass($name)) !== null,
+			fn(string $class, ?array $member, Token $token, array $union) => match (true) {
+				($found = $find($class)) === null || $found[1] === null => null,
+				NodeHelpers::isInDeprecatedDeclaration($token, $context),
+				in_array(strtolower($found[1]), $union, true) => false,
+				default => $found,
+			},
+			fn(NameNode $name) => NodeHelpers::isInDeprecatedDeclaration($name, $context)
+				|| self::isBesideReplacement($name, $find($resolver->resolveClass($name))[1] ?? null, $resolver)
+				// an attribute the map writes another one instead of is the map's
+				|| ($name->parent instanceof AttributeNode
+					&& $this->annotations->findReplacedAttribute($resolver->resolveClass($name)) !== null),
 			$this->annotations,
 		);
+	}
+
+
+	/** Whether the name stands in a union type that names its replacement too, which takes both on purpose. */
+	private static function isBesideReplacement(NameNode $name, ?string $replacement, NameResolver $resolver): bool
+	{
+		$type = $name->parent;
+		$union = $type?->parent?->parent;
+		return $replacement !== null
+			&& $type instanceof NamedTypeNode
+			&& $union instanceof UnionTypeNode
+			&& array_any(
+				$union->types->getItems(),
+				fn(Node $item) => $item instanceof NamedTypeNode
+					&& strcasecmp($resolver->resolveClass($item->name), $replacement) === 0,
+			);
 	}
 }

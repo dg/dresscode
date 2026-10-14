@@ -7,11 +7,12 @@
 
 namespace DressCode\Rules;
 
-use DressCode\Analyses\{IndentationSnapshot, Parameter, PhpSignatures, Types};
+use DressCode\Analyses\{IndentationSnapshot, Parameter, PhpDoc, PhpSignatures, Types};
 use DressCode\{Claim, Gap, Line, RuleContext, Style, Tristate};
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, ConstantExpressionFeature, Indentation, Node, SymbolKind, Token, Trivia};
-use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, IdentifierNode, MatchArmNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode, VariadicPlaceholderNode};
+use PhpSyntax\Nodes\{AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeAwareNode, AttributeNode, ClassLikeNode, ElseifNode, Expression, ExpressionNode, FileNode, IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode, PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count, in_array, strlen;
 
@@ -117,6 +118,48 @@ final class NodeHelpers
 				$block->statements->getItems(),
 				fn(StatementNode $stmt) => $stmt instanceof Statement\FunctionNode || $stmt instanceof ClassLikeNode,
 			);
+	}
+
+
+	/**
+	 * Whether the declaration says of itself that it is deprecated, by the `@deprecated` annotation or by the
+	 * `#[\Deprecated]` attribute of PHP 8.4.
+	 */
+	public static function isDeprecated(Node $declaration, RuleContext $context): bool
+	{
+		$docComment = $declaration->getDocComment();
+		if ($docComment !== null) {
+			foreach ($context->getAnalysis(PhpDoc::class)->parse($docComment)->children as $child) {
+				if ($child instanceof PhpDocTagNode && strcasecmp($child->name, '@deprecated') === 0) {
+					return true;
+				}
+			}
+		}
+
+		return $declaration instanceof AttributeAwareNode
+			&& $context->getAnalysis(NameResolver::class)->hasAttribute($declaration, \Deprecated::class);
+	}
+
+
+	/**
+	 * Whether the node stands in a declaration that is deprecated itself, a class, a member, a function or a constant:
+	 * code kept for the compatibility it gives uses what is deprecated with it, and goes together with it.
+	 */
+	public static function isInDeprecatedDeclaration(Node|Token $node, RuleContext $context): bool
+	{
+		for ($declaration = $node instanceof Node ? $node : $node->parent; $declaration !== null; $declaration = $declaration->parent) {
+			if (
+				($declaration instanceof ClassLikeNode
+					|| $declaration instanceof MemberNode
+					|| $declaration instanceof Statement\FunctionNode
+					|| $declaration instanceof Statement\ConstNode)
+				&& self::isDeprecated($declaration, $context)
+			) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 
