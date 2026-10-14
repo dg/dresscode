@@ -1,0 +1,50 @@
+<?php
+// {"betweenBranches": "lastStatementSetApart"}
+// a comment at the level of the brace heads the next branch, the blank line above it sets the branches apart
+function a($x, $y)
+{
+	// first check
+	if ($x) {
+		foo();
+		foo();
+
+	// without sequence
+	} elseif ($y) {
+		bar();
+
+	// multi column
+	} else {
+		baz();
+	}
+}
+
+
+function b($x, $y)
+{
+	if ($x) {
+		$c = 1;
+
+	// protected
+	} elseif ($y) {
+		// leave p
+
+	// text
+	} elseif ($x !== 1) {
+		// leave p
+
+	// markup
+	} else {
+		$c = 2;
+	}
+}
+
+
+// one indented as the body belongs to it
+if ($x) {
+	foo();
+	foo();
+
+	// a note on the body
+} else {
+	bar();
+}

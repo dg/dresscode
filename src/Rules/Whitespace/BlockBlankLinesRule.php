@@ -9,7 +9,7 @@ namespace DressCode\Rules\Whitespace;
 
 use DressCode\{Claim, Decision, Domain, Gap, GapRule, RuleInfo, Stage, Values};
 use DressCode\Domains\Count;
-use PhpSyntax\{Node, Token};
+use PhpSyntax\{Node, Token, Trivia};
 use PhpSyntax\Nodes\{CaseNode, CatchNode, ElseifNode, ElseNode, FinallyNode, PlainNodeList, Statement, StatementNode};
 use PhpSyntax\Nodes\Expression\MatchNode;
 use function count;
@@ -96,7 +96,12 @@ final class BlockBlankLinesRule extends GapRule
 
 		if ($this->betweenBranches !== null) {
 			$between = $this->claims->claim($this->betweenBranches === self::LastSetApart ? 1 : $this->betweenBranches, 'betweenBranches');
-			$claims[Statement\BlockNode::class]['closeBrace'][0] = fn(Gap $gap) => $this->isBetweenBranches($gap) ? $between : $before;
+			$heading = $this->claims->claim(0, 'betweenBranches');
+			$claims[Statement\BlockNode::class]['closeBrace'][0] = fn(Gap $gap) => match (true) {
+				!$this->isBetweenBranches($gap) => $before,
+				self::isHeadedByComment($gap->token) => $heading,
+				default => $between,
+			};
 		}
 
 		if ($this->betweenCases !== null) {
@@ -189,6 +194,26 @@ final class BlockBlankLinesRule extends GapRule
 			default => [],
 		};
 		return array_values(array_filter($bodies, fn($body) => $body !== null));
+	}
+
+
+	/**
+	 * Whether the comment right above the closing brace of a branch stands at the level of the brace, heading the
+	 * branch that follows, so no blank line goes below it.
+	 */
+	private static function isHeadedByComment(Token $closeBrace): bool
+	{
+		$leading = $closeBrace->leadingTrivia;
+		$comment = $closeBrace->findLastLeadingCommentIndex();
+		if ($comment === null) {
+			return false;
+		}
+
+		$whitespace = ($leading[$comment - 1] ?? null)?->id === Trivia::Whitespace ? $comment - 1 : $comment;
+		$lineEnding = $whitespace === 0
+			? $closeBrace->getPrevious()?->getTrailingSpace() === null
+			: ($leading[$whitespace - 1] ?? null)?->isLineEnding();
+		return $lineEnding && ($whitespace === $comment ? '' : $leading[$whitespace]->text) === $closeBrace->getIndentation();
 	}
 
 
