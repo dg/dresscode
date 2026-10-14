@@ -1,0 +1,14 @@
+<?php
+// lineLength 60
+class A
+{
+	/**
+	 * @var array<string, array{name: string, size: int}>
+	 */
+	private array $wide = [];
+
+	/**
+	 * @var array<string, int>
+	 */
+	private array $narrow = [];
+}

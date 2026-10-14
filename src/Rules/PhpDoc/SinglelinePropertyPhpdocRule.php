@@ -11,14 +11,14 @@ use DressCode\Analyses\PhpDoc;
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Domains\Words;
 use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocTagNode, PhpDocTextNode};
-use PhpSyntax\{Node, Token, Trivia};
+use PhpSyntax\{Indentation, Node, Token, Trivia};
 use PhpSyntax\Nodes\Member\PropertyNode;
 use function count;
 
 
 /**
  * A property doc comment with a single line of content and no description is written on one line,
- * not spread over three.
+ * not spread over three, unless that line would be longer than the limit.
  */
 #[RuleInfo(Stage::Formatting, modifiesComments: true, analyses: [PhpDoc::class])]
 final class SinglelinePropertyPhpdocRule extends NodeRule
@@ -69,13 +69,17 @@ final class SinglelinePropertyPhpdocRule extends NodeRule
 		}
 
 		$tags = array_filter($tree->children, fn($child) => $child instanceof PhpDocTagNode);
+		$text = "/** $lines[0] */";
+		$limit = $context->style->maxLineLength;
+		$indentation = $node->getFirstToken()?->getLineIndentation() ?? '';
 		if (
 			count($tags) !== 1
+			|| ($limit !== null && Indentation::advance(0, $indentation . $text, $context->style->toPhpSyntax()) > $limit)
 			|| !$context->report($node, 'The doc comment with a single line of content must be written on one line.', trivia: $docComment)
 		) {
 			return;
 		}
 
-		$node->replaceDocComment(new Trivia(Trivia::DocComment, "/** $lines[0] */"));
+		$node->replaceDocComment(new Trivia(Trivia::DocComment, $text));
 	}
 }
