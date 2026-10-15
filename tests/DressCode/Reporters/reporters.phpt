@@ -387,6 +387,30 @@ test('console: what follows from a violation is listed under it by message and r
 });
 
 
+test('console: a file lists twenty violations, the rest counted by decision on one line', function () {
+	$violation = fn(string $rule, int $line, string $fingerprint, ?string $from = null) =>
+		new Violation($rule, 'M.', $line, null, Severity::Error, fingerprint: $fingerprint, derivedFrom: $from);
+	$violations = array_map(fn(int $line) => $violation('test/a', $line, "f$line"), range(1, 21));
+	array_push(
+		$violations,
+		$violation('test/b', 22, 'f22'),
+		$violation('test/b', 23, 'f23'),
+		$violation('test/c', 24, 'f24'),
+		$violation('test/d', 25, 'f25'),
+		$violation('test/e', 26, 'f26'),
+		$violation('test/a', 27, 'd1', 'f21'),
+	);
+	$stream = memory();
+	$reporter = new ConsoleReporter(plain($stream));
+	$reporter->start(new RunInfo('', false, 1));
+	$reporter->reportFile(new FileResult('a.php', '', '', $violations));
+	rewind($stream);
+	$output = normalize((string) stream_get_contents($stream));
+	Assert::contains("  error  20  M.  test/a\n  … and 7 more: 2 test/a, 2 test/b, 1 test/c, 2 others\n", $output);
+	Assert::notContains(' 21  ', $output);
+});
+
+
 test('console: in color the code of a message is drawn without its backticks and the columns stay aligned', function () {
 	$stream = memory();
 	$reporter = new ConsoleReporter(new Console($stream, colorDepth: ColorDepth::Ansi256));

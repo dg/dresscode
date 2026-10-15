@@ -26,6 +26,12 @@ final class ConsoleReporter implements Reporter
 	/** the message column follows the longest message but never grows past this */
 	private const MessageWidth = 100;
 
+	/** the violations a file lists, the rest counted by decision on one line */
+	private const ListedViolations = 20;
+
+	/** the decisions that line names, the others counted together */
+	private const SummedDecisions = 3;
+
 	/** a run shorter than this is not worth timing */
 	private const LongRun = 1.0;
 
@@ -121,7 +127,9 @@ final class ConsoleReporter implements Reporter
 	/**
 	 * The positions belong to the text the violations were found in: the file as it was read in a check, the
 	 * fixed text in a fix. A violation that follows from another one is a note under it rather than a line of its
-	 * own, unless the two differ in state, when it must not hide behind a state that is not its own.
+	 * own, unless the two differ in state, when it must not hide behind a state that is not its own. Past
+	 * `ListedViolations` the rest is counted by decision, so that a file written in another style does not flood the
+	 * output.
 	 * @param  list<Violation>  $violations
 	 */
 	private function writeViolations(array $violations): void
@@ -142,9 +150,13 @@ final class ConsoleReporter implements Reporter
 			}
 		}
 
+		$hidden = array_slice($listed, self::ListedViolations);
+		$listed = array_slice($listed, 0, self::ListedViolations);
 		$notes = [];
-		foreach ($derived as $fingerprint => $followers) {
-			$notes[$fingerprint] = self::describeDerived($byFingerprint[$fingerprint], $followers);
+		foreach ($listed as $violation) {
+			if (isset($derived[$violation->fingerprint])) {
+				$notes[$violation->fingerprint] = self::describeDerived($violation, $derived[$violation->fingerprint]);
+			}
 		}
 
 		$show = fn(Violation $v) => Markup::highlightCode($this->console, $v->message);
@@ -156,9 +168,9 @@ final class ConsoleReporter implements Reporter
 			}
 		}
 
-		$positionWidth = max(array_map(fn(Violation $v) => Ansi::measure(self::formatPosition($v)), $violations));
+		$positionWidth = max([0, ...array_map(fn(Violation $v) => Ansi::measure(self::formatPosition($v)), $listed)]);
 		$messageWidth = min(self::MessageWidth, max($widths));
-		$stateWidth = max(array_map(fn(Violation $v) => Ansi::measure(self::formatState($v)), $violations));
+		$stateWidth = max([0, ...array_map(fn(Violation $v) => Ansi::measure(self::formatState($v)), $listed)]);
 		$formatDecision = fn(string $path) => $this->console->color('gray', Markup::formatDecision(
 			$this->console,
 			$path,
@@ -182,6 +194,29 @@ final class ConsoleReporter implements Reporter
 			foreach ($notes[$violation->fingerprint] ?? [] as [$text, $decision]) {
 				$this->write($indent . Ansi::pad($showNote($text), $messageWidth) . '  ' . $formatDecision($decision) . "\n");
 			}
+		}
+
+		if ($hidden) {
+			$counts = [];
+			foreach ($hidden as $violation) {
+				foreach ([$violation, ...$derived[$violation->fingerprint] ?? []] as $one) {
+					$counts[$one->decision] = ($counts[$one->decision] ?? 0) + 1;
+				}
+			}
+
+			arsort($counts);
+			$summary = [];
+			foreach (array_slice($counts, 0, self::SummedDecisions, preserve_keys: true) as $decision => $count) {
+				$summary[] = $this->console->color('gray', "$count ") . $formatDecision($decision);
+			}
+
+			$others = array_sum(array_slice($counts, self::SummedDecisions));
+			if ($others) {
+				$summary[] = $this->console->color('gray', $others === 1 ? '1 other' : "$others others");
+			}
+
+			$this->write('  ' . $this->console->color('gray', '… and ' . array_sum($counts) . ' more: ')
+				. implode($this->console->color('gray', ', '), $summary) . "\n");
 		}
 	}
 
