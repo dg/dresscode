@@ -1442,7 +1442,7 @@ The links of a chain of method calls and property accesses spread over lines by 
 Where the links spread over lines begin against the object.
 
 - By default `keep`
-- Takes: `apart` (the first link on the line after the object); `attached` (the first link on the line of the object); a list of them, every one passing and the first written where none matches; `keep`
+- Takes: `apart` (the first link on the line after the object); `attached` (the links up to the first method call on the line of the object); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `apart`, psr12 `keep`, nette `attached`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\MultilineChainRule`, stage Formatting
 

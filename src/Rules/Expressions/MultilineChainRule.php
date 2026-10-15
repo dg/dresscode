@@ -40,6 +40,7 @@ final class MultilineChainRule extends GapRule
 			'links',
 			'The links of a chain of method calls and property accesses spread over lines by its author, or for the width of its line where it has two method calls or more',
 			'the object',
+			attached: 'the links up to the first method call',
 		);
 	}
 
