@@ -651,19 +651,24 @@ final class NodeHelpers
 
 
 	/**
-	 * The construct the sole argument of the call is, which a line too wide spreads in place of the call where the
-	 * style hugs it (`LineSplits::$spreadSoleArgument`): a call or `new` with no other call in what it is made on, or
-	 * an array, passed by its name or not, which is of a kind the run spreads, has something to spread and is not
-	 * spread yet; null where the call spreads itself, as it does where an operator on the line below continues
-	 * the expression it ends.
+	 * The construct the sole or the last argument of the call is, which a line too wide spreads in place of the call
+	 * where the style hugs it (`LineSplits::$spreadItem`): a call or `new` with no other call in what it is made on, or
+	 * an array, passed by its name or not, which stands at a place the run spreads, has something to spread and is not
+	 * spread yet, the arguments before it on one line that fits up to its opening bracket; null where the call spreads
+	 * itself, as it does where an operator on the line below continues the expression it ends.
 	 */
 	public static function findHuggedFrame(ArgumentListNode $list, Style $style): ?Node
 	{
 		$items = $list->items->getItems();
-		$value = count($items) === 1 && $items[0] instanceof ArgumentNode && $items[0]->ellipsis === null ? $items[0]->value : null;
+		$argument = match ($style->lineSplits->spreadItem) {
+			'sole' => count($items) === 1 ? $items[0] : null,
+			'last' => array_any(array_slice($items, 0, -1), fn(Node $item) => $item->isMultiLine()) ? null : end($items),
+			default => null,
+		};
+		$value = $argument instanceof ArgumentNode && $argument->ellipsis === null ? $argument->value : null;
 		$next = $list->closeParen->getNext();
 		$inner = match (true) {
-			!$style->lineSplits->spreadSoleArgument => null,
+			$value === null => null,
 			// an operator below the call would continue the expression from the parentheses closing together
 			$next?->startsLine() && $next->parent instanceof Expression\BinaryOpNode && $next->parent->operator === $next => null,
 			$value instanceof Expression\FunctionCallNode,
@@ -681,7 +686,18 @@ final class NodeHelpers
 		}
 
 		$frame = $inner === null ? null : self::findSplitFrame($inner);
-		return $frame !== null && !$frame[3] && !$frame[4] && $style->lineSplits->has($frame[0]) ? $inner : null;
+		if ($frame === null || $frame[3] || $frame[4] || !$style->lineSplits->has($frame[0])) {
+			return null;
+		}
+
+		// the arguments before it stay on the line of the call, which must fit up to the bracket the spread one opens
+		$first = $frame[1]->getNext();
+		return count($items) === 1
+			|| $first === null
+			|| $style->maxLineLength === null
+			|| self::measureCodeLine($list->openParen, $style, [spl_object_id($first) => true]) <= $style->maxLineLength
+			? $inner
+			: null;
 	}
 
 

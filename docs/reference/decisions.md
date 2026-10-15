@@ -1493,7 +1493,7 @@ Where the arguments spread over lines begin against `(` and where `)` stands.
 What a call too wide spreads where an argument could spread in its place; one so spread by its author stays whatever it says.
 
 - By default `never`
-- Takes: `never` (the call spreads its arguments); `sole` (a sole argument that is a call, `new` or an array spreads in the parentheses, `foo(bar(` and `))` together)
+- Takes: `never` (the call spreads its arguments); `sole` (a sole argument that is a call, `new` or an array spreads in the parentheses, `foo(bar(` and `))` together); `last` (as `sole`, and so does the last argument after those before it where the line fits up to its bracket, `foo($a, [` and `])` together)
 - The standards: perCs `never`, psr12 `never`, nette `sole`, symfony `never`
 - Rule `DressCode\Rules\Functions\MultilineCallRule`, stage Formatting
 

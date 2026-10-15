@@ -45,8 +45,11 @@ final readonly class LineSplits
 	public function __construct(
 		/** @var array<string, true> the places spread for their width */
 		private array $places = [],
-		/** a call too wide whose sole argument is spread for it keeps it in its parentheses, `foo(bar(` and `))` together */
-		public bool $spreadSoleArgument = false,
+		/**
+		 * which argument of a call too wide is spread for it in its parentheses, `foo(bar(` and `))` together: never, the
+		 * sole one, or the last one
+		 */
+		public string $spreadItem = 'never',
 	) {
 	}
 
@@ -61,8 +64,7 @@ final readonly class LineSplits
 			}
 		}
 
-		$sole = $values->has(self::SpreadItem) && $values->get(self::SpreadItem)->getWord() === 'sole';
-		return new self($places, $sole);
+		return new self($places, $values->has(self::SpreadItem) ? $values->get(self::SpreadItem)->getWord() : 'never');
 	}
 
 

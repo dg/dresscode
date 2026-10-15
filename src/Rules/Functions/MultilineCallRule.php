@@ -24,8 +24,9 @@ use PhpSyntax\Nodes\Statement\UnsetNode;
  * line is spread in the first shapes when its line is wider than the line length of the style, measured as the code of
  * the line without a comment after it, unless an outer construct on the line is spread first, `file.lineLengthExcept`
  * names it, or its sole argument is a string, which is a message to leave whole; with `multiline.spreadItem: sole`
- * a sole argument that is a call, `new` or an array spreads in its place, the parentheses staying together, and
- * a call so spread by its author stays whatever the shapes. Where the lines stand is the matter of `IndentationRule`.
+ * a sole argument that is a call, `new` or an array spreads in its place, the parentheses staying together, with
+ * `last` the last one does so after the arguments before it, and a call so spread by its author stays whatever the
+ * shapes. Where the lines stand is the matter of `IndentationRule`.
  * The parentheses of a first-class callable, `strlen(...)`, stay on one line.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
@@ -49,6 +50,7 @@ final class MultilineCallRule extends GapRule
 			new Decision('multiline.spreadItem', new Words([
 				'never' => 'the call spreads its arguments',
 				'sole' => 'a sole argument that is a call, `new` or an array spreads in the parentheses, `foo(bar(` and `))` together',
+				'last' => 'as `sole`, and so does the last argument after those before it where the line fits up to its bracket, `foo($a, [` and `])` together',
 			]), 'What a call too wide spreads where an argument could spread in its place; one so spread by its author stays whatever it says', kind: DecisionKind::Parameter, default: 'never'),
 		];
 	}

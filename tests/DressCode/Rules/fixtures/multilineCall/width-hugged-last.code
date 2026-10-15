@@ -1,0 +1,14 @@
+<?php
+// lineLength 60
+// {"spreadItem": "last"}
+$this->report(new Violation($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc));
+$this->report($node, ["first" => $aaaaaaaaaa, "second" => $bb]);
+$this->report($node, format($aaaaaaaaaa, $bbbbbbbbbb, $ccccc));
+$this->report($node, $message, format($aaaaaaaaaa, $bbbbbbbbbb));
+// the arguments before the last one do not fit, so the call spreads itself
+$this->report($aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, format($b, $c));
+// the last argument spread by its author stays
+$this->report($node, [
+	1,
+	2,
+]);

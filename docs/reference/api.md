@@ -521,8 +521,8 @@ enum Line
 ```php
 final readonly class LineSplits
 	public const Places = ['argument' => 'multiline.items.argument', 'parameter' => 'multiline.items.parameter', 'closureUse' => 'multiline.items.closureUse', 'attribute' => 'multiline.items.attribute', 'condition' => 'multiline.items.condition', 'chain' => 'multiline.items.chain', 'ternary' => 'multiline.items.ternary', 'for' => 'multiline.items.for', 'logical' => 'multiline.items.logical', 'concatenation' => 'multiline.items.concatenation', 'arithmetic' => 'multiline.items.arithmetic', 'bitwise' => 'multiline.items.bitwise', 'coalesce' => 'multiline.items.coalesce', 'pipe' => 'multiline.items.pipe', 'array' => 'multiline.items.array', 'list' => 'multiline.items.list', 'implements' => 'multiline.items.implements', 'matchCondition' => 'multiline.items.matchCondition']
-	public readonly bool $spreadSoleArgument
-	public function __construct(array $places = [], bool $spreadSoleArgument = false)
+	public readonly string $spreadItem
+	public function __construct(array $places = [], string $spreadItem = 'never')
 	public static function fromValues(DressCode\Values $values): DressCode\LineSplits
 	public function has(string $place): bool
 ```
