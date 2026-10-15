@@ -468,6 +468,43 @@ missing.
 
  <!---->
 
+Migrating from PHP CS Fixer, PHP_CodeSniffer and Laravel Pint
+=============================================================
+
+DressCode knows not only its own decisions, but also the names their rules have in PHP CS Fixer,
+PHP_CodeSniffer and Slevomat. So the move takes two steps, and you can stop after the first.
+
+First, leave the code as it is. Comments `// phpcs:ignore`, `phpcs:disable`, `phpcs:enable`,
+`phpcs:ignoreFile` and the annotation `@phpcsSuppress` keep working: DressCode translates the foreign rule
+name to its decisions, and the suppression holds.
+
+Second, translate the configuration. `import` reads it and writes its equivalent, and it tells you what it
+could not carry over:
+
+```shell
+dresscode import phpcs.xml dresscode.neon
+```
+
+```
+Read 4 rules; set 4 decisions and 1 preset.
+  `SlevomatCodingStandard.Namespaces.UnusedUses` without `searchAnnotations` removes an import only a doc comment uses; DressCode keeps it.
+  No DressCode rule covers `Squiz.Commenting.FunctionComment`.
+```
+
+`.php-cs-fixer.dist.php` is translated the same way, as long as PHP CS Fixer is still installed in the
+project, because that file is PHP which has to run.
+
+**Laravel Pint** runs PHP CS Fixer, with a command line of its own and presets of its own, `laravel` the
+default one. A project on that preset has nothing to translate: DressCode has the style as the standard
+`laravel`, and `dresscode init` in a project with Pint writes the standard of its preset itself. Over 1,615
+files of the first-party packages of Laravel run through Pint, `dresscode check --use laravel` finds 129
+places, each a deliberate difference the manual lists (October 2026). Rules a `pint.json` adds to the preset
+go into the configuration by hand. On top of it, the same run upgrades the code to a newer PHP and, with
+`dresscode/upgrade-laravel`, to a newer Laravel, and it imports the classes named in every tag of a doc
+comment, `@template` and `@method` included.
+
+ <!---->
+
 Made for AI coding agents: Claude Code and Codex
 ================================================
 
@@ -610,7 +647,10 @@ DressCode is made to run after every edit, so what counts most is the time one f
 to a half of what PHP CS Fixer needs, 118 ms for a small file against 323 ms. Over a whole project, doing
 the same work, it is faster too. Run with only the rules that match the PER Coding Style set of PHP CS
 Fixer, DressCode takes 64 to 90 percent of its time in one process, and 46 to 64 percent in parallel
-processes, over Laravel, WordPress, Symfony and Nette.
+processes, over Laravel, WordPress, Symfony and Nette. Symfony with its own configuration of PHP CS Fixer,
+translated by `dresscode import`, is checked in 56 percent of the time, 14.2 s against 25.3 s over its
+7,704 files; PHP CS Fixer runs a hundred more rules there, on phpDoc and PHPUnit, that have no
+counterpart in DressCode.
 
 The preset `perCs` does more than that set: it also breaks long signatures, conditions, chains and arrays
 over lines and fixes the casing of names, none of which the set does. Preset against preset, a run

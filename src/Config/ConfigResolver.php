@@ -111,7 +111,7 @@ final class ConfigResolver
 				self::addSymbols($symbols, $profile->namespaces, $layer->describe());
 
 				if ($profile->decisions !== []) {
-					new DecisionResolver($this->getCatalogue())->checkLayer($profile->decisions);
+					new DecisionResolver($this->getCatalogue(), translator: $this->registry->translator)->checkLayer($profile->decisions);
 					$decisionLayers[] = [$layer, $profile->decisions];
 				}
 
@@ -171,6 +171,7 @@ final class ConfigResolver
 			$this->project,
 			typesAnalyzed: $typeAnalysis !== null && $this->typesAvailable,
 			certainNames: $resolution === 'certain',
+			translator: $this->registry->translator,
 		);
 		$decisions = $resolver->resolve($decisionLayers);
 		if ($packageLayers = $this->collectPackageMaps($decisions, $narrowed)) {
