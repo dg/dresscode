@@ -1,0 +1,7 @@
+<?php
+// {"multiline.operatorPosition.ternary": "lineEnd"}
+// lineLength 40
+$result = $someCondition ? $firstValue : $secondValue;
+$result = $someCondition ?
+	$firstValue : $secondValue;
+$result = $someCondition ?: $theOtherValueIsHere;

@@ -1,0 +1,3 @@
+4: Expected a line break after the `?` operator, because the line is 54 characters long, more than 40.
+6: Expected a line break after the colon, because the ternary spans several lines.
+7: Expected a line break after the colon, because the line is 49 characters long, more than 40.

@@ -1,0 +1,9 @@
+<?php
+// {"multiline.operatorPosition.comparison": "lineEnd"}
+// lineLength 40
+if ($a === $b) {
+}
+$result = $someLongVariableName ===
+	$anotherLongVariableName;
+$result = $someLongVariableName // why
+	=== $anotherLongVariableName;

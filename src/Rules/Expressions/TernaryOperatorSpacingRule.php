@@ -9,15 +9,16 @@ namespace DressCode\Rules\Expressions;
 
 use DressCode\{Claim, Decision, DecisionKind, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
 use DressCode\Domains\Shapes;
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Nodes\Expression\TernaryNode;
 
 
 /**
  * Whitespace around `?` and `:` of a ternary, and around `?:` as a whole when the middle operand is left out:
  * at least one space, as the standards word it, or exactly one; an operator at a line break is left alone, unless
- * it ends the line and `multiline.operatorPosition.ternary` moves it to the start of the next one.
+ * it stands on the other side of the break than `multiline.operatorPosition.ternary` says, which moves it there.
  */
-#[RuleInfo(Stage::Formatting)]
+#[RuleInfo(Stage::Formatting, decisions: ['multiline.operatorPosition.ternary'])]
 final class TernaryOperatorSpacingRule extends GapRule
 {
 	private const Spacing = 'spacing.ternary';
@@ -30,9 +31,10 @@ final class TernaryOperatorSpacingRule extends GapRule
 	/** no space inside `?:`, null where it is kept */
 	private ?Claim $short;
 
-	private bool $operatorsAtStart = false;
+	/** where `?` and `:` at a line break stand, null where it is kept */
+	private ?string $position = null;
 
-	/** what follows an operator moved to the start of the next line */
+	/** what follows an operator moved to the other side of its line break */
 	private Claim $afterMoved;
 
 
@@ -51,7 +53,6 @@ final class TernaryOperatorSpacingRule extends GapRule
 				kind: DecisionKind::Parameter,
 				default: 'any',
 			),
-			new Decision(self::Position, Domain::lineStart(), 'Where `?`, `:` and `?:` of a ternary stand at a line break'),
 		];
 	}
 
@@ -65,8 +66,10 @@ final class TernaryOperatorSpacingRule extends GapRule
 			)
 			: null;
 		$this->short = $spacing ? Claim::noSpace()->withDecision(self::Spacing) : null;
-		$this->operatorsAtStart = !$values->isKept(self::Position);
-		$this->afterMoved = new Claim($this->claim?->space, line: Line::Same, decision: self::Position);
+		$this->position = $values->find(self::Position)?->getWord();
+		$this->afterMoved = $this->position === 'lineEnd'
+			? new Claim(line: Line::Next, decision: self::Position)
+			: new Claim($this->claim?->space, line: Line::Same, decision: self::Position);
 	}
 
 
@@ -86,7 +89,7 @@ final class TernaryOperatorSpacingRule extends GapRule
 	}
 
 
-	/** The line break in front of the operator, `?` as 0 and `:` as 1, after the operand before it. */
+	/** The line before the operator, `?` as 0 and `:` as 1, after the operand before it. */
 	private function claimBreakBefore(Gap $gap, int $operator): ?Claim
 	{
 		$ternary = $gap->value->parent;
@@ -99,7 +102,9 @@ final class TernaryOperatorSpacingRule extends GapRule
 			$ternary->then === null => '?:',
 			default => '?',
 		};
-		return new Claim(line: Line::Next, because: "the `$text` operator ends its line", decision: self::Position);
+		return $this->position === 'lineEnd'
+			? new Claim(line: Line::Same, because: "the `$text` operator opens its line", decision: self::Position)
+			: new Claim(line: Line::Next, because: "the `$text` operator ends its line", decision: self::Position);
 	}
 
 
@@ -111,22 +116,26 @@ final class TernaryOperatorSpacingRule extends GapRule
 
 
 	/**
-	 * Whether `?` and whether `:` end their line and go to the start of the next one, `?:` as a whole by its colon,
-	 * decided once per pass about the ternary.
+	 * Whether `?` and whether `:` stand on the other side of their line break than the position says and go to that
+	 * side, `?:` as a whole, decided once per pass about the ternary.
 	 * @return array{bool, bool}
 	 */
 	private function decideMoves(Gap $gap): array
 	{
 		$ternary = $gap->value->parent;
-		if (!$this->operatorsAtStart || !$ternary instanceof TernaryNode) {
+		$position = $this->position;
+		if ($position === null || !$ternary instanceof TernaryNode) {
 			return [false, false];
 		}
 
-		return $gap->once($ternary, function () use ($ternary): ?array {
-			$moves = [
-				($ternary->then === null ? $ternary->colon : $ternary->question)->isFollowedByLineEnding(),
-				$ternary->colon->isFollowedByLineEnding(),
-			];
+		return $gap->once($ternary, function () use ($ternary, $position): ?array {
+			// `?:` breaks after its colon or before its question mark
+			$short = $ternary->then === null;
+			$first = NodeHelpers::isOperatorMisplaced(
+				$short && $position === 'lineStart' ? $ternary->colon : $ternary->question,
+				$position,
+			);
+			$moves = [$first, $short ? $first : NodeHelpers::isOperatorMisplaced($ternary->colon, $position)];
 			// no decision where nothing moves, so that the spaces around the operators stay violations of their own
 			return $moves === [false, false] ? null : $moves;
 		}) ?? [false, false];

@@ -129,6 +129,19 @@ final class NodeHelpers
 
 
 	/**
+	 * Whether the operator at a line break stands on the other side of it than the position says: ending its line where
+	 * operators open lines (`lineStart`), opening its line where they end them (`lineEnd`); a comment between the operator
+	 * and the break keeps it where it is.
+	 */
+	public static function isOperatorMisplaced(Token $operator, string $position): bool
+	{
+		return $position === 'lineEnd'
+			? $operator->startsLine() && !($operator->getPrevious()?->hasCommentUpTo($operator) ?? true)
+			: $operator->isFollowedByLineEnding();
+	}
+
+
+	/**
 	 * Whether the block, an item of the list, declares a function or a class at the top of a file or a namespace, which
 	 * out of the block PHP would bind before the code runs.
 	 * @param  PlainNodeList<covariant Node>  $list

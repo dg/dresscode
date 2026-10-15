@@ -52,10 +52,13 @@ abstract readonly class Domain
 	}
 
 
-	/** The word of where an operator stands at a line break, opening the line after it. */
-	public static function lineStart(): Words
+	/** The words of where an operator stands at a line break, opening the line after it or ending the line before it. */
+	public static function operatorPosition(): Words
 	{
-		return new Words(['lineStart' => 'one ending a line opens the next, unless a comment follows it']);
+		return new Words([
+			'lineStart' => 'one ending a line opens the next, unless a comment follows it',
+			'lineEnd' => 'one opening a line ends the one before, unless a comment precedes it',
+		]);
 	}
 
 

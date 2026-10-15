@@ -513,6 +513,13 @@ final class PhpCsFixer
 				: $t->warn('`nullable_type_declaration_for_default_null_value` with `use_nullable_type_declaration=false` has no equivalent; DressCode adds the `?` instead of removing it.'),
 			'object_operator_without_whitespace' => ['spacing.objectOperator' => 'compact'],
 			'octal_notation' => ['upgrading.syntax.octalPrefix' => 'adopted'],
+			'operator_linebreak' => function (array $o, Translation $t) {
+				$position = ($o['position'] ?? 'beginning') === 'end' ? 'lineEnd' : 'lineStart';
+				$places = ($o['only_booleans'] ?? false)
+					? ['logical', 'condition']
+					: ['logical', 'condition', 'concatenation', 'arithmetic', 'bitwise', 'coalesce', 'pipe', 'comparison', 'ternary'];
+				$t->setAll(array_fill_keys(array_map(fn(string $place) => "multiline.operatorPosition.$place", $places), $position));
+			},
 			'ordered_class_elements' => function (array $o, Translation $t) {
 				if (($o['sort_algorithm'] ?? 'none') !== 'none') {
 					$t->warn('`ordered_class_elements` sorts members by name; DressCode orders them by kind only.');

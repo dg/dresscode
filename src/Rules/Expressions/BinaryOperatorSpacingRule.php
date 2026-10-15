@@ -43,11 +43,15 @@ final class BinaryOperatorSpacingRule extends GapRule
 	/** the space around an operator joined to the line of what is beside it, null where it is kept */
 	private ?Claim $joined;
 
-	/** the break in front of an operator moved to the start of the next line, null where it stays */
+	/** where a comparison at a line break stands, null where it is kept */
+	private ?string $position = null;
+
+	/** the line before a comparison moved to the other side of its line break, null where it stays */
 	private ?Claim $moved;
 
-	/** what follows an operator moved to the start of the next line */
+	/** what follows a moved comparison on its line, and on the next one */
 	private Claim $afterMoved;
+	private Claim $breakAfterMoved;
 
 
 	public static function getDecisions(): array
@@ -67,8 +71,8 @@ final class BinaryOperatorSpacingRule extends GapRule
 			),
 			new Decision(
 				self::Position,
-				Domain::lineStart(),
-				'Where a comparison stands at a line break, moving only where the line joined after it would be too wide',
+				Domain::operatorPosition(),
+				'Where a comparison stands at a line break: one ending its line moves only where the line joined after it would be too wide, one opening its line joins the line before it, what follows staying on its line unless it would be too wide',
 			),
 		];
 	}
@@ -83,8 +87,14 @@ final class BinaryOperatorSpacingRule extends GapRule
 			default => Claim::atLeastOneSpaceOrTabs(),
 		})->withDecision(self::Spacing);
 		$this->joined = $this->claim === null ? null : new Claim($this->claim->space, line: Line::Same, decision: self::Spacing);
-		$this->moved = $values->isKept(self::Position) ? null : Claim::nextLine()->withDecision(self::Position);
+		$this->position = $values->find(self::Position)?->getWord();
+		$this->moved = match ($this->position) {
+			null => null,
+			'lineEnd' => new Claim($this->claim?->space, line: Line::Same, decision: self::Position),
+			default => Claim::nextLine()->withDecision(self::Position),
+		};
 		$this->afterMoved = new Claim($this->claim?->space, line: Line::Same, decision: self::Position);
+		$this->breakAfterMoved = Claim::nextLine()->withDecision(self::Position);
 	}
 
 
@@ -116,7 +126,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 	{
 		return match (true) {
 			$gap->token->text === '.' => null, // `ConcatenationSpacingRule`
-			$this->isMovedToStart($gap) => $this->moved,
+			$this->findMove($gap) !== null => $this->moved,
 			default => $this->claim,
 		};
 	}
@@ -130,9 +140,11 @@ final class BinaryOperatorSpacingRule extends GapRule
 	{
 		$token = $gap->token;
 		$next = $token->getNext();
+		$move = $this->findMove($gap);
 		return match (true) {
 			$token->text === '.' => null, // `ConcatenationSpacingRule`
-			$this->isMovedToStart($gap) => $this->afterMoved,
+			$move === Line::Same => $this->afterMoved,
+			$move === Line::Next => $this->breakAfterMoved,
 			$this->claim === null => null,
 			$next === null || !$token->is(self::JoinedOperators) || $token->hasCommentUpTo($next) => $this->claim,
 			$next->startsLine() && self::isJoinedLineTooWide($gap, $token, $next) !== false => $this->claim,
@@ -142,23 +154,36 @@ final class BinaryOperatorSpacingRule extends GapRule
 
 
 	/**
-	 * Whether the operator ends its line and goes to the start of the next one, decided once per pass about the
-	 * operation, because the break put in front of it changes the width of its line; one whose line is joined
-	 * moves only where the joined line would be too wide.
+	 * The line what follows a comparison takes once it moves to the side of its line break the position says, decided
+	 * once per pass about the operation, because the break put beside it changes the width of its line: one ending its
+	 * line moves to the start of the next one only where the joined line would be too wide, one opening its line moves
+	 * to the end of the line before, what follows it joining that line where it fits; null where it stays.
 	 */
-	private function isMovedToStart(Gap $gap): bool
+	private function findMove(Gap $gap): ?Line
 	{
 		$token = $gap->token;
 		$operation = $token->parent;
-		return $this->moved !== null
-			&& $operation instanceof BinaryOpNode
-			&& NodeHelpers::findOperatorPlace($operation) === 'comparison' // the others are `MultilineBinaryOperatorRule`'s
-			&& $gap->once($operation, function () use ($token, $gap): bool {
-				$next = $token->getNext();
-				return $next !== null
-					&& $token->isFollowedByLineEnding()
-					&& self::isJoinedLineTooWide($gap, $token, $next) === true;
-			});
+		$position = $this->position;
+		if (
+			$position === null
+			|| !$operation instanceof BinaryOpNode
+			|| NodeHelpers::findOperatorPlace($operation) !== 'comparison' // the others are `MultilineBinaryOperatorRule`'s
+		) {
+			return null;
+		}
+
+		return $gap->once($operation, function () use ($token, $gap, $position): ?Line {
+			$previous = $token->getPrevious();
+			$next = $token->getNext();
+			if ($previous === null || $next === null || !NodeHelpers::isOperatorMisplaced($token, $position)) {
+				return null;
+			} elseif ($position === 'lineEnd') {
+				$tooWide = self::isJoinedLineTooWide($gap, $previous, $token);
+				return $tooWide === null ? null : ($tooWide ? Line::Next : Line::Same);
+			}
+
+			return self::isJoinedLineTooWide($gap, $token, $next) === true ? Line::Same : null;
+		});
 	}
 
 

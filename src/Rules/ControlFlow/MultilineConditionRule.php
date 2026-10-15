@@ -21,11 +21,12 @@ use function count;
  * A condition of `if`, `elseif`, `while` and `do-while` joined by boolean operators that stands on several lines
  * stands in the shapes of `multiline.items.condition`, how its parts share the lines, and `multiline.edges.condition`,
  * where it begins after the opening parenthesis and where the closing one stands; a condition in no shape the
- * configuration allows is written again only on the axis that misses, the parts each on a line of its own beginning
- * with its boolean operator, and so is one on a single line wider than the line length of the style in the first
+ * configuration allows is written again only on the axis that misses, the parts each on a line of its own with its
+ * boolean operator where `multiline.operatorPosition.condition` puts it, and so is one on a single line wider than the
+ * line length of the style in the first
  * shapes, unless an outer construct on the line is spread first or `file.lineLengthExcept` names `condition`. The
  * width is that of the code of the line, a tab counting to the next stop of the style and a comment after it left out.
- * A boolean operator ending a line of a condition left as it is moves to the start of the next one, as
+ * A boolean operator at a line break of a condition left as it is moves to the side of the break
  * `multiline.operatorPosition.condition` says. Where the lines stand is the matter of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
@@ -34,7 +35,9 @@ final class MultilineConditionRule extends GapRule
 	private const Position = 'multiline.operatorPosition.condition';
 
 	private ListLayout $layout;
-	private bool $operatorsAtStart = false;
+
+	/** where a boolean operator at a line break stands, null where it is kept */
+	private ?string $position = null;
 
 
 	public static function getDecisions(): array
@@ -50,7 +53,7 @@ final class MultilineConditionRule extends GapRule
 			),
 			new Decision(
 				self::Position,
-				Domain::lineStart(),
+				Domain::operatorPosition(),
 				'Where a boolean operator chaining a condition of `if`, `elseif`, `while` and `do-while` stands at a line break',
 			),
 		];
@@ -60,7 +63,7 @@ final class MultilineConditionRule extends GapRule
 	public function configure(Values $values): void
 	{
 		$this->layout = ListLayout::fromValues($values, 'condition');
-		$this->operatorsAtStart = !$values->isKept(self::Position);
+		$this->position = $values->find(self::Position)?->getWord();
 	}
 
 
@@ -76,10 +79,10 @@ final class MultilineConditionRule extends GapRule
 			WhileNode::class => $statement,
 			DoWhileNode::class => $statement,
 			BinaryOpNode::class => [
-				// the part begins with its operator, so what follows the operator stays on its line
+				// the break stands on one side of the operator, so what is on the other side stays on its line
 				'operator' => [
-					fn(Gap $gap) => $this->claimForPart($gap, Line::Next),
-					fn(Gap $gap) => $this->claimForPart($gap, Line::Same),
+					fn(Gap $gap) => $this->claimForPart($gap, before: true),
+					fn(Gap $gap) => $this->claimForPart($gap, before: false),
 				],
 			],
 		];
@@ -87,11 +90,11 @@ final class MultilineConditionRule extends GapRule
 
 
 	/**
-	 * The break around a boolean operator of the chain of the condition: the one a part on a line of its own asks for
-	 * where the parts are written again, otherwise, with the operators at the start, the break after an operator ending
-	 * a line moved in front of it.
+	 * The break before or after a boolean operator of the chain of the condition, on the side the position says: the one
+	 * a part on a line of its own asks for where the parts are written again, otherwise the break beside an operator
+	 * standing on its other side, moved to that side.
 	 */
-	private function claimForPart(Gap $gap, Line $line): ?Claim
+	private function claimForPart(Gap $gap, bool $before): ?Claim
 	{
 		$part = $gap->token->parent;
 		$statement = $part instanceof BinaryOpNode ? NodeHelpers::findConditionStatement($part) : null;
@@ -99,10 +102,11 @@ final class MultilineConditionRule extends GapRule
 			return null;
 		}
 
+		$line = $before === ($this->position === 'lineEnd') ? Line::Same : Line::Next;
 		$parts = $this->decide($gap, $statement)['parts'] ?? null;
 		return match (true) {
 			$parts !== null => new Claim(line: $line, because: $parts->because, decision: $parts->decision),
-			$this->operatorsAtStart && in_array($gap->token, $this->findOperatorsEndingLine($gap, $statement), true)
+			$this->position !== null && in_array($gap->token, self::findMisplacedOperators($gap, $statement, $this->position), true)
 				=> new Claim(line: $line, decision: self::Position),
 			default => null,
 		};
@@ -110,15 +114,19 @@ final class MultilineConditionRule extends GapRule
 
 
 	/**
-	 * The boolean operators of the chain of the condition that end their line, decided once per pass about the
-	 * statement.
+	 * The boolean operators of the chain of the condition standing on the other side of their line break than the
+	 * position says, decided once per pass about the statement.
 	 * @return list<Token>
 	 */
-	private function findOperatorsEndingLine(Gap $gap, IfNode|ElseifNode|WhileNode|DoWhileNode $statement): array
+	private static function findMisplacedOperators(
+		Gap $gap,
+		IfNode|ElseifNode|WhileNode|DoWhileNode $statement,
+		string $position,
+	): array
 	{
 		return $gap->once($statement, fn() => array_values(array_filter(
 			NodeHelpers::collectConditionOperators($statement->condition),
-			fn(Token $token) => $token->isFollowedByLineEnding(),
+			fn(Token $token) => NodeHelpers::isOperatorMisplaced($token, $position),
 		)));
 	}
 

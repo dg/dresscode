@@ -321,6 +321,11 @@ final class CorePlugin implements Plugin
 				),
 				...self::createIndentationDecisions(),
 				...self::createImportDecisions(),
+				new Decision(
+					'multiline.operatorPosition.ternary',
+					Domain::operatorPosition(),
+					'Where `?`, `:` and `?:` of a ternary stand at a line break, of a ternary spread over lines too',
+				),
 
 				// how far a global function is written out, which decides the arguments of its optimized call too
 				Rules\Namespaces\QualificationPolicy::createGlobalDecision(

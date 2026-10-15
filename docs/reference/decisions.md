@@ -1245,10 +1245,10 @@ Where the parts spread over lines begin against `(` and where `)` stands.
 Where a boolean operator chaining a condition of `if`, `elseif`, `while` and `do-while` stands at a line break.
 
 - By default `keep`
-- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `keep`
+- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\MultilineConditionRule`, stage Formatting
-- Covers: `PSR12.ControlStructures.BooleanOperatorPlacement`
+- Covers: `operator_linebreak`, `PSR12.ControlStructures.BooleanOperatorPlacement`
 
 ### multiline.items.for
 
@@ -1261,12 +1261,13 @@ The sections of the header of a `for` spread over lines by its author or for the
 
 ### multiline.operatorPosition.comparison
 
-Where a comparison stands at a line break, moving only where the line joined after it would be too wide.
+Where a comparison stands at a line break: one ending its line moves only where the line joined after it would be too wide, one opening its line joins the line before it, what follows staying on its line unless it would be too wide.
 
 - By default `keep`
-- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `keep`
+- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.items.logical
 
@@ -1284,9 +1285,10 @@ Not about the operators of one place joined by another, which begin a family of 
 Where `&&`, `\|\|`, `and`, `or` and `xor` outside a condition stand at a line break.
 
 - By default `keep`
-- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `keep`
+- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.items.concatenation
 
@@ -1304,9 +1306,10 @@ Not about the operators of one place joined by another, which begin a family of 
 Where `.` stand at a line break.
 
 - By default `keep`
-- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `keep`
+- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `keep`, nette `lineStart`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.items.arithmetic
 
@@ -1324,9 +1327,10 @@ Not about the operators of one place joined by another, which begin a family of 
 Where `+`, `-`, `*`, `/`, `%` and `**` stand at a line break.
 
 - By default `keep`
-- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `keep`
+- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.items.bitwise
 
@@ -1344,9 +1348,10 @@ Not about the operators of one place joined by another, which begin a family of 
 Where `\|`, `&`, `^`, `<<` and `>>` stand at a line break.
 
 - By default `keep`
-- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `keep`
+- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.items.coalesce
 
@@ -1364,9 +1369,10 @@ Not about the operators of one place joined by another, which begin a family of 
 Where `??` stand at a line break.
 
 - By default `keep`
-- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `keep`
+- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.items.pipe
 
@@ -1384,9 +1390,10 @@ Not about the operators of one place joined by another, which begin a family of 
 Where `\|>` stand at a line break.
 
 - By default `keep`
-- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `keep`
+- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.items.matchArm
 
@@ -1448,12 +1455,14 @@ A ternary spread over lines by its author, or for the width of its line.
 
 ### multiline.operatorPosition.ternary
 
-Where `?`, `:` and `?:` of a ternary stand at a line break.
+Where `?`, `:` and `?:` of a ternary stand at a line break, of a ternary spread over lines too.
 
 - By default `keep`
-- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `keep`
+- Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `keep`, nette `lineStart`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
+- Read by rule `DressCode\Rules\Expressions\MultilineTernaryRule`, which this decision does not turn on
+- Covers: `operator_linebreak`
 
 ### multiline.items.argument
 

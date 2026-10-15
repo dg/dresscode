@@ -857,11 +857,9 @@ test('the properties of the sniffs of PSR12 translate, or say they have no equiv
 	Assert::same(['multiline.operatorPosition.condition' => 'keep'], $translation->decisions);
 	Assert::true(resolveTranslation($translation)->decisions['multiline.operatorPosition.condition']->value->isKept());
 
-	$translation = (new Translator)->translate(['PSR12.ControlStructures.BooleanOperatorPlacement' => ['allowOnly' => 'last']]);
-	Assert::same([], $translation->decisions);
 	Assert::same(
-		['`PSR12.ControlStructures.BooleanOperatorPlacement` with `allowOnly=last` has no equivalent; DressCode moves a boolean operator only to the start of a line.'],
-		$translation->warnings,
+		['multiline.operatorPosition.condition' => 'lineEnd'],
+		(new Translator)->translate(['PSR12.ControlStructures.BooleanOperatorPlacement' => ['allowOnly' => 'last']])->decisions,
 	);
 
 	$translation = (new Translator)->translate([

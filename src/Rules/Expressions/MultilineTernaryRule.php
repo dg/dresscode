@@ -21,12 +21,21 @@ use function is_string;
  * lines, where the operators would hide at the ends of lines, except a condition of `?:` closed by a bracket opening
  * the line of the operator, `) ?: throw …`. A ternary on a line wider than the line length of the style is split so,
  * unless an outer construct on the line is spread first or `file.lineLengthExcept` names `ternary`, and the `?:` of
- * a short ternary stays together. Where the lines stand is the matter of `IndentationRule`.
+ * a short ternary stays together. With `multiline.operatorPosition.ternary: lineEnd` the operators end the lines
+ * instead, `?` that of the condition and `:` that of the first branch. Where the lines stand is the matter of
+ * `IndentationRule`.
  */
-#[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
+#[RuleInfo(
+	Stage::Formatting,
+	reads: ['file.lineLengthExcept', 'multiline.operatorPosition.ternary'],
+	analyses: [IndentationSnapshot::class],
+)]
 final class MultilineTernaryRule extends GapRule
 {
 	private ListLayout $layout;
+
+	/** whether the operators end the lines they break, as `multiline.operatorPosition.ternary` says */
+	private bool $atEnd = false;
 
 
 	public static function getDecisions(): array
@@ -43,6 +52,7 @@ final class MultilineTernaryRule extends GapRule
 	public function configure(Values $values): void
 	{
 		$this->layout = ListLayout::fromValues($values, 'ternary');
+		$this->atEnd = $values->find('multiline.operatorPosition.ternary')?->getWord() === 'lineEnd';
 	}
 
 
@@ -51,7 +61,8 @@ final class MultilineTernaryRule extends GapRule
 		$break = new Claim(line: Line::Next, because: 'the ternary spans several lines');
 		$operator = function (Gap $gap) use ($break): ?Claim {
 			$ternary = $gap->token->parent;
-			if (!$ternary instanceof TernaryNode || ($gap->token->is(':') && $ternary->then === null)) {
+			// `?:` breaks as one operator, before its question mark or after its colon
+			if (!$ternary instanceof TernaryNode || ($ternary->then === null && $gap->token->is($this->atEnd ? '?' : ':'))) {
 				return null;
 			}
 
@@ -72,6 +83,7 @@ final class MultilineTernaryRule extends GapRule
 			});
 			return is_string($because) ? new Claim(line: Line::Next, because: $because) : $because;
 		};
-		return [TernaryNode::class => ['question' => [$operator, null], 'colon' => [$operator, null]]];
+		$claims = $this->atEnd ? [null, $operator] : [$operator, null];
+		return [TernaryNode::class => ['question' => $claims, 'colon' => $claims]];
 	}
 }

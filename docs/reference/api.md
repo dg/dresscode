@@ -355,7 +355,7 @@ enum DecisionKind: string
 abstract readonly class Domain
 	public static function state(string ...$words): DressCode\Domains\Words
 	public static function placement(string ...$words): DressCode\Domains\Words
-	public static function lineStart(): DressCode\Domains\Words
+	public static function operatorPosition(): DressCode\Domains\Words
 	public static function alignment(string ...$words): DressCode\Domains\Words
 	public static function adopted(): DressCode\Domains\Words
 	public static function blankLines(): DressCode\Domains\Count

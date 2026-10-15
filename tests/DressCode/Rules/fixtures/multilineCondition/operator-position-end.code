@@ -1,0 +1,13 @@
+<?php
+// {"operatorPosition.condition": "lineEnd"}
+if (
+	$a
+	&& $b
+	|| $c
+) {
+}
+while (
+	$a // why
+	&& $b
+) {
+}

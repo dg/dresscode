@@ -150,7 +150,7 @@ final class PhpCodeSniffer
 				if ($only === 'first') {
 					$t->set('multiline.operatorPosition.condition', 'lineStart');
 				} elseif ($only === 'last') {
-					$t->warn('`PSR12.ControlStructures.BooleanOperatorPlacement` with `allowOnly=last` has no equivalent; DressCode moves a boolean operator only to the start of a line.');
+					$t->set('multiline.operatorPosition.condition', 'lineEnd');
 				} else {
 					$t->warn('`PSR12.ControlStructures.BooleanOperatorPlacement` forbids a condition mixing boolean operators at the start and at the end of its lines, which DressCode does not check.');
 					$t->keep('multiline.operatorPosition.condition');

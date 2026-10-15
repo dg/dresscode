@@ -40,8 +40,8 @@ final class MultilineBinaryOperatorRule extends GapRule
 	/** @var array<string, ListLayout> place => its shapes */
 	private array $layouts = [];
 
-	/** @var array<string, bool> place => whether an operator ending a line moves to the start of the next one */
-	private array $operatorsAtStart = [];
+	/** @var array<string, ?string> place => where an operator at a line break stands, null where it is kept */
+	private array $positions = [];
 
 
 	public static function getDecisions(): array
@@ -57,7 +57,7 @@ final class MultilineBinaryOperatorRule extends GapRule
 			));
 			$decisions[] = new Decision(
 				"multiline.operatorPosition.$place",
-				Domain::lineStart(),
+				Domain::operatorPosition(),
 				"Where $operators stand at a line break",
 			);
 		}
@@ -70,7 +70,7 @@ final class MultilineBinaryOperatorRule extends GapRule
 	{
 		foreach (array_keys(self::Places) as $place) {
 			$this->layouts[$place] = ListLayout::fromValues($values, $place);
-			$this->operatorsAtStart[$place] = !$values->isKept("multiline.operatorPosition.$place");
+			$this->positions[$place] = $values->find("multiline.operatorPosition.$place")?->getWord();
 		}
 	}
 
@@ -78,17 +78,17 @@ final class MultilineBinaryOperatorRule extends GapRule
 	public function getClaims(): array
 	{
 		return [BinaryOpNode::class => ['operator' => [
-			fn(Gap $gap) => $this->claimLine($gap, Line::Next),
-			fn(Gap $gap) => $this->claimLine($gap, Line::Same),
+			fn(Gap $gap) => $this->claimLine($gap, before: true),
+			fn(Gap $gap) => $this->claimLine($gap, before: false),
 		]]];
 	}
 
 
 	/**
-	 * The line of an operator, before it as the given line and after it as the other one, where its family is spread
-	 * or the operator moves to the start of the line it ends; null where it stays.
+	 * The line before the operator or after it, the break standing on the side the position says, where its family is
+	 * spread or the operator moves to that side of its break; null where it stays.
 	 */
-	private function claimLine(Gap $gap, Line $line): ?Claim
+	private function claimLine(Gap $gap, bool $before): ?Claim
 	{
 		$operation = $gap->token->parent;
 		$family = $operation instanceof BinaryOpNode ? NodeHelpers::findOperatorFamily($operation) : null;
@@ -97,10 +97,12 @@ final class MultilineBinaryOperatorRule extends GapRule
 			return null;
 		}
 
+		$position = $this->positions[$place];
+		$line = $before === ($position === 'lineEnd') ? Line::Same : Line::Next;
 		$because = $gap->once($family, fn() => $this->findReasonToSpread($family, $place, $gap));
 		return match (true) {
 			$because !== null => new Claim(line: $line, because: $because, decision: "multiline.items.$place"),
-			$this->operatorsAtStart[$place] && self::isMovedToStart($gap->token, $gap)
+			$position !== null && self::isMoved($gap->token, $position, $gap)
 				=> new Claim(line: $line, decision: "multiline.operatorPosition.$place"),
 			default => null,
 		};
@@ -128,10 +130,11 @@ final class MultilineBinaryOperatorRule extends GapRule
 	}
 
 
-	/** Whether the operator ends its line and goes to the start of the next one, decided once per pass about it. */
-	private static function isMovedToStart(Token $operator, Gap $gap): bool
+	/** Whether the operator goes to the other side of its line break, decided once per pass about it. */
+	private static function isMoved(Token $operator, string $position, Gap $gap): bool
 	{
 		$operation = $operator->parent;
-		return $operation instanceof BinaryOpNode && $gap->once($operation, $operator->isFollowedByLineEnding(...), 'moved');
+		return $operation instanceof BinaryOpNode
+			&& $gap->once($operation, fn() => NodeHelpers::isOperatorMisplaced($operator, $position), 'moved');
 	}
 }
