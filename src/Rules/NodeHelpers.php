@@ -238,7 +238,7 @@ final class NodeHelpers
 
 
 	/**
-	 * The construct the node is, of a kind `LineSplits` names, with the token its frame begins with, the tokens its shape
+	 * The construct the node is, at a place `LineSplits` names, with the token its frame begins with, the tokens its shape
 	 * puts at the start of a line once spread, and whether it is spread over lines already; null for a node that is none
 	 * or has nothing to spread: a call, `new` or an attribute without arguments, a first-class callable, a signature
 	 * without parameters, a condition joined by no boolean operator, a chain of fewer than two method calls, an inner

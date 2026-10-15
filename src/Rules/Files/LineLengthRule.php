@@ -26,7 +26,7 @@ use function count, strlen;
  * a comment is measured whole. The lines of a heredoc, a string spanning lines or markup outside PHP tags are content
  * and are not measured; a line inside a multi-line comment is measured and reported as any other. Neither is
  * a line `file.lineLengthExcept` leaves: an import but a group use on one line with `imports`, a line on which
- * a construct of a kind it names stands, a line that would fit were each of its string literals an empty pair
+ * a construct at a place it names stands, a line that would fit were each of its string literals an empty pair
  * of quotes with `strings`, and a line one of its regular expressions matches. Nor is a line of a doc comment wider
  * than the line length already by the tag on it, its type, signature or name, which the description after them cannot
  * shorten. The rule runs last, after the rules that break long lines, so it reports what nothing could break.
@@ -42,8 +42,8 @@ final class LineLengthRule extends NodeRule
 	/** a line that fits with its string literals emptied is not reported */
 	private bool $ignoreStrings = false;
 
-	/** @var array<string, true>  the kinds of construct whose line is not reported */
-	private array $ignoreKinds = [];
+	/** @var array<string, true>  the places of the constructs whose line is not reported */
+	private array $ignorePlaces = [];
 
 	/** @var list<string> */
 	private array $ignorePatterns = [];
@@ -68,8 +68,8 @@ final class LineLengthRule extends NodeRule
 				$this->ignoreImports = true;
 			} elseif ($name === 'strings') {
 				$this->ignoreStrings = true;
-			} elseif (isset(LineSplits::Kinds[$name])) {
-				$this->ignoreKinds[$name] = true;
+			} elseif (isset(LineSplits::Places[$name])) {
+				$this->ignorePlaces[$name] = true;
 			} else {
 				$this->ignorePatterns[] = $name;
 			}
@@ -266,10 +266,10 @@ final class LineLengthRule extends NodeRule
 	}
 
 
-	/** Whether a construct of a kind `file.lineLengthExcept` names begins on the line of the token and stays on it. */
+	/** Whether a construct at a place `file.lineLengthExcept` names begins on the line of the token and stays on it. */
 	private function holdsIgnoredConstruct(?Token $first): bool
 	{
-		if ($this->ignoreKinds === [] || $first === null) {
+		if ($this->ignorePlaces === [] || $first === null) {
 			return false;
 		}
 
@@ -280,7 +280,7 @@ final class LineLengthRule extends NodeRule
 				if (
 					$frame !== null
 					&& !$frame[3]
-					&& isset($this->ignoreKinds[$frame[0]])
+					&& isset($this->ignorePlaces[$frame[0]])
 					&& $frame[1]->getCurrentLine() === $line
 				) {
 					return true;

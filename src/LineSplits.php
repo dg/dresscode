@@ -9,15 +9,15 @@ namespace DressCode;
 
 
 /**
- * The kinds of construct a run spreads over lines when their line is wider than the line length, each by the
- * decision of its shape: one whose shape is not `keep`, which the run is not narrowed away from and which
- * `file.lineLengthExcept` does not name. A construct on a line too wide leaves the break to an outer one of such
- * a kind on its line, so a rule breaking by the width asks which kinds are.
+ * The places of `multiline.items` a run spreads over lines when their line is wider than the line length: one whose
+ * shape is not `keep`, which the run is not narrowed away from and which `file.lineLengthExcept` does not name. A
+ * construct on a line too wide leaves the break to an outer one at such a place on its line, so a rule breaking by the
+ * width asks which places are.
  */
 final readonly class LineSplits
 {
-	/** kind => the decision of its shape */
-	public const Kinds = [
+	/** place => the decision of its shape */
+	public const Places = [
 		'argument' => 'multiline.items.argument',
 		'parameter' => 'multiline.items.parameter',
 		'condition' => 'multiline.items.condition',
@@ -41,8 +41,8 @@ final readonly class LineSplits
 
 
 	public function __construct(
-		/** @var array<string, true> the kinds spread for their width */
-		private array $kinds = [],
+		/** @var array<string, true> the places spread for their width */
+		private array $places = [],
 		/** a call too wide whose sole argument is spread for it keeps it in its parentheses, `foo(bar(` and `))` together */
 		public bool $spreadSoleArgument = false,
 	) {
@@ -52,21 +52,21 @@ final readonly class LineSplits
 	public static function fromValues(Values $values): self
 	{
 		$excepted = $values->has(self::Except) ? array_flip($values->get(self::Except)->getNames()) : [];
-		$kinds = [];
-		foreach (self::Kinds as $kind => $path) {
-			if (!isset($excepted[$kind]) && $values->has($path) && $values->isSelected($path)) {
-				$kinds[$kind] = true;
+		$places = [];
+		foreach (self::Places as $place => $path) {
+			if (!isset($excepted[$place]) && $values->has($path) && $values->isSelected($path)) {
+				$places[$place] = true;
 			}
 		}
 
 		$sole = $values->has(self::SpreadItem) && $values->get(self::SpreadItem)->getWord() === 'sole';
-		return new self($kinds, $sole);
+		return new self($places, $sole);
 	}
 
 
-	/** Whether a construct of the kind is spread over lines when its line is too wide. */
-	public function has(string $kind): bool
+	/** Whether a construct at the place is spread over lines when its line is too wide. */
+	public function has(string $place): bool
 	{
-		return isset($this->kinds[$kind]);
+		return isset($this->places[$place]);
 	}
 }
