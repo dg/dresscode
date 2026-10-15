@@ -72,6 +72,8 @@ multiline:
 		array: fill                           # items may share a line
 		list: fill
 		import: fill                          # the names filling the lines
+		matchArm: perLine
+		matchCondition: fill                  # conditions may share a line
 	edges:
 		array: [apart, attached]              # `]` begins a line where the first item does
 		list: [apart, attached]
@@ -81,12 +83,11 @@ multiline:
 	fillMinItems:
 		array: 6                              # fewer items stand one on a line
 		list: 6
+		matchCondition: 6
 	spreadItem: sole                          # `foo(bar(` above the arguments of `bar()`, `))` below them
 	spreadAlways: [promotedProperty]          # however short
 	chainFirstLinks: sameLine                 # `$form->addText()` above `->setRequired()`
 	condition: [perLine, compact]             # `if (` above `$a`, or `if ($a` above `&& $b`
-	match: perLine
-	matchArmConditions: asWritten             # conditions may share a line
 	expressionBelowReturn: forbidden          # `return [`, not `return` above `[`
 	semicolonOnOwnLine: forbidden
 	trailingComma:

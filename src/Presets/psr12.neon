@@ -67,15 +67,16 @@ multiline:
 	items:
 		argument: perLine                     # an argument per line once spread
 		parameter: perLine                    # a parameter per line once spread or too wide
+		for: perLine                          # a section of `for` per line
+		implements: perLine                   # an interface per line below `implements`
+		matchCondition: perLine               # a condition of a `match` arm per line, `=>` after the last
 	edges:
 		argument: apart                       # `foo(` above the arguments, `)` below them
 		parameter: apart
+		implements: apart
 	spreadAlways: []                          # a promoted property spread only when too wide
 	condition: perLine                        # `if (` above `$a`, `) {` below the last part
-	for: perLine                              # a section of `for` per line
 	binaryOperator: perLine                   # `&& $b`, `. $b` opening a line each where the line is too wide
-	implements: perLine                       # an interface per line below `implements`
-	matchArmConditions: perLine               # a condition of a `match` arm per line, `=>` after the last
 	operatorPosition:
 		binary: lineStart                     # `+ $b` opens the line, not ends the one before
 		condition: lineStart                  # `&& $b` opens the line

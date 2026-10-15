@@ -1,6 +1,6 @@
 <?php
 // lineLength 60
-// {"matchArmConditions": "asWritten"}
+// {"items.matchCondition": "fill"}
 $kind = match (true) {
 	$a instanceof Foo, $a instanceof Bar => 'fits the line',
 	$a instanceof First,

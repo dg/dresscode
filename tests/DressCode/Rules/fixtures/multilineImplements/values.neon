@@ -1,2 +1,5 @@
 multiline:
-	implements: perLine
+	items:
+		implements: perLine
+	edges:
+		implements: apart

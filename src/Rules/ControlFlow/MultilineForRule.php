@@ -8,9 +8,8 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Stage};
-use DressCode\Domains\Words;
-use DressCode\Rules\NodeHelpers;
+use DressCode\{Claim, Gap, GapRule, Line, RuleInfo, Stage};
+use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Statement\ForNode;
 
@@ -27,11 +26,13 @@ final class MultilineForRule extends GapRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision(
-			'multiline.for',
-			new Words(['perLine' => 'every section on a line of its own']),
-			'The sections of the header of a `for` spread over lines by its author or for the width of its line, the closing parenthesis then standing on a line of its own',
-		)];
+		return ListLayout::createDecisions(
+			'for',
+			'section',
+			'sections',
+			'The sections of the header of a `for` spread over lines by its author or for the width of its line, the first on the line after the opening parenthesis and the closing one then standing on a line of its own',
+			fill: false,
+		);
 	}
 
 

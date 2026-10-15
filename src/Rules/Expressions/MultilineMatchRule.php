@@ -7,8 +7,8 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Stage};
-use DressCode\Domains\Words;
+use DressCode\{Claim, Gap, GapRule, Line, RuleInfo, Stage};
+use DressCode\Rules\ListLayout;
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression\MatchNode;
 
@@ -22,12 +22,14 @@ final class MultilineMatchRule extends GapRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision(
-			'multiline.match',
-			new Words(['perLine' => 'every arm on a line of its own']),
+		return ListLayout::createDecisions(
+			'matchArm',
+			'arm',
+			'arms',
 			'The arms of a `match` whose braces stand on different lines',
-			['Not about the conditions of one arm, which `multiline.matchArmConditions` spreads'],
-		)];
+			notes: ['Not about the conditions of one arm, which `multiline.items.matchCondition` spreads'],
+			fill: false,
+		);
 	}
 
 

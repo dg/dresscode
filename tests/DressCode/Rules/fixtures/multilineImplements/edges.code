@@ -1,0 +1,16 @@
+<?php
+// lineLength 60
+// {"items.implements": ["perLine", "fill"], "edges.implements": ["attached", "apart"]}
+class Kept extends Base implements Countable,
+	IteratorAggregate, JsonSerializable
+{
+}
+
+class Moved extends Base implements
+	Countable, IteratorAggregate
+{
+}
+
+class Spread extends Base implements Countable, IteratorAggregate, JsonSerializable
+{
+}

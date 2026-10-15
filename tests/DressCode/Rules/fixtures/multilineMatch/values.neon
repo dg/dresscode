@@ -1,2 +1,3 @@
 multiline:
-	match: perLine
+	items:
+		matchArm: perLine

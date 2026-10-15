@@ -27,10 +27,6 @@ use function count, in_array, strlen;
  */
 final class NodeHelpers
 {
-	/** a list spread for its width with more items than this lets them fill its lines with `asWritten`, not a line each */
-	public const MaxItemsOnOwnLines = 5;
-
-
 	/**
 	 * The `if`, `elseif`, `while` or `do-while` whose condition the operation is a part of, reached from the condition down
 	 * through logical operators alone, not through parentheses or a negation; null for any other operation.
@@ -375,7 +371,7 @@ final class NodeHelpers
 			return count($values) < 2
 				? null
 				: [
-					'matchArm',
+					'matchCondition',
 					$values[0],
 					$values,
 					array_any(array_slice($values, 1), fn(Token $value) => $value->startsLine()),

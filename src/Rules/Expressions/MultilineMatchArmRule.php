@@ -8,8 +8,8 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, Gap, GapRule, RuleInfo, Stage, Style, Values};
-use DressCode\Domains\Words;
+use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, RuleInfo, Stage, Style, Values};
+use DressCode\Domains\Count;
 use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\{Indentation, Node, Token};
 use PhpSyntax\Nodes\{MatchArmNode, SeparatedNodeList};
@@ -18,36 +18,46 @@ use function count;
 
 /**
  * The conditions of a `match` arm spread over lines by their author or on a line wider than the line length of the
- * style stand one on a line, the first where the arm begins and each comma on the line of its condition, and `=>`
- * with the result follows the last one; with `asWritten` the conditions spread by their author stand as they are,
- * and more than five on a line too wide fill the lines evenly up to the line length instead. An arm of a single
- * condition stays, and so does one on a line where `file.lineLengthExcept` names `matchArm`. Where the lines stand
- * is the matter of `IndentationRule`.
+ * style stand in the shape of `multiline.items.matchCondition`, the first where the arm begins and each comma on the
+ * line of its condition, and `=>` with the result follows the last one; conditions on a line too wide are written in
+ * the first shape, in `fill` filling the lines evenly up to the line length from `multiline.fillMinItems.matchCondition`
+ * of them. An arm of a single condition stays, and so does one on a line where `file.lineLengthExcept` names
+ * `matchCondition`. Where the lines stand is the matter of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineMatchArmRule extends GapRule
 {
-	private const AsWritten = 'asWritten';
+	private const FillMinItems = 'multiline.fillMinItems.matchCondition';
 
-	private string $shape;
+	private ListLayout $layout;
+	private int $fillMinItems = 2;
 
 
 	public static function getDecisions(): array
 	{
-		return [new Decision(
-			'multiline.matchArmConditions',
-			new Words([
-				'perLine' => 'every condition on a line of its own, `=>` after the last one',
-				self::AsWritten => 'the conditions stand as their author spread them and more than five spread for the width fill the lines, `=>` after the last one',
-			]),
-			'The conditions of a `match` arm spread over lines by their author or for the width of their line',
-		)];
+		return [
+			...ListLayout::createDecisions(
+				'matchCondition',
+				'condition',
+				'conditions',
+				'The conditions of a `match` arm spread over lines by their author or for the width of their line, `=>` after the last one',
+				notes: ['Written as `fill`, the conditions fill the lines evenly from `multiline.fillMinItems.matchCondition` of them, fewer standing one on a line'],
+			),
+			new Decision(
+				self::FillMinItems,
+				new Count(2, range: false),
+				'From how many conditions an arm written in `fill` fills its lines',
+				kind: DecisionKind::Parameter,
+				default: 2,
+			),
+		];
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->shape = $values->get('multiline.matchArmConditions')->getWord();
+		$this->layout = ListLayout::fromValues($values, 'matchCondition');
+		$this->fillMinItems = $values->get(self::FillMinItems)->getCount()[0];
 	}
 
 
@@ -77,15 +87,15 @@ final class MultilineMatchArmRule extends GapRule
 
 
 	/**
-	 * What `decide()` gives: no claim before a condition its author placed with `asWritten`, the fill of the lines
-	 * by `claimPacked()`, or a break before each.
+	 * What `decide()` gives: no claim before a condition its author placed where `fill` is accepted, the fill of the
+	 * lines by `claimPacked()`, or a break before each.
 	 * @param  SeparatedNodeList<covariant Node>  $list
 	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim}
 	 */
 	private function claimConditions(SeparatedNodeList $list, Gap $gap): ?array
 	{
 		$frame = NodeHelpers::findSplitFrame($list);
-		if ($frame === null) {
+		if ($frame === null || $this->layout->items === []) {
 			return null;
 		}
 
@@ -95,32 +105,33 @@ final class MultilineMatchArmRule extends GapRule
 			return null;
 		}
 
-		$itemShape = $this->shape === self::AsWritten ? ListLayout::Fill : ListLayout::PerLine;
+		[$itemShape] = $multiline ? $this->layout->findShapes($frame[1], null) : $this->layout->getFirst();
 		$packed = !$multiline && $itemShape === ListLayout::Fill
-			? self::claimPacked($list, $frame[1], $gap->style, $because)
+			? $this->claimPacked($list, $frame[1], $gap->style, $because)
 			: null;
-		return new ListLayout([$itemShape], [])->claim(
+		return $this->layout->claim(
 			$list->getItems(),
 			null,
 			!$multiline && $packed === null ? ListLayout::PerLine : $itemShape,
 			null,
 			$because,
 			$packed,
+			whole: !$multiline,
 		);
 	}
 
 
 	/**
-	 * The claims before the conditions of an arm spread for its width with more than five of them: a condition follows
-	 * the one before on its line while the line fits into the line length, and begins the next one when it does not;
-	 * null for an arm whose conditions stand one on a line, as one with a comment does.
+	 * The claims before the conditions of an arm spread for its width with at least `multiline.fillMinItems` of them:
+	 * a condition follows the one before on its line while the line fits into the line length, and begins the next one
+	 * when it does not; null for an arm whose conditions stand one on a line, as one with a comment does.
 	 * @param  SeparatedNodeList<covariant Node>  $list
 	 * @return ?list<Claim>
 	 */
-	private static function claimPacked(SeparatedNodeList $list, Token $start, Style $style, string $because): ?array
+	private function claimPacked(SeparatedNodeList $list, Token $start, Style $style, string $because): ?array
 	{
 		$conditions = $list->getItems();
-		if ($style->maxLineLength === null || count($conditions) <= NodeHelpers::MaxItemsOnOwnLines) {
+		if ($style->maxLineLength === null || count($conditions) < $this->fillMinItems) {
 			return null;
 		}
 

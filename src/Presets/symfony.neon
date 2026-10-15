@@ -60,18 +60,19 @@ multiline:
 		parameter: keep
 		array: keep
 		list: keep
+		for: keep
+		implements: keep
+		matchCondition: keep
 	edges:
 		argument: keep
 		parameter: keep
 		array: keep
 		list: keep
+		implements: keep
 	chain: keep
 	condition: keep
-	for: keep
 	binaryOperator: keep
 	ternary: keep
-	implements: keep
-	matchArmConditions: keep
 	operatorPosition:
 		# operator_linebreak moves only a boolean operator, which no option here tells from the others
 		binary: keep

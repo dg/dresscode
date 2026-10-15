@@ -1,2 +1,5 @@
 multiline:
-	matchArmConditions: perLine
+	items:
+		matchCondition: perLine
+	fillMinItems:
+		matchCondition: 6

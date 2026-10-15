@@ -23,12 +23,12 @@ final readonly class LineSplits
 		'condition' => 'multiline.condition',
 		'chain' => 'multiline.chain',
 		'ternary' => 'multiline.ternary',
-		'for' => 'multiline.for',
+		'for' => 'multiline.items.for',
 		'binaryOperator' => 'multiline.binaryOperator',
 		'array' => 'multiline.items.array',
 		'list' => 'multiline.items.list',
-		'implements' => 'multiline.implements',
-		'matchArm' => 'multiline.matchArmConditions',
+		'implements' => 'multiline.items.implements',
+		'matchCondition' => 'multiline.items.matchCondition',
 	];
 
 	private const Except = 'file.lineLengthExcept';
