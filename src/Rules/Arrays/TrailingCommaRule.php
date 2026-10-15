@@ -20,9 +20,9 @@ use function count;
 
 /**
  * Each place says what holds for the trailing comma of its list spread over lines: `required` puts it there when the
- * closing bracket stands on its own line, `optional` leaves it there to the author, both remove it when the bracket
- * follows the last item, and `forbidden` removes it always; a list written on one line loses it wherever the place is
- * not `keep`, because there the comma is never wanted. A list is spread where a line breaks after the opening bracket,
+ * closing bracket stands on its own line, `optional` leaves it there to the author, and both remove it when the bracket
+ * follows the last item; a list written on one line loses it wherever the place is not `keep`, because there the comma
+ * is never wanted, and `keep` leaves every comma as it is. A list is spread where a line breaks after the opening bracket,
  * an item starts a line or the closing bracket does; one whose items start on the line of the bracket counts as written
  * on one line however many lines an item spans or a comma begins.
  */
@@ -31,7 +31,6 @@ final class TrailingCommaRule extends NodeRule
 {
 	private const Required = 'required';
 	private const Optional = 'optional';
-	private const Forbidden = 'forbidden';
 	private const Keep = 'keep';
 	private const Path = 'multiline.trailingComma.';
 
@@ -51,7 +50,6 @@ final class TrailingCommaRule extends NodeRule
 	{
 		$words = new Words([
 			self::Required => 'there where the closing bracket stands on its own line, never where it follows the last item',
-			self::Forbidden => 'never there',
 			self::Optional => 'as the author wrote it where the closing bracket stands on its own line, never where it follows the last item',
 		]);
 		$decisions = [];
@@ -64,17 +62,11 @@ final class TrailingCommaRule extends NodeRule
 			'import' => 'the names of a multi-line group use',
 			'list' => 'a multi-line `list()`',
 		] as $place => $what) {
-			$decisions[] = $place === 'list'
-				? new Decision(
-					self::Path . $place,
-					new Words([self::Optional => 'as the author wrote it']),
-					'The trailing comma of a `list()`, whose only effect is that any value but `keep` removes the one a `list()` written on one line has or one followed by the closing parenthesis, a multi-line one otherwise staying as written',
-				)
-				: new Decision(
-					self::Path . $place,
-					$words,
-					"The trailing comma of $what; any value but `keep` also removes the one a list written on one line has",
-				);
+			$decisions[] = new Decision(
+				self::Path . $place,
+				$words,
+				"The trailing comma of $what; any value but `keep` also removes the one a list written on one line has",
+			);
 		}
 
 		return $decisions;
@@ -159,10 +151,8 @@ final class TrailingCommaRule extends NodeRule
 			return;
 		}
 
-		if ($mode === self::Forbidden || $last->getEndLine() === $close->getCurrentLine()) {
-			$message = $mode === self::Forbidden
-				? "A multi-line $what must not end with a trailing comma."
-				: 'A trailing comma must not precede a closing bracket on the line of the last item.';
+		if ($last->getEndLine() === $close->getCurrentLine()) {
+			$message = 'A trailing comma must not precede a closing bracket on the line of the last item.';
 			if ($list->hasTrailingSeparator() && $context->report($close, $message, decision: $decision)) {
 				self::removeTrailingComma($list);
 			}

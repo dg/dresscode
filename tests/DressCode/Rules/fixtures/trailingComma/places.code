@@ -1,5 +1,5 @@
 <?php
-// {"trailingComma": {"array": "forbidden", "argument": "optional", "parameter": "keep", "list": "keep"}}
+// {"trailingComma": {"array": "optional", "argument": "optional", "parameter": "keep", "list": "keep"}}
 $a = [
 	1,
 	2,

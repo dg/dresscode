@@ -1139,7 +1139,7 @@ From how many items without keys `list()` written in `fill` fills its lines.
 The trailing comma of a multi-line array, a destructuring written with `[...]` included; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `forbidden` (never there); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`, `trailing_comma_in_multiline`, `SlevomatCodingStandard.Arrays.TrailingArrayComma`
@@ -1149,7 +1149,7 @@ The trailing comma of a multi-line array, a destructuring written with `[...]` i
 The trailing comma of the multi-line arguments of a call and the variables of `isset()` and `unset()`; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `forbidden` (never there); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`, `SlevomatCodingStandard.Functions.RequireTrailingCommaInCall`
@@ -1159,7 +1159,7 @@ The trailing comma of the multi-line arguments of a call and the variables of `i
 The trailing comma of a multi-line list of parameters; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `forbidden` (never there); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `function_declaration`, `SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration`
@@ -1169,7 +1169,7 @@ The trailing comma of a multi-line list of parameters; any value but `keep` also
 The trailing comma of the arms of a multi-line `match`; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `forbidden` (never there); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 
@@ -1178,7 +1178,7 @@ The trailing comma of the arms of a multi-line `match`; any value but `keep` als
 The trailing comma of a multi-line `use` of a closure; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `forbidden` (never there); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 
@@ -1187,17 +1187,17 @@ The trailing comma of a multi-line `use` of a closure; any value but `keep` also
 The trailing comma of the names of a multi-line group use; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `forbidden` (never there); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `optional`, psr12 `keep`, nette `required`, symfony `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`
 
 ### multiline.trailingComma.list
 
-The trailing comma of a `list()`, whose only effect is that any value but `keep` removes the one a `list()` written on one line has or one followed by the closing parenthesis, a multi-line one otherwise staying as written.
+The trailing comma of a multi-line `list()`; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `optional` (as the author wrote it); `keep`
+- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `optional`, psr12 `keep`, nette `keep`, symfony `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`

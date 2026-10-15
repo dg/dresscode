@@ -1,0 +1,7 @@
+<?php
+// {"trailingComma": {"list": "required"}}
+list(
+	$a,
+	$b
+) = $pair;
+list($c, $d,) = $pair;

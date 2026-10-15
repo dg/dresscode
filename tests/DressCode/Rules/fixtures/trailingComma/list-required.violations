@@ -1,0 +1,2 @@
+6: A multi-line destructuring must end with a trailing comma.
+7: A one-line list must not end with a trailing comma.
