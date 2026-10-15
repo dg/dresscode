@@ -139,6 +139,7 @@ final readonly class Application
 			new Commands\CatalogueCommand($context),
 			new Commands\InitCommand($context),
 			new Commands\ImportCommand($context),
+			new Commands\MigrateSuppressionsCommand($context),
 		] as $handlers) {
 			$program->addCommandsFrom($handlers);
 		}

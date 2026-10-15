@@ -472,7 +472,7 @@ Migrating from PHP CS Fixer, PHP_CodeSniffer and Laravel Pint
 =============================================================
 
 DressCode knows not only its own decisions, but also the names their rules have in PHP CS Fixer,
-PHP_CodeSniffer and Slevomat. So the move takes two steps, and you can stop after the first.
+PHP_CodeSniffer and Slevomat. So the move takes three steps, and you can stop after any of them.
 
 First, leave the code as it is. Comments `// phpcs:ignore`, `phpcs:disable`, `phpcs:enable`,
 `phpcs:ignoreFile` and the annotation `@phpcsSuppress` keep working: DressCode translates the foreign rule
@@ -493,6 +493,9 @@ Read 4 rules; set 4 decisions and 1 preset.
 
 `.php-cs-fixer.dist.php` is translated the same way, as long as PHP CS Fixer is still installed in the
 project, because that file is PHP which has to run.
+
+Third, rewrite the comments when you like: `dresscode migrate-suppressions src tests` turns
+`phpcs:ignore SlevomatCodingStandard.Namespaces.UnusedUses` into `dresscode:ignore imports.unused`.
 
 **Laravel Pint** runs PHP CS Fixer, with a command line of its own and presets of its own, `laravel` the
 default one. A project on that preset has nothing to translate: DressCode has the style as the standard
