@@ -121,14 +121,6 @@ final class MultilineSignatureRule extends GapRule
 			}
 		}
 
-		if (!$gap->style->lineSplits->has('parameter')) {
-			return null;
-		}
-
-		// the width first: asking whether the line is in place costs a plan of the whole file
-		$width = NodeHelpers::measureOverflow($node, $open, $gap);
-		return $width !== null && NodeHelpers::isLineInPlace($gap, $open)
-			? "the line is $width characters long, more than {$gap->style->maxLineLength}"
-			: null;
+		return NodeHelpers::findWidthReason($node, $gap);
 	}
 }

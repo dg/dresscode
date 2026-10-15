@@ -57,26 +57,7 @@ final class MultilineBinaryOperatorRule extends GapRule
 		}
 
 		$family = NodeHelpers::findOperatorFamily($operation);
-		$because = $family === null ? null : $gap->once($family, fn() => self::findWidthReason($family, $gap));
+		$because = $family === null ? null : $gap->once($family, fn() => NodeHelpers::findWidthReason($family, $gap));
 		return $because === null ? null : new Claim(line: $line, because: $because);
-	}
-
-
-	/**
-	 * Why a family on one line is spread: its line is wider than the line length of the style and no outer construct
-	 * on the line is spread first; measured once the line is indented.
-	 */
-	private static function findWidthReason(BinaryOpNode $family, Gap $gap): ?string
-	{
-		$frame = NodeHelpers::findSplitFrame($family);
-		if ($frame === null || $frame[3] || !$gap->style->lineSplits->has($frame[0])) {
-			return null;
-		}
-
-		// the width first: asking whether the line is in place costs a plan of the whole file
-		$width = NodeHelpers::measureOverflow($family, $frame[1], $gap);
-		return $width !== null && NodeHelpers::isLineInPlace($gap, $frame[1])
-			? "the line is $width characters long, more than {$gap->style->maxLineLength}"
-			: null;
 	}
 }

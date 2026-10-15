@@ -505,6 +505,25 @@ final class NodeHelpers
 
 
 	/**
+	 * Why a construct on one line is spread for its width: it is of a kind the run spreads by the width, no message and
+	 * not spread yet, and `measureOverflow()` finds its line too wide once the line is indented; null otherwise.
+	 */
+	public static function findWidthReason(Node $construct, Gap $gap): ?string
+	{
+		$frame = self::findSplitFrame($construct);
+		if ($frame === null || $frame[3] || $frame[4] || !$gap->style->lineSplits->has($frame[0])) {
+			return null;
+		}
+
+		// the width first: asking whether the line is in place costs a plan of the whole file
+		$width = self::measureOverflow($construct, $frame[1], $gap);
+		return $width !== null && self::isLineInPlace($gap, $frame[1])
+			? "the line is $width characters long, more than {$gap->style->maxLineLength}"
+			: null;
+	}
+
+
+	/**
 	 * Whether a construct the run spreads for its width begins after the construct on its line, before the first of
 	 * the stops: of two constructs on a line with no common one to spread, the last is spread first, as the last
 	 * argument or the body of a `match` arm is, and the other one is measured again in the next pass.

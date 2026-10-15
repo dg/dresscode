@@ -82,16 +82,8 @@ final class MultilineImplementsRule extends GapRule
 		$frame = NodeHelpers::findSplitFrame($list);
 		if ($frame === null) {
 			return null;
-		} elseif ($frame[3]) {
-			return 'the interfaces span several lines';
-		} elseif (!$gap->style->lineSplits->has($frame[0])) {
-			return null;
 		}
 
-		// the width first: asking whether the line is in place costs a plan of the whole file
-		$width = NodeHelpers::measureOverflow($list, $frame[1], $gap);
-		return $width !== null && NodeHelpers::isLineInPlace($gap, $frame[1])
-			? "the line is $width characters long, more than {$gap->style->maxLineLength}"
-			: null;
+		return $frame[3] ? 'the interfaces span several lines' : NodeHelpers::findWidthReason($list, $gap);
 	}
 }

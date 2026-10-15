@@ -187,15 +187,7 @@ final class MultilineConditionRule extends GapRule
 					: 'the condition fits none of the allowed shapes');
 		}
 
-		if (!$gap->style->lineSplits->has('condition')) {
-			return null;
-		}
-
-		// the width first: asking whether the line is in place costs a plan of the whole file
-		$width = NodeHelpers::measureOverflow($node, $node->openParen, $gap);
-		return $width !== null && NodeHelpers::isLineInPlace($gap, $node->openParen)
-			? "the line is $width characters long, more than {$gap->style->maxLineLength}"
-			: null;
+		return NodeHelpers::findWidthReason($node, $gap);
 	}
 
 

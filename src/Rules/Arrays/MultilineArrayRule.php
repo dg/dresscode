@@ -113,7 +113,7 @@ final class MultilineArrayRule extends GapRule
 		$multiline = NodeHelpers::isMultiline($array->openDelimiter, $array->items->getItems(), $array->closeDelimiter);
 		$because = $multiline
 			? 'the array spans several lines'
-			: $this->findWidthReason($array, $style) ?? self::findLineReason($array, $gap);
+			: $this->findMaxWidthReason($array, $style) ?? NodeHelpers::findWidthReason($array, $gap);
 		[$itemShape, $edgeShape] = $multiline
 			? $this->layout->findShapes($array->openDelimiter, $array->closeDelimiter)
 			: $this->layout->getFirst();
@@ -148,7 +148,7 @@ final class MultilineArrayRule extends GapRule
 	 * Why an array of several items on one line is spread: it is wider than maxWidth, from its opening bracket to its
 	 * closing one; an array of a single item has nothing to spread it into.
 	 */
-	private function findWidthReason(ArrayNode|DestructuringNode $array, Style $style): ?string
+	private function findMaxWidthReason(ArrayNode|DestructuringNode $array, Style $style): ?string
 	{
 		$open = $array->openDelimiter;
 		$close = $array->closeDelimiter;
@@ -161,25 +161,6 @@ final class MultilineArrayRule extends GapRule
 		$to = $close->getVisualColumn($phpSyntax);
 		$width = $from === null || $to === null ? 0 : $to - $from + 1;
 		return $width > $this->maxWidth ? "the array is $width characters wide, more than $this->maxWidth" : null;
-	}
-
-
-	/**
-	 * Why an array of several items on one line is spread for its line: the line is wider than the line length of
-	 * the style and no outer construct on it is spread first; measured once the line is indented.
-	 */
-	private static function findLineReason(ArrayNode|DestructuringNode $array, Gap $gap): ?string
-	{
-		$frame = NodeHelpers::findSplitFrame($array);
-		if ($frame === null || $frame[3] || !$gap->style->lineSplits->has($frame[0])) {
-			return null;
-		}
-
-		// the width first: asking whether the line is in place costs a plan of the whole file
-		$width = NodeHelpers::measureOverflow($array, $frame[1], $gap);
-		return $width !== null && NodeHelpers::isLineInPlace($gap, $frame[1])
-			? "the line is $width characters long, more than {$gap->style->maxLineLength}"
-			: null;
 	}
 
 

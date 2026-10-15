@@ -85,45 +85,28 @@ final class MultilineMatchArmRule extends GapRule
 	private function claimConditions(SeparatedNodeList $list, Gap $gap): ?array
 	{
 		$frame = NodeHelpers::findSplitFrame($list);
-		$because = $frame === null ? null : self::findReasonToBreak($list, $frame, $gap);
-		if ($frame === null || $because === null) {
+		if ($frame === null) {
+			return null;
+		}
+
+		$multiline = $frame[3];
+		$because = $multiline ? 'the conditions span several lines' : NodeHelpers::findWidthReason($list, $gap);
+		if ($because === null) {
 			return null;
 		}
 
 		$itemShape = $this->shape === self::AsWritten ? ListLayout::Fill : ListLayout::PerLine;
-		$packed = !$frame[3] && $itemShape === ListLayout::Fill
+		$packed = !$multiline && $itemShape === ListLayout::Fill
 			? self::claimPacked($list, $frame[1], $gap->style, $because)
 			: null;
 		return new ListLayout([$itemShape], [])->claim(
 			$list->getItems(),
 			null,
-			!$frame[3] && $packed === null ? ListLayout::PerLine : $itemShape,
+			!$multiline && $packed === null ? ListLayout::PerLine : $itemShape,
 			null,
 			$because,
 			$packed,
 		);
-	}
-
-
-	/**
-	 * Why the conditions take lines of their own: they span lines, or they stand on a line wider than the line length
-	 * of the style, no outer construct on the line is spread first and the line is indented.
-	 * @param  SeparatedNodeList<covariant Node>  $list
-	 * @param  array{string, Token, list<Token>, bool, bool}  $frame
-	 */
-	private static function findReasonToBreak(SeparatedNodeList $list, array $frame, Gap $gap): ?string
-	{
-		if ($frame[3]) {
-			return 'the conditions span several lines';
-		} elseif (!$gap->style->lineSplits->has($frame[0])) {
-			return null;
-		}
-
-		// the width first: asking whether the line is in place costs a plan of the whole file
-		$width = NodeHelpers::measureOverflow($list, $frame[1], $gap);
-		return $width !== null && NodeHelpers::isLineInPlace($gap, $frame[1])
-			? "the line is $width characters long, more than {$gap->style->maxLineLength}"
-			: null;
 	}
 
 

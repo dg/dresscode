@@ -85,28 +85,9 @@ final class MultilineChainRule extends GapRule
 			$chain = $chain->parent;
 		}
 
-		$because = $gap->once($chain, fn() => self::findWidthReason($chain, $gap));
+		$because = $gap->once($chain, fn() => NodeHelpers::findWidthReason($chain, $gap));
 		return $because !== null && ($this->firstLinks === self::OwnLine || self::followsCall($link))
 			? new Claim(line: Line::Next, because: $because)
-			: null;
-	}
-
-
-	/**
-	 * Why a chain of two method calls or more on one line is spread: its line is wider than the line length of the
-	 * style and no outer construct on the line is spread first; measured once the line is indented.
-	 */
-	private static function findWidthReason(MethodCallNode|PropertyFetchNode $chain, Gap $gap): ?string
-	{
-		$frame = NodeHelpers::findSplitFrame($chain);
-		if ($frame === null || $frame[3] || !$gap->style->lineSplits->has($frame[0])) {
-			return null;
-		}
-
-		// the width first: asking whether the line is in place costs a plan of the whole file
-		$width = NodeHelpers::measureOverflow($chain, $frame[1], $gap);
-		return $width !== null && NodeHelpers::isLineInPlace($gap, $frame[1])
-			? "the line is $width characters long, more than {$gap->style->maxLineLength}"
 			: null;
 	}
 

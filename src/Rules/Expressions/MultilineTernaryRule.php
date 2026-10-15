@@ -56,30 +56,11 @@ final class MultilineTernaryRule extends GapRule
 			$because = $gap->once(
 				$ternary,
 				fn() => $first->getCurrentLine() === $last->getCurrentLine()
-					? self::findWidthReason($ternary, $gap)
+					? NodeHelpers::findWidthReason($ternary, $gap)
 					: $break,
 			);
 			return is_string($because) ? new Claim(line: Line::Next, because: $because) : $because;
 		};
 		return [TernaryNode::class => ['question' => [$operator, null], 'colon' => [$operator, null]]];
-	}
-
-
-	/**
-	 * Why a ternary on one line is spread: its line is wider than the line length of the style and no outer construct
-	 * on the line is spread first; measured once the line is indented.
-	 */
-	private static function findWidthReason(TernaryNode $ternary, Gap $gap): ?string
-	{
-		$frame = NodeHelpers::findSplitFrame($ternary);
-		if ($frame === null || $frame[3] || !$gap->style->lineSplits->has($frame[0])) {
-			return null;
-		}
-
-		// the width first: asking whether the line is in place costs a plan of the whole file
-		$width = NodeHelpers::measureOverflow($ternary, $frame[1], $gap);
-		return $width !== null && NodeHelpers::isLineInPlace($gap, $frame[1])
-			? "the line is $width characters long, more than {$gap->style->maxLineLength}"
-			: null;
 	}
 }
