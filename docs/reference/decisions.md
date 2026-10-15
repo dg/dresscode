@@ -1624,7 +1624,7 @@ Where the attributes spread over lines begin against `#[` and where `]` stands.
 The attributes of a class, a function, a method, a property, a constant, a case of an enum or a hook of a property whose hooks span lines stand right above it, no blank line between the groups; those of a closure, an anonymous class or a hook in hooks written on one line may share its line.
 
 - By default `keep`
-- Takes: `above` (every group on a line of its own above the declaration); `keep`
+- Takes: `above` (every group on a line of its own above the declaration); `sameLine` (every group on the line of the declaration); `keep`
 - The standards: perCs `above`, psr12 `keep`, nette `above`, symfony `above`
 - Rule `DressCode\Rules\Whitespace\AttributePositionRule`, stage Formatting
 - Covers: `SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine`
@@ -1634,7 +1634,7 @@ The attributes of a class, a function, a method, a property, a constant, a case 
 Where the attributes of a parameter stand.
 
 - By default `keep`
-- Takes: `above` (every group on a line of its own above the parameter in a list of parameters spread over lines, on the line of the parameter in a list on one line); `keep`
+- Takes: `above` (every group on a line of its own above the parameter in a list of parameters spread over lines, on the line of the parameter in a list on one line); `sameLine` (every group on the line of the parameter, in a list spread over lines too); `keep`
 - The standards: perCs `above`, psr12 `keep`, nette `above`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\AttributePositionRule`, stage Formatting
 - Covers: `SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine`

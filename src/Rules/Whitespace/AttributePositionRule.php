@@ -16,10 +16,11 @@ use PhpSyntax\Nodes\{Member, ParameterNode, SeparatedNodeList, Statement};
 
 /**
  * The attributes of a declaration (a class, a function, a method, a property, a constant, a case of an enum, a hook
- * of a property whose hooks span lines) stand on lines of their own right above it: every group on its own line, no
- * blank line between the groups, and the declaration on the line after the last one. The attributes of a parameter
- * do so in a list of parameters spread over lines and share the line of the parameter in a list on one line.
- * Attributes on a closure, an anonymous class or a hook among hooks written on one line may share the line.
+ * of a property whose hooks span lines) stand `above` it: every group on its own line, no blank line between the
+ * groups, and the declaration on the line after the last one. The attributes of a parameter do so in a list of
+ * parameters spread over lines and share the line of the parameter in a list on one line. With `sameLine` every group
+ * shares the line of what it marks. Attributes on a closure, an anonymous class or a hook among hooks written on one
+ * line may share the line.
  */
 #[RuleInfo(Stage::Formatting)]
 final class AttributePositionRule extends GapRule
@@ -33,9 +34,11 @@ final class AttributePositionRule extends GapRule
 		Member\EnumCaseNode::class,
 	];
 
-	private bool $declaration = true;
+	/** above, sameLine or null for keep */
+	private ?string $declaration = 'above';
 
-	private bool $parameter = true;
+	/** above, sameLine or null for keep */
+	private ?string $parameter = 'above';
 
 
 	public static function getDecisions(): array
@@ -43,14 +46,18 @@ final class AttributePositionRule extends GapRule
 		return [
 			new Decision(
 				self::Declaration,
-				new Words(['above' => 'every group on a line of its own above the declaration']),
+				new Words([
+					'above' => 'every group on a line of its own above the declaration',
+					'sameLine' => 'every group on the line of the declaration',
+				]),
 				'The attributes of a class, a function, a method, a property, a constant, a case of an enum or a hook of a property whose hooks span lines stand right above it, no blank line between the groups; those of a closure, an anonymous class or a hook in hooks written on one line may share its line',
 			),
 			new Decision(
 				self::Parameter,
-				new Words(
-					['above' => 'every group on a line of its own above the parameter in a list of parameters spread over lines, on the line of the parameter in a list on one line'],
-				),
+				new Words([
+					'above' => 'every group on a line of its own above the parameter in a list of parameters spread over lines, on the line of the parameter in a list on one line',
+					'sameLine' => 'every group on the line of the parameter, in a list spread over lines too',
+				]),
 				'Where the attributes of a parameter stand',
 			),
 		];
@@ -59,15 +66,21 @@ final class AttributePositionRule extends GapRule
 
 	public function configure(Values $values): void
 	{
-		$this->declaration = !$values->isKept(self::Declaration);
-		$this->parameter = !$values->isKept(self::Parameter);
+		$this->declaration = $values->find(self::Declaration)?->getWord();
+		$this->parameter = $values->find(self::Parameter)?->getWord();
 	}
 
 
 	public function getClaims(): array
 	{
 		$claims = [];
-		if ($this->declaration) {
+		if ($this->declaration === 'sameLine') {
+			$joined = new Claim(line: Line::Same, decision: self::Declaration);
+			$claims = array_fill_keys([...self::Declarations, Member\PropertyHookNode::class], [
+				'attributes:item' => [fn(Gap $gap) => $gap->index > 0 ? $joined : null, null],
+				'attributes' => [null, $joined],
+			]);
+		} elseif ($this->declaration !== null) {
 			$own = new Claim(line: Line::Next, blankLines: 0, decision: self::Declaration);
 			$next = Claim::nextLine()->withDecision(self::Declaration);
 			$claims = array_fill_keys(self::Declarations, [
@@ -80,7 +93,13 @@ final class AttributePositionRule extends GapRule
 			];
 		}
 
-		if ($this->parameter) {
+		if ($this->parameter === 'sameLine') {
+			$shared = new Claim(line: Line::Same, decision: self::Parameter);
+			$claims[ParameterNode::class] = [
+				'attributes:item' => [fn(Gap $gap) => $gap->index > 0 ? $shared : null, null],
+				'attributes' => [null, $shared],
+			];
+		} elseif ($this->parameter !== null) {
 			$own = new Claim(line: Line::Next, blankLines: 0, decision: self::Parameter);
 			$next = Claim::nextLine()->withDecision(self::Parameter);
 			$shared = new Claim(line: Line::Same, decision: self::Parameter);

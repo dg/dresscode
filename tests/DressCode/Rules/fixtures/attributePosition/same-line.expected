@@ -1,0 +1,13 @@
+<?php
+// {"attributePosition.declaration": "sameLine", "attributePosition.parameter": "sameLine"}
+#[Entity] #[Table("users")] final class User
+{
+	#[Override] public function save(
+		#[SensitiveParameter] string $password,
+	): void
+	{
+	}
+
+	#[Deprecated] // why
+	public const A = 1;
+}
