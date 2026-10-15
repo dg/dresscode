@@ -125,11 +125,13 @@ test('options are translated, a rule switched off is turned off', function () {
 		'concat_space' => ['spacing' => 'one'],
 		'array_syntax' => ['syntax' => 'long'],
 		'elseif' => false,
+		'multiline_whitespace_before_semicolons' => ['strategy' => 'new_line_for_chained_calls'],
 	]);
 	Assert::same([
 		'spacing.cast' => 'compact',
 		'spacing.concatenation' => 'spaced',
 		'controlFlow.elseif' => 'keep',
+		'multiline.semicolon' => 'nextLine',
 	], $translation->decisions);
 	Assert::same(
 		['`array_syntax` with `syntax=long` has no equivalent; DressCode writes the short syntax only.'],

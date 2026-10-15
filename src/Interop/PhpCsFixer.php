@@ -300,6 +300,10 @@ final class PhpCsFixer
 				'classes.visibility.interfaceMethod' => 'required',
 			],
 			'multiline_promoted_properties' => fn(array $o, Translation $t) => $t->set('multiline.spreadAlways', ['promotedProperty']),
+			'multiline_whitespace_before_semicolons' => fn(array $o, Translation $t) => $t->set(
+				'multiline.semicolon',
+				($o['strategy'] ?? 'no_multi_line') === 'new_line_for_chained_calls' ? 'nextLine' : 'sameLine',
+			),
 			'native_function_casing' => function (array $o, Translation $t) {
 				$t->set('casing.function', 'declared');
 				$t->warn('`native_function_casing` writes the functions PHP declares, while `casing.function` writes those of the project and its packages too where the configuration sets `typeAnalysis`.');

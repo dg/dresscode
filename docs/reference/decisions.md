@@ -1606,10 +1606,10 @@ Where an expression spanning several lines after `echo` and `print` begins.
 Where the semicolon of a statement spanning several lines stands.
 
 - By default `keep`
-- Takes: `sameLine` (on the line of what comes before); `keep`
+- Takes: `sameLine` (closing the last line of the statement); `nextLine` (on a line of its own below a chain of method calls spread over lines, closing the last line of any other statement); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `sameLine`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\SemicolonSpacingRule`, stage Formatting
-- Covers: `Squiz.WhiteSpace.SemicolonSpacing`
+- Covers: `multiline_whitespace_before_semicolons`, `Squiz.WhiteSpace.SemicolonSpacing`
 
 ## braces
 

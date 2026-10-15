@@ -1,0 +1,29 @@
+<?php
+// {"multiline.semicolon": "nextLine"}
+$query = $this->db->table()
+	->where($a)
+	->orderBy($b);
+
+return $this->db->table()
+	->where($a)
+	->orderBy($b)
+;
+
+$result = foo($this->db->table()
+	->where($a)
+	->orderBy($b));
+
+$total = $a
+	+ $b
+;
+
+$item = $repository->find($id)->load();
+
+$list = [
+	1,
+	2,
+];
+
+for ($i = $this->db->table()
+	->count(); $i < 5; $i++) {
+}
