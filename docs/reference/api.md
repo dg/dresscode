@@ -1128,6 +1128,7 @@ final readonly class Violation
 - `DressCode\Rules\Functions\NoIsNullRule`
 - `DressCode\Rules\Functions\NoManualEmptyStringTestsRule`
 - `DressCode\Rules\Functions\NoManualSubstringTestsRule`
+- `DressCode\Rules\Functions\NoNullArgumentsRule`
 - `DressCode\Rules\Functions\NoSettypeRule`
 - `DressCode\Rules\Functions\RedundantArgumentsRule`
 - `DressCode\Rules\Functions\RoundingModeNotationRule`

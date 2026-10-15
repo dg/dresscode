@@ -1,0 +1,20 @@
+<?php
+
+function checkNullArguments(?string $title, string $name, ?int $count, int|string|null $key, mixed $anything, array $list): void
+{
+	echo trim($title);
+	echo trim($name);
+	echo str_repeat('-', $count);
+	echo htmlspecialchars($title, encoding: $title);
+	echo str_replace('a', 'b', $title);
+	echo in_array($title, $list);
+	echo strlen(null);
+	echo strlen($key);
+	echo strlen($anything);
+	echo trim(string: $title . '');
+	echo trim(string: $title ?: null);
+	echo implode(',', [$title]);
+	echo sprintf('%s %s', $name, $title);
+	echo range($key, 9);
+	echo strlen(...);
+}

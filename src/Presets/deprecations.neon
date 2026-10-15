@@ -26,6 +26,7 @@ upgrading:
 		deprecatedFunction: forbidden
 	php:
 		nullArrayKey: forbidden               # `['' => 1]`, not `[null => 1]`, PHP 8.5
+		nullArgument: forbidden               # `trim($text ?? '')`, not `trim($text)` of a null, PHP 8.1
 		caseSemicolon: forbidden              # `case 1:`, not `case 1;`, PHP 8.5
 		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`, PHP 8.4
 		deprecatedApi: forbidden              # `mb_convert_encoding()`, not `utf8_encode()`, `E_STRICT` reported

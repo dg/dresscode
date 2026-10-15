@@ -1,0 +1,3 @@
+7: The argument for `$string` of `trim()` may be null, which PHP 8.1 deprecated for type `string`.
+	risky NameUncertain: the namespace may declare `trim()`
+7: The argument for `$string` of `strtoupper()` may be null, which PHP 8.1 deprecated for type `string`.

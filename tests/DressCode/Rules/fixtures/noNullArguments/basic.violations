@@ -1,0 +1,8 @@
+5: The argument for `$string` of `trim()` may be null, which PHP 8.1 deprecated for type `string`.
+7: The argument for `$times` of `str_repeat()` may be null, which PHP 8.1 deprecated for type `int`.
+8: The argument for `$string` of `htmlspecialchars()` may be null, which PHP 8.1 deprecated for type `string`.
+9: The argument for `$subject` of `str_replace()` may be null, which PHP 8.1 deprecated for type `array|string`.
+11: The argument for `$string` of `strlen()` is null, which PHP 8.1 deprecated for type `string`.
+12: The argument for `$string` of `strlen()` may be null, which PHP 8.1 deprecated for type `string`.
+15: The argument for `$string` of `trim()` may be null, which PHP 8.1 deprecated for type `string`.
+18: The argument for `$start` of `range()` may be null, which PHP 8.1 deprecated for type `string|int|float`.

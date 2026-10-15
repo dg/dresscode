@@ -1,0 +1,8 @@
+<?php
+
+namespace App;
+
+function checkNamespace(?string $title): string
+{
+	return trim($title) . \strtoupper($title ?? '');
+}
