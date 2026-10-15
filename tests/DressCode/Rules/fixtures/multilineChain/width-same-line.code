@@ -1,5 +1,5 @@
 <?php
 // lineLength 50
-// {"chainFirstLinks": "sameLine"}
+// {"edges.chain": "attached"}
 $query->select('name')->where('active', 1)->getAll();
 $this->repository->findAll()->filter($callback)->toArray();

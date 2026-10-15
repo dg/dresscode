@@ -1,5 +1,5 @@
 <?php
-// {"condition": "keep"}
+// {"items.condition": "keep", "edges.condition": "keep"}
 if ($a
 	&& $b) {
 }

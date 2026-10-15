@@ -8,16 +8,16 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Stage};
-use DressCode\Domains\Words;
-use DressCode\Rules\NodeHelpers;
+use DressCode\{Claim, Gap, GapRule, Line, RuleInfo, Stage, Values};
+use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\Nodes\Expression\TernaryNode;
 use function is_string;
 
 
 /**
- * A ternary split over lines takes three: the condition, then `?` with its branch, then `:` with its
- * branch; one split at either operator brings the other along, and so does the condition or the first branch spanning
+ * A ternary split over lines takes three in `perLine` of `multiline.items.ternary`: the condition, then `?` with its
+ * branch, then `:` with its branch, while one its author split stays as it is where `fill` is accepted; one split at
+ * either operator brings the other along, and so does the condition or the first branch spanning
  * lines, where the operators would hide at the ends of lines, except a condition of `?:` closed by a bracket opening
  * the line of the operator, `) ?: throw …`. A ternary on a line wider than the line length of the style is split so,
  * unless an outer construct on the line is spread first or `file.lineLengthExcept` names `ternary`, and the `?:` of
@@ -26,13 +26,23 @@ use function is_string;
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineTernaryRule extends GapRule
 {
+	private ListLayout $layout;
+
+
 	public static function getDecisions(): array
 	{
-		return [new Decision(
-			'multiline.ternary',
-			new Words(['perLine' => '`?` and `:` each opening a line of its own']),
-			'A ternary spread over lines by its author, or for the width of its line',
-		)];
+		return ListLayout::createDecisions(
+			'ternary',
+			'operand',
+			'operands',
+			'A ternary spread over lines by its author, or for the width of its line, `?` and `:` opening the lines of the operands after them',
+		);
+	}
+
+
+	public function configure(Values $values): void
+	{
+		$this->layout = ListLayout::fromValues($values, 'ternary');
 	}
 
 
@@ -53,12 +63,13 @@ final class MultilineTernaryRule extends GapRule
 			$first = $ternary->then === null && $closing->is([')', ']']) && $closing->startsLine()
 				? $closing
 				: $ternary->getFirstToken();
-			$because = $gap->once(
-				$ternary,
-				fn() => $first->getCurrentLine() === $last->getCurrentLine()
-					? NodeHelpers::findWidthReason($ternary, $gap)
-					: $break,
-			);
+			$because = $gap->once($ternary, fn() => match (true) {
+				$first->getCurrentLine() !== $last->getCurrentLine() => $this->layout->findShapes($first, null)[0] === ListLayout::PerLine
+					? $break
+					: null,
+				$this->layout->getFirst()[0] === ListLayout::PerLine => NodeHelpers::findWidthReason($ternary, $gap),
+				default => null,
+			});
 			return is_string($because) ? new Claim(line: Line::Next, because: $because) : $because;
 		};
 		return [TernaryNode::class => ['question' => [$operator, null], 'colon' => [$operator, null]]];

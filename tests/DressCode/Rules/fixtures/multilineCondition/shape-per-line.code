@@ -1,5 +1,5 @@
 <?php
-// {"condition": "perLine"}
+// {"edges.condition": "apart"}
 if ($a && $b
 	&& $c) {
 }

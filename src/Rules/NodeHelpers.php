@@ -85,13 +85,35 @@ final class NodeHelpers
 
 
 	/**
-	 * The outermost operation of the family the operation belongs to: the operands one boolean operator, `.`, `|`, `+`,
-	 * `-` or `*` joins without parentheses between them, another operator or parentheses beginning another family. Null
-	 * for any other operator, and for a boolean operator chaining a condition, which is its statement's.
+	 * The place of the operator in the words of the catalogue: `logical`, `concatenation`, `arithmetic`, `bitwise`,
+	 * `coalesce`, `pipe` or `comparison`; null for an operator none of them names.
+	 */
+	public static function findOperatorPlace(Expression\BinaryOpNode $operation): ?string
+	{
+		$operator = $operation->operator;
+		return match (true) {
+			$operation->isLogical() => 'logical',
+			$operator->is('.') => 'concatenation',
+			$operator->is(['+', '-', '*', '/', '%', '**']) => 'arithmetic',
+			$operator->is(['|', '&', '^', '<<', '>>']) => 'bitwise',
+			$operator->is('??') => 'coalesce',
+			$operator->is('|>') => 'pipe',
+			$operator->is(['==', '!=', '<>', '===', '!==', '<', '<=', '>', '>=', '<=>']) => 'comparison',
+			default => null,
+		};
+	}
+
+
+	/**
+	 * The outermost operation of the family the operation belongs to: the operands one operator of a place spread over
+	 * lines joins without parentheses between them, another operator or parentheses beginning another family. Null
+	 * for a comparison or an operator no place names, and for a boolean operator chaining a condition, which is its
+	 * statement's.
 	 */
 	public static function findOperatorFamily(Expression\BinaryOpNode $operation): ?Expression\BinaryOpNode
 	{
-		if (!$operation->isLogical() && !$operation->operator->is(['.', '|', '+', '-', '*'])) {
+		$place = self::findOperatorPlace($operation);
+		if ($place === null || $place === 'comparison') {
 			return null;
 		}
 
@@ -337,10 +359,14 @@ final class NodeHelpers
 					false,
 				];
 
-		} elseif ($node instanceof Expression\BinaryOpNode && self::findOperatorFamily($node) === $node) {
+		} elseif (
+			$node instanceof Expression\BinaryOpNode
+			&& self::findOperatorFamily($node) === $node
+			&& ($place = self::findOperatorPlace($node)) !== null
+		) {
 			$operators = self::collectFamilyOperators($node, $node->operator->text);
 			return [
-				'binaryOperator',
+				$place,
 				$node->getFirstToken(),
 				$operators,
 				array_any($operators, fn(Token $operator) => $operator->startsLine() || $operator->isFollowedByLineEnding()),

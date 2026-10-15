@@ -51,6 +51,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'functions.staticClosure', // what the code means when it binds a closure, which only the project knows
 		'indentation.singleLevel', // a measure of the shape of a body, not its layout
 		'literals.concatenatedLiterals.overLines', // a literal spread over lines on purpose
+		'multiline.items.coalesce', 'multiline.items.pipe', // operands of `??` and `|>`, which no standard spreads
 		'phpdoc.types.nullable', 'phpdoc.types.unionOrder', 'types.unionOrder', // an order or a notation a project chooses
 		'qualification.constant.otherNamespace', 'qualification.staticInFinalClass', 'qualification.function.otherNamespace', // how far a name is written out is the project's
 		'types.declaration.constant', // a typed constant, which the code before PHP 8.3 cannot have

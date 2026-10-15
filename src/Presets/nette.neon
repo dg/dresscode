@@ -78,6 +78,8 @@ multiline:
 		array: [apart, attached]              # `]` begins a line where the first item does
 		list: [apart, attached]
 		import: apart
+		chain: attached                       # `$form->addText()` above `->setRequired()`
+		condition: [apart, closingApart]      # `if (` above `$a`, or `if ($a` above `&& $b`
 	maxWidth:
 		array: 130
 	fillMinItems:
@@ -86,8 +88,6 @@ multiline:
 		matchCondition: 6
 	spreadItem: sole                          # `foo(bar(` above the arguments of `bar()`, `))` below them
 	spreadAlways: [promotedProperty]          # however short
-	chainFirstLinks: sameLine                 # `$form->addText()` above `->setRequired()`
-	condition: [perLine, compact]             # `if (` above `$a`, or `if ($a` above `&& $b`
 	expressionBelowReturn: forbidden          # `return [`, not `return` above `[`
 	semicolonOnOwnLine: forbidden
 	trailingComma:

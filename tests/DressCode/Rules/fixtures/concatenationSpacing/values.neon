@@ -1,5 +1,2 @@
 spacing:
 	concatenation: '$a . $b'
-multiline:
-	operatorPosition:
-		concatenation: keep

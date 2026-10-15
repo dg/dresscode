@@ -121,11 +121,11 @@ final readonly class Proposal
 			$survey->measurePlaces(
 				MultilineConditionRule::class,
 				[
-					'perLine' => new Profile(decisions: ['multiline' => ['condition' => 'perLine']]),
-					'compact' => new Profile(decisions: ['multiline' => ['condition' => 'compact']]),
+					'apart' => new Profile(decisions: ['multiline' => ['edges' => ['condition' => 'apart']]]),
+					'closingApart' => new Profile(decisions: ['multiline' => ['edges' => ['condition' => 'closingApart']]]),
 				],
 				'conditions',
-				new Profile(decisions: ['multiline' => ['condition' => ['perLine', 'compact']]]),
+				new Profile(decisions: ['multiline' => ['edges' => ['condition' => ['apart', 'closingApart']]]]),
 			),
 			$functions,
 			$constants,
@@ -263,7 +263,7 @@ final readonly class Proposal
 			fileExtensions: $this->fileExtensions,
 			decisions: array_filter([
 				'indentation' => $indent === null ? null : ['unit' => self::toUnit($indent)],
-				'multiline' => $shape === null ? null : ['condition' => $shape],
+				'multiline' => $shape === null ? null : ['edges' => ['condition' => $shape]],
 				'literals' => $quotes === null ? null : ['quotes' => $quotes],
 			]),
 		);
@@ -338,7 +338,7 @@ final readonly class Proposal
 		if ($shape !== null) {
 			$sections[] = self::writeDecision(
 				MultilineConditionRule::class,
-				'multiline.condition',
+				'multiline.edges.condition',
 				is_array($shape) ? '[' . implode(', ', $shape) . ']' : $shape,
 				$this->conditions->describe(),
 			);
@@ -486,7 +486,7 @@ final readonly class Proposal
 		$quotes = $this->findQuotes();
 		$shape = $this->findConditionShape();
 		$quotesValue = ($resolved->decisions['literals.quotes'] ?? null)?->value;
-		$conditionValue = ($resolved->decisions['multiline.condition'] ?? null)?->value;
+		$conditionValue = ($resolved->decisions['multiline.edges.condition'] ?? null)?->value;
 		$problem = match (true) {
 			$indent !== null
 				&& $resolved->indent !== ($indent === 'tab' ? "\t" : str_repeat(' ', (int) $indent)) => "the indentation is not `$indent`",
@@ -496,7 +496,7 @@ final readonly class Proposal
 			$shape !== null
 				&& $conditionValue?->toData() !== (is_string($shape) && $shape !== 'keep'
 					? [$shape]
-					: $shape) => '`multiline.condition` has another shape',
+					: $shape) => '`multiline.edges.condition` has another shape',
 			($resolved->nameResolution === 'certain') !== ($this->unparsed === []) => 'the name resolution is not what the files that parse allow',
 			array_diff(
 				$this->namespacedFunctions,

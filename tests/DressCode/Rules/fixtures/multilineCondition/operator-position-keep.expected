@@ -1,5 +1,5 @@
 <?php
-// {"condition": "keep", "operatorPosition.condition": "lineStart"}
+// {"items.condition": "keep", "edges.condition": "keep", "operatorPosition.condition": "lineStart"}
 if ($a
 	&& $b) {
 }

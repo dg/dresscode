@@ -1,8 +1,8 @@
 <?php
-// the operator ends the line the author wrote; a break before it must not leave it alone on one
+// the operator ends the line the author wrote, and a condition written again on its edges alone keeps it there
 if (
-	$a
-	&& $b
+	$a &&
+	$b
 ) {
 }
 if (

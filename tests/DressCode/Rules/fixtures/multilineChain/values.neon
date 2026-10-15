@@ -1,3 +1,5 @@
 multiline:
-	chain: perLine
-	chainFirstLinks: ownLine
+	items:
+		chain: perLine
+	edges:
+		chain: apart

@@ -158,7 +158,11 @@ final class PhpCodeSniffer
 			},
 			'PSR12.ControlStructures.ControlStructureSpacing' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.ControlStructures.ControlStructureSpacing` also puts the parentheses of a multi-line `for`, `foreach`, `switch`, `catch` and `match` on lines of their own, which DressCode does not.');
-				$t->setAll(['spacing.parentheses' => 'compact', 'multiline.condition' => 'perLine']);
+				$t->setAll([
+					'spacing.parentheses' => 'compact',
+					'multiline.items.condition' => ['perLine', 'fill'],
+					'multiline.edges.condition' => 'apart',
+				]);
 			},
 			'PSR12.Files.DeclareStatement' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.Files.DeclareStatement` also checks the case of the directive of a `declare`, which DressCode does not.');
@@ -407,7 +411,10 @@ final class PhpCodeSniffer
 					$t->warn("`SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition` with `minLineLength=$min` has no equivalent; DressCode spreads over lines only a condition longer than the line.");
 				}
 
-				$t->set('multiline.condition', ($o['alwaysSplitAllConditionParts'] ?? false) ? 'perLine' : 'compact');
+				$t->setAll([
+					'multiline.items.condition' => ($o['alwaysSplitAllConditionParts'] ?? false) ? 'perLine' : ['perLine', 'fill'],
+					'multiline.edges.condition' => ($o['alwaysSplitAllConditionParts'] ?? false) ? 'apart' : 'closingApart',
+				]);
 			},
 			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator' => ['expressions.assignment.repeatingTarget' => 'forbidden'],
 			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator' => ['expressions.ternary.testingNull' => 'forbidden'],

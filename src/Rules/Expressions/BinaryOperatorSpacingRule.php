@@ -22,21 +22,20 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
  * one on each side, unless the operator sits at a line break. An assignment, `=` and the `=>` of an array item,
  * a `match` arm, a `yield` or a `foreach` stay on the line of what is before them unless that spans several lines or
  * the line would grow wider than the line length of the style, what follows them may begin below, and
- * `instanceof` stays on the line of both its operands. What follows a comparison, `&`, `^` or a shift stays on the
- * line of the operator, unless the line would grow wider than the line length, while `|` joining flags is placed
- * like a boolean operator. An operator ending a line may be moved to the start of the next one, as
- * `multiline.operatorPosition.binary` says: a comparison, `&`, `^` or a shift only where the joined line would be too
- * wide, and a boolean operator chaining a condition never, because `MultilineConditionRule` places it. Whitespace
+ * `instanceof` stays on the line of both its operands. What follows a comparison stays on the line of the operator,
+ * unless the line would grow wider than the line length, and a comparison ending a line moves to the start of the next
+ * one where `multiline.operatorPosition.comparison` says so and the joined line would be too wide; the lines around the
+ * other operators are the matter of `MultilineBinaryOperatorRule` and `MultilineConditionRule`. Whitespace
  * wider than a space aligns a column of assignments or of array items, and `spacing.binaryOperatorAlignment` says
  * which of it stays. Concatenation is the matter of `ConcatenationSpacingRule`.
  */
 #[RuleInfo(Stage::Formatting, analyses: [IndentationSnapshot::class])]
 final class BinaryOperatorSpacingRule extends GapRule
 {
-	private const JoinedOperators = ['==', '!=', '<>', '===', '!==', '<', '<=', '>', '>=', '<=>', '&', '^', '<<', '>>'];
+	private const JoinedOperators = ['==', '!=', '<>', '===', '!==', '<', '<=', '>', '>=', '<=>'];
 	private const Spacing = 'spacing.binaryOperator';
 	private const Alignment = 'spacing.binaryOperatorAlignment';
-	private const Position = 'multiline.operatorPosition.binary';
+	private const Position = 'multiline.operatorPosition.comparison';
 
 	/** the space around an operator, null where it is kept */
 	private ?Claim $claim;
@@ -57,7 +56,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 			new Decision(
 				self::Spacing,
 				new Shapes(['spaced' => ['$a + $b', 'a single space around']]),
-				'The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `=` of a default included, `.` being `spacing.concatenation`; at a line break an operator takes no space on the side of the break, an assignment and `=>` stay on the line of what is before them, and `instanceof`, a comparison, `&`, `^` and a shift keep what follows them on their line, unless the line would grow too wide',
+				'The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `=` of a default included, `.` being `spacing.concatenation`; at a line break an operator takes no space on the side of the break, an assignment and `=>` stay on the line of what is before them, and `instanceof` and a comparison keep what follows them on their line, unless the line would grow too wide',
 			),
 			new Decision(
 				self::Alignment,
@@ -69,7 +68,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 			new Decision(
 				self::Position,
 				Domain::lineStart(),
-				'Where a binary operator other than `.` stands at a line break, a boolean operator chaining a condition apart: a comparison, `&`, `^` or a shift moves only where the line joined after it would be too wide',
+				'Where a comparison stands at a line break, moving only where the line joined after it would be too wide',
 			),
 		];
 	}
@@ -124,7 +123,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 
 
 	/**
-	 * What follows a comparison, `&`, `^` or a shift stays on its line, unless a comment stands between
+	 * What follows a comparison stays on its line, unless a comment stands between
 	 * them or the joined line would be wider than the line length.
 	 */
 	private function claimAfterOperator(Gap $gap): ?Claim
@@ -153,12 +152,12 @@ final class BinaryOperatorSpacingRule extends GapRule
 		$operation = $token->parent;
 		return $this->moved !== null
 			&& $operation instanceof BinaryOpNode
-			&& NodeHelpers::findConditionStatement($operation) === null // `MultilineConditionRule`
+			&& NodeHelpers::findOperatorPlace($operation) === 'comparison' // the others are `MultilineBinaryOperatorRule`'s
 			&& $gap->once($operation, function () use ($token, $gap): bool {
 				$next = $token->getNext();
 				return $next !== null
 					&& $token->isFollowedByLineEnding()
-					&& (!$token->is(self::JoinedOperators) || self::isJoinedLineTooWide($gap, $token, $next) === true);
+					&& self::isJoinedLineTooWide($gap, $token, $next) === true;
 			});
 	}
 

@@ -36,14 +36,15 @@ final readonly class Gap
 	/**
 	 * What the rule decides about the node, made from the shape the node has when the first of its gaps is
 	 * reached and answered the same at every gap after it until the pass ends. A decision other than null, false
-	 * or an empty array makes the claims following from it one violation of the node.
+	 * or an empty array makes the claims following from it one violation of the node. A rule deciding more than one
+	 * thing about a node names each by a question of its own.
 	 * @template T
 	 * @param \Closure(): T $decide
 	 * @return T
 	 */
-	public function once(Node $node, \Closure $decide): mixed
+	public function once(Node $node, \Closure $decide, string $question = ''): mixed
 	{
-		return $this->answers->once($this->rule, $node, $decide);
+		return $this->answers->once($this->rule, $node, $decide, $question);
 	}
 
 

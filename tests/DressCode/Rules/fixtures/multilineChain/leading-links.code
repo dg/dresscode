@@ -1,5 +1,5 @@
 <?php
-// {"chainFirstLinks": "sameLine"}
+// {"edges.chain": "attached"}
 $a->b()->c();
 $a->b()
 	->c();

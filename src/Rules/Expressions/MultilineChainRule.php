@@ -8,59 +8,56 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Stage, Values};
-use DressCode\Domains\Words;
-use DressCode\Rules\NodeHelpers;
+use DressCode\{Claim, Gap, GapRule, Line, RuleInfo, Stage, Values};
+use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Expression\{MethodCallNode, PropertyFetchNode};
 
 
 /**
- * A chain of method calls and property accesses split over lines has every link on a line of its own, the
- * first one on the line after the expression the chain starts from; with `sameLine`, the links before the first
- * one that begins a line stay on the first line and only the links after it take lines of their own. A chain of two
- * method calls or more on a line wider than the line length of the style is split so, with `sameLine` from the link
- * after its first method call, unless an outer construct on the line is spread first or `file.lineLengthExcept` names
- * `chain`; a chain of one call or of property accesses alone stays. Where the lines stand is the matter of
- * `IndentationRule`.
+ * A chain of method calls and property accesses split over lines has every link on a line of its own in `perLine` of
+ * `multiline.items.chain`, and stays as its author split it where `fill` is accepted; with `multiline.edges.chain`
+ * `apart` the first link stands on the line after the expression the chain starts from, with `attached` the links
+ * before the first one that begins a line stay on the first line. A chain of two method calls or more on a line wider
+ * than the line length of the style is split so, with `attached` from the link after its first method call, unless an
+ * outer construct on the line is spread first or `file.lineLengthExcept` names `chain`; a chain of one call or of
+ * property accesses alone stays. Where the lines stand is the matter of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineChainRule extends GapRule
 {
-	private const OwnLine = 'ownLine';
-	private const SameLine = 'sameLine';
-	private const FirstLinks = 'multiline.chainFirstLinks';
+	private const OwnLine = ListLayout::Apart;
 
 	private string $firstLinks = self::OwnLine;
+	private ListLayout $layout;
 
 
 	public static function getDecisions(): array
 	{
-		return [
-			new Decision(
-				'multiline.chain',
-				new Words(['perLine' => 'every link on a line of its own']),
-				'The links of a chain of method calls and property accesses spread over lines by its author, or for the width of its line where it has two method calls or more',
-			),
-			new Decision(self::FirstLinks, new Words([
-				self::OwnLine => 'the first link begins a line too',
-				self::SameLine => 'the links before the first one beginning a line stay on the line the chain starts on',
-			]), 'Where the links stand that come before the first one beginning a line', kind: DecisionKind::Parameter, default: self::OwnLine),
-		];
+		return ListLayout::createDecisions(
+			'chain',
+			'link',
+			'links',
+			'The links of a chain of method calls and property accesses spread over lines by its author, or for the width of its line where it has two method calls or more',
+			'the object',
+		);
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->firstLinks = $values->get(self::FirstLinks)->getWord();
+		$this->layout = ListLayout::fromValues($values, 'chain');
+		$this->firstLinks = $this->layout->edges[0] ?? self::OwnLine;
 	}
 
 
 	public function getClaims(): array
 	{
-		$break = new Claim(line: Line::Next, because: 'the chain spans several lines');
+		$break = new Claim(line: Line::Next, because: 'the chain spans several lines', decision: $this->layout->itemDecision);
+		$strict = $this->layout->items !== [] && !in_array(ListLayout::Fill, $this->layout->items, true);
 		$link = ['operator' => [
-			fn(Gap $gap) => $this->claimForWidth($gap, $gap->token->parent) ?? ($this->isMultiline($gap->token->parent) ? $break : null),
+			fn(Gap $gap) => $this->claimForWidth($gap, $gap->token->parent)
+				?? ($strict && $this->isMultiline($gap->token->parent) ? $break : null),
 			null,
 		]];
 		return [MethodCallNode::class => $link, PropertyFetchNode::class => $link];
@@ -68,12 +65,15 @@ final class MultilineChainRule extends GapRule
 
 
 	/**
-	 * The break before a link of a chain on a line too wide: before every link, or with `sameLine` before every link
+	 * The break before a link of a chain on a line too wide: before every link, or with `attached` before every link
 	 * after the first method call, the object and the links up to that call staying on the first line.
 	 */
 	private function claimForWidth(Gap $gap, ?Node $link): ?Claim
 	{
-		if (!$link instanceof MethodCallNode && !$link instanceof PropertyFetchNode) {
+		if (
+			(!$link instanceof MethodCallNode && !$link instanceof PropertyFetchNode)
+			|| $this->layout->getFirst()[0] !== ListLayout::PerLine
+		) {
 			return null;
 		}
 
@@ -87,7 +87,7 @@ final class MultilineChainRule extends GapRule
 
 		$because = $gap->once($chain, fn() => NodeHelpers::findWidthReason($chain, $gap));
 		return $because !== null && ($this->firstLinks === self::OwnLine || self::followsCall($link))
-			? new Claim(line: Line::Next, because: $because)
+			? new Claim(line: Line::Next, because: $because, decision: $this->layout->itemDecision)
 			: null;
 	}
 
@@ -106,7 +106,7 @@ final class MultilineChainRule extends GapRule
 
 
 	/**
-	 * Whether the link takes a line of its own: some link of its chain begins a line, or with `sameLine`, the
+	 * Whether the link takes a line of its own: some link of its chain begins a line, or with `attached`, the
 	 * link itself or one before it does.
 	 */
 	private function isMultiline(?Node $link): bool

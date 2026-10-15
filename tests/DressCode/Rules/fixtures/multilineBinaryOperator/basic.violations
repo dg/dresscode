@@ -4,4 +4,5 @@
 7: Expected a line break before the `&&` operator, because the line is 54 characters long, more than 50.
 8: Expected a line break before the `+` operator, because the line is 54 characters long, more than 50.
 9: Expected a line break before the `|` operator, because the line is 64 characters long, more than 50.
+10: Expected a line break before the `&` operator, because the line is 59 characters long, more than 50.
 17: Expected a line break before the `.` operator, because the line is 103 characters long, more than 50.

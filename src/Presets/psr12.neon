@@ -70,16 +70,21 @@ multiline:
 		for: perLine                          # a section of `for` per line
 		implements: perLine                   # an interface per line below `implements`
 		matchCondition: perLine               # a condition of a `match` arm per line, `=>` after the last
+		condition: [perLine, fill]            # the parts as their author spread them, a line each where too wide
+		logical: [perLine, fill]              # `&& $b`, `+ $b` opening a line each where the line is too wide
+		concatenation: [perLine, fill]
+		arithmetic: [perLine, fill]
+		bitwise: [perLine, fill]
 	edges:
 		argument: apart                       # `foo(` above the arguments, `)` below them
 		parameter: apart
 		implements: apart
+		condition: apart                      # `if (` above `$a`, `) {` below the last part
 	spreadAlways: []                          # a promoted property spread only when too wide
-	condition: perLine                        # `if (` above `$a`, `) {` below the last part
-	binaryOperator: perLine                   # `&& $b`, `. $b` opening a line each where the line is too wide
-	operatorPosition:
-		binary: lineStart                     # `+ $b` opens the line, not ends the one before
-		condition: lineStart                  # `&& $b` opens the line
+	operatorPosition:                         # `+ $b` opens the line, not ends the one before
+		operators: lineStart
+		concatenation: keep
+		ternary: keep
 
 braces:
 	position:

@@ -1,4 +1,7 @@
 multiline:
-	condition: perLine
+	items:
+		condition: [perLine, fill]
+	edges:
+		condition: apart
 	operatorPosition:
 		condition: keep

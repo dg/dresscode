@@ -20,14 +20,15 @@ spacing:
 	namedArgument: 'foo(name: $x)'
 
 multiline:
-	chain: perLine                           # a link per line once spread
-	ternary: perLine                         # `?` and `:` each on a line once spread
 	items:
 		array: perLine                       # an item per line once spread
 		list: perLine
+		chain: perLine                       # a link per line once spread
+		ternary: perLine                     # `?` and `:` each on a line once spread
 	edges:
 		array: apart                         # `[` above the items, `]` below them
 		list: apart
+		chain: apart                         # `$form` above `->addText()`
 	operatorPosition:
 		concatenation: lineStart             # `. $b` opens the line
 		ternary: lineStart                   # `? $b` and `: $c` open the lines

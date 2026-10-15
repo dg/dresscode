@@ -19,7 +19,10 @@ use PhpSyntax\Node;
  */
 final class OnceAnswers
 {
-	/** @var array<int, array<int, array{Node, mixed}>>  rule => node => the node, kept to tell a recycled id apart, and the decision */
+	/**
+	 * @var array<int, array<int|string, array{Node, mixed}>>  rule => node and question => the node, kept to tell a recycled
+	 * id apart, and the decision
+	 */
 	private array $answers = [];
 
 	/** @var array<int, Node>  rule => the first node it decided something about since the engine last asked */
@@ -27,20 +30,21 @@ final class OnceAnswers
 
 
 	/**
-	 * The decision of the rule about the node, made once per pass; one other than null, false or an empty array
-	 * makes the node the construct the claim follows from.
+	 * The decision of the rule about the node, made once per pass for each question it asks about it; one other than
+	 * null, false or an empty array makes the node the construct the claim follows from.
 	 * @template T
 	 * @param \Closure(): T $decide
 	 * @return T
 	 */
-	public function once(Rule $rule, Node $node, \Closure $decide): mixed
+	public function once(Rule $rule, Node $node, \Closure $decide, string $question = ''): mixed
 	{
-		$decided = $this->answers[spl_object_id($rule)][spl_object_id($node)] ?? null;
+		$key = $question === '' ? spl_object_id($node) : spl_object_id($node) . $question;
+		$decided = $this->answers[spl_object_id($rule)][$key] ?? null;
 		if ($decided !== null && $decided[0] === $node) {
 			$decision = $decided[1];
 		} else {
 			$decision = $decide();
-			$this->answers[spl_object_id($rule)][spl_object_id($node)] = [$node, $decision];
+			$this->answers[spl_object_id($rule)][$key] = [$node, $decision];
 		}
 
 		if ($decision !== null && $decision !== false && $decision !== []) {

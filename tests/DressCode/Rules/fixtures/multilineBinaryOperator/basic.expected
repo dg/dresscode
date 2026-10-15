@@ -19,7 +19,10 @@ $sum = $aaaaaaaaaa
 $flags = JSON_PRETTY_PRINT
 	| JSON_THROW_ON_ERROR
 	| JSON_HEX_TAG;
-$mask = E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_USER_NOTICE;
+$mask = E_ALL
+	& ~E_NOTICE
+	& ~E_DEPRECATED
+	& ~E_USER_NOTICE;
 $kept = $aaaaaaaaaa
 	. $bbbbbbbbbb . $cccccccccc . $dddddddddd . $eeeeee;
 if ($aaaaaaaaaa && $bbbbbbbbbb && $cccccccccc && $ddd) {

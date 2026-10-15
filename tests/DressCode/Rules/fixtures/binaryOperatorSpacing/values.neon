@@ -3,4 +3,4 @@ spacing:
 	binaryOperatorAlignment: spaces
 multiline:
 	operatorPosition:
-		binary: keep
+		comparison: keep

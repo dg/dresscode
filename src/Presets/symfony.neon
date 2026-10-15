@@ -54,31 +54,11 @@ spacing:
 		afterCode: '$a; // text'              # at least one space
 
 multiline:
-	# no fixer of the set breaks a call, a signature, a chain, a condition, a ternary or an array
-	items:
-		argument: keep
-		parameter: keep
-		array: keep
-		list: keep
-		for: keep
-		implements: keep
-		matchCondition: keep
-	edges:
-		argument: keep
-		parameter: keep
-		array: keep
-		list: keep
-		implements: keep
-	chain: keep
-	condition: keep
-	binaryOperator: keep
-	ternary: keep
-	operatorPosition:
-		# operator_linebreak moves only a boolean operator, which no option here tells from the others
-		binary: keep
-		concatenation: keep
-		ternary: keep
-		condition: keep
+	# no fixer of the set breaks a call, a signature, a chain, a condition, a ternary, an operator or an array
+	items: keep
+	edges: keep
+	# operator_linebreak moves only a boolean operator, which no option here tells from the others
+	operatorPosition: keep
 	trailingComma:
 		argument: optional                    # may stay or not where spread, never on one line
 		closureUse: keep

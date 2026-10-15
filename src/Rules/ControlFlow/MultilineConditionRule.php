@@ -9,8 +9,7 @@ namespace DressCode\Rules\ControlFlow;
 
 use DressCode\Analyses\IndentationSnapshot;
 use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
-use DressCode\Domains\Words;
-use DressCode\Rules\NodeHelpers;
+use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\ElseifNode;
 use PhpSyntax\Nodes\Expression\BinaryOpNode;
@@ -19,38 +18,36 @@ use function count;
 
 
 /**
- * A condition of `if`, `elseif`, `while` and `do-while` joined by boolean operators is written in one of two shapes:
- * `perLine` begins it on the line after the opening parenthesis, `compact` on the line of it, and both leave
- * the closing parenthesis on a line of its own, so that the brace of the body stands apart from the condition.
- * How the parts are spread over the lines between is the author's; a condition in no shape the configuration
- * allows is written again in the first of them, with a line per part beginning with its boolean operator, and
- * so is one that stands on a single line wider than the line length of the style, unless an outer construct on the
- * line is spread first or `file.lineLengthExcept` names `condition`. The width is that of the code of the line,
- * a tab counting to the next stop of the style and a comment after it left out. A boolean operator ending a line
- * of a condition left as it is moves to the start of the next one, as `multiline.operatorPosition.condition`
- * says. Where the lines stand is the matter of `IndentationRule`.
+ * A condition of `if`, `elseif`, `while` and `do-while` joined by boolean operators that stands on several lines
+ * stands in the shapes of `multiline.items.condition`, how its parts share the lines, and `multiline.edges.condition`,
+ * where it begins after the opening parenthesis and where the closing one stands; a condition in no shape the
+ * configuration allows is written again only on the axis that misses, the parts each on a line of its own beginning
+ * with its boolean operator, and so is one on a single line wider than the line length of the style in the first
+ * shapes, unless an outer construct on the line is spread first or `file.lineLengthExcept` names `condition`. The
+ * width is that of the code of the line, a tab counting to the next stop of the style and a comment after it left out.
+ * A boolean operator ending a line of a condition left as it is moves to the start of the next one, as
+ * `multiline.operatorPosition.condition` says. Where the lines stand is the matter of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineConditionRule extends GapRule
 {
-	private const PerLine = 'perLine';
-	private const Compact = 'compact';
-	private const Shape = 'multiline.condition';
 	private const Position = 'multiline.operatorPosition.condition';
 
-	/** @var list<string>  the shapes that pass, the first of them the one a condition in none of them is written in */
-	private array $shapes = [self::PerLine];
-
+	private ListLayout $layout;
 	private bool $operatorsAtStart = false;
 
 
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision(self::Shape, new Words([
-				self::PerLine => 'begins on the line after the opening parenthesis',
-				self::Compact => 'begins on the line of the opening parenthesis',
-			], tolerance: true), 'The shape of a condition of `if`, `elseif`, `while` and `do-while` joined by boolean operators that stands on several lines or on one too wide, the closing parenthesis on a line of its own; one in no shape that passes is written again in the first, a line per part beginning with its operator'),
+			...ListLayout::createDecisions(
+				'condition',
+				'part',
+				'parts',
+				'A condition of `if`, `elseif`, `while` and `do-while` joined by boolean operators that stands on several lines or on one too wide, a line per part beginning with its operator',
+				'`(`',
+				'`)`',
+			),
 			new Decision(
 				self::Position,
 				Domain::lineStart(),
@@ -62,7 +59,7 @@ final class MultilineConditionRule extends GapRule
 
 	public function configure(Values $values): void
 	{
-		$this->shapes = $values->isKept(self::Shape) ? [] : $values->get(self::Shape)->getWords();
+		$this->layout = ListLayout::fromValues($values, 'condition');
 		$this->operatorsAtStart = !$values->isKept(self::Position);
 	}
 
@@ -70,8 +67,8 @@ final class MultilineConditionRule extends GapRule
 	public function getClaims(): array
 	{
 		$statement = [
-			'condition' => [fn(Gap $gap) => $this->claimToBegin($gap, $gap->value->parent), null],
-			'closeParen' => [fn(Gap $gap) => $this->claimToEnd($gap, $gap->token->parent), null],
+			'condition' => [fn(Gap $gap) => $this->decide($gap, $gap->value->parent)['first'] ?? null, null],
+			'closeParen' => [fn(Gap $gap) => $this->decide($gap, $gap->token->parent)['close'] ?? null, null],
 		];
 		return [
 			IfNode::class => $statement,
@@ -89,27 +86,9 @@ final class MultilineConditionRule extends GapRule
 	}
 
 
-	/** Where the condition begins is the whole difference between the two shapes. */
-	private function claimToBegin(Gap $gap, ?Node $node): ?Claim
-	{
-		$decision = $this->decideShape($gap, $node);
-		return $decision === null
-			? null
-			: new Claim(line: $decision[0] === self::PerLine ? Line::Next : Line::Same, because: $decision[1], decision: self::Shape);
-	}
-
-
-	/** Both shapes leave the closing parenthesis on a line of its own. */
-	private function claimToEnd(Gap $gap, ?Node $node): ?Claim
-	{
-		$decision = $this->decideShape($gap, $node);
-		return $decision === null ? null : new Claim(line: Line::Next, because: $decision[1], decision: self::Shape);
-	}
-
-
 	/**
-	 * The break around a boolean operator of the chain of the condition: the one the shape asks for when the
-	 * condition is written again, otherwise, with the operators at the start, the break after an operator ending
+	 * The break around a boolean operator of the chain of the condition: the one a part on a line of its own asks for
+	 * where the parts are written again, otherwise, with the operators at the start, the break after an operator ending
 	 * a line moved in front of it.
 	 */
 	private function claimForPart(Gap $gap, Line $line): ?Claim
@@ -120,9 +99,9 @@ final class MultilineConditionRule extends GapRule
 			return null;
 		}
 
-		$decision = $this->decideShape($gap, $statement);
+		$parts = $this->decide($gap, $statement)['parts'] ?? null;
 		return match (true) {
-			$decision !== null => new Claim(line: $line, because: $decision[1], decision: self::Shape),
+			$parts !== null => new Claim(line: $line, because: $parts->because, decision: $parts->decision),
 			$this->operatorsAtStart && in_array($gap->token, $this->findOperatorsEndingLine($gap, $statement), true)
 				=> new Claim(line: $line, decision: self::Position),
 			default => null,
@@ -145,11 +124,12 @@ final class MultilineConditionRule extends GapRule
 
 
 	/**
-	 * The shape the condition of the statement must be written in and why, or null when it may stay as it is.
+	 * What the condition of the statement is written in: the claim of its first part, of the closing parenthesis and
+	 * the one standing for the line of every part, null where it stays; null as a whole where nothing changes.
 	 * Decided once per pass about the condition, from the shape it has when the first of its gaps is reached.
-	 * @return ?array{string, string}
+	 * @return ?array{first: ?Claim, close: ?Claim, parts: ?Claim}
 	 */
-	private function decideShape(Gap $gap, ?Node $node): ?array
+	private function decide(Gap $gap, ?Node $node): ?array
 	{
 		if (
 			!$node instanceof IfNode
@@ -160,45 +140,78 @@ final class MultilineConditionRule extends GapRule
 			return null;
 		}
 
-		return $gap->once($node->condition, function () use ($node, $gap): ?array {
-			$because = $this->findReasonToRewrite($node, $gap);
-			return $because === null ? null : [$this->shapes[0], $because];
-		});
+		return $gap->once($node->condition, fn() => $this->claimCondition($node, $gap));
 	}
 
 
 	/**
-	 * Why the condition must be written again: it stands on several lines in no shape the configuration allows,
-	 * or on a single line wider than the line length of the style, measured once the line is indented.
+	 * The claims of a condition on several lines whose shape is not accepted on an axis, written again on that axis,
+	 * or of one on a single line too wide, written in the first shapes.
+	 * @return ?array{first: ?Claim, close: ?Claim, parts: ?Claim}
 	 */
-	private function findReasonToRewrite(IfNode|ElseifNode|WhileNode|DoWhileNode $node, Gap $gap): ?string
+	private function claimCondition(IfNode|ElseifNode|WhileNode|DoWhileNode $node, Gap $gap): ?array
 	{
-		if ($this->shapes === [] || NodeHelpers::countConditionOperators($node->condition) === 0) {
+		if (NodeHelpers::countConditionOperators($node->condition) === 0) {
 			return null;
+		}
+
+		$open = $node->openParen;
+		$close = $node->closeParen;
+		if ($open->getCurrentLine() === $close->getCurrentLine()) {
+			$because = $this->layout->items === [] ? null : NodeHelpers::findWidthReason($node, $gap);
+			[$items, $edges] = $this->layout->getFirst();
+			return $because === null ? null : self::claimShapes($items, $edges, $because, $this->layout->itemDecision);
 		}
 
 		// several lines is a property of the parentheses, not of the chain: a condition on one line between
 		// parentheses of their own is written in no shape either
-		if ($node->openParen->getCurrentLine() !== $node->closeParen->getCurrentLine()) {
-			return in_array(self::findShape($node), $this->shapes, true)
-				? null
-				: (count($this->shapes) === 1
-					? "the condition is not in the `{$this->shapes[0]}` shape"
-					: 'the condition fits none of the allowed shapes');
-		}
-
-		return NodeHelpers::findWidthReason($node, $gap);
-	}
-
-
-	/** The shape a condition standing on several lines is written in, null for neither. */
-	private static function findShape(IfNode|ElseifNode|WhileNode|DoWhileNode $node): ?string
-	{
-		$first = $node->condition->getFirstToken();
-		if (!$node->closeParen->startsLine()) {
+		[$items, $edges] = $this->layout->findShapes($open, $close);
+		$edges = $edges === ListLayout::findEdges($open, $close) ? null : $edges;
+		$items = $items === ListLayout::PerLine && array_any(
+			NodeHelpers::collectConditionOperators($node->condition),
+			fn(Token $operator) => !$operator->startsLine() && !$operator->isFollowedByLineEnding(),
+		)
+			? $items
+			: null;
+		if ($items === null && $edges === null) {
 			return null;
 		}
 
-		return $first->startsLine() ? self::PerLine : self::Compact;
+		$parts = self::claimShapes($items, null, 'the parts of the condition share lines', $this->layout->itemDecision);
+		$frame = self::claimShapes(
+			null,
+			$edges,
+			count($this->layout->edges) === 1
+				? "the condition is not in the `{$this->layout->edges[0]}` shape"
+				: 'the condition fits none of the allowed shapes',
+			// where the parts are written again too, the edges go with them, so that a line breaking for both is one violation
+			$items === null ? $this->layout->edgeDecision : $this->layout->itemDecision,
+		);
+		return ['first' => $frame['first'], 'close' => $frame['close'], 'parts' => $parts['parts']];
+	}
+
+
+	/**
+	 * The claims of the shapes, null for an axis left as it is: the first part on the line of the opening parenthesis
+	 * or after it, the closing parenthesis on the line of the last part or on its own, and a line per part.
+	 * @return array{first: ?Claim, close: ?Claim, parts: ?Claim}
+	 */
+	private static function claimShapes(?string $items, ?string $edges, string $because, ?string $decision): array
+	{
+		$break = new Claim(line: Line::Next, because: $because, decision: $decision);
+		$follow = new Claim(line: Line::Same, because: $because, decision: $decision);
+		return [
+			'first' => match ($edges) {
+				ListLayout::Apart => $break,
+				ListLayout::Attached, ListLayout::ClosingApart => $follow,
+				default => null,
+			},
+			'close' => match ($edges) {
+				ListLayout::Apart, ListLayout::ClosingApart => $break,
+				ListLayout::Attached => $follow,
+				default => null,
+			},
+			'parts' => $items === ListLayout::PerLine ? new Claim(because: $because, decision: $decision) : null,
+		];
 	}
 }

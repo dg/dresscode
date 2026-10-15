@@ -485,7 +485,7 @@ final readonly class Gap
 	public readonly PhpSyntax\Node|PhpSyntax\Token $value
 	public readonly ?int $index
 	public readonly DressCode\Style $style
-	public function once(PhpSyntax\Node $node, Closure(): T $decide): T
+	public function once(PhpSyntax\Node $node, Closure(): T $decide, string $question = ''): T
 	public function findAnalysis(class-string<T> $class): ?T
 ```
 
@@ -520,7 +520,7 @@ enum Line
 
 ```php
 final readonly class LineSplits
-	public const Kinds = ['argument' => 'multiline.items.argument', 'parameter' => 'multiline.items.parameter', 'condition' => 'multiline.condition', 'chain' => 'multiline.chain', 'ternary' => 'multiline.ternary', 'for' => 'multiline.items.for', 'binaryOperator' => 'multiline.binaryOperator', 'array' => 'multiline.items.array', 'list' => 'multiline.items.list', 'implements' => 'multiline.items.implements', 'matchCondition' => 'multiline.items.matchCondition']
+	public const Kinds = ['argument' => 'multiline.items.argument', 'parameter' => 'multiline.items.parameter', 'condition' => 'multiline.items.condition', 'chain' => 'multiline.items.chain', 'ternary' => 'multiline.items.ternary', 'for' => 'multiline.items.for', 'logical' => 'multiline.items.logical', 'concatenation' => 'multiline.items.concatenation', 'arithmetic' => 'multiline.items.arithmetic', 'bitwise' => 'multiline.items.bitwise', 'coalesce' => 'multiline.items.coalesce', 'pipe' => 'multiline.items.pipe', 'array' => 'multiline.items.array', 'list' => 'multiline.items.list', 'implements' => 'multiline.items.implements', 'matchCondition' => 'multiline.items.matchCondition']
 	public readonly bool $spreadSoleArgument
 	public function __construct(array $kinds = [], bool $spreadSoleArgument = false)
 	public static function fromValues(DressCode\Values $values): DressCode\LineSplits

@@ -1,5 +1,5 @@
 <?php
-// {"spacing.binaryOperator": "keep", "multiline.operatorPosition.binary": "lineStart"}
+// {"spacing.binaryOperator": "keep", "multiline.operatorPosition.comparison": "lineStart"}
 $a = $b  +
 	$c;
 $a = $b+$c;
