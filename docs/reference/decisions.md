@@ -72,7 +72,7 @@ Exactly one line ending after the last line; a file ending in HTML is content.
 
 - By default `keep`
 - Takes: a count from 1 to 1; `keep`
-- The standards: perCs `[1,1]`, psr12 `[1,1]`, nette `[1,1]`, symfony `[1,1]`
+- The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Files\FinalLineEndingsRule`, stage Formatting
 - Covers: `single_blank_line_at_eof`, `PSR2.Files.EndFileNewline`
 
@@ -102,7 +102,7 @@ The widest line, by which what spreads over lines is split.
 
 - By default `none`
 - Takes: a count from 1; `none` (no line is too wide)
-- The standards: perCs `[120,120]`, psr12 `[120,120]`, nette `[140,140]`, symfony `none`
+- The standards: perCs `120`, psr12 `120`, nette `140`, symfony `none`
 - Rule `DressCode\Rules\Files\LineLengthRule`, stage Finishing
 - Covers: `Generic.Files.LineLength`, `SlevomatCodingStandard.Classes.RequireMultiLineMethodSignature`, `SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition`, `SlevomatCodingStandard.Files.LineLength`
 
@@ -193,7 +193,7 @@ Where the declaration of `strict_types` stands.
 
 - By default `keep`
 - Takes: a count from 1 to 1; `keep`
-- The standards: perCs `[1,1]`, psr12 `[1,1]`, nette `[1,1]`, symfony `[1,1]`
+- The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\NoStatementsSharingLineRule`, stage Formatting
 - Covers: `no_multiple_statements_per_line`, `Generic.Formatting.DisallowMultipleStatements`, `PSR12.Classes.ClosingBrace`, `PSR2.ControlStructures.SwitchDeclaration`
 
@@ -205,7 +205,7 @@ The levels the body and the closing marker of a heredoc or nowdoc step in by fro
 
 - By default `keep`
 - Takes: a count from 0 to 1; `keep`
-- The standards: perCs `[1,1]`, psr12 `keep`, nette `[1,1]`, symfony `keep`
+- The standards: perCs `1`, psr12 `keep`, nette `1`, symfony `keep`
 - Rule `DressCode\Rules\Literals\HeredocIndentationRule`, stage Formatting
 - Covers: `heredoc_indentation`
 
@@ -224,9 +224,9 @@ Every line indented by the construct it continues, one level per nesting, the le
 
 How many columns a tab counts for in the width of a line.
 
-- By default `[4,4]`
+- By default `4`
 - Takes: a count from 1 to 8
-- The standards: perCs `[4,4]`, psr12 `[4,4]`, nette `[4,4]`, symfony `[4,4]`
+- The standards: perCs `4`, psr12 `4`, nette `4`, symfony `4`
 - Rule `DressCode\Rules\Whitespace\IndentationRule`, stage Finishing
 - Modifies comments
 
@@ -236,7 +236,7 @@ The levels a line opened by `&&`, `+`, `.` steps in by from the start of its exp
 
 - By default `keep`
 - Takes: a count from 0 to 1; `keep`
-- The standards: perCs `[0,0]`, psr12 `[0,0]`, nette `[0,0]`, symfony `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\IndentationRule`, stage Finishing
 - Modifies comments
 
@@ -246,7 +246,7 @@ The levels `?` and `:` opening a line step in by.
 
 - By default `keep`
 - Takes: a count from 0 to 1; `keep`
-- The standards: perCs `[1,1]`, psr12 `[1,1]`, nette `[1,1]`, symfony `[1,1]`
+- The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\IndentationRule`, stage Finishing
 - Modifies comments
 
@@ -256,7 +256,7 @@ The levels `case` steps in by from `switch`.
 
 - By default `keep`
 - Takes: a count from 0 to 1; `keep`
-- The standards: perCs `[1,1]`, psr12 `[1,1]`, nette `[1,1]`, symfony `[1,1]`
+- The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\IndentationRule`, stage Finishing
 - Covers: `PSR2.ControlStructures.SwitchDeclaration`
 - Modifies comments
@@ -627,9 +627,9 @@ How the imports of constants are put into `use` statements, a name of the global
 
 How many names of one namespace make a group use where `grouped` is written, a group of fewer written as imports of their own.
 
-- By default `[2,2]`
+- By default `2`
 - Takes: a count from 2
-- The standards: perCs `[2,2]`, psr12 `[2,2]`, nette `[2,2]`, symfony `[2,2]`
+- The standards: perCs `2`, psr12 `2`, nette `2`, symfony `2`
 - Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
 
 ### imports.order.kinds
@@ -1113,25 +1113,25 @@ The width from bracket to bracket over which an array of several items written o
 
 - By default `none`
 - Takes: a count from 1; `none` (never spread for its width)
-- The standards: perCs `none`, psr12 `none`, nette `[130,130]`, symfony `none`
+- The standards: perCs `none`, psr12 `none`, nette `130`, symfony `none`
 - Rule `DressCode\Rules\Arrays\MultilineArrayRule`, stage Formatting
 
 ### multiline.fillMinItems.array
 
 From how many items without keys an array written in `fill` fills its lines.
 
-- By default `[2,2]`
+- By default `2`
 - Takes: a count from 2
-- The standards: perCs `[2,2]`, psr12 `[2,2]`, nette `[6,6]`, symfony `[2,2]`
+- The standards: perCs `2`, psr12 `2`, nette `6`, symfony `2`
 - Rule `DressCode\Rules\Arrays\MultilineArrayRule`, stage Formatting
 
 ### multiline.fillMinItems.list
 
 From how many items without keys `list()` written in `fill` fills its lines.
 
-- By default `[2,2]`
+- By default `2`
 - Takes: a count from 2
-- The standards: perCs `[2,2]`, psr12 `[2,2]`, nette `[6,6]`, symfony `[2,2]`
+- The standards: perCs `2`, psr12 `2`, nette `6`, symfony `2`
 - Rule `DressCode\Rules\Arrays\MultilineArrayRule`, stage Formatting
 
 ### multiline.trailingComma.array
@@ -1414,9 +1414,9 @@ Written as `fill`, the conditions fill the lines evenly from `multiline.fillMinI
 
 From how many conditions an arm written in `fill` fills its lines.
 
-- By default `[2,2]`
+- By default `2`
 - Takes: a count from 2
-- The standards: perCs `[2,2]`, psr12 `[2,2]`, nette `[6,6]`, symfony `[2,2]`
+- The standards: perCs `2`, psr12 `2`, nette `6`, symfony `2`
 - Rule `DressCode\Rules\Expressions\MultilineMatchArmRule`, stage Formatting
 
 ### multiline.items.chain
@@ -1540,9 +1540,9 @@ Where the names spread over lines begin against `{` and where `}` stands.
 
 From how many names a group use written in `fill` fills its lines.
 
-- By default `[2,2]`
+- By default `2`
 - Takes: a count from 2
-- The standards: perCs `[2,2]`, psr12 `[2,2]`, nette `[2,2]`, symfony `[2,2]`
+- The standards: perCs `2`, psr12 `2`, nette `2`, symfony `2`
 - Rule `DressCode\Rules\Namespaces\MultilineImportRule`, stage Formatting
 
 ### multiline.attributePosition.declaration
@@ -1787,7 +1787,7 @@ Between a doc comment or an attribute and the declaration it belongs to.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[0,0]`, symfony `[0,0]`
+- The standards: perCs `keep`, psr12 `keep`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `no_blank_lines_after_phpdoc`, `SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing`
@@ -1798,7 +1798,7 @@ After the line of `<?php`, which then carries no code; a file with markup outsid
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[1,1]`, psr12 `[1,1]`, nette `keep`, symfony `[1,1]`
+- The standards: perCs `1`, psr12 `1`, nette `keep`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `blank_line_after_opening_tag`, `PSR12.Files.FileHeader`, `PSR12.Files.OpenTag`
 
@@ -1808,7 +1808,7 @@ Before the namespace declaration and, where a doc comment of the file stands abo
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[1,1]`, psr12 `[1,1]`, nette `[1,1]`, symfony `[1,1]`
+- The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `blank_lines_before_namespace`, `PSR12.Files.FileHeader`
 
@@ -1818,7 +1818,7 @@ After an unbraced namespace declaration.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[1,1]`, psr12 `[1,1]`, nette `[1,1]`, symfony `[1,1]`
+- The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `blank_line_after_namespace`, `PSR12.Files.FileHeader`, `PSR2.Namespaces.NamespaceDeclaration`
 
@@ -1828,7 +1828,7 @@ After the last import, before the rest of the code.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[1,1]`, psr12 `[1,1]`, nette `[1,1]`, symfony `[1,1]`
+- The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `single_line_after_imports`, `PSR12.Files.FileHeader`, `PSR2.Namespaces.UseDeclaration`
 
@@ -1838,7 +1838,7 @@ Between the imports of classes, functions and constants; imports of one kind nev
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[1,1]`, psr12 `[1,1]`, nette `[0,0]`, symfony `[1,1]`
+- The standards: perCs `1`, psr12 `1`, nette `0`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `blank_line_between_import_groups`, `PSR12.Files.FileHeader`
 
@@ -1848,7 +1848,7 @@ Before a class, interface, trait, enum or function that follows the namespace or
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[2,2]`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `2`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
 ### blankLines.betweenDeclarations
@@ -1896,7 +1896,7 @@ Before and after a method; the first and the last method of a class take `before
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[2,2]`, symfony `[1,1]`
+- The standards: perCs `keep`, psr12 `keep`, nette `2`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.MethodSpacing`, `Squiz.WhiteSpace.FunctionSpacing`
 
@@ -1906,7 +1906,7 @@ Before and after a method of an interface, in place of `betweenMethods`.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[1,1]`, symfony `[1,1]`
+- The standards: perCs `keep`, psr12 `keep`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.MethodSpacing`, `Squiz.WhiteSpace.FunctionSpacing`
 
@@ -1916,7 +1916,7 @@ Before a method that is the first member of its class.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[0,0]`, psr12 `[0,0]`, nette `[0,0]`, symfony `[0,0]`
+- The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `no_blank_lines_after_class_opening`, `PSR12.Classes.OpeningBraceSpace`, `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`, `Squiz.WhiteSpace.FunctionSpacing`
 
@@ -1926,7 +1926,7 @@ After a method that is the last member of its class.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[0,0]`, psr12 `[0,0]`, nette `[0,0]`, symfony `[0,0]`
+- The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`, `Squiz.WhiteSpace.FunctionSpacing`
 
@@ -1936,7 +1936,7 @@ Before the first member, unless it is a method, which takes `beforeFirstMethod`.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[0,0]`, psr12 `[0,0]`, nette `[0,0]`, symfony `[0,0]`
+- The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `no_blank_lines_after_class_opening`, `PSR12.Classes.OpeningBraceSpace`, `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`
 
@@ -1946,7 +1946,7 @@ After the last member, unless it is a method, which takes `afterLastMethod`.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[0,0]`, psr12 `[0,0]`, nette `[0,0]`, symfony `[0,0]`
+- The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`
 
@@ -1956,7 +1956,7 @@ Between the trait uses of a class.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[0,0]`, psr12 `[0,0]`, nette `[0,0]`, symfony `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `class_attributes_separation`, `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.TraitUseSpacing`
 
@@ -1966,7 +1966,7 @@ Before the first member after the trait uses, a method included.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `[1,1]`, psr12 `[1,1]`, nette `[1,1]`, symfony `keep`
+- The standards: perCs `1`, psr12 `1`, nette `1`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.TraitUseSpacing`
 
@@ -1986,7 +1986,7 @@ Before a property, constant or enum case with a doc comment or an attribute.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[1,1]`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `1`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.ConstantSpacing`, `SlevomatCodingStandard.Classes.PropertySpacing`
 
@@ -1996,7 +1996,7 @@ After the opening brace of a block.
 
 - By default `keep`
 - Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[0,0]`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 - Covers: `Squiz.WhiteSpace.ControlStructureSpacing`, `Squiz.WhiteSpace.FunctionOpeningBraceSpace`
 
@@ -2119,7 +2119,7 @@ How many members of a class stand on one line.
 
 - By default `keep`
 - Takes: a count from 1 to 1; `keep`
-- The standards: perCs `[1,1]`, psr12 `keep`, nette `[1,1]`, symfony `[1,1]`
+- The standards: perCs `1`, psr12 `keep`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Classes\NoMembersSharingLineRule`, stage Formatting
 - Covers: `PSR12.Classes.ClosingBrace`
 
@@ -2585,9 +2585,9 @@ An `if` ending a function or a loop body becomes a guard that leaves early, and 
 
 The statements the body of a trailing `if` has at least for it to become a guard.
 
-- By default `[2,2]`
+- By default `2`
 - Takes: a count from 1
-- The standards: perCs `[2,2]`, psr12 `[2,2]`, nette `[2,2]`, symfony `[2,2]`
+- The standards: perCs `2`, psr12 `2`, nette `2`, symfony `2`
 - Rule `DressCode\Rules\ControlFlow\EarlyExitForTrailingIfRule`, stage Structure
 - Covers: `SlevomatCodingStandard.ControlStructures.EarlyExit`
 
@@ -2859,7 +2859,7 @@ The number of digits from which a decimal integer, or the integer part of a deci
 
 - By default `keep`
 - Takes: a count from 1; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[7,7]`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `7`, symfony `keep`
 - Rule `DressCode\Rules\Literals\NumericLiteralSeparatorRule`, stage Structure
 - Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
 
@@ -2869,7 +2869,7 @@ The number of digits from which the fraction of a decimal number has its digits 
 
 - By default `keep`
 - Takes: a count from 1; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[20,20]`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `20`, symfony `keep`
 - Rule `DressCode\Rules\Literals\NumericLiteralSeparatorRule`, stage Structure
 - Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
 
@@ -3580,9 +3580,9 @@ Calls nested one in another, each handing its result to the next, written with t
 
 The calls a nest has at least for the pipe operator to be written.
 
-- By default `[3,3]`
+- By default `3`
 - Takes: a count from 2
-- The standards: perCs `[3,3]`, psr12 `[3,3]`, nette `[3,3]`, symfony `[3,3]`
+- The standards: perCs `3`, psr12 `3`, nette `3`, symfony `3`
 - Rule `DressCode\Rules\Expressions\PipeForNestedCallsRule`, stage Structure
 - Needs PHP >=8.5
 
