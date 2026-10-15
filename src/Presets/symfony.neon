@@ -62,7 +62,7 @@ multiline:
 	trailingComma:
 		argument: optional                    # may stay or not where spread, never on one line
 		closureUse: keep
-	attributes:
+	attributePosition:
 		parameter: keep
 
 braces:

@@ -37,7 +37,7 @@ final class ConstructSpacingRule extends GapRule
 	private const Construct = 'spacing.languageConstruct';
 	private const Control = 'spacing.controlKeyword';
 	private const Connecting = 'spacing.connectingKeyword';
-	private const BelowReturn = 'multiline.expressionBelowReturn';
+	private const ExpressionStart = 'multiline.expressionStart.';
 
 	/** the slot of a keyword => the decision the space after it belongs to */
 	private const FollowedBySpace = [
@@ -71,18 +71,18 @@ final class ConstructSpacingRule extends GapRule
 		Statement\IfNode::class, ElseifNode::class, ElseNode::class, Statement\WhileNode::class, Statement\ForNode::class,
 		Statement\ForeachNode::class, Statement\SwitchNode::class, Statement\DeclareNode::class, Statement\LabelNode::class,
 	];
+
+	/** a keyword followed by an expression => its place in `multiline.expressionStart` */
 	private const ExpressionKeywords = [
-		Token::Return,
-		Token::Throw,
-		Token::Yield,
-		Token::YieldFrom,
-		Token::Print,
-		Token::Echo,
+		Token::Return => 'return',
+		Token::Throw => 'throw',
+		Token::Yield => 'yield',
+		Token::YieldFrom => 'yield',
+		Token::Print => 'echo',
+		Token::Echo => 'echo',
 	];
 
 	private ?Claim $spaceAfterFn;
-
-	private bool $allowMultilineExpression = false;
 
 	/**
 	 * @var array<string, array{?Claim, ?Claim, ?Claim}>  decision => a single space, a single space on the same line,
@@ -93,7 +93,7 @@ final class ConstructSpacingRule extends GapRule
 
 	public static function getDecisions(): array
 	{
-		return [
+		$decisions = [
 			new Decision(
 				self::Construct,
 				new Shapes(['spaced' => ['return $x', 'a single space']]),
@@ -127,12 +127,21 @@ final class ConstructSpacingRule extends GapRule
 				]),
 				'The space between `fn` and its parenthesis',
 			),
-			new Decision(
-				self::BelowReturn,
-				Domain::state(),
-				'An expression spanning several lines begins on the line of `return`, `throw`, `yield`, `print` or `echo`',
-			),
 		];
+		foreach ([
+			'return' => '`return`',
+			'throw' => '`throw`',
+			'yield' => '`yield` and `yield from`',
+			'echo' => '`echo` and `print`',
+		] as $place => $what) {
+			$decisions[] = new Decision(
+				self::ExpressionStart . $place,
+				Domain::placement('sameLine'),
+				"Where an expression spanning several lines after $what begins",
+			);
+		}
+
+		return $decisions;
 	}
 
 
@@ -152,7 +161,6 @@ final class ConstructSpacingRule extends GapRule
 			'compact' => $this->claims['spacing.fnKeyword'][2],
 			default => null,
 		};
-		$this->allowMultilineExpression = $values->isKept(self::BelowReturn);
 	}
 
 
@@ -255,15 +263,19 @@ final class ConstructSpacingRule extends GapRule
 		$operand = self::findOperand($token, $next);
 		if ($operand instanceof SeparatedNodeList && count($operand->getItems()) > 1) {
 			return $single;
-		} elseif ($operand === null || !$token->is(self::ExpressionKeywords) || !$operand->isMultiLine()) {
+		}
+
+		$place = self::ExpressionKeywords[$token->id] ?? null;
+		if ($operand === null || $place === null || !$operand->isMultiLine()) {
 			return $joined;
 		}
 
 		// a multi-line expression begins below the keyword only where the project allows it, and the break is
 		// what that decision is about
+		$sameLine = $this->claims[self::ExpressionStart . $place][1];
 		return match (true) {
-			$this->allowMultilineExpression => $single,
-			$next->startsLine() => $this->claims[self::BelowReturn][1],
+			$sameLine === null => $single,
+			$next->startsLine() => $sameLine,
 			default => $joined,
 		};
 	}

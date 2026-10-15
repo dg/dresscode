@@ -41,9 +41,7 @@ multiline:
 		closureUse: required
 		import: optional
 		list: optional
-	attributes:
-		declaration: ownLines                # a group per line above the declaration
-		parameter: ownLines                  # so in parameters spread over lines
+	attributePosition: above                 # a group per line above the declaration, and above a parameter in a list spread over lines
 
 braces:
 	emptyBody: collapsed                     # `function foo(): void {}`, `new class {}`

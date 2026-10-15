@@ -1,5 +1,5 @@
 <?php
-// {"multiline.semicolonOnOwnLine": "keep"}
+// {"multiline.semicolon": "keep"}
 $a = 1;
 return $b
 	&& $c

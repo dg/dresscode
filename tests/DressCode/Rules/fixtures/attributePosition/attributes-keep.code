@@ -1,5 +1,5 @@
 <?php
-// {"attributes.declaration": "keep"}
+// {"attributePosition.declaration": "keep"}
 #[A] #[B]
 class C
 {

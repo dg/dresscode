@@ -345,8 +345,8 @@ test('an attribute written instead of an annotation stands where attributePositi
 	$rules = [
 		Rules\Upgrading\AttributeForAnnotationRule::class => ['persistent' => 'Acme\Persistent'],
 		Rules\Whitespace\AttributePositionRule::class => [
-			'multiline.attributes.declaration' => 'ownLines',
-			'multiline.attributes.parameter' => 'ownLines',
+			'multiline.attributePosition.declaration' => 'above',
+			'multiline.attributePosition.parameter' => 'above',
 		],
 	];
 	interplay(

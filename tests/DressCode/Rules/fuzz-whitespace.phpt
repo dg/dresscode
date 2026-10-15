@@ -443,7 +443,7 @@ $decisions = [
 	],
 	// an expression begins on the line of its return, the exact choice, and an operator ending a line is moved, so
 	// that the fixpoint holds with the moves among the fixes
-	'multiline' => ['expressionBelowReturn' => 'forbidden', 'operatorPosition' => 'lineStart'],
+	'multiline' => ['expressionStart' => 'sameLine', 'operatorPosition' => 'lineStart'],
 	'spacing' => ['binaryOperatorAlignment' => 'none', 'ternaryAlignment' => 'none'],
 ];
 // PER leaves some gaps to taste and some to nobody; the damage can only be undone where a rule governs

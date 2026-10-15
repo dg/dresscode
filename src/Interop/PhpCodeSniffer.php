@@ -266,8 +266,8 @@ final class PhpCodeSniffer
 				$o['linesCountBetweenAttributeAndTarget'] ?? 0,
 			),
 			'SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine' => [
-				'multiline.attributes.declaration' => 'ownLines',
-				'multiline.attributes.parameter' => 'ownLines',
+				'multiline.attributePosition.declaration' => 'above',
+				'multiline.attributePosition.parameter' => 'above',
 			],
 			'SlevomatCodingStandard.Attributes.RequireAttributeAfterDocComment' => ['phpdoc.aboveAttributes' => 'required'],
 			'SlevomatCodingStandard.Classes.BackedEnumTypeSpacing' => [
@@ -695,7 +695,7 @@ final class PhpCodeSniffer
 			'Squiz.WhiteSpace.OperatorSpacing.Unary' => ['spacing.unaryOperator' => 'compact', 'spacing.unaryOperatorsWithSpace' => []],
 			'Squiz.WhiteSpace.ScopeClosingBrace' => fn(array $o, Translation $t) => $t->warn('`Squiz.WhiteSpace.ScopeClosingBrace` puts a closing brace on a line of its own at the indentation of the line opening it, which DressCode does wherever `braces` places the opening brace and `indentation.unit` indents.'),
 			'Squiz.WhiteSpace.ScopeKeywordSpacing' => ['spacing.doubleColon' => 'compact'],
-			'Squiz.WhiteSpace.SemicolonSpacing' => ['spacing.semicolon.before' => 'compact', 'multiline.semicolonOnOwnLine' => 'forbidden'],
+			'Squiz.WhiteSpace.SemicolonSpacing' => ['spacing.semicolon.before' => 'compact', 'multiline.semicolon' => 'sameLine'],
 			'Squiz.WhiteSpace.SuperfluousWhitespace' => ['file.trailingWhitespace' => 'forbidden'],
 		];
 	}

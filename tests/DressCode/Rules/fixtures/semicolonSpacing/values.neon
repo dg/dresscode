@@ -3,4 +3,4 @@ spacing:
 		before: '$a;'
 		after: 'for ($i = 0; $i < 5; $i++)'
 multiline:
-	semicolonOnOwnLine: forbidden
+	semicolon: sameLine

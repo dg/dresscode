@@ -47,12 +47,12 @@ test('the stricter side of a gap wins: nothing before the semicolon, whatever th
 		RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
 			'spacing.languageConstruct' => 'spaced', 'spacing.controlKeyword' => 'spaced', 'spacing.connectingKeyword' => 'spaced',
 			'spacing.functionKeyword' => 'spaced', 'spacing.modifier' => 'spaced',
-			'spacing.fnKeyword' => 'compact', 'multiline.expressionBelowReturn' => 'forbidden',
+			'spacing.fnKeyword' => 'compact', 'multiline.expressionStart' => 'sameLine',
 		]),
 		RuleBuilder::createRule(Rules\Whitespace\SemicolonSpacingRule::class, [
 			'spacing.semicolon.before' => 'compact',
 			'spacing.semicolon.after' => 'spaced',
-			'multiline.semicolonOnOwnLine' => 'forbidden',
+			'multiline.semicolon' => 'sameLine',
 		]),
 	], "<?php\nreturn  ;\nreturn  \$a ;\n");
 	Assert::same("<?php\nreturn;\nreturn \$a;\n", $output);
@@ -68,13 +68,13 @@ test('a claim on the whitespace and the line reports the line under its own deci
 	[$output, $violations] = apply([
 		RuleBuilder::createRule(Rules\Whitespace\SemicolonSpacingRule::class, [
 			'spacing.semicolon.before' => 'compact',
-			'multiline.semicolonOnOwnLine' => 'forbidden',
+			'multiline.semicolon' => 'sameLine',
 		]),
 	], "<?php\nfoo(\n\t1\n) ;\nbar(\n\t2\n)\n;\n");
 	Assert::same("<?php\nfoo(\n\t1\n);\nbar(\n\t2\n);\n", $output);
 	Assert::same([
 		'4: Expected no whitespace before the semicolon. [spacing.semicolon.before]',
-		'8: Expected no line break before the semicolon. [multiline.semicolonOnOwnLine]',
+		'8: Expected no line break before the semicolon. [multiline.semicolon]',
 	], $violations);
 });
 
@@ -83,7 +83,7 @@ test('a keyword alone knows what closes it', function () {
 	[$output] = apply([RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
 		'spacing.languageConstruct' => 'spaced', 'spacing.controlKeyword' => 'spaced', 'spacing.connectingKeyword' => 'spaced',
 		'spacing.functionKeyword' => 'spaced', 'spacing.modifier' => 'spaced',
-		'spacing.fnKeyword' => 'compact', 'multiline.expressionBelowReturn' => 'forbidden',
+		'spacing.fnKeyword' => 'compact', 'multiline.expressionStart' => 'sameLine',
 	])], "<?php\nreturn;\nswitch (\$a) {\n\tdefault:\n}\n");
 	Assert::same("<?php\nreturn;\nswitch (\$a) {\n\tdefault:\n}\n", $output);
 });
@@ -126,7 +126,7 @@ test('a plain claim and a closure deciding one component of one slot are refused
 				'spacing.languageConstruct' => 'spaced', 'spacing.controlKeyword' => 'spaced',
 				'spacing.connectingKeyword' => 'spaced', 'spacing.functionKeyword' => 'spaced',
 				'spacing.modifier' => 'spaced', 'spacing.fnKeyword' => 'compact',
-				'multiline.expressionBelowReturn' => 'forbidden',
+				'multiline.expressionStart' => 'sameLine',
 			]),
 			$other,
 		], "<?php\nreturn \$a;\n"),
@@ -178,7 +178,7 @@ test('whitespace a mutation left in the leading trivia of a token is part of the
 	};
 	$spacing = RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
 		'spacing.languageConstruct' => 'spaced', 'spacing.controlKeyword' => 'keep', 'spacing.connectingKeyword' => 'keep',
-		'spacing.functionKeyword' => 'keep', 'spacing.modifier' => 'keep', 'spacing.fnKeyword' => 'keep', 'multiline.expressionBelowReturn' => 'keep',
+		'spacing.functionKeyword' => 'keep', 'spacing.modifier' => 'keep', 'spacing.fnKeyword' => 'keep', 'multiline.expressionStart' => 'keep',
 	]);
 
 	[$output, $violations] = apply([$misplacing, $spacing], "<?php\nreturn \$a;\n");

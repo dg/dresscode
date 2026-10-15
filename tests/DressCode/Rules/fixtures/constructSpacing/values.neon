@@ -7,4 +7,4 @@ spacing:
 	fnKeyword: 'fn($x) => $x'
 
 multiline:
-	expressionBelowReturn: forbidden
+	expressionStart: sameLine

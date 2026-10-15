@@ -88,8 +88,8 @@ multiline:
 		matchCondition: 6
 	spreadItem: sole                          # `foo(bar(` above the arguments of `bar()`, `))` below them
 	spreadAlways: [promotedProperty]          # however short
-	expressionBelowReturn: forbidden          # `return [`, not `return` above `[`
-	semicolonOnOwnLine: forbidden
+	expressionStart: sameLine                 # `return [`, not `return` above `[`
+	semicolon: sameLine
 	trailingComma:
 		import: required
 		list: keep

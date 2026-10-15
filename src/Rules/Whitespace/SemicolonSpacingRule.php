@@ -15,15 +15,14 @@ use PhpSyntax\Token;
 /**
  * Whitespace around a semicolon: none before it, which keeps it on the line of what it ends, a single space after
  * it when more follows on the line, as in the head of a `for` loop; `for (;;)` stays. Where
- * `multiline.semicolonOnOwnLine` is `keep`, a semicolon may take a line of its own below a statement spanning several
- * lines.
+ * `multiline.semicolon` is `keep`, a semicolon may take a line of its own below a statement spanning several lines.
  */
 #[RuleInfo(Stage::Formatting)]
 final class SemicolonSpacingRule extends GapRule
 {
 	private const Before = 'spacing.semicolon.before';
 	private const After = 'spacing.semicolon.after';
-	private const OwnLine = 'multiline.semicolonOnOwnLine';
+	private const Multiline = 'multiline.semicolon';
 
 	private bool $before = true;
 	private bool $after = true;
@@ -44,9 +43,9 @@ final class SemicolonSpacingRule extends GapRule
 				'The whitespace after a semicolon that more code follows on its line',
 			),
 			new Decision(
-				self::OwnLine,
-				Domain::state('forbidden'),
-				'A semicolon standing on a line of its own below a statement spanning several lines, instead of closing its last line',
+				self::Multiline,
+				Domain::placement('sameLine'),
+				'Where the semicolon of a statement spanning several lines stands',
 			),
 		];
 	}
@@ -56,7 +55,7 @@ final class SemicolonSpacingRule extends GapRule
 	{
 		$this->before = !$values->isKept(self::Before);
 		$this->after = !$values->isKept(self::After);
-		$this->allowOwnLine = $values->isKept(self::OwnLine);
+		$this->allowOwnLine = $values->isKept(self::Multiline);
 	}
 
 
@@ -78,8 +77,8 @@ final class SemicolonSpacingRule extends GapRule
 	private function claimBefore(Gap $gap): ?Claim
 	{
 		static $hug = new Claim(Space::None, line: Line::Same, decision: self::Before);
-		static $hugBelow = new Claim(Space::None, line: Line::Same, decision: self::Before, decisionLine: self::OwnLine);
-		static $sameLine = new Claim(line: Line::Same, decision: self::OwnLine);
+		static $hugBelow = new Claim(Space::None, line: Line::Same, decision: self::Before, decisionLine: self::Multiline);
+		static $sameLine = new Claim(line: Line::Same, decision: self::Multiline);
 		static $noSpace = new Claim(Space::None, decision: self::Before);
 		$token = $gap->token;
 		$previous = $token->getPrevious();

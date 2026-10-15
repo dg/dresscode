@@ -1,5 +1,5 @@
 <?php
-// {"attributes.parameter": "keep"}
+// {"attributePosition.parameter": "keep"}
 function a(
 	#[A] $x,
 	#[B]

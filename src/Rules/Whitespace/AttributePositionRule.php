@@ -24,8 +24,8 @@ use PhpSyntax\Nodes\{Member, ParameterNode, SeparatedNodeList, Statement};
 #[RuleInfo(Stage::Formatting)]
 final class AttributePositionRule extends GapRule
 {
-	private const Declaration = 'multiline.attributes.declaration';
-	private const Parameter = 'multiline.attributes.parameter';
+	private const Declaration = 'multiline.attributePosition.declaration';
+	private const Parameter = 'multiline.attributePosition.parameter';
 
 	private const Declarations = [
 		Statement\ClassNode::class, Statement\InterfaceNode::class, Statement\TraitNode::class, Statement\EnumNode::class,
@@ -43,13 +43,13 @@ final class AttributePositionRule extends GapRule
 		return [
 			new Decision(
 				self::Declaration,
-				new Words(['ownLines' => 'every group on a line of its own above the declaration']),
+				new Words(['above' => 'every group on a line of its own above the declaration']),
 				'The attributes of a class, a function, a method, a property, a constant, a case of an enum or a hook of a property whose hooks span lines stand right above it, no blank line between the groups; those of a closure, an anonymous class or a hook in hooks written on one line may share its line',
 			),
 			new Decision(
 				self::Parameter,
 				new Words(
-					['ownLines' => 'every group on a line of its own in a list of parameters spread over lines, on the line of the parameter in a list on one line'],
+					['above' => 'every group on a line of its own above the parameter in a list of parameters spread over lines, on the line of the parameter in a list on one line'],
 				),
 				'Where the attributes of a parameter stand',
 			),
