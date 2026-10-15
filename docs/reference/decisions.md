@@ -1303,7 +1303,7 @@ Not about the operators of one place joined by another, which begin a family of 
 
 ### multiline.operatorPosition.concatenation
 
-Where `.` stand at a line break.
+Where `.` stands at a line break.
 
 - By default `keep`
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
@@ -1366,7 +1366,7 @@ Not about the operators of one place joined by another, which begin a family of 
 
 ### multiline.operatorPosition.coalesce
 
-Where `??` stand at a line break.
+Where `??` stands at a line break.
 
 - By default `keep`
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
@@ -1387,7 +1387,7 @@ Not about the operators of one place joined by another, which begin a family of 
 
 ### multiline.operatorPosition.pipe
 
-Where `\|>` stand at a line break.
+Where `\|>` stands at a line break.
 
 - By default `keep`
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
@@ -1770,7 +1770,7 @@ How the empty body of a property hook is written; a comment inside makes it not 
 
 ### braces.emptyBody.anonymousClass
 
-How the empty body of an anonymous class, one written on one line staying where it is kept is written; a comment inside makes it not empty.
+How the empty body of an anonymous class is written, one written on one line staying where it is kept; a comment inside makes it not empty.
 
 - By default `keep`
 - Takes: `collapsed` (`{}` on the line of the head, one holding a comment staying on its line as written); `expanded` (`{` and `}` placed as those of any other body); `keep`

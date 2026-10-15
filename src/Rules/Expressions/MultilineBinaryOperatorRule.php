@@ -58,7 +58,7 @@ final class MultilineBinaryOperatorRule extends GapRule
 			$decisions[] = new Decision(
 				"multiline.operatorPosition.$place",
 				Domain::operatorPosition(),
-				"Where $operators stand at a line break",
+				"Where $operators " . (str_contains($operators, ',') ? 'stand' : 'stands') . ' at a line break',
 			);
 		}
 

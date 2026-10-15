@@ -64,7 +64,7 @@ final class BracesPositionRule extends GapRule
 		'function' => 'a function and a method',
 		'closure' => 'a closure',
 		'propertyHook' => 'a property hook',
-		'anonymousClass' => 'an anonymous class, one written on one line staying where it is kept',
+		'anonymousClass' => 'an anonymous class',
 		'controlStructure' => 'an `if`, `else`, a loop, `declare`, `try`, `catch` and `finally`',
 	];
 
@@ -96,7 +96,9 @@ final class BracesPositionRule extends GapRule
 				self::Collapsed => '`{}` on the line of the head'
 					. ($place === 'anonymousClass' ? ', one holding a comment staying on its line as written' : ''),
 				self::Expanded => '`{` and `}` placed as those of any other body',
-			]), "How the empty body of $what is written; a comment inside makes it not empty");
+			]), "How the empty body of $what is written"
+				. ($place === 'anonymousClass' ? ', one written on one line staying where it is kept' : '')
+				. '; a comment inside makes it not empty');
 		}
 
 		return [
