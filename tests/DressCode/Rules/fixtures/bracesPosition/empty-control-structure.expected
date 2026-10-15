@@ -1,0 +1,18 @@
+<?php
+// {"braces.emptyBody.controlStructure": "collapsed"}
+while ($reader->next()) {}
+
+if ($a) {} else {
+	foo();
+}
+
+try {
+	foo();
+} catch (Exception $e) {}
+
+foreach ($items as $item) {
+	// nothing
+}
+
+switch ($a) {
+}

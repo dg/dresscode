@@ -58,6 +58,16 @@ final class BracesPositionRule extends GapRule
 	];
 	private const Hooked = [PropertyNode::class, ParameterNode::class];
 
+	/** the places of `braces.emptyBody` => what they are */
+	private const EmptyPlaces = [
+		'class' => 'a class, an interface, a trait and an enum',
+		'function' => 'a function and a method',
+		'closure' => 'a closure',
+		'propertyHook' => 'a property hook',
+		'anonymousClass' => 'an anonymous class, one written on one line staying where it is kept',
+		'controlStructure' => 'an `if`, `else`, a loop, `declare`, `try`, `catch` and `finally`',
+	];
+
 	/** the words of the decisions, null where one is kept */
 	private ?string $class = self::NextLine;
 	private ?string $function = self::NextLine;
@@ -81,13 +91,7 @@ final class BracesPositionRule extends GapRule
 	public static function getDecisions(): array
 	{
 		$empty = [];
-		foreach ([
-			'class' => 'a class, an interface, a trait and an enum',
-			'function' => 'a function and a method',
-			'closure' => 'a closure',
-			'propertyHook' => 'a property hook',
-			'anonymousClass' => 'an anonymous class, one written on one line staying where it is kept',
-		] as $place => $what) {
+		foreach (self::EmptyPlaces as $place => $what) {
 			$empty[] = new Decision(self::EmptyBody . $place, new Words([
 				self::Collapsed => '`{}` on the line of the head'
 					. ($place === 'anonymousClass' ? ', one holding a comment staying on its line as written' : ''),
@@ -103,7 +107,7 @@ final class BracesPositionRule extends GapRule
 			),
 			new Decision(
 				self::FunctionBody,
-				Domain::placement(self::NextLine),
+				Domain::placement(),
 				'Where the `{` of a function and of a method whose parameters stand on one line stands, the `{` of a property hook and of the list of hooks staying on the line of its head; the body starts a line below it and the `}` takes a line of its own',
 			),
 			new Decision(self::MultilineSignature, new Words([
@@ -150,7 +154,7 @@ final class BracesPositionRule extends GapRule
 		$this->anonymousClass = $values->find(self::AnonymousClass)?->getWord();
 		$this->controlStructure = $values->find(self::ControlStructure)?->getWord();
 		$this->continuingKeyword = $values->find(self::ContinuingKeyword)?->getWord();
-		foreach (['class', 'function', 'closure', 'propertyHook', 'anonymousClass'] as $place) {
+		foreach (array_keys(self::EmptyPlaces) as $place) {
 			$this->emptyBody[$place] = $values->find(self::EmptyBody . $place)?->getWord();
 		}
 		$this->singlelineClosureKept = $values->isKept(self::SinglelineClosure);
@@ -267,7 +271,7 @@ final class BracesPositionRule extends GapRule
 				$node->body->statements->isEmpty(),
 				...($node->closeParen->startsLine()
 					? [$this->isNextLineAfterMultilineSignature($node), self::MultilineSignature]
-					: [$this->function === null ? null : true, self::FunctionBody]),
+					: [$this->function === null ? null : $this->function === self::NextLine, self::FunctionBody]),
 				$this->function === null ? null : self::FunctionBody,
 				false,
 				self::EmptyBody . 'function',
@@ -320,12 +324,21 @@ final class BracesPositionRule extends GapRule
 			$node instanceof Statement\WhileNode,
 			$node instanceof Statement\DoWhileNode,
 			$node instanceof Statement\DeclareNode => $node->body instanceof Statement\BlockNode
-				? [$node->body->openBrace, $node->body->closeBrace, false, ...$this->readControlStructureShape()]
+				? [
+					$node->body->openBrace,
+					$node->body->closeBrace,
+					$node->body->statements->isEmpty(),
+					...$this->readControlStructureShape(true),
+				]
 				: null,
-			$node instanceof Statement\TryNode, $node instanceof Nodes\CatchNode, $node instanceof Nodes\FinallyNode
-				=> [$node->body->openBrace, $node->body->closeBrace, false, ...$this->readControlStructureShape()],
+			$node instanceof Statement\TryNode, $node instanceof Nodes\CatchNode, $node instanceof Nodes\FinallyNode => [
+				$node->body->openBrace,
+				$node->body->closeBrace,
+				$node->body->statements->isEmpty(),
+				...$this->readControlStructureShape(true),
+			],
 			$node instanceof Statement\SwitchNode, $node instanceof MatchNode
-				=> [$node->openBrace, $node->closeBrace, false, ...$this->readControlStructureShape()],
+				=> [$node->openBrace, $node->closeBrace, false, ...$this->readControlStructureShape(false)],
 			// hooks stay on the line of their property only in the abbreviated form, without a body among them
 			$node instanceof PropertyNode, $node instanceof ParameterNode => [
 				$node->openBrace,
@@ -380,12 +393,16 @@ final class BracesPositionRule extends GapRule
 	}
 
 
-	/** @return array{?bool, string, ?string, bool, null} */
-	private function readControlStructureShape(): array
+	/**
+	 * @param  bool  $block  whether the braces hold a body, which may be empty, and not the cases of `switch` or the arms of `match`
+	 * @return array{?bool, string, ?string, bool, ?string}
+	 */
+	private function readControlStructureShape(bool $block): array
 	{
+		$empty = $block ? self::EmptyBody . 'controlStructure' : null;
 		return $this->controlStructure === null
-			? [null, self::ControlStructure, null, false, null]
-			: [$this->controlStructure === self::NextLine, self::ControlStructure, self::ControlStructure, false, null];
+			? [null, self::ControlStructure, null, false, $empty]
+			: [$this->controlStructure === self::NextLine, self::ControlStructure, self::ControlStructure, false, $empty];
 	}
 
 

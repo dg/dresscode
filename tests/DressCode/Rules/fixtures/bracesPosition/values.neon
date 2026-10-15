@@ -13,4 +13,5 @@ braces:
 		closure: expanded
 		propertyHook: expanded
 		anonymousClass: keep
+		controlStructure: keep
 	singlelineClosure: keep

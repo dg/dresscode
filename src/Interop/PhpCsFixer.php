@@ -106,13 +106,10 @@ final class PhpCsFixer
 			),
 			'braces_position' => function (array $o, Translation $t) {
 				// a function goes below its signature unless the signature ends with a line break, which a multi-line one does
-				if (($o['functions_opening_brace'] ?? 'next_line_unless_newline_at_signature_end') === 'same_line') {
-					$t->warn('`braces_position` with `functions_opening_brace=same_line` has no equivalent; DressCode puts the brace of a function with its parameters on one line on the next line.');
-				} else {
-					$t->set('braces.position.function', 'nextLine');
-				}
-
 				$t->setAll([
+					'braces.position.function' => ($o['functions_opening_brace'] ?? 'next_line_unless_newline_at_signature_end') === 'same_line'
+						? 'sameLine'
+						: 'nextLine',
 					'braces.position.multilineSignature' => 'sameLine',
 					'braces.position.class' => ($o['classes_opening_brace'] ?? 'next_line') === 'same_line' ? 'sameLine' : 'nextLine',
 					'braces.position.anonymousClass' => ($o['anonymous_classes_opening_brace'] ?? 'same_line') === 'same_line'

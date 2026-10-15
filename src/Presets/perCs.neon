@@ -44,7 +44,12 @@ multiline:
 	attributePosition: above                 # a group per line above the declaration, and above a parameter in a list spread over lines
 
 braces:
-	emptyBody: collapsed                     # `function foo(): void {}`, `new class {}`
+	emptyBody:                               # `function foo(): void {}`, `new class {}`
+		class: collapsed
+		function: collapsed
+		closure: collapsed
+		propertyHook: collapsed
+		anonymousClass: collapsed
 
 classes:
 	members:

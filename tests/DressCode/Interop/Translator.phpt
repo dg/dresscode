@@ -615,11 +615,9 @@ test('a fixer of a declaration translates the parentheses, the comma and the bra
 		[$translation->decisions['braces.position.function'], $translation->decisions['braces.position.multilineSignature']],
 	);
 	$translation = $translate(['braces_position' => ['functions_opening_brace' => 'same_line']]);
-	Assert::false(isset($translation->decisions['braces.position.function']));
-	Assert::same('sameLine', $translation->decisions['braces.position.multilineSignature']);
 	Assert::same(
-		['`braces_position` with `functions_opening_brace=same_line` has no equivalent; DressCode puts the brace of a function with its parameters on one line on the next line.'],
-		$translation->warnings,
+		['sameLine', 'sameLine'],
+		[$translation->decisions['braces.position.function'], $translation->decisions['braces.position.multilineSignature']],
 	);
 
 	// the destructuring of the fixer alone has no place of its own

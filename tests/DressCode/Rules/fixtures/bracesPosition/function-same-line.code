@@ -1,0 +1,20 @@
+<?php
+// {"braces.position.function": "sameLine"}
+function foo($a)
+{
+	return $a;
+}
+
+class A
+{
+	public function bar(): int
+	{
+		return 1;
+	}
+
+	public function baz(
+		$a,
+		$b,
+	) {
+	}
+}

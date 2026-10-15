@@ -41,6 +41,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 	// a decision outside every set and every standard is one a project writes itself, and the reason is here
 	$onRequest = [
 		'blankLines.afterStatement', // where a statement stands apart is the shape of a body, which no standard prescribes
+		'braces.emptyBody.controlStructure', // an empty branch or loop, whose braces no standard writes
 		'classes.internal.final', // what a project does with its own internals
 		'classes.visibility.publicWithSet', // PER Coding Style lets the `public` a set visibility implies be written or not
 		'classes.staticMethod', // how a class is built, which no set decides for it
