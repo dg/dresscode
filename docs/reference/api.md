@@ -520,7 +520,7 @@ enum Line
 
 ```php
 final readonly class LineSplits
-	public const Places = ['argument' => 'multiline.items.argument', 'parameter' => 'multiline.items.parameter', 'condition' => 'multiline.items.condition', 'chain' => 'multiline.items.chain', 'ternary' => 'multiline.items.ternary', 'for' => 'multiline.items.for', 'logical' => 'multiline.items.logical', 'concatenation' => 'multiline.items.concatenation', 'arithmetic' => 'multiline.items.arithmetic', 'bitwise' => 'multiline.items.bitwise', 'coalesce' => 'multiline.items.coalesce', 'pipe' => 'multiline.items.pipe', 'array' => 'multiline.items.array', 'list' => 'multiline.items.list', 'implements' => 'multiline.items.implements', 'matchCondition' => 'multiline.items.matchCondition']
+	public const Places = ['argument' => 'multiline.items.argument', 'parameter' => 'multiline.items.parameter', 'closureUse' => 'multiline.items.closureUse', 'attribute' => 'multiline.items.attribute', 'condition' => 'multiline.items.condition', 'chain' => 'multiline.items.chain', 'ternary' => 'multiline.items.ternary', 'for' => 'multiline.items.for', 'logical' => 'multiline.items.logical', 'concatenation' => 'multiline.items.concatenation', 'arithmetic' => 'multiline.items.arithmetic', 'bitwise' => 'multiline.items.bitwise', 'coalesce' => 'multiline.items.coalesce', 'pipe' => 'multiline.items.pipe', 'array' => 'multiline.items.array', 'list' => 'multiline.items.list', 'implements' => 'multiline.items.implements', 'matchCondition' => 'multiline.items.matchCondition']
 	public readonly bool $spreadSoleArgument
 	public function __construct(array $places = [], bool $spreadSoleArgument = false)
 	public static function fromValues(DressCode\Values $values): DressCode\LineSplits
@@ -1054,6 +1054,7 @@ final readonly class Violation
 - `DressCode\Rules\Functions\JsonValidateForDecodeRule`
 - `DressCode\Rules\Functions\MethodCasingRule`
 - `DressCode\Rules\Functions\MultilineCallRule`
+- `DressCode\Rules\Functions\MultilineClosureUseRule`
 - `DressCode\Rules\Functions\MultilineSignatureRule`
 - `DressCode\Rules\Functions\NamedArgumentSpacingRule`
 - `DressCode\Rules\Functions\NewInitializerForNullDefaultRule`
@@ -1145,6 +1146,7 @@ final readonly class Violation
 - `DressCode\Rules\Whitespace\ConstructSpacingRule`
 - `DressCode\Rules\Whitespace\IndentationRule`
 - `DressCode\Rules\Whitespace\MemberBlankLinesRule`
+- `DressCode\Rules\Whitespace\MultilineAttributeRule`
 - `DressCode\Rules\Whitespace\NoStatementsSharingLineRule`
 - `DressCode\Rules\Whitespace\ParenthesesSpacingRule`
 - `DressCode\Rules\Whitespace\SemicolonSpacingRule`

@@ -1,0 +1,14 @@
+<?php
+// lineLength 60
+$f = function () use ($first, $second) {
+};
+$f = function () use ($firstVariable, $secondVariable, $third) {
+};
+$f = function () use ($first,
+	$second, $third) {
+};
+$f = function () use (
+	$first,
+	$second,
+) {
+};

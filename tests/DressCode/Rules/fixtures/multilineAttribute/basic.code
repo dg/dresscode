@@ -1,0 +1,22 @@
+<?php
+// lineLength 60
+#[Foo, Bar]
+function a()
+{
+}
+
+#[FirstAttribute, SecondAttribute(1), ThirdAttribute(2, 3, 4)]
+function b()
+{
+}
+
+#[First,
+	Second]
+function c()
+{
+}
+
+#[VeryLongSingleAttributeNameThatIsLonger(1, 2, 3, 4)]
+function d()
+{
+}

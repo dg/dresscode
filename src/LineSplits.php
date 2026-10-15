@@ -20,6 +20,8 @@ final readonly class LineSplits
 	public const Places = [
 		'argument' => 'multiline.items.argument',
 		'parameter' => 'multiline.items.parameter',
+		'closureUse' => 'multiline.items.closureUse',
+		'attribute' => 'multiline.items.attribute',
 		'condition' => 'multiline.items.condition',
 		'chain' => 'multiline.items.chain',
 		'ternary' => 'multiline.items.ternary',

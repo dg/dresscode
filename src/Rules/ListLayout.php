@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules;
 
-use DressCode\{Claim, Decision, Line, Space, Values};
+use DressCode\{Claim, Decision, Gap, Line, Space, Values};
 use DressCode\Domains\Words;
 use PhpSyntax\{Node, Token};
 use function count;
@@ -167,6 +167,37 @@ final readonly class ListLayout
 			$start => $close->startsLine() ? self::Apart : null,
 			default => $close->startsLine() ? self::ClosingApart : self::Attached,
 		};
+	}
+
+
+	/**
+	 * The claims of a list in brackets, as `claim()` gives them, decided once per pass about the node: one its author
+	 * spread written again on the axis whose shape is not accepted, one on a line spread in the first shapes for the reason
+	 * `$findReason` gives, null where the list stays.
+	 * @param  list<Node>  $items
+	 * @param  \Closure(): ?string  $findReason
+	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim}
+	 */
+	public function decide(
+		Gap $gap,
+		Node $node,
+		Token $open,
+		array $items,
+		Token $close,
+		string $spanned,
+		\Closure $findReason,
+	): ?array
+	{
+		return $gap->once($node, function () use ($open, $items, $close, $spanned, $findReason): ?array {
+			if (NodeHelpers::isMultiline($open, $items, $close)) {
+				[$itemShape, $edgeShape] = $this->findShapes($open, $close);
+				return $this->claim($items, $close, $itemShape, $edgeShape, $spanned);
+			}
+
+			$because = $this->items === [] ? null : $findReason();
+			[$itemShape, $edgeShape] = $this->getFirst();
+			return $because === null ? null : $this->claim($items, $close, $itemShape, $edgeShape, $because, whole: true);
+		});
 	}
 
 

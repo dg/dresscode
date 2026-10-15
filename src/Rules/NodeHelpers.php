@@ -13,9 +13,10 @@ use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, ConstantExpressionFeature, Indentation, Node, SymbolKind, Token, Trivia};
 use PhpSyntax\Nodes\{
-	AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeAwareNode, AttributeNode, ClassLikeNode, DestructuringNode,
-	ElseifNode, Expression, ExpressionNode, FileNode, IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode,
-	PlainNodeList, Scalar, SeparatedNodeList, Statement, StatementNode, Type, TypeNode, UseItemNode, VariadicPlaceholderNode,
+	AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeAwareNode, AttributeGroupNode, AttributeNode,
+	ClassLikeNode, ClosureUseListNode, DestructuringNode, ElseifNode, Expression, ExpressionNode, FileNode,
+	IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode, PlainNodeList, Scalar,
+	SeparatedNodeList, Statement, StatementNode, Type, TypeNode, UseItemNode, VariadicPlaceholderNode,
 };
 use PhpSyntax\Nodes\Member\MethodNode;
 use function count, in_array, strlen;
@@ -256,9 +257,10 @@ final class NodeHelpers
 	 * or has nothing to spread: a call, `new` or an attribute without arguments, a first-class callable, a signature
 	 * without parameters, a condition joined by no boolean operator, a chain of fewer than two method calls, an inner
 	 * link of a chain or of a family of operators, a `for` with empty sections, an array of fewer than two items, a list
-	 * of a single interface, a `match` arm of a single condition. The last is whether the construct is a message, a call
-	 * whose sole argument is a string, which is never spread for its width and leaves what it holds whole too. A call
-	 * left on its line by the author is not spread even where its last argument, a closure or an array, spans lines.
+	 * of a single interface, a `match` arm of a single condition, a group of a single attribute. The last is whether the
+	 * construct is a message, a call whose sole argument is a string, which is never spread for its width and leaves what
+	 * it holds whole too. A call left on its line by the author is not spread even where its last argument, a closure or
+	 * an array, spans lines.
 	 * @return ?array{string, Token, list<Token>, bool, bool}
 	 */
 	public static function findSplitFrame(Node $node): ?array
@@ -301,6 +303,28 @@ final class NodeHelpers
 					$node->openParen,
 					[...array_map(fn(Node $param) => $param->getFirstToken(), $params), $node->closeParen],
 					self::isMultiline($node->openParen, $params, $node->closeParen),
+					false,
+				];
+
+		} elseif ($node instanceof ClosureUseListNode) {
+			$items = $node->items->getItems();
+			return [
+				'closureUse',
+				$node->openParen,
+				[...array_map(fn(Node $item) => $item->getFirstToken(), $items), $node->closeParen],
+				self::isMultiline($node->openParen, $items, $node->closeParen),
+				false,
+			];
+
+		} elseif ($node instanceof AttributeGroupNode) {
+			$items = $node->items->getItems();
+			return count($items) < 2
+				? null
+				: [
+					'attribute',
+					$node->openBracket,
+					[...array_map(fn(Node $item) => $item->getFirstToken(), $items), $node->closeBracket],
+					self::isMultiline($node->openBracket, $items, $node->closeBracket),
 					false,
 				];
 

@@ -1,0 +1,5 @@
+multiline:
+	items:
+		attribute: perLine
+	edges:
+		attribute: apart

@@ -1,0 +1,5 @@
+multiline:
+	items:
+		closureUse: perLine
+	edges:
+		closureUse: apart

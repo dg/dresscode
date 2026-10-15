@@ -90,19 +90,15 @@ final class MultilineSignatureRule extends GapRule
 			return null;
 		}
 
-		return $gap->once($node, function () use ($node, $gap): ?array {
-			$params = $node->parameters->getItems();
-			if (NodeHelpers::isMultiline($node->openParen, $params, $node->closeParen)) {
-				[$itemShape, $edgeShape] = $this->layout->findShapes($node->openParen, $node->closeParen);
-				return $this->layout->claim($params, $node->closeParen, $itemShape, $edgeShape, 'the signature spans several lines');
-			}
-
-			$because = $this->layout->items === [] ? null : $this->findReasonToSplit($node, $gap);
-			[$itemShape, $edgeShape] = $this->layout->getFirst();
-			return $because === null
-				? null
-				: $this->layout->claim($params, $node->closeParen, $itemShape, $edgeShape, $because, whole: true);
-		});
+		return $this->layout->decide(
+			$gap,
+			$node,
+			$node->openParen,
+			$node->parameters->getItems(),
+			$node->closeParen,
+			'the signature spans several lines',
+			fn() => $this->findReasonToSplit($node, $gap),
+		);
 	}
 
 
