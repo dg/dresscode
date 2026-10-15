@@ -31,7 +31,7 @@ final class MultilineSignatureRule extends GapRule
 {
 	private const SpreadAlways = 'multiline.spreadAlways';
 
-	private bool $promotedProperty = true;
+	private bool $promotedProperty = false;
 	private ListLayout $layout;
 
 
@@ -51,7 +51,7 @@ final class MultilineSignatureRule extends GapRule
 				new Names(['promotedProperty' => 'the parameters of a signature declaring a promoted property']),
 				'What is spread over lines whatever its width',
 				kind: DecisionKind::Parameter,
-				default: ['promotedProperty'],
+				default: [],
 			),
 		];
 	}

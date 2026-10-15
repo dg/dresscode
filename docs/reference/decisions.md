@@ -1521,7 +1521,7 @@ Where the parameters spread over lines begin against `(` and where `)` stands.
 
 What is spread over lines whatever its width.
 
-- By default `["promotedProperty"]`
+- By default `[]`
 - Takes: a list of `promotedProperty` (the parameters of a signature declaring a promoted property)
 - The standards: perCs `[]`, psr12 `[]`, nette `["promotedProperty"]`, symfony `[]`
 - Rule `DressCode\Rules\Functions\MultilineSignatureRule`, stage Formatting

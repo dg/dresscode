@@ -82,7 +82,6 @@ multiline:
 		parameter: apart
 		implements: apart
 		condition: apart                      # `if (` above `$a`, `) {` below the last part
-	spreadAlways: []                          # a promoted property spread only when too wide
 	operatorPosition:                         # `+ $b` opens the line, not ends the one before
 		operators: lineStart
 		concatenation: keep
