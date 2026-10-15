@@ -23,7 +23,7 @@ function longLinesProcessor(): FileProcessor
 		$resolved->createAnalyses($style),
 		$resolved->phpVersion,
 		$style,
-		detectLineEnding: false,
+		detectLineEnding: true,
 		policy: new ReportPolicy($factory->registry->expandSuppressedName(...), strict: true),
 		gates: $resolved->getGates(),
 	);
@@ -61,7 +61,14 @@ test('nested calls are spread from the outside in, and converge whatever the dep
 
 
 test('a call in a condition waits for the condition, which is spread first', function () {
-	$code = "<?php\n\nif (\$this->isFeatureEnabled(\$feature, \$context) && \$this->repository->findByIdentifierAndOptions(\$identifierOfTheEntity, \$options) !== null) {\n\treturn;\n}\n";
+	$code = <<<'XX'
+		<?php
+
+		if ($this->isFeatureEnabled($feature, $context) && $this->repository->findByIdentifierAndOptions($identifierOfTheEntity, $options) !== null) {
+			return;
+		}
+
+		XX;
 	Assert::same(<<<'XX'
 		<?php
 
@@ -217,7 +224,12 @@ test('a construct is not spread where what follows it on the line is too wide by
 
 
 test('the inner call stays on the line the outer one leaves it on when it fits there', function () {
-	$code = "<?php\n\n\$context->report(\$node, sprintf('The line is %d characters long, more than %d, which is far too long for one line.', \$width, \$limit), fixable: false);\n";
+	$code = <<<'XX'
+		<?php
+
+		$context->report($node, sprintf('The line is %d characters long, more than %d, which is far too long for one line.', $width, $limit), fixable: false);
+
+		XX;
 	Assert::same(<<<'XX'
 		<?php
 
