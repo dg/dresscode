@@ -235,7 +235,8 @@ final class PhpCodeSniffer
 				$t->setAll([
 					'spacing.call' => 'compact',
 					'spacing.parentheses' => 'compact',
-					'multiline.call' => ($o['allowMultipleArguments'] ?? false) ? 'frame' : 'perLine',
+					'multiline.items.argument' => ($o['allowMultipleArguments'] ?? false) ? 'fill' : 'perLine',
+					'multiline.edges.argument' => 'apart',
 				]);
 			},
 			'PSR2.Methods.FunctionClosingBrace' => fn(array $o, Translation $t) => $t->set('blankLines.beforeBlockClosingBrace', 0),
@@ -305,8 +306,9 @@ final class PhpCodeSniffer
 				}
 
 				$t->setAll([
-					'multiline.signature' => 'perLine',
-					'multiline.signaturePromoted' => ($o['withPromotedProperties'] ?? false) ? 'always' : 'asSignature',
+					'multiline.items.parameter' => 'perLine',
+					'multiline.edges.parameter' => 'apart',
+					'multiline.spreadAlways' => ($o['withPromotedProperties'] ?? false) ? ['promotedProperty'] : [],
 				]);
 			},
 			'SlevomatCodingStandard.Classes.SuperfluousAbstractClassNaming' => fn(array $o, Translation $t) => $t->set(
@@ -629,7 +631,8 @@ final class PhpCodeSniffer
 				'braces.position.function' => 'nextLine',
 				'braces.position.multilineSignature' => 'sameLine',
 				'braces.position.closure' => 'sameLine',
-				'multiline.signature' => 'perLine',
+				'multiline.items.parameter' => 'perLine',
+				'multiline.edges.parameter' => 'apart',
 			],
 			'Squiz.NamingConventions.ValidFunctionName' => fn(array $o, Translation $t) => $t->setAll([
 				'naming.method' => 'camelCase',

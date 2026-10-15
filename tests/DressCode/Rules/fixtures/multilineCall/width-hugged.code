@@ -1,6 +1,6 @@
 <?php
 // lineLength 60
-// {"callSoleArgument": "hugged"}
+// {"spreadItem": "sole"}
 throw new InvalidArgumentException(sprintf('%s is not %s.', $value, $expected));
 $this->report(new Violation($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc));
 $this->report(['first' => $aaaaaaaaaa, 'second' => $bbbbbbbbbb, 3]);

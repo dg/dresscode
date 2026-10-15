@@ -1,2 +1,5 @@
 multiline:
-	call: perLine
+	items:
+		argument: perLine
+	edges:
+		argument: apart

@@ -1,0 +1,21 @@
+<?php
+// lineLength 50
+// {"items.argument": ["perLine", "fill"], "edges.argument": ["apart", "attached"]}
+foo($a,
+	$b);
+foo(
+	$a, $b,
+	$c,
+);
+foo($a,
+	$b );
+foo(
+	$a,
+	$b
+);
+register(
+	$aaaaaaaaaa,
+	$bbbbbbbbbb,
+	$cccccccccc,
+	$ddddd
+);

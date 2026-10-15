@@ -1,5 +1,5 @@
 <?php
 // lineLength 50
-// {"file.lineLengthExcept": ["call"]}
+// {"file.lineLengthExcept": ["argument"]}
 register($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddddd);
 new Something($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddd);

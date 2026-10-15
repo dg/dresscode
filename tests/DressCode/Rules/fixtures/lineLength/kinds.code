@@ -1,6 +1,6 @@
 <?php
 // lineLength 40
-// {"lineLengthExcept": ["call"]}
+// {"lineLengthExcept": ["argument"]}
 $result = compute($aaaaaaaaaa, $bbbbbbbbbb);
 $result = new Computed($aaaaaa, $bbbbbbbbbbbb);
 $result = compute(

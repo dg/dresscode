@@ -18,10 +18,8 @@ final readonly class LineSplits
 {
 	/** kind => the decision of its shape */
 	public const Kinds = [
-		'call' => 'multiline.call',
-		'new' => 'multiline.call',
-		'attribute' => 'multiline.call',
-		'signature' => 'multiline.signature',
+		'argument' => 'multiline.items.argument',
+		'parameter' => 'multiline.items.parameter',
 		'condition' => 'multiline.condition',
 		'chain' => 'multiline.chain',
 		'ternary' => 'multiline.ternary',
@@ -33,14 +31,14 @@ final readonly class LineSplits
 	];
 
 	private const Except = 'file.lineLengthExcept';
-	private const SoleArgument = 'multiline.callSoleArgument';
+	private const SpreadItem = 'multiline.spreadItem';
 
 
 	public function __construct(
 		/** @var array<string, true> the kinds spread for their width */
 		private array $kinds = [],
 		/** a call too wide whose sole argument is spread for it keeps it in its parentheses, `foo(bar(` and `))` together */
-		public bool $huggedSoleArgument = false,
+		public bool $spreadSoleArgument = false,
 	) {
 	}
 
@@ -55,8 +53,8 @@ final readonly class LineSplits
 			}
 		}
 
-		$hugged = $values->has(self::SoleArgument) && $values->get(self::SoleArgument)->getWord() === 'hugged';
-		return new self($kinds, $hugged);
+		$sole = $values->has(self::SpreadItem) && $values->get(self::SpreadItem)->getWord() === 'sole';
+		return new self($kinds, $sole);
 	}
 
 

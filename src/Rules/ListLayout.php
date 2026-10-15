@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules;
 
-use DressCode\{Claim, Line, Space};
+use DressCode\{Claim, Decision, Line, Space, Values};
+use DressCode\Domains\Words;
 use PhpSyntax\{Node, Token};
 use function count;
 
@@ -36,7 +37,66 @@ final readonly class ListLayout
 		public array $items,
 		/** @var list<string> */
 		public array $edges,
+		/** the decision the claims of the items are made for, null for the only requirement of the rule */
+		public ?string $itemDecision = null,
+		/** the decision the claims of the edges are made for, null for the only requirement of the rule */
+		public ?string $edgeDecision = null,
 	) {
+	}
+
+
+	/**
+	 * The requirements of a place, `multiline.items.<place>` and, where something opens the list, `multiline.edges.<place>`,
+	 * the shapes said in the words of the place: an item, the items, what opens them and what closes them.
+	 * @param  list<string>  $notes  of the items
+	 * @return list<Decision>
+	 */
+	public static function createDecisions(
+		string $place,
+		string $item,
+		string $items,
+		string $description,
+		?string $open = null,
+		?string $close = null,
+		array $notes = [],
+		bool $fill = true,
+	): array
+	{
+		$decisions = [new Decision(
+			"multiline.items.$place",
+			new Words([self::PerLine => "every $item on a line of its own"]
+				+ ($fill ? [self::Fill => "the $items may share lines, one on a line passing too"] : []), tolerance: true),
+			$description,
+			$notes,
+		)];
+		if ($open !== null) {
+			$decisions[] = new Decision(
+				"multiline.edges.$place",
+				new Words([
+					self::Apart => "the first $item on the line after $open" . ($close === null ? '' : ", $close on a line of its own"),
+					self::Attached => "the first $item on the line of $open" . ($close === null ? '' : ", $close right after the last one"),
+				] + ($close === null
+					? []
+					: [self::ClosingApart => "the first $item on the line of $open, $close on a line of its own"]), tolerance: true),
+				"Where the $items spread over lines begin against $open" . ($close === null ? '' : " and where $close stands"),
+			);
+		}
+
+		return $decisions;
+	}
+
+
+	/** The shapes of the place as `multiline.items.<place>` and `multiline.edges.<place>` give them, none where kept. */
+	public static function fromValues(Values $values, string $place): self
+	{
+		$items = "multiline.items.$place";
+		$edges = "multiline.edges.$place";
+		return new self(
+			$values->isKept($items) ? [] : $values->get($items)->getWords(),
+			$values->has($edges) && !$values->isKept($edges) ? $values->get($edges)->getWords() : [],
+			$items,
+			$edges,
+		);
 	}
 
 
@@ -115,12 +175,13 @@ final readonly class ListLayout
 	 * before each item, before the closing token and on each comma, which stays on the line of its item; null where both
 	 * axes stay. The items of `fill` take the claims `$packed` gives them, the lines they fill, or stay where it is null.
 	 * A token that would follow a comment ending its line keeps the line. The claims of the edges give `$edgeBecause`
-	 * where there is one.
+	 * where there is one, and each claim is made for the decision of its axis, the comma for that of the items; a list
+	 * spread whole, for its width or a property of it, is the matter of its items alone.
 	 * @param  list<Node>  $items
 	 * @param  ?list<Claim>  $packed
 	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim}
 	 */
-	public static function claim(
+	public function claim(
 		array $items,
 		?Token $close,
 		?string $itemShape,
@@ -128,26 +189,35 @@ final readonly class ListLayout
 		string $because,
 		?array $packed = null,
 		?string $edgeBecause = null,
+		bool $whole = false,
 	): ?array
 	{
 		if (($itemShape === null && $edgeShape === null) || $items === []) {
 			return null;
 		}
 
-		$break = new Claim(line: Line::Next, because: $because);
-		$edgeBreak = new Claim(line: Line::Next, because: $edgeBecause ?? $because);
+		$item = $this->itemDecision ?? $this->edgeDecision;
+		// where the items are written again too, the edges go with them, so that a line breaking for both is one violation
+		$rewritten = $whole || $packed !== null || ($itemShape === self::PerLine && array_any(
+			array_slice($items, 1),
+			fn(Node $node) => $node->getFirstToken()?->startsLine() === false,
+		));
+		$edge = $rewritten ? $item : $this->edgeDecision ?? $item;
+		$break = new Claim(line: Line::Next, because: $because, decision: $this->itemDecision);
+		$edgeBreak = new Claim(line: Line::Next, because: $edgeBecause ?? $because, decision: $edge);
 		$follow = fn(?Token $token) => $token === null || $token->getPrevious()?->hasCommentUpTo($token) === true
 			? null
-			: new Claim(line: Line::Same, because: $edgeBecause ?? $because);
+			: new Claim(line: Line::Same, because: $edgeBecause ?? $because, decision: $edge);
 		$claims = [];
-		foreach ($items as $i => $item) {
+		foreach ($items as $i => $node) {
 			$claims[] = match (true) {
 				$i === 0 => match ($edgeShape) {
 					self::Apart => $edgeBreak,
-					self::Attached, self::ClosingApart => $follow($item->getFirstToken()),
+					self::Attached, self::ClosingApart => $follow($node->getFirstToken()),
 					default => null,
 				},
 				$itemShape === self::PerLine => $break,
+				$itemShape === self::Fill && $this->itemDecision !== null => ($packed[$i] ?? null)?->withDecision($this->itemDecision),
 				$itemShape === self::Fill => $packed[$i] ?? null,
 				default => null,
 			};
@@ -160,7 +230,7 @@ final readonly class ListLayout
 				self::Attached => $follow($close),
 				default => null,
 			},
-			'separator' => new Claim(Space::None, line: Line::Same, because: $because),
+			'separator' => new Claim(Space::None, line: Line::Same, because: $because, decision: $item),
 		];
 	}
 }

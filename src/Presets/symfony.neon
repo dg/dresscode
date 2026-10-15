@@ -54,9 +54,13 @@ spacing:
 		afterCode: '$a; // text'              # at least one space
 
 multiline:
-	signature: keep
-	# no fixer of the set breaks a chain, a condition, a ternary or an array
-	call: keep
+	# no fixer of the set breaks a call, a signature, a chain, a condition, a ternary or an array
+	items:
+		argument: keep
+		parameter: keep
+	edges:
+		argument: keep
+		parameter: keep
 	chain: keep
 	condition: keep
 	for: keep

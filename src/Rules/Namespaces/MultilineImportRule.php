@@ -76,7 +76,8 @@ final class MultilineImportRule extends GapRule
 			$packed = self::packNames($node, $gap->style, $lineLength, $because);
 			return $packed === null
 				? null
-				: ListLayout::claim($node->items->getItems(), $node->closeBrace, ListLayout::Fill, ListLayout::Apart, $because, $packed);
+				: new ListLayout([ListLayout::Fill], [ListLayout::Apart])
+					->claim($node->items->getItems(), $node->closeBrace, ListLayout::Fill, ListLayout::Apart, $because, $packed);
 		});
 	}
 

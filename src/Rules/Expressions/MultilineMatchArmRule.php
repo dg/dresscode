@@ -94,7 +94,7 @@ final class MultilineMatchArmRule extends GapRule
 		$packed = !$frame[3] && $itemShape === ListLayout::Fill
 			? self::claimPacked($list, $frame[1], $gap->style, $because)
 			: null;
-		return ListLayout::claim(
+		return new ListLayout([$itemShape], [])->claim(
 			$list->getItems(),
 			null,
 			!$frame[3] && $packed === null ? ListLayout::PerLine : $itemShape,

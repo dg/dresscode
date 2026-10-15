@@ -282,7 +282,7 @@ final class PhpCsFixer
 			'magic_constant_casing' => ['casing.magicConstant' => 'uppercase'],
 			'method_chaining_indentation' => ['indentation.chain' => 'flat'],
 			'method_argument_space' => fn(array $o, Translation $t) => match ($o['on_multiline'] ?? 'ensure_fully_multiline') {
-				'ensure_fully_multiline' => $t->set('multiline.call', 'perLine'),
+				'ensure_fully_multiline' => $t->setAll(['multiline.items.argument' => 'perLine', 'multiline.edges.argument' => 'apart']),
 				'ignore' => $t,
 				default => $t->warn("`method_argument_space` with `on_multiline={$o['on_multiline']}` has no equivalent; DressCode never joins a multi-line call into one line."),
 			},
@@ -299,7 +299,7 @@ final class PhpCsFixer
 				'classes.modifiers.order' => 'canonical',
 				'classes.visibility.interfaceMethod' => 'required',
 			],
-			'multiline_promoted_properties' => fn(array $o, Translation $t) => $t->set('multiline.signaturePromoted', 'always'),
+			'multiline_promoted_properties' => fn(array $o, Translation $t) => $t->set('multiline.spreadAlways', ['promotedProperty']),
 			'native_function_casing' => function (array $o, Translation $t) {
 				$t->set('casing.function', 'declared');
 				$t->warn('`native_function_casing` writes the functions PHP declares, while `casing.function` writes those of the project and its packages too where the configuration sets `typeAnalysis`.');

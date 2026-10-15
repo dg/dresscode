@@ -252,6 +252,7 @@ final readonly class Config extends DressCode\Profile
 final class Catalogue
 	public const Version = 3
 	public const CoreSections = ['file', 'indentation', 'naming', 'casing', 'qualification', 'imports', 'spacing', 'multiline', 'braces', 'blankLines', 'classes', 'types', 'functions', 'cleanup', 'controlFlow', 'expressions', 'literals', 'comments', 'phpdoc', 'correctness', 'upgrading']
+	public const PlaceKinds = ['lists' => ['array', 'list', 'argument', 'parameter', 'closureUse', 'import', 'attribute', 'matchArm', 'matchCondition', 'for', 'implements'], 'operators' => ['condition', 'logical', 'concatenation', 'arithmetic', 'bitwise', 'coalesce', 'comparison', 'pipe', 'ternary', 'chain']]
 	public const ReservedKeys = ['use', 'typeAnalysis', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths', 'fileExtensions', 'skipWhen', 'baseline', 'cacheDir', 'rules', 'analyses', 'fixRisky', 'warnOnly', 'suppressionComments', 'overrides']
 	public const ProjectSection = 'project'
 	public function __construct(list<class-string<DressCode\Rule>> $coreRules, array<string, list<class-string<DressCode\Rule>>> $pluginRules = [], list<class-string<DressCode\Rule>> $projectRules = [], list<DressCode\Decision> $coreDecisions = [], array<string, list<DressCode\Decision>> $pluginDecisions = [], array<string, list<string>> $pluginDependencies = [])
@@ -519,9 +520,9 @@ enum Line
 
 ```php
 final readonly class LineSplits
-	public const Kinds = ['call' => 'multiline.call', 'new' => 'multiline.call', 'attribute' => 'multiline.call', 'signature' => 'multiline.signature', 'condition' => 'multiline.condition', 'chain' => 'multiline.chain', 'ternary' => 'multiline.ternary', 'for' => 'multiline.for', 'binaryOperator' => 'multiline.binaryOperator', 'array' => 'multiline.array', 'implements' => 'multiline.implements', 'matchArm' => 'multiline.matchArmConditions']
-	public readonly bool $huggedSoleArgument
-	public function __construct(array $kinds = [], bool $huggedSoleArgument = false)
+	public const Kinds = ['argument' => 'multiline.items.argument', 'parameter' => 'multiline.items.parameter', 'condition' => 'multiline.condition', 'chain' => 'multiline.chain', 'ternary' => 'multiline.ternary', 'for' => 'multiline.for', 'binaryOperator' => 'multiline.binaryOperator', 'array' => 'multiline.array', 'implements' => 'multiline.implements', 'matchArm' => 'multiline.matchArmConditions']
+	public readonly bool $spreadSoleArgument
+	public function __construct(array $kinds = [], bool $spreadSoleArgument = false)
 	public static function fromValues(DressCode\Values $values): DressCode\LineSplits
 	public function has(string $kind): bool
 ```

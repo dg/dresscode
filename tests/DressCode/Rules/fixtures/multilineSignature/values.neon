@@ -1,3 +1,6 @@
 multiline:
-	signature: perLine
-	signaturePromoted: always
+	items:
+		parameter: perLine
+	edges:
+		parameter: apart
+	spreadAlways: [promotedProperty]

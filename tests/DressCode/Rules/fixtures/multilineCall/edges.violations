@@ -1,0 +1,3 @@
+12: Expected no line break before the closing parenthesis, because the arguments span several lines.
+15: Expected a line break before the closing parenthesis, because the arguments span several lines.
+16: Expected a line break before the argument, because the line is 56 characters long, more than 50.

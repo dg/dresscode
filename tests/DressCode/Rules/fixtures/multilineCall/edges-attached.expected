@@ -1,0 +1,11 @@
+<?php
+// lineLength 50
+// {"edges.argument": ["attached", "apart"]}
+register($aaaaaaaaaa,
+	$bbbbbbbbbb,
+	$cccccccccc,
+	$ddddd);
+foo(
+	$a,
+	$b
+);

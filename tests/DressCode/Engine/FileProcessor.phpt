@@ -202,7 +202,7 @@ test('a decision by the width of a line waits a round for the line to be indente
 	$values = RuleBuilder::resolveValues($classes, [
 		'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary' => 1,
 		'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
-		'multiline.signature' => 'perLine',
+		'multiline.items.parameter' => 'perLine', 'multiline.edges.parameter' => 'apart',
 	]);
 	$style = new Style(maxLineLength: 50);
 	$registry = new Analyses\Registry;

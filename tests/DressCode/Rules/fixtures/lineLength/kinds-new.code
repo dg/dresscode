@@ -1,4 +1,4 @@
 <?php
 // lineLength 40
-// {"lineLengthExcept": ["new"]}
+// {"lineLengthExcept": ["argument"]}
 throw new InvalidArgumentException('A message too long for the line.');

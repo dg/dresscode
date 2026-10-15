@@ -133,7 +133,7 @@ test('indentation and multilineCall settle on one shape', function () {
 			'indentation.unit' => 'tab', 'indentation.binaryOperator' => 0, 'indentation.ternary' => 1,
 			'indentation.switchCase' => 1, 'indentation.chain' => 'flat',
 		],
-		Rules\Functions\MultilineCallRule::class => ['multiline.call' => 'perLine'],
+		Rules\Functions\MultilineCallRule::class => ['multiline.items.argument' => 'perLine', 'multiline.edges.argument' => 'apart'],
 	], "<?php\nfunction f()\n{\n  \$a = \$foo\n  ->bar(\n    1,\n      2,\n    )\n        ->baz();\n}\n", "<?php\nfunction f()\n{\n\t\$a = \$foo\n\t\t->bar(\n\t\t\t1,\n\t\t\t2,\n\t\t)\n\t\t->baz();\n}\n");
 });
 
@@ -155,13 +155,13 @@ test('a comma asked for only because another rule spread the array follows that 
 
 	// the same holds for the arguments of a call, the report standing on the closing bracket whatever the list is
 	$result = interplay([
-		Rules\Functions\MultilineCallRule::class => ['multiline.call' => 'perLine'],
+		Rules\Functions\MultilineCallRule::class => ['multiline.items.argument' => 'perLine', 'multiline.edges.argument' => 'apart'],
 		Rules\Arrays\TrailingCommaRule::class => ['multiline.trailingComma.argument' => 'required'],
 	], "<?php\nfoo(\n\t1, 2);\n", "<?php\nfoo(\n\t1,\n\t2,\n);\n");
 	Assert::count(2, $result->violations);
 	$byRule = array_column($result->violations, null, 'decision');
-	Assert::null($byRule['multiline.call']->derivedFrom);
-	Assert::same($byRule['multiline.call']->fingerprint, $byRule['multiline.trailingComma.argument']->derivedFrom);
+	Assert::null($byRule['multiline.items.argument']->derivedFrom);
+	Assert::same($byRule['multiline.items.argument']->fingerprint, $byRule['multiline.trailingComma.argument']->derivedFrom);
 
 	// an array the file itself spread owes the comma to nobody
 	$result = interplay([

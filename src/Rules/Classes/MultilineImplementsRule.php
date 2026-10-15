@@ -66,7 +66,8 @@ final class MultilineImplementsRule extends GapRule
 			$because = self::findReasonToBreak($list, $gap);
 			return $because === null
 				? null
-				: ListLayout::claim($list->getItems(), null, ListLayout::PerLine, ListLayout::Apart, $because);
+				: new ListLayout([ListLayout::PerLine], [ListLayout::Apart])
+					->claim($list->getItems(), null, ListLayout::PerLine, ListLayout::Apart, $because);
 		});
 	}
 

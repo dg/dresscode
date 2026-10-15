@@ -70,8 +70,8 @@ spacing:
 multiline:
 	array: asWritten                          # items may share a line
 	arrayMaxWidth: 130
-	callSoleArgument: hugged                  # `foo(bar(` above the arguments of `bar()`, `))` below them
-	signaturePromoted: always                 # however short
+	spreadItem: sole                          # `foo(bar(` above the arguments of `bar()`, `))` below them
+	spreadAlways: [promotedProperty]          # however short
 	chainFirstLinks: sameLine                 # `$form->addText()` above `->setRequired()`
 	condition: [perLine, compact]             # `if (` above `$a`, or `if ($a` above `&& $b`
 	match: perLine

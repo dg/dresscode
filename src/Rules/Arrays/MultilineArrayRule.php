@@ -125,7 +125,7 @@ final class MultilineArrayRule extends GapRule
 		}
 
 		$packed = $itemShape === ListLayout::Fill && !$multiline ? self::claimPacked($array, $style, $because) : null;
-		$claims = ListLayout::claim(
+		$claims = $this->layout->claim(
 			$array->items->getItems(),
 			$array->closeDelimiter,
 			$itemShape === ListLayout::Fill && !$multiline && $packed === null ? ListLayout::PerLine : $itemShape,
@@ -133,6 +133,7 @@ final class MultilineArrayRule extends GapRule
 			$because,
 			$packed,
 			$multiline ? $this->layout->explainEdges($array->openDelimiter, $array->closeDelimiter, $edgeShape) : null,
+			whole: !$multiline,
 		);
 		if ($claims !== null) {
 			$claims['separator'] = new Claim(Space::None, line: Line::Same);

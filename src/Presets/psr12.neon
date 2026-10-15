@@ -64,9 +64,13 @@ spacing:
 	switchCase: 'case 1:'
 
 multiline:
-	signature: perLine                        # a parameter per line once spread or too wide
-	signaturePromoted: asSignature            # spread only when too wide
-	call: perLine                             # an argument per line once spread
+	items:
+		argument: perLine                     # an argument per line once spread
+		parameter: perLine                    # a parameter per line once spread or too wide
+	edges:
+		argument: apart                       # `foo(` above the arguments, `)` below them
+		parameter: apart
+	spreadAlways: []                          # a promoted property spread only when too wide
 	condition: perLine                        # `if (` above `$a`, `) {` below the last part
 	for: perLine                              # a section of `for` per line
 	binaryOperator: perLine                   # `&& $b`, `. $b` opening a line each where the line is too wide

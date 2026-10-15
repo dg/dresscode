@@ -19,49 +19,50 @@ use PhpSyntax\Nodes\Statement\UnsetNode;
 
 /**
  * The arguments of a call, of `new` or of an attribute, and the variables of `unset()` and `isset()`, spread over
- * several lines each take a line of their own, or with `frame` only the first one, the others sharing lines as their
- * author put them; the closing parenthesis stands on a line of its own and each comma on the line of its argument.
- * A call on one line is spread so when its line is wider than the line length of the style, measured as the code of
+ * several lines stand in the shapes of `multiline.items.argument` and `multiline.edges.argument`, each comma on the line
+ * of its argument; a list its author spread is written again only on the axis whose shape is not accepted. A call on one
+ * line is spread in the first shapes when its line is wider than the line length of the style, measured as the code of
  * the line without a comment after it, unless an outer construct on the line is spread first, `file.lineLengthExcept`
- * names it, or its sole argument is a string, which is a message to leave whole; with `multiline.callSoleArgument:
- * hugged` a sole argument that is a call, `new` or an array spreads in its place, the parentheses staying together.
- * Where the lines stand is the matter of `IndentationRule`. The parentheses of a first-class callable, `strlen(...)`,
- * stay on one line.
+ * names it, or its sole argument is a string, which is a message to leave whole; with `multiline.spreadItem: sole`
+ * a sole argument that is a call, `new` or an array spreads in its place, the parentheses staying together, and
+ * a call so spread by its author stays whatever the shapes. Where the lines stand is the matter of `IndentationRule`.
+ * The parentheses of a first-class callable, `strlen(...)`, stay on one line.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineCallRule extends GapRule
 {
-	private const PerLine = 'perLine';
-	private const Frame = 'frame';
-
 	private ListLayout $layout;
 
 
 	public static function getDecisions(): array
 	{
-		return [new Decision('multiline.call', new Words([
-			self::PerLine => 'every argument on a line of its own',
-			self::Frame => 'only the parentheses on lines of their own',
-		]), 'The arguments of a call, of `new` or of an attribute spread over lines by its author, which is one where an argument or the closing parenthesis begins a line, or for the width of its line, the closing parenthesis then standing on a line of its own and each comma on the line of its argument', notes: ['A sole argument that is a string, a message, is not spread for its width']),
-			new Decision('multiline.callSoleArgument', new Words([
-				'hugged' => 'a sole argument that is a call, `new` or an array spreads in the parentheses, `foo(bar(` and `))` together',
-				'ownLine' => 'a sole argument takes a line of its own as any argument',
-			]), 'Where a call too wide whose sole argument is a call, `new` or an array keeps it', kind: DecisionKind::Parameter, default: 'ownLine')];
+		return [
+			...ListLayout::createDecisions(
+				'argument',
+				'argument',
+				'arguments',
+				'The arguments of a call, of `new` or of an attribute and the variables of `isset()` and `unset()` spread over lines by their author, which is one where an argument or the closing parenthesis begins a line, or for the width of their line, each comma on the line of its argument',
+				'`(`',
+				'`)`',
+				['A sole argument that is a string, a message, is not spread for its width'],
+			),
+			new Decision('multiline.spreadItem', new Words([
+				'never' => 'the call spreads its arguments',
+				'sole' => 'a sole argument that is a call, `new` or an array spreads in the parentheses, `foo(bar(` and `))` together',
+			]), 'What a call too wide spreads where an argument could spread in its place; one so spread by its author stays whatever it says', kind: DecisionKind::Parameter, default: 'never'),
+		];
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->layout = new ListLayout(
-			[$values->get('multiline.call')->getWord() === self::Frame ? ListLayout::Fill : ListLayout::PerLine],
-			[ListLayout::Apart],
-		);
+		$this->layout = ListLayout::fromValues($values, 'argument');
 	}
 
 
 	public function getClaims(): array
 	{
-		$callable = new Claim(line: Line::Same, because: 'a first-class callable has no arguments');
+		$callable = new Claim(line: Line::Same, because: 'a first-class callable has no arguments', decision: 'multiline.items.argument');
 		$item = fn(Gap $gap, ?Node $list) => self::isCallable($list)
 			? $callable
 			: $this->decide($gap, $list)['items'][$gap->index ?? 0] ?? null;
@@ -110,7 +111,7 @@ final class MultilineCallRule extends GapRule
 				: $this->layout->getFirst();
 			return $because === null
 				? null
-				: ListLayout::claim($items->getItems(), $list->closeParen, $itemShape, $edgeShape, $because);
+				: $this->layout->claim($items->getItems(), $list->closeParen, $itemShape, $edgeShape, $because, whole: !$multiline);
 		});
 	}
 

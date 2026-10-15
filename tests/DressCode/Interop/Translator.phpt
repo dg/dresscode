@@ -872,11 +872,11 @@ test('the properties of the sniffs of PSR12 translate, or say they have no equiv
 		'`PSR2.Methods.FunctionCallSignature` with spaces inside the parentheses has no equivalent; DressCode writes none.',
 		'`Squiz.ControlStructures.ForLoopDeclaration` with spaces inside the parentheses has no equivalent; DressCode writes none.',
 	], $translation->warnings);
-	Assert::same('frame', $translation->decisions['multiline.call']);
+	Assert::same('fill', $translation->decisions['multiline.items.argument']);
 
 	$translation = (new Translator)->translate(['method_argument_space' => ['on_multiline' => 'ignore']]);
 	Assert::same([], $translation->warnings);
-	Assert::false(isset($translation->decisions['multiline.call']));
+	Assert::false(isset($translation->decisions['multiline.items.argument']));
 });
 
 

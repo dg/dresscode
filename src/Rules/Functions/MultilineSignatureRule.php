@@ -9,7 +9,7 @@ namespace DressCode\Rules\Functions;
 
 use DressCode\Analyses\IndentationSnapshot;
 use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, RuleInfo, Stage, Values};
-use DressCode\Domains\Words;
+use DressCode\Domains\Names;
 use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -17,18 +17,19 @@ use PhpSyntax\Nodes\Statement\FunctionNode;
 
 
 /**
- * The signature of a function or a method on a line wider than the line length of the style, that declares promoted
- * properties, that already spans lines (a line break after the opening parenthesis, a parameter or the closing
- * parenthesis beginning a line), or with a parameter whose hooks span several lines has every parameter on a line
- * of its own, each comma on the line of its parameter and the closing parenthesis on the next; where they stand is
- * the matter of `IndentationRule`. The width is that of the code of the line, a comment after it left out, and
- * a signature `file.lineLengthExcept` names is not spread for it. The signature of a closure is left as it is written.
+ * The parameters of a function or a method that already span lines (a line break after the opening parenthesis,
+ * a parameter or the closing parenthesis beginning a line) stand in the shapes of `multiline.items.parameter` and
+ * `multiline.edges.parameter`, each comma on the line of its parameter, a list its author spread written again only on
+ * the axis whose shape is not accepted; a signature on one line is spread in the first shapes when its line is wider
+ * than the line length of the style, when `multiline.spreadAlways` names a promoted property it declares, or when
+ * a parameter has hooks spanning several lines. Where they stand is the matter of `IndentationRule`. The width is that
+ * of the code of the line, a comment after it left out, and a signature `file.lineLengthExcept` names is not spread for
+ * it. The signature of a closure is left as it is written.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineSignatureRule extends GapRule
 {
-	private const Shape = 'multiline.signature';
-	private const Promoted = 'multiline.signaturePromoted';
+	private const SpreadAlways = 'multiline.spreadAlways';
 
 	private bool $promotedProperty = true;
 	private ListLayout $layout;
@@ -37,23 +38,29 @@ final class MultilineSignatureRule extends GapRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision(
-				self::Shape,
-				new Words(['perLine' => 'every parameter on a line of its own']),
-				'The parameters of a signature spread over lines by its author or for its width, or with a parameter whose hooks span lines, each comma on the line of its parameter and the closing parenthesis on the next',
+			...ListLayout::createDecisions(
+				'parameter',
+				'parameter',
+				'parameters',
+				'The parameters of a function or a method spread over lines by their author or for their width, or with a parameter whose hooks span lines, each comma on the line of its parameter',
+				'`(`',
+				'`)`',
 			),
-			new Decision(self::Promoted, new Words([
-				'always' => 'spread over lines whatever its width',
-				'asSignature' => 'spread only when its line is too wide, as any signature',
-			]), 'When a signature declaring a promoted property is spread over lines', kind: DecisionKind::Parameter, default: 'always'),
+			new Decision(
+				self::SpreadAlways,
+				new Names(['promotedProperty' => 'the parameters of a signature declaring a promoted property']),
+				'What is spread over lines whatever its width',
+				kind: DecisionKind::Parameter,
+				default: ['promotedProperty'],
+			),
 		];
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->promotedProperty = $values->get(self::Promoted)->getWord() === 'always';
-		$this->layout = new ListLayout([ListLayout::PerLine], [ListLayout::Apart]);
+		$this->promotedProperty = in_array('promotedProperty', $values->get(self::SpreadAlways)->getNames(), true);
+		$this->layout = ListLayout::fromValues($values, 'parameter');
 	}
 
 
@@ -87,12 +94,14 @@ final class MultilineSignatureRule extends GapRule
 			$params = $node->parameters->getItems();
 			if (NodeHelpers::isMultiline($node->openParen, $params, $node->closeParen)) {
 				[$itemShape, $edgeShape] = $this->layout->findShapes($node->openParen, $node->closeParen);
-				return ListLayout::claim($params, $node->closeParen, $itemShape, $edgeShape, 'the signature spans several lines');
+				return $this->layout->claim($params, $node->closeParen, $itemShape, $edgeShape, 'the signature spans several lines');
 			}
 
-			$because = $this->findReasonToSplit($node, $gap);
+			$because = $this->layout->items === [] ? null : $this->findReasonToSplit($node, $gap);
 			[$itemShape, $edgeShape] = $this->layout->getFirst();
-			return $because === null ? null : ListLayout::claim($params, $node->closeParen, $itemShape, $edgeShape, $because);
+			return $because === null
+				? null
+				: $this->layout->claim($params, $node->closeParen, $itemShape, $edgeShape, $because, whole: true);
 		});
 	}
 
@@ -112,7 +121,7 @@ final class MultilineSignatureRule extends GapRule
 			}
 		}
 
-		if (!$gap->style->lineSplits->has('signature')) {
+		if (!$gap->style->lineSplits->has('parameter')) {
 			return null;
 		}
 

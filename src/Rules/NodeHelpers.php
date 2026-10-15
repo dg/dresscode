@@ -233,20 +233,18 @@ final class NodeHelpers
 	public static function findSplitFrame(Node $node): ?array
 	{
 		if ($node instanceof ArgumentListNode) {
-			$kind = match (true) {
-				$node->parent instanceof Expression\FunctionCallNode,
-				$node->parent instanceof Expression\MethodCallNode,
-				$node->parent instanceof Expression\StaticMethodCallNode,
-				$node->parent instanceof Expression\ExitNode => 'call',
-				$node->parent instanceof Expression\NewNode, $node->parent instanceof AnonymousClassNode => 'new',
-				$node->parent instanceof AttributeNode => 'attribute',
-				default => null,
-			};
+			$call = $node->parent instanceof Expression\FunctionCallNode
+				|| $node->parent instanceof Expression\MethodCallNode
+				|| $node->parent instanceof Expression\StaticMethodCallNode
+				|| $node->parent instanceof Expression\ExitNode
+				|| $node->parent instanceof Expression\NewNode
+				|| $node->parent instanceof AnonymousClassNode
+				|| $node->parent instanceof AttributeNode;
 			$items = $node->items->getItems();
-			return $kind === null || $items === [] || $items[0] instanceof VariadicPlaceholderNode
+			return !$call || $items === [] || $items[0] instanceof VariadicPlaceholderNode
 				? null
 				: [
-					$kind,
+					'argument',
 					$node->openParen,
 					[...array_map(fn(Node $item) => $item->getFirstToken(), $items), $node->closeParen],
 					self::isMultiline($node->openParen, $items, $node->closeParen),
@@ -256,7 +254,7 @@ final class NodeHelpers
 		} elseif ($node instanceof Statement\UnsetNode || $node instanceof Expression\IssetNode) {
 			$items = $node->variables->getItems();
 			return [
-				'call',
+				'argument',
 				$node->openParen,
 				[...array_map(fn(Node $item) => $item->getFirstToken(), $items), $node->closeParen],
 				self::isMultiline($node->openParen, $items, $node->closeParen),
@@ -268,7 +266,7 @@ final class NodeHelpers
 			return $params === []
 				? null
 				: [
-					'signature',
+					'parameter',
 					$node->openParen,
 					[...array_map(fn(Node $param) => $param->getFirstToken(), $params), $node->closeParen],
 					self::isMultiline($node->openParen, $params, $node->closeParen),
@@ -576,7 +574,7 @@ final class NodeHelpers
 
 	/**
 	 * The construct the sole argument of the call is, which a line too wide spreads in place of the call where the
-	 * style hugs it (`LineSplits::$huggedSoleArgument`): a call or `new` with no other call in what it is made on, or
+	 * style hugs it (`LineSplits::$spreadSoleArgument`): a call or `new` with no other call in what it is made on, or
 	 * an array, passed by its name or not, which is of a kind the run spreads, has something to spread and is not
 	 * spread yet; null where the call spreads itself, as it does where an operator on the line below continues
 	 * the expression it ends.
@@ -587,7 +585,7 @@ final class NodeHelpers
 		$value = count($items) === 1 && $items[0] instanceof ArgumentNode && $items[0]->ellipsis === null ? $items[0]->value : null;
 		$next = $list->closeParen->getNext();
 		$inner = match (true) {
-			!$style->lineSplits->huggedSoleArgument => null,
+			!$style->lineSplits->spreadSoleArgument => null,
 			// an operator below the call would continue the expression from the parentheses closing together
 			$next?->startsLine() && $next->parent instanceof Expression\BinaryOpNode && $next->parent->operator === $next => null,
 			$value instanceof Expression\FunctionCallNode,

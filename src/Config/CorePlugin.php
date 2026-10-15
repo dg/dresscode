@@ -290,10 +290,8 @@ final class CorePlugin implements Plugin
 				new Decision('file.lineLengthExcept', new Names([
 					'imports' => 'a `use` import other than a group use on one line, which cannot be split',
 					'strings' => 'a line that would fit were each of its string literals an empty pair of quotes, a string being never split',
-					'call' => 'the arguments of a call, the variables of `unset()` and `isset()`',
-					'new' => 'the arguments of `new`',
-					'attribute' => 'the arguments of an attribute',
-					'signature' => 'the parameters of a function or a method',
+					'argument' => 'the arguments of a call, of `new` and of an attribute, the variables of `unset()` and `isset()`',
+					'parameter' => 'the parameters of a function or a method',
 					'condition' => 'a condition of `if`, `elseif`, `while` and `do-while`',
 					'chain' => 'a chain of method calls',
 					'ternary' => 'a ternary',
