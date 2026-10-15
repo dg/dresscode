@@ -40,11 +40,15 @@ test(
 
 test('an alignment is said in the words of every alignment', function () use ($catalogue) {
 	$words = Domain::alignment()->words;
+	$checked = 0;
 	foreach ($catalogue->getDecisions() as $path => $decision) {
-		if (str_ends_with($path, 'Alignment') && $decision->domain instanceof Words) {
+		if (str_starts_with($path, 'spacing.alignment.') && $decision->domain instanceof Words) {
 			Assert::same(array_intersect_key($words, $decision->domain->words), $decision->domain->words, $path);
+			$checked++;
 		}
 	}
+
+	Assert::true($checked > 0, 'no decision of `spacing.alignment` was found');
 });
 
 

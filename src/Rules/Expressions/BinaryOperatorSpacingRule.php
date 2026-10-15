@@ -26,7 +26,7 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
  * unless the line would grow wider than the line length, and a comparison ending a line moves to the start of the next
  * one where `multiline.operatorPosition.comparison` says so and the joined line would be too wide; the lines around the
  * other operators are the matter of `MultilineBinaryOperatorRule` and `MultilineConditionRule`. Whitespace
- * wider than a space aligns a column of assignments or of array items, and `spacing.binaryOperatorAlignment` says
+ * wider than a space aligns a column of assignments or of array items, and `spacing.alignment.assignment` says
  * which of it stays. Concatenation is the matter of `ConcatenationSpacingRule`.
  */
 #[RuleInfo(Stage::Formatting, analyses: [IndentationSnapshot::class])]
@@ -34,7 +34,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 {
 	private const JoinedOperators = ['==', '!=', '<>', '===', '!==', '<', '<=', '>', '>=', '<=>'];
 	private const Spacing = 'spacing.binaryOperator';
-	private const Alignment = 'spacing.binaryOperatorAlignment';
+	private const Alignment = 'spacing.alignment.assignment';
 	private const Position = 'multiline.operatorPosition.comparison';
 
 	/** the space around an operator, null where it is kept */
@@ -61,7 +61,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 			new Decision(
 				self::Alignment,
 				Domain::alignment(),
-				'Which whitespace wider than a single space around an operator stays, aligning a column of assignments or of array items; alignment is never made',
+				'Which whitespace wider than a single space around an operator stays, aligning a column of assignments `=` or of array items `=>`; alignment is never made',
 				kind: DecisionKind::Parameter,
 				default: 'spaces',
 			),

@@ -1,5 +1,5 @@
 <?php
-// {"spacing.ternaryAlignment": "none"}
+// {"spacing.alignment.ternary": "none"}
 $a = $b?$c:$d;
 $a = $b  ?  $c  :  $d;
 $a = $b ? : $d;

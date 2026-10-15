@@ -16,12 +16,12 @@ use PhpSyntax\Token;
 /**
  * No whitespace before a comma, which stays on the line of what is before it, and a single space after it
  * unless the line ends there. Whitespace wider than that aligns the columns of a table, and
- * `spacing.commaAlignment` says which of it stays: the one made of tabs, the one made of spaces, either, or none.
+ * `spacing.alignment.comma` says which of it stays: the one made of tabs, the one made of spaces, either, or none.
  */
 #[RuleInfo(Stage::Formatting)]
 final class CommaSpacingRule extends GapRule
 {
-	private const Alignment = 'spacing.commaAlignment';
+	private const Alignment = 'spacing.alignment.comma';
 
 	private Claim $spaceAfterComma;
 

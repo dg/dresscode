@@ -54,11 +54,12 @@ imports:
 		constant: [combined, grouped]         # `use const A, B;`
 
 spacing:
-	commaAlignment: tabs                      # tabs aligning columns may stay
+	alignment:
+		comma: tabs                           # tabs aligning columns may stay
+		ternary: none                         # no extra spaces around `?` and `:`
 	semicolon:
 		after: 'for ($i = 0; $i < 5; $i++)'
 	unaryOperatorsWithSpace: []               # `!$x`, never `! $x`
-	ternaryAlignment: none                    # no extra spaces around `?` and `:`
 	doubleColon: 'Foo::bar()'
 	objectOperator: '$a->b()'
 	offsetBrackets: '$a[0]'

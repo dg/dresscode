@@ -86,7 +86,7 @@ final class PhpCsFixer
 				}
 				$t->setAll([
 					'spacing.binaryOperator' => 'spaced',
-					'spacing.binaryOperatorAlignment' => $default === 'single_space' ? 'none' : 'spaces',
+					'spacing.alignment.assignment' => $default === 'single_space' ? 'none' : 'spaces',
 				]);
 			},
 			'blank_line_after_namespace' => fn(array $o, Translation $t) => $t->set('blankLines.afterNamespace', 1),
@@ -262,7 +262,7 @@ final class PhpCsFixer
 			},
 			'heredoc_indentation' => fn(array $o, Translation $t) => $t->set(
 				'indentation.heredoc',
-				($o['indentation'] ?? 'start_plus_one') === 'start_plus_one' ? 'startPlusOne' : 'sameAsStart',
+				($o['indentation'] ?? 'start_plus_one') === 'start_plus_one' ? 1 : 0,
 			),
 			'heredoc_to_nowdoc' => ['literals.heredocWithoutInterpolation' => 'forbidden'],
 			'include' => ['expressions.parenthesesAfterConstruct' => 'forbidden'],
@@ -492,7 +492,7 @@ final class PhpCsFixer
 			'no_useless_else' => ['controlFlow.elseAfterReturn' => 'forbidden'],
 			'no_useless_return' => ['functions.trailingBareReturn' => 'forbidden'],
 			'no_whitespace_before_comma_in_array' => fn(array $o, Translation $t) => $t->set('spacing.comma', 'spaced')
-				->prefer('spacing.commaAlignment', 'any'),
+				->prefer('spacing.alignment.comma', 'any'),
 			'no_whitespace_in_blank_line' => ['file.trailingWhitespace' => 'forbidden'],
 			'non_printable_character' => function (array $o, Translation $t) {
 				if (!($o['use_escape_sequences_in_strings'] ?? true)) {
@@ -681,7 +681,7 @@ final class PhpCsFixer
 			'switch_continue_to_break' => ['correctness.continueInSwitch' => 'forbidden'],
 			'ternary_operator_spaces' => [
 				'spacing.ternary' => 'spaced',
-				'spacing.ternaryAlignment' => 'any',
+				'spacing.alignment.ternary' => 'any',
 			],
 			'ternary_to_elvis_operator' => ['expressions.ternary.returningItsCondition' => 'forbidden'],
 			'ternary_to_null_coalescing' => ['expressions.ternary.testingNull' => 'forbidden'],
@@ -713,7 +713,7 @@ final class PhpCsFixer
 			],
 			'whitespace_after_comma_in_array' => fn(array $o, Translation $t) => $t->setAll([
 				'spacing.comma' => 'spaced',
-				'spacing.commaAlignment' => ($o['ensure_single_space'] ?? false) ? 'none' : 'any',
+				'spacing.alignment.comma' => ($o['ensure_single_space'] ?? false) ? 'none' : 'any',
 			]),
 		];
 	}

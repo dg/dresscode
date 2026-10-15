@@ -2,4 +2,5 @@ spacing:
 	comment:
 		marker: '// text'
 		afterCode: '$a; // text'
-		alignment: any
+	alignment:
+		comment: any

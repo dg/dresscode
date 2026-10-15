@@ -23,7 +23,7 @@ final class CommentSpacingRule extends NodeRule
 {
 	private const Marker = 'spacing.comment.marker';
 	private const AfterCode = 'spacing.comment.afterCode';
-	private const Alignment = 'spacing.comment.alignment';
+	private const Alignment = 'spacing.alignment.comment';
 
 	private bool $marker = true;
 

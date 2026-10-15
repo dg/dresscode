@@ -218,7 +218,7 @@ test('foreign rules deciding one thing come to the same translation in either or
 
 	// a fixer of the space before a comma leaves its alignment to the one of the space after it
 	foreach ($translate(['no_whitespace_before_comma_in_array' => true, 'whitespace_after_comma_in_array' => true]) as $translation) {
-		Assert::same(['spacing.comma' => 'spaced', 'spacing.commaAlignment' => 'any'], $translation->decisions);
+		Assert::same(['spacing.comma' => 'spaced', 'spacing.alignment.comma' => 'any'], $translation->decisions);
 	}
 
 	// an order set in full wins over the one place another rule only prefers, and two different orders contradict

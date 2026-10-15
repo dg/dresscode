@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Literals;
 
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Domains\Words;
+use DressCode\Domains\Count;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Indentation, Node, Token};
 use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringPartNode};
@@ -27,16 +27,17 @@ final class HeredocIndentationRule extends NodeRule
 
 	public static function getDecisions(): array
 	{
-		return [new Decision('indentation.heredoc', new Words([
-			'startPlusOne' => 'one level deeper than the line the heredoc starts on',
-			'sameAsStart' => 'at the level of the line the heredoc starts on',
-		]), 'The indentation of the body and the closing marker of a heredoc or nowdoc, lines of the body indented further keeping their extra indentation')];
+		return [new Decision(
+			'indentation.heredoc',
+			new Count(0, 1, range: false),
+			'The levels the body and the closing marker of a heredoc or nowdoc step in by from the line the heredoc starts on, lines of the body indented further keeping their extra indentation',
+		)];
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->deeper = $values->get('indentation.heredoc')->getWord() === 'startPlusOne';
+		$this->deeper = $values->get('indentation.heredoc')->getCount()[0] === 1;
 	}
 
 

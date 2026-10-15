@@ -21,7 +21,7 @@ use PhpSyntax\Nodes\Expression\TernaryNode;
 final class TernaryOperatorSpacingRule extends GapRule
 {
 	private const Spacing = 'spacing.ternary';
-	private const Alignment = 'spacing.ternaryAlignment';
+	private const Alignment = 'spacing.alignment.ternary';
 	private const Position = 'multiline.operatorPosition.ternary';
 
 	/** the space around an operator, null where it is kept */

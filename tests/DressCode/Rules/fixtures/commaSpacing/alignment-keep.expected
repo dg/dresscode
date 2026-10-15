@@ -1,5 +1,5 @@
 <?php
-// {"commaAlignment": "any"}
+// {"spacing.alignment.comma": "any"}
 $t = [1,	2];
 $s = [1,   2];
 $u = [1, 2];

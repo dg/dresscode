@@ -26,7 +26,7 @@ final class SpacingRule extends GapRule
 			new Decision('spacing.call', new Shapes(['compact' => ['foo()', '']]), 'The space before the parenthesis'),
 			new Decision('spacing.comma', new Shapes(['spaced' => ['$a, $b', '']]), 'The space around a comma'),
 			new Decision(
-				'spacing.commaAlignment',
+				'spacing.alignment.comma',
 				Domain::state(),
 				'Tabs aligning a column stay',
 				kind: DecisionKind::Parameter,
@@ -101,9 +101,9 @@ test('a path the rule does not declare and a parameter are a mistake of the rule
 			'It reported under `spacing.cast`, a decision it does not declare.',
 		);
 		Assert::exception(
-			fn() => $context->report($token, 'Wrong.', decision: 'spacing.commaAlignment'),
+			fn() => $context->report($token, 'Wrong.', decision: 'spacing.alignment.comma'),
 			LogicException::class,
-			'It reported under `spacing.commaAlignment`, a parameter, which reports nothing of its own.',
+			'It reported under `spacing.alignment.comma`, a parameter, which reports nothing of its own.',
 		);
 		Assert::exception(
 			fn() => $context->report($token, 'Wrong.'),

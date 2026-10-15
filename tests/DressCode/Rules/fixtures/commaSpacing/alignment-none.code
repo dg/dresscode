@@ -1,4 +1,4 @@
 <?php
-// {"commaAlignment": "none"}
+// {"spacing.alignment.comma": "none"}
 $t = [1,	2];
 $s = [1,   2];

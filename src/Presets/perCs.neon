@@ -6,7 +6,7 @@
 use: psr12
 
 indentation:
-	heredoc: startPlusOne                    # body and closing marker one level deeper than the start
+	heredoc: 1                               # body and closing marker one level deeper than the start
 
 naming:
 	enumCase: PascalCase                     # reported, never renamed

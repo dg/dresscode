@@ -61,7 +61,7 @@ final class PhpCodeSniffer
 			)
 				->setAll(['file.longLines' => 'forbidden', 'file.lineLengthExcept' => ['imports']]),
 			'Generic.Formatting.DisallowMultipleStatements' => ['file.statementsPerLine' => 1],
-			'Generic.Functions.FunctionCallArgumentSpacing' => ['spacing.comma' => 'spaced', 'spacing.commaAlignment' => 'tabs'],
+			'Generic.Functions.FunctionCallArgumentSpacing' => ['spacing.comma' => 'spaced', 'spacing.alignment.comma' => 'tabs'],
 			'Generic.Functions.FunctionCallArgumentSpacing.SpaceBeforeOpenBracket' => ['spacing.call' => 'compact'],
 			'Generic.NamingConventions.CamelCapsFunctionName' => fn(array $o, Translation $t) => $t->setAll([
 				'naming.method' => 'camelCase',
@@ -185,9 +185,9 @@ final class PhpCodeSniffer
 			'PSR12.Keywords.ShortFormTypeKeywords' => ['expressions.cast' => 'canonical'],
 			'PSR12.Operators.OperatorSpacing' => fn(array $o, Translation $t) => $t->setAll([
 				'spacing.binaryOperator' => 'spaced',
-				'spacing.binaryOperatorAlignment' => 'spaces',
+				'spacing.alignment.assignment' => 'spaces',
 				'spacing.ternary' => 'spaced',
-				'spacing.ternaryAlignment' => 'any',
+				'spacing.alignment.ternary' => 'any',
 				'spacing.concatenation' => 'spaced',
 			]),
 			'PSR12.Properties.ConstantVisibility' => [
@@ -632,7 +632,7 @@ final class PhpCodeSniffer
 			},
 			'Squiz.ControlStructures.LowercaseDeclaration' => ['casing.keyword' => 'lowercase'],
 			'Squiz.Functions.FunctionDeclaration' => ['spacing.functionKeyword' => 'spaced', 'spacing.call' => 'compact'],
-			'Squiz.Functions.FunctionDeclarationArgumentSpacing' => ['spacing.comma' => 'spaced', 'spacing.commaAlignment' => 'tabs'],
+			'Squiz.Functions.FunctionDeclarationArgumentSpacing' => ['spacing.comma' => 'spaced', 'spacing.alignment.comma' => 'tabs'],
 			'Squiz.Functions.LowercaseFunctionKeywords' => ['casing.keyword' => 'lowercase'],
 			'Squiz.Functions.MultiLineFunctionDeclaration' => [
 				'braces.position.function' => 'nextLine',
@@ -688,10 +688,10 @@ final class PhpCodeSniffer
 			},
 			'Squiz.WhiteSpace.LogicalOperatorSpacing' => [
 				'spacing.binaryOperator' => 'spaced',
-				'spacing.binaryOperatorAlignment' => 'spaces',
+				'spacing.alignment.assignment' => 'spaces',
 			],
 			'Squiz.WhiteSpace.ObjectOperatorSpacing' => ['spacing.objectOperator' => 'compact'],
-			'Squiz.WhiteSpace.OperatorSpacing' => ['spacing.binaryOperator' => 'spaced', 'spacing.binaryOperatorAlignment' => 'spaces'],
+			'Squiz.WhiteSpace.OperatorSpacing' => ['spacing.binaryOperator' => 'spaced', 'spacing.alignment.assignment' => 'spaces'],
 			'Squiz.WhiteSpace.OperatorSpacing.Unary' => ['spacing.unaryOperator' => 'compact', 'spacing.unaryOperatorsWithSpace' => []],
 			'Squiz.WhiteSpace.ScopeClosingBrace' => fn(array $o, Translation $t) => $t->warn('`Squiz.WhiteSpace.ScopeClosingBrace` puts a closing brace on a line of its own at the indentation of the line opening it, which DressCode does wherever `braces` places the opening brace and `indentation.unit` indents.'),
 			'Squiz.WhiteSpace.ScopeKeywordSpacing' => ['spacing.doubleColon' => 'compact'],

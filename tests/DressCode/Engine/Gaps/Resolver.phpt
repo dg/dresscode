@@ -93,7 +93,7 @@ test('two rules may govern one operator when each abstains where the other decid
 	[$output, $violations] = apply([
 		RuleBuilder::createRule(
 			Rules\Expressions\BinaryOperatorSpacingRule::class,
-			['spacing.binaryOperator' => 'spaced', 'spacing.binaryOperatorAlignment' => 'none'],
+			['spacing.binaryOperator' => 'spaced', 'spacing.alignment.assignment' => 'none'],
 		),
 		RuleBuilder::createRule(Rules\Expressions\ConcatenationSpacingRule::class, ['spacing.concatenation' => 'compact']),
 	], "<?php\n\$a = \$b  +  \$c . \$d;\n");
