@@ -1248,7 +1248,7 @@ Where a boolean operator chaining a condition of `if`, `elseif`, `while` and `do
 
 - By default `keep`
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
-- The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`
+- The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `lineStart`
 - Rule `DressCode\Rules\ControlFlow\MultilineConditionRule`, stage Formatting
 - Covers: `operator_linebreak`, `PSR12.ControlStructures.BooleanOperatorPlacement`
 
@@ -1288,7 +1288,7 @@ Where `&&`, `\|\|`, `and`, `or` and `xor` outside a condition stand at a line br
 
 - By default `keep`
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
-- The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`
+- The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `lineStart`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
 - Covers: `operator_linebreak`
 

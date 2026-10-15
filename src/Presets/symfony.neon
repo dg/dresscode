@@ -58,8 +58,10 @@ multiline:
 	# no fixer of the set breaks a call, a signature, a chain, a condition, a ternary, an operator or an array
 	items: keep
 	edges: keep
-	# operator_linebreak moves only a boolean operator, which no option here tells from the others
-	operatorPosition: keep
+	operatorPosition:                         # operator_linebreak moves only a boolean operator
+		operators: keep
+		logical: lineStart
+		condition: lineStart
 	trailingComma:
 		argument: optional                    # may stay or not where spread, never on one line
 		closureUse: keep
