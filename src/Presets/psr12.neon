@@ -71,8 +71,9 @@ multiline:
 		for: perLine                          # a section of `for` per line
 		implements: perLine                   # an interface per line below `implements`
 		matchCondition: perLine               # a condition of a `match` arm per line, `=>` after the last
-		condition: [perLine, fill]            # the parts as their author spread them, a line each where too wide
-		logical: [perLine, fill]              # `&& $b`, `+ $b` opening a line each where the line is too wide
+		# the parts of a condition and the operands as their author spread them, a line each where too wide
+		condition: [perLine, fill]
+		logical: [perLine, fill]
 		concatenation: [perLine, fill]
 		arithmetic: [perLine, fill]
 		bitwise: [perLine, fill]

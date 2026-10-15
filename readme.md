@@ -87,9 +87,10 @@ of the configuration.
 
 DressCode has no style of its own, so without a configuration it does not start: a silent default would
 rewrite nearly every line of a project written another way. `dresscode init` measures your code (the
-indentation, the quotes, the shape of conditions) and writes `dresscode.neon` into the root of the project;
-to just try the tool, name a standard instead with `dresscode check src --use perCs`. The configuration
-can also be written by hand, in NEON or as `dresscode.php` with the same keys:
+indentation, the quotes, where a condition spread over lines begins and ends) and writes `dresscode.neon`
+into the root of the project; to just try the tool, name a standard instead with
+`dresscode check src --use perCs`. The configuration can also be written by hand, in NEON or as
+`dresscode.php` with the same keys:
 
 ```neon
 use:

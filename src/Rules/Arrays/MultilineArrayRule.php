@@ -24,7 +24,7 @@ use function count;
  * accepted. An array of several items on one line wider than `multiline.maxWidth.array`, or on a line wider than the
  * line length of the style where no outer construct on the line is spread first and `file.lineLengthExcept` does not
  * name the place, is spread in the first shapes, and in `fill` its items without keys fill the lines evenly up to the
- * line length from `multiline.fillMinItems` of them. Whatever the shapes, the opening bracket stays on the line of the
+ * line length from `multiline.fillMinItems.<place>` of them. Whatever the shapes, the opening bracket stays on the line of the
  * code before it (an assignment, a return, a double arrow) and each comma on the line of its item, and any other array
  * kept on one line is left alone. Where the lines stand is the matter of `IndentationRule`.
  */
@@ -44,7 +44,7 @@ final class MultilineArrayRule extends GapRule
 
 	public static function getDecisions(): array
 	{
-		$fill = 'Written as `fill`, the items without keys fill the lines evenly from `multiline.fillMinItems` of them, fewer standing one on a line';
+		$fill = fn(string $place) => "Written as `fill`, the items without keys fill the lines evenly from `multiline.fillMinItems.$place` of them, fewer standing one on a line";
 		return [
 			...ListLayout::createDecisions(
 				'array',
@@ -53,7 +53,7 @@ final class MultilineArrayRule extends GapRule
 				'The items of an array or of a destructuring in brackets spread over lines, by their author, for the width of their line or for `multiline.maxWidth.array`, the opening bracket staying on the line of the code before it',
 				'the opening bracket',
 				'the closing one',
-				[$fill],
+				[$fill('array')],
 			),
 			...ListLayout::createDecisions(
 				'list',
@@ -62,7 +62,7 @@ final class MultilineArrayRule extends GapRule
 				'The items of `list()` spread over lines, by their author or for the width of their line',
 				'`(`',
 				'`)`',
-				[$fill],
+				[$fill('list')],
 			),
 			new Decision(self::MaxWidth, new Count(1, range: false, words: [
 				'none' => 'never spread for its width',

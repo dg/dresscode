@@ -1070,7 +1070,7 @@ The whitespace after a semicolon that more code follows on its line.
 
 The items of an array or of a destructuring in brackets spread over lines, by their author, for the width of their line or for `multiline.maxWidth.array`, the opening bracket staying on the line of the code before it.
 
-Written as `fill`, the items without keys fill the lines evenly from `multiline.fillMinItems` of them, fewer standing one on a line
+Written as `fill`, the items without keys fill the lines evenly from `multiline.fillMinItems.array` of them, fewer standing one on a line
 
 - By default `keep`
 - Takes: `perLine` (every item on a line of its own); `fill` (the items may share lines, one on a line passing too); a list of them, every one passing and the first written where none matches; `keep`
@@ -1091,7 +1091,7 @@ Where the items spread over lines begin against the opening bracket and where th
 
 The items of `list()` spread over lines, by their author or for the width of their line.
 
-Written as `fill`, the items without keys fill the lines evenly from `multiline.fillMinItems` of them, fewer standing one on a line
+Written as `fill`, the items without keys fill the lines evenly from `multiline.fillMinItems.list` of them, fewer standing one on a line
 
 - By default `keep`
 - Takes: `perLine` (every item on a line of its own); `fill` (the items may share lines, one on a line passing too); a list of them, every one passing and the first written where none matches; `keep`
@@ -1222,7 +1222,7 @@ Where the interfaces spread over lines begin against the keyword.
 
 ### multiline.items.condition
 
-A condition of `if`, `elseif`, `while` and `do-while` joined by boolean operators that stands on several lines or on one too wide, a line per part beginning with its operator.
+A condition of `if`, `elseif`, `while` and `do-while` joined by boolean operators that stands on several lines or on one too wide.
 
 - By default `keep`
 - Takes: `perLine` (every part on a line of its own); `fill` (the parts may share lines, one on a line passing too); a list of them, every one passing and the first written where none matches; `keep`
@@ -1439,7 +1439,7 @@ Where the links spread over lines begin against the object.
 
 ### multiline.items.ternary
 
-A ternary spread over lines by its author, or for the width of its line, `?` and `:` opening the lines of the operands after them.
+A ternary spread over lines by its author, or for the width of its line.
 
 - By default `keep`
 - Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too); a list of them, every one passing and the first written where none matches; `keep`

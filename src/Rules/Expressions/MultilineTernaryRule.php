@@ -35,7 +35,7 @@ final class MultilineTernaryRule extends GapRule
 			'ternary',
 			'operand',
 			'operands',
-			'A ternary spread over lines by its author, or for the width of its line, `?` and `:` opening the lines of the operands after them',
+			'A ternary spread over lines by its author, or for the width of its line',
 		);
 	}
 

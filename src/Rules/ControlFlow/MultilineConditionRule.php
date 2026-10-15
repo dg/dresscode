@@ -44,7 +44,7 @@ final class MultilineConditionRule extends GapRule
 				'condition',
 				'part',
 				'parts',
-				'A condition of `if`, `elseif`, `while` and `do-while` joined by boolean operators that stands on several lines or on one too wide, a line per part beginning with its operator',
+				'A condition of `if`, `elseif`, `while` and `do-while` joined by boolean operators that stands on several lines or on one too wide',
 				'`(`',
 				'`)`',
 			),
