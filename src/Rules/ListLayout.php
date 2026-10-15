@@ -67,7 +67,9 @@ final readonly class ListLayout
 		$decisions = [new Decision(
 			"multiline.items.$place",
 			new Words([self::PerLine => "every $item on a line of its own"]
-				+ ($fill ? [self::Fill => "the $items may share lines, one on a line passing too"] : []), tolerance: true),
+				+ ($fill
+					? [self::Fill => "the $items may share lines, one on a line passing too"]
+					: []), tolerance: true, passes: [self::Fill => self::PerLine]),
 			$description,
 			$notes,
 		)];

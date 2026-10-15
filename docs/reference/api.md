@@ -449,7 +449,8 @@ final readonly class Words extends DressCode\Domain
 	public readonly array<string, string> $words
 	public readonly bool $tolerance
 	public readonly bool $warning
-	public function __construct(array $words, bool $tolerance = false, bool $warning = false)
+	public readonly array<string, string> $passes
+	public function __construct(array $words, bool $tolerance = false, bool $warning = false, array $passes = [])
 	public function toArray(): array
 	public function describe(): string
 	public function isWarning(DressCode\Value $value): bool

@@ -36,6 +36,15 @@ test('a word is one of the words, a tolerance a list of them with the first writ
 		'Key `multiline.condition` does not take `frame`; write `perLine`, `compact` or a list of them.',
 	);
 
+	// a word passing another makes it useless after it, while before it the other one is the one written
+	$passing = new Words(['perLine' => '', 'fill' => ''], tolerance: true, passes: ['fill' => 'perLine']);
+	Assert::same(['perLine', 'fill'], $passing->accept(['perLine', 'fill'], 'multiline.items.array')->getWords());
+	Assert::exception(
+		fn() => $passing->accept(['fill', 'perLine'], 'multiline.items.array'),
+		ConfigurationException::class,
+		'Key `multiline.items.array` does not take `["fill","perLine"]`, `fill` passing `perLine` too; write the list without `perLine`.',
+	);
+
 	Assert::exception(fn() => new Words([]), InvalidArgumentException::class);
 	Assert::exception(fn() => new Words(['keep' => '']), InvalidArgumentException::class);
 });

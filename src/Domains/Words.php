@@ -27,6 +27,8 @@ final readonly class Words extends Domain
 		public bool $tolerance = false,
 		/** `warning` stands for the one word, its violations only warning */
 		public bool $warning = false,
+		/** @var array<string, string> word => the word it passes too, which a list therefore never names after it */
+		public array $passes = [],
 	) {
 		if ($words === [] || isset($words['keep']) || isset($words[self::Warning])) {
 			throw new \InvalidArgumentException('Words must be some, and neither `keep` nor `warning` is one of them.');
@@ -81,6 +83,13 @@ final readonly class Words extends Domain
 
 			if (count(array_unique($raw)) !== count($raw)) {
 				self::refuse($raw, $path, ['each word once'], false, 'a word given twice');
+			}
+
+			foreach ($raw as $i => $word) {
+				$passed = $this->passes[$word] ?? null;
+				if ($passed !== null && in_array($passed, array_slice($raw, $i + 1), true)) {
+					self::refuse($raw, $path, ["the list without `$passed`"], false, "`$word` passing `$passed` too");
+				}
 			}
 
 			return new Value($this, $raw, $raw);
