@@ -203,7 +203,7 @@ Where the declaration of `strict_types` stands.
 
 ### indentation.heredoc
 
-The levels the body and the closing marker of a heredoc or nowdoc step in by from the line the heredoc starts on, lines of the body indented further keeping their extra indentation.
+The levels the body and the closing marker of a heredoc or nowdoc step in by from the line the heredoc starts on, `0` at its level and `1` one level deeper, lines of the body indented further keeping their extra indentation.
 
 - By default `keep`
 - Takes: a count from 0 to 1; `keep`

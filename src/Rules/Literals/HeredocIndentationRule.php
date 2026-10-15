@@ -30,7 +30,7 @@ final class HeredocIndentationRule extends NodeRule
 		return [new Decision(
 			'indentation.heredoc',
 			new Count(0, 1, range: false),
-			'The levels the body and the closing marker of a heredoc or nowdoc step in by from the line the heredoc starts on, lines of the body indented further keeping their extra indentation',
+			'The levels the body and the closing marker of a heredoc or nowdoc step in by from the line the heredoc starts on, `0` at its level and `1` one level deeper, lines of the body indented further keeping their extra indentation',
 		)];
 	}
 
