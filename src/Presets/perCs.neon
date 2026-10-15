@@ -22,7 +22,12 @@ spacing:
 multiline:
 	chain: perLine                           # a link per line once spread
 	ternary: perLine                         # `?` and `:` each on a line once spread
-	array: perLine                           # an item per line once spread
+	items:
+		array: perLine                       # an item per line once spread
+		list: perLine
+	edges:
+		array: apart                         # `[` above the items, `]` below them
+		list: apart
 	operatorPosition:
 		concatenation: lineStart             # `. $b` opens the line
 		ternary: lineStart                   # `? $b` and `: $c` open the lines

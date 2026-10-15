@@ -196,7 +196,7 @@ final readonly class ListLayout
 			return null;
 		}
 
-		$item = $this->itemDecision ?? $this->edgeDecision;
+		$item = $this->items === [] ? $this->edgeDecision : $this->itemDecision ?? $this->edgeDecision;
 		// where the items are written again too, the edges go with them, so that a line breaking for both is one violation
 		$rewritten = $whole || $packed !== null || ($itemShape === self::PerLine && array_any(
 			array_slice($items, 1),

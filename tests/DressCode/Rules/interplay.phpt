@@ -140,7 +140,11 @@ test('indentation and multilineCall settle on one shape', function () {
 
 test('a comma asked for only because another rule spread the array follows that rule', function () {
 	$result = interplay([
-		Rules\Arrays\MultilineArrayRule::class => ['multiline.array' => 'perLine', 'multiline.arrayMaxWidth' => 30],
+		Rules\Arrays\MultilineArrayRule::class => [
+			'multiline.items.array' => 'perLine',
+			'multiline.edges.array' => 'apart',
+			'multiline.maxWidth.array' => 30,
+		],
 		Rules\Arrays\TrailingCommaRule::class => [
 			'multiline.trailingComma.array' => 'required', 'multiline.trailingComma.argument' => 'optional',
 			'multiline.trailingComma.parameter' => 'keep', 'multiline.trailingComma.matchArm' => 'keep',
@@ -150,8 +154,8 @@ test('a comma asked for only because another rule spread the array follows that 
 	], "<?php\n\$a = ['alpha' => 1, 'beta' => 2, 'gamma' => 3];\n", "<?php\n\$a = [\n\t'alpha' => 1,\n\t'beta' => 2,\n\t'gamma' => 3,\n];\n");
 	Assert::count(2, $result->violations);
 	$byRule = array_column($result->violations, null, 'decision');
-	Assert::null($byRule['multiline.array']->derivedFrom);
-	Assert::same($byRule['multiline.array']->fingerprint, $byRule['multiline.trailingComma.array']->derivedFrom);
+	Assert::null($byRule['multiline.items.array']->derivedFrom);
+	Assert::same($byRule['multiline.items.array']->fingerprint, $byRule['multiline.trailingComma.array']->derivedFrom);
 
 	// the same holds for the arguments of a call, the report standing on the closing bracket whatever the list is
 	$result = interplay([
@@ -165,7 +169,11 @@ test('a comma asked for only because another rule spread the array follows that 
 
 	// an array the file itself spread owes the comma to nobody
 	$result = interplay([
-		Rules\Arrays\MultilineArrayRule::class => ['multiline.array' => 'perLine', 'multiline.arrayMaxWidth' => 'none'],
+		Rules\Arrays\MultilineArrayRule::class => [
+			'multiline.items.array' => 'perLine',
+			'multiline.edges.array' => 'apart',
+			'multiline.maxWidth.array' => 'none',
+		],
 		Rules\Arrays\TrailingCommaRule::class => [
 			'multiline.trailingComma.array' => 'required', 'multiline.trailingComma.argument' => 'optional',
 			'multiline.trailingComma.parameter' => 'keep', 'multiline.trailingComma.matchArm' => 'keep',

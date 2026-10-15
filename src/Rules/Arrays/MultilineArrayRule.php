@@ -9,7 +9,7 @@ namespace DressCode\Rules\Arrays;
 
 use DressCode\Analyses\IndentationSnapshot;
 use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Space, Stage, Style, Values};
-use DressCode\Domains\{Count, Words};
+use DressCode\Domains\Count;
 use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\{Indentation, Node, Token};
 use PhpSyntax\Nodes\{ArrayItemNode, DestructuringNode, SkippedArrayItemNode};
@@ -18,48 +18,80 @@ use function count;
 
 
 /**
- * An array, or a destructuring, spread over lines has every item on a line of its own and the closing bracket on
- * a line of its own, the comma of a skipped item standing for it; with `asWritten` the items stand as their author
- * spread them and the closing bracket mirrors the opening one, following the last item where the first item follows
- * the opening bracket. An array of several items on one line wider than `multiline.arrayMaxWidth`, or on a line wider
- * than the line length of the style where no outer construct on the line is spread first and `file.lineLengthExcept`
- * does not name `array`, is spread in either shape, and with `asWritten` more than five items without keys fill its
- * lines evenly up to the line length instead.
- * Whatever the frame, the opening bracket stays on the line of the code before it (an assignment, a return, a double
- * arrow) and each comma on the line of its item, and any other array kept on one line is left alone. Where the lines
- * stand is the matter of `IndentationRule`.
+ * An array, or a destructuring, spread over lines stands in the shapes of `multiline.items.array` and
+ * `multiline.edges.array`, `list()` in those of `multiline.items.list` and `multiline.edges.list`, the comma of
+ * a skipped item standing for it; a list its author spread is written again only on the axis whose shape is not
+ * accepted. An array of several items on one line wider than `multiline.maxWidth.array`, or on a line wider than the
+ * line length of the style where no outer construct on the line is spread first and `file.lineLengthExcept` does not
+ * name the place, is spread in the first shapes, and in `fill` its items without keys fill the lines evenly up to the
+ * line length from `multiline.fillMinItems` of them. Whatever the shapes, the opening bracket stays on the line of the
+ * code before it (an assignment, a return, a double arrow) and each comma on the line of its item, and any other array
+ * kept on one line is left alone. Where the lines stand is the matter of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting, reads: ['file.lineLengthExcept'], analyses: [IndentationSnapshot::class])]
 final class MultilineArrayRule extends GapRule
 {
-	private const Shape = 'multiline.array';
-	private const MaxWidth = 'multiline.arrayMaxWidth';
-	private const PerLine = 'perLine';
-	private const AsWritten = 'asWritten';
+	private const MaxWidth = 'multiline.maxWidth.array';
 
-	private ListLayout $layout;
+	/** @var array<string, ListLayout> place => its shapes */
+	private array $layouts = [];
+
+	/** @var array<string, int> place => from how many items it fills its lines */
+	private array $fillMinItems = [];
+
 	private ?int $maxWidth = null;
 
 
 	public static function getDecisions(): array
 	{
+		$fill = 'Written as `fill`, the items without keys fill the lines evenly from `multiline.fillMinItems` of them, fewer standing one on a line';
 		return [
-			new Decision(self::Shape, new Words([
-				self::PerLine => 'every item on a line of its own and the closing bracket on a line of its own',
-				self::AsWritten => 'the items stand as their author spread them and the closing bracket begins a line where the first item does',
-			]), 'The items of an array spread over lines, by its author or for its width, the opening bracket staying on the line of the code before it'),
+			...ListLayout::createDecisions(
+				'array',
+				'item',
+				'items',
+				'The items of an array or of a destructuring in brackets spread over lines, by their author, for the width of their line or for `multiline.maxWidth.array`, the opening bracket staying on the line of the code before it',
+				'the opening bracket',
+				'the closing one',
+				[$fill],
+			),
+			...ListLayout::createDecisions(
+				'list',
+				'item',
+				'items',
+				'The items of `list()` spread over lines, by their author or for the width of their line',
+				'`(`',
+				'`)`',
+				[$fill],
+			),
 			new Decision(self::MaxWidth, new Count(1, range: false, words: [
 				'none' => 'never spread for its width',
-			]), 'The width from bracket to bracket over which an array of several items written on one line is spread over lines, more than five items without keys filling its lines where `multiline.array` is `asWritten`', kind: DecisionKind::Parameter, default: 'none'),
+			]), 'The width from bracket to bracket over which an array of several items written on one line is spread over lines', kind: DecisionKind::Parameter, default: 'none'),
+			new Decision(
+				'multiline.fillMinItems.array',
+				new Count(2, range: false),
+				'From how many items without keys an array written in `fill` fills its lines',
+				kind: DecisionKind::Parameter,
+				default: 2,
+			),
+			new Decision(
+				'multiline.fillMinItems.list',
+				new Count(2, range: false),
+				'From how many items without keys `list()` written in `fill` fills its lines',
+				kind: DecisionKind::Parameter,
+				default: 2,
+			),
 		];
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->layout = $values->get(self::Shape)->getWord() === self::AsWritten
-			? new ListLayout([ListLayout::Fill], [ListLayout::Apart, ListLayout::Attached])
-			: new ListLayout([ListLayout::PerLine], [ListLayout::Apart]);
+		foreach (['array', 'list'] as $place) {
+			$this->layouts[$place] = ListLayout::fromValues($values, $place);
+			$this->fillMinItems[$place] = $values->get("multiline.fillMinItems.$place")->getCount()[0];
+		}
+
 		$width = $values->get(self::MaxWidth);
 		$this->maxWidth = $width->content === 'none' ? null : $width->getCount()[0];
 	}
@@ -109,14 +141,19 @@ final class MultilineArrayRule extends GapRule
 	 */
 	private function claimArray(ArrayNode|DestructuringNode $array, Gap $gap): ?array
 	{
+		$place = $array instanceof DestructuringNode && $array->listKeyword !== null ? 'list' : 'array';
+		$layout = $this->layouts[$place];
 		$style = $gap->style;
 		$multiline = NodeHelpers::isMultiline($array->openDelimiter, $array->items->getItems(), $array->closeDelimiter);
-		$because = $multiline
-			? 'the array spans several lines'
-			: $this->findMaxWidthReason($array, $style) ?? NodeHelpers::findWidthReason($array, $gap);
+		$because = match (true) {
+			$multiline => 'the array spans several lines',
+			$layout->items === [] => null,
+			default => ($place === 'array' ? $this->findMaxWidthReason($array, $style) : null)
+				?? NodeHelpers::findWidthReason($array, $gap),
+		};
 		[$itemShape, $edgeShape] = $multiline
-			? $this->layout->findShapes($array->openDelimiter, $array->closeDelimiter)
-			: $this->layout->getFirst();
+			? $layout->findShapes($array->openDelimiter, $array->closeDelimiter)
+			: $layout->getFirst();
 		if (
 			$because === null
 			|| (!$multiline && $itemShape === ListLayout::Fill && !NodeHelpers::isLineInPlace($gap, $array->openDelimiter))
@@ -124,20 +161,22 @@ final class MultilineArrayRule extends GapRule
 			return null;
 		}
 
-		$packed = $itemShape === ListLayout::Fill && !$multiline ? self::claimPacked($array, $style, $because) : null;
-		$claims = $this->layout->claim(
+		$packed = $itemShape === ListLayout::Fill && !$multiline
+			? $this->claimPacked($array, $style, $because, $this->fillMinItems[$place])
+			: null;
+		$claims = $layout->claim(
 			$array->items->getItems(),
 			$array->closeDelimiter,
 			$itemShape === ListLayout::Fill && !$multiline && $packed === null ? ListLayout::PerLine : $itemShape,
 			$edgeShape,
 			$because,
 			$packed,
-			$multiline ? $this->layout->explainEdges($array->openDelimiter, $array->closeDelimiter, $edgeShape) : null,
+			$multiline ? $layout->explainEdges($array->openDelimiter, $array->closeDelimiter, $edgeShape) : null,
 			whole: !$multiline,
 		);
 		if ($claims !== null) {
-			$claims['separator'] = new Claim(Space::None, line: Line::Same);
-			$claims['open'] = new Claim(line: Line::Same);
+			$claims['separator'] = new Claim(Space::None, line: Line::Same, decision: $claims['separator']->decision);
+			$claims['open'] = new Claim(line: Line::Same, decision: $claims['separator']->decision);
 		}
 
 		return $claims;
@@ -165,17 +204,17 @@ final class MultilineArrayRule extends GapRule
 
 
 	/**
-	 * The claims before the items of an array spread for its width with more than five items, filling its lines
-	 * evenly; null for an array whose items stand one on a line, as one with a comment or with keys does, a pair
+	 * The claims before the items of an array spread for its width with at least the given count of items, filling its
+	 * lines evenly; null for an array whose items stand one on a line, as one with a comment or with keys does, a pair
 	 * being read one by one.
 	 * @return ?list<Claim>
 	 */
-	private static function claimPacked(ArrayNode|DestructuringNode $array, Style $style, string $because): ?array
+	private function claimPacked(ArrayNode|DestructuringNode $array, Style $style, string $because, int $minItems): ?array
 	{
 		$items = $array->items->getItems();
 		if (
 			$style->maxLineLength === null
-			|| count($items) <= NodeHelpers::MaxItemsOnOwnLines
+			|| count($items) < $minItems
 			|| !array_all(
 				$items,
 				fn($item) => ($item instanceof ArrayItemNode && $item->key === null) || $item instanceof SkippedArrayItemNode,

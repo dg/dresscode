@@ -1,6 +1,6 @@
 <?php
 // lineLength 40
-// {"arrayMaxWidth": 40}
+// {"maxWidth.array": 40}
 $list = [
 	11,
 	12,

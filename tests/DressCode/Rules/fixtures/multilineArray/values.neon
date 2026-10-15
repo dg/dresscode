@@ -1,3 +1,12 @@
 multiline:
-	array: perLine
-	arrayMaxWidth: none
+	items:
+		array: perLine
+		list: perLine
+	edges:
+		array: apart
+		list: apart
+	maxWidth:
+		array: none
+	fillMinItems:
+		array: 6
+		list: 6

@@ -1,2 +1,5 @@
 multiline:
-	groupUse: overMaxLength
+	items:
+		import: fill
+	edges:
+		import: apart

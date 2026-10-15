@@ -334,7 +334,7 @@ final class NodeHelpers
 			return count($items) < 2
 				? null
 				: [
-					'array',
+					$node instanceof DestructuringNode && $node->listKeyword !== null ? 'list' : 'array',
 					$node->openDelimiter,
 					[...array_filter(array_map(fn(Node $item) => $item->getFirstToken(), $items)), $node->closeDelimiter],
 					self::isMultiline($node->openDelimiter, $items, $node->closeDelimiter),

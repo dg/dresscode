@@ -68,8 +68,19 @@ spacing:
 		afterCode: '$a; // text'              # at least one space
 
 multiline:
-	array: asWritten                          # items may share a line
-	arrayMaxWidth: 130
+	items:
+		array: fill                           # items may share a line
+		list: fill
+		import: fill                          # the names filling the lines
+	edges:
+		array: [apart, attached]              # `]` begins a line where the first item does
+		list: [apart, attached]
+		import: apart
+	maxWidth:
+		array: 130
+	fillMinItems:
+		array: 6                              # fewer items stand one on a line
+		list: 6
 	spreadItem: sole                          # `foo(bar(` above the arguments of `bar()`, `))` below them
 	spreadAlways: [promotedProperty]          # however short
 	chainFirstLinks: sameLine                 # `$form->addText()` above `->setRequired()`
@@ -78,7 +89,6 @@ multiline:
 	matchArmConditions: asWritten             # conditions may share a line
 	expressionBelowReturn: forbidden          # `return [`, not `return` above `[`
 	semicolonOnOwnLine: forbidden
-	groupUse: overMaxLength                   # the names filling the lines
 	trailingComma:
 		import: required
 		list: keep

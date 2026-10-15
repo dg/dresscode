@@ -58,15 +58,18 @@ multiline:
 	items:
 		argument: keep
 		parameter: keep
+		array: keep
+		list: keep
 	edges:
 		argument: keep
 		parameter: keep
+		array: keep
+		list: keep
 	chain: keep
 	condition: keep
 	for: keep
 	binaryOperator: keep
 	ternary: keep
-	array: keep
 	implements: keep
 	matchArmConditions: keep
 	operatorPosition:

@@ -251,7 +251,7 @@ final class PhpCodeSniffer
 				'imports.grouping.function' => 'separated',
 				'imports.grouping.constant' => 'separated',
 			],
-			'SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement' => fn(array $o, Translation $t) => $t->warn('`SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement` puts the closing bracket of a multi-line array where its opening bracket stands, which DressCode decides only together with its items, by `multiline.array`.'),
+			'SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement' => ['multiline.edges.array' => ['apart', 'attached']],
 			'SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace' => ['spacing.arrayBrackets' => 'compact'],
 			'SlevomatCodingStandard.Arrays.TrailingArrayComma' => fn(array $o, Translation $t) => $t->set(
 				'multiline.trailingComma.array',

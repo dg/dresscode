@@ -8,8 +8,8 @@
 namespace DressCode\Rules\Namespaces;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, Gap, GapRule, RuleInfo, Stage, Style};
-use DressCode\Domains\Words;
+use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, RuleInfo, Stage, Style, Values};
+use DressCode\Domains\Count;
 use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\{Indentation, Node};
 use PhpSyntax\Nodes\Statement\UseNode;
@@ -17,22 +17,49 @@ use function count;
 
 
 /**
- * A group use whose line would be longer than the line length of the style is spread over lines: the opening brace ends
- * its line, the names fill the lines evenly up to that length and the closing brace stands on a line of its own. The
- * length is the one the import would have on a single line, so a group already spread keeps its shape while it is
- * short enough, and a group of a single name is left alone, there being nothing to spread it into. The comma that ends
- * the names is the matter of `TrailingCommaRule` and where the lines stand of `IndentationRule`.
+ * The names of a group use spread over lines stand in the shapes of `multiline.items.import` and
+ * `multiline.edges.import`, a group its author spread written again only on the axis whose shape is not accepted.
+ * A group on one line that would be longer than the line length of the style is spread in the first shapes, the names
+ * in `fill` filling the lines evenly up to that length from `multiline.fillMinItems.import` of them; a group of
+ * a single name is left alone, there being nothing to spread it into. The comma that ends the names is the matter of
+ * `TrailingCommaRule` and where the lines stand of `IndentationRule`.
  */
 #[RuleInfo(Stage::Formatting, analyses: [IndentationSnapshot::class])]
 final class MultilineImportRule extends GapRule
 {
+	private const FillMinItems = 'multiline.fillMinItems.import';
+
+	private ListLayout $layout;
+	private int $fillMinItems = 2;
+
+
 	public static function getDecisions(): array
 	{
-		return [new Decision(
-			'multiline.groupUse',
-			new Words(['overMaxLength' => 'spread over lines where its line is longer than the maximum, its names filling them']),
-			'When a group use written on one line is spread over lines',
-		)];
+		return [
+			...ListLayout::createDecisions(
+				'import',
+				'name',
+				'names',
+				'The names of a group use spread over lines, by their author or for the width the import would have on one line',
+				'`{`',
+				'`}`',
+				['Written as `fill`, the names fill the lines evenly from `multiline.fillMinItems.import` of them, fewer standing one on a line'],
+			),
+			new Decision(
+				self::FillMinItems,
+				new Count(2, range: false),
+				'From how many names a group use written in `fill` fills its lines',
+				kind: DecisionKind::Parameter,
+				default: 2,
+			),
+		];
+	}
+
+
+	public function configure(Values $values): void
+	{
+		$this->layout = ListLayout::fromValues($values, 'import');
+		$this->fillMinItems = $values->get(self::FillMinItems)->getCount()[0];
 	}
 
 
@@ -56,14 +83,19 @@ final class MultilineImportRule extends GapRule
 	 */
 	private function decide(Gap $gap, ?Node $node): ?array
 	{
-		if (!$node instanceof UseNode || !$node->isGroup() || count($node->items) < 2) {
+		if (!$node instanceof UseNode || $node->openBrace === null || $node->closeBrace === null || count($node->items) < 2) {
 			return null;
 		}
 
 		return $gap->once($node, function () use ($node, $gap): ?array {
+			$names = $node->items->getItems();
+			if (NodeHelpers::isMultiline($node->openBrace, $names, $node->closeBrace)) {
+				[$itemShape, $edgeShape] = $this->layout->findShapes($node->openBrace, $node->closeBrace);
+				return $this->layout->claim($names, $node->closeBrace, $itemShape, $edgeShape, 'the names span several lines');
+			}
+
 			$lineLength = $gap->style->maxLineLength;
-			$first = $node->getFirstToken();
-			if ($lineLength === null || !NodeHelpers::isLineInPlace($gap, $first)) {
+			if ($this->layout->items === [] || $lineLength === null || !NodeHelpers::isLineInPlace($gap, $node->getFirstToken())) {
 				return null; // a line not indented yet is measured a pass later
 			}
 
@@ -73,11 +105,19 @@ final class MultilineImportRule extends GapRule
 			}
 
 			$because = "the import would be $width characters long, more than $lineLength";
-			$packed = self::packNames($node, $gap->style, $lineLength, $because);
-			return $packed === null
-				? null
-				: new ListLayout([ListLayout::Fill], [ListLayout::Apart])
-					->claim($node->items->getItems(), $node->closeBrace, ListLayout::Fill, ListLayout::Apart, $because, $packed);
+			[$itemShape, $edgeShape] = $this->layout->getFirst();
+			$packed = $itemShape === ListLayout::Fill && count($names) >= $this->fillMinItems
+				? self::packNames($node, $gap->style, $lineLength, $because)
+				: null;
+			return $this->layout->claim(
+				$names,
+				$node->closeBrace,
+				$packed === null ? ListLayout::PerLine : $itemShape,
+				$edgeShape,
+				$because,
+				$packed,
+				whole: true,
+			);
 		});
 	}
 
