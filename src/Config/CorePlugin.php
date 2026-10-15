@@ -49,6 +49,7 @@ final class CorePlugin implements Plugin
 			rules: [
 				Rules\Arrays\ArraySyntaxRule::class,
 				Rules\Arrays\MultilineArrayRule::class,
+				Rules\Arrays\NoFloatArrayKeysRule::class,
 				Rules\Arrays\NoManualListTestsRule::class,
 				Rules\Arrays\NoNullArrayKeysRule::class,
 				Rules\Arrays\SpreadForArrayMergeRule::class,

@@ -1,0 +1,8 @@
+5: The float key loses its fraction, which PHP 8.1 deprecated; the integer it becomes must be written.
+6: The float key loses its fraction, which PHP 8.1 deprecated; the integer it becomes must be written.
+11: The float key loses its fraction, which PHP 8.1 deprecated; the integer it becomes must be written.
+12: The float key loses its fraction, which PHP 8.1 deprecated; the integer it becomes must be written.
+13: The float key loses its fraction, which PHP 8.1 deprecated; the integer it becomes must be written.
+15: The float key loses its fraction, which PHP 8.1 deprecated; the integer it becomes must be written.
+	risky TypeUnknown: an object implementing `ArrayAccess` gets the key as it is written
+16: The float key loses its fraction, which PHP 8.1 deprecated; the integer it becomes must be written.

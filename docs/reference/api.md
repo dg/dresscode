@@ -996,6 +996,7 @@ final readonly class Violation
 
 - `DressCode\Rules\Arrays\ArraySyntaxRule`
 - `DressCode\Rules\Arrays\MultilineArrayRule`
+- `DressCode\Rules\Arrays\NoFloatArrayKeysRule`
 - `DressCode\Rules\Arrays\NoManualListTestsRule`
 - `DressCode\Rules\Arrays\NoNullArrayKeysRule`
 - `DressCode\Rules\Arrays\SpreadForArrayMergeRule`

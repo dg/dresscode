@@ -1,0 +1,17 @@
+<?php
+
+function checkFloatKeys(array $rows, float $ratio, int|float $number, int|string $key, float|string $mixed, ArrayAccess $access): void
+{
+	$a = [1.5 => 'x', 2.0 => 'y', 3 => 'z'];
+	$b = $rows[$ratio];
+	$c = $rows[$number];
+	$d = $rows[$key];
+	$e = $rows[$mixed];
+	$f = $access[$ratio];
+	$g = $rows[$ratio * 2];
+	$rows[0.5] = 'half';
+	$i = $rows[$key / 2];
+	$j = $untyped[$key - 1];
+	$k = $untyped[$ratio];
+	$h = $rows[(new Acme\Shop\Price)->amount];
+}
