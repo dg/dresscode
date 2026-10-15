@@ -7,10 +7,10 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Config, ConfigurationException, DecisionKind, Rule, RuleInfo, Value, Values};
+use DressCode\{Config, ConfigurationException, Decision, DecisionKind, Rule, RuleInfo, Value, Values};
 use DressCode\Interop\Translator;
 use Nette\Utils\Helpers;
-use function is_array, is_int, is_string, strlen;
+use function count, is_array, is_int, is_string, strlen;
 
 
 /**
@@ -140,8 +140,10 @@ final readonly class DecisionResolver
 	 */
 	private function flatten(array $tree, string $prefix): array
 	{
+		// a kind of places goes first, so that a place the same map names wins over it
+		$kinds = array_intersect_key($tree, Catalogue::PlaceKinds);
 		$values = [];
-		foreach ($tree as $key => $raw) {
+		foreach ($kinds + $tree as $key => $raw) {
 			$path = $prefix === '' ? (string) $key : "$prefix.$key";
 			if (is_string($key) && str_contains($key, '.')) {
 				throw new ConfigurationException("Key `$path` holds dots; write its links nested, each a key of its own.");
@@ -154,6 +156,13 @@ final readonly class DecisionResolver
 			}
 
 			$under = is_int($key) ? [] : $this->catalogue->getDecisionsUnder($path);
+			if ($under === [] && $prefix !== '' && isset($kinds[$key])) {
+				$under = array_filter(
+					$this->catalogue->getDecisionsUnder($prefix),
+					fn(Decision $decision) => in_array(substr($decision->path, strlen($prefix) + 1), Catalogue::PlaceKinds[$key], true),
+				);
+			}
+
 			if ($under === []) {
 				$this->refuseKey($path, $prefix);
 			} elseif ($raw === 'keep') {
@@ -166,15 +175,61 @@ final readonly class DecisionResolver
 				}
 			} elseif (is_array($raw) && ($raw === [] || !array_is_list($raw))) {
 				$values = $this->flatten($raw, $path) + $values;
-			} elseif ($prefix !== '' && is_string($raw)) {
-				// a word of a structure is the word of each of its requirements, `operatorPosition: lineStart`
-				foreach ($under as $inner => $decision) {
-					if ($decision->isRequirement()) {
-						$values[$inner] = [$decision->accept($raw), false];
-					}
-				}
+			} elseif ($prefix !== '' && (is_string($raw) || is_int($raw) || (is_array($raw) && array_is_list($raw)))) {
+				$values = $this->inherit($raw, $path, $under) + $values;
 			} else {
 				throw new ConfigurationException("Key `$path` holds keys of its own; write a map of them or `keep`.");
+			}
+		}
+
+		return $values;
+	}
+
+
+	/**
+	 * The value written on a structure or a kind of places as the value of each decision it covers, `operatorPosition:
+	 * lineStart`: a word or a count goes to the decisions that take it, and a list to each decision as the words of it
+	 * that decision takes, the others left out there. A word no decision takes, a list leaving a decision none, and
+	 * `keep` in a list are errors.
+	 * @param  string|int|list<mixed>  $raw
+	 * @param  non-empty-array<string, Decision>  $decisions
+	 * @return array<string, array{Value, bool}>
+	 * @throws ConfigurationException
+	 */
+	private function inherit(string|int|array $raw, string $path, array $decisions): array
+	{
+		$takes = function (Decision $decision, mixed $word): bool {
+			try {
+				$decision->accept($word);
+				return true;
+			} catch (ConfigurationException) {
+				return false;
+			}
+		};
+		$words = is_array($raw) ? $raw : [$raw];
+		if (is_array($raw) && in_array('keep', $raw, true)) {
+			throw new ConfigurationException("Key `$path` holds `keep` in a list; `keep` stands alone.");
+		}
+
+		foreach ($words as $word) {
+			if (!array_any($decisions, fn(Decision $decision) => $takes($decision, $word))) {
+				$decision = reset($decisions);
+				$decision->accept($word); // refused, with what the domain expects
+			}
+		}
+
+		$values = [];
+		foreach ($decisions as $inner => $decision) {
+			$taken = array_values(array_filter($words, fn($word) => $takes($decision, $word)));
+			if ($taken === [] && is_array($raw)) {
+				throw new ConfigurationException("Key `$path` leaves `$inner` none of its values; write a value for `$inner` of its own.");
+			} elseif ($taken !== []) {
+				$value = match (true) {
+					!is_array($raw) => $raw,
+					count($taken) === 1 && !$takes($decision, $taken) => $taken[0], // a decision of one word
+					default => $taken,
+				};
+				$values[$inner] = [$decision->accept($value), false];
 			}
 		}
 

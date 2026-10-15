@@ -35,6 +35,18 @@ final class Catalogue
 		'comments', 'phpdoc', 'correctness', 'upgrading',
 	];
 
+	/** the kinds of places a group takes a value for at once, `items: {lists: perLine}`, with the places of each */
+	public const PlaceKinds = [
+		'lists' => [
+			'array', 'list', 'argument', 'parameter', 'closureUse', 'import', 'attribute', 'matchArm', 'matchCondition', 'for',
+			'implements',
+		],
+		'operators' => [
+			'condition', 'logical', 'concatenation', 'arithmetic', 'bitwise', 'coalesce', 'comparison', 'pipe', 'ternary',
+			'chain',
+		],
+	];
+
 	/** the keys of a file that are no section: the environment, the scope, the execution and `use` */
 	public const ReservedKeys = [
 		'use', 'typeAnalysis', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths',

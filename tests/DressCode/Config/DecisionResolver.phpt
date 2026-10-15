@@ -67,7 +67,29 @@ final class ResolvedDebugRule extends NodeRule
 }
 
 
-$resolver = new DecisionResolver(new Catalogue([QualificationRule::class, ResolvedDebugRule::class]));
+#[RuleInfo(Stage::Formatting)]
+final class ResolvedLayoutRule extends NodeRule
+{
+	public static function getDecisions(): array
+	{
+		$shapes = new Words(['perLine' => '', 'fill' => ''], tolerance: true);
+		return [
+			new Decision('multiline.items.array', $shapes, 'The items of an array'),
+			new Decision('multiline.items.argument', $shapes, 'The arguments'),
+			new Decision('multiline.items.for', new Words(['perLine' => ''], tolerance: true), 'The sections of `for`'),
+			new Decision('multiline.items.logical', $shapes, 'The operands of a boolean operator'),
+		];
+	}
+
+
+	public function getVisitedNodes(): array
+	{
+		return [];
+	}
+}
+
+
+$resolver = new DecisionResolver(new Catalogue([QualificationRule::class, ResolvedDebugRule::class, ResolvedLayoutRule::class]));
 
 
 test('a path the catalogue does not know is named with the nearest known one', function () use ($resolver) {
@@ -145,7 +167,7 @@ test('keep on a section is a tombstone of every key, a later layer brings back o
 });
 
 
-test('a word of a structure is the word of each of its requirements, its parameters left as they are', function () use ($resolver) {
+test('a word of a structure is the word of each of its decisions that takes it', function () use ($resolver) {
 	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['qualification' => ['globalFunction' => 'imported']]]]);
 	Assert::same('imported', $resolved['qualification.globalFunction.normally']->value->getWord());
 	Assert::same('imported', $resolved['qualification.globalFunction.optimizedByCompiler']->value->getWord());
@@ -154,6 +176,45 @@ test('a word of a structure is the word of each of its requirements, its paramet
 		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['qualification' => ['globalFunction' => 'local']]]]),
 		ConfigurationException::class,
 		'Key `qualification.globalFunction.normally` does not take `local`; %a%',
+	);
+});
+
+
+test('a list of a structure gives each decision the words it takes, in their order', function () use ($resolver) {
+	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['multiline' => ['items' => ['fill', 'perLine']]]]]);
+	Assert::same(['fill', 'perLine'], $resolved['multiline.items.array']->value->getWords());
+	Assert::same(['perLine'], $resolved['multiline.items.for']->value->getWords());
+	Assert::exception(
+		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['multiline' => ['items' => ['perLine', 'fil']]]]]),
+		ConfigurationException::class,
+		'Key `multiline.items.array` does not take `fil`; %a%',
+	);
+	Assert::exception(
+		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['multiline' => ['items' => ['fill']]]]]),
+		ConfigurationException::class,
+		'Key `multiline.items` leaves `multiline.items.for` none of its values; write a value for `multiline.items.for` of its own.',
+	);
+	Assert::exception(
+		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['multiline' => ['items' => ['perLine', 'keep']]]]]),
+		ConfigurationException::class,
+		'Key `multiline.items` holds `keep` in a list; `keep` stands alone.',
+	);
+});
+
+
+test('a kind of places gives its value to its places, a place the same map names winning', function () use ($resolver) {
+	$resolved = $resolver->resolve([
+		[new Layer(LayerKind::Preset, 'perCs'), ['multiline' => ['items' => ['logical' => 'fill', 'argument' => 'fill']]]],
+		[new Layer(LayerKind::Configuration), ['multiline' => ['items' => ['argument' => 'perLine', 'lists' => ['perLine', 'fill']]]]],
+	]);
+	Assert::same(['perLine', 'fill'], $resolved['multiline.items.array']->value->getWords());
+	Assert::same(['perLine'], $resolved['multiline.items.for']->value->getWords());
+	Assert::same(['perLine'], $resolved['multiline.items.argument']->value->getWords());
+	Assert::same(['fill'], $resolved['multiline.items.logical']->value->getWords(), 'a place of another kind keeps the layer below');
+	Assert::exception(
+		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['qualification' => ['lists' => 'bare']]]]),
+		ConfigurationException::class,
+		'Key `qualification.lists` is unknown%a%',
 	);
 });
 
