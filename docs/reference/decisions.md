@@ -1120,7 +1120,7 @@ The trailing comma of the arms of a multi-line `match`; any value but `keep` als
 
 - By default `keep`
 - Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `forbidden` (never there); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
-- The standards: perCs `required`, psr12 `keep`, nette `keep`, symfony `required`
+- The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 
 ### multiline.trailingComma.closureUse
@@ -1129,7 +1129,7 @@ The trailing comma of a multi-line `use` of a closure; any value but `keep` also
 
 - By default `keep`
 - Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `forbidden` (never there); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
-- The standards: perCs `required`, psr12 `keep`, nette `keep`, symfony `keep`
+- The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 
 ### multiline.trailingComma.import
@@ -1148,7 +1148,7 @@ The trailing comma of a `list()`, whose only effect is that any value but `keep`
 
 - By default `keep`
 - Takes: `optional` (as the author wrote it); `keep`
-- The standards: perCs `optional`, psr12 `keep`, nette `optional`, symfony `optional`
+- The standards: perCs `optional`, psr12 `keep`, nette `keep`, symfony `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`
 
