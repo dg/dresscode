@@ -8,9 +8,9 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
+use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
-use DressCode\Rules\NodeHelpers;
+use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\Member\MethodNode;
 use PhpSyntax\Nodes\Statement\FunctionNode;
@@ -31,6 +31,7 @@ final class MultilineSignatureRule extends GapRule
 	private const Promoted = 'multiline.signaturePromoted';
 
 	private bool $promotedProperty = true;
+	private ListLayout $layout;
 
 
 	public static function getDecisions(): array
@@ -52,55 +53,57 @@ final class MultilineSignatureRule extends GapRule
 	public function configure(Values $values): void
 	{
 		$this->promotedProperty = $values->get(self::Promoted)->getWord() === 'always';
+		$this->layout = new ListLayout([ListLayout::PerLine], [ListLayout::Apart]);
 	}
 
 
 	public function getClaims(): array
 	{
 		$claims = [
-			'parameters:item' => [fn(Gap $gap) => $this->claimsToSplit($gap, $gap->value->parent?->parent)[0] ?? null, null],
-			'parameters:separator' => [fn(Gap $gap) => $this->claimsToSplit($gap, $gap->token->parent?->parent)[1] ?? null, null],
-			'closeParen' => [fn(Gap $gap) => $this->claimsToSplit($gap, $gap->token->parent)[0] ?? null, null],
+			'parameters:item' => [
+				fn(Gap $gap) => $this->decide($gap, $gap->value->parent?->parent)['items'][$gap->index ?? 0] ?? null,
+				null,
+			],
+			'parameters:separator' => [fn(Gap $gap) => $this->decide($gap, $gap->token->parent?->parent)['separator'] ?? null, null],
+			'closeParen' => [fn(Gap $gap) => $this->decide($gap, $gap->token->parent)['close'] ?? null, null],
 		];
 		return [FunctionNode::class => $claims, MethodNode::class => $claims];
 	}
 
 
 	/**
-	 * The claims of a signature whose parameters take lines of their own, the break before a parameter and the
-	 * comma hugging one, with the reason; null when they stay on the line. They take lines once the signature
-	 * spans lines, and they are made to when one is a promoted property or the line of the signature is too long.
-	 * @return ?array{Claim, Claim}
+	 * The claims of a signature whose parameters take lines of their own, as `ListLayout::claim()` gives them; null when
+	 * they stay on the line. They take lines once the signature spans lines, and they are made to when one is
+	 * a promoted property or the line of the signature is too long.
+	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim}
 	 */
-	private function claimsToSplit(Gap $gap, ?Node $node): ?array
+	private function decide(Gap $gap, ?Node $node): ?array
 	{
 		if ((!$node instanceof FunctionNode && !$node instanceof MethodNode) || $node->parameters->isEmpty()) {
 			return null;
 		}
 
 		return $gap->once($node, function () use ($node, $gap): ?array {
+			$params = $node->parameters->getItems();
+			if (NodeHelpers::isMultiline($node->openParen, $params, $node->closeParen)) {
+				[$itemShape, $edgeShape] = $this->layout->findShapes($node->openParen, $node->closeParen);
+				return ListLayout::claim($params, $node->closeParen, $itemShape, $edgeShape, 'the signature spans several lines');
+			}
+
 			$because = $this->findReasonToSplit($node, $gap);
-			return $because === null
-				? null
-				: [
-					new Claim(line: Line::Next, because: $because),
-					new Claim(Space::None, line: Line::Same, because: $because),
-				];
+			[$itemShape, $edgeShape] = $this->layout->getFirst();
+			return $because === null ? null : ListLayout::claim($params, $node->closeParen, $itemShape, $edgeShape, $because);
 		});
 	}
 
 
 	/**
-	 * Why the parameters take lines of their own, null when they stay on the line; the width counts a tab to the
+	 * Why the parameters on one line take lines of their own, null when they stay on it; the width counts a tab to the
 	 * next stop of the style, and waits for the line to be indented.
 	 */
 	private function findReasonToSplit(FunctionNode|MethodNode $node, Gap $gap): ?string
 	{
 		$open = $node->openParen;
-		if (NodeHelpers::isMultiline($open, $node->parameters->getItems(), $node->closeParen)) {
-			return 'the signature spans several lines';
-		}
-
 		foreach ($node->parameters->getItems() as $param) {
 			if ($param->promoted && $this->promotedProperty) {
 				return 'the signature declares a promoted property';

@@ -8,9 +8,9 @@
 namespace DressCode\Rules\Namespaces;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Space, Stage, Style};
+use DressCode\{Claim, Decision, Gap, GapRule, RuleInfo, Stage, Style};
 use DressCode\Domains\Words;
-use DressCode\Rules\NodeHelpers;
+use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\{Indentation, Node};
 use PhpSyntax\Nodes\Statement\UseNode;
 use function count;
@@ -39,17 +39,20 @@ final class MultilineImportRule extends GapRule
 	public function getClaims(): array
 	{
 		return [UseNode::class => [
-			'items:item' => [fn(Gap $gap) => $this->decide($gap, $gap->value->parent?->parent)[0][$gap->index ?? 0] ?? null, null],
-			'items:separator' => [fn(Gap $gap) => $this->decide($gap, $gap->token->parent?->parent)[1] ?? null, null],
-			'closeBrace' => [fn(Gap $gap) => $this->decide($gap, $gap->token->parent)[2] ?? null, null],
+			'items:item' => [
+				fn(Gap $gap) => $this->decide($gap, $gap->value->parent?->parent)['items'][$gap->index ?? 0] ?? null,
+				null,
+			],
+			'items:separator' => [fn(Gap $gap) => $this->decide($gap, $gap->token->parent?->parent)['separator'] ?? null, null],
+			'closeBrace' => [fn(Gap $gap) => $this->decide($gap, $gap->token->parent)['close'] ?? null, null],
 		]];
 	}
 
 
 	/**
-	 * What the rule asks of a group spread over lines: the claim before each name, the comma hugging one and the
-	 * break before the closing brace; null for a group that stays as it is.
-	 * @return ?array{list<Claim>, Claim, Claim}
+	 * What the rule asks of a group spread over lines, as `ListLayout::claim()` gives it: the claim before each name, the
+	 * break before the closing brace and the comma hugging one; null for a group that stays as it is.
+	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim}
 	 */
 	private function decide(Gap $gap, ?Node $node): ?array
 	{
@@ -73,7 +76,7 @@ final class MultilineImportRule extends GapRule
 			$packed = self::packNames($node, $gap->style, $lineLength, $because);
 			return $packed === null
 				? null
-				: [$packed, new Claim(Space::None, line: Line::Same, because: $because), new Claim(line: Line::Next, because: $because)];
+				: ListLayout::claim($node->items->getItems(), $node->closeBrace, ListLayout::Fill, ListLayout::Apart, $because, $packed);
 		});
 	}
 

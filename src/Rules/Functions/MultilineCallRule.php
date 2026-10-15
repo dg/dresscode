@@ -8,9 +8,9 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
+use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
-use DressCode\Rules\NodeHelpers;
+use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\{ArgumentListNode, VariadicPlaceholderNode};
 use PhpSyntax\Nodes\Expression\IssetNode;
@@ -34,7 +34,7 @@ final class MultilineCallRule extends GapRule
 	private const PerLine = 'perLine';
 	private const Frame = 'frame';
 
-	private string $shape = self::PerLine;
+	private ListLayout $layout;
 
 
 	public static function getDecisions(): array
@@ -52,19 +52,24 @@ final class MultilineCallRule extends GapRule
 
 	public function configure(Values $values): void
 	{
-		$this->shape = $values->get('multiline.call')->getWord();
+		$this->layout = new ListLayout(
+			[$values->get('multiline.call')->getWord() === self::Frame ? ListLayout::Fill : ListLayout::PerLine],
+			[ListLayout::Apart],
+		);
 	}
 
 
 	public function getClaims(): array
 	{
 		$callable = new Claim(line: Line::Same, because: 'a first-class callable has no arguments');
-		$decide = fn(Gap $gap, ?Node $list) => self::isCallable($list) ? $callable : self::claimsToBreak($gap, $list)[0] ?? null;
-		$perLine = $this->shape === self::PerLine;
+		$item = fn(Gap $gap, ?Node $list) => self::isCallable($list)
+			? $callable
+			: $this->decide($gap, $list)['items'][$gap->index ?? 0] ?? null;
+		$close = fn(Gap $gap, ?Node $list) => self::isCallable($list) ? $callable : $this->decide($gap, $list)['close'] ?? null;
 		$claims = fn(string $items) => [
-			"$items:item" => [fn(Gap $gap) => $perLine || $gap->index === 0 ? $decide($gap, $gap->value->parent?->parent) : null, null],
-			"$items:separator" => [fn(Gap $gap) => self::claimsToBreak($gap, $gap->token->parent?->parent)[1] ?? null, null],
-			'closeParen' => [fn(Gap $gap) => $decide($gap, $gap->token->parent), null],
+			"$items:item" => [fn(Gap $gap) => $item($gap, $gap->value->parent?->parent), null],
+			"$items:separator" => [fn(Gap $gap) => $this->decide($gap, $gap->token->parent?->parent)['separator'] ?? null, null],
+			'closeParen' => [fn(Gap $gap) => $close($gap, $gap->token->parent), null],
 		];
 		return [
 			ArgumentListNode::class => $claims('items'),
@@ -82,12 +87,11 @@ final class MultilineCallRule extends GapRule
 
 
 	/**
-	 * The claims of arguments spread over lines, the break before an argument or the closing parenthesis and the
-	 * comma hugging one, with the reason; null when they stay as they are. Decided once per pass about the call,
-	 * from the shape it has at its first gap.
-	 * @return ?array{Claim, Claim}
+	 * The claims of arguments spread over lines, as `ListLayout::claim()` gives them; null when they stay as they are.
+	 * Decided once per pass about the call, from the shape it has at its first gap.
+	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim}
 	 */
-	private static function claimsToBreak(Gap $gap, ?Node $list): ?array
+	private function decide(Gap $gap, ?Node $list): ?array
 	{
 		$items = match (true) {
 			$list instanceof ArgumentListNode => $list->items,
@@ -99,12 +103,14 @@ final class MultilineCallRule extends GapRule
 		}
 
 		return $gap->once($list, function () use ($list, $items, $gap): ?array {
-			$because = NodeHelpers::isMultiline($list->openParen, $items->getItems(), $list->closeParen)
-				? 'the arguments span several lines'
-				: self::findWidthReason($list, $gap);
+			$multiline = NodeHelpers::isMultiline($list->openParen, $items->getItems(), $list->closeParen);
+			$because = $multiline ? 'the arguments span several lines' : self::findWidthReason($list, $gap);
+			[$itemShape, $edgeShape] = $multiline
+				? $this->layout->findShapes($list->openParen, $list->closeParen)
+				: $this->layout->getFirst();
 			return $because === null
 				? null
-				: [new Claim(line: Line::Next, because: $because), new Claim(Space::None, line: Line::Same, because: $because)];
+				: ListLayout::claim($items->getItems(), $list->closeParen, $itemShape, $edgeShape, $because);
 		});
 	}
 

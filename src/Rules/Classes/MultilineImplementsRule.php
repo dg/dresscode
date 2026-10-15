@@ -8,9 +8,9 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Space, Stage};
+use DressCode\{Claim, Decision, Gap, GapRule, RuleInfo, Stage};
 use DressCode\Domains\Words;
-use DressCode\Rules\NodeHelpers;
+use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\Node;
 use PhpSyntax\Nodes\{AnonymousClassNode, SeparatedNodeList};
 use PhpSyntax\Nodes\Statement\{ClassNode, EnumNode, InterfaceNode};
@@ -39,8 +39,8 @@ final class MultilineImplementsRule extends GapRule
 	public function getClaims(): array
 	{
 		$claims = fn(string $slot) => [
-			"$slot:item" => [fn(Gap $gap) => self::claimsToBreak($gap, $gap->value->parent)[0] ?? null, null],
-			"$slot:separator" => [fn(Gap $gap) => self::claimsToBreak($gap, $gap->token->parent)[1] ?? null, null],
+			"$slot:item" => [fn(Gap $gap) => self::decide($gap, $gap->value->parent)['items'][$gap->index ?? 0] ?? null, null],
+			"$slot:separator" => [fn(Gap $gap) => self::decide($gap, $gap->token->parent)['separator'] ?? null, null],
 		];
 		return [
 			ClassNode::class => $claims('implements'),
@@ -52,11 +52,11 @@ final class MultilineImplementsRule extends GapRule
 
 
 	/**
-	 * The claims of interfaces taking lines of their own, the break before an interface and the comma hugging one,
-	 * with the reason; null when they stay as they are. Decided once per pass about the list.
-	 * @return ?array{Claim, Claim}
+	 * The claims of interfaces taking lines of their own, as `ListLayout::claim()` gives them; null when they stay as
+	 * they are. Decided once per pass about the list.
+	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim}
 	 */
-	private static function claimsToBreak(Gap $gap, ?Node $list): ?array
+	private static function decide(Gap $gap, ?Node $list): ?array
 	{
 		if (!$list instanceof SeparatedNodeList) {
 			return null;
@@ -66,7 +66,7 @@ final class MultilineImplementsRule extends GapRule
 			$because = self::findReasonToBreak($list, $gap);
 			return $because === null
 				? null
-				: [new Claim(line: Line::Next, because: $because), new Claim(Space::None, line: Line::Same, because: $because)];
+				: ListLayout::claim($list->getItems(), null, ListLayout::PerLine, ListLayout::Apart, $because);
 		});
 	}
 

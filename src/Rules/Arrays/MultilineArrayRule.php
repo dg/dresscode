@@ -10,7 +10,7 @@ namespace DressCode\Rules\Arrays;
 use DressCode\Analyses\IndentationSnapshot;
 use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Space, Stage, Style, Values};
 use DressCode\Domains\{Count, Words};
-use DressCode\Rules\NodeHelpers;
+use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\{Indentation, Node, Token};
 use PhpSyntax\Nodes\{ArrayItemNode, DestructuringNode, SkippedArrayItemNode};
 use PhpSyntax\Nodes\Expression\ArrayNode;
@@ -37,7 +37,7 @@ final class MultilineArrayRule extends GapRule
 	private const PerLine = 'perLine';
 	private const AsWritten = 'asWritten';
 
-	private string $shape;
+	private ListLayout $layout;
 	private ?int $maxWidth = null;
 
 
@@ -57,7 +57,9 @@ final class MultilineArrayRule extends GapRule
 
 	public function configure(Values $values): void
 	{
-		$this->shape = $values->get(self::Shape)->getWord();
+		$this->layout = $values->get(self::Shape)->getWord() === self::AsWritten
+			? new ListLayout([ListLayout::Fill], [ListLayout::Apart, ListLayout::Attached])
+			: new ListLayout([ListLayout::PerLine], [ListLayout::Apart]);
 		$width = $values->get(self::MaxWidth);
 		$this->maxWidth = $width->content === 'none' ? null : $width->getCount()[0];
 	}
@@ -89,7 +91,7 @@ final class MultilineArrayRule extends GapRule
 
 	/**
 	 * What the rule asks of an array spread over lines, as `claimArray()` gives it; null for an array that stays as it is.
-	 * @return ?array{items: list<Claim>, close: ?Claim, separator: Claim, open: Claim}
+	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim, open: Claim}
 	 */
 	private function decide(Gap $gap, ?Node $array): ?array
 	{
@@ -103,7 +105,7 @@ final class MultilineArrayRule extends GapRule
 	 * The claims of an array spread over lines with the reason: before each item, before the closing bracket, on the
 	 * comma and on the opening bracket; null for an array that stays on its line, and for one to be packed by the width
 	 * of lines not indented yet.
-	 * @return ?array{items: list<Claim>, close: ?Claim, separator: Claim, open: Claim}
+	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim, open: Claim}
 	 */
 	private function claimArray(ArrayNode|DestructuringNode $array, Gap $gap): ?array
 	{
@@ -112,40 +114,32 @@ final class MultilineArrayRule extends GapRule
 		$because = $multiline
 			? 'the array spans several lines'
 			: $this->findWidthReason($array, $style) ?? self::findLineReason($array, $gap);
+		[$itemShape, $edgeShape] = $multiline
+			? $this->layout->findShapes($array->openDelimiter, $array->closeDelimiter)
+			: $this->layout->getFirst();
 		if (
 			$because === null
-			|| (!$multiline && $this->shape === self::AsWritten && !NodeHelpers::isLineInPlace($gap, $array->openDelimiter))
+			|| (!$multiline && $itemShape === ListLayout::Fill && !NodeHelpers::isLineInPlace($gap, $array->openDelimiter))
 		) {
 			return null;
 		}
 
-		$break = new Claim(line: Line::Next, because: $because);
-		$asWritten = $this->shape === self::AsWritten;
-		$packed = !$multiline && $asWritten ? self::claimPacked($array, $style, $because) : null;
-		return [
-			'items' => $multiline && $asWritten ? [] : ($packed ?? array_fill(0, count($array->items->getItems()), $break)),
-			'close' => $multiline && $asWritten ? self::closeAsWritten($array) : $break,
-			'separator' => new Claim(Space::None, line: Line::Same),
-			'open' => new Claim(line: Line::Same),
-		];
-	}
+		$packed = $itemShape === ListLayout::Fill && !$multiline ? self::claimPacked($array, $style, $because) : null;
+		$claims = ListLayout::claim(
+			$array->items->getItems(),
+			$array->closeDelimiter,
+			$itemShape === ListLayout::Fill && !$multiline && $packed === null ? ListLayout::PerLine : $itemShape,
+			$edgeShape,
+			$because,
+			$packed,
+			$multiline ? $this->layout->explainEdges($array->openDelimiter, $array->closeDelimiter, $edgeShape) : null,
+		);
+		if ($claims !== null) {
+			$claims['separator'] = new Claim(Space::None, line: Line::Same);
+			$claims['open'] = new Claim(line: Line::Same);
+		}
 
-
-	/**
-	 * The claim before the closing bracket of an array its author spread over lines: it follows the last item where
-	 * the first one follows the opening bracket, and begins a line where the first one does.
-	 */
-	private static function closeAsWritten(ArrayNode|DestructuringNode $array): ?Claim
-	{
-		$close = $array->closeDelimiter;
-		return match (true) {
-			$array->openDelimiter->getNext()?->startsLine() === true => new Claim(
-				line: Line::Next,
-				because: 'the first item begins a line',
-			),
-			$close->getPrevious()?->hasCommentUpTo($close) === true => null,
-			default => new Claim(line: Line::Same, because: 'the first item follows the opening bracket'),
-		};
+		return $claims;
 	}
 
 

@@ -8,9 +8,9 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Space, Stage, Style, Values};
+use DressCode\{Claim, Decision, Gap, GapRule, RuleInfo, Stage, Style, Values};
 use DressCode\Domains\Words;
-use DressCode\Rules\NodeHelpers;
+use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\{Indentation, Node, Token};
 use PhpSyntax\Nodes\{MatchArmNode, SeparatedNodeList};
 use function count;
@@ -66,7 +66,7 @@ final class MultilineMatchArmRule extends GapRule
 	/**
 	 * The claims of conditions spread over lines, before each condition and on the comma hugging one; null when they
 	 * stay as they are. Decided once per pass about the list.
-	 * @return ?array{items: list<Claim>, separator: Claim}
+	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim}
 	 */
 	private function decide(Gap $gap, ?Node $list): ?array
 	{
@@ -80,7 +80,7 @@ final class MultilineMatchArmRule extends GapRule
 	 * What `decide()` gives: no claim before a condition its author placed with `asWritten`, the fill of the lines
 	 * by `claimPacked()`, or a break before each.
 	 * @param  SeparatedNodeList<covariant Node>  $list
-	 * @return ?array{items: list<Claim>, separator: Claim}
+	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim}
 	 */
 	private function claimConditions(SeparatedNodeList $list, Gap $gap): ?array
 	{
@@ -90,14 +90,18 @@ final class MultilineMatchArmRule extends GapRule
 			return null;
 		}
 
-		$asWritten = $this->shape === self::AsWritten;
-		$packed = !$frame[3] && $asWritten ? self::claimPacked($list, $frame[1], $gap->style, $because) : null;
-		return [
-			'items' => $frame[3] && $asWritten
-				? []
-				: $packed ?? array_fill(0, count($list->getItems()), new Claim(line: Line::Next, because: $because)),
-			'separator' => new Claim(Space::None, line: Line::Same, because: $because),
-		];
+		$itemShape = $this->shape === self::AsWritten ? ListLayout::Fill : ListLayout::PerLine;
+		$packed = !$frame[3] && $itemShape === ListLayout::Fill
+			? self::claimPacked($list, $frame[1], $gap->style, $because)
+			: null;
+		return ListLayout::claim(
+			$list->getItems(),
+			null,
+			!$frame[3] && $packed === null ? ListLayout::PerLine : $itemShape,
+			null,
+			$because,
+			$packed,
+		);
 	}
 
 
