@@ -25,6 +25,9 @@ $a = foo(
 $a = [
 	$b,
 ] ?: $c;
+$a = iconv_mime_encode($b, $c, [
+	$d,
+]) ?: '';
 return ($b
 	? $c
 	: $d)

@@ -11,6 +11,7 @@ use DressCode\Analyses\IndentationSnapshot;
 use DressCode\{Claim, Gap, GapRule, Line, RuleInfo, Stage, Values};
 use DressCode\Rules\{ListLayout, NodeHelpers};
 use PhpSyntax\Nodes\Expression\TernaryNode;
+use PhpSyntax\Token;
 use function is_string;
 
 
@@ -68,12 +69,10 @@ final class MultilineTernaryRule extends GapRule
 
 			// an operand spanning lines before the last operator spans the ternary too, the operators then hiding at the
 			// ends of its lines; the last operand may span lines after them, which stay in sight, and so does `?:` after
-			// a condition closed by a bracket opening its line
+			// a condition closed by brackets alone opening their line, `) ?: throw …`, `]) ?: ''`
 			$last = $ternary->then === null ? $ternary->question : $ternary->colon;
 			$closing = $ternary->condition->getLastToken();
-			$first = $ternary->then === null && $closing->is([')', ']']) && $closing->startsLine()
-				? $closing
-				: $ternary->getFirstToken();
+			$first = $ternary->then === null && self::opensLineWithBrackets($closing) ? $closing : $ternary->getFirstToken();
 			$because = $gap->once($ternary, fn() => match (true) {
 				$first->getCurrentLine() !== $last->getCurrentLine() => $this->layout->findShapes($first, null)[0] === ListLayout::PerLine
 					? $break
@@ -85,5 +84,18 @@ final class MultilineTernaryRule extends GapRule
 		};
 		$claims = $this->atEnd ? [null, $operator] : [$operator, null];
 		return [TernaryNode::class => ['question' => $claims, 'colon' => $claims]];
+	}
+
+
+	/** Whether the closing bracket and the closing brackets before it alone open its line, `]) ?: ''`. */
+	private static function opensLineWithBrackets(Token $bracket): bool
+	{
+		for ($token = $bracket; $token?->is([')', ']']); $token = $token->getPrevious()) {
+			if ($token->startsLine()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
