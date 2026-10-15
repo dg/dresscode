@@ -53,6 +53,8 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'indentation.singleLevel', // a measure of the shape of a body, not its layout
 		'literals.concatenatedLiterals.overLines', // a literal spread over lines on purpose
 		'multiline.items.coalesce', 'multiline.items.pipe', // operands of `??` and `|>`, which no standard spreads
+		// an expression spanning lines after `=` or `=>`, which no standard keeps on the line of the operator
+		'multiline.expressionStart.assignment', 'multiline.expressionStart.arrayItem', 'multiline.expressionStart.arrowFunction',
 		// the `use` of a closure and a group of attributes, which no standard spreads
 		'multiline.items.closureUse', 'multiline.edges.closureUse', 'multiline.items.attribute', 'multiline.edges.attribute',
 		'phpdoc.types.nullable', 'phpdoc.types.unionOrder', 'types.unionOrder', // an order or a notation a project chooses

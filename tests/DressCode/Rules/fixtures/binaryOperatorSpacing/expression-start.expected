@@ -1,0 +1,23 @@
+<?php
+// {"multiline.expressionStart.assignment": "sameLine", "multiline.expressionStart.arrayItem": "sameLine", "multiline.expressionStart.arrowFunction": "sameLine"}
+$items = [
+		1,
+		2,
+	];
+$total =
+	$a + $b;
+$list = [
+	"key" => [
+			1,
+		],
+];
+$fn = fn($x) => [
+		$x,
+	];
+const LIMITS = [
+		1,
+	];
+$items = // why
+	[
+		1,
+	];

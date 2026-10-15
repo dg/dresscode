@@ -8,12 +8,14 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\IndentationSnapshot;
-use DressCode\{Claim, Decision, DecisionKind, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
+use DressCode\{Claim, Decision, DecisionKind, Domain, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
 use DressCode\Domains\Shapes;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Indentation, Token};
 use PhpSyntax\Nodes\{ArrayItemNode, DeclareItemNode, MatchArmNode};
-use PhpSyntax\Nodes\Expression\{AssignmentNode, BinaryOpNode, CombinedAssignmentNode, InstanceofNode, YieldNode};
+use PhpSyntax\Nodes\Expression\{
+	ArrowFunctionNode, AssignmentNode, BinaryOpNode, CombinedAssignmentNode, InstanceofNode, YieldNode,
+};
 use PhpSyntax\Nodes\Statement\ForeachNode;
 
 
@@ -21,7 +23,8 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
  * Spaces around binary operators, assignments, `instanceof`, `=>` and the `=` of a default or a constant:
  * one on each side, unless the operator sits at a line break. An assignment, `=` and the `=>` of an array item,
  * a `match` arm, a `yield` or a `foreach` stay on the line of what is before them unless that spans several lines or
- * the line would grow wider than the line length of the style, what follows them may begin below, and
+ * the line would grow wider than the line length of the style, what follows them may begin below, unless it spans
+ * several lines and `multiline.expressionStart` of the assignment, the array item or the arrow function says so, and
  * `instanceof` stays on the line of both its operands. What follows a comparison stays on the line of the operator,
  * unless the line would grow wider than the line length, and a comparison ending a line moves to the start of the next
  * one where `multiline.operatorPosition.comparison` says so and the joined line would be too wide; the lines around the
@@ -36,6 +39,14 @@ final class BinaryOperatorSpacingRule extends GapRule
 	private const Spacing = 'spacing.binaryOperator';
 	private const Alignment = 'spacing.alignment.assignment';
 	private const Position = 'multiline.operatorPosition.comparison';
+	private const ExpressionStart = 'multiline.expressionStart.';
+
+	/** the places of `multiline.expressionStart` the rule has => the operator after which an expression begins */
+	private const ExpressionPlaces = [
+		'assignment' => 'the `=` of an assignment, a constant, a property or a default',
+		'arrayItem' => 'the `=>` of an array item',
+		'arrowFunction' => 'the `=>` of an arrow function',
+	];
 
 	/** the space around an operator, null where it is kept */
 	private ?Claim $claim;
@@ -53,10 +64,13 @@ final class BinaryOperatorSpacingRule extends GapRule
 	private Claim $afterMoved;
 	private Claim $breakAfterMoved;
 
+	/** @var array<string, ?Claim>  place => an expression spanning lines on the line of its operator, null where kept */
+	private array $expressionStart = [];
+
 
 	public static function getDecisions(): array
 	{
-		return [
+		$decisions = [
 			new Decision(
 				self::Spacing,
 				new Shapes(['spaced' => ['$a + $b', 'a single space around']]),
@@ -75,6 +89,15 @@ final class BinaryOperatorSpacingRule extends GapRule
 				'Where a comparison stands at a line break: one ending its line moves only where the line joined after it would be too wide, one opening its line joins the line before it, what follows staying on its line unless it would be too wide',
 			),
 		];
+		foreach (self::ExpressionPlaces as $place => $what) {
+			$decisions[] = new Decision(
+				self::ExpressionStart . $place,
+				Domain::placement('sameLine'),
+				"Where an expression spanning several lines after $what begins",
+			);
+		}
+
+		return $decisions;
 	}
 
 
@@ -95,13 +118,17 @@ final class BinaryOperatorSpacingRule extends GapRule
 		};
 		$this->afterMoved = new Claim($this->claim?->space, line: Line::Same, decision: self::Position);
 		$this->breakAfterMoved = Claim::nextLine()->withDecision(self::Position);
+		foreach (array_keys(self::ExpressionPlaces) as $place) {
+			$path = self::ExpressionStart . $place;
+			$this->expressionStart[$place] = $values->isKept($path) ? null : new Claim(Space::Single, line: Line::Same, decision: $path);
+		}
 	}
 
 
 	public function getClaims(): array
 	{
-		$assignment = [$this->claimBeforeAssignment(...), $this->claim];
-		$arrow = ['doubleArrow' => $assignment];
+		$assignment = [$this->claimBeforeAssignment(...), fn(Gap $gap) => $this->claimAfterAssignment($gap, 'assignment')];
+		$arrow = ['doubleArrow' => [$this->claimBeforeAssignment(...), $this->claim]];
 		// the equals of declare(strict_types=1) is `DeclareSpacingRule`'s
 		$declared = fn(Gap $gap) => $gap->token->parent instanceof DeclareItemNode;
 		return [
@@ -109,14 +136,22 @@ final class BinaryOperatorSpacingRule extends GapRule
 			AssignmentNode::class => ['equals' => $assignment],
 			CombinedAssignmentNode::class => ['operator' => $assignment],
 			InstanceofNode::class => ['instanceofKeyword' => [$this->joined, $this->joined]],
-			ArrayItemNode::class => $arrow,
+			ArrayItemNode::class => ['doubleArrow' => [
+				$this->claimBeforeAssignment(...),
+				fn(Gap $gap) => $this->claimAfterAssignment($gap, 'arrayItem'),
+			]],
 			MatchArmNode::class => $arrow,
 			YieldNode::class => $arrow,
 			ForeachNode::class => $arrow,
 			// the double arrow of a short closure or of a hook may begin a line of its own
-			'*' => ['doubleArrow' => [$this->claim, $this->claim], 'equals' => [
+			'*' => ['doubleArrow' => [
+				$this->claim,
+				fn(Gap $gap) => $gap->token->parent instanceof ArrowFunctionNode
+					? $this->claimAfterAssignment($gap, 'arrowFunction')
+					: $this->claim,
+			], 'equals' => [
 				fn(Gap $gap): ?Claim => $declared($gap) ? null : $this->claimBeforeAssignment($gap),
-				fn(Gap $gap): ?Claim => $declared($gap) ? null : $this->claim,
+				fn(Gap $gap): ?Claim => $declared($gap) ? null : $this->claimAfterAssignment($gap, 'assignment'),
 			]],
 		];
 	}
@@ -205,6 +240,29 @@ final class BinaryOperatorSpacingRule extends GapRule
 		}
 
 		return self::isJoinedLineTooWide($gap, $previous, $token) !== false ? $this->claim : $this->joined;
+	}
+
+
+	/**
+	 * What follows `=` or `=>` may begin below it, except an expression spanning several lines where
+	 * `multiline.expressionStart` of the place says it begins on the line of the operator.
+	 */
+	private function claimAfterAssignment(Gap $gap, string $place): ?Claim
+	{
+		$sameLine = $this->expressionStart[$place];
+		$token = $gap->token;
+		$next = $token->getNext();
+		if ($sameLine === null || $next === null || !$next->startsLine() || $token->hasCommentUpTo($next)) {
+			return $this->claim;
+		}
+
+		// the expression is the outermost node beginning with the token after the operator
+		$expression = null;
+		for ($node = $next->parent; $node !== null && $node !== $token->parent && $node->getFirstToken() === $next; $node = $node->parent) {
+			$expression = $node;
+		}
+
+		return $expression?->isMultiLine() ? $sameLine : $this->claim;
 	}
 
 
