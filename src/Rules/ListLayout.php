@@ -41,6 +41,8 @@ final readonly class ListLayout
 		public ?string $itemDecision = null,
 		/** the decision the claims of the edges are made for, null for the only requirement of the rule */
 		public ?string $edgeDecision = null,
+		/** whether the edges the place has are kept, which a list spread for its width writes `apart` all the same */
+		public bool $edgesKept = false,
 	) {
 	}
 
@@ -96,6 +98,7 @@ final readonly class ListLayout
 			$values->has($edges) && !$values->isKept($edges) ? $values->get($edges)->getWords() : [],
 			$items,
 			$edges,
+			$values->has($edges) && $values->isKept($edges),
 		);
 	}
 
@@ -145,12 +148,13 @@ final readonly class ListLayout
 
 
 	/**
-	 * The shapes a list spread for its width is written in, the items and the edges, the first of each.
+	 * The shapes a list spread for its width is written in, the items and the edges, the first of each; edges kept are
+	 * written `apart`, the author having written none.
 	 * @return array{?string, ?string}
 	 */
 	public function getFirst(): array
 	{
-		return [$this->items[0] ?? null, $this->edges[0] ?? null];
+		return [$this->items[0] ?? null, $this->edges[0] ?? ($this->edgesKept ? self::Apart : null)];
 	}
 
 

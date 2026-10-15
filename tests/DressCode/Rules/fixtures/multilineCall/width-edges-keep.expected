@@ -1,0 +1,12 @@
+<?php
+// lineLength 60
+// {"edges.argument": "keep"}
+// a call spread for its width gets the edges apart, its author having written none
+$this->report(
+	$aaaaaaaaaaaaaaa,
+	$bbbbbbbbbbbbbbbb,
+	$cccccccccccccc
+);
+// one its author spread keeps its edges
+$this->report($aaaaaaaaaaaaaaa,
+	$bbbbbbbbbbbbbbbb);
