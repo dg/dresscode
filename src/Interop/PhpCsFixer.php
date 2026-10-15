@@ -42,7 +42,7 @@ final class PhpCsFixer
 		return [
 			'PhpCsFixerCustomFixers/declare_after_opening_tag' => fn(array $o, Translation $t) => $t->set(
 				'file.strictTypes.position',
-				'openingTagLine',
+				'sameLine',
 			),
 			'PhpCsFixerCustomFixers/comment_surrounded_by_spaces' => ['spacing.comment.marker' => 'spaced'],
 			'PhpCsFixerCustomFixers/commented_out_function' => fn(array $o, Translation $t) => $t->setAll([
@@ -125,7 +125,7 @@ final class PhpCsFixer
 						? 'sameLine'
 						: 'nextLine',
 					'braces.singlelineClosure' => ($o['allow_single_line_anonymous_functions'] ?? true) ? 'keep' : 'forbidden',
-					'braces.emptyAnonymousClass' => ($o['allow_single_line_empty_anonymous_classes'] ?? true) ? 'keep' : 'ownLines',
+					'braces.emptyBody.anonymousClass' => ($o['allow_single_line_empty_anonymous_classes'] ?? true) ? 'keep' : 'expanded',
 				]);
 			},
 			'cast_spaces' => fn(array $o, Translation $t) => $t->set(
@@ -199,7 +199,7 @@ final class PhpCsFixer
 			'declare_parentheses' => ['spacing.declare' => 'compact'],
 			'declare_strict_types' => fn(array $o, Translation $t) => ($o['strategy'] ?? 'enforce') === 'remove'
 				? $t->warn('`declare_strict_types` with `strategy=remove` has no equivalent; DressCode requires the declaration.')
-				: $t->setAll(['file.strictTypes.declaration' => 'required', 'file.strictTypes.position' => 'ownLine']),
+				: $t->setAll(['file.strictTypes.declaration' => 'required', 'file.strictTypes.position' => 'nextLine']),
 			'dir_constant' => ['cleanup.dirnameOfFile' => 'forbidden'],
 			'elseif' => ['controlFlow.elseif' => 'oneWord'],
 			'encoding' => ['file.bom' => 'forbidden'],

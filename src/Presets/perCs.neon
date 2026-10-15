@@ -46,8 +46,7 @@ multiline:
 		parameter: ownLines                  # so in parameters spread over lines
 
 braces:
-	emptyBody: sameLine                      # `function foo(): void {}`
-	emptyAnonymousClass: sameLine            # `new class {}`
+	emptyBody: collapsed                     # `function foo(): void {}`, `new class {}`
 
 classes:
 	members:

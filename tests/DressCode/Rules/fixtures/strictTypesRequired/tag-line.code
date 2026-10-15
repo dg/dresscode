@@ -1,5 +1,5 @@
 <?php
-// {"strictTypes.position": "openingTagLine"}
+// {"strictTypes.position": "sameLine"}
 // risky
 declare(strict_types=1);
 

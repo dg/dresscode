@@ -31,8 +31,8 @@ final class StrictTypesRequiredRule extends NodeRule
 
 	private bool $strictTypes = true;
 
-	/** ownLine, openingTagLine or null for keep */
-	private ?string $position = 'ownLine';
+	/** nextLine, sameLine or null for keep */
+	private ?string $position = 'nextLine';
 
 
 	public static function getDecisions(): array
@@ -44,8 +44,8 @@ final class StrictTypesRequiredRule extends NodeRule
 				'Every file of PHP code declares `strict_types=1` as its first statement, a file starting with markup excepted',
 			),
 			new Decision(self::Position, new Words([
-				'openingTagLine' => '`<?php declare(strict_types=1);` on one line',
-				'ownLine' => 'on the line below the opening tag',
+				'sameLine' => '`<?php declare(strict_types=1);` on one line',
+				'nextLine' => 'on the line below the opening tag',
 			]), 'Where the declaration of `strict_types` stands'),
 		];
 	}
@@ -130,7 +130,7 @@ final class StrictTypesRequiredRule extends NodeRule
 			$onOwnLine = $onOwnLine || $trivia->isLineEnding();
 		}
 
-		if ($this->position === 'ownLine' && !$onOwnLine) {
+		if ($this->position === 'nextLine' && !$onOwnLine) {
 			if ($context->report(
 				$token,
 				'`declare(strict_types=1)` must be on the line after the opening tag.',
@@ -139,7 +139,7 @@ final class StrictTypesRequiredRule extends NodeRule
 			)) {
 				self::moveToOwnLine($token, $tag, $context->style->lineEnding);
 			}
-		} elseif ($this->position === 'openingTagLine' && $onOwnLine) {
+		} elseif ($this->position === 'sameLine' && $onOwnLine) {
 			if ($context->report(
 				$token,
 				'`declare(strict_types=1)` must be on the line of the opening tag.',
@@ -160,7 +160,7 @@ final class StrictTypesRequiredRule extends NodeRule
 	{
 		$eol = $context->style->lineEnding;
 		$statement = (new Builder)->statement('declare(strict_types=1);');
-		$text = rtrim($tag->text) . ($this->position === 'openingTagLine' ? ' ' : $eol);
+		$text = rtrim($tag->text) . ($this->position === 'sameLine' ? ' ' : $eol);
 		$statement->setEdgeTrivia([new Trivia(Trivia::OpenTag, $text)], [Trivia::fromText($eol)]);
 		$rest = array_slice($token->leadingTrivia, 1);
 		if (($rest[0] ?? null)?->is(Trivia::Whitespace) && !$tag->isLineEnding()) {

@@ -1,4 +1,4 @@
 <?php
-// {"strictTypes.position": "openingTagLine"}
+// {"strictTypes.position": "sameLine"}
 // risky
 namespace Foo;

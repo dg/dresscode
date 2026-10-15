@@ -66,8 +66,12 @@ multiline:
 		parameter: keep
 
 braces:
-	emptyBody: ownLines                       # not `{}` as in PER Coding Style
-	emptyAnonymousClass: keep
+	emptyBody:                                # not `{}` as in PER Coding Style
+		class: expanded
+		function: expanded
+		closure: expanded
+		propertyHook: expanded
+		anonymousClass: keep
 	singlelineClosure: keep
 	bareStatementGroup: forbidden             # no `{ ... }` that nothing opens
 	alternativeSyntax: forbidden              # no `if: ... endif;`

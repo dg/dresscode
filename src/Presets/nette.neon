@@ -17,7 +17,7 @@ use:
 file:
 	strictTypes:
 		declaration: required                 # risky, `'1'` passed to `int` then throws
-		position: openingTagLine
+		position: sameLine
 	lineLength: 140                           # a tab counts as 4 columns
 	longLines: forbidden
 	lineLengthExcept: [imports, strings]      # a line too wide only for its strings is not reported
@@ -96,9 +96,13 @@ multiline:
 
 braces:
 	position:
-		multilineSignature: nextLineAfterReturnType   # `{` below `): Foo`, otherwise `) {`
-	emptyBody: ownLines                       # not `{}` as in PER Coding Style
-	emptyAnonymousClass: keep
+		typedMultilineSignature: nextLine     # `{` below `): Foo`, otherwise `) {`
+	emptyBody:                                # not `{}` as in PER Coding Style
+		class: expanded
+		function: expanded
+		closure: expanded
+		propertyHook: expanded
+		anonymousClass: keep
 	singlelineClosure: keep
 	alternativeSyntax: forbidden              # no `if: ... endif;`
 

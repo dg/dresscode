@@ -7,6 +7,10 @@ braces:
 		anonymousClass: sameLine
 		controlStructure: sameLine
 		continuingKeyword: sameLine
-	emptyBody: ownLines
-	emptyAnonymousClass: keep
+	emptyBody:
+		class: expanded
+		function: expanded
+		closure: expanded
+		propertyHook: expanded
+		anonymousClass: keep
 	singlelineClosure: keep

@@ -89,7 +89,7 @@ final class PhpCodeSniffer
 				'casing.type' => 'lowercase',
 				'casing.keyword' => 'lowercase',
 			],
-			'Generic.PHP.RequireStrictTypes' => ['file.strictTypes.declaration' => 'required', 'file.strictTypes.position' => 'ownLine'],
+			'Generic.PHP.RequireStrictTypes' => ['file.strictTypes.declaration' => 'required', 'file.strictTypes.position' => 'nextLine'],
 			'Generic.PHP.SAPIUsage' => fn(array $o, Translation $t) => $t->set(
 				'upgrading.libraries.forbiddenFunctions',
 				['php_sapi_name' => 'use `PHP_SAPI`'],
@@ -548,7 +548,7 @@ final class PhpCodeSniffer
 				}
 				$t->setAll([
 					'file.strictTypes.declaration' => 'required',
-					'file.strictTypes.position' => ($o['declareOnFirstLine'] ?? false) ? 'openingTagLine' : 'ownLine',
+					'file.strictTypes.position' => ($o['declareOnFirstLine'] ?? false) ? 'sameLine' : 'nextLine',
 				]);
 			},
 			'SlevomatCodingStandard.TypeHints.DisallowArrayTypeHintSyntax' => fn(array $o, Translation $t) => $t->set(

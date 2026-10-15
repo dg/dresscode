@@ -1,5 +1,5 @@
 <?php
-// {"singlelineClosure": "forbidden", "emptyBody": "sameLine", "emptyAnonymousClass": "sameLine"}
+// {"singlelineClosure": "forbidden", "emptyBody": "collapsed"}
 $f = function () {};
 $g = function () {
 	return 1;

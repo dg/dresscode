@@ -148,7 +148,7 @@ test('a claim a comment keeps from being fixed remains, whatever the rest of the
 	$result = processor([RuleBuilder::createRule(DressCode\Rules\Whitespace\BracesPositionRule::class, [
 		'braces.position.class' => 'nextLine', 'braces.position.function' => 'nextLine', 'braces.position.multilineSignature' => 'sameLine',
 		'braces.position.closure' => 'sameLine', 'braces.position.anonymousClass' => 'sameLine', 'braces.position.controlStructure' => 'sameLine',
-		'braces.position.continuingKeyword' => 'sameLine', 'braces.emptyBody' => 'ownLines', 'braces.emptyAnonymousClass' => 'keep',
+		'braces.position.continuingKeyword' => 'sameLine', 'braces.emptyBody' => 'expanded', 'braces.emptyBody.anonymousClass' => 'keep',
 		'braces.singlelineClosure' => 'keep',
 	])])->process('a.php', $code);
 	Assert::same("<?php\nif (\$a) {\n\t\$b;\n}\n// why\nelseif (\$c) {\n\t\$d;\n}\nif (\$e) {\n\t\$f;\n}\n", $result->output);

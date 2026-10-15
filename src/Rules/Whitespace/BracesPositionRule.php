@@ -13,6 +13,7 @@ use PhpSyntax\{Node, Nodes, Token};
 use PhpSyntax\Nodes\Expression\{ClosureNode, MatchNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode, PropertyNode};
 use PhpSyntax\Nodes\{ParameterNode, Statement};
+use function strlen;
 
 
 /**
@@ -29,18 +30,18 @@ final class BracesPositionRule extends GapRule
 {
 	private const SameLine = 'sameLine';
 	private const NextLine = 'nextLine';
-	private const OwnLines = 'ownLines';
-	private const AfterReturnType = 'nextLineAfterReturnType';
+	private const Collapsed = 'collapsed';
+	private const Expanded = 'expanded';
 
 	private const ClassLike = 'braces.position.class';
 	private const FunctionBody = 'braces.position.function';
 	private const MultilineSignature = 'braces.position.multilineSignature';
+	private const TypedMultilineSignature = 'braces.position.typedMultilineSignature';
 	private const Closure = 'braces.position.closure';
 	private const AnonymousClass = 'braces.position.anonymousClass';
 	private const ControlStructure = 'braces.position.controlStructure';
 	private const ContinuingKeyword = 'braces.position.continuingKeyword';
-	private const EmptyBody = 'braces.emptyBody';
-	private const EmptyAnonymousClass = 'braces.emptyAnonymousClass';
+	private const EmptyBody = 'braces.emptyBody.';
 	private const SinglelineClosure = 'braces.singlelineClosure';
 
 	private const ClassLikes = [
@@ -61,12 +62,14 @@ final class BracesPositionRule extends GapRule
 	private ?string $class = self::NextLine;
 	private ?string $function = self::NextLine;
 	private ?string $multilineSignature = self::SameLine;
+	private ?string $typedMultilineSignature = null;
 	private ?string $closure = self::SameLine;
 	private ?string $anonymousClass = self::SameLine;
 	private ?string $controlStructure = self::SameLine;
 	private ?string $continuingKeyword = self::SameLine;
-	private ?string $emptyBody = self::OwnLines;
-	private ?string $emptyAnonymousClass = null;
+
+	/** @var array<string, ?string>  place => how its empty body is written, null where it is kept */
+	private array $emptyBody = [];
 
 	/** a closure written whole on one line may stay so */
 	private bool $singlelineClosureKept = true;
@@ -77,10 +80,21 @@ final class BracesPositionRule extends GapRule
 
 	public static function getDecisions(): array
 	{
-		$empty = new Words([
-			self::OwnLines => '`{` and `}` placed as those of any other body',
-			self::SameLine => '`{}` on the line of the head',
-		]);
+		$empty = [];
+		foreach ([
+			'class' => 'a class, an interface, a trait and an enum',
+			'function' => 'a function and a method',
+			'closure' => 'a closure',
+			'propertyHook' => 'a property hook',
+			'anonymousClass' => 'an anonymous class, one written on one line staying where it is kept',
+		] as $place => $what) {
+			$empty[] = new Decision(self::EmptyBody . $place, new Words([
+				self::Collapsed => '`{}` on the line of the head'
+					. ($place === 'anonymousClass' ? ', one holding a comment staying on its line as written' : ''),
+				self::Expanded => '`{` and `}` placed as those of any other body',
+			]), "How the empty body of $what is written; a comment inside makes it not empty");
+		}
+
 		return [
 			new Decision(
 				self::ClassLike,
@@ -93,10 +107,13 @@ final class BracesPositionRule extends GapRule
 				'Where the `{` of a function and of a method whose parameters stand on one line stands, the `{` of a property hook and of the list of hooks staying on the line of its head; the body starts a line below it and the `}` takes a line of its own',
 			),
 			new Decision(self::MultilineSignature, new Words([
-				self::AfterReturnType => 'below `): Foo` where a return type ends the signature, on the line of the `)` otherwise',
 				self::SameLine => 'on the line of the `)`',
 				self::NextLine => 'on the line below the `)`',
 			]), 'Where the `{` of a function and of a method whose parameters are spread over lines stands'),
+			new Decision(self::TypedMultilineSignature, new Words([
+				self::SameLine => 'on the line of the return type',
+				self::NextLine => 'on the line below the return type',
+			]), 'Where the `{` of a function and of a method whose parameters are spread over lines stands after a return type; where it is kept, `braces.position.multilineSignature` says it'),
 			new Decision(
 				self::Closure,
 				Domain::placement(),
@@ -117,15 +134,7 @@ final class BracesPositionRule extends GapRule
 				Domain::placement(),
 				'Where the keyword continuing a structure after its `}` stands: `else`, `elseif`, `catch`, `finally` and the `while` of `do`',
 			),
-			new Decision(
-				self::EmptyBody,
-				$empty,
-				'How an empty body of a class, a function, a closure and a property hook is written; a comment inside makes it not empty',
-			),
-			new Decision(self::EmptyAnonymousClass, new Words([
-				self::OwnLines => '`{` and `}` placed as those of any other anonymous class',
-				self::SameLine => '`{}` on the line of the head, one holding a comment staying on its line as written',
-			]), 'How an empty anonymous class is written, whatever `braces.emptyBody` says; one written on one line stays where it is kept'),
+			...$empty,
 			new Decision(self::SinglelineClosure, Domain::state('forbidden'), 'A closure written whole on one line'),
 		];
 	}
@@ -136,12 +145,14 @@ final class BracesPositionRule extends GapRule
 		$this->class = $values->find(self::ClassLike)?->getWord();
 		$this->function = $values->find(self::FunctionBody)?->getWord();
 		$this->multilineSignature = $values->find(self::MultilineSignature)?->getWord();
+		$this->typedMultilineSignature = $values->find(self::TypedMultilineSignature)?->getWord();
 		$this->closure = $values->find(self::Closure)?->getWord();
 		$this->anonymousClass = $values->find(self::AnonymousClass)?->getWord();
 		$this->controlStructure = $values->find(self::ControlStructure)?->getWord();
 		$this->continuingKeyword = $values->find(self::ContinuingKeyword)?->getWord();
-		$this->emptyBody = $values->find(self::EmptyBody)?->getWord();
-		$this->emptyAnonymousClass = $values->find(self::EmptyAnonymousClass)?->getWord();
+		foreach (['class', 'function', 'closure', 'propertyHook', 'anonymousClass'] as $place) {
+			$this->emptyBody[$place] = $values->find(self::EmptyBody . $place)?->getWord();
+		}
 		$this->singlelineClosureKept = $values->isKept(self::SinglelineClosure);
 	}
 
@@ -259,7 +270,7 @@ final class BracesPositionRule extends GapRule
 					: [$this->function === null ? null : true, self::FunctionBody]),
 				$this->function === null ? null : self::FunctionBody,
 				false,
-				self::EmptyBody,
+				self::EmptyBody . 'function',
 			],
 			$node instanceof ClosureNode => [
 				$node->body->openBrace,
@@ -273,7 +284,7 @@ final class BracesPositionRule extends GapRule
 					default => self::SinglelineClosure,
 				},
 				$this->singlelineClosureKept,
-				self::EmptyBody,
+				self::EmptyBody . 'closure',
 			],
 			$node instanceof Statement\ClassNode,
 			$node instanceof Statement\InterfaceNode,
@@ -286,7 +297,7 @@ final class BracesPositionRule extends GapRule
 				self::ClassLike,
 				$this->class === null ? null : self::ClassLike,
 				false,
-				self::EmptyBody,
+				self::EmptyBody . 'class',
 			],
 			$node instanceof Nodes\AnonymousClassNode => [
 				$node->openBrace,
@@ -298,8 +309,8 @@ final class BracesPositionRule extends GapRule
 				self::AnonymousClass,
 				$this->anonymousClass === null ? null : self::AnonymousClass,
 				// one holding only a comment is no body to collapse, and stays on its line
-				$this->emptyAnonymousClass === self::SameLine && $node->members->isEmpty(),
-				self::EmptyAnonymousClass,
+				$this->emptyBody['anonymousClass'] === self::Collapsed && $node->members->isEmpty(),
+				self::EmptyBody . 'anonymousClass',
 			],
 			$node instanceof Statement\IfNode,
 			$node instanceof Nodes\ElseifNode,
@@ -334,7 +345,7 @@ final class BracesPositionRule extends GapRule
 				self::FunctionBody,
 				$this->function === null ? null : self::FunctionBody,
 				false,
-				self::EmptyBody,
+				self::EmptyBody . 'propertyHook',
 			],
 			default => null,
 		};
@@ -348,12 +359,8 @@ final class BracesPositionRule extends GapRule
 		}
 
 		// a comment inside makes a body not empty; an empty body kept stays on one line where it is written so
-		$emptyWord = match ($emptyDecision) {
-			self::EmptyBody => $this->emptyBody,
-			self::EmptyAnonymousClass => $this->emptyAnonymousClass,
-			default => self::OwnLines,
-		};
-		$collapsed = $empty && $emptyWord === self::SameLine && !$open->hasCommentUpTo($close);
+		$emptyWord = $emptyDecision === null ? self::Expanded : $this->emptyBody[substr($emptyDecision, strlen(self::EmptyBody))];
+		$collapsed = $empty && $emptyWord === self::Collapsed && !$open->hasCommentUpTo($close);
 		$kept = $empty && $emptyWord === null;
 		// a closure is on one line when written whole so, an empty body kept when its braces are
 		$from = $node instanceof ClosureNode && !$kept ? $node->functionKeyword : $open;
@@ -364,7 +371,7 @@ final class BracesPositionRule extends GapRule
 			'decision' => $decision,
 			'inside' => $inside,
 			'collapsed' => $collapsed,
-			'emptyDecision' => $emptyDecision ?? self::EmptyBody,
+			'emptyDecision' => $emptyDecision ?? self::EmptyBody . 'function',
 			// a body collapsing to {} is not asked about, its gaps being no construct decided once
 			'singleline' => !$collapsed
 				&& ($singleline || $kept)
@@ -385,12 +392,8 @@ final class BracesPositionRule extends GapRule
 	/** Whether the brace of a function whose parameters are spread over lines takes the next line, null where it is kept. */
 	private function isNextLineAfterMultilineSignature(Statement\FunctionNode|MethodNode $node): ?bool
 	{
-		return match ($this->multilineSignature) {
-			null => null,
-			self::SameLine => false,
-			self::NextLine => true,
-			default => $node->returnType !== null,
-		};
+		$word = $node->returnType !== null ? $this->typedMultilineSignature ?? $this->multilineSignature : $this->multilineSignature;
+		return $word === null ? null : $word === self::NextLine;
 	}
 
 

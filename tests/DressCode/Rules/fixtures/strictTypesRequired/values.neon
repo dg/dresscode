@@ -1,4 +1,4 @@
 file:
 	strictTypes:
 		declaration: required
-		position: ownLine
+		position: nextLine

@@ -1,4 +1,4 @@
 <?php declare(strict_types=0);
-// {"strictTypes.declaration": "keep", "strictTypes.position": "openingTagLine"}
+// {"strictTypes.declaration": "keep", "strictTypes.position": "sameLine"}
 
 namespace Foo;

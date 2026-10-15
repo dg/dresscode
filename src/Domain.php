@@ -27,7 +27,6 @@ abstract readonly class Domain
 	private const PlacementWords = [
 		'sameLine' => 'on the line of what comes before',
 		'nextLine' => 'on the next line',
-		'ownLine' => 'on a line of its own',
 	];
 
 	private const AlignmentWords = [

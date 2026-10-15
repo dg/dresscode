@@ -1,5 +1,5 @@
 <?php
-// {"position.multilineSignature": "nextLineAfterReturnType"}
+// {"position.typedMultilineSignature": "nextLine"}
 function f(
 	int $a,
 )

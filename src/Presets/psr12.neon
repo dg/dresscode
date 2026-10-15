@@ -95,7 +95,11 @@ braces:
 		anonymousClass: sameLine
 		controlStructure: sameLine
 		continuingKeyword: sameLine           # `} else {`
-	emptyBody: ownLines                       # not `{}`
+	emptyBody:                                # not `{}`
+		class: expanded
+		function: expanded
+		closure: expanded
+		propertyHook: expanded
 	bracelessBody: forbidden                  # `if ($a) foo();` gets braces
 	singlelineClosure: forbidden              # `function () { return 1; }` is spread
 
