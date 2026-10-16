@@ -126,9 +126,14 @@ final class BlockBlankLinesRule extends GapRule
 		if ($this->betweenBranches !== null) {
 			$between = $this->claims->claim($this->betweenBranches === self::LastSetApart ? 1 : $this->betweenBranches, 'bodyEnd.branch');
 			$heading = $this->claims->claim(0, 'bodyEnd.branch');
+			// lastStatementSetApart leaves the end of any other branch as it is
+			$free = $this->claims->claim([0, null], 'bodyEnd.branch');
 			$claims[Statement\BlockNode::class]['closeBrace'][0] = fn(Gap $gap) => match (true) {
-				!$this->isBetweenBranches($gap) => $before($gap),
+				!self::isBetweenBranches($gap) => $before($gap),
 				self::isHeadedByComment($gap->token) => $heading,
+				$this->betweenBranches === self::LastSetApart
+					&& $gap->token->parent instanceof Statement\BlockNode
+					&& !self::isEndSetApart($gap->token->parent) => $free,
 				default => $between,
 			};
 		}
@@ -159,10 +164,9 @@ final class BlockBlankLinesRule extends GapRule
 
 	/**
 	 * Whether the closing brace ends a branch another branch of its if or try follows, which `bodyEnd.branch`
-	 * then decides, an empty one left to `bodyEnd.controlStructure`; lastSetApart takes only a branch whose last statement
-	 * stands apart from the ones above it, which would otherwise read as the start of the next branch.
+	 * then decides, an empty one left to `bodyEnd.controlStructure`.
 	 */
-	private function isBetweenBranches(Gap $gap): bool
+	private static function isBetweenBranches(Gap $gap): bool
 	{
 		$block = $gap->token->parent;
 		if (!$block instanceof Statement\BlockNode || $block->statements->getItems() === []) {
@@ -176,11 +180,7 @@ final class BlockBlankLinesRule extends GapRule
 			default => $branch,
 		};
 		$branches = $chain === null ? [] : self::getBranches($chain);
-		if ($chain === null || !in_array($block, array_slice($branches, 0, -1), true)) {
-			return false;
-		}
-
-		return $this->betweenBranches !== self::LastSetApart || self::isEndSetApart($block);
+		return $chain !== null && in_array($block, array_slice($branches, 0, -1), true);
 	}
 
 

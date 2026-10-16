@@ -1,0 +1,15 @@
+<?php
+
+// {"bodyEnd": {"controlStructure": 0, "branch": "lastStatementSetApart"}}
+if ($a) {
+	foo();
+
+} elseif ($b) {
+	bar();
+	baz();
+
+	qux();
+} else {
+	foo();
+
+}
