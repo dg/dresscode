@@ -173,7 +173,7 @@ test('a map of functions given as a list says to write a map', function () {
 	Assert::exception(
 		fn() => new ConfigResolver(new PluginRegistry)->resolve($config, '8.4'),
 		ConfigurationException::class,
-		'Key `upgrading.libraries.forbiddenFunctions` does not take %a%; write a map of names.',
+		'Key `upgrading.libraries.forbiddenFunctions` does not take %a%; write a map of names or `keep`.',
 	);
 });
 

@@ -61,7 +61,7 @@ final class StaticForMethodWithoutThisRule extends NodeRule
 				'private' => 'a private method',
 				'protected' => 'a protected method, where no child and no ancestor can declare it',
 				'public' => 'a public method, where no child and no ancestor can declare it',
-			]), 'The visibilities of the methods made static', kind: DecisionKind::Parameter, default: ['private']),
+			], empty: false), 'The visibilities of the methods made static', kind: DecisionKind::Parameter, default: ['private']),
 		];
 	}
 

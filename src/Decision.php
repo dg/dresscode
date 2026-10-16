@@ -45,13 +45,10 @@ final readonly class Decision
 	}
 
 
-	/**
-	 * Whether the value as a whole may be `keep`: of a requirement, unless its domain is a table, which withdraws its
-	 * entries one by one.
-	 */
+	/** Whether the value may be `keep`, which every requirement takes and no parameter does. */
 	public function takesKeep(): bool
 	{
-		return $this->isRequirement() && $this->domain->takesKeep();
+		return $this->isRequirement();
 	}
 
 

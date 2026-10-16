@@ -32,7 +32,7 @@ final class SensitiveParameterRequiredRule extends NodeRule
 		return [
 			new Decision(
 				'upgrading.classes.SensitiveParameter',
-				new Names,
+				new Names(empty: false),
 				'The names of the parameters holding a secret, whatever their letter case, which carry `#[\SensitiveParameter]` of PHP 8.2 to keep their values out of stack traces',
 			),
 		];

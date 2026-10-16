@@ -135,6 +135,16 @@ test('names are free, patterns are regular expressions, allowed ones are words',
 	);
 	Assert::exception(fn() => new Names()->accept(['a', 'a'], 'x.y'), ConfigurationException::class);
 	Assert::exception(
+		fn() => new Names()->accept(['a', 'keep'], 'x.y'),
+		ConfigurationException::class,
+		'Key `x.y` does not take `["a","keep"]`, `keep` being no item of a list; write a list of names.',
+	);
+	Assert::exception(
+		fn() => new Names(empty: false)->accept([], 'x.y'),
+		ConfigurationException::class,
+		'Key `x.y` does not take `[]`, which leaves the decision nothing to act on; write a list of names.',
+	);
+	Assert::exception(
 		fn() => new Names(regularExpressions: true)->accept(['~^__'], 'x.y'),
 		ConfigurationException::class,
 		'Key `x.y` does not take `~^__`; write a regular expression.',
@@ -146,6 +156,11 @@ test('names are free, patterns are regular expressions, allowed ones are words',
 		fn() => $order->accept(['property'], 'x.y'),
 		ConfigurationException::class,
 		'Key `x.y` does not take `property`; write `traitUse` or `method`.',
+	);
+	Assert::exception(
+		fn() => $order->accept([], 'x.y'),
+		ConfigurationException::class,
+		'Key `x.y` does not take `[]`, an order of nothing; write an order of `traitUse`; `method`.',
 	);
 
 	$mixed = new Names(['imports' => '', 'call' => ''], regularExpressions: true);
@@ -176,17 +191,19 @@ test('a map of a set of words takes those keys alone', function () {
 });
 
 
-test('a map maps names to values of its domain, keep withdraws an entry, never the whole', function () {
+test('a map maps names to values of its domain, keep withdraws an entry or the whole map', function () {
 	$map = new Map(new Words(['backslashed' => '', 'imported' => '']));
 	$value = $map->accept(['assert' => 'backslashed', 'strlen' => 'keep'], 'x.except');
 	Assert::same('backslashed', $value->getEntries()['assert']->getWord());
 	Assert::true($value->getEntries()['strlen']->isKept());
 	Assert::same(['strlen' => 'imported'], $map->accept(['strlen' => 'imported'], 'x.except')->toWrittenData());
 	Assert::same([], $map->accept([], 'x.except')->getEntries());
-	Assert::exception(
-		fn() => $map->accept('keep', 'x.except', keep: true),
-		ConfigurationException::class,
-		'Key `x.except` does not take `keep`; write a map of names, an entry withdrawn by `name: keep`.',
+	$kept = $map->accept('keep', 'x.except', keep: true);
+	Assert::true($kept->isKept());
+	// an entry a later layer writes stands alone, what the layers below said staying withdrawn
+	Assert::same(
+		['strlen' => 'imported'],
+		$map->merge($map->merge($value, $kept), $map->accept(['strlen' => 'imported'], 'x.except'))->toWrittenData(),
 	);
 	Assert::exception(fn() => $map->accept(['a'], 'x.except'), ConfigurationException::class);
 	Assert::exception(
@@ -315,12 +332,12 @@ test('a requirement takes keep, a parameter does not', function () {
 		'Key `correctness.debugOutputFunctions` does not take `keep`; write a list of names.',
 	);
 
-	// a map withdraws its entries one by one, never itself
+	// a map withdraws its entries one by one, and itself as a whole
 	$map = new Decision('upgrading.replacedFunctions', new Map(new Text), 'A function written instead of another one');
 	Assert::true($map->isRequirement());
-	Assert::false($map->takesKeep());
-	Assert::same('a map of names and patterns with `*` to a text, an entry withdrawn with `keep`', $map->describeValues());
-	Assert::false($map->toArray()['keep']);
+	Assert::true($map->takesKeep());
+	Assert::same('a map of names and patterns with `*` to a text, an entry withdrawn with `keep`; `keep`', $map->describeValues());
+	Assert::true($map->toArray()['keep']);
 
 	Assert::exception(
 		fn() => new Decision('calls', Domain::state(), ''),

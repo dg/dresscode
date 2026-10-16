@@ -58,7 +58,7 @@ final readonly class Map extends Domain
 
 	public function merge(Value $below, Value $above): Value
 	{
-		return $below->content === null // `keep`, the default
+		return $below->content === null || $above->content === null // `keep`, the default, or `keep` withdrawing the whole map
 			? $above
 			: new Value($this, self::mergeEntries($below->content, $above->content, $this->caseInsensitive), $above->raw, $above->origin);
 	}
@@ -85,18 +85,10 @@ final readonly class Map extends Domain
 	}
 
 
-	public function takesKeep(): bool
-	{
-		return false;
-	}
-
-
 	protected function normalize(mixed $raw, string $path, bool $keep): Value
 	{
-		if ($raw === 'keep') {
-			self::refuse($raw, $path, ['a map of names, an entry withdrawn by `name: keep`'], false);
-		} elseif (!is_array($raw) || ($raw !== [] && array_is_list($raw))) {
-			self::refuse($raw, $path, ['a map of names'], false);
+		if (!is_array($raw) || ($raw !== [] && array_is_list($raw))) {
+			self::refuse($raw, $path, ['a map of names'], $keep);
 		}
 
 		$entries = $names = [];

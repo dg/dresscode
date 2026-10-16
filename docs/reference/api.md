@@ -364,7 +364,6 @@ abstract readonly class Domain
 	public function merge(DressCode\Value $below, DressCode\Value $above): DressCode\Value
 	abstract public function toArray(): array<string, mixed>
 	abstract public function describe(): string
-	public function takesKeep(): bool
 ```
 
 ## `DressCode\Domains\Count`
@@ -410,7 +409,6 @@ final readonly class Map extends DressCode\Domain
 	public function merge(DressCode\Value $below, DressCode\Value $above): DressCode\Value
 	public function toArray(): array
 	public function describe(): string
-	public function takesKeep(): bool
 ```
 
 ## `DressCode\Domains\Names`
@@ -420,7 +418,8 @@ final readonly class Names extends DressCode\Domain
 	public readonly ?array<string, string> $words
 	public readonly bool $regularExpressions
 	public readonly bool $ordered
-	public function __construct(?array $words = null, bool $regularExpressions = false, bool $ordered = false)
+	public readonly bool $empty
+	public function __construct(?array $words = null, bool $regularExpressions = false, bool $ordered = false, bool $empty = true)
 	public function toArray(): array
 	public function describe(): string
 ```

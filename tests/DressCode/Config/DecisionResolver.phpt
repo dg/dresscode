@@ -162,7 +162,7 @@ test('keep on a section is a tombstone of every key, a later layer brings back o
 	Assert::same(InactiveReason::Keep, $resolved['qualification.globalFunction.optimizedByCompiler']->inactive);
 	Assert::same(InactiveReason::Keep, $resolved['qualification.globalClass']->inactive);
 	Assert::same([], $resolved['qualification.globalFunction.except']->value->getEntries(), 'nothing comes back from under the tombstone');
-	Assert::same([], $resolved['qualification.renamed']->value->toData(), 'a table takes no keep as a whole, only an empty one');
+	Assert::true($resolved['qualification.renamed']->value->isKept(), 'a map is kept as a whole too');
 	Assert::same('the configuration', $resolved['qualification.globalFunction.except']->value->origin?->describe());
 });
 

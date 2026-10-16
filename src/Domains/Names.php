@@ -14,7 +14,8 @@ use function count, is_array, is_string;
 /**
  * A list of names the project brings, `[password, passwd]`, of regular expressions, `['~^__~']`, of the words
  * of a set or an order, `[traitUse, constant]`, or of words and regular expressions, `[imports, '~^\s*throw ~']`.
- * A list replaces the one below it, the default included.
+ * A list replaces the one below it, the default included. An empty set has no item, an empty order is none, and
+ * `keep` is never an item.
  */
 final readonly class Names extends Domain
 {
@@ -25,6 +26,8 @@ final readonly class Names extends Domain
 		public bool $regularExpressions = false,
 		/** the order of the list matters */
 		public bool $ordered = false,
+		/** whether the list may be empty, which a set a requirement acts on may not */
+		public bool $empty = true,
 	) {
 		if ($words === []) {
 			throw new \InvalidArgumentException('The words must be some.');
@@ -34,7 +37,13 @@ final readonly class Names extends Domain
 
 	public function toArray(): array
 	{
-		return ['kind' => 'names', 'words' => $this->words, 'regularExpressions' => $this->regularExpressions, 'ordered' => $this->ordered];
+		return [
+			'kind' => 'names',
+			'words' => $this->words,
+			'regularExpressions' => $this->regularExpressions,
+			'ordered' => $this->ordered,
+			'empty' => $this->empty && !$this->ordered,
+		];
 	}
 
 
@@ -59,11 +68,21 @@ final readonly class Names extends Domain
 	{
 		if (!is_array($raw) || !array_is_list($raw)) {
 			self::refuse($raw, $path, [$this->describe()], $keep);
+		} elseif ($raw === [] && ($this->ordered || !$this->empty)) {
+			self::refuse(
+				$raw,
+				$path,
+				[$this->describe()],
+				$keep,
+				$this->ordered ? 'an order of nothing' : 'which leaves the decision nothing to act on',
+			);
 		}
 
 		foreach ($raw as $name) {
 			if (!is_string($name) || $name === '') {
 				self::refuse($raw, $path, [$this->describe()], $keep, 'which holds no name');
+			} elseif ($name === 'keep') {
+				self::refuse($raw, $path, [$this->describe()], $keep, '`keep` being no item of a list');
 			} elseif (isset($this->words[$name])) {
 				continue;
 			} elseif ($this->words !== null && !$this->regularExpressions) {

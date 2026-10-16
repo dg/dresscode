@@ -49,7 +49,7 @@ final class NoDebugOutputRule extends NodeRule
 			),
 			new Decision(
 				'correctness.debugOutputFunctions',
-				new Names,
+				new Names(empty: false),
 				'The debugging functions whose calls print',
 				kind: DecisionKind::Parameter,
 				default: ['print_r', 'var_dump', 'var_export'],

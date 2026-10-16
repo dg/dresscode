@@ -90,7 +90,7 @@ abstract readonly class Domain
 	 */
 	final public function accept(mixed $raw, string $path, bool $keep = false): Value
 	{
-		return $raw === 'keep' && $keep && $this->takesKeep()
+		return $raw === 'keep' && $keep
 			? Value::keep($this)
 			: $this->normalize($raw, $path, $keep);
 	}
@@ -133,13 +133,6 @@ abstract readonly class Domain
 	 * @throws ConfigurationException
 	 */
 	abstract protected function normalize(mixed $raw, string $path, bool $keep): Value;
-
-
-	/** Whether the value as a whole may be `keep`. */
-	public function takesKeep(): bool
-	{
-		return true;
-	}
 
 
 	/**

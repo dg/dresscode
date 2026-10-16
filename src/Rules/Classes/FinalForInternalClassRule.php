@@ -48,7 +48,7 @@ final class FinalForInternalClassRule extends NodeRule
 			),
 			new Decision(
 				self::Required,
-				new Names,
+				new Names(empty: false),
 				'The annotations a class must all carry to count as internal',
 				kind: DecisionKind::Parameter,
 				default: ['@internal'],

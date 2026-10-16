@@ -167,11 +167,7 @@ final readonly class DecisionResolver
 				$this->refuseKey($path, $prefix);
 			} elseif ($raw === 'keep') {
 				foreach ($under as $inner => $decision) {
-					$values[$inner] = [match (true) {
-						$decision->takesKeep() => Value::keep($decision->domain),
-						$decision->isRequirement() => $decision->accept([]), // a table takes `keep` by its entries, as a whole it is empty
-						default => $decision->getDefault(),
-					}, true];
+					$values[$inner] = [$decision->takesKeep() ? Value::keep($decision->domain) : $decision->getDefault(), true];
 				}
 			} elseif (is_array($raw) && ($raw === [] || !array_is_list($raw))) {
 				$values = $this->flatten($raw, $path) + $values;
