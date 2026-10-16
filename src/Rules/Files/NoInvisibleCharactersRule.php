@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Files;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Printer, Token};
+use PhpSyntax\{Node, Printer, Token, Trivia};
 use PhpSyntax\Nodes\Scalar\HeredocNode;
 use function in_array, strlen;
 
@@ -71,6 +71,13 @@ final class NoInvisibleCharactersRule extends NodeRule
 					$context->report(
 						$node,
 						"Invisible character $found in a comment, but it keeps `?>` from closing the code.",
+						trivia: $trivia,
+						fixable: false,
+					);
+				} elseif (!Trivia::fromText($text)->is($trivia->id)) {
+					$context->report(
+						$node,
+						"Invisible character $found in a comment, but fixing it would change the kind of the comment.",
 						trivia: $trivia,
 						fixable: false,
 					);

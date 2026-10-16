@@ -1,0 +1,5 @@
+2: Invisible character U+00A0 in a comment, but fixing it would change the kind of the comment.
+4: Invisible character U+00A0 in a comment.
+6: Invisible character U+00A0 in a comment.
+8: Invisible character U+00A0 in a comment, but fixing it would change the kind of the comment.
+10: Invisible character U+200B in a comment, but fixing it would change the kind of the comment.
