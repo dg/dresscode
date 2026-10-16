@@ -1,0 +1,14 @@
+<?php
+// {"arrowFunction.emptyBody": "required"}
+$a = function () {};
+$b = static function ($x, int $y = 1) {};
+$c = function (): ?int {};
+$d = function (): void {};
+$e = function &() {};
+$f = function () use ($g) {};
+$h = function () use (&$i) {};
+$j = function () { /* later */ };
+$k = #[Pure] function () {};
+$l = function () {
+	return 1;
+};

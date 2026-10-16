@@ -1,0 +1,6 @@
+3: The closure with an empty body must be written `fn() => null`.
+4: The closure with an empty body must be written `fn() => null`.
+5: The closure with an empty body must be written `fn() => null`.
+8: The closure with an empty body must be written `fn() => null`.
+11: The closure with an empty body must be written `fn() => null`.
+12: The closure returning a single expression must be written as an arrow function.

@@ -64,6 +64,10 @@ types:
 	nullable: '?int'                         # not `int|null`
 	nullPosition: last                       # `int|string|null`
 
+functions:
+	arrowFunction:
+		emptyBody: required                  # `fn() => null`, not `function () {}`
+
 literals:
 	heredocWithoutInterpolation: forbidden   # a nowdoc `<<<'EOT'` instead
 	arraySyntax:

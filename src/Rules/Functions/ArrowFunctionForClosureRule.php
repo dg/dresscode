@@ -24,7 +24,7 @@ use PhpSyntax\Nodes\Expression\{
 };
 use PhpSyntax\Nodes\Member\{EnumCaseNode, PropertyItemNode};
 use PhpSyntax\Nodes\Statement\ReturnNode;
-use function count;
+use function count, in_array;
 
 
 /**
@@ -35,12 +35,14 @@ use function count;
  * expression names, and a closure reading a variable it neither takes, uses, assigns nor passes to a parameter
  * taking it by reference before the read, which it sees undefined where an arrow function would capture it. A
  * comment before the parameters or anywhere after them keeps the closure as well, and so does a constant
- * expression, which takes a static closure but no arrow function.
+ * expression, which takes a static closure but no arrow function. A closure with an empty body is `fn() => null`
+ * by `functions.arrowFunction.emptyBody`, unless it returns `void`, `never` or by reference.
  */
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class, PhpSignatures::class, Types::class])]
 final class ArrowFunctionForClosureRule extends NodeRule
 {
 	private const Plain = 'functions.arrowFunction.oneExpression';
+	private const EmptyBody = 'functions.arrowFunction.emptyBody';
 	private const Nested = 'functions.arrowFunctionNested';
 
 	/** the variables every scope has, which an arrow function reads as the closure does */
@@ -49,6 +51,8 @@ final class ArrowFunctionForClosureRule extends NodeRule
 		'_COOKIE' => true, '_SESSION' => true, '_REQUEST' => true, '_ENV' => true,
 	];
 
+	private bool $oneExpression = true;
+	private bool $emptyBody = false;
 	private bool $nested = false;
 
 
@@ -59,6 +63,11 @@ final class ArrowFunctionForClosureRule extends NodeRule
 				self::Plain,
 				Domain::state('required'),
 				'An arrow function written for a closure whose body is a single `return`, where that is equivalent: no variable captured by reference, none reached by a name it does not spell out, no comment lost',
+			),
+			new Decision(
+				self::EmptyBody,
+				Domain::state('required'),
+				'`fn() => null` written for a closure with an empty body, one returning `void`, `never` or by reference aside',
 			),
 			new Decision(
 				self::Nested,
@@ -73,6 +82,8 @@ final class ArrowFunctionForClosureRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
+		$this->oneExpression = !$values->isKept(self::Plain);
+		$this->emptyBody = !$values->isKept(self::EmptyBody);
 		$this->nested = $values->get(self::Nested)->getFlag();
 	}
 
@@ -90,9 +101,15 @@ final class ArrowFunctionForClosureRule extends NodeRule
 		}
 
 		$stmts = $node->body->statements->getItems();
-		$return = $stmts[0] ?? null;
+		if ($stmts === []) {
+			$this->writeEmpty($node, $context);
+			return;
+		}
+
+		$return = $stmts[0];
 		if (
-			count($stmts) !== 1
+			!$this->oneExpression
+			|| count($stmts) !== 1
 			|| !$return instanceof ReturnNode
 			|| $return->expression === null
 			|| ($node->staticKeyword ?? $node->functionKeyword)->hasCommentUpTo($node->openParen)
@@ -116,7 +133,11 @@ final class ArrowFunctionForClosureRule extends NodeRule
 			}
 		}
 
-		if (!$context->report($node->functionKeyword, 'The closure returning a single expression must be written as an arrow function.')) {
+		if (!$context->report(
+			$node->functionKeyword,
+			'The closure returning a single expression must be written as an arrow function.',
+			decision: self::Plain,
+		)) {
 			return;
 		}
 
@@ -127,6 +148,38 @@ final class ArrowFunctionForClosureRule extends NodeRule
 			. ($node->returnType ? ': ' . $node->returnType->text : '')
 			. ' => $value',
 			value: $return->expression,
+		);
+		$fn->attributes = clone $node->attributes;
+		$fn->parameters = clone $node->parameters;
+		$node->replaceWith($fn);
+	}
+
+
+	private function writeEmpty(ClosureNode $node, RuleContext $context): void
+	{
+		if (
+			!$this->emptyBody
+			|| $node->ampersand !== null
+			|| in_array(strtolower($node->returnType->text ?? ''), ['void', 'never'], true)
+			|| ($node->staticKeyword ?? $node->functionKeyword)->hasCommentUpTo($node->openParen)
+			|| $node->closeParen->hasCommentUpTo($node->body->closeBrace)
+			|| self::standsInConstantExpression($node)
+			|| array_any($node->uses?->items->getItems() ?? [], fn($use) => $use->ampersand !== null)
+			|| !$context->report(
+				$node->functionKeyword,
+				'The closure with an empty body must be written `fn() => null`.',
+				decision: self::EmptyBody,
+			)
+		) {
+			return;
+		}
+
+		$fn = (new Builder)->fragment(
+			ArrowFunctionNode::class,
+			($node->staticKeyword ? 'static ' : '')
+			. 'fn()'
+			. ($node->returnType ? ': ' . $node->returnType->text : '')
+			. ' => null',
 		);
 		$fn->attributes = clone $node->attributes;
 		$fn->parameters = clone $node->parameters;

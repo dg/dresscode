@@ -58,6 +58,7 @@ Assert::same(
 		'noBom',
 		'noClosingTag',
 		'noTrailingWhitespace',
+		'arrowFunctionForClosure',
 		'functionNameSpacing',
 		'multilineCall',
 		'multilineSignature',

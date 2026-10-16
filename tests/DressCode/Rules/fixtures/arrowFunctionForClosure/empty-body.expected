@@ -1,0 +1,12 @@
+<?php
+// {"arrowFunction.emptyBody": "required"}
+$a = fn() => null;
+$b = static fn($x, int $y = 1) => null;
+$c = fn(): ?int => null;
+$d = function (): void {};
+$e = function &() {};
+$f = fn() => null;
+$h = function () use (&$i) {};
+$j = function () { /* later */ };
+$k = #[Pure] fn() => null;
+$l = fn() => 1;

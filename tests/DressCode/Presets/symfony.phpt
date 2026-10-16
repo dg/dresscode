@@ -71,6 +71,7 @@ Assert::same(
 		'noBom',
 		'noClosingTag',
 		'noTrailingWhitespace',
+		'arrowFunctionForClosure',
 		'functionNameSpacing',
 		'namedArgumentSpacing',
 		'noDollarBraceInterpolations',
