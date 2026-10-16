@@ -1,0 +1,3 @@
+3: The modifiers of the class `Point` must be written `final readonly`.
+6: The modifiers of the promoted property `$x` must be written `public readonly`.
+7: The modifiers of the promoted property `$y` must be written `public private(set)`.

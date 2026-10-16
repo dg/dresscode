@@ -1,0 +1,14 @@
+<?php
+// php 8.4
+final readonly class Point
+{
+	public function __construct(
+		public readonly int $x,
+		public private(set) int $y,
+	) {
+	}
+}
+
+abstract readonly class Shape
+{
+}

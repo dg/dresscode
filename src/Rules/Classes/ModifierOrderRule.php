@@ -11,11 +11,13 @@ use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Domains\Words;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
+use PhpSyntax\Nodes\ParameterNode;
+use PhpSyntax\Nodes\Statement\ClassNode;
 
 
 /**
- * The modifiers of a property, a method and a constant come in a fixed order: `abstract` or `final`, visibility,
- * set visibility, `static`, `readonly`.
+ * The modifiers of a property, a promoted one included, a method, a constant and a class come in a fixed order:
+ * `abstract` or `final`, visibility, set visibility, `static`, `readonly`.
  */
 #[RuleInfo(Stage::Structure)]
 final class ModifierOrderRule extends NodeRule
@@ -25,20 +27,26 @@ final class ModifierOrderRule extends NodeRule
 		return [new Decision(
 			'classes.modifiers.order',
 			new Words(['canonical' => '`abstract` or `final`, visibility, set visibility, `static`, `readonly`']),
-			'The order of the modifiers of a property, a method and a constant',
+			'The order of the modifiers of a property, a promoted one included, a method, a constant and a class, `final readonly class`',
 		)];
 	}
 
 
 	public function getVisitedNodes(): array
 	{
-		return [PropertyNode::class, MethodNode::class, ClassConstNode::class];
+		return [PropertyNode::class, MethodNode::class, ClassConstNode::class, ParameterNode::class, ClassNode::class];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (!$node instanceof PropertyNode && !$node instanceof MethodNode && !$node instanceof ClassConstNode) {
+		if (
+			!$node instanceof PropertyNode
+			&& !$node instanceof MethodNode
+			&& !$node instanceof ClassConstNode
+			&& !$node instanceof ParameterNode
+			&& !$node instanceof ClassNode
+		) {
 			return;
 		}
 

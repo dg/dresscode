@@ -2500,7 +2500,7 @@ The `public` of a method of an interface, which is public whatever it says.
 
 ### classes.modifiers.order
 
-The order of the modifiers of a property, a method and a constant.
+The order of the modifiers of a property, a promoted one included, a method, a constant and a class, `final readonly class`.
 
 - By default `keep`
 - Takes: `canonical` (`abstract` or `final`, visibility, set visibility, `static`, `readonly`); `keep`
