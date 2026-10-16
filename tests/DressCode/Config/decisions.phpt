@@ -193,7 +193,7 @@ test('the command line sets a decision over everything, and fixRisky and warnOnl
 	Assert::same(0, $code);
 	$data = json_decode((string) stream_get_contents($out), true);
 	Assert::same(
-		['value' => [1, 2], 'layer' => 'the command line', 'inactive' => null, 'selected' => true],
+		['value' => [1, 2], 'layer' => 'the command line', 'inactive' => null, 'selected' => true, 'severity' => 'warning'],
 		$data['decisions']['blankLines.betweenMethods'],
 	);
 	Assert::exception(
