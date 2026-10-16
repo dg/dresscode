@@ -44,3 +44,5 @@
 54: Expected a single space before the `endif` keyword.
 55: Expected a single space before the `endwhile` keyword.
 57: Expected no whitespace before the closing brace.
+64: Expected a single space after the `case` keyword.
+65: Expected a single space after the `case` keyword.

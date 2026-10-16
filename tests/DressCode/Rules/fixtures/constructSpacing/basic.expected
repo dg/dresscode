@@ -59,3 +59,8 @@ $n = match ($a) {
 	'longest' => 1,
 	default   => 2,
 };
+enum Suit
+{
+	case Hearts;
+	case Spades;
+}

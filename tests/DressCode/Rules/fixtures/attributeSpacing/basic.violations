@@ -5,4 +5,5 @@
 11: Expected no whitespace before the closing bracket.
 11: Expected a single space after the closing bracket.
 13: Expected a single space after the closing bracket.
+14: Expected a single space before `#[`.
 14: Expected a single space after the closing bracket.

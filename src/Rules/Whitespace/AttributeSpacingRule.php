@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Whitespace;
 
-use DressCode\{Claim, Decision, GapRule, RuleInfo, Stage};
+use DressCode\{Claim, Decision, Gap, GapRule, RuleInfo, Stage};
 use DressCode\Domains\Shapes;
 use PhpSyntax\Nodes\AttributeGroupNode;
 
@@ -26,19 +26,23 @@ final class AttributeSpacingRule extends GapRule
 		return [new Decision(
 			'spacing.attribute',
 			new Shapes(['compact' => ['#[Foo($a)]', 'none inside the brackets, none before the parenthesis']]),
-			'The whitespace inside the brackets of an attribute group and before the parenthesis of its arguments',
+			'The whitespace inside the brackets of an attribute group and before the parenthesis of its arguments, and the single space between two groups on a line and after the last one',
 		)];
 	}
 
 
 	public function getClaims(): array
 	{
+		$single = Claim::singleSpace();
 		return [
 			AttributeGroupNode::class => [
 				'openBracket' => [null, Claim::noSpace()],
 				'closeBracket' => [Claim::noSpace(), null],
 			],
-			'*' => ['attributes' => [null, Claim::singleSpace()]],
+			'*' => [
+				'attributes' => [null, $single],
+				'attributes:item' => [fn(Gap $gap) => $gap->index > 0 ? $single : null, null],
+			],
 		];
 	}
 }

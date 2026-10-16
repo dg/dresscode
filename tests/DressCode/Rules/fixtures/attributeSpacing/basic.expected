@@ -11,4 +11,4 @@ class A
     public function f(#[Param] int $x, #[Attr] int $y) {}
 }
 #[A] function g() {}
-#[B]  #[C] class D {}
+#[B] #[C] class D {}

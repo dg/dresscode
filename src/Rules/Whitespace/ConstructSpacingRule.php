@@ -48,7 +48,7 @@ final class ConstructSpacingRule extends GapRule
 		'includeKeyword', 'namespaceKeyword', 'constKeyword', 'globalKeyword', 'staticKeyword', 'gotoKeyword',
 		'breakKeyword', 'continueKeyword', 'functionKeyword', 'ifKeyword', 'elseifKeyword', 'elseKeyword', 'whileKeyword',
 		'forKeyword', 'foreachKeyword', 'switchKeyword', 'matchKeyword', 'catchKeyword', 'finallyKeyword', 'doKeyword',
-		'tryKeyword', 'useKeyword', 'asKeyword', 'insteadofKeyword',
+		'tryKeyword', 'useKeyword', 'asKeyword', 'insteadofKeyword', 'caseKeyword',
 	];
 	private const PrecededBySpace = [
 		'elseKeyword', 'elseifKeyword', 'catchKeyword', 'finallyKeyword', 'whileKeyword',

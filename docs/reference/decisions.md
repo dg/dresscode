@@ -989,7 +989,7 @@ The space around the bar between the types of a `catch`.
 
 ### spacing.attribute
 
-The whitespace inside the brackets of an attribute group and before the parenthesis of its arguments.
+The whitespace inside the brackets of an attribute group and before the parenthesis of its arguments, and the single space between two groups on a line and after the last one.
 
 - By default `keep`
 - Takes: `'#[Foo($a)]'` (none inside the brackets, none before the parenthesis); `keep`
