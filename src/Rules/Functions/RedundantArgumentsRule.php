@@ -26,7 +26,9 @@ use function count, is_bool;
  * its parameter defaults to, `json_encode($data, 0)`: named anywhere, or by position at the end of the call. The
  * defaults are those of a function of PHP every version from 8.0 on agrees on, and of a function declared at the top of
  * the file unless it counts its arguments; one declared under a condition or in a function body may give way to another
- * declaration of the name, and a method is left alone, a child being free to declare another default.
+ * declaration of the name, and a method is left alone, a child being free to declare another default. The `strict`
+ * argument of the functions that `StrictComparisonArgumentRequiredRule` governs and the `escape` argument of the CSV
+ * functions stay, being a choice the code makes.
  */
 #[RuleInfo(Stage::Structure, analyses: [PhpSignatures::class, NameResolver::class])]
 final class RedundantArgumentsRule extends NodeRule
@@ -197,7 +199,8 @@ final class RedundantArgumentsRule extends NodeRule
 		$function = ltrim($function, '\\');
 		$defaults = [];
 		foreach ($parameters as $parameter) {
-			$required = isset(CsvEscapeArgumentRequiredRule::Functions[strtolower($function)]) && $parameter->name === 'escape';
+			$required = (isset(CsvEscapeArgumentRequiredRule::Functions[strtolower($function)]) && $parameter->name === 'escape')
+				|| (isset(StrictComparisonArgumentRequiredRule::StrictArguments[strtolower($function)]) && $parameter->name === 'strict');
 			$defaults[$parameter->name] = $parameter->variadic || $required ? null : $parameter->default;
 		}
 		return [$function, $defaults, GlobalCalls::findUncertainty($call, $context)];

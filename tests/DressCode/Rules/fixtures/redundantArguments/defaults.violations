@@ -2,7 +2,6 @@
 5: Useless `flags` argument of `json_encode()`, because it repeats the default value.
 5: Useless `depth` argument of `json_encode()`, because it repeats the default value.
 6: Useless `depth` argument of `json_encode()`, because it repeats the default value.
-7: Useless `strict` argument of `in_array()`, because it repeats the default value.
 9: Useless `pad_string` argument of `str_pad()`, because it repeats the default value.
 10: Useless `length` argument of `array_slice()`, because it repeats the default value.
 10: Useless `preserve_keys` argument of `array_slice()`, because it repeats the default value.

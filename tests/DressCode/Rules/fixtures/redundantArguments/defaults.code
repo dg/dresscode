@@ -34,3 +34,6 @@ function counted(int $a, int $b = 2): int
 {
 	return func_num_args();
 }
+$t = in_array($x, $y, false);
+$u = array_search($x, $y, false);
+$v = base64_decode($x, false);

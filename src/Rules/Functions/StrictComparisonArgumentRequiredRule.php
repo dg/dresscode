@@ -32,7 +32,7 @@ final class StrictComparisonArgumentRequiredRule extends NodeRule
 	 * function => arguments up to `$strict`; null for one the call must have already, being required or what
 	 * `$strict` compares with
 	 */
-	private const StrictArguments = [
+	public const StrictArguments = [
 		'array_keys' => [null, null, 'true'],
 		'array_search' => [null, null, 'true'],
 		'base64_decode' => [null, 'true'],

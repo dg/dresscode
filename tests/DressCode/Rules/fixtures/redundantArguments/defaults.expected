@@ -4,7 +4,7 @@ namespace App;
 $a = \json_encode($data);
 $b = \json_encode($data);
 $c = \json_encode($data, JSON_PRETTY_PRINT);
-$d = \in_array($needle, $haystack);
+$d = \in_array($needle, $haystack, false);
 $e = \str_pad($s, 10, ' ', STR_PAD_RIGHT);
 $f = \str_pad($s, 10);
 $g = \array_slice($items, 1);
@@ -34,3 +34,6 @@ function counted(int $a, int $b = 2): int
 {
 	return func_num_args();
 }
+$t = in_array($x, $y, false);
+$u = array_search($x, $y, false);
+$v = base64_decode($x, false);
