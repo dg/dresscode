@@ -3104,7 +3104,7 @@ The syntax of a destructuring.
 
 - By default `keep`
 - Takes: `short` (`[$a, $b] =`, never `list($a, $b) =`); `long` (`list($a, $b) =`, never `[$a, $b] =`); `keep`
-- The standards: perCs `short`, psr12 `keep`, nette `short`, symfony `short`
+- The standards: perCs `keep`, psr12 `keep`, nette `short`, symfony `keep`
 - Rule `DressCode\Rules\Arrays\ArraySyntaxRule`, stage Structure
 - Covers: `list_syntax`, `SlevomatCodingStandard.PHP.ShortList`
 

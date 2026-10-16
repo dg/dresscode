@@ -194,6 +194,7 @@ expressions:
 
 literals:
 	quotes: single
+	arraySyntax: short                        # `[1, 2]`, `[$a] =`
 	implicitBackslash: forbidden              # `"\\d"`, not `"\d"`
 	digitSeparator:
 		integer: required                     # `1_000_000`
