@@ -7,6 +7,7 @@
 
 namespace DressCode\Rules\ControlFlow;
 
+use DressCode\Analyses\Types;
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -20,9 +21,9 @@ use PhpSyntax\Nodes\Statement\TryNode;
  * their order, so only neighbors merge; a catch between them may take an object both of its class and of the later one.
  * The bodies are the same where their tokens are, whatever the whitespace; a comment anywhere in the catch that would go,
  * or in the parentheses of the one that stays, leaves them as they are. A class the kept catch names already, however
- * the name is written, is not written twice.
+ * the name is written, is not written twice. An unreachable catch is not merged.
  */
-#[RuleInfo(Stage::Structure, requires: ['php' => '>=7.1'], analyses: [NameResolver::class])]
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=7.1'], analyses: [NameResolver::class, Types::class])]
 final class NoRepeatedCatchesRule extends NodeRule
 {
 	public static function getDecisions(): array
@@ -49,7 +50,15 @@ final class NoRepeatedCatchesRule extends NodeRule
 
 		$kept = null;
 		foreach ($node->catches->getItems() as $catch) {
-			if ($kept === null || !self::repeats($catch, $kept)) {
+			if (
+				$kept === null
+				|| !self::repeats($catch, $kept)
+				|| NoUnreachableCatchesRule::isUnreachable(
+					$catch,
+					$context->getAnalysis(NameResolver::class),
+					$context->findAnalysis(Types::class),
+				)
+			) {
 				$kept = $catch;
 				continue;
 			}

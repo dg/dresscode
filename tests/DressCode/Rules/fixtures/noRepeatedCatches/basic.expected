@@ -9,7 +9,7 @@ try {
 // one class written two ways is written once
 try {
 	run();
-} catch (A $e) {
+} catch (A|C $e) {
 	log($e);
 }
 

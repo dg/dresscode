@@ -1,0 +1,19 @@
+<?php
+
+// the second catch is unreachable, so it is not merged
+try {
+	run();
+} catch (\Throwable $e) {
+	log($e);
+} catch (\RuntimeException $e) {
+	log($e);
+}
+
+
+try {
+	run();
+} catch (A $e) {
+	log($e);
+} catch (A $e) {
+	log($e);
+}

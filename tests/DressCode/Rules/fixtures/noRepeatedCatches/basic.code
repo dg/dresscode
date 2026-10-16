@@ -15,7 +15,7 @@ try {
 	run();
 } catch (A $e) {
 	log($e);
-} catch (\A $e) {
+} catch (\A | C $e) {
 	log($e);
 }
 

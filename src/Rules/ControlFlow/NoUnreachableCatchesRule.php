@@ -11,6 +11,7 @@ use DressCode\Analyses\Types;
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
+use PhpSyntax\Nodes\CatchNode;
 use PhpSyntax\Nodes\Statement\TryNode;
 
 
@@ -48,18 +49,52 @@ final class NoUnreachableCatchesRule extends NodeRule
 		$types = $context->findAnalysis(Types::class);
 		$caught = [];
 		foreach ($node->catches->getItems() as $catch) {
-			$classes = array_map(fn($type) => $resolver->resolveClass($type), $catch->types->getItems());
-			$by = array_find($caught, fn(string $previous) => array_all(
-				$classes,
-				fn(string $class) => strcasecmp($previous, 'Throwable') === 0
-					|| $types?->isSubtype($class, $previous) === Tristate::Yes
-					|| strcasecmp($class, $previous) === 0,
-			));
+			$classes = self::resolveClasses($catch, $resolver);
+			$by = self::findCatching($classes, $caught, $types);
 			if ($by !== null) {
 				$context->report($catch, "Unreachable catch block, because a previous one catches `$by`.", fixable: false);
 			}
 
 			array_push($caught, ...$classes);
 		}
+	}
+
+
+	/** Whether a catch before this one in its try catches every class of it. */
+	public static function isUnreachable(CatchNode $catch, NameResolver $resolver, ?Types $types): bool
+	{
+		$try = $catch->parent?->parent;
+		$caught = [];
+		foreach ($try instanceof TryNode ? $try->catches->getItems() : [] as $previous) {
+			if ($previous === $catch) {
+				break;
+			}
+
+			array_push($caught, ...self::resolveClasses($previous, $resolver));
+		}
+
+		return self::findCatching(self::resolveClasses($catch, $resolver), $caught, $types) !== null;
+	}
+
+
+	/** @return list<string> */
+	private static function resolveClasses(CatchNode $catch, NameResolver $resolver): array
+	{
+		return array_map(fn($type) => $resolver->resolveClass($type), $catch->types->getItems());
+	}
+
+
+	/**
+	 * @param  list<string>  $classes
+	 * @param  list<string>  $caught
+	 */
+	private static function findCatching(array $classes, array $caught, ?Types $types): ?string
+	{
+		return array_find($caught, fn(string $previous) => array_all(
+			$classes,
+			fn(string $class) => strcasecmp($previous, 'Throwable') === 0
+				|| $types?->isSubtype($class, $previous) === Tristate::Yes
+				|| strcasecmp($class, $previous) === 0,
+		));
 	}
 }
