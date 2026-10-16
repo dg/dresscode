@@ -200,10 +200,15 @@ final class PhpCsFixer
 			'elseif' => ['controlFlow.elseif' => 'oneWord'],
 			'encoding' => ['file.bom' => 'forbidden'],
 			'escape_implicit_backslashes' => ['literals.implicitBackslash' => 'forbidden'],
+			// the tags of include and exclude are annotations written without their @, attributes being named by their classes
 			'final_internal_class' => fn(array $o, Translation $t) => $t->setAll(array_filter([
 				'classes.internalClass.final' => 'required',
-				'classes.internalClass.markers' => $o['annotation_include'] ?? null,
-				'classes.internalClass.except' => $o['annotation_exclude'] ?? null,
+				'classes.internalClass.markers' => isset($o['include'])
+					? array_map(fn(string $tag) => '@' . ltrim($tag, '@'), $o['include'])
+					: $o['annotation_include'] ?? null,
+				'classes.internalClass.except' => isset($o['exclude'])
+					? array_map(fn(string $tag) => '@' . ltrim($tag, '@'), $o['exclude'])
+					: $o['annotation_exclude'] ?? null,
 			], fn($v) => $v !== null)),
 			'full_opening_tag' => ['file.openingTag' => 'full'],
 			'fully_qualified_strict_types' => function (array $o, Translation $t) {

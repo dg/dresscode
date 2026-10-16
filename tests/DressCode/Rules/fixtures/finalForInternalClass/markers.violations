@@ -1,0 +1,4 @@
+10: The internal class `Marked` must be final.
+	risky BehaviorChanges: a class of the project elsewhere may extend it
+21: The internal class `Either` must be final.
+	risky BehaviorChanges: a class of the project elsewhere may extend it

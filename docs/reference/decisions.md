@@ -2279,7 +2279,7 @@ Before a `case` or `default` of a `switch` that follows a case with statements, 
 
 ### classes.internalClass.final
 
-The `final` of a class its author marked `@internal`, which nothing outside the package may extend.
+The `final` of a class its author marked as internal, which nothing outside the package may extend.
 
 - By default `keep`
 - Takes: `required` (always there); `keep`
@@ -2290,7 +2290,7 @@ The `final` of a class its author marked `@internal`, which nothing outside the 
 
 ### classes.internalClass.markers
 
-The annotations a class must all carry to count as internal.
+The annotations, with their `@`, and the attributes, by their fully qualified classes, of which one marks a class internal.
 
 - By default `[@internal]`
 - Takes: a list of names
@@ -2299,11 +2299,11 @@ The annotations a class must all carry to count as internal.
 
 ### classes.internalClass.except
 
-The annotations that keep an internal class as it is, an entity for instance.
+The annotations and the attributes that keep an internal class as it is, an entity for instance.
 
-- By default `[@final, @Entity, @ORM\Entity, @ORM\Mapping\Entity, @Mapping\Entity, @Document, @ODM\Document]`
+- By default `[@final, @Entity, @ORM\Entity, @ORM\Mapping\Entity, @Mapping\Entity, @Document, @ODM\Document, Doctrine\ORM\Mapping\Entity, Doctrine\ODM\MongoDB\Mapping\Annotations\Document]`
 - Takes: a list of names
-- The standards: perCs `[@final, @Entity, @ORM\Entity, @ORM\Mapping\Entity, @Mapping\Entity, @Document, @ODM\Document]`, psr12 `[@final, @Entity, @ORM\Entity, @ORM\Mapping\Entity, @Mapping\Entity, @Document, @ODM\Document]`, nette `[@final, @Entity, @ORM\Entity, @ORM\Mapping\Entity, @Mapping\Entity, @Document, @ODM\Document]`, symfony `[@final, @Entity, @ORM\Entity, @ORM\Mapping\Entity, @Mapping\Entity, @Document, @ODM\Document]`
+- The standards: perCs `[@final, @Entity, @ORM\Entity, @ORM\Mapping\Entity, @Mapping\Entity, @Document, @ODM\Document, Doctrine\ORM\Mapping\Entity, Doctrine\ODM\MongoDB\Mapping\Annotations\Document]`, psr12 `[@final, @Entity, @ORM\Entity, @ORM\Mapping\Entity, @Mapping\Entity, @Document, @ODM\Document, Doctrine\ORM\Mapping\Entity, Doctrine\ODM\MongoDB\Mapping\Annotations\Document]`, nette `[@final, @Entity, @ORM\Entity, @ORM\Mapping\Entity, @Mapping\Entity, @Document, @ODM\Document, Doctrine\ORM\Mapping\Entity, Doctrine\ODM\MongoDB\Mapping\Annotations\Document]`, symfony `[@final, @Entity, @ORM\Entity, @ORM\Mapping\Entity, @Mapping\Entity, @Document, @ODM\Document, Doctrine\ORM\Mapping\Entity, Doctrine\ODM\MongoDB\Mapping\Annotations\Document]`
 - Rule `DressCode\Rules\Classes\FinalForInternalClassRule`, stage Structure
 
 ### classes.members.order

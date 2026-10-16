@@ -1,0 +1,27 @@
+<?php
+// {"internalClass.markers": ["@internal", "Acme\\Mark\\Internal"], "internalClass.except": ["@final", "Doctrine\\ORM\\Mapping\\Entity"]}
+// risky
+namespace App;
+
+use Acme\Mark\Internal;
+use Doctrine\ORM\Mapping as ORM;
+
+#[Internal]
+class Marked
+{
+}
+
+/** @internal */
+#[ORM\Entity]
+class Entity
+{
+}
+
+/** @internal @api */
+class Either
+{
+}
+
+class Plain
+{
+}
