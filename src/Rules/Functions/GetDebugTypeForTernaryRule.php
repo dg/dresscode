@@ -12,13 +12,14 @@ use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, T
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\{ArgumentNode, Expression, ExpressionNode, NameNode};
+use PhpSyntax\Nodes\{ArgumentNode, Expression, ExpressionNode, IdentifierNode, NameNode};
 use function count;
 
 
 /**
  * `is_object($v) ? get_class($v) : gettype($v)` asks what a value is in three calls, which is what
- * `get_debug_type()` of PHP 8.0 answers in one; the negated ternary is read the same way.
+ * `get_debug_type()` of PHP 8.0 answers in one; `$v::class` stands for `get_class($v)`, and the negated ternary
+ * is read the same way.
  *
  * The two do not spell the same answer: `gettype()` says `integer`, `double`, `boolean` and `NULL` where
  * `get_debug_type()` says `int`, `float`, `bool` and `null`, `get_class()` names an object of an anonymous class
@@ -59,7 +60,7 @@ final class GetDebugTypeForTernaryRule extends NodeRule
 		if (
 			$subject === null
 			|| !$subject->isRepeatableRead()
-			|| ($named = self::readSingleArgument($class, 'get_class', $context)) === null
+			|| ($named = self::readClassOfValue($class, $context)) === null
 			|| !$named->matches($subject)
 			|| ($typed = self::readSingleArgument($type, 'gettype', $context)) === null
 			|| !$typed->matches($subject)
@@ -87,6 +88,18 @@ final class GetDebugTypeForTernaryRule extends NodeRule
 
 		$spelling = CodeWriter::spellFunction('get_debug_type', $test->name, $context);
 		$node->replaceWith((new Builder)->call($spelling, [$subject]));
+	}
+
+
+	/** The value whose class `get_class($v)` or `$v::class` gives, null for any other expression. */
+	private static function readClassOfValue(?ExpressionNode $expression, RuleContext $context): ?ExpressionNode
+	{
+		return $expression instanceof Expression\ClassConstantFetchNode
+			&& $expression->class instanceof ExpressionNode
+			&& $expression->name instanceof IdentifierNode
+			&& $expression->name->equals('class')
+			? $expression->class
+			: self::readSingleArgument($expression, 'get_class', $context);
 	}
 
 
