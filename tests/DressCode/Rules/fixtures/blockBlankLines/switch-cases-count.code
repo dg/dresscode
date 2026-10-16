@@ -1,6 +1,6 @@
 <?php
 
-// {"betweenCases": 0}
+// {"bodyEnd": {"switchCase": 0}}
 
 switch ($a) {
 	case 1:

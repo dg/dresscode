@@ -11,7 +11,8 @@ use DressCode\{Claim, Decision, Domain, Gap, GapRule, RuleInfo, Stage, Values};
 use DressCode\Domains\Count;
 use PhpSyntax\{Node, Token, Trivia};
 use PhpSyntax\Nodes\{CaseNode, CatchNode, ElseifNode, ElseNode, FinallyNode, PlainNodeList, Statement, StatementNode};
-use PhpSyntax\Nodes\Expression\MatchNode;
+use PhpSyntax\Nodes\Expression\{ClosureNode, MatchNode};
+use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode};
 use function count;
 
 
@@ -25,11 +26,19 @@ final class BlockBlankLinesRule extends GapRule
 	private const Blocks = [Statement\BlockNode::class, Statement\SwitchNode::class, MatchNode::class];
 	private const LastSetApart = 'lastSetApart';
 
-	/** @var int|array{int, ?int}|null */
-	private int|array|null $afterOpening = null;
+	/** a place of `bodyStart` and `bodyEnd` => the body it is the braces of, as the descriptions say it */
+	private const Places = [
+		'function' => 'the body of a function or a method',
+		'closure' => 'the body of a closure',
+		'propertyHook' => 'the body of a property hook',
+		'controlStructure' => 'the body of `if`, `else`, a loop, `switch`, `match`, `try`, `catch`, `finally`, `declare` and of a bare block',
+	];
 
-	/** @var int|array{int, ?int}|null */
-	private int|array|null $beforeClosing = null;
+	/** @var array<string, ?Claim>  place => the claim after the opening brace, null where it is kept */
+	private array $afterOpening = [];
+
+	/** @var array<string, ?Claim>  place => the claim before the closing brace */
+	private array $beforeClosing = [];
 
 	/** @var int|array{int, ?int}|self::LastSetApart|null */
 	private int|array|string|null $betweenBranches = null;
@@ -51,16 +60,21 @@ final class BlockBlankLinesRule extends GapRule
 		$lastSetApart = new Count(
 			words: ['lastStatementSetApart' => 'one where the last statement of the branch stands apart, which would otherwise read as belonging to the next one, the others kept'],
 		);
+		$decisions = [];
+		foreach (self::Places as $place => $body) {
+			$decisions[] = new Decision("blankLines.bodyStart.$place", Domain::blankLines(), "After the opening brace of $body");
+			$decisions[] = new Decision("blankLines.bodyEnd.$place", Domain::blankLines(), "Before the closing brace of $body");
+		}
+
 		return [
-			new Decision('blankLines.afterBlockOpeningBrace', Domain::blankLines(), 'After the opening brace of a block'),
-			new Decision('blankLines.beforeBlockClosingBrace', Domain::blankLines(), 'Before the closing brace of a block'),
+			...$decisions,
 			new Decision(
-				'blankLines.betweenBranches',
+				'blankLines.bodyEnd.branch',
 				$lastSetApart,
-				'Before the closing brace of a branch of `if` or `try` that `else`, `elseif`, `catch` or `finally` follows, in place of `beforeBlockClosingBrace`',
+				'Before the closing brace of a branch of `if` or `try` that `else`, `elseif`, `catch` or `finally` follows, in place of `bodyEnd.controlStructure`',
 			),
 			new Decision(
-				'blankLines.betweenCases',
+				'blankLines.bodyEnd.switchCase',
 				$lastSetApart,
 				'Before a `case` or `default` of a `switch` that follows a case with statements, below a comment right under those statements',
 			),
@@ -70,24 +84,39 @@ final class BlockBlankLinesRule extends GapRule
 
 	public function configure(Values $values): void
 	{
-		$this->afterOpening = BlankLineClaims::readCount($values->get('blankLines.afterBlockOpeningBrace'));
-		$this->beforeClosing = BlankLineClaims::readCount($values->get('blankLines.beforeBlockClosingBrace'));
+		foreach (array_keys(self::Places) as $place) {
+			$this->afterOpening[$place] = $this->claims->claim(
+				BlankLineClaims::readCount($values->get("blankLines.bodyStart.$place")),
+				"bodyStart.$place",
+			);
+			$this->beforeClosing[$place] = $this->claims->claim(
+				BlankLineClaims::readCount($values->get("blankLines.bodyEnd.$place")),
+				"bodyEnd.$place",
+			);
+		}
+
 		$readSetApart = fn(string $key) => !$values->isKept("blankLines.$key") && $values->get("blankLines.$key")->hasWord()
 			? self::LastSetApart
 			: BlankLineClaims::readCount($values->get("blankLines.$key"));
-		$this->betweenBranches = $readSetApart('betweenBranches');
-		$this->betweenCases = $readSetApart('betweenCases');
+		$this->betweenBranches = $readSetApart('bodyEnd.branch');
+		$this->betweenCases = $readSetApart('bodyEnd.switchCase');
 	}
 
 
 	public function getClaims(): array
 	{
 		// an empty block has one gap, not two, and it belongs to the brace that closes it
-		$after = $this->claims->claim($this->afterOpening, 'afterBlockOpeningBrace');
-		$before = $this->claims->claim($this->beforeClosing, 'beforeBlockClosingBrace');
+		$before = fn(Gap $gap) => $this->beforeClosing[self::findPlace($gap->token->parent)];
 		$braces = [
-			'openBrace' => [null, $after === null ? null : fn(Gap $gap) => ($gap->token->getNext()?->is('}') ?? false) ? null : $after],
-			'closeBrace' => [$before, null],
+			'openBrace' => [
+				null,
+				array_filter($this->afterOpening) === []
+					? null
+					: fn(Gap $gap) => ($gap->token->getNext()?->is('}') ?? false)
+						? null
+						: $this->afterOpening[self::findPlace($gap->token->parent)],
+			],
+			'closeBrace' => [array_filter($this->beforeClosing) === [] ? null : $before, null],
 		];
 		$claims = [];
 		foreach (self::Blocks as $class) {
@@ -95,10 +124,10 @@ final class BlockBlankLinesRule extends GapRule
 		}
 
 		if ($this->betweenBranches !== null) {
-			$between = $this->claims->claim($this->betweenBranches === self::LastSetApart ? 1 : $this->betweenBranches, 'betweenBranches');
-			$heading = $this->claims->claim(0, 'betweenBranches');
+			$between = $this->claims->claim($this->betweenBranches === self::LastSetApart ? 1 : $this->betweenBranches, 'bodyEnd.branch');
+			$heading = $this->claims->claim(0, 'bodyEnd.branch');
 			$claims[Statement\BlockNode::class]['closeBrace'][0] = fn(Gap $gap) => match (true) {
-				!$this->isBetweenBranches($gap) => $before,
+				!$this->isBetweenBranches($gap) => $before($gap),
 				self::isHeadedByComment($gap->token) => $heading,
 				default => $between,
 			};
@@ -106,8 +135,8 @@ final class BlockBlankLinesRule extends GapRule
 
 		if ($this->betweenCases !== null) {
 			$count = $this->betweenCases === self::LastSetApart ? 1 : $this->betweenCases;
-			$above = new Claim(blankLines: $count, decision: 'blankLines.betweenCases');
-			$below = new Claim(blankLinesBelowComment: $count, decision: 'blankLines.betweenCases');
+			$above = new Claim(blankLines: $count, decision: 'blankLines.bodyEnd.switchCase');
+			$below = new Claim(blankLinesBelowComment: $count, decision: 'blankLines.bodyEnd.switchCase');
 			$claims[Statement\SwitchNode::class]['cases:item'] = [fn(Gap $gap) => $this->claimBeforeCase($gap, $above, $below), null];
 		}
 
@@ -115,9 +144,22 @@ final class BlockBlankLinesRule extends GapRule
 	}
 
 
+	/** The place of `bodyStart` and `bodyEnd` the braces enclose the body of. */
+	private static function findPlace(?Node $braced): string
+	{
+		return match (true) {
+			!$braced instanceof Statement\BlockNode => 'controlStructure',
+			$braced->parent instanceof Statement\FunctionNode, $braced->parent instanceof MethodNode => 'function',
+			$braced->parent instanceof ClosureNode => 'closure',
+			$braced->parent instanceof PropertyHookNode => 'propertyHook',
+			default => 'controlStructure',
+		};
+	}
+
+
 	/**
-	 * Whether the closing brace ends a branch another branch of its if or try follows, which betweenBranches
-	 * then decides, an empty one left to beforeBlockClosingBrace; lastSetApart takes only a branch whose last statement
+	 * Whether the closing brace ends a branch another branch of its if or try follows, which `bodyEnd.branch`
+	 * then decides, an empty one left to `bodyEnd.controlStructure`; lastSetApart takes only a branch whose last statement
 	 * stands apart from the ones above it, which would otherwise read as the start of the next branch.
 	 */
 	private function isBetweenBranches(Gap $gap): bool

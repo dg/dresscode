@@ -518,8 +518,14 @@ test('a rule of blank lines translates to the places it counts, with the counts 
 
 	$translation = $translate(['no_extra_blank_lines' => ['tokens' => ['curly_brace_block', 'return', 'use_trait', 'extra']]]);
 	Assert::same([
-		'blankLines.afterBlockOpeningBrace' => 0,
-		'blankLines.beforeBlockClosingBrace' => 0,
+		'blankLines.bodyStart.function' => 0,
+		'blankLines.bodyStart.closure' => 0,
+		'blankLines.bodyStart.propertyHook' => 0,
+		'blankLines.bodyStart.controlStructure' => 0,
+		'blankLines.bodyEnd.function' => 0,
+		'blankLines.bodyEnd.closure' => 0,
+		'blankLines.bodyEnd.propertyHook' => 0,
+		'blankLines.bodyEnd.controlStructure' => 0,
 		'blankLines.afterStatement' => ['return' => 0],
 		'blankLines.betweenTraitUses' => 0,
 	], $translation->decisions);
@@ -535,10 +541,11 @@ test('a rule of blank lines translates to the places it counts, with the counts 
 	// a sniff of control structures asks for a blank line after one at least, and checks only their own braces and parentheses
 	$translation = $translate(['Squiz.WhiteSpace.ControlStructureSpacing' => true]);
 	Assert::same([1, null], $translation->decisions['blankLines.afterStatement']['if']);
-	Assert::match(
-		'`Squiz.WhiteSpace.ControlStructureSpacing` checks the blank lines inside the braces and the spaces inside the parentheses of a control structure only, %a%',
-		$translation->warnings[0] ?? '',
-	);
+	Assert::same([0, 'forbidden'], [
+		$translation->decisions['blankLines.bodyStart.controlStructure'],
+		$translation->decisions['spacing.padding.controlStructure'],
+	]);
+	Assert::same([], $translation->warnings);
 
 	// the defaults of the fixer separate enum cases apart, which is not worth a warning, a separation chosen is
 	$translation = $translate(['class_attributes_separation' => true]);

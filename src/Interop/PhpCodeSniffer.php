@@ -147,8 +147,8 @@ final class PhpCodeSniffer
 				$t->setAll(['classes.members.perLine' => 1, 'file.statementsPerLine' => 1]);
 			},
 			'PSR12.Classes.OpeningBraceSpace' => fn(array $o, Translation $t) => $t->setAll([
-				'blankLines.beforeFirstMember' => 0,
-				'blankLines.beforeFirstMethod' => 0,
+				'blankLines.bodyStart.class' => 0,
+				'blankLines.bodyStart.anonymousClass' => 0,
 			]),
 			'PSR12.ControlStructures.BooleanOperatorPlacement' => function (array $o, Translation $t) {
 				$only = $o['allowOnly'] ?? null;
@@ -201,10 +201,10 @@ final class PhpCodeSniffer
 			'PSR12.Traits.UseDeclaration' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.Traits.UseDeclaration` also lays out the conflict block of a trait use, its opening brace on the line of `use` and a rule per line, which DressCode does not.');
 				$t->setAll([
-					'blankLines.beforeFirstMember' => 0,
+					'blankLines.bodyStart.class' => 0,
 					'blankLines.betweenTraitUses' => 0,
 					'blankLines.afterTraitUses' => 1,
-					'blankLines.afterLastMember' => 0,
+					'blankLines.bodyEnd.class' => 0,
 					// the space after `use`, around `as` and `insteadof`, and none before the semicolon
 					'spacing.keyword' => 'spaced',
 					'spacing.semicolon.before' => 'compact',
@@ -247,7 +247,10 @@ final class PhpCodeSniffer
 					'multiline.edges.argument' => 'apart',
 				]);
 			},
-			'PSR2.Methods.FunctionClosingBrace' => fn(array $o, Translation $t) => $t->set('blankLines.beforeBlockClosingBrace', 0),
+			'PSR2.Methods.FunctionClosingBrace' => fn(array $o, Translation $t) => $t->setAll([
+				'blankLines.bodyEnd.function' => 0,
+				'blankLines.bodyEnd.closure' => 0,
+			]),
 			'PSR2.Methods.MethodDeclaration' => function (array $o, Translation $t) {
 				$t->warn('`PSR2.Methods.MethodDeclaration` also rules on the underscore prefix of method names, which DressCode does not.');
 				$t->set('classes.modifiers.order', 'canonical');
@@ -290,10 +293,10 @@ final class PhpCodeSniffer
 				['constant', 'traitUse'],
 			),
 			'SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces' => fn(array $o, Translation $t) => $t->setAll([
-				'blankLines.beforeFirstMember' => $o['linesCountAfterOpeningBrace'] ?? 1,
-				'blankLines.beforeFirstMethod' => $o['linesCountAfterOpeningBrace'] ?? 1,
-				'blankLines.afterLastMember' => $o['linesCountBeforeClosingBrace'] ?? 1,
-				'blankLines.afterLastMethod' => $o['linesCountBeforeClosingBrace'] ?? 1,
+				'blankLines.bodyStart.class' => $o['linesCountAfterOpeningBrace'] ?? 1,
+				'blankLines.bodyStart.anonymousClass' => $o['linesCountAfterOpeningBrace'] ?? 1,
+				'blankLines.bodyEnd.class' => $o['linesCountBeforeClosingBrace'] ?? 1,
+				'blankLines.bodyEnd.anonymousClass' => $o['linesCountBeforeClosingBrace'] ?? 1,
 			]),
 			'SlevomatCodingStandard.Classes.MethodSpacing' => fn(array $o, Translation $t) => $t
 				->setBlankLines('blankLines.aroundMethods', $o['minLinesCount'] ?? 1, $o['maxLinesCount'] ?? 1)
@@ -671,23 +674,25 @@ final class PhpCodeSniffer
 			'Squiz.Strings.EchoedStrings' => ['expressions.parenthesesAfterConstruct' => 'forbidden'],
 			'Squiz.WhiteSpace.CastSpacing' => ['expressions.cast' => 'canonical'],
 			'Squiz.WhiteSpace.ControlStructureSpacing' => function (array $o, Translation $t) {
-				$t->warn('`Squiz.WhiteSpace.ControlStructureSpacing` checks the blank lines inside the braces and the spaces inside the parentheses of a control structure only, while `blankLines.afterBlockOpeningBrace`, `blankLines.beforeBlockClosingBrace` and `spacing.parentheses` govern every block and every parenthesis.');
 				$t->setAll([
-					...Translation::NoSpaceInParentheses,
-					'blankLines.afterBlockOpeningBrace' => 0,
-					'blankLines.beforeBlockClosingBrace' => 0,
+					'spacing.padding.controlStructure' => 'forbidden',
+					'blankLines.bodyStart.controlStructure' => 0,
+					'blankLines.bodyEnd.controlStructure' => 0,
 					'blankLines.afterStatement' => array_fill_keys(['do', 'for', 'foreach', 'if', 'switch', 'try', 'while'], [1, null]),
 				]);
 			},
-			'Squiz.WhiteSpace.FunctionOpeningBraceSpace' => fn(array $o, Translation $t) => $t->set('blankLines.afterBlockOpeningBrace', 0),
+			'Squiz.WhiteSpace.FunctionOpeningBraceSpace' => fn(array $o, Translation $t) => $t->setAll([
+				'blankLines.bodyStart.function' => 0,
+				'blankLines.bodyStart.closure' => 0,
+			]),
 			'Squiz.WhiteSpace.FunctionSpacing' => function (array $o, Translation $t) {
 				$t->warn('`Squiz.WhiteSpace.FunctionSpacing` leaves the blank lines around classes alone, while `blankLines` sets them together with those around functions.');
 				$t->setAll([
 					'blankLines.aroundDeclarations' => $o['spacing'] ?? 2,
 					'blankLines.aroundMethods' => $o['spacing'] ?? 2,
 					'blankLines.aroundInterfaceMethods' => $o['spacing'] ?? 2,
-					'blankLines.beforeFirstMethod' => $o['spacingBeforeFirst'] ?? 2,
-					'blankLines.afterLastMethod' => $o['spacingAfterLast'] ?? 2,
+					'blankLines.bodyStart.class' => $o['spacingBeforeFirst'] ?? 2,
+					'blankLines.bodyEnd.class' => $o['spacingAfterLast'] ?? 2,
 				]);
 			},
 			'Squiz.WhiteSpace.LogicalOperatorSpacing' => [

@@ -1,6 +1,6 @@
 <?php
 
-// {"betweenBranches": "lastStatementSetApart"}
+// {"bodyEnd": {"branch": "lastStatementSetApart"}}
 
 function lastSetApart()
 {

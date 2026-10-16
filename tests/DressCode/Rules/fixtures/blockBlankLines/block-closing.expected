@@ -1,5 +1,5 @@
 <?php
-// {"beforeBlockClosingBrace": 0}
+// {"bodyEnd": {"blocks": 0}}
 function f()
 {
 	foo();

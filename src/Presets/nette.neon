@@ -127,10 +127,12 @@ blankLines:
 	beforeDocumentedMember: 1
 	afterPhpdoc: 0
 	afterAttributes: 0
-	afterBlockOpeningBrace: 0
-	beforeBlockClosingBrace: 0-1
-	betweenBranches: lastStatementSetApart    # before `} else {` where the last statement stands apart
-	betweenCases: lastStatementSetApart       # likewise before `case`
+	bodyStart:
+		blocks: 0
+	bodyEnd:
+		blocks: 0-1
+		branch: lastStatementSetApart         # before `} else {` where the last statement stands apart
+		switchCase: lastStatementSetApart     # likewise before `case`
 
 classes:
 	visibility:

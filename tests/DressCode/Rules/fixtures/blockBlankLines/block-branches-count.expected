@@ -1,6 +1,6 @@
 <?php
 
-// {"betweenBranches": 0, "beforeBlockClosingBrace": 1}
+// {"bodyEnd": {"branch": 0, "blocks": 1}}
 
 if ($a) {
 	foo();

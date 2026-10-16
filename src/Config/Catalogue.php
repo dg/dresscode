@@ -59,6 +59,7 @@ final class Catalogue
 
 	/** the kinds of places a group takes a value for at once, `items: {lists: perLine}`, with the places of each */
 	public const PlaceKinds = [
+		'blocks' => ['function', 'closure', 'propertyHook', 'controlStructure'],
 		'lists' => [
 			'array', 'list', 'argument', 'parameter', 'closureUse', 'import', 'attribute', 'matchArm', 'matchCondition', 'for',
 			'implements',

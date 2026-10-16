@@ -401,7 +401,7 @@ final class PhpCsFixer
 				$t->set('cleanup.aliasFunctions', ($o['sets'] ?? null) === null ? ['internal', 'imap', 'pg'] : $sets);
 			},
 			'no_alternative_syntax' => ['braces.alternativeSyntax' => 'forbidden'],
-			'no_blank_lines_after_class_opening' => ['blankLines.beforeFirstMember' => 0, 'blankLines.beforeFirstMethod' => 0],
+			'no_blank_lines_after_class_opening' => ['blankLines.bodyStart.class' => 0, 'blankLines.bodyStart.anonymousClass' => 0],
 			'no_blank_lines_after_phpdoc' => fn(array $o, Translation $t) => $t->set('blankLines.afterPhpdoc', 0),
 			'no_break_comment' => fn(array $o, Translation $t) => $t->set(
 				'controlFlow.switch.fallThroughComment',
@@ -418,8 +418,8 @@ final class PhpCsFixer
 				foreach ($tokens as $token) {
 					match ($token) {
 						'curly_brace_block' => $t->setAll([
-							'blankLines.afterBlockOpeningBrace' => 0,
-							'blankLines.beforeBlockClosingBrace' => 0,
+							...Translation::expandBlocks('blankLines.bodyStart', 0),
+							...Translation::expandBlocks('blankLines.bodyEnd', 0),
 						]),
 						'break', 'continue', 'return', 'throw' => $t->set('blankLines.afterStatement', [$token => 0]),
 						'attribute' => $t->set('blankLines.afterAttributes', 0),

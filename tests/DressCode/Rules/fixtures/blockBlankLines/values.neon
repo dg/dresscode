@@ -1,2 +1,2 @@
 blankLines:
-	afterBlockOpeningBrace: 0
+	bodyStart: 0

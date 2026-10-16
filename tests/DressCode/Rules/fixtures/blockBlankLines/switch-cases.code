@@ -1,6 +1,6 @@
 <?php
 
-// {"betweenCases": "lastStatementSetApart"}
+// {"bodyEnd": {"switchCase": "lastStatementSetApart"}}
 
 function lastSetApart($a)
 {

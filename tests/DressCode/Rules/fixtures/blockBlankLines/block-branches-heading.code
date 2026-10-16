@@ -1,5 +1,5 @@
 <?php
-// {"betweenBranches": "lastStatementSetApart"}
+// {"bodyEnd": {"branch": "lastStatementSetApart"}}
 // a comment at the level of the brace heads the next branch, the blank line above it sets the branches apart
 function a($x, $y)
 {

@@ -26,12 +26,12 @@ final class MemberBlankLinesRule extends GapRule
 		AnonymousClassNode::class,
 	];
 	private const Counts = [
-		'aroundMethods' => 'Before and after a method; the first and the last method of a class take `beforeFirstMethod` and `afterLastMethod`',
+		'aroundMethods' => 'Before and after a method; the first and the last member of a class take `bodyStart.class` and `bodyEnd.class`',
 		'aroundInterfaceMethods' => 'Before and after a method of an interface, in place of `aroundMethods`',
-		'beforeFirstMethod' => 'Before a method that is the first member of its class',
-		'afterLastMethod' => 'After a method that is the last member of its class',
-		'beforeFirstMember' => 'Before the first member, unless it is a method, which takes `beforeFirstMethod`',
-		'afterLastMember' => 'After the last member, unless it is a method, which takes `afterLastMethod`',
+		'bodyStart.class' => 'After the opening brace of a class, an interface, a trait or an enum, before its first member',
+		'bodyStart.anonymousClass' => 'After the opening brace of an anonymous class, before its first member',
+		'bodyEnd.class' => 'Before the closing brace of a class, an interface, a trait or an enum, after its last member',
+		'bodyEnd.anonymousClass' => 'Before the closing brace of an anonymous class, after its last member',
 		'betweenTraitUses' => 'Between the trait uses of a class',
 		'afterTraitUses' => 'Before the first member after the trait uses, a method included',
 		'betweenMemberKinds' => 'Between a property, a constant and an enum case of different kinds, the lower one without a doc comment or an attribute',
@@ -103,17 +103,16 @@ final class MemberBlankLinesRule extends GapRule
 			? !$member->attributes->isEmpty() || $member->getDocComment() !== null
 			: false;
 		$key = match (true) {
+			$index === 0 => 'bodyStart.' . self::findPlace($list),
 			$member instanceof Member\MethodNode => match (true) {
-				$index === 0 => 'beforeFirstMethod',
 				$previous instanceof Member\TraitUseNode => 'afterTraitUses',
 				default => self::chooseBetweenMethods($list),
 			},
-			$previous === null => 'beforeFirstMember',
 			$member instanceof Member\TraitUseNode => $previous instanceof Member\TraitUseNode ? 'betweenTraitUses' : null,
 			$previous instanceof Member\TraitUseNode => 'afterTraitUses',
 			$previous instanceof Member\MethodNode => null, // the method claims the gap after itself
 			$documented => 'beforeDocumentedMember',
-			$previous::class === $member::class => 'betweenMembers',
+			$previous instanceof $member => 'betweenMembers',
 			default => 'betweenMemberKinds',
 		};
 		$below = BlankLineClaims::findBelowDocComment($member, $this->counts['afterPhpdoc']);
@@ -134,7 +133,7 @@ final class MemberBlankLinesRule extends GapRule
 			return null; // the method below claims the gap before itself
 		}
 
-		$key = $next === null ? 'afterLastMethod' : self::chooseBetweenMethods($list);
+		$key = $next === null ? 'bodyEnd.' . self::findPlace($list) : self::chooseBetweenMethods($list);
 		return $this->claims->claim($this->counts[$key], $key);
 	}
 
@@ -143,9 +142,25 @@ final class MemberBlankLinesRule extends GapRule
 	private function claimAfterLastMember(Token $brace): ?Claim
 	{
 		$class = $brace->parent;
-		$members = $class instanceof ClassLikeNode ? $class->members->getItems() : [];
-		$last = $members[count($members) - 1] ?? null;
-		return $last instanceof Member\MethodNode ? null : $this->claims->claim($this->counts['afterLastMember'], 'afterLastMember');
+		if (!$class instanceof ClassLikeNode) {
+			return null;
+		}
+
+		$members = $class->members->getItems();
+		$key = 'bodyEnd.' . self::findPlace($class->members);
+		return ($members[count($members) - 1] ?? null) instanceof Member\MethodNode
+			? null
+			: $this->claims->claim($this->counts[$key], $key);
+	}
+
+
+	/**
+	 * The place of `bodyStart` and `bodyEnd` the class of the members is.
+	 * @param  PlainNodeList<MemberNode>  $members
+	 */
+	private static function findPlace(PlainNodeList $members): string
+	{
+		return $members->parent instanceof AnonymousClassNode ? 'anonymousClass' : 'class';
 	}
 
 

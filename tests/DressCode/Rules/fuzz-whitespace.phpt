@@ -436,10 +436,13 @@ $resolver = new ConfigResolver($registry);
 $decisions = [
 	// PER says nothing about blank lines, and a range as a count would leave the fixpoint ambiguous
 	'blankLines' => [
-		'aroundDeclarations' => 2, 'aroundMethods' => 2, 'aroundInterfaceMethods' => 1, 'beforeFirstMethod' => 0, 'afterLastMethod' => 0,
-		'beforeFirstMember' => 0, 'afterLastMember' => 0, 'betweenTraitUses' => 0, 'afterTraitUses' => 1,
-		'betweenMembers' => 1, 'beforeDocumentedMember' => 1, 'afterPhpdoc' => 0,
-		'beforeStatement' => ['return' => 1], 'afterBlockOpeningBrace' => 0, 'beforeBlockClosingBrace' => 0,
+		'aroundDeclarations' => 2, 'aroundMethods' => 2, 'aroundInterfaceMethods' => 1, 'betweenTraitUses' => 0, 'afterTraitUses' => 1,
+		'betweenMembers' => 1, 'beforeDocumentedMember' => 1, 'afterPhpdoc' => 0, 'beforeStatement' => ['return' => 1],
+		'bodyStart' => ['class' => 0, 'anonymousClass' => 0, 'blocks' => 0], 'bodyEnd' => [
+			'class' => 0,
+			'anonymousClass' => 0,
+			'blocks' => 0,
+		],
 	],
 	// an expression begins on the line of its return, the exact choice, and an operator ending a line is moved, so
 	// that the fixpoint holds with the moves among the fixes

@@ -117,10 +117,12 @@ blankLines:
 	afterNamespace: 1
 	afterImports: 1
 	betweenImportKinds: 1
-	beforeFirstMethod: 0
-	afterLastMethod: 0
-	beforeFirstMember: 0
-	afterLastMember: 0
+	bodyStart:
+		class: 0
+		anonymousClass: 0
+	bodyEnd:
+		class: 0
+		anonymousClass: 0
 	betweenTraitUses: 0
 	afterTraitUses: 1
 

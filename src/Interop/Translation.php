@@ -7,7 +7,7 @@
 
 namespace DressCode\Interop;
 
-use DressCode\Config\{ConfigResolver, PluginRegistry};
+use DressCode\Config\{Catalogue, ConfigResolver, PluginRegistry};
 use DressCode\Domains\Shapes;
 use DressCode\Engine\Helpers;
 use function array_key_exists, count, is_array, is_bool, is_int, is_string, sprintf;
@@ -131,6 +131,16 @@ final class Translation
 		}
 
 		return $this;
+	}
+
+
+	/**
+	 * The value for every place of the kind `blocks` of the group, which a translation writes out place by place.
+	 * @return array<string, mixed>  path => the value
+	 */
+	public static function expandBlocks(string $group, mixed $value): array
+	{
+		return array_fill_keys(array_map(fn(string $place) => "$group.$place", Catalogue::PlaceKinds['blocks']), $value);
 	}
 
 
