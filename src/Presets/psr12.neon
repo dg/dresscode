@@ -44,7 +44,12 @@ imports:
 spacing:
 	declare: 'declare(strict_types=1)'
 	call: 'foo($a, $b)'                       # `function foo($a)` too
-	parentheses: '($a)'
+	padding:                                  # `foo($a)`, `if ($a)`, `($a + $b)`
+		argument: forbidden
+		parameter: forbidden
+		closureUse: forbidden
+		controlStructure: forbidden
+		grouping: forbidden
 	keyword: 'return $x'                      # `if (`, `} else {`, `function (`, `new`, `class Foo extends Bar` too
 	openBrace: 'if ($a) {'
 	alternativeSyntax: 'if ($a):'

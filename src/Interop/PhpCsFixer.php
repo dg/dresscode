@@ -230,7 +230,7 @@ final class PhpCsFixer
 
 				$t->setAll([
 					'spacing.call' => 'compact',
-					'spacing.parentheses' => 'compact',
+					...Translation::NoSpaceInParentheses,
 					'spacing.arrowFunction' => ($o['closure_fn_spacing'] ?? 'one') === 'one' ? 'spaced' : 'compact',
 				]);
 			},
@@ -448,8 +448,8 @@ final class PhpCsFixer
 			'no_singleline_whitespace_before_semicolons' => ['spacing.semicolon.before' => 'compact'],
 			'no_space_around_double_colon' => ['spacing.doubleColon' => 'compact'],
 			'no_spaces_after_function_name' => ['spacing.call' => 'compact'],
-			'no_spaces_around_offset' => ['spacing.offsetBrackets' => 'compact'],
-			'no_spaces_inside_parenthesis' => ['spacing.parentheses' => 'compact'],
+			'no_spaces_around_offset' => ['spacing.padding.offset' => 'forbidden'],
+			'no_spaces_inside_parenthesis' => Translation::NoSpaceInParentheses,
 			'no_trailing_comma_in_singleline' => function (array $o, Translation $t) {
 				// a place another fixer asked to be required stays so, which removes the one-line comma as well
 				$places = [
@@ -651,7 +651,7 @@ final class PhpCsFixer
 				$t->set('spacing.semicolon.after', 'spaced');
 			},
 			'spaces_inside_parentheses' => fn(array $o, Translation $t) => ($o['space'] ?? 'none') === 'none'
-				? $t->set('spacing.parentheses', 'compact')
+				? $t->setAll(Translation::NoSpaceInParentheses)
 				: $t->warn('`spaces_inside_parentheses` with `space=single` has no equivalent; DressCode writes no space inside parentheses.'),
 			'standardize_increment' => ['expressions.assignment.addingOne' => 'forbidden'],
 			'standardize_not_equals' => ['expressions.comparison.notEquals' => 'exclamation'],
@@ -692,7 +692,7 @@ final class PhpCsFixer
 				];
 				$t->setAll(array_fill_keys(array_values(array_intersect_key($places, array_flip($elements))), 'required'));
 			},
-			'trim_array_spaces' => ['spacing.arrayBrackets' => 'compact'],
+			'trim_array_spaces' => Translation::NoSpaceInArrays,
 			'unary_operator_spaces' => fn(array $o, Translation $t) => $t->setAll(
 				['spacing.unaryOperator' => 'compact'] + (($o['only_dec_inc'] ?? false)
 					? ['spacing.unaryOperatorsWithSpace' => ['!', '-', '+', '~', '@']]

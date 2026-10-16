@@ -5,6 +5,6 @@ $c = [
 	1,
 ];
 $d = [];
-$e = array(1);
+$e = array (1);
 [$f, $g] = $x;
 list($f, $g) = $x;

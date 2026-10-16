@@ -62,8 +62,10 @@ spacing:
 	unaryOperatorsWithSpace: []               # `!$x`, never `! $x`
 	doubleColon: 'Foo::bar()'
 	objectOperator: '$a->b()'
-	offsetBrackets: '$a[0]'
-	arrayBrackets: '[1, 2]'
+	padding:
+		array: forbidden                      # `[1, 2]`, `[$a, $b] = $x`
+		list: forbidden
+		offset: forbidden                     # `$a[0]`
 	comment:
 		marker: '// text'                     # also `#` and `/* */`
 		afterCode: '$a; // text'              # at least one space

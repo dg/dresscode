@@ -7,8 +7,7 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Claim, Decision, GapRule, Line, RuleInfo, Space, Stage};
-use DressCode\Domains\Shapes;
+use DressCode\{Claim, Decision, Domain, GapRule, Line, RuleInfo, Space, Stage};
 use PhpSyntax\Nodes\Expression\ArrayAccessNode;
 
 
@@ -21,9 +20,9 @@ final class OffsetBracketSpacingRule extends GapRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'spacing.offsetBrackets',
-			new Shapes(['compact' => ['$a[0]', 'none around and inside']]),
-			'The whitespace around and inside the brackets of an offset access',
+			'spacing.padding.offset',
+			Domain::state(),
+			'The whitespace inside the brackets of an offset access and before them',
 		)];
 	}
 

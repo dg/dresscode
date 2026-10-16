@@ -10,14 +10,16 @@ namespace DressCode\Rules\Functions;
 use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Space, Stage};
 use DressCode\Domains\Shapes;
 use PhpSyntax\Nodes\{AttributeNode, DestructuringNode};
-use PhpSyntax\Nodes\Expression\{EmptyNode, EvalNode, ExitNode, FunctionCallNode, IssetNode, MethodCallNode, NewNode, StaticMethodCallNode};
+use PhpSyntax\Nodes\Expression\{
+	ArrayNode, EmptyNode, EvalNode, ExitNode, FunctionCallNode, IssetNode, MethodCallNode, NewNode, StaticMethodCallNode,
+};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode};
 use PhpSyntax\Nodes\Statement\{FunctionNode, HaltCompilerNode, UnsetNode};
 
 
 /**
  * No whitespace between the name of a function and its parentheses, which stay on its line, in calls and
- * declarations alike; `isset`, `unset`, `empty`, `list`, `eval`, `exit` and `__halt_compiler` count as names
+ * declarations alike; `isset`, `unset`, `empty`, `list`, `array`, `eval`, `exit` and `__halt_compiler` count as names
  * too, and so do the name of a property hook with parameters and that of an attribute with arguments. What may
  * stand without parentheses (`new Foo`, `exit`, a hook without parameters, `#[Foo]`) is left alone where they are
  * missing: the gap after it is then somebody else's.
@@ -55,6 +57,7 @@ final class FunctionNameSpacingRule extends GapRule
 			UnsetNode::class => $hugs('unsetKeyword'),
 			EmptyNode::class => $hugs('emptyKeyword'),
 			DestructuringNode::class => $hugs('listKeyword'),
+			ArrayNode::class => $hugs('arrayKeyword'),
 			EvalNode::class => $hugs('evalKeyword'),
 			HaltCompilerNode::class => $hugs('haltCompilerKeyword'),
 		];

@@ -25,6 +25,18 @@ use function array_key_exists, count, is_array, is_bool, is_int, is_string, spri
  */
 final class Translation
 {
+	/** no whitespace inside the parentheses of every place `spacing.padding` has for them */
+	public const NoSpaceInParentheses = [
+		'spacing.padding.argument' => 'forbidden',
+		'spacing.padding.parameter' => 'forbidden',
+		'spacing.padding.closureUse' => 'forbidden',
+		'spacing.padding.controlStructure' => 'forbidden',
+		'spacing.padding.grouping' => 'forbidden',
+	];
+
+	/** no whitespace inside the brackets of an array and of a destructuring */
+	public const NoSpaceInArrays = ['spacing.padding.array' => 'forbidden', 'spacing.padding.list' => 'forbidden'];
+
 	/** how firmly a foreign rule gives the value of a decision */
 	private const Kept = 0;
 	private const Preferred = 1;

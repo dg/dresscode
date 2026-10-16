@@ -136,7 +136,7 @@ test('a plain claim and a closure deciding one component of one slot are refused
 
 test('the whitespace of a string, of a comment and of a line ending is not a gap', function () {
 	[$output, $violations] = apply([
-		RuleBuilder::createRule(Rules\Whitespace\ParenthesesSpacingRule::class, ['spacing.parentheses' => '($a)']),
+		RuleBuilder::createRule(Rules\Whitespace\ParenthesesSpacingRule::class, ['spacing.padding' => 'forbidden']),
 		RuleBuilder::createRule(Rules\Expressions\ObjectOperatorSpacingRule::class, ['spacing.objectOperator' => '$a->b()']),
 	], "<?php\nfoo( \"{\$a -> b}\" );\nfoo( // c\n\t\$a\n);\n\$x ?>\n<b> ?> </b>\n");
 	Assert::same("<?php\nfoo(\"{\$a -> b}\");\nfoo( // c\n\t\$a\n);\n\$x ?>\n<b> ?> </b>\n", $output);

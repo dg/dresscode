@@ -478,9 +478,9 @@ test('a place the translation does not name keeps what the preset of the transla
 
 test('options of a rule that takes none are reported, not dropped in silence', function () {
 	$translation = (new Translator)->translate(['no_spaces_around_offset' => ['positions' => ['inside']]]);
-	Assert::same(['spacing.offsetBrackets' => 'compact'], $translation->decisions);
+	Assert::same(['spacing.padding.offset' => 'forbidden'], $translation->decisions);
 	Assert::same(
-		['The options of `no_spaces_around_offset` were not translated; set them by hand, `dresscode explain spacing.offsetBrackets` describes them.'],
+		['The options of `no_spaces_around_offset` were not translated; set them by hand, `dresscode explain spacing.padding.offset` describes them.'],
 		$translation->warnings,
 	);
 });
@@ -592,7 +592,7 @@ test('a rule of blank lines translates to the places it counts, with the counts 
 test('a fixer of a declaration translates the parentheses, the comma and the brace of a function', function () {
 	$translate = fn(array $rules) => (new Translator)->translate($rules);
 	$translation = $translate(['function_declaration' => true]);
-	Assert::same('compact', $translation->decisions['spacing.parentheses']);
+	Assert::same('forbidden', $translation->decisions['spacing.padding.argument']);
 	Assert::same('optional', $translation->decisions['multiline.trailingComma.parameter']);
 	Assert::same([], $translation->warnings);
 

@@ -74,7 +74,7 @@ final class TypeDeclarationSpacingRule extends GapRule
 		return [
 			NullableTypeNode::class => ['question' => [null, $hug]],
 			UnionTypeNode::class => ['types:separator' => [$hug, $hug]],
-			IntersectionTypeNode::class => ['types:separator' => [$hug, $hug]],
+			IntersectionTypeNode::class => ['types:separator' => [$hug, $hug], 'openParen' => [null, $hug], 'closeParen' => [$hug, null]],
 			CatchNode::class => $catch + ['variable' => [$joined, null]],
 			ParameterNode::class => $typed,
 			PropertyNode::class => $typed,

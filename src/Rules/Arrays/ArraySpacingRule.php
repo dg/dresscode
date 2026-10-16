@@ -7,26 +7,38 @@
 
 namespace DressCode\Rules\Arrays;
 
-use DressCode\{Claim, Decision, GapRule, Line, RuleInfo, Space, Stage};
-use DressCode\Domains\Shapes;
+use DressCode\{Claim, Decision, Domain, GapRule, RuleInfo, Stage, Values};
 use PhpSyntax\Nodes\DestructuringNode;
 use PhpSyntax\Nodes\Expression\ArrayNode;
 
 
 /**
- * No whitespace just inside the brackets of an array or a destructuring on a line, nor between `array` and its
- * parenthesis, which stay on one line: `[1, 2]`, `[$a, $b] = $x` and `array(1)`, not `[ 1, 2 ]` and `array (1)`.
+ * No whitespace just inside the brackets of an array or a destructuring on a line: `[1, 2]`, `[$a, $b] = $x` and
+ * `array(1)`, not `[ 1, 2 ]`.
  */
 #[RuleInfo(Stage::Formatting)]
 final class ArraySpacingRule extends GapRule
 {
+	private const Array = 'spacing.padding.array';
+	private const List = 'spacing.padding.list';
+
+	private ?Claim $array = null;
+	private ?Claim $list = null;
+
+
 	public static function getDecisions(): array
 	{
-		return [new Decision(
-			'spacing.arrayBrackets',
-			new Shapes(['compact' => ['[1, 2]', 'none inside']]),
-			'The whitespace inside the brackets of an array or a destructuring, and between `array` and its parenthesis',
-		)];
+		return [
+			new Decision(self::Array, Domain::state(), 'The whitespace inside the brackets or the parentheses of an array'),
+			new Decision(self::List, Domain::state(), 'The whitespace inside the brackets or the parentheses of a destructuring'),
+		];
+	}
+
+
+	public function configure(Values $values): void
+	{
+		$this->array = $values->isKept(self::Array) ? null : Claim::noSpace()->withDecision(self::Array);
+		$this->list = $values->isKept(self::List) ? null : Claim::noSpace()->withDecision(self::List);
 	}
 
 
@@ -34,13 +46,12 @@ final class ArraySpacingRule extends GapRule
 	{
 		return [
 			ArrayNode::class => [
-				'arrayKeyword' => [null, new Claim(Space::None, line: Line::Same)],
-				'openDelimiter' => [null, Claim::noSpace()],
-				'closeDelimiter' => [Claim::noSpace(), null],
+				'openDelimiter' => [null, $this->array],
+				'closeDelimiter' => [$this->array, null],
 			],
 			DestructuringNode::class => [
-				'openDelimiter' => [null, Claim::noSpace()],
-				'closeDelimiter' => [Claim::noSpace(), null],
+				'openDelimiter' => [null, $this->list],
+				'closeDelimiter' => [$this->list, null],
 			],
 		];
 	}

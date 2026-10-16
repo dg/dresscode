@@ -133,7 +133,7 @@ final class PhpCodeSniffer
 					'braces.position.anonymousClass' => 'sameLine',
 					'spacing.keyword' => 'spaced',
 					'spacing.anonymousClass' => 'spaced',
-					'spacing.parentheses' => 'compact',
+					...Translation::NoSpaceInParentheses,
 				]);
 			},
 			'PSR12.Classes.ClassInstantiation' => ['classes.emptyParentheses.instantiation' => 'required'],
@@ -159,7 +159,7 @@ final class PhpCodeSniffer
 			'PSR12.ControlStructures.ControlStructureSpacing' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.ControlStructures.ControlStructureSpacing` also puts the parentheses of a multi-line `for`, `foreach`, `switch`, `catch` and `match` on lines of their own, which DressCode does not.');
 				$t->setAll([
-					'spacing.parentheses' => 'compact',
+					...Translation::NoSpaceInParentheses,
 					'multiline.items.condition' => ['perLine', 'fill'],
 					'multiline.edges.condition' => 'apart',
 				]);
@@ -214,7 +214,7 @@ final class PhpCodeSniffer
 				'classes.visibility.member' => 'required',
 				'classes.modifiers.order' => 'canonical',
 			],
-			'PSR2.ControlStructures.ControlStructureSpacing' => ['spacing.parentheses' => 'compact'],
+			'PSR2.ControlStructures.ControlStructureSpacing' => Translation::NoSpaceInParentheses,
 			'PSR2.ControlStructures.ElseIfDeclaration' => ['controlFlow.elseif' => 'oneWord'],
 			'PSR2.ControlStructures.SwitchDeclaration' => function (array $o, Translation $t) {
 				$t->warn('`PSR2.ControlStructures.SwitchDeclaration` also starts the body of a case on the line below it and forbids braces around it, which DressCode does not.');
@@ -237,7 +237,7 @@ final class PhpCodeSniffer
 				}
 				$t->setAll([
 					'spacing.call' => 'compact',
-					'spacing.parentheses' => 'compact',
+					...Translation::NoSpaceInParentheses,
 					'multiline.items.argument' => ($o['allowMultipleArguments'] ?? false) ? 'fill' : 'perLine',
 					'multiline.edges.argument' => 'apart',
 				]);
@@ -255,7 +255,7 @@ final class PhpCodeSniffer
 				'imports.grouping.constant' => 'separated',
 			],
 			'SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement' => ['multiline.edges.array' => ['apart', 'attached']],
-			'SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace' => ['spacing.arrayBrackets' => 'compact'],
+			'SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace' => Translation::NoSpaceInArrays,
 			'SlevomatCodingStandard.Arrays.TrailingArrayComma' => fn(array $o, Translation $t) => $t->set(
 				'multiline.trailingComma.array',
 				'required',
@@ -591,7 +591,7 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.TypeHints.UnionTypeHintFormat' => $typeFormat('SlevomatCodingStandard.TypeHints.UnionTypeHintFormat'),
 			'SlevomatCodingStandard.TypeHints.UselessConstantTypeHint' => ['phpdoc.constantVar' => 'forbidden'],
 			'SlevomatCodingStandard.Variables.DuplicateAssignmentToVariable' => ['correctness.repeatedAssignment' => 'forbidden'],
-			'Squiz.Arrays.ArrayBracketSpacing' => ['spacing.offsetBrackets' => 'compact'],
+			'Squiz.Arrays.ArrayBracketSpacing' => ['spacing.padding.offset' => 'forbidden'],
 			'Squiz.Classes.SelfMemberReference' => ['qualification.currentClass' => 'self'],
 			'Squiz.Classes.ValidClassName' => fn(array $o, Translation $t) => $t->set('naming.class', 'PascalCase'),
 			'Squiz.Commenting.DocCommentAlignment' => ['phpdoc.stars' => 'aligned'],
@@ -614,7 +614,7 @@ final class PhpCodeSniffer
 				}
 				$t->warn('`Squiz.ControlStructures.ForEachLoopDeclaration` also puts a single space around the `=>` of a `foreach`, which DressCode decides for every binary operator together, by `spacing.binaryOperator`.');
 				$t->setAll([
-					'spacing.parentheses' => 'compact',
+					...Translation::NoSpaceInParentheses,
 					'spacing.keyword' => 'spaced',
 					'casing.keyword' => 'lowercase',
 				]);
@@ -624,7 +624,7 @@ final class PhpCodeSniffer
 					$t->warn('`Squiz.ControlStructures.ForLoopDeclaration` with spaces inside the parentheses has no equivalent; DressCode writes none.');
 				}
 				$t->setAll([
-					'spacing.parentheses' => 'compact',
+					...Translation::NoSpaceInParentheses,
 					'spacing.semicolon.before' => 'compact',
 					'spacing.semicolon.after' => 'spaced',
 				]);
@@ -668,7 +668,7 @@ final class PhpCodeSniffer
 			'Squiz.WhiteSpace.ControlStructureSpacing' => function (array $o, Translation $t) {
 				$t->warn('`Squiz.WhiteSpace.ControlStructureSpacing` checks the blank lines inside the braces and the spaces inside the parentheses of a control structure only, while `blankLines.afterBlockOpeningBrace`, `blankLines.beforeBlockClosingBrace` and `spacing.parentheses` govern every block and every parenthesis.');
 				$t->setAll([
-					'spacing.parentheses' => 'compact',
+					...Translation::NoSpaceInParentheses,
 					'blankLines.afterBlockOpeningBrace' => 0,
 					'blankLines.beforeBlockClosingBrace' => 0,
 					'blankLines.afterStatement' => array_fill_keys(['do', 'for', 'foreach', 'if', 'switch', 'try', 'while'], [1, null]),

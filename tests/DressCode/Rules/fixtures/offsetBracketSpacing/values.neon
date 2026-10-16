@@ -1,2 +1,3 @@
 spacing:
-	offsetBrackets: '$a[0]'
+	padding:
+		offset: forbidden
