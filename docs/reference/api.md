@@ -406,7 +406,8 @@ final readonly class Map extends DressCode\Domain
 	public readonly ?array<string, string> $words
 	public readonly ?Nette\Schema\Schema $grammar
 	public readonly bool $caseInsensitive
-	public function __construct(DressCode\Domain $values, bool $wildcards = true, ?array $words = null, ?Nette\Schema\Schema $grammar = null, bool $caseInsensitive = false)
+	public readonly ?Closure(string): string $canonicalize
+	public function __construct(DressCode\Domain $values, bool $wildcards = true, ?array $words = null, ?Nette\Schema\Schema $grammar = null, bool $caseInsensitive = false, ?Closure $canonicalize = null)
 	public function read(array<string, mixed> $entries, string $path): array<mixed>
 	public function merge(DressCode\Value $below, DressCode\Value $above, string $path = ''): DressCode\Value
 	public function toArray(): array
@@ -785,6 +786,7 @@ final readonly class MemberPattern
 	public readonly bool $nonStatic
 	public readonly ?string $hook
 	public static function fromKey(string $key): DressCode\Rules\Upgrading\MemberPattern
+	public static function canonicalizeKey(string $key): string
 	public static function forMethod(string $class, string $name, ?DressCode\Rules\Upgrading\ArgumentPattern $arguments = null): DressCode\Rules\Upgrading\MemberPattern
 	public function matches(DressCode\Analyses\MemberAccess $access, DressCode\Analyses\Types $types): bool
 	public function bind(DressCode\Analyses\MemberAccess $access, PhpSyntax\Nodes\ArgumentListNode $arguments, ?list<DressCode\Analyses\Parameter> $parameters, DressCode\Analyses\Types $types): ?DressCode\Rules\Upgrading\ArgumentBindings
@@ -915,6 +917,7 @@ final readonly class Values
 	public function has(string $path): bool
 	public function find(string $path): ?DressCode\Value
 	public function readMap(string $path): array<mixed>
+	public function findWithdrawnNames(string $path): list<string>
 	public function isKept(string $path): bool
 	public function isSelected(string $path): bool
 ```

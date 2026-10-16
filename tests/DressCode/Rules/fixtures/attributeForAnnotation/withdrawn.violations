@@ -1,0 +1,1 @@
+10: Annotation `@Check\Required` is replaced by the attribute `#[Acme\Validation\Required]`.

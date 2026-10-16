@@ -54,6 +54,8 @@ final readonly class AnnotationMap
 		private array $replacedAttributes,
 		/** @var array<string, string>  lowercased namespace of annotations => the namespace of the attributes written instead */
 		private array $namespaces,
+		/** @var array<string, true>  lowercased classes withdrawn from the map, which no namespace reaches */
+		private array $withdrawn = [],
 	) {
 	}
 
@@ -75,7 +77,11 @@ final readonly class AnnotationMap
 			}
 		}
 
-		return new self($attributes, $replacedAttributes, $namespaces);
+		$withdrawn = array_map(
+			fn($name) => strtolower(ltrim((string) $name, '\\')),
+			$values->findWithdrawnNames(MemberMapGrammar::AttributeForAnnotation),
+		);
+		return new self($attributes, $replacedAttributes, $namespaces, array_fill_keys($withdrawn, true));
 	}
 
 
@@ -99,7 +105,7 @@ final readonly class AnnotationMap
 	/** The attribute the map writes for the Doctrine annotation of the class, fully qualified, by the class or its namespace. */
 	public function findAttributeOfClass(?string $class): ?AttributeTarget
 	{
-		if ($class === null) {
+		if ($class === null || isset($this->withdrawn[strtolower($class)])) {
 			return null;
 		}
 

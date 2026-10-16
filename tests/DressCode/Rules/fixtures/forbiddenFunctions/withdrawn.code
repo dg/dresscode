@@ -1,0 +1,5 @@
+<?php
+// {"libraries": {"forbiddenFunctions": {"acme_*": "use the Acme API", "acme_version": "keep"}}}
+acme_send($a);
+acme_version();
+ACME_VERSION();

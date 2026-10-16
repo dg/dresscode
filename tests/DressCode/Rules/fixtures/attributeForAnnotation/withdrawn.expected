@@ -1,0 +1,15 @@
+<?php
+// {"libraries": {"attributeForAnnotation": {"Acme\\Validation\\*": "Acme\\Validation\\*", "Acme\\Validation\\Size": "keep"}}}
+
+namespace App;
+
+use Acme\Validation as Check;
+
+class Form
+{
+	/**
+	 * @Check\Size(max=10)
+	 */
+	#[Check\Required]
+	public $name;
+}

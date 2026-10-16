@@ -33,6 +33,8 @@ final readonly class Map extends Domain
 		 * or a class, so a name above replaces the one below spelled otherwise and one layer names each once
 		 */
 		public bool $caseInsensitive = false,
+		/** @var ?\Closure(string): string  the name as the lookup reads it, for names a lookup reads by more than the case */
+		public ?\Closure $canonicalize = null,
 	) {
 		if ($words !== null && ($words === [] || $wildcards)) {
 			throw new \InvalidArgumentException('The words a map takes as names must be some, and they are no wildcards.');
@@ -60,7 +62,7 @@ final readonly class Map extends Domain
 	{
 		return $below->content === null || $above->content === null // `keep`, the default, or `keep` withdrawing the whole map
 			? $above
-			: new Value($this, self::mergeEntries($below->content, $above->content, $this->caseInsensitive), $above->raw, $above->origin);
+			: new Value($this, $this->mergeEntries($below->content, $above->content), $above->raw, $above->origin);
 	}
 
 
@@ -99,7 +101,7 @@ final readonly class Map extends Domain
 				self::refuse($name, $path, array_map(fn($key) => "`$key`", array_keys($this->words)), false);
 			}
 
-			$canonical = $this->caseInsensitive ? self::canonicalizeName($name) : $name;
+			$canonical = $this->canonicalizeKey($name);
 			if (isset($names[$canonical])) {
 				throw new ConfigurationException("Key `$path` names `{$names[$canonical]}` and `$name`, which are one name; keep one of them.");
 			}
@@ -111,5 +113,29 @@ final readonly class Map extends Domain
 		}
 
 		return new Value($this, $entries, $raw);
+	}
+
+
+	/**
+	 * The entries below without those the entries above name in any of their writings, then those above.
+	 * @param  array<string, Value>  $below
+	 * @param  array<string, Value>  $above
+	 * @return array<string, Value>
+	 */
+	private function mergeEntries(array $below, array $above): array
+	{
+		$names = array_flip(array_map(fn($name) => $this->canonicalizeKey((string) $name), array_keys($above)));
+		$below = array_filter($below, fn($name) => !isset($names[$this->canonicalizeKey((string) $name)]), ARRAY_FILTER_USE_KEY);
+		return [...$below, ...$above];
+	}
+
+
+	private function canonicalizeKey(string $name): string
+	{
+		return match (true) {
+			$this->canonicalize !== null => ($this->canonicalize)($name),
+			$this->caseInsensitive => self::canonicalizeName($name),
+			default => $name,
+		};
 	}
 }

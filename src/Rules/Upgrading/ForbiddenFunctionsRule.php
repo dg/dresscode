@@ -31,6 +31,9 @@ final class ForbiddenFunctionsRule extends NodeRule
 	/** @var list<array{string, ?string}>  regular expression, what to do instead */
 	private array $functions = [];
 
+	/** @var array<string, true>  lowercased functions withdrawn from the map, which no pattern reaches */
+	private array $withdrawn = [];
+
 
 	public function configure(Values $values): void
 	{
@@ -39,6 +42,11 @@ final class ForbiddenFunctionsRule extends NodeRule
 		foreach ($options as $pattern => $sentence) {
 			$this->functions[] = ['~^' . str_replace('\*', '.*', preg_quote(ltrim((string) $pattern, '\\'), '~')) . '$~i', $sentence];
 		}
+
+		$this->withdrawn = array_fill_keys(
+			array_map(fn($name) => strtolower(ltrim((string) $name, '\\')), $values->findWithdrawnNames(self::Map)),
+			true,
+		);
 	}
 
 
@@ -55,6 +63,10 @@ final class ForbiddenFunctionsRule extends NodeRule
 		}
 
 		$resolved = $context->getAnalysis(NameResolver::class)->resolveFunction($node->name);
+		if (isset($this->withdrawn[strtolower($resolved)])) {
+			return;
+		}
+
 		foreach ($this->functions as [$pattern, $sentence]) {
 			if (preg_match($pattern, $resolved)) {
 				$context->report(

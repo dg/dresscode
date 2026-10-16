@@ -10,7 +10,7 @@ namespace DressCode\Config;
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Decision, DecisionKind, Domain, Plugin, PluginManifest, Rules, Violation};
 use DressCode\Domains\{Count, Flag, GrammarEntry, Map, Names, Shapes, Words};
-use DressCode\Rules\Upgrading\{AttributeForMemberEntry, AttributeTarget, CallTemplate, MemberMapGrammar, MemberTarget};
+use DressCode\Rules\Upgrading\{AttributeForMemberEntry, AttributeTarget, CallTemplate, MemberMapGrammar, MemberPattern, MemberTarget};
 use Nette\Schema\{Context, Expect, Schema};
 use function dirname;
 
@@ -401,12 +401,22 @@ final class CorePlugin implements Plugin
 				),
 				new Decision(
 					MemberMapGrammar::ReplacedMembers,
-					new Map(new GrammarEntry, wildcards: false, grammar: self::createReplacedMembersGrammar()),
+					new Map(
+						new GrammarEntry,
+						wildcards: false,
+						grammar: self::createReplacedMembersGrammar(),
+						canonicalize: MemberPattern::canonicalizeKey(...),
+					),
 					'A constant, a method or a property written instead of another one of the class (`Acme\\Mail\\Mailer::send(): sendMessage()`)',
 				),
 				new Decision(
 					MemberMapGrammar::ReplacedCalls,
-					new Map(new GrammarEntry, wildcards: false, grammar: self::createReplacedCallsGrammar()),
+					new Map(
+						new GrammarEntry,
+						wildcards: false,
+						grammar: self::createReplacedCallsGrammar(),
+						canonicalize: MemberPattern::canonicalizeKey(...),
+					),
 					'A call written as the template says (`Acme\\Mail\\Mailer::send($to, $body): send(new Message($to, $body))`)',
 				),
 				new Decision(
@@ -421,7 +431,12 @@ final class CorePlugin implements Plugin
 				),
 				new Decision(
 					MemberMapGrammar::ForbiddenMembers,
-					new Map(new GrammarEntry, wildcards: false, grammar: self::createForbiddenMembersGrammar()),
+					new Map(
+						new GrammarEntry,
+						wildcards: false,
+						grammar: self::createForbiddenMembersGrammar(),
+						canonicalize: MemberPattern::canonicalizeKey(...),
+					),
 					'A constant, a method or a property that may not be used, with what to do instead',
 				),
 				new Decision(
@@ -431,7 +446,12 @@ final class CorePlugin implements Plugin
 				),
 				new Decision(
 					MemberMapGrammar::AttributeForMember,
-					new Map(new GrammarEntry, wildcards: false, grammar: self::createAttributeForMemberGrammar()),
+					new Map(
+						new GrammarEntry,
+						wildcards: false,
+						grammar: self::createAttributeForMemberGrammar(),
+						canonicalize: MemberPattern::canonicalizeKey(...),
+					),
 					'An attribute written for a member the class declares by convention',
 				),
 

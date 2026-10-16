@@ -77,6 +77,20 @@ final readonly class Values
 	}
 
 
+	/**
+	 * The names a layer withdrew from a map with `keep`, which no entry of it stands for, a pattern of another layer
+	 * included.
+	 * @return list<string>
+	 */
+	public function findWithdrawnNames(string $path): array
+	{
+		$value = $this->get($path);
+		return $value->content === null
+			? []
+			: array_keys(array_filter($value->getEntries(), fn(Value $entry) => $entry->isKept()));
+	}
+
+
 	/** Whether the requirement is `keep`, or named by no layer. */
 	public function isKept(string $path): bool
 	{

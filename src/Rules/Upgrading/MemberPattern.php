@@ -86,6 +86,30 @@ final readonly class MemberPattern
 	}
 
 
+	/**
+	 * The key as a lookup reads it, so that two keys of one member give the same: the class, and the name of a method,
+	 * in lower case and without the leading backslash, the whitespace between the arguments collapsed; a key that is
+	 * no member stays as it is.
+	 */
+	public static function canonicalizeKey(string $key): string
+	{
+		try {
+			$pattern = self::fromKey($key);
+		} catch (\InvalidArgumentException) {
+			return $key;
+		}
+
+		$arguments = preg_match('~\((.*)\)$~Ds', trim($key), $m)
+			? '(' . preg_replace(['~\s+~', '~\s*,\s*~'], [' ', ', '], trim($m[1])) . ')'
+			: '';
+		return strtolower($pattern->class) . ($pattern->nonStatic ? '->' : '::') . match ($pattern->kind) {
+			MemberKind::Property => '$' . $pattern->name . ($pattern->hook === null ? '' : "::$pattern->hook"),
+			MemberKind::Method, MemberKind::Constructor => strtolower($pattern->name) . $arguments,
+			default => $pattern->name,
+		};
+	}
+
+
 	/** A method of the class, called with the arguments of the shape given, or with any. */
 	public static function forMethod(string $class, string $name, ?ArgumentPattern $arguments = null): self
 	{

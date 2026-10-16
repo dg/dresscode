@@ -157,23 +157,6 @@ abstract readonly class Domain
 	abstract protected function normalize(mixed $raw, string $path, bool $keep): Value;
 
 
-	/**
-	 * The entries of a map below with those above laid over them, a name above replacing the same one below.
-	 * @param  array<Value>  $below
-	 * @param  array<Value>  $above
-	 * @return array<Value>
-	 */
-	protected static function mergeEntries(array $below, array $above, bool $caseInsensitive): array
-	{
-		if ($caseInsensitive) {
-			$names = array_flip(array_map(self::canonicalizeName(...), array_keys($above)));
-			$below = array_filter($below, fn($name) => !isset($names[self::canonicalizeName((string) $name)]), ARRAY_FILTER_USE_KEY);
-		}
-
-		return [...$below, ...$above];
-	}
-
-
 	/** The name of a symbol of PHP as PHP reads it, in any letter case and with or without its leading backslash. */
 	protected static function canonicalizeName(string $name): string
 	{
