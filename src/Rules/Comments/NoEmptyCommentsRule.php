@@ -42,7 +42,7 @@ final class NoEmptyCommentsRule extends NodeRule
 			...self::groupComments($node->trailingTrivia, atLineStart: false),
 		];
 		foreach ($blocks as $block) {
-			if (!array_all($block, fn(Trivia $comment) => $comment->getCommentText() === '')) {
+			if (!array_all($block, fn(Trivia $comment) => $comment->getCommentText() === '' || self::isOnlyStars($comment))) {
 				continue;
 			}
 
@@ -52,6 +52,13 @@ final class NoEmptyCommentsRule extends NodeRule
 				}
 			}
 		}
+	}
+
+
+	/** A block comment of nothing but asterisks between its delimiters, which PHP does not take for a doc comment. */
+	private static function isOnlyStars(Trivia $comment): bool
+	{
+		return $comment->is(Trivia::Comment) && preg_match('~^/\*+/$~D', $comment->text) === 1;
 	}
 
 
