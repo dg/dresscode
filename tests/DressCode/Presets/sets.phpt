@@ -49,6 +49,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'controlFlow.elseifAfterReturn', // an `elseif` split into an `if` reads as another question, which a project chooses
 		'controlFlow.ifElseReturning', // a ternary for two branches is a shape of the code, no construct a newer PHP gave
 		'casing.hexDigit', // the case of a hexadecimal digit, which no standard of the core settles
+		'naming.exceptionAffix', // how an exception is named, which projects settle each their own way
 		'mistakes.neverReturnType.anonymousFunction', // the signature of a closure usually belongs to the call it is passed to
 		'mistakes.readonlyProperty', // a guarantee the code takes on, which no older construct gave
 		'functions.staticClosure', // what the code means when it binds a closure, which only the project knows

@@ -1,0 +1,11 @@
+<?php
+// {"exceptionAffix": "required"}
+// types off
+namespace App;
+
+class Failure extends \RuntimeException {}
+class ParseException extends \InvalidArgumentException {}
+class Broken extends \TypeError {}
+class Deeper extends Failure {}
+class Plain extends \ArrayObject {}
+class Foreign extends \Acme\Problem {}
