@@ -173,6 +173,7 @@ const ResolvedTestPresets = [
 	'test/deciding' => "fixRisky: [RuleA]\n",
 	'test/targeting' => "targets: {php: '8.2'}\n",
 	'test/plugin-preset' => "use: [ProjectPlugin]\n",
+	'test/warned' => "use: test/base\n\nseverity:\n\tproject.a: warning\n",
 ];
 
 
@@ -543,10 +544,6 @@ test('fixRisky names a preset for every rule it mentions, as only does, and the 
 	);
 	// the fixes are accepted by the decision, a rule standing for every one of its requirements and a section for those under it
 	Assert::same(['project.c' => true], $resolver->resolve(new Config(fixRisky: [RuleC::class]), '8.3')->fixRisky);
-	Assert::same(
-		['project.a', 'project.b'],
-		array_slice(array_keys($resolver->resolve(new Config(warnOnly: ['project']), '8.3')->warnOnly), 0, 2),
-	);
 	Assert::exception(
 		fn() => $accepted(new Config(fixRisky: ['test/nope'])),
 		ConfigurationException::class,
@@ -555,12 +552,54 @@ test('fixRisky names a preset for every rule it mentions, as only does, and the 
 });
 
 
-test('a state written as `warning` is its word with the violations only warning, as warnOnly would make it', function () {
-	$resolved = createResolver()->resolve(new Config(use: ['test/base'], decisions: projectDecisions(['a'], 'warning')), '8.3');
-	Assert::same(['project.a' => true], $resolved->warnOnly);
-	Assert::same([true, false], [$resolved->findRule(RuleA::class)?->warnOnly, $resolved->findRule(RuleB::class)?->warnOnly]);
-	Assert::same('forbidden', $resolved->values->get('project.a')->getWord());
-	Assert::same([], createResolver()->resolve(new Config(use: ['test/base']), '8.3')->warnOnly);
+test('a severity holds for a value said by its layer or one below it, the most specific name of a layer winning', function () {
+	$resolver = createResolver();
+	$warned = fn(Config $config) => array_values(array_intersect(
+		array_keys($resolver->resolve($config, '8.3')->warningDecisions),
+		['project.a', 'project.b', 'project.c'],
+	));
+	Assert::same(['project.a'], $warned(new Config(use: ['test/warned'])));
+	Assert::same([], $warned(new Config(use: ['test/base'])));
+	// a layer writing the value anew without a severity makes it an error again
+	Assert::same([], $warned(new Config(use: ['test/warned'], decisions: projectDecisions(['a']))));
+	Assert::same(['project.a'], $warned(new Config(use: ['test/warned'], decisions: projectDecisions(['b']))));
+	// the decision wins over the section, the section over the rule and the rule over the preset
+	Assert::same(
+		['project.a', 'project.b', 'project.c'],
+		$warned(new Config(use: ['test/base'], severity: ['project' => 'warning'])),
+	);
+	Assert::same(
+		['project.b', 'project.c'],
+		$warned(new Config(use: ['test/base'], severity: ['project' => 'warning', 'project.a' => 'error'])),
+	);
+	Assert::same(
+		['project.b', 'project.c'],
+		$warned(new Config(use: ['test/base'], severity: [RuleA::class => 'error', 'test/base' => 'warning'])),
+	);
+	Assert::same(
+		['project.a'],
+		$warned(new Config(use: ['test/base'], severity: [RuleA::class => 'warning'], decisions: projectDecisions(['b']))),
+	);
+	// an error over a warning of a layer below
+	Assert::same([], $warned(new Config(use: ['test/warned'], severity: ['project.a' => 'error'])));
+	Assert::exception(
+		fn() => $warned(new Config(use: ['test/base'], severity: ['test/base' => 'warning', 'test/child' => 'error'])),
+		ConfigurationException::class,
+		'Names `test/base` and `test/child` in `severity` say two severities of `project.a`; name it alone.',
+	);
+	Assert::exception(
+		fn() => $warned(new Config(
+			use: ['test/base'],
+			severity: [RuleA::class => 'warning', RuleC::class => 'error', 'project.cMax' => 'warning'],
+		)),
+		ConfigurationException::class,
+		'Name `project.cMax` in `severity` covers no decision that reports; a parameter has no severity of its own.',
+	);
+	Assert::exception(
+		fn() => new Config(severity: ['project.a' => 'warn']),
+		InvalidArgumentException::class,
+		'The severity of `project.a` must be `warning` or `error`, `warn` given.',
+	);
 });
 
 
@@ -635,7 +674,7 @@ test('an override lays a profile of its own over the configuration, its presets 
 				new Profile(
 					use: ['test/child', 'test/styled'],
 					nameResolution: 'uncertain',
-					warnOnly: [RuleA::class],
+					severity: [RuleA::class => 'warning'],
 					decisions: projectDecisions(['d']),
 				),
 			),
@@ -660,8 +699,8 @@ test('an override lays a profile of its own over the configuration, its presets 
 	Assert::false($tests->findRule(DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class)?->isActive());
 
 	// a list adds up: what the configuration accepts holds under the override, which adds what it says
-	Assert::same([true, false], [$base->findRule(RuleA::class)?->fixRisky, $base->findRule(RuleA::class)?->warnOnly]);
-	Assert::same([true, true], [$tests->findRule(RuleA::class)?->fixRisky, $tests->findRule(RuleA::class)?->warnOnly]);
+	Assert::same([true, false], [$base->findRule(RuleA::class)?->fixRisky, isset($base->warningDecisions['project.a'])]);
+	Assert::same([true, true], [$tests->findRule(RuleA::class)?->fixRisky, isset($tests->warningDecisions['project.a'])]);
 });
 
 
@@ -933,7 +972,7 @@ test('errors', function () {
 	);
 	Assert::exception(
 		fn() => createResolver()->resolve(
-			new Config(overrides: [new Override(['tests'], new Profile(warnOnly: ['test/nope']))]),
+			new Config(overrides: [new Override(['tests'], new Profile(severity: ['test/nope' => 'warning']))]),
 			'8.3',
 			[0],
 		),

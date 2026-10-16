@@ -25,7 +25,7 @@ test('defaults', function () {
 	Assert::same(['functions' => [], 'constants' => []], $config->namespaces);
 	Assert::null($config->nameResolution);
 	Assert::same([], $config->fixRisky);
-	Assert::same([], $config->warnOnly);
+	Assert::same([], $config->severity);
 	Assert::same([], $config->overrides);
 	Assert::same([], $config->paths);
 	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'], $config->excludePaths);

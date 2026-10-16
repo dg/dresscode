@@ -80,8 +80,8 @@ final readonly class CommandContext
 
 
 	/**
-	 * The layer the command line lays over the configuration: the presets of `--use`, the decisions of `--set` and
-	 * what `--fix-risky` allows; null where it says none of them.
+	 * The layer the command line lays over the configuration: the presets of `--use`, the decisions of `--set`, what
+	 * `--severity` says and what `--fix-risky` allows; null where it says none of them.
 	 * @throws UsageException
 	 */
 	public function readCommandLine(ParseResult $args): ?Config
@@ -98,10 +98,18 @@ final readonly class CommandContext
 			$decisions = Helpers::placeValue($decisions, $path, Neon::decode($value));
 		}
 
+		$severity = [];
+		foreach ((array) ($args['--severity'] ?? []) as $spec) {
+			[$name, $value] = explode('=', (string) $spec, 2);
+			$severity[$name] = $value;
+		}
+
 		// the decisions, rules and presets whose risky fixes the run allows; a bare `--fix-risky` allows every one elsewhere
 		$fixRisky = array_values(array_filter((array) ($args['--fix-risky'] ?? []), is_string(...)));
 		try {
-			return $use || $fixRisky || $decisions ? new Config(use: $use, fixRisky: $fixRisky, decisions: $decisions) : null;
+			return $use || $fixRisky || $decisions || $severity
+				? new Config(use: $use, fixRisky: $fixRisky, severity: $severity, decisions: $decisions)
+				: null;
 		} catch (\InvalidArgumentException $e) {
 			throw new UsageException("Option `--use`: {$e->getMessage()}", $args->command, $e);
 		}
@@ -116,6 +124,15 @@ final readonly class CommandContext
 		return str_contains($spec, '=')
 			? throw new \InvalidArgumentException('expects a preset or a plugin, ' . Violation::formatCode($spec) . ' given; a decision is set by `--set path=value`.')
 			: $spec;
+	}
+
+
+	/** The normalizer of `--severity`, which takes a name of a decision, a section, a preset or a rule as `name=warning`. */
+	public static function checkSeverity(string $spec): string
+	{
+		return preg_match('~^[^=]+=(warning|error)$~D', $spec)
+			? $spec
+			: throw new \InvalidArgumentException('expects `name=warning` or `name=error`, ' . Violation::formatCode($spec) . ' given.');
 	}
 
 

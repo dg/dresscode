@@ -30,7 +30,7 @@ final readonly class ReportPolicy
 		/** violations it holds are not recorded */
 		public ?Baseline $baseline = null,
 		/** @var array<string, true>  decisions whose violations only warn */
-		public array $warnOnly = [],
+		public array $warningDecisions = [],
 		/**
 		 * @var bool|array<string, true>  whether the run may make a fix that changes what the code does: every one, or
 		 * those of the decisions

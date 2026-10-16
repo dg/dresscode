@@ -243,7 +243,7 @@ final readonly class Config extends DressCode\Profile
 	public readonly ?string $cacheDir
 	public readonly ?string $typeAnalysis
 	public readonly ?string $ruleUrl
-	public function __construct(list<string|DressCode\Plugin> $use = [], array<int|class-string<DressCode\Rule>, class-string<DressCode\Rule>|Closure(): DressCode\Rule> $rules = [], array<string, string> $targets = [], array{functions?: list<string>, constants?: list<string>} $namespaces = [], ?string $nameResolution = null, list<string> $fixRisky = [], list<string> $warnOnly = [], array<string, string|list<string>> $suppressionComments = [], array $overrides = [], array $paths = [], list<string> $excludePaths = [], array $fileExtensions = ['php'], ?callable(string $content, string $path): bool $skipWhen = null, ?string $baseline = null, ?string $cacheDir = null, array<string|int, string|callable(PhpSyntax\Nodes\FileNode, string): object> $analyses = [], ?string $typeAnalysis = null, ?string $ruleUrl = null, array<string, mixed> $decisions = [])
+	public function __construct(list<string|DressCode\Plugin> $use = [], array<int|class-string<DressCode\Rule>, class-string<DressCode\Rule>|Closure(): DressCode\Rule> $rules = [], array<string, string> $targets = [], array{functions?: list<string>, constants?: list<string>} $namespaces = [], ?string $nameResolution = null, list<string> $fixRisky = [], array<string, string> $severity = [], array<string, string|list<string>> $suppressionComments = [], array $overrides = [], array $paths = [], list<string> $excludePaths = [], array $fileExtensions = ['php'], ?callable(string $content, string $path): bool $skipWhen = null, ?string $baseline = null, ?string $cacheDir = null, array<string|int, string|callable(PhpSyntax\Nodes\FileNode, string): object> $analyses = [], ?string $typeAnalysis = null, ?string $ruleUrl = null, array<string, mixed> $decisions = [])
 	public function getRuleFactories(): array<class-string<DressCode\Rule>, Closure(): DressCode\Rule>
 ```
 
@@ -254,7 +254,7 @@ final class Catalogue
 	public const Version = 4
 	public const CoreSections = ['file', 'indentation', 'naming', 'casing', 'qualification', 'imports', 'spacing', 'multiline', 'braces', 'blankLines', 'classes', 'types', 'functions', 'cleanup', 'controlFlow', 'expressions', 'literals', 'comments', 'phpdoc', 'correctness', 'upgrading']
 	public const PlaceKinds = ['lists' => ['array', 'list', 'argument', 'parameter', 'closureUse', 'import', 'attribute', 'matchArm', 'matchCondition', 'for', 'implements'], 'operators' => ['condition', 'logical', 'concatenation', 'arithmetic', 'bitwise', 'coalesce', 'comparison', 'pipe', 'ternary', 'chain']]
-	public const ReservedKeys = ['use', 'typeAnalysis', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths', 'fileExtensions', 'skipWhen', 'baseline', 'cacheDir', 'rules', 'analyses', 'fixRisky', 'warnOnly', 'suppressionComments', 'overrides']
+	public const ReservedKeys = ['use', 'typeAnalysis', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths', 'fileExtensions', 'skipWhen', 'baseline', 'cacheDir', 'rules', 'analyses', 'fixRisky', 'severity', 'suppressionComments', 'overrides']
 	public const ProjectSection = 'project'
 	public function __construct(list<class-string<DressCode\Rule>> $coreRules, array<string, list<class-string<DressCode\Rule>>> $pluginRules = [], list<class-string<DressCode\Rule>> $projectRules = [], list<DressCode\Decision> $coreDecisions = [], array<string, list<DressCode\Decision>> $pluginDecisions = [], array<string, list<string>> $pluginDependencies = [])
 	public static function fromRules(list<class-string<DressCode\Rule>> $rules): DressCode\Config\Catalogue
@@ -449,12 +449,10 @@ final readonly class Text extends DressCode\Domain
 final readonly class Words extends DressCode\Domain
 	public readonly array<string, string> $words
 	public readonly bool $tolerance
-	public readonly bool $warning
 	public readonly array<string, string> $passes
-	public function __construct(array $words, bool $tolerance = false, bool $warning = false, array $passes = [])
+	public function __construct(array $words, bool $tolerance = false, array $passes = [])
 	public function toArray(): array
 	public function describe(): string
-	public function isWarning(DressCode\Value $value): bool
 ```
 
 ## `DressCode\FileResult`
@@ -581,10 +579,10 @@ readonly class Profile
 	public readonly 'certain'|'uncertain'|null $nameResolution
 	public readonly array<string, string> $targets
 	public readonly list<string> $fixRisky
-	public readonly list<string> $warnOnly
+	public readonly array<string, string> $severity
 	public readonly array<string, string|list<string>> $suppressionComments
 	public readonly array<string, mixed> $decisions
-	public function __construct(list<string|DressCode\Plugin> $use = [], array $targets = [], array{functions?: list<string>, constants?: list<string>} $namespaces = [], ?string $nameResolution = null, array $fixRisky = [], array $warnOnly = [], array $suppressionComments = [], array $decisions = [])
+	public function __construct(list<string|DressCode\Plugin> $use = [], array $targets = [], array{functions?: list<string>, constants?: list<string>} $namespaces = [], ?string $nameResolution = null, array $fixRisky = [], array $severity = [], array $suppressionComments = [], array $decisions = [])
 ```
 
 ## `DressCode\Risk`

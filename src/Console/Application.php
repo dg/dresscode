@@ -150,6 +150,13 @@ final readonly class Application
 			repeatable: true,
 			normalizer: CommandContext::checkDecision(...),
 		);
+		$program->addOption(
+			'--severity',
+			'Say how the violations of a decision, a section, a preset or a rule count as `name=warning` or `name=error`',
+			valueName: 'name=severity',
+			repeatable: true,
+			normalizer: CommandContext::checkSeverity(...),
+		);
 		$program->addFlag('--no-color', 'Print plain output without colors');
 		$program->addFlag('--help', 'Print this help', standalone: true);
 		$program->addFlag('--version', 'Print the name and the version', standalone: true);

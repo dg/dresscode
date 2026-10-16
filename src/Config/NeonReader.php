@@ -140,7 +140,7 @@ final class NeonReader
 			])->skipDefaults()->castTo('array'),
 			'nameResolution' => Expect::anyOf('certain', 'uncertain'),
 			'fixRisky' => Expect::listOf('string', wrap: true),
-			'warnOnly' => Expect::listOf('string', wrap: true),
+			'severity' => Expect::arrayOf(Expect::anyOf('warning', 'error'), 'string'),
 			'suppressionComments' => Expect::arrayOf(Expect::listOf('string', wrap: true), 'string'),
 			// a plugin with arguments is an entity
 			'use' => Expect::listOf(Expect::anyOf(Expect::string(), Expect::type(Entity::class)), wrap: true),
@@ -246,7 +246,7 @@ final class NeonReader
 			throw new ConfigurationException("$label: {$e->getMessage()}", previous: $e);
 		}
 
-		$keys = ['use' => true, 'suppressionComments' => true, 'decisions' => true];
+		$keys = ['use' => true, 'suppressionComments' => true, 'severity' => true, 'decisions' => true];
 		if ($other = array_diff_key($data, $keys)) {
 			throw new ConfigurationException("$label sets `" . array_key_first($other) . '`, which the project decides, not a preset.');
 		}
@@ -254,7 +254,7 @@ final class NeonReader
 		try {
 			/**
 			 * @var array{use?: list<string|Entity>, suppressionComments?: array<string, string|list<string>>,
-			 *   decisions?: array<string, mixed>} $data
+			 *   severity?: array<string, string>, decisions?: array<string, mixed>} $data
 			 */
 			$data = (new Processor)->process(
 				Expect::structure(array_intersect_key(self::getProfileSchema(), $keys))->skipDefaults()->castTo('array'),
@@ -268,6 +268,7 @@ final class NeonReader
 			return new Profile(
 				use: self::readProfile($data, $file)['use'] ?? [],
 				suppressionComments: $data['suppressionComments'] ?? [],
+				severity: $data['severity'] ?? [],
 				decisions: $data['decisions'] ?? [],
 			);
 		} catch (\InvalidArgumentException $e) {

@@ -37,11 +37,11 @@ abstract readonly class Domain
 	];
 
 
-	/** The words of a state, `forbidden`, `required` or both; a state of one word takes `warning` too. */
+	/** The words of a state, `forbidden`, `required` or both. */
 	public static function state(string ...$words): Words
 	{
 		$picked = self::pickWords(self::StateWords, $words ?: ['forbidden']);
-		return new Words($picked, warning: count($picked) === 1);
+		return new Words($picked);
 	}
 
 

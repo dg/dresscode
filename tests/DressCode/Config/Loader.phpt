@@ -321,7 +321,7 @@ test('a list of a single item is written without the list, in a configuration an
 		excludePaths: src/generated
 		fileExtensions: php
 		fixRisky: modernizations
-		warnOnly: cleanup
+		severity: {cleanup: warning}
 		namespaces:
 			functions: App\helper
 		overrides:
@@ -333,7 +333,7 @@ test('a list of a single item is written without the list, in a configuration an
 	Assert::contains('src/generated', $config->excludePaths);
 	Assert::same(['php'], $config->fileExtensions);
 	Assert::same(['modernizations'], $config->fixRisky);
-	Assert::same(['cleanup'], $config->warnOnly);
+	Assert::same(['cleanup' => 'warning'], $config->severity);
 	Assert::same(['App\helper'], $config->namespaces['functions']);
 	Assert::same(['tests'], $config->overrides[0]->paths);
 	Assert::same(['psr12'], $config->overrides[0]->profile->use);
@@ -389,7 +389,7 @@ test('an override takes every key of a profile', function () {
 			  namespaces: {functions: [App\Tests\fixture]}
 			  nameResolution: uncertain
 			  fixRisky: [strictComparisonArgumentRequired]
-			  warnOnly: [lineLength]
+			  severity: {lineLength: warning}
 		XX, 'neon'));
 	$override = $config->overrides[0];
 	Assert::same(['tests'], $override->paths);
@@ -397,7 +397,10 @@ test('an override takes every key of a profile', function () {
 	Assert::same('8.3', $override->profile->targets['php'] ?? null);
 	Assert::same(['App\Tests\fixture'], $override->profile->namespaces['functions']);
 	Assert::same('uncertain', $override->profile->nameResolution);
-	Assert::same([['strictComparisonArgumentRequired'], ['lineLength']], [$override->profile->fixRisky, $override->profile->warnOnly]);
+	Assert::same(
+		[['strictComparisonArgumentRequired'], ['lineLength' => 'warning']],
+		[$override->profile->fixRisky, $override->profile->severity],
+	);
 
 	// the rules of the project are known to the whole of it, which an override does not decide
 	Assert::exception(

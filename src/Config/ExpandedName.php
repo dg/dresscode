@@ -11,7 +11,7 @@ use DressCode\Rule;
 
 
 /**
- * What a name of `only`, `fixRisky` or `warnOnly` stands for.
+ * What a name of `only`, `fixRisky` or `severity` stands for.
  * @internal
  */
 final readonly class ExpandedName

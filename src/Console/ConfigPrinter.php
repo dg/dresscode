@@ -81,7 +81,8 @@ final readonly class ConfigPrinter
 		// a decision the configuration names stands there too, so that a name doing nothing shows
 		$named = array_filter(
 			$this->config->decisions,
-			fn(ResolvedDecision $decision, string $path) => isset($this->config->fixRisky[$path]) || isset($this->config->warnOnly[$path]),
+			fn(ResolvedDecision $decision, string $path) => isset($this->config->fixRisky[$path])
+				|| isset($this->config->warningDecisions[$path]),
 			ARRAY_FILTER_USE_BOTH,
 		);
 		return $out . $this->printTree($console, $set + $named);
@@ -142,7 +143,7 @@ final readonly class ConfigPrinter
 				? ', outside --only'
 				: '')
 			. (isset($this->config->fixRisky[$path]) ? ', risky fixes accepted' : '')
-			. (isset($this->config->warnOnly[$path]) ? ', only warns' : '');
+			. (isset($this->config->warningDecisions[$path]) ? ', only warns' : '');
 	}
 
 
@@ -157,7 +158,6 @@ final readonly class ConfigPrinter
 					? null
 					: ['reason' => $rule->inactiveReason->value, 'message' => $rule->inactiveMessage],
 				'fixRisky' => $rule->fixRisky,
-				'warnOnly' => $rule->warnOnly,
 			];
 		}
 
@@ -197,7 +197,7 @@ final readonly class ConfigPrinter
 				'inactive' => $decision->inactive?->value,
 				'selected' => $decision->decision->kind !== DecisionKind::Parameter
 					&& $this->config->values->isSelected($decision->decision->path),
-				'severity' => isset($this->config->warnOnly[$decision->decision->path]) ? 'warning' : 'error',
+				'severity' => isset($this->config->warningDecisions[$decision->decision->path]) ? 'warning' : 'error',
 			], $this->config->decisions)
 				?: new \stdClass,
 		], pretty: true) . "\n";

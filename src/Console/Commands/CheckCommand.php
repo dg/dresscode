@@ -319,7 +319,7 @@ final readonly class CheckCommand
 			(string) $args->command->name,
 			'--no-color',
 		];
-		foreach (['--config', '--use', '--set', '--only'] as $option) {
+		foreach (['--config', '--use', '--set', '--severity', '--only'] as $option) {
 			foreach ((array) ($args[$option] ?? []) as $value) {
 				if (is_string($value)) {
 					$command[] = "$option=$value"; // a value starting with a dash would read as an option

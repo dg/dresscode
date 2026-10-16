@@ -617,7 +617,7 @@ test('an override brings its presets, its style, its name resolution and its war
 				new Profile(
 					use: ['test/double'],
 					nameResolution: 'uncertain',
-					warnOnly: [ReportContext::class],
+					severity: [ReportContext::class => 'warning'],
 					decisions: ['indentation' => ['unit' => '2 spaces']],
 				),
 			)],

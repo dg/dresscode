@@ -55,7 +55,7 @@ final readonly class Value
 
 
 	/**
-	 * The normalized content as plain data, `keep` and `warning` as the words and every entry as its own data; the
+	 * The normalized content as plain data, `keep` as the word and every entry as its own data; the
 	 * identity of the value.
 	 */
 	public function toData(): mixed
@@ -63,7 +63,6 @@ final readonly class Value
 		return match (true) {
 			$this->keep => 'keep',
 			$this->holdsEntries() => array_map(fn(self $entry) => $entry->toData(), $this->content),
-			$this->domain instanceof Words && $this->domain->isWarning($this) => [$this->raw],
 			default => $this->content,
 		};
 	}

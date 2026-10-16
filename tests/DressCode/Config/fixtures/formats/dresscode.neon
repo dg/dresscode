@@ -14,7 +14,7 @@ namespaces:
 	constants: [App\LIMIT]
 nameResolution: certain
 fixRisky: [dresscode/strictComparisonArgumentRequired]
-warnOnly: [dresscode/lineLength]
+severity: {dresscode/lineLength: warning}
 
 overrides:
 	- paths: [tests]

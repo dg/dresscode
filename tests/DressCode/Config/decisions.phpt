@@ -174,15 +174,19 @@ test('the run narrowed to a path reports that decision alone and changes no valu
 });
 
 
-test('the command line sets a decision over everything, and fixRisky and warnOnly take a path', function () {
+test('the command line sets a decision over everything, and fixRisky and severity take a path', function () {
 	$dir = createDecisionsProject(
-		['dresscode.neon' => "use: nette\nfixRisky: [types.declaration.parameter]\nwarnOnly: [blankLines]\ntypes:\n\tdeclaration:\n\t\tparameter: required\n"],
+		['dresscode.neon' => "use: nette\nfixRisky: [types.declaration.parameter]\nseverity: {blankLines: warning}\ntypes:\n\tdeclaration:\n\t\tparameter: required\n"],
 	);
 	$resolved = resolveFile("$dir/dresscode.neon", new Profile(decisions: ['blankLines' => ['betweenMethods' => 3]]));
 	Assert::same([3, 3], $resolved->decisions['blankLines.betweenMethods']->value->getCount());
 	Assert::same('the command line', $resolved->decisions['blankLines.betweenMethods']->value->origin?->describe());
 	Assert::true($resolved->findRule(DressCode\Rules\Types\NativeTypeRequiredRule::class)?->fixRisky);
-	Assert::true($resolved->findRule(DressCode\Rules\Whitespace\MemberBlankLinesRule::class)?->warnOnly);
+	// the command line writes the value anew and says no severity, so its violations are errors again
+	Assert::same(
+		[false, true],
+		[isset($resolved->warningDecisions['blankLines.betweenMethods']), isset($resolved->warningDecisions['blankLines.afterImports'])],
+	);
 
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
@@ -193,7 +197,7 @@ test('the command line sets a decision over everything, and fixRisky and warnOnl
 	Assert::same(0, $code);
 	$data = json_decode((string) stream_get_contents($out), true);
 	Assert::same(
-		['value' => [1, 2], 'layer' => 'the command line', 'inactive' => null, 'selected' => true, 'severity' => 'warning'],
+		['value' => [1, 2], 'layer' => 'the command line', 'inactive' => null, 'selected' => true, 'severity' => 'error'],
 		$data['decisions']['blankLines.betweenMethods'],
 	);
 	Assert::exception(

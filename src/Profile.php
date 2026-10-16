@@ -60,8 +60,12 @@ readonly class Profile
 		 * change what the code does
 		 */
 		public array $fixRisky = [],
-		/** @var list<string>  decisions, sections, presets or classes of rules whose violations only warn */
-		public array $warnOnly = [],
+		/**
+		 * how a violation counts: a decision, a group, a section, a preset or the class of a rule => `warning` or `error`,
+		 * for every requirement under it whose value this layer or one below it said
+		 * @var array<string, string>
+		 */
+		public array $severity = [],
 		/**
 		 * a comment the project already writes to say a line is meant as it is: pattern => the rules, decisions or names
 		 * of other tools it silences where it stands, as `dresscode:ignore` does
@@ -77,6 +81,8 @@ readonly class Profile
 			throw new \InvalidArgumentException("The name resolution must be `certain` or `uncertain`, `$nameResolution` given.");
 		} elseif ($unknown = array_diff_key($namespaces, ['functions' => true, 'constants' => true])) {
 			throw new \InvalidArgumentException('The namespaces declare functions and constants, not `' . array_key_first($unknown) . '`.');
+		} elseif ($wrong = array_diff($severity, ['warning', 'error'])) {
+			throw new \InvalidArgumentException('The severity of `' . array_key_first($wrong) . '` must be `warning` or `error`, `' . reset($wrong) . '` given.');
 		} elseif ($reserved = array_intersect(array_keys($decisions), Config\Catalogue::ReservedKeys)) {
 			throw new \InvalidArgumentException('The decisions are sections, and `' . reset($reserved) . '` is a key of the configuration.');
 		}

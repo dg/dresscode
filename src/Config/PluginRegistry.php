@@ -274,7 +274,7 @@ final class PluginRegistry
 
 
 	/**
-	 * The error of a name of `only`, `fixRisky` or `warnOnly` nobody owns, with the decisions that cover it where it belongs
+	 * The error of a name of `only`, `fixRisky` or `severity` nobody owns, with the decisions that cover it where it belongs
 	 * to another tool, else the nearest preset.
 	 */
 	public function createUnknownNameException(string $name): ConfigurationException

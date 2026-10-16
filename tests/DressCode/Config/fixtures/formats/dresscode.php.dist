@@ -11,7 +11,7 @@ return new Config(
 	namespaces: ['functions' => ['App\helper', 'App\Utils\{format, parse}'], 'constants' => ['App\LIMIT']],
 	nameResolution: 'certain',
 	fixRisky: ['dresscode/strictComparisonArgumentRequired'],
-	warnOnly: ['dresscode/lineLength'],
+	severity: ['dresscode/lineLength' => 'warning'],
 	overrides: [
 		new Override(['tests'], new Profile(use: ['dresscode/nette'], nameResolution: 'uncertain', decisions: ['blankLines' => 'keep'])),
 	],

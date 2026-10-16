@@ -29,8 +29,6 @@ final readonly class ResolvedRule
 		public ?\Closure $factory = null,
 		/** the project accepts the fixes of the rule that may change what the code does */
 		public bool $fixRisky = false,
-		/** the violations of the rule only warn */
-		public bool $warnOnly = false,
 	) {
 	}
 

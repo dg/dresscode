@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{Config, ConfigurationException, Decision, DecisionKind, Plugin, Profile, Rule, RuleInfo, Value, Values};
-use DressCode\Domains\{Map, Words};
+use DressCode\Domains\Map;
 use DressCode\Engine\Helpers;
 use PhpSyntax\SymbolKind;
 use function count, is_array, is_string;
@@ -82,7 +82,7 @@ final class ConfigResolver
 		?array $only = null,
 	): ResolvedConfig
 	{
-		$fixRisky = $warningRules = $fixRiskyPaths = $warnOnlyPaths = $use = $suppressionComments = [];
+		$fixRisky = $fixRiskyPaths = $severities = $use = $suppressionComments = [];
 		$symbols = [SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
 		$php = $resolution = null;
 		$decisionLayers = [];
@@ -114,11 +114,7 @@ final class ConfigResolver
 					$fixRiskyPaths += array_fill_keys($expanded->paths, true);
 				}
 
-				foreach ($profile->warnOnly as $name) {
-					$expanded = $this->expandName($name);
-					$warningRules += array_fill_keys($expanded->rules, true);
-					$warnOnlyPaths += array_fill_keys($expanded->paths, true);
-				}
+				$severities[] = $this->collectSeverity($profile->severity);
 
 				foreach ($profile->suppressionComments as $pattern => $names) {
 					$suppressionComments[$pattern] = array_values(array_unique(array_merge(
@@ -179,9 +175,6 @@ final class ConfigResolver
 				&& !$values->isSelected($path)
 			) {
 				$values->readMap($path);
-			} elseif ($decision->domain instanceof Words && $decision->domain->isWarning($values->get($path))) {
-				$warnOnlyPaths[$path] = true;
-				$warningRules += array_fill_keys($decisions[$path]->rules, true);
 			}
 		}
 
@@ -202,7 +195,6 @@ final class ConfigResolver
 				$phpTarget,
 				$factories[$class] ?? null,
 				isset($fixRisky[$class]),
-				isset($warningRules[$class]),
 				isset($ofOverrides[$class]),
 			);
 			$resolved->isActive() ? $active[$class] = $resolved : $inactive[$class] = $resolved;
@@ -238,7 +230,7 @@ final class ConfigResolver
 			decisions: $decisions,
 			values: $values,
 			fixRisky: $fixRiskyPaths,
-			warnOnly: $warnOnlyPaths,
+			warningDecisions: self::findWarningDecisions($decisions, array_column($collected, 0), $severities),
 			overrides: $resolvedOverrides,
 		);
 	}
@@ -321,7 +313,6 @@ final class ConfigResolver
 		string $phpTarget,
 		?\Closure $factory,
 		bool $fixRisky,
-		bool $warnOnly,
 		bool $ofOverride,
 	): ResolvedRule
 	{
@@ -370,7 +361,77 @@ final class ConfigResolver
 		$said = $reason === null ? $effective : array_filter($own, fn(ResolvedDecision $decision) => $decision->layers !== []);
 		$top = array_values($said)[0]->layers ?? [];
 		$source = $top === [] ? null : $top[count($top) - 1]->origin;
-		return new ResolvedRule($class, $source, $reason, $message, $factory, $fixRisky, $warnOnly);
+		return new ResolvedRule($class, $source, $reason, $message, $factory, $fixRisky);
+	}
+
+
+	/**
+	 * The severity a layer says of each requirement its names cover, the most specific name winning: a decision, a
+	 * deeper group, a shallower one, a section, the class of a rule, a preset.
+	 * @param  array<string, string>  $names  name => `warning` or `error`
+	 * @return array<string, array{int, string}>  path => the rank of the name and the severity
+	 * @throws ConfigurationException
+	 */
+	private function collectSeverity(array $names): array
+	{
+		$severity = $by = [];
+		foreach ($names as $name => $value) {
+			$expanded = $this->expandName($name);
+			$paths = array_filter(
+				$expanded->paths,
+				fn(string $path) => $this->getCatalogue()->find($path)?->kind !== DecisionKind::Parameter,
+			);
+			if ($paths === []) {
+				throw new ConfigurationException("Name `$name` in `severity` covers no decision that reports; a parameter has no severity of its own.");
+			}
+
+			$rank = match (true) {
+				$expanded->preset => 0,
+				$expanded->rule !== null => 1,
+				$this->getCatalogue()->find($name) !== null => PHP_INT_MAX,
+				default => 1 + count(explode('.', $expanded->name)),
+			};
+			foreach ($paths as $path) {
+				[$was, $wasValue] = $severity[$path] ?? [-1, null];
+				if ($was === $rank && $wasValue !== $value) {
+					throw new ConfigurationException("Names `{$by[$path]}` and `$name` in `severity` say two severities of `$path`; name it alone.");
+				} elseif ($was < $rank) {
+					$severity[$path] = [$rank, $value];
+					$by[$path] = $name;
+				}
+			}
+		}
+
+		return $severity;
+	}
+
+
+	/**
+	 * The requirements whose violations only warn: a severity holds for a decision whose value the layer saying it, or
+	 * one below it, said, so a layer writing the value anew without a severity makes it an error again.
+	 * @param  array<string, ResolvedDecision>  $decisions
+	 * @param  list<Layer>  $layers  from the lowest
+	 * @param  list<array<string, array{int, string}>>  $severities  of each layer, by path
+	 * @return array<string, true>
+	 */
+	private static function findWarningDecisions(array $decisions, array $layers, array $severities): array
+	{
+		$warnings = [];
+		foreach ($decisions as $path => $decision) {
+			$top = $decision->findTopLayer()?->origin;
+			$from = $top === null ? 0 : max(0, (int) array_search($top, $layers, true));
+			for ($i = count($layers) - 1; $i >= $from; $i--) {
+				if (isset($severities[$i][$path])) {
+					if ($severities[$i][$path][1] === 'warning') {
+						$warnings[$path] = true;
+					}
+
+					break;
+				}
+			}
+		}
+
+		return $warnings;
 	}
 
 
@@ -604,7 +665,7 @@ final class ConfigResolver
 
 
 	/**
-	 * What a name of `only`, `fixRisky` or `warnOnly` stands for: a decision or a section for the decisions under it, a
+	 * What a name of `only`, `fixRisky` or `severity` stands for: a decision or a section for the decisions under it, a
 	 * rule for its own, a preset for every decision it and its parents make, each with the rules owning them. A section
 	 * named like a preset is written `section.*`, the bare name being refused as both.
 	 * @throws ConfigurationException

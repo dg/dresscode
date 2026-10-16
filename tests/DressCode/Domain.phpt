@@ -245,20 +245,12 @@ test('the helpers keep the vocabulary of states, placements and counts', functio
 });
 
 
-test('a state of one word takes `warning`, which is that word whose violations only warn', function () {
-	$state = Domain::state('required');
-	$warning = $state->accept('warning', 'cleanup.x');
-	Assert::same(['required', true], [$warning->getWord(), $state->isWarning($warning)]);
-	Assert::same(['warning', 'warning'], [$warning->toData()[0], $warning->toWrittenData()]);
-	Assert::false($state->isWarning($state->accept('required', 'cleanup.x')));
-	Assert::same(['required' => 'always there', 'warning' => 'as `required`, its violations only warning'], $state->toArray()['words']);
+test('a state takes no `warning`, which is a severity and not a value', function () {
 	Assert::exception(
-		fn() => Domain::state('forbidden', 'required')->accept('warning', 'cleanup.x'),
+		fn() => Domain::state('required')->accept('warning', 'cleanup.x'),
 		ConfigurationException::class,
-		'Key `cleanup.x` does not take `warning`; write `forbidden` or `required`.',
+		'Key `cleanup.x` does not take `warning`; write `required`.',
 	);
-	Assert::exception(fn() => new Words(['a' => '', 'b' => ''], warning: true), InvalidArgumentException::class);
-	Assert::exception(fn() => new Words(['warning' => '']), InvalidArgumentException::class);
 });
 
 
@@ -296,7 +288,7 @@ test('a requirement takes keep, a parameter does not', function () {
 	Assert::true($requirement->accept('keep')->isKept());
 	Assert::true($requirement->takesKeep());
 	Assert::same(
-		'`forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`',
+		'`forbidden` (never there); `keep`',
 		$requirement->describeValues(),
 	);
 

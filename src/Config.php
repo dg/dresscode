@@ -59,7 +59,7 @@ final readonly class Config extends Profile
 	 * @param array{functions?: list<string>, constants?: list<string>} $namespaces
 	 * @param list<string> $fixRisky
 	 * @param array<string, string> $targets  `php` and the packages, each => the version the code is written for
-	 * @param list<string> $warnOnly
+	 * @param array<string, string> $severity
 	 * @param array<string, string|list<string>> $suppressionComments
 	 * @param list<string> $excludePaths  left out of the run on top of the default list
 	 * @param ?callable(string $content, string $path): bool $skipWhen
@@ -74,7 +74,7 @@ final readonly class Config extends Profile
 		array $namespaces = [],
 		?string $nameResolution = null,
 		array $fixRisky = [],
-		array $warnOnly = [],
+		array $severity = [],
 		array $suppressionComments = [],
 		/** @var list<Override> */
 		public array $overrides = [],
@@ -104,7 +104,7 @@ final readonly class Config extends Profile
 			$namespaces,
 			$nameResolution,
 			$fixRisky,
-			$warnOnly,
+			$severity,
 			$suppressionComments,
 			$decisions,
 		);

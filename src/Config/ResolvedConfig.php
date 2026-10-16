@@ -56,7 +56,7 @@ final readonly class ResolvedConfig
 		/** @var array<string, true>  the decisions whose fixes that may change what the code does the project accepts */
 		public array $fixRisky = [],
 		/** @var array<string, true>  the decisions whose violations only warn */
-		public array $warnOnly = [],
+		public array $warningDecisions = [],
 		/** @var list<ResolvedConfig>  what each override of the configuration comes to for a file it alone matches */
 		public array $overrides = [],
 	) {

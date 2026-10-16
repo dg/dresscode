@@ -153,7 +153,7 @@ final readonly class RunnerFactory
 						expandName: $registry->expandSuppressedName(...),
 						suppressionComments: $variant->suppressionComments,
 						baseline: $baselineFile,
-						warnOnly: $variant->warnOnly,
+						warningDecisions: $variant->warningDecisions,
 						fixRisky: $fixRisky ?: $variant->fixRisky,
 						strict: $strict,
 					),

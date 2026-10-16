@@ -2,6 +2,9 @@
 #
 # PSR-12, section by section; the specification defines the style and this preset adds nothing of its own.
 
+severity:
+	file.longLines: warning                   # what nothing could spread only warns, the limit being soft
+
 file:
 	bom: forbidden
 	openingTag: '<?php'                       # not `<?` or `<?PHP`
@@ -10,7 +13,7 @@ file:
 	finalLineEndings: 1
 	trailingWhitespace: forbidden             # the text of a string stays
 	lineLength: 120                           # what is wider is spread
-	longLines: warning                        # what nothing could spread only warns, the limit being soft
+	longLines: forbidden
 	statementsPerLine: 1                      # `foo(); bar();` takes two lines
 
 indentation:

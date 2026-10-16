@@ -1080,7 +1080,7 @@ test('exit codes: violations, warnings, the warning threshold, a syntax error an
 	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
 
 	// the same violations as warnings: reported, counted, and the exit code stays clean
-	$write(', warnOnly: [ConsoleRename::class, ConsoleReport::class]');
+	$write(", severity: [ConsoleRename::class => 'warning', ConsoleReport::class => 'warning']");
 	[$code, $out] = runApp($root, ['check', '--config', "$root/exit.php", '--no-cache']);
 	Assert::same(0, $code);
 	Assert::match('%A%  warning  2:1  Rename $a.  project.rename%A%FOUND  3 warnings in 2 files%A%', $out);
@@ -1097,20 +1097,17 @@ test('exit codes: violations, warnings, the warning threshold, a syntax error an
 	Assert::same(1, $stdin(['--max-warnings', '0']));
 
 	// a rule left as an error decides the exit code whatever the threshold says
-	$write(', warnOnly: [ConsoleReport::class]');
+	$write(", severity: [ConsoleReport::class => 'warning']");
 	Assert::same(1, $run(['--max-warnings', '100']));
 
-	// a state written as `warning` is the word whose violations only warn
-	file_put_contents(
-		"$root/exit.php",
-		"<?php\nreturn new DressCode\\Config(rules: ConsoleRules, decisions: ['project' => ['rename' => 'warning', 'report' => 'warning']], paths: ['src']);\n",
-	);
-	[$code, $out] = runApp($root, ['check', '--config', "$root/exit.php", '--no-cache']);
+	// the command line says the severity of a section
+	$write('');
+	[$code, $out] = runApp($root, ['check', '--config', "$root/exit.php", '--no-cache', '--severity', 'project=warning']);
 	Assert::same(0, $code);
 	Assert::match('%A%  warning  2:1  Rename $a.  project.rename%A%FOUND  3 warnings in 2 files%A%', $out);
 
 	// a syntax error is 1 even when every rule only warns
-	$write(', warnOnly: [ConsoleRename::class, ConsoleReport::class]');
+	$write(", severity: [ConsoleRename::class => 'warning', ConsoleReport::class => 'warning']");
 	Assert::same(0, $run());
 	file_put_contents("$root/src/broken.php", "<?php\n\$a = ;\n");
 	Assert::same(1, $run());

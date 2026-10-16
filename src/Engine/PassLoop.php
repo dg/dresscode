@@ -474,7 +474,7 @@ final class PassLoop
 			}
 
 			$reported = true;
-			$severity = isset($this->policy->warnOnly[$report->decision]) || ($report->refused && $report->risk?->isResolvable())
+			$severity = isset($this->policy->warningDecisions[$report->decision]) || ($report->refused && $report->risk?->isResolvable())
 				? Severity::Warning
 				: Severity::Error;
 			$this->reported[] = [$ruleClass, $report, $severity];

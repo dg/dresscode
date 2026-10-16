@@ -133,8 +133,8 @@ What a line too wide leaves as it is: a construct named is not spread over lines
 A line wider than `file.lineLength` that nothing could split is reported, unless `file.lineLengthExcept` leaves a construct on it or the line itself as it is.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
-- The standards: perCs `warning`, psr12 `warning`, nette `forbidden`, symfony `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Files\LineLengthRule`, stage Finishing
 - Covers: `Generic.Files.LineLength`, `SlevomatCodingStandard.Files.LineLength`
 
@@ -143,7 +143,7 @@ A line wider than `file.lineLength` that nothing could split is reported, unless
 The file starts without a byte order mark.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Files\NoBomRule`, stage Structure
 - Covers: `encoding`, `Generic.Files.ByteOrderMark`
@@ -153,7 +153,7 @@ The file starts without a byte order mark.
 A file of PHP only does not end with `?>`; a `?>` before HTML is content.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Files\NoClosingTagRule`, stage Structure
 - Covers: `no_closing_tag`, `PSR2.Files.ClosingTag`
@@ -163,7 +163,7 @@ A file of PHP only does not end with `?>`; a `?>` before HTML is content.
 No space or tab at the end of a line.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Files\NoTrailingWhitespaceRule`, stage Finishing
 - Covers: `no_trailing_whitespace`, `no_trailing_whitespace_in_comment`, `no_whitespace_in_blank_line`, `Squiz.WhiteSpace.SuperfluousWhitespace`
@@ -173,7 +173,7 @@ No space or tab at the end of a line.
 Every file of PHP code declares `strict_types=1` as its first statement, a file starting with markup excepted.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Files\StrictTypesRequiredRule`, stage Structure
 - Covers: `declare_strict_types`, `Generic.PHP.RequireStrictTypes`, `SlevomatCodingStandard.TypeHints.DeclareStrictTypes`
@@ -279,7 +279,7 @@ Where the links of a chain spread over lines stand.
 A line steps in by one level at most, and only to a level something opened, a comment spanning several lines included.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\SingleLevelIndentationRule`, stage Finishing
 
@@ -588,7 +588,7 @@ A name in a file without a namespace, where a leading backslash changes nothing.
 The leading backslash of an import, which changes nothing.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Namespaces\UselessLeadingBackslashRule`, stage Structure
 - Covers: `PhpCsFixerCustomFixers/no_leading_slash_in_global_namespace`, `no_leading_import_slash`, `PSR12.Files.ImportStatement`, `SlevomatCodingStandard.Namespaces.UseDoesNotStartWithBackslash`
@@ -669,7 +669,7 @@ Whether `Acme` sorts before `acme` rather than with it.
 An import nothing uses is removed.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Namespaces\NoUnusedImportsRule`, stage Structure
 - Covers: `no_unused_imports`, `SlevomatCodingStandard.Namespaces.UnusedUses`
@@ -679,7 +679,7 @@ An import nothing uses is removed.
 `use Foo as Foo;` is `use Foo;`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Namespaces\UselessAliasRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Namespaces.UselessAlias`
@@ -689,7 +689,7 @@ An import nothing uses is removed.
 An import of a class of the namespace it stands in, `use Acme\Shop\Order;` inside `namespace Acme\Shop`, and in the global namespace a function or a constant too.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Namespaces\UselessCurrentNamespaceImportRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Namespaces.UseFromSameNamespace`
@@ -1692,7 +1692,7 @@ Where the semicolon of a statement spanning several lines stands.
 The body of a control structure written without braces, `if ($a) foo();`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\ControlFlow\NoBracelessBodiesRule`, stage Structure
 - Covers: `control_structure_braces`, `Generic.ControlStructures.InlineControlStructure`
@@ -1703,7 +1703,7 @@ The body of a control structure written without braces, `if ($a) foo();`.
 `if: … endif;` is written with braces.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\ControlFlow\NoAlternativeSyntaxRule`, stage Structure
 - Covers: `no_alternative_syntax`
@@ -1713,7 +1713,7 @@ The body of a control structure written without braces, `if ($a) foo();`.
 No `{ … }` around statements that nothing opens.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\ControlFlow\UselessBracesRule`, stage Structure
 - Covers: `no_unneeded_braces`, `no_unneeded_curly_braces`
@@ -1857,7 +1857,7 @@ How the empty body of an `if`, `else`, a loop, `declare`, `try`, `catch` and `fi
 A closure written whole on one line.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
 - Covers: `braces_position`
@@ -2118,7 +2118,7 @@ Before a `case` or `default` of a `switch` that follows a case with statements, 
 The `final` of a class its author marked `@internal`, which nothing outside the package may extend.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\FinalForInternalClassRule`, stage Structure
 - Covers: `final_internal_class`
@@ -2231,7 +2231,7 @@ The visibilities of the methods made static.
 A modifier the class already implies, `final` in a final class.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Classes\UselessModifierRule`, stage Structure
 - Covers: `no_redundant_readonly_property`, `no_unneeded_final_method`, `Generic.CodeAnalysis.UnnecessaryFinalModifier`
@@ -2241,7 +2241,7 @@ A modifier the class already implies, `final` in a final class.
 `public $a = null;` says what `public $a;` says.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Classes\UselessNullInitializationRule`, stage Structure
 - Covers: `no_null_property_initialization`
@@ -2251,7 +2251,7 @@ A modifier the class already implies, `final` in a final class.
 A method that only forwards to the parent with the same arguments adds nothing.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Classes\UselessOverridingMethodRule`, stage Structure
 - Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
@@ -2262,7 +2262,7 @@ A method that only forwards to the parent with the same arguments adds nothing.
 The attribute where the method declares the return type of what it implements.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Classes\UselessReturnTypeWillChangeRule`, stage Structure
 
@@ -2271,7 +2271,7 @@ The attribute where the method declares the return type of what it implements.
 The visibility every property, method and constant declares, `var` becoming `public` and a set visibility counting as one.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `required`, psr12 `required`, nette `required`, symfony `required`
 - Rule `DressCode\Rules\Classes\VisibilityRequiredRule`, stage Structure
 - Covers: `modifier_keywords`, `visibility_required`, `PSR12.Properties.ConstantVisibility`, `PSR2.Classes.PropertyDeclaration`, `SlevomatCodingStandard.Classes.ClassConstantVisibility`, `Squiz.Scope.MethodScope`
@@ -2333,7 +2333,7 @@ The empty parentheses of an attribute.
 An inline `@var` says what `assert($x instanceof Foo)` checks.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\AssertForInlineVarRule`, stage Structure
 - Covers: `SlevomatCodingStandard.PHP.RequireExplicitAssertion`
@@ -2358,7 +2358,7 @@ A parameter declares its type, taken from `@param`, or the `@var` of a promoted 
 A parameter with neither a type nor an annotation is reported
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Types\NativeTypeRequiredRule`, stage Structure
 - Covers: `SlevomatCodingStandard.TypeHints.ParameterTypeHint`
@@ -2370,7 +2370,7 @@ A parameter with neither a type nor an annotation is reported
 A property declares its type, taken from `@var` where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Types\NativeTypeRequiredRule`, stage Structure
 - Covers: `SlevomatCodingStandard.TypeHints.PropertyTypeHint`
@@ -2382,7 +2382,7 @@ A property declares its type, taken from `@var` where it has one and nullable wh
 A function declares its return type, taken from `@return`, `void` where it returns no value and `never` where the annotation says so.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Types\NativeTypeRequiredRule`, stage Structure
 - Covers: `SlevomatCodingStandard.TypeHints.ReturnTypeHint`
@@ -2394,7 +2394,7 @@ A function declares its return type, taken from `@return`, `void` where it retur
 A class constant declares the type of its value.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Types\ConstantTypeRequiredRule`, stage Structure
 - Needs PHP >=8.3
@@ -2436,7 +2436,7 @@ The order of the types of a native union.
 `return;` as the last statement.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\ControlFlow\UselessReturnRule`, stage Structure
 - Covers: `no_useless_return`
@@ -2446,7 +2446,7 @@ The order of the types of a native union.
 A closure whose body is a single `return`, which is an arrow function where that is equivalent: no variable captured by reference, none reached by a name it does not spell out, no comment lost.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Functions.RequireArrowFunction`
@@ -2466,7 +2466,7 @@ Whether such a closure holding another closure or arrow function is one too.
 A named function declared inside a function, a method, a closure or a property hook.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NoInnerFunctionsRule`, stage Structure
 - Covers: `Squiz.PHP.InnerFunctions`
@@ -2487,7 +2487,7 @@ The `static` keyword of a closure or an arrow function that does not use `$this`
 A default a required parameter after it makes unreachable.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\UselessParameterDefaultRule`, stage Structure
 - Covers: `no_unreachable_default_argument_value`, `PEAR.Functions.ValidDefaultValue`, `SlevomatCodingStandard.Functions.UselessParameterDefaultValue`
@@ -2510,7 +2510,7 @@ The name of the current class, of the one the method runs through and of the par
 The class of an object obtained by `get_class($object)`, which is `$object::class`; the name of the current class is `cleanup.classNameNotation`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Classes.ModernClassNameReference`
@@ -2521,7 +2521,7 @@ The class of an object obtained by `get_class($object)`, which is `$object::clas
 Two adjacent catches of one body, written as one `catch (A\|B $e)`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\NoRepeatedCatchesRule`, stage Structure
 
@@ -2530,7 +2530,7 @@ Two adjacent catches of one body, written as one `catch (A\|B $e)`.
 A `catch (E)` without a variable where the variable would never be read.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\UselessCatchVariableRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Exceptions.RequireNonCapturingCatch`
@@ -2551,7 +2551,7 @@ The sets of functions whose aliases are written by their canonical names.
 `call_user_func($f, $x)` is `$f($x)`, `call_user_func_array($f, $a)` is `$f(...$a)`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NoCallUserFuncRule`, stage Structure
 - Covers: `regular_callable_call`
@@ -2562,7 +2562,7 @@ The sets of functions whose aliases are written by their canonical names.
 `intval($x)` is `(int) $x`; `intval($x, 16)` is no cast.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NoConversionFunctionsRule`, stage Structure
 - Covers: `modernize_types_casting`
@@ -2573,7 +2573,7 @@ The sets of functions whose aliases are written by their canonical names.
 `$f->__invoke($x)` is `$f($x)`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NoExplicitInvokeCallsRule`, stage Structure
 - Covers: `SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall`
@@ -2583,7 +2583,7 @@ The sets of functions whose aliases are written by their canonical names.
 `dirname(__FILE__)` is `__DIR__`; nested `dirname()` by the `levels` argument.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NoDirnameOfFileRule`, stage Structure
 - Covers: `PhpCsFixerCustomFixers/no_useless_dirname_call`, `combine_nested_dirname`, `dir_constant`
@@ -2594,7 +2594,7 @@ The sets of functions whose aliases are written by their canonical names.
 `is_null($x)` is `$x === null`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NoIsNullRule`, stage Structure
 - Covers: `is_null`
@@ -2605,7 +2605,7 @@ The sets of functions whose aliases are written by their canonical names.
 `strlen($s) === 0` is `$s === ''`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NoManualEmptyStringTestsRule`, stage Structure
 - Covers: `PhpCsFixerCustomFixers/no_useless_strlen`, `string_length_to_empty`
@@ -2616,7 +2616,7 @@ The sets of functions whose aliases are written by their canonical names.
 `settype($x, 'int')` as a statement is `$x = (int) $x`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NoSettypeRule`, stage Structure
 - Covers: `set_type_to_cast`
@@ -2627,7 +2627,7 @@ The sets of functions whose aliases are written by their canonical names.
 An argument PHP ignores or that repeats the default.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Functions\RedundantArgumentsRule`, stage Structure
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
@@ -2637,7 +2637,7 @@ An argument PHP ignores or that repeats the default.
 `isset($a) && isset($b)` is `isset($a, $b)`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Variables\NoSeparateIssetsRule`, stage Structure
 - Covers: `combine_consecutive_issets`
@@ -2647,7 +2647,7 @@ An argument PHP ignores or that repeats the default.
 `unset($a); unset($b);` is `unset($a, $b);`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Variables\NoSeparateUnsetsRule`, stage Structure
 - Covers: `combine_consecutive_unsets`
@@ -2659,7 +2659,7 @@ An argument PHP ignores or that repeats the default.
 An `if` ending a function or a loop body becomes a guard that leaves early, and an `else` that leaves becomes the first branch.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\EarlyExitForTrailingIfRule`, stage Structure
 - Covers: `SlevomatCodingStandard.ControlStructures.EarlyExit`
@@ -2700,7 +2700,7 @@ The text of the line comment a non-empty `case` falling through to the next one 
 The second `;` of `foo();;`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\ControlFlow\NoEmptyStatementsRule`, stage Structure
 - Covers: `no_empty_statement`, `SlevomatCodingStandard.PHP.UselessSemicolon`
@@ -2710,7 +2710,7 @@ The second `;` of `foo();;`.
 `if ($a > 1) { return true; } return false;` is `return $a > 1;`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\ReturnForBooleanIfRule`, stage Structure
 - Covers: `SlevomatCodingStandard.ControlStructures.UselessIfConditionWithReturn`
@@ -2730,7 +2730,7 @@ What ends `case` and `default`.
 `if ($c) { return 1; } else { return 2; }` is `return $c ? 1 : 2;`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\TernaryForIfRule`, stage Structure
 - Covers: `SlevomatCodingStandard.ControlStructures.RequireTernaryOperator`
@@ -2741,7 +2741,7 @@ What ends `case` and `default`.
 An `else` after branches that always leave, by `return`, `throw`, `break`, `continue`, `exit` or `goto`, whose statements then follow the `if`, and an empty `else`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `forbidden`
 - Rule `DressCode\Rules\ControlFlow\UselessElseRule`, stage Structure
 - Covers: `no_useless_else`, `SlevomatCodingStandard.ControlStructures.EarlyExit`
@@ -2751,7 +2751,7 @@ An `else` after branches that always leave, by `return`, `throw`, `break`, `cont
 An `elseif` after an `if` that always leaves, which becomes an `if` of its own with the later branches.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\UselessElseRule`, stage Structure
 - Covers: `no_superfluous_elseif`, `SlevomatCodingStandard.ControlStructures.EarlyExit`
@@ -2763,7 +2763,7 @@ An `elseif` after an `if` that always leaves, which becomes an `if` of its own w
 `return ($x);` is `return $x;`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Expressions\UselessParenthesesAfterConstructRule`, stage Structure
 - Covers: `include`, `no_unneeded_control_parentheses`, `SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses`, `Squiz.Strings.EchoedStrings`
@@ -2783,7 +2783,7 @@ The type name of a cast.
 `$a = $a + $b` is `$a += $b`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\CombinedAssignmentForRepeatedTargetRule`, stage Structure
 - Covers: `assign_null_coalescing_to_coalesce_equal`, `SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator`, `SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator`
@@ -2794,7 +2794,7 @@ The type name of a cast.
 An operand where logical or bitwise operators are easy to misread is parenthesized.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\ExplicitPrecedenceRequiredRule`, stage Structure
 - Covers: `Generic.CodeAnalysis.RequireExplicitBooleanOperatorPrecedence`
@@ -2804,7 +2804,7 @@ An operand where logical or bitwise operators are easy to misread is parenthesiz
 `$i += 1` is `$i++`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Expressions\IncrementForAddOneRule`, stage Structure
 - Covers: `standardize_increment`
@@ -2815,7 +2815,7 @@ An operand where logical or bitwise operators are easy to misread is parenthesiz
 `!!$a` is `(bool) $a`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Expressions\NoDoubleNegationsRule`, stage Structure
 - Covers: `no_short_bool_cast`
@@ -2835,7 +2835,7 @@ The operator of inequality.
 `isset($a) ? $a : $b`, `$a !== null ? $a : $b` are `$a ?? $b`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\NullCoalescingForNullTernaryRule`, stage Structure
 - Covers: `ternary_to_null_coalescing`, `SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator`
@@ -2846,7 +2846,7 @@ The operator of inequality.
 `$a ? $a : $b` is `$a ?: $b`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\ShortTernaryForRepeatedConditionRule`, stage Structure
 - Covers: `ternary_to_elvis_operator`, `SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator`
@@ -2856,7 +2856,7 @@ The operator of inequality.
 A loose comparison, `==`, `!=` or `<>`, is written `===` or `!==`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\NoLooseComparisonsRule`, stage Structure
 - Covers: `strict_comparison`
@@ -2867,7 +2867,7 @@ A loose comparison, `==`, `!=` or `<>`, is written `===` or `!==`.
 `and`, `or` bind weaker than `=` and are written `&&`, `\|\|`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\LogicalOperatorNotationRule`, stage Structure
 - Covers: `Squiz.Operators.ValidLogicalOperators`
@@ -2877,7 +2877,7 @@ A loose comparison, `==`, `!=` or `<>`, is written `===` or `!==`.
 `$a > 1 ? true : false` is the condition itself, where it is a boolean.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\UselessTernaryOperatorRule`, stage Structure
 - Covers: `SlevomatCodingStandard.ControlStructures.UselessTernaryOperator`
@@ -2899,7 +2899,7 @@ Which side of a comparison holds the constant, a comparison of two variables or 
 `array(1, 2)` is `[1, 2]`, `list($a) =` is `[$a] =`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Arrays\NoLongArraySyntaxRule`, stage Structure
 - Covers: `array_syntax`, `list_syntax`, `Generic.Arrays.DisallowLongArraySyntax`, `SlevomatCodingStandard.PHP.ShortList`
@@ -2909,7 +2909,7 @@ Which side of a comparison holds the constant, a comparison of two variables or 
 `'Acme\Shop\Order'` is `Order::class`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Classes\ClassKeywordForStringRule`, stage Structure
 - Covers: `class_keyword`
@@ -2931,7 +2931,7 @@ A backslash of a string that escapes nothing.
 A heredoc with nothing to interpolate, which is written as a nowdoc.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Literals\NowdocForHeredocRule`, stage Structure
 - Covers: `heredoc_to_nowdoc`, `SlevomatCodingStandard.PHP.RequireNowdoc`
@@ -2993,7 +2993,7 @@ Two string literals concatenated on different lines.
 An empty comment, which is removed.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Comments\NoEmptyCommentsRule`, stage Finishing
 - Covers: `no_empty_comment`
@@ -3038,7 +3038,7 @@ The letter case of a known annotation.
 The doc comment stands above the attributes.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`
 - Rule `DressCode\Rules\PhpDoc\PhpdocAboveAttributesRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Attributes.RequireAttributeAfterDocComment`
@@ -3071,7 +3071,7 @@ The patterns of the lines of a description removed from doc comments, such as `~
 An empty doc comment, which is removed.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\PhpDoc\NoEmptyPhpdocsRule`, stage Finishing
 - Covers: `no_empty_phpdoc`
@@ -3093,7 +3093,7 @@ The `*` opening each line of a doc comment.
 A `@param` naming a parameter the function does not have.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\NoInvalidAnnotationsRule`, stage Structure
 - Covers: `Squiz.Commenting.FunctionComment.ExtraParamComment`
@@ -3103,7 +3103,7 @@ A `@param` naming a parameter the function does not have.
 A second `@return` of a function.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\NoInvalidAnnotationsRule`, stage Structure
 - Covers: `Squiz.Commenting.FunctionComment.DuplicateReturn`
@@ -3113,7 +3113,7 @@ A second `@return` of a function.
 A second `@var` of a property.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\NoInvalidAnnotationsRule`, stage Structure
 - Covers: `Squiz.Commenting.VariableComment`
@@ -3123,7 +3123,7 @@ A second `@var` of a property.
 A `@param`, `@return`, `@var` or `@see` without content.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\NoInvalidAnnotationsRule`, stage Structure
 - Covers: `Squiz.Commenting.VariableComment`
@@ -3229,7 +3229,7 @@ A property doc comment with a single line of content.
 A `@var` on a class constant that says nothing.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\UselessConstantVarAnnotationRule`, stage Finishing
 - Covers: `SlevomatCodingStandard.TypeHints.UselessConstantTypeHint`
@@ -3240,7 +3240,7 @@ A `@var` on a class constant that says nothing.
 A function doc comment that only repeats the native types of the signature, without a description of anything, is removed.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\UselessFunctionPhpdocRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Commenting.UselessFunctionDocComment`
@@ -3251,7 +3251,7 @@ A function doc comment that only repeats the native types of the signature, with
 A doc comment of `@inheritDoc` alone.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\UselessInheritdocRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Commenting.UselessInheritDocComment`
@@ -3264,7 +3264,7 @@ A doc comment of `@inheritDoc` alone.
 A class extending a final one.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\NoFinalParentRule`, stage Structure
 - Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
@@ -3284,7 +3284,7 @@ The `null` that `__debugInfo()` returns, which becomes `[]`.
 `$this` in a static method, a static closure or a function outside a class.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Classes\NoThisOutsideObjectRule`, stage Structure
 - Covers: `Squiz.Scope.StaticThisUsage`
@@ -3294,7 +3294,7 @@ The `null` that `__debugInfo()` returns, which becomes `[]`.
 An inherited abstract method a class that is not abstract leaves unimplemented, typically after a library added it, which is only reported.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\NoUnimplementedAbstractMethodsRule`, stage Structure
 - Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
@@ -3304,7 +3304,7 @@ An inherited abstract method a class that is not abstract leaves unimplemented, 
 A property written only in the constructor, or not at all.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\ReadonlyForUnwrittenPropertyRule`, stage Structure
 - Needs PHP >=8.1
@@ -3315,7 +3315,7 @@ A property written only in the constructor, or not at all.
 `__serialize()` and `__unserialize()` in a class implementing `Serializable`.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\SerializeMethodsRequiredRule`, stage Structure
 
@@ -3333,7 +3333,7 @@ A property written only in the constructor, or not at all.
 A `continue` that only leaves a `switch` is `break`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\ControlFlow\NoContinueInSwitchRule`, stage Structure
 - Covers: `switch_continue_to_break`, `SlevomatCodingStandard.ControlStructures.DisallowContinueWithoutIntegerOperandInSwitch`
@@ -3343,7 +3343,7 @@ A `continue` that only leaves a `switch` is `break`.
 A `catch` after one catching `Throwable` or a class it catches.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\NoUnreachableCatchesRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Exceptions.DeadCatch`
@@ -3353,7 +3353,7 @@ A `catch` after one catching `Throwable` or a class it catches.
 `catch (Exception)` and a parameter of the type `Exception` where `Throwable` is meant.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\ThrowableForExceptionRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly`
@@ -3363,7 +3363,7 @@ A `catch` after one catching `Throwable` or a class it catches.
 The `@` operator, which silences errors.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\NoErrorSuppressionRule`, stage Structure
 
@@ -3372,7 +3372,7 @@ The `@` operator, which silences errors.
 Non-breaking, zero-width and bidi characters, replaced in comments and escaped in strings, which changes their text, and reported in names.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Files\NoInvisibleCharactersRule`, stage Structure
 - Covers: `non_printable_character`
@@ -3406,7 +3406,7 @@ The debugging functions whose calls print.
 `in_array()`, `array_search()`, `array_keys()`, `base64_decode()`, `mb_detect_encoding()` pass `strict: true`; an explicit `false` is reported.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Functions\StrictComparisonArgumentRequiredRule`, stage Structure
 - Covers: `strict_param`, `SlevomatCodingStandard.Functions.StrictCall`
@@ -3417,7 +3417,7 @@ The debugging functions whose calls print.
 At the end of the lines of a multi-line string or inline HTML, which changes their value.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Literals\NoTrailingWhitespaceInStringRule`, stage Structure
 - Covers: `no_trailing_whitespace_in_string`
@@ -3428,7 +3428,7 @@ At the end of the lines of a multi-line string or inline HTML, which changes the
 A doc comment followed by another one, the first lost to reflection.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\NoConsecutivePhpdocsRule`, stage Finishing
 
@@ -3437,7 +3437,7 @@ A doc comment followed by another one, the first lost to reflection.
 The return type `never` of PHP 8.1 on a function or a method that always throws or exits, a method only where no descendant can declare it again.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Types\NeverForThrowingFunctionRule`, stage Structure
 - Needs PHP >=8.1
@@ -3447,7 +3447,7 @@ The return type `never` of PHP 8.1 on a function or a method that always throws 
 The return type `never` on a closure that always throws or exits, though its signature usually belongs to the call it is passed to.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Types\NeverForThrowingFunctionRule`, stage Structure
 - Needs PHP >=8.1
@@ -3457,7 +3457,7 @@ The return type `never` on a closure that always throws or exits, though its sig
 A variable assigned twice in one expression, `$a = $a = 1`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Variables\NoRepeatedAssignmentsRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Variables.DuplicateAssignmentToVariable`
@@ -3467,7 +3467,7 @@ A variable assigned twice in one expression, `$a = $a = 1`.
 The `global` statement.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Variables\NoGlobalStatementsRule`, stage Structure
 - Covers: `Squiz.PHP.GlobalKeyword`
@@ -3490,7 +3490,7 @@ The `global` statement.
 `[null => 1]` is `['' => 1]`, which it becomes.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Arrays\NoNullArrayKeysRule`, stage Structure
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
@@ -3522,7 +3522,7 @@ The `global` statement.
 A `return` with a value in a constructor or destructor, deprecated by PHP 8.6.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\NoConstructorReturnValuesRule`, stage Structure
 
@@ -3531,7 +3531,7 @@ A `return` with a value in a constructor or destructor, deprecated by PHP 8.6.
 `__sleep()` and `__wakeup()`, which PHP 8.5 soft-deprecated.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\NoSleepAndWakeupRule`, stage Structure
 
@@ -3615,7 +3615,7 @@ A class with `__toString()` declares it.
 A `return` inside `finally`, which PHP 8.6 deprecated.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\NoReturnsInFinallyRule`, stage Structure
 
@@ -3707,7 +3707,7 @@ The calls a nest has at least for the pipe operator to be written.
 The `escape` argument of `fgetcsv()` and kin written out, since PHP 8.4 deprecated relying on its default.
 
 - By default `keep`
-- Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\CsvEscapeArgumentRequiredRule`, stage Structure
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
@@ -3793,7 +3793,7 @@ The names of the parameters holding a secret, whatever their letter case, which 
 `${name}` is `{$name}`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Literals\NoDollarBraceInterpolationsRule`, stage Structure
 - Covers: `simple_to_complex_string_variable`
@@ -3803,7 +3803,7 @@ The names of the parameters holding a secret, whatever their letter case, which 
 `shell_exec()` for the backtick operator.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Expressions\NoBacktickOperatorsRule`, stage Structure
 - Covers: `backtick_to_shell_exec`
@@ -3824,7 +3824,7 @@ The names of the parameters holding a secret, whatever their letter case, which 
 Names PHP 8.6 reserved, in declarations and imports.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Namespaces\NoReservedNamesRule`, stage Structure
 
@@ -3845,7 +3845,7 @@ Names PHP 8.6 reserved, in declarations and imports.
 A parameter type made nullable by its default `null` alone, `int $x = null`, deprecated by PHP 8.4 and written `?int $x = null`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Types\NullableTypeForDefaultNullRule`, stage Structure
 - Covers: `nullable_type_declaration_for_default_null_value`, `SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue`
@@ -3999,7 +3999,7 @@ A constant, method or property whose declaration is `@deprecated`.
 A call PHP retired is written as the upgrading data of PHP say: a deprecated function reported, `utf8_encode()` written with `mb_convert_encoding()`, `curl_close()` and the other calls doing nothing on the target removed, an argument whose value PHP deprecated reported.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `warning` (as `forbidden`, its violations only warning); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\NoDeprecatedPhpCallsRule`, stage Structure
 - Covers: `Generic.PHP.DeprecatedFunctions`
