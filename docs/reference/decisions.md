@@ -615,7 +615,7 @@ A constant of a namespace other than that of the file.
 
 ### qualification.leadingBackslash
 
-The leading backslash of a name in a file without a namespace, where it changes nothing, `\strlen()` and `new \DateTime`.
+The leading backslash of a name where it changes nothing, in a file without a namespace, `\strlen()` and `new \DateTime`, and before `true`, `false` and `null` anywhere.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`

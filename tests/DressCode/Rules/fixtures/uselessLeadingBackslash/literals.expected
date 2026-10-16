@@ -1,0 +1,8 @@
+<?php
+namespace App;
+
+$a = true;
+$b = FALSE;
+$c = f(null);
+$d = true;
+$e = \strlen($x);

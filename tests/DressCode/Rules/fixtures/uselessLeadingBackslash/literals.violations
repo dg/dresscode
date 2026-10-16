@@ -1,0 +1,3 @@
+4: Useless leading backslash of `\true`, because `true`, `false` and `null` are the same in every namespace.
+5: Useless leading backslash of `\FALSE`, because `true`, `false` and `null` are the same in every namespace.
+6: Useless leading backslash of `\null`, because `true`, `false` and `null` are the same in every namespace.

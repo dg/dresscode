@@ -9,8 +9,9 @@ namespace DressCode\Rules\Namespaces;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{NameForm, Node, SymbolKind, Token};
+use PhpSyntax\{Builder, NameForm, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{NameNode, UseItemNode};
+use PhpSyntax\Nodes\Scalar\{BooleanNode, NullNode};
 use PhpSyntax\Nodes\Statement\UseNode;
 use function count;
 
@@ -20,7 +21,7 @@ use function count;
  * `use Foo\Bar;`, not `use \Foo\Bar;`. Code in the global namespace references classes, functions and constants
  * without it: `new Foo`, `strlen()`, `PHP_EOL`, never `\Foo`; a name whose first segment is shadowed by an import
  * keeps it, because there `\Foo` and `Foo` are two different things. Inside a namespace the backslash says which
- * name is meant and stays.
+ * name is meant and stays, except before `true`, `false` and `null`, which no namespace can declare.
  */
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
 final class UselessLeadingBackslashRule extends NodeRule
@@ -38,7 +39,7 @@ final class UselessLeadingBackslashRule extends NodeRule
 			new Decision(
 				self::InGlobalNamespace,
 				Domain::state(),
-				'The leading backslash of a name in a file without a namespace, where it changes nothing, `\strlen()` and `new \DateTime`',
+				'The leading backslash of a name where it changes nothing, in a file without a namespace, `\strlen()` and `new \DateTime`, and before `true`, `false` and `null` anywhere',
 			),
 			new Decision(self::InImport, Domain::state(), 'The leading backslash of an import, which changes nothing, `use \Foo\Bar;`'),
 		];
@@ -51,6 +52,8 @@ final class UselessLeadingBackslashRule extends NodeRule
 			UseNode::class => !$values->isKept(self::InImport),
 			// every name is visited, so only where the file without a namespace is decided
 			NameNode::class => !$values->isKept(self::InGlobalNamespace),
+			BooleanNode::class => !$values->isKept(self::InGlobalNamespace),
+			NullNode::class => !$values->isKept(self::InGlobalNamespace),
 		]));
 	}
 
@@ -67,6 +70,16 @@ final class UselessLeadingBackslashRule extends NodeRule
 			self::processImport($node, $context);
 		} elseif ($node instanceof NameNode) {
 			self::processName($node, $context);
+		} elseif (
+			($node instanceof BooleanNode || $node instanceof NullNode)
+			&& str_starts_with($text = $node->token->text, '\\')
+			&& $context->report(
+				$node,
+				"Useless leading backslash of `$text`, because `true`, `false` and `null` are the same in every namespace.",
+				decision: self::InGlobalNamespace,
+			)
+		) {
+			$node->replaceWith((new Builder)->expression(substr($text, 1)));
 		}
 	}
 
