@@ -1,3 +1,9 @@
 3: Expected no `()` after `new Foo`.
 6: Expected no `()` after `new $class`.
 7: Expected no `()` after `new class`.
+12: Expected no `()` after `new Foo`.
+14: Expected no `()` after `new Foo`.
+15: Expected no `()` after `new Foo`.
+16: Expected no `()` after `new Foo`.
+18: Expected no `()` after `new Foo`.
+19: Expected no `()` after `new class`.

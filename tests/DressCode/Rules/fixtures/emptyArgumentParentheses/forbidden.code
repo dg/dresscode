@@ -9,3 +9,13 @@ $e = new class () {
 $f = new class (1) {
 };
 $g = new Foo(/* why */);
+$h = new Foo ();
+$i = new Foo
+();
+$j = [new Foo (), 1];
+$k = (new Foo ())->bar();
+$l = new Foo // c
+();
+$m = new class ()
+{
+};

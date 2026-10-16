@@ -9,7 +9,7 @@ namespace DressCode\Rules\Expressions;
 
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values, Violation};
 use DressCode\Domains\Words;
-use PhpSyntax\{Builder, Node, Token, Trivia};
+use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, AttributeNode};
 use PhpSyntax\Nodes\Expression\NewNode;
 use function count;
@@ -129,17 +129,22 @@ final class EmptyArgumentParenthesesRule extends NodeRule
 		$before = $args->openParen->getPrevious();
 		$trailing = $args->closeParen->trailingTrivia;
 		$node->arguments = null;
-		$onlyWhitespace = true;
-		foreach ($trailing as $trivia) {
-			$onlyWhitespace = $onlyWhitespace && $trivia->is(Trivia::Whitespace);
+		if ($before === null) {
+			return;
 		}
 
-		$beforeTrailing = $before->trailingTrivia ?? [];
-		$beforeEndsWithSpace = $beforeTrailing !== []
-			&& $beforeTrailing[count($beforeTrailing) - 1]->is(Trivia::Whitespace);
-		if ($before !== null && $trailing !== [] && !($onlyWhitespace && $beforeEndsWithSpace)) {
-			$before->setTrailingTrivia([...$beforeTrailing, ...$trailing]);
+		// the whitespace before the parentheses goes with them, a line comment keeping the line ending it needs
+		$kept = $before->trailingTrivia;
+		$dropped = [];
+		while ($kept !== [] && !$kept[count($kept) - 1]->isComment()) {
+			array_unshift($dropped, array_pop($kept));
 		}
+
+		if ($kept !== [] && $kept[count($kept) - 1]->isLineComment()) {
+			$kept = [...$kept, ...array_slice($dropped, 0, 1)];
+		}
+
+		$before->setTrailingTrivia([...$kept, ...$trailing]);
 	}
 
 
