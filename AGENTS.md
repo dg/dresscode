@@ -5,7 +5,7 @@ It is my fervent wish that this file guide every AI coding agent working with co
 
 ## Documentation
 
-`docs/internals.md` is the source of truth for how DressCode works: the tree as a rule sees it, the mutation API, the engine of gaps, the rules and the interop. Read it before any non-trivial change.
+`docs/internals.md` is the source of truth for how DressCode works: the tree as a rule sees it, the mutation API, the engine of gaps, the rules and the interop. Read it before any non-trivial change. `docs/skills/writing-rules.md` is the procedure of writing a rule or porting one from another tool, the one an agent outside this repository follows too.
 
 ## Project overview
 
