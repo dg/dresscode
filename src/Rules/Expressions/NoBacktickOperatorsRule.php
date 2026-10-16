@@ -16,8 +16,8 @@ use PhpSyntax\Nodes\Scalar\InterpolatedStringPartNode;
 
 /**
  * `shell_exec("...")` instead of the backticks PHP 8.5 deprecated; a command containing a quote or a backtick
- * stays as written. The backticks always run the global function, so the call is written the shortest way that
- * reaches it for certain: fully qualified where an import takes the name, or in a namespace whose name resolution is
+ * is reported and stays as written. The backticks always run the global function, so the call is written the
+ * shortest way that reaches it for certain: fully qualified where an import takes the name, or in a namespace whose name resolution is
  * uncertain.
  */
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
@@ -42,15 +42,19 @@ final class NoBacktickOperatorsRule extends NodeRule
 		}
 
 		$command = '';
+		$quoted = false;
 		foreach ($node->parts->getItems() as $part) {
-			if ($part instanceof InterpolatedStringPartNode && preg_match('~[`"\']~', $part->token->text)) {
-				return;
-			}
-
+			$quoted = $quoted || ($part instanceof InterpolatedStringPartNode && preg_match('~[`"\']~', $part->token->text));
 			$command .= $part;
 		}
 
-		if (!$context->report($node, 'The backtick operator must be written as a `shell_exec()` call.')) {
+		$message = 'The backtick operator must be written as a `shell_exec()` call';
+		if ($quoted) {
+			$context->report($node, $message . ', but the command contains a quote or a backtick.', fixable: false);
+			return;
+		}
+
+		if (!$context->report($node, $message . '.')) {
 			return;
 		}
 

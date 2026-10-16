@@ -6,3 +6,4 @@ $d = `echo "hi"`;
 $e = `echo 'hi'`;
 $f = shell_exec("");
 $g = shell_exec("ls $dir[x]");
+$h = `ls "$dir"`;

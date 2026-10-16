@@ -6,3 +6,4 @@ $d = `echo "hi"`;
 $e = `echo 'hi'`;
 $f = ``;
 $g = `ls $dir[x]`;
+$h = `ls "$dir"`;

@@ -1,5 +1,8 @@
 2: The backtick operator must be written as a `shell_exec()` call.
 3: The backtick operator must be written as a `shell_exec()` call.
 4: The backtick operator must be written as a `shell_exec()` call.
+5: The backtick operator must be written as a `shell_exec()` call, but the command contains a quote or a backtick.
+6: The backtick operator must be written as a `shell_exec()` call, but the command contains a quote or a backtick.
 7: The backtick operator must be written as a `shell_exec()` call.
 8: The backtick operator must be written as a `shell_exec()` call.
+9: The backtick operator must be written as a `shell_exec()` call, but the command contains a quote or a backtick.
