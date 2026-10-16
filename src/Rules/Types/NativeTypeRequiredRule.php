@@ -67,7 +67,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			new Decision(
 				'types.declaration.parameter',
 				Domain::state('required'),
-				'A parameter declares its type, taken from `@param` where it has one and nullable where it defaults to null, and the annotation goes where it then says nothing more',
+				'A parameter declares its type, taken from `@param`, or the `@var` of a promoted property, where it has one and nullable where it defaults to null, and the annotation goes where it then says nothing more',
 				['A parameter with neither a type nor an annotation is reported'],
 			),
 			new Decision(
@@ -163,6 +163,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			: null;
 		$variadic = $overridden === null ? null : array_find($overridden->parameters, fn(Parameter $parameter) => $parameter->variadic);
 		$unseen = $types === null && $node instanceof MethodNode && !$node->isConstructor() && self::hasAncestors($node);
+		$phpDoc = $context->getAnalysis(PhpDoc::class);
 		$removed = [];
 		foreach ($params as $i => $param) {
 			$name = $param->variable->name;
@@ -170,14 +171,19 @@ final class NativeTypeRequiredRule extends NodeRule
 				continue;
 			}
 
+			// a promoted property may carry its `@var` itself
+			$own = $param->promoted ? $param->getDocComment() : null;
+			$ownTree = $own === null ? null : $phpDoc->parse($own);
+			[$ownTags, $ownPrefixed] = self::findTags($ownTree, '@var');
+			$fromOwn = !isset($tags[$name->text]) && isset($ownTags['']);
 			$inherited = $overridden->parameters[$i] ?? $variadic;
-			$removed[] = $this->declareType(
+			$tag = $this->declareType(
 				'types.declaration.parameter',
 				"The parameter `$name->text`",
 				$param->variable,
 				$param->type?->text,
-				$tags[$name->text] ?? null,
-				isset($prefixed[$name->text]),
+				$fromOwn ? $ownTags[''] : $tags[$name->text] ?? null,
+				isset($prefixed[$name->text]) || isset($ownPrefixed['']),
 				$node,
 				fn(TypeNode $type) => $param->setType($type),
 				$context,
@@ -187,10 +193,16 @@ final class NativeTypeRequiredRule extends NodeRule
 					? fn() => self::mayRedeclare($param, $types)
 					: fn(string $native, \Closure $resolve) => $unseen || ($inherited !== null
 						&& ($inherited->type === null || !NativeType::isDescribedAs($native, $inherited->type, $resolve))),
+				docComment: $fromOwn ? $own : null,
 			);
+			if ($tag !== null && $fromOwn && $own !== null && $ownTree !== null) {
+				self::removeTags($param, $ownTree, [$tag], $own, $phpDoc);
+			} elseif ($tag !== null) {
+				$removed[] = $tag;
+			}
 		}
 
-		return array_values(array_filter($removed));
+		return $removed;
 	}
 
 
@@ -352,6 +364,7 @@ final class NativeTypeRequiredRule extends NodeRule
 	 *   the resolver of its classes, because of a declaration this one redeclares
 	 * @param  bool  $implicitNull  the declaration is null until written, which a native type leaves uninitialized
 	 * @param  ?\Closure(): void  $writeNull  writes `= null` to keep it null under a type that takes it
+	 * @param  ?Trivia  $docComment  the doc comment of the annotation where it is not the one of the owner
 	 */
 	private function declareType(
 		string $decision,
@@ -368,11 +381,12 @@ final class NativeTypeRequiredRule extends NodeRule
 		?\Closure $isRefused = null,
 		bool $implicitNull = false,
 		?\Closure $writeNull = null,
+		?Trivia $docComment = null,
 	): ?PhpDocTagNode
 	{
 		$return = $decision === 'types.declaration.return';
 		$typeWord = $return ? 'return type' : 'type';
-		$tagName = self::Annotations[$decision];
+		$tagName = $tag === null ? self::Annotations[$decision] : strtolower($tag->name);
 		$value = $tag?->value;
 		$annotation = $value instanceof ParamTagValueNode || $value instanceof ReturnTagValueNode || $value instanceof VarTagValueNode
 			? $value->type
@@ -464,7 +478,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			&& $context->report(
 				$at,
 				"Useless `$tagName` annotation$described, because the native $typeWord says the same.",
-				trivia: $owner->getDocComment(),
+				trivia: $docComment ?? $owner->getDocComment(),
 				decision: $decision,
 			)
 			? $tag

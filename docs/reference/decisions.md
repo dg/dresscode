@@ -2353,7 +2353,7 @@ Classes treated like `array` and `iterable`, whose annotation says what their it
 
 ### types.declaration.parameter
 
-A parameter declares its type, taken from `@param` where it has one and nullable where it defaults to null, and the annotation goes where it then says nothing more.
+A parameter declares its type, taken from `@param`, or the `@var` of a promoted property, where it has one and nullable where it defaults to null, and the annotation goes where it then says nothing more.
 
 A parameter with neither a type nor an annotation is reported
 

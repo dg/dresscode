@@ -1,0 +1,17 @@
+<?php
+// {"declaration.return": "keep", "declaration.property": "keep"}
+// risky
+class A
+{
+	public function __construct(
+		/** @var string[] */
+		public array $a,
+		public int $b,
+		/** @var int desc */
+		public int $c,
+		public $d,
+		/** @var array<int> */
+		public array $e = [],
+	) {
+	}
+}
