@@ -1,6 +1,6 @@
 5: Useless `@var` annotation for the property `$count`, because the native type says the same.
 6: The property `$count` must have the native type `int` from its `@var` annotation.
-	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+	risky BehaviorChanges: the property is then uninitialized until written, where it was null
 8: Useless `@param` annotation for the parameter `$name`, because the native type says the same.
 8: Useless `@return` annotation, because the native return type says the same.
 12: The parameter `$name` must have the native type `string` from its `@param` annotation.

@@ -25,13 +25,15 @@ use function count;
 /**
  * Parameters, properties and return values have native types: a missing one is added from the `@param`,
  * `@var` or `@return` annotation when PHP can express it, nullable where the declaration defaults to null, and the
- * annotation goes away when it then says nothing more. A function that returns no value is declared void, and
+ * annotation goes away when it then says nothing more. A property without a default, null until written, gets
+ * `= null` where its type takes null, except one with hooks. A function that returns no value is declared void, and
  * a native void the annotation says is never becomes never. Any other declaration with neither is reported, as
  * is an array, iterable or traversable one whose annotation does not say what the items are. A function
  * inheriting its documentation (`{@inheritDoc}`, `#[\Override]`) is left alone. Each place can be turned off on its
  * own; a class constant is `ConstantTypeRequiredRule`'s.
  *
- * A native type written is risky: PHP enforces it, and an annotation that was wrong becomes a TypeError. None is
+ * A native type written is risky: PHP enforces it, and an annotation that was wrong becomes a TypeError, or a property
+ * left without `= null` is uninitialized until written. None is
  * written where PHP would refuse it: against a default of another type, on a property redeclaring one of its parent or
  * of a trait it uses, and on a parameter its parent declares without that type, which only the types of the run show;
  * without them nothing is written on a property or a parameter of a method in a class with a parent, an interface or
@@ -71,7 +73,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			new Decision(
 				'types.declaration.property',
 				Domain::state('required'),
-				'A property declares its type, taken from `@var` where it has one and nullable where it defaults to null',
+				'A property declares its type, taken from `@var` where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default',
 			),
 			new Decision(
 				'types.declaration.return',
@@ -325,6 +327,15 @@ final class NativeTypeRequiredRule extends NodeRule
 			place: NativeType::Property,
 			default: $item->default,
 			isRefused: fn() => self::mayRedeclare($node, $context->findAnalysis(Types::class)),
+			implicitNull: $item->default === null,
+			writeNull: $node->hooks === null
+				? function () use ($item): void {
+					$written = (new Builder)->fragment(PropertyNode::class, 'public $x = null;')->items->getItems()[0];
+					$item->name->setTrailingSpace(' ');
+					$item->equals = $written->equals;
+					$item->default = $written->default;
+				}
+				: null,
 		);
 		if ($tag !== null && $tree !== null) {
 			self::removeTags($node, $tree, [$tag], $docComment, $phpDoc);
@@ -339,6 +350,8 @@ final class NativeTypeRequiredRule extends NodeRule
 	 * @param  \Closure(TypeNode): mixed  $setType
 	 * @param  ?\Closure(string, \Closure(string): string): bool  $isRefused  whether PHP refuses the native type, given with
 	 *   the resolver of its classes, because of a declaration this one redeclares
+	 * @param  bool  $implicitNull  the declaration is null until written, which a native type leaves uninitialized
+	 * @param  ?\Closure(): void  $writeNull  writes `= null` to keep it null under a type that takes it
 	 */
 	private function declareType(
 		string $decision,
@@ -353,6 +366,8 @@ final class NativeTypeRequiredRule extends NodeRule
 		string $place,
 		?Node $default = null,
 		?\Closure $isRefused = null,
+		bool $implicitNull = false,
+		?\Closure $writeNull = null,
 	): ?PhpDocTagNode
 	{
 		$return = $decision === 'types.declaration.return';
@@ -388,13 +403,7 @@ final class NativeTypeRequiredRule extends NodeRule
 				$localTypes,
 				$resolve,
 			);
-			if (
-				$native !== null
-				&& $default instanceof Scalar\NullNode
-				&& !str_starts_with($native, '?')
-				&& !preg_match('~(^|\|)null$~i', $native)
-				&& strtolower($native) !== 'mixed'
-			) {
+			if ($native !== null && $default instanceof Scalar\NullNode && !self::takesNull($native)) {
 				$native = match (true) {
 					!str_contains($native, '&') => str_contains($native, '|') ? "$native|null" : "?$native",
 					version_compare($context->phpVersion, '8.2', '>=') => "($native)|null",
@@ -402,6 +411,7 @@ final class NativeTypeRequiredRule extends NodeRule
 				};
 			}
 
+			$keptNull = $implicitNull && $writeNull !== null && $native !== null && self::takesNull($native);
 			if (
 				$native === null
 				|| ($default !== null && !self::canDefaultTo($native, $default))
@@ -410,7 +420,9 @@ final class NativeTypeRequiredRule extends NodeRule
 					$at,
 					"$subject must have the native $typeWord `$native` from its `$tagName` annotation.",
 					risk: Risk::BehaviorChanges,
-					because: 'a value the annotation did not foresee then throws a `TypeError`',
+					because: $implicitNull && !$keptNull
+						? 'the property is then uninitialized until written, where it was null'
+						: 'a value the annotation did not foresee then throws a `TypeError`',
 					decision: $decision,
 				)
 			) {
@@ -418,6 +430,9 @@ final class NativeTypeRequiredRule extends NodeRule
 			}
 
 			$setType((new Builder)->type($native));
+			if ($keptNull) {
+				$writeNull();
+			}
 		}
 
 		$traversable = NativeType::isTraversable(ltrim($native, '?'), $this->traversableClasses, $resolve);
@@ -473,6 +488,12 @@ final class NativeTypeRequiredRule extends NodeRule
 		};
 		return $accepting === null
 			|| array_intersect(explode('|', strtolower(ltrim($native, '?'))), ['mixed', ...$accepting]) !== [];
+	}
+
+
+	private static function takesNull(string $native): bool
+	{
+		return str_starts_with($native, '?') || array_intersect(explode('|', strtolower($native)), ['null', 'mixed']) !== [];
 	}
 
 

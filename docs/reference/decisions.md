@@ -2367,7 +2367,7 @@ A parameter with neither a type nor an annotation is reported
 
 ### types.declaration.property
 
-A property declares its type, taken from `@var` where it has one and nullable where it defaults to null.
+A property declares its type, taken from `@var` where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default.
 
 - By default `keep`
 - Takes: `required` (always there); `warning` (as `required`, its violations only warning); `keep`

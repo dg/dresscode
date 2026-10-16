@@ -24,6 +24,7 @@ function interplay(
 	string $code,
 	?string $expected = null,
 	Analyses\Registry $analyses = new Analyses\Registry,
+	bool $fixRisky = false,
 ): FileResult
 {
 	$registry = new PluginRegistry;
@@ -43,7 +44,7 @@ function interplay(
 		$analyses,
 		Config::DefaultPhpVersion,
 		$style,
-		policy: new ReportPolicy($registry->expandSuppressedName(...)),
+		policy: new ReportPolicy($registry->expandSuppressedName(...), fixRisky: $fixRisky),
 	);
 	$result = $processor->process('interplay.php', $code);
 	Assert::null($result->syntaxError);
@@ -232,6 +233,17 @@ test('a catch uselessCatchVariable leaves without its variable merges by noRepea
 		Rules\ControlFlow\NoRepeatedCatchesRule::class => ['cleanup.repeatedCatch' => 'forbidden'],
 	], "<?php\ntry {\n\trun();\n} catch (A \$e) {\n\tfail();\n} catch (B) {\n\tfail();\n}\n", "<?php\ntry {\n\trun();\n} catch (A|B) {\n\tfail();\n}\n");
 });
+
+
+test(
+	'a property untypedPropertyNullInitialization leaves without `= null` keeps null under the type nativeTypeRequired gives it',
+	function () {
+		interplay([
+			Rules\Classes\UselessNullInitializationRule::class => ['classes.untypedPropertyNullInitialization' => 'forbidden'],
+			Rules\Types\NativeTypeRequiredRule::class => ['types.declaration.property' => 'required'],
+		], "<?php\nclass A\n{\n\t/** @var Foo|null */\n\tpublic \$a = null;\n}\n", "<?php\nclass A\n{\n\tpublic ?Foo \$a = null;\n}\n", fixRisky: true);
+	},
+);
 
 
 test('uselessModifier, visibilityRequired and modifierOrder settle on one shape', function () {

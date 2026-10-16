@@ -32,4 +32,7 @@ class A
 
 	/** @var list<int> */
 	public array $l = [];
+
+	/** @var mixed */
+	public $m;
 }

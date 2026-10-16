@@ -5,7 +5,7 @@ class A
 {
 	public int $a;
 
-	public ?Foo $b;
+	public ?Foo $b = null;
 
 	/** @var string[] */
 	public array $c;
@@ -29,4 +29,6 @@ class A
 
 	/** @var list<int> */
 	public array $l = [];
+
+	public mixed $m = null;
 }
