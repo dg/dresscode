@@ -1,2 +1,3 @@
 classes:
-	ReturnTypeWillChange: forbidden
+	overridingMethod:
+		ReturnTypeWillChange: forbidden

@@ -203,9 +203,9 @@ final class PhpCsFixer
 			'encoding' => ['file.bom' => 'forbidden'],
 			'escape_implicit_backslashes' => ['literals.backslashes' => 'escaped'],
 			'final_internal_class' => fn(array $o, Translation $t) => $t->setAll(array_filter([
-				'classes.internal.final' => 'required',
-				'classes.internal.markedBy' => $o['annotation_include'] ?? null,
-				'classes.internal.except' => $o['annotation_exclude'] ?? null,
+				'classes.internalClass.final' => 'required',
+				'classes.internalClass.markers' => $o['annotation_include'] ?? null,
+				'classes.internalClass.except' => $o['annotation_exclude'] ?? null,
 			], fn($v) => $v !== null)),
 			'full_opening_tag' => ['file.openingTag' => 'full'],
 			'fully_qualified_strict_types' => function (array $o, Translation $t) {
@@ -293,7 +293,9 @@ final class PhpCsFixer
 			},
 			'modernize_types_casting' => ['cleanup.conversionFunctions' => 'forbidden'],
 			'modifier_keywords' => [
-				'classes.visibility.member' => 'required',
+				'classes.visibility.constant' => 'required',
+				'classes.visibility.property' => 'required',
+				'classes.visibility.method' => 'required',
 				'classes.modifiers.order' => 'canonical',
 				'classes.visibility.interfaceMethod' => 'required',
 			],
@@ -442,7 +444,7 @@ final class PhpCsFixer
 			'no_leading_import_slash' => fn(array $o, Translation $t) => $t->set('imports.leadingBackslash', 'forbidden'),
 			'no_leading_namespace_whitespace' => $indentByConfig,
 			'no_multiple_statements_per_line' => ['file.statementsPerLine' => 1],
-			'no_null_property_initialization' => ['classes.untypedPropertyNullInitialization' => 'forbidden'],
+			'no_null_property_initialization' => ['classes.untypedPropertyNullDefault' => 'forbidden'],
 			'no_redundant_readonly_property' => ['classes.modifiers.implied' => 'forbidden'],
 			'no_short_bool_cast' => ['expressions.doubleNegation' => 'forbidden'],
 			'no_singleline_whitespace_before_semicolons' => ['spacing.semicolon.before' => 'compact'],
@@ -604,14 +606,14 @@ final class PhpCsFixer
 			'short_scalar_cast' => ['expressions.cast' => 'canonical'],
 			'simple_to_complex_string_variable' => ['upgrading.php.dollarBraceInterpolation' => 'forbidden'],
 			'single_blank_line_at_eof' => ['file.finalLineEndings' => 1],
-			'single_class_element_per_statement' => fn(array $o, Translation $t) => $t->setAllowed(
-				'classes.members.groupable',
-				array_values(array_diff(['constant', 'property', 'traitUse'], array_map(fn(string $e) => match ($e) {
+			'single_class_element_per_statement' => fn(array $o, Translation $t) => $t->setAll(array_fill_keys(
+				array_map(fn(string $e) => 'classes.members.grouping.' . match ($e) {
 					'const' => 'constant',
 					'trait' => 'traitUse',
 					default => $e,
-				}, $o['elements'] ?? ['const', 'property']))),
-			),
+				}, $o['elements'] ?? ['const', 'property']),
+				'separated',
+			)),
 			'single_import_per_statement' => function (array $o, Translation $t) {
 				foreach (['class', 'function', 'constant'] as $kind) {
 					if ($o['group_to_single_imports'] ?? true) {
@@ -640,10 +642,7 @@ final class PhpCsFixer
 					$t->set('spacing.keyword', 'spaced');
 				}
 			},
-			'single_trait_insert_per_statement' => fn(array $o, Translation $t) => $t->setAllowed(
-				'classes.members.groupable',
-				['constant', 'property'],
-			),
+			'single_trait_insert_per_statement' => ['classes.members.grouping.traitUse' => 'separated'],
 			'space_after_semicolon' => function (array $o, Translation $t) {
 				if ($o['remove_in_empty_for_expressions'] ?? false) {
 					$t->warn('`space_after_semicolon` with `remove_in_empty_for_expressions=true` removes the space in an empty expression of a `for`, which DressCode does not tell apart.');
@@ -699,7 +698,9 @@ final class PhpCsFixer
 					: []),
 			),
 			'visibility_required' => [
-				'classes.visibility.member' => 'required',
+				'classes.visibility.constant' => 'required',
+				'classes.visibility.property' => 'required',
+				'classes.visibility.method' => 'required',
 				'classes.modifiers.order' => 'canonical',
 				'classes.visibility.interfaceMethod' => 'required',
 			],

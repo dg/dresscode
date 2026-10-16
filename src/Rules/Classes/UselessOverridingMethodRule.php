@@ -38,7 +38,7 @@ final class UselessOverridingMethodRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'classes.methodOnlyCallingParent',
+			'classes.overridingMethod.parentCallOnly',
 			Domain::state('forbidden'),
 			'A method that only forwards to the parent with the same arguments adds nothing',
 		)];

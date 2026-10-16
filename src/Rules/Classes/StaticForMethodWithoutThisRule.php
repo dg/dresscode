@@ -43,7 +43,7 @@ use PhpSyntax\Nodes\Statement\ClassNode;
 #[RuleInfo(Stage::Structure, analyses: [Types::class, NameResolver::class])]
 final class StaticForMethodWithoutThisRule extends NodeRule
 {
-	private const Visibilities = 'classes.staticMethodVisibility';
+	private const Visibilities = 'classes.staticMethodVisibilities';
 
 	/** @var list<Visibility> */
 	private array $visibilities = [Visibility::Private];
@@ -55,7 +55,7 @@ final class StaticForMethodWithoutThisRule extends NodeRule
 			new Decision(
 				'classes.staticMethod',
 				new Words(['required' => 'always there, `static function`']),
-				'The `static` keyword of a method that does not use `$this`, of the visibilities `classes.staticMethodVisibility` names',
+				'The `static` keyword of a method that does not use `$this`, of the visibilities `classes.staticMethodVisibilities` names',
 			),
 			new Decision(self::Visibilities, new Names([
 				'private' => 'a private method',

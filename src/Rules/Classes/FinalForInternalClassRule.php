@@ -25,8 +25,8 @@ use PhpSyntax\Nodes\Statement\ClassNode;
 #[RuleInfo(Stage::Structure, analyses: [PhpDoc::class])]
 final class FinalForInternalClassRule extends NodeRule
 {
-	private const Required = 'classes.internal.markedBy';
-	private const Exempt = 'classes.internal.except';
+	private const Required = 'classes.internalClass.markers';
+	private const Exempt = 'classes.internalClass.except';
 	private const DefaultExempt = [
 		'@final', '@Entity', '@ORM\Entity', '@ORM\Mapping\Entity', '@Mapping\Entity', '@Document', '@ODM\Document',
 	];
@@ -42,7 +42,7 @@ final class FinalForInternalClassRule extends NodeRule
 	{
 		return [
 			new Decision(
-				'classes.internal.final',
+				'classes.internalClass.final',
 				Domain::state('required'),
 				'The `final` of a class its author marked `@internal`, which nothing outside the package may extend',
 			),

@@ -1,2 +1,3 @@
 classes:
-	methodOnlyCallingParent: forbidden
+	overridingMethod:
+		parentCallOnly: forbidden

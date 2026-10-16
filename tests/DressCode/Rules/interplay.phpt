@@ -237,10 +237,10 @@ test('a catch uselessCatchVariable leaves without its variable merges by noRepea
 
 
 test(
-	'a property untypedPropertyNullInitialization leaves without `= null` keeps null under the type nativeTypeRequired gives it',
+	'a property untypedPropertyNullDefault leaves without `= null` keeps null under the type nativeTypeRequired gives it',
 	function () {
 		interplay([
-			Rules\Classes\UselessNullInitializationRule::class => ['classes.untypedPropertyNullInitialization' => 'forbidden'],
+			Rules\Classes\UselessNullInitializationRule::class => ['classes.untypedPropertyNullDefault' => 'forbidden'],
 			Rules\Types\NativeTypeRequiredRule::class => ['types.declaration.property' => 'required'],
 		], "<?php\nclass A\n{\n\t/** @var Foo|null */\n\tpublic \$a = null;\n}\n", "<?php\nclass A\n{\n\tpublic ?Foo \$a = null;\n}\n", fixRisky: true);
 	},

@@ -1,6 +1,6 @@
 <?php
 // risky
-// {"overriding.signature": "keep"}
+// {"overridingMethod.signature": "keep"}
 
 namespace App;
 

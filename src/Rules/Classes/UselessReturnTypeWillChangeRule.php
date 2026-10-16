@@ -42,7 +42,7 @@ final class UselessReturnTypeWillChangeRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'classes.ReturnTypeWillChange',
+			'classes.overridingMethod.ReturnTypeWillChange',
 			Domain::state('forbidden'),
 			'The attribute where the method declares the return type of what it implements',
 		)];

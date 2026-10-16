@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Domains\Names;
+use DressCode\Domains\Words;
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Member\{ClassConstNode, PropertyNode, TraitUseNode};
@@ -26,27 +26,33 @@ use function count;
 #[RuleInfo(Stage::Structure)]
 final class NoGroupedDeclarationsRule extends NodeRule
 {
-	private const Path = 'classes.members.groupable';
+	/** the member => what its place of `classes.members.grouping` covers */
+	private const Places = [
+		'constant' => 'A declaration of several constants, `const A = 1, B = 2;`, a `const` outside a class included',
+		'property' => 'A declaration of several properties, `public $a, $b;`',
+		'traitUse' => 'A `use` of several traits without adaptations, `use A, B;`',
+	];
 
-	/** @var list<string>  the kinds whose declaration may stay grouped */
-	private array $grouped = [];
+	/** @var array<string, bool>  the member => whether its declaration is split */
+	private array $separated = [];
 
 
 	public static function getDecisions(): array
 	{
-		return [
-			new Decision(self::Path, new Names([
-				'constant' => 'a constant, a `const` outside a class included',
-				'property' => 'a property',
-				'traitUse' => 'a trait of a `use` without adaptations',
-			]), 'The kinds of members whose declaration may stay grouped, as `public $a, $b;` is; a declaration of several members of any other kind is split into one per member, each sharing the modifiers and the type of the original, so `[]` splits every kind, while `keep` leaves every declaration as it is'),
-		];
+		$separated = new Words(['separated' => 'one member per declaration, each sharing the modifiers and the type of the original']);
+		return array_map(
+			fn(string $place, string $description) => new Decision("classes.members.grouping.$place", $separated, $description),
+			array_keys(self::Places),
+			self::Places,
+		);
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->grouped = $values->get(self::Path)->getNames();
+		foreach (array_keys(self::Places) as $place) {
+			$this->separated[$place] = !$values->isKept("classes.members.grouping.$place");
+		}
 	}
 
 
@@ -76,11 +82,15 @@ final class NoGroupedDeclarationsRule extends NodeRule
 		$items = $node instanceof TraitUseNode ? $node->traits : $node->items;
 		if (
 			($node instanceof TraitUseNode && $node->openBrace !== null)
-			|| in_array($member, $this->grouped, true)
+			|| !$this->separated[$member]
 			|| !$list instanceof PlainNodeList
 			|| count($items) < 2
 			|| $items->hasInnerComment()
-			|| !$context->report($node, "Expected one $kind per $where, " . count($items) . ' found.')
+			|| !$context->report(
+				$node,
+				"Expected one $kind per $where, " . count($items) . ' found.',
+				decision: "classes.members.grouping.$member",
+			)
 		) {
 			return;
 		}

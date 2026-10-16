@@ -1302,7 +1302,7 @@ test(
 		file_put_contents(
 			$config,
 			"<?php\nreturn new DressCode\\Config(rules: ConsoleRules, decisions: ['project' => ['riskyRename' => 'forbidden'], 'correctness' => ['strictComparisonArgument' => 'required']],"
-			. " overrides: [new DressCode\\Override(['src'], new DressCode\\Profile(decisions: ['file' => ['strictTypes' => ['declaration' => 'required']]])), new DressCode\\Override(['legacy'], new DressCode\\Profile(decisions: ['file' => ['lineEnding' => 'LF']]))], fixRisky: [ConsoleRiskyRename::class, 'file.strictTypes.declaration', 'classes.internal.final'], paths: ['src']);\n",
+			. " overrides: [new DressCode\\Override(['src'], new DressCode\\Profile(decisions: ['file' => ['strictTypes' => ['declaration' => 'required']]])), new DressCode\\Override(['legacy'], new DressCode\\Profile(decisions: ['file' => ['lineEnding' => 'LF']]))], fixRisky: [ConsoleRiskyRename::class, 'file.strictTypes.declaration', 'classes.internalClass.final'], paths: ['src']);\n",
 		);
 
 		[$code, $out] = runApp($root, ['config', '--config', $config]);
@@ -1310,7 +1310,7 @@ test(
 		Assert::match("%A%\triskyRename: forbidden %s%# the configuration, risky fixes accepted\n%A?%", $out);
 		Assert::match("%A%\tstrictComparisonArgument: required %s%# the configuration\n%A?%", $out);
 		Assert::match("%A%\tstrictTypes:\n\t\tdeclaration: keep %s%# no layer, risky fixes accepted\n%A?%", $out);
-		Assert::match("%A%\tinternal:\n\t\tfinal: keep %s%# no layer, risky fixes accepted\n%A?%", $out);
+		Assert::match("%A%\tinternalClass:\n\t\tfinal: keep %s%# no layer, risky fixes accepted\n%A?%", $out);
 
 		[, $out] = runApp($root, ['config', '--config', $config, '--format', 'json']);
 		$rules = json_decode($out, associative: true)['rules'];
@@ -1326,7 +1326,7 @@ test(
 
 		// a rule an override turns on runs somewhere, one that nothing turns on makes the entry a line that does nothing
 		[, , $err] = runApp($root, ['check', '--config', $config, '--no-cache']);
-		Assert::contains('Decision `classes.internal.final` is named in `fixRisky` but runs nowhere; the entry does nothing.', $err);
+		Assert::contains('Decision `classes.internalClass.final` is named in `fixRisky` but runs nowhere; the entry does nothing.', $err);
 		Assert::notContains('file.strictTypes.declaration', $err);
 	},
 );

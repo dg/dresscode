@@ -1,2 +1,2 @@
 classes:
-	untypedPropertyNullInitialization: forbidden
+	untypedPropertyNullDefault: forbidden

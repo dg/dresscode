@@ -196,7 +196,9 @@ final class PhpCodeSniffer
 				'spacing.concatenation' => 'spaced',
 			]),
 			'PSR12.Properties.ConstantVisibility' => [
-				'classes.visibility.member' => 'required',
+				'classes.visibility.constant' => 'required',
+				'classes.visibility.property' => 'required',
+				'classes.visibility.method' => 'required',
 			],
 			'PSR12.Traits.UseDeclaration' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.Traits.UseDeclaration` also lays out the conflict block of a trait use, its opening brace on the line of `use` and a rule per line, which DressCode does not.');
@@ -209,14 +211,16 @@ final class PhpCodeSniffer
 					'spacing.keyword' => 'spaced',
 					'spacing.semicolon.before' => 'compact',
 				]);
-				$t->setAllowed('classes.members.groupable', ['constant', 'property']);
+				$t->set('classes.members.grouping.traitUse', 'separated');
 				// a full order another rule sets puts the trait uses where it says
 				$t->prefer('classes.members.order', ['traitUse']);
 			},
 			'PSR2.Classes.ClassDeclaration' => ['braces.position.class' => 'nextLine', 'spacing.keyword' => 'spaced'],
 			'PSR2.Classes.ClassDeclaration.SpaceBeforeKeyword' => ['spacing.keyword' => 'spaced'],
 			'PSR2.Classes.PropertyDeclaration' => [
-				'classes.visibility.member' => 'required',
+				'classes.visibility.constant' => 'required',
+				'classes.visibility.property' => 'required',
+				'classes.visibility.method' => 'required',
 				'classes.modifiers.order' => 'canonical',
 			],
 			'PSR2.ControlStructures.ControlStructureSpacing' => Translation::NoSpaceInParentheses,
@@ -281,17 +285,13 @@ final class PhpCodeSniffer
 				'spacing.typeDeclaration' => 'compact',
 			],
 			'SlevomatCodingStandard.Classes.ClassConstantVisibility' => [
-				'classes.visibility.member' => 'required',
+				'classes.visibility.constant' => 'required',
+				'classes.visibility.property' => 'required',
+				'classes.visibility.method' => 'required',
 			],
 			'SlevomatCodingStandard.Classes.ConstantSpacing' => $memberSpacing,
-			'SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition' => fn(array $o, Translation $t) => $t->setAllowed(
-				'classes.members.groupable',
-				['property', 'traitUse'],
-			),
-			'SlevomatCodingStandard.Classes.DisallowMultiPropertyDefinition' => fn(array $o, Translation $t) => $t->setAllowed(
-				'classes.members.groupable',
-				['constant', 'traitUse'],
-			),
+			'SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition' => ['classes.members.grouping.constant' => 'separated'],
+			'SlevomatCodingStandard.Classes.DisallowMultiPropertyDefinition' => ['classes.members.grouping.property' => 'separated'],
 			'SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces' => fn(array $o, Translation $t) => $t->setAll([
 				'blankLines.bodyStart.class' => $o['linesCountAfterOpeningBrace'] ?? 1,
 				'blankLines.bodyStart.anonymousClass' => $o['linesCountAfterOpeningBrace'] ?? 1,
@@ -338,10 +338,7 @@ final class PhpCodeSniffer
 				'naming.traitAffix',
 				'forbidden',
 			),
-			'SlevomatCodingStandard.Classes.TraitUseDeclaration' => fn(array $o, Translation $t) => $t->setAllowed(
-				'classes.members.groupable',
-				['constant', 'property'],
-			),
+			'SlevomatCodingStandard.Classes.TraitUseDeclaration' => ['classes.members.grouping.traitUse' => 'separated'],
 			'SlevomatCodingStandard.Classes.TraitUseSpacing' => fn(array $o, Translation $t) => $t->setAll([
 				'blankLines.betweenTraitUses' => $o['linesCountBetweenUses'] ?? 0,
 				'blankLines.afterTraitUses' => $o['linesCountAfterLastUse'] ?? 1,
@@ -664,7 +661,9 @@ final class PhpCodeSniffer
 			'Squiz.PHP.GlobalKeyword' => ['correctness.globalStatement' => 'forbidden'],
 			'Squiz.PHP.InnerFunctions' => ['functions.innerFunctions' => 'forbidden'],
 			'Squiz.PHP.LowercasePHPFunctions' => ['casing.function' => 'declared'],
-			'Squiz.Scope.MethodScope' => ['classes.visibility.member' => 'required', 'classes.visibility.interfaceMethod' => 'required'],
+			'Squiz.Scope.MethodScope' => ['classes.visibility.constant' => 'required',
+				'classes.visibility.property' => 'required',
+				'classes.visibility.method' => 'required', 'classes.visibility.interfaceMethod' => 'required'],
 			'Squiz.Scope.StaticThisUsage' => ['correctness.thisOutsideObject' => 'forbidden'],
 			'Squiz.Strings.ConcatenationSpacing' => fn(array $o, Translation $t) => $t->set(
 				'spacing.concatenation',

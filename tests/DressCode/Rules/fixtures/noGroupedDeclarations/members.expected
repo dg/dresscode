@@ -1,5 +1,5 @@
 <?php
-// {"members.groupable": ["constant", "traitUse"]}
+// {"members.grouping": {"constant": "keep", "traitUse": "keep"}}
 class A
 {
 	const X = 1, Y = 2;

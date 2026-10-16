@@ -1,7 +1,7 @@
 <?php
 // types off
 // risky
-// {"staticMethodVisibility": ["private", "protected", "public"]}
+// {"staticMethodVisibilities": ["private", "protected", "public"]}
 final class Report
 {
 	public function render(): string

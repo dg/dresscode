@@ -93,7 +93,7 @@ blankLines:
 	beforeStatement: {return: 1+}             # a `return` set apart from the code above it
 
 classes:
-	untypedPropertyNullInitialization: forbidden   # `public $a;`, not `public $a = null;`
+	untypedPropertyNullDefault: forbidden    # `public $a;`, not `public $a = null;`
 
 functions:
 	trailingBareReturn: forbidden             # no `return;` closing a function

@@ -25,10 +25,17 @@ final class VisibilityRequiredRule extends NodeRule
 	private const Required = 'required';
 	private const Forbidden = 'forbidden';
 	private const Keep = 'keep';
-	private const Members = 'classes.visibility.member';
 	private const InterfaceMethod = 'classes.visibility.interfaceMethod';
 
-	private bool $members = true;
+	/** the member => the decision of its visibility */
+	private const Places = [
+		ClassConstNode::class => 'classes.visibility.constant',
+		PropertyNode::class => 'classes.visibility.property',
+		MethodNode::class => 'classes.visibility.method',
+	];
+
+	/** @var array<class-string<Node>, bool>  the member => whether its visibility is required */
+	private array $members = [];
 
 	private string $interfaceMethod = self::Required;
 
@@ -37,9 +44,19 @@ final class VisibilityRequiredRule extends NodeRule
 	{
 		return [
 			new Decision(
-				self::Members,
+				'classes.visibility.constant',
 				Domain::state('required'),
-				'The visibility every property, method and constant declares, `var` becoming `public` and a set visibility counting as one',
+				'The visibility of a constant of a class, an interface, a trait or an enum',
+			),
+			new Decision(
+				'classes.visibility.property',
+				Domain::state('required'),
+				'The visibility of a property, `var` becoming `public` and a set visibility counting as one',
+			),
+			new Decision(
+				'classes.visibility.method',
+				Domain::state('required'),
+				'The visibility of a method outside an interface, whose methods take `interfaceMethod`',
 			),
 			new Decision(
 				self::InterfaceMethod,
@@ -52,7 +69,7 @@ final class VisibilityRequiredRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->members = !$values->isKept(self::Members);
+		$this->members = array_map(fn(string $path) => !$values->isKept($path), self::Places);
 		$interfaceMethod = $values->get(self::InterfaceMethod);
 		$this->interfaceMethod = $interfaceMethod->isKept() ? self::Keep : $interfaceMethod->getWord();
 	}
@@ -73,7 +90,7 @@ final class VisibilityRequiredRule extends NodeRule
 		$interfaceMethod = $node instanceof MethodNode && $node->parent?->parent instanceof InterfaceNode;
 		$mode = match (true) {
 			$interfaceMethod => $this->interfaceMethod,
-			$this->members => self::Required,
+			$this->members[$node::class] ?? false => self::Required,
 			default => self::Keep,
 		};
 		if ($mode !== self::Keep) {
@@ -122,9 +139,9 @@ final class VisibilityRequiredRule extends NodeRule
 			$mode === self::Forbidden => ["The $member of an interface must not declare its visibility.", self::InterfaceMethod],
 			$hasVisibility && !array_any($tokens, fn(Token $token) => strtolower($token->text) === 'var') => [
 				"The modifiers of the $member must be written `" . implode(' ', $desired) . '`.',
-				self::Members,
+				self::Places[$node::class],
 			],
-			default => ["The $member must declare its visibility.", $interfaceMethod ? self::InterfaceMethod : self::Members],
+			default => ["The $member must declare its visibility.", $interfaceMethod ? self::InterfaceMethod : self::Places[$node::class]],
 		};
 		$first = $tokens[0] ?? match (true) {
 			$node instanceof MethodNode => $node->functionKeyword,

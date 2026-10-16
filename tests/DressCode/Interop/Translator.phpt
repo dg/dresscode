@@ -239,12 +239,22 @@ test('foreign rules deciding one thing come to the same translation in either or
 		Assert::same([], $translator->translate(array_fill_keys($order, true))->decisions);
 	}
 
-	// what each rule allows narrows to what both allow
+	// what each rule separates adds up
 	foreach ($translate([
 		'SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition' => true,
 		'SlevomatCodingStandard.Classes.DisallowMultiPropertyDefinition' => true,
 	]) as $translation) {
-		Assert::same(['traitUse'], $translation->decisions['classes.members.groupable']);
+		Assert::equal(
+			['classes.members.grouping.constant' => 'separated', 'classes.members.grouping.property' => 'separated'],
+			array_intersect_key(
+				$translation->decisions,
+				[
+					'classes.members.grouping.constant' => 1,
+					'classes.members.grouping.property' => 1,
+					'classes.members.grouping.traitUse' => 1,
+				],
+			),
+		);
 	}
 
 	// counts of blank lines widen to the range of both, a count a map gives included
@@ -860,7 +870,7 @@ test('the sniffs of PSR12 listed one by one translate, all but four that no rule
 	Assert::same('required', $translation->decisions['classes.emptyParentheses.instantiation']);
 	Assert::false(isset($translation->decisions['classes.emptyParentheses.anonymousClass']));
 	Assert::same(['traitUse'], $translation->decisions['classes.members.order']);
-	Assert::same(['constant', 'property'], $translation->decisions['classes.members.groupable']);
+	Assert::same('separated', $translation->decisions['classes.members.grouping.traitUse']);
 	Assert::same('spaced', $translation->decisions['spacing.concatenation']);
 });
 

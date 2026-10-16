@@ -34,7 +34,7 @@ use function count;
  * Writing the return type is risky, the body may return something else; renaming a parameter is risky, a caller
  * passing it by name notices, and it is refused where the name is taken, where a closure of the body uses the name
  * the rename changes, and where the body declares a function or reaches a variable by its name written otherwise;
- * the names are the decision `classes.overriding.parameterName`, the rest `classes.overriding.signature`. A type PHP
+ * the names are the decision `classes.overridingMethod.parameterName`, the rest `classes.overridingMethod.signature`. A type PHP
  * cannot write as it describes it, a generic or a static of a class, and a default that is no value to write are
  * reported and left.
  */
@@ -46,8 +46,8 @@ use function count;
 )]
 final class OverridingSignatureRule extends NodeRule
 {
-	private const Signature = 'classes.overriding.signature';
-	private const ParameterNames = 'classes.overriding.parameterName';
+	private const Signature = 'classes.overridingMethod.signature';
+	private const ParameterNames = 'classes.overridingMethod.parameterName';
 
 	private bool $fixesSignature = true;
 

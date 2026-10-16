@@ -126,13 +126,17 @@ blankLines:
 
 classes:
 	visibility:
-		member: required                      # `var` is `public`
+		constant: required
+		property: required                    # `var` is `public`
+		method: required
 		interfaceMethod: required             # `public` though implied
 	modifiers:
 		order: canonical                      # `final public static`
 	members:
 		order: [traitUse]
-		groupable: [constant]                 # `public $a, $b;` is split
+		grouping:                             # `public $a, $b;` is split
+			property: separated
+			traitUse: separated
 	emptyParentheses:
 		instantiation: required               # `new Foo()`
 

@@ -5,7 +5,7 @@
 # meeting it wherever it runs on the version that made it.
 
 classes:
-	overriding:
+	overridingMethod:
 		signature: asAncestor                 # a child matching a parent changed by an upgrade
 		parameterName: asAncestor
 

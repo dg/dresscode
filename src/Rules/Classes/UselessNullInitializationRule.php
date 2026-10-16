@@ -24,7 +24,7 @@ final class UselessNullInitializationRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'classes.untypedPropertyNullInitialization',
+			'classes.untypedPropertyNullDefault',
 			Domain::state('forbidden'),
 			'`public $a = null;` says what `public $a;` says',
 		)];
