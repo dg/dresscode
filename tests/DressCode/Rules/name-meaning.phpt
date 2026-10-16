@@ -81,8 +81,8 @@ foreach ([
 	],
 	Rules\Namespaces\OptimizedCallNotationRule::class => ['qualification.function.global' => 'imported'],
 	Rules\Namespaces\UselessLeadingBackslashRule::class => [
-		'qualification.uselessBackslash' => 'forbidden',
-		'qualification.inFileWithoutNamespace' => 'keep',
+		'imports.leadingBackslash' => 'forbidden',
+		'qualification.leadingBackslash' => 'keep',
 	],
 	Rules\Namespaces\ImportNotationRule::class => [
 		'imports.grouping.class' => 'combined',

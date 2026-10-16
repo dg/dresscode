@@ -50,8 +50,8 @@ final class PhpCsFixer
 				'correctness.debugOutputFunctions' => array_values(array_unique($o['functions'] ?? ['print_r', 'var_dump', 'var_export'])),
 			]),
 			'PhpCsFixerCustomFixers/no_leading_slash_in_global_namespace' => fn(array $o, Translation $t) => $t->setAll([
-				'qualification.uselessBackslash' => 'forbidden',
-				'qualification.inFileWithoutNamespace' => 'bare',
+				'imports.leadingBackslash' => 'forbidden',
+				'qualification.leadingBackslash' => 'forbidden',
 			]),
 			'PhpCsFixerCustomFixers/no_superfluous_concatenation' => [
 				'literals.concatenatedLiterals.sameLine' => 'joined',
@@ -439,7 +439,7 @@ final class PhpCsFixer
 					$t->warn('`no_extra_blank_lines` with `' . implode('`, `', $unsupported) . '` has no equivalent; DressCode counts the blank lines place by place in `blankLines`, with no limit of their own for these.');
 				}
 			},
-			'no_leading_import_slash' => fn(array $o, Translation $t) => $t->set('qualification.uselessBackslash', 'forbidden'),
+			'no_leading_import_slash' => fn(array $o, Translation $t) => $t->set('imports.leadingBackslash', 'forbidden'),
 			'no_leading_namespace_whitespace' => $indentByConfig,
 			'no_multiple_statements_per_line' => ['file.statementsPerLine' => 1],
 			'no_null_property_initialization' => ['classes.untypedPropertyNullInitialization' => 'forbidden'],

@@ -50,4 +50,4 @@ foreach (glob(__DIR__ . '/fixtures/nette/*.code') ?: [] as $file) {
 
 // a class name does not repeat its kind, which the standard reports and leaves to the author
 $result = $processor->process('kind.php', "<?php declare(strict_types=1);\n\ninterface FooInterface\n{\n}\n");
-Assert::same(['naming.classKindInName'], array_map(fn($violation) => $violation->decision, $result->violations));
+Assert::same(['naming.interfaceAffix'], array_map(fn($violation) => $violation->decision, $result->violations));

@@ -180,7 +180,7 @@ final class PhpCodeSniffer
 				'blankLines.afterImports' => 1,
 				'blankLines.betweenImportKinds' => 1,
 			],
-			'PSR12.Files.ImportStatement' => fn(array $o, Translation $t) => $t->set('qualification.uselessBackslash', 'forbidden'),
+			'PSR12.Files.ImportStatement' => fn(array $o, Translation $t) => $t->set('imports.leadingBackslash', 'forbidden'),
 			'PSR12.Files.OpenTag' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.Files.OpenTag` leaves the line below the opening tag as it is, where DressCode puts a blank line.');
 				$t->set('blankLines.afterOpeningTag', 1);
@@ -323,19 +323,19 @@ final class PhpCodeSniffer
 				]);
 			},
 			'SlevomatCodingStandard.Classes.SuperfluousAbstractClassNaming' => fn(array $o, Translation $t) => $t->set(
-				'naming.classKindInName',
+				'naming.abstractClassAffix',
 				'forbidden',
 			),
 			'SlevomatCodingStandard.Classes.SuperfluousErrorNaming' => fn(array $o, Translation $t) => $t->set(
-				'naming.classKindInName',
+				'naming.errorAffix',
 				'forbidden',
 			),
 			'SlevomatCodingStandard.Classes.SuperfluousInterfaceNaming' => fn(array $o, Translation $t) => $t->set(
-				'naming.classKindInName',
+				'naming.interfaceAffix',
 				'forbidden',
 			),
 			'SlevomatCodingStandard.Classes.SuperfluousTraitNaming' => fn(array $o, Translation $t) => $t->set(
-				'naming.classKindInName',
+				'naming.traitAffix',
 				'forbidden',
 			),
 			'SlevomatCodingStandard.Classes.TraitUseDeclaration' => fn(array $o, Translation $t) => $t->setAllowed(
@@ -526,7 +526,7 @@ final class PhpCodeSniffer
 				'phpdoc.namesUseImports' => $o['searchAnnotations'] ?? false,
 			]),
 			'SlevomatCodingStandard.Namespaces.UseDoesNotStartWithBackslash' => fn(array $o, Translation $t) => $t->set(
-				'qualification.uselessBackslash',
+				'imports.leadingBackslash',
 				'forbidden',
 			),
 			'SlevomatCodingStandard.Namespaces.UseFromSameNamespace' => ['imports.fromCurrentNamespace' => 'forbidden'],

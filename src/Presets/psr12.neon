@@ -34,10 +34,8 @@ casing:
 	trueFalseNull: lowercase
 	type: lowercase                           # `int`, `string`, `void`
 
-qualification:
-	uselessBackslash: forbidden               # `use Foo\Bar;`, not `use \Foo\Bar;`
-
 imports:
+	leadingBackslash: forbidden               # `use Foo\Bar;`, not `use \Foo\Bar;`
 	order:
 		kinds: [class, function, constant]    # the names of a kind in the order written
 

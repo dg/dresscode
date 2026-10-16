@@ -5,10 +5,10 @@
 # standard.
 
 qualification:
-	uselessBackslash: forbidden              # `use Foo\Bar;`, not `use \Foo\Bar;`
-	inFileWithoutNamespace: bare             # `strlen()`, not `\strlen()`
+	leadingBackslash: forbidden              # `strlen()` in a file without a namespace, not `\strlen()`
 
 imports:
+	leadingBackslash: forbidden              # `use Foo\Bar;`, not `use \Foo\Bar;`
 	unused: forbidden
 	aliasEqualToName: forbidden              # `use Foo;`, not `use Foo as Foo;`
 	fromCurrentNamespace: forbidden          # `use Acme\Shop\Order;` in `namespace Acme\Shop`

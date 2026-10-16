@@ -32,7 +32,10 @@ naming:
 	constant: PascalCase
 	property: camelCase
 	variable: camelCase
-	classKindInName: forbidden                # `FooInterface`, `FooTrait`, `AbstractFoo`
+	abstractClassAffix: forbidden             # `Foo`, not `AbstractFoo`
+	interfaceAffix: forbidden                 # `Foo`, not `FooInterface`
+	traitAffix: forbidden
+	errorAffix: forbidden
 
 casing:
 	magicConstant: uppercase

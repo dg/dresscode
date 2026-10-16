@@ -1,3 +1,4 @@
 qualification:
-	inFileWithoutNamespace: bare
-	uselessBackslash: forbidden
+	leadingBackslash: forbidden
+imports:
+	leadingBackslash: forbidden

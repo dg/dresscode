@@ -1,5 +1,5 @@
 <?php
-// {"classKindInName": "required"}
+// {"abstractClassAffix": "required", "interfaceAffix": "required", "traitAffix": "required", "errorAffix": "keep"}
 abstract class AbstractFoo {}
 abstract class Foo {}
 class Bar {}

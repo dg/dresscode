@@ -343,7 +343,7 @@ final class CorePlugin implements Plugin
 					'`strlen()`',
 					'`use function strlen;` and `strlen()`',
 					'`\strlen()`',
-					'Not a function of the namespace of the file, nor a name in a file without a namespace, which `inFileWithoutNamespace` decides.',
+					'Not a function of the namespace of the file, nor a name in a file without a namespace, which `qualification.leadingBackslash` decides.',
 				),
 				Rules\Namespaces\QualificationPolicy::createOptimizedDecision(
 					'qualification.function.optimized',

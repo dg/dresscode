@@ -706,7 +706,7 @@ test('the decisions of the command line are part of the identity, whatever the f
 	file_put_contents("$root/config.php", '<?php // the same text for both runs');
 	$config = fn(string $cacheDir) => new Config(
 		cacheDir: $cacheDir,
-		decisions: ['qualification' => ['inFileWithoutNamespace' => 'bare']],
+		decisions: ['qualification' => ['leadingBackslash' => 'forbidden']],
 	);
 	$run = fn(?Profile $commandLine, string $cacheDir) => buildRunner($config($cacheDir), $root, $commandLine, "$root/config.php")
 		->run(['x.php'], false, new NullReporter);
@@ -715,7 +715,7 @@ test('the decisions of the command line are part of the identity, whatever the f
 	foreach ([[false, true], [true, false]] as $order) {
 		$cacheDir = createTempDir('cache');
 		foreach ($order as $tight) {
-			$result = $run($tight ? null : new Profile(decisions: ['qualification' => ['inFileWithoutNamespace' => 'keep']]), $cacheDir);
+			$result = $run($tight ? null : new Profile(decisions: ['qualification' => ['leadingBackslash' => 'keep']]), $cacheDir);
 			Assert::same($tight ? 1 : 0, $result->countViolations());
 			Assert::false($result->files[0]->cached);
 		}

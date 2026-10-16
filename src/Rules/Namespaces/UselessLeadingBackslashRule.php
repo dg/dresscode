@@ -8,7 +8,6 @@
 namespace DressCode\Rules\Namespaces;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Domains\Words;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{NameForm, Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{NameNode, UseItemNode};
@@ -26,8 +25,8 @@ use function count;
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
 final class UselessLeadingBackslashRule extends NodeRule
 {
-	private const InImport = 'qualification.uselessBackslash';
-	private const InGlobalNamespace = 'qualification.inFileWithoutNamespace';
+	private const InImport = 'imports.leadingBackslash';
+	private const InGlobalNamespace = 'qualification.leadingBackslash';
 
 	/** @var list<class-string<Node>> */
 	private array $visitedNodes = [];
@@ -38,10 +37,10 @@ final class UselessLeadingBackslashRule extends NodeRule
 		return [
 			new Decision(
 				self::InGlobalNamespace,
-				new Words([QualificationPolicy::Bare => '`strlen()`, `new DateTime`, never `\strlen()`']),
-				'A name in a file without a namespace, where a leading backslash changes nothing',
+				Domain::state(),
+				'The leading backslash of a name in a file without a namespace, where it changes nothing, `\strlen()` and `new \DateTime`',
 			),
-			new Decision(self::InImport, Domain::state('forbidden'), 'The leading backslash of an import, which changes nothing'),
+			new Decision(self::InImport, Domain::state(), 'The leading backslash of an import, which changes nothing, `use \Foo\Bar;`'),
 		];
 	}
 

@@ -22,20 +22,43 @@ use function strlen;
 #[RuleInfo(Stage::Structure)]
 final class ClassKindInNameRule extends NodeRule
 {
-	private const Forbidden = 'forbidden';
 	private const Required = 'required';
-	private const Path = 'naming.classKindInName';
 
-	private string $state = self::Forbidden;
+	/** the kind => the decision of the word naming it */
+	private const Affixes = [
+		'abstract class' => 'naming.abstractClassAffix',
+		'interface' => 'naming.interfaceAffix',
+		'trait' => 'naming.traitAffix',
+		'class' => 'naming.errorAffix',
+	];
+
+	/** @var array<string, ?string>  the kind => `forbidden` or `required`, null where it is kept */
+	private array $states = [];
 
 
 	public static function getDecisions(): array
 	{
+		$state = Domain::state('forbidden', self::Required);
 		return [
 			new Decision(
-				self::Path,
-				Domain::state(self::Forbidden, self::Required),
-				'The word of its kind in the name of an interface, a trait or an abstract class, `FooInterface`, `FooTrait`, `AbstractFoo`, and `Error` at the end of the name of a plain class, which is reported and never renamed',
+				'naming.abstractClassAffix',
+				$state,
+				'The word `Abstract` in front of the name of an abstract class, `AbstractFoo`, which is reported and never renamed',
+			),
+			new Decision(
+				'naming.interfaceAffix',
+				$state,
+				'The word `Interface` at the end of the name of an interface, `FooInterface`, which is reported and never renamed',
+			),
+			new Decision(
+				'naming.traitAffix',
+				$state,
+				'The word `Trait` at the end of the name of a trait, `FooTrait`, which is reported and never renamed',
+			),
+			new Decision(
+				'naming.errorAffix',
+				Domain::state(),
+				'The word `Error` at the end of the name of a plain class, `FooError`, which is reported and never renamed',
 			),
 		];
 	}
@@ -43,7 +66,9 @@ final class ClassKindInNameRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->state = $values->get(self::Path)->getWord();
+		foreach (self::Affixes as $kind => $path) {
+			$this->states[$kind] = $values->isKept($path) ? null : $values->get($path)->getWord();
+		}
 	}
 
 
@@ -72,13 +97,26 @@ final class ClassKindInNameRule extends NodeRule
 			$words !== [] => 'abstract class',
 			default => 'class',
 		};
-		if ($this->state === self::Required) {
+		$state = $this->states[$kind] ?? null;
+		if ($state === null) {
+			return;
+		} elseif ($state === self::Required) {
 			// the conventional place of the word: in front of an abstract class, behind an interface or a trait
 			foreach ($words as $word) {
 				if ($word === 'Abstract' && !self::hasPrefix($text, $word)) {
-					$context->report($name, "The name of the $kind `$text` must start with `$word`.", fixable: false);
+					$context->report(
+						$name,
+						"The name of the $kind `$text` must start with `$word`.",
+						fixable: false,
+						decision: self::Affixes[$kind],
+					);
 				} elseif ($word !== 'Abstract' && !self::hasSuffix($text, $word)) {
-					$context->report($name, "The name of the $kind `$text` must end with `$word`.", fixable: false);
+					$context->report(
+						$name,
+						"The name of the $kind `$text` must end with `$word`.",
+						fixable: false,
+						decision: self::Affixes[$kind],
+					);
 				}
 			}
 
@@ -92,6 +130,7 @@ final class ClassKindInNameRule extends NodeRule
 					$name,
 					'Useless prefix `' . substr($text, 0, $length) . "` in the name of the $kind `$text`.",
 					fixable: false,
+					decision: self::Affixes[$kind],
 				);
 			}
 
@@ -100,12 +139,18 @@ final class ClassKindInNameRule extends NodeRule
 					$name,
 					'Useless suffix `' . substr($text, -$length) . "` in the name of the $kind `$text`.",
 					fixable: false,
+					decision: self::Affixes[$kind],
 				);
 			}
 		}
 
-		if ($node instanceof ClassNode && !$node->modifiers->abstract && self::hasSuffix($text, 'Error')) {
-			$context->report($name, 'Useless suffix `' . substr($text, -5) . "` in the name of the class `$text`.", fixable: false);
+		if ($kind === 'class' && self::hasSuffix($text, 'Error')) {
+			$context->report(
+				$name,
+				'Useless suffix `' . substr($text, -5) . "` in the name of the class `$text`.",
+				fixable: false,
+				decision: self::Affixes[$kind],
+			);
 		}
 	}
 

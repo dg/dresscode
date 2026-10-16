@@ -1,2 +1,5 @@
 naming:
-	classKindInName: forbidden
+	abstractClassAffix: forbidden
+	interfaceAffix: forbidden
+	traitAffix: forbidden
+	errorAffix: forbidden

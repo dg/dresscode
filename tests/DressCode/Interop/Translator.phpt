@@ -390,12 +390,12 @@ test('a fixer of the case of one kind of native names leaves the other kinds as 
 
 test('a fixer of the imports leaves the names of the global namespace to a fixer of those', function () {
 	$translate = fn(array $rules) => (new Translator)->translate($rules)->decisions;
-	Assert::same(['qualification.uselessBackslash' => 'forbidden'], $translate(['no_leading_import_slash' => true]));
+	Assert::same(['imports.leadingBackslash' => 'forbidden'], $translate(['no_leading_import_slash' => true]));
 
 	$rules = ['no_leading_import_slash' => true, 'PhpCsFixerCustomFixers/no_leading_slash_in_global_namespace' => true];
 	foreach ([$rules, array_reverse($rules, true)] as $order) {
 		Assert::equal(
-			['qualification.uselessBackslash' => 'forbidden', 'qualification.inFileWithoutNamespace' => 'bare'],
+			['imports.leadingBackslash' => 'forbidden', 'qualification.leadingBackslash' => 'forbidden'],
 			$translate($order),
 		);
 	}
