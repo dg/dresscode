@@ -1979,6 +1979,7 @@ After `declare(...);`, before whatever follows it but a namespace declaration.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `PSR12.Files.FileHeader`
 
 ### blankLines.beforeNamespace
 
@@ -2032,12 +2033,13 @@ Between the imports of classes, functions and constants.
 
 ### blankLines.beforeDeclaration
 
-Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of `afterNamespace` and `afterImports`.
+Before a class, interface, trait, enum or function that follows the namespace or the imports, which `afterNamespace` and `afterImports` then leave alone.
 
 - By default `keep`
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `2`, symfony `keep`
+- The standards: perCs `1`, psr12 `1`, nette `2`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `blank_line_after_namespace`, `single_line_after_imports`, `PSR12.Files.FileHeader`, `PSR2.Namespaces.NamespaceDeclaration`, `PSR2.Namespaces.UseDeclaration`
 
 ### blankLines.aroundDeclarations
 

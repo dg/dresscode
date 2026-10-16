@@ -507,8 +507,14 @@ test('options of a rule that takes none are reported, not dropped in silence', f
 
 test('a rule of blank lines translates to the places it counts, with the counts its options give', function () {
 	$translate = fn(array $rules) => (new Translator)->translate($rules);
-	Assert::same(['blankLines.afterNamespace' => 1], $translate(['PSR2.Namespaces.NamespaceDeclaration' => true])->decisions);
-	Assert::same(['blankLines.afterImports' => 1], $translate(['single_line_after_imports' => true])->decisions);
+	Assert::same(
+		['blankLines.afterNamespace' => 1, 'blankLines.beforeDeclaration' => 1],
+		$translate(['PSR2.Namespaces.NamespaceDeclaration' => true])->decisions,
+	);
+	Assert::same(
+		['blankLines.afterImports' => 1, 'blankLines.beforeDeclaration' => 1],
+		$translate(['single_line_after_imports' => true])->decisions,
+	);
 	Assert::same(
 		['blankLines.aroundMethods' => [1, 2], 'blankLines.aroundInterfaceMethods' => [1, 2]],
 		$translate(['SlevomatCodingStandard.Classes.MethodSpacing' => ['maxLinesCount' => 2]])->decisions,

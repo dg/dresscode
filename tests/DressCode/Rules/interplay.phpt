@@ -79,7 +79,8 @@ function blankLinesValues(array $values): array
 {
 	return $values + [
 		'blankLines.afterOpeningTag' => 1, 'blankLines.beforeNamespace' => 1, 'blankLines.afterNamespace' => 1,
-		'blankLines.afterImports' => 1, 'blankLines.betweenImportKinds' => 1, 'blankLines.aroundDeclarations' => 2,
+		'blankLines.afterImports' => 1, 'blankLines.beforeDeclaration' => 1, 'blankLines.betweenImportKinds' => 1,
+		'blankLines.aroundDeclarations' => 2,
 		'blankLines.aroundMethods' => 2, 'blankLines.aroundInterfaceMethods' => 1, 'blankLines.bodyStart.class' => 0,
 		'blankLines.bodyStart.anonymousClass' => 0, 'blankLines.bodyEnd.class' => 0, 'blankLines.bodyEnd.anonymousClass' => 0,
 		'blankLines.betweenTraitUses' => 0, 'blankLines.afterTraitUses' => 1, 'blankLines.betweenMembers' => '0-1',

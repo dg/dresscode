@@ -174,9 +174,11 @@ final class PhpCodeSniffer
 			},
 			'PSR12.Files.FileHeader' => [
 				'blankLines.afterOpeningTag' => 1,
+				'blankLines.afterDeclare' => 1,
 				'blankLines.beforeNamespace' => 1,
 				'blankLines.afterNamespace' => 1,
 				'blankLines.afterImports' => 1,
+				'blankLines.beforeDeclaration' => 1,
 				'blankLines.betweenImports' => 0,
 				'blankLines.betweenImportKinds' => 1,
 			],
@@ -259,9 +261,10 @@ final class PhpCodeSniffer
 				$t->warn('`PSR2.Methods.MethodDeclaration` also rules on the underscore prefix of method names, which DressCode does not.');
 				$t->set('classes.modifiers.order', 'canonical');
 			},
-			'PSR2.Namespaces.NamespaceDeclaration' => ['blankLines.afterNamespace' => 1],
+			'PSR2.Namespaces.NamespaceDeclaration' => ['blankLines.afterNamespace' => 1, 'blankLines.beforeDeclaration' => 1],
 			'PSR2.Namespaces.UseDeclaration' => [
 				'blankLines.afterImports' => 1,
+				'blankLines.beforeDeclaration' => 1,
 				'imports.grouping.class' => 'separated',
 				'imports.grouping.function' => 'separated',
 				'imports.grouping.constant' => 'separated',

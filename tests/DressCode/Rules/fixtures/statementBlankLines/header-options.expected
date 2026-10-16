@@ -4,8 +4,6 @@
 namespace Foo;
 use A;
 use function b;
-
-
 class C
 {
 }

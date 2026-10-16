@@ -115,6 +115,7 @@ blankLines:
 	beforeNamespace: 1
 	afterNamespace: 1
 	afterImports: 1
+	beforeDeclaration: 1
 	betweenImports: 0
 	betweenImportKinds: 1
 	bodyStart:

@@ -10,7 +10,6 @@ use Vendor\Package\ClassB;
 use function Vendor\Package\functionA;
 
 use const Vendor\Package\CONSTANT_A;
-
 /**
  * Doc.
  */

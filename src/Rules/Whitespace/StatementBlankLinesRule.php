@@ -31,7 +31,7 @@ final class StatementBlankLinesRule extends GapRule
 		'afterImports' => 'After the last import, before the rest of the code',
 		'betweenImports' => 'Between two imports of one kind, two of classes for instance',
 		'betweenImportKinds' => 'Between the imports of classes, functions and constants',
-		'beforeDeclaration' => 'Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of `afterNamespace` and `afterImports`',
+		'beforeDeclaration' => 'Before a class, interface, trait, enum or function that follows the namespace or the imports, which `afterNamespace` and `afterImports` then leave alone',
 		'aroundDeclarations' => 'Before and after a class, interface, trait, enum or function declared among statements, where the header above it does not decide',
 		'betweenStatementsInFunction' => 'Between two statements in the body of a function, a method or a closure, at any depth; a count of the kind of the statement before or after narrows it',
 		'afterAttributes' => 'Between the last group of attributes and the declaration, the member, the parameter or the closure it belongs to',
@@ -157,17 +157,20 @@ final class StatementBlankLinesRule extends GapRule
 			$key = 'afterDeclare';
 		}
 
-		$declared = $stmt instanceof ClassLikeNode || $stmt instanceof Statement\FunctionNode ? $this->counts['beforeDeclaration'] : null;
+		// a declaration below the namespace or the imports is beforeDeclaration's, and its keep claims a gap of any count
+		// so that no decision of the statements takes it
+		$declaration = $stmt instanceof ClassLikeNode || $stmt instanceof Statement\FunctionNode;
+		$declared = $this->counts['beforeDeclaration'] ?? [0, null];
 		if ($owner instanceof Statement\NamespaceNode && $owner->semicolon !== null && $index === 0) {
-			$counts[] = $declared ?? $this->counts['afterNamespace'];
-			$key = $declared === null ? 'afterNamespace' : 'beforeDeclaration';
+			$counts[] = $declaration ? $declared : $this->counts['afterNamespace'];
+			$key = $declaration ? 'beforeDeclaration' : 'afterNamespace';
 		}
 
 		if ($previous instanceof Statement\UseNode) {
 			[$counts[], $key] = match (true) {
-				!$stmt instanceof Statement\UseNode => $declared === null
-					? [$this->counts['afterImports'], 'afterImports']
-					: [$declared, 'beforeDeclaration'],
+				!$stmt instanceof Statement\UseNode => $declaration
+					? [$declared, 'beforeDeclaration']
+					: [$this->counts['afterImports'], 'afterImports'],
 				$previous->symbolKind === $stmt->symbolKind => [$this->counts['betweenImports'], 'betweenImports'],
 				default => [$this->counts['betweenImportKinds'], 'betweenImportKinds'],
 			};

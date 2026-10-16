@@ -87,7 +87,10 @@ final class PhpCsFixer
 					'spacing.alignment.binaryOperator' => $default === 'single_space' ? 'forbidden' : 'spaces',
 				]);
 			},
-			'blank_line_after_namespace' => fn(array $o, Translation $t) => $t->set('blankLines.afterNamespace', 1),
+			'blank_line_after_namespace' => fn(array $o, Translation $t) => $t->setAll([
+				'blankLines.afterNamespace' => 1,
+				'blankLines.beforeDeclaration' => 1,
+			]),
 			'blank_line_after_opening_tag' => fn(array $o, Translation $t) => $t->set('blankLines.afterOpeningTag', 1),
 			'blank_line_before_statement' => function (array $o, Translation $t) {
 				$statements = $o['statements'] ?? ['break', 'continue', 'declare', 'return', 'throw', 'try'];
@@ -639,7 +642,7 @@ final class PhpCsFixer
 					}
 				}
 			},
-			'single_line_after_imports' => ['blankLines.afterImports' => 1],
+			'single_line_after_imports' => ['blankLines.afterImports' => 1, 'blankLines.beforeDeclaration' => 1],
 			'single_line_comment_spacing' => ['spacing.comment.marker' => 'spaced'],
 			'single_line_comment_style' => fn(array $o, Translation $t) => in_array(
 				'hash',
