@@ -26,7 +26,7 @@ use function count, is_string;
 final class Catalogue
 {
 	/** the version of the shape of the export */
-	public const Version = 3;
+	public const Version = 4;
 
 	/** the sections of the core, in the order a file and the reference write them */
 	public const CoreSections = [

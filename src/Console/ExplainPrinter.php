@@ -9,7 +9,7 @@ namespace DressCode\Console;
 
 use DressCode\Config\{PluginRegistry, ResolvedConfig, ResolvedDecision};
 use DressCode\{DecisionKind, RuleInfo, Value, Violation};
-use function is_bool, is_string, strlen;
+use function strlen;
 
 
 /**
@@ -146,13 +146,7 @@ final readonly class ExplainPrinter
 
 	private static function formatValue(Value $value): string
 	{
-		$data = $value->toWrittenData();
-		return Violation::formatCode(match (true) {
-			is_bool($data) => $data ? 'yes' : 'no',
-			$data === null => 'null',
-			is_string($data) => $data,
-			default => (string) json_encode($data, JSON_UNESCAPED_SLASHES),
-		});
+		return Violation::formatCode($value->toWrittenText());
 	}
 
 

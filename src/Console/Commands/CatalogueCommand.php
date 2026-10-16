@@ -53,7 +53,7 @@ final readonly class CatalogueCommand
 			) as $standard => $decisions) {
 				foreach ($decisions as $path => $decision) {
 					if (isset($data['decisions'][$path])) {
-						$data['decisions'][$path]['standards'][$standard] = $decision->value->toData();
+						$data['decisions'][$path]['standards'][$standard] = $decision->value->toWrittenData();
 					}
 				}
 			}

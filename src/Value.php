@@ -9,7 +9,8 @@ namespace DressCode;
 
 use DressCode\Config\Layer;
 use DressCode\Domains\{Count, Flag, Map, Names, Shapes, Text, Words};
-use function count, is_array, is_string;
+use Nette\Neon\Neon;
+use function count, is_array, is_bool, is_string;
 
 
 /**
@@ -76,6 +77,34 @@ final readonly class Value
 			: $this->toData();
 		$data = $this->domain instanceof Words && is_array($data) && array_is_list($data) && count($data) === 1 ? $data[0] : $data;
 		return $this->domain instanceof Count && is_array($data) && $data[0] === $data[1] ? $data[0] : $data;
+	}
+
+
+	/**
+	 * The value on one line as a configuration writes it, which every output shows: a word bare, `yes` or `no` for a
+	 * flag, a list and a map inline, and quotes only around a text NEON would read otherwise.
+	 */
+	public function toWrittenText(): string
+	{
+		return self::formatData($this->toWrittenData());
+	}
+
+
+	private static function formatData(mixed $data): string
+	{
+		return match (true) {
+			is_bool($data) => $data ? 'yes' : 'no',
+			is_array($data) && array_is_list($data) => '[' . implode(', ', array_map(self::formatData(...), $data)) . ']',
+			is_array($data) => '{' . implode(', ', array_map(
+				fn($key, $item) => self::formatData((string) $key) . ': ' . self::formatData($item),
+				array_keys($data),
+				$data,
+			)) . '}',
+			is_string($data)
+				&& preg_match('~^[^\s,\[\]{}()\'"#:=]+( [^\s,\[\]{}()\'"#:=]+)*$~D', $data)
+				&& Neon::decode($data) === $data => $data,
+			default => Neon::encode($data),
+		};
 	}
 
 

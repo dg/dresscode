@@ -11,7 +11,6 @@ use DressCode\Config\{Catalogue, PluginRegistry, ResolvedConfig, ResolvedDecisio
 use DressCode\DecisionKind;
 use DressCode\Engine\Helpers;
 use Nette\CommandLine\{Ansi, Console};
-use Nette\Neon\Neon;
 use Nette\Utils\Json;
 use function count, sprintf, strlen;
 
@@ -108,7 +107,7 @@ final readonly class ConfigPrinter
 			foreach ($tree as $key => $node) {
 				$indent = str_repeat("\t", $depth);
 				if ($node instanceof ResolvedDecision) {
-					$lines[] = [$indent . $key . ': ' . Neon::encode($node->value->toWrittenData()), $this->describeOrigin($node)];
+					$lines[] = [$indent . $key . ': ' . $node->value->toWrittenText(), $this->describeOrigin($node)];
 				} else {
 					$lines[] = [$indent . $key . ':', null];
 					$walk($node, $depth + 1);

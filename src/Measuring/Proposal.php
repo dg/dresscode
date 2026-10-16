@@ -323,7 +323,7 @@ final readonly class Proposal
 			$sections[] = self::writeDecision(
 				IndentationRule::class,
 				'indentation.unit',
-				$indent === 'tab' ? 'tab' : "'" . self::toUnit($indent) . "'",
+				$indent === 'tab' ? 'tab' : self::toUnit($indent),
 				$this->indent->describe(),
 			);
 		} elseif ($this->indent->opportunities) {
@@ -339,7 +339,7 @@ final readonly class Proposal
 			$sections[] = self::writeDecision(
 				MultilineConditionRule::class,
 				'multiline.edges.condition',
-				is_array($shape) ? '[' . implode(', ', $shape) . ']' : $shape,
+				$shape,
 				$this->conditions->describe(),
 			);
 		}
@@ -357,7 +357,7 @@ final readonly class Proposal
 	 * The key of a decision under its section, what the catalogue says of it above and what was measured beside it.
 	 * @param  class-string<Rule>  $rule
 	 */
-	private static function writeDecision(string $rule, string $path, string $value, string $measured): string
+	private static function writeDecision(string $rule, string $path, mixed $value, string $measured): string
 	{
 		$decision = array_find(Config\Catalogue::collectDecisions($rule), fn(Decision $decision) => $decision->path === $path)
 			?? throw new \LogicException("Rule `$rule` does not declare `$path`.");
@@ -373,7 +373,8 @@ final readonly class Proposal
 		$comment = preg_replace_callback('~`[^`]*`~', fn(array $m) => str_replace(' ', "\0", $m[0]), $comment);
 		$comment = str_replace("\0", ' ', wordwrap($comment, 110, "\n"));
 		$indent = str_repeat("\t", count($links));
-		return $out . preg_replace('~^~m', "$indent# ", $comment) . "\n$indent$key: $value  # $measured\n";
+		$written = $decision->domain->accept($value, $path, keep: true)->toWrittenText();
+		return $out . preg_replace('~^~m', "$indent# ", $comment) . "\n$indent$key: $written  # $measured\n";
 	}
 
 

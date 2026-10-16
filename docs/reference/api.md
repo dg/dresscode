@@ -251,7 +251,7 @@ final readonly class Config extends DressCode\Profile
 
 ```php
 final class Catalogue
-	public const Version = 3
+	public const Version = 4
 	public const CoreSections = ['file', 'indentation', 'naming', 'casing', 'qualification', 'imports', 'spacing', 'multiline', 'braces', 'blankLines', 'classes', 'types', 'functions', 'cleanup', 'controlFlow', 'expressions', 'literals', 'comments', 'phpdoc', 'correctness', 'upgrading']
 	public const PlaceKinds = ['lists' => ['array', 'list', 'argument', 'parameter', 'closureUse', 'import', 'attribute', 'matchArm', 'matchCondition', 'for', 'implements'], 'operators' => ['condition', 'logical', 'concatenation', 'arithmetic', 'bitwise', 'coalesce', 'comparison', 'pipe', 'ternary', 'chain']]
 	public const ReservedKeys = ['use', 'typeAnalysis', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths', 'fileExtensions', 'skipWhen', 'baseline', 'cacheDir', 'rules', 'analyses', 'fixRisky', 'warnOnly', 'suppressionComments', 'overrides']
@@ -886,6 +886,7 @@ final readonly class Value
 	public function withOrigin(DressCode\Config\Layer $origin): DressCode\Value
 	public function toData(): mixed
 	public function toWrittenData(): mixed
+	public function toWrittenText(): string
 	public function isKept(): bool
 	public function getWord(): string
 	public function getWords(): list<string>

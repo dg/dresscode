@@ -47,12 +47,10 @@ function formatDecisionLink(string $path): string
 }
 
 
-/** A value as a configuration writes it, and a word for its map of `*`. */
+/** A value as a configuration writes it. */
 function formatValue(DressCode\Value $value): string
 {
-	$data = $value->toWrittenData();
-	$data = $value->domain instanceof DressCode\Domains\Words && is_array($data) && array_keys($data) === ['*'] ? $data['*'] : $data;
-	return '`' . (is_string($data) ? $data : json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) . '`';
+	return DressCode\Violation::formatCode($value->toWrittenText());
 }
 
 
