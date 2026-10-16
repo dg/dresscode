@@ -3093,9 +3093,9 @@ A Yoda comparison, the constant on its left side, a comparison of two variables 
 The syntax of an array.
 
 - By default `keep`
-- Takes: `short` (`[1, 2]`, never `array(1, 2)`); `keep`
+- Takes: `short` (`[1, 2]`, never `array(1, 2)`); `long` (`array(1, 2)`, never `[1, 2]`); `keep`
 - The standards: perCs `short`, psr12 `keep`, nette `short`, symfony `short`
-- Rule `DressCode\Rules\Arrays\NoLongArraySyntaxRule`, stage Structure
+- Rule `DressCode\Rules\Arrays\ArraySyntaxRule`, stage Structure
 - Covers: `array_syntax`, `Generic.Arrays.DisallowLongArraySyntax`
 
 ### literals.arraySyntax.list
@@ -3103,9 +3103,9 @@ The syntax of an array.
 The syntax of a destructuring.
 
 - By default `keep`
-- Takes: `short` (`[$a, $b] =`, never `list($a, $b) =`); `keep`
+- Takes: `short` (`[$a, $b] =`, never `list($a, $b) =`); `long` (`list($a, $b) =`, never `[$a, $b] =`); `keep`
 - The standards: perCs `short`, psr12 `keep`, nette `short`, symfony `short`
-- Rule `DressCode\Rules\Arrays\NoLongArraySyntaxRule`, stage Structure
+- Rule `DressCode\Rules\Arrays\ArraySyntaxRule`, stage Structure
 - Covers: `list_syntax`, `SlevomatCodingStandard.PHP.ShortList`
 
 ### literals.classNameInString

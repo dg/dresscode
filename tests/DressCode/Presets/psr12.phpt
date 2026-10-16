@@ -28,7 +28,7 @@ $perOnly = [
 	'noMembersSharingLine',
 	'nowdocForHeredoc',
 	'heredocIndentation',
-	'noLongArraySyntax',
+	'arraySyntax',
 	'multilineArray',
 	'attributeSpacing',
 	'attributePosition',

@@ -21,7 +21,7 @@ $rules = RuleBuilder::buildRules($resolved);
 Assert::same(
 	[
 		'arraySpacing',
-		'noLongArraySyntax',
+		'arraySyntax',
 		'trailingComma',
 		'classHeadSpacing',
 		'nameCasing',

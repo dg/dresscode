@@ -1,0 +1,15 @@
+<?php
+// {"arraySyntax": "long"}
+$a = array(1, 2);
+$b = array();
+$c = array(
+	'k' => array(3),
+);
+return array(4);
+list($d, list($e, $f)) = g();
+foreach ($x as list($k, $v)) {}
+list('a' => $h) = i();
+$j = array(5);
+list($l) = m();
+#[Attr(array(1))]
+function n($o = array(6)) {}

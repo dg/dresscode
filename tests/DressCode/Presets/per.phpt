@@ -19,7 +19,7 @@ $rules = RuleBuilder::buildRules($resolved);
 Assert::same(
 	[
 		'multilineArray',
-		'noLongArraySyntax',
+		'arraySyntax',
 		'trailingComma',
 		'classHeadSpacing',
 		'multilineImplements',
