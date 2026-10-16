@@ -352,7 +352,25 @@ final class Translation
 			$decisions['file.lineLength'] = $this->lineLength;
 		}
 
+		// a range is kept as its two ends while the foreign rules meet, and written as the configuration writes it
+		foreach ($decisions as $path => $value) {
+			if (str_starts_with($path, 'blankLines.')) {
+				$decisions[$path] = self::writeRanges($value);
+			}
+		}
+
 		return $decisions;
+	}
+
+
+	/** The count as the configuration writes it, `0-1` or `1+` for a range, and so each count of a map. */
+	private static function writeRanges(mixed $value): mixed
+	{
+		return match (true) {
+			is_array($value) && array_keys($value) === [0, 1] && is_int($value[0]) => $value[0] . ($value[1] === null ? '+' : "-$value[1]"),
+			is_array($value) => array_map(self::writeRanges(...), $value),
+			default => $value,
+		};
 	}
 
 

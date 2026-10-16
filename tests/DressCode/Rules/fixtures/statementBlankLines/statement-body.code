@@ -1,5 +1,5 @@
 <?php
-// {"betweenStatementsInFunction": [0, 1], "beforeStatement": {"return": 2}, "afterOpeningTag": "keep", "betweenDeclarations": "keep"}
+// {"betweenStatementsInFunction": "0-1", "beforeStatement": {"return": 2}, "afterOpeningTag": "keep", "betweenDeclarations": "keep"}
 function a()
 {
 	foo();

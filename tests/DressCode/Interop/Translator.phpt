@@ -959,7 +959,7 @@ test('the configuration is written as a dresscode.php, a rule written as its dec
 
 	// a list of plain values stays on its line, an empty map too
 	$translation = (new Translator)->translate(['blank_line_before_statement' => ['statements' => ['return']], 'phpdoc_trim' => true]);
-	Assert::contains("\t\t\t'beforeStatement' => [\n\t\t\t\t'return' => [1, null],\n\t\t\t],\n", $translation->toPhp());
+	Assert::contains("\t\t\t'beforeStatement' => [\n\t\t\t\t'return' => '1+',\n\t\t\t],\n", $translation->toPhp());
 	$translation->set('blankLines.afterStatement', []);
 	Assert::contains("\t\t\t'afterStatement' => [],\n", $translation->toPhp());
 

@@ -12,8 +12,8 @@ use function is_array, is_int, is_string;
 
 
 /**
- * A count, `2`; where a range is taken, `[1, 2]`, `1–2` with an en dash or a hyphen and an open one `1+`; and a
- * word where the decision names one, `none`.
+ * A count, `2`; where a range is taken, `1-2`, with an en dash too, and an open one `1+`; and a word where the
+ * decision names one, `none`. A list is never a count.
  */
 final readonly class Count extends Domain
 {
@@ -48,7 +48,7 @@ final readonly class Count extends Domain
 	{
 		$res = $this->max === null ? "a count from $this->min" : "a count from $this->min to $this->max";
 		if ($this->range) {
-			$res .= ", a range `1\u{2013}2`, an open one `1+`";
+			$res .= ', a range `1-2`, an open one `1+`';
 		}
 
 		foreach ($this->words as $word => $meaning) {
@@ -69,7 +69,6 @@ final readonly class Count extends Domain
 				? [(int) $m[1], (int) $m[2]]
 				: null,
 			is_string($raw) && preg_match('~^(\d+)\+$~D', $raw, $m) === 1 => self::fitsInteger($m[1]) ? [(int) $m[1], null] : null,
-			is_array($raw) && array_keys($raw) === [0, 1] && is_int($raw[0]) && (is_int($raw[1]) || $raw[1] === null) => [$raw[0], $raw[1]],
 			default => null,
 		};
 
@@ -93,7 +92,7 @@ final readonly class Count extends Domain
 			return new Value($this, $raw, $raw);
 		}
 
-		self::refuse($raw, $path, $this->listExpected(), $keep);
+		self::refuse($raw, $path, $this->listExpected(), $keep, is_array($raw) ? 'a list being no count' : '');
 	}
 
 
@@ -109,7 +108,7 @@ final readonly class Count extends Domain
 	{
 		$expected = [$this->max === null ? "a count from `$this->min`" : "a count from `$this->min` to `$this->max`"];
 		if ($this->range) {
-			$expected[] = "a range such as `1\u{2013}2` or `1+`";
+			$expected[] = 'a range such as `1-2` or `1+`';
 		}
 
 		return [...$expected, ...array_map(fn($word) => "`$word`", array_keys($this->words))];

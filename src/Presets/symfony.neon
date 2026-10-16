@@ -79,15 +79,15 @@ braces:
 	bareStatementGroup: forbidden             # no `{ ... }` that nothing opens
 	alternativeSyntax: forbidden              # no `if: ... endif;`
 
-# a range `[0, 1]` leaves the choice to the author, `[1, null]` is one or more
+# a range `0-1` leaves the choice to the author, `1+` is one or more
 blankLines:
-	betweenDeclarations: [0, 1]               # around one among statements
+	betweenDeclarations: 0-1                  # around one among statements
 	betweenMethods: 1
 	betweenInterfaceMethods: 1
 	betweenTraitUses: keep
 	afterTraitUses: keep
 	afterPhpdoc: 0
-	beforeStatement: {return: [1, null]}      # a `return` set apart from the code above it
+	beforeStatement: {return: 1+}             # a `return` set apart from the code above it
 
 classes:
 	untypedPropertyNullInitialization: forbidden   # `public $a;`, not `public $a = null;`

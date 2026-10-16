@@ -1869,7 +1869,7 @@ A closure written whole on one line.
 Between a doc comment or an attribute and the declaration it belongs to.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
@@ -1880,7 +1880,7 @@ Between a doc comment or an attribute and the declaration it belongs to.
 After the line of `<?php`, which then carries no code; a file with markup outside PHP keeps its tag.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `keep`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `blank_line_after_opening_tag`, `PSR12.Files.FileHeader`, `PSR12.Files.OpenTag`
@@ -1890,7 +1890,7 @@ After the line of `<?php`, which then carries no code; a file with markup outsid
 Before the namespace declaration and, where a doc comment of the file stands above it, also between the two.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `blank_lines_before_namespace`, `PSR12.Files.FileHeader`
@@ -1900,7 +1900,7 @@ Before the namespace declaration and, where a doc comment of the file stands abo
 After an unbraced namespace declaration.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `blank_line_after_namespace`, `PSR12.Files.FileHeader`, `PSR2.Namespaces.NamespaceDeclaration`
@@ -1910,7 +1910,7 @@ After an unbraced namespace declaration.
 After the last import, before the rest of the code.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `single_line_after_imports`, `PSR12.Files.FileHeader`, `PSR2.Namespaces.UseDeclaration`
@@ -1920,7 +1920,7 @@ After the last import, before the rest of the code.
 Between the imports of classes, functions and constants; imports of one kind never have a blank line between them.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `0`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `blank_line_between_import_groups`, `PSR12.Files.FileHeader`
@@ -1930,7 +1930,7 @@ Between the imports of classes, functions and constants; imports of one kind nev
 Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of `afterNamespace` and `afterImports`.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `2`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
@@ -1939,8 +1939,8 @@ Before a class, interface, trait, enum or function that follows the namespace or
 Before and after a class, interface, trait, enum or function declared among statements, where the header above it does not decide.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[1, 2]`, symfony `[0, 1]`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `1-2`, symfony `0-1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `Squiz.WhiteSpace.FunctionSpacing`
 
@@ -1949,8 +1949,8 @@ Before and after a class, interface, trait, enum or function declared among stat
 Between two statements in the body of a function, a method or a closure, at any depth; a count of the kind of the statement before or after narrows it.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[0, 2]`, symfony `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0-2`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
 ### blankLines.beforeStatement
@@ -1958,8 +1958,8 @@ Between two statements in the body of a function, a method or a closure, at any 
 Before a statement of the kind, `yield` meaning a statement made of a `yield` expression.
 
 - By default `keep`
-- Takes: a map of `break`, `continue`, `do`, `for`, `foreach`, `if`, `return`, `switch`, `throw`, `try`, `while`, `yield` to a count from 0, a range `1–2`, an open one `1+`, an entry withdrawn with `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `{return: [1, null]}`
+- Takes: a map of `break`, `continue`, `do`, `for`, `foreach`, `if`, `return`, `switch`, `throw`, `try`, `while`, `yield` to a count from 0, a range `1-2`, an open one `1+`, an entry withdrawn with `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `{return: 1+}`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `blank_line_before_statement`, `SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing`, `SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing`
 
@@ -1968,7 +1968,7 @@ Before a statement of the kind, `yield` meaning a statement made of a `yield` ex
 After a statement of the kind, before the next statement.
 
 - By default `keep`
-- Takes: a map of `break`, `continue`, `do`, `for`, `foreach`, `if`, `return`, `switch`, `throw`, `try`, `while`, `yield` to a count from 0, a range `1–2`, an open one `1+`, an entry withdrawn with `keep`
+- Takes: a map of `break`, `continue`, `do`, `for`, `foreach`, `if`, `return`, `switch`, `throw`, `try`, `while`, `yield` to a count from 0, a range `1-2`, an open one `1+`, an entry withdrawn with `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing`, `SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing`, `Squiz.WhiteSpace.ControlStructureSpacing`
@@ -1978,7 +1978,7 @@ After a statement of the kind, before the next statement.
 Before and after a method; the first and the last method of a class take `beforeFirstMethod` and `afterLastMethod`.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `2`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.MethodSpacing`, `Squiz.WhiteSpace.FunctionSpacing`
@@ -1988,7 +1988,7 @@ Before and after a method; the first and the last method of a class take `before
 Before and after a method of an interface, in place of `betweenMethods`.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.MethodSpacing`, `Squiz.WhiteSpace.FunctionSpacing`
@@ -1998,7 +1998,7 @@ Before and after a method of an interface, in place of `betweenMethods`.
 Before a method that is the first member of its class.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `no_blank_lines_after_class_opening`, `PSR12.Classes.OpeningBraceSpace`, `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`, `Squiz.WhiteSpace.FunctionSpacing`
@@ -2008,7 +2008,7 @@ Before a method that is the first member of its class.
 After a method that is the last member of its class.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`, `Squiz.WhiteSpace.FunctionSpacing`
@@ -2018,7 +2018,7 @@ After a method that is the last member of its class.
 Before the first member, unless it is a method, which takes `beforeFirstMethod`.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `no_blank_lines_after_class_opening`, `PSR12.Classes.OpeningBraceSpace`, `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`
@@ -2028,7 +2028,7 @@ Before the first member, unless it is a method, which takes `beforeFirstMethod`.
 After the last member, unless it is a method, which takes `afterLastMethod`.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`
@@ -2038,7 +2038,7 @@ After the last member, unless it is a method, which takes `afterLastMethod`.
 Between the trait uses of a class.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `class_attributes_separation`, `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.TraitUseSpacing`
@@ -2048,7 +2048,7 @@ Between the trait uses of a class.
 Before the first member after the trait uses, a method included.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.TraitUseSpacing`
@@ -2058,8 +2058,8 @@ Before the first member after the trait uses, a method included.
 Between properties, constants and enum cases without a doc comment or an attribute.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[0, 1]`, symfony `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0-1`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.ConstantSpacing`, `SlevomatCodingStandard.Classes.PropertySpacing`
 
@@ -2068,7 +2068,7 @@ Between properties, constants and enum cases without a doc comment or an attribu
 Before a property, constant or enum case with a doc comment or an attribute.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `1`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.ConstantSpacing`, `SlevomatCodingStandard.Classes.PropertySpacing`
@@ -2078,7 +2078,7 @@ Before a property, constant or enum case with a doc comment or an attribute.
 After the opening brace of a block.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `0`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 - Covers: `Squiz.WhiteSpace.ControlStructureSpacing`, `Squiz.WhiteSpace.FunctionOpeningBraceSpace`
@@ -2088,8 +2088,8 @@ After the opening brace of a block.
 Before the closing brace of a block.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[0, 1]`, symfony `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0-1`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 - Covers: `PSR2.Methods.FunctionClosingBrace`, `Squiz.WhiteSpace.ControlStructureSpacing`
 
@@ -2098,7 +2098,7 @@ Before the closing brace of a block.
 Before the closing brace of a branch of `if` or `try` that `else`, `elseif`, `catch` or `finally` follows, in place of `beforeBlockClosingBrace`.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `lastStatementSetApart` (one where the last statement of the branch stands apart, which would otherwise read as belonging to the next one, the others kept); `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `lastStatementSetApart` (one where the last statement of the branch stands apart, which would otherwise read as belonging to the next one, the others kept); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `lastStatementSetApart`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 
@@ -2107,7 +2107,7 @@ Before the closing brace of a branch of `if` or `try` that `else`, `elseif`, `ca
 Before a `case` or `default` of a `switch` that follows a case with statements, below a comment right under those statements.
 
 - By default `keep`
-- Takes: a count from 0, a range `1–2`, an open one `1+`; `lastStatementSetApart` (one where the last statement of the branch stands apart, which would otherwise read as belonging to the next one, the others kept); `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `lastStatementSetApart` (one where the last statement of the branch stands apart, which would otherwise read as belonging to the next one, the others kept); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `lastStatementSetApart`, symfony `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 

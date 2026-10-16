@@ -69,13 +69,21 @@ test('a count is a number, a range in any notation, an open one, or a word', fun
 	Assert::same([1, 2], $count->accept("1\u{2013}2", 'x.y')->getCount());
 	Assert::same([0, 1], $count->accept('0-1', 'x.y')->getCount());
 	Assert::same([1, null], $count->accept('1+', 'x.y')->getCount());
-	Assert::same([1, null], $count->accept([1, null], 'x.y')->getCount());
+	Assert::same([2, '0-1', '1+', 2], array_map(
+		fn($raw) => $count->accept($raw, 'x.y')->toWrittenData(),
+		[2, "0\u{2013}1", '1+', '2-2'],
+	));
+	Assert::exception(
+		fn() => $count->accept([1, null], 'x.y'),
+		ConfigurationException::class,
+		'Key `x.y` does not take `[1,null]`, a list being no count; write a count from `0`, a range such as `1-2` or `1+` or `none`.',
+	);
 	Assert::same('none', $count->accept('none', 'x.y')->getWord());
 	Assert::exception(fn() => $count->accept('none', 'x.y')->getCount(), LogicException::class, 'The count is the word `none`.');
 	Assert::exception(
 		fn() => $count->accept('2-1', 'x.y'),
 		ConfigurationException::class,
-		"Key `x.y` does not take `2-1`, whose end lies below its start; write a count from `0`, a range such as `1\u{2013}2` or `1+` or `none`.",
+		'Key `x.y` does not take `2-1`, whose end lies below its start; write a count from `0`, a range such as `1-2` or `1+` or `none`.',
 	);
 	Assert::exception(fn() => $count->accept(-1, 'x.y'), ConfigurationException::class);
 	Assert::exception(fn() => $count->accept('many', 'x.y'), ConfigurationException::class);
@@ -161,7 +169,7 @@ test('a map of a set of words takes those keys alone', function () {
 		'Key `blankLines.beforeStatement` does not take `echo`; write `return` or `yield`.',
 	);
 	Assert::same(
-		'a map of `return`, `yield` to a count from 0, a range `1–2`, an open one `1+`, an entry withdrawn with `keep`',
+		'a map of `return`, `yield` to a count from 0, a range `1-2`, an open one `1+`, an entry withdrawn with `keep`',
 		$map->describe(),
 	);
 	Assert::exception(fn() => new Map(new Count, words: ['return' => '']), InvalidArgumentException::class);
@@ -275,7 +283,7 @@ test('a domain is data and prose', function () {
 		new Shapes(['compact' => ['foo($a, $b)', ''], 'spaced' => ['foo ($a, $b)', 'one space']])->describe(),
 	);
 	Assert::same(
-		"a count from 0, a range `1\u{2013}2`, an open one `1+`; `none` (no limit)",
+		'a count from 0, a range `1-2`, an open one `1+`; `none` (no limit)',
 		new Count(words: ['none' => 'no limit'])->describe(),
 	);
 	Assert::same('an order of `traitUse`; `method`', new Names(['traitUse' => '', 'method' => ''], ordered: true)->describe());

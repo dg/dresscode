@@ -82,9 +82,9 @@ function blankLinesValues(array $values): array
 		'blankLines.afterImports' => 1, 'blankLines.betweenImportKinds' => 1, 'blankLines.betweenDeclarations' => 2,
 		'blankLines.betweenMethods' => 2, 'blankLines.betweenInterfaceMethods' => 1, 'blankLines.beforeFirstMethod' => 0,
 		'blankLines.afterLastMethod' => 0, 'blankLines.beforeFirstMember' => 0, 'blankLines.afterLastMember' => 0,
-		'blankLines.betweenTraitUses' => 0, 'blankLines.afterTraitUses' => 1, 'blankLines.betweenMembers' => [0, 1],
+		'blankLines.betweenTraitUses' => 0, 'blankLines.afterTraitUses' => 1, 'blankLines.betweenMembers' => '0-1',
 		'blankLines.beforeDocumentedMember' => 1, 'blankLines.afterPhpdoc' => 0, 'blankLines.afterBlockOpeningBrace' => 0,
-		'blankLines.beforeStatement' => ['return' => [1, null]],
+		'blankLines.beforeStatement' => ['return' => '1+'],
 	];
 }
 

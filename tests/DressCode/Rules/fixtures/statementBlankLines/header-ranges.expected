@@ -1,5 +1,5 @@
 <?php
-// {"beforeNamespace": [0, 1], "afterOpeningTag": [0, 1], "afterNamespace": [1, null], "afterImports": [1, 2]}
+// {"beforeNamespace": "0-1", "afterOpeningTag": "0-1", "afterNamespace": "1+", "afterImports": "1-2"}
 namespace Foo;
 
 use A;

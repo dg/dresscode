@@ -111,20 +111,20 @@ braces:
 	singlelineClosure: keep
 	alternativeSyntax: forbidden              # no `if: ... endif;`
 
-# a range `[1, 2]` leaves the choice to the author
+# a range `1-2` leaves the choice to the author
 blankLines:
 	afterOpeningTag: keep
 	betweenImportKinds: 0
 	beforeDeclaration: 2                      # above the class of a file
-	betweenDeclarations: [1, 2]               # around one among statements
-	betweenStatementsInFunction: [0, 2]
+	betweenDeclarations: 1-2                  # around one among statements
+	betweenStatementsInFunction: 0-2
 	betweenMethods: 2
 	betweenInterfaceMethods: 1
-	betweenMembers: [0, 1]                    # members without a doc comment
+	betweenMembers: 0-1                       # members without a doc comment
 	beforeDocumentedMember: 1
 	afterPhpdoc: 0
 	afterBlockOpeningBrace: 0
-	beforeBlockClosingBrace: [0, 1]
+	beforeBlockClosingBrace: 0-1
 	betweenBranches: lastStatementSetApart    # before `} else {` where the last statement stands apart
 	betweenCases: lastStatementSetApart       # likewise before `case`
 

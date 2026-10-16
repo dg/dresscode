@@ -68,14 +68,21 @@ final readonly class Value
 	}
 
 
-	/** The data the way a configuration writes them: a word for a tolerance of it alone, a number for an exact count. */
+	/**
+	 * The data the way a configuration writes them: a word for a tolerance of it alone, a number for an exact count, `1-2`
+	 * for a range and `1+` for an open one.
+	 */
 	public function toWrittenData(): mixed
 	{
 		$data = $this->holdsEntries()
 			? array_map(fn(self $entry) => $entry->toWrittenData(), $this->content)
 			: $this->toData();
-		$data = $this->domain instanceof Words && is_array($data) && array_is_list($data) && count($data) === 1 ? $data[0] : $data;
-		return $this->domain instanceof Count && is_array($data) && $data[0] === $data[1] ? $data[0] : $data;
+		return match (true) {
+			$this->domain instanceof Words && is_array($data) && array_is_list($data) && count($data) === 1 => $data[0],
+			$this->domain instanceof Count && is_array($data) && $data[0] === $data[1] => $data[0],
+			$this->domain instanceof Count && is_array($data) => $data[0] . ($data[1] === null ? '+' : "-$data[1]"),
+			default => $data,
+		};
 	}
 
 
