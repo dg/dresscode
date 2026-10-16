@@ -37,17 +37,17 @@ final class EmptyArgumentParenthesesRule extends NodeRule
 		return [
 			new Decision(
 				self::NamedClass,
-				new Words(['required' => '`new Foo()`', 'forbidden' => '`new Foo`']),
+				new Words(['required' => 'always there, `new Foo()`', 'forbidden' => 'never there, `new Foo`']),
 				'The empty parentheses of `new` with a class, `new static` and `new $class` alike, which `new Foo()->bar()` keeps whatever this says, PHP 8.4 needing them there',
 			),
 			new Decision(
 				self::AnonymousClass,
-				new Words(['required' => '`new class()`', 'forbidden' => '`new class`']),
+				new Words(['required' => 'always there, `new class()`', 'forbidden' => 'never there, `new class`']),
 				'The empty parentheses of an anonymous class',
 			),
 			new Decision(
 				self::Attribute,
-				new Words(['required' => '`#[Foo()]`', 'forbidden' => '`#[Foo]`']),
+				new Words(['required' => 'always there, `#[Foo()]`', 'forbidden' => 'never there, `#[Foo]`']),
 				'The empty parentheses of an attribute',
 			),
 		];

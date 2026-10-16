@@ -49,7 +49,7 @@ final class TrailingCommaRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		$words = new Words([
-			self::Required => 'there where the closing bracket stands on its own line, never where it follows the last item',
+			self::Required => 'always there where the closing bracket stands on its own line, never where it follows the last item',
 			self::Optional => 'as the author wrote it where the closing bracket stands on its own line, never where it follows the last item',
 		]);
 		$decisions = [];

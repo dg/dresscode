@@ -8,9 +8,9 @@
 namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
-use DressCode\{ConfigurationException, Decision, DecisionKind, ImportStyle, Plugin, Rule, RuleInfo};
+use DressCode\{ConfigurationException, Decision, DecisionKind, Domains, ImportStyle, Plugin, Rule, RuleInfo};
 use Nette\Utils\Helpers;
-use function count, is_string;
+use function array_key_exists, count, is_string;
 
 
 /**
@@ -40,6 +40,22 @@ final class Catalogue
 	 * reading as one about the thing itself
 	 */
 	public const QuestionGroups = ['controlFlow.switch', 'expressions.ternary', 'expressions.assignment'];
+
+	/**
+	 * the words of the values several decisions share, each with the meaning every gloss of it begins with where the
+	 * lexicon fixes one, and null where each decision says it in words of its place
+	 */
+	public const Lexicon = [
+		'required' => 'always there', 'forbidden' => 'never there', 'optional' => null, 'none' => null,
+		'sameLine' => null, 'nextLine' => null, 'above' => null, 'lineStart' => null, 'lineEnd' => null,
+		'perLine' => null, 'fill' => null, 'apart' => null, 'attached' => null, 'closingApart' => null,
+		'collapsed' => null, 'expanded' => null, 'first' => null, 'last' => null, 'lastStatementSetApart' => null,
+		'spaces' => null, 'tabs' => null, 'bare' => null, 'imported' => null, 'backslashed' => null, 'self' => null,
+		'declared' => null, 'lowercase' => null, 'uppercase' => null, 'canonical' => null, 'byName' => null,
+		'separated' => null, 'combined' => null, 'grouped' => null, 'joined' => null, 'asAncestor' => null,
+		'PascalCase' => null, 'camelCase' => null, 'snake_case' => null, 'UPPER_CASE' => null,
+		'constant' => null, 'property' => null, 'traitUse' => null,
+	];
 
 	/** the kinds of places a group takes a value for at once, `items: {lists: perLine}`, with the places of each */
 	public const PlaceKinds = [
@@ -245,6 +261,43 @@ final class Catalogue
 		}
 
 		return [...$decisions, ...$rule::getDecisions()];
+	}
+
+
+	/**
+	 * The words of the values that break the lexicon, each as `path word: why`: a word several decisions share and the
+	 * lexicon does not hold, and a gloss not beginning with the meaning the lexicon fixes.
+	 * @param  list<Decision>  $decisions
+	 * @return list<string>
+	 */
+	public static function findLexiconProblems(array $decisions): array
+	{
+		$uses = [];
+		foreach ($decisions as $decision) {
+			$domain = $decision->domain instanceof Domains\Map ? $decision->domain->values : $decision->domain;
+			$words = match (true) {
+				$domain instanceof Domains\Words => $domain->words,
+				$domain instanceof Domains\Count, $domain instanceof Domains\Names => $domain->words ?? [],
+				default => [],
+			};
+			foreach ($words as $word => $meaning) {
+				$uses[$word][$decision->path] = $meaning;
+			}
+		}
+
+		$problems = [];
+		foreach ($uses as $word => $glosses) {
+			$fixed = self::Lexicon[$word] ?? null;
+			foreach ($glosses as $path => $gloss) {
+				if (count($glosses) > 1 && !array_key_exists($word, self::Lexicon)) {
+					$problems[] = "$path $word: shared by several decisions and no word of the lexicon";
+				} elseif ($fixed !== null && !str_starts_with($gloss, $fixed)) {
+					$problems[] = "$path $word: its gloss does not begin with `$fixed`";
+				}
+			}
+		}
+
+		return $problems;
 	}
 
 

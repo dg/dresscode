@@ -22,7 +22,7 @@ final class UselessBracesRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('braces.bareStatementGroup', Domain::state('forbidden'), 'No `{ … }` around statements that nothing opens')];
+		return [new Decision('braces.bareStatementGroup', Domain::state('forbidden'), '`{ … }` around statements that nothing opens')];
 	}
 
 

@@ -22,7 +22,7 @@ final class NoBomRule extends NodeRule
 
 	public static function getDecisions(): array
 	{
-		return [new Decision('file.bom', Domain::state('forbidden'), 'The file starts without a byte order mark')];
+		return [new Decision('file.bom', Domain::state('forbidden'), 'A byte order mark at the start of the file')];
 	}
 
 

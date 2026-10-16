@@ -41,9 +41,9 @@ final class YodaRule extends NodeRule
 	{
 		return [
 			new Decision('expressions.comparison.yoda', new Words([
-				self::Forbidden => 'the variable on the left and the constant on the right, `$a === 1`',
-				self::Required => 'the constant on the left, `1 === $a`, so that an accidental assignment does not compile',
-			]), 'Which side of a comparison holds the constant, a comparison of two variables or calls staying as it is'),
+				self::Forbidden => 'never there, the variable on the left and the constant on the right, `$a === 1`',
+				self::Required => 'always there, the constant on the left, `1 === $a`, so that an accidental assignment does not compile',
+			]), 'A Yoda comparison, the constant on its left side, a comparison of two variables or calls staying as it is'),
 		];
 	}
 

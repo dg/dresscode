@@ -33,10 +33,10 @@ abstract readonly class Domain
 	];
 
 	private const AlignmentWords = [
-		'forbidden' => 'more whitespace collapses to a single space',
-		'spaces' => 'spaces aligning a column stay',
-		'tabs' => 'tabs aligning a column stay',
-		'optional' => 'any alignment stays',
+		'forbidden' => 'never there, more whitespace collapsing to a single space',
+		'spaces' => 'spaces aligning a column staying, tabs not',
+		'tabs' => 'tabs aligning a column staying, spaces not',
+		'optional' => 'there or not, as the author wrote it',
 	];
 
 

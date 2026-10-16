@@ -19,7 +19,7 @@ final class NoTrailingWhitespaceRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('file.trailingWhitespace', Domain::state('forbidden'), 'No space or tab at the end of a line')];
+		return [new Decision('file.trailingWhitespace', Domain::state('forbidden'), 'A space or a tab at the end of a line')];
 	}
 
 

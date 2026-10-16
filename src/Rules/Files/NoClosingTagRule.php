@@ -25,7 +25,7 @@ final class NoClosingTagRule extends NodeRule
 		return [new Decision(
 			'file.closingTagAtEnd',
 			Domain::state('forbidden'),
-			'A file of PHP only does not end with `?>`; a `?>` before HTML is content',
+			'A `?>` ending a file of PHP only; a `?>` before HTML is content',
 		)];
 	}
 

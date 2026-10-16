@@ -49,7 +49,7 @@ final class TernaryOperatorSpacingRule extends GapRule
 			new Decision(
 				self::Alignment,
 				Domain::alignment('forbidden', 'optional'),
-				'Whether more spaces around `?` and `:` stay',
+				'The whitespace wider than a single space around `?` and `:`, aligning a column; alignment is never made',
 				kind: DecisionKind::Parameter,
 				default: 'optional',
 			),

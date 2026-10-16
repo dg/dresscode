@@ -322,8 +322,11 @@ final class RuleTester
 		$options = self::readOptions($code);
 		$instance = $rule instanceof \Closure ? $rule($options) : null;
 		$class = $instance === null ? $rule : $instance::class;
-		if (Catalogue::collectDecisions($class) === []) {
+		$decisions = Catalogue::collectDecisions($class);
+		if ($decisions === []) {
 			throw new TestFailure("Rule `$class` declares no decision.");
+		} elseif ($problems = Catalogue::findLexiconProblems($decisions)) {
+			throw new TestFailure("Rule `$class` breaks the lexicon of the values: " . implode('; ', $problems) . '.');
 		}
 
 		$layers = [];

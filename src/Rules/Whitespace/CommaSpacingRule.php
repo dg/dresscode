@@ -37,7 +37,7 @@ final class CommaSpacingRule extends GapRule
 			new Decision(
 				self::Alignment,
 				Domain::alignment(),
-				'Which whitespace wider than a single space after a comma stays, aligning the columns of a table; alignment is never made',
+				'The whitespace wider than a single space after a comma, aligning the columns of a table; alignment is never made',
 				kind: DecisionKind::Parameter,
 				default: 'tabs',
 			),

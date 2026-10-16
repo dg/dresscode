@@ -140,7 +140,7 @@ A line wider than `file.lineLength` that nothing could split is reported, unless
 
 ### file.bom
 
-The file starts without a byte order mark.
+A byte order mark at the start of the file.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
@@ -150,7 +150,7 @@ The file starts without a byte order mark.
 
 ### file.closingTagAtEnd
 
-A file of PHP only does not end with `?>`; a `?>` before HTML is content.
+A `?>` ending a file of PHP only; a `?>` before HTML is content.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
@@ -160,7 +160,7 @@ A file of PHP only does not end with `?>`; a `?>` before HTML is content.
 
 ### file.trailingWhitespace
 
-No space or tab at the end of a line.
+A space or a tab at the end of a line.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
@@ -749,10 +749,10 @@ The whitespace before a comment that follows code on its line.
 
 ### spacing.alignment.comment
 
-Whether a comment following code may be aligned by more spaces.
+The whitespace wider than a single space before a comment following code, aligning a column of comments; alignment is never made.
 
 - By default `optional`
-- Takes: `forbidden` (more whitespace collapses to a single space); `optional` (any alignment stays)
+- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `optional` (there or not, as the author wrote it)
 - The standards: perCs `optional`, psr12 `optional`, nette `optional`, symfony `optional`
 - Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
 - Modifies comments
@@ -779,10 +779,10 @@ The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `
 
 ### spacing.alignment.assignment
 
-Which whitespace wider than a single space around an operator stays, aligning a column of assignments `=` or of array items `=>`; alignment is never made.
+The whitespace wider than a single space around an operator, aligning a column of assignments `=` or of array items `=>`; alignment is never made.
 
 - By default `spaces`
-- Takes: `forbidden` (more whitespace collapses to a single space); `spaces` (spaces aligning a column stay); `tabs` (tabs aligning a column stay); `optional` (any alignment stays)
+- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `spaces` (spaces aligning a column staying, tabs not); `tabs` (tabs aligning a column staying, spaces not); `optional` (there or not, as the author wrote it)
 - The standards: perCs `spaces`, psr12 `spaces`, nette `spaces`, symfony `forbidden`
 - Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
 - Covers: `binary_operator_spaces`, `PSR12.Operators.OperatorSpacing`, `Squiz.WhiteSpace.LogicalOperatorSpacing`, `Squiz.WhiteSpace.OperatorSpacing`
@@ -869,10 +869,10 @@ The whitespace around `?` and `:` of a ternary, and around `?:` as a whole, unle
 
 ### spacing.alignment.ternary
 
-Whether more spaces around `?` and `:` stay.
+The whitespace wider than a single space around `?` and `:`, aligning a column; alignment is never made.
 
 - By default `optional`
-- Takes: `forbidden` (more whitespace collapses to a single space); `optional` (any alignment stays)
+- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `optional` (there or not, as the author wrote it)
 - The standards: perCs `optional`, psr12 `optional`, nette `forbidden`, symfony `optional`
 - Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
 - Covers: `ternary_operator_spaces`, `PSR12.Operators.OperatorSpacing`
@@ -968,10 +968,10 @@ The whitespace around a comma, which stays on the line of what is before it, a l
 
 ### spacing.alignment.comma
 
-Which whitespace wider than a single space after a comma stays, aligning the columns of a table; alignment is never made.
+The whitespace wider than a single space after a comma, aligning the columns of a table; alignment is never made.
 
 - By default `tabs`
-- Takes: `forbidden` (more whitespace collapses to a single space); `spaces` (spaces aligning a column stay); `tabs` (tabs aligning a column stay); `optional` (any alignment stays)
+- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `spaces` (spaces aligning a column staying, tabs not); `tabs` (tabs aligning a column staying, spaces not); `optional` (there or not, as the author wrote it)
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `tabs`, symfony `optional`
 - Rule `DressCode\Rules\Whitespace\CommaSpacingRule`, stage Formatting
 - Covers: `no_whitespace_before_comma_in_array`, `whitespace_after_comma_in_array`, `Generic.Functions.FunctionCallArgumentSpacing`, `Squiz.Functions.FunctionDeclarationArgumentSpacing`
@@ -1141,7 +1141,7 @@ From how many items without keys `list()` written in `fill` fills its lines.
 The trailing comma of a multi-line array, a destructuring written with `[...]` included; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`, `trailing_comma_in_multiline`, `SlevomatCodingStandard.Arrays.TrailingArrayComma`
@@ -1151,7 +1151,7 @@ The trailing comma of a multi-line array, a destructuring written with `[...]` i
 The trailing comma of the multi-line arguments of a call and the variables of `isset()` and `unset()`; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`, `SlevomatCodingStandard.Functions.RequireTrailingCommaInCall`
@@ -1161,7 +1161,7 @@ The trailing comma of the multi-line arguments of a call and the variables of `i
 The trailing comma of a multi-line list of parameters; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `function_declaration`, `SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration`
@@ -1171,7 +1171,7 @@ The trailing comma of a multi-line list of parameters; any value but `keep` also
 The trailing comma of the arms of a multi-line `match`; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 
@@ -1180,7 +1180,7 @@ The trailing comma of the arms of a multi-line `match`; any value but `keep` als
 The trailing comma of a multi-line `use` of a closure; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 
@@ -1189,7 +1189,7 @@ The trailing comma of a multi-line `use` of a closure; any value but `keep` also
 The trailing comma of the names of a multi-line group use; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `optional`, psr12 `keep`, nette `required`, symfony `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`
@@ -1199,7 +1199,7 @@ The trailing comma of the names of a multi-line group use; any value but `keep` 
 The trailing comma of a multi-line `list()`; any value but `keep` also removes the one a list written on one line has.
 
 - By default `keep`
-- Takes: `required` (there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
+- Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `optional`, psr12 `keep`, nette `keep`, symfony `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`
@@ -1710,7 +1710,7 @@ The body of a control structure written without braces, `if ($a) foo();`.
 
 ### braces.bareStatementGroup
 
-No `{ … }` around statements that nothing opens.
+`{ … }` around statements that nothing opens.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
@@ -2211,7 +2211,7 @@ How many members of a class stand on one line.
 The `static` keyword of a method that does not use `$this`, of the visibilities `classes.staticMethodVisibility` names.
 
 - By default `keep`
-- Takes: `required` (declared `static`); `keep`
+- Takes: `required` (always there, `static function`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\StaticForMethodWithoutThisRule`, stage Structure
 - Covers: `static_private_method`
@@ -2301,7 +2301,7 @@ The order of the modifiers of a property, a method and a constant.
 The empty parentheses of `new` with a class, `new static` and `new $class` alike, which `new Foo()->bar()` keeps whatever this says, PHP 8.4 needing them there.
 
 - By default `keep`
-- Takes: `required` (`new Foo()`); `forbidden` (`new Foo`); `keep`
+- Takes: `required` (always there, `new Foo()`); `forbidden` (never there, `new Foo`); `keep`
 - The standards: perCs `required`, psr12 `required`, nette `forbidden`, symfony `required`
 - Rule `DressCode\Rules\Expressions\EmptyArgumentParenthesesRule`, stage Structure
 - Covers: `new_with_braces`, `new_with_parentheses`, `PSR12.Classes.ClassInstantiation`, `SlevomatCodingStandard.ControlStructures.NewWithoutParentheses`
@@ -2311,7 +2311,7 @@ The empty parentheses of `new` with a class, `new static` and `new $class` alike
 The empty parentheses of an anonymous class.
 
 - By default `keep`
-- Takes: `required` (`new class()`); `forbidden` (`new class`); `keep`
+- Takes: `required` (always there, `new class()`); `forbidden` (never there, `new class`); `keep`
 - The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Expressions\EmptyArgumentParenthesesRule`, stage Structure
 - Covers: `new_with_braces`, `new_with_parentheses`
@@ -2321,7 +2321,7 @@ The empty parentheses of an anonymous class.
 The empty parentheses of an attribute.
 
 - By default `keep`
-- Takes: `required` (`#[Foo()]`); `forbidden` (`#[Foo]`); `keep`
+- Takes: `required` (always there, `#[Foo()]`); `forbidden` (never there, `#[Foo]`); `keep`
 - The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Expressions\EmptyArgumentParenthesesRule`, stage Structure
 - Covers: `attribute_empty_parentheses`
@@ -2476,7 +2476,7 @@ A named function declared inside a function, a method, a closure or a property h
 The `static` keyword of a closure or an arrow function that does not use `$this`.
 
 - By default `keep`
-- Takes: `required` (declared `static`); `keep`
+- Takes: `required` (always there, `static function`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\StaticForClosureWithoutThisRule`, stage Structure
 - Covers: `static_lambda`, `SlevomatCodingStandard.Functions.StaticClosure`
@@ -2884,10 +2884,10 @@ A loose comparison, `==`, `!=` or `<>`, is written `===` or `!==`.
 
 ### expressions.comparison.yoda
 
-Which side of a comparison holds the constant, a comparison of two variables or calls staying as it is.
+A Yoda comparison, the constant on its left side, a comparison of two variables or calls staying as it is.
 
 - By default `keep`
-- Takes: `forbidden` (the variable on the left and the constant on the right, `$a === 1`); `required` (the constant on the left, `1 === $a`, so that an accidental assignment does not compile); `keep`
+- Takes: `forbidden` (never there, the variable on the left and the constant on the right, `$a === 1`); `required` (always there, the constant on the left, `1 === $a`, so that an accidental assignment does not compile); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\YodaRule`, stage Structure
 - Covers: `SlevomatCodingStandard.ControlStructures.DisallowYodaComparison`
@@ -3800,7 +3800,7 @@ The names of the parameters holding a secret, whatever their letter case, which 
 
 ### upgrading.php.backticks
 
-`shell_exec()` for the backtick operator.
+The backtick operator PHP 8.5 deprecated, written as a `shell_exec()` call.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`

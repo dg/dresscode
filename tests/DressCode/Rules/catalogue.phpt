@@ -8,7 +8,7 @@
 
 use DressCode\Config\{Catalogue, CorePlugin, DecisionResolver, Layer, LayerKind, PluginRegistry, RuleBuilder};
 use DressCode\{Decision, DecisionKind, Domain, GapRule, LineSplits, Space, Style};
-use DressCode\Domains\{Count, Shapes, Words};
+use DressCode\Domains\{Count, Flag, Shapes, Words};
 use DressCode\Engine\{Gaps, RulePlan};
 use Nette\Neon\Neon;
 use PhpSyntax\{Node, Parser, Token, Traverser, Trivia};
@@ -49,6 +49,35 @@ test('an alignment is said in the words of every alignment', function () use ($c
 	}
 
 	Assert::true($checked > 0, 'no decision of `spacing.alignment` was found');
+});
+
+
+test('a word several decisions share comes from the lexicon, in its meaning', function () use ($catalogue) {
+	// the words the audits of the areas have yet to bring in line
+	$exceptions = [
+		'correctness.__debugInfo array: shared by several decisions and no word of the lexicon',
+		'file.lineLengthExcept array: shared by several decisions and no word of the lexicon',
+	];
+	$problems = Catalogue::findLexiconProblems(array_values($catalogue->getDecisions()));
+	Assert::same([], array_values(array_diff($problems, $exceptions)));
+	Assert::same([], array_values(array_diff($exceptions, $problems)), 'an exception no longer needed');
+});
+
+
+test('a description begins with Whether only for a flag, the one decision answering yes or no', function () use ($catalogue) {
+	// the decisions the audits of the areas turn into a flag or take away
+	$exceptions = ['upgrading.libraries.packages', 'phpdoc.namesUseImports'];
+	foreach ($catalogue->getDecisions() as $path => $decision) {
+		if (in_array($path, $exceptions, true)) {
+			continue;
+		}
+
+		Assert::same(
+			$decision->domain instanceof Flag,
+			str_starts_with($decision->description, 'Whether '),
+			"$path: a description begins with `Whether` exactly where the decision is a flag",
+		);
+	}
 });
 
 

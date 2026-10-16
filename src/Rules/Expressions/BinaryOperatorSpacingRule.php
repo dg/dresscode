@@ -79,7 +79,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 			new Decision(
 				self::Alignment,
 				Domain::alignment(),
-				'Which whitespace wider than a single space around an operator stays, aligning a column of assignments `=` or of array items `=>`; alignment is never made',
+				'The whitespace wider than a single space around an operator, aligning a column of assignments `=` or of array items `=>`; alignment is never made',
 				kind: DecisionKind::Parameter,
 				default: 'spaces',
 			),

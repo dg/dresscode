@@ -46,7 +46,7 @@ final class CommentSpacingRule extends NodeRule
 			new Decision(
 				self::Alignment,
 				Domain::alignment('forbidden', 'optional'),
-				'Whether a comment following code may be aligned by more spaces',
+				'The whitespace wider than a single space before a comment following code, aligning a column of comments; alignment is never made',
 				kind: DecisionKind::Parameter,
 				default: 'optional',
 			),

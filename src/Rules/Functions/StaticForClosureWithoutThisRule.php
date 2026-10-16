@@ -32,7 +32,7 @@ final class StaticForClosureWithoutThisRule extends NodeRule
 	{
 		return [new Decision(
 			'functions.staticClosure',
-			new Words(['required' => 'declared `static`']),
+			new Words(['required' => 'always there, `static function`']),
 			'The `static` keyword of a closure or an arrow function that does not use `$this`',
 		)];
 	}

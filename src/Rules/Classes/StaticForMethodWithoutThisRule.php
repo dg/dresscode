@@ -54,7 +54,7 @@ final class StaticForMethodWithoutThisRule extends NodeRule
 		return [
 			new Decision(
 				'classes.staticMethod',
-				new Words(['required' => 'declared `static`']),
+				new Words(['required' => 'always there, `static function`']),
 				'The `static` keyword of a method that does not use `$this`, of the visibilities `classes.staticMethodVisibility` names',
 			),
 			new Decision(self::Visibilities, new Names([

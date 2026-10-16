@@ -254,6 +254,7 @@ final class Catalogue
 	public const Version = 4
 	public const CoreSections = ['file', 'indentation', 'naming', 'casing', 'qualification', 'imports', 'spacing', 'multiline', 'braces', 'blankLines', 'classes', 'types', 'functions', 'cleanup', 'controlFlow', 'expressions', 'literals', 'comments', 'phpdoc', 'correctness', 'upgrading']
 	public const QuestionGroups = ['controlFlow.switch', 'expressions.ternary', 'expressions.assignment']
+	public const Lexicon = ['required' => 'always there', 'forbidden' => 'never there', 'optional' => null, 'none' => null, 'sameLine' => null, 'nextLine' => null, 'above' => null, 'lineStart' => null, 'lineEnd' => null, 'perLine' => null, 'fill' => null, 'apart' => null, 'attached' => null, 'closingApart' => null, 'collapsed' => null, 'expanded' => null, 'first' => null, 'last' => null, 'lastStatementSetApart' => null, 'spaces' => null, 'tabs' => null, 'bare' => null, 'imported' => null, 'backslashed' => null, 'self' => null, 'declared' => null, 'lowercase' => null, 'uppercase' => null, 'canonical' => null, 'byName' => null, 'separated' => null, 'combined' => null, 'grouped' => null, 'joined' => null, 'asAncestor' => null, 'PascalCase' => null, 'camelCase' => null, 'snake_case' => null, 'UPPER_CASE' => null, 'constant' => null, 'property' => null, 'traitUse' => null]
 	public const PlaceKinds = ['lists' => ['array', 'list', 'argument', 'parameter', 'closureUse', 'import', 'attribute', 'matchArm', 'matchCondition', 'for', 'implements'], 'operators' => ['condition', 'logical', 'concatenation', 'arithmetic', 'bitwise', 'coalesce', 'comparison', 'pipe', 'ternary', 'chain']]
 	public const ReservedKeys = ['use', 'typeAnalysis', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths', 'fileExtensions', 'skipWhen', 'baseline', 'cacheDir', 'rules', 'analyses', 'fixRisky', 'severity', 'suppressionComments', 'overrides']
 	public const ProjectSection = 'project'
@@ -266,6 +267,7 @@ final class Catalogue
 	public function getDecisionsUnder(string $prefix): array<string, DressCode\Decision>
 	public function getDecisionsOf(class-string<DressCode\Rule> $rule): array<string, DressCode\Decision>
 	public static function collectDecisions(class-string<DressCode\Rule> $rule): list<DressCode\Decision>
+	public static function findLexiconProblems(list<DressCode\Decision> $decisions): list<string>
 	public function getRuleOrder(): list<class-string<DressCode\Rule>>
 	public function toArray(): array{version: int, decisions: array<string, array<string, mixed>>}
 ```
