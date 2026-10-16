@@ -143,7 +143,7 @@ classes:
 		publicWithSet: required               # `public private(set)`
 	members:
 		# the methods then in the order written
-		order: [traitUse, enumCase, constant, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]
+		order: [traitUse, enumCase, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]
 		grouping:
 			constant: keep                    # `const A = 1, B = 2;` may stay
 	emptyParentheses:

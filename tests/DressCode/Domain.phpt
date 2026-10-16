@@ -221,6 +221,17 @@ test('names are free, patterns are regular expressions, allowed ones are words',
 		'Key `x.y` does not take `chain`; write `imports`, `call` or a regular expression.',
 	);
 	Assert::same('a list of `imports`; `call`; regular expressions', $mixed->describe());
+
+	// a word the others listed leave nothing to name is refused beside them
+	$order = new Names(['constant' => '', 'publicConstant' => '', 'privateConstant' => ''], ordered: true, coveredBy: [
+		'constant' => ['publicConstant', 'privateConstant'],
+	]);
+	Assert::same(['constant', 'publicConstant'], $order->accept(['constant', 'publicConstant'], 'x.y')->getNames());
+	Assert::exception(
+		fn() => $order->accept(['publicConstant', 'constant', 'privateConstant'], 'x.y'),
+		ConfigurationException::class,
+		'Key `x.y` does not take %a%, `constant` naming nothing beside `publicConstant`, `privateConstant`; write the list without `constant`.',
+	);
 });
 
 

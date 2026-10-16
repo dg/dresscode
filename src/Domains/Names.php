@@ -28,6 +28,8 @@ final readonly class Names extends Domain
 		public bool $ordered = false,
 		/** whether the list may be empty, which a set a requirement acts on may not */
 		public bool $empty = true,
+		/** @var array<string, list<string>>  word => the words that between them leave it nothing, which a list never names together */
+		public array $coveredBy = [],
 	) {
 		if ($words === []) {
 			throw new \InvalidArgumentException('The words must be some.');
@@ -99,6 +101,18 @@ final readonly class Names extends Domain
 					$path,
 					[...array_map(fn($word) => "`$word`", array_keys($this->words ?? [])), 'a regular expression'],
 					false,
+				);
+			}
+		}
+
+		foreach ($this->coveredBy as $word => $parts) {
+			if (in_array($word, $raw, true) && !array_diff($parts, $raw)) {
+				self::refuse(
+					$raw,
+					$path,
+					["the list without `$word`"],
+					false,
+					"`$word` naming nothing beside `" . implode('`, `', $parts) . '`',
 				);
 			}
 		}

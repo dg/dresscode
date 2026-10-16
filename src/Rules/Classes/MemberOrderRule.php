@@ -34,7 +34,7 @@ final class MemberOrderRule extends NodeRule
 
 	/** @var list<string> */
 	private array $order = [
-		'traitUse', 'enumCase', 'constant', 'publicConstant', 'protectedConstant', 'privateConstant',
+		'traitUse', 'enumCase', 'publicConstant', 'protectedConstant', 'privateConstant',
 		'publicProperty', 'protectedProperty', 'privateProperty',
 	];
 
@@ -56,7 +56,11 @@ final class MemberOrderRule extends NodeRule
 		return [
 			new Decision(
 				self::Path,
-				new Names($kinds, ordered: true),
+				new Names($kinds, ordered: true, coveredBy: [
+					'constant' => ['publicConstant', 'protectedConstant', 'privateConstant'],
+					'property' => ['publicProperty', 'protectedProperty', 'privateProperty'],
+					'method' => ['publicMethod', 'protectedMethod', 'privateMethod'],
+				]),
 				'The order of the members of a class by kind, a member taking the most particular kind listed and the kinds not listed following in the order written',
 			),
 		];

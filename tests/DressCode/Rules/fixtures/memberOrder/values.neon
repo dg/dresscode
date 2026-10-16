@@ -1,3 +1,3 @@
 classes:
 	members:
-		order: [traitUse, enumCase, constant, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]
+		order: [traitUse, enumCase, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]

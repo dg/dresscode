@@ -536,7 +536,7 @@ final class PhpCsFixer
 					'method_private_static' => 'privateStaticMethod', 'construct' => 'constructor', 'destruct' => 'destructor',
 					'magic' => 'magicMethod', 'case' => 'enumCase',
 				];
-				$order = null;
+				$order = [];
 				if (isset($o['order'])) {
 					$order = array_values(array_filter(array_map(fn($kind) => $kinds[$kind] ?? null, $o['order'])));
 					$unknown = array_diff($o['order'], array_keys($kinds));
@@ -545,9 +545,17 @@ final class PhpCsFixer
 					}
 				}
 
+				// a kind its three visibilities leave nothing to name is no kind of the order
+				foreach (['constant' => 'Constant', 'property' => 'Property', 'method' => 'Method'] as $kind => $word) {
+					if (!array_diff(["public$word", "protected$word", "private$word"], $order)) {
+						$order = array_values(array_diff($order, [$kind]));
+					}
+				}
+
 				$t->setOrder('classes.members.order', $order ?: [
-					'traitUse', 'enumCase', 'constant', 'publicConstant', 'protectedConstant', 'privateConstant',
-					'publicProperty', 'protectedProperty', 'privateProperty',
+					'traitUse', 'enumCase', 'publicConstant', 'protectedConstant', 'privateConstant',
+					'publicProperty', 'protectedProperty', 'privateProperty', 'constructor', 'destructor', 'magicMethod',
+					'publicMethod', 'protectedMethod', 'privateMethod',
 				]);
 			},
 			'ordered_types' => fn(array $o, Translation $t) => $t->setAll([
