@@ -128,8 +128,6 @@ blankLines:
 	betweenMemberKinds: 0-1                   # members without a doc comment
 	betweenMembers: 0-1
 	beforeDocumentedMember: 1
-	afterPhpdoc: 0
-	afterAttributes: 0
 	bodyStart:
 		blocks: 0
 	bodyEnd:

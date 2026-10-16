@@ -76,6 +76,7 @@ Assert::same(
 		'attributeSpacing',
 		'statementBlankLines',
 		'memberBlankLines',
+		'blockBlankLines',
 		'bracesPosition',
 		'commaSpacing',
 		'constructSpacing',

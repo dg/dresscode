@@ -121,9 +121,14 @@ blankLines:
 	bodyStart:
 		class: 0
 		anonymousClass: 0
+		controlStructure: 0                   # §5: the body on the next line after `{`
 	bodyEnd:
 		class: 0
 		anonymousClass: 0
+		function: 0                           # §4.4, §7: `}` on the next line following the body
+		closure: 0
+		controlStructure: 0                   # §5
+		branch: 0
 	betweenTraitUses: 0
 	afterTraitUses: 1
 

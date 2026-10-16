@@ -1956,7 +1956,7 @@ Between a doc comment or an attribute and the declaration it belongs to.
 
 - By default `keep`
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0`, symfony `0`
+- The standards: perCs `0`, psr12 `keep`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Covers: `no_blank_lines_after_phpdoc`
@@ -2066,7 +2066,7 @@ Between the last group of attributes and the declaration, the member, the parame
 
 - By default `keep`
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0`, symfony `0`
+- The standards: perCs `0`, psr12 `keep`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing`
 
@@ -2216,7 +2216,7 @@ Before the closing brace of the body of a function or a method.
 
 - By default `keep`
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0-1`, symfony `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0-1`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 - Covers: `PSR2.Methods.FunctionClosingBrace`
 
@@ -2236,7 +2236,7 @@ Before the closing brace of the body of a closure.
 
 - By default `keep`
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0-1`, symfony `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0-1`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 - Covers: `PSR2.Methods.FunctionClosingBrace`
 
@@ -2264,7 +2264,7 @@ After the opening brace of the body of `if`, `else`, a loop, `switch`, `match`, 
 
 - By default `keep`
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0`, symfony `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 - Covers: `Squiz.WhiteSpace.ControlStructureSpacing`
 
@@ -2274,7 +2274,7 @@ Before the closing brace of the body of `if`, `else`, a loop, `switch`, `match`,
 
 - By default `keep`
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0-1`, symfony `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0-1`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 - Covers: `Squiz.WhiteSpace.ControlStructureSpacing`
 
@@ -2284,7 +2284,7 @@ Before the closing brace of a branch of `if` or `try` that `else`, `elseif`, `ca
 
 - By default `keep`
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `lastStatementSetApart` (one where the last statement of the branch stands apart, which would otherwise read as belonging to the next one, the others kept); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `lastStatementSetApart`, symfony `keep`
+- The standards: perCs `0`, psr12 `0`, nette `lastStatementSetApart`, symfony `0`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 
 ### blankLines.bodyEnd.switchCase

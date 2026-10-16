@@ -92,8 +92,6 @@ blankLines:
 	aroundInterfaceMethods: 1
 	betweenTraitUses: keep
 	afterTraitUses: keep
-	afterPhpdoc: 0
-	afterAttributes: 0
 	beforeStatement: {return: 1+}             # a `return` set apart from the code above it
 
 classes:

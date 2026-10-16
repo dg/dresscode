@@ -51,6 +51,10 @@ braces:
 		propertyHook: collapsed
 		anonymousClass: collapsed
 
+blankLines:
+	afterPhpdoc: 0                           # §12.2: no blank line between the docblock,
+	afterAttributes: 0                       # the attributes and the structure
+
 classes:
 	visibility:
 		publicWithSet: keep                  # `public` may be omitted with a set visibility
