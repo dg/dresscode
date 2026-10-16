@@ -1,2 +1,3 @@
 2: The `@param` annotation names `$b`, which is not a parameter.
 2: The `@param` annotation names `$c`, which is not a parameter.
+9: The `@phpstan-param` annotation names `$b`, which is not a parameter.

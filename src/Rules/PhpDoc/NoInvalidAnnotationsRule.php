@@ -88,7 +88,7 @@ final class NoInvalidAnnotationsRule extends NodeRule
 			) {
 				$context->report(
 					$node,
-					"The `@param` annotation names `{$value->parameterName}`, which is not a parameter.",
+					"The `$name` annotation names `{$value->parameterName}`, which is not a parameter.",
 					decision: self::MissingParameter,
 					trivia: $docComment,
 					fixable: false,

@@ -5,3 +5,8 @@
  * @param $c
  */
 function a($a) {}
+
+/**
+ * @phpstan-param int $b
+ */
+function b($a) {}
