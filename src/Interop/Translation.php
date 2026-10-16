@@ -385,6 +385,8 @@ final class Translation
 				$decisions[$path] = self::writeRanges($value);
 			} elseif ($domain instanceof Shapes && is_string($value) && isset($domain->shapes[$value])) {
 				$decisions[$path] = $domain->getExample($value);
+			} elseif ($domain instanceof Shapes && is_array($value) && array_all($value, fn($word) => isset($domain->shapes[$word]))) {
+				$decisions[$path] = array_map($domain->getExample(...), $value);
 			}
 		}
 

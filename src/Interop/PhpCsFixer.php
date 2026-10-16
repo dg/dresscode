@@ -692,11 +692,9 @@ final class PhpCsFixer
 				$t->setAll(array_fill_keys(array_values(array_intersect_key($places, array_flip($elements))), 'required'));
 			},
 			'trim_array_spaces' => Translation::NoSpaceInArrays,
-			'unary_operator_spaces' => fn(array $o, Translation $t) => $t->setAll(
-				['spacing.unaryOperator' => 'compact'] + (($o['only_dec_inc'] ?? false)
-					? ['spacing.unaryOperatorsWithSpace' => ['!', '-', '+', '~', '@']]
-					: []),
-			),
+			'unary_operator_spaces' => fn(array $o, Translation $t) => ($o['only_dec_inc'] ?? false)
+				? $t->warn('`unary_operator_spaces` with `only_dec_inc=true` has no equivalent; DressCode decides the space after `-`, `+`, `~` and `@` with the one after `++` and `--`, so it leaves them all alone.')
+				: $t->setAll(['spacing.unaryOperator' => 'compact', 'spacing.logicalNot' => 'compact']),
 			'visibility_required' => [
 				'classes.visibility.constant' => 'required',
 				'classes.visibility.property' => 'required',

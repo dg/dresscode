@@ -104,7 +104,7 @@ test('a map whose every entry a layer withdrew turns nothing on, its tombstones 
 test('a map without a grammar is read normalized by the domain of its values', function () {
 	$decision = new Decision('spacing.calls', new Map(new Shapes(['compact' => ['foo()', ''], 'spaced' => ['foo ()', '']])), 'A map');
 	$values = new Values(['spacing.calls' => $decision], ['spacing.calls' => $decision->accept(['a' => 'foo()', 'b' => 'foo ()'])]);
-	Assert::same(['a' => 'compact', 'b' => 'spaced'], $values->readMap('spacing.calls'));
+	Assert::same(['a' => ['compact'], 'b' => ['spaced']], $values->readMap('spacing.calls'));
 });
 
 

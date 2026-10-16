@@ -23,7 +23,7 @@ final readonly class Value
 	public function __construct(
 		public Domain $domain,
 		/**
-		 * normalized: a list of words, the first being the one written (Words), a shape (Shapes), a range
+		 * normalized: a list of words or of shapes, the first being the one written (Words, Shapes), a range
 		 * `[min, max]` or a word (Count), a bool (Flag), a list of names (Names) or the entries by their names (Map),
 		 * each entry a Value; null for `keep`
 		 */
@@ -78,7 +78,8 @@ final readonly class Value
 			? array_map(fn(self $entry) => $entry->toWrittenData(), $this->content)
 			: $this->toData();
 		return match (true) {
-			$this->domain instanceof Shapes && !$this->keep => $this->domain->getExample($this->content),
+			$this->domain instanceof Shapes && !$this->keep && count($this->content) === 1 => $this->domain->getExample($this->content[0]),
+			$this->domain instanceof Shapes && !$this->keep => array_map($this->domain->getExample(...), $this->content),
 			$this->domain instanceof Words && is_array($data) && array_is_list($data) && count($data) === 1 => $data[0],
 			$this->domain instanceof Count && is_array($data) && $data[0] === $data[1] => $data[0],
 			$this->domain instanceof Count && is_array($data) => $data[0] . ($data[1] === null ? '+' : "-$data[1]"),
@@ -93,9 +94,12 @@ final readonly class Value
 	 */
 	public function toWrittenText(): string
 	{
-		return $this->domain instanceof Shapes && !$this->keep
-			? Shapes::quote($this->domain->getExample($this->content))
-			: self::formatData($this->toWrittenData());
+		$data = $this->toWrittenData();
+		return match (true) {
+			!$this->domain instanceof Shapes || $this->keep => self::formatData($data),
+			is_array($data) => '[' . implode(', ', array_map(Shapes::quote(...), $data)) . ']',
+			default => Shapes::quote($data),
+		};
 	}
 
 
@@ -149,7 +153,18 @@ final readonly class Value
 	}
 
 
+	/** The shape: the one given, or the first of a tolerance. */
 	public function getShape(): string
+	{
+		return $this->getShapes()[0];
+	}
+
+
+	/**
+	 * The shapes of a tolerance, the first being the one written where none matches.
+	 * @return list<string>
+	 */
+	public function getShapes(): array
 	{
 		$this->checkNotKept();
 		$this->checkDomain(Shapes::class);

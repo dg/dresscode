@@ -59,8 +59,8 @@ spacing:
 	cast: '(int) $x'
 	reference: '&$x'
 	spread: '...$x'
-	unaryOperator: '-$x'                      # `!$a`, `++$i` too
-	unaryOperatorsWithSpace: [!]              # `! $x` may stay
+	unaryOperator: '-$x'                      # `++$i` too
+	logicalNot: ['!$x', '! $x']               # `! $x` may stay
 	binaryOperator: '$a + $b'                 # `=`, `=>`, `instanceof` too
 	concatenation: '$a . $b'
 	ternary: '$a ? $b : $c'                   # `$a ?: $b` too

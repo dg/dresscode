@@ -7,72 +7,73 @@
 
 namespace DressCode\Rules\Expressions;
 
-use DressCode\{Claim, Decision, DecisionKind, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
-use DressCode\Domains\{Names, Shapes};
+use DressCode\{Claim, Decision, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
+use DressCode\Domains\Shapes;
 use PhpSyntax\Nodes\Expression\{PostfixOpNode, PrefixOpNode, UnaryOpNode, VariableNode};
 use function count;
 
 
 /**
- * No whitespace between a unary operator and its operand, which stay on one line: `!$a`, `-$b`, `$i++`, nor
- * inside a variable variable, `$$a` and `${'a'}`. An operator `spacing.unaryOperatorsWithSpace` names keeps the
- * whitespace written beside it.
+ * No whitespace between a unary operator and its operand, which stay on one line: `-$b`, `$i++`, nor inside a
+ * variable variable, `$$a` and `${'a'}`. After `!` the whitespace is what `spacing.logicalNot` says, where a tolerance
+ * passes each of its shapes as written.
  */
 #[RuleInfo(Stage::Formatting)]
 final class UnaryOperatorSpacingRule extends GapRule
 {
-	private const WithSpace = 'spacing.unaryOperatorsWithSpace';
+	private const Unary = 'spacing.unaryOperator';
+	private const LogicalNot = 'spacing.logicalNot';
 
-	/** @var list<string> */
-	private array $withSpace = [];
+	private bool $unary = true;
+
+	/** @var list<string>  the shapes after `!` that pass, the first written; none where it is kept */
+	private array $logicalNot = [];
 
 
 	public static function getDecisions(): array
 	{
 		return [
 			new Decision(
-				'spacing.unaryOperator',
+				self::Unary,
 				new Shapes(['compact' => ['-$x', 'no space after the operator']]),
-				'The whitespace between a unary operator and its operand, which stay on one line, and inside a variable variable, `$$a` and `${\'a\'}`',
+				'The whitespace between a unary operator other than `!` and its operand, which stay on one line, and inside a variable variable, `$$a` and `${\'a\'}`',
 			),
-			new Decision(self::WithSpace, new Names([
-				'++' => 'increment',
-				'--' => 'decrement',
-				'!' => 'negation',
-				'-' => 'minus',
-				'+' => 'plus',
-				'~' => 'bitwise negation',
-				'@' => 'error suppression',
-			]), 'The operators whose operand may stand apart from them, as written, `! $x`', kind: DecisionKind::Parameter, default: []),
+			new Decision(self::LogicalNot, new Shapes([
+				'compact' => ['!$x', 'no space after the operator'],
+				'spaced' => ['! $x', 'a single space after the operator'],
+			], tolerance: true), 'The whitespace between `!` and its operand, which stay on one line'),
 		];
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->withSpace = $values->get(self::WithSpace)->getNames();
+		$this->unary = !$values->isKept(self::Unary);
+		$this->logicalNot = $values->isKept(self::LogicalNot) ? [] : $values->get(self::LogicalNot)->getShapes();
 	}
 
 
 	public function getClaims(): array
 	{
-		$hug = new Claim(Space::None, line: Line::Same);
-		$claims = [
-			VariableNode::class => [
+		$claims = [];
+		$hug = null;
+		if ($this->unary) {
+			$hug = new Claim(Space::None, line: Line::Same, decision: self::Unary);
+			$claims[VariableNode::class] = [
 				'dollar' => [null, $hug],
 				'openBrace' => [null, $hug],
 				'closeBrace' => [$hug, null],
-			],
-		];
-		$increment = $this->claimFor(['++', '--'], $hug);
-		if ($increment !== null) {
-			$claims[PrefixOpNode::class] = ['operator' => [null, $increment]];
-			$claims[PostfixOpNode::class] = ['operator' => [$increment, null]];
+			];
+			$claims[PrefixOpNode::class] = ['operator' => [null, $hug]];
+			$claims[PostfixOpNode::class] = ['operator' => [$hug, null]];
 		}
 
-		$unary = $this->claimFor(['!', '-', '+', '~', '@'], $hug);
-		if ($unary !== null) {
-			$claims[UnaryOpNode::class] = ['operator' => [null, $unary]];
+		$not = $this->claimLogicalNot();
+		if ($hug !== null || $not !== null) {
+			$claims[UnaryOpNode::class] = ['operator' => [
+				null,
+				fn(Gap $gap) => $gap->token->text === '!' ? ($not instanceof \Closure ? $not($gap) : $not) : $hug,
+			]];
 		}
 
 		return $claims;
@@ -80,18 +81,26 @@ final class UnaryOperatorSpacingRule extends GapRule
 
 
 	/**
-	 * The claim on the operators of one kind of node: the plain one where the project allows none of them, null where
-	 * it allows them all.
-	 * @param  list<string>  $operators
-	 * @return Claim|\Closure(Gap): ?Claim|null
+	 * The claim after `!`: the one of its shape, or of a tolerance the shape written where it passes and the first
+	 * where none does; null where it is kept.
+	 * @return Claim|\Closure(Gap): Claim|null
 	 */
-	private function claimFor(array $operators, Claim $hug): Claim|\Closure|null
+	private function claimLogicalNot(): Claim|\Closure|null
 	{
-		$allowed = array_values(array_intersect($operators, $this->withSpace));
-		return match (count($allowed)) {
-			0 => $hug,
-			count($operators) => null,
-			default => fn(Gap $gap) => in_array($gap->token->text, $allowed, true) ? null : $hug,
+		$claims = [];
+		foreach ($this->logicalNot as $shape) {
+			$claims[$shape] = new Claim($shape === 'compact' ? Space::None : Space::Single, line: Line::Same, decision: self::LogicalNot);
+		}
+
+		if ($claims === []) {
+			return null;
+		}
+
+		$first = reset($claims);
+		return count($claims) === 1 ? $first : fn(Gap $gap) => match ($gap->token->getTrailingSpace()) {
+			'' => $claims['compact'] ?? $first,
+			' ' => $claims['spaced'] ?? $first,
+			default => $first,
 		};
 	}
 }

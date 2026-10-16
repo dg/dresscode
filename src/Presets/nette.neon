@@ -62,7 +62,7 @@ spacing:
 		ternary: forbidden                    # no extra spaces around `?` and `:`
 	semicolon:
 		after: 'for ($i = 0; $i < 5; $i++)'
-	unaryOperatorsWithSpace: []               # `!$x`, never `! $x`
+	logicalNot: '!$x'                         # never `! $x`
 	doubleColon: 'Foo::bar()'
 	objectOperator: '$a->b()'
 	padding:

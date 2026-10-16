@@ -44,7 +44,7 @@ spacing:
 		binaryOperator: forbidden             # no extra spaces around an operator
 	semicolon:
 		after: 'for ($i = 0; $i < 5; $i++)'
-	unaryOperatorsWithSpace: []               # `!$x`, never `! $x`
+	logicalNot: '!$x'                         # never `! $x`
 	concatenation: '$a.$b'
 	objectOperator: '$a->b()'
 	padding:

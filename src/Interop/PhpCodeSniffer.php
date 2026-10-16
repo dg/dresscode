@@ -107,10 +107,7 @@ final class PhpCodeSniffer
 			'Generic.WhiteSpace.DisallowSpaceIndent' => ['indentation.unit' => 'tab'],
 			// spaces of a width the sniff does not say, four unless a sniff naming the width decides it, in either order
 			'Generic.WhiteSpace.DisallowTabIndent' => fn(array $o, Translation $t) => $t->prefer('indentation.unit', '4 spaces'),
-			'Generic.WhiteSpace.IncrementDecrementSpacing' => [
-				'spacing.unaryOperator' => 'compact',
-				'spacing.unaryOperatorsWithSpace' => [],
-			],
+			'Generic.WhiteSpace.IncrementDecrementSpacing' => ['spacing.unaryOperator' => 'compact'],
 			'Generic.WhiteSpace.LanguageConstructSpacing' => ['spacing.keyword' => 'spaced'],
 			'Generic.WhiteSpace.ScopeIndent' => function (array $o, Translation $t) {
 				$unit = ($o['tabIndent'] ?? false) ? 'tab' : match ($o['indent'] ?? 4) {
@@ -535,10 +532,10 @@ final class PhpCodeSniffer
 				'literals.digitSeparatorMinDigits.integer' => $o['minDigitsBeforeDecimalPoint'] ?? 4,
 				'literals.digitSeparatorMinDigits.fraction' => $o['minDigitsAfterDecimalPoint'] ?? 4,
 			]),
-			'SlevomatCodingStandard.Operators.NegationOperatorSpacing' => [
-				'spacing.unaryOperator' => 'compact',
-				'spacing.unaryOperatorsWithSpace' => [],
-			],
+			'SlevomatCodingStandard.Operators.NegationOperatorSpacing' => fn(array $o, Translation $t) => $t->set(
+				'spacing.logicalNot',
+				($o['spacesCount'] ?? 0) === 0 ? 'compact' : 'spaced',
+			),
 			'SlevomatCodingStandard.Operators.ReferenceSpacing' => ['spacing.reference' => 'compact'],
 			'SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator' => ['expressions.assignment.targetInValue' => 'forbidden'],
 			'SlevomatCodingStandard.Operators.SpreadOperatorSpacing' => ['spacing.spread' => 'compact'],
@@ -703,7 +700,7 @@ final class PhpCodeSniffer
 			],
 			'Squiz.WhiteSpace.ObjectOperatorSpacing' => ['spacing.objectOperator' => 'compact'],
 			'Squiz.WhiteSpace.OperatorSpacing' => ['spacing.binaryOperator' => 'spaced', 'spacing.alignment.binaryOperator' => 'spaces'],
-			'Squiz.WhiteSpace.OperatorSpacing.Unary' => ['spacing.unaryOperator' => 'compact', 'spacing.unaryOperatorsWithSpace' => []],
+			'Squiz.WhiteSpace.OperatorSpacing.Unary' => ['spacing.unaryOperator' => 'compact', 'spacing.logicalNot' => 'compact'],
 			'Squiz.WhiteSpace.ScopeClosingBrace' => fn(array $o, Translation $t) => $t->warn('`Squiz.WhiteSpace.ScopeClosingBrace` puts a closing brace on a line of its own at the indentation of the line opening it, which DressCode does wherever `braces` places the opening brace and `indentation.unit` indents.'),
 			'Squiz.WhiteSpace.ScopeKeywordSpacing' => ['spacing.doubleColon' => 'compact'],
 			'Squiz.WhiteSpace.SemicolonSpacing' => ['spacing.semicolon.before' => 'compact', 'multiline.semicolon' => 'sameLine'],
