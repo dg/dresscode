@@ -2370,7 +2370,7 @@ The `public` of a property with a set visibility, `public protected(set) int $x`
 
 ### classes.members.grouping.constant
 
-A declaration of several constants, `const A = 1, B = 2;`, a `const` outside a class included.
+A declaration of several constants of a class, `const A = 1, B = 2;`.
 
 - By default `keep`
 - Takes: `separated` (one member per declaration, each sharing the modifiers and the type of the original); `keep`

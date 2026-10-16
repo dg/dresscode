@@ -8,5 +8,4 @@ class A
 	private const Z = 4; // c
 	const OK = 1;
 }
-const P = 1;
-const Q = 2;
+const P = 1, Q = 2;

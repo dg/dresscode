@@ -13,7 +13,6 @@ use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Member\{ClassConstNode, PropertyNode, TraitUseNode};
 use PhpSyntax\Nodes\PlainNodeList;
-use PhpSyntax\Nodes\Statement\ConstNode;
 use function count;
 
 
@@ -21,14 +20,14 @@ use function count;
  * One member per declaration: `const A = 1, B = 2;`, `public $a, $b;` and `use T1, T2;` become one
  * declaration per constant, property or trait, each sharing the modifiers and the type of the original.
  * A trait use with adaptations in braces stays as it is, and so does a declaration with a comment between its
- * members, which would have nowhere to go; a `const` outside a class counts as a constant.
+ * members, which would have nowhere to go; a `const` outside a class is no member and stays as well.
  */
 #[RuleInfo(Stage::Structure)]
 final class NoGroupedDeclarationsRule extends NodeRule
 {
 	/** the member => what its place of `classes.members.grouping` covers */
 	private const Places = [
-		'constant' => 'A declaration of several constants, `const A = 1, B = 2;`, a `const` outside a class included',
+		'constant' => 'A declaration of several constants of a class, `const A = 1, B = 2;`',
 		'property' => 'A declaration of several properties, `public $a, $b;`',
 		'traitUse' => 'A `use` of several traits without adaptations, `use A, B;`',
 	];
@@ -58,18 +57,13 @@ final class NoGroupedDeclarationsRule extends NodeRule
 
 	public function getVisitedNodes(): array
 	{
-		return [ClassConstNode::class, ConstNode::class, PropertyNode::class, TraitUseNode::class];
+		return [ClassConstNode::class, PropertyNode::class, TraitUseNode::class];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (
-			!$node instanceof ClassConstNode
-			&& !$node instanceof ConstNode
-			&& !$node instanceof PropertyNode
-			&& !$node instanceof TraitUseNode
-		) {
+		if (!$node instanceof ClassConstNode && !$node instanceof PropertyNode && !$node instanceof TraitUseNode) {
 			return;
 		}
 
