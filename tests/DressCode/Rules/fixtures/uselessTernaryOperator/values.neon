@@ -1,3 +1,3 @@
 expressions:
 	ternary:
-		ofTrueAndFalse: forbidden
+		ofTrueFalse: forbidden

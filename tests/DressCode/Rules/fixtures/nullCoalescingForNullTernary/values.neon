@@ -1,3 +1,2 @@
 expressions:
-	ternary:
-		testingNull: forbidden
+	coalesce: required

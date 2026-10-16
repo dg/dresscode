@@ -1,2 +1,2 @@
 functions:
-	uselessParameterDefault: forbidden
+	unreachableParameterDefault: forbidden

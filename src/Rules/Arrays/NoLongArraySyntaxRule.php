@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Arrays;
 
-use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\Domains\Words;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{ArrayItemNode, DestructuringNode};
 use PhpSyntax\Nodes\Expression\ArrayNode;
@@ -21,19 +22,36 @@ use PhpSyntax\Nodes\Expression\ArrayNode;
 #[RuleInfo(Stage::Structure)]
 final class NoLongArraySyntaxRule extends NodeRule
 {
+	private const Array = 'literals.arraySyntax.array';
+	private const List = 'literals.arraySyntax.list';
+
+	private bool $array = true;
+
+	private bool $list = true;
+
+
 	public static function getDecisions(): array
 	{
-		return [new Decision(
-			'literals.longArraySyntax',
-			Domain::state('forbidden'),
-			'`array(1, 2)` is `[1, 2]`, `list($a) =` is `[$a] =`',
-		)];
+		return [
+			new Decision(self::Array, new Words(['short' => '`[1, 2]`, never `array(1, 2)`']), 'The syntax of an array'),
+			new Decision(self::List, new Words(['short' => '`[$a, $b] =`, never `list($a, $b) =`']), 'The syntax of a destructuring'),
+		];
+	}
+
+
+	public function configure(Values $values): void
+	{
+		$this->array = !$values->isKept(self::Array);
+		$this->list = !$values->isKept(self::List);
 	}
 
 
 	public function getVisitedNodes(): array
 	{
-		return [ArrayNode::class, DestructuringNode::class];
+		return [
+			...($this->array ? [ArrayNode::class] : []),
+			...($this->list ? [DestructuringNode::class] : []),
+		];
 	}
 
 
@@ -43,7 +61,7 @@ final class NoLongArraySyntaxRule extends NodeRule
 			$keyword = $node->arrayKeyword;
 			if ($keyword !== null
 				&& !$keyword->hasCommentUpTo($node->openDelimiter)
-				&& $context->report($keyword, 'The array must be written `[…]` instead of `array(…)`.')
+				&& $context->report($keyword, 'The array must be written `[…]` instead of `array(…)`.', decision: self::Array)
 			) {
 				self::shorten($node, $keyword);
 			}
@@ -51,13 +69,13 @@ final class NoLongArraySyntaxRule extends NodeRule
 		} elseif ($node instanceof DestructuringNode && !$node->parent instanceof ArrayItemNode) {
 			$nest = self::collectNest($node);
 			foreach ($nest as [$list, $keyword]) {
-				if ($keyword->hasCommentUpTo($list->openDelimiter) || $context->isSilenced($keyword)) {
+				if ($keyword->hasCommentUpTo($list->openDelimiter) || $context->isSilenced($keyword, decision: self::List)) {
 					return;
 				}
 			}
 
 			foreach ($nest as [$list, $keyword]) {
-				if ($context->report($keyword, 'The destructuring must be written `[…]` instead of `list(…)`.')) {
+				if ($context->report($keyword, 'The destructuring must be written `[…]` instead of `list(…)`.', decision: self::List)) {
 					self::shorten($list, $keyword);
 				}
 			}

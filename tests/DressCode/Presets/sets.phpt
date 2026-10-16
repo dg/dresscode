@@ -51,7 +51,6 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'mistakes.readonlyProperty', // a guarantee the code takes on, which no older construct gave
 		'functions.staticClosure', // what the code means when it binds a closure, which only the project knows
 		'indentation.singleLevel', // a measure of the shape of a body, not its layout
-		'literals.concatenatedLiterals.overLines', // a literal spread over lines on purpose
 		'multiline.items.coalesce', 'multiline.items.pipe', // operands of `??` and `|>`, which no standard spreads
 		// an expression spanning lines after `=` or `=>`, which no standard keeps on the line of the operator
 		'multiline.expressionStart.assignment', 'multiline.expressionStart.arrayItem', 'multiline.expressionStart.arrowFunction',

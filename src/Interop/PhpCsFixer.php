@@ -54,14 +54,14 @@ final class PhpCsFixer
 				'qualification.leadingBackslash' => 'forbidden',
 			]),
 			'PhpCsFixerCustomFixers/no_superfluous_concatenation' => [
-				'literals.concatenatedLiterals.sameLine' => 'joined',
-				'literals.concatenatedLiterals.overLines' => 'keep',
+				'literals.concatenatedLiterals' => 'forbidden',
+				'literals.emptyStringConcatenation' => 'forbidden',
 			],
 			'PhpCsFixerCustomFixers/no_useless_dirname_call' => ['hygiene.dirnameOfFile' => 'forbidden'],
 			'PhpCsFixerCustomFixers/no_useless_strlen' => ['hygiene.strlenEmptyTest' => 'forbidden'],
 			'PhpCsFixerCustomFixers/numeric_literal_separator' => [
-				'literals.digitSeparator.integer' => 4,
-				'literals.digitSeparator.fraction' => 4,
+				'literals.digitSeparator.integer' => 'required',
+				'literals.digitSeparator.fraction' => 'required',
 			],
 			'PhpCsFixerCustomFixers/phpdoc_array_style' => fn(array $o, Translation $t) => $t->set('phpdoc.types.array', 'generic'),
 			'PhpCsFixerCustomFixers/phpdoc_type_list' => function (array $o, Translation $t) {
@@ -70,9 +70,9 @@ final class PhpCsFixer
 			},
 			'array_indentation' => $indentByConfig,
 			'array_syntax' => fn(array $o, Translation $t) => ($o['syntax'] ?? 'short') === 'short'
-				? $t->set('literals.longArraySyntax', 'forbidden')
+				? $t->set('literals.arraySyntax.array', 'short')
 				: $t->warn('`array_syntax` with `syntax=long` has no equivalent; DressCode writes the short syntax only.'),
-			'assign_null_coalescing_to_coalesce_equal' => ['expressions.assignment.repeatingTarget' => 'forbidden'],
+			'assign_null_coalescing_to_coalesce_equal' => ['expressions.assignment.targetInValue' => 'forbidden'],
 			'attribute_block_no_spaces' => ['spacing.attribute' => 'compact'],
 			'attribute_empty_parentheses' => fn(array $o, Translation $t) => $t->set(
 				'classes.emptyParentheses.attribute',
@@ -201,7 +201,7 @@ final class PhpCsFixer
 			'dir_constant' => ['hygiene.dirnameOfFile' => 'forbidden'],
 			'elseif' => ['controlFlow.elseif' => 'oneWord'],
 			'encoding' => ['file.bom' => 'forbidden'],
-			'escape_implicit_backslashes' => ['literals.backslashes' => 'escaped'],
+			'escape_implicit_backslashes' => ['literals.implicitBackslash' => 'forbidden'],
 			'final_internal_class' => fn(array $o, Translation $t) => $t->setAll(array_filter([
 				'classes.internalClass.final' => 'required',
 				'classes.internalClass.markers' => $o['annotation_include'] ?? null,
@@ -272,7 +272,7 @@ final class PhpCsFixer
 				default => $t->warn('`line_ending` writes the `lineEnding` ' . var_export($t->lineEnding, return: true) . ' of the configuration, which has no equivalent; DressCode ends a line with LF or CRLF.'),
 			},
 			'list_syntax' => fn(array $o, Translation $t) => ($o['syntax'] ?? 'short') === 'short'
-				? $t->set('literals.longArraySyntax', 'forbidden')
+				? $t->set('literals.arraySyntax.list', 'short')
 				: $t->warn('`list_syntax` with `syntax=long` has no equivalent; DressCode writes the short syntax only.'),
 			'lowercase_cast' => ['expressions.cast' => 'canonical'],
 			'lowercase_keywords' => ['casing.keyword' => 'lowercase'],
@@ -489,7 +489,7 @@ final class PhpCsFixer
 				}
 				$t->set('braces.bareStatementGroup', 'forbidden');
 			},
-			'no_unreachable_default_argument_value' => ['functions.uselessParameterDefault' => 'forbidden'],
+			'no_unreachable_default_argument_value' => ['functions.unreachableParameterDefault' => 'forbidden'],
 			'no_unused_imports' => ['imports.unused' => 'forbidden', 'phpdoc.namesUseImports' => true],
 			'no_superfluous_elseif' => fn(array $o, Translation $t) => $t->set('controlFlow.elseifAfterReturn', 'forbidden'),
 			'no_useless_else' => ['controlFlow.elseAfterReturn' => 'forbidden'],
@@ -507,7 +507,7 @@ final class PhpCsFixer
 				if (($o['strategy'] ?? 'use_separator') === 'no_separator') {
 					$t->warn('`numeric_literal_separator` with `strategy=no_separator` has no equivalent; DressCode adds the separator.');
 				} else {
-					$t->setAll(['literals.digitSeparator.integer' => 4, 'literals.digitSeparator.fraction' => 4]);
+					$t->setAll(['literals.digitSeparator.integer' => 'required', 'literals.digitSeparator.fraction' => 'required']);
 				}
 			},
 			'nullable_type_declaration_for_default_null_value' => fn(array $o, Translation $t) => ($o['use_nullable_type_declaration'] ?? true)
@@ -664,7 +664,7 @@ final class PhpCsFixer
 				if (in_array('unescape', $modes, true)) {
 					$t->warn('`string_implicit_backslashes` unescapes some strings; DressCode always escapes the backslash.');
 				}
-				$t->set('literals.backslashes', 'escaped');
+				$t->set('literals.implicitBackslash', 'forbidden');
 			},
 			'string_length_to_empty' => ['hygiene.strlenEmptyTest' => 'forbidden'],
 			'switch_case_semicolon_to_colon' => ['controlFlow.switch.caseTerminator' => 'colon'],
@@ -674,8 +674,8 @@ final class PhpCsFixer
 				'spacing.ternary' => 'spaced',
 				'spacing.alignment.ternary' => 'optional',
 			],
-			'ternary_to_elvis_operator' => ['expressions.ternary.returningItsCondition' => 'forbidden'],
-			'ternary_to_null_coalescing' => ['expressions.ternary.testingNull' => 'forbidden'],
+			'ternary_to_elvis_operator' => ['expressions.ternary.short' => 'required'],
+			'ternary_to_null_coalescing' => ['expressions.coalesce' => 'required'],
 			'trailing_comma_in_multiline' => function (array $o, Translation $t) {
 				$elements = $o['elements'] ?? ['arrays'];
 				if (in_array('array_destructuring', $elements, true)) {

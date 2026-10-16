@@ -26,7 +26,7 @@ final class UselessParameterDefaultRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'functions.uselessParameterDefault',
+			'functions.unreachableParameterDefault',
 			Domain::state('forbidden'),
 			'A default a required parameter after it makes unreachable',
 		)];

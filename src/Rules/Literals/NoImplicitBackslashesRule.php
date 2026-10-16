@@ -7,8 +7,7 @@
 
 namespace DressCode\Rules\Literals;
 
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
-use DressCode\Domains\Words;
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\ShellExecNode;
 use PhpSyntax\Nodes\Scalar\{HeredocNode, InterpolatedStringPartNode, StringNode};
@@ -25,9 +24,9 @@ final class NoImplicitBackslashesRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'literals.backslashes',
-			new Words(['escaped' => 'every backslash written `\\\\`']),
-			'A backslash of a string that escapes nothing',
+			'literals.implicitBackslash',
+			Domain::state('forbidden'),
+			'A backslash of a string that escapes nothing, written `\\\\` instead',
 		)];
 	}
 

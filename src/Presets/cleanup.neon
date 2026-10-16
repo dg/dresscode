@@ -26,7 +26,7 @@ classes:
 
 functions:
 	trailingBareReturn: forbidden            # no `return;` closing a function
-	uselessParameterDefault: forbidden       # a default before a required parameter
+	unreachableParameterDefault: forbidden   # a default before a required parameter
 
 hygiene:
 	aliasFunctions: [core, imap, pg]         # `count()`, not `sizeof()`
@@ -45,12 +45,12 @@ controlFlow:
 expressions:
 	parenthesesAfterConstruct: forbidden     # `return $x;`, not `return ($x);`
 	ternary:
-		ofTrueAndFalse: forbidden            # `$a > 1`, not `$a > 1 ? true : false`
+		ofTrueFalse: forbidden               # `$a > 1`, not `$a > 1 ? true : false`
 
 literals:
 	classNameInString: forbidden             # `Order::class`, not `'Acme\Shop\Order'`
-	concatenatedLiterals:
-		sameLine: joined                     # `'ab'`, not `'a' . 'b'`
+	concatenatedLiterals: forbidden          # `'ab'`, not `'a' . 'b'`
+	emptyStringConcatenation: forbidden      # no `. ''`
 
 comments:
 	empty: forbidden

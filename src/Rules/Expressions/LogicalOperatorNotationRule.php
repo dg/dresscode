@@ -22,7 +22,7 @@ final class LogicalOperatorNotationRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'expressions.wordLogicalOperators',
+			'expressions.wordLogicalOperator',
 			Domain::state('forbidden'),
 			'`and`, `or` bind weaker than `=` and are written `&&`, `||`',
 		)];

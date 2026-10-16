@@ -66,7 +66,7 @@ types:
 
 literals:
 	heredocWithoutInterpolation: forbidden   # a nowdoc `<<<'EOT'` instead
-	longArraySyntax: forbidden               # `[1, 2]`, not `array(1, 2)`
+	arraySyntax: short                       # `[1, 2]`, `[$a] =`
 
 phpdoc:
 	aboveAttributes: required

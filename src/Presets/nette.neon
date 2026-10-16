@@ -155,9 +155,10 @@ types:
 		return: keep
 
 functions:
-	innerFunctions: forbidden
-	closureReturningOneExpression: forbidden  # `fn() =>` instead
-	closureReturningOneExpressionNested: yes  # also one holding another closure
+	innerFunction: forbidden
+	arrowFunction:
+		oneExpression: required               # `fn() =>` for a closure only returning
+	arrowFunctionNested: yes                  # also one holding another closure
 
 hygiene:
 	is_null: forbidden                        # `$x === null`
@@ -183,19 +184,22 @@ expressions:
 		yoda: forbidden                       # `$a === 1`
 	assignment:
 		addingOne: forbidden                  # `$i++`, not `$i += 1`
-		repeatingTarget: forbidden            # `$a += $b`, not `$a = $a + $b`
+		targetInValue: forbidden              # `$a += $b`, not `$a = $a + $b`
 	ternary:
-		returningItsCondition: forbidden      # `$a ?: $b`
-		testingNull: forbidden                # `$a ?? $b`
-	wordLogicalOperators: forbidden
+		short: required                       # `$a ?: $b`
+	coalesce: required                        # `$a ?? $b`
+	wordLogicalOperator: forbidden
 	explicitPrecedence: required              # `($a && $b) || $c`
 	doubleNegation: forbidden                 # `(bool) $a`, not `!!$a`
 
 literals:
 	quotes: single
-	backslashes: escaped                      # `"\\d"`, not `"\d"`
+	implicitBackslash: forbidden              # `"\\d"`, not `"\d"`
 	digitSeparator:
-		integer: 7                            # `1_000_000`
+		integer: required                     # `1_000_000`
+		fraction: required
+	digitSeparatorMinDigits:
+		integer: 7
 		fraction: 20
 
 comments:

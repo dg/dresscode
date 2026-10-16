@@ -1,4 +1,4 @@
 literals:
 	digitSeparator:
-		integer: 4
-		fraction: 4
+		integer: required
+		fraction: required

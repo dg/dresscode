@@ -7,8 +7,8 @@
 
 namespace DressCode\Rules\Literals;
 
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Domains\Words;
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\Domains\Flag;
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\Expression\{BinaryOpNode, CastNode};
 use PhpSyntax\Nodes\ExpressionNode;
@@ -17,7 +17,7 @@ use function in_array;
 
 
 /**
- * Two string literals of the same kind concatenated on one line, or with `literals.concatenatedLiterals.overLines`
+ * Two string literals of the same kind concatenated on one line, or with `literals.concatenatedLiteralsOverLines`
  * on any lines, are one literal. Single-quoted ones are joined; double-quoted ones are only reported, because an
  * escape sequence could span the joint. Concatenation with an empty string converts to string and nothing else, so
  * `$x . ''` is `(string) $x`, and inside a longer concatenation the empty literal simply goes away. A comment
@@ -26,25 +26,34 @@ use function in_array;
 #[RuleInfo(Stage::Structure)]
 final class UselessStringConcatenationRule extends NodeRule
 {
-	private const OneLine = 'literals.concatenatedLiterals.sameLine';
-	private const OverLines = 'literals.concatenatedLiterals.overLines';
+	private const Literals = 'literals.concatenatedLiterals';
+	private const OverLines = 'literals.concatenatedLiteralsOverLines';
+	private const EmptyString = 'literals.emptyStringConcatenation';
 
-	private bool $oneLine = true;
+	private bool $literals = true;
 	private bool $overLines = false;
+	private bool $emptyString = true;
 
 
 	public static function getDecisions(): array
 	{
 		return [
 			new Decision(
-				self::OneLine,
-				new Words(['joined' => '`\'a\' . \'b\'` is `\'ab\'`, `. \'\'` goes']),
-				'Two string literals concatenated on one line, which are one literal, and the concatenation with an empty string, which is a cast or nothing',
+				self::Literals,
+				Domain::state('forbidden'),
+				'Two string literals concatenated on one line, which are one literal, `\'ab\'` for `\'a\' . \'b\'`',
 			),
 			new Decision(
 				self::OverLines,
-				new Words(['joined' => '`\'a\'` and `. \'b\'` on the next line are `\'ab\'`']),
-				'Two string literals concatenated on different lines',
+				new Flag,
+				'Whether two string literals concatenated over a line break are one literal too',
+				kind: DecisionKind::Parameter,
+				default: false,
+			),
+			new Decision(
+				self::EmptyString,
+				Domain::state('forbidden'),
+				'The concatenation with an empty string, which is a cast or nothing, `(string) $x` for `$x . \'\'`',
 			),
 		];
 	}
@@ -52,8 +61,9 @@ final class UselessStringConcatenationRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->oneLine = !$values->isKept(self::OneLine);
-		$this->overLines = !$values->isKept(self::OverLines);
+		$this->literals = !$values->isKept(self::Literals);
+		$this->overLines = $values->get(self::OverLines)->getFlag();
+		$this->emptyString = !$values->isKept(self::EmptyString);
 	}
 
 
@@ -72,7 +82,7 @@ final class UselessStringConcatenationRule extends NodeRule
 		$left = $node->left;
 		$right = $node->right;
 		if (self::isEmptyString($left) || self::isEmptyString($right)) {
-			if ($this->oneLine) {
+			if ($this->emptyString) {
 				$this->dropEmpty($node, self::isEmptyString($left) ? $right : $left, $context);
 			}
 
@@ -92,20 +102,20 @@ final class UselessStringConcatenationRule extends NodeRule
 		$r = $right->token->text;
 		$joint = substr($l, -2, 1) . substr($r, 1, 1);
 		$single = $l[0] === "'";
-		$decision = $left->token->getCurrentLine() === $right->token->getCurrentLine() ? self::OneLine : self::OverLines;
 		if (
 			$l[0] !== $r[0]
 			// '?' . '>' is split on purpose, so that no text around the code reads a tag
 			|| $joint === '?>'
 			|| $joint === '<?'
-			|| !($decision === self::OneLine ? $this->oneLine : $this->overLines)
+			|| !$this->literals
+			|| (!$this->overLines && $left->token->getCurrentLine() !== $right->token->getCurrentLine())
 			|| $node->hasInnerComment()
 			|| !$context->report(
 				$node->operator,
 				'Useless concatenation of two string literals'
 				. ($single ? ', because they make one literal' : ', but an escape sequence could span the joint')
 				. '.',
-				decision: $decision,
+				decision: self::Literals,
 				fixable: $single,
 			)
 			|| !$single
@@ -131,7 +141,11 @@ final class UselessStringConcatenationRule extends NodeRule
 	{
 		if (
 			$node->hasInnerComment()
-			|| !$context->report($node->operator, 'Useless concatenation, because one side is an empty string.', decision: self::OneLine)
+			|| !$context->report(
+				$node->operator,
+				'Useless concatenation, because one side is an empty string.',
+				decision: self::EmptyString,
+			)
 		) {
 			return;
 		}

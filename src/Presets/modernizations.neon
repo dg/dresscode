@@ -5,8 +5,9 @@
 # layout, so it goes with any standard.
 
 functions:
-	closureReturningOneExpression: forbidden   # `fn() =>` instead
-	closureReturningOneExpressionNested: yes   # also one holding another closure
+	arrowFunction:
+		oneExpression: required                # `fn() =>` for a closure only returning
+	arrowFunctionNested: yes                   # also one holding another closure
 
 hygiene:
 	classNameNotation:
@@ -19,13 +20,13 @@ controlFlow:
 
 expressions:
 	assignment:
-		repeatingTarget: forbidden             # `$a += $b`, not `$a = $a + $b`
+		targetInValue: forbidden               # `$a += $b`, not `$a = $a + $b`
 	ternary:
-		testingNull: forbidden                 # `$a ?? $b`
-		returningItsCondition: forbidden       # `$a ?: $b`
+		short: required                        # `$a ?: $b`
+	coalesce: required                         # `$a ?? $b`
 
 literals:
-	longArraySyntax: forbidden                 # `[1, 2]`, not `array(1, 2)`
+	arraySyntax: short                         # `[1, 2]`, `[$a] =`
 
 upgrading:
 	libraries:

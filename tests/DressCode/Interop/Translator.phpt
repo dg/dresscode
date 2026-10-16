@@ -142,7 +142,7 @@ test('options are translated, a rule switched off is turned off', function () {
 
 test('a decision that needs the types of the code is left out and said so, a keep of it is not', function () {
 	$translation = (new Translator)->translate(['class_keyword' => true, 'array_syntax' => true]);
-	Assert::same(['literals.longArraySyntax' => 'forbidden'], $translation->decisions);
+	Assert::same(['literals.arraySyntax.array' => 'short'], $translation->decisions);
 	Assert::same(
 		['`literals.classNameInString` needs the types of the code, so it is left out; set it together with `typeAnalysis: phpstan` where the project has PHPStan.'],
 		$translation->warnings,
@@ -704,7 +704,7 @@ test('a sniff of the indentation translates to the unit it names, in either orde
 test('a name of another tool stands for the decisions it sets', function () {
 	$translator = new Translator;
 	Assert::same(['spacing.cast'], $translator->findPaths('cast_spaces'));
-	Assert::same(['literals.longArraySyntax'], $translator->findPaths('array_syntax'));
+	Assert::same(['literals.arraySyntax.array'], $translator->findPaths('array_syntax'));
 	Assert::same([], $translator->findPaths('no_such_fixer'));
 	Assert::contains('Squiz.Scope.MethodScope', $translator->findForeignNames($translator->findPaths('Squiz.Scope.MethodScope')));
 	Assert::contains('cast_spaces', $translator->findForeignNames(['spacing.cast']));

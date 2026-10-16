@@ -1,3 +1,4 @@
 functions:
-	closureReturningOneExpression: forbidden
-	closureReturningOneExpressionNested: yes
+	arrowFunction:
+		oneExpression: required
+	arrowFunctionNested: yes

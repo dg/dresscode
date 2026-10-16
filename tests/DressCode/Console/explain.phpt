@@ -85,7 +85,7 @@ test('a decision in detail is Markdown, and the console draws it', function () u
 test(
 	'a pipe is written as it is, a line opening a list or a heading outside a code span is escaped',
 	function () use ($registry, $resolved) {
-		$markdown = new ExplainPrinter($registry)->printDecision($resolved->decisions['expressions.wordLogicalOperators']);
+		$markdown = new ExplainPrinter($registry)->printDecision($resolved->decisions['expressions.wordLogicalOperator']);
 		Assert::contains('`&&`, `||`', $markdown);
 		Assert::notContains('\|', $markdown);
 		Assert::notContains("\n\n\n", $markdown);

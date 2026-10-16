@@ -1,0 +1,6 @@
+<?php
+// {"concatenatedLiteralsOverLines": true, "emptyStringConcatenation": "keep"}
+$a = 'foo' . 'bar';
+$b = 'foo'
+	. 'bar';
+$c = $x . '';

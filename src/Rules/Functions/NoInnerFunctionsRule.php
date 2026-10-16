@@ -23,7 +23,7 @@ final class NoInnerFunctionsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'functions.innerFunctions',
+			'functions.innerFunction',
 			Domain::state('forbidden'),
 			'A named function declared inside a function, a method, a closure or a property hook',
 		)];

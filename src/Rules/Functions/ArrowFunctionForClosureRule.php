@@ -40,8 +40,8 @@ use function count;
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class, PhpSignatures::class, Types::class])]
 final class ArrowFunctionForClosureRule extends NodeRule
 {
-	private const Plain = 'functions.closureReturningOneExpression';
-	private const Nested = 'functions.closureReturningOneExpressionNested';
+	private const Plain = 'functions.arrowFunction.oneExpression';
+	private const Nested = 'functions.arrowFunctionNested';
 
 	/** the variables every scope has, which an arrow function reads as the closure does */
 	private const Bound = [
@@ -57,13 +57,13 @@ final class ArrowFunctionForClosureRule extends NodeRule
 		return [
 			new Decision(
 				self::Plain,
-				Domain::state(),
-				'A closure whose body is a single `return`, which is an arrow function where that is equivalent: no variable captured by reference, none reached by a name it does not spell out, no comment lost',
+				Domain::state('required'),
+				'An arrow function written for a closure whose body is a single `return`, where that is equivalent: no variable captured by reference, none reached by a name it does not spell out, no comment lost',
 			),
 			new Decision(
 				self::Nested,
 				new Flag,
-				'Whether such a closure holding another closure or arrow function is one too',
+				'Whether a closure holding another closure or arrow function becomes one too',
 				kind: DecisionKind::Parameter,
 				default: false,
 			),

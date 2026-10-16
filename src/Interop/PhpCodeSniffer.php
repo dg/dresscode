@@ -55,7 +55,7 @@ final class PhpCodeSniffer
 		};
 
 		return [
-			'Generic.Arrays.DisallowLongArraySyntax' => ['literals.longArraySyntax' => 'forbidden'],
+			'Generic.Arrays.DisallowLongArraySyntax' => ['literals.arraySyntax.array' => 'short'],
 			'Generic.CodeAnalysis.RequireExplicitBooleanOperatorPrecedence' => ['expressions.explicitPrecedence' => 'required'],
 			'Generic.CodeAnalysis.UnnecessaryFinalModifier' => ['classes.modifiers.implied' => 'forbidden'],
 			'Generic.ControlStructures.InlineControlStructure' => ['braces.bracelessBody' => 'forbidden'],
@@ -100,8 +100,9 @@ final class PhpCodeSniffer
 				['php_sapi_name' => 'use `PHP_SAPI`'],
 			),
 			'Generic.Strings.UnnecessaryStringConcat' => fn(array $o, Translation $t) => $t->setAll([
-				'literals.concatenatedLiterals.sameLine' => 'joined',
-				'literals.concatenatedLiterals.overLines' => ($o['allowMultiline'] ?? false) ? 'keep' : 'joined',
+				'literals.concatenatedLiterals' => 'forbidden',
+				'literals.concatenatedLiteralsOverLines' => !($o['allowMultiline'] ?? false),
+				'literals.emptyStringConcatenation' => 'forbidden',
 			]),
 			'Generic.WhiteSpace.DisallowSpaceIndent' => ['indentation.unit' => 'tab'],
 			// spaces of a width the sniff does not say, four unless a sniff naming the width decides it, in either order
@@ -124,7 +125,7 @@ final class PhpCodeSniffer
 				}
 			},
 			'PEAR.Commenting.InlineComment' => ['comments.singleline' => 'slashes'],
-			'PEAR.Functions.ValidDefaultValue' => ['functions.uselessParameterDefault' => 'forbidden'],
+			'PEAR.Functions.ValidDefaultValue' => ['functions.unreachableParameterDefault' => 'forbidden'],
 			'PEAR.WhiteSpace.ObjectOperatorIndent' => function (array $o, Translation $t) {
 				if ($o['multilevel'] ?? false) {
 					$t->warn('`PEAR.WhiteSpace.ObjectOperatorIndent` with `multilevel=true` has no equivalent; DressCode indents every operator of a chain one level deeper than its start.');
@@ -420,12 +421,12 @@ final class PhpCodeSniffer
 					'multiline.edges.condition' => ($o['alwaysSplitAllConditionParts'] ?? false) ? 'apart' : 'closingApart',
 				]);
 			},
-			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator' => ['expressions.assignment.repeatingTarget' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator' => ['expressions.ternary.testingNull' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator' => ['expressions.ternary.returningItsCondition' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator' => ['expressions.assignment.targetInValue' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator' => ['expressions.coalesce' => 'required'],
+			'SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator' => ['expressions.ternary.short' => 'required'],
 			'SlevomatCodingStandard.ControlStructures.RequireTernaryOperator' => ['controlFlow.ifElseReturning' => 'forbidden'],
 			'SlevomatCodingStandard.ControlStructures.UselessIfConditionWithReturn' => ['controlFlow.ifReturningTrueFalse' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.UselessTernaryOperator' => ['expressions.ternary.ofTrueAndFalse' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.UselessTernaryOperator' => ['expressions.ternary.ofTrueFalse' => 'forbidden'],
 			'SlevomatCodingStandard.Exceptions.DeadCatch' => ['mistakes.unreachableCatch' => 'forbidden'],
 			'SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly' => ['mistakes.exceptionWhereThrowableBelongs' => 'forbidden'],
 			'SlevomatCodingStandard.Exceptions.RequireNonCapturingCatch' => ['hygiene.unreadCatchVariable' => 'forbidden'],
@@ -441,8 +442,8 @@ final class PhpCodeSniffer
 			},
 			'SlevomatCodingStandard.Functions.NamedArgumentSpacing' => ['spacing.namedArgument' => 'spacedAfter'],
 			'SlevomatCodingStandard.Functions.RequireArrowFunction' => fn(array $o, Translation $t) => $t->setAll([
-				'functions.closureReturningOneExpression' => 'forbidden',
-				'functions.closureReturningOneExpressionNested' => $o['allowNested'] ?? true,
+				'functions.arrowFunction.oneExpression' => 'required',
+				'functions.arrowFunctionNested' => $o['allowNested'] ?? true,
 			]),
 			'SlevomatCodingStandard.Functions.RequireTrailingCommaInCall' => fn(array $o, Translation $t) => $t->set(
 				'multiline.trailingComma.argument',
@@ -454,7 +455,7 @@ final class PhpCodeSniffer
 			),
 			'SlevomatCodingStandard.Functions.StaticClosure' => ['functions.staticClosure' => 'required'],
 			'SlevomatCodingStandard.Functions.StrictCall' => ['mistakes.strictArgument' => 'required'],
-			'SlevomatCodingStandard.Functions.UselessParameterDefaultValue' => ['functions.uselessParameterDefault' => 'forbidden'],
+			'SlevomatCodingStandard.Functions.UselessParameterDefaultValue' => ['functions.unreachableParameterDefault' => 'forbidden'],
 			'SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses' => fn(array $o, Translation $t) => $t->setAll([
 				'imports.order.names' => 'alphabetical',
 				'imports.order.kinds' => ($o['psr12Compatible'] ?? true) ? ['class', 'function', 'constant'] : 'keep',
@@ -529,21 +530,23 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.Namespaces.UseFromSameNamespace' => ['imports.fromCurrentNamespace' => 'forbidden'],
 			'SlevomatCodingStandard.Namespaces.UselessAlias' => ['imports.aliasEqualToName' => 'forbidden'],
 			'SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator' => fn(array $o, Translation $t) => $t->setAll([
-				'literals.digitSeparator.integer' => $o['minDigitsBeforeDecimalPoint'] ?? 4,
-				'literals.digitSeparator.fraction' => $o['minDigitsAfterDecimalPoint'] ?? 4,
+				'literals.digitSeparator.integer' => 'required',
+				'literals.digitSeparator.fraction' => 'required',
+				'literals.digitSeparatorMinDigits.integer' => $o['minDigitsBeforeDecimalPoint'] ?? 4,
+				'literals.digitSeparatorMinDigits.fraction' => $o['minDigitsAfterDecimalPoint'] ?? 4,
 			]),
 			'SlevomatCodingStandard.Operators.NegationOperatorSpacing' => [
 				'spacing.unaryOperator' => 'compact',
 				'spacing.unaryOperatorsWithSpace' => [],
 			],
 			'SlevomatCodingStandard.Operators.ReferenceSpacing' => ['spacing.reference' => 'compact'],
-			'SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator' => ['expressions.assignment.repeatingTarget' => 'forbidden'],
+			'SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator' => ['expressions.assignment.targetInValue' => 'forbidden'],
 			'SlevomatCodingStandard.Operators.SpreadOperatorSpacing' => ['spacing.spread' => 'compact'],
 			'SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall' => ['hygiene.__invokeCall' => 'forbidden'],
 			'SlevomatCodingStandard.PHP.OptimizedFunctionsWithoutUnpacking' => fn(array $o, Translation $t) => $t->markCallsOptimized(),
 			'SlevomatCodingStandard.PHP.RequireExplicitAssertion' => ['phpdoc.annotation.inlineVar' => 'forbidden'],
 			'SlevomatCodingStandard.PHP.RequireNowdoc' => ['literals.heredocWithoutInterpolation' => 'forbidden'],
-			'SlevomatCodingStandard.PHP.ShortList' => ['literals.longArraySyntax' => 'forbidden'],
+			'SlevomatCodingStandard.PHP.ShortList' => ['literals.arraySyntax.list' => 'short'],
 			'SlevomatCodingStandard.PHP.TypeCast' => ['expressions.cast' => 'canonical'],
 			'SlevomatCodingStandard.PHP.UselessSemicolon' => ['controlFlow.emptyStatement' => 'forbidden'],
 			'SlevomatCodingStandard.TypeHints.DeclareStrictTypes' => function (array $o, Translation $t) {
@@ -653,13 +656,13 @@ final class PhpCodeSniffer
 				$t->warn('`Squiz.NamingConventions.ValidVariableName` also rules on the underscore prefix of private properties, which DressCode does not.');
 				$t->setAll(['naming.property' => 'camelCase', 'naming.variable' => 'camelCase']);
 			},
-			'Squiz.Operators.ValidLogicalOperators' => ['expressions.wordLogicalOperators' => 'forbidden'],
+			'Squiz.Operators.ValidLogicalOperators' => ['expressions.wordLogicalOperator' => 'forbidden'],
 			'Squiz.PHP.DiscouragedFunctions' => fn(array $o, Translation $t) => $t->set(
 				'upgrading.libraries.forbiddenFunctions',
 				['error_log' => null, 'print_r' => null, 'var_dump' => null],
 			),
 			'Squiz.PHP.GlobalKeyword' => ['mistakes.globalStatement' => 'forbidden'],
-			'Squiz.PHP.InnerFunctions' => ['functions.innerFunctions' => 'forbidden'],
+			'Squiz.PHP.InnerFunctions' => ['functions.innerFunction' => 'forbidden'],
 			'Squiz.PHP.LowercasePHPFunctions' => ['casing.function' => 'declared'],
 			'Squiz.Scope.MethodScope' => ['classes.visibility.constant' => 'required',
 				'classes.visibility.property' => 'required',
