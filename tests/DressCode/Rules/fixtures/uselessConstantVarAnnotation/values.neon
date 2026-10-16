@@ -1,2 +1,3 @@
 phpdoc:
-	constantVar: forbidden
+	annotation:
+		constantVar: forbidden

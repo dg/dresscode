@@ -22,7 +22,7 @@ use function count;
 #[RuleInfo(Stage::Structure)]
 final class TypeNotationRule extends NodeRule
 {
-	private const ByName = 'byName';
+	private const Alphabetical = 'alphabetical';
 	private const Nullable = 'types.nullable';
 	private const NullPosition = 'types.nullPosition';
 	private const UnionOrder = 'types.unionOrder';
@@ -52,7 +52,7 @@ final class TypeNotationRule extends NodeRule
 			new Decision(
 				self::UnionOrder,
 				new Words(
-					[self::ByName => 'the types beside `null` sorted by name, case-insensitively, an intersection by its first name'],
+					[self::Alphabetical => 'the types beside `null` sorted by name, case-insensitively, an intersection by its first name'],
 				),
 				'The order of the types of a native union',
 			),
@@ -111,7 +111,7 @@ final class TypeNotationRule extends NodeRule
 		}
 
 		$changed = false;
-		if ($this->order === self::ByName) {
+		if ($this->order === self::Alphabetical) {
 			$sorted = $others;
 			usort($sorted, fn(string $a, string $b) => strcasecmp(ltrim($a, '('), ltrim($b, '('))); // (A&B) sorts by A
 			if (

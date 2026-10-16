@@ -46,7 +46,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 		private readonly bool $canonical,
 		private readonly bool $shortNullable,
 		private readonly ?string $nullPosition,
-		private readonly bool $byName,
+		private readonly bool $alphabetical,
 		private readonly ?string $arrayNotation,
 	) {
 		$this->keys = new \SplObjectStorage;
@@ -132,7 +132,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 			return new NullableTypeNode($others[0]);
 		}
 
-		if ($this->byName) {
+		if ($this->alphabetical) {
 			$sorted = $others;
 			usort($sorted, fn(TypeNode $a, TypeNode $b) => strcasecmp(ltrim((string) $a, '('), ltrim((string) $b, '('))); // (A&B) sorts by A
 			if ($sorted !== $others) {

@@ -3,6 +3,6 @@
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
 12: The parameter `$c` must have the native type `int` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
-13: The parameter `$d` must have a native type or a `@param` annotation.
+13: The parameter `$d` must have a native type or a `@var` annotation.
 15: The parameter `$e` must have the native type `array` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`

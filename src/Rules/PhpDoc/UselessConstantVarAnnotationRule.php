@@ -25,7 +25,11 @@ final class UselessConstantVarAnnotationRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('phpdoc.constantVar', Domain::state('forbidden'), 'A `@var` on a class constant that says nothing')];
+		return [new Decision(
+			'phpdoc.annotation.constantVar',
+			Domain::state('forbidden'),
+			'A `@var` on a class constant that says nothing',
+		)];
 	}
 
 

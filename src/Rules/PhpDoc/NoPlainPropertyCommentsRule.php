@@ -7,8 +7,7 @@
 
 namespace DressCode\Rules\PhpDoc;
 
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
-use DressCode\Domains\Words;
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Token, Trivia};
 use PhpSyntax\Nodes\Member\PropertyNode;
 
@@ -24,9 +23,9 @@ final class NoPlainPropertyCommentsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'phpdoc.property.comment',
-			new Words(['phpdoc' => 'a doc comment, never a plain comment']),
-			'The comment describing a property, `/** */` and not `//` or `/* */`',
+			'phpdoc.property.plainComment',
+			Domain::state('forbidden'),
+			'A plain comment describing a property, `//` or `/* */` where `/** */` belongs, reported',
 		)];
 	}
 

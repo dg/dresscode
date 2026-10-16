@@ -1,2 +1,3 @@
-types:
-	inlineVarAnnotation: forbidden
+phpdoc:
+	annotation:
+		inlineVar: forbidden

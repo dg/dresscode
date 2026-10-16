@@ -67,13 +67,13 @@ final class NativeTypeRequiredRule extends NodeRule
 			new Decision(
 				'types.declaration.parameter',
 				Domain::state('required'),
-				'A parameter declares its type, taken from `@param`, or the `@var` of a promoted property, where it has one and nullable where it defaults to null, and the annotation goes where it then says nothing more',
+				'A parameter declares its type, taken from `@param` where it has one and nullable where it defaults to null, and the annotation goes where it then says nothing more',
 				['A parameter with neither a type nor an annotation is reported'],
 			),
 			new Decision(
 				'types.declaration.property',
 				Domain::state('required'),
-				'A property declares its type, taken from `@var` where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default',
+				'A property declares its type, a promoted one included, taken from `@var`, or the `@param` of a promoted one, where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default',
 			),
 			new Decision(
 				'types.declaration.return',
@@ -100,7 +100,8 @@ final class NativeTypeRequiredRule extends NodeRule
 	public function getVisitedNodes(): array
 	{
 		return [
-			...($this->parameter || $this->return ? [FunctionNode::class, MethodNode::class, Expression\ClosureNode::class] : []),
+			...($this->parameter || $this->return ? [FunctionNode::class, Expression\ClosureNode::class] : []),
+			...($this->parameter || $this->return || $this->property ? [MethodNode::class] : []),
 			...($this->property ? [PropertyNode::class] : []),
 		];
 	}
@@ -133,7 +134,7 @@ final class NativeTypeRequiredRule extends NodeRule
 
 		// both halves read one tree and hand back the tags to drop, so it is rewritten once
 		$removed = [];
-		if ($this->parameter && !$node instanceof Expression\ClosureNode) {
+		if (($this->parameter || $this->property) && !$node instanceof Expression\ClosureNode) {
 			$removed = $this->declareParameterTypes($node, $tree, $context);
 		}
 
@@ -167,7 +168,7 @@ final class NativeTypeRequiredRule extends NodeRule
 		$removed = [];
 		foreach ($params as $i => $param) {
 			$name = $param->variable->name;
-			if (!$name instanceof Token) {
+			if (!$name instanceof Token || !($param->promoted ? $this->property : $this->parameter)) {
 				continue;
 			}
 
@@ -178,7 +179,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			$fromOwn = !isset($tags[$name->text]) && isset($ownTags['']);
 			$inherited = $overridden->parameters[$i] ?? $variadic;
 			$tag = $this->declareType(
-				'types.declaration.parameter',
+				$param->promoted ? 'types.declaration.property' : 'types.declaration.parameter',
 				"The parameter `$name->text`",
 				$param->variable,
 				$param->type?->text,

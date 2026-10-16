@@ -36,7 +36,7 @@ final class PhpdocTypeNotationRule extends NodeRule
 	private bool $canonical = true;
 	private bool $shortNullable = false;
 	private ?string $nullPosition = null;
-	private bool $byName = false;
+	private bool $alphabetical = false;
 	private ?string $arrayNotation = null;
 
 
@@ -60,7 +60,7 @@ final class PhpdocTypeNotationRule extends NodeRule
 			),
 			new Decision(
 				self::UnionOrder,
-				new Words(['byName' => 'the types beside `null` sorted by name, case-insensitively']),
+				new Words(['alphabetical' => 'the types beside `null` sorted by name, case-insensitively']),
 				'The order of the types of a union type of a doc comment',
 			),
 			new Decision(self::Array, new Shapes([
@@ -76,7 +76,7 @@ final class PhpdocTypeNotationRule extends NodeRule
 		$this->canonical = !$values->isKept(self::BuiltinNames);
 		$this->shortNullable = !$values->isKept(self::Nullable);
 		$this->nullPosition = $values->find(self::NullPosition)?->getWord();
-		$this->byName = !$values->isKept(self::UnionOrder);
+		$this->alphabetical = !$values->isKept(self::UnionOrder);
 		$this->arrayNotation = $values->find(self::Array)?->getShape();
 	}
 
@@ -110,7 +110,7 @@ final class PhpdocTypeNotationRule extends NodeRule
 				$this->canonical,
 				$this->shortNullable,
 				$this->nullPosition,
-				$this->byName,
+				$this->alphabetical,
 				$this->arrayNotation,
 			);
 			new NodeTraverser([$visitor])->traverse([$tree]);

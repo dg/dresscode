@@ -35,7 +35,7 @@ final class AssertForInlineVarRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'types.inlineVarAnnotation',
+			'phpdoc.annotation.inlineVar',
 			Domain::state('forbidden'),
 			'An inline `@var` says what `assert($x instanceof Foo)` checks',
 		)];

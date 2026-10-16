@@ -51,7 +51,7 @@ final class Catalogue
 		'perLine' => null, 'fill' => null, 'apart' => null, 'attached' => null, 'closingApart' => null,
 		'collapsed' => null, 'expanded' => null, 'first' => null, 'last' => null, 'lastStatementSetApart' => null,
 		'spaces' => null, 'tabs' => null, 'bare' => null, 'imported' => null, 'backslashed' => null, 'self' => null,
-		'declared' => null, 'lowercase' => null, 'uppercase' => null, 'canonical' => null, 'byName' => null,
+		'declared' => null, 'lowercase' => null, 'uppercase' => null, 'canonical' => null, 'alphabetical' => null,
 		'separated' => null, 'combined' => null, 'grouped' => null, 'joined' => null, 'asAncestor' => null,
 		'PascalCase' => null, 'camelCase' => null, 'snake_case' => null, 'UPPER_CASE' => null,
 		'constant' => null, 'property' => null, 'traitUse' => null,

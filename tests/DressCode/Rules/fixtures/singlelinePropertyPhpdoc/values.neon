@@ -1,3 +1,3 @@
 phpdoc:
 	property:
-		shape: singleline
+		lineSpan: collapsed

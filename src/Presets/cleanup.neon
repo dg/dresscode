@@ -57,9 +57,10 @@ comments:
 
 phpdoc:
 	empty: forbidden
-	constantVar: forbidden                   # a bare `@var int` on a class constant
 	repeatingNativeTypes: forbidden          # one only repeating the signature
 	inheritdocOnly: forbidden                # one holding only `{@inheritDoc}`
+	annotation:
+		constantVar: forbidden               # a bare `@var int` on a class constant
 
 correctness:
 	debugOutput: forbidden                   # `// var_dump($a);`, risky

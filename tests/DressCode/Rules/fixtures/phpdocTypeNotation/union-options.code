@@ -1,5 +1,5 @@
 <?php
-// {"types.nullable": "?T", "types.nullPosition": "last", "types.unionOrder": "byName", "types.array": "keep"}
+// {"types.nullable": "?T", "types.nullPosition": "last", "types.unionOrder": "alphabetical", "types.array": "keep"}
 /**
  * @param null|int $a
  * @param string|Foo|null|array $b

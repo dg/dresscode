@@ -149,7 +149,6 @@ classes:
 		instantiation: forbidden              # `new Foo`, but `new Foo()->bar()`
 
 types:
-	inlineVarAnnotation: forbidden            # becomes `assert()`, risky
 	declaration:                              # a type only where it says something
 		parameter: keep
 		property: keep
@@ -202,12 +201,13 @@ comments:
 
 phpdoc:
 	annotation:
-		casing: canonicalCase                 # `@inheritDoc`, not `@inheritdoc`
+		casing: canonical                     # `@inheritDoc`, not `@inheritdoc`
+		inlineVar: forbidden                  # becomes `assert()`, risky
 	stars: aligned                            # below the first `*` of `/**`
 	blankLines: trimmed
 	property:
-		comment: phpdoc                       # not `//` or `/* */`
-		shape: singleline                     # `/** @var int */`
+		plainComment: forbidden               # not `//` or `/* */`
+		lineSpan: collapsed                   # `/** @var int */`
 		promoted: '@var'                      # not `@param` of the constructor
 	forbiddenAnnotations: [@access, @author, @copyright, @created, @license, @package, @since, @subpackage, @todo, @version]
 	# `Constructor.`, `Name getter.`

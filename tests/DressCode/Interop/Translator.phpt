@@ -428,7 +428,7 @@ test('the order of the types of a doc comment translates to the options typeNota
 		(new Translator)->translate(['phpdoc_types_order' => ['null_adjustment' => 'always_last', 'sort_algorithm' => 'none']])->decisions,
 	);
 	Assert::equal(
-		['types.unionOrder' => 'byName', 'types.nullPosition' => 'keep'],
+		['types.unionOrder' => 'alphabetical', 'types.nullPosition' => 'keep'],
 		(new Translator)->translate(['ordered_types' => ['null_adjustment' => 'none']])->decisions,
 	);
 });

@@ -25,7 +25,7 @@ use function in_array;
 #[RuleInfo(Stage::Structure, analyses: [PhpDoc::class])]
 final class NoInvalidAnnotationsRule extends NodeRule
 {
-	private const MissingParameter = 'phpdoc.annotation.paramOfMissingParameter';
+	private const ExtraParam = 'phpdoc.annotation.extraParam';
 	private const DuplicateReturn = 'phpdoc.annotation.duplicateReturn';
 	private const DuplicateVar = 'phpdoc.annotation.duplicateVar';
 	private const Empty = 'phpdoc.annotation.empty';
@@ -34,7 +34,7 @@ final class NoInvalidAnnotationsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision(self::MissingParameter, Domain::state('forbidden'), 'A `@param` naming a parameter the function does not have'),
+			new Decision(self::ExtraParam, Domain::state('forbidden'), 'A `@param` naming a parameter the function does not have'),
 			new Decision(self::DuplicateReturn, Domain::state('forbidden'), 'A second `@return` of a function'),
 			new Decision(self::DuplicateVar, Domain::state('forbidden'), 'A second `@var` of a property'),
 			new Decision(self::Empty, Domain::state('forbidden'), 'A `@param`, `@return`, `@var` or `@see` without content'),
@@ -89,7 +89,7 @@ final class NoInvalidAnnotationsRule extends NodeRule
 				$context->report(
 					$node,
 					"The `$name` annotation names `{$value->parameterName}`, which is not a parameter.",
-					decision: self::MissingParameter,
+					decision: self::ExtraParam,
 					trivia: $docComment,
 					fixable: false,
 				);

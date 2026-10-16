@@ -5,7 +5,7 @@
 
 phpdoc:
 	annotation:
-		paramOfMissingParameter: forbidden      # a `@param` of no parameter
+		extraParam: forbidden                   # a `@param` of no parameter
 		duplicateReturn: forbidden
 		empty: forbidden                        # `@param`, `@return`, `@var`, `@see` without content
 		duplicateVar: forbidden

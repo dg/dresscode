@@ -551,7 +551,7 @@ final class PhpCsFixer
 				]);
 			},
 			'ordered_types' => fn(array $o, Translation $t) => $t->setAll([
-				'types.unionOrder' => ($o['sort_algorithm'] ?? 'alpha') === 'alpha' ? 'byName' : 'keep',
+				'types.unionOrder' => ($o['sort_algorithm'] ?? 'alpha') === 'alpha' ? 'alphabetical' : 'keep',
 				'types.nullPosition' => match ($o['null_adjustment'] ?? 'always_first') {
 					'always_last' => 'last',
 					'none' => 'keep',
@@ -588,7 +588,7 @@ final class PhpCsFixer
 					$t->warn('`phpdoc_types_order` with `case_sensitive=true` has no equivalent; DressCode sorts case-insensitively.');
 				}
 				$t->setAll([
-					'phpdoc.types.unionOrder' => ($o['sort_algorithm'] ?? 'alpha') === 'alpha' ? 'byName' : 'keep',
+					'phpdoc.types.unionOrder' => ($o['sort_algorithm'] ?? 'alpha') === 'alpha' ? 'alphabetical' : 'keep',
 					'phpdoc.types.nullPosition' => match ($o['null_adjustment'] ?? 'always_first') {
 						'always_last' => 'last',
 						'none' => 'keep',
