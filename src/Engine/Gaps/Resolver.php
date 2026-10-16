@@ -473,7 +473,7 @@ final class Resolver
 	/**
 	 * The blank lines of a break, above the comment in the gap or below it: what both claims allow, or the
 	 * narrower of two that exclude each other, the one before the second token on a tie; handed over with the
-	 * claim the count found violates.
+	 * claim whose bound the count found is moved to, which the report names.
 	 * @param ?DecidedClaim<int|array{int, ?int}> $after
 	 * @param ?DecidedClaim<int|array{int, ?int}> $before
 	 */
@@ -483,45 +483,39 @@ final class Resolver
 			return;
 		}
 
-		$range = $after === null
-			? Claim::toRange($before->wanted)
-			: ($before === null
-				? Claim::toRange($after->wanted)
-				: self::intersect(Claim::toRange($after->wanted), Claim::toRange($before->wanted)));
 		$run = $blankBelowComment ? self::findBelowCommentRun($token) : self::findBlankRun($token, self::closes($token));
 		if ($run === null) {
 			return;
 		}
 
 		[$from, $found] = $run;
-		$claim = $before !== null && ($after === null || !self::within($found, $before->wanted)) ? $before : $after;
+		[$range, $claim] = match (true) {
+			$after === null => [Claim::toRange($before->wanted), $before],
+			$before === null => [Claim::toRange($after->wanted), $after],
+			default => self::intersect($after, $before, $found),
+		};
 		$this->sink->acceptBlankLines($claim, $token, $range, $from, $found, $run[2] ?? null);
 	}
 
 
-	/** @param int|array{int, ?int} $count */
-	private static function within(int $found, int|array $count): bool
-	{
-		[$min, $max] = Claim::toRange($count);
-		return $found >= $min && ($max === null || $found <= $max);
-	}
-
-
 	/**
-	 * @param array{int, ?int} $after
-	 * @param array{int, ?int} $before
-	 * @return array{int, ?int}
+	 * @param DecidedClaim<int|array{int, ?int}> $after
+	 * @param DecidedClaim<int|array{int, ?int}> $before
+	 * @return array{array{int, ?int}, DecidedClaim<int|array{int, ?int}>}
 	 */
-	private static function intersect(array $after, array $before): array
+	private static function intersect(DecidedClaim $after, DecidedClaim $before, int $found): array
 	{
-		$min = max($after[0], $before[0]);
-		$max = $after[1] === null ? $before[1] : ($before[1] === null ? $after[1] : min($after[1], $before[1]));
+		$a = Claim::toRange($after->wanted);
+		$b = Claim::toRange($before->wanted);
+		$min = max($a[0], $b[0]);
+		$max = $a[1] === null ? $b[1] : ($b[1] === null ? $a[1] : min($a[1], $b[1]));
 		if ($max !== null && $min > $max) { // they exclude each other: the narrower wins, the one before on a tie
 			$width = fn(array $range) => $range[1] === null ? PHP_INT_MAX : $range[1] - $range[0];
-			return $width($after) < $width($before) ? $after : $before;
+			return $width($a) < $width($b) ? [$a, $after] : [$b, $before];
 		}
 
-		return [$min, $max];
+		$bound = $found < $min ? 0 : 1; // the bound the count is moved to, and the side that set it
+		return [[$min, $max], $a[$bound] !== $b[$bound] && $a[$bound] === ($bound ? $max : $min) ? $after : $before];
 	}
 
 

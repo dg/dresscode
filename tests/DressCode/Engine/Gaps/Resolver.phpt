@@ -286,6 +286,28 @@ test('two sides that exclude each other: the narrower wins, the one before the t
 	[$output, $violations] = apply([$rule], "<?php\nif (\$a) {\n}\nreturn;\n");
 	Assert::same("<?php\nif (\$a) {\n}\n\n\nreturn;\n", $output);
 	Assert::same(['4: Expected 2 blank lines before the return, 0 found. [project.claiming]'], $violations);
+
+	$rule = claiming(['*' => ['statements:item' => [
+		fn(Gap $gap) => $gap->token->is('return') ? Claim::blankLines([2, null]) : null,
+		fn(Gap $gap) => $gap->token->is('}') ? Claim::blankLines(0) : null,
+	]]]);
+	[$output, $violations] = apply([$rule], "<?php\nif (\$a) {\n}\n\nreturn;\n");
+	Assert::same("<?php\nif (\$a) {\n}\nreturn;\n", $output);
+	Assert::same(['4: Expected no blank line after the if, 1 found. [project.claiming]'], $violations);
+});
+
+
+test('the count is reported under the side whose bound it is moved to', function () {
+	$rule = claiming(['*' => ['statements:item' => [
+		fn(Gap $gap) => $gap->token->is('return') ? Claim::blankLines([1, 3]) : null,
+		fn(Gap $gap) => $gap->token->is('}') ? Claim::blankLines([2, 5]) : null,
+	]]]);
+	[$output, $violations] = apply([$rule], "<?php\nif (\$a) {\n}\nreturn;\nif (\$b) {\n}\n\n\n\n\n\nreturn;\n");
+	Assert::same("<?php\nif (\$a) {\n}\n\n\nreturn;\nif (\$b) {\n}\n\n\n\nreturn;\n", $output);
+	Assert::same([
+		'4: Expected 2 to 5 blank lines after the if, 0 found. [project.claiming]',
+		'7: Expected 1 to 3 blank lines before the return, 5 found. [project.claiming]',
+	], $violations);
 });
 
 
