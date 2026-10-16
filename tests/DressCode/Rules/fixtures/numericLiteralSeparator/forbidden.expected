@@ -1,0 +1,8 @@
+<?php
+// {"digitSeparator": "forbidden"}
+$a = 1000000;
+$b = 1234.5678;
+$c = 0xFFFF;
+$d = 0b10101010;
+$e = 1000;
+$f = 10e10;

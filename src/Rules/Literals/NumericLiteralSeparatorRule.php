@@ -18,7 +18,8 @@ use function strlen;
  * Long decimal numbers get the underscore separator every three digits from the configured length on
  * (`1_000_000`, `1.234_567`). A number in another base is left alone: the digits of an address, a mask or
  * a code point are grouped by what they mean, not by threes. A number written with a separator already stays
- * as it is. A number both of whose parts change is reported once, under `digitSeparator.integer`.
+ * as it is. With `forbidden` the separators go, for the integer from a number in any base and from an exponent too.
+ * A number both of whose parts change is reported once, under `digitSeparator.integer`.
  */
 #[RuleInfo(Stage::Structure)]
 final class NumericLiteralSeparatorRule extends NodeRule
@@ -26,9 +27,13 @@ final class NumericLiteralSeparatorRule extends NodeRule
 	private const Integer = 'literals.digitSeparator.integer';
 	private const Fraction = 'literals.digitSeparator.fraction';
 
-	/** the digits from which a part is grouped, null where it is kept */
-	private ?int $minIntegerDigits = 4;
-	private ?int $minFractionDigits = 4;
+	/** what each part is written with, `required` or `forbidden`, null where it is kept */
+	private ?string $integer = null;
+	private ?string $fraction = null;
+
+	/** the digits from which a part is grouped */
+	private int $minIntegerDigits = 4;
+	private int $minFractionDigits = 4;
 
 
 	public static function getDecisions(): array
@@ -36,12 +41,12 @@ final class NumericLiteralSeparatorRule extends NodeRule
 		return [
 			new Decision(
 				self::Integer,
-				Domain::state('required'),
+				Domain::state('required', 'forbidden'),
 				'The separator grouping by three the digits of a decimal integer, or of the integer part of a decimal number, `1_000`; a number grouped already stays',
 			),
 			new Decision(
 				self::Fraction,
-				Domain::state('required'),
+				Domain::state('required', 'forbidden'),
 				'The separator grouping by three the digits of the fraction of a decimal number, `0.000_1`',
 			),
 			new Decision(
@@ -64,12 +69,10 @@ final class NumericLiteralSeparatorRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->minIntegerDigits = $values->isKept(self::Integer)
-			? null
-			: $values->get('literals.digitSeparatorMinDigits.integer')->getCount()[0];
-		$this->minFractionDigits = $values->isKept(self::Fraction)
-			? null
-			: $values->get('literals.digitSeparatorMinDigits.fraction')->getCount()[0];
+		$this->integer = $values->find(self::Integer)?->getWord();
+		$this->fraction = $values->find(self::Fraction)?->getWord();
+		$this->minIntegerDigits = $values->get('literals.digitSeparatorMinDigits.integer')->getCount()[0];
+		$this->minFractionDigits = $values->get('literals.digitSeparatorMinDigits.fraction')->getCount()[0];
 	}
 
 
@@ -86,28 +89,39 @@ final class NumericLiteralSeparatorRule extends NodeRule
 		}
 
 		$text = $node->token->text;
-		if (str_contains($text, '_')) {
-			return;
-		}
-
 		if (preg_match('~^0[xXbBoO0-9]~', $text)) {
-			return;
-		} elseif (preg_match('~^(\d*)(\.\d*)?([eE][+-]?\d+)?$~', $text, $m)) {
-			$integer = $this->minIntegerDigits !== null && strlen($m[1]) >= $this->minIntegerDigits
-				? self::group($m[1], fromEnd: true)
-				: $m[1];
-			$fraction = $this->minFractionDigits !== null && isset($m[2]) && strlen($m[2]) - 1 >= $this->minFractionDigits
-				? '.' . self::group(substr($m[2], 1), fromEnd: false)
-				: ($m[2] ?? '');
-			$grouped = $integer . $fraction . ($m[3] ?? '');
+			$written = $this->integer === 'forbidden' ? str_replace('_', '', $text) : $text;
+			$decision = self::Integer;
+		} elseif (preg_match('~^([\d_]*)(\.[\d_]*)?([eE][+-]?[\d_]+)?$~', $text, $m)) {
+			$grouped = str_contains($text, '_');
+			$integer = self::writePart($m[1], $this->integer, $grouped ? null : $this->minIntegerDigits, fromEnd: true);
+			$fraction = ($m[2] ?? '') === ''
+				? ''
+				: '.' . self::writePart(substr($m[2], 1), $this->fraction, $grouped ? null : $this->minFractionDigits, fromEnd: false);
+			$exponent = $m[3] ?? '';
+			$written = $integer . $fraction . ($this->integer === 'forbidden' ? str_replace('_', '', $exponent) : $exponent);
+			$decision = $integer === $m[1] ? self::Fraction : self::Integer;
 		} else {
 			return;
 		}
 
-		$decision = $integer === $m[1] ? self::Fraction : self::Integer;
-		if ($grouped !== $text && $context->report($node, "The number `$text` must be written `$grouped`.", decision: $decision)) {
-			$node->token->setText($grouped);
+		if ($written !== $text && $context->report($node, "The number `$text` must be written `$written`.", decision: $decision)) {
+			$node->token->setText($written);
 		}
+	}
+
+
+	/**
+	 * The digits of a part as the decision of the part writes them.
+	 * @param  ?int  $minDigits  the digits from which they are grouped, null for a number grouped already
+	 */
+	private static function writePart(string $digits, ?string $word, ?int $minDigits, bool $fromEnd): string
+	{
+		return match (true) {
+			$word === 'forbidden' => str_replace('_', '', $digits),
+			$word === 'required' && $minDigits !== null && strlen($digits) >= $minDigits => self::group($digits, $fromEnd),
+			default => $digits,
+		};
 	}
 
 

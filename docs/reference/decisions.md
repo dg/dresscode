@@ -3155,7 +3155,7 @@ A heredoc with nothing to interpolate, which is written as a nowdoc.
 The separator grouping by three the digits of a decimal integer, or of the integer part of a decimal number, `1_000`; a number grouped already stays.
 
 - By default `keep`
-- Takes: `required` (always there); `keep`
+- Takes: `required` (always there); `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Literals\NumericLiteralSeparatorRule`, stage Structure
 - Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
@@ -3165,7 +3165,7 @@ The separator grouping by three the digits of a decimal integer, or of the integ
 The separator grouping by three the digits of the fraction of a decimal number, `0.000_1`.
 
 - By default `keep`
-- Takes: `required` (always there); `keep`
+- Takes: `required` (always there); `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Literals\NumericLiteralSeparatorRule`, stage Structure
 - Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`

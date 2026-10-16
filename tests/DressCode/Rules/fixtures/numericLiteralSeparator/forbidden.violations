@@ -1,0 +1,5 @@
+3: The number `1_000_000` must be written `1000000`.
+4: The number `1_234.567_8` must be written `1234.5678`.
+5: The number `0xFF_FF` must be written `0xFFFF`.
+6: The number `0b1010_1010` must be written `0b10101010`.
+8: The number `1_0e1_0` must be written `10e10`.
