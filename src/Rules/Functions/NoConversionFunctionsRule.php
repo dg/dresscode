@@ -77,6 +77,6 @@ final class NoConversionFunctionsRule extends NodeRule
 			return;
 		}
 
-		$node->replaceWith((new Builder)->cast($cast, $arg->value));
+		$node->replaceWithExpression((new Builder)->cast($cast, $arg->value));
 	}
 }

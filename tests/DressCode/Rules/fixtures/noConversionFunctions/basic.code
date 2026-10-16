@@ -18,3 +18,8 @@ $p = intval($x + 1);
 $q = intval(fn() => 1);
 $spaced = intval( $x );
 $commented = intval($x /* why */);
+$e = intval($a) ** 2;
+$f = strval($x)[0];
+$g = intval($a + 1);
+$h = -intval($a);
+$i = intval($o->x);

@@ -12,3 +12,8 @@
 18: The `intval()` call must be written as the `(int)` cast.
 19: The `intval()` call must be written as the `(int)` cast.
 20: The `intval()` call must be written as the `(int)` cast, but a comment stands among its arguments.
+21: The `intval()` call must be written as the `(int)` cast.
+22: The `strval()` call must be written as the `(string)` cast.
+23: The `intval()` call must be written as the `(int)` cast.
+24: The `intval()` call must be written as the `(int)` cast.
+25: The `intval()` call must be written as the `(int)` cast.

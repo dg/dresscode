@@ -18,3 +18,8 @@ $p = (int) ($x + 1);
 $q = (int) fn() => 1;
 $spaced = (int) $x;
 $commented = intval($x /* why */);
+$e = ((int) $a) ** 2;
+$f = ((string) $x)[0];
+$g = (int) ($a + 1);
+$h = -(int) $a;
+$i = (int) $o->x;
