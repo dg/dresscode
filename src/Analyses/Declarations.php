@@ -365,6 +365,12 @@ final class Declarations
 	}
 
 
+	public function allowsDynamicProperties(string $class): Tristate
+	{
+		return self::toTristate($this->phpstan->findClass($class)?->allowsDynamicProperties());
+	}
+
+
 	/** @return list<Member> */
 	public function findUnimplementedMethods(string $class): array
 	{

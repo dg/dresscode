@@ -898,6 +898,16 @@ final class Types implements PassAnalysis
 
 
 	/**
+	 * Whether an instance of the class takes a property it does not declare without the deprecation of PHP 8.2: through
+	 * `#[AllowDynamicProperties]`, `stdClass`, a magic method or its version of PHP; maybe for a class nothing declares.
+	 */
+	public function allowsDynamicProperties(string $class): Tristate
+	{
+		return $this->declarations->allowsDynamicProperties($class);
+	}
+
+
+	/**
 	 * The abstract methods a class or an enum that is not abstract itself inherits from its parents, interfaces and
 	 * traits and implements nowhere, each as the member of the ancestor or the trait declaring it; none for an
 	 * abstract class, an interface, a trait and a class nothing declares.

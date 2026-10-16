@@ -1,0 +1,16 @@
+<?php
+
+use Acme\Shop\{Bag, Basket, Cart, Item, Order};
+
+function fill(Order $order, Cart $cart, Bag $bag, Basket $basket, Item $item, stdClass $data): void
+{
+	$order->total = 1;
+	$order->note = 'gift';
+	$order->tags[] = 'red';
+	$cart->note = 'gift';
+	$bag->note = 'gift';
+	$basket->note = 'gift';
+	$item->note = 'gift';
+	$data->note = 'gift';
+	echo $order->missing;
+}

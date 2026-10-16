@@ -188,6 +188,7 @@ final class Types implements DressCode\Analyses\PassAnalysis
 	public function isAttributeClass(string $class): DressCode\Tristate
 	public function isInterface(string $class): DressCode\Tristate
 	public function isFinalClass(string $class): DressCode\Tristate
+	public function allowsDynamicProperties(string $class): DressCode\Tristate
 	public function findUnimplementedMethods(string $class): list<DressCode\Analyses\Member>
 	public function hasMember(string $class, DressCode\Analyses\MemberKind $kind, string $name): bool
 	public function knowsMember(string $class, DressCode\Analyses\MemberKind $kind, string $name): bool
@@ -1012,6 +1013,7 @@ final readonly class Violation
 - `DressCode\Rules\Classes\MultilineImplementsRule`
 - `DressCode\Rules\Classes\NameCasingRule`
 - `DressCode\Rules\Classes\NoConstructorReturnValuesRule`
+- `DressCode\Rules\Classes\NoDynamicPropertiesRule`
 - `DressCode\Rules\Classes\NoFinalParentRule`
 - `DressCode\Rules\Classes\NoGroupedDeclarationsRule`
 - `DressCode\Rules\Classes\NoNullDebugInfoRule`

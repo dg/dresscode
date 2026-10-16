@@ -1,0 +1,2 @@
+8: Property `$note` is not declared in `Acme\Shop\Order`, which PHP 8.2 deprecated creating it dynamically.
+9: Property `$tags` is not declared in `Acme\Shop\Order`, which PHP 8.2 deprecated creating it dynamically.
