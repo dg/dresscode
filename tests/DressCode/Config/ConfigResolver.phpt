@@ -90,7 +90,7 @@ final class RuleFuture extends ResolvedTestRule
 {
 	public static function getDecisions(): array
 	{
-		return [self::decide('future', 'Of a newer PHP')];
+		return [self::decide('future', 'Of a newer PHP'), self::decide('later.future', 'Of a newer PHP in a group')];
 	}
 }
 
@@ -277,6 +277,12 @@ test('a rule of a construct the target version has not got is left out', functio
 
 	Assert::same([], $resolve(new Config(decisions: projectDecisions(['future'])), '8.3'));
 	Assert::same(['Decision `project.future` needs PHP >=8.4 and the target is 8.3; skipped.'], $resolver->getWarnings());
+	// a group gives the value to what the target may leave out, silently
+	$silent = createResolver();
+	$silent->resolve(new Config(decisions: ['project' => ['later' => 'forbidden']]), '8.3');
+	Assert::same([], $silent->getWarnings());
+	$silent->resolve(new Config(decisions: ['project' => ['later' => ['future' => 'forbidden']]]), '8.3');
+	Assert::same(['Decision `project.later.future` needs PHP >=8.4 and the target is 8.3; skipped.'], $silent->getWarnings());
 
 	// what the result cache keys on is what really runs, and a rule that does not says why
 	$resolved = $resolver->resolve(new Config(use: ['test/future-preset']), '8.3');

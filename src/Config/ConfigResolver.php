@@ -318,19 +318,22 @@ final class ConfigResolver
 	{
 		$own = array_filter($decisions, fn(ResolvedDecision $decision) => $decision->decision->kind !== DecisionKind::Parameter);
 		$effective = $ruleReason === null ? array_filter($own, fn(ResolvedDecision $decision) => $decision->inactive === null) : [];
-		$asked = array_keys(array_filter($own, function (ResolvedDecision $decision): bool {
+		$asked = array_filter($own, function (ResolvedDecision $decision): bool {
 			$top = $decision->findTopLayer();
 			return $top?->origin?->isProject() === true && !$top->isKept();
-		}));
+		});
+		// a value a group gives a decision its target leaves out is skipped silently, as one of a preset; the types never are
+		$named = array_keys(array_filter($asked, fn(ResolvedDecision $decision) => !$decision->cascaded));
+		$asked = array_keys($asked);
 		$info = RuleInfo::of($class);
 		if ($asked !== [] && $ruleReason === InactiveReason::Types) {
 			throw new ConfigurationException($this->typesAvailable
 				? "Decision `$asked[0]` needs the types of the code; set `typeAnalysis: phpstan` in the configuration and install `phpstan/phpstan` beside DressCode."
 				: "Decision `$asked[0]` needs the types of the code, but `phpstan/phpstan` is not installed beside DressCode.", docs: 'types#enable');
-		} elseif ($asked !== [] && $ruleReason === InactiveReason::Php) {
-			$this->warnings[$class] = "Decision `$asked[0]` needs PHP {$info->requires['php']} and the target is $phpTarget; skipped.";
-		} elseif ($asked !== [] && $ruleReason === InactiveReason::Package) {
-			$this->warnings[$class] = "Decision `$asked[0]` needs "
+		} elseif ($named !== [] && $ruleReason === InactiveReason::Php) {
+			$this->warnings[$class] = "Decision `$named[0]` needs PHP {$info->requires['php']} and the target is $phpTarget; skipped.";
+		} elseif ($named !== [] && $ruleReason === InactiveReason::Package) {
+			$this->warnings[$class] = "Decision `$named[0]` needs "
 				. ($this->project->findUnmetRequirement($info->getRequiredPackages()) ?? throw new \LogicException)->format()
 				. '; skipped.';
 		}

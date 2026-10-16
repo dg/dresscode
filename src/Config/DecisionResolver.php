@@ -8,10 +8,10 @@
 namespace DressCode\Config;
 
 use DressCode\{Config, ConfigurationException, Decision, DecisionKind, Domain, Rule, RuleInfo, Value, Values};
-use DressCode\Domains\Map;
+use DressCode\Domains\{Count, Flag, Map, Words};
 use DressCode\Interop\Translator;
 use Nette\Utils\Helpers;
-use function count, is_array, is_int, is_string, strlen;
+use function count, is_array, is_bool, is_int, is_string, strlen;
 
 
 /**
@@ -24,6 +24,9 @@ use function count, is_array, is_int, is_string, strlen;
  */
 final readonly class DecisionResolver
 {
+	private const PresenceWords = ['required', 'forbidden', 'optional'];
+
+
 	public function __construct(
 		public Catalogue $catalogue,
 		/** the versions of PHP the code is written for, as a Composer constraint */
@@ -48,10 +51,11 @@ final readonly class DecisionResolver
 	 */
 	public function resolve(array $layers): array
 	{
-		$said = [];
+		$said = $cascaded = [];
 		foreach ($layers as [$origin, $tree]) {
-			foreach ($this->flatten($tree, '') as $path => [$value, $tombstone]) {
+			foreach ($this->flatten($tree, '') as $path => [$value, $tombstone, $inherited]) {
 				$said[$path][] = [$value->withOrigin($origin), $tombstone];
+				$cascaded[$path] = $inherited;
 			}
 		}
 
@@ -83,6 +87,7 @@ final readonly class DecisionResolver
 					$decision->isRequirement() && $merged->isKept() => InactiveReason::Keep,
 					default => null,
 				},
+				$cascaded[$path] ?? false,
 			);
 		}
 
@@ -143,10 +148,11 @@ final readonly class DecisionResolver
 
 
 	/**
-	 * The values of a tree by the paths of their decisions, each with whether it replaces what the layers below said:
-	 * the tombstone of a `keep` on a section or a structure, and a map written with `!` after its key.
+	 * The values of a tree by the paths of their decisions, each with whether it replaces what the layers below said,
+	 * the tombstone of a `keep` on a section or a structure and a map written with `!` after its key, and whether it was
+	 * written on a group above the decision.
 	 * @param  array<mixed>  $tree
-	 * @return array<string, array{Value, bool}>
+	 * @return array<string, array{Value, bool, bool}>
 	 * @throws ConfigurationException
 	 */
 	private function flatten(array $tree, string $prefix): array
@@ -166,7 +172,7 @@ final readonly class DecisionResolver
 			if ($replacing && (!$decision?->domain instanceof Map || !is_array($raw) || $raw === [])) {
 				throw new ConfigurationException("Key `$path!` replaces a map of the layers below with the entries it writes, and `$path` is no such map or gives none; write `$path` without `!`, or `keep` to withdraw the map.");
 			} elseif ($decision !== null) {
-				$values[$path] = [$decision->accept($raw), $replacing];
+				$values[$path] = [$decision->accept($raw), $replacing, false];
 				continue;
 			}
 
@@ -182,12 +188,16 @@ final readonly class DecisionResolver
 				$this->refuseKey($path, $prefix);
 			} elseif ($raw === 'keep') {
 				foreach ($under as $inner => $decision) {
-					$values[$inner] = [$decision->takesKeep() ? Value::keep($decision->domain) : $decision->getDefault(), true];
+					$values[$inner] = [$decision->takesKeep() ? Value::keep($decision->domain) : $decision->getDefault(), true, true];
 				}
-			} elseif (is_array($raw) && ($raw === [] || !array_is_list($raw))) {
+			} elseif ($raw === []) {
+				throw new ConfigurationException("Key `$path` holds keys of its own, and an empty list or map says nothing of them; write the keys, or `keep`.");
+			} elseif (is_array($raw) && !array_is_list($raw)) {
 				$values = $this->flatten($raw, $path) + $values;
-			} elseif ($prefix !== '' && (is_string($raw) || is_int($raw) || (is_array($raw) && array_is_list($raw)))) {
+			} elseif ($prefix !== '' && (is_string($raw) || is_int($raw) || is_bool($raw) || is_array($raw))) {
 				$values = $this->inherit($raw, $path, $under) + $values;
+			} elseif ($prefix === '') {
+				throw new ConfigurationException("Key `$path` is a section, which takes `keep` alone; write the values at its keys.");
 			} else {
 				throw new ConfigurationException("Key `$path` holds keys of its own; write a map of them or `keep`.");
 			}
@@ -199,15 +209,17 @@ final readonly class DecisionResolver
 
 	/**
 	 * The value written on a structure or a kind of places as the value of each decision it covers, `operatorPosition:
-	 * lineStart`: a word or a count goes to the decisions that take it, and a list to each decision as the words of it
-	 * that decision takes, the others left out there. A word no decision takes, a list leaving a decision none, and
-	 * `keep` in a list are errors.
-	 * @param  string|int|list<mixed>  $raw
+	 * lineStart`: a word, a count or a flag goes to the decisions of a closed vocabulary that take it, and a list to each
+	 * of them as the words of it that decision takes, the others left out there; a text, a list of names, a map and an
+	 * example are never given that way. A word no decision takes, one only parameters take among requirements, a word of
+	 * presence a requirement does not take or given to a group of one thing, a list leaving a decision none, and `keep`
+	 * or `...` in a list are errors.
+	 * @param  string|int|bool|array<mixed>  $raw
 	 * @param  non-empty-array<string, Decision>  $decisions
-	 * @return array<string, array{Value, bool}>
+	 * @return array<string, array{Value, bool, bool}>
 	 * @throws ConfigurationException
 	 */
-	private function inherit(string|int|array $raw, string $path, array $decisions): array
+	private function inherit(string|int|bool|array $raw, string $path, array $decisions): array
 	{
 		$takes = function (Decision $decision, mixed $word): bool {
 			try {
@@ -218,23 +230,50 @@ final readonly class DecisionResolver
 			}
 		};
 		$words = is_array($raw) ? $raw : [$raw];
-		if (is_array($raw) && in_array('keep', $raw, true)) {
+		if (is_array($raw) && !array_is_list($raw)) {
+			throw new ConfigurationException("Key `$path` holds keys of its own; write a map of them or `keep`.");
+		} elseif (is_array($raw) && in_array('keep', $raw, true)) {
 			throw new ConfigurationException("Key `$path` holds `keep` in a list; `keep` stands alone.");
 		} elseif (is_array($raw) && in_array(Domain::Spread, $raw, true)) {
 			throw new ConfigurationException("Key `$path` holds `...` in a list, which every decision under it would read as another list; write it at the decision.");
 		}
 
+		$presence = array_intersect($words, self::PresenceWords);
+		if ($presence !== [] && in_array($path, Catalogue::QuestionGroups, true)) {
+			throw new ConfigurationException('Key `' . $path . '` names one thing several decisions ask about, so `' . reset($presence) . '` would read as one about the thing itself; write it at the decisions, or `keep` at the key.');
+		}
+
+		$closed = array_filter(
+			$decisions,
+			fn(Decision $decision) => $decision->domain instanceof Words
+				|| $decision->domain instanceof Count
+				|| $decision->domain instanceof Flag,
+		);
+		$requirements = array_filter($closed, fn(Decision $decision) => $decision->isRequirement());
 		foreach ($words as $word) {
-			if (!array_any($decisions, fn(Decision $decision) => $takes($decision, $word))) {
-				$decision = reset($decisions);
+			if (!array_any($closed, fn(Decision $decision) => $takes($decision, $word))) {
+				$decision = reset($closed) ?: reset($decisions);
 				$decision->accept($word); // refused, with what the domain expects
+				throw new ConfigurationException("Key `$path` gives `$word`, which a group gives no decision under it; write it at the decision.");
+			} elseif ($requirements !== [] && !array_any($requirements, fn(Decision $decision) => $takes($decision, $word))) {
+				throw new ConfigurationException("Key `$path` gives `$word`, which only a parameter under it takes; write it at the parameter.");
+			}
+		}
+
+		foreach ($presence as $word) {
+			$refusing = array_find_key(
+				array_filter($decisions, fn(Decision $decision) => $decision->isRequirement()),
+				fn(Decision $decision) => !$takes($decision, $word),
+			);
+			if ($refusing !== null) {
+				throw new ConfigurationException("Key `$path` gives `$word`, which `$refusing` does not take; a word of presence on a group holds for every decision under it, so write the decisions one by one.");
 			}
 		}
 
 		$values = [];
-		foreach ($decisions as $inner => $decision) {
+		foreach ($closed as $inner => $decision) {
 			$taken = array_values(array_filter($words, fn($word) => $takes($decision, $word)));
-			if ($taken === [] && is_array($raw)) {
+			if ($taken === [] && is_array($raw) && $decision->isRequirement()) {
 				throw new ConfigurationException("Key `$path` leaves `$inner` none of its values; write a value for `$inner` of its own.");
 			} elseif ($taken !== []) {
 				$value = match (true) {
@@ -242,7 +281,7 @@ final readonly class DecisionResolver
 					count($taken) === 1 && !$takes($decision, $taken) => $taken[0], // a decision of one word
 					default => $taken,
 				};
-				$values[$inner] = [$decision->accept($value), false];
+				$values[$inner] = [$decision->accept($value), false, true];
 			}
 		}
 

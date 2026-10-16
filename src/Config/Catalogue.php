@@ -35,6 +35,12 @@ final class Catalogue
 		'comments', 'phpdoc', 'correctness', 'upgrading',
 	];
 
+	/**
+	 * the groups naming one thing several decisions ask about, which take `keep` and no word of presence, that word
+	 * reading as one about the thing itself
+	 */
+	public const QuestionGroups = ['controlFlow.switch', 'expressions.ternary', 'expressions.assignment'];
+
 	/** the kinds of places a group takes a value for at once, `items: {lists: perLine}`, with the places of each */
 	public const PlaceKinds = [
 		'lists' => [

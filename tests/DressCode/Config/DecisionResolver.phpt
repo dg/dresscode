@@ -51,6 +51,14 @@ final class ResolvedDebugRule extends NodeRule
 				kind: DecisionKind::Parameter,
 				default: ['var_dump'],
 			),
+			new Decision('classes.visibility.member', Domain::state('required'), 'The visibility of a member'),
+			new Decision(
+				'classes.visibility.publicWithSet',
+				Domain::state('required', 'forbidden'),
+				'The `public` beside a set visibility',
+			),
+			new Decision('controlFlow.switch.emptyCase', Domain::state('forbidden'), 'A `case` with no statement'),
+			new Decision('controlFlow.switch.defaultLast', Domain::state('required'), 'The `default` last'),
 			new Decision(
 				'correctness.debugOrder',
 				new Names(['first' => '', 'second' => '', 'third' => ''], ordered: true),
@@ -85,6 +93,13 @@ final class ResolvedLayoutRule extends NodeRule
 			new Decision('multiline.items.argument', $shapes, 'The arguments'),
 			new Decision('multiline.items.for', new Words(['perLine' => ''], tolerance: true), 'The sections of `for`'),
 			new Decision('multiline.items.logical', $shapes, 'The operands of a boolean operator'),
+			new Decision(
+				'multiline.items.minimum',
+				new DressCode\Domains\Count,
+				'The items a list spreads from',
+				kind: DecisionKind::Parameter,
+				default: 2,
+			),
 		];
 	}
 
@@ -118,7 +133,7 @@ test('a path the catalogue does not know is named with the nearest known one', f
 	Assert::exception(
 		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['qualification' => 'bare']]]),
 		ConfigurationException::class,
-		'Key `qualification` holds keys of its own; write a map of them or `keep`.',
+		'Key `qualification` is a section, which takes `keep` alone; write the values at its keys.',
 	);
 	Assert::exception(
 		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['spacing' => ['call' => 'foo( )']]]]),
@@ -298,3 +313,38 @@ test('a map written with `!` after its key replaces the map of the layers below 
 		'Key `qualification.globalClass!` replaces %a%',
 	);
 });
+
+
+test(
+	'a group gives its value to the decisions of a closed vocabulary under it, a word of presence to every one of them',
+	function () use ($resolver) {
+		$resolve = fn(array $tree) => $resolver->resolve([[new Layer(LayerKind::Configuration), $tree]]);
+		$resolved = $resolve(['classes' => ['visibility' => 'required'], 'multiline' => ['items' => ['array' => 'fill']]]);
+		Assert::same(['required', 'required'], [
+			$resolved['classes.visibility.member']->value->getWord(),
+			$resolved['classes.visibility.publicWithSet']->value->getWord(),
+		]);
+		Assert::same([true, false], [$resolved['classes.visibility.member']->cascaded, $resolved['multiline.items.array']->cascaded]);
+		Assert::exception(
+			fn() => $resolve(['classes' => ['visibility' => 'forbidden']]),
+			ConfigurationException::class,
+			'Key `classes.visibility` gives `forbidden`, which `classes.visibility.member` does not take; a word of presence on a group holds for every decision under it, so write the decisions one by one.',
+		);
+		Assert::exception(
+			fn() => $resolve(['multiline' => ['items' => 3]]),
+			ConfigurationException::class,
+			'Key `multiline.items` gives `3`, which only a parameter under it takes; write it at the parameter.',
+		);
+		Assert::exception(
+			fn() => $resolve(['multiline' => ['items' => []]]),
+			ConfigurationException::class,
+			'Key `multiline.items` holds keys of its own, and an empty list or map says nothing of them; write the keys, or `keep`.',
+		);
+		Assert::exception(
+			fn() => $resolve(['controlFlow' => ['switch' => 'forbidden']]),
+			ConfigurationException::class,
+			'Key `controlFlow.switch` names one thing several decisions ask about, so `forbidden` would read as one about the thing itself; write it at the decisions, or `keep` at the key.',
+		);
+		Assert::same(InactiveReason::Keep, $resolve(['controlFlow' => ['switch' => 'keep']])['controlFlow.switch.emptyCase']->inactive);
+	},
+);

@@ -31,6 +31,8 @@ final readonly class ResolvedDecision
 		 * null where it does
 		 */
 		public ?InactiveReason $inactive = null,
+		/** the topmost layer gave the value to a group above the decision, not to its path */
+		public bool $cascaded = false,
 	) {
 	}
 
@@ -44,6 +46,6 @@ final readonly class ResolvedDecision
 
 	public function withInactive(InactiveReason $reason): self
 	{
-		return new self($this->decision, $this->rules, $this->value, $this->layers, $reason);
+		return new self($this->decision, $this->rules, $this->value, $this->layers, $reason, $this->cascaded);
 	}
 }

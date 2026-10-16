@@ -253,6 +253,7 @@ final readonly class Config extends DressCode\Profile
 final class Catalogue
 	public const Version = 4
 	public const CoreSections = ['file', 'indentation', 'naming', 'casing', 'qualification', 'imports', 'spacing', 'multiline', 'braces', 'blankLines', 'classes', 'types', 'functions', 'cleanup', 'controlFlow', 'expressions', 'literals', 'comments', 'phpdoc', 'correctness', 'upgrading']
+	public const QuestionGroups = ['controlFlow.switch', 'expressions.ternary', 'expressions.assignment']
 	public const PlaceKinds = ['lists' => ['array', 'list', 'argument', 'parameter', 'closureUse', 'import', 'attribute', 'matchArm', 'matchCondition', 'for', 'implements'], 'operators' => ['condition', 'logical', 'concatenation', 'arithmetic', 'bitwise', 'coalesce', 'comparison', 'pipe', 'ternary', 'chain']]
 	public const ReservedKeys = ['use', 'typeAnalysis', 'namespaces', 'nameResolution', 'targets', 'paths', 'excludePaths', 'fileExtensions', 'skipWhen', 'baseline', 'cacheDir', 'rules', 'analyses', 'fixRisky', 'severity', 'suppressionComments', 'overrides']
 	public const ProjectSection = 'project'
