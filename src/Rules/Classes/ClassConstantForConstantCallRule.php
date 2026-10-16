@@ -29,7 +29,7 @@ final class ClassConstantForConstantCallRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.syntax.dynamicClassConstant',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`X::{$name}` for `constant(X::class . \'::\' . $name)`',
 		)];
 	}

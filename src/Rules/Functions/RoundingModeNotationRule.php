@@ -35,7 +35,7 @@ final class RoundingModeNotationRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.functions.roundingMode',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`RoundingMode::HalfAwayFromZero` for `PHP_ROUND_HALF_UP`',
 		)];
 	}

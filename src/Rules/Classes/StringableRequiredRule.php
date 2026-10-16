@@ -30,7 +30,7 @@ final class StringableRequiredRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('upgrading.classes.Stringable', Domain::adopted(), 'A class with `__toString()` declares it')];
+		return [new Decision('upgrading.classes.Stringable', Domain::state('required'), 'A class with `__toString()` declares it')];
 	}
 
 

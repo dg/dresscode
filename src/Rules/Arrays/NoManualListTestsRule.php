@@ -32,7 +32,7 @@ final class NoManualListTestsRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.functions.array_is_list',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`array_is_list()` for a hand-written test of a list',
 		)];
 	}

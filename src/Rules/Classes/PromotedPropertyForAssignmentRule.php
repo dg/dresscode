@@ -38,7 +38,7 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.syntax.promotedProperties',
-			Domain::adopted(),
+			Domain::state('required'),
 			'A constructor parameter only assigned to a property',
 		)];
 	}

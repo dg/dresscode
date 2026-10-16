@@ -8,8 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{PhpDoc, Types};
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Domains\Words;
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\{CodeWriter, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -56,8 +55,8 @@ final class NoDeprecatedClassesRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.declarations.deprecatedClass',
-			new Words(['replaced' => 'replaced by the class the deprecation names, reported where it names none']),
-			'A class whose declaration is `@deprecated`',
+			Domain::state(),
+			'A class whose declaration is `@deprecated`, replaced by the class the deprecation names, reported where it names none',
 		)];
 	}
 

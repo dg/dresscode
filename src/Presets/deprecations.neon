@@ -26,8 +26,8 @@ upgrading:
 	libraries:
 		packages: adopted                     # as the upgrading files of the packages say
 	declarations:
-		deprecatedClass: replaced             # by what `@deprecated` names
-		deprecatedMember: replaced
+		deprecatedClass: forbidden            # by what `@deprecated` names
+		deprecatedMember: forbidden
 	php:
 		nullArrayKey: forbidden               # `['' => 1]`, not `[null => 1]`, PHP 8.5
 		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`, PHP 8.4
@@ -40,4 +40,4 @@ upgrading:
 		reservedNames: forbidden              # `let`, `is`, `_`, PHP 8.6
 		backticks: forbidden                  # `shell_exec()`, PHP 8.5
 	syntax:
-		firstClassCallables: adopted          # `foo(...)`, not `Closure::fromCallable('foo')`
+		firstClassCallables: required         # `foo(...)`, not `Closure::fromCallable('foo')`

@@ -216,7 +216,7 @@ upgrading:
 		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`
 		backticks: forbidden                  # `shell_exec()`
 	syntax:
-		octalPrefix: adopted                  # `0o17`, not `017`
+		octalPrefix: required                 # `0o17`, not `017`
 	classes:
 		Stringable: keep                      # implied by `__toString()`
 

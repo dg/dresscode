@@ -34,7 +34,7 @@ final class ArrayFirstLastNotationRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.functions.arrayFirstLast',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`array_first()`, `array_last()` for `reset()`, `end()` read as an item',
 		)];
 	}

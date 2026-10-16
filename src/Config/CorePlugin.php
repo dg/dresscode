@@ -421,12 +421,12 @@ final class CorePlugin implements Plugin
 				// the newer constructs, decided once for every rule writing them
 				new Decision(
 					'upgrading.functions.arraySearchFunctions',
-					Domain::adopted(),
+					Domain::state('required'),
 					'`array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` or an `array_filter()` that only asks what they answer',
 				),
 				new Decision(
 					'upgrading.syntax.firstClassCallables',
-					Domain::adopted(),
+					Domain::state('required'),
 					'`foo(...)` for `Closure::fromCallable()`, a forwarding closure and `\'self::foo\'`; from PHP 8.6 a partial application',
 				),
 			],

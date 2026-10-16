@@ -358,7 +358,6 @@ abstract readonly class Domain
 	public static function placement(string ...$words): DressCode\Domains\Words
 	public static function operatorPosition(): DressCode\Domains\Words
 	public static function alignment(string ...$words): DressCode\Domains\Words
-	public static function adopted(): DressCode\Domains\Words
 	public static function blankLines(): DressCode\Domains\Count
 	final public function accept(mixed $raw, string $path, bool $keep = false): DressCode\Value
 	public function merge(DressCode\Value $below, DressCode\Value $above, string $path = ''): DressCode\Value

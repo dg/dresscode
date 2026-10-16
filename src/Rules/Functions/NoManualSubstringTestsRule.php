@@ -38,7 +38,7 @@ final class NoManualSubstringTestsRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.functions.substringFunctions',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`str_contains()`, `str_starts_with()`, `str_ends_with()` for `strpos() !== false`, `substr() ===`',
 		)];
 	}

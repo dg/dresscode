@@ -56,7 +56,7 @@ final class MatchRule extends TestRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('upgrading.match', Domain::adopted(), '`match` for a `switch`')];
+		return [new Decision('upgrading.match', Domain::state('required'), '`match` for a `switch`')];
 	}
 }
 
@@ -66,7 +66,7 @@ final class PipeRule extends TestRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('upgrading.pipe', Domain::adopted(), 'The pipe for nested calls')];
+		return [new Decision('upgrading.pipe', Domain::state('required'), 'The pipe for nested calls')];
 	}
 }
 
@@ -76,7 +76,7 @@ final class OverrideRule extends TestRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('classes.overriding.signature', Domain::adopted(), 'Types as the ancestor declares them')];
+		return [new Decision('classes.overriding.signature', Domain::state('required'), 'Types as the ancestor declares them')];
 	}
 }
 
@@ -117,8 +117,8 @@ $everything = [[
 	new Layer(LayerKind::Configuration),
 	[
 		'correctness' => ['debugOutput' => 'forbidden', 'debugOutputFunctions' => ['dump']],
-		'upgrading' => ['match' => 'adopted', 'pipe' => 'adopted', 'syntax' => ['firstClassCallables' => 'adopted']],
-		'classes' => ['overriding' => ['signature' => 'adopted']],
+		'upgrading' => ['match' => 'required', 'pipe' => 'required', 'syntax' => ['firstClassCallables' => 'required']],
+		'classes' => ['overriding' => ['signature' => 'required']],
 	],
 ]];
 
@@ -177,7 +177,7 @@ test(
 		Assert::same(
 			InactiveReason::Php,
 			new DecisionResolver($old, phpTarget: '8.2')->resolve(
-				[[new Layer(LayerKind::Configuration), ['upgrading' => ['syntax' => ['firstClassCallables' => 'adopted']]]]],
+				[[new Layer(LayerKind::Configuration), ['upgrading' => ['syntax' => ['firstClassCallables' => 'required']]]]],
 			)['upgrading.syntax.firstClassCallables']->inactive,
 		);
 	},

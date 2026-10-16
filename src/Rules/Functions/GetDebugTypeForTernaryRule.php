@@ -34,7 +34,7 @@ final class GetDebugTypeForTernaryRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.functions.get_debug_type',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`get_debug_type($x)` for `is_object($x) ? get_class($x) : gettype($x)`',
 		)];
 	}

@@ -20,7 +20,7 @@ final class OctalNotationRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('upgrading.syntax.octalPrefix', Domain::adopted(), '`0o17` for `017`')];
+		return [new Decision('upgrading.syntax.octalPrefix', Domain::state('required'), '`0o17` for `017`')];
 	}
 
 

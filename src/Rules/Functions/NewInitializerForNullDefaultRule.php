@@ -40,7 +40,7 @@ final class NewInitializerForNullDefaultRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.syntax.newInInitializer',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`Clock $clock = new SystemClock` for a `null` default the body swaps for the object',
 		)];
 	}

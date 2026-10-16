@@ -345,7 +345,7 @@ test('the types of the code come from the PHPStan of the project when the config
 			new Config(
 				paths: ['stubs'],
 				typeAnalysis: 'phpstan',
-				decisions: ['upgrading' => ['declarations' => ['deprecatedMember' => 'replaced']]],
+				decisions: ['upgrading' => ['declarations' => ['deprecatedMember' => 'forbidden']]],
 			),
 			$root,
 		),
@@ -360,7 +360,7 @@ test('the types of the code come from the PHPStan of the project when the config
 
 	// a member the map of replacedMembers has is left to that rule, the deprecation being the fallback of a library without data
 	$upgrading = [
-		'declarations' => ['deprecatedMember' => 'replaced'],
+		'declarations' => ['deprecatedMember' => 'forbidden'],
 		'libraries' => ['replacedMembers' => ['Acme\Shop\Order::STATUS_PAID' => 'StatusPaid']],
 	];
 	$runner = $factory->createRunner(
@@ -374,7 +374,7 @@ test('the types of the code come from the PHPStan of the project when the config
 
 	// without the types a decision the project makes is refused, not left out
 	Assert::exception(
-		fn() => $factory->resolve(new Config(decisions: ['upgrading' => ['declarations' => ['deprecatedMember' => 'replaced']]]), $root),
+		fn() => $factory->resolve(new Config(decisions: ['upgrading' => ['declarations' => ['deprecatedMember' => 'forbidden']]]), $root),
 		ConfigurationException::class,
 		'Decision `upgrading.declarations.deprecatedMember` needs the types of the code; %a%',
 	);
@@ -384,7 +384,7 @@ test('the types of the code come from the PHPStan of the project when the config
 test('types without PHPStan beside DressCode are a warning, and the run goes without them', function () {
 	$root = createTempDir('types-missing');
 	// a preset may ask for what the run cannot give, the project may not
-	file_put_contents("$root/preset.neon", "upgrading:\n\tdeclarations:\n\t\tdeprecatedMember: replaced\n");
+	file_put_contents("$root/preset.neon", "upgrading:\n\tdeclarations:\n\t\tdeprecatedMember: forbidden\n");
 	$factory = new RunnerFactory(phpstanInstalled: false);
 	$resolution = $factory->resolve(new Config(use: ["$root/preset.neon"], typeAnalysis: 'phpstan'), $root);
 	Assert::null($resolution->resolvedConfig->typeAnalysis);
@@ -404,7 +404,7 @@ test('types without PHPStan beside DressCode are a warning, and the run goes wit
 	// a decision the project makes cannot be left out, so it is refused
 	Assert::exception(
 		fn() => $factory->resolve(
-			new Config(typeAnalysis: 'phpstan', decisions: ['upgrading' => ['declarations' => ['deprecatedMember' => 'replaced']]]),
+			new Config(typeAnalysis: 'phpstan', decisions: ['upgrading' => ['declarations' => ['deprecatedMember' => 'forbidden']]]),
 			$root,
 		),
 		ConfigurationException::class,

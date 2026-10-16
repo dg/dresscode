@@ -46,7 +46,7 @@ final class PipeForNestedCallsRule extends NodeRule
 		return [
 			new Decision(
 				'upgrading.syntax.pipe',
-				Domain::adopted(),
+				Domain::state('required'),
 				'Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x |> a(...) |> b(...)` for `b(a($x))`',
 			),
 			new Decision(

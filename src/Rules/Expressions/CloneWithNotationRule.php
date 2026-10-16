@@ -34,7 +34,7 @@ final class CloneWithNotationRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.syntax.cloneWith',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`clone($o, [...])` for a `clone` followed by assignments to the copy',
 		)];
 	}

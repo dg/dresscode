@@ -33,7 +33,7 @@ final class DeprecatedAttributeForAnnotationRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('upgrading.phpdoc.deprecated', Domain::adopted(), '`#[\\Deprecated]` for `@deprecated`')];
+		return [new Decision('upgrading.phpdoc.deprecated', Domain::state('required'), '`#[\\Deprecated]` for `@deprecated`')];
 	}
 
 

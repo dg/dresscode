@@ -29,7 +29,7 @@ final class ClampForMinMaxRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('upgrading.functions.clamp', Domain::adopted(), '`clamp($x, $lo, $hi)` for `max($lo, min($x, $hi))`')];
+		return [new Decision('upgrading.functions.clamp', Domain::state('required'), '`clamp($x, $lo, $hi)` for `max($lo, min($x, $hi))`')];
 	}
 
 

@@ -29,7 +29,11 @@ final class SpreadForArrayMergeRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('upgrading.syntax.spreadForArrayMerge', Domain::adopted(), '`[...$a, ...$b]` for `array_merge($a, $b)`')];
+		return [new Decision(
+			'upgrading.syntax.spreadForArrayMerge',
+			Domain::state('required'),
+			'`[...$a, ...$b]` for `array_merge($a, $b)`',
+		)];
 	}
 
 

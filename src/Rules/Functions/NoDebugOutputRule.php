@@ -7,8 +7,8 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Decision, DecisionKind, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Domains\{Names, Words};
+use DressCode\{Decision, DecisionKind, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
+use DressCode\Domains\Names;
 use DressCode\Rules\GlobalCalls;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{CommentPolicy, Node, Token, Trivia};
@@ -44,8 +44,8 @@ final class NoDebugOutputRule extends NodeRule
 		return [
 			new Decision(
 				'correctness.debugOutput',
-				new Words(['commentedOut' => 'the statement changed into a comment, `// var_dump($a);`']),
-				'A statement calling a debugging function to print, a call that may return its output instead, `print_r($a, true)`, staying',
+				Domain::state(),
+				'A statement calling a debugging function to print, changed into a comment, `// var_dump($a);`; a call that may return its output instead, `print_r($a, true)`, stays',
 			),
 			new Decision(
 				'correctness.debugOutputFunctions',

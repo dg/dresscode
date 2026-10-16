@@ -61,10 +61,10 @@ phpdoc:
 	inheritdocOnly: forbidden                # one holding only `{@inheritDoc}`
 
 correctness:
-	debugOutput: commentedOut                # `// var_dump($a);`, risky
+	debugOutput: forbidden                   # `// var_dump($a);`, risky
 
 upgrading:
 	php:
 		deprecatedCall: forbidden            # a call doing nothing on the target, as `curl_close()`, goes
 	syntax:
-		newWithoutWrapping: adopted          # `new Foo()->bar()`, not `(new Foo())->bar()`
+		newWithoutWrapping: required         # `new Foo()->bar()`, not `(new Foo())->bar()`

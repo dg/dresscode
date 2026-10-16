@@ -21,4 +21,4 @@ correctness:
 
 upgrading:
 	classes:
-		Stringable: adopted        # on a class with `__toString()`
+		Stringable: required       # on a class with `__toString()`

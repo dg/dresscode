@@ -8,8 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Deprecation, Member, MemberKind, PhpDoc, Types};
-use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Domains\Words;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\{NodeHelpers, QualifiedNames};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -40,8 +39,8 @@ final class NoDeprecatedMembersRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.declarations.deprecatedMember',
-			new Words(['replaced' => 'replaced by the member the deprecation names, reported where it names none']),
-			'A constant, method or property whose declaration is `@deprecated`',
+			Domain::state(),
+			'A constant, method or property whose declaration is `@deprecated`, replaced by the member the deprecation names, reported where it names none',
 		)];
 	}
 

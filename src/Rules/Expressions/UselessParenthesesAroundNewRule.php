@@ -23,7 +23,7 @@ final class UselessParenthesesAroundNewRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.syntax.newWithoutWrapping',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`new Foo()->bar()` for `(new Foo())->bar()`, an instantiation without the parentheses of its arguments staying as it is',
 		)];
 	}

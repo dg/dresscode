@@ -1,3 +1,3 @@
 upgrading:
 	phpdoc:
-		deprecated: adopted
+		deprecated: required

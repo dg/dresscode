@@ -37,7 +37,7 @@ final class MatchForSwitchRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.syntax.match',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`match` for a `switch` whose every case returns or assigns one value',
 		)];
 	}

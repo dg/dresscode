@@ -35,7 +35,7 @@ final class ThrowExpressionForNullGuardRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.syntax.throwExpression',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`$a ?? throw new E()` for an `if` throwing where the assigned value is null',
 		)];
 	}

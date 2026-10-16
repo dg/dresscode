@@ -41,7 +41,11 @@ final class OverrideAttributeRequiredRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('upgrading.classes.Override', Domain::adopted(), '`#[\\Override]` on a member overriding an inherited one')];
+		return [new Decision(
+			'upgrading.classes.Override',
+			Domain::state('required'),
+			'`#[\\Override]` on a member overriding an inherited one',
+		)];
 	}
 
 

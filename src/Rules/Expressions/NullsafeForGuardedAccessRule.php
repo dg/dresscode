@@ -29,7 +29,7 @@ final class NullsafeForGuardedAccessRule extends NodeRule
 	{
 		return [new Decision(
 			'upgrading.syntax.nullsafe',
-			Domain::adopted(),
+			Domain::state('required'),
 			'`$a?->b` for `$a !== null ? $a->b : null` and `$a === null ? null : $a->b`',
 		)];
 	}

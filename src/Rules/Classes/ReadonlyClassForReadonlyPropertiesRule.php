@@ -34,7 +34,7 @@ final class ReadonlyClassForReadonlyPropertiesRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('upgrading.syntax.readonlyClasses', Domain::adopted(), 'A class whose every property is readonly')];
+		return [new Decision('upgrading.syntax.readonlyClasses', Domain::state('required'), 'A class whose every property is readonly')];
 	}
 
 

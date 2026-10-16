@@ -46,7 +46,7 @@ final class PhpCsFixer
 			),
 			'PhpCsFixerCustomFixers/comment_surrounded_by_spaces' => ['spacing.comment.marker' => 'spaced'],
 			'PhpCsFixerCustomFixers/commented_out_function' => fn(array $o, Translation $t) => $t->setAll([
-				'correctness.debugOutput' => 'commentedOut',
+				'correctness.debugOutput' => 'forbidden',
 				'correctness.debugOutputFunctions' => array_values(array_unique($o['functions'] ?? ['print_r', 'var_dump', 'var_export'])),
 			]),
 			'PhpCsFixerCustomFixers/no_leading_slash_in_global_namespace' => fn(array $o, Translation $t) => $t->setAll([
@@ -288,7 +288,7 @@ final class PhpCsFixer
 					$t->warn('`modernize_strpos` with `modernize_stripos` rewrites `stripos()` too, which DressCode leaves alone, because PHP has no case-insensitive `str_contains()`.');
 				}
 
-				$t->set('upgrading.functions.substringFunctions', 'adopted');
+				$t->set('upgrading.functions.substringFunctions', 'required');
 			},
 			'modernize_types_casting' => ['cleanup.conversionFunctions' => 'forbidden'],
 			'modifier_keywords' => [
@@ -306,7 +306,7 @@ final class PhpCsFixer
 				$t->warn('`native_function_casing` writes the functions PHP declares, while `casing.function` writes those of the project and its packages too where the configuration sets `typeAnalysis`.');
 			},
 			'native_type_declaration_casing' => ['casing.type' => 'lowercase'],
-			'new_expression_parentheses' => ['upgrading.syntax.newWithoutWrapping' => 'adopted'],
+			'new_expression_parentheses' => ['upgrading.syntax.newWithoutWrapping' => 'required'],
 			'new_with_braces' => fn(array $o, Translation $t) => $t->setAll([
 				'classes.emptyParentheses.instantiation' => ($o['named_class'] ?? true) ? 'required' : 'forbidden',
 				'classes.emptyParentheses.anonymousClass' => ($o['anonymous_class'] ?? true) ? 'required' : 'forbidden',
@@ -512,7 +512,7 @@ final class PhpCsFixer
 				? $t->set('upgrading.php.implicitNullable', 'forbidden')
 				: $t->warn('`nullable_type_declaration_for_default_null_value` with `use_nullable_type_declaration=false` has no equivalent; DressCode adds the `?` instead of removing it.'),
 			'object_operator_without_whitespace' => ['spacing.objectOperator' => 'compact'],
-			'octal_notation' => ['upgrading.syntax.octalPrefix' => 'adopted'],
+			'octal_notation' => ['upgrading.syntax.octalPrefix' => 'required'],
 			'operator_linebreak' => function (array $o, Translation $t) {
 				$position = ($o['position'] ?? 'beginning') === 'end' ? 'lineEnd' : 'lineStart';
 				$places = ($o['only_booleans'] ?? false)
@@ -575,7 +575,7 @@ final class PhpCsFixer
 				$t->warn('`phpdoc_list_type` turns `array<T>` into `list<T>`, a stronger type, which DressCode does not do.');
 				$t->set('phpdoc.types.builtin', 'canonical')->set('phpdoc.types.array', 'generic');
 			},
-			'phpdoc_readonly_class_comment_to_keyword' => ['upgrading.phpdoc.readonly' => 'adopted'],
+			'phpdoc_readonly_class_comment_to_keyword' => ['upgrading.phpdoc.readonly' => 'required'],
 			'phpdoc_scalar' => fn(array $o, Translation $t) => $t->set('phpdoc.types.builtin', 'canonical'),
 			'phpdoc_trim' => ['phpdoc.blankLines' => 'trimmed'],
 			'phpdoc_trim_consecutive_blank_line_separation' => ['phpdoc.blankLines' => 'trimmed'],

@@ -47,7 +47,7 @@ final class ReadonlyForAnnotationRule extends NodeRule
 
 	public static function getDecisions(): array
 	{
-		return [new Decision('upgrading.phpdoc.readonly', Domain::adopted(), '`readonly` for `@readonly`')];
+		return [new Decision('upgrading.phpdoc.readonly', Domain::state('required'), '`readonly` for `@readonly`')];
 	}
 
 

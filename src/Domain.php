@@ -72,13 +72,6 @@ abstract readonly class Domain
 	}
 
 
-	/** The word of a construct a newer PHP or library gave, which is written where the older way is found. */
-	public static function adopted(): Words
-	{
-		return new Words(['adopted' => 'written where the older way is found']);
-	}
-
-
 	/** A count of blank lines, or a range of them. */
 	public static function blankLines(): Count
 	{

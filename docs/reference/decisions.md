@@ -3380,10 +3380,10 @@ Non-breaking, zero-width and bidi characters, replaced in comments and escaped i
 
 ### correctness.debugOutput
 
-A statement calling a debugging function to print, a call that may return its output instead, `print_r($a, true)`, staying.
+A statement calling a debugging function to print, changed into a comment, `// var_dump($a);`; a call that may return its output instead, `print_r($a, true)`, stays.
 
 - By default `keep`
-- Takes: `commentedOut` (the statement changed into a comment, `// var_dump($a);`); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NoDebugOutputRule`, stage Structure
 - Covers: `PhpCsFixerCustomFixers/commented_out_function`
@@ -3479,7 +3479,7 @@ The `global` statement.
 `array_is_list()` for a hand-written test of a list.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Arrays\NoManualListTestsRule`, stage Structure
 - Needs PHP >=8.1
@@ -3500,7 +3500,7 @@ The `global` statement.
 `[...$a, ...$b]` for `array_merge($a, $b)`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Arrays\SpreadForArrayMergeRule`, stage Structure
 - Needs PHP >=8.1
@@ -3511,7 +3511,7 @@ The `global` statement.
 `X::{$name}` for `constant(X::class . '::' . $name)`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\ClassConstantForConstantCallRule`, stage Structure
 - Needs PHP >=8.3
@@ -3540,7 +3540,7 @@ A `return` with a value in a constructor or destructor, deprecated by PHP 8.6.
 `#[\Override]` on a member overriding an inherited one.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\OverrideAttributeRequiredRule`, stage Structure
 - Needs PHP >=8.3
@@ -3551,7 +3551,7 @@ A `return` with a value in a constructor or destructor, deprecated by PHP 8.6.
 A constructor parameter only assigned to a property.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\PromotedPropertyForAssignmentRule`, stage Structure
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
@@ -3561,7 +3561,7 @@ A constructor parameter only assigned to a property.
 A class whose every property is readonly.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\ReadonlyClassForReadonlyPropertiesRule`, stage Structure
 - Needs PHP >=8.2
@@ -3571,7 +3571,7 @@ A class whose every property is readonly.
 `readonly` for `@readonly`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\ReadonlyForAnnotationRule`, stage Structure
 - Covers: `phpdoc_readonly_class_comment_to_keyword`
@@ -3584,7 +3584,7 @@ A class whose every property is readonly.
 A class with `__toString()` declares it.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Classes\StringableRequiredRule`, stage Structure
 
@@ -3593,7 +3593,7 @@ A class with `__toString()` declares it.
 `array_any()`, `array_all()`, `array_find()` and `array_find_key()` for a `foreach` or an `array_filter()` that only asks what they answer.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\ArraySearchForFilterRule`, stage Structure
 - Rule `DressCode\Rules\ControlFlow\ArraySearchForForeachRule`, stage Structure
@@ -3605,7 +3605,7 @@ A class with `__toString()` declares it.
 `match` for a `switch` whose every case returns or assigns one value.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\MatchForSwitchRule`, stage Structure
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
@@ -3624,7 +3624,7 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 `$a ?? throw new E()` for an `if` throwing where the assigned value is null.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\ControlFlow\ThrowExpressionForNullGuardRule`, stage Structure
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
@@ -3634,7 +3634,7 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 `clone($o, [...])` for a `clone` followed by assignments to the copy.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\CloneWithNotationRule`, stage Structure
 - Needs PHP >=8.5
@@ -3645,7 +3645,7 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 `$a?->b` for `$a !== null ? $a->b : null` and `$a === null ? null : $a->b`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\NullsafeForGuardedAccessRule`, stage Structure
 
@@ -3654,7 +3654,7 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x \|> a(...) \|> b(...)` for `b(a($x))`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\PipeForNestedCallsRule`, stage Structure
 - Needs PHP >=8.5
@@ -3674,8 +3674,8 @@ The calls a nest has at least for the pipe operator to be written.
 `new Foo()->bar()` for `(new Foo())->bar()`, an instantiation without the parentheses of its arguments staying as it is.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `adopted`, symfony `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\UselessParenthesesAroundNewRule`, stage Structure
 - Covers: `new_expression_parentheses`
 - Needs PHP >=8.4
@@ -3685,7 +3685,7 @@ The calls a nest has at least for the pipe operator to be written.
 `array_first()`, `array_last()` for `reset()`, `end()` read as an item.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\ArrayFirstLastNotationRule`, stage Structure
 - Needs PHP >=8.5
@@ -3696,7 +3696,7 @@ The calls a nest has at least for the pipe operator to be written.
 `clamp($x, $lo, $hi)` for `max($lo, min($x, $hi))`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\ClampForMinMaxRule`, stage Structure
 - Needs PHP >=8.6
@@ -3717,7 +3717,7 @@ The `escape` argument of `fgetcsv()` and kin written out, since PHP 8.4 deprecat
 `foo(...)` for `Closure::fromCallable()`, a forwarding closure and `'self::foo'`; from PHP 8.6 a partial application.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\CallableNotationRule`, stage Structure
 - Rule `DressCode\Rules\Functions\FirstClassCallableForStringRule`, stage Structure
@@ -3729,7 +3729,7 @@ The `escape` argument of `fgetcsv()` and kin written out, since PHP 8.4 deprecat
 `get_debug_type($x)` for `is_object($x) ? get_class($x) : gettype($x)`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\GetDebugTypeForTernaryRule`, stage Structure
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
@@ -3739,7 +3739,7 @@ The `escape` argument of `fgetcsv()` and kin written out, since PHP 8.4 deprecat
 `json_validate($s)` for `json_decode($s) !== null && json_last_error() === JSON_ERROR_NONE`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\JsonValidateForDecodeRule`, stage Structure
 - Needs PHP >=8.3
@@ -3750,7 +3750,7 @@ The `escape` argument of `fgetcsv()` and kin written out, since PHP 8.4 deprecat
 `Clock $clock = new SystemClock` for a `null` default the body swaps for the object.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NewInitializerForNullDefaultRule`, stage Structure
 - Needs PHP >=8.1
@@ -3761,7 +3761,7 @@ The `escape` argument of `fgetcsv()` and kin written out, since PHP 8.4 deprecat
 `str_contains()`, `str_starts_with()`, `str_ends_with()` for `strpos() !== false`, `substr() ===`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\NoManualSubstringTestsRule`, stage Structure
 - Covers: `modernize_strpos`
@@ -3772,7 +3772,7 @@ The `escape` argument of `fgetcsv()` and kin written out, since PHP 8.4 deprecat
 `RoundingMode::HalfAwayFromZero` for `PHP_ROUND_HALF_UP`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Functions\RoundingModeNotationRule`, stage Structure
 - Needs PHP >=8.4
@@ -3813,8 +3813,8 @@ The names of the parameters holding a secret, whatever their letter case, which 
 `0o17` for `017`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `adopted`, symfony `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Literals\OctalNotationRule`, stage Structure
 - Covers: `octal_notation`
 - Needs PHP >=8.1
@@ -3833,7 +3833,7 @@ Names PHP 8.6 reserved, in declarations and imports.
 `#[\Deprecated]` for `@deprecated`.
 
 - By default `keep`
-- Takes: `adopted` (written where the older way is found); `keep`
+- Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\DeprecatedAttributeForAnnotationRule`, stage Structure
 - Needs PHP >=8.4
@@ -3973,10 +3973,10 @@ An attribute written for a member the class declares by convention.
 
 ### upgrading.declarations.deprecatedClass
 
-A class whose declaration is `@deprecated`.
+A class whose declaration is `@deprecated`, replaced by the class the deprecation names, reported where it names none.
 
 - By default `keep`
-- Takes: `replaced` (replaced by the class the deprecation names, reported where it names none); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`, stage Structure
 - Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
@@ -3985,10 +3985,10 @@ A class whose declaration is `@deprecated`.
 
 ### upgrading.declarations.deprecatedMember
 
-A constant, method or property whose declaration is `@deprecated`.
+A constant, method or property whose declaration is `@deprecated`, replaced by the member the deprecation names, reported where it names none.
 
 - By default `keep`
-- Takes: `replaced` (replaced by the member the deprecation names, reported where it names none); `keep`
+- Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\NoDeprecatedMembersRule`, stage Structure
 - Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
