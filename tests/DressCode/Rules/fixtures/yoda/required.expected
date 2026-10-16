@@ -11,3 +11,8 @@ if (Foo::BAR === $a) {}
 if (1 === $a = f()) {}
 if ($a <= 1) {}
 if (1 === $a) {}
+if (\PHP_INT_SIZE === 8) {}
+if (Foo::BAR === '') {}
+if ($a === ['x']) {}
+if (($a ?? '') === 'x') {}
+if (($b = f()) === false) {}

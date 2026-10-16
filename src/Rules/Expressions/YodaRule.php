@@ -10,7 +10,9 @@ namespace DressCode\Rules\Expressions;
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
 use PhpSyntax\{Node, Token};
-use PhpSyntax\Nodes\Expression\{ArrayNode, AssignmentNode, BinaryOpNode, CastNode, CombinedAssignmentNode, ConstantFetchNode, UnaryOpNode};
+use PhpSyntax\Nodes\Expression\{
+	ArrayNode, AssignmentNode, BinaryOpNode, CastNode, CombinedAssignmentNode, ConstantFetchNode, ParenthesizedNode, UnaryOpNode,
+};
 use PhpSyntax\Nodes\ExpressionNode;
 use PhpSyntax\Nodes\Scalar\{BooleanNode, NullNode};
 
@@ -20,7 +22,9 @@ use PhpSyntax\Nodes\Scalar\{BooleanNode, NullNode};
  * constant on the right (`$a === 1`), with `required` the other way round, which is what a standard asks
  * for when an accidental assignment must not compile. The sides are ranked: a variable highest, then a call,
  * a constant and a literal, so a comparison of two sides that are each a variable or a call is left alone,
- * and a side that is an assignment is only reported, because the swap would change what is assigned.
+ * and a side that is an assignment is only reported, because the swap would change what is assigned. A Yoda
+ * comparison is written only where a variable or a call faces a constant or a scalar literal: two constants, a side
+ * in parentheses and an array literal stay where they are.
  */
 #[RuleInfo(Stage::Structure)]
 final class YodaRule extends NodeRule
@@ -76,6 +80,7 @@ final class YodaRule extends NodeRule
 			|| $right === null
 			|| ($this->yoda === self::Forbidden ? $left >= $right : $left <= $right)
 			|| ($left >= self::Call && $right >= self::Call)
+			|| ($this->yoda === self::Required && !self::canGoRight($node->left, $left, $node->right))
 		) {
 			return;
 		}
@@ -93,6 +98,16 @@ final class YodaRule extends NodeRule
 		$newRight = $node->left->withoutEdgeTrivia();
 		$node->left->replaceWithExpression($newLeft);
 		$node->right->replaceWithExpression($newRight);
+	}
+
+
+	/**
+	 * Whether the left side goes right for a Yoda comparison: a variable or a call, not one in parentheses, against a
+	 * constant or a scalar literal, not an array; two constants stay as they are written.
+	 */
+	private static function canGoRight(ExpressionNode $left, int $rank, ExpressionNode $right): bool
+	{
+		return $rank >= self::Call && !$left instanceof ParenthesizedNode && !$right instanceof ArrayNode;
 	}
 
 
