@@ -1,0 +1,10 @@
+<?php
+// {"spacing.alternativeSyntax": "if ($a) :"}
+if ($a):
+endif;
+while ($a)  :
+endwhile;
+foreach ($a as $b) :
+endforeach;
+label:
+goto label;

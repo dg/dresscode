@@ -731,7 +731,7 @@ An import of a class of the namespace it stands in, `use Acme\Shop\Order;` insid
 The whitespace inside the brackets or the parentheses of an array.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Arrays\ArraySpacingRule`, stage Formatting
 - Covers: `trim_array_spaces`, `SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace`
@@ -741,7 +741,7 @@ The whitespace inside the brackets or the parentheses of an array.
 The whitespace inside the brackets or the parentheses of a destructuring.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Arrays\ArraySpacingRule`, stage Formatting
 - Covers: `trim_array_spaces`, `SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace`
@@ -873,7 +873,7 @@ The whitespace around the object operator.
 The whitespace inside the brackets of an offset access and before them.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
+- Takes: `forbidden` (never there); `required` (always there); `exceptLiterals` (a single space around an index other than a string or an integer literal, `$a[ $i ]` but `$a[0]`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Expressions\OffsetBracketSpacingRule`, stage Formatting
 - Covers: `no_spaces_around_offset`, `Squiz.Arrays.ArrayBracketSpacing`
@@ -1032,7 +1032,7 @@ The space before the brace or the body a structure opens on the line of its head
 The space before the colon of the alternative syntax and of a label, and the single space between it and the end keyword of an empty body, `if ($a): endif;`.
 
 - By default `keep`
-- Takes: `'if ($a):'` (no space before the colon); `keep`
+- Takes: `'if ($a):'` (no space before the colon); `'if ($a) :'` (a single space before the colon); `keep`
 - The standards: perCs `'if ($a):'`, psr12 `'if ($a):'`, nette `'if ($a):'`, symfony `'if ($a):'`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 
@@ -1069,7 +1069,7 @@ The space between `fn` and its parenthesis.
 The whitespace inside the parentheses of the arguments of a call, of `new` and of an attribute, and of `isset()`, `unset()`, `empty()` and `eval()`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Whitespace\ParenthesesSpacingRule`, stage Formatting
 - Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`
@@ -1079,7 +1079,7 @@ The whitespace inside the parentheses of the arguments of a call, of `new` and o
 The whitespace inside the parentheses of the parameters of a function, a method, a closure, an arrow function and a property hook.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Whitespace\ParenthesesSpacingRule`, stage Formatting
 - Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`
@@ -1089,7 +1089,7 @@ The whitespace inside the parentheses of the parameters of a function, a method,
 The whitespace inside the parentheses of the `use` of a closure.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Whitespace\ParenthesesSpacingRule`, stage Formatting
 - Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`
@@ -1099,7 +1099,7 @@ The whitespace inside the parentheses of the `use` of a closure.
 The whitespace inside the parentheses of `if`, `elseif`, `while`, `for`, `foreach`, `switch`, `match` and `catch`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Whitespace\ParenthesesSpacingRule`, stage Formatting
 - Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`, `Squiz.WhiteSpace.ControlStructureSpacing`
@@ -1109,7 +1109,7 @@ The whitespace inside the parentheses of `if`, `elseif`, `while`, `for`, `foreac
 The whitespace inside the parentheses grouping an expression, `($a + $b) * $c`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Whitespace\ParenthesesSpacingRule`, stage Formatting
 - Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`

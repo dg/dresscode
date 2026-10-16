@@ -1,0 +1,8 @@
+<?php
+// {"padding.offset": "exceptLiterals"}
+$a[ $i ];
+$a['b'];
+$a[0];
+$a[] = 1;
+$a[ $i + 1 ];
+$a[ -1 ];

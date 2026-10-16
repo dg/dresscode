@@ -81,6 +81,9 @@ final class ConstructSpacingRule extends GapRule
 
 	private ?Claim $spaceAfterFn;
 
+	/** a single space before the colon of the alternative syntax and of a label, none otherwise */
+	private bool $colonSpaced = false;
+
 	/**
 	 * @var array<string, array{?Claim, ?Claim, ?Claim}>  decision => a single space, a single space on the same line,
 	 * no space; made for it, none for a `keep`
@@ -98,7 +101,10 @@ final class ConstructSpacingRule extends GapRule
 			),
 			new Decision(
 				self::AlternativeSyntax,
-				new Shapes(['compact' => ['if ($a):', 'no space before the colon']]),
+				new Shapes([
+					'compact' => ['if ($a):', 'no space before the colon'],
+					'spaced' => ['if ($a) :', 'a single space before the colon'],
+				]),
 				'The space before the colon of the alternative syntax and of a label, and the single space between it and the end keyword of an empty body, `if ($a): endif;`',
 			),
 			new Decision(
@@ -148,6 +154,7 @@ final class ConstructSpacingRule extends GapRule
 			];
 		}
 
+		$this->colonSpaced = $values->find(self::AlternativeSyntax)?->getShape() === 'spaced';
 		$this->spaceAfterFn = match ($values->find(self::ArrowFunction)?->getShape()) {
 			'spaced' => $this->claims[self::ArrowFunction][0],
 			'compact' => $this->claims[self::ArrowFunction][2],
@@ -209,8 +216,9 @@ final class ConstructSpacingRule extends GapRule
 		// the use of a closure stays on the line of its parameters
 		$claims[ClosureUseListNode::class]['useKeyword'] = [$keywordJoined, null];
 
+		$colon = $this->colonSpaced ? $colonSingle : $colonNone;
 		foreach (self::Coloned as $class) {
-			$claims[$class]['colon'] = [$colonNone, null];
+			$claims[$class]['colon'] = [$colon, null];
 		}
 
 		// the braces of a group import, which the plain form leaves empty

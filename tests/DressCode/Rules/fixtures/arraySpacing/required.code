@@ -1,0 +1,10 @@
+<?php
+// {"padding": "required"}
+$a = [1, 2];
+$b = [];
+$c = array(1);
+$d = array();
+[$e, $f] = $g;
+$h = [
+	1,
+];

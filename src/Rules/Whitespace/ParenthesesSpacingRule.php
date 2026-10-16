@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Whitespace;
 
-use DressCode\{Claim, Decision, Domain, GapRule, RuleInfo, Stage, Values};
+use DressCode\{Claim, Decision, Gap, GapRule, RuleInfo, Stage, Values};
 use PhpSyntax\Nodes\{ArgumentListNode, CatchNode, ClosureUseListNode, ElseifNode};
 use PhpSyntax\Nodes\Expression\{ArrowFunctionNode, ClosureNode, EmptyNode, EvalNode, IssetNode, MatchNode, ParenthesizedNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode};
@@ -17,9 +17,9 @@ use PhpSyntax\Nodes\Statement\{
 
 
 /**
- * No whitespace just inside parentheses on a line: `foo($a)`, `if ($a)`, not `foo( $a )`; the parentheses of
- * arguments, of parameters, of the `use` of a closure, of a control structure and of a grouping are each a place
- * of `spacing.padding`.
+ * No whitespace just inside parentheses on a line: `foo($a)`, `if ($a)`, not `foo( $a )`, or with `required` a single
+ * space inside those holding something, `foo( $a )` and `foo()`; the parentheses of arguments, of parameters, of the
+ * `use` of a closure, of a control structure and of a grouping are each a place of `spacing.padding`.
  */
 #[RuleInfo(Stage::Formatting)]
 final class ParenthesesSpacingRule extends GapRule
@@ -45,14 +45,14 @@ final class ParenthesesSpacingRule extends GapRule
 		'grouping' => [[ParenthesizedNode::class], 'The whitespace inside the parentheses grouping an expression, `($a + $b) * $c`'],
 	];
 
-	/** @var array<string, ?Claim>  place => no space inside, null where it is kept */
+	/** @var array<string, array{Claim|\Closure(Gap): Claim|null, Claim|\Closure(Gap): Claim|null}>  place => the claims inside */
 	private array $claims = [];
 
 
 	public static function getDecisions(): array
 	{
 		return array_map(
-			fn(string $place, array $entry) => new Decision("spacing.padding.$place", Domain::state(), $entry[1]),
+			fn(string $place, array $entry) => new Decision("spacing.padding.$place", Padding::createDomain(), $entry[1]),
 			array_keys(self::Places),
 			self::Places,
 		);
@@ -63,7 +63,7 @@ final class ParenthesesSpacingRule extends GapRule
 	{
 		foreach (array_keys(self::Places) as $place) {
 			$path = "spacing.padding.$place";
-			$this->claims[$place] = $values->isKept($path) ? null : Claim::noSpace()->withDecision($path);
+			$this->claims[$place] = Padding::createClaims($path, $values->isKept($path) ? null : $values->get($path)->getWord());
 		}
 	}
 
@@ -72,9 +72,9 @@ final class ParenthesesSpacingRule extends GapRule
 	{
 		$claims = [];
 		foreach (self::Places as $place => [$classes]) {
-			$none = $this->claims[$place] ?? null;
+			[$open, $close] = $this->claims[$place] ?? [null, null];
 			foreach ($classes as $class) {
-				$claims[$class] = ['openParen' => [null, $none], 'closeParen' => [$none, null]];
+				$claims[$class] = ['openParen' => [null, $open], 'closeParen' => [$close, null]];
 			}
 		}
 

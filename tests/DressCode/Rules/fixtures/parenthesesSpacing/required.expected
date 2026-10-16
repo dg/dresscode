@@ -1,0 +1,14 @@
+<?php
+// {"padding": "required"}
+foo( $a, $b );
+foo();
+foo( $a );
+if ( $a ) {
+}
+function f( $x ) {}
+function g() {}
+$f = function ( $x ) use ( $y ) {};
+$z = ( $a + $b ) * $c;
+foo(
+	$a,
+);

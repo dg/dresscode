@@ -1,0 +1,7 @@
+<?php
+// {"padding.offset": "required"}
+$a[$i];
+$a['b'];
+$a[0];
+$a[] = 1;
+$a [ $i ];

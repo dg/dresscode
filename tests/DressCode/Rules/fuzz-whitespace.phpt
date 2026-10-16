@@ -447,7 +447,7 @@ $decisions = [
 	// an expression begins on the line of its return, the exact choice, and an operator ending a line is moved, so
 	// that the fixpoint holds with the moves among the fixes
 	'multiline' => ['expressionStart' => 'sameLine', 'operatorPosition' => 'lineStart'],
-	'spacing' => ['alignment' => ['binaryOperator' => 'forbidden', 'ternary' => 'forbidden']],
+	'spacing' => ['alignment' => ['binaryOperator' => 'forbidden', 'ternary' => 'forbidden'], 'padding' => 'forbidden'],
 ];
 // PER leaves some gaps to taste and some to nobody; the damage can only be undone where a rule governs
 // the gap exactly, so every spacing rule of the catalogue is on, with its exact choice where it has one
