@@ -1,0 +1,6 @@
+6: The key may be null, which the array makes `''`, so the fallback must be written.
+	risky TypeUnknown: the types do not tell whether the key is ever null, where the fallback is only noise
+8: The key may be null, which the array makes `''`, so the fallback must be written.
+	risky TypeUnknown: the types do not tell whether the key is ever null, where the fallback is only noise
+9: The key may be null, which the array makes `''`, so the fallback must be written.
+	risky TypeUnknown: the types do not tell whether the key is ever null, where the fallback is only noise

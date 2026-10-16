@@ -17,8 +17,10 @@ use PhpSyntax\Nodes\Scalar\NullNode;
 
 /**
  * An array turns a null key into an empty string, and PHP 8.5 deprecated letting it: `[null => 1]`, `$a[null]`
- * and `array_key_exists(null, $a)` say `['' => 1]`, `$a['']` and `array_key_exists('', $a)`. Only a null the
- * code writes out is read; a null that arrives in a variable the code does not show. An object implementing
+ * and `array_key_exists(null, $a)` say `['' => 1]`, `$a['']` and `array_key_exists('', $a)`. A key the types tell is an
+ * integer, a string or null is written with the fallback, `$a[$key ?? '']`, which is risky, the types not telling
+ * whether a null ever comes; a key they know nothing of, and without the types any but a null the code writes out, is
+ * left alone. An object implementing
  * `ArrayAccess` gets the null as it is written, so an offset of what may be one is risky and of what the types
  * tell is one stays; without the types, an array is not told from such an object. A key of destructuring reads an
  * offset of the value destructured, so it is taken as such an offset is.
@@ -49,7 +51,14 @@ final class NoNullArrayKeysRule extends NodeRule
 				=> $node->arguments->findArgument('key', 0)?->value,
 			default => null,
 		};
-		if (!$key instanceof NullNode) {
+		$types = $context->findAnalysis(Types::class);
+		$null = match (true) {
+			$key instanceof NullNode => Tristate::Yes,
+			// a key the types know nothing of is not taken for one that may be null
+			$key === null || $types === null || $types->isOfType($key, 'int|string|null') !== Tristate::Yes => Tristate::No,
+			default => $types->isOfType($key, 'null'),
+		};
+		if ($null === Tristate::No) {
 			return;
 		}
 
@@ -61,20 +70,33 @@ final class NoNullArrayKeysRule extends NodeRule
 			),
 			default => Tristate::Yes,
 		};
+		assert($key !== null);
 		$uncertainty = $node instanceof Expression\FunctionCallNode ? GlobalCalls::findUncertainty($node, $context) : null;
 		if (
 			$array === Tristate::No
 			|| !$context->report(
 				$key,
-				"The `null` key must be written `''`, which is what the array makes of it.",
-				risk: $array === Tristate::Maybe ? Risk::TypeUnknown : ($uncertainty === null ? null : Risk::NameUncertain),
-				because: $array === Tristate::Maybe ? 'an object implementing `ArrayAccess` gets the key as it is written' : $uncertainty,
+				$null === Tristate::Yes
+					? "The `null` key must be written `''`, which is what the array makes of it."
+					: "The key may be null, which the array makes `''`, so the fallback must be written.",
+				risk: match (true) {
+					$array === Tristate::Maybe, $null === Tristate::Maybe => Risk::TypeUnknown,
+					$uncertainty !== null => Risk::NameUncertain,
+					default => null,
+				},
+				because: match (true) {
+					$array === Tristate::Maybe => 'an object implementing `ArrayAccess` gets the key as it is written',
+					$null === Tristate::Maybe => 'the types do not tell whether the key is ever null, where the fallback is only noise',
+					default => $uncertainty,
+				},
 			)
 		) {
 			return;
 		}
 
-		$key->replaceWith((new Builder)->expression("''"));
+		$key->replaceWith($null === Tristate::Yes
+			? (new Builder)->expression("''")
+			: (new Builder)->expression("\$key ?? ''", key: $key->withoutEdgeTrivia()));
 	}
 
 

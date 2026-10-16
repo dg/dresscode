@@ -1,0 +1,10 @@
+<?php
+// risky
+
+function readKeys(array $items, ?string $name, string $title, int|string|null $key): void
+{
+	$a = $items[$name];
+	$b = $items[$title];
+	$c = [$key => 1];
+	$d = array_key_exists($name, $items);
+}
