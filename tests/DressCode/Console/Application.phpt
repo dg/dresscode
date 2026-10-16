@@ -299,7 +299,7 @@ test('catalogue lists every decision, those the configuration makes marked, and 
 	Assert::same(0, $code);
 	$data = json_decode($out, associative: true);
 	Assert::same(DressCode\Config\Catalogue::Version, $data['version']);
-	Assert::same('compact', $data['decisions']['spacing.call']['standards']['nette']);
+	Assert::same('foo($a, $b)', $data['decisions']['spacing.call']['standards']['nette']);
 	Assert::contains('no_spaces_after_function_name', $data['decisions']['spacing.call']['covers']);
 });
 
@@ -364,7 +364,7 @@ test('import translates a foreign configuration and says what it could not', fun
 	);
 	[$code, $out] = runApp($root, ['import', 'fixer.php']); // relative to the working directory of the run
 	Assert::same(0, $code);
-	Assert::contains("\t\t'spacing' => [\n\t\t\t'cast' => 'compact',\n\t\t],\n", $out);
+	Assert::contains("\t\t'spacing' => [\n\t\t\t'cast' => '(int)\$x',\n\t\t],\n", $out);
 
 	[$code, , $err] = runApp($root, ['import']);
 	Assert::same(3, $code);
@@ -880,7 +880,7 @@ test('config writes every decision a layer set in the shape of the file, with th
 	Assert::match('%A%Decisions  %d% of %d% set by a layer, the others asking for nothing%A%', $out);
 	Assert::match("%A%\nfile:\n%A%\tlineLength: 100 %s%# the configuration\n%A?%", $out);
 	Assert::match("%A%\nqualification:\n%A%\tfunction:\n%A?%\t\tglobal: keep %s%# the configuration\n%A?%", $out);
-	Assert::match("%A%\tcall: compact %s%# dresscode/psr12\n%A?%", $out);
+	Assert::match("%A%\tcall: 'foo(\$a, \$b)' %s%# dresscode/psr12\n%A?%", $out);
 	Assert::match("%A%\tsyntax:\n\t\tpromotedProperties: keep %s%# the configuration\n%A?%", $out);
 
 	// for one file it is what the run uses for that file

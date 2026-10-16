@@ -45,13 +45,13 @@ function apply(array $rules, string $code): array
 test('the stricter side of a gap wins: nothing before the semicolon, whatever the keyword asks for after itself', function () {
 	[$output, $violations] = apply([
 		RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
-			'spacing.languageConstruct' => 'spaced', 'spacing.controlKeyword' => 'spaced', 'spacing.connectingKeyword' => 'spaced',
-			'spacing.functionKeyword' => 'spaced', 'spacing.modifier' => 'spaced',
-			'spacing.fnKeyword' => 'compact', 'multiline.expressionStart' => 'sameLine',
+			'spacing.languageConstruct' => 'return $x', 'spacing.controlKeyword' => 'if ($a)', 'spacing.connectingKeyword' => '} else {',
+			'spacing.functionKeyword' => 'function ($x)', 'spacing.modifier' => 'final public static function',
+			'spacing.fnKeyword' => 'fn($x) => $x', 'multiline.expressionStart' => 'sameLine',
 		]),
 		RuleBuilder::createRule(Rules\Whitespace\SemicolonSpacingRule::class, [
-			'spacing.semicolon.before' => 'compact',
-			'spacing.semicolon.after' => 'spaced',
+			'spacing.semicolon.before' => '$a;',
+			'spacing.semicolon.after' => 'for ($i = 0; $i < 5; $i++)',
 			'multiline.semicolon' => 'sameLine',
 		]),
 	], "<?php\nreturn  ;\nreturn  \$a ;\n");
@@ -67,7 +67,7 @@ test('the stricter side of a gap wins: nothing before the semicolon, whatever th
 test('a claim on the whitespace and the line reports the line under its own decision where it names one', function () {
 	[$output, $violations] = apply([
 		RuleBuilder::createRule(Rules\Whitespace\SemicolonSpacingRule::class, [
-			'spacing.semicolon.before' => 'compact',
+			'spacing.semicolon.before' => '$a;',
 			'multiline.semicolon' => 'sameLine',
 		]),
 	], "<?php\nfoo(\n\t1\n) ;\nbar(\n\t2\n)\n;\n");
@@ -81,9 +81,9 @@ test('a claim on the whitespace and the line reports the line under its own deci
 
 test('a keyword alone knows what closes it', function () {
 	[$output] = apply([RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
-		'spacing.languageConstruct' => 'spaced', 'spacing.controlKeyword' => 'spaced', 'spacing.connectingKeyword' => 'spaced',
-		'spacing.functionKeyword' => 'spaced', 'spacing.modifier' => 'spaced',
-		'spacing.fnKeyword' => 'compact', 'multiline.expressionStart' => 'sameLine',
+		'spacing.languageConstruct' => 'return $x', 'spacing.controlKeyword' => 'if ($a)', 'spacing.connectingKeyword' => '} else {',
+		'spacing.functionKeyword' => 'function ($x)', 'spacing.modifier' => 'final public static function',
+		'spacing.fnKeyword' => 'fn($x) => $x', 'multiline.expressionStart' => 'sameLine',
 	])], "<?php\nreturn;\nswitch (\$a) {\n\tdefault:\n}\n");
 	Assert::same("<?php\nreturn;\nswitch (\$a) {\n\tdefault:\n}\n", $output);
 });
@@ -93,9 +93,9 @@ test('two rules may govern one operator when each abstains where the other decid
 	[$output, $violations] = apply([
 		RuleBuilder::createRule(
 			Rules\Expressions\BinaryOperatorSpacingRule::class,
-			['spacing.binaryOperator' => 'spaced', 'spacing.alignment.assignment' => 'none'],
+			['spacing.binaryOperator' => '$a + $b', 'spacing.alignment.assignment' => 'none'],
 		),
-		RuleBuilder::createRule(Rules\Expressions\ConcatenationSpacingRule::class, ['spacing.concatenation' => 'compact']),
+		RuleBuilder::createRule(Rules\Expressions\ConcatenationSpacingRule::class, ['spacing.concatenation' => '$a.$b']),
 	], "<?php\n\$a = \$b  +  \$c . \$d;\n");
 	Assert::same("<?php\n\$a = \$b + \$c.\$d;\n", $output);
 	Assert::same([
@@ -123,9 +123,9 @@ test('a plain claim and a closure deciding one component of one slot are refused
 	Assert::exception(
 		fn() => apply([
 			RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
-				'spacing.languageConstruct' => 'spaced', 'spacing.controlKeyword' => 'spaced',
-				'spacing.connectingKeyword' => 'spaced', 'spacing.functionKeyword' => 'spaced',
-				'spacing.modifier' => 'spaced', 'spacing.fnKeyword' => 'compact',
+				'spacing.languageConstruct' => 'return $x', 'spacing.controlKeyword' => 'if ($a)',
+				'spacing.connectingKeyword' => '} else {', 'spacing.functionKeyword' => 'function ($x)',
+				'spacing.modifier' => 'final public static function', 'spacing.fnKeyword' => 'fn($x) => $x',
 				'multiline.expressionStart' => 'sameLine',
 			]),
 			$other,
@@ -138,8 +138,8 @@ test('a plain claim and a closure deciding one component of one slot are refused
 
 test('the whitespace of a string, of a comment and of a line ending is not a gap', function () {
 	[$output, $violations] = apply([
-		RuleBuilder::createRule(Rules\Whitespace\ParenthesesSpacingRule::class, ['spacing.parentheses' => 'compact']),
-		RuleBuilder::createRule(Rules\Expressions\ObjectOperatorSpacingRule::class, ['spacing.objectOperator' => 'compact']),
+		RuleBuilder::createRule(Rules\Whitespace\ParenthesesSpacingRule::class, ['spacing.parentheses' => '($a)']),
+		RuleBuilder::createRule(Rules\Expressions\ObjectOperatorSpacingRule::class, ['spacing.objectOperator' => '$a->b()']),
 	], "<?php\nfoo( \"{\$a -> b}\" );\nfoo( // c\n\t\$a\n);\n\$x ?>\n<b> ?> </b>\n");
 	Assert::same("<?php\nfoo(\"{\$a -> b}\");\nfoo( // c\n\t\$a\n);\n\$x ?>\n<b> ?> </b>\n", $output);
 	Assert::count(2, $violations);
@@ -177,7 +177,7 @@ test('whitespace a mutation left in the leading trivia of a token is part of the
 		}
 	};
 	$spacing = RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
-		'spacing.languageConstruct' => 'spaced', 'spacing.controlKeyword' => 'keep', 'spacing.connectingKeyword' => 'keep',
+		'spacing.languageConstruct' => 'return $x', 'spacing.controlKeyword' => 'keep', 'spacing.connectingKeyword' => 'keep',
 		'spacing.functionKeyword' => 'keep', 'spacing.modifier' => 'keep', 'spacing.fnKeyword' => 'keep', 'multiline.expressionStart' => 'keep',
 	]);
 

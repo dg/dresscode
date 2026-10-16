@@ -947,10 +947,10 @@ test('the configuration is written as a dresscode.php, a rule written as its dec
 		. "\tuse: ['psr12'],\n"
 		. "\tdecisions: [\n"
 		. "\t\t'spacing' => [\n"
-		. "\t\t\t'cast' => 'compact',\n"
+		. "\t\t\t'cast' => '(int)\$x',\n"
 		. "\t\t],\n"
 		. "\t\t'controlFlow' => [\n"
-		. "\t\t\t'elseif' => 'oneWord',\n"
+		. "\t\t\t'elseif' => 'elseif',\n"
 		. "\t\t],\n"
 		. "\t],\n"
 		. ");\n",

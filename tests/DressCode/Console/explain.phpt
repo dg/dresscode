@@ -109,8 +109,11 @@ test('explain of a decision writes what it is, its value here and those of the s
 	[$code, $text] = explainApp($root, ['spacing.call']);
 	Assert::same(0, $code);
 	Assert::contains('`spacing.call`', $text);
-	Assert::contains('Here `compact`, set by dresscode/psr12.', $text);
-	Assert::contains('The standards: perCs `compact`, psr12 `compact`, nette `compact`, symfony `compact`.', $text);
+	Assert::contains("Here `'foo(\$a, \$b)'`, set by dresscode/psr12.", $text);
+	Assert::contains(
+		"The standards: perCs `'foo(\$a, \$b)'`, psr12 `'foo(\$a, \$b)'`, nette `'foo(\$a, \$b)'`, symfony `'foo(\$a, \$b)'`.",
+		$text,
+	);
 	Assert::contains('See https://dresscode.run/decisions/spacing.call', $text);
 });
 
@@ -119,7 +122,7 @@ test('explain of a section writes the decisions under it', function () use ($roo
 	[$code, $text] = explainApp($root, ['controlFlow', '--format', 'markdown']);
 	Assert::same(0, $code);
 	Assert::contains("## `controlFlow`\n", $text);
-	Assert::contains('- `controlFlow.elseif`: `oneWord` _(dresscode/psr12)_', $text);
+	Assert::contains("- `controlFlow.elseif`: `'elseif'` _(dresscode/psr12)_", $text);
 	Assert::notContains('# Decisions of this project', $text);
 });
 
@@ -134,7 +137,7 @@ test('explain without a decision writes every decision a layer makes, in Markdow
 	);
 	Assert::contains('- Indentation: a tab', $text);
 	Assert::contains("## controlFlow\n", $text);
-	Assert::contains('- `controlFlow.elseif`: `oneWord` _(dresscode/psr12)_', $text);
+	Assert::contains("- `controlFlow.elseif`: `'elseif'` _(dresscode/psr12)_", $text);
 	// what no layer decides is not explained
 	Assert::notContains('controlFlow.trailingIf`', $text);
 });

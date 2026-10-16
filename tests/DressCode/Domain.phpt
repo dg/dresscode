@@ -50,14 +50,24 @@ test('a word is one of the words, a tolerance a list of them with the first writ
 });
 
 
-test('a shape is one of the known ones and never read', function () {
+test('a shape is written by its example, one of the known ones and never read', function () {
 	$shapes = new Shapes(['compact' => ['foo($a, $b)', 'no space'], 'spaced' => ['foo ($a, $b)', 'a single space']]);
-	Assert::same('spaced', $shapes->accept('foo ($a, $b)', 'spacing.call')->getShape());
-	Assert::same('spaced', $shapes->accept('spaced', 'spacing.call')->getShape());
+	$value = $shapes->accept('foo ($a, $b)', 'spacing.call');
+	Assert::same(['spaced', 'foo ($a, $b)', "'foo (\$a, \$b)'"], [$value->getShape(), $value->toWrittenData(), $value->toWrittenText()]);
 	Assert::exception(
 		fn() => $shapes->accept('foo( $a )', 'spacing.call', keep: true),
 		ConfigurationException::class,
-		'Key `spacing.call` does not take `foo( $a )`; write `compact` (`"foo($a, $b)"`), `spaced` (`"foo ($a, $b)"`) or `keep`.',
+		"Key `spacing.call` does not take `foo( \$a )`; write `'foo(\$a, \$b)'`, `'foo (\$a, \$b)'` or `keep`.",
+	);
+	Assert::exception(
+		fn() => $shapes->accept('spaced', 'spacing.call'),
+		ConfigurationException::class,
+		"Key `spacing.call` does not take `spaced`, a word where the shape is written by its example; write `'foo(\$a, \$b)'` or `'foo (\$a, \$b)'`.",
+	);
+	Assert::exception(
+		fn() => $shapes->accept(new Nette\Neon\Entity('foo', ['$a', '$b']), 'spacing.call'),
+		ConfigurationException::class,
+		"Key `spacing.call` does not take %a%, which NEON read as no text; an example is written in quotes; write `'foo(\$a, \$b)'` or `'foo (\$a, \$b)'`.",
 	);
 	Assert::exception(fn() => $shapes->accept(['foo($a, $b)'], 'spacing.call'), ConfigurationException::class);
 });
@@ -295,7 +305,7 @@ test('a domain is data and prose', function () {
 	);
 	Assert::same('`LF` (every line ends with LF); `CRLF`', new Words(['LF' => 'every line ends with LF', 'CRLF' => ''])->describe());
 	Assert::same(
-		'compact "foo($a, $b)"; spaced "foo ($a, $b)" (one space)',
+		"`'foo(\$a, \$b)'`; `'foo (\$a, \$b)'` (one space)",
 		new Shapes(['compact' => ['foo($a, $b)', ''], 'spaced' => ['foo ($a, $b)', 'one space']])->describe(),
 	);
 	Assert::same(

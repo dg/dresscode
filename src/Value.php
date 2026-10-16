@@ -78,6 +78,7 @@ final readonly class Value
 			? array_map(fn(self $entry) => $entry->toWrittenData(), $this->content)
 			: $this->toData();
 		return match (true) {
+			$this->domain instanceof Shapes && !$this->keep => $this->domain->getExample($this->content),
 			$this->domain instanceof Words && is_array($data) && array_is_list($data) && count($data) === 1 => $data[0],
 			$this->domain instanceof Count && is_array($data) && $data[0] === $data[1] => $data[0],
 			$this->domain instanceof Count && is_array($data) => $data[0] . ($data[1] === null ? '+' : "-$data[1]"),
@@ -87,12 +88,14 @@ final readonly class Value
 
 
 	/**
-	 * The value on one line as a configuration writes it, which every output shows: a word bare, `yes` or `no` for a
-	 * flag, a list and a map inline, and quotes only around a text NEON would read otherwise.
+	 * The value on one line as a configuration writes it, which every output shows: a word bare, an example always in
+	 * single quotes, `yes` or `no` for a flag, a list and a map inline, and quotes around a text NEON would read otherwise.
 	 */
 	public function toWrittenText(): string
 	{
-		return self::formatData($this->toWrittenData());
+		return $this->domain instanceof Shapes && !$this->keep
+			? Shapes::quote($this->domain->getExample($this->content))
+			: self::formatData($this->toWrittenData());
 	}
 
 

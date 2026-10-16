@@ -11,7 +11,7 @@ classes:
 
 controlFlow:
 	switch:
-		caseTerminator: colon                 # `case 1:`, not `case 1;`, PHP 8.5
+		caseTerminator: ':'                   # `case 1:`, not `case 1;`, PHP 8.5
 
 expressions:
 	cast: canonical                           # `(int)`, not `(integer)`, PHP 8.5

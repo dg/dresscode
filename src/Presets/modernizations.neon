@@ -9,7 +9,7 @@ functions:
 	closureReturningOneExpressionNested: yes   # also one holding another closure
 
 cleanup:
-	classNameNotation: classKeyword            # `self::class`, `static::class`
+	classNameNotation: 'self::class'           # `self::class`, `static::class`
 	separateIssets: forbidden                  # `isset($a, $b)`
 	separateUnsets: forbidden                  # `unset($a, $b);`
 

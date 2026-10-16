@@ -12,9 +12,9 @@ use function count, is_string;
 
 
 /**
- * A shape, named by a word and shown by an example, `compact` and `"foo($a, $b)"`: a configuration writes either, the
- * example being matched and never read, so that an unknown one is an error naming the known ones, and the value is
- * the word. Never a list.
+ * A shape shown by an example, `'foo($a, $b)'`, which a configuration writes and which is matched and never read, so
+ * that an unknown one is an error naming the known ones; the rules read the word naming it, which no layer writes.
+ * Never a list.
  */
 final readonly class Shapes extends Domain
 {
@@ -39,32 +39,47 @@ final readonly class Shapes extends Domain
 
 	public function findSoleValue(): mixed
 	{
-		return count($this->shapes) === 1 ? array_key_first($this->shapes) : null;
+		return count($this->shapes) === 1 ? $this->shapes[array_key_first($this->shapes)][0] : null;
 	}
 
 
 	public function describe(): string
 	{
 		$shapes = [];
-		foreach ($this->shapes as $word => [$example, $meaning]) {
-			$shapes[] = "$word \"$example\"" . ($meaning === '' ? '' : " ($meaning)");
+		foreach ($this->shapes as [$example, $meaning]) {
+			$shapes[] = '`' . self::quote($example) . '`' . ($meaning === '' ? '' : " ($meaning)");
 		}
 
 		return implode('; ', $shapes);
 	}
 
 
+	/** The example of the shape the word names. */
+	public function getExample(string $word): string
+	{
+		return $this->shapes[$word][0] ?? throw new \LogicException("Shape `$word` is unknown.");
+	}
+
+
+	/** The example as the configuration writes it, in single quotes. */
+	public static function quote(string $example): string
+	{
+		return "'" . str_replace("'", "''", $example) . "'";
+	}
+
+
 	protected function normalize(mixed $raw, string $path, bool $keep): Value
 	{
-		$word = !is_string($raw)
-			? null
-			: (isset($this->shapes[$raw]) ? $raw : array_find_key($this->shapes, fn(array $shape) => $shape[0] === $raw));
-		return $word !== null
-			? new Value($this, $word, $raw)
-			: self::refuse($raw, $path, array_map(
-				fn(string $word, array $shape) => self::formatRaw($word) . ' (' . self::formatRaw("\"$shape[0]\"") . ')',
-				array_keys($this->shapes),
-				$this->shapes,
-			), $keep);
+		$word = is_string($raw) ? array_find_key($this->shapes, fn(array $shape) => $shape[0] === $raw) : null;
+		if ($word !== null) {
+			return new Value($this, $word, $raw);
+		}
+
+		$expected = array_map(fn(array $shape) => '`' . self::quote($shape[0]) . '`', array_values($this->shapes));
+		self::refuse($raw, $path, $expected, $keep, match (true) {
+			is_string($raw) && isset($this->shapes[$raw]) => 'a word where the shape is written by its example',
+			!is_string($raw) => 'which NEON read as no text; an example is written in quotes',
+			default => '',
+		});
 	}
 }

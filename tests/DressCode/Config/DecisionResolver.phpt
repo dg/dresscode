@@ -123,7 +123,7 @@ test('a path the catalogue does not know is named with the nearest known one', f
 	Assert::exception(
 		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['spacing' => ['call' => 'foo( )']]]]),
 		ConfigurationException::class,
-		'Key `spacing.call` does not take `foo( )`; write `compact` (`"foo()"`), `spaced` (`"foo ()"`) or `keep`.',
+		"Key `spacing.call` does not take `foo( )`; write `'foo()'`, `'foo ()'` or `keep`.",
 	);
 });
 

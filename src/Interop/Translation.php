@@ -7,9 +7,10 @@
 
 namespace DressCode\Interop;
 
-use DressCode\Config\PluginRegistry;
+use DressCode\Config\{ConfigResolver, PluginRegistry};
+use DressCode\Domains\Shapes;
 use DressCode\Engine\Helpers;
-use function array_key_exists, count, is_array, is_bool, is_int, sprintf;
+use function array_key_exists, count, is_array, is_bool, is_int, is_string, sprintf;
 
 
 /**
@@ -352,10 +353,16 @@ final class Translation
 			$decisions['file.lineLength'] = $this->lineLength;
 		}
 
-		// a range is kept as its two ends while the foreign rules meet, and written as the configuration writes it
+		// a range is kept as its two ends and a shape as its word while the foreign rules meet, and both are written as
+		// the configuration writes them
+		static $catalogue;
+		$catalogue ??= new ConfigResolver(new PluginRegistry)->getCatalogue();
 		foreach ($decisions as $path => $value) {
+			$domain = $catalogue->find($path)?->domain;
 			if (str_starts_with($path, 'blankLines.')) {
 				$decisions[$path] = self::writeRanges($value);
+			} elseif ($domain instanceof Shapes && is_string($value) && isset($domain->shapes[$value])) {
+				$decisions[$path] = $domain->getExample($value);
 			}
 		}
 

@@ -81,8 +81,8 @@ Exactly one line ending after the last line; a file ending in HTML is content.
 The opening tag of PHP.
 
 - By default `keep`
-- Takes: full "&lt;?php" (`<?php`, never `<?` or `<?PHP`); `keep`
-- The standards: perCs `full`, psr12 `full`, nette `full`, symfony `full`
+- Takes: `'<?php'` (`<?php`, never `<?` or `<?PHP`); `keep`
+- The standards: perCs `'<?php'`, psr12 `'<?php'`, nette `'<?php'`, symfony `'<?php'`
 - Rule `DressCode\Rules\Files\OpeningTagNotationRule`, stage Structure
 - Covers: `full_opening_tag`, `Generic.PHP.DisallowShortOpenTag`
 
@@ -701,8 +701,8 @@ An import of a class of the namespace it stands in, `use Acme\Shop\Order;` insid
 The whitespace inside the brackets of an array or a destructuring, and between `array` and its parenthesis.
 
 - By default `keep`
-- Takes: compact "[1, 2]" (none inside); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `compact`, symfony `compact`
+- Takes: `'[1, 2]'` (none inside); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'[1, 2]'`, symfony `'[1, 2]'`
 - Rule `DressCode\Rules\Arrays\ArraySpacingRule`, stage Formatting
 - Covers: `trim_array_spaces`, `SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace`
 
@@ -711,8 +711,8 @@ The whitespace inside the brackets of an array or a destructuring, and between `
 The spaces between the words of the head of a class declaration, which stays on one line unless a comment breaks it, the brace and the implemented interfaces being free to take the next one.
 
 - By default `keep`
-- Takes: spaced "class Foo extends Bar implements Baz" (single spaces); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `spaced`
+- Takes: `'class Foo extends Bar implements Baz'` (single spaces); `keep`
+- The standards: perCs `'class Foo extends Bar implements Baz'`, psr12 `'class Foo extends Bar implements Baz'`, nette `'class Foo extends Bar implements Baz'`, symfony `'class Foo extends Bar implements Baz'`
 - Rule `DressCode\Rules\Classes\ClassHeadSpacingRule`, stage Formatting
 - Covers: `single_space_around_construct`, `PSR12.Classes.AnonClassDeclaration`, `PSR2.Classes.ClassDeclaration`, `PSR2.Classes.ClassDeclaration.SpaceBeforeKeyword`
 
@@ -721,8 +721,8 @@ The spaces between the words of the head of a class declaration, which stays on 
 The space between `class` and the arguments of an anonymous class.
 
 - By default `keep`
-- Takes: spaced "new class ($a)" (a single space before the arguments); compact "new class($a)" (no space before the arguments); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `compact`
+- Takes: `'new class ($a)'` (a single space before the arguments); `'new class($a)'` (no space before the arguments); `keep`
+- The standards: perCs `'new class ($a)'`, psr12 `'new class ($a)'`, nette `'new class ($a)'`, symfony `'new class($a)'`
 - Rule `DressCode\Rules\Classes\ClassHeadSpacingRule`, stage Formatting
 - Covers: `class_definition`, `PSR12.Classes.AnonClassDeclaration`
 
@@ -731,8 +731,8 @@ The space between `class` and the arguments of an anonymous class.
 The space after the marker of a comment and before the closing one, unless another `/` or `*` follows the marker, as in a `////` ruler; doc comments are the matter of the phpDoc rules.
 
 - By default `keep`
-- Takes: spaced "// text" (a single space after the marker); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `spaced`, symfony `spaced`
+- Takes: `'// text'` (a single space after the marker); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'// text'`, symfony `'// text'`
 - Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
 - Covers: `PhpCsFixerCustomFixers/comment_surrounded_by_spaces`, `single_line_comment_spacing`
 - Modifies comments
@@ -742,8 +742,8 @@ The space after the marker of a comment and before the closing one, unless anoth
 The whitespace before a comment that follows code on its line.
 
 - By default `keep`
-- Takes: spaced "$a; // text" (at least one space); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `spaced`, symfony `spaced`
+- Takes: `'$a; // text'` (at least one space); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'$a; // text'`, symfony `'$a; // text'`
 - Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
 - Modifies comments
 
@@ -762,8 +762,8 @@ Whether a comment following code may be aligned by more spaces.
 The whitespace before the colon of a `case`.
 
 - By default `keep`
-- Takes: compact "case 1:" (none before the colon); `keep`
-- The standards: perCs `compact`, psr12 `compact`, nette `compact`, symfony `compact`
+- Takes: `'case 1:'` (none before the colon); `keep`
+- The standards: perCs `'case 1:'`, psr12 `'case 1:'`, nette `'case 1:'`, symfony `'case 1:'`
 - Rule `DressCode\Rules\ControlFlow\SwitchCaseSpacingRule`, stage Formatting
 - Covers: `switch_case_space`, `PSR2.ControlStructures.SwitchDeclaration`, `PSR2.ControlStructures.SwitchDeclaration.SpaceBeforeColonCASE`
 
@@ -772,8 +772,8 @@ The whitespace before the colon of a `case`.
 The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `=` of a default included, `.` being `spacing.concatenation`; at a line break an operator takes no space on the side of the break, an assignment and `=>` stay on the line of what is before them, and `instanceof` and a comparison keep what follows them on their line, unless the line would grow too wide.
 
 - By default `keep`
-- Takes: spaced "$a + $b" (a single space around); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `spaced`
+- Takes: `'$a + $b'` (a single space around); `keep`
+- The standards: perCs `'$a + $b'`, psr12 `'$a + $b'`, nette `'$a + $b'`, symfony `'$a + $b'`
 - Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
 - Covers: `binary_operator_spaces`, `PSR12.Operators.OperatorSpacing`, `Squiz.WhiteSpace.LogicalOperatorSpacing`, `Squiz.WhiteSpace.OperatorSpacing`
 
@@ -792,8 +792,8 @@ Which whitespace wider than a single space around an operator stays, aligning a 
 The space between a cast and its operand, which stays on the line of the cast.
 
 - By default `keep`
-- Takes: spaced "(int) $x" (a single space after the cast); compact "(int)$x" (no space after the cast); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `spaced`
+- Takes: `'(int) $x'` (a single space after the cast); `'(int)$x'` (no space after the cast); `keep`
+- The standards: perCs `'(int) $x'`, psr12 `'(int) $x'`, nette `'(int) $x'`, symfony `'(int) $x'`
 - Rule `DressCode\Rules\Expressions\CastSpacingRule`, stage Formatting
 - Covers: `cast_spaces`
 
@@ -802,8 +802,8 @@ The space between a cast and its operand, which stays on the line of the cast.
 The space around the concatenation operator, unless it sits at a line break.
 
 - By default `keep`
-- Takes: spaced "$a . $b" (a single space around); compact "$a.$b" (no space around); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `compact`
+- Takes: `'$a . $b'` (a single space around); `'$a.$b'` (no space around); `keep`
+- The standards: perCs `'$a . $b'`, psr12 `'$a . $b'`, nette `'$a . $b'`, symfony `'$a.$b'`
 - Rule `DressCode\Rules\Expressions\ConcatenationSpacingRule`, stage Formatting
 - Covers: `concat_space`, `PSR12.Operators.OperatorSpacing`, `Squiz.Strings.ConcatenationSpacing`
 
@@ -812,8 +812,8 @@ The space around the concatenation operator, unless it sits at a line break.
 The whitespace around the double colon.
 
 - By default `keep`
-- Takes: compact "Foo::bar()" (none around); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `compact`, symfony `keep`
+- Takes: `'Foo::bar()'` (none around); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'Foo::bar()'`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\DoubleColonSpacingRule`, stage Formatting
 - Covers: `no_space_around_double_colon`, `Squiz.WhiteSpace.ScopeKeywordSpacing`
 
@@ -822,8 +822,8 @@ The whitespace around the double colon.
 The whitespace around the object operator.
 
 - By default `keep`
-- Takes: compact "$a->b()" (none around); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `compact`, symfony `compact`
+- Takes: `'$a->b()'` (none around); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'$a->b()'`, symfony `'$a->b()'`
 - Rule `DressCode\Rules\Expressions\ObjectOperatorSpacingRule`, stage Formatting
 - Covers: `object_operator_without_whitespace`, `Squiz.WhiteSpace.ObjectOperatorSpacing`
 
@@ -832,8 +832,8 @@ The whitespace around the object operator.
 The whitespace around and inside the brackets of an offset access.
 
 - By default `keep`
-- Takes: compact "$a[0]" (none around and inside); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `compact`, symfony `compact`
+- Takes: `'$a[0]'` (none around and inside); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'$a[0]'`, symfony `'$a[0]'`
 - Rule `DressCode\Rules\Expressions\OffsetBracketSpacingRule`, stage Formatting
 - Covers: `no_spaces_around_offset`, `Squiz.Arrays.ArrayBracketSpacing`
 
@@ -842,8 +842,8 @@ The whitespace around and inside the brackets of an offset access.
 The whitespace between `&` and its operand.
 
 - By default `keep`
-- Takes: compact "&$x" (none between); `keep`
-- The standards: perCs `compact`, psr12 `compact`, nette `compact`, symfony `compact`
+- Takes: `'&$x'` (none between); `keep`
+- The standards: perCs `'&$x'`, psr12 `'&$x'`, nette `'&$x'`, symfony `'&$x'`
 - Rule `DressCode\Rules\Expressions\ReferenceSpacingRule`, stage Formatting
 - Covers: `SlevomatCodingStandard.Operators.ReferenceSpacing`
 
@@ -852,8 +852,8 @@ The whitespace between `&` and its operand.
 The whitespace between `...` and its operand.
 
 - By default `keep`
-- Takes: compact "...$x" (none between); `keep`
-- The standards: perCs `compact`, psr12 `compact`, nette `compact`, symfony `compact`
+- Takes: `'...$x'` (none between); `keep`
+- The standards: perCs `'...$x'`, psr12 `'...$x'`, nette `'...$x'`, symfony `'...$x'`
 - Rule `DressCode\Rules\Expressions\SpreadOperatorSpacingRule`, stage Formatting
 - Covers: `SlevomatCodingStandard.Operators.SpreadOperatorSpacing`
 
@@ -862,8 +862,8 @@ The whitespace between `...` and its operand.
 The whitespace around `?` and `:` of a ternary, and around `?:` as a whole, unless the operator sits at a line break.
 
 - By default `keep`
-- Takes: spaced "$a ? $b : $c" (whitespace around `?` and `:`); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `spaced`
+- Takes: `'$a ? $b : $c'` (whitespace around `?` and `:`); `keep`
+- The standards: perCs `'$a ? $b : $c'`, psr12 `'$a ? $b : $c'`, nette `'$a ? $b : $c'`, symfony `'$a ? $b : $c'`
 - Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
 - Covers: `ternary_operator_spaces`, `PSR12.Operators.OperatorSpacing`
 
@@ -882,8 +882,8 @@ Whether more spaces around `?` and `:` stay.
 The whitespace between a unary operator and its operand, which stay on one line, and inside a variable variable, `$$a` and `${'a'}`.
 
 - By default `keep`
-- Takes: compact "-$x" (no space after the operator); `keep`
-- The standards: perCs `compact`, psr12 `compact`, nette `compact`, symfony `compact`
+- Takes: `'-$x'` (no space after the operator); `keep`
+- The standards: perCs `'-$x'`, psr12 `'-$x'`, nette `'-$x'`, symfony `'-$x'`
 - Rule `DressCode\Rules\Expressions\UnaryOperatorSpacingRule`, stage Formatting
 - Covers: `unary_operator_spaces`, `Generic.WhiteSpace.IncrementDecrementSpacing`, `SlevomatCodingStandard.Operators.NegationOperatorSpacing`, `Squiz.WhiteSpace.OperatorSpacing.Unary`
 
@@ -902,8 +902,8 @@ The operators whose operand may stand apart from them, as written, `! $x`.
 The whitespace inside a `declare` statement.
 
 - By default `keep`
-- Takes: compact "declare(strict_types=1)" (none inside); `keep`
-- The standards: perCs `compact`, psr12 `compact`, nette `compact`, symfony `compact`
+- Takes: `'declare(strict_types=1)'` (none inside); `keep`
+- The standards: perCs `'declare(strict_types=1)'`, psr12 `'declare(strict_types=1)'`, nette `'declare(strict_types=1)'`, symfony `'declare(strict_types=1)'`
 - Rule `DressCode\Rules\Files\DeclareSpacingRule`, stage Formatting
 - Covers: `declare_equal_normalize`, `declare_parentheses`, `PSR12.Files.DeclareStatement`
 
@@ -912,8 +912,8 @@ The whitespace inside a `declare` statement.
 The whitespace between the name of a function and its parenthesis, of a call and of a declaration alike.
 
 - By default `keep`
-- Takes: compact "foo($a, $b)" (no space before the parenthesis); `keep`
-- The standards: perCs `compact`, psr12 `compact`, nette `compact`, symfony `compact`
+- Takes: `'foo($a, $b)'` (no space before the parenthesis); `keep`
+- The standards: perCs `'foo($a, $b)'`, psr12 `'foo($a, $b)'`, nette `'foo($a, $b)'`, symfony `'foo($a, $b)'`
 - Rule `DressCode\Rules\Functions\FunctionNameSpacingRule`, stage Formatting
 - Covers: `function_declaration`, `no_spaces_after_function_name`, `Generic.Functions.FunctionCallArgumentSpacing.SpaceBeforeOpenBracket`, `PSR2.Methods.FunctionCallSignature`, `Squiz.Functions.FunctionDeclaration`
 
@@ -922,8 +922,8 @@ The whitespace between the name of a function and its parenthesis, of a call and
 The whitespace around the colon of a named argument.
 
 - By default `keep`
-- Takes: spacedAfter "foo(name: $x)" (none before the colon, a single space after); `keep`
-- The standards: perCs `spacedAfter`, psr12 `keep`, nette `spacedAfter`, symfony `spacedAfter`
+- Takes: `'foo(name: $x)'` (none before the colon, a single space after); `keep`
+- The standards: perCs `'foo(name: $x)'`, psr12 `keep`, nette `'foo(name: $x)'`, symfony `'foo(name: $x)'`
 - Rule `DressCode\Rules\Functions\NamedArgumentSpacingRule`, stage Formatting
 - Covers: `SlevomatCodingStandard.Functions.NamedArgumentSpacing`
 
@@ -932,8 +932,8 @@ The whitespace around the colon of a named argument.
 The whitespace of a type declaration, which stays on one line with what it describes: none inside a type, a single space between a type and the name it declares, `): int` for a return type and `enum Suit: string` for a backing type.
 
 - By default `keep`
-- Takes: compact "?int $x" (none inside a type, a single space before the name); `keep`
-- The standards: perCs `compact`, psr12 `compact`, nette `compact`, symfony `compact`
+- Takes: `'?int $x'` (none inside a type, a single space before the name); `keep`
+- The standards: perCs `'?int $x'`, psr12 `'?int $x'`, nette `'?int $x'`, symfony `'?int $x'`
 - Rule `DressCode\Rules\Types\TypeDeclarationSpacingRule`, stage Formatting
 - Covers: `compact_nullable_type_declaration`, `return_type_declaration`, `PSR12.Functions.NullableTypeDeclaration`, `PSR12.Functions.ReturnTypeDeclaration`, `SlevomatCodingStandard.Classes.BackedEnumTypeSpacing`, `SlevomatCodingStandard.TypeHints.ParameterTypeHintSpacing`, `SlevomatCodingStandard.TypeHints.PropertyTypeHintSpacing`, `SlevomatCodingStandard.TypeHints.ReturnTypeHintSpacing`
 
@@ -942,8 +942,8 @@ The whitespace of a type declaration, which stays on one line with what it descr
 The space around the bar between the types of a `catch`.
 
 - By default `keep`
-- Takes: spaced "catch (A \| B $e)" (a single space around the bar); compact "catch (A\|B $e)" (no space around the bar); `keep`
-- The standards: perCs `compact`, psr12 `spaced`, nette `compact`, symfony `compact`
+- Takes: `'catch (A \| B $e)'` (a single space around the bar); `'catch (A\|B $e)'` (no space around the bar); `keep`
+- The standards: perCs `'catch (A\|B $e)'`, psr12 `'catch (A \| B $e)'`, nette `'catch (A\|B $e)'`, symfony `'catch (A\|B $e)'`
 - Rule `DressCode\Rules\Types\TypeDeclarationSpacingRule`, stage Formatting
 
 ### spacing.attribute
@@ -951,8 +951,8 @@ The space around the bar between the types of a `catch`.
 The whitespace inside the brackets of an attribute group and before the parenthesis of its arguments.
 
 - By default `keep`
-- Takes: compact "#[Foo($a)]" (none inside the brackets, none before the parenthesis); `keep`
-- The standards: perCs `compact`, psr12 `keep`, nette `compact`, symfony `compact`
+- Takes: `'#[Foo($a)]'` (none inside the brackets, none before the parenthesis); `keep`
+- The standards: perCs `'#[Foo($a)]'`, psr12 `keep`, nette `'#[Foo($a)]'`, symfony `'#[Foo($a)]'`
 - Rule `DressCode\Rules\Whitespace\AttributeSpacingRule`, stage Formatting
 - Covers: `attribute_block_no_spaces`
 
@@ -961,8 +961,8 @@ The whitespace inside the brackets of an attribute group and before the parenthe
 The whitespace around a comma, which stays on the line of what is before it, a line ending after it being free.
 
 - By default `keep`
-- Takes: spaced "$a, $b" (none before, a single space after); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `spaced`
+- Takes: `'$a, $b'` (none before, a single space after); `keep`
+- The standards: perCs `'$a, $b'`, psr12 `'$a, $b'`, nette `'$a, $b'`, symfony `'$a, $b'`
 - Rule `DressCode\Rules\Whitespace\CommaSpacingRule`, stage Formatting
 - Covers: `no_whitespace_before_comma_in_array`, `whitespace_after_comma_in_array`, `Generic.Functions.FunctionCallArgumentSpacing`, `Squiz.Functions.FunctionDeclarationArgumentSpacing`
 
@@ -981,8 +981,8 @@ Which whitespace wider than a single space after a comma stays, aligning the col
 The space after `return`, `throw`, `yield`, `print`, `include`, `clone`, `new` and the other keywords followed by code, which also stays on their line, and inside the braces of abbreviated property hooks; the braces of a group use hug their names.
 
 - By default `keep`
-- Takes: spaced "return $x" (a single space); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `spaced`
+- Takes: `'return $x'` (a single space); `keep`
+- The standards: perCs `'return $x'`, psr12 `'return $x'`, nette `'return $x'`, symfony `'return $x'`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 - Covers: `single_space_around_construct`, `Generic.WhiteSpace.LanguageConstructSpacing`, `PSR12.Traits.UseDeclaration`, `PSR2.ControlStructures.SwitchDeclaration`
 
@@ -991,8 +991,8 @@ The space after `return`, `throw`, `yield`, `print`, `include`, `clone`, `new` a
 The space after `if`, `elseif`, `while`, `for`, `foreach`, `switch`, `match` and `catch`, and before the brace or the body a structure opens on its line; the colon of the alternative syntax hugs what is before it.
 
 - By default `keep`
-- Takes: spaced "if ($a)" (a single space); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `spaced`
+- Takes: `'if ($a)'` (a single space); `keep`
+- The standards: perCs `'if ($a)'`, psr12 `'if ($a)'`, nette `'if ($a)'`, symfony `'if ($a)'`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 - Covers: `single_space_around_construct`, `Squiz.ControlStructures.ControlSignature`
 
@@ -1001,8 +1001,8 @@ The space after `if`, `elseif`, `while`, `for`, `foreach`, `switch`, `match` and
 The space around `else`, `elseif`, `catch`, `finally`, the `while` of a `do`, `as`, `insteadof` and the `use` of a closure, which stay on the line of what is before them.
 
 - By default `keep`
-- Takes: spaced "} else {" (a single space); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `spaced`
+- Takes: `'} else {'` (a single space); `keep`
+- The standards: perCs `'} else {'`, psr12 `'} else {'`, nette `'} else {'`, symfony `'} else {'`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 - Covers: `single_space_around_construct`, `PSR12.Traits.UseDeclaration`, `Squiz.ControlStructures.ControlSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`
 
@@ -1011,8 +1011,8 @@ The space around `else`, `elseif`, `catch`, `finally`, the `while` of a `do`, `a
 The space after every `function` keyword, of a closure as of a declaration.
 
 - By default `keep`
-- Takes: spaced "function ($x)" (a single space); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `spaced`
+- Takes: `'function ($x)'` (a single space); `keep`
+- The standards: perCs `'function ($x)'`, psr12 `'function ($x)'`, nette `'function ($x)'`, symfony `'function ($x)'`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 - Covers: `function_declaration`, `single_space_around_construct`, `Squiz.Functions.FunctionDeclaration`
 
@@ -1021,8 +1021,8 @@ The space after every `function` keyword, of a closure as of a declaration.
 The space after a modifier, and after the `static` of a static closure, a static arrow function and a static variable.
 
 - By default `keep`
-- Takes: spaced "final public static function" (a single space); `keep`
-- The standards: perCs `spaced`, psr12 `spaced`, nette `spaced`, symfony `spaced`
+- Takes: `'final public static function'` (a single space); `keep`
+- The standards: perCs `'final public static function'`, psr12 `'final public static function'`, nette `'final public static function'`, symfony `'final public static function'`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 - Covers: `single_space_around_construct`
 
@@ -1031,8 +1031,8 @@ The space after a modifier, and after the `static` of a static closure, a static
 The space between `fn` and its parenthesis.
 
 - By default `keep`
-- Takes: compact "fn($x) => $x" (no space before the parenthesis); spaced "fn ($x) => $x" (a single space); `keep`
-- The standards: perCs `compact`, psr12 `keep`, nette `compact`, symfony `spaced`
+- Takes: `'fn($x) => $x'` (no space before the parenthesis); `'fn ($x) => $x'` (a single space); `keep`
+- The standards: perCs `'fn($x) => $x'`, psr12 `keep`, nette `'fn($x) => $x'`, symfony `'fn ($x) => $x'`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 - Covers: `function_declaration`, `SlevomatCodingStandard.Functions.ArrowFunctionDeclaration`
 
@@ -1041,8 +1041,8 @@ The space between `fn` and its parenthesis.
 The whitespace inside parentheses.
 
 - By default `keep`
-- Takes: compact "($a)" (none inside); `keep`
-- The standards: perCs `compact`, psr12 `compact`, nette `compact`, symfony `compact`
+- Takes: `'($a)'` (none inside); `keep`
+- The standards: perCs `'($a)'`, psr12 `'($a)'`, nette `'($a)'`, symfony `'($a)'`
 - Rule `DressCode\Rules\Whitespace\ParenthesesSpacingRule`, stage Formatting
 - Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`, `Squiz.WhiteSpace.ControlStructureSpacing`
 
@@ -1051,8 +1051,8 @@ The whitespace inside parentheses.
 The whitespace before a semicolon, which stays on the line of what it ends.
 
 - By default `keep`
-- Takes: compact "$a;" (no space before a semicolon); `keep`
-- The standards: perCs `compact`, psr12 `keep`, nette `compact`, symfony `compact`
+- Takes: `'$a;'` (no space before a semicolon); `keep`
+- The standards: perCs `'$a;'`, psr12 `keep`, nette `'$a;'`, symfony `'$a;'`
 - Rule `DressCode\Rules\Whitespace\SemicolonSpacingRule`, stage Formatting
 - Covers: `no_singleline_whitespace_before_semicolons`, `PSR12.Traits.UseDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`, `Squiz.WhiteSpace.SemicolonSpacing`
 
@@ -1061,8 +1061,8 @@ The whitespace before a semicolon, which stays on the line of what it ends.
 The whitespace after a semicolon that more code follows on its line.
 
 - By default `keep`
-- Takes: spaced "for ($i = 0; $i &lt; 5; $i++)" (a single space after a semicolon); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `spaced`, symfony `spaced`
+- Takes: `'for ($i = 0; $i < 5; $i++)'` (a single space after a semicolon); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'for ($i = 0; $i < 5; $i++)'`, symfony `'for ($i = 0; $i < 5; $i++)'`
 - Rule `DressCode\Rules\Whitespace\SemicolonSpacingRule`, stage Formatting
 - Covers: `space_after_semicolon`, `Squiz.ControlStructures.ForLoopDeclaration`
 
@@ -2405,8 +2405,8 @@ A class constant declares the type of its value.
 How a native type of one type and `null` is written.
 
 - By default `keep`
-- Takes: questionMark "?int" (a single type with `null` written with `?`); `keep`
-- The standards: perCs `questionMark`, psr12 `keep`, nette `questionMark`, symfony `questionMark`
+- Takes: `'?int'` (a single type with `null` written with `?`); `keep`
+- The standards: perCs `'?int'`, psr12 `keep`, nette `'?int'`, symfony `'?int'`
 - Rule `DressCode\Rules\Types\TypeNotationRule`, stage Structure
 
 ### types.nullPosition
@@ -2499,8 +2499,8 @@ A default a required parameter after it makes unreachable.
 The name of the current class, of the one the method runs through and of the parent; the class of an object is `cleanup.get_class`.
 
 - By default `keep`
-- Takes: classKeyword "self::class" (`self::class`, `static::class` and `parent::class`, never `get_class()`, `get_called_class()`, `get_parent_class()` or `__CLASS__`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `classKeyword`, symfony `keep`
+- Takes: `'self::class'` (`self::class`, `static::class` and `parent::class`, never `get_class()`, `get_called_class()`, `get_parent_class()` or `__CLASS__`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'self::class'`, symfony `keep`
 - Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Classes.ModernClassNameReference`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
@@ -2679,8 +2679,8 @@ The statements the body of a trailing `if` has at least for it to become a guard
 The keyword of a branch that follows `if`.
 
 - By default `keep`
-- Takes: oneWord "elseif" (`elseif` in one word, never `else if`); `keep`
-- The standards: perCs `oneWord`, psr12 `oneWord`, nette `oneWord`, symfony `oneWord`
+- Takes: `'elseif'` (`elseif` in one word, never `else if`); `keep`
+- The standards: perCs `'elseif'`, psr12 `'elseif'`, nette `'elseif'`, symfony `'elseif'`
 - Rule `DressCode\Rules\ControlFlow\ElseifNotationRule`, stage Structure
 - Covers: `elseif`, `PSR2.ControlStructures.ElseIfDeclaration`
 
@@ -2720,8 +2720,8 @@ The second `;` of `foo();;`.
 What ends `case` and `default`.
 
 - By default `keep`
-- Takes: colon ":" (a colon, never a semicolon); `keep`
-- The standards: perCs `colon`, psr12 `colon`, nette `colon`, symfony `colon`
+- Takes: `':'` (a colon, never a semicolon); `keep`
+- The standards: perCs `':'`, psr12 `':'`, nette `':'`, symfony `':'`
 - Rule `DressCode\Rules\ControlFlow\SwitchCaseNotationRule`, stage Structure
 - Covers: `switch_case_semicolon_to_colon`, `PSR2.ControlStructures.SwitchDeclaration`
 
@@ -2825,8 +2825,8 @@ An operand where logical or bitwise operators are easy to misread is parenthesiz
 The operator of inequality.
 
 - By default `keep`
-- Takes: exclamation "!=" (`!=`, never `<>`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `exclamation`, symfony `exclamation`
+- Takes: `'!='` (`!=`, never `<>`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'!='`, symfony `'!='`
 - Rule `DressCode\Rules\Expressions\NotEqualsNotationRule`, stage Structure
 - Covers: `standardize_not_equals`
 
@@ -3004,8 +3004,8 @@ An empty comment, which is removed.
 The marker of a single-line comment.
 
 - By default `keep`
-- Takes: slashes "//" (`//`, never `#`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `slashes`, symfony `slashes`
+- Takes: `'//'` (`//`, never `#`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'//'`, symfony `'//'`
 - Rule `DressCode\Rules\Comments\NoHashCommentsRule`, stage Finishing
 - Covers: `single_line_comment_style`, `PEAR.Commenting.InlineComment`
 - Modifies comments
@@ -3155,7 +3155,7 @@ How a built-in type in a doc comment is written, `int` and never `integer` or `I
 How a type of a doc comment of one type and `null` is written.
 
 - By default `keep`
-- Takes: questionMark "?T" (a single type with `null` written with `?`); `keep`
+- Takes: `'?T'` (a single type with `null` written with `?`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
 - Modifies comments
@@ -3187,7 +3187,7 @@ The order of the types of a union type of a doc comment.
 How an array type of a doc comment is written; `list<T>` is a different type and stays.
 
 - By default `keep`
-- Takes: generic "array&lt;T>" (the generic notation); brackets "T[]" (the brackets); `keep`
+- Takes: `'array<T>'` (the generic notation); `'T[]'` (the brackets); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
 - Covers: `PhpCsFixerCustomFixers/phpdoc_array_style`, `PhpCsFixerCustomFixers/phpdoc_type_list`, `phpdoc_array_type`, `phpdoc_list_type`, `SlevomatCodingStandard.TypeHints.DisallowArrayTypeHintSyntax`
@@ -3198,8 +3198,8 @@ How an array type of a doc comment is written; `list<T>` is a different type and
 The annotation of a promoted property.
 
 - By default `keep`
-- Takes: atProperty "@var" (a `@var` at the property, not a `@param` of the constructor); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `atProperty`, symfony `keep`
+- Takes: `'@var'` (a `@var` at the property, not a `@param` of the constructor); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'@var'`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\PromotedPropertyAnnotationPositionRule`, stage Structure
 - Modifies comments
 

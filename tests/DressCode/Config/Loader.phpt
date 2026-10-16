@@ -495,7 +495,7 @@ test('an entity that cannot be evaluated is an error of the file', function () {
 		'Configuration file `%a%`: An analysis is written as its class, or as its class with the entity of its factory.',
 	);
 	Assert::exception(
-		fn() => $load("decisions:\n\tfile: {bom: forbidden}\nspacing: {call: compact}\n"),
+		fn() => $load("decisions:\n\tfile: {bom: forbidden}\nspacing: {call: 'foo(\$a, \$b)'}\n"),
 		ConfigurationException::class,
 		'Configuration file `%a%`: The decisions are written as sections at the top or under `decisions`, not both; `spacing` stands beside `decisions`.',
 	);

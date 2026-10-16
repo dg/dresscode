@@ -273,7 +273,7 @@ test('publicWithSetVisibility and visibilityRequired agree that a set visibility
 
 test('a comment commentSpacing rewrites keeps its line for the rule that reports it next', function () {
 	$result = interplay([
-		Rules\Comments\CommentSpacingRule::class => ['spacing.comment.marker' => 'spaced'],
+		Rules\Comments\CommentSpacingRule::class => ['spacing.comment.marker' => '// text'],
 		Rules\Comments\NoHashCommentsRule::class => true,
 	], "<?php\n\$a = 1;\n#foo\n\$b = 2;\n", "<?php\n\$a = 1;\n// foo\n\$b = 2;\n");
 	Assert::same([3, 3], array_map(fn(Violation $violation) => $violation->line, $result->violations));

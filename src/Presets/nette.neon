@@ -155,7 +155,7 @@ cleanup:
 	settype: forbidden                        # `$x = (int) $x`
 	conversionFunctions: forbidden            # `(int) $x`, not `intval($x)`
 	dirnameOfFile: forbidden                  # `__DIR__`
-	classNameNotation: classKeyword           # `self::class`, `static::class`
+	classNameNotation: 'self::class'          # `self::class`, `static::class`
 	get_class: forbidden                      # `$o::class`
 	separateIssets: forbidden                 # `isset($a, $b)`
 	separateUnsets: forbidden                 # `unset($a, $b);`

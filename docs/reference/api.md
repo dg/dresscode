@@ -432,6 +432,8 @@ final readonly class Shapes extends DressCode\Domain
 	public function __construct(array $shapes)
 	public function toArray(): array
 	public function describe(): string
+	public function getExample(string $word): string
+	public static function quote(string $example): string
 ```
 
 ## `DressCode\Domains\Text`

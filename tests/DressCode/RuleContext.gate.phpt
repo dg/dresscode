@@ -85,7 +85,7 @@ test('a selected requirement is reported, one the run does not report records no
 	Assert::true($context->isSilenced($token, decision: 'spacing.comma'));
 	Assert::false($context->isSilenced($token, decision: 'spacing.call'));
 
-	$narrowed = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma' => 'spaced'], ['spacing.comma']);
+	$narrowed = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma' => '$a, $b'], ['spacing.comma']);
 	Assert::false($narrowed->report($token, 'Expected no whitespace.', decision: 'spacing.call'));
 	Assert::false($narrowed->reportGap($token, $token, 'Expected no whitespace.', decision: 'spacing.call'));
 	Assert::false($narrowed->hasReports());
@@ -150,7 +150,7 @@ test('the gate names the requirements the run reports', function () {
 
 
 test('the engine reports a gap under the decision of the claim that decided it', function () use ($file) {
-	$context = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma' => 'spaced'], ['spacing.comma']);
+	$context = createContext($file, ['spacing.call' => 'foo()', 'spacing.comma' => '$a, $b'], ['spacing.comma']);
 	$fixer = new Fixer([SpacingRule::class => $context]);
 	$comma = $file->find(PhpSyntax\Nodes\ArgumentListNode::class)[0]->getFirstToken()->getNext()?->getNext() ?? throw new LogicException;
 	$next = $comma->getNext() ?? throw new LogicException;

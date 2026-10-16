@@ -423,5 +423,5 @@ test('the export is the decisions as data, versioned', function () {
 	Assert::same('parameter', $export['decisions']['controlFlow.trailingIfMinStatements']['kind']);
 	Assert::false($export['decisions']['controlFlow.trailingIfMinStatements']['keep']);
 	Assert::same(2, $export['decisions']['controlFlow.trailingIfMinStatements']['default']);
-	Assert::same('compact "foo()" (none); spaced "foo ()" (one); `keep`', $export['decisions']['spacing.call']['values']);
+	Assert::same("`'foo()'` (none); `'foo ()'` (one); `keep`", $export['decisions']['spacing.call']['values']);
 });
