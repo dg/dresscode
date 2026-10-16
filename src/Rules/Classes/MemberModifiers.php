@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
-use PhpSyntax\Nodes\ModifiersNode;
+use PhpSyntax\Nodes\{ModifiersNode, ParameterNode};
 use PhpSyntax\Token;
 
 
@@ -38,18 +38,19 @@ final class MemberModifiers
 	}
 
 
-	public static function describeMember(PropertyNode|MethodNode|ClassConstNode $node): string
+	public static function describeMember(PropertyNode|MethodNode|ClassConstNode|ParameterNode $node): string
 	{
 		return match (true) {
 			$node instanceof MethodNode => "method `{$node->name->text}()`",
 			$node instanceof ClassConstNode => 'constant `' . $node->items->getItems()[0]->name->token->text . '`',
+			$node instanceof ParameterNode => 'promoted property `$' . $node->variable->plainName . '`',
 			default => 'property `$' . $node->items->getItems()[0]->plainName . '`',
 		};
 	}
 
 
 	/** @param list<string> $texts */
-	public static function write(PropertyNode|MethodNode|ClassConstNode $node, array $texts): void
+	public static function write(PropertyNode|MethodNode|ClassConstNode|ParameterNode $node, array $texts): void
 	{
 		foreach ($node->modifiers->getTokens() as $token) {
 			$node->modifiers->removeToken($token);

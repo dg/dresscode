@@ -1,0 +1,12 @@
+<?php
+// php 8.4
+class Point
+{
+	public function __construct(
+		public readonly int $x,
+		private(set) int $y,
+		protected int $z,
+		int $plain,
+	) {
+	}
+}

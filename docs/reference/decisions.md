@@ -2470,7 +2470,7 @@ The visibility of a constant of a class, an interface, a trait or an enum.
 
 ### classes.visibility.property
 
-The visibility of a property, `var` becoming `public` and a set visibility counting as one.
+The visibility of a property, a promoted one included, `var` becoming `public` and a set visibility counting as one.
 
 - By default `keep`
 - Takes: `required` (always there); `keep`

@@ -13,8 +13,8 @@ class A
 		private(set) string $p,
 		protected(set) readonly int $q,
 		public private(set) string $r,
-		final $s,
+		final public $s,
 		final private(set) string $t,
-		readonly int $u,
+		public readonly int $u,
 	) {}
 }

@@ -1,1 +1,3 @@
 12: The method `__construct()` must declare its visibility.
+16: The promoted property `$s` must declare its visibility.
+18: The promoted property `$u` must declare its visibility.

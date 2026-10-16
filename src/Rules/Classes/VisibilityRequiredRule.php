@@ -10,6 +10,7 @@ namespace DressCode\Rules\Classes;
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Member\{ClassConstNode, MethodNode, PropertyNode};
+use PhpSyntax\Nodes\ParameterNode;
 use PhpSyntax\Nodes\Statement\InterfaceNode;
 use function count;
 
@@ -51,7 +52,7 @@ final class VisibilityRequiredRule extends NodeRule
 			new Decision(
 				'classes.visibility.property',
 				Domain::state('required'),
-				'The visibility of a property, `var` becoming `public` and a set visibility counting as one',
+				'The visibility of a property, a promoted one included, `var` becoming `public` and a set visibility counting as one',
 			),
 			new Decision(
 				'classes.visibility.method',
@@ -77,20 +78,25 @@ final class VisibilityRequiredRule extends NodeRule
 
 	public function getVisitedNodes(): array
 	{
-		return [PropertyNode::class, MethodNode::class, ClassConstNode::class];
+		return [PropertyNode::class, MethodNode::class, ClassConstNode::class, ParameterNode::class];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (!$node instanceof PropertyNode && !$node instanceof MethodNode && !$node instanceof ClassConstNode) {
+		if (
+			!$node instanceof PropertyNode
+			&& !$node instanceof MethodNode
+			&& !$node instanceof ClassConstNode
+			&& (!$node instanceof ParameterNode || !$node->promoted)
+		) {
 			return;
 		}
 
 		$interfaceMethod = $node instanceof MethodNode && $node->parent?->parent instanceof InterfaceNode;
 		$mode = match (true) {
 			$interfaceMethod => $this->interfaceMethod,
-			$this->members[$node::class] ?? false => self::Required,
+			$this->members[$node instanceof ParameterNode ? PropertyNode::class : $node::class] ?? false => self::Required,
 			default => self::Keep,
 		};
 		if ($mode !== self::Keep) {
@@ -100,7 +106,7 @@ final class VisibilityRequiredRule extends NodeRule
 
 
 	private function writeVisibility(
-		PropertyNode|MethodNode|ClassConstNode $node,
+		PropertyNode|MethodNode|ClassConstNode|ParameterNode $node,
 		string $mode,
 		bool $interfaceMethod,
 		RuleContext $context,
@@ -139,13 +145,19 @@ final class VisibilityRequiredRule extends NodeRule
 			$mode === self::Forbidden => ["The $member of an interface must not declare its visibility.", self::InterfaceMethod],
 			$hasVisibility && !array_any($tokens, fn(Token $token) => strtolower($token->text) === 'var') => [
 				"The modifiers of the $member must be written `" . implode(' ', $desired) . '`.',
-				self::Places[$node::class],
+				self::Places[$node instanceof ParameterNode ? PropertyNode::class : $node::class],
 			],
-			default => ["The $member must declare its visibility.", $interfaceMethod ? self::InterfaceMethod : self::Places[$node::class]],
+			default => [
+				"The $member must declare its visibility.",
+				$interfaceMethod
+					? self::InterfaceMethod
+					: self::Places[$node instanceof ParameterNode ? PropertyNode::class : $node::class],
+			],
 		};
 		$first = $tokens[0] ?? match (true) {
 			$node instanceof MethodNode => $node->functionKeyword,
 			$node instanceof ClassConstNode => $node->constKeyword,
+			$node instanceof ParameterNode => $node->getFirstToken(),
 			default => $node->type?->getFirstToken() ?? $node->items->getFirstToken(),
 		};
 		if ($first !== null && $context->report($first, $message, decision: $decision)) {
