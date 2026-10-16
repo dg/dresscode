@@ -1,0 +1,21 @@
+<?php
+// risky
+class A
+{
+	/**
+	 * @var int
+	 * @var string
+	 */
+	public $a;
+
+	/**
+	 * @param int $a
+	 * @param string $a
+	 * @return int
+	 * @return string
+	 */
+	public function a($a, int $b)
+	{
+		return 1;
+	}
+}

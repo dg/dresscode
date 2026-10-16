@@ -499,12 +499,12 @@ final class NativeTypeRequiredRule extends NodeRule
 
 	/**
 	 * The `@param`, `@return` or `@var` tags of the doc comment by the parameter they describe, `''` for the other
-	 * two, and the parameters a prefixed tag such as `@phpstan-param` describes instead.
+	 * two, and the parameters a prefixed tag such as `@phpstan-param` describes instead or two tags do, giving no type.
 	 * @return array{array<string, PhpDocTagNode>, array<string, true>}
 	 */
 	private static function findTags(?PhpDocNode $tree, string $name): array
 	{
-		$tags = $prefixed = [];
+		$tags = $prefixed = $doubled = [];
 		foreach ($tree->children ?? [] as $child) {
 			$value = $child instanceof PhpDocTagNode ? $child->value : null;
 			$kind = match (true) {
@@ -515,10 +515,13 @@ final class NativeTypeRequiredRule extends NodeRule
 			};
 			if ($kind === $name) {
 				$key = $value instanceof ParamTagValueNode || $value instanceof TypelessParamTagValueNode ? $value->parameterName : '';
-				if (strtolower($child->name) === $name) {
-					$tags[$key] = $child;
-				} else {
+				if (strtolower($child->name) !== $name) {
 					$prefixed[$key] = true;
+				} elseif (isset($tags[$key]) || isset($doubled[$key])) {
+					unset($tags[$key]);
+					$doubled[$key] = $prefixed[$key] = true;
+				} else {
+					$tags[$key] = $child;
 				}
 			}
 		}
