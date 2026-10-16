@@ -204,6 +204,7 @@ final class CorePlugin implements Plugin
 				Rules\Literals\NowdocForHeredocRule::class,
 				Rules\Literals\NumericLiteralSeparatorRule::class,
 				Rules\Literals\OctalNotationRule::class,
+				Rules\Literals\HexDigitCasingRule::class,
 				Rules\Literals\StringQuotesRule::class,
 				Rules\Literals\UselessStringConcatenationRule::class,
 				Rules\Namespaces\ImportNotationRule::class,

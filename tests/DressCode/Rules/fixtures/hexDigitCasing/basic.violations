@@ -1,0 +1,4 @@
+2: The number `0xff` must be written `0xFF`.
+3: The number `0XaB_cd` must be written `0xAB_CD`.
+4: The number `0B1010` must be written `0b1010`.
+5: The number `0O17` must be written `0o17`.

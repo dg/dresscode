@@ -20,6 +20,7 @@ casing:
 	magicConstant: uppercase
 	class: declared                           # `DateTime`, not `datetime`
 	function: declared                        # `strlen()`, not `StrLen()`
+	hexDigit: keep                            # integer_literal_case left to the project
 
 # global_namespace_import imports nothing: a class is written with the backslash, a function and a constant too where
 # they are qualified, and a bare one stays bare
@@ -114,6 +115,7 @@ expressions:
 literals:
 	quotes: single
 	heredocWithoutInterpolation: keep         # heredoc_to_nowdoc belongs to another set
+	concatenatedLiterals: keep                # no_useless_concat_operator left to the project
 
 comments:
 	singleline: '//'                          # not `#`

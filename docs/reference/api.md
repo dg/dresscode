@@ -1086,6 +1086,7 @@ final readonly class Violation
 - `DressCode\Rules\Functions\UselessParameterDefaultRule`
 - `DressCode\Rules\Literals\BuiltinCasingRule`
 - `DressCode\Rules\Literals\HeredocIndentationRule`
+- `DressCode\Rules\Literals\HexDigitCasingRule`
 - `DressCode\Rules\Literals\NoDollarBraceInterpolationsRule`
 - `DressCode\Rules\Literals\NoImplicitBackslashesRule`
 - `DressCode\Rules\Literals\NoTrailingWhitespaceInStringRule`
