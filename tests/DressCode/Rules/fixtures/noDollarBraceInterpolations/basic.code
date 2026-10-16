@@ -7,3 +7,7 @@ $e = <<<EOD
 text ${w} here
 EOD;
 $f = "a${g[0]}b${h['k']}c${i[$j]}d${k[f()]}e${l[K]}";
+$g = "a${$a}b${f()}c${ /* c */ $a . $b }d";
+$h = <<<EOD
+text ${$a} and ${f($x)} here
+EOD;

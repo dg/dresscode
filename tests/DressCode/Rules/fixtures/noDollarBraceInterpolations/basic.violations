@@ -1,7 +1,13 @@
 2: The deprecated `${name}` interpolation must be written `{$name}`.
+5: The deprecated `${expr}` interpolation must be written `{${expr}}`.
 7: The deprecated `${name}` interpolation must be written `{$name}`.
 9: The deprecated `${name}` interpolation must be written `{$name}`.
 9: The deprecated `${name}` interpolation must be written `{$name}`.
 9: The deprecated `${name}` interpolation must be written `{$name}`.
 9: The deprecated `${name}` interpolation must be written `{$name}`.
 9: The deprecated `${name}` interpolation must be written `{$name}`.
+10: The deprecated `${expr}` interpolation must be written `{${expr}}`.
+10: The deprecated `${expr}` interpolation must be written `{${expr}}`.
+10: The deprecated `${expr}` interpolation must be written `{${expr}}`.
+12: The deprecated `${expr}` interpolation must be written `{${expr}}`.
+12: The deprecated `${expr}` interpolation must be written `{${expr}}`.
