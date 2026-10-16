@@ -143,7 +143,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\OffsetBracketSpacingRule::class,
 				Rules\Expressions\PipeForNestedCallsRule::class,
 				Rules\Expressions\ReferenceSpacingRule::class,
-				Rules\Expressions\ShortTernaryForRepeatedConditionRule::class,
+				Rules\Expressions\ShortTernaryRule::class,
 				Rules\Expressions\SpreadOperatorSpacingRule::class,
 				Rules\Expressions\NoLooseComparisonsRule::class,
 				Rules\Expressions\LogicalOperatorNotationRule::class,

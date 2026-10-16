@@ -1033,7 +1033,7 @@ final readonly class Violation
 - `DressCode\Rules\Expressions\OffsetBracketSpacingRule`
 - `DressCode\Rules\Expressions\PipeForNestedCallsRule`
 - `DressCode\Rules\Expressions\ReferenceSpacingRule`
-- `DressCode\Rules\Expressions\ShortTernaryForRepeatedConditionRule`
+- `DressCode\Rules\Expressions\ShortTernaryRule`
 - `DressCode\Rules\Expressions\SpreadOperatorSpacingRule`
 - `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`
 - `DressCode\Rules\Expressions\UnaryOperatorSpacingRule`

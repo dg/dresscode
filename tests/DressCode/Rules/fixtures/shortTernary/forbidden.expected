@@ -1,0 +1,10 @@
+<?php
+// {"ternary.short": "forbidden"}
+$a = $b ? $b : $c;
+$a = $b ? $b : $c;
+$a = $b->c ? $b->c : $d;
+$a = f() ?: $d;
+$a = ($b ? $b : $c) ?: $d;
+$a = $b ? $b : $c;
+$a = $b /* x */ ? $b : $c;
+$a = ($b ? $b : $c) + 1;

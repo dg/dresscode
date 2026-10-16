@@ -3037,12 +3037,12 @@ The operator of inequality.
 
 ### expressions.ternary.short
 
-`$a ?: $b` written for `$a ? $a : $b`.
+`$a ?: $b`, written for `$a ? $a : $b` or the other way round where the condition can be read twice.
 
 - By default `keep`
-- Takes: `required` (always there); `keep`
+- Takes: `required` (always there); `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
-- Rule `DressCode\Rules\Expressions\ShortTernaryForRepeatedConditionRule`, stage Structure
+- Rule `DressCode\Rules\Expressions\ShortTernaryRule`, stage Structure
 - Covers: `ternary_to_elvis_operator`, `SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator`
 
 ### expressions.comparison.loose
