@@ -2898,10 +2898,10 @@ The keyword of a branch that follows `if`.
 
 ### controlFlow.switch.fallThroughComment
 
-The text of the line comment a non-empty `case` falling through to the next one carries, without the `//`, matched case-insensitively; a case that cannot fall through loses it.
+The text of the comment a non-empty `case` falling through to the next one carries, without the marker of the comment, matched case-insensitively and reported only where none is found; a case that cannot fall through loses it.
 
 - By default `keep`
-- Takes: a text; `keep`
+- Takes: a text, or a list of them, every one passing and the first written; `keep`
 - The standards: perCs `no break`, psr12 `no break`, nette `break omitted`, symfony `no break`
 - Rule `DressCode\Rules\ControlFlow\FallThroughCommentRule`, stage Structure
 - Covers: `no_break_comment`, `PSR2.ControlStructures.SwitchDeclaration`

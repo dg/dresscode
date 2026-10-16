@@ -23,7 +23,7 @@ final readonly class Value
 	public function __construct(
 		public Domain $domain,
 		/**
-		 * normalized: a list of words or of shapes, the first being the one written (Words, Shapes), a range
+		 * normalized: a list of words, shapes or texts, the first being the one written (Words, Shapes, Text), a range
 		 * `[min, max]` or a word (Count), a bool (Flag), a list of names (Names) or the entries by their names (Map),
 		 * each entry a Value; null for `keep`
 		 */
@@ -69,18 +69,19 @@ final readonly class Value
 
 
 	/**
-	 * The data the way a configuration writes them: a word for a tolerance of it alone, a number for an exact count, `1-2`
-	 * for a range and `1+` for an open one.
+	 * The data the way a configuration writes them: a word, an example or a text for a tolerance of it alone, a number for
+	 * an exact count, `1-2` for a range and `1+` for an open one.
 	 */
 	public function toWrittenData(): mixed
 	{
-		$data = $this->holdsEntries()
-			? array_map(fn(self $entry) => $entry->toWrittenData(), $this->content)
-			: $this->toData();
-		return match (true) {
-			$this->domain instanceof Shapes && !$this->keep && count($this->content) === 1 => $this->domain->getExample($this->content[0]),
+		$data = match (true) {
+			$this->holdsEntries() => array_map(fn(self $entry) => $entry->toWrittenData(), $this->content),
 			$this->domain instanceof Shapes && !$this->keep => array_map($this->domain->getExample(...), $this->content),
-			$this->domain instanceof Words && is_array($data) && array_is_list($data) && count($data) === 1 => $data[0],
+			default => $this->toData(),
+		};
+		$tolerant = $this->domain instanceof Words || $this->domain instanceof Shapes || $this->domain instanceof Text;
+		return match (true) {
+			$tolerant && is_array($data) && count($data) === 1 => $data[0],
 			$this->domain instanceof Count && is_array($data) && $data[0] === $data[1] => $data[0],
 			$this->domain instanceof Count && is_array($data) => $data[0] . ($data[1] === null ? '+' : "-$data[1]"),
 			default => $data,
@@ -193,7 +194,18 @@ final readonly class Value
 	}
 
 
+	/** The text: the one given, or the first of a tolerance. */
 	public function getText(): string
+	{
+		return $this->getTexts()[0];
+	}
+
+
+	/**
+	 * The texts of a tolerance, the first being the one written.
+	 * @return list<string>
+	 */
+	public function getTexts(): array
 	{
 		$this->checkNotKept();
 		$this->checkDomain(Text::class);

@@ -444,6 +444,8 @@ final readonly class Shapes extends DressCode\Domain
 
 ```php
 final readonly class Text extends DressCode\Domain
+	public readonly bool $tolerance
+	public function __construct(bool $tolerance = false)
 	public function toArray(): array
 	public function describe(): string
 ```
@@ -899,6 +901,7 @@ final readonly class Value
 	public function getCount(): array{int, ?int}
 	public function hasWord(): bool
 	public function getText(): string
+	public function getTexts(): list<string>
 	public function getFlag(): bool
 	public function getNames(): list<string>
 	public function getEntries(): array<string, DressCode\Value>

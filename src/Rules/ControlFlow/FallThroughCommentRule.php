@@ -23,7 +23,8 @@ final class FallThroughCommentRule extends NodeRule
 {
 	private const Comment = 'controlFlow.switch.fallThroughComment';
 
-	private string $comment = 'no break';
+	/** @var list<string>  the texts of the marker that pass, the first named in a message */
+	private array $comments = ['no break'];
 
 
 	public static function getDecisions(): array
@@ -31,8 +32,8 @@ final class FallThroughCommentRule extends NodeRule
 		return [
 			new Decision(
 				self::Comment,
-				new Text,
-				'The text of the line comment a non-empty `case` falling through to the next one carries, without the `//`, matched case-insensitively; a case that cannot fall through loses it',
+				new Text(tolerance: true),
+				'The text of the comment a non-empty `case` falling through to the next one carries, without the marker of the comment, matched case-insensitively and reported only where none is found; a case that cannot fall through loses it',
 			),
 		];
 	}
@@ -40,7 +41,7 @@ final class FallThroughCommentRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->comment = $values->get(self::Comment)->getText();
+		$this->comments = $values->get(self::Comment)->getTexts();
 	}
 
 
@@ -73,14 +74,14 @@ final class FallThroughCommentRule extends NodeRule
 			$context->report(
 				$stmts[count($stmts) - 1],
 				'A case falling through to the next one must end with `break` or be marked with a '
-				. Violation::formatCode($this->comment)
+				. Violation::formatCode($this->comments[0])
 				. ' comment.',
 				fixable: false,
 			);
 		} elseif (!$fallsThrough && $comment !== null && $token !== null) {
 			if ($context->report(
 				$token,
-				'Useless ' . Violation::formatCode($this->comment) . ' comment, because the case cannot fall through.',
+				'Useless ' . Violation::formatCode($comment->getCommentText()) . ' comment, because the case cannot fall through.',
 				trivia: $comment,
 			)) {
 				$token->removeTrivia($comment);
@@ -96,8 +97,8 @@ final class FallThroughCommentRule extends NodeRule
 	 */
 	private function findComment(Nodes\CaseNode $node, Nodes\CaseNode $next, bool $exact): array
 	{
-		$words = str_replace(' ', '\s+', preg_quote($this->comment, '~'));
-		$pattern = $exact ? '~^' . $words . '$~i' : '~(?<!\w)' . $words . '(?!\w)~i';
+		$words = implode('|', array_map(fn(string $text) => str_replace(' ', '\s+', preg_quote($text, '~')), $this->comments));
+		$pattern = $exact ? '~^(?:' . $words . ')$~i' : '~(?<!\w)(?:' . $words . ')(?!\w)~i';
 		$last = $node->getLastToken();
 		$first = $next->getFirstToken();
 		foreach ([[$last, $last->trailingTrivia], [$first, $first->leadingTrivia]] as [$token, $trivias]) {

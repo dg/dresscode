@@ -1,0 +1,17 @@
+<?php
+// {"switch.fallThroughComment": ["no break", "falls through"]}
+switch ($a) {
+	case 1:
+		f();
+		// Falls through
+
+	case 2:
+		g();
+		// no break
+	case 3:
+		h();
+	case 4:
+		return;
+	default:
+		i();
+}
