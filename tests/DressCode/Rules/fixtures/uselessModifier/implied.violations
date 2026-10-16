@@ -1,0 +1,9 @@
+5: Useless `final` modifier, because the class is final.
+8: Useless `final` modifier, because the class is final.
+14: Useless `final` modifier, because PHP makes a property it writes privately final.
+15: Useless `protected(set)` modifier, because PHP writes a public readonly property as protected.
+16: Useless `private(set)` modifier, because the property is written as it is read.
+18: Useless `protected(set)` modifier, because the property is written as it is read.
+21: Useless `final` modifier, because the property is final.
+25: Useless `protected(set)` modifier, because PHP writes a public readonly property as protected.
+33: Useless `protected(set)` modifier, because PHP writes a public readonly property as protected.

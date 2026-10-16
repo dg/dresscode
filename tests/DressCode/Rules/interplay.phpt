@@ -256,6 +256,14 @@ test('uselessModifier, visibilityRequired and modifierOrder settle on one shape'
 });
 
 
+test('uselessModifier drops the implied set visibility before publicWithSetVisibility writes public in front of it', function () {
+	interplay([
+		Rules\Classes\UselessModifierRule::class => true,
+		Rules\Classes\PublicWithSetVisibilityRule::class => ['classes.visibility.publicWithSet' => 'required'],
+	], "<?php\nclass A\n{\n\tprotected(set) readonly int \$a;\n}\n", "<?php\nclass A\n{\n\treadonly int \$a;\n}\n");
+});
+
+
 test('publicWithSetVisibility and visibilityRequired agree that a set visibility is a visibility', function () {
 	$code = "<?php\nclass A\n{\n\tstatic public private(set) int \$a = 0;\n\tprotected(set) int \$b = 0;\n\tvar \$c;\n}\n";
 	$expected = [

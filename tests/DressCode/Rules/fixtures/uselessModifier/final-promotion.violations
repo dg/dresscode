@@ -1,0 +1,1 @@
+5: Useless `final` modifier, because PHP makes a property it writes privately final.
