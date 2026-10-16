@@ -8,7 +8,7 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
-use PhpSyntax\{Node, Token};
+use PhpSyntax\{Node, Token, Trivia};
 use PhpSyntax\Nodes\PlainNodeList;
 use PhpSyntax\Nodes\Statement\EmptyStatementNode;
 
@@ -39,7 +39,19 @@ final class NoEmptyStatementsRule extends NodeRule
 			&& !$node->semicolon->is(Token::CloseTag)
 			&& $context->report($node, 'Empty statement.')
 		) {
+			self::trimOpenTag($node->semicolon);
 			$node->remove();
+		}
+	}
+
+
+	/** An open tag whose line the semicolon alone took gives up the space that would trail the line. */
+	private static function trimOpenTag(Token $semicolon): void
+	{
+		$tag = array_find($semicolon->leadingTrivia, fn($trivia) => $trivia->is(Trivia::OpenTag));
+		$ends = ($semicolon->trailingTrivia[0] ?? null)?->is(Trivia::LineEnding);
+		if ($tag && $ends) {
+			$semicolon->replaceTrivia($tag, $tag->withText(rtrim($tag->text, " \t")));
 		}
 	}
 }
