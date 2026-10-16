@@ -55,3 +55,7 @@ if ($a):endif;
 while ($a):   endwhile;
 class Hollow { }
 if ($a) { }
+$n = match ($a) {
+	'longest' => 1,
+	default   => 2,
+};

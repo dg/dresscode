@@ -46,7 +46,7 @@ final class ConstructSpacingRule extends GapRule
 		'yieldFromKeyword' => self::Construct, 'includeKeyword' => self::Construct, 'namespaceKeyword' => self::Construct,
 		'constKeyword' => self::Construct, 'globalKeyword' => self::Construct,
 		'staticKeyword' => 'spacing.modifier', 'gotoKeyword' => self::Construct, 'breakKeyword' => self::Construct,
-		'continueKeyword' => self::Construct, 'functionKeyword' => 'spacing.functionKeyword', 'defaultKeyword' => self::Construct,
+		'continueKeyword' => self::Construct, 'functionKeyword' => 'spacing.functionKeyword',
 		'ifKeyword' => self::Control, 'elseifKeyword' => self::Control, 'elseKeyword' => self::Connecting,
 		'whileKeyword' => self::Control, 'forKeyword' => self::Control, 'foreachKeyword' => self::Control,
 		'switchKeyword' => self::Control, 'matchKeyword' => self::Control, 'catchKeyword' => self::Control,
