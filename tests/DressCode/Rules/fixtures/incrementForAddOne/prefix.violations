@@ -1,0 +1,4 @@
+4: The `+= 1` assignment must be written `++$i`.
+	risky TypeUnknown: the target may be a string, which `++` changes as text
+5: The `-= 1` assignment must be written `--$j`.
+	risky TypeUnknown: the target may be a string, which `--` changes as text

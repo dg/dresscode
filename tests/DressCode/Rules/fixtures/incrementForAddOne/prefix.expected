@@ -1,0 +1,5 @@
+<?php
+// {"assignment.increment": "prefix"}
+// risky
+++$i;
+--$j;

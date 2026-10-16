@@ -185,6 +185,7 @@ expressions:
 	assignment:
 		addingOne: forbidden                  # `$i++`, not `$i += 1`
 		targetInValue: forbidden              # `$a += $b`, not `$a = $a + $b`
+		increment: postfix                    # `$i++;`
 	ternary:
 		short: required                       # `$a ?: $b`
 	coalesce: required                        # `$a ?? $b`

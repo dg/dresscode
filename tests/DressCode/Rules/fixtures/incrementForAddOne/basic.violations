@@ -1,8 +1,8 @@
-4: The `+= 1` assignment must be written `++`.
+4: The `+= 1` assignment must be written `$a++`.
 	risky TypeUnknown: the target may be a string, which `++` changes as text
-5: The `-= 1` assignment must be written `--`.
+5: The `-= 1` assignment must be written `$b--`.
 	risky TypeUnknown: the target may be a string, which `--` changes as text
-6: The `+= 1` assignment must be written `++`.
+6: The `+= 1` assignment must be written `$arr['x']++`.
 	risky TypeUnknown: the target may be a string, which `++` changes as text
-7: The `+= 1` assignment must be written `++`.
+7: The `+= 1` assignment must be written `$obj->count++`.
 	risky TypeUnknown: the target may be a string, which `++` changes as text

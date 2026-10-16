@@ -1,4 +1,4 @@
-10: The `+= 1` assignment must be written `++`.
-11: The `-= 1` assignment must be written `--`.
-12: The `+= 1` assignment must be written `++`.
+10: The `+= 1` assignment must be written `$counter->count++`.
+11: The `-= 1` assignment must be written `$counter->total--`.
+12: The `+= 1` assignment must be written `$counter->limit++`.
 	risky TypeUnknown: the target may be a string, which `++` changes as text

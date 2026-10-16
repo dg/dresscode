@@ -1,0 +1,6 @@
+2: The `$i++` whose value is not read must be written `++$i`.
+3: The `$j--` whose value is not read must be written `--$j`.
+5: The `$a++` whose value is not read must be written `++$a`.
+5: The `$b--` whose value is not read must be written `--$b`.
+8: The `$f->g++` whose value is not read must be written `++$f->g`.
+9: The `$h[0]++` whose value is not read must be written `++$h[0]`.

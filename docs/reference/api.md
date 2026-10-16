@@ -1016,6 +1016,7 @@ final readonly class Violation
 - `DressCode\Rules\Expressions\EmptyArgumentParenthesesRule`
 - `DressCode\Rules\Expressions\ExplicitPrecedenceRequiredRule`
 - `DressCode\Rules\Expressions\IncrementForAddOneRule`
+- `DressCode\Rules\Expressions\IncrementRule`
 - `DressCode\Rules\Expressions\LogicalOperatorNotationRule`
 - `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`
 - `DressCode\Rules\Expressions\MultilineChainRule`

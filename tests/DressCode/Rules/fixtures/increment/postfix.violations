@@ -1,0 +1,3 @@
+3: The `++$i` whose value is not read must be written `$i++`.
+4: The `--$j` whose value is not read must be written `$j--`.
+6: The `++$a` whose value is not read must be written `$a++`.

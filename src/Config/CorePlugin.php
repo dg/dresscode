@@ -129,6 +129,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\EmptyArgumentParenthesesRule::class,
 				Rules\Expressions\ExplicitPrecedenceRequiredRule::class,
 				Rules\Expressions\IncrementForAddOneRule::class,
+				Rules\Expressions\IncrementRule::class,
 				Rules\Expressions\MultilineBinaryOperatorRule::class,
 				Rules\Expressions\MultilineMatchRule::class,
 				Rules\Expressions\MultilineMatchArmRule::class,
@@ -360,6 +361,13 @@ final class CorePlugin implements Plugin
 					'blankLines.afterPhpdoc',
 					Domain::blankLines(),
 					'Between a doc comment or an attribute and the declaration it belongs to',
+				),
+
+				// the form of an increment whose value nobody reads, which the rule writing `$i++` for `$i += 1` writes too
+				new Decision(
+					'expressions.assignment.increment',
+					new Words(['prefix' => '`++$i`, `--$i`', 'postfix' => '`$i++`, `$i--`']),
+					'An increment or a decrement whose value is not read, a statement or a step of `for`; inside an expression it stays as it is',
 				),
 
 				// the classes a native type takes as iterable

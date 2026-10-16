@@ -1,0 +1,7 @@
+<?php
+// {"assignment.increment": "postfix"}
+$i++;
+$j--;
+$k++;
+for ($a = 0; $a < 3; $a++) {}
+$c = ++$d;
