@@ -1,0 +1,9 @@
+<?php
+// {"class": "Pascal_Snake_Case"}
+class WP_Error {}
+class WP_REST_Request {}
+class My_Class {}
+class FooBar {}
+class wp_error {}
+class Wp_error {}
+class _Foo {}

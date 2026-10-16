@@ -47,6 +47,7 @@ final class NameCasingRule extends NodeRule
 		'camelCase' => '~^[a-z][A-Za-z0-9]*$~',
 		'UPPER_CASE' => '~^[A-Z][A-Z0-9_]*$~',
 		'snake_case' => '~^[a-z][a-z0-9_]*$~',
+		'Pascal_Snake_Case' => '~^[A-Z][A-Za-z0-9]*(?:_[A-Z0-9][A-Za-z0-9]*)*$~',
 	];
 	private const ReservedVariables = [
 		'$this', '$GLOBALS', '$_SERVER', '$_GET', '$_POST', '$_FILES', '$_COOKIE', '$_SESSION', '$_REQUEST', '$_ENV', '$argc', '$argv', '$http_response_header',
@@ -66,6 +67,7 @@ final class NameCasingRule extends NodeRule
 			'camelCase' => 'a lowercase letter first, `fooBar`',
 			'UPPER_CASE' => 'capitals, digits and underscores, `FOO_BAR`',
 			'snake_case' => 'lowercase letters, digits and underscores, `foo_bar`',
+			'Pascal_Snake_Case' => 'words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too',
 		]);
 		$decisions = [];
 		foreach ([

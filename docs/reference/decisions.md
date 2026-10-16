@@ -339,7 +339,7 @@ The word `Error` at the end of the name of a plain class, `FooError`, which is r
 The case of the name of a class, an interface, a trait and an enum, which is reported and never renamed.
 
 - By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `PascalCase`, psr12 `PascalCase`, nette `PascalCase`, symfony `PascalCase`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
 - Covers: `Squiz.Classes.ValidClassName`
@@ -349,7 +349,7 @@ The case of the name of a class, an interface, a trait and an enum, which is rep
 The case of the name of a method, those beginning with `__` being PHP's, which is reported and never renamed.
 
 - By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `camelCase`, psr12 `camelCase`, nette `camelCase`, symfony `camelCase`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
 - Covers: `Generic.NamingConventions.CamelCapsFunctionName`, `PSR1.Methods.CamelCapsMethodName`, `Squiz.NamingConventions.ValidFunctionName`
@@ -359,7 +359,7 @@ The case of the name of a method, those beginning with `__` being PHP's, which i
 The case of the name of a function, those beginning with `__` being PHP's, which is reported and never renamed.
 
 - By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `camelCase`, symfony `keep`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
 - Covers: `Generic.NamingConventions.CamelCapsFunctionName`, `Squiz.NamingConventions.ValidFunctionName`
@@ -369,7 +369,7 @@ The case of the name of a function, those beginning with `__` being PHP's, which
 The case of the name of a class constant and a `const` outside a class, a constant of an enum passing in this case or in that of `enumCase`, which is reported and never renamed.
 
 - By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `UPPER_CASE`, psr12 `UPPER_CASE`, nette `PascalCase`, symfony `UPPER_CASE`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
 - Covers: `Generic.NamingConventions.UpperCaseConstantName`
@@ -379,7 +379,7 @@ The case of the name of a class constant and a `const` outside a class, a consta
 The case of the name of a case of an enum, which is reported and never renamed.
 
 - By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `PascalCase`, psr12 `keep`, nette `PascalCase`, symfony `PascalCase`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
 
@@ -388,7 +388,7 @@ The case of the name of a case of an enum, which is reported and never renamed.
 The case of the name of a property, a promoted constructor parameter included, which is reported and never renamed.
 
 - By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `camelCase`, symfony `keep`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
 - Covers: `Squiz.NamingConventions.ValidVariableName`
@@ -398,7 +398,7 @@ The case of the name of a property, a promoted constructor parameter included, w
 The case of the name of a variable and a parameter, `$this`, the superglobals and a placeholder such as `$_` excepted, which is reported and never renamed.
 
 - By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `camelCase`, symfony `keep`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
 - Covers: `Squiz.NamingConventions.ValidVariableName`
