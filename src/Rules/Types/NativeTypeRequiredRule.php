@@ -602,7 +602,7 @@ final class NativeTypeRequiredRule extends NodeRule
 		PhpDoc $phpDoc,
 	): void
 	{
-		$tree->children = array_values(array_filter($tree->children, fn($child) => !in_array($child, $tags, true)));
+		PhpDoc::keepChildren($tree, array_values(array_filter($tree->children, fn($child) => !in_array($child, $tags, true))));
 		$phpDoc->writeBack($tree, $docComment, $node);
 	}
 }

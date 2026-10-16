@@ -121,6 +121,7 @@ final class PhpDoc
 	public function writeBack(PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode $node, PhpSyntax\Trivia $original, PhpSyntax\Node|PhpSyntax\Token $at): void
 	public function findLocalTypes(PhpSyntax\Node $node): list<string>
 	public static function isEmpty(PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode $node): bool
+	public static function keepChildren(PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode $node, list<PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocChildNode> $kept): void
 	public static function isEmptyTag(PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode $tag): bool
 ```
 

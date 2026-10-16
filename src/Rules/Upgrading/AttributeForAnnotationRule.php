@@ -12,7 +12,7 @@ use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Tristate, Values, Violati
 use DressCode\Rules\CodeWriter;
 use DressCode\Rules\PhpDoc\AnnotationReplacement;
 use PHPStan\PhpDocParser\Ast\PhpDoc\Doctrine\DoctrineTagValueNode;
-use PHPStan\PhpDocParser\Ast\PhpDoc\{GenericTagValueNode, PhpDocTagNode, PhpDocTextNode};
+use PHPStan\PhpDocParser\Ast\PhpDoc\{GenericTagValueNode, PhpDocTagNode};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, AttributeGroupNode, AttributeNode, PlainNodeList};
@@ -136,12 +136,7 @@ final class AttributeForAnnotationRule extends NodeRule
 		}
 
 		if ($codes !== []) {
-			// the blank line that stood between the description and the annotations goes with them
-			while ($kept !== [] && end($kept) instanceof PhpDocTextNode && trim(end($kept)->text) === '') {
-				array_pop($kept);
-			}
-
-			$tree->children = $kept;
+			PhpDoc::keepChildren($tree, $kept);
 			AnnotationReplacement::writeAttributes($node, $docComment, $tree, $codes, $phpDoc, $context);
 		}
 	}

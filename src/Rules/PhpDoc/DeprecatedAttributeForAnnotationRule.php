@@ -94,7 +94,7 @@ final class DeprecatedAttributeForAnnotationRule extends NodeRule
 			return;
 		}
 
-		$tree->children = $kept;
+		PhpDoc::keepChildren($tree, $kept);
 		AnnotationReplacement::writeAttributes($node, $docComment, $tree, ["\\Deprecated$arguments"], $phpDoc, $context);
 	}
 

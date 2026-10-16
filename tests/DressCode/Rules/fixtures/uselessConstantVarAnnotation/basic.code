@@ -26,4 +26,11 @@ class A {
 
 	/** @var ?int */
 	const I = null;
+
+	/**
+	 * Summary.
+	 *
+	 * @var int
+	 */
+	const J = 3;
 }

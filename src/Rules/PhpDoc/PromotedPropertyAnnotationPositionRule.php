@@ -130,7 +130,7 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 			}
 		}
 
-		$tree->children = $kept;
+		PhpDoc::keepChildren($tree, $kept);
 		$phpDoc->writeBack($tree, $docComment, $node);
 	}
 

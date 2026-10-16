@@ -13,3 +13,8 @@ function b() {}
 function c() {}
 
 class D {}
+
+/**
+ * Description.
+ */
+function e() {}

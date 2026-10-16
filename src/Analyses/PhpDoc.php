@@ -152,6 +152,37 @@ final class PhpDoc
 	}
 
 
+	/**
+	 * Leaves the tree with the children kept, and takes with each annotation removed the blank line that separated it,
+	 * where that line would then stand at an edge or beside another one.
+	 * @param  list<PhpDocChildNode>  $kept
+	 */
+	public static function keepChildren(PhpDocNode $node, array $kept): void
+	{
+		$isBlank = fn(mixed $child) => $child instanceof PhpDocTextNode && trim($child->text) === '';
+		$children = [];
+		$blankAtStart = false;
+		foreach ($node->children as $i => $child) {
+			if (in_array($child, $kept, true)) {
+				if (!$blankAtStart || !$isBlank($child)) {
+					$children[] = $child;
+				}
+				$blankAtStart = false;
+
+			} elseif ($child instanceof PhpDocTagNode) {
+				$next = array_find(array_slice($node->children, $i + 1), fn($later) => in_array($later, $kept, true));
+				if ($children !== [] && $isBlank(end($children)) && ($next === null || $isBlank($next))) {
+					array_pop($children);
+				} elseif ($children === []) {
+					$blankAtStart = true;
+				}
+			}
+		}
+
+		$node->children = $children;
+	}
+
+
 	/** Whether the annotation has nothing after its name. */
 	public static function isEmptyTag(PhpDocTagNode $tag): bool
 	{

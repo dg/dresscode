@@ -94,7 +94,7 @@ final class AssertForInlineVarRule extends NodeRule
 			return;
 		}
 
-		$tree->children = $kept;
+		PhpDoc::keepChildren($tree, $kept);
 		$phpDoc->writeBack($tree, $docComment, $node);
 
 		$eol = $context->style->lineEnding;

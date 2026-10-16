@@ -76,7 +76,7 @@ final class ForbiddenAnnotationsRule extends NodeRule
 				continue;
 			}
 
-			$tree->children = $kept;
+			PhpDoc::keepChildren($tree, $kept);
 			$phpDoc->writeBack($tree, $trivia, $node);
 		}
 	}

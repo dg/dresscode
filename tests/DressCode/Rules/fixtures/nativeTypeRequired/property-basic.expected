@@ -31,4 +31,9 @@ class A
 	public array $l = [];
 
 	public mixed $m = null;
+
+	/**
+	 * Summary.
+	 */
+	public int $n;
 }

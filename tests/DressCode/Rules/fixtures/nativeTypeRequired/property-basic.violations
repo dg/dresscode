@@ -16,3 +16,6 @@
 36: Useless `@var` annotation for the property `$m`, because the native type says the same.
 37: The property `$m` must have the native type `mixed` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
+39: Useless `@var` annotation for the property `$n`, because the native type says the same.
+44: The property `$n` must have the native type `int` from its `@var` annotation.
+	risky BehaviorChanges: the property is then uninitialized until written, where it was null

@@ -61,7 +61,7 @@ final class UselessConstantVarAnnotationRule extends NodeRule
 			return;
 		}
 
-		$tree->children = array_values($kept);
+		PhpDoc::keepChildren($tree, array_values($kept));
 		$phpDoc->writeBack($tree, $docComment, $node);
 	}
 }

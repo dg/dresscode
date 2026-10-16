@@ -192,10 +192,10 @@ final class ReadonlyForAnnotationRule extends NodeRule
 
 		$phpDoc = $context->getAnalysis(PhpDoc::class);
 		$tree = $phpDoc->parse($docComment);
-		$tree->children = array_values(array_filter(
+		PhpDoc::keepChildren($tree, array_values(array_filter(
 			$tree->children,
 			fn(PhpDocChildNode $child) => !$child instanceof PhpDocTagNode || !in_array(strtolower($child->name), self::Tags, true),
-		));
+		)));
 		$phpDoc->writeBack($tree, $docComment, $node);
 	}
 }

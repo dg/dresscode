@@ -35,4 +35,11 @@ class A
 
 	/** @var mixed */
 	public $m;
+
+	/**
+	 * Summary.
+	 *
+	 * @var int
+	 */
+	public $n;
 }

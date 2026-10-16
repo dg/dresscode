@@ -1,2 +1,3 @@
 3: Useless `@var` annotation on a constant, because its value gives the type.
 6: Useless `@var` annotation on a constant, because its value gives the type.
+30: Useless `@var` annotation on a constant, because its value gives the type.

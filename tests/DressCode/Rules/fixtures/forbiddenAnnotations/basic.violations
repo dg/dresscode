@@ -3,3 +3,4 @@
 17: Annotation `@TODO` is forbidden.
 20: Annotation `@author` is forbidden.
 20: Annotation `@package` is forbidden.
+27: Annotation `@author` is forbidden.

@@ -23,3 +23,10 @@ function c() {}
  * @package Foo
  */
 class D {}
+
+/**
+ * Description.
+ *
+ * @author John
+ */
+function e() {}
