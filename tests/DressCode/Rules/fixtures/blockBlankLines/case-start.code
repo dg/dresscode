@@ -1,0 +1,13 @@
+<?php
+
+// {"bodyStart": {"switchCase": 0}}
+switch ($a) {
+	case 1:
+
+		foo();
+		break;
+	default:
+		// comment
+
+		bar();
+}

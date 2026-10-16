@@ -18,7 +18,8 @@ use function count;
 
 /**
  * How many blank lines stand inside the braces of a block: after the opening and before the closing one, between the
- * branches of an `if` or a `try`, and between the cases of a `switch`. Comments stay with the code below the blank lines.
+ * branches of an `if` or a `try`, and after the colon of a case and between the cases of a `switch`. Comments stay with
+ * the code below the blank lines.
  */
 #[RuleInfo(Stage::Formatting)]
 final class BlockBlankLinesRule extends GapRule
@@ -39,6 +40,9 @@ final class BlockBlankLinesRule extends GapRule
 
 	/** @var array<string, ?Claim>  place => the claim before the closing brace */
 	private array $beforeClosing = [];
+
+	/** the claim after the colon of a case, null where it is kept */
+	private ?Claim $caseStart = null;
 
 	/** @var int|array{int, ?int}|self::LastSetApart|null */
 	private int|array|string|null $betweenBranches = null;
@@ -69,6 +73,11 @@ final class BlockBlankLinesRule extends GapRule
 		return [
 			...$decisions,
 			new Decision(
+				'blankLines.bodyStart.switchCase',
+				Domain::blankLines(),
+				'After the colon of a `case` or `default` of a `switch`, before its first statement',
+			),
+			new Decision(
 				'blankLines.bodyEnd.branch',
 				$lastSetApart,
 				'Before the closing brace of a branch of `if` or `try` that `else`, `elseif`, `catch` or `finally` follows, in place of `bodyEnd.controlStructure`',
@@ -95,6 +104,10 @@ final class BlockBlankLinesRule extends GapRule
 			);
 		}
 
+		$this->caseStart = $this->claims->claim(
+			BlankLineClaims::readCount($values->get('blankLines.bodyStart.switchCase')),
+			'bodyStart.switchCase',
+		);
 		$readSetApart = fn(string $key) => !$values->isKept("blankLines.$key") && $values->get("blankLines.$key")->hasWord()
 			? self::LastSetApart
 			: BlankLineClaims::readCount($values->get("blankLines.$key"));
@@ -136,6 +149,11 @@ final class BlockBlankLinesRule extends GapRule
 					&& !self::isEndSetApart($gap->token->parent) => $free,
 				default => $between,
 			};
+		}
+
+		if ($this->caseStart !== null) {
+			$start = $this->caseStart;
+			$claims[CaseNode::class]['statements:item'] = [fn(Gap $gap) => $gap->index === 0 ? $start : null, null];
 		}
 
 		if ($this->betweenCases !== null) {
