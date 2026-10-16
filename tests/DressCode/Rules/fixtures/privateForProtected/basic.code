@@ -1,0 +1,50 @@
+<?php
+enum Suit
+{
+	protected const Wild = 'joker';
+
+	protected static function pick(): self
+	{
+		return self::Hearts;
+	}
+}
+
+final class Wallet
+{
+	protected const Limit = 10;
+	final protected const Cap = 20;
+	protected int $amount = 0;
+	public protected(set) string $owner = '';
+
+	public function __construct(
+		protected string $currency,
+	) {
+	}
+
+	protected function spend(): void
+	{
+	}
+}
+
+final class Child extends Wallet
+{
+	protected function spend(): void
+	{
+	}
+}
+
+final class Mixed
+{
+	use Helpers;
+
+	protected function help(): void
+	{
+	}
+}
+
+class Open
+{
+	protected function keep(): void
+	{
+	}
+}

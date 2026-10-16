@@ -969,6 +969,7 @@ final readonly class Violation
 - `DressCode\Rules\Classes\NoUnimplementedAbstractMethodsRule`
 - `DressCode\Rules\Classes\OverrideAttributeRequiredRule`
 - `DressCode\Rules\Classes\OverridingSignatureRule`
+- `DressCode\Rules\Classes\PrivateForProtectedRule`
 - `DressCode\Rules\Classes\PromotedPropertyForAssignmentRule`
 - `DressCode\Rules\Classes\PublicWithSetVisibilityRule`
 - `DressCode\Rules\Classes\ReadonlyClassForReadonlyPropertiesRule`

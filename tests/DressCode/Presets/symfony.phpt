@@ -26,6 +26,7 @@ Assert::same(
 		'classHeadSpacing',
 		'nameCasing',
 		'memberOrder',
+		'privateForProtected',
 		'noGroupedDeclarations',
 		'noMembersSharingLine',
 		'uselessNullInitialization',

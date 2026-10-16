@@ -1,0 +1,7 @@
+4: The `protected` member of an enum must be `private`.
+6: The `protected` member of an enum must be `private`.
+14: The `protected` member of a final class must be `private`.
+16: The `protected` member of a final class must be `private`.
+17: The `protected(set)` member of a final class must be `private(set)`.
+20: The `protected` member of a final class must be `private`.
+24: The `protected` member of a final class must be `private`.

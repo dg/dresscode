@@ -33,6 +33,7 @@ $perOnly = [
 	'attributeSpacing',
 	'attributePosition',
 	'phpdocAboveAttributes',
+	'privateForProtected',
 	'arrowFunctionForClosure',
 ];
 Assert::same(array_values(array_diff($names('perCs'), $perOnly)), $names('psr12'));

@@ -25,6 +25,7 @@ Assert::same(
 		'multilineImplements',
 		'nameCasing',
 		'memberOrder',
+		'privateForProtected',
 		'noGroupedDeclarations',
 		'noMembersSharingLine',
 		'visibilityRequired',
