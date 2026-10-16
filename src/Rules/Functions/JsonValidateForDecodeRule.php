@@ -33,7 +33,7 @@ final class JsonValidateForDecodeRule extends NodeRule
 		return [new Decision(
 			'upgrading.functions.json_validate',
 			Domain::adopted(),
-			'`json_validate()` for `json_decode()` called only to test the input',
+			'`json_validate($s)` for `json_decode($s) !== null && json_last_error() === JSON_ERROR_NONE`',
 		)];
 	}
 

@@ -3508,7 +3508,7 @@ The `global` statement.
 
 ### upgrading.syntax.dynamicClassConstant
 
-`X::{$name}` for `constant("X::$name")`.
+`X::{$name}` for `constant(X::class . '::' . $name)`.
 
 - By default `keep`
 - Takes: `adopted` (written where the older way is found); `keep`
@@ -3642,7 +3642,7 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 
 ### upgrading.syntax.nullsafe
 
-`$a?->b` for `$a ? $a->b : null`.
+`$a?->b` for `$a !== null ? $a->b : null` and `$a === null ? null : $a->b`.
 
 - By default `keep`
 - Takes: `adopted` (written where the older way is found); `keep`
@@ -3736,7 +3736,7 @@ The `escape` argument of `fgetcsv()` and kin written out, since PHP 8.4 deprecat
 
 ### upgrading.functions.json_validate
 
-`json_validate()` for `json_decode()` called only to test the input.
+`json_validate($s)` for `json_decode($s) !== null && json_last_error() === JSON_ERROR_NONE`.
 
 - By default `keep`
 - Takes: `adopted` (written where the older way is found); `keep`
