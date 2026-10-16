@@ -125,11 +125,7 @@ blankLines:
 	afterTraitUses: 1
 
 classes:
-	visibility:
-		constant: required
-		property: required                    # `var` is `public`
-		method: required
-		interfaceMethod: required             # `public` though implied
+	visibility: required                      # `var` is `public`; interface methods and set visibility too
 	modifiers:
 		order: canonical                      # `final public static`
 	members:

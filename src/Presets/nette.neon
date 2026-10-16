@@ -140,6 +140,7 @@ blankLines:
 classes:
 	visibility:
 		interfaceMethod: forbidden            # public anyway
+		publicWithSet: required               # `public private(set)`
 	members:
 		# the methods then in the order written
 		order: [traitUse, enumCase, constant, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]

@@ -96,6 +96,10 @@ blankLines:
 	beforeStatement: {return: 1+}             # a `return` set apart from the code above it
 
 classes:
+	visibility:
+		publicWithSet: required               # `public private(set)`, as modifier_keywords writes it
+	emptyParentheses:
+		attribute: keep                       # `#[Foo()]` stays, as in @Symfony
 	untypedPropertyNullDefault: forbidden    # `public $a;`, not `public $a = null;`
 	instantiationWrapping: keep              # @Symfony leaves the parentheses
 	protectedInFinalClass: forbidden         # `private` in a final class with no parent and no trait

@@ -2364,7 +2364,7 @@ The `public` of a property with a set visibility, `public protected(set) int $x`
 
 - By default `keep`
 - Takes: `required` (always there); `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
+- The standards: perCs `keep`, psr12 `required`, nette `required`, symfony `required`
 - Rule `DressCode\Rules\Classes\PublicWithSetVisibilityRule`, stage Structure
 - Needs PHP >=8.4
 
@@ -2534,7 +2534,7 @@ The empty parentheses of an attribute.
 
 - By default `keep`
 - Takes: `required` (always there, `#[Foo()]`); `forbidden` (never there, `#[Foo]`); `keep`
-- The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
+- The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\EmptyArgumentParenthesesRule`, stage Structure
 - Covers: `attribute_empty_parentheses`
 
