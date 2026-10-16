@@ -1,0 +1,8 @@
+<?php
+// {"instantiationWrapping": "required"}
+$a = new Foo()->bar();
+$b = new Foo(1)?->bar;
+$c = new Foo()::X;
+$d = (new Foo())->bar();
+$e = new Foo();
+$f = new class {}->bar();

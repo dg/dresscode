@@ -95,6 +95,7 @@ blankLines:
 
 classes:
 	untypedPropertyNullDefault: forbidden    # `public $a;`, not `public $a = null;`
+	instantiationWrapping: keep              # @Symfony leaves the parentheses
 
 functions:
 	trailingBareReturn: forbidden             # no `return;` closing a function

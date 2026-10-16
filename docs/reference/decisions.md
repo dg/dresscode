@@ -2523,12 +2523,12 @@ The empty parentheses of an attribute.
 
 ### classes.instantiationWrapping
 
-The parentheses around an instantiation a member is accessed on, `new Foo()->bar()` for `(new Foo())->bar()`; one without the parentheses of its arguments stays as it is.
+The parentheses around an instantiation a member is accessed on, `new Foo()->bar()` or `(new Foo())->bar()`; one without the parentheses of its arguments stays wrapped.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
-- Rule `DressCode\Rules\Expressions\UselessParenthesesAroundNewRule`, stage Structure
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `keep`
+- Rule `DressCode\Rules\Expressions\InstantiationWrappingRule`, stage Structure
 - Covers: `new_expression_parentheses`
 - Needs PHP >=8.4
 

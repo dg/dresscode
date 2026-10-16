@@ -59,6 +59,7 @@ classes:
 	emptyParentheses:
 		anonymousClass: forbidden            # `new class {}`, not `new class() {}`
 		attribute: forbidden                 # `#[Foo]`, not `#[Foo()]`
+	instantiationWrapping: forbidden         # `new Foo()->bar()`, not `(new Foo())->bar()`, from PHP 8.4
 
 types:
 	nullable: '?int'                         # not `int|null`

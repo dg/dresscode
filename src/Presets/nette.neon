@@ -227,6 +227,7 @@ mistakes:
 
 upgrading:
 	php:
+		deprecatedCall: forbidden             # what PHP deprecated reported, `utf8_encode()` and calls doing nothing fixed
 		dollarBraceInterpolation: forbidden   # `{$name}`, not `${name}`
 		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`
 		backticks: forbidden                  # `shell_exec()`

@@ -1020,6 +1020,7 @@ final readonly class Violation
 - `DressCode\Rules\Expressions\ExplicitPrecedenceRequiredRule`
 - `DressCode\Rules\Expressions\IncrementForAddOneRule`
 - `DressCode\Rules\Expressions\IncrementRule`
+- `DressCode\Rules\Expressions\InstantiationWrappingRule`
 - `DressCode\Rules\Expressions\LogicalOperatorNotationRule`
 - `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`
 - `DressCode\Rules\Expressions\MultilineChainRule`
@@ -1042,7 +1043,6 @@ final readonly class Violation
 - `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`
 - `DressCode\Rules\Expressions\UnaryOperatorSpacingRule`
 - `DressCode\Rules\Expressions\UselessParenthesesAfterConstructRule`
-- `DressCode\Rules\Expressions\UselessParenthesesAroundNewRule`
 - `DressCode\Rules\Expressions\UselessTernaryOperatorRule`
 - `DressCode\Rules\Expressions\YodaRule`
 - `DressCode\Rules\Files\DeclareSpacingRule`

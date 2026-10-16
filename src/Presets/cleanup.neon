@@ -23,7 +23,6 @@ classes:
 		parentCallOnly: forbidden            # one only forwarding to `parent::`, risky
 		ReturnTypeWillChange: forbidden      # on a method declaring its return type
 	untypedPropertyNullDefault: forbidden   # `public $a;`, not `public $a = null;`
-	instantiationWrapping: forbidden        # `new Foo()->bar()`, not `(new Foo())->bar()`
 
 functions:
 	trailingBareReturn: forbidden            # no `return;` closing a function
@@ -66,7 +65,3 @@ phpdoc:
 	inheritdocOnly: forbidden                # one holding only `{@inheritDoc}`
 	annotation:
 		constantVar: forbidden               # a bare `@var int` on a class constant
-
-upgrading:
-	php:
-		deprecatedCall: forbidden            # a call doing nothing on the target, as `curl_close()`, goes

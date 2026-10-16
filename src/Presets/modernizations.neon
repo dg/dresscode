@@ -15,6 +15,7 @@ functions:
 hygiene:
 	classNameNotation:
 		currentClass: 'self::class'            # `self::class`, `static::class`
+		object: '$object::class'               # not `get_class($o)`, PHP 8.0
 
 expressions:
 	ternary:
@@ -42,6 +43,8 @@ upgrading:
 		newInInitializer: required             # `Clock $c = new SystemClock`, not a `null` swapped in the body
 		promotedProperties: required
 		readonlyClasses: required              # `readonly class`, not `readonly` on every property
+	classes:
+		Stringable: required                   # on a class with `__toString()`, PHP 8.0
 	functions:
 		array_is_list: required
 		arraySearchFunctions: required         # `array_find()`, `array_any()` for a `foreach`
