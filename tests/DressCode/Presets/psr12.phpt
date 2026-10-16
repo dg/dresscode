@@ -25,7 +25,6 @@ $perOnly = [
 	'multilineChain',
 	'multilineTernary',
 	'semicolonSpacing',
-	'noMembersSharingLine',
 	'nowdocForHeredoc',
 	'heredocIndentation',
 	'arraySyntax',

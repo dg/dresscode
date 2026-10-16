@@ -27,7 +27,6 @@ Assert::same(
 		'memberOrder',
 		'privateForProtected',
 		'noGroupedDeclarations',
-		'noMembersSharingLine',
 		'visibilityRequired',
 		'modifierOrder',
 		'noBracelessBodies',

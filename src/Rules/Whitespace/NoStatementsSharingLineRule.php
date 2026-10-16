@@ -14,7 +14,8 @@ use PhpSyntax\Nodes\Statement\{EmptyStatementNode, InlineHtmlNode};
 
 
 /**
- * A statement starts on its own line when another statement of the same list precedes it.
+ * A statement starts on its own line when another statement of the same list precedes it, and so does a member of
+ * a class, an interface, a trait or an enum another member precedes, which PHP declares as a statement too.
  */
 #[RuleInfo(Stage::Formatting)]
 final class NoStatementsSharingLineRule extends GapRule
@@ -24,7 +25,7 @@ final class NoStatementsSharingLineRule extends GapRule
 		return [new Decision(
 			'file.statementsPerLine',
 			new Count(1, 1, range: false),
-			'`foo(); bar();` is two lines; `for (;;)` is one statement',
+			'`foo(); bar();` is two lines, and so are two members of a class, `public $a; public $b;`; `for (;;)` is one statement',
 		)];
 	}
 
@@ -34,10 +35,13 @@ final class NoStatementsSharingLineRule extends GapRule
 		// the first statement of a list follows no statement, and an empty statement, a close tag among them,
 		// stays where it stands
 		$break = Claim::nextLine();
-		return ['*' => ['statements:item' => [
-			fn(Gap $gap) => $gap->index > 0 && !$gap->value instanceof EmptyStatementNode && !self::followsMarkup($gap) ? $break : null,
-			null,
-		]]];
+		return ['*' => [
+			'statements:item' => [
+				fn(Gap $gap) => $gap->index > 0 && !$gap->value instanceof EmptyStatementNode && !self::followsMarkup($gap) ? $break : null,
+				null,
+			],
+			'members:item' => [fn(Gap $gap) => $gap->index > 0 ? $break : null, null],
+		]];
 	}
 
 

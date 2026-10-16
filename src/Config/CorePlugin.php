@@ -81,7 +81,6 @@ final class CorePlugin implements Plugin
 				Rules\Classes\SelfForCurrentClassRule::class,
 				Rules\Classes\SerializeMethodsRequiredRule::class,
 				Rules\Classes\NoGroupedDeclarationsRule::class,
-				Rules\Classes\NoMembersSharingLineRule::class,
 				Rules\Classes\StaticForMethodWithoutThisRule::class,
 				Rules\Classes\StaticSetStateRequiredRule::class,
 				Rules\Classes\StringableRequiredRule::class,

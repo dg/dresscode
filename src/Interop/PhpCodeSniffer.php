@@ -143,7 +143,7 @@ final class PhpCodeSniffer
 			'PSR12.Classes.ClassInstantiation' => ['classes.emptyParentheses.instantiation' => 'required'],
 			'PSR12.Classes.ClosingBrace' => function (array $o, Translation $t) {
 				$t->warn('`PSR12.Classes.ClosingBrace` also forbids a comment after the closing brace of a class or a function, which DressCode does not.');
-				$t->setAll(['classes.members.perLine' => 1, 'file.statementsPerLine' => 1]);
+				$t->set('file.statementsPerLine', 1);
 			},
 			'PSR12.Classes.OpeningBraceSpace' => fn(array $o, Translation $t) => $t->setAll([
 				'blankLines.bodyStart.class' => 0,
