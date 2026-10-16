@@ -24,7 +24,7 @@ final class NoThisOutsideObjectRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.thisOutsideObject',
+			'mistakes.thisOutsideObject',
 			Domain::state('forbidden'),
 			'`$this` in a static method, a static closure or a function outside a class',
 		)];

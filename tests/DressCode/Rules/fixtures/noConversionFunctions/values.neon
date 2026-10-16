@@ -1,2 +1,2 @@
-cleanup:
-	conversionFunctions: forbidden
+hygiene:
+	conversionFunction: forbidden

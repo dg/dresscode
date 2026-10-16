@@ -43,12 +43,12 @@ final class NoDebugOutputRule extends NodeRule
 	{
 		return [
 			new Decision(
-				'correctness.debugOutput',
+				'mistakes.debugOutput',
 				Domain::state(),
 				'A statement calling a debugging function to print, changed into a comment, `// var_dump($a);`; a call that may return its output instead, `print_r($a, true)`, stays',
 			),
 			new Decision(
-				'correctness.debugOutputFunctions',
+				'mistakes.debugOutputFunctions',
 				new Names(empty: false),
 				'The debugging functions whose calls print',
 				kind: DecisionKind::Parameter,
@@ -61,7 +61,7 @@ final class NoDebugOutputRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->functions = [];
-		foreach ($values->get('correctness.debugOutputFunctions')->getNames() as $function) {
+		foreach ($values->get('mistakes.debugOutputFunctions')->getNames() as $function) {
 			$this->functions[strtolower($function)] ??= $function;
 		}
 	}

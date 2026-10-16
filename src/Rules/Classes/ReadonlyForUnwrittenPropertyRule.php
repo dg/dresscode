@@ -48,7 +48,7 @@ final class ReadonlyForUnwrittenPropertyRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.readonlyProperties',
+			'mistakes.readonlyProperty',
 			Domain::state('required'),
 			'A property written only in the constructor, or not at all',
 		)];

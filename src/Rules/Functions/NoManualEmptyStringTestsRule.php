@@ -32,7 +32,7 @@ final class NoManualEmptyStringTestsRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('cleanup.strlenEmptyTest', Domain::state('forbidden'), '`strlen($s) === 0` is `$s === \'\'`')];
+		return [new Decision('hygiene.strlenEmptyTest', Domain::state('forbidden'), '`strlen($s) === 0` is `$s === \'\'`')];
 	}
 
 

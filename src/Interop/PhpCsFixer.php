@@ -46,8 +46,8 @@ final class PhpCsFixer
 			),
 			'PhpCsFixerCustomFixers/comment_surrounded_by_spaces' => ['spacing.comment.marker' => 'spaced'],
 			'PhpCsFixerCustomFixers/commented_out_function' => fn(array $o, Translation $t) => $t->setAll([
-				'correctness.debugOutput' => 'forbidden',
-				'correctness.debugOutputFunctions' => array_values(array_unique($o['functions'] ?? ['print_r', 'var_dump', 'var_export'])),
+				'mistakes.debugOutput' => 'forbidden',
+				'mistakes.debugOutputFunctions' => array_values(array_unique($o['functions'] ?? ['print_r', 'var_dump', 'var_export'])),
 			]),
 			'PhpCsFixerCustomFixers/no_leading_slash_in_global_namespace' => fn(array $o, Translation $t) => $t->setAll([
 				'imports.leadingBackslash' => 'forbidden',
@@ -57,8 +57,8 @@ final class PhpCsFixer
 				'literals.concatenatedLiterals.sameLine' => 'joined',
 				'literals.concatenatedLiterals.overLines' => 'keep',
 			],
-			'PhpCsFixerCustomFixers/no_useless_dirname_call' => ['cleanup.dirnameOfFile' => 'forbidden'],
-			'PhpCsFixerCustomFixers/no_useless_strlen' => ['cleanup.strlenEmptyTest' => 'forbidden'],
+			'PhpCsFixerCustomFixers/no_useless_dirname_call' => ['hygiene.dirnameOfFile' => 'forbidden'],
+			'PhpCsFixerCustomFixers/no_useless_strlen' => ['hygiene.strlenEmptyTest' => 'forbidden'],
 			'PhpCsFixerCustomFixers/numeric_literal_separator' => [
 				'literals.digitSeparator.integer' => 4,
 				'literals.digitSeparator.fraction' => 4,
@@ -174,9 +174,9 @@ final class PhpCsFixer
 				$t->set('casing.class', 'declared');
 				$t->warn('`class_reference_name_casing` writes the classes PHP declares, while `casing.class` writes those of the project and its packages too where the configuration sets `typeAnalysis`.');
 			},
-			'combine_consecutive_issets' => ['cleanup.separateIssets' => 'forbidden'],
-			'combine_nested_dirname' => ['cleanup.dirnameOfFile' => 'forbidden'],
-			'combine_consecutive_unsets' => ['cleanup.separateUnsets' => 'forbidden'],
+			'combine_consecutive_issets' => ['hygiene.separateIssets' => 'forbidden'],
+			'combine_nested_dirname' => ['hygiene.dirnameOfFile' => 'forbidden'],
+			'combine_consecutive_unsets' => ['hygiene.separateUnsets' => 'forbidden'],
 			'compact_nullable_type_declaration' => ['spacing.typeDeclaration' => 'compact'],
 			'concat_space' => fn(array $o, Translation $t) => $t->set(
 				'spacing.concatenation',
@@ -198,7 +198,7 @@ final class PhpCsFixer
 			'declare_strict_types' => fn(array $o, Translation $t) => ($o['strategy'] ?? 'enforce') === 'remove'
 				? $t->warn('`declare_strict_types` with `strategy=remove` has no equivalent; DressCode requires the declaration.')
 				: $t->setAll(['file.strictTypes.declaration' => 'required', 'file.strictTypes.position' => 'nextLine']),
-			'dir_constant' => ['cleanup.dirnameOfFile' => 'forbidden'],
+			'dir_constant' => ['hygiene.dirnameOfFile' => 'forbidden'],
 			'elseif' => ['controlFlow.elseif' => 'oneWord'],
 			'encoding' => ['file.bom' => 'forbidden'],
 			'escape_implicit_backslashes' => ['literals.backslashes' => 'escaped'],
@@ -265,7 +265,7 @@ final class PhpCsFixer
 			'heredoc_to_nowdoc' => ['literals.heredocWithoutInterpolation' => 'forbidden'],
 			'include' => ['expressions.parenthesesAfterConstruct' => 'forbidden'],
 			'indentation_type' => $indentByConfig,
-			'is_null' => ['cleanup.is_null' => 'forbidden'],
+			'is_null' => ['hygiene.is_null' => 'forbidden'],
 			'line_ending' => fn(array $o, Translation $t) => match ($t->lineEnding) {
 				"\n" => $t->set('file.lineEnding', 'LF'),
 				"\r\n" => $t->set('file.lineEnding', 'CRLF'),
@@ -291,7 +291,7 @@ final class PhpCsFixer
 
 				$t->set('upgrading.functions.substringFunctions', 'required');
 			},
-			'modernize_types_casting' => ['cleanup.conversionFunctions' => 'forbidden'],
+			'modernize_types_casting' => ['hygiene.conversionFunction' => 'forbidden'],
 			'modifier_keywords' => [
 				'classes.visibility.constant' => 'required',
 				'classes.visibility.property' => 'required',
@@ -397,10 +397,10 @@ final class PhpCsFixer
 				}
 
 				$sets = array_map(
-					fn(string $set) => strtolower(ltrim($set, '@')),
+					fn(string $set) => $set === '@internal' ? 'core' : strtolower(ltrim($set, '@')),
 					array_values(array_diff($sets ?? [], ['@mbreg', '@exif', '@snmp'])),
 				);
-				$t->set('cleanup.aliasFunctions', ($o['sets'] ?? null) === null ? ['internal', 'imap', 'pg'] : $sets);
+				$t->set('hygiene.aliasFunctions', ($o['sets'] ?? null) === null ? ['core', 'imap', 'pg'] : $sets);
 			},
 			'no_alternative_syntax' => ['braces.alternativeSyntax' => 'forbidden'],
 			'no_blank_lines_after_class_opening' => ['blankLines.bodyStart.class' => 0, 'blankLines.bodyStart.anonymousClass' => 0],
@@ -468,7 +468,7 @@ final class PhpCsFixer
 			},
 			'no_trailing_whitespace' => ['file.trailingWhitespace' => 'forbidden'],
 			'no_trailing_whitespace_in_comment' => ['file.trailingWhitespace' => 'forbidden'],
-			'no_trailing_whitespace_in_string' => ['correctness.trailingWhitespaceInString' => 'forbidden'],
+			'no_trailing_whitespace_in_string' => ['mistakes.trailingWhitespaceInString' => 'forbidden'],
 			'no_unneeded_braces' => function (array $o, Translation $t) {
 				if ($o['namespaces'] ?? false) {
 					$t->warn('`no_unneeded_braces` with `namespaces=true` also unwraps a braced namespace, which DressCode leaves alone.');
@@ -501,7 +501,7 @@ final class PhpCsFixer
 				if (!($o['use_escape_sequences_in_strings'] ?? true)) {
 					$t->warn('`non_printable_character` without escape sequences has no equivalent; DressCode writes the character as an escape sequence to keep the value.');
 				}
-				$t->set('correctness.invisibleCharacters', 'forbidden');
+				$t->set('mistakes.invisibleCharacter', 'forbidden');
 			},
 			'numeric_literal_separator' => function (array $o, Translation $t) {
 				if (($o['strategy'] ?? 'use_separator') === 'no_separator') {
@@ -596,13 +596,13 @@ final class PhpCsFixer
 					},
 				]);
 			},
-			'regular_callable_call' => ['cleanup.call_user_func' => 'forbidden'],
+			'regular_callable_call' => ['hygiene.call_user_func' => 'forbidden'],
 			'return_type_declaration' => fn(array $o, Translation $t) => ($o['space_before'] ?? 'none') === 'none'
 				? $t->set('spacing.typeDeclaration', 'compact')
 				: $t->warn('`return_type_declaration` with `space_before=one` has no equivalent; DressCode writes no space before the colon.'),
 			'self_accessor' => ['qualification.currentClass' => 'self'],
 			'self_static_accessor' => fn(array $o, Translation $t) => $t->set('qualification.staticInFinalClass', 'self'),
-			'set_type_to_cast' => ['cleanup.settype' => 'forbidden'],
+			'set_type_to_cast' => ['hygiene.settype' => 'forbidden'],
 			'short_scalar_cast' => ['expressions.cast' => 'canonical'],
 			'simple_to_complex_string_variable' => ['upgrading.php.dollarBraceInterpolation' => 'forbidden'],
 			'single_blank_line_at_eof' => ['file.finalLineEndings' => 1],
@@ -658,7 +658,7 @@ final class PhpCsFixer
 			'static_lambda' => ['functions.staticClosure' => 'required'],
 			'static_private_method' => ['classes.staticMethod' => 'required'],
 			'strict_comparison' => ['expressions.comparison.loose' => 'forbidden'],
-			'strict_param' => ['correctness.strictComparisonArgument' => 'required'],
+			'strict_param' => ['mistakes.strictArgument' => 'required'],
 			'string_implicit_backslashes' => function (array $o, Translation $t) {
 				$modes = [$o['double_quoted'] ?? 'escape', $o['heredoc'] ?? 'escape', $o['single_quoted'] ?? 'unescape'];
 				if (in_array('unescape', $modes, true)) {
@@ -666,10 +666,10 @@ final class PhpCsFixer
 				}
 				$t->set('literals.backslashes', 'escaped');
 			},
-			'string_length_to_empty' => ['cleanup.strlenEmptyTest' => 'forbidden'],
+			'string_length_to_empty' => ['hygiene.strlenEmptyTest' => 'forbidden'],
 			'switch_case_semicolon_to_colon' => ['controlFlow.switch.caseTerminator' => 'colon'],
 			'switch_case_space' => ['spacing.switchCase' => 'compact'],
-			'switch_continue_to_break' => ['correctness.continueInSwitch' => 'forbidden'],
+			'switch_continue_to_break' => ['mistakes.continueInSwitch' => 'forbidden'],
 			'ternary_operator_spaces' => [
 				'spacing.ternary' => 'spaced',
 				'spacing.alignment.ternary' => 'optional',

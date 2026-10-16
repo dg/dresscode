@@ -26,7 +26,7 @@ final class NoUnreachableCatchesRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.unreachableCatch',
+			'mistakes.unreachableCatch',
 			Domain::state('forbidden'),
 			'A `catch` after one catching `Throwable` or a class it catches',
 		)];

@@ -8,8 +8,9 @@ functions:
 	closureReturningOneExpression: forbidden   # `fn() =>` instead
 	closureReturningOneExpressionNested: yes   # also one holding another closure
 
-cleanup:
-	classNameNotation: 'self::class'           # `self::class`, `static::class`
+hygiene:
+	classNameNotation:
+		currentClass: 'self::class'            # `self::class`, `static::class`
 	separateIssets: forbidden                  # `isset($a, $b)`
 	separateUnsets: forbidden                  # `unset($a, $b);`
 

@@ -29,7 +29,7 @@ final class NoUnimplementedAbstractMethodsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.unimplementedAbstractMethods',
+			'mistakes.unimplementedAbstractMethod',
 			Domain::state('forbidden'),
 			'An inherited abstract method a class that is not abstract leaves unimplemented, typically after a library added it, which is only reported',
 		)];

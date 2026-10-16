@@ -1,2 +1,2 @@
-correctness:
-	readonlyProperties: required
+mistakes:
+	readonlyProperty: required

@@ -442,9 +442,9 @@ test('--only keeps what it names of what the configuration comes to, and turns n
 
 	// a section named like a preset is written with `.*`, the bare name says both and is refused
 	Assert::exception(
-		fn() => createResolver()->resolve(new Config(use: ['nette']), '8.3', only: ['correctness']),
+		fn() => createResolver()->resolve(new Config(use: ['nette']), '8.3', only: ['types']),
 		ConfigurationException::class,
-		'Name `correctness` is both a section of decisions and the preset `dresscode/correctness`; write `correctness.*` for the section or `dresscode/correctness` for the preset.',
+		'Name `types` is both a section of decisions and the preset `dresscode/types`; write `types.*` for the section or `dresscode/types` for the preset.',
 	);
 	Assert::exception(
 		fn() => createResolver()->resolve(new Config(use: ['nette'], fixRisky: ['types']), '8.3'),
@@ -453,11 +453,11 @@ test('--only keeps what it names of what the configuration comes to, and turns n
 	);
 	$section = array_map(
 		fn(ResolvedRule $rule) => $rule->class,
-		createResolver()->resolve(new Config(use: ['nette']), '8.3', only: ['correctness.*'])->getActiveRules(),
+		createResolver()->resolve(new Config(use: ['nette']), '8.3', only: ['types.*'])->getActiveRules(),
 	);
 	$preset = array_map(
 		fn(ResolvedRule $rule) => $rule->class,
-		createResolver()->resolve(new Config(use: ['nette']), '8.3', only: ['dresscode/correctness'])->getActiveRules(),
+		createResolver()->resolve(new Config(use: ['nette']), '8.3', only: ['dresscode/types'])->getActiveRules(),
 	);
 	Assert::true($section !== [] && $section !== $preset);
 	Assert::exception(

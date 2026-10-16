@@ -26,7 +26,7 @@ final class NoFinalParentRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('correctness.finalParent', Domain::state('forbidden'), 'A class extending a final one')];
+		return [new Decision('mistakes.finalParent', Domain::state('forbidden'), 'A class extending a final one')];
 	}
 
 

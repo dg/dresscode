@@ -22,7 +22,7 @@ final class NoRepeatedAssignmentsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.repeatedAssignment',
+			'mistakes.repeatedAssignment',
 			Domain::state('forbidden'),
 			'A variable assigned twice in one expression, `$a = $a = 1`',
 		)];

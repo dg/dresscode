@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Rules\{CodeWriter, GlobalCalls};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
@@ -24,13 +24,31 @@ use function count;
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
 final class NoDirnameOfFileRule extends NodeRule
 {
+	private const File = 'hygiene.dirnameOfFile';
+	private const Nested = 'hygiene.nestedDirname';
+
+	private bool $file = true;
+
+	private bool $nested = true;
+
+
 	public static function getDecisions(): array
 	{
-		return [new Decision(
-			'cleanup.dirnameOfFile',
-			Domain::state('forbidden'),
-			'`dirname(__FILE__)` is `__DIR__`; nested `dirname()` by the `levels` argument',
-		)];
+		return [
+			new Decision(self::File, Domain::state('forbidden'), '`dirname(__FILE__)`, which is `__DIR__`'),
+			new Decision(
+				self::Nested,
+				Domain::state('forbidden'),
+				'A `dirname()` of a `dirname()`, which is one call with the `levels` argument',
+			),
+		];
+	}
+
+
+	public function configure(Values $values): void
+	{
+		$this->file = !$values->isKept(self::File);
+		$this->nested = !$values->isKept(self::Nested);
 	}
 
 
@@ -61,20 +79,29 @@ final class NoDirnameOfFileRule extends NodeRule
 		$function = CodeWriter::spellFunction('dirname', $node->name, $context);
 		if ($inner !== null) {
 			if (
-				!$node->hasInnerComment()
+				$this->nested
+				&& !$node->hasInnerComment()
 				&& $context->report(
 					$node,
 					'Nested `dirname()` calls must be one call with the `levels` argument.',
 					risk: $risk,
 					because: $uncertainty,
+					decision: self::Nested,
 				)
 			) {
 				self::writeCall($node, $inner[0], $levels + $inner[1], $function);
 			}
 		} elseif (
-			self::isFile($path)
+			$this->file
+			&& self::isFile($path)
 			&& !$node->hasInnerComment()
-			&& $context->report($node, 'The `dirname(__FILE__)` call must be written `__DIR__`.', risk: $risk, because: $uncertainty)
+			&& $context->report(
+				$node,
+				'The `dirname(__FILE__)` call must be written `__DIR__`.',
+				risk: $risk,
+				because: $uncertainty,
+				decision: self::File,
+			)
 		) {
 			self::writeCall($node, $path, $levels, $function);
 		}

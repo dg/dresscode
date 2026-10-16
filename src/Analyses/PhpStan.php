@@ -108,7 +108,7 @@ final class PhpStan
 		assert($parser instanceof Parser);
 		try {
 			return $parser->parseString($code);
-		} catch (\Exception $e) { // dresscode:ignore correctness.exceptionWhereThrowableBelongs -- an Error is a bug, not code PHP refuses
+		} catch (\Exception $e) { // dresscode:ignore mistakes.exceptionWhereThrowableBelongs -- an Error is a bug, not code PHP refuses
 			throw new UncompilableCodeException($e->getMessage(), previous: $e);
 		}
 	}

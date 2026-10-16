@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values, Violation};
+use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values, Violation};
 use DressCode\Domains\Shapes;
 use DressCode\Rules\GlobalCalls;
 use PhpSyntax\Analyses\NameResolver;
@@ -19,46 +19,45 @@ use function count;
 
 /**
  * The `::class` form for the name of the current class or its parent instead of `get_class()`, `get_called_class()`,
- * `get_parent_class()` and `__CLASS__`, and with `cleanup.get_class` also `$object::class` instead of
- * `get_class($object)`. `$this::class` is `static::class`, which says the same without reaching for the object.
+ * `get_parent_class()` and `__CLASS__`, and as a place of its own `$object::class` instead of `get_class($object)`.
+ * `$this::class` is `static::class`, which says the same without reaching for the object.
  */
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class])]
 final class ClassNameNotationRule extends NodeRule
 {
-	private const Calls = 'cleanup.classNameNotation';
-	private const OnObjects = 'cleanup.get_class';
+	private const CurrentClass = 'hygiene.classNameNotation.currentClass';
+	private const Object = 'hygiene.classNameNotation.object';
 
-	private bool $calls = true;
+	private bool $currentClass = true;
 
-	private bool $onObjects = false;
+	private bool $object = false;
 
 
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision(self::Calls, new Shapes(['classKeyword' => [
+			new Decision(self::CurrentClass, new Shapes(['classKeyword' => [
 				'self::class',
 				'`self::class`, `static::class` and `parent::class`, never `get_class()`, `get_called_class()`, `get_parent_class()` or `__CLASS__`',
-			]]), 'The name of the current class, of the one the method runs through and of the parent; the class of an object is `cleanup.get_class`'),
-			new Decision(
-				self::OnObjects,
-				Domain::state('forbidden'),
-				'The class of an object obtained by `get_class($object)`, which is `$object::class`; the name of the current class is `cleanup.classNameNotation`',
-			),
+			]]), 'The name of the current class, of the one the method runs through and of the parent'),
+			new Decision(self::Object, new Shapes(['classKeyword' => [
+				'$object::class',
+				'`$object::class`, never `get_class($object)`',
+			]]), 'The name of the class of an object'),
 		];
 	}
 
 
 	public function configure(Values $values): void
 	{
-		$this->calls = !$values->isKept(self::Calls);
-		$this->onObjects = !$values->isKept(self::OnObjects);
+		$this->currentClass = !$values->isKept(self::CurrentClass);
+		$this->object = !$values->isKept(self::Object);
 	}
 
 
 	public function getVisitedNodes(): array
 	{
-		return $this->calls
+		return $this->currentClass
 			? [Expression\FunctionCallNode::class, Expression\ClassConstantFetchNode::class, MagicConstantNode::class]
 			: [Expression\FunctionCallNode::class];
 	}
@@ -73,16 +72,16 @@ final class ClassNameNotationRule extends NodeRule
 		[$replacement, $decision] = match (true) {
 			$node instanceof MagicConstantNode => [
 				strcasecmp($node->token->text, '__CLASS__') === 0 && self::isInClass($node) ? 'self::class' : null,
-				self::Calls,
+				self::CurrentClass,
 			],
 			$node instanceof Expression\ClassConstantFetchNode => [
 				self::isThisClass($node) && self::isInClass($node) ? 'static::class' : null,
-				self::Calls,
+				self::CurrentClass,
 			],
 			$node instanceof Expression\FunctionCallNode => $this->readCall($node, $context),
 			default => [null, null],
 		};
-		if ($replacement === null || ($decision === self::Calls && !$this->calls)) {
+		if ($replacement === null || ($decision === self::CurrentClass && !$this->currentClass)) {
 			return;
 		}
 
@@ -122,14 +121,14 @@ final class ClassNameNotationRule extends NodeRule
 		$object = $call->arguments->findArgument('object', 0)?->value;
 		$isThis = $object instanceof Expression\VariableNode && $object->isThis();
 		return match (true) {
-			$function === 'get_class' && $count === 0 => [self::isInClass($call) ? 'self::class' : null, self::Calls],
-			$function === 'get_class' && $count === 1 && $isThis => [self::isInClass($call) ? 'static::class' : null, self::Calls],
-			$function === 'get_class' && $count === 1 && $object !== null && $this->onObjects && !$call->hasInnerComment() => [
+			$function === 'get_class' && $count === 0 => [self::isInClass($call) ? 'self::class' : null, self::CurrentClass],
+			$function === 'get_class' && $count === 1 && $isThis => [self::isInClass($call) ? 'static::class' : null, self::CurrentClass],
+			$function === 'get_class' && $count === 1 && $object !== null && $this->object && !$call->hasInnerComment() => [
 				($object->isDereferenceable(DereferenceKind::StaticAccess) ? $object->text : '(' . $object->text . ')') . '::class',
-				self::OnObjects,
+				self::Object,
 			],
-			$function === 'get_called_class' && $count === 0 => [self::isInClass($call) ? 'static::class' : null, self::Calls],
-			$function === 'get_parent_class' && $count === 0 => [self::hasParent($call) ? 'parent::class' : null, self::Calls],
+			$function === 'get_called_class' && $count === 0 => [self::isInClass($call) ? 'static::class' : null, self::CurrentClass],
+			$function === 'get_parent_class' && $count === 0 => [self::hasParent($call) ? 'parent::class' : null, self::CurrentClass],
 			default => [null, null],
 		};
 	}

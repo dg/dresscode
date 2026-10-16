@@ -53,14 +53,7 @@ test('an alignment is said in the words of every alignment', function () use ($c
 
 
 test('a word several decisions share comes from the lexicon, in its meaning', function () use ($catalogue) {
-	// the words the audits of the areas have yet to bring in line
-	$exceptions = [
-		'correctness.__debugInfo array: shared by several decisions and no word of the lexicon',
-		'file.lineLengthExcept array: shared by several decisions and no word of the lexicon',
-	];
-	$problems = Catalogue::findLexiconProblems(array_values($catalogue->getDecisions()));
-	Assert::same([], array_values(array_diff($problems, $exceptions)));
-	Assert::same([], array_values(array_diff($exceptions, $problems)), 'an exception no longer needed');
+	Assert::same([], Catalogue::findLexiconProblems(array_values($catalogue->getDecisions())));
 });
 
 

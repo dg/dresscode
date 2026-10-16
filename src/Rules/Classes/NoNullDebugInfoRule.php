@@ -7,8 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage};
-use DressCode\Domains\Words;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{AnonymousClassNode, ClassLikeNode, FunctionLikeNode};
 use PhpSyntax\Nodes\Expression\ArrayNode;
@@ -31,8 +30,8 @@ final class NoNullDebugInfoRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.__debugInfo',
-			new Words(['array' => 'an empty array where `null` is returned']),
+			'mistakes.__debugInfoReturningNull',
+			Domain::state('forbidden'),
 			'The `null` that `__debugInfo()` returns, which becomes `[]`',
 		)];
 	}

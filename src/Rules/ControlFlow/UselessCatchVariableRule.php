@@ -28,9 +28,9 @@ final class UselessCatchVariableRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'cleanup.catchWithoutVariable',
-			Domain::state('required'),
-			'A `catch (E)` without a variable where the variable would never be read',
+			'hygiene.unreadCatchVariable',
+			Domain::state('forbidden'),
+			'The variable of a `catch` that is never read, `catch (E)` written instead',
 		)];
 	}
 

@@ -1,3 +1,5 @@
-correctness:
-	neverReturnType: required
-	neverReturnTypeOnClosures: keep
+mistakes:
+	neverReturnType:
+		function: required
+		method: required
+		anonymousFunction: keep

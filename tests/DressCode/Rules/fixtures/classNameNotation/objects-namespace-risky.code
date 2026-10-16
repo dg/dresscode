@@ -1,5 +1,5 @@
 <?php
-// {"cleanup.classNameNotation": "keep", "cleanup.get_class": "forbidden"}
+// {"hygiene.classNameNotation.currentClass": "keep", "hygiene.classNameNotation.object": "$object::class"}
 // risky
 namespace App;
 

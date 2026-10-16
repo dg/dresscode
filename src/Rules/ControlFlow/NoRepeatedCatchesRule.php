@@ -29,7 +29,7 @@ final class NoRepeatedCatchesRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'cleanup.repeatedCatch',
+			'hygiene.repeatedCatchBody',
 			Domain::state('forbidden'),
 			'Two adjacent catches of one body, written as one `catch (A|B $e)`',
 		)];

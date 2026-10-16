@@ -1,5 +1,5 @@
 <?php
-// {"cleanup.get_class": "forbidden"}
+// {"hygiene.classNameNotation.object": "$object::class"}
 $a = $obj::class;
 $b = $this->x['y']::class;
 $c = f()::class;

@@ -20,7 +20,7 @@ final class NoGlobalStatementsRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('correctness.globalStatement', Domain::state('forbidden'), 'The `global` statement')];
+		return [new Decision('mistakes.globalStatement', Domain::state('forbidden'), 'The `global` statement')];
 	}
 
 

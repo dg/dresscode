@@ -24,7 +24,7 @@ final class NoIsNullRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('cleanup.is_null', Domain::state('forbidden'), '`is_null($x)` is `$x === null`')];
+		return [new Decision('hygiene.is_null', Domain::state('forbidden'), '`is_null($x)` is `$x === null`')];
 	}
 
 

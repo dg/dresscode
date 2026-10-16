@@ -124,7 +124,7 @@ phpdoc:
 		builtin: canonical                    # `int`, not `integer`, each type of a union once
 		nullPosition: last
 
-correctness:
+mistakes:
 	continueInSwitch: forbidden               # a `continue` only leaving a `switch`, reported
 
 upgrading:

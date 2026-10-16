@@ -43,9 +43,9 @@ final class ResolvedDebugRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('correctness.debugOutput', Domain::state(), 'A statement printing debug output'),
+			new Decision('mistakes.debugOutput', Domain::state(), 'A statement printing debug output'),
 			new Decision(
-				'correctness.debugOutputFunctions',
+				'mistakes.debugOutputFunctions',
 				new Names,
 				'The functions printing it',
 				kind: DecisionKind::Parameter,
@@ -60,7 +60,7 @@ final class ResolvedDebugRule extends NodeRule
 			new Decision('controlFlow.switch.emptyCase', Domain::state('forbidden'), 'A `case` with no statement'),
 			new Decision('controlFlow.switch.defaultLast', Domain::state('required'), 'The `default` last'),
 			new Decision(
-				'correctness.debugOrder',
+				'mistakes.debugOrder',
 				new Names(['first' => '', 'second' => '', 'third' => ''], ordered: true),
 				'The order of the functions',
 				kind: DecisionKind::Parameter,
@@ -147,23 +147,23 @@ test('the layers merge by path, each value with its origin, a decision nobody na
 	$resolved = $resolver->resolve([
 		[
 			new Layer(LayerKind::Preset, 'perCs'),
-			['spacing' => ['call' => 'foo()'], 'correctness' => ['debugOutput' => 'forbidden']],
+			['spacing' => ['call' => 'foo()'], 'mistakes' => ['debugOutput' => 'forbidden']],
 		],
 		[new Layer(LayerKind::Configuration), ['spacing' => ['call' => 'foo ()']]],
 	]);
 	Assert::same('spaced', $resolved['spacing.call']->value->getShape());
 	Assert::same(['perCs', 'the configuration'], array_map(fn($value) => $value->origin?->describe(), $resolved['spacing.call']->layers));
 	Assert::null($resolved['spacing.call']->inactive);
-	Assert::same(['var_dump'], $resolved['correctness.debugOutputFunctions']->value->getNames());
+	Assert::same(['var_dump'], $resolved['mistakes.debugOutputFunctions']->value->getNames());
 	Assert::same(InactiveReason::Keep, $resolved['qualification.globalClass']->inactive, 'a requirement nobody named requires nothing');
-	Assert::null($resolved['correctness.debugOutputFunctions']->inactive, 'a parameter is never inactive by its value');
+	Assert::null($resolved['mistakes.debugOutputFunctions']->inactive, 'a parameter is never inactive by its value');
 });
 
 
 test('a parameter alone turns nothing on', function () use ($resolver) {
-	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['correctness' => ['debugOutputFunctions' => ['dump']]]]]);
-	Assert::same(InactiveReason::Keep, $resolved['correctness.debugOutput']->inactive);
-	Assert::same(['dump'], $resolved['correctness.debugOutputFunctions']->value->getNames());
+	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['mistakes' => ['debugOutputFunctions' => ['dump']]]]]);
+	Assert::same(InactiveReason::Keep, $resolved['mistakes.debugOutput']->inactive);
+	Assert::same(['dump'], $resolved['mistakes.debugOutputFunctions']->value->getNames());
 });
 
 
@@ -244,12 +244,12 @@ test('a kind of places gives its value to its places, a place the same map names
 test('the values carry the mask of the run without changing what was resolved', function () use ($resolver) {
 	$resolved = $resolver->resolve([[
 		new Layer(LayerKind::Configuration),
-		['spacing' => ['call' => 'foo()'], 'correctness' => ['debugOutput' => 'forbidden']],
+		['spacing' => ['call' => 'foo()'], 'mistakes' => ['debugOutput' => 'forbidden']],
 	]]);
 	$values = $resolver->createValues($resolved, ['spacing']);
 	Assert::true($values->isSelected('spacing.call'));
-	Assert::false($values->isSelected('correctness.debugOutput'));
-	Assert::same('forbidden', $values->get('correctness.debugOutput')->getWord());
+	Assert::false($values->isSelected('mistakes.debugOutput'));
+	Assert::same('forbidden', $values->get('mistakes.debugOutput')->getWord());
 });
 
 
@@ -260,15 +260,15 @@ test('`...` in a list stands for the list below it, the default included, in its
 	)));
 	Assert::same(
 		['var_dump', 'dump'],
-		$resolve(['correctness' => ['debugOutputFunctions' => ['...', 'dump']]])['correctness.debugOutputFunctions']->value->getNames(),
+		$resolve(['mistakes' => ['debugOutputFunctions' => ['...', 'dump']]])['mistakes.debugOutputFunctions']->value->getNames(),
 	);
 	// a set merges what both give
 	Assert::same(
 		['dd', 'var_dump', 'dump'],
 		$resolve(
-			['correctness' => ['debugOutputFunctions' => ['var_dump', 'dump']]],
-			['correctness' => ['debugOutputFunctions' => ['dd', '...', 'dump']]],
-		)['correctness.debugOutputFunctions']->value->getNames(),
+			['mistakes' => ['debugOutputFunctions' => ['var_dump', 'dump']]],
+			['mistakes' => ['debugOutputFunctions' => ['dd', '...', 'dump']]],
+		)['mistakes.debugOutputFunctions']->value->getNames(),
 	);
 	Assert::same(
 		['perLine', 'fill'],
@@ -279,14 +279,14 @@ test('`...` in a list stands for the list below it, the default included, in its
 	);
 	// an order and a tolerance refuse an item given twice
 	Assert::exception(
-		fn() => $resolve(['correctness' => ['debugOrder' => ['...', 'first']]]),
+		fn() => $resolve(['mistakes' => ['debugOrder' => ['...', 'first']]]),
 		ConfigurationException::class,
-		'Key `correctness.debugOrder` gives `first` itself and in the list `...` stands for; write it once.',
+		'Key `mistakes.debugOrder` gives `first` itself and in the list `...` stands for; write it once.',
 	);
 	Assert::exception(
-		fn() => $resolve(['correctness' => ['debugOutputFunctions' => ['...', 'dump', '...']]]),
+		fn() => $resolve(['mistakes' => ['debugOutputFunctions' => ['...', 'dump', '...']]]),
 		ConfigurationException::class,
-		'Key `correctness.debugOutputFunctions` does not take `["...","dump","..."]`, `...` standing for the list below it once only; write a list of names.',
+		'Key `mistakes.debugOutputFunctions` does not take `["...","dump","..."]`, `...` standing for the list below it once only; write a list of names.',
 	);
 	Assert::exception(
 		fn() => $resolve(['multiline' => ['items' => ['...', 'fill']]]),

@@ -16,8 +16,10 @@ phpdoc:
 		builtin: canonical         # `int`, not `integer`, each type of a union once
 		array: 'array<T>'          # `array<int>`, not `int[]`
 
-correctness:
-	neverReturnType: required      # on a function that always throws
+mistakes:
+	neverReturnType:
+		function: required         # on a function that always throws
+		method: required
 
 upgrading:
 	classes:

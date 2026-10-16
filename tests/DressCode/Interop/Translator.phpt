@@ -111,7 +111,7 @@ test('a set of aliases PHP 8 no longer has is dropped from the list', function (
 	$translation = (new Translator)->translate([
 		'no_alias_functions' => ['sets' => ['@internal', '@mbreg', '@exif']],
 	]);
-	Assert::same(['cleanup.aliasFunctions' => ['internal']], $translation->decisions);
+	Assert::same(['hygiene.aliasFunctions' => ['core']], $translation->decisions);
 	Assert::same([
 		'`no_alias_functions` with `@mbreg` has no equivalent; PHP 8 has none of the aliases it replaces.',
 		'`no_alias_functions` with `@exif` has no equivalent; PHP 8 has none of the aliases it replaces.',
@@ -322,7 +322,7 @@ test('an option with no value of DressCode to write is left out and said so, not
 	}
 
 	$translation = $translate(['no_alias_functions' => ['sets' => ['@snmp', '@IMAP']]]);
-	Assert::same(['cleanup.aliasFunctions' => ['imap']], $translation->decisions);
+	Assert::same(['hygiene.aliasFunctions' => ['imap']], $translation->decisions);
 	Assert::same(
 		['`no_alias_functions` with `@snmp` has no equivalent; DressCode leaves the aliases of the SNMP functions alone.'],
 		$translation->warnings,

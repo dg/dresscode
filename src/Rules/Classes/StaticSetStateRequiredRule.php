@@ -7,8 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
-use DressCode\Domains\Words;
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Member\MethodNode;
 
@@ -24,8 +23,8 @@ final class StaticSetStateRequiredRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.__set_state',
-			new Words(['static' => 'declared static, which is how PHP calls it']),
+			'mistakes.staticSetState',
+			Domain::state('required'),
 			'`__set_state()` declared static, as PHP calls it',
 		)];
 	}

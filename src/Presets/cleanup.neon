@@ -28,14 +28,14 @@ functions:
 	trailingBareReturn: forbidden            # no `return;` closing a function
 	uselessParameterDefault: forbidden       # a default before a required parameter
 
-cleanup:
-	aliasFunctions: [internal, imap, pg]     # `count()`, not `sizeof()`
+hygiene:
+	aliasFunctions: [core, imap, pg]         # `count()`, not `sizeof()`
 	strlenEmptyTest: forbidden               # `$s === ''`, not `strlen($s) === 0`
 	call_user_func: forbidden                # `$f($x)`, not `call_user_func($f, $x)`, risky
-	__invoke: forbidden                      # `$f($x)`, not `$f->__invoke($x)`
-	redundantArguments: forbidden            # `json_encode($a)`, not `json_encode($a, 0)`
-	catchWithoutVariable: required           # `catch (E)` where `$e` is not read
-	repeatedCatch: forbidden                 # `catch (A|B $e)` for two catches of one body
+	__invokeCall: forbidden                  # `$f($x)`, not `$f->__invoke($x)`
+	defaultArgument: forbidden               # `json_encode($a)`, not `json_encode($a, 0)`
+	unreadCatchVariable: forbidden           # `catch (E)` where `$e` is not read
+	repeatedCatchBody: forbidden             # `catch (A|B $e)` for two catches of one body
 
 controlFlow:
 	emptyStatement: forbidden                # `foo();;`
@@ -62,7 +62,7 @@ phpdoc:
 	annotation:
 		constantVar: forbidden               # a bare `@var int` on a class constant
 
-correctness:
+mistakes:
 	debugOutput: forbidden                   # `// var_dump($a);`, risky
 
 upgrading:

@@ -1,2 +1,2 @@
-cleanup:
-	__invoke: forbidden
+hygiene:
+	__invokeCall: forbidden

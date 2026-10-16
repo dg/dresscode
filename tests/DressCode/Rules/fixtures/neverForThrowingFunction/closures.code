@@ -1,5 +1,5 @@
 <?php
-// {"neverReturnTypeOnClosures": "required"}
+// {"neverReturnType.anonymousFunction": "required"}
 $fail = function () {
 	throw new LogicException('no');
 };

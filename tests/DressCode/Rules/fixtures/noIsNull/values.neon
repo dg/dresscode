@@ -1,2 +1,2 @@
-cleanup:
+hygiene:
 	is_null: forbidden

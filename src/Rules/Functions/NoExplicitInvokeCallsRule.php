@@ -23,7 +23,7 @@ final class NoExplicitInvokeCallsRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('cleanup.__invoke', Domain::state('forbidden'), '`$f->__invoke($x)` is `$f($x)`')];
+		return [new Decision('hygiene.__invokeCall', Domain::state('forbidden'), '`$f->__invoke($x)` is `$f($x)`')];
 	}
 
 

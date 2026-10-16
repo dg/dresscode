@@ -281,9 +281,9 @@ test('the helpers keep the vocabulary of states, placements and counts', functio
 
 test('a state takes no `warning`, which is a severity and not a value', function () {
 	Assert::exception(
-		fn() => Domain::state('required')->accept('warning', 'cleanup.x'),
+		fn() => Domain::state('required')->accept('warning', 'hygiene.x'),
 		ConfigurationException::class,
-		'Key `cleanup.x` does not take `warning`; write `required`.',
+		'Key `hygiene.x` does not take `warning`; write `required`.',
 	);
 });
 
@@ -317,7 +317,7 @@ test('a domain is data and prose', function () {
 
 
 test('a requirement takes keep, a parameter does not', function () {
-	$requirement = new Decision('cleanup.is_null', Domain::state(), '`is_null($x)` is `$x === null`');
+	$requirement = new Decision('hygiene.is_null', Domain::state(), '`is_null($x)` is `$x === null`');
 	Assert::true($requirement->isRequirement());
 	Assert::true($requirement->accept('keep')->isKept());
 	Assert::true($requirement->takesKeep());
@@ -327,7 +327,7 @@ test('a requirement takes keep, a parameter does not', function () {
 	);
 
 	$parameter = new Decision(
-		'correctness.debugOutputFunctions',
+		'mistakes.debugOutputFunctions',
 		new Names,
 		'The functions printing debug output',
 		kind: DecisionKind::Parameter,
@@ -338,7 +338,7 @@ test('a requirement takes keep, a parameter does not', function () {
 	Assert::exception(
 		fn() => $parameter->accept('keep'),
 		ConfigurationException::class,
-		'Key `correctness.debugOutputFunctions` does not take `keep`; write a list of names.',
+		'Key `mistakes.debugOutputFunctions` does not take `keep`; write a list of names.',
 	);
 
 	// a map withdraws its entries one by one, and itself as a whole
@@ -354,5 +354,5 @@ test('a requirement takes keep, a parameter does not', function () {
 		'Decision path `calls` is not `section.key`, every link an identifier.',
 	);
 	Assert::exception(fn() => new Decision('calls.is-null', Domain::state(), ''), InvalidArgumentException::class);
-	Assert::noError(fn() => new Decision('correctness.__set_state', Domain::state(), ''));
+	Assert::noError(fn() => new Decision('mistakes.staticSetState', Domain::state(), ''));
 });

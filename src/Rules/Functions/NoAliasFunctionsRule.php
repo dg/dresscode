@@ -24,7 +24,7 @@ use PhpSyntax\Nodes\NameNode;
 final class NoAliasFunctionsRule extends NodeRule
 {
 	private const Sets = [
-		'internal' => [
+		'core' => [
 			'diskfreespace' => 'disk_free_space',
 			'dns_check_record' => 'checkdnsrr',
 			'dns_get_mx' => 'getmxrr',
@@ -110,9 +110,9 @@ final class NoAliasFunctionsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('cleanup.aliasFunctions', new Names([
+			new Decision('hygiene.aliasFunctions', new Names([
 				'all' => 'every set below',
-				'internal' => 'the core functions, `sizeof()` is `count()`, `join()` is `implode()`',
+				'core' => 'the core functions, `sizeof()` is `count()`, `join()` is `implode()`',
 				'imap' => '`imap_*`',
 				'ldap' => '`ldap_*`',
 				'mysqli' => '`mysqli_*`',
@@ -132,7 +132,7 @@ final class NoAliasFunctionsRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$sets = $values->get('cleanup.aliasFunctions')->getNames();
+		$sets = $values->get('hygiene.aliasFunctions')->getNames();
 		$this->aliases = [];
 		foreach (self::Sets as $set => $aliases) {
 			if (in_array('all', $sets, true) || in_array($set, $sets, true)) {

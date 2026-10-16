@@ -32,9 +32,9 @@ final class DebugRule extends TestRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision('correctness.debugOutput', Domain::state(), 'A statement printing debug output'),
+			new Decision('mistakes.debugOutput', Domain::state(), 'A statement printing debug output'),
 			new Decision(
-				'correctness.debugOutputFunctions',
+				'mistakes.debugOutputFunctions',
 				new Names,
 				'The functions printing it',
 				kind: DecisionKind::Parameter,
@@ -46,7 +46,7 @@ final class DebugRule extends TestRule
 
 	public function configure(Values $values): void
 	{
-		$this->functions = $values->get('correctness.debugOutputFunctions')->getNames();
+		$this->functions = $values->get('mistakes.debugOutputFunctions')->getNames();
 	}
 }
 
@@ -116,7 +116,7 @@ $catalogue = Catalogue::fromRules([
 $everything = [[
 	new Layer(LayerKind::Configuration),
 	[
-		'correctness' => ['debugOutput' => 'forbidden', 'debugOutputFunctions' => ['dump']],
+		'mistakes' => ['debugOutput' => 'forbidden', 'debugOutputFunctions' => ['dump']],
 		'upgrading' => ['match' => 'required', 'pipe' => 'required', 'syntax' => ['firstClassCallables' => 'required']],
 		'classes' => ['overridingMethod' => ['signature' => 'required']],
 	],
@@ -155,7 +155,7 @@ test(
 
 test('a parameter alone builds no rule', function () use ($catalogue) {
 	$resolver = new DecisionResolver($catalogue);
-	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['correctness' => ['debugOutputFunctions' => ['dump']]]]]);
+	$resolved = $resolver->resolve([[new Layer(LayerKind::Configuration), ['mistakes' => ['debugOutputFunctions' => ['dump']]]]]);
 	Assert::same([], RuleBuilder::buildFromDecisions($resolver, $resolved, $resolver->createValues($resolved)));
 });
 

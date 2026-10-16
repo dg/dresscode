@@ -27,30 +27,38 @@ use function count;
  * in hand is a fatal error. That leaves a private method, a final one and a class nothing can extend, which
  * is a final one, an enum and an anonymous one.
  *
- * A closure is a place of its own, `correctness.neverReturnTypeOnClosures`, which a project may leave alone: what
- * it returns is usually read off the call it is written into, not declared.
+ * A closure is a place of its own, which a project may leave alone: what it returns is usually read off the call it
+ * is written into, not declared.
  */
 #[RuleInfo(Stage::Structure, requires: ['php' => '>=8.1'])]
 final class NeverForThrowingFunctionRule extends NodeRule
 {
-	private const Named = 'correctness.neverReturnType';
-	private const Closure = 'correctness.neverReturnTypeOnClosures';
+	/** the declaration => its place of `mistakes.neverReturnType` */
+	private const Places = [
+		Statement\FunctionNode::class => 'function',
+		MethodNode::class => 'method',
+		Expression\ClosureNode::class => 'anonymousFunction',
+	];
 
-	private bool $function = false;
-
-	private bool $closure = false;
+	/** @var array<class-string<Node>, bool>  the declaration => whether it gets the type */
+	private array $places = [];
 
 
 	public static function getDecisions(): array
 	{
 		return [
 			new Decision(
-				self::Named,
+				'mistakes.neverReturnType.function',
 				Domain::state('required'),
-				'The return type `never` of PHP 8.1 on a function or a method that always throws or exits, a method only where no descendant can declare it again',
+				'The return type `never` of PHP 8.1 on a function that always throws or exits',
 			),
 			new Decision(
-				self::Closure,
+				'mistakes.neverReturnType.method',
+				Domain::state('required'),
+				'The return type `never` on a method that always throws or exits, only where no descendant can declare it again',
+			),
+			new Decision(
+				'mistakes.neverReturnType.anonymousFunction',
 				Domain::state('required'),
 				'The return type `never` on a closure that always throws or exits, though its signature usually belongs to the call it is passed to',
 			),
@@ -60,17 +68,15 @@ final class NeverForThrowingFunctionRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->function = !$values->isKept(self::Named);
-		$this->closure = !$values->isKept(self::Closure);
+		foreach (self::Places as $class => $place) {
+			$this->places[$class] = !$values->isKept("mistakes.neverReturnType.$place");
+		}
 	}
 
 
 	public function getVisitedNodes(): array
 	{
-		return [
-			...($this->function ? [Statement\FunctionNode::class, MethodNode::class] : []),
-			...($this->closure ? [Expression\ClosureNode::class] : []),
-		];
+		return array_keys(array_filter($this->places));
 	}
 
 
@@ -93,9 +99,7 @@ final class NeverForThrowingFunctionRule extends NodeRule
 				$node instanceof MethodNode => "The method `{$node->name->text}()`",
 				$node instanceof Expression\ClosureNode => 'The closure',
 				default => "The function `{$node->name->text}()`",
-			} . ' never returns and must have the return type `never`.', decision: $node instanceof Expression\ClosureNode
-				? self::Closure
-				: self::Named)
+			} . ' never returns and must have the return type `never`.', decision: 'mistakes.neverReturnType.' . self::Places[$node::class])
 		) {
 			return;
 		}

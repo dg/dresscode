@@ -1,2 +1,2 @@
-correctness:
-	__set_state: static
+mistakes:
+	staticSetState: required

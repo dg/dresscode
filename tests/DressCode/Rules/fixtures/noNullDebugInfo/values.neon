@@ -1,2 +1,2 @@
-correctness:
-	__debugInfo: array
+mistakes:
+	__debugInfoReturningNull: forbidden

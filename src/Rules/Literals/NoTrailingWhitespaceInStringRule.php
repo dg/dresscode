@@ -23,7 +23,7 @@ final class NoTrailingWhitespaceInStringRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.trailingWhitespaceInString',
+			'mistakes.trailingWhitespaceInString',
 			Domain::state('forbidden'),
 			'At the end of the lines of a multi-line string or inline HTML, which changes their value',
 		)];

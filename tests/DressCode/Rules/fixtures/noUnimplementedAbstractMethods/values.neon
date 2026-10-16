@@ -1,2 +1,2 @@
-correctness:
-	unimplementedAbstractMethods: forbidden
+mistakes:
+	unimplementedAbstractMethod: forbidden

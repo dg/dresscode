@@ -302,8 +302,8 @@ final class PhpCodeSniffer
 				->setBlankLines('blankLines.aroundMethods', $o['minLinesCount'] ?? 1, $o['maxLinesCount'] ?? 1)
 				->setBlankLines('blankLines.aroundInterfaceMethods', $o['minLinesCount'] ?? 1, $o['maxLinesCount'] ?? 1),
 			'SlevomatCodingStandard.Classes.ModernClassNameReference' => fn(array $o, Translation $t) => $t->setAll([
-				'cleanup.classNameNotation' => 'classKeyword',
-				'cleanup.get_class' => ($o['enableOnObjects'] ?? false) ? 'forbidden' : 'keep',
+				'hygiene.classNameNotation.currentClass' => 'classKeyword',
+				'hygiene.classNameNotation.object' => ($o['enableOnObjects'] ?? false) ? 'classKeyword' : 'keep',
 			]),
 			'SlevomatCodingStandard.Classes.PropertyDeclaration' => [
 				'classes.modifiers.order' => 'canonical',
@@ -377,7 +377,7 @@ final class PhpCodeSniffer
 					]);
 				}
 			},
-			'SlevomatCodingStandard.ControlStructures.DisallowContinueWithoutIntegerOperandInSwitch' => ['correctness.continueInSwitch' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.DisallowContinueWithoutIntegerOperandInSwitch' => ['mistakes.continueInSwitch' => 'forbidden'],
 			'SlevomatCodingStandard.ControlStructures.DisallowYodaComparison' => fn(array $o, Translation $t) => $t->set(
 				'expressions.comparison.yoda',
 				'forbidden',
@@ -426,9 +426,9 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.ControlStructures.RequireTernaryOperator' => ['controlFlow.ifElseReturning' => 'forbidden'],
 			'SlevomatCodingStandard.ControlStructures.UselessIfConditionWithReturn' => ['controlFlow.ifReturningTrueFalse' => 'forbidden'],
 			'SlevomatCodingStandard.ControlStructures.UselessTernaryOperator' => ['expressions.ternary.ofTrueAndFalse' => 'forbidden'],
-			'SlevomatCodingStandard.Exceptions.DeadCatch' => ['correctness.unreachableCatch' => 'forbidden'],
-			'SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly' => ['correctness.exceptionWhereThrowableBelongs' => 'forbidden'],
-			'SlevomatCodingStandard.Exceptions.RequireNonCapturingCatch' => ['cleanup.catchWithoutVariable' => 'required'],
+			'SlevomatCodingStandard.Exceptions.DeadCatch' => ['mistakes.unreachableCatch' => 'forbidden'],
+			'SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly' => ['mistakes.exceptionWhereThrowableBelongs' => 'forbidden'],
+			'SlevomatCodingStandard.Exceptions.RequireNonCapturingCatch' => ['hygiene.unreadCatchVariable' => 'forbidden'],
 			'SlevomatCodingStandard.Files.LineLength' => fn(array $o, Translation $t) => $t->setLineLength($o['lineLengthLimit'] ?? 120)
 				->setAll([
 					'file.longLines' => 'forbidden',
@@ -453,7 +453,7 @@ final class PhpCodeSniffer
 				'required',
 			),
 			'SlevomatCodingStandard.Functions.StaticClosure' => ['functions.staticClosure' => 'required'],
-			'SlevomatCodingStandard.Functions.StrictCall' => ['correctness.strictComparisonArgument' => 'required'],
+			'SlevomatCodingStandard.Functions.StrictCall' => ['mistakes.strictArgument' => 'required'],
 			'SlevomatCodingStandard.Functions.UselessParameterDefaultValue' => ['functions.uselessParameterDefault' => 'forbidden'],
 			'SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses' => fn(array $o, Translation $t) => $t->setAll([
 				'imports.order.names' => 'alphabetical',
@@ -539,7 +539,7 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.Operators.ReferenceSpacing' => ['spacing.reference' => 'compact'],
 			'SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator' => ['expressions.assignment.repeatingTarget' => 'forbidden'],
 			'SlevomatCodingStandard.Operators.SpreadOperatorSpacing' => ['spacing.spread' => 'compact'],
-			'SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall' => ['cleanup.__invoke' => 'forbidden'],
+			'SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall' => ['hygiene.__invokeCall' => 'forbidden'],
 			'SlevomatCodingStandard.PHP.OptimizedFunctionsWithoutUnpacking' => fn(array $o, Translation $t) => $t->markCallsOptimized(),
 			'SlevomatCodingStandard.PHP.RequireExplicitAssertion' => ['phpdoc.annotation.inlineVar' => 'forbidden'],
 			'SlevomatCodingStandard.PHP.RequireNowdoc' => ['literals.heredocWithoutInterpolation' => 'forbidden'],
@@ -595,7 +595,7 @@ final class PhpCodeSniffer
 			],
 			'SlevomatCodingStandard.TypeHints.UnionTypeHintFormat' => $typeFormat('SlevomatCodingStandard.TypeHints.UnionTypeHintFormat'),
 			'SlevomatCodingStandard.TypeHints.UselessConstantTypeHint' => ['phpdoc.annotation.constantVar' => 'forbidden'],
-			'SlevomatCodingStandard.Variables.DuplicateAssignmentToVariable' => ['correctness.repeatedAssignment' => 'forbidden'],
+			'SlevomatCodingStandard.Variables.DuplicateAssignmentToVariable' => ['mistakes.repeatedAssignment' => 'forbidden'],
 			'Squiz.Arrays.ArrayBracketSpacing' => ['spacing.padding.offset' => 'forbidden'],
 			'Squiz.Classes.SelfMemberReference' => ['qualification.currentClass' => 'self'],
 			'Squiz.Classes.ValidClassName' => fn(array $o, Translation $t) => $t->set('naming.class', 'PascalCase'),
@@ -658,13 +658,13 @@ final class PhpCodeSniffer
 				'upgrading.libraries.forbiddenFunctions',
 				['error_log' => null, 'print_r' => null, 'var_dump' => null],
 			),
-			'Squiz.PHP.GlobalKeyword' => ['correctness.globalStatement' => 'forbidden'],
+			'Squiz.PHP.GlobalKeyword' => ['mistakes.globalStatement' => 'forbidden'],
 			'Squiz.PHP.InnerFunctions' => ['functions.innerFunctions' => 'forbidden'],
 			'Squiz.PHP.LowercasePHPFunctions' => ['casing.function' => 'declared'],
 			'Squiz.Scope.MethodScope' => ['classes.visibility.constant' => 'required',
 				'classes.visibility.property' => 'required',
 				'classes.visibility.method' => 'required', 'classes.visibility.interfaceMethod' => 'required'],
-			'Squiz.Scope.StaticThisUsage' => ['correctness.thisOutsideObject' => 'forbidden'],
+			'Squiz.Scope.StaticThisUsage' => ['mistakes.thisOutsideObject' => 'forbidden'],
 			'Squiz.Strings.ConcatenationSpacing' => fn(array $o, Translation $t) => $t->set(
 				'spacing.concatenation',
 				($o['spacing'] ?? 0) > 0 ? 'spaced' : 'compact',

@@ -33,7 +33,7 @@ final class SerializeMethodsRequiredRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.__serialize',
+			'mistakes.__serialize',
 			Domain::state('required'),
 			'`__serialize()` and `__unserialize()` in a class implementing `Serializable`',
 		)];

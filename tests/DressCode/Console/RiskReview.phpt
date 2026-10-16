@@ -53,7 +53,7 @@ function review(array $files, string $answers, ?Closure $meanwhile = null): arra
 
 	$factory = new RunnerFactory;
 	$runner = $factory->createRunner(
-		$factory->resolve(new Config(paths: ['src'], decisions: ['correctness' => ['strictComparisonArgument' => 'required']]), $root),
+		$factory->resolve(new Config(paths: ['src'], decisions: ['mistakes' => ['strictArgument' => 'required']]), $root),
 		cache: false,
 	);
 	$result = $runner->run($runner->findFiles(['src']), true, new NullReporter);
@@ -85,7 +85,7 @@ test('every risky fix is shown with its diff and made only where the answer is y
 	Assert::same("<?php\n\$x = in_array(\$a, \$b, true);\n\$y = in_array(\$c, \$d);\n", $files['src/a.php']);
 	Assert::match(<<<'XX'
 
-		src/a.php:2  The `in_array()` call must pass `$strict = true`.  correctness.strictComparisonArgument
+		src/a.php:2  The `in_array()` call must pass `$strict = true`.  mistakes.strictArgument
 		Risky because a strict search no longer finds a value of another type.
 		--- src/a.php
 		+++ src/a.php

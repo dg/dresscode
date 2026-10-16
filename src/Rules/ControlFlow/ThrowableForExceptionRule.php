@@ -27,7 +27,7 @@ final class ThrowableForExceptionRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.exceptionWhereThrowableBelongs',
+			'mistakes.exceptionWhereThrowableBelongs',
 			Domain::state('forbidden'),
 			'`catch (Exception)` and a parameter of the type `Exception` where `Throwable` is meant',
 		)];

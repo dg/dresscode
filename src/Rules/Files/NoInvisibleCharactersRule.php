@@ -38,7 +38,7 @@ final class NoInvisibleCharactersRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.invisibleCharacters',
+			'mistakes.invisibleCharacter',
 			Domain::state('forbidden'),
 			'Non-breaking, zero-width and bidi characters, replaced in comments and escaped in strings, which changes their text, and reported in names',
 		)];

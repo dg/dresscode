@@ -302,11 +302,11 @@ test('a violation left although the run allowed its fix needs a report without a
 test('the decisions a fixture makes a risky fix under are those of the reports with a risk, in a fixture saying risky', function () {
 	$dir = __DIR__ . '/../Rules/fixtures';
 	Assert::same(
-		['cleanup.classNameNotation'],
+		['hygiene.classNameNotation.currentClass'],
 		RuleTester::collectRiskyDecisions(ClassNameNotationRule::class, "$dir/classNameNotation/namespace-risky.code"),
 	);
 	Assert::same(
-		['cleanup.get_class'],
+		['hygiene.classNameNotation.object'],
 		RuleTester::collectRiskyDecisions(ClassNameNotationRule::class, "$dir/classNameNotation/objects-namespace-risky.code"),
 	);
 	Assert::same([], RuleTester::collectRiskyDecisions(ClassNameNotationRule::class, "$dir/classNameNotation/namespace.code"));

@@ -1,2 +1,2 @@
-correctness:
-	invisibleCharacters: forbidden
+mistakes:
+	invisibleCharacter: forbidden

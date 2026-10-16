@@ -34,7 +34,7 @@ final class NoConversionFunctionsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'cleanup.conversionFunctions',
+			'hygiene.conversionFunction',
 			Domain::state('forbidden'),
 			'`intval($x)` is `(int) $x`; `intval($x, 16)` is no cast',
 		)];

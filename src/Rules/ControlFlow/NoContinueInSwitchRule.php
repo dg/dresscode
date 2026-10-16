@@ -23,7 +23,7 @@ final class NoContinueInSwitchRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.continueInSwitch',
+			'mistakes.continueInSwitch',
 			Domain::state('forbidden'),
 			'A `continue` that only leaves a `switch` is `break`',
 		)];

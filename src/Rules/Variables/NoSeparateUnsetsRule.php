@@ -22,7 +22,7 @@ final class NoSeparateUnsetsRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('cleanup.separateUnsets', Domain::state('forbidden'), '`unset($a); unset($b);` is `unset($a, $b);`')];
+		return [new Decision('hygiene.separateUnsets', Domain::state('forbidden'), '`unset($a); unset($b);` is `unset($a, $b);`')];
 	}
 
 

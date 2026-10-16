@@ -1,2 +1,2 @@
-correctness:
-	strictComparisonArgument: required
+mistakes:
+	strictArgument: required

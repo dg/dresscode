@@ -25,7 +25,7 @@ final class NoConsecutivePhpdocsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.consecutivePhpdocs',
+			'mistakes.consecutivePhpdocs',
 			Domain::state('forbidden'),
 			'A doc comment followed by another one, the first lost to reflection',
 		)];

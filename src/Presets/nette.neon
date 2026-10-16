@@ -159,13 +159,15 @@ functions:
 	closureReturningOneExpression: forbidden  # `fn() =>` instead
 	closureReturningOneExpressionNested: yes  # also one holding another closure
 
-cleanup:
+hygiene:
 	is_null: forbidden                        # `$x === null`
 	settype: forbidden                        # `$x = (int) $x`
-	conversionFunctions: forbidden            # `(int) $x`, not `intval($x)`
+	conversionFunction: forbidden             # `(int) $x`, not `intval($x)`
 	dirnameOfFile: forbidden                  # `__DIR__`
-	classNameNotation: 'self::class'          # `self::class`, `static::class`
-	get_class: forbidden                      # `$o::class`
+	nestedDirname: forbidden                  # `dirname($p, 2)`
+	classNameNotation:
+		currentClass: 'self::class'           # `self::class`, `static::class`
+		object: '$object::class'              # not `get_class($object)`
 	separateIssets: forbidden                 # `isset($a, $b)`
 	separateUnsets: forbidden                 # `unset($a, $b);`
 
@@ -216,7 +218,7 @@ phpdoc:
 		array: keep                           # both notations stay
 		nullPosition: last
 
-correctness:
+mistakes:
 	globalStatement: forbidden
 	debugOutput: keep                         # may stay
 
@@ -232,5 +234,5 @@ upgrading:
 
 # comments that silence a decision on their line
 suppressionComments:
-	'~\bintentionally\s+[!=]=~': [expressions.comparison.loose, correctness.strictComparisonArgument]   # `// intentionally ==`
-	'~^//\s*@\s+\S~': correctness.errorSuppression                                                    # `// @ why`
+	'~\bintentionally\s+[!=]=~': [expressions.comparison.loose, mistakes.strictArgument]   # `// intentionally ==`
+	'~^//\s*@\s+\S~': mistakes.errorSuppression                                            # `// @ why`

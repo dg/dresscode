@@ -43,7 +43,7 @@ final class NoCallUserFuncRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'cleanup.call_user_func',
+			'hygiene.call_user_func',
 			Domain::state('forbidden'),
 			'`call_user_func($f, $x)` is `$f($x)`, `call_user_func_array($f, $a)` is `$f(...$a)`',
 		)];

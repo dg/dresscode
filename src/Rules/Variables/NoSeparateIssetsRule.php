@@ -21,7 +21,7 @@ final class NoSeparateIssetsRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('cleanup.separateIssets', Domain::state('forbidden'), '`isset($a) && isset($b)` is `isset($a, $b)`')];
+		return [new Decision('hygiene.separateIssets', Domain::state('forbidden'), '`isset($a) && isset($b)` is `isset($a, $b)`')];
 	}
 
 

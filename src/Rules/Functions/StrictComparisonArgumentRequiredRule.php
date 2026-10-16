@@ -44,7 +44,7 @@ final class StrictComparisonArgumentRequiredRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'correctness.strictComparisonArgument',
+			'mistakes.strictArgument',
 			Domain::state('required'),
 			'`in_array()`, `array_search()`, `array_keys()`, `base64_decode()`, `mb_detect_encoding()` pass `strict: true`; an explicit `false` is reported',
 		)];

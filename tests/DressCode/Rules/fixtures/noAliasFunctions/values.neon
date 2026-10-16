@@ -1,2 +1,2 @@
-cleanup:
-	aliasFunctions: [internal, imap, pg]
+hygiene:
+	aliasFunctions: [core, imap, pg]

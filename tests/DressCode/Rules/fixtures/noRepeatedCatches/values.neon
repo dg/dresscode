@@ -1,2 +1,2 @@
-cleanup:
-	repeatedCatch: forbidden
+hygiene:
+	repeatedCatchBody: forbidden

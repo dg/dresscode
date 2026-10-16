@@ -1,2 +1,2 @@
-cleanup:
-	catchWithoutVariable: required
+hygiene:
+	unreadCatchVariable: forbidden

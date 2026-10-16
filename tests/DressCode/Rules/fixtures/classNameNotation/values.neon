@@ -1,3 +1,4 @@
-cleanup:
-	classNameNotation: 'self::class'
-	get_class: keep
+hygiene:
+	classNameNotation:
+		currentClass: 'self::class'
+		object: keep

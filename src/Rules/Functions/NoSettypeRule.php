@@ -47,7 +47,7 @@ final class NoSettypeRule extends NodeRule
 
 	public static function getDecisions(): array
 	{
-		return [new Decision('cleanup.settype', Domain::state('forbidden'), '`settype($x, \'int\')` as a statement is `$x = (int) $x`')];
+		return [new Decision('hygiene.settype', Domain::state('forbidden'), '`settype($x, \'int\')` as a statement is `$x = (int) $x`')];
 	}
 
 

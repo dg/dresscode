@@ -4,7 +4,7 @@ The `nette` preset reads two comments as the reason for code its decisions would
 
 ```neon
 '~\bintentionally\s+[!=]=~': expressions.comparison.loose   # `// intentionally ==`
-'~^//\s*@\s+\S~': correctness.errorSuppression                 # `// @ why`
+'~^//\s*@\s+\S~': mistakes.errorSuppression                    # `// @ why`
 ```
 
 Such a comment says why the code departs from the standard. It has one form for each of the two cases, and no other form is written.

@@ -321,7 +321,7 @@ test('a list of a single item is written without the list, in a configuration an
 		excludePaths: src/generated
 		fileExtensions: php
 		fixRisky: modernizations
-		severity: {cleanup: warning}
+		severity: {hygiene: warning}
 		namespaces:
 			functions: App\helper
 		overrides:
@@ -333,7 +333,7 @@ test('a list of a single item is written without the list, in a configuration an
 	Assert::contains('src/generated', $config->excludePaths);
 	Assert::same(['php'], $config->fileExtensions);
 	Assert::same(['modernizations'], $config->fixRisky);
-	Assert::same(['cleanup' => 'warning'], $config->severity);
+	Assert::same(['hygiene' => 'warning'], $config->severity);
 	Assert::same(['App\helper'], $config->namespaces['functions']);
 	Assert::same(['tests'], $config->overrides[0]->paths);
 	Assert::same(['psr12'], $config->overrides[0]->profile->use);

@@ -21,7 +21,7 @@ final class NoErrorSuppressionRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('correctness.errorSuppression', Domain::state('forbidden'), 'The `@` operator, which silences errors')];
+		return [new Decision('mistakes.errorSuppression', Domain::state('forbidden'), 'The `@` operator, which silences errors')];
 	}
 
 

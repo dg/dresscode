@@ -162,7 +162,7 @@ test('a violation the baseline holds is not recognized in a later round on a lin
 	$code = "<?php\nglobal \$a;\n";
 	$global = array_values(array_filter(
 		processWithBaseline($rules(), $code, null)->violations,
-		fn($v) => $v->decision === 'correctness.globalStatement',
+		fn($v) => $v->decision === 'mistakes.globalStatement',
 	));
 	$baseline = Baseline::fromResults([new FileResult('a.php', $code, $code, $global)]);
 
@@ -171,7 +171,7 @@ test('a violation the baseline holds is not recognized in a later round on a lin
 	Assert::same(['project.processorRename'], array_map(fn($v) => $v->decision, $result->violations));
 	Assert::count(1, $result->baselined);
 	// what the fix left is what the next check reports
-	Assert::same(['correctness.globalStatement'], array_map(fn($v) => $v->decision, $result->remaining));
+	Assert::same(['mistakes.globalStatement'], array_map(fn($v) => $v->decision, $result->remaining));
 	$next = processWithBaseline($rules(), (string) $result->output, $baseline);
 	Assert::same(array_map(fn($v) => $v->fingerprint, $result->remaining), array_map(fn($v) => $v->fingerprint, $next->violations));
 });

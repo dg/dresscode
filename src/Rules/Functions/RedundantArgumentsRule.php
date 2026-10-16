@@ -47,7 +47,7 @@ final class RedundantArgumentsRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'cleanup.redundantArguments',
+			'hygiene.defaultArgument',
 			Domain::state('forbidden'),
 			'An argument PHP ignores or that repeats the default',
 		)];
