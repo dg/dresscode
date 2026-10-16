@@ -416,13 +416,12 @@ The patterns of names never reported, whatever their kind, as the methods of a s
 
 ### casing.method
 
-The case of the name of a method called, as its declaration writes it, and of a method overriding another, as the overridden one writes it.
+The case of the name of a method called, as its declaration writes it, and of a method overriding another, as the overridden one writes it; a magic method of PHP as PHP writes it, the others only with the types of the code.
 
 - By default `keep`
 - Takes: `declared` (`$order->getTotal()`, never `$order->gettotal()`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `declared`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `declared`, symfony `declared`
 - Rule `DressCode\Rules\Functions\MethodCasingRule`, stage Structure
-- Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
 
 ### casing.keyword
 
@@ -720,7 +719,7 @@ An import nothing uses is removed.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`
 - Rule `DressCode\Rules\Namespaces\UselessAliasRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Namespaces.UselessAlias`
 

@@ -18,18 +18,28 @@ use PhpSyntax\Nodes\Member\MethodNode;
 /**
  * A method is called in the case of its declaration, `$order->getTotal()` and never `$order->gettotal()`, which PHP
  * accepts, and a method overriding one of a parent class or an interface is declared in the case of that one. Which
- * method a call reaches and which one a declaration overrides the types of the code say, so a call on a receiver of
- * no known type stays.
+ * method a call reaches and which one a declaration overrides the types of the code say, so without them, and for a
+ * receiver of no known type, only a magic method PHP names is written as PHP writes it, `__toString()`.
  */
-#[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class])]
+#[RuleInfo(Stage::Structure, analyses: [Types::class])]
 final class MethodCasingRule extends NodeRule
 {
+	/** the magic methods as PHP writes them, by their lowercased names */
+	private const MagicMethods = [
+		'__construct' => '__construct', '__destruct' => '__destruct', '__call' => '__call',
+		'__callstatic' => '__callStatic', '__get' => '__get', '__set' => '__set', '__isset' => '__isset',
+		'__unset' => '__unset', '__sleep' => '__sleep', '__wakeup' => '__wakeup', '__serialize' => '__serialize',
+		'__unserialize' => '__unserialize', '__tostring' => '__toString', '__invoke' => '__invoke',
+		'__set_state' => '__set_state', '__clone' => '__clone', '__debuginfo' => '__debugInfo',
+	];
+
+
 	public static function getDecisions(): array
 	{
 		return [new Decision(
 			'casing.method',
 			new Words(['declared' => '`$order->getTotal()`, never `$order->gettotal()`']),
-			'The case of the name of a method called, as its declaration writes it, and of a method overriding another, as the overridden one writes it',
+			'The case of the name of a method called, as its declaration writes it, and of a method overriding another, as the overridden one writes it; a magic method of PHP as PHP writes it, the others only with the types of the code',
 		)];
 	}
 
@@ -50,7 +60,9 @@ final class MethodCasingRule extends NodeRule
 		}
 
 		$written = $node->plainName;
-		$declared = $written === null ? null : $context->getAnalysis(Types::class)->findMember($node)?->name;
+		$declared = $written === null
+			? null
+			: self::MagicMethods[strtolower($written)] ?? $context->findAnalysis(Types::class)?->findMember($node)?->name;
 		if (
 			$declared !== null
 			&& $declared !== $written
@@ -65,17 +77,20 @@ final class MethodCasingRule extends NodeRule
 	private function checkDeclaration(MethodNode $node, RuleContext $context): void
 	{
 		$written = $node->name->text;
-		$overridden = $context->getAnalysis(Types::class)->findOverridden($node);
+		$magic = self::MagicMethods[strtolower($written)] ?? null;
+		$overridden = $magic === null ? $context->findAnalysis(Types::class)?->findOverridden($node) : null;
+		$declared = $magic ?? $overridden?->name;
 		if (
-			$overridden !== null
-			&& $overridden->name !== $written
-			&& strcasecmp($overridden->name, $written) === 0
+			$declared !== null
+			&& $declared !== $written
+			&& strcasecmp($declared, $written) === 0
 			&& $context->report(
 				$node->name,
-				"The method `$written()` must be written `{$overridden->name}()`, as `$overridden->declaringClass` declares it.",
+				"The method `$written()` must be written `$declared()`, as "
+				. ($overridden === null ? 'PHP names it' : "`$overridden->declaringClass` declares it") . '.',
 			)
 		) {
-			$node->name->text = $overridden->name;
+			$node->name->text = $declared;
 		}
 	}
 }

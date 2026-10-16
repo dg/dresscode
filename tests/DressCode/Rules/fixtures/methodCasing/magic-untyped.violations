@@ -1,0 +1,4 @@
+6: The method `__TOSTRING()` must be written `__toString()`, as PHP names it.
+11: The method `__Construct()` must be written `__construct()`, as PHP names it.
+13: The method `__CONSTRUCT()` must be written `__construct()`.
+18: The method `__tostring()` must be written `__toString()`.
