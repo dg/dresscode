@@ -52,6 +52,13 @@ final class ResolvedDebugRule extends NodeRule
 				default: ['var_dump'],
 			),
 			new Decision(
+				'correctness.debugOrder',
+				new Names(['first' => '', 'second' => '', 'third' => ''], ordered: true),
+				'The order of the functions',
+				kind: DecisionKind::Parameter,
+				default: ['first', 'second'],
+			),
+			new Decision(
 				'spacing.call',
 				new Shapes(['compact' => ['foo()', ''], 'spaced' => ['foo ()', '']]),
 				'The space before the parenthesis',
@@ -228,4 +235,66 @@ test('the values carry the mask of the run without changing what was resolved', 
 	Assert::true($values->isSelected('spacing.call'));
 	Assert::false($values->isSelected('correctness.debugOutput'));
 	Assert::same('forbidden', $values->get('correctness.debugOutput')->getWord());
+});
+
+
+test('`...` in a list stands for the list below it, the default included, in its place', function () use ($resolver) {
+	$resolve = fn(array ...$trees) => $resolver->resolve(array_values(array_map(
+		fn(array $tree) => [new Layer(LayerKind::Configuration), $tree],
+		$trees,
+	)));
+	Assert::same(
+		['var_dump', 'dump'],
+		$resolve(['correctness' => ['debugOutputFunctions' => ['...', 'dump']]])['correctness.debugOutputFunctions']->value->getNames(),
+	);
+	// a set merges what both give
+	Assert::same(
+		['dd', 'var_dump', 'dump'],
+		$resolve(
+			['correctness' => ['debugOutputFunctions' => ['var_dump', 'dump']]],
+			['correctness' => ['debugOutputFunctions' => ['dd', '...', 'dump']]],
+		)['correctness.debugOutputFunctions']->value->getNames(),
+	);
+	Assert::same(
+		['perLine', 'fill'],
+		$resolve(
+			['multiline' => ['items' => ['array' => 'perLine']]],
+			['multiline' => ['items' => ['array' => ['...', 'fill']]]],
+		)['multiline.items.array']->value->getWords(),
+	);
+	// an order and a tolerance refuse an item given twice
+	Assert::exception(
+		fn() => $resolve(['correctness' => ['debugOrder' => ['...', 'first']]]),
+		ConfigurationException::class,
+		'Key `correctness.debugOrder` gives `first` itself and in the list `...` stands for; write it once.',
+	);
+	Assert::exception(
+		fn() => $resolve(['correctness' => ['debugOutputFunctions' => ['...', 'dump', '...']]]),
+		ConfigurationException::class,
+		'Key `correctness.debugOutputFunctions` does not take `["...","dump","..."]`, `...` standing for the list below it once only; write a list of names.',
+	);
+	Assert::exception(
+		fn() => $resolve(['multiline' => ['items' => ['...', 'fill']]]),
+		ConfigurationException::class,
+		'Key `multiline.items` holds `...` in a list, which every decision under it would read as another list; write it at the decision.',
+	);
+});
+
+
+test('a map written with `!` after its key replaces the map of the layers below with its entries', function () use ($resolver) {
+	$resolved = $resolver->resolve([
+		[new Layer(LayerKind::Preset, 'perCs'), ['qualification' => ['renamed' => ['strlen' => 'imported']]]],
+		[new Layer(LayerKind::Configuration), ['qualification' => ['renamed!' => ['count' => 'imported']]]],
+	]);
+	Assert::same(['count'], array_keys($resolved['qualification.renamed']->value->getEntries()));
+	Assert::exception(
+		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['qualification' => ['renamed!' => []]]]]),
+		ConfigurationException::class,
+		'Key `qualification.renamed!` replaces a map of the layers below with the entries it writes, and `qualification.renamed` is no such map or gives none; write `qualification.renamed` without `!`, or `keep` to withdraw the map.',
+	);
+	Assert::exception(
+		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['qualification' => ['globalClass!' => 'bare']]]]),
+		ConfigurationException::class,
+		'Key `qualification.globalClass!` replaces %a%',
+	);
 });

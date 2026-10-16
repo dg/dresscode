@@ -56,7 +56,7 @@ final readonly class Map extends Domain
 	}
 
 
-	public function merge(Value $below, Value $above): Value
+	public function merge(Value $below, Value $above, string $path = ''): Value
 	{
 		return $below->content === null || $above->content === null // `keep`, the default, or `keep` withdrawing the whole map
 			? $above

@@ -64,8 +64,12 @@ final readonly class Words extends Domain
 			return new Value($this, [$raw], $raw);
 
 		} elseif ($this->tolerance && is_array($raw) && $raw !== [] && array_is_list($raw)) {
+			if (count(array_keys($raw, self::Spread, true)) > 1) {
+				self::refuse($raw, $path, ['a list of them'], $keep, '`...` standing for the list below it once only');
+			}
+
 			foreach ($raw as $word) {
-				if (!is_string($word) || !isset($this->words[$word])) {
+				if ($word !== self::Spread && (!is_string($word) || !isset($this->words[$word]))) {
 					$this->refuseValue($word, $path, $keep);
 				}
 			}
@@ -85,6 +89,17 @@ final readonly class Words extends Domain
 		}
 
 		$this->refuseValue($raw, $path, $keep);
+	}
+
+
+	public function merge(Value $below, Value $above, string $path = ''): Value
+	{
+		if ($above->isKept() || !in_array(self::Spread, $above->getWords(), true)) {
+			return $above;
+		}
+
+		$words = self::spread($below->isKept() ? [] : $below->getWords(), $above->getWords(), false, $path);
+		return new Value($this, $words, $above->raw, $above->origin);
 	}
 
 

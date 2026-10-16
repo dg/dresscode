@@ -7,7 +7,8 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Config, ConfigurationException, Decision, DecisionKind, Rule, RuleInfo, Value, Values};
+use DressCode\{Config, ConfigurationException, Decision, DecisionKind, Domain, Rule, RuleInfo, Value, Values};
+use DressCode\Domains\Map;
 use DressCode\Interop\Translator;
 use Nette\Utils\Helpers;
 use function count, is_array, is_int, is_string, strlen;
@@ -58,7 +59,17 @@ final readonly class DecisionResolver
 		foreach ($this->catalogue->getDecisions() as $path => $decision) {
 			$merged = null;
 			foreach ($said[$path] ?? [] as [$value, $tombstone]) {
-				$merged = $merged === null || $tombstone ? $value : $decision->domain->merge($merged, $value);
+				$merged = match (true) {
+					$tombstone => $value,
+					$merged !== null => $decision->domain->merge($merged, $value, $path),
+					// the first list holding `...` stands on the default
+					in_array(Domain::Spread, is_array($value->content) ? $value->content : [], true) => $decision->domain->merge(
+						$decision->getDefault(),
+						$value,
+						$path,
+					),
+					default => $value,
+				};
 			}
 
 			$merged ??= $decision->getDefault();
@@ -132,8 +143,8 @@ final readonly class DecisionResolver
 
 
 	/**
-	 * The values of a tree by the paths of their decisions, each with whether it is the tombstone of a `keep` on
-	 * a section or a structure, which the values below it do not merge with.
+	 * The values of a tree by the paths of their decisions, each with whether it replaces what the layers below said:
+	 * the tombstone of a `keep` on a section or a structure, and a map written with `!` after its key.
 	 * @param  array<mixed>  $tree
 	 * @return array<string, array{Value, bool}>
 	 * @throws ConfigurationException
@@ -149,9 +160,13 @@ final readonly class DecisionResolver
 				throw new ConfigurationException("Key `$path` holds dots; write its links nested, each a key of its own.");
 			}
 
+			$replacing = is_string($key) && str_ends_with($key, '!');
+			$path = $replacing ? substr($path, 0, -1) : $path;
 			$decision = is_int($key) ? null : $this->catalogue->find($path);
-			if ($decision !== null) {
-				$values[$path] = [$decision->accept($raw), false];
+			if ($replacing && (!$decision?->domain instanceof Map || !is_array($raw) || $raw === [])) {
+				throw new ConfigurationException("Key `$path!` replaces a map of the layers below with the entries it writes, and `$path` is no such map or gives none; write `$path` without `!`, or `keep` to withdraw the map.");
+			} elseif ($decision !== null) {
+				$values[$path] = [$decision->accept($raw), $replacing];
 				continue;
 			}
 
@@ -205,6 +220,8 @@ final readonly class DecisionResolver
 		$words = is_array($raw) ? $raw : [$raw];
 		if (is_array($raw) && in_array('keep', $raw, true)) {
 			throw new ConfigurationException("Key `$path` holds `keep` in a list; `keep` stands alone.");
+		} elseif (is_array($raw) && in_array(Domain::Spread, $raw, true)) {
+			throw new ConfigurationException("Key `$path` holds `...` in a list, which every decision under it would read as another list; write it at the decision.");
 		}
 
 		foreach ($words as $word) {

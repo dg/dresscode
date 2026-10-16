@@ -361,7 +361,7 @@ abstract readonly class Domain
 	public static function adopted(): DressCode\Domains\Words
 	public static function blankLines(): DressCode\Domains\Count
 	final public function accept(mixed $raw, string $path, bool $keep = false): DressCode\Value
-	public function merge(DressCode\Value $below, DressCode\Value $above): DressCode\Value
+	public function merge(DressCode\Value $below, DressCode\Value $above, string $path = ''): DressCode\Value
 	abstract public function toArray(): array<string, mixed>
 	abstract public function describe(): string
 ```
@@ -406,7 +406,7 @@ final readonly class Map extends DressCode\Domain
 	public readonly bool $caseInsensitive
 	public function __construct(DressCode\Domain $values, bool $wildcards = true, ?array $words = null, ?Nette\Schema\Schema $grammar = null, bool $caseInsensitive = false)
 	public function read(array<string, mixed> $entries, string $path): array<mixed>
-	public function merge(DressCode\Value $below, DressCode\Value $above): DressCode\Value
+	public function merge(DressCode\Value $below, DressCode\Value $above, string $path = ''): DressCode\Value
 	public function toArray(): array
 	public function describe(): string
 ```
@@ -422,6 +422,7 @@ final readonly class Names extends DressCode\Domain
 	public function __construct(?array $words = null, bool $regularExpressions = false, bool $ordered = false, bool $empty = true)
 	public function toArray(): array
 	public function describe(): string
+	public function merge(DressCode\Value $below, DressCode\Value $above, string $path = ''): DressCode\Value
 ```
 
 ## `DressCode\Domains\Shapes`
@@ -452,6 +453,7 @@ final readonly class Words extends DressCode\Domain
 	public function __construct(array $words, bool $tolerance = false, array $passes = [])
 	public function toArray(): array
 	public function describe(): string
+	public function merge(DressCode\Value $below, DressCode\Value $above, string $path = ''): DressCode\Value
 ```
 
 ## `DressCode\FileResult`

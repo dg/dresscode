@@ -78,8 +78,14 @@ final readonly class Names extends Domain
 			);
 		}
 
+		if (count(array_keys($raw, self::Spread, true)) > 1) {
+			self::refuse($raw, $path, [$this->describe()], $keep, '`...` standing for the list below it once only');
+		}
+
 		foreach ($raw as $name) {
-			if (!is_string($name) || $name === '') {
+			if ($name === self::Spread) {
+				continue;
+			} elseif (!is_string($name) || $name === '') {
 				self::refuse($raw, $path, [$this->describe()], $keep, 'which holds no name');
 			} elseif ($name === 'keep') {
 				self::refuse($raw, $path, [$this->describe()], $keep, '`keep` being no item of a list');
@@ -100,5 +106,16 @@ final readonly class Names extends Domain
 		return count(array_unique($raw)) === count($raw)
 			? new Value($this, $raw, $raw)
 			: self::refuse($raw, $path, ['each name once'], false, 'a name given twice');
+	}
+
+
+	public function merge(Value $below, Value $above, string $path = ''): Value
+	{
+		if ($above->isKept() || !in_array(self::Spread, $above->getNames(), true)) {
+			return $above;
+		}
+
+		$names = self::spread($below->isKept() ? [] : $below->getNames(), $above->getNames(), !$this->ordered, $path);
+		return new Value($this, $names, $above->raw, $above->origin);
 	}
 }

@@ -19,6 +19,9 @@ use const JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE;
  */
 abstract readonly class Domain
 {
+	/** @internal the item of a list standing for the list of the layer below it */
+	public const Spread = '...';
+
 	private const StateWords = [
 		'forbidden' => 'never there',
 		'required' => 'always there',
@@ -98,11 +101,37 @@ abstract readonly class Domain
 
 	/**
 	 * The value of two layers merged by the law of the domain: `keep` above wins, and a value above replaces the
-	 * one below, unless the domain merges its maps.
+	 * one below, unless the domain merges its maps or the list above holds `...` for the one below.
+	 * @throws ConfigurationException
 	 */
-	public function merge(Value $below, Value $above): Value
+	public function merge(Value $below, Value $above, string $path = ''): Value
 	{
 		return $above;
+	}
+
+
+	/**
+	 * The list above with its `...` replaced by the list below in its place; an item both give is merged in a set and
+	 * refused in an order or a tolerance.
+	 * @param  list<string>  $below
+	 * @param  list<string>  $above
+	 * @return list<string>
+	 * @throws ConfigurationException
+	 */
+	protected static function spread(array $below, array $above, bool $set, string $path): array
+	{
+		$at = array_search(self::Spread, $above, true);
+		if ($at === false) {
+			return $above;
+		}
+
+		$list = [...array_slice($above, 0, $at), ...$below, ...array_slice($above, $at + 1)];
+		$twice = array_diff_key($list, array_unique($list));
+		if ($twice !== [] && !$set) {
+			throw new ConfigurationException("Key `$path` gives `" . reset($twice) . '` itself and in the list `...` stands for; write it once.');
+		}
+
+		return array_values(array_unique($list));
 	}
 
 
