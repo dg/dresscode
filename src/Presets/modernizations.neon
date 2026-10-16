@@ -15,15 +15,8 @@ functions:
 hygiene:
 	classNameNotation:
 		currentClass: 'self::class'            # `self::class`, `static::class`
-	separateIssets: forbidden                  # `isset($a, $b)`
-	separateUnsets: forbidden                  # `unset($a, $b);`
-
-controlFlow:
-	ifElseReturning: forbidden                 # `return $c ? 1 : 2;`
 
 expressions:
-	assignment:
-		targetInValue: forbidden               # `$a += $b`, not `$a = $a + $b`
 	ternary:
 		short: required                        # `$a ?: $b`
 	coalesce: required                         # `$a ?? $b`

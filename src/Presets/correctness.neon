@@ -23,3 +23,4 @@ mistakes:
 	trailingWhitespaceInString: forbidden       # in a multi-line string or inline HTML
 	consecutivePhpdocs: forbidden               # the first of two is lost, reported
 	repeatedAssignment: forbidden               # `$a = $a = 1`
+	debugOutput: forbidden                      # `// var_dump($a);`, risky

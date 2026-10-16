@@ -169,8 +169,6 @@ hygiene:
 	classNameNotation:
 		currentClass: 'self::class'           # `self::class`, `static::class`
 		object: '$object::class'              # not `get_class($object)`
-	separateIssets: forbidden                 # `isset($a, $b)`
-	separateUnsets: forbidden                 # `unset($a, $b);`
 
 controlFlow:
 	switch:
@@ -184,7 +182,6 @@ expressions:
 		yoda: forbidden                       # `$a === 1`
 	assignment:
 		addingOne: forbidden                  # `$i++`, not `$i += 1`
-		targetInValue: forbidden              # `$a += $b`, not `$a = $a + $b`
 		increment: postfix                    # `$i++;`
 	ternary:
 		short: required                       # `$a ?: $b`

@@ -47,6 +47,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'classes.staticMethod', // how a class is built, which no set decides for it
 		'controlFlow.trailingIf', // the shape of a function body, which no standard prescribes
 		'controlFlow.elseifAfterReturn', // an `elseif` split into an `if` reads as another question, which a project chooses
+		'controlFlow.ifElseReturning', // a ternary for two branches is a shape of the code, no construct a newer PHP gave
 		'casing.hexDigit', // the case of a hexadecimal digit, which no standard of the core settles
 		'mistakes.neverReturnType.anonymousFunction', // the signature of a closure usually belongs to the call it is passed to
 		'mistakes.readonlyProperty', // a guarantee the code takes on, which no older construct gave

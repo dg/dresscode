@@ -37,6 +37,8 @@ hygiene:
 	defaultArgument: forbidden               # `json_encode($a)`, not `json_encode($a, 0)`
 	unreadCatchVariable: forbidden           # `catch (E)` where `$e` is not read
 	repeatedCatchBody: forbidden             # `catch (A|B $e)` for two catches of one body
+	separateIssets: forbidden                # `isset($a, $b)`
+	separateUnsets: forbidden                # `unset($a, $b);`
 
 controlFlow:
 	emptyStatement: forbidden                # `foo();;`
@@ -45,6 +47,8 @@ controlFlow:
 
 expressions:
 	parenthesesAfterConstruct: forbidden     # `return $x;`, not `return ($x);`
+	assignment:
+		targetInValue: forbidden             # `$a += $b`, not `$a = $a + $b`
 	ternary:
 		ofTrueFalse: forbidden               # `$a > 1`, not `$a > 1 ? true : false`
 
@@ -62,9 +66,6 @@ phpdoc:
 	inheritdocOnly: forbidden                # one holding only `{@inheritDoc}`
 	annotation:
 		constantVar: forbidden               # a bare `@var int` on a class constant
-
-mistakes:
-	debugOutput: forbidden                   # `// var_dump($a);`, risky
 
 upgrading:
 	php:
