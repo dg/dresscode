@@ -41,7 +41,7 @@ spacing:
 	arrowFunction: 'fn ($x) => $x'
 	alignment:
 		comma: optional                       # aligning spaces and tabs may stay
-		assignment: forbidden                 # no extra spaces around an operator
+		binaryOperator: forbidden             # no extra spaces around an operator
 	semicolon:
 		after: 'for ($i = 0; $i < 5; $i++)'
 	unaryOperatorsWithSpace: []               # `!$x`, never `! $x`

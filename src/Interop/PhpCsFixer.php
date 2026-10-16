@@ -86,7 +86,7 @@ final class PhpCsFixer
 				}
 				$t->setAll([
 					'spacing.binaryOperator' => 'spaced',
-					'spacing.alignment.assignment' => $default === 'single_space' ? 'forbidden' : 'spaces',
+					'spacing.alignment.binaryOperator' => $default === 'single_space' ? 'forbidden' : 'spaces',
 				]);
 			},
 			'blank_line_after_namespace' => fn(array $o, Translation $t) => $t->set('blankLines.afterNamespace', 1),

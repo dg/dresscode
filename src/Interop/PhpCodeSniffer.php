@@ -185,7 +185,7 @@ final class PhpCodeSniffer
 			'PSR12.Keywords.ShortFormTypeKeywords' => ['expressions.cast' => 'canonical'],
 			'PSR12.Operators.OperatorSpacing' => fn(array $o, Translation $t) => $t->setAll([
 				'spacing.binaryOperator' => 'spaced',
-				'spacing.alignment.assignment' => 'spaces',
+				'spacing.alignment.binaryOperator' => 'spaces',
 				'spacing.ternary' => 'spaced',
 				'spacing.alignment.ternary' => 'optional',
 				'spacing.concatenation' => 'spaced',
@@ -687,10 +687,10 @@ final class PhpCodeSniffer
 			},
 			'Squiz.WhiteSpace.LogicalOperatorSpacing' => [
 				'spacing.binaryOperator' => 'spaced',
-				'spacing.alignment.assignment' => 'spaces',
+				'spacing.alignment.binaryOperator' => 'spaces',
 			],
 			'Squiz.WhiteSpace.ObjectOperatorSpacing' => ['spacing.objectOperator' => 'compact'],
-			'Squiz.WhiteSpace.OperatorSpacing' => ['spacing.binaryOperator' => 'spaced', 'spacing.alignment.assignment' => 'spaces'],
+			'Squiz.WhiteSpace.OperatorSpacing' => ['spacing.binaryOperator' => 'spaced', 'spacing.alignment.binaryOperator' => 'spaces'],
 			'Squiz.WhiteSpace.OperatorSpacing.Unary' => ['spacing.unaryOperator' => 'compact', 'spacing.unaryOperatorsWithSpace' => []],
 			'Squiz.WhiteSpace.ScopeClosingBrace' => fn(array $o, Translation $t) => $t->warn('`Squiz.WhiteSpace.ScopeClosingBrace` puts a closing brace on a line of its own at the indentation of the line opening it, which DressCode does wherever `braces` places the opening brace and `indentation.unit` indents.'),
 			'Squiz.WhiteSpace.ScopeKeywordSpacing' => ['spacing.doubleColon' => 'compact'],

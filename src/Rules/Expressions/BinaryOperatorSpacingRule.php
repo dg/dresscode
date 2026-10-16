@@ -29,7 +29,7 @@ use PhpSyntax\Nodes\Statement\ForeachNode;
  * unless the line would grow wider than the line length, and a comparison ending a line moves to the start of the next
  * one where `multiline.operatorPosition.comparison` says so and the joined line would be too wide; the lines around the
  * other operators are the matter of `MultilineBinaryOperatorRule` and `MultilineConditionRule`. Whitespace
- * wider than a space aligns a column of assignments or of array items, and `spacing.alignment.assignment` says
+ * wider than a space aligns a column of assignments or of array items, and `spacing.alignment.binaryOperator` says
  * which of it stays. Concatenation is the matter of `ConcatenationSpacingRule`.
  */
 #[RuleInfo(Stage::Formatting, analyses: [IndentationSnapshot::class])]
@@ -37,7 +37,7 @@ final class BinaryOperatorSpacingRule extends GapRule
 {
 	private const JoinedOperators = ['==', '!=', '<>', '===', '!==', '<', '<=', '>', '>=', '<=>'];
 	private const Spacing = 'spacing.binaryOperator';
-	private const Alignment = 'spacing.alignment.assignment';
+	private const Alignment = 'spacing.alignment.binaryOperator';
 	private const Position = 'multiline.operatorPosition.comparison';
 	private const ExpressionStart = 'multiline.expressionStart.';
 
