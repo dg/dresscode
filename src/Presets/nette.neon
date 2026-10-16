@@ -56,7 +56,7 @@ imports:
 spacing:
 	alignment:
 		comma: tabs                           # tabs aligning columns may stay
-		ternary: none                         # no extra spaces around `?` and `:`
+		ternary: forbidden                    # no extra spaces around `?` and `:`
 	semicolon:
 		after: 'for ($i = 0; $i < 5; $i++)'
 	unaryOperatorsWithSpace: []               # `!$x`, never `! $x`

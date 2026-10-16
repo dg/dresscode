@@ -187,7 +187,7 @@ final class PhpCodeSniffer
 				'spacing.binaryOperator' => 'spaced',
 				'spacing.alignment.assignment' => 'spaces',
 				'spacing.ternary' => 'spaced',
-				'spacing.alignment.ternary' => 'any',
+				'spacing.alignment.ternary' => 'optional',
 				'spacing.concatenation' => 'spaced',
 			]),
 			'PSR12.Properties.ConstantVisibility' => [

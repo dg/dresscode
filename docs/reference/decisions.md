@@ -751,9 +751,9 @@ The whitespace before a comment that follows code on its line.
 
 Whether a comment following code may be aligned by more spaces.
 
-- By default `any`
-- Takes: `none` (more whitespace collapses to a single space); `any` (any alignment stays)
-- The standards: perCs `any`, psr12 `any`, nette `any`, symfony `any`
+- By default `optional`
+- Takes: `forbidden` (more whitespace collapses to a single space); `optional` (any alignment stays)
+- The standards: perCs `optional`, psr12 `optional`, nette `optional`, symfony `optional`
 - Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
 - Modifies comments
 
@@ -782,8 +782,8 @@ The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `
 Which whitespace wider than a single space around an operator stays, aligning a column of assignments `=` or of array items `=>`; alignment is never made.
 
 - By default `spaces`
-- Takes: `none` (more whitespace collapses to a single space); `spaces` (spaces aligning a column stay); `tabs` (tabs aligning a column stay); `any` (any alignment stays)
-- The standards: perCs `spaces`, psr12 `spaces`, nette `spaces`, symfony `none`
+- Takes: `forbidden` (more whitespace collapses to a single space); `spaces` (spaces aligning a column stay); `tabs` (tabs aligning a column stay); `optional` (any alignment stays)
+- The standards: perCs `spaces`, psr12 `spaces`, nette `spaces`, symfony `forbidden`
 - Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
 - Covers: `binary_operator_spaces`, `PSR12.Operators.OperatorSpacing`, `Squiz.WhiteSpace.LogicalOperatorSpacing`, `Squiz.WhiteSpace.OperatorSpacing`
 
@@ -871,9 +871,9 @@ The whitespace around `?` and `:` of a ternary, and around `?:` as a whole, unle
 
 Whether more spaces around `?` and `:` stay.
 
-- By default `any`
-- Takes: `none` (more whitespace collapses to a single space); `any` (any alignment stays)
-- The standards: perCs `any`, psr12 `any`, nette `none`, symfony `any`
+- By default `optional`
+- Takes: `forbidden` (more whitespace collapses to a single space); `optional` (any alignment stays)
+- The standards: perCs `optional`, psr12 `optional`, nette `forbidden`, symfony `optional`
 - Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
 - Covers: `ternary_operator_spaces`, `PSR12.Operators.OperatorSpacing`
 
@@ -971,8 +971,8 @@ The whitespace around a comma, which stays on the line of what is before it, a l
 Which whitespace wider than a single space after a comma stays, aligning the columns of a table; alignment is never made.
 
 - By default `tabs`
-- Takes: `none` (more whitespace collapses to a single space); `spaces` (spaces aligning a column stay); `tabs` (tabs aligning a column stay); `any` (any alignment stays)
-- The standards: perCs `none`, psr12 `none`, nette `tabs`, symfony `any`
+- Takes: `forbidden` (more whitespace collapses to a single space); `spaces` (spaces aligning a column stay); `tabs` (tabs aligning a column stay); `optional` (any alignment stays)
+- The standards: perCs `forbidden`, psr12 `forbidden`, nette `tabs`, symfony `optional`
 - Rule `DressCode\Rules\Whitespace\CommaSpacingRule`, stage Formatting
 - Covers: `no_whitespace_before_comma_in_array`, `whitespace_after_comma_in_array`, `Generic.Functions.FunctionCallArgumentSpacing`, `Squiz.Functions.FunctionDeclarationArgumentSpacing`
 

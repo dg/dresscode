@@ -45,10 +45,10 @@ final class CommentSpacingRule extends NodeRule
 			),
 			new Decision(
 				self::Alignment,
-				Domain::alignment('none', 'any'),
+				Domain::alignment('forbidden', 'optional'),
 				'Whether a comment following code may be aligned by more spaces',
 				kind: DecisionKind::Parameter,
-				default: 'any',
+				default: 'optional',
 			),
 		];
 	}
@@ -59,7 +59,7 @@ final class CommentSpacingRule extends NodeRule
 		$this->marker = !$values->isKept(self::Marker);
 		$this->before = match (true) {
 			$values->isKept(self::AfterCode) => null,
-			$values->get(self::Alignment)->getWord() === 'none' => Space::Single,
+			$values->get(self::Alignment)->getWord() === 'forbidden' => Space::Single,
 			default => Space::AtLeastOne,
 		};
 	}

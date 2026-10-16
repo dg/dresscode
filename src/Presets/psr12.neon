@@ -51,7 +51,7 @@ spacing:
 	languageConstruct: 'return $x'            # `throw`, `yield`, `new`, `include` too
 	comma: '$a, $b'
 	alignment:
-		comma: none                           # no extra spaces after a comma
+		comma: forbidden                      # no extra spaces after a comma
 	cast: '(int) $x'
 	reference: '&$x'
 	spread: '...$x'

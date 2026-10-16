@@ -48,10 +48,10 @@ final class TernaryOperatorSpacingRule extends GapRule
 			),
 			new Decision(
 				self::Alignment,
-				Domain::alignment('none', 'any'),
+				Domain::alignment('forbidden', 'optional'),
 				'Whether more spaces around `?` and `:` stay',
 				kind: DecisionKind::Parameter,
-				default: 'any',
+				default: 'optional',
 			),
 		];
 	}
@@ -61,7 +61,7 @@ final class TernaryOperatorSpacingRule extends GapRule
 	{
 		$spacing = !$values->isKept(self::Spacing);
 		$this->claim = $spacing
-			? ($values->get(self::Alignment)->getWord() === 'none' ? Claim::singleSpace() : Claim::atLeastOneSpace())->withDecision(
+			? ($values->get(self::Alignment)->getWord() === 'forbidden' ? Claim::singleSpace() : Claim::atLeastOneSpace())->withDecision(
 				self::Spacing,
 			)
 			: null;

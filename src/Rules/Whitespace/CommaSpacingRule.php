@@ -48,7 +48,7 @@ final class CommaSpacingRule extends GapRule
 	public function configure(Values $values): void
 	{
 		$this->spaceAfterComma = match ($values->get(self::Alignment)->getWord()) {
-			'none' => Claim::singleSpace(),
+			'forbidden' => Claim::singleSpace(),
 			'spaces' => Claim::atLeastOneSpace(),
 			'tabs' => Claim::singleSpaceOrTabs(),
 			default => Claim::atLeastOneSpaceOrTabs(),

@@ -1,5 +1,5 @@
 <?php
-// {"spacing.alignment.assignment": "none"}
+// {"spacing.alignment.assignment": "forbidden"}
 $a = 1;
 $b = [1 => 2];
 $c = 3;

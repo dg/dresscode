@@ -86,7 +86,7 @@ final class PhpCsFixer
 				}
 				$t->setAll([
 					'spacing.binaryOperator' => 'spaced',
-					'spacing.alignment.assignment' => $default === 'single_space' ? 'none' : 'spaces',
+					'spacing.alignment.assignment' => $default === 'single_space' ? 'forbidden' : 'spaces',
 				]);
 			},
 			'blank_line_after_namespace' => fn(array $o, Translation $t) => $t->set('blankLines.afterNamespace', 1),
@@ -493,7 +493,7 @@ final class PhpCsFixer
 			'no_useless_else' => ['controlFlow.elseAfterReturn' => 'forbidden'],
 			'no_useless_return' => ['functions.trailingBareReturn' => 'forbidden'],
 			'no_whitespace_before_comma_in_array' => fn(array $o, Translation $t) => $t->set('spacing.comma', 'spaced')
-				->prefer('spacing.alignment.comma', 'any'),
+				->prefer('spacing.alignment.comma', 'optional'),
 			'no_whitespace_in_blank_line' => ['file.trailingWhitespace' => 'forbidden'],
 			'non_printable_character' => function (array $o, Translation $t) {
 				if (!($o['use_escape_sequences_in_strings'] ?? true)) {
@@ -689,7 +689,7 @@ final class PhpCsFixer
 			'switch_continue_to_break' => ['correctness.continueInSwitch' => 'forbidden'],
 			'ternary_operator_spaces' => [
 				'spacing.ternary' => 'spaced',
-				'spacing.alignment.ternary' => 'any',
+				'spacing.alignment.ternary' => 'optional',
 			],
 			'ternary_to_elvis_operator' => ['expressions.ternary.returningItsCondition' => 'forbidden'],
 			'ternary_to_null_coalescing' => ['expressions.ternary.testingNull' => 'forbidden'],
@@ -721,7 +721,7 @@ final class PhpCsFixer
 			],
 			'whitespace_after_comma_in_array' => fn(array $o, Translation $t) => $t->setAll([
 				'spacing.comma' => 'spaced',
-				'spacing.alignment.comma' => ($o['ensure_single_space'] ?? false) ? 'none' : 'any',
+				'spacing.alignment.comma' => ($o['ensure_single_space'] ?? false) ? 'forbidden' : 'optional',
 			]),
 		];
 	}

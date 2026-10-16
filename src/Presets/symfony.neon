@@ -40,8 +40,8 @@ imports:
 spacing:
 	fnKeyword: 'fn ($x) => $x'
 	alignment:
-		comma: any                            # aligning spaces and tabs may stay
-		assignment: none                      # no extra spaces around an operator
+		comma: optional                       # aligning spaces and tabs may stay
+		assignment: forbidden                 # no extra spaces around an operator
 	semicolon:
 		after: 'for ($i = 0; $i < 5; $i++)'
 	unaryOperatorsWithSpace: []               # `!$x`, never `! $x`

@@ -1,5 +1,5 @@
 <?php
-// {"spacing.alignment.comment": "none"}
+// {"spacing.alignment.comment": "forbidden"}
 $b = 2;   // aligned
 $c = 3;	# tab
 $d = 4;/* c */
