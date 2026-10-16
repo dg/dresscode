@@ -104,8 +104,10 @@ controlFlow:
 expressions:
 	comparison:
 		notEquals: '!='                       # not `<>`
+		yoda: required                        # `null === $a`
 	assignment:
-		addingOne: forbidden                  # `$i++`, not `$i += 1`
+		addingOne: forbidden                  # `++$i`, not `$i += 1`
+		increment: prefix                     # `++$i;`
 	doubleNegation: forbidden                 # `(bool) $a`, not `!!$a`
 	parenthesesAfterConstruct: forbidden      # `return $x;`, not `return ($x);`
 

@@ -3010,7 +3010,7 @@ An increment or a decrement whose value is not read, a statement or a step of `f
 
 - By default `keep`
 - Takes: `prefix` (`++$i`, `--$i`); `postfix` (`$i++`, `$i--`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `postfix`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `postfix`, symfony `prefix`
 - Rule `DressCode\Rules\Expressions\IncrementRule`, stage Structure
 - Read by rule `DressCode\Rules\Expressions\IncrementForAddOneRule`, which this decision does not turn on
 
@@ -3092,7 +3092,7 @@ A Yoda comparison, the constant on its left side, a comparison of two variables 
 
 - By default `keep`
 - Takes: `forbidden` (never there, the variable on the left and the constant on the right, `$a === 1`); `required` (always there, the constant on the left, `1 === $a`, so that an accidental assignment does not compile); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `required`
 - Rule `DressCode\Rules\Expressions\YodaRule`, stage Structure
 - Covers: `SlevomatCodingStandard.ControlStructures.DisallowYodaComparison`
 
