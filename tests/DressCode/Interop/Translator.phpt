@@ -123,19 +123,28 @@ test('options are translated, a rule switched off is turned off', function () {
 	$translation = (new Translator)->translate([
 		'cast_spaces' => ['space' => 'none'],
 		'concat_space' => ['spacing' => 'one'],
-		'array_syntax' => ['syntax' => 'long'],
+		'yoda_style' => ['less_and_greater' => true],
 		'elseif' => false,
 		'multiline_whitespace_before_semicolons' => ['strategy' => 'new_line_for_chained_calls'],
 	]);
 	Assert::same([
 		'spacing.cast' => 'compact',
 		'spacing.concatenation' => 'spaced',
+		'expressions.comparison.yoda' => 'required',
 		'controlFlow.elseif' => 'keep',
 		'multiline.semicolon' => 'nextLine',
 	], $translation->decisions);
 	Assert::same(
-		['`array_syntax` with `syntax=long` has no equivalent; DressCode writes the short syntax only.'],
+		['`yoda_style` decides `==`, `===`, `<` and `>` one by one, which DressCode decides together for the equality comparisons alone.'],
 		$translation->warnings,
+	);
+	Assert::same(
+		['literals.arraySyntax.array' => 'long', 'literals.arraySyntax.list' => 'long', 'expressions.assignment.increment' => 'postfix'],
+		(new Translator)->translate([
+			'array_syntax' => ['syntax' => 'long'],
+			'list_syntax' => ['syntax' => 'long'],
+			'increment_style' => ['style' => 'post'],
+		])->decisions,
 	);
 });
 
@@ -330,11 +339,11 @@ test('an option with no value of DressCode to write is left out and said so, not
 	Assert::noError(fn() => resolveTranslation($translation));
 
 	$translation = $translate(['numeric_literal_separator' => ['strategy' => 'no_separator']]);
-	Assert::same([], $translation->decisions);
 	Assert::same(
-		['`numeric_literal_separator` with `strategy=no_separator` has no equivalent; DressCode adds the separator.'],
-		$translation->warnings,
+		['literals.digitSeparator.integer' => 'forbidden', 'literals.digitSeparator.fraction' => 'forbidden'],
+		$translation->decisions,
 	);
+	Assert::same([], $translation->warnings);
 
 	// a ruleset writes no value as the text `null`
 	$translation = $translate(['Generic.PHP.ForbiddenFunctions' => ['forbiddenFunctions' => ['delete' => 'null', 'sizeof' => 'count']]]);

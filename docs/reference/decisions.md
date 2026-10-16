@@ -462,6 +462,7 @@ The digits `A` to `F` of a hexadecimal number; the prefixes `0x`, `0b` and `0o` 
 - Takes: `uppercase` (`0xFF`); `lowercase` (`0xff`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Literals\HexDigitCasingRule`, stage Structure
+- Covers: `integer_literal_case`
 
 ### casing.class
 
@@ -2716,7 +2717,7 @@ The name of the class of an object.
 - Takes: `'$object::class'` (`$object::class`, never `get_class($object)`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `'$object::class'`, symfony `keep`
 - Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
-- Covers: `SlevomatCodingStandard.Classes.ModernClassNameReference`
+- Covers: `get_class_to_class_keyword`, `SlevomatCodingStandard.Classes.ModernClassNameReference`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### hygiene.repeatedCatchBody
@@ -3031,6 +3032,7 @@ An increment or a decrement whose value is not read, a statement or a step of `f
 - The standards: perCs `keep`, psr12 `keep`, nette `postfix`, symfony `prefix`
 - Rule `DressCode\Rules\Expressions\IncrementRule`, stage Structure
 - Read by rule `DressCode\Rules\Expressions\IncrementForAddOneRule`, which this decision does not turn on
+- Covers: `increment_style`
 
 ### expressions.doubleNegation
 
@@ -3071,7 +3073,7 @@ The operator of inequality.
 - Takes: `required` (always there); `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Expressions\ShortTernaryRule`, stage Structure
-- Covers: `ternary_to_elvis_operator`, `SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator`
+- Covers: `ternary_to_elvis_operator`, `SlevomatCodingStandard.ControlStructures.DisallowShortTernaryOperator`, `SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator`
 
 ### expressions.comparison.loose
 
@@ -3112,7 +3114,7 @@ A Yoda comparison, the constant on its left side, a comparison of two variables 
 - Takes: `forbidden` (never there, the variable on the left and the constant on the right, `$a === 1`); `required` (always there, the constant on the left, `1 === $a`, so that an accidental assignment does not compile); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `required`
 - Rule `DressCode\Rules\Expressions\YodaRule`, stage Structure
-- Covers: `SlevomatCodingStandard.ControlStructures.DisallowYodaComparison`
+- Covers: `yoda_style`, `SlevomatCodingStandard.ControlStructures.DisallowYodaComparison`, `SlevomatCodingStandard.ControlStructures.RequireYodaComparison`
 
 ## literals
 
@@ -3124,7 +3126,7 @@ The syntax of an array.
 - Takes: `short` (`[1, 2]`, never `array(1, 2)`); `long` (`array(1, 2)`, never `[1, 2]`); `keep`
 - The standards: perCs `short`, psr12 `keep`, nette `short`, symfony `short`
 - Rule `DressCode\Rules\Arrays\ArraySyntaxRule`, stage Structure
-- Covers: `array_syntax`, `Generic.Arrays.DisallowLongArraySyntax`
+- Covers: `array_syntax`, `Generic.Arrays.DisallowLongArraySyntax`, `Generic.Arrays.DisallowShortArraySyntax`
 
 ### literals.arraySyntax.list
 
@@ -3176,7 +3178,7 @@ The separator grouping by three the digits of a decimal integer, or of the integ
 - Takes: `required` (always there); `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Literals\NumericLiteralSeparatorRule`, stage Structure
-- Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
+- Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.DisallowNumericLiteralSeparator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
 
 ### literals.digitSeparator.fraction
 
@@ -3186,7 +3188,7 @@ The separator grouping by three the digits of the fraction of a decimal number, 
 - Takes: `required` (always there); `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Literals\NumericLiteralSeparatorRule`, stage Structure
-- Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
+- Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.DisallowNumericLiteralSeparator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
 
 ### literals.digitSeparatorMinDigits.integer
 
@@ -3226,7 +3228,7 @@ Two string literals concatenated on one line, which are one literal, `'ab'` for 
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`
 - Rule `DressCode\Rules\Literals\UselessStringConcatenationRule`, stage Structure
-- Covers: `PhpCsFixerCustomFixers/no_superfluous_concatenation`, `Generic.Strings.UnnecessaryStringConcat`
+- Covers: `PhpCsFixerCustomFixers/no_superfluous_concatenation`, `no_useless_concat_operator`, `Generic.Strings.UnnecessaryStringConcat`
 
 ### literals.concatenatedLiteralsOverLines
 

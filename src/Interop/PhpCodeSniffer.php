@@ -56,6 +56,7 @@ final class PhpCodeSniffer
 
 		return [
 			'Generic.Arrays.DisallowLongArraySyntax' => ['literals.arraySyntax.array' => 'short'],
+			'Generic.Arrays.DisallowShortArraySyntax' => ['literals.arraySyntax.array' => 'long'],
 			'Generic.CodeAnalysis.RequireExplicitBooleanOperatorPrecedence' => ['expressions.explicitPrecedence' => 'required'],
 			'Generic.CodeAnalysis.UnnecessaryFinalModifier' => ['classes.modifiers.implied' => 'forbidden'],
 			'Generic.ControlStructures.InlineControlStructure' => ['braces.bracelessBody' => 'forbidden'],
@@ -376,10 +377,9 @@ final class PhpCodeSniffer
 				}
 			},
 			'SlevomatCodingStandard.ControlStructures.DisallowContinueWithoutIntegerOperandInSwitch' => ['mistakes.continueInSwitch' => 'forbidden'],
-			'SlevomatCodingStandard.ControlStructures.DisallowYodaComparison' => fn(array $o, Translation $t) => $t->set(
-				'expressions.comparison.yoda',
-				'forbidden',
-			),
+			'SlevomatCodingStandard.ControlStructures.DisallowShortTernaryOperator' => ['expressions.ternary.short' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.DisallowYodaComparison' => ['expressions.comparison.yoda' => 'forbidden'],
+			'SlevomatCodingStandard.ControlStructures.RequireYodaComparison' => ['expressions.comparison.yoda' => 'required'],
 			'SlevomatCodingStandard.ControlStructures.EarlyExit' => function (array $o, Translation $t) {
 				$t->setAll([
 					'controlFlow.trailingIf' => 'forbidden',
@@ -526,6 +526,10 @@ final class PhpCodeSniffer
 			),
 			'SlevomatCodingStandard.Namespaces.UseFromSameNamespace' => ['imports.fromCurrentNamespace' => 'forbidden'],
 			'SlevomatCodingStandard.Namespaces.UselessAlias' => ['imports.aliasEqualToName' => 'forbidden'],
+			'SlevomatCodingStandard.Numbers.DisallowNumericLiteralSeparator' => [
+				'literals.digitSeparator.integer' => 'forbidden',
+				'literals.digitSeparator.fraction' => 'forbidden',
+			],
 			'SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator' => fn(array $o, Translation $t) => $t->setAll([
 				'literals.digitSeparator.integer' => 'required',
 				'literals.digitSeparator.fraction' => 'required',
