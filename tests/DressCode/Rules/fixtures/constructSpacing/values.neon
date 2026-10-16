@@ -1,10 +1,10 @@
 spacing:
-	languageConstruct: 'return $x'
-	controlKeyword: 'if ($a)'
-	connectingKeyword: '} else {'
-	functionKeyword: 'function ($x)'
-	modifier: 'final public static function'
-	fnKeyword: 'fn($x) => $x'
+	keyword: 'return $x'
+	openBrace: 'if ($a) {'
+	alternativeSyntax: 'if ($a):'
+	body: 'public $a { get; set; }'
+	import: 'use Acme\{Foo, Bar};'
+	arrowFunction: 'fn($x) => $x'
 
 multiline:
 	expressionStart: sameLine

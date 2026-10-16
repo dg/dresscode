@@ -31,27 +31,24 @@ use function count;
  * The space between `fn` and its parenthesis, and whether an expression spanning several lines may begin below
  * `return` and its like, are options.
  */
-#[RuleInfo(Stage::Formatting)]
+#[RuleInfo(Stage::Formatting, decisions: [self::Keyword])]
 final class ConstructSpacingRule extends GapRule
 {
-	private const Construct = 'spacing.languageConstruct';
-	private const Control = 'spacing.controlKeyword';
-	private const Connecting = 'spacing.connectingKeyword';
+	private const Keyword = 'spacing.keyword';
+	private const OpenBrace = 'spacing.openBrace';
+	private const AlternativeSyntax = 'spacing.alternativeSyntax';
+	private const Body = 'spacing.body';
+	private const Import = 'spacing.import';
+	private const ArrowFunction = 'spacing.arrowFunction';
 	private const ExpressionStart = 'multiline.expressionStart.';
 
-	/** the slot of a keyword => the decision the space after it belongs to */
+	/** the slots of the keywords followed by a space */
 	private const FollowedBySpace = [
-		'returnKeyword' => self::Construct, 'printKeyword' => self::Construct, 'throwKeyword' => self::Construct,
-		'cloneKeyword' => self::Construct, 'newKeyword' => self::Construct, 'yieldKeyword' => self::Construct,
-		'yieldFromKeyword' => self::Construct, 'includeKeyword' => self::Construct, 'namespaceKeyword' => self::Construct,
-		'constKeyword' => self::Construct, 'globalKeyword' => self::Construct,
-		'staticKeyword' => 'spacing.modifier', 'gotoKeyword' => self::Construct, 'breakKeyword' => self::Construct,
-		'continueKeyword' => self::Construct, 'functionKeyword' => 'spacing.functionKeyword',
-		'ifKeyword' => self::Control, 'elseifKeyword' => self::Control, 'elseKeyword' => self::Connecting,
-		'whileKeyword' => self::Control, 'forKeyword' => self::Control, 'foreachKeyword' => self::Control,
-		'switchKeyword' => self::Control, 'matchKeyword' => self::Control, 'catchKeyword' => self::Control,
-		'finallyKeyword' => self::Connecting, 'doKeyword' => self::Construct, 'tryKeyword' => self::Construct,
-		'useKeyword' => self::Construct, 'asKeyword' => self::Connecting, 'insteadofKeyword' => self::Connecting,
+		'returnKeyword', 'printKeyword', 'throwKeyword', 'cloneKeyword', 'newKeyword', 'yieldKeyword', 'yieldFromKeyword',
+		'includeKeyword', 'namespaceKeyword', 'constKeyword', 'globalKeyword', 'staticKeyword', 'gotoKeyword',
+		'breakKeyword', 'continueKeyword', 'functionKeyword', 'ifKeyword', 'elseifKeyword', 'elseKeyword', 'whileKeyword',
+		'forKeyword', 'foreachKeyword', 'switchKeyword', 'matchKeyword', 'catchKeyword', 'finallyKeyword', 'doKeyword',
+		'tryKeyword', 'useKeyword', 'asKeyword', 'insteadofKeyword',
 	];
 	private const PrecededBySpace = [
 		'elseKeyword', 'elseifKeyword', 'catchKeyword', 'finallyKeyword', 'whileKeyword',
@@ -95,32 +92,27 @@ final class ConstructSpacingRule extends GapRule
 	{
 		$decisions = [
 			new Decision(
-				self::Construct,
-				new Shapes(['spaced' => ['return $x', 'a single space']]),
-				'The space after `return`, `throw`, `yield`, `print`, `include`, `clone`, `new` and the other keywords followed by code, which also stays on their line, and inside the braces of abbreviated property hooks; the braces of a group use hug their names',
+				self::OpenBrace,
+				new Shapes(['spaced' => ['if ($a) {', 'a single space']]),
+				'The space before the brace or the body a structure opens on the line of its head',
 			),
 			new Decision(
-				self::Control,
-				new Shapes(['spaced' => ['if ($a)', 'a single space']]),
-				'The space after `if`, `elseif`, `while`, `for`, `foreach`, `switch`, `match` and `catch`, and before the brace or the body a structure opens on its line; the colon of the alternative syntax hugs what is before it',
+				self::AlternativeSyntax,
+				new Shapes(['compact' => ['if ($a):', 'no space before the colon']]),
+				'The space before the colon of the alternative syntax and of a label, and the single space between it and the end keyword of an empty body, `if ($a): endif;`',
 			),
 			new Decision(
-				self::Connecting,
-				new Shapes(['spaced' => ['} else {', 'a single space']]),
-				'The space around `else`, `elseif`, `catch`, `finally`, the `while` of a `do`, `as`, `insteadof` and the `use` of a closure, which stay on the line of what is before them',
+				self::Body,
+				new Shapes(['spaced' => ['public $a { get; set; }', 'a single space inside the braces']]),
+				'The space inside the braces of abbreviated property hooks, and none inside a pair of braces with nothing between them that is no body of a class or a function',
 			),
 			new Decision(
-				'spacing.functionKeyword',
-				new Shapes(['spaced' => ['function ($x)', 'a single space']]),
-				'The space after every `function` keyword, of a closure as of a declaration',
+				self::Import,
+				new Shapes(['compact' => ['use Acme\{Foo, Bar};', 'no space around the braces']]),
+				'The space around the braces of a group use, which hug the names',
 			),
 			new Decision(
-				'spacing.modifier',
-				new Shapes(['spaced' => ['final public static function', 'a single space']]),
-				'The space after a modifier, and after the `static` of a static closure, a static arrow function and a static variable',
-			),
-			new Decision(
-				'spacing.fnKeyword',
+				self::ArrowFunction,
 				new Shapes([
 					'compact' => ['fn($x) => $x', 'no space before the parenthesis'],
 					'spaced' => ['fn ($x) => $x', 'a single space'],
@@ -147,8 +139,8 @@ final class ConstructSpacingRule extends GapRule
 
 	public function configure(Values $values): void
 	{
-		foreach (self::getDecisions() as $decision) {
-			$path = $decision->path;
+		$paths = [self::Keyword, ...array_map(fn(Decision $decision) => $decision->path, self::getDecisions())];
+		foreach ($paths as $path) {
 			$this->claims[$path] = $values->isKept($path) ? [null, null, null] : [
 				Claim::singleSpace()->withDecision($path),
 				new Claim(Space::Single, line: Line::Same, decision: $path),
@@ -156,9 +148,9 @@ final class ConstructSpacingRule extends GapRule
 			];
 		}
 
-		$this->spaceAfterFn = match ($values->find('spacing.fnKeyword')?->getShape()) {
-			'spaced' => $this->claims['spacing.fnKeyword'][0],
-			'compact' => $this->claims['spacing.fnKeyword'][2],
+		$this->spaceAfterFn = match ($values->find(self::ArrowFunction)?->getShape()) {
+			'spaced' => $this->claims[self::ArrowFunction][0],
+			'compact' => $this->claims[self::ArrowFunction][2],
 			default => null,
 		};
 	}
@@ -166,69 +158,72 @@ final class ConstructSpacingRule extends GapRule
 
 	public function getClaims(): array
 	{
-		[$constructSingle, , $constructNone] = $this->claims[self::Construct];
-		[$controlSingle, , $controlNone] = $this->claims[self::Control];
-		[$connectingSingle, $connectingJoined] = $this->claims[self::Connecting];
+		[$keywordSingle, $keywordJoined] = $this->claims[self::Keyword];
+		[$openBrace] = $this->claims[self::OpenBrace];
+		[$colonSingle, , $colonNone] = $this->claims[self::AlternativeSyntax];
+		[$bodySingle, , $bodyNone] = $this->claims[self::Body];
+		[, , $importNone] = $this->claims[self::Import];
+		$afterKeyword = fn(Gap $gap) => $this->claimAfterKeyword($gap);
 		$any = [];
-		foreach (self::FollowedBySpace as $slot => $decision) {
+		foreach (self::FollowedBySpace as $slot) {
 			$before = match (true) {
-				$slot === 'asKeyword' || $slot === 'insteadofKeyword' => $connectingJoined,
-				in_array($slot, self::PrecededBySpace, true) => $connectingSingle,
+				$slot === 'asKeyword' || $slot === 'insteadofKeyword' => $keywordJoined,
+				in_array($slot, self::PrecededBySpace, true) => $keywordSingle,
 				default => null,
 			};
-			$any[$slot] = [$before, fn(Gap $gap) => $this->claimAfterKeyword($gap, $decision)];
+			$any[$slot] = [$before, $afterKeyword];
 		}
 
 		// the keyword of an echo is `<?=` as well, and what follows the open tag is the template's
 		$any['echoKeyword'] = [
 			null,
-			fn(Gap $gap) => $gap->token->is(Token::OpenTagWithEcho) ? null : $this->claimAfterKeyword($gap, self::Construct),
+			fn(Gap $gap) => $gap->token->is(Token::OpenTagWithEcho) ? null : $this->claimAfterKeyword($gap),
 		];
 		$any['fnKeyword'] = [null, $this->spaceAfterFn];
 		// a pair of braces with nothing between them is written {}, unless it is a body, which `braces.emptyBody` writes
 		$any['closeBrace'] = [
-			fn(Gap $gap) => ($gap->token->getPrevious()?->is('{') ?? false) && !self::isBody($gap->token->parent) ? $controlNone : null,
+			fn(Gap $gap) => ($gap->token->getPrevious()?->is('{') ?? false) && !self::isBody($gap->token->parent) ? $bodyNone : null,
 			null,
 		];
 		// and an empty body of the alternative syntax is written `: endif`
-		$any['endKeyword'] = [fn(Gap $gap) => $gap->token->getPrevious()?->is(':') ?? false ? $controlSingle : null, null];
+		$any['endKeyword'] = [fn(Gap $gap) => $gap->token->getPrevious()?->is(':') ?? false ? $colonSingle : null, null];
 		$claims = ['*' => $any];
 		// slots named too generally to mean the same on every node
-		$claims[CaseNode::class]['keyword'] = [null, fn(Gap $gap) => $this->claimAfterKeyword($gap, self::Construct)];
-		$claims[ModifiersNode::class]['tokens'] = [null, fn(Gap $gap) => $this->claimAfterKeyword($gap, 'spacing.modifier')];
+		$claims[CaseNode::class]['keyword'] = [null, $afterKeyword];
+		$claims[ModifiersNode::class]['tokens'] = [null, $afterKeyword];
 		// the braces, bodies and colons of the structures; those of a dynamic name or a ternary are not theirs
 		foreach (self::Braced as $class) {
-			$claims[$class]['openBrace'] = [$controlSingle, null];
+			$claims[$class]['openBrace'] = [$openBrace, null];
 		}
 
 		// the abbreviated hooks of a property: `{ get; set; }`
 		foreach ([PropertyNode::class, ParameterNode::class] as $class) {
-			$claims[$class]['openBrace'] = [$controlSingle, $constructSingle];
-			$claims[$class]['closeBrace'] = [$constructSingle, null];
+			$claims[$class]['openBrace'] = [$openBrace, $bodySingle];
+			$claims[$class]['closeBrace'] = [$bodySingle, null];
 		}
 
 		foreach (self::Bodied as $class) {
-			$claims[$class]['body'] = [$controlSingle, null];
+			$claims[$class]['body'] = [$openBrace, null];
 		}
 
 		// the use of a closure stays on the line of its parameters
-		$claims[ClosureUseListNode::class]['useKeyword'] = [$connectingJoined, null];
+		$claims[ClosureUseListNode::class]['useKeyword'] = [$keywordJoined, null];
 
 		foreach (self::Coloned as $class) {
-			$claims[$class]['colon'] = [$controlNone, null];
+			$claims[$class]['colon'] = [$colonNone, null];
 		}
 
 		// the braces of a group import, which the plain form leaves empty
-		$claims[Statement\UseNode::class]['backslash'] = [$constructNone, $constructNone];
-		$claims[Statement\UseNode::class]['openBrace'] = [$constructNone, $constructNone];
-		$claims[Statement\UseNode::class]['closeBrace'] = [$constructNone, null];
+		$claims[Statement\UseNode::class]['backslash'] = [$importNone, $importNone];
+		$claims[Statement\UseNode::class]['openBrace'] = [$importNone, $importNone];
+		$claims[Statement\UseNode::class]['closeBrace'] = [$importNone, null];
 		// the function or const of an import, in front of the name it qualifies
 		foreach ([Statement\UseNode::class, UseItemNode::class] as $class) {
-			$claims[$class]['kindKeyword'] = [null, $constructSingle];
+			$claims[$class]['kindKeyword'] = [null, $keywordSingle];
 		}
 
 		// the modifier of a trait alias, in front of the alias: `as protected foo`
-		$claims[TraitAliasNode::class]['modifier'] = [null, fn(Gap $gap) => $this->claimAfterKeyword($gap, 'spacing.modifier')];
+		$claims[TraitAliasNode::class]['modifier'] = [null, $afterKeyword];
 		return $claims;
 	}
 
@@ -239,9 +234,9 @@ final class ConstructSpacingRule extends GapRule
 	 * a list of several items (`const`, `global`, `use`), attributes, whatever follows a comment, and by the option
 	 * an expression spanning several lines.
 	 */
-	private function claimAfterKeyword(Gap $gap, string $decision): ?Claim
+	private function claimAfterKeyword(Gap $gap): ?Claim
 	{
-		[$single, $joined] = $this->claims[$decision];
+		[$single, $joined] = $this->claims[self::Keyword];
 		if ($single === null) {
 			return null;
 		}

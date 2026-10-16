@@ -23,7 +23,7 @@ return new Config(
 	analyses: [Acme\DressCode\Analyses\FunctionCalls::class],
 	decisions: [
 		'blankLines' => ['betweenMethods' => "1\u{2013}2", 'beforeStatement' => ['return' => '1+'], 'afterStatement' => []],
-		'spacing' => ['fnKeyword' => 'fn ($x) => $x'],
+		'spacing' => ['arrowFunction' => 'fn ($x) => $x'],
 		'types' => ['traversableClasses' => ['Traversable', 'Iterator']],
 		'controlFlow' => ['trailingIfMinStatements' => 3],
 		'file' => ['lineEnding' => 'LF', 'lineLength' => 160, 'lineLengthExcept' => []],

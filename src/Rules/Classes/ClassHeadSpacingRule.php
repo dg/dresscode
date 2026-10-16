@@ -21,10 +21,10 @@ use PhpSyntax\Token;
  * interface extends, and whatever follows a comment. The modifiers before it are `ConstructSpacingRule`,
  * the backing type of an enum `TypeDeclarationSpacingRule`.
  */
-#[RuleInfo(Stage::Formatting)]
+#[RuleInfo(Stage::Formatting, decisions: [self::Head])]
 final class ClassHeadSpacingRule extends GapRule
 {
-	private const Head = 'spacing.classHead';
+	private const Head = 'spacing.keyword';
 	private const Anonymous = 'spacing.anonymousClass';
 
 	private bool $head = true;
@@ -36,11 +36,6 @@ final class ClassHeadSpacingRule extends GapRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision(
-				self::Head,
-				new Shapes(['spaced' => ['class Foo extends Bar implements Baz', 'single spaces']]),
-				'The spaces between the words of the head of a class declaration, which stays on one line unless a comment breaks it, the brace and the implemented interfaces being free to take the next one',
-			),
 			new Decision(self::Anonymous, new Shapes([
 				'spaced' => ['new class ($a)', 'a single space before the arguments'],
 				'compact' => ['new class($a)', 'no space before the arguments'],

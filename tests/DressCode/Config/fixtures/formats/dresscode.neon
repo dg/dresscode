@@ -35,7 +35,7 @@ blankLines:
 	beforeStatement: {return: 1+}
 	afterStatement: {}
 spacing:
-	fnKeyword: 'fn ($x) => $x'
+	arrowFunction: 'fn ($x) => $x'
 types:
 	traversableClasses: [Traversable, Iterator]
 controlFlow:

@@ -105,7 +105,7 @@ final class PhpCodeSniffer
 				'spacing.unaryOperator' => 'compact',
 				'spacing.unaryOperatorsWithSpace' => [],
 			],
-			'Generic.WhiteSpace.LanguageConstructSpacing' => ['spacing.languageConstruct' => 'spaced'],
+			'Generic.WhiteSpace.LanguageConstructSpacing' => ['spacing.keyword' => 'spaced'],
 			'Generic.WhiteSpace.ScopeIndent' => function (array $o, Translation $t) {
 				$unit = ($o['tabIndent'] ?? false) ? 'tab' : match ($o['indent'] ?? 4) {
 					4 => '4 spaces',
@@ -131,7 +131,7 @@ final class PhpCodeSniffer
 				$t->warn('`PSR12.Classes.AnonClassDeclaration` also puts each interface of a multi-line `implements` list on its own line, which DressCode does not.');
 				$t->setAll([
 					'braces.position.anonymousClass' => 'sameLine',
-					'spacing.classHead' => 'spaced',
+					'spacing.keyword' => 'spaced',
 					'spacing.anonymousClass' => 'spaced',
 					'spacing.parentheses' => 'compact',
 				]);
@@ -201,16 +201,15 @@ final class PhpCodeSniffer
 					'blankLines.afterTraitUses' => 1,
 					'blankLines.afterLastMember' => 0,
 					// the space after `use`, around `as` and `insteadof`, and none before the semicolon
-					'spacing.languageConstruct' => 'spaced',
-					'spacing.connectingKeyword' => 'spaced',
+					'spacing.keyword' => 'spaced',
 					'spacing.semicolon.before' => 'compact',
 				]);
 				$t->setAllowed('classes.members.groupable', ['constant', 'property']);
 				// a full order another rule sets puts the trait uses where it says
 				$t->prefer('classes.members.order', ['traitUse']);
 			},
-			'PSR2.Classes.ClassDeclaration' => ['braces.position.class' => 'nextLine', 'spacing.classHead' => 'spaced'],
-			'PSR2.Classes.ClassDeclaration.SpaceBeforeKeyword' => ['spacing.classHead' => 'spaced'],
+			'PSR2.Classes.ClassDeclaration' => ['braces.position.class' => 'nextLine', 'spacing.keyword' => 'spaced'],
+			'PSR2.Classes.ClassDeclaration.SpaceBeforeKeyword' => ['spacing.keyword' => 'spaced'],
 			'PSR2.Classes.PropertyDeclaration' => [
 				'classes.visibility.member' => 'required',
 				'classes.modifiers.order' => 'canonical',
@@ -224,7 +223,7 @@ final class PhpCodeSniffer
 					'spacing.switchCase' => 'compact',
 					'controlFlow.switch.fallThroughComment' => 'no break',
 					'casing.keyword' => 'lowercase',
-					'spacing.languageConstruct' => 'spaced',
+					'spacing.keyword' => 'spaced',
 					'file.statementsPerLine' => 1,
 					'indentation.switchCase' => 1,
 				]);
@@ -431,8 +430,8 @@ final class PhpCodeSniffer
 					'file.lineLengthExcept' => ($o['ignoreImports'] ?? true) ? ['imports'] : [],
 				]),
 			'SlevomatCodingStandard.Functions.ArrowFunctionDeclaration' => fn(array $o, Translation $t) => match ($o['spacesCountAfterKeyword'] ?? 1) {
-				0 => $t->set('spacing.fnKeyword', 'compact'),
-				1 => $t->set('spacing.fnKeyword', 'spaced'),
+				0 => $t->set('spacing.arrowFunction', 'compact'),
+				1 => $t->set('spacing.arrowFunction', 'spaced'),
 				default => $t->warn("`SlevomatCodingStandard.Functions.ArrowFunctionDeclaration` with `spacesCountAfterKeyword={$o['spacesCountAfterKeyword']}` has no equivalent; DressCode writes a single space after `fn` or none."),
 			},
 			'SlevomatCodingStandard.Functions.NamedArgumentSpacing' => ['spacing.namedArgument' => 'spacedAfter'],
@@ -606,8 +605,8 @@ final class PhpCodeSniffer
 			'Squiz.ControlStructures.ControlSignature' => fn(array $o, Translation $t) => $t->setAll([
 				'braces.position.controlStructure' => 'sameLine',
 				'braces.position.continuingKeyword' => 'sameLine',
-				'spacing.controlKeyword' => 'spaced',
-				'spacing.connectingKeyword' => 'spaced',
+				'spacing.keyword' => 'spaced',
+				'spacing.openBrace' => 'spaced',
 			]),
 			'Squiz.ControlStructures.ForEachLoopDeclaration' => function (array $o, Translation $t) {
 				if (($o['requiredSpacesAfterOpen'] ?? 0) > 0 || ($o['requiredSpacesBeforeClose'] ?? 0) > 0) {
@@ -616,7 +615,7 @@ final class PhpCodeSniffer
 				$t->warn('`Squiz.ControlStructures.ForEachLoopDeclaration` also puts a single space around the `=>` of a `foreach`, which DressCode decides for every binary operator together, by `spacing.binaryOperator`.');
 				$t->setAll([
 					'spacing.parentheses' => 'compact',
-					'spacing.connectingKeyword' => 'spaced',
+					'spacing.keyword' => 'spaced',
 					'casing.keyword' => 'lowercase',
 				]);
 			},
@@ -631,7 +630,7 @@ final class PhpCodeSniffer
 				]);
 			},
 			'Squiz.ControlStructures.LowercaseDeclaration' => ['casing.keyword' => 'lowercase'],
-			'Squiz.Functions.FunctionDeclaration' => ['spacing.functionKeyword' => 'spaced', 'spacing.call' => 'compact'],
+			'Squiz.Functions.FunctionDeclaration' => ['spacing.keyword' => 'spaced', 'spacing.call' => 'compact'],
 			'Squiz.Functions.FunctionDeclarationArgumentSpacing' => ['spacing.comma' => 'spaced', 'spacing.alignment.comma' => 'tabs'],
 			'Squiz.Functions.LowercaseFunctionKeywords' => ['casing.keyword' => 'lowercase'],
 			'Squiz.Functions.MultiLineFunctionDeclaration' => [

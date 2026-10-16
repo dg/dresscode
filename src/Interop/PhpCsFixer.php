@@ -218,7 +218,7 @@ final class PhpCsFixer
 				if (($o['closure_function_spacing'] ?? 'one') === 'none') {
 					$t->warn('`function_declaration` with `closure_function_spacing=none` has no equivalent; DressCode writes a space after `function`.');
 				} else {
-					$t->set('spacing.functionKeyword', 'spaced');
+					$t->set('spacing.keyword', 'spaced');
 				}
 
 				// the comma of parameters on one line is removed by every value but `keep`, a value another fixer gave staying
@@ -231,7 +231,7 @@ final class PhpCsFixer
 				$t->setAll([
 					'spacing.call' => 'compact',
 					'spacing.parentheses' => 'compact',
-					'spacing.fnKeyword' => ($o['closure_fn_spacing'] ?? 'one') === 'one' ? 'spaced' : 'compact',
+					'spacing.arrowFunction' => ($o['closure_fn_spacing'] ?? 'one') === 'one' ? 'spaced' : 'compact',
 				]);
 			},
 			'global_namespace_import' => function (array $o, Translation $t) {
@@ -632,28 +632,12 @@ final class PhpCsFixer
 				: $t->warn('`single_line_comment_style` without `hash` has no equivalent; DressCode only rewrites the hash comment.'),
 			'single_quote' => fn(array $o, Translation $t) => $t->set('literals.quotes', 'single'),
 			'single_space_around_construct' => function (array $o, Translation $t) {
-				$groups = [
-					'spacing.controlKeyword' => ['catch', 'do', 'elseif', 'for', 'foreach', 'if', 'match', 'switch', 'try', 'while'],
-					'spacing.connectingKeyword' => ['as', 'catch', 'else', 'elseif', 'finally', 'insteadof', 'use_lambda'],
-					'spacing.modifier' => [
-						'abstract', 'final', 'private', 'private_set', 'protected', 'protected_set', 'public', 'public_set', 'readonly',
-						'static', 'var',
-					],
-					'spacing.functionKeyword' => ['function'],
-					'spacing.classHead' => ['class', 'enum', 'extends', 'implements', 'interface', 'trait'],
-					'spacing.languageConstruct' => [
-						'break', 'case', 'clone', 'const', 'const_import', 'continue', 'echo', 'function_import', 'global', 'goto', 'include',
-						'include_once', 'namespace', 'new', 'print', 'require', 'require_once', 'return', 'throw', 'use', 'use_trait', 'yield', 'yield_from',
-					],
-				];
-				$constructs = [
-					...$o['constructs_followed_by_a_single_space'] ?? array_merge(...array_values($groups)),
-					...$o['constructs_preceded_by_a_single_space'] ?? ['as', 'use_lambda'],
-				];
-				foreach ($groups as $path => $group) {
-					if (array_intersect($constructs, $group)) {
-						$t->set($path, 'spaced');
-					}
+				// the space of a single construct is that of every keyword, which DressCode decides at once
+				if (
+					($o['constructs_followed_by_a_single_space'] ?? null) !== []
+					|| ($o['constructs_preceded_by_a_single_space'] ?? null) !== []
+				) {
+					$t->set('spacing.keyword', 'spaced');
 				}
 			},
 			'single_trait_insert_per_statement' => fn(array $o, Translation $t) => $t->setAllowed(

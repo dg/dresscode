@@ -13,7 +13,7 @@ naming:
 
 spacing:
 	attribute: '#[Foo($a)]'
-	fnKeyword: 'fn($x) => $x'
+	arrowFunction: 'fn($x) => $x'
 	semicolon:
 		before: '$a;'
 	catchType: 'catch (A|B $e)'              # as a union type

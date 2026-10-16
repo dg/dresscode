@@ -1,5 +1,5 @@
 <?php
-// {"classHead": "keep"}
+// {"keyword": "keep"}
 final  class  A  extends  B
 {
 }

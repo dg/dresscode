@@ -38,7 +38,7 @@ imports:
 	unused: forbidden
 
 spacing:
-	fnKeyword: 'fn ($x) => $x'
+	arrowFunction: 'fn ($x) => $x'
 	alignment:
 		comma: optional                       # aligning spaces and tabs may stay
 		assignment: forbidden                 # no extra spaces around an operator

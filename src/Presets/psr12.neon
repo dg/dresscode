@@ -45,10 +45,11 @@ spacing:
 	declare: 'declare(strict_types=1)'
 	call: 'foo($a, $b)'                       # `function foo($a)` too
 	parentheses: '($a)'
-	controlKeyword: 'if ($a)'                 # `while`, `for`, `foreach`, `switch`, `catch` too
-	connectingKeyword: '} else {'             # `catch`, `finally`, `as`, the `use` of a closure too
-	functionKeyword: 'function ($x)'
-	languageConstruct: 'return $x'            # `throw`, `yield`, `new`, `include` too
+	keyword: 'return $x'                      # `if (`, `} else {`, `function (`, `new`, `class Foo extends Bar` too
+	openBrace: 'if ($a) {'
+	alternativeSyntax: 'if ($a):'
+	body: 'public $a { get; set; }'
+	import: 'use Acme\{Foo, Bar};'
 	comma: '$a, $b'
 	alignment:
 		comma: forbidden                      # no extra spaces after a comma
@@ -60,9 +61,7 @@ spacing:
 	binaryOperator: '$a + $b'                 # `=`, `=>`, `instanceof` too
 	concatenation: '$a . $b'
 	ternary: '$a ? $b : $c'                   # `$a ?: $b` too
-	classHead: 'class Foo extends Bar implements Baz'
 	anonymousClass: 'new class ($a)'
-	modifier: 'final public static function'
 	typeDeclaration: '?int $x'                # `): int` too
 	catchType: 'catch (A | B $e)'
 	switchCase: 'case 1:'
