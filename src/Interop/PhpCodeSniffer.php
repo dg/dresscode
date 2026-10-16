@@ -177,6 +177,7 @@ final class PhpCodeSniffer
 				'blankLines.beforeNamespace' => 1,
 				'blankLines.afterNamespace' => 1,
 				'blankLines.afterImports' => 1,
+				'blankLines.betweenImports' => 0,
 				'blankLines.betweenImportKinds' => 1,
 			],
 			'PSR12.Files.ImportStatement' => fn(array $o, Translation $t) => $t->set('imports.leadingBackslash', 'forbidden'),

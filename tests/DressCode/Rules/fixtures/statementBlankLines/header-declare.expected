@@ -1,0 +1,10 @@
+<?php
+
+// {"afterDeclare": 1, "betweenImports": "keep"}
+declare(strict_types=1);
+
+use Acme\Shop\Order;
+
+use Acme\Shop\Cart;
+
+function f() {}

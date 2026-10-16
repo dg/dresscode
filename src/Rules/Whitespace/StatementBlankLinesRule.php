@@ -25,10 +25,12 @@ final class StatementBlankLinesRule extends GapRule
 	private const Kinds = ['break', 'continue', 'do', 'for', 'foreach', 'if', 'return', 'switch', 'throw', 'try', 'while', 'yield'];
 	private const Counts = [
 		'afterOpeningTag' => 'After the line of `<?php`, which then carries no code; a file with markup outside PHP keeps its tag',
+		'afterDeclare' => 'After `declare(...);`, before whatever follows it but a namespace declaration',
 		'beforeNamespace' => 'Before the namespace declaration and, where a doc comment of the file stands above it, also between the two',
 		'afterNamespace' => 'After an unbraced namespace declaration',
 		'afterImports' => 'After the last import, before the rest of the code',
-		'betweenImportKinds' => 'Between the imports of classes, functions and constants; imports of one kind never have a blank line between them',
+		'betweenImports' => 'Between two imports of one kind, two of classes for instance',
+		'betweenImportKinds' => 'Between the imports of classes, functions and constants',
 		'beforeDeclaration' => 'Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of `afterNamespace` and `afterImports`',
 		'aroundDeclarations' => 'Before and after a class, interface, trait, enum or function declared among statements, where the header above it does not decide',
 		'betweenStatementsInFunction' => 'Between two statements in the body of a function, a method or a closure, at any depth; a count of the kind of the statement before or after narrows it',
@@ -150,6 +152,11 @@ final class StatementBlankLinesRule extends GapRule
 			$below = $comments !== [] && $comments[count($comments) - 1]->is(Trivia::DocComment) ? $this->counts['beforeNamespace'] : null;
 		}
 
+		if ($previous instanceof Statement\DeclareNode && $previous->semicolon !== null && !$stmt instanceof Statement\NamespaceNode) {
+			$counts[] = $this->counts['afterDeclare'];
+			$key = 'afterDeclare';
+		}
+
 		$declared = $stmt instanceof ClassLikeNode || $stmt instanceof Statement\FunctionNode ? $this->counts['beforeDeclaration'] : null;
 		if ($owner instanceof Statement\NamespaceNode && $owner->semicolon !== null && $index === 0) {
 			$counts[] = $declared ?? $this->counts['afterNamespace'];
@@ -161,10 +168,7 @@ final class StatementBlankLinesRule extends GapRule
 				!$stmt instanceof Statement\UseNode => $declared === null
 					? [$this->counts['afterImports'], 'afterImports']
 					: [$declared, 'beforeDeclaration'],
-				$previous->symbolKind === $stmt->symbolKind => [
-					$this->counts['betweenImportKinds'] === null ? null : 0,
-					'betweenImportKinds',
-				],
+				$previous->symbolKind === $stmt->symbolKind => [$this->counts['betweenImports'], 'betweenImports'],
 				default => [$this->counts['betweenImportKinds'], 'betweenImportKinds'],
 			};
 		}

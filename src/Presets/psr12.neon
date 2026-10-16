@@ -111,9 +111,11 @@ braces:
 
 blankLines:
 	afterOpeningTag: 1
+	afterDeclare: 1
 	beforeNamespace: 1
 	afterNamespace: 1
 	afterImports: 1
+	betweenImports: 0
 	betweenImportKinds: 1
 	bodyStart:
 		class: 0

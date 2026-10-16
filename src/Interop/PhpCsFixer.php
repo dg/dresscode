@@ -97,7 +97,10 @@ final class PhpCsFixer
 				}
 				$t->set('blankLines.beforeStatement', array_fill_keys(array_intersect($statements, $supported), [1, null]));
 			},
-			'blank_line_between_import_groups' => fn(array $o, Translation $t) => $t->set('blankLines.betweenImportKinds', 1),
+			'blank_line_between_import_groups' => fn(array $o, Translation $t) => $t->setAll([
+				'blankLines.betweenImports' => 0,
+				'blankLines.betweenImportKinds' => 1,
+			]),
 			'blank_lines_before_namespace' => fn(array $o, Translation $t) => $t->set(
 				'blankLines.beforeNamespace',
 				max(0, ($o['min_line_breaks'] ?? 2) - 1),
@@ -433,9 +436,9 @@ final class PhpCsFixer
 						'break', 'continue', 'return', 'throw' => $t->set('blankLines.afterStatement', [$token => 0]),
 						'attribute' => $t->set('blankLines.afterAttributes', 0),
 						'use_trait' => $t->set('blankLines.betweenTraitUses', 0),
-						// imports of one kind never have a blank line between them, those of different kinds keep what another
+						// imports of one kind lose the blank lines between them, those of different kinds keep what another
 						// fixer gives them
-						'use' => $t->prefer('blankLines.betweenImportKinds', 0),
+						'use' => $t->set('blankLines.betweenImports', 0)->prefer('blankLines.betweenImportKinds', 0),
 						default => $unsupported[] = $token,
 					};
 				}

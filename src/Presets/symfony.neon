@@ -86,6 +86,7 @@ braces:
 
 # a range `0-1` leaves the choice to the author, `1+` is one or more
 blankLines:
+	afterDeclare: keep                        # @Symfony leaves the line below a declare
 	aroundDeclarations: 0-1                   # around one among statements
 	aroundMethods: 1
 	aroundInterfaceMethods: 1
