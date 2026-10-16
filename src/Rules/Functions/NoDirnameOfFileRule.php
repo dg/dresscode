@@ -98,6 +98,7 @@ final class NoDirnameOfFileRule extends NodeRule
 		return match (true) {
 			count($args) === 1 => [$args[0]->value, 1],
 			count($args) === 2 && $levels instanceof ArgumentNode && $levels->value instanceof IntegerNode
+				&& $levels->value->toValue() >= 1
 				=> [$args[0]->value, $levels->value->toValue()],
 			default => null,
 		};

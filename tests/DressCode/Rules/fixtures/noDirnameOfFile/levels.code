@@ -1,0 +1,5 @@
+<?php
+$a = dirname(__FILE__, 0);
+$b = dirname(__FILE__, -1);
+$c = dirname(__FILE__, $n);
+$d = dirname(dirname(__FILE__, 0));
