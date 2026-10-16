@@ -391,27 +391,27 @@ final class CorePlugin implements Plugin
 				),
 				new Decision(
 					MemberMapGrammar::ReplacedClasses,
-					new Map(new GrammarEntry, grammar: self::createReplacedClassesGrammar(), caseInsensitive: true),
+					new Map(new GrammarEntry, wildcards: false, grammar: self::createReplacedClassesGrammar(), caseInsensitive: true),
 					'A class written instead of another one, both fully qualified (`Acme\\Old\\Mailer: Acme\\Mail\\Mailer`)',
 				),
 				new Decision(
 					MemberMapGrammar::ReplacedFunctions,
-					new Map(new GrammarEntry, grammar: self::createReplacedFunctionsGrammar(), caseInsensitive: true),
+					new Map(new GrammarEntry, wildcards: false, grammar: self::createReplacedFunctionsGrammar(), caseInsensitive: true),
 					'A function written instead of another one (`acme_send: Acme\\Mail\\send`)',
 				),
 				new Decision(
 					MemberMapGrammar::ReplacedMembers,
-					new Map(new GrammarEntry, grammar: self::createReplacedMembersGrammar()),
+					new Map(new GrammarEntry, wildcards: false, grammar: self::createReplacedMembersGrammar()),
 					'A constant, a method or a property written instead of another one of the class (`Acme\\Mail\\Mailer::send(): sendMessage()`)',
 				),
 				new Decision(
 					MemberMapGrammar::ReplacedCalls,
-					new Map(new GrammarEntry, grammar: self::createReplacedCallsGrammar()),
+					new Map(new GrammarEntry, wildcards: false, grammar: self::createReplacedCallsGrammar()),
 					'A call written as the template says (`Acme\\Mail\\Mailer::send($to, $body): send(new Message($to, $body))`)',
 				),
 				new Decision(
 					MemberMapGrammar::ForbiddenClasses,
-					new Map(new GrammarEntry, grammar: self::createForbiddenClassesGrammar(), caseInsensitive: true),
+					new Map(new GrammarEntry, wildcards: false, grammar: self::createForbiddenClassesGrammar(), caseInsensitive: true),
 					'A class that may not be used, with what to do instead (`Acme\\Legacy\\Db: "use the repository"`)',
 				),
 				new Decision(
@@ -421,7 +421,7 @@ final class CorePlugin implements Plugin
 				),
 				new Decision(
 					MemberMapGrammar::ForbiddenMembers,
-					new Map(new GrammarEntry, grammar: self::createForbiddenMembersGrammar()),
+					new Map(new GrammarEntry, wildcards: false, grammar: self::createForbiddenMembersGrammar()),
 					'A constant, a method or a property that may not be used, with what to do instead',
 				),
 				new Decision(
@@ -431,7 +431,7 @@ final class CorePlugin implements Plugin
 				),
 				new Decision(
 					MemberMapGrammar::AttributeForMember,
-					new Map(new GrammarEntry, grammar: self::createAttributeForMemberGrammar()),
+					new Map(new GrammarEntry, wildcards: false, grammar: self::createAttributeForMemberGrammar()),
 					'An attribute written for a member the class declares by convention',
 				),
 

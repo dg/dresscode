@@ -4156,7 +4156,7 @@ Whether the maps of the upgrading files of the installed packages lie under thos
 A class written instead of another one, both fully qualified (`Acme\Old\Mailer: Acme\Mail\Mailer`).
 
 - By default `keep`
-- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\ReplacedClassesRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`, which this decision does not turn on
@@ -4167,7 +4167,7 @@ A class written instead of another one, both fully qualified (`Acme\Old\Mailer: 
 A function written instead of another one (`acme_send: Acme\Mail\send`).
 
 - By default `keep`
-- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\ReplacedFunctionsRule`, stage Structure
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
@@ -4177,7 +4177,7 @@ A function written instead of another one (`acme_send: Acme\Mail\send`).
 A constant, a method or a property written instead of another one of the class (`Acme\Mail\Mailer::send(): sendMessage()`).
 
 - By default `keep`
-- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\ReplacedMembersRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\ReplacedCallsRule`, which this decision does not turn on
@@ -4190,7 +4190,7 @@ A constant, a method or a property written instead of another one of the class (
 A call written as the template says (`Acme\Mail\Mailer::send($to, $body): send(new Message($to, $body))`).
 
 - By default `keep`
-- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\ReplacedCallsRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\ReplacedMembersRule`, which this decision does not turn on
@@ -4203,7 +4203,7 @@ A call written as the template says (`Acme\Mail\Mailer::send($to, $body): send(n
 A class that may not be used, with what to do instead (`Acme\Legacy\Db: "use the repository"`).
 
 - By default `keep`
-- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\ForbiddenClassesRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`, which this decision does not turn on
@@ -4223,7 +4223,7 @@ A function that may not be called, with what to do instead.
 A constant, a method or a property that may not be used, with what to do instead.
 
 - By default `keep`
-- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\ForbiddenMembersRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\ReplacedClassesRule`, which this decision does not turn on
@@ -4248,7 +4248,7 @@ An attribute written for an annotation (`@ORM\Entity: ORM\Entity`).
 An attribute written for a member the class declares by convention.
 
 - By default `keep`
-- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\Upgrading\AttributeForMemberRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`, which this decision does not turn on
