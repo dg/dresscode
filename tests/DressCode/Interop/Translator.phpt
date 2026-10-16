@@ -249,7 +249,7 @@ test('foreign rules deciding one thing come to the same translation in either or
 
 	// counts of blank lines widen to the range of both, a count a map gives included
 	foreach ($translate(['class_attributes_separation' => true, 'Squiz.WhiteSpace.FunctionSpacing' => true]) as $translation) {
-		Assert::same([1, 2], $translation->decisions['blankLines.betweenMethods']);
+		Assert::same([1, 2], $translation->decisions['blankLines.aroundMethods']);
 	}
 
 	foreach ($translate([
@@ -491,11 +491,11 @@ test('a rule of blank lines translates to the places it counts, with the counts 
 	Assert::same(['blankLines.afterNamespace' => 1], $translate(['PSR2.Namespaces.NamespaceDeclaration' => true])->decisions);
 	Assert::same(['blankLines.afterImports' => 1], $translate(['single_line_after_imports' => true])->decisions);
 	Assert::same(
-		['blankLines.betweenMethods' => [1, 2], 'blankLines.betweenInterfaceMethods' => [1, 2]],
+		['blankLines.aroundMethods' => [1, 2], 'blankLines.aroundInterfaceMethods' => [1, 2]],
 		$translate(['SlevomatCodingStandard.Classes.MethodSpacing' => ['maxLinesCount' => 2]])->decisions,
 	);
 	Assert::same(
-		['blankLines.betweenMembers' => [0, 1], 'blankLines.beforeDocumentedMember' => 2],
+		['blankLines.betweenMembers' => [0, 1], 'blankLines.betweenMemberKinds' => [0, 1], 'blankLines.beforeDocumentedMember' => 2],
 		$translate(
 			['SlevomatCodingStandard.Classes.ConstantSpacing' => [
 				'minLinesCountBeforeWithComment' => 2,
@@ -508,10 +508,10 @@ test('a rule of blank lines translates to the places it counts, with the counts 
 		['class_attributes_separation' => ['elements' => ['method' => 'one', 'property' => 'only_if_meta', 'trait_import' => 'none']]],
 	);
 	Assert::same([
-		'blankLines.betweenMethods' => 1,
-		'blankLines.betweenInterfaceMethods' => 1,
+		'blankLines.aroundMethods' => 1,
+		'blankLines.aroundInterfaceMethods' => 1,
 		'blankLines.betweenTraitUses' => 0,
-		'blankLines.betweenMembers' => 0,
+		'blankLines.betweenMembers' => 0, 'blankLines.betweenMemberKinds' => 0,
 		'blankLines.beforeDocumentedMember' => 1,
 	], $translation->decisions);
 	Assert::same([], $translation->warnings);
@@ -529,11 +529,8 @@ test('a rule of blank lines translates to the places it counts, with the counts 
 	], $translation->warnings);
 
 	$translation = $translate(['no_extra_blank_lines' => ['tokens' => ['attribute']]]);
-	Assert::same(['blankLines.afterPhpdoc' => 0], $translation->decisions);
-	Assert::same(
-		['`no_extra_blank_lines` with `attribute` removes the blank lines below an attribute, while `blankLines.afterPhpdoc` counts those below a doc comment too.'],
-		$translation->warnings,
-	);
+	Assert::same(['blankLines.afterAttributes' => 0], $translation->decisions);
+	Assert::same([], $translation->warnings);
 
 	// a sniff of control structures asks for a blank line after one at least, and checks only their own braces and parentheses
 	$translation = $translate(['Squiz.WhiteSpace.ControlStructureSpacing' => true]);
@@ -546,12 +543,18 @@ test('a rule of blank lines translates to the places it counts, with the counts 
 	// the defaults of the fixer separate enum cases apart, which is not worth a warning, a separation chosen is
 	$translation = $translate(['class_attributes_separation' => true]);
 	Assert::same(
-		['blankLines.betweenMembers' => [0, 1], 'blankLines.beforeDocumentedMember' => [0, 1]],
-		array_intersect_key($translation->decisions, ['blankLines.betweenMembers' => 1, 'blankLines.beforeDocumentedMember' => 1]),
+		['blankLines.betweenMembers' => [0, 1], 'blankLines.betweenMemberKinds' => [0, 1], 'blankLines.beforeDocumentedMember' => [0, 1]],
+		array_intersect_key(
+			$translation->decisions,
+			['blankLines.betweenMembers' => 1, 'blankLines.betweenMemberKinds' => 1, 'blankLines.beforeDocumentedMember' => 1],
+		),
 	);
 	Assert::same([], $translation->warnings);
 	$translation = $translate(['class_attributes_separation' => ['elements' => ['const' => 'none', 'property' => 'one']]]);
-	Assert::same(['blankLines.betweenMembers' => [0, 1], 'blankLines.beforeDocumentedMember' => [0, 1]], $translation->decisions);
+	Assert::same(
+		['blankLines.betweenMembers' => [0, 1], 'blankLines.betweenMemberKinds' => [0, 1], 'blankLines.beforeDocumentedMember' => [0, 1]],
+		$translation->decisions,
+	);
 	Assert::match(
 		'`class_attributes_separation` separates constants, properties and enum cases differently, %a%',
 		$translation->warnings[0] ?? '',
@@ -567,9 +570,15 @@ test('a rule of blank lines translates to the places it counts, with the counts 
 	];
 	foreach ([$rules, array_reverse($rules, true)] as $order) {
 		$translation = $translate($order);
-		Assert::same(['blankLines.betweenMembers' => [0, 2], 'blankLines.beforeDocumentedMember' => 1], $translation->decisions);
 		Assert::same(
-			['The foreign rules count the blank lines of `blankLines.betweenMembers` differently; DressCode has one count there and takes the range of them all.'],
+			['blankLines.betweenMembers' => [0, 2], 'blankLines.betweenMemberKinds' => [0, 2], 'blankLines.beforeDocumentedMember' => 1],
+			$translation->decisions,
+		);
+		Assert::same(
+			[
+				'The foreign rules count the blank lines of `blankLines.betweenMembers` differently; DressCode has one count there and takes the range of them all.',
+				'The foreign rules count the blank lines of `blankLines.betweenMemberKinds` differently; DressCode has one count there and takes the range of them all.',
+			],
 			$translation->warnings,
 		);
 	}
@@ -578,7 +587,10 @@ test('a rule of blank lines translates to the places it counts, with the counts 
 		'SlevomatCodingStandard.Classes.ConstantSpacing' => true,
 		'SlevomatCodingStandard.Classes.PropertySpacing' => true,
 	]);
-	Assert::same(['blankLines.betweenMembers' => [0, 1], 'blankLines.beforeDocumentedMember' => 1], $translation->decisions);
+	Assert::same(
+		['blankLines.betweenMembers' => [0, 1], 'blankLines.betweenMemberKinds' => [0, 1], 'blankLines.beforeDocumentedMember' => 1],
+		$translation->decisions,
+	);
 	Assert::same([], $translation->warnings);
 
 	// imports of different kinds keep the blank line another fixer asks for, in either order

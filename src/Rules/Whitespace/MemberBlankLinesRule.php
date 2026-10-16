@@ -26,15 +26,16 @@ final class MemberBlankLinesRule extends GapRule
 		AnonymousClassNode::class,
 	];
 	private const Counts = [
-		'betweenMethods' => 'Before and after a method; the first and the last method of a class take `beforeFirstMethod` and `afterLastMethod`',
-		'betweenInterfaceMethods' => 'Before and after a method of an interface, in place of `betweenMethods`',
+		'aroundMethods' => 'Before and after a method; the first and the last method of a class take `beforeFirstMethod` and `afterLastMethod`',
+		'aroundInterfaceMethods' => 'Before and after a method of an interface, in place of `aroundMethods`',
 		'beforeFirstMethod' => 'Before a method that is the first member of its class',
 		'afterLastMethod' => 'After a method that is the last member of its class',
 		'beforeFirstMember' => 'Before the first member, unless it is a method, which takes `beforeFirstMethod`',
 		'afterLastMember' => 'After the last member, unless it is a method, which takes `afterLastMethod`',
 		'betweenTraitUses' => 'Between the trait uses of a class',
 		'afterTraitUses' => 'Before the first member after the trait uses, a method included',
-		'betweenMembers' => 'Between properties, constants and enum cases without a doc comment or an attribute',
+		'betweenMemberKinds' => 'Between a property, a constant and an enum case of different kinds, the lower one without a doc comment or an attribute',
+		'betweenMembers' => 'Between two properties, two constants or two enum cases, the lower one without a doc comment or an attribute',
 		'beforeDocumentedMember' => 'Before a property, constant or enum case with a doc comment or an attribute',
 		'afterPhpdoc' => null,
 	];
@@ -112,7 +113,8 @@ final class MemberBlankLinesRule extends GapRule
 			$previous instanceof Member\TraitUseNode => 'afterTraitUses',
 			$previous instanceof Member\MethodNode => null, // the method claims the gap after itself
 			$documented => 'beforeDocumentedMember',
-			default => 'betweenMembers',
+			$previous::class === $member::class => 'betweenMembers',
+			default => 'betweenMemberKinds',
 		};
 		$below = BlankLineClaims::findBelowDocComment($member, $this->counts['afterPhpdoc']);
 		return $this->claims->claim($key === null ? null : $this->counts[$key], $key ?? 'afterPhpdoc', $below, 'afterPhpdoc');
@@ -153,6 +155,6 @@ final class MemberBlankLinesRule extends GapRule
 	 */
 	private static function chooseBetweenMethods(PlainNodeList $members): string
 	{
-		return $members->parent instanceof Statement\InterfaceNode ? 'betweenInterfaceMethods' : 'betweenMethods';
+		return $members->parent instanceof Statement\InterfaceNode ? 'aroundInterfaceMethods' : 'aroundMethods';
 	}
 }

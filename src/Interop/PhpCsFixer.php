@@ -146,8 +146,8 @@ final class PhpCsFixer
 				];
 				if (isset($elements['method'])) {
 					[$min, $max] = $counts[$elements['method']] ?? [0, 1];
-					$t->setBlankLines('blankLines.betweenMethods', $min, $max)
-						->setBlankLines('blankLines.betweenInterfaceMethods', $min, $max);
+					$t->setBlankLines('blankLines.aroundMethods', $min, $max)
+						->setBlankLines('blankLines.aroundInterfaceMethods', $min, $max);
 				}
 
 				if (isset($elements['trait_import'])) {
@@ -166,6 +166,7 @@ final class PhpCsFixer
 					}
 
 					$t->setBlankLines('blankLines.betweenMembers', min($plain), max($plain));
+					$t->setBlankLines('blankLines.betweenMemberKinds', min($plain), max($plain));
 					$t->setBlankLines('blankLines.beforeDocumentedMember', min($documented), max($documented));
 				}
 			},
@@ -421,8 +422,7 @@ final class PhpCsFixer
 							'blankLines.beforeBlockClosingBrace' => 0,
 						]),
 						'break', 'continue', 'return', 'throw' => $t->set('blankLines.afterStatement', [$token => 0]),
-						'attribute' => $t->warn('`no_extra_blank_lines` with `attribute` removes the blank lines below an attribute, while `blankLines.afterPhpdoc` counts those below a doc comment too.')
-							->set('blankLines.afterPhpdoc', 0),
+						'attribute' => $t->set('blankLines.afterAttributes', 0),
 						'use_trait' => $t->set('blankLines.betweenTraitUses', 0),
 						// imports of one kind never have a blank line between them, those of different kinds keep what another
 						// fixer gives them

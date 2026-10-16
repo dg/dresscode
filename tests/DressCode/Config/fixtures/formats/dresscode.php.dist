@@ -22,7 +22,7 @@ return new Config(
 	cacheDir: 'temp/dresscode',
 	analyses: [Acme\DressCode\Analyses\FunctionCalls::class],
 	decisions: [
-		'blankLines' => ['betweenMethods' => "1\u{2013}2", 'beforeStatement' => ['return' => '1+'], 'afterStatement' => []],
+		'blankLines' => ['aroundMethods' => "1\u{2013}2", 'beforeStatement' => ['return' => '1+'], 'afterStatement' => []],
 		'spacing' => ['arrowFunction' => 'fn ($x) => $x'],
 		'types' => ['traversableClasses' => ['Traversable', 'Iterator']],
 		'controlFlow' => ['trailingIfMinStatements' => 3],

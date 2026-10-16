@@ -1,5 +1,5 @@
 <?php
-// {"afterTraitUses": 2, "betweenMethods": 1}
+// {"afterTraitUses": 2, "aroundMethods": 1}
 
 class A
 {

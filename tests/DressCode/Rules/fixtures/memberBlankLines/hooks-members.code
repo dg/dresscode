@@ -1,6 +1,6 @@
 <?php
 // php 8.4
-// {"betweenMethods": 1, "betweenMembers": 1, "beforeFirstMethod": 1}
+// {"aroundMethods": 1, "betweenMembers": 1, "betweenMemberKinds": 1, "beforeFirstMethod": 1}
 class A
 {
 	public string $a { get => $this->a; }

@@ -1,5 +1,5 @@
 <?php
-// {"betweenMethods": 1, "beforeFirstMethod": 1, "afterLastMethod": 1}
+// {"aroundMethods": 1, "beforeFirstMethod": 1, "afterLastMethod": 1}
 class A
 {
 

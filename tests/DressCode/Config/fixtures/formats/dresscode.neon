@@ -31,7 +31,7 @@ analyses:
 	- Acme\DressCode\Analyses\FunctionCalls
 
 blankLines:
-	betweenMethods: 1–2
+	aroundMethods: 1–2
 	beforeStatement: {return: 1+}
 	afterStatement: {}
 spacing:

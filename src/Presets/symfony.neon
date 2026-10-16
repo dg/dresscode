@@ -83,12 +83,13 @@ braces:
 
 # a range `0-1` leaves the choice to the author, `1+` is one or more
 blankLines:
-	betweenDeclarations: 0-1                  # around one among statements
-	betweenMethods: 1
-	betweenInterfaceMethods: 1
+	aroundDeclarations: 0-1                   # around one among statements
+	aroundMethods: 1
+	aroundInterfaceMethods: 1
 	betweenTraitUses: keep
 	afterTraitUses: keep
 	afterPhpdoc: 0
+	afterAttributes: 0
 	beforeStatement: {return: 1+}             # a `return` set apart from the code above it
 
 classes:

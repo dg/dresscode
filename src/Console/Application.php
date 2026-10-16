@@ -145,7 +145,7 @@ final readonly class Application
 		);
 		$program->addOption(
 			'--set',
-			'Set a decision over the configuration as `path=value`, the value in NEON: `blankLines.betweenMethods=1`, `spacing.arrowFunction="fn ($x) => $x"`',
+			'Set a decision over the configuration as `path=value`, the value in NEON: `blankLines.aroundMethods=1`, `spacing.arrowFunction="fn ($x) => $x"`',
 			valueName: 'path=value',
 			repeatable: true,
 			normalizer: CommandContext::checkDecision(...),

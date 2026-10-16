@@ -33,12 +33,12 @@ function resolveFile(string $file, ?Profile $commandLine = null, ?array $only = 
 
 
 test('the sections of a file are its decisions, laid over the preset it uses', function () {
-	$dir = createDecisionsProject(['dresscode.neon' => "use: nette\nblankLines:\n\tbetweenMethods: 1\n"]);
+	$dir = createDecisionsProject(['dresscode.neon' => "use: nette\nblankLines:\n\taroundMethods: 1\n"]);
 	$resolved = resolveFile("$dir/dresscode.neon");
-	Assert::same([1, 1], $resolved->decisions['blankLines.betweenMethods']->value->getCount());
-	Assert::same('the configuration', $resolved->decisions['blankLines.betweenMethods']->value->origin?->describe());
-	Assert::same([1, 2], $resolved->decisions['blankLines.betweenDeclarations']->value->getCount());
-	Assert::same('dresscode/nette', $resolved->decisions['blankLines.betweenDeclarations']->value->origin?->describe());
+	Assert::same([1, 1], $resolved->decisions['blankLines.aroundMethods']->value->getCount());
+	Assert::same('the configuration', $resolved->decisions['blankLines.aroundMethods']->value->origin?->describe());
+	Assert::same([1, 2], $resolved->decisions['blankLines.aroundDeclarations']->value->getCount());
+	Assert::same('dresscode/nette', $resolved->decisions['blankLines.aroundDeclarations']->value->origin?->describe());
 	Assert::contains('dresscode/nette', $resolved->use);
 	Assert::true($resolved->findRule(DressCode\Rules\Whitespace\MemberBlankLinesRule::class)?->isActive());
 });
@@ -46,8 +46,8 @@ test('the sections of a file are its decisions, laid over the preset it uses', f
 
 test('a file used by its path is taken relative to the file writing it, once however often it is named', function () {
 	$dir = createDecisionsProject([
-		'shared.neon' => "blankLines:\n\tbetweenMethods: 3\n\tafterImports: 1\n",
-		'left.neon' => "use: shared.neon\nblankLines:\n\tbetweenMethods: 2\n",
+		'shared.neon' => "blankLines:\n\taroundMethods: 3\n\tafterImports: 1\n",
+		'left.neon' => "use: shared.neon\nblankLines:\n\taroundMethods: 2\n",
 		'right.neon' => "use: shared.neon\nblankLines:\n\tafterImports: 2\n",
 		'dresscode.neon' => "use: [left.neon, right.neon]\n",
 	]);
@@ -57,7 +57,7 @@ test('a file used by its path is taken relative to the file writing it, once how
 		[$shared, strtr((string) realpath("$dir/left.neon"), '\\', '/'), strtr((string) realpath("$dir/right.neon"), '\\', '/')],
 		$resolved->use,
 	);
-	Assert::same([2, 2], $resolved->decisions['blankLines.betweenMethods']->value->getCount());
+	Assert::same([2, 2], $resolved->decisions['blankLines.aroundMethods']->value->getCount());
 	Assert::same([2, 2], $resolved->decisions['blankLines.afterImports']->value->getCount());
 });
 
@@ -93,11 +93,11 @@ test('a file that comes back to itself is an error, and so is one that does not 
 
 test('a file a configuration in PHP uses is relative to the root, as one in NEON is', function () {
 	$dir = createDecisionsProject([
-		'shared.neon' => "blankLines:\n\tbetweenMethods: 3\n",
+		'shared.neon' => "blankLines:\n\taroundMethods: 3\n",
 		'dresscode.php' => "<?php\nreturn new DressCode\\Config(use: ['shared.neon']);\n",
 	]);
 	$resolved = new ConfigResolver(new PluginRegistry, root: $dir)->resolve(Loader::loadFile("$dir/dresscode.php"), '8.3');
-	Assert::same([3, 3], $resolved->decisions['blankLines.betweenMethods']->value->getCount());
+	Assert::same([3, 3], $resolved->decisions['blankLines.aroundMethods']->value->getCount());
 	Assert::same([strtr((string) realpath("$dir/shared.neon"), '\\', '/')], $resolved->use);
 });
 
@@ -134,11 +134,11 @@ test('a key the catalogue does not know is named with the nearest known one, whe
 		'Key `spacng` is unknown; write `spacing`.',
 	);
 
-	$dir = createDecisionsProject(['base.neon' => "blankLines:\n\tbetweenMethod: 1\n", 'dresscode.neon' => "use: base.neon\n"]);
+	$dir = createDecisionsProject(['base.neon' => "blankLines:\n\taroundMethod: 1\n", 'dresscode.neon' => "use: base.neon\n"]);
 	Assert::exception(
 		fn() => resolveFile("$dir/dresscode.neon"),
 		ConfigurationException::class,
-		'Preset `%a%/base.neon`: Key `blankLines.betweenMethod` is unknown; write `blankLines.betweenMethods`.',
+		'Preset `%a%/base.neon`: Key `blankLines.aroundMethod` is unknown; write `blankLines.aroundMethods`.',
 	);
 });
 
@@ -162,8 +162,8 @@ test('a key is one link of the path, the links written with dots are refused', f
 
 test('the run narrowed to a path reports that decision alone and changes no value', function () {
 	$dir = createDecisionsProject(['dresscode.neon' => "use: nette\n"]);
-	$narrowed = resolveFile("$dir/dresscode.neon", only: ['blankLines.betweenMethods']);
-	Assert::true($narrowed->values->isSelected('blankLines.betweenMethods'));
+	$narrowed = resolveFile("$dir/dresscode.neon", only: ['blankLines.aroundMethods']);
+	Assert::true($narrowed->values->isSelected('blankLines.aroundMethods'));
 	Assert::false($narrowed->values->isSelected('blankLines.afterImports'));
 	Assert::same([1, 1], $narrowed->values->get('blankLines.afterImports')->getCount());
 	Assert::true($narrowed->findRule(DressCode\Rules\Whitespace\MemberBlankLinesRule::class)?->isActive());
@@ -178,27 +178,27 @@ test('the command line sets a decision over everything, and fixRisky and severit
 	$dir = createDecisionsProject(
 		['dresscode.neon' => "use: nette\nfixRisky: [types.declaration.parameter]\nseverity: {blankLines: warning}\ntypes:\n\tdeclaration:\n\t\tparameter: required\n"],
 	);
-	$resolved = resolveFile("$dir/dresscode.neon", new Profile(decisions: ['blankLines' => ['betweenMethods' => 3]]));
-	Assert::same([3, 3], $resolved->decisions['blankLines.betweenMethods']->value->getCount());
-	Assert::same('the command line', $resolved->decisions['blankLines.betweenMethods']->value->origin?->describe());
+	$resolved = resolveFile("$dir/dresscode.neon", new Profile(decisions: ['blankLines' => ['aroundMethods' => 3]]));
+	Assert::same([3, 3], $resolved->decisions['blankLines.aroundMethods']->value->getCount());
+	Assert::same('the command line', $resolved->decisions['blankLines.aroundMethods']->value->origin?->describe());
 	Assert::true($resolved->findRule(DressCode\Rules\Types\NativeTypeRequiredRule::class)?->fixRisky);
 	// the command line writes the value anew and says no severity, so its violations are errors again
 	Assert::same(
 		[false, true],
-		[isset($resolved->warningDecisions['blankLines.betweenMethods']), isset($resolved->warningDecisions['blankLines.afterImports'])],
+		[isset($resolved->warningDecisions['blankLines.aroundMethods']), isset($resolved->warningDecisions['blankLines.afterImports'])],
 	);
 
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$code = new Application($out, $err, cwd: $dir)->run([
-		'dresscode', 'config', '--format', 'json', '--set', 'blankLines.betweenMethods=1-2',
+		'dresscode', 'config', '--format', 'json', '--set', 'blankLines.aroundMethods=1-2',
 	]);
 	rewind($out);
 	Assert::same(0, $code);
 	$data = json_decode((string) stream_get_contents($out), true);
 	Assert::same(
 		['value' => [1, 2], 'layer' => 'the command line', 'inactive' => null, 'selected' => true, 'severity' => 'error'],
-		$data['decisions']['blankLines.betweenMethods'],
+		$data['decisions']['blankLines.aroundMethods'],
 	);
 	Assert::exception(
 		fn() => new Config(decisions: ['paths' => []]),

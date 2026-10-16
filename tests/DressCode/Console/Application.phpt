@@ -341,9 +341,9 @@ test('import translates a foreign configuration and says what it could not', fun
 		. "\t\t\t],\n"
 		. "\t\t],\n"
 		. "\t\t'blankLines' => [\n"
-		. "\t\t\t'betweenDeclarations' => 1,\n"
-		. "\t\t\t'betweenMethods' => 1,\n"
-		. "\t\t\t'betweenInterfaceMethods' => 1,\n"
+		. "\t\t\t'aroundDeclarations' => 1,\n"
+		. "\t\t\t'aroundMethods' => 1,\n"
+		. "\t\t\t'aroundInterfaceMethods' => 1,\n"
 		. "\t\t\t'beforeFirstMethod' => 0,\n"
 		. "\t\t\t'afterLastMethod' => 0,\n"
 		. "\t\t],\n"
@@ -492,11 +492,11 @@ test('a file --use names is relative to the working directory, one the configura
 	$dir = createTempDir('console-use');
 	mkdir("$dir/config");
 	file_put_contents("$dir/config/dresscode.php", "<?php\nreturn new DressCode\\Config(use: ['base.neon']);\n");
-	file_put_contents("$dir/config/base.neon", "blankLines:\n\tbetweenMethods: 3\n");
+	file_put_contents("$dir/config/base.neon", "blankLines:\n\taroundMethods: 3\n");
 	file_put_contents("$dir/style.neon", "blankLines:\n\tafterImports: 2\n");
 	[$code, $out] = runApp($dir, ['config', '--config', "$dir/config/dresscode.php", '--use', 'style.neon']);
 	Assert::same(0, $code);
-	Assert::match("%A%\tafterImports: 2 %A%/console-use/style.neon\n\tbetweenMethods: 3 %A%/console-use/config/base.neon\n%A?%", $out);
+	Assert::match("%A%\tafterImports: 2 %A%/console-use/style.neon\n\taroundMethods: 3 %A%/console-use/config/base.neon\n%A?%", $out);
 });
 
 
@@ -505,12 +505,12 @@ test('a file --config names is relative to the working directory', function () {
 	mkdir("$dir/config");
 	file_put_contents(
 		"$dir/config/style.php",
-		"<?php\nreturn new DressCode\\Config(decisions: ['blankLines' => ['betweenMethods' => 3]]);\n",
+		"<?php\nreturn new DressCode\\Config(decisions: ['blankLines' => ['aroundMethods' => 3]]);\n",
 	);
 	[$code, $out, $err] = runApp($dir, ['config', '--config', 'config/style.php']);
 	Assert::same('', $err);
 	Assert::same(0, $code);
-	Assert::match("%A%\tbetweenMethods: 3 %A%", $out);
+	Assert::match("%A%\taroundMethods: 3 %A%", $out);
 });
 
 

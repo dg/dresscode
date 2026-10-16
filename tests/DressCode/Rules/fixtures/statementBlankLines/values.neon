@@ -4,6 +4,7 @@ blankLines:
 	afterNamespace: 1
 	afterImports: 1
 	betweenImportKinds: 1
-	betweenDeclarations: 2
+	aroundDeclarations: 2
 	afterPhpdoc: 0
+	afterAttributes: 0
 	beforeStatement: {return: 1+}

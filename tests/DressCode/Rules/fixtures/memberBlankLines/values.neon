@@ -1,12 +1,13 @@
 blankLines:
-	betweenMethods: 2
-	betweenInterfaceMethods: 1
+	aroundMethods: 2
+	aroundInterfaceMethods: 1
 	beforeFirstMethod: 0
 	afterLastMethod: 0
 	beforeFirstMember: 0
 	afterLastMember: 0
 	betweenTraitUses: 0
 	afterTraitUses: 1
+	betweenMemberKinds: 0-1
 	betweenMembers: 0-1
 	beforeDocumentedMember: 1
 	afterPhpdoc: 0

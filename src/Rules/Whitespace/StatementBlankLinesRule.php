@@ -30,8 +30,9 @@ final class StatementBlankLinesRule extends GapRule
 		'afterImports' => 'After the last import, before the rest of the code',
 		'betweenImportKinds' => 'Between the imports of classes, functions and constants; imports of one kind never have a blank line between them',
 		'beforeDeclaration' => 'Before a class, interface, trait, enum or function that follows the namespace or the imports, in place of `afterNamespace` and `afterImports`',
-		'betweenDeclarations' => 'Before and after a class, interface, trait, enum or function declared among statements, where the header above it does not decide',
+		'aroundDeclarations' => 'Before and after a class, interface, trait, enum or function declared among statements, where the header above it does not decide',
 		'betweenStatementsInFunction' => 'Between two statements in the body of a function, a method or a closure, at any depth; a count of the kind of the statement before or after narrows it',
+		'afterAttributes' => 'Between the last group of attributes and the declaration, the member, the parameter or the closure it belongs to',
 		'afterPhpdoc' => null,
 	];
 
@@ -98,17 +99,17 @@ final class StatementBlankLinesRule extends GapRule
 			'*' => [
 				// a statement is asked about only where some decision can give it a count
 				'statements:item' => [
-					$this->counts['betweenDeclarations'] !== null
+					$this->counts['aroundDeclarations'] !== null
 					|| $this->counts['betweenStatementsInFunction'] !== null
 					|| $this->counts['afterPhpdoc'] !== null
 					|| $this->beforeStatement !== []
 						? fn(Gap $gap) => $this->claimBeforeStatement($gap->value, $gap->index ?? 0)
 						: null,
-					$this->counts['betweenDeclarations'] !== null || $this->afterStatement !== []
+					$this->counts['aroundDeclarations'] !== null || $this->afterStatement !== []
 						? fn(Gap $gap) => $this->claimAfterStatement($gap->value, $gap->index ?? 0)
 						: null,
 				],
-				'attributes' => [null, $this->claims->claim($this->counts['afterPhpdoc'], 'afterPhpdoc')],
+				'attributes' => [null, $this->claims->claim($this->counts['afterAttributes'], 'afterAttributes')],
 			],
 		];
 	}
@@ -206,10 +207,10 @@ final class StatementBlankLinesRule extends GapRule
 	private function claimBeforeStatement(Node|Token $stmt, int $index): ?Claim
 	{
 		$declaration = $stmt instanceof Statement\FunctionNode || $stmt instanceof ClassLikeNode ? $stmt : null;
-		$blank = $declaration !== null && $index > 0 ? $this->counts['betweenDeclarations'] : null;
+		$blank = $declaration !== null && $index > 0 ? $this->counts['aroundDeclarations'] : null;
 		$below = $declaration === null ? null : BlankLineClaims::findBelowDocComment($declaration, $this->counts['afterPhpdoc']);
 		if ($blank !== null || $below !== null) {
-			return $this->claims->claim($blank, 'betweenDeclarations', $below, 'afterPhpdoc');
+			return $this->claims->claim($blank, 'aroundDeclarations', $below, 'afterPhpdoc');
 		}
 
 		$kind = $this->findCountByKind($stmt, $index - 1, $this->beforeStatement);
@@ -236,7 +237,7 @@ final class StatementBlankLinesRule extends GapRule
 			return $next !== null
 				&& !$next instanceof Statement\FunctionNode
 				&& !$next instanceof ClassLikeNode
-				? $this->claims->claim($this->counts['betweenDeclarations'], 'betweenDeclarations')
+				? $this->claims->claim($this->counts['aroundDeclarations'], 'aroundDeclarations')
 				: null;
 		}
 

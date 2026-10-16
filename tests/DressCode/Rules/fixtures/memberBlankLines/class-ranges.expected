@@ -1,5 +1,5 @@
 <?php
-// {"betweenMethods": "1-2", "betweenMembers": "1+"}
+// {"aroundMethods": "1-2", "betweenMembers": "1+", "betweenMemberKinds": "1+"}
 class A
 {
 	public $a;

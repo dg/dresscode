@@ -118,13 +118,15 @@ blankLines:
 	afterOpeningTag: keep
 	betweenImportKinds: 0
 	beforeDeclaration: 2                      # above the class of a file
-	betweenDeclarations: 1-2                  # around one among statements
+	aroundDeclarations: 1-2                   # around one among statements
 	betweenStatementsInFunction: 0-2
-	betweenMethods: 2
-	betweenInterfaceMethods: 1
-	betweenMembers: 0-1                       # members without a doc comment
+	aroundMethods: 2
+	aroundInterfaceMethods: 1
+	betweenMemberKinds: 0-1                   # members without a doc comment
+	betweenMembers: 0-1
 	beforeDocumentedMember: 1
 	afterPhpdoc: 0
+	afterAttributes: 0
 	afterBlockOpeningBrace: 0
 	beforeBlockClosingBrace: 0-1
 	betweenBranches: lastStatementSetApart    # before `} else {` where the last statement stands apart

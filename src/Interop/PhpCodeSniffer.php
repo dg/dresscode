@@ -32,6 +32,11 @@ final class PhpCodeSniffer
 				$o['maxLinesCountBeforeWithoutComment'] ?? 1,
 			)
 			->setBlankLines(
+				'blankLines.betweenMemberKinds',
+				$o['minLinesCountBeforeWithoutComment'] ?? 0,
+				$o['maxLinesCountBeforeWithoutComment'] ?? 1,
+			)
+			->setBlankLines(
 				'blankLines.beforeDocumentedMember',
 				$o['minLinesCountBeforeWithComment'] ?? 1,
 				$o['maxLinesCountBeforeWithComment'] ?? 1,
@@ -261,7 +266,7 @@ final class PhpCodeSniffer
 				'required',
 			),
 			'SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing' => fn(array $o, Translation $t) => $t->set(
-				'blankLines.afterPhpdoc',
+				'blankLines.afterAttributes',
 				$o['linesCountBetweenAttributeAndTarget'] ?? 0,
 			),
 			'SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine' => [
@@ -291,8 +296,8 @@ final class PhpCodeSniffer
 				'blankLines.afterLastMethod' => $o['linesCountBeforeClosingBrace'] ?? 1,
 			]),
 			'SlevomatCodingStandard.Classes.MethodSpacing' => fn(array $o, Translation $t) => $t
-				->setBlankLines('blankLines.betweenMethods', $o['minLinesCount'] ?? 1, $o['maxLinesCount'] ?? 1)
-				->setBlankLines('blankLines.betweenInterfaceMethods', $o['minLinesCount'] ?? 1, $o['maxLinesCount'] ?? 1),
+				->setBlankLines('blankLines.aroundMethods', $o['minLinesCount'] ?? 1, $o['maxLinesCount'] ?? 1)
+				->setBlankLines('blankLines.aroundInterfaceMethods', $o['minLinesCount'] ?? 1, $o['maxLinesCount'] ?? 1),
 			'SlevomatCodingStandard.Classes.ModernClassNameReference' => fn(array $o, Translation $t) => $t->setAll([
 				'cleanup.classNameNotation' => 'classKeyword',
 				'cleanup.get_class' => ($o['enableOnObjects'] ?? false) ? 'forbidden' : 'keep',
@@ -678,9 +683,9 @@ final class PhpCodeSniffer
 			'Squiz.WhiteSpace.FunctionSpacing' => function (array $o, Translation $t) {
 				$t->warn('`Squiz.WhiteSpace.FunctionSpacing` leaves the blank lines around classes alone, while `blankLines` sets them together with those around functions.');
 				$t->setAll([
-					'blankLines.betweenDeclarations' => $o['spacing'] ?? 2,
-					'blankLines.betweenMethods' => $o['spacing'] ?? 2,
-					'blankLines.betweenInterfaceMethods' => $o['spacing'] ?? 2,
+					'blankLines.aroundDeclarations' => $o['spacing'] ?? 2,
+					'blankLines.aroundMethods' => $o['spacing'] ?? 2,
+					'blankLines.aroundInterfaceMethods' => $o['spacing'] ?? 2,
 					'blankLines.beforeFirstMethod' => $o['spacingBeforeFirst'] ?? 2,
 					'blankLines.afterLastMethod' => $o['spacingAfterLast'] ?? 2,
 				]);
