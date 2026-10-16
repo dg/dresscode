@@ -183,7 +183,7 @@ test('a package the project requires itself is measured by the lowest version it
 	$resolution = $factory->resolve(
 		new Config(
 			targets: ['acme/lib' => '3.3', 'acme/ghost' => '1.0', 'app/project' => '2.0'],
-			decisions: ['upgrading' => ['libraries' => ['packages' => 'adopted']]],
+			decisions: ['upgrading' => ['libraries' => ['packageData' => true]]],
 		),
 		$root,
 	);
@@ -314,7 +314,7 @@ test(
 );
 
 
-test('what a package says lies under the maps of the project where it says upgrading.libraries.packages, and only there', function () {
+test('what a package says lies under the maps of the project where it says upgrading.libraries.packageData, and only there', function () {
 	$root = project(
 		'run',
 		['acme/lib' => ['3.2.0.0', ['upgrading' => 'upgrading.neon']]],
@@ -334,7 +334,7 @@ test('what a package says lies under the maps of the project where it says upgra
 
 	$factory = new RunnerFactory;
 	$map = ['replacedClasses' => ['App\Aged' => 'App\Fresh']];
-	$resolution = $factory->resolve(new Config(decisions: ['upgrading' => ['libraries' => ['packages' => 'adopted', ...$map]]]), $root);
+	$resolution = $factory->resolve(new Config(decisions: ['upgrading' => ['libraries' => ['packageData' => true, ...$map]]]), $root);
 	$runner = $factory->createRunner($resolution, cache: false);
 	$result = $runner->processCode("$root/f.php", $code);
 	Assert::same(

@@ -22,7 +22,7 @@ use function count, is_array, is_string;
 final class ConfigResolver
 {
 	/** the decision that lays the maps of the upgrading data of the packages under those of the project */
-	private const PackagesDecision = 'upgrading.libraries.packages';
+	private const PackagesDecision = 'upgrading.libraries.packageData';
 
 	/** @var array<string, string> */
 	private array $warnings = [];
@@ -41,7 +41,7 @@ final class ConfigResolver
 		private readonly PluginRegistry $registry,
 		/**
 		 * @var list<UpgradingData>  what the installed packages say, the maps of each laid under the project where it says
-		 * `upgrading.libraries.packages: adopted`
+		 * `upgrading.libraries.packageData: yes`
 		 */
 		private readonly array $upgradingData = [],
 		/** the packages the project stands on, which decide whether a rule requiring one runs */
@@ -264,7 +264,7 @@ final class ConfigResolver
 
 	/**
 	 * The maps of the upgrading files of the installed packages, as layers under every other one, where
-	 * `upgrading.libraries.packages` is `adopted`: a map of the libraries by its name, the map of a rule of a plugin by the
+	 * `upgrading.libraries.packageData` is `yes`: a map of the libraries by its name, the map of a rule of a plugin by the
 	 * path of its decision.
 	 * @param  array<string, ResolvedDecision>  $decisions
 	 * @return list<array{Layer, array<string, mixed>}>
@@ -286,7 +286,7 @@ final class ConfigResolver
 				}
 			}
 
-			if ($layer !== [] && ($decisions[self::PackagesDecision] ?? null)?->value->getWord() === 'adopted') {
+			if ($layer !== [] && ($decisions[self::PackagesDecision] ?? null)?->value->getFlag()) {
 				$layers[] = [$package->layer, $layer];
 			}
 		}

@@ -22,9 +22,9 @@ final class UselessParenthesesAroundNewRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'upgrading.syntax.newWithoutWrapping',
-			Domain::state('required'),
-			'`new Foo()->bar()` for `(new Foo())->bar()`, an instantiation without the parentheses of its arguments staying as it is',
+			'classes.instantiationWrapping',
+			Domain::state('forbidden'),
+			'The parentheses around an instantiation a member is accessed on, `new Foo()->bar()` for `(new Foo())->bar()`; one without the parentheses of its arguments stays as it is',
 		)];
 	}
 

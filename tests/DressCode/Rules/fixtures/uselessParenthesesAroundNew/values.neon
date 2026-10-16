@@ -1,3 +1,2 @@
-upgrading:
-	syntax:
-		newWithoutWrapping: required
+classes:
+	instantiationWrapping: forbidden

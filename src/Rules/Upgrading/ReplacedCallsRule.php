@@ -72,7 +72,7 @@ use function count;
 #[RuleInfo(
 	Stage::Structure,
 	typesRequired: true,
-	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedCalls'],
+	decisions: ['upgrading.libraries.packageData', 'upgrading.libraries.replacedCalls'],
 	reads: [MemberMapGrammar::ReplacedMembers, MemberMapGrammar::ForbiddenMembers],
 	analyses: [Types::class, NameResolver::class],
 )]

@@ -4,6 +4,9 @@
 # project has it, and the newer form the upgrading files of the installed packages offer. It decides nothing about the
 # layout, so it goes with any standard.
 
+classes:
+	instantiationWrapping: forbidden           # `new Foo()->bar()`, not `(new Foo())->bar()`
+
 functions:
 	arrowFunction:
 		oneExpression: required                # `fn() =>` for a closure only returning
@@ -30,7 +33,7 @@ literals:
 
 upgrading:
 	libraries:
-		packages: adopted                      # as the upgrading files of the packages say
+		packageData: yes                       # as the upgrading files of the packages say
 	php:
 		sleepAndWakeup: forbidden              # `__serialize()` and `__unserialize()` instead
 	syntax:
@@ -41,7 +44,6 @@ upgrading:
 		cloneWith: required                    # `clone($o, [...])`
 		nullsafe: required                     # `$a?->b`, not `$a ? $a->b : null`
 		pipe: required                         # `$x |> a(...) |> b(...)`, not `b(a($x))`
-		newWithoutWrapping: required           # `new Foo()->bar()`, not `(new Foo())->bar()`
 		firstClassCallables: required          # `foo(...)`, not `Closure::fromCallable('foo')`
 		octalPrefix: required                  # `0o17`, not `017`
 		newInInitializer: required             # `Clock $c = new SystemClock`, not a `null` swapped in the body

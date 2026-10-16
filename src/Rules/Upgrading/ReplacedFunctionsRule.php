@@ -40,7 +40,7 @@ use function count, is_int, strlen;
  */
 #[RuleInfo(
 	Stage::Structure,
-	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedFunctions'],
+	decisions: ['upgrading.libraries.packageData', 'upgrading.libraries.replacedFunctions'],
 	analyses: [PhpSignatures::class, PhpSymbols::class, NameResolver::class],
 )]
 final class ReplacedFunctionsRule extends NodeRule

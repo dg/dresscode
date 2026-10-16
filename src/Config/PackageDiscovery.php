@@ -19,7 +19,7 @@ use function array_key_exists, is_array, is_string;
  * `extra.dresscode.plugin`, which the project lets in by naming the package or the plugin in `use`, as Composer lets in
  * its own plugins. The root package takes part too, and a file about the root itself applies whole. Such a file never
  * turns a rule on itself; its maps are laid under those of the project where the project says
- * `upgrading.libraries.packages: adopted`.
+ * `upgrading.libraries.packageData: yes`.
  * @internal
  */
 final readonly class PackageDiscovery

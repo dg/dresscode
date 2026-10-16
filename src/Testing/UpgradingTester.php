@@ -87,7 +87,7 @@ final class UpgradingTester
 	 */
 	public static function runSample(string $code, string $root, array $decisions = [], string $name = 'sample'): FileResult
 	{
-		$decisions['upgrading']['libraries'] = ['packages' => 'adopted', ...$decisions['upgrading']['libraries'] ?? []];
+		$decisions['upgrading']['libraries'] = ['packageData' => true, ...$decisions['upgrading']['libraries'] ?? []];
 		$file = "$root/temp/$name.php";
 		FileSystem::write($file, $code);
 		$installed = array_filter(array_map(

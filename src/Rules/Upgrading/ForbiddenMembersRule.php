@@ -42,7 +42,7 @@ use PhpSyntax\Nodes\Scalar\StringNode;
 	Stage::Structure,
 	typesRequired: true,
 	analyses: [Types::class, NameResolver::class],
-	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.forbiddenMembers'],
+	decisions: ['upgrading.libraries.packageData', 'upgrading.libraries.forbiddenMembers'],
 )]
 final class ForbiddenMembersRule extends NodeRule
 {

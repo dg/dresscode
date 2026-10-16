@@ -21,7 +21,7 @@ use PhpSyntax\Nodes\{NameNode, UseItemNode};
  */
 #[RuleInfo(
 	Stage::Structure,
-	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.forbiddenClasses'],
+	decisions: ['upgrading.libraries.packageData', 'upgrading.libraries.forbiddenClasses'],
 	analyses: [NameResolver::class],
 )]
 final class ForbiddenClassesRule extends NodeRule

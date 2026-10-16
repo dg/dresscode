@@ -32,7 +32,7 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
 #[RuleInfo(
 	Stage::Structure,
 	modifiesComments: true,
-	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedClasses'],
+	decisions: ['upgrading.libraries.packageData', 'upgrading.libraries.replacedClasses'],
 	reads: [MemberMapGrammar::ForbiddenMembers, MemberMapGrammar::AttributeForAnnotation],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]

@@ -61,7 +61,7 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'types.declaration.constant', // a typed constant, which the code before PHP 8.3 cannot have
 		'upgrading.classes.Override', // a guarantee the code takes on, which no older construct gave
 		'upgrading.phpdoc.readonly', // an annotation may promise what the code does not keep, which only the project knows
-		'upgrading.classes.SensitiveParameter', // the list of what is sensitive is the project's
+		'upgrading.classes.SensitiveParameter', // what is sensitive the project knows best
 		// the maps: a set lets the upgrading files of the packages in, a project writes its own
 		'upgrading.libraries.attributeForAnnotation', 'upgrading.libraries.attributeForMember',
 		'upgrading.libraries.forbiddenClasses', 'upgrading.libraries.forbiddenFunctions', 'upgrading.libraries.forbiddenMembers',

@@ -852,7 +852,7 @@ test(
 );
 
 
-test('the maps of the upgrading files lie under those of the project where it says upgrading.libraries.packages', function () {
+test('the maps of the upgrading files lie under those of the project where it says upgrading.libraries.packageData', function () {
 	$packages = [
 		new Config\UpgradingData(
 			new Config\Layer(Config\LayerKind::Package, 'retired.neon', 'acme/lib'),
@@ -874,7 +874,7 @@ test('the maps of the upgrading files lie under those of the project where it sa
 			: null;
 	};
 
-	$consent = ['packages' => 'adopted'];
+	$consent = ['packageData' => true];
 	Assert::same(
 		['Acme\Old' => 'Acme\New', 'Acme\Legacy' => 'Acme\Modern'],
 		$map(new Config(decisions: ['upgrading' => ['libraries' => $consent]])),

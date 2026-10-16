@@ -309,7 +309,7 @@ final class PhpCsFixer
 				$t->warn('`native_function_casing` writes the functions PHP declares, while `casing.function` writes those of the project and its packages too where the configuration sets `typeAnalysis`.');
 			},
 			'native_type_declaration_casing' => ['casing.type' => 'lowercase'],
-			'new_expression_parentheses' => ['upgrading.syntax.newWithoutWrapping' => 'required'],
+			'new_expression_parentheses' => ['classes.instantiationWrapping' => 'forbidden'],
 			'new_with_braces' => fn(array $o, Translation $t) => $t->setAll([
 				'classes.emptyParentheses.instantiation' => ($o['named_class'] ?? true) ? 'required' : 'forbidden',
 				'classes.emptyParentheses.anonymousClass' => ($o['anonymous_class'] ?? true) ? 'required' : 'forbidden',

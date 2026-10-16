@@ -40,7 +40,7 @@ use function count, in_array;
 #[RuleInfo(
 	Stage::Structure,
 	modifiesComments: true,
-	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.attributeForMember'],
+	decisions: ['upgrading.libraries.packageData', 'upgrading.libraries.attributeForMember'],
 	analyses: [Types::class, NameResolver::class],
 )]
 final class AttributeForMemberRule extends NodeRule

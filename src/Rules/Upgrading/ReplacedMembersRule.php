@@ -45,7 +45,7 @@ use PhpSyntax\Nodes\Scalar\StringNode;
 #[RuleInfo(
 	Stage::Structure,
 	typesRequired: true,
-	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.replacedMembers'],
+	decisions: ['upgrading.libraries.packageData', 'upgrading.libraries.replacedMembers'],
 	reads: [MemberMapGrammar::ReplacedCalls],
 	analyses: [Types::class, NameResolver::class],
 )]

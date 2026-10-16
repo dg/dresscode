@@ -52,7 +52,7 @@ use PhpSyntax\Nodes\Statement\{ClassNode, EnumNode, FunctionNode, InterfaceNode,
 #[RuleInfo(
 	Stage::Structure,
 	modifiesComments: true,
-	decisions: ['upgrading.libraries.packages', 'upgrading.libraries.attributeForAnnotation'],
+	decisions: ['upgrading.libraries.packageData', 'upgrading.libraries.attributeForAnnotation'],
 	analyses: [PhpDoc::class, Types::class, NameResolver::class],
 )]
 final class AttributeForAnnotationRule extends NodeRule

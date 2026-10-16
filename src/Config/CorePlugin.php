@@ -9,7 +9,7 @@ namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Decision, DecisionKind, Domain, Plugin, PluginManifest, Rules, Violation};
-use DressCode\Domains\{Count, GrammarEntry, Map, Names, Shapes, Words};
+use DressCode\Domains\{Count, Flag, GrammarEntry, Map, Names, Shapes, Words};
 use DressCode\Rules\Upgrading\{AttributeForMemberEntry, AttributeTarget, CallTemplate, MemberMapGrammar, MemberTarget};
 use Nette\Schema\{Context, Expect, Schema};
 use function dirname;
@@ -373,10 +373,13 @@ final class CorePlugin implements Plugin
 
 				// the maps of what the libraries retired, those the project writes and those the upgrading files of the installed
 				// packages lay under them, each read by its grammar
-				new Decision('upgrading.libraries.packages', new Words([
-					'adopted' => 'the maps of the upgrading files of the installed packages lie under those the project writes',
-					'ignored' => 'the maps are those the project writes alone',
-				]), 'Whether what the upgrading files of the installed packages say is written as they say', kind: DecisionKind::Parameter, default: 'ignored'),
+				new Decision(
+					'upgrading.libraries.packageData',
+					new Flag,
+					'Whether the maps of the upgrading files of the installed packages lie under those the project writes',
+					kind: DecisionKind::Parameter,
+					default: false,
+				),
 				new Decision(
 					MemberMapGrammar::ReplacedClasses,
 					new Map(new GrammarEntry, grammar: self::createReplacedClassesGrammar(), caseInsensitive: true),
