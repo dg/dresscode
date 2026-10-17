@@ -22,12 +22,11 @@ use function count, strlen;
 
 /**
  * A promoted property is documented where it is declared: a `@param` of the constructor for a promoted parameter
- * becomes a doc comment of the parameter, `@var` with the type when it says more than the native one,
- * the description alone when it does not, nothing when there is neither; a constructor doc comment left with
- * nothing is removed. The description keeps the lines it was written on, so a comment of several lines stays
- * several lines. A parameter that already has a doc comment keeps it, and a `@param` beside it goes where it has
- * no description and the type of the `@var`, or of the declaration when there is no `@var`; any other is reported
- * for the author to settle.
+ * becomes a `@var` of the parameter whole, its type with it even where it only repeats the native one, which
+ * `phpdoc.annotation.nativeTypeOnly` decides; a constructor doc comment left with nothing is removed. The description
+ * keeps the lines it was written on, so a comment of several lines stays several lines. A parameter that already has
+ * a doc comment keeps it, and a `@param` beside it goes where it has no description and the type of the `@var`, or of
+ * the declaration when there is no `@var`; any other is reported for the author to settle.
  */
 #[RuleInfo(Stage::Structure, modifiesComments: true, analyses: [PhpDoc::class])]
 final class PromotedPropertyAnnotationPositionRule extends NodeRule
@@ -121,13 +120,7 @@ final class PromotedPropertyAnnotationPositionRule extends NodeRule
 
 		foreach ($moved as [$param, $value, $type]) {
 			$lines = self::splitDescription($value->description);
-			if ($param->type === null || !NativeType::matches($value->type, $param->type->text)) {
-				$lines = [trim("@var $type " . ($lines[0] ?? '')), ...array_slice($lines, 1)];
-			}
-
-			if ($lines !== []) {
-				self::annotate($param, $lines, $context->style);
-			}
+			self::annotate($param, [trim("@var $type " . ($lines[0] ?? '')), ...array_slice($lines, 1)], $context->style);
 		}
 
 		PhpDoc::keepChildren($tree, $kept);

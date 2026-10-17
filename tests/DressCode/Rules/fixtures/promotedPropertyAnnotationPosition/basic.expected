@@ -48,12 +48,13 @@ class D
 {
 	public function __construct(
 		/**
-		 * the version the code is written for; it has no default, only
+		 * @var string the version the code is written for; it has no default, only
 		 * the configuration knows it
 		 */
 		private readonly string $version,
+		/** @var bool */
 		private readonly bool $strict = false,
-		/** what applies without a file */
+		/** @var ?Config what applies without a file */
 		private readonly ?Config $config = null,
 		/** @var \Closure(string): list<string> */
 		private readonly \Closure $resolve,
@@ -78,7 +79,7 @@ class G
 {
 	public function __construct(
 		/**
-		 * the options:
+		 * @var array the options:
 		 * - foo: the first,
 		 *   which goes on
 		 * - bar: the second
