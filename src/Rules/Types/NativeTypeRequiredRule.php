@@ -26,8 +26,9 @@ use function count;
  * Parameters, properties and return values have native types: a missing one is added from the `@param`,
  * `@var` or `@return` annotation when PHP can express it, nullable where the declaration defaults to null, and the
  * annotation goes away when it then says nothing more. A property without a default, null until written, gets
- * `= null` where its type takes null, except one with hooks. A function that returns no value is declared void, and
- * a native void the annotation says is never becomes never. Any other declaration with neither is reported, as
+ * `= null` where its type takes null. A variadic parameter whose annotation names an array and a property with hooks
+ * get no native type from their annotation, being reported instead. A function that returns no value is declared
+ * void, and a native void the annotation says is never becomes never. Any other declaration with neither is reported, as
  * is an array, iterable or traversable one whose annotation does not say what the items are. A function
  * inheriting its documentation (`{@inheritDoc}`, `#[\Override]`) is left alone. Each place can be turned off on its
  * own; a class constant is `ConstantTypeRequiredRule`'s.
@@ -195,6 +196,8 @@ final class NativeTypeRequiredRule extends NodeRule
 					: fn(string $native, \Closure $resolve) => $unseen || ($inherited !== null
 						&& ($inherited->type === null || !NativeType::isDescribedAs($native, $inherited->type, $resolve))),
 				docComment: $fromOwn ? $own : null,
+				variadic: $param->ellipsis !== null,
+				hooked: $param->hooks !== null,
 			);
 			if ($tag !== null && $fromOwn && $own !== null && $ownTree !== null) {
 				self::removeTags($param, $ownTree, [$tag], $own, $phpDoc);
@@ -341,14 +344,13 @@ final class NativeTypeRequiredRule extends NodeRule
 			default: $item->default,
 			isRefused: fn() => self::mayRedeclare($node, $context->findAnalysis(Types::class)),
 			implicitNull: $item->default === null,
-			writeNull: $node->hooks === null
-				? function () use ($item): void {
-					$written = (new Builder)->fragment(PropertyNode::class, 'public $x = null;')->items->getItems()[0];
-					$item->name->setTrailingSpace(' ');
-					$item->equals = $written->equals;
-					$item->default = $written->default;
-				}
-				: null,
+			writeNull: function () use ($item): void {
+				$written = (new Builder)->fragment(PropertyNode::class, 'public $x = null;')->items->getItems()[0];
+				$item->name->setTrailingSpace(' ');
+				$item->equals = $written->equals;
+				$item->default = $written->default;
+			},
+			hooked: $node->hooks !== null,
 		);
 		if ($tag !== null && $tree !== null) {
 			self::removeTags($node, $tree, [$tag], $docComment, $phpDoc);
@@ -383,6 +385,8 @@ final class NativeTypeRequiredRule extends NodeRule
 		bool $implicitNull = false,
 		?\Closure $writeNull = null,
 		?Trivia $docComment = null,
+		bool $variadic = false,
+		bool $hooked = false,
 	): ?PhpDocTagNode
 	{
 		$return = $decision === 'types.declaration.return';
@@ -424,6 +428,24 @@ final class NativeTypeRequiredRule extends NodeRule
 					version_compare($context->phpVersion, '8.2', '>=') => "($native)|null",
 					default => null,
 				};
+			}
+
+			// the array an annotation of a variadic parameter names is read as that of all the arguments and of each one,
+			// and a property with hooks may have no value to be null, so neither is written but reported
+			$unwritable = match (true) {
+				$native === null => null,
+				$hooked => 'a property with hooks',
+				$variadic && NativeType::isTraversable(ltrim($native, '?'), $this->traversableClasses, $resolve) => 'a variadic parameter',
+				default => null,
+			};
+			if ($unwritable !== null) {
+				$context->report(
+					$at,
+					"$subject must have a native $typeWord, which is not written from the `$tagName` annotation of $unwritable.",
+					fixable: false,
+					decision: $decision,
+				);
+				return null;
 			}
 
 			$keptNull = $implicitNull && $writeNull !== null && $native !== null && self::takesNull($native);

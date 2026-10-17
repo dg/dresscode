@@ -1,0 +1,15 @@
+<?php
+// {"declaration.property": "keep", "declaration.return": "keep"}
+// risky
+
+/**
+ * @param string[] $rest   the array of every argument, or of each one
+ */
+function variadic(...$rest)
+{
+}
+
+
+function single(string ...$names)
+{
+}

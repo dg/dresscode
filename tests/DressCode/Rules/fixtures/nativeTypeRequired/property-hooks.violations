@@ -1,3 +1,1 @@
-7: Useless `@var` annotation for the property `$a`, because the native type says the same.
-8: The property `$a` must have the native type `?Foo` from its `@var` annotation.
-	risky BehaviorChanges: the property is then uninitialized until written, where it was null
+8: The property `$a` must have a native type, which is not written from the `@var` annotation of a property with hooks.
