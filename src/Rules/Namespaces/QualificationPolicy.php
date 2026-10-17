@@ -56,6 +56,16 @@ final readonly class QualificationPolicy
 	}
 
 
+	/** A decision of a name of the namespace of the file, which is written bare or with the leading backslash. */
+	public static function createCurrentNamespaceDecision(string $path, string $description, string $bare, string $backslashed): Decision
+	{
+		return new Decision($path, new Words([
+			self::Bare => "bare, $bare relative to the namespace",
+			self::Backslashed => "with the leading backslash, $backslashed",
+		], tolerance: true), $description);
+	}
+
+
 	/** A decision of a global function or constant, which may also be written bare. */
 	public static function createGlobalDecision(
 		string $path,

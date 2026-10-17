@@ -1,7 +1,10 @@
 qualification:
 	class:
 		otherNamespace: keep
+		currentNamespace: keep
 	function:
 		otherNamespace: keep
+		currentNamespace: keep
 	constant:
 		otherNamespace: keep
+		currentNamespace: keep

@@ -1,0 +1,3 @@
+10: The fully qualified name `\Acme\Shop\Order` must be written `Order`.
+12: The fully qualified name `\Acme\Shop\normalize` must be written `normalize`.
+12: The fully qualified name `\Acme\Shop\STATUS_PAID` must be written `STATUS_PAID`.

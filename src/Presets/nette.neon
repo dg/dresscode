@@ -46,6 +46,7 @@ casing:
 qualification:
 	class:
 		otherNamespace: imported
+		currentNamespace: bare
 	currentClass: self                        # `self::bar()` inside `Foo`, not `Foo::bar()`
 
 imports:

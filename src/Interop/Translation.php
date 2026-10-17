@@ -420,6 +420,15 @@ final class Translation
 			'qualification.function.otherNamespace' => $shape['function'] ?? 'keep',
 			'qualification.constant.otherNamespace' => $shape['constant'] ?? 'keep',
 		];
+		// a name of the namespace of the file is shortened to the bare name, the import of it being no form there
+		foreach (['class', 'function', 'constant'] as $kind) {
+			$values["qualification.$kind.currentNamespace"] = match ($shape[$kind] ?? null) {
+				'imported' => 'bare',
+				'backslashed' => 'backslashed',
+				default => 'keep',
+			};
+		}
+
 		foreach (['Function', 'Constant'] as $kind) {
 			$form = $shape['global' . $kind] ?? $shape[lcfirst($kind)] ?? null;
 			$global = self::combine($fallback[lcfirst($kind)] ?? null, $form);

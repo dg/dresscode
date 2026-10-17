@@ -1062,6 +1062,13 @@ test('the casing of the classes and the functions of PHP says the decision cover
 });
 
 
+test('fully_qualified_strict_types writes a class of the namespace of the file bare and one of another namespace imported', function () {
+	$decisions = resolveTranslation((new Translator)->translate(['fully_qualified_strict_types' => ['import_symbols' => true]]))->decisions;
+	Assert::same('imported', $decisions['qualification.class.otherNamespace']->value->toWrittenData());
+	Assert::same('bare', $decisions['qualification.class.currentNamespace']->value->toWrittenData());
+});
+
+
 test('native_function_invocation takes the backslash from a function it does not write it before only with strict', function () {
 	$qualification = function (array $options): array {
 		$decisions = resolveTranslation((new Translator)->translate(

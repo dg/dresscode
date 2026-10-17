@@ -1,0 +1,15 @@
+<?php
+// {"class.currentNamespace":"backslashed","function.currentNamespace":"backslashed","constant.currentNamespace":"backslashed"}
+
+namespace Acme\Shop;
+
+use Acme\Mail\Item;
+use Acme\Mail\Order as MailOrder;
+
+// Item names the import of another class, which stays as it is
+$a = new \Acme\Shop\Order;
+$b = new \Acme\Shop\Item;
+$c = \Acme\Shop\normalize(\Acme\Shop\STATUS_PAID);
+$d = new Cart;
+$e = new Item;
+$f = normalize(STATUS_PAID);

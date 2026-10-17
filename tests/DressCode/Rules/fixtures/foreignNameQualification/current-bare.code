@@ -1,0 +1,15 @@
+<?php
+// {"class.currentNamespace":"bare","function.currentNamespace":"bare","constant.currentNamespace":"bare"}
+
+namespace Acme\Shop;
+
+use Acme\Mail\Item;
+use Acme\Mail\Order as MailOrder;
+
+// Item names the import, so the class of the namespace stays fully qualified
+$a = new \Acme\Shop\Order;
+$b = new \Acme\Shop\Item;
+$c = \Acme\Shop\normalize(\Acme\Shop\STATUS_PAID);
+$d = new Cart;
+$e = new Item;
+$f = normalize(STATUS_PAID);

@@ -1,5 +1,5 @@
 <?php
-// {"class.otherNamespace":"imported"}
+// {"class.otherNamespace":"imported","class.currentNamespace":"bare"}
 
 namespace App\Model;
 

@@ -18,9 +18,10 @@ use function count;
 
 
 /**
- * How far a name of a namespace other than the global one is written out: `imported` or `backslashed`. A key takes a
- * word, or a list of them, every form in it passing and the first written where none matches. The names are written
- * occurrence by occurrence; a qualified name stays, being relative to the import of its prefix or to the namespace.
+ * How far a name of a namespace other than the global one is written out: of another namespace `imported` or
+ * `backslashed`, of the namespace of the file `bare` or `backslashed`. A key takes a word, or a list of them, every form
+ * in it passing and the first written where none matches. The names are written occurrence by occurrence; a qualified
+ * name stays, being relative to the import of its prefix or to the namespace.
  * A file that declares no namespace is the scope of its imports, as a namespace is. Both forms reach the same symbol,
  * so no fix is risky. An import is added only where its alias is free and takes over no name that resolves elsewhere;
  * one the markup of the file leaves no line for is reported to be written by hand. The namespace `PHPSTORM_META` of
@@ -31,6 +32,9 @@ final class ForeignNameQualificationRule extends NodeRule
 {
 	/** @var array<string, array{list<string>, string}>  name of the kind => the forms and the decision, a kind under `keep` left out */
 	private array $decided = [];
+
+	/** @var array<string, array{list<string>, string}>  the same of a name of the namespace of the file */
+	private array $current = [];
 
 
 	public static function getDecisions(): array
@@ -55,6 +59,24 @@ final class ForeignNameQualificationRule extends NodeRule
 				'`use const Acme\Shop\STATUS_PAID;` and `STATUS_PAID`',
 				'`\Acme\Shop\STATUS_PAID`',
 			),
+			QualificationPolicy::createCurrentNamespaceDecision(
+				'qualification.class.currentNamespace',
+				'A class, interface, trait or enum of the namespace of the file, `Order` in `namespace Acme\Shop`',
+				'`Order`',
+				'`\Acme\Shop\Order`',
+			),
+			QualificationPolicy::createCurrentNamespaceDecision(
+				'qualification.function.currentNamespace',
+				'A function of the namespace of the file, `normalize()` in `namespace Acme\Text`',
+				'`normalize()`',
+				'`\Acme\Text\normalize()`',
+			),
+			QualificationPolicy::createCurrentNamespaceDecision(
+				'qualification.constant.currentNamespace',
+				'A constant of the namespace of the file, `STATUS_PAID` in `namespace Acme\Shop`',
+				'`STATUS_PAID`',
+				'`\Acme\Shop\STATUS_PAID`',
+			),
 		];
 	}
 
@@ -62,13 +84,16 @@ final class ForeignNameQualificationRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		foreach ([
-			SymbolKind::ClassLike->name => 'qualification.class.otherNamespace',
-			SymbolKind::Function->name => 'qualification.function.otherNamespace',
-			SymbolKind::Constant->name => 'qualification.constant.otherNamespace',
-		] as $kind => $decision) {
-			$forms = $values->find($decision)?->getWords();
-			if ($forms !== null) {
-				$this->decided[$kind] = [$forms, $decision];
+			SymbolKind::ClassLike->name => 'class',
+			SymbolKind::Function->name => 'function',
+			SymbolKind::Constant->name => 'constant',
+		] as $kind => $key) {
+			foreach (['decided' => 'otherNamespace', 'current' => 'currentNamespace'] as $property => $place) {
+				$decision = "qualification.$key.$place";
+				$forms = $values->find($decision)?->getWords();
+				if ($forms !== null) {
+					$this->$property[$kind] = [$forms, $decision];
+				}
 			}
 		}
 	}
@@ -95,6 +120,7 @@ final class ForeignNameQualificationRule extends NodeRule
 	private function process(FileNode|NamespaceNode $scope, RuleContext $context): void
 	{
 		$resolver = $context->getAnalysis(NameResolver::class);
+		$namespace = $scope instanceof NamespaceNode ? $resolver->getNamespace($scope) : '';
 		$canImport = null;
 		$targets = null;
 		$imported = []; // name of the kind => key of the alias => the full name imported under it
@@ -105,6 +131,12 @@ final class ForeignNameQualificationRule extends NodeRule
 
 			$kind = $name->symbolKind;
 			$full = $resolver->resolve($name);
+			$separator = strrpos($full, '\\');
+			if ($separator !== false && $namespace !== '' && strcasecmp(substr($full, 0, $separator), $namespace) === 0) {
+				$this->writeCurrent($resolver, $name, $full, $context);
+				continue;
+			}
+
 			$form = self::findForm($resolver, $name, $full);
 			$decided = $form === null ? null : $this->decided[$kind->name] ?? null;
 			if ($decided === null || in_array($form, $decided[0], true)) {
@@ -125,7 +157,7 @@ final class ForeignNameQualificationRule extends NodeRule
 				continue;
 			}
 
-			// an import the file has, or the bare name of the namespace of the file itself
+			// an import the file has
 			$alias = $name->shortName;
 			$key = NameReferences::toKey($kind, $alias);
 			$short = $resolver->shortenName($full, $kind, $name);
@@ -155,6 +187,34 @@ final class ForeignNameQualificationRule extends NodeRule
 				$imported[$kind->name][$key] = $full;
 				$name->text = $alias;
 			}
+		}
+	}
+
+
+	/** Writes a name of the namespace of the file bare, where the bare name reaches it, or fully qualified. */
+	private function writeCurrent(NameResolver $resolver, NameNode $name, string $full, RuleContext $context): void
+	{
+		$kind = $name->symbolKind;
+		[$forms, $decision] = $this->current[$kind->name] ?? [null, null];
+		$form = $name->form === NameForm::FullyQualified ? QualificationPolicy::Backslashed : QualificationPolicy::Bare;
+		if ($forms === null || in_array($form, $forms, true)) {
+			return;
+		} elseif ($forms[0] === QualificationPolicy::Backslashed) {
+			if ($context->report($name, "The name `{$name->text}` must be written fully qualified as `\\$full`.", decision: $decision)) {
+				$name->text = '\\' . $full;
+			}
+
+			return;
+		}
+
+		// the bare name reaches the symbol where no import takes it elsewhere
+		$target = $resolver->getImports($kind, $name)[NameReferences::toKey($kind, $name->shortName)] ?? null;
+		if (
+			($target === null || strcasecmp($target, $full) === 0)
+			&& !NameNode::fromText($name->shortName)->isKeyword()
+			&& $context->report($name, "The fully qualified name `\\$full` must be written `{$name->shortName}`.", decision: $decision)
+		) {
+			$name->text = $name->shortName;
 		}
 	}
 
