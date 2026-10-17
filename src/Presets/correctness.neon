@@ -6,6 +6,7 @@
 phpdoc:
 	annotation:
 		extraParam: forbidden                   # a `@param` of no parameter
+		duplicateParam: forbidden               # a second `@param` of one parameter
 		duplicateReturn: forbidden
 		empty: forbidden                        # `@param`, `@return`, `@var`, `@see` without content
 		duplicateVar: forbidden

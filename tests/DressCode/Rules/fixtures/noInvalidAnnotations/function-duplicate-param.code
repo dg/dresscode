@@ -1,0 +1,10 @@
+<?php
+/**
+ * @param int $a
+ * @param string $a
+ * @phpstan-param positive-int $a
+ * @param int $b
+ */
+function f($a, $b)
+{
+}

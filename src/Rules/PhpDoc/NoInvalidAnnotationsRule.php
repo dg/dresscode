@@ -18,14 +18,16 @@ use function in_array;
 
 /**
  * The annotations agree with the code they describe: a `@param` naming a parameter the function does not have is
- * reported, a second `@return`, the function returning one value, a second `@var` of a property, which has one type,
- * and a `@param`, `@return`, `@var` or `@see` without content; the other tags may stand alone, as `@internal` and
+ * reported, a second `@param` of one parameter, a second `@return`, the function returning one value, a second `@var`
+ * of a property, which has one type, and a `@param`, `@return`, `@var` or `@see` without content; a `@phpstan-param`
+ * and its kin beside them are another tool's and pass; the other tags may stand alone, as `@internal` and
  * `@deprecated` do.
  */
 #[RuleInfo(Stage::Structure, analyses: [PhpDoc::class])]
 final class NoInvalidAnnotationsRule extends NodeRule
 {
 	private const ExtraParam = 'phpdoc.annotation.extraParam';
+	private const DuplicateParam = 'phpdoc.annotation.duplicateParam';
 	private const DuplicateReturn = 'phpdoc.annotation.duplicateReturn';
 	private const DuplicateVar = 'phpdoc.annotation.duplicateVar';
 	private const Empty = 'phpdoc.annotation.empty';
@@ -35,6 +37,7 @@ final class NoInvalidAnnotationsRule extends NodeRule
 	{
 		return [
 			new Decision(self::ExtraParam, Domain::state('forbidden'), 'A `@param` naming a parameter the function does not have'),
+			new Decision(self::DuplicateParam, Domain::state('forbidden'), 'A second `@param` of one parameter'),
 			new Decision(self::DuplicateReturn, Domain::state('forbidden'), 'A second `@return` of a function'),
 			new Decision(self::DuplicateVar, Domain::state('forbidden'), 'A second `@var` of a property'),
 			new Decision(self::Empty, Domain::state('forbidden'), 'A `@param`, `@return`, `@var` or `@see` without content'),
@@ -90,6 +93,18 @@ final class NoInvalidAnnotationsRule extends NodeRule
 					$node,
 					"The `$name` annotation names `{$value->parameterName}`, which is not a parameter.",
 					decision: self::ExtraParam,
+					trivia: $docComment,
+					fixable: false,
+				);
+			} elseif (
+				$name === '@param'
+				&& ($value instanceof ParamTagValueNode || $value instanceof TypelessParamTagValueNode)
+				&& ($counts[$value->parameterName] = ($counts[$value->parameterName] ?? 0) + 1) === 2
+			) {
+				$context->report(
+					$node,
+					"The doc comment has more than one `@param` annotation of `{$value->parameterName}`.",
+					decision: self::DuplicateParam,
 					trivia: $docComment,
 					fixable: false,
 				);
