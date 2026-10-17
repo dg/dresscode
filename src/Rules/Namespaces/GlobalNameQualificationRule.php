@@ -57,7 +57,7 @@ final class GlobalNameQualificationRule extends NodeRule
 			),
 			QualificationPolicy::createGlobalDecision(
 				'qualification.function.global',
-				'A global function called in a namespace, `ucfirst()`, but one PHP optimizes a call of, which `function.optimized` decides',
+				'A global function called in a namespace, `ucfirst()`, but one PHP optimizes a call of there, which `function.optimized` decides',
 				'`ucfirst()`',
 				'`use function ucfirst;` and `ucfirst()`',
 				'`\ucfirst()`',
@@ -328,14 +328,19 @@ final class GlobalNameQualificationRule extends NodeRule
 
 
 	/**
-	 * Whether the compiler works with the global function or constant: a function PHP optimizes a call of, with some
-	 * arguments or with any, or a constant PHP declares where it computes with it.
+	 * Whether the compiler works with the global function or constant: a call PHP optimizes, an argument named or
+	 * unpacked aside, or a constant PHP declares where it computes with it.
 	 * @param  list<array{NameNode, string, string}>  $occurrences
 	 */
 	private static function isCompiled(SymbolKind $kind, string $name, array $occurrences, RuleContext $context): bool
 	{
 		return match ($kind) {
-			SymbolKind::Function => Compiler::isOptimizedFunction($name),
+			SymbolKind::Function => array_any(
+				$occurrences,
+				fn(array $occurrence) => ($call = $occurrence[0]->parent) instanceof Expression\FunctionCallNode
+					&& $call->name === $occurrence[0]
+					&& Compiler::isOptimizedCall($call, $name, $context, unpacked: true, named: true),
+			),
 			SymbolKind::Constant => $context->getAnalysis(PhpSymbols::class)->isBuiltinConstant($name)
 				&& array_any($occurrences, fn(array $occurrence) => self::isComputed($occurrence[0], $context)),
 			default => false,

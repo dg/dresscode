@@ -70,13 +70,6 @@ final class Compiler
 	];
 
 
-	/** Whether PHP optimizes a call of the global function, with some arguments or with any. */
-	public static function isOptimizedFunction(string $function): bool
-	{
-		return isset(self::OptimizedFunctions[strtolower($function)]);
-	}
-
-
 	/**
 	 * Whether PHP optimizes the call of the global function with its arguments: most of the functions it optimizes with
 	 * any, some only with every argument constant, `sprintf()` only with a constant format of `%s` and `%d` alone, `in_array()`

@@ -5,7 +5,7 @@ namespace App;
 
 use function dirname;
 
-// a function PHP optimizes a call of is function.optimized's whatever its arguments, which function.global leaves alone
+// a function none of whose calls PHP optimizes is function.global's, one with such a call function.optimized's in all of them
 $a = dirname($path);
 $b = \in_array($x, ['a', 'b'], $strict);
 $c = \chr(65);

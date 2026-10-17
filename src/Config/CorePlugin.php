@@ -347,7 +347,7 @@ final class CorePlugin implements Plugin
 					'`use function strlen;`',
 					'`\strlen()`',
 					'optimizes it',
-					'Every reference to such a function is decided here, a call PHP optimizes only with arguments of a shape, `in_array()` with a constant array, whatever arguments it has.',
+					'A function is optimized in a namespace where one of its calls there is, an unpacked or named argument aside, `in_array()` only with a constant array, and every reference to it in that namespace is then written so; one none of whose calls is optimized is decided by `function.global`.',
 				),
 
 				// the lines below a doc comment or an attribute, of a member as of a declaration among statements
