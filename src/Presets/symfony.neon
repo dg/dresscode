@@ -29,9 +29,11 @@ qualification:
 	class:
 		global: backslashed                   # `\DateTime`
 	function:
-		global: [backslashed, bare]           # `\strlen()` or `strlen()`, never imported
+		global: [backslashed, bare]           # `\ucfirst()` or `ucfirst()`, never imported
+		optimized: [backslashed, bare]
 	constant:
 		global: [backslashed, bare]
+		optimized: [backslashed, bare]
 
 imports:
 	order:

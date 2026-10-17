@@ -1,5 +1,5 @@
 <?php
-// {"function.global":"imported"}
+// {"function.global":"imported","function.optimized":"imported"}
 namespace App;
 
 $a = strlen($x);

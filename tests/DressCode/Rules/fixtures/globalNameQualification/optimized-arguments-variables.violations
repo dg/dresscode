@@ -1,2 +1,13 @@
+8: Global function `chr()` must be imported.
+9: Global function `defined()` must be imported.
+10: Global function `dirname()` must be imported.
 11: Global function `sprintf()` must be imported.
+12: Global function `in_array()` must be imported.
+13: Global function `in_array()` must be imported.
+14: Global function `array_slice()` must be imported.
+15: Global function `constant()` must be imported.
 16: Global function `sprintf()` must be imported.
+17: Global function `extension_loaded()` must be imported.
+18: Global function `in_array()` must be imported.
+19: Global function `in_array()` must be imported.
+20: Global function `in_array()` must be imported.

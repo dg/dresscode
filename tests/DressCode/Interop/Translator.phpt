@@ -1040,6 +1040,7 @@ test('two foreign rules writing names merge into the decisions of the qualificat
 		. "\t\t\t],\n"
 		. "\t\t\t'constant' => [\n"
 		. "\t\t\t\t'global' => ['backslashed', 'bare'],\n"
+		. "\t\t\t\t'optimized' => ['backslashed', 'bare'],\n"
 		. "\t\t\t],\n"
 		. "\t\t],\n"
 		. "\t],\n"
@@ -1073,7 +1074,7 @@ test('native_function_invocation takes the backslash from a function it does not
 	};
 	Assert::same(['bare', 'backslashed'], $qualification([]));
 	Assert::same(['keep', 'backslashed'], $qualification(['strict' => false]));
-	Assert::same(['backslashed', 'keep'], $qualification(['include' => ['@all']]));
+	Assert::same(['backslashed', 'backslashed'], $qualification(['include' => ['@all']]));
 });
 
 

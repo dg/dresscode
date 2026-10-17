@@ -5,6 +5,7 @@ namespace App;
 
 use function dirname;
 
+// a function PHP optimizes a call of is function.optimized's whatever its arguments, which function.global leaves alone
 $a = dirname($path);
 $b = \in_array($x, ['a', 'b'], $strict);
 $c = \chr(65);

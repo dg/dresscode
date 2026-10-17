@@ -21,6 +21,63 @@ use function count;
 final class Compiler
 {
 	/**
+	 * the functions PHP optimizes a call of => what the call needs: nothing, every argument constant, or arguments of
+	 * a shape of their own; compact(), extract(), get_defined_vars() and func_get_arg() are only detected by the optimizer,
+	 * not replaced, and assert() is compiled specially whether its name is known to be global or not
+	 */
+	private const OptimizedFunctions = [
+		'array_key_exists' => 'any',
+		'boolval' => 'any',
+		'call_user_func' => 'any',
+		'call_user_func_array' => 'any',
+		'count' => 'any',
+		'doubleval' => 'any',
+		'floatval' => 'any',
+		'func_get_args' => 'any',
+		'func_num_args' => 'any',
+		'get_called_class' => 'any',
+		'get_class' => 'any',
+		'gettype' => 'any',
+		'intval' => 'any',
+		'is_array' => 'any',
+		'is_bool' => 'any',
+		'is_double' => 'any',
+		'is_float' => 'any',
+		'is_int' => 'any',
+		'is_integer' => 'any',
+		'is_long' => 'any',
+		'is_null' => 'any',
+		'is_object' => 'any',
+		'is_resource' => 'any',
+		'is_scalar' => 'any',
+		'is_string' => 'any',
+		'sizeof' => 'any',
+		'strlen' => 'any',
+		'strval' => 'any',
+		'chr' => 'constant',
+		'constant' => 'constant',
+		'define' => 'constant',
+		'defined' => 'constant',
+		'dirname' => 'constant',
+		'extension_loaded' => 'constant',
+		'function_exists' => 'constant',
+		'ini_get' => 'constant',
+		'is_callable' => 'constant',
+		'ord' => 'constant',
+		'sprintf' => 'format',
+		'in_array' => 'lookup',
+		'array_slice' => 'arguments',
+	];
+
+
+	/** Whether PHP optimizes a call of the global function, with some arguments or with any. */
+	public static function isOptimizedFunction(string $function): bool
+	{
+		return isset(self::OptimizedFunctions[strtolower($function)]);
+	}
+
+
+	/**
 	 * Whether PHP optimizes the call of the global function with its arguments: most of the functions it optimizes with
 	 * any, some only with every argument constant, `sprintf()` only with a constant format of `%s` and `%d` alone, `in_array()`
 	 * only with a constant array it looks up in a hash and `array_slice()` only of `func_get_args()`; none with a named
@@ -53,42 +110,12 @@ final class Compiler
 			}
 		}
 
-		// compact(), extract(), get_defined_vars() and func_get_arg() are only detected by the optimizer, not replaced,
-		// and assert() is compiled specially whether its name is known to be global or not
-		return match (strtolower($function)) {
-			'array_key_exists',
-			'boolval',
-			'call_user_func',
-			'call_user_func_array',
-			'count',
-			'doubleval',
-			'floatval',
-			'func_get_args',
-			'func_num_args',
-			'get_called_class',
-			'get_class',
-			'gettype',
-			'intval',
-			'is_array',
-			'is_bool',
-			'is_double',
-			'is_float',
-			'is_int',
-			'is_integer',
-			'is_long',
-			'is_null',
-			'is_object',
-			'is_resource',
-			'is_scalar',
-			'is_string',
-			'sizeof',
-			'strlen',
-			'strval' => true,
-			'chr', 'constant', 'define', 'defined', 'dirname', 'extension_loaded', 'function_exists', 'ini_get', 'is_callable', 'ord'
-				=> $values !== [] && array_all($values, fn(Node $value) => self::isKnownAtCompileTime($value, $context)),
-			'sprintf' => self::isConcatenatedFormat($values, $rest),
-			'in_array' => self::isLookupArray($values, $context),
-			'array_slice' => count($values) === 2
+		return match (self::OptimizedFunctions[strtolower($function)] ?? null) {
+			'any' => true,
+			'constant' => $values !== [] && array_all($values, fn(Node $value) => self::isKnownAtCompileTime($value, $context)),
+			'format' => self::isConcatenatedFormat($values, $rest),
+			'lookup' => self::isLookupArray($values, $context),
+			'arguments' => count($values) === 2
 				&& $values[0] instanceof Expression\FunctionCallNode
 				&& $values[0]->arguments->items->getItems() === []
 				&& $context->getAnalysis(NameResolver::class)->isGlobalFunctionCall($values[0], 'func_get_args')

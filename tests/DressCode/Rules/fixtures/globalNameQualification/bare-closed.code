@@ -1,5 +1,5 @@
 <?php
-// {"function.global":["bare","backslashed"]}
+// {"function.global":["bare","backslashed"],"function.optimized":["bare","backslashed"]}
 // namespacedFunctions App\strlen
 // nameResolution certain
 namespace App;

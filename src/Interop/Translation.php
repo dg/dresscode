@@ -434,7 +434,8 @@ final class Translation
 			}
 
 			$values['qualification.' . lcfirst($kind) . '.global'] = $global;
-			$values['qualification.' . lcfirst($kind) . '.optimized'] = $optimized === $global ? 'keep' : $optimized;
+			// the optimized ones the foreign rules do not tell apart follow every global one
+			$values['qualification.' . lcfirst($kind) . '.optimized'] = $optimized === 'keep' ? $global : $optimized;
 		}
 
 		return $values;

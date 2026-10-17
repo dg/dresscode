@@ -20,8 +20,8 @@ use PhpSyntax\Nodes\Statement\{DoWhileNode, IfNode, NamespaceNode, UseNode, Whil
  * How far a name of the global namespace referenced in a namespace is written out: `imported`, `backslashed`, or
  * `bare`, which for a function or a constant is reached by the fallback of PHP at run time. A key takes a word, or a
  * list of them, every form in it passing and the first written where none matches. A function or a constant the
- * compiler works with is decided by the key of the optimized ones where that key requires a form, the arguments of
- * such a call being `OptimizedCallNotationRule`'s.
+ * compiler works with is decided by the key of the optimized ones, the arguments of such a call being
+ * `OptimizedCallNotationRule`'s.
  *
  * The names are written symbol by symbol: an occurrence in none of the forms is written in the first form the symbol
  * can take. Bare is open only where the bare name reaches the global symbol, which the fallback does where the
@@ -38,7 +38,7 @@ use PhpSyntax\Nodes\Statement\{DoWhileNode, IfNode, NamespaceNode, UseNode, Whil
  */
 #[RuleInfo(
 	Stage::Structure,
-	decisions: ['qualification.function.global', 'qualification.function.optimized'],
+	decisions: ['qualification.function.optimized'],
 	analyses: [PhpDoc::class, PhpSymbols::class, NameResolver::class, NamespacedSymbols::class],
 )]
 final class GlobalNameQualificationRule extends NodeRule
@@ -56,15 +56,23 @@ final class GlobalNameQualificationRule extends NodeRule
 				'`\DateTime`',
 			),
 			QualificationPolicy::createGlobalDecision(
+				'qualification.function.global',
+				'A global function called in a namespace, `ucfirst()`, but one PHP optimizes a call of, which `function.optimized` decides',
+				'`ucfirst()`',
+				'`use function ucfirst;` and `ucfirst()`',
+				'`\ucfirst()`',
+				'Not a function of the namespace of the file, nor a name in a file without a namespace, which `qualification.leadingBackslash` decides.',
+			),
+			QualificationPolicy::createGlobalDecision(
 				'qualification.constant.global',
-				'A global constant in a namespace, `PHP_EOL`, those the compiler computes with included unless `constant.optimized` requires a form for them',
+				'A global constant in a namespace, `PHP_EOL`, but where the compiler computes with it, which `constant.optimized` decides',
 				'`PHP_EOL`',
 				'`use const PHP_EOL;` and `PHP_EOL`',
 				'`\PHP_EOL`',
 			),
 			QualificationPolicy::createOptimizedDecision(
 				'qualification.constant.optimized',
-				'A constant of PHP the compiler computes with once it knows the constant is global, `PHP_VERSION_ID` in a condition, `PHP_INT_MAX` in a constant expression; where this key requires a form, it decides such a constant over `constant.global`',
+				'A constant of PHP the compiler computes with once it knows the constant is global, `PHP_VERSION_ID` in a condition, `PHP_INT_MAX` in a constant expression',
 				'`PHP_VERSION_ID`',
 				'`use const PHP_VERSION_ID;`',
 				'`\PHP_VERSION_ID`',
@@ -100,10 +108,9 @@ final class GlobalNameQualificationRule extends NodeRule
 		$uses = NameReferences::collectGlobalUses($scope, $context->getAnalysis(NameResolver::class));
 		$imports = NameReferences::collectGlobalImports($scope);
 		foreach ([SymbolKind::ClassLike, SymbolKind::Function, SymbolKind::Constant] as $kind) {
-			foreach ($uses[$kind->name] ?? [] as $key => $occurrences) {
+			foreach ($this->policy->decides($kind) ? $uses[$kind->name] ?? [] : [] as $key => $occurrences) {
 				$global = $occurrences[0][2];
-				$compiled = $this->policy->isCompilerDecisive($kind) && self::isCompiled($kind, $global, $occurrences, $context);
-				$decided = $this->policy->findGlobal($kind, $compiled);
+				$decided = $this->policy->findGlobal($kind, self::isCompiled($kind, $global, $occurrences, $context));
 				if ($decided !== null) {
 					$this->writeSymbol(
 						$scope,
@@ -312,19 +319,14 @@ final class GlobalNameQualificationRule extends NodeRule
 
 
 	/**
-	 * Whether the compiler works with the global function or constant: a call PHP optimizes, an argument named or
-	 * unpacked aside, or a constant PHP declares where it computes with it.
+	 * Whether the compiler works with the global function or constant: a function PHP optimizes a call of, with some
+	 * arguments or with any, or a constant PHP declares where it computes with it.
 	 * @param  list<array{NameNode, string, string}>  $occurrences
 	 */
 	private static function isCompiled(SymbolKind $kind, string $name, array $occurrences, RuleContext $context): bool
 	{
 		return match ($kind) {
-			SymbolKind::Function => array_any(
-				$occurrences,
-				fn(array $occurrence) => ($call = $occurrence[0]->parent) instanceof Expression\FunctionCallNode
-					&& $call->name === $occurrence[0]
-					&& Compiler::isOptimizedCall($call, $name, $context, unpacked: true, named: true),
-			),
+			SymbolKind::Function => Compiler::isOptimizedFunction($name),
 			SymbolKind::Constant => $context->getAnalysis(PhpSymbols::class)->isBuiltinConstant($name)
 				&& array_any($occurrences, fn(array $occurrence) => self::isComputed($occurrence[0], $context)),
 			default => false,

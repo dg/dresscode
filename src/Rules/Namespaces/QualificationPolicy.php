@@ -15,8 +15,7 @@ use PhpSyntax\SymbolKind;
 /**
  * The forms a referenced name is written in, `bare`, `imported` and `backslashed`, the decisions of the qualification
  * between them, and what those decisions say of a name of the global namespace: a global function or constant the
- * compiler works with is decided by the key of the optimized ones where that key requires a form, otherwise by the
- * key of every global one.
+ * compiler works with is decided by the key of the optimized ones, every other one by the key of the global ones.
  * @internal shared by the rules of the qualification
  */
 final readonly class QualificationPolicy
@@ -96,27 +95,29 @@ final readonly class QualificationPolicy
 
 	/**
 	 * The forms of a name of the global namespace referenced in a namespace: of a global class, or of a global function
-	 * or constant, decided by the key of the optimized ones where the compiler works with it and that key decides.
+	 * or constant, decided by the key of the optimized ones where the compiler works with it.
 	 * @return ?array{list<string>, string}  the forms and the decision; null where the name stays as it is
 	 */
 	public function findGlobal(SymbolKind $kind, bool $optimized): ?array
 	{
 		$decision = 'qualification.' . match ($kind) {
 			SymbolKind::ClassLike => 'class.global',
-			SymbolKind::Function => $optimized && $this->isCompilerDecisive($kind) ? 'function.optimized' : 'function.global',
-			SymbolKind::Constant => $optimized && $this->isCompilerDecisive($kind) ? 'constant.optimized' : 'constant.global',
+			SymbolKind::Function => $optimized ? 'function.optimized' : 'function.global',
+			SymbolKind::Constant => $optimized ? 'constant.optimized' : 'constant.global',
 		};
 		return $this->forms[$decision] === null ? null : [$this->forms[$decision], $decision];
 	}
 
 
-	/** Whether the global functions or constants the compiler works with are decided apart from the others, by a key requiring a form. */
-	public function isCompilerDecisive(SymbolKind $kind): bool
+	/** Whether a key decides some global name of the kind. */
+	public function decides(SymbolKind $kind): bool
 	{
 		return match ($kind) {
-			SymbolKind::ClassLike => false,
-			SymbolKind::Function => $this->forms['qualification.function.optimized'] !== null,
-			SymbolKind::Constant => $this->forms['qualification.constant.optimized'] !== null,
+			SymbolKind::ClassLike => $this->forms['qualification.class.global'] !== null,
+			SymbolKind::Function => $this->forms['qualification.function.global'] !== null
+				|| $this->forms['qualification.function.optimized'] !== null,
+			SymbolKind::Constant => $this->forms['qualification.constant.global'] !== null
+				|| $this->forms['qualification.constant.optimized'] !== null,
 		};
 	}
 }

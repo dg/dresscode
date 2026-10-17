@@ -1,10 +1,11 @@
 <?php
-// {"function.optimized":["imported","backslashed"],"constant.global":["imported","backslashed"]}
+// {"function.optimized":["imported","backslashed"],"constant.global":["imported","backslashed"],"constant.optimized":["imported","backslashed"]}
 // risky
 namespace App;
 
 use Foo\Bar;
 use function array_map;
+use function in_array;
 use function strlen;
 use const DIRECTORY_SEPARATOR;
 use const M_PI;

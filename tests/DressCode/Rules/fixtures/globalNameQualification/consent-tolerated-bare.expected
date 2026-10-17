@@ -1,5 +1,5 @@
 <?php
-// {"function.global":["imported","bare"]}
+// {"function.global":["imported","bare"],"function.optimized":["imported","bare"]}
 // nameResolution certain
 namespace App;
 

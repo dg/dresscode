@@ -72,14 +72,16 @@ foreach ([
 	Rules\Namespaces\GlobalNameQualificationRule::class => [
 		'qualification.class.global' => 'imported',
 		'qualification.function.global' => 'imported',
+		'qualification.function.optimized' => 'imported',
 		'qualification.constant.global' => 'imported',
+		'qualification.constant.optimized' => 'imported',
 	],
 	Rules\Namespaces\ForeignNameQualificationRule::class => [
 		'qualification.class.otherNamespace' => 'imported',
 		'qualification.function.otherNamespace' => 'imported',
 		'qualification.constant.otherNamespace' => 'imported',
 	],
-	Rules\Namespaces\OptimizedCallNotationRule::class => ['qualification.function.global' => 'imported'],
+	Rules\Namespaces\OptimizedCallNotationRule::class => ['qualification.function.optimized' => 'imported'],
 	Rules\Namespaces\UselessLeadingBackslashRule::class => [
 		'imports.leadingBackslash' => 'forbidden',
 		'qualification.leadingBackslash' => 'keep',

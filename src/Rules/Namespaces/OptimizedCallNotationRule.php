@@ -18,8 +18,8 @@ use function count;
 
 
 /**
- * The arguments of a call of a global function the decisions write qualified for the compiler, `function.optimized` or,
- * where that key requires no form, `function.global`, in the form the optimization takes. The compiler turns calls of
+ * The arguments of a call of a global function `function.optimized` writes qualified for the compiler, in the form the
+ * optimization takes. The compiler turns calls of
  * some functions into opcodes, but only where it knows while compiling that the call is global, in the global namespace
  * or with the name imported or fully qualified, and never with an unpacked argument, which is reported where the call
  * would be optimized with the values passed one by one, nor with a named one. PHP 8.4 calls some functions without a
@@ -29,38 +29,33 @@ use function count;
  */
 #[RuleInfo(
 	Stage::Structure,
-	decisions: ['qualification.function.global', 'qualification.function.optimized'],
+	decisions: ['qualification.function.optimized'],
 	analyses: [PhpSignatures::class, PhpSymbols::class, NameResolver::class],
 )]
 final class OptimizedCallNotationRule extends NodeRule
 {
-	/** the decision that writes an optimized function qualified, null where none does */
-	private ?string $decision = null;
+	private const Optimized = 'qualification.function.optimized';
+
+	/** whether `function.optimized` writes an optimized function qualified */
+	private bool $qualified = false;
 
 
 	public function configure(Values $values): void
 	{
-		foreach (['qualification.function.optimized', 'qualification.function.global'] as $decision) {
-			$forms = $values->find($decision)?->getWords();
-			if ($forms !== null) {
-				$this->decision = in_array($forms[0], [QualificationPolicy::Imported, QualificationPolicy::Backslashed], true)
-					? $decision
-					: null;
-				return;
-			}
-		}
+		$forms = $values->find(self::Optimized)?->getWords();
+		$this->qualified = $forms !== null && in_array($forms[0], [QualificationPolicy::Imported, QualificationPolicy::Backslashed], true);
 	}
 
 
 	public function getVisitedNodes(): array
 	{
-		return $this->decision === null ? [] : [FunctionCallNode::class];
+		return $this->qualified ? [FunctionCallNode::class] : [];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (!$node instanceof FunctionCallNode || !$node->name instanceof NameNode || $this->decision === null) {
+		if (!$node instanceof FunctionCallNode || !$node->name instanceof NameNode || !$this->qualified) {
 			return;
 		}
 
@@ -85,7 +80,7 @@ final class OptimizedCallNotationRule extends NodeRule
 				$context->report(
 					$unpacked,
 					"Argument unpacking disables the compiler optimization of `$name()`.",
-					decision: $this->decision,
+					decision: self::Optimized,
 					fixable: false,
 				);
 			}
@@ -100,7 +95,7 @@ final class OptimizedCallNotationRule extends NodeRule
 					$context->getAnalysis(PhpSignatures::class)->findParameters($name) ?? [],
 				)
 				: []);
-		$this->writePositionally($node, $name, $args, $parameters, $this->decision, $context);
+		$this->writePositionally($node, $name, $args, $parameters, $context);
 	}
 
 
@@ -113,7 +108,6 @@ final class OptimizedCallNotationRule extends NodeRule
 		string $name,
 		array $args,
 		array $parameters,
-		string $decision,
 		RuleContext $context,
 	): void
 	{
@@ -141,7 +135,7 @@ final class OptimizedCallNotationRule extends NodeRule
 		if (!$context->report(
 			$named[0],
 			"A named argument disables the compiler optimization of `$name()`.",
-			decision: $decision,
+			decision: self::Optimized,
 			risk: $uncertainty === null ? null : Risk::NameUncertain,
 			fixable: !$hasComment,
 			because: $uncertainty,

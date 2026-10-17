@@ -338,23 +338,15 @@ final class CorePlugin implements Plugin
 					'Where `?`, `:` and `?:` of a ternary stand at a line break, of a ternary spread over lines too',
 				),
 
-				// how far a global function is written out, which decides the arguments of its optimized call too
-				Rules\Namespaces\QualificationPolicy::createGlobalDecision(
-					'qualification.function.global',
-					'A global function called in a namespace, `strlen()`, those the compiler optimizes included unless `function.optimized` requires a form for them',
-					'`strlen()`',
-					'`use function strlen;` and `strlen()`',
-					'`\strlen()`',
-					'Not a function of the namespace of the file, nor a name in a file without a namespace, which `qualification.leadingBackslash` decides.',
-				),
+				// how far a function PHP optimizes is written out, which decides the arguments of its call too
 				Rules\Namespaces\QualificationPolicy::createOptimizedDecision(
 					'qualification.function.optimized',
-					'A global function whose call PHP compiles to one opcode once it knows the function is global, `count()`, `strlen()`, `is_int()` and the others; where this key requires a form, it decides such a function over `function.global`, and a call of it written imported or with the backslash, by either key, has its arguments passed positionally and an unpacked one reported',
+					'A global function whose call PHP compiles to one opcode once it knows the function is global, `count()`, `strlen()`, `is_int()` and the others; a call of it written imported or with the backslash has its arguments passed positionally and an unpacked one reported',
 					'`strlen()`',
 					'`use function strlen;`',
 					'`\strlen()`',
 					'optimizes it',
-					'A function is optimized in a namespace where one of its calls there is, an unpacked or named argument aside, and every reference to it in that namespace is then written so.',
+					'Every reference to such a function is decided here, a call PHP optimizes only with arguments of a shape, `in_array()` with a constant array, whatever arguments it has.',
 				),
 
 				// the lines below a doc comment or an attribute, of a member as of a declaration among statements
