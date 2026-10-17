@@ -1,5 +1,5 @@
 <?php
-// {"types.builtin": "keep"}
+// {"phpdoc.types.builtin": "keep"}
 /**
  * @param Integer|integer $a
  * @param int[] $b

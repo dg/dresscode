@@ -10,9 +10,10 @@ namespace DressCode\Rules\PhpDoc;
 use DressCode\Analyses\{PhpDoc, Types};
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\{Shapes, Words};
+use DressCode\Rules\NativeType;
 use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, SymbolKind, Token};
+use PhpSyntax\{Builder, Node, SymbolKind, Token};
 
 
 /**
@@ -24,7 +25,12 @@ use PhpSyntax\{Node, SymbolKind, Token};
  * different type and stays. A name imported or declared as a class (`Resource`) stays too; without `typeAnalysis`
  * a class declared in another file is not seen.
  */
-#[RuleInfo(Stage::Finishing, modifiesComments: true, analyses: [PhpDoc::class, Types::class, NameResolver::class])]
+#[RuleInfo(
+	Stage::Finishing,
+	modifiesComments: true,
+	decisions: ['types.traversableClasses'],
+	analyses: [PhpDoc::class, Types::class, NameResolver::class],
+)]
 final class PhpdocTypeNotationRule extends NodeRule
 {
 	private const BuiltinNames = 'phpdoc.types.builtin';
@@ -40,6 +46,9 @@ final class PhpdocTypeNotationRule extends NodeRule
 	private ?string $nullPosition = null;
 	private bool $alphabetical = false;
 	private ?string $arrayNotation = null;
+
+	/** @var list<string> */
+	private array $traversableClasses = [];
 
 
 	public static function getDecisions(): array
@@ -85,6 +94,10 @@ final class PhpdocTypeNotationRule extends NodeRule
 		$this->nullPosition = $values->find(self::NullPosition)?->getWord();
 		$this->alphabetical = !$values->isKept(self::UnionOrder);
 		$this->arrayNotation = $values->find(self::Array)?->getShape();
+		$this->traversableClasses = array_map(
+			fn(string $name) => strtolower(ltrim($name, '\\')),
+			$values->get('types.traversableClasses')->getNames(),
+		);
 	}
 
 
@@ -114,6 +127,11 @@ final class PhpdocTypeNotationRule extends NodeRule
 			$tree = $phpDoc->parse($trivia);
 			$visitor = new PhpdocTypeNotationVisitor(
 				$isClass,
+				fn(string $name) => NativeType::isTraversable(
+					$name,
+					$this->traversableClasses,
+					fn(string $class) => $context->getAnalysis(NameResolver::class)->resolveClass((new Builder)->name($class), $node),
+				),
 				$this->canonical,
 				$this->unique,
 				$this->nullable,

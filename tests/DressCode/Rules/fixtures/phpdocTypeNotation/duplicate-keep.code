@@ -1,5 +1,5 @@
 <?php
-// {"types.duplicate": "keep"}
+// {"phpdoc.types.duplicate": "keep"}
 /**
  * @param int|int $a
  */

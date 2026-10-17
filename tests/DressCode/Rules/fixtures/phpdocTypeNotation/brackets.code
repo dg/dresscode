@@ -1,5 +1,5 @@
 <?php
-// {"types.array": "T[]"}
+// {"phpdoc.types.array": "T[]"}
 /**
  * @param array<int> $a
  * @param array<array<int>> $b

@@ -43,10 +43,15 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 	/** @var \SplObjectStorage<Node, null>  shape keys are names, not types */
 	private \SplObjectStorage $keys;
 
+	/** @var \SplObjectStorage<Node, null>  arrays beside a traversable class, whose notation tells PHPStan what the class holds */
+	private \SplObjectStorage $kept;
+
 
 	public function __construct(
 		/** @var \Closure(string): bool  whether the name stands for a class */
 		private readonly \Closure $isClass,
+		/** @var \Closure(string): bool  whether the name stands for a traversable class of `types.traversableClasses` */
+		private readonly \Closure $isTraversable,
 		private readonly bool $canonical,
 		private readonly bool $unique,
 		/** questionMark or union, null where it is kept */
@@ -56,6 +61,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 		private readonly ?string $arrayNotation,
 	) {
 		$this->keys = new \SplObjectStorage;
+		$this->kept = new \SplObjectStorage;
 	}
 
 
@@ -83,13 +89,14 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 				$node->name = $canonical;
 			}
 
-		} elseif ($node instanceof ArrayTypeNode && $this->arrayNotation === 'generic') {
+		} elseif ($node instanceof ArrayTypeNode && $this->arrayNotation === 'generic' && !isset($this->kept[$node])) {
 			$this->messages[] = ['An array type in a doc comment must be written `array<T>`.', 'phpdoc.types.array'];
 			return new GenericTypeNode(new IdentifierTypeNode('array'), [$node->type]);
 
 		} elseif (
 			$node instanceof GenericTypeNode
 			&& $this->arrayNotation === 'brackets'
+			&& !isset($this->kept[$node])
 			&& strtolower($node->type->name) === 'array'
 			&& count($node->genericTypes) === 1
 			&& (
@@ -124,6 +131,13 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 	 */
 	private function rewriteUnion(UnionTypeNode $node): ?TypeNode
 	{
+		// `Foo[]|Traversable` is a Traversable of Foo to PHPStan, which another notation of the array would change
+		if (array_any($node->types, fn(TypeNode $type) => $type instanceof IdentifierTypeNode && ($this->isTraversable)($type->name))) {
+			foreach ($node->types as $type) {
+				$this->kept[$type] = null;
+			}
+		}
+
 		$unique = [];
 		foreach ($node->types as $i => $type) {
 			$unique[$this->unique ? $this->readCanonically($type) : $i] ??= $type;

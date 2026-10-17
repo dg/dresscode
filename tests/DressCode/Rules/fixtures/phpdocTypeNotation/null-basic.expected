@@ -1,5 +1,5 @@
 <?php
-// {"types.nullPosition": "last", "types.array": "keep"}
+// {"phpdoc.types.nullPosition": "last", "phpdoc.types.array": "keep"}
 /**
  * @param int|null $a
  * @param int|null $b

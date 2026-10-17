@@ -1,5 +1,5 @@
 <?php
-// {"types.nullable": "T|null"}
+// {"phpdoc.types.nullable": "T|null"}
 /**
  * @param ?int $a
  * @param ?Foo $b

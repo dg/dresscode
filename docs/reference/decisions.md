@@ -2618,6 +2618,7 @@ Classes treated like `array` and `iterable`, whose annotation says what their it
 - By default `[Traversable]`
 - Takes: a list of names
 - The standards: perCs `[Traversable]`, psr12 `[Traversable]`, nette `[Traversable]`, symfony `[Traversable]`
+- Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
 - Rule `DressCode\Rules\Types\NativeTypeRequiredRule`, stage Structure
 - Modifies comments
 

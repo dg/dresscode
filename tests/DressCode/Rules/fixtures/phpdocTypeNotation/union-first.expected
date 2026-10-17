@@ -1,5 +1,5 @@
 <?php
-// {"types.nullable": "T|null", "types.nullPosition": "first"}
+// {"phpdoc.types.nullable": "T|null", "phpdoc.types.nullPosition": "first"}
 /**
  * @param null|int $a
  */

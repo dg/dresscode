@@ -1,0 +1,7 @@
+<?php
+/**
+ * @param Foo[]|\Traversable $a
+ * @return array<Foo>|Traversable
+ */
+function f($a) {
+}

@@ -1,0 +1,8 @@
+<?php
+// {"phpdoc.types.array": "T[]"}
+/**
+ * @param array<Foo>|\Traversable $a
+ * @return array<Foo>
+ */
+function f($a) {
+}
