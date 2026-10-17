@@ -242,7 +242,7 @@ multi-line list ends with a comma. PHP CS Fixer implements PER Coding Style 3.0,
 
 The same with PSR-12 and PHP_CodeSniffer: after `dresscode fix --use psr12`, PHP_CodeSniffer finds 83
 problems over the whole of Laravel, apart from lines longer than 120 characters, which PSR-12 wants a tool
-only to warn about, as the `psr12` preset does with `file.longLines: warning`. The other way round,
+only to warn about, as the `psr12` preset does with `severity: {file.longLines: warning}`. The other way round,
 DressCode still finds 772 places after `phpcbf`, among them the visibility of constants, which PSR-12 requires
 and `phpcbf` reports but cannot add.
 
