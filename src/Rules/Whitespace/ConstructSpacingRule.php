@@ -11,8 +11,8 @@ use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Space, Sta
 use DressCode\Domains\Shapes;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\{
-	CaseNode, CatchNode, ClassLikeNode, ClosureUseListNode, ElseifNode, ElseNode,
-	FinallyNode, ModifiersNode, ParameterNode, SeparatedNodeList, Statement, UseItemNode,
+	AnonymousClassNode, CaseNode, CatchNode, ClassLikeNode, ClosureUseListNode, ElseifNode,
+	ElseNode, FinallyNode, ModifiersNode, ParameterNode, SeparatedNodeList, Statement, UseItemNode,
 };
 use PhpSyntax\Nodes\Expression\{ClosureNode, MatchNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode, PropertyNode, TraitAliasNode, TraitUseNode};
@@ -22,8 +22,9 @@ use function count;
 /**
  * A single space after a language construct and what follows it on its line (`return $a`, `new Foo`,
  * `function ()`, `public static`), before and after the keyword that continues one (`} else {`, `$a as $b`,
- * `} catch (`), before the brace or the body a structure opens on the same line, and inside the braces of
- * abbreviated property hooks (`{ get; set; }`); the colon of the alternative syntax and of a label hugs
+ * `} catch (`), before the brace or the body a structure opens on the same line, and inside the braces of a body
+ * whose code stands on their line (`function () { return 1; }`) and of abbreviated property hooks
+ * (`{ get; set; }`); the colon of the alternative syntax and of a label hugs
  * what is before it, a single space separates it from the end keyword of an empty body (`if ($a): endif;`), and
  * the braces of a group use hug their names. What may begin on the line below
  * a construct is left there: a body, a list of several items, attributes and whatever follows a comment.
@@ -109,8 +110,8 @@ final class ConstructSpacingRule extends GapRule
 			),
 			new Decision(
 				self::Body,
-				new Shapes(['spaced' => ['public $a { get; set; }', 'a single space inside the braces']]),
-				'The space inside the braces of abbreviated property hooks, and none inside a pair of braces with nothing between them that is no body of a class or a function',
+				new Shapes(['spaced' => ['function () { return 1; }', 'a single space inside the braces']]),
+				'The space inside the braces of a body whose code stands on their line, of a function, a closure, a property hook and an anonymous class, and of abbreviated property hooks, `{ get; set; }`; none inside a pair of braces with nothing between them whose empty form `braces.emptyBody` does not decide',
 			),
 			new Decision(
 				self::Import,
@@ -187,7 +188,7 @@ final class ConstructSpacingRule extends GapRule
 			fn(Gap $gap) => $gap->token->is(Token::OpenTagWithEcho) ? null : $this->claimAfterKeyword($gap),
 		];
 		$any['fnKeyword'] = [null, $this->spaceAfterFn];
-		// a pair of braces with nothing between them is written {}, unless it is a body, which `braces.emptyBody` writes
+		// a pair of braces with nothing between them is written {}, unless `braces.emptyBody` writes it
 		$any['closeBrace'] = [
 			fn(Gap $gap) => ($gap->token->getPrevious()?->is('{') ?? false) && !self::isBody($gap->token->parent) ? $bodyNone : null,
 			null,
@@ -201,6 +202,15 @@ final class ConstructSpacingRule extends GapRule
 		// the braces, bodies and colons of the structures; those of a dynamic name or a ternary are not theirs
 		foreach (self::Braced as $class) {
 			$claims[$class]['openBrace'] = [$openBrace, null];
+		}
+
+		// the code of a body on the line of its braces: `function () { return 1; }`
+		if ($bodySingle !== null) {
+			$inside = fn(Gap $gap) => self::hasCodeInside($gap->value->parent) ? $bodySingle : null;
+			foreach ([Statement\BlockNode::class, AnonymousClassNode::class] as $class) {
+				$claims[$class]['openBrace'] = [$class === AnonymousClassNode::class ? null : $openBrace, $inside];
+				$claims[$class]['closeBrace'] = [$inside, null];
+			}
 		}
 
 		// the abbreviated hooks of a property: `{ get; set; }`
@@ -300,15 +310,26 @@ final class ConstructSpacingRule extends GapRule
 	}
 
 
-	/** Whether the braces enclose the body of a class or of a function, whose empty form `BracesPositionRule` writes. */
+	/** Whether the braces enclose the body of a class, a function or a control structure, whose empty form `BracesPositionRule` writes. */
 	private static function isBody(?Node $braced): bool
 	{
 		return $braced instanceof ClassLikeNode
-			|| ($braced instanceof Statement\BlockNode && (
+			|| ($braced instanceof Statement\BlockNode && $braced->parent !== null && in_array($braced->parent::class, self::Bodied, true));
+	}
+
+
+	/** Whether the braces enclose code of the body of a function, a closure, a property hook or an anonymous class. */
+	private static function hasCodeInside(?Node $braced): bool
+	{
+		return match (true) {
+			$braced instanceof AnonymousClassNode => !$braced->members->isEmpty(),
+			$braced instanceof Statement\BlockNode => !$braced->statements->isEmpty() && (
 				$braced->parent instanceof Statement\FunctionNode
 				|| $braced->parent instanceof MethodNode
 				|| $braced->parent instanceof ClosureNode
 				|| $braced->parent instanceof PropertyHookNode
-			));
+			),
+			default => false,
+		};
 	}
 }

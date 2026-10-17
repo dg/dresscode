@@ -45,7 +45,7 @@ function apply(array $rules, string $code): array
 test('the stricter side of a gap wins: nothing before the semicolon, whatever the keyword asks for after itself', function () {
 	[$output, $violations] = apply([
 		RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
-			'spacing.keyword' => 'return $x', 'spacing.openBrace' => 'if ($a) {', 'spacing.alternativeSyntax' => 'if ($a):', 'spacing.body' => 'public $a { get; set; }',
+			'spacing.keyword' => 'return $x', 'spacing.openBrace' => 'if ($a) {', 'spacing.alternativeSyntax' => 'if ($a):', 'spacing.body' => 'function () { return 1; }',
 			'spacing.import' => 'use Acme\\{Foo, Bar};', 'spacing.arrowFunction' => 'fn($x) => $x', 'multiline.expressionStart' => 'sameLine',
 		]),
 		RuleBuilder::createRule(Rules\Whitespace\SemicolonSpacingRule::class, [
@@ -80,7 +80,7 @@ test('a claim on the whitespace and the line reports the line under its own deci
 
 test('a keyword alone knows what closes it', function () {
 	[$output] = apply([RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
-		'spacing.keyword' => 'return $x', 'spacing.openBrace' => 'if ($a) {', 'spacing.alternativeSyntax' => 'if ($a):', 'spacing.body' => 'public $a { get; set; }',
+		'spacing.keyword' => 'return $x', 'spacing.openBrace' => 'if ($a) {', 'spacing.alternativeSyntax' => 'if ($a):', 'spacing.body' => 'function () { return 1; }',
 		'spacing.import' => 'use Acme\\{Foo, Bar};', 'spacing.arrowFunction' => 'fn($x) => $x', 'multiline.expressionStart' => 'sameLine',
 	])], "<?php\nreturn;\nswitch (\$a) {\n\tdefault:\n}\n");
 	Assert::same("<?php\nreturn;\nswitch (\$a) {\n\tdefault:\n}\n", $output);
@@ -122,7 +122,7 @@ test('a plain claim and a closure deciding one component of one slot are refused
 		fn() => apply([
 			RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
 				'spacing.keyword' => 'return $x', 'spacing.openBrace' => 'if ($a) {', 'spacing.alternativeSyntax' => 'if ($a):',
-				'spacing.body' => 'public $a { get; set; }', 'spacing.import' => 'use Acme\\{Foo, Bar};',
+				'spacing.body' => 'function () { return 1; }', 'spacing.import' => 'use Acme\\{Foo, Bar};',
 				'spacing.arrowFunction' => 'fn($x) => $x',
 				'multiline.expressionStart' => 'sameLine',
 			]),

@@ -1,0 +1,22 @@
+<?php
+
+$f = function () {return 1;};
+$g = function () use ($x) {   foo($x);   };
+$h = new class {public $a;};
+$i = function () {
+	return 1;
+};
+function foo() {return 1;}
+
+class A
+{
+	public int $p {
+		get {return 1;}
+	}
+}
+
+// an empty body is the business of braces.emptyBody, other empty braces are written {}
+if ($a) {  }
+$j = function () {  };
+switch ($a) {  }
+$m = match ($a) {  };

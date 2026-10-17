@@ -51,7 +51,7 @@ spacing:
 	keyword: 'return $x'                      # `if (`, `} else {`, `function (`, `new`, `class Foo extends Bar` too
 	openBrace: 'if ($a) {'
 	alternativeSyntax: 'if ($a):'
-	body: 'public $a { get; set; }'
+	body: 'function () { return 1; }'
 	import: 'use Acme\{Foo, Bar};'
 	comma: '$a, $b'
 	alignment:

@@ -1056,11 +1056,11 @@ The space before the colon of the alternative syntax and of a label, and the sin
 
 ### spacing.body
 
-The space inside the braces of abbreviated property hooks, and none inside a pair of braces with nothing between them that is no body of a class or a function.
+The space inside the braces of a body whose code stands on their line, of a function, a closure, a property hook and an anonymous class, and of abbreviated property hooks, `{ get; set; }`; none inside a pair of braces with nothing between them whose empty form `braces.emptyBody` does not decide.
 
 - By default `keep`
-- Takes: `'public $a { get; set; }'` (a single space inside the braces); `keep`
-- The standards: perCs `'public $a { get; set; }'`, psr12 `'public $a { get; set; }'`, nette `'public $a { get; set; }'`, symfony `'public $a { get; set; }'`
+- Takes: `'function () { return 1; }'` (a single space inside the braces); `keep`
+- The standards: perCs `'function () { return 1; }'`, psr12 `'function () { return 1; }'`, nette `'function () { return 1; }'`, symfony `'function () { return 1; }'`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 
 ### spacing.import
