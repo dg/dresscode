@@ -26,12 +26,12 @@ use function count, strlen;
  *
  * A group use of a kind no group passes for is expanded into imports of their own, which a kind written combined then
  * joins. Where grouped is written, the names of a namespace join the group of it where one stands, a second group of
- * it joins the first, and a group the namespace has fewer names for is written as imports of their own, a group of
- * a single name among them. A name of the global namespace has no namespace to stand under, and a statement whose
- * names belong to several namespaces is none of one. A statement with a comment keeps its imports where they would
- * join another one, and a group use with a comment inside is only reported where it would be expanded, the comment
- * having no import of its own to go to. How wide a group may grow is the matter of `MultilineImportRule` and the
- * order of the imports of `ImportOrderRule`.
+ * it joins the first, a combined statement of its names becomes the group, and the names a namespace has too few of
+ * for a group are written in the shape the list goes on with, as imports of their own where it names none. A name of
+ * the global namespace has no namespace to stand under, and a statement whose names belong to several namespaces is
+ * none of one. A statement with a comment keeps its imports where they would join another one, and a group use with
+ * a comment inside is only reported where it would be expanded, the comment having no import of its own to go to. How
+ * wide a group may grow is the matter of `MultilineImportRule` and the order of the imports of `ImportOrderRule`.
  */
 #[RuleInfo(Stage::Structure, decisions: ImportStyle::Decisions)]
 final class ImportNotationRule extends NodeRule
@@ -56,7 +56,7 @@ final class ImportNotationRule extends NodeRule
 			new Decision(
 				self::GroupMinNames,
 				new Count(2, range: false),
-				'How many names of one namespace make a group use where `grouped` is written, a group of fewer written as imports of their own',
+				'How many names of one namespace make a group use where `grouped` is written, fewer written in the next shape of the list, as imports of their own where it names none',
 				kind: DecisionKind::Parameter,
 				default: 2,
 			),
@@ -104,7 +104,12 @@ final class ImportNotationRule extends NodeRule
 			$shapes = $this->shapes[$kind];
 			if ($shapes === null) {
 				continue;
-			} elseif (count($stmt->items) > 1 && !in_array('combined', $shapes, true)) {
+			} elseif (
+				count($stmt->items) > 1
+				&& !in_array('combined', $shapes, true)
+				// the names of one namespace written grouped first are the business of the groups below
+				&& ($shapes[0] !== 'grouped' || self::findNamespace($stmt) === null)
+			) {
 				$this->split($stmt, $kind, $stmts, $context);
 			} elseif ($shapes[0] === 'combined' && !in_array('separated', $shapes, true)) {
 				$combined[$kind][] = $stmt;
@@ -230,12 +235,17 @@ final class ImportNotationRule extends NodeRule
 			$names = ($group === null ? 0 : count($group->items))
 				+ array_sum(array_map(fn(UseNode $stmt) => count($stmt->items), $others));
 			if ($names < $this->groupFrom) {
+				// too few names for a group are written in the next shape of the list
+				$kind = ($group ?? $others[0])->symbolKind->name;
+				$next = array_values(array_diff($this->shapes[$kind] ?? [], ['grouped']))[0] ?? 'separated';
 				foreach ([$group, ...$others] as $stmt) {
 					if ($stmt?->isGroup()) {
-						$this->expandSmallGroup($namespace, $stmt, $list, $context);
+						$this->expandSmallGroup($namespace, $stmt, $next, $list, $context);
+					} elseif ($stmt !== null && count($stmt->items) > 1 && $next === 'separated') {
+						$this->split($stmt, $kind, $list, $context);
 					}
 				}
-			} elseif ($group === null ? count($others) > 1 : $others !== []) {
+			} elseif ($group === null ? count($others) > 1 || count($others[0]->items) > 1 : $others !== []) {
 				$this->joinGroup($namespace, $group, $others, $context);
 			}
 		}
@@ -289,18 +299,28 @@ final class ImportNotationRule extends NodeRule
 	private function joinGroup(string $namespace, ?UseNode $group, array $others, RuleContext $context): void
 	{
 		$host = $group ?? $others[0];
+		// a statement of several names becoming the group changes their shape, which it is asked about too
+		$reshaped = $group === null && count($host->items) > 1;
+		$hostAgrees = !$reshaped;
 		$joined = [];
-		foreach ($group === null ? array_slice($others, 1) : $others as $stmt) {
-			if ($context->report(
-				$stmt,
-				"Expected all imports from `$namespace` in one group use.",
-				decision: self::getDecision($stmt->symbolKind->name),
-			)) {
-				$joined[] = $stmt;
+		foreach ($others as $stmt) {
+			if (
+				($stmt !== $host || $reshaped)
+				&& $context->report(
+					$stmt,
+					"Expected all imports from `$namespace` in one group use.",
+					decision: self::getDecision($stmt->symbolKind->name),
+				)
+			) {
+				if ($stmt === $host) {
+					$hostAgrees = true;
+				} else {
+					$joined[] = $stmt;
+				}
 			}
 		}
 
-		if ($joined === []) {
+		if (!$hostAgrees || ($joined === [] && !$reshaped)) {
 			return;
 		}
 
@@ -320,18 +340,32 @@ final class ImportNotationRule extends NodeRule
 
 
 	/**
-	 * A group the namespace has too few names for is written as imports of their own.
+	 * A group the namespace has too few names for is written as imports of their own, or as one `use` of all of them
+	 * where the list goes on with combined.
 	 * @param PlainNodeList<StatementNode> $list
 	 */
-	private function expandSmallGroup(string $namespace, UseNode $group, PlainNodeList $list, RuleContext $context): void
+	private function expandSmallGroup(string $namespace, UseNode $group, string $next, PlainNodeList $list, RuleContext $context): void
 	{
-		if ($context->report(
+		$combined = $next === 'combined';
+		if (!$context->report(
 			$group,
-			"Expected separate imports instead of the group use, because it has too few imports from `$namespace`.",
+			($combined ? 'Expected one `use` statement' : 'Expected separate imports')
+			. " instead of the group use, because it has too few imports from `$namespace`.",
 			decision: self::getDecision($group->symbolKind->name),
 		)) {
+			return;
+		} elseif (!$combined) {
 			NodeHelpers::expandGroup($group, $list, $context->style->lineEnding);
+			return;
 		}
+
+		$names = array_map(
+			fn(UseItemNode $item) => $item->fullName . ($item->alias === null ? '' : ' as ' . $item->alias->text),
+			$group->items->getItems(),
+		);
+		$group->replaceWith(
+			(new Builder)->fragment(UseNode::class, 'use ' . CodeWriter::spellImportKind($group->symbolKind) . implode(', ', $names) . ';'),
+		);
 	}
 
 

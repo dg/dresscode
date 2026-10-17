@@ -1,0 +1,11 @@
+<?php
+// {"grouping.class": "grouped", "groupMinNames": 3}
+namespace Demo;
+
+// the names of one namespace too few for a group, which no list lets stand combined
+use Lib\A;
+use Lib\B;
+// enough of them to be grouped rather than split
+use Other\{X, Y, Z};
+
+new A;

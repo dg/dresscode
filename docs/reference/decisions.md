@@ -695,7 +695,7 @@ How the imports of constants are put into `use` statements, a name of the global
 
 ### imports.groupMinNames
 
-How many names of one namespace make a group use where `grouped` is written, a group of fewer written as imports of their own.
+How many names of one namespace make a group use where `grouped` is written, fewer written in the next shape of the list, as imports of their own where it names none.
 
 - By default `2`
 - Takes: a count from 2

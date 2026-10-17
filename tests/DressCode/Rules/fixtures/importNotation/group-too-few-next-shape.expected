@@ -1,0 +1,8 @@
+<?php
+// {"grouping.class": ["grouped", "combined"], "groupMinNames": 3}
+namespace Demo;
+
+// a group of too few names is written in the shape the list goes on with
+use Lib\A, Lib\B;
+
+new A;
