@@ -350,11 +350,11 @@ final class CorePlugin implements Plugin
 					'A function is optimized in a namespace where one of its calls there is, an unpacked or named argument aside, `in_array()` only with a constant array, and every reference to it in that namespace is then written so; one none of whose calls is optimized is decided by `function.global`.',
 				),
 
-				// the lines below a doc comment or an attribute, of a member as of a declaration among statements
+				// the lines below a doc comment, of a member as of a declaration among statements
 				new Decision(
 					'blankLines.afterPhpdoc',
 					Domain::blankLines(),
-					'Between a doc comment or an attribute and the declaration it belongs to',
+					'Between a doc comment and the declaration it belongs to, or the first attribute of the declaration',
 				),
 
 				// the form of an increment whose value nobody reads, which the rule writing `$i++` for `$i += 1` writes too

@@ -12,8 +12,8 @@ use function is_bool;
 
 
 /**
- * `yes` or `no`, only where the decision is a boolean by its nature (`imports.order.caseSensitive`), never as
- * turning something on.
+ * `yes` or `no`, only where the decision is a boolean by its nature (`imports.order.caseSensitive`,
+ * `upgrading.libraries.packageData`), never as turning a rule on.
  */
 final readonly class Flag extends Domain
 {

@@ -32,11 +32,11 @@ upgrading:
 		sleepAndWakeup: forbidden              # `__serialize()` and `__unserialize()` instead
 	syntax:
 		spreadForArrayMerge: required          # `[...$a, ...$b]`, not `array_merge($a, $b)`
-		dynamicClassConstant: required         # `X::{$name}`, not `constant("X::$name")`
+		dynamicClassConstant: required         # `X::{$name}`, not `constant(X::class . '::' . $name)`
 		match: required                        # for a `switch` returning or assigning
 		throwExpression: required              # `$a ?? throw new E`
 		cloneWith: required                    # `clone($o, [...])`
-		nullsafe: required                     # `$a?->b`, not `$a ? $a->b : null`
+		nullsafe: required                     # `$a?->b`, not `$a !== null ? $a->b : null`
 		pipe: required                         # `$x |> a(...) |> b(...)`, not `b(a($x))`
 		firstClassCallables: required          # `foo(...)`, not `Closure::fromCallable('foo')`
 		octalPrefix: required                  # `0o17`, not `017`

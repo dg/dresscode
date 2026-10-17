@@ -12,14 +12,21 @@ use DressCode\Testing\RuleTester;
 require __DIR__ . '/../../vendor/autoload.php';
 
 
-/** Text safe inside a table cell: a pipe would split it, a tag outside a code span would be swallowed. */
-function formatTableCell(string $text): string
+/** Text safe in Markdown: a tag outside a code span would be swallowed. */
+function formatText(string $text): string
 {
 	return (string) preg_replace_callback(
 		'~(`+).*?\1|[^`]+|`+~s',
-		fn(array $m) => str_replace(['|', '<'], ['\|', ($m[1] ?? '') === '' ? '&lt;' : '<'], $m[0]),
+		fn(array $m) => ($m[1] ?? '') === '' ? str_replace('<', '&lt;', $m[0]) : $m[0],
 		$text,
 	);
+}
+
+
+/** Text safe inside a table cell, where a pipe would also split it. */
+function formatTableCell(string $text): string
+{
+	return str_replace('|', '\|', formatText($text));
 }
 
 
@@ -119,9 +126,9 @@ foreach ($bySection as $section => $decisions) {
 	$out .= "## $section\n\n";
 	foreach ($decisions as $path => $decision) {
 		$rules = $catalogue->getRulesOf($path);
-		$out .= "### $path\n\n" . formatTableCell($decision->description) . ".\n\n";
+		$out .= "### $path\n\n" . formatText($decision->description) . ".\n\n";
 		foreach ($decision->notes as $note) {
-			$out .= formatTableCell($note) . "\n\n";
+			$out .= formatText($note) . "\n\n";
 		}
 
 		$facts = [$decision->kind === DecisionKind::Fact
@@ -172,7 +179,7 @@ foreach ($bySection as $section => $decisions) {
 			$facts[] = 'May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`';
 		}
 
-		$out .= implode("\n", array_map(fn(string $fact) => '- ' . formatTableCell($fact), $facts)) . "\n\n";
+		$out .= implode("\n", array_map(fn(string $fact) => '- ' . formatText($fact), $facts)) . "\n\n";
 	}
 }
 

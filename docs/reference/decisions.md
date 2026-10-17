@@ -124,7 +124,7 @@ The widest line, by which what spreads over lines is split.
 What a line too wide leaves as it is: a construct named is not spread over lines for its width, and a line it stands on, one a regular expression matches, or with `strings` one wide only for its string literals, is not reported.
 
 - By default `[imports]`
-- Takes: a list of `imports` (a `use` import other than a group use on one line, which cannot be split); `strings` (a line that would fit were each of its string literals an empty pair of quotes, a string being never split); `argument` (the arguments of a call, of `new` and of an attribute, the variables of `unset()` and `isset()`); `parameter` (the parameters of a function or a method); `closureUse` (the variables of the `use` of a closure); `attribute` (the attributes of one group); `condition` (a condition of `if`, `elseif`, `while` and `do-while`); `chain` (a chain of method calls); `ternary` (a ternary); `for` (the header of a `for`); `logical` (the operands of a boolean operator outside a condition); `concatenation` (the operands of `.`); `arithmetic` (the operands of `+`, `-`, `*`, `/`, `%` and `**`); `bitwise` (the operands of `\|`, `&`, `^`, `<<` and `>>`); `coalesce` (the operands of `??`); `pipe` (the operands of `\|>`); `array` (the items of an array, which `multiline.maxWidth.array` spreads all the same); `list` (the items of `list()`); `implements` (the interfaces a class implements or an interface extends); `matchCondition` (the conditions of a `match` arm); regular expressions
+- Takes: a list of `imports` (a `use` import other than a group use on one line, which cannot be split); `strings` (a line that would fit were each of its string literals an empty pair of quotes, a string being never split); `argument` (the arguments of a call, of `new` and of an attribute, the variables of `unset()` and `isset()`); `parameter` (the parameters of a function or a method); `closureUse` (the variables of the `use` of a closure); `attribute` (the attributes of one group); `condition` (a condition of `if`, `elseif`, `while` and `do-while`); `chain` (a chain of method calls); `ternary` (a ternary); `for` (the header of a `for`); `logical` (the operands of a boolean operator outside a condition); `concatenation` (the operands of `.`); `arithmetic` (the operands of `+`, `-`, `*`, `/`, `%` and `**`); `bitwise` (the operands of `|`, `&`, `^`, `<<` and `>>`); `coalesce` (the operands of `??`); `pipe` (the operands of `|>`); `array` (the items of an array, which `multiline.maxWidth.array` spreads all the same); `list` (the items of `list()`); `implements` (the interfaces a class implements or an interface extends); `matchCondition` (the conditions of a `match` arm); regular expressions
 - The standards: perCs `[imports]`, psr12 `[imports]`, nette `[imports, strings]`, symfony `[imports]`
 - Rule `DressCode\Rules\Files\LineLengthRule`, stage Finishing
 - Read by rule `DressCode\Rules\Arrays\MultilineArrayRule`, which this decision does not turn on
@@ -900,8 +900,8 @@ The space between a cast and its operand, which stays on the line of the cast.
 The space around the bar between the types of a `catch`.
 
 - By default `keep`
-- Takes: `'catch (A \| B $e)'` (a single space around the bar); `'catch (A\|B $e)'` (no space around the bar); `keep`
-- The standards: perCs `'catch (A\|B $e)'`, psr12 `'catch (A \| B $e)'`, nette `'catch (A\|B $e)'`, symfony `'catch (A\|B $e)'`
+- Takes: `'catch (A | B $e)'` (a single space around the bar); `'catch (A|B $e)'` (no space around the bar); `keep`
+- The standards: perCs `'catch (A|B $e)'`, psr12 `'catch (A | B $e)'`, nette `'catch (A|B $e)'`, symfony `'catch (A|B $e)'`
 - Rule `DressCode\Rules\Types\TypeDeclarationSpacingRule`, stage Formatting
 
 ### spacing.comma
@@ -1445,7 +1445,7 @@ The attributes of one group spread over lines by their author or for their width
 
 ### multiline.items.bitwise
 
-The operands of `\|`, `&`, `^`, `<<` and `>>` spread over lines by their author or for the width of their line.
+The operands of `|`, `&`, `^`, `<<` and `>>` spread over lines by their author or for the width of their line.
 
 Not about the operators of one place joined by another, which begin a family of their own
 
@@ -1546,7 +1546,7 @@ Written as `fill`, the items without keys fill the lines evenly from `multiline.
 
 ### multiline.items.logical
 
-The operands of `&&`, `\|\|`, `and`, `or` and `xor` outside a condition spread over lines by their author or for the width of their line.
+The operands of `&&`, `||`, `and`, `or` and `xor` outside a condition spread over lines by their author or for the width of their line.
 
 Not about the operators of one place joined by another, which begin a family of their own
 
@@ -1589,7 +1589,7 @@ The parameters of a function or a method spread over lines by their author or fo
 
 ### multiline.items.pipe
 
-The operands of `\|>` spread over lines by their author or for the width of their line.
+The operands of `|>` spread over lines by their author or for the width of their line.
 
 Not about the operators of one place joined by another, which begin a family of their own
 
@@ -1628,7 +1628,7 @@ Where `+`, `-`, `*`, `/`, `%` and `**` stand at a line break.
 
 ### multiline.operatorPosition.bitwise
 
-Where `\|`, `&`, `^`, `<<` and `>>` stand at a line break.
+Where `|`, `&`, `^`, `<<` and `>>` stand at a line break.
 
 - By default `keep`
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
@@ -1678,7 +1678,7 @@ Where a boolean operator chaining a condition of `if`, `elseif`, `while` and `do
 
 ### multiline.operatorPosition.logical
 
-Where `&&`, `\|\|`, `and`, `or` and `xor` outside a condition stand at a line break.
+Where `&&`, `||`, `and`, `or` and `xor` outside a condition stand at a line break.
 
 - By default `keep`
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
@@ -1688,7 +1688,7 @@ Where `&&`, `\|\|`, `and`, `or` and `xor` outside a condition stand at a line br
 
 ### multiline.operatorPosition.pipe
 
-Where `\|>` stands at a line break.
+Where `|>` stands at a line break.
 
 - By default `keep`
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
@@ -2035,7 +2035,7 @@ After the line of `<?php`, which then carries no code but a declaration of `stri
 
 ### blankLines.afterPhpdoc
 
-Between a doc comment or an attribute and the declaration it belongs to.
+Between a doc comment and the declaration it belongs to, or the first attribute of the declaration.
 
 - By default `keep`
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
@@ -2681,7 +2681,7 @@ A function or a method declares its return type, taken from `@return`, `void` wh
 How a native type of one type and `null` is written.
 
 - By default `keep`
-- Takes: `'?int'` (a single type with `null` written with `?`); `'int\|null'` (a union with `null`, which `types.nullPosition` places); `keep`
+- Takes: `'?int'` (a single type with `null` written with `?`); `'int|null'` (a union with `null`, which `types.nullPosition` places); `keep`
 - The standards: perCs `'?int'`, psr12 `keep`, nette `'?int'`, symfony `'?int'`
 - Rule `DressCode\Rules\Types\TypeNotationRule`, stage Structure
 - Covers: `nullable_type_declaration`
@@ -2691,7 +2691,7 @@ How a native type of one type and `null` is written.
 Where `null` stands in a native union type.
 
 - By default `keep`
-- Takes: `last` (`int\|string\|null`); `first` (`null\|int\|string`); `keep`
+- Takes: `last` (`int|string|null`); `first` (`null|int|string`); `keep`
 - The standards: perCs `last`, psr12 `keep`, nette `last`, symfony `last`
 - Rule `DressCode\Rules\Types\TypeNotationRule`, stage Structure
 - Covers: `ordered_types`
@@ -2890,7 +2890,7 @@ A `dirname()` of a `dirname()`, which is one call with the `levels` argument.
 
 ### hygiene.repeatedCatchBody
 
-Two adjacent catches of one body, written as one `catch (A\|B $e)`.
+Two adjacent catches of one body, written as one `catch (A|B $e)`.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
@@ -3194,7 +3194,7 @@ An operand where logical or bitwise operators are easy to misread is parenthesiz
 
 ### expressions.wordLogicalOperator
 
-`and`, `or` bind weaker than `=` and are written `&&`, `\|\|`.
+`and`, `or` bind weaker than `=` and are written `&&`, `||`.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
@@ -3517,7 +3517,7 @@ The patterns of the lines of a description removed from doc comments, such as `~
 
 - By default `keep`
 - Takes: a list of regular expressions; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `['~^(?:(?!private\|protected\|static)\S+ )?(?:con\|de)structor\.\z~i', '~^\S+ [gs]etter\.\z~i']`, symfony `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `['~^(?:(?!private|protected|static)\S+ )?(?:con|de)structor\.\z~i', '~^\S+ [gs]etter\.\z~i']`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\ForbiddenPhpdocLinesRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Commenting.ForbiddenComments`
 - Modifies comments
@@ -3599,7 +3599,7 @@ How a built-in type in a doc comment is written, `int` and never `integer` or `I
 
 ### phpdoc.types.duplicate
 
-A type a union of a doc comment names twice, `int\|integer`.
+A type a union of a doc comment names twice, `int|integer`.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
@@ -3613,7 +3613,7 @@ A type a union of a doc comment names twice, `int\|integer`.
 How a type of a doc comment of one type and `null` is written.
 
 - By default `keep`
-- Takes: `'?T'` (a single type with `null` written with `?`); `'T\|null'` (a union with `null`, which `phpdoc.types.nullPosition` places); `keep`
+- Takes: `'?T'` (a single type with `null` written with `?`); `'T|null'` (a union with `null`, which `phpdoc.types.nullPosition` places); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
 - Modifies comments
@@ -3623,7 +3623,7 @@ How a type of a doc comment of one type and `null` is written.
 Where `null` stands in a union type of a doc comment.
 
 - By default `keep`
-- Takes: `last` (`int\|string\|null`); `first` (`null\|int\|string`); `keep`
+- Takes: `last` (`int|string|null`); `first` (`null|int|string`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `last`, symfony `last`
 - Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
 - Covers: `phpdoc_types_order`, `SlevomatCodingStandard.TypeHints.NullTypeHintOnLastPosition`
@@ -4362,7 +4362,7 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 
 ### upgrading.syntax.pipe
 
-Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x \|> a(...) \|> b(...)` for `b(a($x))`.
+Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x |> a(...) |> b(...)` for `b(a($x))`.
 
 - By default `keep`
 - Takes: `required` (always there); `keep`
