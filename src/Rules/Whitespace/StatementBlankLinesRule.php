@@ -7,11 +7,11 @@
 
 namespace DressCode\Rules\Whitespace;
 
-use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
+use DressCode\{Claim, ConfigurationException, Decision, Domain, Gap, GapRule, Line, RuleInfo, Stage, Values};
 use DressCode\Domains\Map;
 use PhpSyntax\{Node, Token, Trivia};
 use PhpSyntax\Nodes\{ClassLikeNode, Expression, FileNode, FunctionLikeNode, PlainNodeList, Statement, StatementNode};
-use function count, is_int;
+use function count, is_int, sprintf;
 
 
 /**
@@ -89,6 +89,23 @@ final class StatementBlankLinesRule extends GapRule
 			);
 		$this->beforeStatement = $readKinds('beforeStatement');
 		$this->afterStatement = $readKinds('afterStatement');
+
+		// a statement of any kind may follow one of any other kind, so two counts that exclude each other always meet
+		foreach ($this->afterStatement as $above => $after) {
+			foreach ($this->beforeStatement as $below => $before) {
+				[$min, $max] = Claim::toRange($after);
+				[$otherMin, $otherMax] = Claim::toRange($before);
+				if (($max !== null && $max < $otherMin) || ($otherMax !== null && $otherMax < $min)) {
+					throw new ConfigurationException(sprintf(
+						'Keys `blankLines.afterStatement` and `blankLines.beforeStatement` ask for %s and %s blank lines between `%s` and `%s`, which exclude each other; make the two counts meet.',
+						$values->get('blankLines.afterStatement')->getEntries()[$above]->toWrittenText(),
+						$values->get('blankLines.beforeStatement')->getEntries()[$below]->toWrittenText(),
+						$above,
+						$below,
+					));
+				}
+			}
+		}
 	}
 
 

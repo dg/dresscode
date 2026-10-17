@@ -111,6 +111,16 @@ test('the areas of blankLines never pull against one another', function () {
 
 	// and so is a function after them, where the header and the declarations meet
 	interplay(blankLinesRules([]), "<?php\n\nuse A;\n\n\nfunction f()\n{\n}\n", "<?php\n\nuse A;\n\nfunction f()\n{\n}\n");
+
+	// two kinds whose counts exclude each other meet in some code, which no count could satisfy
+	Assert::exception(
+		fn() => RuleBuilder::createRule(Rules\Whitespace\StatementBlankLinesRule::class, [
+			'blankLines.afterStatement' => ['if' => 0],
+			'blankLines.beforeStatement' => ['return' => '1+'],
+		]),
+		DressCode\ConfigurationException::class,
+		'Keys `blankLines.afterStatement` and `blankLines.beforeStatement` ask for 0 and 1+ blank lines between `if` and `return`, which exclude each other; make the two counts meet.',
+	);
 });
 
 
