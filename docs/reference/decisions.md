@@ -1781,7 +1781,7 @@ The trailing comma of a multi-line `list()`; any value but `keep` also removes t
 
 - By default `keep`
 - Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
-- The standards: perCs `optional`, psr12 `keep`, nette `keep`, symfony `optional`
+- The standards: perCs `optional`, psr12 `keep`, nette `required`, symfony `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 - Covers: `no_trailing_comma_in_singleline`
 

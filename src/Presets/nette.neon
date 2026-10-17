@@ -101,9 +101,7 @@ multiline:
 		yield: sameLine
 		echo: sameLine
 	semicolon: sameLine
-	trailingComma:
-		import: required
-		list: keep
+	trailingComma: required                # a group use and `list()` too
 
 braces:
 	position:
