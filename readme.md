@@ -71,7 +71,7 @@ Checking   214 files in /var/www/shop
 
 src/Cart.php
   error   9:52  Expected a line break before the opening brace.         braces.position.class
-  error  10:18  The array must be written `[…]` instead of `array(…)`.  literals.longArraySyntax
+  error  10:18  The array must be written `[…]` instead of `array(…)`.  literals.arraySyntax.array
   error  11:22  Expected at least one space before the `==` operator.   spacing.binaryOperator
   error  11:22  Expected at least one space after the `==` operator.    spacing.binaryOperator
 
@@ -209,7 +209,7 @@ all.
 Trying a decision, adopting it or cleaning up old code takes no edit of the configuration:
 
 ```shell
-dresscode fix --set cleanup.is_null=forbidden # your configuration plus this decision, in your style
+dresscode fix --set hygiene.is_null=forbidden # your configuration plus this decision, in your style
 dresscode fix --only dresscode/cleanup        # one kind of change per commit
 dresscode check src --use psr12               # a foreign project, nothing to set up
 ```
@@ -261,12 +261,12 @@ what exactly may break. Two small files checked against PER Coding Style with a 
 
 ```
 src/Settings.php
-  risky  7:37  Parameter `$name` of `offsetGet()` must be named `$key`, as in `ArrayObject::offsetGet()`.  classes.overriding.parameterName
+  risky  7:37  Parameter `$name` of `offsetGet()` must be named `$key`, as in `ArrayObject::offsetGet()`.  classes.overridingMethod.parameterName
                Risky because a call naming the argument `name:` stops working.
 
 src/Users.php
-  error  12:16  The `in_array()` call must pass `$strict = true`.                    correctness.strictComparisonArgument
-  risky  17:16  The `in_array()` call must pass `$strict = true`.                    correctness.strictComparisonArgument
+  error  12:16  The `in_array()` call must pass `$strict = true`.                    mistakes.strictArgument
+  risky  17:16  The `in_array()` call must pass `$strict = true`.                    mistakes.strictArgument
                 Risky because a strict search no longer finds a value of another type.
   error  22:18  Method `Acme\Mail\Mailer::sendMessage()` is deprecated: use send().  upgrading.declarations.deprecatedMember
 ```
@@ -364,8 +364,8 @@ your code; raise it to `^8.4` and the next `fix` writes it. You never have to ke
 ```neon
 upgrading:
 	functions:
-		arraySearchFunctions: adopted     # dresscode/modernizations, no effect: php
-		clamp: adopted                    # dresscode/modernizations, no effect: php
+		arraySearchFunctions: required    # dresscode/modernizations, no effect: php
+		clamp: required                   # dresscode/modernizations, no effect: php
 ```
 
 What gets rewritten, by the version of PHP that brought it:
@@ -381,7 +381,7 @@ What gets rewritten, by the version of PHP that brought it:
 | 8.6 | `max()` around `min()` to `clamp()`, `fn($s) => str_pad($s, 10, '-')` to the partial application `str_pad(?, 10, '-')` |
 
 All of this is turned on by the set `modernizations`, each item a key of its own that a project may also
-write alone (`upgrading.syntax.match: adopted`). The set `deprecations` goes with it and fixes what newer PHP
+write alone (`upgrading.syntax.match: required`). The set `deprecations` goes with it and fixes what newer PHP
 deprecated: a parameter with the default `null` gets its `?`, the CSV functions get their `escape`
 argument, `${name}` in a string becomes `{$name}`, backticks become `shell_exec()` and `(integer)` becomes
 `(int)`, and what cannot be fixed is reported, such as a `return` inside `finally` or a class named `let`,
@@ -457,7 +457,7 @@ typeAnalysis: phpstan
 
 That unlocks the rules a style tool cannot otherwise have: the deprecated API of a library rewritten
 according to what the variable really is, `UserRepository::class` in place of a string naming an existing
-class, and, once you set `upgrading.classes.Override: adopted`, `#[\Override]` on a method that overrides a
+class, and, once you set `upgrading.classes.Override: required`, `#[\Override]` on a method that overrides a
 method of its parent. PHPStan only answers; it rewrites and reports nothing. Without the key, a decision that
 needs types stays out where a standard makes it, and where your configuration does, the run says what is
 missing.
@@ -541,7 +541,7 @@ final class ShortTernaryForRepeatedConditionRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('expressions.ternary.returningItsCondition', Domain::state('forbidden'), '`$a ? $a : $b` is `$a ?: $b`')];
+		return [new Decision('expressions.ternary.short', Domain::state('required'), '`$a ?: $b` for `$a ? $a : $b`')];
 	}
 
 
@@ -571,8 +571,8 @@ final class ShortTernaryForRepeatedConditionRule extends NodeRule
 }
 ```
 
-The rule declares the one decision it makes, `expressions.ternary.returningItsCondition`, which a configuration
-sets to `forbidden` and every finding of the rule is reported under. The conditions read like a sentence: it is a ternary, it has a middle part, its condition can be evaluated
+The rule declares the one decision it makes, `expressions.ternary.short`, which a configuration
+sets to `required` and every finding of the rule is reported under. The conditions read like a sentence: it is a ternary, it has a middle part, its condition can be evaluated
 twice without side effects, the middle part is the same code as the condition, both are on one line, there
 is no comment between them, and nobody suppressed the rule here. A question like "is it safe to read this
 expression twice" is answered by the tree, so the rule does not have to work it out.
