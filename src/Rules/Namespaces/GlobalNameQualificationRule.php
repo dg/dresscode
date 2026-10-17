@@ -30,8 +30,8 @@ use PhpSyntax\Nodes\Statement\{DoWhileNode, IfNode, NamespaceNode, UseNode, Whil
  * bare name the decisions take; fully qualified is always open. An added import changes every bare name of the symbol
  * at once, so it is added only where each of them agrees: none is silenced and every report is admitted. Where the
  * first form is imported and no form is open, an import the name is free for is reported once to be written by hand.
- * The import of a function or a constant goes once no name needs it, the import of a class being left to
- * `NoUnusedImportsRule`, which reads doc comments.
+ * The import of a function or a constant goes once no name needs it, that of a class once neither the code nor
+ * a doc comment uses it.
  *
  * A change between a bare and a qualified name is risky unless the resolution of names is certain, because the
  * namespace may declare a function or a constant of that name elsewhere.
@@ -227,6 +227,15 @@ final class GlobalNameQualificationRule extends NodeRule
 			} else {
 				$importStays = $importStays || $form === QualificationPolicy::Imported;
 			}
+		}
+
+		if ($kind === SymbolKind::ClassLike && $alias !== null && !$importStays) {
+			NameReferences::removeUnusedImports(
+				$scope,
+				[$kind->name => [NameReferences::toKey($kind, $alias) => true]],
+				$decision,
+				$context,
+			);
 		}
 
 		foreach ($importGoes && !$importStays ? $imports : [] as [, $useItem]) {

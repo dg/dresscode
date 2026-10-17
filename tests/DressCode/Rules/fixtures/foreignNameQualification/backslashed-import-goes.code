@@ -1,0 +1,14 @@
+<?php
+// {"class.otherNamespace":"backslashed"}
+
+namespace App;
+
+use Acme\Mail\Transport;
+use Acme\Shop\Order;
+use Acme\Shop\Item;
+
+// the import a doc comment names stays, as does one a name the decision leaves uses
+/** @var Order $order */
+$order = new Order;
+$transport = new Transport;
+$item = Item\Variant::create();

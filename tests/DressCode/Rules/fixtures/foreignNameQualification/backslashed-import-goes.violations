@@ -1,0 +1,3 @@
+6: The import of `Transport` is unused.
+12: The imported name `Order` must be written fully qualified as `\Acme\Shop\Order`.
+13: The imported name `Transport` must be written fully qualified as `\Acme\Mail\Transport`.

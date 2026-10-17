@@ -8,6 +8,8 @@
 namespace DressCode\Rules\Namespaces;
 
 use DressCode\Analyses\PhpDoc;
+use DressCode\RuleContext;
+use DressCode\Rules\NodeHelpers;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
 use PHPStan\PhpDocParser\Ast\Node as PhpDocAstNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\Doctrine\DoctrineAnnotation;
@@ -17,7 +19,7 @@ use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{NameForm, SymbolKind, Trivia};
 use PhpSyntax\Nodes\{FileNode, NameNode, UseItemNode};
 use PhpSyntax\Nodes\Statement\{NamespaceNode, UseNode};
-use function in_array, is_array, is_string, strlen;
+use function count, in_array, is_array, is_string, strlen;
 
 
 /**
@@ -228,6 +230,76 @@ final class NameReferences
 			SymbolKind::Constant => "Global constant `$global`",
 			SymbolKind::ClassLike => "Global class `$global`",
 		};
+	}
+
+
+	/**
+	 * The aliases the code of the scope uses: the first part of every name it writes unqualified or qualified.
+	 * @return array<string, array<string, true>>  the name of the kind => the key of the alias => used
+	 */
+	public static function collectAliasUsages(FileNode|NamespaceNode $scope): array
+	{
+		$used = [SymbolKind::ClassLike->name => [], SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
+		foreach ($scope->find(NameNode::class) as $name) {
+			if (
+				$name->isDeclaration()
+				|| $name->form === NameForm::FullyQualified
+				|| $name->form === NameForm::Relative
+				|| ($scope instanceof FileNode && $name->findAncestor(NamespaceNode::class))
+			) {
+				continue;
+			}
+
+			$parts = $name->parts;
+			$kind = count($parts) > 1 ? SymbolKind::ClassLike : $name->symbolKind;
+			$used[$kind->name][self::toKey($kind, $parts[0])] = true;
+		}
+
+		return $used;
+	}
+
+
+	/**
+	 * The aliases of classes the doc comments of the scope use.
+	 * @return array<string, true>  lowercased alias => used
+	 */
+	public static function collectDocAliasUsages(FileNode|NamespaceNode $scope, PhpDoc $phpDoc): array
+	{
+		$used = [];
+		foreach (self::collectDocClassNames($scope, $phpDoc) as $name) {
+			$used[strtolower(explode('\\', $name)[0])] = true;
+		}
+
+		return $used;
+	}
+
+
+	/**
+	 * Removes the imports of the aliases a qualification has written out, where neither the code nor a doc comment
+	 * uses them any more, each reported under the decision of the qualification.
+	 * @param  array<string, array<string, true>>  $aliases  the name of the kind => the key of the alias
+	 */
+	public static function removeUnusedImports(FileNode|NamespaceNode $scope, array $aliases, string $decision, RuleContext $context): void
+	{
+		$used = self::collectAliasUsages($scope);
+		$used[SymbolKind::ClassLike->name] += self::collectDocAliasUsages($scope, $context->getAnalysis(PhpDoc::class));
+		foreach ($scope->statements->getItems() as $stmt) {
+			foreach ($stmt instanceof UseNode ? $stmt->items->getItems() : [] as $item) {
+				$alias = $item->alias === null ? $item->name->shortName : $item->alias->text;
+				$key = self::toKey($item->symbolKind, $alias);
+				if (
+					isset($aliases[$item->symbolKind->name][$key])
+					&& !isset($used[$item->symbolKind->name][$key])
+					&& $context->report(
+						$item,
+						'The import of `' . ($item->symbolKind === SymbolKind::Function ? "$alias()" : $alias) . '` is unused.',
+						decision: $decision,
+					)
+				) {
+					NodeHelpers::removeMergingGaps($item, $context->style->lineEnding);
+				}
+			}
+		}
 	}
 
 

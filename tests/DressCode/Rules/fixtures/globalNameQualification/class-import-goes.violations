@@ -1,0 +1,3 @@
+6: The import of `DateTime` is unused.
+11: Global class `DateTimeImmutable` must be written with the leading backslash.
+12: Global class `DateTime` must be written with the leading backslash.

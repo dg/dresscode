@@ -1,1 +1,2 @@
+5: The import of `Exception` is unused.
 8: Global class `Exception` must be written with the leading backslash.

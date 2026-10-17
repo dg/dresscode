@@ -23,9 +23,10 @@ use function count;
  * in it passing and the first written where none matches. The names are written occurrence by occurrence; a qualified
  * name stays, being relative to the import of its prefix or to the namespace.
  * A file that declares no namespace is the scope of its imports, as a namespace is. Both forms reach the same symbol,
- * so no fix is risky. An import is added only where its alias is free and takes over no name that resolves elsewhere;
- * one the markup of the file leaves no line for is reported to be written by hand. The namespace `PHPSTORM_META` of
- * a metadata file of PhpStorm writes its names fully qualified by convention and is left alone.
+ * so no fix is risky. An import the names written out leave unused goes, unless a doc comment names it. An import is
+ * added only where its alias is free and takes over no name that resolves elsewhere; one the markup of the file leaves
+ * no line for is reported to be written by hand. The namespace `PHPSTORM_META` of a metadata file of PhpStorm writes
+ * its names fully qualified by convention and is left alone.
  */
 #[RuleInfo(Stage::Structure, analyses: [PhpDoc::class, NameResolver::class])]
 final class ForeignNameQualificationRule extends NodeRule
@@ -124,6 +125,7 @@ final class ForeignNameQualificationRule extends NodeRule
 		$canImport = null;
 		$targets = null;
 		$imported = []; // name of the kind => key of the alias => the full name imported under it
+		$unimported = []; // decision => name of the kind => key of the alias the names written out leave
 		foreach ($scope->find(NameNode::class) as $name) {
 			if (!$name->isReference() || $name->form === NameForm::Qualified || $name->form === NameForm::Relative) {
 				continue;
@@ -151,6 +153,7 @@ final class ForeignNameQualificationRule extends NodeRule
 					"The imported name `{$name->text}` must be written fully qualified as `$written`.",
 					decision: $decision,
 				)) {
+					$unimported[$decision][$kind->name][NameReferences::toKey($kind, $name->text)] = true;
 					$name->text = $written;
 				}
 
@@ -187,6 +190,10 @@ final class ForeignNameQualificationRule extends NodeRule
 				$imported[$kind->name][$key] = $full;
 				$name->text = $alias;
 			}
+		}
+
+		foreach ($unimported as $decision => $aliases) {
+			NameReferences::removeUnusedImports($scope, $aliases, $decision, $context);
 		}
 	}
 

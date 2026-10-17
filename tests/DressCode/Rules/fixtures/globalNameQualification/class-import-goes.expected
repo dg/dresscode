@@ -1,0 +1,11 @@
+<?php
+// {"class.global":"backslashed"}
+
+namespace App;
+
+use DateTimeImmutable;
+
+// the import a doc comment names stays
+/** @var DateTimeImmutable $at */
+$at = new \DateTimeImmutable;
+$now = new \DateTime;

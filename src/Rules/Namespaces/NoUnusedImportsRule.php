@@ -11,10 +11,9 @@ use DressCode\Analyses\PhpDoc;
 use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Flag;
 use DressCode\Rules\NodeHelpers;
-use PhpSyntax\{NameForm, Node, SymbolKind, Token};
-use PhpSyntax\Nodes\{FileNode, NameNode};
+use PhpSyntax\{Node, SymbolKind, Token};
+use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\Nodes\Statement\{NamespaceNode, UseNode};
-use function count;
 
 
 /**
@@ -77,7 +76,7 @@ final class NoUnusedImportsRule extends NodeRule
 			return;
 		}
 
-		$used = self::collectUsages($node);
+		$used = NameReferences::collectAliasUsages($node);
 		// a doc comment can use only a class, so it is read when the code leaves an imported class unused
 		if (
 			$this->annotations
@@ -86,7 +85,7 @@ final class NoUnusedImportsRule extends NodeRule
 				fn(array $import) => $import[1] === SymbolKind::ClassLike && !isset($used[SymbolKind::ClassLike->name][$import[3]]),
 			)
 		) {
-			$used[SymbolKind::ClassLike->name] += self::collectAnnotationUsages($node, $context);
+			$used[SymbolKind::ClassLike->name] += NameReferences::collectDocAliasUsages($node, $context->getAnalysis(PhpDoc::class));
 		}
 
 		foreach ($imports as [$item, $kind, $alias, $key]) {
@@ -97,44 +96,5 @@ final class NoUnusedImportsRule extends NodeRule
 
 			NodeHelpers::removeMergingGaps($item, $context->style->lineEnding);
 		}
-	}
-
-
-	/**
-	 * @return array<string, array<string, true>>  the name of the kind => the key of the alias => used
-	 */
-	private static function collectUsages(FileNode|NamespaceNode $scope): array
-	{
-		$used = [SymbolKind::ClassLike->name => [], SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
-		foreach ($scope->find(NameNode::class) as $name) {
-			if (
-				$name->isDeclaration()
-				|| $name->form === NameForm::FullyQualified
-				|| $name->form === NameForm::Relative
-				|| ($scope instanceof FileNode && $name->findAncestor(NamespaceNode::class))
-			) {
-				continue;
-			}
-
-			$parts = $name->parts;
-			$kind = count($parts) > 1 ? SymbolKind::ClassLike : $name->symbolKind;
-			$used[$kind->name][NameReferences::toKey($kind, $parts[0])] = true;
-		}
-
-		return $used;
-	}
-
-
-	/**
-	 * @return array<string, true>  lowercased alias of a class a doc comment refers to => used
-	 */
-	private static function collectAnnotationUsages(FileNode|NamespaceNode $scope, RuleContext $context): array
-	{
-		$used = [];
-		foreach (NameReferences::collectDocClassNames($scope, $context->getAnalysis(PhpDoc::class)) as $name) {
-			$used[strtolower(explode('\\', $name)[0])] = true;
-		}
-
-		return $used;
 	}
 }

@@ -2,7 +2,5 @@
 // {"class.global":"backslashed"}
 namespace App;
 
-use Exception;
-
 $a = new \Lib\Foo;
 $b = new \Exception;
