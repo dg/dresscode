@@ -305,8 +305,8 @@ final class PhpCodeSniffer
 				->setBlankLines('blankLines.aroundMethods', $o['minLinesCount'] ?? 1, $o['maxLinesCount'] ?? 1)
 				->setBlankLines('blankLines.aroundInterfaceMethods', $o['minLinesCount'] ?? 1, $o['maxLinesCount'] ?? 1),
 			'SlevomatCodingStandard.Classes.ModernClassNameReference' => fn(array $o, Translation $t) => $t->setAll([
-				'hygiene.classNameNotation.currentClass' => 'classKeyword',
-				'hygiene.classNameNotation.object' => ($o['enableOnObjects'] ?? false) ? 'classKeyword' : 'keep',
+				'hygiene.classNameNotation.currentClass' => 'required',
+				'hygiene.classNameNotation.object' => ($o['enableOnObjects'] ?? false) ? 'required' : 'keep',
 			]),
 			'SlevomatCodingStandard.Classes.PropertyDeclaration' => [
 				'classes.modifiers.order' => 'canonical',

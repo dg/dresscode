@@ -2746,22 +2746,22 @@ A default a required parameter after it makes unreachable.
 
 ### hygiene.classNameNotation.currentClass
 
-The name of the current class, of the one the method runs through and of the parent.
+`self::class`, `static::class` and `parent::class` for `get_class()`, `get_called_class()`, `get_parent_class()` and `__CLASS__`.
 
 - By default `keep`
-- Takes: `'self::class'` (`self::class`, `static::class` and `parent::class`, never `get_class()`, `get_called_class()`, `get_parent_class()` or `__CLASS__`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `'self::class'`, symfony `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Classes.ModernClassNameReference`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### hygiene.classNameNotation.object
 
-The name of the class of an object.
+`$object::class` for `get_class($object)`.
 
 - By default `keep`
-- Takes: `'$object::class'` (`$object::class`, never `get_class($object)`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `'$object::class'`, symfony `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`
 - Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
 - Covers: `get_class_to_class_keyword`, `SlevomatCodingStandard.Classes.ModernClassNameReference`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`

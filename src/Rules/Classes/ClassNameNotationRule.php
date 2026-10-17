@@ -7,8 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values, Violation};
-use DressCode\Domains\Shapes;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values, Violation};
 use DressCode\Rules\GlobalCalls;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, DereferenceKind, Node, Nodes, Token};
@@ -36,14 +35,12 @@ final class ClassNameNotationRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision(self::CurrentClass, new Shapes(['classKeyword' => [
-				'self::class',
-				'`self::class`, `static::class` and `parent::class`, never `get_class()`, `get_called_class()`, `get_parent_class()` or `__CLASS__`',
-			]]), 'The name of the current class, of the one the method runs through and of the parent'),
-			new Decision(self::Object, new Shapes(['classKeyword' => [
-				'$object::class',
-				'`$object::class`, never `get_class($object)`',
-			]]), 'The name of the class of an object'),
+			new Decision(
+				self::CurrentClass,
+				Domain::state('required'),
+				'`self::class`, `static::class` and `parent::class` for `get_class()`, `get_called_class()`, `get_parent_class()` and `__CLASS__`',
+			),
+			new Decision(self::Object, Domain::state('required'), '`$object::class` for `get_class($object)`'),
 		];
 	}
 

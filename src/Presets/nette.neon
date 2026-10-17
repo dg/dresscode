@@ -166,8 +166,8 @@ hygiene:
 	dirnameOfFile: forbidden                  # `__DIR__`
 	nestedDirname: forbidden                  # `dirname($p, 2)`
 	classNameNotation:
-		currentClass: 'self::class'           # `self::class`, `static::class`
-		object: '$object::class'              # not `get_class($object)`
+		currentClass: required                # `self::class`, `static::class`
+		object: required                      # `$object::class`
 
 controlFlow:
 	switch:

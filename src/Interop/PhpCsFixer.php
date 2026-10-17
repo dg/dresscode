@@ -244,7 +244,7 @@ final class PhpCsFixer
 					'spacing.arrowFunction' => ($o['closure_fn_spacing'] ?? 'one') === 'one' ? 'spaced' : 'compact',
 				]);
 			},
-			'get_class_to_class_keyword' => ['hygiene.classNameNotation.object' => 'classKeyword'],
+			'get_class_to_class_keyword' => ['hygiene.classNameNotation.object' => 'required'],
 			'global_namespace_import' => function (array $o, Translation $t) {
 				// true imports a name written with the backslash, false writes the backslash, null leaves the name alone, and
 				// a bare function or constant stands either way

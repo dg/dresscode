@@ -1,4 +1,4 @@
 hygiene:
 	classNameNotation:
-		currentClass: 'self::class'
+		currentClass: required
 		object: keep

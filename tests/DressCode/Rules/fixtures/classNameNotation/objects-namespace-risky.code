@@ -1,5 +1,5 @@
 <?php
-// {"hygiene.classNameNotation.currentClass": "keep", "hygiene.classNameNotation.object": "$object::class"}
+// {"hygiene.classNameNotation.currentClass": "keep", "hygiene.classNameNotation.object": "required"}
 // risky
 namespace App;
 
