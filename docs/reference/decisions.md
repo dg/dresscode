@@ -3381,7 +3381,7 @@ An inline `@var` says what `assert($x instanceof Foo)` checks.
 The annotations removed from doc comments, written with the `@`, such as `@author` and `@package`.
 
 - By default `keep`
-- Takes: a list of names; `keep`
+- Takes: a list of annotations, each with its `@`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `[@access, @author, @copyright, @created, @license, @package, @since, @subpackage, @todo, @version]`, symfony `keep`
 - Rule `DressCode\Rules\PhpDoc\ForbiddenAnnotationsRule`, stage Structure
 - Covers: `SlevomatCodingStandard.Commenting.ForbiddenAnnotations`

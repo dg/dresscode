@@ -30,6 +30,8 @@ final readonly class Names extends Domain
 		public bool $empty = true,
 		/** @var array<string, list<string>>  word => the words that between them leave it nothing, which a list never names together */
 		public array $coveredBy = [],
+		/** the names are annotations of a doc comment, each written with its `@` */
+		public bool $annotations = false,
 	) {
 		if ($words === []) {
 			throw new \InvalidArgumentException('The words must be some.');
@@ -45,6 +47,7 @@ final readonly class Names extends Domain
 			'regularExpressions' => $this->regularExpressions,
 			'ordered' => $this->ordered,
 			'empty' => $this->empty && !$this->ordered,
+			'annotations' => $this->annotations,
 		];
 	}
 
@@ -52,7 +55,11 @@ final readonly class Names extends Domain
 	public function describe(): string
 	{
 		if ($this->words === null) {
-			return $this->regularExpressions ? 'a list of regular expressions' : 'a list of names';
+			return match (true) {
+				$this->regularExpressions => 'a list of regular expressions',
+				$this->annotations => 'a list of annotations, each with its `@`',
+				default => 'a list of names',
+			};
 		}
 
 		$words = [];
@@ -91,6 +98,8 @@ final readonly class Names extends Domain
 				self::refuse($raw, $path, [$this->describe()], $keep, 'which holds no name');
 			} elseif ($name === 'keep') {
 				self::refuse($raw, $path, [$this->describe()], $keep, '`keep` being no item of a list');
+			} elseif ($this->annotations && !str_starts_with($name, '@')) {
+				self::refuse($name, $path, ["`@$name`"], false, 'an annotation being written with its `@`');
 			} elseif (isset($this->words[$name])) {
 				continue;
 			} elseif ($this->words !== null && !$this->regularExpressions) {

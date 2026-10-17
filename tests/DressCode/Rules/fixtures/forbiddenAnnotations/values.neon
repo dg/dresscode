@@ -1,2 +1,2 @@
 phpdoc:
-	forbiddenAnnotations: []
+	forbiddenAnnotations: keep

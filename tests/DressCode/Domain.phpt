@@ -195,6 +195,11 @@ test('names are free, patterns are regular expressions, allowed ones are words',
 		'Key `x.y` does not take `[]`, which leaves the decision nothing to act on; write a list of names.',
 	);
 	Assert::exception(
+		fn() => new Names(annotations: true)->accept(['@author', 'package'], 'x.y'),
+		ConfigurationException::class,
+		'Key `x.y` does not take `package`, an annotation being written with its `@`; write `@package`.',
+	);
+	Assert::exception(
 		fn() => new Names(regularExpressions: true)->accept(['~^__'], 'x.y'),
 		ConfigurationException::class,
 		'Key `x.y` does not take `~^__`; write a regular expression.',

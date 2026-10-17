@@ -31,7 +31,7 @@ final class ForbiddenAnnotationsRule extends NodeRule
 		return [
 			new Decision(
 				'phpdoc.forbiddenAnnotations',
-				new Names,
+				new Names(empty: false, annotations: true),
 				'The annotations removed from doc comments, written with the `@`, such as `@author` and `@package`',
 			),
 		];

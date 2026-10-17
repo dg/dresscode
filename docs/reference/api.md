@@ -423,7 +423,8 @@ final readonly class Names extends DressCode\Domain
 	public readonly bool $ordered
 	public readonly bool $empty
 	public readonly array<string, list<string>> $coveredBy
-	public function __construct(?array $words = null, bool $regularExpressions = false, bool $ordered = false, bool $empty = true, array $coveredBy = [])
+	public readonly bool $annotations
+	public function __construct(?array $words = null, bool $regularExpressions = false, bool $ordered = false, bool $empty = true, array $coveredBy = [], bool $annotations = false)
 	public function toArray(): array
 	public function describe(): string
 	public function merge(DressCode\Value $below, DressCode\Value $above, string $path = ''): DressCode\Value
