@@ -596,6 +596,18 @@ final class PhpCsFixer
 				]);
 			},
 			'phpdoc_array_type' => fn(array $o, Translation $t) => $t->set('phpdoc.types.array', 'generic'),
+			'phpdoc_line_span' => function (array $o, Translation $t) {
+				// a place given null is left as it is, one not given is spread
+				$spanOf = fn(string $place) => array_key_exists($place, $o) ? $o[$place] : 'multi';
+				if ($spanOf('const') !== null || $spanOf('method') !== null) {
+					$t->warn('`phpdoc_line_span` of a constant or a method has no equivalent; DressCode leaves their doc comments as they are.');
+				}
+
+				$span = $spanOf('property');
+				if ($span !== null) {
+					$t->set('phpdoc.property.lineSpan', $span === 'single' ? 'collapsed' : 'expanded');
+				}
+			},
 			'phpdoc_list_type' => function (array $o, Translation $t) {
 				$t->warn('`phpdoc_list_type` turns `array<T>` into `list<T>`, a stronger type, which DressCode does not do.');
 				$t->set('phpdoc.types.builtin', 'canonical')->set('phpdoc.types.array', 'generic');

@@ -351,6 +351,7 @@ final class PhpCodeSniffer
 				'qualification.staticInFinalClass' => 'required',
 			]),
 			'SlevomatCodingStandard.Commenting.AnnotationName' => ['phpdoc.annotation.casing' => 'canonical'],
+			'SlevomatCodingStandard.Commenting.DisallowOneLinePropertyDocComment' => ['phpdoc.property.lineSpan' => 'expanded'],
 			'SlevomatCodingStandard.Commenting.ForbiddenAnnotations' => fn(array $o, Translation $t) => $t->set(
 				'phpdoc.forbiddenAnnotations',
 				($o['forbiddenAnnotations'] ?? []) ?: 'keep',

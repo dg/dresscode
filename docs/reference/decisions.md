@@ -3559,13 +3559,13 @@ A plain comment describing a property, `//` or `/* */` where `/** */` belongs, r
 
 ### phpdoc.property.lineSpan
 
-A property doc comment with a single line of content.
+A property doc comment with a single annotation and no description.
 
 - By default `keep`
-- Takes: `collapsed` (on one line, `/** @var int */`); `keep`
+- Takes: `collapsed` (on one line, `/** @var int */`); `expanded` (over three lines, the annotation on the one in the middle); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `collapsed`, symfony `keep`
-- Rule `DressCode\Rules\PhpDoc\SinglelinePropertyPhpdocRule`, stage Formatting
-- Covers: `SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment`
+- Rule `DressCode\Rules\PhpDoc\PropertyPhpdocLineSpanRule`, stage Formatting
+- Covers: `phpdoc_line_span`, `SlevomatCodingStandard.Commenting.DisallowOneLinePropertyDocComment`, `SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment`
 - Modifies comments
 
 ### phpdoc.annotation.constantVar

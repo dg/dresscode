@@ -8,7 +8,7 @@
 namespace DressCode\Rules\PhpDoc;
 
 use DressCode\Analyses\PhpDoc;
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
 use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocTagNode, PhpDocTextNode};
 use PhpSyntax\{Indentation, Node, Token, Trivia};
@@ -17,19 +17,33 @@ use function count;
 
 
 /**
- * A property doc comment with a single line of content and no description is written on one line,
- * not spread over three, unless that line would be longer than the limit.
+ * A property doc comment with a single annotation and no description is written on one line, unless that line would
+ * be longer than the limit, or spread over three.
  */
 #[RuleInfo(Stage::Formatting, modifiesComments: true, analyses: [PhpDoc::class])]
-final class SinglelinePropertyPhpdocRule extends NodeRule
+final class PropertyPhpdocLineSpanRule extends NodeRule
 {
+	private const LineSpan = 'phpdoc.property.lineSpan';
+
+	private bool $expanded = false;
+
+
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'phpdoc.property.lineSpan',
-			new Words(['collapsed' => 'on one line, `/** @var int */`']),
-			'A property doc comment with a single line of content',
+			self::LineSpan,
+			new Words([
+				'collapsed' => 'on one line, `/** @var int */`',
+				'expanded' => 'over three lines, the annotation on the one in the middle',
+			]),
+			'A property doc comment with a single annotation and no description',
 		)];
+	}
+
+
+	public function configure(Values $values): void
+	{
+		$this->expanded = $values->find(self::LineSpan)?->getWord() === 'expanded';
 	}
 
 
@@ -44,7 +58,7 @@ final class SinglelinePropertyPhpdocRule extends NodeRule
 		if (
 			!$node instanceof PropertyNode
 			|| ($docComment = $node->getDocComment()) === null
-			|| !str_contains($docComment->text, "\n")
+			|| str_contains($docComment->text, "\n") === $this->expanded
 		) {
 			return;
 		}
@@ -69,14 +83,21 @@ final class SinglelinePropertyPhpdocRule extends NodeRule
 		}
 
 		$tags = array_filter($tree->children, fn($child) => $child instanceof PhpDocTagNode);
-		$text = "/** $lines[0] */";
-		$limit = $context->style->maxLineLength;
 		$indentation = $node->getFirstToken()?->getLineIndentation() ?? '';
-		if (
-			count($tags) !== 1
-			|| ($limit !== null && Indentation::advance(0, $indentation . $text, $context->style->toPhpSyntax()) > $limit)
-			|| !$context->report($node, 'The doc comment with a single line of content must be written on one line.', trivia: $docComment)
-		) {
+		if ($this->expanded) {
+			$eol = $context->style->lineEnding;
+			$text = "/**$eol$indentation * $lines[0]$eol$indentation */";
+			$message = 'The doc comment with a single annotation must be spread over three lines.';
+		} else {
+			$text = "/** $lines[0] */";
+			$message = 'The doc comment with a single annotation must be written on one line.';
+			$limit = $context->style->maxLineLength;
+			if ($limit !== null && Indentation::advance(0, $indentation . $text, $context->style->toPhpSyntax()) > $limit) {
+				return;
+			}
+		}
+
+		if (count($tags) !== 1 || !$context->report($node, $message, trivia: $docComment)) {
 			return;
 		}
 

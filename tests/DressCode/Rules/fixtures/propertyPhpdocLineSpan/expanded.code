@@ -1,0 +1,18 @@
+<?php
+// {"property.lineSpan": "expanded"}
+class A
+{
+	/** @var int */
+	public $a;
+
+	/** @var string the name */
+	public $b;
+
+	/**
+	 * @var bool
+	 */
+	public $c;
+
+	/** the plain description */
+	public $d;
+}

@@ -1130,7 +1130,7 @@ final readonly class Violation
 - `DressCode\Rules\PhpDoc\PhpdocBlankLinesRule`
 - `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`
 - `DressCode\Rules\PhpDoc\PromotedPropertyAnnotationPositionRule`
-- `DressCode\Rules\PhpDoc\SinglelinePropertyPhpdocRule`
+- `DressCode\Rules\PhpDoc\PropertyPhpdocLineSpanRule`
 - `DressCode\Rules\PhpDoc\UselessConstantVarAnnotationRule`
 - `DressCode\Rules\PhpDoc\UselessFunctionPhpdocRule`
 - `DressCode\Rules\PhpDoc\UselessInheritdocRule`
