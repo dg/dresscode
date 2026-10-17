@@ -7,8 +7,7 @@
 
 namespace DressCode\Rules\ControlFlow;
 
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
-use DressCode\Domains\Shapes;
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\CaseNode;
 
@@ -22,9 +21,9 @@ final class SwitchCaseNotationRule extends NodeRule
 	public static function getDecisions(): array
 	{
 		return [new Decision(
-			'controlFlow.switch.caseTerminator',
-			new Shapes(['colon' => [':', 'a colon, never a semicolon']]),
-			'What ends `case` and `default`',
+			'upgrading.php.caseSemicolon',
+			Domain::state('forbidden'),
+			'`case 1;` and `default;` are `case 1:` and `default:`',
 		)];
 	}
 

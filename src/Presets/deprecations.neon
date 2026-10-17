@@ -6,12 +6,8 @@
 
 classes:
 	overridingMethod:
-		signature: asAncestor                 # a child matching a parent changed by an upgrade
-		parameterName: asAncestor
-
-controlFlow:
-	switch:
-		caseTerminator: ':'                   # `case 1:`, not `case 1;`, PHP 8.5
+		signature: required                   # a child matching a parent changed by an upgrade
+		parameterName: required
 
 expressions:
 	cast: canonical                           # `(int)`, not `(integer)`, PHP 8.5
@@ -30,6 +26,7 @@ upgrading:
 		deprecatedMember: forbidden
 	php:
 		nullArrayKey: forbidden               # `['' => 1]`, not `[null => 1]`, PHP 8.5
+		caseSemicolon: forbidden              # `case 1:`, not `case 1;`, PHP 8.5
 		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`, PHP 8.4
 		deprecatedCall: forbidden             # `mb_convert_encoding()`, not `utf8_encode()`
 		constructorReturnValue: forbidden     # PHP 8.6

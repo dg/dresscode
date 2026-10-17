@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\Words;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -50,8 +50,8 @@ final class SelfForCurrentClassRule extends NodeRule
 			),
 			new Decision(
 				self::Static,
-				new Words(['self' => 'written `self`, `self::create()`, `new self`']),
-				'`static` in a class no subclass can extend: a final class, an anonymous class, an enum',
+				Domain::state('required'),
+				'`self` for `static` in a class no subclass can extend, a final class, an anonymous class, an enum: `self::create()`, `new self`',
 				notes: ['The return type `static` stays, saying what a subclass would return.'],
 			),
 		];

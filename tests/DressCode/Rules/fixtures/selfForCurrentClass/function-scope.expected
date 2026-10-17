@@ -1,5 +1,5 @@
 <?php
-// {"staticInFinalClass": "self"}
+// {"staticInFinalClass": "required"}
 final class Foo
 {
 	public function f()

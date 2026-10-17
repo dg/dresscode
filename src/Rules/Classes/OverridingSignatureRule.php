@@ -8,8 +8,7 @@
 namespace DressCode\Rules\Classes;
 
 use DressCode\Analyses\{OverriddenSignature, Parameter, Types};
-use DressCode\{Decision, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values, Violation};
-use DressCode\Domains\Words;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Values, Violation};
 use DressCode\Rules\{CodeWriter, NativeType, NodeHelpers};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token, Trivia, Visibility};
@@ -59,13 +58,13 @@ final class OverridingSignatureRule extends NodeRule
 		return [
 			new Decision(
 				self::Signature,
-				new Words(['asAncestor' => 'as the ancestor declares them']),
-				'The return type, the types of the parameters, the parameters added with a default, the visibility and `static` of a method overriding one of a parent class or an interface',
+				Domain::state('required'),
+				'The return type, the types of the parameters, the parameters added with a default, the visibility and `static` of a method overriding one of a parent class or an interface, as the ancestor declares them',
 			),
 			new Decision(
 				self::ParameterNames,
-				new Words(['asAncestor' => 'as the ancestor names them']),
-				'The names of the parameters of a method overriding one of a parent class or an interface',
+				Domain::state('required'),
+				'The names of the parameters of a method overriding one of a parent class or an interface, as the ancestor names them',
 			),
 		];
 	}

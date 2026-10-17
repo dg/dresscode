@@ -78,7 +78,7 @@ final class PhpCodeSniffer
 				$t->set('naming.constant', 'UPPER_CASE');
 			},
 			'Generic.PHP.DeprecatedFunctions' => ['upgrading.php.deprecatedCall' => 'forbidden'],
-			'Generic.PHP.DisallowShortOpenTag' => ['file.openingTag' => 'full'],
+			'Generic.PHP.DisallowShortOpenTag' => ['file.openingTag' => 'required'],
 			'Generic.PHP.ForbiddenFunctions' => fn(array $o, Translation $t) => $t->set(
 				'upgrading.libraries.forbiddenFunctions',
 				// the sniff reads the value `null` of a ruleset as no replacement
@@ -230,7 +230,7 @@ final class PhpCodeSniffer
 			'PSR2.ControlStructures.SwitchDeclaration' => function (array $o, Translation $t) {
 				$t->warn('`PSR2.ControlStructures.SwitchDeclaration` also starts the body of a case on the line below it and forbids braces around it, which DressCode does not.');
 				$t->setAll([
-					'controlFlow.switch.caseTerminator' => 'colon',
+					'upgrading.php.caseSemicolon' => 'forbidden',
 					'spacing.switchCase' => 'compact',
 					'controlFlow.switch.fallThroughComment' => 'no break',
 					'casing.keyword' => 'lowercase',
@@ -348,7 +348,7 @@ final class PhpCodeSniffer
 			]),
 			'SlevomatCodingStandard.Classes.UselessLateStaticBinding' => fn(array $o, Translation $t) => $t->setAll([
 				'qualification.currentClass' => 'self',
-				'qualification.staticInFinalClass' => 'self',
+				'qualification.staticInFinalClass' => 'required',
 			]),
 			'SlevomatCodingStandard.Commenting.AnnotationName' => ['phpdoc.annotation.casing' => 'canonical'],
 			'SlevomatCodingStandard.Commenting.ForbiddenAnnotations' => fn(array $o, Translation $t) => $t->set(

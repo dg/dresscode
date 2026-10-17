@@ -1,4 +1,4 @@
 classes:
 	overridingMethod:
-		signature: asAncestor
-		parameterName: asAncestor
+		signature: required
+		parameterName: required

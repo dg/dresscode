@@ -1,5 +1,5 @@
 <?php
-// {"currentClass": "keep", "staticInFinalClass": "self"}
+// {"currentClass": "keep", "staticInFinalClass": "required"}
 final class Foo
 {
 	public static function create(): static

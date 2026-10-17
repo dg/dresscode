@@ -7,7 +7,7 @@ severity:
 
 file:
 	bom: forbidden
-	openingTag: '<?php'                       # not `<?` or `<?PHP`
+	openingTag: required                      # `<?php`, not `<?` or `<?PHP`
 	closingTagAtEnd: forbidden                # a `?>` before HTML stays
 	lineEnding: majority                      # as most lines of the file, LF on a tie
 	finalLineEndings: 1
@@ -147,9 +147,12 @@ classes:
 controlFlow:
 	elseif: 'elseif'                          # not `else if`
 	switch:
-		caseTerminator: ':'                   # not `case 1;`
 		fallThroughComment: no break          # the comment of a fall-through
 	emptyStatement: forbidden                 # `foo();;`
 
 expressions:
 	cast: canonical                           # `(int)`, not `(integer)` or `( int )`
+
+upgrading:
+	php:
+		caseSemicolon: forbidden              # `case 1:`, not `case 1;`

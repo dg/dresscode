@@ -216,7 +216,7 @@ final class PhpCsFixer
 					? array_map(fn(string $tag) => '@' . ltrim($tag, '@'), $o['exclude'])
 					: $o['annotation_exclude'] ?? null,
 			], fn($v) => $v !== null)),
-			'full_opening_tag' => ['file.openingTag' => 'full'],
+			'full_opening_tag' => ['file.openingTag' => 'required'],
 			'fully_qualified_strict_types' => function (array $o, Translation $t) {
 				if (!($o['import_symbols'] ?? false)) {
 					$t->warn('`fully_qualified_strict_types` without `import_symbols` shortens a name only to an import the file has; DressCode adds the import it lacks.');
@@ -620,7 +620,7 @@ final class PhpCsFixer
 				? $t->set('spacing.typeDeclaration', 'compact')
 				: $t->warn('`return_type_declaration` with `space_before=one` has no equivalent; DressCode writes no space before the colon.'),
 			'self_accessor' => ['qualification.currentClass' => 'self'],
-			'self_static_accessor' => fn(array $o, Translation $t) => $t->set('qualification.staticInFinalClass', 'self'),
+			'self_static_accessor' => fn(array $o, Translation $t) => $t->set('qualification.staticInFinalClass', 'required'),
 			'set_type_to_cast' => ['hygiene.settype' => 'forbidden'],
 			'short_scalar_cast' => ['expressions.cast' => 'canonical'],
 			'simple_to_complex_string_variable' => ['upgrading.php.dollarBraceInterpolation' => 'forbidden'],
@@ -686,7 +686,7 @@ final class PhpCsFixer
 				$t->set('literals.implicitBackslash', 'forbidden');
 			},
 			'string_length_to_empty' => ['hygiene.strlenEmptyTest' => 'forbidden'],
-			'switch_case_semicolon_to_colon' => ['controlFlow.switch.caseTerminator' => 'colon'],
+			'switch_case_semicolon_to_colon' => ['upgrading.php.caseSemicolon' => 'forbidden'],
 			'switch_case_space' => ['spacing.switchCase' => 'compact'],
 			'switch_continue_to_break' => ['mistakes.continueInSwitch' => 'forbidden'],
 			'ternary_operator_spaces' => [

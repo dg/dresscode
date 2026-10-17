@@ -931,7 +931,7 @@ test('a message excluded from a sniff turns off its rule, which the sniff covers
 	$translation = (new Translator)->translate(['PSR12' => true, 'PSR2.ControlStructures.SwitchDeclaration' => false]);
 	Assert::same(
 		[
-			'controlFlow.switch.caseTerminator' => 'keep',
+			'upgrading.php.caseSemicolon' => 'keep',
 			'spacing.switchCase' => 'keep',
 			'controlFlow.switch.fallThroughComment' => 'keep',
 			'indentation.switchCase' => 'keep',

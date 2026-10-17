@@ -7,8 +7,7 @@
 
 namespace DressCode\Rules\Files;
 
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage};
-use DressCode\Domains\Shapes;
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Node, Token, Trivia};
 
 
@@ -22,8 +21,8 @@ final class OpeningTagNotationRule extends NodeRule
 	{
 		return [new Decision(
 			'file.openingTag',
-			new Shapes(['full' => ['<?php', '`<?php`, never `<?` or `<?PHP`']]),
-			'The opening tag of PHP',
+			Domain::state('required'),
+			'`<?php` for `<?` and `<?PHP`',
 		)];
 	}
 

@@ -52,7 +52,7 @@ final class Catalogue
 		'collapsed' => null, 'expanded' => null, 'first' => null, 'last' => null, 'lastStatementSetApart' => null,
 		'spaces' => null, 'tabs' => null, 'bare' => null, 'imported' => null, 'backslashed' => null, 'self' => null,
 		'declared' => null, 'lowercase' => null, 'uppercase' => null, 'canonical' => null, 'alphabetical' => null, 'short' => null, 'long' => null,
-		'separated' => null, 'combined' => null, 'grouped' => null, 'joined' => null, 'asAncestor' => null,
+		'separated' => null, 'combined' => null, 'grouped' => null, 'joined' => null,
 		'PascalCase' => null, 'camelCase' => null, 'snake_case' => null, 'UPPER_CASE' => null, 'Pascal_Snake_Case' => null,
 		'constant' => null, 'property' => null, 'traitUse' => null,
 	];
