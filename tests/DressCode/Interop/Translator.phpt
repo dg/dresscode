@@ -205,7 +205,11 @@ test('foreign rules covering one rule are merged, not overwritten', function () 
 		array_filter($translation->decisions, fn(string $path) => str_starts_with($path, 'multiline.trailingComma.'), ARRAY_FILTER_USE_KEY),
 	);
 	Assert::same(
-		['types.declaration.parameter' => 'required', 'types.declaration.return' => 'required'],
+		[
+			'types.declaration.parameter' => 'required',
+			'types.declaration.return' => 'required',
+			'types.declaration.anonymousFunction' => 'required',
+		],
 		array_filter($translation->decisions, fn(string $path) => str_starts_with($path, 'types.'), ARRAY_FILTER_USE_KEY),
 	);
 

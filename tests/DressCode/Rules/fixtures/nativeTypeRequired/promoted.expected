@@ -1,11 +1,12 @@
 <?php
-// {"declaration.return": "keep", "declaration.parameter": "keep"}
+// {"types.declaration.return": "keep", "types.declaration.parameter": "keep"}
 // risky
 class A
 {
 	public function __construct(
 		/** @var string[] */
 		public array $a,
+		/** @var int */
 		public int $b,
 		/** @var int desc */
 		public int $c,

@@ -1,5 +1,5 @@
 <?php
-// {"declaration.return": "keep"}
+// {"types.declaration.return": "keep"}
 // risky
 // types off
 namespace App;
@@ -44,9 +44,11 @@ class Tagged
 // a class with nothing above it has no declaration to redeclare
 class Plain
 {
+	/** @var string */
 	public string $title;
 
 
+	/** @param int $count */
 	public function take(int $count)
 	{
 	}

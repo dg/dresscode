@@ -1,6 +1,6 @@
 <?php
 // php 8.2
-// {"declaration.return": "keep"}
+// {"types.declaration.return": "keep"}
 // risky
 interface A {}
 interface B {}
@@ -10,8 +10,10 @@ class X
 	/** @var string */
 	public $label = 0;
 
+	/** @var float */
 	public float $ratio = 1;
 
+	/** @var string|false */
 	public string|false $flag = false;
 
 	/** @var A&B */
@@ -31,6 +33,7 @@ class X
 	 * @param int $count
 	 * @param bool $strict
 	 * @param A&B $pair
+	 * @param string $mode
 	 */
 	public function run($count = 1.5, $strict = 'yes', (A&B)|null $pair = null, string $mode = self::Mode)
 	{

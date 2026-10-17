@@ -1,5 +1,5 @@
 <?php
-// {"declaration.property": "keep", "declaration.return": "keep"}
+// {"types.declaration.property": "keep", "types.declaration.return": "keep"}
 // risky
 
 /**

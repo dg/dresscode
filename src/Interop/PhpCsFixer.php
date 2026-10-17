@@ -505,6 +505,7 @@ final class PhpCsFixer
 			'no_unreachable_default_argument_value' => ['functions.unreachableParameterDefault' => 'forbidden'],
 			'no_unused_imports' => ['imports.unused' => 'forbidden'],
 			'no_superfluous_elseif' => fn(array $o, Translation $t) => $t->set('controlFlow.elseifAfterReturn', 'forbidden'),
+			'no_superfluous_phpdoc_tags' => ['phpdoc.annotation.nativeTypeOnly' => 'forbidden'],
 			'no_useless_concat_operator' => ['literals.concatenatedLiterals' => 'forbidden'],
 			'no_useless_else' => ['controlFlow.elseAfterReturn' => 'forbidden'],
 			'no_useless_return' => ['functions.trailingBareReturn' => 'forbidden'],

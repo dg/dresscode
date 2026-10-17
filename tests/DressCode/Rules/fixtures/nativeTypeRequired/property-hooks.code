@@ -1,5 +1,5 @@
 <?php
-// {"declaration.parameter": "keep", "declaration.return": "keep"}
+// {"types.declaration.parameter": "keep", "types.declaration.return": "keep"}
 // risky
 // php 8.4
 class A

@@ -1,5 +1,0 @@
-phpdoc:
-	repeatingNativeTypes: forbidden
-
-types:
-	traversableClasses: [Traversable]

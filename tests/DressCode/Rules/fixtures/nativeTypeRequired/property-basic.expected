@@ -1,10 +1,12 @@
 <?php
-// {"declaration.parameter": "keep", "declaration.return": "keep"}
+// {"types.declaration.parameter": "keep", "types.declaration.return": "keep"}
 // risky
 class A
 {
+	/** @var int */
 	public int $a;
 
+	/** @var Foo|null */
 	public ?Foo $b = null;
 
 	/** @var string[] */
@@ -23,6 +25,7 @@ class A
 	/** @var callable */
 	public $h;
 
+	/** @var int */
 	public int $i;
 
 	public $j, $k;
@@ -30,10 +33,13 @@ class A
 	/** @var list<int> */
 	public array $l = [];
 
+	/** @var mixed */
 	public mixed $m = null;
 
 	/**
 	 * Summary.
+	 *
+	 * @var int
 	 */
 	public int $n;
 }

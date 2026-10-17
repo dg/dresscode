@@ -24,14 +24,15 @@ use function count;
 
 /**
  * Parameters, properties and return values have native types: a missing one is added from the `@param`,
- * `@var` or `@return` annotation when PHP can express it, nullable where the declaration defaults to null, and the
- * annotation goes away when it then says nothing more. A property without a default, null until written, gets
- * `= null` where its type takes null. A variadic parameter whose annotation names an array and a property with hooks
- * get no native type from their annotation, being reported instead. A function that returns no value is declared
- * void, and a native void the annotation says is never becomes never. Any other declaration with neither is reported, as
- * is an array, iterable or traversable one whose annotation does not say what the items are. A function
- * inheriting its documentation (`{@inheritDoc}`, `#[\Override]`) is left alone. Each place can be turned off on its
- * own; a class constant is `ConstantTypeRequiredRule`'s.
+ * `@var` or `@return` annotation when PHP can express it, nullable where the declaration defaults to null; an
+ * annotation then saying nothing more is `UselessTypeAnnotationsRule`'s. A property without a default, null until
+ * written, gets `= null` where its type takes null. A variadic parameter whose annotation names an array and
+ * a property with hooks get no native type from their annotation, being reported instead. A function or a closure that
+ * returns no value is declared void, and a native void the annotation says is never becomes never. Any other declaration
+ * with neither is reported, and with `phpdoc.annotation.itemTypes` an array, iterable or traversable one whose
+ * annotation does not say what the items are. A function inheriting its documentation (`{@inheritDoc}`,
+ * `#[\Override]`) is left alone. Each place can be turned off on its own; a class constant is
+ * `ConstantTypeRequiredRule`'s.
  *
  * A native type written is risky: PHP enforces it, and an annotation that was wrong becomes a TypeError, or a property
  * left without `= null` is uninitialized until written. None is
@@ -53,10 +54,13 @@ final class NativeTypeRequiredRule extends NodeRule
 		'types.declaration.return' => '@return',
 		'types.declaration.property' => '@var',
 	];
+	private const ItemTypes = 'phpdoc.annotation.itemTypes';
 
 	private bool $parameter = true;
 	private bool $property = true;
 	private bool $return = true;
+	private bool $anonymousFunction = true;
+	private bool $itemTypes = true;
 
 	/** @var list<string> */
 	private array $traversableClasses = [];
@@ -68,8 +72,8 @@ final class NativeTypeRequiredRule extends NodeRule
 			new Decision(
 				'types.declaration.parameter',
 				Domain::state('required'),
-				'A parameter declares its type, taken from `@param` where it has one and nullable where it defaults to null, and the annotation goes where it then says nothing more',
-				['A parameter with neither a type nor an annotation is reported'],
+				'A parameter of a function or a method declares its type, taken from `@param` where it has one and nullable where it defaults to null; one with neither, and one whose annotation PHP cannot write, is reported',
+				['Not a parameter of a closure, whose types belong to the call it is passed to.'],
 			),
 			new Decision(
 				'types.declaration.property',
@@ -79,7 +83,18 @@ final class NativeTypeRequiredRule extends NodeRule
 			new Decision(
 				'types.declaration.return',
 				Domain::state('required'),
-				'A function declares its return type, taken from `@return`, `void` where it returns no value and `never` where the annotation says so',
+				'A function or a method declares its return type, taken from `@return`, `void` where it returns no value and `never` where the annotation says so',
+			),
+			new Decision(
+				'types.declaration.anonymousFunction',
+				Domain::state('required'),
+				'A closure declares its return type `void` where it returns no value',
+				['Not an arrow function, whose value is its expression.'],
+			),
+			new Decision(
+				self::ItemTypes,
+				Domain::state('required'),
+				'An array, iterable or traversable declaration has an annotation saying what its items are, reported',
 			),
 		];
 	}
@@ -87,10 +102,11 @@ final class NativeTypeRequiredRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		[$this->parameter, $this->property, $this->return] = array_map(
+		[$this->parameter, $this->property, $this->return, $this->anonymousFunction] = array_map(
 			fn(string $place) => !$values->isKept("types.declaration.$place"),
-			['parameter', 'property', 'return'],
+			['parameter', 'property', 'return', 'anonymousFunction'],
 		);
+		$this->itemTypes = !$values->isKept(self::ItemTypes);
 		$this->traversableClasses = array_map(
 			fn(string $name) => strtolower(ltrim($name, '\\')),
 			$values->get('types.traversableClasses')->getNames(),
@@ -100,10 +116,12 @@ final class NativeTypeRequiredRule extends NodeRule
 
 	public function getVisitedNodes(): array
 	{
+		$functions = $this->parameter || $this->return || $this->itemTypes;
 		return [
-			...($this->parameter || $this->return ? [FunctionNode::class, Expression\ClosureNode::class] : []),
-			...($this->parameter || $this->return || $this->property ? [MethodNode::class] : []),
-			...($this->property ? [PropertyNode::class] : []),
+			...($functions ? [FunctionNode::class] : []),
+			...($this->anonymousFunction ? [Expression\ClosureNode::class] : []),
+			...($functions || $this->property ? [MethodNode::class] : []),
+			...($this->property || $this->itemTypes ? [PropertyNode::class] : []),
 		];
 	}
 
@@ -111,48 +129,29 @@ final class NativeTypeRequiredRule extends NodeRule
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
 		if ($node instanceof PropertyNode) {
-			if ($this->property) {
-				$this->checkProperty($node, $context);
-			}
-
+			$this->checkProperty($node, $context);
 			return;
 
-		} elseif (
-			!$node instanceof FunctionNode
-			&& !$node instanceof MethodNode
-			&& !$node instanceof Expression\ClosureNode
-		) {
+		} elseif ($node instanceof Expression\ClosureNode) {
+			$this->declareReturnType($node, null, $context);
+			return;
+
+		} elseif (!$node instanceof FunctionNode && !$node instanceof MethodNode) {
 			return;
 		}
 
-		$docComment = $node instanceof Expression\ClosureNode ? null : $node->getDocComment();
+		$docComment = $node->getDocComment();
 		if (self::isInherited($node, $docComment, $context)) {
 			return;
 		}
 
-		$phpDoc = $context->getAnalysis(PhpDoc::class);
-		$tree = $docComment ? $phpDoc->parse($docComment) : null;
-
-		// both halves read one tree and hand back the tags to drop, so it is rewritten once
-		$removed = [];
-		if (($this->parameter || $this->property) && !$node instanceof Expression\ClosureNode) {
-			$removed = $this->declareParameterTypes($node, $tree, $context);
-		}
-
-		if ($this->return && ($tag = $this->declareReturnType($node, $tree, $context))) {
-			$removed[] = $tag;
-		}
-
-		if ($removed !== [] && $tree !== null) {
-			self::removeTags($node, $tree, $removed, $docComment, $phpDoc);
-		}
+		$tree = $docComment ? $context->getAnalysis(PhpDoc::class)->parse($docComment) : null;
+		$this->declareParameterTypes($node, $tree, $context);
+		$this->declareReturnType($node, $tree, $context);
 	}
 
 
-	/**
-	 * @return list<PhpDocTagNode>  the annotations that say nothing the native type does not
-	 */
-	private function declareParameterTypes(FunctionNode|MethodNode $node, ?PhpDocNode $tree, RuleContext $context): array
+	private function declareParameterTypes(FunctionNode|MethodNode $node, ?PhpDocNode $tree, RuleContext $context): void
 	{
 		[$tags, $prefixed] = self::findTags($tree, '@param');
 		$types = $context->findAnalysis(Types::class);
@@ -166,10 +165,9 @@ final class NativeTypeRequiredRule extends NodeRule
 		$variadic = $overridden === null ? null : array_find($overridden->parameters, fn(Parameter $parameter) => $parameter->variadic);
 		$unseen = $types === null && $node instanceof MethodNode && !$node->isConstructor() && self::hasAncestors($node);
 		$phpDoc = $context->getAnalysis(PhpDoc::class);
-		$removed = [];
 		foreach ($params as $i => $param) {
 			$name = $param->variable->name;
-			if (!$name instanceof Token || !($param->promoted ? $this->property : $this->parameter)) {
+			if (!$name instanceof Token) {
 				continue;
 			}
 
@@ -179,7 +177,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			[$ownTags, $ownPrefixed] = self::findTags($ownTree, '@var');
 			$fromOwn = !isset($tags[$name->text]) && isset($ownTags['']);
 			$inherited = $overridden->parameters[$i] ?? $variadic;
-			$tag = $this->declareType(
+			$this->declareType(
 				$param->promoted ? 'types.declaration.property' : 'types.declaration.parameter',
 				"The parameter `$name->text`",
 				$param->variable,
@@ -195,33 +193,24 @@ final class NativeTypeRequiredRule extends NodeRule
 					? fn() => self::mayRedeclare($param, $types)
 					: fn(string $native, \Closure $resolve) => $unseen || ($inherited !== null
 						&& ($inherited->type === null || !NativeType::isDescribedAs($native, $inherited->type, $resolve))),
-				docComment: $fromOwn ? $own : null,
 				variadic: $param->ellipsis !== null,
 				hooked: $param->hooks !== null,
 			);
-			if ($tag !== null && $fromOwn && $own !== null && $ownTree !== null) {
-				self::removeTags($param, $ownTree, [$tag], $own, $phpDoc);
-			} elseif ($tag !== null) {
-				$removed[] = $tag;
-			}
 		}
-
-		return $removed;
 	}
 
 
-	private function declareReturnType(
-		FunctionNode|MethodNode|Expression\ClosureNode $node,
-		?PhpDocNode $tree,
-		RuleContext $context,
-	): ?PhpDocTagNode
+	private function declareReturnType(FunctionNode|MethodNode|Expression\ClosureNode $node, ?PhpDocNode $tree, RuleContext $context): void
 	{
 		if (
 			$node instanceof MethodNode
 			&& ($node->isConstructor() || $node->isDestructor())
 		) {
-			return null;
+			return;
 		}
+
+		$decision = $node instanceof Expression\ClosureNode ? 'types.declaration.anonymousFunction' : 'types.declaration.return';
+		$declares = $node instanceof Expression\ClosureNode ? $this->anonymousFunction : $this->return;
 
 		[$tags, $prefixed] = self::findTags($tree, '@return');
 		$tag = $tags[''] ?? null;
@@ -229,25 +218,26 @@ final class NativeTypeRequiredRule extends NodeRule
 		$native = $node->returnType?->text;
 		$overridable = $node instanceof MethodNode && $node->isOverridable();
 
-		if ($native === null && $annotation === null && $node->body !== null && !self::returnsValue($node->body)) {
+		if ($declares && $native === null && $annotation === null && $node->body !== null && !self::returnsValue($node->body)) {
 			if (!$context->report(
 				$node->closeParen,
 				self::describeFunction($node) . ' must have the `void` return type.',
 				risk: $overridable ? Risk::BehaviorChanges : null,
 				because: $overridable ? 'a child returning a value then fails' : null,
-				decision: 'types.declaration.return',
+				decision: $decision,
 			)) {
-				return null;
+				return;
 			}
 
 			$node->setReturnType((new Builder)->type('void'));
 			$native = 'void';
 
-		} elseif ($native === null && $annotation === null && $node instanceof Expression\ClosureNode) {
-			return null; // a closure has no doc comment to ask for
+		} elseif ($node instanceof Expression\ClosureNode) {
+			return; // a closure has no doc comment to ask for or to read
 
 		} elseif (
-			strtolower((string) $native) === 'void'
+			$declares
+			&& strtolower((string) $native) === 'void'
 			&& $annotation instanceof IdentifierTypeNode
 			&& strtolower($annotation->name) === 'never'
 			&& version_compare($context->phpVersion, '8.1', '>=')
@@ -265,7 +255,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			$native = 'never';
 		}
 
-		return $this->declareType(
+		$this->declareType(
 			'types.declaration.return',
 			self::describeFunction($node),
 			$node->closeParen,
@@ -326,11 +316,10 @@ final class NativeTypeRequiredRule extends NodeRule
 		}
 
 		$docComment = $node->getDocComment();
-		$phpDoc = $context->getAnalysis(PhpDoc::class);
-		$tree = $docComment ? $phpDoc->parse($docComment) : null;
+		$tree = $docComment ? $context->getAnalysis(PhpDoc::class)->parse($docComment) : null;
 		[$tags, $prefixed] = self::findTags($tree, '@var');
 		$item = $node->items->getItems()[0];
-		$tag = $this->declareType(
+		$this->declareType(
 			'types.declaration.property',
 			"The property `{$item->name->text}`",
 			$item,
@@ -352,22 +341,18 @@ final class NativeTypeRequiredRule extends NodeRule
 			},
 			hooked: $node->hooks !== null,
 		);
-		if ($tag !== null && $tree !== null) {
-			self::removeTags($node, $tree, [$tag], $docComment, $phpDoc);
-		}
 	}
 
 
 	/**
-	 * Declares the native type of one declaration from its annotation: one with neither is reported, a missing native
-	 * type is written from the annotation, a traversable type asks for an annotation saying what its items are, and an
-	 * annotation saying nothing more than the native type is returned to be dropped.
+	 * Declares the native type of one declaration from its annotation, where its decision asks for it: one with neither
+	 * is reported, a missing native type is written from the annotation, and a traversable type asks for an annotation
+	 * saying what its items are where `phpdoc.annotation.itemTypes` does.
 	 * @param  \Closure(TypeNode): mixed  $setType
 	 * @param  ?\Closure(string, \Closure(string): string): bool  $isRefused  whether PHP refuses the native type, given with
 	 *   the resolver of its classes, because of a declaration this one redeclares
 	 * @param  bool  $implicitNull  the declaration is null until written, which a native type leaves uninitialized
 	 * @param  ?\Closure(): void  $writeNull  writes `= null` to keep it null under a type that takes it
-	 * @param  ?Trivia  $docComment  the doc comment of the annotation where it is not the one of the owner
 	 */
 	private function declareType(
 		string $decision,
@@ -384,11 +369,15 @@ final class NativeTypeRequiredRule extends NodeRule
 		?\Closure $isRefused = null,
 		bool $implicitNull = false,
 		?\Closure $writeNull = null,
-		?Trivia $docComment = null,
 		bool $variadic = false,
 		bool $hooked = false,
-	): ?PhpDocTagNode
+	): void
 	{
+		$declares = match ($decision) {
+			'types.declaration.parameter' => $this->parameter,
+			'types.declaration.property' => $this->property,
+			default => $this->return,
+		};
 		$return = $decision === 'types.declaration.return';
 		$typeWord = $return ? 'return type' : 'type';
 		$tagName = $tag === null ? self::Annotations[$decision] : strtolower($tag->name);
@@ -400,7 +389,9 @@ final class NativeTypeRequiredRule extends NodeRule
 		$resolve = fn(string $class) => $resolver->resolveClass((new Builder)->name($class), $owner);
 
 		if ($native === null) {
-			if ($annotation === null) {
+			if (!$declares) {
+				return;
+			} elseif ($annotation === null) {
 				if (!$prefixed) {
 					$context->report(
 						$at,
@@ -410,7 +401,7 @@ final class NativeTypeRequiredRule extends NodeRule
 					);
 				}
 
-				return null;
+				return;
 			}
 
 			$localTypes = $context->getAnalysis(PhpDoc::class)->findLocalTypes($owner);
@@ -445,7 +436,7 @@ final class NativeTypeRequiredRule extends NodeRule
 					fixable: false,
 					decision: $decision,
 				);
-				return null;
+				return;
 			}
 
 			$keptNull = $implicitNull && $writeNull !== null && $native !== null && self::takesNull($native);
@@ -463,7 +454,7 @@ final class NativeTypeRequiredRule extends NodeRule
 					decision: $decision,
 				)
 			) {
-				return null;
+				return;
 			}
 
 			$setType((new Builder)->type($native));
@@ -472,40 +463,20 @@ final class NativeTypeRequiredRule extends NodeRule
 			}
 		}
 
-		$traversable = NativeType::isTraversable(ltrim($native, '?'), $this->traversableClasses, $resolve);
-		if ($tag === null) {
-			if ($traversable && !$prefixed) {
-				$described = $return ? "returning `$native`" : "of the type `$native`";
-				$context->report(
-					$at,
-					"$subject $described must have a `$tagName` annotation saying what its items are.",
-					fixable: false,
-					decision: $decision,
-				);
-			}
-
-			return null;
-		}
-
-		$useless = match (true) {
-			$value instanceof TypelessParamTagValueNode => $value->description === '',
-			$value instanceof ParamTagValueNode,
-			$value instanceof ReturnTagValueNode,
-			$value instanceof VarTagValueNode => $value->description === ''
-				&& NativeType::matches($value->type, $native)
-				&& (!$traversable || NativeType::isPlainIterable($value->type)),
-			default => false,
-		};
-		$described = $return ? '' : ' for ' . lcfirst($subject);
-		return $useless
-			&& $context->report(
+		if (
+			$this->itemTypes
+			&& !$prefixed
+			&& ($annotation === null || NativeType::isPlainIterable($annotation))
+			&& NativeType::isTraversable(ltrim($native, '?'), $this->traversableClasses, $resolve)
+		) {
+			$described = $return ? "returning `$native`" : "of the type `$native`";
+			$context->report(
 				$at,
-				"Useless `$tagName` annotation$described, because the native $typeWord says the same.",
-				trivia: $docComment ?? $owner->getDocComment(),
-				decision: $decision,
-			)
-			? $tag
-			: null;
+				"$subject $described must have a `$tagName` annotation saying what its items are.",
+				fixable: false,
+				decision: self::ItemTypes,
+			);
+		}
 	}
 
 
@@ -627,22 +598,5 @@ final class NativeTypeRequiredRule extends NodeRule
 		}
 
 		return false;
-	}
-
-
-	/**
-	 * Removes the tags from the doc comment of the node, and the doc comment itself when nothing meaningful remains.
-	 * @param  list<PhpDocTagNode>  $tags
-	 */
-	private static function removeTags(
-		Node $node,
-		PhpDocNode $tree,
-		array $tags,
-		Trivia $docComment,
-		PhpDoc $phpDoc,
-	): void
-	{
-		PhpDoc::keepChildren($tree, array_values(array_filter($tree->children, fn($child) => !in_array($child, $tags, true))));
-		$phpDoc->writeBack($tree, $docComment, $node);
 	}
 }

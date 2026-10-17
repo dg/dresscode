@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * @param non-empty-string $a
+ * @return array-key
+ */
+function pseudo(string $a): int|string
+{
+}

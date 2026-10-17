@@ -11,6 +11,7 @@ class A
 	/**
 	 * @param int $a
 	 * @param string $a
+	 * @param int $b
 	 * @return int
 	 * @return string
 	 */

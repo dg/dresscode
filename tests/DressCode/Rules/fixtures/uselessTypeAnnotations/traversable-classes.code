@@ -1,5 +1,4 @@
 <?php
-// {"types.traversableClasses": ["Collection"]}
 class A
 {
 	/**

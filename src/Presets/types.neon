@@ -5,13 +5,16 @@
 
 types:
 	declaration:
-		parameter: required        # from `@param`, risky
-		property: required         # from `@var`, risky
-		return: required           # from `@return`, `void` where nothing returns, risky
+		parameter: required           # from `@param`, risky
+		property: required            # from `@var`, risky
+		return: required              # from `@return`, `void` where nothing returns, risky
+		anonymousFunction: required   # `void` where a closure returns nothing, risky
 	nullable: '?int'               # `?int`, not `int|null`
 	nullPosition: last             # `int|string|null`
 
 phpdoc:
+	annotation:
+		nativeTypeOnly: forbidden  # the annotation the native type now says
 	types:
 		builtin: canonical         # `int`, not `integer`
 		duplicate: forbidden       # each type of a union once

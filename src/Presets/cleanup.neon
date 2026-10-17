@@ -61,7 +61,7 @@ comments:
 
 phpdoc:
 	empty: forbidden
-	repeatingNativeTypes: forbidden          # one only repeating the signature
 	inheritdocOnly: forbidden                # one holding only `{@inheritDoc}`
 	annotation:
+		nativeTypeOnly: forbidden            # `@param int $a` on `int $a`
 		constantVar: forbidden               # a bare `@var int` on a class constant

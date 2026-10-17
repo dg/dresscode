@@ -1,4 +1,3 @@
-9: Useless `@var` annotation for the parameter `$b`, because the native type says the same.
 10: The parameter `$b` must have the native type `int` from its `@var` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`
 12: The parameter `$c` must have the native type `int` from its `@var` annotation.

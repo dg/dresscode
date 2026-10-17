@@ -1,5 +1,5 @@
 <?php
-// {"declaration.return": "keep", "declaration.property": "keep"}
+// {"types.declaration.return": "keep", "types.declaration.property": "keep"}
 // risky
 namespace App;
 

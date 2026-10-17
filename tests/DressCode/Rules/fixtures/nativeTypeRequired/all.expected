@@ -2,8 +2,13 @@
 // risky
 class A
 {
+	/** @var int */
 	private int $count;
 
+	/**
+	 * @param string $name
+	 * @return bool
+	 */
 	public function check(string $name): bool
 	{
 		return true;

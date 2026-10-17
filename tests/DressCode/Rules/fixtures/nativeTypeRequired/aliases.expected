@@ -13,11 +13,13 @@ class Table
 	/** @var Cell */
 	public $cell;
 
+	/** @var Store */
 	public Store $store;
 
 
 	/**
 	 * @param Row $r
+	 * @param Store $s
 	 * @return Entry
 	 */
 	public function find($r, Store $s)

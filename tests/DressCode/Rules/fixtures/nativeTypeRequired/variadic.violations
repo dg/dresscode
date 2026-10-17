@@ -1,4 +1,3 @@
 8: The parameter `$rest` must have a native type, which is not written from the `@param` annotation of a variadic parameter.
-13: Useless `@param` annotation for the parameter `$names`, because the native type says the same.
 16: The parameter `$names` must have the native type `string` from its `@param` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`

@@ -1,0 +1,10 @@
+<?php
+// {"types.declaration.parameter": "keep", "types.declaration.property": "keep", "types.declaration.return": "keep"}
+
+/**
+ * @param array $plain
+ * @param int[] $typed
+ */
+function items(array $plain, array $typed, array $bare, iterable $iterable): array
+{
+}

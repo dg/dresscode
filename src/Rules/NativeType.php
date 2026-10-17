@@ -166,10 +166,13 @@ final class NativeType
 	/**
 	 * Whether the annotation says exactly what the native type says: an identifier, a nullable one or a union
 	 * of identifiers naming the same types; `int[]` or `array<string, Foo>` say more than `array`.
+	 * @param  ?callable(string): string  $resolveClass  fully qualified name of a class, so that an imported `Order` and
+	 *   `\Acme\Shop\Order` are one
 	 */
-	public static function matches(Type\TypeNode $annotation, string $native): bool
+	public static function matches(Type\TypeNode $annotation, string $native, ?callable $resolveClass = null): bool
 	{
-		return self::isPlain($annotation) && self::normalize((string) $annotation) === self::normalize($native);
+		return self::isPlain($annotation)
+			&& self::normalize((string) $annotation, $resolveClass) === self::normalize($native, $resolveClass);
 	}
 
 
@@ -219,16 +222,26 @@ final class NativeType
 	}
 
 
-	/** Canonical form of a type: no parentheses, spaces or leading backslashes, ?T as T|null, members sorted, builtins lowercased. */
-	private static function normalize(string $type): string
+	/**
+	 * Canonical form of a type: no parentheses or spaces, ?T as T|null, members sorted, builtins lowercased, classes
+	 * resolved where a resolver is given and without their backslashes otherwise.
+	 * @param  ?callable(string): string  $resolveClass
+	 */
+	private static function normalize(string $type, ?callable $resolveClass = null): string
 	{
-		$type = str_replace(['(', ')', ' ', '\\'], '', $type);
+		$type = str_replace(['(', ')', ' '], '', $type);
 		if (str_starts_with($type, '?')) {
 			$type = substr($type, 1) . '|null';
 		}
 
 		$members = array_map(
-			fn(string $member) => in_array(strtolower($member), self::Builtin, true) ? strtolower($member) : $member,
+			fn(string $member) => match (true) {
+				in_array(strtolower($member), self::Builtin, true) => strtolower($member),
+				$resolveClass === null => str_replace('\\', '', $member),
+				// a type of the analyzers, `non-empty-string`, is no class to resolve
+				preg_match('~^\\\?[A-Za-z_\x80-\xff][\w\x80-\xff\\\]*$~', $member) !== 1 => strtolower($member),
+				default => strtolower(ltrim($resolveClass($member), '\\')),
+			},
 			explode('|', $type),
 		);
 		sort($members);

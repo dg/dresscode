@@ -3,3 +3,8 @@ types:
 		parameter: required
 		property: required
 		return: required
+		anonymousFunction: required
+
+phpdoc:
+	annotation:
+		itemTypes: required

@@ -152,6 +152,7 @@ types:
 		parameter: keep
 		property: keep
 		return: keep
+		anonymousFunction: keep
 
 functions:
 	innerFunction: forbidden

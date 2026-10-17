@@ -1,5 +1,5 @@
 <?php
-// {"declaration.return": "keep"}
+// {"types.declaration.return": "keep"}
 // risky
 namespace App;
 
@@ -10,10 +10,13 @@ class Order extends Record
 	/** @var string */
 	protected $table = 'orders';
 
+	/** @var string */
 	protected string $note;
 
 	/**
 	 * @param array $options
+	 * @param string $mode
+	 * @param int $tries
 	 */
 	public function save($options, string $mode, int $tries = 1)
 	{
@@ -29,6 +32,7 @@ class Order extends Record
 
 	/**
 	 * @param int $value
+	 * @param string|null $label
 	 */
 	public function put($value, ?string $label = null)
 	{
@@ -47,6 +51,7 @@ class Invoice extends Record
 {
 	/**
 	 * @param string $connection
+	 * @param string $title
 	 */
 	public function __construct(protected $connection, protected string $title)
 	{

@@ -1,0 +1,48 @@
+<?php
+namespace App;
+
+use Acme\Shop\Order;
+
+class A
+{
+	/** @var int */
+	public int $count;
+
+	/** @var int */
+	public int $a, $b;
+
+	/** @var \Acme\Shop\Order the order is imported */
+	public Order $described;
+
+	/** @var \Acme\Shop\Order */
+	public Order $order;
+
+	/** @var ?Order */
+	public ?Order $nullable;
+
+	/** @var Order */
+	public ?Order $lessSpecific;
+
+
+	/**
+	 * Creates it.
+	 *
+	 * @param int $id
+	 * @param string $name   the name
+	 */
+	public function __construct(
+		/** @var int */
+		public int $id,
+		public string $name,
+	) {
+	}
+
+
+	/**
+	 * @param int $a
+	 * @param string $a
+	 */
+	public function doubled(int $a)
+	{
+	}
+}

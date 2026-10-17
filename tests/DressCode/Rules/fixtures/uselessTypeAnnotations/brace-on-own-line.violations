@@ -1,0 +1,4 @@
+4: Useless `@return` annotation, because the native return type says the same.
+12: Useless `@param` annotation for the parameter `$a`, because the native type says the same.
+12: Useless `@return` annotation, because the native return type says the same.
+31: Useless `@return` annotation, because the native return type says the same.

@@ -1,0 +1,6 @@
+8: Useless `@var` annotation for the property `$count`, because the native type says the same.
+11: Useless `@var` annotation for the property `$a`, because the native type says the same.
+17: Useless `@var` annotation for the property `$order`, because the native type says the same.
+20: Useless `@var` annotation for the property `$nullable`, because the native type says the same.
+27: Useless `@param` annotation for the parameter `$id`, because the native type says the same.
+34: Useless `@var` annotation for the property `$id`, because the native type says the same.

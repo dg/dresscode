@@ -1,3 +1,2 @@
-11: Useless `@param` annotation for the parameter `$b`, because the native type says the same.
 18: The parameter `$b` must have the native type `int` from its `@param` annotation.
 	risky BehaviorChanges: a value the annotation did not foresee then throws a `TypeError`

@@ -1,0 +1,4 @@
+8: The parameter `$plain` of the type `array` must have a `@param` annotation saying what its items are.
+8: The parameter `$bare` of the type `array` must have a `@param` annotation saying what its items are.
+8: The parameter `$iterable` of the type `iterable` must have a `@param` annotation saying what its items are.
+8: The function `items()` returning `array` must have a `@return` annotation saying what its items are.

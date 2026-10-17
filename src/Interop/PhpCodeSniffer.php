@@ -361,10 +361,7 @@ final class PhpCodeSniffer
 				$o['forbiddenCommentPatterns'] ?? [],
 			),
 			'SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment' => ['phpdoc.property.lineSpan' => 'collapsed'],
-			'SlevomatCodingStandard.Commenting.UselessFunctionDocComment' => fn(array $o, Translation $t) => $t->set(
-				'phpdoc.repeatingNativeTypes',
-				'forbidden',
-			),
+			'SlevomatCodingStandard.Commenting.UselessFunctionDocComment' => ['phpdoc.annotation.nativeTypeOnly' => 'forbidden'],
 			'SlevomatCodingStandard.Commenting.UselessInheritDocComment' => ['phpdoc.inheritdocOnly' => 'forbidden'],
 			'SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing' => function (array $o, Translation $t) {
 				$supported = ['if', 'do', 'while', 'for', 'foreach', 'switch', 'try'];
@@ -584,6 +581,8 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.TypeHints.ParameterTypeHint' => fn(array $o, Translation $t) => $t
 				->setAll(array_filter([
 					'types.declaration.parameter' => 'required',
+					'phpdoc.annotation.nativeTypeOnly' => 'forbidden',
+					'phpdoc.annotation.itemTypes' => 'required',
 					'types.traversableClasses' => $o['traversableTypeHints'] ?? null,
 				], fn($v) => $v !== null)),
 			'SlevomatCodingStandard.TypeHints.ParameterTypeHintSpacing' => [
@@ -592,6 +591,8 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.TypeHints.PropertyTypeHint' => fn(array $o, Translation $t) => $t
 				->setAll(array_filter([
 					'types.declaration.property' => 'required',
+					'phpdoc.annotation.nativeTypeOnly' => 'forbidden',
+					'phpdoc.annotation.itemTypes' => 'required',
 					'types.traversableClasses' => $o['traversableTypeHints'] ?? null,
 				], fn($v) => $v !== null)),
 			'SlevomatCodingStandard.TypeHints.PropertyTypeHintSpacing' => [
@@ -600,6 +601,9 @@ final class PhpCodeSniffer
 			'SlevomatCodingStandard.TypeHints.ReturnTypeHint' => fn(array $o, Translation $t) => $t
 				->setAll(array_filter([
 					'types.declaration.return' => 'required',
+					'types.declaration.anonymousFunction' => ($o['enableClosure'] ?? true) ? 'required' : null,
+					'phpdoc.annotation.nativeTypeOnly' => 'forbidden',
+					'phpdoc.annotation.itemTypes' => 'required',
 					'types.traversableClasses' => $o['traversableTypeHints'] ?? null,
 				], fn($v) => $v !== null)),
 			'SlevomatCodingStandard.TypeHints.ReturnTypeHintSpacing' => [

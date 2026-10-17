@@ -1132,8 +1132,8 @@ final readonly class Violation
 - `DressCode\Rules\PhpDoc\PromotedPropertyAnnotationPositionRule`
 - `DressCode\Rules\PhpDoc\PropertyPhpdocLineSpanRule`
 - `DressCode\Rules\PhpDoc\UselessConstantVarAnnotationRule`
-- `DressCode\Rules\PhpDoc\UselessFunctionPhpdocRule`
 - `DressCode\Rules\PhpDoc\UselessInheritdocRule`
+- `DressCode\Rules\PhpDoc\UselessTypeAnnotationsRule`
 - `DressCode\Rules\Types\ConstantTypeRequiredRule`
 - `DressCode\Rules\Types\NativeTypeRequiredRule`
 - `DressCode\Rules\Types\NeverForThrowingFunctionRule`

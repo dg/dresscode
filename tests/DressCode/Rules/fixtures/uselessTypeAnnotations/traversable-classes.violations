@@ -1,0 +1,2 @@
+4: Useless `@return` annotation, because the native return type says the same.
+9: Useless `@return` annotation, because the native return type says the same.

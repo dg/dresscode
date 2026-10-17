@@ -236,11 +236,12 @@ final class CorePlugin implements Plugin
 				Rules\PhpDoc\NoPlainPropertyCommentsRule::class,
 				Rules\PhpDoc\PropertyPhpdocLineSpanRule::class,
 				Rules\PhpDoc\UselessConstantVarAnnotationRule::class,
-				Rules\PhpDoc\UselessFunctionPhpdocRule::class,
 				Rules\PhpDoc\UselessInheritdocRule::class,
 				Rules\Types\NeverForThrowingFunctionRule::class,
 				Rules\Types\NullableTypeForDefaultNullRule::class,
 				Rules\Types\NativeTypeRequiredRule::class,
+				// after the native types written from the annotations, which they then repeat
+				Rules\PhpDoc\UselessTypeAnnotationsRule::class,
 				Rules\Types\ConstantTypeRequiredRule::class,
 				Rules\Types\TypeDeclarationSpacingRule::class,
 				Rules\Types\TypeNotationRule::class,

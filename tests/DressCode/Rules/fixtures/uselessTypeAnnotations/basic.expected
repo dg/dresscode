@@ -4,13 +4,11 @@ class A {
 
 	/**
 	 * @param int $a the number
-	 * @return string
 	 */
 	public function b(int $a): string {}
 
 	/**
 	 * Does something.
-	 * @param int $a
 	 */
 	public function c(int $a): void {}
 
@@ -19,16 +17,11 @@ class A {
 	 */
 	public function d(array $a): void {}
 
-	/**
-	 * @param array $a
-	 * @return Traversable
-	 */
 	public function e(array $a): Traversable {}
 
 	public function f(?int $a): ?Foo\Bar {}
 
 	/**
-	 * @param int $a
 	 * @throws Exception
 	 */
 	public function g(int $a) {}

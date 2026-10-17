@@ -1,9 +1,10 @@
 <?php
 // php 8.2
-// {"declaration.parameter": "keep", "declaration.property": "keep"}
+// {"types.declaration.parameter": "keep", "types.declaration.property": "keep"}
 // risky
 class A
 {
+	/** @return int */
 	public function a(): int { return 1; }
 
 	public function b(): void { echo 1; }
@@ -15,11 +16,13 @@ class A
 
 	public function e(): array { return []; }
 
+	/** @return never */
 	public function f(): never { throw new E; }
 
 	/** @return static */
 	public function g(): static { return $this; }
 
+	/** @return int */
 	public function h(): int { return 1; }
 
 	public function i() { yield 1; }
