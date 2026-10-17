@@ -1,5 +1,0 @@
-<?php
-// {"phpdoc.namesUseImports": false}
-use Lib\InDoc;
-/** @var InDoc $x */
-$x = 1;

@@ -520,10 +520,13 @@ final class PhpCodeSniffer
 					$t->warn('`SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly` with `allowPartialUses=false` has no equivalent; DressCode lets a partial name stand.');
 				}
 			},
-			'SlevomatCodingStandard.Namespaces.UnusedUses' => fn(array $o, Translation $t) => $t->setAll([
-				'imports.unused' => 'forbidden',
-				'phpdoc.namesUseImports' => $o['searchAnnotations'] ?? false,
-			]),
+			'SlevomatCodingStandard.Namespaces.UnusedUses' => function (array $o, Translation $t) {
+				if (!($o['searchAnnotations'] ?? false)) {
+					$t->warn('`SlevomatCodingStandard.Namespaces.UnusedUses` without `searchAnnotations` removes an import only a doc comment uses; DressCode keeps it.');
+				}
+
+				$t->set('imports.unused', 'forbidden');
+			},
 			'SlevomatCodingStandard.Namespaces.UseDoesNotStartWithBackslash' => fn(array $o, Translation $t) => $t->set(
 				'imports.leadingBackslash',
 				'forbidden',

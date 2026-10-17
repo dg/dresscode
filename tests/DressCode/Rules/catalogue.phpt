@@ -58,13 +58,7 @@ test('a word several decisions share comes from the lexicon, in its meaning', fu
 
 
 test('a description begins with Whether only for a flag, the one decision answering yes or no', function () use ($catalogue) {
-	// the decisions the audits of the areas turn into a flag or take away
-	$exceptions = ['phpdoc.namesUseImports'];
 	foreach ($catalogue->getDecisions() as $path => $decision) {
-		if (in_array($path, $exceptions, true)) {
-			continue;
-		}
-
 		Assert::same(
 			$decision->domain instanceof Flag,
 			str_starts_with($decision->description, 'Whether '),

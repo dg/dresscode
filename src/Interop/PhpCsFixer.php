@@ -503,7 +503,7 @@ final class PhpCsFixer
 				$t->set('braces.bareStatementGroup', 'forbidden');
 			},
 			'no_unreachable_default_argument_value' => ['functions.unreachableParameterDefault' => 'forbidden'],
-			'no_unused_imports' => ['imports.unused' => 'forbidden', 'phpdoc.namesUseImports' => true],
+			'no_unused_imports' => ['imports.unused' => 'forbidden'],
 			'no_superfluous_elseif' => fn(array $o, Translation $t) => $t->set('controlFlow.elseifAfterReturn', 'forbidden'),
 			'no_useless_concat_operator' => ['literals.concatenatedLiterals' => 'forbidden'],
 			'no_useless_else' => ['controlFlow.elseAfterReturn' => 'forbidden'],

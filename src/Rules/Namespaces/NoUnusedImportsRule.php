@@ -8,8 +8,7 @@
 namespace DressCode\Rules\Namespaces;
 
 use DressCode\Analyses\PhpDoc;
-use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Domains\Flag;
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, SymbolKind, Token};
 use PhpSyntax\Nodes\FileNode;
@@ -17,36 +16,22 @@ use PhpSyntax\Nodes\Statement\{NamespaceNode, UseNode};
 
 
 /**
- * No import that the code does not use; a name a doc comment writes uses the import too where
- * `phpdoc.namesUseImports` says so.
+ * No import that the code does not use; a class name a doc comment writes, the name of an annotation such as
+ * `@DB\Entity` included, uses the import too.
  */
 #[RuleInfo(Stage::Structure, analyses: [PhpDoc::class])]
 final class NoUnusedImportsRule extends NodeRule
 {
 	private const Unused = 'imports.unused';
-	private const Annotations = 'phpdoc.namesUseImports';
-
-	private bool $annotations = true;
 
 
 	public static function getDecisions(): array
 	{
-		return [
-			new Decision(self::Unused, Domain::state('forbidden'), 'An import nothing uses is removed'),
-			new Decision(
-				self::Annotations,
-				new Flag,
-				'A class name in a doc comment, the name of an annotation such as `@DB\Entity` included, is resolved through the imports, which it therefore keeps in use',
-				kind: DecisionKind::Parameter,
-				default: true,
-			),
-		];
-	}
-
-
-	public function configure(Values $values): void
-	{
-		$this->annotations = $values->get(self::Annotations)->getFlag();
+		return [new Decision(
+			self::Unused,
+			Domain::state('forbidden'),
+			'An import nothing uses is removed, a class name in a doc comment using the import too',
+		)];
 	}
 
 
@@ -78,13 +63,10 @@ final class NoUnusedImportsRule extends NodeRule
 
 		$used = NameReferences::collectAliasUsages($node);
 		// a doc comment can use only a class, so it is read when the code leaves an imported class unused
-		if (
-			$this->annotations
-			&& array_any(
-				$imports,
-				fn(array $import) => $import[1] === SymbolKind::ClassLike && !isset($used[SymbolKind::ClassLike->name][$import[3]]),
-			)
-		) {
+		if (array_any(
+			$imports,
+			fn(array $import) => $import[1] === SymbolKind::ClassLike && !isset($used[SymbolKind::ClassLike->name][$import[3]]),
+		)) {
 			$used[SymbolKind::ClassLike->name] += NameReferences::collectDocAliasUsages($node, $context->getAnalysis(PhpDoc::class));
 		}
 

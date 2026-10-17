@@ -1,5 +1,2 @@
 imports:
 	unused: forbidden
-
-phpdoc:
-	namesUseImports: yes
