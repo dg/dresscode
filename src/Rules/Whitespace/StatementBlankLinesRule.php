@@ -149,7 +149,7 @@ final class StatementBlankLinesRule extends GapRule
 		$owner = $list->parent;
 		$previous = $list->getItems()[$index - 1] ?? null;
 		$counts = [];
-		$line = $below = null;
+		$line = null;
 		$key = 'afterOpeningTag';
 		if (
 			$owner instanceof FileNode
@@ -166,9 +166,6 @@ final class StatementBlankLinesRule extends GapRule
 		if ($stmt instanceof Statement\NamespaceNode && $this->counts['beforeNamespace'] !== null) {
 			$counts[] = $this->counts['beforeNamespace'];
 			$key = 'beforeNamespace';
-			// a doc comment above the namespace is the docblock of the file, a block of the header of its own
-			$comments = $stmt->getLeadingComments();
-			$below = $comments !== [] && $comments[count($comments) - 1]->is(Trivia::DocComment) ? $this->counts['beforeNamespace'] : null;
 		}
 
 		if ($previous instanceof Statement\DeclareNode && $previous->semicolon !== null && !$stmt instanceof Statement\NamespaceNode) {
@@ -196,7 +193,15 @@ final class StatementBlankLinesRule extends GapRule
 		}
 
 		$count = self::intersect(array_values(array_filter($counts, fn($count) => $count !== null)));
-		return $this->claims->claim($count, $key, $below, 'beforeNamespace', $line);
+		// a doc comment above a statement of the header is the docblock of the file, a block of the header of its own,
+		// whose blank lines below the boundary it stands on decides too; above other code it may be the `@var` of it
+		$comments = $stmt->getLeadingComments();
+		$below = ($stmt instanceof Statement\DeclareNode || $stmt instanceof Statement\NamespaceNode || $stmt instanceof Statement\UseNode)
+			&& $comments !== []
+			&& $comments[count($comments) - 1]->is(Trivia::DocComment)
+			? $count
+			: null;
+		return $this->claims->claim($count, $key, $below, $key, $line);
 	}
 
 

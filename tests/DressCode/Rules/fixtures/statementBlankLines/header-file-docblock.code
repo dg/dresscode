@@ -1,0 +1,17 @@
+<?php
+// {"afterDeclare": 1}
+
+/**
+ * The docblock of the file, followed by the declaration
+ */
+
+
+declare(strict_types=1);
+/**
+ * Followed by the imports
+ */
+
+
+use Acme\Shop\Order;
+
+Order::create();

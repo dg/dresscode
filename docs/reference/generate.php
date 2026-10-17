@@ -4,6 +4,7 @@
  * Generates the reference: decisions.md from the decisions the rule classes declare, presets.md from the
  * registered presets. Run by `composer reference`; the output is committed and CI diffs it.
  */
+
 use DressCode\{Config, DecisionKind, RuleInfo};
 use DressCode\Config\{Catalogue, ConfigResolver, NeonReader, PluginRegistry};
 use DressCode\Testing\RuleTester;
