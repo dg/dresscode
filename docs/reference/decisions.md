@@ -185,7 +185,7 @@ Where the declaration of `strict_types` stands.
 
 - By default `keep`
 - Takes: `sameLine` (`<?php declare(strict_types=1);` on one line); `nextLine` (on the line below the opening tag); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `sameLine`, symfony `keep`
+- The standards: perCs `nextLine`, psr12 `nextLine`, nette `sameLine`, symfony `nextLine`
 - Rule `DressCode\Rules\Files\StrictTypesRequiredRule`, stage Structure
 - Covers: `PhpCsFixerCustomFixers/declare_after_opening_tag`, `declare_strict_types`, `Generic.PHP.RequireStrictTypes`, `SlevomatCodingStandard.TypeHints.DeclareStrictTypes`
 
@@ -1963,11 +1963,11 @@ Between a doc comment or an attribute and the declaration it belongs to.
 
 ### blankLines.afterOpeningTag
 
-After the line of `<?php`, which then carries no code; a file with markup outside PHP keeps its tag.
+After the line of `<?php`, which then carries no code but a declaration of `strict_types` that `file.strictTypes.position` puts there; a file with markup outside PHP keeps its tag.
 
 - By default `keep`
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `1`, psr12 `1`, nette `keep`, symfony `1`
+- The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 - Covers: `blank_line_after_opening_tag`, `PSR12.Files.FileHeader`, `PSR12.Files.OpenTag`
 

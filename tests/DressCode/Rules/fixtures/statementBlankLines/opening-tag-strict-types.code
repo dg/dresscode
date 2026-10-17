@@ -1,0 +1,4 @@
+<?php declare(strict_types=1);
+
+// the line of the declaration of strict types is file.strictTypes.position's
+foo();

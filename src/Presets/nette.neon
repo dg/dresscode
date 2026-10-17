@@ -118,7 +118,6 @@ braces:
 
 # a range `1-2` leaves the choice to the author
 blankLines:
-	afterOpeningTag: keep
 	betweenImportKinds: 0
 	beforeDeclaration: 2                      # above the class of a file
 	aroundDeclarations: 1-2                   # around one among statements

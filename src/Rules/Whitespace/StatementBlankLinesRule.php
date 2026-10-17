@@ -24,7 +24,7 @@ final class StatementBlankLinesRule extends GapRule
 {
 	private const Kinds = ['break', 'continue', 'do', 'for', 'foreach', 'if', 'return', 'switch', 'throw', 'try', 'while', 'yield'];
 	private const Counts = [
-		'afterOpeningTag' => 'After the line of `<?php`, which then carries no code; a file with markup outside PHP keeps its tag',
+		'afterOpeningTag' => 'After the line of `<?php`, which then carries no code but a declaration of `strict_types` that `file.strictTypes.position` puts there; a file with markup outside PHP keeps its tag',
 		'afterDeclare' => 'After `declare(...);`, before whatever follows it but a namespace declaration',
 		'beforeNamespace' => 'Before the namespace declaration and, where a doc comment of the file stands above it, also between the two',
 		'afterNamespace' => 'After an unbraced namespace declaration',
@@ -141,7 +141,9 @@ final class StatementBlankLinesRule extends GapRule
 			&& self::isMonolithic($owner)
 		) {
 			$counts[] = $this->counts['afterOpeningTag'];
-			$line = Line::Next; // the tag ends its line before the blank lines after it can be counted
+			// the tag ends its line before the blank lines after it can be counted, except above the declaration
+			// of strict types, whose line `file.strictTypes.position` decides
+			$line = $stmt instanceof Statement\DeclareNode && $stmt->findDirective('strict_types') !== null ? null : Line::Next;
 		}
 
 		if ($stmt instanceof Statement\NamespaceNode && $this->counts['beforeNamespace'] !== null) {
@@ -301,13 +303,7 @@ final class StatementBlankLinesRule extends GapRule
 			}
 		}
 
-		for ($token = $file->getFirstToken(); $token !== null; $token = $token->getNext()) {
-			if ($token->is(Token::CloseTag)) {
-				return false;
-			}
-		}
-
-		return true;
+		return array_all($file->getTokens(), fn($token) => $token->id !== Token::CloseTag);
 	}
 
 

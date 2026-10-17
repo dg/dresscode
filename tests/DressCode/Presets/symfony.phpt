@@ -71,6 +71,7 @@ Assert::same(
 		'noBom',
 		'noClosingTag',
 		'noTrailingWhitespace',
+		'strictTypesRequired',
 		'arrowFunctionForClosure',
 		'functionNameSpacing',
 		'methodCasing',
