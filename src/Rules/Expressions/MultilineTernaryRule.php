@@ -69,10 +69,10 @@ final class MultilineTernaryRule extends GapRule
 
 			// an operand spanning lines before the last operator spans the ternary too, the operators then hiding at the
 			// ends of its lines; the last operand may span lines after them, which stay in sight, and so does `?:` after
-			// a condition closed by brackets alone opening their line, `) ?: throw …`, `]) ?: ''`
+			// a condition whose last line is opened by brackets alone or by the end of a string, `) ?: throw …`, `]) ?: ''`
 			$last = $ternary->then === null ? $ternary->question : $ternary->colon;
 			$closing = $ternary->condition->getLastToken();
-			$first = $ternary->then === null && self::opensLineWithBrackets($closing) ? $closing : $ternary->getFirstToken();
+			$first = $ternary->then === null && self::opensLineWithBracketsOrText($closing) ? $closing : $ternary->getFirstToken();
 			$because = $gap->once($ternary, fn() => match (true) {
 				$first->getCurrentLine() !== $last->getCurrentLine() => $this->layout->findShapes($first, null)[0] === ListLayout::PerLine
 					? $break
@@ -87,12 +87,21 @@ final class MultilineTernaryRule extends GapRule
 	}
 
 
-	/** Whether the closing bracket and the closing brackets before it alone open its line, `]) ?: ''`. */
-	private static function opensLineWithBrackets(Token $bracket): bool
+	/**
+	 * Whether the line of the closing bracket is opened by closing brackets alone, `]) ?: ''`, or by the end of a string
+	 * spanning lines, `~xi', $chain) ?: throw …`.
+	 */
+	private static function opensLineWithBracketsOrText(Token $bracket): bool
 	{
-		for ($token = $bracket; $token?->is([')', ']']); $token = $token->getPrevious()) {
-			if ($token->startsLine()) {
+		$brackets = true;
+		for ($token = $bracket; $token !== null; $token = $token->getPrevious()) {
+			if ($token !== $bracket && str_contains($token->text, "\n")) {
 				return true;
+			}
+
+			$brackets = $brackets && $token->is([')', ']']);
+			if ($token->startsLine()) {
+				return $brackets;
 			}
 		}
 

@@ -26,6 +26,9 @@ $a = [
 $a = iconv_mime_encode($b, $c, [
 	$d,
 ]) ?: '';
+preg_match_all('~
+	(?P<key> \w+)
+~xi', $b, $c) ?: throw new Exception;
 return ($b
 	? $c
 	: $d) ?: [];

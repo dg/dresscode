@@ -1,2 +1,2 @@
 3: Expected a line break before the `?` operator, because the ternary spans several lines.
-31: Expected a line break before the `?` operator, because the ternary spans several lines.
+34: Expected a line break before the `?` operator, because the ternary spans several lines.
