@@ -606,7 +606,7 @@ A function of the namespace of the file, `normalize()` in `namespace Acme\Text`.
 
 ### qualification.function.global
 
-A global function called in a namespace, `ucfirst()`, but one PHP optimizes a call of, which `function.optimized` decides.
+A global function called in a namespace, `ucfirst()`, but one PHP optimizes a call of there, which `function.optimized` decides.
 
 Not a function of the namespace of the file, nor a name in a file without a namespace, which `qualification.leadingBackslash` decides.
 
@@ -621,7 +621,7 @@ Not a function of the namespace of the file, nor a name in a file without a name
 
 A global function whose call PHP compiles to one opcode once it knows the function is global, `count()`, `strlen()`, `is_int()` and the others; a call of it written imported or with the backslash has its arguments passed positionally and an unpacked one reported.
 
-Every reference to such a function is decided here, a call PHP optimizes only with arguments of a shape, `in_array()` with a constant array, whatever arguments it has.
+A function is optimized in a namespace where one of its calls there is, an unpacked or named argument aside, `in_array()` only with a constant array, and every reference to it in that namespace is then written so; one none of whose calls is optimized is decided by `function.global`.
 
 - By default `keep`
 - Takes: `imported` (imported, `use function strlen;`, so that the compiler optimizes it); `backslashed` (with the leading backslash, `\strlen()`, so that the compiler optimizes it); `bare` (bare, `strlen()`, forgoing the optimization); a list of them, every one passing and the first written where none matches; `keep`
@@ -2725,7 +2725,7 @@ The order of the types of a native union.
 
 - By default `keep`
 - Takes: `required` (always there); `keep`
-- The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`
+- The standards: perCs `required`, psr12 `keep`, nette `keep`, symfony `required`
 - Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
 
 ### functions.arrowFunction.oneExpression

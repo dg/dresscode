@@ -158,6 +158,7 @@ functions:
 	innerFunction: forbidden
 	arrowFunction:
 		oneExpression: required               # `fn() =>` for a closure only returning
+		emptyBody: keep                       # `function () {}` stays a callback doing nothing
 	arrowFunctionNested: yes                  # also one holding another closure
 
 hygiene:
