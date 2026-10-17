@@ -1,0 +1,9 @@
+<?php
+// {"types.nullable": "T|null"}
+/**
+ * @param int|null $a
+ * @param Foo|null $b
+ * @return int|null
+ */
+function f($a, $b) {
+}

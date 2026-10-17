@@ -1,0 +1,3 @@
+4: The nullable type must be written `null|int`.
+4: `null` must come first in a union type.
+4: The nullable type must be written `null|array`.

@@ -10,13 +10,14 @@ namespace DressCode\Rules\Types;
 use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values, Violation};
 use DressCode\Domains\{Shapes, Words};
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\Type\{IntersectionTypeNode, NamedTypeNode, UnionTypeNode};
+use PhpSyntax\Nodes\Type\{IntersectionTypeNode, NamedTypeNode, NullableTypeNode, UnionTypeNode};
 use function count;
 
 
 /**
- * A nullable native type is written `?Foo`, not `Foo|null`; in a longer union `null` stands at one end, or where
- * it is written, and the other types may be asked to come in alphabetical order. The case of `null` is the matter
+ * A nullable native type is written `?Foo` or `Foo|null`, `null` standing where `types.nullPosition` puts it; in
+ * a longer union `null` stands at one end, or where it is written, and the other types may be asked to come in
+ * alphabetical order. The case of `null` is the matter
  * of `DeclaredNameCasingRule`, spaces around `|` of `TypeDeclarationSpacingRule`.
  */
 #[RuleInfo(Stage::Structure)]
@@ -27,7 +28,8 @@ final class TypeNotationRule extends NodeRule
 	private const NullPosition = 'types.nullPosition';
 	private const UnionOrder = 'types.unionOrder';
 
-	private bool $shortNullable = true;
+	/** questionMark or union, null where it is kept */
+	private ?string $nullable = 'questionMark';
 
 	/** where `null` stands in a union, null where it is kept */
 	private ?string $nullPosition = 'last';
@@ -41,7 +43,10 @@ final class TypeNotationRule extends NodeRule
 		return [
 			new Decision(
 				self::Nullable,
-				new Shapes(['questionMark' => ['?int', 'a single type with `null` written with `?`']]),
+				new Shapes([
+					'questionMark' => ['?int', 'a single type with `null` written with `?`'],
+					'union' => ['int|null', 'a union with `null`, which `types.nullPosition` places'],
+				]),
 				'How a native type of one type and `null` is written',
 			),
 			new Decision(
@@ -62,7 +67,7 @@ final class TypeNotationRule extends NodeRule
 
 	public function configure(Values $values): void
 	{
-		$this->shortNullable = !$values->isKept(self::Nullable);
+		$this->nullable = $values->find(self::Nullable)?->getShape();
 		$this->nullPosition = $values->isKept(self::NullPosition) ? null : $values->get(self::NullPosition)->getWord();
 		$this->order = $values->isKept(self::UnionOrder) ? null : $values->get(self::UnionOrder)->getWord();
 	}
@@ -70,13 +75,25 @@ final class TypeNotationRule extends NodeRule
 
 	public function getVisitedNodes(): array
 	{
-		return [UnionTypeNode::class];
+		return $this->nullable === 'union' ? [UnionTypeNode::class, NullableTypeNode::class] : [UnionTypeNode::class];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (!$node instanceof UnionTypeNode || $node->hasInnerComment()) {
+		if ($node instanceof NullableTypeNode && !$node->hasInnerComment()) {
+			$union = $this->nullPosition === 'first' ? 'null|' . $node->type->text : $node->type->text . '|null';
+			if ($context->report(
+				$node,
+				'The nullable type must be written ' . Violation::formatCode($union) . '.',
+				decision: self::Nullable,
+			)) {
+				$node->replaceWith((new Builder)->type($union));
+			}
+
+			return;
+
+		} elseif (!$node instanceof UnionTypeNode || $node->hasInnerComment()) {
 			return;
 		}
 
@@ -98,7 +115,7 @@ final class TypeNotationRule extends NodeRule
 			return;
 		}
 
-		if ($nulls !== [] && $this->shortNullable && count($others) === 1 && !$dnf) {
+		if ($nulls !== [] && $this->nullable === 'questionMark' && count($others) === 1 && !$dnf) {
 			if ($context->report(
 				$node,
 				'The nullable type must be written ' . Violation::formatCode('?' . $others[0]) . '.',

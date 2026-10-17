@@ -49,7 +49,7 @@ final class PhpCodeSniffer
 			}
 
 			$t->setAll(array_filter([
-				'types.nullable' => isset($o['shortNullable']) ? ($o['shortNullable'] === 'yes' ? 'questionMark' : 'keep') : null,
+				'types.nullable' => isset($o['shortNullable']) ? ($o['shortNullable'] === 'yes' ? 'questionMark' : 'union') : null,
 				'types.nullPosition' => $o['nullPosition'] ?? null,
 			], fn($v) => $v !== null));
 		};

@@ -1,0 +1,7 @@
+<?php
+// {"types.nullable": "T|null", "types.nullPosition": "first"}
+/**
+ * @param ?int $a
+ */
+function g($a) {
+}

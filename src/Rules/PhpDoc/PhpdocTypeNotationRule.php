@@ -8,7 +8,7 @@
 namespace DressCode\Rules\PhpDoc;
 
 use DressCode\Analyses\{PhpDoc, Types};
-use DressCode\{Decision, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Domains\{Shapes, Words};
 use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PhpSyntax\Analyses\NameResolver;
@@ -17,10 +17,10 @@ use PhpSyntax\{Node, SymbolKind, Token};
 
 /**
  * The notation of types in doc comments: built-in types in the short form (`int`, not `integer`) and in lowercase
- * (`int`, not `Int`) and a union naming every type once, as `phpdoc.types.builtin` says, arrays in one notation
+ * (`int`, not `Int`), as `phpdoc.types.builtin` says, a union naming every type once, arrays in one notation
  * (`array<int>` rather than `int[]`, or the other way round). A union is decided as `TypeNotationRule` decides a
- * native one, by decisions of its own: a single type with `null` may be written `?T`, `null` may stand at one end
- * and the other types in alphabetical order. Class names keep their case, `list<int>` is a
+ * native one, by decisions of its own: a single type with `null` may be written `?T` or `T|null`, `null` may stand
+ * at one end and the other types in alphabetical order. Class names keep their case, `list<int>` is a
  * different type and stays. A name imported or declared as a class (`Resource`) stays too; without `typeAnalysis`
  * a class declared in another file is not seen.
  */
@@ -28,13 +28,15 @@ use PhpSyntax\{Node, SymbolKind, Token};
 final class PhpdocTypeNotationRule extends NodeRule
 {
 	private const BuiltinNames = 'phpdoc.types.builtin';
+	private const Duplicate = 'phpdoc.types.duplicate';
 	private const Nullable = 'phpdoc.types.nullable';
 	private const NullPosition = 'phpdoc.types.nullPosition';
 	private const UnionOrder = 'phpdoc.types.unionOrder';
 	private const Array = 'phpdoc.types.array';
 
 	private bool $canonical = true;
-	private bool $shortNullable = false;
+	private bool $unique = true;
+	private ?string $nullable = null;
 	private ?string $nullPosition = null;
 	private bool $alphabetical = false;
 	private ?string $arrayNotation = null;
@@ -45,12 +47,16 @@ final class PhpdocTypeNotationRule extends NodeRule
 		return [
 			new Decision(
 				self::BuiltinNames,
-				new Words(['canonical' => 'the short lowercase name of a built-in type, each type of a union named once']),
-				'How a built-in type in a doc comment is written, `int` and never `integer` or `Int`, and whether a union names a type twice',
+				new Words(['canonical' => 'the short lowercase name of a built-in type, `never` for `no-return`']),
+				'How a built-in type in a doc comment is written, `int` and never `integer` or `Int`',
 			),
+			new Decision(self::Duplicate, Domain::state('forbidden'), 'A type a union of a doc comment names twice, `int|integer`'),
 			new Decision(
 				self::Nullable,
-				new Shapes(['questionMark' => ['?T', 'a single type with `null` written with `?`']]),
+				new Shapes([
+					'questionMark' => ['?T', 'a single type with `null` written with `?`'],
+					'union' => ['T|null', 'a union with `null`, which `phpdoc.types.nullPosition` places'],
+				]),
 				'How a type of a doc comment of one type and `null` is written',
 			),
 			new Decision(
@@ -74,7 +80,8 @@ final class PhpdocTypeNotationRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->canonical = !$values->isKept(self::BuiltinNames);
-		$this->shortNullable = !$values->isKept(self::Nullable);
+		$this->unique = !$values->isKept(self::Duplicate);
+		$this->nullable = $values->find(self::Nullable)?->getShape();
 		$this->nullPosition = $values->find(self::NullPosition)?->getWord();
 		$this->alphabetical = !$values->isKept(self::UnionOrder);
 		$this->arrayNotation = $values->find(self::Array)?->getShape();
@@ -108,7 +115,8 @@ final class PhpdocTypeNotationRule extends NodeRule
 			$visitor = new PhpdocTypeNotationVisitor(
 				$isClass,
 				$this->canonical,
-				$this->shortNullable,
+				$this->unique,
+				$this->nullable,
 				$this->nullPosition,
 				$this->alphabetical,
 				$this->arrayNotation,

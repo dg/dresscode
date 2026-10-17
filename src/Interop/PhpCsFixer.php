@@ -521,6 +521,10 @@ final class PhpCsFixer
 				$word = ($o['strategy'] ?? 'use_separator') === 'no_separator' ? 'forbidden' : 'required';
 				$t->setAll(['literals.digitSeparator.integer' => $word, 'literals.digitSeparator.fraction' => $word]);
 			},
+			'nullable_type_declaration' => fn(array $o, Translation $t) => $t->set(
+				'types.nullable',
+				($o['syntax'] ?? 'question_mark') === 'union' ? 'union' : 'questionMark',
+			),
 			'nullable_type_declaration_for_default_null_value' => fn(array $o, Translation $t) => ($o['use_nullable_type_declaration'] ?? true)
 				? $t->set('upgrading.php.implicitNullable', 'forbidden')
 				: $t->warn('`nullable_type_declaration_for_default_null_value` with `use_nullable_type_declaration=false` has no equivalent; DressCode adds the `?` instead of removing it.'),
@@ -601,7 +605,7 @@ final class PhpCsFixer
 			'phpdoc_trim' => ['phpdoc.blankLines' => 'trimmed'],
 			'phpdoc_trim_consecutive_blank_line_separation' => ['phpdoc.blankLines' => 'trimmed'],
 			'phpdoc_types' => fn(array $o, Translation $t) => $t->set('phpdoc.types.builtin', 'canonical'),
-			'phpdoc_types_no_duplicates' => fn(array $o, Translation $t) => $t->set('phpdoc.types.builtin', 'canonical'),
+			'phpdoc_types_no_duplicates' => ['phpdoc.types.duplicate' => 'forbidden'],
 			'phpdoc_types_order' => function (array $o, Translation $t) {
 				if ($o['case_sensitive'] ?? false) {
 					$t->warn('`phpdoc_types_order` with `case_sensitive=true` has no equivalent; DressCode sorts case-insensitively.');

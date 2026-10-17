@@ -1,0 +1,6 @@
+<?php
+// {"nullable": "int|null", "nullPosition": "first"}
+
+function f(?int $a, int|null $b): ?array
+{
+}

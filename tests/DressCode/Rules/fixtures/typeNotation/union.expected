@@ -1,0 +1,6 @@
+<?php
+// {"nullable": "int|null"}
+
+function f(int|null $a, int|null $b, string|null $c, Foo|null $d = null): array|null
+{
+}

@@ -1,0 +1,16 @@
+<?php
+/**
+ * @return no-return
+ */
+function f() {
+}
+
+
+/** @return never-returns */
+function g() {
+}
+
+
+/** @return noreturn */
+function h() {
+}

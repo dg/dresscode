@@ -26,6 +26,10 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 		'callback' => 'callable',
 		'real' => 'float',
 		'str' => 'string',
+		'noreturn' => 'never',
+		'no-return' => 'never',
+		'never-return' => 'never',
+		'never-returns' => 'never',
 	];
 
 	private const Builtin = [
@@ -44,7 +48,9 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 		/** @var \Closure(string): bool  whether the name stands for a class */
 		private readonly \Closure $isClass,
 		private readonly bool $canonical,
-		private readonly bool $shortNullable,
+		private readonly bool $unique,
+		/** questionMark or union, null where it is kept */
+		private readonly ?string $nullable,
 		private readonly ?string $nullPosition,
 		private readonly bool $alphabetical,
 		private readonly ?string $arrayNotation,
@@ -97,6 +103,15 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 
 		} elseif ($node instanceof UnionTypeNode) {
 			return $this->rewriteUnion($node);
+
+		} elseif ($node instanceof NullableTypeNode && $this->nullable === 'union') {
+			$first = $this->nullPosition === 'first';
+			$this->messages[] = [
+				'A nullable type in a doc comment must be written `' . ($first ? 'null|T' : 'T|null') . '`.',
+				'phpdoc.types.nullable',
+			];
+			$null = new IdentifierTypeNode('null');
+			return new UnionTypeNode($first ? [$null, $node->type] : [$node->type, $null]);
 		}
 
 		return null;
@@ -111,11 +126,11 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 	{
 		$unique = [];
 		foreach ($node->types as $i => $type) {
-			$unique[$this->canonical ? $this->readCanonically($type) : $i] ??= $type;
+			$unique[$this->unique ? $this->readCanonically($type) : $i] ??= $type;
 		}
 
 		if (count($unique) < count($node->types)) {
-			$this->messages[] = ['A union type in a doc comment names a type twice.', 'phpdoc.types.builtin'];
+			$this->messages[] = ['A union type in a doc comment names a type twice.', 'phpdoc.types.duplicate'];
 		}
 
 		$nulls = $others = [];
@@ -127,7 +142,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 			}
 		}
 
-		if ($nulls && count($others) === 1 && $this->shortNullable && self::canBeNullable($others[0])) {
+		if ($nulls && count($others) === 1 && $this->nullable === 'questionMark' && self::canBeNullable($others[0])) {
 			$this->messages[] = ['A nullable type in a doc comment must be written `?T`.', 'phpdoc.types.nullable'];
 			return new NullableTypeNode($others[0]);
 		}
@@ -171,12 +186,12 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 
 
 	/**
-	 * The type as it reads with its name written canonically, which a union is deduplicated by before its items are
-	 * visited, so that `integer|int` names one type.
+	 * The type as it reads with its name written canonically where the names are, which a union is deduplicated by
+	 * before its items are visited, so that `integer|int` names one type.
 	 */
 	private function readCanonically(TypeNode $type): string
 	{
-		return $type instanceof IdentifierTypeNode
+		return $type instanceof IdentifierTypeNode && $this->canonical
 			? $this->findCanonical($type->name) ?? $type->name
 			: (string) $type;
 	}

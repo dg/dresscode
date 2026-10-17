@@ -1,0 +1,3 @@
+2: The type `no-return` in a doc comment must be written `never`.
+9: The type `never-returns` in a doc comment must be written `never`.
+14: The type `noreturn` in a doc comment must be written `never`.
