@@ -138,6 +138,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\NoDoubleNegationsRule::class,
 				Rules\Expressions\NoErrorSuppressionRule::class,
 				Rules\Expressions\NoLooseComparisonsRule::class,
+				Rules\Expressions\NoLooseNumberComparisonsRule::class,
 				Rules\Expressions\NotEqualsNotationRule::class,
 				Rules\Expressions\NullCoalescingForNullTernaryRule::class,
 				Rules\Expressions\NullsafeForGuardedAccessRule::class,

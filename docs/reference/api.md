@@ -1086,6 +1086,7 @@ final readonly class Violation
 - `DressCode\Rules\Expressions\NoDoubleNegationsRule`
 - `DressCode\Rules\Expressions\NoErrorSuppressionRule`
 - `DressCode\Rules\Expressions\NoLooseComparisonsRule`
+- `DressCode\Rules\Expressions\NoLooseNumberComparisonsRule`
 - `DressCode\Rules\Expressions\NotEqualsNotationRule`
 - `DressCode\Rules\Expressions\NullCoalescingForNullTernaryRule`
 - `DressCode\Rules\Expressions\NullsafeForGuardedAccessRule`

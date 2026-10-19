@@ -1,0 +1,2 @@
+6: A number is compared with a string that is no number, which PHP 8.0 compares as strings.
+7: A number is compared with a string that is no number, which PHP 8.0 compares as strings.

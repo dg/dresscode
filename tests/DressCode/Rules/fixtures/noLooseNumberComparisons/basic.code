@@ -1,0 +1,13 @@
+<?php
+
+function compare(int $count, string $name, string $digits, float $ratio): bool
+{
+	$digits = (string) $count;
+	return $count == 'all'
+		|| 'none' != $count
+		|| $ratio < $name
+		|| $count == $digits
+		|| $count === 'all'
+		|| $count == 0
+		|| $name == 'all';
+}

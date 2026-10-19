@@ -26,4 +26,5 @@ mistakes:
 	trailingWhitespaceInString: forbidden       # in a multi-line string or inline HTML
 	consecutivePhpdocs: forbidden               # the first of two is lost, reported
 	repeatedAssignment: forbidden               # `$a = $a = 1`
+	looseNumberComparison: forbidden            # `0 == 'a'`, true before PHP 8.0, reported
 	debugOutput: forbidden                      # `// var_dump($a);`, risky
