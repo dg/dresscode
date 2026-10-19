@@ -36,14 +36,8 @@ final readonly class FileSummary
 	public static function of(FileResult $result): self
 	{
 		return new self(
-			$result->path,
-			$result->violations,
-			$result->remaining,
-			$result->changed,
-			$result->written,
-			$result->cached,
-			$result->syntaxError,
-			$result->failure,
+			$result->path, $result->violations, $result->remaining, $result->changed,
+			$result->written, $result->cached, $result->syntaxError, $result->failure,
 		);
 	}
 }

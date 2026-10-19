@@ -249,6 +249,7 @@ final readonly class CheckCommand
 			return $askRisky
 				? $this->review($runner, $result, $files, $root, $maxWarnings, $factory->registry)
 				: $result->getExitCode();
+
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
 		}

@@ -45,12 +45,7 @@ final readonly class RunnerFactory
 		[$target, $source] = $this->getPhpTarget($config, $root);
 		$project = $this->readProjectPackages($config, $root, $target);
 		$packages = PackageDiscovery::discover($project);
-		[$packagePlugins, $skipped, $unnamed] = $this->admitPackagePlugins(
-			$packages->plugins,
-			$config,
-			$commandLine,
-			$project->rootName,
-		);
+		[$packagePlugins, $skipped, $unnamed] = $this->admitPackagePlugins($packages->plugins, $config, $commandLine, $project->rootName);
 		$visited = [];
 		$plugins = [
 			...$this->loadPlugins($packagePlugins, $visited),

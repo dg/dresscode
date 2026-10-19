@@ -159,8 +159,7 @@ readonly class Profile
 				$names[] = match (true) {
 					$use->alias !== null => throw new \InvalidArgumentException("`$item` gives the $keyword an alias, which says nothing about what a namespace declares."),
 					!str_contains(
-						$use->fullName,
-						'\\',
+						$use->fullName, '\\',
 					) => throw new \InvalidArgumentException("`$use->fullName` is in no namespace, and a global $keyword needs no listing."),
 					default => $use->fullName,
 				};

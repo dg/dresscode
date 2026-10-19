@@ -115,14 +115,7 @@ final readonly class ProjectPackages
 	public function withTargets(array $versions): self
 	{
 		return new self(
-			$this->rootName,
-			$this->rootPath,
-			$this->rootExtra,
-			$this->required,
-			$this->installed,
-			$versions,
-			$this->replaced,
-			$this->php,
+			$this->rootName, $this->rootPath, $this->rootExtra, $this->required, $this->installed, $versions, $this->replaced, $this->php,
 		);
 	}
 

@@ -153,18 +153,10 @@ test(
 		// the receiver
 		Assert::true($matches('acme\cache\STORAGE::getCacheKey', MemberKind::Method, 'getCacheKey'));
 		Assert::true($matches(
-			'Acme\Cache\FileStorage::getCacheKey',
-			MemberKind::Method,
-			'getCacheKey',
-			'Acme\Cache\FileStorage',
-			'Acme\Cache\OldStorage',
+			'Acme\Cache\FileStorage::getCacheKey', MemberKind::Method, 'getCacheKey', 'Acme\Cache\FileStorage', 'Acme\Cache\OldStorage',
 		));
 		Assert::false($matches(
-			'Acme\Cache\FileStorage::getCacheKey',
-			MemberKind::Method,
-			'getCacheKey',
-			'App\MyStorage',
-			'Acme\Cache\Unrelated',
+			'Acme\Cache\FileStorage::getCacheKey', MemberKind::Method, 'getCacheKey', 'App\MyStorage', 'Acme\Cache\Unrelated',
 		));
 		Assert::false($matches('App\MyStorage::getCacheKey', MemberKind::Method, 'getCacheKey', 'Acme\Cache\FileStorage'));
 		Assert::true($matches('Acme\Removed::run', MemberKind::Method, 'run', 'Acme\Removed'));
@@ -183,9 +175,7 @@ test(
 test('a method declaration is of the member when a subtype of its class declares it', function () {
 	$types = createTypes();
 	$matches = fn(string $key, string $class, string $method) => MemberPattern::fromKey($key)->matchesMethodDeclaration(
-		$class,
-		$method,
-		$types,
+		$class, $method, $types,
 	);
 
 	Assert::true($matches('Acme\Cache\FileStorage::getCacheKey', 'App\MyStorage', 'getcachekey'));
@@ -205,9 +195,7 @@ test('a method declaration is of the member when a subtype of its class declares
 test('a property declaration is of the member when a subtype of its class declares it, a key of a hook being of its uses', function () {
 	$types = createTypes();
 	$matches = fn(string $key, string $class, string $property) => MemberPattern::fromKey($key)->matchesPropertyDeclaration(
-		$class,
-		$property,
-		$types,
+		$class, $property, $types,
 	);
 
 	Assert::true($matches('Acme\Cache\FileStorage::$directory', 'App\MyStorage', 'directory'));

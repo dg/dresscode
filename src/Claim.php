@@ -139,14 +139,7 @@ final readonly class Claim
 	public function withDecision(string $decision, ?string $belowComment = null, ?string $line = null): self
 	{
 		return new self(
-			$this->space,
-			$this->line,
-			$this->blankLines,
-			$this->blankLinesBelowComment,
-			$this->because,
-			$decision,
-			$belowComment,
-			$line,
+			$this->space, $this->line, $this->blankLines, $this->blankLinesBelowComment, $this->because, $decision, $belowComment, $line,
 		);
 	}
 

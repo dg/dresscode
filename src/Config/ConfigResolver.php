@@ -906,9 +906,7 @@ final class ConfigResolver
 				)));
 				$this->warnings["only $expanded->name"] = 'Option `--only` keeps ' . count($running) . ' of the ' . (count(
 					$running,
-				) + count(
-					$left,
-				))
+				) + count($left))
 					. ' rules of ' . $expanded->format() . ' that may run here'
 					. ($laid || !$expanded->preset
 						? ', without ' . implode(', ', array_slice($names, 0, 5)) . (count($names) > 5

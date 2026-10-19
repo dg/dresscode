@@ -406,12 +406,7 @@ final class NativeTypeRequiredRule extends NodeRule
 
 			$localTypes = $context->getAnalysis(PhpDoc::class)->findLocalTypes($owner);
 			$native = NativeType::fromAnnotation(
-				$annotation,
-				$place,
-				$context->phpVersion,
-				$this->traversableClasses,
-				$localTypes,
-				$resolve,
+				$annotation, $place, $context->phpVersion, $this->traversableClasses, $localTypes, $resolve,
 			);
 			if ($native !== null && $default instanceof Scalar\NullNode && !self::takesNull($native)) {
 				$native = match (true) {

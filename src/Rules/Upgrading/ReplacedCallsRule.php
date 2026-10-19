@@ -138,15 +138,11 @@ final class ReplacedCallsRule extends NodeRule
 
 		match (true) {
 			$node instanceof MethodCallNode, $node instanceof StaticMethodCallNode, $node instanceof NewNode => $this->enterCall(
-				$node,
-				$context,
+				$node, $context,
 			),
 			$node instanceof PropertyFetchNode,
 			$node instanceof StaticPropertyFetchNode,
-			$node instanceof ArrayAccessNode => $this->enterAccess(
-				$node,
-				$context,
-			),
+			$node instanceof ArrayAccessNode => $this->enterAccess($node, $context),
 			$node instanceof AssignmentNode => $this->enterAssignment($node, $context),
 			$node instanceof IssetNode, $node instanceof UnsetNode => $this->enterIssetOrUnset($node, $context),
 			$node instanceof MethodNode => $this->enterDeclaration($node, $context),

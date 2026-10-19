@@ -74,24 +74,9 @@ final class FileResult
 	public function withListed(array $violations, array $remaining, int $unlisted, array $leftDecisions = []): self
 	{
 		return new self(
-			$this->path,
-			$this->code,
-			$this->output,
-			$violations,
-			$this->warnings,
-			$this->syntaxError,
-			$this->syntaxErrorLine,
-			$this->passes,
-			$this->failure,
-			$this->failureDocs,
-			$this->baselined,
-			$remaining,
-			$this->written,
-			$this->cached,
-			$this->removedImports,
-			$this->mutatedRules,
-			$unlisted,
-			$leftDecisions,
+			$this->path, $this->code, $this->output, $violations, $this->warnings, $this->syntaxError,
+			$this->syntaxErrorLine, $this->passes, $this->failure, $this->failureDocs, $this->baselined, $remaining,
+			$this->written, $this->cached, $this->removedImports, $this->mutatedRules, $unlisted, $leftDecisions,
 		);
 	}
 

@@ -131,9 +131,7 @@ test('every claim of a gap rule is made for a decision of that rule', function (
 		);
 		$values = $resolver->createValues($resolved);
 		$rule = RuleBuilder::buildFromDecisions(
-			$resolver,
-			$resolved,
-			$values,
+			$resolver, $resolved, $values,
 		)[0] ?? throw new LogicException("$class does not run with the values of its fixtures.");
 
 		$gaps = new Gaps\Resolver(new RulePlan([$rule])->claims);

@@ -67,8 +67,7 @@ final readonly class ConfigCommand
 
 		} else {
 			['config' => $config, 'root' => $root, 'file' => $configFile, 'commandLine' => $commandLine] = $this->context->loadConfig(
-				$args,
-				$configuration,
+				$args, $configuration,
 			);
 		}
 		$resolution = $factory->resolve($config, $root, $commandLine, $only ?: null);

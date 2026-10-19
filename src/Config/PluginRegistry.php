@@ -181,12 +181,7 @@ final class PluginRegistry
 		if ($this->catalogue === null) {
 			[$core, $plugins, $project] = $this->getRulesByOrigin();
 			$this->catalogue = new Catalogue(
-				$core,
-				$plugins,
-				$project,
-				$this->coreDecisions,
-				$this->pluginDecisions,
-				$this->pluginDependencies,
+				$core, $plugins, $project, $this->coreDecisions, $this->pluginDecisions, $this->pluginDependencies,
 			);
 		}
 

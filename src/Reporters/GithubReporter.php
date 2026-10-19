@@ -66,12 +66,7 @@ final class GithubReporter implements Reporter
 
 		foreach ($this->fix ? $result->remaining : $result->violations as $violation) {
 			$this->annotate(
-				$violation->severity->value,
-				$path,
-				$violation->line,
-				$violation->column,
-				$violation->decision,
-				$violation->message,
+				$violation->severity->value, $path, $violation->line, $violation->column, $violation->decision, $violation->message,
 			);
 		}
 	}
