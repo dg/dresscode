@@ -12,7 +12,7 @@
 	],
 	"require": {
 		"php": "8.4 - 8.6",
-		"nette/command-line": "^2.0",
+		"nette/command-line": "dev-master",
 		"nette/neon": "^3.4 || ^4.0",
 		"nette/schema": "^1.4 || ^2.0",
 		"nette/utils": "^4.1",

@@ -8,7 +8,7 @@
 namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, RuleException};
-use Nette\CommandLine\{ColorDepth, Command, Console, HelpRenderer, Parser as CommandLineParser, Prompt, UsageException};
+use Nette\CommandLine\{ColorDepth, Command, Console, Prompt, Runner};
 use Nette\Utils\FileSystem;
 use function extension_loaded;
 
@@ -67,28 +67,17 @@ final readonly class Application
 	 */
 	public function run(array $argv): int
 	{
-		[$context, $out, $err] = [$this->context, $this->context->out, $this->context->err];
+		[$context, $err] = [$this->context, $this->context->err];
 		try {
-			$args = (new CommandLineParser)->parse($this->defineCommandLine(), array_slice($argv, 1));
-			if ($args->get('--no-color')) {
-				$out->setColorDepth(ColorDepth::None);
-				$err->setColorDepth(ColorDepth::None);
-			}
-
-			if ($args->get('--version')) {
-				$out->writeLine(CommandContext::formatName($out));
-				return 0;
-			} elseif ($args->get('--help')) {
-				$out->writeLine(CommandContext::formatName($out) . "\n");
-				new HelpRenderer($out)->render($args->command);
-				return 0;
-			}
-
-			return $args->run();
-
-		} catch (UsageException $e) {
-			new HelpRenderer($this->context->err)->renderError($e);
-			return 3;
+			$runner = new Runner(
+				$this->defineCommandLine(),
+				version: CommandContext::formatName(...),
+				colorFlag: true,
+				usageExitCode: 3,
+				out: $context->out,
+				err: $err,
+			);
+			return $runner->run(array_slice($argv, 1));
 
 		} catch (ConfigurationException $e) {
 			$context->writeError($e->getMessage(), $e->docs);
@@ -127,9 +116,6 @@ final readonly class Application
 	private function defineCommandLine(): Command
 	{
 		$program = new Command('dresscode', 'A dress code for PHP: checks, fixes and upgrades the code.', commandRequired: true);
-		$program->addFlag('--no-color', 'Print plain output without colors');
-		$program->addFlag('--help', 'Print this help', standalone: true);
-		$program->addFlag('--version', 'Print the name and the version', standalone: true);
 
 		$context = $this->context;
 		foreach ([ // in the order the help lists them
