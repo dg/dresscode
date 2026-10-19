@@ -19,7 +19,6 @@ file:
 		declaration: required                 # risky, `'1'` passed to `int` then throws
 		position: sameLine
 	lineLength: 140                           # a tab counts as 4 columns
-	longLines: forbidden
 	lineLengthExcept: [imports, strings]      # a line too wide only for its strings is not reported
 
 indentation:

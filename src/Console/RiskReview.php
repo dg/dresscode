@@ -56,13 +56,13 @@ final class RiskReview
 	{
 		$path = Helpers::toAbsolutePath($file->path, $this->root);
 		$original = $text = FileSystem::read($path);
-		$declined = []; // the fingerprints of the occurrences answered
-		$made = 0;
+		$answered = [];
+		$accepted = 0;
 		$going = true;
 		while ($going) {
 			$next = array_find(
 				$this->runner->processCode($path, $text)->remaining,
-				fn(Violation $v) => $v->refused && !isset($declined[$v->fingerprint]),
+				fn(Violation $v) => $v->refused && !isset($answered[$v->fingerprint]),
 			);
 			if ($next === null) {
 				break;
@@ -73,11 +73,11 @@ final class RiskReview
 				? 'n'
 				: (isset($this->acceptedDecisions[$next->decision]) ? 'y' : $this->ask($file->path, $next, $text, $proposed));
 			// an occurrence is asked about once, so a fix that leaves the same one behind cannot ask for ever
-			$declined[$next->fingerprint] = true;
+			$answered[$next->fingerprint] = true;
 			if ($answer === 'y' || $answer === 'a') {
 				assert($proposed !== null);
 				$text = $proposed;
-				$made++;
+				$accepted++;
 				if ($answer === 'a') {
 					$this->acceptedDecisions[$next->decision] = true;
 				}
@@ -94,7 +94,7 @@ final class RiskReview
 					'yellow',
 				));
 			} elseif (Helpers::writeFile($path, $text)) {
-				$this->made += $made;
+				$this->made += $accepted;
 			} else {
 				$this->console->writeLine($this->console->color('red', 'Error:') . ' ' . Markup::highlightCode($this->console, "Cannot write file `$file->path`, so its fixes were not made."));
 			}

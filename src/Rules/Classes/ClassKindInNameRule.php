@@ -17,10 +17,10 @@ use function strlen;
 
 /**
  * Whether the kind of a type is repeated in its name: `forbidden` reports `AbstractFoo` for an abstract class,
- * `FooInterface` for an interface, `FooTrait` for a trait and `FooError` for a plain class, `required` reports an
- * interface, a trait or an abstract class whose name does not carry the word its kind is named by. An exception is
- * a class the types of the code say is an `Exception`, or without them one extending a class of PHP named after an
- * exception, or a class of the file that is one. Reported either way, never fixed, because renaming a type
+ * `FooInterface` for an interface, `FooTrait` for a trait and `FooError` for a class that is not abstract, `required`
+ * reports an interface, a trait or an abstract class whose name does not carry the word its kind is named by. An
+ * exception is a class the types of the code say is an `Exception`, or without them one extending a class of PHP named
+ * after an exception, or a class of the file that is one. Reported either way, never fixed, because renaming a type
  * is not a change of one file.
  */
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class, PhpSymbols::class, Types::class])]
@@ -68,7 +68,7 @@ final class ClassKindInNameRule extends NodeRule
 			new Decision(
 				'naming.errorAffix',
 				Domain::state(),
-				'The word `Error` at the end of the name of a plain class, `FooError`, which is reported and never renamed',
+				'The word `Error` at the end of the name of a class that is not abstract, `FooError`, which is reported and never renamed',
 			),
 		];
 	}

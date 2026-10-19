@@ -329,7 +329,7 @@ The case of the name of a case of an enum, which is reported and never renamed.
 
 ### naming.errorAffix
 
-The word `Error` at the end of the name of a plain class, `FooError`, which is reported and never renamed.
+The word `Error` at the end of the name of a class that is not abstract, `FooError`, which is reported and never renamed.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
