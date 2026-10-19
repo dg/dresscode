@@ -1135,6 +1135,7 @@ final readonly class Violation
 - `DressCode\Rules\Functions\NoManualSubstringTestsRule`
 - `DressCode\Rules\Functions\NoNullArgumentsRule`
 - `DressCode\Rules\Functions\NoSettypeRule`
+- `DressCode\Rules\Functions\NoUncountableCountsRule`
 - `DressCode\Rules\Functions\RedundantArgumentsRule`
 - `DressCode\Rules\Functions\RoundingModeNotationRule`
 - `DressCode\Rules\Functions\SensitiveParameterRequiredRule`

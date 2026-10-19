@@ -187,6 +187,7 @@ final class CorePlugin implements Plugin
 				Rules\Functions\NoManualSubstringTestsRule::class,
 				Rules\Functions\NoNullArgumentsRule::class,
 				Rules\Functions\NoSettypeRule::class,
+				Rules\Functions\NoUncountableCountsRule::class,
 				Rules\Functions\RedundantArgumentsRule::class,
 				Rules\Functions\RoundingModeNotationRule::class,
 				Rules\Functions\SensitiveParameterRequiredRule::class,

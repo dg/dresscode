@@ -1,0 +1,6 @@
+<?php
+
+function sizes(array $items, Countable $set, string $name, ?array $maybe, int $number): int
+{
+	return count($items) + count($set) + count($name) + count($maybe) + sizeof($number) + count(value: 'x');
+}

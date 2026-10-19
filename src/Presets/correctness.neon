@@ -27,4 +27,5 @@ mistakes:
 	consecutivePhpdocs: forbidden               # the first of two is lost, reported
 	repeatedAssignment: forbidden               # `$a = $a = 1`
 	looseNumberComparison: forbidden            # `0 == 'a'`, true before PHP 8.0, reported
+	countOfUncountable: forbidden               # `count()` of no array and no `Countable`, reported
 	debugOutput: forbidden                      # `// var_dump($a);`, risky
