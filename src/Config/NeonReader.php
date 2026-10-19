@@ -287,7 +287,8 @@ final class NeonReader
 	/** The title of a preset, the first line of the comment its file opens with. */
 	public static function readPresetTitle(string $file): string
 	{
-		return preg_match('~\A#[ \t]*(\S.*?)\s*$~m', (string) file_get_contents($file), $m) ? $m[1] : '';
+		$line = (string) strtok((string) file_get_contents($file), "\r\n");
+		return str_starts_with($line, '#') ? trim(substr($line, 1)) : '';
 	}
 
 
