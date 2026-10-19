@@ -967,6 +967,15 @@ test('a worker builds a rule of a plugin by the factory of its manifest, as the 
 });
 
 
+test('a worker gets a value starting with a dash as a value', function () use ($root) {
+	@unlink("$root/-profile.json"); // @ may not exist
+	[$code, , $err] = runApp($root, ['check', '--config', "$root/jobs.php", '--no-cache', '--jobs', '2', '--profile=-profile.json']);
+	Assert::same('', $err);
+	Assert::same(0, $code);
+	Assert::true(is_file("$root/-profile.json"));
+});
+
+
 test('a file a worker cannot write fails alone, the others are fixed', function () use ($root) {
 	file_put_contents(
 		"$root/readonly.php",
@@ -1012,6 +1021,52 @@ test('rules that do not fit are a configuration error with workers too', functio
 	[$code, , $err] = runApp($root, ['check', '--config', "$root/typo.php", '--no-cache', '--jobs', '2']);
 	Assert::same(3, $code);
 	Assert::match('%A%Rule `ConsoleTypo` visits `Acme\Shop\NoSuchNode`, which is no class of a node or a token.%A%', $err);
+});
+
+
+test('a profile counts the same with workers as in the process', function () use ($root) {
+	file_put_contents(
+		"$root/profile.php",
+		"<?php\nreturn new DressCode\\Config(paths: ['profile'], decisions: ['casing' => ['keyword' => 'lowercase'],'file' => ['trailingWhitespace' => 'forbidden']]);\n",
+	);
+	@mkdir("$root/profile"); // @ directory may already exist
+	for ($i = 0; $i < 8; $i++) {
+		file_put_contents("$root/profile/$i.php", "<?php\nIF (\$a) { \$b; }\t\n");
+	}
+
+	$counts = [];
+	foreach (['1', '2'] as $jobs) {
+		[$code, , $err] = runApp(
+			$root,
+			['check', '--config', "$root/profile.php", '--jobs', $jobs, '--profile', "$root/profile-$jobs.json"],
+		);
+		Assert::same('', $err);
+		Assert::same(1, $code);
+		$profile = json_decode(FileSystem::read("$root/profile-$jobs.json"), associative: true);
+		Assert::same(8, $profile['files']);
+		Assert::true($profile['rules'][DressCode\Rules\Literals\BuiltinCasingRule::class]['calls'] > 0);
+		Assert::same(8, $profile['rules'][DressCode\Rules\Literals\BuiltinCasingRule::class]['mutating']);
+		Assert::true($profile['phases']['passes']['time'] >= array_sum(array_column($profile['rules'], 'time')));
+		$count = [
+			array_map(fn($entry) => [$entry['calls'], $entry['mutating']], $profile['rules']),
+			array_map(fn($entry) => $entry['calls'], $profile['claims']),
+			array_map(
+				fn($entry) => $entry['calls'],
+				array_intersect_key($profile['phases'], ['parse' => 0, 'passes' => 0, 'print' => 0, 'gaps' => 0]),
+			),
+		];
+		array_walk($count, ksort(...)); // the tables are ordered by time, which differs between runs
+		$counts[] = $count;
+	}
+
+	Assert::same($counts[0], $counts[1]);
+	if (findPhpCliBinary() !== null) {
+		Assert::count(2 + 1, json_decode(FileSystem::read("$root/profile-2.json"), associative: true)['peakMemory']); // the parent and two workers
+	}
+
+	// writing a baseline is a run of check too, whether it ends with one or with code a fix would change
+	runApp($root, ['baseline', '--config', "$root/profile.php", '--profile', "$root/profile-baseline.json"]);
+	Assert::same(8, json_decode(FileSystem::read("$root/profile-baseline.json"), associative: true)['files']);
 });
 
 
