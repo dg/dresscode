@@ -1,0 +1,23 @@
+<?php
+// php 8.1
+
+/**
+ * @requires PHP 8.0
+ */
+final class OrderTest
+{
+	/**
+	 * The total is counted.
+	 * @requires PHP >= 8.1
+	 * @requires extension intl
+	 */
+	public function testTotal(): void
+	{
+	}
+
+
+	/** @requires PHP 8.2 */
+	public function testRounding(): void
+	{
+	}
+}

@@ -38,6 +38,7 @@ hygiene:
 	repeatedCatchBody: forbidden             # `catch (A|B $e)` for two catches of one body
 	separateIssets: forbidden                # `isset($a, $b)`
 	separateUnsets: forbidden                # `unset($a, $b);`
+	uselessVersionCheck: forbidden           # no `if (PHP_VERSION_ID >= 80000)` the target always passes
 
 controlFlow:
 	emptyStatement: forbidden                # `foo();;`

@@ -1066,6 +1066,7 @@ final readonly class Violation
 - `DressCode\Rules\ControlFlow\UselessCatchVariableRule`
 - `DressCode\Rules\ControlFlow\UselessElseRule`
 - `DressCode\Rules\ControlFlow\UselessReturnRule`
+- `DressCode\Rules\ControlFlow\UselessVersionCheckRule`
 - `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`
 - `DressCode\Rules\Expressions\CastCanonicalTypeRule`
 - `DressCode\Rules\Expressions\CloneWithNotationRule`

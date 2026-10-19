@@ -1,0 +1,46 @@
+<?php
+// php 8.1
+
+function run(string $text): string
+{
+	if (PHP_VERSION_ID >= 80000) {
+		$text = str_contains($text, 'a') ? 'a' : $text;
+	} else {
+		$text = strpos($text, 'a') !== false ? 'a' : $text;
+	}
+
+	if (PHP_VERSION_ID < 80000) {
+		$text = utf8_encode($text);
+	}
+
+	if (\PHP_VERSION_ID < 80100) {
+		return $text;
+	} else {
+		return strtoupper($text);
+	}
+
+	if (80200 <= PHP_VERSION_ID) {
+		$text .= '!';
+	}
+
+	if (version_compare(PHP_VERSION, '7.4', '>=') && PHP_MAJOR_VERSION >= 8) {
+		$text .= '?';
+	}
+
+	if (!(PHP_VERSION_ID >= 80000)) {
+		$text .= '-';
+	}
+
+	if (PHP_VERSION_ID < 80000) {
+		// the old way
+		$text .= '#';
+	}
+
+	if (PHP_VERSION_ID < 80000) {
+		$text .= '1';
+	} elseif ($text === '') {
+		$text .= '2';
+	}
+
+	return PHP_VERSION_ID >= 80000 ? $text : strrev($text);
+}

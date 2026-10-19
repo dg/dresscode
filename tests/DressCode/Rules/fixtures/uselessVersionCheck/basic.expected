@@ -1,0 +1,28 @@
+<?php
+// php 8.1
+
+function run(string $text): string
+{
+	$text = str_contains($text, 'a') ? 'a' : $text;
+
+	return strtoupper($text);
+
+	if (80200 <= PHP_VERSION_ID) {
+		$text .= '!';
+	}
+
+	$text .= '?';
+
+	if (PHP_VERSION_ID < 80000) {
+		// the old way
+		$text .= '#';
+	}
+
+	if (PHP_VERSION_ID < 80000) {
+		$text .= '1';
+	} elseif ($text === '') {
+		$text .= '2';
+	}
+
+	return $text;
+}

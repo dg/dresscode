@@ -1,0 +1,2 @@
+4: Useless version check, because PHP 8.1 and newer, which the code runs on, always pass it.
+9: Useless version check, because PHP 8.1 and newer, which the code runs on, always pass it.

@@ -1,0 +1,8 @@
+6: Useless version check, because PHP 8.1 and newer, which the code runs on, always pass it.
+12: Useless version check, because PHP 8.1 and newer, which the code runs on, always fail it.
+16: Useless version check, because PHP 8.1 and newer, which the code runs on, always fail it.
+26: Useless version check, because PHP 8.1 and newer, which the code runs on, always pass it.
+30: Useless version check, because PHP 8.1 and newer, which the code runs on, always fail it.
+34: Useless version check, because PHP 8.1 and newer, which the code runs on, always fail it.
+39: Useless version check, because PHP 8.1 and newer, which the code runs on, always fail it.
+45: Useless version check, because PHP 8.1 and newer, which the code runs on, always pass it.

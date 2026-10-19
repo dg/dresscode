@@ -118,6 +118,7 @@ final class CorePlugin implements Plugin
 				Rules\ControlFlow\UselessCatchVariableRule::class,
 				Rules\ControlFlow\UselessElseRule::class,
 				Rules\ControlFlow\UselessReturnRule::class,
+				Rules\ControlFlow\UselessVersionCheckRule::class,
 				Rules\Expressions\BinaryOperatorSpacingRule::class,
 				Rules\Expressions\CastCanonicalTypeRule::class,
 				Rules\Expressions\CloneWithNotationRule::class,
