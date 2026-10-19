@@ -48,6 +48,47 @@ since 8.5:
 		'imagedestroy($image)': {write: removed, from: '8.0'}
 		'xml_parser_free($parser)': {write: removed, from: '8.0'}
 	replacedMembers:
+		PDO::DBLIB_ATTR_CONNECTION_TIMEOUT: {write: \Pdo\Dblib::ATTR_CONNECTION_TIMEOUT, from: '8.4'}
+		PDO::DBLIB_ATTR_DATETIME_CONVERT: {write: \Pdo\Dblib::ATTR_DATETIME_CONVERT, from: '8.4'}
+		PDO::DBLIB_ATTR_QUERY_TIMEOUT: {write: \Pdo\Dblib::ATTR_QUERY_TIMEOUT, from: '8.4'}
+		PDO::DBLIB_ATTR_SKIP_EMPTY_ROWSETS: {write: \Pdo\Dblib::ATTR_SKIP_EMPTY_ROWSETS, from: '8.4'}
+		PDO::DBLIB_ATTR_STRINGIFY_UNIQUEIDENTIFIER: {write: \Pdo\Dblib::ATTR_STRINGIFY_UNIQUEIDENTIFIER, from: '8.4'}
+		PDO::DBLIB_ATTR_TDS_VERSION: {write: \Pdo\Dblib::ATTR_TDS_VERSION, from: '8.4'}
+		PDO::DBLIB_ATTR_VERSION: {write: \Pdo\Dblib::ATTR_VERSION, from: '8.4'}
+		PDO::FB_ATTR_DATE_FORMAT: {write: \Pdo\Firebird::ATTR_DATE_FORMAT, from: '8.4'}
+		PDO::FB_ATTR_TIMESTAMP_FORMAT: {write: \Pdo\Firebird::ATTR_TIMESTAMP_FORMAT, from: '8.4'}
+		PDO::FB_ATTR_TIME_FORMAT: {write: \Pdo\Firebird::ATTR_TIME_FORMAT, from: '8.4'}
+		PDO::MYSQL_ATTR_COMPRESS: {write: \Pdo\Mysql::ATTR_COMPRESS, from: '8.4'}
+		PDO::MYSQL_ATTR_DIRECT_QUERY: {write: \Pdo\Mysql::ATTR_DIRECT_QUERY, from: '8.4'}
+		PDO::MYSQL_ATTR_FOUND_ROWS: {write: \Pdo\Mysql::ATTR_FOUND_ROWS, from: '8.4'}
+		PDO::MYSQL_ATTR_IGNORE_SPACE: {write: \Pdo\Mysql::ATTR_IGNORE_SPACE, from: '8.4'}
+		PDO::MYSQL_ATTR_INIT_COMMAND: {write: \Pdo\Mysql::ATTR_INIT_COMMAND, from: '8.4'}
+		PDO::MYSQL_ATTR_LOCAL_INFILE: {write: \Pdo\Mysql::ATTR_LOCAL_INFILE, from: '8.4'}
+		PDO::MYSQL_ATTR_LOCAL_INFILE_DIRECTORY: {write: \Pdo\Mysql::ATTR_LOCAL_INFILE_DIRECTORY, from: '8.4'}
+		PDO::MYSQL_ATTR_MAX_BUFFER_SIZE: {write: \Pdo\Mysql::ATTR_MAX_BUFFER_SIZE, from: '8.4'}
+		PDO::MYSQL_ATTR_MULTI_STATEMENTS: {write: \Pdo\Mysql::ATTR_MULTI_STATEMENTS, from: '8.4'}
+		PDO::MYSQL_ATTR_READ_DEFAULT_FILE: {write: \Pdo\Mysql::ATTR_READ_DEFAULT_FILE, from: '8.4'}
+		PDO::MYSQL_ATTR_READ_DEFAULT_GROUP: {write: \Pdo\Mysql::ATTR_READ_DEFAULT_GROUP, from: '8.4'}
+		PDO::MYSQL_ATTR_SERVER_PUBLIC_KEY: {write: \Pdo\Mysql::ATTR_SERVER_PUBLIC_KEY, from: '8.4'}
+		PDO::MYSQL_ATTR_SSL_CA: {write: \Pdo\Mysql::ATTR_SSL_CA, from: '8.4'}
+		PDO::MYSQL_ATTR_SSL_CAPATH: {write: \Pdo\Mysql::ATTR_SSL_CAPATH, from: '8.4'}
+		PDO::MYSQL_ATTR_SSL_CERT: {write: \Pdo\Mysql::ATTR_SSL_CERT, from: '8.4'}
+		PDO::MYSQL_ATTR_SSL_CIPHER: {write: \Pdo\Mysql::ATTR_SSL_CIPHER, from: '8.4'}
+		PDO::MYSQL_ATTR_SSL_KEY: {write: \Pdo\Mysql::ATTR_SSL_KEY, from: '8.4'}
+		PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT: {write: \Pdo\Mysql::ATTR_SSL_VERIFY_SERVER_CERT, from: '8.4'}
+		PDO::MYSQL_ATTR_USE_BUFFERED_QUERY: {write: \Pdo\Mysql::ATTR_USE_BUFFERED_QUERY, from: '8.4'}
+		PDO::ODBC_ATTR_USE_CURSOR_LIBRARY: {write: \Pdo\Odbc::ATTR_USE_CURSOR_LIBRARY, from: '8.4'}
+		PDO::ODBC_SQL_USE_DRIVER: {write: \Pdo\Odbc::SQL_USE_DRIVER, from: '8.4'}
+		PDO::ODBC_SQL_USE_IF_NEEDED: {write: \Pdo\Odbc::SQL_USE_IF_NEEDED, from: '8.4'}
+		PDO::ODBC_SQL_USE_ODBC: {write: \Pdo\Odbc::SQL_USE_ODBC, from: '8.4'}
+		PDO::PGSQL_ATTR_DISABLE_PREPARES: {write: \Pdo\Pgsql::ATTR_DISABLE_PREPARES, from: '8.4'}
+		PDO::SQLITE_ATTR_EXTENDED_RESULT_CODES: {write: \Pdo\Sqlite::ATTR_EXTENDED_RESULT_CODES, from: '8.4'}
+		PDO::SQLITE_ATTR_OPEN_FLAGS: {write: \Pdo\Sqlite::OPEN_FLAGS, from: '8.4'}
+		PDO::SQLITE_ATTR_READONLY_STATEMENT: {write: \Pdo\Sqlite::ATTR_READONLY_STATEMENT, from: '8.4'}
+		PDO::SQLITE_DETERMINISTIC: {write: \Pdo\Sqlite::DETERMINISTIC, from: '8.4'}
+		PDO::SQLITE_OPEN_CREATE: {write: \Pdo\Sqlite::OPEN_CREATE, from: '8.4'}
+		PDO::SQLITE_OPEN_READONLY: {write: \Pdo\Sqlite::OPEN_READONLY, from: '8.4'}
+		PDO::SQLITE_OPEN_READWRITE: {write: \Pdo\Sqlite::OPEN_READWRITE, from: '8.4'}
 		'SplObjectStorage::attach()': {write: offsetSet, from: '8.0'}
 		'SplObjectStorage::contains()': {write: offsetExists, from: '8.0'}
 		'SplObjectStorage::detach()': {write: offsetUnset, from: '8.0'}

@@ -1,0 +1,11 @@
+<?php
+// {"php": {"deprecatedApi": "forbidden"}}
+// php 8.4
+
+namespace App;
+
+
+function connect(string $dsn): \PDO
+{
+	return new \PDO($dsn, options: [\PDO::MYSQL_ATTR_SSL_CA => '/ca.pem', \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
+}

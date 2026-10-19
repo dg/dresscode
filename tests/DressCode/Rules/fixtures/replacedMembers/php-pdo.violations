@@ -1,0 +1,1 @@
+10: Constant `PDO::MYSQL_ATTR_SSL_CA` is replaced by `Pdo\Mysql::ATTR_SSL_CA`.
