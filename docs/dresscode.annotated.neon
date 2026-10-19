@@ -1,0 +1,582 @@
+# The dress code of a project: every decision of the catalogue of DressCode under its path, with what its value means
+# and the other values it takes, as a configuration to read rather than to copy. A value is that of PER Coding Style
+# where it decides and the best one where it says nothing; the frame above the sections and every name of the
+# project (a namespace, a class, a parameter, an entry of a map) are examples. `tests/DressCode/Config/annotated.phpt`
+# loads the file and checks that it sets every decision.
+#
+# A path reads as a sentence: the section names the area of the code, a group the question or the thing, the leaf the
+# place. A group stands only where it says something the section does not:
+#   a question over places      several places answer one question in one domain of values; the group names the
+#                               question and the leaves the places (`braces.position.class`, `multiline.items.array`)
+#   a thing with its questions  several questions are asked of one thing; the group names the thing and the leaves the
+#                               questions (`classes.modifiers.order`, `expressions.ternary.short`); such a group takes
+#                               `keep` and no word of presence, `ternary: forbidden` would read as no ternary at all
+# A requirement whose only name is that of the thing stands flat, its parameters beside it carrying its name
+# (`controlFlow.trailingIf` and `trailingIfMinStatements`). A path has four segments at most. A section is mostly the
+# area of the code a reader looks in; three name an intent instead: `hygiene` what is there for nothing, `mistakes` what
+# is most likely wrong, `upgrading` what a newer PHP or library writes or retired. A set (`cleanup`, `correctness`,
+# `modernizations`, `deprecations`, `types`, `compilerOptimizations`) bundles decisions of one intent from any section
+# and never shares a name with one.
+#
+# A key names the thing the decision exists for, by the name PHP gives it where it has one (`is_null`, `match`,
+# `Override`) and by the name of the family where several share the key (`arrayFirstLast`): `required` where the
+# decision wants it written, `forbidden` where it does not, whatever version of PHP gave it. The version a rule needs is
+# metadata the reference indexes; a modernization keeps quiet below the target, a deprecation is reported whatever it.
+#
+# A value says how the thing is written, in one of these forms and no other:
+#   a word          a presence (`required`, `forbidden`, `optional`) or a property several writings share (`nextLine`,
+#                   `imported`, `perLine`)
+#   an example      the one writing of a place, always in single quotes (`'foo($a, $b)'`, `'elseif'`); compared with the
+#                   shapes the key knows, never parsed
+#   a list          of words or examples, a tolerance: every one passes, the first is written; or a set or an order of
+#                   names, where `...` stands for the list of the layers below
+#   a number        a count, a limit, a threshold (the key says which: `Min`, `max`, `Length`); a range `0-2` or `1+`
+#                   for a count of things; `none` for no limit
+#   a map           names to values, merged by name with the layers below; `name: keep` takes a name out of the map and
+#                   out of every pattern, whatever layer wrote it; `map!:` replaces the maps of the layers below
+#   a text          (`fallThroughComment`), or a list of texts every one of which is accepted
+#   yes or no       a parameter whose question is yes or no
+#   keep            the rule requires nothing; on a group, a kind or a section every requirement inside
+# A requirement takes `keep`, a parameter never does and never turns a rule on by itself (`upgrading.packages` excepted,
+# which brings maps and the rules of the plugins of the packages). A word on a group falls on every key of it that takes
+# the word, and is an error where a requirement of the group does not. A key left out takes what `use` says, and where
+# that says nothing, nothing is required.
+#
+# How much a violation counts is no value: `severity` maps names to `warning` or `error`.
+#
+# The comment of a key says what its value means, then after "Also:" the other values it takes.
+
+use: [perCs]                                # the conventions of PER Coding Style 3.1, which this file writes out. Also: psr12; nette; a list with sets: cleanup, correctness, modernizations, deprecations, types, compilerOptimizations
+
+targets:
+	php: '8.2'                              # the oldest version the code runs on; quoted, NEON reads `8.10` as 8.1
+
+typeAnalysis: phpstan                       # the types of the code come from the PHPStan installed beside the tool. Also: none
+
+namespaces:                                 # the functions and constants the namespaces of the project declare
+	functions: [Acme\Shop\formatPrice, Acme\Shop\parsePrice]   # each by its full name
+	constants: [Acme\Shop\CURRENCY]
+nameResolution: uncertain                   # `certain` says the lists above are complete, which turns on their guard
+
+severity:                                   # how a violation counts, `error` unless said; a name of a decision, a group, a section, a rule or a preset
+	file.longLines: warning                 # holds while this file or a layer below writes the value
+
+fixRisky: [upgrading.syntax.match]          # decisions whose risky fixes are made; a `switch` comparing loosely becomes `match` too
+
+
+file:
+	bom: forbidden                          # a byte order mark at the start of the file. Also: keep
+	openingTag: required                    # `<?php`, never `<?` or `<?PHP`. Also: keep
+	strictTypes:
+		declaration: required               # every file of PHP code declares `strict_types=1`. Also: keep
+		position: nextLine                  # `declare(strict_types=1);` below `<?php`, not on its line. Also: sameLine; keep
+	lineEnding: majority                    # every line ends as most lines of the file do, LF on a tie; PSR-12 says LF, which a checkout git converts to CRLF would break in every file. Also: LF; CRLF; keep
+	trailingWhitespace: forbidden           # a space or a tab at the end of a line; the text of a string stays. Also: keep
+	lineLength: 120                         # the widest line, by which what spreads over lines is split. Also: none
+	longLines: forbidden                    # a line wider than `lineLength` that nothing could split is reported. Also: keep
+	lineLengthExcept: [imports]             # lines never reported for their width. Also: strings; places of `multiline`; patterns of lines
+	statementsPerLine: 1                    # `foo(); bar();` is two lines, two members of a class too; `for (;;)` is one statement. Also: keep
+	closingTagAtEnd: forbidden              # a `?>` closing a file of PHP only; one before HTML is content. Also: keep
+	finalLineEndings: 1                     # exactly one line ending after the last line. Also: keep
+
+
+indentation:
+	unit: 4 spaces                          # four spaces per level. Also: tab; 2 spaces; keep
+	tabWidth: 4                             # how many columns a tab counts for in the width of a line
+	singleLevel: required                   # a line steps in by one level at most, and only to a level something opened. Also: keep
+	singleLevelInComments: yes              # a single-line comment on a line of its own steps in as code does. Also: no
+	binaryOperator: 0                       # levels a line opened by `&&`, `+`, `.` steps in from the start of its expression. Also: 1; keep
+	ternary: 1                              # levels `?` and `:` opening a line step in by. Also: 0; keep
+	chain: flat                             # every link one level below the start of the chain. Also: nested (a link one level deeper or shallower than the link before it); keep
+	switchCase: 1                           # levels `case` steps in from `switch`. Also: 0; keep
+	heredoc: 1                              # levels the body and the closing marker step in from the line the heredoc starts on. Also: 0; keep
+	commentLines: aligned                   # the inner lines of a comment on several lines in the column of its first, the stars of a doc comment one space in. Also: keep
+
+
+braces:
+	position:                               # where `{` stands after its head, and the keyword after `}`
+		class: nextLine                     # of an interface, a trait and an enum alike. Also: sameLine; keep
+		function: nextLine                  # a method alike. Also: sameLine; keep
+		multilineSignature: sameLine        # after a signature spread over lines. Also: nextLine; keep
+		typedMultilineSignature: sameLine   # after such a signature with a return type, `): int {`; as `multilineSignature` where kept. Also: nextLine; keep
+		closure: sameLine                   # Also: nextLine; keep
+		anonymousClass: sameLine            # Also: nextLine; keep
+		controlStructure: sameLine          # `if ($a) {`. Also: nextLine; keep
+		continuingKeyword: sameLine         # `} else {`, `} catch`, `} finally`, `} while`. Also: nextLine; keep
+	emptyBody:                              # an empty body
+		class: collapsed                    # `{}` on the line of the head. Also: expanded (`{` and `}` placed as those of any other body); keep
+		function: collapsed                 # Also: expanded; keep
+		closure: collapsed                  # Also: expanded; keep
+		propertyHook: collapsed             # Also: expanded; keep
+		anonymousClass: collapsed           # Also: expanded; keep
+		controlStructure: expanded          # `{` and `}` placed as those of any other body. Also: collapsed; keep
+	singlelineClosure: forbidden            # `function () { return 1; }` on one line. Also: keep
+	bracelessBody: forbidden                # `if ($a) foo();` is written with braces. Also: keep
+	alternativeSyntax: forbidden            # `if: … endif;` is written with braces. Also: keep
+	bareStatementGroup: forbidden           # `{ … }` around statements that nothing opens. Also: keep
+
+
+blankLines:                                 # a count, a range `0-1` or `1+`, or keep
+	afterOpeningTag: 1                      # the line break after `<?php` where no `declare` follows too
+	afterDeclare: 1                         # below `declare(...)` above anything but `namespace`
+	beforeNamespace: 1
+	afterNamespace: 1                       # above anything but a declaration
+	betweenImports: 0                       # imports of one kind
+	betweenImportKinds: 1                   # classes, functions and constants
+	afterImports: 1                         # above anything but a declaration
+	beforeDeclaration: 1                    # above a class or a function right after the header
+	aroundDeclarations: 1                   # a class or a function declared among statements
+	beforeOpenBrace:                        # between a head and its `{` on a line of its own
+		class: 0
+	bodyStart: 0                            # after `{` of a body and after `case 1:`; places class, anonymousClass, function, closure, propertyHook, controlStructure, switchCase, kind blocks
+	bodyEnd:                                # before `}` of a body; the places above and branch, switchCase
+		class: 0
+		anonymousClass: 0
+		blocks: 0
+		branch: 0                           # `}` of a branch right after its last statement, `} else`. Also: lastStatementSetApart (one where the last statement stands apart); keep
+		switchCase: lastStatementSetApart   # between the last statement of a case and the next one
+	betweenTraitUses: 0
+	afterTraitUses: 1
+	betweenMembers: 0-1                     # undocumented members of one kind
+	betweenMemberKinds: 1                   # undocumented members of different kinds, constants apart from properties
+	beforeDocumentedMember: 1               # a property, a constant or a case with a doc comment or an attribute
+	aroundMethods: 1                        # a method and its neighbouring member
+	aroundInterfaceMethods: 1
+	betweenStatementsInFunction: 0-1        # two statements in the body of a function, a method, a closure, a hook
+	beforeStatement: {return: 1}            # a count by the kind of statement, narrowing the one above
+	afterStatement: {}
+	afterPhpdoc: 0                          # below a doc comment above what it documents
+	belowComment:                           # below a comment, above a statement that is no declaration
+		inlineVar: keep                     # below `/** @var Order $order */`
+	afterAttributes: 0                      # between the last attribute group and the declaration
+
+
+multiline:                                  # what is spread over lines, and how; the places of a group, its kinds `lists` and `operators`
+	items:                                  # how the items of a spread construct share the lines
+		lists: perLine                      # every item on a line of its own. Also: fill (items share lines, filled evenly); [perLine, fill]; keep
+		operators: [perLine, fill]          # the operands of `&&`, `.`, `+`: either passes, one per line written
+		ternary: perLine                    # a place the group names wins over its kind: `?` and `:` each on a line. Also: fill; [perLine, fill]; keep
+		chain: perLine                      # every link on a line of its own. Also: fill; keep
+		argument: perLine                   # every argument on a line of its own. Also: fill; keep
+	fillMinItems:                           # parameters: how many items a list has at least to be filled
+		array: 6
+		list: 6
+		matchCondition: 6
+		import: 6
+	edges:                                  # where the content of a frame starts and the closing token stands
+		lists: apart                        # content on the line after the opening, closing on a line of its own. Also: attached; closingApart; a list of them; keep
+		condition: apart                    # the first part on the line after `(`, `)` on a line of its own. Also: attached; closingApart; a list of them; keep
+		chain: apart                        # the first link on the line after the object, `$order` above `->getTotal()`. Also: attached (the links up to the first method call on the line of the object); keep
+	spreadItem: last                        # parameter: a sole argument too wide hugs its brackets (`foo(bar(` and `))`), so does the last one where the line fits up to its bracket (`foo($a, [` and `])`). Also: never; sole
+	trailingComma:                          # the comma after the last item where the closing bracket stands apart
+		lists: required                     # Also: optional; keep
+		import: optional                    # as the author wrote it. Also: required; keep
+		list: optional                      # `[$a, $b,] =` as the author wrote it. Also: required; keep
+	operatorPosition:                       # where an operator stands at a line break
+		operators: lineStart                # Also: lineEnd; keep
+	expressionStart:                        # where an expression spread over lines begins after the token leading to it
+		assignment: sameLine                # after the `=` of an assignment, a constant, a property or a default. Also: keep
+		arrayItem: sameLine                 # after the `=>` of an array item. Also: keep
+		arrowFunction: sameLine             # after the `=>` of an arrow function. Also: keep
+		return: sameLine                    # Also: keep
+		throw: sameLine                     # Also: keep
+		yield: sameLine                     # after `yield` and `yield from`. Also: keep
+		echo: sameLine                      # after `echo` and `print`. Also: keep
+	semicolon: sameLine                     # `;` closes the last line of a multi-line statement. Also: nextLine; keep
+	attributePosition:                      # where the attribute groups stand
+		declaration: above                  # each group on a line of its own above a class, a function, a member. Also: sameLine; keep
+		parameter: above                    # Also: sameLine; keep
+	maxWidth:                               # parameters: a construct wider than this, frame to frame, is spread
+		array: none                         # Also: a count
+	spreadAlways: [promotedProperty]        # parameter: what is spread whatever its width. Also: []
+
+
+spacing:                                    # the whitespace on one line; the example is the rule, its other spaces belong to other keys
+	keyword: required                       # after a keyword followed by code and around a continuing one: `return $x`, `if (`, `} else {`, `final public static function`, `class Foo extends Bar`. Also: keep
+	openBrace: required                     # before `{` or a body without braces on the line of the head: `if ($a) {`, `function () {`. Also: keep
+	alternativeSyntax: 'if ($a):'           # before the colon of the alternative syntax and of a label. Also: 'if ($a) :'; keep
+	switchCase: 'case 1:'                   # Also: keep
+	body: required                          # inside a non-empty body written on one line: `{ return 1; }`, `{ get; set; }`. Also: keep
+	call: 'foo($a, $b)'                     # between a name and the parentheses of its arguments or parameters, `array (`. Also: keep
+	declare: 'declare(strict_types=1)'      # Also: keep
+	arrowFunction: 'fn($x) => $x'           # Also: 'fn ($x) => $x'; keep
+	anonymousClass: 'new class ($a)'        # Also: 'new class($a)'; keep
+	anonymousFunction: 'function ($x)'      # Also: 'function($x)'; keep
+	padding:                                # inside non-empty brackets; `()`, `[]`, `foo(...)` stay empty whatever the word
+		argument: forbidden                 # `foo($a)`. Also: required (`foo( $a )`); keep
+		parameter: forbidden                # Also: required; keep
+		closureUse: forbidden               # Also: required; keep
+		controlStructure: forbidden         # `if ($a)`. Also: required; keep
+		grouping: forbidden                 # `($a + $b) * $c`. Also: required; keep
+		array: forbidden                    # `[1, 2]`, `array(1, 2)`. Also: required; keep
+		list: forbidden                     # Also: required; keep
+		offset: forbidden                   # `$a[0]`. Also: required; exceptLiterals (`$a['b']`, but `$a[ $i ]`); keep
+	attribute: '#[Foo($a)]'                 # inside `#[ ]` and between groups on a line. Also: keep
+	import: 'use Acme\{Foo, Bar};'          # around `\{` and inside the braces of a group use. Also: keep
+	comma: '$a, $b'                         # none before, one after. Also: keep
+	namedArgument: 'foo(name: $x)'          # Also: keep
+	semicolon:
+		before: '$a;'                       # Also: keep
+		after: 'for ($i = 0; $i < 5; $i++)' # one after where more code follows on the line. Also: keep
+	binaryOperator: '$a + $b'               # around a binary operator but `.`, an assignment, `=>`, `instanceof`. Also: keep
+	concatenation: '$a . $b'                # Also: '$a.$b'; keep
+	ternary: '$a ? $b : $c'                 # around `?`, `:` and `?:`. Also: keep
+	unaryOperator: '-$x'                    # after `-`, `+`, `~`, `@`, around `++` and `--`. Also: keep
+	logicalNot: ['!$x', '! $x']             # either passes, the first written. Also: one of them alone; keep
+	cast: '(int) $x'                        # Also: '(int)$x'; keep
+	reference: '&$x'                        # Also: keep
+	spread: '...$x'                         # Also: keep
+	doubleColon: 'Foo::bar()'               # Also: keep
+	objectOperator: '$a->b()'               # `->` and `?->`. Also: keep
+	typeDeclaration: '?int $x'              # inside a type, the parentheses of DNF too, and between the type and the name. Also: keep
+	catchType: 'catch (A|B $e)'             # Also: 'catch (A | B $e)'; keep
+	comment:
+		marker: '// text'                   # one after the marker. Also: keep
+		afterCode: '$a; // text'            # one before a comment following code. Also: keep
+	alignment:                              # parameters: what wider whitespace may stay; alignment is never made
+		binaryOperator: spaces              # `=` and `=>` aligned by spaces. Also: forbidden; optional; tabs
+		ternary: optional                   # Also: forbidden
+		comma: forbidden                    # a column after commas aligned. Also: optional; spaces; tabs
+		comment: optional                   # a comment after code aligned however. Also: forbidden
+
+
+naming:                                     # the convention of the names the project declares, reported and never renamed
+	class: PascalCase                       # interfaces, traits and enums too. Also: camelCase; UPPER_CASE; snake_case; Pascal_Snake_Case; keep
+	constant: UPPER_CASE                    # class constants and `const` outside a class. Also: PascalCase; camelCase; snake_case; Pascal_Snake_Case; keep
+	enumCase: PascalCase                    # Also: camelCase; UPPER_CASE; snake_case; Pascal_Snake_Case; keep
+	property: camelCase                     # promoted properties too. Also: PascalCase; UPPER_CASE; snake_case; Pascal_Snake_Case; keep
+	method: camelCase                       # Also: PascalCase; UPPER_CASE; snake_case; Pascal_Snake_Case; keep
+	function: camelCase                     # Also: PascalCase; UPPER_CASE; snake_case; Pascal_Snake_Case; keep
+	variable: camelCase                     # parameters too; `$this` and the superglobals excepted. Also: PascalCase; UPPER_CASE; snake_case; Pascal_Snake_Case; keep
+	except: []                              # patterns of names never reported, whatever their kind, `~^test_~` for test methods in snake_case
+	abstractClassAffix: forbidden           # `Order`, not `AbstractOrder`. Also: required; keep
+	interfaceAffix: forbidden               # `Order`, not `OrderInterface`. Also: required; keep
+	traitAffix: forbidden                   # `Order`, not `OrderTrait`. Also: required; keep
+	exceptionAffix: required                # `PaymentException`, a class extending `Exception`. Also: forbidden; keep
+	errorAffix: keep                        # Also: forbidden (`Config`, not `ConfigError`, for a class that is not abstract)
+
+
+casing:                                     # how a name or a keyword is spelled after its authority, wherever it is written
+	keyword: lowercase                      # `if`, `function`, `self`, `parent`. Also: keep
+	trueFalseNull: lowercase                # Also: uppercase; keep
+	magicConstant: uppercase                # `__DIR__`, `__CLASS__`. Also: lowercase; keep
+	type: lowercase                         # `int`, `string`, `void`. Also: keep
+	class: declared                         # `stdClass`, `DateTime`, never `datetime`. Also: keep
+	function: declared                      # `strlen`, never `StrLen`. Also: keep
+	method: declared                        # `$order->getTotal()`, never `$order->gettotal()`; the magic methods of PHP without the types too. Also: keep
+	hexDigit: uppercase                     # `0xFF`; the prefix `0x`, `0b`, `0o` always in lower case. Also: lowercase; keep
+
+
+qualification:                              # how far a referenced name is written out inside a namespace
+	# A name is written `imported` (`use function strlen;` and `strlen()`), `backslashed` (`\strlen()`) or `bare`
+	# (`strlen()`). Every kind is asked of its places: `global`, a name of the global namespace not among `optimized`;
+	# `optimized`, a global function or constant the compiler of the target treats apart; `currentNamespace`, one of the
+	# namespace of the file; `otherNamespace`, one of another named namespace. A list is a tolerance: every word passes,
+	# the first that can be written is written where none does.
+	class:
+		global: keep                        # `DateTime`. Also: imported; backslashed
+		currentNamespace: bare              # `Order` inside `namespace Acme\Shop`. Also: backslashed; keep
+		otherNamespace: imported            # `use Acme\Billing\Invoice;` and `Invoice`. Also: backslashed; keep
+		phpdoc: imported                    # `@param Order $order` in a doc comment; a name relative to an import stays. Also: backslashed; a list of both; keep
+	function:
+		global: bare                        # `array_map()`, reached by the fallback at run time. Also: imported; backslashed; keep
+		optimized: imported                 # `use function strlen;`, compiled to one opcode. Also: backslashed; bare; keep
+		currentNamespace: bare              # Also: backslashed; keep
+		otherNamespace: imported            # `use function Acme\Text\normalize;`. Also: backslashed; keep
+	constant:
+		global: bare                        # `PHP_EOL`. Also: imported; backslashed; keep
+		optimized: imported                 # `PHP_VERSION_ID` in a condition. Also: backslashed; bare; keep
+		currentNamespace: bare              # Also: backslashed; keep
+		otherNamespace: imported            # `use const Acme\Shop\STATUS_PAID;`. Also: backslashed; keep
+	leadingBackslash: forbidden             # a backslash that changes nothing: `\strlen()` without a namespace, `\true`. Also: keep
+	currentClass: self                      # the class is named `self` inside itself. Also: keep
+	staticInFinalClass: keep                # `static` stays where no subclass can exist. Also: required (`self` for it)
+
+
+imports:
+	grouping:                               # how the names of a kind are put into `use` statements, a list letting each shape stay
+		class: [separated, grouped]         # `use Foo; use Bar;`, a group use staying. Also: combined (`use Foo, Bar;`); grouped (`use Acme\Shop\{Order, Cart};`); keep
+		function: [separated, grouped]      # `use function strlen;` for every name, a group use staying. Also: combined (`use function strlen, count;`); keep
+		constant: [separated, grouped]      # Also: combined; keep
+	groupMinNames: 2                        # how many names of one namespace make a group use where `grouped` is written
+	order:
+		kinds: [class, function, constant]  # classes, then functions, then constants. Also: another order; keep
+		names: alphabetical                 # the names of a kind sorted. Also: keep
+		caseSensitive: no                   # `Acme` sorts with `acme`. Also: yes
+	leadingBackslash: forbidden             # `use Foo\Bar;`, not `use \Foo\Bar;`. Also: keep
+	unused: forbidden                       # an import nothing uses is removed. Also: keep
+	fromCurrentNamespace: forbidden         # `use App\Foo;` inside `namespace App`. Also: keep
+	aliasEqualToName: forbidden             # `use Foo as Foo;`. Also: keep
+
+
+classes:
+	visibility:
+		constant: required                  # in an interface too. Also: keep
+		property: required                  # a promoted property too; `var` becomes `public`. Also: keep
+		method: required                    # outside an interface. Also: keep
+		interfaceMethod: required           # `public function` in an interface. Also: forbidden; keep
+		publicWithSet: keep                 # `public private(set) int $x`. Also: required; forbidden
+	protectedInEnum: forbidden              # `private` for a non-public member of an enum. Also: keep
+	protectedInFinalClass: forbidden        # the same in a final class without a parent and traits. Also: keep
+	modifiers:
+		order: canonical                    # `final` or `abstract`, visibility, set visibility, `static`, `readonly`; of a class and a promoted property too. Also: keep
+		implied: forbidden                  # a modifier PHP implies: `final` in a final class, `readonly` in a readonly class. Also: keep
+	staticMethod: required                  # the `static` of a method that does not use `$this`; risky. Also: keep
+	staticMethodVisibilities: [private]     # parameter: of which methods. Also: [private, protected, public]
+	members:
+		order: [traitUse]                   # by kind, trait uses first. Also: an order of traitUse, enumCase, constant, property, method, constructor, destructor, magicMethod, visibility kinds (`privateStaticMethod`); keep
+		grouping:                           # `public $a, $b;` is a declaration of two
+			constant: separated             # Also: keep
+			property: separated             # Also: keep
+			traitUse: separated             # Also: keep
+	untypedPropertyNullDefault: forbidden   # `public $a = null;` says what `public $a;` says. Also: keep
+	overridingMethod:                       # a method overriding one of a parent class or an interface
+		signature: required                 # the types, the parameters added with a default, the visibility and `static` as the ancestor declares them, with the types. Also: keep
+		parameterName: required             # the names of the parameters as the ancestor names them. Also: keep
+		parentCallOnly: forbidden           # a method only forwarding to the parent, with the types. Also: keep
+		ReturnTypeWillChange: forbidden     # on a method declaring the return type PHP expects. Also: keep
+	internalClass:                          # a class its author marked internal
+		final: required                     # declared `final`; risky. Also: keep
+		markers: ['@internal']              # a class carrying any of them is internal; an annotation, or an attribute by its full name
+		except: [..., Acme\Mapping\Entity]  # what keeps such a class as it is; `@final` and the entities of Doctrine below
+	emptyParentheses:
+		instantiation: required             # `new Foo()`. Also: forbidden (`new Foo`); keep
+		anonymousClass: forbidden           # `new class {}`. Also: required; keep
+		attribute: forbidden                # `#[Foo]`. Also: required; keep
+	instantiationWrapping: forbidden        # `new Foo()->bar()`, not `(new Foo())->bar()`, from PHP 8.4; `(new Foo)->bar()` stays. Also: required; keep
+
+
+functions:                                  # a function and a closure
+	innerFunction: forbidden                # a named function declared inside a function, reported. Also: keep
+	trailingBareReturn: forbidden           # `return;` as the last statement. Also: keep
+	unreachableParameterDefault: forbidden  # a default a required parameter after it makes unreachable; an implied `= null` stays. Also: keep
+	arrowFunction:                          # `fn() =>` for a closure
+		oneExpression: required             # whose body is a single `return`. Also: keep
+		emptyBody: required                 # whose body is empty, `fn() => null`. Also: keep
+	arrowFunctionNested: no                 # parameter: a closure holding another closure stays one. Also: yes
+	staticClosure: required                 # the `static` of a closure or an arrow function not using `$this`; risky. Also: keep
+	namedBooleanArgument: required          # `json_decode($json, associative: true)` for a `true` or `false` passed by position to a `bool`. Also: keep
+	namedBooleanArgumentExcept: []          # parameter: what stays positional, `Acme\Shop\Cart::add`
+
+
+types:
+	declaration:                            # a native type declared, taken from the annotation; risky
+		parameter: required                 # Also: keep
+		property: required                  # a promoted property too. Also: keep
+		return: required                    # `void` and `never` from the annotation too. Also: keep
+		constant: keep                      # from the value, PHP 8.3. Also: required
+		anonymousFunction: keep             # the return type of a closure. Also: required
+	nullable: '?int'                        # a single type and `null`. Also: 'int|null' (placed by `nullPosition`); keep
+	nullPosition: last                      # `int|string|null`. Also: first; keep
+	unionOrder: keep                        # Also: alphabetical
+	traversableClasses: [Traversable]       # parameter: classes treated like `array`, whose annotation says what their items are
+
+
+controlFlow:
+	elseif: 'elseif'                        # never `else if`. Also: keep
+	elseAfterReturn: forbidden              # an `else` after branches that leave by `return`, `throw`, `break`, `continue`, `exit`, an empty `else`. Also: keep
+	elseifAfterReturn: forbidden            # an `elseif` after an `if` that leaves becomes an `if` of its own. Also: keep
+	trailingIf: forbidden                   # an `if` ending a body becomes a guard that leaves early. Also: keep
+	trailingIfMinStatements: 2              # parameter: only when its body has at least this many statements
+	ifReturningTrueFalse: forbidden         # `if ($a > 1) { return true; } return false;` is `return $a > 1;`. Also: keep
+	ifElseReturning: keep                   # `return $c ? 1 : 2;` for an `if` and `else` each returning or assigning. Also: forbidden
+	switch:                                 # takes `keep`, never a word of presence
+		fallThroughComment: 'no break'      # the comment a non-empty case falling through carries. Also: another text; a list of texts, any accepted and the first named in the report; keep
+	emptyStatement: forbidden               # the second `;` of `foo();;`. Also: keep
+
+
+expressions:
+	cast: canonical                         # `(int)`, `(bool)`, `(float)`, `(string)`, never `(integer)`, `(Boolean)`, `(double)`, `(binary)`. Also: keep
+	comparison:
+		loose: forbidden                    # `==`, `!=` and `<>` are `===` and `!==`; risky, fixed with the types. Also: keep
+		notEquals: '!='                     # never `<>`. Also: keep
+		yoda: forbidden                     # the constant on the right of `==`, `!=`, `===`, `!==`. Also: required; keep
+	assignment:                             # an assignment and its questions; takes `keep`, never a word of presence
+		targetInValue: forbidden            # `$a = $a + $b` is `$a += $b`. Also: keep
+		addingOne: forbidden                # `$i += 1` is an increment as `increment` says; fixed with the types. Also: keep
+		increment: postfix                  # `$i++;` as a statement and the step of `for`. Also: prefix (`++$i;`); keep
+	ternary:                                # a ternary and its questions; takes `keep`, never a word of presence
+		short: required                     # `$a ?: $b` for `$a ? $a : $b`. Also: forbidden (`$a ? $a : $b`, where `$a` reads twice safely); keep
+		ofTrueFalse: forbidden              # `$a > 1 ? true : false` is the condition. Also: keep
+	coalesce: required                      # `$a ?? $b` for `isset($a) ? $a : $b` and `$a !== null ? $a : $b`. Also: keep
+	wordLogicalOperator: forbidden          # `and`, `or` are `&&`, `||`; an assignment with `and` reported. Also: keep
+	doubleNegation: forbidden               # `!!$a` is `(bool) $a`. Also: keep
+	explicitPrecedence: required            # an operand easy to misread is parenthesized, `($a && $b) || $c`. Also: keep
+	parenthesesAfterConstruct: forbidden    # `return ($x);` is `return $x;`. Also: keep
+
+
+literals:                                   # strings, numbers and the array literal
+	quotes: single                          # `'text'` where double quotes gain nothing. Also: double; keep
+	implicitBackslash: forbidden            # a backslash escaping nothing in double quotes and a heredoc is written `\\`. Also: keep
+	heredocWithoutInterpolation: forbidden  # a heredoc with nothing to interpolate is a nowdoc. Also: keep
+	concatenatedLiterals: forbidden         # `'a' . 'b'` on one line is `'ab'`. Also: keep
+	concatenatedLiteralsOverLines: no       # parameter: across a line break too. Also: yes
+	emptyStringConcatenation: forbidden     # `. ''`. Also: keep
+	classNameInString: forbidden            # `'Acme\Shop\Order'` is `Order::class`, with the types. Also: keep
+	digitSeparator:                         # the `_` grouping the digits by three
+		integer: required                   # `1_000_000` from the threshold below; a number grouped already stays. Also: forbidden; keep
+		fraction: keep                      # Also: required (`0.000_1`); forbidden
+	digitSeparatorMinDigits:                # parameters: from how many digits
+		integer: 7
+		fraction: 7
+	arraySyntax:
+		array: short                        # `[1, 2]`. Also: long (`array(1, 2)`); keep
+		list: short                         # `[$a] =`. Also: long (`list($a) =`); keep
+
+
+comments:
+	empty: forbidden                        # a comment with nothing in it, `/***/` too. Also: keep
+	singleline: '//'                        # never `#`. Also: keep
+
+
+phpdoc:
+	empty: forbidden                        # a doc comment with nothing in it. Also: keep
+	inheritdocOnly: forbidden               # only `{@inheritDoc}` on a function whose types are all native. Also: keep
+	aboveAttributes: required               # Also: keep
+	stars: aligned                          # Also: keep
+	blankLines: trimmed                     # none at the start and the end, one at most in a row. Also: keep
+	forbiddenLines: []                      # patterns of lines of the description removed. Also: ['~^Created by~']; keep
+	annotation:                             # a single tag; takes `keep`, never a word of presence
+		casing: canonical                   # `@inheritDoc`, `@phpstan-var` as they are known. Also: keep
+		empty: forbidden                    # a `@param`, `@return`, `@var` or `@see` without content. Also: keep
+		extraParam: forbidden               # a `@param` of no parameter, reported. Also: keep
+		duplicateParam: forbidden           # Also: keep
+		duplicateReturn: forbidden          # Also: keep
+		duplicateVar: forbidden             # Also: keep
+		nativeTypeOnly: forbidden           # a `@param`, `@return`, `@var` saying only the native type. Also: keep
+		itemTypes: required                 # the types of the items of an array or an iterable, reported. Also: keep
+		constantVar: forbidden              # a bare `@var` of a class constant whose value gives the type. Also: keep
+		inlineVar: forbidden                # an inline `@var` is `assert($x instanceof Foo)`; risky. Also: keep
+		plainComment: forbidden             # an annotation in a plain comment, `/* @var */`, where a doc comment means it. Also: keep
+	forbiddenAnnotations: [@package, @subpackage]   # tags removed, which say what a namespace says. Also: keep
+	types:                                  # the types in a doc comment, asked as those of the code
+		builtin: canonical                  # `int`, never `integer` or `Int`; `never` for `no-return`. Also: keep
+		duplicate: forbidden                # a type twice in one union. Also: keep
+		nullable: '?T'                      # as in the code. Also: 'T|null'; keep
+		nullPosition: last                  # Also: first; keep
+		unionOrder: keep                    # Also: alphabetical
+		array: 'array<T>'                   # `list<T>` is another type and stays. Also: 'T[]'; keep
+	property:                               # the doc comment of a property
+		promoted: '@var'                    # at the promoted property, not a `@param` of the constructor. Also: keep
+		plainComment: forbidden             # `//`, `#`, `/* */` above a property, reported. Also: keep
+		lineSpan: collapsed                 # `/** @var int */` where it holds one tag. Also: expanded; keep
+
+
+hygiene:                                    # what is there for nothing: a call or a construct written plainly
+	classNameNotation:                      # the name of a class written with `::class`
+		currentClass: required              # `self::class`, `static::class`, `parent::class`, never `__CLASS__` or `get_called_class()`. Also: keep
+		object: required                    # `$o::class`, never `get_class($o)`. Also: keep
+	aliasFunctions: [all]                   # every family of functions whose aliases are written by their names, `sizeof()` is `count()`. Also: a list of core; imap; ldap; mysqli; pg; oci; odbc; openssl; sodium; ftp; posix; pcntl; time; keep
+	conversionFunction: forbidden           # `intval($x)` is `(int) $x`; `intval($x, 16)` stays. Also: keep
+	is_null: forbidden                      # `is_null($x)` is `$x === null`; risky. Also: keep
+	settype: forbidden                      # `settype($x, 'int');` is `$x = (int) $x;`. Also: keep
+	call_user_func: forbidden               # `call_user_func($f, $x)` is `$f($x)`, `call_user_func_array()` alike; risky. Also: keep
+	call_user_funcMethods: no               # parameter: also a method the callable names, `[$this, 'run']`. Also: yes
+	__invokeCall: forbidden                 # `$f->__invoke($x)` is `$f($x)`. Also: keep
+	dirnameOfFile: forbidden                # `dirname(__FILE__)` is `__DIR__`. Also: keep
+	nestedDirname: forbidden                # `dirname(dirname($p))` is `dirname($p, 2)`. Also: keep
+	strlenEmptyTest: forbidden              # `strlen($s) === 0` is `$s === ''`; risky, with the types. Also: keep
+	countEmptyTest: forbidden               # `count($a) === 0` is `$a === []`; risky, with the types. Also: keep
+	defaultArgument: forbidden              # an argument equal to the default or one PHP ignores; never `strict` nor `escape`. Also: keep
+	unreadCatchVariable: forbidden          # `catch (E)` where `$e` is not read. Also: keep
+	repeatedCatchBody: forbidden            # two adjacent catches of one body are `catch (A|B $e)`; never an unreachable one. Also: keep
+	separateIssets: forbidden               # `isset($a) && isset($b)` is `isset($a, $b)`. Also: keep
+	separateUnsets: forbidden               # `unset($a); unset($b);` is `unset($a, $b);`. Also: keep
+	uselessVersionCheck: forbidden          # a check every version of the target decides alike, `PHP_VERSION_ID >= 80000` for code on 8.0. Also: keep
+
+
+mistakes:                                   # what is most likely wrong whatever the style
+	finalParent: forbidden                  # a class extending a final one, reported. Also: keep
+	unimplementedAbstractMethod: forbidden  # an inherited abstract method left unimplemented, reported. Also: keep
+	readonlyProperty: required              # `readonly` on a property written only in the constructor; risky. Also: keep
+	__serialize: required                   # `__serialize()` and `__unserialize()` beside `Serializable`, reported. Also: keep
+	__debugInfoReturningNull: forbidden     # the `null` `__debugInfo()` returns is `[]`. Also: keep
+	staticSetState: required                # `__set_state()` declared static, as PHP calls it. Also: keep
+	thisOutsideObject: forbidden            # `$this` in a static method, a static closure or a function, reported. Also: keep
+	neverReturnType:                        # `never` on what always throws or exits
+		function: required                  # Also: keep
+		method: required                    # where no descendant can declare it again. Also: keep
+		anonymousFunction: keep             # though its signature belongs to the call it is passed to. Also: required
+	unreachableCatch: forbidden             # a catch after one catching `Throwable` or its class, reported. Also: keep
+	exceptionWhereThrowableBelongs: forbidden   # `catch (Exception)` and a parameter typed `Exception` where `Throwable` is meant, reported. Also: keep
+	continueInSwitch: forbidden             # a `continue` only leaving a `switch`, reported. Also: keep
+	globalStatement: forbidden              # the `global` statement, reported. Also: keep
+	looseNumberComparison: forbidden        # `0 == 'a'`, whose answer PHP 8.0 turned around, reported. Also: keep
+	countOfUncountable: forbidden           # `count()` of what is neither an array nor `Countable`, reported. Also: keep
+	strictArgument: required                # `in_array()` and four more pass `strict: true`; an explicit `false` reported; risky. Also: keep
+	repeatedAssignment: forbidden           # `$a = $a = 1`. Also: keep
+	errorSuppression: forbidden             # the `@` operator, reported. Also: keep
+	debugOutput: forbidden                  # a statement calling a debugging function is commented out; risky. Also: keep
+	debugOutputFunctions: [print_r, var_dump, var_export]   # parameter: the debugging functions whose calls print
+	consecutivePhpdocs: forbidden           # a doc comment followed by another, the first lost, reported. Also: keep
+	invisibleCharacter: forbidden           # a no-break, zero-width or bidi character, replaced in a comment, escaped in a string, reported in a name. Also: keep
+	trailingWhitespaceInString: forbidden   # at the end of a line of a multi-line string, a heredoc or inline HTML, which changes it; risky. Also: keep
+
+
+upgrading:                                  # what a newer PHP writes or retired, and what a map or a catalogue says
+	php:                                    # what PHP deprecated, reported whatever the target
+		deprecatedApi: forbidden            # a function, a constant or a member PHP retired, as the upgrading data of PHP say: replaced, removed where it does nothing, reported. Also: keep
+		deprecatedArgument: forbidden       # a value PHP deprecated, `E_USER_ERROR` given to `trigger_error()`, reported. Also: keep
+		reservedNames: forbidden            # a name PHP 8.6 reserved (`let`, `is`, `_`) in a declaration or an import, reported. Also: keep
+		dynamicProperty: forbidden          # a property written to an object whose class does not declare it, PHP 8.2, reported. Also: keep
+		sleepAndWakeup: forbidden           # `__sleep()` and `__wakeup()`, which PHP 8.5 soft-deprecated, reported. Also: keep
+		constructorReturnValue: forbidden   # a `return` with a value in a constructor or a destructor, PHP 8.6. Also: keep
+		implicitNullable: forbidden         # `int $x = null` is `?int $x = null`, PHP 8.4. Also: keep
+		returnInFinally: forbidden          # a `return` inside `finally`, PHP 8.6, reported. Also: keep
+		caseSemicolon: forbidden            # `case 1;` is `case 1:`. Also: keep
+		nullArgument: forbidden             # `trim($text ?? '')` where `trim($text)` passes a null, PHP 8.1. Also: keep
+		csvEscapeArgument: required         # the `escape` of `fgetcsv()` and kin written out, PHP 8.4. Also: keep
+		floatArrayKey: forbidden            # `$a[(int) $ratio]` for a float key, PHP 8.1. Also: keep
+		nullArrayKey: forbidden             # `[null => 1]` is `['' => 1]`, PHP 8.5. Also: keep
+		backticks: forbidden                # the backtick operator, written `shell_exec()`, PHP 8.5. Also: keep
+		dollarBraceInterpolation: forbidden # `"${name}"` is `"{$name}"`, PHP 8.2. Also: keep
+	syntax:                                 # a construct a newer PHP gave, written where the target has it
+		octalPrefix: required               # `0o17` for `017`, PHP 8.1. Also: keep
+		match: required                     # for a `switch` whose every case returns or assigns one value; risky. Also: keep
+		nullsafe: required                  # `$a?->b` for `$a !== null ? $a->b : null`. Also: keep
+		throwExpression: required           # `$a ?? throw new E()` for an `if` throwing where the value is null. Also: keep
+		firstClassCallables: required       # `foo(...)` for `Closure::fromCallable()`, a forwarding closure, `'self::foo'`. Also: keep
+		dynamicClassConstant: required      # `X::{$name}` for `constant(X::class . '::' . $name)`, PHP 8.3. Also: keep
+		pipe: keep                          # `$x |> a(...) |> b(...)` for `b(a($x))`, PHP 8.5. Also: required
+		pipeMinCalls: 3                     # parameter: from how many nested calls on
+		cloneWith: required                 # `clone($o, [...])` for a `clone` followed by assignments to the copy, PHP 8.5. Also: keep
+		spreadForArrayMerge: required       # `[...$a, ...$b]` for `array_merge($a, $b)` of arrays; risky. Also: keep
+		readonlyClasses: required           # `readonly class` where every property is readonly, PHP 8.2. Also: keep
+		promotedProperties: required        # a constructor parameter only assigned to a property is promoted; risky. Also: keep
+		newInInitializer: required          # `Clock $c = new SystemClock` for a `null` default the body swaps; risky. Also: keep
+	functions:                              # a function a newer PHP gave, for the code doing by hand what it does
+		substringFunctions: required        # `str_contains()` for `strpos() !== false`. Also: keep
+		arrayFirstLast: required            # `array_first()` for `reset()` read as an item, PHP 8.5. Also: keep
+		array_is_list: required             # for a hand-written test of a list; risky. Also: keep
+		arraySearchFunctions: required      # `array_find()`, `array_any()`, `array_all()` for a `foreach` asking what they answer, PHP 8.4. Also: keep
+		json_validate: required             # for `json_decode()` only testing, PHP 8.3; risky. Also: keep
+		clamp: required                     # `clamp($x, $lo, $hi)` for `max($lo, min($x, $hi))`, PHP 8.6. Also: keep
+		get_debug_type: required            # for `is_object($x) ? get_class($x) : gettype($x)`. Also: keep
+		roundingMode: required              # `RoundingMode::HalfAwayFromZero` for `PHP_ROUND_HALF_UP`, PHP 8.4. Also: keep
+	classes:                                # an attribute or an interface PHP gave
+		Override: keep                      # `#[\Override]` on a member overriding an inherited one, PHP 8.3, with the types. Also: required
+		Stringable: keep                    # PHP declares it by itself for a class with `__toString()`. Also: required (written out)
+		SensitiveParameter: required        # `#[\SensitiveParameter]` on a parameter holding a secret, PHP 8.2. Also: keep
+		SensitiveParameterNames: [..., pin] # parameter: the names, whatever their case and underscores; the default `[password, passphrase, secret, apiKey, privateKey]`
+	phpdoc:                                 # what an annotation said, written as code
+		deprecated: required                # `#[\Deprecated]` for `@deprecated`, PHP 8.4; risky. Also: keep
+		readonly: required                  # `readonly` for `@readonly`; risky. Also: keep
+	declarations:                           # what a `@deprecated` of a declaration names; with the types
+		deprecatedClass: forbidden          # the use of such a class, replaced by what it names, reported where it names none. Also: keep
+		deprecatedMember: forbidden         # of a constant, a method or a property the same way. Also: keep
+		deprecatedFunction: forbidden       # of a function the same way. Also: keep
+	packages: yes                           # parameter: what the upgrading files of the installed packages say lies under the maps of `api`, and turns on the rules of their plugins. Also: no
+	api:                                    # maps a project or the data of its packages fill
+		replacedClasses:                    # a class written instead of another one
+			Acme\Old\Mailer: Acme\Mail\Mailer
+			Acme\Legacy\Thing: keep         # in no map and no pattern, an entry of the package data withdrawn
+		replacedFunctions: {}               # a function written instead of another one
+		replacedMembers:                    # a member written instead of another one of the class, with the types
+			'Acme\Mail\Mailer::send()': 'sendMessage()'
+		replacedCalls: {}                   # a call written as the template says
+		forbiddenClasses: {}                # a class that may not be used, with what to do instead
+		forbiddenFunctions: {}              # a function that may not be called; a pattern with `*`
+		forbiddenConstants: {}              # a global constant that may not be used
+		forbiddenMembers: {}                # a member that may not be used
+		attributeForAnnotation: {}          # an attribute written for an annotation; a namespace mask with `\*`
+		attributeForMember: {}              # an attribute written for a member the class declares by convention
