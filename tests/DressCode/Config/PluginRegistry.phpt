@@ -106,6 +106,23 @@ test('names of a suppression comment: a decision or a section for itself, a rule
 	Assert::same(['imports.order.names'], $registry->expandSuppressedName('imports.order.names'));
 	Assert::same(['imports'], $registry->expandSuppressedName('imports'));
 	Assert::same([], $registry->expandSuppressedName('importOrder'));
+	Assert::same(['imports.order.names', 'imports.order.kinds'], $registry->expandSuppressedName('ordered_imports'));
+	Assert::same(
+		['imports.order.names', 'imports.order.kinds'],
+		$registry->expandSuppressedName('SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses'),
+	);
+	// a message of a sniff stands for its own row of the table, and for nothing without one
+	Assert::same(
+		['naming.property'],
+		$registry->expandSuppressedName('Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps'),
+	);
+	Assert::same(['naming.variable'], $registry->expandSuppressedName('Squiz.NamingConventions.ValidVariableName.NotCamelCaps'));
+	Assert::same(
+		['spacing.unaryOperator', 'spacing.logicalNot'],
+		$registry->expandSuppressedName('Squiz.WhiteSpace.OperatorSpacing.Unary'),
+	);
+	Assert::same([], $registry->expandSuppressedName('PSR2.Methods.MethodDeclaration.Underscore'));
+	Assert::same([], $registry->expandSuppressedName('Squiz.NamingConventions.ValidVariableName.Unknown'));
 	Assert::same([], $registry->expandSuppressedName('test/unknown'));
 	Assert::same([], $registry->expandSuppressedName('imports.ord'));
 });

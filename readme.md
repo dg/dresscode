@@ -466,8 +466,14 @@ Migrating from PHP CS Fixer and PHP_CodeSniffer
 ===============================================
 
 DressCode knows not only its own decisions, but also the names their rules have in PHP CS Fixer,
-PHP_CodeSniffer and Slevomat. `migrate config` reads the configuration of either, writes its equivalent to
-`dresscode.neon` and tells you what it could not carry over:
+PHP_CodeSniffer and Slevomat. So the move takes two steps, and you can stop after the first.
+
+First, leave the code as it is. Comments `// phpcs:ignore`, `phpcs:disable`, `phpcs:enable`,
+`phpcs:ignoreFile` and the annotation `@phpcsSuppress` keep working: DressCode translates the foreign rule
+name to its decisions, and the suppression holds.
+
+Second, translate the configuration. `migrate config` reads it and writes its equivalent to `dresscode.neon`, and
+tells you what it could not carry over:
 
 ```shell
 dresscode migrate config phpcs.xml
