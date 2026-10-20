@@ -476,6 +476,7 @@ test('catalogue lists every decision, those the configuration makes marked, and 
 	$data = json_decode($out, associative: true);
 	Assert::same(DressCode\Config\Catalogue::Version, $data['version']);
 	Assert::same('foo($a, $b)', $data['decisions']['spacing.call']['standards']['nette']);
+	Assert::contains('no_spaces_after_function_name', $data['decisions']['spacing.call']['covers']);
 });
 
 
