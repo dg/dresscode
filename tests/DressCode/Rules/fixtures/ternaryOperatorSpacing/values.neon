@@ -1,7 +1,7 @@
+multiline:
+	operatorPosition:
+		ternary: keep
 spacing:
 	ternary: '$a ? $b : $c'
 	alignment:
 		ternary: optional
-multiline:
-	operatorPosition:
-		ternary: keep

@@ -22,11 +22,11 @@ return new Config(
 	cacheDir: 'temp/dresscode',
 	analyses: [Acme\DressCode\Analyses\FunctionCalls::class],
 	decisions: [
+		'file' => ['lineEnding' => 'LF', 'lineLength' => 160, 'lineLengthExcept' => []],
+		'indentation' => ['unit' => 'tab'],
 		'blankLines' => ['aroundMethods' => "1\u{2013}2", 'beforeStatement' => ['return' => '1+'], 'afterStatement' => []],
 		'spacing' => ['arrowFunction' => 'fn ($x) => $x'],
 		'types' => ['traversableClasses' => ['Traversable', 'Iterator']],
 		'controlFlow' => ['trailingIfMinStatements' => 3],
-		'file' => ['lineEnding' => 'LF', 'lineLength' => 160, 'lineLengthExcept' => []],
-		'indentation' => ['unit' => 'tab'],
 	],
 );

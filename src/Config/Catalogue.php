@@ -30,9 +30,9 @@ final class Catalogue
 
 	/** the sections of the core, in the order a file and the reference write them */
 	public const CoreSections = [
-		'file', 'indentation', 'naming', 'casing', 'qualification', 'imports', 'spacing', 'multiline', 'braces',
-		'blankLines', 'classes', 'types', 'functions', 'hygiene', 'controlFlow', 'expressions', 'literals',
-		'comments', 'phpdoc', 'mistakes', 'upgrading',
+		'file', 'indentation', 'braces', 'blankLines', 'multiline', 'spacing', 'naming', 'casing', 'qualification',
+		'imports', 'classes', 'functions', 'types', 'controlFlow', 'expressions', 'literals', 'comments', 'phpdoc',
+		'hygiene', 'mistakes', 'upgrading',
 	];
 
 	/**

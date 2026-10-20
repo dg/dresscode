@@ -8,16 +8,17 @@ use: psr12
 indentation:
 	heredoc: 1                               # body and closing marker one level deeper than the start
 
-naming:
-	enumCase: PascalCase                     # reported, never renamed
+braces:
+	emptyBody:                               # `function foo(): void {}`, `new class {}`
+		class: collapsed
+		function: collapsed
+		closure: collapsed
+		propertyHook: collapsed
+		anonymousClass: collapsed
 
-spacing:
-	attribute: '#[Foo($a)]'
-	arrowFunction: 'fn($x) => $x'
-	semicolon:
-		before: '$a;'
-	catchType: 'catch (A|B $e)'              # as a union type
-	namedArgument: 'foo(name: $x)'
+blankLines:
+	afterPhpdoc: 0                           # §12.2: no blank line between the docblock,
+	afterAttributes: 0                       # the attributes and the structure
 
 multiline:
 	items:
@@ -43,17 +44,16 @@ multiline:
 		list: optional
 	attributePosition: above                 # a group per line above the declaration, and above a parameter in a list spread over lines
 
-braces:
-	emptyBody:                               # `function foo(): void {}`, `new class {}`
-		class: collapsed
-		function: collapsed
-		closure: collapsed
-		propertyHook: collapsed
-		anonymousClass: collapsed
+spacing:
+	attribute: '#[Foo($a)]'
+	arrowFunction: 'fn($x) => $x'
+	semicolon:
+		before: '$a;'
+	catchType: 'catch (A|B $e)'              # as a union type
+	namedArgument: 'foo(name: $x)'
 
-blankLines:
-	afterPhpdoc: 0                           # §12.2: no blank line between the docblock,
-	afterAttributes: 0                       # the attributes and the structure
+naming:
+	enumCase: PascalCase                     # reported, never renamed
 
 classes:
 	visibility:
@@ -67,13 +67,13 @@ classes:
 	instantiationWrapping: forbidden         # `new Foo()->bar()`, not `(new Foo())->bar()`, from PHP 8.4
 	protectedInEnum: forbidden               # `private const X`
 
-types:
-	nullable: '?int'                         # not `int|null`
-	nullPosition: last                       # `int|string|null`
-
 functions:
 	arrowFunction:
 		emptyBody: required                  # `fn() => null`, not `function () {}`
+
+types:
+	nullable: '?int'                         # not `int|null`
+	nullPosition: last                       # `int|string|null`
 
 literals:
 	heredocWithoutInterpolation: forbidden   # a nowdoc `<<<'EOT'` instead

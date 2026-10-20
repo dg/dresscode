@@ -26,76 +26,6 @@ indentation:
 	chain: flat                               # every link one level below the start of the chain
 	commentLines: aligned
 
-# names are reported, never renamed
-naming:
-	class: PascalCase
-	method: camelCase                         # `__construct()` passes
-	constant: UPPER_CASE
-
-casing:
-	keyword: lowercase                        # `self`, `parent` too
-	trueFalseNull: lowercase
-	type: lowercase                           # `int`, `string`, `void`
-
-imports:
-	leadingBackslash: forbidden               # `use Foo\Bar;`, not `use \Foo\Bar;`
-	order:
-		kinds: [class, function, constant]    # the names of a kind in the order written
-
-spacing:
-	declare: 'declare(strict_types=1)'
-	call: 'foo($a, $b)'                       # `function foo($a)` too
-	padding:                                  # `foo($a)`, `if ($a)`, `($a + $b)`
-		argument: forbidden
-		parameter: forbidden
-		closureUse: forbidden
-		controlStructure: forbidden
-		grouping: forbidden
-	keyword: required                         # `return $x`, `if (`, `} else {`, `new`, `class Foo extends Bar`
-	openBrace: required                       # `if ($a) {`, `function () {`
-	alternativeSyntax: 'if ($a):'
-	body: required                            # `{ return 1; }`, `{ get; set; }`
-	import: 'use Acme\{Foo, Bar};'
-	comma: '$a, $b'
-	alignment:
-		comma: forbidden                      # no extra spaces after a comma
-	cast: '(int) $x'
-	reference: '&$x'
-	spread: '...$x'
-	unaryOperator: '-$x'                      # `++$i` too
-	logicalNot: ['!$x', '! $x']               # `! $x` may stay
-	binaryOperator: '$a + $b'                 # `=`, `=>`, `instanceof` too
-	concatenation: '$a . $b'
-	ternary: '$a ? $b : $c'                   # `$a ?: $b` too
-	anonymousClass: 'new class ($a)'
-	anonymousFunction: 'function ($x)'
-	typeDeclaration: '?int $x'                # `): int` too
-	catchType: 'catch (A | B $e)'
-	switchCase: 'case 1:'
-
-multiline:
-	items:
-		argument: perLine                     # an argument per line once spread
-		parameter: perLine                    # a parameter per line once spread or too wide
-		for: perLine                          # a section of `for` per line
-		implements: perLine                   # an interface per line below `implements`
-		matchCondition: perLine               # a condition of a `match` arm per line, `=>` after the last
-		# the parts of a condition and the operands as their author spread them, a line each where too wide
-		condition: [perLine, fill]
-		logical: [perLine, fill]
-		concatenation: [perLine, fill]
-		arithmetic: [perLine, fill]
-		bitwise: [perLine, fill]
-	edges:
-		argument: apart                       # `foo(` above the arguments, `)` below them
-		parameter: apart
-		implements: apart
-		condition: apart                      # `if (` above `$a`, `) {` below the last part
-	operatorPosition:                         # `+ $b` opens the line, not ends the one before
-		operators: lineStart
-		concatenation: keep
-		ternary: keep
-
 braces:
 	position:
 		class: nextLine
@@ -137,6 +67,76 @@ blankLines:
 		branch: 0
 	betweenTraitUses: 0
 	afterTraitUses: 1
+
+multiline:
+	items:
+		argument: perLine                     # an argument per line once spread
+		parameter: perLine                    # a parameter per line once spread or too wide
+		for: perLine                          # a section of `for` per line
+		implements: perLine                   # an interface per line below `implements`
+		matchCondition: perLine               # a condition of a `match` arm per line, `=>` after the last
+		# the parts of a condition and the operands as their author spread them, a line each where too wide
+		condition: [perLine, fill]
+		logical: [perLine, fill]
+		concatenation: [perLine, fill]
+		arithmetic: [perLine, fill]
+		bitwise: [perLine, fill]
+	edges:
+		argument: apart                       # `foo(` above the arguments, `)` below them
+		parameter: apart
+		implements: apart
+		condition: apart                      # `if (` above `$a`, `) {` below the last part
+	operatorPosition:                         # `+ $b` opens the line, not ends the one before
+		operators: lineStart
+		concatenation: keep
+		ternary: keep
+
+spacing:
+	declare: 'declare(strict_types=1)'
+	call: 'foo($a, $b)'                       # `function foo($a)` too
+	padding:                                  # `foo($a)`, `if ($a)`, `($a + $b)`
+		argument: forbidden
+		parameter: forbidden
+		closureUse: forbidden
+		controlStructure: forbidden
+		grouping: forbidden
+	keyword: required                         # `return $x`, `if (`, `} else {`, `new`, `class Foo extends Bar`
+	openBrace: required                       # `if ($a) {`, `function () {`
+	alternativeSyntax: 'if ($a):'
+	body: required                            # `{ return 1; }`, `{ get; set; }`
+	import: 'use Acme\{Foo, Bar};'
+	comma: '$a, $b'
+	alignment:
+		comma: forbidden                      # no extra spaces after a comma
+	cast: '(int) $x'
+	reference: '&$x'
+	spread: '...$x'
+	unaryOperator: '-$x'                      # `++$i` too
+	logicalNot: ['!$x', '! $x']               # `! $x` may stay
+	binaryOperator: '$a + $b'                 # `=`, `=>`, `instanceof` too
+	concatenation: '$a . $b'
+	ternary: '$a ? $b : $c'                   # `$a ?: $b` too
+	anonymousClass: 'new class ($a)'
+	anonymousFunction: 'function ($x)'
+	typeDeclaration: '?int $x'                # `): int` too
+	catchType: 'catch (A | B $e)'
+	switchCase: 'case 1:'
+
+# names are reported, never renamed
+naming:
+	class: PascalCase
+	method: camelCase                         # `__construct()` passes
+	constant: UPPER_CASE
+
+casing:
+	keyword: lowercase                        # `self`, `parent` too
+	trueFalseNull: lowercase
+	type: lowercase                           # `int`, `string`, `void`
+
+imports:
+	leadingBackslash: forbidden               # `use Foo\Bar;`, not `use \Foo\Bar;`
+	order:
+		kinds: [class, function, constant]    # the names of a kind in the order written
 
 classes:
 	visibility: required                      # `var` is `public`; interface methods and set visibility too

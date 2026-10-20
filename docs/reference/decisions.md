@@ -11,6 +11,14 @@ meeting the deprecation wherever it runs on the version that made it.
 
 **indentation** (10): [binaryOperator](#indentationbinaryoperator), [chain](#indentationchain), [commentLines](#indentationcommentlines), [heredoc](#indentationheredoc), [singleLevel](#indentationsinglelevel), [singleLevelInComments](#indentationsinglelevelincomments), [switchCase](#indentationswitchcase), [tabWidth](#indentationtabwidth), [ternary](#indentationternary), [unit](#indentationunit)
 
+**braces** (18): [alternativeSyntax](#bracesalternativesyntax), [bareStatementGroup](#bracesbarestatementgroup), [bracelessBody](#bracesbracelessbody), [emptyBody.anonymousClass](#bracesemptybodyanonymousclass), [emptyBody.class](#bracesemptybodyclass), [emptyBody.closure](#bracesemptybodyclosure), [emptyBody.controlStructure](#bracesemptybodycontrolstructure), [emptyBody.function](#bracesemptybodyfunction), [emptyBody.propertyHook](#bracesemptybodypropertyhook), [position.anonymousClass](#bracespositionanonymousclass), [position.class](#bracespositionclass), [position.closure](#bracespositionclosure), [position.continuingKeyword](#bracespositioncontinuingkeyword), [position.controlStructure](#bracespositioncontrolstructure), [position.function](#bracespositionfunction), [position.multilineSignature](#bracespositionmultilinesignature), [position.typedMultilineSignature](#bracespositiontypedmultilinesignature), [singlelineClosure](#bracessinglelineclosure)
+
+**blankLines** (40): [afterAttributes](#blanklinesafterattributes), [afterDeclare](#blanklinesafterdeclare), [afterImports](#blanklinesafterimports), [afterNamespace](#blanklinesafternamespace), [afterOpeningTag](#blanklinesafteropeningtag), [afterPhpdoc](#blanklinesafterphpdoc), [afterStatement](#blanklinesafterstatement), [afterTraitUses](#blanklinesaftertraituses), [aroundDeclarations](#blanklinesarounddeclarations), [aroundInterfaceMethods](#blanklinesaroundinterfacemethods), [aroundMethods](#blanklinesaroundmethods), [beforeDeclaration](#blanklinesbeforedeclaration), [beforeDocumentedMember](#blanklinesbeforedocumentedmember), [beforeNamespace](#blanklinesbeforenamespace), [beforeOpenBrace.class](#blanklinesbeforeopenbraceclass), [beforeStatement](#blanklinesbeforestatement), [belowComment.inlineVar](#blanklinesbelowcommentinlinevar), [betweenImportKinds](#blanklinesbetweenimportkinds), [betweenImports](#blanklinesbetweenimports), [betweenMemberKinds](#blanklinesbetweenmemberkinds), [betweenMembers.constant](#blanklinesbetweenmembersconstant), [betweenMembers.enumCase](#blanklinesbetweenmembersenumcase), [betweenMembers.property](#blanklinesbetweenmembersproperty), [betweenStatementsInFunction](#blanklinesbetweenstatementsinfunction), [betweenTraitUses](#blanklinesbetweentraituses), [bodyEnd.anonymousClass](#blanklinesbodyendanonymousclass), [bodyEnd.branch](#blanklinesbodyendbranch), [bodyEnd.class](#blanklinesbodyendclass), [bodyEnd.closure](#blanklinesbodyendclosure), [bodyEnd.controlStructure](#blanklinesbodyendcontrolstructure), [bodyEnd.function](#blanklinesbodyendfunction), [bodyEnd.propertyHook](#blanklinesbodyendpropertyhook), [bodyEnd.switchCase](#blanklinesbodyendswitchcase), [bodyStart.anonymousClass](#blanklinesbodystartanonymousclass), [bodyStart.class](#blanklinesbodystartclass), [bodyStart.closure](#blanklinesbodystartclosure), [bodyStart.controlStructure](#blanklinesbodystartcontrolstructure), [bodyStart.function](#blanklinesbodystartfunction), [bodyStart.propertyHook](#blanklinesbodystartpropertyhook), [bodyStart.switchCase](#blanklinesbodystartswitchcase)
+
+**multiline** (63): [attributePosition.declaration](#multilineattributepositiondeclaration), [attributePosition.parameter](#multilineattributepositionparameter), [edges.argument](#multilineedgesargument), [edges.array](#multilineedgesarray), [edges.attribute](#multilineedgesattribute), [edges.chain](#multilineedgeschain), [edges.closureUse](#multilineedgesclosureuse), [edges.condition](#multilineedgescondition), [edges.implements](#multilineedgesimplements), [edges.import](#multilineedgesimport), [edges.list](#multilineedgeslist), [edges.parameter](#multilineedgesparameter), [expressionStart.arrayItem](#multilineexpressionstartarrayitem), [expressionStart.arrowFunction](#multilineexpressionstartarrowfunction), [expressionStart.assignment](#multilineexpressionstartassignment), [expressionStart.echo](#multilineexpressionstartecho), [expressionStart.return](#multilineexpressionstartreturn), [expressionStart.throw](#multilineexpressionstartthrow), [expressionStart.yield](#multilineexpressionstartyield), [fillMinItems.array](#multilinefillminitemsarray), [fillMinItems.import](#multilinefillminitemsimport), [fillMinItems.list](#multilinefillminitemslist), [fillMinItems.matchCondition](#multilinefillminitemsmatchcondition), [items.argument](#multilineitemsargument), [items.arithmetic](#multilineitemsarithmetic), [items.array](#multilineitemsarray), [items.attribute](#multilineitemsattribute), [items.bitwise](#multilineitemsbitwise), [items.chain](#multilineitemschain), [items.closureUse](#multilineitemsclosureuse), [items.coalesce](#multilineitemscoalesce), [items.concatenation](#multilineitemsconcatenation), [items.condition](#multilineitemscondition), [items.for](#multilineitemsfor), [items.implements](#multilineitemsimplements), [items.import](#multilineitemsimport), [items.list](#multilineitemslist), [items.logical](#multilineitemslogical), [items.matchArm](#multilineitemsmatcharm), [items.matchCondition](#multilineitemsmatchcondition), [items.parameter](#multilineitemsparameter), [items.pipe](#multilineitemspipe), [items.ternary](#multilineitemsternary), [maxWidth.array](#multilinemaxwidtharray), [operatorPosition.arithmetic](#multilineoperatorpositionarithmetic), [operatorPosition.bitwise](#multilineoperatorpositionbitwise), [operatorPosition.coalesce](#multilineoperatorpositioncoalesce), [operatorPosition.comparison](#multilineoperatorpositioncomparison), [operatorPosition.concatenation](#multilineoperatorpositionconcatenation), [operatorPosition.condition](#multilineoperatorpositioncondition), [operatorPosition.logical](#multilineoperatorpositionlogical), [operatorPosition.pipe](#multilineoperatorpositionpipe), [operatorPosition.ternary](#multilineoperatorpositionternary), [semicolon](#multilinesemicolon), [spreadAlways](#multilinespreadalways), [spreadItem](#multilinespreaditem), [trailingComma.argument](#multilinetrailingcommaargument), [trailingComma.array](#multilinetrailingcommaarray), [trailingComma.closureUse](#multilinetrailingcommaclosureuse), [trailingComma.import](#multilinetrailingcommaimport), [trailingComma.list](#multilinetrailingcommalist), [trailingComma.matchArm](#multilinetrailingcommamatcharm), [trailingComma.parameter](#multilinetrailingcommaparameter)
+
+**spacing** (42): [alignment.binaryOperator](#spacingalignmentbinaryoperator), [alignment.comma](#spacingalignmentcomma), [alignment.comment](#spacingalignmentcomment), [alignment.ternary](#spacingalignmentternary), [alternativeSyntax](#spacingalternativesyntax), [anonymousClass](#spacinganonymousclass), [anonymousFunction](#spacinganonymousfunction), [arrowFunction](#spacingarrowfunction), [attribute](#spacingattribute), [binaryOperator](#spacingbinaryoperator), [body](#spacingbody), [call](#spacingcall), [cast](#spacingcast), [catchType](#spacingcatchtype), [comma](#spacingcomma), [comment.afterCode](#spacingcommentaftercode), [comment.marker](#spacingcommentmarker), [concatenation](#spacingconcatenation), [declare](#spacingdeclare), [doubleColon](#spacingdoublecolon), [import](#spacingimport), [keyword](#spacingkeyword), [logicalNot](#spacinglogicalnot), [namedArgument](#spacingnamedargument), [objectOperator](#spacingobjectoperator), [openBrace](#spacingopenbrace), [padding.argument](#spacingpaddingargument), [padding.array](#spacingpaddingarray), [padding.closureUse](#spacingpaddingclosureuse), [padding.controlStructure](#spacingpaddingcontrolstructure), [padding.grouping](#spacingpaddinggrouping), [padding.list](#spacingpaddinglist), [padding.offset](#spacingpaddingoffset), [padding.parameter](#spacingpaddingparameter), [reference](#spacingreference), [semicolon.after](#spacingsemicolonafter), [semicolon.before](#spacingsemicolonbefore), [spread](#spacingspread), [switchCase](#spacingswitchcase), [ternary](#spacingternary), [typeDeclaration](#spacingtypedeclaration), [unaryOperator](#spacingunaryoperator)
+
 **naming** (13): [abstractClassAffix](#namingabstractclassaffix), [class](#namingclass), [constant](#namingconstant), [enumCase](#namingenumcase), [errorAffix](#namingerroraffix), [except](#namingexcept), [exceptionAffix](#namingexceptionaffix), [function](#namingfunction), [interfaceAffix](#naminginterfaceaffix), [method](#namingmethod), [property](#namingproperty), [traitAffix](#namingtraitaffix), [variable](#namingvariable)
 
 **casing** (8): [class](#casingclass), [function](#casingfunction), [hexDigit](#casinghexdigit), [keyword](#casingkeyword), [magicConstant](#casingmagicconstant), [method](#casingmethod), [trueFalseNull](#casingtruefalsenull), [type](#casingtype)
@@ -19,21 +27,11 @@ meeting the deprecation wherever it runs on the version that made it.
 
 **imports** (11): [aliasEqualToName](#importsaliasequaltoname), [fromCurrentNamespace](#importsfromcurrentnamespace), [grouping.class](#importsgroupingclass), [grouping.constant](#importsgroupingconstant), [grouping.function](#importsgroupingfunction), [groupMinNames](#importsgroupminnames), [leadingBackslash](#importsleadingbackslash), [order.caseSensitive](#importsordercasesensitive), [order.kinds](#importsorderkinds), [order.names](#importsordernames), [unused](#importsunused)
 
-**spacing** (42): [alignment.binaryOperator](#spacingalignmentbinaryoperator), [alignment.comma](#spacingalignmentcomma), [alignment.comment](#spacingalignmentcomment), [alignment.ternary](#spacingalignmentternary), [alternativeSyntax](#spacingalternativesyntax), [anonymousClass](#spacinganonymousclass), [anonymousFunction](#spacinganonymousfunction), [arrowFunction](#spacingarrowfunction), [attribute](#spacingattribute), [binaryOperator](#spacingbinaryoperator), [body](#spacingbody), [call](#spacingcall), [cast](#spacingcast), [catchType](#spacingcatchtype), [comma](#spacingcomma), [comment.afterCode](#spacingcommentaftercode), [comment.marker](#spacingcommentmarker), [concatenation](#spacingconcatenation), [declare](#spacingdeclare), [doubleColon](#spacingdoublecolon), [import](#spacingimport), [keyword](#spacingkeyword), [logicalNot](#spacinglogicalnot), [namedArgument](#spacingnamedargument), [objectOperator](#spacingobjectoperator), [openBrace](#spacingopenbrace), [padding.argument](#spacingpaddingargument), [padding.array](#spacingpaddingarray), [padding.closureUse](#spacingpaddingclosureuse), [padding.controlStructure](#spacingpaddingcontrolstructure), [padding.grouping](#spacingpaddinggrouping), [padding.list](#spacingpaddinglist), [padding.offset](#spacingpaddingoffset), [padding.parameter](#spacingpaddingparameter), [reference](#spacingreference), [semicolon.after](#spacingsemicolonafter), [semicolon.before](#spacingsemicolonbefore), [spread](#spacingspread), [switchCase](#spacingswitchcase), [ternary](#spacingternary), [typeDeclaration](#spacingtypedeclaration), [unaryOperator](#spacingunaryoperator)
-
-**multiline** (63): [attributePosition.declaration](#multilineattributepositiondeclaration), [attributePosition.parameter](#multilineattributepositionparameter), [edges.argument](#multilineedgesargument), [edges.array](#multilineedgesarray), [edges.attribute](#multilineedgesattribute), [edges.chain](#multilineedgeschain), [edges.closureUse](#multilineedgesclosureuse), [edges.condition](#multilineedgescondition), [edges.implements](#multilineedgesimplements), [edges.import](#multilineedgesimport), [edges.list](#multilineedgeslist), [edges.parameter](#multilineedgesparameter), [expressionStart.arrayItem](#multilineexpressionstartarrayitem), [expressionStart.arrowFunction](#multilineexpressionstartarrowfunction), [expressionStart.assignment](#multilineexpressionstartassignment), [expressionStart.echo](#multilineexpressionstartecho), [expressionStart.return](#multilineexpressionstartreturn), [expressionStart.throw](#multilineexpressionstartthrow), [expressionStart.yield](#multilineexpressionstartyield), [fillMinItems.array](#multilinefillminitemsarray), [fillMinItems.import](#multilinefillminitemsimport), [fillMinItems.list](#multilinefillminitemslist), [fillMinItems.matchCondition](#multilinefillminitemsmatchcondition), [items.argument](#multilineitemsargument), [items.arithmetic](#multilineitemsarithmetic), [items.array](#multilineitemsarray), [items.attribute](#multilineitemsattribute), [items.bitwise](#multilineitemsbitwise), [items.chain](#multilineitemschain), [items.closureUse](#multilineitemsclosureuse), [items.coalesce](#multilineitemscoalesce), [items.concatenation](#multilineitemsconcatenation), [items.condition](#multilineitemscondition), [items.for](#multilineitemsfor), [items.implements](#multilineitemsimplements), [items.import](#multilineitemsimport), [items.list](#multilineitemslist), [items.logical](#multilineitemslogical), [items.matchArm](#multilineitemsmatcharm), [items.matchCondition](#multilineitemsmatchcondition), [items.parameter](#multilineitemsparameter), [items.pipe](#multilineitemspipe), [items.ternary](#multilineitemsternary), [maxWidth.array](#multilinemaxwidtharray), [operatorPosition.arithmetic](#multilineoperatorpositionarithmetic), [operatorPosition.bitwise](#multilineoperatorpositionbitwise), [operatorPosition.coalesce](#multilineoperatorpositioncoalesce), [operatorPosition.comparison](#multilineoperatorpositioncomparison), [operatorPosition.concatenation](#multilineoperatorpositionconcatenation), [operatorPosition.condition](#multilineoperatorpositioncondition), [operatorPosition.logical](#multilineoperatorpositionlogical), [operatorPosition.pipe](#multilineoperatorpositionpipe), [operatorPosition.ternary](#multilineoperatorpositionternary), [semicolon](#multilinesemicolon), [spreadAlways](#multilinespreadalways), [spreadItem](#multilinespreaditem), [trailingComma.argument](#multilinetrailingcommaargument), [trailingComma.array](#multilinetrailingcommaarray), [trailingComma.closureUse](#multilinetrailingcommaclosureuse), [trailingComma.import](#multilinetrailingcommaimport), [trailingComma.list](#multilinetrailingcommalist), [trailingComma.matchArm](#multilinetrailingcommamatcharm), [trailingComma.parameter](#multilinetrailingcommaparameter)
-
-**braces** (18): [alternativeSyntax](#bracesalternativesyntax), [bareStatementGroup](#bracesbarestatementgroup), [bracelessBody](#bracesbracelessbody), [emptyBody.anonymousClass](#bracesemptybodyanonymousclass), [emptyBody.class](#bracesemptybodyclass), [emptyBody.closure](#bracesemptybodyclosure), [emptyBody.controlStructure](#bracesemptybodycontrolstructure), [emptyBody.function](#bracesemptybodyfunction), [emptyBody.propertyHook](#bracesemptybodypropertyhook), [position.anonymousClass](#bracespositionanonymousclass), [position.class](#bracespositionclass), [position.closure](#bracespositionclosure), [position.continuingKeyword](#bracespositioncontinuingkeyword), [position.controlStructure](#bracespositioncontrolstructure), [position.function](#bracespositionfunction), [position.multilineSignature](#bracespositionmultilinesignature), [position.typedMultilineSignature](#bracespositiontypedmultilinesignature), [singlelineClosure](#bracessinglelineclosure)
-
-**blankLines** (40): [afterAttributes](#blanklinesafterattributes), [afterDeclare](#blanklinesafterdeclare), [afterImports](#blanklinesafterimports), [afterNamespace](#blanklinesafternamespace), [afterOpeningTag](#blanklinesafteropeningtag), [afterPhpdoc](#blanklinesafterphpdoc), [afterStatement](#blanklinesafterstatement), [afterTraitUses](#blanklinesaftertraituses), [aroundDeclarations](#blanklinesarounddeclarations), [aroundInterfaceMethods](#blanklinesaroundinterfacemethods), [aroundMethods](#blanklinesaroundmethods), [beforeDeclaration](#blanklinesbeforedeclaration), [beforeDocumentedMember](#blanklinesbeforedocumentedmember), [beforeNamespace](#blanklinesbeforenamespace), [beforeOpenBrace.class](#blanklinesbeforeopenbraceclass), [beforeStatement](#blanklinesbeforestatement), [belowComment.inlineVar](#blanklinesbelowcommentinlinevar), [betweenImportKinds](#blanklinesbetweenimportkinds), [betweenImports](#blanklinesbetweenimports), [betweenMemberKinds](#blanklinesbetweenmemberkinds), [betweenMembers.constant](#blanklinesbetweenmembersconstant), [betweenMembers.enumCase](#blanklinesbetweenmembersenumcase), [betweenMembers.property](#blanklinesbetweenmembersproperty), [betweenStatementsInFunction](#blanklinesbetweenstatementsinfunction), [betweenTraitUses](#blanklinesbetweentraituses), [bodyEnd.anonymousClass](#blanklinesbodyendanonymousclass), [bodyEnd.branch](#blanklinesbodyendbranch), [bodyEnd.class](#blanklinesbodyendclass), [bodyEnd.closure](#blanklinesbodyendclosure), [bodyEnd.controlStructure](#blanklinesbodyendcontrolstructure), [bodyEnd.function](#blanklinesbodyendfunction), [bodyEnd.propertyHook](#blanklinesbodyendpropertyhook), [bodyEnd.switchCase](#blanklinesbodyendswitchcase), [bodyStart.anonymousClass](#blanklinesbodystartanonymousclass), [bodyStart.class](#blanklinesbodystartclass), [bodyStart.closure](#blanklinesbodystartclosure), [bodyStart.controlStructure](#blanklinesbodystartcontrolstructure), [bodyStart.function](#blanklinesbodystartfunction), [bodyStart.propertyHook](#blanklinesbodystartpropertyhook), [bodyStart.switchCase](#blanklinesbodystartswitchcase)
-
 **classes** (27): [emptyParentheses.anonymousClass](#classesemptyparenthesesanonymousclass), [emptyParentheses.attribute](#classesemptyparenthesesattribute), [emptyParentheses.instantiation](#classesemptyparenthesesinstantiation), [instantiationWrapping](#classesinstantiationwrapping), [internalClass.except](#classesinternalclassexcept), [internalClass.final](#classesinternalclassfinal), [internalClass.markers](#classesinternalclassmarkers), [members.grouping.constant](#classesmembersgroupingconstant), [members.grouping.property](#classesmembersgroupingproperty), [members.grouping.traitUse](#classesmembersgroupingtraituse), [members.order](#classesmembersorder), [modifiers.implied](#classesmodifiersimplied), [modifiers.order](#classesmodifiersorder), [overridingMethod.parameterName](#classesoverridingmethodparametername), [overridingMethod.parentCallOnly](#classesoverridingmethodparentcallonly), [overridingMethod.ReturnTypeWillChange](#classesoverridingmethodreturntypewillchange), [overridingMethod.signature](#classesoverridingmethodsignature), [protectedInEnum](#classesprotectedinenum), [protectedInFinalClass](#classesprotectedinfinalclass), [staticMethod](#classesstaticmethod), [staticMethodVisibilities](#classesstaticmethodvisibilities), [untypedPropertyNullDefault](#classesuntypedpropertynulldefault), [visibility.constant](#classesvisibilityconstant), [visibility.interfaceMethod](#classesvisibilityinterfacemethod), [visibility.method](#classesvisibilitymethod), [visibility.property](#classesvisibilityproperty), [visibility.publicWithSet](#classesvisibilitypublicwithset)
-
-**types** (9): [declaration.anonymousFunction](#typesdeclarationanonymousfunction), [declaration.constant](#typesdeclarationconstant), [declaration.parameter](#typesdeclarationparameter), [declaration.property](#typesdeclarationproperty), [declaration.return](#typesdeclarationreturn), [nullable](#typesnullable), [nullPosition](#typesnullposition), [traversableClasses](#typestraversableclasses), [unionOrder](#typesunionorder)
 
 **functions** (9): [arrowFunction.emptyBody](#functionsarrowfunctionemptybody), [arrowFunction.oneExpression](#functionsarrowfunctiononeexpression), [arrowFunctionNested](#functionsarrowfunctionnested), [innerFunction](#functionsinnerfunction), [namedBooleanArgument](#functionsnamedbooleanargument), [namedBooleanArgumentExcept](#functionsnamedbooleanargumentexcept), [staticClosure](#functionsstaticclosure), [trailingBareReturn](#functionstrailingbarereturn), [unreachableParameterDefault](#functionsunreachableparameterdefault)
 
-**hygiene** (19): [aliasFunctions](#hygienealiasfunctions), [call_user_func](#hygienecall_user_func), [call_user_funcMethods](#hygienecall_user_funcmethods), [classNameNotation.currentClass](#hygieneclassnamenotationcurrentclass), [classNameNotation.object](#hygieneclassnamenotationobject), [conversionFunction](#hygieneconversionfunction), [countEmptyTest](#hygienecountemptytest), [defaultArgument](#hygienedefaultargument), [dirnameOfFile](#hygienedirnameoffile), [is_null](#hygieneis_null), [nestedDirname](#hygienenesteddirname), [repeatedCatchBody](#hygienerepeatedcatchbody), [separateIssets](#hygieneseparateissets), [separateUnsets](#hygieneseparateunsets), [settype](#hygienesettype), [strlenEmptyTest](#hygienestrlenemptytest), [unreadCatchVariable](#hygieneunreadcatchvariable), [uselessVersionCheck](#hygieneuselessversioncheck), [__invokeCall](#hygiene__invokecall)
+**types** (9): [declaration.anonymousFunction](#typesdeclarationanonymousfunction), [declaration.constant](#typesdeclarationconstant), [declaration.parameter](#typesdeclarationparameter), [declaration.property](#typesdeclarationproperty), [declaration.return](#typesdeclarationreturn), [nullable](#typesnullable), [nullPosition](#typesnullposition), [traversableClasses](#typestraversableclasses), [unionOrder](#typesunionorder)
 
 **controlFlow** (9): [elseAfterReturn](#controlflowelseafterreturn), [elseif](#controlflowelseif), [elseifAfterReturn](#controlflowelseifafterreturn), [emptyStatement](#controlflowemptystatement), [ifElseReturning](#controlflowifelsereturning), [ifReturningTrueFalse](#controlflowifreturningtruefalse), [switch.fallThroughComment](#controlflowswitchfallthroughcomment), [trailingIf](#controlflowtrailingif), [trailingIfMinStatements](#controlflowtrailingifminstatements)
 
@@ -44,6 +42,8 @@ meeting the deprecation wherever it runs on the version that made it.
 **comments** (2): [empty](#commentsempty), [singleline](#commentssingleline)
 
 **phpdoc** (27): [aboveAttributes](#phpdocaboveattributes), [annotation.casing](#phpdocannotationcasing), [annotation.constantVar](#phpdocannotationconstantvar), [annotation.duplicateParam](#phpdocannotationduplicateparam), [annotation.duplicateReturn](#phpdocannotationduplicatereturn), [annotation.duplicateVar](#phpdocannotationduplicatevar), [annotation.empty](#phpdocannotationempty), [annotation.extraParam](#phpdocannotationextraparam), [annotation.inlineVar](#phpdocannotationinlinevar), [annotation.itemTypes](#phpdocannotationitemtypes), [annotation.nativeTypeOnly](#phpdocannotationnativetypeonly), [annotation.plainComment](#phpdocannotationplaincomment), [blankLines](#phpdocblanklines), [empty](#phpdocempty), [forbiddenAnnotations](#phpdocforbiddenannotations), [forbiddenLines](#phpdocforbiddenlines), [inheritdocOnly](#phpdocinheritdoconly), [property.lineSpan](#phpdocpropertylinespan), [property.plainComment](#phpdocpropertyplaincomment), [property.promoted](#phpdocpropertypromoted), [stars](#phpdocstars), [types.array](#phpdoctypesarray), [types.builtin](#phpdoctypesbuiltin), [types.duplicate](#phpdoctypesduplicate), [types.nullable](#phpdoctypesnullable), [types.nullPosition](#phpdoctypesnullposition), [types.unionOrder](#phpdoctypesunionorder)
+
+**hygiene** (19): [aliasFunctions](#hygienealiasfunctions), [call_user_func](#hygienecall_user_func), [call_user_funcMethods](#hygienecall_user_funcmethods), [classNameNotation.currentClass](#hygieneclassnamenotationcurrentclass), [classNameNotation.object](#hygieneclassnamenotationobject), [conversionFunction](#hygieneconversionfunction), [countEmptyTest](#hygienecountemptytest), [defaultArgument](#hygienedefaultargument), [dirnameOfFile](#hygienedirnameoffile), [is_null](#hygieneis_null), [nestedDirname](#hygienenesteddirname), [repeatedCatchBody](#hygienerepeatedcatchbody), [separateIssets](#hygieneseparateissets), [separateUnsets](#hygieneseparateunsets), [settype](#hygienesettype), [strlenEmptyTest](#hygienestrlenemptytest), [unreadCatchVariable](#hygieneunreadcatchvariable), [uselessVersionCheck](#hygieneuselessversioncheck), [__invokeCall](#hygiene__invokecall)
 
 **mistakes** (24): [consecutivePhpdocs](#mistakesconsecutivephpdocs), [continueInSwitch](#mistakescontinueinswitch), [countOfUncountable](#mistakescountofuncountable), [debugOutput](#mistakesdebugoutput), [debugOutputFunctions](#mistakesdebugoutputfunctions), [errorSuppression](#mistakeserrorsuppression), [exceptionWhereThrowableBelongs](#mistakesexceptionwherethrowablebelongs), [finalParent](#mistakesfinalparent), [globalStatement](#mistakesglobalstatement), [invisibleCharacter](#mistakesinvisiblecharacter), [looseNumberComparison](#mistakesloosenumbercomparison), [neverReturnType.anonymousFunction](#mistakesneverreturntypeanonymousfunction), [neverReturnType.function](#mistakesneverreturntypefunction), [neverReturnType.method](#mistakesneverreturntypemethod), [readonlyProperty](#mistakesreadonlyproperty), [repeatedAssignment](#mistakesrepeatedassignment), [staticSetState](#mistakesstaticsetstate), [strictArgument](#mistakesstrictargument), [thisOutsideObject](#mistakesthisoutsideobject), [trailingWhitespaceInString](#mistakestrailingwhitespaceinstring), [unimplementedAbstractMethod](#mistakesunimplementedabstractmethod), [unreachableCatch](#mistakesunreachablecatch), [__debugInfoReturningNull](#mistakes__debuginforeturningnull), [__serialize](#mistakes__serialize)
 
@@ -289,846 +289,533 @@ Every line indented by the construct it continues, one level per nesting, the le
 - Rule `DressCode\Rules\Whitespace\IndentationRule`, stage Finishing
 - Modifies comments
 
-## naming
+## braces
 
-### naming.abstractClassAffix
+### braces.alternativeSyntax
 
-The word `Abstract` in front of the name of an abstract class, `AbstractFoo`, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
-
-### naming.class
-
-The case of the name of a class, an interface, a trait and an enum, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
-- The standards: perCs `PascalCase`, psr12 `PascalCase`, nette `PascalCase`
-- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
-
-### naming.constant
-
-The case of the name of a class constant and a `const` outside a class, a constant of an enum passing in this case or in that of `enumCase`, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
-- The standards: perCs `UPPER_CASE`, psr12 `UPPER_CASE`, nette `PascalCase`
-- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
-
-### naming.enumCase
-
-The case of the name of a case of an enum, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
-- The standards: perCs `PascalCase`, psr12 `keep`, nette `PascalCase`
-- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
-
-### naming.errorAffix
-
-The word `Error` at the end of the name of a class that is not abstract, `FooError`, which is reported and never renamed.
+`if: … endif;` is written with braces.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
+- Rule `DressCode\Rules\ControlFlow\NoAlternativeSyntaxRule`, stage Structure
 
-### naming.except
+### braces.bareStatementGroup
 
-The patterns of names never reported, whatever their kind, as the methods of a stream wrapper or a replacement for a native function.
-
-- By default `[]`
-- Takes: a list of regular expressions
-- The standards: perCs `[]`, psr12 `[]`, nette `[]`
-- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
-
-### naming.exceptionAffix
-
-The word `Exception` at the end of the name of an exception, `FooException`, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
-
-### naming.function
-
-The case of the name of a function, those beginning with `__` being PHP's, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `camelCase`
-- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
-
-### naming.interfaceAffix
-
-The word `Interface` at the end of the name of an interface, `FooInterface`, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
-
-### naming.method
-
-The case of the name of a method, those beginning with `__` being PHP's, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
-- The standards: perCs `camelCase`, psr12 `camelCase`, nette `camelCase`
-- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
-
-### naming.property
-
-The case of the name of a property, a promoted constructor parameter included, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `camelCase`
-- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
-
-### naming.traitAffix
-
-The word `Trait` at the end of the name of a trait, `FooTrait`, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
-
-### naming.variable
-
-The case of the name of a variable and a parameter, `$this`, the superglobals and a placeholder such as `$_` excepted, which is reported and never renamed.
-
-- By default `keep`
-- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `camelCase`
-- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
-
-## casing
-
-### casing.class
-
-The case of a class, an interface, a trait or an enum as its declaration writes it, of one PHP declares only where the configuration sets no `typeAnalysis`.
-
-- By default `keep`
-- Takes: `declared` (`stdClass`, `DateTime`, never `datetime`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `declared`
-- Rule `DressCode\Rules\Namespaces\DeclaredNameCasingRule`, stage Structure
-
-### casing.function
-
-The case of a function as its declaration writes it, of one PHP declares only where the configuration sets no `typeAnalysis`.
-
-- By default `keep`
-- Takes: `declared` (`strlen`, never `StrLen`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `declared`
-- Rule `DressCode\Rules\Namespaces\DeclaredNameCasingRule`, stage Structure
-
-### casing.hexDigit
-
-The digits `A` to `F` of a hexadecimal number; the prefixes `0x`, `0b` and `0o` stand in lowercase either way.
-
-- By default `keep`
-- Takes: `uppercase` (`0xFF`); `lowercase` (`0xff`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Literals\NumberNotationRule`, stage Structure
-
-### casing.keyword
-
-The case of keywords, `self` and `parent` included.
-
-- By default `keep`
-- Takes: `lowercase` (`if`, `function`, `self`, `parent`); `keep`
-- The standards: perCs `lowercase`, psr12 `lowercase`, nette `lowercase`
-- Rule `DressCode\Rules\Literals\BuiltinCasingRule`, stage Structure
-
-### casing.magicConstant
-
-The case of the magic constants such as `__DIR__`.
-
-- By default `keep`
-- Takes: `uppercase` (`__DIR__`, `__CLASS__`); `lowercase` (`__dir__`, `__class__`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `uppercase`
-- Rule `DressCode\Rules\Literals\BuiltinCasingRule`, stage Structure
-
-### casing.method
-
-The case of the name of a method called, as its declaration writes it, and of a method overriding another, as the overridden one writes it; a magic method of PHP as PHP writes it, the others only with the types of the code.
-
-- By default `keep`
-- Takes: `declared` (`$order->getTotal()`, never `$order->gettotal()`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `declared`
-- Rule `DressCode\Rules\Functions\MethodCasingRule`, stage Structure
-
-### casing.trueFalseNull
-
-The case of `true`, `false` and `null`, a leading backslash staying.
-
-- By default `keep`
-- Takes: `lowercase` (`true`, `false`, `null`); `uppercase` (`TRUE`, `FALSE`, `NULL`); `keep`
-- The standards: perCs `lowercase`, psr12 `lowercase`, nette `lowercase`
-- Rule `DressCode\Rules\Literals\BuiltinCasingRule`, stage Structure
-
-### casing.type
-
-The case of the built-in types of a declaration; `array`, `callable`, `static`, `self` and `parent` are keywords.
-
-- By default `keep`
-- Takes: `lowercase` (`int`, `string`, `void`); `keep`
-- The standards: perCs `lowercase`, psr12 `lowercase`, nette `lowercase`
-- Rule `DressCode\Rules\Namespaces\DeclaredNameCasingRule`, stage Structure
-
-## qualification
-
-### qualification.class.currentNamespace
-
-A class, interface, trait or enum of the namespace of the file, `Order` in `namespace Acme\Shop`.
-
-- By default `keep`
-- Takes: `bare` (bare, `Order` relative to the namespace); `backslashed` (with the leading backslash, `\Acme\Shop\Order`); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `bare`
-- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
-- Modifies comments
-
-### qualification.class.global
-
-A class of the global namespace referenced in a namespace, `DateTime`, which a bare name there does not reach.
-
-- By default `keep`
-- Takes: `imported` (imported, `use DateTime;` and `DateTime`); `backslashed` (with the leading backslash, `\DateTime`); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
-
-### qualification.class.otherNamespace
-
-A class, interface, trait or enum of a namespace other than that of the file.
-
-A name relative to an import or to the namespace, `Shop\Order`, stays as it is.
-
-- By default `keep`
-- Takes: `imported` (imported, `use Acme\Shop\Order;` and `Order`); `backslashed` (with the leading backslash, `\Acme\Shop\Order`); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `imported`
-- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
-- Modifies comments
-
-### qualification.class.phpdoc
-
-A class, interface, trait or enum a doc comment names in a type, a class constant or the target of a tag.
-
-A name relative to an import or to the namespace, `Shop\Order`, stays as it is, and so does a bare one no import reaches, which a doc comment cannot tell from a type of its own such as `list`.
-
-- By default `keep`
-- Takes: `imported` (imported, `use Acme\Shop\Order;` and `@param Order $order`, a class of the namespace of the file bare, a global one where the file imports it); `backslashed` (with the leading backslash, `@param \Acme\Shop\Order $order`, a name an import reaches); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `imported`
-- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
-- Modifies comments
-
-### qualification.constant.currentNamespace
-
-A constant of the namespace of the file, `STATUS_PAID` in `namespace Acme\Shop`.
-
-- By default `keep`
-- Takes: `bare` (bare, `STATUS_PAID` relative to the namespace); `backslashed` (with the leading backslash, `\Acme\Shop\STATUS_PAID`); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
-- Modifies comments
-
-### qualification.constant.global
-
-A global constant in a namespace, `PHP_EOL`, but where the compiler computes with it, which `constant.optimized` decides.
-
-- By default `keep`
-- Takes: `bare` (bare, `PHP_EOL` without an import or a backslash, reached by the fallback at run time); `imported` (imported, `use const PHP_EOL;` and `PHP_EOL`); `backslashed` (with the leading backslash, `\PHP_EOL`); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### qualification.constant.optimized
-
-A constant of PHP the compiler computes with once it knows the constant is global, `PHP_VERSION_ID` in a condition, `PHP_INT_MAX` in a constant expression.
-
-A constant merely passed to a call is not one the compiler computes with.
-
-- By default `keep`
-- Takes: `imported` (imported, `use const PHP_VERSION_ID;`, so that the compiler computes with it); `backslashed` (with the leading backslash, `\PHP_VERSION_ID`, so that the compiler computes with it); `bare` (bare, `PHP_VERSION_ID`, forgoing the optimization); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### qualification.constant.otherNamespace
-
-A constant of a namespace other than that of the file.
-
-- By default `keep`
-- Takes: `imported` (imported, `use const Acme\Shop\STATUS_PAID;` and `STATUS_PAID`); `backslashed` (with the leading backslash, `\Acme\Shop\STATUS_PAID`); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
-- Modifies comments
-
-### qualification.currentClass
-
-How a class refers to itself in an expression: a static access, an instantiation, an `instanceof`.
-
-- By default `keep`
-- Takes: `self` (the class named `self` inside itself); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `self`
-- Rule `DressCode\Rules\Classes\SelfForCurrentClassRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### qualification.function.currentNamespace
-
-A function of the namespace of the file, `normalize()` in `namespace Acme\Text`.
-
-- By default `keep`
-- Takes: `bare` (bare, `normalize()` relative to the namespace); `backslashed` (with the leading backslash, `\Acme\Text\normalize()`); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
-- Modifies comments
-
-### qualification.function.global
-
-A global function called in a namespace, `ucfirst()`, but one PHP optimizes a call of there, which `function.optimized` decides.
-
-Not a function of the namespace of the file, nor a name in a file without a namespace, which `qualification.leadingBackslash` decides.
-
-- By default `keep`
-- Takes: `bare` (bare, `ucfirst()` without an import or a backslash, reached by the fallback at run time); `imported` (imported, `use function ucfirst;` and `ucfirst()`); `backslashed` (with the leading backslash, `\ucfirst()`); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### qualification.function.optimized
-
-A global function whose call PHP compiles to one opcode once it knows the function is global, `count()`, `strlen()`, `is_int()` and the others; a call of it written imported or with the backslash has its arguments passed positionally and an unpacked one reported.
-
-A function is optimized in a namespace where one of its calls there is, an unpacked or named argument aside, `in_array()` only with a constant array, and every reference to it in that namespace is then written so; one none of whose calls is optimized is decided by `function.global`.
-
-- By default `keep`
-- Takes: `imported` (imported, `use function strlen;`, so that the compiler optimizes it); `backslashed` (with the leading backslash, `\strlen()`, so that the compiler optimizes it); `bare` (bare, `strlen()`, forgoing the optimization); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
-- Rule `DressCode\Rules\Namespaces\OptimizedCallNotationRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### qualification.function.otherNamespace
-
-A function of a namespace other than that of the file.
-
-- By default `keep`
-- Takes: `imported` (imported, `use function Acme\Text\normalize;` and `normalize()`); `backslashed` (with the leading backslash, `\Acme\Text\normalize()`); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
-- Modifies comments
-
-### qualification.leadingBackslash
-
-The leading backslash of a name where it changes nothing, in a file without a namespace, `\strlen()` and `new \DateTime`, and before `true`, `false` and `null` anywhere.
+`{ … }` around statements that nothing opens.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Namespaces\UselessLeadingBackslashRule`, stage Structure
+- Rule `DressCode\Rules\ControlFlow\UselessBracesRule`, stage Structure
 
-### qualification.staticInFinalClass
+### braces.bracelessBody
 
-`self` for `static` in a class no subclass can extend, a final class, an anonymous class, an enum: `self::create()`, `new self`.
-
-The return type `static` stays, saying what a subclass would return.
+The body of a control structure written without braces, `if ($a) foo();`.
 
 - By default `keep`
-- Takes: `required` (always there); `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
+- Rule `DressCode\Rules\ControlFlow\NoBracelessBodiesRule`, stage Structure
+- Modifies comments
+
+### braces.emptyBody.anonymousClass
+
+How the empty body of an anonymous class is written, one written on one line staying where it is kept; a comment inside makes it not empty.
+
+- By default `keep`
+- Takes: `collapsed` (`{}` on the line of the head, one holding a comment staying on its line as written); `expanded` (`{` and `}` placed as those of any other body); `keep`
+- The standards: perCs `collapsed`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.emptyBody.class
+
+How the empty body of a class, an interface, a trait and an enum is written; a comment inside makes it not empty.
+
+- By default `keep`
+- Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
+- The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.emptyBody.closure
+
+How the empty body of a closure is written; a comment inside makes it not empty.
+
+- By default `keep`
+- Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
+- The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.emptyBody.controlStructure
+
+How the empty body of an `if`, `else`, a loop, `declare`, `try`, `catch` and `finally` is written; a comment inside makes it not empty.
+
+- By default `keep`
+- Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Classes\SelfForCurrentClassRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
 
-## imports
+### braces.emptyBody.function
 
-### imports.aliasEqualToName
+How the empty body of a function and a method is written; a comment inside makes it not empty.
 
-`use Foo as Foo;` is `use Foo;`.
+- By default `keep`
+- Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
+- The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.emptyBody.propertyHook
+
+How the empty body of a property hook is written; a comment inside makes it not empty.
+
+- By default `keep`
+- Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
+- The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.position.anonymousClass
+
+Where the `{` of an anonymous class stands, on the next line always where its interfaces are spread over lines, the members starting a line below it and the `}` taking a line of its own.
+
+- By default `keep`
+- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
+- The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.position.class
+
+Where the `{` of a class, an interface, a trait and an enum stands, the members starting a line below it and the `}` taking a line of its own.
+
+- By default `keep`
+- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
+- The standards: perCs `nextLine`, psr12 `nextLine`, nette `nextLine`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.position.closure
+
+Where the `{` of a closure stands, the body starting a line below it and the `}` taking a line of its own.
+
+- By default `keep`
+- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
+- The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.position.continuingKeyword
+
+Where the keyword continuing a structure after its `}` stands: `else`, `elseif`, `catch`, `finally` and the `while` of `do`.
+
+- By default `keep`
+- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
+- The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.position.controlStructure
+
+Where the `{` of `if`, `else`, a loop, `declare`, `try`, `catch`, `finally`, `switch` and `match` stands, the body starting a line below it and the `}` taking a line of its own.
+
+- By default `keep`
+- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
+- The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.position.function
+
+Where the `{` of a function and of a method whose parameters stand on one line stands, the `{` of a property hook and of the list of hooks staying on the line of its head; the body starts a line below it and the `}` takes a line of its own.
+
+- By default `keep`
+- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
+- The standards: perCs `nextLine`, psr12 `nextLine`, nette `nextLine`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.position.multilineSignature
+
+Where the `{` of a function and of a method whose parameters are spread over lines stands.
+
+- By default `keep`
+- Takes: `sameLine` (on the line of the `)`); `nextLine` (on the line below the `)`); `keep`
+- The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.position.typedMultilineSignature
+
+Where the `{` of a function and of a method whose parameters are spread over lines stands after a return type; where it is kept, `braces.position.multilineSignature` says it.
+
+- By default `keep`
+- Takes: `sameLine` (on the line of the return type); `nextLine` (on the line below the return type); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `nextLine`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+
+### braces.singlelineClosure
+
+A closure written whole on one line.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Namespaces\UselessAliasRule`, stage Structure
+- The standards: perCs `forbidden`, psr12 `forbidden`, nette `keep`
+- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
 
-### imports.fromCurrentNamespace
+## blankLines
 
-An import of a class of the namespace it stands in, `use Acme\Shop\Order;` inside `namespace Acme\Shop`, and in the global namespace a function or a constant too.
+### blankLines.afterAttributes
 
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Namespaces\UselessCurrentNamespaceImportRule`, stage Structure
-
-### imports.grouping.class
-
-How the imports of classes are put into `use` statements, a name of the global namespace never grouped.
+Between the last group of attributes and the declaration, the member, the parameter or the closure it belongs to.
 
 - By default `keep`
-- Takes: `separated` (a `use` of its own for every name, `use Foo; use Bar;`); `combined` (all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration); `grouped` (the names of one namespace in one group use, `use Acme\Shop\{Order, Cart};`, from `imports.groupMinNames` of them on); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[separated, grouped]`
-- Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `keep`, nette `0`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### imports.grouping.constant
+### blankLines.afterDeclare
 
-How the imports of constants are put into `use` statements, a name of the global namespace never grouped.
-
-- By default `keep`
-- Takes: `separated` (a `use` of its own for every name, `use Foo; use Bar;`); `combined` (all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration); `grouped` (the names of one namespace in one group use, `use Acme\Shop\{Order, Cart};`, from `imports.groupMinNames` of them on); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[combined, grouped]`
-- Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
-
-### imports.grouping.function
-
-How the imports of functions are put into `use` statements, a name of the global namespace never grouped.
+After `declare(...);`, before whatever follows it but a namespace declaration.
 
 - By default `keep`
-- Takes: `separated` (a `use` of its own for every name, `use Foo; use Bar;`); `combined` (all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration); `grouped` (the names of one namespace in one group use, `use Acme\Shop\{Order, Cart};`, from `imports.groupMinNames` of them on); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[combined, grouped]`
-- Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `1`, psr12 `1`, nette `1`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### imports.groupMinNames
+### blankLines.afterImports
 
-How many names of one namespace make a group use where `grouped` is written, fewer written in the next shape of the list, as imports of their own where it names none.
-
-- By default `2`
-- Takes: a count from 2
-- The standards: perCs `2`, psr12 `2`, nette `2`
-- Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
-
-### imports.leadingBackslash
-
-The leading backslash of an import, which changes nothing, `use \Foo\Bar;`.
+After the last import, before the rest of the code.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
-- Rule `DressCode\Rules\Namespaces\UselessLeadingBackslashRule`, stage Structure
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `1`, psr12 `1`, nette `1`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### imports.order.caseSensitive
+### blankLines.afterNamespace
 
-Whether `Acme` sorts before `acme` rather than with it.
-
-- By default `no`
-- Takes: `yes`; `no`
-- The standards: perCs `no`, psr12 `no`, nette `no`
-- Rule `DressCode\Rules\Namespaces\ImportOrderRule`, stage Structure
-
-### imports.order.kinds
-
-The order of the kinds among consecutive imports, a kind not listed following in the order classes, functions, constants.
+After an unbraced namespace declaration.
 
 - By default `keep`
-- Takes: an order of `class` (the imports of classes); `function` (the imports of functions); `constant` (the imports of constants); `keep`
-- The standards: perCs `[class, function, constant]`, psr12 `[class, function, constant]`, nette `[class, function, constant]`
-- Rule `DressCode\Rules\Namespaces\ImportOrderRule`, stage Structure
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `1`, psr12 `1`, nette `1`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### imports.order.names
+### blankLines.afterOpeningTag
 
-The order of the names of one kind among consecutive imports, the names of a statement poured back into statements of the shapes written.
-
-- By default `keep`
-- Takes: `alphabetical` (the names of a kind sorted alphabetically); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `alphabetical`
-- Rule `DressCode\Rules\Namespaces\ImportOrderRule`, stage Structure
-
-### imports.unused
-
-An import nothing uses is removed, a class name in a doc comment using the import too.
+After the line of `<?php`, which then carries no code but a declaration of `strict_types` that `file.strictTypes.position` puts there; a file with markup outside PHP keeps its tag.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Namespaces\NoUnusedImportsRule`, stage Structure
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `1`, psr12 `1`, nette `1`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-## spacing
+### blankLines.afterPhpdoc
 
-### spacing.alignment.binaryOperator
-
-The whitespace wider than a single space around an operator, aligning a column of assignments `=` or of array items `=>`; alignment is never made.
-
-- By default `spaces`
-- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `spaces` (spaces aligning a column staying, tabs not); `tabs` (tabs aligning a column staying, spaces not); `optional` (there or not, as the author wrote it)
-- The standards: perCs `spaces`, psr12 `spaces`, nette `spaces`
-- Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
-
-### spacing.alignment.comma
-
-The whitespace wider than a single space after a comma, aligning the columns of a table; alignment is never made.
-
-- By default `tabs`
-- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `spaces` (spaces aligning a column staying, tabs not); `tabs` (tabs aligning a column staying, spaces not); `optional` (there or not, as the author wrote it)
-- The standards: perCs `forbidden`, psr12 `forbidden`, nette `tabs`
-- Rule `DressCode\Rules\Whitespace\CommaSpacingRule`, stage Formatting
-
-### spacing.alignment.comment
-
-The whitespace wider than a single space before a comment following code, aligning a column of comments; alignment is never made.
-
-- By default `optional`
-- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `optional` (there or not, as the author wrote it)
-- The standards: perCs `optional`, psr12 `optional`, nette `optional`
-- Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
-- Modifies comments
-
-### spacing.alignment.ternary
-
-The whitespace wider than a single space around `?` and `:`, aligning a column; alignment is never made.
-
-- By default `optional`
-- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `optional` (there or not, as the author wrote it)
-- The standards: perCs `optional`, psr12 `optional`, nette `forbidden`
-- Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
-
-### spacing.alternativeSyntax
-
-The space before the colon of the alternative syntax and of a label, and the single space between it and the end keyword of an empty body, `if ($a): endif;`.
+Between a doc comment and the declaration it belongs to, or the first attribute of the declaration.
 
 - By default `keep`
-- Takes: `'if ($a):'` (no space before the colon); `'if ($a) :'` (a single space before the colon); `keep`
-- The standards: perCs `'if ($a):'`, psr12 `'if ($a):'`, nette `'if ($a):'`
-- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `keep`, nette `0`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### spacing.anonymousClass
+### blankLines.afterStatement
 
-The space between `class` and the arguments of an anonymous class.
-
-- By default `keep`
-- Takes: `'new class ($a)'` (a single space before the arguments); `'new class($a)'` (no space before the arguments); `keep`
-- The standards: perCs `'new class ($a)'`, psr12 `'new class ($a)'`, nette `'new class ($a)'`
-- Rule `DressCode\Rules\Classes\ClassHeadSpacingRule`, stage Formatting
-
-### spacing.anonymousFunction
-
-The space between the `function` of a closure and its parenthesis.
+After a statement of the kind, before the next statement.
 
 - By default `keep`
-- Takes: `'function($x)'` (no space before the parenthesis); `'function ($x)'` (a single space); `keep`
-- The standards: perCs `'function ($x)'`, psr12 `'function ($x)'`, nette `'function ($x)'`
-- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+- Takes: a map of `break`, `continue`, `do`, `for`, `foreach`, `if`, `return`, `switch`, `throw`, `try`, `while`, `yield` to a count from 0, a range `1-2`, an open one `1+`, an entry withdrawn with `keep`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### spacing.arrowFunction
+### blankLines.afterTraitUses
 
-The space between `fn` and its parenthesis.
-
-- By default `keep`
-- Takes: `'fn($x) => $x'` (no space before the parenthesis); `'fn ($x) => $x'` (a single space); `keep`
-- The standards: perCs `'fn($x) => $x'`, psr12 `keep`, nette `'fn($x) => $x'`
-- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
-
-### spacing.attribute
-
-The whitespace inside the brackets of an attribute group and before the parenthesis of its arguments, and the single space between two groups on a line and after the last one.
+Before the first member after the trait uses, a method included.
 
 - By default `keep`
-- Takes: `'#[Foo($a)]'` (none inside the brackets, none before the parenthesis); `keep`
-- The standards: perCs `'#[Foo($a)]'`, psr12 `keep`, nette `'#[Foo($a)]'`
-- Rule `DressCode\Rules\Whitespace\AttributeSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `1`, psr12 `1`, nette `1`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 
-### spacing.binaryOperator
+### blankLines.aroundDeclarations
 
-The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `=` of a default included, `.` being `spacing.concatenation`; at a line break an operator takes no space on the side of the break, an assignment and `=>` stay on the line of what is before them, and `instanceof` and a comparison keep what follows them on their line, unless the line would grow too wide.
-
-- By default `keep`
-- Takes: `'$a + $b'` (a single space around); `keep`
-- The standards: perCs `'$a + $b'`, psr12 `'$a + $b'`, nette `'$a + $b'`
-- Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
-
-### spacing.body
-
-The space inside the braces of a body whose code stands on their line, of a function, a closure, a property hook and an anonymous class, and of abbreviated property hooks, `{ get; set; }`; none inside a pair of braces with nothing between them whose empty form `braces.emptyBody` does not decide.
+Before and after a class, interface, trait, enum or function declared among statements, where the header above it does not decide.
 
 - By default `keep`
-- Takes: `required` (always there); `keep`
-- The standards: perCs `required`, psr12 `required`, nette `required`
-- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `1-2`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### spacing.call
+### blankLines.aroundInterfaceMethods
 
-The whitespace between the name of a function and its parenthesis, of a call and of a declaration alike.
-
-- By default `keep`
-- Takes: `'foo($a, $b)'` (no space before the parenthesis); `keep`
-- The standards: perCs `'foo($a, $b)'`, psr12 `'foo($a, $b)'`, nette `'foo($a, $b)'`
-- Rule `DressCode\Rules\Functions\FunctionNameSpacingRule`, stage Formatting
-
-### spacing.cast
-
-The space between a cast and its operand, which stays on the line of the cast.
+Before and after a method of an interface, in place of `aroundMethods`.
 
 - By default `keep`
-- Takes: `'(int) $x'` (a single space after the cast); `'(int)$x'` (no space after the cast); `keep`
-- The standards: perCs `'(int) $x'`, psr12 `'(int) $x'`, nette `'(int) $x'`
-- Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `1`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 
-### spacing.catchType
+### blankLines.aroundMethods
 
-The space around the bar between the types of a `catch`.
-
-- By default `keep`
-- Takes: `'catch (A | B $e)'` (a single space around the bar); `'catch (A|B $e)'` (no space around the bar); `keep`
-- The standards: perCs `'catch (A|B $e)'`, psr12 `'catch (A | B $e)'`, nette `'catch (A|B $e)'`
-- Rule `DressCode\Rules\Types\TypeDeclarationSpacingRule`, stage Formatting
-
-### spacing.comma
-
-The whitespace around a comma, which stays on the line of what is before it, a line ending after it being free.
+Before and after a method; the first and the last member of a class take `bodyStart.class` and `bodyEnd.class`.
 
 - By default `keep`
-- Takes: `'$a, $b'` (none before, a single space after); `keep`
-- The standards: perCs `'$a, $b'`, psr12 `'$a, $b'`, nette `'$a, $b'`
-- Rule `DressCode\Rules\Whitespace\CommaSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `2`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 
-### spacing.comment.afterCode
+### blankLines.beforeDeclaration
 
-The whitespace before a comment that follows code on its line.
-
-- By default `keep`
-- Takes: `'$a; // text'` (at least one space); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `'$a; // text'`
-- Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
-- Modifies comments
-
-### spacing.comment.marker
-
-The space after the marker of a comment and before the closing one, unless another `/` or `*` follows the marker, as in a `////` ruler; doc comments are the matter of the phpDoc rules.
+Before a class, interface, trait, enum or function that follows the namespace or the imports, which `afterNamespace` and `afterImports` then leave alone.
 
 - By default `keep`
-- Takes: `'// text'` (a single space after the marker); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `'// text'`
-- Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
-- Modifies comments
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `1`, psr12 `1`, nette `2`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### spacing.concatenation
+### blankLines.beforeDocumentedMember
 
-The space around the concatenation operator, unless it sits at a line break.
-
-- By default `keep`
-- Takes: `'$a . $b'` (a single space around); `'$a.$b'` (no space around); `keep`
-- The standards: perCs `'$a . $b'`, psr12 `'$a . $b'`, nette `'$a . $b'`
-- Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
-
-### spacing.declare
-
-The whitespace inside a `declare` statement.
+Before a property, constant or enum case with a doc comment or an attribute, and before a trait use with a doc comment below another one.
 
 - By default `keep`
-- Takes: `'declare(strict_types=1)'` (none inside); `keep`
-- The standards: perCs `'declare(strict_types=1)'`, psr12 `'declare(strict_types=1)'`, nette `'declare(strict_types=1)'`
-- Rule `DressCode\Rules\Files\DeclareSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `1`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 
-### spacing.doubleColon
+### blankLines.beforeNamespace
 
-The whitespace around the double colon.
-
-- By default `keep`
-- Takes: `'Foo::bar()'` (none around); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `'Foo::bar()'`
-- Rule `DressCode\Rules\Expressions\MemberAccessSpacingRule`, stage Formatting
-
-### spacing.import
-
-The space around the braces of a group use, which hug the names.
+Before the namespace declaration and, where a doc comment of the file stands above it, also between the two.
 
 - By default `keep`
-- Takes: `'use Acme\{Foo, Bar};'` (no space around the braces); `keep`
-- The standards: perCs `'use Acme\{Foo, Bar};'`, psr12 `'use Acme\{Foo, Bar};'`, nette `'use Acme\{Foo, Bar};'`
-- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `1`, psr12 `1`, nette `1`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### spacing.keyword
+### blankLines.beforeOpenBrace.class
 
-The space after a keyword followed by code on its line, `return`, `new`, `if`, `function`, a modifier and the words of the head of a class among them, and around a keyword continuing a statement, `else`, `catch`, `finally`, the `while` of a `do`, `as`, `insteadof` and the `use` of a closure, which stay on the line of what is before them.
-
-- By default `keep`
-- Takes: `required` (always there); `keep`
-- The standards: perCs `required`, psr12 `required`, nette `required`
-- Rule `DressCode\Rules\Classes\ClassHeadSpacingRule`, stage Formatting
-- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
-
-### spacing.logicalNot
-
-The whitespace between `!` and its operand, which stay on one line.
+Between the head of a class, an interface, a trait or an enum and its opening brace on a line of its own.
 
 - By default `keep`
-- Takes: `'!$x'` (no space after the operator); `'! $x'` (a single space after the operator); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `['!$x', '! $x']`, psr12 `['!$x', '! $x']`, nette `'!$x'`
-- Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 
-### spacing.namedArgument
+### blankLines.beforeStatement
 
-The whitespace around the colon of a named argument.
-
-- By default `keep`
-- Takes: `'foo(name: $x)'` (none before the colon, a single space after); `keep`
-- The standards: perCs `'foo(name: $x)'`, psr12 `keep`, nette `'foo(name: $x)'`
-- Rule `DressCode\Rules\Functions\NamedArgumentSpacingRule`, stage Formatting
-
-### spacing.objectOperator
-
-The whitespace around the object operator.
+Before a statement of the kind, `yield` meaning a statement made of a `yield` expression.
 
 - By default `keep`
-- Takes: `'$a->b()'` (none around); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `'$a->b()'`
-- Rule `DressCode\Rules\Expressions\MemberAccessSpacingRule`, stage Formatting
+- Takes: a map of `break`, `continue`, `do`, `for`, `foreach`, `if`, `return`, `switch`, `throw`, `try`, `while`, `yield` to a count from 0, a range `1-2`, an open one `1+`, an entry withdrawn with `keep`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### spacing.openBrace
+### blankLines.belowComment.inlineVar
 
-The space before the brace or the body a structure opens on the line of its head.
-
-- By default `keep`
-- Takes: `required` (always there); `keep`
-- The standards: perCs `required`, psr12 `required`, nette `required`
-- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
-
-### spacing.padding.argument
-
-The whitespace inside the parentheses of the arguments of a call, of `new` and of an attribute, and of `isset()`, `unset()`, `empty()` and `eval()`.
+Between a doc comment with `@var` and the statement below it that is no declaration, `/** @var Order $order */`.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
-- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### spacing.padding.array
+### blankLines.betweenImportKinds
 
-The whitespace inside the brackets or the parentheses of an array.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
-
-### spacing.padding.closureUse
-
-The whitespace inside the parentheses of the `use` of a closure.
+Between the imports of classes, functions and constants.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
-- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `1`, psr12 `1`, nette `0`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### spacing.padding.controlStructure
+### blankLines.betweenImports
 
-The whitespace inside the parentheses of `if`, `elseif`, `while`, `for`, `foreach`, `switch`, `match` and `catch`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
-- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
-
-### spacing.padding.grouping
-
-The whitespace inside the parentheses grouping an expression, `($a + $b) * $c`.
+Between two imports of one kind, two of classes for instance.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
-- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### spacing.padding.list
+### blankLines.betweenMemberKinds
 
-The whitespace inside the brackets or the parentheses of a destructuring.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
-
-### spacing.padding.offset
-
-The whitespace inside the brackets of an offset access and before them.
+Between a property, a constant and an enum case of different kinds, the visibility and `static` making no kind of their own, the lower one without a doc comment or an attribute.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `exceptLiterals` (a single space around an index other than a string or an integer literal, `$a[ $i ]` but `$a[0]`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0-1`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 
-### spacing.padding.parameter
+### blankLines.betweenMembers.constant
 
-The whitespace inside the parentheses of the parameters of a function, a method, a closure, an arrow function and a property hook.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `required` (always there); `keep`
-- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
-- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
-
-### spacing.reference
-
-The whitespace between `&` and its operand.
+Between two constants, the lower one without a doc comment or an attribute.
 
 - By default `keep`
-- Takes: `'&$x'` (none between); `keep`
-- The standards: perCs `'&$x'`, psr12 `'&$x'`, nette `'&$x'`
-- Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0-1`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 
-### spacing.semicolon.after
+### blankLines.betweenMembers.enumCase
 
-The whitespace after a semicolon that more code follows on its line.
-
-- By default `keep`
-- Takes: `'for ($i = 0; $i < 5; $i++)'` (a single space after a semicolon); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `'for ($i = 0; $i < 5; $i++)'`
-- Rule `DressCode\Rules\Whitespace\SemicolonSpacingRule`, stage Formatting
-
-### spacing.semicolon.before
-
-The whitespace before a semicolon, which stays on the line of what it ends.
+Between two enum cases, the lower one without a doc comment or an attribute.
 
 - By default `keep`
-- Takes: `'$a;'` (no space before a semicolon); `keep`
-- The standards: perCs `'$a;'`, psr12 `keep`, nette `'$a;'`
-- Rule `DressCode\Rules\Whitespace\SemicolonSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0-1`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 
-### spacing.spread
+### blankLines.betweenMembers.property
 
-The whitespace between `...` and its operand.
-
-- By default `keep`
-- Takes: `'...$x'` (none between); `keep`
-- The standards: perCs `'...$x'`, psr12 `'...$x'`, nette `'...$x'`
-- Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
-
-### spacing.switchCase
-
-The whitespace before the colon of a `case`.
+Between two properties, the lower one without a doc comment or an attribute.
 
 - By default `keep`
-- Takes: `'case 1:'` (none before the colon); `keep`
-- The standards: perCs `'case 1:'`, psr12 `'case 1:'`, nette `'case 1:'`
-- Rule `DressCode\Rules\ControlFlow\SwitchCaseSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0-1`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 
-### spacing.ternary
+### blankLines.betweenStatementsInFunction
 
-The whitespace around `?` and `:` of a ternary, and around `?:` as a whole, unless the operator sits at a line break.
-
-- By default `keep`
-- Takes: `'$a ? $b : $c'` (whitespace around `?` and `:`); `keep`
-- The standards: perCs `'$a ? $b : $c'`, psr12 `'$a ? $b : $c'`, nette `'$a ? $b : $c'`
-- Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
-
-### spacing.typeDeclaration
-
-The whitespace of a type declaration, which stays on one line with what it describes: none inside a type, a single space between a type and the name it declares, `): int` for a return type and `enum Suit: string` for a backing type.
+Between two statements in the body of a function, a method or a closure, at any depth; a count of the kind of the statement before or after narrows it.
 
 - By default `keep`
-- Takes: `'?int $x'` (none inside a type, a single space before the name); `keep`
-- The standards: perCs `'?int $x'`, psr12 `'?int $x'`, nette `'?int $x'`
-- Rule `DressCode\Rules\Types\TypeDeclarationSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0-2`
+- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
 
-### spacing.unaryOperator
+### blankLines.betweenTraitUses
 
-The whitespace between a unary operator other than `!` and its operand, which stay on one line, and inside a variable variable, `$$a` and `${'a'}`.
+Between the trait uses of a class without a doc comment, the blank lines below a documented one staying as they are.
 
 - By default `keep`
-- Takes: `'-$x'` (no space after the operator); `keep`
-- The standards: perCs `'-$x'`, psr12 `'-$x'`, nette `'-$x'`
-- Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+
+### blankLines.bodyEnd.anonymousClass
+
+Before the closing brace of an anonymous class, after its last member.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+
+### blankLines.bodyEnd.branch
+
+Before the closing brace of a branch of `if` or `try` that `else`, `elseif`, `catch` or `finally` follows, and of the body of `do` that `while` follows, which `lastStatementSetApart` keeps as it is, in place of `bodyEnd.controlStructure`.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `lastStatementSetApart` (one where the last statement of the branch stands apart, which would otherwise read as belonging to the next one, the others kept); `keep`
+- The standards: perCs `0`, psr12 `0`, nette `lastStatementSetApart`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+
+### blankLines.bodyEnd.class
+
+Before the closing brace of a class, an interface, a trait or an enum, after its last member.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+
+### blankLines.bodyEnd.closure
+
+Before the closing brace of the body of a closure.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+
+### blankLines.bodyEnd.controlStructure
+
+Before the closing brace of the body of `if`, `else`, a loop, `switch`, `match`, `try`, `catch`, `finally`, `declare` and of a bare block.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+
+### blankLines.bodyEnd.function
+
+Before the closing brace of the body of a function or a method.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+
+### blankLines.bodyEnd.propertyHook
+
+Before the closing brace of the body of a property hook.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+
+### blankLines.bodyEnd.switchCase
+
+Before a `case` or `default` of a `switch` that follows a case with statements, below a comment right under those statements.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `lastStatementSetApart` (one where the last statement of the branch stands apart, which would otherwise read as belonging to the next one, the others kept); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `lastStatementSetApart`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+
+### blankLines.bodyStart.anonymousClass
+
+After the opening brace of an anonymous class, before its first member.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+
+### blankLines.bodyStart.class
+
+After the opening brace of a class, an interface, a trait or an enum, before its first member.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+
+### blankLines.bodyStart.closure
+
+After the opening brace of the body of a closure.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+
+### blankLines.bodyStart.controlStructure
+
+After the opening brace of the body of `if`, `else`, a loop, `switch`, `match`, `try`, `catch`, `finally`, `declare` and of a bare block.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `0`, psr12 `0`, nette `0`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+
+### blankLines.bodyStart.function
+
+After the opening brace of the body of a function or a method.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+
+### blankLines.bodyStart.propertyHook
+
+After the opening brace of the body of a property hook.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `0`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+
+### blankLines.bodyStart.switchCase
+
+After the colon of a `case` or `default` of a `switch`, before its first statement.
+
+- By default `keep`
+- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
 
 ## multiline
 
@@ -1725,533 +1412,846 @@ The trailing comma of a multi-line list of parameters; any value but `keep` also
 - The standards: perCs `required`, psr12 `keep`, nette `required`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
 
-## braces
+## spacing
 
-### braces.alternativeSyntax
+### spacing.alignment.binaryOperator
 
-`if: … endif;` is written with braces.
+The whitespace wider than a single space around an operator, aligning a column of assignments `=` or of array items `=>`; alignment is never made.
+
+- By default `spaces`
+- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `spaces` (spaces aligning a column staying, tabs not); `tabs` (tabs aligning a column staying, spaces not); `optional` (there or not, as the author wrote it)
+- The standards: perCs `spaces`, psr12 `spaces`, nette `spaces`
+- Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
+
+### spacing.alignment.comma
+
+The whitespace wider than a single space after a comma, aligning the columns of a table; alignment is never made.
+
+- By default `tabs`
+- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `spaces` (spaces aligning a column staying, tabs not); `tabs` (tabs aligning a column staying, spaces not); `optional` (there or not, as the author wrote it)
+- The standards: perCs `forbidden`, psr12 `forbidden`, nette `tabs`
+- Rule `DressCode\Rules\Whitespace\CommaSpacingRule`, stage Formatting
+
+### spacing.alignment.comment
+
+The whitespace wider than a single space before a comment following code, aligning a column of comments; alignment is never made.
+
+- By default `optional`
+- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `optional` (there or not, as the author wrote it)
+- The standards: perCs `optional`, psr12 `optional`, nette `optional`
+- Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
+- Modifies comments
+
+### spacing.alignment.ternary
+
+The whitespace wider than a single space around `?` and `:`, aligning a column; alignment is never made.
+
+- By default `optional`
+- Takes: `forbidden` (never there, more whitespace collapsing to a single space); `optional` (there or not, as the author wrote it)
+- The standards: perCs `optional`, psr12 `optional`, nette `forbidden`
+- Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
+
+### spacing.alternativeSyntax
+
+The space before the colon of the alternative syntax and of a label, and the single space between it and the end keyword of an empty body, `if ($a): endif;`.
+
+- By default `keep`
+- Takes: `'if ($a):'` (no space before the colon); `'if ($a) :'` (a single space before the colon); `keep`
+- The standards: perCs `'if ($a):'`, psr12 `'if ($a):'`, nette `'if ($a):'`
+- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+
+### spacing.anonymousClass
+
+The space between `class` and the arguments of an anonymous class.
+
+- By default `keep`
+- Takes: `'new class ($a)'` (a single space before the arguments); `'new class($a)'` (no space before the arguments); `keep`
+- The standards: perCs `'new class ($a)'`, psr12 `'new class ($a)'`, nette `'new class ($a)'`
+- Rule `DressCode\Rules\Classes\ClassHeadSpacingRule`, stage Formatting
+
+### spacing.anonymousFunction
+
+The space between the `function` of a closure and its parenthesis.
+
+- By default `keep`
+- Takes: `'function($x)'` (no space before the parenthesis); `'function ($x)'` (a single space); `keep`
+- The standards: perCs `'function ($x)'`, psr12 `'function ($x)'`, nette `'function ($x)'`
+- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+
+### spacing.arrowFunction
+
+The space between `fn` and its parenthesis.
+
+- By default `keep`
+- Takes: `'fn($x) => $x'` (no space before the parenthesis); `'fn ($x) => $x'` (a single space); `keep`
+- The standards: perCs `'fn($x) => $x'`, psr12 `keep`, nette `'fn($x) => $x'`
+- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+
+### spacing.attribute
+
+The whitespace inside the brackets of an attribute group and before the parenthesis of its arguments, and the single space between two groups on a line and after the last one.
+
+- By default `keep`
+- Takes: `'#[Foo($a)]'` (none inside the brackets, none before the parenthesis); `keep`
+- The standards: perCs `'#[Foo($a)]'`, psr12 `keep`, nette `'#[Foo($a)]'`
+- Rule `DressCode\Rules\Whitespace\AttributeSpacingRule`, stage Formatting
+
+### spacing.binaryOperator
+
+The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `=` of a default included, `.` being `spacing.concatenation`; at a line break an operator takes no space on the side of the break, an assignment and `=>` stay on the line of what is before them, and `instanceof` and a comparison keep what follows them on their line, unless the line would grow too wide.
+
+- By default `keep`
+- Takes: `'$a + $b'` (a single space around); `keep`
+- The standards: perCs `'$a + $b'`, psr12 `'$a + $b'`, nette `'$a + $b'`
+- Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
+
+### spacing.body
+
+The space inside the braces of a body whose code stands on their line, of a function, a closure, a property hook and an anonymous class, and of abbreviated property hooks, `{ get; set; }`; none inside a pair of braces with nothing between them whose empty form `braces.emptyBody` does not decide.
+
+- By default `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `required`, psr12 `required`, nette `required`
+- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+
+### spacing.call
+
+The whitespace between the name of a function and its parenthesis, of a call and of a declaration alike.
+
+- By default `keep`
+- Takes: `'foo($a, $b)'` (no space before the parenthesis); `keep`
+- The standards: perCs `'foo($a, $b)'`, psr12 `'foo($a, $b)'`, nette `'foo($a, $b)'`
+- Rule `DressCode\Rules\Functions\FunctionNameSpacingRule`, stage Formatting
+
+### spacing.cast
+
+The space between a cast and its operand, which stays on the line of the cast.
+
+- By default `keep`
+- Takes: `'(int) $x'` (a single space after the cast); `'(int)$x'` (no space after the cast); `keep`
+- The standards: perCs `'(int) $x'`, psr12 `'(int) $x'`, nette `'(int) $x'`
+- Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+
+### spacing.catchType
+
+The space around the bar between the types of a `catch`.
+
+- By default `keep`
+- Takes: `'catch (A | B $e)'` (a single space around the bar); `'catch (A|B $e)'` (no space around the bar); `keep`
+- The standards: perCs `'catch (A|B $e)'`, psr12 `'catch (A | B $e)'`, nette `'catch (A|B $e)'`
+- Rule `DressCode\Rules\Types\TypeDeclarationSpacingRule`, stage Formatting
+
+### spacing.comma
+
+The whitespace around a comma, which stays on the line of what is before it, a line ending after it being free.
+
+- By default `keep`
+- Takes: `'$a, $b'` (none before, a single space after); `keep`
+- The standards: perCs `'$a, $b'`, psr12 `'$a, $b'`, nette `'$a, $b'`
+- Rule `DressCode\Rules\Whitespace\CommaSpacingRule`, stage Formatting
+
+### spacing.comment.afterCode
+
+The whitespace before a comment that follows code on its line.
+
+- By default `keep`
+- Takes: `'$a; // text'` (at least one space); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'$a; // text'`
+- Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
+- Modifies comments
+
+### spacing.comment.marker
+
+The space after the marker of a comment and before the closing one, unless another `/` or `*` follows the marker, as in a `////` ruler; doc comments are the matter of the phpDoc rules.
+
+- By default `keep`
+- Takes: `'// text'` (a single space after the marker); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'// text'`
+- Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
+- Modifies comments
+
+### spacing.concatenation
+
+The space around the concatenation operator, unless it sits at a line break.
+
+- By default `keep`
+- Takes: `'$a . $b'` (a single space around); `'$a.$b'` (no space around); `keep`
+- The standards: perCs `'$a . $b'`, psr12 `'$a . $b'`, nette `'$a . $b'`
+- Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
+
+### spacing.declare
+
+The whitespace inside a `declare` statement.
+
+- By default `keep`
+- Takes: `'declare(strict_types=1)'` (none inside); `keep`
+- The standards: perCs `'declare(strict_types=1)'`, psr12 `'declare(strict_types=1)'`, nette `'declare(strict_types=1)'`
+- Rule `DressCode\Rules\Files\DeclareSpacingRule`, stage Formatting
+
+### spacing.doubleColon
+
+The whitespace around the double colon.
+
+- By default `keep`
+- Takes: `'Foo::bar()'` (none around); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'Foo::bar()'`
+- Rule `DressCode\Rules\Expressions\MemberAccessSpacingRule`, stage Formatting
+
+### spacing.import
+
+The space around the braces of a group use, which hug the names.
+
+- By default `keep`
+- Takes: `'use Acme\{Foo, Bar};'` (no space around the braces); `keep`
+- The standards: perCs `'use Acme\{Foo, Bar};'`, psr12 `'use Acme\{Foo, Bar};'`, nette `'use Acme\{Foo, Bar};'`
+- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+
+### spacing.keyword
+
+The space after a keyword followed by code on its line, `return`, `new`, `if`, `function`, a modifier and the words of the head of a class among them, and around a keyword continuing a statement, `else`, `catch`, `finally`, the `while` of a `do`, `as`, `insteadof` and the `use` of a closure, which stay on the line of what is before them.
+
+- By default `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `required`, psr12 `required`, nette `required`
+- Rule `DressCode\Rules\Classes\ClassHeadSpacingRule`, stage Formatting
+- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+
+### spacing.logicalNot
+
+The whitespace between `!` and its operand, which stay on one line.
+
+- By default `keep`
+- Takes: `'!$x'` (no space after the operator); `'! $x'` (a single space after the operator); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `['!$x', '! $x']`, psr12 `['!$x', '! $x']`, nette `'!$x'`
+- Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+
+### spacing.namedArgument
+
+The whitespace around the colon of a named argument.
+
+- By default `keep`
+- Takes: `'foo(name: $x)'` (none before the colon, a single space after); `keep`
+- The standards: perCs `'foo(name: $x)'`, psr12 `keep`, nette `'foo(name: $x)'`
+- Rule `DressCode\Rules\Functions\NamedArgumentSpacingRule`, stage Formatting
+
+### spacing.objectOperator
+
+The whitespace around the object operator.
+
+- By default `keep`
+- Takes: `'$a->b()'` (none around); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'$a->b()'`
+- Rule `DressCode\Rules\Expressions\MemberAccessSpacingRule`, stage Formatting
+
+### spacing.openBrace
+
+The space before the brace or the body a structure opens on the line of its head.
+
+- By default `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `required`, psr12 `required`, nette `required`
+- Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+
+### spacing.padding.argument
+
+The whitespace inside the parentheses of the arguments of a call, of `new` and of an attribute, and of `isset()`, `unset()`, `empty()` and `eval()`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
+- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+
+### spacing.padding.array
+
+The whitespace inside the brackets or the parentheses of an array.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+
+### spacing.padding.closureUse
+
+The whitespace inside the parentheses of the `use` of a closure.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
+- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+
+### spacing.padding.controlStructure
+
+The whitespace inside the parentheses of `if`, `elseif`, `while`, `for`, `foreach`, `switch`, `match` and `catch`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
+- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+
+### spacing.padding.grouping
+
+The whitespace inside the parentheses grouping an expression, `($a + $b) * $c`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
+- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+
+### spacing.padding.list
+
+The whitespace inside the brackets or the parentheses of a destructuring.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+
+### spacing.padding.offset
+
+The whitespace inside the brackets of an offset access and before them.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `exceptLiterals` (a single space around an index other than a string or an integer literal, `$a[ $i ]` but `$a[0]`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+
+### spacing.padding.parameter
+
+The whitespace inside the parentheses of the parameters of a function, a method, a closure, an arrow function and a property hook.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
+- Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+
+### spacing.reference
+
+The whitespace between `&` and its operand.
+
+- By default `keep`
+- Takes: `'&$x'` (none between); `keep`
+- The standards: perCs `'&$x'`, psr12 `'&$x'`, nette `'&$x'`
+- Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+
+### spacing.semicolon.after
+
+The whitespace after a semicolon that more code follows on its line.
+
+- By default `keep`
+- Takes: `'for ($i = 0; $i < 5; $i++)'` (a single space after a semicolon); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `'for ($i = 0; $i < 5; $i++)'`
+- Rule `DressCode\Rules\Whitespace\SemicolonSpacingRule`, stage Formatting
+
+### spacing.semicolon.before
+
+The whitespace before a semicolon, which stays on the line of what it ends.
+
+- By default `keep`
+- Takes: `'$a;'` (no space before a semicolon); `keep`
+- The standards: perCs `'$a;'`, psr12 `keep`, nette `'$a;'`
+- Rule `DressCode\Rules\Whitespace\SemicolonSpacingRule`, stage Formatting
+
+### spacing.spread
+
+The whitespace between `...` and its operand.
+
+- By default `keep`
+- Takes: `'...$x'` (none between); `keep`
+- The standards: perCs `'...$x'`, psr12 `'...$x'`, nette `'...$x'`
+- Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+
+### spacing.switchCase
+
+The whitespace before the colon of a `case`.
+
+- By default `keep`
+- Takes: `'case 1:'` (none before the colon); `keep`
+- The standards: perCs `'case 1:'`, psr12 `'case 1:'`, nette `'case 1:'`
+- Rule `DressCode\Rules\ControlFlow\SwitchCaseSpacingRule`, stage Formatting
+
+### spacing.ternary
+
+The whitespace around `?` and `:` of a ternary, and around `?:` as a whole, unless the operator sits at a line break.
+
+- By default `keep`
+- Takes: `'$a ? $b : $c'` (whitespace around `?` and `:`); `keep`
+- The standards: perCs `'$a ? $b : $c'`, psr12 `'$a ? $b : $c'`, nette `'$a ? $b : $c'`
+- Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
+
+### spacing.typeDeclaration
+
+The whitespace of a type declaration, which stays on one line with what it describes: none inside a type, a single space between a type and the name it declares, `): int` for a return type and `enum Suit: string` for a backing type.
+
+- By default `keep`
+- Takes: `'?int $x'` (none inside a type, a single space before the name); `keep`
+- The standards: perCs `'?int $x'`, psr12 `'?int $x'`, nette `'?int $x'`
+- Rule `DressCode\Rules\Types\TypeDeclarationSpacingRule`, stage Formatting
+
+### spacing.unaryOperator
+
+The whitespace between a unary operator other than `!` and its operand, which stay on one line, and inside a variable variable, `$$a` and `${'a'}`.
+
+- By default `keep`
+- Takes: `'-$x'` (no space after the operator); `keep`
+- The standards: perCs `'-$x'`, psr12 `'-$x'`, nette `'-$x'`
+- Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+
+## naming
+
+### naming.abstractClassAffix
+
+The word `Abstract` in front of the name of an abstract class, `AbstractFoo`, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
+
+### naming.class
+
+The case of the name of a class, an interface, a trait and an enum, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
+- The standards: perCs `PascalCase`, psr12 `PascalCase`, nette `PascalCase`
+- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+
+### naming.constant
+
+The case of the name of a class constant and a `const` outside a class, a constant of an enum passing in this case or in that of `enumCase`, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
+- The standards: perCs `UPPER_CASE`, psr12 `UPPER_CASE`, nette `PascalCase`
+- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+
+### naming.enumCase
+
+The case of the name of a case of an enum, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
+- The standards: perCs `PascalCase`, psr12 `keep`, nette `PascalCase`
+- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+
+### naming.errorAffix
+
+The word `Error` at the end of the name of a class that is not abstract, `FooError`, which is reported and never renamed.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\ControlFlow\NoAlternativeSyntaxRule`, stage Structure
+- Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
 
-### braces.bareStatementGroup
+### naming.except
 
-`{ … }` around statements that nothing opens.
+The patterns of names never reported, whatever their kind, as the methods of a stream wrapper or a replacement for a native function.
+
+- By default `[]`
+- Takes: a list of regular expressions
+- The standards: perCs `[]`, psr12 `[]`, nette `[]`
+- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+
+### naming.exceptionAffix
+
+The word `Exception` at the end of the name of an exception, `FooException`, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
+
+### naming.function
+
+The case of the name of a function, those beginning with `__` being PHP's, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `camelCase`
+- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+
+### naming.interfaceAffix
+
+The word `Interface` at the end of the name of an interface, `FooInterface`, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
+
+### naming.method
+
+The case of the name of a method, those beginning with `__` being PHP's, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
+- The standards: perCs `camelCase`, psr12 `camelCase`, nette `camelCase`
+- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+
+### naming.property
+
+The case of the name of a property, a promoted constructor parameter included, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `camelCase`
+- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+
+### naming.traitAffix
+
+The word `Trait` at the end of the name of a trait, `FooTrait`, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
+
+### naming.variable
+
+The case of the name of a variable and a parameter, `$this`, the superglobals and a placeholder such as `$_` excepted, which is reported and never renamed.
+
+- By default `keep`
+- Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `camelCase`
+- Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+
+## casing
+
+### casing.class
+
+The case of a class, an interface, a trait or an enum as its declaration writes it, of one PHP declares only where the configuration sets no `typeAnalysis`.
+
+- By default `keep`
+- Takes: `declared` (`stdClass`, `DateTime`, never `datetime`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `declared`
+- Rule `DressCode\Rules\Namespaces\DeclaredNameCasingRule`, stage Structure
+
+### casing.function
+
+The case of a function as its declaration writes it, of one PHP declares only where the configuration sets no `typeAnalysis`.
+
+- By default `keep`
+- Takes: `declared` (`strlen`, never `StrLen`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `declared`
+- Rule `DressCode\Rules\Namespaces\DeclaredNameCasingRule`, stage Structure
+
+### casing.hexDigit
+
+The digits `A` to `F` of a hexadecimal number; the prefixes `0x`, `0b` and `0o` stand in lowercase either way.
+
+- By default `keep`
+- Takes: `uppercase` (`0xFF`); `lowercase` (`0xff`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Literals\NumberNotationRule`, stage Structure
+
+### casing.keyword
+
+The case of keywords, `self` and `parent` included.
+
+- By default `keep`
+- Takes: `lowercase` (`if`, `function`, `self`, `parent`); `keep`
+- The standards: perCs `lowercase`, psr12 `lowercase`, nette `lowercase`
+- Rule `DressCode\Rules\Literals\BuiltinCasingRule`, stage Structure
+
+### casing.magicConstant
+
+The case of the magic constants such as `__DIR__`.
+
+- By default `keep`
+- Takes: `uppercase` (`__DIR__`, `__CLASS__`); `lowercase` (`__dir__`, `__class__`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `uppercase`
+- Rule `DressCode\Rules\Literals\BuiltinCasingRule`, stage Structure
+
+### casing.method
+
+The case of the name of a method called, as its declaration writes it, and of a method overriding another, as the overridden one writes it; a magic method of PHP as PHP writes it, the others only with the types of the code.
+
+- By default `keep`
+- Takes: `declared` (`$order->getTotal()`, never `$order->gettotal()`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `declared`
+- Rule `DressCode\Rules\Functions\MethodCasingRule`, stage Structure
+
+### casing.trueFalseNull
+
+The case of `true`, `false` and `null`, a leading backslash staying.
+
+- By default `keep`
+- Takes: `lowercase` (`true`, `false`, `null`); `uppercase` (`TRUE`, `FALSE`, `NULL`); `keep`
+- The standards: perCs `lowercase`, psr12 `lowercase`, nette `lowercase`
+- Rule `DressCode\Rules\Literals\BuiltinCasingRule`, stage Structure
+
+### casing.type
+
+The case of the built-in types of a declaration; `array`, `callable`, `static`, `self` and `parent` are keywords.
+
+- By default `keep`
+- Takes: `lowercase` (`int`, `string`, `void`); `keep`
+- The standards: perCs `lowercase`, psr12 `lowercase`, nette `lowercase`
+- Rule `DressCode\Rules\Namespaces\DeclaredNameCasingRule`, stage Structure
+
+## qualification
+
+### qualification.class.currentNamespace
+
+A class, interface, trait or enum of the namespace of the file, `Order` in `namespace Acme\Shop`.
+
+- By default `keep`
+- Takes: `bare` (bare, `Order` relative to the namespace); `backslashed` (with the leading backslash, `\Acme\Shop\Order`); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `bare`
+- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Modifies comments
+
+### qualification.class.global
+
+A class of the global namespace referenced in a namespace, `DateTime`, which a bare name there does not reach.
+
+- By default `keep`
+- Takes: `imported` (imported, `use DateTime;` and `DateTime`); `backslashed` (with the leading backslash, `\DateTime`); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
+
+### qualification.class.otherNamespace
+
+A class, interface, trait or enum of a namespace other than that of the file.
+
+A name relative to an import or to the namespace, `Shop\Order`, stays as it is.
+
+- By default `keep`
+- Takes: `imported` (imported, `use Acme\Shop\Order;` and `Order`); `backslashed` (with the leading backslash, `\Acme\Shop\Order`); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `imported`
+- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Modifies comments
+
+### qualification.class.phpdoc
+
+A class, interface, trait or enum a doc comment names in a type, a class constant or the target of a tag.
+
+A name relative to an import or to the namespace, `Shop\Order`, stays as it is, and so does a bare one no import reaches, which a doc comment cannot tell from a type of its own such as `list`.
+
+- By default `keep`
+- Takes: `imported` (imported, `use Acme\Shop\Order;` and `@param Order $order`, a class of the namespace of the file bare, a global one where the file imports it); `backslashed` (with the leading backslash, `@param \Acme\Shop\Order $order`, a name an import reaches); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `imported`
+- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Modifies comments
+
+### qualification.constant.currentNamespace
+
+A constant of the namespace of the file, `STATUS_PAID` in `namespace Acme\Shop`.
+
+- By default `keep`
+- Takes: `bare` (bare, `STATUS_PAID` relative to the namespace); `backslashed` (with the leading backslash, `\Acme\Shop\STATUS_PAID`); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Modifies comments
+
+### qualification.constant.global
+
+A global constant in a namespace, `PHP_EOL`, but where the compiler computes with it, which `constant.optimized` decides.
+
+- By default `keep`
+- Takes: `bare` (bare, `PHP_EOL` without an import or a backslash, reached by the fallback at run time); `imported` (imported, `use const PHP_EOL;` and `PHP_EOL`); `backslashed` (with the leading backslash, `\PHP_EOL`); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### qualification.constant.optimized
+
+A constant of PHP the compiler computes with once it knows the constant is global, `PHP_VERSION_ID` in a condition, `PHP_INT_MAX` in a constant expression.
+
+A constant merely passed to a call is not one the compiler computes with.
+
+- By default `keep`
+- Takes: `imported` (imported, `use const PHP_VERSION_ID;`, so that the compiler computes with it); `backslashed` (with the leading backslash, `\PHP_VERSION_ID`, so that the compiler computes with it); `bare` (bare, `PHP_VERSION_ID`, forgoing the optimization); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### qualification.constant.otherNamespace
+
+A constant of a namespace other than that of the file.
+
+- By default `keep`
+- Takes: `imported` (imported, `use const Acme\Shop\STATUS_PAID;` and `STATUS_PAID`); `backslashed` (with the leading backslash, `\Acme\Shop\STATUS_PAID`); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Modifies comments
+
+### qualification.currentClass
+
+How a class refers to itself in an expression: a static access, an instantiation, an `instanceof`.
+
+- By default `keep`
+- Takes: `self` (the class named `self` inside itself); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `self`
+- Rule `DressCode\Rules\Classes\SelfForCurrentClassRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### qualification.function.currentNamespace
+
+A function of the namespace of the file, `normalize()` in `namespace Acme\Text`.
+
+- By default `keep`
+- Takes: `bare` (bare, `normalize()` relative to the namespace); `backslashed` (with the leading backslash, `\Acme\Text\normalize()`); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Modifies comments
+
+### qualification.function.global
+
+A global function called in a namespace, `ucfirst()`, but one PHP optimizes a call of there, which `function.optimized` decides.
+
+Not a function of the namespace of the file, nor a name in a file without a namespace, which `qualification.leadingBackslash` decides.
+
+- By default `keep`
+- Takes: `bare` (bare, `ucfirst()` without an import or a backslash, reached by the fallback at run time); `imported` (imported, `use function ucfirst;` and `ucfirst()`); `backslashed` (with the leading backslash, `\ucfirst()`); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### qualification.function.optimized
+
+A global function whose call PHP compiles to one opcode once it knows the function is global, `count()`, `strlen()`, `is_int()` and the others; a call of it written imported or with the backslash has its arguments passed positionally and an unpacked one reported.
+
+A function is optimized in a namespace where one of its calls there is, an unpacked or named argument aside, `in_array()` only with a constant array, and every reference to it in that namespace is then written so; one none of whose calls is optimized is decided by `function.global`.
+
+- By default `keep`
+- Takes: `imported` (imported, `use function strlen;`, so that the compiler optimizes it); `backslashed` (with the leading backslash, `\strlen()`, so that the compiler optimizes it); `bare` (bare, `strlen()`, forgoing the optimization); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
+- Rule `DressCode\Rules\Namespaces\OptimizedCallNotationRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### qualification.function.otherNamespace
+
+A function of a namespace other than that of the file.
+
+- By default `keep`
+- Takes: `imported` (imported, `use function Acme\Text\normalize;` and `normalize()`); `backslashed` (with the leading backslash, `\Acme\Text\normalize()`); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Modifies comments
+
+### qualification.leadingBackslash
+
+The leading backslash of a name where it changes nothing, in a file without a namespace, `\strlen()` and `new \DateTime`, and before `true`, `false` and `null` anywhere.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\ControlFlow\UselessBracesRule`, stage Structure
+- Rule `DressCode\Rules\Namespaces\UselessLeadingBackslashRule`, stage Structure
 
-### braces.bracelessBody
+### qualification.staticInFinalClass
 
-The body of a control structure written without braces, `if ($a) foo();`.
+`self` for `static` in a class no subclass can extend, a final class, an anonymous class, an enum: `self::create()`, `new self`.
+
+The return type `static` stays, saying what a subclass would return.
+
+- By default `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Classes\SelfForCurrentClassRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+## imports
+
+### imports.aliasEqualToName
+
+`use Foo as Foo;` is `use Foo;`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Namespaces\UselessAliasRule`, stage Structure
+
+### imports.fromCurrentNamespace
+
+An import of a class of the namespace it stands in, `use Acme\Shop\Order;` inside `namespace Acme\Shop`, and in the global namespace a function or a constant too.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Namespaces\UselessCurrentNamespaceImportRule`, stage Structure
+
+### imports.grouping.class
+
+How the imports of classes are put into `use` statements, a name of the global namespace never grouped.
+
+- By default `keep`
+- Takes: `separated` (a `use` of its own for every name, `use Foo; use Bar;`); `combined` (all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration); `grouped` (the names of one namespace in one group use, `use Acme\Shop\{Order, Cart};`, from `imports.groupMinNames` of them on); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `[separated, grouped]`
+- Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
+
+### imports.grouping.constant
+
+How the imports of constants are put into `use` statements, a name of the global namespace never grouped.
+
+- By default `keep`
+- Takes: `separated` (a `use` of its own for every name, `use Foo; use Bar;`); `combined` (all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration); `grouped` (the names of one namespace in one group use, `use Acme\Shop\{Order, Cart};`, from `imports.groupMinNames` of them on); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `[combined, grouped]`
+- Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
+
+### imports.grouping.function
+
+How the imports of functions are put into `use` statements, a name of the global namespace never grouped.
+
+- By default `keep`
+- Takes: `separated` (a `use` of its own for every name, `use Foo; use Bar;`); `combined` (all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration); `grouped` (the names of one namespace in one group use, `use Acme\Shop\{Order, Cart};`, from `imports.groupMinNames` of them on); a list of them, every one passing and the first written where none matches; `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `[combined, grouped]`
+- Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
+
+### imports.groupMinNames
+
+How many names of one namespace make a group use where `grouped` is written, fewer written in the next shape of the list, as imports of their own where it names none.
+
+- By default `2`
+- Takes: a count from 2
+- The standards: perCs `2`, psr12 `2`, nette `2`
+- Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
+
+### imports.leadingBackslash
+
+The leading backslash of an import, which changes nothing, `use \Foo\Bar;`.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`
-- Rule `DressCode\Rules\ControlFlow\NoBracelessBodiesRule`, stage Structure
-- Modifies comments
+- Rule `DressCode\Rules\Namespaces\UselessLeadingBackslashRule`, stage Structure
 
-### braces.emptyBody.anonymousClass
+### imports.order.caseSensitive
 
-How the empty body of an anonymous class is written, one written on one line staying where it is kept; a comment inside makes it not empty.
+Whether `Acme` sorts before `acme` rather than with it.
 
-- By default `keep`
-- Takes: `collapsed` (`{}` on the line of the head, one holding a comment staying on its line as written); `expanded` (`{` and `}` placed as those of any other body); `keep`
-- The standards: perCs `collapsed`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- By default `no`
+- Takes: `yes`; `no`
+- The standards: perCs `no`, psr12 `no`, nette `no`
+- Rule `DressCode\Rules\Namespaces\ImportOrderRule`, stage Structure
 
-### braces.emptyBody.class
+### imports.order.kinds
 
-How the empty body of a class, an interface, a trait and an enum is written; a comment inside makes it not empty.
-
-- By default `keep`
-- Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
-- The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.emptyBody.closure
-
-How the empty body of a closure is written; a comment inside makes it not empty.
+The order of the kinds among consecutive imports, a kind not listed following in the order classes, functions, constants.
 
 - By default `keep`
-- Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
-- The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Takes: an order of `class` (the imports of classes); `function` (the imports of functions); `constant` (the imports of constants); `keep`
+- The standards: perCs `[class, function, constant]`, psr12 `[class, function, constant]`, nette `[class, function, constant]`
+- Rule `DressCode\Rules\Namespaces\ImportOrderRule`, stage Structure
 
-### braces.emptyBody.controlStructure
+### imports.order.names
 
-How the empty body of an `if`, `else`, a loop, `declare`, `try`, `catch` and `finally` is written; a comment inside makes it not empty.
-
-- By default `keep`
-- Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.emptyBody.function
-
-How the empty body of a function and a method is written; a comment inside makes it not empty.
+The order of the names of one kind among consecutive imports, the names of a statement poured back into statements of the shapes written.
 
 - By default `keep`
-- Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
-- The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Takes: `alphabetical` (the names of a kind sorted alphabetically); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `alphabetical`
+- Rule `DressCode\Rules\Namespaces\ImportOrderRule`, stage Structure
 
-### braces.emptyBody.propertyHook
+### imports.unused
 
-How the empty body of a property hook is written; a comment inside makes it not empty.
-
-- By default `keep`
-- Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
-- The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.position.anonymousClass
-
-Where the `{` of an anonymous class stands, on the next line always where its interfaces are spread over lines, the members starting a line below it and the `}` taking a line of its own.
-
-- By default `keep`
-- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
-- The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.position.class
-
-Where the `{` of a class, an interface, a trait and an enum stands, the members starting a line below it and the `}` taking a line of its own.
-
-- By default `keep`
-- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
-- The standards: perCs `nextLine`, psr12 `nextLine`, nette `nextLine`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.position.closure
-
-Where the `{` of a closure stands, the body starting a line below it and the `}` taking a line of its own.
-
-- By default `keep`
-- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
-- The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.position.continuingKeyword
-
-Where the keyword continuing a structure after its `}` stands: `else`, `elseif`, `catch`, `finally` and the `while` of `do`.
-
-- By default `keep`
-- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
-- The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.position.controlStructure
-
-Where the `{` of `if`, `else`, a loop, `declare`, `try`, `catch`, `finally`, `switch` and `match` stands, the body starting a line below it and the `}` taking a line of its own.
-
-- By default `keep`
-- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
-- The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.position.function
-
-Where the `{` of a function and of a method whose parameters stand on one line stands, the `{` of a property hook and of the list of hooks staying on the line of its head; the body starts a line below it and the `}` takes a line of its own.
-
-- By default `keep`
-- Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
-- The standards: perCs `nextLine`, psr12 `nextLine`, nette `nextLine`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.position.multilineSignature
-
-Where the `{` of a function and of a method whose parameters are spread over lines stands.
-
-- By default `keep`
-- Takes: `sameLine` (on the line of the `)`); `nextLine` (on the line below the `)`); `keep`
-- The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.position.typedMultilineSignature
-
-Where the `{` of a function and of a method whose parameters are spread over lines stands after a return type; where it is kept, `braces.position.multilineSignature` says it.
-
-- By default `keep`
-- Takes: `sameLine` (on the line of the return type); `nextLine` (on the line below the return type); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `nextLine`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-### braces.singlelineClosure
-
-A closure written whole on one line.
+An import nothing uses is removed, a class name in a doc comment using the import too.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
-- The standards: perCs `forbidden`, psr12 `forbidden`, nette `keep`
-- Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
-
-## blankLines
-
-### blankLines.afterAttributes
-
-Between the last group of attributes and the declaration, the member, the parameter or the closure it belongs to.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `keep`, nette `0`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.afterDeclare
-
-After `declare(...);`, before whatever follows it but a namespace declaration.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `1`, psr12 `1`, nette `1`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.afterImports
-
-After the last import, before the rest of the code.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `1`, psr12 `1`, nette `1`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.afterNamespace
-
-After an unbraced namespace declaration.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `1`, psr12 `1`, nette `1`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.afterOpeningTag
-
-After the line of `<?php`, which then carries no code but a declaration of `strict_types` that `file.strictTypes.position` puts there; a file with markup outside PHP keeps its tag.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `1`, psr12 `1`, nette `1`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.afterPhpdoc
-
-Between a doc comment and the declaration it belongs to, or the first attribute of the declaration.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `keep`, nette `0`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.afterStatement
-
-After a statement of the kind, before the next statement.
-
-- By default `keep`
-- Takes: a map of `break`, `continue`, `do`, `for`, `foreach`, `if`, `return`, `switch`, `throw`, `try`, `while`, `yield` to a count from 0, a range `1-2`, an open one `1+`, an entry withdrawn with `keep`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.afterTraitUses
-
-Before the first member after the trait uses, a method included.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `1`, psr12 `1`, nette `1`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.aroundDeclarations
-
-Before and after a class, interface, trait, enum or function declared among statements, where the header above it does not decide.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `1-2`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.aroundInterfaceMethods
-
-Before and after a method of an interface, in place of `aroundMethods`.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `1`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.aroundMethods
-
-Before and after a method; the first and the last member of a class take `bodyStart.class` and `bodyEnd.class`.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `2`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.beforeDeclaration
-
-Before a class, interface, trait, enum or function that follows the namespace or the imports, which `afterNamespace` and `afterImports` then leave alone.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `1`, psr12 `1`, nette `2`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.beforeDocumentedMember
-
-Before a property, constant or enum case with a doc comment or an attribute, and before a trait use with a doc comment below another one.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `1`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.beforeNamespace
-
-Before the namespace declaration and, where a doc comment of the file stands above it, also between the two.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `1`, psr12 `1`, nette `1`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.beforeOpenBrace.class
-
-Between the head of a class, an interface, a trait or an enum and its opening brace on a line of its own.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.beforeStatement
-
-Before a statement of the kind, `yield` meaning a statement made of a `yield` expression.
-
-- By default `keep`
-- Takes: a map of `break`, `continue`, `do`, `for`, `foreach`, `if`, `return`, `switch`, `throw`, `try`, `while`, `yield` to a count from 0, a range `1-2`, an open one `1+`, an entry withdrawn with `keep`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.belowComment.inlineVar
-
-Between a doc comment with `@var` and the statement below it that is no declaration, `/** @var Order $order */`.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.betweenImportKinds
-
-Between the imports of classes, functions and constants.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `1`, psr12 `1`, nette `0`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.betweenImports
-
-Between two imports of one kind, two of classes for instance.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.betweenMemberKinds
-
-Between a property, a constant and an enum case of different kinds, the visibility and `static` making no kind of their own, the lower one without a doc comment or an attribute.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0-1`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.betweenMembers.constant
-
-Between two constants, the lower one without a doc comment or an attribute.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0-1`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.betweenMembers.enumCase
-
-Between two enum cases, the lower one without a doc comment or an attribute.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0-1`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.betweenMembers.property
-
-Between two properties, the lower one without a doc comment or an attribute.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0-1`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.betweenStatementsInFunction
-
-Between two statements in the body of a function, a method or a closure, at any depth; a count of the kind of the statement before or after narrows it.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0-2`
-- Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
-
-### blankLines.betweenTraitUses
-
-Between the trait uses of a class without a doc comment, the blank lines below a documented one staying as they are.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.bodyEnd.anonymousClass
-
-Before the closing brace of an anonymous class, after its last member.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.bodyEnd.branch
-
-Before the closing brace of a branch of `if` or `try` that `else`, `elseif`, `catch` or `finally` follows, and of the body of `do` that `while` follows, which `lastStatementSetApart` keeps as it is, in place of `bodyEnd.controlStructure`.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `lastStatementSetApart` (one where the last statement of the branch stands apart, which would otherwise read as belonging to the next one, the others kept); `keep`
-- The standards: perCs `0`, psr12 `0`, nette `lastStatementSetApart`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
-
-### blankLines.bodyEnd.class
-
-Before the closing brace of a class, an interface, a trait or an enum, after its last member.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.bodyEnd.closure
-
-Before the closing brace of the body of a closure.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
-
-### blankLines.bodyEnd.controlStructure
-
-Before the closing brace of the body of `if`, `else`, a loop, `switch`, `match`, `try`, `catch`, `finally`, `declare` and of a bare block.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
-
-### blankLines.bodyEnd.function
-
-Before the closing brace of the body of a function or a method.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
-
-### blankLines.bodyEnd.propertyHook
-
-Before the closing brace of the body of a property hook.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
-
-### blankLines.bodyEnd.switchCase
-
-Before a `case` or `default` of a `switch` that follows a case with statements, below a comment right under those statements.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `lastStatementSetApart` (one where the last statement of the branch stands apart, which would otherwise read as belonging to the next one, the others kept); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `lastStatementSetApart`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
-
-### blankLines.bodyStart.anonymousClass
-
-After the opening brace of an anonymous class, before its first member.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.bodyStart.class
-
-After the opening brace of a class, an interface, a trait or an enum, before its first member.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
-
-### blankLines.bodyStart.closure
-
-After the opening brace of the body of a closure.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
-
-### blankLines.bodyStart.controlStructure
-
-After the opening brace of the body of `if`, `else`, a loop, `switch`, `match`, `try`, `catch`, `finally`, `declare` and of a bare block.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `0`, psr12 `0`, nette `0`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
-
-### blankLines.bodyStart.function
-
-After the opening brace of the body of a function or a method.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
-
-### blankLines.bodyStart.propertyHook
-
-After the opening brace of the body of a property hook.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `0`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
-
-### blankLines.bodyStart.switchCase
-
-After the colon of a `case` or `default` of a `switch`, before its first statement.
-
-- By default `keep`
-- Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Namespaces\NoUnusedImportsRule`, stage Structure
 
 ## classes
 
@@ -2510,6 +2510,98 @@ The `public` of a property with a set visibility, `public protected(set) int $x`
 - Rule `DressCode\Rules\Classes\PublicWithSetVisibilityRule`, stage Structure
 - Needs PHP >=8.4
 
+## functions
+
+### functions.arrowFunction.emptyBody
+
+`fn() => null` written for a closure with an empty body, one returning `void`, `never` or by reference aside.
+
+- By default `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `required`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
+- Needs PHP >=7.4
+
+### functions.arrowFunction.oneExpression
+
+An arrow function written for a closure whose body is a single `return`, where that is equivalent: no variable captured by reference, none reached by a name it does not spell out, no comment lost.
+
+Not about the `static` of the arrow function, which `functions.staticClosure` decides
+
+- By default `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `required`
+- Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
+- Needs PHP >=7.4
+
+### functions.arrowFunctionNested
+
+Whether a closure holding another closure or arrow function becomes one too.
+
+- By default `no`
+- Takes: `yes`; `no`
+- The standards: perCs `no`, psr12 `no`, nette `yes`
+- Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
+- Needs PHP >=7.4
+
+### functions.innerFunction
+
+A named function declared inside a function, a method, a closure or a property hook, which is only reported.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\NoInnerFunctionsRule`, stage Structure
+
+### functions.namedBooleanArgument
+
+A `true` or `false` passed by position to a parameter declared `bool`, written with the name of the parameter, `json_decode($json, associative: true)`; not where a positional argument follows it, nor in a call of a setter, `setVisible(true)`, or of a function PHP calls without a frame or optimizes.
+
+- By default `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Functions\NamedArgumentForBooleanRule`, stage Structure
+- Needs PHP >=8.0
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### functions.namedBooleanArgumentExcept
+
+The functions and methods whose arguments stay positional, a method written with the class declaring it or the one it is called on, `Acme\Shop\Cart::add`.
+
+- By default `[]`
+- Takes: a list of names
+- The standards: perCs `[]`, psr12 `[]`, nette `[]`
+- Rule `DressCode\Rules\Functions\NamedArgumentForBooleanRule`, stage Structure
+- Needs PHP >=8.0
+
+### functions.staticClosure
+
+The `static` keyword of a closure or an arrow function that does not use `$this`.
+
+- By default `keep`
+- Takes: `required` (always there, `static function`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Functions\StaticForClosureWithoutThisRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### functions.trailingBareReturn
+
+`return;` as the last statement.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\ControlFlow\UselessReturnRule`, stage Structure
+
+### functions.unreachableParameterDefault
+
+A default a required parameter after it makes unreachable.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\UselessParameterDefaultRule`, stage Structure
+
 ## types
 
 ### types.declaration.anonymousFunction
@@ -2607,291 +2699,6 @@ The order of the types of a native union.
 - Takes: `alphabetical` (the types beside `null` sorted by name, case-insensitively, an intersection by its first name); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Types\TypeNotationRule`, stage Structure
-
-## functions
-
-### functions.arrowFunction.emptyBody
-
-`fn() => null` written for a closure with an empty body, one returning `void`, `never` or by reference aside.
-
-- By default `keep`
-- Takes: `required` (always there); `keep`
-- The standards: perCs `required`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
-- Needs PHP >=7.4
-
-### functions.arrowFunction.oneExpression
-
-An arrow function written for a closure whose body is a single `return`, where that is equivalent: no variable captured by reference, none reached by a name it does not spell out, no comment lost.
-
-Not about the `static` of the arrow function, which `functions.staticClosure` decides
-
-- By default `keep`
-- Takes: `required` (always there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `required`
-- Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
-- Needs PHP >=7.4
-
-### functions.arrowFunctionNested
-
-Whether a closure holding another closure or arrow function becomes one too.
-
-- By default `no`
-- Takes: `yes`; `no`
-- The standards: perCs `no`, psr12 `no`, nette `yes`
-- Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
-- Needs PHP >=7.4
-
-### functions.innerFunction
-
-A named function declared inside a function, a method, a closure or a property hook, which is only reported.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\NoInnerFunctionsRule`, stage Structure
-
-### functions.namedBooleanArgument
-
-A `true` or `false` passed by position to a parameter declared `bool`, written with the name of the parameter, `json_decode($json, associative: true)`; not where a positional argument follows it, nor in a call of a setter, `setVisible(true)`, or of a function PHP calls without a frame or optimizes.
-
-- By default `keep`
-- Takes: `required` (always there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Functions\NamedArgumentForBooleanRule`, stage Structure
-- Needs PHP >=8.0
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### functions.namedBooleanArgumentExcept
-
-The functions and methods whose arguments stay positional, a method written with the class declaring it or the one it is called on, `Acme\Shop\Cart::add`.
-
-- By default `[]`
-- Takes: a list of names
-- The standards: perCs `[]`, psr12 `[]`, nette `[]`
-- Rule `DressCode\Rules\Functions\NamedArgumentForBooleanRule`, stage Structure
-- Needs PHP >=8.0
-
-### functions.staticClosure
-
-The `static` keyword of a closure or an arrow function that does not use `$this`.
-
-- By default `keep`
-- Takes: `required` (always there, `static function`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
-- Rule `DressCode\Rules\Functions\StaticForClosureWithoutThisRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### functions.trailingBareReturn
-
-`return;` as the last statement.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\ControlFlow\UselessReturnRule`, stage Structure
-
-### functions.unreachableParameterDefault
-
-A default a required parameter after it makes unreachable.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\UselessParameterDefaultRule`, stage Structure
-
-## hygiene
-
-### hygiene.aliasFunctions
-
-The sets of functions whose aliases are written by their canonical names.
-
-- By default `keep`
-- Takes: a list of `all` (every set below); `core` (the core functions, `sizeof()` is `count()`, `join()` is `implode()`); `imap` (`imap_*`); `ldap` (`ldap_*`); `mysqli` (`mysqli_*`); `pg` (`pg_exec()` is `pg_query()`); `oci` (`oci_*`); `odbc` (`odbc_*`); `openssl` (`openssl_*`); `sodium` (`sodium_*`); `ftp` (`ftp_quit()` is `ftp_close()`); `posix` (`posix_errno()` is `posix_get_last_error()`); `pcntl` (`pcntl_errno()` is `pcntl_get_last_error()`); `time` (`mktime()` and `gmmktime()` without arguments are `time()`); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `[core, imap, pg]`
-- Rule `DressCode\Rules\Functions\NoAliasFunctionsRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.call_user_func
-
-`call_user_func($f, $x)` is `$f($x)`, `call_user_func_array($f, $a)` is `$f(...$a)`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\NoCallUserFuncRule`, stage Structure
-- Needs PHP >=7.0
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.call_user_funcMethods
-
-Whether a method the callable names as `[$this, 'run']`, `[self::class, 'make']` or `'Acme\Shop\Order::make'` is called directly too.
-
-- By default `no`
-- Takes: `yes`; `no`
-- The standards: perCs `no`, psr12 `no`, nette `no`
-- Rule `DressCode\Rules\Functions\NoCallUserFuncRule`, stage Structure
-- Needs PHP >=7.0
-
-### hygiene.classNameNotation.currentClass
-
-`self::class`, `static::class` and `parent::class` for `get_class()`, `get_called_class()`, `get_parent_class()` and `__CLASS__`.
-
-- By default `keep`
-- Takes: `required` (always there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `required`
-- Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.classNameNotation.object
-
-`$object::class` for `get_class($object)`.
-
-- By default `keep`
-- Takes: `required` (always there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `required`
-- Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.conversionFunction
-
-`intval($x)` is `(int) $x`; `intval($x, 16)` is no cast.
-
-Not about which name of `floatval()` the code writes, `doubleval()` being an alias `hygiene.aliasFunctions` renames too
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\NoConversionFunctionsRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.countEmptyTest
-
-`count($a) === 0` is `$a === []`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\UselessMeasuringCallsRule`, stage Structure
-- Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.defaultArgument
-
-An argument PHP ignores or that repeats the default.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\RedundantArgumentsRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.dirnameOfFile
-
-`dirname(__FILE__)`, which is `__DIR__`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\NoDirnameOfFileRule`, stage Structure
-
-### hygiene.is_null
-
-`is_null($x)` is `$x === null`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\NoIsNullRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.nestedDirname
-
-A `dirname()` of a `dirname()`, which is one call with the `levels` argument.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\NoDirnameOfFileRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.repeatedCatchBody
-
-Two adjacent catches of one body, written as one `catch (A|B $e)`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\ControlFlow\NoRepeatedCatchesRule`, stage Structure
-- Needs PHP >=7.1
-
-### hygiene.separateIssets
-
-`isset($a) && isset($b)` is `isset($a, $b)`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Variables\NoSeparateIssetsRule`, stage Structure
-
-### hygiene.separateUnsets
-
-`unset($a); unset($b);` is `unset($a, $b);`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Variables\NoSeparateUnsetsRule`, stage Structure
-
-### hygiene.settype
-
-`settype($x, 'int')` as a statement is `$x = (int) $x`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\NoSettypeRule`, stage Structure
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.strlenEmptyTest
-
-`strlen($s) === 0` is `$s === ''`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\UselessMeasuringCallsRule`, stage Structure
-- Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
-- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
-
-### hygiene.unreadCatchVariable
-
-The variable of a `catch` that is never read, `catch (E)` written instead.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\ControlFlow\UselessCatchVariableRule`, stage Structure
-- Needs PHP >=8.0
-
-### hygiene.uselessVersionCheck
-
-A check of the version of PHP every version the code runs on decides alike, `if (PHP_VERSION_ID >= 80000)` for code on 8.0.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\ControlFlow\UselessVersionCheckRule`, stage Structure
-- Modifies comments
-
-### hygiene.__invokeCall
-
-`$f->__invoke($x)` is `$f($x)`.
-
-- By default `keep`
-- Takes: `forbidden` (never there); `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\NoExplicitInvokeCallsRule`, stage Structure
 
 ## controlFlow
 
@@ -3530,6 +3337,199 @@ The order of the types of a union type of a doc comment.
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
 - Modifies comments
+
+## hygiene
+
+### hygiene.aliasFunctions
+
+The sets of functions whose aliases are written by their canonical names.
+
+- By default `keep`
+- Takes: a list of `all` (every set below); `core` (the core functions, `sizeof()` is `count()`, `join()` is `implode()`); `imap` (`imap_*`); `ldap` (`ldap_*`); `mysqli` (`mysqli_*`); `pg` (`pg_exec()` is `pg_query()`); `oci` (`oci_*`); `odbc` (`odbc_*`); `openssl` (`openssl_*`); `sodium` (`sodium_*`); `ftp` (`ftp_quit()` is `ftp_close()`); `posix` (`posix_errno()` is `posix_get_last_error()`); `pcntl` (`pcntl_errno()` is `pcntl_get_last_error()`); `time` (`mktime()` and `gmmktime()` without arguments are `time()`); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `[core, imap, pg]`
+- Rule `DressCode\Rules\Functions\NoAliasFunctionsRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.call_user_func
+
+`call_user_func($f, $x)` is `$f($x)`, `call_user_func_array($f, $a)` is `$f(...$a)`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\NoCallUserFuncRule`, stage Structure
+- Needs PHP >=7.0
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.call_user_funcMethods
+
+Whether a method the callable names as `[$this, 'run']`, `[self::class, 'make']` or `'Acme\Shop\Order::make'` is called directly too.
+
+- By default `no`
+- Takes: `yes`; `no`
+- The standards: perCs `no`, psr12 `no`, nette `no`
+- Rule `DressCode\Rules\Functions\NoCallUserFuncRule`, stage Structure
+- Needs PHP >=7.0
+
+### hygiene.classNameNotation.currentClass
+
+`self::class`, `static::class` and `parent::class` for `get_class()`, `get_called_class()`, `get_parent_class()` and `__CLASS__`.
+
+- By default `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `required`
+- Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.classNameNotation.object
+
+`$object::class` for `get_class($object)`.
+
+- By default `keep`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `required`
+- Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.conversionFunction
+
+`intval($x)` is `(int) $x`; `intval($x, 16)` is no cast.
+
+Not about which name of `floatval()` the code writes, `doubleval()` being an alias `hygiene.aliasFunctions` renames too
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\NoConversionFunctionsRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.countEmptyTest
+
+`count($a) === 0` is `$a === []`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\UselessMeasuringCallsRule`, stage Structure
+- Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.defaultArgument
+
+An argument PHP ignores or that repeats the default.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\RedundantArgumentsRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.dirnameOfFile
+
+`dirname(__FILE__)`, which is `__DIR__`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\NoDirnameOfFileRule`, stage Structure
+
+### hygiene.is_null
+
+`is_null($x)` is `$x === null`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\NoIsNullRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.nestedDirname
+
+A `dirname()` of a `dirname()`, which is one call with the `levels` argument.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\NoDirnameOfFileRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.repeatedCatchBody
+
+Two adjacent catches of one body, written as one `catch (A|B $e)`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\ControlFlow\NoRepeatedCatchesRule`, stage Structure
+- Needs PHP >=7.1
+
+### hygiene.separateIssets
+
+`isset($a) && isset($b)` is `isset($a, $b)`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Variables\NoSeparateIssetsRule`, stage Structure
+
+### hygiene.separateUnsets
+
+`unset($a); unset($b);` is `unset($a, $b);`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Variables\NoSeparateUnsetsRule`, stage Structure
+
+### hygiene.settype
+
+`settype($x, 'int')` as a statement is `$x = (int) $x`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\NoSettypeRule`, stage Structure
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.strlenEmptyTest
+
+`strlen($s) === 0` is `$s === ''`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\UselessMeasuringCallsRule`, stage Structure
+- Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
+
+### hygiene.unreadCatchVariable
+
+The variable of a `catch` that is never read, `catch (E)` written instead.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\ControlFlow\UselessCatchVariableRule`, stage Structure
+- Needs PHP >=8.0
+
+### hygiene.uselessVersionCheck
+
+A check of the version of PHP every version the code runs on decides alike, `if (PHP_VERSION_ID >= 80000)` for code on 8.0.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\ControlFlow\UselessVersionCheckRule`, stage Structure
+- Modifies comments
+
+### hygiene.__invokeCall
+
+`$f->__invoke($x)` is `$f($x)`.
+
+- By default `keep`
+- Takes: `forbidden` (never there); `keep`
+- The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
+- Rule `DressCode\Rules\Functions\NoExplicitInvokeCallsRule`, stage Structure
 
 ## mistakes
 

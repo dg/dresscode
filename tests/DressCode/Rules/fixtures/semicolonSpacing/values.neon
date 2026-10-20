@@ -1,6 +1,6 @@
+multiline:
+	semicolon: sameLine
 spacing:
 	semicolon:
 		before: '$a;'
 		after: 'for ($i = 0; $i < 5; $i++)'
-multiline:
-	semicolon: sameLine

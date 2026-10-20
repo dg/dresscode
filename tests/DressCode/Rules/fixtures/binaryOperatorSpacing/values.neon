@@ -1,7 +1,7 @@
+multiline:
+	operatorPosition:
+		comparison: keep
 spacing:
 	binaryOperator: '$a + $b'
 	alignment:
 		binaryOperator: spaces
-multiline:
-	operatorPosition:
-		comparison: keep

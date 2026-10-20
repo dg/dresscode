@@ -12,11 +12,6 @@ functions:
 		oneExpression: required                # `fn() =>` for a closure only returning
 	arrowFunctionNested: yes                   # also one holding another closure
 
-hygiene:
-	classNameNotation:
-		currentClass: required                 # `self::class`, `static::class`
-		object: required                       # `$object::class`, PHP 8.0
-
 expressions:
 	ternary:
 		short: required                        # `$a ?: $b`
@@ -24,6 +19,11 @@ expressions:
 
 literals:
 	arraySyntax: short                         # `[1, 2]`, `[$a] =`
+
+hygiene:
+	classNameNotation:
+		currentClass: required                 # `self::class`, `static::class`
+		object: required                       # `$object::class`, PHP 8.0
 
 upgrading:
 	packages: yes                              # as the upgrading files of the packages say

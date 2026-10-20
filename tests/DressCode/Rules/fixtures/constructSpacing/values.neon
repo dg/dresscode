@@ -1,3 +1,6 @@
+multiline:
+	expressionStart: sameLine
+
 spacing:
 	keyword: required
 	openBrace: required
@@ -6,6 +9,3 @@ spacing:
 	import: 'use Acme\{Foo, Bar};'
 	arrowFunction: 'fn($x) => $x'
 	anonymousFunction: 'function ($x)'
-
-multiline:
-	expressionStart: sameLine

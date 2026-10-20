@@ -30,6 +30,12 @@ cacheDir: temp/dresscode
 analyses:
 	- Acme\DressCode\Analyses\FunctionCalls
 
+file:
+	lineEnding: LF
+	lineLength: 160
+	lineLengthExcept: []
+indentation:
+	unit: tab
 blankLines:
 	aroundMethods: 1–2
 	beforeStatement: {return: 1+}
@@ -40,9 +46,3 @@ types:
 	traversableClasses: [Traversable, Iterator]
 controlFlow:
 	trailingIfMinStatements: 3
-file:
-	lineEnding: LF
-	lineLength: 160
-	lineLengthExcept: []
-indentation:
-	unit: tab

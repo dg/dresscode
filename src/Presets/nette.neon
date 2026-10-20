@@ -25,6 +25,83 @@ indentation:
 	unit: tab
 	chain: nested                             # a link may stand one level deeper than the one before
 
+braces:
+	position:
+		typedMultilineSignature: nextLine     # `{` below `): Foo`, otherwise `) {`
+	emptyBody:                                # not `{}` as in PER Coding Style
+		class: expanded
+		function: expanded
+		closure: expanded
+		propertyHook: expanded
+		anonymousClass: keep
+	singlelineClosure: keep
+	alternativeSyntax: forbidden              # no `if: ... endif;`
+
+# a range `1-2` leaves the choice to the author
+blankLines:
+	betweenImportKinds: 0
+	beforeDeclaration: 2                      # above the class of a file
+	aroundDeclarations: 1-2                   # around one among statements
+	betweenStatementsInFunction: 0-2
+	aroundMethods: 2
+	aroundInterfaceMethods: 1
+	betweenMemberKinds: 0-1                   # members without a doc comment
+	betweenMembers: 0-1
+	beforeDocumentedMember: 1
+	bodyStart:
+		blocks: 0
+	bodyEnd:
+		blocks: 0
+		branch: lastStatementSetApart         # before `} else {` where the last statement stands apart
+		switchCase: lastStatementSetApart     # likewise before `case`
+
+multiline:
+	items:
+		array: fill                           # items may share a line
+		list: fill
+		import: fill                          # the names filling the lines
+		argument: fillPlain                   # `foo($a, $b, self::X)` share lines, `foo(fn() => 1, bar())` one on a line
+		matchArm: perLine
+		matchCondition: fill                  # conditions may share a line
+	edges:
+		array: [apart, attached]              # `]` begins a line where the first item does
+		list: [apart, attached]
+		import: apart
+		chain: attached                       # `$form->addText()` above `->setRequired()`
+		condition: [apart, closingApart]      # `if (` above `$a`, or `if ($a` above `&& $b`
+	maxWidth:
+		array: 130
+	fillMinItems:
+		array: 6                              # fewer items stand one on a line
+		list: 6
+		matchCondition: 6
+	spreadItem: sole                          # `foo(bar(` above the arguments of `bar()`, `))` below them
+	spreadAlways: [promotedProperty]          # however short
+	expressionStart:                          # `return [`, not `return` above `[`
+		return: sameLine
+		throw: sameLine
+		yield: sameLine
+		echo: sameLine
+	semicolon: sameLine
+	trailingComma: required                   # a group use and `list()` too
+
+spacing:
+	alignment:
+		comma: tabs                           # tabs aligning columns may stay
+		ternary: forbidden                    # no extra spaces around `?` and `:`
+	semicolon:
+		after: 'for ($i = 0; $i < 5; $i++)'
+	logicalNot: '!$x'                         # never `! $x`
+	doubleColon: 'Foo::bar()'
+	objectOperator: '$a->b()'
+	padding:
+		array: forbidden                      # `[1, 2]`, `[$a, $b] = $x`
+		list: forbidden
+		offset: forbidden                     # `$a[0]`
+	comment:
+		marker: '// text'                     # also `#` and `/* */`
+		afterCode: '$a; // text'              # at least one space
+
 # names are reported, never renamed
 naming:
 	function: camelCase
@@ -57,83 +134,6 @@ imports:
 		function: [combined, grouped]         # `use function a, b;`
 		constant: [combined, grouped]         # `use const A, B;`
 
-spacing:
-	alignment:
-		comma: tabs                           # tabs aligning columns may stay
-		ternary: forbidden                    # no extra spaces around `?` and `:`
-	semicolon:
-		after: 'for ($i = 0; $i < 5; $i++)'
-	logicalNot: '!$x'                         # never `! $x`
-	doubleColon: 'Foo::bar()'
-	objectOperator: '$a->b()'
-	padding:
-		array: forbidden                      # `[1, 2]`, `[$a, $b] = $x`
-		list: forbidden
-		offset: forbidden                     # `$a[0]`
-	comment:
-		marker: '// text'                     # also `#` and `/* */`
-		afterCode: '$a; // text'              # at least one space
-
-multiline:
-	items:
-		array: fill                           # items may share a line
-		list: fill
-		import: fill                          # the names filling the lines
-		argument: fillPlain                   # `foo($a, $b, self::X)` share lines, `foo(fn() => 1, bar())` one on a line
-		matchArm: perLine
-		matchCondition: fill                  # conditions may share a line
-	edges:
-		array: [apart, attached]              # `]` begins a line where the first item does
-		list: [apart, attached]
-		import: apart
-		chain: attached                       # `$form->addText()` above `->setRequired()`
-		condition: [apart, closingApart]      # `if (` above `$a`, or `if ($a` above `&& $b`
-	maxWidth:
-		array: 130
-	fillMinItems:
-		array: 6                              # fewer items stand one on a line
-		list: 6
-		matchCondition: 6
-	spreadItem: sole                          # `foo(bar(` above the arguments of `bar()`, `))` below them
-	spreadAlways: [promotedProperty]          # however short
-	expressionStart:                          # `return [`, not `return` above `[`
-		return: sameLine
-		throw: sameLine
-		yield: sameLine
-		echo: sameLine
-	semicolon: sameLine
-	trailingComma: required                   # a group use and `list()` too
-
-braces:
-	position:
-		typedMultilineSignature: nextLine     # `{` below `): Foo`, otherwise `) {`
-	emptyBody:                                # not `{}` as in PER Coding Style
-		class: expanded
-		function: expanded
-		closure: expanded
-		propertyHook: expanded
-		anonymousClass: keep
-	singlelineClosure: keep
-	alternativeSyntax: forbidden              # no `if: ... endif;`
-
-# a range `1-2` leaves the choice to the author
-blankLines:
-	betweenImportKinds: 0
-	beforeDeclaration: 2                      # above the class of a file
-	aroundDeclarations: 1-2                   # around one among statements
-	betweenStatementsInFunction: 0-2
-	aroundMethods: 2
-	aroundInterfaceMethods: 1
-	betweenMemberKinds: 0-1                   # members without a doc comment
-	betweenMembers: 0-1
-	beforeDocumentedMember: 1
-	bodyStart:
-		blocks: 0
-	bodyEnd:
-		blocks: 0
-		branch: lastStatementSetApart         # before `} else {` where the last statement stands apart
-		switchCase: lastStatementSetApart     # likewise before `case`
-
 classes:
 	visibility:
 		interfaceMethod: forbidden            # public anyway
@@ -146,13 +146,6 @@ classes:
 	emptyParentheses:
 		instantiation: forbidden              # `new Foo`, but `new Foo()->bar()`
 
-types:
-	declaration:                              # a type only where it says something
-		parameter: keep
-		property: keep
-		return: keep
-		anonymousFunction: keep
-
 functions:
 	innerFunction: forbidden
 	arrowFunction:
@@ -160,15 +153,12 @@ functions:
 		emptyBody: keep                       # `function () {}` stays a callback doing nothing
 	arrowFunctionNested: yes                  # also one holding another closure
 
-hygiene:
-	is_null: forbidden                        # `$x === null`
-	settype: forbidden                        # `$x = (int) $x`
-	conversionFunction: forbidden             # `(int) $x`, not `intval($x)`
-	dirnameOfFile: forbidden                  # `__DIR__`
-	nestedDirname: forbidden                  # `dirname($p, 2)`
-	classNameNotation:
-		currentClass: required                # `self::class`, `static::class`
-		object: required                      # `$object::class`
+types:
+	declaration:                              # a type only where it says something
+		parameter: keep
+		property: keep
+		return: keep
+		anonymousFunction: keep
 
 controlFlow:
 	switch:
@@ -220,6 +210,16 @@ phpdoc:
 	types:
 		array: keep                           # both notations stay
 		nullPosition: last
+
+hygiene:
+	is_null: forbidden                        # `$x === null`
+	settype: forbidden                        # `$x = (int) $x`
+	conversionFunction: forbidden             # `(int) $x`, not `intval($x)`
+	dirnameOfFile: forbidden                  # `__DIR__`
+	nestedDirname: forbidden                  # `dirname($p, 2)`
+	classNameNotation:
+		currentClass: required                # `self::class`, `static::class`
+		object: required                      # `$object::class`
 
 mistakes:
 	globalStatement: forbidden

@@ -4,6 +4,9 @@
 # function, a comment or a doc comment that says nothing. It decides nothing about the layout, so it goes with any
 # standard.
 
+braces:
+	bareStatementGroup: forbidden            # no `{ ... }` that nothing opens
+
 qualification:
 	leadingBackslash: forbidden              # `strlen()` in a file without a namespace, not `\strlen()`
 
@@ -12,9 +15,6 @@ imports:
 	unused: forbidden
 	aliasEqualToName: forbidden              # `use Foo;`, not `use Foo as Foo;`
 	fromCurrentNamespace: forbidden          # `use Acme\Shop\Order;` in `namespace Acme\Shop`
-
-braces:
-	bareStatementGroup: forbidden            # no `{ ... }` that nothing opens
 
 classes:
 	modifiers:
@@ -27,19 +27,6 @@ classes:
 functions:
 	trailingBareReturn: forbidden            # no `return;` closing a function
 	unreachableParameterDefault: forbidden   # a default before a required parameter
-
-hygiene:
-	aliasFunctions: [core, imap, pg]         # `count()`, not `sizeof()`
-	strlenEmptyTest: forbidden               # `$s === ''`, not `strlen($s) === 0`
-	countEmptyTest: forbidden                # `$a === []`, not `count($a) === 0`
-	call_user_func: forbidden                # `$f($x)`, not `call_user_func($f, $x)`, risky
-	__invokeCall: forbidden                  # `$f($x)`, not `$f->__invoke($x)`
-	defaultArgument: forbidden               # `json_encode($a)`, not `json_encode($a, 0)`
-	unreadCatchVariable: forbidden           # `catch (E)` where `$e` is not read
-	repeatedCatchBody: forbidden             # `catch (A|B $e)` for two catches of one body
-	separateIssets: forbidden                # `isset($a, $b)`
-	separateUnsets: forbidden                # `unset($a, $b);`
-	uselessVersionCheck: forbidden           # no `if (PHP_VERSION_ID >= 80000)` the target always passes
 
 controlFlow:
 	emptyStatement: forbidden                # `foo();;`
@@ -67,3 +54,16 @@ phpdoc:
 	annotation:
 		nativeTypeOnly: forbidden            # `@param int $a` on `int $a`
 		constantVar: forbidden               # a bare `@var int` on a class constant
+
+hygiene:
+	aliasFunctions: [core, imap, pg]         # `count()`, not `sizeof()`
+	strlenEmptyTest: forbidden               # `$s === ''`, not `strlen($s) === 0`
+	countEmptyTest: forbidden                # `$a === []`, not `count($a) === 0`
+	call_user_func: forbidden                # `$f($x)`, not `call_user_func($f, $x)`, risky
+	__invokeCall: forbidden                  # `$f($x)`, not `$f->__invoke($x)`
+	defaultArgument: forbidden               # `json_encode($a)`, not `json_encode($a, 0)`
+	unreadCatchVariable: forbidden           # `catch (E)` where `$e` is not read
+	repeatedCatchBody: forbidden             # `catch (A|B $e)` for two catches of one body
+	separateIssets: forbidden                # `isset($a, $b)`
+	separateUnsets: forbidden                # `unset($a, $b);`
+	uselessVersionCheck: forbidden           # no `if (PHP_VERSION_ID >= 80000)` the target always passes
