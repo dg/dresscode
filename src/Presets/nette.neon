@@ -80,6 +80,7 @@ multiline:
 		array: fill                           # items may share a line
 		list: fill
 		import: fill                          # the names filling the lines
+		argument: fillPlain                   # `foo($a, $b, self::X)` share lines, `foo(fn() => 1, bar())` one on a line
 		matchArm: perLine
 		matchCondition: fill                  # conditions may share a line
 	edges:

@@ -157,7 +157,7 @@ multiline:                                  # what is spread over lines, and how
 		operators: [perLine, fill]          # the operands of `&&`, `.`, `+`: either passes, one per line written
 		ternary: perLine                    # a place the group names wins over its kind: `?` and `:` each on a line. Also: fill; [perLine, fill]; keep
 		chain: perLine                      # every link on a line of its own. Also: fill; keep
-		argument: perLine                   # every argument on a line of its own. Also: fill; keep
+		argument: perLine                   # every argument on a line of its own. Also: fill; fillPlain (fill where every argument is a variable, a constant, a literal or a property, joined where they fit on one line, one on a line otherwise); keep
 	fillMinItems:                           # parameters: how many items a list has at least to be filled
 		array: 6
 		list: 6

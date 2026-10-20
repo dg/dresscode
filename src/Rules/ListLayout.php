@@ -7,15 +7,20 @@
 
 namespace DressCode\Rules;
 
-use DressCode\{Claim, Decision, Gap, Line, Space, Values};
+use DressCode\{Claim, Decision, Gap, Line, Space, Style, Values};
 use DressCode\Domains\Words;
 use PhpSyntax\{Indentation, Node, Token};
-use function count;
+use PhpSyntax\Nodes\{ArgumentNode, NameNode};
+use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, ConstantFetchNode, PropertyFetchNode, StaticPropertyFetchNode, VariableNode};
+use PhpSyntax\Nodes\Scalar\{BooleanNode, FloatNode, IntegerNode, MagicConstantNode, NullNode, StringNode};
+use function count, strlen;
 
 
 /**
  * The shapes of a list spread over lines, on two axes: how its items stand, `perLine` every one on a line of its own or
- * `fill` sharing lines, which accepts them one on a line too, and where its edges stand, `apart` with the items beginning
+ * `fill` sharing lines, which accepts them one on a line too, or `fillPlain`, `fill` where every item is plain, a
+ * variable, a constant, a literal or a property, joined where they fit on the line of the opening bracket, and
+ * `perLine` otherwise, and where its edges stand, `apart` with the items beginning
  * on the line after the opening token and the closing one on a line of its own, `attached` with the items beginning on
  * the line of the opening token and the closing one following the last item, `closingApart` with the items on the line
  * of the opening token and the closing one on a line of its own. Each axis accepts a list of shapes, the first of them
@@ -27,6 +32,7 @@ final readonly class ListLayout
 {
 	public const PerLine = 'perLine';
 	public const Fill = 'fill';
+	public const FillPlain = 'fillPlain';
 	public const Apart = 'apart';
 	public const Attached = 'attached';
 	public const ClosingApart = 'closingApart';
@@ -45,6 +51,8 @@ final readonly class ListLayout
 		public bool $edgesKept = false,
 		/** the place of `multiline.items`, which says whether its lines are filled again by their width */
 		public ?string $place = null,
+		/** the items are plain under `fillPlain`, so a list of them its author spread is filled whatever its lines, or joined */
+		public bool $repacks = false,
 	) {
 	}
 
@@ -54,6 +62,7 @@ final readonly class ListLayout
 	 * the shapes said in the words of the place: an item, the items, what opens them and what closes them.
 	 * @param  list<string>  $notes  of the items
 	 * @param  ?string  $attached  what `attached` keeps on the line of what opens the items, the first one where null
+	 * @param  bool  $fillPlain  the place takes `fillPlain`, its items being able to be plain
 	 * @return list<Decision>
 	 */
 	public static function createDecisions(
@@ -66,6 +75,7 @@ final readonly class ListLayout
 		array $notes = [],
 		bool $fill = true,
 		?string $attached = null,
+		bool $fillPlain = false,
 	): array
 	{
 		$decisions = [new Decision(
@@ -73,7 +83,10 @@ final readonly class ListLayout
 			new Words([self::PerLine => "every $item on a line of its own"]
 				+ ($fill
 					? [self::Fill => "the $items may share lines, one on a line passing too, and one spanning lines stands on lines of its own"]
-					: []), tolerance: true, passes: [self::Fill => self::PerLine]),
+					: [])
+				+ ($fillPlain
+					? [self::FillPlain => "as `fill` where every $item is a variable, a constant, a literal or a property, joined where they fit on one line, as `perLine` otherwise"]
+					: []), tolerance: true, passes: [self::Fill => self::PerLine, self::FillPlain => self::PerLine]),
 			$description,
 			$notes,
 		)];
@@ -108,6 +121,61 @@ final readonly class ListLayout
 			$values->has($edges) && $values->isKept($edges),
 			$place,
 		);
+	}
+
+
+	/**
+	 * The layout of the items given: `fillPlain` is `fill` where every one of them is plain, and `perLine` otherwise.
+	 * @param  list<Node>  $items
+	 */
+	public function forItems(array $items): self
+	{
+		if (!in_array(self::FillPlain, $this->items, true)) {
+			return $this;
+		}
+
+		$plain = array_all($items, self::isPlain(...));
+		$shapes = array_map(fn(string $item) => $item === self::FillPlain ? ($plain ? self::Fill : self::PerLine) : $item, $this->items);
+		return new self(
+			array_values(array_unique($shapes)),
+			$this->edges,
+			$this->itemDecision,
+			$this->edgeDecision,
+			$this->edgesKept,
+			$this->place,
+			$plain && $shapes[0] === self::Fill,
+		);
+	}
+
+
+	/**
+	 * Whether the item is plain: a variable, a constant, a literal, a short string without a space or a property of one,
+	 * passed by position, which nothing in it would have to stand on lines of its own for.
+	 */
+	private static function isPlain(Node $item): bool
+	{
+		if ($item instanceof ArgumentNode) {
+			if ($item->name !== null) {
+				return false;
+			}
+
+			$item = $item->value;
+		}
+
+		return match (true) {
+			$item instanceof PropertyFetchNode => $item->plainName !== null && self::isPlain($item->object),
+			$item instanceof ClassConstantFetchNode
+				=> $item->plainName !== null && ($item->class instanceof NameNode || self::isPlain($item->class)),
+			$item instanceof StaticPropertyFetchNode => $item->class instanceof NameNode || self::isPlain($item->class),
+			$item instanceof VariableNode => $item->plainName !== null,
+			default => $item instanceof ConstantFetchNode
+				|| $item instanceof BooleanNode
+				|| $item instanceof IntegerNode
+				|| $item instanceof FloatNode
+				|| $item instanceof NullNode
+				|| $item instanceof MagicConstantNode
+				|| ($item instanceof StringNode && strlen($item->token->text) <= 40 && !preg_match('~\s~', $item->token->text)), // a message is no plain value
+		};
 	}
 
 
@@ -232,15 +300,68 @@ final readonly class ListLayout
 
 	/**
 	 * The claims of a list its author spread over lines, written again on the axis whose shape is not accepted, and in
-	 * `fill` filled again where `refill()` breaks its lines.
+	 * `fill` filled again where `refill()` breaks its lines; plain items are filled whatever their lines, or joined on
+	 * the line of the opening bracket where they fit there.
 	 * @param  list<Node>  $items
 	 * @return ?array{items: list<?Claim>, close: ?Claim, separator: Claim}
 	 */
 	public function claimWritten(Gap $gap, Token $open, array $items, ?Token $close, string $because): ?array
 	{
 		[$itemShape, $edgeShape] = $this->findShapes($open, $close, $items, $gap->style->lineSplits->spreadItem === 'last');
+		if ($this->repacks && $gap->style->maxLineLength !== null) {
+			$because = "every $this->place is plain, so they share lines";
+			$packed = $this->pack($gap, $open, $items, $because);
+			if ($packed !== false && $close !== null && self::fitsJoined($open, $items, $close, $gap->style)) {
+				$because = "every $this->place is plain and they fit on the line of the opening bracket";
+				$joined = array_fill(0, count($items), new Claim(line: Line::Same, because: $because));
+				return $this->claim($items, $close, self::Fill, self::Attached, $because, $joined, whole: true);
+			}
+
+			return $packed === false
+				? null
+				: $this->claim(
+					$items,
+					$close,
+					$packed === null ? self::PerLine : self::Fill,
+					$edgeShape,
+					$because,
+					$packed,
+					whole: true,
+				);
+		}
+
 		$packed = $itemShape === self::Fill ? $this->refill($gap, $open, $items) : null;
 		return $this->claim($items, $close, $itemShape, $edgeShape, $because, $packed);
+	}
+
+
+	/**
+	 * Whether the list fits on the line of its opening bracket joined, its items after a comma and a space and the
+	 * closing bracket after the last one with what follows it on its line; no comment may stand between the brackets.
+	 * @param  list<Node>  $items
+	 */
+	private static function fitsJoined(Token $open, array $items, Token $close, Style $style): bool
+	{
+		$first = $items[0]->getFirstToken();
+		if ($first === null || $open->hasCommentUpTo($close)) {
+			return false;
+		}
+
+		$width = NodeHelpers::measureCodeLine($open, $style, [spl_object_id($first) => true]) + 2 * (count($items) - 1);
+		foreach ($items as $item) {
+			$width += (int) NodeHelpers::measureNode($item);
+		}
+
+		for ($token = $close;; $token = $next) {
+			$width += mb_strlen($token->text);
+			$next = $token->getNext();
+			$space = $token->getTrailingSpace();
+			if ($space === null || $next === null || $next->startsLine()) {
+				return $width <= $style->maxLineLength;
+			}
+
+			$width += $space === '' ? 0 : 1;
+		}
 	}
 
 
@@ -255,14 +376,11 @@ final readonly class ListLayout
 	{
 		[$itemShape, $edgeShape] = $this->getFirst();
 		$packed = null;
-		$limit = $gap->style->maxLineLength;
-		if ($itemShape === self::Fill && $limit !== null) {
-			if (!NodeHelpers::isLineInPlace($gap, $open)) {
+		if ($itemShape === self::Fill && $gap->style->maxLineLength !== null) {
+			$packed = $this->pack($gap, $open, $items, $because);
+			if ($packed === false) {
 				return null;
 			}
-
-			$indentation = Indentation::measure($open->getLineIndentation() . $gap->style->indent, $gap->style->toPhpSyntax());
-			$packed = NodeHelpers::packItems($items, $indentation, $limit, $because);
 		}
 
 		return $this->claim(
@@ -274,6 +392,23 @@ final readonly class ListLayout
 			$packed,
 			whole: true,
 		);
+	}
+
+
+	/**
+	 * The claims of the items filling the lines evenly up to the line length, as `NodeHelpers::packItems()` gives them;
+	 * false while the line of the list waits for its indentation.
+	 * @param  list<Node>  $items
+	 * @return list<Claim>|false|null
+	 */
+	private function pack(Gap $gap, Token $open, array $items, string $because): array|false|null
+	{
+		if (!NodeHelpers::isLineInPlace($gap, $open)) {
+			return false;
+		}
+
+		$indentation = Indentation::measure($open->getLineIndentation() . $gap->style->indent, $gap->style->toPhpSyntax());
+		return NodeHelpers::packItems($items, $indentation, (int) $gap->style->maxLineLength, $because);
 	}
 
 

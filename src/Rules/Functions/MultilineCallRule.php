@@ -20,8 +20,10 @@ use PhpSyntax\Nodes\Statement\UnsetNode;
 /**
  * The arguments of a call, of `new` or of an attribute, and the variables of `unset()` and `isset()`, spread over
  * several lines stand in the shapes of `multiline.items.argument` and `multiline.edges.argument`, each comma on the line
- * of its argument; a list its author spread is written again only on the axis whose shape is not accepted, and in `fill`
- * its lines are filled again where one is wider than the line length. A call on one line is spread in the first shapes,
+ * of its argument, `fillPlain` filling the lines where every argument is plain, joining them where they fit on the
+ * line of the call, and giving each a line otherwise; a list
+ * its author spread is written again only on the axis whose shape is not accepted, and in `fill` its lines are filled
+ * again where one is wider than the line length. A call on one line is spread in the first shapes,
  * in `fill` its arguments filling the lines evenly, when its line is wider than the line length of the style, measured
  * as the code of the line without a comment after it, unless an outer construct on the line is spread first,
  * `file.lineLengthExcept` names it, or its sole argument is a string, which is a message to leave whole; with
@@ -47,6 +49,7 @@ final class MultilineCallRule extends GapRule
 				'`(`',
 				'`)`',
 				['A sole argument that is a string, a message, is not spread for its width'],
+				fillPlain: true,
 			),
 			new Decision('multiline.spreadItem', new Words([
 				'never' => 'the call spreads its arguments',
@@ -100,7 +103,7 @@ final class MultilineCallRule extends GapRule
 			return null;
 		}
 
-		return $this->layout->decide(
+		return $this->layout->forItems($items->getItems())->decide(
 			$gap,
 			$list,
 			$list->openParen,

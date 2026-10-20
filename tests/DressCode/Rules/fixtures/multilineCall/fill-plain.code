@@ -1,0 +1,26 @@
+<?php
+// lineLength 60
+// {"items.argument": "fillPlain", "edges.argument": "apart"}
+$this->makePlan($args, $project, $target, $version, $types, $options, $planning, $configuration, $console);
+$this->makePlan(
+	$args,
+	$project,
+	self::Limit,
+	$this->config->paths,
+	'text',
+	null,
+);
+$runner->run(fn() => $this->check($file), cache: false, configFile: $this->configFile);
+$runner->run(
+	$files, true, new NullReporter,
+);
+imagecopy(
+	$this->image,
+	$output,
+	0,
+	0,
+);
+imagecopy(
+	$this->image, $output,
+	$left, $top, 0, 0, $width, $height
+)->run();
