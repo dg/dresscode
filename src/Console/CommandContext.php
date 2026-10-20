@@ -74,6 +74,7 @@ final readonly class CommandContext
 			$this->workingDirectory,
 			// without a configuration file the run has only what the command line uses
 			$this->defaultConfig ?? ($options->use ? new Config : null),
+			$options->root === null ? null : Helpers::toAbsolutePath($options->root, $this->workingDirectory),
 		);
 		return ['config' => $config, 'root' => $root, 'file' => $file, 'commandLine' => $this->readCommandLine($args, $options)];
 	}

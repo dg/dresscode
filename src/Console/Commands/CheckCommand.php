@@ -456,6 +456,7 @@ final readonly class CheckCommand
 			'--use' => $configuration->use,
 			'--set' => $configuration->set,
 			'--severity' => $configuration->severity,
+			'--root' => (array) $configuration->root,
 			'--only' => $check->only ?? [],
 		] as $option => $values) {
 			foreach ($values as $value) {
