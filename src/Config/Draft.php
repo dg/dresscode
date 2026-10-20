@@ -13,8 +13,8 @@ use function count, is_array;
 
 
 /**
- * A configuration written from a translation, as `dresscode.neon` or as `dresscode.php`. The decisions are written in the
- * order of the sections of the core, each value as the configuration writes it.
+ * A configuration as `dresscode migrate config` writes it, as `dresscode.neon` or as `dresscode.php`. The decisions are
+ * written in the order of the sections of the core, each value as the configuration writes it.
  * @internal
  */
 final class Draft

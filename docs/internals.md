@@ -373,4 +373,6 @@ The fixtures of every rule run again under each standard with the sets beside it
   rule turned off makes the requirements it stands for `keep`, unless another foreign rule the configuration may run
   stands for them too.
 - A message of a sniff excluded while the configuration turns its sniff on by name makes what it stands for `keep`
-  all the same.
+  all the same. A foreign name is not a valid key in the configuration: `dresscode migrate config` translates a whole
+  configuration file once, options included, writing `dresscode.neon` or the file `--output` names, in the format of
+  its extension, NEON or PHP, never over an existing one.

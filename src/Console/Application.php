@@ -141,6 +141,9 @@ final readonly class Application
 			$program->addCommandsFrom($handlers);
 		}
 
+		$program->addCommand('migrate', 'Move over from PHP CS Fixer or PHP_CodeSniffer', commandRequired: true)
+			->addCommandsFrom(new Commands\MigrateCommand($context));
+
 		$program->addText('Exit codes: `0` clean, `1` violations, syntax errors or a refused baseline, `2` a file failed, `3` a mistake of the command line or of the configuration.');
 		return $program;
 	}

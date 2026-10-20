@@ -479,6 +479,92 @@ test('catalogue lists every decision, those the configuration makes marked, and 
 });
 
 
+test('migrate config translates a foreign configuration and says what it could not', function () use ($root) {
+	file_put_contents("$root/phpcs.xml", <<<'XX'
+		<?xml version="1.0"?>
+		<ruleset name="Demo">
+			<rule ref="PSR12"/>
+			<rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/>
+			<rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInCall"/>
+			<rule ref="Squiz.WhiteSpace.FunctionSpacing">
+				<properties>
+					<property name="spacing" value="1"/>
+					<property name="spacingBeforeFirst" value="0"/>
+					<property name="spacingAfterLast" value="0"/>
+				</properties>
+			</rule>
+			<rule ref="Squiz.Nonsense.DoesNotExist"/>
+		</ruleset>
+		XX);
+	$dir = createTempDir('import');
+	[$code, $out, $err] = runApp($root, ['migrate', 'config', "$root/phpcs.xml", '--output', "$dir/dresscode.php"]);
+	Assert::same([0, ''], [$code, $out]);
+	Assert::same(
+		"<?php declare(strict_types=1);\n\n"
+		. "use DressCode\\Config;\n\n"
+		. "return new Config(\n"
+		. "\tuse: ['psr12'],\n"
+		. "\tdecisions: [\n"
+		. "\t\t'multiline' => [\n"
+		. "\t\t\t'trailingComma' => [\n"
+		. "\t\t\t\t'array' => 'required',\n"
+		. "\t\t\t\t'argument' => 'required',\n"
+		. "\t\t\t\t'parameter' => 'keep',\n"
+		. "\t\t\t\t'matchArm' => 'keep',\n"
+		. "\t\t\t\t'closureUse' => 'keep',\n"
+		. "\t\t\t\t'import' => 'keep',\n"
+		. "\t\t\t\t'list' => 'keep',\n"
+		. "\t\t\t],\n"
+		. "\t\t],\n"
+		. "\t\t'blankLines' => [\n"
+		. "\t\t\t'bodyStart' => [\n"
+		. "\t\t\t\t'class' => 0,\n"
+		. "\t\t\t],\n"
+		. "\t\t\t'bodyEnd' => [\n"
+		. "\t\t\t\t'class' => 0,\n"
+		. "\t\t\t],\n"
+		. "\t\t\t'aroundMethods' => 1,\n"
+		. "\t\t\t'aroundInterfaceMethods' => 1,\n"
+		. "\t\t\t'aroundDeclarations' => 1,\n"
+		. "\t\t],\n"
+		. "\t],\n"
+		. ");\n",
+		file_get_contents("$dir/dresscode.php"),
+	);
+	Assert::match(
+		"Written `%a%`.\n\nRead 5 rules; set 12 decisions and 1 preset.\n"
+		. "  `Squiz.WhiteSpace.FunctionSpacing` leaves the blank lines around classes alone, while `blankLines` sets them together with those around functions.\n"
+		. "  No DressCode rule covers `Squiz.Nonsense.DoesNotExist`.\n",
+		$err,
+	);
+
+	file_put_contents(
+		"$root/fixer.php",
+		"<?php\nreturn new class {\n\tpublic function getRules(): array\n\t{\n\t\treturn ['cast_spaces' => ['space' => 'none']];\n\t}\n};\n",
+	);
+	[$code] = runApp($root, ['migrate', 'config', 'fixer.php', '-o', "$dir/fixer.php"]); // relative to the working directory of the run
+	Assert::same(0, $code);
+	Assert::contains("\t\t'spacing' => [\n\t\t\t'cast' => '(int)\$x',\n\t\t],\n", (string) file_get_contents("$dir/fixer.php"));
+
+	// the file is written in the format of its extension, as a configuration the run reads
+	[$code, $out] = runApp($dir, ['migrate', 'config', "$root/phpcs.xml"]);
+	Assert::same([0, ''], [$code, $out]);
+	$neon = (string) file_get_contents("$dir/dresscode.neon");
+	Assert::match("use: psr12\n\nmultiline:\n\ttrailingComma:\n\t\tarray: required\n%A%", $neon);
+	Assert::same(
+		'required',
+		DressCode\Config\NeonReader::read("$dir/dresscode.neon")->decisions['multiline']['trailingComma']['array'] ?? null,
+	);
+
+	[$code, , $err] = runApp($dir, ['migrate', 'config', "$root/phpcs.xml"]);
+	Assert::same(3, $code);
+	Assert::contains('exists already', $err);
+	[$code, , $err] = runApp($root, ['migrate', 'config', "$root/phpcs.xml", '-o', "$dir/dresscode.yaml"]);
+	Assert::same(3, $code);
+	Assert::contains('its extension is `.neon` or `.php`', $err);
+});
+
+
 test('errors go to stderr with exit code 3', function () use ($root) {
 	[$code, $out, $err] = runApp($root, ['check', '--nope']);
 	Assert::same(3, $code);

@@ -462,6 +462,30 @@ missing.
 
  <!---->
 
+Migrating from PHP CS Fixer and PHP_CodeSniffer
+===============================================
+
+DressCode knows not only its own decisions, but also the names their rules have in PHP CS Fixer,
+PHP_CodeSniffer and Slevomat. `migrate config` reads the configuration of either, writes its equivalent to
+`dresscode.neon` and tells you what it could not carry over:
+
+```shell
+dresscode migrate config phpcs.xml
+```
+
+```
+Written `dresscode.neon`.
+
+Read 4 rules; set 4 decisions and 1 preset.
+  `SlevomatCodingStandard.Namespaces.UnusedUses` without `searchAnnotations` removes an import only a doc comment uses; DressCode keeps it.
+  No DressCode rule covers `Squiz.Commenting.FunctionComment`.
+```
+
+`.php-cs-fixer.dist.php` is translated the same way, as long as PHP CS Fixer is still installed in the
+project, because that file is PHP which has to run.
+
+ <!---->
+
 Made for AI coding agents: Claude Code and Codex
 ================================================
 
