@@ -173,4 +173,12 @@ final class NoAliasFunctionsRule extends NodeRule
 
 		$node->name->text = CodeWriter::spellFunction($canonical, $node->name, $context);
 	}
+
+
+	/** Whether the function is an alias of the other one in every call, so that writing the other one changes nothing. */
+	public static function isAlias(string $alias, string $function): bool
+	{
+		$canonical = array_merge(...array_values(self::Sets))[strtolower($alias)] ?? null;
+		return $canonical !== null && $canonical !== 'time' && $canonical === strtolower(ltrim($function, '\\'));
+	}
 }
