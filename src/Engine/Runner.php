@@ -37,6 +37,8 @@ final readonly class Runner
 		private ?ResultCache $cache = null,
 		/** the run is narrowed to some of the decisions, so it says nothing about the baseline entries of the others */
 		private bool $narrowed = false,
+		/** measures the cycle collection of the files processed in this process */
+		private ?Profiler $profiler = null,
 		/** @var ?\Closure(): void  fills the cache the workers share, which those started together would all write at once */
 		public ?\Closure $warmUp = null,
 		/** @var ?\Closure(): ?list<string>  the files the results depend on beyond the configuration, once the run knows them */
@@ -228,7 +230,7 @@ final readonly class Runner
 			return;
 		}
 
-		$collector = new CycleCollector;
+		$collector = new CycleCollector($this->profiler);
 		try {
 			foreach ($paths as $path) {
 				if ($onProgress !== null) {

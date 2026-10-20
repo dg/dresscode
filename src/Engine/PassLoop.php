@@ -76,6 +76,7 @@ final class PassLoop
 		private readonly RulePlan $plan,
 		private readonly Analyses\Registry $analyses,
 		private readonly ReportPolicy $policy = new ReportPolicy,
+		private readonly ?Profiler $profiler = null,
 	) {
 		$this->gaps = new Resolver($plan->claims);
 	}
@@ -139,7 +140,9 @@ final class PassLoop
 				$context->passStorage = [];
 			}
 
+			$start = $this->profiler ? hrtime(as_number: true) : 0;
 			$this->analyses->beginPass($file);
+			$this->profiler?->addPhase('analyses: begin pass', hrtime(as_number: true) - $start);
 			$revision = $file->revision;
 			foreach ($this->plan->stages as $stage => $rules) {
 				$this->runStage($stage, $rules, $style);
@@ -158,7 +161,9 @@ final class PassLoop
 
 			$mutated = true;
 			$mutatedRules += $this->mutatedRules;
+			$start = $this->profiler ? hrtime(as_number: true) : 0;
 			$output = Printer::print($file);
+			$this->profiler?->addPhase('print', hrtime(as_number: true) - $start);
 			$hash = hash('xxh3', $output);
 			if (isset($seen[$hash])) { // a state seen before: the rules cycle
 				throw new ConvergenceException($path, array_keys($this->mutatedRules), Diff::unified($last, $output, $path));
@@ -353,8 +358,10 @@ final class PassLoop
 				return;
 			}
 
+			$start = $this->profiler ? hrtime(as_number: true) : 0;
 			try {
 				$node instanceof Token ? $gaps->enterToken($node) : $gaps->enterNode($node);
+				$this->profiler?->addPhase('gaps', hrtime(as_number: true) - $start);
 			} catch (ConfigurationException|RuleException $e) { // two claims deciding one gap, or a claim of the rule named failing
 				throw $e;
 			} catch (\Throwable $e) {
@@ -394,14 +401,17 @@ final class PassLoop
 
 		$parent = $node->parent;
 		$file = $this->file;
+		$profiler = $this->profiler;
 		foreach ($rules as [$rule, $context, $ruleClass]) {
 			$before = $file->revision;
+			$start = $profiler ? hrtime(as_number: true) : 0;
 			try {
 				$enter ? $rule->enter($node, $context) : $rule->leave($node, $context);
 			} catch (\Throwable $e) {
 				throw new RuleException($ruleClass, $this->path, $e);
 			}
 
+			$profiler?->addRule($ruleClass, hrtime(as_number: true) - $start, $file->revision !== $before);
 			if ($file->revision !== $before || $context->hasReports()) {
 				$this->account($ruleClass, $context, $before);
 			}
@@ -444,12 +454,14 @@ final class PassLoop
 		$ruleClass = $rule::class;
 		$context = $this->contexts[$ruleClass];
 		$before = $this->file->revision;
+		$start = $this->profiler ? hrtime(as_number: true) : 0;
 		try {
 			$callback($context);
 		} catch (\Throwable $e) {
 			throw new RuleException($ruleClass, $this->path, $e);
 		}
 
+		$this->profiler?->addRule($ruleClass, hrtime(as_number: true) - $start, $this->file->revision !== $before);
 		$this->account($ruleClass, $context, $before);
 	}
 
