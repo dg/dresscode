@@ -16,8 +16,10 @@ use function count, in_array, sprintf;
 
 
 /**
- * The command `migrate config`: translates the configuration of PHP CS Fixer or PHP_CodeSniffer in the file named and
- * writes it as NEON or PHP by the extension of the file, what it could not translate said on the error output.
+ * The command `migrate config`: translates a configuration of PHP CS Fixer or PHP_CodeSniffer, the one named or the
+ * one the project has, and writes it as NEON or PHP by the extension of the file, what it could not translate said on
+ * the error output. A configuration of PHP CS Fixer is PHP, which reading runs, so one the project has is read only
+ * after the user agrees.
  * @internal
  */
 final readonly class MigrateCommand
@@ -31,8 +33,8 @@ final readonly class MigrateCommand
 	#[Cli\Command('Translate a PHP CS Fixer or PHP_CodeSniffer configuration')]
 	public function config(
 		ParseResult $args,
-		#[Cli\Argument('Configuration file of PHP CS Fixer or PHP_CodeSniffer')]
-		string $file,
+		#[Cli\Argument('Configuration file of PHP CS Fixer or PHP_CodeSniffer; the one the project has when omitted')]
+		?string $file = null,
 		#[Cli\Option('The configuration to write, NEON or PHP by its extension', alias: '-o', valueName: 'file')]
 		string $output = 'dresscode.neon',
 	): int
@@ -49,7 +51,12 @@ final readonly class MigrateCommand
 		}
 
 		$root = Helpers::canonicalizePath($this->context->workingDirectory);
-		$config = FormatterConfig::fromFile($root, $this->context->resolvePath($file));
+		$config = $file === null
+			? $this->findConfig($root, $args)
+			: FormatterConfig::fromFile($root, $this->context->resolvePath($file));
+		if ($config === null) {
+			return 0;
+		}
 
 		$translation = $config->translate();
 		$draft = $translation->toDraft();
@@ -81,5 +88,36 @@ final readonly class MigrateCommand
 		}
 
 		return 0;
+	}
+
+
+	/**
+	 * The configuration of the formatter the project has, the one a script of `composer.json` runs first; a file of
+	 * PHP CS Fixer only where the user agrees to run it, null where they do not.
+	 */
+	private function findConfig(string $root, ParseResult $args): ?FormatterConfig
+	{
+		$config = FormatterConfig::find($root) ?? throw new UsageException(
+			'The project has no configuration of PHP CS Fixer or PHP_CodeSniffer; name the file to translate.',
+			$args->command,
+		);
+		$this->context->writeNote(
+			"Found `$config->file` of {$config->formatter->value}"
+			. ($config->runBy === null ? '' : ", run by `$config->runBy`")
+			. ".\n",
+		);
+		if (!$config->formatter->runsCode()) {
+			return $config;
+		} elseif (!$this->context->prompt->isInteractive()) {
+			throw new UsageException(
+				"`$config->file` is PHP, which reading runs, so it is read only when named: `dresscode migrate config $config->file`.",
+				$args->command,
+			);
+		} elseif ($this->context->prompt->choose("`$config->file` is PHP, which reading runs. Read it?", ['y', 'n'], 'n') !== 'y') {
+			$this->context->writeNote("Nothing written.\n");
+			return null;
+		}
+
+		return $config;
 	}
 }

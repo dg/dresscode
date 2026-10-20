@@ -7,15 +7,16 @@
 
 namespace DressCode\Interop;
 
+use DressCode\Config\ComposerJson;
 use DressCode\ConfigurationException;
 use DressCode\Engine\Helpers;
 use Nette\Utils\FileSystem;
-use function strlen;
+use function is_array, is_string, strlen;
 
 
 /**
- * The configuration of a formatter in a file. Its rules, which `translate()` reads, need the configuration of PHP CS
- * Fixer run, being PHP.
+ * The configuration of the formatter a project has, found where a project keeps it, with how the project runs it. Its
+ * rules, which `translate()` reads, need the configuration of PHP CS Fixer run, being PHP.
  * @internal
  */
 final readonly class FormatterConfig
@@ -24,9 +25,36 @@ final readonly class FormatterConfig
 		public Formatter $formatter,
 		/** relative to the root, absolute where it lies outside */
 		public string $file,
+		/** the command of the project that runs it, `composer check`; null where none does */
+		public ?string $runBy,
 		/** absolute */
 		private string $path,
 	) {
+	}
+
+
+	/** The configuration of the formatter the project has, the one a script of composer.json runs first; null for none. */
+	public static function find(string $root): ?self
+	{
+		$scripts = self::collectScripts($root);
+		foreach ($scripts as [$name, $command]) {
+			if (preg_match('~\bphpcs\b.*--standard[= ](\S+\.xml(?:\.dist)?)~', $command, $m) && is_file("$root/$m[1]")) {
+				return self::read($root, $m[1], Formatter::PhpCodeSniffer, "composer $name");
+			} elseif (preg_match('~\bphp-cs-fixer\b.*--config[= ](\S+\.php)~', $command, $m) && is_file("$root/$m[1]")) {
+				return self::read($root, $m[1], Formatter::PhpCsFixer, "composer $name");
+			}
+		}
+
+		foreach (Formatter::cases() as $formatter) {
+			foreach ($formatter->getRootFiles() as $file) {
+				if (is_file("$root/$file")) {
+					$runBy = array_find($scripts, fn(array $script) => str_contains($script[1], $formatter->getCommand()));
+					return self::read($root, $file, $formatter, $runBy === null ? null : "composer $runBy[0]");
+				}
+			}
+		}
+
+		return null;
 	}
 
 
@@ -36,7 +64,32 @@ final readonly class FormatterConfig
 		$file = Helpers::canonicalizePath($file);
 		$root = Helpers::canonicalizePath($root);
 		$file = str_starts_with($file, "$root/") ? substr($file, strlen($root) + 1) : $file;
-		return new self(Formatter::fromFileName($file), $file, FileSystem::isAbsolute($file) ? $file : "$root/$file");
+		return self::read($root, $file, Formatter::fromFileName($file), null);
+	}
+
+
+	private static function read(string $root, string $file, Formatter $formatter, ?string $runBy): self
+	{
+		return new self($formatter, $file, $runBy, FileSystem::isAbsolute($file) ? $file : "$root/$file");
+	}
+
+
+	/**
+	 * The scripts of composer.json, each command of a script on its own.
+	 * @return list<array{string, string}>  name, command
+	 */
+	private static function collectScripts(string $root): array
+	{
+		$scripts = [];
+		foreach ((array) (ComposerJson::read("$root/composer.json")['scripts'] ?? []) as $name => $commands) {
+			foreach (is_array($commands) ? $commands : [$commands] as $command) {
+				if (is_string($command)) {
+					$scripts[] = [(string) $name, $command];
+				}
+			}
+		}
+
+		return $scripts;
 	}
 
 

@@ -6,9 +6,12 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-test('the formatter of a configuration is told by its file', function () {
+test('the configuration in the root is found, its formatter told by the file', function () {
+	Assert::null(FormatterConfig::find(createTempDir('foreign-none')));
 	$root = createTempDir('foreign-find');
 	file_put_contents("$root/.php-cs-fixer.dist.php", "<?php\n");
-	$config = FormatterConfig::fromFile($root, '.php-cs-fixer.dist.php');
-	Assert::same([Formatter::PhpCsFixer, '.php-cs-fixer.dist.php'], [$config->formatter, $config->file]);
+	$config = FormatterConfig::find($root);
+	Assert::same([Formatter::PhpCsFixer, '.php-cs-fixer.dist.php', null], [$config?->formatter, $config?->file, $config?->runBy]);
+	Assert::true(Formatter::PhpCsFixer->runsCode());
+	Assert::false(Formatter::PhpCodeSniffer->runsCode());
 });

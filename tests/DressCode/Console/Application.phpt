@@ -566,6 +566,41 @@ test('migrate config translates a foreign configuration and says what it could n
 });
 
 
+test('migrate config without a file finds the configuration the project has, and runs one of PHP CS Fixer only when agreed', function () {
+	$project = createTempDir('import-find');
+	[$code, , $err] = runApp($project, ['migrate', 'config']);
+	Assert::same(3, $code);
+	Assert::contains('The project has no configuration of PHP CS Fixer or PHP_CodeSniffer', $err);
+
+	$project = createTempDir('import-fixer');
+	file_put_contents(
+		"$project/.php-cs-fixer.dist.php",
+		"<?php\nfile_put_contents(__DIR__ . '/ran', '');\nreturn ['cast_spaces' => true];\n",
+	);
+	file_put_contents("$project/composer.json", '{"scripts": {"cs": "php-cs-fixer fix --config=.php-cs-fixer.dist.php"}}');
+	[$code, , $err] = runApp($project, ['migrate', 'config']);
+	Assert::same(3, $code);
+	Assert::contains(
+		'`.php-cs-fixer.dist.php` is PHP, which reading runs, so it is read only when named: `dresscode migrate config .php-cs-fixer.dist.php`.',
+		$err,
+	);
+	Assert::false(is_file("$project/ran"));
+
+	[$code, $out, $err] = runApp($project, ['migrate', 'config'], "\n", interactive: true);
+	Assert::same(0, $code);
+	Assert::contains('Found `.php-cs-fixer.dist.php` of PHP CS Fixer, run by `composer cs`.', $err);
+	Assert::contains('Read it? [y/N]', $out);
+	Assert::contains('Nothing written.', $err);
+	Assert::false(is_file("$project/ran"));
+	Assert::false(is_file("$project/dresscode.neon"));
+
+	[$code] = runApp($project, ['migrate', 'config'], "y\n", interactive: true);
+	Assert::same(0, $code);
+	Assert::true(is_file("$project/ran"));
+	Assert::true(is_file("$project/dresscode.neon"));
+});
+
+
 test('errors go to stderr with exit code 3', function () use ($root) {
 	[$code, $out, $err] = runApp($root, ['check', '--nope']);
 	Assert::same(3, $code);

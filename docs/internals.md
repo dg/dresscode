@@ -378,7 +378,8 @@ The fixtures of every rule run again under each standard with the sets beside it
   "covers". A message of a sniff stands for the decisions of its own row and for nothing where it has none, the
   decisions of the whole sniff silencing more than the message did; excluded while the configuration turns its sniff
   on by name, it makes what it stands for `keep` all the same. A foreign name is not a valid key in the
-  configuration: `dresscode migrate config` translates a whole configuration file once, options included, writing
-  `dresscode.neon` or the file `--output` names, in the format of its extension, NEON or PHP, never over an existing
-  one, and such a
-  name written as a key of the file, in `--only` or in `fixRisky` is refused with the decisions that cover it.
+  configuration: `dresscode migrate config` translates a whole configuration file once, options included, the one named
+  or the one the project has as `Interop\FormatterConfig` finds it, a file of PHP CS Fixer, which reading runs, only
+  after the user agrees in a terminal; it writes `dresscode.neon` or the file `--output` names, in the format of its
+  extension, NEON or PHP, never over an existing one, and such a name written as a key of the file, in `--only` or in
+  `fixRisky` is refused with the decisions that cover it.
