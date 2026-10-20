@@ -18,9 +18,10 @@ use PhpSyntax\Token;
  * The line breaks around the operators of a family, the operands one operator of a place joins without parentheses
  * between them, another operator or parentheses beginning an inner family: a family on a line wider than the line
  * length of the style is spread in the first shape of `multiline.items.<place>`, unless an outer construct on the line
- * is spread first or `file.lineLengthExcept` names the place, and one its author spread stays unless its operands
- * share lines where `fill` is not accepted; `perLine` puts every operand on a line of its own. An operator at a line
- * break stands where `multiline.operatorPosition.<place>` says, at the start of the line where it says nothing.
+ * is spread first, its first or last operand spreads in its place (`NodeHelpers::findHuggedOperand()`) or
+ * `file.lineLengthExcept` names the place, and one its author spread stays unless its operands share lines where `fill`
+ * is not accepted; `perLine` puts every operand on a line of its own. An operator at a line break stands where
+ * `multiline.operatorPosition.<place>` says, at the start of the line where it says nothing.
  * The places are `logical`, `concatenation`, `arithmetic`, `bitwise`, `coalesce` and `pipe`; a boolean operator
  * chaining a condition is the matter of `MultilineConditionRule`, a comparison of `BinaryOperatorSpacingRule`. Where
  * the lines stand is the matter of `IndentationRule`.
@@ -54,6 +55,7 @@ final class MultilineBinaryOperatorRule extends GapRule
 				'operands',
 				"The operands of $operators spread over lines by their author or for the width of their line",
 				notes: ['Not about the operators of one place joined by another, which begin a family of their own'],
+				spanningShares: true,
 			));
 			$decisions[] = new Decision(
 				"multiline.operatorPosition.$place",

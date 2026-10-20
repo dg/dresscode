@@ -7,7 +7,7 @@
 
 namespace DressCode\Rules;
 
-use DressCode\Analyses\{IndentationSnapshot, Parameter, PhpDoc, PhpSignatures, Types};
+use DressCode\Analyses\{IndentationPlan, IndentationSnapshot, Parameter, PhpDoc, PhpSignatures, Types};
 use DressCode\{Claim, CodeWriter, Gap, GlobalCalls, Line, Risk, RuleContext, Style, Tristate};
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
@@ -594,7 +594,7 @@ final class NodeHelpers
 		}
 
 		$line = $open->getCurrentLine();
-		$stops = $items = [];
+		$stops = $items = $families = [];
 		if (self::isHeldWhole($construct)) {
 			return null;
 		}
@@ -624,6 +624,9 @@ final class NodeHelpers
 					&& self::findConditionComparison($node, $style) === null
 				) {
 					continue; // a comparison whose sides would not fit stays, what they hold spreads
+				} elseif ($node instanceof Expression\BinaryOpNode) {
+					$families[] = $node; // it stays where its first or last operand spreads instead, measured up to the stops
+					continue;
 				}
 
 				return null;
@@ -636,6 +639,13 @@ final class NodeHelpers
 					}
 				}
 			}
+		}
+
+		if (
+			array_any($families, fn(Expression\BinaryOpNode $family) => self::findHuggedOperand($family, $style, $stops) === null)
+			|| ($construct instanceof Expression\BinaryOpNode && self::findHuggedOperand($construct, $style, $stops) !== null)
+		) {
+			return null;
 		}
 
 		$width = $stops === [] ? $width : self::measureCodeLine($open, $style, $stops);
@@ -815,20 +825,8 @@ final class NodeHelpers
 			$value === null => null,
 			// an operator below the call would continue the expression from the parentheses closing together
 			$next?->startsLine() && $next->parent instanceof Expression\BinaryOpNode && $next->parent->operator === $next => null,
-			$value instanceof Expression\FunctionCallNode,
-			$value instanceof Expression\MethodCallNode,
-			$value instanceof Expression\StaticMethodCallNode,
-			$value instanceof Expression\NewNode => $value->arguments,
-			$value instanceof Expression\ArrayNode => $value,
-			default => null,
+			default => self::findValueFrame($value),
 		};
-		// a call in what the call is made on, a chain among them, would spread before the arguments
-		foreach ($inner instanceof ArgumentListNode ? $value->getChildren() : [] as $child) {
-			if ($child instanceof Node && $child !== $inner && $child->find(ArgumentListNode::class) !== []) {
-				return null;
-			}
-		}
-
 		$frame = $inner === null ? null : self::findSplitFrame($inner);
 		if ($frame === null || $frame[3] || $frame[4] || !$style->lineSplits->has($frame[0])) {
 			return null;
@@ -889,6 +887,102 @@ final class NodeHelpers
 			&& Indentation::advance(0, $open->getLineIndentation(), $style->toPhpSyntax()) + $rest <= $limit
 			? $call
 			: null;
+	}
+
+
+	/**
+	 * The brackets of the first or the last operand of a family of operators a line too wide spreads in place of the
+	 * family, the last one first: where a line of its own would leave the operand too wide, its brackets being spread
+	 * then anyway, what precedes them fits on the first line and what follows them on the last one, `$a || foo(` and
+	 * `) || $b`, the operands before a last one taking half of the line length at most, so that its operator stays in
+	 * sight; null where the family spreads itself.
+	 * @param  array<int, true>  $stops  the tokens by `spl_object_id()` the line is measured up to
+	 */
+	private static function findHuggedOperand(Expression\BinaryOpNode $family, Style $style, array $stops): ?Node
+	{
+		$limit = $style->maxLineLength;
+		if ($limit === null) {
+			return null;
+		}
+
+		$start = $family->getFirstToken();
+		$phpSyntax = $style->toPhpSyntax();
+		$base = $start->getLineIndentation();
+		$indent = Indentation::advance(0, $base, $phpSyntax);
+		$below = Indentation::advance(0, $base . $style->getIndentation(IndentationPlan::getMinimumLevel($start)), $phpSyntax);
+		$width = self::measureCodeLine($start, $style, $stops);
+		$at = fn(Token $token) => self::measureCodeLine($start, $style, $stops + [spl_object_id($token) => true]);
+		$column = $at($start->getNext() ?? $start) - strlen($start->text);
+		foreach (['right', 'left'] as $side) {
+			$operation = $family;
+			while (
+				$operation->$side instanceof Expression\BinaryOpNode
+				&& strcasecmp($operation->$side->operator->text, $family->operator->text) === 0
+			) {
+				$operation = $operation->$side;
+			}
+
+			$alone = $side === 'left' ? $at($operation->operator) : $below + $width - $at($operation->operator) - 1;
+			$inner = self::findOperandFrame($operation->$side);
+			$frame = $inner === null ? null : self::findSplitFrame($inner);
+			$first = $frame === null ? null : $frame[1]->getNext();
+			$close = $frame === null ? null : end($frame[2]);
+			if (
+				$frame !== null
+				&& $first !== null
+				&& $close instanceof Token
+				&& !$frame[3]
+				&& !$frame[4]
+				&& $style->lineSplits->has($frame[0])
+				&& !self::isTooNarrowToSpread($inner, $style)
+				&& $alone > $limit
+				&& ($side === 'left' || $at($operation->operator) - $column <= intdiv($limit, 2))
+				&& $at($first) <= $limit
+				&& $indent + $width - $at($close) <= $limit
+			) {
+				return $inner;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * The brackets an operand of a family spreads in, a unary operator, a cast and a comparison around them aside, the
+	 * right side of the comparison first.
+	 */
+	private static function findOperandFrame(ExpressionNode $operand): ?Node
+	{
+		return match (true) {
+			$operand instanceof Expression\UnaryOpNode, $operand instanceof Expression\CastNode
+				=> self::findOperandFrame($operand->expression),
+			$operand instanceof Expression\BinaryOpNode && self::findOperatorPlace($operand) === 'comparison'
+				=> self::findOperandFrame($operand->right) ?? self::findOperandFrame($operand->left),
+			default => self::findValueFrame($operand),
+		};
+	}
+
+
+	/** The brackets a value spreads in, the arguments of a call or `new` with no other call in what it is made on, or an array. */
+	private static function findValueFrame(ExpressionNode $value): ?Node
+	{
+		$inner = match (true) {
+			$value instanceof Expression\FunctionCallNode,
+			$value instanceof Expression\MethodCallNode,
+			$value instanceof Expression\StaticMethodCallNode,
+			$value instanceof Expression\NewNode => $value->arguments,
+			$value instanceof Expression\ArrayNode => $value,
+			default => null,
+		};
+		// a call in what the call is made on, a chain among them, would spread before the arguments
+		foreach ($inner instanceof ArgumentListNode ? $value->getChildren() : [] as $child) {
+			if ($child instanceof Node && $child !== $inner && $child->find(ArgumentListNode::class) !== []) {
+				return null;
+			}
+		}
+
+		return $inner;
 	}
 
 

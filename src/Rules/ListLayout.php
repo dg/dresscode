@@ -63,6 +63,7 @@ final readonly class ListLayout
 	 * @param  list<string>  $notes  of the items
 	 * @param  ?string  $attached  what `attached` keeps on the line of what opens the items, the first one where null
 	 * @param  bool  $fillPlain  the place takes `fillPlain`, its items being able to be plain
+	 * @param  bool  $spanningShares  under `fill` an item spanning lines may share them, `) || $b`
 	 * @return list<Decision>
 	 */
 	public static function createDecisions(
@@ -76,13 +77,15 @@ final readonly class ListLayout
 		bool $fill = true,
 		?string $attached = null,
 		bool $fillPlain = false,
+		bool $spanningShares = false,
 	): array
 	{
+		$spanning = $spanningShares ? 'may share them as well' : 'stands on lines of its own';
 		$decisions = [new Decision(
 			"multiline.items.$place",
 			new Words([self::PerLine => "every $item on a line of its own"]
 				+ ($fill
-					? [self::Fill => "the $items may share lines, one on a line passing too, and one spanning lines stands on lines of its own"]
+					? [self::Fill => "the $items may share lines, one on a line passing too, and one spanning lines $spanning"]
 					: [])
 				+ ($fillPlain
 					? [self::FillPlain => "as `fill` where every $item is a variable, a constant, a literal or a property, joined where they fit on one line, as `perLine` otherwise"]

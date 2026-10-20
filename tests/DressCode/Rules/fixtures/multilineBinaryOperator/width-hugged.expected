@@ -1,0 +1,54 @@
+<?php
+// lineLength 60
+// {"items.argument": "perLine", "items.array": "fill"}
+// the family stays where a line of its own would leave its first or last operand too wide, which then spreads
+$first = in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddd) || $eeeeeeeeee;
+$last = $eeeeeeeeee || in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddd);
+$array = [$aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddd, $ffffff] + $eeeeeeeeee;
+$new = $eeeeeeeeee ?? new Exception($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddd);
+$negated = !in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddd) && $eeeeeeeeee;
+$cast = (int) in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddd) + $eeeeee;
+$compared = count($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddd) === 1 && $eee;
+$text = sprintf($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddd) . 'suffix';
+$many = in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddddddddd) || $eeeee || $f;
+// the family spreads where its operands fit on lines of their own
+$fits = $eeeeeeeeee
+	&& $eeeeeeeeee
+	&& in_array($aaaaaaaaaa, $bbbbbbbbbb);
+$both = in_array($aaaaaaaaaa, $bbbbbbbbbb)
+	|| in_array($cccccccccc, $dddddddddd);
+call(
+	$eeeeeeeeee
+	. in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $d),
+	$ffffffffff,
+);
+// or where what stands beside the brackets would not fit
+$tail = in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddd)
+	|| $eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee;
+$head = $eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+	&& $ffffffffffffffff
+	&& in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddd);
+// or where the operands before the last one would take more than half of the line length, its operator out of sight
+$sight = $eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+	&& in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $ddddd);
+// or where no operand at its edge has brackets to spread
+$middle = $eeeeeeeeee
+	|| in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddd)
+	|| $eeeeeeeeee;
+$chain = $aaaaaaaaaa->foo($bbbbbbbbbb)->bar($cccccccccc, $dddddddddd, $eeeeeeee)
+	|| $ffffffffff;
+$message = fail('a message long enough for this line to be too wide')
+	|| $eeeeeeeeee;
+$narrow = $aaaaaaaaaaaaaaaaaaaaaaaaaa->bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb(1)
+	|| $eeeeeeeeee;
+// a family in parentheses in a condition is a family like any other, the operators chaining the condition are not
+if (
+	$enabled
+	&& ($eeeeeeeeee || in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddd))
+) {
+}
+if (in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddd) || $eeeeeeeeee) {
+}
+// a family its author spread stays
+$author = in_array($aaaaaaaaaa, $bbbbbbbbbb, $cccccccccc, $dddddddddd, $eeeeeeeeee)
+	|| $eeeeeeeeee;

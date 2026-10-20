@@ -1357,7 +1357,7 @@ The operands of `+`, `-`, `*`, `/`, `%` and `**` spread over lines by their auth
 Not about the operators of one place joined by another, which begin a family of their own
 
 - By default `keep`
-- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines stands on lines of its own); a list of them, every one passing and the first written where none matches; `keep`
+- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines may share them as well); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `[perLine, fill]`, psr12 `[perLine, fill]`, nette `[perLine, fill]`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
 
@@ -1388,7 +1388,7 @@ The operands of `|`, `&`, `^`, `<<` and `>>` spread over lines by their author o
 Not about the operators of one place joined by another, which begin a family of their own
 
 - By default `keep`
-- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines stands on lines of its own); a list of them, every one passing and the first written where none matches; `keep`
+- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines may share them as well); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `[perLine, fill]`, psr12 `[perLine, fill]`, nette `[perLine, fill]`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
 
@@ -1417,7 +1417,7 @@ The operands of `??` spread over lines by their author or for the width of their
 Not about the operators of one place joined by another, which begin a family of their own
 
 - By default `keep`
-- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines stands on lines of its own); a list of them, every one passing and the first written where none matches; `keep`
+- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines may share them as well); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
 
@@ -1428,7 +1428,7 @@ The operands of `.` spread over lines by their author or for the width of their 
 Not about the operators of one place joined by another, which begin a family of their own
 
 - By default `keep`
-- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines stands on lines of its own); a list of them, every one passing and the first written where none matches; `keep`
+- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines may share them as well); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `[perLine, fill]`, psr12 `[perLine, fill]`, nette `[perLine, fill]`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
 
@@ -1488,7 +1488,7 @@ The operands of `&&`, `||`, `and`, `or` and `xor` outside a condition spread ove
 Not about the operators of one place joined by another, which begin a family of their own
 
 - By default `keep`
-- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines stands on lines of its own); a list of them, every one passing and the first written where none matches; `keep`
+- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines may share them as well); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `[perLine, fill]`, psr12 `[perLine, fill]`, nette `[perLine, fill]`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
 
@@ -1530,7 +1530,7 @@ The operands of `|>` spread over lines by their author or for the width of their
 Not about the operators of one place joined by another, which begin a family of their own
 
 - By default `keep`
-- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines stands on lines of its own); a list of them, every one passing and the first written where none matches; `keep`
+- Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines may share them as well); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
 

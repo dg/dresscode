@@ -1,0 +1,10 @@
+15: Expected a line break before the `&&` operator, because the line is 73 characters long, more than 60.
+16: Expected a line break before the `||` operator, because the line is 81 characters long, more than 60.
+18: Expected a line break before the `.` operator, because the line is 70 characters long, more than 60.
+22: Expected a line break before the `||` operator, because the line is 123 characters long, more than 60.
+23: Expected a line break before the `&&` operator, because the line is 124 characters long, more than 60.
+25: Expected a line break before the `&&` operator, because the line is 102 characters long, more than 60.
+27: Expected a line break before the `||` operator, because the line is 97 characters long, more than 60.
+28: Expected a line break before the `||` operator, because the line is 96 characters long, more than 60.
+29: Expected a line break before the `||` operator, because the line is 85 characters long, more than 60.
+30: Expected a line break before the `||` operator, because the line is 102 characters long, more than 60.

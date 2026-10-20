@@ -59,6 +59,109 @@ test('nested calls are spread from the outside in, and converge whatever the dep
 });
 
 
+test('a family of operators leaves its first or last operand to spread where a line of its own would leave it too wide', function () {
+	$code = <<<'XX'
+		<?php
+
+		$first = in_array($name, ['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'], true) || str_starts_with($name, 'report-');
+		$last = $enabled || in_array($name, ['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'], true);
+		$ternary = $name === ''
+			? null
+			: in_array($name, ['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'], true) || str_starts_with($name, 'report-');
+		$fits = $this->repository->findByIdentifierAndOptions($identifierOfTheEntity, $optionsOfTheQuery) || $this->repository->findByIdentifierAndOptions($options);
+		$cast = (bool) in_array($name, ['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'], true) || $enabled;
+		call(
+			$prefix . format('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'ccccccccccccccccc'),
+			$other,
+		);
+
+		// what follows the family on the line is no matter of its operands, the condition leaving it a line of its own
+		if ((in_array(TypeIdentifier::TRUE, $identifiersOfTheBuiltinTypes, true) || in_array(TypeIdentifier::FALSE, $identifiersOfTheBuiltinTypes, true)) && in_array(TypeIdentifier::BOOL, $identifiersOfTheBuiltinTypes, true)) {
+			return;
+		}
+
+		if (in_array($name, ['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'], true) || $enabled) {
+			return;
+		}
+
+		if ($enabled || ($name !== '' && in_array($name, ['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'], true))) {
+			return;
+		}
+
+		XX;
+	$expected = <<<'XX'
+		<?php
+
+		$first = in_array(
+			$name,
+			['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'],
+			true,
+		) || str_starts_with($name, 'report-');
+		$last = $enabled || in_array(
+			$name,
+			['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'],
+			true,
+		);
+		$ternary = $name === ''
+			? null
+			: in_array(
+				$name,
+				['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'],
+				true,
+			) || str_starts_with($name, 'report-');
+		$fits = $this->repository->findByIdentifierAndOptions($identifierOfTheEntity, $optionsOfTheQuery)
+			|| $this->repository->findByIdentifierAndOptions($options);
+		$cast = (bool) in_array(
+			$name,
+			['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'],
+			true,
+		) || $enabled;
+		call(
+			$prefix
+			. format('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'ccccccccccccccccc'),
+			$other,
+		);
+
+		// what follows the family on the line is no matter of its operands, the condition leaving it a line of its own
+		if (
+			(in_array(TypeIdentifier::TRUE, $identifiersOfTheBuiltinTypes, true)
+				|| in_array(TypeIdentifier::FALSE, $identifiersOfTheBuiltinTypes, true))
+			&& in_array(TypeIdentifier::BOOL, $identifiersOfTheBuiltinTypes, true)
+		) {
+			return;
+		}
+
+		if (
+			in_array(
+				$name,
+				['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'],
+				true,
+			)
+			|| $enabled
+		) {
+			return;
+		}
+
+		if (
+			$enabled
+			|| ($name !== '' && in_array(
+				$name,
+				['basepath', 'cache', 'no-cache', 'colors', 'no-colors', 'encoding', 'parallel', 'report', 'report-width', 'other'],
+				true,
+			))
+		) {
+			return;
+		}
+
+		XX;
+	$processor = longLinesProcessor();
+	$result = $processor->process('family.php', $code);
+	Assert::null($result->failure);
+	Assert::same($expected, $result->output);
+	Assert::same($expected, $processor->process('family.php', $expected)->output);
+});
+
+
 test('a call in a condition waits for the condition, which is spread first', function () {
 	$code = <<<'XX'
 		<?php
