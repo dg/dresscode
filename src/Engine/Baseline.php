@@ -7,7 +7,8 @@
 
 namespace DressCode\Engine;
 
-use DressCode\{ConfigurationException, FileResult};
+use DressCode\{Config, ConfigurationException, FileResult};
+use DressCode\Config\Loader;
 use Nette\Neon\{Exception as NeonException, Neon};
 use function is_array, is_string;
 
@@ -19,6 +20,9 @@ use function is_array, is_string;
  */
 final class Baseline
 {
+	/** the name of the file a run finds by itself, with the extension of the format of the configuration */
+	private const DefaultName = 'dresscode-baseline';
+
 	/** the version of the file, a new one where the fingerprints are made otherwise */
 	private const Version = 2;
 
@@ -32,14 +36,49 @@ final class Baseline
 
 
 	/**
-	 * The baseline of the file, or null before the first generation; the name is judged either way.
+	 * The baseline the run holds violations back by, which must exist where the configuration names it.
 	 * @throws ConfigurationException
 	 */
-	public static function load(string $file): ?self
+	public static function open(Config $config, string $root): ?self
+	{
+		$file = self::findFile($config, $root);
+		return $file === null ? null : self::load($file, required: $config->baseline !== null);
+	}
+
+
+	/**
+	 * The baseline file the configuration names, else the one of the default name in the root where there is one; null
+	 * before the first `dresscode baseline`.
+	 */
+	public static function findFile(Config $config, string $root): ?string
+	{
+		if ($config->baseline !== null) {
+			return Helpers::toAbsolutePath($config->baseline, $root);
+		}
+
+		$files = array_map(fn(string $format) => "$root/" . self::DefaultName . ".$format", ['neon', 'php']);
+		return array_find($files, fn(string $file) => is_file($file));
+	}
+
+
+	/** The name a baseline the configuration names none is written under, in the format of the configuration. */
+	public static function getDefaultName(?string $configFile): string
+	{
+		return self::DefaultName . '.' . (Loader::detectFormat($configFile ?? '') ?? 'neon');
+	}
+
+
+	/**
+	 * The baseline of the file, or null before the first generation unless it is required; the name is judged either way.
+	 * @throws ConfigurationException
+	 */
+	public static function load(string $file, bool $required = false): ?self
 	{
 		$format = self::resolveFormat($file);
 		if (!is_file($file)) {
-			return null;
+			return $required
+				? throw new ConfigurationException("Baseline file `$file` does not exist; `dresscode baseline` writes it.")
+				: null;
 		}
 
 		try {

@@ -5,7 +5,7 @@ use DressCode\{
 	CodeWriter, 	Config, ConfigurationException, Decision, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, RuleContext, RuleInfo, Stage,
 };
 use DressCode\Config\{ComposerJson, PhpVersionSource, RunnerFactory};
-use DressCode\Engine\{Runner, TypeAnalysisStatus};
+use DressCode\Engine\{Baseline, Runner, TypeAnalysisStatus};
 use DressCode\Reporters\NullReporter;
 use DressCode\Rules\ControlFlow\MatchForSwitchRule;
 use PhpSyntax\{Node, Token};
@@ -1123,11 +1123,15 @@ test('a package the project upgrades is part of the identity, however the tool i
 });
 
 
-test('the name of the baseline is judged even before the file exists', function () use ($fixtures) {
-	Assert::null(RunnerFactory::loadBaseline(new Config, $fixtures));
-	Assert::null(RunnerFactory::loadBaseline(new Config(baseline: 'baseline.neon'), $fixtures)); // no file yet
+test('a baseline the configuration names must exist, and its name is judged first', function () use ($fixtures) {
+	Assert::null(Baseline::open(new Config, $fixtures));
 	Assert::exception(
-		fn() => RunnerFactory::loadBaseline(new Config(baseline: 'baseline.txt'), $fixtures),
+		fn() => Baseline::open(new Config(baseline: 'baseline.neon'), $fixtures),
+		ConfigurationException::class,
+		'Baseline file `%a%baseline.neon` does not exist; `dresscode baseline` writes it.',
+	);
+	Assert::exception(
+		fn() => Baseline::open(new Config(baseline: 'baseline.txt'), $fixtures),
 		ConfigurationException::class,
 		'Baseline file `%a%baseline.txt` must be a `.neon` or a `.php` file.',
 	);

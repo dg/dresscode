@@ -150,7 +150,7 @@ final readonly class RunnerFactory
 			$analyses[Analyses\Types::class] = fn(FileNode $file, string $path) => new Analyses\Types($file, $path, $phpstan);
 		}
 
-		$baselineFile = $baseline ? self::loadBaseline($config, $root) : null;
+		$baselineFile = $baseline ? Baseline::open($config, $root) : null;
 
 		$registry = $this->registry;
 		$processors = new FileProcessors(
@@ -602,13 +602,6 @@ final readonly class RunnerFactory
 	{
 		return array_any($resolved->rules, fn(ResolvedRule $rule) => $rule->factory !== null)
 			|| array_filter($analyses) !== [];
-	}
-
-
-	/** The configured baseline when its file exists; before the first generation there is none. */
-	public static function loadBaseline(Config $config, string $root): ?Baseline
-	{
-		return $config->baseline === null ? null : Baseline::load(Helpers::toAbsolutePath($config->baseline, $root));
 	}
 
 

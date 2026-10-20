@@ -8,7 +8,7 @@
 namespace DressCode\Console\Commands;
 
 use DressCode\{Config, Reporter, Reporters};
-use DressCode\Config\{Loader, PluginRegistry, ResolvedProject};
+use DressCode\Config\{PluginRegistry, ResolvedProject};
 use DressCode\Console\{CommandContext, Markup, ProgressBar, RiskReview};
 use DressCode\Engine\{Baseline, FileSummary, Helpers, LineRanges, Profiler, Runner, RunResult, Worker, WorkerPool};
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
@@ -191,7 +191,7 @@ final readonly class CheckCommand
 				$err->writeLine('Warning: Xdebug is loaded and makes the run many times slower.', 'red');
 			}
 
-			$this->context->writeHeader($configFile, $resolution);
+			$this->context->writeHeader($configFile, $resolution, Baseline::findFile($config, $root));
 			$out->setStatus($out->color('gray', $fix ? 'Fixing     ' : 'Checking   ') . 'looking for files…');
 		}
 
@@ -482,8 +482,8 @@ final readonly class CheckCommand
 
 	/**
 	 * Runs the check without the current baseline over code a fix leaves alone and writes what remains into the
-	 * configured baseline file, or into the default one beside the configuration, which the user then has to name
-	 * to make it apply; code a fix would still change, or a file that fails or does not parse, is refused.
+	 * configured baseline file, or into the one of the default name the run finds by itself; code a fix would still
+	 * change, or a file that fails or does not parse, is refused.
 	 * @param  list<string>  $files
 	 */
 	private function generateBaseline(
@@ -496,7 +496,7 @@ final readonly class CheckCommand
 		string $format,
 	): int
 	{
-		$name = $config->baseline ?? self::getDefaultBaselineName($configFile);
+		$name = $config->baseline ?? Baseline::getDefaultName($configFile);
 		$file = Helpers::toAbsolutePath($name, $root);
 		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter, workers: $workers);
 		$changed = $failed = [];
@@ -526,20 +526,9 @@ final readonly class CheckCommand
 		$baseline = Baseline::fromResults($run->files);
 		$baseline->save($file);
 		$message = 'Baseline with ' . Markup::formatCount($baseline->count(), 'violation') . " written to `$name`.\n";
-		if ($config->baseline === null) {
-			$message .= "Name it under `baseline` in the configuration to make it apply.\n";
-		}
-
 		// every other format keeps its stream to itself
 		$format === 'console' ? $this->context->write($message) : $this->context->writeNote($message);
 		return 0;
-	}
-
-
-	/** The baseline is written in the format the configuration is written in, so there is no third format. */
-	private static function getDefaultBaselineName(?string $configFile): string
-	{
-		return 'dresscode-baseline.' . (Loader::detectFormat($configFile ?? '') ?? 'neon');
 	}
 
 

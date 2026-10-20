@@ -129,8 +129,8 @@ final readonly class CommandContext
 	}
 
 
-	/** Where the rules come from, which is nothing the command line shows. */
-	public function writeHeader(?string $configFile, ResolvedProject $resolution): void
+	/** Where the rules come from and the baseline that holds violations back, which is nothing the command line shows. */
+	public function writeHeader(?string $configFile, ResolvedProject $resolution, ?string $baselineFile = null): void
 	{
 		[$config, $commandLine] = [$resolution->config, $resolution->commandLine];
 		$this->out->writeLine(self::formatName($this->out));
@@ -145,6 +145,10 @@ final readonly class CommandContext
 		$this->out->writeLine($this->out->color('gray', 'Config     ') . ($configFile === null
 			? 'none, using ' . (implode(', ', $use) ?: 'nothing')
 			: FileSystem::platformSlashes($configFile)));
+		if ($baselineFile !== null) {
+			$this->out->writeLine($this->out->color('gray', 'Baseline   ') . FileSystem::platformSlashes($baselineFile));
+		}
+
 		$this->out->writeLine(
 			$this->out->color('gray', 'Target     ') . Markup::highlightCode($this->out, 'PHP ' . self::describePhpVersion($resolution)),
 		);
