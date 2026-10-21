@@ -35,7 +35,8 @@ final readonly class Layer
 			LayerKind::Override => "the override for $this->name",
 			LayerKind::Preset => (string) $this->name,
 			LayerKind::Package => match (true) {
-				$this->package === null => (string) $this->name,
+				$this->name === null => "DressCode for $this->package",
+				$this->package === null => $this->name,
 				default => "$this->name of $this->package",
 			},
 		};
