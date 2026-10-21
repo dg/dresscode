@@ -15,7 +15,7 @@ use function count;
 /**
  * Which rules are silenced on which original lines, read once from the comments of the file before any mutation:
  * the dresscode:ignore, disable, enable and ignoreFile comments, and the forms of phpcs, whose names Interop
- * translates, or which name ours. What follows ` -- ` says why, for the reader alone.
+ * translates, or which name ours, as the migration writes them. What follows ` -- ` says why, for the reader alone.
  * @internal
  */
 final class Suppression
