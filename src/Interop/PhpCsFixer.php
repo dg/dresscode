@@ -940,6 +940,7 @@ final class PhpCsFixer
 			'@PSR1' => 'dresscode/psr12',
 			'@PSR2' => 'dresscode/psr12',
 			'@PSR12' => 'dresscode/psr12',
+			'@Symfony' => 'dresscode/symfony',
 		];
 	}
 

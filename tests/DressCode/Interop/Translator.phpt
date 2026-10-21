@@ -72,13 +72,13 @@ test('the two name spaces do not overlap', function () {
 
 test('a set becomes a preset, an unknown rule a warning', function () {
 	$translation = (new Translator)->translate([
-		'@PSR12' => true, 'PSR12' => true, '@PhpCsFixer' => true, 'no_such_fixer' => true,
+		'@PSR12' => true, 'PSR12' => true, '@Symfony' => true, '@PhpCsFixer' => true, 'no_such_fixer' => true,
 		'Squiz' => true, 'Generic.Files.LineLength.TooLong' => true, 'Acme.Cat.Name.Code' => true,
 	]);
-	Assert::same(['dresscode/psr12'], $translation->presets);
+	Assert::same(['dresscode/psr12', 'dresscode/symfony'], $translation->presets);
 	Assert::same([], $translation->decisions);
 	Assert::same([
-		'The rule set `@PhpCsFixer` has no DressCode preset; start from the preset `perCs` or `psr12`.',
+		'The rule set `@PhpCsFixer` has no DressCode preset; start from the preset `symfony`, the nearest one.',
 		'No DressCode rule covers `no_such_fixer`.',
 		'The standard `Squiz` has no DressCode preset; start from the preset `perCs` or `psr12`.',
 		'`Generic.Files.LineLength.TooLong` is one message of `Generic.Files.LineLength`, which DressCode cannot enable alone.',

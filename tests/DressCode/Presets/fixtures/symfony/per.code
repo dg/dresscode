@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Message;
+
+use App\Attribute\AsHandler;
+
+#[AsHandler(bus: 'command')]
+final class SendReminder
+{
+    public function __construct(
+        private readonly string $subject,
+    ) {
+    }
+
+    public function label(Priority $priority): string
+    {
+        return match ($priority) {
+            Priority::Low, Priority::Normal => $this->subject,
+            Priority::High => strtoupper($this->subject),
+        };
+    }
+
+    public function help(): string
+    {
+        return <<<TEXT
+            Say what to remind about.
+            TEXT;
+    }
+}
+
+enum Priority: int
+{
+    case Low = 1;
+    case Normal = 2;
+    case High = 3;
+}

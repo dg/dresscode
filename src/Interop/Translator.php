@@ -256,7 +256,8 @@ final class Translator
 	private function explainUncovered(string $name): string
 	{
 		if (str_starts_with($name, '@')) {
-			return "The rule set `$name` has no DressCode preset; start from the preset `perCs` or `psr12`.";
+			$start = str_starts_with($name, '@PhpCsFixer') ? 'the preset `symfony`, the nearest one' : 'the preset `perCs` or `psr12`';
+			return "The rule set `$name` has no DressCode preset; start from $start.";
 
 		} elseif (preg_match('~^[A-Z]\w*$~', $name)) {
 			return "The standard `$name` has no DressCode preset; start from the preset `perCs` or `psr12`.";

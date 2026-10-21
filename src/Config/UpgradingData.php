@@ -12,9 +12,9 @@ use function is_string;
 
 
 /**
- * What one upgrading file says to the project: the maps of the sections the lowest version the code must work with
- * reaches, those of the later ones it may run on as what they retire, the rules of the plugin of the package it turns
- * on, and what the package declares in its namespaces.
+ * What one upgrading file, or what DressCode itself knows of a package, says to the project: the maps of the sections
+ * the lowest version the code must work with reaches, those of the later ones it may run on as what they retire, the
+ * rules of the plugin of the package it turns on, and what the package declares in its namespaces.
  * @internal
  */
 final readonly class UpgradingData

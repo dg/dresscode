@@ -638,7 +638,10 @@ DressCode is made to run after every edit, so what counts most is the time one f
 to a half of what PHP CS Fixer needs, 118 ms for a small file against 323 ms. Over a whole project, doing
 the same work, it is faster too. Run with only the rules that match the PER Coding Style set of PHP CS
 Fixer, DressCode takes 64 to 90 percent of its time in one process, and 46 to 64 percent in parallel
-processes, over Laravel, WordPress, Symfony and Nette.
+processes, over Laravel, WordPress, Symfony and Nette. Symfony with its own configuration of PHP CS Fixer,
+translated by `dresscode migrate config`, is checked in 56 percent of the time, 14.2 s against 25.3 s over its
+7,704 files; PHP CS Fixer runs a hundred more rules there, on phpDoc and PHPUnit, that have no
+counterpart in DressCode.
 
 The preset `perCs` does more than that set: it also breaks long signatures, conditions, chains and arrays
 over lines and fixes the casing of names, none of which the set does. Preset against preset, a run
