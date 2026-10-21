@@ -111,7 +111,7 @@ test('explain of a decision writes what it is, its value here and those of the s
 	Assert::contains('`spacing.call`', $text);
 	Assert::contains("Here `'foo(\$a, \$b)'`, set by dresscode/psr12.", $text);
 	Assert::contains(
-		"The standards: perCs `'foo(\$a, \$b)'`, psr12 `'foo(\$a, \$b)'`, nette `'foo(\$a, \$b)'`, symfony `'foo(\$a, \$b)'`.",
+		"The standards: perCs `'foo(\$a, \$b)'`, psr12 `'foo(\$a, \$b)'`, nette `'foo(\$a, \$b)'`, symfony `'foo(\$a, \$b)'`, laravel `'foo(\$a, \$b)'`.",
 		$text,
 	);
 	Assert::contains('See https://dresscode.run/decisions/spacing.call', $text);
