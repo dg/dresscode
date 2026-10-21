@@ -322,7 +322,7 @@ function formatTemplates(string|false $comment, ReflectionClass $class): array
 
 $src = (string) realpath(__DIR__ . '/../../src');
 foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($src, FilesystemIterator::SKIP_DOTS)) as $file) {
-	if ($file->getExtension() === 'php') {
+	if (preg_match('~^(\p{Lu}\w*|enums|exceptions)\.php$~', $file->getFilename())) { // a script there declares nothing
 		require_once (string) $file;
 	}
 }
