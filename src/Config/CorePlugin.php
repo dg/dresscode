@@ -26,7 +26,7 @@ final class CorePlugin implements Plugin
 	/**
 	 * The presets that are complete standards; the other presets are sets.
 	 */
-	public const Standards = ['perCs', 'psr12', 'nette', 'symfony'];
+	public const Standards = ['perCs', 'psr12', 'nette', 'symfony', 'laravel'];
 	private const QualifiedName = '\\\\?\w+(\\\\\w+)*';
 
 
@@ -40,6 +40,7 @@ final class CorePlugin implements Plugin
 				'dresscode/psr12' => dirname(__DIR__) . '/Presets/psr12.neon',
 				'dresscode/nette' => dirname(__DIR__) . '/Presets/nette.neon',
 				'dresscode/symfony' => dirname(__DIR__) . '/Presets/symfony.neon',
+				'dresscode/laravel' => dirname(__DIR__) . '/Presets/laravel.neon',
 				'dresscode/cleanup' => dirname(__DIR__) . '/Presets/cleanup.neon',
 				'dresscode/compilerOptimizations' => dirname(__DIR__) . '/Presets/compilerOptimizations.neon',
 				'dresscode/correctness' => dirname(__DIR__) . '/Presets/correctness.neon',

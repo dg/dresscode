@@ -46,7 +46,7 @@
 #
 # The comment of a key says what its value means, then after "Also:" the other values it takes.
 
-use: [perCs]                                # the conventions of PER Coding Style 3.1, which this file writes out. Also: psr12; nette; symfony; a list with sets: cleanup, correctness, modernizations, deprecations, types, compilerOptimizations
+use: [perCs]                                # the conventions of PER Coding Style 3.1, which this file writes out. Also: psr12; nette; symfony; laravel; a list with sets: cleanup, correctness, modernizations, deprecations, types, compilerOptimizations
 
 targets:
 	php: '8.2'                              # the oldest version the code runs on; quoted, NEON reads `8.10` as 8.1
