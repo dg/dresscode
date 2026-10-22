@@ -39,9 +39,9 @@ readonly class Profile
 	public ?string $nameResolution;
 
 	/**
-	 * a comment the project already writes to say a line is meant as it is: pattern => the rules or decisions it
-	 * silences where it stands, as `dresscode:ignore` does, and the example of such a comment, `<why>` standing for
-	 * the reason (`// @ <why>`)
+	 * a comment the project already writes to say a line is meant as it is: pattern => the rules, decisions or names
+	 * of other tools it silences where it stands, as `dresscode:ignore` does, and the example of such a comment,
+	 * `<why>` standing for the reason (`// @ <why>`)
 	 * @var array<string, array{decisions: list<string>, example: ?string}>
 	 */
 	public array $suppressionComments;
