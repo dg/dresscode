@@ -472,14 +472,15 @@ First, leave the code as it is. Comments `// phpcs:ignore`, `phpcs:disable`, `ph
 `phpcs:ignoreFile` and the annotation `@phpcsSuppress` keep working: DressCode translates the foreign rule
 name to its decisions, and the suppression holds.
 
-Second, translate the configuration. `migrate config` reads it and writes its equivalent to `dresscode.neon`, and
-tells you what it could not carry over:
+Second, translate the configuration. `migrate config` finds the one the project has, PHP_CodeSniffer, PHP CS Fixer
+or Laravel Pint, writes its equivalent to `dresscode.neon`, and tells you what it could not carry over:
 
 ```shell
-dresscode migrate config phpcs.xml
+dresscode migrate config
 ```
 
 ```
+Found `phpcs.xml` of PHP_CodeSniffer, run by `composer cs`.
 Written `dresscode.neon`.
 
 Read 4 rules; set 4 decisions and 1 preset.
@@ -488,7 +489,7 @@ Read 4 rules; set 4 decisions and 1 preset.
 ```
 
 `.php-cs-fixer.dist.php` is translated the same way, as long as PHP CS Fixer is still installed in the
-project, because that file is PHP which has to run.
+project, because that file is PHP which has to run; so `migrate config` asks before it runs one it found by itself.
 
 **Laravel Pint** runs PHP CS Fixer, with a command line of its own and presets of its own, `laravel` the
 default one. A project on that preset has nothing to translate: DressCode has the style as the standard
