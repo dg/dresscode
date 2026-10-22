@@ -149,7 +149,7 @@ final class Translator
 
 		$preset = $translation->presets === []
 			? []
-			: new ConfigResolver(new PluginRegistry)
+			: new ConfigResolver(new PluginRegistry($this))
 				->resolve(new Config(use: $translation->presets), Config::DefaultPhpVersion)
 				->decisions;
 		foreach ($places as $place) {
@@ -302,7 +302,7 @@ final class Translator
 
 
 	/**
-	 * Names of other tools standing for any of the decisions.
+	 * Names of other tools standing for any of the decisions, for the reference and the listing of the rules.
 	 * @param  list<string>  $paths
 	 * @return list<string>
 	 */
