@@ -54,10 +54,15 @@ final class Translator
 	 * @param  array<string, bool|array<string, mixed>>  $rules  foreign rule => whether it is on, or its options
 	 * @param  string  $indent  of the configuration object of PHP CS Fixer
 	 * @param  string  $lineEnding  of the configuration object of PHP CS Fixer
+	 * @param  list<string>  $presets  the presets the rules stand on, which no rule names, as the preset of Laravel Pint
 	 */
-	public function translate(array $rules, string $indent = '    ', string $lineEnding = "\n"): Translation
+	public function translate(array $rules, string $indent = '    ', string $lineEnding = "\n", array $presets = []): Translation
 	{
 		$translation = new Translation($indent, $lineEnding, count($rules));
+		foreach ($presets as $preset) {
+			$translation->addPreset($preset);
+		}
+
 		$rules = self::expandMigrationSets($rules);
 		$excluded = [];
 		foreach ($rules as $name => $options) {

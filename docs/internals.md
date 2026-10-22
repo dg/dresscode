@@ -371,4 +371,13 @@ The fixtures of every rule run again under each standard with the sets beside it
   rule turned off makes the requirements it stands for `keep`, unless another foreign rule the configuration may run
   stands for them too.
 - A message of a sniff excluded while the configuration turns its sniff on by name makes what it stands for `keep` all
-  the same.
+  the same. A foreign name is not a valid key in the configuration: `dresscode migrate config` translates a whole
+  configuration file once, options included: a `pint.json` of Laravel Pint is read as data, its preset the standard of
+  that name and its rules those of PHP CS Fixer, a file of PHP CS Fixer is run in a process of its own after the
+  autoload of its project (`PhpCsFixer::readConfig()`), so that what it writes, the directory it changes and its exit
+  stay its own; it writes `dresscode.neon` or the file `--output` names, in the format of its extension, NEON or PHP,
+  never over an existing one, resolved as a run reads it and checked to say the decisions translated before it is
+  written whole, or printed instead with `--dry-run`, the first decision a foreign rule translated only in part carrying
+  in a comment what was not carried over (`Translation::translateRule()`), and a translation with any warning ending
+  with exit code 1. With `--format json` `config` writes a document of its `version` and the `root` and nothing else,
+  the configuration, the file it was written to, the counts, the warnings and what stays untranslated, and never asking.

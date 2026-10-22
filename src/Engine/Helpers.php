@@ -7,6 +7,7 @@
 
 namespace DressCode\Engine;
 
+use Nette\IOException;
 use Nette\Utils\FileSystem;
 use function ini_get, is_array;
 
@@ -152,5 +153,38 @@ final class Helpers
 		}
 
 		return @file_put_contents($file, $content) !== false; // @ the failure is the result
+	}
+
+
+	/**
+	 * Writes a file that does not exist yet, whole, and never over one another process created meanwhile.
+	 * @return bool  false where the file exists
+	 * @throws IOException
+	 */
+	public static function createFile(string $file, string $content): bool
+	{
+		$temp = self::writeTemporary($file, $content);
+		$handle = @fopen($file, 'x'); // @ an existing file is the answer
+		if ($handle === false) {
+			@unlink($temp); // @ nothing to clean up then
+			return file_exists($file) ? false : throw new IOException("Unable to create file '$file'.");
+		}
+
+		fclose($handle);
+		if (!@rename($temp, $file)) { // @ the failure is thrown below
+			@unlink($temp); // @ nothing to clean up then
+			@unlink($file); // @ the name reserved above
+			throw new IOException("Unable to create file '$file'.");
+		}
+
+		return true;
+	}
+
+
+	private static function writeTemporary(string $file, string $content): string
+	{
+		$temp = $file . '.' . bin2hex(random_bytes(4)) . '.tmp';
+		FileSystem::write($temp, $content);
+		return $temp;
 	}
 }
