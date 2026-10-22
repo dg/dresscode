@@ -14,8 +14,8 @@ use function strlen;
 
 
 /**
- * The configuration of a formatter in a file. Its rules, which `translate()` reads, need the configuration of PHP CS
- * Fixer run, being PHP.
+ * The configuration of the formatter a project has, found where a project keeps it, and how the project runs it. Its
+ * rules, which `translate()` reads, need the configuration of PHP CS Fixer run, being PHP.
  * @internal
  */
 final readonly class FormatterConfig
@@ -24,6 +24,8 @@ final readonly class FormatterConfig
 		public Formatter $formatter,
 		/** relative to the root, absolute where it lies outside */
 		public string $file,
+		/** the command of the project that runs it, `composer check`; null where none does */
+		public ?string $runBy,
 		/** absolute */
 		private string $path,
 	) {
@@ -36,7 +38,21 @@ final readonly class FormatterConfig
 		$file = Helpers::canonicalizePath($file);
 		$root = Helpers::canonicalizePath($root);
 		$file = str_starts_with($file, "$root/") ? substr($file, strlen($root) + 1) : $file;
-		return new self(Formatter::fromFileName($file), $file, FileSystem::isAbsolute($file) ? $file : "$root/$file");
+		return self::read($root, $file, Formatter::fromFileName($file));
+	}
+
+
+	/** The configuration of the formatter in the file given, relative to the root or absolute, and how the project runs it. */
+	public static function read(string $root, string $file, Formatter $formatter, ?string $runBy = null): self
+	{
+		return new self($formatter, $file, $runBy, FileSystem::isAbsolute($file) ? $file : "$root/$file");
+	}
+
+
+	/** The configuration as a reader is told of it, `pint.json` of Laravel Pint, run by `composer fix`. */
+	public function format(): string
+	{
+		return "`$this->file` of {$this->formatter->value}" . ($this->runBy === null ? '' : ", run by `$this->runBy`");
 	}
 
 

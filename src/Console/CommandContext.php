@@ -11,10 +11,11 @@ use DressCode\{Config, Plugin};
 use DressCode\Config\{Loader, PhpVersionSource, ResolvedProject, RunnerFactory};
 use DressCode\Console\Commands\ConfigOptions;
 use DressCode\Engine\Helpers;
+use DressCode\Interop\{FormatterConfig, FormatterSearch};
 use Nette\CommandLine\{Console, ParseResult, Prompt, UsageException};
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
-use function is_string;
+use function count, is_string;
 use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES;
 
 
@@ -206,5 +207,44 @@ final readonly class CommandContext
 		if ($docs !== null) {
 			$this->err->writeLine(Markup::formatDocsLink($this->err, $docs));
 		}
+	}
+
+
+	/**
+	 * The configuration of the formatter the project runs: the file named, else of those `FormatterSearch` finds the one
+	 * the user chooses in a terminal, elsewhere the first, as it is at the end of the input, the others told.
+	 */
+	public function chooseFormatterConfig(string $root, ?string $named, bool $interactive): FormatterChoice
+	{
+		if ($named !== null) {
+			return new FormatterChoice(FormatterConfig::fromFile($root, $this->resolvePath($named)), named: true);
+		}
+
+		$candidates = FormatterSearch::find($root);
+		if (!$interactive || count($candidates) < 2) {
+			return new FormatterChoice(($candidates[0] ?? null)?->read($root), array_slice($candidates, 1));
+		}
+
+		$menu = '';
+		foreach ($candidates as $i => $candidate) {
+			$menu .= '  [' . ($i + 1) . '] ' . $candidate->format() . "\n";
+		}
+
+		$this->out->clearStatus();
+		$this->write("\nThe project has the configurations of several formatters:\n$menu");
+		$choice = $this->prompt->choose('Which one does it run?', array_map(strval(...), range(1, count($candidates))), '1');
+		return new FormatterChoice(($candidates[(int) $choice - 1] ?? $candidates[0])->read($root));
+	}
+
+
+	/**
+	 * Whether the rules of the configuration chosen may be read: data always, PHP, which reading runs, where the file was
+	 * named or the user agrees in a terminal.
+	 */
+	public function confirmReadingRules(FormatterChoice $choice, bool $interactive): bool
+	{
+		$config = $choice->config;
+		return $config !== null && (!$config->formatter->runsCode() || $choice->named || ($interactive
+			&& $this->prompt->choose("`$config->file` is PHP, which reading runs. Read it?", ['y', 'n'], 'n') === 'y'));
 	}
 }
