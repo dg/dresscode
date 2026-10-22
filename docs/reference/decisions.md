@@ -77,6 +77,7 @@ A byte order mark at the start of the file.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Files\NoBomRule`, stage Structure
+- Covers: `encoding`, `Generic.Files.ByteOrderMark`
 
 ### file.closingTagAtEnd
 
@@ -86,6 +87,7 @@ A `?>` ending a file of PHP only; a `?>` before HTML is content.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Files\NoClosingTagRule`, stage Structure
+- Covers: `no_closing_tag`, `PSR2.Files.ClosingTag`
 
 ### file.finalLineEndings
 
@@ -95,6 +97,7 @@ Exactly one line ending after the last line; a file ending in HTML is content.
 - Takes: exactly 1; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Files\FinalLineEndingsRule`, stage Formatting
+- Covers: `single_blank_line_at_eof`, `PSR2.Files.EndFileNewline`
 
 ### file.lineEnding
 
@@ -104,6 +107,7 @@ The line ending of every line, which the code written new takes too; under `keep
 - Takes: `LF` (every line ends with LF); `CRLF` (every line ends with CRLF); `majority` (every line ends as most lines of the file do, LF on a tie); `keep`
 - The standards: perCs `majority`, psr12 `majority`, nette `majority`, symfony `majority`, laravel `majority`
 - Rule `DressCode\Rules\Files\LineEndingRule`, stage Finishing
+- Covers: `line_ending`, `Generic.Files.LineEndings`
 
 ### file.lineLength
 
@@ -113,6 +117,7 @@ The widest line, by which what spreads over lines is split.
 - Takes: a count from 1; `none` (no line is too wide)
 - The standards: perCs `120`, psr12 `120`, nette `140`, symfony `none`, laravel `none`
 - Rule `DressCode\Rules\Files\LineLengthRule`, stage Finishing
+- Covers: `Generic.Files.LineLength`, `SlevomatCodingStandard.Classes.RequireMultiLineMethodSignature`, `SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition`, `SlevomatCodingStandard.Files.LineLength`
 
 ### file.lineLengthExcept
 
@@ -134,6 +139,7 @@ What a line too wide leaves as it is: a construct named is not spread over lines
 - Read by rule `DressCode\Rules\Functions\MultilineClosureUseRule`, which this decision does not turn on
 - Read by rule `DressCode\Rules\Functions\MultilineSignatureRule`, which this decision does not turn on
 - Read by rule `DressCode\Rules\Whitespace\MultilineAttributeRule`, which this decision does not turn on
+- Covers: `Generic.Files.LineLength`, `SlevomatCodingStandard.Files.LineLength`
 
 ### file.longLines
 
@@ -143,6 +149,7 @@ A line wider than `file.lineLength` that nothing could split is reported, unless
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Files\LineLengthRule`, stage Finishing
+- Covers: `Generic.Files.LineLength`, `SlevomatCodingStandard.Files.LineLength`
 
 ### file.openingTag
 
@@ -152,6 +159,7 @@ A line wider than `file.lineLength` that nothing could split is reported, unless
 - Takes: `required` (always there); `keep`
 - The standards: perCs `required`, psr12 `required`, nette `required`, symfony `required`, laravel `required`
 - Rule `DressCode\Rules\Files\OpeningTagNotationRule`, stage Structure
+- Covers: `full_opening_tag`, `Generic.PHP.DisallowShortOpenTag`
 
 ### file.statementsPerLine
 
@@ -161,6 +169,7 @@ A line wider than `file.lineLength` that nothing could split is reported, unless
 - Takes: exactly 1; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\NoStatementsSharingLineRule`, stage Formatting
+- Covers: `no_multiple_statements_per_line`, `Generic.Formatting.DisallowMultipleStatements`, `PSR12.Classes.ClosingBrace`, `PSR2.ControlStructures.SwitchDeclaration`
 
 ### file.strictTypes.declaration
 
@@ -170,6 +179,7 @@ Every file of PHP code declares `strict_types=1` as its first statement, a file 
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Files\StrictTypesRequiredRule`, stage Structure
+- Covers: `declare_strict_types`, `Generic.PHP.RequireStrictTypes`, `SlevomatCodingStandard.TypeHints.DeclareStrictTypes`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### file.strictTypes.position
@@ -180,6 +190,7 @@ Where the declaration of `strict_types` stands.
 - Takes: `sameLine` (`<?php declare(strict_types=1);` on one line); `nextLine` (on the line below the opening tag); `keep`
 - The standards: perCs `nextLine`, psr12 `nextLine`, nette `sameLine`, symfony `nextLine`, laravel `keep`
 - Rule `DressCode\Rules\Files\StrictTypesRequiredRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/declare_after_opening_tag`, `declare_strict_types`, `Generic.PHP.RequireStrictTypes`, `SlevomatCodingStandard.TypeHints.DeclareStrictTypes`
 
 ### file.trailingWhitespace
 
@@ -189,6 +200,7 @@ A space or a tab at the end of a line.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Files\NoTrailingWhitespaceRule`, stage Finishing
+- Covers: `no_trailing_whitespace`, `no_trailing_whitespace_in_comment`, `no_whitespace_in_blank_line`, `Squiz.WhiteSpace.SuperfluousWhitespace`
 
 ## indentation
 
@@ -210,6 +222,7 @@ Where the links of a chain spread over lines stand.
 - Takes: `flat` (every link one level below the start); `nested` (a link one level deeper or shallower than the link before it); `keep`
 - The standards: perCs `flat`, psr12 `flat`, nette `nested`, symfony `keep`, laravel `flat`
 - Rule `DressCode\Rules\Whitespace\IndentationRule`, stage Finishing
+- Covers: `method_chaining_indentation`, `PEAR.WhiteSpace.ObjectOperatorIndent`
 - Modifies comments
 
 ### indentation.commentLines
@@ -230,6 +243,7 @@ The levels the body and the closing marker of a heredoc or nowdoc step in by fro
 - Takes: a count from 0 to 1; `keep`
 - The standards: perCs `1`, psr12 `keep`, nette `1`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Literals\HeredocIndentationRule`, stage Formatting
+- Covers: `heredoc_indentation`
 
 ### indentation.singleLevel
 
@@ -257,6 +271,7 @@ The levels `case` steps in by from `switch`.
 - Takes: a count from 0 to 1; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\IndentationRule`, stage Finishing
+- Covers: `PSR2.ControlStructures.SwitchDeclaration`
 - Modifies comments
 
 ### indentation.tabWidth
@@ -287,6 +302,7 @@ Every line indented by the construct it continues, one level per nesting, the le
 - Takes: `tab` (one tab per level); `4 spaces` (four spaces per level); `2 spaces` (two spaces per level); `keep`
 - The standards: perCs `4 spaces`, psr12 `4 spaces`, nette `tab`, symfony `4 spaces`, laravel `4 spaces`
 - Rule `DressCode\Rules\Whitespace\IndentationRule`, stage Finishing
+- Covers: `array_indentation`, `indentation_type`, `no_leading_namespace_whitespace`, `statement_indentation`, `Generic.WhiteSpace.DisallowSpaceIndent`, `Generic.WhiteSpace.DisallowTabIndent`, `Generic.WhiteSpace.ScopeIndent`
 - Modifies comments
 
 ## braces
@@ -299,6 +315,7 @@ Every line indented by the construct it continues, one level per nesting, the le
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\ControlFlow\NoAlternativeSyntaxRule`, stage Structure
+- Covers: `no_alternative_syntax`
 
 ### braces.bareStatementGroup
 
@@ -308,6 +325,7 @@ Every line indented by the construct it continues, one level per nesting, the le
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\ControlFlow\UselessBracesRule`, stage Structure
+- Covers: `no_unneeded_braces`, `no_unneeded_curly_braces`
 
 ### braces.bracelessBody
 
@@ -317,6 +335,7 @@ The body of a control structure written without braces, `if ($a) foo();`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\ControlFlow\NoBracelessBodiesRule`, stage Structure
+- Covers: `control_structure_braces`, `Generic.ControlStructures.InlineControlStructure`
 - Modifies comments
 
 ### braces.emptyBody.anonymousClass
@@ -327,6 +346,7 @@ How the empty body of an anonymous class is written, one written on one line sta
 - Takes: `collapsed` (`{}` on the line of the head, one holding a comment staying on its line as written); `expanded` (`{` and `}` placed as those of any other body); `keep`
 - The standards: perCs `collapsed`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `collapsed`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `braces_position`, `curly_braces_position`, `single_line_empty_body`
 
 ### braces.emptyBody.class
 
@@ -336,6 +356,7 @@ How the empty body of a class, an interface, a trait and an enum is written; a c
 - Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
 - The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`, symfony `expanded`, laravel `collapsed`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `single_line_empty_body`
 
 ### braces.emptyBody.closure
 
@@ -345,6 +366,7 @@ How the empty body of a closure is written; a comment inside makes it not empty.
 - Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
 - The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`, symfony `expanded`, laravel `collapsed`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `single_line_empty_body`
 
 ### braces.emptyBody.controlStructure
 
@@ -363,6 +385,7 @@ How the empty body of a function and a method is written; a comment inside makes
 - Takes: `collapsed` (`{}` on the line of the head); `expanded` (`{` and `}` placed as those of any other body); `keep`
 - The standards: perCs `collapsed`, psr12 `expanded`, nette `expanded`, symfony `expanded`, laravel `collapsed`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `single_line_empty_body`
 
 ### braces.emptyBody.propertyHook
 
@@ -381,6 +404,7 @@ Where the `{` of an anonymous class stands, on the next line always where its in
 - Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
 - The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`, symfony `sameLine`, laravel `nextLine`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `braces_position`, `curly_braces_position`, `PSR12.Classes.AnonClassDeclaration`
 
 ### braces.position.class
 
@@ -390,6 +414,7 @@ Where the `{` of a class, an interface, a trait and an enum stands, the members 
 - Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
 - The standards: perCs `nextLine`, psr12 `nextLine`, nette `nextLine`, symfony `nextLine`, laravel `nextLine`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `braces_position`, `curly_braces_position`, `PSR2.Classes.ClassDeclaration`
 
 ### braces.position.closure
 
@@ -399,6 +424,7 @@ Where the `{` of a closure stands, the body starting a line below it and the `}`
 - Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
 - The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`, symfony `sameLine`, laravel `sameLine`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `braces_position`, `curly_braces_position`, `Squiz.Functions.MultiLineFunctionDeclaration`
 
 ### braces.position.continuingKeyword
 
@@ -408,6 +434,7 @@ Where the keyword continuing a structure after its `}` stands: `else`, `elseif`,
 - Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
 - The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`, symfony `sameLine`, laravel `sameLine`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `control_structure_continuation_position`, `Squiz.ControlStructures.ControlSignature`
 
 ### braces.position.controlStructure
 
@@ -417,6 +444,7 @@ Where the `{` of `if`, `else`, a loop, `declare`, `try`, `catch`, `finally`, `sw
 - Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
 - The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`, symfony `sameLine`, laravel `sameLine`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `braces_position`, `curly_braces_position`, `PSR12.Files.DeclareStatement`, `Squiz.ControlStructures.ControlSignature`
 
 ### braces.position.function
 
@@ -426,6 +454,7 @@ Where the `{` of a function and of a method whose parameters stand on one line s
 - Takes: `sameLine` (on the line of what comes before); `nextLine` (on the next line); `keep`
 - The standards: perCs `nextLine`, psr12 `nextLine`, nette `nextLine`, symfony `nextLine`, laravel `nextLine`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `braces_position`, `curly_braces_position`, `Squiz.Functions.MultiLineFunctionDeclaration`
 
 ### braces.position.multilineSignature
 
@@ -435,6 +464,7 @@ Where the `{` of a function and of a method whose parameters are spread over lin
 - Takes: `sameLine` (on the line of the `)`); `nextLine` (on the line below the `)`); `keep`
 - The standards: perCs `sameLine`, psr12 `sameLine`, nette `sameLine`, symfony `sameLine`, laravel `sameLine`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `braces_position`, `curly_braces_position`, `Squiz.Functions.MultiLineFunctionDeclaration`
 
 ### braces.position.typedMultilineSignature
 
@@ -453,6 +483,7 @@ A closure written whole on one line.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `keep`, symfony `keep`, laravel `forbidden`
 - Rule `DressCode\Rules\Whitespace\BracesPositionRule`, stage Formatting
+- Covers: `braces_position`, `curly_braces_position`
 
 ## blankLines
 
@@ -464,6 +495,7 @@ Between the last group of attributes and the declaration, the member, the parame
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `keep`, nette `0`, symfony `0`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing`
 
 ### blankLines.afterDeclare
 
@@ -473,6 +505,7 @@ After `declare(...);`, before whatever follows it but a namespace declaration.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `PSR12.Files.FileHeader`
 
 ### blankLines.afterImports
 
@@ -482,6 +515,7 @@ After the last import, before the rest of the code.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `single_line_after_imports`, `PSR12.Files.FileHeader`, `PSR2.Namespaces.UseDeclaration`
 
 ### blankLines.afterNamespace
 
@@ -491,6 +525,7 @@ After an unbraced namespace declaration.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `blank_line_after_namespace`, `PSR12.Files.FileHeader`, `PSR2.Namespaces.NamespaceDeclaration`, `SlevomatCodingStandard.Namespaces.NamespaceSpacing`
 
 ### blankLines.afterOpeningTag
 
@@ -500,6 +535,7 @@ After the line of `<?php`, which then carries no code but a declaration of `stri
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `blank_line_after_opening_tag`, `linebreak_after_opening_tag`, `PSR12.Files.FileHeader`, `PSR12.Files.OpenTag`
 
 ### blankLines.afterPhpdoc
 
@@ -510,6 +546,7 @@ Between a doc comment and the declaration it belongs to, or the first attribute 
 - The standards: perCs `0`, psr12 `keep`, nette `0`, symfony `0`, laravel `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `no_blank_lines_after_phpdoc`
 
 ### blankLines.afterStatement
 
@@ -519,6 +556,7 @@ After a statement of the kind, before the next statement.
 - Takes: a map of `break`, `continue`, `do`, `for`, `foreach`, `if`, `return`, `switch`, `throw`, `try`, `while`, `yield` to a count from 0, a range `1-2`, an open one `1+`, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing`, `SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing`, `Squiz.WhiteSpace.ControlStructureSpacing`
 
 ### blankLines.afterTraitUses
 
@@ -528,6 +566,7 @@ Before the first member after the trait uses, a method included.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.TraitUseSpacing`
 
 ### blankLines.aroundDeclarations
 
@@ -537,6 +576,7 @@ Before and after a class, interface, trait, enum or function declared among stat
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `1-2`, symfony `0-1`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `Squiz.WhiteSpace.FunctionSpacing`
 
 ### blankLines.aroundInterfaceMethods
 
@@ -546,6 +586,7 @@ Before and after a method of an interface, in place of `aroundMethods`.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `1`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.MethodSpacing`, `Squiz.WhiteSpace.FunctionSpacing`
 
 ### blankLines.aroundMethods
 
@@ -555,6 +596,7 @@ Before and after a method; the first and the last member of a class take `bodySt
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `2`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.MethodSpacing`, `Squiz.WhiteSpace.FunctionSpacing`
 
 ### blankLines.beforeDeclaration
 
@@ -564,6 +606,7 @@ Before a class, interface, trait, enum or function that follows the namespace or
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `2`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `blank_line_after_namespace`, `single_line_after_imports`, `PSR12.Files.FileHeader`, `PSR2.Namespaces.NamespaceDeclaration`, `PSR2.Namespaces.UseDeclaration`
 
 ### blankLines.beforeDocumentedMember
 
@@ -573,6 +616,7 @@ Before a property, constant or enum case with a doc comment or an attribute, and
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `1`, symfony `keep`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.ConstantSpacing`, `SlevomatCodingStandard.Classes.EnumCaseSpacing`, `SlevomatCodingStandard.Classes.PropertySpacing`
 
 ### blankLines.beforeNamespace
 
@@ -582,6 +626,7 @@ Before the namespace declaration and, where a doc comment of the file stands abo
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `1`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `blank_lines_before_namespace`, `PSR12.Files.FileHeader`, `SlevomatCodingStandard.Namespaces.NamespaceSpacing`
 
 ### blankLines.beforeOpenBrace.class
 
@@ -600,6 +645,7 @@ Before a statement of the kind, `yield` meaning a statement made of a `yield` ex
 - Takes: a map of `break`, `continue`, `do`, `for`, `foreach`, `if`, `return`, `switch`, `throw`, `try`, `while`, `yield` to a count from 0, a range `1-2`, an open one `1+`, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `{return: 1+}`, laravel `{continue: 1+, return: 1+}`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `blank_line_before_statement`, `SlevomatCodingStandard.ControlStructures.BlockControlStructureSpacing`, `SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing`
 
 ### blankLines.belowComment.inlineVar
 
@@ -618,6 +664,7 @@ Between the imports of classes, functions and constants.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `1`, psr12 `1`, nette `0`, symfony `1`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `blank_line_between_import_groups`, `PSR12.Files.FileHeader`
 
 ### blankLines.betweenImports
 
@@ -627,6 +674,7 @@ Between two imports of one kind, two of classes for instance.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`, laravel `0`
 - Rule `DressCode\Rules\Whitespace\StatementBlankLinesRule`, stage Formatting
+- Covers: `blank_line_between_import_groups`, `PSR12.Files.FileHeader`
 
 ### blankLines.betweenMemberKinds
 
@@ -636,6 +684,7 @@ Between a property, a constant and an enum case of different kinds, the visibili
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `0-1`, symfony `keep`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.ClassMemberSpacing`, `SlevomatCodingStandard.Classes.ConstantSpacing`, `SlevomatCodingStandard.Classes.EnumCaseSpacing`, `SlevomatCodingStandard.Classes.PropertySpacing`
 
 ### blankLines.betweenMembers.constant
 
@@ -645,6 +694,7 @@ Between two constants, the lower one without a doc comment or an attribute.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `0-1`, symfony `keep`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.ConstantSpacing`
 
 ### blankLines.betweenMembers.enumCase
 
@@ -654,6 +704,7 @@ Between two enum cases, the lower one without a doc comment or an attribute.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `0-1`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.EnumCaseSpacing`
 
 ### blankLines.betweenMembers.property
 
@@ -663,6 +714,7 @@ Between two properties, the lower one without a doc comment or an attribute.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `0-1`, symfony `keep`, laravel `1`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `class_attributes_separation`, `SlevomatCodingStandard.Classes.PropertySpacing`
 
 ### blankLines.betweenStatementsInFunction
 
@@ -681,6 +733,7 @@ Between the trait uses of a class without a doc comment, the blank lines below a
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `keep`, laravel `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `class_attributes_separation`, `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.TraitUseSpacing`
 
 ### blankLines.bodyEnd.anonymousClass
 
@@ -690,6 +743,7 @@ Before the closing brace of an anonymous class, after its last member.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`
 
 ### blankLines.bodyEnd.branch
 
@@ -708,6 +762,7 @@ Before the closing brace of a class, an interface, a trait or an enum, after its
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`, `Squiz.WhiteSpace.FunctionSpacing`
 
 ### blankLines.bodyEnd.closure
 
@@ -717,6 +772,7 @@ Before the closing brace of the body of a closure.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+- Covers: `PSR2.Methods.FunctionClosingBrace`
 
 ### blankLines.bodyEnd.controlStructure
 
@@ -726,6 +782,7 @@ Before the closing brace of the body of `if`, `else`, a loop, `switch`, `match`,
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+- Covers: `Squiz.WhiteSpace.ControlStructureSpacing`
 
 ### blankLines.bodyEnd.function
 
@@ -735,6 +792,7 @@ Before the closing brace of the body of a function or a method.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+- Covers: `PSR2.Methods.FunctionClosingBrace`
 
 ### blankLines.bodyEnd.propertyHook
 
@@ -762,6 +820,7 @@ After the opening brace of an anonymous class, before its first member.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`, laravel `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `no_blank_lines_after_class_opening`, `PSR12.Classes.OpeningBraceSpace`, `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`
 
 ### blankLines.bodyStart.class
 
@@ -771,6 +830,7 @@ After the opening brace of a class, an interface, a trait or an enum, before its
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`, laravel `0`
 - Rule `DressCode\Rules\Whitespace\MemberBlankLinesRule`, stage Formatting
+- Covers: `no_blank_lines_after_class_opening`, `PSR12.Classes.OpeningBraceSpace`, `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces`, `Squiz.WhiteSpace.FunctionSpacing`
 
 ### blankLines.bodyStart.closure
 
@@ -780,6 +840,7 @@ After the opening brace of the body of a closure.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `0`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+- Covers: `Squiz.WhiteSpace.FunctionOpeningBraceSpace`
 
 ### blankLines.bodyStart.controlStructure
 
@@ -789,6 +850,7 @@ After the opening brace of the body of `if`, `else`, a loop, `switch`, `match`, 
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `0`, psr12 `0`, nette `0`, symfony `0`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+- Covers: `Squiz.WhiteSpace.ControlStructureSpacing`
 
 ### blankLines.bodyStart.function
 
@@ -798,6 +860,7 @@ After the opening brace of the body of a function or a method.
 - Takes: a count from 0, a range `1-2`, an open one `1+`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `0`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\BlockBlankLinesRule`, stage Formatting
+- Covers: `Squiz.WhiteSpace.FunctionOpeningBraceSpace`
 
 ### blankLines.bodyStart.propertyHook
 
@@ -827,6 +890,7 @@ The attributes of a class, a function, a method, a property, a constant, a case 
 - Takes: `above` (every group on a line of its own above the declaration); `sameLine` (every group on the line of the declaration); `keep`
 - The standards: perCs `above`, psr12 `keep`, nette `above`, symfony `above`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\AttributePositionRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine`
 
 ### multiline.attributePosition.parameter
 
@@ -836,6 +900,7 @@ Where the attributes of a parameter stand.
 - Takes: `above` (every group on a line of its own above the parameter in a list of parameters spread over lines, on the line of the parameter in a list on one line); `sameLine` (every group on the line of the parameter, in a list spread over lines too); `keep`
 - The standards: perCs `above`, psr12 `keep`, nette `above`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\AttributePositionRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine`
 
 ### multiline.edges.argument
 
@@ -845,6 +910,7 @@ Where the arguments spread over lines begin against `(` and where `)` stands.
 - Takes: `apart` (the first argument on the line after `(`, `)` on a line of its own); `attached` (the first argument on the line of `(`, `)` right after the last one); `closingApart` (the first argument on the line of `(`, `)` on a line of its own); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `apart`, psr12 `apart`, nette `apart`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\MultilineCallRule`, stage Formatting
+- Covers: `method_argument_space`, `PSR2.Methods.FunctionCallSignature`
 
 ### multiline.edges.array
 
@@ -854,6 +920,7 @@ Where the items spread over lines begin against the opening bracket and where th
 - Takes: `apart` (the first item on the line after the opening bracket, the closing one on a line of its own); `attached` (the first item on the line of the opening bracket, the closing one right after the last one); `closingApart` (the first item on the line of the opening bracket, the closing one on a line of its own); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `apart`, psr12 `keep`, nette `[apart, attached]`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Arrays\MultilineArrayRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement`
 
 ### multiline.edges.attribute
 
@@ -890,6 +957,7 @@ Where the parts spread over lines begin against `(` and where `)` stands.
 - Takes: `apart` (the first part on the line after `(`, `)` on a line of its own); `attached` (the first part on the line of `(`, `)` right after the last one); `closingApart` (the first part on the line of `(`, `)` on a line of its own); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `apart`, psr12 `apart`, nette `[apart, closingApart]`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\MultilineConditionRule`, stage Formatting
+- Covers: `PSR12.ControlStructures.ControlStructureSpacing`, `SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition`
 
 ### multiline.edges.implements
 
@@ -899,6 +967,7 @@ Where the interfaces spread over lines begin against the keyword.
 - Takes: `apart` (the first interface on the line after the keyword); `attached` (the first interface on the line of the keyword); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `apart`, psr12 `apart`, nette `apart`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\MultilineImplementsRule`, stage Formatting
+- Covers: `PSR12.Classes.AnonClassDeclaration`, `PSR2.Classes.ClassDeclaration`
 
 ### multiline.edges.import
 
@@ -926,6 +995,7 @@ Where the parameters spread over lines begin against `(` and where `)` stands.
 - Takes: `apart` (the first parameter on the line after `(`, `)` on a line of its own); `attached` (the first parameter on the line of `(`, `)` right after the last one); `closingApart` (the first parameter on the line of `(`, `)` on a line of its own); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `apart`, psr12 `apart`, nette `apart`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\MultilineSignatureRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.Classes.RequireMultiLineMethodSignature`, `Squiz.Functions.MultiLineFunctionDeclaration`
 
 ### multiline.expressionStart.arrayItem
 
@@ -1036,6 +1106,7 @@ A sole argument that is a string, a message, is not spread for its width
 - Takes: `perLine` (every argument on a line of its own); `fill` (the arguments may share lines, one on a line passing too, and one spanning lines stands on lines of its own); `fillPlain` (as `fill` where every argument is a variable, a constant, a literal or a property, joined where they fit on one line and no comment stands among them, as `perLine` otherwise); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `perLine`, psr12 `perLine`, nette `fillPlain`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\MultilineCallRule`, stage Formatting
+- Covers: `method_argument_space`, `PSR2.Methods.FunctionCallSignature`
 
 ### multiline.items.arithmetic
 
@@ -1127,6 +1198,7 @@ A condition of `if`, `elseif`, `while` and `do-while` joined by boolean operator
 - Takes: `perLine` (every part on a line of its own); `fill` (the parts may share lines, one on a line passing too, and one spanning lines stands on lines of its own); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `[perLine, fill]`, psr12 `[perLine, fill]`, nette `[perLine, fill]`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\MultilineConditionRule`, stage Formatting
+- Covers: `PSR12.ControlStructures.ControlStructureSpacing`, `SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition`
 
 ### multiline.items.for
 
@@ -1145,6 +1217,7 @@ The interfaces a class or an enum implements, or an interface extends, spread ov
 - Takes: `perLine` (every interface on a line of its own); `fill` (the interfaces may share lines, one on a line passing too, and one spanning lines stands on lines of its own); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `perLine`, psr12 `perLine`, nette `perLine`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\MultilineImplementsRule`, stage Formatting
+- Covers: `PSR12.Classes.AnonClassDeclaration`, `PSR2.Classes.ClassDeclaration`
 
 ### multiline.items.import
 
@@ -1209,6 +1282,7 @@ The parameters of a function or a method spread over lines by their author or fo
 - Takes: `perLine` (every parameter on a line of its own); `fill` (the parameters may share lines, one on a line passing too, and one spanning lines stands on lines of its own); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `perLine`, psr12 `perLine`, nette `perLine`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\MultilineSignatureRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.Classes.RequireMultiLineMethodSignature`, `Squiz.Functions.MultiLineFunctionDeclaration`
 
 ### multiline.items.pipe
 
@@ -1229,6 +1303,7 @@ A ternary spread over lines by its author, or for the width of its line.
 - Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines stands on lines of its own); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `perLine`, psr12 `keep`, nette `perLine`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\MultilineTernaryRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.ControlStructures.RequireMultiLineTernaryOperator`
 
 ### multiline.maxWidth.array
 
@@ -1247,6 +1322,7 @@ Where `+`, `-`, `*`, `/`, `%` and `**` stand at a line break.
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.operatorPosition.bitwise
 
@@ -1256,6 +1332,7 @@ Where `|`, `&`, `^`, `<<` and `>>` stand at a line break.
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.operatorPosition.coalesce
 
@@ -1265,6 +1342,7 @@ Where `??` stands at a line break.
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.operatorPosition.comparison
 
@@ -1275,6 +1353,7 @@ Where a comparison stands at a line break: one ending its line moves only where 
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
 - Read by rule `DressCode\Rules\ControlFlow\MultilineConditionRule`, which this decision does not turn on
+- Covers: `operator_linebreak`
 
 ### multiline.operatorPosition.concatenation
 
@@ -1284,6 +1363,7 @@ Where `.` stands at a line break.
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `keep`, nette `lineStart`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.operatorPosition.condition
 
@@ -1293,6 +1373,7 @@ Where a boolean operator chaining a condition of `if`, `elseif`, `while` and `do
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `lineStart`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\MultilineConditionRule`, stage Formatting
+- Covers: `operator_linebreak`, `PSR12.ControlStructures.BooleanOperatorPlacement`
 
 ### multiline.operatorPosition.logical
 
@@ -1302,6 +1383,7 @@ Where `&&`, `||`, `and`, `or` and `xor` outside a condition stand at a line brea
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `lineStart`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.operatorPosition.pipe
 
@@ -1311,6 +1393,7 @@ Where `|>` stands at a line break.
 - Takes: `lineStart` (one ending a line opens the next, unless a comment follows it); `lineEnd` (one opening a line ends the one before, unless a comment precedes it); `keep`
 - The standards: perCs `lineStart`, psr12 `lineStart`, nette `lineStart`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
+- Covers: `operator_linebreak`
 
 ### multiline.operatorPosition.ternary
 
@@ -1321,6 +1404,7 @@ Where `?`, `:` and `?:` of a ternary stand at a line break, of a ternary spread 
 - The standards: perCs `lineStart`, psr12 `keep`, nette `lineStart`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
 - Read by rule `DressCode\Rules\Expressions\MultilineTernaryRule`, which this decision does not turn on
+- Covers: `operator_linebreak`, `SlevomatCodingStandard.ControlStructures.DisallowTrailingMultiLineTernaryOperator`
 
 ### multiline.semicolon
 
@@ -1330,6 +1414,7 @@ Where the semicolon of a statement spanning several lines stands.
 - Takes: `sameLine` (closing the last line of the statement); `nextLine` (on a line of its own below a chain of method calls spread over lines, closing the last line of any other statement); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `sameLine`, symfony `keep`, laravel `sameLine`
 - Rule `DressCode\Rules\Whitespace\SemicolonSpacingRule`, stage Formatting
+- Covers: `multiline_whitespace_before_semicolons`, `Squiz.WhiteSpace.SemicolonSpacing`
 
 ### multiline.spreadAlways
 
@@ -1339,6 +1424,7 @@ What is spread over lines whatever its width.
 - Takes: a list of `promotedProperty` (the parameters of a signature declaring a promoted property)
 - The standards: perCs `[]`, psr12 `[]`, nette `[promotedProperty]`, symfony `[]`, laravel `[]`
 - Rule `DressCode\Rules\Functions\MultilineSignatureRule`, stage Formatting
+- Covers: `multiline_promoted_properties`, `SlevomatCodingStandard.Classes.RequireMultiLineMethodSignature`
 
 ### multiline.spreadItem
 
@@ -1357,6 +1443,7 @@ The trailing comma of the multi-line arguments of a call and the variables of `i
 - Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `optional`, laravel `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
+- Covers: `no_trailing_comma_in_singleline`, `SlevomatCodingStandard.Functions.RequireTrailingCommaInCall`
 
 ### multiline.trailingComma.array
 
@@ -1366,6 +1453,7 @@ The trailing comma of a multi-line array, a destructuring written with `[...]` i
 - Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`, laravel `required`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
+- Covers: `no_trailing_comma_in_singleline`, `trailing_comma_in_multiline`, `SlevomatCodingStandard.Arrays.TrailingArrayComma`
 
 ### multiline.trailingComma.closureUse
 
@@ -1384,6 +1472,7 @@ The trailing comma of the names of a multi-line group use; any value but `keep` 
 - Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `optional`, psr12 `keep`, nette `required`, symfony `optional`, laravel `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
+- Covers: `no_trailing_comma_in_singleline`
 
 ### multiline.trailingComma.list
 
@@ -1393,6 +1482,7 @@ The trailing comma of a multi-line `list()`; any value but `keep` also removes t
 - Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `optional`, psr12 `keep`, nette `required`, symfony `optional`, laravel `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
+- Covers: `no_trailing_comma_in_singleline`
 
 ### multiline.trailingComma.matchArm
 
@@ -1411,6 +1501,7 @@ The trailing comma of a multi-line list of parameters; any value but `keep` also
 - Takes: `required` (always there where the closing bracket stands on its own line, never where it follows the last item); `optional` (as the author wrote it where the closing bracket stands on its own line, never where it follows the last item); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `required`, laravel `optional`
 - Rule `DressCode\Rules\Arrays\TrailingCommaRule`, stage Structure
+- Covers: `function_declaration`, `SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration`
 
 ## spacing
 
@@ -1422,6 +1513,7 @@ The whitespace wider than a single space around an operator, aligning a column o
 - Takes: `forbidden` (never there, more whitespace collapsing to a single space); `spaces` (spaces aligning a column staying, tabs not); `tabs` (tabs aligning a column staying, spaces not); `optional` (there or not, as the author wrote it)
 - The standards: perCs `spaces`, psr12 `spaces`, nette `spaces`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
+- Covers: `binary_operator_spaces`, `PSR12.Operators.OperatorSpacing`, `Squiz.WhiteSpace.LogicalOperatorSpacing`, `Squiz.WhiteSpace.OperatorSpacing`
 
 ### spacing.alignment.comma
 
@@ -1431,6 +1523,7 @@ The whitespace wider than a single space after a comma, aligning the columns of 
 - Takes: `forbidden` (never there, more whitespace collapsing to a single space); `spaces` (spaces aligning a column staying, tabs not); `tabs` (tabs aligning a column staying, spaces not); `optional` (there or not, as the author wrote it)
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `tabs`, symfony `optional`, laravel `optional`
 - Rule `DressCode\Rules\Whitespace\CommaSpacingRule`, stage Formatting
+- Covers: `no_whitespace_before_comma_in_array`, `whitespace_after_comma_in_array`, `Generic.Functions.FunctionCallArgumentSpacing`, `Squiz.Functions.FunctionDeclarationArgumentSpacing`
 
 ### spacing.alignment.comment
 
@@ -1450,6 +1543,7 @@ The whitespace wider than a single space around `?` and `:`, aligning a column; 
 - Takes: `forbidden` (never there, more whitespace collapsing to a single space); `optional` (there or not, as the author wrote it)
 - The standards: perCs `optional`, psr12 `optional`, nette `forbidden`, symfony `optional`, laravel `optional`
 - Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
+- Covers: `ternary_operator_spaces`, `PSR12.Operators.OperatorSpacing`
 
 ### spacing.alternativeSyntax
 
@@ -1468,6 +1562,7 @@ The space between `class` and the arguments of an anonymous class.
 - Takes: `'new class ($a)'` (a single space before the arguments); `'new class($a)'` (no space before the arguments); `keep`
 - The standards: perCs `'new class ($a)'`, psr12 `'new class ($a)'`, nette `'new class ($a)'`, symfony `'new class($a)'`, laravel `'new class($a)'`
 - Rule `DressCode\Rules\Classes\ClassHeadSpacingRule`, stage Formatting
+- Covers: `class_definition`, `PSR12.Classes.AnonClassDeclaration`
 
 ### spacing.anonymousFunction
 
@@ -1477,6 +1572,7 @@ The space between the `function` of a closure and its parenthesis.
 - Takes: `'function($x)'` (no space before the parenthesis); `'function ($x)'` (a single space); `keep`
 - The standards: perCs `'function ($x)'`, psr12 `'function ($x)'`, nette `'function ($x)'`, symfony `'function ($x)'`, laravel `'function ($x)'`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+- Covers: `function_declaration`, `Squiz.Functions.MultiLineFunctionDeclaration`
 
 ### spacing.arrowFunction
 
@@ -1486,6 +1582,7 @@ The space between `fn` and its parenthesis.
 - Takes: `'fn($x) => $x'` (no space before the parenthesis); `'fn ($x) => $x'` (a single space); `keep`
 - The standards: perCs `'fn($x) => $x'`, psr12 `keep`, nette `'fn($x) => $x'`, symfony `'fn ($x) => $x'`, laravel `'fn ($x) => $x'`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+- Covers: `function_declaration`, `SlevomatCodingStandard.Functions.ArrowFunctionDeclaration`
 
 ### spacing.attribute
 
@@ -1495,6 +1592,7 @@ The whitespace inside the brackets of an attribute group and before the parenthe
 - Takes: `'#[Foo($a)]'` (none inside the brackets, none before the parenthesis); `keep`
 - The standards: perCs `'#[Foo($a)]'`, psr12 `keep`, nette `'#[Foo($a)]'`, symfony `'#[Foo($a)]'`, laravel `keep`
 - Rule `DressCode\Rules\Whitespace\AttributeSpacingRule`, stage Formatting
+- Covers: `attribute_block_no_spaces`
 
 ### spacing.binaryOperator
 
@@ -1504,6 +1602,7 @@ The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `
 - Takes: `'$a + $b'` (a single space around); `keep`
 - The standards: perCs `'$a + $b'`, psr12 `'$a + $b'`, nette `'$a + $b'`, symfony `'$a + $b'`, laravel `'$a + $b'`
 - Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
+- Covers: `binary_operator_spaces`, `PSR12.Operators.OperatorSpacing`, `Squiz.WhiteSpace.LogicalOperatorSpacing`, `Squiz.WhiteSpace.OperatorSpacing`
 
 ### spacing.body
 
@@ -1522,6 +1621,7 @@ The whitespace between the name of a function and its parenthesis, of a call and
 - Takes: `'foo($a, $b)'` (no space before the parenthesis); `keep`
 - The standards: perCs `'foo($a, $b)'`, psr12 `'foo($a, $b)'`, nette `'foo($a, $b)'`, symfony `'foo($a, $b)'`, laravel `'foo($a, $b)'`
 - Rule `DressCode\Rules\Functions\FunctionNameSpacingRule`, stage Formatting
+- Covers: `function_declaration`, `no_spaces_after_function_name`, `Generic.Functions.FunctionCallArgumentSpacing.SpaceBeforeOpenBracket`, `PSR2.Methods.FunctionCallSignature`, `Squiz.Functions.FunctionDeclaration`
 
 ### spacing.cast
 
@@ -1531,6 +1631,7 @@ The space between a cast and its operand, which stays on the line of the cast.
 - Takes: `'(int) $x'` (a single space after the cast); `'(int)$x'` (no space after the cast); `keep`
 - The standards: perCs `'(int) $x'`, psr12 `'(int) $x'`, nette `'(int) $x'`, symfony `'(int) $x'`, laravel `'(int) $x'`
 - Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+- Covers: `cast_spaces`
 
 ### spacing.catchType
 
@@ -1549,6 +1650,7 @@ The whitespace around a comma, which stays on the line of what is before it, a l
 - Takes: `'$a, $b'` (none before, a single space after); `keep`
 - The standards: perCs `'$a, $b'`, psr12 `'$a, $b'`, nette `'$a, $b'`, symfony `'$a, $b'`, laravel `'$a, $b'`
 - Rule `DressCode\Rules\Whitespace\CommaSpacingRule`, stage Formatting
+- Covers: `no_whitespace_before_comma_in_array`, `whitespace_after_comma_in_array`, `Generic.Functions.FunctionCallArgumentSpacing`, `Squiz.Functions.FunctionDeclarationArgumentSpacing`
 
 ### spacing.comment.afterCode
 
@@ -1568,6 +1670,7 @@ The space after the marker of a comment and before the closing one, unless anoth
 - Takes: `'// text'` (a single space after the marker); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `'// text'`, symfony `'// text'`, laravel `'// text'`
 - Rule `DressCode\Rules\Comments\CommentSpacingRule`, stage Finishing
+- Covers: `PhpCsFixerCustomFixers/comment_surrounded_by_spaces`, `single_line_comment_spacing`
 - Modifies comments
 
 ### spacing.concatenation
@@ -1578,6 +1681,7 @@ The space around the concatenation operator, unless it sits at a line break.
 - Takes: `'$a . $b'` (a single space around); `'$a.$b'` (no space around); `keep`
 - The standards: perCs `'$a . $b'`, psr12 `'$a . $b'`, nette `'$a . $b'`, symfony `'$a.$b'`, laravel `'$a.$b'`
 - Rule `DressCode\Rules\Expressions\BinaryOperatorSpacingRule`, stage Formatting
+- Covers: `concat_space`, `PSR12.Operators.OperatorSpacing`, `Squiz.Strings.ConcatenationSpacing`
 
 ### spacing.declare
 
@@ -1587,6 +1691,7 @@ The whitespace inside a `declare` statement.
 - Takes: `'declare(strict_types=1)'` (none inside); `keep`
 - The standards: perCs `'declare(strict_types=1)'`, psr12 `'declare(strict_types=1)'`, nette `'declare(strict_types=1)'`, symfony `'declare(strict_types=1)'`, laravel `'declare(strict_types=1)'`
 - Rule `DressCode\Rules\Files\DeclareSpacingRule`, stage Formatting
+- Covers: `declare_equal_normalize`, `declare_parentheses`, `PSR12.Files.DeclareStatement`
 
 ### spacing.doubleColon
 
@@ -1596,6 +1701,7 @@ The whitespace around the double colon.
 - Takes: `'Foo::bar()'` (none around); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `'Foo::bar()'`, symfony `keep`, laravel `'Foo::bar()'`
 - Rule `DressCode\Rules\Expressions\MemberAccessSpacingRule`, stage Formatting
+- Covers: `no_space_around_double_colon`, `Squiz.WhiteSpace.ScopeKeywordSpacing`
 
 ### spacing.import
 
@@ -1615,6 +1721,7 @@ The space after a keyword followed by code on its line, `return`, `new`, `if`, `
 - The standards: perCs `required`, psr12 `required`, nette `required`, symfony `required`, laravel `required`
 - Rule `DressCode\Rules\Classes\ClassHeadSpacingRule`, stage Formatting
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+- Covers: `function_declaration`, `single_space_around_construct`, `Generic.WhiteSpace.LanguageConstructSpacing`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.Traits.UseDeclaration`, `PSR2.Classes.ClassDeclaration`, `PSR2.Classes.ClassDeclaration.SpaceBeforeKeyword`, `PSR2.ControlStructures.SwitchDeclaration`, `Squiz.ControlStructures.ControlSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.Functions.FunctionDeclaration`
 
 ### spacing.logicalNot
 
@@ -1624,6 +1731,7 @@ The whitespace between `!` and its operand, which stay on one line.
 - Takes: `'!$x'` (no space after the operator); `'! $x'` (a single space after the operator); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `['!$x', '! $x']`, psr12 `['!$x', '! $x']`, nette `'!$x'`, symfony `'!$x'`, laravel `'! $x'`
 - Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+- Covers: `not_operator_with_successor_space`, `not_operator_without_successor_space`, `unary_operator_spaces`, `SlevomatCodingStandard.Operators.NegationOperatorSpacing`, `Squiz.WhiteSpace.OperatorSpacing.Unary`
 
 ### spacing.namedArgument
 
@@ -1633,6 +1741,7 @@ The whitespace around the colon of a named argument.
 - Takes: `'foo(name: $x)'` (none before the colon, a single space after); `keep`
 - The standards: perCs `'foo(name: $x)'`, psr12 `keep`, nette `'foo(name: $x)'`, symfony `'foo(name: $x)'`, laravel `keep`
 - Rule `DressCode\Rules\Functions\NamedArgumentSpacingRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.Functions.NamedArgumentSpacing`
 
 ### spacing.objectOperator
 
@@ -1642,6 +1751,7 @@ The whitespace around the object operator.
 - Takes: `'$a->b()'` (none around); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `'$a->b()'`, symfony `'$a->b()'`, laravel `'$a->b()'`
 - Rule `DressCode\Rules\Expressions\MemberAccessSpacingRule`, stage Formatting
+- Covers: `object_operator_without_whitespace`, `Squiz.WhiteSpace.ObjectOperatorSpacing`
 
 ### spacing.openBrace
 
@@ -1651,6 +1761,7 @@ The space before the brace or the body a structure opens on the line of its head
 - Takes: `required` (always there); `keep`
 - The standards: perCs `required`, psr12 `required`, nette `required`, symfony `required`, laravel `required`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
+- Covers: `Squiz.ControlStructures.ControlSignature`
 
 ### spacing.padding.argument
 
@@ -1660,6 +1771,7 @@ The whitespace inside the parentheses of the arguments of a call, of `new` and o
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`
 
 ### spacing.padding.array
 
@@ -1669,6 +1781,7 @@ The whitespace inside the brackets or the parentheses of an array.
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Covers: `trim_array_spaces`, `SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace`
 
 ### spacing.padding.closureUse
 
@@ -1678,6 +1791,7 @@ The whitespace inside the parentheses of the `use` of a closure.
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`
 
 ### spacing.padding.controlStructure
 
@@ -1687,6 +1801,7 @@ The whitespace inside the parentheses of `if`, `elseif`, `while`, `for`, `foreac
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`, `Squiz.WhiteSpace.ControlStructureSpacing`
 
 ### spacing.padding.grouping
 
@@ -1696,6 +1811,7 @@ The whitespace inside the parentheses grouping an expression, `($a + $b) * $c`.
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`
 
 ### spacing.padding.list
 
@@ -1705,6 +1821,7 @@ The whitespace inside the brackets or the parentheses of a destructuring.
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Covers: `trim_array_spaces`, `SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace`
 
 ### spacing.padding.offset
 
@@ -1714,6 +1831,7 @@ The whitespace inside the brackets of an offset access and before them.
 - Takes: `forbidden` (never there); `required` (always there); `exceptLiterals` (a single space around an index other than a string or an integer literal, `$a[ $i ]` but `$a[0]`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Covers: `no_spaces_around_offset`, `Squiz.Arrays.ArrayBracketSpacing`
 
 ### spacing.padding.parameter
 
@@ -1723,6 +1841,7 @@ The whitespace inside the parentheses of the parameters of a function, a method,
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Whitespace\DelimiterSpacingRule`, stage Formatting
+- Covers: `function_declaration`, `no_spaces_inside_parenthesis`, `spaces_inside_parentheses`, `PSR12.Classes.AnonClassDeclaration`, `PSR12.ControlStructures.ControlStructureSpacing`, `PSR2.ControlStructures.ControlStructureSpacing`, `PSR2.Methods.FunctionCallSignature`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`
 
 ### spacing.reference
 
@@ -1732,6 +1851,7 @@ The whitespace between `&` and its operand.
 - Takes: `'&$x'` (none between); `keep`
 - The standards: perCs `'&$x'`, psr12 `'&$x'`, nette `'&$x'`, symfony `'&$x'`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.PHP.ReferenceSpacing`
 
 ### spacing.semicolon.after
 
@@ -1741,6 +1861,7 @@ The whitespace after a semicolon that more code follows on its line.
 - Takes: `'for ($i = 0; $i < 5; $i++)'` (a single space after a semicolon); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `'for ($i = 0; $i < 5; $i++)'`, symfony `'for ($i = 0; $i < 5; $i++)'`, laravel `'for ($i = 0; $i < 5; $i++)'`
 - Rule `DressCode\Rules\Whitespace\SemicolonSpacingRule`, stage Formatting
+- Covers: `space_after_semicolon`, `Squiz.ControlStructures.ForLoopDeclaration`
 
 ### spacing.semicolon.before
 
@@ -1750,6 +1871,7 @@ The whitespace before a semicolon, which stays on the line of what it ends.
 - Takes: `'$a;'` (no space before a semicolon); `keep`
 - The standards: perCs `'$a;'`, psr12 `keep`, nette `'$a;'`, symfony `'$a;'`, laravel `'$a;'`
 - Rule `DressCode\Rules\Whitespace\SemicolonSpacingRule`, stage Formatting
+- Covers: `no_singleline_whitespace_before_semicolons`, `PSR12.Traits.UseDeclaration`, `Squiz.ControlStructures.ForLoopDeclaration`, `Squiz.WhiteSpace.SemicolonSpacing`
 
 ### spacing.spread
 
@@ -1759,6 +1881,7 @@ The whitespace between `...` and its operand.
 - Takes: `'...$x'` (none between); `keep`
 - The standards: perCs `'...$x'`, psr12 `'...$x'`, nette `'...$x'`, symfony `'...$x'`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+- Covers: `SlevomatCodingStandard.Operators.SpreadOperatorSpacing`
 
 ### spacing.switchCase
 
@@ -1768,6 +1891,7 @@ The whitespace before the colon of a `case`.
 - Takes: `'case 1:'` (none before the colon); `keep`
 - The standards: perCs `'case 1:'`, psr12 `'case 1:'`, nette `'case 1:'`, symfony `'case 1:'`, laravel `'case 1:'`
 - Rule `DressCode\Rules\ControlFlow\SwitchCaseSpacingRule`, stage Formatting
+- Covers: `switch_case_space`, `PSR2.ControlStructures.SwitchDeclaration`, `PSR2.ControlStructures.SwitchDeclaration.SpaceBeforeColonCASE`
 
 ### spacing.ternary
 
@@ -1777,6 +1901,7 @@ The whitespace around `?` and `:` of a ternary, and around `?:` as a whole, unle
 - Takes: `'$a ? $b : $c'` (whitespace around `?` and `:`); `keep`
 - The standards: perCs `'$a ? $b : $c'`, psr12 `'$a ? $b : $c'`, nette `'$a ? $b : $c'`, symfony `'$a ? $b : $c'`, laravel `'$a ? $b : $c'`
 - Rule `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`, stage Formatting
+- Covers: `ternary_operator_spaces`, `PSR12.Operators.OperatorSpacing`
 
 ### spacing.typeDeclaration
 
@@ -1786,6 +1911,7 @@ The whitespace of a type declaration, which stays on one line with what it descr
 - Takes: `'?int $x'` (none inside a type, a single space before the name); `keep`
 - The standards: perCs `'?int $x'`, psr12 `'?int $x'`, nette `'?int $x'`, symfony `'?int $x'`, laravel `'?int $x'`
 - Rule `DressCode\Rules\Types\TypeDeclarationSpacingRule`, stage Formatting
+- Covers: `compact_nullable_type_declaration`, `return_type_declaration`, `type_declaration_spaces`, `types_spaces`, `PSR12.Functions.NullableTypeDeclaration`, `PSR12.Functions.ReturnTypeDeclaration`, `SlevomatCodingStandard.Classes.BackedEnumTypeSpacing`, `SlevomatCodingStandard.TypeHints.ParameterTypeHintSpacing`, `SlevomatCodingStandard.TypeHints.ReturnTypeHintSpacing`
 
 ### spacing.unaryOperator
 
@@ -1795,6 +1921,7 @@ The whitespace between a unary operator other than `!` and its operand, which st
 - Takes: `'-$x'` (no space after the operator); `keep`
 - The standards: perCs `'-$x'`, psr12 `'-$x'`, nette `'-$x'`, symfony `'-$x'`, laravel `'-$x'`
 - Rule `DressCode\Rules\Expressions\OperandSpacingRule`, stage Formatting
+- Covers: `unary_operator_spaces`, `Generic.WhiteSpace.IncrementDecrementSpacing`, `Squiz.WhiteSpace.OperatorSpacing.Unary`
 
 ## naming
 
@@ -1806,6 +1933,7 @@ The word `Abstract` in front of the name of an abstract class, `AbstractFoo`, wh
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Classes.SuperfluousAbstractClassNaming`
 
 ### naming.class
 
@@ -1815,6 +1943,7 @@ The case of the name of a class, an interface, a trait and an enum, which is rep
 - Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `PascalCase`, psr12 `PascalCase`, nette `PascalCase`, symfony `PascalCase`, laravel `keep`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+- Covers: `Squiz.Classes.ValidClassName`
 
 ### naming.constant
 
@@ -1824,6 +1953,7 @@ The case of the name of a class constant and a `const` outside a class, a consta
 - Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `UPPER_CASE`, psr12 `UPPER_CASE`, nette `PascalCase`, symfony `UPPER_CASE`, laravel `keep`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+- Covers: `Generic.NamingConventions.UpperCaseConstantName`, `Generic.NamingConventions.UpperCaseConstantName.ClassConstantNotUpperCase`
 
 ### naming.enumCase
 
@@ -1842,6 +1972,7 @@ The word `Error` at the end of the name of a class that is not abstract, `FooErr
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Classes.SuperfluousErrorNaming`
 
 ### naming.except
 
@@ -1860,6 +1991,7 @@ The word `Exception` at the end of the name of an exception, `FooException`, whi
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Classes.SuperfluousExceptionNaming`
 
 ### naming.function
 
@@ -1869,6 +2001,7 @@ The case of the name of a function, those beginning with `__` being PHP's, which
 - Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `camelCase`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+- Covers: `Generic.NamingConventions.CamelCapsFunctionName`, `Squiz.NamingConventions.ValidFunctionName`
 
 ### naming.interfaceAffix
 
@@ -1878,6 +2011,7 @@ The word `Interface` at the end of the name of an interface, `FooInterface`, whi
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Classes.SuperfluousInterfaceNaming`
 
 ### naming.method
 
@@ -1887,6 +2021,7 @@ The case of the name of a method, those beginning with `__` being PHP's, which i
 - Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `camelCase`, psr12 `camelCase`, nette `camelCase`, symfony `camelCase`, laravel `keep`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+- Covers: `Generic.NamingConventions.CamelCapsFunctionName`, `PSR1.Methods.CamelCapsMethodName`, `PSR1.Methods.CamelCapsMethodName.NotCamelCaps`, `Squiz.NamingConventions.ValidFunctionName`
 
 ### naming.property
 
@@ -1896,6 +2031,7 @@ The case of the name of a property, a promoted constructor parameter included, w
 - Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `camelCase`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+- Covers: `Squiz.NamingConventions.ValidVariableName`, `Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps`
 
 ### naming.traitAffix
 
@@ -1905,6 +2041,7 @@ The word `Trait` at the end of the name of a trait, `FooTrait`, which is reporte
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\ClassKindInNameRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Classes.SuperfluousTraitNaming`
 
 ### naming.variable
 
@@ -1914,6 +2051,7 @@ The case of the name of a variable and a parameter, `$this`, the superglobals an
 - Takes: `PascalCase` (a capital first and a lowercase letter somewhere, `FooBar`, a name of two letters such as `IO` passing); `camelCase` (a lowercase letter first, `fooBar`); `UPPER_CASE` (capitals, digits and underscores, `FOO_BAR`); `snake_case` (lowercase letters, digits and underscores, `foo_bar`); `Pascal_Snake_Case` (words joined by underscores, each beginning with a capital, `WP_REST_Request`, a PascalCase name passing too); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `camelCase`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\NameCasingRule`, stage Structure
+- Covers: `Squiz.NamingConventions.ValidVariableName`, `Squiz.NamingConventions.ValidVariableName.NotCamelCaps`, `Squiz.NamingConventions.ValidVariableName.StringNotCamelCaps`
 
 ## casing
 
@@ -1925,6 +2063,7 @@ The case of a class, an interface, a trait or an enum as its declaration writes 
 - Takes: `declared` (`stdClass`, `DateTime`, never `datetime`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `declared`, symfony `declared`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\DeclaredNameCasingRule`, stage Structure
+- Covers: `class_reference_name_casing`
 
 ### casing.function
 
@@ -1934,6 +2073,7 @@ The case of a function as its declaration writes it, of one PHP declares only wh
 - Takes: `declared` (`strlen`, never `StrLen`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `declared`, symfony `declared`, laravel `declared`
 - Rule `DressCode\Rules\Namespaces\DeclaredNameCasingRule`, stage Structure
+- Covers: `native_function_casing`, `Squiz.PHP.LowercasePHPFunctions`
 
 ### casing.hexDigit
 
@@ -1943,6 +2083,7 @@ The digits `A` to `F` of a hexadecimal number; the prefixes `0x`, `0b` and `0o` 
 - Takes: `uppercase` (`0xFF`); `lowercase` (`0xff`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `uppercase`
 - Rule `DressCode\Rules\Literals\NumberNotationRule`, stage Structure
+- Covers: `integer_literal_case`
 
 ### casing.keyword
 
@@ -1952,6 +2093,7 @@ The case of keywords, `self` and `parent` included.
 - Takes: `lowercase` (`if`, `function`, `self`, `parent`); `keep`
 - The standards: perCs `lowercase`, psr12 `lowercase`, nette `lowercase`, symfony `lowercase`, laravel `lowercase`
 - Rule `DressCode\Rules\Literals\BuiltinCasingRule`, stage Structure
+- Covers: `lowercase_keywords`, `lowercase_static_reference`, `Generic.PHP.LowerCaseKeyword`, `Generic.PHP.LowerCaseType`, `PSR2.ControlStructures.SwitchDeclaration`, `Squiz.ControlStructures.ForEachLoopDeclaration`, `Squiz.ControlStructures.LowercaseDeclaration`, `Squiz.Functions.LowercaseFunctionKeywords`
 
 ### casing.magicConstant
 
@@ -1961,6 +2103,7 @@ The case of the magic constants such as `__DIR__`.
 - Takes: `uppercase` (`__DIR__`, `__CLASS__`); `lowercase` (`__dir__`, `__class__`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `uppercase`, symfony `uppercase`, laravel `uppercase`
 - Rule `DressCode\Rules\Literals\BuiltinCasingRule`, stage Structure
+- Covers: `magic_constant_casing`
 
 ### casing.method
 
@@ -1979,6 +2122,7 @@ The case of `true`, `false` and `null`, a leading backslash staying.
 - Takes: `lowercase` (`true`, `false`, `null`); `uppercase` (`TRUE`, `FALSE`, `NULL`); `keep`
 - The standards: perCs `lowercase`, psr12 `lowercase`, nette `lowercase`, symfony `lowercase`, laravel `lowercase`
 - Rule `DressCode\Rules\Literals\BuiltinCasingRule`, stage Structure
+- Covers: `constant_case`, `Generic.PHP.LowerCaseConstant`
 
 ### casing.type
 
@@ -1988,6 +2132,7 @@ The case of the built-in types of a declaration; `array`, `callable`, `static`, 
 - Takes: `lowercase` (`int`, `string`, `void`); `keep`
 - The standards: perCs `lowercase`, psr12 `lowercase`, nette `lowercase`, symfony `lowercase`, laravel `lowercase`
 - Rule `DressCode\Rules\Namespaces\DeclaredNameCasingRule`, stage Structure
+- Covers: `native_type_declaration_casing`, `Generic.PHP.LowerCaseType`
 
 ## qualification
 
@@ -1999,6 +2144,7 @@ A class, interface, trait or enum of the namespace of the file, `Order` in `name
 - Takes: `bare` (bare, `Order` relative to the namespace); `backslashed` (with the leading backslash, `\Acme\Shop\Order`); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `bare`, symfony `keep`, laravel `bare`
 - Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Covers: `fully_qualified_strict_types`, `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
 - Modifies comments
 
 ### qualification.class.global
@@ -2009,6 +2155,7 @@ A class of the global namespace referenced in a namespace, `DateTime`, which a b
 - Takes: `imported` (imported, `use DateTime;` and `DateTime`); `backslashed` (with the leading backslash, `\DateTime`); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `backslashed`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
+- Covers: `global_namespace_import`, `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
 
 ### qualification.class.otherNamespace
 
@@ -2020,6 +2167,7 @@ A name relative to an import or to the namespace, `Shop\Order`, stays as it is.
 - Takes: `imported` (imported, `use Acme\Shop\Order;` and `Order`); `backslashed` (with the leading backslash, `\Acme\Shop\Order`); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `imported`, symfony `keep`, laravel `imported`
 - Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Covers: `fully_qualified_strict_types`, `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
 - Modifies comments
 
 ### qualification.class.phpdoc
@@ -2032,6 +2180,7 @@ A name relative to an import or to the namespace, `Shop\Order`, stays as it is, 
 - Takes: `imported` (imported, `use Acme\Shop\Order;` and `@param Order $order`, a class of the namespace of the file bare, a global one where the file imports it); `backslashed` (with the leading backslash, `@param \Acme\Shop\Order $order`, a name an import reaches); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `imported`, symfony `keep`, laravel `imported`
 - Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Covers: `fully_qualified_strict_types`
 - Modifies comments
 
 ### qualification.constant.currentNamespace
@@ -2042,6 +2191,7 @@ A constant of the namespace of the file, `STATUS_PAID` in `namespace Acme\Shop`.
 - Takes: `bare` (bare, `STATUS_PAID` relative to the namespace); `backslashed` (with the leading backslash, `\Acme\Shop\STATUS_PAID`); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
 - Modifies comments
 
 ### qualification.constant.global
@@ -2052,6 +2202,7 @@ A global constant in a namespace, `PHP_EOL`, but where the compiler computes wit
 - Takes: `bare` (bare, `PHP_EOL` without an import or a backslash, reached by the fallback at run time); `imported` (imported, `use const PHP_EOL;` and `PHP_EOL`); `backslashed` (with the leading backslash, `\PHP_EOL`); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `[backslashed, bare]`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
+- Covers: `global_namespace_import`, `native_constant_invocation`, `SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants`, `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### qualification.constant.optimized
@@ -2064,6 +2215,7 @@ A constant merely passed to a call is not one the compiler computes with.
 - Takes: `imported` (imported, `use const PHP_VERSION_ID;`, so that the compiler computes with it); `backslashed` (with the leading backslash, `\PHP_VERSION_ID`, so that the compiler computes with it); `bare` (bare, `PHP_VERSION_ID`, forgoing the optimization); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `[backslashed, bare]`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
+- Covers: `global_namespace_import`, `native_constant_invocation`, `SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants`, `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### qualification.constant.otherNamespace
@@ -2074,6 +2226,7 @@ A constant of a namespace other than that of the file.
 - Takes: `imported` (imported, `use const Acme\Shop\STATUS_PAID;` and `STATUS_PAID`); `backslashed` (with the leading backslash, `\Acme\Shop\STATUS_PAID`); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
 - Modifies comments
 
 ### qualification.currentClass
@@ -2084,6 +2237,7 @@ How a class refers to itself in an expression: a static access, an instantiation
 - Takes: `self` (the class named `self` inside itself); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `self`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\SelfForCurrentClassRule`, stage Structure
+- Covers: `self_accessor`, `SlevomatCodingStandard.Classes.UselessLateStaticBinding`, `Squiz.Classes.SelfMemberReference`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### qualification.function.currentNamespace
@@ -2094,6 +2248,7 @@ A function of the namespace of the file, `normalize()` in `namespace Acme\Text`.
 - Takes: `bare` (bare, `normalize()` relative to the namespace); `backslashed` (with the leading backslash, `\Acme\Text\normalize()`); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
 - Modifies comments
 
 ### qualification.function.global
@@ -2106,6 +2261,7 @@ Not a function of the namespace of the file, nor a name in a file without a name
 - Takes: `bare` (bare, `ucfirst()` without an import or a backslash, reached by the fallback at run time); `imported` (imported, `use function ucfirst;` and `ucfirst()`); `backslashed` (with the leading backslash, `\ucfirst()`); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `[backslashed, bare]`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
+- Covers: `global_namespace_import`, `native_function_invocation`, `SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions`, `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### qualification.function.optimized
@@ -2119,6 +2275,7 @@ A function is optimized in a namespace where one of its calls there is, an unpac
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `[backslashed, bare]`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\GlobalNameQualificationRule`, stage Structure
 - Rule `DressCode\Rules\Namespaces\OptimizedCallNotationRule`, stage Structure
+- Covers: `global_namespace_import`, `native_function_invocation`, `SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions`, `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`, `SlevomatCodingStandard.PHP.OptimizedFunctionsWithoutUnpacking`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### qualification.function.otherNamespace
@@ -2129,6 +2286,7 @@ A function of a namespace other than that of the file.
 - Takes: `imported` (imported, `use function Acme\Text\normalize;` and `normalize()`); `backslashed` (with the leading backslash, `\Acme\Text\normalize()`); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\ForeignNameQualificationRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
 - Modifies comments
 
 ### qualification.leadingBackslash
@@ -2139,6 +2297,7 @@ The leading backslash of a name where it changes nothing, in a file without a na
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\UselessLeadingBackslashRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/no_leading_slash_in_global_namespace`
 
 ### qualification.staticInFinalClass
 
@@ -2150,6 +2309,7 @@ The return type `static` stays, saying what a subclass would return.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `required`
 - Rule `DressCode\Rules\Classes\SelfForCurrentClassRule`, stage Structure
+- Covers: `self_static_accessor`, `SlevomatCodingStandard.Classes.UselessLateStaticBinding`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ## imports
@@ -2162,6 +2322,7 @@ The return type `static` stays, saying what a subclass would return.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Namespaces\UselessAliasRule`, stage Structure
+- Covers: `no_unneeded_import_alias`, `SlevomatCodingStandard.Namespaces.UselessAlias`
 
 ### imports.fromCurrentNamespace
 
@@ -2171,6 +2332,7 @@ An import of a class of the namespace it stands in, `use Acme\Shop\Order;` insid
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Namespaces\UselessCurrentNamespaceImportRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Namespaces.UseFromSameNamespace`
 
 ### imports.grouping.class
 
@@ -2180,6 +2342,7 @@ How the imports of classes are put into `use` statements, a name of the global n
 - Takes: `separated` (a `use` of its own for every name, `use Foo; use Bar;`); `combined` (all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration); `grouped` (the names of one namespace in one group use, `use Acme\Shop\{Order, Cart};`, from `imports.groupMinNames` of them on); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `[separated, grouped]`, symfony `separated`, laravel `separated`
 - Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
+- Covers: `group_import`, `single_import_per_statement`, `PSR2.Namespaces.UseDeclaration`, `SlevomatCodingStandard.Namespaces.DisallowGroupUse`, `SlevomatCodingStandard.Namespaces.MultipleUsesPerLine`
 
 ### imports.grouping.constant
 
@@ -2189,6 +2352,7 @@ How the imports of constants are put into `use` statements, a name of the global
 - Takes: `separated` (a `use` of its own for every name, `use Foo; use Bar;`); `combined` (all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration); `grouped` (the names of one namespace in one group use, `use Acme\Shop\{Order, Cart};`, from `imports.groupMinNames` of them on); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `[combined, grouped]`, symfony `separated`, laravel `separated`
 - Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
+- Covers: `group_import`, `single_import_per_statement`, `PSR2.Namespaces.UseDeclaration`, `SlevomatCodingStandard.Namespaces.DisallowGroupUse`, `SlevomatCodingStandard.Namespaces.MultipleUsesPerLine`
 
 ### imports.grouping.function
 
@@ -2198,6 +2362,7 @@ How the imports of functions are put into `use` statements, a name of the global
 - Takes: `separated` (a `use` of its own for every name, `use Foo; use Bar;`); `combined` (all names of the kind in one `use`, `use Foo, Bar;`, one per namespace declaration); `grouped` (the names of one namespace in one group use, `use Acme\Shop\{Order, Cart};`, from `imports.groupMinNames` of them on); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `[combined, grouped]`, symfony `separated`, laravel `separated`
 - Rule `DressCode\Rules\Namespaces\ImportNotationRule`, stage Structure
+- Covers: `group_import`, `single_import_per_statement`, `PSR2.Namespaces.UseDeclaration`, `SlevomatCodingStandard.Namespaces.DisallowGroupUse`, `SlevomatCodingStandard.Namespaces.MultipleUsesPerLine`
 
 ### imports.groupMinNames
 
@@ -2216,6 +2381,7 @@ The leading backslash of an import, which changes nothing, `use \Foo\Bar;`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Namespaces\UselessLeadingBackslashRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/no_leading_slash_in_global_namespace`, `no_leading_import_slash`, `PSR12.Files.ImportStatement`, `SlevomatCodingStandard.Namespaces.UseDoesNotStartWithBackslash`
 
 ### imports.order.caseSensitive
 
@@ -2225,6 +2391,7 @@ Whether `Acme` sorts before `acme` rather than with it.
 - Takes: `yes`; `no`
 - The standards: perCs `no`, psr12 `no`, nette `no`, symfony `no`, laravel `no`
 - Rule `DressCode\Rules\Namespaces\ImportOrderRule`, stage Structure
+- Covers: `ordered_imports`, `SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses`
 
 ### imports.order.kinds
 
@@ -2234,6 +2401,7 @@ The order of the kinds among consecutive imports, a kind not listed following in
 - Takes: an order of `class` (the imports of classes); `function` (the imports of functions); `constant` (the imports of constants); `keep`
 - The standards: perCs `[class, function, constant]`, psr12 `[class, function, constant]`, nette `[class, function, constant]`, symfony `[class, function, constant]`, laravel `[constant, class, function]`
 - Rule `DressCode\Rules\Namespaces\ImportOrderRule`, stage Structure
+- Covers: `ordered_imports`, `SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses`
 
 ### imports.order.names
 
@@ -2243,6 +2411,7 @@ The order of the names of one kind among consecutive imports, the names of a sta
 - Takes: `alphabetical` (the names of a kind sorted alphabetically); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `alphabetical`, symfony `alphabetical`, laravel `alphabetical`
 - Rule `DressCode\Rules\Namespaces\ImportOrderRule`, stage Structure
+- Covers: `ordered_imports`, `SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses`
 
 ### imports.unused
 
@@ -2252,6 +2421,7 @@ An import nothing uses is removed, a class name in a doc comment using the impor
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Namespaces\NoUnusedImportsRule`, stage Structure
+- Covers: `no_unused_imports`, `SlevomatCodingStandard.Namespaces.UnusedUses`
 
 ## classes
 
@@ -2263,6 +2433,7 @@ The empty parentheses of an anonymous class.
 - Takes: `required` (always there, `new class()`); `forbidden` (never there, `new class`); `keep`
 - The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Expressions\EmptyArgumentParenthesesRule`, stage Structure
+- Covers: `new_with_braces`, `new_with_parentheses`
 
 ### classes.emptyParentheses.attribute
 
@@ -2272,6 +2443,7 @@ The empty parentheses of an attribute.
 - Takes: `required` (always there, `#[Foo()]`); `forbidden` (never there, `#[Foo]`); `keep`
 - The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\EmptyArgumentParenthesesRule`, stage Structure
+- Covers: `attribute_empty_parentheses`
 
 ### classes.emptyParentheses.instantiation
 
@@ -2281,6 +2453,7 @@ The empty parentheses of `new` with a class, `new static` and `new $class` alike
 - Takes: `required` (always there, `new Foo()`); `forbidden` (never there, `new Foo`); `keep`
 - The standards: perCs `required`, psr12 `required`, nette `forbidden`, symfony `required`, laravel `forbidden`
 - Rule `DressCode\Rules\Expressions\EmptyArgumentParenthesesRule`, stage Structure
+- Covers: `new_with_braces`, `new_with_parentheses`, `PSR12.Classes.ClassInstantiation`, `SlevomatCodingStandard.ControlStructures.NewWithParentheses`, `SlevomatCodingStandard.ControlStructures.NewWithoutParentheses`
 
 ### classes.instantiationWrapping
 
@@ -2290,6 +2463,7 @@ The parentheses around an instantiation a member is accessed on, `new Foo()->bar
 - Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\InstantiationWrappingRule`, stage Structure
+- Covers: `new_expression_parentheses`
 - Needs PHP >=8.4
 
 ### classes.internalClass.except
@@ -2309,6 +2483,7 @@ The `final` of a class its author marked as internal, which nothing outside the 
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\FinalForInternalClassRule`, stage Structure
+- Covers: `final_internal_class`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### classes.internalClass.markers
@@ -2328,6 +2503,7 @@ A declaration of several constants of a class, `const A = 1, B = 2;`.
 - Takes: `separated` (one member per declaration, each sharing the modifiers and the type of the original); `keep`
 - The standards: perCs `separated`, psr12 `keep`, nette `keep`, symfony `separated`, laravel `separated`
 - Rule `DressCode\Rules\Classes\NoGroupedDeclarationsRule`, stage Structure
+- Covers: `single_class_element_per_statement`, `SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition`
 
 ### classes.members.grouping.property
 
@@ -2337,6 +2513,7 @@ A declaration of several properties, `public $a, $b;`.
 - Takes: `separated` (one member per declaration, each sharing the modifiers and the type of the original); `keep`
 - The standards: perCs `separated`, psr12 `separated`, nette `separated`, symfony `separated`, laravel `separated`
 - Rule `DressCode\Rules\Classes\NoGroupedDeclarationsRule`, stage Structure
+- Covers: `single_class_element_per_statement`, `SlevomatCodingStandard.Classes.DisallowMultiPropertyDefinition`
 
 ### classes.members.grouping.traitUse
 
@@ -2346,6 +2523,7 @@ A `use` of several traits, `use A, B;`.
 - Takes: `separated` (one member per declaration, each sharing the modifiers and the type of the original); `keep`
 - The standards: perCs `separated`, psr12 `separated`, nette `separated`, symfony `separated`, laravel `keep`
 - Rule `DressCode\Rules\Classes\NoGroupedDeclarationsRule`, stage Structure
+- Covers: `single_trait_insert_per_statement`, `PSR12.Traits.UseDeclaration`, `SlevomatCodingStandard.Classes.TraitUseDeclaration`
 
 ### classes.members.order
 
@@ -2355,6 +2533,7 @@ The order of the members of a class by kind, a member taking the most particular
 - Takes: an order of `traitUse` (a trait use); `enumCase` (a case of an enum); `constant` (a constant of any visibility); `publicConstant` (a public constant); `protectedConstant` (a protected constant); `privateConstant` (a private constant); `property` (a property of any visibility); `publicProperty` (a public property); `protectedProperty` (a protected property); `privateProperty` (a private property); `publicStaticProperty` (a public static property); `protectedStaticProperty` (a protected static property); `privateStaticProperty` (a private static property); `method` (a method of any visibility); `publicMethod` (a public method); `protectedMethod` (a protected method); `privateMethod` (a private method); `publicStaticMethod` (a public static method); `protectedStaticMethod` (a protected static method); `privateStaticMethod` (a private static method); `constructor` (the constructor); `destructor` (the destructor); `magicMethod` (a method whose name begins with `__`); `keep`
 - The standards: perCs `[traitUse]`, psr12 `[traitUse]`, nette `[traitUse, enumCase, publicConstant, protectedConstant, privateConstant, publicProperty, protectedProperty, privateProperty]`, symfony `[traitUse]`, laravel `keep`
 - Rule `DressCode\Rules\Classes\MemberOrderRule`, stage Structure
+- Covers: `ordered_class_elements`, `PSR12.Traits.UseDeclaration`
 
 ### classes.modifiers.implied
 
@@ -2364,6 +2543,7 @@ A modifier PHP implies anyway, `final` in a final class, `readonly` in a readonl
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\UselessModifierRule`, stage Structure
+- Covers: `no_redundant_readonly_property`, `no_unneeded_final_method`, `Generic.CodeAnalysis.UnnecessaryFinalModifier`
 
 ### classes.modifiers.order
 
@@ -2373,6 +2553,7 @@ The order of the modifiers of a property, a promoted one included, a method, a c
 - Takes: `canonical` (`abstract` or `final`, visibility, set visibility, `static`, `readonly`); `keep`
 - The standards: perCs `canonical`, psr12 `canonical`, nette `canonical`, symfony `canonical`, laravel `canonical`
 - Rule `DressCode\Rules\Classes\ModifierOrderRule`, stage Structure
+- Covers: `modifier_keywords`, `visibility_required`, `PSR2.Classes.PropertyDeclaration`, `PSR2.Methods.MethodDeclaration`, `SlevomatCodingStandard.Classes.PropertyDeclaration`
 
 ### classes.overridingMethod.parameterName
 
@@ -2426,6 +2607,7 @@ A `protected` member of an enum, which is `private`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `keep`
 - Rule `DressCode\Rules\Classes\PrivateForProtectedRule`, stage Structure
+- Covers: `protected_to_private`
 
 ### classes.protectedInFinalClass
 
@@ -2435,6 +2617,7 @@ A `protected` member of a final class with no parent and no trait, which is `pri
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `forbidden`, laravel `keep`
 - Rule `DressCode\Rules\Classes\PrivateForProtectedRule`, stage Structure
+- Covers: `protected_to_private`
 
 ### classes.staticMethod
 
@@ -2444,6 +2627,7 @@ The `static` keyword of a method that does not use `$this`, of the visibilities 
 - Takes: `required` (always there, `static function`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\StaticForMethodWithoutThisRule`, stage Structure
+- Covers: `static_private_method`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### classes.staticMethodVisibilities
@@ -2463,6 +2647,7 @@ The visibilities of the methods made static.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `keep`
 - Rule `DressCode\Rules\Classes\UselessNullInitializationRule`, stage Structure
+- Covers: `no_null_property_initialization`
 
 ### classes.visibility.constant
 
@@ -2472,6 +2657,7 @@ The visibility of a constant of a class, an interface, a trait or an enum.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `required`, psr12 `required`, nette `required`, symfony `required`, laravel `keep`
 - Rule `DressCode\Rules\Classes\VisibilityRequiredRule`, stage Structure
+- Covers: `modifier_keywords`, `visibility_required`, `PSR12.Properties.ConstantVisibility`, `PSR2.Classes.PropertyDeclaration`, `SlevomatCodingStandard.Classes.ClassConstantVisibility`, `Squiz.Scope.MethodScope`
 
 ### classes.visibility.interfaceMethod
 
@@ -2481,6 +2667,7 @@ The `public` of a method of an interface, which is public whatever it says.
 - Takes: `required` (always there); `forbidden` (never there); `keep`
 - The standards: perCs `required`, psr12 `required`, nette `forbidden`, symfony `required`, laravel `required`
 - Rule `DressCode\Rules\Classes\VisibilityRequiredRule`, stage Structure
+- Covers: `modifier_keywords`, `visibility_required`, `Squiz.Scope.MethodScope`
 
 ### classes.visibility.method
 
@@ -2490,6 +2677,7 @@ The visibility of a method outside an interface, whose methods take `interfaceMe
 - Takes: `required` (always there); `keep`
 - The standards: perCs `required`, psr12 `required`, nette `required`, symfony `required`, laravel `required`
 - Rule `DressCode\Rules\Classes\VisibilityRequiredRule`, stage Structure
+- Covers: `modifier_keywords`, `visibility_required`, `PSR12.Properties.ConstantVisibility`, `PSR2.Classes.PropertyDeclaration`, `SlevomatCodingStandard.Classes.ClassConstantVisibility`, `Squiz.Scope.MethodScope`
 
 ### classes.visibility.property
 
@@ -2499,6 +2687,7 @@ The visibility of a property, a promoted one included, `var` becoming `public` a
 - Takes: `required` (always there); `keep`
 - The standards: perCs `required`, psr12 `required`, nette `required`, symfony `required`, laravel `required`
 - Rule `DressCode\Rules\Classes\VisibilityRequiredRule`, stage Structure
+- Covers: `modifier_keywords`, `visibility_required`, `PSR12.Properties.ConstantVisibility`, `PSR2.Classes.PropertyDeclaration`, `SlevomatCodingStandard.Classes.ClassConstantVisibility`, `Squiz.Scope.MethodScope`
 
 ### classes.visibility.publicWithSet
 
@@ -2532,6 +2721,7 @@ Not about the `static` of the arrow function, which `functions.staticClosure` de
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
+- Covers: `use_arrow_functions`, `SlevomatCodingStandard.Functions.RequireArrowFunction`
 - Needs PHP >=7.4
 
 ### functions.arrowFunctionNested
@@ -2542,6 +2732,7 @@ Whether a closure holding another closure or arrow function becomes one too.
 - Takes: `yes`; `no`
 - The standards: perCs `no`, psr12 `no`, nette `yes`, symfony `no`, laravel `no`
 - Rule `DressCode\Rules\Functions\ArrowFunctionForClosureRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Functions.RequireArrowFunction`
 - Needs PHP >=7.4
 
 ### functions.innerFunction
@@ -2552,6 +2743,7 @@ A named function declared inside a function, a method, a closure or a property h
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\NoInnerFunctionsRule`, stage Structure
+- Covers: `Squiz.PHP.InnerFunctions`
 
 ### functions.namedBooleanArgument
 
@@ -2582,6 +2774,7 @@ The `static` keyword of a closure or an arrow function that does not use `$this`
 - Takes: `required` (always there, `static function`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\StaticForClosureWithoutThisRule`, stage Structure
+- Covers: `static_lambda`, `SlevomatCodingStandard.Functions.StaticClosure`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### functions.trailingBareReturn
@@ -2592,6 +2785,7 @@ The `static` keyword of a closure or an arrow function that does not use `$this`
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\ControlFlow\UselessReturnRule`, stage Structure
+- Covers: `no_useless_return`
 
 ### functions.unreachableParameterDefault
 
@@ -2601,6 +2795,7 @@ A default a required parameter after it makes unreachable.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `forbidden`
 - Rule `DressCode\Rules\Functions\UselessParameterDefaultRule`, stage Structure
+- Covers: `no_unreachable_default_argument_value`, `PEAR.Functions.ValidDefaultValue`, `SlevomatCodingStandard.Functions.UselessParameterDefaultValue`
 
 ## types
 
@@ -2614,6 +2809,7 @@ Not an arrow function, whose value is its expression.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Types\NativeTypeRequiredRule`, stage Structure
+- Covers: `void_return`, `SlevomatCodingStandard.TypeHints.ReturnTypeHint`
 - Modifies comments
 
 ### types.declaration.constant
@@ -2637,6 +2833,7 @@ Not a parameter of a closure, whose types belong to the call it is passed to.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Types\NativeTypeRequiredRule`, stage Structure
+- Covers: `phpdoc_to_param_type`, `SlevomatCodingStandard.TypeHints.ParameterTypeHint`
 - Modifies comments
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
@@ -2648,6 +2845,7 @@ A property declares its type, a promoted one included, taken from `@var`, or the
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Types\NativeTypeRequiredRule`, stage Structure
+- Covers: `phpdoc_to_property_type`, `SlevomatCodingStandard.TypeHints.PropertyTypeHint`
 - Modifies comments
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
@@ -2659,6 +2857,7 @@ A function or a method declares its return type, taken from `@return`, `void` wh
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Types\NativeTypeRequiredRule`, stage Structure
+- Covers: `phpdoc_to_return_type`, `void_return`, `SlevomatCodingStandard.TypeHints.ReturnTypeHint`
 - Modifies comments
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
@@ -2670,6 +2869,7 @@ How a native type of one type and `null` is written.
 - Takes: `'?int'` (a single type with `null` written with `?`); `'int|null'` (a union with `null`, which `types.nullPosition` places); `keep`
 - The standards: perCs `'?int'`, psr12 `keep`, nette `'?int'`, symfony `'?int'`, laravel `'?int'`
 - Rule `DressCode\Rules\Types\TypeNotationRule`, stage Structure
+- Covers: `nullable_type_declaration`
 
 ### types.nullPosition
 
@@ -2679,6 +2879,7 @@ Where `null` stands in a native union type.
 - Takes: `last` (`int|string|null`); `first` (`null|int|string`); `keep`
 - The standards: perCs `last`, psr12 `keep`, nette `last`, symfony `last`, laravel `keep`
 - Rule `DressCode\Rules\Types\TypeNotationRule`, stage Structure
+- Covers: `ordered_types`
 
 ### types.traversableClasses
 
@@ -2699,6 +2900,7 @@ The order of the types of a native union.
 - Takes: `alphabetical` (the types beside `null` sorted by name, case-insensitively, an intersection by its first name); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Types\TypeNotationRule`, stage Structure
+- Covers: `ordered_types`
 
 ## controlFlow
 
@@ -2712,6 +2914,7 @@ Not about an `if` and an `else` each returning a value, which `controlFlow.ifEls
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `forbidden`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\UselessElseRule`, stage Structure
+- Covers: `no_useless_else`, `SlevomatCodingStandard.ControlStructures.EarlyExit`
 
 ### controlFlow.elseif
 
@@ -2721,6 +2924,7 @@ The keyword of a branch that follows `if`.
 - Takes: `'elseif'` (`elseif` in one word, never `else if`); `keep`
 - The standards: perCs `'elseif'`, psr12 `'elseif'`, nette `'elseif'`, symfony `'elseif'`, laravel `'elseif'`
 - Rule `DressCode\Rules\ControlFlow\ElseifNotationRule`, stage Structure
+- Covers: `elseif`, `PSR2.ControlStructures.ElseIfDeclaration`
 
 ### controlFlow.elseifAfterReturn
 
@@ -2730,6 +2934,7 @@ An `elseif` after an `if` that always leaves, which becomes an `if` of its own w
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\UselessElseRule`, stage Structure
+- Covers: `no_superfluous_elseif`, `SlevomatCodingStandard.ControlStructures.EarlyExit`
 
 ### controlFlow.emptyStatement
 
@@ -2739,6 +2944,7 @@ The second `;` of `foo();;`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\ControlFlow\NoEmptyStatementsRule`, stage Structure
+- Covers: `no_empty_statement`, `SlevomatCodingStandard.PHP.UselessSemicolon`
 
 ### controlFlow.ifElseReturning
 
@@ -2750,6 +2956,7 @@ Not about the ternary of `true` and `false` it may write, which `expressions.ter
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\TernaryForIfRule`, stage Structure
+- Covers: `SlevomatCodingStandard.ControlStructures.RequireTernaryOperator`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### controlFlow.ifReturningTrueFalse
@@ -2762,6 +2969,7 @@ Not about branches returning other values, which `controlFlow.ifElseReturning` w
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\ReturnForBooleanIfRule`, stage Structure
+- Covers: `simplified_if_return`, `SlevomatCodingStandard.ControlStructures.UselessIfConditionWithReturn`
 
 ### controlFlow.switch.fallThroughComment
 
@@ -2771,6 +2979,7 @@ The text of the comment a non-empty `case` falling through to the next one carri
 - Takes: a text, or a list of them, every one passing and the first written; `keep`
 - The standards: perCs `no break`, psr12 `no break`, nette `break omitted`, symfony `no break`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\FallThroughCommentRule`, stage Structure
+- Covers: `no_break_comment`, `PSR2.ControlStructures.SwitchDeclaration`
 - Modifies comments
 
 ### controlFlow.trailingIf
@@ -2781,6 +2990,7 @@ An `if` ending a function or a loop body becomes a guard that leaves early, and 
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\EarlyExitForTrailingIfRule`, stage Structure
+- Covers: `SlevomatCodingStandard.ControlStructures.EarlyExit`
 
 ### controlFlow.trailingIfMinStatements
 
@@ -2790,6 +3000,7 @@ The statements the body of a trailing `if` has at least for it to become a guard
 - Takes: a count from 1
 - The standards: perCs `2`, psr12 `2`, nette `2`, symfony `2`, laravel `2`
 - Rule `DressCode\Rules\ControlFlow\EarlyExitForTrailingIfRule`, stage Structure
+- Covers: `SlevomatCodingStandard.ControlStructures.EarlyExit`
 
 ## expressions
 
@@ -2801,6 +3012,7 @@ The statements the body of a trailing `if` has at least for it to become a guard
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\IncrementRule`, stage Structure
+- Covers: `standardize_increment`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### expressions.assignment.increment
@@ -2811,6 +3023,7 @@ An increment or a decrement whose value is not read, a statement or a step of `f
 - Takes: `prefix` (`++$i`, `--$i`); `postfix` (`$i++`, `$i--`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `postfix`, symfony `prefix`, laravel `postfix`
 - Rule `DressCode\Rules\Expressions\IncrementRule`, stage Structure
+- Covers: `increment_style`
 
 ### expressions.assignment.targetInValue
 
@@ -2822,6 +3035,7 @@ Not about the `$a += 1` it may write, which `expressions.assignment.addingOne` w
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\CombinedAssignmentForRepeatedTargetRule`, stage Structure
+- Covers: `assign_null_coalescing_to_coalesce_equal`, `long_to_shorthand_operator`, `SlevomatCodingStandard.ControlStructures.RequireNullCoalesceEqualOperator`, `SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### expressions.cast
@@ -2832,6 +3046,7 @@ The type name of a cast.
 - Takes: `canonical` (`(int)`, `(bool)`, `(float)`, `(string)` in lowercase, never `(integer)`, `(Boolean)`, `(double)`, `(binary)`); `keep`
 - The standards: perCs `canonical`, psr12 `canonical`, nette `canonical`, symfony `canonical`, laravel `canonical`
 - Rule `DressCode\Rules\Expressions\CastCanonicalTypeRule`, stage Structure
+- Covers: `lowercase_cast`, `short_scalar_cast`, `Generic.PHP.LowerCaseType`, `PSR12.Keywords.ShortFormTypeKeywords`, `SlevomatCodingStandard.PHP.TypeCast`, `Squiz.WhiteSpace.CastSpacing`
 
 ### expressions.coalesce
 
@@ -2841,6 +3056,7 @@ The type name of a cast.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\NullCoalescingForNullTernaryRule`, stage Structure
+- Covers: `ternary_to_null_coalescing`, `SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### expressions.comparison.loose
@@ -2851,6 +3067,7 @@ A loose comparison, `==`, `!=` or `<>`, is written `===` or `!==`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\NoLooseComparisonsRule`, stage Structure
+- Covers: `strict_comparison`, `SlevomatCodingStandard.Operators.DisallowEqualOperators`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### expressions.comparison.notEquals
@@ -2863,6 +3080,7 @@ Not about whether the comparison is loose, which `expressions.comparison.loose` 
 - Takes: `'!='` (`!=`, never `<>`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `'!='`, symfony `'!='`, laravel `'!='`
 - Rule `DressCode\Rules\Expressions\NotEqualsNotationRule`, stage Structure
+- Covers: `standardize_not_equals`
 
 ### expressions.comparison.yoda
 
@@ -2872,6 +3090,7 @@ A Yoda comparison, the constant on its left side, a comparison of two variables 
 - Takes: `forbidden` (never there, the variable on the left and the constant on the right, `$a === 1`); `required` (always there, the constant on the left, `1 === $a`, so that an accidental assignment does not compile); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `required`, laravel `forbidden`
 - Rule `DressCode\Rules\Expressions\YodaRule`, stage Structure
+- Covers: `yoda_style`, `SlevomatCodingStandard.ControlStructures.DisallowYodaComparison`, `SlevomatCodingStandard.ControlStructures.RequireYodaComparison`
 
 ### expressions.doubleNegation
 
@@ -2881,6 +3100,7 @@ A Yoda comparison, the constant on its left side, a comparison of two variables 
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Expressions\NoDoubleNegationsRule`, stage Structure
+- Covers: `no_short_bool_cast`
 
 ### expressions.explicitPrecedence
 
@@ -2890,6 +3110,7 @@ An operand where logical or bitwise operators are easy to misread is parenthesiz
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\ExplicitPrecedenceRequiredRule`, stage Structure
+- Covers: `Generic.CodeAnalysis.RequireExplicitBooleanOperatorPrecedence`
 
 ### expressions.parenthesesAfterConstruct
 
@@ -2899,6 +3120,7 @@ An operand where logical or bitwise operators are easy to misread is parenthesiz
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Expressions\UselessParenthesesAfterConstructRule`, stage Structure
+- Covers: `include`, `no_unneeded_control_parentheses`, `SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses`, `Squiz.Strings.EchoedStrings`
 
 ### expressions.ternary.ofTrueFalse
 
@@ -2908,6 +3130,7 @@ An operand where logical or bitwise operators are easy to misread is parenthesiz
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\UselessTernaryOperatorRule`, stage Structure
+- Covers: `SlevomatCodingStandard.ControlStructures.UselessTernaryOperator`
 
 ### expressions.ternary.short
 
@@ -2917,6 +3140,7 @@ An operand where logical or bitwise operators are easy to misread is parenthesiz
 - Takes: `required` (always there); `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\ShortTernaryRule`, stage Structure
+- Covers: `ternary_to_elvis_operator`, `SlevomatCodingStandard.ControlStructures.DisallowShortTernaryOperator`, `SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator`
 
 ### expressions.wordLogicalOperator
 
@@ -2926,6 +3150,7 @@ An operand where logical or bitwise operators are easy to misread is parenthesiz
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\LogicalOperatorNotationRule`, stage Structure
+- Covers: `logical_operators`, `Squiz.Operators.ValidLogicalOperators`
 
 ## literals
 
@@ -2937,6 +3162,7 @@ The syntax of an array.
 - Takes: `short` (`[1, 2]`, never `array(1, 2)`); `long` (`array(1, 2)`, never `[1, 2]`); `keep`
 - The standards: perCs `short`, psr12 `keep`, nette `short`, symfony `short`, laravel `short`
 - Rule `DressCode\Rules\Arrays\ArraySyntaxRule`, stage Structure
+- Covers: `array_syntax`, `Generic.Arrays.DisallowLongArraySyntax`, `Generic.Arrays.DisallowShortArraySyntax`
 
 ### literals.arraySyntax.list
 
@@ -2946,6 +3172,7 @@ The syntax of a destructuring.
 - Takes: `short` (`[$a, $b] =`, never `list($a, $b) =`); `long` (`list($a, $b) =`, never `[$a, $b] =`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `short`, symfony `keep`, laravel `short`
 - Rule `DressCode\Rules\Arrays\ArraySyntaxRule`, stage Structure
+- Covers: `list_syntax`, `SlevomatCodingStandard.PHP.ShortList`
 
 ### literals.classNameInString
 
@@ -2955,6 +3182,7 @@ The syntax of a destructuring.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\ClassKeywordForStringRule`, stage Structure
+- Covers: `class_keyword`
 - Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
 
 ### literals.concatenatedLiterals
@@ -2965,6 +3193,7 @@ Two string literals concatenated on one line, which are one literal, `'ab'` for 
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Literals\UselessStringConcatenationRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/no_superfluous_concatenation`, `no_useless_concat_operator`, `Generic.Strings.UnnecessaryStringConcat`
 
 ### literals.concatenatedLiteralsOverLines
 
@@ -2974,6 +3203,7 @@ Whether two string literals concatenated over a line break are one literal too.
 - Takes: `yes`; `no`
 - The standards: perCs `no`, psr12 `no`, nette `no`, symfony `no`, laravel `no`
 - Rule `DressCode\Rules\Literals\UselessStringConcatenationRule`, stage Structure
+- Covers: `Generic.Strings.UnnecessaryStringConcat`
 
 ### literals.digitSeparator.fraction
 
@@ -2983,6 +3213,7 @@ The separator grouping by three the digits of the fraction of a decimal number, 
 - Takes: `required` (always there); `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Literals\NumberNotationRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.DisallowNumericLiteralSeparator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
 
 ### literals.digitSeparator.integer
 
@@ -2992,6 +3223,7 @@ The separator grouping by three the digits of a decimal integer, or of the integ
 - Takes: `required` (always there); `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Literals\NumberNotationRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/numeric_literal_separator`, `numeric_literal_separator`, `SlevomatCodingStandard.Numbers.DisallowNumericLiteralSeparator`, `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
 
 ### literals.digitSeparatorMinDigits.fraction
 
@@ -3001,6 +3233,7 @@ The number of digits from which `literals.digitSeparator.fraction` groups them.
 - Takes: a count from 1
 - The standards: perCs `4`, psr12 `4`, nette `20`, symfony `4`, laravel `4`
 - Rule `DressCode\Rules\Literals\NumberNotationRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
 
 ### literals.digitSeparatorMinDigits.integer
 
@@ -3010,6 +3243,7 @@ The number of digits from which `literals.digitSeparator.integer` groups them.
 - Takes: a count from 1
 - The standards: perCs `4`, psr12 `4`, nette `7`, symfony `4`, laravel `4`
 - Rule `DressCode\Rules\Literals\NumberNotationRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Numbers.RequireNumericLiteralSeparator`
 
 ### literals.emptyStringConcatenation
 
@@ -3019,6 +3253,7 @@ The concatenation with an empty string, which is a cast or nothing, `(string) $x
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Literals\UselessStringConcatenationRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/no_superfluous_concatenation`, `Generic.Strings.UnnecessaryStringConcat`
 
 ### literals.heredocWithoutInterpolation
 
@@ -3028,6 +3263,7 @@ A heredoc with nothing to interpolate, which is written as a nowdoc.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `forbidden`
 - Rule `DressCode\Rules\Literals\NowdocForHeredocRule`, stage Structure
+- Covers: `heredoc_to_nowdoc`, `SlevomatCodingStandard.PHP.RequireNowdoc`
 
 ### literals.implicitBackslash
 
@@ -3037,6 +3273,7 @@ A backslash of a string that escapes nothing, written `\\` instead.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Literals\NoImplicitBackslashesRule`, stage Structure
+- Covers: `escape_implicit_backslashes`, `string_implicit_backslashes`
 
 ### literals.quotes
 
@@ -3046,6 +3283,7 @@ The quotes of a plain string, one without interpolation, without an escape seque
 - Takes: `single` (`'text'` where double quotes gain nothing); `double` (`"text"` for every plain string, the backslashes of a single-quoted one escaped); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `single`, symfony `single`, laravel `single`
 - Rule `DressCode\Rules\Literals\StringQuotesRule`, stage Structure
+- Covers: `single_quote`, `Squiz.Strings.DoubleQuoteUsage`
 
 ## comments
 
@@ -3057,6 +3295,7 @@ An empty comment, which is removed.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `keep`
 - Rule `DressCode\Rules\Comments\NoEmptyCommentsRule`, stage Finishing
+- Covers: `no_empty_comment`, `SlevomatCodingStandard.Commenting.EmptyComment`
 - Modifies comments
 
 ### comments.singleline
@@ -3067,6 +3306,7 @@ The marker of a single-line comment.
 - Takes: `'//'` (`//`, never `#`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `'//'`, symfony `'//'`, laravel `'//'`
 - Rule `DressCode\Rules\Comments\NoHashCommentsRule`, stage Finishing
+- Covers: `single_line_comment_style`, `PEAR.Commenting.InlineComment`
 - Modifies comments
 
 ## phpdoc
@@ -3079,6 +3319,7 @@ The doc comment stands above the attributes.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `required`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\PhpdocAboveAttributesRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Attributes.RequireAttributeAfterDocComment`
 - Modifies comments
 
 ### phpdoc.annotation.casing
@@ -3089,6 +3330,7 @@ The letter case of a known annotation.
 - Takes: `canonical` (as it is known, `@inheritDoc`, `@phpstan-var`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `canonical`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\AnnotationCasingRule`, stage Structure
+- Covers: `phpdoc_tag_casing`, `SlevomatCodingStandard.Commenting.AnnotationName`
 - Modifies comments
 
 ### phpdoc.annotation.constantVar
@@ -3099,6 +3341,7 @@ A `@var` on a class constant that says nothing.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\UselessConstantVarAnnotationRule`, stage Finishing
+- Covers: `SlevomatCodingStandard.TypeHints.UselessConstantTypeHint`
 - Modifies comments
 
 ### phpdoc.annotation.duplicateParam
@@ -3118,6 +3361,7 @@ A second `@return` of a function.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\NoInvalidAnnotationsRule`, stage Structure
+- Covers: `Squiz.Commenting.FunctionComment.DuplicateReturn`
 
 ### phpdoc.annotation.duplicateVar
 
@@ -3127,6 +3371,7 @@ A second `@var` of a property.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\NoInvalidAnnotationsRule`, stage Structure
+- Covers: `Squiz.Commenting.VariableComment`
 
 ### phpdoc.annotation.empty
 
@@ -3136,6 +3381,7 @@ A `@param`, `@return`, `@var` or `@see` without content.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\NoInvalidAnnotationsRule`, stage Structure
+- Covers: `Squiz.Commenting.VariableComment`
 
 ### phpdoc.annotation.extraParam
 
@@ -3145,6 +3391,7 @@ A `@param` naming a parameter the function does not have.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\NoInvalidAnnotationsRule`, stage Structure
+- Covers: `Squiz.Commenting.FunctionComment.ExtraParamComment`
 
 ### phpdoc.annotation.inlineVar
 
@@ -3154,6 +3401,7 @@ An inline `@var` says what `assert($x instanceof Foo)` checks.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\AssertForInlineVarRule`, stage Structure
+- Covers: `SlevomatCodingStandard.PHP.RequireExplicitAssertion`
 - Modifies comments
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
@@ -3165,6 +3413,7 @@ An array, iterable or traversable declaration has an annotation saying what its 
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Types\NativeTypeRequiredRule`, stage Structure
+- Covers: `SlevomatCodingStandard.TypeHints.ParameterTypeHint`, `SlevomatCodingStandard.TypeHints.PropertyTypeHint`, `SlevomatCodingStandard.TypeHints.ReturnTypeHint`
 - Modifies comments
 
 ### phpdoc.annotation.nativeTypeOnly
@@ -3175,6 +3424,7 @@ A `@param`, `@return` or `@var` without a description that says only the native 
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `forbidden`
 - Rule `DressCode\Rules\PhpDoc\UselessTypeAnnotationsRule`, stage Structure
+- Covers: `no_superfluous_phpdoc_tags`, `SlevomatCodingStandard.Commenting.UselessFunctionDocComment`, `SlevomatCodingStandard.TypeHints.ParameterTypeHint`, `SlevomatCodingStandard.TypeHints.PropertyTypeHint`, `SlevomatCodingStandard.TypeHints.ReturnTypeHint`
 - Modifies comments
 
 ### phpdoc.annotation.plainComment
@@ -3185,6 +3435,7 @@ An annotation in a plain comment, `/* @var */` or `/**@var` without the blank, w
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\NoPlainPhpdocsRule`, stage Finishing
+- Covers: `SlevomatCodingStandard.Commenting.InlineDocCommentDeclaration.InvalidCommentType`
 - Modifies comments
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
@@ -3196,6 +3447,7 @@ The blank lines inside a doc comment.
 - Takes: `trimmed` (none at the start or the end, at most one in a row inside); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `trimmed`, symfony `trimmed`, laravel `trimmed`
 - Rule `DressCode\Rules\PhpDoc\PhpdocBlankLinesRule`, stage Finishing
+- Covers: `phpdoc_trim`, `phpdoc_trim_consecutive_blank_line_separation`
 - Modifies comments
 
 ### phpdoc.empty
@@ -3206,6 +3458,7 @@ An empty doc comment, which is removed.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Comments\NoEmptyCommentsRule`, stage Finishing
+- Covers: `no_empty_phpdoc`
 - Modifies comments
 
 ### phpdoc.forbiddenAnnotations
@@ -3216,6 +3469,7 @@ The annotations removed from doc comments, written with the `@`, such as `@autho
 - Takes: a list of annotations, each with its `@`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `[@access, @author, @copyright, @created, @license, @package, @since, @subpackage, @todo, @version]`, symfony `keep`, laravel `[@access, @package, @subpackage]`
 - Rule `DressCode\Rules\PhpDoc\ForbiddenAnnotationsRule`, stage Structure
+- Covers: `general_phpdoc_annotation_remove`, `phpdoc_no_access`, `phpdoc_no_package`, `SlevomatCodingStandard.Commenting.ForbiddenAnnotations`
 - Modifies comments
 
 ### phpdoc.forbiddenLines
@@ -3226,6 +3480,7 @@ The patterns of the lines of a description removed from doc comments, such as `~
 - Takes: a list of regular expressions; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `['~^(?:(?!private|protected|static)\S+ )?(?:con|de)structor\.\z~i', '~^\S+ [gs]etter\.\z~i']`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\ForbiddenPhpdocLinesRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Commenting.ForbiddenComments`
 - Modifies comments
 
 ### phpdoc.inheritdocOnly
@@ -3236,6 +3491,7 @@ A doc comment of `@inheritDoc` alone.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\UselessInheritdocRule`, stage Structure
+- Covers: `phpdoc_no_useless_inheritdoc`, `SlevomatCodingStandard.Commenting.UselessInheritDocComment`
 - Modifies comments
 
 ### phpdoc.property.lineSpan
@@ -3246,6 +3502,7 @@ A property doc comment with a single annotation and no description.
 - Takes: `collapsed` (on one line, `/** @var int */`); `expanded` (over three lines, the annotation on the one in the middle); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `collapsed`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\PropertyPhpdocLineSpanRule`, stage Formatting
+- Covers: `phpdoc_line_span`, `SlevomatCodingStandard.Commenting.DisallowOneLinePropertyDocComment`, `SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment`
 - Modifies comments
 
 ### phpdoc.property.plainComment
@@ -3256,6 +3513,7 @@ A plain comment describing a property, `//` or `/* */` where `/** */` belongs, r
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\NoPlainPhpdocsRule`, stage Finishing
+- Covers: `Squiz.Commenting.VariableComment`
 - Modifies comments
 
 ### phpdoc.property.promoted
@@ -3276,6 +3534,7 @@ The `*` opening each line of a doc comment.
 - Takes: `aligned` (each `*` below the first `*` of the opening `/**`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `aligned`, symfony `keep`, laravel `aligned`
 - Rule `DressCode\Rules\PhpDoc\PhpdocAlignmentRule`, stage Formatting
+- Covers: `align_multiline_comment`, `phpdoc_indent`, `Squiz.Commenting.DocCommentAlignment`
 - Modifies comments
 
 ### phpdoc.types.array
@@ -3286,6 +3545,7 @@ How an array type of a doc comment is written; `list<T>` is a different type and
 - Takes: `'array<T>'` (the generic notation); `'T[]'` (the brackets); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
+- Covers: `PhpCsFixerCustomFixers/phpdoc_array_style`, `PhpCsFixerCustomFixers/phpdoc_type_list`, `phpdoc_array_type`, `phpdoc_list_type`, `SlevomatCodingStandard.TypeHints.DisallowArrayTypeHintSyntax`
 - Modifies comments
 
 ### phpdoc.types.builtin
@@ -3296,6 +3556,7 @@ How a built-in type in a doc comment is written, `int` and never `integer` or `I
 - Takes: `canonical` (the short lowercase name of a built-in type, `never` for `no-return`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `canonical`, symfony `canonical`, laravel `canonical`
 - Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
+- Covers: `PhpCsFixerCustomFixers/phpdoc_type_list`, `phpdoc_list_type`, `phpdoc_scalar`, `phpdoc_types`, `SlevomatCodingStandard.TypeHints.LongTypeHints`
 - Modifies comments
 
 ### phpdoc.types.duplicate
@@ -3306,6 +3567,7 @@ A type a union of a doc comment names twice, `int|integer`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
+- Covers: `phpdoc_no_duplicate_types`, `phpdoc_types_no_duplicates`
 - Modifies comments
 
 ### phpdoc.types.nullable
@@ -3326,6 +3588,7 @@ Where `null` stands in a union type of a doc comment.
 - Takes: `last` (`int|string|null`); `first` (`null|int|string`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `last`, symfony `last`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
+- Covers: `phpdoc_types_order`, `SlevomatCodingStandard.TypeHints.NullTypeHintOnLastPosition`
 - Modifies comments
 
 ### phpdoc.types.unionOrder
@@ -3336,6 +3599,7 @@ The order of the types of a union type of a doc comment.
 - Takes: `alphabetical` (the types beside `null` sorted by name, case-insensitively); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\PhpDoc\PhpdocTypeNotationRule`, stage Finishing
+- Covers: `phpdoc_types_order`
 - Modifies comments
 
 ## hygiene
@@ -3348,6 +3612,7 @@ The sets of functions whose aliases are written by their canonical names.
 - Takes: a list of `all` (every set below); `core` (the core functions, `sizeof()` is `count()`, `join()` is `implode()`); `imap` (`imap_*`); `ldap` (`ldap_*`); `mysqli` (`mysqli_*`); `pg` (`pg_exec()` is `pg_query()`); `oci` (`oci_*`); `odbc` (`odbc_*`); `openssl` (`openssl_*`); `sodium` (`sodium_*`); `ftp` (`ftp_quit()` is `ftp_close()`); `posix` (`posix_errno()` is `posix_get_last_error()`); `pcntl` (`pcntl_errno()` is `pcntl_get_last_error()`); `time` (`mktime()` and `gmmktime()` without arguments are `time()`); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `[core, imap, pg]`, symfony `keep`, laravel `[core, imap, pg]`
 - Rule `DressCode\Rules\Functions\NoAliasFunctionsRule`, stage Structure
+- Covers: `no_alias_functions`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### hygiene.call_user_func
@@ -3358,6 +3623,7 @@ The sets of functions whose aliases are written by their canonical names.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\NoCallUserFuncRule`, stage Structure
+- Covers: `regular_callable_call`
 - Needs PHP >=7.0
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
@@ -3379,6 +3645,7 @@ Whether a method the callable names as `[$this, 'run']`, `[self::class, 'make']`
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Classes.ModernClassNameReference`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### hygiene.classNameNotation.object
@@ -3389,6 +3656,7 @@ Whether a method the callable names as `[$this, 'run']`, `[self::class, 'make']`
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\ClassNameNotationRule`, stage Structure
+- Covers: `get_class_to_class_keyword`, `SlevomatCodingStandard.Classes.ModernClassNameReference`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### hygiene.conversionFunction
@@ -3401,6 +3669,7 @@ Not about which name of `floatval()` the code writes, `doubleval()` being an ali
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\NoConversionFunctionsRule`, stage Structure
+- Covers: `modernize_types_casting`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### hygiene.countEmptyTest
@@ -3432,6 +3701,7 @@ An argument PHP ignores or that repeats the default.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\NoDirnameOfFileRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/no_useless_dirname_call`, `combine_nested_dirname`, `dir_constant`
 
 ### hygiene.is_null
 
@@ -3441,6 +3711,7 @@ An argument PHP ignores or that repeats the default.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\NoIsNullRule`, stage Structure
+- Covers: `is_null`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### hygiene.nestedDirname
@@ -3471,6 +3742,7 @@ Two adjacent catches of one body, written as one `catch (A|B $e)`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Variables\NoSeparateIssetsRule`, stage Structure
+- Covers: `combine_consecutive_issets`
 
 ### hygiene.separateUnsets
 
@@ -3480,6 +3752,7 @@ Two adjacent catches of one body, written as one `catch (A|B $e)`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Variables\NoSeparateUnsetsRule`, stage Structure
+- Covers: `combine_consecutive_unsets`
 
 ### hygiene.settype
 
@@ -3489,6 +3762,7 @@ Two adjacent catches of one body, written as one `catch (A|B $e)`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\NoSettypeRule`, stage Structure
+- Covers: `set_type_to_cast`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### hygiene.strlenEmptyTest
@@ -3499,6 +3773,7 @@ Two adjacent catches of one body, written as one `catch (A|B $e)`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\UselessMeasuringCallsRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/no_useless_strlen`, `string_length_to_empty`
 - Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
@@ -3510,6 +3785,7 @@ The variable of a `catch` that is never read, `catch (E)` written instead.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\UselessCatchVariableRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Exceptions.RequireNonCapturingCatch`
 - Needs PHP >=8.0
 
 ### hygiene.uselessVersionCheck
@@ -3530,6 +3806,7 @@ A check of the version of PHP every version the code runs on decides alike, `if 
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\NoExplicitInvokeCallsRule`, stage Structure
+- Covers: `SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall`
 
 ## mistakes
 
@@ -3550,6 +3827,7 @@ A `continue` that only leaves a `switch`, where `break` is meant, which is only 
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\NoContinueInSwitchRule`, stage Structure
+- Covers: `switch_continue_to_break`, `SlevomatCodingStandard.ControlStructures.DisallowContinueWithoutIntegerOperandInSwitch`
 
 ### mistakes.countOfUncountable
 
@@ -3569,6 +3847,7 @@ A statement calling a debugging function to print, changed into a comment, `// v
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\NoDebugOutputRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/commented_out_function`, `Squiz.PHP.DiscouragedFunctions`
 - Modifies comments
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
@@ -3580,6 +3859,7 @@ The debugging functions whose calls print.
 - Takes: a list of names
 - The standards: perCs `[print_r, var_dump, var_export]`, psr12 `[print_r, var_dump, var_export]`, nette `[print_r, var_dump, var_export]`, symfony `[print_r, var_dump, var_export]`, laravel `[print_r, var_dump, var_export]`
 - Rule `DressCode\Rules\Functions\NoDebugOutputRule`, stage Structure
+- Covers: `PhpCsFixerCustomFixers/commented_out_function`
 - Modifies comments
 
 ### mistakes.errorSuppression
@@ -3599,6 +3879,7 @@ The `@` operator, which silences errors and is only reported.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\ThrowableForExceptionRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly`
 
 ### mistakes.finalParent
 
@@ -3618,6 +3899,7 @@ The `global` statement, which is only reported.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Variables\NoGlobalStatementsRule`, stage Structure
+- Covers: `Squiz.PHP.GlobalKeyword`
 
 ### mistakes.invisibleCharacter
 
@@ -3627,6 +3909,7 @@ Non-breaking, zero-width and bidi characters, replaced in comments and escaped i
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Files\NoInvisibleCharactersRule`, stage Structure
+- Covers: `non_printable_character`
 - Modifies comments
 
 ### mistakes.looseNumberComparison
@@ -3688,6 +3971,7 @@ A variable assigned twice in one expression, `$a = $a = 1`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Variables\NoRepeatedAssignmentsRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Variables.DuplicateAssignmentToVariable`
 
 ### mistakes.staticSetState
 
@@ -3706,6 +3990,7 @@ A variable assigned twice in one expression, `$a = $a = 1`.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\StrictComparisonArgumentRequiredRule`, stage Structure
+- Covers: `strict_param`, `SlevomatCodingStandard.Functions.StrictCall`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### mistakes.thisOutsideObject
@@ -3716,6 +4001,7 @@ A variable assigned twice in one expression, `$a = $a = 1`.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\NoThisOutsideObjectRule`, stage Structure
+- Covers: `Squiz.Scope.StaticThisUsage`
 
 ### mistakes.trailingWhitespaceInString
 
@@ -3725,6 +4011,7 @@ At the end of the lines of a multi-line string or inline HTML, which changes the
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Literals\NoTrailingWhitespaceInStringRule`, stage Structure
+- Covers: `no_trailing_whitespace_in_string`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### mistakes.unimplementedAbstractMethod
@@ -3745,6 +4032,7 @@ A `catch` after one catching `Throwable` or a class it catches, which is only re
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\ControlFlow\NoUnreachableCatchesRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Exceptions.DeadCatch`
 
 ### mistakes.__debugInfoReturningNull
 
@@ -3820,6 +4108,7 @@ A function that may not be called, with what to do instead (`[var_dump, acme_sen
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Upgrading\ForbiddenSymbolsRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\NoDeprecatedFunctionsRule`, which this decision does not turn on
+- Covers: `Generic.PHP.ForbiddenFunctions`, `Generic.PHP.SAPIUsage`, `Squiz.PHP.DiscouragedFunctions`
 
 ### upgrading.api.forbiddenMembers
 
@@ -3867,6 +4156,7 @@ A function written instead of another one (`acme_send: Acme\Mail\send`).
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Upgrading\ReplacedFunctionsRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\NoDeprecatedFunctionsRule`, which this decision does not turn on
+- Covers: `Generic.PHP.ForbiddenFunctions`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### upgrading.api.replacedMembers
@@ -4043,6 +4333,7 @@ A constant, method or property whose declaration is `@deprecated`, replaced by t
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Functions\NoManualSubstringTestsRule`, stage Structure
+- Covers: `modernize_strpos`
 - Needs PHP >=8.0
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
@@ -4072,6 +4363,7 @@ The backtick operator PHP 8.5 deprecated, written as a `shell_exec()` call.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\NoBacktickOperatorsRule`, stage Structure
+- Covers: `backtick_to_shell_exec`
 
 ### upgrading.php.caseSemicolon
 
@@ -4081,6 +4373,7 @@ The backtick operator PHP 8.5 deprecated, written as a `shell_exec()` call.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `forbidden`, psr12 `forbidden`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\ControlFlow\SwitchCaseNotationRule`, stage Structure
+- Covers: `switch_case_semicolon_to_colon`, `PSR2.ControlStructures.SwitchDeclaration`
 
 ### upgrading.php.constructorReturnValue
 
@@ -4113,6 +4406,7 @@ A function, a constant or a member PHP deprecated, written as what replaces it a
 - Rule `DressCode\Rules\Upgrading\ReplacedFunctionCallsRule`, stage Structure
 - Rule `DressCode\Rules\Upgrading\ForbiddenSymbolsRule`, stage Structure
 - Rule `DressCode\Rules\Upgrading\ForbiddenMembersRule`, stage Structure
+- Covers: `Generic.PHP.DeprecatedFunctions`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### upgrading.php.deprecatedArgument
@@ -4132,6 +4426,7 @@ An argument whose value PHP deprecated is reported, `E_USER_ERROR` given to `tri
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `keep`
 - Rule `DressCode\Rules\Literals\NoDollarBraceInterpolationsRule`, stage Structure
+- Covers: `simple_to_complex_string_variable`
 
 ### upgrading.php.dynamicProperty
 
@@ -4160,6 +4455,7 @@ A parameter type made nullable by its default `null` alone, `int $x = null`, dep
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `forbidden`, laravel `forbidden`
 - Rule `DressCode\Rules\Types\NullableTypeForDefaultNullRule`, stage Structure
+- Covers: `nullable_type_declaration_for_default_null_value`, `SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue`
 
 ### upgrading.php.nullArgument
 
@@ -4207,6 +4503,7 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\NoSleepAndWakeupRule`, stage Structure
+- Covers: `modern_serialization_methods`
 
 ### upgrading.phpdoc.deprecated
 
@@ -4228,6 +4525,7 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\ReadonlyForAnnotationRule`, stage Structure
+- Covers: `phpdoc_readonly_class_comment_to_keyword`
 - Needs PHP >=8.1
 - Modifies comments
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
@@ -4296,6 +4594,7 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Expressions\NullsafeForGuardedAccessRule`, stage Structure
+- Covers: `SlevomatCodingStandard.ControlStructures.RequireNullSafeObjectOperator`
 - Needs PHP >=8.0
 
 ### upgrading.syntax.octalPrefix
@@ -4306,6 +4605,7 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `required`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Literals\OctalNotationRule`, stage Structure
+- Covers: `octal_notation`
 - Needs PHP >=8.1
 
 ### upgrading.syntax.pipe
@@ -4336,6 +4636,7 @@ A constructor parameter only assigned to a property.
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`, symfony `keep`, laravel `keep`
 - Rule `DressCode\Rules\Classes\PromotedPropertyForAssignmentRule`, stage Structure
+- Covers: `SlevomatCodingStandard.Classes.RequireConstructorPropertyPromotion`
 - Needs PHP >=8.0
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
