@@ -62,8 +62,8 @@ final readonly class Application
 
 
 	/**
-	 * Runs the command line and returns the exit code: 0 clean, 1 violations, syntax errors or a refused
-	 * baseline, 2 a file that failed, 3 a mistake of the command line or of the configuration.
+	 * Runs the command line and returns the exit code: 0 clean, 1 violations, syntax errors, a refused baseline or work a
+	 * migration leaves for the user, 2 a file that failed, 3 a mistake of the command line or of the configuration.
 	 * @param  list<string>  $argv  including the script name
 	 */
 	public function run(array $argv): int
@@ -147,7 +147,10 @@ final readonly class Application
 			$program->addCommandsFrom($handlers);
 		}
 
-		$program->addText('Exit codes: `0` clean, `1` violations, syntax errors or a refused baseline, `2` a file failed, `3` a mistake of the command line or of the configuration.');
+		$program->addCommand('migrate', 'Move over from PHP CS Fixer, PHP_CodeSniffer or Laravel Pint', commandRequired: true)
+			->addCommandsFrom(new Commands\MigrateCommand($context));
+
+		$program->addText('Exit codes: `0` clean, `1` violations, syntax errors, a refused baseline or manual tasks a migration leaves, `2` a file failed, `3` a mistake of the command line or of the configuration.');
 		return $program;
 	}
 }

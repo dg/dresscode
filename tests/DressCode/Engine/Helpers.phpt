@@ -113,3 +113,12 @@ test('writeFile leaves a read-only file alone', function () {
 
 	Assert::same('old', file_get_contents("$dir/a.php"));
 });
+
+
+test('createFile never writes over a file that exists', function () {
+	$dir = createTempDir('write');
+	Assert::true(Helpers::createFile("$dir/a.neon", 'one'));
+	Assert::false(Helpers::createFile("$dir/a.neon", 'two'));
+	Assert::same('one', file_get_contents("$dir/a.neon"));
+	Assert::same(['a.neon'], array_values(array_diff(scandir($dir), ['.', '..'])));
+});

@@ -54,23 +54,37 @@ final class Loader
 
 
 	/**
-	 * The nearest configuration file in the directory or above it: within a directory the local file wins
-	 * over the .dist template, and the two formats are an ambiguity nobody can resolve for the user.
+	 * The nearest configuration file in the directory or above it.
 	 * @throws ConfigurationException
 	 */
 	public static function find(string $directory): ?string
 	{
 		foreach (Helpers::walkUp($directory) as $directory) {
-			foreach (['', self::DistSuffix] as $suffix) {
-				$found = array_values(array_filter(
-					array_map(fn(string $name) => "$directory/$name$suffix", self::FileNames),
-					is_file(...),
-				));
-				if (count($found) > 1) {
-					throw new ConfigurationException('Both `' . implode('` and `', $found) . '` exist; keep one of them.');
-				} elseif ($found) {
-					return $found[0];
-				}
+			if (($file = self::findIn($directory)) !== null) {
+				return $file;
+			}
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * The configuration file lying in the directory itself: the local file wins over the .dist template, and the two
+	 * formats are an ambiguity nobody can resolve for the user.
+	 * @throws ConfigurationException
+	 */
+	public static function findIn(string $directory): ?string
+	{
+		foreach (['', self::DistSuffix] as $suffix) {
+			$found = array_values(array_filter(
+				array_map(fn(string $name) => "$directory/$name$suffix", self::FileNames),
+				is_file(...),
+			));
+			if (count($found) > 1) {
+				throw new ConfigurationException('Both `' . implode('` and `', $found) . '` exist; keep one of them.');
+			} elseif ($found) {
+				return $found[0];
 			}
 		}
 

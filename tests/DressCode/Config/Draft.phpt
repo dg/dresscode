@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
-use DressCode\Config\{Draft, Loader};
+use DressCode\Config;
+use DressCode\Config\{Draft, Loader, RunnerFactory};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -37,4 +38,20 @@ test('as PHP it says the same without the comments', function () use ($draft) {
 	Assert::same(['psr12'], $config->use);
 	Assert::same(['unit' => 'tab'], $config->decisions['indentation'] ?? null);
 	Assert::same("use: []\n", (new Draft)->toNeon());
+});
+
+
+test('what a run makes of the configuration written is checked against the draft', function () {
+	$root = createTempDir('draft-check');
+	$draft = new Draft()->setUse(['psr12'])->setDecision('indentation.unit', 'tab');
+	Assert::noError(fn() => $draft->renderChecked($root));
+	Assert::noError(fn() => $draft->renderChecked($root, 'php'));
+
+	$resolved = new RunnerFactory()->resolve(new Config(use: ['psr12']), $root)->resolvedConfig;
+	$draft = new Draft()->setUse(['psr12'])->setDecision('indentation.unit', 'tab');
+	Assert::exception(
+		fn() => $draft->checkResolution($resolved),
+		LogicException::class,
+		'The configuration written does not say what it was made to: `indentation.unit` resolves to another value.',
+	);
 });
