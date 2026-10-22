@@ -175,7 +175,7 @@ final readonly class CheckCommand
 				);
 		}
 
-		$scope = $paths ? $runner->narrowPaths($paths, $config->paths) : $config->paths;
+		$scope = $paths ? $runner->files->narrowPaths($paths, $config->paths) : $config->paths;
 		if (!$scope) {
 			throw new UsageException('No paths given and none configured.', $args->command);
 		}
@@ -192,7 +192,7 @@ final readonly class CheckCommand
 		}
 
 		try {
-			$files = $runner->findFiles($scope, skipExcluded: (bool) $run->skipExcluded, configured: $config->paths);
+			$files = $runner->files->findFiles($scope, skipExcluded: (bool) $run->skipExcluded, configured: $config->paths);
 		} finally {
 			$out->clearStatus();
 		}
@@ -302,7 +302,7 @@ final readonly class CheckCommand
 		);
 		$code = (string) stream_get_contents($this->context->stdin);
 		$absolute = $this->context->resolvePath($path);
-		$skipped = $skipExcluded && $runner->excludes($absolute, $configured);
+		$skipped = $skipExcluded && $runner->files->excludes($absolute, $configured);
 		$reporter->start($runner->createRunInfo(false, $skipped ? 0 : 1));
 		$result = $skipped ? null : $runner->processPath($absolute, fix: false, code: $code);
 		$result = $result === null ? null : $lines?->select($result, fix: false) ?? $result;
@@ -326,7 +326,7 @@ final readonly class CheckCommand
 	{
 		$code = (string) stream_get_contents($this->context->stdin);
 		$path = $this->context->resolvePath($path);
-		$result = $skipExcluded && $runner->excludes($path, $configured)
+		$result = $skipExcluded && $runner->files->excludes($path, $configured)
 			? null
 			: $runner->processPath($path, fix: false, code: $code);
 		[$output, $error, $exit] = match (true) {

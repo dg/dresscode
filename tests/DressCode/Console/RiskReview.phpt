@@ -56,7 +56,7 @@ function review(array $files, string $answers, ?Closure $meanwhile = null): arra
 		$factory->resolve(new Config(paths: ['src'], decisions: ['mistakes' => ['strictArgument' => 'required']]), $root),
 		cache: false,
 	);
-	$result = $runner->run($runner->findFiles(['src']), true, new NullReporter);
+	$result = $runner->run($runner->files->findFiles(['src']), true, new NullReporter);
 	$output = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	MeanwhileFilter::$meanwhile = $meanwhile === null ? null : fn() => $meanwhile($root);
 	stream_filter_append($output, 'meanwhile', STREAM_FILTER_WRITE);
