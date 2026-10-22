@@ -14,7 +14,8 @@ use function count;
 
 /**
  * Which rules are silenced on which original lines, read once from the comments of the file before any mutation:
- * the dresscode:ignore, disable, enable and ignoreFile comments. What follows ` -- ` says why, for the reader alone.
+ * the dresscode:ignore, disable, enable and ignoreFile comments, and the forms of phpcs, whose names Interop
+ * translates, or which name ours. What follows ` -- ` says why, for the reader alone.
  * @internal
  */
 final class Suppression
@@ -36,33 +37,40 @@ final class Suppression
 	public static function fromFile(FileNode $file, \Closure $expandName, ?string $code = null, array $comments = []): self
 	{
 		$suppression = new self;
-		if ($code !== null && $comments === [] && !str_contains($code, 'dresscode:')) { // nothing to read
+		if ($code !== null && $comments === [] && !str_contains($code, 'dresscode:') && !str_contains($code, 'phpcs')) { // nothing to read
 			return $suppression;
 		}
 
 		$disabled = [];
 		$lastLine = max($file->endOfFile->line, 1);
 		foreach ($file->getTokens() as $token) {
-			foreach ([$token->leadingTrivia, $token->trailingTrivia] as $trivias) {
+			foreach ([$token->leadingTrivia, $token->trailingTrivia] as $side => $trivias) {
 				foreach ($trivias as $index => $trivia) {
 					if (!$trivia->isComment()) {
 						continue;
-					} elseif (preg_match(
-						'~dresscode:(ignoreFile|ignore|disable|enable)(?:\s+([\w/.\\\\][\w/.\\\\,\s-]*?))?(?:\s+--(?:\s.*?)?)?(?=\s*(?:\*/|$))~m',
-						$trivia->text,
-						$m,
-					)) {
-						$names = $suppression->expandNames($m[2] ?? '', $expandName, $m[0]);
+					} elseif ($trivia->id === Trivia::DocComment && str_contains($trivia->text, '@phpcsSuppress')) {
+						$suppression->collectPhpcsSuppress(
+							$trivia,
+							$side === 0 ? $token->getPrevious() : $token,
+							$side === 0 ? $token : $token->getNext(),
+							$expandName,
+						);
+					}
+
+					$directive = self::findDirective($trivia->text);
+					if ($directive !== null) {
+						$names = $suppression->expandNames($directive['names'], $expandName, $directive['text']);
+						$kind = $directive['kind'];
 					} elseif ($names = self::matchComment($trivia->text, $comments)) {
-						$m = [1 => 'ignore'];
+						$kind = 'ignore';
 					} else {
 						continue;
 					}
 
 					$line = $trivia->line;
-					if ($m[1] === 'ignoreFile') {
+					if ($kind === 'ignoreFile') {
 						$suppression->add([self::All], 1, PHP_INT_MAX);
-					} elseif ($m[1] === 'ignore') {
+					} elseif ($kind === 'ignore') {
 						$ownLine = self::isAlone($trivias, $index, $token);
 						$next = $line + preg_match_all('~\r\n|\r|\n~', $trivia->text) + 1;
 						$target = null;
@@ -76,7 +84,7 @@ final class Suppression
 							$target ? self::getEndLine($target) : ($ownLine ? $next : $line),
 						);
 
-					} elseif ($m[1] === 'disable') {
+					} elseif ($kind === 'disable') {
 						foreach ($names as $name) {
 							$disabled[$name] ??= $line;
 						}
@@ -97,6 +105,24 @@ final class Suppression
 		}
 
 		return $suppression;
+	}
+
+
+	/**
+	 * The directive the comment holds, `dresscode:ignore upgrading -- why` or one of phpcs: its kind, the names it lists
+	 * and its text; null for none. A directive runs to the end of its comment or its line.
+	 * @return ?array{kind: string, names: string, text: string}
+	 */
+	private static function findDirective(string $comment): ?array
+	{
+		return preg_match(
+			'~(?:dresscode|phpcs):(ignoreFile|ignore|disable|enable)(?:\s+([\w/.\\\\][\w/.\\\\,\s-]*?))?(?:\s+--(?:\s.*?)?)?(?=\s*(?:\*/|$))~m',
+			$comment,
+			$m,
+			PREG_UNMATCHED_AS_NULL,
+		)
+			? ['kind' => (string) $m[1], 'names' => (string) ($m[2] ?? ''), 'text' => (string) $m[0]]
+			: null;
 	}
 
 
@@ -166,6 +192,33 @@ final class Suppression
 	public function getUnknownNames(): array
 	{
 		return $this->unknown;
+	}
+
+
+	/**
+	 * The tags of a doc comment silence the node it documents: the one starting at the token after it, or one ending
+	 * at the token before it, as a parameter does.
+	 * @param \Closure(string): list<string> $expandName
+	 */
+	private function collectPhpcsSuppress(Trivia $doc, ?Token $before, ?Token $after, \Closure $expandName): void
+	{
+		$node = $after ? self::findOutermostNode($after) : null;
+		if ($node?->getDocComment() !== $doc) {
+			for (
+				$node = $before?->parent;
+				$node && $node->getLastToken() === $before && $node->getDocComment() !== $doc;
+				$node = $node->parent
+			);
+		}
+
+		$from = $node?->getFirstToken()?->line;
+		if (
+			$from !== null
+			&& $node->getDocComment() === $doc
+			&& preg_match_all('~@phpcsSuppress[ \t]+([\w/][\w/.-]*(?:[ \t]*,[ \t]*[\w/][\w/.-]*)*)~', $doc->text, $m)
+		) {
+			$this->add($this->expandNames(implode(',', $m[1]), $expandName), $from, self::getEndLine($node));
+		}
 	}
 
 

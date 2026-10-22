@@ -131,7 +131,8 @@ final class PluginRegistry
 
 	/**
 	 * What a name in a suppression comment stands for, as a report is told by: a decision or a section for itself, the
-	 * class of a rule for its requirements; empty when nothing does.
+	 * class of a rule for its requirements, and a name of another tool for the requirements standing for it; empty when
+	 * nothing does.
 	 * @return list<string>
 	 */
 	public function expandSuppressedName(string $name): array
@@ -147,7 +148,10 @@ final class PluginRegistry
 			return array_values(array_map(fn(Decision $decision) => $decision->path, $requirements));
 		}
 
-		return [];
+		return array_values(array_filter(
+			$this->translator->findPaths($name),
+			fn(string $path) => ($catalogue->find($path)->kind ?? DecisionKind::Parameter) !== DecisionKind::Parameter,
+		));
 	}
 
 
