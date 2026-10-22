@@ -782,7 +782,7 @@ test('the engine is built from the configuration', function () use ($fixtures) {
 		),
 		"$fixtures/project",
 	);
-	Assert::same([], $runner->findFiles(['src']));
+	Assert::same([], $runner->files->findFiles(['src']));
 	$result = $runner->processCode('x.php', "<?php\r\n\$a;\r\n");
 	Assert::same(['8.1 "  ""\r\n"'], array_map(fn($v) => $v->message, $result->violations));
 
@@ -838,7 +838,7 @@ test(
 		Assert::same([PluginRule::class], array_map(fn($rule) => $rule->class, $resolution->resolvedConfig->getActiveRules()));
 
 		// the paths of every layer add up, and a file any layer skips is skipped
-		$files = $runner->findFiles(['.']);
+		$files = $runner->files->findFiles(['.']);
 		Assert::same(['checked.php', 'generated.php', 'skipped.php'], $files);
 		Assert::same(['checked.php'], array_map(fn($result) => $result->path, $runner->run($files, false, new NullReporter)->files));
 	},

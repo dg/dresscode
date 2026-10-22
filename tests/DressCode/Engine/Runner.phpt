@@ -220,10 +220,10 @@ function engine(
 
 test('a dot path is the root itself and never matches the dot-prefixed exclusion', function () use ($root) {
 	$runner = engine($root, excludePaths: ['vendor', 'fixtures*', '.*']);
-	Assert::same('', $runner->relativize('.'));
-	Assert::same('src/a.php', $runner->relativize('./src/./a.php'));
-	Assert::contains('src/a.php', $runner->findFiles(['.']));
-	Assert::contains('src/a.php', $runner->findFiles(['./src']));
+	Assert::same('', $runner->files->relativize('.'));
+	Assert::same('src/a.php', $runner->files->relativize('./src/./a.php'));
+	Assert::contains('src/a.php', $runner->files->findFiles(['.']));
+	Assert::contains('src/a.php', $runner->files->findFiles(['./src']));
 });
 
 
@@ -231,51 +231,51 @@ test('files are found under the paths, sorted, relative, with slashes, without t
 	$runner = engine($root);
 	Assert::same(
 		['src/a.php', 'src/b.php', 'src/broken.php', 'src/skipped.php', 'src/sub/d.php'],
-		$runner->findFiles([str_replace('/', '\\', $root) . '\src']),
+		$runner->files->findFiles([str_replace('/', '\\', $root) . '\src']),
 	);
-	Assert::same(['src/a.php', 'src/b.php', 'src/broken.php', 'src/skipped.php', 'src/sub/d.php'], $runner->findFiles(['src']));
-	Assert::same(['src/sub/d.php', 'vendor/f.php'], $runner->findFiles(['./src/sub', 'vendor/f.php']));
-	Assert::same(['src/sub/d.php'], $runner->findFiles(['./src/sub', 'vendor/f.php', 'src/fixtures/e.php'], skipExcluded: true));
+	Assert::same(['src/a.php', 'src/b.php', 'src/broken.php', 'src/skipped.php', 'src/sub/d.php'], $runner->files->findFiles(['src']));
+	Assert::same(['src/sub/d.php', 'vendor/f.php'], $runner->files->findFiles(['./src/sub', 'vendor/f.php']));
+	Assert::same(['src/sub/d.php'], $runner->files->findFiles(['./src/sub', 'vendor/f.php', 'src/fixtures/e.php'], skipExcluded: true));
 	Assert::same(
 		['src/c.phtml', 'src/fixtures/e.php'],
-		engine($root, excludePaths: [], fileExtensions: ['php', 'phtml'])->findFiles(['src/c.phtml', 'src/fixtures']),
+		engine($root, excludePaths: [], fileExtensions: ['php', 'phtml'])->files->findFiles(['src/c.phtml', 'src/fixtures']),
 	);
-	Assert::exception(fn() => $runner->findFiles(['missing']), ConfigurationException::class, 'Path `missing` does not exist.');
+	Assert::exception(fn() => $runner->files->findFiles(['missing']), ConfigurationException::class, 'Path `missing` does not exist.');
 	$outside = str_replace('\\', '/', (string) realpath(__DIR__ . '/../Config/fixtures/project/src'));
-	Assert::same(["$outside/sub/file.php"], engine($root, excludePaths: [])->findFiles([$outside]));
-	Assert::same(["$outside/sub/file.php"], $runner->findFiles(["$outside/sub/file.php"], skipExcluded: true)); // fixtures* matches nothing outside the root
+	Assert::same(["$outside/sub/file.php"], engine($root, excludePaths: [])->files->findFiles([$outside]));
+	Assert::same(["$outside/sub/file.php"], $runner->files->findFiles(["$outside/sub/file.php"], skipExcluded: true)); // fixtures* matches nothing outside the root
 
 	// with the configured paths, a named file outside them is left out as well
 	Assert::same(
 		['src/sub/d.php'],
-		$runner->findFiles(
+		$runner->files->findFiles(
 			['src/sub/d.php', 'src/a.php', 'vendor/f.php', "$outside/sub/file.php"],
 			skipExcluded: true,
 			configured: ['./src/sub'],
 		),
 	);
-	Assert::same(['src/a.php'], $runner->findFiles(['src/a.php'], skipExcluded: true, configured: ['.']));
+	Assert::same(['src/a.php'], $runner->files->findFiles(['src/a.php'], skipExcluded: true, configured: ['.']));
 });
 
 
 test('a directory named that holds configured paths is narrowed to them, anything else is taken as named', function () use ($root) {
 	$runner = engine($root);
 	$configured = ['src/sub', 'vendor/f.php'];
-	Assert::same(['src/sub', 'vendor/f.php'], $runner->narrowPaths(['.'], $configured));
-	Assert::same(['src/sub'], $runner->narrowPaths(['src', "$root/src/"], $configured));
+	Assert::same(['src/sub', 'vendor/f.php'], $runner->files->narrowPaths(['.'], $configured));
+	Assert::same(['src/sub'], $runner->files->narrowPaths(['src', "$root/src/"], $configured));
 	Assert::same(
 		['src/sub/d.php', 'src/su', 'src/fixtures'],
-		$runner->narrowPaths(['src/sub/d.php', 'src/su', 'src/fixtures'], $configured),
+		$runner->files->narrowPaths(['src/sub/d.php', 'src/su', 'src/fixtures'], $configured),
 	);
-	Assert::same(['vendor/f.php'], $runner->narrowPaths(['vendor/f.php'], $configured));
-	Assert::same(['.'], $runner->narrowPaths(['.'], []));
+	Assert::same(['vendor/f.php'], $runner->files->narrowPaths(['vendor/f.php'], $configured));
+	Assert::same(['.'], $runner->files->narrowPaths(['.'], []));
 });
 
 
 test('check reports and writes nothing', function () use ($root) {
 	$reporter = new RecordingReporter;
 	$runner = engine($root, skipWhen: fn(string $content) => str_contains($content, '// skip me'));
-	$result = $runner->run($runner->findFiles(['src']), fix: false, reporter: $reporter);
+	$result = $runner->run($runner->files->findFiles(['src']), fix: false, reporter: $reporter);
 	Assert::same([
 		'start 5 false',
 		'file src/a.php true false',
