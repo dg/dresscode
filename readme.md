@@ -462,8 +462,8 @@ missing.
 
  <!---->
 
-Migrating from PHP CS Fixer and PHP_CodeSniffer
-===============================================
+Migrating from PHP CS Fixer, PHP_CodeSniffer and Laravel Pint
+=============================================================
 
 DressCode knows not only its own decisions, but also the names their rules have in PHP CS Fixer,
 PHP_CodeSniffer and Slevomat. So the move takes three steps, and you can stop after any of them.
@@ -472,8 +472,8 @@ First, leave the code as it is. Comments `// phpcs:ignore`, `phpcs:disable`, `ph
 `phpcs:ignoreFile` and the annotation `@phpcsSuppress` keep working: DressCode translates the foreign rule
 name to its decisions, and the suppression holds.
 
-Second, translate the configuration. `migrate config` finds the one the project has, PHP_CodeSniffer or PHP CS Fixer,
-writes its equivalent to `dresscode.neon`, and tells you what it could not carry over:
+Second, translate the configuration. `migrate config` finds the one the project has, PHP_CodeSniffer, PHP CS Fixer
+or Laravel Pint, writes its equivalent to `dresscode.neon`, and tells you what it could not carry over:
 
 ```shell
 dresscode migrate config
@@ -493,6 +493,15 @@ project, because that file is PHP which has to run; so `migrate config` asks bef
 
 Third, rewrite the comments when you like: `dresscode migrate suppressions src tests` turns
 `phpcs:ignore SlevomatCodingStandard.Namespaces.UnusedUses` into `dresscode:ignore imports.unused`.
+
+**Laravel Pint** runs PHP CS Fixer, with a command line of its own and presets of its own, `laravel` the
+default one. A project on that preset has nothing to translate: DressCode has the style as the standard
+`laravel`. Over 1,615
+files of the first-party packages of Laravel run through Pint, `dresscode check --use laravel` finds 129
+places, each a deliberate difference the manual lists (October 2026). Rules a `pint.json` adds to the preset
+`dresscode migrate config` translates as those of PHP CS Fixer. On top of it, the same run upgrades the code to a newer PHP and, with
+`dresscode/upgrade-laravel`, to a newer Laravel, and it imports the classes named in every tag of a doc
+comment, `@template` and `@method` included.
 
  <!---->
 

@@ -17,11 +17,11 @@ use function count, in_array, sprintf;
 
 
 /**
- * The commands of `migrate`, the move from another formatter: `config` translates a configuration of PHP CS Fixer or
- * PHP_CodeSniffer, the one named or the one the project has, and writes it as NEON or PHP by the extension of the
- * file, what it could not translate said on the error output; a configuration of PHP CS Fixer is PHP, which reading
- * runs, so one the project has is read only after the user agrees. `suppressions` rewrites the phpcs suppression
- * comments of the files to the dresscode form and writes them back.
+ * The commands of `migrate`, the move from another formatter: `config` translates a configuration of PHP CS Fixer,
+ * PHP_CodeSniffer or Laravel Pint, the one named or the one the project has, and writes it as NEON or PHP by the
+ * extension of the file, what it could not translate said on the error output; a configuration of PHP CS Fixer is
+ * PHP, which reading runs, so one the project has is read only after the user agrees. `suppressions` rewrites the
+ * phpcs suppression comments of the files to the dresscode form and writes them back.
  * @internal
  */
 final readonly class MigrateCommand
@@ -32,10 +32,10 @@ final readonly class MigrateCommand
 	}
 
 
-	#[Cli\Command('Translate a PHP CS Fixer or PHP_CodeSniffer configuration')]
+	#[Cli\Command('Translate a PHP CS Fixer, PHP_CodeSniffer or Laravel Pint configuration')]
 	public function config(
 		ParseResult $args,
-		#[Cli\Argument('Configuration file of PHP CS Fixer or PHP_CodeSniffer; the one the project has when omitted')]
+		#[Cli\Argument('Configuration file of PHP CS Fixer, PHP_CodeSniffer or Laravel Pint; the one the project has when omitted')]
 		?string $file = null,
 		#[Cli\Option('The configuration to write, NEON or PHP by its extension', alias: '-o', valueName: 'file')]
 		string $output = 'dresscode.neon',
@@ -100,7 +100,7 @@ final readonly class MigrateCommand
 	private function findConfig(string $root, ParseResult $args): ?FormatterConfig
 	{
 		$config = FormatterConfig::find($root) ?? throw new UsageException(
-			'The project has no configuration of PHP CS Fixer or PHP_CodeSniffer; name the file to translate.',
+			'The project has no configuration of PHP CS Fixer, PHP_CodeSniffer or Laravel Pint; name the file to translate.',
 			$args->command,
 		);
 		$this->context->writeNote(

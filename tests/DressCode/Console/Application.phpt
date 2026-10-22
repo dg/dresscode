@@ -570,7 +570,14 @@ test('migrate config without a file finds the configuration the project has, and
 	$project = createTempDir('import-find');
 	[$code, , $err] = runApp($project, ['migrate', 'config']);
 	Assert::same(3, $code);
-	Assert::contains('The project has no configuration of PHP CS Fixer or PHP_CodeSniffer', $err);
+	Assert::contains('The project has no configuration of PHP CS Fixer, PHP_CodeSniffer or Laravel Pint', $err);
+
+	// the preset of Laravel Pint is the standard, its rules those of PHP CS Fixer
+	file_put_contents("$project/pint.json", '{"preset": "per", "rules": {"cast_spaces": {"space": "none"}}}');
+	[$code, , $err] = runApp($project, ['migrate', 'config']);
+	Assert::same(0, $code);
+	Assert::contains('Found `pint.json` of Laravel Pint.', $err);
+	Assert::match("use: perCs\n%A%cast: '(int)\$x'%A%", (string) file_get_contents("$project/dresscode.neon"));
 
 	$project = createTempDir('import-fixer');
 	file_put_contents(

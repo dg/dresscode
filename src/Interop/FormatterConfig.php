@@ -15,18 +15,30 @@ use function is_array, is_string, strlen;
 
 
 /**
- * The configuration of the formatter a project has, found where a project keeps it, with how the project runs it. Its
- * rules, which `translate()` reads, need the configuration of PHP CS Fixer run, being PHP.
+ * The configuration of the formatter a project has, found where a project keeps it. What `dresscode migrate config`
+ * takes of it besides its rules is read as data and never run: the standard it names and how the project runs it. Only
+ * its rules, which `translate()` reads, need the configuration of PHP CS Fixer run, being PHP.
  * @internal
  */
 final readonly class FormatterConfig
 {
+	/** the presets of Laravel Pint and the standard each is */
+	private const PintPresets = [
+		'laravel' => 'laravel',
+		'psr12' => 'psr12',
+		'per' => 'perCs',
+		'symfony' => 'symfony',
+	];
+
+
 	private function __construct(
 		public Formatter $formatter,
 		/** relative to the root, absolute where it lies outside */
 		public string $file,
 		/** the command of the project that runs it, `composer check`; null where none does */
 		public ?string $runBy,
+		/** the standard of DressCode its preset is; null for none */
+		public ?string $standard,
 		/** absolute */
 		private string $path,
 	) {
@@ -70,7 +82,18 @@ final readonly class FormatterConfig
 
 	private static function read(string $root, string $file, Formatter $formatter, ?string $runBy): self
 	{
-		return new self($formatter, $file, $runBy, FileSystem::isAbsolute($file) ? $file : "$root/$file");
+		$path = FileSystem::isAbsolute($file) ? $file : "$root/$file";
+		return $formatter === Formatter::Pint
+			? self::readPint($path, $file, $runBy)
+			: new self($formatter, $file, $runBy, null, $path);
+	}
+
+
+	/** Laravel Pint: the standard of its preset, `laravel` where it names none. */
+	private static function readPint(string $path, string $file, ?string $runBy): self
+	{
+		$config = ComposerJson::read($path) ?? [];
+		return new self(Formatter::Pint, $file, $runBy, self::PintPresets[$config['preset'] ?? 'laravel'] ?? null, $path);
 	}
 
 
@@ -103,6 +126,12 @@ final readonly class FormatterConfig
 		$translator = new Translator;
 		if ($this->formatter === Formatter::PhpCsFixer) {
 			return $translator->translate(...PhpCsFixer::readConfig($this->path));
+		} elseif ($this->formatter === Formatter::Pint) {
+			$config = ComposerJson::read($this->path) ?? throw new ConfigurationException("File `$this->file` is no configuration of Laravel Pint.");
+			return $translator->translate(
+				(array) ($config['rules'] ?? []),
+				presets: $this->standard === null ? [] : ["dresscode/$this->standard"],
+			);
 		}
 
 		[$rules, $unread] = PhpCodeSniffer::readConfig($this->path);

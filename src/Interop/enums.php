@@ -16,12 +16,17 @@ enum Formatter: string
 {
 	case PhpCodeSniffer = 'PHP_CodeSniffer';
 	case PhpCsFixer = 'PHP CS Fixer';
+	case Pint = 'Laravel Pint';
 
 
 	/** The formatter whose configuration the file is, told by its extension. */
 	public static function fromFileName(string $file): self
 	{
-		return preg_match('~\.xml(\.dist)?$~Di', $file) ? self::PhpCodeSniffer : self::PhpCsFixer;
+		return match (true) {
+			(bool) preg_match('~\.xml(\.dist)?$~Di', $file) => self::PhpCodeSniffer,
+			(bool) preg_match('~\.json$~Di', $file) => self::Pint,
+			default => self::PhpCsFixer,
+		};
 	}
 
 
@@ -34,6 +39,7 @@ enum Formatter: string
 		return match ($this) {
 			self::PhpCodeSniffer => ['phpcs.xml', 'phpcs.xml.dist', '.phpcs.xml', '.phpcs.xml.dist'],
 			self::PhpCsFixer => ['.php-cs-fixer.dist.php', '.php-cs-fixer.php'],
+			self::Pint => ['pint.json'],
 		};
 	}
 
@@ -44,6 +50,7 @@ enum Formatter: string
 		return match ($this) {
 			self::PhpCodeSniffer => 'phpcs',
 			self::PhpCsFixer => 'php-cs-fixer',
+			self::Pint => 'pint',
 		};
 	}
 

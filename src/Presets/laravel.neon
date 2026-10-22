@@ -1,0 +1,214 @@
+# Laravel
+#
+# The style of Laravel as the preset laravel of Laravel Pint defines it: PER Coding Style with the concatenation, the
+# negation and the instantiation Laravel writes, the arrow function spaced, the imports qualified and sorted, a blank
+# line before `return` and `continue`, the phpDoc trimmed, and without the rules that break a construct over lines,
+# which Pint leaves to the author.
+
+use: perCs
+
+file:
+	lineLength: none
+	longLines: keep
+	strictTypes:
+		position: keep
+
+indentation:
+	heredoc: keep
+	binaryOperator: keep
+	ternary: keep
+
+naming:
+	class: keep
+	method: keep
+	constant: keep
+	enumCase: keep
+
+casing:
+	magicConstant: uppercase
+	hexDigit: uppercase
+	function: declared                        # `strlen()`, not `StrLen()`
+
+qualification:
+	staticInFinalClass: required              # `self::` in a final class
+	class:
+		otherNamespace: imported
+		currentNamespace: bare
+		phpdoc: imported                      # `@param Request $request`, not `@param \Illuminate\Http\Request $request`
+
+imports:
+	grouping:
+		class: separated
+		function: separated
+		constant: separated
+	order:
+		kinds: [constant, class, function]
+		names: alphabetical
+	unused: forbidden
+	aliasEqualToName: forbidden
+
+spacing:
+	anonymousClass: 'new class($a)'
+	comment:
+		marker: // text
+	concatenation: $a.$b
+	alignment:
+		binaryOperator: forbidden
+		comma: optional
+	objectOperator: '$a->b()'
+	doubleColon: 'Foo::bar()'
+	logicalNot: ! $x
+	reference: keep
+	spread: keep
+	namedArgument: keep
+	attribute: keep
+	alternativeSyntax: keep
+	body: keep
+	import: keep
+	arrowFunction: 'fn ($x) => $x'
+	padding:
+		array: forbidden
+		list: forbidden
+		offset: forbidden
+	semicolon:
+		after: 'for ($i = 0; $i < 5; $i++)'
+
+# method_argument_space ignores what spreads over lines, and Pint has nothing that would spread a construct
+multiline:
+	items:
+		array: keep
+		list: keep
+		implements: keep
+		condition: keep
+		for: keep
+		logical: keep
+		concatenation: keep
+		arithmetic: keep
+		bitwise: keep
+		chain: keep
+		matchCondition: keep
+		ternary: keep
+		argument: keep
+		parameter: keep
+	edges:
+		array: keep
+		list: keep
+		implements: keep
+		condition: keep
+		chain: keep
+		argument: keep
+		parameter: keep
+	trailingComma:
+		argument: optional                    # arrays only
+		parameter: optional
+		matchArm: keep
+		closureUse: keep
+	operatorPosition:
+		condition: keep
+		comparison: keep
+		logical: keep
+		concatenation: keep
+		arithmetic: keep
+		bitwise: keep
+		coalesce: keep
+		pipe: keep
+		ternary: keep
+	attributePosition:
+		declaration: keep
+		parameter: keep
+	semicolon: sameLine
+
+braces:
+	alternativeSyntax: forbidden
+	bareStatementGroup: forbidden
+	position:
+		anonymousClass: nextLine
+	emptyBody:
+		propertyHook: keep
+
+blankLines:
+	bodyStart:
+		controlStructure: keep
+	bodyEnd:
+		function: keep
+		closure: keep
+		controlStructure: keep
+		branch: keep
+		class: keep
+		anonymousClass: keep
+	aroundMethods: 1
+	aroundInterfaceMethods: 1
+	beforeOpenBrace:
+		class: keep
+	afterTraitUses: keep
+	betweenMemberKinds: 1
+	betweenMembers:                           # enum cases together
+		constant: 1
+		property: 1
+	beforeDocumentedMember: 1
+	afterDeclare: keep
+	afterAttributes: keep
+	beforeStatement:
+		continue: '1+'
+		return: '1+'
+
+classes:
+	members:
+		order: keep
+		grouping:
+			traitUse: keep
+	protectedInEnum: keep
+	visibility:
+		constant: keep
+	emptyParentheses:
+		instantiation: forbidden              # `new Foo`
+		attribute: keep
+	instantiationWrapping: keep
+
+types:
+	nullPosition: keep
+
+functions:
+	trailingBareReturn: forbidden
+	arrowFunction:
+		emptyBody: keep
+	unreachableParameterDefault: forbidden
+
+hygiene:
+	aliasFunctions: [core, imap, pg]
+
+controlFlow:
+	switch:
+		fallThroughComment: keep
+
+expressions:
+	parenthesesAfterConstruct: forbidden      # `return $x;`, not `return ($x);`
+	assignment:
+		increment: postfix
+	doubleNegation: forbidden
+	comparison:
+		notEquals: '!='
+		yoda: forbidden
+
+literals:
+	arraySyntax:
+		list: short
+	quotes: single
+
+comments:
+	singleline: //
+
+phpdoc:
+	empty: forbidden
+	forbiddenAnnotations: [@access, @package, @subpackage]
+	aboveAttributes: keep
+	stars: aligned
+	blankLines: trimmed
+	types:
+		builtin: canonical
+	annotation:
+		nativeTypeOnly: forbidden
+
+upgrading:
+	php:
+		implicitNullable: forbidden
