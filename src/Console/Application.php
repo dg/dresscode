@@ -19,7 +19,7 @@ use const PHP_OS_FAMILY;
  */
 final readonly class Application
 {
-	public const Version = '1.3.3';
+	public const Version = '1.4.0';
 
 	private CommandContext $context;
 
