@@ -203,6 +203,24 @@ final readonly class MeasurementPlan
 
 
 	/**
+	 * The files the probe of a candidate reports in, which a fix under that value would rewrite; null for a value no
+	 * probe ran under.
+	 * @param  array<string, ProbeResult>  $results  by the keys of `buildProbes()`
+	 */
+	public function countFiles(array $results, mixed $value): ?int
+	{
+		$path = $this->decision->path;
+		if (isset(self::MeasuredOnParameter[$path])) {
+			return null;
+		}
+
+		$wanted = $this->decision->accept($value)->toData();
+		$name = array_find_key($this->candidates, fn(mixed $candidate) => $this->decision->accept($candidate)->toData() === $wanted);
+		return $name === null ? null : ($results["$path=$name"] ?? null)?->countFiles($path);
+	}
+
+
+	/**
 	 * The results of the probes of the candidates, by the name of the candidate.
 	 * @param  array<string, ProbeResult>  $results
 	 * @return array<int|string, ProbeResult>

@@ -18,6 +18,10 @@ use function count, is_array;
  */
 final readonly class ProbeResult
 {
+	/** the findings of a decision kept for what a question shows of the code, the rest only counted */
+	private const KeptFindings = 1000;
+
+
 	public function __construct(
 		/** @var array<string, array<string, int>>  decision => file => the places the decision reports in it */
 		public array $places,
@@ -31,6 +35,8 @@ final readonly class ProbeResult
 		public array $syntaxErrors,
 		/** @var list<string>  the files a rule failed in */
 		public array $failed,
+		/** @var array<string, list<array{string, int, string, bool}>>  decision => file, line, message, fixable without risk */
+		public array $findings = [],
 	) {
 	}
 
@@ -41,7 +47,13 @@ final readonly class ProbeResult
 		foreach ($run->files as $result) {
 			$violations = [];
 			foreach ($result->violations as $violation) {
-				$violations[] = [$violation->decision, $violation->fixable && $violation->risk === null, $violation->derivedFrom !== null];
+				$violations[] = [
+					$violation->decision,
+					$violation->fixable && $violation->risk === null,
+					$violation->derivedFrom !== null,
+					$violation->line,
+					$violation->message,
+				];
 			}
 
 			$files[] = [$result->path, $violations, $result->changed, $result->syntaxError !== null, $result->failure !== null];
@@ -65,6 +77,8 @@ final readonly class ProbeResult
 					(string) $violation['decision'],
 					$violation['fixable'] && $violation['risk'] === null,
 					$violation['derivedFrom'] !== null,
+					(int) $violation['line'],
+					(string) $violation['message'],
 				];
 			}
 
@@ -82,12 +96,12 @@ final readonly class ProbeResult
 
 
 	/**
-	 * @param  list<array{string, list<array{string, bool, bool}>, bool, bool, bool}>  $files  path, the violations (decision,
-	 *     fixable without risk, derived), changed, unparsed, failed
+	 * @param  list<array{string, list<array{string, bool, bool, int, string}>, bool, bool, bool}>  $files  path, the
+	 *     violations (decision, fixable without risk, derived, line, message), changed, unparsed, failed
 	 */
 	private static function collect(array $files): self
 	{
-		$places = $fixable = $left = $syntaxErrors = $failed = [];
+		$places = $fixable = $left = $syntaxErrors = $failed = $findings = [];
 		$changed = 0;
 		foreach ($files as [$path, $violations, $isChanged, $unparsed, $isFailed]) {
 			$changed += (int) $isChanged;
@@ -97,12 +111,16 @@ final readonly class ProbeResult
 				$failed[] = $path;
 			}
 
-			foreach ($violations as [$decision, $isFixable, $derived]) {
+			foreach ($violations as [$decision, $isFixable, $derived, $line, $message]) {
 				if ($derived) {
 					continue;
 				}
 
 				$places[$decision][$path] = ($places[$decision][$path] ?? 0) + 1;
+				if (count($findings[$decision] ?? []) < self::KeptFindings) {
+					$findings[$decision][] = [$path, $line, $message, $isFixable];
+				}
+
 				if ($isFixable) {
 					$fixable[$decision][$path] = true;
 				} else {
@@ -111,7 +129,7 @@ final readonly class ProbeResult
 			}
 		}
 
-		return new self($places, $fixable, $left, $changed, $syntaxErrors, $failed);
+		return new self($places, $fixable, $left, $changed, $syntaxErrors, $failed, $findings);
 	}
 
 
@@ -122,6 +140,15 @@ final readonly class ProbeResult
 	public function findResidue(): array
 	{
 		return array_keys($this->places);
+	}
+
+
+	/** A place the decision reports, `path:line  message`, a fixable one where there is one; null for none. */
+	public function findExample(string $decision): ?string
+	{
+		$findings = $this->findings[$decision] ?? [];
+		[$path, $line, $message] = array_find($findings, fn(array $finding) => $finding[3]) ?? $findings[0] ?? [null, 0, ''];
+		return $path === null ? null : "$path:$line  $message";
 	}
 
 

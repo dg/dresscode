@@ -11,8 +11,8 @@ use DressCode\Config\{Loader, PluginRegistry, RunnerFactory};
 use DressCode\ConfigurationException;
 use DressCode\Console\{CommandContext, InitPrinter, Markup, StatusLine};
 use DressCode\Engine\{Helpers, WorkerPool};
-use DressCode\Interop\PhpCodeSniffer;
-use DressCode\Measuring\{Budget, InProcessProbeRunner, ProcessProbeRunner, Project, Proposal, Scope};
+use DressCode\Interop\{PhpCodeSniffer, Translation};
+use DressCode\Measuring\{Answer, Budget, InProcessProbeRunner, ProcessProbeRunner, Project, Proposal, Question, Questions, Scope};
 use Nette\CommandLine\Attributes as Cli;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
@@ -21,7 +21,9 @@ use function count;
 
 /**
  * The command `init`: measures how the project writes what can be measured and writes dresscode.neon with it, saying
- * what it does phase by phase; a configuration that exists is never overwritten.
+ * what it does phase by phase and asking where the measuring left the choice to the user; without a terminal, with
+ * `--yes` or for an agent it takes the recommended answers and says how to give another. A configuration that exists
+ * is never overwritten.
  * @internal
  */
 final readonly class InitCommand
@@ -58,6 +60,14 @@ final readonly class InitCommand
 			normalizer: [ConfigOptions::class, 'checkDecision'],
 		)]
 		array $set = [],
+		#[Cli\Flag('Take the recommended answers without asking, as without a terminal')]
+		bool $yes = false,
+		#[Cli\Option(
+			'Output format: `console` to read and answer, `agent` for an AI agent, which takes the recommended answers',
+			alias: '-f',
+			enum: ['console', 'agent'],
+		)]
+		string $format = 'console',
 	): int
 	{
 		$root = Helpers::canonicalizePath($this->context->workingDirectory);
@@ -77,8 +87,9 @@ final readonly class InitCommand
 
 		$console = $this->context->out;
 		$write = fn(string $text) => $console->write(Markup::highlightCode($console, $text));
-		$status = new StatusLine($console);
+		$status = new StatusLine($console, active: $format === 'console');
 		$printer = new InitPrinter($console);
+		$interactive = $format === 'console' && !$yes && $this->context->prompt->isInteractive();
 		$write(CommandContext::formatName($console) . '  looking at ' . FileSystem::platformSlashes($root) . " to write its `dresscode.neon`\n\n");
 
 		$status->show('Project', 'looking for the PHP files');
@@ -89,18 +100,50 @@ final readonly class InitCommand
 		$runner = WorkerPool::buildPhpCommand() === null
 			? new InProcessProbeRunner($root, $status->advance(...))
 			: ProcessProbeRunner::create($root, $status->advance(...));
-		$proposal = Proposal::measure($project, $scope, $runner, $presets, fn(string $text) => $status->show('Measuring', $text));
+		$onPhase = fn(string $text) => $status->show('Measuring', $text);
+		$proposal = Proposal::measure($project, $scope, $runner, $presets, $onPhase);
+		$standardQuestion = Questions::findStandardQuestion($proposal);
+		if ($interactive && $standardQuestion !== null) {
+			$console->clearStatus();
+			$answer = $this->ask($printer, $standardQuestion);
+			$proposal = $answer->presets === null ? $proposal : Proposal::measure($project, $scope, $runner, $answer->presets, $onPhase);
+		}
+
 		foreach ($set as $spec) {
 			[$path, $value] = explode('=', $spec, 2);
 			$proposal->answer($path, Neon::decode($value));
 		}
 
+		$limit = new Budget(count($scope->files), $budget);
 		$status->show('Checking', 'the configuration over all ' . count($scope->files) . ' files');
-		$proposal->verify($runner, new Budget(count($scope->files), $budget));
-		// the values listed are those the budget left, which the verification decides
-		$write($printer->printMeasurements($proposal));
-		$write($printer->printVerification($proposal));
-		$write($printer->printQuestions($proposal));
+		$proposal->verify($runner, $limit);
+		$questions = Questions::findAll($proposal, $this->readFormatterRules($project, $printer, $interactive));
+		$reverify = function (array $answers) use ($proposal, $runner, $limit, $status, $scope): bool {
+			foreach ($answers as $answer) {
+				$proposal->apply($answer);
+			}
+
+			if (!array_filter($answers, fn(Answer $answer) => !$answer->isNone())) {
+				return false;
+			}
+
+			$status->show('Checking', 'the configuration with the answers over all ' . count($scope->files) . ' files');
+			$proposal->verify($runner, $limit);
+			return true;
+		};
+
+		if ($interactive) {
+			// the values listed are those the budget left, which the verification decides
+			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal));
+			if ($reverify(array_map(fn(Question $question) => $this->ask($printer, $question), $questions))) {
+				$write("\n" . $printer->printVerification($proposal));
+			}
+		} else {
+			// without a terminal the recommended answers are taken before anything is listed
+			$reverify(array_map(fn(Question $question) => $question->getRecommended(), $questions));
+			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal));
+			$write($printer->printQuestions([...($standardQuestion === null ? [] : [$standardQuestion]), ...$questions]));
+		}
 
 		$proposal->checkWritten();
 		if ($existing) {
@@ -117,5 +160,46 @@ final readonly class InitCommand
 			$project->formatterConfig === null ? 0 : PhpCodeSniffer::countSuppressions($root, $scope->files),
 		));
 		return 0;
+	}
+
+
+	/** Asks the question, an empty answer or the end of the input taking the recommended one. */
+	private function ask(InitPrinter $printer, Question $question): Answer
+	{
+		$this->context->out->write("\n" . Markup::highlightCode($this->context->out, $printer->printQuestion($question)));
+		$choices = [];
+		foreach ($question->answers as $i => $answer) {
+			$choices[$answer->key] = $answer->label . ($i === 0 ? ' (recommended)' : '');
+		}
+
+		$key = $this->context->prompt->choose('Your choice', $choices, $question->getRecommended()->key);
+		return $question->findAnswer((string) $key) ?? $question->getRecommended();
+	}
+
+
+	/**
+	 * The rules of the formatter of the project, which a value of the code may contradict: data are read, a
+	 * configuration of PHP CS Fixer, which reading runs, only when the user agrees to it in a terminal.
+	 */
+	private function readFormatterRules(Project $project, InitPrinter $printer, bool $interactive): ?Translation
+	{
+		$config = $project->formatterConfig;
+		if ($config === null) {
+			return null;
+		} elseif ($config->formatter->runsCode() && (!$interactive || $this->context->prompt->choose(
+			"\n`$config->file` is PHP, which reading runs. Read it to compare its rules with your code?",
+			['y', 'n'],
+			'n',
+		) !== 'y')
+		) {
+			return null;
+		}
+
+		try {
+			return $config->translate();
+		} catch (ConfigurationException $e) {
+			$this->context->out->write($printer->printUnreadable($config, $e->getMessage()));
+			return null;
+		}
 	}
 }

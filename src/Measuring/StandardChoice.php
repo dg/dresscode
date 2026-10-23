@@ -48,6 +48,10 @@ final readonly class StandardChoice
 		public array $decisions,
 		/** @var list<string>  the files the checks found unparsable */
 		public array $unparsed,
+		/** @var list<string>  the standards as near to the code, which nothing of the project decided between */
+		public array $alternatives = [],
+		/** the files of the sample the chosen standard alone would rewrite */
+		public int $changedFiles = 0,
 	) {
 	}
 
@@ -89,9 +93,9 @@ final readonly class StandardChoice
 		$checks = $runner->run($probes);
 		$residues = array_map(fn(ProbeResult $check) => count($check->findResidue()), $checks);
 		asort($residues);
-		[$chosen, $reason] = match (true) {
-			$presets !== null => [(string) array_key_first($checks), StandardReason::Given],
-			count($candidates) === 1 => [(string) array_key_first($checks), StandardReason::Formatter],
+		[$chosen, $reason, $alternatives] = match (true) {
+			$presets !== null => [(string) array_key_first($checks), StandardReason::Given, []],
+			count($candidates) === 1 => [(string) array_key_first($checks), StandardReason::Formatter, []],
 			default => self::choose($residues, [$project->framework, $project->formatterConfig?->standard]),
 		};
 		$presets = array_combine(array_keys($probes), $candidates)[$chosen];
@@ -103,6 +107,8 @@ final readonly class StandardChoice
 			array_values(array_filter($checks[$chosen]->findResidue(), fn(string $path) => isset($decisions[$path]))),
 			$decisions,
 			array_values(array_unique(array_merge(...array_map(fn(ProbeResult $check) => $check->syntaxErrors, array_values($checks))))),
+			$alternatives,
+			$checks[$chosen]->changedFiles,
 		);
 	}
 
@@ -111,10 +117,11 @@ final readonly class StandardChoice
 	 * The standard the code departs from in the fewest decisions; where the next one is within a tenth of it, the first of
 	 * the hints among them (the standard of the framework of the project, the one its formatter names), else `perCs`
 	 * among them, else the fewest. PSR-12 says nothing of what PHP brought since and so departs from less, which is why
-	 * it yields to PER Coding Style within `SuccessorResidue`, unless a hint names it.
+	 * it yields to PER Coding Style within `SuccessorResidue`, unless a hint names it. A close call no hint decides
+	 * leaves the other close standards as the alternatives.
 	 * @param  array<string, int>  $residues  standard => its residue, the fewest first
 	 * @param  list<?string>  $hints
-	 * @return array{string, StandardReason}
+	 * @return array{string, StandardReason, list<string>}
 	 */
 	private static function choose(array $residues, array $hints): array
 	{
@@ -128,14 +135,14 @@ final readonly class StandardChoice
 
 		$best = (string) array_key_first($candidates);
 		$close = array_keys(array_filter($candidates, fn(int $count) => $count <= self::CloseResidue * $candidates[$best]));
-		$chosen = count($close) === 1
-			? $best
-			: array_find([...$hints, CorePlugin::Standards[0]], fn(?string $standard) => in_array($standard, $close, true)) ?? $best;
+		$hinted = count($close) === 1 ? $best : array_find($hints, fn(?string $standard) => in_array($standard, $close, true));
+		$chosen = $hinted ?? (in_array(CorePlugin::Standards[0], $close, true) ? CorePlugin::Standards[0] : $best);
 		return [
 			$chosen,
 			$chosen === 'perCs' && ($residues['psr12'] ?? PHP_INT_MAX) < $residues['perCs']
 				? StandardReason::Successor
 				: StandardReason::Fewest,
+			$hinted === null ? array_values(array_diff($close, [$chosen])) : [],
 		];
 	}
 

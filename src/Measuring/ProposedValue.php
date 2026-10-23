@@ -23,16 +23,18 @@ final readonly class ProposedValue
 		/** the evidence, written beside the value: "your code, 93% of 176 files", "not checked: …" */
 		public string $comment,
 		public ValueOrigin $origin = ValueOrigin::Measured,
-		/** for a decision the budget left unchecked: the value as written that the code or the standard holds to */
-		public ?string $wanted = null,
+		/** for a decision the budget left unchecked: the value the code or the standard holds to, as the configuration writes it */
+		public mixed $wanted = null,
 		/** for a decision the budget left unchecked: the files its fix would change */
 		public int $cost = 0,
+		/** for a decision the budget left unchecked: a place of the code a fix would rewrite, `path:line  message` */
+		public ?string $example = null,
 	) {
 	}
 
 
 	/** A decision whose fix would change more files than the budget allows, left unchecked. */
-	public static function overBudget(string $path, string $wanted, int $cost, int $scopeFiles): self
+	public static function overBudget(string $path, mixed $wanted, int $cost, int $scopeFiles, ?string $example = null): self
 	{
 		return new self(
 			$path,
@@ -41,6 +43,7 @@ final readonly class ProposedValue
 			ValueOrigin::OverBudget,
 			$wanted,
 			$cost,
+			$example,
 		);
 	}
 

@@ -8,7 +8,7 @@
 
 use DressCode\Config\{Loader, RunnerFactory};
 use DressCode\Console\Application;
-use DressCode\Measuring\{FileSample, InProcessProbeRunner, Project, Proposal, Scope};
+use DressCode\Measuring\{Budget, FileSample, InProcessProbeRunner, ProbeResult, ProbeRunner, Project, Proposal, Scope, ValueOrigin};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -32,13 +32,17 @@ function createProject(string $name, array $files): string
 
 /**
  * @param  list<string>  $args
+ * @param  ?string  $answers  what the user types in a terminal; null for no terminal
  * @return array{int, string, string}
  */
-function runInit(string $root, array $args = []): array
+function runInit(string $root, array $args = [], ?string $answers = null): array
 {
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
-	$code = new Application($out, $err, cwd: $root)->run(['dresscode', 'init', ...$args]);
+	$in = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	fwrite($in, $answers ?? '');
+	rewind($in);
+	$code = new Application($out, $err, $in, cwd: $root, interactive: $answers !== null)->run(['dresscode', 'init', ...$args]);
 	rewind($out);
 	rewind($err);
 	return [$code, (string) stream_get_contents($out), (string) stream_get_contents($err)];
@@ -70,6 +74,7 @@ test('init writes what the code says, the loader reads it back as measured, and 
 		Measured   your code departs from it in 1 decision over 3 files
 		As written indentation.unit: tab   your code, all 3 files
 		Checked    all 3 files: a fix changes no file
+		Your call  removing the decisions below `use` from `dresscode.neon` takes perCs as it is; its fix rewrites 3 files
 
 		Written    `dresscode.neon`
 		Next       `dresscode check`      passes already
@@ -346,7 +351,7 @@ test('a decision the code holds to in all but a few files is written, unless its
 		(string) file_get_contents("$root/dresscode.neon"),
 	);
 
-	Assert::contains('Your call  `blankLines.afterOpeningTag: 1` in `dresscode.neon` checks it too; its fix changes 3 files', $out);
+	Assert::contains('`blankLines.afterOpeningTag: 1` in `dresscode.neon` checks it too; its fix changes 3 files', $out);
 
 	// init over its own file has nothing to say has moved
 	[$code, $out] = runInit($root);
@@ -460,4 +465,155 @@ test('the sample is every k-th file, the same for the same tree, without a file 
 	Assert::same(8, $sample->oversized);
 	Assert::same(11, count(FileSample::pick($root, array_keys($files), maxBytes: 1_000_000)->files));
 	Assert::same(10, count(FileSample::pick($root, array_keys($files), maxFiles: 10)->files)); // every third of the 30
+});
+
+
+/** @return array<string, string>  twenty files, three of them without the blank line the others have after the tag */
+function stragglers(): array
+{
+	$files = ['composer.json' => '{}'];
+	foreach (range(1, 20) as $i) {
+		$files[sprintf('src/f%02d.php', $i)] = $i <= 3 ? "<?php\n\$a = $i;\n" : "<?php\n\n\$a = $i;\n";
+	}
+
+	return $files;
+}
+
+
+test('a decision left unchecked that makes another one cost more than the budget leaves that one unchecked too', function () {
+	$root = createProject('cascade', stragglers());
+	// with the blank line after the tag left unchecked, the unused imports are said to cost three files
+	$runner = new class (new InProcessProbeRunner($root)) implements ProbeRunner {
+		public function __construct(
+			private ProbeRunner $inner,
+		) {
+		}
+
+
+		public function run(array $probes): array
+		{
+			$results = $this->inner->run($probes);
+			$config = $probes['scope'] ?? [];
+			if (
+				isset($results['scope'])
+				&& ($config['blankLines']['afterOpeningTag'] ?? null) === 'keep'
+				&& ($config['imports']['unused'] ?? null) !== 'keep'
+			) {
+				$result = $results['scope'];
+				$files = ['src/f10.php' => true, 'src/f11.php' => true, 'src/f12.php' => true];
+				$results['scope'] = new ProbeResult(
+					$result->places,
+					['imports.unused' => $files] + $result->fixable,
+					$result->left,
+					$result->changedFiles,
+					$result->syntaxErrors,
+					$result->failed,
+				);
+			}
+
+			return $results;
+		}
+	};
+
+	$proposal = Proposal::measure(Project::detect($root), Scope::fromAutoload($root, Scope::Extensions), $runner, ['perCs']);
+	$proposal->verify($runner, new Budget(20));
+	Assert::same(ValueOrigin::OverBudget, $proposal->values['blankLines.afterOpeningTag']->origin);
+	Assert::same(ValueOrigin::OverBudget, $proposal->values['imports.unused']->origin);
+	Assert::same(3, $proposal->values['imports.unused']->cost);
+});
+
+
+test('in a terminal init asks where the measuring left the choice, and Enter takes what --yes takes', function () {
+	$asked = createProject('asked', stragglers());
+	[$code, $out] = runInit($asked, ['--use', 'perCs'], "\n");
+	Assert::same(0, $code);
+	Assert::contains("Check `blankLines.afterOpeningTag: 1`? A fix rewrites 3 files, more than the budget allows.\n", $out);
+	Assert::contains('e.g. src/f01.php:1  ', $out);
+	Assert::contains("  [k] don't check it (recommended)\n  [f] 1 everywhere, a fix rewrites 3 files\n", $out);
+
+	$yes = createProject('yes', stragglers());
+	[$code, $out] = runInit($yes, ['--use', 'perCs', '--yes'], "f\n");
+	Assert::same(0, $code);
+	Assert::notContains('[k]', $out);
+	Assert::same(file_get_contents("$yes/dresscode.neon"), file_get_contents("$asked/dresscode.neon"));
+
+	// the answer checks the decision, and the configuration is checked again with it
+	$answered = createProject('answered', stragglers());
+	[$code, $out] = runInit($answered, ['--use', 'perCs'], "f\n");
+	Assert::same(0, $code);
+	Assert::contains("\nChecked    all 20 files: a fix changes 3 files\n", $out);
+	Assert::contains("\tafterOpeningTag: 1   # your answer\n", (string) file_get_contents("$answered/dresscode.neon"));
+});
+
+
+test('a close call of standards is asked first, and the answer measures against the other', function () {
+	$root = createProject('close', stragglers());
+	[$code, $out] = runInit($root, [], "b\n\n");
+	Assert::same(0, $code);
+	Assert::match('%A%Your code is as near to %a% as to %a%; which standard should it follow?%A%', $out);
+	Assert::notSame('perCs', Loader::loadFile("$root/dresscode.neon")->use[0] ?? null);
+
+	// without a terminal the nearer is taken, and the line says how to measure against the other
+	$root = createProject('close-pipe', stragglers());
+	[, $out] = runInit($root);
+	Assert::match('%A%Your call  `dresscode init --use %a%` measures against %a% instead, where there is no `dresscode.neon` yet%A%', $out);
+});
+
+
+test('names no rule renames that share a suffix are let pass by the recommended answer', function () {
+	$files = ['composer.json' => '{}'];
+	foreach (['Cart_', 'Order_', 'Item_', 'Stock_'] as $class) {
+		$files["src/$class.php"] = "<?php\n\nclass $class\n{\n}\n";
+	}
+
+	$root = createProject('names', $files);
+	[$code, $out] = runInit($root, ['--use', 'perCs', '--set', 'naming.class=PascalCase']);
+	Assert::same(0, $code);
+	Assert::contains('`naming.except` lets the class names that end with `_` pass; without it they go to the baseline', $out);
+	Assert::match(
+		"%A%\texcept: [~_$~] %s%# the 4 class names that end with `_`, which no rule renames\n%A%",
+		(string) file_get_contents("$root/dresscode.neon"),
+	);
+	Assert::contains('passes already', $out);
+});
+
+
+test('a value the code holds to that the formatter contradicts is a question', function () use ($tabbed) {
+	$files = [
+		'composer.json' => '{}',
+		'phpcs.xml' => '<?xml version="1.0"?><ruleset><rule ref="Generic.WhiteSpace.DisallowTabIndent"/></ruleset>',
+	];
+	foreach (range(1, 4) as $i) {
+		$files["src/C$i.php"] = $tabbed;
+	}
+
+	$root = createProject('contradicted', $files);
+	[$code, $out] = runInit($root, ['--use', 'perCs']);
+	Assert::same(0, $code);
+	Assert::contains('`indentation.unit: 4 spaces` in `dresscode.neon` says what `phpcs.xml` says; its fix changes 4 files', $out);
+	Assert::contains("\tunit: tab", (string) file_get_contents("$root/dresscode.neon"));
+});
+
+
+test('over a configuration that exists, a decision the file leaves to the standard moves with its cost', function () use ($tabbed) {
+	$root = createProject('moved', [
+		'composer.json' => '{}',
+		'src/A.php' => $tabbed,
+		'src/B.php' => $tabbed,
+		'dresscode.neon' => "use: perCs\npaths: [src]\n",
+	]);
+	[$code, $out] = runInit($root);
+	Assert::same(0, $code);
+	Assert::contains('indentation.unit: `dresscode.neon` has 4 spaces, a fix of it rewrites 2 files, init now writes tab', $out);
+});
+
+
+test('for an agent init takes the recommended answers and draws no status', function () {
+	$root = createProject('agent', stragglers());
+	[$code, $out] = runInit($root, ['--use', 'perCs', '--format', 'agent'], "f\n");
+	Assert::same(0, $code);
+	Assert::notContains('[k]', $out);
+	Assert::notContains('…', $out);
+	Assert::contains('`blankLines.afterOpeningTag: 1` in `dresscode.neon` checks it too', $out);
+	Assert::contains("\tafterOpeningTag: keep", (string) file_get_contents("$root/dresscode.neon"));
 });

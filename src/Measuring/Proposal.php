@@ -34,6 +34,9 @@ final class Proposal
 	/** what a check of the configuration over the whole scope says, null before it ran */
 	public private(set) ?Verification $verification = null;
 
+	/** @var array<string, array{MeasurementPlan, array<string, ProbeResult>}>  path => how it was measured and what its probes said */
+	private array $measured = [];
+
 
 	private function __construct(
 		public readonly Project $project,
@@ -108,6 +111,7 @@ final class Proposal
 
 			$results = $probes ? $runner->run($probes) : [];
 			foreach ($plans as $path => $plan) {
+				$this->measured[$path] = [$plan, $results];
 				$proposed = $plan->decide($results, count($this->sample->files), $this->standard->isStandard(...));
 				if ($proposed === null) {
 					continue;
@@ -126,18 +130,18 @@ final class Proposal
 	 * Writes the value the user gives a decision, whatever was measured, which the budget then never leaves unchecked.
 	 * @throws ConfigurationException
 	 */
-	public function answer(string $path, mixed $value): void
+	public function answer(string $path, mixed $value, string $comment = 'your answer'): void
 	{
 		$standard = $this->standard->decisions[$path] ?? throw new ConfigurationException("Decision `$path` is not one the standard knows.");
 		$standard->decision->accept($value);
-		$this->values[$path] = new ProposedValue($path, $value, 'your answer', ValueOrigin::Answered);
+		$this->values[$path] = new ProposedValue($path, $value, $comment, ValueOrigin::Answered);
 	}
 
 
 	/**
 	 * Checks the configuration over the whole scope and leaves unchecked the decisions whose fix would change more files
-	 * than the budget allows, the costliest first, then checks it again; a file such a check finds unparsable leaves the
-	 * scope, and the last check is what a fix would change and what it leaves.
+	 * than the budget allows, the costliest first, then checks it again until the rest fits; a file such a check finds
+	 * unparsable leaves the scope, and the last check is what a fix would change and what it leaves.
 	 * @throws ConfigurationException
 	 */
 	public function verify(ProbeRunner $runner, Budget $budget): Verification
@@ -145,39 +149,62 @@ final class Proposal
 		$check = fn() => $runner->run(['scope' => $this->buildProbeConfig()])['scope'];
 		$result = $check();
 		$answered = array_keys(array_filter($this->values, fn(ProposedValue $proposed) => $proposed->origin === ValueOrigin::Answered));
-		$dropped = $budget->findDropped($result->fixable, $answered);
-		foreach ($dropped as $path) {
-			$this->values[$path] = ProposedValue::overBudget(
-				$path,
-				isset($this->values[$path])
-					? $this->standard->formatValue($path, $this->values[$path]->value)
-					: $this->standard->decisions[$path]->value->toWrittenText(),
-				count($result->fixable[$path]),
-				count($this->scope->files),
-			);
-		}
+		do {
+			// a decision left unchecked changes what the others would fix, so the budget is applied until it holds
+			$dropped = $budget->findDropped($result->fixable, $answered);
+			foreach ($dropped as $path) {
+				$this->values[$path] = ProposedValue::overBudget(
+					$path,
+					$this->values[$path]->value ?? $this->standard->decisions[$path]->value->toWrittenData(),
+					count($result->fixable[$path]),
+					count($this->scope->files),
+					$result->findExample($path),
+				);
+			}
 
-		$this->scope->markUnparsed(...$result->syntaxErrors);
-		if ($dropped || $result->syntaxErrors) {
-			$result = $check();
-		}
+			$this->scope->markUnparsed(...$result->syntaxErrors);
+			if ($dropped || $result->syntaxErrors) {
+				$result = $check();
+			}
+		} while ($dropped);
 
 		return $this->verification = new Verification($result, $budget->files);
 	}
 
 
 	/**
-	 * What is the user's to decide, the costliest first: the decisions the budget left unchecked.
-	 * @return list<ProposedValue>
+	 * Takes an answer to a question: writes the decisions it gives, or takes the standard as it is, nothing measured
+	 * written over it; a standard to measure against instead is the caller's to measure.
+	 * @throws ConfigurationException
 	 */
-	public function findQuestions(int $max = 5): array
+	public function apply(Answer $answer): void
 	{
-		$questions = array_values(array_filter(
-			$this->values,
-			fn(ProposedValue $proposed) => $proposed->origin === ValueOrigin::OverBudget,
-		));
-		usort($questions, fn(ProposedValue $a, ProposedValue $b) => $b->cost <=> $a->cost);
-		return array_slice($questions, 0, $max);
+		if ($answer->standardAsIs) {
+			$this->values = array_filter($this->values, fn(ProposedValue $proposed) => $proposed->origin === ValueOrigin::Answered);
+		}
+
+		foreach ($answer->values as $path => $value) {
+			$this->answer($path, $value, $answer->comment);
+		}
+	}
+
+
+	/**
+	 * The files of the scope a fix under the value would rewrite, as the probes of the measuring tell, scaled from the
+	 * sample to the scope; null for a decision or a value they did not measure.
+	 */
+	public function estimateFiles(string $path, mixed $value): ?int
+	{
+		[$plan, $results] = $this->measured[$path] ?? [null, []];
+		$files = $plan?->countFiles($results, $value);
+		return $files === null ? null : (int) round($files * count($this->scope->files) / max(1, count($this->sample->files)));
+	}
+
+
+	/** Whether the numbers of the measuring are estimates, the sample being smaller than the scope. */
+	public function isSampled(): bool
+	{
+		return count($this->sample->files) < count($this->scope->files);
 	}
 
 

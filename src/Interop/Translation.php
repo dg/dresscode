@@ -385,9 +385,9 @@ final class Translation
 
 	/**
 	 * The decisions, those the two axes of the qualification come to among them, what they leave as it is left to the presets.
-	 * @return array<string, mixed>  path => value
+	 * @return array<string, mixed>  path => value as the configuration writes it
 	 */
-	private function collectDecisions(): array
+	public function collectDecisions(): array
 	{
 		$decisions = $this->decisions;
 		if ($this->qualification !== ['shape' => [], 'fallback' => [], 'optimizedCalls' => false]) {

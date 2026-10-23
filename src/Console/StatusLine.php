@@ -35,6 +35,8 @@ final class StatusLine
 
 	public function __construct(
 		private readonly Console $console,
+		/** false for an output read by a program, which the line would only clutter */
+		private readonly bool $active = true,
 	) {
 	}
 
@@ -42,6 +44,10 @@ final class StatusLine
 	/** Starts a phase: the label in the column of the labels and what it does. */
 	public function show(string $label, string $text): void
 	{
+		if (!$this->active) {
+			return;
+		}
+
 		$this->phase = $this->console->color('gray', str_pad($label, 11)) . $text . '…';
 		$this->console->setStatus($this->shown = $this->phase);
 	}
@@ -50,6 +56,10 @@ final class StatusLine
 	/** Turns the spinner beside the phase, with the steps done and all of them where there is more than one. */
 	public function advance(int $done, int $all): void
 	{
+		if (!$this->active) {
+			return;
+		}
+
 		$line = $this->phase . '  ' . self::formatSpinner($this->console, $all > 1 ? "$done/$all" : '');
 		if ($line !== $this->shown) {
 			$this->console->setStatus($this->shown = $line);

@@ -8,8 +8,8 @@
 namespace DressCode\Console;
 
 use DressCode\Config\{PhpVersionSource, ResolvedConfig, Versions};
-use DressCode\Interop\Formatter;
-use DressCode\Measuring\{LeftOutReason, Project, Proposal, ProposedValue, Scope, StandardReason, ValueOrigin};
+use DressCode\Interop\{Formatter, FormatterConfig};
+use DressCode\Measuring\{LeftOutReason, Project, Proposal, ProposedValue, Question, Scope, StandardReason, ValueOrigin};
 use Nette\CommandLine\Console;
 use function count, is_array, sprintf;
 
@@ -158,21 +158,33 @@ final readonly class InitPrinter
 	}
 
 
+	/** A question asked in a terminal: what it asks and a place of the code it is about; the answers are the prompt's. */
+	public function printQuestion(Question $question): string
+	{
+		return $question->text . "\n" . ($question->example === null ? '' : $this->label('') . "e.g. $question->example\n");
+	}
+
+
 	/**
-	 * What is the user's to decide, as the line of the file that answers it: a decision left unchecked, whose value the
-	 * code or the standard holds to, with what its fix would change.
+	 * What is the user's to decide where nobody was asked: each question as the line or the command that answers it
+	 * otherwise than the recommended answer init took.
+	 * @param  list<Question>  $questions
 	 */
-	public function printQuestions(Proposal $proposal): string
+	public function printQuestions(array $questions): string
 	{
 		$out = '';
-		foreach ($proposal->findQuestions() as $question) {
-			$out .= $this->label($out === '' ? 'Your call' : '')
-				. "`$question->path: $question->wanted` in `dresscode.neon` checks it too; its fix changes " . $this->formatFiles(
-					$question->cost,
-				) . "\n";
+		foreach ($questions as $question) {
+			$out .= $this->label($out === '' ? 'Your call' : '') . $question->instruction . "\n";
 		}
 
 		return $out;
+	}
+
+
+	/** The configuration of the formatter that could not be read, so its rules are not compared with the code. */
+	public function printUnreadable(FormatterConfig $config, string $error): string
+	{
+		return $this->label('Formatter') . "`$config->file` could not be read, so its rules are not compared with your code: $error\n";
 	}
 
 
@@ -184,11 +196,14 @@ final readonly class InitPrinter
 	{
 		$out = '';
 		foreach ($proposal->values as $path => $proposed) {
-			$written = ($resolved->decisions[$path] ?? null)?->value->toWrittenText();
+			$value = ($resolved->decisions[$path] ?? null)?->value;
 			$measured = $proposal->standard->formatValue($path, $proposed->value);
-			if ($written !== $measured) {
+			if ($value?->toWrittenText() !== $measured) {
+				$cost = $value === null ? null : $proposal->estimateFiles($path, $value->toWrittenData());
 				$out .= $this->label($out === '' ? 'Moved' : '')
-					. "$path: `$file` has " . ($written ?? 'nothing') . ", init now writes $measured   ($proposed->comment)\n";
+					. "$path: `$file` has " . ($value?->toWrittenText() ?? 'nothing')
+					. ($cost ? ', a fix of it rewrites ' . ($proposal->isSampled() ? 'about ' : '') . $this->formatFiles($cost) : '')
+					. ", init now writes $measured   ($proposed->comment)\n";
 			}
 		}
 
