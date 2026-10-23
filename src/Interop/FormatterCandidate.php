@@ -7,6 +7,8 @@
 
 namespace DressCode\Interop;
 
+use DressCode\ConfigurationException;
+
 
 /**
  * A configuration of a formatter the project may run, with the evidence that it does.
@@ -32,6 +34,7 @@ final readonly class FormatterCandidate
 	}
 
 
+	/** @throws ConfigurationException */
 	public function read(string $root): FormatterConfig
 	{
 		return FormatterConfig::read($root, $this->file, $this->formatter, $this->runBy);

@@ -10,14 +10,15 @@ namespace DressCode\Measuring;
 use DressCode\Config;
 use DressCode\Config\{ComposerJson, Draft, RunnerFactory};
 use DressCode\Engine\{Helpers, ProcessRunner};
+use DressCode\Interop\FormatterConfig;
 use Nette\Utils\Finder;
 use function count;
 
 
 /**
  * The files `dresscode migrate config` writes the configuration for, and those it leaves out with the reason. With git
- * the scope is what the repository tracks under the root; without it, what the autoload and the usual directories hold.
- * Either way the data of tests are left out and whatever the
+ * the scope is what the repository tracks under the root, or under the paths the formatter of the project checks; without
+ * it, what the autoload and the usual directories hold. Either way the data of tests are left out and whatever the
  * defaults exclude, and with git a file `linguist-generated` marks.
  * @internal
  */
@@ -56,19 +57,24 @@ final class Scope
 	/**
 	 * The files of the extensions the repository tracks under the root, those the default exclusions name dropped without
 	 * a word, and the directories and files git ignores that hold PHP; null where there is no git, the root lies in no
-	 * repository or the repository tracks none of its code, as a project in a directory another repository ignores.
+	 * repository or the repository tracks none of its code, as a project in a directory another repository ignores. With
+	 * the paths given, only what lies under them, the scope written as those paths.
 	 * @param  list<string>  $extensions
+	 * @param  ?list<string>  $paths
 	 */
-	public static function fromGit(string $root, array $extensions): ?self
+	public static function fromGit(string $root, array $extensions, ?array $paths = null): ?self
 	{
 		$tracked = self::runGit($root, ['ls-files', '-z', '--', ...array_map(fn(string $ext) => "*.$ext", $extensions)]);
 		if ($tracked === null || $tracked === '') {
 			return null;
 		}
 
+		$under = fn(string $file) => $paths === null
+			|| array_any($paths, fn(string $path) => $path === '.' || $file === $path || str_starts_with($file, "$path/"));
 		$files = array_values(array_filter(
 			explode("\0", $tracked),
 			fn(string $file) => $file !== ''
+				&& $under($file)
 				&& !Helpers::matchesAny(Config::DefaultExcludePaths, $file)
 				&& is_file("$root/$file"),
 		));
@@ -80,6 +86,7 @@ final class Scope
 			$entry = rtrim($entry, '/');
 			if (
 				$entry !== ''
+				&& $under($entry)
 				&& !Helpers::matchesAny(Config::DefaultExcludePaths, $entry)
 				&& self::holdsCode("$root/$entry", $extensions)
 			) {
@@ -87,7 +94,7 @@ final class Scope
 			}
 		}
 
-		return new self($files, $leftOut, null);
+		return new self($files, $leftOut, $paths);
 	}
 
 
@@ -103,11 +110,17 @@ final class Scope
 
 
 	/**
-	 * The scope of a project: what git tracks, else what the autoload names.
+	 * The scope of a project: what its formatter checks where its configuration names the paths, else what git tracks,
+	 * else what the autoload names, without what the formatter leaves out.
 	 */
-	public static function fromProject(string $root): self
+	public static function fromProject(string $root, FormatterConfig $formatterConfig): self
 	{
-		return self::fromGit($root, self::Extensions) ?? self::fromAutoload($root, self::Extensions);
+		$paths = $formatterConfig->paths ?: null;
+		$extensions = $formatterConfig->extensions ?? self::Extensions;
+		$scope = self::fromGit($root, $extensions, $paths)
+			?? ($paths === null ? self::fromAutoload($root, $extensions) : self::fromPaths($root, $paths, $extensions));
+		$scope->leaveOut(array_values(array_filter($scope->files, $formatterConfig->excludes(...))), LeftOutReason::Foreign);
+		return $scope;
 	}
 
 
@@ -295,9 +308,10 @@ final class Scope
 				$entry = array_find(explode('/', $entry), fn(string $segment) => in_array($segment, self::TestDataDirs, true)) ?? $entry;
 			}
 
-			// a file generated stands for the highest directory inside the paths whose every file is generated
+			// a file generated or left out by the formatter stands for the highest directory inside the paths whose every
+			// file is left out for the same reason
 			while (
-				$reason === LeftOutReason::Generated
+				($reason === LeftOutReason::Generated || $reason === LeftOutReason::Foreign)
 				&& $isInside($dir = dirname($entry))
 				&& ($byReason[$dir][$reason->name] ?? 0) === $files[$dir]
 			) {

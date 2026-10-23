@@ -7,7 +7,7 @@
 
 namespace DressCode\Console;
 
-use DressCode\{Config, Plugin};
+use DressCode\{Config, ConfigurationException, Plugin};
 use DressCode\Config\{Loader, PhpVersionSource, ResolvedProject, RunnerFactory};
 use DressCode\Console\Commands\ConfigOptions;
 use DressCode\Engine\Helpers;
@@ -213,6 +213,7 @@ final readonly class CommandContext
 	/**
 	 * The configuration of the formatter the project runs: the file named, else of those `FormatterSearch` finds the one
 	 * the user chooses in a terminal, elsewhere the first, as it is at the end of the input, the others told.
+	 * @throws ConfigurationException  for a file named that cannot be read
 	 */
 	public function chooseFormatterConfig(string $root, ?string $named, bool $interactive): FormatterChoice
 	{

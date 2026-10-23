@@ -11,7 +11,7 @@ use DressCode\Config\Loader;
 use DressCode\Console\{CommandContext, Markup};
 use DressCode\Engine\{Diff, Helpers, SuppressionMigration};
 use DressCode\Interop\FormatterCandidate;
-use DressCode\Measuring\Scope;
+use DressCode\Measuring\{LeftOutReason, Scope};
 use Nette\CommandLine\{Attributes as Cli, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use PhpSyntax\{ParseException, Parser, Printer};
@@ -113,9 +113,11 @@ final readonly class MigrateCommand
 		}
 
 		$translation = $config->translate();
-		$scope = Scope::fromProject($root);
-		foreach ($scope->listExcludePaths() as $path => $why) {
-			$translation->warn("`$path` is excluded, $why->value; drop it from `excludePaths` to check it.");
+		$scope = Scope::fromProject($root, $config);
+		foreach ($scope->listExcludePaths() as $path => $why) { // what the formatter left out is left out as it was, the rest is a change
+			if ($why !== LeftOutReason::Foreign) {
+				$translation->warn("`$path` is excluded, $why->value, though {$config->formatter->value} checked it; drop it from `excludePaths` to check it still.");
+			}
 		}
 
 		$draft = $translation->toDraft();

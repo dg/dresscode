@@ -29,7 +29,7 @@ final class Pint
 	];
 
 	/** what a configuration of Laravel Pint says that `migrate config` carries over, the rest of it said in the warnings */
-	private const Keys = ['preset', 'rules', 'cache-file'];
+	private const Keys = ['preset', 'rules', 'exclude', 'cache-file'];
 
 
 	/**

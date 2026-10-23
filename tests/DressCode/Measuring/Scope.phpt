@@ -74,6 +74,8 @@ test(
 			'src/local.php' => LeftOutReason::Ignored,
 		], $scope->leftOut);
 		Assert::same(['build', 'compile.php', 'src', 'tests'], $scope->listPaths());
+		// the root named as the path of a formatter holds every file
+		Assert::same($scope->files, Scope::fromGit($root, ['php', 'phpt'], ['.'])?->files);
 		Assert::same([
 			'build/scripts' => LeftOutReason::Ignored,
 			'fixtures' => LeftOutReason::TestData,
