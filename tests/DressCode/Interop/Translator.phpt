@@ -1043,7 +1043,7 @@ test('a rule switched off under a set stays off in the configuration the transla
 });
 
 
-test('a ruleset switches off a sniff it excludes inside a rule, and says it leaves the excluded paths out', function () {
+test('a ruleset switches off a sniff it excludes inside a rule, and says it leaves out the paths a set excludes', function () {
 	$dir = createTempDir('translator');
 	file_put_contents("$dir/phpcs.xml", <<<'XX'
 		<?xml version="1.0"?>
@@ -1057,10 +1057,7 @@ test('a ruleset switches off a sniff it excludes inside a rule, and says it leav
 		XX);
 	[$rules, $warnings] = PhpCodeSniffer::readConfig("$dir/phpcs.xml");
 	Assert::same(['PSR12' => true, 'PSR2.Classes.ClassDeclaration' => false], $rules);
-	Assert::same([
-		'The paths the ruleset excludes are not carried over; set them with the key `excludePaths`.',
-		'The paths excluded from `PSR12` are not carried over; turn its rules off there with an override.',
-	], $warnings);
+	Assert::same(['The paths excluded from `PSR12` are not carried over; turn its rules off there with an override.'], $warnings);
 
 	file_put_contents("$dir/phpcs.xml", '<ruleset><rule ref="Squiz.Scope.MethodScope"><severity>0</severity></rule></ruleset>');
 	Assert::same([['Squiz.Scope.MethodScope' => false], []], PhpCodeSniffer::readConfig("$dir/phpcs.xml"));

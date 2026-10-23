@@ -825,10 +825,6 @@ final class PhpCodeSniffer
 		}
 
 		$rules = $warnings = [];
-		if (isset($xml->{'exclude-pattern'})) {
-			$warnings[] = 'The paths the ruleset excludes are not carried over; set them with the key `excludePaths`.';
-		}
-
 		foreach ($xml->rule as $rule) {
 			$ref = (string) $rule['ref'];
 			$properties = [];
@@ -841,7 +837,8 @@ final class PhpCodeSniffer
 				$rules[(string) $exclude['name']] = false;
 			}
 
-			if (isset($rule->{'exclude-pattern'})) {
+			// the paths a sniff leaves out become an override, which a whole set has no decisions for
+			if (isset($rule->{'exclude-pattern'}, self::getSets()[$ref])) {
 				$warnings[] = "The paths excluded from `$ref` are not carried over; turn its rules off there with an override.";
 			}
 		}

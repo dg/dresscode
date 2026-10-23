@@ -6,6 +6,29 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
+test('the paths a configuration checks are read relative to its own directory, the root among them taking all', function () {
+	$root = createTempDir('foreign-paths');
+	foreach (['conf', 'src', 'lib', 'test'] as $dir) {
+		@mkdir("$root/$dir"); // @ directory may already exist
+	}
+
+	file_put_contents(
+		"$root/conf/phpcs.xml",
+		'<?xml version="1.0"?><ruleset name="x"><file>../src</file><file>../missing</file></ruleset>',
+	);
+	Assert::same(['src'], FormatterConfig::fromFile($root, 'conf/phpcs.xml')->paths);
+
+	file_put_contents("$root/phpcs.xml", '<?xml version="1.0"?><ruleset name="x"><file>src</file><file>.</file></ruleset>');
+	Assert::same([], FormatterConfig::fromFile($root, 'phpcs.xml')->paths);
+
+	file_put_contents(
+		"$root/.php-cs-fixer.dist.php",
+		"<?php\nreturn (new PhpCsFixer\\Config)->setFinder(PhpCsFixer\\Finder::create()->in(__DIR__ . '/lib')->in(__DIR__ . '/test'));\n",
+	);
+	Assert::same(['lib', 'test'], FormatterConfig::fromFile($root, '.php-cs-fixer.dist.php')->paths);
+});
+
+
 test('the configuration in the root is found in the order of the formatters, its formatter told by the file', function () {
 	Assert::null(FormatterConfig::find(createTempDir('foreign-none')));
 	$root = createTempDir('foreign-find');

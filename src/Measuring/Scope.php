@@ -17,9 +17,10 @@ use const PHP_OS_FAMILY;
 
 
 /**
- * The files `dresscode init` measures and writes the configuration for, and those it leaves out with the reason. With
- * git the scope is what the repository tracks under the root; without it, what the autoload and the usual directories
- * hold. Either way a file a generator wrote and the data of tests are left out, and whatever the defaults exclude.
+ * The files `dresscode init` measures and writes the configuration for, as `dresscode migrate config` writes it too,
+ * and those it leaves out with the reason. With git the scope is what the repository tracks under the root, or under
+ * the paths the formatter of the project checks; without it, what the autoload and the usual directories hold. Either
+ * way a file a generator wrote and the data of tests are left out, and whatever the defaults exclude.
  * @internal
  */
 final class Scope
@@ -54,19 +55,26 @@ final class Scope
 	/**
 	 * The files of the extensions the repository tracks under the root, those the default exclusions name dropped without a
 	 * word, and the directories and files git ignores that hold PHP; null where there is no git, the root lies in no
-	 * repository or the repository tracks none of its code, as a project in a directory another repository ignores.
+	 * repository or the repository tracks none of its code, as a project in a directory another repository ignores. With
+	 * the paths given, only what lies under them, the scope written as those paths.
 	 * @param  list<string>  $extensions
+	 * @param  ?list<string>  $paths
 	 */
-	public static function fromGit(string $root, array $extensions): ?self
+	public static function fromGit(string $root, array $extensions, ?array $paths = null): ?self
 	{
 		$tracked = self::runGit($root, ['ls-files', '-z', '--', ...array_map(fn(string $ext) => "*.$ext", $extensions)]);
 		if ($tracked === null || $tracked === '') {
 			return null;
 		}
 
+		$under = fn(string $file) => $paths === null
+			|| array_any($paths, fn(string $path) => $file === $path || str_starts_with($file, "$path/"));
 		$files = array_values(array_filter(
 			explode("\0", $tracked),
-			fn(string $file) => $file !== '' && !Helpers::matchesAny(Config::DefaultExcludePaths, $file) && is_file("$root/$file"),
+			fn(string $file) => $file !== ''
+				&& $under($file)
+				&& !Helpers::matchesAny(Config::DefaultExcludePaths, $file)
+				&& is_file("$root/$file"),
 		));
 		sort($files, SORT_STRING);
 		[$files, $leftOut] = self::sortOut($root, $files, self::findGeneratedAttribute($root, $files));
@@ -76,6 +84,7 @@ final class Scope
 			$entry = rtrim($entry, '/');
 			if (
 				$entry !== ''
+				&& $under($entry)
 				&& !Helpers::matchesAny(Config::DefaultExcludePaths, $entry)
 				&& self::holdsCode("$root/$entry", $extensions)
 			) {
@@ -83,7 +92,7 @@ final class Scope
 			}
 		}
 
-		return new self($files, $leftOut, null);
+		return new self($files, $leftOut, $paths);
 	}
 
 
@@ -94,23 +103,38 @@ final class Scope
 	 */
 	public static function fromAutoload(string $root, array $extensions): self
 	{
-		$paths = self::findAutoloadPaths($root);
-		$factory = new RunnerFactory;
-		$runner = $factory->createRunner($factory->resolve(new Config(fileExtensions: $extensions), $root), cache: false);
-		[$files, $leftOut] = self::sortOut($root, $runner->findFiles($paths), []);
-		return new self($files, $leftOut, $paths);
+		return self::fromPaths($root, self::findAutoloadPaths($root), $extensions);
 	}
 
 
-	/** The scope of a project: what git tracks, else what the autoload names, without what its formatter leaves out. */
+	/**
+	 * The scope of a project: what its formatter checks where its configuration names the paths, else what git tracks,
+	 * else what the autoload names, without what the formatter leaves out.
+	 */
 	public static function fromProject(string $root, ?FormatterConfig $formatterConfig): self
 	{
-		$scope = self::fromGit($root, self::Extensions) ?? self::fromAutoload($root, self::Extensions);
+		$paths = $formatterConfig?->paths ?: null;
+		$scope = self::fromGit($root, self::Extensions, $paths)
+			?? ($paths === null ? self::fromAutoload($root, self::Extensions) : self::fromPaths($root, $paths, self::Extensions));
 		if ($formatterConfig !== null) {
 			$scope->leaveOut(fn(string $file) => $formatterConfig->excludes($file));
 		}
 
 		return $scope;
+	}
+
+
+	/**
+	 * The files of the extensions under the paths given.
+	 * @param  list<string>  $paths
+	 * @param  list<string>  $extensions
+	 */
+	public static function fromPaths(string $root, array $paths, array $extensions): self
+	{
+		$factory = new RunnerFactory;
+		$runner = $factory->createRunner($factory->resolve(new Config(fileExtensions: $extensions), $root), cache: false);
+		[$files, $leftOut] = self::sortOut($root, $runner->findFiles($paths), []);
+		return new self($files, $leftOut, $paths);
 	}
 
 
@@ -195,7 +219,7 @@ final class Scope
 	}
 
 
-	/** Whether the scope is what git tracks. */
+	/** Whether the scope is all git tracks under the root, not narrowed to the paths of a formatter or of the autoload. */
 	public function isTracked(): bool
 	{
 		return $this->paths === null;

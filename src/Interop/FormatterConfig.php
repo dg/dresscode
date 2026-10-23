@@ -16,10 +16,10 @@ use function is_array, is_string, strlen;
 
 
 /**
- * The configuration of the formatter a project has, found where a project keeps it. What `dresscode init` takes of it
- * is read as data and never run: the standard it names, the paths it leaves out, the paths a rule of it leaves out,
- * and how the project runs it, which `dresscode migrate config` names too. Only its rules, which `translate()` reads,
- * need the configuration of PHP CS Fixer run, being PHP.
+ * The configuration of the formatter a project has, found where a project keeps it. What `dresscode init` and
+ * `dresscode migrate config` take of it is read as data and never run: the standard it names, the paths it checks and
+ * those it leaves out, the paths a rule of it leaves out, and how the project runs it. Only its rules, which
+ * `translate()` reads, need the configuration of PHP CS Fixer run, being PHP.
  * @internal
  */
 final readonly class FormatterConfig
@@ -41,6 +41,8 @@ final readonly class FormatterConfig
 		public ?string $runBy,
 		/** the standard of DressCode its set or preset is; null for none */
 		public ?string $standard,
+		/** @var list<string>  the directories and files it checks, relative to the root; empty where it names none */
+		public array $paths,
 		/** @var list<string>  regular expressions of the paths, relative to the root, it leaves out */
 		public array $excludes,
 		/** @var array<string, list<string>>  foreign rule => regular expressions of the paths it leaves out */
@@ -90,8 +92,8 @@ final readonly class FormatterConfig
 	{
 		$path = FileSystem::isAbsolute($file) ? $file : "$root/$file";
 		return match ($formatter) {
-			Formatter::PhpCodeSniffer => self::readPhpCodeSniffer($path, $file, $runBy),
-			Formatter::PhpCsFixer => self::readPhpCsFixer($path, $file, $runBy),
+			Formatter::PhpCodeSniffer => self::readPhpCodeSniffer($root, $path, $file, $runBy),
+			Formatter::PhpCsFixer => self::readPhpCsFixer($root, $path, $file, $runBy),
 			Formatter::Pint => self::readPint($path, $file, $runBy),
 		};
 	}
@@ -110,6 +112,7 @@ final readonly class FormatterConfig
 			$file,
 			$runBy,
 			self::PintPresets[$config['preset'] ?? 'laravel'] ?? null,
+			[],
 			$excludes,
 			[],
 			$path,
@@ -118,15 +121,15 @@ final readonly class FormatterConfig
 
 
 	/**
-	 * A ruleset is data: the standard it references, its own exclude patterns and those of its rules. A pattern is a
-	 * regular expression in which `*` stands for anything; an absolute one is matched against the path with a slash in
-	 * front, a relative one against the path.
+	 * A ruleset is data: the standard it references, the files it checks, its own exclude patterns and those of its
+	 * rules. A pattern is a regular expression in which `*` stands for anything; an absolute one is matched against the
+	 * path with a slash in front, a relative one against the path.
 	 */
-	private static function readPhpCodeSniffer(string $path, string $file, ?string $runBy): self
+	private static function readPhpCodeSniffer(string $root, string $path, string $file, ?string $runBy): self
 	{
 		$xml = @simplexml_load_file($path); // @ a ruleset that is no XML gives nothing
 		if ($xml === false) {
-			return new self(Formatter::PhpCodeSniffer, $file, $runBy, null, [], [], $path);
+			return new self(Formatter::PhpCodeSniffer, $file, $runBy, null, [], [], [], $path);
 		}
 
 		$toRegex = fn(\SimpleXMLElement $pattern) => '~' . ((string) $pattern['type'] === 'relative' ? '^' : '')
@@ -150,6 +153,7 @@ final readonly class FormatterConfig
 			$file,
 			$runBy,
 			$standard === null ? null : substr($standard, strlen('dresscode/')),
+			self::resolvePaths($root, dirname($path), array_map(strval(...), iterator_to_array($xml->file, preserve_keys: false))),
 			$excludes,
 			$ruleExcludes,
 			$path,
@@ -161,7 +165,7 @@ final readonly class FormatterConfig
 	 * A configuration of PHP CS Fixer is PHP, read here as text: the sets it names and the directories its finder takes
 	 * and excludes, `->in(__DIR__ . '/lib')` with `->exclude('Parser')`.
 	 */
-	private static function readPhpCsFixer(string $path, string $file, ?string $runBy): self
+	private static function readPhpCsFixer(string $root, string $path, string $file, ?string $runBy): self
 	{
 		$code = (string) @file_get_contents($path); // @ file may have been deleted meanwhile
 		$standard = null;
@@ -186,10 +190,35 @@ final readonly class FormatterConfig
 			$file,
 			$runBy,
 			$standard,
+			self::resolvePaths($root, dirname($path), array_map(fn(string $dir) => $dir === '' ? '.' : $dir, $in[1])),
 			$excludes,
 			[],
 			$path,
 		);
+	}
+
+
+	/**
+	 * The paths a configuration names relative to its own directory, as paths relative to the root; one outside the root
+	 * or missing is dropped, and the root among them, which takes all, leaves none.
+	 * @param  list<string>  $paths
+	 * @return list<string>
+	 */
+	private static function resolvePaths(string $root, string $dir, array $paths): array
+	{
+		$root = Helpers::canonicalizePath(FileSystem::normalizePath($root));
+		$resolved = [];
+		foreach ($paths as $path) {
+			$full = Helpers::canonicalizePath(FileSystem::normalizePath("$dir/$path"));
+			if ($full === $root) {
+				return [];
+			} elseif (str_starts_with($full, "$root/") && file_exists($full)) {
+				$resolved[] = substr($full, strlen($root) + 1);
+			}
+		}
+
+		sort($resolved, SORT_STRING);
+		return array_values(array_unique($resolved));
 	}
 
 

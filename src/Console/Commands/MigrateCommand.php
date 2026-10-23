@@ -7,9 +7,11 @@
 
 namespace DressCode\Console\Commands;
 
+use DressCode\Config\{ConfigResolver, PluginRegistry};
 use DressCode\Console\{CommandContext, Markup};
 use DressCode\Engine\{Helpers, SuppressionMigration};
 use DressCode\Interop\FormatterConfig;
+use DressCode\Measuring\Scope;
 use Nette\CommandLine\{Attributes as Cli, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use PhpSyntax\{ParseException, Parser, Printer};
@@ -61,7 +63,11 @@ final readonly class MigrateCommand
 		}
 
 		$translation = $config->translate();
-		$draft = $translation->toDraft();
+		// the scope as init writes it, and the decisions a rule of the formatter stands for kept where it leaves files out
+		$scope = Scope::fromProject($root, $config);
+		$draft = $translation->toDraft()->setScope($scope->listPaths(), $scope->listExcludePaths(), $scope->listExtensions());
+		$catalogue = new ConfigResolver(new PluginRegistry)->getCatalogue();
+		$config->addOverrides($draft, $scope, fn(string $path) => $catalogue->find($path)?->takesKeep() ?? false);
 		FileSystem::write($target, $format === 'neon' ? $draft->toNeon() : $draft->toPhp());
 		$this->context->writeNote("Written `$output`.\n");
 

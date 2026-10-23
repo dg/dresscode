@@ -505,6 +505,7 @@ test('migrate config translates a foreign configuration and says what it could n
 		. "use DressCode\\Config;\n\n"
 		. "return new Config(\n"
 		. "\tuse: ['psr12'],\n"
+		. "\tpaths: ['src'],\n"
 		. "\tdecisions: [\n"
 		. "\t\t'multiline' => [\n"
 		. "\t\t\t'trailingComma' => [\n"
@@ -551,7 +552,7 @@ test('migrate config translates a foreign configuration and says what it could n
 	[$code, $out] = runApp($dir, ['migrate', 'config', "$root/phpcs.xml"]);
 	Assert::same([0, ''], [$code, $out]);
 	$neon = (string) file_get_contents("$dir/dresscode.neon");
-	Assert::match("use: psr12\n\nmultiline:\n\ttrailingComma:\n\t\tarray: required\n%A%", $neon);
+	Assert::match("use: psr12\n\npaths: [.]\n\nmultiline:\n\ttrailingComma:\n\t\tarray: required\n%A%", $neon);
 	Assert::same(
 		'required',
 		DressCode\Config\NeonReader::read("$dir/dresscode.neon")->decisions['multiline']['trailingComma']['array'] ?? null,
@@ -605,6 +606,34 @@ test('migrate config without a file finds the configuration the project has, and
 	Assert::same(0, $code);
 	Assert::true(is_file("$project/ran"));
 	Assert::true(is_file("$project/dresscode.neon"));
+});
+
+
+test('migrate config writes the paths the configuration names, and keeps the decisions of a sniff where it leaves files out', function () {
+	$project = createTempDir('import-scope');
+	foreach (['src/A.php', 'src/drivers/B.php', 'tests/C.php'] as $file) {
+		@mkdir(dirname("$project/$file"), recursive: true); // @ directory may already exist
+		file_put_contents("$project/$file", "<?php\n");
+	}
+
+	file_put_contents("$project/phpcs.xml", <<<'XX'
+		<?xml version="1.0"?>
+		<ruleset name="Demo">
+			<file>src</file>
+			<rule ref="PSR12"/>
+			<rule ref="PSR1.Methods.CamelCapsMethodName">
+				<exclude-pattern>*/drivers/*</exclude-pattern>
+			</rule>
+		</ruleset>
+		XX);
+	[$code] = runApp($project, ['migrate', 'config']);
+	Assert::same(0, $code);
+	$neon = (string) file_get_contents("$project/dresscode.neon");
+	Assert::contains("use: psr12\n\npaths: [src]\n\n", $neon);
+	Assert::match(
+		"%A%overrides:\n\t# where PSR1.Methods.CamelCapsMethodName is left out by your formatter\n\t-\n%A%src/drivers%A%method: keep\n",
+		$neon,
+	);
 });
 
 
