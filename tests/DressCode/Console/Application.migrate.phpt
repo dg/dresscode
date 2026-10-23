@@ -92,6 +92,18 @@ test('migrate config translates a foreign configuration and says what it could n
 	Assert::same(0, $code);
 	Assert::contains("\t\t'spacing' => [\n\t\t\t'cast' => '(int)\$x',\n\t\t],\n", (string) file_get_contents("$root/dresscode-fixer.php"));
 
+	// what narrows the finder in a way no scope writes is said, and the translation is not whole
+	file_put_contents(
+		"$root/fixer-filtered.php",
+		"<?php\nfunction finder() { return PhpCsFixer\\Finder::create()->filter(fn() => true); }\nreturn ['cast_spaces' => true];\n",
+	);
+	[$code, , $err] = runApp($root, ['migrate', 'config', 'fixer-filtered.php', '-o', 'dresscode-filtered.php']);
+	Assert::same(1, $code);
+	Assert::contains(
+		'`filter()` of `fixer-filtered.php` is not carried over; what the configuration checks may differ from what PHP CS Fixer checked.',
+		$err,
+	);
+
 	// the file is written in the format of its extension, as a configuration the run reads
 	[$code, $out] = runApp($dir, ['migrate', 'config', "$root/phpcs.xml"]);
 	Assert::same([1, ''], [$code, $out]);
@@ -191,7 +203,7 @@ test('migrate config asks which configuration a project with several runs, and e
 });
 
 
-test('migrate config writes the scope, and says what it leaves out of it', function () {
+test('migrate config writes the paths the configuration names, and says what it leaves out of them', function () {
 	$project = createTempDir('import-scope');
 	foreach (['src/A.php', 'src/drivers/B.php', 'tests/C.php'] as $file) {
 		@mkdir(dirname("$project/$file"), recursive: true); // @ directory may already exist
@@ -201,22 +213,23 @@ test('migrate config writes the scope, and says what it leaves out of it', funct
 	file_put_contents("$project/phpcs.xml", <<<'XX'
 		<?xml version="1.0"?>
 		<ruleset name="Demo">
+			<file>src</file>
 			<rule ref="PSR12"/>
 		</ruleset>
 		XX);
 	[$code] = runApp($project, ['migrate', 'config']);
 	Assert::same(0, $code);
 	$neon = (string) file_get_contents("$project/dresscode.neon");
-	Assert::contains("use: psr12\n\npaths: [src, tests]\n", $neon);
+	Assert::contains("use: psr12\n\npaths: [src]\n", $neon);
 
-	// the data of tests are left out, which the run says is a change
+	// the data of tests the ruleset checked are left out, which the run says is a change
 	unlink("$project/dresscode.neon");
 	@mkdir("$project/src/fixtures"); // @ directory may already exist
 	file_put_contents("$project/src/fixtures/D.php", "<?php\n");
 	[$code, , $err] = runApp($project, ['migrate', 'config']);
 	Assert::same(1, $code);
 	Assert::contains(
-		'`fixtures` is excluded, test data; drop it from `excludePaths` to check it.',
+		'`fixtures` is excluded, test data, though PHP_CodeSniffer checked it; drop it from `excludePaths` to check it still.',
 		$err,
 	);
 });

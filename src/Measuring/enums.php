@@ -25,4 +25,7 @@ enum LeftOutReason: string
 
 	/** git ignores it, a build or a local file */
 	case Ignored = 'ignored by git';
+
+	/** the configuration of the formatter of the project leaves it out */
+	case Foreign = 'left out by your formatter';
 }

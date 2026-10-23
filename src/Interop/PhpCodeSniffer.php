@@ -814,10 +814,6 @@ final class PhpCodeSniffer
 		}
 
 		$rules = $warnings = [];
-		if (isset($xml->{'exclude-pattern'})) {
-			$warnings[] = 'The paths the ruleset excludes are not carried over; set them with the key `excludePaths`.';
-		}
-
 		foreach ($xml->rule as $rule) {
 			$ref = (string) $rule['ref'];
 			$properties = [];
