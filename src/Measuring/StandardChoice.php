@@ -23,6 +23,9 @@ final readonly class StandardChoice
 	/** a standard whose residue is within this many times the smallest one fits the code as well */
 	private const CloseResidue = 1.1;
 
+	/** PER Coding Style is taken over PSR-12, which it succeeds, unless its residue is more than this many times larger */
+	private const SuccessorResidue = 1.5;
+
 	/** the full names of the standards */
 	private const Names = [
 		'perCs' => 'PER Coding Style',
@@ -89,7 +92,7 @@ final readonly class StandardChoice
 		[$chosen, $reason] = match (true) {
 			$presets !== null => [(string) array_key_first($checks), StandardReason::Given],
 			count($candidates) === 1 => [(string) array_key_first($checks), StandardReason::Formatter],
-			default => [self::choose($residues, [$project->framework, $project->formatterConfig?->standard]), StandardReason::Fewest],
+			default => self::choose($residues, [$project->framework, $project->formatterConfig?->standard]),
 		};
 		$presets = array_combine(array_keys($probes), $candidates)[$chosen];
 		$decisions = (new RunnerFactory)->resolve(new Config(use: $presets), $project->root)->resolvedConfig->decisions;
@@ -107,17 +110,33 @@ final readonly class StandardChoice
 	/**
 	 * The standard the code departs from in the fewest decisions; where the next one is within a tenth of it, the first of
 	 * the hints among them (the standard of the framework of the project, the one its formatter names), else `perCs`
-	 * among them, else the fewest.
+	 * among them, else the fewest. PSR-12 says nothing of what PHP brought since and so departs from less, which is why
+	 * it yields to PER Coding Style within `SuccessorResidue`, unless a hint names it.
 	 * @param  array<string, int>  $residues  standard => its residue, the fewest first
 	 * @param  list<?string>  $hints
+	 * @return array{string, StandardReason}
 	 */
-	private static function choose(array $residues, array $hints): string
+	private static function choose(array $residues, array $hints): array
 	{
-		$best = (string) array_key_first($residues);
-		$close = array_keys(array_filter($residues, fn(int $count) => $count <= self::CloseResidue * $residues[$best]));
-		return count($close) === 1
+		$candidates = $residues;
+		if (isset($candidates['psr12'], $candidates['perCs'])
+			&& $candidates['perCs'] <= self::SuccessorResidue * $candidates['psr12']
+			&& !in_array('psr12', $hints, true)
+		) {
+			unset($candidates['psr12']);
+		}
+
+		$best = (string) array_key_first($candidates);
+		$close = array_keys(array_filter($candidates, fn(int $count) => $count <= self::CloseResidue * $candidates[$best]));
+		$chosen = count($close) === 1
 			? $best
 			: array_find([...$hints, CorePlugin::Standards[0]], fn(?string $standard) => in_array($standard, $close, true)) ?? $best;
+		return [
+			$chosen,
+			$chosen === 'perCs' && ($residues['psr12'] ?? PHP_INT_MAX) < $residues['perCs']
+				? StandardReason::Successor
+				: StandardReason::Fewest,
+		];
 	}
 
 
@@ -134,6 +153,7 @@ final readonly class StandardChoice
 		return match ($this->reason) {
 			StandardReason::Given => '',
 			StandardReason::Formatter => Formatter::Pint->value . ' formats the project in this style',
+			StandardReason::Successor => $this->describe() . ', the successor of PSR-12, which your code departs from in fewer decisions',
 			StandardReason::Fewest => $this->describe() . ', of the standards the one your code departs from in the fewest decisions',
 		};
 	}

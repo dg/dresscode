@@ -70,6 +70,11 @@ final readonly class InitPrinter
 		$out = $this->label('Standard') . "$chosen (" . $standard->describe() . ')' . match ($standard->reason) {
 			StandardReason::Given => ", as given\n",
 			StandardReason::Formatter => ', ' . Formatter::Pint->value . " formats the project in this style\n",
+			StandardReason::Successor => sprintf(
+				", the successor of psr12; your code departs from it in %s and from psr12 in %d; `--use` names another\n",
+				$this->formatDecisions($residues[$chosen]),
+				$residues['psr12'],
+			),
 			StandardReason::Fewest => sprintf(
 				", the nearest to your code, which departs from it in %s and from %s in %d; `--use` names another\n",
 				$this->formatDecisions($residues[$chosen]),
