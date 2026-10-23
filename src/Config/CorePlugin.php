@@ -24,7 +24,8 @@ use function dirname;
 final class CorePlugin implements Plugin
 {
 	/**
-	 * The presets that are complete standards; the other presets are sets.
+	 * The presets that are complete standards, the first of them the one taken where the code fits several equally; the
+	 * other presets are sets.
 	 */
 	public const Standards = ['perCs', 'psr12', 'nette', 'symfony', 'laravel'];
 	private const QualifiedName = '\\\\?\w+(\\\\\w+)*';

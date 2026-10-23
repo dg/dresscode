@@ -496,7 +496,7 @@ Third, rewrite the comments when you like: `dresscode migrate suppressions src t
 
 **Laravel Pint** runs PHP CS Fixer, with a command line of its own and presets of its own, `laravel` the
 default one. A project on that preset has nothing to translate: DressCode has the style as the standard
-`laravel`. Over 1,615
+`laravel`, and `dresscode init` in a project with Pint writes the standard of its preset itself. Over 1,615
 files of the first-party packages of Laravel run through Pint, `dresscode check --use laravel` finds 129
 places, each a deliberate difference the manual lists (October 2026). Rules a `pint.json` adds to the preset
 `dresscode migrate config` translates as those of PHP CS Fixer. On top of it, the same run upgrades the code to a newer PHP and, with

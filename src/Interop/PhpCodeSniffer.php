@@ -888,4 +888,21 @@ final class PhpCodeSniffer
 			'PSR12' => 'dresscode/psr12',
 		];
 	}
+
+
+	/**
+	 * The comments of the files that silence a rule of PHP_CodeSniffer, which `dresscode migrate suppressions`
+	 * rewrites.
+	 * @param  list<string>  $files  relative to the root
+	 */
+	public static function countSuppressions(string $root, array $files): int
+	{
+		$count = 0;
+		foreach ($files as $file) {
+			$code = (string) @file_get_contents("$root/$file"); // @ file may have been deleted meanwhile
+			$count += preg_match_all('~(?://|#|/\*)\s*phpcs:(?:ignore|disable)\b~', $code);
+		}
+
+		return $count;
+	}
 }
