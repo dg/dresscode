@@ -486,6 +486,8 @@ Written `dresscode.neon`.
 Read 4 rules; set 4 decisions and 1 preset.
   `SlevomatCodingStandard.Namespaces.UnusedUses` without `searchAnnotations` removes an import only a doc comment uses; DressCode keeps it.
   No DressCode rule covers `Squiz.Commenting.FunctionComment`.
+
+12 phpcs suppression comments: `dresscode migrate suppressions` rewrites them.
 ```
 
 `.php-cs-fixer.dist.php` is translated the same way, as long as PHP CS Fixer is still installed in the

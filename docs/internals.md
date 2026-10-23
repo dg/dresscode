@@ -388,7 +388,8 @@ The fixtures of every rule run again under each standard with the sets beside it
   resolved as a run reads it and checked to say the decisions translated before it is written whole, or printed
   instead with `--dry-run`, the first decision a foreign rule translated only in part carrying in a comment what was
   not carried over (`Translation::translateRule()`), and a translation with any warning ending with exit code 1,
-  and such a name written as a key of the file, in `--only` or in `fixRisky` is refused with the decisions that cover
-  it. With `--format json` both commands write a document of their `version` and the `root` and nothing
+  saying how many phpcs suppression comments the files of the scope hold for `dresscode migrate suppressions` to
+  rewrite, and such a name written as a key of the file, in `--only` or in `fixRisky` is refused with the decisions
+  that cover it. With `--format json` both commands write a document of their `version` and the `root` and nothing
   else, `config` the configuration, the file it was written to, the counts, the warnings and what stays untranslated,
   and never asking, `suppressions` the counts, the diffs of a dry run and what it kept, widened and skipped.
