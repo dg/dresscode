@@ -16,8 +16,9 @@ use function in_array, strlen;
 
 /**
  * The configuration of the formatter a project has, found where a project keeps it. What `dresscode migrate config`
- * takes of it besides its rules is read as data and never run: the paths it checks and those it leaves out, and how the
- * project runs it. Only its rules, which `translate()` reads, need the configuration of PHP CS Fixer run, being PHP.
+ * takes of it besides its rules is read as data and never run: the paths it checks and those it leaves out, the paths a
+ * rule of it leaves out, and how the project runs it. Only its rules, which `translate()` reads, need the configuration
+ * of PHP CS Fixer run, being PHP.
  * @internal
  */
 final readonly class FormatterConfig
@@ -32,6 +33,8 @@ final readonly class FormatterConfig
 		public array $paths,
 		/** @var list<string>  regular expressions of the paths, relative to the root, it leaves out */
 		public array $excludePatterns,
+		/** @var array<string, list<string>>  foreign rule => regular expressions of the paths it leaves out */
+		public array $ruleExcludePatterns,
 		/** absolute */
 		private string $path,
 		/** @var list<string>  what of the configuration could be neither read nor left aside as running it only, `in($dirs)` */
@@ -80,6 +83,7 @@ final readonly class FormatterConfig
 			$runBy,
 			[],
 			$excludes,
+			[],
 			$path,
 			$config === null ? [basename($file) . ', which is no JSON'] : [],
 		);
@@ -87,20 +91,20 @@ final readonly class FormatterConfig
 
 
 	/**
-	 * A ruleset is data: the files it checks, the extensions and its own exclude patterns, and the rest of it, which is
-	 * how PHP_CodeSniffer runs, or else unread. A pattern is a regular expression in which `*` stands
+	 * A ruleset is data: the files it checks, the extensions and its own exclude patterns, those of its rules, and the
+	 * rest of it, which is how PHP_CodeSniffer runs, or else unread. A pattern is a regular expression in which `*` stands
 	 * for anything; an absolute one is matched against the path with a slash in front, a relative one against the path.
 	 */
 	private static function readPhpCodeSniffer(string $root, string $path, string $file, ?string $runBy): self
 	{
 		$xml = @simplexml_load_file($path); // @ a ruleset that is no XML gives nothing
 		if ($xml === false) {
-			return new self(Formatter::PhpCodeSniffer, $file, $runBy, [], [], $path, [basename($file) . ', which is no XML']);
+			return new self(Formatter::PhpCodeSniffer, $file, $runBy, [], [], [], $path, [basename($file) . ', which is no XML']);
 		}
 
 		$toRegex = fn(string $pattern, bool $relative = false) => '~' . ($relative ? '^' : '')
 			. str_replace(['~', '*'], ['\~', '.*'], trim($pattern)) . '~i';
-		$excludes = $unread = [];
+		$excludes = $ruleExcludes = $unread = [];
 		$extensions = null;
 		foreach ($xml->{'exclude-pattern'} ?? [] as $pattern) {
 			$excludes[] = $toRegex((string) $pattern, (string) $pattern['type'] === 'relative');
@@ -133,12 +137,20 @@ final readonly class FormatterConfig
 			}
 		}
 
+		foreach ($xml->rule ?? [] as $rule) {
+			$ref = (string) $rule['ref'];
+			foreach ($rule->{'exclude-pattern'} ?? [] as $pattern) {
+				$ruleExcludes[$ref][] = $toRegex((string) $pattern, (string) $pattern['type'] === 'relative');
+			}
+		}
+
 		return new self(
 			Formatter::PhpCodeSniffer,
 			$file,
 			$runBy,
 			self::resolvePaths($root, $path, array_map(strval(...), iterator_to_array($xml->file, preserve_keys: false))),
 			$excludes,
+			$ruleExcludes,
 			$path,
 			$unread,
 			extensions: $extensions,
@@ -194,6 +206,7 @@ final readonly class FormatterConfig
 			$runBy,
 			$source->append === [] ? $dirs : self::resolvePaths($root, $path, [...$in, ...$source->append]),
 			$excludes,
+			[],
 			$path,
 			$source->unread,
 			$names,
@@ -241,6 +254,13 @@ final readonly class FormatterConfig
 	{
 		return self::matchesPath($this->excludePatterns, $path)
 			|| array_any($this->nameExcludePatterns, fn(string $regex) => preg_match($regex, basename($path)) === 1);
+	}
+
+
+	/** Whether the formatter leaves the path out of the rule. */
+	public function excludesFromRule(string $path, string $rule): bool
+	{
+		return self::matchesPath($this->ruleExcludePatterns[$rule] ?? [], $path);
 	}
 
 

@@ -826,7 +826,8 @@ final class PhpCodeSniffer
 				$rules[(string) $exclude['name']] = false;
 			}
 
-			if (isset($rule->{'exclude-pattern'})) {
+			// the paths a sniff leaves out become an override, which a whole set has no decisions for
+			if (isset($rule->{'exclude-pattern'}, self::getSets()[$ref])) {
 				$warnings[] = "The paths excluded from `$ref` are not carried over; turn its rules off there with an override.";
 			}
 		}

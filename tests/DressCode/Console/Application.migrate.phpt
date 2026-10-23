@@ -203,7 +203,7 @@ test('migrate config asks which configuration a project with several runs, and e
 });
 
 
-test('migrate config writes the paths the configuration names, and says what it leaves out of them', function () {
+test('migrate config writes the paths the configuration names, and keeps the decisions of a sniff where it leaves files out', function () {
 	$project = createTempDir('import-scope');
 	foreach (['src/A.php', 'src/drivers/B.php', 'tests/C.php'] as $file) {
 		@mkdir(dirname("$project/$file"), recursive: true); // @ directory may already exist
@@ -215,12 +215,19 @@ test('migrate config writes the paths the configuration names, and says what it 
 		<ruleset name="Demo">
 			<file>src</file>
 			<rule ref="PSR12"/>
+			<rule ref="PSR1.Methods.CamelCapsMethodName">
+				<exclude-pattern>*/drivers/*</exclude-pattern>
+			</rule>
 		</ruleset>
 		XX);
 	[$code] = runApp($project, ['migrate', 'config']);
 	Assert::same(0, $code);
 	$neon = (string) file_get_contents("$project/dresscode.neon");
-	Assert::contains("use: psr12\n\npaths: [src]\n", $neon);
+	Assert::contains("use: psr12\n\npaths: [src]\n\n", $neon);
+	Assert::match(
+		"%A%overrides:\n\t# where PSR1.Methods.CamelCapsMethodName is left out by your formatter\n\t-\n%A%src/drivers%A%method: keep\n",
+		$neon,
+	);
 
 	// the data of tests the ruleset checked are left out, which the run says is a change
 	unlink("$project/dresscode.neon");
