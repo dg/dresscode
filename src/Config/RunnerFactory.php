@@ -10,7 +10,7 @@ namespace DressCode\Config;
 use Composer\InstalledVersions;
 use DressCode\{Analyses, Config, ConfigurationException, Override, Plugin, PluginManifest, Profile, Rule};
 use DressCode\Engine\{
-	Baseline, FileProcessor, FileProcessors, Helpers, PhpFileProcessor, ReportPolicy, ResultCache, Runner, TypeAnalysisStatus,
+	Baseline, FileFinder, FileProcessor, FileProcessors, Helpers, PhpFileProcessor, ReportPolicy, ResultCache, Runner, TypeAnalysisStatus,
 };
 use Nette\Utils\Finder;
 use PhpSyntax\Node;
@@ -208,7 +208,7 @@ final readonly class RunnerFactory
 		return new Runner(
 			$processors,
 			$root,
-			array_values(array_unique(array_merge(...array_map(fn(Config|PluginManifest $layer) => $layer->excludePaths, $layers)))),
+			self::collectExcludePaths($resolution),
 			$config->fileExtensions,
 			self::combineSkipWhen($layers),
 			$baselineFile,
@@ -225,6 +225,24 @@ final readonly class RunnerFactory
 			typesMissing: array_any($resolved->rules, fn(ResolvedRule $rule) => $rule->inactiveReason === InactiveReason::Types),
 			namespacesListed: $resolved->namespacedFunctions !== [] || $resolved->namespacedConstants !== [],
 		);
+	}
+
+
+	/** The files of the project a run would take, without building the run. */
+	public function createFileFinder(ResolvedProject $resolution): FileFinder
+	{
+		return new FileFinder($resolution->root, self::collectExcludePaths($resolution), $resolution->config->fileExtensions);
+	}
+
+
+	/**
+	 * The paths the configuration and the plugins leave out.
+	 * @return list<string>
+	 */
+	private static function collectExcludePaths(ResolvedProject $resolution): array
+	{
+		$layers = [...$resolution->pluginManifests, $resolution->config];
+		return array_values(array_unique(array_merge(...array_map(fn(Config|PluginManifest $layer) => $layer->excludePaths, $layers))));
 	}
 
 

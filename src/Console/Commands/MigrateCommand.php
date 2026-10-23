@@ -9,23 +9,24 @@ namespace DressCode\Console\Commands;
 
 use DressCode\Config\Loader;
 use DressCode\Console\{CommandContext, Markup};
-use DressCode\Engine\Helpers;
+use DressCode\Engine\{Diff, Helpers, SuppressionMigration};
 use DressCode\Interop\FormatterCandidate;
 use Nette\CommandLine\{Attributes as Cli, ParseResult, UsageException};
+use PhpSyntax\{ParseException, Parser, Printer};
 use function count, in_array, sprintf;
 
 
 /**
- * The command of `migrate`, the move from another formatter: `config` translates a configuration of PHP CS Fixer,
+ * The commands of `migrate`, the move from another formatter: `config` translates a configuration of PHP CS Fixer,
  * PHP_CodeSniffer or Laravel Pint into NEON or PHP by the extension of the file, checked as a run reads it before it
  * is written, and ends with exit code 1 where something was not carried over; a configuration of PHP CS Fixer is PHP,
- * which reading runs, so one the project has is read only after the user agrees. It shows what it would write with
- * `--dry-run`.
+ * which reading runs, so one the project has is read only after the user agrees. `suppressions` rewrites the phpcs
+ * suppression comments of the files to the dresscode form. Both show what they would write with `--dry-run`.
  * @internal
  */
 final readonly class MigrateCommand
 {
-	/** the version of the JSON document, a key removed, renamed or meaning another thing being a new one */
+	/** the version of the JSON documents, a key removed, renamed or meaning another thing being a new one */
 	public const Version = 1;
 
 
@@ -150,6 +151,114 @@ final readonly class MigrateCommand
 				count($untranslated) > 1 ? 'them' : 'it',
 				implode('` and `', array_keys($untranslated)),
 			));
+		}
+
+		return $exit;
+	}
+
+
+	/**
+	 * @param  list<string>  $paths
+	 */
+	#[Cli\Command('Rewrite the suppression comments of PHP_CodeSniffer to the DressCode form')]
+	public function suppressions(
+		ParseResult $args,
+		#[Cli\Argument('Files or directories; the configured paths when omitted', optional: true, repeatable: true)]
+		array $paths,
+		ConfigOptions $configuration,
+		#[Cli\Flag('Show the rewrites as a unified diff instead of writing them')]
+		bool $dryRun = false,
+		#[Cli\Option('Output format: `console`, or `json` for a tool or an AI agent', alias: '-f', enum: ['console', 'json'])]
+		string $format = 'console',
+	): int
+	{
+		// the comments need the files and the names of the decisions, not the rules, which may not run yet
+		[$factory, $resolution] = $this->context->resolveProject($args, $configuration);
+		$config = $resolution->config;
+		$finder = $factory->createFileFinder($resolution);
+		$named = array_map($this->context->resolvePath(...), $paths);
+		$paths = $named ? $finder->narrowPaths($named, $config->paths) : $config->paths;
+		if (!$paths) {
+			throw new UsageException('No paths given and none configured.', $args->command);
+		}
+
+		$migration = new SuppressionMigration($factory->registry->expandSuppressedName(...));
+		$parser = new Parser;
+		$count = $files = 0;
+		$unknown = $widened = $skipped = $diffs = [];
+		foreach ($finder->findFiles($paths) as $path) {
+			$absolute = $finder->toAbsolute($path);
+			$code = @file_get_contents($absolute); // @ is escalated to exception
+			if ($code === false) {
+				throw new \RuntimeException("Cannot read file `$path`.");
+			}
+
+			try {
+				$file = $parser->parse($code);
+			} catch (ParseException $e) {
+				$skipped[$path] = $e->getMessage();
+				continue;
+			}
+
+			$rewrite = $migration->migrate($file);
+			if ($rewrite->count > 0) {
+				if ($dryRun) {
+					$diffs[$path] = Diff::unified($code, Printer::print($file), $path);
+				} elseif (@file_get_contents($absolute) !== $code) { // @ a file deleted meanwhile changed too
+					$skipped[$path] = 'it changed while it was being migrated';
+					continue;
+				} elseif (!Helpers::writeFile($absolute, Printer::print($file))) {
+					throw new \RuntimeException("Cannot write file `$path`.");
+				}
+
+				$count += $rewrite->count;
+				$files++;
+			}
+
+			// what is told is what the files hold now, a file skipped saying nothing
+			foreach ($rewrite->unknownNames as $name => $lines) {
+				$unknown[$name] = [...$unknown[$name] ?? [], ...array_map(fn(int $line) => "$path:$line", $lines)];
+			}
+
+			array_push($widened, ...array_map(fn(int $line) => "$path:$line", $rewrite->widened));
+		}
+
+		// a comment the migration could not carry over is a migration not done, a scope grown one to review
+		$exit = $unknown !== [] || $skipped !== [] ? 2 : ($widened !== [] ? 1 : 0);
+		if ($format === 'json') {
+			$this->context->writeJson([
+				'version' => self::Version,
+				'root' => $resolution->root,
+				'migrated' => $count,
+				'files' => $files,
+				'written' => !$dryRun,
+				'diffs' => (object) $diffs,
+				'unknown' => (object) $unknown,
+				'widened' => $widened,
+				'skipped' => (object) $skipped,
+			]);
+			return $exit;
+		}
+
+		foreach ($diffs as $diff) {
+			$this->context->out->write(Markup::highlightDiff($this->context->out, $diff));
+		}
+
+		$this->context->write(
+			($dryRun ? 'Would migrate ' : 'Migrated ')
+			. Markup::formatCount($count, 'suppression') . ' in ' . Markup::formatCount($files, 'file')
+			. ($dryRun ? ', writing nothing' : '') . ".\n",
+		);
+		foreach ($unknown as $name => $places) {
+			$this->context->write(Markup::formatLabel($this->context->out, 'Unknown') . "`$name`, kept as written, as no decision answers to it: " . implode(', ', $places) . "\n");
+		}
+
+		if ($widened) {
+			$this->context->write(Markup::formatLabel($this->context->out, 'Widened') . implode(', ', $widened) . ': a `dresscode:ignore` on a line of its own covers the whole statement below it, not just the next line' . "\n");
+		}
+
+		foreach ($skipped as $path => $why) {
+			$this->context->write(Markup::formatLabel($this->context->out, 'Skipped') . "$path, its comments left as they are: $why\n");
 		}
 
 		return $exit;
