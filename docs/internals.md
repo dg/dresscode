@@ -329,7 +329,7 @@ The file is written by `Config\Draft`, as `dresscode migrate config` writes its 
 
 What is the user's to decide init does not decide for them: a decision the budget left unchecked is printed as the line of `dresscode.neon` that gives it the value the code or the standard holds to, and what its fix would change, the costliest first. `init --set` gives a decision a value whatever was measured (`Proposal::answer()`), written with "your answer" and never left unchecked by the budget. Over a configuration that exists init measures against the standard that file names and prints every decision it would write otherwise (`InitPrinter::printShifts()`), so that running it again after an upgrade of DressCode or a while of work says what has moved; init over its own file says nothing has.
 
-The output says each phase as it comes, a status line while it runs: the project and what is left out of it, the version of PHP, the standard and what the code departs from it in, the values taken from the code, what a fix of the whole scope changes and what it leaves, and the commands to run next.
+The output says each phase as it comes, a status line while it runs with a spinner and the probes done, the spinner turning on through the one long probe of the check of the whole scope: the project and what is left out of it, the version of PHP, the standard and what the code departs from it in, the values taken from the code, what a fix of the whole scope changes and what it leaves, and the commands to run next.
 
 ## Writing a rule
 

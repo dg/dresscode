@@ -20,7 +20,11 @@ $probes = [
 
 
 test('a probe counts by decision what disagrees with its configuration, and what a fix would change', function () use ($root, $probes) {
-	$results = new InProcessProbeRunner($root)->run($probes);
+	$progress = [];
+	$results = new InProcessProbeRunner($root, function (int $done, int $all) use (&$progress) {
+		$progress[] = "$done/$all";
+	})->run($probes);
+	Assert::same(['1/2', '2/2'], $progress);
 	Assert::same(['literals.quotes' => ['src/a.php' => 2]], $results['single']->places);
 	Assert::same(['literals.quotes' => ['src/a.php' => true]], $results['single']->fixable);
 	Assert::same(['literals.quotes'], $results['single']->findResidue());
@@ -32,9 +36,19 @@ test('a probe counts by decision what disagrees with its configuration, and what
 
 test('the probes run as processes of check count the same as in the process, the root being the project', function () use ($root, $probes) {
 	$binary = getPhpCliBinary();
-	$runner = new ProcessProbeRunner($root, [$binary, __DIR__ . '/../../../bin/dresscode'], processors: 2);
+	$progress = [];
+	$runner = new ProcessProbeRunner(
+		$root,
+		[$binary, __DIR__ . '/../../../bin/dresscode'],
+		2,
+		function (int $done, int $all) use (&$progress) {
+			$progress[] = "$done/$all";
+		},
+	);
 	$inProcess = new InProcessProbeRunner($root)->run($probes);
 	Assert::equal($inProcess, $runner->run($probes));
+	// told at every look while the probes run, the last time when all are done
+	Assert::same(['0/2', '2/2'], [$progress[0], end($progress)]);
 
 	Assert::exception(
 		fn() => $runner->run(['bad' => ['literals' => ['quotes' => 'curly']]]),

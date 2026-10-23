@@ -87,8 +87,8 @@ final readonly class InitCommand
 		$write($printer->printScope($project, $scope));
 
 		$runner = WorkerPool::buildPhpCommand() === null
-			? new InProcessProbeRunner($root)
-			: ProcessProbeRunner::create($root);
+			? new InProcessProbeRunner($root, $status->advance(...))
+			: ProcessProbeRunner::create($root, $status->advance(...));
 		$proposal = Proposal::measure($project, $scope, $runner, $presets, fn(string $text) => $status->show('Measuring', $text));
 		foreach ($set as $spec) {
 			[$path, $value] = explode('=', $spec, 2);

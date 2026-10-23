@@ -11,6 +11,7 @@ use DressCode\Config\{Loader, RunnerFactory};
 use DressCode\Reporters\NullReporter;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
+use function count;
 
 
 /**
@@ -22,6 +23,8 @@ final readonly class InProcessProbeRunner implements ProbeRunner
 {
 	public function __construct(
 		private string $root,
+		/** @var ?\Closure(int, int): void  the probes done and all of them, told as each one ends */
+		private ?\Closure $onProgress = null,
 	) {
 	}
 
@@ -41,6 +44,7 @@ final readonly class InProcessProbeRunner implements ProbeRunner
 					fix: false,
 					reporter: new NullReporter,
 				));
+				($this->onProgress)?->__invoke(count($results), count($probes));
 			}
 		} finally {
 			@unlink($file); // @ may not have been written

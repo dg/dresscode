@@ -20,6 +20,9 @@ use const PHP_OS_FAMILY, PHP_SAPI;
  */
 final class WorkerPool
 {
+	/** microseconds the wait for the workers lasts at most while the progress is watched, so that a spinner turns */
+	private const ProgressInterval = 100_000;
+
 	/**
 	 * The listening socket: from ext/sockets when available, because the stream layer on Windows waits 500 ms
 	 * for a socket to become writable before closing it, which a listening one never does.
@@ -190,7 +193,7 @@ final class WorkerPool
 			}
 
 			while ($done < count($paths) || $this->isFinishing()) {
-				foreach ($this->await() as $stream) {
+				foreach ($this->await(watched: $onProgress !== null) as $stream) {
 					foreach ($this->receive((int) $stream) as $path => $result) {
 						$done++;
 						yield $path => $result;
@@ -266,14 +269,15 @@ final class WorkerPool
 	/**
 	 * Waits for messages from the workers, accepting the ones that connect meanwhile; the listening socket
 	 * from ext/sockets is closed as soon as the last worker is in.
+	 * @param  bool  $watched  the progress is drawn, so the wait is short
 	 * @return list<resource>  connections with a message waiting
 	 */
-	private function await(): array
+	private function await(bool $watched): array
 	{
 		$read = array_values($this->sockets);
 		$write = $except = [];
-		$seconds = 1;
-		$microseconds = 0;
+		$seconds = $watched ? 0 : 1;
+		$microseconds = $watched ? self::ProgressInterval : 0;
 		$server = $this->server;
 		if ($server instanceof \Socket) {
 			$this->acceptPending($server, blocking: $read === []);

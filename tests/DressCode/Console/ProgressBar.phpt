@@ -40,7 +40,7 @@ test('a run over before the delay draws nothing', function () {
 });
 
 
-test('the bar shows the share done and the file that takes long', function () {
+test('the bar shows the share done, and the file that takes long with a spinner beside it', function () {
 	$stream = stream();
 	$bar = bar($stream);
 	usleep(350_000);
@@ -49,7 +49,7 @@ test('the bar shows the share done and the file that takes long', function () {
 
 	usleep(150_000);
 	$bar->advance(6, ['src/slow.php' => microtime(as_float: true) - 3]);
-	Assert::contains('6/10  src/slow.php  3s', read($stream));
+	Assert::match("%A%6/10  src/slow.php  %a%\r", read($stream));
 });
 
 
