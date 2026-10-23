@@ -7,7 +7,7 @@
 
 namespace DressCode\Console\Commands;
 
-use DressCode\Config\Loader;
+use DressCode\Config\{ConfigResolver, Loader, PluginRegistry};
 use DressCode\Console\{CommandContext, Markup};
 use DressCode\Engine\{Diff, Helpers, SuppressionMigration};
 use DressCode\Interop\FormatterCandidate;
@@ -113,6 +113,7 @@ final readonly class MigrateCommand
 		}
 
 		$translation = $config->translate();
+		// the scope, and the decisions a rule of the formatter stands for kept where it leaves files out
 		$scope = Scope::fromProject($root, $config);
 		foreach ($scope->listExcludePaths() as $path => $why) { // what the formatter left out is left out as it was, the rest is a change
 			if ($why !== LeftOutReason::Foreign) {
@@ -121,7 +122,8 @@ final readonly class MigrateCommand
 		}
 
 		$draft = $translation->toDraft();
-		$scope->writeInto($draft);
+		$catalogue = new ConfigResolver(new PluginRegistry)->getCatalogue();
+		$scope->writeInto($draft, $config, fn(string $path) => $catalogue->find($path)?->takesKeep() ?? false);
 		$text = $draft->renderChecked($root, $syntax);
 		if (!$dryRun && !Helpers::createFile($target, $text)) {
 			throw new UsageException("The configuration `$output` appeared meanwhile; remove it, or name another file.", $args->command);
