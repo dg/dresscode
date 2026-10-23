@@ -25,7 +25,7 @@ Public:
 
 Internal:
 
-- `Engine\*`, `Interop\*`, `Config\*`, `Console\*`: the engine, the translation of foreign configurations, the rest of the configuration and the console
+- `Engine\*`, `Interop\*`, `Config\*`, `Measuring\*`, `Console\*`: the engine, the translation of foreign configurations, the rest of the configuration, the measuring of the code and the console
 - `Reporter`, `Reporters\*`: the formats of the output, whose contract is the output itself, and the interface they implement next to them; they print the `Engine\RunResult` of a run
 - `Rules\NodeHelpers`, `Rules\ListLayout`, `Rules\Compiler`, `Rules\NativeType`, `Rules\Classes\PropertyWrites`, `Rules\Classes\MemberModifiers`, `Rules\Functions\ForwardingClosure`, `Rules\Namespaces\NameReferences`, `Rules\Namespaces\QualificationPolicy`, `Rules\PhpDoc\AnnotationReplacement`, `Rules\PhpDoc\PhpdocTypeNotationVisitor`, `Rules\Whitespace\BlankLineClaims`, `Rules\Whitespace\Padding`: what the rules share among themselves or a rule does in a class of its own
 - `Rules\Upgrading\AnnotationArguments`, `Rules\Upgrading\CallableLiteral`, `Rules\Upgrading\CallTemplate`, `Rules\Upgrading\ClassReplacement`, `Rules\Upgrading\MagicCall`, `Rules\Upgrading\MemberTarget`, `Rules\Upgrading\AttributeTarget`, `Rules\Upgrading\Rewrite`, `Rules\Upgrading\AttributeForMemberEntry`, `Rules\Upgrading\AnnotationMap`, `Rules\Upgrading\enums.php`: the helpers of the rules fed by maps that are not the grammar of the maps
@@ -381,8 +381,10 @@ The fixtures of every rule run again under each standard with the sets beside it
   preset the standard of that name and its rules those of PHP CS Fixer, a file of PHP CS Fixer, which reading runs, only
   after the user agrees in a terminal, and then in a process of its own after the autoload of its project
   (`PhpCsFixer::readConfig()`), so that what it writes, the directory it changes and its exit stay its own; it writes
-  `dresscode.neon` or the file `--output` names, in the format of its extension, NEON or PHP, never over an existing
-  one, resolved as a run reads it and checked to say the decisions translated before it is written whole, or printed
+  with the decisions the scope as `Measuring\Scope::fromProject()` makes it, every path it leaves out said as a
+  change, into `dresscode.neon` or the file `--output` names in the root of the project,
+  the paths it names being relative to it, in the format of its extension, NEON or PHP, never over an existing one,
+  resolved as a run reads it and checked to say the decisions translated before it is written whole, or printed
   instead with `--dry-run`, the first decision a foreign rule translated only in part carrying in a comment what was
   not carried over (`Translation::translateRule()`), and a translation with any warning ending with exit code 1,
   and such a name written as a key of the file, in `--only` or in `fixRisky` is refused with the decisions that cover

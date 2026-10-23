@@ -23,23 +23,33 @@ final class ProcessRunner
 
 
 	/**
-	 * The exit code and the output of both streams, the exit code null where the command did not end in time.
+	 * The exit code and the output of both streams, or of the standard one alone, the exit code null where the command did
+	 * not end in time.
 	 * @param  list<string>  $command  the program and its arguments
+	 * @param  ?string  $input  what the command reads on its standard input
 	 * @return array{?int, string}
 	 */
-	public static function run(array $command, string $cwd, int $timeout): array
+	public static function run(
+		array $command,
+		string $cwd,
+		int $timeout,
+		?string $input = null,
+		bool $errors = true,
+	): array
 	{
 		// the shell of Windows is what finds a program that is a `.bat`
 		$command = PHP_OS_FAMILY !== 'Windows'
 			? $command
 			: implode(' ', array_map(escapeshellarg(...), $command));
 		// files rather than pipes, which Windows reads only blocking, so that a command holding them open still ends in time
-		[$stdin, $stdout] = [tmpfile(), tmpfile()];
-		if ($stdin === false || $stdout === false) {
+		[$stdin, $stdout, $stderr] = [tmpfile(), tmpfile(), $errors ? null : tmpfile()];
+		if ($stdin === false || $stdout === false || $stderr === false) {
 			throw new \RuntimeException('A temporary file could not be created.');
 		}
 
-		$process = proc_open($command, [0 => $stdin, 1 => $stdout, 2 => $stdout], $pipes, $cwd);
+		fwrite($stdin, (string) $input);
+		rewind($stdin);
+		$process = proc_open($command, [0 => $stdin, 1 => $stdout, 2 => $stderr ?? $stdout], $pipes, $cwd);
 		if ($process === false) {
 			return [127, 'The command could not be started.'];
 		}
