@@ -127,6 +127,13 @@ final class Markup
 	}
 
 
+	/** The line pointing a project at the phpcs suppression comments it has. */
+	public static function formatSuppressionsHint(int $count): string
+	{
+		return self::formatCount($count, 'phpcs suppression comment') . ': `dresscode migrate suppressions` rewrites them';
+	}
+
+
 	/** The label a line of the output opens with, in gray and as wide as the others, so that the values line up. */
 	public static function formatLabel(Console $console, string $label): string
 	{

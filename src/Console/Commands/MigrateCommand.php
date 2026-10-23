@@ -130,6 +130,7 @@ final readonly class MigrateCommand
 		}
 
 		$untranslated = $translation->findUntranslated();
+		$suppressions = new SuppressionMigration(new PluginRegistry()->expandSuppressedName(...))->countInFiles($root, $scope->files);
 		// a translation not carried over whole is written all the same, but the run says it is not done
 		$exit = $translation->warnings ? 1 : 0;
 		if ($json) {
@@ -145,6 +146,7 @@ final readonly class MigrateCommand
 				'presets' => $translation->presets,
 				'warnings' => $translation->warnings,
 				'untranslated' => array_keys($untranslated),
+				'suppressions' => $suppressions,
 			]);
 			return $exit;
 		}
@@ -174,6 +176,10 @@ final readonly class MigrateCommand
 				count($untranslated) > 1 ? 'them' : 'it',
 				implode('` and `', array_keys($untranslated)),
 			));
+		}
+
+		if ($suppressions) {
+			$this->context->writeNote("\n" . Markup::formatSuppressionsHint($suppressions) . ".\n");
 		}
 
 		return $exit;
