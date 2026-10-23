@@ -5,7 +5,7 @@ It is my fervent wish that this file guide every AI coding agent working with co
 
 ## Documentation
 
-`docs/internals.md` is the source of truth for how DressCode works: the tree as a rule sees it, the mutation API, the engine of gaps, the rules and the interop. Read it before any non-trivial change. `docs/dresscode.annotated.neon` is a configuration setting every decision, each with what its value means and the other values it takes, the value that of PER Coding Style where its preset decides and the best one where it says nothing: a decision added, renamed or given other values is written there too, which `tests/DressCode/Config/annotated.phpt` checks.
+`docs/internals.md` is the source of truth for how DressCode works: the tree as a rule sees it, the mutation API, the engine of gaps, the rules and the interop. Read it before any non-trivial change. `docs/skills/writing-rules.md` is the procedure of writing a rule or porting one from another tool, the one an agent outside this repository follows too. `docs/dresscode.annotated.neon` is a configuration setting every decision, each with what its value means and the other values it takes, the value that of PER Coding Style where its preset decides and the best one where it says nothing: a decision added, renamed or given other values is written there too, which `tests/DressCode/Config/annotated.phpt` checks.
 
 ## Project overview
 
