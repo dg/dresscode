@@ -107,11 +107,12 @@ final class ComposerJson
 
 
 	/**
-	 * The files autoload and autoload-dev name one by one, relative to the root, those outside it left out as the
-	 * directories are, and those that do not exist kept, which the autoload fails on.
+	 * The files autoload and autoload-dev name one by one, of the kinds given, relative to the root,
+	 * those outside it left out as the directories are, and those that do not exist kept, which the autoload fails on.
+	 * @param  list<'files'|'classmap'>  $kinds
 	 * @return list<string>
 	 */
-	public static function detectAutoloadFiles(?string $composerFile, string $root): array
+	public static function detectAutoloadFiles(?string $composerFile, string $root, array $kinds = ['files', 'classmap']): array
 	{
 		$data = self::read($composerFile);
 		if ($data === null) {
@@ -122,7 +123,7 @@ final class ComposerJson
 		$root = Helpers::canonicalizePath($root);
 		$files = [];
 		foreach (['autoload', 'autoload-dev'] as $section) {
-			foreach (['files', 'classmap'] as $kind) {
+			foreach ($kinds as $kind) {
 				foreach ((array) ($data[$section][$kind] ?? []) as $path) {
 					$file = is_string($path) ? Helpers::canonicalizePath(FileSystem::normalizePath("$base/$path")) : null;
 					if ($file !== null && !is_dir($file) && str_starts_with($file, "$root/")) {

@@ -121,7 +121,10 @@ test('without evidence the configurations go in the order of the formatters, a l
 	// the local configuration is the one PHP CS Fixer reads
 	file_put_contents("$root/.php-cs-fixer.php", "<?php\n");
 	Assert::same('.php-cs-fixer.php', FormatterSearch::find($root)[0]->file);
-	Assert::same(Formatter::Pint, FormatterConfig::fromFile($root, 'pint.json')->formatter);
+	Assert::same(
+		[Formatter::Pint, 'perCs'],
+		[FormatterConfig::fromFile($root, 'pint.json')->formatter, FormatterConfig::fromFile($root, 'pint.json')->standard],
+	);
 	Assert::true(Formatter::PhpCsFixer->runsCode());
 	Assert::false(Formatter::PhpCodeSniffer->runsCode());
 });
@@ -178,7 +181,31 @@ test('a preset Laravel Pint does not have is refused, and what of its configurat
 		FormatterConfig::fromFile($root, 'pint.json')->translate()->warnings,
 	);
 
-	// a file that is no JSON is told as such
+	// a file that is no JSON names no standard, which is not the default preset of a file naming none
 	file_put_contents("$root/pint.json", '{"preset": ');
-	Assert::same(['pint.json, which is no JSON'], FormatterConfig::fromFile($root, 'pint.json')->unread);
+	$config = FormatterConfig::fromFile($root, 'pint.json');
+	Assert::same([null, ['pint.json, which is no JSON']], [$config->standard, $config->unread]);
+	Assert::null(DressCode\Measuring\ProjectFacts::detect($root, $config)->findPintStandard());
+
+	// the formatter chosen decides, a `pint.json` beside another one saying nothing
+	file_put_contents("$root/pint.json", '{"preset": "psr12"}');
+	file_put_contents("$root/phpcs.xml", '<?xml version="1.0"?><ruleset name="x"><rule ref="PSR12"/></ruleset>');
+	Assert::null(DressCode\Measuring\ProjectFacts::detect($root, FormatterConfig::fromFile($root, 'phpcs.xml'))->findPintStandard());
+	Assert::same(
+		'psr12',
+		DressCode\Measuring\ProjectFacts::detect($root, FormatterConfig::fromFile($root, 'pint.json'))->findPintStandard(),
+	);
+});
+
+
+test('a set of PHP CS Fixer names the standard, @PhpCsFixer the nearest one, symfony', function () {
+	$root = createTempDir('foreign-sets');
+	$standard = function (string $set) use ($root): ?string {
+		file_put_contents("$root/.php-cs-fixer.php", "<?php\nreturn (new PhpCsFixer\\Config)->setRules(['$set' => true]);\n");
+		return FormatterConfig::fromFile($root, '.php-cs-fixer.php')->standard;
+	};
+	Assert::same(
+		['perCs', 'psr12', 'symfony', 'symfony', null],
+		array_map($standard, ['@PER-CS2.0', '@PSR12', '@Symfony', '@PhpCsFixer', '@Foo']),
+	);
 });

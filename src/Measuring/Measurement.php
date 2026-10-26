@@ -18,7 +18,7 @@ use function count, sprintf;
  */
 final readonly class Measurement
 {
-	/** the share of places a value must have to be taken for the value of the code */
+	/** the share of places a value must have for a proposal to write it as the value */
 	public const Threshold = 0.7;
 
 	/** the places from which a value the threshold of them agree with is settled, below which only a value all of them agree with is */

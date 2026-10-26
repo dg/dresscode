@@ -15,7 +15,7 @@ use Nette\Utils\FileSystem;
 
 /**
  * Runs the probes one after another in the process, through the file a configuration is read from, as the process
- * of `check` reads it; what the tests need.
+ * of `check` reads it; what the tests need, and a run where no PHP binary can be started.
  * @internal
  */
 final readonly class InProcessProbeRunner implements ProbeRunner

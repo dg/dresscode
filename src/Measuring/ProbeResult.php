@@ -12,7 +12,7 @@ use function count, is_array;
 
 
 /**
- * What a check the measuring runs tells, counted by decision: where the code disagrees with the configuration and
+ * What a check `dresscode init` runs tells, counted by decision: where the code disagrees with the configuration and
  * what a fix would change. A violation that follows from another one is no place of its own and counts nowhere.
  * @internal
  */

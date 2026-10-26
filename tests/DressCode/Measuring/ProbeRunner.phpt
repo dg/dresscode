@@ -71,7 +71,7 @@ test('a process of a probe starts no probes of its own, so the processes never g
 		Assert::exception(
 			fn() => ProcessProbeRunner::create($root)->run($probes),
 			LogicException::class,
-			'A probe of the measuring starts no probes of its own.',
+			'A probe of `dresscode init` starts no probes of its own.',
 		);
 	} finally {
 		putenv('DRESSCODE_PROBE');

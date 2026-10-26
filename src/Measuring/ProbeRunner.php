@@ -11,7 +11,7 @@ use DressCode\ConfigurationException;
 
 
 /**
- * Runs the checks the measuring counts by, each a configuration as `dresscode.neon` writes it over the project,
+ * Runs the checks `dresscode init` counts by, each a configuration as `dresscode.neon` writes it over the project,
  * its `paths` naming the files; the root is the project's, wherever the configuration lies.
  * @internal
  */
