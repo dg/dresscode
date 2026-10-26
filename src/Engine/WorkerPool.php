@@ -88,6 +88,16 @@ final class WorkerPool
 	}
 
 
+	/**
+	 * The workers a run of the files takes by default: a worker costs about the processing of a few files to start, so one
+	 * for every four files at most, and no more than the processors.
+	 */
+	public static function countDefaultJobs(int $files): int
+	{
+		return max(1, min(self::detectCpuCount(), intdiv($files, 4)));
+	}
+
+
 	/** Processors the machine has, 1 when unknown. */
 	public static function detectCpuCount(): int
 	{
