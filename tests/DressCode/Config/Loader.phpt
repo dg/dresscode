@@ -108,6 +108,15 @@ test('load: an explicit file is taken wherever the run started', function () use
 });
 
 
+test('load: a root given wins over the directory of the file, and the paths of the file are relative to it', function () use ($fixtures) {
+	$file = createTempDir('loader-root') . '/probe.neon';
+	file_put_contents($file, "paths: [src]\n");
+	[$config, $root] = Loader::load($file, sys_get_temp_dir(), root: "$fixtures/project");
+	Assert::same("$fixtures/project", $root);
+	Assert::same(['src'], $config->paths);
+});
+
+
 test('load: without a file the default applies and the directory is the root', function () {
 	$dir = sys_get_temp_dir();
 	$default = new Config(use: ['from/default']);
