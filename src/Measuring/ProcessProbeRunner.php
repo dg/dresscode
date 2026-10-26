@@ -43,18 +43,19 @@ final readonly class ProcessProbeRunner implements ProbeRunner
 	}
 
 
-	public static function create(string $root): self
+	/** @param  ?int  $processors  how many the probes share; all of the machine by default */
+	public static function create(string $root, ?int $processors = null): self
 	{
 		$script = \Phar::running(returnPhar: false) ?: dirname(__DIR__, 2) . '/bin/dresscode';
 		$command = [...WorkerPool::buildPhpCommand() ?? [PHP_BINARY], $script];
-		return new self($root, $command, WorkerPool::detectCpuCount());
+		return new self($root, $command, $processors ?? WorkerPool::detectCpuCount());
 	}
 
 
 	public function run(array $probes): array
 	{
 		if (getenv(self::ProbeVariable) !== false) {
-			throw new \LogicException('A probe of the measuring starts no probes of its own.');
+			throw new \LogicException('A probe of `dresscode init` starts no probes of its own.');
 		}
 
 		$dir = sys_get_temp_dir() . '/dresscode-probes-' . uniqid(more_entropy: true);

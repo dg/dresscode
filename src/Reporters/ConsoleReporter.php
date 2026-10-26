@@ -307,7 +307,7 @@ final class ConsoleReporter implements Reporter
 		$text = match ($risk) {
 			Risk::NameUncertain => "$wait, a name may reach a function of the namespace: " . ($this->namespacesListed
 				? 'set `nameResolution: certain`'
-				: 'list what the namespaces declare under `namespaces`, or set `nameResolution: certain` if they declare nothing'),
+				: 'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing'),
 			Risk::TypeUnknown => match ($this->typeAnalysis) {
 				TypeAnalysisStatus::Available => "$wait, the type is unknown: set `typeAnalysis: phpstan`",
 				TypeAnalysisStatus::Enabled => "$wait, not even the types tell: check $them with `fix --ask-risky`",

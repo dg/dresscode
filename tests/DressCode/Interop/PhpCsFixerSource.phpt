@@ -11,6 +11,7 @@ test('the finder is read from the syntax tree, a chain, a variable or the finder
 		<?php
 		use Symfony\Component\Finder\Finder;
 		// ->in(__DIR__ . '/commented') is no call
+		$rules = ['@PSR12' => true, '@Symfony:risky' => false, 'strict_param' => true];
 		$finder = PhpCsFixer\Finder::create()
 			->in(__DIR__ . '/src')
 			->exclude(['Generated', 'Cache'])
@@ -20,7 +21,8 @@ test('the finder is read from the syntax tree, a chain, a variable or the finder
 		$finder->in('tests');
 		$config->getFinder()->in(__DIR__ . '/lib');
 		(new Finder)->in($dirs)->filter(fn() => true);
-		return (new PhpCsFixer\Config)->setFinder($finder);
+		$config->setRules(getRules());
+		return (new PhpCsFixer\Config)->setRules($rules)->setFinder($finder);
 		XX, '/project/.php-cs-fixer.dist.php');
 
 	Assert::same(['/project/src', 'tests', '/project/lib'], $source->in);
@@ -28,6 +30,7 @@ test('the finder is read from the syntax tree, a chain, a variable or the finder
 	Assert::same(['#/Fixtures/#'], $source->notPath);
 	Assert::same(['*.phpt'], $source->notName);
 	Assert::same(['/project/.php-cs-fixer.dist.php'], $source->append);
+	Assert::same(['@PSR12'], $source->sets);
 	Assert::same(['2 finders, whose scopes are taken together', 'filter()', 'in($dirs)'], $source->unread);
 });
 

@@ -483,7 +483,7 @@ dresscode migrate config
 Found `phpcs.xml` of PHP_CodeSniffer, run by `composer cs`.
 Written `dresscode.neon`.
 
-Read 4 rules; set 4 decisions and 1 preset.
+Read 4 rules; set 4 decisions and 1 preset, the rules translated; `dresscode init` measures the code instead.
   `SlevomatCodingStandard.Namespaces.UnusedUses` without `searchAnnotations` removes an import only a doc comment uses; DressCode keeps it.
   No DressCode rule covers `Squiz.Commenting.FunctionComment`.
 
@@ -498,11 +498,12 @@ Third, rewrite the comments when you like: `dresscode migrate suppressions src t
 
 **Laravel Pint** runs PHP CS Fixer, with a command line of its own and presets of its own, `laravel` the
 default one. A project on that preset has nothing to translate: DressCode has the style as the standard
-`laravel`. Over 1,615 files of the first-party packages of Laravel run through Pint,
-`dresscode check --use laravel` finds 129 places, each a deliberate difference the manual lists (October
-2026). Rules a `pint.json` adds to the preset `dresscode migrate config` translates as those of PHP CS Fixer.
-On top of it, the same run upgrades the code to a newer PHP and, with `dresscode/upgrade-laravel`, to a newer
-Laravel, and it imports the classes named in every tag of a doc comment, `@template` and `@method` included.
+`laravel`, and `dresscode init` in a project with Pint writes the standard of its preset itself. Over 1,615
+files of the first-party packages of Laravel run through Pint, `dresscode check --use laravel` finds 129
+places, each a deliberate difference the manual lists (October 2026). Rules a `pint.json` adds to the preset
+`dresscode migrate config` translates as those of PHP CS Fixer. On top of it, the same run upgrades the
+code to a newer PHP and, with `dresscode/upgrade-laravel`, to a newer Laravel, and it imports the classes
+named in every tag of a doc comment, `@template` and `@method` included.
 
  <!---->
 

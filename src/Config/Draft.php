@@ -7,6 +7,7 @@
 
 namespace DressCode\Config;
 
+use DressCode\Analyses\PhpStan;
 use DressCode\{Config, ConfigurationException, Override};
 use DressCode\Engine\Helpers;
 use Nette\Neon\Neon;
@@ -15,9 +16,9 @@ use function count, is_array, is_string, strlen;
 
 
 /**
- * A configuration as `dresscode migrate config` writes it, each key with what it rests on: as `dresscode.neon` with the
- * comments and as `dresscode.php` without them. The decisions are written in the order of the sections of the core, each
- * value as the configuration writes it.
+ * A configuration as `dresscode init` and `dresscode migrate config` write it, each key with what it rests on: as
+ * `dresscode.neon` with the comments, as `dresscode.php` without them, and as the data a check reads. The decisions are
+ * written in the order of the sections of the core, each value as the configuration writes it.
  * @internal
  */
 final class Draft
@@ -28,8 +29,15 @@ final class Draft
 	/** @var list<string> */
 	private array $use = [];
 
+	private string $useComment = '';
+
 	/** @var ?array{list<string>, array<string, string>, list<string>}  paths, path left out => why, extensions */
 	private ?array $scope = null;
+
+	/** @var ?array{list<string>, list<string>, string}  functions, constants, the comment */
+	private ?array $namespaces = null;
+
+	private ?string $typeAnalysis = null;
 
 	/** @var array<string, mixed>  path => value as the configuration writes it */
 	private array $decisions = [];
@@ -41,10 +49,18 @@ final class Draft
 	private array $overrides = [];
 
 
+	public function __construct(
+		/** the comment the file opens with */
+		private readonly string $header = '',
+	) {
+	}
+
+
 	/** @param  list<string>  $presets */
-	public function setUse(array $presets): static
+	public function setUse(array $presets, string $comment = ''): static
 	{
 		$this->use = $presets;
+		$this->useComment = $comment;
 		return $this;
 	}
 
@@ -57,6 +73,26 @@ final class Draft
 	public function setScope(array $paths, array $excludePaths = [], array $fileExtensions = ['php']): static
 	{
 		$this->scope = [$paths, $excludePaths, $fileExtensions];
+		return $this;
+	}
+
+
+	/**
+	 * The functions and constants the namespaces declare and no others, so that a name is resolved for certain.
+	 * @param  list<string>  $functions
+	 * @param  list<string>  $constants
+	 */
+	public function setNamespaces(array $functions, array $constants, string $comment = ''): static
+	{
+		$this->namespaces = [$functions, $constants, $comment];
+		return $this;
+	}
+
+
+	/** The rules get the types of the code from PHPStan. */
+	public function setTypeAnalysis(string $comment = ''): static
+	{
+		$this->typeAnalysis = $comment;
 		return $this;
 	}
 
@@ -128,13 +164,14 @@ final class Draft
 
 
 	/**
-	 * What a run makes of the configuration must be what the draft says of its decisions; anything else is a
-	 * configuration that says one thing and does another.
+	 * What a run makes of the configuration must be what the draft says: its decisions, the names it resolves for
+	 * certain and the types; anything else is a configuration that says one thing and does another.
 	 * @throws \LogicException
 	 */
 	public function checkResolution(ResolvedConfig $resolved): void
 	{
 		$catalogue = self::getCatalogue();
+		$problem = null;
 		foreach ($this->decisions as $path => $value) {
 			$decision = $catalogue->find($path);
 			if ($decision === null) { // a decision of a plugin, which the core does not know how to accept
@@ -144,16 +181,53 @@ final class Draft
 			$expected = $decision->accept($value);
 			$actual = ($resolved->decisions[$path] ?? null)?->value;
 			if ($actual === null || $actual->isKept() !== $expected->isKept() || $actual->toData() !== $expected->toData()) {
-				throw new \LogicException("The configuration written does not say what it was made to: `$path` resolves to another value.");
+				$problem = "`$path` resolves to another value";
+				break;
 			}
 		}
+
+		[$functions, $constants] = $this->namespaces ?? [[], []];
+		$problem ??= match (true) {
+			$this->namespaces !== null && $resolved->nameResolution !== 'certain' => 'the names are not resolved for certain',
+			array_diff($functions, array_keys($resolved->namespacedFunctions)) !== [] => 'a function the namespaces declare is not listed',
+			array_diff($constants, array_keys($resolved->namespacedConstants)) !== [] => 'a constant the namespaces declare is not listed',
+			// a DressCode without PHPStan beside it goes without the types the project can give
+			($this->typeAnalysis !== null) !== ($resolved->typeAnalysis === 'phpstan') && PhpStan::isAvailable()
+				=> 'the types are not what it asks for',
+			default => null,
+		};
+		if ($problem !== null) {
+			throw new \LogicException("The configuration written does not say what it was made to: $problem.");
+		}
+	}
+
+
+	/**
+	 * The configuration as the data a check reads.
+	 * @return array<string, mixed>
+	 */
+	public function toArray(): array
+	{
+		$config = $this->buildSettings() + $this->buildTree();
+		foreach ($this->overrides as [$override]) {
+			$config['overrides'][] = ['paths' => $override->paths, ...$override->profile->decisions];
+		}
+
+		return $config;
 	}
 
 
 	/** The configuration as `dresscode.neon`, each key with its comment, the sections apart. */
 	public function toNeon(): string
 	{
-		$sections = [$this->renderUse(), $this->renderScope(), $this->renderDecisions(), $this->renderOverrides()];
+		$sections = [
+			($this->header === '' ? '' : preg_replace('~^~m', '# ', $this->header) . "\n") . $this->renderUse(),
+			$this->renderScope(),
+			$this->renderNamespaces(),
+			$this->typeAnalysis === null ? '' : 'typeAnalysis: phpstan' . self::formatComment($this->typeAnalysis) . "\n",
+			$this->renderDecisions(),
+			$this->renderOverrides(),
+		];
 		$sections = array_filter($sections, fn(string $section) => $section !== '');
 		return $sections ? implode("\n", $sections) : "use: []\n";
 	}
@@ -198,7 +272,10 @@ final class Draft
 			'paths' => $paths,
 			'excludePaths' => array_keys($excluded),
 			'fileExtensions' => $extensions === ['php'] ? [] : $extensions,
-		], fn(array $value) => $value !== []);
+			'nameResolution' => $this->namespaces === null ? null : 'certain',
+			'namespaces' => $this->namespaces === null ? [] : ['functions' => $this->namespaces[0], 'constants' => $this->namespaces[1]],
+			'typeAnalysis' => $this->typeAnalysis === null ? null : 'phpstan',
+		], fn($value) => $value !== null && $value !== []);
 	}
 
 
@@ -254,13 +331,18 @@ final class Draft
 	}
 
 
-	/** The key `use`, on one line for a single entry. */
+	/** The key `use`, on one line for a single entry, the comment following the standard. */
 	private function renderUse(): string
 	{
+		$comment = self::formatComment($this->useComment);
 		return match (count($this->use)) {
 			0 => '',
-			1 => 'use: ' . Neon::encode($this->use[0]) . "\n",
-			default => "use:\n" . implode('', array_map(fn(string $entry) => "\t- " . Neon::encode($entry) . "\n", $this->use)),
+			1 => 'use: ' . Neon::encode($this->use[0]) . "$comment\n",
+			default => "use:\n" . implode('', array_map(
+				fn(string $entry, int $i) => "\t- " . Neon::encode($entry) . ($i === 0 ? $comment : '') . "\n",
+				$this->use,
+				array_keys($this->use),
+			)),
 		};
 	}
 
@@ -285,6 +367,24 @@ final class Draft
 		}
 
 		return $out . ($extensions === ['php'] ? '' : 'fileExtensions: ' . self::renderList($extensions) . "\n");
+	}
+
+
+	private function renderNamespaces(): string
+	{
+		if ($this->namespaces === null) {
+			return '';
+		}
+
+		[$functions, $constants, $comment] = $this->namespaces;
+		$lists = '';
+		foreach (['functions' => $functions, 'constants' => $constants] as $key => $names) {
+			$lists .= $names ? "\t$key:\n" . implode('', array_map(fn(string $name) => "\t\t- " . Neon::encode($name) . "\n", $names)) : '';
+		}
+
+		return ($comment === '' ? '' : preg_replace('~^~m', '# ', $comment) . "\n")
+			. "nameResolution: certain\n"
+			. ($lists === '' ? '' : "namespaces:\n$lists");
 	}
 
 
@@ -360,6 +460,12 @@ final class Draft
 		$items = array_map(fn(string $item) => Neon::encode($item), $items);
 		$inline = '[' . implode(', ', $items) . ']';
 		return strlen($inline) <= self::InlineWidth ? $inline : "\n" . implode('', array_map(fn(string $item) => "\t- $item\n", $items));
+	}
+
+
+	private static function formatComment(string $comment): string
+	{
+		return $comment === '' ? '' : "   # $comment";
 	}
 
 

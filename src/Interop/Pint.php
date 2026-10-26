@@ -32,6 +32,13 @@ final class Pint
 	private const Keys = ['preset', 'rules', 'exclude', 'cache-file'];
 
 
+	/** The standard of the preset, `laravel` where the configuration names none; null for one no standard is. */
+	public static function findStandard(mixed $preset): ?string
+	{
+		return is_string($preset ??= 'laravel') ? self::Presets[$preset] ?? null : null;
+	}
+
+
 	/**
 	 * The rules of a `pint.json`, its preset as the standard.
 	 * @throws ConfigurationException  for a file that is no configuration, or names a preset Laravel Pint does not have

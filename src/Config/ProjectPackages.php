@@ -153,6 +153,30 @@ final readonly class ProjectPackages
 
 
 	/**
+	 * The versions the lock of the project holds, a branch without a version of its own among them as null; null for a
+	 * project without a lock.
+	 * @return ?array<string, ?string>
+	 */
+	public function readLockedVersions(): ?array
+	{
+		$lock = $this->rootPath === null ? null : ComposerJson::read("$this->rootPath/composer.lock");
+		if ($lock === null) {
+			return null;
+		}
+
+		$versions = [];
+		foreach ([...(array) ($lock['packages'] ?? []), ...(array) ($lock['packages-dev'] ?? [])] as $package) {
+			if (is_array($package) && is_string($package['name'] ?? null)) {
+				$version = is_string($package['version'] ?? null) ? ltrim($package['version'], 'v') : null;
+				$versions[$package['name']] = $version !== null && Versions::isVersion($version) ? $version : null;
+			}
+		}
+
+		return $versions;
+	}
+
+
+	/**
 	 * The versions of the package the code must work with, as a Composer constraint: the target, the constraint the
 	 * project requires it with, `*` for a package it does not require, or the version a required branch stands for,
 	 * `^3.1` or `3.3.9999999.9999999`; null where any version does, and for a package the project does not have, which

@@ -78,7 +78,7 @@ test('migrate config translates a foreign configuration and says what it could n
 		file_get_contents("$root/migrated.php"),
 	);
 	Assert::match(
-		"Written `%a%`.\n\nRead 5 rules; set 12 decisions and 1 preset.\n"
+		"Written `%a%`.\n\nRead 5 rules; set 12 decisions and 1 preset, the rules translated; `dresscode init` measures the code instead.\n"
 		. "  `Squiz.WhiteSpace.FunctionSpacing` leaves the blank lines around classes alone, while `blankLines` sets them together with those around functions.\n"
 		. "  No DressCode rule covers `Squiz.Nonsense.DoesNotExist`.\n",
 		$err,
@@ -229,7 +229,7 @@ test('migrate config writes the paths the configuration names, and keeps the dec
 		$neon,
 	);
 
-	// the data of tests the ruleset checked are left out, which the run says is a change
+	// the data of tests the ruleset checked are left out as init leaves them out, which the run says is a change
 	unlink("$project/dresscode.neon");
 	@mkdir("$project/src/fixtures"); // @ directory may already exist
 	file_put_contents("$project/src/fixtures/D.php", "<?php\n");
@@ -301,7 +301,7 @@ test('migrate suppressions rewrites phpcs comments to the dresscode form', funct
 	);
 	[$code, $out] = runApp($root, ['migrate', 'suppressions', 'src/s.php']);
 	Assert::same([0, "Migrated 0 suppressions in 0 files.\n"], [$code, $out]);
-	// what is migrated is counted no more, the hint of migrate config with it
+	// what is migrated is counted no more, the hint of init and migrate config with it
 	$count = fn() => new DressCode\Engine\SuppressionMigration(new DressCode\Config\PluginRegistry()->expandSuppressedName(...))
 		->countInFiles($root, ['src/s.php']);
 	Assert::same(0, $count());

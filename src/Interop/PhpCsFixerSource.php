@@ -14,18 +14,18 @@ use PhpSyntax\Nodes\Expression\{
 	ArrayNode, AssignmentNode, BinaryOpNode, MatchNode, MethodCallNode, NewNode, ParenthesizedNode, StaticMethodCallNode, TernaryNode,
 	VariableNode,
 };
-use PhpSyntax\Nodes\Scalar\{MagicConstantNode, StringNode};
+use PhpSyntax\Nodes\Scalar\{BooleanNode, MagicConstantNode, StringNode};
 use PhpSyntax\Nodes\Statement\{IfNode, SwitchNode};
 use function is_string;
 
 
 /**
- * What a configuration of PHP CS Fixer says in its code without running it: what its finder takes and leaves out. The
- * finder is a chain of calls starting at `Finder::create()`, `new Finder` of PHP CS Fixer or of Symfony,
- * `$config->getFinder()` or a variable one of them was assigned to, and the arguments are read where they are literals,
- * `__DIR__`, `__FILE__` and what `.` joins of them, lists among them. What the reading cannot be sure of is told in
- * `$unread`: a call reading something else or of a method it does not know, a call under a condition, several finders, a
- * variable of a finder assigned again, and a class named `Finder` of another vendor.
+ * What a configuration of PHP CS Fixer says in its code without running it: what its finder takes and leaves out, and
+ * the sets its rules turn on. The finder is a chain of calls starting at `Finder::create()`, `new Finder` of PHP CS
+ * Fixer or of Symfony, `$config->getFinder()` or a variable one of them was assigned to, and the arguments are read where
+ * they are literals, `__DIR__`, `__FILE__` and what `.` joins of them, lists among them. What the reading cannot be sure
+ * of is told in `$unread`: a call reading something else or of a method it does not know, a call under a condition,
+ * several finders, a variable of a finder assigned again, and a class named `Finder` of another vendor.
  * @internal
  */
 final readonly class PhpCsFixerSource
@@ -54,6 +54,8 @@ final readonly class PhpCsFixerSource
 		public array $notName = [],
 		/** @var list<string>  the files `append()` adds, as written */
 		public array $append = [],
+		/** @var list<string>  the sets the rules turn on, `@PSR12` */
+		public array $sets = [],
 		/** @var list<string>  the calls whose arguments were not read, or that narrow the finder in a way no scope writes */
 		public array $unread = [],
 	) {
@@ -70,14 +72,16 @@ final readonly class PhpCsFixerSource
 		}
 
 		$resolver = new NameResolver($tree);
-		$found = array_fill_keys([...self::Narrowing, 'unread'], []);
-		$finders = [];
+		$found = array_fill_keys([...self::Narrowing, 'sets', 'unread'], []);
+		$finders = $arrays = [];
 		foreach ($tree->find(AssignmentNode::class) as $assignment) {
 			if ($assignment->target instanceof VariableNode && ($name = $assignment->target->plainName) !== null) {
 				if (isset($finders[$name])) {
 					$found['unread'][] = "\$$name, which a finder was assigned to and is assigned again";
 				} elseif (self::isFinder($assignment->expression, $finders, $resolver)) {
 					$finders[$name] = true;
+				} elseif ($assignment->expression instanceof ArrayNode) {
+					$arrays[$name] = $assignment->expression;
 				}
 			}
 		}
@@ -99,7 +103,16 @@ final readonly class PhpCsFixerSource
 
 		foreach ($tree->find(MethodCallNode::class) as $call) {
 			$method = $call->plainName;
-			if ($method === null || !self::isFinder($call->object, $finders, $resolver)) {
+			if ($method === 'setRules') {
+				$rules = $call->arguments->getPlainValues()[0] ?? null;
+				$rules = $rules instanceof VariableNode ? $arrays[(string) $rules->plainName] ?? null : $rules;
+				if ($rules instanceof ArrayNode) {
+					array_push($found['sets'], ...self::readSets($rules));
+				}
+
+				continue;
+
+			} elseif ($method === null || !self::isFinder($call->object, $finders, $resolver)) {
 				continue;
 			} elseif (self::isConditional($call)) {
 				$found['unread'][] = "$method(" . self::stripParens((string) $call->arguments) . '), which a condition decides';
@@ -125,6 +138,7 @@ final readonly class PhpCsFixerSource
 			$found['notPath'],
 			$found['notName'],
 			$found['append'],
+			$found['sets'],
 			$found['unread'],
 		);
 	}
@@ -226,6 +240,29 @@ final readonly class PhpCsFixerSource
 		}
 
 		return null;
+	}
+
+
+	/**
+	 * The sets the array of rules turns on, a key of `@` with the value `true`.
+	 * @return list<string>
+	 */
+	private static function readSets(ArrayNode $rules): array
+	{
+		$sets = [];
+		foreach ($rules->items as $item) {
+			if (
+				$item instanceof ArrayItemNode
+				&& $item->key instanceof StringNode
+				&& str_starts_with($item->key->toValue(), '@')
+				&& $item->value instanceof BooleanNode
+				&& strtolower($item->value->token->text) === 'true'
+			) {
+				$sets[] = $item->key->toValue();
+			}
+		}
+
+		return $sets;
 	}
 
 
