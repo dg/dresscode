@@ -51,6 +51,11 @@ final class ConfigResolver
 		private readonly string $root = '.',
 		/** @var list<string>  the packages whose plugins the project does not let in, so the maps of their rules are unknown */
 		private readonly array $pluginsSkipped = [],
+		/**
+		 * @var list<string>  presets laid over those the configuration uses and beneath its own decisions and its overrides,
+		 * so that the project keeps the last word, as `upgrade` lays its sets
+		 */
+		private readonly array $laid = [],
 	) {
 		$this->rulesOfOverrides = new \WeakMap;
 	}
@@ -640,6 +645,10 @@ final class ConfigResolver
 		$layers = $visited = $repeated = [];
 		foreach ($profiles as [$layer, $profile]) {
 			$this->collectUsed($profile, $layer, $layers, $visited, $repeated);
+			if ($layer->kind === LayerKind::Configuration && $this->laid !== []) {
+				$this->collectUsed(new Profile(use: $this->laid), new Layer(LayerKind::Caller), $layers, $visited, $repeated);
+			}
+
 			$layers[] = [$layer, $profile];
 		}
 
@@ -705,9 +714,12 @@ final class ConfigResolver
 	private function warnRepeated(array $repeated): void
 	{
 		foreach ($repeated as [$layer, $laidBy, $namedBy]) {
-			// what a preset uses is not the project's to change, and the command line reaches what an override does not
+			// what a preset or the caller lays is not the project's to change, and the command line reaches what an override
+			// does not
 			if (
 				$namedBy->kind !== LayerKind::Preset
+				&& $namedBy->kind !== LayerKind::Caller
+				&& $laidBy->kind !== LayerKind::Caller
 				&& !($laidBy->kind === LayerKind::Override && $namedBy->kind === LayerKind::CommandLine)
 			) {
 				$this->warnings['repeated ' . $layer->describe() . ' ' . $namedBy->describe()] = ucfirst($namedBy->formatReference())

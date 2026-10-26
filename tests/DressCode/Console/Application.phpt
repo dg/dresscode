@@ -151,7 +151,7 @@ function runApp(string $root, array $args, string $stdin = '', bool $xdebug = fa
 	$in = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	fwrite($in, $stdin);
 	rewind($in);
-	if (in_array($args[0] ?? null, ['check', 'fix', 'baseline'], strict: true) && !in_array('--jobs', $args, strict: true)) {
+	if (in_array($args[0] ?? null, ['check', 'fix', 'baseline', 'upgrade'], strict: true) && !in_array('--jobs', $args, strict: true)) {
 		$args = [...$args, '--jobs', '1']; // the rules of this file do not exist in a worker process
 	}
 
@@ -419,6 +419,129 @@ test('--lines takes the lines of one file in the agent format, anything else is 
 		[$code, , $err] = runApp($root, $args);
 		Assert::same(3, $code);
 		Assert::match("Error: $error%A%", $err);
+	}
+});
+
+
+test('upgrade rewrites the code in no style without a configuration, and with one in the style its code keeps', function () {
+	$code = "<?php\n\ndeclare(strict_types=1);\n\n\$h = curl_init();\ncurl_close(\$h);\n\$s = \"x\";\n";
+	$upgraded = "<?php\n\ndeclare(strict_types=1);\n\n\$h = curl_init();\n\$s = \"x\";\n";
+
+	// without a configuration the whole directory, by the sets alone; outside the repository, whose configuration it would find
+	$root = sys_get_temp_dir() . '/dresscode-upgrade-' . getmypid();
+	FileSystem::delete($root);
+	FileSystem::createDir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2"}}');
+	file_put_contents("$root/src/a.php", $code);
+	[$exit, $out] = runApp($root, ['upgrade', '--no-color']);
+	Assert::same(0, $exit);
+	Assert::same($upgraded, file_get_contents("$root/src/a.php"));
+	Assert::match(
+		"%A%Config     none, using deprecations\n%A%Upgrading  PHP alone, no installed library has upgrading data\n%A%Run `dresscode upgrade` again: %a%\n",
+		$out,
+	);
+	FileSystem::delete($root);
+
+	// the code writes double quotes, so the quotes of the standard are left out, in the workers too
+	$root = createTempDir('upgrade-configured');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2"}}');
+	file_put_contents("$root/dresscode.neon", "use: [nette]\npaths: [src]\n");
+	foreach (['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as $name) {
+		file_put_contents("$root/src/$name.php", $code);
+	}
+
+	[$exit] = runApp($root, ['upgrade', '--no-color', '--jobs', '2']);
+	Assert::same(0, $exit);
+	Assert::same($upgraded, file_get_contents("$root/src/a.php"));
+	Assert::same($upgraded, file_get_contents("$root/src/h.php"));
+	Assert::same(1, runApp($root, ['check', '--no-color'])[0]);
+});
+
+
+test('upgrade keeps what the project keeps, in an override too, the sets lying beneath its decisions', function () {
+	$code = "<?php\n\ndeclare(strict_types=1);\n\n\$h = curl_init();\ncurl_close(\$h);\n";
+	$root = createTempDir('upgrade-kept');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2"}}');
+	file_put_contents(
+		"$root/dresscode.neon",
+		"paths: [src]\noverrides:\n\t-\n\t\tpaths: [src/kept.php]\n\t\tupgrading: {api: {replacedCalls: {'curl_close(\$handle)': keep}}}\n",
+	);
+	file_put_contents("$root/src/kept.php", $code);
+	file_put_contents("$root/src/upgraded.php", $code);
+
+	[$exit, , $err] = runApp($root, ['upgrade', '--no-color']);
+	Assert::same(0, $exit);
+	Assert::same('', $err);
+	Assert::same($code, file_get_contents("$root/src/kept.php"));
+	Assert::same("<?php\n\ndeclare(strict_types=1);\n\n\$h = curl_init();\n", file_get_contents("$root/src/upgraded.php"));
+});
+
+
+test('upgrade says which packages are installed newer than required, and whose data are only reported', function () {
+	$root = createTempDir('upgrade-versions');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2", "acme/lib": "^3.0"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\n");
+	file_put_contents("$root/src/a.php", "<?php\n");
+	FileSystem::write(
+		"$root/vendor/acme/tool/upgrading/tool.neon",
+		"package: acme/tool\n\nsince 1.0:\n\tforbiddenFunctions:\n\t\tacme_old: 'use `acme_new()`'\n",
+	);
+	FileSystem::write(
+		"$root/vendor/composer/installed.json",
+		json_encode(['packages' => [
+			['name' => 'acme/lib', 'version' => '3.2.0', 'version_normalized' => '3.2.0.0', 'install-path' => '../acme/lib'],
+			[
+				'name' => 'acme/tool',
+				'version' => '1.0.0',
+				'version_normalized' => '1.0.0.0',
+				'install-path' => '../acme/tool',
+				'extra' => ['dresscode' => ['upgrading-dir' => 'upgrading']],
+			],
+		]], JSON_THROW_ON_ERROR),
+	);
+
+	[, $out] = runApp($root, ['upgrade', '--no-color']);
+	Assert::match(
+		"%A%Upgrading  acme/tool\nLowest     acme/lib 3.2 installed, 3.0 required; `composer update --prefer-lowest` %a%\nReported   acme/tool: not required with a lower bound, %a%\n%A%",
+		$out,
+	);
+});
+
+
+test('upgrade runs the rules of a package of upgrading data its maps turn on, which check runs only where use names it', function () {
+	require_once __DIR__ . '/fixtures/upgrade-plugin.php';
+	$root = createTempDir('upgrade-plugin');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2", "acme/upgrade": "^1.0"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\n");
+	file_put_contents("$root/src/a.php", "<?php\n\$x = 1;\n");
+	FileSystem::write(
+		"$root/vendor/acme/upgrade/upgrading/upgrading.neon",
+		"package: acme/upgrade\n\nsince 1.0:\n\tacmeUpgrade.variables:\n\t\told: new\n",
+	);
+	FileSystem::write(
+		"$root/vendor/composer/installed.json",
+		json_encode(['packages' => [[
+			'name' => 'acme/upgrade',
+			'version' => '1.0.0',
+			'version_normalized' => '1.0.0.0',
+			'install-path' => '../acme/upgrade',
+			'extra' => ['dresscode' => ['plugin' => 'UpgradePlugin', 'upgrading-dir' => 'upgrading']],
+		]]], JSON_THROW_ON_ERROR),
+	);
+
+	// one warning for the plugin, none for the map of its rule
+	Assert::same(
+		"Warning: Package `acme/upgrade` brings rules that run only where `use` names it, and in `dresscode upgrade`; skipped, with what its upgrading files set for them.\n",
+		runApp($root, ['check', '--no-color'])[2],
+	);
+	foreach ([[], ['--only', 'acme/upgrade']] as $only) {
+		[, $out, $err] = runApp($root, ['upgrade', '--no-color', ...$only]);
+		Assert::same('', $err);
+		Assert::contains('A variable of the upgrade.', $out);
 	}
 });
 

@@ -196,26 +196,36 @@ final readonly class ProjectPackages
 
 
 	/**
-	 * The directories of the installed packages the project supports from an older minor version than the installed one,
-	 * where a declaration may say what the oldest version does not, a deprecation and its replacement above all.
+	 * The installed packages the project supports from an older minor version than the installed one, where a declaration
+	 * may say what the oldest version does not, a deprecation and its replacement above all.
+	 * @return array<string, array{string, string}>  package => the version installed and the lowest one supported
+	 */
+	public function findNewerInstalled(): array
+	{
+		$newer = [];
+		foreach ($this->installed as $package => ['version' => $installed]) {
+			$lowest = $this->findVersion($package);
+			if (
+				$installed !== null
+				&& $lowest !== null
+				&& version_compare(self::toMinorVersion($lowest), self::toMinorVersion($installed), '<')
+			) {
+				$newer[$package] = [$installed, $lowest];
+			}
+		}
+
+		return $newer;
+	}
+
+
+	/**
+	 * The directories of the packages `findNewerInstalled()` lists.
 	 * @return list<string>
 	 */
 	public function findNewerInstalledPaths(): array
 	{
-		$paths = [];
-		foreach ($this->installed as $package => ['version' => $installed, 'path' => $path]) {
-			$lowest = $this->findVersion($package);
-			if (
-				$path !== null
-				&& $installed !== null
-				&& $lowest !== null
-				&& version_compare(self::toMinorVersion($lowest), self::toMinorVersion($installed), '<')
-			) {
-				$paths[] = $path;
-			}
-		}
-
-		return $paths;
+		$paths = array_map(fn(string $package) => $this->installed[$package]['path'], array_keys($this->findNewerInstalled()));
+		return array_values(array_filter($paths, fn(?string $path) => $path !== null));
 	}
 
 
@@ -228,13 +238,23 @@ final readonly class ProjectPackages
 	{
 		$paths = [];
 		foreach ($this->installed as $package => ['path' => $path]) {
-			$constraint = $this->findConstraint($package);
-			if ($path !== null && $constraint !== null && Versions::findLowestVersion($constraint) === null) {
+			if ($path !== null && $this->isUnbounded($package)) {
 				$paths[] = $path;
 			}
 		}
 
 		return $paths;
+	}
+
+
+	/**
+	 * Whether the project supports the package from no particular version, not requiring it or requiring it without
+	 * a lower bound.
+	 */
+	public function isUnbounded(string $package): bool
+	{
+		$constraint = $this->findConstraint($package);
+		return $constraint !== null && Versions::findLowestVersion($constraint) === null;
 	}
 
 

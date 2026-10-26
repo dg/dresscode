@@ -64,16 +64,17 @@ final readonly class CommandContext
 
 	/**
 	 * The configuration, the root directory, the file it came from, and the layer the command line lays over them.
+	 * @param  ?Config  $default  the configuration of a command that runs without a file
 	 * @return array{config: Config, root: string, file: ?string, commandLine: ?Config}
 	 * @throws UsageException
 	 */
-	public function loadConfig(ParseResult $args, ConfigOptions $options): array
+	public function loadConfig(ParseResult $args, ConfigOptions $options, ?Config $default = null): array
 	{
 		[$config, $root, $file] = Loader::load(
 			$options->config === null ? null : Helpers::toAbsolutePath($options->config, $this->workingDirectory),
 			$this->workingDirectory,
 			// without a configuration file the run has only what the command line uses
-			$this->defaultConfig ?? ($options->use ? new Config : null),
+			$this->defaultConfig ?? $default ?? ($options->use ? new Config : null),
 			$options->root === null ? null : Helpers::toAbsolutePath($options->root, $this->workingDirectory),
 		);
 		return ['config' => $config, 'root' => $root, 'file' => $file, 'commandLine' => $this->readCommandLine($args, $options)];
@@ -140,6 +141,7 @@ final readonly class CommandContext
 				[...$config->plugins, ...$commandLine instanceof Config ? $commandLine->plugins : []],
 			),
 			...$config->use,
+			...$resolution->laid,
 			...$commandLine->use ?? [],
 		];
 		$this->out->writeLine($this->out->color('gray', 'Config     ') . ($configFile === null
