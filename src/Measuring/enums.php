@@ -82,6 +82,9 @@ enum StandardReason
 
 	/** a fix under it changes the fewest files, a close call decided by the formatter, then `perCs` */
 	case Fewest;
+
+	/** PER Coding Style taken over PSR-12, which it succeeds, though a fix under PSR-12 changes fewer files */
+	case Successor;
 }
 
 
