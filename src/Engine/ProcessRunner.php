@@ -73,7 +73,7 @@ final class ProcessRunner
 	 * Ends the process and every process it started at once, as ending the shell alone would leave what it started
 	 * orphaned.
 	 */
-	private static function killTree(int $pid): void
+	public static function killTree(int $pid): void
 	{
 		if (PHP_OS_FAMILY === 'Windows') {
 			exec("taskkill /F /T /PID $pid 2>NUL");
