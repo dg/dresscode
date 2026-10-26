@@ -46,6 +46,9 @@ final readonly class ConfigOptions
 			normalizer: [self::class, 'checkSeverity'],
 		)]
 		public array $severity = [],
+		/** the root of the run in place of the directory of the configuration file, for a configuration written elsewhere */
+		#[Cli\Option(hidden: true)]
+		public ?string $root = null,
 	) {
 	}
 
