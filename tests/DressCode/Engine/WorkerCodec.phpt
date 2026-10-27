@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
 
+use DressCode\Config\{Layer, LayerKind};
 use DressCode\Engine\WorkerCodec;
 use DressCode\{FileResult, Risk, Severity, Violation};
 use Tester\Assert;
@@ -29,6 +30,7 @@ test('a result survives the way from a worker to the parent and back, with what 
 		offset: 6,
 		length: 2,
 		originalLines: [2, 3],
+		source: new Layer(LayerKind::Package, 'php.neon', 'php', 'upgrading.php.deprecatedApi', 'php', '8.5', '8.0'),
 	);
 	$unfixable = new Violation('test/b', 'B.', 3, null, Severity::Error, fingerprint: '5678', fixable: false);
 	$result = new FileResult(

@@ -139,12 +139,13 @@ final readonly class UpgradingFile
 	 * What a section above the lowest version retires, where a version the constraint allows reaches it, is reported
 	 * without a fix as the entry of a forbidden map (`retire()`), unless a section reached rewrites or forbids the same
 	 * thing already. A requirement is turned on where the lowest version reaches its section, and says nothing above it.
+	 * Every entry keeps the section and the version `from` it came with.
 	 */
 	public function selectFor(?string $constraint, Layer $layer): UpgradingData
 	{
 		$lowest = $constraint === null ? null : Versions::findLowestVersion($constraint);
 		$reaches = fn(string $version) => $constraint === null || ($lowest !== null && version_compare($lowest, $version, '>='));
-		$maps = $retirements = $retired = $unreached = $reported = [];
+		$maps = $retirements = $origins = $retired = $unreached = $reported = [];
 		foreach ($this->sections as $since => $section) {
 			$since = (string) $since;
 			$left = [];
@@ -157,6 +158,7 @@ final readonly class UpgradingFile
 					}
 
 					$maps[$map][$key] = self::removeFrom($value);
+					$origins[$map][$key] = [$since, $from];
 					unset($retirements[$map][$key]);
 					if (in_array($map, self::ForbiddenMaps, true) && $value !== MemberMapGrammar::Keep) {
 						$retirements[$map][$key] = $since;
@@ -172,7 +174,7 @@ final readonly class UpgradingFile
 			if (!Versions::isSubset($constraint, "<$since")) {
 				$reported[] = $since;
 				foreach (self::retire($left) as [$map, $key, $sentence, $version]) {
-					$retired[$map][$key] = [$sentence, $version ?? $since];
+					$retired[$map][$key] = [$sentence, $since, $version];
 				}
 			}
 		}
@@ -188,10 +190,11 @@ final readonly class UpgradingFile
 		}
 
 		foreach ($retired as $map => $entries) {
-			foreach ($entries as $key => [$sentence, $version]) {
+			foreach ($entries as $key => [$sentence, $since, $version]) {
 				if (!isset($written[$map][self::identify($map, $key)])) {
 					$maps[$map][$key] = $sentence;
-					$retirements[$map][$key] = $version;
+					$origins[$map][$key] = [$since, $version];
+					$retirements[$map][$key] = $version ?? $since;
 				}
 			}
 		}
@@ -203,7 +206,17 @@ final readonly class UpgradingFile
 			}
 		}
 
-		return new UpgradingData($layer, $this->package, $this->namespaces, $maps, $retirements, $unreached, $reported, $requirements);
+		return new UpgradingData(
+			$layer,
+			$this->package,
+			$this->namespaces,
+			$maps,
+			$retirements,
+			$unreached,
+			$reported,
+			$requirements,
+			$origins,
+		);
 	}
 
 

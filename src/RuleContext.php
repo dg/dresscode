@@ -73,6 +73,8 @@ final class RuleContext
 	 * false comes back whatever the run allows, and a mutation after it breaks the contract.
 	 * `$decision` is the path of the decision the occurrence violates, which only a rule of one requirement leaves
 	 * out; one the run does not report, being `keep` or narrowed away, records nothing and returns false.
+	 * `$source` is the section of the upgrading data of a package whose entry the occurrence is of, as a rule reading
+	 * a map gets it from `Values::getEntryOrigin()`.
 	 */
 	public function report(
 		Node|Token $at,
@@ -85,6 +87,7 @@ final class RuleContext
 		bool $byLine = false,
 		bool $fixable = true,
 		?string $because = null,
+		?Config\Layer $source = null,
 	): bool
 	{
 		if ($trivia === null && $lineInTrivia !== 0) {
@@ -113,6 +116,7 @@ final class RuleContext
 			fixable: $fixable,
 			because: $because,
 			lineInTrivia: $lineInTrivia,
+			source: $source,
 		);
 	}
 
@@ -188,6 +192,7 @@ final class RuleContext
 		bool $fixable = true,
 		?string $because = null,
 		int $lineInTrivia = 0,
+		?Config\Layer $source = null,
 	): bool
 	{
 		if ($this->policy->strict && $because !== null && $risk === null) {
@@ -245,6 +250,7 @@ final class RuleContext
 			construct: $construct,
 			lineInTrivia: $lineInTrivia,
 			span: $this->spans?->find($at, $trivia, $lineInTrivia, $gap, $follows),
+			source: $source,
 		);
 		return $fixable && !$refused && !$left;
 	}

@@ -9,7 +9,7 @@ namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{MemberKind, Types};
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Values};
-use DressCode\Upgrading\{MemberMap, MemberMapEntry, MemberMapGrammar, MemberPattern};
+use DressCode\Upgrading\{MemberMap, MemberMapEntry, MemberMapGrammar};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ClassLikeNode, IdentifierNode, ParameterNode};
@@ -49,21 +49,13 @@ final class ForbiddenMembersRule extends NodeRule
 {
 	public const Map = MemberMapGrammar::ForbiddenMembers;
 
-	/** @var MemberMap<array{string, bool}>  the entries with the end of the message, and whether the data of a package laid it */
+	/** @var MemberMap<string>  the entries with the end of the message */
 	private MemberMap $map;
 
 
 	public function configure(Values $values): void
 	{
-		$fromPackages = $values->findPackageEntries(self::Map);
-		$this->map = MemberMap::fromValues(
-			$values,
-			self::Map,
-			fn(?string $message, MemberPattern $pattern, string $key) => [
-				$message === null ? '' : ": $message",
-				isset($fromPackages[$key]),
-			],
-		);
+		$this->map = MemberMap::fromValues($values, self::Map, fn(?string $message) => $message === null ? '' : ": $message");
 	}
 
 
@@ -162,8 +154,9 @@ final class ForbiddenMembersRule extends NodeRule
 		};
 		$context->report(
 			$node instanceof NewNode ? $node->class : $node->name,
-			"$described " . self::formatVerdict($entry->value, $types->knowsMember($pattern->class, $access->kind, $access->name)),
+			"$described " . self::formatVerdict($entry, $types->knowsMember($pattern->class, $access->kind, $access->name)),
 			decision: $entry->decision,
+			source: $entry->origin,
 			fixable: false,
 		);
 		return true;
@@ -211,8 +204,9 @@ final class ForbiddenMembersRule extends NodeRule
 				$node instanceof PropertyFetchNode ? $node->name : $node->openBracket,
 				$entry->pattern->describe(MemberKind::Method)
 				. ' '
-				. self::formatVerdict($entry->value, $types->knowsMember($entry->pattern->class, MemberKind::Method, $method)),
+				. self::formatVerdict($entry, $types->knowsMember($entry->pattern->class, MemberKind::Method, $method)),
 				decision: $entry->decision,
+				source: $entry->origin,
 				fixable: false,
 			);
 		}
@@ -242,8 +236,9 @@ final class ForbiddenMembersRule extends NodeRule
 				$callable->literal,
 				$entry->pattern->describe($access->kind)
 				. ' '
-				. self::formatVerdict($entry->value, $types->knowsMember($entry->pattern->class, $access->kind, $access->name)),
+				. self::formatVerdict($entry, $types->knowsMember($entry->pattern->class, $access->kind, $access->name)),
 				decision: $entry->decision,
+				source: $entry->origin,
 				fixable: false,
 			);
 		}
@@ -263,8 +258,9 @@ final class ForbiddenMembersRule extends NodeRule
 			$exists = $types->knowsMember($entry->pattern->class, $kind, $entry->pattern->name);
 			$context->report(
 				$node->name,
-				$entry->pattern->describe($kind) . ' ' . self::formatVerdict($entry->value, $exists),
+				$entry->pattern->describe($kind) . ' ' . self::formatVerdict($entry, $exists),
 				decision: $entry->decision,
+				source: $entry->origin,
 				fixable: false,
 			);
 		}
@@ -295,8 +291,9 @@ final class ForbiddenMembersRule extends NodeRule
 				$exists = $types->knowsMember($entry->pattern->class, $kind, $name);
 				$context->report(
 					$at,
-					$entry->pattern->describe($kind) . ' ' . self::formatVerdict($entry->value, $exists),
+					$entry->pattern->describe($kind) . ' ' . self::formatVerdict($entry, $exists),
 					decision: $entry->decision,
+					source: $entry->origin,
 					fixable: false,
 				);
 			}
@@ -307,10 +304,10 @@ final class ForbiddenMembersRule extends NodeRule
 	/**
 	 * What the entry says of the use, with the end of its message: a member the data of a package retired is deprecated
 	 * while the installed version still has it and removed once it has not, one of the project is forbidden.
-	 * @param  array{string, bool}  $value
+	 * @param  MemberMapEntry<string>  $entry
 	 */
-	private static function formatVerdict(array $value, bool $exists): string
+	private static function formatVerdict(MemberMapEntry $entry, bool $exists): string
 	{
-		return 'is ' . Retirement::of($value[1], $exists)->value . $value[0] . '.';
+		return 'is ' . Retirement::of($entry->origin !== null, $exists)->value . $entry->value . '.';
 	}
 }

@@ -565,6 +565,8 @@ test('what the data of PHP say is reported under the requirement that lays them,
 
 	Assert::same(['2: upgrading.php.deprecatedApi', '3: upgrading.api.forbiddenFunctions'], $decisions(null));
 	Assert::same(['2: upgrading.php.deprecatedApi'], $decisions('upgrading.php.deprecatedApi'));
+	// the package of the data stands for that requirement too, beside the maps it writes into, which the project's entries share
+	Assert::same(['2: upgrading.php.deprecatedApi', '3: upgrading.api.forbiddenFunctions'], $decisions('php'));
 });
 
 
@@ -598,6 +600,29 @@ test('every rule the data of PHP feed reports what they say under the requiremen
 	$expected = ['5: upgrading.php.deprecatedApi', '6: upgrading.php.deprecatedApi', '7: upgrading.php.deprecatedApi'];
 	Assert::same($expected, $decisions('8.0'));
 	Assert::same($expected, $decisions('8.1'));
+});
+
+
+test('a violation of an entry of upgrading data names its section and the version its fix is right from', function () {
+	$root = createTempDir('data-source');
+	$factory = new RunnerFactory(phpstanInstalled: false);
+	$upgrading = ['php' => ['deprecatedApi' => 'forbidden'], 'api' => ['forbiddenFunctions' => ['acme_retired' => 'gone']]];
+	$config = new Config(targets: ['php' => '8.0'], decisions: ['upgrading' => $upgrading]);
+	$code = "<?php\nmysqli_execute(\$statement);\ncurl_close(\$handle);\nacme_retired();\n";
+	$violations = $factory->createRunner($factory->resolve($config, $root), cache: false)
+		->processCode("$root/Check.php", $code)
+		->violations;
+
+	// an entry the project wrote has none
+	Assert::same(
+		[['php.neon', 'php', '8.5', null], ['php.neon', 'php', '8.5', '8.0'], null],
+		array_map(
+			fn($violation) => $violation->source === null
+				? null
+				: [$violation->source->name, $violation->source->library, $violation->source->since, $violation->source->from],
+			$violations,
+		),
+	);
 });
 
 

@@ -7,6 +7,7 @@
 
 namespace DressCode\Rules\Upgrading;
 
+use DressCode\Config\Layer;
 use DressCode\Upgrading\MemberMapGrammar;
 use DressCode\{Values, Violation};
 use PhpSyntax\{Builder, ParseException};
@@ -34,6 +35,8 @@ final readonly class AttributeForMemberEntry
 		public string $arguments,
 		/** @var ?array{mixed}  the default of the property the entry stands for alone, wrapped so that null is one too */
 		public ?array $literal = null,
+		/** the section of the upgrading data of a package that laid the entry */
+		public ?Layer $origin = null,
 	) {
 	}
 
@@ -47,7 +50,8 @@ final readonly class AttributeForMemberEntry
 	{
 		$entries = [];
 		foreach ($values->readMap(MemberMapGrammar::AttributeForMember) as $key => $value) {
-			$entries[] = self::fromEntry((string) $key, $value);
+			$origin = $values->getEntryOrigin(MemberMapGrammar::AttributeForMember, (string) $key);
+			$entries[] = self::fromEntry((string) $key, $value, $origin);
 		}
 
 		usort($entries, fn(self $a, self $b) => ($b->literal !== null) <=> ($a->literal !== null));
@@ -59,7 +63,7 @@ final readonly class AttributeForMemberEntry
 	 * The entry of the map, its key the member or the interface and its value the attribute.
 	 * @throws \InvalidArgumentException  saying what of it is not written as the map takes it
 	 */
-	public static function fromEntry(string $key, string $value): self
+	public static function fromEntry(string $key, string $value, ?Layer $origin = null): self
 	{
 		if (!preg_match('~^' . self::ClassPattern . '(\(.*\))?$~Ds', trim($value), $attribute)) {
 			throw new \InvalidArgumentException('The attribute ' . Violation::formatCode($value) . ' for ' . Violation::formatCode($key) . ' is not written as `Class` or `Class(arguments)`.');
@@ -88,6 +92,7 @@ final readonly class AttributeForMemberEntry
 				$attribute[1],
 				$arguments,
 				isset($m[3]) ? [self::readLiteral($m[3], $key)] : null,
+				$origin,
 			),
 			(bool) preg_match('~^' . self::ClassPattern . '::(\w+)\(\)$~D', $key, $m) => new self(
 				AttributeForMemberKind::Method,
@@ -95,6 +100,7 @@ final readonly class AttributeForMemberEntry
 				$m[2],
 				$attribute[1],
 				$arguments,
+				origin: $origin,
 			),
 			(bool) preg_match('~^' . self::ClassPattern . '$~D', $key, $m) => new self(
 				AttributeForMemberKind::Interface,
@@ -102,6 +108,7 @@ final readonly class AttributeForMemberEntry
 				'',
 				$attribute[1],
 				$arguments,
+				origin: $origin,
 			),
 			default => throw new \InvalidArgumentException('The member ' . Violation::formatCode($key) . " is not written as `Class::\$name`, `'Class::\$name = literal'`, `Class::method()` or `Interface`."),
 		};

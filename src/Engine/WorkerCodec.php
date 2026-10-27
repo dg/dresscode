@@ -7,6 +7,7 @@
 
 namespace DressCode\Engine;
 
+use DressCode\Config\{Layer, LayerKind};
 use DressCode\{FileResult, Risk, Rule, Severity, Violation};
 use function is_array, is_string;
 
@@ -103,6 +104,14 @@ final class WorkerCodec
 			'offset' => $violation->offset,
 			'length' => $violation->length,
 			'originalLines' => $violation->originalLines,
+			'source' => $violation->source === null ? null : [
+				$violation->source->name,
+				$violation->source->package,
+				$violation->source->decision,
+				$violation->source->library,
+				$violation->source->since,
+				$violation->source->from,
+			],
 		];
 	}
 
@@ -125,7 +134,16 @@ final class WorkerCodec
 			$item['offset'] === null ? null : (int) $item['offset'],
 			$item['length'] === null ? null : (int) $item['length'],
 			is_array($item['originalLines']) ? [(int) $item['originalLines'][0], (int) $item['originalLines'][1]] : null,
+			is_array($item['source']) ? self::decodeSource($item['source']) : null,
 		), is_array($data) ? $data : []));
+	}
+
+
+	/** @param  array<mixed>  $data */
+	private static function decodeSource(array $data): Layer
+	{
+		[$name, $package, $decision, $library, $since, $from] = array_map(fn($value) => $value === null ? null : (string) $value, $data);
+		return new Layer(LayerKind::Package, $name, $package, $decision, $library, $since, $from);
 	}
 
 

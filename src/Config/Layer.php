@@ -21,12 +21,34 @@ final readonly class Layer
 		public ?string $package = null,
 		/** the requirement that lays the upgrading file and what it says is reported under, null for the flag `upgrading.packages` */
 		public ?string $decision = null,
+		/** the package whose versions the section of an upgrading file is of, `php` for PHP itself */
+		public ?string $library = null,
+		/** the version of the section of an upgrading file */
+		public ?string $since = null,
+		/** the version the fixes of the entries of the section are right from, where it is older than the section */
+		public ?string $from = null,
 	) {
 	}
 
 
-	/** The layer as a value is said by it: `the configuration`, `dresscode/nette`, `upgrading.neon of acme/mailer`. */
+	/** The layer of one section of the upgrading file this layer is, with the version its entries are right from. */
+	public function withSection(string $library, string $since, ?string $from): self
+	{
+		return new self($this->kind, $this->name, $this->package, $this->decision, $library, $since, $from);
+	}
+
+
+	/**
+	 * The layer as a value is said by it: `the configuration`, `dresscode/nette`, `upgrading.neon of acme/mailer`,
+	 * `application.neon of dresscode/upgrade-nette, since 3.2`.
+	 */
 	public function describe(): string
+	{
+		return $this->describeSource() . ($this->since === null ? '' : ", since $this->since");
+	}
+
+
+	private function describeSource(): string
 	{
 		return match ($this->kind) {
 			LayerKind::Configuration => 'the configuration',

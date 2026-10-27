@@ -120,9 +120,9 @@ final class AttributeForAnnotationRule extends NodeRule
 			$message = "Annotation `$child->name` is replaced by the attribute "
 				. Violation::formatCode("#[$attribute->class$attribute->arguments]");
 			if ($refusal !== null) {
-				$context->report($node, $message . $refusal . '.', trivia: $docComment, fixable: false);
+				$context->report($node, $message . $refusal . '.', trivia: $docComment, fixable: false, source: $attribute->origin);
 				$kept[] = $child;
-			} elseif ($context->report($node, $message . '.', trivia: $docComment)) {
+			} elseif ($context->report($node, $message . '.', trivia: $docComment, source: $attribute->origin)) {
 				[$arguments] = $this->renderArguments(
 					$child,
 					$attribute,
@@ -206,6 +206,7 @@ final class AttributeForAnnotationRule extends NodeRule
 			. ($refusal ?? '')
 			. '.',
 			fixable: $refusal === null,
+			source: $attribute->origin,
 		)) {
 			// the arguments go over as they are, the library reading them the same way
 			$code = CodeWriter::writeClass($attribute->class, $node, $context) . ($arguments === '' ? $attribute->arguments : $arguments);

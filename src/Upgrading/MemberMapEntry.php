@@ -7,10 +7,12 @@
 
 namespace DressCode\Upgrading;
 
+use DressCode\Config\Layer;
+
 
 /**
- * An entry of a map of members: its key, what the rule keeps of its value, and the decision a use of it is reported
- * under, the map itself or the requirement that laid the upgrading data holding it.
+ * An entry of a map of members: its key, what the rule keeps of its value, the decision a use of it is reported
+ * under, the map itself or the requirement that laid the upgrading data holding it, and the section of those data.
  * @template T
  */
 final readonly class MemberMapEntry
@@ -21,6 +23,8 @@ final readonly class MemberMapEntry
 		/** @var T */
 		public mixed $value,
 		public string $decision,
+		/** the section of the upgrading data of a package that laid the entry, null where the project wrote it */
+		public ?Layer $origin = null,
 	) {
 	}
 }

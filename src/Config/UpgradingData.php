@@ -39,21 +39,27 @@ final readonly class UpgradingData
 		public array $reported = [],
 		/** @var array<string, string>  the requirements of the rules of the plugin of the package it turns on => their values */
 		public array $requirements = [],
+		/**
+		 * @var array<string, array<string, array{string, ?string}>>  map => the key of an entry => the version of the section
+		 * it came with and the version `from` says its fix is right from
+		 */
+		public array $origins = [],
 	) {
 	}
 
 
 	/**
-	 * The maps and the requirements as the decisions of a layer, each under the path the closure gives it and left out
-	 * where it gives none, the sentence of a retired entry ending with the package and the version that retired it
-	 * (`, since acme/lib 3.0`).
+	 * The maps and the requirements as the decisions of layers, each under the path the closure gives it and left out
+	 * where it gives none: the entries in the layer of the section they came with, the requirements in the layer of the
+	 * file, the sentence of a retired entry ending with the package and the version that retired it
+	 * (`, since acme/lib 3.0`). Every entry stands in one layer, so their order decides nothing.
 	 * @param  \Closure(string): ?string  $findPath  the map or the requirement => the path of its decision
-	 * @return array<string, mixed>
+	 * @return list<array{Layer, array<string, mixed>}>
 	 */
 	public function buildDecisions(\Closure $findPath): array
 	{
 		$package = $this->package === PackageDiscovery::Php ? 'PHP' : $this->package;
-		$tree = [];
+		$layers = $trees = [];
 		foreach ($this->maps as $map => $entries) {
 			$path = $findPath($map);
 			if ($path === null) {
@@ -65,16 +71,26 @@ final readonly class UpgradingData
 				$entries[$key] = (is_string($sentence) ? rtrim($sentence, '.') . ', ' : '') . "since $package $version";
 			}
 
-			$tree = Helpers::placeValue($tree, $path, $entries);
+			$bySection = [];
+			foreach ($entries as $key => $value) {
+				[$since, $from] = $this->origins[$map][$key] ?? [null, null];
+				$layers["$since|$from"] ??= $since === null ? $this->layer : $this->layer->withSection($this->package, $since, $from);
+				$bySection["$since|$from"][$key] = $value;
+			}
+
+			foreach ($bySection as $id => $section) {
+				$trees[$id] = Helpers::placeValue($trees[$id] ?? [], $path, $section);
+			}
 		}
 
 		foreach ($this->requirements as $requirement => $value) {
 			$path = $findPath($requirement);
 			if ($path !== null) {
-				$tree = Helpers::placeValue($tree, $path, $value);
+				$layers['|'] ??= $this->layer;
+				$trees['|'] = Helpers::placeValue($trees['|'] ?? [], $path, $value);
 			}
 		}
 
-		return $tree;
+		return array_map(fn(string|int $id) => [$layers[$id], $trees[$id]], array_keys($trees));
 	}
 }

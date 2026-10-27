@@ -266,6 +266,7 @@ final class PassLoop
 			offset: $span[0] ?? null,
 			length: $span[1] ?? null,
 			originalLines: $originalLines,
+			source: $report->source,
 		);
 	}
 

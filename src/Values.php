@@ -96,27 +96,21 @@ final readonly class Values
 
 
 	/**
-	 * The keys of the entries of a map the upgrading data of a package laid, not a layer of the project.
-	 * @return array<string, true>
-	 */
-	public function findPackageEntries(string $path): array
-	{
-		$value = $this->get($path);
-		return $value->content === null || $value->isKept()
-			? []
-			: array_map(fn() => true, array_filter($value->getEntries(), fn(Value $entry) => $entry->origin?->kind === LayerKind::Package));
-	}
-
-
-	/**
 	 * The decision an entry of a map is reported under: the requirement that laid the upgrading data holding it, the
 	 * map itself otherwise.
 	 */
 	public function getEntryDecision(string $path, string $key): string
 	{
+		return $this->getEntryOrigin($path, $key)->decision ?? $path;
+	}
+
+
+	/** The section of the upgrading data of a package that laid the entry of a map, null where the project wrote it. */
+	public function getEntryOrigin(string $path, string $key): ?Config\Layer
+	{
 		$value = $this->get($path);
 		$origin = $value->content === null || $value->isKept() ? null : ($value->getEntries()[$key] ?? null)?->origin;
-		return $origin->decision ?? $path;
+		return $origin?->kind === LayerKind::Package ? $origin : null;
 	}
 
 
