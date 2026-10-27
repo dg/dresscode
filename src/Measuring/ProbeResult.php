@@ -18,6 +18,10 @@ use function count, is_array;
  */
 final readonly class ProbeResult
 {
+	/** the findings of a decision kept for what a question shows of the code, the rest only counted */
+	private const KeptFindings = 1000;
+
+
 	public function __construct(
 		/** @var array<string, array<string, int>>  decision => file => the places the decision reports in it */
 		public array $places,
@@ -31,6 +35,8 @@ final readonly class ProbeResult
 		public array $syntaxErrors,
 		/** @var list<string>  the files a rule failed in */
 		public array $failed,
+		/** @var array<string, list<Finding>>  decision => the first places it reports */
+		public array $findings = [],
 	) {
 	}
 
@@ -41,7 +47,13 @@ final readonly class ProbeResult
 		foreach ($run->files as $result) {
 			$violations = [];
 			foreach ($result->violations as $violation) {
-				$violations[] = [$violation->decision, $violation->derivedFrom !== null, $violation->fixable && $violation->risk === null];
+				$violations[] = [$violation->decision, $violation->derivedFrom !== null, new Finding(
+					$result->path,
+					$violation->line,
+					$violation->message,
+					$violation->fixable && $violation->risk === null,
+					$violation->offset === null ? null : [$violation->offset, (int) $violation->length],
+				)];
 			}
 
 			$files[] = [$result->path, $violations, $result->changed, $result->syntaxError !== null, $result->failure !== null];
@@ -61,11 +73,13 @@ final readonly class ProbeResult
 		foreach (is_array($report['files'] ?? null) ? $report['files'] : [] as $file) {
 			$violations = [];
 			foreach ($file['violations'] ?? [] as $violation) {
-				$violations[] = [
-					(string) $violation['decision'],
-					$violation['derivedFrom'] !== null,
+				$violations[] = [(string) $violation['decision'], $violation['derivedFrom'] !== null, new Finding(
+					(string) $file['path'],
+					(int) $violation['line'],
+					(string) $violation['message'],
 					$violation['fixable'] && $violation['risk'] === null,
-				];
+					isset($violation['offset']) ? [(int) $violation['offset'], (int) $violation['length']] : null,
+				)];
 			}
 
 			$files[] = [
@@ -82,12 +96,12 @@ final readonly class ProbeResult
 
 
 	/**
-	 * @param  list<array{string, list<array{string, bool, bool}>, bool, bool, bool}>  $files  path, the violations
-	 *     (decision, derived, fixable without risk), changed, unparsed, failed
+	 * @param  list<array{string, list<array{string, bool, Finding}>, bool, bool, bool}>  $files  path, the violations
+	 *     (decision, derived, what it reports), changed, unparsed, failed
 	 */
 	private static function collect(array $files): self
 	{
-		$places = $fixable = $left = $syntaxErrors = $failed = [];
+		$places = $fixable = $left = $syntaxErrors = $failed = $findings = [];
 		$changed = 0;
 		foreach ($files as [$path, $violations, $isChanged, $unparsed, $isFailed]) {
 			$changed += (int) $isChanged;
@@ -97,13 +111,17 @@ final readonly class ProbeResult
 				$failed[] = $path;
 			}
 
-			foreach ($violations as [$decision, $derived, $isFixable]) {
+			foreach ($violations as [$decision, $derived, $finding]) {
 				if ($derived) {
 					continue;
 				}
 
 				$places[$decision][$path] = ($places[$decision][$path] ?? 0) + 1;
-				if ($isFixable) {
+				if (count($findings[$decision] ?? []) < self::KeptFindings) {
+					$findings[$decision][] = $finding;
+				}
+
+				if ($finding->fixable) {
 					$fixable[$decision][$path] = true;
 				} else {
 					$left[$decision][$path] = ($left[$decision][$path] ?? 0) + 1;
@@ -111,7 +129,7 @@ final readonly class ProbeResult
 			}
 		}
 
-		return new self($places, $fixable, $left, $changed, $syntaxErrors, $failed);
+		return new self($places, $fixable, $left, $changed, $syntaxErrors, $failed, $findings);
 	}
 
 
@@ -122,6 +140,14 @@ final readonly class ProbeResult
 	public function findResidue(): array
 	{
 		return array_keys($this->places);
+	}
+
+
+	/** A place the decision reports, a fixable one where there is one; null for none. */
+	public function findExample(string $decision): ?Finding
+	{
+		$findings = $this->findings[$decision] ?? [];
+		return array_find($findings, fn(Finding $finding) => $finding->fixable) ?? $findings[0] ?? null;
 	}
 
 

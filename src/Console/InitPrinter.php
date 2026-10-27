@@ -8,9 +8,9 @@
 namespace DressCode\Console;
 
 use DressCode\Config\{PhpVersionSource, Versions};
-use DressCode\Interop\{Formatter, FormatterCandidate};
+use DressCode\Interop\{Formatter, FormatterCandidate, FormatterConfig};
 use DressCode\Measuring\{
-	LeftOutReason, ProjectFacts, Proposal, ProposedValue, Region, Scope, Shift, ShiftKind, StandardReason, ValueOrigin,
+	LeftOutReason, ProjectFacts, Proposal, ProposedValue, Question, Region, Scope, Shift, ShiftKind, StandardReason, ValueOrigin,
 };
 use Nette\CommandLine\Console;
 use function count, sprintf;
@@ -70,7 +70,7 @@ final readonly class InitPrinter
 					? ''
 					: $this->label('') . 'taken as the first, the project having also '
 						. implode(' and ', array_map(fn(FormatterCandidate $other) => $other->format(), $unchosen))
-						. "; `--formatter` names another\n");
+						. "; a terminal asks which, without `--yes`\n");
 		}
 
 		$lowest = Versions::findLowestVersion($project->phpTarget) ?? $project->phpTarget;
@@ -101,7 +101,11 @@ final readonly class InitPrinter
 			),
 		};
 		$out .= $this->label('Measured') . 'your code departs from it in ' . $this->formatDecisions(count($standard->residue))
-			. ' over ' . $this->formatFiles(count($proposal->sample->files)) . "\n";
+			. ' over ' . $this->formatFiles(count($proposal->sample->files))
+			. ($changed[$chosen] ?? 0
+				? "; $chosen as it is, with no decision below `use`, would rewrite {$changed[$chosen]} of them"
+				: '')
+			. "\n";
 		if ($proposal->isSampled()) {
 			$directories = $proposal->sample->directories;
 			$out .= $this->label('Sample') . count($proposal->sample->files) . ' of ' . count($proposal->scope->files) . ' files'
@@ -239,6 +243,54 @@ final readonly class InitPrinter
 
 
 	/**
+	 * A question asked in a terminal, numbered in its round where the round has more: what it asks, a place of the code
+	 * it is about, and its answers by number.
+	 */
+	public function printQuestion(Question $question, int $number = 1, int $count = 1): string
+	{
+		$out = ($count > 1 ? "($number/$count) " : '')
+			. $question->text
+			. "\n"
+			. ($question->example === null ? '' : $this->label('') . 'e.g. ' . $question->example->describe() . "\n");
+		foreach ($question->answers as $i => $answer) {
+			$out .= '  [' . ($i + 1) . "] $answer->label" . ($i === 0 ? ' (recommended)' : '') . "\n";
+		}
+
+		return $out;
+	}
+
+
+	/** The questions the answers given have left to the user, which no round before could ask. */
+	public function printNextRound(int $count): string
+	{
+		return 'Your answers leave ' . ($count === 1 ? 'one more question' : "$count more questions") . ":\n";
+	}
+
+
+	/**
+	 * What is the user's to decide where nobody was asked: each question as the line or the command that answers it
+	 * otherwise than the recommended answer init took.
+	 * @param  list<Question>  $questions
+	 */
+	public function printInstructions(array $questions): string
+	{
+		$out = '';
+		foreach ($questions as $question) {
+			$out .= $this->label($out === '' ? 'Your call' : '') . $question->instruction . "\n";
+		}
+
+		return $out;
+	}
+
+
+	/** The configuration of the formatter that could not be read, so its rules are not compared with the code. */
+	public function printUnreadable(FormatterConfig $config, string $error): string
+	{
+		return $this->label('Formatter') . "`$config->file` could not be read, so its rules are not compared with your code: $error\n";
+	}
+
+
+	/**
 	 * What has moved since the configuration that exists was written, and how to see what a value changes.
 	 * @param  list<Shift>  $shifts
 	 */
@@ -256,7 +308,10 @@ final readonly class InitPrinter
 				. "$shift->path: `$file` has "
 				. ($shift->current ?? 'nothing')
 				. match ($shift->kind) {
-					ShiftKind::Measured => ", init now writes $shift->measured   ($shift->comment)\n",
+					ShiftKind::Measured => ($shift->cost
+						? ', a fix of it rewrites ' . ($proposal->isSampled() ? 'about ' : '') . $this->formatFiles($shift->cost)
+						: '')
+						. ", init now writes $shift->measured   ($shift->comment)\n",
 					ShiftKind::HeldToStandard => ", the code holds to $shift->measured of the standard\n",
 				};
 		}
@@ -276,9 +331,9 @@ final readonly class InitPrinter
 
 	/**
 	 * What else the project may do: run DressCode where it runs its formatter, translate the rules of the formatter, which
-	 * init does not read, and rewrite the comments that silence it.
+	 * the file only compared with the code or did not read, and rewrite the comments that silence it.
 	 */
-	public function printAlso(ProjectFacts $project, int $suppressions): string
+	public function printAlso(ProjectFacts $project, int $suppressions, bool $rulesRead): string
 	{
 		$config = $project->formatterConfig;
 		if ($config === null) {
@@ -287,14 +342,19 @@ final readonly class InitPrinter
 
 		$out = $this->label('Also') . "`dresscode check` can take the place of {$config->formatter->value}"
 			. ($config->runBy === null ? ' where you run it' : " in `$config->runBy`")
-			. "\n" . $this->label('') . "its rules were not read; `dresscode migrate config $config->file` translates them instead of measuring the code\n";
+			. "\n" . $this->label('') . match (true) {
+				$rulesRead => 'its rules were compared with your code, not carried over',
+				$config->formatter->runsCode() => "its rules were not read, as `$config->file` is PHP",
+				default => 'its rules could not be read',
+			} . "; `dresscode migrate config $config->file` translates them instead of measuring the code\n";
 		return $out . ($suppressions ? $this->label('') . Markup::formatSuppressionsHint($suppressions) . "\n" : '');
 	}
 
 
 	/**
-	 * The proposal as the data the format `json` writes: the scope, the standard, what the file writes and why, and what
-	 * the check over the whole scope says.
+	 * The proposal as the data the format `json` writes: the scope, the standard, what the file writes and why, what the
+	 * check over the whole scope says and the lines of `dresscode.neon` answering what init would ask.
+	 * @param  list<Question>  $asked  the questions the recommended answers were taken for
 	 * @param  ?string  $configuration  the configuration init proposes; null over one that exists, or none chosen
 	 * @param  ?string  $written  the file the configuration was written to
 	 * @param  ?list<Shift>  $shifts  what has moved since the configuration that exists, the code being compared with it
@@ -302,6 +362,7 @@ final readonly class InitPrinter
 	 */
 	public function toArray(
 		Proposal $proposal,
+		array $asked = [],
 		?string $configuration = null,
 		?string $written = null,
 		?array $shifts = null,
@@ -316,6 +377,7 @@ final readonly class InitPrinter
 				'use' => $standard->presets,
 				'reason' => lcfirst($standard->reason->name),
 				'changedFiles' => (object) $standard->changedFiles,
+				'alternatives' => $standard->alternatives,
 				'unsure' => $standard->unsure,
 			],
 			'values' => array_map(fn(ProposedValue $proposed) => [
@@ -331,6 +393,7 @@ final readonly class InitPrinter
 				'leftFindings' => $verification->leftFindings,
 				'leftFiles' => $verification->leftFiles,
 			],
+			'instructions' => array_map(fn(Question $question) => $question->instruction, $asked),
 			'failed' => $proposal->findFailedFiles(),
 			'configuration' => $configuration,
 			'written' => $written,

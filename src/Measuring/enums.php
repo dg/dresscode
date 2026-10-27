@@ -60,7 +60,7 @@ enum ValueOrigin
 	/** the code, or what it does not decide */
 	case Measured;
 
-	/** the user, with `--set` */
+	/** the user, answering a question or with `--set` */
 	case Answered;
 
 	/** the budget, which leaves unchecked a decision whose fix would change too many files */

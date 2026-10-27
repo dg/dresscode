@@ -69,7 +69,7 @@ test('a rule failing in a file leaves it out of the measuring, which the head of
 
 test('a project without a PHP file to measure is told so, and nothing is written', function () {
 	$root = createProject('empty-project', ['src/readme.txt' => 'nothing']);
-	[$code, , $err] = runInit($root);
+	[$code, , $err] = runInit($root, ['--yes']);
 	Assert::same(3, $code);
 	Assert::contains('The project has no PHP file to measure in', $err);
 	Assert::false(is_file("$root/dresscode.neon"));

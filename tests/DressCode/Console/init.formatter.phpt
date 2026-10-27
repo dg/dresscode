@@ -32,7 +32,7 @@ test('of several formatters nothing tells apart the first is taken, the others s
 	]);
 	[, $out] = runInit($root, ['--use', 'perCs']);
 	Assert::match(
-		"%A%Formatter  PHP_CodeSniffer, `phpcs.xml`\n%s%taken as the first, the project having also `pint.json` of Laravel Pint; `--formatter` names another\n%A%",
+		"%A%Formatter  PHP_CodeSniffer, `phpcs.xml`\n%s%taken as the first, the project having also `pint.json` of Laravel Pint; a terminal asks which, without `--yes`\n%A%",
 		$out,
 	);
 
@@ -98,7 +98,7 @@ test(
 		);
 		Assert::contains(
 			"Also       `dresscode check` can take the place of PHP CS Fixer in `composer cs`\n"
-			. "           its rules were not read; `dresscode migrate config .php-cs-fixer.dist.php` translates them instead of measuring the code\n"
+			. "           its rules were not read, as `.php-cs-fixer.dist.php` is PHP; `dresscode migrate config .php-cs-fixer.dist.php` translates them instead of measuring the code\n"
 			. "           1 phpcs suppression comment: `dresscode migrate suppressions` rewrites them\n",
 			$out,
 		);
