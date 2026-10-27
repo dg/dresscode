@@ -2,6 +2,7 @@
 
 use DressCode\{Analyses, Config, ConfigurationException, FileResult, NodeRule, Reporter, RuleContext, RuleInfo, Stage};
 use DressCode\Engine\{FileProcessors, FileSummary, PhpFileProcessor, ReportPolicy, RunInfo, Runner, RunResult};
+use DressCode\Reporters\CollectingReporter;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use Tester\Assert;
@@ -155,6 +156,9 @@ final class RecordingReporter implements Reporter
 	/** @var array<string, array{string, ?string}> */
 	public array $texts = [];
 
+	/** @var array<string, FileResult> */
+	public array $results = [];
+
 
 	public function start(RunInfo $run): void
 	{
@@ -164,6 +168,7 @@ final class RecordingReporter implements Reporter
 
 	public function reportFile(FileResult $result): void
 	{
+		$this->results[$result->path] = $result;
 		$this->texts[$result->path] = [$result->code, $result->output];
 		$this->events[] = "file $result->path " . json_encode($result->changed) . ' ' . json_encode($result->written)
 			. ($result->failure === null ? '' : " failure: $result->failure");
@@ -424,6 +429,37 @@ test('a reporter sees the texts of a file, what the run keeps of it does not', f
 });
 
 
+test('a reporter sees the violations of a file, the run only counts them, a large tree having millions', function () use ($root) {
+	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+	file_put_contents("$root/src/b.php", "<?php\n\$a;\n");
+	$reporter = new class implements Reporter {
+		/** @var list<WeakReference<DressCode\Violation>> */
+		public array $seen = [];
+
+
+		public function start(RunInfo $run): void
+		{
+		}
+
+
+		public function reportFile(FileResult $result): void
+		{
+			array_push($this->seen, ...array_map(WeakReference::create(...), $result->violations));
+		}
+
+
+		public function finish(RunResult $result): void
+		{
+		}
+	};
+
+	$result = engine($root)->run(['src/a.php', 'src/b.php'], fix: false, reporter: $reporter);
+	Assert::same(2, $result->countViolations());
+	Assert::count(2, $reporter->seen);
+	Assert::null($reporter->seen[0]->get()); // the processor may still hold those of the last file
+});
+
+
 test('processCode processes a text for the given path and writes nothing', function () use ($root) {
 	$runner = engine($root);
 	Assert::true($runner->processCode("$root/src/x.php", "<?php\n\$a;\n")->changed);
@@ -440,15 +476,15 @@ test('the baseline keeps what it holds from being reported, and the run counts i
 		Config::DefaultPhpVersion,
 		policy: new ReportPolicy(baseline: $baseline),
 	);
-	$baseline = DressCode\Engine\Baseline::fromResults(
-		new Runner($processor(null), $root)->run(['src/a.php'], false, new RecordingReporter)->files,
-	);
+	$generated = new CollectingReporter;
+	new Runner($processor(null), $root)->run(['src/a.php'], false, $generated);
+	$baseline = DressCode\Engine\Baseline::fromViolations($generated->violations);
 	Assert::same(1, $baseline->count());
 
 	$run = new Runner($processor($baseline), $root, baseline: $baseline)->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
 	Assert::same(1, $run->countViolations()); // the one of src/b.php, which the baseline does not know
 	Assert::same(1, $run->baselined);
-	Assert::same([], $run->files[0]->violations);
+	Assert::same(0, $run->files[0]->violations->count());
 	Assert::same([], $run->warnings);
 });
 
@@ -462,23 +498,26 @@ test('a violation the baseline holds is fixed by a rule that can fix it, and its
 		Config::DefaultPhpVersion,
 		policy: new ReportPolicy(baseline: $baseline),
 	);
-	$generated = new Runner($processor(null), $root)->run(['src/a.php'], false, new RecordingReporter)->files;
+	$generated = new CollectingReporter;
+	new Runner($processor(null), $root)->run(['src/a.php'], false, $generated);
 	// every run loads the baseline anew, and an instance remembers the entries its runs matched
 	$runner = function () use ($processor, $root, $generated): Runner {
-		$baseline = DressCode\Engine\Baseline::fromResults($generated);
+		$baseline = DressCode\Engine\Baseline::fromViolations($generated->violations);
 		return new Runner($processor($baseline), $root, baseline: $baseline);
 	};
 
 	// check reports only what the baseline does not know, and fix reports the same
-	$fingerprints = fn(RunResult $run) => array_map(
-		fn(FileSummary $file) => array_map(fn($violation) => $violation->fingerprint, $file->violations),
-		$run->files,
+	$fingerprints = fn(CollectingReporter $reporter) => array_map(
+		fn(array $violations) => array_column($violations, 'fingerprint'),
+		$reporter->violations,
 	);
-	$check = $runner()->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	$checked = new CollectingReporter;
+	$check = $runner()->run(['src/a.php', 'src/b.php'], false, $checked);
 	Assert::same(1, $check->countViolations());
 	Assert::same(1, $check->baselined);
-	$fix = $runner()->run(['src/a.php', 'src/b.php'], true, new RecordingReporter);
-	Assert::same($fingerprints($check), $fingerprints($fix));
+	$fixed = new CollectingReporter;
+	$fix = $runner()->run(['src/a.php', 'src/b.php'], true, $fixed);
+	Assert::same($fingerprints($checked), $fingerprints($fixed));
 	Assert::same(0, $fix->getExitCode());
 	Assert::same([], $fix->warnings); // the first round matched the entry
 
@@ -597,9 +636,10 @@ test('a cached file tells the baseline what it matched, so a second run counts t
 		Config::DefaultPhpVersion,
 		policy: new ReportPolicy(baseline: $baseline),
 	);
-	$generated = new Runner($processor(null), $root)->run(['src/a.php'], false, new RecordingReporter);
+	$generated = new CollectingReporter;
+	new Runner($processor(null), $root)->run(['src/a.php'], false, $generated);
 	$run = function () use ($root, $file, $processor, $generated): RunResult {
-		$baseline = DressCode\Engine\Baseline::fromResults($generated->files);
+		$baseline = DressCode\Engine\Baseline::fromViolations($generated->violations);
 		return new Runner($processor($baseline), $root, baseline: $baseline, cache: DressCode\Engine\ResultCache::load($file, 'cfg'))
 			->run(['src/a.php'], false, new RecordingReporter);
 	};
@@ -621,9 +661,10 @@ test('an entry of the baseline is stale only when its file was processed and its
 		Config::DefaultPhpVersion,
 		policy: new ReportPolicy(baseline: $baseline),
 	);
-	$generated = new Runner($processor(true), $root)->run(['src/a.php', 'src/b.php'], false, new RecordingReporter);
+	$generated = new CollectingReporter;
+	new Runner($processor(true), $root)->run(['src/a.php', 'src/b.php'], false, $generated);
 	$warnings = function (bool $rename, bool $narrowed, bool $both) use ($root, $processor, $generated): array {
-		$baseline = DressCode\Engine\Baseline::fromResults($generated->files);
+		$baseline = DressCode\Engine\Baseline::fromViolations($generated->violations);
 		return new Runner($processor($rename, $baseline), $root, baseline: $baseline, narrowed: $narrowed)
 			->run($both ? ['src/a.php', 'src/b.php'] : ['src/a.php'], false, new RecordingReporter)
 			->warnings;
@@ -651,10 +692,12 @@ test('a fix is judged by the text it leaves, so a problem reported beside a fix 
 		cache: DressCode\Engine\ResultCache::load($file, 'cfg'),
 	);
 
-	$run = $runner()->run(['src/a.php'], true, new RecordingReporter);
+	$reporter = new RecordingReporter;
+	$run = $runner()->run(['src/a.php'], true, $reporter);
 	Assert::same("<?php\n\$b;\n", file_get_contents("$root/src/a.php"));
-	Assert::same(['A problem no fix removes.', 'Rename $a.'], array_map(fn($v) => $v->message, $run->files[0]->violations));
-	Assert::same(['A problem no fix removes.'], array_map(fn($v) => $v->message, $run->files[0]->remaining));
+	$result = $reporter->results['src/a.php'];
+	Assert::same(['A problem no fix removes.', 'Rename $a.'], array_column($result->violations, 'message'));
+	Assert::same(['A problem no fix removes.'], array_column($result->remaining, 'message'));
 	Assert::same(1, $run->getExitCode());
 	Assert::false($runner()->run(['src/a.php'], false, new RecordingReporter)->files[0]->cached); // the fixed text was not clean
 });
