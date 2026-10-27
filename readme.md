@@ -11,7 +11,7 @@
 
 ✅ Fixes style, [upgrades PHP and libraries](#upgrading-code-to-newer-php-from-80-to-86), in one run<br>
 ✅ Changes only what it fixes, [not a byte more](#changes-only-what-it-touches-a-lossless-syntax-tree-instead-of-a-token-array)<br>
-✅ [PER Coding Style, PSR-12, Nette](#coding-standards-and-decisions-per-coding-style-31-psr-12-nette) built in<br>
+✅ [PER Coding Style, PSR-12, Nette, Symfony, Laravel](#coding-standards-and-decisions-per-coding-style-31-psr-12-nette-symfony-laravel) built in<br>
 ✅ [More of PER Coding Style and PSR-12](#how-much-of-the-standard-per-coding-style-and-psr-12-against-php-cs-fixer-and-php_codesniffer) than PHP CS Fixer or PHP_CodeSniffer fixes<br>
 ✅ [Made for AI coding agents](#made-for-ai-coding-agents-claude-code-and-codex): it tells the agent what it changed
 
@@ -45,7 +45,8 @@ Installation and first run
 ==========================
 
 **1️⃣ Install it: `composer global require dresscode/dresscode`**<br>
-**2️⃣ Check your code and fix it: `dresscode check`, `dresscode fix`**
+**2️⃣ Have a configuration made to measure: `dresscode init`**<br>
+**3️⃣ Check your code and fix it: `dresscode check`, `dresscode fix`**
 
 DressCode is a tool, not a library, so it does not have to be installed in the project it checks, and a
 global installation is the simplest way; just make sure the directory of global Composer binaries is in your
@@ -85,9 +86,11 @@ A clean run ends with `OK  214 files, all up to the dress code`, and the exit co
 of the configuration.
 
 DressCode has no style of its own, so without a configuration it does not start: a silent default would
-rewrite nearly every line of a project written another way. The configuration is `dresscode.neon` in the
-root of the project, or `dresscode.php` with the same keys; to just try the tool, name a standard instead
-with `dresscode check src --use perCs`:
+rewrite nearly every line of a project written another way. `dresscode init` measures your code (the
+indentation, the quotes, where a condition spread over lines begins and ends) and writes `dresscode.neon`
+into the root of the project; to just try the tool, name a standard instead with
+`dresscode check src --use perCs`. The configuration can also be written by hand, in NEON or as
+`dresscode.php` with the same keys:
 
 ```neon
 use:
@@ -137,8 +140,8 @@ of an upgrade contains the upgrade and nothing else.
 
  <!---->
 
-Coding standards and decisions: PER Coding Style 3.1, PSR-12, Nette
-===================================================================
+Coding standards and decisions: PER Coding Style 3.1, PSR-12, Nette, Symfony, Laravel
+=====================================================================================
 
 DressCode has over two hundred rules, and you never name one. The configuration says how your code is
 written, thing by thing: every key names a thing in the code, and its value says how it is written.
@@ -174,7 +177,9 @@ you can answer right away.
 |---|---|
 | `perCs` | [PER Coding Style 3.1](https://www.php-fig.org/per/coding-style/) in full, the successor of PSR-12 |
 | `psr12` | [PSR-12](https://www.php-fig.org/psr/psr-12/), section by section |
-| `nette` | [Nette Coding Standard](https://doc.nette.org/en/contributing/coding-standard), PER Coding Style with tabs and a few departures |
+| `nette` | [Nette Coding Standard](https://doc.nette.org/contributing/coding-standard), PER Coding Style with tabs and a few departures |
+| `symfony` | Symfony Coding Standards, as the `@Symfony` set of PHP CS Fixer has them |
+| `laravel` | the style [Laravel Pint](https://laravel.com/docs/pint) writes by default, its `laravel` preset |
 
 A standard is a file of the same shape as yours, so you can read in it what it decides and why, and your
 file has the last word on every key. Where the standards differ, they give the same key different values,
