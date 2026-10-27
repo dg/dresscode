@@ -23,18 +23,22 @@ function createProject(string $name, array $files): string
 
 /**
  * @param  list<string>  $args
+ * @param  ?string  $answers  what the user types in a terminal; null for no terminal
  * @param  ?int  $jobs  1 keeps the probes in the process, where they cost a fraction; null starts them as a user's run does
  * @return array{int, string, string}
  */
-function runInit(string $root, array $args = [], ?int $jobs = 1): array
+function runInit(string $root, array $args = [], ?string $answers = null, ?int $jobs = 1): array
 {
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	$in = fopen('php://memory', 'w+') ?: throw new RuntimeException;
+	fwrite($in, $answers ?? '');
+	rewind($in);
 	if ($jobs !== null) {
 		$args = [...$args, '--jobs', (string) $jobs];
 	}
 
-	$code = new Application($out, $err, cwd: $root)->run(['dresscode', 'init', ...$args]);
+	$code = new Application($out, $err, $in, cwd: $root, interactive: $answers !== null)->run(['dresscode', 'init', ...$args]);
 	rewind($out);
 	rewind($err);
 	return [$code, (string) stream_get_contents($out), (string) stream_get_contents($err)];

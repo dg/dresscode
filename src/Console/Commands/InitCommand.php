@@ -9,18 +9,23 @@ namespace DressCode\Console\Commands;
 
 use DressCode\{Config, ConfigurationException, Plugin};
 use DressCode\Config\{ConfigResolver, Loader, PluginRegistry, RunnerFactory};
-use DressCode\Console\{CommandContext, InitPrinter, Markup, StatusLine};
+use DressCode\Console\{CommandContext, FormatterChoice, InitPrinter, Markup, StatusLine};
 use DressCode\Engine\{Helpers, SuppressionMigration, WorkerPool};
-use DressCode\Measuring\{InProcessProbeRunner, LeftOutReason, ProcessProbeRunner, ProjectFacts, Proposal, Scope};
+use DressCode\Interop\Translation;
+use DressCode\Measuring\{
+	Answer, InProcessProbeRunner, LeftOutReason, ProcessProbeRunner, ProjectFacts, Proposal, Question, Questions, Scope,
+};
 use Nette\CommandLine\{Attributes as Cli, ColorDepth, Console, ParseResult, UsageException};
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
-use function is_string;
+use function count, is_string;
 
 
 /**
  * The command `init`: measures how the project writes what can be measured and writes dresscode.neon with it, saying
- * what it does phase by phase; a configuration that exists is never overwritten.
+ * what it does phase by phase and asking where the measuring left the choice to the user; without a terminal, with
+ * `--yes` or for an agent it takes the recommended answers and says how to give another. A configuration that exists
+ * is never overwritten.
  * @internal
  */
 final readonly class InitCommand
@@ -52,12 +57,14 @@ final readonly class InitCommand
 		)]
 		?int $budget = null,
 		#[Cli\Option(
-			'Write a decision whatever the code says, as `path=value` with the value in NEON',
+			'Write a decision whatever the code says, as `path=value` with the value in NEON; it answers what init asks',
 			valueName: 'path=value',
 			repeatable: true,
 			normalizer: [ConfigOptions::class, 'checkDecision'],
 		)]
 		array $set = [],
+		#[Cli\Flag('Take the recommended answers without asking, as without a terminal')]
+		bool $yes = false,
 		#[Cli\Flag('Print the configuration instead of writing it')]
 		bool $dryRun = false,
 		#[Cli\Option(
@@ -66,7 +73,7 @@ final readonly class InitCommand
 		)]
 		?string $formatter = null,
 		#[Cli\Option(
-			'Output format: `console` to read, or `json` for a tool or an AI agent',
+			'Output format: `console` to read and answer, or `json` for a tool or an AI agent, which takes the recommended answers',
 			alias: '-f',
 			enum: ['console', 'json'],
 		)]
@@ -83,7 +90,7 @@ final readonly class InitCommand
 		$file = Loader::findIn($root);
 		if ($file !== null && $set) {
 			throw new UsageException(
-				'`--set` writes a decision, and over `' . basename($file) . '`, which exists, init writes nothing; edit the file instead.',
+				'`--set` answers what init asks, and over `' . basename($file) . '`, which exists, it asks nothing; edit the file instead.',
 				$args->command,
 			);
 		}
@@ -119,14 +126,16 @@ final readonly class InitCommand
 		$console = $json
 			? new Console(fopen('php://memory', 'w+') ?: throw new \RuntimeException, ColorDepth::None, terminal: false)
 			: $this->context->out;
-		$status = new StatusLine($console);
+		$status = new StatusLine($console, active: $format === 'console');
 		$printer = new InitPrinter($console);
+		// over a configuration that exists nothing is written, so nothing is asked and no answer is taken
+		$interactive = $current === null && $format === 'console' && !$yes && $this->context->prompt->isInteractive();
 		$this->write($console, CommandContext::formatName($console) . ($current === null
 			? '  looking at ' . FileSystem::platformSlashes($root) . " to write its `dresscode.neon`\n\n"
 			: '  comparing the code of ' . FileSystem::platformSlashes($root) . ' with its `' . basename((string) $file) . "`\n\n"));
 
 		$status->show('Project', 'looking for the PHP files');
-		$choice = $this->context->chooseFormatterConfig($root, $formatter, interactive: false);
+		$choice = $this->context->chooseFormatterConfig($root, $formatter, $interactive);
 		$project = ProjectFacts::detect($root, $choice->config);
 		// a configuration that exists says the files it checks, which is what the code is compared with it over
 		$scope = $current === null ? Scope::fromProject($root, $project->formatterConfig) : Scope::fromConfig($root, $current);
@@ -167,19 +176,50 @@ final readonly class InitCommand
 			return $this->compare($proposal, $printer, $console, $current, (string) $file, $json);
 		}
 
+		$standardQuestion = Questions::findStandardQuestion($proposal);
+		if ($interactive && $standardQuestion !== null) {
+			$console->clearStatus();
+			$presets = $this->ask($printer, $standardQuestion)->measureAgainst;
+			$proposal = $presets === null ? $proposal : $proposal->measureAgainst($presets);
+		}
+
 		foreach ($answers as $path => $value) {
 			$proposal->answer($path, $value);
 		}
 
 		$proposal->verify();
-		// the values listed are those the budget left, which the verification decides
-		$this->write($console, $printer->printMeasurements($proposal) . $printer->printVerification($proposal));
+		$rules = $this->context->confirmReadingRules($choice, $interactive, 'Read it to compare its rules with your code?')
+			? $this->readFormatterRules($choice, $printer, $console)
+			: null;
+		$questions = new Questions($rules);
+		$asked = [];
+		if ($interactive) {
+			// the values listed are those the budget left, which the verification decides
+			$this->write($console, $printer->printMeasurements($proposal) . $printer->printVerification($proposal));
+			$verification = $proposal->verification;
+			$questions->askAll($proposal, fn(array $round, bool $following) => $this->askRound($printer, $round, $following));
+			if ($proposal->verification !== $verification) {
+				$this->write($console, "\n" . $printer->printVerification($proposal));
+			}
+		} else {
+			// without a terminal the recommended answers are taken before anything is listed
+			$asked = [
+				...($standardQuestion === null ? [] : [$standardQuestion]),
+				...$questions->askAll(
+					$proposal,
+					fn(array $round) => array_map(fn(Question $question) => $question->getRecommended(), $round),
+				),
+			];
+			$this->write($console, $printer->printMeasurements($proposal) . $printer->printVerification($proposal));
+			$this->write($console, $printer->printInstructions($asked));
+		}
+
 		$proposal->verifyWithTypes();
 		$text = $proposal->toDraft()->renderChecked($root);
 		if ($dryRun) {
 			$this->write($console, "\n" . $printer->printNext($proposal, written: false) . "\n" . $text);
 			if ($json) {
-				$this->context->writeJson($printer->toArray($proposal, $text));
+				$this->context->writeJson($printer->toArray($proposal, $asked, $text));
 			}
 
 			return $proposal->isPartial() ? 2 : 0;
@@ -195,9 +235,9 @@ final readonly class InitCommand
 		$suppressions = $project->formatterConfig === null
 			? 0
 			: new SuppressionMigration($registry->expandSuppressedName(...))->countInFiles($root, $scope->files);
-		$this->write($console, "\n" . $printer->printNext($proposal) . $printer->printAlso($project, $suppressions));
+		$this->write($console, "\n" . $printer->printNext($proposal) . $printer->printAlso($project, $suppressions, $rules !== null));
 		if ($json) {
-			$this->context->writeJson($printer->toArray($proposal, $text, 'dresscode.neon'));
+			$this->context->writeJson($printer->toArray($proposal, $asked, $text, 'dresscode.neon'));
 		}
 
 		return $proposal->isPartial() ? 2 : 0;
@@ -222,5 +262,48 @@ final readonly class InitCommand
 	private function write(Console $console, string $text): void
 	{
 		$console->write(Markup::highlightCode($console, $text));
+	}
+
+
+	/**
+	 * Asks the questions of a round one by one, numbered where there are more of them, a round following from the
+	 * answers before said to be one.
+	 * @param  list<Question>  $round
+	 * @return list<Answer>
+	 */
+	private function askRound(InitPrinter $printer, array $round, bool $following): array
+	{
+		if ($following) {
+			$this->context->out->write("\n" . $printer->printNextRound(count($round)));
+		}
+
+		$answers = [];
+		foreach ($round as $i => $question) {
+			$answers[] = $this->ask($printer, $question, $i + 1, count($round));
+		}
+
+		return $answers;
+	}
+
+
+	/** Asks the question, an empty answer or the end of the input taking the recommended one. */
+	private function ask(InitPrinter $printer, Question $question, int $number = 1, int $count = 1): Answer
+	{
+		$this->context->out->write("\n" . Markup::highlightCode($this->context->out, $printer->printQuestion($question, $number, $count)));
+		$choice = $this->context->prompt->choose('Your choice', array_map(strval(...), range(1, count($question->answers))), '1');
+		return $question->answers[(int) $choice - 1] ?? $question->getRecommended();
+	}
+
+
+	/** The rules of the formatter of the project, which a value of the code may contradict; null where they cannot be read. */
+	private function readFormatterRules(FormatterChoice $choice, InitPrinter $printer, Console $console): ?Translation
+	{
+		$config = $choice->config ?? throw new \LogicException('No configuration of a formatter was chosen.');
+		try {
+			return $config->translate();
+		} catch (ConfigurationException $e) {
+			$console->write($printer->printUnreadable($config, $e->getMessage()));
+			return null;
+		}
 	}
 }

@@ -21,6 +21,8 @@ final readonly class Shift
 		public ?string $current,
 		/** what init writes now, or for a decision the code holds to the standard in, what the standard says */
 		public string $measured,
+		/** the files of the sample a fix under what the configuration says rewrites; null where not measured */
+		public ?int $cost = null,
 		/** what the measured value rests on */
 		public string $comment = '',
 	) {

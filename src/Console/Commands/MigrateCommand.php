@@ -100,7 +100,7 @@ final readonly class MigrateCommand
 					. "; the first is taken, and `dresscode migrate config <file>` translates another.\n"));
 		}
 
-		if (!$this->context->confirmReadingRules($choice, $interactive)) {
+		if (!$this->context->confirmReadingRules($choice, $interactive, 'Read it?')) {
 			if (!$interactive) {
 				throw new UsageException(
 					"`$config->file` is PHP, which reading runs, so it is read only when named: `dresscode migrate config $config->file`.",

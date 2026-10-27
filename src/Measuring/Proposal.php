@@ -10,7 +10,7 @@ namespace DressCode\Measuring;
 use DressCode\Config\{Draft, ResolvedConfig};
 use DressCode\ConfigurationException;
 use DressCode\Engine\Helpers;
-use function count, sprintf;
+use function count, is_array, sprintf;
 
 
 /**
@@ -109,6 +109,17 @@ final class Proposal
 
 
 	/**
+	 * Measures the project again against another standard, as the answer to a close call of standards asks.
+	 * @param  list<string>  $presets
+	 * @throws ConfigurationException
+	 */
+	public function measureAgainst(array $presets): self
+	{
+		return self::measure($this->project, $this->scope, $this->runner, $presets, $this->budget->files, $this->onPhase);
+	}
+
+
+	/**
 	 * Measures the decisions of the residue in two layers, what the file writes for those of the first laid under the
 	 * probes of the second, each probe having its decision alone, no standard beside it.
 	 * @throws ConfigurationException
@@ -149,18 +160,18 @@ final class Proposal
 	 * Writes the value the user gives a decision, whatever was measured, which the budget then never leaves unchecked.
 	 * @throws ConfigurationException
 	 */
-	public function answer(string $path, mixed $value): void
+	public function answer(string $path, mixed $value, string $comment = 'your answer'): void
 	{
 		$standard = $this->standard->decisions[$path] ?? throw new ConfigurationException("Decision `$path` is not one the standard knows.");
 		$standard->decision->accept($value);
-		$this->values[$path] = new ProposedValue($path, $value, 'your answer', ValueOrigin::Answered);
+		$this->values[$path] = new ProposedValue($path, $value, $comment, ValueOrigin::Answered);
 	}
 
 
 	/**
 	 * Checks the configuration over the whole scope and leaves unchecked the decisions whose fix would change more files
-	 * than the budget allows, the costliest first, then checks it again; a file such a check finds unparsable leaves the
-	 * scope, and the last check is what a fix would change and what it leaves.
+	 * than the budget allows, the costliest first, then checks it again until the rest fits; a file such a check finds
+	 * unparsable leaves the scope, and the last check is what a fix would change and what it leaves.
 	 * @throws ConfigurationException
 	 */
 	public function verify(): Verification
@@ -169,17 +180,72 @@ final class Proposal
 		$check = fn() => $this->runner->run(['scope' => $this->buildProbeConfig()])['scope'];
 		$result = $check();
 		$answered = array_keys(array_filter($this->values, fn(ProposedValue $proposed) => $proposed->origin === ValueOrigin::Answered));
-		$dropped = $this->budget->findDropped($result->fixable, $answered);
-		foreach ($dropped as $path) {
-			$this->values[$path] = ProposedValue::overBudget($path, count($result->fixable[$path]), count($this->scope->files));
-		}
+		do {
+			// a decision left unchecked changes what the others would fix, so the budget is applied until it holds
+			$dropped = $this->budget->findDropped($result->fixable, $answered);
+			foreach ($dropped as $path) {
+				$this->values[$path] = ProposedValue::overBudget(
+					$path,
+					$this->values[$path]->value ?? $this->standard->decisions[$path]->value->toWrittenData(),
+					count($result->fixable[$path]),
+					count($this->scope->files),
+					$result->findExample($path),
+				);
+			}
 
-		$this->scope->leaveOut($result->syntaxErrors, LeftOutReason::Unparsed);
-		if ($dropped || $result->syntaxErrors) {
-			$result = $check();
-		}
+			$this->scope->leaveOut($result->syntaxErrors, LeftOutReason::Unparsed);
+			if ($dropped || $result->syntaxErrors) {
+				$result = $check();
+			}
+		} while ($dropped);
 
 		return $this->verification = new Verification($result, $this->budget->files);
+	}
+
+
+	/**
+	 * Takes answers to questions: writes the decisions they give, and tells whether the configuration changed, which
+	 * a verification then checks; a standard to measure against instead is the caller's to measure.
+	 * @throws ConfigurationException
+	 */
+	public function applyAnswers(Answer ...$answers): bool
+	{
+		$before = $this->buildProbeConfig();
+		$values = [];
+		foreach ($answers as $answer) {
+			foreach ($answer->values as $path => $value) {
+				// answers adding to one list, each built from what was proposed before them, add up rather than replace each other
+				$earlier = $values[$path][0] ?? null;
+				$values[$path] = [
+					is_array($earlier) && array_is_list($earlier) && is_array($value) && array_is_list($value)
+						? array_values(array_unique([...$earlier, ...$value], SORT_REGULAR))
+						: $value,
+					$answer->comment,
+				];
+			}
+		}
+
+		foreach ($values as $path => [$value, $comment]) {
+			$this->answer($path, $value, $comment);
+		}
+
+		return $this->buildProbeConfig() !== $before;
+	}
+
+
+	/**
+	 * The files of the scope a fix under the value would rewrite, as the probes of the measuring tell, scaled from the
+	 * sample to the scope; null for a decision or a value they did not measure.
+	 */
+	public function estimateFiles(string $path, mixed $value): ?int
+	{
+		$measured = $this->measured[$path] ?? null;
+		if ($measured === null) {
+			return null;
+		}
+
+		$files = $measured->plan->countFiles($measured->results, $value);
+		return $files === null ? null : (int) round($files * count($this->scope->files) / max(1, count($this->sample->files)));
 	}
 
 
@@ -304,10 +370,11 @@ final class Proposal
 	{
 		$shifts = [];
 		foreach ($this->values as $path => $proposed) {
-			$written = ($current->decisions[$path] ?? null)?->value->toWrittenText();
+			$value = ($current->decisions[$path] ?? null)?->value;
 			$measured = $this->standard->formatValue($path, $proposed->value);
-			if ($written !== $measured) {
-				$shifts[] = new Shift(ShiftKind::Measured, $path, $written, $measured, $proposed->comment);
+			if ($value?->toWrittenText() !== $measured) {
+				$cost = $value === null ? null : $this->estimateFiles($path, $value->toWrittenData());
+				$shifts[] = new Shift(ShiftKind::Measured, $path, $value?->toWrittenText(), $measured, $cost, $proposed->comment);
 			}
 		}
 
