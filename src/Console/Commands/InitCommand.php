@@ -150,8 +150,8 @@ final readonly class InitCommand
 		$runner = WorkerPool::buildPhpCommand() === null
 			|| $jobs === 1
 			|| ($plugins !== [] && Loader::detectFormat((string) $file) === 'php')
-			? new InProcessProbeRunner($root)
-			: ProcessProbeRunner::create($root, $jobs);
+			? new InProcessProbeRunner($root, $status->advance(...))
+			: ProcessProbeRunner::create($root, $status->advance(...), $jobs);
 		$presets = $use ?: ($current?->use ? [...$plugins, ...$current->use] : null);
 		$proposal = Proposal::measure($project, $scope, $runner, $presets, $budget, $status->show(...));
 		if ($proposal->standard->unsure) {
