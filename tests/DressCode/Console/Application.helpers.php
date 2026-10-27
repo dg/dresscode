@@ -144,7 +144,8 @@ function runApp(string $root, array $args, string $stdin = '', bool $xdebug = fa
 	$in = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	fwrite($in, $stdin);
 	rewind($in);
-	if (in_array($args[0] ?? null, ['check', 'fix', 'baseline'], strict: true) && !in_array('--jobs', $args, strict: true)) {
+	$runs = in_array($args[0] ?? null, ['check', 'fix', 'baseline'], strict: true) || array_slice($args, 0, 2) === ['upgrade', 'today'];
+	if ($runs && !in_array('--jobs', $args, strict: true)) {
 		$args = [...$args, '--jobs', '1']; // the rules of this file do not exist in a worker process
 	}
 

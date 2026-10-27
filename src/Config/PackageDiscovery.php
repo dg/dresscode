@@ -136,6 +136,47 @@ final readonly class PackageDiscovery
 
 
 	/**
+	 * The packages shipping upgrading files, with the data of each.
+	 * @return array<string, list<UpgradingData>>
+	 */
+	public function getDataPackages(): array
+	{
+		$res = [];
+		foreach ($this->upgradingData as $data) {
+			if ($data->layer->name !== null && $data->layer->package !== null) {
+				$res[$data->layer->package][] = $data;
+			}
+		}
+
+		return $res;
+	}
+
+
+	/**
+	 * The plugins of the packages shipping upgrading files, which an upgrade lets in without `use` naming them.
+	 * @return list<class-string<Plugin>>
+	 */
+	public function findDataPlugins(): array
+	{
+		return array_values(array_intersect_key($this->plugins, $this->getDataPackages()));
+	}
+
+
+	/**
+	 * The packages shipping upgrading files whose data reach the project, with a map or a requirement for the versions
+	 * the code must work with, which no set covers.
+	 * @return list<string>
+	 */
+	public function findReachingPackages(): array
+	{
+		return array_keys(array_filter(
+			$this->getDataPackages(),
+			fn(array $files) => array_any($files, fn(UpgradingData $data) => $data->maps !== [] || $data->requirements !== []),
+		));
+	}
+
+
+	/**
 	 * The upgrading files of a package, relative to where it lies: every NEON file of the directory
 	 * `extra.dresscode.upgrading-dir` names, in the order of their names.
 	 * @param  array<mixed>  $extra  `extra.dresscode` of the package

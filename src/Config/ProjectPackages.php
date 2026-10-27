@@ -213,28 +213,51 @@ final readonly class ProjectPackages
 
 
 	/**
+	 * The installed packages newer than the oldest version the project supports, by as little as a patch, where a
+	 * declaration may say what the oldest version does not, a deprecation and its replacement above all.
+	 * @return array<string, array{string, string}>  package => the version installed and the lowest one supported
+	 */
+	public function findNewerInstalled(): array
+	{
+		$newer = [];
+		foreach ($this->installed as $package => ['version' => $installed]) {
+			$lowest = $this->findVersion($package);
+			if ($installed !== null && $lowest !== null && version_compare($lowest, $installed, '<')) {
+				$newer[$package] = [$installed, $lowest];
+			}
+		}
+
+		return $newer;
+	}
+
+
+	/**
 	 * The directories of the installed packages whose declarations need not hold for the oldest version the project
-	 * supports: those installed newer than it, by as little as a patch, where a declaration may say what the oldest
-	 * version does not, a deprecation and its replacement above all, and those the project supports from no particular
-	 * version.
+	 * supports: those `findNewerInstalled()` lists and those the project supports from no particular version.
 	 * @return list<string>
 	 */
 	public function findPathsAheadOfSupport(): array
 	{
+		$newer = $this->findNewerInstalled();
 		$paths = [];
-		foreach ($this->installed as $package => ['version' => $installed, 'path' => $path]) {
-			$constraint = $this->findConstraint($package);
-			$lowest = $constraint === null ? null : Versions::findLowestVersion($constraint);
-			if (
-				$path !== null
-				&& $constraint !== null
-				&& ($lowest === null || ($installed !== null && version_compare($lowest, $installed, '<')))
-			) {
+		foreach ($this->installed as $package => ['path' => $path]) {
+			if ($path !== null && (isset($newer[$package]) || $this->isUnbounded($package))) {
 				$paths[] = $path;
 			}
 		}
 
 		return $paths;
+	}
+
+
+	/**
+	 * Whether the project supports the package from no particular version, not requiring it or requiring it without
+	 * a lower bound.
+	 */
+	public function isUnbounded(string $package): bool
+	{
+		$constraint = $this->findConstraint($package);
+		return $constraint !== null && Versions::findLowestVersion($constraint) === null;
 	}
 
 
