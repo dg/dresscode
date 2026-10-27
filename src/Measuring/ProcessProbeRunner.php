@@ -39,16 +39,21 @@ final readonly class ProcessProbeRunner implements ProbeRunner
 		/** @var list<string>  the PHP and the script of DressCode */
 		private array $command,
 		private int $processors,
+		/** @var ?\Closure(int, int): void  the probes done and all of them, told at every look while they run */
+		private ?\Closure $onProgress = null,
 	) {
 	}
 
 
-	/** @param  ?int  $processors  how many the probes share; all of the machine by default */
-	public static function create(string $root, ?int $processors = null): self
+	/**
+	 * @param  ?\Closure(int, int): void  $onProgress
+	 * @param  ?int  $processors  how many the probes share; all of the machine by default
+	 */
+	public static function create(string $root, ?\Closure $onProgress = null, ?int $processors = null): self
 	{
 		$script = \Phar::running(returnPhar: false) ?: dirname(__DIR__, 2) . '/bin/dresscode';
 		$command = [...WorkerPool::buildPhpCommand() ?? [PHP_BINARY], $script];
-		return new self($root, $command, $processors ?? WorkerPool::detectCpuCount());
+		return new self($root, $command, $processors ?? WorkerPool::detectCpuCount(), $onProgress);
 	}
 
 
@@ -85,6 +90,7 @@ final readonly class ProcessProbeRunner implements ProbeRunner
 					$results[$key] = self::readResult($file, $status['exitcode']);
 				}
 
+				($this->onProgress)?->__invoke(count($results), count($probes));
 				if ($running) {
 					usleep(self::PollInterval);
 				}
