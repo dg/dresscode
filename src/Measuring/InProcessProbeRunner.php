@@ -8,7 +8,7 @@
 namespace DressCode\Measuring;
 
 use DressCode\Config\{Loader, RunnerFactory};
-use DressCode\Reporters\NullReporter;
+use DressCode\Reporters\CollectingReporter;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
 use function count;
@@ -39,11 +39,9 @@ final readonly class InProcessProbeRunner implements ProbeRunner
 				[$loaded, $root] = Loader::load($file, $this->root, root: $this->root);
 				$factory = new RunnerFactory;
 				$runner = $factory->createRunner($factory->resolve($loaded, $root), cache: false, baseline: false);
-				$results[$key] = ProbeResult::fromRun($runner->run(
-					$runner->files->findFiles($loaded->paths),
-					fix: false,
-					reporter: new NullReporter,
-				));
+				$collected = new CollectingReporter;
+				$run = $runner->run($runner->files->findFiles($loaded->paths), fix: false, reporter: $collected);
+				$results[$key] = ProbeResult::fromRun($run, $collected->violations);
 				($this->onProgress)?->__invoke(count($results), count($probes));
 			}
 		} finally {

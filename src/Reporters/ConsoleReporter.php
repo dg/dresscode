@@ -340,7 +340,7 @@ final class ConsoleReporter implements Reporter
 		$failures = $result->countFailures();
 		$affected = count(array_filter(
 			$result->files,
-			fn(FileSummary $f) => $f->violations || $f->syntaxError !== null || $f->failure !== null,
+			fn(FileSummary $f) => $f->violations->count() > 0 || $f->syntaxError !== null || $f->failure !== null,
 		));
 
 		$derived = $result->countDerived(Severity::Error);

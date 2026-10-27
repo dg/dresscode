@@ -8,6 +8,7 @@
 namespace DressCode\Measuring;
 
 use DressCode\Engine\RunResult;
+use DressCode\Violation;
 use function count, is_array;
 
 
@@ -41,12 +42,13 @@ final readonly class ProbeResult
 	}
 
 
-	public static function fromRun(RunResult $run): self
+	/** @param  array<string, list<Violation>>  $found  the path => what the file violates */
+	public static function fromRun(RunResult $run, array $found): self
 	{
 		$files = [];
 		foreach ($run->files as $result) {
 			$violations = [];
-			foreach ($result->violations as $violation) {
+			foreach ($found[$result->path] ?? [] as $violation) {
 				$violations[] = [$violation->decision, $violation->derivedFrom !== null, new Finding(
 					$result->path,
 					$violation->line,

@@ -42,7 +42,7 @@ final class RiskReview
 	public function review(RunResult $result): int
 	{
 		foreach ($result->files as $file) {
-			if (array_filter($file->remaining, fn(Violation $v) => $v->refused) && !$this->reviewFile($file)) {
+			if ($file->remaining->countRefused() > 0 && !$this->reviewFile($file)) {
 				break;
 			}
 		}
