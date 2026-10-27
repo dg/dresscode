@@ -60,6 +60,8 @@ final class ConsoleReporter implements Reporter
 		private readonly string $cwd = '',
 		/** @var ?\Closure(string): ?string  the path of a decision => the address of its page */
 		private readonly ?\Closure $findDecisionUrl = null,
+		/** the command whose `--ask-risky` decides the risky fixes left */
+		private readonly string $command = 'fix',
 	) {
 	}
 
@@ -310,11 +312,11 @@ final class ConsoleReporter implements Reporter
 				: 'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing'),
 			Risk::TypeUnknown => match ($this->typeAnalysis) {
 				TypeAnalysisStatus::Available => "$wait, the type is unknown: set `typeAnalysis: phpstan`",
-				TypeAnalysisStatus::Enabled => "$wait, not even the types tell: check $them with `fix --ask-risky`",
-				TypeAnalysisStatus::Unavailable => "$wait, the type is unknown: check $them with `fix --ask-risky`",
+				TypeAnalysisStatus::Enabled => "$wait, not even the types tell: check $them with `$this->command --ask-risky`",
+				TypeAnalysisStatus::Unavailable => "$wait, the type is unknown: check $them with `$this->command --ask-risky`",
 			},
 			Risk::BehaviorChanges => ($count === 1 ? '1 risky fix changes' : "$count risky fixes change")
-				. " what the code does: decide $them with `fix --ask-risky`, or accept $decisions in `fixRisky`",
+				. " what the code does: decide $them with `$this->command --ask-risky`, or accept $decisions in `fixRisky`",
 		};
 		$docs = match ($risk) {
 			Risk::TypeUnknown => 'types#enable',

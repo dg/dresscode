@@ -45,7 +45,30 @@ final readonly class ResolvedProject
 		private ConfigResolver $resolver,
 		/** the versions the code is written for unless an override says another */
 		private string $target,
+		/** @var list<string>  presets laid over those of the configuration and beneath its decisions and overrides */
+		public array $laid = [],
 	) {
+	}
+
+
+	/** The project with one more thing the user should be told. */
+	public function withWarning(string $warning, ?string $docs = null): self
+	{
+		return new self(
+			$this->config,
+			$this->root,
+			$this->resolvedConfig,
+			$this->phpVersionSource,
+			[...$this->warnings, $warning => $docs],
+			$this->upgradingData,
+			$this->pluginManifests,
+			$this->projectPackages,
+			$this->commandLine,
+			$this->only,
+			$this->resolver,
+			$this->target,
+			$this->laid,
+		);
 	}
 
 

@@ -132,9 +132,12 @@ final readonly class Application
 		$program->addFlag('--help', 'Print this help', standalone: true);
 		$program->addFlag('--version', 'Print the name and the version', standalone: true);
 
+		// in the order the help lists them
 		$context = $this->context;
-		foreach ([ // in the order the help lists them
-			new Commands\CheckCommand($context),
+		$program->addCommandsFrom(new Commands\CheckCommand($context));
+		$program->addCommand('upgrade', 'Upgrade the code to newer PHP and libraries', commandRequired: true)
+			->addCommandsFrom(new Commands\UpgradeCommand($context));
+		foreach ([
 			new Commands\ConfigCommand($context),
 			new Commands\ExplainCommand($context),
 			new Commands\CatalogueCommand($context),
