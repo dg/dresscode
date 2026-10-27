@@ -36,7 +36,7 @@ final readonly class ProjectPackages
 		/** @var array<mixed>  what the composer.json of the root package says under extra */
 		public array $rootExtra = [],
 		/** @var array<string, string>  package the project requires itself => its constraint */
-		private array $required = [],
+		public array $required = [],
 		/**
 		 * @var array<string, array{version: ?string, reference: ?string, path: ?string, extra: array<mixed>}>  installed
 		 * package => the version it stands for (null for any), the source it came from, where it lies and its extra

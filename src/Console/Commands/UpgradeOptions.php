@@ -30,6 +30,8 @@ final readonly class UpgradeOptions
 		public ?bool $modernize = null,
 		#[Cli\Flag('Ask about every risky fix left, one at a time with its diff, and make those accepted; needs an interactive terminal')]
 		public ?bool $askRisky = null,
+		#[Cli\Flag('Install the upgrading data the libraries of the project need without asking, outside a terminal too')]
+		public ?bool $yes = null,
 		/** @var list<string|true> */
 		#[Cli\Option(
 			'Also make the fixes that may change what the code does, of every rule, or with `=name` of that decision, rule, preset or package; they are reported either way',
