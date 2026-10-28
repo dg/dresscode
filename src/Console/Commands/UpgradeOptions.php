@@ -24,7 +24,7 @@ final readonly class UpgradeOptions
 		#[Cli\Option('Files or directories; the configured paths when omitted', valueName: 'path', repeatable: true)]
 		public array $paths = [],
 		#[Cli\Option(
-			'Output format; the offer is written as `console` or `json`, `--today` in any format `fix` writes',
+			'Output format; the offer and the plan are written as `console` or `json`, `--today` in any format `fix` writes',
 			alias: '-f',
 			enum: ['console', 'json', 'agent', 'lines', 'github', 'checkstyle'],
 		)]
@@ -36,6 +36,17 @@ final readonly class UpgradeOptions
 		public ?bool $types = null,
 		#[Cli\Flag('Measure without asking the network: what Packagist offers as remembered, what Composer knows from the lock')]
 		public ?bool $offline = null,
+		#[Cli\Flag('Write the plan of the upgrade, step by step, changing nothing')]
+		public ?bool $plan = null,
+		#[Cli\Flag('Also save the plan into `dresscode-upgrade.neon`, which the team may edit')]
+		public ?bool $savePlan = null,
+		#[Cli\Option(
+			'The command testing the project, `{junit}` standing for the JUnit file it writes; a step whose tests newly fail goes back',
+			valueName: 'command',
+		)]
+		public ?string $testCommand = null,
+		#[Cli\Option('The quicker command testing the project after every step, `{junit}` as in `--test-command`', valueName: 'command')]
+		public ?string $quickTestCommand = null,
 		#[Cli\Flag('With `--today`, also write what newer PHP offers, the set `modernizations`')]
 		public ?bool $modernize = null,
 		#[Cli\Flag('With `--today`, ask about every risky fix left, one at a time with its diff, and make those accepted; needs an interactive terminal')]
@@ -78,17 +89,31 @@ final readonly class UpgradeOptions
 	}
 
 
+	/** Whether the command makes a plan of the upgrade, to show or to save. */
+	public function makesPlan(): bool
+	{
+		return $this->plan || $this->savePlan;
+	}
+
+
 	/** Why the options given do not go together, as the command line writes them; null where they do. */
 	public function findMisuse(?string $target): ?string
 	{
-		$todayOption = array_find_key([
+		$given = fn(array $options) => array_find_key($options, fn(mixed $value) => $value !== null && $value !== [] && $value !== false);
+		$todayOption = $given([
 			'--modernize' => $this->modernize,
 			'--ask-risky' => $this->askRisky,
-			'--yes' => $this->yes,
 			'--fix-risky' => $this->fixRisky,
 			'--only' => $this->only,
+			'--yes' => $this->yes,
 			'--no-cache' => $this->noCache,
-		], fn(mixed $value) => $value !== null && $value !== [] && $value !== false);
+		]);
+		$planOption = $given([
+			'--plan' => $this->plan,
+			'--save-plan' => $this->savePlan,
+			'--test-command' => $this->testCommand,
+			'--quick-test-command' => $this->quickTestCommand,
+		]);
 		$measureOption = match (true) {
 			$this->types === true => '--types',
 			$this->types === false => '--no-types',
@@ -99,12 +124,15 @@ final readonly class UpgradeOptions
 		return match (true) {
 			$this->today && $target !== null
 				=> '`--today` upgrades to the versions `composer.json` allows, so it takes no target; name the paths with `--paths`.',
+			$this->today && $planOption !== null => "`$planOption` belongs to the plan of an upgrade, and `--today` makes none.",
 			$this->today && $measureOption !== null
 				=> "`$measureOption` belongs to the estimate; `--today` runs with the types and installs what it needs.",
 			$this->today => null,
 			$todayOption !== null => "`$todayOption` goes with `--today`; without it `upgrade` only measures.",
 			!in_array($format, ['console', 'json'], true)
 				=> "The offer is written as `console` or `json`; `$format` is a format of `--today`.",
+			($this->testCommand ?? $this->quickTestCommand) !== null && !$this->makesPlan()
+				=> '`--test-command` and `--quick-test-command` go into a plan made with `--plan` or `--save-plan`.',
 			default => null,
 		};
 	}

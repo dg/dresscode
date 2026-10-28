@@ -25,6 +25,23 @@ enum Phase: string
 
 
 /**
+ * What a step of a plan does.
+ * @internal
+ */
+enum StepKind: string
+{
+	/** a human does it, the run only says what */
+	case Manual = 'manual';
+
+	/** the topics fixed one by one */
+	case Fix = 'fix';
+
+	/** the constraints of `composer.json` raised and the packages updated */
+	case Composer = 'composer';
+}
+
+
+/**
  * What the run can do about a place of an upgrade.
  * @internal
  */

@@ -143,6 +143,7 @@ $root = createConsoleProject();
 /**
  * @param  list<string>  $args
  * @return array{int, string, string}
+ * @phpstan-impure
  */
 function runApp(string $root, array $args, string $stdin = '', bool $xdebug = false, bool $interactive = false): array
 {
@@ -613,12 +614,34 @@ test('upgrade without --today measures what an upgrade costs, topic by topic, an
 		array_map(fn(array $topic) => "$topic[name] $topic[phase]", $offer['topics']),
 	);
 
+
 	// the paths named narrow the configured ones
 	file_put_contents("$root/src/Other.php", "<?php\n");
 	[, $out] = runApp($root, ['upgrade', '--no-types', '--offline', '--format', 'json', '--paths', 'src/Other.php']);
 	$offer = json_decode($out, associative: true, flags: JSON_THROW_ON_ERROR);
 	Assert::same([1, []], [$offer['files'], $offer['topics']]);
 	FileSystem::delete($root);
+});
+
+
+test('upgrade --plan writes the steps, changing nothing', function () {
+	$root = createTempDir('upgrade-plan');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\n");
+	$code = "<?php\n\nfunction run(\$handle, int \$count = null): void\n{\n\tcurl_close(\$handle);\n\tstrftime('%Y');\n}\n";
+	file_put_contents("$root/src/Code.php", $code);
+	[$exit, $out, $err] = runApp($root, ['upgrade', 'php', '8.4', '--plan', '--no-types', '--offline', '--no-color']);
+	Assert::same('', $err);
+	Assert::same(0, $exit);
+	Assert::match(<<<'XX'
+		%A%Plan       php 8.4
+		  1  fix       works on the versions allowed today  php, upgrading.php.implicitNullable
+		  2  composer  raise php to ^8.4
+		%A%Tests      not run, no `--test-command` given
+		XX, $out);
+	Assert::same($code, file_get_contents("$root/src/Code.php"));
+	Assert::false(is_file("$root/dresscode-upgrade.neon"));
 });
 
 
@@ -646,6 +669,8 @@ test('upgrade refuses what the offer cannot measure, and an option of --today wi
 		[['upgrade', 'php', 'next'], 'The version to upgrade to is written as `8.4` or `4.0`, `next` given.'],
 		[['upgrade', 'php', '--today'], '`--today` upgrades to the versions `composer.json` allows, so it takes no target; %a%'],
 		[['upgrade', '--format', 'lines'], 'The offer is written as `console` or `json`; `lines` is a format of `--today`.'],
+		[['upgrade', '--today', '--plan'], '`--plan` belongs to the plan of an upgrade, and `--today` makes none.'],
+		[['upgrade', '--test-command', 'x'], '`--test-command` and `--quick-test-command` go into a plan made with %a%'],
 	] as [$args, $message]) {
 		[$exit, , $err] = runApp($root, $args);
 		Assert::same(3, $exit);

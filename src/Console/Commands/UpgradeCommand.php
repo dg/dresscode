@@ -9,10 +9,10 @@ namespace DressCode\Console\Commands;
 
 use DressCode\{Analyses, Config, ConfigurationException};
 use DressCode\Config\{DataPackageCatalogue, PackageDiscovery, ProjectPackages, RunnerFactory, Versions};
-use DressCode\Console\{CommandContext, EstimatePrinter, Markup, RunExecutor};
+use DressCode\Console\{CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor};
 use DressCode\Engine\{Worker, WorkerPool};
 use DressCode\Measuring\Scope;
-use DressCode\Upgrade\{EstimateRun, Estimator, Project, Target};
+use DressCode\Upgrade\{EstimateRun, Estimator, PlanBuilder, PlanFile, Project, Target};
 use Nette\CommandLine\{Attributes as Cli, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES;
@@ -58,7 +58,10 @@ final readonly class UpgradeCommand
 	}
 
 
-	/** Measures what upgrading to the targets costs and writes it, changing nothing. */
+	/**
+	 * Measures what upgrading to the targets costs and writes it, changing nothing, and with the options of the plan
+	 * orders it into the steps of an upgrade, which it shows or saves.
+	 */
 	private function offer(
 		ParseResult $args,
 		?string $target,
@@ -99,12 +102,21 @@ final readonly class UpgradeCommand
 			$console?->clearStatus();
 		}
 
-		$printer = new EstimatePrinter($estimate);
+		$plan = $options->makesPlan()
+			? new PlanBuilder(ProjectPackages::read($project->root), PlanBuilder::isLibrary($project->root))
+				->build($estimate, $options->testCommand, $options->quickTestCommand)
+			: null;
+		$printer = $plan === null ? new EstimatePrinter($estimate) : new PlanPrinter($plan);
 		if ($console === null) {
 			$json = json_encode($printer->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 			fwrite($this->context->stdout, "$json\n");
 		} else {
 			$console->write(Markup::highlightCode($console, $printer->print($console)));
+		}
+
+		if ($plan !== null && $options->savePlan) {
+			PlanFile::write($plan, "$project->root/" . PlanFile::Name);
+			$console?->writeLine($console->color('gray', 'Saved      ') . PlanFile::Name);
 		}
 
 		return 0;
