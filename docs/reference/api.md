@@ -1134,7 +1134,6 @@ final readonly class Violation
 - `DressCode\Rules\Functions\NoExplicitInvokeCallsRule`
 - `DressCode\Rules\Functions\NoInnerFunctionsRule`
 - `DressCode\Rules\Functions\NoIsNullRule`
-- `DressCode\Rules\Functions\NoManualEmptyStringTestsRule`
 - `DressCode\Rules\Functions\NoManualSubstringTestsRule`
 - `DressCode\Rules\Functions\NoNullArgumentsRule`
 - `DressCode\Rules\Functions\NoSettypeRule`
@@ -1144,6 +1143,7 @@ final readonly class Violation
 - `DressCode\Rules\Functions\SensitiveParameterRequiredRule`
 - `DressCode\Rules\Functions\StaticForClosureWithoutThisRule`
 - `DressCode\Rules\Functions\StrictComparisonArgumentRequiredRule`
+- `DressCode\Rules\Functions\UselessMeasuringCallsRule`
 - `DressCode\Rules\Functions\UselessParameterDefaultRule`
 - `DressCode\Rules\Literals\BuiltinCasingRule`
 - `DressCode\Rules\Literals\HeredocIndentationRule`

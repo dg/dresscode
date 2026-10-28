@@ -1,0 +1,4 @@
+6: Useless `strlen()`, because `=== ''` says the same.
+7: Useless `strlen()`, because `=== ''` says the same.
+	risky NameUncertain: the namespace may declare `strlen()`
+8: Useless `strlen()`, because `=== ''` says the same.

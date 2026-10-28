@@ -2849,7 +2849,7 @@ Two adjacent catches of one body, written as one `catch (A|B $e)`.
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`
-- Rule `DressCode\Rules\Functions\NoManualEmptyStringTestsRule`, stage Structure
+- Rule `DressCode\Rules\Functions\UselessMeasuringCallsRule`, stage Structure
 - Needs the types of the code, so it takes effect only with `typeAnalysis: phpstan`
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 

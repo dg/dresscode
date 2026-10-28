@@ -27,7 +27,7 @@ use function count;
  * all of which `===` sees differently.
  */
 #[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class, NameResolver::class])]
-final class NoManualEmptyStringTestsRule extends NodeRule
+final class UselessMeasuringCallsRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
@@ -70,7 +70,7 @@ final class NoManualEmptyStringTestsRule extends NodeRule
 			&& !$value->getLastToken()->hasCommentUpTo($node->getLastToken());
 		if (!$context->report(
 			$node,
-			'The empty string must be tested with ' . ($empty ? "`=== ''`" : "`!== ''`") . ", not through `$function()`.",
+			"Useless `$function()`, because " . ($empty ? "`=== ''`" : "`!== ''`") . ' says the same.',
 			fixable: $fixable,
 			risk: $uncertainty === null ? null : Risk::NameUncertain,
 			because: $uncertainty,
