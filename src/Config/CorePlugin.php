@@ -259,6 +259,8 @@ final class CorePlugin implements Plugin
 				Rules\Upgrading\NoDeprecatedMembersRule::class,
 				Rules\Upgrading\NoDeprecatedFunctionsRule::class,
 				Rules\Upgrading\NoDeprecatedPhpArgumentsRule::class,
+				// what the rewrites leave of a string naming a class, and what none of them could see
+				Rules\Upgrading\UnseenReferencesRule::class,
 				Rules\Variables\NoGlobalStatementsRule::class,
 				Rules\Variables\NoRepeatedAssignmentsRule::class,
 				Rules\Variables\NoSeparateIssetsRule::class,

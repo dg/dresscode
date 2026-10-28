@@ -580,3 +580,6 @@ upgrading:                                  # what a newer PHP writes or retired
 		forbiddenMembers: {}                # a member that may not be used
 		attributeForAnnotation: {}          # an attribute written for an annotation; a namespace mask with `\*`
 		attributeForMember: {}              # an attribute written for a member the class declares by convention
+	unseen:                                 # what an upgrade cannot see, reported where it stands
+		classNameString: reported           # the string `'Acme\Old'` naming a class the maps rename or forbid. Also: keep
+		dynamicAccess: reported             # `$object->$method()`, `new $class`, `call_user_func($callback)`. Also: keep
