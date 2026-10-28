@@ -67,6 +67,8 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'upgrading.classes.Override', // a guarantee the code takes on, which no older construct gave
 		'upgrading.phpdoc.readonly', // an annotation may promise what the code does not keep, which only the project knows
 		'upgrading.classes.SensitiveParameter', // what is sensitive the project knows best
+		// what the estimate of an upgrade counts of what it cannot see, nothing a project fixes
+		'upgrading.unseen.classNameString', 'upgrading.unseen.dynamicAccess',
 		// the maps: a set lets the upgrading files of the packages in, a project writes its own
 		'upgrading.api.attributeForAnnotation', 'upgrading.api.attributeForMember',
 		'upgrading.api.forbiddenClasses', 'upgrading.api.forbiddenConstants', 'upgrading.api.forbiddenFunctions',
