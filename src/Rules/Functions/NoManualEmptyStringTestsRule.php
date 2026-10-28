@@ -11,10 +11,7 @@ use DressCode\Analyses\Types;
 use DressCode\{Decision, Domain, GlobalCalls, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\{ArgumentNode, ExpressionNode, NameNode};
-use PhpSyntax\Nodes\Expression\{BinaryOpNode, FunctionCallNode, ParenthesizedNode, UnaryOpNode};
-use PhpSyntax\Nodes\Scalar\IntegerNode;
-use function count;
+use PhpSyntax\Nodes\Expression\{BinaryOpNode, UnaryOpNode};
 
 
 /**
@@ -47,30 +44,21 @@ final class NoManualEmptyStringTestsRule extends NodeRule
 			return;
 		}
 
-		[$call, $empty] = $node instanceof BinaryOpNode
-			? self::readComparison($node)
-			: ($node->operator->is('!') ? [self::unwrap($node->expression), true] : [null, null]);
+		$test = EmptinessTest::find($node);
 		if (
-			!$call instanceof FunctionCallNode
-			|| $empty === null
-			|| !$call->name instanceof NameNode
-			|| count($call->arguments->items) !== 1
-			|| !($argument = $call->arguments->items->getItems()[0]) instanceof ArgumentNode
-			|| $argument->name !== null
-			|| $argument->ellipsis !== null
-			|| ($function = GlobalCalls::findFunction($call, ['strlen' => true, 'mb_strlen' => true], $context)) === null
-			|| $context->getAnalysis(Types::class)->isOfType($argument->value, 'string') !== Tristate::Yes
+			$test === null
+			|| ($function = GlobalCalls::findFunction($test->call, ['strlen' => true, 'mb_strlen' => true], $context)) === null
+			|| $context->getAnalysis(Types::class)->isOfType($test->value, 'string') !== Tristate::Yes
 		) {
 			return;
 		}
 
-		$value = $argument->value;
-		$uncertainty = GlobalCalls::findUncertainty($call, $context);
-		$fixable = !$node->getFirstToken()->hasCommentUpTo($value->getFirstToken())
-			&& !$value->getLastToken()->hasCommentUpTo($node->getLastToken());
+		$uncertainty = GlobalCalls::findUncertainty($test->call, $context);
+		$fixable = !$node->getFirstToken()->hasCommentUpTo($test->value->getFirstToken())
+			&& !$test->value->getLastToken()->hasCommentUpTo($node->getLastToken());
 		if (!$context->report(
 			$node,
-			'The empty string must be tested with ' . ($empty ? "`=== ''`" : "`!== ''`") . ", not through `$function()`.",
+			'The empty string must be tested with ' . ($test->empty ? "`=== ''`" : "`!== ''`") . ", not through `$function()`.",
 			fixable: $fixable,
 			risk: $uncertainty === null ? null : Risk::NameUncertain,
 			because: $uncertainty,
@@ -79,39 +67,6 @@ final class NoManualEmptyStringTestsRule extends NodeRule
 		}
 
 		// an equality binds more loosely than the comparison or the negation it takes the place of
-		$node->replaceWithExpression((new Builder)->binary($value, $empty ? '===' : '!==', ''));
-	}
-
-
-	/**
-	 * The call compared and whether the comparison asks for the empty string, true, or for a string that is not empty,
-	 * false; nulls for a comparison that asks neither.
-	 * @return array{?ExpressionNode, ?bool}
-	 */
-	private static function readComparison(BinaryOpNode $comparison): array
-	{
-		$operator = $comparison->operator->text;
-		[$call, $number] = [self::unwrap($comparison->left), $comparison->right];
-		if ($call instanceof IntegerNode) { // written in the other order, so the ordering reads mirrored
-			[$call, $number] = [self::unwrap($comparison->right), $call];
-			$operator = strtr($operator, ['<' => '>', '>' => '<']);
-		}
-
-		if (!$number instanceof IntegerNode) {
-			return [null, null];
-		}
-
-		$empty = match ([$operator, $number->toValue()]) {
-			['===', 0], ['==', 0], ['<=', 0], ['<', 1] => true,
-			['!==', 0], ['!=', 0], ['>', 0], ['>=', 1] => false,
-			default => null,
-		};
-		return [$call, $empty];
-	}
-
-
-	private static function unwrap(ExpressionNode $expression): ExpressionNode
-	{
-		return $expression instanceof ParenthesizedNode ? $expression->expression : $expression;
+		$node->replaceWithExpression((new Builder)->binary($test->value, $test->empty ? '===' : '!==', ''));
 	}
 }
