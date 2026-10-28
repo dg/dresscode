@@ -15,13 +15,13 @@ use function array_key_exists, count, is_array, is_bool, is_int, is_string, spri
 
 
 /**
- * The DressCode configuration a foreign one translates to, together with what could not be carried over. Two
- * foreign rules deciding one thing are merged in either order: a list becomes the union unless it is an order, or
- * what both allow where it names what is allowed, a map merges key by key, a boolean is true when either of them says
- * true, counts of blank lines widen to the range of both, and values that contradict each other leave the decision
- * out; a value only preferred, or `keep`, gives way to one set. How far a name is written out the foreign tools decide
- * on two axes, the form of a qualified name and whether a global one stands bare, which the translation puts together
- * into the decisions of `qualification`.
+ * The DressCode configuration a foreign one translates to, together with what could not be carried over. Two foreign
+ * rules deciding one thing are merged in either order: a list becomes the union unless it is an order, or what both
+ * allow where it names what is allowed, which a single value set inside it narrows to that value, a map merges key
+ * by key, a boolean is true when either of them says true, counts of blank lines widen to the range of both, and
+ * values that contradict each other leave the decision out; a value only preferred, or `keep`, gives way to one set.
+ * How far a name is written out the foreign tools decide on two axes, the form of a qualified name and whether a
+ * global one stands bare, which the translation puts together into the decisions of `qualification`.
  * @internal
  */
 final class Translation
@@ -169,7 +169,7 @@ final class Translation
 
 	/**
 	 * A list of what is allowed; another foreign rule allowing a different one narrows it to what both allow instead of
-	 * uniting with it.
+	 * uniting with it, and one setting a single value the list allows narrows it to that value.
 	 * @param  list<string>  $allowed
 	 */
 	public function setAllowed(string $path, array $allowed): static
@@ -248,6 +248,13 @@ final class Translation
 
 		} elseif (is_array($old) && is_array($value) && array_is_list($old) && array_is_list($value) && isset($this->allowances[$path])) {
 			return array_values(array_intersect($old, $value));
+
+		} elseif (isset($this->allowances[$path]) && is_string($value) && is_array($old) && in_array($value, $old, true)) {
+			// a single value one foreign rule sets inside what the other one allows narrows it to that value, in either order
+			return $value;
+
+		} elseif (isset($this->allowances[$path]) && is_string($old) && is_array($value) && in_array($old, $value, true)) {
+			return $old;
 
 		} elseif (is_array($old) && is_array($value) && array_is_list($old) && array_is_list($value) && !isset($this->ordered[$path])) {
 			return array_values(array_unique([...$old, ...$value], SORT_REGULAR));

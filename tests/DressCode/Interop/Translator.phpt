@@ -597,6 +597,31 @@ test('a fixer keeping group uses gives way to one making them', function () {
 	Assert::same('separated', $translate(['SlevomatCodingStandard.Namespaces.MultipleUsesPerLine' => true]));
 	Assert::same(['separated', 'combined'], $translate(['SlevomatCodingStandard.Namespaces.DisallowGroupUse' => true]));
 
+	// a sniff setting one form narrows what another one allows, in either order
+	$rules = [
+		'SlevomatCodingStandard.Namespaces.DisallowGroupUse' => true,
+		'SlevomatCodingStandard.Namespaces.MultipleUsesPerLine' => true,
+	];
+	foreach ([$rules, array_reverse($rules, preserve_keys: true)] as $order) {
+		Assert::same('separated', $translate($order));
+	}
+
+	$rules = ['SlevomatCodingStandard.Namespaces.DisallowGroupUse' => true, 'PSR2.Namespaces.UseDeclaration' => true];
+	foreach ([$rules, array_reverse($rules, preserve_keys: true)] as $order) {
+		Assert::same('separated', $translate($order));
+	}
+
+	// a value outside what the other one allows still contradicts it
+	$rules = ['SlevomatCodingStandard.Namespaces.DisallowGroupUse' => true, 'group_import' => true];
+	foreach ([$rules, array_reverse($rules, preserve_keys: true)] as $order) {
+		$translation = (new Translator)->translate($order);
+		Assert::false(isset($translation->decisions['imports.grouping.class']));
+		Assert::contains(
+			'The foreign rules give `imports.grouping.class` values that contradict each other; DressCode leaves it out, for the configuration to set by hand.',
+			$translation->warnings,
+		);
+	}
+
 	$rules = ['group_import' => true, 'single_import_per_statement' => ['group_to_single_imports' => false]];
 	foreach ([$rules, array_reverse($rules, preserve_keys: true)] as $order) {
 		Assert::same('grouped', (new Translator)->translate($order)->decisions['imports.grouping.class']);

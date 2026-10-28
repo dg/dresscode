@@ -379,13 +379,15 @@ The fixtures of every rule run again under each standard with the sets beside it
   options through `??`, which is what lets the test call each of them with none and resolve the decisions they set
   against the catalogue: a path that does not exist, or a value its domain does not take, fails there.
 - Two foreign rules giving one decision a value equally firmly merge in either order: a list becomes the union unless
-  it is an order, a map merges key by key, a boolean is true when either says so, a count of blank lines widens to the
-  range of both and says so; the places of the trailing comma and the counts of `blankLines`, split across several
-  foreign rules, depend on it. A value only preferred, or `keep`, gives way to one set, and values that contradict each
-  other leave the decision out with a warning. How far a name is written out the foreign tools decide on two axes, the form of a qualified name
-  (`setQualificationShape()`) and whether a global name stands bare (`setQualificationFallback()`), which `Translation` puts together
-  into the decisions of `qualification`. A foreign rule turned off makes the requirements it stands for `keep`, unless
-  another foreign rule the configuration may run stands for them too.
+  it is an order, or what both allow where it names what is allowed (`setAllowed()`), which a single value set inside
+  it narrows to that value, a map merges key by key, a boolean is true when either says so, a count of blank lines
+  widens to the range of both and says so; the places of the trailing comma and the counts of `blankLines`, split
+  across several foreign rules, depend on it. A value only preferred, or `keep`, gives way to one set, and values that
+  contradict each other leave the decision out with a warning. How far a name is written out the foreign tools decide
+  on two axes, the form of a qualified name (`setQualificationShape()`) and whether a global name stands bare
+  (`setQualificationFallback()`), which `Translation` puts together into the decisions of `qualification`. A foreign
+  rule turned off makes the requirements it stands for `keep`, unless another foreign rule the configuration may run
+  stands for them too.
 - The tables also answer the reverse question, which decisions a foreign name stands for (`Translator::findPaths()`),
   and that is what makes `phpcs:ignore <foreign name>` work and what the reference and `dresscode catalogue` print as
   "covers". A message of a sniff stands for the decisions of its own row and for nothing where it has none, the
