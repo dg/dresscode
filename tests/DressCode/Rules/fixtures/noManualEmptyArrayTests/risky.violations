@@ -1,0 +1,4 @@
+4: The empty array must be tested with `=== []`, not through `count()`.
+	risky TypeUnknown: the value may be no array: `count()` throws on `null` and counts a Countable object, neither of which is `[]`
+5: The empty array must be tested with `=== []`, not through `sizeof()`.
+	risky TypeUnknown: the value may be no array: `count()` throws on `null` and counts a Countable object, neither of which is `[]`

@@ -1,0 +1,4 @@
+<?php
+// types off
+$a = count($items) === 0;
+$b = !sizeof($items);

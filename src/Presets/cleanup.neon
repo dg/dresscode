@@ -31,6 +31,7 @@ functions:
 hygiene:
 	aliasFunctions: [core, imap, pg]         # `count()`, not `sizeof()`
 	strlenEmptyTest: forbidden               # `$s === ''`, not `strlen($s) === 0`
+	countEmptyTest: forbidden                # `$a === []`, not `count($a) === 0`, risky without the types
 	call_user_func: forbidden                # `$f($x)`, not `call_user_func($f, $x)`, risky
 	__invokeCall: forbidden                  # `$f($x)`, not `$f->__invoke($x)`
 	defaultArgument: forbidden               # `json_encode($a)`, not `json_encode($a, 0)`

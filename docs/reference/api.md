@@ -1127,6 +1127,7 @@ final readonly class Violation
 - `DressCode\Rules\Functions\NoExplicitInvokeCallsRule`
 - `DressCode\Rules\Functions\NoInnerFunctionsRule`
 - `DressCode\Rules\Functions\NoIsNullRule`
+- `DressCode\Rules\Functions\NoManualEmptyArrayTestsRule`
 - `DressCode\Rules\Functions\NoManualEmptyStringTestsRule`
 - `DressCode\Rules\Functions\NoManualSubstringTestsRule`
 - `DressCode\Rules\Functions\NoSettypeRule`

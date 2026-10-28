@@ -1,0 +1,29 @@
+6: The empty array must be tested with `=== []`, not through `count()`.
+7: The empty array must be tested with `!== []`, not through `count()`.
+8: The empty array must be tested with `=== []`, not through `count()`.
+9: The empty array must be tested with `!== []`, not through `count()`.
+10: The empty array must be tested with `!== []`, not through `count()`.
+11: The empty array must be tested with `!== []`, not through `count()`.
+12: The empty array must be tested with `=== []`, not through `count()`.
+13: The empty array must be tested with `=== []`, not through `count()`.
+14: The empty array must be tested with `=== []`, not through `count()`.
+15: The empty array must be tested with `!== []`, not through `count()`.
+16: The empty array must be tested with `=== []`, not through `count()`.
+17: The empty array must be tested with `!== []`, not through `count()`.
+18: The empty array must be tested with `!== []`, not through `count()`.
+19: The empty array must be tested with `!== []`, not through `count()`.
+20: The empty array must be tested with `=== []`, not through `count()`.
+21: The empty array must be tested with `=== []`, not through `count()`.
+22: The empty array must be tested with `=== []`, not through `count()`.
+23: The empty array must be tested with `!== []`, not through `sizeof()`.
+24: The empty array must be tested with `=== []`, not through `count()`.
+25: The empty array must be tested with `!== []`, not through `count()`.
+25: The empty array must be tested with `=== []`, not through `count()`.
+26: The empty array must be tested with `=== []`, not through `count()`.
+27: The empty array must be tested with `!== []`, not through `count()`.
+28: The empty array must be tested with `!== []`, not through `count()`.
+32: The empty array must be tested with `=== []`, not through `count()`.
+	risky TypeUnknown: the value may be no array: `count()` throws on `null` and counts a Countable object, neither of which is `[]`
+33: The empty array must be tested with `!== []`, not through `count()`.
+	risky TypeUnknown: the value may be no array: `count()` throws on `null` and counts a Countable object, neither of which is `[]`
+43: The empty array must be tested with `=== []`, not through `count()`.

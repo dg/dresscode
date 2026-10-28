@@ -1,0 +1,9 @@
+<?php
+namespace App;
+
+function test(array $a, ?array $nullable): void
+{
+	$b = $a === [];
+	$c = count($a) === 0;
+	$d = count($nullable) === 0;
+}

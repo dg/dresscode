@@ -1,0 +1,5 @@
+<?php
+// types off
+// risky
+$a = $items === [];
+$b = $items === [];
