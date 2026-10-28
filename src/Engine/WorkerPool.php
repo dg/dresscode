@@ -8,7 +8,7 @@
 namespace DressCode\Engine;
 
 use DressCode\FileResult;
-use function array_key_exists, count, function_exists, in_array, is_array, strlen;
+use function array_key_exists, count, dirname, function_exists, in_array, is_array, strlen;
 use const PHP_OS_FAMILY, PHP_SAPI;
 
 
@@ -106,6 +106,16 @@ final class WorkerPool
 		}
 
 		return max(1, $count);
+	}
+
+
+	/**
+	 * The program of this very package, which a process of DressCode is started as: never the one the process itself was
+	 * started as, which for a test or an application embedding DressCode is another program.
+	 */
+	public static function locateProgram(): string
+	{
+		return \Phar::running(returnPhar: false) ?: dirname(__DIR__, 2) . '/bin/dresscode';
 	}
 
 

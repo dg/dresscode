@@ -668,3 +668,49 @@ test(
 		);
 	},
 );
+
+
+test('the upgrading data installed beside DressCode serves a project without it, and what its libraries miss is named', function () {
+	$root = project(
+		'data-beside',
+		['nette/utils' => ['4.0.0.0', []], 'dibi/dibi' => ['5.0.0.0', []], 'symfony/console' => ['7.0.0.0', []]],
+		[],
+		['require' => ['nette/utils' => '^4.0', 'dibi/dibi' => '^5.0']],
+	);
+	$data = createTempDir('data-package');
+	FileSystem::write(
+		"$data/composer.json",
+		json_encode(['name' => 'dresscode/upgrade-nette', 'extra' => ['dresscode' => ['upgrading-dir' => 'upgrading']]]),
+	);
+	FileSystem::write(
+		"$data/upgrading/utils.neon",
+		"package: nette/utils\n\nsince 4.0:\n\treplacedClasses:\n\t\tNette\\Old: Nette\\Renamed\n",
+	);
+	$project = ProjectPackages::read($root);
+
+	// a library the project requires itself, as the package says it is about, whereas symfony/console comes with another
+	$catalogue = [
+		'dresscode/upgrade-nette' => ['nette/', 'latte/latte'],
+		'dresscode/upgrade-deegee' => ['dibi/dibi'],
+		'dresscode/upgrade-symfony' => ['symfony/console'],
+	];
+	Assert::same(
+		['dresscode/upgrade-nette', 'dresscode/upgrade-deegee'],
+		PackageDiscovery::findMissingDataPackages($project, $catalogue, []),
+	);
+	Assert::same(
+		['dresscode/upgrade-deegee'],
+		PackageDiscovery::findMissingDataPackages($project, $catalogue, ['dresscode/upgrade-nette' => $data]),
+	);
+	Assert::same(
+		['upgrading/utils.neon of dresscode/upgrade-nette'],
+		array_map(
+			fn($data) => $data->layer->describe(),
+			PackageDiscovery::discover($project, ['dresscode/upgrade-nette' => $data])->upgradingData,
+		),
+	);
+
+	// a project with none of their libraries misses nothing
+	$other = ProjectPackages::read(project('data-none', ['acme/lib' => ['1.0.0.0', []]], [], ['require' => ['acme/lib' => '^1.0']]));
+	Assert::same([], PackageDiscovery::findMissingDataPackages($other, $catalogue, []));
+});

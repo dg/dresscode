@@ -8,6 +8,7 @@
 namespace DressCode\Console;
 
 use DressCode\{Config, ConfigurationException, ConvergenceException, RuleException};
+use DressCode\Engine\WorkerPool;
 use Nette\CommandLine\{ColorDepth, Command, Console, HelpRenderer, Parser as CommandLineParser, Prompt, UsageException};
 use Nette\Utils\FileSystem;
 use function extension_loaded;
@@ -27,7 +28,8 @@ final readonly class Application
 	 * @param  ?resource  $stdout
 	 * @param  ?resource  $stderr
 	 * @param  ?resource  $stdin
-	 * @param  ?string  $script  the script the workers are started with, the one the process was started with by default
+	 * @param  ?string  $script  the script the workers and a run started again are started with, the program of this
+	 *   package by default; a command of its own giving `$defaultConfig` names its own, which carries that configuration
 	 * @param  ?Config  $defaultConfig  what applies when the project has no configuration file
 	 * @param  ?bool  $xdebug  whether Xdebug is loaded; detected when the output is the process's own
 	 * @param  ?bool  $interactive  whether the output and the input are a terminal a person answers at; detected from each
@@ -52,7 +54,9 @@ final readonly class Application
 			out: $out,
 			err: $err,
 			workingDirectory: $cwd ?? (string) getcwd(),
-			scriptFile: $script ?? $_SERVER['argv'][0] ?? 'dresscode',
+			scriptFile: $script ?? ($defaultConfig === null
+				? WorkerPool::locateProgram()
+				: throw new \InvalidArgumentException('A command of its own giving a default configuration names its script, `script: __FILE__`, which its workers start so that they have that configuration too.')),
 			defaultConfig: $defaultConfig,
 			xdebug: $xdebug ?? ($stdout === null && extension_loaded('xdebug')),
 			prompt: new Prompt($out, $stdin ?? STDIN, inputTerminal: $interactive),
@@ -63,12 +67,14 @@ final readonly class Application
 	/**
 	 * Runs the command line and returns the exit code: 0 clean and complete, 1 violations, syntax errors, a refused
 	 * baseline or work a migration leaves for the user, 2 a file that failed or a command that could not look at
-	 * everything it was to, 3 a mistake of the command line or of the configuration.
+	 * everything it was to, 3 a mistake of the command line or of the configuration, 4 an upgrade that installed its
+	 * upgrading data and has to be run again.
 	 * @param  list<string>  $argv  including the script name
 	 */
 	public function run(array $argv): int
 	{
 		[$context, $out, $err] = [$this->context, $this->context->out, $this->context->err];
+		$context->seekOutputEnd();
 		try {
 			$args = (new CommandLineParser)->parse($this->defineCommandLine(), array_slice($argv, 1));
 			if ($args->get('--no-color')) {
@@ -149,7 +155,7 @@ final readonly class Application
 		$program->addCommand('migrate', 'Move over from PHP CS Fixer, PHP_CodeSniffer or Laravel Pint', commandRequired: true)
 			->addCommandsFrom(new Commands\MigrateCommand($context));
 
-		$program->addText('Exit codes: `0` clean and complete, `1` violations, syntax errors, a refused baseline or manual tasks a migration leaves, `2` a file failed or a command could not look at everything it was to, `3` a mistake of the command line or of the configuration.');
+		$program->addText('Exit codes: `0` clean and complete, `1` violations, syntax errors, a refused baseline or manual tasks a migration leaves, `2` a file failed or a command could not look at everything it was to, `3` a mistake of the command line or of the configuration, `4` an upgrade that installed its upgrading data and has to be run again.');
 		return $program;
 	}
 }
