@@ -141,8 +141,17 @@ final readonly class Application
 		// in the order the help lists them
 		$context = $this->context;
 		$program->addCommandsFrom(new Commands\CheckCommand($context));
-		$program->addCommand('upgrade', 'Upgrade the code to newer PHP and libraries', commandRequired: true)
-			->addCommandsFrom(new Commands\UpgradeCommand($context));
+		$upgrade = $program->addCommand(
+			'upgrade',
+			'Upgrade the code to newer PHP and libraries',
+			commandRequired: true,
+		);
+		$upgrade->addCommandsFrom(new Commands\UpgradeCommand($context));
+		$upgrade->addText(implode("\n", [
+			'Examples:',
+			'  dresscode upgrade estimate php 8.4                what an upgrade to PHP 8.4 changes',
+			'  dresscode upgrade today                           the code rewritten for the versions required now',
+		]));
 		foreach ([
 			new Commands\ConfigCommand($context),
 			new Commands\ExplainCommand($context),

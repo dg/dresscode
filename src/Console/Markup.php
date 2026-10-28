@@ -19,7 +19,7 @@ use Nette\CommandLine\{Console, HelpRenderer};
 final class Markup
 {
 	/** the width of the label a line of the output opens with */
-	private const LabelWidth = 11;
+	public const LabelWidth = 11;
 
 	private const DocsUrl = 'https://dresscode.run/';
 
