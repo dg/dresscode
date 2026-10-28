@@ -351,7 +351,7 @@ final class RuleTester
 		if (($tree['upgrading']['php']['deprecatedApi'] ?? 'keep') !== 'keep') {
 			// the upgrading data of PHP lie beneath, as a run lays them
 			$data = PackageDiscovery::readPhpData((new ProjectPackages)->withPhp($phpTarget)) ?? throw new \LogicException;
-			array_unshift($layers, [$data->layer, $data->buildDecisions(fn(string $map) => "upgrading.api.$map")]);
+			array_unshift($layers, ...$data->buildDecisions(fn(string $map) => "upgrading.api.$map"));
 		}
 
 		$catalogue = Catalogue::fromRules(self::getRules($class, $layers));

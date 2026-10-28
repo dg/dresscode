@@ -7,6 +7,7 @@
 
 namespace DressCode\Engine;
 
+use DressCode\Config\Layer;
 use DressCode\Risk;
 use PhpSyntax\{Node, Token, Trivia};
 
@@ -58,6 +59,8 @@ final readonly class Report
 		public int $lineInTrivia = 0,
 		/** @var ?array{int, int}  the offset and the length of what the report is about in the original file */
 		public ?array $span = null,
+		/** the section of the upgrading data of a package whose entry the occurrence is of */
+		public ?Layer $source = null,
 	) {
 	}
 }

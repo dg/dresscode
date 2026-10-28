@@ -59,6 +59,11 @@ final readonly class Violation
 		 * leaves too, code a fix wrote taking the lines of the code beside it; null where the fixed text was read anew
 		 */
 		public ?array $originalLines = null,
+		/**
+		 * the section of the upgrading data of a package whose entry the occurrence is of, null where the project wrote
+		 * the entry or the rule reads no map
+		 */
+		public ?Config\Layer $source = null,
 	) {
 		if ($risk === null && ($refused || $because !== null)) {
 			throw new \InvalidArgumentException("Violation of `$decision`: `refused` and `because` belong to a risky violation, but no risk is given.");

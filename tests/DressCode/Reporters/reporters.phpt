@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
 
+use DressCode\Config\{Layer, LayerKind};
 use DressCode\Engine\{FileSummary, RunInfo, RunResult, TypeAnalysisStatus};
 use DressCode\{FileResult, Reporter, Risk, Severity, Violation};
 use DressCode\Reporters\{AgentReporter, CheckstyleReporter, ConsoleReporter, GithubReporter, JsonReporter, LinesReporter};
@@ -17,7 +18,14 @@ function results(): array
 		// the third follows from the first and ends like it; the second follows from it too but is a warning,
 		// and the warning is what the fixed text still has
 		new FileResult('src/a.php', "<?php\n\$a;\n\$c;\n", "<?php\n\$b;\n\$d;\n", [
-			new Violation('test/rename', 'Rename $a.', 2, 1, Severity::Error, fingerprint: 'f1', offset: 6, length: 2),
+			new Violation('test/rename', 'Rename $a.', 2, 1, Severity::Error, fingerprint: 'f1', offset: 6, length: 2, source: new Layer(
+				LayerKind::Package,
+				'upgrading/lib.neon',
+				'acme/upgrade-lib',
+				library: 'acme/lib',
+				since: '3.0',
+				from: '2.4',
+			)),
 			new Violation('test/report', 'Variable "b" & <c>.', 2, null, Severity::Warning, fingerprint: 'f2', derivedFrom: 'f1'),
 			new Violation('test/rename', 'Rename $c.', 3, 1, Severity::Error, fingerprint: 'f3', derivedFrom: 'f1'),
 		], ['Rule test/x is faulty: it changed the file without reporting a violation.'], remaining: [
@@ -529,7 +537,13 @@ test('json', function () {
 		                    "refused": false,
 		                    "because": null,
 		                    "fingerprint": "f1",
-		                    "derivedFrom": null
+		                    "derivedFrom": null,
+		                    "source": {
+		                        "package": "acme/upgrade-lib",
+		                        "library": "acme/lib",
+		                        "since": "3.0",
+		                        "from": "2.4"
+		                    }
 		                },
 		                {
 		                    "decision": "test/report",
@@ -546,7 +560,8 @@ test('json', function () {
 		                    "refused": false,
 		                    "because": null,
 		                    "fingerprint": "f2",
-		                    "derivedFrom": "f1"
+		                    "derivedFrom": "f1",
+		                    "source": null
 		                },
 		                {
 		                    "decision": "test/rename",
@@ -563,7 +578,8 @@ test('json', function () {
 		                    "refused": false,
 		                    "because": null,
 		                    "fingerprint": "f3",
-		                    "derivedFrom": "f1"
+		                    "derivedFrom": "f1",
+		                    "source": null
 		                }
 		            ],
 		            "remaining": [
@@ -582,7 +598,8 @@ test('json', function () {
 		                    "refused": false,
 		                    "because": null,
 		                    "fingerprint": "f2",
-		                    "derivedFrom": null
+		                    "derivedFrom": null,
+		                    "source": null
 		                }
 		            ],
 		            "warnings": [

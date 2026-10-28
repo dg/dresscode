@@ -190,16 +190,19 @@ test('a section above the lowest version is reported where the constraint reache
 	// a version earlier than its section says that one
 	Assert::same(
 		[
-			'replacedClasses' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed'],
-			'replacedFunctions' => ['Acme\Lib\old_helper' => 'Acme\Lib\helper'],
-			'forbiddenClasses' => ['Acme\Lib\Gone' => 'since acme/lib 4.0'],
-			'forbiddenMembers' => [
-				'Acme\Lib\Order::pay(true)' => 'replaced, since acme/lib 4.0',
-				'Acme\Lib\Order::flush()' => 'does nothing, since acme/lib 3.5',
-			],
-			'forbiddenFunctions' => ['Acme\Lib\format' => 'replaced by `Acme\Lib\render($value)`, since acme/lib 4.0'],
+			['3.0', null, ['replacedClasses' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']]],
+			['4.0', '3.0', ['replacedFunctions' => ['Acme\Lib\old_helper' => 'Acme\Lib\helper']]],
+			['4.0', null, [
+				'forbiddenClasses' => ['Acme\Lib\Gone' => 'since acme/lib 4.0'],
+				'forbiddenMembers' => ['Acme\Lib\Order::pay(true)' => 'replaced, since acme/lib 4.0'],
+				'forbiddenFunctions' => ['Acme\Lib\format' => 'replaced by `Acme\Lib\render($value)`, since acme/lib 4.0'],
+			]],
+			['4.0', '3.5', ['forbiddenMembers' => ['Acme\Lib\Order::flush()' => 'does nothing, since acme/lib 3.5']]],
 		],
-		$data->buildDecisions(fn(string $map) => $map),
+		array_map(
+			fn(array $layer) => [$layer[0]->since, $layer[0]->from, $layer[1]],
+			$data->buildDecisions(fn(string $map) => $map),
+		),
 	);
 });
 
@@ -591,7 +594,7 @@ test('what a package says lies under the maps of the project where it says upgra
 	);
 	$layers = $resolution->resolvedConfig->decisions['upgrading.api.replacedClasses']->layers;
 	Assert::same(
-		['upgrading/upgrading.neon of acme/lib', 'the configuration'],
+		['upgrading/upgrading.neon of acme/lib, since 3.0', 'the configuration'],
 		array_map(fn($layer) => $layer->origin?->describe(), $layers),
 	);
 

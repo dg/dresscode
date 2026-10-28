@@ -7,6 +7,8 @@
 
 namespace DressCode\Rules\Upgrading;
 
+use DressCode\Config\Layer;
+
 
 /**
  * What attributeForAnnotation writes instead of an annotation or an attribute.
@@ -26,14 +28,16 @@ final readonly class AttributeTarget
 		public string $arguments = '',
 		/** a namespace of the map gave the class, which may therefore not exist */
 		public bool $fromNamespace = false,
+		/** the section of the upgrading data of a package that laid the entry */
+		public ?Layer $origin = null,
 	) {
 	}
 
 
 	/** The attribute written as `Class` or `Class(arguments)`, its class fully qualified; null for code of another shape. */
-	public static function fromCode(string $code): ?self
+	public static function fromCode(string $code, ?Layer $origin = null): ?self
 	{
-		return preg_match(self::Pattern, $code, $m) ? new self($m[1], $m[2] ?? '') : null;
+		return preg_match(self::Pattern, $code, $m) ? new self($m[1], $m[2] ?? '', origin: $origin) : null;
 	}
 
 

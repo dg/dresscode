@@ -63,11 +63,15 @@ test('the sentence names the package and the version, PHP as PHP', function () {
 		XX);
 
 	$data = $upgrading->selectFor('>=8.0', new Layer(LayerKind::Package, 'php.neon', 'php'));
+	// every entry in the layer of its section, with the version its fix is right from
 	Assert::same(
 		[
-			'replacedCalls' => ['curl_close($handle)' => 'removed'],
-			'forbiddenFunctions' => ['socket_set_timeout' => 'since PHP 8.5'],
+			['php', '8.5', '8.0', ['replacedCalls' => ['curl_close($handle)' => 'removed']]],
+			['php', '8.5', null, ['forbiddenFunctions' => ['socket_set_timeout' => 'since PHP 8.5']]],
 		],
-		$data->buildDecisions(fn(string $map) => $map),
+		array_map(
+			fn(array $layer) => [$layer[0]->library, $layer[0]->since, $layer[0]->from, $layer[1]],
+			$data->buildDecisions(fn(string $map) => $map),
+		),
 	);
 });
