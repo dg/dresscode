@@ -112,7 +112,7 @@ final class NeverForThrowingFunctionRule extends NodeRule
 	private static function alwaysLeaves(Node $function, Statement\BlockNode $body): bool
 	{
 		$statements = $body->statements->getItems();
-		$last = count($statements) === 0 ? null : $statements[count($statements) - 1];
+		$last = $statements === [] ? null : $statements[count($statements) - 1];
 		if (!self::isLeaving($last)) {
 			return false;
 		}

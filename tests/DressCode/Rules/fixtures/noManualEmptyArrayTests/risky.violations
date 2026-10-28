@@ -1,0 +1,2 @@
+7: The empty array must be tested with `=== []`, not through `count()`.
+	risky NameUncertain: the namespace may declare `count()`
