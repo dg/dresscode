@@ -1,0 +1,42 @@
+<?php
+use Acme\Shop\Cart;
+
+function test(array $a, ?array $nullable, Cart $cart, array|Cart $either, array $list, array $b): void
+{
+	$c = $a === [];
+	$d = $a !== [];
+	$e = $a === [];
+	$f = $a !== [];
+	$g = $a !== [];
+	$h = $a !== [];
+	$i = $a === [];
+	$j = $a === [];
+	$k = $a === [];
+	$l = $a !== [];
+	$m = $a === [];
+	$n = $a !== [];
+	$o = $a !== [];
+	$p = $a !== [];
+	$q = $a === [];
+	$r = $a === [];
+	$s = $a === [];
+	$t = $a !== [];
+	$u = ($a ?: $b) === [];
+	$v = $a !== [] && $b === [];
+	$w = ($a === []) . 'x';
+	$x = ($a !== []) == $flag;
+	if (array_filter($a) !== []) {
+	}
+
+	// left alone
+	$y = count($nullable) === 0;
+	$z = count($either) > 0;
+	$a2 = count($cart) === 0;
+	$b2 = count($a) === 1;
+	$c2 = count($a) > 1;
+	$d2 = count($a) >= 0;
+	$e2 = count($a, COUNT_RECURSIVE) === 0;
+	$f2 = count(...$list) === 0;
+	$g2 = count($a) + 0 === 0;
+	$h2 = count(/* the list */ $a) === 0;
+}
