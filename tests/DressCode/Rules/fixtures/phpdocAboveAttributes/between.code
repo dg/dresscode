@@ -1,0 +1,60 @@
+<?php
+class A
+{
+	#[Attr('/orders')]
+	/**
+	 * Removes the order.
+	 */
+	#[Other(1)] // a comment of the attribute
+	#[Third]
+	public function remove(int $id): void {}
+
+	#[Attr]
+	/** @var int */
+	#[Other]
+	public $id;
+
+	#[Attr] #[Other]
+	/** After both. */
+	public $both;
+
+	#[Attr]
+	/** First. */
+	/** Second. */
+	public $two;
+
+	#[Attr]
+	/** Between. */
+	#[Other]
+	/** Before the declaration. */
+	public $spread;
+
+	/** Above. */
+	#[Attr]
+	/** Between. */
+	#[Other]
+	public $mixed;
+
+	#[Attr] /** On the line of an attribute. */ #[Other]
+	public $oneLine;
+
+	#[Attr]
+	/** The limit. */
+	#[Other]
+	const LIMIT = 1;
+
+	public function __construct(
+		#[Attr]
+		/** The name. */
+		#[Other]
+		public string $name,
+	) {}
+}
+
+enum Suit
+{
+	#[Attr]
+	/** Hearts. */
+	#[Other]
+	case Hearts;
+}

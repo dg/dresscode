@@ -18,7 +18,7 @@ use function count;
 
 /**
  * The doc comment comes first, the attributes after it, right before the declaration. A doc comment found
- * between the attributes and the declaration moves above the first attribute.
+ * between the attributes, or between them and the declaration, moves above the first attribute.
  */
 #[RuleInfo(Stage::Structure, modifiesComments: true)]
 final class PhpdocAboveAttributesRule extends NodeRule
@@ -52,21 +52,25 @@ final class PhpdocAboveAttributesRule extends NodeRule
 			return;
 		}
 
-		$docComment = null;
-		foreach ($after->leadingTrivia as $trivia) {
-			if ($trivia->is(Trivia::DocComment) && !$trivia->inInterpolation) {
-				$docComment = $trivia;
+		// the tokens a doc comment below the first attribute stands in front of: every further attribute and the declaration
+		$tokens = array_map(fn(Node $group) => $group->getFirstToken(), array_slice($attributes->getItems(), 1));
+		foreach (array_filter([...$tokens, $after]) as $token) {
+			foreach ($token->leadingTrivia as $trivia) {
+				if (
+					$trivia->is(Trivia::DocComment)
+					&& !$trivia->inInterpolation
+					&& $context->report($node, 'The doc comment must be above the attributes.', trivia: $trivia)
+				) {
+					$token->removeTrivia($trivia);
+					$this->placeAbove($first, $trivia, $context);
+				}
 			}
 		}
+	}
 
-		if (
-			$docComment === null
-			|| !$context->report($node, 'The doc comment must be above the attributes.', trivia: $docComment)
-		) {
-			return;
-		}
 
-		$after->removeTrivia($docComment);
+	private function placeAbove(Token $first, Trivia $docComment, RuleContext $context): void
+	{
 		$leading = $first->leadingTrivia;
 		$indentation = $leading && $leading[count($leading) - 1]->is(Trivia::Whitespace) ? array_pop($leading) : null;
 		$first->setLeadingTrivia([
