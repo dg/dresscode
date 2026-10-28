@@ -9,6 +9,7 @@ namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{MemberAccess, MemberKind, PhpDoc, Types};
 use DressCode\{CodeWriter, NodeRule, RuleContext, RuleInfo, Stage, Values};
+use DressCode\Config\Layer;
 use DressCode\Upgrading\{MemberMap, MemberMapGrammar};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Token};
@@ -40,7 +41,10 @@ final class ReplacedClassesRule extends NodeRule
 {
 	public const Map = MemberMapGrammar::ReplacedClasses;
 
-	/** @var array<string, string>  lowercased replaced name => the name written instead, both fully qualified */
+	/**
+	 * @var array<string, array{string, ?Layer}>  lowercased replaced name => the name written instead, both fully
+	 * qualified, and the section of the upgrading data that laid it
+	 */
 	private array $classes = [];
 
 	/** @var MemberMap<mixed> */
@@ -54,7 +58,7 @@ final class ReplacedClassesRule extends NodeRule
 		$options = $values->readMap(self::Map);
 		$this->classes = [];
 		foreach ($options as $old => $new) {
-			$this->classes[strtolower(ltrim((string) $old, '\\'))] = ltrim($new, '\\');
+			$this->classes[strtolower(ltrim((string) $old, '\\'))] = [ltrim($new, '\\'), $values->getEntryOrigin(self::Map, (string) $old)];
 		}
 
 		$this->forbiddenMembers = MemberMap::fromValues($values, MemberMapGrammar::ForbiddenMembers);
@@ -77,14 +81,16 @@ final class ReplacedClassesRule extends NodeRule
 		) {
 			$types = $context->findAnalysis(Types::class);
 			$find = function (string $class) use ($types): ?array {
-				$new = $this->classes[strtolower($class)] ?? null;
+				[$new, $source] = $this->classes[strtolower($class)] ?? [null, null];
 				return match (true) {
 					$new === null => null,
 					$types !== null && $types->findClassName($new, traits: true) === null => [
 						"Class `$class` is replaced by `$new`, but class `$new` does not exist in the project",
 						null,
+						null,
+						$source,
 					],
-					default => ["Class `$class` is replaced by `$new`", $new],
+					default => ["Class `$class` is replaced by `$new`", $new, null, $source],
 				};
 			};
 			ClassReplacement::rewriteReferences(

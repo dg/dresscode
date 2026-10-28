@@ -202,7 +202,15 @@ final class AttributeForMemberRule extends NodeRule
 				$planned[strtolower($attribute)] = [$attribute, [...($planned[strtolower($attribute)][1] ?? []), ...$arguments]];
 			}
 
-			$reports[] = [$at, "$described is replaced by the attribute `#[$attribute]`", $refusal, $member, $attribute, $arguments];
+			$reports[] = [
+				$at,
+				"$described is replaced by the attribute `#[$attribute]`",
+				$refusal,
+				$member,
+				$attribute,
+				$arguments,
+				$entry->origin,
+			];
 		}
 
 		// the members of one attribute together must give every argument it requires
@@ -217,11 +225,11 @@ final class AttributeForMemberRule extends NodeRule
 		}
 
 		$attributes = $removed = [];
-		foreach ($reports as [$at, $message, $refusal, $member, $attribute, $arguments]) {
+		foreach ($reports as [$at, $message, $refusal, $member, $attribute, $arguments, $source]) {
 			$refusal ??= $missing[strtolower($attribute)] ?? null;
 			if ($refusal !== null) {
-				$context->report($at, $message . $refusal . '.', fixable: false);
-			} elseif ($context->report($at, $message . '.')) {
+				$context->report($at, $message . $refusal . '.', fixable: false, source: $source);
+			} elseif ($context->report($at, $message . '.', source: $source)) {
 				$attributes[strtolower($attribute)] = [$attribute, [...($attributes[strtolower($attribute)][1] ?? []), ...$arguments]];
 				$removed[] = $member;
 			}

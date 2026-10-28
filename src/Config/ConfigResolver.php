@@ -298,7 +298,7 @@ final class ConfigResolver
 		$layers = [];
 		foreach ($this->upgradingData as $package) {
 			$requirement = $package->layer->decision;
-			$layer = $package->buildDecisions(function (string $map) use ($package, $requirement, $narrowed, $named, $covered): ?string {
+			$built = $package->buildDecisions(function (string $map) use ($package, $requirement, $narrowed, $named, $covered): ?string {
 				$path = $this->findDataPath($map);
 				if ($path === null && !in_array($package->layer->package, $this->pluginsSkipped, true)) { // the plugin skipped says so
 					$this->warnings[$package->layer->describe() . " $map"] = "Map `$map`, which "
@@ -326,8 +326,8 @@ final class ConfigResolver
 			$laid = $requirement === null
 				? ($decisions[self::PackagesDecision] ?? null)?->value->getFlag()
 				: ($decisions[$requirement] ?? null)?->value->isKept() === false;
-			if ($layer !== [] && $laid) {
-				$layers[] = [$package->layer, $layer];
+			if ($laid) {
+				array_push($layers, ...$built);
 			}
 		}
 
@@ -767,6 +767,10 @@ final class ConfigResolver
 				if ($data->layer->package === $package || $data->package === $package) {
 					$keys = [...array_keys($data->maps), ...array_keys($data->requirements)];
 					array_push($paths, ...array_filter(array_map($this->findDataPath(...), $keys)));
+					// the data of PHP are reported under the requirement laying them
+					if ($data->layer->decision !== null) {
+						$paths[] = $data->layer->decision;
+					}
 				}
 			}
 
