@@ -42,6 +42,26 @@ enum StepKind: string
 
 
 /**
+ * Where a run of a plan stopped.
+ * @internal
+ */
+enum RunStop
+{
+	/** every step it was to run is done */
+	case Done;
+
+	/** before a step of Composer whose constraints are not raised */
+	case Composer;
+
+	/** after the step a raise leads to, which leaves tasks for a human */
+	case Tasks;
+
+	/** after a step whose tests newly failed, which went back */
+	case Tests;
+}
+
+
+/**
  * What the run can do about a place of an upgrade.
  * @internal
  */

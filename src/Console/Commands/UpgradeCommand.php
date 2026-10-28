@@ -9,11 +9,11 @@ namespace DressCode\Console\Commands;
 
 use DressCode\{Analyses, Config, ConfigurationException};
 use DressCode\Config\{DataPackageCatalogue, PackageDiscovery, ProjectPackages, RunnerFactory, Versions};
-use DressCode\Console\{CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor};
+use DressCode\Console\{Application, CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter};
 use DressCode\Engine\{Worker, WorkerPool};
 use DressCode\Measuring\Scope;
-use DressCode\Upgrade\{EstimateRun, Estimator, PlanBuilder, PlanFile, Project, Target};
-use Nette\CommandLine\{Attributes as Cli, ParseResult, UsageException};
+use DressCode\Upgrade\{Composer, EstimateRun, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, Project, RunStop, Step, Target};
+use Nette\CommandLine\{Attributes as Cli, ColorDepth, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES;
 
@@ -54,27 +54,46 @@ final readonly class UpgradeCommand
 			return $this->upgradeToday($args, $options, $configuration);
 		}
 
-		return $this->offer($args, $target, $version, $options, $configuration);
+		$project = $this->loadProject($args, $configuration);
+		$console = $this->findConsole($options->format);
+		if (!$options->continue) {
+			return $this->offer($args, $project, $target, $version, $options, $configuration, $console);
+		}
+
+		$console ??= $this->context->out; // a run writes text alone
+		$runner = $this->createPlanRunner($project, $this->decideTypes($options, $project->config), $options, $console);
+		$plan = PlanFile::read("$project->root/" . PlanFile::Name);
+		self::writeHeader($console, $project);
+		return $this->runPlan($plan, $runner, $options, $console);
 	}
 
 
 	/**
 	 * Measures what upgrading to the targets costs and writes it, changing nothing, and with the options of the plan
-	 * orders it into the steps of an upgrade, which it shows or saves.
+	 * orders it into the steps of an upgrade, which it shows, saves or runs.
 	 */
 	private function offer(
 		ParseResult $args,
+		Project $project,
 		?string $target,
 		?string $version,
 		UpgradeOptions $options,
 		ConfigOptions $configuration,
+		?Console $console,
 	): int
 	{
-		$project = $this->loadProject($args, $configuration);
-		$console = ($options->format ?? 'console') === 'console' ? $this->context->out : null;
+		if ($options->run && !$options->savePlan && is_file("$project->root/" . PlanFile::Name)) {
+			throw new UsageException(
+				'The project has a saved plan, `' . PlanFile::Name . '`, which `--continue` runs; `--run --save-plan` replaces it.',
+				$args->command,
+			);
+		}
+
+		$types = $this->decideTypes($options, $project->config);
+		$runner = $options->run ? $this->createPlanRunner($project, $types, $options, $console ?? $this->context->out) : null;
 		$estimator = new Estimator(
 			$project,
-			$this->decideTypes($options, $project->config),
+			$types,
 			(bool) $options->offline,
 			createWorkers: fn(EstimateRun $run, int $files) => $this->createEstimateWorkers(
 				$args,
@@ -90,10 +109,7 @@ final readonly class UpgradeCommand
 		);
 		$targets = $this->resolveTargets($args, $target, $version, $estimator);
 		if ($console !== null) {
-			$console->writeLine(CommandContext::formatName($console));
-			$console->writeLine($console->color('gray', 'Config     ') . ($project->configFile === null
-				? 'none, the scope `init` would write: ' . implode(', ', $project->config->paths)
-				: FileSystem::platformSlashes($project->configFile)));
+			self::writeHeader($console, $project);
 		}
 
 		try {
@@ -114,12 +130,127 @@ final readonly class UpgradeCommand
 			$console->write(Markup::highlightCode($console, $printer->print($console)));
 		}
 
-		if ($plan !== null && $options->savePlan) {
+		if ($plan !== null && ($options->savePlan || $options->run)) {
 			PlanFile::write($plan, "$project->root/" . PlanFile::Name);
+			PlanRunner::forget($project);
 			$console?->writeLine($console->color('gray', 'Saved      ') . PlanFile::Name);
 		}
 
-		return 0;
+		return $plan !== null && $runner !== null ? $this->runPlan($plan, $runner, $options, $console ?? $this->context->out) : 0;
+	}
+
+
+	/**
+	 * The runner of the plan, telling its progress on the status line.
+	 * @throws ConfigurationException  for a project without a configuration file
+	 */
+	private function createPlanRunner(Project $project, bool $types, UpgradeOptions $options, Console $console): PlanRunner
+	{
+		return new PlanRunner(
+			$project,
+			$types,
+			(bool) $options->commit,
+			fn(string $what) => $console->setStatus($console->color('gray', 'Upgrading  ') . "$what\u{2026}"),
+		);
+	}
+
+
+	/**
+	 * Runs the plan over the working tree and says how far it got: exit code 0 done, 1 where tests newly failed or a step
+	 * leaves tasks for a human, 3 where a step waits for Composer.
+	 */
+	private function runPlan(Plan $plan, PlanRunner $runner, UpgradeOptions $options, Console $console): int
+	{
+		$label = fn(string $label) => $console->color('gray', str_pad($label, 11));
+		if (!$plan->isMadeWith(Application::Version, PlanBuilder::findDataVersions(ProjectPackages::read($runner->project->root)))) {
+			$console->writeLine($label('Warning') . 'The plan was made with other versions of DressCode or of the upgrading data, so a step may fix more or less than it did then.');
+		}
+
+		if (!$options->commit && $runner->hasOwnChanges()) {
+			$console->writeLine($label('Warning') . 'The working tree has changes of its own, which the changes of the upgrade mix with.');
+		}
+
+		try {
+			$outcome = $runner->run(
+				$plan,
+				$options->step,
+				fn(Step $step) => $this->raiseWithConsent($step, $runner->project, (bool) $options->yes, $console),
+			);
+		} finally {
+			$console->clearStatus();
+		}
+
+		$console->write(Markup::highlightCode($console, new RunOutcomePrinter($plan, $outcome, $options->step)->print($console)));
+		return match ($outcome->stop) {
+			RunStop::Done => 0,
+			RunStop::Tasks, RunStop::Tests => 1,
+			RunStop::Composer => 3,
+		};
+	}
+
+
+	/**
+	 * Raises the constraints of the step of Composer once the user agrees, having seen what the update changes: in a
+	 * terminal after asking, outside one with `--yes` alone.
+	 */
+	private function raiseWithConsent(Step $step, Project $project, bool $yes, Console $console): bool
+	{
+		$prompt = $this->context->prompt;
+		if (!$yes && !$prompt->isInteractive()) {
+			return false;
+		}
+
+		$console->clearStatus();
+		$composer = new Composer($project->root);
+		$label = fn(string $label) => $console->color('gray', str_pad($label, 11));
+		$lines = fn(string $output) => array_filter(array_map(trim(...), explode("\n", $output)));
+		$last = fn(string $output) => (string) (array_slice($lines($output), -1)[0] ?? 'it did not end in time');
+		[$exit, $output] = $composer->requirePackages($step->require, $step->update, dryRun: true);
+		if ($exit !== 0) {
+			$console->writeLine($label('Composer') . "cannot $step->title: " . $last($output));
+			return false;
+		}
+
+		$changes = preg_grep('~^- (Upgrading|Downgrading|Installing|Removing) ~', $lines($output)) ?: [];
+		$console->writeLine($label('Composer') . "$step->title, " . ($changes === [] ? 'which changes no installed package' : 'which changes:'));
+		foreach ($changes as $change) {
+			$console->writeLine("  $change");
+		}
+
+		if (!$yes && $prompt->choose('Change `composer.json` and update the packages?', ['y', 'n'], 'y') !== 'y') {
+			return false;
+		}
+
+		$console->setStatus($console->color('gray', 'Upgrading  ') . "Composer, $step->title\u{2026}");
+		[$exit, $output] = $composer->requirePackages($step->require, $step->update);
+		if ($exit !== 0) {
+			$console->clearStatus();
+			$console->writeLine($label('Composer') . "failed to $step->title: " . $last($output));
+			return false;
+		}
+
+		return true;
+	}
+
+
+	/** The name of the tool and the configuration the command measures or runs with. */
+	private static function writeHeader(Console $console, Project $project): void
+	{
+		$console->writeLine(CommandContext::formatName($console));
+		$console->writeLine($console->color('gray', 'Config     ') . ($project->configFile === null
+			? 'none, the scope `init` would write: ' . implode(', ', $project->config->paths)
+			: FileSystem::platformSlashes($project->configFile)));
+	}
+
+
+	/** The console the format writes text to, one without colors for an agent; null for data. */
+	private function findConsole(?string $format): ?Console
+	{
+		return match ($format ?? 'console') {
+			'console' => $this->context->out,
+			'agent' => new Console($this->context->stdout, ColorDepth::None, terminal: false),
+			default => null,
+		};
 	}
 
 

@@ -7,29 +7,26 @@
 
 namespace DressCode\Upgrade;
 
+use function is_string;
 use const PHP_OS_FAMILY;
 
 
 /**
- * Runs a command through the shell, and ends one that does not end in time as a whole tree, the shell, the command and
- * what it started.
+ * Runs a command of the project, Composer, git or its tests, through the shell, and ends one that does not end in time
+ * as a whole tree, the shell, the command and what it started.
  * @internal
  */
 final class ProcessRunner
 {
 	/**
 	 * The exit code and the output of both streams, the exit code null where the command did not end in time.
-	 * @param  list<string>  $command  the program and its arguments
+	 * @param  string|list<string>  $command  a command line, or its program and arguments to quote
 	 * @return array{?int, string}
 	 */
-	public static function run(array $command, string $cwd, int $timeout): array
+	public static function run(string|array $command, string $cwd, int $timeout): array
 	{
-		$process = proc_open(
-			implode(' ', array_map(escapeshellarg(...), $command)),
-			[0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-			$pipes,
-			$cwd,
-		);
+		$command = is_string($command) ? $command : implode(' ', array_map(escapeshellarg(...), $command));
+		$process = proc_open($command, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $cwd);
 		if ($process === false) {
 			return [127, 'The command could not be started.'];
 		}

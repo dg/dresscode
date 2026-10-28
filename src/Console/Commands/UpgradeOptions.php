@@ -7,6 +7,7 @@
 
 namespace DressCode\Console\Commands;
 
+use DressCode\Upgrade\PlanFile;
 use Nette\CommandLine\Attributes as Cli;
 use function in_array;
 
@@ -24,7 +25,7 @@ final readonly class UpgradeOptions
 		#[Cli\Option('Files or directories; the configured paths when omitted', valueName: 'path', repeatable: true)]
 		public array $paths = [],
 		#[Cli\Option(
-			'Output format; the offer and the plan are written as `console` or `json`, `--today` in any format `fix` writes',
+			'Output format; the offer and the plan are written as `console`, `agent` or `json`, a run of the plan as `console` or `agent`, `--today` in any format `fix` writes',
 			alias: '-f',
 			enum: ['console', 'json', 'agent', 'lines', 'github', 'checkstyle'],
 		)]
@@ -38,8 +39,20 @@ final readonly class UpgradeOptions
 		public ?bool $offline = null,
 		#[Cli\Flag('Write the plan of the upgrade, step by step, changing nothing')]
 		public ?bool $plan = null,
-		#[Cli\Flag('Also save the plan into `dresscode-upgrade.neon`, which the team may edit')]
+		#[Cli\Flag('Also save the plan into `dresscode-upgrade.neon`, which the team may edit and `--continue` runs')]
 		public ?bool $savePlan = null,
+		#[Cli\Flag('Run the plan step by step over the working tree, stopping where a human or Composer is needed')]
+		public ?bool $run = null,
+		#[Cli\Flag('Run what is left of the plan `dresscode-upgrade.neon` saved, as the code now stands')]
+		public ?bool $continue = null,
+		#[Cli\Option(
+			'With `--run` or `--continue`, run that step of the plan alone',
+			valueName: 'n',
+			normalizer: [RunOptions::class, 'parseJobs'],
+		)]
+		public ?int $step = null,
+		#[Cli\Flag('With `--run` or `--continue`, commit every topic with the files it changed')]
+		public ?bool $commit = null,
 		#[Cli\Option(
 			'The command testing the project, `{junit}` standing for the JUnit file it writes; a step whose tests newly fail goes back',
 			valueName: 'command',
@@ -51,7 +64,7 @@ final readonly class UpgradeOptions
 		public ?bool $modernize = null,
 		#[Cli\Flag('With `--today`, ask about every risky fix left, one at a time with its diff, and make those accepted; needs an interactive terminal')]
 		public ?bool $askRisky = null,
-		#[Cli\Flag('With `--today`, install the upgrading data the libraries of the project need without asking, outside a terminal too')]
+		#[Cli\Flag('Without asking, outside a terminal too: with `--today` install the upgrading data the libraries of the project need, with `--run` or `--continue` raise the constraints of Composer and update')]
 		public ?bool $yes = null,
 		/** @var list<string|true> */
 		#[Cli\Option(
@@ -89,10 +102,10 @@ final readonly class UpgradeOptions
 	}
 
 
-	/** Whether the command makes a plan of the upgrade, to show or to save. */
+	/** Whether the command makes a plan of the upgrade, to show, to save or to run. */
 	public function makesPlan(): bool
 	{
-		return $this->plan || $this->savePlan;
+		return $this->plan || $this->savePlan || $this->run;
 	}
 
 
@@ -105,12 +118,15 @@ final readonly class UpgradeOptions
 			'--ask-risky' => $this->askRisky,
 			'--fix-risky' => $this->fixRisky,
 			'--only' => $this->only,
-			'--yes' => $this->yes,
 			'--no-cache' => $this->noCache,
 		]);
 		$planOption = $given([
 			'--plan' => $this->plan,
 			'--save-plan' => $this->savePlan,
+			'--run' => $this->run,
+			'--continue' => $this->continue,
+			'--step' => $this->step,
+			'--commit' => $this->commit,
 			'--test-command' => $this->testCommand,
 			'--quick-test-command' => $this->quickTestCommand,
 		]);
@@ -120,6 +136,7 @@ final readonly class UpgradeOptions
 			(bool) $this->offline => '--offline',
 			default => null,
 		};
+		$runs = $this->run || $this->continue;
 		$format = $this->format ?? 'console';
 		return match (true) {
 			$this->today && $target !== null
@@ -129,10 +146,17 @@ final readonly class UpgradeOptions
 				=> "`$measureOption` belongs to the estimate; `--today` runs with the types and installs what it needs.",
 			$this->today => null,
 			$todayOption !== null => "`$todayOption` goes with `--today`; without it `upgrade` only measures.",
-			!in_array($format, ['console', 'json'], true)
-				=> "The offer is written as `console` or `json`; `$format` is a format of `--today`.",
+			($this->step !== null || $this->commit || $this->yes) && !$runs
+				=> '`--step`, `--commit` and `--yes` go with `--run` or `--continue`, which run the plan.',
+			$runs && $format !== 'console' && $format !== 'agent' => 'A run of the plan writes its steps as `console` or `agent`.',
+			!in_array($format, ['console', 'agent', 'json'], true)
+				=> "The offer is written as `console`, `agent` or `json`; `$format` is a format of `--today`.",
 			($this->testCommand ?? $this->quickTestCommand) !== null && !$this->makesPlan()
-				=> '`--test-command` and `--quick-test-command` go into a plan made with `--plan` or `--save-plan`.',
+				=> '`--test-command` and `--quick-test-command` go into a plan made with `--plan`, `--save-plan` or `--run`.',
+			$this->continue && ($target !== null || $this->makesPlan())
+				=> '`--continue` runs the saved plan as it is, so it takes no target and makes no plan; edit `'
+					. PlanFile::Name
+					. '` instead.',
 			default => null,
 		};
 	}

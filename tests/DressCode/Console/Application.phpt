@@ -614,6 +614,10 @@ test('upgrade without --today measures what an upgrade costs, topic by topic, an
 		array_map(fn(array $topic) => "$topic[name] $topic[phase]", $offer['topics']),
 	);
 
+	// a run of the plan keeps the style of the configuration, which the project does not have
+	[$exit, , $err] = runApp($root, ['upgrade', 'php', '8.4', '--run', '--no-types', '--offline']);
+	Assert::same(3, $exit);
+	Assert::contains('and the project has none; write it with `dresscode init` first.', $err);
 
 	// the paths named narrow the configured ones
 	file_put_contents("$root/src/Other.php", "<?php\n");
@@ -624,13 +628,17 @@ test('upgrade without --today measures what an upgrade costs, topic by topic, an
 });
 
 
-test('upgrade --plan writes the steps, changing nothing', function () {
+test('upgrade --plan writes the steps, --run makes them up to the raise of Composer, --continue the rest', function () {
 	$root = createTempDir('upgrade-plan');
 	mkdir("$root/src");
 	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0"}}');
 	file_put_contents("$root/dresscode.neon", "paths: [src]\n");
 	$code = "<?php\n\nfunction run(\$handle, int \$count = null): void\n{\n\tcurl_close(\$handle);\n\tstrftime('%Y');\n}\n";
 	file_put_contents("$root/src/Code.php", $code);
+	[$exit, , $err] = runApp($root, ['upgrade', '--continue']);
+	Assert::same(3, $exit);
+	Assert::contains('dresscode-upgrade.neon` cannot be read', $err);
+
 	[$exit, $out, $err] = runApp($root, ['upgrade', 'php', '8.4', '--plan', '--no-types', '--offline', '--no-color']);
 	Assert::same('', $err);
 	Assert::same(0, $exit);
@@ -642,6 +650,49 @@ test('upgrade --plan writes the steps, changing nothing', function () {
 		XX, $out);
 	Assert::same($code, file_get_contents("$root/src/Code.php"));
 	Assert::false(is_file("$root/dresscode-upgrade.neon"));
+	// an agent reads the same text without colors
+	Assert::same($out, runApp($root, ['upgrade', 'php', '8.4', '--plan', '--no-types', '--offline', '--format', 'agent'])[1]);
+
+	[$exit, $out, $err] = runApp($root, ['upgrade', 'php', '8.4', '--run', '--no-types', '--offline', '--no-color']);
+	Assert::same('', $err);
+	Assert::same(3, $exit);
+	Assert::match(<<<'XX'
+		%A%Saved      dresscode-upgrade.neon
+		Step 1     php 1 file, upgrading.php.implicitNullable 1 file
+		For you    1 place the fixes left
+		  src/Code.php:5  Function `strftime()` is deprecated: since PHP 8.1.  [upgrading.php.deprecatedApi]
+		Waiting    step 2, raise php to ^8.4: run `composer require "php:^8.4" -W`, then `dresscode upgrade --continue`
+		XX, $out);
+	Assert::same(
+		"<?php\n\nfunction run(\$handle, ?int \$count = null): void\n{\n\tstrftime('%Y');\n}\n",
+		file_get_contents("$root/src/Code.php"),
+	);
+
+	// a saved plan is run by --continue, which waits until the constraint is raised
+	[$exit, , $err] = runApp($root, ['upgrade', 'php', '8.4', '--run', '--no-types', '--offline']);
+	Assert::same(3, $exit);
+	Assert::contains('The project has a saved plan, `dresscode-upgrade.neon`, which `--continue` runs', $err);
+	Assert::same(3, runApp($root, ['upgrade', '--continue', '--no-types', '--no-color'])[0]);
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.4"}}');
+	[$exit, $out] = runApp($root, ['upgrade', '--continue', '--no-types', '--no-color']);
+	Assert::same(1, $exit);
+	Assert::match(<<<'XX'
+		%A%Step 3     php left nothing to fix
+		For you    1 place the fixes left
+		  src/Code.php:5  Function `strftime()` is deprecated: since PHP 8.1.  [upgrading.php.deprecatedApi]
+		Waiting    step 3 leaves the places above: %a%
+		XX, $out);
+
+	// a task confirmed with a reason is done
+	$code = str_replace(
+		"\tstrftime",
+		"\t// dresscode:ignore upgrading.php.deprecatedApi -- no replacement yet\n\tstrftime",
+		FileSystem::read("$root/src/Code.php"),
+	);
+	file_put_contents("$root/src/Code.php", $code);
+	[$exit, $out] = runApp($root, ['upgrade', '--continue', '--no-types', '--no-color']);
+	Assert::same(0, $exit);
+	Assert::contains('UPGRADED  every step of the plan is done', $out);
 });
 
 
@@ -668,9 +719,12 @@ test('upgrade refuses what the offer cannot measure, and an option of --today wi
 		[['upgrade', 'acme/mail'], 'Name the version of `acme/mail` to upgrade to, as `upgrade acme/mail 4.0`.'],
 		[['upgrade', 'php', 'next'], 'The version to upgrade to is written as `8.4` or `4.0`, `next` given.'],
 		[['upgrade', 'php', '--today'], '`--today` upgrades to the versions `composer.json` allows, so it takes no target; %a%'],
-		[['upgrade', '--format', 'lines'], 'The offer is written as `console` or `json`; `lines` is a format of `--today`.'],
+		[['upgrade', '--format', 'lines'], 'The offer is written as `console`, `agent` or `json`; `lines` is a format of `--today`.'],
 		[['upgrade', '--today', '--plan'], '`--plan` belongs to the plan of an upgrade, and `--today` makes none.'],
+		[['upgrade', '--commit'], '`--step`, `--commit` and `--yes` go with `--run` or `--continue`, which run the plan.'],
+		[['upgrade', '--run', '--format', 'json'], 'A run of the plan writes its steps as `console` or `agent`.'],
 		[['upgrade', '--test-command', 'x'], '`--test-command` and `--quick-test-command` go into a plan made with %a%'],
+		[['upgrade', 'php', '--continue'], '`--continue` runs the saved plan as it is, so it takes no target and makes no plan; %a%'],
 	] as [$args, $message]) {
 		[$exit, , $err] = runApp($root, $args);
 		Assert::same(3, $exit);
