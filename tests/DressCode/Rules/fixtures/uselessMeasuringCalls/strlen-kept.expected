@@ -1,0 +1,8 @@
+<?php
+// {"hygiene.strlenEmptyTest": "keep"}
+
+function test(array $a, string $s): void
+{
+	$b = $a === [];
+	$c = strlen($s) === 0;
+}

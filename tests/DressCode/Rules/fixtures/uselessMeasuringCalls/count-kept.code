@@ -1,0 +1,8 @@
+<?php
+// {"hygiene.countEmptyTest": "keep"}
+
+function test(array $a, string $s): void
+{
+	$b = count($a) === 0;
+	$c = strlen($s) === 0;
+}

@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Functions;
 
 use DressCode\Analyses\Types;
-use DressCode\{Decision, Domain, GlobalCalls, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
+use DressCode\{Decision, Domain, GlobalCalls, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate, Values};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
 use PhpSyntax\Nodes\{ArgumentNode, ExpressionNode, NameNode};
@@ -18,20 +18,45 @@ use function count;
 
 
 /**
- * Whether a string is empty is `$s === ''`, not the length of it compared with zero: `strlen($s) > 0` is
- * `$s !== ''`, `!mb_strlen($s)` is `$s === ''`. The comparisons read are those that ask exactly that, with 0 or 1 on
- * either side; `strlen($s) >= 0` asks nothing and stays.
+ * Whether an array or a string is empty is `$a === []` or `$s === ''`, not what a function measures of it compared with
+ * zero: `count($a) > 0` is `$a !== []`, `!sizeof($a)` is `$a === []`, `strlen($s) > 0` is `$s !== ''`. The comparisons
+ * read are those that ask exactly that, with 0 or 1 on either side; `count($a) >= 0` asks nothing and stays.
  *
- * The types decide it, which is what the length alone cannot: only a value that is a string for sure is compared
- * with `''`, because `strlen()` counts `null` as empty, an int as its digits and a Stringable object as its text,
- * all of which `===` sees differently.
+ * The types decide it, which is what the measure alone cannot: only a value that is an array or a string for sure is
+ * compared, because `count()` counts a Countable object too, which is never `[]`, and throws on anything else, and
+ * `strlen()` counts `null` as empty, an int as its digits and a Stringable object as its text, all of which `===` sees
+ * differently.
  */
 #[RuleInfo(Stage::Structure, typesRequired: true, analyses: [Types::class, NameResolver::class])]
 final class UselessMeasuringCallsRule extends NodeRule
 {
+	private const Count = 'hygiene.countEmptyTest';
+	private const Strlen = 'hygiene.strlenEmptyTest';
+
+	/** the function => the decision, the type it measures and the empty value of that type */
+	private const Functions = [
+		'count' => [self::Count, 'array', '[]'],
+		'sizeof' => [self::Count, 'array', '[]'],
+		'strlen' => [self::Strlen, 'string', "''"],
+		'mb_strlen' => [self::Strlen, 'string', "''"],
+	];
+
+	/** @var array<lowercase-string, array{string, string, string}>  those whose decision is not kept */
+	private array $functions = self::Functions;
+
+
 	public static function getDecisions(): array
 	{
-		return [new Decision('hygiene.strlenEmptyTest', Domain::state('forbidden'), '`strlen($s) === 0` is `$s === \'\'`')];
+		return [
+			new Decision(self::Count, Domain::state('forbidden'), '`count($a) === 0` is `$a === []`'),
+			new Decision(self::Strlen, Domain::state('forbidden'), '`strlen($s) === 0` is `$s === \'\'`'),
+		];
+	}
+
+
+	public function configure(Values $values): void
+	{
+		$this->functions = array_filter(self::Functions, fn(array $function) => !$values->isKept($function[0]));
 	}
 
 
@@ -58,19 +83,25 @@ final class UselessMeasuringCallsRule extends NodeRule
 			|| !($argument = $call->arguments->items->getItems()[0]) instanceof ArgumentNode
 			|| $argument->name !== null
 			|| $argument->ellipsis !== null
-			|| ($function = GlobalCalls::findFunction($call, ['strlen' => true, 'mb_strlen' => true], $context)) === null
-			|| $context->getAnalysis(Types::class)->isOfType($argument->value, 'string') !== Tristate::Yes
+			|| ($function = GlobalCalls::findFunction($call, $this->functions, $context)) === null
 		) {
 			return;
 		}
 
+		[$decision, $type, $emptyValue] = $this->functions[$function];
 		$value = $argument->value;
+		if ($context->getAnalysis(Types::class)->isOfType($value, $type) !== Tristate::Yes) {
+			return;
+		}
+
+		$comparison = ($empty ? '===' : '!==') . " $emptyValue";
 		$uncertainty = GlobalCalls::findUncertainty($call, $context);
 		$fixable = !$node->getFirstToken()->hasCommentUpTo($value->getFirstToken())
 			&& !$value->getLastToken()->hasCommentUpTo($node->getLastToken());
 		if (!$context->report(
 			$node,
-			"Useless `$function()`, because " . ($empty ? "`=== ''`" : "`!== ''`") . ' says the same.',
+			"Useless `$function()`, because `$comparison` says the same.",
+			decision: $decision,
 			fixable: $fixable,
 			risk: $uncertainty === null ? null : Risk::NameUncertain,
 			because: $uncertainty,
@@ -79,12 +110,12 @@ final class UselessMeasuringCallsRule extends NodeRule
 		}
 
 		// an equality binds more loosely than the comparison or the negation it takes the place of
-		$node->replaceWithExpression((new Builder)->binary($value, $empty ? '===' : '!==', ''));
+		$node->replaceWithExpression((new Builder)->expression("\$value $comparison", value: $value));
 	}
 
 
 	/**
-	 * The call compared and whether the comparison asks for the empty string, true, or for a string that is not empty,
+	 * The call compared and whether the comparison asks for the empty value, true, or for a value that is not empty,
 	 * false; nulls for a comparison that asks neither.
 	 * @return array{?ExpressionNode, ?bool}
 	 */

@@ -1,0 +1,1 @@
+7: Useless `strlen()`, because `=== ''` says the same.

@@ -1,0 +1,8 @@
+<?php
+namespace App;
+
+function test(array $a): void
+{
+	$b = $a === [];
+	$c = count($a) === 0;
+}

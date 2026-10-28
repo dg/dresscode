@@ -1,0 +1,2 @@
+7: Useless `count()`, because `=== []` says the same.
+	risky NameUncertain: the namespace may declare `count()`

@@ -1,0 +1,45 @@
+<?php
+use Acme\Shop\Cart;
+
+function test(array $a, ?array $nullable, Cart $cart, array|Cart $either, array $list, array $b, iterable $it): void
+{
+	$c = count($a) === 0;
+	$d = count($a) !== 0;
+	$e = count($a) == 0;
+	$f = count($a) != 0;
+	$g = count($a) > 0;
+	$h = count($a) >= 1;
+	$i = count($a) < 1;
+	$j = count($a) <= 0;
+	$k = 0 === count($a);
+	$l = 0 !== count($a);
+	$m = 0 == count($a);
+	$n = 0 != count($a);
+	$o = 0 < count($a);
+	$p = 1 <= count($a);
+	$q = 1 > count($a);
+	$r = 0 >= count($a);
+	$s = !count($a);
+	$t = sizeof($a) > 0;
+	$u = \count($a ?: $b) === 0;
+	$v = count($a) > 0 && count($b) === 0;
+	$w = !count($a) . 'x';
+	$x = count($a) > 0 == $flag;
+	if (count(array_filter($a)) > 0) {
+	}
+
+	// left alone, the value may be no array
+	$y = count($nullable) === 0;
+	$z = count($either) > 0;
+	$y2 = count($it) === 0;
+
+	// left alone
+	$a2 = count($cart) === 0;
+	$b2 = count($a) === 1;
+	$c2 = count($a) > 1;
+	$d2 = count($a) >= 0;
+	$e2 = count($a, COUNT_RECURSIVE) === 0;
+	$f2 = count(...$list) === 0;
+	$g2 = count($a) + 0 === 0;
+	$h2 = count(/* the list */ $a) === 0;
+}
