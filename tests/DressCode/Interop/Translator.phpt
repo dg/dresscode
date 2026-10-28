@@ -1059,10 +1059,39 @@ test('the properties of the sniffs of PSR12 translate, or say they have no equiv
 });
 
 
+test('a message of a sniff with a row of its own translates alone', function () {
+	$translation = (new Translator)->translate(['PSR1.Methods.CamelCapsMethodName.NotCamelCaps' => true]);
+	Assert::same(['naming.method' => 'camelCase'], $translation->decisions);
+	Assert::same([], $translation->warnings);
+});
+
+
 test('a message excluded from a sniff turns off its rule, which the sniff covers through that message', function () {
 	$translation = (new Translator)->translate(['PSR12' => true, 'PSR2.ControlStructures.SwitchDeclaration.SpaceBeforeColonCASE' => false]);
 	Assert::same(['spacing.switchCase' => 'keep'], $translation->decisions);
 	Assert::same([], $translation->warnings);
+
+	// excluded while the configuration turns its sniff on by name, it cannot leave out what that sniff sets as well
+	$translation = (new Translator)->translate([
+		'PSR2.ControlStructures.SwitchDeclaration' => true,
+		'PSR2.ControlStructures.SwitchDeclaration.SpaceBeforeColonCASE' => false,
+	]);
+	Assert::notSame('keep', $translation->decisions['spacing.switchCase'] ?? null);
+	Assert::contains(
+		'`PSR2.ControlStructures.SwitchDeclaration.SpaceBeforeColonCASE` is excluded, but `spacing.switchCase` cannot leave out that check alone, so it stays as the rest of the configuration sets it.',
+		$translation->warnings,
+	);
+
+	$translation = (new Translator)->translate([
+		'Squiz.NamingConventions.ValidVariableName' => true,
+		'Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps' => false,
+	]);
+	Assert::same('camelCase', $translation->decisions['naming.property']);
+	Assert::same('camelCase', $translation->decisions['naming.variable']);
+	Assert::contains(
+		'`Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps` is excluded, but `naming.property` cannot leave out that check alone, so it stays as the rest of the configuration sets it.',
+		$translation->warnings,
+	);
 
 	// the sniff excluded whole turns off what only it and its messages cover, and says what another sniff covers too
 	$translation = (new Translator)->translate(['PSR12' => true, 'PSR2.ControlStructures.SwitchDeclaration' => false]);

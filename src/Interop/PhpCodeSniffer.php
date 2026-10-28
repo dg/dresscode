@@ -84,6 +84,7 @@ final class PhpCodeSniffer
 				$t->warn('`Generic.NamingConventions.UpperCaseConstantName` also checks `define()`, which DressCode does not.');
 				$t->set('naming.constant', 'UPPER_CASE');
 			},
+			'Generic.NamingConventions.UpperCaseConstantName.ClassConstantNotUpperCase' => ['naming.constant' => 'UPPER_CASE'],
 			'Generic.PHP.DeprecatedFunctions' => ['upgrading.php.deprecatedApi' => 'forbidden'],
 			'Generic.PHP.DisallowShortOpenTag' => ['file.openingTag' => 'required'],
 			'Generic.PHP.ForbiddenFunctions' => fn(array $o, Translation $t) => $t->set(
@@ -134,6 +135,7 @@ final class PhpCodeSniffer
 			'PEAR.WhiteSpace.ObjectOperatorIndent' => fn(array $o, Translation $t) => $t
 				->set('indentation.chain', ($o['multilevel'] ?? false) ? 'nested' : 'flat'),
 			'PSR1.Methods.CamelCapsMethodName' => fn(array $o, Translation $t) => $t->set('naming.method', 'camelCase'),
+			'PSR1.Methods.CamelCapsMethodName.NotCamelCaps' => ['naming.method' => 'camelCase'],
 			'PSR12.Classes.AnonClassDeclaration' => [
 				'braces.position.anonymousClass' => 'sameLine',
 				'spacing.keyword' => 'spaced',
@@ -718,6 +720,9 @@ final class PhpCodeSniffer
 				$t->warn('`Squiz.NamingConventions.ValidVariableName` also rules on the underscore prefix of private properties, which DressCode does not.');
 				$t->setAll(['naming.property' => 'camelCase', 'naming.variable' => 'camelCase']);
 			},
+			'Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps' => ['naming.property' => 'camelCase'],
+			'Squiz.NamingConventions.ValidVariableName.NotCamelCaps' => ['naming.variable' => 'camelCase'],
+			'Squiz.NamingConventions.ValidVariableName.StringNotCamelCaps' => ['naming.variable' => 'camelCase'],
 			'Squiz.Operators.ValidLogicalOperators' => ['expressions.wordLogicalOperator' => 'forbidden'],
 			'Squiz.PHP.DiscouragedFunctions' => fn(array $o, Translation $t) => $t->set(
 				'upgrading.api.forbiddenFunctions',

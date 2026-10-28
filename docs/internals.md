@@ -388,7 +388,9 @@ The fixtures of every rule run again under each standard with the sets beside it
   another foreign rule the configuration may run stands for them too.
 - The tables also answer the reverse question, which decisions a foreign name stands for (`Translator::findPaths()`),
   and that is what makes `phpcs:ignore <foreign name>` work and what the reference and `dresscode catalogue` print as
-  "covers". A foreign name is not a valid key in the configuration: `dresscode import` translates a whole
-  configuration file once, options included, printing it as PHP or writing the file it is given in the format of its
-  extension, NEON or PHP, never over an existing one, and such a name written as a key of the file, in `--only` or in
-  `fixRisky` is refused with the decisions that cover it.
+  "covers". A message of a sniff stands for the decisions of its own row and for nothing where it has none, the
+  decisions of the whole sniff silencing more than the message did; excluded while the configuration turns its sniff
+  on by name, it cannot leave out what that sniff sets as well, and says so. A foreign name is not a valid key in the
+  configuration: `dresscode import` translates a whole configuration file once, options included, printing it as PHP
+  or writing the file it is given in the format of its extension, NEON or PHP, never over an existing one, and such a
+  name written as a key of the file, in `--only` or in `fixRisky` is refused with the decisions that cover it.

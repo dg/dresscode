@@ -171,8 +171,9 @@ final class Translator
 	/**
 	 * A foreign rule switched off makes the requirements it stands for `keep` where no other rule of its tool that the
 	 * configuration may run stands for them; a requirement another one stands for too is left as it is, and so is one an
-	 * exclusion of a single message of its sniff would narrow, and the translation says so. A sniff and a message of it
-	 * standing for the same requirement count as one.
+	 * exclusion of a single message of its sniff would narrow or that the sniff of an excluded message, turned on by
+	 * name, sets as well, and the translation says so. A sniff and a message of it standing for the same requirement
+	 * count as one.
 	 * @param  array<string, bool|array<string, mixed>>  $rules
 	 */
 	private function translateDisabled(string $name, Translation $translation, array $rules): void
@@ -182,10 +183,19 @@ final class Translator
 		while ($paths === [] && substr_count($sniff, '.') > 2) {
 			$sniff = implode('.', array_slice(explode('.', $sniff), 0, -1));
 			if ($narrowed = $this->findPaths($sniff)) {
-				$translation->warn("`$name` is excluded, but `" . implode('`, `', $narrowed) . '` cannot leave out that check alone, so '
-					. (count($narrowed) > 1 ? 'they stay' : 'it stays') . ' as the rest of the configuration sets it.');
+				$this->warnInseparable($name, $narrowed, $translation);
 				return;
 			}
+		}
+
+		// a message of a sniff the configuration turns on by name cannot leave out what that sniff sets as well
+		$sniff = implode('.', array_slice(explode('.', $name), 0, 3));
+		$shared = $sniff !== $name && ($rules[$sniff] ?? false) !== false
+			? array_values(array_intersect($paths, $this->findPaths($sniff)))
+			: [];
+		if ($shared) {
+			$this->warnInseparable($name, $shared, $translation);
+			$paths = array_values(array_diff($paths, $shared));
 		}
 
 		$staying = $others = [];
@@ -216,6 +226,17 @@ final class Translator
 			$translation->warn("`$name` is turned off, but `$list` also " . ($plural ? 'stand' : 'stands')
 				. ' for `' . implode('`, `', array_unique($others)) . '`, so ' . ($plural ? 'they stay' : 'it stays') . '; set ' . ($plural ? 'them' : 'it') . ' to `keep` if none of them applies.');
 		}
+	}
+
+
+	/**
+	 * Says that the decisions an excluded message stands for stay, its sniff deciding them as a whole.
+	 * @param  list<string>  $paths
+	 */
+	private function warnInseparable(string $name, array $paths, Translation $translation): void
+	{
+		$translation->warn("`$name` is excluded, but `" . implode('`, `', $paths) . '` cannot leave out that check alone, so '
+			. (count($paths) > 1 ? 'they stay' : 'it stays') . ' as the rest of the configuration sets it.');
 	}
 
 
