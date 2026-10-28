@@ -280,7 +280,7 @@ final readonly class Config extends DressCode\Profile
 final class Catalogue
 	public const Version = 4
 	public const CoreSections = ['file', 'indentation', 'naming', 'casing', 'qualification', 'imports', 'spacing', 'multiline', 'braces', 'blankLines', 'classes', 'types', 'functions', 'hygiene', 'controlFlow', 'expressions', 'literals', 'comments', 'phpdoc', 'mistakes', 'upgrading']
-	public const Lexicon = ['required' => 'always there', 'forbidden' => 'never there', 'optional' => null, 'none' => null, 'sameLine' => null, 'nextLine' => null, 'above' => null, 'lineStart' => null, 'lineEnd' => null, 'perLine' => null, 'fill' => null, 'apart' => null, 'attached' => null, 'closingApart' => null, 'aligned' => null, 'collapsed' => null, 'expanded' => null, 'first' => null, 'last' => null, 'lastStatementSetApart' => null, 'spaces' => null, 'tabs' => null, 'bare' => null, 'imported' => null, 'backslashed' => null, 'self' => null, 'declared' => null, 'lowercase' => null, 'uppercase' => null, 'canonical' => null, 'alphabetical' => null, 'short' => null, 'long' => null, 'separated' => null, 'combined' => null, 'grouped' => null, 'joined' => null, 'PascalCase' => null, 'camelCase' => null, 'snake_case' => null, 'UPPER_CASE' => null, 'Pascal_Snake_Case' => null, 'constant' => null, 'property' => null, 'traitUse' => null]
+	public const Lexicon = ['required' => 'always there', 'forbidden' => 'never there', 'optional' => null, 'none' => null, 'sameLine' => null, 'nextLine' => null, 'above' => null, 'lineStart' => null, 'lineEnd' => null, 'perLine' => null, 'fill' => null, 'apart' => null, 'attached' => null, 'closingApart' => null, 'aligned' => null, 'collapsed' => null, 'expanded' => null, 'first' => null, 'last' => null, 'lastStatementSetApart' => null, 'spaces' => null, 'tabs' => null, 'bare' => null, 'imported' => null, 'backslashed' => null, 'self' => null, 'declared' => null, 'lowercase' => null, 'uppercase' => null, 'canonical' => null, 'alphabetical' => null, 'short' => null, 'long' => null, 'separated' => null, 'combined' => null, 'grouped' => null, 'joined' => null, 'PascalCase' => null, 'camelCase' => null, 'snake_case' => null, 'UPPER_CASE' => null, 'Pascal_Snake_Case' => null, 'constant' => null, 'property' => null, 'traitUse' => null, 'reported' => 'reported where it stands']
 	public const ProjectSection = 'project'
 	public static function fromRules(list<class-string<DressCode\Rule>> $rules): DressCode\Config\Catalogue
 	public function find(string $path): ?DressCode\Decision
@@ -1212,6 +1212,7 @@ final readonly class Violation
 - `DressCode\Rules\Upgrading\ReplacedFunctionCallsRule`
 - `DressCode\Rules\Upgrading\ReplacedFunctionsRule`
 - `DressCode\Rules\Upgrading\ReplacedMembersRule`
+- `DressCode\Rules\Upgrading\UnseenReferencesRule`
 - `DressCode\Rules\Variables\NoGlobalStatementsRule`
 - `DressCode\Rules\Variables\NoRepeatedAssignmentsRule`
 - `DressCode\Rules\Variables\NoSeparateIssetsRule`

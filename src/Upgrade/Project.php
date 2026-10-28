@@ -9,12 +9,14 @@ namespace DressCode\Upgrade;
 
 use DressCode\{Config, ConfigurationException};
 use DressCode\Config\RunnerFactory;
+use DressCode\Engine\Helpers;
+use DressCode\Measuring\NamespaceDeclarations;
 use DressCode\Reporters\NullReporter;
 
 
 /**
- * The project an upgrade runs over: its configuration, or the directory as a whole where it has no file of its own,
- * and what the command line lays over it.
+ * The project an upgrade measures or runs: its configuration, or the scope `init` would write where it has no file of
+ * its own, and what the command line lays over it.
  * @internal
  */
 final readonly class Project
@@ -31,20 +33,57 @@ final readonly class Project
 
 
 	/**
-	 * The layer an upgrade lays over the configuration: the command line, the plugins of the packages of upgrading data
-	 * and the types of the code.
+	 * The layer an upgrade lays over the configuration: the command line, the plugins of the packages of upgrading data,
+	 * the targets, the types, and where they were measured the names resolved for certain with what the namespaces
+	 * declare.
 	 * @param  list<string>  $plugins
+	 * @param  array<string, string>  $targets  package => version
+	 * @param  array<string, mixed>  $decisions  path => value, over those of the command line
 	 */
-	public function createLayer(array $plugins): Config
+	public function createLayer(
+		array $plugins,
+		bool $types,
+		array $targets = [],
+		?NamespaceDeclarations $declarations = null,
+		array $decisions = [],
+	): Config
 	{
 		$commandLine = $this->commandLine;
+		$tree = $commandLine->decisions ?? [];
+		foreach ($decisions as $path => $value) {
+			$tree = Helpers::placeValue($tree, $path, $value);
+		}
+
 		return new Config(
 			use: [...$commandLine->plugins ?? [], ...$commandLine->use ?? [], ...$plugins],
+			targets: $targets,
+			namespaces: $declarations === null ? [] : ['functions' => $declarations->functions, 'constants' => $declarations->constants],
+			nameResolution: $declarations === null ? null : 'certain',
 			fixRisky: $commandLine->fixRisky ?? [],
 			severity: $commandLine->severity ?? [],
-			typeAnalysis: 'phpstan',
-			decisions: $commandLine->decisions ?? [],
+			typeAnalysis: $types ? 'phpstan' : null,
+			decisions: $tree,
 		);
+	}
+
+
+	/**
+	 * What the namespaces of the scope declare, which resolves the names for certain where the configuration says nothing
+	 * of them; null where it does, or where a file of the scope does not parse.
+	 */
+	public function collectDeclarations(): ?NamespaceDeclarations
+	{
+		if ($this->config->nameResolution !== null) {
+			return null;
+		}
+
+		$factory = new RunnerFactory;
+		$runner = $factory->createRunner($factory->resolve($this->config, $this->root, $this->commandLine), cache: false);
+		$declarations = NamespaceDeclarations::collect(
+			$this->root,
+			$runner->findFiles($this->config->paths, configured: $this->config->paths),
+		);
+		return $declarations->unparsed === [] ? $declarations : null;
 	}
 
 
@@ -90,5 +129,11 @@ final readonly class Project
 		}
 
 		return $kept;
+	}
+
+
+	public function getCacheDir(): string
+	{
+		return RunnerFactory::resolveCacheDir($this->config, $this->root);
 	}
 }

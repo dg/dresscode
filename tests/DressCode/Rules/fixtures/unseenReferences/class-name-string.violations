@@ -1,0 +1,4 @@
+6: The string names class `Acme\Mail\OldMailer`, which is replaced by `Acme\Mail\Mailer`; no rewrite reaches a string.
+7: The string names class `Acme\Legacy\Gateway`, which is forbidden; no rewrite reaches a string.
+8: The string names class `Acme\Mail\OldMailer`, which is replaced by `Acme\Mail\Mailer`; no rewrite reaches a string.
+11: The string names class `Acme\Mail\OldMailer`, which is replaced by `Acme\Mail\Mailer`; no rewrite reaches a string.

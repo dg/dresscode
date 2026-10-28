@@ -322,8 +322,8 @@ test('a package the project requires itself is measured by the lowest version it
 		$runner->processCode("$root/f.php", "<?php\n\nnamespace App;\n\nnew \\Acme\\Lib\\Old;\n")->output,
 	);
 	Assert::same([
-		'The configuration names package `acme/ghost` in `targets`, but it is not installed; skipped.' => null,
-		'The configuration names package `app/project` in `targets`, but that is the project itself, whose code is any version of it; skipped.' => null,
+		'Package `acme/ghost` is named in `targets`, but it is not installed; skipped.' => null,
+		'Package `app/project` is named in `targets`, but that is the project itself, whose code is any version of it; skipped.' => null,
 	], $resolution->warnings);
 });
 

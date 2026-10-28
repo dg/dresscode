@@ -44,6 +44,8 @@ final readonly class UpgradingData
 		 * it came with and the version `from` says its fix is right from
 		 */
 		public array $origins = [],
+		/** the newest version a section of the file is of, null for what DressCode knows of a package itself */
+		public ?string $newest = null,
 	) {
 	}
 

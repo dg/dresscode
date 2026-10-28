@@ -234,7 +234,7 @@ final class ConfigResolver
 			lineLength: self::resolveLineLength($values->get('file.lineLength')),
 			tabWidth: $values->get('indentation.tabWidth')->getCountRange()[0],
 			typeAnalysis: $this->typesAvailable ? $typeAnalysis : null,
-			packageTargets: array_diff_key($config->targets, ['php' => true]),
+			packageTargets: array_diff_key(RunnerFactory::mergeTargets($config, $commandLine), ['php' => true]),
 			plugins: array_map(
 				fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class,
 				[...$config->plugins, ...$commandLine instanceof Config ? $commandLine->plugins : []],
@@ -758,7 +758,7 @@ final class ConfigResolver
 	 * section named like a preset is written `section.*`, the bare name being refused as both.
 	 * @throws ConfigurationException
 	 */
-	private function expandName(string $name): ExpandedName
+	public function expandName(string $name): ExpandedName
 	{
 		$package = $this->findDataPackage($name);
 		if ($package !== null) {

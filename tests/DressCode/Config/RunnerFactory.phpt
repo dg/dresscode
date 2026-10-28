@@ -4,7 +4,7 @@ use Composer\InstalledVersions;
 use DressCode\{
 	CodeWriter, 	Config, ConfigurationException, Decision, Domain, NodeRule, Override, Plugin, PluginManifest, Profile, RuleContext, RuleInfo, Stage,
 };
-use DressCode\Config\{ComposerJson, PhpVersionSource, RunnerFactory};
+use DressCode\Config\{ComposerJson, PhpVersionSource, RunnerFactory, UpgradingData};
 use DressCode\Engine\{Baseline, Runner, TypeAnalysisStatus};
 use DressCode\Reporters\NullReporter;
 use DressCode\Rules\ControlFlow\MatchForSwitchRule;
@@ -623,6 +623,36 @@ test('a violation of an entry of upgrading data names its section and the versio
 			$violations,
 		),
 	);
+});
+
+
+test('the targets of the command line cut the upgrading data before they are laid, over those of the configuration', function () {
+	$root = createTempDir('targets-command');
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0"}}');
+	$code = <<<'XX'
+		<?php
+
+		function checkTargets(ReflectionProperty $property): void
+		{
+			$property->setAccessible(true);
+		}
+		XX;
+	file_put_contents("$root/Check.php", $code);
+	$factory = new RunnerFactory;
+	$config = new Config(typeAnalysis: 'phpstan', decisions: ['upgrading' => ['php' => ['deprecatedApi' => 'forbidden']]]);
+	$run = function (?Config $commandLine) use ($factory, $config, $root, $code): array {
+		$resolution = $factory->resolve($config, $root, $commandLine);
+		$php = array_find(array_column($resolution->upgradingData, 0), fn(UpgradingData $data) => $data->package === 'php');
+		$result = $factory->createRunner($resolution, cache: false)->processCode("$root/Check.php", $code);
+		return [$resolution->resolvedConfig->phpVersion, $php?->unreached[0], $result->violations[0]->fixable];
+	};
+
+	// what PHP 8.1 made a no-op is reported for code that runs on 8.0, and removed once the command line moves it to 8.1
+	Assert::same(['8.0', '8.1', false], $run(null));
+	Assert::same(['8.1', '8.3', true], $run(new Config(targets: ['php' => '8.1'])));
+
+	$resolution = $factory->resolve(new Config(targets: ['acme/mail' => '2.0']), $root, new Config(targets: ['acme/mail' => '3.0']));
+	Assert::same(['acme/mail' => '3.0'], $resolution->resolvedConfig->packageTargets);
 });
 
 

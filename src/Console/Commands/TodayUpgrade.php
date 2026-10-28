@@ -23,7 +23,7 @@ use Nette\CommandLine\ParseResult;
 final readonly class TodayUpgrade
 {
 	/** the command line that runs it */
-	public const Command = 'upgrade';
+	public const Command = 'upgrade --today';
 
 
 	public function __construct(
@@ -39,8 +39,8 @@ final readonly class TodayUpgrade
 	/**
 	 * The project of the run: its configuration, or the directory as a whole where it has none, with the sets of the
 	 * upgrade laid over the presets it uses and beneath its own decisions and overrides, and the plugins of the packages
-	 * of upgrading data with the types of the code over it all, narrowed by `--only`, or where it has a configuration to
-	 * the decisions its style keeps and to the packages whose data reach the project.
+	 * of upgrading data with the types of the code and the names resolved for certain over it all, narrowed by `--only`,
+	 * or where it has a configuration to the decisions its style keeps and to the packages whose data reach the project.
 	 * @return array{RunnerFactory, ResolvedProject, ?string}
 	 * @throws ConfigurationException
 	 */
@@ -52,7 +52,7 @@ final readonly class TodayUpgrade
 		$factory = new RunnerFactory;
 		$discovered = PackageDiscovery::discover($factory->readProjectPackages($config, $root));
 		$sets = $this->modernize ? ['deprecations', 'modernizations'] : ['deprecations'];
-		$layer = $project->createLayer($discovered->findDataPlugins());
+		$layer = $project->createLayer($discovered->findDataPlugins(), types: true, declarations: $project->collectDeclarations());
 		$only = $this->only;
 		if ($file !== null && !$only) {
 			$only = [...$project->findKeptDecisions(), ...$sets, ...$discovered->findReachingPackages()];
@@ -63,13 +63,14 @@ final readonly class TodayUpgrade
 
 
 	/**
-	 * What a worker gets on its command line beyond that of `check`: the sets, and what the parent narrowed the run to,
-	 * unless `--only` did, which goes over as it is.
+	 * What a worker gets on its command line beyond that of `check`: the run, the sets, and what the parent narrowed the
+	 * run to, unless `--only` did, which goes over as it is.
 	 * @return list<string>
 	 */
 	public function getWorkerOptions(ResolvedProject $resolution): array
 	{
 		return [
+			'--today',
 			...$this->modernize ? ['--modernize'] : [],
 			...$this->only ? [] : array_map(fn(string $name) => "--only=$name", $resolution->only ?? []),
 		];

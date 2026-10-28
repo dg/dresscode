@@ -216,7 +216,22 @@ final readonly class UpgradingFile
 			$reported,
 			$requirements,
 			$origins,
+			$this->findNewestVersion(),
 		);
+	}
+
+
+	/** The newest version a section is of, the sections being in order of their versions. */
+	private function findNewestVersion(): ?string
+	{
+		$newest = null;
+		foreach ([array_key_last($this->sections), array_key_last($this->requirements)] as $version) {
+			if ($version !== null && ($newest === null || version_compare((string) $version, $newest, '>'))) {
+				$newest = (string) $version;
+			}
+		}
+
+		return $newest;
 	}
 
 

@@ -429,8 +429,8 @@ None of this is a search and replace: an annotation became an attribute along wi
 of a parameter moved behind `??` and a flag became a named argument. And DressCode knows that `$form` is a
 form and `$this` a presenter, because it asks PHPStan about the types.
 
-`vendor/bin/dresscode upgrade` makes the upgrade with no configuration: it takes the installed packages with
-their data and their rules, asks PHPStan about the [types](#types-from-phpstan) and leaves the style of the
+`vendor/bin/dresscode upgrade --today` makes the upgrade with no configuration: it takes the installed
+packages with their data and their rules, asks PHPStan about the [types](#types-from-phpstan) and leaves the style of the
 code as it is. To have every check watch for the old API too, name the package in `use` next to the set
 `deprecations`; without the types only classes, functions and annotations are fixed:
 

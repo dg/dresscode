@@ -49,8 +49,8 @@ final readonly class RunnerFactory
 		array $laid = [],
 	): ResolvedProject
 	{
-		[$target, $source] = $this->getPhpTarget($config, $root);
-		$project = $this->readProjectPackages($config, $root, $target);
+		[$target, $source] = $this->getPhpTarget($config, $root, $commandLine);
+		$project = $this->readProjectPackages($config, $root, $target, $commandLine);
 		$packages = PackageDiscovery::discover($project);
 		[$packagePlugins, $skipped, $unnamed] = $this->admitPackagePlugins(
 			$packages->plugins,
@@ -80,10 +80,10 @@ final readonly class RunnerFactory
 		$resolved = $resolver->resolve($config, $target, [], $commandLine, $only);
 		$missing = array_map(
 			fn(string $package) => $package === $project->rootName
-				? "The configuration names package `$package` in `targets`, but that is the project itself, whose code is any version of it; skipped."
-				: "The configuration names package `$package` in `targets`, but it is not installed; skipped.",
+				? "Package `$package` is named in `targets`, but that is the project itself, whose code is any version of it; skipped."
+				: "Package `$package` is named in `targets`, but it is not installed; skipped.",
 			array_filter(
-				array_keys(array_diff_key($config->targets, [PackageDiscovery::Php => true])),
+				array_keys(array_diff_key(self::mergeTargets($config, $commandLine), [PackageDiscovery::Php => true])),
 				fn(string $package) => !$project->has($package) || $package === $project->rootName,
 			),
 		);
@@ -621,14 +621,14 @@ final readonly class RunnerFactory
 
 
 	/**
-	 * The versions the code is written for unless an override says another, as a Composer constraint: the configured
-	 * one, or those the nearest composer.json allows, or the default one. The running version is never the answer: it
-	 * says nothing about the code being checked.
+	 * The versions the code is written for unless an override says another, as a Composer constraint: the one the
+	 * command line or the configuration says, or those the nearest composer.json allows, or the default one. The running
+	 * version is never the answer: it says nothing about the code being checked.
 	 * @return array{string, PhpVersionSource}
 	 */
-	public function getPhpTarget(Config $config, string $root): array
+	public function getPhpTarget(Config $config, string $root, ?Profile $commandLine = null): array
 	{
-		$php = $config->targets['php'] ?? null;
+		$php = self::mergeTargets($config, $commandLine)[PackageDiscovery::Php] ?? null;
 		$detected = $php === null ? ComposerJson::detectPhpTarget(ComposerJson::findFile($root)) : null;
 		return match (true) {
 			$php !== null => [$php, PhpVersionSource::Configuration],
@@ -639,13 +639,29 @@ final readonly class RunnerFactory
 
 
 	/**
-	 * The packages of the project with the versions the configuration says, PHP among them by the target, which a caller
-	 * that has it already gives.
+	 * The packages of the project with the versions the command line and the configuration say, PHP among them by the
+	 * target, which a caller that has it already gives.
 	 */
-	public function readProjectPackages(Config $config, string $root, ?string $phpTarget = null): ProjectPackages
+	public function readProjectPackages(
+		Config $config,
+		string $root,
+		?string $phpTarget = null,
+		?Profile $commandLine = null,
+	): ProjectPackages
 	{
 		return ProjectPackages::read($root)
-			->withTargets(array_diff_key($config->targets, [PackageDiscovery::Php => true]))
-			->withPhp($phpTarget ?? $this->getPhpTarget($config, $root)[0]);
+			->withTargets(array_diff_key(self::mergeTargets($config, $commandLine), [PackageDiscovery::Php => true]))
+			->withPhp($phpTarget ?? $this->getPhpTarget($config, $root, $commandLine)[0]);
+	}
+
+
+	/**
+	 * The targets of the configuration with those of the command line over them, which an upgrade lays for the versions
+	 * it moves the code to before the upgrading data are cut for them.
+	 * @return array<string, string>
+	 */
+	public static function mergeTargets(Config $config, ?Profile $commandLine): array
+	{
+		return [...$config->targets, ...$commandLine->targets ?? []];
 	}
 }

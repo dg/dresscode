@@ -151,7 +151,8 @@ function runApp(string $root, array $args, string $stdin = '', bool $xdebug = fa
 	$in = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	fwrite($in, $stdin);
 	rewind($in);
-	if (in_array($args[0] ?? null, ['check', 'fix', 'baseline', 'upgrade'], strict: true) && !in_array('--jobs', $args, strict: true)) {
+	$runs = in_array($args[0] ?? null, ['check', 'fix', 'baseline'], strict: true) || in_array('--today', $args, strict: true);
+	if ($runs && !in_array('--jobs', $args, strict: true)) {
 		$args = [...$args, '--jobs', '1']; // the rules of this file do not exist in a worker process
 	}
 
@@ -423,7 +424,7 @@ test('--lines takes the lines of one file in the agent format, anything else is 
 });
 
 
-test('upgrade rewrites the code in no style without a configuration, and with one in the style its code keeps', function () {
+test('upgrade --today rewrites the code in no style without a configuration, and with one in the style its code keeps', function () {
 	$code = "<?php\n\ndeclare(strict_types=1);\n\n\$h = curl_init();\ncurl_close(\$h);\n\$s = \"x\";\n";
 	$upgraded = "<?php\n\ndeclare(strict_types=1);\n\n\$h = curl_init();\n\$s = \"x\";\n";
 
@@ -433,11 +434,11 @@ test('upgrade rewrites the code in no style without a configuration, and with on
 	FileSystem::createDir("$root/src");
 	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2"}}');
 	file_put_contents("$root/src/a.php", $code);
-	[$exit, $out] = runApp($root, ['upgrade', '--no-color']);
+	[$exit, $out] = runApp($root, ['upgrade', '--today', '--no-color']);
 	Assert::same(0, $exit);
 	Assert::same($upgraded, file_get_contents("$root/src/a.php"));
 	Assert::match(
-		"%A%Config     none, using deprecations\n%A%Upgrading  PHP alone, no installed library has upgrading data\n%A%Run `dresscode upgrade` again: %a%\n",
+		"%A%Config     none, using deprecations\n%A%Upgrading  PHP alone, no installed library has upgrading data\n%A%Run `dresscode upgrade --today` again: %a%\n",
 		$out,
 	);
 	FileSystem::delete($root);
@@ -451,7 +452,7 @@ test('upgrade rewrites the code in no style without a configuration, and with on
 		file_put_contents("$root/src/$name.php", $code);
 	}
 
-	[$exit] = runApp($root, ['upgrade', '--no-color', '--jobs', '2']);
+	[$exit] = runApp($root, ['upgrade', '--today', '--no-color', '--jobs', '2']);
 	Assert::same(0, $exit);
 	Assert::same($upgraded, file_get_contents("$root/src/a.php"));
 	Assert::same($upgraded, file_get_contents("$root/src/h.php"));
@@ -459,7 +460,7 @@ test('upgrade rewrites the code in no style without a configuration, and with on
 });
 
 
-test('upgrade keeps what the project keeps, in an override too, the sets lying beneath its decisions', function () {
+test('upgrade --today keeps what the project keeps, in an override too, the sets lying beneath its decisions', function () {
 	$code = "<?php\n\ndeclare(strict_types=1);\n\n\$h = curl_init();\ncurl_close(\$h);\n";
 	$root = createTempDir('upgrade-kept');
 	mkdir("$root/src");
@@ -471,7 +472,7 @@ test('upgrade keeps what the project keeps, in an override too, the sets lying b
 	file_put_contents("$root/src/kept.php", $code);
 	file_put_contents("$root/src/upgraded.php", $code);
 
-	[$exit, , $err] = runApp($root, ['upgrade', '--no-color']);
+	[$exit, , $err] = runApp($root, ['upgrade', '--today', '--no-color']);
 	Assert::same(0, $exit);
 	Assert::same('', $err);
 	Assert::same($code, file_get_contents("$root/src/kept.php"));
@@ -479,7 +480,7 @@ test('upgrade keeps what the project keeps, in an override too, the sets lying b
 });
 
 
-test('upgrade says which packages are installed newer than required, and whose data are only reported', function () {
+test('upgrade --today says which packages are installed newer than required, and whose data are only reported', function () {
 	$root = createTempDir('upgrade-versions');
 	mkdir("$root/src");
 	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2", "acme/lib": "^3.0"}}');
@@ -503,7 +504,7 @@ test('upgrade says which packages are installed newer than required, and whose d
 		]], JSON_THROW_ON_ERROR),
 	);
 
-	[, $out] = runApp($root, ['upgrade', '--no-color']);
+	[, $out] = runApp($root, ['upgrade', '--today', '--no-color']);
 	Assert::match(
 		"%A%Upgrading  acme/tool\nLowest     acme/lib 3.2 installed, 3.0 required; `composer update --prefer-lowest` %a%\nReported   acme/tool: not required with a lower bound, %a%\n%A%",
 		$out,
@@ -511,7 +512,7 @@ test('upgrade says which packages are installed newer than required, and whose d
 });
 
 
-test('upgrade installs the upgrading data a library of the project needs only when asked, or with --yes', function () {
+test('upgrade --today installs the upgrading data a library of the project needs only when asked, or with --yes', function () {
 	$root = createTempDir('upgrade-data');
 	mkdir("$root/src");
 	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2", "nette/utils": "^4.0"}}');
@@ -525,21 +526,21 @@ test('upgrade installs the upgrading data a library of the project needs only wh
 	);
 
 	// outside a terminal it says how to install the data, and changes nothing
-	[$exit, , $err] = runApp($root, ['upgrade', '--no-color']);
+	[$exit, , $err] = runApp($root, ['upgrade', '--today', '--no-color']);
 	Assert::same(3, $exit);
 	Assert::match(
-		"Error: The libraries of the project have upgrading data in `dresscode/upgrade-nette`, which DressCode does not have; install it with `composer require --working-dir=%a% dresscode/upgrade-nette`, or let `dresscode upgrade --yes` do it.\n%A?%",
+		"Error: The libraries of the project have upgrading data in `dresscode/upgrade-nette`, which DressCode does not have; install it with `composer require --working-dir=%a% dresscode/upgrade-nette`, or let `dresscode upgrade --today --yes` do it.\n%A?%",
 		$err,
 	);
 
 	// in a terminal it asks, and declined it upgrades without the data
-	[$exit, $out] = runApp($root, ['upgrade', '--no-color'], stdin: "n\n", interactive: true);
+	[$exit, $out] = runApp($root, ['upgrade', '--today', '--no-color'], stdin: "n\n", interactive: true);
 	Assert::same(0, $exit);
 	Assert::match('%A%Install it beside DressCode in `%a%`?%A%', $out);
 });
 
 
-test('upgrade runs the rules of a package of upgrading data its maps turn on, which check runs only where use names it', function () {
+test('upgrade --today runs the rules the maps of a package of upgrading data turn on, check only where use names it', function () {
 	require_once __DIR__ . '/fixtures/upgrade-plugin.php';
 	$root = createTempDir('upgrade-plugin');
 	mkdir("$root/src");
@@ -567,10 +568,97 @@ test('upgrade runs the rules of a package of upgrading data its maps turn on, wh
 		runApp($root, ['check', '--no-color'])[2],
 	);
 	foreach ([[], ['--only', 'acme/upgrade']] as $only) {
-		[, $out, $err] = runApp($root, ['upgrade', '--no-color', ...$only]);
+		[, $out, $err] = runApp($root, ['upgrade', '--today', '--no-color', ...$only]);
 		Assert::same('', $err);
 		Assert::contains('A variable of the upgrade.', $out);
 	}
+});
+
+
+test('upgrade without --today measures what an upgrade costs, topic by topic, and changes nothing', function () {
+	// outside the repository, whose configuration it would find
+	$root = sys_get_temp_dir() . '/dresscode-offer-' . getmypid();
+	FileSystem::delete($root);
+	FileSystem::createDir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0"}, "autoload": {"psr-4": {"App\\\\": "src/"}}}');
+	$code = "<?php\n\nnamespace App;\n\nfunction run(\$handle, int \$count = null): void\n{\n\tcurl_close(\$handle);\n\tstrftime('%Y');\n}\n";
+	file_put_contents("$root/src/Code.php", $code);
+
+	[$exit, $out, $err] = runApp($root, ['upgrade', 'php', '8.4', '--no-types', '--offline', '--no-color']);
+	Assert::same('', $err);
+	Assert::same(0, $exit);
+	Assert::match(<<<'XX'
+		DRESS|CODE %a%
+		Config     none, the scope `init` would write: src
+		Upgrade    php 8.4 over 1 file, the names resolved for certain as measured, without the types of the code
+
+		Must change, 3 topics in 3 places
+		  php                             1 place in 1 file       after the raise, 1 for you
+		  php                             1 place in 1 file       works today, automatic
+		  upgrading.php.implicitNullable  1 place in 1 file       works today, automatic
+
+		Today      2 places of `deprecations` are rewritten on the versions allowed now by `dresscode upgrade --today`
+		Data       php up to %d%.%d%
+		XX, $out);
+	Assert::same($code, file_get_contents("$root/src/Code.php"));
+
+	[$exit, $out] = runApp($root, ['upgrade', 'php', '8.4', '--no-types', '--offline', '--format', 'json']);
+	Assert::same(0, $exit);
+	// workers measure what the process alone does
+	Assert::same($out, runApp($root, ['upgrade', 'php', '8.4', '--no-types', '--offline', '--format', 'json', '--jobs', '2'])[1]);
+	$offer = json_decode($out, associative: true, flags: JSON_THROW_ON_ERROR);
+	Assert::same([['package' => 'php', 'version' => '8.4']], $offer['targets']);
+	Assert::same(
+		['php jump', 'php bridge', 'upgrading.php.implicitNullable bridge'],
+		array_map(fn(array $topic) => "$topic[name] $topic[phase]", $offer['topics']),
+	);
+
+	// the paths named narrow the configured ones
+	file_put_contents("$root/src/Other.php", "<?php\n");
+	[, $out] = runApp($root, ['upgrade', '--no-types', '--offline', '--format', 'json', '--paths', 'src/Other.php']);
+	$offer = json_decode($out, associative: true, flags: JSON_THROW_ON_ERROR);
+	Assert::same([1, []], [$offer['files'], $offer['topics']]);
+	FileSystem::delete($root);
+});
+
+
+test('upgrade names the package of upgrading data a library of the project has, which DressCode lacks', function () {
+	$root = createTempDir('offer-missing-data');
+	mkdir("$root/src");
+	file_put_contents("$root/src/Code.php", "<?php\n");
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.2", "nette/utils": "^4.0", "acme/mail": "^1.0"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\ncacheDir: cache\n");
+	FileSystem::write("$root/cache/data-packages.json", '{"dresscode/upgrade-nette": ["nette/", "latte/latte"]}');
+
+	[$exit, $out] = runApp($root, ['upgrade', 'php', '8.4', '--no-types', '--offline', '--no-color']);
+	Assert::same(0, $exit);
+	Assert::contains(
+		"No data    nette/utils: the upgrading data are in `dresscode/upgrade-nette`, which `dresscode upgrade --today` installs\n",
+		$out,
+	);
+});
+
+
+test('upgrade refuses what the offer cannot measure, and an option of --today without it', function () use ($root) {
+	foreach ([
+		[['upgrade', '--modernize'], '`--modernize` goes with `--today`; %a%'],
+		[['upgrade', 'acme/mail'], 'Name the version of `acme/mail` to upgrade to, as `upgrade acme/mail 4.0`.'],
+		[['upgrade', 'php', 'next'], 'The version to upgrade to is written as `8.4` or `4.0`, `next` given.'],
+		[['upgrade', 'php', '--today'], '`--today` upgrades to the versions `composer.json` allows, so it takes no target; %a%'],
+		[['upgrade', '--format', 'lines'], 'The offer is written as `console` or `json`; `lines` is a format of `--today`.'],
+	] as [$args, $message]) {
+		[$exit, , $err] = runApp($root, $args);
+		Assert::same(3, $exit);
+		Assert::match("%A%$message%A%", $err);
+	}
+
+	// outside the repository, whose composer.json it would find
+	$empty = sys_get_temp_dir() . '/dresscode-offer-empty-' . getmypid();
+	FileSystem::createDir($empty);
+	[$exit, , $err] = runApp($empty, ['upgrade']);
+	FileSystem::delete($empty);
+	Assert::same(3, $exit);
+	Assert::contains('There is nothing to measure', $err);
 });
 
 

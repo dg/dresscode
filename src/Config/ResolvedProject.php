@@ -59,6 +59,16 @@ final readonly class ResolvedProject
 
 
 	/**
+	 * What a name of `only` stands for in the project: the decisions of a preset, a section, a package or a rule.
+	 * @throws ConfigurationException
+	 */
+	public function expandName(string $name): ExpandedName
+	{
+		return $this->resolver->expandName($name);
+	}
+
+
+	/**
 	 * What the configuration comes to for a file matching those overrides; the same resolution the run uses.
 	 * @param  list<int>  $overrides
 	 * @throws ConfigurationException

@@ -191,6 +191,24 @@ final readonly class PackageDiscovery
 
 
 	/**
+	 * The newest version the upgrading data of each library know of, PHP among them.
+	 * @return array<string, string>  library => version
+	 */
+	public function findKnownVersions(): array
+	{
+		$versions = [];
+		foreach ($this->upgradingData as $data) {
+			if ($data->newest !== null && version_compare($data->newest, $versions[$data->package] ?? '0', '>')) {
+				$versions[$data->package] = $data->newest;
+			}
+		}
+
+		ksort($versions);
+		return $versions;
+	}
+
+
+	/**
 	 * The upgrading files of a package, relative to where it lies: every NEON file of the directory
 	 * `extra.dresscode.upgrading-dir` names, in the order of their names.
 	 * @param  array<mixed>  $extra  `extra.dresscode` of the package
