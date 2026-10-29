@@ -191,6 +191,13 @@ final readonly class Project
 	}
 
 
+	/** The directory of the `composer.json` of the project, the root or one above it; the root where there is none. */
+	public function findComposerRoot(): string
+	{
+		return ProjectPackages::read($this->root)->rootPath ?? $this->root;
+	}
+
+
 	public function getCacheDir(): string
 	{
 		return RunnerFactory::resolveCacheDir($this->config, $this->root);

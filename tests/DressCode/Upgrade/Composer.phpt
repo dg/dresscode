@@ -86,6 +86,27 @@ test('a Composer that fails says why, with the last line it wrote', function () 
 });
 
 
+test('the dry run of a raise is of a copy of composer.json with the platform raised, which it leaves nowhere', function () {
+	$root = createTempDir('composer-preview');
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0"}}');
+	// a Composer that tells the arguments and the platform of the file it is given
+	file_put_contents("$root/composer.php", <<<'XX'
+		<?php
+		$data = json_decode(file_get_contents(getenv('COMPOSER')), true);
+		echo '- Upgrading acme/args (' . implode(' ', array_slice($argv, 1, 3)) . ' => ' . ($data['config']['platform']['php'] ?? 'none') . ")\n";
+		XX);
+	putenv("COMPOSER_BINARY=$root/composer.php");
+	try {
+		$composer = new Composer($root);
+		Assert::same(['- Upgrading acme/args (update --lock --dry-run => 8.4)'], $composer->previewRequire([], platform: '8.4'));
+		Assert::same(['- Upgrading acme/args (require php:^8.4 -W => 8.4)'], $composer->previewRequire(['php' => '^8.4'], platform: '8.4'));
+		Assert::same(['composer.json', 'composer.php'], array_values(array_diff(scandir($root), ['.', '..'])));
+	} finally {
+		putenv('COMPOSER_BINARY');
+	}
+});
+
+
 test('nothing refuses a version where why-not says no installed package depends on it otherwise', function () {
 	$output = 'There is no installed package depending on "php" in versions not matching 8.5';
 	$blockers = Composer::parseBlockers(Target::php('8.5'), $output, null);
