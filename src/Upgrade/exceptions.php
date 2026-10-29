@@ -15,3 +15,21 @@ namespace DressCode\Upgrade;
 final class ComposerException extends \Exception
 {
 }
+
+
+/**
+ * What a step changed could not be committed, the message saying what is left uncommitted.
+ * @internal
+ */
+final class CommitException extends \Exception
+{
+}
+
+
+/**
+ * Git refused a command or did not end in time, the message saying which.
+ * @internal
+ */
+final class GitException extends \Exception
+{
+}
