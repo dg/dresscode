@@ -1,0 +1,6 @@
+<?php
+// {"spacing.anonymousFunction": "keep"}
+$a = function($x) use ($y) { return $x; };
+$b = function ($x) use ($y) { return $x; };
+$c = function  ($x) use ($y) { return $x; };
+return 1;

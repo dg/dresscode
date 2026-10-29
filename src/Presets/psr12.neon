@@ -50,7 +50,7 @@ spacing:
 		closureUse: forbidden
 		controlStructure: forbidden
 		grouping: forbidden
-	keyword: 'return $x'                      # `if (`, `} else {`, `function (`, `new`, `class Foo extends Bar` too
+	keyword: 'return $x'                      # `if (`, `} else {`, `new`, `class Foo extends Bar` too
 	openBrace: 'if ($a) {'
 	alternativeSyntax: 'if ($a):'
 	body: 'function () { return 1; }'
@@ -67,6 +67,7 @@ spacing:
 	concatenation: '$a . $b'
 	ternary: '$a ? $b : $c'                   # `$a ?: $b` too
 	anonymousClass: 'new class ($a)'
+	anonymousFunction: 'function ($x)'
 	typeDeclaration: '?int $x'                # `): int` too
 	catchType: 'catch (A | B $e)'
 	switchCase: 'case 1:'

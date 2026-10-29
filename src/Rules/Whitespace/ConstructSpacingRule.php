@@ -21,7 +21,7 @@ use function count;
 
 /**
  * A single space after a language construct and what follows it on its line (`return $a`, `new Foo`,
- * `function ()`, `public static`), before and after the keyword that continues one (`} else {`, `$a as $b`,
+ * `function foo`, `public static`), before and after the keyword that continues one (`} else {`, `$a as $b`,
  * `} catch (`), before the brace or the body a structure opens on the same line, and inside the braces of a body
  * whose code stands on their line (`function () { return 1; }`) and of abbreviated property hooks
  * (`{ get; set; }`); the colon of the alternative syntax and of a label hugs
@@ -29,8 +29,8 @@ use function count;
  * the braces of a group use hug their names. What may begin on the line below
  * a construct is left there: a body, a list of several items, attributes and whatever follows a comment.
  * `as`, `insteadof` and the `use` of a closure stay on the line of what is before them.
- * The space between `fn` and its parenthesis, and whether an expression spanning several lines may begin below
- * `return` and its like, are options.
+ * The space between `fn` or the `function` of a closure and its parenthesis, and whether an expression spanning
+ * several lines may begin below `return` and its like, are options.
  */
 #[RuleInfo(Stage::Formatting, decisions: [self::Keyword])]
 final class ConstructSpacingRule extends GapRule
@@ -41,13 +41,14 @@ final class ConstructSpacingRule extends GapRule
 	private const Body = 'spacing.body';
 	private const Import = 'spacing.import';
 	private const ArrowFunction = 'spacing.arrowFunction';
+	private const AnonymousFunction = 'spacing.anonymousFunction';
 	private const ExpressionStart = 'multiline.expressionStart.';
 
 	/** the slots of the keywords followed by a space */
 	private const FollowedBySpace = [
 		'returnKeyword', 'printKeyword', 'throwKeyword', 'cloneKeyword', 'newKeyword', 'yieldKeyword', 'yieldFromKeyword',
 		'includeKeyword', 'namespaceKeyword', 'constKeyword', 'globalKeyword', 'staticKeyword', 'gotoKeyword',
-		'breakKeyword', 'continueKeyword', 'functionKeyword', 'ifKeyword', 'elseifKeyword', 'elseKeyword', 'whileKeyword',
+		'breakKeyword', 'continueKeyword', 'ifKeyword', 'elseifKeyword', 'elseKeyword', 'whileKeyword',
 		'forKeyword', 'foreachKeyword', 'switchKeyword', 'matchKeyword', 'catchKeyword', 'finallyKeyword', 'doKeyword',
 		'tryKeyword', 'useKeyword', 'asKeyword', 'insteadofKeyword', 'caseKeyword',
 	];
@@ -81,6 +82,7 @@ final class ConstructSpacingRule extends GapRule
 	];
 
 	private ?Claim $spaceAfterFn;
+	private ?Claim $spaceAfterFunction;
 
 	/** a single space before the colon of the alternative syntax and of a label, none otherwise */
 	private bool $colonSpaced = false;
@@ -126,6 +128,14 @@ final class ConstructSpacingRule extends GapRule
 				]),
 				'The space between `fn` and its parenthesis',
 			),
+			new Decision(
+				self::AnonymousFunction,
+				new Shapes([
+					'compact' => ['function($x)', 'no space before the parenthesis'],
+					'spaced' => ['function ($x)', 'a single space'],
+				]),
+				'The space between the `function` of a closure and its parenthesis',
+			),
 		];
 		foreach ([
 			'return' => '`return`',
@@ -156,11 +166,8 @@ final class ConstructSpacingRule extends GapRule
 		}
 
 		$this->colonSpaced = $values->find(self::AlternativeSyntax)?->getShape() === 'spaced';
-		$this->spaceAfterFn = match ($values->find(self::ArrowFunction)?->getShape()) {
-			'spaced' => $this->claims[self::ArrowFunction][0],
-			'compact' => $this->claims[self::ArrowFunction][2],
-			default => null,
-		};
+		$this->spaceAfterFn = $this->findSpaceAfter(self::ArrowFunction, $values);
+		$this->spaceAfterFunction = $this->findSpaceAfter(self::AnonymousFunction, $values);
 	}
 
 
@@ -188,6 +195,11 @@ final class ConstructSpacingRule extends GapRule
 			fn(Gap $gap) => $gap->token->is(Token::OpenTagWithEcho) ? null : $this->claimAfterKeyword($gap),
 		];
 		$any['fnKeyword'] = [null, $this->spaceAfterFn];
+		// the function of a closure is spaced by its own decision, that of a declaration by the keyword's
+		$any['functionKeyword'] = [
+			null,
+			fn(Gap $gap) => $gap->token->parent instanceof ClosureNode ? $this->spaceAfterFunction : $this->claimAfterKeyword($gap),
+		];
 		// a pair of braces with nothing between them is written {}, unless `braces.emptyBody` writes it
 		$any['closeBrace'] = [
 			fn(Gap $gap) => ($gap->token->getPrevious()?->is('{') ?? false) && !self::isBody($gap->token->parent) ? $bodyNone : null,
@@ -243,6 +255,17 @@ final class ConstructSpacingRule extends GapRule
 		// the modifier of a trait alias, in front of the alias: `as protected foo`
 		$claims[TraitAliasNode::class]['modifier'] = [null, $afterKeyword];
 		return $claims;
+	}
+
+
+	/** The claim of the space after the keyword of an anonymous function the decision makes, none for a `keep`. */
+	private function findSpaceAfter(string $decision, Values $values): ?Claim
+	{
+		return match ($values->find($decision)?->getShape()) {
+			'spaced' => $this->claims[$decision][0],
+			'compact' => $this->claims[$decision][2],
+			default => null,
+		};
 	}
 
 
