@@ -716,6 +716,7 @@ test('upgrade names the package of upgrading data a library of the project has, 
 test('upgrade refuses what the offer cannot measure, and an option of --today without it', function () use ($root) {
 	foreach ([
 		[['upgrade', '--modernize'], '`--modernize` goes with `--today`; %a%'],
+		[['upgrade', '--max-warnings', '0'], '`--max-warnings` goes with `--today`; %a%'],
 		[['upgrade', 'acme/mail'], 'Name the version of `acme/mail` to upgrade to, as `upgrade acme/mail 4.0`.'],
 		[['upgrade', 'php', 'next'], 'The version to upgrade to is written as `8.4` or `4.0`, `next` given.'],
 		[['upgrade', 'php', '--today'], '`--today` upgrades to the versions `composer.json` allows, so it takes no target; %a%'],

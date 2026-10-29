@@ -82,6 +82,12 @@ final readonly class UpgradeOptions
 		)]
 		public array $only = [],
 		#[Cli\Option(
+			'With `--today`, exit with `1` when more than `n` warnings are left, as in CI',
+			valueName: 'n',
+			normalizer: [CheckOptions::class, 'parseMaxWarnings'],
+		)]
+		public ?int $maxWarnings = null,
+		#[Cli\Option(
 			'Number of worker processes; by default the number of processors, at most one per four files; `1` runs in-process',
 			valueName: 'n',
 			normalizer: [RunOptions::class, 'parseJobs'],
@@ -119,6 +125,7 @@ final readonly class UpgradeOptions
 			'--fix-risky' => $this->fixRisky,
 			'--only' => $this->only,
 			'--no-cache' => $this->noCache,
+			'--max-warnings' => $this->maxWarnings,
 		]);
 		$planOption = $given([
 			'--plan' => $this->plan,

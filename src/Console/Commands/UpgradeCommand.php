@@ -394,7 +394,7 @@ final readonly class UpgradeCommand
 			$args,
 			$configuration,
 			$run,
-			new CheckOptions(fixRisky: $options->fixRisky, only: $options->only),
+			new CheckOptions(maxWarnings: $options->maxWarnings, fixRisky: $options->fixRisky, only: $options->only),
 			fix: true,
 			askRisky: (bool) $options->askRisky,
 			upgrade: new TodayUpgrade($this->context, (bool) $options->modernize, $options->only),
