@@ -50,6 +50,8 @@ final readonly class Estimator
 		private ?\Closure $createWorkers = null,
 		/** @var ?\Closure(string): void  told what is being measured */
 		private ?\Closure $onProgress = null,
+		/** the project is planned as a library, which widens its constraints and so moves no installed package */
+		private bool $library = false,
 	) {
 	}
 
@@ -149,8 +151,10 @@ final readonly class Estimator
 			namesMeasured: $names->declarations !== null,
 			types: $resolution->resolvedConfig->typeAnalysis !== null,
 			warnings: [...array_keys($resolution->warnings), ...$warnings],
-			moves: $composer === null || $this->offline ? null : $this->findMoves($composer, $packages, $targets),
+			moves: $composer === null || $this->offline || $this->library ? null : $this->findMoves($composer, $packages, $targets),
 			unprocessed: self::collectUnprocessed($result),
+			paths: $paths ? $scope : [],
+			library: $this->library,
 		);
 	}
 
@@ -215,7 +219,7 @@ final readonly class Estimator
 
 	/**
 	 * What the fixes of a topic of the library are right on: its constraint of today in the bridge, and in the jump the one
-	 * the target raises it to.
+	 * the target raises it to, as the plan writes it.
 	 * @param  list<Target>  $targets
 	 */
 	private static function findConstraint(?string $library, Phase $phase, array $targets, ResolvedProject $today): ?string
@@ -341,7 +345,8 @@ final readonly class Estimator
 
 
 	/**
-	 * What raising the constraints to the targets moves, as the dry run of Composer says, which needs the network.
+	 * What raising the constraints to the targets as the plan raises them moves, as the dry run of Composer says, which
+	 * needs the network.
 	 * @param  list<Target>  $targets
 	 */
 	private function findMoves(Composer $composer, ProjectPackages $packages, array $targets): Moves

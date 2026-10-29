@@ -7,18 +7,18 @@
 
 namespace DressCode\Console\Commands;
 
-use DressCode\{Analyses, Config, ConfigurationException};
-use DressCode\Config\{PackageDiscovery, Versions};
-use DressCode\Console\{CommandContext, EstimatePrinter, Markup, RunExecutor};
+use DressCode\{Analyses, Config, ConfigurationException, Tristate};
+use DressCode\Config\{PackageDiscovery, ProjectPackages, Versions};
+use DressCode\Console\{CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor};
 use DressCode\Engine\{Worker, WorkerPool};
-use DressCode\Upgrade\{Estimate, Estimator, Project, Target, UpgradeCheck};
+use DressCode\Upgrade\{Estimate, Estimator, Plan, PlanBuilder, PlanFile, Project, Target, UpgradeCheck};
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 
 
 /**
- * The commands of `upgrade`: what moving the code to newer versions of PHP and of the libraries changes, and the code
- * moved to the lowest versions the project allows.
+ * The commands of `upgrade`: what moving the code to newer versions of PHP and of the libraries changes, the plan that
+ * orders it into steps, and the code moved to the lowest versions the project allows.
  * @internal
  */
 final readonly class UpgradeCommand
@@ -57,6 +57,50 @@ final readonly class UpgradeCommand
 			$this->writeJson($project, $printer->toArray());
 		} else {
 			$console->write(Markup::highlightCode($console, $printer->print($console)));
+		}
+
+		return $estimate->isComplete() ? 0 : 2;
+	}
+
+
+	#[Cli\Command('Order the estimate into the steps of an upgrade, changing nothing; `--save` keeps the plan')]
+	public function plan(
+		ParseResult $args,
+		#[Cli\Argument('`php` or a package; PHP and every library with upgrading data when omitted', optional: true)]
+		?string $target,
+		#[Cli\Argument('The version to upgrade to; for PHP the newest its upgrading data know when omitted', optional: true)]
+		?string $version,
+		#[Cli\Flag('Save the plan into `dresscode-upgrade.neon`, which the team may edit')]
+		?bool $save,
+		EstimateOptions $options,
+		PlanOptions $planning,
+		ConfigOptions $configuration,
+	): int
+	{
+		if (($misuse = $planning->findMisuse()) !== null) {
+			throw new UsageException($misuse, $args->command);
+		}
+
+		$project = $this->loadProject($args, $configuration);
+		$console = $this->findConsole($options->format);
+		$types = $this->decideTypes($options->types, $this->mayAsk($options->format), $project->config);
+		[$estimate, $plan, $mode] = $this->makePlan(
+			$args, $project, $target, $version, $types, $options, $planning, $configuration, $console,
+		);
+		// the plan comes after the estimate it orders, which says what it cannot see and what it is not sure of
+		$estimatePrinter = new EstimatePrinter($estimate);
+		$planPrinter = new PlanPrinter($plan, $mode);
+		$console?->write(Markup::highlightCode($console, $estimatePrinter->print($console) . "\n" . $planPrinter->print($console)));
+		if ($save) {
+			$this->savePlan($plan, $project, $console);
+		}
+
+		if ($console === null) {
+			$this->writeJson($project, [...$planPrinter->toArray(), 'estimate' => $estimatePrinter->toArray()], saved: (bool) $save);
+		}
+
+		if ($plan->steps !== [] && !$save) {
+			$console?->writeLine(Markup::formatLabel($console, 'Next') . '`--save` keeps the plan in `' . PlanFile::Name . '` for the team to review');
 		}
 
 		return $estimate->isComplete() ? 0 : 2;
@@ -102,6 +146,7 @@ final readonly class UpgradeCommand
 		EstimateOptions $options,
 		ConfigOptions $configuration,
 		?Console $console,
+		bool $library = false,
 	): Estimate
 	{
 		$estimator = new Estimator(
@@ -117,6 +162,7 @@ final readonly class UpgradeCommand
 			onProgress: $console === null
 				? null
 				: fn(string $what) => $console->setStatus(Markup::formatLabel($console, 'Measuring') . "$what\u{2026}"),
+			library: $library,
 		);
 		$targets = $this->resolveTargets($args, $target, $version, $estimator);
 		if ($console !== null) {
@@ -131,12 +177,61 @@ final readonly class UpgradeCommand
 	}
 
 
+	/**
+	 * Measures what upgrading to the targets changes and orders it into the steps of an upgrade, of a library or of an
+	 * application, which it says with why.
+	 * @return array{Estimate, Plan, string}
+	 */
+	private function makePlan(
+		ParseResult $args,
+		Project $project,
+		?string $target,
+		?string $version,
+		bool $types,
+		EstimateOptions $options,
+		PlanOptions $planning,
+		ConfigOptions $configuration,
+		?Console $console,
+	): array
+	{
+		// a library moves no installed package, which the estimate would otherwise ask Composer about
+		[$library, $why] = $planning->library === null
+			? $this->decideLibrary($this->mayAsk($options->format), $project)
+			: [$planning->library, 'as `--' . ($planning->library ? '' : 'no-') . 'library` says'];
+		$estimate = $this->measure($args, $project, $target, $version, $types, $options, $configuration, $console, $library);
+		if ($estimate->targets === []) { // a project on PHP 7 is offered none
+			throw new UsageException(
+				'There is no version to plan an upgrade to; name one, as `php 8.4` or `vendor/name 4.0`.',
+				$args->command,
+			);
+		}
+
+		$plan = new PlanBuilder(ProjectPackages::read($project->root))
+			->build($estimate, $planning->testCommand, $planning->quickTestCommand);
+		return [$estimate, $plan, ($library ? 'library, ' : 'application, ') . $why];
+	}
+
+
+	/** Saves the plan; a plan of no step is no file. */
+	private function savePlan(Plan $plan, Project $project, ?Console $console): void
+	{
+		if ($plan->steps === []) {
+			$console?->writeLine(Markup::formatLabel($console, 'Saved') . 'nothing, as the upgrade has no step to make');
+			return;
+		}
+
+		PlanFile::write($plan, $project->root);
+		$console?->writeLine(Markup::formatLabel($console, 'Saved') . PlanFile::Name);
+	}
+
+
 	/** @param  array<string, mixed>  $data */
-	private function writeJson(Project $project, array $data): void
+	private function writeJson(Project $project, array $data, bool $saved = false): void
 	{
 		$data = [
 			'version' => $data['version'],
 			'root' => $project->root,
+			...$saved ? ['planIdentity' => PlanFile::identify($project->root)] : [],
 			...$data,
 		];
 		$this->context->writeJson($data);
@@ -196,6 +291,36 @@ final readonly class UpgradeCommand
 				=> throw new UsageException("The target is `php` or a package as `vendor/name`, `$target` given.", $args->command),
 			$version === null => throw new UsageException("Name the version of `$target` to upgrade to, as `$target 4.0`.", $args->command),
 			default => [new Target($target, $version)],
+		};
+	}
+
+
+	/**
+	 * Whether the plan is the one of a library, which widens its constraints, where no option says, and why: by the `type`
+	 * of the project and the lock it has none of, and for a library with a lock of its own in a terminal as the user
+	 * answers, otherwise as the application the lock makes it.
+	 * @return array{bool, string}
+	 */
+	private function decideLibrary(bool $mayAsk, Project $project): array
+	{
+		$packages = ProjectPackages::read($project->root);
+		$type = $packages->findType();
+		$typed = ($packages->rootPath !== null && isset(Config\ComposerJson::read("$packages->rootPath/composer.json")['type']))
+			? "`composer.json` gives the type `$type`"
+			: '`composer.json` gives no type, which Composer reads as `library`';
+		return match ($packages->isLibrary()) {
+			Tristate::Yes => [true, "$typed, and there is no `composer.lock`"],
+			Tristate::No => [false, $typed],
+			Tristate::Maybe => $mayAsk
+				? [$this->context->prompt->choose(
+					"$typed, yet the project has a `composer.lock` of its own. Plan it as a library, which widens its constraints to the targets instead of raising them?",
+					['y', 'n'],
+					'y',
+				) === 'y', 'as you answered']
+				: [
+					false,
+					"$typed, yet the project has a `composer.lock` of its own, as an application has; `--library` plans it as a library",
+				],
 		};
 	}
 

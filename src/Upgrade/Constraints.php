@@ -7,12 +7,12 @@
 
 namespace DressCode\Upgrade;
 
-use DressCode\Config\{ProjectPackages, Versions};
+use DressCode\Config\{PackageDiscovery, ProjectPackages, Versions};
 
 
 /**
- * The constraints of `composer.json` an upgrade raises to the targets, each in the shape the project writes it with its
- * upper bounds kept.
+ * The constraints of `composer.json` an upgrade writes: raised to the targets for an application, each in the shape the
+ * project writes it with its upper bounds kept, or widened to them for a library.
  * @internal
  */
 final readonly class Constraints
@@ -74,6 +74,18 @@ final readonly class Constraints
 	}
 
 
+	/** The upper bound of its own the constraint raised to the version passes, `<8.4` of `>=8.1 <8.4` raised to 8.4. */
+	public static function findPassedUpperBound(string $constraint, string $version): ?string
+	{
+		$parts = Versions::splitAlternatives($constraint);
+		$last = end($parts);
+		return $last === false || array_any($parts, fn(string $part) => Versions::isSubset($version, $part)
+			|| version_compare(Versions::findLowestVersion($part) ?? '0', $version, '>='))
+			? null
+			: self::findUpperBound($last);
+	}
+
+
 	/**
 	 * The part of a constraint with its lower bound replaced by the version, its upper bound kept: each operator with its
 	 * version, `>= 8.1` as `>=8.1`, and a range of a hyphen with its end.
@@ -103,5 +115,39 @@ final readonly class Constraints
 			(bool) preg_match('~<=?\s*v?\d[\w.-]*~', $part, $m) => $m[0],
 			default => null,
 		};
+	}
+
+
+	/**
+	 * The constraints the targets widen, `^3.2 || ^4.0` for `^3.2`; nothing for a target they allow.
+	 * @param  list<Target>  $targets
+	 * @return array<string, string>  package => constraint
+	 */
+	public function widen(array $targets): array
+	{
+		$require = [];
+		foreach ($targets as $target) {
+			$constraint = $this->project->required[$target->package] ?? null;
+			if ($constraint !== null && !Versions::isSubset($target->version, $constraint)) {
+				$require[$target->package] = "$constraint || ^$target->version";
+			}
+		}
+
+		return $require;
+	}
+
+
+	/**
+	 * The version of PHP `config.platform.php` is raised to, where `composer.json` sets it below the target, which
+	 * Composer would otherwise resolve the packages for.
+	 * @param  list<Target>  $targets
+	 */
+	public function raisePlatform(array $targets): ?string
+	{
+		$platform = $this->project->platformPhp;
+		$target = array_find($targets, fn(Target $target) => $target->package === PackageDiscovery::Php);
+		return $platform !== null && $target !== null && version_compare($platform, $target->version, '<')
+			? $target->version
+			: null;
 	}
 }

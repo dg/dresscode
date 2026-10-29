@@ -115,6 +115,15 @@ test('writeFile leaves a read-only file alone', function () {
 });
 
 
+test('replaceFile writes the file whole, its directory created, and leaves no temporary file', function () {
+	$dir = createTempDir('write');
+	Helpers::replaceFile("$dir/state/a.json", 'one');
+	Helpers::replaceFile("$dir/state/a.json", 'two');
+	Assert::same('two', file_get_contents("$dir/state/a.json"));
+	Assert::same(['a.json'], array_values(array_diff(scandir("$dir/state"), ['.', '..'])));
+});
+
+
 test('createFile never writes over a file that exists', function () {
 	$dir = createTempDir('write');
 	Assert::true(Helpers::createFile("$dir/a.neon", 'one'));
