@@ -31,7 +31,7 @@ final readonly class EstimateOptions
 			negatable: true,
 		)]
 		public ?bool $types = null,
-		#[Cli\Flag('Measure without asking the network: what Packagist offers as remembered')]
+		#[Cli\Flag('Measure without asking the network: what Packagist offers as remembered, what Composer knows from the lock')]
 		public ?bool $offline = null,
 		#[Cli\Option(
 			'Number of worker processes; by default the number of processors, at most one per four files; `1` runs in-process',

@@ -7,7 +7,7 @@
 
 namespace DressCode\Upgrade;
 
-use DressCode\Config\Versions;
+use DressCode\Config\{ProjectPackages, Versions};
 
 
 /**
@@ -19,6 +19,32 @@ final readonly class Constraints
 {
 	/** a range of versions from one to another, `8.1 - 8.5` */
 	private const HyphenRange = '~^(v?\d[\w.]*)\s+-\s+(v?\d[\w.]*)$~';
+
+
+	public function __construct(
+		private ProjectPackages $project,
+	) {
+	}
+
+
+	/**
+	 * The constraints the targets raise; nothing for a target the lowest version allowed today already reaches.
+	 * @param  list<Target>  $targets
+	 * @return array<string, string>  package => constraint
+	 */
+	public function raise(array $targets): array
+	{
+		$require = [];
+		foreach ($targets as $target) {
+			$constraint = $this->project->required[$target->package] ?? null;
+			$lowest = $constraint === null ? null : Versions::findLowestVersion($constraint);
+			if ($lowest === null || version_compare($lowest, $target->version, '<')) {
+				$require[$target->package] = self::raiseConstraint(trim((string) $constraint), $target->version);
+			}
+		}
+
+		return $require;
+	}
 
 
 	/**
