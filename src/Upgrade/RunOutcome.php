@@ -48,14 +48,16 @@ final readonly class RunOutcome
 		public array $warnings = [],
 		/** why Composer could not raise the constraints of the step the run stopped at; null where it was not asked or did */
 		public ?string $composerFailure = null,
+		/** why what the step changed is left uncommitted; null where it was committed or was not to be */
+		public ?string $commitFailure = null,
 	) {
 	}
 
 
 	/**
 	 * 0 when the run is done, 1 when it leaves work for a human (tasks, tests that newly fail, what no step fixed, an
-	 * interrupted run to put back or discard), 2 when it is incomplete, as files went unprocessed or the tests do not run
-	 * before the first step, 4 when it waits for a step outside DressCode.
+	 * interrupted run to put back or discard), 2 when it is incomplete, as files went unprocessed, a commit was refused or
+	 * the tests do not run before the first step, 4 when it waits for a step outside DressCode.
 	 */
 	public function getExitCode(): int
 	{
@@ -63,7 +65,7 @@ final readonly class RunOutcome
 			RunStop::Done => 0,
 			RunStop::Tests => $this->step === null && $this->crash !== null ? 2 : 1,
 			RunStop::Tasks, RunStop::Remaining, RunStop::Interrupted => 1,
-			RunStop::Unprocessed => 2,
+			RunStop::Unprocessed, RunStop::Commit => 2,
 			RunStop::Composer, RunStop::Raised, RunStop::Manual => 4,
 		};
 	}

@@ -8,14 +8,17 @@
 namespace DressCode\Upgrade;
 
 use DressCode\ConfigurationException;
+use DressCode\Engine\Helpers;
 use Nette\Utils\FileSystem;
+use function is_array, is_int, is_string;
 use const LOCK_EX, LOCK_NB;
 
 
 /**
  * What the runs of the plan of a project keep between them, in the directory of its git repository, or in the cache
- * directory where git finds none: the snapshots of the steps, the files of Composer before a raise and the results of
- * the tests before the first step; and the lock that keeps two runs from working in the project at once.
+ * directory where git finds none: the snapshots of the steps, the files of Composer before a raise, the results of the
+ * tests before the first step, and the step a run with commits left uncommitted; and the lock that keeps two runs from
+ * working in the project at once.
  * @internal
  */
 final readonly class RunState
@@ -115,6 +118,43 @@ final readonly class RunState
 	public function saveBaseline(string $command, TestResults $results): void
 	{
 		$results->save($this->getBaselineFile($command));
+	}
+
+
+	public function findUncommitted(): ?UncommittedStep
+	{
+		$file = "$this->directory/uncommitted.json";
+		$data = is_file($file) ? json_decode(FileSystem::read($file), associative: true) : null;
+		if (!is_array($data) || !is_int($data['step'] ?? null)) {
+			return null;
+		}
+
+		$strings = fn(mixed $list) => array_values(array_filter((array) $list, is_string(...)));
+		$topics = [];
+		foreach ((array) ($data['topics'] ?? []) as $topic => $paths) {
+			$topics[(string) $topic] = $strings($paths);
+		}
+
+		$hashes = array_filter((array) ($data['hashes'] ?? []), is_string(...));
+		return new UncommittedStep(
+			$data['step'],
+			is_string($data['identity'] ?? null) ? $data['identity'] : '',
+			$topics,
+			$strings($data['unprocessed'] ?? []),
+			array_combine(array_map(strval(...), array_keys($hashes)), $hashes),
+		);
+	}
+
+
+	public function saveUncommitted(UncommittedStep $step): void
+	{
+		Helpers::replaceFile("$this->directory/uncommitted.json", json_encode((array) $step, JSON_THROW_ON_ERROR));
+	}
+
+
+	public function forgetUncommitted(): void
+	{
+		FileSystem::delete("$this->directory/uncommitted.json");
 	}
 
 
