@@ -282,12 +282,6 @@ final class PhpCsFixer
 				}
 			},
 			'function_declaration' => function (array $o, Translation $t) {
-				if (($o['closure_function_spacing'] ?? 'one') === 'none') {
-					$t->warn('`function_declaration` with `closure_function_spacing=none` has no equivalent; DressCode writes a space after `function`.');
-				} else {
-					$t->set('spacing.keyword', 'spaced');
-				}
-
 				// the comma of parameters on one line is removed by every value but `keep`, a value another fixer gave staying
 				if ($o['trailing_comma_single_line'] ?? false) {
 					$t->warn('`function_declaration` with `trailing_comma_single_line=true` has no equivalent; DressCode removes the trailing comma of parameters on one line.');
@@ -296,8 +290,10 @@ final class PhpCsFixer
 				}
 
 				$t->setAll([
+					'spacing.keyword' => 'spaced',
 					'spacing.call' => 'compact',
 					...Translation::NoSpaceInParentheses,
+					'spacing.anonymousFunction' => ($o['closure_function_spacing'] ?? 'one') === 'one' ? 'spaced' : 'compact',
 					'spacing.arrowFunction' => ($o['closure_fn_spacing'] ?? 'one') === 'one' ? 'spaced' : 'compact',
 				]);
 			},

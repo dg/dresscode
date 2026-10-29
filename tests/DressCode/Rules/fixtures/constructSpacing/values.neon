@@ -5,6 +5,7 @@ spacing:
 	body: 'function () { return 1; }'
 	import: 'use Acme\{Foo, Bar};'
 	arrowFunction: 'fn($x) => $x'
+	anonymousFunction: 'function ($x)'
 
 multiline:
 	expressionStart: sameLine

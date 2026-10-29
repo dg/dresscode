@@ -709,6 +709,7 @@ final class PhpCodeSniffer
 				'braces.position.function' => 'nextLine',
 				'braces.position.multilineSignature' => 'sameLine',
 				'braces.position.closure' => 'sameLine',
+				'spacing.anonymousFunction' => 'spaced',
 				'multiline.items.parameter' => 'perLine',
 				'multiline.edges.parameter' => 'apart',
 			],

@@ -1,0 +1,4 @@
+<?php
+// {"spacing.anonymousFunction": "function ($x)", "spacing.arrowFunction": "fn($x) => $x"}
+$a = fn ($x) => function($y) use ($x) { return $x + $y; };
+$b = function($x) { return fn ($y) => $x + $y; };

@@ -800,6 +800,13 @@ test('a fixer of a declaration translates the parentheses, the comma and the bra
 	$translation = $translate(['function_declaration' => true]);
 	Assert::same('forbidden', $translation->decisions['spacing.padding.argument']);
 	Assert::same('optional', $translation->decisions['multiline.trailingComma.parameter']);
+	Assert::same('spaced', $translation->decisions['spacing.anonymousFunction']);
+	Assert::same([], $translation->warnings);
+
+	// a closure without the space keeps the space after every other keyword
+	$translation = $translate(['function_declaration' => ['closure_function_spacing' => 'none']]);
+	Assert::same('compact', $translation->decisions['spacing.anonymousFunction']);
+	Assert::same('spaced', $translation->decisions['spacing.keyword']);
 	Assert::same([], $translation->warnings);
 
 	// a comma another fixer requires stays, in either order
