@@ -25,6 +25,64 @@ enum Phase: string
 
 
 /**
+ * Where a run of a plan stopped.
+ * @internal
+ */
+enum RunStop
+{
+	/** every step it was to run is done */
+	case Done;
+
+	/** before a step of Composer whose constraints are not raised */
+	case Composer;
+
+	/** at a manual step whose target the lock still refuses */
+	case Manual;
+
+	/** after a step whose tests newly failed, which went back */
+	case Tests;
+
+	/** after a step that could not fix or write some files */
+	case Unprocessed;
+
+	/** at the end of the plan, where the targets still find what no step of it fixed */
+	case Remaining;
+
+	/** before the first step, as a run was interrupted in a step that may have rewritten some files */
+	case Interrupted;
+}
+
+
+/**
+ * How a test ended, as its JUnit report says; a test repeated under one identity ends as the worst of them.
+ * @internal
+ */
+enum TestStatus: string
+{
+	case Passed = 'passed';
+	case Skipped = 'skipped';
+	case Failed = 'failed';
+
+	/** it threw where it was to assert */
+	case Error = 'error';
+}
+
+
+/**
+ * What git says of the tracked files of the working tree.
+ * @internal
+ */
+enum WorkingTree
+{
+	case Clean;
+	case Dirty;
+
+	/** no repository, one that ignores the project, or git refused to tell */
+	case Unavailable;
+}
+
+
+/**
  * What the run can do about a place of an upgrade.
  * @internal
  */

@@ -67,9 +67,9 @@ final readonly class Application
 
 	/**
 	 * Runs the command line and returns the exit code: 0 clean and complete, 1 violations, syntax errors, a refused
-	 * baseline or work a migration leaves for the user, 2 a file that failed or a command that could not look at
-	 * everything it was to, 3 a mistake of the command line or of the configuration, 4 an upgrade that installed its
-	 * upgrading data and has to be run again.
+	 * baseline or work an upgrade or a migration leaves for the user, 2 a file that failed or a command that could not
+	 * look at everything it was to, 3 a mistake of the command line or of the configuration, 4 an upgrade
+	 * waiting for a step outside DressCode.
 	 * @param  list<string>  $argv  including the script name
 	 */
 	public function run(array $argv): int
@@ -149,7 +149,7 @@ final readonly class Application
 		$program->addCommandsFrom(new Commands\CheckCommand($context));
 		$upgrade = $program->addCommand(
 			'upgrade',
-			'Upgrade the code to newer PHP and libraries',
+			'Estimate, plan and carry out an upgrade to newer PHP and libraries',
 			commandRequired: true,
 		);
 		$upgrade->addCommandsFrom(new Commands\UpgradeCommand($context));
@@ -157,6 +157,7 @@ final readonly class Application
 			'Examples:',
 			'  dresscode upgrade estimate php 8.4                what an upgrade to PHP 8.4 changes',
 			'  dresscode upgrade plan nette/utils 4.0 --save     a plan for nette/utils 4.0, saved for review',
+			'  dresscode upgrade run                             the plan carried out step by step',
 			'  dresscode upgrade today                           the code rewritten for the versions required now',
 		]));
 		foreach ([
@@ -171,7 +172,7 @@ final readonly class Application
 		$program->addCommand('migrate', 'Move over from PHP CS Fixer, PHP_CodeSniffer or Laravel Pint', commandRequired: true)
 			->addCommandsFrom(new Commands\MigrateCommand($context));
 
-		$program->addText('Exit codes: `0` clean and complete, `1` violations, syntax errors, a refused baseline or manual tasks a migration leaves, `2` a file failed or a command could not look at everything it was to, `3` a mistake of the command line or of the configuration, `4` an upgrade that installed its upgrading data and has to be run again.');
+		$program->addText('Exit codes: `0` clean and complete, `1` violations, syntax errors, a refused baseline or manual tasks an upgrade or a migration leaves, `2` a file failed or a command could not look at everything it was to, `3` a mistake of the command line or of the configuration, `4` an upgrade waiting for a step outside DressCode.');
 		return $program;
 	}
 }

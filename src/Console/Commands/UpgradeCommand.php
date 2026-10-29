@@ -9,16 +9,18 @@ namespace DressCode\Console\Commands;
 
 use DressCode\{Analyses, Config, ConfigurationException, Tristate};
 use DressCode\Config\{PackageDiscovery, ProjectPackages, Versions};
-use DressCode\Console\{CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor};
+use DressCode\Console\{CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter};
 use DressCode\Engine\{Worker, WorkerPool};
-use DressCode\Upgrade\{Estimate, Estimator, Plan, PlanBuilder, PlanFile, Project, Target, UpgradeCheck};
+use DressCode\Upgrade\{
+	Estimate, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, Project, Provenance, RunState, Target, UpgradeCheck,
+};
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 
 
 /**
  * The commands of `upgrade`: what moving the code to newer versions of PHP and of the libraries changes, the plan that
- * orders it into steps, and the code moved to the lowest versions the project allows.
+ * orders it into steps and the run of the plan, and the code moved to the lowest versions the project allows.
  * @internal
  */
 final readonly class UpgradeCommand
@@ -70,8 +72,10 @@ final readonly class UpgradeCommand
 		?string $target,
 		#[Cli\Argument('The version to upgrade to; for PHP the newest its upgrading data know when omitted', optional: true)]
 		?string $version,
-		#[Cli\Flag('Save the plan into `dresscode-upgrade.neon`, which the team may edit')]
+		#[Cli\Flag('Save the plan into `dresscode-upgrade.neon`, which the team may edit and `upgrade run` carries out')]
 		?bool $save,
+		#[Cli\Flag('Drop what a run interrupted in a step kept of its files, which saving the plan forgets')]
+		?bool $discard,
 		EstimateOptions $options,
 		PlanOptions $planning,
 		ConfigOptions $configuration,
@@ -92,18 +96,103 @@ final readonly class UpgradeCommand
 		$planPrinter = new PlanPrinter($plan, $mode);
 		$console?->write(Markup::highlightCode($console, $estimatePrinter->print($console) . "\n" . $planPrinter->print($console)));
 		if ($save) {
-			$this->savePlan($plan, $project, $console);
+			$this->savePlan($args, $plan, $project, (bool) $discard, $console);
 		}
 
 		if ($console === null) {
 			$this->writeJson($project, [...$planPrinter->toArray(), 'estimate' => $estimatePrinter->toArray()], saved: (bool) $save);
 		}
 
-		if ($plan->steps !== [] && !$save) {
-			$console?->writeLine(Markup::formatLabel($console, 'Next') . '`--save` keeps the plan in `' . PlanFile::Name . '` for the team to review');
+		if ($plan->steps !== []) {
+			$console?->writeLine(Markup::formatLabel($console, 'Next') . ($save
+				? '`dresscode upgrade run` carries out the plan saved, step by step'
+				: '`--save` keeps the plan in `'
+					. PlanFile::Name
+					. '` for the team to review, which `dresscode upgrade run` then carries out'));
 		}
 
 		return $estimate->isComplete() ? 0 : 2;
+	}
+
+
+	#[Cli\Command('Carry out the saved plan, or make one for the target first; stops where Composer or you are needed')]
+	public function run(
+		ParseResult $args,
+		#[Cli\Argument('`php` or a package, to make a plan for; the saved plan when omitted', optional: true)]
+		?string $target,
+		#[Cli\Argument('The version to upgrade to; for PHP the newest its upgrading data know when omitted', optional: true)]
+		?string $version,
+		EstimateOptions $options,
+		PlanOptions $planning,
+		PlanRunOptions $running,
+		ConfigOptions $configuration,
+	): int
+	{
+		if ($target === null && ($planning->isGiven() || $options->paths !== [] || $options->offline || $options->jobs !== null)) {
+			throw new UsageException(
+				'`--paths`, `--offline`, `--jobs`, the commands of the tests and `--library` make a plan, which a target does; without one `upgrade run` carries out the saved plan as it is.',
+				$args->command,
+			);
+		} elseif (($misuse = $planning->findMisuse()) !== null) {
+			throw new UsageException($misuse, $args->command);
+		}
+
+		$project = $this->loadProject($args, $configuration);
+		if ($target !== null && PlanFile::exists($project->root)) {
+			throw new UsageException(
+				'The project has a saved plan, `'
+				. PlanFile::Name
+				. '`, which `upgrade run` carries out; `upgrade plan --save` replaces it.',
+				$args->command,
+			);
+		}
+
+		$console = $this->findConsole($options->format);
+		$types = $this->decideTypes($options->types, $this->mayAsk($options->format), $project->config);
+		$runner = $this->createPlanRunner($project, $types, $console);
+		if ($target === null) {
+			$plan = PlanFile::read($project->root);
+			if ($console !== null) {
+				self::writeHeader($console, $project);
+			}
+		} else {
+			[$estimate, $plan, $mode] = $this->makePlan(
+				$args, $project, $target, $version, $types, $options, $planning, $configuration, $console,
+			);
+			$console?->write(Markup::highlightCode(
+				$console,
+				new EstimatePrinter($estimate)->print($console) . "\n" . new PlanPrinter($plan, $mode)->print($console),
+			));
+			$this->savePlan($args, $plan, $project, (bool) $running->discard, $console);
+		}
+
+		return $this->runPlan($plan, $runner, $running, $console);
+	}
+
+
+	#[Cli\Command('Undo an unfinished upgrade: restore the files of an interrupted step')]
+	public function abort(
+		ParseResult $args,
+		ConfigOptions $configuration,
+		#[Cli\Flag('Say what it would put back and leave, changing nothing')]
+		bool $dryRun = false,
+	): int
+	{
+		$project = $this->loadProject($args, $configuration);
+		$console = $this->context->out;
+		self::writeHeader($console, $project);
+		$restoration = new RunState($project)->restore($project, $dryRun);
+		[$restored, $left] = [$restoration->restored, $restoration->left];
+		$console->writeLine(
+			Markup::formatLabel($console, $dryRun ? 'Restorable' : 'Restored')
+			. ($restored === [] ? 'nothing, as no run keeps anything to go back' : implode(', ', $restored)),
+		);
+
+		foreach ($left as $path => $why) {
+			$console->writeLine(Markup::formatLabel($console, 'Left') . "$path: $why");
+		}
+
+		return $dryRun || $left === [] ? 0 : 1;
 	}
 
 
@@ -212,16 +301,104 @@ final readonly class UpgradeCommand
 	}
 
 
-	/** Saves the plan; a plan of no step is no file. */
-	private function savePlan(Plan $plan, Project $project, ?Console $console): void
+	/**
+	 * Saves the plan, which forgets what the runs of the one before kept, refusing to forget the files of a step a run left
+	 * unfinished unless told to discard them; a plan of no step is no file, which nothing would run.
+	 * @throws UsageException
+	 */
+	private function savePlan(ParseResult $args, Plan $plan, Project $project, bool $discard, ?Console $console): void
 	{
 		if ($plan->steps === []) {
 			$console?->writeLine(Markup::formatLabel($console, 'Saved') . 'nothing, as the upgrade has no step to make');
 			return;
 		}
 
-		PlanFile::write($plan, $project->root);
+		$state = new RunState($project);
+		$state->runExclusively(function () use ($state, $discard, $args, $plan, $project) {
+			$interrupted = $state->snapshots->findInterrupted();
+			if ($interrupted !== [] && !$discard) {
+				$files = array_merge(...array_values($interrupted));
+				throw new UsageException(
+					'Step ' . array_key_first($interrupted) . ' of a run did not finish'
+					. ($files === [] ? '' : ' and may have rewritten ' . implode(', ', $files))
+					. '; saving a plan forgets what it kept, so put the files back with `dresscode upgrade abort` first, or pass `--discard`.',
+					$args->command,
+				);
+			}
+
+			PlanFile::write($plan, $project->root);
+			$state->remove();
+		});
 		$console?->writeLine(Markup::formatLabel($console, 'Saved') . PlanFile::Name);
+	}
+
+
+	/**
+	 * The runner of the plan, telling its progress on the status line of the console, which data have none.
+	 * @throws ConfigurationException  for a project without a configuration file
+	 */
+	private function createPlanRunner(Project $project, bool $types, ?Console $console): PlanRunner
+	{
+		$console ??= $this->context->err;
+		return new PlanRunner(
+			$project,
+			$types,
+			fn(string $what) => $console->setStatus(Markup::formatLabel($console, 'Upgrading') . "$what\u{2026}"),
+		);
+	}
+
+
+	/**
+	 * Runs the plan over the working tree and says how far it got, as text on the console or, without one, as a document
+	 * of data whose warnings go to standard error, with the exit code of the outcome.
+	 */
+	private function runPlan(Plan $plan, PlanRunner $runner, PlanRunOptions $running, ?Console $output): int
+	{
+		$console = $output ?? $this->context->err;
+		$this->warnBeforeRun($plan, $runner, $console);
+		try {
+			$outcome = $runner->run($plan, $running->step, (bool) $running->discard);
+		} finally {
+			$console->clearStatus();
+		}
+
+		$printer = new RunOutcomePrinter($plan, $outcome, $running->step);
+		if ($output !== null) {
+			$output->write(Markup::highlightCode($output, $printer->print($output)));
+		} else {
+			$this->writeJson($runner->project, [
+				'version' => RunOutcomePrinter::Version,
+				'plan' => new PlanPrinter($plan)->toArray(),
+				'outcome' => $printer->toArray(),
+			], saved: true);
+		}
+
+		return $outcome->getExitCode();
+	}
+
+
+	private function warnBeforeRun(Plan $plan, PlanRunner $runner, Console $console): void
+	{
+		if (!$plan->isMadeWith(Provenance::current(ProjectPackages::read($runner->project->root)))) {
+			$console->writeLine(Markup::formatLabel($console, 'Warning') . 'The plan was made with other versions of DressCode or of the upgrading data, so a step may fix more or less than it did then.');
+		}
+
+		if ($plan->unestimated !== [] || $plan->missingData !== []) {
+			$console->writeLine(Markup::formatLabel($console, 'Warning') . 'The estimate of the plan '
+				. implode(' and ', array_filter([
+					$plan->unestimated === [] ? '' : 'could not process ' . implode(', ', $plan->unestimated),
+					$plan->missingData === [] ? '' : 'lacked the upgrading data of ' . implode(', ', array_keys($plan->missingData)),
+				]))
+				. '; the run checks the whole code against the targets at its end.');
+		}
+
+		if (!$runner->state->durable) {
+			$console->writeLine(Markup::formatLabel($console, 'Warning') . 'Git finds no repository of the project, so what a run keeps to go back lies in the cache directory, which clearing the cache loses.');
+		}
+
+		if ($runner->hasOwnChanges()) {
+			$console->writeLine(Markup::formatLabel($console, 'Warning') . 'The working tree has changes of its own, which the changes of the upgrade mix with.');
+		}
 	}
 
 
@@ -238,7 +415,7 @@ final readonly class UpgradeCommand
 	}
 
 
-	/** The name of the tool and the configuration the command measures with. */
+	/** The name of the tool and the configuration the command measures or runs with. */
 	private static function writeHeader(Console $console, Project $project): void
 	{
 		$console->writeLine(CommandContext::formatName($console));

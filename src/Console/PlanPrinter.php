@@ -25,16 +25,15 @@ final readonly class PlanPrinter
 
 	public function __construct(
 		private Plan $plan,
-		/** whether the plan is of a library or of an application, and why */
-		private string $mode,
+		/** whether the plan is of a library or of an application, and why, where the plan was made just now */
+		private ?string $mode = null,
 	) {
 	}
 
 
 	public function print(Console $console): string
 	{
-		$out = Markup::formatLabel($console, 'Mode')
-			. "$this->mode\n"
+		$out = ($this->mode === null ? '' : Markup::formatLabel($console, 'Mode') . "$this->mode\n")
 			. Markup::formatLabel($console, 'Plan')
 			. implode(', ', array_map(fn(Target $target) => $target->format(), $this->plan->targets))
 			. ($this->plan->paths === [] ? '' : ' over ' . implode(', ', $this->plan->paths))

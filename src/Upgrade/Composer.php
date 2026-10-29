@@ -18,7 +18,7 @@ use Nette\Utils\FileSystem;
  * as Composer sets it for the scripts it runs, else `composer` on the path.
  * @internal
  */
-final readonly class Composer
+final readonly class Composer implements PackageManager
 {
 	/** how long Composer may answer before the answer is unknown */
 	private const Timeout = 60;
@@ -35,6 +35,14 @@ final readonly class Composer
 		/** the package of the project itself, which never blocks its own upgrade */
 		private ?string $rootName = null,
 	) {
+	}
+
+
+	/** Composer of the project, run where its `composer.json` lies. */
+	public static function forProject(string $root): self
+	{
+		$packages = ProjectPackages::read($root);
+		return new self($packages->rootPath ?? $root, $packages->rootName);
 	}
 
 
