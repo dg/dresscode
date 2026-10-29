@@ -12,7 +12,7 @@ use DressCode\Config\{PackageDiscovery, ProjectPackages, Versions};
 use DressCode\Console\{CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter};
 use DressCode\Engine\{Worker, WorkerPool};
 use DressCode\Upgrade\{
-	Estimate, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, Project, Provenance, RunState, Target, UpgradeCheck,
+	Composer, Estimate, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, Project, Provenance, RunState, RunStop, Target, UpgradeCheck,
 };
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
@@ -148,11 +148,13 @@ final readonly class UpgradeCommand
 		}
 
 		$console = $this->findConsole($options->format);
-		$types = $this->decideTypes($options->types, $this->mayAsk($options->format), $project->config);
+		$mayAsk = $this->mayAsk($options->format);
+		$types = $this->decideTypes($options->types, $mayAsk, $project->config);
 		$runner = $this->createPlanRunner($project, $types, $console);
+		$handoff = RunHandoff::take();
 		if ($target === null) {
 			$plan = PlanFile::read($project->root);
-			if ($console !== null) {
+			if ($console !== null && $handoff->resumed === null) {
 				self::writeHeader($console, $project);
 			}
 		} else {
@@ -166,11 +168,21 @@ final readonly class UpgradeCommand
 			$this->savePlan($args, $plan, $project, (bool) $running->discard, $console);
 		}
 
-		return $this->runPlan($plan, $runner, $running, $console);
+		// the run after a raise goes on in a process of its own with what this one decided
+		$rerun = [
+			'upgrade',
+			'run',
+			$types ? '--types' : '--no-types',
+			...$options->format === null ? [] : ["--format=$options->format"],
+			...$running->yes ? ['--yes'] : [],
+			...$args->get('--no-color') ? ['--no-color'] : [],
+			...$configuration->toArguments(),
+		];
+		return $this->runPlan($plan, $runner, $running, $mayAsk, $console, $rerun, $handoff);
 	}
 
 
-	#[Cli\Command('Undo an unfinished upgrade: restore the files of an interrupted step')]
+	#[Cli\Command('Undo an unfinished upgrade: restore the files of an interrupted step and the `composer.json` and lock a raise changed')]
 	public function abort(
 		ParseResult $args,
 		ConfigOptions $configuration,
@@ -181,18 +193,34 @@ final readonly class UpgradeCommand
 		$project = $this->loadProject($args, $configuration);
 		$console = $this->context->out;
 		self::writeHeader($console, $project);
-		$restoration = new RunState($project)->restore($project, $dryRun);
-		[$restored, $left] = [$restoration->restored, $restoration->left];
-		$console->writeLine(
-			Markup::formatLabel($console, $dryRun ? 'Restorable' : 'Restored')
-			. ($restored === [] ? 'nothing, as no run keeps anything to go back' : implode(', ', $restored)),
+		$restoration = new RunState($project)->restore(
+			$project,
+			Composer::forProject($project->root),
+			$dryRun,
+			fn(string $what) => $console->setStatus(Markup::formatLabel($console, 'Upgrading') . "$what\u{2026}"),
 		);
+		$console->clearStatus();
+		[$restored, $left, $installFailure] = [$restoration->restored, $restoration->left, $restoration->installFailure];
+		if ($restored !== [] || !$restoration->installs) {
+			$console->writeLine(
+				Markup::formatLabel($console, $dryRun ? 'Restorable' : 'Restored')
+				. ($restored === [] ? 'nothing, as no run keeps anything to go back' : implode(', ', $restored)),
+			);
+		}
+
+		if ($restoration->installs && $installFailure === null) {
+			$console->writeLine(Markup::formatLabel($console, $dryRun ? 'Installs' : 'Installed') . 'the packages of the lock, by `composer install`');
+		}
 
 		foreach ($left as $path => $why) {
 			$console->writeLine(Markup::formatLabel($console, 'Left') . "$path: $why");
 		}
 
-		return $dryRun || $left === [] ? 0 : 1;
+		if ($installFailure !== null) {
+			$console->writeLine(Markup::formatLabel($console, 'Failed') . "`composer install`: $installFailure");
+		}
+
+		return $dryRun || ($left === [] && $installFailure === null) ? 0 : 1;
 	}
 
 
@@ -350,16 +378,39 @@ final readonly class UpgradeCommand
 
 	/**
 	 * Runs the plan over the working tree and says how far it got, as text on the console or, without one, as a document
-	 * of data whose warnings go to standard error, with the exit code of the outcome.
+	 * of data whose warnings go to standard error, with the exit code of the outcome. After a raise it goes on in a new
+	 * process, `$rerun` its command line, which tells how far the whole run got; a run going on after a raise
+	 * says nothing of what the run before it said, and hands back where it stopped instead.
+	 * @param  list<string>  $rerun
 	 */
-	private function runPlan(Plan $plan, PlanRunner $runner, PlanRunOptions $running, ?Console $output): int
+	private function runPlan(
+		Plan $plan,
+		PlanRunner $runner,
+		PlanRunOptions $running,
+		bool $mayAsk,
+		?Console $output,
+		array $rerun,
+		RunHandoff $handoff,
+	): int
 	{
 		$console = $output ?? $this->context->err;
-		$this->warnBeforeRun($plan, $runner, $console);
+		if ($handoff->resumed === null) { // what the run before the raise said already
+			$this->warnBeforeRun($plan, $runner, $console);
+		}
+
+		// without a terminal only `--yes` agrees, so without it Composer is not even asked what a raise changes
+		$approve = $running->yes || $mayAsk ? new RaiseApproval($this->context, $console, (bool) $running->yes)->approve(...) : null;
 		try {
-			$outcome = $runner->run($plan, $running->step, (bool) $running->discard);
+			$outcome = $runner->run($plan, $running->step, $approve, (bool) $running->discard, $handoff->resumed);
 		} finally {
 			$console->clearStatus();
+		}
+
+		if ($outcome->stop === RunStop::Raised && $handoff->resumed !== null) {
+			$handoff->handBack($outcome);
+			return 0;
+		} elseif ($outcome->stop === RunStop::Raised && ($exit = RunHandoff::goOn($this->context, $outcome, $plan, $rerun)) !== null) {
+			return $exit;
 		}
 
 		$printer = new RunOutcomePrinter($plan, $outcome, $running->step);

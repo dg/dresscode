@@ -60,25 +60,42 @@ final readonly class PlanRunner
 
 	/**
 	 * Runs the steps the plan does not leave out, or with `$singleStep` that one alone; a manual step passes once
-	 * Composer says nothing of the lock refuses its target, and a step of Composer that is not done yet stops the run.
-	 * Where a run was interrupted in a step, it runs nothing unless `$discard` says to go on from the files as they are.
+	 * Composer says nothing of the lock refuses its target, and a step of Composer that is not done yet is made once
+	 * `$approve` agrees to what Composer says it changes; a raise stops a run of the whole plan, which `$resumed` goes on
+	 * after in a process that loads what the raise installed. Where a run was interrupted in a step, it runs nothing
+	 * unless `$discard` says to go on from the files as they are.
+	 * @param  ?\Closure(DependencyStep, list<string>): bool  $approve  told the step and the operations of Composer it makes
 	 * @throws ConfigurationException
 	 */
-	public function run(Plan $plan, ?int $singleStep = null, bool $discard = false): RunOutcome
+	public function run(
+		Plan $plan,
+		?int $singleStep = null,
+		?\Closure $approve = null,
+		bool $discard = false,
+		?RunOutcome $resumed = null,
+	): RunOutcome
 	{
 		$warnings = [];
-		$outcome = $this->state->runExclusively(function () use ($plan, $singleStep, $discard, &$warnings) {
-			return $this->runSteps($plan, $singleStep, $discard, $warnings);
+		$outcome = $this->state->runExclusively(function () use ($plan, $singleStep, $approve, $discard, $resumed, &$warnings) {
+			return $this->runSteps($plan, $singleStep, $approve, $discard, $resumed, $warnings);
 		});
 		return $warnings === [] ? $outcome : $outcome->withWarnings($warnings);
 	}
 
 
 	/**
+	 * @param  ?\Closure(DependencyStep, list<string>): bool  $approve
 	 * @param  list<string>  $warnings  what the run tells the user beside its outcome, filled as it goes
 	 * @throws ConfigurationException
 	 */
-	private function runSteps(Plan $plan, ?int $singleStep, bool $discard, array &$warnings): RunOutcome
+	private function runSteps(
+		Plan $plan,
+		?int $singleStep,
+		?\Closure $approve,
+		bool $discard,
+		?RunOutcome $resumed,
+		array &$warnings,
+	): RunOutcome
 	{
 		$steps = $plan->findSteps();
 		if ($singleStep !== null && !isset($steps[$singleStep])) {
@@ -113,11 +130,13 @@ final readonly class PlanRunner
 		}
 
 		$lastFixStep = array_key_last(array_filter($steps, fn(Step $step) => $step instanceof FixStep));
-		$applied = [];
-		$followsRaise = false;
+		$applied = $resumed->applied ?? [];
+		$followsRaise = $resumed !== null;
+		// the step of Composer whose raise no tests have run after yet, which the journal keeps across the runs
+		$untestedRaise = $resumed->step ?? $this->state->journal->findStep();
 		$testBaseline = null; // what the last tests were compared with
 		foreach ($steps as $number => $step) {
-			if ($singleStep !== null && $number !== $singleStep) {
+			if (($singleStep !== null && $number !== $singleStep) || $number <= ($resumed->step ?? 0)) {
 				continue;
 			} elseif ($step instanceof ManualStep) {
 				$blockers = $this->findBlockers($number, $step);
@@ -128,8 +147,33 @@ final readonly class PlanRunner
 				continue;
 
 			} elseif ($step instanceof DependencyStep) {
-				if ($step instanceof ComposerStep && !$step->isDoneIn(ProjectPackages::read($this->project->root))) {
-					return new RunOutcome(RunStop::Composer, $number, $applied);
+				try {
+					// whether every package is the newest the constraints allow only Composer tells
+					$changes = $step instanceof UpdateStep ? $this->composer->previewUpdate() : null;
+					$due = $changes === null
+						? $step instanceof ComposerStep && !$step->isDoneIn(ProjectPackages::read($this->project->root))
+						: $changes !== [];
+					$done = $due ? $this->runComposerStep($number, $step, $approve, $changes) : null;
+				} catch (ComposerException $e) {
+					$done = $e->getMessage();
+				}
+
+				if ($done !== null) {
+					if ($done !== true) {
+						return new RunOutcome(
+							RunStop::Composer,
+							$number,
+							$applied,
+							raisedFiles: $this->state->journal->findChanged(),
+							composerFailure: $done ?: null,
+						);
+					}
+
+					$untestedRaise = $number;
+					// what the raise installed is loaded anew for what runs after it, the check at the end of the plan among it
+					if ($singleStep === null) {
+						return new RunOutcome(RunStop::Raised, $number, $applied);
+					}
 				}
 
 				$followsRaise = true;
@@ -148,6 +192,7 @@ final readonly class PlanRunner
 			if ($command !== null) {
 				$this->onProgress?->__invoke("step $number, running the tests");
 				$testBaseline = $baselines[$command];
+				$untestedRaise = null;
 				$failure = $this->runTests($command, $testBaseline);
 				if ($failure !== null) {
 					$unprocessed += $snapshots->restore($number, $this->project->root);
@@ -159,6 +204,7 @@ final readonly class PlanRunner
 						$unprocessed,
 						crash: $failure->crash,
 						baseline: $testBaseline,
+						raisedFiles: $this->state->journal->findChanged(),
 					);
 				}
 			}
@@ -166,11 +212,36 @@ final readonly class PlanRunner
 			// a step its tests sent back applied nothing
 			$applied[$number] = array_map(array_keys(...), $result->written);
 			$snapshots->drop($number);
+			if ($followsRaise) { // the raise holds once a step after it is done
+				$this->state->journal->forget();
+			}
+
 			if ($unprocessed !== []) {
 				return new RunOutcome(RunStop::Unprocessed, $number, $applied, unprocessed: $unprocessed, baseline: $testBaseline);
 			}
 
 			$followsRaise = false;
+		}
+
+		// a raise no fix followed is tested after it all the same, the whole suite
+		$command = $plan->selectTestCommand(whole: true);
+		if ($untestedRaise !== null && $command !== null) {
+			$this->onProgress?->__invoke("step $untestedRaise, running the tests");
+			$testBaseline = $baselines[$command];
+			$failure = $this->runTests($command, $testBaseline);
+			if ($failure !== null) {
+				return new RunOutcome(
+					RunStop::Tests,
+					$untestedRaise,
+					$applied,
+					$failure->newFailures,
+					crash: $failure->crash,
+					baseline: $testBaseline,
+					raisedFiles: $this->state->journal->findChanged(),
+				);
+			}
+
+			$this->state->journal->forget();
 		}
 
 		if ($singleStep === null) {
@@ -202,6 +273,45 @@ final readonly class PlanRunner
 		$this->onProgress?->__invoke("step $number, asking Composer what refuses {$step->target->format()}");
 		$blockers = $this->composer->findBlockers($step->target);
 		return $blockers->isClear() ? null : $blockers;
+	}
+
+
+	/**
+	 * Whether the step was made, once `$approve` agreed to what Composer says it changes, the files of Composer kept as
+	 * they were before.
+	 * @param  ?\Closure(DependencyStep, list<string>): bool  $approve
+	 * @param  ?list<string>  $changes  what Composer said the step changes, where it was asked already
+	 * @throws ComposerException
+	 */
+	private function runComposerStep(int $number, DependencyStep $step, ?\Closure $approve, ?array $changes): bool
+	{
+		if ($approve === null) {
+			return false;
+		}
+
+		$changes ??= $step instanceof ComposerStep ? $this->composer->previewRequire($step->require, $step->update, $step->platform) : [];
+		if (!$approve($step, $changes)) {
+			return false;
+		}
+
+		$composerRoot = $this->project->findComposerRoot();
+		$journal = $this->state->journal;
+		$journal->recordBefore($number, $composerRoot);
+		try {
+			if ($step instanceof ComposerStep) {
+				$this->composer->require($step->require, $step->update, $step->platform);
+			} else {
+				$this->composer->update();
+			}
+		} finally {
+			$journal->recordAfter($composerRoot);
+		}
+
+		if ($journal->findChanged() === []) {
+			$journal->forget();
+		}
+
+		return !$step instanceof ComposerStep || $step->isDoneIn(ProjectPackages::read($this->project->root));
 	}
 
 

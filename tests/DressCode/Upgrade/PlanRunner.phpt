@@ -2,8 +2,8 @@
 
 use DressCode\Config;
 use DressCode\Upgrade\{
-	Blocker, Blockers, ComposerStep, FixStep, ManualStep, PackageManager, Plan, PlanRunner,
-	Project, RunOutcome, RunState, RunStop, Target, TestResults, TestRunner, TestStatus,
+	Blocker, Blockers, ComposerException, ComposerStep, DependencyStep, FixStep, ManualStep, PackageManager, Plan, PlanRunner,
+	Project, RunOutcome, RunState, RunStop, Target, TestResults, TestRunner, TestStatus, UpdateStep,
 };
 use Nette\Utils\FileSystem;
 use Tester\Assert;
@@ -36,6 +36,62 @@ function createSteppedRunProject(string $root): Project
 
 
 /** Composer as a test scripts it: a raise writes its constraints into `composer.json`, an update changes what it is given until it ran. */
+final class PlanRunnerComposer implements PackageManager
+{
+	public int $updates = 0;
+
+
+	public function __construct(
+		private string $root,
+		/** @var ?Closure(array<string, string>): void  what a raise does instead */
+		private ?Closure $onRequire = null,
+		/** @var list<string>  what an update changes, until it ran */
+		private array $updateChanges = [],
+		/** @var ?Closure(): void  what an install does */
+		private ?Closure $onInstall = null,
+	) {
+	}
+
+
+	public function findBlockers(Target $target): Blockers
+	{
+		return new Blockers($target, unknown: 'not asked');
+	}
+
+
+	public function previewRequire(array $constraints, bool $update = true, ?string $platform = null): array
+	{
+		return [];
+	}
+
+
+	public function require(array $constraints, bool $update = true, ?string $platform = null): void
+	{
+		$this->onRequire === null
+			? file_put_contents("$this->root/composer.json", json_encode(['require' => $constraints], JSON_THROW_ON_ERROR))
+			: ($this->onRequire)($constraints);
+	}
+
+
+	public function previewUpdate(): array
+	{
+		return $this->updates === 0 ? $this->updateChanges : [];
+	}
+
+
+	public function update(): void
+	{
+		$this->updates++;
+	}
+
+
+	public function install(): void
+	{
+		$this->onInstall?->__invoke();
+	}
+}
+
+
 function createSteppedPlan(?string $testCommand = null): Plan
 {
 	return new Plan(
@@ -107,6 +163,7 @@ test('a run says by its exit code whether it is done, leaves work for a human, i
 	Assert::same([
 		'Done' => 0,
 		'Composer' => 4,
+		'Raised' => 4,
 		'Manual' => 4,
 		'Tests' => 1,
 		'Unprocessed' => 2,
@@ -180,6 +237,121 @@ test('a step whose tests newly fail goes back byte for byte, and a command writi
 	Assert::same('the report of the tests holds no test', $report('none', 0));
 	Assert::same('the command of the tests ended with exit code 255', $report('failing', 255));
 	Assert::null($report('failing', 1));
+});
+
+
+test('a raise no fix follows is tested after it all the same, its dependencies staying raised where the tests fail', function () {
+	$root = createSteppedProject('steps-raise-tested');
+	file_put_contents("$root/tests.php", <<<'XX'
+		<?php
+		$passed = !str_contains(file_get_contents(__DIR__ . '/composer.json'), '^8.4');
+		file_put_contents(__DIR__ . '/runs.txt', 'x', FILE_APPEND);
+		file_put_contents($argv[1], '<testsuites><testsuite><testcase classname="Raise" name="raise"' . ($passed ? '/>' : '><failure/></testcase>') . '</testsuite></testsuites>');
+		XX);
+	$plan = new Plan(
+		[Target::php('8.4')],
+		[new ComposerStep('raise php to ^8.4', ['php' => '^8.4'])],
+		'1.0',
+		testCommand: escapeshellarg(PHP_BINARY) . ' tests.php {junit}',
+	);
+	// the run goes on after the raise in a process that loads what it installed, the tests and the check at the end too
+	$runner = new PlanRunner(createSteppedRunProject($root), composer: new PlanRunnerComposer($root));
+	$raised = $runner->run($plan, approve: fn() => true);
+	Assert::same([RunStop::Raised, 1], [$raised->stop, $raised->step]);
+	$outcome = $runner->run($plan, resumed: $raised);
+	Assert::same([RunStop::Tests, 1, ['Raise::raise']], [$outcome->stop, $outcome->step, $outcome->newFailures]);
+	Assert::same('xx', file_get_contents("$root/runs.txt")); // before the first step and after the raise
+	// a run started anew, as one that could not go on in a process of its own is, finds the raise untested in the journal
+	$again = $runner->run($plan);
+	Assert::same([RunStop::Tests, 1, ['Raise::raise']], [$again->stop, $again->step, $again->newFailures]);
+	Assert::same('xxx', file_get_contents("$root/runs.txt"));
+	Assert::same(['composer.json'], $outcome->raisedFiles);
+	Assert::match(
+		"%A%Raised     composer.json changed, which `dresscode upgrade abort` puts back as they were before the raise and installs\n"
+		. 'Failed     step 1 raised the dependencies, which stay raised, and these tests now fail: Raise::raise%A%',
+		new DressCode\Console\RunOutcomePrinter($plan, $outcome)->print(new Nette\CommandLine\Console),
+	);
+
+	// the journal keeps the files until a step after the raise is done, or the user puts them back
+	$state = new RunState(createSteppedRunProject($root));
+	Assert::same(1, $state->journal->findStep());
+	$restoration = $state->restore(createSteppedRunProject($root), new PlanRunnerComposer($root));
+	Assert::same([['composer.json'], [], false], [$restoration->restored, $restoration->left, $restoration->installs]);
+	Assert::same('{"require": {"php": "^8.0"}}', file_get_contents("$root/composer.json"));
+	Assert::null($state->journal->findStep());
+});
+
+
+test('an install of what abort put back that fails is tried again by the next abort, which forgets the journal only then', function () {
+	$root = createSteppedProject('steps-abort-install');
+	file_put_contents("$root/composer.lock", '{}');
+	$project = createSteppedRunProject($root);
+	$state = new RunState($project);
+	$state->journal->recordBefore(2, $root);
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.4"}}');
+	$state->journal->recordAfter($root);
+	$failures = 1;
+	$composer = new PlanRunnerComposer($root, onInstall: function () use (&$failures): void {
+		if ($failures-- > 0) {
+			throw new ComposerException('Composer failed: the network is down');
+		}
+	});
+
+	$first = $state->restore($project, $composer);
+	Assert::same(
+		[['composer.json'], true, 'Composer failed: the network is down'],
+		[$first->restored, $first->installs, $first->installFailure],
+	);
+	Assert::same([2, true], [$state->journal->findStep(), $state->journal->isAwaitingInstall()]);
+
+	$dryRun = $state->restore($project, $composer, dryRun: true);
+	Assert::same([[], true], [$dryRun->restored, $dryRun->installs]);
+
+	$second = $state->restore($project, $composer);
+	Assert::same([[], true, null], [$second->restored, $second->installs, $second->installFailure]);
+	Assert::null($state->journal->findStep());
+});
+
+
+test('the journal of Composer puts back what the raise changed, a file it created removed, a file changed since left', function () {
+	$root = createTempDir('composer-journal');
+	$journal = new DressCode\Upgrade\ComposerJournal("$root/state");
+	file_put_contents("$root/composer.json", 'before');
+	$journal->recordBefore(2, $root);
+	file_put_contents("$root/composer.json", 'raised');
+	file_put_contents("$root/composer.lock", 'lock');
+	$journal->recordAfter($root);
+	$journal->recordBefore(3, $root); // a later raise keeps what was before the first one
+	Assert::same([2, ['composer.json', 'composer.lock']], [$journal->findStep(), $journal->findChanged()]);
+
+	file_put_contents("$root/composer.lock", 'edited');
+	Assert::same(
+		[['composer.json'], ['composer.lock' => 'The file changed after the raise of step 2, so it is not written back.']],
+		$journal->restore($root),
+	);
+	Assert::same('before', file_get_contents("$root/composer.json"));
+	Assert::same('edited', file_get_contents("$root/composer.lock"));
+	// a file left stays kept, to go back once the change of it is undone, and one written back is no change any more
+	Assert::same([2, ['composer.lock'], true], [$journal->findStep(), $journal->findChanged(), $journal->isAwaitingInstall()]);
+	file_put_contents("$root/composer.lock", 'lock');
+	Assert::same([['composer.lock'], []], $journal->restore($root));
+	Assert::same([[], false], [$journal->findChanged(), $journal->isAwaitingInstall()]);
+	$journal->forget();
+
+	file_put_contents("$root/composer.lock", 'edited');
+	$journal->recordBefore(2, $root);
+	file_put_contents("$root/composer.lock", 'new');
+	$journal->recordAfter($root);
+	Assert::same([['composer.lock'], []], $journal->restore($root));
+	Assert::same('edited', file_get_contents("$root/composer.lock"));
+	$journal->forget();
+
+	unlink("$root/composer.lock");
+	$journal->recordBefore(2, $root);
+	file_put_contents("$root/composer.lock", 'created');
+	$journal->recordAfter($root);
+	Assert::same([['composer.lock'], []], $journal->restore($root));
+	Assert::false(is_file("$root/composer.lock"));
 });
 
 
@@ -393,12 +565,121 @@ test('a manual step passes once Composer says nothing of the lock refuses its ta
 });
 
 
+test(
+	'a raise approved lets the run go on once Composer made it, one it did not make or that is not approved leaves the run waiting',
+	function () {
+		$root = createSteppedProject('steps-raised');
+		$project = createSteppedRunProject($root);
+		$asked = [];
+		$approve = function (DependencyStep $step, array $changes) use (&$asked): bool {
+			$asked[] = $step->title;
+			return true;
+		};
+		$runner = new PlanRunner($project, composer: new PlanRunnerComposer($root, onRequire: fn() => null));
+		Assert::same(2, $runner->run(createSteppedPlan(), approve: $approve)->step);
+		Assert::same(['raise php to ^8.4'], $asked);
+		Assert::same(
+			[RunStop::Composer, 2],
+			[($outcome = $runner->run(createSteppedPlan(), approve: fn() => false))->stop, $outcome->step],
+		);
+
+		// where Composer fails, the outcome says why, beside what the run tells
+		$fail = fn() => throw new DressCode\Upgrade\ComposerException('Composer failed: Your requirements could not be resolved');
+		$runner = new PlanRunner($project, composer: new PlanRunnerComposer($root, onRequire: $fail));
+		$outcome = $runner->run(createSteppedPlan(), approve: fn() => true)->withWarnings(['The types are not there.']);
+		Assert::same(
+			[RunStop::Composer, 'Composer failed: Your requirements could not be resolved', ['The types are not there.']],
+			[$outcome->stop, $outcome->composerFailure, $outcome->warnings],
+		);
+		Assert::match(
+			"%A%Warning    The types are not there.\nFailed     step 2, Composer failed: Your requirements could not be resolved; raise php to ^8.4: run %A%",
+			new DressCode\Console\RunOutcomePrinter(createSteppedPlan(), $outcome)->print(new Nette\CommandLine\Console),
+		);
+
+		$runner = new PlanRunner($project, composer: new PlanRunnerComposer($root));
+		$raised = $runner->run(createSteppedPlan(), approve: fn() => true);
+		Assert::same([RunStop::Raised, 2], [$raised->stop, $raised->step]);
+		Assert::equal(
+			new RunOutcome(RunStop::Done, null, [1 => ['upgrading.php.implicitNullable' => []]]),
+			$runner->run(createSteppedPlan(), resumed: $raised),
+		);
+	},
+);
+
+
+test('the files of Composer a raise changes are kept to go back where they lie above the root of the configuration', function () {
+	$above = createTempDir('steps-composer-above');
+	mkdir("$above/app");
+	$root = "$above/app";
+	foreach (['src', 'dresscode.neon', 'tests.php'] as $entry) {
+		rename(createSteppedProject('steps-composer-below') . "/$entry", "$root/$entry");
+	}
+
+	file_put_contents("$above/composer.json", '{"require": {"php": "^8.0"}}');
+	$runner = new PlanRunner(createSteppedRunProject($root), composer: new PlanRunnerComposer($above));
+	$plan = new Plan([Target::php('8.4')], [new ComposerStep('raise php to ^8.4', ['php' => '^8.4'])], '1.0');
+	$raised = $runner->run($plan, approve: fn() => true);
+	Assert::same(RunStop::Remaining, $runner->run($plan, resumed: $raised)->stop); // the bridge is not in the plan
+	Assert::same(['composer.json'], $runner->state->journal->findChanged());
+	Assert::same([['composer.json'], []], $runner->state->journal->restore(createSteppedRunProject($root)->findComposerRoot()));
+	Assert::same('{"require": {"php": "^8.0"}}', file_get_contents("$above/composer.json"));
+});
+
+
+test('the update to the newest versions is done once Composer says it would change nothing, and asked for otherwise', function () {
+	$root = createSteppedProject('steps-newest');
+	file_put_contents("$root/src/Code.php", "<?php\n\nfunction run(?int \$count = null): void\n{\n}\n");
+	$step = new UpdateStep('update to the newest versions');
+	$plan = new Plan([Target::php('8.4')], [$step], '1.0');
+	$composer = new PlanRunnerComposer($root, updateChanges: ['- Upgrading acme/mail (v3.0.0 => v3.2.1)']);
+	$runner = new PlanRunner(createSteppedRunProject($root), composer: $composer);
+	$asked = [];
+	$approve = function (DependencyStep $step, array $changes) use (&$asked): bool {
+		$asked[] = $changes;
+		return true;
+	};
+	$raised = $runner->run($plan, approve: $approve);
+	Assert::same([RunStop::Raised, RunStop::Done], [$raised->stop, $runner->run($plan, resumed: $raised)->stop]);
+	Assert::same(RunStop::Done, $runner->run($plan, approve: $approve)->stop);
+	Assert::same([['- Upgrading acme/mail (v3.0.0 => v3.2.1)']], $asked); // done, so not asked again
+	Assert::same(1, $composer->updates);
+	Assert::same(['composer update'], $step->formatCommands());
+});
+
+
 test('Composer and the tests are boundaries a test replaces, to fail exactly where it wants', function () {
 	$root = createSteppedProject('steps-boundaries');
 	$composer = new class implements PackageManager {
 		public function findBlockers(Target $target): Blockers
 		{
 			return new Blockers($target, unknown: 'Composer did not answer within 60 s');
+		}
+
+
+		public function previewRequire(array $constraints, bool $update = true, ?string $platform = null): array
+		{
+			return [];
+		}
+
+
+		public function require(array $constraints, bool $update = true, ?string $platform = null): void
+		{
+		}
+
+
+		public function previewUpdate(): array
+		{
+			throw new ComposerException('Composer failed: the network is down');
+		}
+
+
+		public function update(): void
+		{
+		}
+
+
+		public function install(): void
+		{
 		}
 	};
 	$tests = new class implements TestRunner {
@@ -413,9 +694,38 @@ test('Composer and the tests are boundaries a test replaces, to fail exactly whe
 	$runner = new PlanRunner($project, composer: $composer);
 	$outcome = $runner->run(new Plan([$target], [new ManualStep('make way for acme/mail 3.0', $target)], '1.0'));
 	Assert::same([RunStop::Manual, 'Composer did not answer within 60 s'], [$outcome->stop, $outcome->blockers?->unknown]);
+	$outcome = $runner->run(new Plan([$target], [new UpdateStep('update to the newest versions')], '1.0'));
+	Assert::same([RunStop::Composer, 'Composer failed: the network is down'], [$outcome->stop, $outcome->composerFailure]);
 
 	Assert::same(
 		'the tests of `tests {junit}` do not run before the first step, as the command of the tests ended with exit code 255',
 		new PlanRunner($project, tests: $tests)->run(createSteppedPlan('tests {junit}'))->crash,
 	);
+});
+
+
+test('a raise a fix follows stops the run, which goes on after it from the outcome handed over as data', function () {
+	$root = createSteppedProject('steps-resumed');
+	$plan = new Plan([Target::php('8.4')], [
+		new FixStep('works on the versions allowed today', ['upgrading.php.implicitNullable']),
+		new ComposerStep('raise php to ^8.4', ['php' => '^8.4']),
+		new FixStep('needs the targets', ['upgrading.php.implicitNullable']),
+	], '1.0');
+	$runner = new PlanRunner(createSteppedRunProject($root), composer: new PlanRunnerComposer($root));
+	$outcome = $runner->run($plan, approve: fn() => true);
+	Assert::equal(new RunOutcome(RunStop::Raised, 2, [1 => ['upgrading.php.implicitNullable' => ['src/Code.php']]]), $outcome);
+
+	$handed = RunOutcome::fromArray(json_decode(json_encode($outcome->toArray(), JSON_THROW_ON_ERROR), associative: true));
+	Assert::equal($outcome, $handed);
+	Assert::equal(
+		new RunOutcome(RunStop::Done, null, [
+			1 => ['upgrading.php.implicitNullable' => ['src/Code.php']],
+			3 => ['upgrading.php.implicitNullable' => []],
+		]),
+		$runner->run($plan, resumed: $handed),
+	);
+
+	// what the fixes changed goes over as data too
+	$outcome = new RunOutcome(RunStop::Raised, 2, [1 => ['php' => ['src/Code.php']]]);
+	Assert::equal($outcome, RunOutcome::fromArray(json_decode(json_encode($outcome->toArray(), JSON_THROW_ON_ERROR), associative: true)));
 });

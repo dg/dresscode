@@ -64,17 +64,28 @@ final readonly class RunOutcomePrinter
 			$out .= Markup::formatLabel($console, 'Warning') . "$warning\n";
 		}
 
+		if ($outcome->raisedFiles !== []) {
+			$out .= Markup::formatLabel($console, 'Raised') . implode(', ', $outcome->raisedFiles)
+				. ' changed, which `dresscode upgrade abort` puts back as they were before the raise and installs' . "\n";
+		}
+
 		return $out . match ($outcome->stop) {
 			RunStop::Tests => Markup::formatLabel($console, 'Failed') . match (true) {
 				$outcome->step === null => "$outcome->crash, so nothing was changed",
+				$this->plan->steps[$outcome->step - 1] instanceof DependencyStep
+					=> "step $outcome->step raised the dependencies, which stay raised, and ",
 				default => "step $outcome->step went back, its fixes undone and the dependencies as the steps before left them, as ",
 			} . match (true) {
 				$outcome->step === null => '',
 				$outcome->newFailures === [] => $outcome->crash ?? 'the tests wrote no results after it',
 				default => 'these tests now fail: ' . implode(', ', $outcome->newFailures),
 			},
-			RunStop::Composer
-				=> Markup::formatLabel($console, 'Waiting') . "step $outcome->step, {$this->formatComposerStep((int) $outcome->step)}",
+			RunStop::Composer => $outcome->composerFailure === null
+				? Markup::formatLabel($console, 'Waiting') . "step $outcome->step, {$this->formatComposerStep((int) $outcome->step)}"
+				: Markup::formatLabel($console, 'Failed')
+					. "step $outcome->step, $outcome->composerFailure; {$this->formatComposerStep((int) $outcome->step)}",
+			RunStop::Raised => Markup::formatLabel($console, 'Waiting')
+				. "step $outcome->step raised the dependencies, which what runs after it loads anew: run `dresscode upgrade run` again",
 			RunStop::Manual
 				=> Markup::formatLabel($console, 'Waiting') . "step $outcome->step, {$this->formatManualStep((int) $outcome->step)}",
 			RunStop::Interrupted => Markup::formatLabel($console, 'Failed') . "step $outcome->step did not finish"
@@ -142,8 +153,10 @@ final readonly class RunOutcomePrinter
 				'unknown' => $outcome->blockers->unknown,
 			],
 			'interrupted' => $outcome->interrupted,
+			'raisedFiles' => $outcome->raisedFiles,
 			'remaining' => $outcome->remaining,
 			'warnings' => $outcome->warnings,
+			'composerFailure' => $outcome->composerFailure,
 		];
 	}
 

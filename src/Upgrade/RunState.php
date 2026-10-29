@@ -14,13 +14,14 @@ use const LOCK_EX, LOCK_NB;
 
 /**
  * What the runs of the plan of a project keep between them, in the directory of its git repository, or in the cache
- * directory where git finds none: the snapshots of the steps and the results of the tests before the first step; and
- * the lock that keeps two runs from working in the project at once.
+ * directory where git finds none: the snapshots of the steps, the files of Composer before a raise and the results of
+ * the tests before the first step; and the lock that keeps two runs from working in the project at once.
  * @internal
  */
 final readonly class RunState
 {
 	public Snapshots $snapshots;
+	public ComposerJournal $journal;
 	public string $directory;
 
 	/** it lies in the directory of git, which clearing the cache does not take */
@@ -34,6 +35,7 @@ final readonly class RunState
 		$this->directory = $gitDir === null ? $project->getCacheDir() . "/upgrade/$name" : "$gitDir/dresscode-upgrade/$name";
 		$this->durable = $gitDir !== null;
 		$this->snapshots = new Snapshots("$this->directory/snapshots");
+		$this->journal = new ComposerJournal("$this->directory/composer");
 	}
 
 
@@ -62,20 +64,43 @@ final readonly class RunState
 
 
 	/**
-	 * Puts back what a run keeps to go back, holding the lock of the project: the files of the steps it did not finish; a
-	 * dry run only says what it would.
+	 * Puts back what a run keeps to go back, holding the lock of the project: the files of the steps it did not finish
+	 * and those of Composer a raise changed, the packages of the lock installed then; a dry run only says what it would.
+	 * @param  ?\Closure(string): void  $onProgress  told what is being done
 	 * @throws ConfigurationException  where another process holds the lock
 	 */
-	public function restore(Project $project, bool $dryRun = false): Restoration
+	public function restore(Project $project, PackageManager $composer, bool $dryRun = false, ?\Closure $onProgress = null): Restoration
 	{
-		return $this->runExclusively(function () use ($project, $dryRun): Restoration {
+		return $this->runExclusively(function () use ($project, $composer, $dryRun, $onProgress): Restoration {
 			$restored = $left = [];
 			foreach ($this->snapshots->findInterrupted() as $step => $files) {
 				$left += $this->snapshots->restore($step, $project->root, $dryRun);
 				$restored = [...$restored, ...array_diff($files, array_keys($left))];
 			}
 
-			return new Restoration($restored, $left);
+			// the journal is forgotten only once nothing is left of it and what it put back is installed, so that a
+			// conflict or a failed install can be gone back over
+			$composerRoot = $project->findComposerRoot();
+			[$composerFiles, $composerLeft] = $this->journal->restore($composerRoot, $dryRun);
+			$installs = $dryRun
+				? ($composerFiles !== [] || $this->journal->isAwaitingInstall()) && is_file("$composerRoot/composer.lock")
+				: $this->journal->isAwaitingInstall();
+			$failure = null;
+			if ($installs && !$dryRun) {
+				$onProgress?->__invoke('Composer, installing the packages of the lock');
+				try {
+					$composer->install();
+					$this->journal->markInstalled();
+				} catch (ComposerException $e) {
+					$failure = $e->getMessage();
+				}
+			}
+
+			if (!$dryRun && $composerLeft === [] && !$this->journal->isAwaitingInstall()) {
+				$this->journal->forget();
+			}
+
+			return new Restoration([...$restored, ...$composerFiles], $left + $composerLeft, $installs, $failure);
 		});
 	}
 
