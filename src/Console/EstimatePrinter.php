@@ -7,15 +7,15 @@
 
 namespace DressCode\Console;
 
-use DressCode\Upgrade\{Estimate, Fixability, Phase, Target, Topic};
+use DressCode\Upgrade\{Blocker, Blockers, Estimate, Fixability, Move, Phase, Target, Topic};
 use Nette\CommandLine\Console;
 use function count, sprintf, strlen;
 
 
 /**
  * Writes the estimate of `dresscode upgrade estimate`: what must change for the targets and what may, topic by topic with what the
- * run can do about the places, what works on the versions allowed today, what the upgrade does not see, and how far
- * the upgrading data reach.
+ * run can do about the places, what works on the versions allowed today, what the upgrade does not see, what refuses
+ * the targets, and how far the upgrading data reach.
  * @internal
  */
 final readonly class EstimatePrinter
@@ -109,6 +109,25 @@ final readonly class EstimatePrinter
 				. ' the check could not process, whose findings are not counted: ' . self::formatList(array_keys($estimate->unprocessed)) . "\n";
 		}
 
+		foreach ($estimate->blockers as $blockers) {
+			$out .= Markup::formatLabel($console, 'Composer') . $blockers->target->format() . ': ' . self::formatBlockers($blockers) . "\n";
+		}
+
+		$major = $estimate->moves?->findMajor() ?? [];
+		if ($estimate->moves?->unknown !== null) {
+			$out .= Markup::formatLabel($console, 'Moves') . "unknown, {$estimate->moves->unknown}\n";
+		} elseif ($major !== []) {
+			$out .= Markup::formatLabel($console, 'Moves') . self::wrapList(array_map(
+				fn(Move $move) => "$move->package $move->from => $move->to"
+					. match (true) {
+						$move->isKnown($estimate->knownVersions) => '',
+						$move->isSeriesKnown($estimate->knownVersions) => " (data up to {$estimate->knownVersions[$move->package]})",
+						default => ' (no data)',
+					},
+				$major,
+			)) . "\n";
+		}
+
 		foreach ($estimate->missingData as $package => $libraries) {
 			$out .= Markup::formatLabel($console, 'No data') . self::formatList($libraries)
 				. ": the upgrading data are in `$package`, which `dresscode upgrade today` offers to install, with `--yes` without asking\n";
@@ -149,6 +168,20 @@ final readonly class EstimatePrinter
 				'findings' => ['total' => $topic->countPlaces(), ...$topic->places],
 			], $estimate->topics),
 			'blindSpots' => [...(array) $estimate->blindSpots, 'otherFiles' => (object) $estimate->blindSpots->otherFiles],
+			'blockers' => array_map(fn(Blockers $blockers) => [
+				'target' => (array) $blockers->target,
+				'packages' => array_map(fn(Blocker $blocker) => (array) $blocker, $blockers->packages),
+				'unknown' => $blockers->unknown,
+			], $estimate->blockers),
+			'moves' => $estimate->moves === null ? null : [
+				'packages' => array_map(fn(Move $move) => [
+					...(array) $move,
+					'major' => $move->isMajor(),
+					'data' => $move->isKnown($estimate->knownVersions),
+					'dataUpTo' => $estimate->knownVersions[$move->package] ?? null,
+				], $estimate->moves->packages),
+				'unknown' => $estimate->moves->unknown,
+			],
 			'unverified' => array_map(
 				fn(string $path, string $why) => ['file' => $path, 'message' => $why],
 				array_keys($estimate->unprocessed),
@@ -193,6 +226,20 @@ final readonly class EstimatePrinter
 				: null,
 			$spots->generatedFiles ? Markup::formatCount($spots->generatedFiles, 'generated file') . ', left out' : null,
 		]));
+	}
+
+
+	/** The packages refusing the target, or why nothing is known of them. */
+	public static function formatBlockers(Blockers $blockers): string
+	{
+		return match (true) {
+			$blockers->unknown !== null => "unknown, $blockers->unknown",
+			$blockers->packages === [] => 'nothing in the lock refuses it',
+			default => 'refused by ' . self::formatList(array_map(
+				fn(Blocker $blocker) => "$blocker->package $blocker->version ($blocker->constraint)",
+				$blockers->packages,
+			)),
+		};
 	}
 
 

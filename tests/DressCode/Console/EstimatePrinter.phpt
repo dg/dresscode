@@ -1,16 +1,40 @@
 <?php declare(strict_types=1);
 
 use DressCode\Console\EstimatePrinter;
-use DressCode\Upgrade\{BlindSpots, Estimate, Target};
+use DressCode\Upgrade\{BlindSpots, Blocker, Blockers, Estimate, Move, Moves, Target};
 use Nette\CommandLine\{ColorDepth, Console};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
 
 
+test('what the lock refuses a target with is said under Composer, and so is a lock refusing nothing', function () {
+	$estimate = new Estimate(
+		[new Target('acme/mail', '4.0'), Target::php('8.4')],
+		[],
+		1,
+		new BlindSpots,
+		[
+			new Blockers(new Target('acme/mail', '4.0'), [new Blocker('acme/shop', 'v1.0.0', '^3.2')]),
+			new Blockers(Target::php('8.4')),
+		],
+		[],
+		[],
+		true,
+		false,
+		[],
+	);
+	$console = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: false);
+	$out = new EstimatePrinter($estimate)->print($console);
+
+	Assert::contains("Composer   acme/mail 4.0: refused by acme/shop v1.0.0 (^3.2)\n", $out);
+	Assert::contains("Composer   php 8.4: nothing in the lock refuses it\n", $out);
+});
+
+
 test('the libraries the data know are broken onto lines that keep the width of the output', function () {
 	$known = ['acme/application' => '3.3', 'acme/component-model' => '3.2', 'acme/http' => '3.4', 'acme/utils' => '4.1.5', 'php' => '8.6'];
-	$estimate = new Estimate([Target::php('8.4')], [], 1, new BlindSpots, [], $known, true, false, []);
+	$estimate = new Estimate([Target::php('8.4')], [], 1, new BlindSpots, [], [], $known, true, false, []);
 	$console = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: false);
 	$out = new EstimatePrinter($estimate)->print($console);
 
@@ -22,12 +46,51 @@ test('the libraries the data know are broken onto lines that keep the width of t
 });
 
 
+test('the major moves of the update are said under Moves, those the data do not reach marked, the data listing every move', function () {
+	$estimate = new Estimate(
+		[new Target('acme/utils', '4.0')],
+		[],
+		1,
+		new BlindSpots,
+		[],
+		[],
+		['acme/utils' => '4.1', 'acme/cache' => '2.1'],
+		true,
+		false,
+		[],
+		new Moves([
+			new Move('acme/utils', 'v3.2.10', 'v4.0.11'),
+			new Move('acme/http', 'v3.1.0', 'v3.2.0'),
+			new Move('acme/schema', 'v1.3.0', 'v2.0.0'),
+			new Move('acme/cache', 'v1.4.0', 'v2.3.0'),
+		]),
+	);
+	$console = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: false);
+	$out = new EstimatePrinter($estimate)->print($console);
+
+	Assert::contains(
+		"Moves      acme/utils v3.2.10 => v4.0.11, acme/schema v1.3.0 => v2.0.0 (no data),\n           acme/cache v1.4.0 => v2.3.0 (data up to 2.1)\n",
+		$out,
+	);
+	Assert::same(
+		[
+			['package' => 'acme/utils', 'from' => 'v3.2.10', 'to' => 'v4.0.11', 'major' => true, 'data' => true, 'dataUpTo' => '4.1'],
+			['package' => 'acme/http', 'from' => 'v3.1.0', 'to' => 'v3.2.0', 'major' => false, 'data' => false, 'dataUpTo' => null],
+			['package' => 'acme/schema', 'from' => 'v1.3.0', 'to' => 'v2.0.0', 'major' => true, 'data' => false, 'dataUpTo' => null],
+			['package' => 'acme/cache', 'from' => 'v1.4.0', 'to' => 'v2.3.0', 'major' => true, 'data' => false, 'dataUpTo' => '2.1'],
+		],
+		new EstimatePrinter($estimate)->toArray()['moves']['packages'],
+	);
+});
+
+
 test('the files the check could not process are said, their places not counted', function () {
 	$estimate = new Estimate(
 		[Target::php('8.4')],
 		[],
 		2,
 		new BlindSpots,
+		[],
 		[],
 		[],
 		true,
@@ -42,4 +105,24 @@ test('the files the check could not process are said, their places not counted',
 		new EstimatePrinter($estimate)->print($console),
 	);
 	Assert::same([['file' => 'src/Broken.php', 'message' => 'Syntax error: x']], new EstimatePrinter($estimate)->toArray()['unverified']);
+});
+
+
+test('the moves Composer could not say are unknown, with the reason', function () {
+	$estimate = new Estimate(
+		[new Target('acme/utils', '4.0')],
+		[],
+		1,
+		new BlindSpots,
+		[],
+		[],
+		[],
+		true,
+		false,
+		[],
+		new Moves(unknown: 'Composer did not answer in time'),
+	);
+	$console = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: false);
+
+	Assert::contains("Moves      unknown, Composer did not answer in time\n", new EstimatePrinter($estimate)->print($console));
 });
