@@ -2,8 +2,8 @@
 
 use DressCode\Config;
 use DressCode\Upgrade\{
-	Blocker, Blockers, ComposerException, ComposerStep, DependencyStep, FixStep, ManualStep, PackageManager, Plan, PlanRunner,
-	Project, RunOutcome, RunState, RunStop, Target, TestResults, TestRunner, TestStatus, UpdateStep,
+	Blocker, Blockers, ComposerException, ComposerStep, DependencyStep, FixStep, ManualStep, PackageManager, Plan, PlanRunner, Postponement,
+	Project, RunOutcome, RunState, RunStop, Target, Task, TestResults, TestRunner, TestStatus, UpdateStep,
 };
 use Nette\Utils\FileSystem;
 use Tester\Assert;
@@ -165,6 +165,7 @@ test('a run says by its exit code whether it is done, leaves work for a human, i
 		'Composer' => 4,
 		'Raised' => 4,
 		'Manual' => 4,
+		'Tasks' => 1,
 		'Tests' => 1,
 		'Unprocessed' => 2,
 		'Remaining' => 1,
@@ -459,14 +460,19 @@ test('a fix resolves the names with what the namespaces declare, as the estimate
 });
 
 
-test('a step the plan does not run is refused', function () {
+test('a plan leaving a task is not done, and a step it does not run is refused', function () {
 	$root = createSteppedProject('steps-left');
+	file_put_contents("$root/src/Date.php", "<?php\n\nfunction month(): string\n{\n\treturn strftime('%B');\n}\n");
 	$plan = new Plan(
 		[Target::php('8.4')],
 		[new FixStep('bridge', ['php']), new FixStep('later', ['php'], skip: true)],
 		'1.0',
 	);
 	$runner = new PlanRunner(createSteppedRunProject($root));
+
+	$outcome = $runner->run($plan);
+	Assert::same([RunStop::Tasks, 1], [$outcome->stop, $outcome->step]);
+	Assert::same(['src/Date.php'], array_map(fn(Task $task) => $task->path, $outcome->tasks['php']));
 
 	Assert::exception(
 		fn() => $runner->run($plan, singleStep: 3),
@@ -725,7 +731,65 @@ test('a raise a fix follows stops the run, which goes on after it from the outco
 		$runner->run($plan, resumed: $handed),
 	);
 
-	// what the fixes changed goes over as data too
-	$outcome = new RunOutcome(RunStop::Raised, 2, [1 => ['php' => ['src/Code.php']]]);
+	// what a fix left goes over as data too
+	$violation = new DressCode\Violation(
+		'upgrading.php.deprecatedApi',
+		'Deprecated.',
+		3,
+		5,
+		DressCode\Severity::Error,
+		'abc',
+		fixable: false,
+	);
+	$outcome = new RunOutcome(RunStop::Raised, 2, tasks: ['php' => [new Task('src/Code.php', $violation)]]);
 	Assert::equal($outcome, RunOutcome::fromArray(json_decode(json_encode($outcome->toArray(), JSON_THROW_ON_ERROR), associative: true)));
 });
+
+
+test(
+	'a suppression without a reason only puts a task off, so a run whose fixes leave nothing else is not done',
+	function () {
+		$root = createSteppedProject('steps-tasks');
+		$code = <<<'XX'
+			<?php
+
+			function month(): string
+			{
+				return strftime('%B');
+			}
+
+			function day(): string
+			{
+				// dresscode:ignore upgrading.php.deprecatedApi
+				return strftime('%d');
+			}
+
+			function year(): string
+			{
+				// dresscode:ignore upgrading.php.deprecatedApi -- the report needs the locale of the server
+				return strftime('%Y');
+			}
+
+			XX;
+		file_put_contents("$root/src/Date.php", $code);
+		$plan = new Plan([Target::php('8.4')], [new FixStep('bridge', ['php', 'upgrading.php.implicitNullable'])], '1.0');
+		$runner = new PlanRunner(createSteppedRunProject($root));
+
+		Assert::equal(
+			[new Postponement('src/Date.php', 10, 'dresscode:ignore upgrading.php.deprecatedApi')],
+			Postponement::findIn($runner->project, $plan->paths),
+		);
+
+		file_put_contents(
+			"$root/src/Date.php",
+			str_replace(
+				"\treturn strftime('%B');",
+				"\t// dresscode:ignore upgrading.php.deprecatedApi -- legacy\n\treturn strftime('%B');",
+				$code,
+			),
+		);
+		$outcome = $runner->run($plan);
+		Assert::same([RunStop::Tasks, null], [$outcome->stop, $outcome->step]);
+		Assert::equal([new Postponement('src/Date.php', 11, 'dresscode:ignore upgrading.php.deprecatedApi')], $outcome->postponed);
+	},
+);

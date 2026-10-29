@@ -13,8 +13,8 @@ use function count;
 
 
 /**
- * Writes how far a run of a plan got: the steps for a human it passed, what each fix changed, and where and why it
- * stopped.
+ * Writes how far a run of a plan got: the steps for a human it passed, what each fix changed, the tasks left and
+ * where and why it stopped.
  * @internal
  */
 final readonly class RunOutcomePrinter
@@ -45,14 +45,7 @@ final readonly class RunOutcomePrinter
 			)) . "\n";
 		}
 
-		if ($outcome->unprocessed !== []) {
-			$out .= Markup::formatLabel($console, 'Unverified') . Markup::formatCount(count($outcome->unprocessed), 'file')
-				. " the fixes could not process, left as they are\n";
-			foreach ($outcome->unprocessed as $path => $why) {
-				$out .= "  $path  " . strtok($why, "\n") . "\n";
-			}
-		}
-
+		$out .= new TasksPrinter($outcome->tasks, $outcome->postponed, $outcome->unprocessed)->print($console);
 		if ($baseline = $outcome->baseline) {
 			// a test failing before the first step is no regression, so passing the comparison is not passing the tests
 			$out .= Markup::formatLabel($console, 'Tests') . 'compared with their run before the first step'
@@ -94,6 +87,9 @@ final readonly class RunOutcomePrinter
 					: ', and may have rewritten ' . implode(', ', $outcome->interrupted)
 						. ': `dresscode upgrade abort` puts them back as they were before it')
 				. ', or go on from the code as it is with `dresscode upgrade run --discard`',
+			RunStop::Tasks => Markup::formatLabel($console, 'Waiting')
+				. ($outcome->step === null ? 'the plan leaves' : "step $outcome->step leaves") . ' the manual tasks above: fix each or accept it with '
+				. '`// dresscode:ignore <decision> -- <reason>`, then run `dresscode upgrade run`',
 			RunStop::Unprocessed => Markup::formatLabel($console, 'Waiting')
 				. "step $outcome->step did not fix the files above: make each parse, or leave it out of the paths, then run `dresscode upgrade run`",
 			RunStop::Remaining => Markup::formatLabel($console, 'Waiting')
@@ -132,10 +128,13 @@ final readonly class RunOutcomePrinter
 			}
 		}
 
+		$found = new TasksPrinter($outcome->tasks, $outcome->postponed, $outcome->unprocessed)->toArray();
 		return [
 			'stop' => lcfirst($outcome->stop->name),
 			'step' => $outcome->step,
 			'applied' => $applied,
+			'tasks' => $found['tasks'],
+			'exceptions' => $found['exceptions'],
 			'newFailures' => $outcome->newFailures,
 			'crash' => $outcome->crash,
 			'baseline' => $outcome->baseline === null ? null : [
@@ -143,11 +142,7 @@ final readonly class RunOutcomePrinter
 				'tests' => count($outcome->baseline->tests),
 				'notPassed' => $outcome->baseline->countNotPassed(),
 			],
-			'unverified' => array_map(
-				fn(string $path, string $why) => ['file' => $path, 'message' => $why],
-				array_keys($outcome->unprocessed),
-				$outcome->unprocessed,
-			),
+			'unverified' => $found['unverified'],
 			'blockers' => $outcome->blockers === null ? null : [
 				'packages' => array_map(fn(Blocker $blocker) => (array) $blocker, $outcome->blockers->packages),
 				'unknown' => $outcome->blockers->unknown,
