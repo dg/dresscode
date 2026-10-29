@@ -185,11 +185,7 @@ final readonly class EstimatePrinter
 				'unknown' => $estimate->moves->unknown,
 			],
 			'library' => $estimate->library,
-			'unverified' => array_map(
-				fn(string $path, string $why) => ['file' => $path, 'message' => $why],
-				array_keys($estimate->unprocessed),
-				$estimate->unprocessed,
-			),
+			'unverified' => TasksPrinter::listUnverified($estimate->unprocessed),
 			'missingData' => (object) $estimate->missingData,
 			'knownVersions' => (object) $estimate->knownVersions,
 			'warnings' => $estimate->warnings,
