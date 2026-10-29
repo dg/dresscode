@@ -114,7 +114,9 @@ final readonly class EstimatePrinter
 		}
 
 		$major = $estimate->moves?->findMajor() ?? [];
-		if ($estimate->moves?->unknown !== null) {
+		if ($estimate->library) {
+			$out .= Markup::formatLabel($console, 'Moves') . "nothing, a library widens its constraints with `--no-update`\n";
+		} elseif ($estimate->moves?->unknown !== null) {
 			$out .= Markup::formatLabel($console, 'Moves') . "unknown, {$estimate->moves->unknown}\n";
 		} elseif ($major !== []) {
 			$out .= Markup::formatLabel($console, 'Moves') . self::wrapList(array_map(
@@ -182,6 +184,7 @@ final readonly class EstimatePrinter
 				], $estimate->moves->packages),
 				'unknown' => $estimate->moves->unknown,
 			],
+			'library' => $estimate->library,
 			'unverified' => array_map(
 				fn(string $path, string $why) => ['file' => $path, 'message' => $why],
 				array_keys($estimate->unprocessed),

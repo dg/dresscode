@@ -133,14 +133,7 @@ final readonly class Composer
 	 */
 	public function previewRequire(array $constraints): array
 	{
-		return self::parseOperations($this->run([
-			'require',
-			...array_map(fn(string $package, string $constraint) => "$package:$constraint", array_keys($constraints), $constraints),
-			'-W',
-			'--prefer-lowest',
-			'--minimal-changes',
-			'--dry-run',
-		], self::UpdateTimeout));
+		return self::parseOperations($this->run(self::buildRequire($constraints, update: true, dryRun: true), self::UpdateTimeout));
 	}
 
 
@@ -164,6 +157,22 @@ final readonly class Composer
 	{
 		$lines = array_map(trim(...), preg_split('~\R~', $output) ?: []);
 		return array_values(array_unique(preg_grep('~^- (Upgrading|Downgrading|Installing|Removing) ~', $lines) ?: []));
+	}
+
+
+	/**
+	 * The arguments of `composer require` writing the constraints, with the update or without it.
+	 * @param  array<string, string>  $constraints
+	 * @return list<string>
+	 */
+	public static function buildRequire(array $constraints, bool $update, bool $dryRun = false): array
+	{
+		return [
+			'require',
+			...array_map(fn(string $package, string $constraint) => "$package:$constraint", array_keys($constraints), $constraints),
+			...$update ? ['-W', '--prefer-lowest', '--minimal-changes'] : ['--no-update'],
+			...$dryRun ? ['--dry-run'] : [],
+		];
 	}
 
 

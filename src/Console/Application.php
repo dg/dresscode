@@ -150,6 +150,7 @@ final readonly class Application
 		$upgrade->addText(implode("\n", [
 			'Examples:',
 			'  dresscode upgrade estimate php 8.4                what an upgrade to PHP 8.4 changes',
+			'  dresscode upgrade plan nette/utils 4.0 --save     a plan for nette/utils 4.0, saved for review',
 			'  dresscode upgrade today                           the code rewritten for the versions required now',
 		]));
 		foreach ([
