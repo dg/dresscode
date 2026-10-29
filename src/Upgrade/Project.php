@@ -134,8 +134,8 @@ final readonly class Project
 
 
 	/**
-	 * The files the estimate checks, within the paths given or all the configured ones, those a generator wrote left out,
-	 * which it counts apart.
+	 * The files the estimate and a run of its plan check, within the paths given or all the configured ones,
+	 * those a generator wrote left out, which the estimate counts apart.
 	 * @param  list<string>  $paths  relative to the root
 	 * @throws ConfigurationException
 	 */

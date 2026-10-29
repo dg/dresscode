@@ -7,7 +7,7 @@
 
 namespace DressCode\Engine;
 
-use function count;
+use function count, is_string;
 use const PHP_OS_FAMILY;
 
 
@@ -25,20 +25,22 @@ final class ProcessRunner
 	/**
 	 * The exit code and the output of both streams, or of the standard one alone, the exit code null where the command did
 	 * not end in time.
-	 * @param  list<string>  $command  the program and its arguments
+	 * @param  string|list<string>  $command  a command line, or its program and arguments to quote
 	 * @param  ?string  $input  what the command reads on its standard input
+	 * @param  array<string, string>  $env  the variables set beside those of this process
 	 * @return array{?int, string}
 	 */
 	public static function run(
-		array $command,
+		string|array $command,
 		string $cwd,
 		int $timeout,
 		?string $input = null,
 		bool $errors = true,
+		array $env = [],
 	): array
 	{
 		// the shell of Windows is what finds `composer.bat`
-		$command = PHP_OS_FAMILY !== 'Windows'
+		$command = is_string($command) || PHP_OS_FAMILY !== 'Windows'
 			? $command
 			: implode(' ', array_map(escapeshellarg(...), $command));
 		// files rather than pipes, which Windows reads only blocking, so that a command holding them open still ends in time
@@ -49,7 +51,13 @@ final class ProcessRunner
 
 		fwrite($stdin, (string) $input);
 		rewind($stdin);
-		$process = proc_open($command, [0 => $stdin, 1 => $stdout, 2 => $stderr ?? $stdout], $pipes, $cwd);
+		$process = proc_open(
+			$command,
+			[0 => $stdin, 1 => $stdout, 2 => $stderr ?? $stdout],
+			$pipes,
+			$cwd,
+			$env === [] ? null : [...getenv(), ...$env],
+		);
 		if ($process === false) {
 			return [127, 'The command could not be started.'];
 		}

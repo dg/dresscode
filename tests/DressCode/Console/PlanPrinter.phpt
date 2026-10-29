@@ -12,7 +12,6 @@ test('the plan says which command tests after which step', function () {
 	$console = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: false);
 	$tests = fn(?string $test, ?string $quick) => explode('Tests      ', new PlanPrinter(
 		new Plan([], [], '1.0', testCommand: $test, quickTestCommand: $quick),
-		'an application',
 	)->print($console))[1];
 
 	Assert::same("not run, no `--test-command` given\n", $tests(null, null));
