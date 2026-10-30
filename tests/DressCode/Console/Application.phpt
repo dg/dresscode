@@ -652,6 +652,9 @@ test('upgrade --plan writes the steps, --run makes them up to the raise of Compo
 	Assert::false(is_file("$root/dresscode-upgrade.neon"));
 	// an agent reads the same text without colors
 	Assert::same($out, runApp($root, ['upgrade', 'php', '8.4', '--plan', '--no-types', '--offline', '--format', 'agent'])[1]);
+	// planned as a library, which `^8.0` already lets onto PHP 8.4, the plan is the bridge alone
+	$library = runApp($root, ['upgrade', 'php', '8.4', '--plan', '--library', '--no-types', '--offline', '--format', 'json'])[1];
+	Assert::same(['fix'], array_column(json_decode($library, associative: true, flags: JSON_THROW_ON_ERROR)['steps'], 'kind'));
 
 	[$exit, $out, $err] = runApp($root, ['upgrade', 'php', '8.4', '--run', '--no-types', '--offline', '--no-color']);
 	Assert::same('', $err);
@@ -748,6 +751,7 @@ test('upgrade refuses what the offer cannot measure, and an option of --today wi
 			'`--tasks` lists what the saved plan leaves, so it takes no target and makes or runs no plan.',
 		],
 		[['upgrade', '--today', '--tasks'], '`--tasks` belongs to the plan of an upgrade, and `--today` makes none.'],
+		[['upgrade', '--no-library'], '`--library` and `--no-library` decide the plan made with `--plan`, `--save-plan` or `--run`.'],
 	] as [$args, $message]) {
 		[$exit, , $err] = runApp($root, $args);
 		Assert::same(3, $exit);

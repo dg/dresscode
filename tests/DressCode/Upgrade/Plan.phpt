@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Config\ProjectPackages;
+use DressCode\Tristate;
 use DressCode\Upgrade\{BlindSpots, Blocker, Blockers, Estimate, Phase, Plan, PlanBuilder, PlanFile, Step, StepKind, Target, Topic};
 use Tester\Assert;
 
@@ -110,13 +111,14 @@ test('a library keeps the versions it allows: the bridge and the constraints wid
 });
 
 
-test('a library says so by its type and has no lock of its own', function () {
+test('a library says so by its type and has no lock of its own, one with a lock maybe being one', function () {
 	$root = createTempDir('plan-library');
 	file_put_contents("$root/composer.json", '{"type": "library"}');
-	Assert::true(PlanBuilder::isLibrary($root));
+	Assert::same(Tristate::Yes, PlanBuilder::isLibrary($root));
 	file_put_contents("$root/composer.lock", '{}');
-	Assert::false(PlanBuilder::isLibrary($root));
+	Assert::same(Tristate::Maybe, PlanBuilder::isLibrary($root));
 	file_put_contents("$root/composer.json", '{}');
+	Assert::same(Tristate::No, PlanBuilder::isLibrary($root));
 	unlink("$root/composer.lock");
-	Assert::false(PlanBuilder::isLibrary($root));
+	Assert::same(Tristate::No, PlanBuilder::isLibrary($root));
 });

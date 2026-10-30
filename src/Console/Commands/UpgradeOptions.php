@@ -47,6 +47,11 @@ final readonly class UpgradeOptions
 		public ?bool $continue = null,
 		#[Cli\Flag('List what the fixes of the plan `dresscode-upgrade.neon` saved leave for you in the code as it stands, changing nothing')]
 		public ?bool $tasks = null,
+		#[Cli\Flag(
+			'Plan the project as a library, widening its constraints to the targets and keeping the versions it allows; `--no-library` as an application; by its `type` and its lock when omitted',
+			negatable: true,
+		)]
+		public ?bool $library = null,
 		#[Cli\Option(
 			'With `--run` or `--continue`, run that step of the plan alone',
 			valueName: 'n',
@@ -152,6 +157,8 @@ final readonly class UpgradeOptions
 			$this->today && $target !== null
 				=> '`--today` upgrades to the versions `composer.json` allows, so it takes no target; name the paths with `--paths`.',
 			$this->today && $planOption !== null => "`$planOption` belongs to the plan of an upgrade, and `--today` makes none.",
+			$this->library !== null && !$this->makesPlan()
+				=> '`--library` and `--no-library` decide the plan made with `--plan`, `--save-plan` or `--run`.',
 			$this->today && $measureOption !== null
 				=> "`$measureOption` belongs to the estimate; `--today` runs with the types and installs what it needs.",
 			$this->today => null,

@@ -7,7 +7,7 @@
 
 namespace DressCode\Console\Commands;
 
-use DressCode\{Analyses, Config, ConfigurationException};
+use DressCode\{Analyses, Config, ConfigurationException, Tristate};
 use DressCode\Config\{DataPackageCatalogue, PackageDiscovery, ProjectPackages, RunnerFactory, Versions};
 use DressCode\Console\{Application, CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter, TasksPrinter};
 use DressCode\Engine\{Worker, WorkerPool};
@@ -123,7 +123,7 @@ final readonly class UpgradeCommand
 		}
 
 		$plan = $options->makesPlan()
-			? new PlanBuilder(ProjectPackages::read($project->root), PlanBuilder::isLibrary($project->root))
+			? new PlanBuilder(ProjectPackages::read($project->root), $this->decideLibrary($options, $project))
 				->build($estimate, $options->testCommand, $options->quickTestCommand)
 			: null;
 		$printer = $plan === null ? new EstimatePrinter($estimate) : new PlanPrinter($plan);
@@ -348,6 +348,26 @@ final readonly class UpgradeCommand
 			$version === null
 				=> throw new UsageException("Name the version of `$target` to upgrade to, as `upgrade $target 4.0`.", $args->command),
 			default => [new Target($target, $version)],
+		};
+	}
+
+
+	/**
+	 * Whether the plan is the one of a library, which widens its constraints: as `--library` or `--no-library` says, else
+	 * by the `type` of the project and the lock it has none of, and for a library with a lock of its own in a terminal as
+	 * the user answers, outside one as its `type` says.
+	 */
+	private function decideLibrary(UpgradeOptions $options, Project $project): bool
+	{
+		$prompt = $this->context->prompt;
+		return $options->library ?? match (PlanBuilder::isLibrary($project->root)) {
+			Tristate::Yes => true,
+			Tristate::No => false,
+			Tristate::Maybe => !$prompt->isInteractive() || $prompt->choose(
+				'The project says it is a library, yet has a `composer.lock` of its own. Plan it as a library, which widens its constraints to the targets instead of raising them?',
+				['y', 'n'],
+				'y',
+			) === 'y',
 		};
 	}
 

@@ -10,6 +10,7 @@ namespace DressCode\Upgrade;
 use Composer\InstalledVersions;
 use DressCode\Config\{ComposerJson, PackageDiscovery, ProjectPackages, Versions};
 use DressCode\Console\Application;
+use DressCode\Tristate;
 
 
 /**
@@ -78,11 +79,18 @@ final readonly class PlanBuilder
 	}
 
 
-	/** Whether the project is a library, which says so by its `type` and has no lock of its own. */
-	public static function isLibrary(string $root): bool
+	/**
+	 * Whether the project is a library, which says so by its `type` and has no lock of its own; maybe for one whose
+	 * `type` says so while it has a lock, as an application does.
+	 */
+	public static function isLibrary(string $root): Tristate
 	{
 		$file = ComposerJson::findFile($root);
-		return (ComposerJson::read($file)['type'] ?? null) === 'library' && !is_file(dirname((string) $file) . '/composer.lock');
+		return match (true) {
+			(ComposerJson::read($file)['type'] ?? null) !== 'library' => Tristate::No,
+			is_file(dirname((string) $file) . '/composer.lock') => Tristate::Maybe,
+			default => Tristate::Yes,
+		};
 	}
 
 
