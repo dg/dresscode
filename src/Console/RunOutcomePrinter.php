@@ -7,7 +7,7 @@
 
 namespace DressCode\Console;
 
-use DressCode\Upgrade\{Plan, RunOutcome, RunStop, StepKind};
+use DressCode\Upgrade\{Plan, RunOutcome, RunStop, Step, StepKind};
 use Nette\CommandLine\Console;
 use function count;
 
@@ -67,7 +67,10 @@ final readonly class RunOutcomePrinter
 				. '`// dresscode:ignore <decision> -- <reason>`, then run `dresscode upgrade --continue`',
 			RunStop::Done => $console->color('white/green', $this->only === null
 				? 'UPGRADED  every step of the plan is done'
-				: "DONE      step $this->only"),
+				: "DONE      step $this->only")
+				. ($this->only === null && $this->updatesPackages()
+					? "\nThe packages are at the lowest versions the constraints allow, which the code is written for; `composer update` installs the newest."
+					: ''),
 		} . "\n";
 	}
 
@@ -96,6 +99,13 @@ final readonly class RunOutcomePrinter
 	}
 
 
+	/** Whether a step of the plan updates the packages, which it leaves at the lowest versions the constraints allow. */
+	private function updatesPackages(): bool
+	{
+		return array_any($this->plan->findSteps(), fn(Step $step) => $step->kind === StepKind::Composer && $step->update);
+	}
+
+
 	private function formatComposerStep(int $number): string
 	{
 		$step = $this->plan->steps[$number - 1];
@@ -104,7 +114,7 @@ final readonly class RunOutcomePrinter
 			array_keys($step->require),
 			$step->require,
 		));
-		return "$step->title: run `composer require $require -W" . ($step->update ? '' : ' --no-update')
+		return "$step->title: run `composer require $require " . ($step->update ? '-W --prefer-lowest --minimal-changes' : '--no-update')
 			. '`, then `dresscode upgrade --continue`';
 	}
 }

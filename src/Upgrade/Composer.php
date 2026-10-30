@@ -76,8 +76,10 @@ final readonly class Composer
 
 
 	/**
-	 * Writes the constraints into `composer.json` and updates the packages they move, with `-W` those they depend on too;
-	 * without `$update` only `composer.json` changes, and a dry run changes nothing and says what the update would.
+	 * Writes the constraints into `composer.json` and updates the packages they move to the lowest versions they allow,
+	 * which the code is written for and whose `@deprecated` the run reads, those they depend on changed as little as
+	 * the update needs; without `$update` only `composer.json` changes, and a dry run changes nothing and says what the
+	 * update would.
 	 * @param  array<string, string>  $constraints  package => constraint
 	 * @return array{?int, string}  the exit code, null where Composer did not end in time, and what it wrote
 	 */
@@ -85,9 +87,8 @@ final readonly class Composer
 	{
 		return $this->run([
 			'require',
-			'-W',
 			...array_map(fn(string $package, string $constraint) => "$package:$constraint", array_keys($constraints), $constraints),
-			...$update ? [] : ['--no-update'],
+			...$update ? ['-W', '--prefer-lowest', '--minimal-changes'] : ['--no-update'],
 			...$dryRun ? ['--dry-run'] : [],
 		], self::UpdateTimeout);
 	}

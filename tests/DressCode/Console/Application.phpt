@@ -664,7 +664,7 @@ test('upgrade --plan writes the steps, --run makes them up to the raise of Compo
 		Step 1     php 1 file, upgrading.php.implicitNullable 1 file
 		For you    1 place the fixes left
 		  src/Code.php:5  Function `strftime()` is deprecated: since PHP 8.1.  [upgrading.php.deprecatedApi]
-		Waiting    step 2, raise php to ^8.4: run `composer require "php:^8.4" -W`, then `dresscode upgrade --continue`
+		Waiting    step 2, raise php to ^8.4: run `composer require "php:^8.4" -W --prefer-lowest --minimal-changes`, then `dresscode upgrade --continue`
 		XX, $out);
 	Assert::same(
 		"<?php\n\nfunction run(\$handle, ?int \$count = null): void\n{\n\tstrftime('%Y');\n}\n",
@@ -713,7 +713,7 @@ test('upgrade --plan writes the steps, --run makes them up to the raise of Compo
 	file_put_contents("$root/src/Code.php", $code);
 	[$exit, $out] = runApp($root, ['upgrade', '--continue', '--no-types', '--no-color']);
 	Assert::same(0, $exit);
-	Assert::contains('UPGRADED  every step of the plan is done', $out);
+	Assert::match("%A%UPGRADED  every step of the plan is done\nThe packages are at the lowest versions the constraints allow, %a%", $out);
 });
 
 
