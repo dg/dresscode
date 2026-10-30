@@ -30,6 +30,9 @@ final readonly class Estimator
 	/** the sets an upgrade fixes by, a decision of two of them belonging to the first */
 	public const Sets = ['deprecations', 'modernizations', 'cleanup'];
 
+	/** what of them the check runs: of `cleanup` only the code for the versions given up, never the rest of its hygiene */
+	private const Fixes = ['deprecations', 'modernizations', 'hygiene.uselessVersionCheck'];
+
 	/** the decisions of what an upgrade cannot see, which the estimate counts apart from the topics */
 	private const Unseen = 'upgrading.unseen';
 
@@ -91,7 +94,7 @@ final readonly class Estimator
 		);
 		$plugins = $discovered->findDataPlugins();
 		// the project as it is today, which tells the bridge from the jump, and whose runner finds the files
-		$todayRun = new EstimateRun($this->project->createLayer($plugins, types: false), self::Sets);
+		$todayRun = new EstimateRun($this->project->createLayer($plugins, types: false), self::Fixes);
 		[$todayFactory, $today] = $todayRun->resolve($this->project->config, $this->project->root);
 		$runner = $todayFactory->createRunner($today, cache: false);
 		$scope = $paths ? $runner->narrowPaths($paths, $this->project->config->paths) : $this->project->config->paths;
@@ -121,7 +124,7 @@ final readonly class Estimator
 				$declarations,
 				[self::Unseen => ['classNameString' => 'reported', 'dynamicAccess' => 'reported']],
 			),
-			[...self::Sets, self::Unseen, ...$discovered->findReachingPackages()],
+			[...self::Fixes, self::Unseen, ...$discovered->findReachingPackages()],
 		);
 		[$factory, $resolution] = $run->resolve($this->project->config, $this->project->root);
 		$this->onProgress?->__invoke('checking ' . count($files) . ' files');

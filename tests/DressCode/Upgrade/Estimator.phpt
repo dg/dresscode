@@ -18,6 +18,8 @@ function createEstimatedProject(string $name): string
 
 		namespace App;
 
+		use App\Unused; // hygiene of the project, which no upgrade is about
+
 		function run($handle, string $date, int $count = null): bool
 		{
 			curl_close($handle);
