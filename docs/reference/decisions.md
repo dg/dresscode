@@ -3783,10 +3783,10 @@ An attribute written for a member the class declares by convention.
 
 ### upgrading.api.forbiddenClasses
 
-A class that may not be used, with what to do instead (`Acme\Legacy\Db: "use the repository"`).
+A class that may not be used, with what to do instead (`Acme\Legacy\Db: "use the repository instead"`).
 
 - By default `keep`
-- Takes: a map of names to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names to an entry of the grammar of the map, a name alone being an entry without one, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Upgrading\ForbiddenSymbolsRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`, which this decision does not turn on
@@ -3796,16 +3796,16 @@ A class that may not be used, with what to do instead (`Acme\Legacy\Db: "use the
 A global constant that may not be used, with what to do instead (`E_STRICT: "it no longer does anything"`).
 
 - By default `keep`
-- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, a name alone being an entry without one, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Upgrading\ForbiddenSymbolsRule`, stage Structure
 
 ### upgrading.api.forbiddenFunctions
 
-A function that may not be called, with what to do instead.
+A function that may not be called, with what to do instead (`[var_dump, acme_send: "use the mailer instead"]`).
 
 - By default `keep`
-- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names and patterns with `*` to an entry of the grammar of the map, a name alone being an entry without one, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Upgrading\ForbiddenSymbolsRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\NoDeprecatedFunctionsRule`, which this decision does not turn on
@@ -3815,7 +3815,7 @@ A function that may not be called, with what to do instead.
 A constant, a method or a property that may not be used, with what to do instead.
 
 - By default `keep`
-- Takes: a map of names to an entry of the grammar of the map, an entry withdrawn with `keep`; `keep`
+- Takes: a map of names to an entry of the grammar of the map, a name alone being an entry without one, an entry withdrawn with `keep`; `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Upgrading\ForbiddenMembersRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\ReplacedClassesRule`, which this decision does not turn on

@@ -1,5 +1,5 @@
 <?php
-// {"api": {"forbiddenConstants": {"E_STRICT": "it no longer does anything", "MHASH_*": "use `hash()`", "App\\Legacy\\*": null, "MHASH_KEPT": "keep"}}}
+// {"api": {"forbiddenConstants": {"E_STRICT": "it no longer does anything", "MHASH_*": "use `hash()`", "0": "App\\Legacy\\*", "MHASH_KEPT": "keep"}}}
 namespace App;
 use const App\Legacy\LIMIT;
 error_reporting(E_ALL & ~E_STRICT);

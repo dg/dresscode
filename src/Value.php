@@ -10,7 +10,7 @@ namespace DressCode;
 use DressCode\Config\Layer;
 use DressCode\Domains\{Count, Flag, Map, Names, Shapes, Text, Words};
 use Nette\Neon\Neon;
-use function count, is_array, is_bool, is_string;
+use function count, is_array, is_bool, is_int, is_string;
 
 
 /**
@@ -75,6 +75,8 @@ final readonly class Value
 	public function toWrittenData(): mixed
 	{
 		$data = match (true) {
+			$this->holdsEntries() && $this->domain instanceof Map && $this->domain->bareNames
+				=> Map::collapseBareNames(array_map(fn(self $entry) => $entry->toWrittenData(), $this->content)),
 			$this->holdsEntries() => array_map(fn(self $entry) => $entry->toWrittenData(), $this->content),
 			$this->domain instanceof Shapes && !$this->keep => array_map($this->domain->getExample(...), $this->content),
 			default => $this->toData(),
@@ -108,17 +110,27 @@ final readonly class Value
 	{
 		return match (true) {
 			is_bool($data) => $data ? 'yes' : 'no',
-			is_array($data) && array_is_list($data) => '[' . implode(', ', array_map(self::formatData(...), $data)) . ']',
-			is_array($data) => '{' . implode(', ', array_map(
-				fn($key, $item) => self::formatData((string) $key) . ': ' . self::formatData($item),
-				array_keys($data),
-				$data,
-			)) . '}',
+			is_array($data) && ($data === [] || array_any($data, fn($item, $key) => is_int($key))) => '[' . self::formatItems($data) . ']',
+			is_array($data) => '{' . self::formatItems($data) . '}',
 			is_string($data)
 				&& preg_match('~^[^\s,\[\]{}()\'"#:=]+( [^\s,\[\]{}()\'"#:=]+)*$~D', $data)
 				&& Neon::decode($data) === $data => $data,
 			default => Neon::encode($data),
 		};
+	}
+
+
+	/**
+	 * The items of a list or the entries of a map, a name standing alone in it, `[print_r]`, without a key.
+	 * @param  array<mixed>  $data
+	 */
+	private static function formatItems(array $data): string
+	{
+		return implode(', ', array_map(
+			fn($key, $item) => (is_int($key) ? '' : self::formatData((string) $key) . ': ') . self::formatData($item),
+			array_keys($data),
+			$data,
+		));
 	}
 
 

@@ -6,41 +6,41 @@ package: php
 
 since 8.6:
 	forbiddenFunctions:
-		doubleval: null
-		is_double: null
-		is_integer: null
-		is_long: null
-		mb_ereg: null
-		mb_ereg_match: null
-		mb_ereg_replace: null
-		mb_ereg_replace_callback: null
-		mb_ereg_search: null
-		mb_ereg_search_getpos: null
-		mb_ereg_search_getregs: null
-		mb_ereg_search_init: null
-		mb_ereg_search_pos: null
-		mb_ereg_search_regs: null
-		mb_ereg_search_setpos: null
-		mb_eregi: null
-		mb_eregi_replace: null
-		mb_regex_encoding: null
-		mb_regex_set_options: null
-		mb_split: null
-		metaphone: null
-		mysqli_get_charset: null
-		mysqli_stmt_init: null
-		spl_classes: null
-		spl_object_hash: null
-		strcoll: null
+		- doubleval
+		- is_double
+		- is_integer
+		- is_long
+		- mb_ereg
+		- mb_ereg_match
+		- mb_ereg_replace
+		- mb_ereg_replace_callback
+		- mb_ereg_search
+		- mb_ereg_search_getpos
+		- mb_ereg_search_getregs
+		- mb_ereg_search_init
+		- mb_ereg_search_pos
+		- mb_ereg_search_regs
+		- mb_ereg_search_setpos
+		- mb_eregi
+		- mb_eregi_replace
+		- mb_regex_encoding
+		- mb_regex_set_options
+		- mb_split
+		- metaphone
+		- mysqli_get_charset
+		- mysqli_stmt_init
+		- spl_classes
+		- spl_object_hash
+		- strcoll
 
 since 8.5:
 	forbiddenConstants:
-		DATE_RFC7231: null
-		FILTER_DEFAULT: null
-		MHASH_*: null
+		- DATE_RFC7231
+		- FILTER_DEFAULT
+		- MHASH_*
 	forbiddenFunctions:
-		mysqli_execute: null
-		socket_set_timeout: null
+		- mysqli_execute
+		- socket_set_timeout
 	replacedCalls:
 		'curl_close($handle)': {write: removed, from: '8.0'}
 		'curl_share_close($share_handle)': {write: removed, from: '8.0'}
@@ -95,28 +95,28 @@ since 8.5:
 
 since 8.4:
 	forbiddenConstants:
-		DOM_PHP_ERR: null
-		E_STRICT: null
-		MYSQLI_STORE_RESULT_COPY_DATA: null
-		SOAP_FUNCTIONS_ALL: null
-		SUNFUNCS_RET_DOUBLE: null
-		SUNFUNCS_RET_STRING: null
-		SUNFUNCS_RET_TIMESTAMP: null
+		- DOM_PHP_ERR
+		- E_STRICT
+		- MYSQLI_STORE_RESULT_COPY_DATA
+		- SOAP_FUNCTIONS_ALL
+		- SUNFUNCS_RET_DOUBLE
+		- SUNFUNCS_RET_STRING
+		- SUNFUNCS_RET_TIMESTAMP
 	forbiddenFunctions:
-		intlcal_set: null
-		intlgregcal_create_instance: null
-		lcg_value: null
-		mysqli_kill: null
-		mysqli_ping: null
-		mysqli_refresh: null
-		xml_set_object: null
+		- intlcal_set
+		- intlgregcal_create_instance
+		- lcg_value
+		- mysqli_kill
+		- mysqli_ping
+		- mysqli_refresh
+		- xml_set_object
 
 since 8.3:
 	forbiddenConstants:
-		ASSERT_*: null
-		MT_RAND_PHP: null
+		- ASSERT_*
+		- MT_RAND_PHP
 	forbiddenFunctions:
-		assert_options: null
+		- assert_options
 
 since 8.2:
 	replacedCalls:
@@ -125,120 +125,120 @@ since 8.2:
 
 since 8.1:
 	forbiddenConstants:
-		FILE_BINARY: null
-		FILE_TEXT: null
-		FILTER_SANITIZE_STRING: null
-		FILTER_SANITIZE_STRIPPED: null
-		NIL: null
+		- FILE_BINARY
+		- FILE_TEXT
+		- FILTER_SANITIZE_STRING
+		- FILTER_SANITIZE_STRIPPED
+		- NIL
 	forbiddenFunctions:
-		date_sunrise: null
-		date_sunset: null
-		gmstrftime: null
-		mhash: null
-		mhash_count: null
-		mhash_get_block_size: null
-		mhash_get_hash_name: null
-		mhash_keygen_s2k: null
-		odbc_result_all: null
-		strftime: null
-		strptime: null
+		- date_sunrise
+		- date_sunset
+		- gmstrftime
+		- mhash
+		- mhash_count
+		- mhash_get_block_size
+		- mhash_get_hash_name
+		- mhash_keygen_s2k
+		- odbc_result_all
+		- strftime
+		- strptime
 	replacedCalls:
 		'ReflectionMethod::setAccessible($accessible)': removed
 		'ReflectionProperty::setAccessible($accessible)': removed
 
 since 8.0:
 	forbiddenConstants:
-		ENCHANT_ISPELL: null
-		ENCHANT_MYSPELL: null
+		- ENCHANT_ISPELL
+		- ENCHANT_MYSPELL
 	forbiddenFunctions:
-		enchant_broker_free: null
-		enchant_broker_free_dict: null
-		enchant_broker_get_dict_path: null
-		enchant_broker_set_dict_path: null
-		enchant_dict_add_to_personal: null
-		enchant_dict_is_in_session: null
-		libxml_disable_entity_loader: null
-		ocibindbyname: null
-		ocicancel: null
-		ocicollappend: null
-		ocicollassignelem: null
-		ocicollgetelem: null
-		ocicollmax: null
-		ocicollsize: null
-		ocicolltrim: null
-		ocicolumnisnull: null
-		ocicolumnname: null
-		ocicolumnprecision: null
-		ocicolumnscale: null
-		ocicolumnsize: null
-		ocicolumntype: null
-		ocicolumntyperaw: null
-		ocicommit: null
-		ocidefinebyname: null
-		ocierror: null
-		ociexecute: null
-		ocifetch: null
-		ocifetchinto: null
-		ocifetchstatement: null
-		ocifreecollection: null
-		ocifreecursor: null
-		ocifreedesc: null
-		ocifreestatement: null
-		ociloadlob: null
-		ocilogoff: null
-		ocilogon: null
-		ocinewcollection: null
-		ocinewcursor: null
-		ocinewdescriptor: null
-		ocinlogon: null
-		ocinumcols: null
-		ociparse: null
-		ocipasswordchange: null
-		ociplogon: null
-		ociresult: null
-		ocirollback: null
-		ocirowcount: null
-		ocisavelob: null
-		ocisavelobfile: null
-		ociserverversion: null
-		ocisetprefetch: null
-		ocistatementtype: null
-		ociwritelobtofile: null
-		openssl_free_key: null
-		openssl_pkey_free: null
-		openssl_x509_free: null
-		pg_clientencoding: null
-		pg_cmdtuples: null
-		pg_errormessage: null
-		pg_fieldisnull: null
-		pg_fieldname: null
-		pg_fieldnum: null
-		pg_fieldprtlen: null
-		pg_fieldsize: null
-		pg_fieldtype: null
-		pg_freeresult: null
-		pg_getlastoid: null
-		pg_loclose: null
-		pg_locreate: null
-		pg_loexport: null
-		pg_loimport: null
-		pg_loopen: null
-		pg_loread: null
-		pg_loreadall: null
-		pg_lounlink: null
-		pg_lowrite: null
-		pg_numfields: null
-		pg_numrows: null
-		pg_result: null
-		pg_setclientencoding: null
-		shmop_close: null
-		zip_close: null
-		zip_entry_close: null
-		zip_entry_compressedsize: null
-		zip_entry_compressionmethod: null
-		zip_entry_filesize: null
-		zip_entry_name: null
-		zip_entry_open: null
-		zip_entry_read: null
-		zip_open: null
-		zip_read: null
+		- enchant_broker_free
+		- enchant_broker_free_dict
+		- enchant_broker_get_dict_path
+		- enchant_broker_set_dict_path
+		- enchant_dict_add_to_personal
+		- enchant_dict_is_in_session
+		- libxml_disable_entity_loader
+		- ocibindbyname
+		- ocicancel
+		- ocicollappend
+		- ocicollassignelem
+		- ocicollgetelem
+		- ocicollmax
+		- ocicollsize
+		- ocicolltrim
+		- ocicolumnisnull
+		- ocicolumnname
+		- ocicolumnprecision
+		- ocicolumnscale
+		- ocicolumnsize
+		- ocicolumntype
+		- ocicolumntyperaw
+		- ocicommit
+		- ocidefinebyname
+		- ocierror
+		- ociexecute
+		- ocifetch
+		- ocifetchinto
+		- ocifetchstatement
+		- ocifreecollection
+		- ocifreecursor
+		- ocifreedesc
+		- ocifreestatement
+		- ociloadlob
+		- ocilogoff
+		- ocilogon
+		- ocinewcollection
+		- ocinewcursor
+		- ocinewdescriptor
+		- ocinlogon
+		- ocinumcols
+		- ociparse
+		- ocipasswordchange
+		- ociplogon
+		- ociresult
+		- ocirollback
+		- ocirowcount
+		- ocisavelob
+		- ocisavelobfile
+		- ociserverversion
+		- ocisetprefetch
+		- ocistatementtype
+		- ociwritelobtofile
+		- openssl_free_key
+		- openssl_pkey_free
+		- openssl_x509_free
+		- pg_clientencoding
+		- pg_cmdtuples
+		- pg_errormessage
+		- pg_fieldisnull
+		- pg_fieldname
+		- pg_fieldnum
+		- pg_fieldprtlen
+		- pg_fieldsize
+		- pg_fieldtype
+		- pg_freeresult
+		- pg_getlastoid
+		- pg_loclose
+		- pg_locreate
+		- pg_loexport
+		- pg_loimport
+		- pg_loopen
+		- pg_loread
+		- pg_loreadall
+		- pg_lounlink
+		- pg_lowrite
+		- pg_numfields
+		- pg_numrows
+		- pg_result
+		- pg_setclientencoding
+		- shmop_close
+		- zip_close
+		- zip_entry_close
+		- zip_entry_compressedsize
+		- zip_entry_compressionmethod
+		- zip_entry_filesize
+		- zip_entry_name
+		- zip_entry_open
+		- zip_entry_read
+		- zip_open
+		- zip_read

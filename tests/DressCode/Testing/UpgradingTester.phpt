@@ -260,12 +260,12 @@ test('a forbidden map of a package must give every entry a sentence', function (
 
 		since 3.0:
 			forbiddenClasses:
-				Acme\Lib\IOldest:
+				- Acme\Lib\IOldest
 				Acme\Lib\IControl: there is no replacement
 			forbiddenMembers:
-				Acme\Lib\Form::$legacy:
+				- Acme\Lib\Form::$legacy
 			forbiddenFunctions:
-				acme_old:
+				- acme_old
 				acme_make: 'use `Acme\Lib\Helpers::create()`'
 		XX);
 	Assert::contains(

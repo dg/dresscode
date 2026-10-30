@@ -1,5 +1,5 @@
 <?php
-// {"api": {"forbiddenFunctions": {"var_dump": null}}}
+// {"api": {"forbiddenFunctions": ["var_dump"]}}
 namespace App;
 function var_dump($a) {}
 var_dump($a);

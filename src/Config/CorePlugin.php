@@ -415,17 +415,23 @@ final class CorePlugin implements Plugin
 				),
 				new Decision(
 					MemberMapGrammar::ForbiddenClasses,
-					new Map(new GrammarEntry, wildcards: false, grammar: self::createForbiddenClassesGrammar(), caseInsensitive: true),
-					'A class that may not be used, with what to do instead (`Acme\\Legacy\\Db: "use the repository"`)',
+					new Map(
+						new GrammarEntry,
+						wildcards: false,
+						grammar: self::createForbiddenClassesGrammar(),
+						caseInsensitive: true,
+						bareNames: true,
+					),
+					'A class that may not be used, with what to do instead (`Acme\\Legacy\\Db: "use the repository instead"`)',
 				),
 				new Decision(
 					MemberMapGrammar::ForbiddenFunctions,
-					new Map(new GrammarEntry, grammar: self::createForbiddenFunctionsGrammar(), caseInsensitive: true),
-					'A function that may not be called, with what to do instead',
+					new Map(new GrammarEntry, grammar: self::createForbiddenFunctionsGrammar(), caseInsensitive: true, bareNames: true),
+					'A function that may not be called, with what to do instead (`[var_dump, acme_send: "use the mailer instead"]`)',
 				),
 				new Decision(
 					MemberMapGrammar::ForbiddenConstants,
-					new Map(new GrammarEntry, grammar: self::createForbiddenConstantsGrammar()),
+					new Map(new GrammarEntry, grammar: self::createForbiddenConstantsGrammar(), bareNames: true),
 					'A global constant that may not be used, with what to do instead (`E_STRICT: "it no longer does anything"`)',
 				),
 				new Decision(
@@ -435,6 +441,7 @@ final class CorePlugin implements Plugin
 						wildcards: false,
 						grammar: self::createForbiddenMembersGrammar(),
 						canonicalize: MemberPattern::canonicalizeKey(...),
+						bareNames: true,
 					),
 					'A constant, a method or a property that may not be used, with what to do instead',
 				),
@@ -582,21 +589,21 @@ final class CorePlugin implements Plugin
 	private static function createForbiddenClassesGrammar(): Schema
 	{
 		return Expect::arrayOf(Expect::string()->nullable(), Expect::string()->pattern(self::QualifiedName))
-			->description('The forbidden class, fully qualified → what to do instead, as the end of the message, or null for none');
+			->description('The forbidden class, fully qualified → what to do instead, as the end of the message, none for a name standing alone in the list');
 	}
 
 
 	private static function createForbiddenFunctionsGrammar(): Schema
 	{
 		return Expect::arrayOf(Expect::string()->nullable())
-			->description('The forbidden function or a pattern with `*`, a name without a backslash meaning the global function → what to do instead, as the end of the message, or null for none');
+			->description('The forbidden function or a pattern with `*`, a name without a backslash meaning the global function → what to do instead, as the end of the message, none for a name standing alone in the list');
 	}
 
 
 	private static function createForbiddenConstantsGrammar(): Schema
 	{
 		return Expect::arrayOf(Expect::string()->nullable())
-			->description('The forbidden constant or a pattern with `*`, in its letter case, a name without a backslash meaning the global constant → what to do instead, as the end of the message, or null for none');
+			->description('The forbidden constant or a pattern with `*`, in its letter case, a name without a backslash meaning the global constant → what to do instead, as the end of the message, none for a name standing alone in the list');
 	}
 
 
@@ -604,7 +611,7 @@ final class CorePlugin implements Plugin
 	{
 		return MemberMapGrammar::createMapSchema(
 			Expect::string()->nullable(),
-			'The forbidden member, `Class::name` (a constant or a method), `Class::name(...$args)` (a method), `Class::$name` (a property), `Class::$name::get` or `::set` (a read or a write of it), `Class::__construct(...$args)`, or a call with the shape of its arguments, `Class::name()` being one without any → what to do instead, as the end of the message, or null for none',
+			'The forbidden member, `Class::name` (a constant or a method), `Class::name(...$args)` (a method), `Class::$name` (a property), `Class::$name::get` or `::set` (a read or a write of it), `Class::__construct(...$args)`, or a call with the shape of its arguments, `Class::name()` being one without any → what to do instead, as the end of the message, none for a name standing alone in the list',
 		);
 	}
 

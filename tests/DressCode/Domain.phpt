@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\{ConfigurationException, Decision, DecisionKind, Domain};
-use DressCode\Domains\{Count, Flag, Map, Names, Shapes, Text, Words};
+use DressCode\Domains\{Count, Flag, GrammarEntry, Map, Names, Shapes, Text, Words};
 use DressCode\Upgrading\MemberPattern;
 use Tester\Assert;
 
@@ -303,6 +303,35 @@ test('a map of names read in any letter case names each of them once in one laye
 		fn() => $map->accept(['OLD' => 'imported', '\old' => 'backslashed'], 'x.except'),
 		DressCode\ConfigurationException::class,
 		'Key `x.except` names `OLD` and `\old`, which are one name; keep one of them.',
+	);
+});
+
+
+test('a map of bare names takes a name alone for an entry without a value, and writes it so', function () {
+	$map = new Map(new GrammarEntry, bareNames: true);
+	$value = $map->accept(['var_dump', 'sizeof' => 'use `count()` instead', 'print_r'], 'x.forbidden');
+	Assert::same(['var_dump' => null, 'sizeof' => 'use `count()` instead', 'print_r' => null], $value->toData());
+	Assert::same(['var_dump', 'sizeof' => 'use `count()` instead', 'print_r'], $value->toWrittenData());
+	Assert::same("[var_dump, sizeof: 'use `count()` instead', print_r]", $value->toWrittenText());
+	Assert::same('[var_dump, print_r]', $map->accept(['var_dump', 'print_r'], 'x.forbidden')->toWrittenText());
+
+	$merged = $map->merge($value, $map->accept(['print_r' => 'keep'], 'x.forbidden'));
+	Assert::same(['var_dump' => null, 'sizeof' => 'use `count()` instead', 'print_r' => 'keep'], $merged->toData());
+
+	Assert::exception(
+		fn() => $map->accept(['var_dump' => null], 'x.forbidden'),
+		ConfigurationException::class,
+		'Key `x.forbidden.var_dump` does not take `null`; write a text, `[var_dump]` for none or `keep`.',
+	);
+	Assert::exception(
+		fn() => $map->accept(['var_dump', 'var_dump' => 'use the logger instead'], 'x.forbidden'),
+		ConfigurationException::class,
+		'Key `x.forbidden` names `var_dump` twice; keep one of them.',
+	);
+	Assert::exception(
+		fn() => new Map(new GrammarEntry)->accept(['var_dump'], 'x.forbidden'),
+		ConfigurationException::class,
+		'Key `x.forbidden` does not take `["var_dump"]`; write a map of names.',
 	);
 });
 

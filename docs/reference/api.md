@@ -430,11 +430,14 @@ final readonly class Map extends DressCode\Domain
 	public readonly ?Nette\Schema\Schema $grammar
 	public readonly bool $caseInsensitive
 	public readonly ?Closure(string): string $canonicalize
-	public function __construct(DressCode\Domain $values, bool $wildcards = true, ?array<string, string> $words = null, ?Nette\Schema\Schema $grammar = null, bool $caseInsensitive = false, ?Closure(string): string $canonicalize = null)
+	public readonly bool $bareNames
+	public function __construct(DressCode\Domain $values, bool $wildcards = true, ?array<string, string> $words = null, ?Nette\Schema\Schema $grammar = null, bool $caseInsensitive = false, ?Closure(string): string $canonicalize = null, bool $bareNames = false)
 	public function read(array<string, mixed> $entries, string $path): array<mixed>
 	public function merge(DressCode\Value $below, DressCode\Value $above, string $path = ''): DressCode\Value
 	public function toArray(): array
 	public function describe(): string
+	public static function expandBareNames(array<mixed> $entries, string $path): array<mixed>
+	public static function collapseBareNames(array<mixed> $entries): array<mixed>
 ```
 
 ## `DressCode\Domains\Names`

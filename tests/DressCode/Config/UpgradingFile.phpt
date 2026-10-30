@@ -57,7 +57,7 @@ test('the sentence names the package and the version, PHP as PHP', function () {
 
 		since 8.5:
 			forbiddenFunctions:
-				socket_set_timeout:
+				- socket_set_timeout
 			replacedCalls:
 				'curl_close($handle)': {write: removed, from: '8.0'}
 		XX);

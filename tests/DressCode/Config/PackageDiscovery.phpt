@@ -152,7 +152,7 @@ test('a section above the lowest version is reported where the constraint reache
 				since 4.0:
 					forbiddenClasses:
 						Acme\Lib\Old: use `Acme\Lib\Renamed` instead.
-						Acme\Lib\Gone:
+						- Acme\Lib\Gone
 					forbiddenFunctions:
 						Acme\Lib\helper: keep
 					replacedFunctions:

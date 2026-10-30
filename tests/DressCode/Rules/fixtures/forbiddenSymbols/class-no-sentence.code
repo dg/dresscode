@@ -1,5 +1,5 @@
 <?php
-// {"api": {"forbiddenClasses": {"Acme\\Legacy": null}}}
+// {"api": {"forbiddenClasses": ["Acme\\Legacy"]}}
 namespace App;
 
 use Acme\Legacy;

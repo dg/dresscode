@@ -8,6 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{ConfigurationException, Profile};
+use DressCode\Domains\Map;
 use DressCode\Upgrading\{FunctionPattern, MemberMapGrammar, MemberPattern};
 use Nette\Neon\{Exception as NeonException, Neon};
 use function array_key_exists, is_array, is_string;
@@ -79,6 +80,12 @@ final readonly class UpgradingFile
 					continue;
 				} elseif (!is_string($map) || !is_array($entries)) {
 					throw new ConfigurationException("Upgrading file $label: The map `$map` in `$key` must be a map of entries; a package turns on only a rule of its own plugin, by the path of its decision and a word.");
+				} elseif (in_array($map, self::ForbiddenMaps, true)) {
+					try {
+						$entries = Map::expandBareNames($entries, $map);
+					} catch (ConfigurationException $e) {
+						throw new ConfigurationException("Upgrading file $label, `$key`: {$e->getMessage()}", previous: $e);
+					}
 				}
 
 				foreach ($entries as $entry => $value) {

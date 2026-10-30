@@ -923,7 +923,7 @@ test('the maps of the upgrading files lie under those of the project where it sa
 	Assert::same(['old' => 'new'], array_map(fn($value) => $value->toData(), $resolved->values->get('project.renames')->getEntries()));
 
 	// a run narrowed to one map builds the rule of that map alone, and still refuses a wrong entry of another one
-	$maps = ['replacedClasses' => ['Acme\Old' => 'Acme\New'], 'forbiddenClasses' => ['Acme\Legacy' => null]];
+	$maps = ['replacedClasses' => ['Acme\Old' => 'Acme\New'], 'forbiddenClasses' => ['Acme\Legacy']];
 	$built = fn(array $maps) => array_map(
 		fn(DressCode\Rule $rule) => $rule::class,
 		RuleBuilder::buildRules(
@@ -936,7 +936,7 @@ test('the maps of the upgrading files lie under those of the project where it sa
 	);
 	Assert::same([DressCode\Rules\Upgrading\ReplacedClassesRule::class], $built($maps));
 	Assert::exception(
-		fn() => $built(['forbiddenClasses' => ['not a class!' => null]] + $maps),
+		fn() => $built(['forbiddenClasses' => ['not a class!']] + $maps),
 		ConfigurationException::class,
 		'Invalid entries of `upgrading.api.forbiddenClasses`: %a%',
 	);

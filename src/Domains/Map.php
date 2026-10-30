@@ -9,7 +9,7 @@ namespace DressCode\Domains;
 
 use DressCode\{ConfigurationException, Domain, Value};
 use Nette\Schema\{Processor, Schema, ValidationException};
-use function is_array, is_int;
+use function array_key_exists, is_array, is_int, is_string;
 
 
 /**
@@ -35,6 +35,8 @@ final readonly class Map extends Domain
 		public bool $caseInsensitive = false,
 		/** @var ?\Closure(string): string  the name as the lookup reads it, for names a lookup reads by more than the case */
 		public ?\Closure $canonicalize = null,
+		/** a name alone in the list, `[print_r]`, is an entry without a value, which is never written null */
+		public bool $bareNames = false,
 	) {
 		if ($words !== null && ($words === [] || $wildcards)) {
 			throw new \InvalidArgumentException('The words a map takes as names must be some, and they are no wildcards.');
@@ -83,12 +85,18 @@ final readonly class Map extends Domain
 		$names = $this->words === null
 			? 'names' . ($this->wildcards ? ' and patterns with `*`' : '')
 			: '`' . implode('`, `', array_keys($this->words)) . '`';
-		return "a map of $names to " . $this->values->describe() . ', an entry withdrawn with `keep`';
+		return "a map of $names to " . $this->values->describe()
+			. ($this->bareNames ? ', a name alone being an entry without one' : '')
+			. ', an entry withdrawn with `keep`';
 	}
 
 
 	protected function normalize(mixed $raw, string $path, bool $keep): Value
 	{
+		if ($this->bareNames && is_array($raw)) {
+			$raw = self::expandBareNames($raw, $path);
+		}
+
 		if (!is_array($raw) || ($raw !== [] && array_is_list($raw))) {
 			self::refuse($raw, $path, ['a map of names'], $keep);
 		}
@@ -113,6 +121,54 @@ final readonly class Map extends Domain
 		}
 
 		return new Value($this, $entries, $raw);
+	}
+
+
+	/**
+	 * The entries with every name standing alone in the list, `[print_r]`, as an entry without a value.
+	 * @param  array<mixed>  $entries
+	 * @return array<mixed>
+	 * @throws ConfigurationException  where an entry is null, which the name alone says, or a name stands twice
+	 */
+	public static function expandBareNames(array $entries, string $path): array
+	{
+		$expanded = [];
+		foreach ($entries as $name => $value) {
+			if (is_string($name) && $value === null) {
+				self::refuse(null, "$path.$name", ['a text', "`[$name]` for none"], keep: true);
+			} elseif (is_int($name) && is_string($value)) {
+				$name = $value;
+				$value = null;
+			}
+
+			if (array_key_exists($name, $expanded)) {
+				throw new ConfigurationException("Key `$path` names `$name` twice; keep one of them.");
+			}
+
+			$expanded[$name] = $value;
+		}
+
+		return $expanded;
+	}
+
+
+	/**
+	 * The entries with every one without a value written as the name alone, `[print_r]`.
+	 * @param  array<mixed>  $entries
+	 * @return array<mixed>
+	 */
+	public static function collapseBareNames(array $entries): array
+	{
+		$collapsed = [];
+		foreach ($entries as $name => $value) {
+			if ($value === null) {
+				$collapsed[] = $name;
+			} else {
+				$collapsed[$name] = $value;
+			}
+		}
+
+		return $collapsed;
 	}
 
 

@@ -180,6 +180,6 @@ test('a deprecated class a map of classes has is the map\'s, whether or not its 
 		upgrade([Upgrading\NoDeprecatedClassesRule::class => true], $code, $code),
 	);
 	Assert::same([], upgrade([Upgrading\NoDeprecatedClassesRule::class => true], $code, $code, [
-		Upgrading\ForbiddenSymbolsRule::Classes => ['Old\Bus\Handler' => null],
+		Upgrading\ForbiddenSymbolsRule::Classes => ['Old\Bus\Handler'],
 	]));
 });

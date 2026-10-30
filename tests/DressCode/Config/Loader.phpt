@@ -179,11 +179,11 @@ test('errors', function () use ($fixtures) {
 
 
 test('a map of functions given as a list says to write a map', function () {
-	$config = Loader::loadFile(FileMock::create("upgrading:\n\tapi:\n\t\tforbiddenFunctions: [var_dump, dd]\n", 'neon'));
+	$config = Loader::loadFile(FileMock::create("upgrading:\n\tapi:\n\t\treplacedFunctions: [var_dump, dd]\n", 'neon'));
 	Assert::exception(
 		fn() => new ConfigResolver(new PluginRegistry)->resolve($config, '8.4'),
 		ConfigurationException::class,
-		'Key `upgrading.api.forbiddenFunctions` does not take %a%; write a map of names or `keep`.',
+		'Key `upgrading.api.replacedFunctions` does not take %a%; write a map of names or `keep`.',
 	);
 });
 
