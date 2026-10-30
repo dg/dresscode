@@ -53,7 +53,8 @@ final readonly class Composer
 	{
 		$blockers = [];
 		foreach (preg_split('~\R~', $output) ?: [] as $line) {
-			if (preg_match(self::BlockerPattern, trim($line), $m) && $m[1] !== $rootName) {
+			// the project and the target itself, whose versions refusing the PHP Composer runs on refuse no target
+			if (preg_match(self::BlockerPattern, trim($line), $m) && $m[1] !== $rootName && $m[1] !== $target->package) {
 				$blockers[] = new Blocker($m[1], $m[2], $m[3] === 'conflicts' ? "conflicts with $m[4] $m[5]" : $m[5]);
 			}
 		}

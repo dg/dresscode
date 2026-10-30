@@ -28,6 +28,16 @@ test('the packages refusing a version are read from what why-not writes, the pro
 });
 
 
+test('the target itself refusing the PHP Composer runs on refuses no target', function () {
+	$output = <<<'XX'
+		acme/shop   dev-master requires acme/mail (^3.2)
+		acme/mail v4.0.0     requires php (>=8.0 <8.3 but 8.5.12 is installed)
+		XX;
+
+	Assert::same([], Composer::parseBlockers(new Target('acme/mail', '4.0'), $output, 'acme/shop')->packages);
+});
+
+
 test('nothing refuses a version where why-not says no installed package depends on it otherwise', function () {
 	$output = 'There is no installed package depending on "php" in versions not matching 8.5';
 	$blockers = Composer::parseBlockers(Target::php('8.5'), $output, null);
