@@ -60,10 +60,12 @@ final readonly class UpgradeCommand
 			return $this->offer($args, $project, $target, $version, $options, $configuration, $console);
 		}
 
-		$console ??= $this->context->out; // a run writes text alone
 		$runner = $this->createPlanRunner($project, $this->decideTypes($options, $project->config), $options, $console);
 		$plan = PlanFile::read("$project->root/" . PlanFile::Name);
-		self::writeHeader($console, $project);
+		if ($console !== null) {
+			self::writeHeader($console, $project);
+		}
+
 		return $this->runPlan($plan, $runner, $options, $console);
 	}
 
@@ -90,7 +92,7 @@ final readonly class UpgradeCommand
 		}
 
 		$types = $this->decideTypes($options, $project->config);
-		$runner = $options->run ? $this->createPlanRunner($project, $types, $options, $console ?? $this->context->out) : null;
+		$runner = $options->run ? $this->createPlanRunner($project, $types, $options, $console) : null;
 		$estimator = new Estimator(
 			$project,
 			$types,
@@ -123,11 +125,10 @@ final readonly class UpgradeCommand
 				->build($estimate, $options->testCommand, $options->quickTestCommand)
 			: null;
 		$printer = $plan === null ? new EstimatePrinter($estimate) : new PlanPrinter($plan);
-		if ($console === null) {
-			$json = json_encode($printer->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-			fwrite($this->context->stdout, "$json\n");
-		} else {
+		if ($console !== null) {
 			$console->write(Markup::highlightCode($console, $printer->print($console)));
+		} elseif ($runner === null) { // the plan of a run goes into the document of the run
+			$this->writeJson($printer->toArray());
 		}
 
 		if ($plan !== null && ($options->savePlan || $options->run)) {
@@ -136,16 +137,17 @@ final readonly class UpgradeCommand
 			$console?->writeLine($console->color('gray', 'Saved      ') . PlanFile::Name);
 		}
 
-		return $plan !== null && $runner !== null ? $this->runPlan($plan, $runner, $options, $console ?? $this->context->out) : 0;
+		return $plan !== null && $runner !== null ? $this->runPlan($plan, $runner, $options, $console) : 0;
 	}
 
 
 	/**
-	 * The runner of the plan, telling its progress on the status line.
+	 * The runner of the plan, telling its progress on the status line of the console, which data have none.
 	 * @throws ConfigurationException  for a project without a configuration file
 	 */
-	private function createPlanRunner(Project $project, bool $types, UpgradeOptions $options, Console $console): PlanRunner
+	private function createPlanRunner(Project $project, bool $types, UpgradeOptions $options, ?Console $console): PlanRunner
 	{
+		$console ??= $this->context->err;
 		return new PlanRunner(
 			$project,
 			$types,
@@ -156,11 +158,13 @@ final readonly class UpgradeCommand
 
 
 	/**
-	 * Runs the plan over the working tree and says how far it got: exit code 0 done, 1 where tests newly failed or a step
-	 * leaves tasks for a human, 3 where a step waits for Composer.
+	 * Runs the plan over the working tree and says how far it got, as text on the console or, without one, as a document
+	 * of data whose warnings go to standard error: exit code 0 done, 1 where tests newly failed or a step leaves tasks for a
+	 * human, 3 where a step waits for Composer.
 	 */
-	private function runPlan(Plan $plan, PlanRunner $runner, UpgradeOptions $options, Console $console): int
+	private function runPlan(Plan $plan, PlanRunner $runner, UpgradeOptions $options, ?Console $output): int
 	{
+		$console = $output ?? $this->context->err;
 		$label = fn(string $label) => $console->color('gray', str_pad($label, 11));
 		if (!$plan->isMadeWith(Application::Version, PlanBuilder::findDataVersions(ProjectPackages::read($runner->project->root)))) {
 			$console->writeLine($label('Warning') . 'The plan was made with other versions of DressCode or of the upgrading data, so a step may fix more or less than it did then.');
@@ -180,7 +184,17 @@ final readonly class UpgradeCommand
 			$console->clearStatus();
 		}
 
-		$console->write(Markup::highlightCode($console, new RunOutcomePrinter($plan, $outcome, $options->step)->print($console)));
+		$printer = new RunOutcomePrinter($plan, $outcome, $options->step);
+		if ($output !== null) {
+			$output->write(Markup::highlightCode($output, $printer->print($output)));
+		} else {
+			$this->writeJson([
+				'version' => RunOutcomePrinter::Version,
+				'plan' => new PlanPrinter($plan)->toArray(),
+				'outcome' => $printer->toArray(),
+			]);
+		}
+
 		return match ($outcome->stop) {
 			RunStop::Done => 0,
 			RunStop::Tasks, RunStop::Tests => 1,
@@ -230,6 +244,13 @@ final readonly class UpgradeCommand
 		}
 
 		return true;
+	}
+
+
+	/** @param  array<string, mixed>  $data */
+	private function writeJson(array $data): void
+	{
+		fwrite($this->context->stdout, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n");
 	}
 
 

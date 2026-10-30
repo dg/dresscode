@@ -25,7 +25,7 @@ final readonly class UpgradeOptions
 		#[Cli\Option('Files or directories; the configured paths when omitted', valueName: 'path', repeatable: true)]
 		public array $paths = [],
 		#[Cli\Option(
-			'Output format; the offer and the plan are written as `console`, `agent` or `json`, a run of the plan as `console` or `agent`, `--today` in any format `fix` writes',
+			'Output format; the offer, the plan and a run of it are written as `console`, `agent` or `json`, `--today` in any format `fix` writes',
 			alias: '-f',
 			enum: ['console', 'json', 'agent', 'lines', 'github', 'checkstyle'],
 		)]
@@ -155,7 +155,6 @@ final readonly class UpgradeOptions
 			$todayOption !== null => "`$todayOption` goes with `--today`; without it `upgrade` only measures.",
 			($this->step !== null || $this->commit || $this->yes) && !$runs
 				=> '`--step`, `--commit` and `--yes` go with `--run` or `--continue`, which run the plan.',
-			$runs && $format !== 'console' && $format !== 'agent' => 'A run of the plan writes its steps as `console` or `agent`.',
 			!in_array($format, ['console', 'agent', 'json'], true)
 				=> "The offer is written as `console`, `agent` or `json`; `$format` is a format of `--today`.",
 			($this->testCommand ?? $this->quickTestCommand) !== null && !$this->makesPlan()

@@ -19,6 +19,10 @@ use function count;
  */
 final readonly class RunOutcomePrinter
 {
+	/** the version of the document the format `json` writes for a run */
+	public const Version = 1;
+
+
 	public function __construct(
 		private Plan $plan,
 		private RunOutcome $outcome,
@@ -73,6 +77,42 @@ final readonly class RunOutcomePrinter
 				? 'UPGRADED  every step of the plan is done'
 				: "DONE      step $this->only"),
 		} . "\n";
+	}
+
+
+	/**
+	 * The run as the data the format `json` writes beside the plan.
+	 * @return array<string, mixed>
+	 */
+	public function toArray(): array
+	{
+		$outcome = $this->outcome;
+		$fixed = $tasks = [];
+		foreach ($outcome->fixed as $step => $topics) {
+			foreach ($topics as $topic => $files) {
+				$fixed[] = ['step' => $step, 'topic' => $topic, 'files' => $files];
+			}
+		}
+
+		foreach ($outcome->tasks as $topic => $topicTasks) {
+			foreach ($topicTasks as $task) {
+				$tasks[] = [
+					'topic' => $topic,
+					'file' => $task->path,
+					'line' => $task->violation->line,
+					'decision' => $task->violation->decision,
+					'message' => $task->violation->message,
+				];
+			}
+		}
+
+		return [
+			'stop' => lcfirst($outcome->stop->name),
+			'step' => $outcome->step,
+			'fixed' => $fixed,
+			'tasks' => $tasks,
+			'failures' => $outcome->failures,
+		];
 	}
 
 

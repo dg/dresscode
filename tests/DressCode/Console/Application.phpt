@@ -673,6 +673,15 @@ test('upgrade --plan writes the steps, --run makes them up to the raise of Compo
 	Assert::same(3, $exit);
 	Assert::contains('The project has a saved plan, `dresscode-upgrade.neon`, which `--continue` runs', $err);
 	Assert::same(3, runApp($root, ['upgrade', '--continue', '--no-types', '--no-color'])[0]);
+
+	// as data, the run with the plan it ran, its warnings on standard error
+	[$exit, $out, $err] = runApp($root, ['upgrade', '--continue', '--no-types', '--format', 'json']);
+	Assert::same([3, ''], [$exit, $err]);
+	$run = json_decode($out, associative: true, flags: JSON_THROW_ON_ERROR);
+	Assert::same([1, 'composer', 2], [$run['version'], $run['outcome']['stop'], $run['outcome']['step']]);
+	Assert::same([['step' => 1, 'topic' => 'php', 'files' => []]], array_slice($run['outcome']['fixed'], 0, 1));
+	Assert::same('upgrading.php.deprecatedApi', $run['outcome']['tasks'][0]['decision']);
+	Assert::same('composer', $run['plan']['steps'][1]['kind']);
 	file_put_contents("$root/composer.json", '{"require": {"php": "^8.4"}}');
 	[$exit, $out] = runApp($root, ['upgrade', '--continue', '--no-types', '--no-color']);
 	Assert::same(1, $exit);
@@ -723,7 +732,6 @@ test('upgrade refuses what the offer cannot measure, and an option of --today wi
 		[['upgrade', '--format', 'lines'], 'The offer is written as `console`, `agent` or `json`; `lines` is a format of `--today`.'],
 		[['upgrade', '--today', '--plan'], '`--plan` belongs to the plan of an upgrade, and `--today` makes none.'],
 		[['upgrade', '--commit'], '`--step`, `--commit` and `--yes` go with `--run` or `--continue`, which run the plan.'],
-		[['upgrade', '--run', '--format', 'json'], 'A run of the plan writes its steps as `console` or `agent`.'],
 		[['upgrade', '--test-command', 'x'], '`--test-command` and `--quick-test-command` go into a plan made with %a%'],
 		[['upgrade', 'php', '--continue'], '`--continue` runs the saved plan as it is, so it takes no target and makes no plan; %a%'],
 	] as [$args, $message]) {
