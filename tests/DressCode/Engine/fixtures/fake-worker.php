@@ -43,6 +43,7 @@ while (($line = fgets($socket)) !== false) {
 		'cached' => false,
 		'removedImports' => [],
 		'mutatedRules' => [],
+		'profile' => null,
 		'dependencies' => ['stubs/' . (mb_check_encoding($name = (string) base64_decode($path), 'UTF-8') ? $name : 'other') . '.stub'],
 		'runWarnings' => ['The types go without the configuration.'],
 	], JSON_THROW_ON_ERROR) . "\n";

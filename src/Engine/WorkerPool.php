@@ -60,6 +60,9 @@ final class WorkerPool
 	/** @var list<string> */
 	private array $queue = [];
 
+	/** @var array<int, true>  workers asked for what they measured last, by socket id */
+	private array $finishing = [];
+
 	/** @var array<string, true>  the files the results depend on, as the workers sent them */
 	private array $dependencies = [];
 
@@ -77,6 +80,8 @@ final class WorkerPool
 		private readonly int $taskTimeout = 300,
 		/** seconds a worker may take to connect, the first one filling the cache the others share among them */
 		private readonly int $connectTimeout = 300,
+		/** with it, every worker hands over what it measured last once nothing is left, one that got no file among them */
+		private readonly ?Profiler $profiler = null,
 		/** the first worker fills a cache the others share before it connects, and they start after that */
 		private readonly bool $warmFirst = false,
 	) {
@@ -207,7 +212,7 @@ final class WorkerPool
 				$this->workers[] = $this->spawn($address);
 			}
 
-			while ($done < count($paths)) {
+			while ($done < count($paths) || $this->isFinishing()) {
 				foreach ($this->await(watched: $onProgress !== null) as $stream) {
 					foreach ($this->receive((int) $stream) as $path => $result) {
 						$done++;
@@ -423,6 +428,12 @@ final class WorkerPool
 		while (($end = strpos($buffer, "\n")) !== false) {
 			$data = json_decode(substr($buffer, 0, $end), associative: true);
 			$buffer = substr($buffer, $end + 1);
+			if (isset($this->finishing[$id]) && is_array($data['profile'] ?? null)) {
+				$this->profiler?->merge($data['profile']);
+				$this->disconnect($id);
+				break;
+			}
+
 			[$path, , $code] = $this->inProgress[$id] ?? [null, null, ''];
 			if (!is_array($data) || $path === null || ($data['path'] ?? null) !== base64_encode($path)) {
 				throw new \RuntimeException('A worker sent an unexpected message.' . $this->collectErrors());
@@ -437,7 +448,11 @@ final class WorkerPool
 				$this->warnings[(string) $warning] = true;
 			}
 
-			$results[$path] = WorkerCodec::decode($data, $code);
+			[$results[$path], $profile] = WorkerCodec::decode($data, $code);
+			if ($profile !== null) {
+				$this->profiler?->merge($profile);
+			}
+
 			$this->assign($id);
 		}
 
@@ -451,11 +466,15 @@ final class WorkerPool
 	}
 
 
-	/** Hands the next path to the worker, or closes its connection when there is none. */
+	/** Hands the next path to the worker; when there is none, asks it for what it measured last, or closes its connection. */
 	private function assign(int $id): void
 	{
 		$path = array_shift($this->queue);
-		if ($path === null) {
+		if ($path === null && $this->profiler !== null) {
+			$this->finishing[$id] = true;
+			fwrite($this->sockets[$id], json_encode(['finish' => true], JSON_THROW_ON_ERROR) . "\n");
+			return;
+		} elseif ($path === null) {
 			$this->disconnect($id);
 			return;
 		}
@@ -481,7 +500,25 @@ final class WorkerPool
 	private function disconnect(int $id): void
 	{
 		fclose($this->sockets[$id]);
-		unset($this->sockets[$id], $this->inProgress[$id], $this->buffers[$id]);
+		unset($this->sockets[$id], $this->inProgress[$id], $this->buffers[$id], $this->finishing[$id]);
+	}
+
+
+	/**
+	 * Whether the run still waits for what the workers measured last: from one asked for it, and from one still
+	 * starting, which gets nothing to process but has its peak memory.
+	 */
+	private function isFinishing(): bool
+	{
+		if ($this->profiler === null) {
+			return false;
+		} elseif ($this->finishing !== []) {
+			return true;
+		}
+
+		// which process a connection belongs to is unknown, so a worker done with its work is waited for too, until it exits
+		return $this->accepted < count($this->workers)
+			&& array_any($this->workers, fn(array $worker) => proc_get_status($worker[0])['running']);
 	}
 
 
