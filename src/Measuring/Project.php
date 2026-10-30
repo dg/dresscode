@@ -14,24 +14,20 @@ use function is_array, is_string;
 
 
 /**
- * What `dresscode init` knows of a project before it looks at its code: its name, the packages it has, the framework
- * it is or requires, the formatter it has and the version of PHP its code is written for.
+ * What `dresscode init` knows of a project before it looks at its code: its name, the packages it requires and has,
+ * the formatter it has and the version of PHP its code is written for.
  * @internal
  */
 final readonly class Project
 {
-	/** the vendors of the frameworks whose standard a project of theirs takes in a close call */
-	private const Frameworks = ['laravel', 'symfony', 'nette'];
-
-
 	private function __construct(
 		public string $root,
 		/** as composer.json names it */
 		public ?string $name,
+		/** @var list<string>  the packages composer.json requires, and its own name */
+		private array $required,
 		/** @var array<string, true>  the packages the lock file, or what Composer installed, lists */
 		private array $packages,
-		/** the standard of the framework the project is or requires: `laravel`, `symfony`, `nette`; null for none */
-		public ?string $framework,
 		public ?FormatterConfig $formatterConfig,
 		/** the versions of PHP the code is written for, as a Composer constraint */
 		public string $phpTarget,
@@ -44,18 +40,12 @@ final readonly class Project
 	{
 		$composer = ComposerJson::read(ComposerJson::findFile($root)) ?? [];
 		$name = is_string($composer['name'] ?? null) ? $composer['name'] : null;
-		$packages = self::readPackages($root);
-		$required = [(string) $name, ...array_keys((array) ($composer['require'] ?? []))];
-		$framework = array_find(
-			self::Frameworks,
-			fn(string $vendor) => array_any($required, fn(string $package) => str_starts_with($package, "$vendor/")),
-		);
 		[$phpTarget, $source] = (new RunnerFactory)->getPhpTarget(new Config, $root);
 		return new self(
 			$root,
 			$name,
-			$packages,
-			$framework ?? (isset($packages['laravel/pint']) || is_file("$root/pint.json") ? 'laravel' : null),
+			[...($name === null ? [] : [$name]), ...array_map(strval(...), array_keys((array) ($composer['require'] ?? [])))],
+			self::readPackages($root),
 			FormatterConfig::find($root),
 			$phpTarget,
 			$source,
@@ -66,6 +56,15 @@ final readonly class Project
 	public function hasPackage(string $name): bool
 	{
 		return isset($this->packages[$name]);
+	}
+
+
+	/** Whether the project uses Laravel: it is or requires a package of Laravel, or Laravel Pint formats it. */
+	public function usesLaravel(): bool
+	{
+		return array_any($this->required, fn(string $package) => str_starts_with($package, 'laravel/'))
+			|| $this->hasPackage('laravel/pint')
+			|| is_file("$this->root/pint.json");
 	}
 
 

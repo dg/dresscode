@@ -70,7 +70,7 @@ final readonly class StandardChoice
 			$pint !== null => [[$pint]],
 			default => array_map(
 				fn(string $standard) => [$standard],
-				array_filter(CorePlugin::Standards, fn(string $standard) => $standard !== 'laravel' || $project->framework === 'laravel'),
+				array_filter(CorePlugin::Standards, fn(string $standard) => $standard !== 'laravel' || $project->usesLaravel()),
 			),
 		};
 	}
@@ -96,7 +96,7 @@ final readonly class StandardChoice
 		[$chosen, $reason, $alternatives] = match (true) {
 			$presets !== null => [(string) array_key_first($checks), StandardReason::Given, []],
 			count($candidates) === 1 => [(string) array_key_first($checks), StandardReason::Formatter, []],
-			default => self::choose($residues, [$project->framework, $project->formatterConfig?->standard]),
+			default => self::choose($residues, $project->formatterConfig?->standard),
 		};
 		$presets = array_combine(array_keys($probes), $candidates)[$chosen];
 		$decisions = (new RunnerFactory)->resolve(new Config(use: $presets), $project->root)->resolvedConfig->decisions;
@@ -114,28 +114,28 @@ final readonly class StandardChoice
 
 
 	/**
-	 * The standard the code departs from in the fewest decisions; where the next one is within a tenth of it, the first of
-	 * the hints among them (the standard of the framework of the project, the one its formatter names), else `perCs`
-	 * among them, else the fewest. PSR-12 says nothing of what PHP brought since and so departs from less, which is why
-	 * it yields to PER Coding Style within `SuccessorResidue`, unless a hint names it. A close call no hint decides
-	 * leaves the other close standards as the alternatives.
+	 * The standard the code departs from in the fewest decisions; where the next one is within a tenth of it, the one the
+	 * formatter of the project names if it is among them, else `perCs` among them, else the fewest. PSR-12 says nothing of
+	 * what PHP brought since and so departs from less, which is why it yields to PER Coding Style within
+	 * `SuccessorResidue`, unless the formatter names it. A close call the formatter does not decide leaves the other close
+	 * standards as the alternatives.
 	 * @param  array<string, int>  $residues  standard => its residue, the fewest first
-	 * @param  list<?string>  $hints
+	 * @param  ?string  $hint  the standard the formatter of the project names
 	 * @return array{string, StandardReason, list<string>}
 	 */
-	private static function choose(array $residues, array $hints): array
+	private static function choose(array $residues, ?string $hint): array
 	{
 		$candidates = $residues;
 		if (isset($candidates['psr12'], $candidates['perCs'])
 			&& $candidates['perCs'] <= self::SuccessorResidue * $candidates['psr12']
-			&& !in_array('psr12', $hints, true)
+			&& $hint !== 'psr12'
 		) {
 			unset($candidates['psr12']);
 		}
 
 		$best = (string) array_key_first($candidates);
 		$close = array_keys(array_filter($candidates, fn(int $count) => $count <= self::CloseResidue * $candidates[$best]));
-		$hinted = count($close) === 1 ? $best : array_find($hints, fn(?string $standard) => in_array($standard, $close, true));
+		$hinted = count($close) === 1 ? $best : (in_array($hint, $close, true) ? $hint : null);
 		$chosen = $hinted ?? (in_array(CorePlugin::Standards[0], $close, true) ? CorePlugin::Standards[0] : $best);
 		return [
 			$chosen,

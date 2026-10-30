@@ -80,7 +80,7 @@ enum StandardReason
 	/** Laravel Pint formats the project in it */
 	case Formatter;
 
-	/** the code departs from it in the fewest decisions, a close call decided by the framework, the formatter, then `perCs` */
+	/** the code departs from it in the fewest decisions, a close call decided by the formatter, then `perCs` */
 	case Fewest;
 
 	/** PER Coding Style taken over PSR-12, which it succeeds, though the code departs from PSR-12 in fewer decisions */

@@ -136,7 +136,7 @@ test(
 );
 
 
-test('init lists what the namespaces declare from every file, and proposes the preset of an installed framework', function () {
+test('init lists what the namespaces declare from every file', function () {
 	$root = createProject('namespaced', [
 		'src/helpers.php' => "<?php\n\nnamespace App;\n\nfunction helper(): void\n{\n}\n\nconst LIMIT = 1;\n",
 		'src/polyfill.php' => "<?php\n\nnamespace App\\Compat;\n\nif (!function_exists('App\\Compat\\first')) {\n\tfunction first(): void\n\t{\n\t}\n}\n",
@@ -219,8 +219,8 @@ test('init proposes the standard of the preset Laravel Pint formats with, as the
 		);
 	}
 
-	// another preset of Pint is its standard, and one no standard is leaves it to the code, Laravel winning a tie
-	foreach (['per' => 'perCs', 'psr12' => 'psr12', 'symfony' => 'symfony', 'empty' => 'laravel'] as $preset => $standard) {
+	// another preset of Pint is its standard, and one no standard is leaves it to the code, which names no standard to win a tie
+	foreach (['per' => 'perCs', 'psr12' => 'psr12', 'symfony' => 'symfony', 'empty' => 'perCs'] as $preset => $standard) {
 		$root = createProject(
 			"pint-$preset",
 			['src/a.php' => "<?php\n", 'pint.json' => "{\"preset\": \"$preset\"}", 'composer.json' => '{}'],
