@@ -1,0 +1,10 @@
+<?php
+// {"api": {"forbiddenFunctions": {"0": "eval", "die": "throw an exception instead", "1": "print", "2": "EMPTY", "3": "unset", "isset": "keep"}}}
+namespace App;
+eval('return 1;');
+die(1);
+exit(1);
+print 'a';
+echo empty($a);
+unset($a);
+isset($a);

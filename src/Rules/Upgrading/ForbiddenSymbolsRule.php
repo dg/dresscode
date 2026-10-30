@@ -12,12 +12,14 @@ use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Upgrading\MemberMapGrammar;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, SymbolKind, Token};
-use PhpSyntax\Nodes\Expression\FunctionCallNode;
+use PhpSyntax\Nodes\Expression\{EmptyNode, EvalNode, ExitNode, FunctionCallNode, IssetNode, PrintNode};
 use PhpSyntax\Nodes\{NameNode, UseItemNode};
+use PhpSyntax\Nodes\Statement\UnsetNode;
 
 
 /**
- * References of the classes, interfaces and enums, calls of the functions and uses of the constants a project, or
+ * References of the classes, interfaces and enums, calls of the functions, the constructs written as one among them
+ * (`eval()`, `exit()`, `print`, `empty()`, `isset()`, `unset()`), and uses of the constants a project, or
  * a library it stands on, says its code must not have, each reported with what the map says to do instead where it
  * says it; nothing is rewritten, which is what the maps are for where nothing else could simply stand for the symbol.
  * A class is reported wherever its name stands, a type, an instantiation, a static access, an attribute, but not in an
@@ -38,6 +40,9 @@ final class ForbiddenSymbolsRule extends NodeRule
 	public const Classes = MemberMapGrammar::ForbiddenClasses;
 	public const Functions = MemberMapGrammar::ForbiddenFunctions;
 	public const Constants = MemberMapGrammar::ForbiddenConstants;
+
+	/** the constructs written as a call, which the map of functions names by their keyword */
+	private const Constructs = [EvalNode::class, ExitNode::class, PrintNode::class, EmptyNode::class, IssetNode::class, UnsetNode::class];
 
 	/**
 	 * @var array<string, array{string, string, bool, string}>  lowercased class => the class as the map spells it, the end
@@ -108,7 +113,7 @@ final class ForbiddenSymbolsRule extends NodeRule
 	{
 		return [
 			...($this->classes !== [] || $this->constants !== [] ? [NameNode::class] : []),
-			...($this->functions !== [] ? [FunctionCallNode::class] : []),
+			...($this->functions !== [] ? [FunctionCallNode::class, ...self::Constructs] : []),
 		];
 	}
 
@@ -121,6 +126,8 @@ final class ForbiddenSymbolsRule extends NodeRule
 			$this->checkConstant($node, $context);
 		} elseif ($node instanceof FunctionCallNode) {
 			$this->checkFunction($node, $context);
+		} elseif ($node instanceof Node && in_array($node::class, self::Constructs, true)) {
+			$this->checkConstruct($node, $context);
 		}
 	}
 
@@ -159,6 +166,23 @@ final class ForbiddenSymbolsRule extends NodeRule
 				default => null,
 			});
 			$context->report($node->name, "Function `$resolved()` is $verdict->value$sentence.", decision: $decision, fixable: false);
+		}
+	}
+
+
+	private function checkConstruct(Node $node, RuleContext $context): void
+	{
+		$keyword = $node->getFirstToken();
+		if ($keyword === null) {
+			return;
+		}
+
+		$name = strtolower($keyword->text);
+		$entry = isset($this->withdrawnFunctions[$name]) ? null : self::findEntry($this->functions, $name);
+		if ($entry !== null) {
+			[$sentence, $fromPackage, $decision] = $entry;
+			$verdict = Retirement::of($fromPackage, exists: true);
+			$context->report($keyword, "Function `$name()` is $verdict->value$sentence.", decision: $decision, fixable: false);
 		}
 	}
 

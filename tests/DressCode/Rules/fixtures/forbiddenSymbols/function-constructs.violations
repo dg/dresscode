@@ -1,0 +1,5 @@
+4: Function `eval()` is forbidden.
+5: Function `die()` is forbidden: throw an exception instead.
+7: Function `print()` is forbidden.
+8: Function `empty()` is forbidden.
+9: Function `unset()` is forbidden.
