@@ -9,7 +9,7 @@ namespace DressCode\Console\Commands;
 
 use DressCode\{Analyses, Config, ConfigurationException};
 use DressCode\Config\{DataPackageCatalogue, PackageDiscovery, ProjectPackages, RunnerFactory, Versions};
-use DressCode\Console\{Application, CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter};
+use DressCode\Console\{Application, CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter, TasksPrinter};
 use DressCode\Engine\{Worker, WorkerPool};
 use DressCode\Measuring\Scope;
 use DressCode\Upgrade\{Composer, EstimateRun, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, Project, RunStop, Step, Target};
@@ -56,7 +56,9 @@ final readonly class UpgradeCommand
 
 		$project = $this->loadProject($args, $configuration);
 		$console = $this->findConsole($options->format);
-		if (!$options->continue) {
+		if ($options->tasks) {
+			return $this->listTasks($project, $options, $console);
+		} elseif (!$options->continue) {
 			return $this->offer($args, $project, $target, $version, $options, $configuration, $console);
 		}
 
@@ -200,6 +202,38 @@ final readonly class UpgradeCommand
 			RunStop::Tasks, RunStop::Tests => 1,
 			RunStop::Composer => 3,
 		};
+	}
+
+
+	/**
+	 * Lists what the fixes of the saved plan leave for a human in the code as it stands, changing nothing, and the
+	 * suppressions that only put a task off: exit code 1 where a task is left.
+	 */
+	private function listTasks(Project $project, UpgradeOptions $options, ?Console $console): int
+	{
+		$plan = PlanFile::read("$project->root/" . PlanFile::Name);
+		$runner = $this->createPlanRunner($project, $this->decideTypes($options, $project->config), $options, $console);
+		if ($console !== null) {
+			self::writeHeader($console, $project);
+		}
+
+		try {
+			$tasks = $runner->findTasks($plan);
+			$printer = new TasksPrinter($tasks, $runner->findPostponed());
+		} finally {
+			($console ?? $this->context->err)->clearStatus();
+		}
+
+		if ($console === null) {
+			$this->writeJson(['version' => TasksPrinter::Version, ...$printer->toArray()]);
+		} else {
+			$console->write(Markup::highlightCode($console, $printer->print($console)));
+			$console->writeLine($tasks === []
+				? $console->color('white/green', 'OK  nothing of the plan is left for you')
+				: $console->color('white/red', 'FOUND  places of the plan are left for you'));
+		}
+
+		return $tasks === [] ? 0 : 1;
 	}
 
 

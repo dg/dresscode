@@ -45,6 +45,8 @@ final readonly class UpgradeOptions
 		public ?bool $run = null,
 		#[Cli\Flag('Run what is left of the plan `dresscode-upgrade.neon` saved, as the code now stands')]
 		public ?bool $continue = null,
+		#[Cli\Flag('List what the fixes of the plan `dresscode-upgrade.neon` saved leave for you in the code as it stands, changing nothing')]
+		public ?bool $tasks = null,
 		#[Cli\Option(
 			'With `--run` or `--continue`, run that step of the plan alone',
 			valueName: 'n',
@@ -132,6 +134,7 @@ final readonly class UpgradeOptions
 			'--save-plan' => $this->savePlan,
 			'--run' => $this->run,
 			'--continue' => $this->continue,
+			'--tasks' => $this->tasks,
 			'--step' => $this->step,
 			'--commit' => $this->commit,
 			'--test-command' => $this->testCommand,
@@ -163,6 +166,8 @@ final readonly class UpgradeOptions
 				=> '`--continue` runs the saved plan as it is, so it takes no target and makes no plan; edit `'
 					. PlanFile::Name
 					. '` instead.',
+			$this->tasks && ($target !== null || $this->makesPlan() || $runs)
+				=> '`--tasks` lists what the saved plan leaves, so it takes no target and makes or runs no plan.',
 			default => null,
 		};
 	}

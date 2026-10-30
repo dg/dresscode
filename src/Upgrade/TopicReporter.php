@@ -12,8 +12,8 @@ use DressCode\{FileResult, Reporter};
 
 
 /**
- * The reporter of the fix of a topic, which says nothing: it keeps every file the fix changes as it was before the
- * step, and collects what the fix changed and what it leaves for a human.
+ * The reporter of the fix of a topic, which says nothing: it tells `$keep` every file the fix changes as it was before,
+ * and collects what the fix changed and what it leaves for a human.
  * @internal
  */
 final class TopicReporter implements Reporter
@@ -26,8 +26,8 @@ final class TopicReporter implements Reporter
 
 
 	public function __construct(
-		private readonly Snapshots $snapshots,
-		private readonly int $step,
+		/** @var ?\Closure(string, string): void  given a file the fix changes, relative to the root, and its text before */
+		private readonly ?\Closure $keep = null,
 	) {
 	}
 
@@ -40,7 +40,7 @@ final class TopicReporter implements Reporter
 	public function reportFile(FileResult $result): void
 	{
 		if ($result->changed && $result->output !== null) {
-			$this->snapshots->keep($this->step, $result->path, $result->code);
+			$this->keep?->__invoke($result->path, $result->code);
 			$this->changed[$result->path] = $result->output;
 		}
 

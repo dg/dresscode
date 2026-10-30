@@ -668,6 +668,15 @@ test('upgrade --plan writes the steps, --run makes them up to the raise of Compo
 		file_get_contents("$root/src/Code.php"),
 	);
 
+	// what the plan leaves for a human, the code as it stands
+	[$exit, $out] = runApp($root, ['upgrade', '--tasks', '--no-types', '--no-color']);
+	Assert::same(1, $exit);
+	Assert::match(<<<'XX'
+		%A%For you    1 place the fixes left
+		  src/Code.php:5  Function `strftime()` is deprecated: since PHP 8.1.  [upgrading.php.deprecatedApi]
+		FOUND  places of the plan are left for you
+		XX, $out);
+
 	// a saved plan is run by --continue, which waits until the constraint is raised
 	[$exit, , $err] = runApp($root, ['upgrade', 'php', '8.4', '--run', '--no-types', '--offline']);
 	Assert::same(3, $exit);
@@ -734,6 +743,11 @@ test('upgrade refuses what the offer cannot measure, and an option of --today wi
 		[['upgrade', '--commit'], '`--step`, `--commit` and `--yes` go with `--run` or `--continue`, which run the plan.'],
 		[['upgrade', '--test-command', 'x'], '`--test-command` and `--quick-test-command` go into a plan made with %a%'],
 		[['upgrade', 'php', '--continue'], '`--continue` runs the saved plan as it is, so it takes no target and makes no plan; %a%'],
+		[
+			['upgrade', '--tasks', '--continue'],
+			'`--tasks` lists what the saved plan leaves, so it takes no target and makes or runs no plan.',
+		],
+		[['upgrade', '--today', '--tasks'], '`--tasks` belongs to the plan of an upgrade, and `--today` makes none.'],
 	] as [$args, $message]) {
 		[$exit, , $err] = runApp($root, $args);
 		Assert::same(3, $exit);

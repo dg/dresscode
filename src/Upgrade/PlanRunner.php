@@ -102,7 +102,12 @@ final readonly class PlanRunner
 			$reporters = [];
 			foreach ($step->only as $topic) {
 				$this->onProgress?->__invoke("step $number, fixing $topic");
-				$reporters[$topic] = $this->fixTopic($topic, $kept, $declarations, $number, $snapshots);
+				$reporters[$topic] = $this->runTopic(
+					$topic,
+					$kept,
+					$declarations,
+					fn(string $path, string $code) => $snapshots->keep($number, $path, $code),
+				);
 				$fixed[$number][$topic] = array_keys($reporters[$topic]->changed);
 			}
 
@@ -159,16 +164,65 @@ final readonly class PlanRunner
 
 
 	/**
-	 * Fixes the topic over the project as it is, keeping each file it changes as it was before the step, the names
-	 * resolved for certain with what the namespaces declare where they were measured, as the estimate resolves them.
-	 * @param  list<string>  $kept  the decisions of the style the code keeps
+	 * What the fixes of the steps the plan does not leave out leave for a human in the code as it is now, changing
+	 * nothing; a task confirmed by a suppression or the baseline is done, and so is not among them.
+	 * @return array<string, list<Task>>  topic => its tasks
+	 * @throws ConfigurationException
 	 */
-	private function fixTopic(
+	public function findTasks(Plan $plan): array
+	{
+		$kept = $this->project->findKeptDecisions();
+		$declarations = $this->project->collectDeclarations();
+		$tasks = [];
+		foreach ($plan->findSteps() as $step) {
+			foreach ($step->kind === StepKind::Fix ? $step->only : [] as $topic) {
+				$this->onProgress?->__invoke("looking at $topic");
+				$tasks[$topic] = $this->runTopic($topic, $kept, $declarations)->tasks;
+			}
+		}
+
+		return array_filter($tasks);
+	}
+
+
+	/**
+	 * The comments `dresscode:ignore` about an upgrade that give no reason after ` -- `, which only put a task off.
+	 * @return list<array{path: string, line: int, comment: string}>  the file relative to the root
+	 */
+	public function findPostponed(): array
+	{
+		$project = $this->project;
+		$factory = new RunnerFactory;
+		$runner = $factory->createRunner($factory->resolve($project->config, $project->root, $project->commandLine), cache: false);
+		$postponed = [];
+		foreach ($runner->findFiles($project->config->paths, configured: $project->config->paths) as $path) {
+			$code = FileSystem::read(Helpers::toAbsolutePath($path, $project->root));
+			// a decision of upgrading, a package of upgrading data, a library or the data of PHP
+			preg_match_all('~dresscode:ignore\s+(?:upgrading|upgrade-|php\b|[\w-]+/)[^\n]*~', $code, $matches, PREG_OFFSET_CAPTURE);
+			foreach ($matches[0] as [$comment, $offset]) {
+				if (!str_contains($comment, ' -- ')) {
+					$comment = rtrim(explode('*/', $comment)[0]);
+					$postponed[] = ['path' => $path, 'line' => substr_count($code, "\n", 0, $offset) + 1, 'comment' => $comment];
+				}
+			}
+		}
+
+		return $postponed;
+	}
+
+
+	/**
+	 * Runs the topic over the project as it is, telling `$keep` each file the fix changes as it was before, or without it
+	 * only checking, the names resolved for certain with what the namespaces declare where they were measured, as the
+	 * estimate resolves them.
+	 * @param  list<string>  $kept  the decisions of the style the code keeps
+	 * @param  ?\Closure(string, string): void  $keep
+	 */
+	private function runTopic(
 		string $topic,
 		array $kept,
 		?NamespaceDeclarations $declarations,
-		int $step,
-		Snapshots $snapshots,
+		?\Closure $keep = null,
 	): TopicReporter
 	{
 		$project = $this->project;
@@ -182,8 +236,8 @@ final readonly class PlanRunner
 			laid: Estimator::Sets,
 		);
 		$runner = $factory->createRunner($resolution, cache: false, configFile: $this->configFile);
-		$reporter = new TopicReporter($snapshots, $step);
-		$runner->run($runner->findFiles($project->config->paths, configured: $project->config->paths), true, $reporter);
+		$reporter = new TopicReporter($keep);
+		$runner->run($runner->findFiles($project->config->paths, configured: $project->config->paths), $keep !== null, $reporter);
 		return $reporter;
 	}
 

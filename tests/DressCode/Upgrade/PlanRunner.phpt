@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Config;
-use DressCode\Upgrade\{Plan, PlanRunner, ProcessRunner, Project, RunOutcome, RunStop, Step, StepKind, Target, TestResults};
+use DressCode\Upgrade\{Plan, PlanRunner, ProcessRunner, Project, RunOutcome, RunStop, Step, StepKind, Target, Task, TestResults};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -179,3 +179,45 @@ test('a raise the caller makes lets the run go on, one it only claims leaves the
 		$runner->run(createSteppedPlan(), raise: $raise),
 	);
 });
+
+
+test(
+	'the tasks are what the fixes of the plan leave in the code as it stands, changing nothing',
+	function () {
+		$root = createSteppedProject('steps-tasks');
+		$code = <<<'XX'
+			<?php
+
+			function month(): string
+			{
+				return strftime('%B');
+			}
+
+			function day(): string
+			{
+				// dresscode:ignore upgrading.php.deprecatedApi
+				return strftime('%d');
+			}
+
+			function year(): string
+			{
+				// dresscode:ignore upgrading.php.deprecatedApi -- the report needs the locale of the server
+				return strftime('%Y');
+			}
+
+			XX;
+		file_put_contents("$root/src/Date.php", $code);
+		$plan = new Plan([Target::php('8.4')], [new Step(StepKind::Fix, 'bridge', ['php', 'upgrading.php.implicitNullable'])], '1.0');
+		$runner = new PlanRunner(createSteppedRunProject($root));
+
+		$tasks = $runner->findTasks($plan);
+		Assert::same([['src/Date.php', 5]], array_map(fn(Task $task) => [$task->path, $task->violation->line], $tasks['php']));
+		Assert::same(
+			[['path' => 'src/Date.php', 'line' => 10, 'comment' => 'dresscode:ignore upgrading.php.deprecatedApi']],
+			$runner->findPostponed(),
+		);
+		// a suppression without a reason only puts a task off; and nothing is changed, the fix of `Code.php` included
+		Assert::same($code, file_get_contents("$root/src/Date.php"));
+		Assert::notContains('?int', (string) file_get_contents("$root/src/Code.php"));
+	},
+);

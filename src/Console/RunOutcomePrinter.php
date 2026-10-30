@@ -56,15 +56,7 @@ final readonly class RunOutcomePrinter
 			)) . "\n";
 		}
 
-		$tasks = array_merge(...array_values($outcome->tasks));
-		if ($tasks !== []) {
-			$out .= $label('For you') . Markup::formatCount(count($tasks), 'place') . " the fixes left\n";
-			foreach ($tasks as $task) {
-				$violation = $task->violation;
-				$out .= "  $task->path:$violation->line  $violation->message  " . $console->color('gray', "[$violation->decision]") . "\n";
-			}
-		}
-
+		$out .= new TasksPrinter($outcome->tasks)->print($console);
 		return $out . match ($outcome->stop) {
 			RunStop::Tests => $label('Failed') . "step $outcome->step went back, as " . ($outcome->failures === []
 				? 'the tests wrote no results after it'
@@ -87,22 +79,10 @@ final readonly class RunOutcomePrinter
 	public function toArray(): array
 	{
 		$outcome = $this->outcome;
-		$fixed = $tasks = [];
+		$fixed = [];
 		foreach ($outcome->fixed as $step => $topics) {
 			foreach ($topics as $topic => $files) {
 				$fixed[] = ['step' => $step, 'topic' => $topic, 'files' => $files];
-			}
-		}
-
-		foreach ($outcome->tasks as $topic => $topicTasks) {
-			foreach ($topicTasks as $task) {
-				$tasks[] = [
-					'topic' => $topic,
-					'file' => $task->path,
-					'line' => $task->violation->line,
-					'decision' => $task->violation->decision,
-					'message' => $task->violation->message,
-				];
 			}
 		}
 
@@ -110,7 +90,7 @@ final readonly class RunOutcomePrinter
 			'stop' => lcfirst($outcome->stop->name),
 			'step' => $outcome->step,
 			'fixed' => $fixed,
-			'tasks' => $tasks,
+			'tasks' => new TasksPrinter($outcome->tasks)->toArray()['tasks'],
 			'failures' => $outcome->failures,
 		];
 	}
