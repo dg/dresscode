@@ -149,6 +149,7 @@ final readonly class Estimator
 			$declarations !== null,
 			$resolution->resolvedConfig->typeAnalysis !== null,
 			[...array_keys($resolution->warnings), ...$warnings],
+			...$this->offline ? [] : $this->findMoves($targets),
 		);
 	}
 
@@ -291,6 +292,31 @@ final readonly class Estimator
 		$this->onProgress?->__invoke('asking Composer what the lock refuses');
 		$composer = new Composer($project->rootPath, $project->rootName);
 		return array_map($composer->findBlockers(...), $targets);
+	}
+
+
+	/**
+	 * The packages the update to the targets moves across a major version, as the dry run of Composer raising the
+	 * constraints says, which needs the network; nothing where the project has no lock.
+	 * @param  list<Target>  $targets
+	 * @return array{moves?: list<Move>, movesUnknown?: string}
+	 */
+	private function findMoves(array $targets): array
+	{
+		$project = ProjectPackages::read($this->project->root);
+		if ($project->rootPath === null || !is_file("$project->rootPath/composer.lock")) {
+			return [];
+		}
+
+		$this->onProgress?->__invoke('asking Composer what the update moves');
+		$constraints = array_column(array_map(fn(Target $target) => [$target->package, "^$target->version"], $targets), 1, 0);
+		[$exit, $output] = new Composer($project->rootPath)->requirePackages($constraints, dryRun: true);
+		$lines = array_values(array_filter(array_map(trim(...), preg_split('~\R~', $output) ?: [])));
+		return match (true) {
+			$exit === null => ['movesUnknown' => 'Composer did not answer in time'],
+			$exit !== 0 => ['movesUnknown' => 'Composer failed: ' . ($lines[count($lines) - 1] ?? "exit code $exit")],
+			default => ['moves' => array_values(array_filter(Composer::parseMoves($output), fn(Move $move) => $move->isMajor()))],
+		};
 	}
 
 

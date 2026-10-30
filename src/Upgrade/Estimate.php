@@ -35,6 +35,10 @@ final readonly class Estimate
 		public bool $types,
 		/** @var list<string>  what the user should be told about the run */
 		public array $warnings,
+		/** @var list<Move>  the packages the update to the targets moves across a major version, as Composer said */
+		public array $moves = [],
+		/** why Composer did not say what the update moves, which it was asked */
+		public ?string $movesUnknown = null,
 	) {
 	}
 

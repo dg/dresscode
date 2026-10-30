@@ -76,6 +76,23 @@ final readonly class Composer
 
 
 	/**
+	 * The packages the output of an update moves from one version to another.
+	 * @return list<Move>
+	 */
+	public static function parseMoves(string $output): array
+	{
+		$moves = [];
+		foreach (self::parseOperations($output) as $operation) {
+			if (preg_match('~^- (?:Upgrading|Downgrading) (\S+) \((\S+) => (\S+)\)~', $operation, $m)) {
+				$moves[] = new Move($m[1], $m[2], $m[3]);
+			}
+		}
+
+		return $moves;
+	}
+
+
+	/**
 	 * Writes the constraints into `composer.json` and updates the packages they move to the lowest versions they allow,
 	 * which the code is written for and whose `@deprecated` the run reads, those they depend on changed as little as
 	 * the update needs; without `$update` only `composer.json` changes, and a dry run changes nothing and says what the

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\Upgrade\{Blocker, Composer, Target};
+use DressCode\Upgrade\{Blocker, Composer, Move, Target};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -49,6 +49,22 @@ test('the operations of an update are read once, though Composer lists them for 
 		XX;
 
 	Assert::same(['- Upgrading nette/utils (v3.2.10 => v4.0.11)'], Composer::parseOperations($output));
+});
+
+
+test('the moves of an update are read from its upgrades and downgrades, not from what it installs or removes', function () {
+	$output = <<<'XX'
+		Lock file operations: 1 install, 2 updates, 1 removal
+		  - Removing acme/old (v1.0.0)
+		  - Upgrading nette/utils (v3.2.10 => v4.0.11)
+		  - Downgrading acme/mail (v2.1.0 => v2.0.3)
+		  - Installing acme/new (v1.2.0)
+		XX;
+
+	Assert::equal(
+		[new Move('nette/utils', 'v3.2.10', 'v4.0.11'), new Move('acme/mail', 'v2.1.0', 'v2.0.3')],
+		Composer::parseMoves($output),
+	);
 });
 
 

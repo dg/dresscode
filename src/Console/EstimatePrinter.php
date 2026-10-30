@@ -7,7 +7,7 @@
 
 namespace DressCode\Console;
 
-use DressCode\Upgrade\{Blocker, Blockers, Estimate, Fixability, Phase, Target, Topic};
+use DressCode\Upgrade\{Blocker, Blockers, Estimate, Fixability, Move, Phase, Target, Topic};
 use Nette\CommandLine\Console;
 use function count, sprintf, strlen;
 
@@ -106,6 +106,16 @@ final readonly class EstimatePrinter
 			$out .= $label('Composer') . $blockers->target->format() . ': ' . self::formatBlockers($blockers) . "\n";
 		}
 
+		if ($estimate->movesUnknown !== null) {
+			$out .= $label('Moves') . "unknown, $estimate->movesUnknown\n";
+		} elseif ($estimate->moves !== []) {
+			$out .= $label('Moves') . self::wrapList(array_map(
+				fn(Move $move) => "$move->package $move->from => $move->to"
+					. ($move->isKnown($estimate->knownVersions) ? '' : ' (no data)'),
+				$estimate->moves,
+			)) . "\n";
+		}
+
 		foreach ($estimate->missingData as $package => $libraries) {
 			$out .= $label('No data') . self::formatList($libraries)
 				. ": the upgrading data are in `$package`, which `dresscode upgrade --today` installs\n";
@@ -150,6 +160,11 @@ final readonly class EstimatePrinter
 				'packages' => array_map(fn(Blocker $blocker) => (array) $blocker, $blockers->packages),
 				'unknown' => $blockers->unknown,
 			], $estimate->blockers),
+			'moves' => array_map(
+				fn(Move $move) => [...(array) $move, 'data' => $move->isKnown($estimate->knownVersions)],
+				$estimate->moves,
+			),
+			'movesUnknown' => $estimate->movesUnknown,
 			'missingData' => (object) $estimate->missingData,
 			'knownVersions' => (object) $estimate->knownVersions,
 			'warnings' => $estimate->warnings,
