@@ -97,7 +97,7 @@ final readonly class EstimatePrinter
 		}
 
 		foreach ($estimate->blockers as $blockers) {
-			$out .= $label('Blocked') . $blockers->target->format() . ': ' . self::formatBlockers($blockers) . "\n";
+			$out .= $label('Composer') . $blockers->target->format() . ': ' . self::formatBlockers($blockers) . "\n";
 		}
 
 		foreach ($estimate->missingData as $package => $libraries) {
@@ -192,7 +192,7 @@ final readonly class EstimatePrinter
 		return match (true) {
 			$blockers->unknown !== null => "unknown, $blockers->unknown",
 			$blockers->packages === [] => 'nothing in the lock refuses it',
-			default => self::formatList(array_map(
+			default => 'refused by ' . self::formatList(array_map(
 				fn(Blocker $blocker) => "$blocker->package $blocker->version ($blocker->constraint)",
 				$blockers->packages,
 			)),
