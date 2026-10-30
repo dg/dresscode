@@ -10,15 +10,16 @@ namespace DressCode\Console;
 use DressCode\{Config, Reporter, Reporters};
 use DressCode\Config\{PluginRegistry, ResolvedProject};
 use DressCode\Console\Commands\{CheckOptions, ConfigOptions, RunOptions, TodayUpgrade};
-use DressCode\Engine\{Baseline, FileSummary, Helpers, LineRanges, Runner, RunResult, Worker, WorkerPool};
+use DressCode\Engine\{Baseline, FileSummary, Helpers, LineRanges, Profiler, Runner, RunResult, Worker, WorkerPool};
 use Nette\CommandLine\{Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use function count, in_array, is_string, sprintf, strlen;
+use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES;
 
 
 /**
  * The run over the files of the project, or over the code of stdin, which `check`, `fix`, `baseline` and `upgrade today` share:
- * the workers, the reporter, the progress and the review of the risky fixes.
+ * the workers, the reporter, the progress, the review of the risky fixes and the profile.
  * @internal
  */
 final readonly class RunExecutor
@@ -67,6 +68,7 @@ final readonly class RunExecutor
 			? $this->context->resolveProject($args, $configuration, $check->only ?? [])
 			: $upgrade->resolve($args, $configuration);
 		[$config, $root] = [$resolution->config, $resolution->root];
+		$profiler = $run->profile === null ? null : new Profiler;
 		$fixRisky = in_array(true, $check->fixRisky ?? [], true); // a bare `--fix-risky`, the names given go to the configuration
 		if ($run->worker !== null) { // the parent keeps the cache; the baseline decides what is reported
 			$runner = $factory->createRunner(
@@ -75,18 +77,20 @@ final readonly class RunExecutor
 				cache: false,
 				fixRisky: $fixRisky,
 				baseline: !$generate,
+				profiler: $profiler,
 			);
 			($runner->warmUp)?->__invoke(); // before connecting, which is what starts the other workers
-			return Worker::run($run->worker, $runner, $fix);
+			return Worker::run($run->worker, $runner, $fix, $profiler);
 		}
 
 		$options = [
 			'strict' => (bool) $run->strictRules,
-			// the counts of a file served from the cache are those the baseline left
-			'cache' => !$generate,
+			// a file served from the cache has nothing to measure, and its counts are those the baseline left
+			'cache' => !$generate && !$profiler,
 			'configFile' => $configFile,
 			'fixRisky' => $fixRisky,
 			'baseline' => !$generate,
+			'profiler' => $profiler,
 			'refreshCache' => (bool) $run->noCache,
 		];
 		$runner = $factory->createRunner($resolution, ...$options);
@@ -203,13 +207,15 @@ final readonly class RunExecutor
 			? $this->buildWorkerCommand($args, $configuration, $run, $check, $upgrade?->getWorkerOptions($resolution) ?? [])
 			: null;
 		$workers = $command
-			? new WorkerPool($command, $jobs, $this->context->workingDirectory, warmFirst: $runner->warmUp !== null)
+			? new WorkerPool($command, $jobs, $this->context->workingDirectory, profiler: $profiler, warmFirst: $runner->warmUp !== null)
 			: null;
 		$progress = !$generate && $format === 'console' && count($files) > 1 && $out->isTerminal()
 			? new ProgressBar($out, count($files))
 			: null;
 		$onProgress = $progress === null ? null : $progress->advance(...);
 
+		$profiler?->addPhase('start of the process', (int) ((microtime(as_float: true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1e9));
+		$start = hrtime(as_number: true);
 		try {
 			if ($generate) {
 				return $this->generateBaseline($runner, $config, $root, $configFile, $files, $workers, $format);
@@ -238,6 +244,13 @@ final readonly class RunExecutor
 
 		} finally {
 			$progress?->clear(); // an error must not be written into the bar
+			if ($profiler && $run->profile !== null) {
+				$profiler->addPhase('run', hrtime(as_number: true) - $start);
+				FileSystem::write(
+					$this->context->resolvePath($run->profile),
+					json_encode($profiler->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n",
+				);
+			}
 		}
 	}
 
@@ -442,6 +455,10 @@ final readonly class RunExecutor
 
 		foreach ($check->fixRisky ?? [] as $value) { // what a worker may fix has to be what the parent was asked for
 			$command[] = is_string($value) ? "--fix-risky=$value" : '--fix-risky';
+		}
+
+		if ($run->profile !== null) { // a worker measures and hands it over with every file, the parent writes
+			$command[] = "--profile=$run->profile";
 		}
 
 		return $command;
