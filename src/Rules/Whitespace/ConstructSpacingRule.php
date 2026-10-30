@@ -99,7 +99,7 @@ final class ConstructSpacingRule extends GapRule
 		$decisions = [
 			new Decision(
 				self::OpenBrace,
-				new Shapes(['spaced' => ['if ($a) {', 'a single space']]),
+				Domain::state('required'),
 				'The space before the brace or the body a structure opens on the line of its head',
 			),
 			new Decision(
@@ -112,7 +112,7 @@ final class ConstructSpacingRule extends GapRule
 			),
 			new Decision(
 				self::Body,
-				new Shapes(['spaced' => ['function () { return 1; }', 'a single space inside the braces']]),
+				Domain::state('required'),
 				'The space inside the braces of a body whose code stands on their line, of a function, a closure, a property hook and an anonymous class, and of abbreviated property hooks, `{ get; set; }`; none inside a pair of braces with nothing between them whose empty form `braces.emptyBody` does not decide',
 			),
 			new Decision(

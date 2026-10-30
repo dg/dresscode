@@ -844,8 +844,8 @@ The spaces around a binary operator, an assignment, `instanceof`, `=>` and the `
 The space inside the braces of a body whose code stands on their line, of a function, a closure, a property hook and an anonymous class, and of abbreviated property hooks, `{ get; set; }`; none inside a pair of braces with nothing between them whose empty form `braces.emptyBody` does not decide.
 
 - By default `keep`
-- Takes: `'function () { return 1; }'` (a single space inside the braces); `keep`
-- The standards: perCs `'function () { return 1; }'`, psr12 `'function () { return 1; }'`, nette `'function () { return 1; }'`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `required`, psr12 `required`, nette `required`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 
 ### spacing.call
@@ -945,8 +945,8 @@ The space around the braces of a group use, which hug the names.
 The space after a keyword followed by code on its line, `return`, `new`, `if`, `function`, a modifier and the words of the head of a class among them, and around a keyword continuing a statement, `else`, `catch`, `finally`, the `while` of a `do`, `as`, `insteadof` and the `use` of a closure, which stay on the line of what is before them.
 
 - By default `keep`
-- Takes: `'return $x'` (a single space); `keep`
-- The standards: perCs `'return $x'`, psr12 `'return $x'`, nette `'return $x'`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `required`, psr12 `required`, nette `required`
 - Rule `DressCode\Rules\Classes\ClassHeadSpacingRule`, stage Formatting
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 
@@ -982,8 +982,8 @@ The whitespace around the object operator.
 The space before the brace or the body a structure opens on the line of its head.
 
 - By default `keep`
-- Takes: `'if ($a) {'` (a single space); `keep`
-- The standards: perCs `'if ($a) {'`, psr12 `'if ($a) {'`, nette `'if ($a) {'`
+- Takes: `required` (always there); `keep`
+- The standards: perCs `required`, psr12 `required`, nette `required`
 - Rule `DressCode\Rules\Whitespace\ConstructSpacingRule`, stage Formatting
 
 ### spacing.padding.argument

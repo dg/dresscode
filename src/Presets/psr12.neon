@@ -51,10 +51,10 @@ spacing:
 		closureUse: forbidden
 		controlStructure: forbidden
 		grouping: forbidden
-	keyword: 'return $x'                      # `if (`, `} else {`, `new`, `class Foo extends Bar` too
-	openBrace: 'if ($a) {'
+	keyword: required                         # `return $x`, `if (`, `} else {`, `new`, `class Foo extends Bar`
+	openBrace: required                       # `if ($a) {`, `function () {`
 	alternativeSyntax: 'if ($a):'
-	body: 'function () { return 1; }'
+	body: required                            # `{ return 1; }`, `{ get; set; }`
 	import: 'use Acme\{Foo, Bar};'
 	comma: '$a, $b'
 	alignment:

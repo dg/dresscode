@@ -9,7 +9,7 @@ namespace DressCode\Config;
 
 use DressCode\Analyses\IndentationPlan;
 use DressCode\{Decision, DecisionKind, Domain, Plugin, PluginManifest, Rules, Violation};
-use DressCode\Domains\{Count, Flag, GrammarEntry, Map, Names, Shapes, Words};
+use DressCode\Domains\{Count, Flag, GrammarEntry, Map, Names, Words};
 use DressCode\Rules\Upgrading\{AttributeForMemberEntry, AttributeTarget, CallTemplate, MemberTarget};
 use DressCode\Upgrading\{MemberMapGrammar, MemberPattern};
 use Nette\Schema\{Context, Expect, Schema};
@@ -327,7 +327,7 @@ final class CorePlugin implements Plugin
 				...self::createImportDecisions(),
 				new Decision(
 					'spacing.keyword',
-					new Shapes(['spaced' => ['return $x', 'a single space']]),
+					Domain::state('required'),
 					'The space after a keyword followed by code on its line, `return`, `new`, `if`, `function`, a modifier and the words of the head of a class among them, and around a keyword continuing a statement, `else`, `catch`, `finally`, the `while` of a `do`, `as`, `insteadof` and the `use` of a closure, which stay on the line of what is before them',
 				),
 				new Decision(

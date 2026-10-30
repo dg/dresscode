@@ -45,8 +45,8 @@ function apply(array $rules, string $code): array
 test('the stricter side of a gap wins: nothing before the semicolon, whatever the keyword asks for after itself', function () {
 	[$output, $violations] = apply([
 		RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
-			'spacing.keyword' => 'return $x', 'spacing.openBrace' => 'if ($a) {',
-			'spacing.alternativeSyntax' => 'if ($a):', 'spacing.body' => 'function () { return 1; }',
+			'spacing.keyword' => 'required', 'spacing.openBrace' => 'required',
+			'spacing.alternativeSyntax' => 'if ($a):', 'spacing.body' => 'required',
 			'spacing.import' => 'use Acme\\{Foo, Bar};',
 			'spacing.arrowFunction' => 'fn($x) => $x', 'multiline.expressionStart' => 'sameLine',
 		]),
@@ -82,8 +82,8 @@ test('a claim on the whitespace and the line reports the line under its own deci
 
 test('a keyword alone knows what closes it', function () {
 	[$output] = apply([RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
-		'spacing.keyword' => 'return $x', 'spacing.openBrace' => 'if ($a) {',
-		'spacing.alternativeSyntax' => 'if ($a):', 'spacing.body' => 'function () { return 1; }',
+		'spacing.keyword' => 'required', 'spacing.openBrace' => 'required',
+		'spacing.alternativeSyntax' => 'if ($a):', 'spacing.body' => 'required',
 		'spacing.import' => 'use Acme\\{Foo, Bar};', 'spacing.arrowFunction' => 'fn($x) => $x', 'multiline.expressionStart' => 'sameLine',
 	])], "<?php\nreturn;\nswitch (\$a) {\n\tdefault:\n}\n");
 	Assert::same("<?php\nreturn;\nswitch (\$a) {\n\tdefault:\n}\n", $output);
@@ -137,8 +137,8 @@ test('a plain claim and a closure deciding one component of one slot are refused
 	Assert::exception(
 		fn() => apply([
 			RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
-				'spacing.keyword' => 'return $x', 'spacing.openBrace' => 'if ($a) {', 'spacing.alternativeSyntax' => 'if ($a):',
-				'spacing.body' => 'function () { return 1; }', 'spacing.import' => 'use Acme\\{Foo, Bar};',
+				'spacing.keyword' => 'required', 'spacing.openBrace' => 'required', 'spacing.alternativeSyntax' => 'if ($a):',
+				'spacing.body' => 'required', 'spacing.import' => 'use Acme\\{Foo, Bar};',
 				'spacing.arrowFunction' => 'fn($x) => $x',
 				'multiline.expressionStart' => 'sameLine',
 			]),
@@ -191,7 +191,7 @@ test('whitespace a mutation left in the leading trivia of a token is part of the
 		}
 	};
 	$spacing = RuleBuilder::createRule(Rules\Whitespace\ConstructSpacingRule::class, [
-		'spacing.keyword' => 'return $x', 'spacing.openBrace' => 'keep', 'spacing.alternativeSyntax' => 'keep', 'spacing.body' => 'keep',
+		'spacing.keyword' => 'required', 'spacing.openBrace' => 'keep', 'spacing.alternativeSyntax' => 'keep', 'spacing.body' => 'keep',
 		'spacing.import' => 'keep', 'spacing.arrowFunction' => 'keep', 'multiline.expressionStart' => 'keep',
 	]);
 

@@ -1,8 +1,8 @@
 spacing:
-	keyword: 'return $x'
-	openBrace: 'if ($a) {'
+	keyword: required
+	openBrace: required
 	alternativeSyntax: 'if ($a):'
-	body: 'function () { return 1; }'
+	body: required
 	import: 'use Acme\{Foo, Bar};'
 	arrowFunction: 'fn($x) => $x'
 	anonymousFunction: 'function ($x)'
