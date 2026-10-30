@@ -172,11 +172,18 @@ final class Questions
 	{
 		$verification = $proposal->verification ?? throw new \LogicException('The proposal is not verified.');
 		$questions = [];
+		$codes = [];
 		foreach (NameCasingRule::getDecisions() as $decision) {
 			$path = $decision->path;
 			$names = $files = [];
-			foreach ($verification->result->findings[$path] ?? [] as [$file, , $message, $fixable]) {
-				if (!$fixable && preg_match('~`([^`]+)`~', $message, $m)) {
+			foreach ($verification->result->findings[$path] ?? [] as [$file, , , $fixable, $span]) {
+				if ($fixable || $span === null) {
+					continue;
+				}
+
+				// what the rule reports begins with the name, a constant going on with its value
+				$codes[$file] ??= (string) @file_get_contents($proposal->project->root . "/$file"); // @ file may have been deleted meanwhile
+				if (preg_match('~\$?(\w+)~A', substr($codes[$file], ...$span), $m)) {
 					$names[] = $m[1];
 					$files[$file] = true;
 				}

@@ -35,7 +35,10 @@ final readonly class ProbeResult
 		public array $syntaxErrors,
 		/** @var list<string>  the files a rule failed in */
 		public array $failed,
-		/** @var array<string, list<array{string, int, string, bool}>>  decision => file, line, message, fixable without risk */
+		/**
+		 * @var array<string, list<array{string, int, string, bool, ?array{int, int}}>>  decision => file, line, message, fixable
+		 *     without risk, the offset and the length of what it reports in the code
+		 */
 		public array $findings = [],
 	) {
 	}
@@ -53,6 +56,7 @@ final readonly class ProbeResult
 					$violation->derivedFrom !== null,
 					$violation->line,
 					$violation->message,
+					$violation->offset === null ? null : [$violation->offset, (int) $violation->length],
 				];
 			}
 
@@ -79,6 +83,7 @@ final readonly class ProbeResult
 					$violation['derivedFrom'] !== null,
 					(int) $violation['line'],
 					(string) $violation['message'],
+					isset($violation['offset']) ? [(int) $violation['offset'], (int) $violation['length']] : null,
 				];
 			}
 
@@ -96,8 +101,8 @@ final readonly class ProbeResult
 
 
 	/**
-	 * @param  list<array{string, list<array{string, bool, bool, int, string}>, bool, bool, bool}>  $files  path, the
-	 *     violations (decision, fixable without risk, derived, line, message), changed, unparsed, failed
+	 * @param  list<array{string, list<array{string, bool, bool, int, string, ?array{int, int}}>, bool, bool, bool}>  $files
+	 *     path, the violations (decision, fixable without risk, derived, line, message, span), changed, unparsed, failed
 	 */
 	private static function collect(array $files): self
 	{
@@ -111,14 +116,14 @@ final readonly class ProbeResult
 				$failed[] = $path;
 			}
 
-			foreach ($violations as [$decision, $isFixable, $derived, $line, $message]) {
+			foreach ($violations as [$decision, $isFixable, $derived, $line, $message, $span]) {
 				if ($derived) {
 					continue;
 				}
 
 				$places[$decision][$path] = ($places[$decision][$path] ?? 0) + 1;
 				if (count($findings[$decision] ?? []) < self::KeptFindings) {
-					$findings[$decision][] = [$path, $line, $message, $isFixable];
+					$findings[$decision][] = [$path, $line, $message, $isFixable, $span];
 				}
 
 				if ($isFixable) {

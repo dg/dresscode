@@ -610,6 +610,15 @@ test('names no rule renames that share a suffix are let pass by the recommended 
 		(string) file_get_contents("$root/dresscode.neon"),
 	);
 	Assert::contains('passes already', $out);
+
+	// the name is read from the code the rule reports, which for a constant goes on with its value
+	$root = createProject('constant-names', [
+		'composer.json' => '{}',
+		'src/Limits.php' => "<?php\n\nclass Limits\n{\n\tconst Max_ = 1;\n\tconst Min_ = 2;\n\tconst Avg_ = 3;\n}\n",
+	]);
+	[$code, $out] = runInit($root, ['--use', 'perCs', '--set', 'naming.constant=UPPER_CASE']);
+	Assert::same(0, $code);
+	Assert::contains('`naming.except` lets the constant names that end with `_` pass', $out);
 });
 
 
