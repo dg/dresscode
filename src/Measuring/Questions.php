@@ -15,16 +15,27 @@ use function count, sprintf, strlen;
 
 /**
  * What `dresscode init` asks, where the measuring left the choice to the user: the standard first, then the decisions,
- * the costliest first. Every question carries an answer that leaves the code as it is, which is recommended.
+ * the costliest first, and then what the answers left to the user in turn. Every question carries an answer that leaves
+ * the code as it is, which is recommended.
  * @internal
  */
 final class Questions
 {
-	/** the questions of decisions asked at most */
+	/** the questions of decisions asked at most, before any answer */
 	private const MaxDecisions = 5;
 
 	/** the names no rule fixes that must share a pattern for init to offer it */
 	private const MinNames = 3;
+
+	/** @var array<string, true>  the decisions a question was found about, asked or not */
+	private array $found = [];
+
+
+	public function __construct(
+		/** the rules of the formatter of the project, which a value of the code may contradict */
+		private readonly ?Translation $formatterRules = null,
+	) {
+	}
 
 
 	/** A close call of standards nothing of the project decided, asked before the verification, as an answer measures again. */
@@ -53,25 +64,27 @@ final class Questions
 
 
 	/**
-	 * The questions of decisions after the verification, the costliest first, at most `MaxDecisions` of them.
-	 * @param  ?Translation  $formatterRules  the rules of the formatter of the project, which a value of the code may contradict
+	 * The questions of decisions the verified proposal leaves to the user that no call before found, the costliest
+	 * first: at most `MaxDecisions` of them the first time, every one later, as it follows from the answers given.
 	 * @return list<Question>
 	 */
-	public static function findAll(Proposal $proposal, ?Translation $formatterRules = null): array
+	public function findNext(Proposal $proposal): array
 	{
-		$questions = [
+		$first = !$this->found;
+		$questions = array_diff_key([
 			...self::findOverBudget($proposal),
-			...self::findConflicts($proposal, $formatterRules),
+			...self::findConflicts($proposal, $this->formatterRules),
 			...self::findUnfixable($proposal),
-		];
-		usort($questions, fn(Question $a, Question $b) => $b->files <=> $a->files);
-		return array_slice($questions, 0, self::MaxDecisions);
+		], $this->found);
+		uasort($questions, fn(Question $a, Question $b) => $b->files <=> $a->files);
+		$this->found += array_fill_keys(array_keys($questions), true);
+		return array_values($first ? array_slice($questions, 0, self::MaxDecisions) : $questions);
 	}
 
 
 	/**
 	 * A value the code or the standard holds to whose fix would rewrite more files than the budget allows.
-	 * @return list<Question>
+	 * @return array<string, Question>  by the path of the decision
 	 */
 	private static function findOverBudget(Proposal $proposal): array
 	{
@@ -79,7 +92,7 @@ final class Questions
 		foreach ($proposal->values as $path => $proposed) {
 			if ($proposed->origin === ValueOrigin::OverBudget) {
 				$wanted = $proposal->standard->formatValue($path, $proposed->wanted);
-				$questions[] = new Question(
+				$questions[$path] = new Question(
 					"Check `$path: $wanted`? A fix rewrites $proposed->cost files, more than the budget allows.",
 					[
 						new Answer('k', "don't check it"),
@@ -98,7 +111,7 @@ final class Questions
 
 	/**
 	 * A value the code holds to that the configuration of the formatter contradicts.
-	 * @return list<Question>
+	 * @return array<string, Question>  by the path of the decision
 	 */
 	private static function findConflicts(Proposal $proposal, ?Translation $formatterRules): array
 	{
@@ -125,7 +138,7 @@ final class Questions
 
 			$files = $proposal->estimateFiles($path, $foreign);
 			if ($files !== null) {
-				$questions[] = self::createConflict($proposal, $config, $path, $foreign, $files);
+				$questions[$path] = self::createConflict($proposal, $config, $path, $foreign, $files);
 			}
 		}
 
@@ -142,7 +155,7 @@ final class Questions
 		return new Question(
 			"`$config->file` wants `$path: $theirs`, your code writes $ours ($proposed->comment); which should the file say?",
 			[
-				new Answer('c', "$ours, as your code writes it"),
+				new Answer('c', "$ours, as your code writes it", [$path => $proposed->value], $proposed->comment),
 				new Answer('x', "$theirs, as `$config->file` says, a fix rewrites $about" . self::formatFiles($files), [$path => $foreign]),
 			],
 			"`$path: $theirs` in `dresscode.neon` says what `$config->file` says; its fix changes $about" . self::formatFiles($files),
@@ -153,7 +166,7 @@ final class Questions
 
 	/**
 	 * Names written in another case that share a prefix or a suffix, which `naming.except` may let pass.
-	 * @return list<Question>
+	 * @return array<string, Question>  by the path of the decision
 	 */
 	private static function findUnfixable(Proposal $proposal): array
 	{
@@ -171,7 +184,7 @@ final class Questions
 
 			$pattern = count($names) < self::MinNames ? null : self::findPattern($names);
 			if ($pattern !== null) {
-				$questions[] = self::createUnfixable($proposal, $path, $names, $pattern, count($files));
+				$questions[$path] = self::createUnfixable($proposal, $path, $names, $pattern, count($files));
 			}
 		}
 

@@ -118,32 +118,36 @@ final readonly class InitCommand
 		$limit = new Budget(count($scope->files), $budget);
 		$status->show('Checking', 'the configuration over all ' . count($scope->files) . ' files');
 		$proposal->verify($runner, $limit);
-		$questions = $existing ? [] : Questions::findAll($proposal, $this->readFormatterRules($project, $printer, $interactive));
-		$reverify = function (array $answers) use ($proposal, $runner, $limit, $status, $scope): bool {
-			foreach ($answers as $answer) {
-				$proposal->apply($answer);
+		$questions = new Questions($existing ? null : $this->readFormatterRules($project, $printer, $interactive));
+		// a round of questions is answered and the configuration checked again, which may leave the next round to the user
+		$answerAll = function (\Closure $answer) use ($existing, $questions, $proposal, $runner, $limit, $status, $scope): array {
+			$asked = [];
+			while (!$existing && ($round = $questions->findNext($proposal))) {
+				$asked = [...$asked, ...$round];
+				if (!$proposal->apply(...array_map($answer, $round))) {
+					break;
+				}
+
+				$status->show('Checking', 'the configuration with the answers over all ' . count($scope->files) . ' files');
+				$proposal->verify($runner, $limit);
 			}
 
-			if (!array_filter($answers, fn(Answer $answer) => !$answer->isNone())) {
-				return false;
-			}
-
-			$status->show('Checking', 'the configuration with the answers over all ' . count($scope->files) . ' files');
-			$proposal->verify($runner, $limit);
-			return true;
+			return $asked;
 		};
 
 		if ($interactive) {
 			// the values listed are those the budget left, which the verification decides
 			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal));
-			if ($reverify(array_map(fn(Question $question) => $this->ask($printer, $question), $questions))) {
+			$verification = $proposal->verification;
+			$answerAll(fn(Question $question) => $this->ask($printer, $question));
+			if ($proposal->verification !== $verification) {
 				$write("\n" . $printer->printVerification($proposal));
 			}
 		} else {
 			// without a terminal the recommended answers are taken before anything is listed
-			$reverify(array_map(fn(Question $question) => $question->getRecommended(), $questions));
+			$asked = $answerAll(fn(Question $question) => $question->getRecommended());
 			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal));
-			$write($printer->printQuestions([...($standardQuestion === null ? [] : [$standardQuestion]), ...$questions]));
+			$write($printer->printQuestions([...($standardQuestion === null ? [] : [$standardQuestion]), ...$asked]));
 		}
 
 		$proposal->checkWritten();

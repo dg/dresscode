@@ -8,7 +8,9 @@
 
 use DressCode\Config\{Loader, RunnerFactory};
 use DressCode\Console\Application;
-use DressCode\Measuring\{Budget, FileSample, InProcessProbeRunner, ProbeResult, ProbeRunner, Project, Proposal, Scope, ValueOrigin};
+use DressCode\Measuring\{
+	Budget, FileSample, InProcessProbeRunner, ProbeResult, ProbeRunner, Project, Proposal, Questions, Scope, ValueOrigin,
+};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -481,12 +483,16 @@ function stragglers(): array
 }
 
 
-test('a decision left unchecked that makes another one cost more than the budget leaves that one unchecked too', function () {
-	$root = createProject('cascade', stragglers());
-	// with the blank line after the tag left unchecked, the unused imports are said to cost three files
-	$runner = new class (new InProcessProbeRunner($root)) implements ProbeRunner {
+/**
+ * A runner over the project that says the braces of a class, while checked, cost three files of the whole scope where the
+ * blank line after the tag has the value given, as a decision may cost more once another one is or is not checked.
+ */
+function classBracesCost(string $root, mixed $afterOpeningTag): ProbeRunner
+{
+	return new class (new InProcessProbeRunner($root), $afterOpeningTag) implements ProbeRunner {
 		public function __construct(
 			private ProbeRunner $inner,
+			private mixed $afterOpeningTag,
 		) {
 		}
 
@@ -497,14 +503,14 @@ test('a decision left unchecked that makes another one cost more than the budget
 			$config = $probes['scope'] ?? [];
 			if (
 				isset($results['scope'])
-				&& ($config['blankLines']['afterOpeningTag'] ?? null) === 'keep'
-				&& ($config['imports']['unused'] ?? null) !== 'keep'
+				&& ($config['blankLines']['afterOpeningTag'] ?? null) === $this->afterOpeningTag
+				&& ($config['braces']['position']['class'] ?? null) !== 'keep'
 			) {
 				$result = $results['scope'];
 				$files = ['src/f10.php' => true, 'src/f11.php' => true, 'src/f12.php' => true];
 				$results['scope'] = new ProbeResult(
 					$result->places,
-					['imports.unused' => $files] + $result->fixable,
+					['braces.position.class' => $files] + $result->fixable,
 					$result->left,
 					$result->changedFiles,
 					$result->syntaxErrors,
@@ -515,12 +521,39 @@ test('a decision left unchecked that makes another one cost more than the budget
 			return $results;
 		}
 	};
+}
 
+
+test('a decision left unchecked that makes another one cost more than the budget leaves that one unchecked too', function () {
+	$root = createProject('cascade', stragglers());
+	$runner = classBracesCost($root, 'keep');
 	$proposal = Proposal::measure(Project::detect($root), Scope::fromAutoload($root, Scope::Extensions), $runner, ['perCs']);
 	$proposal->verify($runner, new Budget(20));
 	Assert::same(ValueOrigin::OverBudget, $proposal->values['blankLines.afterOpeningTag']->origin);
-	Assert::same(ValueOrigin::OverBudget, $proposal->values['imports.unused']->origin);
-	Assert::same(3, $proposal->values['imports.unused']->cost);
+	Assert::same(ValueOrigin::OverBudget, $proposal->values['braces.position.class']->origin);
+	Assert::same(3, $proposal->values['braces.position.class']->cost);
+});
+
+
+test('an answer that checks a decision may leave another one over the budget, which the next round asks about', function () {
+	$root = createProject('rounds', stragglers());
+	$runner = classBracesCost($root, 1);
+	$budget = new Budget(20);
+	$proposal = Proposal::measure(Project::detect($root), Scope::fromAutoload($root, Scope::Extensions), $runner, ['perCs']);
+	$proposal->verify($runner, $budget);
+	$questions = new Questions;
+	[$first] = $questions->findNext($proposal);
+	Assert::contains('`blankLines.afterOpeningTag: 1`', $first->text);
+
+	Assert::true($proposal->apply($first->findAnswer('f') ?? throw new LogicException));
+	$proposal->verify($runner, $budget);
+	$next = $questions->findNext($proposal);
+	Assert::count(1, $next);
+	Assert::contains('`braces.position.class: nextLine`', $next[0]->text);
+
+	// the recommended answer changes nothing, so there is nothing to check again and nothing more to ask
+	Assert::false($proposal->apply($next[0]->getRecommended()));
+	Assert::same([], $questions->findNext($proposal));
 });
 
 
@@ -594,6 +627,13 @@ test('a value the code holds to that the formatter contradicts is a question', f
 	Assert::same(0, $code);
 	Assert::contains('`indentation.unit: 4 spaces` in `dresscode.neon` says what `phpcs.xml` says; its fix changes 4 files', $out);
 	Assert::contains("\tunit: tab", (string) file_get_contents("$root/dresscode.neon"));
+
+	// the answer that keeps the value of the code writes it as the user's, with what it rests on
+	$root = createProject('contradicted-kept', $files);
+	[$code, $out] = runInit($root, ['--use', 'perCs'], "c\n");
+	Assert::same(0, $code);
+	Assert::contains('[c] tab, as your code writes it (recommended)', $out);
+	Assert::match("%A%\tunit: tab %s%# your code, all 4 files\n%A?%", (string) file_get_contents("$root/dresscode.neon"));
 });
 
 

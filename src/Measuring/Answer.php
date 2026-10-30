@@ -28,11 +28,4 @@ final readonly class Answer
 		public ?array $presets = null,
 	) {
 	}
-
-
-	/** Whether the answer leaves the configuration as it was proposed. */
-	public function isNone(): bool
-	{
-		return !$this->values && $this->presets === null;
-	}
 }

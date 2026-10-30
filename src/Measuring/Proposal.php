@@ -173,15 +173,20 @@ final class Proposal
 
 
 	/**
-	 * Takes an answer to a question: writes the decisions it gives; a standard to measure against instead is the
-	 * caller's to measure.
+	 * Takes answers to questions: writes the decisions they give, and tells whether the configuration changed, which
+	 * a verification then checks; a standard to measure against instead is the caller's to measure.
 	 * @throws ConfigurationException
 	 */
-	public function apply(Answer $answer): void
+	public function apply(Answer ...$answers): bool
 	{
-		foreach ($answer->values as $path => $value) {
-			$this->answer($path, $value, $answer->comment);
+		$before = $this->buildProbeConfig();
+		foreach ($answers as $answer) {
+			foreach ($answer->values as $path => $value) {
+				$this->answer($path, $value, $answer->comment);
+			}
 		}
+
+		return $this->buildProbeConfig() !== $before;
 	}
 
 
