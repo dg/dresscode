@@ -211,7 +211,7 @@ final readonly class UpgradeCommand
 			return false;
 		}
 
-		$changes = preg_grep('~^- (Upgrading|Downgrading|Installing|Removing) ~', $lines($output)) ?: [];
+		$changes = Composer::parseOperations($output);
 		$console->writeLine($label('Composer') . "$step->title, " . ($changes === [] ? 'which changes no installed package' : 'which changes:'));
 		foreach ($changes as $change) {
 			$console->writeLine("  $change");

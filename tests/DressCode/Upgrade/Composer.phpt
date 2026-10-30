@@ -38,6 +38,20 @@ test('the target itself refusing the PHP Composer runs on refuses no target', fu
 });
 
 
+test('the operations of an update are read once, though Composer lists them for the lock and for the installation', function () {
+	$output = <<<'XX'
+		./composer.json has been updated
+		Lock file operations: 0 installs, 1 update, 0 removals
+		  - Upgrading nette/utils (v3.2.10 => v4.0.11)
+		Installing dependencies from lock file (including require-dev)
+		Package operations: 0 installs, 1 update, 0 removals
+		  - Upgrading nette/utils (v3.2.10 => v4.0.11)
+		XX;
+
+	Assert::same(['- Upgrading nette/utils (v3.2.10 => v4.0.11)'], Composer::parseOperations($output));
+});
+
+
 test('nothing refuses a version where why-not says no installed package depends on it otherwise', function () {
 	$output = 'There is no installed package depending on "php" in versions not matching 8.5';
 	$blockers = Composer::parseBlockers(Target::php('8.5'), $output, null);

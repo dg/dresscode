@@ -64,6 +64,18 @@ final readonly class Composer
 
 
 	/**
+	 * The operations on packages the output of an update lists, each once, though Composer writes it among the
+	 * operations of the lock and again among those of the installation.
+	 * @return list<string>  as `- Upgrading nette/utils (v3.2.10 => v4.0.11)`
+	 */
+	public static function parseOperations(string $output): array
+	{
+		$lines = array_map(trim(...), preg_split('~\R~', $output) ?: []);
+		return array_values(array_unique(preg_grep('~^- (Upgrading|Downgrading|Installing|Removing) ~', $lines) ?: []));
+	}
+
+
+	/**
 	 * Writes the constraints into `composer.json` and updates the packages they move, with `-W` those they depend on too;
 	 * without `$update` only `composer.json` changes, and a dry run changes nothing and says what the update would.
 	 * @param  array<string, string>  $constraints  package => constraint
