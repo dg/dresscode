@@ -83,7 +83,11 @@ final readonly class InitPrinter
 			),
 		};
 		$out .= $this->label('Measured') . 'your code departs from it in ' . $this->formatDecisions(count($standard->residue))
-			. ' over ' . $this->formatFiles(count($proposal->sample->files)) . "\n";
+			. ' over ' . $this->formatFiles(count($proposal->sample->files))
+			. ($standard->changedFiles
+				? "; $chosen as it is, with no decision below `use`, would rewrite $standard->changedFiles of them"
+				: '')
+			. "\n";
 		$taken = array_values(array_filter($proposal->values, fn(ProposedValue $proposed) => !$proposed->isKept()));
 		foreach (array_slice($taken, 0, self::ListedValues) as $i => $proposed) {
 			$out .= $this->label($i === 0 ? 'As written' : '')

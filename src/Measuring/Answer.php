@@ -9,8 +9,8 @@ namespace DressCode\Measuring;
 
 
 /**
- * One answer to what `dresscode init` asks, and what the configuration does with it: decisions it writes, a standard
- * it measures against instead, or the standard taken as it is.
+ * One answer to what `dresscode init` asks, and what the configuration does with it: decisions it writes, or a standard
+ * it measures against instead.
  * @internal
  */
 final readonly class Answer
@@ -26,8 +26,6 @@ final readonly class Answer
 		public string $comment = 'your answer',
 		/** @var ?list<string>  the standard it measures against instead */
 		public ?array $presets = null,
-		/** the standard is taken as it is, nothing measured written over it */
-		public bool $standardAsIs = false,
 	) {
 	}
 
@@ -35,6 +33,6 @@ final readonly class Answer
 	/** Whether the answer leaves the configuration as it was proposed. */
 	public function isNone(): bool
 	{
-		return !$this->values && $this->presets === null && !$this->standardAsIs;
+		return !$this->values && $this->presets === null;
 	}
 }

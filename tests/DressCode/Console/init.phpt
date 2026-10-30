@@ -71,10 +71,9 @@ test('init writes what the code says, the loader reads it back as measured, and 
 		           src/C.php   generated
 		PHP        8.0, `composer.json` names none
 		Standard   perCs (PER Coding Style), the nearest to your code, which departs from it in 1 decision and from psr12 in 1; `--use` names another
-		Measured   your code departs from it in 1 decision over 3 files
+		Measured   your code departs from it in 1 decision over 3 files; perCs as it is, with no decision below `use`, would rewrite 3 of them
 		As written indentation.unit: tab   your code, all 3 files
 		Checked    all 3 files: a fix changes no file
-		Your call  removing the decisions below `use` from `dresscode.neon` takes perCs as it is; its fix rewrites 3 files
 
 		Written    `dresscode.neon`
 		Next       `dresscode check`      passes already
@@ -532,6 +531,7 @@ test('in a terminal init asks where the measuring left the choice, and Enter tak
 	Assert::contains("Check `blankLines.afterOpeningTag: 1`? A fix rewrites 3 files, more than the budget allows.\n", $out);
 	Assert::contains('e.g. src/f01.php:1  ', $out);
 	Assert::contains("  [k] don't check it (recommended)\n  [f] 1 everywhere, a fix rewrites 3 files\n", $out);
+	Assert::notContains('keep the style made to measure?', $out); // what the standard as it is rewrites is said, not asked
 
 	$yes = createProject('yes', stragglers());
 	[$code, $out] = runInit($yes, ['--use', 'perCs', '--yes'], "f\n");

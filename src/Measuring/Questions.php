@@ -23,9 +23,6 @@ final class Questions
 	/** the questions of decisions asked at most */
 	private const MaxDecisions = 5;
 
-	/** the share of the sample the standard alone must rewrite for init to ask whether to take it as it is */
-	private const AsIsShare = 0.5;
-
 	/** the names no rule fixes that must share a pattern for init to offer it */
 	private const MinNames = 3;
 
@@ -56,54 +53,19 @@ final class Questions
 
 
 	/**
-	 * The questions after the verification: whether to take the standard as it is, then the decisions, the costliest
-	 * first, at most `MaxDecisions` of them.
+	 * The questions of decisions after the verification, the costliest first, at most `MaxDecisions` of them.
 	 * @param  ?Translation  $formatterRules  the rules of the formatter of the project, which a value of the code may contradict
 	 * @return list<Question>
 	 */
 	public static function findAll(Proposal $proposal, ?Translation $formatterRules = null): array
 	{
-		$decisions = [
+		$questions = [
 			...self::findOverBudget($proposal),
 			...self::findConflicts($proposal, $formatterRules),
 			...self::findUnfixable($proposal),
 		];
-		usort($decisions, fn(Question $a, Question $b) => $b->files <=> $a->files);
-		$asIs = self::findStandardAsIs($proposal);
-		return [...($asIs === null ? [] : [$asIs]), ...array_slice($decisions, 0, self::MaxDecisions)];
-	}
-
-
-	/** The standard as it is, where it alone would rewrite most of the files the configuration made to measure keeps. */
-	private static function findStandardAsIs(Proposal $proposal): ?Question
-	{
-		$verification = $proposal->verification ?? throw new \LogicException('The proposal is not verified.');
-		$standard = $proposal->standard;
-		$sampled = count($proposal->sample->files);
-		$measured = array_filter($proposal->values, fn(ProposedValue $proposed) => $proposed->origin === ValueOrigin::Measured);
-		if (!$measured || $standard->changedFiles <= self::AsIsShare * $sampled) {
-			return null;
-		}
-
-		$name = implode(', ', $standard->presets);
-		$files = (int) round($standard->changedFiles * count($proposal->scope->files) / max(1, $sampled));
-		$about = $proposal->isSampled() ? 'about ' : '';
-		return new Question(
-			sprintf(
-				'%s as it is would rewrite %s%d of %d files; keep the style made to measure?',
-				$name,
-				$about,
-				$files,
-				count($proposal->scope->files),
-			),
-			[
-				new Answer('m', 'made to measure, a fix rewrites ' . self::formatFiles($verification->changedFiles)),
-				new Answer('s', "$name as it is, a fix rewrites $about" . self::formatFiles($files), standardAsIs: true),
-			],
-			"removing the decisions below `use` from `dresscode.neon` takes $name as it is; its fix rewrites $about"
-			. self::formatFiles($files),
-			files: $files,
-		);
+		usort($questions, fn(Question $a, Question $b) => $b->files <=> $a->files);
+		return array_slice($questions, 0, self::MaxDecisions);
 	}
 
 

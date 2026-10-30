@@ -173,16 +173,12 @@ final class Proposal
 
 
 	/**
-	 * Takes an answer to a question: writes the decisions it gives, or takes the standard as it is, nothing measured
-	 * written over it; a standard to measure against instead is the caller's to measure.
+	 * Takes an answer to a question: writes the decisions it gives; a standard to measure against instead is the
+	 * caller's to measure.
 	 * @throws ConfigurationException
 	 */
 	public function apply(Answer $answer): void
 	{
-		if ($answer->standardAsIs) {
-			$this->values = array_filter($this->values, fn(ProposedValue $proposed) => $proposed->origin === ValueOrigin::Answered);
-		}
-
 		foreach ($answer->values as $path => $value) {
 			$this->answer($path, $value, $answer->comment);
 		}
