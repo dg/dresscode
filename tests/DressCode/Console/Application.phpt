@@ -637,6 +637,23 @@ test('migrate config writes the paths the configuration names, and keeps the dec
 });
 
 
+test('migrate config points at the phpcs suppression comments of the files it writes the configuration for', function () {
+	$project = createTempDir('import-suppressions');
+	foreach (['src/A.php', 'src/B.php', 'tests/C.php'] as $file) {
+		@mkdir(dirname("$project/$file"), recursive: true); // @ directory may already exist
+		file_put_contents("$project/$file", "<?php\n// phpcs:ignore Generic.Files.LineLength\n");
+	}
+
+	file_put_contents(
+		"$project/phpcs.xml",
+		"<?xml version=\"1.0\"?>\n<ruleset name=\"Demo\">\n\t<file>src</file>\n\t<rule ref=\"PSR12\"/>\n</ruleset>\n",
+	);
+	[$code, , $err] = runApp($project, ['migrate', 'config']);
+	Assert::same(0, $code);
+	Assert::contains("\n2 phpcs suppression comments: `dresscode migrate suppressions` rewrites them.\n", $err);
+});
+
+
 test('errors go to stderr with exit code 3', function () use ($root) {
 	[$code, $out, $err] = runApp($root, ['check', '--nope']);
 	Assert::same(3, $code);

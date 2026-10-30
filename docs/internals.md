@@ -407,5 +407,6 @@ The fixtures of every rule run again under each standard with the sets beside it
   preset the standard of that name and its rules those of PHP CS Fixer, a file of PHP CS Fixer, which reading runs, only
   after the user agrees in a terminal; it writes with the decisions the scope as init writes it and the overrides
   keeping the decisions of a foreign rule where the configuration leaves files out of it, into `dresscode.neon` or the
-  file `--output` names, in the format of its extension, NEON or PHP, never over an existing one, and such a name
+  file `--output` names, in the format of its extension, NEON or PHP, never over an existing one, saying how many phpcs
+  suppression comments the files of the scope hold for `dresscode migrate suppressions` to rewrite, and such a name
   written as a key of the file, in `--only` or in `fixRisky` is refused with the decisions that cover it.

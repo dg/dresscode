@@ -213,7 +213,7 @@ final readonly class InitPrinter
 
 
 	/** What else the project may do: run DressCode where it runs its formatter, and rewrite the comments that silence it. */
-	public function printAlso(Project $project, int $suppressions): string
+	public function printAlso(Project $project, string $suppressionsHint): string
 	{
 		$config = $project->formatterConfig;
 		if ($config === null) {
@@ -223,9 +223,7 @@ final readonly class InitPrinter
 		$out = $this->label('Also') . "`dresscode check` can take the place of {$config->formatter->value}"
 			. ($config->runBy === null ? ' where you run it' : " in `$config->runBy`")
 			. "\n";
-		return $out . ($suppressions
-			? $this->label('') . "$suppressions `phpcs:ignore` comments: `dresscode migrate suppressions` rewrites them\n"
-			: '');
+		return $out . ($suppressionsHint === '' ? '' : $this->label('') . "$suppressionsHint\n");
 	}
 
 

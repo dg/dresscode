@@ -157,7 +157,9 @@ final readonly class InitCommand
 		$write("\n" . $printer->printNext($proposal));
 		$write($printer->printAlso(
 			$project,
-			$project->formatterConfig === null ? 0 : PhpCodeSniffer::countSuppressions($root, $scope->files),
+			MigrateCommand::formatSuppressionsHint(
+				$project->formatterConfig === null ? 0 : PhpCodeSniffer::countSuppressions($root, $scope->files),
+			),
 		));
 		return 0;
 	}

@@ -888,8 +888,7 @@ final class PhpCodeSniffer
 
 
 	/**
-	 * The comments of the files that silence a rule of PHP_CodeSniffer, which `dresscode migrate suppressions`
-	 * rewrites.
+	 * The suppression comments of PHP_CodeSniffer in the files, which `dresscode migrate suppressions` rewrites.
 	 * @param  list<string>  $files  relative to the root
 	 */
 	public static function countSuppressions(string $root, array $files): int
@@ -897,7 +896,7 @@ final class PhpCodeSniffer
 		$count = 0;
 		foreach ($files as $file) {
 			$code = (string) @file_get_contents("$root/$file"); // @ file may have been deleted meanwhile
-			$count += preg_match_all('~(?://|#|/\*)\s*phpcs:(?:ignore|disable)\b~', $code);
+			$count += preg_match_all('~(?://|#|/\*)\s*phpcs:(?:ignoreFile|ignore|disable|enable)\b|@phpcsSuppress\b~', $code);
 		}
 
 		return $count;

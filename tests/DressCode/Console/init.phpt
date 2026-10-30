@@ -387,7 +387,8 @@ test(
 			'.php-cs-fixer.dist.php' => "<?php\nexit(1);\nreturn (new PhpCsFixer\\Config)->setRules(['@PSR12' => true])\n"
 				. "\t->setFinder(PhpCsFixer\\Finder::create()->in(__DIR__ . '/src')->exclude('Generated'));\n",
 			'src/A.php' => $tabbed,
-			'src/Generated/B.php' => "<?php\n  \$a = 1;\n",
+			'src/S.php' => "<?php\n// phpcs:ignoreFile\n",
+			'src/Generated/B.php' => "<?php\n  \$a = 1; // phpcs:ignore Generic.Files.LineLength\n",
 		]);
 		[$code, $out] = runInit($root);
 		Assert::same(0, $code);
@@ -396,7 +397,8 @@ test(
 			$out,
 		);
 		Assert::contains(
-			'Also       `dresscode check` can take the place of PHP CS Fixer in `composer cs`',
+			"Also       `dresscode check` can take the place of PHP CS Fixer in `composer cs`\n"
+			. "           1 phpcs suppression comment: `dresscode migrate suppressions` rewrites them\n",
 			$out,
 		);
 		Assert::contains("\t- src/Generated   # left out by your formatter\n", (string) file_get_contents("$root/dresscode.neon"));

@@ -10,7 +10,7 @@ namespace DressCode\Console\Commands;
 use DressCode\Config\{ConfigResolver, PluginRegistry};
 use DressCode\Console\{CommandContext, Markup};
 use DressCode\Engine\{Helpers, SuppressionMigration};
-use DressCode\Interop\FormatterConfig;
+use DressCode\Interop\{FormatterConfig, PhpCodeSniffer};
 use DressCode\Measuring\Scope;
 use Nette\CommandLine\{Attributes as Cli, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
@@ -93,6 +93,11 @@ final readonly class MigrateCommand
 				count($untranslated) > 1 ? 'them' : 'it',
 				implode('` and `', array_keys($untranslated)),
 			));
+		}
+
+		$hint = self::formatSuppressionsHint(PhpCodeSniffer::countSuppressions($root, $scope->files));
+		if ($hint !== '') {
+			$this->context->writeNote("\n$hint.\n");
 		}
 
 		return 0;
@@ -186,5 +191,14 @@ final readonly class MigrateCommand
 		}
 
 		return 0;
+	}
+
+
+	/** The line pointing a project at the phpcs suppression comments it has, empty where it has none. */
+	public static function formatSuppressionsHint(int $count): string
+	{
+		return $count
+			? Markup::formatCount($count, 'phpcs suppression comment') . ': `dresscode migrate suppressions` rewrites them'
+			: '';
 	}
 }
