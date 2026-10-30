@@ -152,6 +152,13 @@ test('upgrade plan writes the steps, upgrade run with a target makes them up to 
 	Assert::same(3, $exit);
 	Assert::contains('The project has a saved plan, `dresscode-upgrade.neon`, which `upgrade run` carries out', $err);
 	Assert::same(4, runApp($root, ['upgrade', 'run', '--no-types', '--no-color'])[0]);
+	// the status says the raise is due, asking Composer nothing but reading the constraints
+	[$exit, $out] = runApp($root, ['upgrade', 'status', '--no-color']);
+	Assert::same(0, $exit);
+	Assert::match(
+		"%A%  2  raise php to ^8.4%a%due\n%A%Next       `dresscode upgrade run` carries on from where the code stands, and ends at once where nothing is left\n",
+		$out,
+	);
 
 	// as data, the run with the plan it ran, its warnings on standard error
 	[$exit, $out, $err] = runApp($root, ['upgrade', 'run', '--no-types', '--format', 'json']);
@@ -342,7 +349,21 @@ test('upgrade abort puts back the files of a step a run did not finish, and says
 	$project = new DressCode\Upgrade\Project(DressCode\Config\Loader::loadFile("$root/dresscode.neon"), $root, "$root/dresscode.neon");
 	new DressCode\Upgrade\RunState($project)->snapshots->record(1, 'src/Code.php', 'before', 'after');
 
-	// a dry run of abort says what a run keeps, changing nothing
+	// the status and a dry run of abort say what a run keeps, changing nothing
+	$plan = new DressCode\Upgrade\Plan(
+		[new DressCode\Upgrade\Target('php', '8.4')],
+		[new DressCode\Upgrade\FixStep('bridge', ['php'])],
+		'1.0',
+	);
+	DressCode\Upgrade\PlanFile::write($plan, $root);
+	[$exit, $out] = runApp($root, ['upgrade', 'status', '--no-color']);
+	Assert::same(0, $exit);
+	Assert::match(<<<'XX'
+		%A%Plan       php 8.4
+		  1  bridge  what is left `upgrade run` fixes and `upgrade tasks` lists
+		Stopped    step 1 did not finish and may have rewritten src/Code.php
+		Next       `dresscode upgrade abort --dry-run` shows what `upgrade abort` puts back, or `dresscode upgrade run --discard` goes on from the code as it is
+		XX, $out);
 	[$exit, $out] = runApp($root, ['upgrade', 'abort', '--dry-run', '--no-color']);
 	Assert::same(0, $exit);
 	Assert::contains("Restorable src/Code.php\n", $out);
