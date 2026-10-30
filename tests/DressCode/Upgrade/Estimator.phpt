@@ -2,6 +2,7 @@
 
 use DressCode\Config;
 use DressCode\Upgrade\{BlindSpots, Estimate, Estimator, Phase, Project, Target, Topic};
+use Nette\Utils\FileSystem;
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -99,4 +100,27 @@ test('the targets proposed are PHP and every library whose data know a newer ver
 
 	Assert::equal([Target::php('8.6')], $estimator->proposeTargets());
 	Assert::equal([Target::php('8.6')], $estimator->proposeTargets(phpOnly: true));
+});
+
+
+test('a decision only the data of the target version turn on belongs to the jump, as nothing runs it today', function () {
+	require_once __DIR__ . '/../Console/fixtures/upgrade-plugin.php';
+	$root = createTempDir('estimate-data-jump');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2", "acme/upgrade": "^1.0"}}');
+	file_put_contents("$root/src/a.php", "<?php\n\$x = 1;\n");
+	FileSystem::write(
+		"$root/vendor/acme/upgrade/upgrading/upgrading.neon",
+		"package: acme/upgrade\n\nsince 2.0:\n\tacmeUpgrade.variables:\n\t\told: new\n",
+	);
+	FileSystem::write("$root/vendor/composer/installed.json", json_encode(['packages' => [[
+		'name' => 'acme/upgrade',
+		'version' => '1.0.0',
+		'version_normalized' => '1.0.0.0',
+		'install-path' => '../acme/upgrade',
+		'extra' => ['dresscode' => ['plugin' => 'UpgradePlugin', 'upgrading-dir' => 'upgrading']],
+	]]], JSON_THROW_ON_ERROR));
+
+	$estimate = new Estimator(new Project(new Config(paths: ['src']), $root))->estimate([new Target('acme/upgrade', '2.0')]);
+	Assert::same(['acmeUpgrade.variables deprecations jump 1: 0 0 0 1'], describeTopics($estimate));
 });

@@ -93,8 +93,8 @@ final readonly class Estimator
 			),
 		);
 		$plugins = $discovered->findDataPlugins();
-		// the project as it is today, which tells the bridge from the jump, and whose runner finds the files
-		$todayRun = new EstimateRun($this->project->createLayer($plugins, types: false), self::Fixes);
+		// the project as it is today, narrowed to nothing, which tells what runs before the raise, and whose runner finds the files
+		$todayRun = new EstimateRun($this->project->createLayer($plugins, types: false), []);
 		[$todayFactory, $today] = $todayRun->resolve($this->project->config, $this->project->root);
 		$runner = $todayFactory->createRunner($today, cache: false);
 		$scope = $paths ? $runner->narrowPaths($paths, $this->project->config->paths) : $this->project->config->paths;
@@ -195,7 +195,8 @@ final readonly class Estimator
 
 	/**
 	 * The phase of a place: an entry of upgrading data by the version its fix is right from against the lowest version the
-	 * project allows today, any other place by whether its decision runs for the project as it is today.
+	 * project allows today, any other place by whether its decision runs for the project as it is today, which one the
+	 * data of a newer version turn on does not.
 	 */
 	private static function findPhase(Violation $violation, ResolvedProject $today): Phase
 	{
@@ -205,8 +206,10 @@ final readonly class Estimator
 			return $lowest !== null && version_compare($lowest, $source->from ?? $source->since, '>=') ? Phase::Bridge : Phase::Jump;
 		}
 
-		$inactive = ($today->resolvedConfig->decisions[$violation->decision] ?? null)?->inactive;
-		return $inactive === InactiveReason::Php || $inactive === InactiveReason::Package ? Phase::Jump : Phase::Bridge;
+		$decision = $today->resolvedConfig->decisions[$violation->decision] ?? null;
+		return $decision === null || ($decision->inactive !== null && $decision->inactive !== InactiveReason::OnlyOverride)
+			? Phase::Jump
+			: Phase::Bridge;
 	}
 
 
