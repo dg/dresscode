@@ -122,5 +122,6 @@ test('a decision only the data of the target version turn on belongs to the jump
 	]]], JSON_THROW_ON_ERROR));
 
 	$estimate = new Estimator(new Project(new Config(paths: ['src']), $root))->estimate([new Target('acme/upgrade', '2.0')]);
-	Assert::same(['acmeUpgrade.variables deprecations jump 1: 0 0 0 1'], describeTopics($estimate));
+	// the rule does not say which entry it reports, and the map is filled by the data of that library alone
+	Assert::same(['acme/upgrade deprecations jump 1: 0 0 0 1'], describeTopics($estimate));
 });

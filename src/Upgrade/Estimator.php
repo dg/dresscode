@@ -9,6 +9,7 @@ namespace DressCode\Upgrade;
 
 use DressCode\{Config, ConfigurationException, Violation};
 use DressCode\Config\{DataPackageCatalogue, InactiveReason, PackageDiscovery, ProjectPackages, ResolvedProject, RunnerFactory};
+use DressCode\Domains\Map;
 use DressCode\Engine\{Helpers, Runner, RunResult, WorkerPool};
 use DressCode\Measuring\{FileSample, NamespaceDeclarations};
 use DressCode\Reporters\NullReporter;
@@ -169,7 +170,7 @@ final readonly class Estimator
 				}
 
 				$phase = self::findPhase($violation, $today);
-				$name = $violation->source->library ?? $violation->decision;
+				$name = $violation->source->library ?? self::findLibrary($violation->decision, $resolution) ?? $violation->decision;
 				$key = "$name|$phase->value";
 				$topics[$key] ??= [
 					'name' => $name,
@@ -190,6 +191,26 @@ final readonly class Estimator
 		usort($topics, fn(Topic $a, Topic $b) => [$b->phase === Phase::Jump, $b->countPlaces(), $a->name]
 			<=> [$a->phase === Phase::Jump, $a->countPlaces(), $b->name]);
 		return [$topics, $unseen];
+	}
+
+
+	/**
+	 * The library whose upgrading data alone fill the map of the decision, which a place of a rule that does not say
+	 * which entry it reports belongs to; null for a decision no map of such data fills.
+	 */
+	private static function findLibrary(string $decision, ResolvedProject $resolution): ?string
+	{
+		$values = $resolution->resolvedConfig->values;
+		$value = $values->has($decision) ? $values->get($decision) : null;
+		if (!$value?->domain instanceof Map || $value->isKept()) {
+			return null;
+		}
+
+		$libraries = array_unique(array_map(
+			fn(string $key) => $values->getEntryOrigin($decision, $key)?->library,
+			array_keys($value->getEntries()),
+		));
+		return count($libraries) === 1 ? reset($libraries) : null;
 	}
 
 
