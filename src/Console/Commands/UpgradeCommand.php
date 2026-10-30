@@ -9,10 +9,12 @@ namespace DressCode\Console\Commands;
 
 use DressCode\{Analyses, Config, ConfigurationException, Tristate};
 use DressCode\Config\{PackageDiscovery, ProjectPackages, Versions};
-use DressCode\Console\{CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter};
+use DressCode\Console\{
+	CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter, TasksPrinter,
+};
 use DressCode\Engine\{Worker, WorkerPool};
 use DressCode\Upgrade\{
-	Composer, Estimate, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, Project, Provenance, RunState, RunStop, Target, UpgradeCheck,
+	Composer, Estimate, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, Postponement, Project, Provenance, RunState, RunStop, Target, UpgradeCheck,
 };
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
@@ -20,7 +22,8 @@ use Nette\Utils\FileSystem;
 
 /**
  * The commands of `upgrade`: what moving the code to newer versions of PHP and of the libraries changes, the plan that
- * orders it into steps and the run of the plan, and the code moved to the lowest versions the project allows.
+ * orders it into steps and the run of the plan, what the plan leaves for a human, and the code moved to the lowest
+ * versions the project allows.
  * @internal
  */
 final readonly class UpgradeCommand
@@ -222,6 +225,60 @@ final readonly class UpgradeCommand
 		}
 
 		return $dryRun || ($left === [] && $installFailure === null) ? 0 : 1;
+	}
+
+
+	#[Cli\Command('List the manual tasks the saved plan leaves in the code as it stands, changing nothing')]
+	public function tasks(
+		ParseResult $args,
+		#[Cli\Flag(
+			'Look with the types of the code from PHPStan, without asking; `--no-types` without them',
+			negatable: true,
+		)]
+		?bool $types,
+		#[Cli\Option(
+			'Output format: `console`, or `json` for a tool or an AI agent, which never asks',
+			alias: '-f',
+			enum: ['console', 'json'],
+		)]
+		?string $format,
+		ConfigOptions $configuration,
+	): int
+	{
+		$project = $this->loadProject($args, $configuration);
+		$console = $this->findConsole($format);
+		$plan = PlanFile::read($project->root);
+		$runner = $this->createPlanRunner($project, $this->decideTypes($types, $this->mayAsk($format), $project->config), false, $console);
+		if ($console !== null) {
+			self::writeHeader($console, $project);
+		}
+
+		try {
+			[$tasks, $unprocessed] = $runner->findTasks($plan);
+			$postponed = Postponement::findIn($project, $plan->paths);
+		} finally {
+			($console ?? $this->context->err)->clearStatus();
+		}
+
+		$printer = new TasksPrinter($tasks, $postponed, $unprocessed);
+		$left = $tasks !== [] || $postponed !== [];
+		if ($console === null) {
+			$this->writeJson($project, ['version' => TasksPrinter::Version, ...$printer->toArray()], saved: true);
+		} else {
+			$console->write(Markup::highlightCode($console, $printer->print($console)));
+			$console->writeLine(match (true) {
+				$unprocessed !== [] => $console->color('white/red', 'FAILED  the plan leaves '
+					. ($left ? 'manual tasks' : 'no manual task') . ' in the files the fixes could process'),
+				$left => $console->color('white/red', 'FOUND  the plan leaves manual tasks'),
+				default => $console->color('white/green', 'OK  the plan leaves no manual task'),
+			});
+		}
+
+		return match (true) {
+			$unprocessed !== [] => 2,
+			$left => 1,
+			default => 0,
+		};
 	}
 
 

@@ -20,6 +20,10 @@ use function count;
  */
 final readonly class TasksPrinter
 {
+	/** the version of the document the format `json` writes for `upgrade tasks` */
+	public const Version = 1;
+
+
 	public function __construct(
 		/** @var array<string, list<Task>>  topic => its tasks */
 		private array $tasks,
