@@ -610,6 +610,27 @@ test('over a configuration that exists, a decision the file leaves to the standa
 });
 
 
+test('over a configuration that exists init asks nothing in a terminal and takes no answer, as it writes nothing', function () {
+	$asked = createProject('existing-asked', stragglers() + ['dresscode.neon' => "use: perCs\npaths: [src]\n"]);
+	[$code, $out] = runInit($asked, [], "f\n");
+	Assert::same(0, $code);
+	Assert::notContains('Your choice', $out);
+	Assert::notContains('Your call', $out);
+	Assert::contains("\nMoved", $out);
+	$moved = substr($out, (int) strpos($out, "\nMoved"));
+
+	$piped = createProject('existing-piped', stragglers() + ['dresscode.neon' => "use: perCs\npaths: [src]\n"]);
+	[, $out] = runInit($piped);
+	Assert::same($moved, substr($out, (int) strpos($out, "\nMoved")));
+
+	// one init cannot read is no reason to ask for the standard either
+	$broken = createProject('existing-broken', stragglers() + ['dresscode.neon' => "use: [\n"]);
+	[$code, $out] = runInit($broken, [], "b\n");
+	Assert::same(0, $code);
+	Assert::notContains('which standard should it follow?', $out);
+});
+
+
 test('for an agent init takes the recommended answers and draws no status', function () {
 	$root = createProject('agent', stragglers());
 	[$code, $out] = runInit($root, ['--use', 'perCs', '--format', 'agent'], "f\n");

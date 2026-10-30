@@ -102,7 +102,8 @@ final readonly class InitCommand
 			: ProcessProbeRunner::create($root, $status->advance(...));
 		$onPhase = fn(string $text) => $status->show('Measuring', $text);
 		$proposal = Proposal::measure($project, $scope, $runner, $presets, $onPhase);
-		$standardQuestion = Questions::findStandardQuestion($proposal);
+		// over a configuration that exists nothing is written, so nothing is asked and no answer is taken
+		$standardQuestion = $existing ? null : Questions::findStandardQuestion($proposal);
 		if ($interactive && $standardQuestion !== null) {
 			$console->clearStatus();
 			$answer = $this->ask($printer, $standardQuestion);
@@ -117,7 +118,7 @@ final readonly class InitCommand
 		$limit = new Budget(count($scope->files), $budget);
 		$status->show('Checking', 'the configuration over all ' . count($scope->files) . ' files');
 		$proposal->verify($runner, $limit);
-		$questions = Questions::findAll($proposal, $this->readFormatterRules($project, $printer, $interactive));
+		$questions = $existing ? [] : Questions::findAll($proposal, $this->readFormatterRules($project, $printer, $interactive));
 		$reverify = function (array $answers) use ($proposal, $runner, $limit, $status, $scope): bool {
 			foreach ($answers as $answer) {
 				$proposal->apply($answer);
