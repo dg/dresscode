@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Rules\NativeType;
+use PHPStan\PhpDocParser\Ast\Type\{FullyQualifiedNameNode, GenericTypeNode, IdentifierTypeNode, RelativeNameNode, TypeNode};
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PHPStan\PhpDocParser\Parser\{ConstExprParser, TokenIterator, TypeParser};
 use PHPStan\PhpDocParser\ParserConfig;
@@ -9,10 +10,12 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-function convert(string $annotation, string $place = NativeType::Return, string $phpVersion = '8.4'): ?string
+function convert(string|TypeNode $annotation, string $place = NativeType::Return, string $phpVersion = '8.4'): ?string
 {
 	$config = new ParserConfig([]);
-	$type = new TypeParser($config, new ConstExprParser($config))->parse(new TokenIterator(new Lexer($config)->tokenize($annotation)));
+	$type = is_string($annotation)
+		? new TypeParser($config, new ConstExprParser($config))->parse(new TokenIterator(new Lexer($config)->tokenize($annotation)))
+		: $annotation;
 	return NativeType::fromAnnotation($type, $place, $phpVersion, ['traversable'], ['T'], fn(string $class) => $class);
 }
 
@@ -30,6 +33,14 @@ test('an annotation PHP can express becomes its native type', function () {
 	Assert::same('null', convert('null'));
 	Assert::same('?false', convert('false|null'));
 	Assert::same('callable', convert('callable(int): void', NativeType::Parameter));
+});
+
+
+test('a name node, which a tool builds and the parser never does, is the class it names', function () {
+	Assert::same('\Acme\Shop\Order', convert(new FullyQualifiedNameNode('Acme\Shop\Order')));
+	Assert::same('Order', convert(new RelativeNameNode('Order')));
+	Assert::same('Cart', convert(new GenericTypeNode(new RelativeNameNode('Cart'), [new IdentifierTypeNode('int')])));
+	Assert::true(NativeType::matches(new FullyQualifiedNameNode('Acme\Shop\Order'), '\Acme\Shop\Order'));
 });
 
 

@@ -66,7 +66,6 @@ final class ForbiddenPhpdocLinesRule extends NodeRule
 	{
 		$phpDoc = $context->getAnalysis(PhpDoc::class);
 		$tree = $phpDoc->parse($trivia);
-		$prefix = preg_match('~\n([ \t]*\*)~', $trivia->text, $m) ? "\n$m[1] " : "\n";
 		$changed = false;
 		$fix = true;
 		foreach ($tree->children as $child) {
@@ -100,12 +99,7 @@ final class ForbiddenPhpdocLinesRule extends NodeRule
 			}
 
 			if ($hit) {
-				$text = (string) array_shift($lines);
-				foreach ($lines as $line) {
-					$text .= ($line === '' ? rtrim($prefix, ' ') : $prefix) . $line;
-				}
-
-				$child->text = $text;
+				$child->text = implode("\n", $lines);
 				$changed = true;
 			}
 		}

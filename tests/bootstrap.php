@@ -31,7 +31,6 @@ function getPhpCliBinary(): string
 	$binary = findPhpCliBinary();
 	if ($binary === null) {
 		Tester\Environment::skip('No CLI binary of PHP beside ' . PHP_BINARY . '.');
-		exit; // skip() has ended the test already, which its signature does not say
 	}
 
 	return $binary;

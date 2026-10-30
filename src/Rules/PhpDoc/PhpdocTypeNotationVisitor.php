@@ -97,6 +97,7 @@ final class PhpdocTypeNotationVisitor extends AbstractNodeVisitor
 			$node instanceof GenericTypeNode
 			&& $this->arrayNotation === 'brackets'
 			&& !isset($this->kept[$node])
+			&& $node->type instanceof IdentifierTypeNode
 			&& strtolower($node->type->name) === 'array'
 			&& count($node->genericTypes) === 1
 			&& (

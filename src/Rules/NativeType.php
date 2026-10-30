@@ -219,6 +219,7 @@ final class NativeType
 
 		return match (true) {
 			$type instanceof Type\IdentifierTypeNode => !in_array(strtolower($type->name), ['static', '$this'], true),
+			$type instanceof Type\NameNode => true,
 			$type instanceof Type\NullableTypeNode => self::isPlain($type->type),
 			default => false,
 		};
@@ -257,9 +258,10 @@ final class NativeType
 	{
 		return match (true) {
 			$type instanceof Type\IdentifierTypeNode => self::findNativeIdentifier($type->name),
-			$type instanceof Type\GenericTypeNode => self::findNativeIdentifier($type->type->name),
+			$type instanceof Type\NameNode => self::findNativeIdentifier($type->toCodeString()),
+			$type instanceof Type\GenericTypeNode => self::findNativeName($type->type),
 			$type instanceof Type\ThisTypeNode => 'static',
-			$type instanceof Type\CallableTypeNode => self::findNativeIdentifier($type->identifier->name),
+			$type instanceof Type\CallableTypeNode => self::findNativeName($type->identifier),
 			$type instanceof Type\ArrayTypeNode, $type instanceof Type\ArrayShapeNode => 'array',
 			$type instanceof Type\ObjectShapeNode => 'object',
 			$type instanceof Type\ConstTypeNode => match (true) {
