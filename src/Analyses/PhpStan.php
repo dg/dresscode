@@ -22,6 +22,7 @@ use PHPStan\Analyser\{NodeScopeResolver, Scope, ScopeContext, ScopeFactory};
 use PHPStan\BetterReflection\Reflection\Exception\CircularReference;
 use PHPStan\DependencyInjection\{Container, ContainerFactory};
 use PHPStan\ExtensionInstaller\GeneratedConfig;
+use PHPStan\File\FileHelper;
 use PHPStan\Parser\Parser;
 use PHPStan\PharAutoloader;
 use PHPStan\Php\PhpVersionFactory;
@@ -228,7 +229,8 @@ final class PhpStan
 	/**
 	 * Computes the scope of every node of the file and hands each to the callback. The path is the one of the run,
 	 * relative to the root; PHPStan reads the declarations of a file from the disk and resolves a relative path
-	 * against the working directory, which is not the root of the run, so it is given an absolute one. A class whose
+	 * against the working directory, which is not the root of the run, so it is given an absolute one, normalized as
+	 * PHPStan normalizes the file a class is declared in, which it compares with it. A class whose
 	 * ancestors run in a circle stops PHPStan, and the nodes after it get no scope.
 	 * @param  array<Stmt>  $ast
 	 * @param  callable(Node, Scope): void  $callback
@@ -239,6 +241,7 @@ final class PhpStan
 		$path = Helpers::toAbsolutePath($path, $this->root);
 		$path = $this->replacement !== null && $path === $this->replacement[0] ? $this->replacement[1] : $path;
 		$container = $this->getContainer();
+		$path = $container->getByType(FileHelper::class)->normalizePath($path);
 		$resolver = $container->getByType(NodeScopeResolver::class);
 		$resolver->setAnalysedFiles([$path]);
 		$scope = $container->getByType(ScopeFactory::class)->create(ScopeContext::create($path));
