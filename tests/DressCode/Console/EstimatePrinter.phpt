@@ -30,3 +30,17 @@ test('what the lock refuses a target with is said under Composer, and so is a lo
 	Assert::contains("Composer   acme/mail 4.0: refused by acme/shop v1.0.0 (^3.2)\n", $out);
 	Assert::contains("Composer   php 8.4: nothing in the lock refuses it\n", $out);
 });
+
+
+test('the libraries the data know are broken onto lines that keep the width of the output', function () {
+	$known = ['acme/application' => '3.3', 'acme/component-model' => '3.2', 'acme/http' => '3.4', 'acme/utils' => '4.1.5', 'php' => '8.6'];
+	$estimate = new Estimate([Target::php('8.4')], [], 1, new BlindSpots, [], [], $known, true, false, []);
+	$console = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: false);
+	$out = new EstimatePrinter($estimate)->print($console);
+
+	Assert::contains(
+		"Data       acme/application up to 3.3, acme/component-model up to 3.2, acme/http up to 3.4,\n"
+		. "           acme/utils up to 4.1.5, php up to 8.6\n",
+		$out,
+	);
+});

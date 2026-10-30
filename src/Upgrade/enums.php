@@ -77,13 +77,13 @@ enum Fixability: string
 	case UncertainNames = 'uncertainNames';
 
 	/** a human: no fix exists, or it changes what the code does and the consent is theirs */
-	case Manual = 'manual';
+	case ForYou = 'forYou';
 
 
 	public static function of(Violation $violation): self
 	{
 		return match (true) {
-			!$violation->fixable, $violation->refused && $violation->risk === Risk::BehaviorChanges => self::Manual,
+			!$violation->fixable, $violation->refused && $violation->risk === Risk::BehaviorChanges => self::ForYou,
 			$violation->refused && $violation->risk === Risk::TypeUnknown => self::UnknownTypes,
 			$violation->refused && $violation->risk === Risk::NameUncertain => self::UncertainNames,
 			default => self::Automatic,

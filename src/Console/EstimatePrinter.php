@@ -26,6 +26,12 @@ final readonly class EstimatePrinter
 	/** the names of a list the output writes one by one, the rest only counted */
 	private const ListedNames = 8;
 
+	/** the width the lines of the output keep, which a narrow terminal and a page of the manual show unbroken */
+	private const Width = 100;
+
+	/** the width of the label a line opens with */
+	private const LabelWidth = 11;
+
 	/** the groups of the topics by the sets they are of */
 	private const Groups = ['Must change' => ['deprecations', 'cleanup'], 'May modernize' => ['modernizations']];
 
@@ -34,7 +40,7 @@ final readonly class EstimatePrinter
 		'automatic' => 'automatic',
 		'unknownTypes' => 'unknown types',
 		'uncertainNames' => 'uncertain names',
-		'manual' => 'for you',
+		'forYou' => 'for you',
 	];
 
 
@@ -105,7 +111,7 @@ final readonly class EstimatePrinter
 				. ": the upgrading data are in `$package`, which `dresscode upgrade --today` installs\n";
 		}
 
-		$out .= $label('Data') . (implode(', ', array_map(
+		$out .= $label('Data') . (self::wrapList(array_map(
 			fn(string $library, string $version) => "$library up to $version",
 			array_keys($estimate->knownVersions),
 			$estimate->knownVersions,
@@ -208,5 +214,27 @@ final readonly class EstimatePrinter
 	{
 		return implode(', ', array_slice($names, 0, self::ListedNames))
 			. (count($names) > self::ListedNames ? ' and ' . (count($names) - self::ListedNames) . ' more' : '');
+	}
+
+
+	/**
+	 * The items separated by commas, broken onto lines that keep the width of the output, each under the value.
+	 * @param  list<string>  $items
+	 */
+	private static function wrapList(array $items): string
+	{
+		$lines = [];
+		$line = '';
+		foreach ($items as $i => $item) {
+			$item .= $i < count($items) - 1 ? ',' : '';
+			if ($line !== '' && strlen("$line $item") > self::Width - self::LabelWidth) {
+				$lines[] = $line;
+				$line = $item;
+			} else {
+				$line = $line === '' ? $item : "$line $item";
+			}
+		}
+
+		return implode("\n" . str_repeat(' ', self::LabelWidth), [...$lines, $line]);
 	}
 }
