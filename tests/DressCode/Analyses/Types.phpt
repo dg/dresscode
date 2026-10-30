@@ -479,10 +479,11 @@ test('syntax PHPStan fails on costs the file its types where PHPStan stopped, no
 test('a failure of the callback is its own, not one of PHPStan', function () {
 	$stubs = __DIR__ . '/fixtures/types/stubs';
 	$path = createTempDir('types-callback') . '/callback.php';
-	file_put_contents($path, "<?php\n\$a = 1;\n");
+	$code = "<?php\n\$a = 1;\n";
+	file_put_contents($path, $code);
 	$phpstan = new Analyses\PhpStan($stubs, [$stubs, $path], dirname($path) . '/cache');
 	Assert::exception(
-		fn() => $phpstan->resolveScopes($path, $phpstan->parse("<?php\n\$a = 1;\n"), fn() => throw new LogicException('in the callback')),
+		fn() => $phpstan->resolveScopes($path, $code, $phpstan->parse($code), fn() => throw new LogicException('in the callback')),
 		LogicException::class,
 		'in the callback',
 	);
@@ -626,6 +627,34 @@ test('a member the pass added is one the class has, while the disk still has the
 
 	Assert::same([false, false], $has(''));
 	Assert::same([true, true], $has("\tpublic function __construct(\n\t\tprivate int \$size,\n\t) {\n\t}\n"));
+});
+
+
+test('a class the pass moved down has its types, while the disk still has it higher and shorter', function () {
+	$code = "<?php\nnamespace App;\n%s\nclass Sheet\n{\n\tpublic function run(): void\n\t{\n\t\t\$this->log(true);\n\t}\n\n\n\tpublic function log(bool \$verbose): void {}\n}\n";
+	$dir = createTempDir('moved');
+	$path = "$dir/Sheet.php";
+	file_put_contents($path, sprintf($code, ''));
+	$phpstan = new Analyses\PhpStan($dir, [$path], "$dir/cache");
+
+	$file = (new Parser)->parse(sprintf($code, "use Acme\\Shop\\Order;\n"));
+	$types = new Analyses\Types($file, $path, $phpstan);
+	Assert::notNull($types->findMemberAccess($file->find(MethodCallNode::class)[0]));
+	Assert::null($types->failure);
+});
+
+
+test('an anonymous class has its types, while the disk still has a shorter text', function () {
+	$code = "<?php\nnamespace App;\n\nfunction run(): void\n{\n\t\$name = '%s';\n\t\$logger = new class {\n\t\tpublic function log(bool \$verbose): void {}\n\t};\n\t\$logger->log(true);\n}\n";
+	$dir = createTempDir('anonymous');
+	$path = "$dir/run.php";
+	file_put_contents($path, sprintf($code, ''));
+	$phpstan = new Analyses\PhpStan($dir, [$path], "$dir/cache");
+
+	$file = (new Parser)->parse(sprintf($code, str_repeat('x', 60)));
+	$types = new Analyses\Types($file, $path, $phpstan);
+	Assert::notNull($types->findMemberAccess($file->find(MethodCallNode::class)[0]));
+	Assert::null($types->failure);
 });
 
 

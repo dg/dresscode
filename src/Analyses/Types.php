@@ -47,6 +47,9 @@ final class Types implements PassAnalysis
 	/** @var \SplObjectStorage<MethodNode, array{ParserNode\Stmt\ClassMethod, Scope}> */
 	private \SplObjectStorage $methods;
 
+	/** the text the analysis was made for */
+	private readonly string $code;
+
 	/** @var ?\Closure(): array<ParserNode\Stmt>  the text parsed by PHPStan once asked, until the scopes are resolved from it */
 	private ?\Closure $parse;
 
@@ -79,7 +82,7 @@ final class Types implements PassAnalysis
 		$this->expressions = new \SplObjectStorage;
 		$this->methods = new \SplObjectStorage;
 		$this->members = new \SplObjectStorage;
-		$code = Printer::print($file);
+		$this->code = $code = Printer::print($file);
 		$ast = null;
 		$this->parse = function () use ($phpstan, $code, &$ast): array {
 			return $ast ??= $phpstan->parse($code);
@@ -135,7 +138,7 @@ final class Types implements PassAnalysis
 		$this->parse = null;
 		$circular = []; // class => whether its ancestors run in a circle, which leaves the nodes inside it without types
 		try {
-			$this->phpstan->resolveScopes($this->path, $ast, function (ParserNode $node, Scope $scope) use (&$circular): void {
+			$this->phpstan->resolveScopes($this->path, $this->code, $ast, function (ParserNode $node, Scope $scope) use (&$circular): void {
 				$class = $scope->getClassReflection();
 				if ($class !== null && ($circular[$class->getName()] ??= PhpStan::hasCircularAncestors($class))) {
 					return;

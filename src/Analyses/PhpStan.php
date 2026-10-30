@@ -53,11 +53,17 @@ final class PhpStan
 	/** @var ?array{string, string}  the path whose declarations are read from the other file, a text of a pass */
 	private ?array $replacement = null;
 
-	/** @var array<string, array{string, list<list<string>>}>  path => hash of its text on the disk and what it declares */
+	/**
+	 * @var array<string, array{string, list<list<string>>, ?array<string, int>}>  path => hash of its text on the disk,
+	 * what it declares and the lines its classes start on
+	 */
 	private array $diskDeclarations = [];
 
 	/** @var ?array{string, self}  hash of the text of a pass and the PHPStan reading it */
 	private ?array $derived = null;
+
+	/** @var array<string, true>  the copies of the texts of passes this PHPStan wrote, deleted with it */
+	private array $copies = [];
 
 	private ?Declarations $declarations = null;
 
@@ -96,8 +102,8 @@ final class PhpStan
 
 	public function __destruct()
 	{
-		if ($this->replacement !== null) {
-			@unlink($this->replacement[1]); // @ file may have been deleted meanwhile
+		foreach (array_keys($this->copies) as $file) {
+			@unlink($file); // @ file may have been deleted meanwhile
 		}
 	}
 
@@ -185,7 +191,8 @@ final class PhpStan
 
 		$diskHash = hash('xxh128', (string) $disk);
 		if (($this->diskDeclarations[$path][0] ?? null) !== $diskHash) {
-			$this->diskDeclarations[$path] = [$diskHash, $disk === false ? [] : self::collectDeclarations($this->parse($disk))];
+			$ast = $disk === false ? [] : $this->parse($disk);
+			$this->diskDeclarations[$path] = [$diskHash, self::collectDeclarations($ast), self::collectClassLines($ast)];
 		}
 
 		if ($this->diskDeclarations[$path][1] === self::collectDeclarations($parse())) {
@@ -195,14 +202,13 @@ final class PhpStan
 		$hash = hash('xxh128', "$path|$code");
 		if ($this->derived === null || $this->derived[0] !== $hash) {
 			self::forgetAnonymousClasses();
-			$file = Helpers::canonicalizePath($this->tempDir) . '/pass/' . getmypid() . "-$hash.php";
-			FileSystem::write($file, $code);
 			$derived = clone $this;
 			$derived->container = null;
-			$derived->replacement = [$path, $file];
 			$derived->diskDeclarations = [];
 			$derived->derived = null;
+			$derived->copies = [];
 			$derived->declarations = null;
+			$derived->replacement = [$path, $derived->writeCopy($path, $code)];
 			$this->derived = [$hash, $derived];
 		}
 
@@ -230,16 +236,23 @@ final class PhpStan
 	 * Computes the scope of every node of the file and hands each to the callback. The path is the one of the run,
 	 * relative to the root; PHPStan reads the declarations of a file from the disk and resolves a relative path
 	 * against the working directory, which is not the root of the run, so it is given an absolute one, normalized as
-	 * PHPStan normalizes the file a class is declared in, which it compares with it. A class whose
-	 * ancestors run in a circle stops PHPStan, and the nodes after it get no scope.
-	 * @param  array<Stmt>  $ast
+	 * PHPStan normalizes the file a class is declared in, which it compares with it. PHPStan reflects an anonymous class,
+	 * and a class starting on another line than where it knows it, from the nodes over the text of the file of the
+	 * scope, so where the code parsed has such a class and is not the text of the disk, the scopes stand in a copy of
+	 * it. A class whose ancestors run in a circle stops PHPStan, and the nodes after it get no scope.
+	 * @param  array<Stmt>  $ast  the code parsed
 	 * @param  callable(Node, Scope): void  $callback
 	 * @throws TypesUnavailableException  when PHPStan fails on the file, the nodes after the failure having no scope
 	 */
-	public function resolveScopes(string $path, array $ast, callable $callback): void
+	public function resolveScopes(string $path, string $code, array $ast, callable $callback): void
 	{
 		$path = Helpers::toAbsolutePath($path, $this->root);
-		$path = $this->replacement !== null && $path === $this->replacement[0] ? $this->replacement[1] : $path;
+		$path = match (true) {
+			$this->replacement !== null && $path === $this->replacement[0] => $this->replacement[1],
+			// @ the file may not exist, as the code of stdin does not
+			@file_get_contents($path) !== $code && $this->movesClasses($path, $ast) => $this->writeCopy($path, $code),
+			default => $path,
+		};
 		$container = $this->getContainer();
 		$path = $container->getByType(FileHelper::class)->normalizePath($path);
 		$resolver = $container->getByType(NodeScopeResolver::class);
@@ -268,6 +281,31 @@ final class PhpStan
 		} finally {
 			restore_error_handler();
 		}
+	}
+
+
+	/**
+	 * Whether a class of the code parsed starts on another line than on the disk, or is anonymous, so that PHPStan
+	 * reflects it from its nodes over the text of the file of the scope.
+	 * @param  array<Stmt>  $ast
+	 */
+	private function movesClasses(string $path, array $ast): bool
+	{
+		$lines = self::collectClassLines($ast);
+		return $lines === null || $lines !== ($this->diskDeclarations[$path][2] ?? null);
+	}
+
+
+	/** A file holding the text of a pass, which lives as long as this PHPStan. */
+	private function writeCopy(string $path, string $code): string
+	{
+		$file = Helpers::canonicalizePath($this->tempDir) . '/pass/' . getmypid() . '-' . hash('xxh128', "$path|$code") . '.php';
+		if (!isset($this->copies[$file])) {
+			FileSystem::write($file, $code);
+			$this->copies[$file] = true;
+		}
+
+		return $file;
 	}
 
 
@@ -701,5 +739,26 @@ final class PhpStan
 		}
 
 		return $declarations;
+	}
+
+
+	/**
+	 * The lines the classes, interfaces, traits and enums the code declares by name start on; null where it declares an
+	 * anonymous class, which PHPStan reflects from its nodes wherever it stands.
+	 * @param  array<Stmt>  $ast
+	 * @return ?array<string, int>
+	 */
+	private static function collectClassLines(array $ast): ?array
+	{
+		$lines = [];
+		foreach ((new NodeFinder)->findInstanceOf($ast, ClassLike::class) as $class) {
+			if (!isset($class->namespacedName)) {
+				return null;
+			}
+
+			$lines[$class->namespacedName->toLowerString()] = $class->getStartLine();
+		}
+
+		return $lines;
 	}
 }
