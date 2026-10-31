@@ -657,6 +657,21 @@ test('over a configuration that exists, a decision the file leaves to the standa
 });
 
 
+test('over a configuration that exists init says what it sets apart from the standard while the code holds to the standard', function () {
+	$spaced = "<?php\n\nfunction run(): void\n{\n    echo 1;\n}\n";
+	$root = createProject('existing-apart', [
+		'composer.json' => '{}',
+		'src/a.php' => $spaced,
+		'src/b.php' => $spaced,
+		'dresscode.neon' => "use: perCs\npaths: [src]\nindentation:\n\tunit: tab\n",
+	]);
+	[$code, $out] = runInit($root, ['--yes']);
+	Assert::same(0, $code);
+	Assert::match('%A%Moved      indentation.unit: `dresscode.neon` has tab, the code holds to %a% of the standard%A%', $out);
+	Assert::notContains('Moved      nothing', $out);
+});
+
+
 test('over a configuration that exists init asks nothing in a terminal and takes no answer, as it writes nothing', function () {
 	$asked = createProject('existing-asked', stragglers() + ['dresscode.neon' => "use: perCs\npaths: [src]\n"]);
 	[$code, $out] = runInit($asked, [], "2\n");

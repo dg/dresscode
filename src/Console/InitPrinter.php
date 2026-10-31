@@ -211,8 +211,9 @@ final readonly class InitPrinter
 
 
 	/**
-	 * What has moved since the configuration that exists was written: every decision init would write otherwise, and how
-	 * to see what its value changes.
+	 * What has moved since the configuration that exists was written: every decision init would write otherwise, those
+	 * the file sets apart from the standard while the code holds to the standard among them, and how to see what its
+	 * value changes.
 	 */
 	public function printShifts(Proposal $proposal, ResolvedConfig $resolved, string $file): string
 	{
@@ -226,6 +227,22 @@ final readonly class InitPrinter
 					. "$path: `$file` has " . ($value?->toWrittenText() ?? 'nothing')
 					. ($cost ? ', a fix of it rewrites ' . ($proposal->isSampled() ? 'about ' : '') . $this->formatFiles($cost) : '')
 					. ", init now writes $measured   ($proposed->comment)\n";
+			}
+		}
+
+		// what the file sets apart from the standard while the code holds to the standard, which no residue shows
+		foreach ($resolved->decisions as $path => $decision) {
+			$standard = $proposal->standard->decisions[$path] ?? null;
+			if (
+				$standard !== null
+				&& $standard->inactive === null
+				&& $decision->inactive === null
+				&& !isset($proposal->values[$path])
+				&& !in_array($path, $proposal->standard->residue, true)
+				&& $decision->value->toData() !== $standard->value->toData()
+			) {
+				$out .= $this->label($out === '' ? 'Moved' : '')
+					. "$path: `$file` has {$decision->value->toWrittenText()}, the code holds to {$standard->value->toWrittenText()} of the standard\n";
 			}
 		}
 
