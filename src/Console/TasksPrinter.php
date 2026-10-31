@@ -33,11 +33,10 @@ final readonly class TasksPrinter
 
 	public function print(Console $console): string
 	{
-		$label = fn(string $label) => $console->color('gray', str_pad($label, 11));
 		$tasks = array_merge(...array_values($this->tasks));
 		$out = '';
 		if ($tasks !== []) {
-			$out .= $label('For you') . Markup::formatCount(count($tasks), 'place') . " the fixes left\n";
+			$out .= Markup::formatLabel($console, 'For you') . Markup::formatCount(count($tasks), 'place') . " the fixes left\n";
 			foreach ($tasks as $task) {
 				$violation = $task->violation;
 				$out .= "  $task->path:$violation->line  $violation->message  " . $console->color('gray', "[$violation->decision]") . "\n";
@@ -45,7 +44,7 @@ final readonly class TasksPrinter
 		}
 
 		if ($this->postponed !== []) {
-			$out .= $label('Postponed') . Markup::formatCount(count($this->postponed), 'suppression')
+			$out .= Markup::formatLabel($console, 'Postponed') . Markup::formatCount(count($this->postponed), 'suppression')
 				. " giving no reason, which put a task off: confirm it with ` -- <reason>`\n";
 			foreach ($this->postponed as ['path' => $path, 'line' => $line, 'comment' => $comment]) {
 				$out .= "  $path:$line  $comment\n";

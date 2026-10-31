@@ -111,7 +111,7 @@ final readonly class UpgradeCommand
 			),
 			onProgress: $console === null
 				? null
-				: fn(string $what) => $console->setStatus($console->color('gray', 'Measuring  ') . "$what\u{2026}"),
+				: fn(string $what) => $console->setStatus(Markup::formatLabel($console, 'Measuring') . "$what\u{2026}"),
 		);
 		$targets = $this->resolveTargets($args, $target, $version, $estimator);
 		if ($console !== null) {
@@ -138,7 +138,7 @@ final readonly class UpgradeCommand
 		if ($plan !== null && ($options->savePlan || $options->run)) {
 			PlanFile::write($plan, $project->root);
 			PlanRunner::forget($project);
-			$console?->writeLine($console->color('gray', 'Saved      ') . PlanFile::Name);
+			$console?->writeLine(Markup::formatLabel($console, 'Saved') . PlanFile::Name);
 		}
 
 		return $plan !== null && $runner !== null ? $this->runPlan($plan, $runner, $options, $console) : 0;
@@ -156,7 +156,7 @@ final readonly class UpgradeCommand
 			$project,
 			$types,
 			(bool) $options->commit,
-			fn(string $what) => $console->setStatus($console->color('gray', 'Upgrading  ') . "$what\u{2026}"),
+			fn(string $what) => $console->setStatus(Markup::formatLabel($console, 'Upgrading') . "$what\u{2026}"),
 		);
 	}
 
@@ -169,13 +169,12 @@ final readonly class UpgradeCommand
 	private function runPlan(Plan $plan, PlanRunner $runner, UpgradeOptions $options, ?Console $output): int
 	{
 		$console = $output ?? $this->context->err;
-		$label = fn(string $label) => $console->color('gray', str_pad($label, 11));
 		if (!$plan->isMadeWith(Application::Version, PlanBuilder::findDataVersions(ProjectPackages::read($runner->project->root)))) {
-			$console->writeLine($label('Warning') . 'The plan was made with other versions of DressCode or of the upgrading data, so a step may fix more or less than it did then.');
+			$console->writeLine(Markup::formatLabel($console, 'Warning') . 'The plan was made with other versions of DressCode or of the upgrading data, so a step may fix more or less than it did then.');
 		}
 
 		if (!$options->commit && $runner->hasOwnChanges()) {
-			$console->writeLine($label('Warning') . 'The working tree has changes of its own, which the changes of the upgrade mix with.');
+			$console->writeLine(Markup::formatLabel($console, 'Warning') . 'The working tree has changes of its own, which the changes of the upgrade mix with.');
 		}
 
 		try {
@@ -252,15 +251,14 @@ final readonly class UpgradeCommand
 
 		$console->clearStatus();
 		$composer = new Composer($project->root);
-		$label = fn(string $label) => $console->color('gray', str_pad($label, 11));
 		try {
 			$changes = $composer->previewRequire($step->require, $step->update);
 		} catch (ComposerException $e) {
-			$console->writeLine($label('Composer') . "cannot $step->title: {$e->getMessage()}");
+			$console->writeLine(Markup::formatLabel($console, 'Composer') . "cannot $step->title: {$e->getMessage()}");
 			return false;
 		}
 
-		$console->writeLine($label('Composer') . "$step->title, " . ($changes === [] ? 'which changes no installed package' : 'which changes:'));
+		$console->writeLine(Markup::formatLabel($console, 'Composer') . "$step->title, " . ($changes === [] ? 'which changes no installed package' : 'which changes:'));
 		foreach ($changes as $change) {
 			$console->writeLine("  $change");
 		}
@@ -269,11 +267,11 @@ final readonly class UpgradeCommand
 			return false;
 		}
 
-		$console->setStatus($console->color('gray', 'Upgrading  ') . "Composer, $step->title\u{2026}");
+		$console->setStatus(Markup::formatLabel($console, 'Upgrading') . "Composer, $step->title\u{2026}");
 		try {
 			$composer->require($step->require, $step->update);
 		} catch (ComposerException $e) {
-			$console->writeLine($label('Composer') . "failed to $step->title: {$e->getMessage()}");
+			$console->writeLine(Markup::formatLabel($console, 'Composer') . "failed to $step->title: {$e->getMessage()}");
 			return false;
 		} finally {
 			$console->clearStatus();
@@ -294,7 +292,7 @@ final readonly class UpgradeCommand
 	private static function writeHeader(Console $console, Project $project): void
 	{
 		$console->writeLine(CommandContext::formatName($console));
-		$console->writeLine($console->color('gray', 'Config     ') . ($project->configFile === null
+		$console->writeLine(Markup::formatLabel($console, 'Config') . ($project->configFile === null
 			? 'none, the scope `init` would write: ' . implode(', ', $project->config->paths)
 			: FileSystem::platformSlashes($project->configFile)));
 	}

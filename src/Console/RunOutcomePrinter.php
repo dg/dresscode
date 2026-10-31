@@ -34,7 +34,6 @@ final readonly class RunOutcomePrinter
 
 	public function print(Console $console): string
 	{
-		$label = fn(string $label) => $console->color('gray', str_pad($label, 11));
 		$outcome = $this->outcome;
 		$out = '';
 		foreach ($this->plan->findSteps() as $number => $step) {
@@ -43,12 +42,15 @@ final readonly class RunOutcomePrinter
 				&& ($outcome->step === null || $number < $outcome->step)
 				&& ($this->only ?? $number) === $number
 			) {
-				$out .= $label("Step $number") . "for you, $step->title" . ($step->suggest === null ? '' : ": `$step->suggest`") . "\n";
+				$out .= Markup::formatLabel($console, "Step $number")
+					. "for you, $step->title"
+					. ($step->suggest === null ? '' : ": `$step->suggest`")
+					. "\n";
 			}
 		}
 
 		foreach ($outcome->fixed as $number => $topics) {
-			$out .= $label("Step $number") . implode(', ', array_map(
+			$out .= Markup::formatLabel($console, "Step $number") . implode(', ', array_map(
 				fn(string $topic, array $files) => "$topic "
 					. ($files === [] ? 'left nothing to fix' : Markup::formatCount(count($files), 'file')),
 				array_keys($topics),
@@ -58,11 +60,12 @@ final readonly class RunOutcomePrinter
 
 		$out .= new TasksPrinter($outcome->tasks)->print($console);
 		return $out . match ($outcome->stop) {
-			RunStop::Tests => $label('Failed') . "step $outcome->step went back, as " . ($outcome->failures === []
+			RunStop::Tests => Markup::formatLabel($console, 'Failed') . "step $outcome->step went back, as " . ($outcome->failures === []
 				? 'the tests wrote no results after it'
 				: 'these tests now fail: ' . implode(', ', $outcome->failures)),
-			RunStop::Composer => $label('Waiting') . "step $outcome->step, {$this->formatComposerStep((int) $outcome->step)}",
-			RunStop::Tasks => $label('Waiting')
+			RunStop::Composer
+				=> Markup::formatLabel($console, 'Waiting') . "step $outcome->step, {$this->formatComposerStep((int) $outcome->step)}",
+			RunStop::Tasks => Markup::formatLabel($console, 'Waiting')
 				. "step $outcome->step leaves the places above: fix each or confirm it with "
 				. '`// dresscode:ignore <decision> -- <reason>`, then run `dresscode upgrade --continue`',
 			RunStop::Done => $console->color('white/green', $this->only === null

@@ -31,8 +31,9 @@ final readonly class PlanPrinter
 
 	public function print(Console $console): string
 	{
-		$label = fn(string $label) => $console->color('gray', str_pad($label, 11));
-		$out = $label('Plan') . implode(', ', array_map(fn(Target $target) => $target->format(), $this->plan->targets)) . "\n";
+		$out = Markup::formatLabel($console, 'Plan')
+			. implode(', ', array_map(fn(Target $target) => $target->format(), $this->plan->targets))
+			. "\n";
 		$width = max([0, ...array_map(fn(Step $step) => strlen($step->title), $this->plan->steps)]);
 		foreach ($this->plan->steps as $index => $step) {
 			$out .= rtrim(sprintf(
@@ -53,7 +54,7 @@ final readonly class PlanPrinter
 			)) . "\n";
 		}
 
-		return $out . $label('Tests') . ($this->plan->testCommand === null
+		return $out . Markup::formatLabel($console, 'Tests') . ($this->plan->testCommand === null
 			? 'not run, no `--test-command` given'
 			: Violation::formatCode($this->plan->testCommand)) . "\n";
 	}

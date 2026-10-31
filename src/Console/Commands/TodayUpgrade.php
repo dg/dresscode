@@ -9,7 +9,7 @@ namespace DressCode\Console\Commands;
 
 use DressCode\{Config, ConfigurationException};
 use DressCode\Config\{PackageDiscovery, ResolvedProject, RunnerFactory, Versions};
-use DressCode\Console\CommandContext;
+use DressCode\Console\{CommandContext, Markup};
 use DressCode\Upgrade\Project;
 use Nette\CommandLine\ParseResult;
 
@@ -91,7 +91,7 @@ final readonly class TodayUpgrade
 			[PackageDiscovery::Php],
 		);
 		$out->writeLine(
-			$out->color('gray', 'Upgrading  ') . (implode(', ', $packages) ?: 'PHP alone, no installed library has upgrading data'),
+			Markup::formatLabel($out, 'Upgrading') . (implode(', ', $packages) ?: 'PHP alone, no installed library has upgrading data'),
 		);
 
 		$newer = [];
@@ -101,7 +101,7 @@ final readonly class TodayUpgrade
 
 		if ($newer !== []) {
 			$out->writeLine(
-				$out->color('gray', 'Lowest     ')
+				Markup::formatLabel($out, 'Lowest')
 				. implode(', ', $newer)
 				. '; `composer update --prefer-lowest` lets the upgrade see what the lowest versions deprecate',
 			);
@@ -110,7 +110,7 @@ final readonly class TodayUpgrade
 		$unbounded = array_filter($packages, $project->isUnbounded(...));
 		if ($unbounded !== []) {
 			$out->writeLine(
-				$out->color('gray', 'Reported   ')
+				Markup::formatLabel($out, 'Reported')
 				. implode(', ', $unbounded)
 				. ': not required with a lower bound, so the upgrading data are reported, never written',
 			);

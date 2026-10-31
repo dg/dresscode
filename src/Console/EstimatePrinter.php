@@ -29,9 +29,6 @@ final readonly class EstimatePrinter
 	/** the width the lines of the output keep, which a narrow terminal and a page of the manual show unbroken */
 	private const Width = 100;
 
-	/** the width of the label a line opens with */
-	private const LabelWidth = 11;
-
 	/** the groups of the topics by the sets they are of */
 	private const Groups = ['Must change' => ['deprecations', 'cleanup'], 'May modernize' => ['modernizations']];
 
@@ -53,8 +50,8 @@ final readonly class EstimatePrinter
 	public function print(Console $console): string
 	{
 		$estimate = $this->estimate;
-		$label = fn(string $label) => $console->color('gray', str_pad($label, 11));
-		$out = $label('Upgrade') . implode(', ', array_map(fn(Target $target) => $target->format(), $estimate->targets))
+		$targets = implode(', ', array_map(fn(Target $target) => $target->format(), $estimate->targets));
+		$out = Markup::formatLabel($console, 'Upgrade') . $targets
 			. ' over ' . Markup::formatCount($estimate->files, 'file')
 			. ($estimate->namesMeasured ? ', the names resolved for certain as measured' : '')
 			. ($estimate->types ? '' : ', without the types of the code') . "\n\n";
@@ -94,23 +91,23 @@ final readonly class EstimatePrinter
 			$estimate->findTopics(Phase::Bridge, 'deprecations'),
 		));
 		if ($today > 0) {
-			$out .= $label('Today') . Markup::formatCount($today, 'place')
+			$out .= Markup::formatLabel($console, 'Today') . Markup::formatCount($today, 'place')
 				. ' of `deprecations` ' . ($today === 1 ? 'is' : 'are') . " rewritten on the versions allowed now by `dresscode upgrade --today`\n";
 		}
 
 		if (!$estimate->blindSpots->isEmpty()) {
-			$out .= $label("Can't see") . $this->formatBlindSpots() . "\n";
+			$out .= Markup::formatLabel($console, "Can't see") . $this->formatBlindSpots() . "\n";
 		}
 
 		foreach ($estimate->blockers as $blockers) {
-			$out .= $label('Composer') . $blockers->target->format() . ': ' . self::formatBlockers($blockers) . "\n";
+			$out .= Markup::formatLabel($console, 'Composer') . $blockers->target->format() . ': ' . self::formatBlockers($blockers) . "\n";
 		}
 
 		$major = $estimate->moves?->findMajor() ?? [];
 		if ($estimate->moves?->unknown !== null) {
-			$out .= $label('Moves') . "unknown, {$estimate->moves->unknown}\n";
+			$out .= Markup::formatLabel($console, 'Moves') . "unknown, {$estimate->moves->unknown}\n";
 		} elseif ($major !== []) {
-			$out .= $label('Moves') . self::wrapList(array_map(
+			$out .= Markup::formatLabel($console, 'Moves') . self::wrapList(array_map(
 				fn(Move $move) => "$move->package $move->from => $move->to"
 					. ($move->isKnown($estimate->knownVersions) ? '' : ' (no data)'),
 				$major,
@@ -118,11 +115,11 @@ final readonly class EstimatePrinter
 		}
 
 		foreach ($estimate->missingData as $package => $libraries) {
-			$out .= $label('No data') . self::formatList($libraries)
+			$out .= Markup::formatLabel($console, 'No data') . self::formatList($libraries)
 				. ": the upgrading data are in `$package`, which `dresscode upgrade --today` installs\n";
 		}
 
-		$out .= $label('Data') . (self::wrapList(array_map(
+		$out .= Markup::formatLabel($console, 'Data') . (self::wrapList(array_map(
 			fn(string $library, string $version) => "$library up to $version",
 			array_keys($estimate->knownVersions),
 			$estimate->knownVersions,
@@ -246,7 +243,7 @@ final readonly class EstimatePrinter
 		$line = '';
 		foreach ($items as $i => $item) {
 			$item .= $i < count($items) - 1 ? ',' : '';
-			if ($line !== '' && strlen("$line $item") > self::Width - self::LabelWidth) {
+			if ($line !== '' && strlen("$line $item") > self::Width - Markup::LabelWidth) {
 				$lines[] = $line;
 				$line = $item;
 			} else {
@@ -254,6 +251,6 @@ final readonly class EstimatePrinter
 			}
 		}
 
-		return implode("\n" . str_repeat(' ', self::LabelWidth), [...$lines, $line]);
+		return implode("\n" . str_repeat(' ', Markup::LabelWidth), [...$lines, $line]);
 	}
 }
