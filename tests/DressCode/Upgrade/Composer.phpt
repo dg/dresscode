@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\Upgrade\{Blocker, Composer, Move, Target};
+use DressCode\Upgrade\{Blocker, Composer, ComposerException, Move, Target};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -63,8 +63,24 @@ test('the moves of an update are read from its upgrades and downgrades, not from
 
 	Assert::equal(
 		[new Move('nette/utils', 'v3.2.10', 'v4.0.11'), new Move('acme/mail', 'v2.1.0', 'v2.0.3')],
-		Composer::parseMoves($output),
+		Composer::parseMoves(Composer::parseOperations($output)),
 	);
+});
+
+
+test('a Composer that fails says why, with the last line it wrote', function () {
+	putenv('COMPOSER_BINARY=dresscode-no-such-composer');
+	try {
+		$composer = new Composer(createTempDir('composer-failed'));
+		Assert::exception(
+			fn() => $composer->previewRequire(['acme/mail' => '^4.0']),
+			ComposerException::class,
+			'Composer failed: %a%',
+		);
+		Assert::match('Composer failed: %a%', (string) $composer->findMoves(['acme/mail' => '^4.0'])->unknown);
+	} finally {
+		putenv('COMPOSER_BINARY');
+	}
 });
 
 

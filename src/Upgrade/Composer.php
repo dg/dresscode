@@ -7,10 +7,13 @@
 
 namespace DressCode\Upgrade;
 
+use DressCode\Config\ProjectPackages;
+
 
 /**
- * Composer of the project: what its lock holds that refuses a target, which needs no network, and the constraints an
- * upgrade raises. Composer is the command `COMPOSER_BINARY` names, else `composer` on the path.
+ * Composer of the project: what its lock holds that refuses a target, which needs no network, what raising the
+ * constraints would move, and the raise itself. Composer is the command `COMPOSER_BINARY` names, else `composer` on
+ * the path.
  * @internal
  */
 final readonly class Composer
@@ -33,15 +36,26 @@ final readonly class Composer
 	}
 
 
+	/** Composer of a project that has a lock, which the questions about the installed packages need; null for one without. */
+	public static function forLockOf(ProjectPackages $project): ?self
+	{
+		return $project->rootPath !== null && is_file("$project->rootPath/composer.lock")
+			? new self($project->rootPath, $project->rootName)
+			: null;
+	}
+
+
 	/** The installed packages of the lock refusing the version of the target, as `composer why-not --locked` says. */
 	public function findBlockers(Target $target): Blockers
 	{
-		[$exit, $output] = $this->run(['why-not', '--locked', $target->package, $target->version], self::Timeout);
-		return match (true) {
-			$exit === null => new Blockers($target, unknown: 'Composer did not answer within ' . self::Timeout . ' s'),
-			$exit > 1 => new Blockers($target, unknown: 'Composer failed: ' . strtok(trim($output), "\n")),
-			default => self::parseBlockers($target, $output, $this->rootName),
-		};
+		try {
+			// why-not exits with 1 where something refuses the version
+			$output = $this->run(['why-not', '--locked', $target->package, $target->version], self::Timeout, accepted: 1);
+		} catch (ComposerException $e) {
+			return new Blockers($target, unknown: $e->getMessage());
+		}
+
+		return self::parseBlockers($target, $output, $this->rootName);
 	}
 
 
@@ -64,6 +78,65 @@ final readonly class Composer
 
 
 	/**
+	 * What raising the constraints moves the installed packages to, as the dry run of the update says, which needs the
+	 * network.
+	 * @param  array<string, string>  $constraints  package => constraint
+	 */
+	public function findMoves(array $constraints): Moves
+	{
+		try {
+			return new Moves(self::parseMoves($this->previewRequire($constraints)));
+		} catch (ComposerException $e) {
+			return new Moves(unknown: $e->getMessage());
+		}
+	}
+
+
+	/**
+	 * The packages the operations of an update move from one version to another.
+	 * @param  list<string>  $operations  as `parseOperations()` reads them
+	 * @return list<Move>
+	 */
+	public static function parseMoves(array $operations): array
+	{
+		$moves = [];
+		foreach ($operations as $operation) {
+			if (preg_match('~^- (?:Upgrading|Downgrading) (\S+) \((\S+) => (\S+)\)~', $operation, $m)) {
+				$moves[] = new Move($m[1], $m[2], $m[3]);
+			}
+		}
+
+		return $moves;
+	}
+
+
+	/**
+	 * What the raise would do to the installed packages, changing nothing: the operations of the update, none without
+	 * `$update`.
+	 * @param  array<string, string>  $constraints  package => constraint
+	 * @return list<string>  as `- Upgrading nette/utils (v3.2.10 => v4.0.11)`
+	 * @throws ComposerException
+	 */
+	public function previewRequire(array $constraints, bool $update = true): array
+	{
+		return self::parseOperations($this->run(self::buildRequire($constraints, $update, dryRun: true), self::UpdateTimeout));
+	}
+
+
+	/**
+	 * Writes the constraints into `composer.json` and updates the packages they move to the lowest versions they allow,
+	 * which the code is written for and whose `@deprecated` the run reads, those they depend on changed as little as
+	 * the update needs; without `$update` only `composer.json` changes.
+	 * @param  array<string, string>  $constraints  package => constraint
+	 * @throws ComposerException
+	 */
+	public function require(array $constraints, bool $update = true): void
+	{
+		$this->run(self::buildRequire($constraints, $update, dryRun: false), self::UpdateTimeout);
+	}
+
+
+	/**
 	 * The operations on packages the output of an update lists, each once, though Composer writes it among the
 	 * operations of the lock and again among those of the installation.
 	 * @return list<string>  as `- Upgrading nette/utils (v3.2.10 => v4.0.11)`
@@ -76,51 +149,39 @@ final readonly class Composer
 
 
 	/**
-	 * The packages the output of an update moves from one version to another.
-	 * @return list<Move>
+	 * @param  array<string, string>  $constraints
+	 * @return list<string>
 	 */
-	public static function parseMoves(string $output): array
+	private static function buildRequire(array $constraints, bool $update, bool $dryRun): array
 	{
-		$moves = [];
-		foreach (self::parseOperations($output) as $operation) {
-			if (preg_match('~^- (?:Upgrading|Downgrading) (\S+) \((\S+) => (\S+)\)~', $operation, $m)) {
-				$moves[] = new Move($m[1], $m[2], $m[3]);
-			}
-		}
-
-		return $moves;
-	}
-
-
-	/**
-	 * Writes the constraints into `composer.json` and updates the packages they move to the lowest versions they allow,
-	 * which the code is written for and whose `@deprecated` the run reads, those they depend on changed as little as
-	 * the update needs; without `$update` only `composer.json` changes, and a dry run changes nothing and says what the
-	 * update would.
-	 * @param  array<string, string>  $constraints  package => constraint
-	 * @return array{?int, string}  the exit code, null where Composer did not end in time, and what it wrote
-	 */
-	public function requirePackages(array $constraints, bool $update = true, bool $dryRun = false): array
-	{
-		return $this->run([
+		return [
 			'require',
 			...array_map(fn(string $package, string $constraint) => "$package:$constraint", array_keys($constraints), $constraints),
 			...$update ? ['-W', '--prefer-lowest', '--minimal-changes'] : ['--no-update'],
 			...$dryRun ? ['--dry-run'] : [],
-		], self::UpdateTimeout);
+		];
 	}
 
 
 	/**
+	 * What Composer wrote on both streams.
 	 * @param  list<string>  $arguments
-	 * @return array{?int, string}
+	 * @throws ComposerException  where it does not end in time or exits with a code above the one accepted
 	 */
-	private function run(array $arguments, int $timeout): array
+	private function run(array $arguments, int $timeout, int $accepted = 0): string
 	{
-		return ProcessRunner::run(
+		[$exit, $output] = ProcessRunner::run(
 			[getenv('COMPOSER_BINARY') ?: 'composer', ...$arguments, '--no-ansi', '--no-interaction'],
 			$this->root,
 			$timeout,
 		);
+		if ($exit === null) {
+			throw new ComposerException("Composer did not answer within $timeout s");
+		} elseif ($exit > $accepted) {
+			$lines = array_filter(array_map(trim(...), preg_split('~\R~', $output) ?: []));
+			throw new ComposerException('Composer failed: ' . (end($lines) ?: "exit code $exit"));
+		}
+
+		return $output;
 	}
 }

@@ -10,7 +10,7 @@ namespace DressCode\Upgrade;
 
 /**
  * What an upgrade to the targets costs: the topics the check found, what it does not see, what of the lock refuses
- * the targets, and how far the upgrading data reach.
+ * the targets and what raising them moves, and how far the upgrading data reach.
  * @internal
  */
 final readonly class Estimate
@@ -35,10 +35,8 @@ final readonly class Estimate
 		public bool $types,
 		/** @var list<string>  what the user should be told about the run */
 		public array $warnings,
-		/** @var list<Move>  the packages the update to the targets moves across a major version, as Composer said */
-		public array $moves = [],
-		/** why Composer did not say what the update moves, which it was asked */
-		public ?string $movesUnknown = null,
+		/** what raising the constraints to the targets moves, null where Composer was not asked, offline or without a lock */
+		public ?Moves $moves = null,
 	) {
 	}
 

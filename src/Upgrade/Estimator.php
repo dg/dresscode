@@ -84,7 +84,7 @@ final readonly class Estimator
 	 */
 	public function estimate(array $targets, array $paths = []): Estimate
 	{
-		$versions = array_column(array_map(fn(Target $target) => [$target->package, $target->version], $targets), 1, 0);
+		$versions = Target::collectVersions($targets);
 		$this->onProgress?->__invoke('looking for files');
 		$discovered = PackageDiscovery::discover(
 			new RunnerFactory()->readProjectPackages(
@@ -132,6 +132,7 @@ final readonly class Estimator
 		$result = $factory->createRunner($resolution, cache: false)
 			->run($files, false, new NullReporter, $this->createWorkers?->__invoke($run, count($files)));
 		[$topics, $unseen] = self::collectTopics($result, $resolution, $today);
+		$composer = Composer::forLockOf(ProjectPackages::read($this->project->root));
 
 		return new Estimate(
 			$targets,
@@ -143,13 +144,13 @@ final readonly class Estimator
 				$this->countOtherFiles($runner, $scope),
 				count($generated),
 			),
-			$this->findBlockers($targets),
+			$composer === null ? [] : $this->findBlockers($composer, $targets),
 			$this->findMissingData(),
 			$discovered->findKnownVersions(),
 			$declarations !== null,
 			$resolution->resolvedConfig->typeAnalysis !== null,
 			[...array_keys($resolution->warnings), ...$warnings],
-			...$this->offline ? [] : $this->findMoves($targets),
+			$composer === null || $this->offline ? null : $this->findMoves($composer, $targets),
 		);
 	}
 
@@ -278,45 +279,25 @@ final readonly class Estimator
 
 
 	/**
-	 * What the lock of the project holds that refuses each target; nothing where the project has no lock.
+	 * What the lock of the project holds that refuses each target.
 	 * @param  list<Target>  $targets
 	 * @return list<Blockers>
 	 */
-	private function findBlockers(array $targets): array
+	private function findBlockers(Composer $composer, array $targets): array
 	{
-		$project = ProjectPackages::read($this->project->root);
-		if ($project->rootPath === null || !is_file("$project->rootPath/composer.lock")) {
-			return [];
-		}
-
 		$this->onProgress?->__invoke('asking Composer what the lock refuses');
-		$composer = new Composer($project->rootPath, $project->rootName);
 		return array_map($composer->findBlockers(...), $targets);
 	}
 
 
 	/**
-	 * The packages the update to the targets moves across a major version, as the dry run of Composer raising the
-	 * constraints says, which needs the network; nothing where the project has no lock.
+	 * What raising the constraints to the targets moves, as the dry run of Composer says, which needs the network.
 	 * @param  list<Target>  $targets
-	 * @return array{moves?: list<Move>, movesUnknown?: string}
 	 */
-	private function findMoves(array $targets): array
+	private function findMoves(Composer $composer, array $targets): Moves
 	{
-		$project = ProjectPackages::read($this->project->root);
-		if ($project->rootPath === null || !is_file("$project->rootPath/composer.lock")) {
-			return [];
-		}
-
 		$this->onProgress?->__invoke('asking Composer what the update moves');
-		$constraints = array_column(array_map(fn(Target $target) => [$target->package, "^$target->version"], $targets), 1, 0);
-		[$exit, $output] = new Composer($project->rootPath)->requirePackages($constraints, dryRun: true);
-		$lines = array_values(array_filter(array_map(trim(...), preg_split('~\R~', $output) ?: [])));
-		return match (true) {
-			$exit === null => ['movesUnknown' => 'Composer did not answer in time'],
-			$exit !== 0 => ['movesUnknown' => 'Composer failed: ' . ($lines[count($lines) - 1] ?? "exit code $exit")],
-			default => ['moves' => array_values(array_filter(Composer::parseMoves($output), fn(Move $move) => $move->isMajor()))],
-		};
+		return $composer->findMoves(array_map(fn(string $version) => "^$version", Target::collectVersions($targets)));
 	}
 
 

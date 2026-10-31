@@ -106,13 +106,14 @@ final readonly class EstimatePrinter
 			$out .= $label('Composer') . $blockers->target->format() . ': ' . self::formatBlockers($blockers) . "\n";
 		}
 
-		if ($estimate->movesUnknown !== null) {
-			$out .= $label('Moves') . "unknown, $estimate->movesUnknown\n";
-		} elseif ($estimate->moves !== []) {
+		$major = $estimate->moves?->findMajor() ?? [];
+		if ($estimate->moves?->unknown !== null) {
+			$out .= $label('Moves') . "unknown, {$estimate->moves->unknown}\n";
+		} elseif ($major !== []) {
 			$out .= $label('Moves') . self::wrapList(array_map(
 				fn(Move $move) => "$move->package $move->from => $move->to"
 					. ($move->isKnown($estimate->knownVersions) ? '' : ' (no data)'),
-				$estimate->moves,
+				$major,
 			)) . "\n";
 		}
 
@@ -160,11 +161,14 @@ final readonly class EstimatePrinter
 				'packages' => array_map(fn(Blocker $blocker) => (array) $blocker, $blockers->packages),
 				'unknown' => $blockers->unknown,
 			], $estimate->blockers),
-			'moves' => array_map(
-				fn(Move $move) => [...(array) $move, 'data' => $move->isKnown($estimate->knownVersions)],
-				$estimate->moves,
-			),
-			'movesUnknown' => $estimate->movesUnknown,
+			'moves' => $estimate->moves === null ? null : [
+				'packages' => array_map(fn(Move $move) => [
+					...(array) $move,
+					'major' => $move->isMajor(),
+					'data' => $move->isKnown($estimate->knownVersions),
+				], $estimate->moves->packages),
+				'unknown' => $estimate->moves->unknown,
+			],
 			'missingData' => (object) $estimate->missingData,
 			'knownVersions' => (object) $estimate->knownVersions,
 			'warnings' => $estimate->warnings,

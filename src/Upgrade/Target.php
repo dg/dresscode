@@ -30,6 +30,17 @@ final readonly class Target
 	}
 
 
+	/**
+	 * The versions of the targets by their package.
+	 * @param  list<self>  $targets
+	 * @return array<string, string>  package => version
+	 */
+	public static function collectVersions(array $targets): array
+	{
+		return array_combine(array_column($targets, 'package'), array_column($targets, 'version'));
+	}
+
+
 	/** The target as a message says it, `php 8.4`, `nette/application 4.0`. */
 	public function format(): string
 	{

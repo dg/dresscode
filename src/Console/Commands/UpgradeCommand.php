@@ -12,7 +12,9 @@ use DressCode\Config\{DataPackageCatalogue, PackageDiscovery, ProjectPackages, R
 use DressCode\Console\{Application, CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter, TasksPrinter};
 use DressCode\Engine\{Worker, WorkerPool};
 use DressCode\Measuring\Scope;
-use DressCode\Upgrade\{Composer, EstimateRun, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, Project, RunStop, Step, Target};
+use DressCode\Upgrade\{
+	Composer, ComposerException, EstimateRun, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, Project, RunStop, Step, Target,
+};
 use Nette\CommandLine\{Attributes as Cli, ColorDepth, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES;
@@ -251,15 +253,13 @@ final readonly class UpgradeCommand
 		$console->clearStatus();
 		$composer = new Composer($project->root);
 		$label = fn(string $label) => $console->color('gray', str_pad($label, 11));
-		$lines = fn(string $output) => array_filter(array_map(trim(...), explode("\n", $output)));
-		$last = fn(string $output) => (string) (array_slice($lines($output), -1)[0] ?? 'it did not end in time');
-		[$exit, $output] = $composer->requirePackages($step->require, $step->update, dryRun: true);
-		if ($exit !== 0) {
-			$console->writeLine($label('Composer') . "cannot $step->title: " . $last($output));
+		try {
+			$changes = $composer->previewRequire($step->require, $step->update);
+		} catch (ComposerException $e) {
+			$console->writeLine($label('Composer') . "cannot $step->title: {$e->getMessage()}");
 			return false;
 		}
 
-		$changes = Composer::parseOperations($output);
 		$console->writeLine($label('Composer') . "$step->title, " . ($changes === [] ? 'which changes no installed package' : 'which changes:'));
 		foreach ($changes as $change) {
 			$console->writeLine("  $change");
@@ -270,11 +270,13 @@ final readonly class UpgradeCommand
 		}
 
 		$console->setStatus($console->color('gray', 'Upgrading  ') . "Composer, $step->title\u{2026}");
-		[$exit, $output] = $composer->requirePackages($step->require, $step->update);
-		if ($exit !== 0) {
-			$console->clearStatus();
-			$console->writeLine($label('Composer') . "failed to $step->title: " . $last($output));
+		try {
+			$composer->require($step->require, $step->update);
+		} catch (ComposerException $e) {
+			$console->writeLine($label('Composer') . "failed to $step->title: {$e->getMessage()}");
 			return false;
+		} finally {
+			$console->clearStatus();
 		}
 
 		return true;
