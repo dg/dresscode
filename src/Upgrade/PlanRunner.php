@@ -12,6 +12,7 @@ use DressCode\ConfigurationException;
 use DressCode\Engine\Helpers;
 use DressCode\Measuring\NamespaceDeclarations;
 use Nette\Utils\FileSystem;
+use function count;
 
 
 /**
@@ -73,7 +74,12 @@ final readonly class PlanRunner
 	 */
 	public function run(Plan $plan, ?int $only = null, ?\Closure $raise = null): RunOutcome
 	{
-		if ($this->commit && $this->git->hasOwnChanges()) {
+		$steps = $plan->findSteps();
+		if ($only !== null && !isset($steps[$only])) {
+			throw new ConfigurationException(isset($plan->steps[$only - 1])
+				? "Step $only of the plan is left out with `skip: true`, so it is not run."
+				: "The plan has no step $only; it has " . count($plan->steps) . '.');
+		} elseif ($this->commit && $this->git->hasOwnChanges()) {
 			throw new ConfigurationException('A commit of a topic takes the files it changed whole, and the working tree has changes of its own; commit or stash them first.');
 		}
 
@@ -81,10 +87,10 @@ final readonly class PlanRunner
 		$baseline = $plan->testCommand === null ? null : $this->findBaseline($plan->testCommand);
 		$kept = $this->project->findKeptDecisions();
 		$declarations = $this->project->collectDeclarations();
-		$steps = $plan->findSteps();
 		$last = array_key_last(array_filter($steps, fn(Step $step) => $step->kind === StepKind::Fix));
 		$fixed = $tasks = [];
 		$raised = false; // the step follows a raise of Composer
+		$leaving = 0; // the last step that left tasks
 		foreach ($steps as $number => $step) {
 			if ($only !== null && $number !== $only) {
 				continue;
@@ -129,14 +135,17 @@ final readonly class PlanRunner
 
 			$left = array_map(fn(TopicReporter $reporter) => $reporter->tasks, $reporters);
 			$tasks = array_filter([...$tasks, ...$left]); // the last fix of a topic tells what it leaves
-			if ($raised && array_filter($left) !== []) {
+			$leaving = array_filter($left) === [] ? $leaving : $number;
+			if ($raised && $leaving === $number) {
 				return new RunOutcome(RunStop::Tasks, $number, $fixed, $tasks);
 			}
 
 			$raised = false;
 		}
 
-		if ($only === null) {
+		if ($tasks !== []) { // a plan is done once nothing of it is left for a human
+			return new RunOutcome(RunStop::Tasks, $leaving, $fixed, $tasks);
+		} elseif ($only === null) {
 			self::forget($this->project);
 		}
 

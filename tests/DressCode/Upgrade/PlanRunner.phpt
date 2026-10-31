@@ -170,6 +170,29 @@ test('a fix resolves the names with what the namespaces declare, as the estimate
 });
 
 
+test('a plan leaving a task is not done, and a step it does not run is refused', function () {
+	$root = createSteppedProject('steps-left');
+	file_put_contents("$root/src/Date.php", "<?php\n\nfunction month(): string\n{\n\treturn strftime('%B');\n}\n");
+	$plan = new Plan(
+		[Target::php('8.4')],
+		[new Step(StepKind::Fix, 'bridge', ['php']), new Step(StepKind::Fix, 'later', ['php'], skip: true)],
+		'1.0',
+	);
+	$runner = new PlanRunner(createSteppedRunProject($root));
+
+	$outcome = $runner->run($plan);
+	Assert::same([RunStop::Tasks, 1], [$outcome->stop, $outcome->step]);
+	Assert::same(['src/Date.php'], array_map(fn(Task $task) => $task->path, $outcome->tasks['php']));
+
+	Assert::exception(fn() => $runner->run($plan, only: 3), DressCode\ConfigurationException::class, 'The plan has no step 3; it has 2.');
+	Assert::exception(
+		fn() => $runner->run($plan, only: 2),
+		DressCode\ConfigurationException::class,
+		'Step 2 of the plan is left out with `skip: true`, so it is not run.',
+	);
+});
+
+
 test('a raise the caller makes lets the run go on, one it only claims leaves the run waiting', function () {
 	$root = createSteppedProject('steps-raised');
 	$runner = new PlanRunner(createSteppedRunProject($root));

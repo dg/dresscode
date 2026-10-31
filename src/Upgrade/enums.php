@@ -53,7 +53,7 @@ enum RunStop
 	/** before a step of Composer whose constraints are not raised */
 	case Composer;
 
-	/** after the step a raise leads to, which leaves tasks for a human */
+	/** after the step a raise leads to, or at the end of the plan, where tasks are left for a human */
 	case Tasks;
 
 	/** after a step whose tests newly failed, which went back */
