@@ -600,6 +600,19 @@ test('a close call of standards is asked first, and the answer measures against 
 });
 
 
+test('answers adding to one list in a round add up, neither replacing the other', function () {
+	$root = createProject('answers-list', ['composer.json' => '{}', 'src/a.php' => "<?php\n"]);
+	$proposal = Proposal::measure(
+		Project::detect($root),
+		Scope::fromAutoload($root, Scope::Extensions),
+		new InProcessProbeRunner($root),
+		['perCs'],
+	);
+	$proposal->apply(new Answer('one', ['naming.except' => ['~a~']]), new Answer('other', ['naming.except' => ['~b~']]));
+	Assert::same(['~a~', '~b~'], $proposal->values['naming.except']->value);
+});
+
+
 test('names no rule renames that share a suffix are let pass by the recommended answer', function () {
 	$files = ['composer.json' => '{}'];
 	foreach (['Cart_', 'Order_', 'Item_', 'Stock_'] as $class) {

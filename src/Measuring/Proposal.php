@@ -11,7 +11,7 @@ use DressCode\{Analyses, ConfigurationException};
 use DressCode\Config\{Draft, Loader, ResolvedConfig, RunnerFactory};
 use DressCode\Engine\Helpers;
 use Nette\Utils\FileSystem;
-use function count, sprintf;
+use function count, is_array, sprintf;
 
 
 /**
@@ -208,10 +208,22 @@ final class Proposal
 	public function apply(Answer ...$answers): bool
 	{
 		$before = $this->buildProbeConfig();
+		$values = [];
 		foreach ($answers as $answer) {
 			foreach ($answer->values as $path => $value) {
-				$this->answer($path, $value, $answer->comment);
+				// answers adding to one list, each built from what was proposed before them, add up rather than replace each other
+				$earlier = $values[$path][0] ?? null;
+				$values[$path] = [
+					is_array($earlier) && array_is_list($earlier) && is_array($value) && array_is_list($value)
+						? array_values(array_unique([...$earlier, ...$value], SORT_REGULAR))
+						: $value,
+					$answer->comment,
+				];
 			}
+		}
+
+		foreach ($values as $path => [$value, $comment]) {
+			$this->answer($path, $value, $comment);
 		}
 
 		return $this->buildProbeConfig() !== $before;
