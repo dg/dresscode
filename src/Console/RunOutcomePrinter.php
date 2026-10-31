@@ -81,6 +81,7 @@ final readonly class RunOutcomePrinter
 				. "step $outcome->step did not fix the files above: make each parse, or leave it out of the paths, then run `dresscode upgrade --continue`",
 			RunStop::Done => $console->color('white/green', $this->only === null
 				? 'UPGRADED  every step of the plan is done'
+					. (($this->plan->testCommand ?? $this->plan->quickTestCommand) === null ? ', no tests run' : '')
 				: "DONE      step $this->only")
 				. ($this->only === null && $this->updatesPackages()
 					? "\nThe packages are at the lowest versions the constraints allow, which the code is written for; `composer update` installs the newest."

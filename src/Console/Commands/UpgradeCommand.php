@@ -37,7 +37,7 @@ final readonly class UpgradeCommand
 	}
 
 
-	#[Cli\Command('Show what upgrading to newer versions of PHP or of a library costs, changing nothing; with `--today`, upgrade the code to the lowest versions `composer.json` allows')]
+	#[Cli\Command('Estimate what upgrading to newer versions of PHP or of a library changes in the code, changing nothing; with `--today`, upgrade the code to the lowest versions `composer.json` allows')]
 	public function upgrade(
 		ParseResult $args,
 		#[Cli\Argument('`php` or a package; PHP and every library with upgrading data when omitted', optional: true)]
@@ -213,7 +213,7 @@ final readonly class UpgradeCommand
 
 	/**
 	 * Lists what the fixes of the saved plan leave for a human in the code as it stands, changing nothing, and the
-	 * suppressions that only put a task off: exit code 1 where a task is left.
+	 * suppressions that only put a task off: exit code 1 where either is left.
 	 */
 	private function listTasks(Project $project, UpgradeOptions $options, ?Console $console): int
 	{
@@ -225,21 +225,23 @@ final readonly class UpgradeCommand
 
 		try {
 			$tasks = $runner->findTasks($plan);
-			$printer = new TasksPrinter($tasks, $runner->findPostponed($plan));
+			$postponed = $runner->findPostponed($plan);
 		} finally {
 			($console ?? $this->context->err)->clearStatus();
 		}
 
+		$printer = new TasksPrinter($tasks, $postponed);
+		$left = $tasks !== [] || $postponed !== [];
 		if ($console === null) {
 			$this->writeJson(['version' => TasksPrinter::Version, ...$printer->toArray()]);
 		} else {
 			$console->write(Markup::highlightCode($console, $printer->print($console)));
-			$console->writeLine($tasks === []
-				? $console->color('white/green', 'OK  nothing of the plan is left for you')
-				: $console->color('white/red', 'FOUND  places of the plan are left for you'));
+			$console->writeLine($left
+				? $console->color('white/red', 'FOUND  places of the plan are left for you')
+				: $console->color('white/green', 'OK  nothing of the plan is left for you'));
 		}
 
-		return $tasks === [] ? 0 : 1;
+		return $left ? 1 : 0;
 	}
 
 

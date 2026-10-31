@@ -713,7 +713,10 @@ test('upgrade --plan writes the steps, --run makes them up to the raise of Compo
 	file_put_contents("$root/src/Code.php", $code);
 	[$exit, $out] = runApp($root, ['upgrade', '--continue', '--no-types', '--no-color']);
 	Assert::same(0, $exit);
-	Assert::match("%A%UPGRADED  every step of the plan is done\nThe packages are at the lowest versions the constraints allow, %a%", $out);
+	Assert::match(
+		"%A%UPGRADED  every step of the plan is done, no tests run\nThe packages are at the lowest versions the constraints allow, %a%",
+		$out,
+	);
 });
 
 
