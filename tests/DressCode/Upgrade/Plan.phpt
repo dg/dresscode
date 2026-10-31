@@ -65,14 +65,14 @@ test('the file of the plan gives back the plan it was written from', function ()
 	$root = createTempDir('plan-file');
 	$plan = new PlanBuilder(new ProjectPackages(required: ['php' => '^8.1']))
 		->build(createPlanEstimate(), 'composer test -- {junit}', 'composer quick -- {junit}');
-	PlanFile::write($plan, "$root/" . PlanFile::Name);
-	Assert::equal($plan, PlanFile::read("$root/" . PlanFile::Name));
+	PlanFile::write($plan, $root);
+	Assert::equal($plan, PlanFile::read($root));
 });
 
 
 test('the file of the plan is read as the team writes it, and one that is no plan is refused', function () {
 	$root = createTempDir('plan-edited');
-	file_put_contents("$root/plan.neon", <<<'XX'
+	file_put_contents("$root/" . PlanFile::Name, <<<'XX'
 		targets: {php: '8.4'}
 		tests: {command: 'vendor/bin/phpunit --log-junit {junit}'}
 		steps:
@@ -86,15 +86,15 @@ test('the file of the plan is read as the team writes it, and one that is no pla
 			'',
 			testCommand: 'vendor/bin/phpunit --log-junit {junit}',
 		),
-		PlanFile::read("$root/plan.neon"),
+		PlanFile::read($root),
 	);
 
 	foreach ([
 		"steps: []\n" => '`targets` and `steps` are expected',
 		"targets: {php: '8.4'}\nsteps:\n\t- {title: who knows}\n" => 'step 1 must give its `kind`, `fix`, `composer` or `manual`',
 	] as $text => $message) {
-		file_put_contents("$root/plan.neon", $text);
-		Assert::exception(fn() => PlanFile::read("$root/plan.neon"), DressCode\ConfigurationException::class, "The plan `%a%`: $message.");
+		file_put_contents("$root/" . PlanFile::Name, $text);
+		Assert::exception(fn() => PlanFile::read($root), DressCode\ConfigurationException::class, "The plan `%a%`: $message.");
 	}
 });
 

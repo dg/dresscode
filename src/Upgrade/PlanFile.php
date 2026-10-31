@@ -26,9 +26,20 @@ final class PlanFile
 	public const Name = 'dresscode-upgrade.neon';
 
 
-	/** @throws ConfigurationException  for a file that is no plan */
-	public static function read(string $file): Plan
+	/** Whether the project in the root has a saved plan. */
+	public static function exists(string $root): bool
 	{
+		return is_file("$root/" . self::Name);
+	}
+
+
+	/**
+	 * The saved plan of the project in the root.
+	 * @throws ConfigurationException  for a file that is no plan
+	 */
+	public static function read(string $root): Plan
+	{
+		$file = "$root/" . self::Name;
 		try {
 			$data = Neon::decode(FileSystem::read($file));
 		} catch (NeonException|IOException $e) {
@@ -75,7 +86,8 @@ final class PlanFile
 	}
 
 
-	public static function write(Plan $plan, string $file): void
+	/** Saves the plan into the root of its project. */
+	public static function write(Plan $plan, string $root): void
 	{
 		$steps = array_map(fn(Step $step) => array_filter([
 			'title' => $step->title,
@@ -89,12 +101,12 @@ final class PlanFile
 		$data = array_filter([
 			'dresscode' => $plan->dresscode,
 			'data' => $plan->data,
-			'targets' => array_column(array_map(fn(Target $target) => [$target->package, $target->version], $plan->targets), 1, 0),
+			'targets' => Target::collectVersions($plan->targets),
 			'tests' => array_filter(['command' => $plan->testCommand, 'quick' => $plan->quickTestCommand]),
 			'steps' => $steps,
 		], fn($value) => $value !== []);
 		$header = '# dresscode upgrade: the plan for ' . implode(', ', array_map(fn(Target $target) => $target->format(), $plan->targets))
 			. "; a step goes with `skip: true`, and `dresscode upgrade --continue` runs what is left\n\n";
-		FileSystem::write($file, $header . Neon::encode($data, blockMode: true));
+		FileSystem::write("$root/" . self::Name, $header . Neon::encode($data, blockMode: true));
 	}
 }

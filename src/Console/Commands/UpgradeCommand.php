@@ -65,7 +65,7 @@ final readonly class UpgradeCommand
 		}
 
 		$runner = $this->createPlanRunner($project, $this->decideTypes($options, $project->config), $options, $console);
-		$plan = PlanFile::read("$project->root/" . PlanFile::Name);
+		$plan = PlanFile::read($project->root);
 		if ($console !== null) {
 			self::writeHeader($console, $project);
 		}
@@ -88,7 +88,7 @@ final readonly class UpgradeCommand
 		?Console $console,
 	): int
 	{
-		if ($options->run && !$options->savePlan && is_file("$project->root/" . PlanFile::Name)) {
+		if ($options->run && !$options->savePlan && PlanFile::exists($project->root)) {
 			throw new UsageException(
 				'The project has a saved plan, `' . PlanFile::Name . '`, which `--continue` runs; `--run --save-plan` replaces it.',
 				$args->command,
@@ -136,7 +136,7 @@ final readonly class UpgradeCommand
 		}
 
 		if ($plan !== null && ($options->savePlan || $options->run)) {
-			PlanFile::write($plan, "$project->root/" . PlanFile::Name);
+			PlanFile::write($plan, $project->root);
 			PlanRunner::forget($project);
 			$console?->writeLine($console->color('gray', 'Saved      ') . PlanFile::Name);
 		}
@@ -213,7 +213,7 @@ final readonly class UpgradeCommand
 	 */
 	private function listTasks(Project $project, UpgradeOptions $options, ?Console $console): int
 	{
-		$plan = PlanFile::read("$project->root/" . PlanFile::Name);
+		$plan = PlanFile::read($project->root);
 		$runner = $this->createPlanRunner($project, $this->decideTypes($options, $project->config), $options, $console);
 		if ($console !== null) {
 			self::writeHeader($console, $project);
