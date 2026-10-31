@@ -27,14 +27,14 @@ final readonly class ProposedValue
 		public mixed $wanted = null,
 		/** for a decision the budget left unchecked: the files its fix would change */
 		public int $cost = 0,
-		/** for a decision the budget left unchecked: a place of the code a fix would rewrite, `path:line  message` */
-		public ?string $example = null,
+		/** for a decision the budget left unchecked: a place of the code a fix would rewrite */
+		public ?Finding $example = null,
 	) {
 	}
 
 
 	/** A decision whose fix would change more files than the budget allows, left unchecked. */
-	public static function overBudget(string $path, mixed $wanted, int $cost, int $scopeFiles, ?string $example = null): self
+	public static function overBudget(string $path, mixed $wanted, int $cost, int $scopeFiles, ?Finding $example = null): self
 	{
 		return new self(
 			$path,

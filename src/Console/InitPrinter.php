@@ -165,7 +165,9 @@ final readonly class InitPrinter
 	/** A question asked in a terminal: what it asks and a place of the code it is about; the answers are the prompt's. */
 	public function printQuestion(Question $question): string
 	{
-		return $question->text . "\n" . ($question->example === null ? '' : $this->label('') . "e.g. $question->example\n");
+		return $question->text
+			. "\n"
+			. ($question->example === null ? '' : $this->label('') . 'e.g. ' . $question->example->describe() . "\n");
 	}
 
 

@@ -22,8 +22,8 @@ final readonly class Question
 		public array $answers,
 		/** how to answer it without a terminal: the line of `dresscode.neon` or the command that does it */
 		public string $instruction,
-		/** a place of the code it is about: "src/Cart.php:12  The class `Cart_` must be written in PascalCase." */
-		public ?string $example = null,
+		/** a place of the code it is about */
+		public ?Finding $example = null,
 		/** the files the costliest answer rewrites, by which the questions are ordered */
 		public int $files = 0,
 	) {
