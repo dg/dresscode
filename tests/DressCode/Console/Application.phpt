@@ -717,6 +717,19 @@ test('upgrade --plan writes the steps, --run makes them up to the raise of Compo
 });
 
 
+test('upgrade --no-types measures without the types the configuration asks for', function () {
+	$root = createTempDir('offer-no-types');
+	mkdir("$root/src");
+	file_put_contents("$root/src/Code.php", "<?php\n");
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\ncacheDir: cache\ntypeAnalysis: phpstan\n");
+
+	[$exit, $out, $err] = runApp($root, ['upgrade', 'php', '8.4', '--no-types', '--offline', '--format', 'json']);
+	Assert::same([0, ''], [$exit, $err]);
+	Assert::false(json_decode($out, associative: true, flags: JSON_THROW_ON_ERROR)['types']);
+});
+
+
 test('upgrade names the package of upgrading data a library of the project has, which DressCode lacks', function () {
 	$root = createTempDir('offer-missing-data');
 	mkdir("$root/src");

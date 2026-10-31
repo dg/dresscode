@@ -34,13 +34,13 @@ final readonly class EstimateRun
 
 
 	/**
-	 * The project of the check, the sets laid as `upgrade` lays them.
+	 * The project of the check, the sets laid as `upgrade` lays them, without the types where the layer asks for none.
 	 * @return array{RunnerFactory, ResolvedProject}
 	 * @throws ConfigurationException
 	 */
 	public function resolve(Config $config, string $root): array
 	{
-		$factory = new RunnerFactory;
+		$factory = new RunnerFactory(withoutTypes: $this->layer->typeAnalysis === null);
 		return [$factory, $factory->resolve($config, $root, $this->layer, $this->only, laid: Estimator::Sets)];
 	}
 

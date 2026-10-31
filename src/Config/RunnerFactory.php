@@ -29,6 +29,8 @@ final readonly class RunnerFactory
 		public PluginRegistry $registry = new PluginRegistry,
 		/** whether `phpstan/phpstan` is installed beside DressCode; null asks Composer */
 		private ?bool $phpstanInstalled = null,
+		/** the run goes without the types of the code even where the configuration asks for them, as `--no-types` says */
+		private bool $withoutTypes = false,
 	) {
 	}
 
@@ -68,7 +70,7 @@ final readonly class RunnerFactory
 		$this->registerProjectRules($config);
 		// a command asking for the types has no run without them
 		$commandTypes = $commandLine instanceof Config ? $commandLine->typeAnalysis : null;
-		$typesAvailable = ($commandTypes ?? $config->typeAnalysis) === null || $this->isPhpStanInstalled();
+		$typesAvailable = !$this->withoutTypes && (($commandTypes ?? $config->typeAnalysis) === null || $this->isPhpStanInstalled());
 		if ($commandTypes !== null && !$typesAvailable) {
 			throw new ConfigurationException(
 				'The command needs the types of the code, but `phpstan/phpstan` is not installed beside DressCode.',
@@ -88,7 +90,7 @@ final readonly class RunnerFactory
 			),
 		);
 		$warnings = array_fill_keys([...$packages->warnings, ...$unnamed, ...$missing, ...$resolver->getWarnings()], null);
-		if (!$typesAvailable) {
+		if (!$typesAvailable && !$this->withoutTypes) {
 			$warnings['The configuration sets `typeAnalysis: phpstan`, but `phpstan/phpstan` is not installed beside DressCode, so the run goes without the types of the code.'] = 'types#enable';
 		}
 

@@ -95,7 +95,7 @@ final readonly class Estimator
 		);
 		$plugins = $discovered->findDataPlugins();
 		// the project as it is today, narrowed to nothing, which tells what runs before the raise, and whose runner finds the files
-		$todayRun = new EstimateRun($this->project->createLayer($plugins, types: false), []);
+		$todayRun = new EstimateRun($this->project->createLayer($plugins, $this->types), []);
 		[$todayFactory, $today] = $todayRun->resolve($this->project->config, $this->project->root);
 		$runner = $todayFactory->createRunner($today, cache: false);
 		$scope = $paths ? $runner->narrowPaths($paths, $this->project->config->paths) : $this->project->config->paths;

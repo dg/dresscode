@@ -224,7 +224,7 @@ final readonly class PlanRunner
 	): TopicReporter
 	{
 		$project = $this->project;
-		$factory = new RunnerFactory;
+		$factory = new RunnerFactory(withoutTypes: !$this->types);
 		$plugins = PackageDiscovery::discover($factory->readProjectPackages($project->config, $project->root))->findDataPlugins();
 		$resolution = $factory->resolve(
 			$project->config,
