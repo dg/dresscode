@@ -84,7 +84,8 @@ final readonly class PlanRunner
 		}
 
 		$snapshots = new Snapshots("$this->workDir/snapshots");
-		$baseline = $plan->testCommand === null ? null : $this->findBaseline($plan->testCommand);
+		$commands = array_values(array_filter([$plan->testCommand, $plan->quickTestCommand]));
+		$baselines = array_combine($commands, array_map($this->findBaseline(...), $commands));
 		$kept = $this->project->findKeptDecisions();
 		$declarations = $this->project->collectDeclarations();
 		$last = array_key_last(array_filter($steps, fn(Step $step) => $step->kind === StepKind::Fix));
@@ -118,10 +119,12 @@ final readonly class PlanRunner
 			}
 
 			// the whole suite after the jump and after the last step, the quick one after the others
-			$command = $raised || $number === $last ? $plan->testCommand : $plan->quickTestCommand ?? $plan->testCommand;
-			if ($baseline !== null && $command !== null) {
+			$command = $raised || $number === $last
+				? $plan->testCommand ?? $plan->quickTestCommand
+				: $plan->quickTestCommand ?? $plan->testCommand;
+			if ($command !== null) {
 				$this->onProgress?->__invoke("step $number, running the tests");
-				$failures = TestResults::collect($command, $this->project->root)?->findNewFailures($baseline);
+				$failures = TestResults::collect($command, $this->project->root)?->findNewFailures($baselines[$command]);
 				if ($failures !== []) {
 					$snapshots->restore($number, $this->project->root);
 					return new RunOutcome(RunStop::Tests, $number, $fixed, $tasks, $failures ?? []);
@@ -154,17 +157,18 @@ final readonly class PlanRunner
 
 
 	/**
-	 * The results of the tests before the first step, run once and kept for the runs that follow.
-	 * @throws ConfigurationException  where the command wrote no results
+	 * The results of the command of the tests before the first step, run once and kept for the runs that follow, each
+	 * command its own.
+	 * @throws ConfigurationException  where the command gave no results
 	 */
 	private function findBaseline(string $command): TestResults
 	{
-		$file = "$this->workDir/tests-baseline.json";
+		$file = "$this->workDir/tests-baseline-" . substr(hash('xxh128', $command), 0, 16) . '.json';
 		$baseline = TestResults::fromFile($file);
 		if ($baseline === null) {
 			$this->onProgress?->__invoke('running the tests before the first step');
 			$baseline = TestResults::collect($command, $this->project->root)
-				?? throw new ConfigurationException("The command testing the project, `$command`, wrote no JUnit file where `{junit}` stands.");
+				?? throw new ConfigurationException("The command testing the project, `$command`, wrote no JUnit report where `{junit}` stands, or did not end in time.");
 			$baseline->save($file);
 		}
 

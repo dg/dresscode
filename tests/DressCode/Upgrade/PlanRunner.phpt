@@ -54,7 +54,7 @@ test('the results of the tests are read from JUnit as PHPUnit and Nette Tester w
 				<testcase classname="W:/acme/tests/Mail.phpt" name="W:/acme/tests/Mail.phpt"><error/></testcase>
 			</testsuite>
 		</testsuites>
-		XX, 'W:/acme');
+		XX, 'W:/acme') ?? throw new RuntimeException;
 
 	Assert::same([
 		'App.Tests.MailTest::testSend with data set #0' => true,
@@ -66,7 +66,23 @@ test('the results of the tests are read from JUnit as PHPUnit and Nette Tester w
 		['tests/Mail.phpt::W:/acme/tests/Mail.phpt'],
 		$results->findNewFailures(new TestResults(['App/Tests/MailTest::testQueue' => false])),
 	);
-	Assert::same([], TestResults::fromJunit('no xml', 'W:/acme')->tests);
+	Assert::null(TestResults::fromJunit('no xml', 'W:/acme'));
+	Assert::null(TestResults::fromJunit('<html/>', 'W:/acme'));
+});
+
+
+test('a test gone, skipped now or failing under one of its repeated identities is a new failure', function () {
+	$baseline = new TestResults(['A::one' => true, 'A::two' => true, 'A::three' => false]);
+	Assert::same(['A::one (gone)', 'A::two (gone)'], TestResults::fromJunit('<testsuites/>', '')?->findNewFailures($baseline));
+
+	$results = TestResults::fromJunit(<<<'XX'
+		<testsuites>
+			<testcase classname="A" name="one"><skipped/></testcase>
+			<testcase classname="A" name="two"/>
+			<testcase classname="A" name="two"><failure/></testcase>
+		</testsuites>
+		XX, '');
+	Assert::same(['A::one', 'A::two'], $results?->findNewFailures($baseline));
 });
 
 
@@ -102,7 +118,7 @@ test('a step whose tests newly fail goes back byte for byte, and a command writi
 			createSteppedPlan("$php -r 1;"),
 		),
 		DressCode\ConfigurationException::class,
-		'The command testing the project, `%a%`, wrote no JUnit file where `{junit}` stands.',
+		'The command testing the project, `%a%`, wrote no JUnit report where `{junit}` stands, or did not end in time.',
 	);
 });
 

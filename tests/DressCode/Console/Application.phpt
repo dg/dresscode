@@ -758,6 +758,10 @@ test('upgrade refuses what the offer cannot measure, and an option of --today wi
 		[['upgrade', '--today', '--plan'], '`--plan` belongs to the plan of an upgrade, and `--today` makes none.'],
 		[['upgrade', '--commit'], '`--step`, `--commit` and `--yes` go with `--run` or `--continue`, which run the plan.'],
 		[['upgrade', '--test-command', 'x'], '`--test-command` and `--quick-test-command` go into a plan made with %a%'],
+		[
+			['upgrade', '--plan', '--quick-test-command', 'phpunit'],
+			'A command of the tests writes its JUnit report where `{junit}` stands, and `phpunit` has none.',
+		],
 		[['upgrade', 'php', '--continue'], '`--continue` runs the saved plan as it is, so it takes no target and makes no plan; %a%'],
 		[
 			['upgrade', '--tasks', '--continue'],

@@ -153,6 +153,10 @@ final readonly class UpgradeOptions
 		};
 		$runs = $this->run || $this->continue;
 		$format = $this->format ?? 'console';
+		$noReport = array_find(
+			[$this->testCommand, $this->quickTestCommand],
+			fn(?string $command) => $command !== null && !str_contains($command, '{junit}'),
+		);
 		return match (true) {
 			$this->today && $target !== null
 				=> '`--today` upgrades to the versions `composer.json` allows, so it takes no target; name the paths with `--paths`.',
@@ -169,6 +173,7 @@ final readonly class UpgradeOptions
 				=> "The offer is written as `console`, `agent` or `json`; `$format` is a format of `--today`.",
 			($this->testCommand ?? $this->quickTestCommand) !== null && !$this->makesPlan()
 				=> '`--test-command` and `--quick-test-command` go into a plan made with `--plan`, `--save-plan` or `--run`.',
+			$noReport !== null => "A command of the tests writes its JUnit report where `{junit}` stands, and `$noReport` has none.",
 			$this->continue && ($target !== null || $this->makesPlan())
 				=> '`--continue` runs the saved plan as it is, so it takes no target and makes no plan; edit `'
 					. PlanFile::Name
