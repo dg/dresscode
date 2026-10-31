@@ -94,7 +94,7 @@ final readonly class PlanBuilder
 	 * @param  list<Target>  $targets
 	 * @return array<string, string>
 	 */
-	private function raiseConstraints(array $targets): array
+	public function raiseConstraints(array $targets): array
 	{
 		$require = [];
 		foreach ($targets as $target) {

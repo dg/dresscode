@@ -315,13 +315,15 @@ final readonly class Estimator
 
 
 	/**
-	 * What raising the constraints to the targets moves, as the dry run of Composer says, which needs the network.
+	 * What raising the constraints to the targets as the plan raises them moves, as the dry run of Composer says, which
+	 * needs the network.
 	 * @param  list<Target>  $targets
 	 */
 	private function findMoves(Composer $composer, array $targets): Moves
 	{
 		$this->onProgress?->__invoke('asking Composer what the update moves');
-		return $composer->findMoves(array_map(fn(string $version) => "^$version", Target::collectVersions($targets)));
+		$constraints = new PlanBuilder(ProjectPackages::read($this->project->root))->raiseConstraints($targets);
+		return $constraints === [] ? new Moves : $composer->findMoves($constraints);
 	}
 
 

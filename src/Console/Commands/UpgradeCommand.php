@@ -128,11 +128,16 @@ final readonly class UpgradeCommand
 			? new PlanBuilder(ProjectPackages::read($project->root), $this->decideLibrary($options, $project))
 				->build($estimate, $options->testCommand, $options->quickTestCommand)
 			: null;
-		$printer = $plan === null ? new EstimatePrinter($estimate) : new PlanPrinter($plan);
+		// the plan comes after the estimate it orders, which says what it cannot see and what it is not sure of
+		$offer = new EstimatePrinter($estimate);
+		$planPrinter = $plan === null ? null : new PlanPrinter($plan);
 		if ($console !== null) {
-			$console->write(Markup::highlightCode($console, $printer->print($console)));
+			$console->write(Markup::highlightCode(
+				$console,
+				$offer->print($console) . ($planPrinter === null ? '' : "\n" . $planPrinter->print($console)),
+			));
 		} elseif ($runner === null) { // the plan of a run goes into the document of the run
-			$this->writeJson($printer->toArray());
+			$this->writeJson($planPrinter === null ? $offer->toArray() : [...$planPrinter->toArray(), 'estimate' => $offer->toArray()]);
 		}
 
 		if ($plan !== null && ($options->savePlan || $options->run)) {
