@@ -58,6 +58,9 @@ enum RunStop
 
 	/** after a step whose tests newly failed, which went back */
 	case Tests;
+
+	/** after a step that could not fix or write some files */
+	case Errors;
 }
 
 

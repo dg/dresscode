@@ -123,6 +123,30 @@ test('a step whose tests newly fail goes back byte for byte, and a command writi
 });
 
 
+test('a file the fix cannot process stops the run after its step, and going back leaves a file changed since as it is', function () {
+	$root = createSteppedProject('steps-errors');
+	file_put_contents("$root/src/Broken.php", "<?php function {\n");
+	$outcome = new PlanRunner(createSteppedRunProject($root))->run(createSteppedPlan());
+	Assert::same([RunStop::Errors, 1], [$outcome->stop, $outcome->step]);
+	Assert::match('Syntax error: %a%', $outcome->errors['src/Broken.php']);
+	Assert::contains('?int', (string) file_get_contents("$root/src/Code.php"));
+
+	// the tests change the file the step wrote, as a user editing it while they run would
+	$root = createSteppedProject('steps-conflict');
+	file_put_contents("$root/edit.php", <<<'XX'
+		<?php
+		if (str_contains(file_get_contents(__DIR__ . '/src/Code.php'), '?int')) {
+			file_put_contents(__DIR__ . '/src/Code.php', "// edited\n", FILE_APPEND);
+		}
+		require __DIR__ . '/tests.php';
+		XX);
+	$outcome = new PlanRunner(createSteppedRunProject($root))->run(createSteppedPlan(escapeshellarg(PHP_BINARY) . ' edit.php {junit}'));
+	Assert::same(RunStop::Tests, $outcome->stop);
+	Assert::same(['src/Code.php' => 'The file changed after step 1 wrote it, so it was not written back.'], $outcome->errors);
+	Assert::contains("// edited\n", (string) file_get_contents("$root/src/Code.php"));
+});
+
+
 test('with commit, each topic is committed with the files it changed once the tests of its step pass', function () {
 	$root = createSteppedProject('steps-commit');
 	foreach (['GIT_AUTHOR_NAME', 'GIT_COMMITTER_NAME'] as $name) {

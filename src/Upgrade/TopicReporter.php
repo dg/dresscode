@@ -12,24 +12,20 @@ use DressCode\{FileResult, Reporter};
 
 
 /**
- * The reporter of the fix of a topic, which says nothing: it tells `$keep` every file the fix changes as it was before,
- * and collects what the fix changed and what it leaves for a human.
+ * The reporter of the fix of a topic, which says nothing and writes nothing: it collects what the fix would change,
+ * what it leaves for a human and the files it could not process.
  * @internal
  */
 final class TopicReporter implements Reporter
 {
-	/** @var array<string, string>  the files the fix changed, relative to the root => the text it left */
+	/** @var array<string, array{string, string}>  the files the fix changes, relative to the root => the text before and after */
 	public private(set) array $changed = [];
 
 	/** @var list<Task> */
 	public private(set) array $tasks = [];
 
-
-	public function __construct(
-		/** @var ?\Closure(string, string): void  given a file the fix changes, relative to the root, and its text before */
-		private readonly ?\Closure $keep = null,
-	) {
-	}
+	/** @var array<string, string>  the files the fix could not process, relative to the root => why */
+	public private(set) array $failed = [];
 
 
 	public function start(RunInfo $run): void
@@ -39,9 +35,11 @@ final class TopicReporter implements Reporter
 
 	public function reportFile(FileResult $result): void
 	{
-		if ($result->changed && $result->output !== null) {
-			$this->keep?->__invoke($result->path, $result->code);
-			$this->changed[$result->path] = $result->output;
+		if ($result->syntaxError !== null || $result->failure !== null) {
+			$this->failed[$result->path] = $result->failure ?? "Syntax error: $result->syntaxError";
+			return;
+		} elseif ($result->changed && $result->output !== null) {
+			$this->changed[$result->path] = [$result->code, $result->output];
 		}
 
 		foreach ($result->remaining as $violation) {

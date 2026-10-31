@@ -37,6 +37,8 @@ final readonly class Estimate
 		public array $warnings,
 		/** what raising the constraints to the targets moves, null where Composer was not asked, offline or without a lock */
 		public ?Moves $moves = null,
+		/** @var array<string, string>  the files the check could not process, whose places are not counted => why */
+		public array $failed = [],
 	) {
 	}
 

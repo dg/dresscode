@@ -99,6 +99,11 @@ final readonly class EstimatePrinter
 			$out .= Markup::formatLabel($console, "Can't see") . $this->formatBlindSpots() . "\n";
 		}
 
+		if ($estimate->failed !== []) {
+			$out .= Markup::formatLabel($console, 'Failed') . Markup::formatCount(count($estimate->failed), 'file')
+				. ' the check could not process, whose places are not counted: ' . self::formatList(array_keys($estimate->failed)) . "\n";
+		}
+
 		foreach ($estimate->blockers as $blockers) {
 			$out .= Markup::formatLabel($console, 'Composer') . $blockers->target->format() . ': ' . self::formatBlockers($blockers) . "\n";
 		}
@@ -166,6 +171,7 @@ final readonly class EstimatePrinter
 				], $estimate->moves->packages),
 				'unknown' => $estimate->moves->unknown,
 			],
+			'failed' => (object) $estimate->failed,
 			'missingData' => (object) $estimate->missingData,
 			'knownVersions' => (object) $estimate->knownVersions,
 			'warnings' => $estimate->warnings,

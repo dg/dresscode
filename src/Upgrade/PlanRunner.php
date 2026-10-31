@@ -106,16 +106,15 @@ final readonly class PlanRunner
 				continue;
 			}
 
-			$reporters = [];
+			$snapshots->drop($number); // what an interrupted run of the step kept is not what the files are now
+			$written = $errors = $left = [];
 			foreach ($step->only as $topic) {
 				$this->onProgress?->__invoke("step $number, fixing $topic");
-				$reporters[$topic] = $this->runTopic(
-					$topic,
-					$kept,
-					$declarations,
-					fn(string $path, string $code) => $snapshots->keep($number, $path, $code),
-				);
-				$fixed[$number][$topic] = array_keys($reporters[$topic]->changed);
+				$reporter = $this->runTopic($topic, $kept, $declarations);
+				[$written[$topic], $unwritten] = $this->writeTopic($number, $reporter, $snapshots);
+				$errors += $reporter->failed + $unwritten;
+				$left[$topic] = $reporter->tasks;
+				$fixed[$number][$topic] = array_keys($written[$topic]);
 			}
 
 			// the whole suite after the jump and after the last step, the quick one after the others
@@ -126,20 +125,21 @@ final readonly class PlanRunner
 				$this->onProgress?->__invoke("step $number, running the tests");
 				$failures = TestResults::collect($command, $this->project->root)?->findNewFailures($baselines[$command]);
 				if ($failures !== []) {
-					$snapshots->restore($number, $this->project->root);
-					return new RunOutcome(RunStop::Tests, $number, $fixed, $tasks, $failures ?? []);
+					$errors += $snapshots->restore($number, $this->project->root);
+					return new RunOutcome(RunStop::Tests, $number, $fixed, $tasks, $failures ?? [], $errors);
 				}
 			}
 
 			$snapshots->drop($number);
 			if ($this->commit) {
-				$this->commitStep($number, $reporters);
+				$this->commitStep($number, $written);
 			}
 
-			$left = array_map(fn(TopicReporter $reporter) => $reporter->tasks, $reporters);
 			$tasks = array_filter([...$tasks, ...$left]); // the last fix of a topic tells what it leaves
 			$leaving = array_filter($left) === [] ? $leaving : $number;
-			if ($raised && $leaving === $number) {
+			if ($errors !== []) {
+				return new RunOutcome(RunStop::Errors, $number, $fixed, $tasks, errors: $errors);
+			} elseif ($raised && $leaving === $number) {
 				return new RunOutcome(RunStop::Tasks, $number, $fixed, $tasks);
 			}
 
@@ -223,18 +223,11 @@ final readonly class PlanRunner
 
 
 	/**
-	 * Runs the topic over the project as it is, telling `$keep` each file the fix changes as it was before, or without it
-	 * only checking, the names resolved for certain with what the namespaces declare where they were measured, as the
-	 * estimate resolves them.
+	 * Runs the topic over the project as it is, writing nothing, the names resolved for certain with what the namespaces
+	 * declare where they were measured, as the estimate resolves them.
 	 * @param  list<string>  $kept  the decisions of the style the code keeps
-	 * @param  ?\Closure(string, string): void  $keep
 	 */
-	private function runTopic(
-		string $topic,
-		array $kept,
-		?NamespaceDeclarations $declarations,
-		?\Closure $keep = null,
-	): TopicReporter
+	private function runTopic(string $topic, array $kept, ?NamespaceDeclarations $declarations): TopicReporter
 	{
 		$project = $this->project;
 		$factory = new RunnerFactory(withoutTypes: !$this->types);
@@ -247,9 +240,33 @@ final readonly class PlanRunner
 			laid: Estimator::Sets,
 		);
 		$runner = $factory->createRunner($resolution, cache: false, configFile: $this->configFile);
-		$reporter = new TopicReporter($keep);
-		$runner->run($runner->findFiles($project->config->paths, configured: $project->config->paths), $keep !== null, $reporter);
+		$reporter = new TopicReporter;
+		$runner->run($runner->findFiles($project->config->paths, configured: $project->config->paths), false, $reporter);
 		return $reporter;
+	}
+
+
+	/**
+	 * Writes what the fix of the topic changes, each file kept as it was before the step first, and leaves a file changed
+	 * since the fix read it as it is.
+	 * @return array{array<string, string>, array<string, string>}  the files written => their text, the files left => why
+	 */
+	private function writeTopic(int $step, TopicReporter $reporter, Snapshots $snapshots): array
+	{
+		$written = $left = [];
+		foreach ($reporter->changed as $path => [$before, $after]) {
+			$file = Helpers::toAbsolutePath($path, $this->project->root);
+			if (@file_get_contents($file) !== $before) { // @ a file deleted since is changed too
+				$left[$path] = 'The file changed while it was being fixed, so it was not written.';
+				continue;
+			}
+
+			$snapshots->keep($step, $path, $before, $after);
+			FileSystem::write($file, $after);
+			$written[$path] = $after;
+		}
+
+		return [$written, $left];
 	}
 
 
@@ -275,21 +292,21 @@ final readonly class PlanRunner
 	/**
 	 * Commits each topic of the step with the files it changed as the topic left them, which a later topic of the step
 	 * may have changed again, so the working tree ends as the last topic left it, a commit git refuses too.
-	 * @param  array<string, TopicReporter>  $reporters  topic => the reporter of its fix
+	 * @param  array<string, array<string, string>>  $written  topic => the files its fix wrote => their text
 	 * @throws ConfigurationException  where git refuses a commit
 	 */
-	private function commitStep(int $step, array $reporters): void
+	private function commitStep(int $step, array $written): void
 	{
 		try {
-			foreach ($reporters as $topic => $reporter) {
-				$this->writeFiles($reporter->changed);
-				if ($reporter->changed !== []) {
-					$this->git->commit(array_keys($reporter->changed), "upgrade: $topic", "DressCode-Upgrade-Step: $step");
+			foreach ($written as $topic => $files) {
+				$this->writeFiles($files);
+				if ($files !== []) {
+					$this->git->commit(array_keys($files), "upgrade: $topic", "DressCode-Upgrade-Step: $step");
 				}
 			}
 		} catch (ConfigurationException $e) {
-			foreach ($reporters as $reporter) {
-				$this->writeFiles($reporter->changed);
+			foreach ($written as $files) {
+				$this->writeFiles($files);
 			}
 
 			throw new ConfigurationException(

@@ -59,6 +59,15 @@ final readonly class RunOutcomePrinter
 		}
 
 		$out .= new TasksPrinter($outcome->tasks)->print($console);
+		if ($outcome->errors !== []) {
+			$out .= Markup::formatLabel($console, 'Errors')
+				. Markup::formatCount(count($outcome->errors), 'file')
+				. " the step did not fix\n";
+			foreach ($outcome->errors as $path => $why) {
+				$out .= "  $path  " . strtok($why, "\n") . "\n";
+			}
+		}
+
 		return $out . match ($outcome->stop) {
 			RunStop::Tests => Markup::formatLabel($console, 'Failed') . "step $outcome->step went back, as " . ($outcome->failures === []
 				? 'the tests wrote no results after it'
@@ -68,6 +77,8 @@ final readonly class RunOutcomePrinter
 			RunStop::Tasks => Markup::formatLabel($console, 'Waiting')
 				. "step $outcome->step leaves the places above: fix each or confirm it with "
 				. '`// dresscode:ignore <decision> -- <reason>`, then run `dresscode upgrade --continue`',
+			RunStop::Errors => Markup::formatLabel($console, 'Waiting')
+				. "step $outcome->step did not fix the files above: make each parse, or leave it out of the paths, then run `dresscode upgrade --continue`",
 			RunStop::Done => $console->color('white/green', $this->only === null
 				? 'UPGRADED  every step of the plan is done'
 				: "DONE      step $this->only")
@@ -98,6 +109,11 @@ final readonly class RunOutcomePrinter
 			'fixed' => $fixed,
 			'tasks' => new TasksPrinter($outcome->tasks)->toArray()['tasks'],
 			'failures' => $outcome->failures,
+			'errors' => array_map(
+				fn(string $path, string $why) => ['file' => $path, 'message' => $why],
+				array_keys($outcome->errors),
+				$outcome->errors,
+			),
 		];
 	}
 

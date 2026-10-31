@@ -9,7 +9,8 @@ namespace DressCode\Upgrade;
 
 
 /**
- * How far a run of a plan got: what each fix changed, the tasks the fixes left and where and why the run stopped.
+ * How far a run of a plan got: what each fix changed, the tasks the fixes left, the files they failed on, and where and
+ * why the run stopped.
  * @internal
  */
 final readonly class RunOutcome
@@ -24,6 +25,8 @@ final readonly class RunOutcome
 		public array $tasks = [],
 		/** @var list<string>  the tests failing after the step that passed before, none where they wrote no results */
 		public array $failures = [],
+		/** @var array<string, string>  the files the step could not fix, write or write back, relative to the root => why */
+		public array $errors = [],
 	) {
 	}
 }

@@ -151,6 +151,7 @@ final readonly class Estimator
 			$resolution->resolvedConfig->typeAnalysis !== null,
 			[...array_keys($resolution->warnings), ...$warnings],
 			$composer === null || $this->offline ? null : $this->findMoves($composer, $targets),
+			self::collectFailures($result),
 		);
 	}
 
@@ -193,6 +194,23 @@ final readonly class Estimator
 		usort($topics, fn(Topic $a, Topic $b) => [$b->phase === Phase::Jump, $b->countPlaces(), $a->name]
 			<=> [$a->phase === Phase::Jump, $a->countPlaces(), $b->name]);
 		return [$topics, $unseen];
+	}
+
+
+	/**
+	 * The files the check could not process, by why.
+	 * @return array<string, string>
+	 */
+	private static function collectFailures(RunResult $result): array
+	{
+		$failed = [];
+		foreach ($result->files as $summary) {
+			if ($summary->syntaxError !== null || $summary->failure !== null) {
+				$failed[$summary->path] = $summary->failure ?? "Syntax error: $summary->syntaxError";
+			}
+		}
+
+		return $failed;
 	}
 
 

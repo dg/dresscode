@@ -79,6 +79,30 @@ test('the major moves of the update are said under Moves, those the data do not 
 });
 
 
+test('the files the check could not process are said, their places not counted', function () {
+	$estimate = new Estimate(
+		[Target::php('8.4')],
+		[],
+		2,
+		new BlindSpots,
+		[],
+		[],
+		[],
+		true,
+		false,
+		[],
+		failed: ['src/Broken.php' => 'Syntax error: x'],
+	);
+	$console = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: false);
+
+	Assert::contains(
+		"Failed     1 file the check could not process, whose places are not counted: src/Broken.php\n",
+		new EstimatePrinter($estimate)->print($console),
+	);
+	Assert::equal((object) ['src/Broken.php' => 'Syntax error: x'], new EstimatePrinter($estimate)->toArray()['failed']);
+});
+
+
 test('the moves Composer could not say are unknown, with the reason', function () {
 	$estimate = new Estimate(
 		[new Target('acme/utils', '4.0')],

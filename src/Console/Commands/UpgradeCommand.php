@@ -200,7 +200,7 @@ final readonly class UpgradeCommand
 
 		return match ($outcome->stop) {
 			RunStop::Done => 0,
-			RunStop::Tasks, RunStop::Tests => 1,
+			RunStop::Tasks, RunStop::Tests, RunStop::Errors => 1,
 			RunStop::Composer => 3,
 		};
 	}
