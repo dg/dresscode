@@ -55,6 +55,16 @@ final readonly class MigrateCommand
 		}
 
 		$root = Helpers::canonicalizePath($this->context->workingDirectory);
+		if (
+			Helpers::canonicalizePath(FileSystem::normalizePath(dirname($target)))
+			!== Helpers::canonicalizePath(FileSystem::normalizePath($root))
+		) {
+			// the paths it writes are relative to the project, and a configuration reads them relative to its own directory
+			throw new UsageException(
+				"The configuration `$output` would lie outside the root of the project, whose paths it names; write it into the root.",
+				$args->command,
+			);
+		}
 		$config = $file === null
 			? $this->findConfig($root, $args)
 			: FormatterConfig::fromFile($root, $this->context->resolvePath($file));
@@ -157,7 +167,7 @@ final readonly class MigrateCommand
 
 		$migration = new SuppressionMigration($factory->registry->expandSuppressedName(...));
 		$parser = new Parser;
-		$files = 0;
+		$files = $skipped = 0;
 		foreach ($runner->findFiles($paths) as $path) {
 			$absolute = $runner->toAbsolute($path);
 			$code = @file_get_contents($absolute); // @ is escalated to exception
@@ -169,11 +179,16 @@ final readonly class MigrateCommand
 				$file = $parser->parse($code);
 			} catch (ParseException $e) {
 				$this->context->write("`$path`: skipped, {$e->getMessage()}\n");
+				$skipped++;
 				continue;
 			}
 
 			if ($migration->migrate($file)) {
-				if (!Helpers::writeFile($absolute, Printer::print($file))) {
+				if (@file_get_contents($absolute) !== $code) { // @ a file deleted meanwhile changed too
+					$this->context->write("`$path`: skipped, it changed while it was being migrated\n");
+					$skipped++;
+					continue;
+				} elseif (!Helpers::writeFile($absolute, Printer::print($file))) {
 					throw new \RuntimeException("Cannot write file `$path`.");
 				}
 
@@ -190,7 +205,11 @@ final readonly class MigrateCommand
 			$this->context->write("Note: A `dresscode:ignore` on a line of its own covers the whole statement below it, not just the next line; review the migrated ones.\n");
 		}
 
-		return 0;
+		if ($skipped) {
+			$this->context->write('Skipped ' . Markup::formatCount($skipped, 'file') . ", whose comments are left as they are.\n");
+		}
+
+		return $skipped ? 1 : 0;
 	}
 
 

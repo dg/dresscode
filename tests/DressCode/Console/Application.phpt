@@ -884,7 +884,7 @@ test('migrate config translates a foreign configuration and says what it could n
 		</ruleset>
 		XX);
 	$dir = createTempDir('import');
-	[$code, $out, $err] = runApp($root, ['migrate', 'config', "$root/phpcs.xml", '--output', "$dir/dresscode.php"]);
+	[$code, $out, $err] = runApp($root, ['migrate', 'config', "$root/phpcs.xml", '--output', "$root/migrated.php"]);
 	Assert::same([0, ''], [$code, $out]);
 	Assert::same(
 		"<?php declare(strict_types=1);\n\n"
@@ -917,7 +917,7 @@ test('migrate config translates a foreign configuration and says what it could n
 		. "\t\t],\n"
 		. "\t],\n"
 		. ");\n",
-		file_get_contents("$dir/dresscode.php"),
+		file_get_contents("$root/migrated.php"),
 	);
 	Assert::match(
 		"Written `%a%`.\n\nRead 5 rules; set 12 decisions and 1 preset.\n"
@@ -930,9 +930,9 @@ test('migrate config translates a foreign configuration and says what it could n
 		"$root/fixer.php",
 		"<?php\nreturn new class {\n\tpublic function getRules(): array\n\t{\n\t\treturn ['cast_spaces' => ['space' => 'none']];\n\t}\n};\n",
 	);
-	[$code] = runApp($root, ['migrate', 'config', 'fixer.php', '-o', "$dir/fixer.php"]); // relative to the working directory of the run
+	[$code] = runApp($root, ['migrate', 'config', 'fixer.php', '-o', 'dresscode-fixer.php']); // relative to the working directory of the run
 	Assert::same(0, $code);
-	Assert::contains("\t\t'spacing' => [\n\t\t\t'cast' => '(int)\$x',\n\t\t],\n", (string) file_get_contents("$dir/fixer.php"));
+	Assert::contains("\t\t'spacing' => [\n\t\t\t'cast' => '(int)\$x',\n\t\t],\n", (string) file_get_contents("$root/dresscode-fixer.php"));
 
 	// the file is written in the format of its extension, as a configuration the run reads
 	[$code, $out] = runApp($dir, ['migrate', 'config', "$root/phpcs.xml"]);
@@ -950,6 +950,10 @@ test('migrate config translates a foreign configuration and says what it could n
 	[$code, , $err] = runApp($root, ['migrate', 'config', "$root/phpcs.xml", '-o', "$dir/dresscode.yaml"]);
 	Assert::same(3, $code);
 	Assert::contains('its extension is `.neon` or `.php`', $err);
+	// the paths it names are relative to the project, which a configuration elsewhere would read relative to itself
+	[$code, , $err] = runApp($root, ['migrate', 'config', "$root/phpcs.xml", '-o', "$dir/other.neon"]);
+	Assert::same(3, $code);
+	Assert::contains('would lie outside the root of the project', $err);
 });
 
 
@@ -1490,6 +1494,21 @@ test('migrate suppressions rewrites phpcs comments to the dresscode form', funct
 	file_put_contents("$root/src/t.php", "<?php\nfoo();\n/* phpcs:ignore Squiz.WhiteSpace.SuperfluousWhitespace */ \$a = 1;\n");
 	[, $out] = runApp($root, ['migrate', 'suppressions', 'src/t.php']);
 	Assert::same("Migrated 1 suppression comment in 1 file.\n", $out);
+
+	// prose naming a directive is no directive, and every name of a list is rewritten
+	$code = "<?php\n// prose phpcs:ignoreFile is an example\n/** @phpcsSuppress Squiz.WhiteSpace.SuperfluousWhitespace, Squiz.WhiteSpace.SuperfluousWhitespace */\nclass U\n{\n}\n";
+	file_put_contents("$root/src/u.php", $code);
+	runApp($root, ['migrate', 'suppressions', 'src/u.php']);
+	Assert::same(
+		"<?php\n// prose phpcs:ignoreFile is an example\n/** @phpcsSuppress file.trailingWhitespace, file.trailingWhitespace */\nclass U\n{\n}\n",
+		file_get_contents("$root/src/u.php"),
+	);
+
+	// a file that does not parse is skipped, which the exit code says
+	file_put_contents("$root/src/v.php", "<?php function {\n");
+	[$code, $out] = runApp($root, ['migrate', 'suppressions', 'src/v.php']);
+	Assert::same(1, $code);
+	Assert::contains("Skipped 1 file, whose comments are left as they are.\n", $out);
 });
 
 

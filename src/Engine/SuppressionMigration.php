@@ -66,7 +66,8 @@ final class SuppressionMigration
 	private function rewrite(string $text, bool $ownLine): string
 	{
 		$text = (string) preg_replace_callback(
-			'~phpcs:(ignoreFile|ignore|disable|enable)((?:[ \t]+[\w/][\w/.-]*(?:[ \t]*,[ \t]*[\w/][\w/.-]*)*)?)~',
+			// a directive ends its comment or line, with a reason after `--`, as Suppression reads it; one inside prose is no directive
+			'~phpcs:(ignoreFile|ignore|disable|enable)((?:[ \t]+[\w/][\w/.-]*(?:[ \t]*,[ \t]*[\w/][\w/.-]*)*)?)(?=[ \t]*(?:--(?:[ \t].*)?)?[ \t]*(?:\*/|$))~m',
 			function (array $m) use ($ownLine): string {
 				$this->count++;
 				$kind = $m[1];
@@ -77,14 +78,15 @@ final class SuppressionMigration
 			$text,
 		);
 		return (string) preg_replace_callback(
-			'~@phpcsSuppress[ \t]+([\w/][\w/.-]*)~',
+			'~@phpcsSuppress[ \t]+([\w/][\w/.-]*(?:[ \t]*,[ \t]*[\w/][\w/.-]*)*)~',
 			function (array $m): string {
-				$name = $this->getCanonicalName($m[1]);
-				if ($name !== $m[1]) {
+				$names = (array) preg_split('~[,\s]+~', $m[1], -1, PREG_SPLIT_NO_EMPTY);
+				$canonical = implode(', ', array_map($this->getCanonicalName(...), $names));
+				if ($canonical !== implode(', ', $names)) {
 					$this->count++;
 				}
 
-				return "@phpcsSuppress $name";
+				return "@phpcsSuppress $canonical";
 			},
 			$text,
 		);
