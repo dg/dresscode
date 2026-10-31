@@ -45,6 +45,10 @@ final class Proposal
 		public readonly FileSample $sample,
 		public readonly NamespaceDeclarations $declarations,
 		public readonly StandardChoice $standard,
+		private readonly ProbeRunner $runner,
+		private readonly Budget $budget,
+		/** @var ?\Closure(string, string): void */
+		private readonly ?\Closure $onPhase,
 	) {
 	}
 
@@ -52,7 +56,9 @@ final class Proposal
 	/**
 	 * Measures the residue of the standard over a sample of the scope; a file that does not parse leaves the scope.
 	 * @param  ?list<string>  $presets  the standard, named as the configuration names it; null to choose
-	 * @param  ?\Closure(string): void  $onPhase  what is being done now, said before it starts
+	 * @param  ?int  $budget  the files the first fix may change; by default a share of the scope
+	 * @param  ?\Closure(string, string): void  $onPhase  the phase, `Measuring` or `Checking`, and what it does now, said
+	 *     before it starts
 	 * @throws ConfigurationException
 	 */
 	public static function measure(
@@ -60,10 +66,11 @@ final class Proposal
 		Scope $scope,
 		ProbeRunner $runner,
 		?array $presets = null,
+		?int $budget = null,
 		?\Closure $onPhase = null,
 	): self
 	{
-		$onPhase?->__invoke('reading the declarations of the namespaces');
+		$onPhase?->__invoke('Measuring', 'reading the declarations of the namespaces');
 		$declarations = NamespaceDeclarations::collect($project->root, $scope->files);
 		$scope->markUnparsed(...$declarations->unparsed);
 		$sample = count($scope->files) <= self::WholeFiles
@@ -71,7 +78,7 @@ final class Proposal
 			: FileSample::pick($project->root, $scope->files);
 
 		$candidates = StandardChoice::listCandidates($project, $presets);
-		$onPhase?->__invoke(sprintf(
+		$onPhase?->__invoke('Measuring', sprintf(
 			'checking %d files against %s',
 			count($sample->files),
 			count($candidates) > 1 ? 'every standard' : implode(', ', $candidates[0]),
@@ -83,10 +90,30 @@ final class Proposal
 		$standard = StandardChoice::make($project, $presets, $runner, $base);
 		$scope->markUnparsed(...$standard->unparsed);
 
-		$proposal = new self($project, $scope, $sample, $declarations, $standard);
-		$onPhase?->__invoke('measuring ' . count($standard->residue) . ' decisions over ' . count($sample->files) . ' files');
-		$proposal->measureResidue($runner);
+		$proposal = new self(
+			$project,
+			$scope,
+			$sample,
+			$declarations,
+			$standard,
+			$runner,
+			new Budget(count($scope->files), $budget),
+			$onPhase,
+		);
+		$onPhase?->__invoke('Measuring', 'measuring ' . count($standard->residue) . ' decisions over ' . count($sample->files) . ' files');
+		$proposal->measureResidue();
 		return $proposal;
+	}
+
+
+	/**
+	 * Measures the project again against another standard, as the answer to a close call of standards asks.
+	 * @param  list<string>  $presets
+	 * @throws ConfigurationException
+	 */
+	public function measureAgainst(array $presets): self
+	{
+		return self::measure($this->project, $this->scope, $this->runner, $presets, $this->budget->files, $this->onPhase);
 	}
 
 
@@ -95,7 +122,7 @@ final class Proposal
 	 * probes of the second, each probe having its decision alone, no standard beside it.
 	 * @throws ConfigurationException
 	 */
-	private function measureResidue(ProbeRunner $runner): void
+	private function measureResidue(): void
 	{
 		$base = [...array_diff_key($this->buildProbeConfig(), ['use' => true]), 'paths' => $this->sample->files];
 		$residue = $this->standard->residue;
@@ -109,7 +136,7 @@ final class Proposal
 				$probes += $plans[$path]->buildProbes($base);
 			}
 
-			$results = $probes ? $runner->run($probes) : [];
+			$results = $probes ? $this->runner->run($probes) : [];
 			foreach ($plans as $path => $plan) {
 				$this->measured[$path] = [$plan, $results];
 				$proposed = $plan->decide($results, count($this->sample->files), $this->standard->isStandard(...));
@@ -144,14 +171,15 @@ final class Proposal
 	 * unparsable leaves the scope, and the last check is what a fix would change and what it leaves.
 	 * @throws ConfigurationException
 	 */
-	public function verify(ProbeRunner $runner, Budget $budget): Verification
+	public function verify(): Verification
 	{
-		$check = fn() => $runner->run(['scope' => $this->buildProbeConfig()])['scope'];
+		$this->onPhase?->__invoke('Checking', 'the configuration over all ' . count($this->scope->files) . ' files');
+		$check = fn() => $this->runner->run(['scope' => $this->buildProbeConfig()])['scope'];
 		$result = $check();
 		$answered = array_keys(array_filter($this->values, fn(ProposedValue $proposed) => $proposed->origin === ValueOrigin::Answered));
 		do {
 			// a decision left unchecked changes what the others would fix, so the budget is applied until it holds
-			$dropped = $budget->findDropped($result->fixable, $answered);
+			$dropped = $this->budget->findDropped($result->fixable, $answered);
 			foreach ($dropped as $path) {
 				$this->values[$path] = ProposedValue::overBudget(
 					$path,
@@ -168,7 +196,7 @@ final class Proposal
 			}
 		} while ($dropped);
 
-		return $this->verification = new Verification($result, $budget->files);
+		return $this->verification = new Verification($result, $this->budget->files);
 	}
 
 

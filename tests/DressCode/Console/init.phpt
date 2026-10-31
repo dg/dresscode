@@ -8,9 +8,7 @@
 
 use DressCode\Config\{Loader, RunnerFactory};
 use DressCode\Console\Application;
-use DressCode\Measuring\{
-	Budget, FileSample, InProcessProbeRunner, ProbeResult, ProbeRunner, Project, Proposal, Questions, Scope, ValueOrigin,
-};
+use DressCode\Measuring\{FileSample, InProcessProbeRunner, ProbeResult, ProbeRunner, Project, Proposal, Questions, Scope, ValueOrigin};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -528,7 +526,7 @@ test('a decision left unchecked that makes another one cost more than the budget
 	$root = createProject('cascade', stragglers());
 	$runner = classBracesCost($root, 'keep');
 	$proposal = Proposal::measure(Project::detect($root), Scope::fromAutoload($root, Scope::Extensions), $runner, ['perCs']);
-	$proposal->verify($runner, new Budget(20));
+	$proposal->verify();
 	Assert::same(ValueOrigin::OverBudget, $proposal->values['blankLines.afterOpeningTag']->origin);
 	Assert::same(ValueOrigin::OverBudget, $proposal->values['braces.position.class']->origin);
 	Assert::same(3, $proposal->values['braces.position.class']->cost);
@@ -538,15 +536,14 @@ test('a decision left unchecked that makes another one cost more than the budget
 test('an answer that checks a decision may leave another one over the budget, which the next round asks about', function () {
 	$root = createProject('rounds', stragglers());
 	$runner = classBracesCost($root, 1);
-	$budget = new Budget(20);
 	$proposal = Proposal::measure(Project::detect($root), Scope::fromAutoload($root, Scope::Extensions), $runner, ['perCs']);
-	$proposal->verify($runner, $budget);
+	$proposal->verify();
 	$questions = new Questions;
 	[$first] = $questions->findNext($proposal);
 	Assert::contains('`blankLines.afterOpeningTag: 1`', $first->text);
 
 	Assert::true($proposal->apply($first->findAnswer('f') ?? throw new LogicException));
-	$proposal->verify($runner, $budget);
+	$proposal->verify();
 	$next = $questions->findNext($proposal);
 	Assert::count(1, $next);
 	Assert::contains('`braces.position.class: nextLine`', $next[0]->text);

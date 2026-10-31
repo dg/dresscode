@@ -64,6 +64,29 @@ final class Questions
 
 
 	/**
+	 * Asks round after round what the verified proposal leaves to the user, and checks the configuration again after
+	 * a round whose answers changed it, until a round changes nothing or nothing is left to ask.
+	 * @param  \Closure(Question): Answer  $answer
+	 * @return list<Question>  the questions asked
+	 * @throws ConfigurationException
+	 */
+	public function askAll(Proposal $proposal, \Closure $answer): array
+	{
+		$asked = [];
+		while ($round = $this->findNext($proposal)) {
+			$asked = [...$asked, ...$round];
+			if (!$proposal->apply(...array_map($answer, $round))) {
+				break;
+			}
+
+			$proposal->verify();
+		}
+
+		return $asked;
+	}
+
+
+	/**
 	 * The questions of decisions the verified proposal leaves to the user that no call before found, the costliest
 	 * first: at most `MaxDecisions` of them the first time, every one later, as it follows from the answers given.
 	 * @return list<Question>

@@ -176,7 +176,7 @@ final readonly class InitPrinter
 	 * otherwise than the recommended answer init took.
 	 * @param  list<Question>  $questions
 	 */
-	public function printQuestions(array $questions): string
+	public function printInstructions(array $questions): string
 	{
 		$out = '';
 		foreach ($questions as $question) {

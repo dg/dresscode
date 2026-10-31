@@ -12,11 +12,10 @@ use DressCode\ConfigurationException;
 use DressCode\Console\{CommandContext, InitPrinter, Markup, StatusLine};
 use DressCode\Engine\{Helpers, WorkerPool};
 use DressCode\Interop\{PhpCodeSniffer, Translation};
-use DressCode\Measuring\{Answer, Budget, InProcessProbeRunner, ProcessProbeRunner, Project, Proposal, Question, Questions, Scope};
+use DressCode\Measuring\{Answer, InProcessProbeRunner, ProcessProbeRunner, Project, Proposal, Question, Questions, Scope};
 use Nette\CommandLine\Attributes as Cli;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
-use function count;
 
 
 /**
@@ -100,14 +99,13 @@ final readonly class InitCommand
 		$runner = WorkerPool::buildPhpCommand() === null
 			? new InProcessProbeRunner($root, $status->advance(...))
 			: ProcessProbeRunner::create($root, $status->advance(...));
-		$onPhase = fn(string $text) => $status->show('Measuring', $text);
-		$proposal = Proposal::measure($project, $scope, $runner, $presets, $onPhase);
+		$proposal = Proposal::measure($project, $scope, $runner, $presets, $budget, $status->show(...));
 		// over a configuration that exists nothing is written, so nothing is asked and no answer is taken
 		$standardQuestion = $existing ? null : Questions::findStandardQuestion($proposal);
 		if ($interactive && $standardQuestion !== null) {
 			$console->clearStatus();
-			$answer = $this->ask($printer, $standardQuestion);
-			$proposal = $answer->presets === null ? $proposal : Proposal::measure($project, $scope, $runner, $answer->presets, $onPhase);
+			$presets = $this->ask($printer, $standardQuestion)->presets;
+			$proposal = $presets === null ? $proposal : $proposal->measureAgainst($presets);
 		}
 
 		foreach ($set as $spec) {
@@ -115,49 +113,32 @@ final readonly class InitCommand
 			$proposal->answer($path, Neon::decode($value));
 		}
 
-		$limit = new Budget(count($scope->files), $budget);
-		$status->show('Checking', 'the configuration over all ' . count($scope->files) . ' files');
-		$proposal->verify($runner, $limit);
-		$questions = new Questions($existing ? null : $this->readFormatterRules($project, $printer, $interactive));
-		// a round of questions is answered and the configuration checked again, which may leave the next round to the user
-		$answerAll = function (\Closure $answer) use ($existing, $questions, $proposal, $runner, $limit, $status, $scope): array {
-			$asked = [];
-			while (!$existing && ($round = $questions->findNext($proposal))) {
-				$asked = [...$asked, ...$round];
-				if (!$proposal->apply(...array_map($answer, $round))) {
-					break;
-				}
-
-				$status->show('Checking', 'the configuration with the answers over all ' . count($scope->files) . ' files');
-				$proposal->verify($runner, $limit);
-			}
-
-			return $asked;
-		};
-
-		if ($interactive) {
-			// the values listed are those the budget left, which the verification decides
-			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal));
-			$verification = $proposal->verification;
-			$answerAll(fn(Question $question) => $this->ask($printer, $question));
-			if ($proposal->verification !== $verification) {
-				$write("\n" . $printer->printVerification($proposal));
-			}
-		} else {
-			// without a terminal the recommended answers are taken before anything is listed
-			$asked = $answerAll(fn(Question $question) => $question->getRecommended());
-			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal));
-			$write($printer->printQuestions([...($standardQuestion === null ? [] : [$standardQuestion]), ...$asked]));
-		}
-
-		$proposal->checkWritten();
+		$proposal->verify();
 		if ($existing) {
-			$write("\n" . ($current === null
+			$proposal->checkWritten();
+			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal) . "\n" . ($current === null
 				? "`$existing[0]` exists, so nothing is written; it is no configuration init can compare with.\n"
 				: $printer->printShifts($proposal, (new RunnerFactory)->resolve($current, $root)->resolvedConfig, $existing[0])));
 			return 0;
 		}
 
+		$questions = new Questions($this->readFormatterRules($project, $printer, $interactive));
+		if ($interactive) {
+			// the values listed are those the budget left, which the verification decides
+			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal));
+			$verification = $proposal->verification;
+			$questions->askAll($proposal, fn(Question $question) => $this->ask($printer, $question));
+			if ($proposal->verification !== $verification) {
+				$write("\n" . $printer->printVerification($proposal));
+			}
+		} else {
+			// without a terminal the recommended answers are taken before anything is listed
+			$asked = $questions->askAll($proposal, fn(Question $question) => $question->getRecommended());
+			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal));
+			$write($printer->printInstructions([...($standardQuestion === null ? [] : [$standardQuestion]), ...$asked]));
+		}
+
+		$proposal->checkWritten();
 		FileSystem::write("$root/dresscode.neon", $proposal->toDraft()->toNeon());
 		$write("\n" . $printer->printNext($proposal));
 		$write($printer->printAlso(
