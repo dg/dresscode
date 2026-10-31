@@ -64,7 +64,8 @@ final class Questions
 	/**
 	 * Asks round after round what the verified proposal leaves to the user, and checks the configuration again after
 	 * a round whose answers changed it, until a round changes nothing or nothing is left to ask.
-	 * @param  \Closure(Question): Answer  $answer
+	 * @param  \Closure(list<Question>, bool): list<Answer>  $answer  answers a round, told whether it follows from the
+	 *     answers to the rounds before
 	 * @return list<Question>  the questions asked
 	 * @throws ConfigurationException
 	 */
@@ -72,8 +73,9 @@ final class Questions
 	{
 		$asked = [];
 		while ($round = $this->findNext($proposal)) {
+			$answers = $answer($round, $asked !== []);
 			$asked = [...$asked, ...$round];
-			if (!$proposal->apply(...array_map($answer, $round))) {
+			if (!$proposal->apply(...$answers)) {
 				break;
 			}
 

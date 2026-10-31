@@ -7,8 +7,11 @@
  */
 
 use DressCode\Config\{Loader, RunnerFactory};
-use DressCode\Console\Application;
-use DressCode\Measuring\{FileSample, InProcessProbeRunner, ProbeResult, ProbeRunner, Project, Proposal, Questions, Scope, ValueOrigin};
+use DressCode\Console\{Application, InitPrinter};
+use DressCode\Measuring\{
+	Answer, FileSample, InProcessProbeRunner, ProbeResult, ProbeRunner, Project, Proposal, Question, Questions, Scope, ValueOrigin,
+};
+use Nette\CommandLine\{ColorDepth, Console};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -685,4 +688,14 @@ test('for an agent init takes the recommended answers and draws no status', func
 	Assert::notContains('…', $out);
 	Assert::contains('`blankLines.afterOpeningTag: 1` in `dresscode.neon` checks it too', $out);
 	Assert::contains("\tafterOpeningTag: keep", (string) file_get_contents("$root/dresscode.neon"));
+});
+
+
+test('a question is numbered in its round where the round has more, and a round the answers left says so', function () {
+	$printer = new InitPrinter(new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None));
+	$question = new Question('Check it?', [new Answer("don't check it"), new Answer('check it', ['spacing.cast' => 'none'])], '');
+	Assert::same("(2/3) Check it?\n  [1] don't check it (recommended)\n  [2] check it\n", $printer->printQuestion($question, 2, 3));
+	Assert::same("Check it?\n  [1] don't check it (recommended)\n  [2] check it\n", $printer->printQuestion($question));
+	Assert::same("Your answers leave one more question:\n", $printer->printNextRound(1));
+	Assert::same("Your answers leave 2 more questions:\n", $printer->printNextRound(2));
 });

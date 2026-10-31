@@ -162,10 +162,14 @@ final readonly class InitPrinter
 	}
 
 
-	/** A question asked in a terminal: what it asks, a place of the code it is about, and its answers by number. */
-	public function printQuestion(Question $question): string
+	/**
+	 * A question asked in a terminal, numbered in its round where the round has more: what it asks, a place of the code
+	 * it is about, and its answers by number.
+	 */
+	public function printQuestion(Question $question, int $number = 1, int $count = 1): string
 	{
-		$out = $question->text
+		$out = ($count > 1 ? "($number/$count) " : '')
+			. $question->text
 			. "\n"
 			. ($question->example === null ? '' : $this->label('') . 'e.g. ' . $question->example->describe() . "\n");
 		foreach ($question->answers as $i => $answer) {
@@ -173,6 +177,13 @@ final readonly class InitPrinter
 		}
 
 		return $out;
+	}
+
+
+	/** The questions the answers given have left to the user, which no round before could ask. */
+	public function printNextRound(int $count): string
+	{
+		return 'Your answers leave ' . ($count === 1 ? 'one more question' : "$count more questions") . ":\n";
 	}
 
 

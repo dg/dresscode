@@ -128,13 +128,16 @@ final readonly class InitCommand
 			// the values listed are those the budget left, which the verification decides
 			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal));
 			$verification = $proposal->verification;
-			$questions->askAll($proposal, fn(Question $question) => $this->ask($printer, $question));
+			$questions->askAll($proposal, fn(array $round, bool $following) => $this->askRound($printer, $round, $following));
 			if ($proposal->verification !== $verification) {
 				$write("\n" . $printer->printVerification($proposal));
 			}
 		} else {
 			// without a terminal the recommended answers are taken before anything is listed
-			$asked = $questions->askAll($proposal, fn(Question $question) => $question->getRecommended());
+			$asked = $questions->askAll(
+				$proposal,
+				fn(array $round) => array_map(fn(Question $question) => $question->getRecommended(), $round),
+			);
 			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal));
 			$write($printer->printInstructions([...($standardQuestion === null ? [] : [$standardQuestion]), ...$asked]));
 		}
@@ -152,10 +155,31 @@ final readonly class InitCommand
 	}
 
 
-	/** Asks the question, an empty answer or the end of the input taking the recommended one. */
-	private function ask(InitPrinter $printer, Question $question): Answer
+	/**
+	 * Asks the questions of a round one by one, numbered where there are more of them, a round following from the
+	 * answers before said to be one.
+	 * @param  list<Question>  $round
+	 * @return list<Answer>
+	 */
+	private function askRound(InitPrinter $printer, array $round, bool $following): array
 	{
-		$this->context->out->write("\n" . Markup::highlightCode($this->context->out, $printer->printQuestion($question)));
+		if ($following) {
+			$this->context->out->write("\n" . $printer->printNextRound(count($round)));
+		}
+
+		$answers = [];
+		foreach ($round as $i => $question) {
+			$answers[] = $this->ask($printer, $question, $i + 1, count($round));
+		}
+
+		return $answers;
+	}
+
+
+	/** Asks the question, an empty answer or the end of the input taking the recommended one. */
+	private function ask(InitPrinter $printer, Question $question, int $number = 1, int $count = 1): Answer
+	{
+		$this->context->out->write("\n" . Markup::highlightCode($this->context->out, $printer->printQuestion($question, $number, $count)));
 		$choice = $this->context->prompt->choose('Your choice', array_map(strval(...), range(1, count($question->answers))), '1');
 		return $question->answers[(int) $choice - 1] ?? $question->getRecommended();
 	}
