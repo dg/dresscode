@@ -187,8 +187,10 @@ test('init turns the types on where the project has PHPStan, and says why', func
 		'composer.json' => '{"autoload": {"psr-4": {"App\\\\": "src"}}}',
 		'composer.lock' => '{"packages": [], "packages-dev": [{"name": "phpstan/phpstan"}]}',
 	]);
-	[$code] = runInit($root, ['--use', 'perCs']);
+	[$code, $out] = runInit($root, ['--use', 'perCs']);
 	Assert::same(0, $code);
+	// the measuring goes without them, which the next step says
+	Assert::contains('as measured without the types of the code, with which the rules that need them may report more', $out);
 	Assert::contains(
 		"\ntypeAnalysis: phpstan   # phpstan/phpstan is installed, so the rules get the types of the code\n",
 		(string) file_get_contents("$root/dresscode.neon"),

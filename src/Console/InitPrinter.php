@@ -165,7 +165,10 @@ final readonly class InitPrinter
 		return $out . ($changed > 0 && $left > 0
 			? $this->label('Then')
 				. "`dresscode baseline`   records the $left places in {$this->formatFiles($verification->leftFiles)} that no rule fixes, so that `check` passes\n"
-			: '');
+			: '')
+			. ($proposal->writesTypes()
+				? $this->label('') . "as measured without the types of the code, with which the rules that need them may report more\n"
+				: '');
 	}
 
 

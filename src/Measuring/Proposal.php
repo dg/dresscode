@@ -230,6 +230,16 @@ final class Proposal
 	}
 
 
+	/**
+	 * Whether the configuration asks for the types of the code, the project having PHPStan; the measuring goes without
+	 * them, so a check with them may report what it did not.
+	 */
+	public function writesTypes(): bool
+	{
+		return $this->project->hasPackage('phpstan/phpstan');
+	}
+
+
 	/** Whether the numbers of the measuring are estimates, the sample being smaller than the scope. */
 	public function isSampled(): bool
 	{
@@ -255,7 +265,7 @@ final class Proposal
 				: "the namespaces of the scope declare these functions and constants and no others, so an unqualified name\n"
 					. 'in a namespace is resolved for certain; one declared later is reported until it is listed',
 		);
-		if ($this->project->hasPackage('phpstan/phpstan')) {
+		if ($this->writesTypes()) {
 			$draft->setTypeAnalysis('phpstan/phpstan is installed, so the rules get the types of the code');
 		}
 
@@ -325,7 +335,7 @@ final class Proposal
 			array_diff($this->declarations->constants, array_keys($resolved->namespacedConstants)) !== []
 				=> 'a constant the namespaces declare is not listed',
 			// a DressCode without PHPStan beside it goes without the types the project can give
-			$this->project->hasPackage('phpstan/phpstan') !== ($resolved->typeAnalysis === 'phpstan')
+			$this->writesTypes() !== ($resolved->typeAnalysis === 'phpstan')
 				&& Analyses\PhpStan::isAvailable() => 'the types are not what the installed packages allow',
 			default => null,
 		};
