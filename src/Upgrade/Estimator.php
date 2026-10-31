@@ -117,7 +117,8 @@ final readonly class Estimator
 				$paths ? $runner->findFiles($configured, configured: $configured) : $files,
 			);
 			if ($declarations->unparsed !== []) {
-				$warnings[] = 'The names are not resolved for certain: ' . count($declarations->unparsed) . ' files do not parse.';
+				$warnings[] = 'The names are not resolved for certain: ' . count($declarations->unparsed)
+					. ' of the files cannot be read or do not parse.';
 				$declarations = null;
 			}
 		}

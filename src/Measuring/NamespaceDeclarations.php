@@ -7,10 +7,11 @@
 
 namespace DressCode\Measuring;
 
-use DressCode\Config\ConfigResolver;
+use DressCode\Config\{ComposerJson, ConfigResolver};
 use DressCode\Engine\Helpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{ParseException, Parser, SymbolKind};
+use function is_string;
 use const SORT_FLAG_CASE, SORT_STRING;
 
 
@@ -26,14 +27,16 @@ final readonly class NamespaceDeclarations
 		public array $functions,
 		/** @var list<string>  fully qualified, sorted */
 		public array $constants,
-		/** @var list<string>  the files that do not parse */
+		/** @var list<string>  the files that do not parse or cannot be read, so that what they declare is not known */
 		public array $unparsed,
 	) {
 	}
 
 
 	/**
-	 * Every file naming a namespace or `define()` is parsed, since a declaration can stand anywhere a statement can.
+	 * Every file naming a namespace or `define()` is parsed, since a declaration can stand anywhere a statement can: the
+	 * files given and those the autoload of `composer.json` loads one by one, which declare for the whole project
+	 * wherever they lie.
 	 * @param  list<string>  $files  relative to the root
 	 */
 	public static function collect(string $root, array $files): self
@@ -41,9 +44,12 @@ final readonly class NamespaceDeclarations
 		$parser = new Parser;
 		$names = [SymbolKind::Function->name => [], SymbolKind::Constant->name => []];
 		$unparsed = [];
-		foreach ($files as $file) {
-			$code = @file_get_contents(Helpers::toAbsolutePath($file, $root)); // @ file may have been deleted meanwhile
-			if ($code === false || (stripos($code, 'namespace') === false && stripos($code, 'define') === false)) {
+		foreach (array_unique([...$files, ...self::findAutoloadedFiles($root)]) as $file) {
+			$code = @file_get_contents(Helpers::toAbsolutePath($file, $root)); // @ the failure is told by the result
+			if ($code === false) {
+				$unparsed[] = $file;
+				continue;
+			} elseif (stripos($code, 'namespace') === false && stripos($code, 'define') === false) {
 				continue;
 			}
 
@@ -66,6 +72,26 @@ final readonly class NamespaceDeclarations
 			return $list;
 		};
 		return new self($sort($names[SymbolKind::Function->name]), $sort($names[SymbolKind::Constant->name]), $unparsed);
+	}
+
+
+	/**
+	 * The files `autoload.files` and `autoload-dev.files` of the `composer.json` in the root name, relative to the root.
+	 * @return list<string>
+	 */
+	private static function findAutoloadedFiles(string $root): array
+	{
+		$composer = ComposerJson::read("$root/composer.json") ?? [];
+		$files = [];
+		foreach (['autoload', 'autoload-dev'] as $section) {
+			foreach ((array) ($composer[$section]['files'] ?? []) as $file) {
+				if (is_string($file) && is_file("$root/$file")) {
+					$files[] = Helpers::canonicalizePath((string) preg_replace('~^(\./)+~', '', $file));
+				}
+			}
+		}
+
+		return $files;
 	}
 
 
