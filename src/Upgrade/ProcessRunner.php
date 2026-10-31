@@ -12,8 +12,9 @@ use const PHP_OS_FAMILY;
 
 
 /**
- * Runs a command of the project, Composer, git or its tests, through the shell, and ends one that does not end in time
- * as a whole tree, the shell, the command and what it started.
+ * Runs a command of the project, Composer, git or its tests, and ends one that does not end in time: on Windows as a
+ * whole tree, the shell, the command and what it started, elsewhere the program, which a list of arguments runs without
+ * a shell.
  * @internal
  */
 final class ProcessRunner
@@ -25,7 +26,10 @@ final class ProcessRunner
 	 */
 	public static function run(string|array $command, string $cwd, int $timeout): array
 	{
-		$command = is_string($command) ? $command : implode(' ', array_map(escapeshellarg(...), $command));
+		// the shell of Windows is what finds `composer.bat`
+		$command = is_string($command) || PHP_OS_FAMILY !== 'Windows'
+			? $command
+			: implode(' ', array_map(escapeshellarg(...), $command));
 		$process = proc_open($command, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $cwd);
 		if ($process === false) {
 			return [127, 'The command could not be started.'];
