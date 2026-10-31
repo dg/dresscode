@@ -469,6 +469,11 @@ test('the sample is every k-th file, the same for the same tree, without a file 
 	Assert::same(8, $sample->oversized);
 	Assert::same(11, count(FileSample::pick($root, array_keys($files), maxBytes: 1_000_000)->files));
 	Assert::same(10, count(FileSample::pick($root, array_keys($files), maxFiles: 10)->files)); // every third of the 30
+
+	// where no file fits, the smallest is the sample, as none would be no evidence at all
+	file_put_contents("$root/src/g07.php", "<?php\n");
+	$sample = FileSample::pick($root, array_keys($files), maxBytes: 10);
+	Assert::same([['src/g07.php'], 29], [$sample->files, $sample->oversized]);
 });
 
 

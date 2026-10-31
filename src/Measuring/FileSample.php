@@ -61,6 +61,13 @@ final readonly class FileSample
 			}
 		}
 
+		if ($picked === [] && $files !== []) { // one file over the limits is evidence, none is not
+			$sizes = array_map(fn(string $file) => (int) @filesize("$root/$file"), $files); // @ file may have been deleted meanwhile
+			$index = (int) array_search(min($sizes), $sizes, strict: true);
+			$picked = [$files[$index]];
+			$oversized -= (int) ($index % $step === 0);
+		}
+
 		return new self($picked, $oversized);
 	}
 
