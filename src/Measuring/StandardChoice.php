@@ -93,10 +93,12 @@ final readonly class StandardChoice
 		$checks = $runner->run($probes);
 		$residues = array_map(fn(ProbeResult $check) => count($check->findResidue()), $checks);
 		asort($residues);
+		// a standard a rule failed under is not measured whole, so its residue may be short; it is chosen only where all are
+		$whole = array_filter($residues, fn(string $standard) => $checks[$standard]->failed === [], ARRAY_FILTER_USE_KEY);
 		[$chosen, $reason, $alternatives] = match (true) {
 			$presets !== null => [(string) array_key_first($checks), StandardReason::Given, []],
 			count($candidates) === 1 => [(string) array_key_first($checks), StandardReason::Formatter, []],
-			default => self::choose($residues, $project->formatterConfig?->standard),
+			default => self::choose($whole ?: $residues, $project->formatterConfig?->standard),
 		};
 		$presets = array_combine(array_keys($probes), $candidates)[$chosen];
 		$decisions = (new RunnerFactory)->resolve(new Config(use: $presets), $project->root)->resolvedConfig->decisions;

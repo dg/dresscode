@@ -138,6 +138,12 @@ final readonly class InitPrinter
 				. " more than {$this->formatFiles($verification->budget)} (`--budget` raises the limit)\n";
 		}
 
+		$failed = $verification->result->failed;
+		if ($failed) {
+			$out .= $this->label('Failed') . $this->formatFiles(count($failed)) . ' a rule failed in, of which nothing above is counted: '
+				. implode(', ', array_slice($failed, 0, self::ListedLeftOut)) . (count($failed) > self::ListedLeftOut ? ' and more' : '') . "\n";
+		}
+
 		return $out . $this->printLeftOut(array_filter(
 			$proposal->scope->listExcludePaths(),
 			fn(string $why) => $why === LeftOutReason::Unparsed->value,
@@ -153,6 +159,7 @@ final readonly class InitPrinter
 		$out = $this->label('Written') . "`dresscode.neon`\n" . $this->label('Next') . match (true) {
 			$changed > 0 => "`dresscode fix`        rewrites {$this->formatFiles($changed)} in place (`--diff` shows the changes first); until then `check` reports them\n",
 			$left > 0 => "`dresscode baseline`   records the $left places that no rule fixes, so that `check` passes\n",
+			$verification->result->failed !== [] => "`dresscode check`      reports the files a rule failed in\n",
 			default => "`dresscode check`      passes already\n",
 		};
 		return $out . ($changed > 0 && $left > 0

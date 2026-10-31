@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\Measuring\{Project, StandardChoice, StandardReason};
+use DressCode\Measuring\{ProbeResult, ProbeRunner, Project, StandardChoice, StandardReason};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -43,4 +43,25 @@ test('laravel is checked only for a project that is or requires a package of Lar
 	file_put_contents("$root/composer.json", '{"name": "acme/eshop"}');
 	file_put_contents("$root/pint.json", '{"preset": "empty"}');
 	Assert::contains('laravel', array_merge(...StandardChoice::listCandidates(Project::detect($root), null)));
+});
+
+
+test('a standard a rule failed under is chosen only where every one failed, its residue measured short', function () {
+	$root = createTempDir('choice-failed');
+	file_put_contents("$root/composer.json", '{"name": "acme/eshop"}');
+	$runner = new class implements ProbeRunner {
+		public function run(array $probes): array
+		{
+			// perCs reports the fewest, as a rule failed in a file before it could report more
+			return array_map(fn(string $key) => new ProbeResult(
+				array_fill_keys($key === 'perCs' ? ['a'] : ['a', 'b', 'c'], ['src/a.php' => 1]),
+				[],
+				[],
+				0,
+				[],
+				$key === 'perCs' ? ['src/b.php'] : [],
+			), array_combine(array_keys($probes), array_keys($probes)));
+		}
+	};
+	Assert::notSame(['perCs'], StandardChoice::make(Project::detect($root), null, $runner, [])->presets);
 });

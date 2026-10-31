@@ -126,7 +126,7 @@ final readonly class ProcessProbeRunner implements ProbeRunner
 	private static function readResult(string $file, int $exit): ProbeResult
 	{
 		$report = json_decode((string) @file_get_contents("$file.json"), associative: true); // @ written by the process
-		if ($exit > 2 || !is_array($report)) { // 2 is a file a rule failed in, which the report carries
+		if ($exit > 2 || !is_array($report) || !is_array($report['files'] ?? null)) { // 2 is a file a rule failed in, which the report carries
 			$error = trim((string) @file_get_contents("$file.err")); // @ written by the process
 			throw new ConfigurationException("A check of the measuring ended with exit code $exit: " . ($error ?: 'no output'));
 		}
