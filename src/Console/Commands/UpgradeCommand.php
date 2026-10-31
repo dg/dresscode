@@ -463,6 +463,11 @@ final readonly class UpgradeCommand
 		$run = $options->toRunOptions();
 		// a worker runs with what its parent installed, and what is installed, plugins among it, loads in a new process
 		if ($run->worker === null && $this->installDataPackages($args, $configuration, (bool) $options->yes)) {
+			if ($this->context->stdout !== STDOUT) { // embedded, so the command line of the process is not this one
+				$this->context->err->writeLine('The upgrading data are installed; run the command again, which loads them.');
+				return 0;
+			}
+
 			passthru(
 				implode(' ', array_map(escapeshellarg(...), [...WorkerPool::buildPhpCommand() ?? [PHP_BINARY], ...$_SERVER['argv']])),
 				$exit,
@@ -524,9 +529,12 @@ final readonly class UpgradeCommand
 			}
 		}
 
-		passthru(implode(' ', array_map(escapeshellarg(...), $command)), $exit);
-		if ($exit !== 0) {
-			throw new ConfigurationException("Composer did not install the upgrading data: `$shown` exited with code $exit.");
+		// what Composer writes goes to standard error, so that the output of the run stays the one document a format asks for
+		$this->context->err->writeLine("Installing $names\u{2026}");
+		try {
+			new Composer($directory)->add($missing, dev: $intoProject);
+		} catch (ComposerException $e) {
+			throw new ConfigurationException("Composer did not install the upgrading data with `$shown`: {$e->getMessage()}", previous: $e);
 		}
 
 		return true;

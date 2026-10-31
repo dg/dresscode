@@ -137,6 +137,17 @@ final readonly class Composer
 
 
 	/**
+	 * Requires the packages at the versions Composer chooses and installs them, the way `composer require` does.
+	 * @param  list<string>  $packages
+	 * @throws ComposerException
+	 */
+	public function add(array $packages, bool $dev = false): void
+	{
+		$this->run(['require', ...$dev ? ['--dev'] : [], ...$packages], self::UpdateTimeout);
+	}
+
+
+	/**
 	 * The operations on packages the output of an update lists, each once, though Composer writes it among the
 	 * operations of the lock and again among those of the installation.
 	 * @return list<string>  as `- Upgrading nette/utils (v3.2.10 => v4.0.11)`
