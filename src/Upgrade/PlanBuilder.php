@@ -79,21 +79,6 @@ final readonly class PlanBuilder
 	}
 
 
-	/**
-	 * Whether the project is a library, which says so by its `type` and has no lock of its own; maybe for one whose
-	 * `type` says so while it has a lock, as an application does.
-	 */
-	public static function isLibrary(string $root): Tristate
-	{
-		$file = ComposerJson::findFile($root);
-		return match (true) {
-			(ComposerJson::read($file)['type'] ?? null) !== 'library' => Tristate::No,
-			is_file(dirname((string) $file) . '/composer.lock') => Tristate::Maybe,
-			default => Tristate::Yes,
-		};
-	}
-
-
 	/** @param  list<Topic>  $topics */
 	private static function createFix(string $title, array $topics, bool $skip = false): ?Step
 	{
@@ -162,5 +147,20 @@ final readonly class PlanBuilder
 
 		ksort($versions);
 		return $versions;
+	}
+
+
+	/**
+	 * Whether the project is a library, which says so by its `type` and has no lock of its own; maybe for one whose
+	 * `type` says so while it has a lock, as an application does.
+	 */
+	public static function isLibrary(string $root): Tristate
+	{
+		$file = ComposerJson::findFile($root);
+		return match (true) {
+			(ComposerJson::read($file)['type'] ?? null) !== 'library' => Tristate::No,
+			is_file(dirname((string) $file) . '/composer.lock') => Tristate::Maybe,
+			default => Tristate::Yes,
+		};
 	}
 }
