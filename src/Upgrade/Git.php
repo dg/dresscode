@@ -7,6 +7,8 @@
 
 namespace DressCode\Upgrade;
 
+use DressCode\ConfigurationException;
+
 
 /**
  * The git a run of a plan needs and nothing more: whether the working tree has changes of its own, and a commit of the
@@ -36,11 +38,18 @@ final readonly class Git
 	/**
 	 * Commits the files as they are, untracked ones among them.
 	 * @param  list<string>  $paths  relative to the root
+	 * @throws ConfigurationException  where git refuses, a hook of the repository among the reasons
 	 */
 	public function commit(array $paths, string $subject, string $body): void
 	{
-		$this->run(['add', '--', ...$paths]);
-		$this->run(['commit', '-m', $subject, '-m', $body, '--', ...$paths]);
+		foreach ([['add', '--', ...$paths], ['commit', '-m', $subject, '-m', $body, '--', ...$paths]] as $arguments) {
+			[$exit, $output] = $this->run($arguments);
+			if ($exit !== 0) {
+				$lines = array_filter(array_map(trim(...), explode("\n", $output)));
+				$reason = end($lines) ?: ($exit === null ? 'it did not end in time' : "exit code $exit");
+				throw new ConfigurationException("`git $arguments[0]` failed: $reason");
+			}
+		}
 	}
 
 

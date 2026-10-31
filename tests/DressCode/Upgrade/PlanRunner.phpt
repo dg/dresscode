@@ -145,6 +145,17 @@ test('with commit, each topic is committed with the files it changed once the te
 		"%A%    upgrade: upgrading.php.implicitNullable\n\n    DressCode-Upgrade-Step: 1\n\nsrc/Code.php\n",
 		str_replace("\r", '', $log),
 	);
+
+	// a commit git refuses ends the run, what the step changed left in the working tree
+	$git('checkout', '--quiet', 'HEAD~1', '--', 'src/Code.php');
+	$git('commit', '--quiet', '-m', 'back');
+	file_put_contents("$root/.git/hooks/pre-commit", "#!/bin/sh\necho refused by the hook\nexit 1\n");
+	Assert::exception(
+		fn() => $runner->run(createSteppedPlan()),
+		DressCode\ConfigurationException::class,
+		'`git commit` failed: refused by the hook; what step 1 changed is left uncommitted in the working tree.',
+	);
+	Assert::contains('?int', (string) file_get_contents("$root/src/Code.php"));
 });
 
 

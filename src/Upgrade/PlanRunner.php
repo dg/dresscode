@@ -263,19 +263,37 @@ final readonly class PlanRunner
 
 	/**
 	 * Commits each topic of the step with the files it changed as the topic left them, which a later topic of the step
-	 * may have changed again, so the working tree ends as the last topic left it.
+	 * may have changed again, so the working tree ends as the last topic left it, a commit git refuses too.
 	 * @param  array<string, TopicReporter>  $reporters  topic => the reporter of its fix
+	 * @throws ConfigurationException  where git refuses a commit
 	 */
 	private function commitStep(int $step, array $reporters): void
 	{
-		foreach ($reporters as $topic => $reporter) {
-			foreach ($reporter->changed as $path => $text) {
-				FileSystem::write(Helpers::toAbsolutePath($path, $this->project->root), $text);
+		try {
+			foreach ($reporters as $topic => $reporter) {
+				$this->writeFiles($reporter->changed);
+				if ($reporter->changed !== []) {
+					$this->git->commit(array_keys($reporter->changed), "upgrade: $topic", "DressCode-Upgrade-Step: $step");
+				}
+			}
+		} catch (ConfigurationException $e) {
+			foreach ($reporters as $reporter) {
+				$this->writeFiles($reporter->changed);
 			}
 
-			if ($reporter->changed !== []) {
-				$this->git->commit(array_keys($reporter->changed), "upgrade: $topic", "DressCode-Upgrade-Step: $step");
-			}
+			throw new ConfigurationException(
+				"{$e->getMessage()}; what step $step changed is left uncommitted in the working tree.",
+				previous: $e,
+			);
+		}
+	}
+
+
+	/** @param  array<string, string>  $files  relative to the root => text */
+	private function writeFiles(array $files): void
+	{
+		foreach ($files as $path => $text) {
+			FileSystem::write(Helpers::toAbsolutePath($path, $this->project->root), $text);
 		}
 	}
 
