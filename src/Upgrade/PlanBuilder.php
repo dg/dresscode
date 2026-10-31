@@ -89,8 +89,8 @@ final readonly class PlanBuilder
 
 
 	/**
-	 * The constraints of `composer.json` the targets raise, each in the shape the project writes it: `^8.4` for `^8.1`,
-	 * `>=8.4` for `>=8.1`; nothing for a target the lowest version allowed today already reaches.
+	 * The constraints of `composer.json` the targets raise, each in the shape the project writes it; nothing for a target
+	 * the lowest version allowed today already reaches.
 	 * @param  list<Target>  $targets
 	 * @return array<string, string>
 	 */
@@ -101,11 +101,26 @@ final readonly class PlanBuilder
 			$constraint = $this->project->required[$target->package] ?? null;
 			$lowest = $constraint === null ? null : Versions::findLowestVersion($constraint);
 			if ($lowest === null || version_compare($lowest, $target->version, '<')) {
-				$require[$target->package] = (str_starts_with(trim((string) $constraint), '>=') ? '>=' : '^') . $target->version;
+				$require[$target->package] = self::raiseConstraint(trim((string) $constraint), $target->version);
 			}
 		}
 
 		return $require;
+	}
+
+
+	/**
+	 * The constraint raised to the version, in the shape the project writes it: `>=8.4` for `>=8.1`, `~8.4.0` for
+	 * `~8.1.0`, and `^8.4` for a caret, a bare version and a constraint of more parts, which the plan shows for review.
+	 */
+	private static function raiseConstraint(string $constraint, string $version): string
+	{
+		return match (true) {
+			(bool) preg_match('~^>=\s*v?[\d.]+$~', $constraint) => ">=$version",
+			(bool) preg_match('~^\~\s*v?(\d+(?:\.\d+)*)$~', $constraint, $m)
+				=> '~' . implode('.', array_pad(explode('.', $version), substr_count($m[1], '.') + 1, '0')),
+			default => "^$version",
+		};
 	}
 
 

@@ -2,6 +2,7 @@
 
 use DressCode\Config;
 use DressCode\Upgrade\{Plan, PlanRunner, ProcessRunner, Project, RunOutcome, RunStop, Step, StepKind, Target, Task, TestResults};
+use Nette\Utils\FileSystem;
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -230,6 +231,27 @@ test('a plan leaving a task is not done, and a step it does not run is refused',
 		DressCode\ConfigurationException::class,
 		'Step 2 of the plan is left out with `skip: true`, so it is not run.',
 	);
+});
+
+
+test('a step of Composer that updates is done once the version installed is one it allows, not the constraint alone', function () {
+	$root = createSteppedProject('steps-installed');
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0", "acme/mail": "^4.0"}}');
+	$installed = fn(string $version) => FileSystem::write(
+		"$root/vendor/composer/installed.json",
+		json_encode(['packages' => [['name' => 'acme/mail', 'version_normalized' => $version]]], JSON_THROW_ON_ERROR),
+	);
+	$plan = new Plan(
+		[new Target('acme/mail', '4.0')],
+		[new Step(StepKind::Composer, 'raise acme/mail to ^4.0', require: ['acme/mail' => '^4.0'])],
+		'1.0',
+	);
+	$runner = new PlanRunner(createSteppedRunProject($root));
+
+	$installed('3.2.0.0');
+	Assert::same(RunStop::Composer, $runner->run($plan)->stop);
+	$installed('4.0.0.0');
+	Assert::same(RunStop::Done, $runner->run($plan)->stop);
 });
 
 

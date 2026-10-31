@@ -285,19 +285,28 @@ final readonly class PlanRunner
 
 	/**
 	 * Whether `composer.json` requires every package of the step with a lower bound the step reaches, allowing the newest
-	 * version the step names: `^8.4` and `~8.4.0` raise `^8.1` to `^8.4`, `^3.2 || ^4.0` widens `^3.2`.
+	 * version the step names, `^8.4` and `~8.4.0` raising `^8.1` to `^8.4` and `^3.2 || ^4.0` widening `^3.2`, and for a
+	 * step that updates, whether the version installed is one the step allows, PHP aside, which the project does not
+	 * install.
 	 * @phpstan-impure
 	 */
 	private function isRaised(Step $step): bool
 	{
-		$required = ProjectPackages::read($this->project->root)->required;
-		return array_all($step->require, function (string $constraint, string $package) use ($required): bool {
-			$parts = preg_split('~\s*\|\|?\s*~', trim($constraint)) ?: [];
-			$lowest = Versions::findLowestVersion($constraint) ?? '0';
-			$newest = Versions::findLowestVersion((string) end($parts)) ?? $lowest;
-			return isset($required[$package])
-				&& version_compare(Versions::findLowestVersion($required[$package]) ?? '0', $lowest, '>=')
-				&& Versions::isSubset($newest, $required[$package]);
+		$project = ProjectPackages::read($this->project->root);
+		return array_all($step->require, function (string $constraint, string $package) use ($project, $step): bool {
+			$required = $project->required[$package] ?? null;
+			$lowests = array_map(
+				fn(string $part) => Versions::findLowestVersion($part) ?? '0',
+				preg_split('~\s*\|\|?\s*~', trim($constraint)) ?: [],
+			);
+			usort($lowests, fn(string $a, string $b) => version_compare($a, $b));
+			$installed = $project->installed[$package] ?? null; // the version of a branch without an alias is not known
+			return $required !== null
+				&& version_compare(Versions::findLowestVersion($required) ?? '0', $lowests[0] ?? '0', '>=')
+				&& Versions::isSubset((string) end($lowests), $required)
+				&& (!$step->update
+					|| $package === PackageDiscovery::Php
+					|| ($installed !== null && ($installed['version'] === null || Versions::isSubset($installed['version'], $constraint))));
 		});
 	}
 

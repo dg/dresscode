@@ -54,6 +54,13 @@ test('the steps go from what a human makes way for, through the bridge and the r
 });
 
 
+test('a tilde keeps its precision, and a constraint of more parts is raised as a caret', function () {
+	$project = new ProjectPackages(required: ['php' => '~8.1.0', 'acme/mail' => '>=2.4 <3.0']);
+	$plan = new PlanBuilder($project)->build(createPlanEstimate());
+	Assert::same(['php' => '~8.4.0', 'acme/mail' => '^3.0'], $plan->steps[2]->require);
+});
+
+
 test('a target the lowest version allowed today already reaches raises nothing', function () {
 	$project = new ProjectPackages(required: ['php' => '^8.4', 'acme/mail' => '^3.1']);
 	$plan = new PlanBuilder($project)->build(createPlanEstimate());
