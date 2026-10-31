@@ -12,7 +12,7 @@ use DressCode\{ConfigurationException, Override, Profile};
 use DressCode\Engine\Helpers;
 use DressCode\Measuring\Scope;
 use Nette\Utils\FileSystem;
-use function is_array, is_string, strlen;
+use function array_key_exists, is_array, is_string, strlen;
 
 
 /**
@@ -30,7 +30,11 @@ final readonly class FormatterConfig
 		'psr12' => 'psr12',
 		'per' => 'perCs',
 		'symfony' => 'symfony',
+		'empty' => null,
 	];
+
+	/** what a configuration of Laravel Pint says that import carries over, the rest of it said in the warnings */
+	private const PintKeys = ['preset', 'rules', 'exclude', 'cache-file'];
 
 
 	private function __construct(
@@ -111,7 +115,7 @@ final readonly class FormatterConfig
 			Formatter::Pint,
 			$file,
 			$runBy,
-			self::PintPresets[$config['preset'] ?? 'laravel'] ?? null,
+			is_string($preset = $config['preset'] ?? 'laravel') ? self::PintPresets[$preset] ?? null : null,
 			[],
 			$excludes,
 			[],
@@ -199,8 +203,8 @@ final readonly class FormatterConfig
 
 
 	/**
-	 * The paths a configuration names relative to its own directory, as paths relative to the root; one outside the root
-	 * or missing is dropped, and the root among them, which takes all, leaves none.
+	 * The paths a configuration names relative to its own directory or absolute, as paths relative to the root; one
+	 * outside the root or missing is dropped, and the root among them, which takes all, is `.` alone.
 	 * @param  list<string>  $paths
 	 * @return list<string>
 	 */
@@ -209,9 +213,9 @@ final readonly class FormatterConfig
 		$root = Helpers::canonicalizePath(FileSystem::normalizePath($root));
 		$resolved = [];
 		foreach ($paths as $path) {
-			$full = Helpers::canonicalizePath(FileSystem::normalizePath("$dir/$path"));
+			$full = Helpers::canonicalizePath(FileSystem::resolvePath($dir, $path));
 			if ($full === $root) {
-				return [];
+				return ['.'];
 			} elseif (str_starts_with($full, "$root/") && file_exists($full)) {
 				$resolved[] = substr($full, strlen($root) + 1);
 			}
@@ -261,10 +265,23 @@ final readonly class FormatterConfig
 			return $translator->translate(...PhpCsFixer::readConfig($this->path));
 		} elseif ($this->formatter === Formatter::Pint) {
 			$config = ComposerJson::read($this->path) ?? throw new ConfigurationException("File `$this->file` is no configuration of Laravel Pint.");
-			return $translator->translate(
+			$preset = $config['preset'] ?? 'laravel';
+			if (!is_string($preset) || !array_key_exists($preset, self::PintPresets)) {
+				throw new ConfigurationException(
+					"File `$this->file` names the preset `" . (is_string($preset) ? $preset : json_encode($preset)) . '`, which Laravel Pint does not have; it has '
+					. implode(', ', array_map(fn(string $name) => "`$name`", array_keys(self::PintPresets))) . '.',
+				);
+			}
+
+			$translation = $translator->translate(
 				(array) ($config['rules'] ?? []),
 				presets: $this->standard === null ? [] : ["dresscode/$this->standard"],
 			);
+			foreach (array_diff(array_keys($config), self::PintKeys) as $key) {
+				$translation->warn("`$key` of `$this->file` is not carried over; the scope of the configuration may differ from the one of Laravel Pint.");
+			}
+
+			return $translation;
 		}
 
 		[$rules, $unread] = PhpCodeSniffer::readConfig($this->path);

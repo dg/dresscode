@@ -18,8 +18,11 @@ test('the paths a configuration checks are read relative to its own directory, t
 	);
 	Assert::same(['src'], FormatterConfig::fromFile($root, 'conf/phpcs.xml')->paths);
 
+	// the root takes all, and an absolute path is where it says
 	file_put_contents("$root/phpcs.xml", '<?xml version="1.0"?><ruleset name="x"><file>src</file><file>.</file></ruleset>');
-	Assert::same([], FormatterConfig::fromFile($root, 'phpcs.xml')->paths);
+	Assert::same(['.'], FormatterConfig::fromFile($root, 'phpcs.xml')->paths);
+	file_put_contents("$root/phpcs.xml", '<?xml version="1.0"?><ruleset name="x"><file>' . $root . '/src</file></ruleset>');
+	Assert::same(['src'], FormatterConfig::fromFile($root, 'phpcs.xml')->paths);
 
 	file_put_contents(
 		"$root/.php-cs-fixer.dist.php",
@@ -42,6 +45,23 @@ test('the configuration in the root is found in the order of the formatters, its
 	);
 	Assert::true(Formatter::PhpCsFixer->runsCode());
 	Assert::false(Formatter::PhpCodeSniffer->runsCode());
+});
+
+
+test('a preset Laravel Pint does not have is refused, and what of its configuration import does not carry over is said', function () {
+	$root = createTempDir('foreign-pint');
+	file_put_contents("$root/pint.json", '{"preset": "typo"}');
+	Assert::exception(
+		fn() => FormatterConfig::fromFile($root, 'pint.json')->translate(),
+		DressCode\ConfigurationException::class,
+		'File `pint.json` names the preset `typo`, which Laravel Pint does not have; it has `laravel`, %a%.',
+	);
+
+	file_put_contents("$root/pint.json", '{"preset": "empty", "notPath": ["legacy.php"]}');
+	Assert::contains(
+		'`notPath` of `pint.json` is not carried over; the scope of the configuration may differ from the one of Laravel Pint.',
+		FormatterConfig::fromFile($root, 'pint.json')->translate()->warnings,
+	);
 });
 
 
