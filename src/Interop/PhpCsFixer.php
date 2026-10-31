@@ -8,7 +8,10 @@
 namespace DressCode\Interop;
 
 use DressCode\ConfigurationException;
-use function array_key_exists, count, is_array, is_object;
+use DressCode\Engine\WorkerPool;
+use DressCode\Upgrade\ProcessRunner;
+use Nette\Utils\FileSystem;
+use function array_key_exists, count, is_array;
 
 
 /**
@@ -18,6 +21,10 @@ use function array_key_exists, count, is_array, is_object;
  */
 final class PhpCsFixer
 {
+	/** how long the configuration of a project may take to run */
+	private const ConfigTimeout = 60;
+
+
 	/**
 	 * @return array<string, array<string, mixed>|\Closure(array<string, mixed>, Translation): mixed>  fixer => its decisions, or what to
 	 *     enable for its options; every option is read through `??` so that a fixer enabled with none translates too
@@ -891,7 +898,8 @@ final class PhpCsFixer
 	/**
 	 * Rules of a .php-cs-fixer.php, which returns a configuration object, or of a file returning the rules
 	 * themselves, with the indent and the line ending the fixers of whitespace write, those of PHP CS Fixer where the
-	 * object does not say. The file is executed, so php-cs-fixer has to be installed; during a migration from it, it is.
+	 * object does not say. The file is executed in a process of its own, after the autoload of its project, which has
+	 * php-cs-fixer installed during a migration from it.
 	 * @return array{array<string, bool|array<string, mixed>>, string, string}
 	 * @throws ConfigurationException
 	 */
@@ -901,30 +909,34 @@ final class PhpCsFixer
 			throw new ConfigurationException("File `$file` does not exist.");
 		}
 
+		// the script is copied out, as a phar holding it is no file PHP runs a script of
+		$temp = sys_get_temp_dir() . '/dresscode-fixer-config-' . bin2hex(random_bytes(6));
+		FileSystem::copy(__DIR__ . '/read-php-cs-fixer-config.php', "$temp.php");
 		try {
-			$config = require $file;
-		} catch (\Error $e) {
-			throw new ConfigurationException(
-				(preg_match('~^Class ".+" not found$~', $e->getMessage())
-					? "File `$file` needs the classes of PHP CS Fixer, which this dresscode cannot load; run the `vendor/bin/dresscode` of the project that has PHP CS Fixer installed: "
-					: "File `$file` cannot be read: ")
-				. rtrim($e->getMessage(), '.') . '.',
-				previous: $e,
+			[$exit, $output] = ProcessRunner::run(
+				[...WorkerPool::buildPhpCommand() ?? [PHP_BINARY], "$temp.php", $file, "$temp.json"],
+				dirname($file),
+				self::ConfigTimeout,
 			);
+			$data = json_decode((string) @file_get_contents("$temp.json"), associative: true); // @ the process may have written nothing
+		} finally {
+			@unlink("$temp.php"); // @ the process may hold it still
+			@unlink("$temp.json"); // @ or have written nothing
 		}
 
-		if (is_array($config)) {
-			return [$config, '    ', "\n"];
-		}
-		if (!is_object($config) || !method_exists($config, 'getRules')) {
-			throw new ConfigurationException("File `$file` returns neither rules nor a PHP CS Fixer configuration.");
-		}
-
-		return [
-			$config->getRules(),
-			method_exists($config, 'getIndent') ? $config->getIndent() : '    ',
-			method_exists($config, 'getLineEnding') ? $config->getLineEnding() : "\n",
-		];
+		$error = is_array($data)
+			? $data['error'] ?? null
+			: ($exit === null ? 'it did not end in time' : (trim($output) ?: "exit code $exit"));
+		return match (true) {
+			$error === 'none' => throw new ConfigurationException("File `$file` returns neither rules nor a PHP CS Fixer configuration."),
+			$error !== null => throw new ConfigurationException(
+				(($data['missingClass'] ?? false)
+					? "File `$file` needs the classes of PHP CS Fixer, which the autoload of its project does not load: "
+					: "File `$file` cannot be read: ")
+				. rtrim((string) $error, '.') . '.',
+			),
+			default => [(array) $data['rules'], (string) $data['indent'], (string) $data['lineEnding']],
+		};
 	}
 
 

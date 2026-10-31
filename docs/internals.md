@@ -415,7 +415,8 @@ The fixtures of every rule run again under each standard with the sets beside it
   configuration: `dresscode migrate config` translates a whole configuration file once, options included, the one named
   or the one the project has as `Interop\FormatterConfig` finds it, a `pint.json` of Laravel Pint read as data, its
   preset the standard of that name and its rules those of PHP CS Fixer, a file of PHP CS Fixer, which reading runs, only
-  after the user agrees in a terminal; it writes with the decisions the scope as init writes it and the overrides
+  after the user agrees in a terminal, and then in a process of its own after the autoload of its project
+  (`PhpCsFixer::readConfig()`), so that what it writes, the directory it changes and its exit stay its own; it writes with the decisions the scope as init writes it and the overrides
   keeping the decisions of a foreign rule where the configuration leaves files out of it, into `dresscode.neon` or the
   file `--output` names, in the format of its extension, NEON or PHP, never over an existing one, saying how many phpcs
   suppression comments the files of the scope hold for `dresscode migrate suppressions` to rewrite, and such a name

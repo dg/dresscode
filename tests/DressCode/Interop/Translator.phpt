@@ -1242,7 +1242,7 @@ test('a .php-cs-fixer.php that cannot be run is an error of the configuration, n
 	Assert::exception(
 		fn() => PhpCsFixer::readConfig("$dir/.php-cs-fixer.php"),
 		ConfigurationException::class,
-		'File `%a%.php-cs-fixer.php` needs the classes of PHP CS Fixer, which this dresscode cannot load; run the `vendor/bin/dresscode` of the project that has PHP CS Fixer installed: Class "Acme\\Missing\\Config" not found.',
+		'File `%a%.php-cs-fixer.php` needs the classes of PHP CS Fixer, which the autoload of its project does not load: Class "Acme\\Missing\\Config" not found.',
 	);
 
 	// any other error of the file is said as it is
@@ -1251,6 +1251,18 @@ test('a .php-cs-fixer.php that cannot be run is an error of the configuration, n
 		fn() => PhpCsFixer::readConfig("$dir/.php-cs-fixer.php"),
 		ConfigurationException::class,
 		"File `%a%.php-cs-fixer.php` cannot be read: Unclosed '[' on line 2.",
+	);
+
+	// what it writes or does to its process stays in its own one
+	file_put_contents("$dir/.php-cs-fixer.php", "<?php\necho 'noise';\nchdir('/');\nreturn ['indentation_type' => true];\n");
+	$cwd = getcwd();
+	Assert::same([['indentation_type' => true], '    ', "\n"], PhpCsFixer::readConfig("$dir/.php-cs-fixer.php"));
+	Assert::same($cwd, getcwd());
+	file_put_contents("$dir/.php-cs-fixer.php", "<?php\nexit(5);\n");
+	Assert::exception(
+		fn() => PhpCsFixer::readConfig("$dir/.php-cs-fixer.php"),
+		ConfigurationException::class,
+		'File `%a%` cannot be read: %a%.',
 	);
 });
 
