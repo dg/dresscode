@@ -16,6 +16,7 @@ use DressCode\Measuring\{Answer, InProcessProbeRunner, ProcessProbeRunner, Proje
 use Nette\CommandLine\Attributes as Cli;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
+use function count;
 
 
 /**
@@ -155,13 +156,8 @@ final readonly class InitCommand
 	private function ask(InitPrinter $printer, Question $question): Answer
 	{
 		$this->context->out->write("\n" . Markup::highlightCode($this->context->out, $printer->printQuestion($question)));
-		$choices = [];
-		foreach ($question->answers as $i => $answer) {
-			$choices[$answer->key] = $answer->label . ($i === 0 ? ' (recommended)' : '');
-		}
-
-		$key = $this->context->prompt->choose('Your choice', $choices, $question->getRecommended()->key);
-		return $question->findAnswer((string) $key) ?? $question->getRecommended();
+		$choice = $this->context->prompt->choose('Your choice', array_map(strval(...), range(1, count($question->answers))), '1');
+		return $question->answers[(int) $choice - 1] ?? $question->getRecommended();
 	}
 
 

@@ -542,7 +542,7 @@ test('an answer that checks a decision may leave another one over the budget, wh
 	[$first] = $questions->findNext($proposal);
 	Assert::contains('`blankLines.afterOpeningTag: 1`', $first->text);
 
-	Assert::true($proposal->apply($first->findAnswer('f') ?? throw new LogicException));
+	Assert::true($proposal->apply($first->answers[1]));
 	$proposal->verify();
 	$next = $questions->findNext($proposal);
 	Assert::count(1, $next);
@@ -560,18 +560,18 @@ test('in a terminal init asks where the measuring left the choice, and Enter tak
 	Assert::same(0, $code);
 	Assert::contains("Check `blankLines.afterOpeningTag: 1`? A fix rewrites 3 files, more than the budget allows.\n", $out);
 	Assert::contains('e.g. src/f01.php:1  ', $out);
-	Assert::contains("  [k] don't check it (recommended)\n  [f] 1 everywhere, a fix rewrites 3 files\n", $out);
+	Assert::contains("  [1] don't check it (recommended)\n  [2] 1 everywhere, a fix rewrites 3 files\n", $out);
 	Assert::notContains('keep the style made to measure?', $out); // what the standard as it is rewrites is said, not asked
 
 	$yes = createProject('yes', stragglers());
-	[$code, $out] = runInit($yes, ['--use', 'perCs', '--yes'], "f\n");
+	[$code, $out] = runInit($yes, ['--use', 'perCs', '--yes'], "2\n");
 	Assert::same(0, $code);
-	Assert::notContains('[k]', $out);
+	Assert::notContains('[1]', $out);
 	Assert::same(file_get_contents("$yes/dresscode.neon"), file_get_contents("$asked/dresscode.neon"));
 
 	// the answer checks the decision, and the configuration is checked again with it
 	$answered = createProject('answered', stragglers());
-	[$code, $out] = runInit($answered, ['--use', 'perCs'], "f\n");
+	[$code, $out] = runInit($answered, ['--use', 'perCs'], "2\n");
 	Assert::same(0, $code);
 	Assert::contains("\nChecked    all 20 files: a fix changes 3 files\n", $out);
 	Assert::contains("\tafterOpeningTag: 1   # your answer\n", (string) file_get_contents("$answered/dresscode.neon"));
@@ -580,7 +580,7 @@ test('in a terminal init asks where the measuring left the choice, and Enter tak
 
 test('a close call of standards is asked first, and the answer measures against the other', function () {
 	$root = createProject('close', stragglers());
-	[$code, $out] = runInit($root, [], "b\n\n");
+	[$code, $out] = runInit($root, [], "2\n\n");
 	Assert::same(0, $code);
 	Assert::match('%A%Your code is as near to %a% as to %a%; which standard should it follow?%A%', $out);
 	Assert::notSame('perCs', Loader::loadFile("$root/dresscode.neon")->use[0] ?? null);
@@ -636,9 +636,9 @@ test('a value the code holds to that the formatter contradicts is a question', f
 
 	// the answer that keeps the value of the code writes it as the user's, with what it rests on
 	$root = createProject('contradicted-kept', $files);
-	[$code, $out] = runInit($root, ['--use', 'perCs'], "c\n");
+	[$code, $out] = runInit($root, ['--use', 'perCs'], "1\n");
 	Assert::same(0, $code);
-	Assert::contains('[c] tab, as your code writes it (recommended)', $out);
+	Assert::contains('[1] tab, as your code writes it (recommended)', $out);
 	Assert::match("%A%\tunit: tab %s%# your code, all 4 files\n%A?%", (string) file_get_contents("$root/dresscode.neon"));
 });
 
@@ -658,7 +658,7 @@ test('over a configuration that exists, a decision the file leaves to the standa
 
 test('over a configuration that exists init asks nothing in a terminal and takes no answer, as it writes nothing', function () {
 	$asked = createProject('existing-asked', stragglers() + ['dresscode.neon' => "use: perCs\npaths: [src]\n"]);
-	[$code, $out] = runInit($asked, [], "f\n");
+	[$code, $out] = runInit($asked, [], "2\n");
 	Assert::same(0, $code);
 	Assert::notContains('Your choice', $out);
 	Assert::notContains('Your call', $out);
@@ -671,7 +671,7 @@ test('over a configuration that exists init asks nothing in a terminal and takes
 
 	// one init cannot read is no reason to ask for the standard either
 	$broken = createProject('existing-broken', stragglers() + ['dresscode.neon' => "use: [\n"]);
-	[$code, $out] = runInit($broken, [], "b\n");
+	[$code, $out] = runInit($broken, [], "2\n");
 	Assert::same(0, $code);
 	Assert::notContains('which standard should it follow?', $out);
 });
@@ -679,9 +679,9 @@ test('over a configuration that exists init asks nothing in a terminal and takes
 
 test('for an agent init takes the recommended answers and draws no status', function () {
 	$root = createProject('agent', stragglers());
-	[$code, $out] = runInit($root, ['--use', 'perCs', '--format', 'agent'], "f\n");
+	[$code, $out] = runInit($root, ['--use', 'perCs', '--format', 'agent'], "2\n");
 	Assert::same(0, $code);
-	Assert::notContains('[k]', $out);
+	Assert::notContains('[1]', $out);
 	Assert::notContains('…', $out);
 	Assert::contains('`blankLines.afterOpeningTag: 1` in `dresscode.neon` checks it too', $out);
 	Assert::contains("\tafterOpeningTag: keep", (string) file_get_contents("$root/dresscode.neon"));

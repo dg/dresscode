@@ -34,10 +34,4 @@ final readonly class Question
 	{
 		return $this->answers[0];
 	}
-
-
-	public function findAnswer(string $key): ?Answer
-	{
-		return array_find($this->answers, fn(Answer $answer) => $answer->key === $key);
-	}
 }

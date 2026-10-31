@@ -48,11 +48,9 @@ final class Questions
 
 		$chosen = implode(', ', $standard->presets);
 		$describe = fn(string $name) => sprintf('%s, your code departs from it in %d decisions', $name, $standard->residues[$name] ?? 0);
-		$key = 'a';
-		$answers = [new Answer($key, $describe($chosen))];
+		$answers = [new Answer($describe($chosen))];
 		foreach ($standard->alternatives as $alternative) {
-			$key = str_increment($key);
-			$answers[] = new Answer($key, $describe($alternative), presets: [$alternative]);
+			$answers[] = new Answer($describe($alternative), presets: [$alternative]);
 		}
 
 		return new Question(
@@ -118,8 +116,8 @@ final class Questions
 				$questions[$path] = new Question(
 					"Check `$path: $wanted`? A fix rewrites $proposed->cost files, more than the budget allows.",
 					[
-						new Answer('k', "don't check it"),
-						new Answer('f', "$wanted everywhere, a fix rewrites $proposed->cost files", [$path => $proposed->wanted]),
+						new Answer("don't check it"),
+						new Answer("$wanted everywhere, a fix rewrites $proposed->cost files", [$path => $proposed->wanted]),
 					],
 					"`$path: $wanted` in `dresscode.neon` checks it too; its fix changes $proposed->cost files",
 					$proposed->example,
@@ -178,8 +176,8 @@ final class Questions
 		return new Question(
 			"`$config->file` wants `$path: $theirs`, your code writes $ours ($proposed->comment); which should the file say?",
 			[
-				new Answer('c', "$ours, as your code writes it", [$path => $proposed->value], $proposed->comment),
-				new Answer('x', "$theirs, as `$config->file` says, a fix rewrites $about" . self::formatFiles($files), [$path => $foreign]),
+				new Answer("$ours, as your code writes it", [$path => $proposed->value], $proposed->comment),
+				new Answer("$theirs, as `$config->file` says, a fix rewrites $about" . self::formatFiles($files), [$path => $foreign]),
 			],
 			"`$path: $theirs` in `dresscode.neon` says what `$config->file` says; its fix changes $about" . self::formatFiles($files),
 			files: $files,
@@ -236,13 +234,12 @@ final class Questions
 			sprintf('%d %s names %s, which no rule renames; how should they be checked?', count($names), $kind, $allows),
 			[
 				new Answer(
-					'e',
 					"allow names that $allows",
 					['naming.except' => [...$except, $regex]],
 					sprintf('the %d %s names that %s, which no rule renames', count($names), $kind, $allows),
 				),
-				new Answer('b', 'list them in the baseline'),
-				new Answer('k', "don't check $kind names", [$path => 'keep']),
+				new Answer('list them in the baseline'),
+				new Answer("don't check $kind names", [$path => 'keep']),
 			],
 			"`naming.except` lets the $kind names that $allows pass; without it they go to the baseline",
 			$proposal->verification?->result->findExample($path),

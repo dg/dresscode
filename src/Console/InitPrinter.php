@@ -162,12 +162,17 @@ final readonly class InitPrinter
 	}
 
 
-	/** A question asked in a terminal: what it asks and a place of the code it is about; the answers are the prompt's. */
+	/** A question asked in a terminal: what it asks, a place of the code it is about, and its answers by number. */
 	public function printQuestion(Question $question): string
 	{
-		return $question->text
+		$out = $question->text
 			. "\n"
 			. ($question->example === null ? '' : $this->label('') . 'e.g. ' . $question->example->describe() . "\n");
+		foreach ($question->answers as $i => $answer) {
+			$out .= '  [' . ($i + 1) . "] $answer->label" . ($i === 0 ? ' (recommended)' : '') . "\n";
+		}
+
+		return $out;
 	}
 
 

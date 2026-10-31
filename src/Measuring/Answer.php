@@ -16,8 +16,6 @@ namespace DressCode\Measuring;
 final readonly class Answer
 {
 	public function __construct(
-		/** what the user types to choose it */
-		public string $key,
 		/** what it does, with what it costs: "no blank line everywhere, rewrites 35 files" */
 		public string $label,
 		/** @var array<string, mixed>  path => the value it writes, as the configuration writes it */
