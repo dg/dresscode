@@ -13,7 +13,7 @@ use function count;
 /**
  * How many files the first fix after `dresscode init` may change: a value the code holds to in all but a few files is
  * written and those few are fixed, while one whose fix would change more is not checked, so that adopting the
- * configuration never rewrites the project.
+ * configuration rewrites no more of the project than the indentation and the answers of the user do, which do not count.
  * @internal
  */
 final readonly class Budget

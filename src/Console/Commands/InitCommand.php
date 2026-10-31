@@ -49,7 +49,7 @@ final readonly class InitCommand
 		)]
 		array $use = [],
 		#[Cli\Option(
-			'The files the first fix may change, a decision whose fix would change more being left unchecked; 1 % of the files by default, 2 to 20',
+			'The files the first fix may change beyond the indentation and your answers, which do not count, a decision whose fix would change more being left unchecked; 1 % of the files by default, 2 to 20',
 			valueName: 'files',
 			normalizer: [RunOptions::class, 'parseJobs'],
 		)]
