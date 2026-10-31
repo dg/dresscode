@@ -10,7 +10,7 @@ namespace DressCode\Upgrade;
 
 /**
  * The recipe of an upgrade: the targets, the steps in their order, the versions of the tool and of the upgrading data
- * it was made with, and the commands that test the project.
+ * it was made with, the commands that test the project, and the paths its fixes are narrowed to.
  * @internal
  */
 final readonly class Plan
@@ -28,6 +28,8 @@ final readonly class Plan
 		public ?string $testCommand = null,
 		/** the command testing what is quick to test, after every step */
 		public ?string $quickTestCommand = null,
+		/** @var list<string>  the paths within the configured ones the fixes are narrowed to, relative to the root; none for all */
+		public array $paths = [],
 	) {
 	}
 

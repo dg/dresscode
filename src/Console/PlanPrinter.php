@@ -33,6 +33,7 @@ final readonly class PlanPrinter
 	{
 		$out = Markup::formatLabel($console, 'Plan')
 			. implode(', ', array_map(fn(Target $target) => $target->format(), $this->plan->targets))
+			. ($this->plan->paths === [] ? '' : ' over ' . implode(', ', $this->plan->paths))
 			. "\n";
 		$width = max([0, ...array_map(fn(Step $step) => strlen($step->title), $this->plan->steps)]);
 		foreach ($this->plan->steps as $index => $step) {
@@ -82,6 +83,7 @@ final readonly class PlanPrinter
 			'data' => (object) $this->plan->data,
 			'testCommand' => $this->plan->testCommand,
 			'quickTestCommand' => $this->plan->quickTestCommand,
+			'paths' => $this->plan->paths,
 		];
 	}
 }

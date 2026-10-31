@@ -288,7 +288,7 @@ test(
 		Assert::same([['src/Date.php', 5]], array_map(fn(Task $task) => [$task->path, $task->violation->line], $tasks['php']));
 		Assert::same(
 			[['path' => 'src/Date.php', 'line' => 10, 'comment' => 'dresscode:ignore upgrading.php.deprecatedApi']],
-			$runner->findPostponed(),
+			$runner->findPostponed($plan),
 		);
 		// a suppression without a reason only puts a task off; and nothing is changed, the fix of `Code.php` included
 		Assert::same($code, file_get_contents("$root/src/Date.php"));

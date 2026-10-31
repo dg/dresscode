@@ -75,6 +75,7 @@ final readonly class PlanBuilder
 			self::findDataVersions($this->project),
 			$testCommand,
 			$quickTestCommand,
+			$estimate->paths,
 		);
 	}
 

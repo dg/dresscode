@@ -181,7 +181,7 @@ final readonly class UpgradeCommand
 			$outcome = $runner->run(
 				$plan,
 				$options->step,
-				fn(Step $step) => $this->raiseWithConsent($step, $runner->project, (bool) $options->yes, $console),
+				fn(Step $step) => $this->raiseWithConsent($step, $runner->project, $options, $console),
 			);
 		} finally {
 			$console->clearStatus();
@@ -220,7 +220,7 @@ final readonly class UpgradeCommand
 
 		try {
 			$tasks = $runner->findTasks($plan);
-			$printer = new TasksPrinter($tasks, $runner->findPostponed());
+			$printer = new TasksPrinter($tasks, $runner->findPostponed($plan));
 		} finally {
 			($console ?? $this->context->err)->clearStatus();
 		}
@@ -240,12 +240,12 @@ final readonly class UpgradeCommand
 
 	/**
 	 * Raises the constraints of the step of Composer once the user agrees, having seen what the update changes: in a
-	 * terminal after asking, outside one with `--yes` alone.
+	 * terminal after asking, otherwise with `--yes` alone.
 	 */
-	private function raiseWithConsent(Step $step, Project $project, bool $yes, Console $console): bool
+	private function raiseWithConsent(Step $step, Project $project, UpgradeOptions $options, Console $console): bool
 	{
-		$prompt = $this->context->prompt;
-		if (!$yes && !$prompt->isInteractive()) {
+		$yes = (bool) $options->yes;
+		if (!$yes && !$this->mayAsk($options)) {
 			return false;
 		}
 
@@ -263,7 +263,7 @@ final readonly class UpgradeCommand
 			$console->writeLine("  $change");
 		}
 
-		if (!$yes && $prompt->choose('Change `composer.json` and update the packages?', ['y', 'n'], 'y') !== 'y') {
+		if (!$yes && $this->context->prompt->choose('Change `composer.json` and update the packages?', ['y', 'n'], 'y') !== 'y') {
 			return false;
 		}
 
@@ -355,15 +355,14 @@ final readonly class UpgradeCommand
 	/**
 	 * Whether the plan is the one of a library, which widens its constraints: as `--library` or `--no-library` says, else
 	 * by the `type` of the project and the lock it has none of, and for a library with a lock of its own in a terminal as
-	 * the user answers, outside one as its `type` says.
+	 * the user answers, otherwise as its `type` says.
 	 */
 	private function decideLibrary(UpgradeOptions $options, Project $project): bool
 	{
-		$prompt = $this->context->prompt;
 		return $options->library ?? match (PlanBuilder::isLibrary($project->root)) {
 			Tristate::Yes => true,
 			Tristate::No => false,
-			Tristate::Maybe => !$prompt->isInteractive() || $prompt->choose(
+			Tristate::Maybe => !$this->mayAsk($options) || $this->context->prompt->choose(
 				'The project says it is a library, yet has a `composer.lock` of its own. Plan it as a library, which widens its constraints to the targets instead of raising them?',
 				['y', 'n'],
 				'y',
@@ -374,7 +373,7 @@ final readonly class UpgradeCommand
 
 	/**
 	 * Whether the offer is measured with the types of the code: as `--types` says, as the configuration says, else in a
-	 * terminal as the user answers, and outside one without them.
+	 * terminal as the user answers, and otherwise without them.
 	 * @throws ConfigurationException  for the types asked for without PHPStan beside DressCode
 	 */
 	private function decideTypes(UpgradeOptions $options, Config $config): bool
@@ -391,13 +390,19 @@ final readonly class UpgradeCommand
 			return $available;
 		}
 
-		$prompt = $this->context->prompt;
-		return $prompt->isInteractive()
-			&& $prompt->choose(
+		return $this->mayAsk($options)
+			&& $this->context->prompt->choose(
 				'Measure with the types of the code, from PHPStan with its default configuration? They decide most of what a fix of a call needs to know.',
 				['y', 'n'],
 				'y',
 			) === 'y';
+	}
+
+
+	/** Whether the command may ask the user: in a terminal, writing text for a human rather than for a tool or an agent. */
+	private function mayAsk(UpgradeOptions $options): bool
+	{
+		return ($options->format ?? 'console') === 'console' && $this->context->prompt->isInteractive();
 	}
 
 

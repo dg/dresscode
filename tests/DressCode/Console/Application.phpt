@@ -717,6 +717,23 @@ test('upgrade --plan writes the steps, --run makes them up to the raise of Compo
 });
 
 
+test('upgrade --paths narrows the plan, whose run changes nothing outside them', function () {
+	$root = createTempDir('plan-paths');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\ncacheDir: cache\n");
+	$code = "<?php\n\nfunction run(int \$count = null): void\n{\n}\n";
+	file_put_contents("$root/src/Code.php", $code);
+	file_put_contents("$root/src/Other.php", $code);
+
+	[$exit] = runApp($root, ['upgrade', 'php', '8.4', '--paths', 'src/Code.php', '--run', '--no-types', '--offline', '--format', 'json']);
+	Assert::same(3, $exit);
+	Assert::contains('?int', (string) file_get_contents("$root/src/Code.php"));
+	Assert::same($code, file_get_contents("$root/src/Other.php"));
+	Assert::contains("paths:\n\t- src/Code.php\n", (string) file_get_contents("$root/dresscode-upgrade.neon"));
+});
+
+
 test('upgrade --no-types measures without the types the configuration asks for', function () {
 	$root = createTempDir('offer-no-types');
 	mkdir("$root/src");
@@ -768,6 +785,10 @@ test('upgrade refuses what the offer cannot measure, and an option of --today wi
 			'`--tasks` lists what the saved plan leaves, so it takes no target and makes or runs no plan.',
 		],
 		[['upgrade', '--today', '--tasks'], '`--tasks` belongs to the plan of an upgrade, and `--today` makes none.'],
+		[
+			['upgrade', '--continue', '--paths', 'src'],
+			'`--paths`, `--offline` and `--jobs` measure the offer, and the saved plan keeps the paths it was made over.',
+		],
 		[['upgrade', '--no-library'], '`--library` and `--no-library` decide the plan made with `--plan`, `--save-plan` or `--run`.'],
 	] as [$args, $message]) {
 		[$exit, , $err] = runApp($root, $args);

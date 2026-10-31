@@ -73,6 +73,7 @@ test('the file of the plan gives back the plan it was written from', function ()
 test('the file of the plan is read as the team writes it, and one that is no plan is refused', function () {
 	$root = createTempDir('plan-edited');
 	file_put_contents("$root/" . PlanFile::Name, <<<'XX'
+		version: 1
 		targets: {php: '8.4'}
 		tests: {command: 'vendor/bin/phpunit --log-junit {junit}'}
 		steps:
@@ -90,8 +91,14 @@ test('the file of the plan is read as the team writes it, and one that is no pla
 	);
 
 	foreach ([
-		"steps: []\n" => '`targets` and `steps` are expected',
-		"targets: {php: '8.4'}\nsteps:\n\t- {title: who knows}\n" => 'step 1 must give its `kind`, `fix`, `composer` or `manual`',
+		"version: 1\nsteps: []\n" => '`targets` and `steps` are expected',
+		"targets: {php: '8.4'}\n" => '`version: 1` is expected, the plan of another version of DressCode is made anew',
+		"version: 1\ntarget: {php: '8.4'}\n" => '`target` is no key of a plan',
+		"version: 1\ntargets: {php: 8.4}\nsteps: []\n" => "`targets` must be a map of strings, a version quoted as `'8.4'`",
+		"version: 1\ntargets: {php: '8.4'}\nsteps:\n\t- {title: who knows}\n" => '`steps.1` must give its `kind`, `fix`, `composer` or `manual`',
+		"version: 1\ntargets: {php: '8.4'}\nsteps:\n\t- {kind: fix, onyl: [php]}\n" => '`steps.1.onyl` is no key of a step of the kind `fix`',
+		"version: 1\ntargets: {php: '8.4'}\nsteps:\n\t- {kind: fix, only: [php], skip: falsee}\n" => '`steps.1.skip` must be `true` or `false`',
+		"version: 1\ntargets: {php: '8.4'}\nsteps:\n\t- {kind: composer}\n" => '`steps.1.require` must give the constraints the step writes',
 	] as $text => $message) {
 		file_put_contents("$root/" . PlanFile::Name, $text);
 		Assert::exception(fn() => PlanFile::read($root), DressCode\ConfigurationException::class, "The plan `%a%`: $message.");

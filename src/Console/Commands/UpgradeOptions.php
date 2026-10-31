@@ -178,6 +178,8 @@ final readonly class UpgradeOptions
 				=> '`--continue` runs the saved plan as it is, so it takes no target and makes no plan; edit `'
 					. PlanFile::Name
 					. '` instead.',
+			($this->continue || $this->tasks) && ($this->paths !== [] || $this->offline || $this->jobs !== null)
+				=> '`--paths`, `--offline` and `--jobs` measure the offer, and the saved plan keeps the paths it was made over.',
 			$this->tasks && ($target !== null || $this->makesPlan() || $runs)
 				=> '`--tasks` lists what the saved plan leaves, so it takes no target and makes or runs no plan.',
 			default => null,

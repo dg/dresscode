@@ -83,15 +83,16 @@ final readonly class Project
 
 
 	/**
-	 * The files of the scope of the configuration, relative to the root.
+	 * The files of the scope of the configuration, or of the paths within it, relative to the root.
+	 * @param  list<string>  $paths  all the configured ones where empty
 	 * @return list<string>
 	 * @throws ConfigurationException
 	 */
-	public function findFiles(): array
+	public function findFiles(array $paths = []): array
 	{
 		$factory = new RunnerFactory;
 		$runner = $factory->createRunner($factory->resolve($this->config, $this->root, $this->commandLine), cache: false);
-		return $runner->findFiles($this->config->paths, configured: $this->config->paths);
+		return $runner->findFiles($paths ?: $this->config->paths, configured: $this->config->paths);
 	}
 
 

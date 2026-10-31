@@ -110,7 +110,7 @@ final readonly class PlanRunner
 			$written = $errors = $left = [];
 			foreach ($step->only as $topic) {
 				$this->onProgress?->__invoke("step $number, fixing $topic");
-				$reporter = $this->runTopic($topic, $kept, $declarations);
+				$reporter = $this->runTopic($topic, $kept, $declarations, $plan->paths);
 				[$written[$topic], $unwritten] = $this->writeTopic($number, $reporter, $snapshots);
 				$errors += $reporter->failed + $unwritten;
 				$left[$topic] = $reporter->tasks;
@@ -190,7 +190,7 @@ final readonly class PlanRunner
 		foreach ($plan->findSteps() as $step) {
 			foreach ($step->kind === StepKind::Fix ? $step->only : [] as $topic) {
 				$this->onProgress?->__invoke("looking at $topic");
-				$tasks[$topic] = $this->runTopic($topic, $kept, $declarations)->tasks;
+				$tasks[$topic] = $this->runTopic($topic, $kept, $declarations, $plan->paths)->tasks;
 			}
 		}
 
@@ -199,21 +199,33 @@ final readonly class PlanRunner
 
 
 	/**
-	 * The comments `dresscode:ignore` about an upgrade that give no reason after ` -- `, which only put a task off.
+	 * The comments `dresscode:ignore` about an upgrade in the files of the plan that give no reason after ` -- `, which
+	 * only put a task off.
 	 * @return list<array{path: string, line: int, comment: string}>  the file relative to the root
 	 * @throws ConfigurationException
 	 */
-	public function findPostponed(): array
+	public function findPostponed(Plan $plan): array
 	{
 		$postponed = [];
-		foreach ($this->project->findFiles() as $path) {
+		foreach ($this->project->findFiles($plan->paths) as $path) {
 			$code = FileSystem::read(Helpers::toAbsolutePath($path, $this->project->root));
-			// a decision of upgrading, a package of upgrading data, a library or the data of PHP
-			preg_match_all('~dresscode:ignore\s+(?:upgrading|upgrade-|php\b|[\w-]+/)[^\n]*~', $code, $matches, PREG_OFFSET_CAPTURE);
-			foreach ($matches[0] as [$comment, $offset]) {
-				if (!str_contains($comment, ' -- ')) {
-					$comment = rtrim(explode('*/', $comment)[0]);
-					$postponed[] = ['path' => $path, 'line' => substr_count($code, "\n", 0, $offset) + 1, 'comment' => $comment];
+			foreach (\PhpToken::tokenize($code) as $token) {
+				// a decision of upgrading, a package of upgrading data, a library or the data of PHP
+				if (
+					$token->is([T_COMMENT, T_DOC_COMMENT])
+					&& preg_match_all(
+						'~dresscode:ignore\s+(?:upgrading|upgrade-|php\b|[\w-]+/)[^\n]*~',
+						$token->text,
+						$matches,
+						PREG_OFFSET_CAPTURE,
+					)
+				) {
+					foreach ($matches[0] as [$comment, $offset]) {
+						if (!str_contains($comment, ' -- ')) {
+							$line = $token->line + substr_count($token->text, "\n", 0, $offset);
+							$postponed[] = ['path' => $path, 'line' => $line, 'comment' => rtrim(explode('*/', $comment)[0])];
+						}
+					}
 				}
 			}
 		}
@@ -226,8 +238,9 @@ final readonly class PlanRunner
 	 * Runs the topic over the project as it is, writing nothing, the names resolved for certain with what the namespaces
 	 * declare where they were measured, as the estimate resolves them.
 	 * @param  list<string>  $kept  the decisions of the style the code keeps
+	 * @param  list<string>  $paths  within the configured ones, all of them where empty
 	 */
-	private function runTopic(string $topic, array $kept, ?NamespaceDeclarations $declarations): TopicReporter
+	private function runTopic(string $topic, array $kept, ?NamespaceDeclarations $declarations, array $paths): TopicReporter
 	{
 		$project = $this->project;
 		$factory = new RunnerFactory(withoutTypes: !$this->types);
@@ -241,7 +254,7 @@ final readonly class PlanRunner
 		);
 		$runner = $factory->createRunner($resolution, cache: false, configFile: $this->configFile);
 		$reporter = new TopicReporter;
-		$runner->run($runner->findFiles($project->config->paths, configured: $project->config->paths), false, $reporter);
+		$runner->run($runner->findFiles($paths ?: $project->config->paths, configured: $project->config->paths), false, $reporter);
 		return $reporter;
 	}
 

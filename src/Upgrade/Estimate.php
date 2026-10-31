@@ -39,6 +39,8 @@ final readonly class Estimate
 		public ?Moves $moves = null,
 		/** @var array<string, string>  the files the check could not process, whose places are not counted => why */
 		public array $failed = [],
+		/** @var list<string>  the paths within the configured ones it was narrowed to, relative to the root; none for all */
+		public array $paths = [],
 	) {
 	}
 

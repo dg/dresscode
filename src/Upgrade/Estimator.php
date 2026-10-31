@@ -98,8 +98,9 @@ final readonly class Estimator
 		$todayRun = new EstimateRun($this->project->createLayer($plugins, $this->types), []);
 		[$todayFactory, $today] = $todayRun->resolve($this->project->config, $this->project->root);
 		$runner = $todayFactory->createRunner($today, cache: false);
-		$scope = $paths ? $runner->narrowPaths($paths, $this->project->config->paths) : $this->project->config->paths;
-		$files = $runner->findFiles($scope, configured: $this->project->config->paths);
+		$configured = $this->project->config->paths;
+		$scope = $paths ? array_map($runner->relativize(...), $runner->narrowPaths($paths, $configured)) : $configured;
+		$files = $runner->findFiles($scope, configured: $configured);
 		$generated = array_filter(
 			$files,
 			fn(string $file) => FileSample::isGenerated(Helpers::toAbsolutePath($file, $this->project->root)),
@@ -110,7 +111,11 @@ final readonly class Estimator
 		$warnings = [];
 		if ($this->project->config->nameResolution === null) {
 			$this->onProgress?->__invoke('reading the declarations of the namespaces');
-			$declarations = NamespaceDeclarations::collect($this->project->root, $files);
+			// those of the whole scope, which a call within the paths named may reach
+			$declarations = NamespaceDeclarations::collect(
+				$this->project->root,
+				$paths ? $runner->findFiles($configured, configured: $configured) : $files,
+			);
 			if ($declarations->unparsed !== []) {
 				$warnings[] = 'The names are not resolved for certain: ' . count($declarations->unparsed) . ' files do not parse.';
 				$declarations = null;
@@ -152,6 +157,7 @@ final readonly class Estimator
 			[...array_keys($resolution->warnings), ...$warnings],
 			$composer === null || $this->offline ? null : $this->findMoves($composer, $targets),
 			self::collectFailures($result),
+			$paths ? $scope : [],
 		);
 	}
 
