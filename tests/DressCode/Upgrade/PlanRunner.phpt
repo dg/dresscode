@@ -187,9 +187,20 @@ test('with commit, each topic is committed with the files it changed once the te
 		str_replace("\r", '', $log),
 	);
 
+	// a raise the run makes is committed too, so that the next run finds no changes of its own
+	$raise = function () use ($root): bool {
+		file_put_contents("$root/composer.json", '{"require": {"php": "^8.4"}}');
+		return true;
+	};
+	Assert::same(RunStop::Done, $runner->run(createSteppedPlan(), raise: $raise)->stop);
+	Assert::contains('upgrade: raise php to ^8.4', $git('log', '-1')[1]);
+	Assert::false($runner->hasOwnChanges());
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0"}}');
+	$git('commit', '--quiet', '-am', 'php ^8.0');
+
 	// a commit git refuses ends the run, what the step changed left in the working tree
-	$git('checkout', '--quiet', 'HEAD~1', '--', 'src/Code.php');
-	$git('commit', '--quiet', '-m', 'back');
+	file_put_contents("$root/src/Code.php", "<?php\r\n\r\nfunction run(int \$count = null): void\r\n{\r\n}\r\n");
+	$git('commit', '--quiet', '-am', 'back');
 	file_put_contents("$root/.git/hooks/pre-commit", "#!/bin/sh\necho refused by the hook\nexit 1\n");
 	Assert::exception(
 		fn() => $runner->run(createSteppedPlan()),

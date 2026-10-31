@@ -96,8 +96,16 @@ final readonly class PlanRunner
 			if ($only !== null && $number !== $only) {
 				continue;
 			} elseif ($step->kind === StepKind::Composer) {
-				if (!$this->isRaised($step) && (!$raise?->__invoke($step) || !$this->isRaised($step))) {
-					return new RunOutcome(RunStop::Composer, $number, $fixed, $tasks);
+				if (!$this->isRaised($step)) {
+					if (!$raise?->__invoke($step) || !$this->isRaised($step)) {
+						return new RunOutcome(RunStop::Composer, $number, $fixed, $tasks);
+					} elseif ($this->commit) {
+						$files = array_filter(
+							['composer.json', 'composer.lock'],
+							fn(string $file) => is_file("{$this->project->root}/$file"),
+						);
+						$this->git->commit(array_values($files), "upgrade: $step->title", "DressCode-Upgrade-Step: $number");
+					}
 				}
 
 				$raised = true;
