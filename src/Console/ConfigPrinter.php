@@ -40,12 +40,12 @@ final readonly class ConfigPrinter
 	/** The report as text for the console, with the ANSI colors of `$console` where it draws any. */
 	public function print(Console $console): string
 	{
-		$out = $console->color('gray', 'Use        ')
+		$out = Markup::formatLabel($console, 'Use')
 			. (implode(', ', [...$this->config->plugins, ...$this->config->use]) ?: '(none)')
 			. "\n";
-		$out .= $console->color('gray', 'Targets    ') . self::describeTargets($this->config) . "\n";
-		$out .= $console->color('gray', 'Style      ') . self::describeStyle($this->config) . "\n";
-		$out .= $console->color('gray', 'Names      ') . self::describeNamespaces($this->config) . "\n";
+		$out .= Markup::formatLabel($console, 'Targets') . self::describeTargets($this->config) . "\n";
+		$out .= Markup::formatLabel($console, 'Style') . self::describeStyle($this->config) . "\n";
+		$out .= Markup::formatLabel($console, 'Names') . self::describeNamespaces($this->config) . "\n";
 		foreach ([[$this->config->namespacedFunctions, '()'], [$this->config->namespacedConstants, '']] as [$names, $suffix]) {
 			foreach ($names as $name => $source) {
 				$out .= '      ' . self::pad($name . $suffix, 56) . $console->color('gray', $source) . "\n";
@@ -53,7 +53,7 @@ final readonly class ConfigPrinter
 		}
 
 		if ($this->config->suppressionComments !== []) {
-			$out .= $console->color('gray', 'Comments   ') . 'silence decisions on their line' . "\n";
+			$out .= Markup::formatLabel($console, 'Comments') . 'silence decisions on their line' . "\n";
 			foreach ($this->config->suppressionComments as $pattern => $names) {
 				$example = $this->config->suppressionExamples[$pattern] ?? null;
 				$out .= '      '
@@ -65,7 +65,7 @@ final readonly class ConfigPrinter
 		}
 
 		if ($this->packages !== []) {
-			$out .= $console->color('gray', 'Packages   ') . count($this->packages) . ' with upgrading data' . "\n";
+			$out .= Markup::formatLabel($console, 'Packages') . count($this->packages) . ' with upgrading data' . "\n";
 			// what the version of the package has not reached yet is what an upgrade still offers
 			foreach ($this->packages as [$data, $version]) {
 				$further = array_map(
@@ -82,7 +82,7 @@ final readonly class ConfigPrinter
 		}
 
 		$set = array_filter($this->config->decisions, fn(ResolvedDecision $decision) => $decision->layers !== []);
-		$out .= $console->color('gray', 'Decisions  ')
+		$out .= Markup::formatLabel($console, 'Decisions')
 			. sprintf('%d of %d set by a layer, the others asking for nothing', count($set), count($this->config->decisions)) . "\n\n";
 		// a decision the configuration names stands there too, so that a name doing nothing shows
 		$named = array_filter(

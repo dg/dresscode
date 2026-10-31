@@ -9,7 +9,7 @@ namespace DressCode\Console\Commands;
 
 use DressCode\Config;
 use DressCode\Config\RunnerFactory;
-use DressCode\Console\{CommandContext, ConfigPrinter};
+use DressCode\Console\{CommandContext, ConfigPrinter, Markup};
 use DressCode\Engine\Helpers;
 use Nette\CommandLine\{Attributes as Cli, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
@@ -86,7 +86,7 @@ final readonly class ConfigCommand
 
 		$this->context->writeHeader($configFile, $resolution);
 		if (is_string($file)) {
-			$out->writeLine($out->color('gray', 'File       ') . FileSystem::platformSlashes($file));
+			$out->writeLine(Markup::formatLabel($out, 'File') . FileSystem::platformSlashes($file));
 		}
 
 		$out->write($printer->print($out));

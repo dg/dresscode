@@ -48,7 +48,7 @@ final class StatusLine
 			return;
 		}
 
-		$this->phase = $this->console->color('gray', str_pad($label, 11)) . $text . '…';
+		$this->phase = Markup::formatLabel($this->console, $label) . $text . '…';
 		$this->console->setStatus($this->shown = $this->phase);
 	}
 

@@ -291,6 +291,6 @@ final readonly class InitPrinter
 
 	private function label(string $label): string
 	{
-		return $this->console->color('gray', str_pad($label, 11));
+		return Markup::formatLabel($this->console, $label);
 	}
 }
