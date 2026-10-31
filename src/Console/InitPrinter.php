@@ -39,8 +39,8 @@ final readonly class InitPrinter
 	public function printScope(Project $project, Scope $scope): string
 	{
 		$out = $this->label('Project') . sprintf(
-			"%d PHP files %s%s\n",
-			count($scope->files),
+			"%s %s%s\n",
+			Markup::formatCount(count($scope->files), 'PHP file'),
 			$scope->isTracked() ? 'in git' : 'in ' . implode(', ', $scope->listPaths()),
 			$project->name === null ? '' : ", $project->name",
 		);
@@ -118,8 +118,8 @@ final readonly class InitPrinter
 	{
 		$verification = $proposal->verification ?? throw new \LogicException('The proposal is not verified.');
 		$out = $this->label('Checked') . sprintf(
-			"all %d files: a fix changes %s%s%s\n",
-			count($proposal->scope->files),
+			"%s: a fix changes %s%s%s\n",
+			count($proposal->scope->files) === 1 ? 'the 1 file' : 'all ' . Markup::formatCount(count($proposal->scope->files), 'file'),
 			$this->formatFiles($verification->changedFiles),
 			$verification->alignedFiles ? ", $verification->alignedFiles of them to indent them as the rest of the code is" : '',
 			$verification->leftPlaces

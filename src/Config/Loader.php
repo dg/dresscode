@@ -82,13 +82,14 @@ final class Loader
 
 
 	/**
-	 * The configuration files lying in the directory itself, the local ones and the .dist templates.
+	 * The configuration files lying in the directory itself, the local ones before the .dist templates, as `find()`
+	 * prefers them.
 	 * @return list<string>  their names
 	 */
 	public static function listFiles(string $directory): array
 	{
 		return array_values(array_filter(
-			array_merge(...array_map(fn(string $name) => [$name, $name . self::DistSuffix], self::FileNames)),
+			[...self::FileNames, ...array_map(fn(string $name) => $name . self::DistSuffix, self::FileNames)],
 			fn(string $name) => is_file("$directory/$name"),
 		));
 	}

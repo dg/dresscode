@@ -126,13 +126,10 @@ test(
 	'a configuration that exists is not overwritten, and the report ends with that, not with a proposal as long as a file',
 	function () use ($tabbed) {
 		$root = createProject('existing', ['src/A.php' => $tabbed, 'dresscode.php.dist' => "<?php\n"]);
-		[$code, $out, $err] = runInit($root);
-		Assert::same(0, $code);
-		Assert::match(
-			"DRESS|CODE %A%Checked %A%\n`dresscode.php.dist` exists, so nothing is written; it is no configuration init can compare with.\n",
-			$out,
-		);
-		Assert::same('', $err);
+		// one that cannot be read is said with why, before anything is measured
+		[$code, , $err] = runInit($root);
+		Assert::same(3, $code);
+		Assert::match('%A%`dresscode.php.dist` exists and cannot be read, so init has nothing to compare with: %a%', $err);
 		Assert::same("<?php\n", file_get_contents("$root/dresscode.php.dist"));
 		Assert::false(is_file("$root/dresscode.neon"));
 	},
@@ -375,6 +372,7 @@ test('a decision the code holds to in all but a few files is written, unless its
 	Assert::contains("\tafterOpeningTag: 0   # your answer\n", (string) file_get_contents("$root/dresscode.neon"));
 
 	// a decision the standard does not know is no answer
+	unlink("$root/dresscode.neon");
 	[$code, , $err] = runInit($root, ['--set', 'project.unknown=1']);
 	Assert::same(3, $code);
 	Assert::contains('Decision `project.unknown` is not one the standard knows.', $err);
@@ -672,11 +670,17 @@ test('over a configuration that exists init asks nothing in a terminal and takes
 	[, $out] = runInit($piped);
 	Assert::same($moved, substr($out, (int) strpos($out, "\nMoved")));
 
-	// one init cannot read is no reason to ask for the standard either
+	// one init cannot read is no reason to ask for the standard either, and --set has nothing to answer
 	$broken = createProject('existing-broken', stragglers() + ['dresscode.neon' => "use: [\n"]);
 	[$code, $out] = runInit($broken, [], "2\n");
-	Assert::same(0, $code);
+	Assert::same(3, $code);
 	Assert::notContains('which standard should it follow?', $out);
+	[$code, , $err] = runInit($asked, ['--set', 'indentation.unit=tab']);
+	Assert::same(3, $code);
+	Assert::contains(
+		'`--set` answers what init asks, and over `dresscode.neon`, which exists, it asks nothing; edit the file instead.',
+		$err,
+	);
 });
 
 

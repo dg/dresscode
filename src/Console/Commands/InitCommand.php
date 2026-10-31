@@ -13,8 +13,8 @@ use DressCode\Console\{CommandContext, InitPrinter, Markup, StatusLine};
 use DressCode\Engine\{Helpers, WorkerPool};
 use DressCode\Interop\{PhpCodeSniffer, Translation};
 use DressCode\Measuring\{Answer, InProcessProbeRunner, ProcessProbeRunner, Project, Proposal, Question, Questions, Scope};
-use Nette\CommandLine\Attributes as Cli;
-use Nette\Neon\Neon;
+use Nette\CommandLine\{Attributes as Cli, ParseResult, UsageException};
+use Nette\Neon\{Exception as NeonException, Neon};
 use Nette\Utils\FileSystem;
 use function count;
 
@@ -40,6 +40,7 @@ final readonly class InitCommand
 	 */
 	#[Cli\Command('Measure the code of the project and write a `dresscode.neon` to fit')]
 	public function init(
+		ParseResult $args,
 		#[Cli\Option(
 			'The standard and the sets to write; the standard nearest to the code by default',
 			valueName: 'name',
@@ -72,11 +73,31 @@ final readonly class InitCommand
 	{
 		$root = Helpers::canonicalizePath($this->context->workingDirectory);
 		$existing = Loader::listFiles($root);
+		if ($existing && $set) {
+			throw new UsageException(
+				"`--set` answers what init asks, and over `$existing[0]`, which exists, it asks nothing; edit the file instead.",
+				$args->command,
+			);
+		}
+
 		try {
 			// over a configuration that exists init measures what has moved since, against the standard that file names
 			$current = $existing ? Loader::loadFile("$root/$existing[0]") : null;
-		} catch (ConfigurationException) {
-			$current = null;
+		} catch (ConfigurationException $e) {
+			throw new ConfigurationException(
+				"`$existing[0]` exists and cannot be read, so init has nothing to compare with: {$e->getMessage()}",
+				previous: $e,
+			);
+		}
+
+		$answers = [];
+		foreach ($set as $spec) { // read before the measuring, so that a mistake is not told only after it
+			[$path, $value] = explode('=', $spec, 2);
+			try {
+				$answers[$path] = Neon::decode($value);
+			} catch (NeonException $e) {
+				throw new UsageException("`--set $spec` is no value in NEON: {$e->getMessage()}", $args->command);
+			}
 		}
 
 		$presets = $use ?: $current?->use ?: null;
@@ -109,17 +130,15 @@ final readonly class InitCommand
 			$proposal = $presets === null ? $proposal : $proposal->measureAgainst($presets);
 		}
 
-		foreach ($set as $spec) {
-			[$path, $value] = explode('=', $spec, 2);
-			$proposal->answer($path, Neon::decode($value));
+		foreach ($answers as $path => $value) {
+			$proposal->answer($path, $value);
 		}
 
 		$proposal->verify();
-		if ($existing) {
+		if ($current !== null) {
 			$proposal->checkWritten();
-			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal) . "\n" . ($current === null
-				? "`$existing[0]` exists, so nothing is written; it is no configuration init can compare with.\n"
-				: $printer->printShifts($proposal, (new RunnerFactory)->resolve($current, $root)->resolvedConfig, $existing[0])));
+			$write($printer->printMeasurements($proposal) . $printer->printVerification($proposal) . "\n"
+				. $printer->printShifts($proposal, (new RunnerFactory)->resolve($current, $root)->resolvedConfig, $existing[0]));
 			return 0;
 		}
 
