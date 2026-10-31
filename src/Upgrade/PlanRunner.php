@@ -188,15 +188,13 @@ final readonly class PlanRunner
 	/**
 	 * The comments `dresscode:ignore` about an upgrade that give no reason after ` -- `, which only put a task off.
 	 * @return list<array{path: string, line: int, comment: string}>  the file relative to the root
+	 * @throws ConfigurationException
 	 */
 	public function findPostponed(): array
 	{
-		$project = $this->project;
-		$factory = new RunnerFactory;
-		$runner = $factory->createRunner($factory->resolve($project->config, $project->root, $project->commandLine), cache: false);
 		$postponed = [];
-		foreach ($runner->findFiles($project->config->paths, configured: $project->config->paths) as $path) {
-			$code = FileSystem::read(Helpers::toAbsolutePath($path, $project->root));
+		foreach ($this->project->findFiles() as $path) {
+			$code = FileSystem::read(Helpers::toAbsolutePath($path, $this->project->root));
 			// a decision of upgrading, a package of upgrading data, a library or the data of PHP
 			preg_match_all('~dresscode:ignore\s+(?:upgrading|upgrade-|php\b|[\w-]+/)[^\n]*~', $code, $matches, PREG_OFFSET_CAPTURE);
 			foreach ($matches[0] as [$comment, $offset]) {

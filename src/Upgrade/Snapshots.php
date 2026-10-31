@@ -38,19 +38,14 @@ final readonly class Snapshots
 	}
 
 
-	/**
-	 * Writes the files of the step back as they were before it, and forgets them.
-	 * @return list<string>  the files written back, relative to the root
-	 */
-	public function restore(int $step, string $root): array
+	/** Writes the files of the step back as they were before it, and forgets them. */
+	public function restore(int $step, string $root): void
 	{
-		$index = $this->readIndex($step);
-		foreach ($index as $path => $name) {
+		foreach ($this->readIndex($step) as $path => $name) {
 			FileSystem::write(Helpers::toAbsolutePath($path, $root), FileSystem::read("$this->dir/$step/$name"));
 		}
 
 		$this->drop($step);
-		return array_keys($index);
 	}
 
 

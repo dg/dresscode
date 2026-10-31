@@ -77,13 +77,21 @@ final readonly class Project
 			return null;
 		}
 
+		$declarations = NamespaceDeclarations::collect($this->root, $this->findFiles());
+		return $declarations->unparsed === [] ? $declarations : null;
+	}
+
+
+	/**
+	 * The files of the scope of the configuration, relative to the root.
+	 * @return list<string>
+	 * @throws ConfigurationException
+	 */
+	public function findFiles(): array
+	{
 		$factory = new RunnerFactory;
 		$runner = $factory->createRunner($factory->resolve($this->config, $this->root, $this->commandLine), cache: false);
-		$declarations = NamespaceDeclarations::collect(
-			$this->root,
-			$runner->findFiles($this->config->paths, configured: $this->config->paths),
-		);
-		return $declarations->unparsed === [] ? $declarations : null;
+		return $runner->findFiles($this->config->paths, configured: $this->config->paths);
 	}
 
 
