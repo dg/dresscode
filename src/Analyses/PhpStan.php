@@ -48,6 +48,8 @@ final class PhpStan
 {
 	private const ConfigFiles = ['phpstan.neon', 'phpstan.neon.dist', 'phpstan.dist.neon'];
 
+	private readonly string $tempDir;
+
 	private ?Container $container = null;
 
 	/** @var ?array{string, string}  the path whose declarations are read from the other file, a text of a pass */
@@ -80,7 +82,7 @@ final class PhpStan
 		private readonly string $root,
 		/** @var list<string> where the classes of the project are declared, besides its Composer autoload */
 		private readonly array $analysedPaths,
-		private readonly string $tempDir,
+		string $tempDir,
 		/** the version of PHP the code is written for, which PHPStan parses it as where the running PHP is older */
 		private readonly ?string $phpVersion = null,
 		/**
@@ -96,6 +98,8 @@ final class PhpStan
 		 */
 		private readonly array $foreignPaths = [],
 	) {
+		// PHPStan keys its caches by its version, not by where it is installed, and they hold paths into its archive
+		$this->tempDir = $tempDir . '/' . substr(hash('xxh128', (string) InstalledVersions::getInstallPath('phpstan/phpstan')), 0, 16);
 		self::claimPhpDocParser();
 	}
 
