@@ -1,0 +1,49 @@
+<?php
+// {"__invokeCall": "required"}
+use Acme\Bus\{Audit, Handler, Plain, Registry};
+
+class Controller
+{
+	private Handler $h;
+
+
+	public function run(
+		Handler $f,
+		Registry $registry,
+		Handler|Audit $either,
+		Handler|Closure $mixed,
+		Closure $closure,
+		callable $callable,
+		$unknown,
+		string $name,
+		Plain $plain,
+		?Handler $nullable,
+		Handler $g,
+	) {
+		$a = $f($x, $y);
+		$b = ($this->h)(1);
+		$c = (new Handler)(2);
+		$d = $registry->find()(3);
+		$e = Registry::make()(4);
+		$i = ($registry->handler)(5);
+		$k = $either(6);
+		$l = $f($g(1), 2);
+		$m = $f(
+			1,
+			2, // two
+		);
+		$n = $f(...);
+		$o = $mixed(1);
+		$p = $closure(1);
+		$q = $callable(1);
+		$r = $unknown(1);
+		$s = $name(1);
+		$t = $plain(1);
+		$u = $nullable(1);
+		$v = $f /* c */ (1);
+		$w = ( /* c */ $this->h)(1);
+		$x = $f(/* c */);
+		$y = $f->__invoke(1);
+		$z = strlen('x');
+	}
+}

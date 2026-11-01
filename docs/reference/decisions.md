@@ -3800,12 +3800,12 @@ A check of the version of PHP every version the code runs on decides alike, `if 
 
 ### hygiene.__invokeCall
 
-`$f->__invoke($x)` is `$f($x)`.
+`$f->__invoke($x)` is `$f($x)`, or the other way round for an object.
 
 - By default `keep`
-- Takes: `forbidden` (never there); `keep`
+- Takes: `forbidden` (never there); `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `forbidden`, symfony `keep`, laravel `keep`
-- Rule `DressCode\Rules\Functions\NoExplicitInvokeCallsRule`, stage Structure
+- Rule `DressCode\Rules\Functions\InvokeCallNotationRule`, stage Structure
 - Covers: `SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall`
 
 ## mistakes

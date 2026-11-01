@@ -1125,6 +1125,7 @@ final readonly class Violation
 - `DressCode\Rules\Functions\FirstClassCallableForStringRule`
 - `DressCode\Rules\Functions\FunctionNameSpacingRule`
 - `DressCode\Rules\Functions\GetDebugTypeForTernaryRule`
+- `DressCode\Rules\Functions\InvokeCallNotationRule`
 - `DressCode\Rules\Functions\JsonValidateForDecodeRule`
 - `DressCode\Rules\Functions\MethodCasingRule`
 - `DressCode\Rules\Functions\MultilineCallRule`
@@ -1138,7 +1139,6 @@ final readonly class Violation
 - `DressCode\Rules\Functions\NoConversionFunctionsRule`
 - `DressCode\Rules\Functions\NoDebugOutputRule`
 - `DressCode\Rules\Functions\NoDirnameOfFileRule`
-- `DressCode\Rules\Functions\NoExplicitInvokeCallsRule`
 - `DressCode\Rules\Functions\NoInnerFunctionsRule`
 - `DressCode\Rules\Functions\NoIsNullRule`
 - `DressCode\Rules\Functions\NoManualSubstringTestsRule`

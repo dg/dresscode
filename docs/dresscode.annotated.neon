@@ -472,7 +472,7 @@ hygiene:                                    # what is there for nothing: a call 
 	settype: forbidden                      # `settype($x, 'int');` is `$x = (int) $x;`. Also: keep
 	call_user_func: forbidden               # `call_user_func($f, $x)` is `$f($x)`, `call_user_func_array()` alike; risky. Also: keep
 	call_user_funcMethods: no               # parameter: also a method the callable names, `[$this, 'run']`. Also: yes
-	__invokeCall: forbidden                 # `$f->__invoke($x)` is `$f($x)`. Also: keep
+	__invokeCall: forbidden                 # `$f->__invoke($x)` is `$f($x)`, or the other way round for an object. Also: required; keep
 	dirnameOfFile: forbidden                # `dirname(__FILE__)` is `__DIR__`. Also: keep
 	nestedDirname: forbidden                # `dirname(dirname($p))` is `dirname($p, 2)`. Also: keep
 	strlenEmptyTest: forbidden              # `strlen($s) === 0` is `$s === ''`; risky, with the types. Also: keep
