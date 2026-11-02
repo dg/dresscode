@@ -1033,7 +1033,7 @@ The arguments of a call, of `new` or of an attribute and the variables of `isset
 A sole argument that is a string, a message, is not spread for its width
 
 - By default `keep`
-- Takes: `perLine` (every argument on a line of its own); `fill` (the arguments may share lines, one on a line passing too, and one spanning lines stands on lines of its own); `fillPlain` (as `fill` where every argument is a variable, a constant, a literal or a property, joined where they fit on one line, as `perLine` otherwise); a list of them, every one passing and the first written where none matches; `keep`
+- Takes: `perLine` (every argument on a line of its own); `fill` (the arguments may share lines, one on a line passing too, and one spanning lines stands on lines of its own); `fillPlain` (as `fill` where every argument is a variable, a constant, a literal or a property, joined where they fit on one line and no comment stands among them, as `perLine` otherwise); a list of them, every one passing and the first written where none matches; `keep`
 - The standards: perCs `perLine`, psr12 `perLine`, nette `fillPlain`
 - Rule `DressCode\Rules\Functions\MultilineCallRule`, stage Formatting
 

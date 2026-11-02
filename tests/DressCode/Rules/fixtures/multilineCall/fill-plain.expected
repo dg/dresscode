@@ -24,3 +24,16 @@ imagecopy(
 	$this->image, $output, $left,
 	$top, 0, 0, $width, $height
 )->run();
+matchAll(
+	$word,
+	'~x~', // a marker counts as one
+);
+imagecopy(
+	$this->image,
+	// the target
+	$output,
+);
+imagecopy(
+	$this->image, $output, // the source and the target
+	$left, $top,
+);
