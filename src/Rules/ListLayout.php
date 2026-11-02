@@ -19,8 +19,8 @@ use function count, strlen;
 /**
  * The shapes of a list spread over lines, on two axes: how its items stand, `perLine` every one on a line of its own or
  * `fill` sharing lines, which accepts them one on a line too, or `fillPlain`, `fill` where every item is plain, a
- * variable, a constant, a literal or a property, joined where they fit on the line of the opening bracket, and
- * `perLine` otherwise, and where its edges stand, `apart` with the items beginning
+ * variable, a constant, a literal or a property, joined where they fit on the line of the opening bracket and no
+ * comment stands among them, and `perLine` otherwise, and where its edges stand, `apart` with the items beginning
  * on the line after the opening token and the closing one on a line of its own, `attached` with the items beginning on
  * the line of the opening token and the closing one following the last item, `closingApart` with the items on the line
  * of the opening token and the closing one on a line of its own. Each axis accepts a list of shapes, the first of them
@@ -51,7 +51,7 @@ final readonly class ListLayout
 		public bool $edgesKept = false,
 		/** the place of `multiline.items`, which says whether its lines are filled again by their width */
 		public ?string $place = null,
-		/** the items are plain under `fillPlain`, so a list of them its author spread is filled whatever its lines, or joined */
+		/** the items are plain under `fillPlain`, uncommented, so a list its author spread is filled whatever its lines, or joined */
 		public bool $repacks = false,
 	) {
 	}
@@ -88,7 +88,7 @@ final readonly class ListLayout
 					? [self::Fill => "the $items may share lines, one on a line passing too, and one spanning lines $spanning"]
 					: [])
 				+ ($fillPlain
-					? [self::FillPlain => "as `fill` where every $item is a variable, a constant, a literal or a property, joined where they fit on one line, as `perLine` otherwise"]
+					? [self::FillPlain => "as `fill` where every $item is a variable, a constant, a literal or a property, joined where they fit on one line and no comment stands among them, as `perLine` otherwise"]
 					: []), tolerance: true, passes: [self::Fill => self::PerLine, self::FillPlain => self::PerLine]),
 			$description,
 			$notes,
@@ -128,10 +128,11 @@ final readonly class ListLayout
 
 
 	/**
-	 * The layout of the items given: `fillPlain` is `fill` where every one of them is plain, and `perLine` otherwise.
+	 * The layout of the items given between the two tokens: `fillPlain` is `fill` where every one of them is plain, its
+	 * lines kept where a comment stands among them, and `perLine` otherwise.
 	 * @param  list<Node>  $items
 	 */
-	public function forItems(array $items): self
+	public function forItems(array $items, Token $open, Token $close): self
 	{
 		if (!in_array(self::FillPlain, $this->items, true)) {
 			return $this;
@@ -146,7 +147,7 @@ final readonly class ListLayout
 			$this->edgeDecision,
 			$this->edgesKept,
 			$this->place,
-			$plain && $shapes[0] === self::Fill,
+			$plain && $shapes[0] === self::Fill && !$open->hasCommentUpTo($close),
 		);
 	}
 

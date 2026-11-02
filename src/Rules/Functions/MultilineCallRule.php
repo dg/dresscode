@@ -21,7 +21,7 @@ use PhpSyntax\Nodes\Statement\UnsetNode;
  * The arguments of a call, of `new` or of an attribute, and the variables of `unset()` and `isset()`, spread over
  * several lines stand in the shapes of `multiline.items.argument` and `multiline.edges.argument`, each comma on the line
  * of its argument, `fillPlain` filling the lines where every argument is plain, joining them where they fit on the
- * line of the call, and giving each a line otherwise; a list
+ * line of the call, keeping their lines where a comment stands among them, and giving each a line otherwise; a list
  * its author spread is written again only on the axis whose shape is not accepted, and in `fill` its lines are filled
  * again where one is wider than the line length. A call on one line is spread in the first shapes,
  * in `fill` its arguments filling the lines evenly, when its line is wider than the line length of the style, measured
@@ -103,7 +103,7 @@ final class MultilineCallRule extends GapRule
 			return null;
 		}
 
-		return $this->layout->forItems($items->getItems())->decide(
+		return $this->layout->forItems($items->getItems(), $list->openParen, $list->closeParen)->decide(
 			$gap,
 			$list,
 			$list->openParen,
