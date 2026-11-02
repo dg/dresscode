@@ -1,0 +1,16 @@
+<?php
+$a = $input |> strtolower(?);
+$b = $input |> strtolower(?) |> trim(?);
+$c = $input |> $this->clean(?) |> Helper::wrap(?) |> $fn(?);
+$d = $input
+	|> strtolower(?)
+	|> trim(?);
+$e = $input |> strtolower(/* the whole text */ ?);
+$f = $input |> strtolower(?);
+$g = $input |> (strtolower(...));
+$h = strtolower(...) |> array_map(?, $items);
+$i = strtolower(...);
+$j = array_map(strtolower(...), $items);
+$k = $input |> array_map(strtolower(...), ?);
+$l = $input |> foo(1, ...);
+$m = $input . strtolower(...);

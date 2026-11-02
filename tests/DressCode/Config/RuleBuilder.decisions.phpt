@@ -8,6 +8,7 @@
 use DressCode\Config\{Catalogue, DecisionResolver, InactiveReason, Layer, LayerKind, RuleBuilder};
 use DressCode\{Decision, DecisionKind, Domain, NodeRule, RuleInfo, Stage, Values};
 use DressCode\Domains\Names;
+use DressCode\Rules\Expressions\{PartialApplicationForPipeStepRule, PipeForNestedCallsRule};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -182,3 +183,18 @@ test(
 		);
 	},
 );
+
+
+test('a step of a pipe becomes a partial application only where the target PHP has one', function () {
+	$catalogue = Catalogue::fromRules([PipeForNestedCallsRule::class, PartialApplicationForPipeStepRule::class]);
+	$layers = [[new Layer(LayerKind::Configuration), ['upgrading' => ['syntax' => ['pipe' => 'required']]]]];
+	$build = function (string $php) use ($catalogue, $layers): array {
+		$resolver = new DecisionResolver($catalogue, phpTarget: $php);
+		$resolved = $resolver->resolve($layers);
+		$rules = RuleBuilder::buildFromDecisions($resolver, $resolved, $resolver->createValues($resolved));
+		return array_map(fn($rule) => $rule::class, $rules);
+	};
+
+	Assert::same([PipeForNestedCallsRule::class], $build('8.5'));
+	Assert::same([PipeForNestedCallsRule::class, PartialApplicationForPipeStepRule::class], $build('8.6'));
+});

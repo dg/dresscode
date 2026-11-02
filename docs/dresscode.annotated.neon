@@ -537,7 +537,7 @@ upgrading:                                  # what a newer PHP writes or retired
 		throwExpression: required           # `$a ?? throw new E()` for an `if` throwing where the value is null. Also: keep
 		firstClassCallables: required       # `foo(...)` for `Closure::fromCallable()`, a forwarding closure, `'self::foo'`. Also: keep
 		dynamicClassConstant: required      # `X::{$name}` for `constant(X::class . '::' . $name)`, PHP 8.3. Also: keep
-		pipe: keep                          # `$x |> a(...) |> b(...)` for `b(a($x))`, PHP 8.5. Also: required
+		pipe: keep                          # `$x |> a(...) |> b(...)` for `b(a($x))`, PHP 8.5, `a(?)` for `a(...)` from 8.6. Also: required
 		pipeMinCalls: 3                     # parameter: from how many nested calls on
 		cloneWith: required                 # `clone($o, [...])` for a `clone` followed by assignments to the copy, PHP 8.5. Also: keep
 		spreadForArrayMerge: required       # `[...$a, ...$b]` for `array_merge($a, $b)` of arrays; risky. Also: keep

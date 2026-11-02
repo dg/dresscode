@@ -8,7 +8,7 @@
 namespace DressCode\Rules\Expressions;
 
 use DressCode\Analyses\{PhpSignatures, Types};
-use DressCode\{Decision, DecisionKind, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate, Values};
+use DressCode\{Decision, DecisionKind, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate, Values};
 use DressCode\Domains\Count;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, DereferenceKind, Node, SymbolKind, Token};
@@ -20,8 +20,8 @@ use function count;
  * Calls nested one in another, each handing its result to the next, are the pipe operator of PHP 8.5, which
  * puts them in the order they run: `trim(strtolower($s))` reads outwards in and `$s |> strtolower(...) |> trim(...)`
  * downwards. Every call of the nest must take the one argument and name what it calls, so that the step is
- * a first-class callable; `upgrading.syntax.pipeMinCalls` says how deep a nest must be before the pipe pays for
- * itself.
+ * a first-class callable, from PHP 8.6 on the partial application `strtolower(?)`;
+ * `upgrading.syntax.pipeMinCalls` says how deep a nest must be before the pipe pays for itself.
  *
  * A nest standing inside an operator that binds tighter than the pipe stays as it is: the pipe binds loosely,
  * between concatenation and comparison, so it would need parentheses there and read worse than the nest.
@@ -34,21 +34,19 @@ use function count;
 #[RuleInfo(
 	Stage::Structure,
 	requires: ['php' => '>=8.5'],
+	decisions: ['upgrading.syntax.pipe'],
 	analyses: [PhpSignatures::class, Types::class, NameResolver::class],
 )]
 final class PipeForNestedCallsRule extends NodeRule
 {
+	private const PartialApplicationVersion = '8.6';
+
 	private int $minCalls = 3;
 
 
 	public static function getDecisions(): array
 	{
 		return [
-			new Decision(
-				'upgrading.syntax.pipe',
-				Domain::state('required'),
-				'Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x |> a(...) |> b(...)` for `b(a($x))`',
-			),
 			new Decision(
 				'upgrading.syntax.pipeMinCalls',
 				new Count(2, range: false),
@@ -129,7 +127,8 @@ final class PipeForNestedCallsRule extends NodeRule
 			return;
 		}
 
-		$pipe = implode(' |> ', array_map(fn(string $callee) => "$callee(...)", array_reverse($steps)));
+		$placeholder = version_compare($context->phpVersion, self::PartialApplicationVersion, '>=') ? '?' : '...';
+		$pipe = implode(' |> ', array_map(fn(string $callee) => "$callee($placeholder)", array_reverse($steps)));
 		$replacement = (new Builder)->expression("0 |> $pipe");
 		$first = $replacement;
 		while ($first instanceof Expression\BinaryOpNode) {
@@ -143,7 +142,7 @@ final class PipeForNestedCallsRule extends NodeRule
 
 	/**
 	 * How a call that takes one argument and passes it on names what it calls, null for anything else,
-	 * a call of several arguments among them, which no step of a pipe can be.
+	 * a call of several arguments among them.
 	 */
 	private static function readCallee(?Node $call): ?string
 	{

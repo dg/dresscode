@@ -1,0 +1,6 @@
+<?php
+// php 8.6
+// risky
+$a = trim(strtolower(htmlspecialchars($input)));
+$b = $this->clean(Helper::wrap(trim($input)));
+$c = trim(strtolower($input));

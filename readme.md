@@ -373,7 +373,7 @@ What gets rewritten, by the version of PHP that brought it:
 | 8.3 | `json_validate()` instead of `json_decode()` called only as a test, `Foo::{$name}` instead of `constant()` |
 | 8.4 | a loop that only searches or tests items to `array_any()`, `array_all()`, `array_find()` or `array_find_key()`, and so `count(array_filter($a, $f)) > 0`, the `RoundingMode` enum in `round()`, `#[\Deprecated]` instead of `@deprecated` |
 | 8.5 | nested calls to the pipe operator `\|>`, `array_first()` and `array_last()`, a clone whose properties are assigned next to `clone($this, ['name' => $name])` |
-| 8.6 | `max()` around `min()` to `clamp()`, `fn($s) => str_pad($s, 10, '-')` to the partial application `str_pad(?, 10, '-')` |
+| 8.6 | `max()` around `min()` to `clamp()`, `fn($s) => str_pad($s, 10, '-')` to the partial application `str_pad(?, 10, '-')`, and so a step of a pipe, `trim(...)` to `trim(?)` |
 
 All of this is turned on by the set `modernizations`, each item a key of its own that a project may also
 write alone (`upgrading.syntax.match: required`). The set `deprecations` goes with it and fixes what newer PHP

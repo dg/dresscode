@@ -4310,13 +4310,15 @@ A `return` inside `finally`, which PHP 8.6 deprecated.
 
 ### upgrading.syntax.pipe
 
-Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x |> a(...) |> b(...)` for `b(a($x))`.
+Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x |> a(...) |> b(...)` for `b(a($x))`; from PHP 8.6 its steps are partial applications, `a(?)` for `a(...)`.
 
 - By default `keep`
 - Takes: `required` (always there); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- Rule `DressCode\Rules\Expressions\PartialApplicationForPipeStepRule`, stage Structure
 - Rule `DressCode\Rules\Expressions\PipeForNestedCallsRule`, stage Structure
 - Needs PHP >=8.5
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### upgrading.syntax.pipeMinCalls
 

@@ -143,6 +143,7 @@ final class CorePlugin implements Plugin
 				Rules\Expressions\NullCoalescingForNullTernaryRule::class,
 				Rules\Expressions\NullsafeForGuardedAccessRule::class,
 				Rules\Expressions\OperandSpacingRule::class,
+				Rules\Expressions\PartialApplicationForPipeStepRule::class,
 				Rules\Expressions\PipeForNestedCallsRule::class,
 				Rules\Expressions\ShortTernaryRule::class,
 				Rules\Expressions\TernaryOperatorSpacingRule::class,
@@ -471,6 +472,11 @@ final class CorePlugin implements Plugin
 					'upgrading.syntax.firstClassCallables',
 					Domain::state('required'),
 					'`foo(...)` for `Closure::fromCallable()`, a forwarding closure and `\'self::foo\'`; from PHP 8.6 a partial application',
+				),
+				new Decision(
+					'upgrading.syntax.pipe',
+					Domain::state('required'),
+					'Calls nested one in another, each handing its result to the next, written with the pipe operator of PHP 8.5 in the order they run: `$x |> a(...) |> b(...)` for `b(a($x))`; from PHP 8.6 its steps are partial applications, `a(?)` for `a(...)`',
 				),
 			],
 		);

@@ -1094,6 +1094,7 @@ final readonly class Violation
 - `DressCode\Rules\Expressions\NullCoalescingForNullTernaryRule`
 - `DressCode\Rules\Expressions\NullsafeForGuardedAccessRule`
 - `DressCode\Rules\Expressions\OperandSpacingRule`
+- `DressCode\Rules\Expressions\PartialApplicationForPipeStepRule`
 - `DressCode\Rules\Expressions\PipeForNestedCallsRule`
 - `DressCode\Rules\Expressions\ShortTernaryRule`
 - `DressCode\Rules\Expressions\TernaryOperatorSpacingRule`
