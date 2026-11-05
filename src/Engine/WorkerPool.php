@@ -100,8 +100,8 @@ final class WorkerPool
 
 
 	/**
-	 * The PHP a worker is started with: the same binary with the same ini file, the binary alone loading the default
-	 * one, and the settings the process has beyond it; null where no CLI binary is found to start one.
+	 * The PHP a process of DressCode is started with: the same binary with the same ini file, the binary alone loading the
+	 * default one, and the settings the process has beyond it; null where no CLI binary is found to start one.
 	 * @return ?list<string>
 	 */
 	public static function buildPhpCommand(): ?array
@@ -114,6 +114,18 @@ final class WorkerPool
 		$ini = php_ini_loaded_file();
 		$php = [$binary, ...($ini === false ? (php_ini_scanned_files() === false ? ['-n'] : []) : ['-c', $ini])];
 		return [...$php, ...self::findIniOverrides($php)];
+	}
+
+
+	/**
+	 * The PHP a worker is started with, on Windows without OPcache: the workers share its memory there, and PHP with JIT
+	 * crashes once they fill it.
+	 * @return ?list<string>
+	 */
+	public static function buildWorkerPhpCommand(): ?array
+	{
+		$php = self::buildPhpCommand();
+		return $php === null || PHP_OS_FAMILY !== 'Windows' ? $php : [...$php, '-d', 'opcache.enable_cli=0'];
 	}
 
 

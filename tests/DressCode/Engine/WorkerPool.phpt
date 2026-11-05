@@ -21,6 +21,12 @@ function processWith(WorkerPool $pool): array
 }
 
 
+test('a worker starts with OPcache off on Windows, whatever the settings it takes from the process', function () {
+	$off = PHP_OS_FAMILY === 'Windows' ? ['-d', 'opcache.enable_cli=0'] : [];
+	Assert::same([...(array) WorkerPool::buildPhpCommand(), ...$off], WorkerPool::buildWorkerPhpCommand());
+});
+
+
 test('an answer that arrives in parts is put together into one result', function () {
 	$results = processWith(new WorkerPool(fakeWorker('split'), jobs: 2));
 	ksort($results);
