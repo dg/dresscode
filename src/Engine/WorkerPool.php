@@ -117,18 +117,6 @@ final class WorkerPool
 	}
 
 
-	/**
-	 * The PHP a worker is started with, on Windows without OPcache: the workers share its memory there, and PHP with JIT
-	 * crashes once they fill it.
-	 * @return ?list<string>
-	 */
-	public static function buildWorkerPhpCommand(): ?array
-	{
-		$php = self::buildPhpCommand();
-		return $php === null || PHP_OS_FAMILY !== 'Windows' ? $php : [...$php, '-d', 'opcache.enable_cli=0'];
-	}
-
-
 	/** The binary of the process, or under another SAPI than CLI, such as CGI, the CLI binary beside it. */
 	private static function findCliBinary(): ?string
 	{

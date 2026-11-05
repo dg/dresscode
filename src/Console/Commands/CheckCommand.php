@@ -428,7 +428,7 @@ final readonly class CheckCommand
 	 */
 	private function buildWorkerCommand(ParseResult $args, ConfigOptions $configuration, RunOptions $run, ?CheckOptions $check): ?array
 	{
-		$php = WorkerPool::buildWorkerPhpCommand();
+		$php = WorkerPool::buildPhpCommand();
 		if ($php === null) {
 			return null;
 		}
