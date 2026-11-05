@@ -11,6 +11,7 @@ use DressCode\{Config, ConfigurationException, ConvergenceException, RuleExcepti
 use Nette\CommandLine\{ColorDepth, Command, Console, HelpRenderer, Parser as CommandLineParser, Prompt, UsageException};
 use Nette\Utils\FileSystem;
 use function extension_loaded;
+use const PHP_OS_FAMILY;
 
 
 /**
@@ -67,6 +68,11 @@ final readonly class Application
 	 */
 	public function run(array $argv): int
 	{
+		// on Windows the processes share the memory of OPcache, and PHP with JIT crashes once it is full
+		if (PHP_OS_FAMILY === 'Windows') {
+			ini_set('opcache.enable', '0');
+		}
+
 		[$context, $out, $err] = [$this->context, $this->context->out, $this->context->err];
 		try {
 			$args = (new CommandLineParser)->parse($this->defineCommandLine(), array_slice($argv, 1));
