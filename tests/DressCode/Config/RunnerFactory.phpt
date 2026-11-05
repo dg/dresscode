@@ -8,6 +8,7 @@ use DressCode\Config\{ComposerJson, PhpVersionSource, RunnerFactory};
 use DressCode\Engine\{Runner, TypeAnalysisStatus};
 use DressCode\Reporters\NullReporter;
 use DressCode\Rules\ControlFlow\MatchForSwitchRule;
+use Nette\Utils\FileSystem;
 use PhpSyntax\{Node, Token};
 use PhpSyntax\Nodes\Expression\VariableNode;
 use Tester\{Assert, FileMock};
@@ -490,7 +491,95 @@ test('a configuration of PHPStan it cannot start with is a warning of the run, a
 		fn($violation) => "$violation->line: $violation->decision",
 		$result->files[0]->violations,
 	));
-	Assert::match('PHPStan could not start with `phpstan.neon` of the project: %a%; the types go without it.', $result->warnings[0] ?? '');
+	Assert::match(
+		'PHPStan could not start with the configuration of the project: %a%; the types go without it.',
+		$result->warnings[0] ?? '',
+	);
+});
+
+
+/**
+ * A project with an extension of PHPStan in its vendor directory, which says that `findText()` gives a string, not null.
+ * @param  list<array<string, mixed>>  $otherPackages  installed beside the extension
+ */
+function createProjectWithExtension(string $name, array $otherPackages = []): string
+{
+	$root = createTempDir($name);
+	FileSystem::write("$root/composer.json", '{"name": "app/project"}');
+	FileSystem::write("$root/Check.php", <<<'PHP'
+		<?php
+
+		function findText(): ?string
+		{
+			return null;
+		}
+
+
+		function check(string $text): void
+		{
+			strtolower(findText());
+			strtolower(preg_replace('~a~', 'b', $text));
+		}
+		PHP);
+	FileSystem::copy(__DIR__ . '/fixtures/phpstan-extension', "$root/vendor/acme/phpstan-rules");
+	FileSystem::write("$root/vendor/composer/installed.json", json_encode(['packages' => [
+		[
+			'name' => 'acme/phpstan-rules',
+			'install-path' => '../acme/phpstan-rules',
+			'extra' => ['phpstan' => ['includes' => ['extension.neon']]],
+		],
+		...$otherPackages,
+	]], JSON_THROW_ON_ERROR));
+	FileSystem::write(
+		"$root/vendor/composer/autoload_psr4.php",
+		"<?php\n\nreturn ['Acme\\\\PhpStanRules\\\\' => [dirname(__DIR__) . '/acme/phpstan-rules/src']];\n",
+	);
+	return $root;
+}
+
+
+/**
+ * The lines where the run finds a null passed on, and what it warns about.
+ * @return array{list<int>, list<string>}
+ */
+function findNullArguments(string $root): array
+{
+	$factory = new RunnerFactory;
+	$config = new Config(
+		paths: ['Check.php'],
+		typeAnalysis: 'phpstan',
+		decisions: ['upgrading' => ['php' => ['nullArgument' => 'forbidden']]],
+	);
+	$result = $factory->createRunner($factory->resolve($config, $root), cache: false)->run(['Check.php'], false, new NullReporter);
+	return [array_map(fn($violation) => $violation->line, $result->files[0]->violations), $result->warnings];
+}
+
+
+test('the types take the extensions the installer of the project includes, never those of the installation of DressCode', function () {
+	$root = createProjectWithExtension('types-extension', [['name' => 'phpstan/extension-installer']]);
+	// the second line is what nette/phpstan-rules among the packages of DressCode narrows, which this project does not have
+	Assert::same([[12], []], findNullArguments($root));
+});
+
+
+test('an extension without the installer of the project is not included', function () {
+	Assert::same([[11, 12], []], findNullArguments(createProjectWithExtension('types-extension-no-installer')));
+});
+
+
+test('the classes of an extension the configuration of the project includes itself can be loaded', function () {
+	$root = createProjectWithExtension('types-extension-included');
+	FileSystem::write("$root/phpstan.neon", "includes:\n\t- vendor/acme/phpstan-rules/extension.neon\n");
+	Assert::same([[12], []], findNullArguments($root));
+});
+
+
+test('an extension PHPStan cannot start with is a warning of the run, and the types go without it', function () {
+	$root = createProjectWithExtension('types-extension-broken', [['name' => 'phpstan/extension-installer']]);
+	FileSystem::write("$root/vendor/acme/phpstan-rules/extension.neon", "services:\n\t- Acme\\PhpStanRules\\Missing\n");
+	[$lines, $warnings] = findNullArguments($root);
+	Assert::same([11, 12], $lines);
+	Assert::match('PHPStan could not start with the configuration of the project: %a%; the types go without it.', $warnings[0] ?? '');
 });
 
 

@@ -139,6 +139,7 @@ final readonly class RunnerFactory
 				$resolution->projectPackages->findNewerInstalledPaths(),
 				$resolution->projectPackages->findUnboundedInstalledPaths(),
 				self::findForeignPaths($root),
+				$resolution->projectPackages->findPhpStanExtensions(),
 			);
 			$analyses[Analyses\Types::class] = fn(FileNode $file, string $path) => new Analyses\Types($file, $path, $phpstan);
 		}
@@ -401,8 +402,7 @@ final readonly class RunnerFactory
 
 	/**
 	 * The identity of everything a result depends on besides the file: what the caller gives, the packages of the
-	 * project, and those of the running process, which are the tool, its PHPStan and the extensions of it wherever
-	 * they are not installed in the project.
+	 * project, the extensions of PHPStan among them, and those of the running process, the tool and its PHPStan.
 	 * @param  array<mixed>  $configuration
 	 */
 	private static function hashConfiguration(array $configuration, ProjectPackages $project): string

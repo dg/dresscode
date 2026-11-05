@@ -165,6 +165,50 @@ test('PHP is had in the versions of the target, a version alone being the oldest
 });
 
 
+test('the extensions of PHPStan a project has, with the configuration files its installer includes', function () {
+	$packages = fn(array $extra): ProjectPackages => new ProjectPackages(rootExtra: $extra, installed: [
+		'acme/rules' => [
+			'version' => '1.0',
+			'reference' => null,
+			'path' => 'vendor/acme/rules',
+			'extra' => ['phpstan' => ['includes' => ['a.neon', 'b.neon']]],
+		],
+		'acme/other' => [
+			'version' => '1.0',
+			'reference' => null,
+			'path' => 'vendor/acme/other',
+			'extra' => ['phpstan' => ['includes' => ['c.neon']]],
+		],
+		'acme/lib' => ['version' => '1.0', 'reference' => null, 'path' => 'vendor/acme/lib', 'extra' => []],
+		'phpstan/extension-installer' => [
+			'version' => '1.4',
+			'reference' => null,
+			'path' => 'vendor/phpstan/extension-installer',
+			'extra' => [],
+		],
+	]);
+
+	Assert::same([
+		'vendor/acme/rules' => ['vendor/acme/rules/a.neon', 'vendor/acme/rules/b.neon'],
+		'vendor/acme/other' => ['vendor/acme/other/c.neon'],
+	], $packages([])->findPhpStanExtensions());
+	Assert::same([
+		'vendor/acme/rules' => ['vendor/acme/rules/a.neon', 'vendor/acme/rules/b.neon'],
+		'vendor/acme/other' => [],
+	], $packages(['phpstan/extension-installer' => ['ignore' => ['acme/other']]])->findPhpStanExtensions());
+
+	$withoutInstaller = new ProjectPackages(installed: [
+		'acme/rules' => [
+			'version' => '1.0',
+			'reference' => null,
+			'path' => 'vendor/acme/rules',
+			'extra' => ['phpstan' => ['includes' => ['a.neon']]],
+		],
+	]);
+	Assert::same(['vendor/acme/rules' => []], $withoutInstaller->findPhpStanExtensions());
+});
+
+
 test('a project without packages has none', function () {
 	$project = new ProjectPackages;
 	Assert::null($project->rootPath);

@@ -21,7 +21,6 @@ use PhpParser\Node\Stmt\{Class_, ClassLike, Enum_, EnumCase, Interface_};
 use PHPStan\Analyser\{NodeScopeResolver, Scope, ScopeContext, ScopeFactory};
 use PHPStan\BetterReflection\Reflection\Exception\CircularReference;
 use PHPStan\DependencyInjection\{Container, ContainerFactory};
-use PHPStan\ExtensionInstaller\GeneratedConfig;
 use PHPStan\File\FileHelper;
 use PHPStan\Parser\Parser;
 use PHPStan\PharAutoloader;
@@ -36,8 +35,8 @@ use function ini_get, is_string, strlen;
 
 /**
  * PHPStan in the process, the `phpstan/phpstan` installed beside DressCode: a container built once from
- * the configuration of the project, the parser and the scope resolver the types come from. Only what PHPStan
- * marks @api is used, so that a minor version of it changes nothing here, except the newest version of PHP it
+ * the configuration and the extensions of the project, the parser and the scope resolver the types come from. Only what
+ * PHPStan marks @api is used, so that a minor version of it changes nothing here, except the newest version of PHP it
  * accepts and two things about the reflection living in static state of PHPStan: the container created last takes it
  * over, and handing it back to another container is internal, as PHPStan does it itself where it switches between
  * two; and its cache of anonymous classes holds the container that reflected each, so it is emptied before a PHPStan
@@ -71,6 +70,9 @@ final class PhpStan
 
 	private ?ClassLoader $autoloader = null;
 
+	/** whether the process can load the classes of the extensions by now */
+	private bool $extensionsLoadable = false;
+
 	/** @var ?list<string>  the files the configuration read, once a container is built */
 	private ?array $configurationFiles = null;
 
@@ -97,6 +99,11 @@ final class PhpStan
 		 * from, whose packages the process loads for itself and PHPStan finds through its autoloaders
 		 */
 		private readonly array $foreignPaths = [],
+		/**
+		 * @var array<string, list<string>>  the directories of the extensions of PHPStan the project has => the configuration
+		 * files of each PHPStan includes by itself
+		 */
+		private readonly array $extensions = [],
 	) {
 		// PHPStan keys its caches by its version, not by where it is installed, and they hold paths into its archive
 		$this->tempDir = $tempDir . '/' . substr(hash('xxh128', (string) InstalledVersions::getInstallPath('phpstan/phpstan')), 0, 16);
@@ -380,6 +387,14 @@ final class PhpStan
 	 */
 	public function findAutoloadedFile(string $class): ?string
 	{
+		$file = $this->getProjectLoader()->findFile($class);
+		return is_string($file) ? $file : null;
+	}
+
+
+	/** The Composer autoload of the project, which only says where a class lies, the process loading nothing through it. */
+	private function getProjectLoader(): ClassLoader
+	{
 		if ($this->autoloader === null) {
 			$composer = ComposerJson::read(ComposerJson::findFile($this->root));
 			$vendorDir = $composer['config']['vendor-dir'] ?? 'vendor';
@@ -396,8 +411,7 @@ final class PhpStan
 			$this->autoloader->addClassMap(is_file("$vendor/autoload_classmap.php") ? require "$vendor/autoload_classmap.php" : []);
 		}
 
-		$file = $this->autoloader->findFile($class);
-		return is_string($file) ? $file : null;
+		return $this->autoloader;
 	}
 
 
@@ -539,8 +553,8 @@ final class PhpStan
 
 
 	/**
-	 * The container of the configuration of the project, or of none where PHPStan cannot start with it, an extension it
-	 * loads from a vendor directory of another installation above all, so that the types are those of the code alone.
+	 * The container of the configuration and the extensions of the project, or of neither where PHPStan cannot start with
+	 * them, so that the types are those of the code alone.
 	 */
 	private function getContainer(): Container
 	{
@@ -562,10 +576,11 @@ final class PhpStan
 		if (ini_get('opcache.file_cache_only')) {
 			ini_set('opcache.enable', '0');
 		}
+		$configs = [...array_merge(...array_values($this->extensions)), ...array_filter([$config])];
 		$container = $failure = null;
-		foreach (array_unique([$config, null]) as $file) {
+		foreach (array_unique([$configs, []], SORT_REGULAR) as $files) {
 			try {
-				$container = $this->createContainer($file);
+				$container = $this->createContainer($files);
 				break;
 			} catch (\Throwable $e) {
 				$failure ??= $e;
@@ -577,9 +592,9 @@ final class PhpStan
 				'PHPStan could not be started' . ($config ? ' with ' . Violation::formatCode($config) : '') . ": {$failure->getMessage()}",
 				previous: $failure,
 			);
-		} elseif ($failure !== null && $config !== null) {
-			$this->configurationWarning = 'PHPStan could not start with ' . Violation::formatCode(basename($config))
-				. ' of the project: ' . strtok($failure->getMessage(), "\n") . '; the types go without it.';
+		} elseif ($failure !== null) {
+			$this->configurationWarning = 'PHPStan could not start with the configuration of the project: '
+				. strtok($failure->getMessage(), "\n") . '; the types go without it.';
 		}
 
 		$this->configurationFiles ??= $this->collectConfigurationFiles($container);
@@ -587,12 +602,16 @@ final class PhpStan
 	}
 
 
-	/** The container of the configuration file, with the bootstrap files it names run. */
-	private function createContainer(?string $config): Container
+	/**
+	 * The container of the configuration files, with the bootstrap files they name run.
+	 * @param  list<string>  $configs
+	 */
+	private function createContainer(array $configs): Container
 	{
+		$this->makeExtensionsLoadable();
 		$container = new ContainerFactory($this->root)->create(
 			$this->tempDir,
-			[...self::findExtensionConfigs(), ...array_filter([$this->writeVersionConfig(), $config])],
+			[...array_filter([$this->writeVersionConfig()]), ...$configs],
 			$this->analysedPaths,
 			[$this->root],
 			singleReflectionFile: $this->replacement[1] ?? null,
@@ -626,31 +645,28 @@ final class PhpStan
 
 
 	/**
-	 * The configurations of the extensions phpstan/extension-installer registered, which the command of PHPStan
-	 * includes before the one of the project.
-	 * @return list<string>
+	 * Lets the process load the classes of the extensions of the project, and no other class of it: the process runs on
+	 * the packages of its own installation, and PHPStan reads the rest of the project without loading it.
 	 */
-	private static function findExtensionConfigs(): array
+	private function makeExtensionsLoadable(): void
 	{
-		if (!class_exists(GeneratedConfig::class)) {
-			return [];
+		if ($this->extensionsLoadable || $this->extensions === []) {
+			return;
 		}
 
-		$generated = new \ReflectionClass(GeneratedConfig::class);
-		$dir = dirname((string) $generated->getFileName());
-		/**
-		 * @var array<array{relative_install_path: string, extra: array{includes?: list<string>}}> $extensions  generated
-		 * for the project
-		 */
-		$extensions = $generated->getConstant('EXTENSIONS');
-		$configs = [];
-		foreach ($extensions as $extension) {
-			foreach ($extension['extra']['includes'] ?? [] as $include) {
-				$configs[] = "$dir/$extension[relative_install_path]/$include";
+		$paths = array_keys($this->extensions);
+		$project = $this->getProjectLoader();
+		$loader = new ClassLoader;
+		foreach ($project->getPrefixesPsr4() as $prefix => $directories) {
+			$directories = array_filter($directories, fn(string $directory) => self::isInPackages("$directory/file", $paths));
+			if ($directories !== []) {
+				$loader->setPsr4($prefix, array_values($directories));
 			}
 		}
 
-		return $configs;
+		$loader->addClassMap(array_filter($project->getClassMap(), fn(string $file) => self::isInPackages($file, $paths)));
+		$loader->register(prepend: true);
+		$this->extensionsLoadable = true;
 	}
 
 

@@ -232,6 +232,29 @@ final readonly class ProjectPackages
 
 
 	/**
+	 * The extensions of PHPStan the project has, the packages naming configuration files in `extra.phpstan.includes`: the
+	 * directory of each => those files PHPStan includes by itself, which `phpstan/extension-installer` makes it do, none
+	 * without that package or for a package it ignores.
+	 * @return array<string, list<string>>
+	 */
+	public function findPhpStanExtensions(): array
+	{
+		$ignored = (array) ($this->rootExtra['phpstan/extension-installer']['ignore'] ?? []);
+		$extensions = [];
+		foreach ($this->installed as $package => ['path' => $path, 'extra' => $extra]) {
+			$includes = $extra['phpstan']['includes'] ?? null;
+			if ($path !== null && is_array($includes)) {
+				$extensions[$path] = isset($this->installed['phpstan/extension-installer']) && !in_array($package, $ignored, true)
+					? array_map(fn(string $file) => "$path/$file", array_values(array_filter($includes, is_string(...))))
+					: [];
+			}
+		}
+
+		return $extensions;
+	}
+
+
+	/**
 	 * The first of the required packages the project does not meet; null where it meets every one.
 	 * @param  array<string, string>  $required  package => Composer constraint
 	 */

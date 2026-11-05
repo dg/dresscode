@@ -1,0 +1,5 @@
+services:
+	-
+		class: Acme\PhpStanRules\FindTextExtension
+		tags:
+			- phpstan.broker.dynamicFunctionReturnTypeExtension
