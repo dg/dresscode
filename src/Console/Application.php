@@ -18,7 +18,7 @@ use function extension_loaded;
  */
 final readonly class Application
 {
-	public const Version = '1.3.2';
+	public const Version = '1.3.3';
 
 	private CommandContext $context;
 
