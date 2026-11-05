@@ -1,13 +1,17 @@
 <?php declare(strict_types=1);
 
-// A worker of WorkerPool behaving as the first argument says: php fake-worker.php <split|stall|other-path|silent|log=<file>> --worker <address>
+// A worker of WorkerPool behaving as the first argument says: php fake-worker.php <split|stall|other-path|silent|log=<file>|exit=<code>|exit-at-start=<code>|kill> --worker <address>
 // log=<file> writes into the file when it starts and when it connects, a while later, and then answers as split does;
-// silent never connects
+// silent never connects; exit=<code> and kill end the process at the first file, exit-at-start=<code> before it connects
 
 $mode = $argv[1];
 if ($mode === 'silent') {
 	sleep(30);
 	exit;
+}
+
+if (str_starts_with($mode, 'exit-at-start=')) {
+	exit((int) substr($mode, 14));
 }
 
 if (str_starts_with($mode, 'log=')) {
@@ -25,6 +29,12 @@ if ($socket === false) {
 }
 
 while (($line = fgets($socket)) !== false) {
+	if (str_starts_with($mode, 'exit=')) {
+		exit((int) substr($mode, 5));
+	} elseif ($mode === 'kill') {
+		posix_kill((int) getmypid(), 9);
+	}
+
 	$job = json_decode($line, associative: true);
 	$path = is_array($job) && is_string($job['path'] ?? null) ? $job['path'] : '';
 	$answer = json_encode([

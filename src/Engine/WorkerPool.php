@@ -20,6 +20,9 @@ use const PHP_OS_FAMILY, PHP_SAPI;
  */
 final class WorkerPool
 {
+	/** seconds the end of a worker is waited for once its connection has closed */
+	private const EndTimeout = 1;
+
 	/**
 	 * The listening socket: from ext/sockets when available, because the stream layer on Windows waits 500 ms
 	 * for a socket to become writable before closing it, which a listening one never does.
@@ -387,7 +390,8 @@ final class WorkerPool
 		$chunk = fread($socket, 1 << 20);
 		if ($chunk === false || ($chunk === '' && feof($socket))) {
 			if (isset($this->inProgress[$id])) {
-				throw new \RuntimeException("A worker ended while processing `{$this->inProgress[$id][0]}`." . $this->collectErrors());
+				$end = $this->findWorkerFailure();
+				throw new \RuntimeException('A worker ended ' . ($end === null ? '' : "$end ") . "while processing `{$this->inProgress[$id][0]}`." . $this->collectErrors());
 			}
 
 			$this->disconnect($id);
@@ -493,7 +497,7 @@ final class WorkerPool
 			if ($status['running']) {
 				$running = true;
 			} elseif ($status['exitcode'] !== 0) {
-				throw new \RuntimeException("A worker exited with code {$status['exitcode']}." . $this->collectErrors());
+				throw new \RuntimeException('A worker ended ' . self::formatEnd($status) . '.' . $this->collectErrors());
 			}
 		}
 
@@ -514,6 +518,44 @@ final class WorkerPool
 		if (!$running && $resultsMissing) {
 			throw new \RuntimeException('The workers ended before processing every file.' . $this->collectErrors());
 		}
+	}
+
+
+	/**
+	 * How a worker that failed ended, given a moment to end, because its connection closes before its process is gone;
+	 * null where none has failed.
+	 */
+	private function findWorkerFailure(): ?string
+	{
+		$deadline = microtime(as_float: true) + self::EndTimeout;
+		do {
+			foreach ($this->workers as [$process]) {
+				$status = proc_get_status($process);
+				if (!$status['running'] && $status['exitcode'] !== 0) {
+					return self::formatEnd($status);
+				}
+			}
+
+			usleep(10_000);
+		} while (microtime(as_float: true) < $deadline);
+
+		return null;
+	}
+
+
+	/**
+	 * How a process ended, for a message: its exit code, one of Windows in the form it is known by (`0xC0000005` for a
+	 * crash of PHP itself), or the signal that ended it.
+	 * @param  array{signaled: bool, termsig: int, exitcode: int}  $status
+	 */
+	private static function formatEnd(array $status): string
+	{
+		$code = $status['exitcode'];
+		return match (true) {
+			$status['signaled'] => "on signal {$status['termsig']}",
+			PHP_OS_FAMILY === 'Windows' && ($code < 0 || $code > 0xFFFF) => sprintf('with code 0x%08X', $code & 0xFFFFFFFF),
+			default => "with code $code",
+		};
 	}
 
 

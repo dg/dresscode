@@ -79,6 +79,46 @@ test('a worker that never connects fails the run once the connect timeout passes
 });
 
 
+test('a worker that ends in the middle of a file fails the run, which says how it ended', function () {
+	Assert::exception(
+		fn() => processWith(new WorkerPool(fakeWorker('exit=3'), jobs: 1)),
+		RuntimeException::class,
+		'A worker ended with code 3 while processing `a.php`.%A?%',
+	);
+});
+
+
+test('a worker that ends before it connects fails the run, which says how it ended', function () {
+	Assert::exception(
+		fn() => processWith(new WorkerPool(fakeWorker('exit-at-start=3'), jobs: 1)),
+		RuntimeException::class,
+		'A worker ended with code 3.%A?%',
+	);
+});
+
+
+if (PHP_OS_FAMILY === 'Windows') {
+	test('a code of Windows is written in the form it is known by', function () {
+		Assert::exception(
+			fn() => processWith(new WorkerPool(fakeWorker('exit=-1073741819'), jobs: 1)),
+			RuntimeException::class,
+			'A worker ended with code 0xC0000005 while processing `a.php`.%A?%',
+		);
+	});
+}
+
+
+if (function_exists('posix_kill')) {
+	test('the signal that ended a worker is named', function () {
+		Assert::exception(
+			fn() => processWith(new WorkerPool(fakeWorker('kill'), jobs: 1)),
+			RuntimeException::class,
+			'A worker ended on signal 9 while processing `a.php`.%A?%',
+		);
+	});
+}
+
+
 test('an answer about another file of the run than the one given fails the run', function () {
 	Assert::exception(
 		fn() => processWith(new WorkerPool(fakeWorker('other-path'), jobs: 1)),
