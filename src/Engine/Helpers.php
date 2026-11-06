@@ -153,4 +153,19 @@ final class Helpers
 
 		return @file_put_contents($file, $content) !== false; // @ the failure is the result
 	}
+
+
+	/**
+	 * The count with its noun, or with a phrase whose verb agrees with it: `no files`, `1 file`, `3 files`, and with
+	 * the plural given where it is not the noun with an `s`, `2 risky fixes`, `2 violations have`.
+	 */
+	public static function formatCount(int $count, string $singular, ?string $plural = null): string
+	{
+		$plural ??= $singular . 's';
+		return match ($count) {
+			0 => "no $plural",
+			1 => "1 $singular",
+			default => "$count $plural",
+		};
+	}
 }

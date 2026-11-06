@@ -347,7 +347,7 @@ test('github: a warning about the run is an annotation of its own', function () 
 	$reporter->finish(new RunResult([], fix: false, warnings: ['1 entry of the baseline no longer matches a violation']));
 	rewind($stream);
 	Assert::same(
-		"::warning title=dresscode::1 entry of the baseline no longer matches a violation\n0 violations in 1 file\n",
+		"::warning title=dresscode::1 entry of the baseline no longer matches a violation\nno violations in 1 file\n",
 		stream_get_contents($stream),
 	);
 });

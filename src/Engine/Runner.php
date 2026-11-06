@@ -183,9 +183,8 @@ final readonly class Runner
 				...$workers?->getWarnings() ?? [],
 				...($unmatched
 					? [sprintf(
-						'%d %s of the baseline no longer %s a violation; regenerate it with `dresscode baseline`.',
-						$unmatched,
-						$unmatched === 1 ? 'entry' : 'entries',
+						'%s of the baseline no longer %s a violation; regenerate it with `dresscode baseline`.',
+						Helpers::formatCount($unmatched, 'entry', 'entries'),
 						$unmatched === 1 ? 'matches' : 'match',
 					)]
 					: []),

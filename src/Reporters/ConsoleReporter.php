@@ -8,7 +8,7 @@
 namespace DressCode\Reporters;
 
 use DressCode\Console\Markup;
-use DressCode\Engine\{Diff, FileSummary, RunInfo, RunResult, TypeAnalysisStatus};
+use DressCode\Engine\{Diff, FileSummary, Helpers, RunInfo, RunResult, TypeAnalysisStatus};
 use DressCode\{FileResult, Reporter, Risk, Severity, Violation};
 use Nette\CommandLine\{Ansi, Console};
 use Nette\Utils\FileSystem;
@@ -212,7 +212,7 @@ final class ConsoleReporter implements Reporter
 
 			$others = array_sum(array_slice($counts, self::SummedDecisions));
 			if ($others) {
-				$summary[] = $this->console->color('gray', $others === 1 ? '1 other' : "$others others");
+				$summary[] = $this->console->color('gray', Helpers::formatCount($others, 'other'));
 			}
 
 			$this->write('  ' . $this->console->color('gray', '… and ' . array_sum($counts) . ' more: ')
@@ -276,7 +276,7 @@ final class ConsoleReporter implements Reporter
 		// in a check, what no fix takes away, which nothing in the configuration changes
 		$unfixable = $this->fix ? 0 : $result->countUnfixable();
 		if ($unfixable) {
-			$this->write(($unfixable === 1 ? '1 violation has' : "$unfixable violations have") . " no fix, the rules only report them.\n");
+			$this->write(Helpers::formatCount($unfixable, 'violation has', 'violations have') . " no fix, the rules only report them.\n");
 		}
 
 		if ($risks || $unfixable) {
@@ -313,7 +313,7 @@ final class ConsoleReporter implements Reporter
 				TypeAnalysisStatus::Enabled => "$wait, not even the types tell: check $them with `fix --ask-risky`",
 				TypeAnalysisStatus::Unavailable => "$wait, the type is unknown: check $them with `fix --ask-risky`",
 			},
-			Risk::BehaviorChanges => ($count === 1 ? '1 risky fix changes' : "$count risky fixes change")
+			Risk::BehaviorChanges => Helpers::formatCount($count, 'risky fix changes', 'risky fixes change')
 				. " what the code does: decide $them with `fix --ask-risky`, or accept $decisions in `fixRisky`",
 		};
 		$docs = match ($risk) {
@@ -346,19 +346,19 @@ final class ConsoleReporter implements Reporter
 		$derived = $result->countDerived(Severity::Error);
 		$parts = array_filter([
 			match (true) {
-				$this->fix && ($found || $remaining) => Markup::formatCount($found, 'violation')
+				$this->fix && ($found || $remaining) => Helpers::formatCount($found, 'violation')
 					. ' found, '
 					. ($remaining ?: 'none')
 					. ' remaining',
-				!$this->fix && $remaining > 0 => Markup::formatCount($remaining, 'violation'),
+				!$this->fix && $remaining > 0 => Helpers::formatCount($remaining, 'violation'),
 				default => null,
 			},
 			$derived ? "$derived of them following from others" : null,
-			$warnings ? Markup::formatCount($warnings, 'warning') : null,
+			$warnings ? Helpers::formatCount($warnings, 'warning') : null,
 			!$this->fix && $left !== $found ? 'a fix leaves ' . ($left ?: 'none') : null,
-			$result->countSyntaxErrors() ? Markup::formatCount($result->countSyntaxErrors(), 'syntax error') : null,
-			$failures ? Markup::formatCount($failures, 'failed file') : null,
-			$result->baselined ? Markup::formatCount($result->baselined, 'violation') . ' in the baseline' : null,
+			$result->countSyntaxErrors() ? Helpers::formatCount($result->countSyntaxErrors(), 'syntax error') : null,
+			$failures ? Helpers::formatCount($failures, 'failed file') : null,
+			$result->baselined ? Helpers::formatCount($result->baselined, 'violation') . ' in the baseline' : null,
 		]);
 
 		$state = match (true) {
@@ -368,13 +368,13 @@ final class ConsoleReporter implements Reporter
 			default => 'OK',
 		};
 		$scope = $affected > 0 && $affected < $this->fileCount
-			? sprintf('%d of %s', $affected, Markup::formatCount($this->fileCount, 'file'))
-			: Markup::formatCount($this->fileCount, 'file');
+			? sprintf('%d of %s', $affected, Helpers::formatCount($this->fileCount, 'file'))
+			: Helpers::formatCount($this->fileCount, 'file');
 		$elapsed = microtime(as_float: true) - $this->started;
 
 		$summary = $parts
 			? implode(', ', $parts) . " in $scope"
-			: Markup::formatCount($this->fileCount, 'file') . ', ' . ($this->fileCount > 1 ? 'all ' : '') . 'up to the dress code';
+			: Helpers::formatCount($this->fileCount, 'file') . ', ' . ($this->fileCount > 1 ? 'all ' : '') . 'up to the dress code';
 		return "$state  $summary" . ($elapsed < self::LongRun ? '' : sprintf(', %.1f s', $elapsed));
 	}
 

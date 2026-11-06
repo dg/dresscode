@@ -362,7 +362,11 @@ final readonly class CheckCommand
 		$out->writeLine(
 			"\n" . $out->color(
 				$final->getExitCode() === 0 ? 'white/green' : 'white/red',
-				sprintf('REVIEWED  %d risky %s made, %s', $made, $made === 1 ? 'fix' : 'fixes', $left ? "$left left" : 'none left'),
+				sprintf(
+					'REVIEWED  %s made, %s',
+					Helpers::formatCount($made, 'risky fix', 'risky fixes'),
+					$left ? "$left left" : 'none left',
+				),
 			),
 		);
 		return $final->getExitCode();
@@ -493,8 +497,8 @@ final readonly class CheckCommand
 
 		if ($changed || $failed) {
 			$counts = array_filter([
-				$changed ? 'a fix would change ' . Markup::formatCount(count($changed), 'file') : null,
-				$failed ? Markup::formatCount(count($failed), 'file') . ' failed' : null,
+				$changed ? 'a fix would change ' . Helpers::formatCount(count($changed), 'file') : null,
+				$failed ? Helpers::formatCount(count($failed), 'file') . ' failed' : null,
 			]);
 			$paths = [...$changed, ...$failed];
 			$this->context->writeError(
@@ -508,7 +512,7 @@ final readonly class CheckCommand
 
 		$baseline = Baseline::fromResults($run->files);
 		$baseline->save($file);
-		$message = 'Baseline with ' . Markup::formatCount($baseline->count(), 'violation') . " written to `$name`.\n";
+		$message = 'Baseline with ' . Helpers::formatCount($baseline->count(), 'violation') . " written to `$name`.\n";
 		if ($config->baseline === null) {
 			$message .= "Name it under `baseline` in the configuration to make it apply.\n";
 		}

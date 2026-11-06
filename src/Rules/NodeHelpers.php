@@ -9,6 +9,7 @@ namespace DressCode\Rules;
 
 use DressCode\Analyses\{IndentationPlan, IndentationSnapshot, Parameter, PhpDoc, PhpSignatures, Types};
 use DressCode\{Claim, CodeWriter, Gap, GlobalCalls, Line, Risk, RuleContext, Style, Tristate};
+use DressCode\Engine\Helpers;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, ConstantExpressionFeature, Indentation, Node, SymbolKind, Token, Trivia};
@@ -292,10 +293,10 @@ final class NodeHelpers
 		$spaces = strlen($whitespace) - $tabs;
 		$parts = [];
 		if ($tabs > 0) {
-			$parts[] = $tabs === 1 ? '1 tab' : "$tabs tabs";
+			$parts[] = Helpers::formatCount($tabs, 'tab');
 		}
 		if ($spaces > 0) {
-			$parts[] = $spaces === 1 ? '1 space' : "$spaces spaces";
+			$parts[] = Helpers::formatCount($spaces, 'space');
 		}
 
 		return $parts ? implode(' and ', $parts) : 'none';

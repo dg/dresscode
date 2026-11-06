@@ -8,7 +8,7 @@
 namespace DressCode\Reporters;
 
 use DressCode\{Decision, FileResult, Reporter, Risk, Rule, RuleInfo, Severity, Violation};
-use DressCode\Engine\{Diff, DiffHunk, RunInfo, RunResult};
+use DressCode\Engine\{Diff, DiffHunk, Helpers, RunInfo, RunResult};
 use Nette\Utils\FileSystem;
 use function count, strlen;
 
@@ -152,7 +152,7 @@ final class AgentReporter implements Reporter
 			$item = $this->describeViolation($violation, $examples[$violation->decision] ?? [], $followers[$violation->fingerprint] ?? []);
 			[$itemLines, $itemBytes] = self::measure([$item]);
 			if ($lines + $itemLines > self::MaxLines || $bytes + $itemBytes > self::MaxBytes) {
-				$items[] = (count($listed) - $i === 1 ? '1 further violation is' : (count($listed) - $i) . ' further violations are')
+				$items[] = Helpers::formatCount(count($listed) - $i, 'further violation is', 'further violations are')
 					. ' not listed here.';
 				break;
 			}
@@ -272,7 +272,7 @@ final class AgentReporter implements Reporter
 		$decisions = array_values(array_unique($decisions));
 		$shown = array_map(fn(string $decision) => "`$decision`", array_slice($decisions, 0, self::ShownDecisions));
 		$more = count($decisions) - count($shown);
-		return 'The changes, in ' . $places . ($places === 1 ? ' place' : ' places')
+		return 'The changes, in ' . Helpers::formatCount($places, 'place')
 			. ', are too long to show here: read the file again before you edit it.'
 			. ($shown
 				? ' They come from the rules of ' . implode(', ', $shown) . ($more ? " and $more more" : '')

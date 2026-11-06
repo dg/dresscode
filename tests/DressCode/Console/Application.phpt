@@ -890,7 +890,7 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
 	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache', '--ask-risky'], "n\n", interactive: true);
 	Assert::same(1, $code);
-	Assert::match("%A%Apply this risky fix? [y/n/a/q] \nREVIEWED  0 risky fixes made, 1 left\n", $out);
+	Assert::match("%A%Apply this risky fix? [y/n/a/q] \nREVIEWED  no risky fixes made, 1 left\n", $out);
 	Assert::same("<?php\n\$r;\n", (string) file_get_contents("$root/src/r.php"));
 	[$code, $out] = runApp($root, ['fix', '--config', $config, '--no-cache', '--ask-risky'], "y\n", interactive: true);
 	Assert::same(0, $code);
