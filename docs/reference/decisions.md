@@ -3863,6 +3863,7 @@ A class written instead of another one, both fully qualified (`Acme\Old\Mailer: 
 - Rule `DressCode\Rules\Upgrading\ReplacedClassesRule`, stage Structure
 - Read by rule `DressCode\Rules\Upgrading\NoDeprecatedClassesRule`, which this decision does not turn on
 - Modifies comments
+- May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### upgrading.api.replacedFunctions
 

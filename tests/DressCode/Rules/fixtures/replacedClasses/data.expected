@@ -1,0 +1,46 @@
+<?php
+// {"api": {"replacedClasses": {"App\\Old": "App\\Current"}}}
+
+namespace App;
+
+use App\Old;
+
+// the name `::class` gives is data here, which the class written instead changes
+function route(string $class, array $map, $container): array
+{
+	switch ($class) {
+		case Old::class:
+			break;
+	}
+
+	return [
+		$class === Old::class,
+		Old::class !== $class,
+		$class == Old::class,
+		$class != Old::class,
+		match ($class) {
+			Old::class => 1,
+			default => 2,
+		},
+		in_array(Old::class, $map, true),
+		array_search(Old::class, $map),
+		[Old::class => 'old'],
+		$map[Old::class],
+
+		// elsewhere the alias goes on serving the old name
+		$container->getByType(Current::class),
+		new Current,
+		Current::create(),
+		in_array($class, [Current::class], true),
+		match ($class) {
+			'x' => Current::class,
+			default => null,
+		},
+	];
+}
+
+
+#[Current]
+function typed(Current $old): void
+{
+}

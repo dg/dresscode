@@ -21,9 +21,10 @@ use PhpSyntax\Nodes\Statement\NamespaceNode;
  * A tool for replacing a class across a codebase: the project, or a library it stands on, maps a class, interface or
  * enum to the one it wants written instead, and the rule rewrites every reference, an import, a type, an instantiation,
  * a static access, an attribute, a type or a reference in a doc comment, importing the new name the way the scope
- * imports; a class a comment only mentions in its text is left as it is. The fix is not risky, because what changes is
- * exactly what the map asked for. Where the run has the types of the code, a class the project does not have is
- * reported and not written.
+ * imports; a class a comment only mentions in its text is left as it is. The fix changes exactly what the map asked
+ * for, and is risky only where `::class` of the name is data, compared or a key of an array: it is the name as
+ * written, which the alias of the old class does not change. Where the run has the types of the code, a class the
+ * project does not have is reported and not written.
  *
  * Where the run has the types, the class of an access to a member `forbiddenMembers` names stays as it is, its import
  * with it: such a member has no place in the class written instead, so writing that class there would name a member it

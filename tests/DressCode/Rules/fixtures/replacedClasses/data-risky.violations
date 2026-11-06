@@ -1,0 +1,28 @@
+7: Class `App\Old` is replaced by `App\Current`.
+13: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the comparison then meets another string
+18: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the comparison then meets another string
+19: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the comparison then meets another string
+20: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the comparison then meets another string
+21: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the comparison then meets another string
+23: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the comparison then meets another string
+26: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the comparison then meets another string
+27: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the comparison then meets another string
+28: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the array then has another key
+29: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the array then has another key
+32: Class `App\Old` is replaced by `App\Current`.
+33: Class `App\Old` is replaced by `App\Current`.
+34: Class `App\Old` is replaced by `App\Current`.
+35: Class `App\Old` is replaced by `App\Current`.
+37: Class `App\Old` is replaced by `App\Current`.
+44: Class `App\Old` is replaced by `App\Current`.
+45: Class `App\Old` is replaced by `App\Current`.

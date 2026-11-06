@@ -23,12 +23,12 @@ use PhpSyntax\Nodes\Type\{NamedTypeNode, UnionTypeNode};
  * a type, an instantiation, a static access, an attribute. Where the deprecation names the class to use instead,
  * `@deprecated use Acme\Mail\SmtpTransport`, and that class exists, the reference is rewritten to it and the imports
  * follow, a risky fix unless the deprecated class only stands for the replacement, extending or implementing it and
- * declaring nothing of its own; any other is reported with what the deprecation says. In a doc comment only a class
- * the deprecation names a replacement for is rewritten, one without it being left as it is. A reference inside
- * a declaration deprecated itself goes together with it and is left, and so is one in a union type that names the
- * replacement too, which takes both on purpose. A class the map of replacedClasses or of forbiddenClasses has is not
- * reported, nor an interface attributeForMember writes an attribute instead of, nor an attribute attributeForAnnotation
- * writes another one instead of.
+ * declaring nothing of its own, and its `::class` is no data compared or keyed by; any other is reported with what the
+ * deprecation says. In a doc comment only a class the deprecation names a replacement for is rewritten, one without it
+ * being left as it is. A reference inside a declaration deprecated itself goes together with it and is left, and so is
+ * one in a union type that names the replacement too, which takes both on purpose. A class the map of replacedClasses
+ * or of forbiddenClasses has is not reported, nor an interface attributeForMember writes an attribute instead of, nor
+ * an attribute attributeForAnnotation writes another one instead of.
  */
 #[RuleInfo(
 	Stage::Structure,

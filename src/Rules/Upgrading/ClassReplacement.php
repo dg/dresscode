@@ -14,8 +14,10 @@ use DressCode\Rules\NodeHelpers;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{NameForm, Node, SymbolKind, Token, Trivia};
-use PhpSyntax\Nodes\{ClassLikeNode, FileNode, NameNode, SeparatedNodeList, UseItemNode};
-use PhpSyntax\Nodes\Expression\{ClassConstantFetchNode, FunctionCallNode};
+use PhpSyntax\Nodes\{
+	ArgumentNode, ArrayItemNode, CaseNode, ClassLikeNode, FileNode, MatchArmNode, NameNode, SeparatedNodeList, UseItemNode,
+};
+use PhpSyntax\Nodes\Expression\{ArrayAccessNode, BinaryOpNode, ClassConstantFetchNode, FunctionCallNode};
 use PhpSyntax\Nodes\Statement\{ClassNode, EnumNode, InterfaceNode, NamespaceNode};
 use PhpSyntax\Nodes\Type\{NamedTypeNode, UnionTypeNode};
 use function count, strlen;
@@ -31,8 +33,10 @@ use function count, strlen;
  * or once rewritten, goes from the list; one the types say cannot stand where it would, a class to implement or an
  * interface to extend by a class, is reported and left. A name that keeps the old one alive is left as it is: the class
  * `class_alias()` declares and the one `class_exists()` and its kin ask for, and the name the replacement itself
- * extends or implements, which rewritten would name the class itself. The names in doc comments are rewritten too, token by token
- * so that the comment keeps its layout: a type, a class constant, the target of `@see` and of an inline tag.
+ * extends or implements, which rewritten would name the class itself. A name in `::class` that is data, compared or
+ * a key of an array, is risky to rewrite, the string being the name written. The names in doc comments are rewritten
+ * too, token by token so that the comment keeps its layout: a type, a class constant, the target of `@see` and of an
+ * inline tag.
  * @internal
  */
 final class ClassReplacement
@@ -103,12 +107,19 @@ final class ClassReplacement
 
 				$found = $find($class);
 				$refusal = $found === null || $found[1] === null ? null : self::findRefusal($name, $found[1], $types);
+				$dataUse = $found === null || $found[1] === null || $refusal !== null ? null : self::findDataUse($name, $resolver);
 				if ($found === null) {
 					continue;
 				} elseif (($keeps !== null && $keeps($name)) || self::keepsAlive($name, $found[1], $resolver)) {
 					$kept[strtolower($class)] = true;
+				} elseif (
+					// reported before the import goes, which a reference the run leaves as it is needs
+					$dataUse !== null
+					&& !self::report($context, $name, $found[0], $found[1], $found[2] ?? $dataUse)
+				) {
+					$kept[strtolower($class)] = true;
 				} else {
-					$references[] = [$name, $found[0], $found[1], $found[2] ?? null, $refusal];
+					$references[] = [$name, $found[0], $found[1], $found[2] ?? null, $refusal, $dataUse !== null];
 					if ($refusal !== null) {
 						$kept[strtolower($class)] = true; // the reference left as it is needs its import
 					}
@@ -129,14 +140,14 @@ final class ClassReplacement
 			}
 		}
 
-		foreach ($references as [$name, $message, $new, $because, $refusal]) {
+		foreach ($references as [$name, $message, $new, $because, $refusal, $reported]) {
 			$inList = self::findList($name);
 			$list = $inList[0] ?? null;
 			$named = $list === null || $new === null ? null : $lists[spl_object_id($list)] ?? [];
 			if ($refusal !== null) {
 				$context->report($name, $message . $refusal . '.', fixable: false);
 
-			} elseif (!self::report($context, $name, $message, $new, $because) || $new === null) {
+			} elseif (!($reported || self::report($context, $name, $message, $new, $because)) || $new === null) {
 				continue;
 
 			} elseif ($inList !== null && isset($named[strtolower($new)])) {
@@ -377,6 +388,38 @@ final class ClassReplacement
 			&& $declaration instanceof ClassLikeNode
 			&& $declaration->name !== null
 			&& strcasecmp($resolver->resolveClass(NameNode::fromText($declaration->name->text), $declaration), $new) === 0;
+	}
+
+
+	/**
+	 * Why the class written instead changes what the code does where the name stands in `::class` used as data, the
+	 * name as written, which `class_alias()` does not change: compared, a condition of a `match` arm or of a `case`,
+	 * the needle of `in_array()` or `array_search()`, a key of an array; null elsewhere.
+	 */
+	private static function findDataUse(NameNode $name, NameResolver $resolver): ?string
+	{
+		$fetch = $name->parent;
+		if (!$fetch instanceof ClassConstantFetchNode || $fetch->class !== $name || strcasecmp((string) $fetch->plainName, 'class') !== 0) {
+			return null;
+		}
+
+		$parent = $fetch->parent;
+		$call = $parent?->parent?->parent?->parent; // the list, the parentheses, the call
+		return match (true) {
+			($parent instanceof BinaryOpNode
+				&& $parent->operator->is([Token::IsIdentical, Token::IsNotIdentical, Token::IsEqual, Token::IsNotEqual]))
+				|| $parent instanceof CaseNode
+				|| $parent?->parent instanceof MatchArmNode
+				|| ($parent instanceof ArgumentNode
+					&& $call instanceof FunctionCallNode
+					&& $call->arguments->items->getItems()[0] === $parent
+					&& $resolver->findGlobalFunction($call, ['in_array', 'array_search']) !== null)
+				=> '`::class` is the name as written, so the comparison then meets another string',
+			($parent instanceof ArrayItemNode && $parent->key === $fetch)
+				|| ($parent instanceof ArrayAccessNode && $parent->index === $fetch)
+				=> '`::class` is the name as written, so the array then has another key',
+			default => null,
+		};
 	}
 
 

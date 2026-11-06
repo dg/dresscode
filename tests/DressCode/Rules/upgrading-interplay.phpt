@@ -8,7 +8,7 @@
 use DressCode\{Analyses, Config, ImportStyle, Style, Violation};
 use DressCode\Config\RuleBuilder;
 use DressCode\Engine\{PassLoop, ReportPolicy, RulePlan};
-use DressCode\Rules\Upgrading;
+use DressCode\Rules\{Classes, Upgrading};
 use PhpSyntax\Nodes\FileNode;
 use PhpSyntax\{Parser, Printer};
 use Tester\Assert;
@@ -20,9 +20,10 @@ require __DIR__ . '/../../bootstrap.php';
  * Runs the rules over the code with the types of the declarations beside it, and returns what they say.
  * @param  array<class-string<DressCode\Rule>, array<string, mixed>|true>  $rules
  * @param  array<string, mixed>  $values  path => value, as a map whose rule the run is narrowed away from
+ * @param  bool  $fixRisky  which map decides is the question of most tests, not whether its fix is risky
  * @return list<string>  `line: message` each
  */
-function upgrade(array $rules, string $code, string $expected, array $values = []): array
+function upgrade(array $rules, string $code, string $expected, array $values = [], bool $fixRisky = true): array
 {
 	// the rules share the values, as in a run, so that a rule leaving a use to another map reads it
 	foreach ($rules as $class => $options) {
@@ -51,8 +52,7 @@ function upgrade(array $rules, string $code, string $expected, array $values = [
 	});
 
 	$file = new Parser()->parse($code);
-	// which map decides is the question here, not whether its fix is risky
-	$runner = new PassLoop(new RulePlan($instances), $registry, new ReportPolicy(fixRisky: true, strict: true));
+	$runner = new PassLoop(new RulePlan($instances), $registry, new ReportPolicy(fixRisky: $fixRisky, strict: true));
 	$result = $runner->run(
 		$file,
 		$code,
@@ -182,4 +182,20 @@ test('a deprecated class a map of classes has is the map\'s, whether or not its 
 	Assert::same([], upgrade([Upgrading\NoDeprecatedClassesRule::class => true], $code, $code, [
 		Upgrading\ForbiddenSymbolsRule::Classes => ['Old\Bus\Handler'],
 	]));
+});
+
+
+test('a string written as its `::class` keeps the name it compares with until a risky fix is allowed', function () {
+	// the string is the name a link uses, not a reference of the class, so the map would change what it compares
+	$code = "<?php\n\nnamespace App;\n\nfunction pageOf(string \$class): string\n{\n\treturn \$class === 'Old\\Legacy' ? 'legacy/' : '';\n}\n";
+	$rules = [
+		Classes\ClassKeywordForStringRule::class => ['literals.classNameInString' => 'forbidden'],
+		Upgrading\ReplacedClassesRule::class => ['Old\Legacy' => 'Fresh\Modern'],
+	];
+	$kept = str_replace("'Old\\Legacy'", '\Old\Legacy::class', $code);
+	Assert::same([
+		'7: Class `Old\Legacy` is replaced by `Fresh\Modern`.',
+		'7: The class name must be written `Old\Legacy::class` instead of a string.',
+	], upgrade($rules, $code, $kept, fixRisky: false));
+	upgrade($rules, $code, str_replace("'Old\\Legacy'", '\Fresh\Modern::class', $code));
 });
