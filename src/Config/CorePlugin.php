@@ -156,6 +156,7 @@ final class CorePlugin implements Plugin
 				Rules\Files\LineLengthRule::class,
 				Rules\Files\NoBomRule::class,
 				Rules\Files\NoClosingTagRule::class,
+				Rules\Files\NoInvalidUtf8Rule::class,
 				Rules\Files\NoInvisibleCharactersRule::class,
 				Rules\Files\NoTrailingWhitespaceRule::class,
 				Rules\Files\OpeningTagNotationRule::class,

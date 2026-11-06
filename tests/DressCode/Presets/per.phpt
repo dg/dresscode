@@ -55,6 +55,7 @@ $expected = [
 	'lineLength',
 	'noBom',
 	'noClosingTag',
+	'noInvalidUtf8',
 	'noTrailingWhitespace',
 	'strictTypesRequired',
 	'arrowFunctionForClosure',

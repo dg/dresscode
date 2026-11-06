@@ -66,6 +66,7 @@ fixRisky: [upgrading.syntax.match]          # decisions whose risky fixes are ma
 
 file:
 	bom: forbidden                          # a byte order mark at the start of the file. Also: keep
+	invalidUtf8: forbidden                  # a byte that is no part of a UTF-8 character, as a file in another encoding has; only reported. Also: keep
 	openingTag: required                    # `<?php`, never `<?` or `<?PHP`. Also: keep
 	strictTypes:
 		declaration: required               # every file of PHP code declares `strict_types=1`. Also: keep

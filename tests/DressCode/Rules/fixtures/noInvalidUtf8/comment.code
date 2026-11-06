@@ -1,0 +1,5 @@
+<?php
+$a = 1;
+
+// zelená barva
+$b = 2;

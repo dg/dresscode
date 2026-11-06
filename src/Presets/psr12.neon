@@ -7,6 +7,7 @@ severity:
 
 file:
 	bom: forbidden
+	invalidUtf8: forbidden                    # PSR-1 asks for UTF-8 only
 	openingTag: required                      # `<?php`, not `<?` or `<?PHP`
 	strictTypes:
 		position: nextLine                    # §3, `<?php` on a line of its own

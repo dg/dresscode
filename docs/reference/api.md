@@ -1107,6 +1107,7 @@ final readonly class Violation
 - `DressCode\Rules\Files\LineLengthRule`
 - `DressCode\Rules\Files\NoBomRule`
 - `DressCode\Rules\Files\NoClosingTagRule`
+- `DressCode\Rules\Files\NoInvalidUtf8Rule`
 - `DressCode\Rules\Files\NoInvisibleCharactersRule`
 - `DressCode\Rules\Files\NoTrailingWhitespaceRule`
 - `DressCode\Rules\Files\OpeningTagNotationRule`
