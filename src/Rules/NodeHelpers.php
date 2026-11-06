@@ -989,14 +989,15 @@ final class NodeHelpers
 
 
 	/**
-	 * The brackets an operand of a family spreads in, a unary operator, a cast and a comparison around them aside, the
-	 * right side of the comparison first.
+	 * The brackets an operand of a family spreads in, a unary operator, a cast, an assignment, whose target stays on the
+	 * first line, `$x = foo(` … `) or …`, and a comparison around them aside, the right side of the comparison first.
 	 */
 	private static function findOperandFrame(ExpressionNode $operand): ?Node
 	{
 		return match (true) {
-			$operand instanceof Expression\UnaryOpNode, $operand instanceof Expression\CastNode
-				=> self::findOperandFrame($operand->expression),
+			$operand instanceof Expression\UnaryOpNode,
+			$operand instanceof Expression\CastNode,
+			$operand instanceof Expression\AssignmentNode => self::findOperandFrame($operand->expression),
 			$operand instanceof Expression\BinaryOpNode && self::findOperatorPlace($operand) === 'comparison'
 				=> self::findOperandFrame($operand->right) ?? self::findOperandFrame($operand->left),
 			default => self::findValueFrame($operand),

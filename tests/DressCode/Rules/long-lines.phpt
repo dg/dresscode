@@ -173,6 +173,8 @@ test('a ternary leaves its condition or its last branch to spread as a family of
 				$a = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) ?: $name;
 				$b = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) ?? $name;
 				$c = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) && $name;
+				$d = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) and $name;
+				$x = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) or throw new Exception;
 				$e = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) . $name;
 				$f = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) + $name;
 				$g = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) ** $name;
@@ -235,6 +237,14 @@ test('a ternary leaves its condition or its last branch to spread as a family of
 					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
 					$name,
 				) && $name;
+				$d = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) and $name;
+				$x = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) or throw new Exception;
 				$e = $this->database->fetchField(
 					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
 					$name,
