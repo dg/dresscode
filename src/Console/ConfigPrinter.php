@@ -68,15 +68,11 @@ final readonly class ConfigPrinter
 			$out .= $console->color('gray', 'Packages   ') . count($this->packages) . ' with upgrading data' . "\n";
 			// what the version of the package has not reached yet is what an upgrade still offers
 			foreach ($this->packages as [$data, $version]) {
-				$further = array_map(
-					fn(string $since) => in_array($since, $data->reported, true) ? "$since (reported)" : $since,
-					$data->unreached,
-				);
 				$out .= '      ' . self::pad($data->package . ($version === null ? '' : ' ' . Versions::formatVersion($version)), 32)
 					. $console->color(
 						'gray',
 						$data->layer->describe()
-						. ($further === [] ? '' : ', upgrading further to ' . implode(', ', $further)),
+						. ($data->unreached === [] ? '' : ', upgrading further to ' . implode(', ', $data->unreached)),
 					) . "\n";
 			}
 		}
@@ -198,7 +194,6 @@ final readonly class ConfigPrinter
 				'package' => $package[0]->package,
 				'version' => $package[1],
 				'unreached' => $package[0]->unreached,
-				'reported' => $package[0]->reported,
 			], $this->packages),
 			'rules' => $rules,
 			'decisions' => array_map(fn(ResolvedDecision $decision) => [

@@ -93,53 +93,30 @@ test('the upgrading data a package ships applies up to the lowest version requir
 	Assert::same(['replacedClasses' => ['App\Old' => 'App\Renamed']], $packages->upgradingData[0]->maps);
 
 	// the sections up to 3.2 in the order of their versions, a later one having the last word on a key; 3.5 is not
-	// reached, but ^3.2 allows it, so what it replaces is reported
+	// reached, and though ^3.2 allows it, 3.2 would not take what it writes
 	Assert::same(
 		[
 			'replacedClasses' => ['Acme\Lib\Old' => 'Acme\Lib\RenamedAgain', 'Acme\Lib\Older' => 'Acme\Lib\Renamed'],
 			'replacedMembers' => ['Acme\Lib\Renamed::old' => 'renamed'],
-			'forbiddenClasses' => ['Acme\Lib\Newest' => 'replaced by `Acme\Lib\Future`'],
 		],
 		$packages->upgradingData[1]->maps,
 	);
-	Assert::same(['forbiddenClasses' => ['Acme\Lib\Newest' => '3.5']], $packages->upgradingData[1]->retirements);
+	Assert::same([], $packages->upgradingData[1]->retirements);
 	Assert::same(['3.5'], $packages->upgradingData[1]->unreached);
-	Assert::same(['3.5'], $packages->upgradingData[1]->reported);
 
-	// a package the project does not require has no lower bound, whatever is installed: no section is reached, every
-	// one reported
+	// a package the project does not require has no lower bound, whatever is installed: no section is reached, so none
+	// says anything
 	FileSystem::write("$root/composer.json", json_encode(['name' => 'app/project'], JSON_THROW_ON_ERROR));
 	$data = PackageDiscovery::discover(ProjectPackages::read($root))->upgradingData[0];
-	Assert::same(
-		[
-			'forbiddenClasses' => [
-				'Acme\Lib\Old' => 'replaced by `Acme\Lib\RenamedAgain`',
-				'Acme\Lib\Older' => 'replaced by `Acme\Lib\Renamed`',
-				'Acme\Lib\Newest' => 'replaced by `Acme\Lib\Future`',
-			],
-			'forbiddenMembers' => ['Acme\Lib\Renamed::old' => 'replaced by `renamed`'],
-		],
-		$data->maps,
-	);
-	Assert::same(
-		[
-			'forbiddenClasses' => [
-				'Acme\Lib\Old' => '3.2',
-				'Acme\Lib\Older' => '3.0',
-				'Acme\Lib\Newest' => '3.5',
-			],
-			'forbiddenMembers' => ['Acme\Lib\Renamed::old' => '3.0'],
-		],
-		$data->retirements,
-	);
+	Assert::same([], $data->maps);
+	Assert::same([], $data->retirements);
 	Assert::same(['3.0', '3.2', '3.5'], $data->unreached);
-	Assert::same(['3.0', '3.2', '3.5'], $data->reported);
 });
 
 
-test('a section above the lowest version is reported where the constraint reaches it, unless the code is rewritten', function () {
+test('a section above the lowest version says nothing, an entry right from a version reached excepted', function () {
 	$root = project(
-		'reported',
+		'unreached',
 		['acme/lib' => ['3.4.0.0', ['upgrading-dir' => 'upgrading']]],
 		[
 			'vendor/acme/lib/upgrading/upgrading.neon' => <<<'XX'
@@ -170,37 +147,17 @@ test('a section above the lowest version is reported where the constraint reache
 		['require' => ['acme/lib' => '^3.2 || ^4.0']],
 	);
 
-	// what 3.0 rewrites is not reported again, an entry right from a version the code reaches is rewritten, a call keeps
-	// the shape of its arguments, and 5.0 lies above the constraint
+	// the code must work with 3.2, which takes what 3.0 writes and the entry of 4.0 right from 3.0; the rest of 4.0
+	// would break it there, though ^4.0 allows that version, and 5.0 lies above the constraint
 	[$data] = PackageDiscovery::discover(ProjectPackages::read($root))->upgradingData;
 	Assert::same(
 		[
 			'replacedClasses' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed'],
 			'replacedFunctions' => ['Acme\Lib\old_helper' => 'Acme\Lib\helper'],
-			'forbiddenClasses' => ['Acme\Lib\Gone' => null],
-			'forbiddenMembers' => ['Acme\Lib\Order::pay(true)' => 'replaced', 'Acme\Lib\Order::flush()' => 'does nothing'],
-			'forbiddenFunctions' => ['Acme\Lib\format' => 'replaced by `Acme\Lib\render($value)`'],
 		],
 		$data->maps,
 	);
 	Assert::same(['4.0', '5.0'], $data->unreached);
-	Assert::same(['4.0'], $data->reported);
-
-	// the sentence ends with the version that retired the entry, where the data are laid; one that does nothing since
-	// a version earlier than its section says that one
-	Assert::same(
-		[
-			'replacedClasses' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed'],
-			'replacedFunctions' => ['Acme\Lib\old_helper' => 'Acme\Lib\helper'],
-			'forbiddenClasses' => ['Acme\Lib\Gone' => 'since acme/lib 4.0'],
-			'forbiddenMembers' => [
-				'Acme\Lib\Order::pay(true)' => 'replaced, since acme/lib 4.0',
-				'Acme\Lib\Order::flush()' => 'does nothing, since acme/lib 3.5',
-			],
-			'forbiddenFunctions' => ['Acme\Lib\format' => 'replaced by `Acme\Lib\render($value)`, since acme/lib 4.0'],
-		],
-		$data->buildDecisions(fn(string $map) => $map),
-	);
 });
 
 
@@ -623,8 +580,8 @@ test('dresscode config lists the upgrading data with the sections the lowest ver
 	$resolution = $factory->resolve(new Config, $root);
 	$printer = new ConfigPrinter($resolution->resolvedConfig, $resolution->upgradingData);
 	Assert::match(
-		'%A%Packages   2 with upgrading data%A%      acme/lib 3.2 %a%upgrading/upgrading.neon of acme/lib, upgrading further to 3.3 (reported), 4.0
-      php 8.0 %a%php.neon of php, upgrading further to 8.1 (reported), %A%',
+		'%A%Packages   2 with upgrading data%A%      acme/lib 3.2 %a%upgrading/upgrading.neon of acme/lib, upgrading further to 3.3, 4.0
+      php 8.0 %a%php.neon of php, upgrading further to 8.1, %A%',
 		$printer->print(new Console(colorDepth: ColorDepth::None)),
 	);
 	Assert::same(
@@ -633,7 +590,6 @@ test('dresscode config lists the upgrading data with the sections the lowest ver
 			'package' => 'acme/lib',
 			'version' => '3.2',
 			'unreached' => ['3.3', '4.0'],
-			'reported' => ['3.3'],
 		],
 		json_decode($printer->printJson(), associative: true)['upgradingData'][0],
 	);

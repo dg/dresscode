@@ -133,23 +133,36 @@ test('a package an installed one replaces is had in the version of the one repla
 });
 
 
-test('the packages installed in a newer minor version than the oldest one the project supports', function () {
+test('the packages installed newer than the oldest version the project supports, by a patch too, or supported from none', function () {
 	$root = createTempDir('project-packages-newer');
 	FileSystem::write("$root/composer.json", json_encode([
-		'require' => ['acme/older' => '^3.1', 'acme/patch' => '^3.3', 'acme/branch' => '^2.0', 'acme/any' => '*'],
+		'require' => [
+			'acme/older' => '^3.1',
+			'acme/patch' => '^3.3',
+			'acme/lowest' => '^3.3',
+			'acme/branch' => '^2.0',
+			'acme/any' => '*',
+		],
 	], JSON_THROW_ON_ERROR));
 	FileSystem::write("$root/vendor/composer/installed.json", json_encode(['packages' => [
 		['name' => 'acme/older', 'version_normalized' => '3.3.0.0', 'install-path' => '../acme/older'],
 		['name' => 'acme/patch', 'version_normalized' => '3.3.5.0', 'install-path' => '../acme/patch'],
+		['name' => 'acme/lowest', 'version_normalized' => '3.3.0.0', 'install-path' => '../acme/lowest'],
 		['name' => 'acme/branch', 'version_normalized' => '2.4.9999999.9999999-dev', 'install-path' => '../acme/branch'],
 		['name' => 'acme/any', 'version_normalized' => '1.7.0.0', 'install-path' => '../acme/any'],
 		['name' => 'acme/transitive', 'version_normalized' => '5.1.0.0', 'install-path' => '../acme/transitive'],
 	]], JSON_THROW_ON_ERROR));
 
-	$project = ProjectPackages::read($root);
-	Assert::same(["$root/vendor/acme/older", "$root/vendor/acme/branch"], $project->findNewerInstalledPaths());
-	// those supported from no particular version are another list
-	Assert::same(["$root/vendor/acme/any", "$root/vendor/acme/transitive"], $project->findUnboundedInstalledPaths());
+	Assert::same(
+		[
+			"$root/vendor/acme/older",
+			"$root/vendor/acme/patch",
+			"$root/vendor/acme/branch",
+			"$root/vendor/acme/any",
+			"$root/vendor/acme/transitive",
+		],
+		ProjectPackages::read($root)->findPathsAheadOfSupport(),
+	);
 });
 
 

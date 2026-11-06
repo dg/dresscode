@@ -1,5 +1,6 @@
 <?php
 // {"php": {"deprecatedApi": "forbidden"}}
+// php 8.5
 namespace App;
 use const App\Config\E_STRICT_MODE;
 error_reporting(E_ALL & ~E_STRICT);

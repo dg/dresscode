@@ -1,5 +1,6 @@
 <?php
 // {"php": {"deprecatedApi": "forbidden"}}
+// php 8.6
 $a = mb_ereg('a', $s);
 $b = mb_split(',', $s);
 $c = mb_regex_encoding();

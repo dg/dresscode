@@ -382,34 +382,17 @@ test('what the deprecation of a class says', function () {
 });
 
 
-test('a deprecation of a package the project supports in an older version than the installed one says nothing', function () {
+test('a deprecation of a package installed newer than the oldest version the project supports says nothing', function () {
 	$file = orderSample();
 	$dir = createTempDir('types-newer');
 	$path = "$dir/sample.php";
 	file_put_contents($path, Printer::print($file));
 	$stubs = __DIR__ . '/fixtures/types/stubs';
-	$types = new Analyses\Types($file, $path, new Analyses\PhpStan($stubs, [$stubs, $path], "$dir/cache", newerPackagePaths: [$stubs]));
+	$types = new Analyses\Types($file, $path, new Analyses\PhpStan($stubs, [$stubs, $path], "$dir/cache", aheadPackagePaths: [$stubs]));
 
 	[$thisCall] = $file->find(MethodCallNode::class);
 	Assert::null($types->findDeprecation($types->findMember($thisCall) ?? throw new LogicException('No member.')));
 	Assert::null($types->findClassDeprecation('Acme\Cache\OldStorage'));
-});
-
-
-test('a deprecation of a package the project supports from no particular version names no replacement', function () {
-	$file = orderSample();
-	$dir = createTempDir('types-unbounded');
-	$path = "$dir/sample.php";
-	file_put_contents($path, Printer::print($file));
-	$stubs = __DIR__ . '/fixtures/types/stubs';
-	$types = new Analyses\Types($file, $path, new Analyses\PhpStan($stubs, [$stubs, $path], "$dir/cache", unboundedPackagePaths: [$stubs]));
-
-	[$thisCall] = $file->find(MethodCallNode::class);
-	Assert::equal(
-		new Deprecation('use recalculate()'),
-		$types->findDeprecation($types->findMember($thisCall) ?? throw new LogicException('No member.')),
-	);
-	Assert::equal(new Deprecation('use Acme\Cache\FileStorage'), $types->findClassDeprecation('Acme\Cache\OldStorage'));
 });
 
 

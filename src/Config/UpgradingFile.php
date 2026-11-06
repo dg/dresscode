@@ -9,7 +9,7 @@ namespace DressCode\Config;
 
 use DressCode\{ConfigurationException, Profile};
 use DressCode\Domains\Map;
-use DressCode\Upgrading\{FunctionPattern, MemberMapGrammar, MemberPattern};
+use DressCode\Upgrading\MemberMapGrammar;
 use Nette\Neon\{Exception as NeonException, Neon};
 use function array_key_exists, is_array, is_string;
 
@@ -22,7 +22,7 @@ use function array_key_exists, is_array, is_string;
  */
 final readonly class UpgradingFile
 {
-	/** the maps of what the code must not have, by which what a version above the lowest one retires is reported */
+	/** the maps of what the code must not have */
 	private const ForbiddenMaps = ['forbiddenClasses', 'forbiddenFunctions', 'forbiddenConstants', 'forbiddenMembers'];
 
 	private const SectionPattern = '~^since (\d+(?:\.\d+)*)$~D';
@@ -135,24 +135,22 @@ final readonly class UpgradingFile
 	/**
 	 * The data for code that must work with the versions of the constraint, null where any version does. An entry is
 	 * rewritten where the lowest version reaches its section, or the version `from` says its fix is right from, a later
-	 * section having the last word on it: every entry where any version does, none where there is no lower bound.
-	 * What a section above the lowest version retires, where a version the constraint allows reaches it, is reported
-	 * without a fix as the entry of a forbidden map (`retire()`), unless a section reached rewrites or forbids the same
-	 * thing already. A requirement is turned on where the lowest version reaches its section, and says nothing above it.
+	 * section having the last word on it: every entry where any version does, none where there is no lower bound. A
+	 * section above the lowest version says nothing, the lowest version not taking its fix, and turns no requirement on.
 	 */
 	public function selectFor(?string $constraint, Layer $layer): UpgradingData
 	{
 		$lowest = $constraint === null ? null : Versions::findLowestVersion($constraint);
 		$reaches = fn(string $version) => $constraint === null || ($lowest !== null && version_compare($lowest, $version, '>='));
-		$maps = $retirements = $retired = $unreached = $reported = [];
+		$maps = $retirements = $unreached = [];
 		foreach ($this->sections as $since => $section) {
 			$since = (string) $since;
-			$left = [];
+			$pending = false;
 			foreach ($section as $map => $entries) {
 				foreach ($entries as $key => $value) {
 					$from = is_array($value) ? $value['from'] ?? null : null;
 					if (!$reaches($since) && ($from === null || !$reaches($from))) {
-						$left[$map][$key] = $value;
+						$pending = true;
 						continue;
 					}
 
@@ -164,35 +162,8 @@ final readonly class UpgradingFile
 				}
 			}
 
-			if ($left === [] || $constraint === null) {
-				continue;
-			}
-
-			$unreached[] = $since;
-			if (!Versions::isSubset($constraint, "<$since")) {
-				$reported[] = $since;
-				foreach (self::retire($left) as [$map, $key, $sentence, $version]) {
-					$retired[$map][$key] = [$sentence, $version ?? $since];
-				}
-			}
-		}
-
-		$written = [];
-		foreach ($maps as $map => $entries) {
-			foreach (array_keys($entries) as $key) {
-				$target = self::findForbidden($map, (string) $key);
-				if ($target !== null) {
-					$written[$target[0]][self::identify(...$target)] = true;
-				}
-			}
-		}
-
-		foreach ($retired as $map => $entries) {
-			foreach ($entries as $key => [$sentence, $version]) {
-				if (!isset($written[$map][self::identify($map, $key)])) {
-					$maps[$map][$key] = $sentence;
-					$retirements[$map][$key] = $version;
-				}
+			if ($pending) {
+				$unreached[] = $since;
 			}
 		}
 
@@ -203,80 +174,7 @@ final readonly class UpgradingFile
 			}
 		}
 
-		return new UpgradingData($layer, $this->package, $this->namespaces, $maps, $retirements, $unreached, $reported, $requirements);
-	}
-
-
-	/**
-	 * What entries left above the lowest version say the code still meets on a version it may run on, as entries of the
-	 * forbidden maps (`findForbidden()`), since what they write instead is not there in the lowest one: what they forbid,
-	 * and what they replace, each with its sentence and the version it says, where that is not the one of its section.
-	 * @param  array<string, array<string, mixed>>  $section  map => its entries
-	 * @return list<array{string, string, ?string, ?string}>  forbidden map, key, sentence, version
-	 */
-	private static function retire(array $section): array
-	{
-		$retired = [];
-		foreach ($section as $map => $entries) {
-			foreach ($entries as $key => $value) {
-				[$write, $from] = is_array($value) ? [$value['write'] ?? null, $value['from'] ?? null] : [$value, null];
-				$target = self::findForbidden($map, (string) $key);
-				if ($target === null || $write === MemberMapGrammar::Keep) {
-					continue;
-				}
-
-				[$forbidden, $name] = $target;
-				$retired[] = match (true) {
-					$map === $forbidden => [$forbidden, $name, $write, null],
-					$write === MemberMapGrammar::Removed => [$forbidden, $name, 'does nothing', $from],
-					is_string($write) => [$forbidden, $name, 'replaced by `' . ltrim($write, '\\') . '`', null],
-					default => [$forbidden, $name, 'replaced', null],
-				};
-			}
-		}
-
-		return $retired;
-	}
-
-
-	/**
-	 * The forbidden map an entry of the map is reported by where it cannot be rewritten, and its key there: a call of
-	 * a function as the function, a call of a member by the shape of its arguments as `forbiddenMembers` reads it; null
-	 * for a map that forbids nothing by itself, an annotation and the maps of plugins, and for a key that is no name.
-	 * @return ?array{string, string}
-	 */
-	private static function findForbidden(string $map, string $key): ?array
-	{
-		try {
-			return match (true) {
-				in_array($map, self::ForbiddenMaps, true) => [$map, $key],
-				$map === 'replacedClasses' => ['forbiddenClasses', $key],
-				$map === 'replacedFunctions' => ['forbiddenFunctions', $key],
-				$map === 'replacedMembers' => ['forbiddenMembers', $key],
-				$map === 'replacedCalls' && MemberMapGrammar::isFunctionKey($key)
-					=> ['forbiddenFunctions', FunctionPattern::fromKey($key)->name],
-				$map === 'replacedCalls' => ['forbiddenMembers', $key],
-				default => null,
-			};
-		} catch (\InvalidArgumentException) {
-			return null; // the grammar of the map says what is wrong with the key
-		}
-	}
-
-
-	/**
-	 * What the key of a forbidden map names whatever way it is written, so that one rewritten and one forbidden meet: a
-	 * member by its class and name, a class, a function and a constant by its name.
-	 */
-	private static function identify(string $forbidden, string $key): string
-	{
-		try {
-			$member = $forbidden === 'forbiddenMembers' ? MemberPattern::fromKey($key) : null;
-		} catch (\InvalidArgumentException) {
-			$member = null;
-		}
-
-		return strtolower($member === null ? ltrim($key, '\\') : "$member->class::$member->name");
+		return new UpgradingData($layer, $this->package, $this->namespaces, $maps, $retirements, $unreached, $requirements);
 	}
 
 

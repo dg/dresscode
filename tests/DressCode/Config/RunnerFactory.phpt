@@ -683,10 +683,12 @@ test('every rule the data of PHP feed reports what they say under the requiremen
 		);
 	};
 
-	// the call PHP 8.1 made a no-op is forbidden where the target still has 8.0, and removed from 8.1 on
-	$expected = ['5: upgrading.php.deprecatedApi', '6: upgrading.php.deprecatedApi', '7: upgrading.php.deprecatedApi'];
-	Assert::same($expected, $decisions('8.0'));
-	Assert::same($expected, $decisions('8.1'));
+	// the call PHP 8.1 made a no-op the target 8.0 still needs, and it is removed from 8.1 on
+	Assert::same(['5: upgrading.php.deprecatedApi', '7: upgrading.php.deprecatedApi'], $decisions('8.0'));
+	Assert::same(
+		['5: upgrading.php.deprecatedApi', '6: upgrading.php.deprecatedApi', '7: upgrading.php.deprecatedApi'],
+		$decisions('8.1'),
+	);
 });
 
 

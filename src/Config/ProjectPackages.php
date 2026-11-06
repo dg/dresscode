@@ -189,40 +189,23 @@ final readonly class ProjectPackages
 
 
 	/**
-	 * The directories of the installed packages the project supports from an older minor version than the installed one,
-	 * where a declaration may say what the oldest version does not, a deprecation and its replacement above all.
+	 * The directories of the installed packages whose declarations need not hold for the oldest version the project
+	 * supports: those installed newer than it, by as little as a patch, where a declaration may say what the oldest
+	 * version does not, a deprecation and its replacement above all, and those the project supports from no particular
+	 * version.
 	 * @return list<string>
 	 */
-	public function findNewerInstalledPaths(): array
+	public function findPathsAheadOfSupport(): array
 	{
 		$paths = [];
 		foreach ($this->installed as $package => ['version' => $installed, 'path' => $path]) {
-			$lowest = $this->findVersion($package);
+			$constraint = $this->findConstraint($package);
+			$lowest = $constraint === null ? null : Versions::findLowestVersion($constraint);
 			if (
 				$path !== null
-				&& $installed !== null
-				&& $lowest !== null
-				&& version_compare(self::toMinorVersion($lowest), self::toMinorVersion($installed), '<')
+				&& $constraint !== null
+				&& ($lowest === null || ($installed !== null && version_compare($lowest, $installed, '<')))
 			) {
-				$paths[] = $path;
-			}
-		}
-
-		return $paths;
-	}
-
-
-	/**
-	 * The directories of the installed packages the project supports from no particular version, whose declarations
-	 * say what some version does, never which one the code must work with.
-	 * @return list<string>
-	 */
-	public function findUnboundedInstalledPaths(): array
-	{
-		$paths = [];
-		foreach ($this->installed as $package => ['path' => $path]) {
-			$constraint = $this->findConstraint($package);
-			if ($path !== null && $constraint !== null && Versions::findLowestVersion($constraint) === null) {
 				$paths[] = $path;
 			}
 		}
@@ -287,13 +270,6 @@ final readonly class ProjectPackages
 		$identity = array_map(fn(array $package) => [$package['version'], $package['reference']], $this->installed);
 		ksort($identity);
 		return $identity;
-	}
-
-
-	/** The major and the minor version, `3.1` of `3.1.4` and of the alias `3.1.9999999.9999999-dev` of a branch. */
-	private static function toMinorVersion(string $version): string
-	{
-		return implode('.', array_slice(explode('.', $version), 0, 2));
 	}
 
 

@@ -13,8 +13,7 @@ use function is_string;
 
 /**
  * What one upgrading file says to the project: the maps of the sections the lowest version the code must work with
- * reaches, those of the later ones it may run on as what they retire, the rules of the plugin of the package it turns
- * on, and what the package declares in its namespaces.
+ * reaches, the rules of the plugin of the package it turns on, and what the package declares in its namespaces.
  * @internal
  */
 final readonly class UpgradingData
@@ -32,11 +31,6 @@ final readonly class UpgradingData
 		public array $retirements = [],
 		/** @var list<string>  the versions of the sections holding what is not rewritten yet, ascending */
 		public array $unreached = [],
-		/**
-		 * @var list<string>  the versions of those sections a version the code may run on reaches, what they retire being
-		 * reported, ascending
-		 */
-		public array $reported = [],
 		/** @var array<string, string>  the requirements of the rules of the plugin of the package it turns on => their values */
 		public array $requirements = [],
 	) {

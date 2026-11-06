@@ -1,5 +1,6 @@
 <?php
 // {"php": {"deprecatedApi": "forbidden"}}
+// php 8.1
 $a = strftime('%Y');
 $b = \date_sunrise(time());
 $c = Foo\strftime('%Y');
