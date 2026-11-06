@@ -35,6 +35,24 @@ test('code holding a backtick is a span of a longer run, as Violation::formatCod
 });
 
 
+test('a line wider than the terminal breaks at spaces, indented to the values of the labels, and a pipe takes it whole', function () {
+	putenv('COLUMNS=40');
+	try {
+		$terminal = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: true);
+		$line = Markup::formatLabel($terminal, 'Checking') . '131 files in src, tests and bin, the fixtures of the tests left out';
+		Assert::same(
+			"Checking   131 files in src, tests and\n           bin, the fixtures of the\n           tests left out\nshort",
+			Markup::wrapLines($terminal, "$line\nshort"),
+		);
+
+		$pipe = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: false);
+		Assert::same($line, Markup::wrapLines($pipe, $line));
+	} finally {
+		putenv('COLUMNS');
+	}
+});
+
+
 test('without colors the text stays as it is', function () {
 	$console = new Console(colorDepth: ColorDepth::None);
 	Assert::same('Run `dresscode init` first.', Markup::highlightCode($console, 'Run `dresscode init` first.', 'red'));

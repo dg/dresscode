@@ -85,7 +85,7 @@ final readonly class ConfigCommand
 
 		$this->context->writeHeader($configFile, $resolution);
 		if (is_string($file)) {
-			$out->writeLine(Markup::formatLabel($out, 'File') . FileSystem::platformSlashes($file));
+			$out->writeLine(Markup::formatLine($out, 'File', FileSystem::platformSlashes($file)));
 		}
 
 		$out->write($printer->print($out));

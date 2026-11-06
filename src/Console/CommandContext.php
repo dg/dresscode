@@ -141,11 +141,21 @@ final readonly class CommandContext
 			...$config->use,
 			...$commandLine->use ?? [],
 		];
-		$this->out->writeLine(Markup::formatLabel($this->out, 'Config') . ($configFile === null
-			? 'none, using ' . (implode(', ', $use) ?: 'nothing')
-			: FileSystem::platformSlashes($configFile)));
+		$this->out->writeLine($configFile === null
+			? Markup::formatLine(
+				$this->out,
+				'Config',
+				'none',
+				', using ' . (implode(', ', array_map(fn(string $name) => "`$name`", $use)) ?: 'nothing'),
+			)
+			: Markup::formatLine($this->out, 'Config', FileSystem::platformSlashes($configFile)));
 		$this->out->writeLine(
-			Markup::formatLabel($this->out, 'Target') . Markup::highlightCode($this->out, 'PHP ' . self::describePhpVersion($resolution)),
+			Markup::formatLine(
+				$this->out,
+				'Target',
+				'PHP ' . $resolution->resolvedConfig->phpVersion,
+				self::describePhpVersionSource($resolution),
+			),
 		);
 	}
 
@@ -158,10 +168,10 @@ final readonly class CommandContext
 	}
 
 
-	/** The version the rules target, said with where it was taken from when the user did not choose it. */
-	private static function describePhpVersion(ResolvedProject $resolution): string
+	/** Where the version the rules target was taken from when the user did not choose it. */
+	private static function describePhpVersionSource(ResolvedProject $resolution): string
 	{
-		return $resolution->resolvedConfig->phpVersion . match ($resolution->phpVersionSource) {
+		return match ($resolution->phpVersionSource) {
 			PhpVersionSource::Configuration => '',
 			PhpVersionSource::Composer => ' from `composer.json`',
 			PhpVersionSource::Default

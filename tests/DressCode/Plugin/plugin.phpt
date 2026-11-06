@@ -97,7 +97,7 @@ test('a default configuration stands in for a missing file', function () {
 	Assert::same('', $err);
 	Assert::same(1, $code);
 	Assert::match(
-		'%A%Config     none, using Acme\DressCode\Plugin, acme/default%A%Call of var_dump() is forbidden.  acme.debugCalls%A%',
+		'%A%Config     none, using `Acme\DressCode\Plugin`, `acme/default`%A%Call of var_dump() is forbidden.  acme.debugCalls%A%',
 		$out,
 	);
 });

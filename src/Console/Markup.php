@@ -8,7 +8,7 @@
 namespace DressCode\Console;
 
 use DressCode\Violation;
-use Nette\CommandLine\{Console, HelpRenderer};
+use Nette\CommandLine\{Ansi, Console, HelpRenderer};
 
 
 /**
@@ -42,6 +42,13 @@ final class Markup
 		}
 
 		return $out;
+	}
+
+
+	/** What the fact before it rests on, or what to do about it, in gray with its code drawn, so that the eye reads the facts. */
+	public static function formatAside(Console $console, string $text): string
+	{
+		return self::highlightCode($console, $text, 'gray');
 	}
 
 
@@ -120,9 +127,59 @@ final class Markup
 	}
 
 
+	/**
+	 * A line of a report: the label, the text with its code drawn and in gray what it rests on, broken under the values in
+	 * a terminal.
+	 */
+	public static function formatLine(Console $console, string $label, string $text, string $aside = ''): string
+	{
+		return self::wrapLines(
+			$console,
+			self::formatLabel($console, $label) . self::highlightCode($console, $text)
+			. ($aside === '' ? '' : self::formatAside($console, $aside)),
+		);
+	}
+
+
 	/** The label a line of the output opens with, in gray and as wide as the others, so that the values line up. */
 	public static function formatLabel(Console $console, string $label): string
 	{
 		return $console->color('gray', str_pad($label, self::LabelWidth));
+	}
+
+
+	/**
+	 * Breaks the lines wider than the terminal at spaces, each line it adds indented to the values of the labels, so
+	 * that the terminal does not break them under the labels; outside a terminal the text stays as it is, a line of a
+	 * log or a pipe being as long as it needs.
+	 */
+	public static function wrapLines(Console $console, string $text): string
+	{
+		$indent = self::LabelWidth;
+		$width = $console->getWidth();
+		if (!$console->isTerminal() || $width <= 2 * $indent) {
+			return $text;
+		}
+
+		$lines = [];
+		foreach (explode("\n", $text) as $line) {
+			$wrapped = '';
+			$column = 0;
+			// the even pieces are the words, the odd ones the spaces between them, which a break takes the place of
+			foreach (preg_split('~( +)~', $line, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [] as $i => $piece) {
+				$size = Ansi::measure($piece);
+				if ($i % 2 === 0 && $column > $indent && $column + $size > $width) {
+					$wrapped = rtrim($wrapped, ' ') . "\n" . str_repeat(' ', $indent);
+					$column = $indent;
+				}
+
+				$wrapped .= $piece;
+				$column += $size;
+			}
+
+			$lines[] = $wrapped;
+		}
+
+		return implode("\n", $lines);
 	}
 }
