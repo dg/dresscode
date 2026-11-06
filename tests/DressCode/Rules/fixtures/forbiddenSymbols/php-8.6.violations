@@ -1,6 +1,6 @@
-3: Function `mb_ereg()` is deprecated: since PHP 8.6.
-4: Function `mb_split()` is deprecated: since PHP 8.6.
-5: Function `mb_regex_encoding()` is deprecated: since PHP 8.6.
-7: Function `is_double()` is deprecated: since PHP 8.6.
-8: Function `spl_object_hash()` is deprecated: since PHP 8.6.
-9: Function `strcoll()` is deprecated: since PHP 8.6.
+4: Function `mb_ereg()` is deprecated: since PHP 8.6.
+5: Function `mb_split()` is deprecated: since PHP 8.6.
+6: Function `mb_regex_encoding()` is deprecated: since PHP 8.6.
+8: Function `is_double()` is deprecated: since PHP 8.6.
+9: Function `spl_object_hash()` is deprecated: since PHP 8.6.
+10: Function `strcoll()` is deprecated: since PHP 8.6.

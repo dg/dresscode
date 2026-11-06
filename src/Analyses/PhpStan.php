@@ -89,11 +89,9 @@ final class PhpStan
 		private readonly ?string $phpVersion = null,
 		/**
 		 * @var list<string>  the directories of the packages installed in a newer version than the oldest one the project
-		 * supports, whose declarations may say what that one does not
+		 * supports, or supported from no particular version, whose declarations may say what that one does not
 		 */
-		private readonly array $newerPackagePaths = [],
-		/** @var list<string>  the directories of the packages the project supports from no particular version */
-		private readonly array $unboundedPackagePaths = [],
+		private readonly array $aheadPackagePaths = [],
 		/**
 		 * @var list<string>  the directories whose declarations are none of the project's, the installation DressCode runs
 		 * from, whose packages the process loads for itself and PHPStan finds through its autoloaders
@@ -464,23 +462,13 @@ final class PhpStan
 
 
 	/**
-	 * Whether the file belongs to a package installed in a newer version than the oldest one the project supports, so
-	 * that what a declaration in it deprecates may not be deprecated, nor its replacement there, in the version the code
-	 * must work with too.
+	 * Whether the file belongs to a package installed in a newer version than the oldest one the project supports, or
+	 * supported from no particular version, so that what a declaration in it deprecates may not be deprecated, nor its
+	 * replacement there, in the version the code must work with too.
 	 */
 	public function isAheadOfSupport(?string $file): bool
 	{
-		return self::isInPackages($file, $this->newerPackagePaths);
-	}
-
-
-	/**
-	 * Whether the file belongs to a package the project supports from no particular version, so that what a declaration
-	 * in it deprecates holds for the installed version only, and its replacement may not be there in another one.
-	 */
-	public function isUnbounded(?string $file): bool
-	{
-		return self::isInPackages($file, $this->unboundedPackagePaths);
+		return self::isInPackages($file, $this->aheadPackagePaths);
 	}
 
 

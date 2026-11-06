@@ -167,13 +167,9 @@ final class Declarations
 			return null;
 		}
 
-		$file = $reflection->getDeclaringClass()->getFileName();
-		$description = $reflection->getDeprecatedDescription() ?? '';
-		return match (true) {
-			$this->phpstan->isAheadOfSupport($file) => null,
-			$this->phpstan->isUnbounded($file) => new Deprecation($description),
-			default => Deprecation::fromDescription($description),
-		};
+		return $this->phpstan->isAheadOfSupport($reflection->getDeclaringClass()->getFileName())
+			? null
+			: Deprecation::fromDescription($reflection->getDeprecatedDescription() ?? '');
 	}
 
 
@@ -217,7 +213,6 @@ final class Declarations
 			// a package installed newer than the project supports, or supported from no version, need not have the
 			// replacement in the oldest version
 			&& !$this->phpstan->isAheadOfSupport($replacement->getDeclaringClass()->getFileName())
-			&& !$this->phpstan->isUnbounded($replacement->getDeclaringClass()->getFileName())
 			&& $this->takesCalls($member, $class, $method, $named);
 	}
 
@@ -457,10 +452,7 @@ final class Declarations
 		}
 
 		$description = $reflection->getDeprecatedDescription() ?? '';
-		if (
-			$this->phpstan->isUnbounded($reflection->getFileName())
-			|| !preg_match('~^\\\\?(\w+(?:\\\\\w+)*)\(\)$~D', Deprecation::findReplacementCode($description) ?? '', $m)
-		) {
+		if (!preg_match('~^\\\\?(\w+(?:\\\\\w+)*)\(\)$~D', Deprecation::findReplacementCode($description) ?? '', $m)) {
 			return new Deprecation($description);
 		}
 
@@ -491,10 +483,7 @@ final class Declarations
 		}
 
 		$namespace = QualifiedNames::extractNamespace($class);
-		if (
-			$this->phpstan->isUnbounded($file)
-			|| !preg_match('~^\\\\?(\w+(?:\\\\\w+)*)$~D', Deprecation::findReplacementCode($description) ?? '', $m)
-		) {
+		if (!preg_match('~^\\\\?(\w+(?:\\\\\w+)*)$~D', Deprecation::findReplacementCode($description) ?? '', $m)) {
 			return new Deprecation($description);
 		}
 

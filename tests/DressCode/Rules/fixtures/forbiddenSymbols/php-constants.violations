@@ -1,6 +1,6 @@
-5: Constant `E_STRICT` is deprecated: since PHP 8.4.
 6: Constant `E_STRICT` is deprecated: since PHP 8.4.
-7: Constant `FILTER_SANITIZE_STRING` is deprecated: since PHP 8.1.
-8: Constant `MHASH_MD5` is deprecated: since PHP 8.5.
-9: Constant `ASSERT_ACTIVE` is deprecated: since PHP 8.3.
-10: Constant `ENCHANT_MYSPELL` is deprecated: since PHP 8.0.
+7: Constant `E_STRICT` is deprecated: since PHP 8.4.
+8: Constant `FILTER_SANITIZE_STRING` is deprecated: since PHP 8.1.
+9: Constant `MHASH_MD5` is deprecated: since PHP 8.5.
+10: Constant `ASSERT_ACTIVE` is deprecated: since PHP 8.3.
+11: Constant `ENCHANT_MYSPELL` is deprecated: since PHP 8.0.

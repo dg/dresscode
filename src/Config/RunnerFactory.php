@@ -136,8 +136,7 @@ final readonly class RunnerFactory
 				self::resolveAnalysedPaths($config, $root),
 				self::resolveCacheDir($config, $root) . '/phpstan',
 				$phpVersion,
-				$resolution->projectPackages->findNewerInstalledPaths(),
-				$resolution->projectPackages->findUnboundedInstalledPaths(),
+				$resolution->projectPackages->findPathsAheadOfSupport(),
 				self::findForeignPaths($root),
 				$resolution->projectPackages->findPhpStanExtensions(),
 			);
@@ -196,8 +195,7 @@ final readonly class RunnerFactory
 					$this->stampSources($resolved, $analyses, $now),
 					// with the types a result depends on what the rest of the project declares
 					$resolved->typeAnalysis === null ? null : [
-						$resolution->projectPackages->findNewerInstalledPaths(),
-						$resolution->projectPackages->findUnboundedInstalledPaths(),
+						$resolution->projectPackages->findPathsAheadOfSupport(),
 						self::fingerprintProject($config, $root, $now),
 					],
 				], $resolution->projectPackages),
