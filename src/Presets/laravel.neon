@@ -1,0 +1,173 @@
+# Laravel
+#
+# The style of Laravel as the preset laravel of Laravel Pint defines it: PER Coding Style with the concatenation, the
+# negation and the instantiation Laravel writes, the arrow function spaced, the imports qualified and sorted, a blank
+# line before `return` and `continue`, the phpDoc trimmed, and without the rules that break a construct over lines,
+# which Pint leaves to the author. What PER Coding Style decides and no fixer of Pint touches stays as written, `keep`.
+
+use: perCs
+
+file:
+	lineLength: none                         # nothing is spread for its width
+	longLines: keep
+	strictTypes:
+		position: keep
+
+indentation:
+	heredoc: keep
+	binaryOperator: keep
+	ternary: keep
+
+braces:
+	alternativeSyntax: forbidden             # no `if: ... endif;`
+	bareStatementGroup: forbidden            # no `{ ... }` that nothing opens
+	position:
+		anonymousClass: nextLine             # `{` on the line below `new class`
+	emptyBody:
+		propertyHook: keep
+
+# `1+` is one or more
+blankLines:
+	bodyStart:
+		controlStructure: keep
+	bodyEnd: keep
+	aroundMethods: 1
+	aroundInterfaceMethods: 1
+	beforeOpenBrace:
+		class: keep
+	afterTraitUses: keep
+	betweenMemberKinds: 1
+	betweenMembers:                          # enum cases as written
+		constant: 1
+		property: 1
+	beforeDocumentedMember: 1
+	afterDeclare: keep
+	afterAttributes: keep
+	beforeStatement:                         # set apart from the code above
+		continue: 1+
+		return: 1+
+
+# method_argument_space ignores what spreads over lines, and Pint has nothing that would spread a construct
+multiline:
+	items: keep
+	edges: keep
+	trailingComma:                           # required in an array only
+		argument: optional
+		parameter: optional
+		matchArm: keep
+		closureUse: keep
+	operatorPosition: keep
+	attributePosition: keep
+	semicolon: sameLine                      # not on a line of its own below a chain
+
+spacing:
+	anonymousClass: 'new class($a)'
+	comment:
+		marker: '// text'                    # also `#` and `/* */`
+	concatenation: '$a.$b'
+	alignment:
+		binaryOperator: forbidden            # no extra spaces around an operator
+		comma: optional                      # aligning spaces and tabs may stay
+	objectOperator: '$a->b()'
+	doubleColon: 'Foo::bar()'
+	logicalNot: '! $x'                       # never `!$x`
+	reference: keep
+	spread: keep
+	namedArgument: keep
+	attribute: keep
+	alternativeSyntax: keep
+	body: keep
+	import: keep
+	arrowFunction: 'fn ($x) => $x'
+	padding:
+		array: forbidden                     # `[1, 2]`, `[$a, $b] = $x`
+		list: forbidden
+		offset: forbidden                    # `$a[0]`
+	semicolon:
+		after: 'for ($i = 0; $i < 5; $i++)'
+
+naming: keep
+
+casing:
+	magicConstant: uppercase
+	hexDigit: uppercase                      # `0xFF`
+	function: declared                       # `strlen()`, not `StrLen()`
+
+qualification:
+	staticInFinalClass: required             # `self::` in a final class
+	class:
+		otherNamespace: imported
+		currentNamespace: bare
+		phpdoc: imported                     # `@param Request $r`, not `@param \Illuminate\Http\Request $r`
+
+imports:
+	grouping:                                # `use A; use B;`, not `use A, B;` or `use Acme\{A, B};`
+		class: separated
+		function: separated
+		constant: separated
+	order:
+		kinds: [constant, class, function]
+		names: alphabetical
+	unused: forbidden
+	aliasEqualToName: forbidden              # `use Foo;`, not `use Foo as Foo;`
+
+classes:
+	members:
+		order: keep
+		grouping:
+			traitUse: keep
+	protectedInEnum: keep
+	visibility:
+		constant: keep
+	emptyParentheses:
+		instantiation: forbidden             # `new Foo`, not `new Foo()`
+		attribute: keep
+	instantiationWrapping: keep
+
+functions:
+	trailingBareReturn: forbidden            # no `return;` closing a function
+	arrowFunction:
+		emptyBody: keep
+	unreachableParameterDefault: forbidden   # a default before a required parameter
+
+types:
+	nullPosition: keep
+
+controlFlow:
+	switch:
+		fallThroughComment: keep
+
+expressions:
+	parenthesesAfterConstruct: forbidden     # `return $x;`, not `return ($x);`
+	assignment:
+		increment: postfix                   # `$i++;`
+	doubleNegation: forbidden                # `(bool) $a`, not `!!$a`
+	comparison:
+		notEquals: '!='                      # not `<>`
+		yoda: forbidden                      # `$a === 1`
+
+literals:
+	arraySyntax:
+		list: short                          # `[$a, $b] = $x`, not `list($a, $b) = $x`
+	quotes: single
+
+comments:
+	singleline: '//'                         # not `#`
+
+phpdoc:
+	empty: forbidden
+	forbiddenAnnotations: [@access, @package, @subpackage]
+	aboveAttributes: keep
+	stars: aligned                           # below the first `*` of `/**`
+	blankLines: trimmed                      # none opening or closing it, never two in a row
+	types:
+		builtin: canonical                   # `int`, not `integer`
+	annotation:
+		nativeTypeOnly: forbidden            # `@param int $a` on `int $a`
+
+hygiene:
+	aliasFunctions: [core, imap, pg]         # `count()`, not `sizeof()`
+
+upgrading:
+	php:
+		implicitNullable: forbidden          # `?int $x = null`, not `int $x = null`

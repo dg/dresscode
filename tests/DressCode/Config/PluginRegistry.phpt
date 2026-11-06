@@ -192,7 +192,7 @@ test('presets', function () {
 	Assert::same('dresscode/perCs', $registry->resolvePreset('perCs'));
 	Assert::same('test/preset', $registry->resolvePreset('test/preset'));
 	Assert::same([
-		'dresscode/perCs', 'dresscode/psr12', 'dresscode/nette', 'dresscode/symfony', 'dresscode/cleanup',
+		'dresscode/perCs', 'dresscode/psr12', 'dresscode/nette', 'dresscode/symfony', 'dresscode/laravel', 'dresscode/cleanup',
 		'dresscode/compilerOptimizations', 'dresscode/correctness', 'dresscode/deprecations', 'dresscode/modernizations', 'dresscode/types',
 		'test/preset',
 	], array_keys($registry->presets));
