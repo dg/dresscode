@@ -2629,9 +2629,11 @@ A class constant declares the type of its value.
 
 ### types.declaration.parameter
 
-A parameter of a function or a method declares its type, taken from `@param` where it has one and nullable where it defaults to null; one with neither, and one whose annotation PHP cannot write, is reported.
+A parameter of a function or a method declares its type, taken from `@param` where it has one and nullable where it defaults to null; one with neither is reported, and so is a variadic one whose annotation names an array, which is not written.
 
 Not a parameter of a closure, whose types belong to the call it is passed to.
+
+Not one whose annotation has no native type, such as `resource` or a template.
 
 - By default `keep`
 - Takes: `required` (always there); `keep`
@@ -2642,7 +2644,9 @@ Not a parameter of a closure, whose types belong to the call it is passed to.
 
 ### types.declaration.property
 
-A property declares its type, a promoted one included, taken from `@var`, or the `@param` of a promoted one, where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default.
+A property declares its type, a promoted one included, taken from `@var`, or the `@param` of a promoted one, where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default; one with neither is reported, and so is one with hooks, whose annotation is not written.
+
+Not one whose annotation has no native type, such as `callable`.
 
 - By default `keep`
 - Takes: `required` (always there); `keep`
@@ -2653,7 +2657,9 @@ A property declares its type, a promoted one included, taken from `@var`, or the
 
 ### types.declaration.return
 
-A function or a method declares its return type, taken from `@return`, `void` where it returns no value and `never` where the annotation says so.
+A function or a method declares its return type, taken from `@return`, `void` where it returns no value and `never` where the annotation says so; one with neither is reported.
+
+Not one whose annotation has no native type, such as `resource`.
 
 - By default `keep`
 - Takes: `required` (always there); `keep`

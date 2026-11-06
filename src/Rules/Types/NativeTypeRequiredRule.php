@@ -72,18 +72,23 @@ final class NativeTypeRequiredRule extends NodeRule
 			new Decision(
 				'types.declaration.parameter',
 				Domain::state('required'),
-				'A parameter of a function or a method declares its type, taken from `@param` where it has one and nullable where it defaults to null; one with neither, and one whose annotation PHP cannot write, is reported',
-				['Not a parameter of a closure, whose types belong to the call it is passed to.'],
+				'A parameter of a function or a method declares its type, taken from `@param` where it has one and nullable where it defaults to null; one with neither is reported, and so is a variadic one whose annotation names an array, which is not written',
+				[
+					'Not a parameter of a closure, whose types belong to the call it is passed to.',
+					'Not one whose annotation has no native type, such as `resource` or a template.',
+				],
 			),
 			new Decision(
 				'types.declaration.property',
 				Domain::state('required'),
-				'A property declares its type, a promoted one included, taken from `@var`, or the `@param` of a promoted one, where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default',
+				'A property declares its type, a promoted one included, taken from `@var`, or the `@param` of a promoted one, where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default; one with neither is reported, and so is one with hooks, whose annotation is not written',
+				['Not one whose annotation has no native type, such as `callable`.'],
 			),
 			new Decision(
 				'types.declaration.return',
 				Domain::state('required'),
-				'A function or a method declares its return type, taken from `@return`, `void` where it returns no value and `never` where the annotation says so',
+				'A function or a method declares its return type, taken from `@return`, `void` where it returns no value and `never` where the annotation says so; one with neither is reported',
+				['Not one whose annotation has no native type, such as `resource`.'],
 			),
 			new Decision(
 				'types.declaration.anonymousFunction',
