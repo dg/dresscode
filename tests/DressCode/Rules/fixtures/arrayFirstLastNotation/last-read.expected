@@ -16,8 +16,7 @@ function returnedWithItem(array $items)
 
 function overwritten(string $name)
 {
-	$label = explode('/', $name);
-	$label = array_last($label);
+	$label = array_last(explode('/', $name));
 	return $label;
 }
 

@@ -1,0 +1,120 @@
+<?php
+
+// a ternary choosing the call where the array has an item and null otherwise is the new function alone
+function truthy(array $a)
+{
+	return $a ? reset($a) : null;
+}
+
+
+function negated(array $a)
+{
+	return !$a ? null : end($a);
+}
+
+
+function notEmptyArray(array $a)
+{
+	return $a !== [] ? reset($a) : null;
+}
+
+
+function emptyArray(array $a)
+{
+	return $a === [] ? null : end($a);
+}
+
+
+function counted(array $a)
+{
+	return count($a) ? reset($a) : null;
+}
+
+
+function countAboveZero(array $a)
+{
+	return count($a) > 0 ? reset($a) : null;
+}
+
+
+function countZero(array $a)
+{
+	return count($a) === 0 ? null : end($a);
+}
+
+
+function emptied(array $a)
+{
+	return empty($a) ? null : reset($a);
+}
+
+
+function notEmptied(array $a)
+{
+	return !empty($a) ? end($a) : null;
+}
+
+
+// a variable holding the array only to pass it by reference is the argument
+function temporary(string $name)
+{
+	$label = explode('/', $name);
+	$label = end($label);
+	return $label;
+}
+
+
+// left as risky
+function falseBranch(array $a)
+{
+	return $a ? reset($a) : false;
+}
+
+
+function swappedBranches(array $a)
+{
+	return $a ? null : reset($a);
+}
+
+
+function property(\Acme\Shop\Catalog $catalog)
+{
+	return $catalog->items ? reset($catalog->items) : null;
+}
+
+
+function readLater(string $name)
+{
+	$parts = explode('/', $name);
+	$last = end($parts);
+	return $last . count($parts);
+}
+
+
+function inLoop(array $lists)
+{
+	foreach ($lists as $list) {
+		$item = explode(',', $list);
+		$item = end($item);
+		echo $item;
+	}
+}
+
+
+function compacted(string $name)
+{
+	$vars = compact('name');
+	$label = explode('/', $name);
+	$label = end($label);
+	return $label;
+}
+
+
+// a comment between the two keeps them apart
+function commented(string $name)
+{
+	$label = explode('/', $name);
+	// the last part
+	$label = end($label);
+	return $label;
+}

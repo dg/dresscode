@@ -1,0 +1,22 @@
+6: The first item must be read with `array_first()`.
+12: The last item must be read with `array_last()`.
+18: The first item must be read with `array_first()`.
+24: The last item must be read with `array_last()`.
+30: The first item must be read with `array_first()`.
+36: The first item must be read with `array_first()`.
+42: The last item must be read with `array_last()`.
+48: The first item must be read with `array_first()`.
+54: The last item must be read with `array_last()`.
+62: The last item must be read with `array_last()`.
+70: The first item must be read with `array_first()`.
+76: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` return false for an empty array
+82: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array
+89: The last item must be read with `array_last()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array
+98: The last item must be read with `array_last()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array
+108: The last item must be read with `array_last()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array
+118: The last item must be read with `array_last()`.

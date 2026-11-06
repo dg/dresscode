@@ -12,7 +12,7 @@ use DressCode\{CodeWriter, Decision, Domain, GlobalCalls, NodeRule, RuleContext,
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
-use PhpSyntax\Nodes\{Expression, ExpressionNode, NameNode};
+use PhpSyntax\Nodes\{Expression, ExpressionNode, NameNode, PlainNodeList, Scalar};
 use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 use function count;
 
@@ -28,7 +28,9 @@ use function count;
  * The pointer is no risk where the call is the last read of a local variable (`NodeHelpers::isLastRead()`), and
  * the empty array none where the types say the array has an item; without the types, an array with an item is not
  * told from one that may be empty. A call of theirs whose value nothing takes is left alone, being there for the
- * pointer.
+ * pointer. A ternary choosing the call where the array has an item and null otherwise is the new function alone,
+ * `$a ? reset($a) : null` being `array_first($a)`, and a variable holding an array only to pass it by reference,
+ * `$x = explode(…); $x = end($x);`, gives way to the call taking the array itself.
  */
 #[RuleInfo(Stage::Structure, requires: ['php' => '>=8.5'], analyses: [Types::class, NameResolver::class])]
 final class ArrayFirstLastNotationRule extends NodeRule
@@ -45,31 +47,53 @@ final class ArrayFirstLastNotationRule extends NodeRule
 
 	public function getVisitedNodes(): array
 	{
-		return [Expression\FunctionCallNode::class, Expression\ArrayAccessNode::class];
+		return [
+			Expression\FunctionCallNode::class,
+			Expression\ArrayAccessNode::class,
+			Expression\TernaryNode::class,
+			ExpressionStatementNode::class,
+		];
 	}
 
 
 	public function enter(Node|Token $node, RuleContext $context): void
 	{
-		if (!$node instanceof ExpressionNode) {
-			return;
-		}
-
-		$pointerCall = $node instanceof Expression\FunctionCallNode;
-		$found = $pointerCall
-			? self::readPointerCall($node, $context)
-			: self::readOffset($node, $context);
-		if ($found === null || $node->hasInnerComment()) {
+		// a call a ternary guards is read with the ternary, and one giving a variable held only for the reference its next
+		// value with its statement: the rewrite replaces them
+		$call = match (true) {
+			$node instanceof Expression\TernaryNode => $node->then instanceof Expression\FunctionCallNode ? $node->then : $node->else,
+			$node instanceof ExpressionStatementNode && $node->expression instanceof Expression\AssignmentNode
+				=> $node->expression->expression,
+			default => $node,
+		};
+		$found = match (true) {
+			$call instanceof Expression\FunctionCallNode => self::readPointerCall($call, $context),
+			$call instanceof Expression\ArrayAccessNode => self::readOffset($call, $context),
+			default => null,
+		};
+		if ($found === null || !$node instanceof Node || $node->hasInnerComment()) {
 			return;
 		}
 
 		[$function, $array, $replaced] = $found;
+		$pointerCall = $call instanceof Expression\FunctionCallNode;
+		$guard = $pointerCall ? self::findGuardingTernary($call, $array, $context) : null;
+		$temporary = $pointerCall ? self::findTemporaryAssignment($call, $array) : null;
+		$rewritten = match (true) {
+			$guard !== null => $guard,
+			$temporary !== null => $call->parent?->parent,
+			default => $call,
+		};
+		if ($node !== $rewritten) {
+			return;
+		}
 
-		$uncertainty = GlobalCalls::findUncertaintyOfRewrite($node, [$array], $context);
+		$uncertainty = GlobalCalls::findUncertaintyOfRewrite($call, [$array], $context);
 		$element = $function === 'array_first' ? 'first' : 'last';
 		$pointerMatters = $pointerCall
-			&& !($array instanceof Expression\VariableNode && NodeHelpers::isLastRead($array, $node, $context));
+			&& !($array instanceof Expression\VariableNode && NodeHelpers::isLastRead($array, $call, $context));
 		$emptyMatters = $pointerCall
+			&& $guard === null
 			&& $context->findAnalysis(Types::class)?->isOfType($array, 'non-empty-array') !== Tristate::Yes;
 		$because = match (true) {
 			$pointerMatters && $emptyMatters => '`reset()` and `end()` move the pointer of the array and return false for an empty one',
@@ -78,7 +102,7 @@ final class ArrayFirstLastNotationRule extends NodeRule
 			default => null,
 		};
 		if (!$context->report(
-			$node,
+			$call,
 			"The $element item must be read with `$function()`.",
 			risk: NodeHelpers::findRisk($because, $uncertainty),
 			because: $because ?? $uncertainty,
@@ -87,7 +111,86 @@ final class ArrayFirstLastNotationRule extends NodeRule
 		}
 
 		$spelling = CodeWriter::spellFunction($function, $replaced, $context);
-		$node->replaceWith((new Builder)->call($spelling, [$array]));
+		if ($temporary !== null) { // the value the variable held only to be passed by reference
+			$temporary->expression = (new Builder)->call($spelling, [$temporary->expression]);
+			NodeHelpers::removeMergingGaps($node, $context->style->lineEnding);
+		} else {
+			$node->replaceWith((new Builder)->call($spelling, [$array]));
+		}
+	}
+
+
+	/**
+	 * The ternary choosing the call only where the array has an item and null otherwise, which the new function answers
+	 * alone: `$a ? reset($a) : null`, the array tested as `!$a`, `$a !== []`, `count($a) > 0`, `empty($a)` and their kin too.
+	 */
+	private static function findGuardingTernary(
+		Expression\FunctionCallNode $call,
+		ExpressionNode $array,
+		RuleContext $context,
+	): ?Expression\TernaryNode
+	{
+		$ternary = $call->parent;
+		if (!$ternary instanceof Expression\TernaryNode || $ternary->then === null) {
+			return null;
+		}
+
+		$condition = $ternary->condition;
+		$negated = $condition instanceof Expression\UnaryOpNode && $condition->operator->is('!');
+		$condition = $negated ? $condition->expression : $condition;
+		$hasItems = match (true) {
+			NodeHelpers::isRepeatedRead($condition, $array),
+			NodeHelpers::isRepeatedRead(NodeHelpers::findSingleArgument($condition, 'count', $context), $array) => true,
+			$condition instanceof Expression\EmptyNode && NodeHelpers::isRepeatedRead($condition->expression, $array) => false,
+			$condition instanceof Expression\BinaryOpNode
+				&& $condition->operator->is([Token::IsIdentical, Token::IsNotIdentical])
+				&& $condition->right instanceof Expression\ArrayNode
+				&& count($condition->right->items) === 0
+				&& NodeHelpers::isRepeatedRead($condition->left, $array) => $condition->operator->is(Token::IsNotIdentical),
+			$condition instanceof Expression\BinaryOpNode
+				&& $condition->operator->is([Token::IsIdentical, '>'])
+				&& NodeHelpers::isInteger($condition->right, 0)
+				&& NodeHelpers::isRepeatedRead(NodeHelpers::findSingleArgument($condition->left, 'count', $context), $array)
+				=> $condition->operator->is('>'),
+			default => null,
+		};
+		if ($hasItems === null) {
+			return null;
+		}
+
+		[$chosen, $other] = $hasItems !== $negated ? [$ternary->then, $ternary->else] : [$ternary->else, $ternary->then];
+		return $chosen === $call && $other instanceof Scalar\NullNode ? $ternary : null;
+	}
+
+
+	/**
+	 * The assignment of the statement right before the one where the call gives the variable its next value, `$x = …;`
+	 * above `$x = end($x);`, which then takes the call itself; null where anything else, a comment too, stands between.
+	 */
+	private static function findTemporaryAssignment(Expression\FunctionCallNode $call, ExpressionNode $array): ?Expression\AssignmentNode
+	{
+		$assignment = $call->parent;
+		$statement = $assignment?->parent;
+		$name = $array instanceof Expression\VariableNode ? $array->plainName : null;
+		$isVariable = fn(?Node $node) => $name !== null && $node instanceof Expression\VariableNode && $node->plainName === $name;
+		if (
+			!$assignment instanceof Expression\AssignmentNode
+			|| $assignment->expression !== $call
+			|| !$isVariable($assignment->target)
+			|| !$statement instanceof ExpressionStatementNode
+			|| !$statement->parent instanceof PlainNodeList
+		) {
+			return null;
+		}
+
+		$previous = $statement->getPreviousSibling();
+		return $previous instanceof ExpressionStatementNode
+			&& $previous->expression instanceof Expression\AssignmentNode
+			&& $isVariable($previous->expression->target)
+			&& !$previous->hasTrailingComment()
+			&& !$statement->hasLeadingComment()
+			? $previous->expression
+			: null;
 	}
 
 
