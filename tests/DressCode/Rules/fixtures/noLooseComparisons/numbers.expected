@@ -1,0 +1,32 @@
+<?php
+
+namespace App;
+
+
+function numbers(int $count, float $ratio, int|float $amount, string $label): array
+{
+	$delta = round($ratio / 60);
+	return [
+		$delta === 0.0,
+		$delta !== 1.0,
+		$count === 1,
+		$ratio === 2.0,
+		$ratio === -0.0,
+		$ratio !== -3.0,
+		$count === -2,
+		0.0 === $ratio,
+		1 !== $count,
+		$ratio === 1_000.0,
+		$count === 9007199254740991,
+
+		// left alone
+		$count == 1.5,
+		$count == 9007199254740992.0,
+		$count == -9007199254740992.0,
+		$ratio == 0x10,
+		$ratio == 017,
+		$count == 1e3,
+		$label == 1,
+		$amount == 0,
+	];
+}
