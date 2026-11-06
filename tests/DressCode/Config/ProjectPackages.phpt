@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
 
+use DressCode\Analyses\PhpStanExtension;
 use DressCode\Config\{ProjectPackages, UnmetRequirement};
 use Nette\Utils\FileSystem;
 use Tester\Assert;
@@ -187,10 +188,11 @@ test('the extensions of PHPStan a project has, with the configuration files its 
 			'extra' => ['phpstan' => ['includes' => ['a.neon', 'b.neon']]],
 		],
 		'acme/other' => [
-			'version' => '1.0',
-			'reference' => null,
+			'version' => null,
+			'reference' => '29ca070b8e2a4c1f6d3e5a7b9c0d1e2f3a4b5c6d',
 			'path' => 'vendor/acme/other',
 			'extra' => ['phpstan' => ['includes' => ['c.neon']]],
+			'prettyVersion' => 'dev-master',
 		],
 		'acme/lib' => ['version' => '1.0', 'reference' => null, 'path' => 'vendor/acme/lib', 'extra' => []],
 		'phpstan/extension-installer' => [
@@ -201,13 +203,14 @@ test('the extensions of PHPStan a project has, with the configuration files its 
 		],
 	]);
 
-	Assert::same([
-		'vendor/acme/rules' => ['vendor/acme/rules/a.neon', 'vendor/acme/rules/b.neon'],
-		'vendor/acme/other' => ['vendor/acme/other/c.neon'],
+	$rules = new PhpStanExtension('acme/rules', '1.0', 'vendor/acme/rules', ['vendor/acme/rules/a.neon', 'vendor/acme/rules/b.neon']);
+	Assert::equal([
+		$rules,
+		new PhpStanExtension('acme/other', 'dev-master 29ca070', 'vendor/acme/other', ['vendor/acme/other/c.neon']),
 	], $packages([])->findPhpStanExtensions());
-	Assert::same([
-		'vendor/acme/rules' => ['vendor/acme/rules/a.neon', 'vendor/acme/rules/b.neon'],
-		'vendor/acme/other' => [],
+	Assert::equal([
+		$rules,
+		new PhpStanExtension('acme/other', 'dev-master 29ca070', 'vendor/acme/other', []),
 	], $packages(['phpstan/extension-installer' => ['ignore' => ['acme/other']]])->findPhpStanExtensions());
 
 	$withoutInstaller = new ProjectPackages(installed: [
@@ -218,7 +221,7 @@ test('the extensions of PHPStan a project has, with the configuration files its 
 			'extra' => ['phpstan' => ['includes' => ['a.neon']]],
 		],
 	]);
-	Assert::same(['vendor/acme/rules' => []], $withoutInstaller->findPhpStanExtensions());
+	Assert::equal([new PhpStanExtension('acme/rules', '1.0', 'vendor/acme/rules', [])], $withoutInstaller->findPhpStanExtensions());
 });
 
 

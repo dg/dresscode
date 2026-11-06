@@ -76,7 +76,7 @@ final class PhpStan
 	/** @var ?list<string>  the files the configuration read, once a container is built */
 	private ?array $configurationFiles = null;
 
-	/** that the types go without the configuration of the project, which PHPStan could not start with */
+	/** that the types go without the configuration of the project, which PHPStan could not start with, and why */
 	private ?string $configurationWarning = null;
 
 	/** that a bootstrap file of the project loaded a class of another copy of phpdoc-parser, which the claim cannot undo */
@@ -100,10 +100,7 @@ final class PhpStan
 		 * from, whose packages the process loads for itself and PHPStan finds through its autoloaders
 		 */
 		private readonly array $foreignPaths = [],
-		/**
-		 * @var array<string, list<string>>  the directories of the extensions of PHPStan the project has => the configuration
-		 * files of each PHPStan includes by itself
-		 */
+		/** @var list<PhpStanExtension>  the extensions of PHPStan the project has */
 		private readonly array $extensions = [],
 	) {
 		// PHPStan keys its caches by its version, not by where it is installed, and they hold paths into its archive
@@ -567,7 +564,7 @@ final class PhpStan
 
 	/**
 	 * The container of the configuration and the extensions of the project, or of neither where PHPStan cannot start with
-	 * them, so that the types are those of the code alone.
+	 * them, so that the types are those of the code alone, and the run is told why.
 	 */
 	private function getContainer(): Container
 	{
@@ -589,13 +586,18 @@ final class PhpStan
 		if (ini_get('opcache.file_cache_only')) {
 			ini_set('opcache.enable', '0');
 		}
-		$configs = [...array_merge(...array_values($this->extensions)), ...array_filter([$config])];
+		$configs = [
+			...array_merge(...array_map(fn(PhpStanExtension $extension) => $extension->includes, $this->extensions)),
+			...array_filter([$config]),
+		];
 		$container = $failure = null;
 		foreach (array_unique([$configs, []], SORT_REGULAR) as $files) {
 			try {
 				$container = $this->createContainer($files);
 				break;
 			} catch (\Throwable $e) {
+				// the extensions are tried alone before the container the run keeps is built, the one built last taking the reflection over
+				$this->configurationWarning ??= $this->describeFailure($e);
 				$failure ??= $e;
 			}
 		}
@@ -605,13 +607,50 @@ final class PhpStan
 				'PHPStan could not be started' . ($config ? ' with ' . Violation::formatCode($config) : '') . ": {$failure->getMessage()}",
 				previous: $failure,
 			);
-		} elseif ($failure !== null) {
-			$this->configurationWarning = 'PHPStan could not start with the configuration of the project: '
-				. strtok($failure->getMessage(), "\n") . '; the types go without it.';
 		}
 
 		$this->configurationFiles ??= $this->collectConfigurationFiles($container);
 		return $this->container = $container;
+	}
+
+
+	/**
+	 * Why PHPStan could not start with the configuration of the project: the extension it cannot start with even alone,
+	 * named with its version and what may help, or the error where none is to blame.
+	 */
+	private function describeFailure(\Throwable $failure): string
+	{
+		foreach (array_filter($this->extensions, fn(PhpStanExtension $extension) => $extension->includes !== []) as $extension) {
+			try {
+				$this->createContainer($extension->includes);
+			} catch (\Throwable $e) {
+				// the advice of the container to the author of the extension, after the first sentence, is none of the user's
+				$error = preg_replace('~(?<=\.)\s+\p{Lu}.*~s', '', (string) strtok($e->getMessage(), "\n"));
+				return "PHPStan could not start with the extension `$extension->package` ($extension->version), which does not fit"
+					. ' the PHPStan ' . (($version = self::findVersion()) === null ? '' : "$version ") . "DressCode runs: $error"
+					. " The types go without the configuration of the project; `composer update $extension->package` may help.";
+			}
+		}
+
+		return 'PHPStan could not start with the configuration of the project: ' . strtok($failure->getMessage(), "\n")
+			. '; the types go without it.';
+	}
+
+
+	/**
+	 * The version of PHPStan installed beside DressCode as Composer writes it, null where Composer does not say; the
+	 * archive, once claimed, answers for PHPStan first and replaces it with no version of its own.
+	 */
+	private static function findVersion(): ?string
+	{
+		foreach (InstalledVersions::getAllRawData() as $data) {
+			$version = $data['versions']['phpstan/phpstan']['pretty_version'] ?? null;
+			if ($version !== null) {
+				return $version;
+			}
+		}
+
+		return null;
 	}
 
 
@@ -679,7 +718,7 @@ final class PhpStan
 			return;
 		}
 
-		$paths = array_keys($this->extensions);
+		$paths = array_map(fn(PhpStanExtension $extension) => $extension->path, $this->extensions);
 		$project = $this->getProjectLoader();
 		$loader = new ClassLoader;
 		foreach ($project->getPrefixesPsr4() as $prefix => $directories) {

@@ -8,6 +8,7 @@
 namespace DressCode\Config;
 
 use Composer\Semver\VersionParser;
+use DressCode\Analyses\PhpStanExtension;
 use DressCode\Engine\Helpers;
 use Nette\Utils\FileSystem;
 use function is_array, is_string;
@@ -38,8 +39,9 @@ final readonly class ProjectPackages
 		/** @var array<string, string>  package the project requires itself => its constraint */
 		private array $required = [],
 		/**
-		 * @var array<string, array{version: ?string, reference: ?string, path: ?string, extra: array<mixed>}>  installed
-		 * package => the version it stands for (null for any), the source it came from, where it lies and its extra
+		 * @var array<string, array{version: ?string, reference: ?string, path: ?string, extra: array<mixed>, prettyVersion?: string}>
+		 *   installed package => the version it stands for (null for any), the source it came from, where it lies, its extra
+		 *   and the version as Composer writes it
 		 */
 		public array $installed = [],
 		/** @var array<string, string>  package => the version the configuration says the code is written for */
@@ -88,6 +90,7 @@ final readonly class ProjectPackages
 					? Helpers::canonicalizePath(FileSystem::normalizePath("$vendor/composer/{$package['install-path']}"))
 					: null,
 				'extra' => is_array($package['extra'] ?? null) ? $package['extra'] : [],
+				...is_string($package['version'] ?? null) ? ['prettyVersion' => $package['version']] : [],
 			];
 			foreach (is_array($package['replace'] ?? null) ? $package['replace'] : [] as $name => $constraint) {
 				if ($constraint === 'self.version') {
@@ -215,22 +218,32 @@ final readonly class ProjectPackages
 
 
 	/**
-	 * The extensions of PHPStan the project has, the packages naming configuration files in `extra.phpstan.includes`: the
-	 * directory of each => those files PHPStan includes by itself, which `phpstan/extension-installer` makes it do, none
-	 * without that package or for a package it ignores.
-	 * @return array<string, list<string>>
+	 * The extensions of PHPStan the project has, the packages naming configuration files in `extra.phpstan.includes`, each
+	 * with those files PHPStan includes by itself, which `phpstan/extension-installer` makes it do, none without that
+	 * package or for a package it ignores.
+	 * @return list<PhpStanExtension>
 	 */
 	public function findPhpStanExtensions(): array
 	{
 		$ignored = (array) ($this->rootExtra['phpstan/extension-installer']['ignore'] ?? []);
 		$extensions = [];
-		foreach ($this->installed as $package => ['path' => $path, 'extra' => $extra]) {
+		foreach ($this->installed as $package => $installed) {
+			['path' => $path, 'extra' => $extra, 'reference' => $reference] = $installed;
 			$includes = $extra['phpstan']['includes'] ?? null;
-			if ($path !== null && is_array($includes)) {
-				$extensions[$path] = isset($this->installed['phpstan/extension-installer']) && !in_array($package, $ignored, true)
-					? array_map(fn(string $file) => "$path/$file", array_values(array_filter($includes, is_string(...))))
-					: [];
+			if ($path === null || !is_array($includes)) {
+				continue;
 			}
+
+			$version = $installed['prettyVersion'] ?? $installed['version'] ?? '*';
+			$branch = str_starts_with($version, 'dev-') || str_ends_with($version, '-dev');
+			$extensions[] = new PhpStanExtension(
+				$package,
+				$branch && $reference !== null ? $version . ' ' . substr($reference, 0, 7) : $version,
+				$path,
+				isset($this->installed['phpstan/extension-installer']) && !in_array($package, $ignored, true)
+					? array_map(fn(string $file) => "$path/$file", array_values(array_filter($includes, is_string(...))))
+					: [],
+			);
 		}
 
 		return $extensions;

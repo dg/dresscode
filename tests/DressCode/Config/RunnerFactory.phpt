@@ -501,8 +501,9 @@ test('a configuration of PHPStan it cannot start with is a warning of the run, a
 /**
  * A project with an extension of PHPStan in its vendor directory, which says that `findText()` gives a string, not null.
  * @param  list<array<string, mixed>>  $otherPackages  installed beside the extension
+ * @param  array<string, mixed>  $installed  what `installed.json` says of the extension besides its name and place
  */
-function createProjectWithExtension(string $name, array $otherPackages = []): string
+function createProjectWithExtension(string $name, array $otherPackages = [], array $installed = []): string
 {
 	$root = createTempDir($name);
 	FileSystem::write("$root/composer.json", '{"name": "app/project"}');
@@ -527,6 +528,7 @@ function createProjectWithExtension(string $name, array $otherPackages = []): st
 			'name' => 'acme/phpstan-rules',
 			'install-path' => '../acme/phpstan-rules',
 			'extra' => ['phpstan' => ['includes' => ['extension.neon']]],
+			...$installed,
 		],
 		...$otherPackages,
 	]], JSON_THROW_ON_ERROR));
@@ -574,12 +576,36 @@ test('the classes of an extension the configuration of the project includes itse
 });
 
 
-test('an extension PHPStan cannot start with is a warning of the run, and the types go without it', function () {
-	$root = createProjectWithExtension('types-extension-broken', [['name' => 'phpstan/extension-installer']]);
-	FileSystem::write("$root/vendor/acme/phpstan-rules/extension.neon", "services:\n\t- Acme\\PhpStanRules\\Missing\n");
-	[$lines, $warnings] = findNullArguments($root);
-	Assert::same([11, 12], $lines);
-	Assert::match('PHPStan could not start with the configuration of the project: %a%; the types go without it.', $warnings[0] ?? '');
+test('an extension PHPStan cannot start with is a warning naming its package, and the types go without it', function () {
+	foreach ([
+		'2.2.2' => ['version' => '2.2.2'],
+		'dev-master 29ca070' => ['version' => 'dev-master', 'source' => ['reference' => '29ca070b8e2a4c1f6d3e5a7b9c0d1e2f3a4b5c6d']],
+	] as $written => $installed) {
+		$root = createProjectWithExtension('types-extension-broken', [['name' => 'phpstan/extension-installer']], $installed);
+		FileSystem::write("$root/vendor/acme/phpstan-rules/extension.neon", "services:\n\t- Acme\\PhpStanRules\\Missing\n");
+		[$lines, $warnings] = findNullArguments($root);
+		Assert::same([11, 12], $lines);
+		Assert::match(
+			"PHPStan could not start with the extension `acme/phpstan-rules` ($written), which does not fit the PHPStan %a% DressCode runs: %a%Acme\\PhpStanRules\\Missing%a%. The types go without the configuration of the project; `composer update acme/phpstan-rules` may help.",
+			$warnings[0] ?? '',
+		);
+	}
+});
+
+
+test('of two extensions the warning names the one PHPStan cannot start with', function () {
+	$root = createProjectWithExtension('types-extension-two', [
+		['name' => 'phpstan/extension-installer'],
+		[
+			'name' => 'acme/phpstan-extra',
+			'version' => '1.0.0',
+			'install-path' => '../acme/phpstan-extra',
+			'extra' => ['phpstan' => ['includes' => ['extension.neon']]],
+		],
+	]);
+	FileSystem::write("$root/vendor/acme/phpstan-extra/extension.neon", "services:\n\t- Acme\\PhpStanExtra\\Missing\n");
+	[, $warnings] = findNullArguments($root);
+	Assert::match('PHPStan could not start with the extension `acme/phpstan-extra` (1.0.0), %a%', $warnings[0] ?? '');
 });
 
 
