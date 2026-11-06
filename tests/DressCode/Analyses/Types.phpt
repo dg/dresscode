@@ -80,6 +80,24 @@ test('whether an expression is of a type, and maybe for a node the pass began wi
 });
 
 
+test('an expression of type never stands where the code never runs and is maybe of every type', function () {
+	$file = (new Parser)->parse(<<<'PHP'
+		<?php
+		function test(): void
+		{
+			$dates = [];
+			foreach ($dates as $i => $date) {
+				$dates[$i] = $date;
+			}
+		}
+		PHP);
+	$types = analyse($file);
+	$keys = $file->find(VariableNode::class, fn(VariableNode $node) => $node->plainName === 'i');
+	Assert::same(Tristate::Maybe, $types->isOfType($keys[count($keys) - 1], 'null'));
+	Assert::same(Tristate::Maybe, $types->isOfType($keys[count($keys) - 1], 'float'));
+});
+
+
 test('the member a call or a constant access reaches', function () {
 	$file = orderSample();
 	$types = analyse($file);

@@ -19,7 +19,7 @@ use PHPStan\Reflection\{
 use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\Constant\{ConstantIntegerType, ConstantStringType};
-use PHPStan\Type\{Type, TypeCombinator};
+use PHPStan\Type\{NeverType, Type, TypeCombinator};
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, Printer, Token, Visibility};
 use PhpSyntax\Nodes\{ClassLikeNode, ExpressionNode, FileNode, IdentifierNode, MemberNode, NameNode, ParameterNode};
@@ -204,21 +204,24 @@ final class Types implements PassAnalysis
 
 	/**
 	 * The type of the expression as PHPStan sees it, with `$at` as it sees it where that node stands; null for an
-	 * expression the analysis was made without.
+	 * expression the analysis was made without, and for one of type `never`, which stands where the code never runs and
+	 * which every type contains.
 	 */
 	private function getType(ExpressionNode $expression, ?ExpressionNode $at = null): ?Type
 	{
 		$found = $this->findExpression($expression);
 		$scope = $at === null ? $found[1] ?? null : $this->findExpression($at)[1] ?? null;
-		return $found === null || $scope === null ? null : $scope->getType($found[0]);
+		$type = $found === null || $scope === null ? null : $scope->getType($found[0]);
+		return $type instanceof NeverType ? null : $type;
 	}
 
 
 	/**
 	 * Whether the expression is of the type, written in the syntax of PHPDoc as PHPStan reads it (`int|string`,
 	 * `list<int>`, `non-empty-string`), its classes fully qualified; maybe where it may or may not be, and for an
-	 * expression the analysis was made without. With `$at` the expression is asked about where that node stands, which
-	 * a part of the variable of `isset()` needs: PHPStan takes it there as not null, since `isset()` would not fail on it.
+	 * expression the analysis was made without or of type `never`. With `$at` the expression is asked about where that
+	 * node stands, which a part of the variable of `isset()` needs: PHPStan takes it there as not null, since `isset()`
+	 * would not fail on it.
 	 */
 	public function isOfType(ExpressionNode $expression, string $type, ?ExpressionNode $at = null): Tristate
 	{

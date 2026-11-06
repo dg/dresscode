@@ -1,0 +1,11 @@
+<?php
+// risky
+
+// the key of a loop over an empty array is of type never, which tells nothing of the key the code holds
+$dates = [
+	// '18.12.2026',
+];
+
+foreach ($dates as $i => $date) {
+	$dates[$i] = new DateTimeImmutable($date);
+}
