@@ -293,7 +293,7 @@ Every line indented by the construct it continues, one level per nesting, the le
 
 ### braces.alternativeSyntax
 
-`if: … endif;` is written with braces.
+`if: … endif;` is written with braces, a structure a template writes around markup excepted.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`

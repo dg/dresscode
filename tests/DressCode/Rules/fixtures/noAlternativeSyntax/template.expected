@@ -1,14 +1,42 @@
 <div>
-    <?php foreach ($a as $b) { ?>
+    <?php foreach ($a as $b): ?>
         <?= $b ?>
-    <?php } ?>
+    <?php endforeach ?>
 </div>
-<?php if ($a) { ?>
+<?php if ($a): ?>
     text
-<?php } ?>
-<?php while ($a) { ?>
-    <?php } ?>
+<?php elseif ($b): echo 'b'; else: ?>
+    other
+<?php endif; ?>
+<?php while ($a): ?>
+    <?php endwhile ?>
+<ul>
+<?php if ($list): ?>
+    <?php foreach ($list as $item): ?>
+        <li><?= $item ?></li>
+    <?php endforeach ?>
+<?php endif ?>
+</ul>
 
 <?php if ($c) foreach ($a as $b): ?>
     nested
 <?php endforeach ?>
+
+<?php if ($a): ?>
+    <p>markup</p>
+    <?php
+    if ($b):
+        echo 'the else below is that of the if above';
+    endif;
+else:
+    echo 'other';
+    ?>
+    <p>other</p>
+<?php endif ?>
+
+<?php if ($a) { echo 'pure PHP'; } ?>
+<?php
+foreach ($a as $b) {
+	echo $b;
+}
+?>

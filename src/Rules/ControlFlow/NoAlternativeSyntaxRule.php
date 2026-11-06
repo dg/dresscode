@@ -9,19 +9,26 @@ namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
 use PhpSyntax\{Builder, Node, Token, Trivia};
-use PhpSyntax\Nodes\{ElseifNode, ElseNode, PlainNodeList, StatementNode};
-use PhpSyntax\Nodes\Statement\{BlockNode, DeclareNode, EmptyStatementNode, ForeachNode, ForNode, IfNode, SwitchNode, WhileNode};
+use PhpSyntax\Nodes\{CaseNode, ElseifNode, ElseNode, PlainNodeList, StatementNode};
+use PhpSyntax\Nodes\Statement\{
+	BlockNode, DeclareNode, EmptyStatementNode, ForeachNode, ForNode, IfNode, InlineHtmlNode, SwitchNode, WhileNode,
+};
 
 
 /**
- * Braces instead of the alternative syntax: `if (...) {` … `}`, not `if (...):` … `endif;`.
+ * Braces instead of the alternative syntax: `if (...) {` … `}`, not `if (...):` … `endif;`. A structure a template
+ * writes around markup, a body of any of its branches holding the text between `?>` and `<?php`, keeps it whole.
  */
 #[RuleInfo(Stage::Structure)]
 final class NoAlternativeSyntaxRule extends NodeRule
 {
 	public static function getDecisions(): array
 	{
-		return [new Decision('braces.alternativeSyntax', Domain::state('forbidden'), '`if: … endif;` is written with braces')];
+		return [new Decision(
+			'braces.alternativeSyntax',
+			Domain::state('forbidden'),
+			'`if: … endif;` is written with braces, a structure a template writes around markup excepted',
+		)];
 	}
 
 
@@ -47,6 +54,10 @@ final class NoAlternativeSyntaxRule extends NodeRule
 		$fixable = $closeTag === null || $node->parent instanceof PlainNodeList;
 		if (
 			$colon === null
+			|| !$node instanceof Node
+			|| self::enclosesMarkup($node)
+			// braces would hand it the `else` of the enclosing `if:`, which keeps its syntax
+			|| ($node instanceof IfNode && $node->else === null && $node->getLastToken()->getNext()?->is([Token::Else, Token::Elseif]))
 			|| !$context->report(
 				$colon,
 				'The `'
@@ -89,6 +100,29 @@ final class NoAlternativeSyntaxRule extends NodeRule
 			$node->body = $block;
 			self::keepCloseTag($node, $closeTag);
 		}
+	}
+
+
+	/**
+	 * Whether a body of the structure, of any of its branches or cases, holds markup between `?>` and `<?php`, which
+	 * a template writes the alternative syntax around.
+	 */
+	private static function enclosesMarkup(Node $node): bool
+	{
+		$bodies = match (true) {
+			$node instanceof IfNode => array_map(
+				fn(IfNode|ElseifNode|ElseNode $branch) => $branch->statements,
+				[$node, ...$node->elseifs->getItems(), ...($node->else !== null ? [$node->else] : [])],
+			),
+			$node instanceof SwitchNode => array_map(fn(CaseNode $case) => $case->statements, $node->cases->getItems()),
+			$node instanceof WhileNode, $node instanceof ForNode, $node instanceof ForeachNode, $node instanceof DeclareNode
+				=> [$node->statements],
+			default => [],
+		};
+		return array_any(
+			$bodies,
+			fn(?PlainNodeList $statements) => array_any($statements?->getItems() ?? [], fn(Node $stmt) => $stmt instanceof InlineHtmlNode),
+		);
 	}
 
 

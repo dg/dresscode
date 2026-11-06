@@ -112,7 +112,7 @@ braces:
 		controlStructure: expanded          # `{` and `}` placed as those of any other body. Also: collapsed; keep
 	singlelineClosure: forbidden            # `function () { return 1; }` on one line. Also: keep
 	bracelessBody: forbidden                # `if ($a) foo();` is written with braces. Also: keep
-	alternativeSyntax: forbidden            # `if: … endif;` is written with braces. Also: keep
+	alternativeSyntax: forbidden            # `if: … endif;` is written with braces, a structure a template writes around markup excepted. Also: keep
 	bareStatementGroup: forbidden           # `{ … }` around statements that nothing opens. Also: keep
 
 
