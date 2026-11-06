@@ -1,0 +1,11 @@
+5: The property `$a` must have a native type or a `@var` annotation.
+5: The property `$b` must have a native type or a `@var` annotation.
+8: The property `$c` must have a native type, but one declared with others gets none from `@var`.
+8: The property `$d` must have a native type or a `@var` annotation.
+11: The property `$f` of the type `array` must have a `@var` annotation saying what its items are.
+13: The property `$g` of the type `array` must have a `@var` annotation saying what its items are.
+13: The property `$h` of the type `array` must have a `@var` annotation saying what its items are.
+16: The property `$j` must have a native type or a `@var` annotation.
+19: The property `$l` must have a native type or a `@var` annotation.
+24: The property `$o` must have a native type, but one declared with others gets none from `@var`.
+24: The property `$p` must have a native type or a `@var` annotation.

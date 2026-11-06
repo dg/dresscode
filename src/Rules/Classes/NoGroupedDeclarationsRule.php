@@ -18,7 +18,8 @@ use function count;
 
 /**
  * One member per declaration: `const A = 1, B = 2;`, `public $a, $b;` and `use T1, T2;` become one
- * declaration per constant, property or trait, each sharing the modifiers and the type of the original.
+ * declaration per constant, property or trait, each sharing the modifiers and the type of the original, while the doc
+ * comment stays with the first, the only member PHP gives it to.
  * The adaptations of a trait use in braces go with the last trait, as PHP applies them to the class whichever
  * `use` they stand at. A declaration with a comment between its members stays as it is, the comment having
  * nowhere to go; a `const` outside a class is no member and stays as well.

@@ -26,11 +26,12 @@ use function count;
  * Parameters, properties and return values have native types: a missing one is added from the `@param`,
  * `@var` or `@return` annotation when PHP can express it, nullable where the declaration defaults to null; an
  * annotation then saying nothing more is `UselessTypeAnnotationsRule`'s. A property without a default, null until
- * written, gets `= null` where its type takes null. A variadic parameter whose annotation names an array and
- * a property with hooks get no native type from their annotation, being reported instead. A function or a closure that
- * returns no value is declared void, and a native void the annotation says is never becomes never. Any other declaration
- * with neither is reported, and with `phpdoc.annotation.itemTypes` an array, iterable or traversable one whose
- * annotation does not say what the items are. A function inheriting its documentation (`{@inheritDoc}`,
+ * written, gets `= null` where its type takes null. A variadic parameter whose annotation names an array, a property
+ * with hooks and one declared beside others get no native type from their annotation, being reported instead; the
+ * annotation above several properties is the first one's, as PHP gives their doc comment to it alone. A function or
+ * a closure that returns no value is declared void, and a native void the annotation says is never becomes never. Any
+ * other declaration with neither is reported, and with `phpdoc.annotation.itemTypes` an array, iterable or traversable
+ * one whose annotation does not say what the items are. A function inheriting its documentation (`{@inheritDoc}`,
  * `#[\Override]`) is left alone. Each place can be turned off on its own; a class constant is
  * `ConstantTypeRequiredRule`'s.
  *
@@ -81,7 +82,7 @@ final class NativeTypeRequiredRule extends NodeRule
 			new Decision(
 				'types.declaration.property',
 				Domain::state('required'),
-				'A property declares its type, a promoted one included, taken from `@var`, or the `@param` of a promoted one, where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default; one with neither is reported, and so is one with hooks, whose annotation is not written',
+				'A property declares its type, a promoted one included, taken from `@var`, or the `@param` of a promoted one, where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default; one with neither is reported, and so is one with hooks or declared beside others, whose annotation is not written',
 				['Not one whose annotation has no native type, such as `callable`.'],
 			),
 			new Decision(
@@ -316,36 +317,36 @@ final class NativeTypeRequiredRule extends NodeRule
 
 	private function checkProperty(PropertyNode $node, RuleContext $context): void
 	{
-		if (count($node->items) !== 1) {
-			return;
-		}
-
 		$docComment = $node->getDocComment();
 		$tree = $docComment ? $context->getAnalysis(PhpDoc::class)->parse($docComment) : null;
 		[$tags, $prefixed] = self::findTags($tree, '@var');
-		$item = $node->items->getItems()[0];
-		$this->declareType(
-			'types.declaration.property',
-			"The property `{$item->name->text}`",
-			$item,
-			$node->type?->text,
-			$tags[''] ?? null,
-			isset($prefixed['']),
-			$node,
-			fn(TypeNode $type) => $node->setType($type),
-			$context,
-			place: NativeType::Property,
-			default: $item->default,
-			isRefused: fn() => self::mayRedeclare($node, $context->findAnalysis(Types::class)),
-			implicitNull: $item->default === null,
-			writeNull: function () use ($item): void {
-				$written = (new Builder)->fragment(PropertyNode::class, 'public $x = null;')->items->getItems()[0];
-				$item->name->setTrailingSpace(' ');
-				$item->equals = $written->equals;
-				$item->default = $written->default;
-			},
-			hooked: $node->hooks !== null,
-		);
+		$items = $node->items->getItems();
+		foreach ($items as $i => $item) {
+			$first = $i === 0; // PHP gives the doc comment of several properties to the first one alone
+			$this->declareType(
+				'types.declaration.property',
+				"The property `{$item->name->text}`",
+				$item,
+				$node->type?->text,
+				$first ? $tags[''] ?? null : null,
+				$first && isset($prefixed['']),
+				$node,
+				fn(TypeNode $type) => $node->setType($type),
+				$context,
+				place: NativeType::Property,
+				default: $item->default,
+				isRefused: fn() => self::mayRedeclare($node, $context->findAnalysis(Types::class)),
+				implicitNull: $item->default === null,
+				writeNull: function () use ($item): void {
+					$written = (new Builder)->fragment(PropertyNode::class, 'public $x = null;')->items->getItems()[0];
+					$item->name->setTrailingSpace(' ');
+					$item->equals = $written->equals;
+					$item->default = $written->default;
+				},
+				hooked: $node->hooks !== null,
+				grouped: count($items) > 1,
+			);
+		}
 	}
 
 
@@ -376,6 +377,7 @@ final class NativeTypeRequiredRule extends NodeRule
 		?\Closure $writeNull = null,
 		bool $variadic = false,
 		bool $hooked = false,
+		bool $grouped = false,
 	): void
 	{
 		$declares = match ($decision) {
@@ -422,20 +424,18 @@ final class NativeTypeRequiredRule extends NodeRule
 			}
 
 			// the array an annotation of a variadic parameter names is read as that of all the arguments and of each one,
-			// and a property with hooks may have no value to be null, so neither is written but reported
-			$unwritable = match (true) {
+			// a property with hooks may have no value to be null, and the type of one declared with others would be
+			// theirs too, so none of them is written but reported
+			$unwritten = match (true) {
 				$native === null => null,
-				$hooked => 'a property with hooks',
-				$variadic && NativeType::isTraversable(ltrim($native, '?'), $this->traversableClasses, $resolve) => 'a variadic parameter',
+				$grouped => "one declared with others gets none from `$tagName`",
+				$hooked => "a property with hooks gets none from `$tagName`",
+				$variadic && NativeType::isTraversable(ltrim($native, '?'), $this->traversableClasses, $resolve)
+					=> "a variadic one gets none from an array in `$tagName`",
 				default => null,
 			};
-			if ($unwritable !== null) {
-				$context->report(
-					$at,
-					"$subject must have a native $typeWord, which is not written from the `$tagName` annotation of $unwritable.",
-					fixable: false,
-					decision: $decision,
-				);
+			if ($unwritten !== null) {
+				$context->report($at, "$subject must have a native $typeWord, but $unwritten.", fixable: false, decision: $decision);
 				return;
 			}
 

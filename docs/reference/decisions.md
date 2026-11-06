@@ -2644,7 +2644,7 @@ Not one whose annotation has no native type, such as `resource` or a template.
 
 ### types.declaration.property
 
-A property declares its type, a promoted one included, taken from `@var`, or the `@param` of a promoted one, where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default; one with neither is reported, and so is one with hooks, whose annotation is not written.
+A property declares its type, a promoted one included, taken from `@var`, or the `@param` of a promoted one, where it has one and nullable where it defaults to null, `= null` written where an untyped one had no default; one with neither is reported, and so is one with hooks or declared beside others, whose annotation is not written.
 
 Not one whose annotation has no native type, such as `callable`.
 

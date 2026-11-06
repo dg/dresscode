@@ -1,1 +1,1 @@
-8: The property `$a` must have a native type, which is not written from the `@var` annotation of a property with hooks.
+8: The property `$a` must have a native type, but a property with hooks gets none from `@var`.

@@ -1,0 +1,25 @@
+<?php
+// {"types.declaration.parameter": "keep", "types.declaration.return": "keep"}
+class A
+{
+	public $a, $b;
+
+	/** @var int */
+	public $c, $d;
+
+	/** @var int[] */
+	public array $e, $f;
+
+	public array $g, $h;
+
+	/** @var resource */
+	public $i, $j;
+
+	/** @phpstan-var int */
+	public $k, $l;
+
+	public int $m, $n;
+
+	/** @var string */
+	public static $o, $p;
+}
