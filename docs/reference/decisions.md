@@ -311,7 +311,7 @@ Every line indented by the construct it continues, one level per nesting, the le
 
 ### braces.bracelessBody
 
-The body of a control structure written without braces, `if ($a) foo();`.
+The body of a control structure written without braces, `if ($a) foo();`, the braces going on its line where a template writes it before `?>`.
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`

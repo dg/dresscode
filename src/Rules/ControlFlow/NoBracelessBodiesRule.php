@@ -8,6 +8,7 @@
 namespace DressCode\Rules\ControlFlow;
 
 use DressCode\{Decision, Domain, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Builder, Indentation, Node, Token, Trivia};
 use PhpSyntax\Nodes\{ElseifNode, ElseNode, StatementNode};
 use PhpSyntax\Nodes\Statement\{BlockNode, DoWhileNode, EmptyStatementNode, ForeachNode, ForNode, IfNode, WhileNode};
@@ -18,7 +19,8 @@ use function count;
  * The body of a control structure is always a block: `if ($a) x();` becomes `if ($a) {` … `}`.
  * An `else if` is left to `ElseifNotationRule`, an empty statement body stays, and so does a body that
  * ends by leaving PHP. The body moves a level deeper with its comments, the lines of a comment spanning
- * several among them.
+ * several among them, except in a structure on one line whose body `?>` follows, a line of a template, which
+ * gets its braces on the line.
  */
 #[RuleInfo(Stage::Structure, modifiesComments: true)]
 final class NoBracelessBodiesRule extends NodeRule
@@ -28,7 +30,7 @@ final class NoBracelessBodiesRule extends NodeRule
 		return [new Decision(
 			'braces.bracelessBody',
 			Domain::state('forbidden'),
-			'The body of a control structure written without braces, `if ($a) foo();`',
+			'The body of a control structure written without braces, `if ($a) foo();`, the braces going on its line where a template writes it before `?>`',
 		)];
 	}
 
@@ -70,9 +72,22 @@ final class NoBracelessBodiesRule extends NodeRule
 			|| !$context->report($body, 'The body of the `' . strtolower($node->getFirstToken()->text) . '` must be enclosed in braces.')
 		) {
 			return;
+		} elseif (!$node->isMultiLine() && NodeHelpers::isFollowedByCloseTag($body->getLastToken())) {
+			self::wrapOnLine($body); // a line of a template, the close tag right after the body amid markup
+		} else {
+			self::wrap($body, $context);
 		}
+	}
 
-		self::wrap($body, $context);
+
+	/** Encloses the body in braces on its line, `{ echo $b; }`. */
+	private static function wrapOnLine(StatementNode $body): void
+	{
+		$block = (new Builder)->fragment(BlockNode::class, '{}');
+		$body->replaceWith($block);
+		$block->statements->append($body);
+		$block->openBrace->setTrailingTrivia([Trivia::fromText(' ')]);
+		$block->closeBrace->setLeadingTrivia([Trivia::fromText(' ')]);
 	}
 
 

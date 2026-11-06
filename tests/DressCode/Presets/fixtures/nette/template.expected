@@ -1,0 +1,24 @@
+<?php declare(strict_types=1);
+
+/**
+ * @var bool $templateMode
+ * @var array<string, string> $examples
+ * @var list<string> $versions
+ */
+?>
+<header>
+	<?php if ($templateMode): ?>
+	<div><button type="button" class=addTemplate>add template</button></div>
+	<?php endif ?>
+
+	<table>
+		<?php if ($examples): ?>
+		<tr>
+			<td><select class="example"><?php foreach ($examples as $key => $name) { echo '<option value=' . htmlspecialchars($key) . '>', htmlspecialchars($name); } ?></select></td>
+		</tr>
+		<?php endif ?>
+		<tr>
+			<td><select class="version"><?php foreach ($versions as $version) { echo '<option>', htmlspecialchars($version); } ?></select></td>
+		</tr>
+	</table>
+</header>

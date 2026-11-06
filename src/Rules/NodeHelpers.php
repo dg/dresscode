@@ -316,6 +316,13 @@ final class NodeHelpers
 	}
 
 
+	/** Whether `?>` follows the token on its line, as on a line of a template amid markup. */
+	public static function isFollowedByCloseTag(Token $token): bool
+	{
+		return $token->getNext()?->is(Token::CloseTag) === true && !$token->isFollowedByLineEnding();
+	}
+
+
 	/**
 	 * The construct the node is, at a place `LineSplits` names, with the token its frame begins with, the tokens its shape
 	 * puts at the start of a line once spread, and whether it is spread over lines already; null for a node that is none

@@ -9,6 +9,7 @@ namespace DressCode\Rules\Whitespace;
 
 use DressCode\{Claim, Decision, Domain, Gap, GapRule, Line, RuleInfo, Space, Stage, Values};
 use DressCode\Domains\Words;
+use DressCode\Rules\NodeHelpers;
 use PhpSyntax\{Node, Nodes, Token};
 use PhpSyntax\Nodes\Expression\{ClosureNode, MatchNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyHookNode, PropertyNode};
@@ -19,8 +20,9 @@ use function strlen;
 /**
  * Where the opening brace of a body goes: on its own line for classes and functions, on the line of the
  * declaration for control structures, closures, anonymous classes and property hooks; what follows it starts
- * a new line and the closing brace one of its own, except in a single-line closure, an empty anonymous class
- * or an abbreviated list of hooks (`{ get; set; }`), whose hooks otherwise take a line each. A function with
+ * a new line and the closing brace one of its own, except in a single-line closure, an empty anonymous class,
+ * an abbreviated list of hooks (`{ get; set; }`), whose hooks otherwise take a line each, and a body of a control
+ * structure written on one line right before `?>`, a line of a template. A function with
  * parameters on several lines has a decision of its own for the brace. The keyword that continues a structure
  * (`else`, `catch`, the `while` of `do`) meets the closing brace on its line or takes the next one. Where the
  * lines then stand is the matter of `IndentationRule`.
@@ -330,7 +332,11 @@ final class BracesPositionRule extends GapRule
 					$node->body->openBrace,
 					$node->body->closeBrace,
 					$node->body->statements->isEmpty(),
-					...$this->readControlStructureShape(block: true),
+					// a line of a template, the close tag right after the body amid markup
+					...$this->readControlStructureShape(
+						block: true,
+						singleline: NodeHelpers::isFollowedByCloseTag($node->body->closeBrace),
+					),
 				]
 				: null,
 			$node instanceof Statement\TryNode, $node instanceof Nodes\CatchNode, $node instanceof Nodes\FinallyNode => [
@@ -397,14 +403,15 @@ final class BracesPositionRule extends GapRule
 
 	/**
 	 * @param  bool  $block  whether the braces hold a body, which may be empty, and not the cases of `switch` or the arms of `match`
+	 * @param  bool  $singleline  whether the body stays on one line where it is written so
 	 * @return array{?bool, string, ?string, bool, ?string}
 	 */
-	private function readControlStructureShape(bool $block): array
+	private function readControlStructureShape(bool $block, bool $singleline = false): array
 	{
 		$empty = $block ? self::EmptyBody . 'controlStructure' : null;
 		return $this->controlStructure === null
-			? [null, self::ControlStructure, null, false, $empty]
-			: [$this->controlStructure === self::NextLine, self::ControlStructure, self::ControlStructure, false, $empty];
+			? [null, self::ControlStructure, null, $singleline, $empty]
+			: [$this->controlStructure === self::NextLine, self::ControlStructure, self::ControlStructure, $singleline, $empty];
 	}
 
 

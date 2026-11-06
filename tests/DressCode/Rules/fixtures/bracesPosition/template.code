@@ -1,4 +1,6 @@
 <?php if ($c) { x(); } ?>
+<?php if ($d) { y(); }
+?>
 <div>
     <?php if ($a) { ?>
         <?= $b ?>

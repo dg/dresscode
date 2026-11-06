@@ -5,3 +5,9 @@ if ($d) {
 	echo 'z';
 }
 ?>
+<td><select><?php foreach ($versions as $version) { echo '<option>', htmlspecialchars($version); } ?></select></td>
+<p><?php if ($e) { echo 'e'; } ?></p>
+<?php
+foreach ($items as $item) {
+	echo $item;
+} ?>

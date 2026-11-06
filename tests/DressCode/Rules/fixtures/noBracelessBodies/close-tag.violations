@@ -1,1 +1,4 @@
 4: The body of the `if` must be enclosed in braces.
+6: The body of the `foreach` must be enclosed in braces.
+7: The body of the `if` must be enclosed in braces.
+10: The body of the `foreach` must be enclosed in braces.
