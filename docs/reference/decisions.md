@@ -3648,7 +3648,9 @@ The `global` statement, which is only reported.
 
 ### mistakes.invisibleCharacter
 
-Non-breaking, zero-width and bidi characters, replaced in comments and escaped in strings, which changes their text, and reported in names.
+Narrow and figure no-break spaces, zero-width and bidi characters, replaced in comments and escaped in strings, which changes their text, and reported in names.
+
+Not about the no-break space U+00A0 in a text, which writes it on purpose
 
 - By default `keep`
 - Takes: `forbidden` (never there); `keep`

@@ -1,0 +1,8 @@
+<?php
+// the no-break space a text writes on purpose stays, k dispozici
+$form->addSubmit('send', 'Chci být v obraze');
+$heading = "Ceny od 100 Kč";
+$name = "k dispozici\u{200B}";
+
+// in a name it hides where the name ends
+$price = "Cena: $price Kč";

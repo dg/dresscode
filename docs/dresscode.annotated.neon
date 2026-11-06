@@ -511,7 +511,7 @@ mistakes:                                   # what is most likely wrong whatever
 	debugOutput: forbidden                  # a statement calling a debugging function is commented out; risky. Also: keep
 	debugOutputFunctions: [print_r, var_dump, var_export]   # parameter: the debugging functions whose calls print
 	consecutivePhpdocs: forbidden           # a doc comment followed by another, the first lost, reported. Also: keep
-	invisibleCharacter: forbidden           # a no-break, zero-width or bidi character, replaced in a comment, escaped in a string, reported in a name. Also: keep
+	invisibleCharacter: forbidden           # a narrow no-break, zero-width or bidi character, replaced in a comment, escaped in a string, reported in a name. Also: keep
 	trailingWhitespaceInString: forbidden   # at the end of a line of a multi-line string, a heredoc or inline HTML, which changes it; risky. Also: keep
 
 

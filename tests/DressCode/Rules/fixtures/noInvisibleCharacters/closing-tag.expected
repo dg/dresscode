@@ -2,5 +2,5 @@
 // a closing tag the character keeps apart: <?php ... ?​> blocks
 # also here: ?​>
 /* in a block comment it does not close: ?> */
-$a = "first \u{a0} then a\u{a0}b";
-$b = "and\u{a0}this";
+$a = "first \u{a0} then a\u{202f}b";
+$b = "and\u{202f}this";

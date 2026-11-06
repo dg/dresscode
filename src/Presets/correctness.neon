@@ -21,7 +21,7 @@ mistakes:
 	unreachableCatch: forbidden                 # after `catch (Throwable)`
 	exceptionWhereThrowableBelongs: forbidden   # `catch (Exception)` where `Throwable` is meant, reported
 	errorSuppression: forbidden                 # the `@` operator, reported
-	invisibleCharacter: forbidden               # zero-width, no-break and bidi characters, escaped
+	invisibleCharacter: forbidden               # zero-width, narrow no-break and bidi characters, escaped
 	strictArgument: required                    # `in_array($a, $b, true)`, risky
 	trailingWhitespaceInString: forbidden       # in a multi-line string or inline HTML
 	consecutivePhpdocs: forbidden               # the first of two is lost, reported

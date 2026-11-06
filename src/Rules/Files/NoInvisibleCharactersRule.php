@@ -14,8 +14,10 @@ use function in_array, strlen;
 
 
 /**
- * No invisible characters in code: the no-break spaces, zero-width characters, line separators and bidi
- * controls that pasted text carries. In a comment they become a space or go away; in a string they become
+ * No invisible characters in code: the narrow and the figure no-break space, zero-width characters, line separators
+ * and bidi controls that pasted text carries; the no-break space U+00A0 stays in a text, which in Czech and other
+ * languages writes it on purpose, and is reported in a name, `"$price Kč"` reading `$price Kč` as the name of the
+ * variable. In a comment they become a space or go away; in a string they become
  * a `\u{...}` escape, which keeps the value and shows the character, so a single-quoted string turns into
  * a double-quoted one; in a nowdoc, in a single-quoted string that double quotes would change, in a line comment
  * where the character keeps the two characters of a closing tag apart, and in an identifier or a variable name
@@ -27,7 +29,7 @@ final class NoInvisibleCharactersRule extends NodeRule
 {
 	/** character => its replacement in a comment */
 	private const Characters = [
-		"\u{00A0}" => ' ', "\u{2007}" => ' ', "\u{202F}" => ' ',
+		"\u{2007}" => ' ', "\u{202F}" => ' ',
 		"\u{200B}" => '', "\u{2060}" => '', "\u{FEFF}" => '',
 		"\u{2028}" => ' ', "\u{2029}" => ' ',
 		"\u{202A}" => '', "\u{202B}" => '', "\u{202C}" => '', "\u{202D}" => '', "\u{202E}" => '',
@@ -40,7 +42,8 @@ final class NoInvisibleCharactersRule extends NodeRule
 		return [new Decision(
 			'mistakes.invisibleCharacter',
 			Domain::state('forbidden'),
-			'Non-breaking, zero-width and bidi characters, replaced in comments and escaped in strings, which changes their text, and reported in names',
+			'Narrow and figure no-break spaces, zero-width and bidi characters, replaced in comments and escaped in strings, which changes their text, and reported in names',
+			['Not about the no-break space U+00A0 in a text, which writes it on purpose'],
 		)];
 	}
 
@@ -87,20 +90,21 @@ final class NoInvisibleCharactersRule extends NodeRule
 			}
 		}
 
-		$found = self::find($node->text);
+		$name = $node->is([
+			Token::Variable, Token::Identifier, Token::StringVariableName, Token::NameQualified, Token::NameFullyQualified,
+			Token::NameRelative,
+		]);
+		$found = self::find($node->text, $name);
 		if ($found === null) {
 			return;
 		}
 
-		if ($node->is(Token::ConstantEncapsedString)) {
+		if ($name) {
+			$context->report($node, "Invisible character $found in a name.", fixable: false);
+		} elseif ($node->is(Token::ConstantEncapsedString)) {
 			self::fixString($node, $found, $context);
 		} elseif ($node->is(Token::EncapsedAndWhitespace)) {
 			self::fixStringPart($node, $found, $context);
-		} elseif ($node->is([
-			Token::Variable, Token::Identifier, Token::StringVariableName, Token::NameQualified, Token::NameFullyQualified,
-			Token::NameRelative,
-		])) {
-			$context->report($node, "Invisible character $found in a name.", fixable: false);
 		}
 	}
 
@@ -161,15 +165,19 @@ final class NoInvisibleCharactersRule extends NodeRule
 	}
 
 
-	/** The code point of the first invisible character in the text, as U+XXXX; null when there is none. */
-	private static function find(string $text): ?string
+	/**
+	 * The code point of the first invisible character in the text, in a name the no-break space too, as U+XXXX; null
+	 * when there is none.
+	 */
+	private static function find(string $text, bool $name = false): ?string
 	{
-		if (strpbrk($text, "\xC2\xE2\xEF") === false) { // every character of the list begins with one of these bytes in UTF-8
+		// every character of the list begins with one of these bytes in UTF-8, the no-break space with the first one
+		if (strpbrk($text, $name ? "\xC2\xE2\xEF" : "\xE2\xEF") === false) {
 			return null;
 		}
 
 		$first = null;
-		foreach (array_keys(self::Characters) as $character) {
+		foreach ($name ? ["\u{00A0}", ...array_keys(self::Characters)] : array_keys(self::Characters) as $character) {
 			$position = strpos($text, $character);
 			if ($position !== false && ($first === null || $position < $first[0])) {
 				$first = [$position, $character];
