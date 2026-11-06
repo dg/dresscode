@@ -18,7 +18,8 @@ use PhpSyntax\Token;
  * Whitespace around a semicolon: none before it, which keeps it on the line of what it ends, a single space after
  * it when more follows on the line, as in the head of a `for` loop; `for (;;)` stays. With `multiline.semicolon:
  * nextLine` the semicolon of a statement ending with a chain of method calls spread over lines takes a line of its own
- * below it, and where it is `keep`, a semicolon may take one below any statement spanning several lines.
+ * below it, and where it is `keep`, a semicolon may take one below any statement spanning several lines. A semicolon
+ * below the links of a chain commented out, the filters a query toggles by hand, keeps its line whatever the value.
  */
 #[RuleInfo(Stage::Formatting)]
 final class SemicolonSpacingRule extends GapRule
@@ -54,6 +55,7 @@ final class SemicolonSpacingRule extends GapRule
 					'nextLine' => 'on a line of its own below a chain of method calls spread over lines, closing the last line of any other statement',
 				]),
 				'Where the semicolon of a statement spanning several lines stands',
+				['Not about a semicolon below the links of a chain commented out, which keeps its line'],
 			),
 		];
 	}
@@ -80,7 +82,7 @@ final class SemicolonSpacingRule extends GapRule
 	/**
 	 * A close tag ending a statement, as in a template's `echo`, is no semicolon to write tight; a semicolon below the end
 	 * of a heredoc, where PHP before 7.3 wanted it, keeps its line, and so does one below a statement spanning several
-	 * lines where it may.
+	 * lines where it may, and one below the links of a chain commented out, which a link uncommented would follow.
 	 */
 	private function claimBefore(Gap $gap): ?Claim
 	{
@@ -96,7 +98,7 @@ final class SemicolonSpacingRule extends GapRule
 		return match (true) {
 			$token->is(Token::CloseTag) => null,
 			$previous?->is(Token::EndHeredoc) ?? false => $this->before ? $noSpace : null,
-			$below && $this->multiline === null => $noSpace,
+			$below && ($this->multiline === null || ($token->hasLeadingComment() && self::endsWithSpreadChain($token))) => $noSpace,
 			$below && $this->multiline === 'nextLine' && self::endsWithSpreadChain($token) => $nextLine,
 			$below => $this->before ? $hugBelow : $sameLine,
 			$this->before => $hug,

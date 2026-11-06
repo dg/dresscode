@@ -1335,6 +1335,8 @@ Where `?`, `:` and `?:` of a ternary stand at a line break, of a ternary spread 
 
 Where the semicolon of a statement spanning several lines stands.
 
+Not about a semicolon below the links of a chain commented out, which keeps its line
+
 - By default `keep`
 - Takes: `sameLine` (closing the last line of the statement); `nextLine` (on a line of its own below a chain of method calls spread over lines, closing the last line of any other statement); `keep`
 - The standards: perCs `keep`, psr12 `keep`, nette `sameLine`

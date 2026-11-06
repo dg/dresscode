@@ -1,0 +1,19 @@
+<?php
+// the links of a chain commented out keep the semicolon below them, where a link uncommented would stand before it
+$bookings = $facade->getBookings()
+	->where('event.startDate > NOW()')
+	->where('booking.price > 0')
+// ->where('booking.note', '')
+// ->where('booking.id IN', [])
+;
+
+// without them the semicolon closes the last line
+$rows = $facade->getRows()
+	->where('price > 0')
+;
+
+// a comment below another statement is no link of a chain
+$total = $price
+	+ $tax
+	// + $fee
+;
