@@ -141,11 +141,11 @@ final readonly class CommandContext
 			...$config->use,
 			...$commandLine->use ?? [],
 		];
-		$this->out->writeLine($this->out->color('gray', 'Config     ') . ($configFile === null
+		$this->out->writeLine(Markup::formatLabel($this->out, 'Config') . ($configFile === null
 			? 'none, using ' . (implode(', ', $use) ?: 'nothing')
 			: FileSystem::platformSlashes($configFile)));
 		$this->out->writeLine(
-			$this->out->color('gray', 'Target     ') . Markup::highlightCode($this->out, 'PHP ' . self::describePhpVersion($resolution)),
+			Markup::formatLabel($this->out, 'Target') . Markup::highlightCode($this->out, 'PHP ' . self::describePhpVersion($resolution)),
 		);
 	}
 

@@ -18,6 +18,9 @@ use Nette\CommandLine\{Console, HelpRenderer};
  */
 final class Markup
 {
+	/** the width of the label a line of the output opens with */
+	private const LabelWidth = 11;
+
 	private const DocsUrl = 'https://dresscode.run/';
 
 	private const CodeColor = '#87D7FF';
@@ -114,5 +117,12 @@ final class Markup
 			},
 			preg_split('~(?<=\n)~', $diff, -1, PREG_SPLIT_NO_EMPTY) ?: [],
 		));
+	}
+
+
+	/** The label a line of the output opens with, in gray and as wide as the others, so that the values line up. */
+	public static function formatLabel(Console $console, string $label): string
+	{
+		return $console->color('gray', str_pad($label, self::LabelWidth));
 	}
 }

@@ -188,7 +188,7 @@ final readonly class CheckCommand
 			}
 
 			$this->context->writeHeader($configFile, $resolution);
-			$out->setStatus($out->color('gray', $fix ? 'Fixing     ' : 'Checking   ') . 'looking for files…');
+			$out->setStatus(Markup::formatLabel($out, $fix ? 'Fixing' : 'Checking') . 'looking for files…');
 		}
 
 		try {
@@ -388,7 +388,7 @@ final readonly class CheckCommand
 			? FileSystem::platformSlashes($absolute[0])
 			: sprintf('%d files in %s', count($files), FileSystem::platformSlashes(self::findCommonDirectory($absolute) ?: $root));
 		$out->write($files
-			? $out->color('gray', $fix ? 'Fixing     ' : 'Checking   ') . $scope
+			? Markup::formatLabel($out, $fix ? 'Fixing' : 'Checking') . $scope
 				. ($narrowed ? $out->color('gray', ', narrowed to the configured paths') : '') . "\n\n"
 			: $out->color('yellow', sprintf(
 				($fix ? 'Nothing to fix' : 'Nothing to check') . ': no file in %s',
