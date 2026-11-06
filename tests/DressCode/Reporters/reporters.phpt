@@ -82,6 +82,47 @@ function normalize(string $output): string
 }
 
 
+/**
+ * @param  list<Violation>  $found
+ * @param  list<Violation>  $remaining
+ */
+function reportLongOutput(array $found, array $remaining, bool $fix): string
+{
+	$stream = memory();
+	$reporter = new ConsoleReporter(plain($stream));
+	$result = new FileResult('src/a.php', "<?php\n", "<?php\n", $found, remaining: $remaining);
+	$reporter->start(new RunInfo('', $fix, 1));
+	$reporter->reportFile($result);
+	$reporter->finish(new RunResult([FileSummary::of($result)], $fix));
+	rewind($stream);
+	return (string) stream_get_contents($stream);
+}
+
+
+test('console: a long output ends with what most of its errors are, and a check with what a fix makes of them', function () {
+	$violations = [];
+	foreach (['a' => 20, 'b' => 12, 'c' => 8, 'd' => 5, 'e' => 3, 'f' => 2, 'g' => 1] as $decision => $count) {
+		for ($i = 0; $i < $count; $i++) {
+			$violations[] = new Violation("x.$decision", 'Wrong.', $i + 1, 1, Severity::Error, fingerprint: "$decision$i");
+		}
+	}
+
+	Assert::match(
+		"%A%\n\nMost of them break the same few decisions:\n20  x.a\n12  x.b\n 8  x.c\n 5  x.d\n 3  x.e\n 3  the other decisions\n\nNext, `dresscode fix` repairs all but 2 of them.\n\n%A%",
+		reportLongOutput($violations, array_slice($violations, 0, 2), fix: false),
+	);
+	Assert::contains('repairs all of them.', reportLongOutput($violations, [], fix: false));
+
+	// a fix says what is left, and has nothing more to advise
+	$output = reportLongOutput($violations, $violations, fix: true);
+	Assert::contains("Most of them break the same few decisions:\n20  x.a\n", $output);
+	Assert::notContains('Next,', $output);
+
+	// what fits on a screen is not summed up
+	Assert::notContains('Most of them', reportLongOutput(array_slice($violations, 0, 49), [], fix: false));
+});
+
+
 test('console: check lists every violation and says what a fix would leave', function () {
 	Assert::match(<<<'XX'
 		src/a.php

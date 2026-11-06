@@ -32,8 +32,17 @@ final class ConsoleReporter implements Reporter
 	/** the decisions that line names, the others counted together */
 	private const SummedDecisions = 3;
 
+	/** the errors from which the output is too long to read, and the end of it says what most of them are */
+	private const FrequentFrom = 50;
+
+	/** the decisions the end of a long output names, the others counted together */
+	private const FrequentDecisions = 5;
+
 	/** a run shorter than this is not worth timing */
 	private const LongRun = 1.0;
+
+	/** @var array<string, int>  decision => the errors reported under it */
+	private array $errorsByDecision = [];
 
 	private bool $fix = false;
 	private int $fileCount = 0;
@@ -72,12 +81,19 @@ final class ConsoleReporter implements Reporter
 		$this->namespacesListed = $run->namespacesListed;
 		$this->started = microtime(as_float: true);
 		$this->listed = $this->separate = false;
+		$this->errorsByDecision = [];
 	}
 
 
 	public function reportFile(FileResult $result): void
 	{
 		$violations = $this->fix ? $result->remaining : $result->violations;
+		foreach ($violations as $violation) {
+			if ($violation->severity === Severity::Error) {
+				$this->errorsByDecision[$violation->decision] = ($this->errorsByDecision[$violation->decision] ?? 0) + 1;
+			}
+		}
+
 		$rewritten = $this->fix && $result->changed;
 		if (
 			!$violations
@@ -171,12 +187,7 @@ final class ConsoleReporter implements Reporter
 		$positionWidth = max([0, ...array_map(fn(Violation $v) => Ansi::measure(self::formatPosition($v)), $listed)]);
 		$messageWidth = min(self::MessageWidth, max($widths));
 		$stateWidth = max([0, ...array_map(fn(Violation $v) => Ansi::measure(self::formatState($v)), $listed)]);
-		$formatDecision = fn(string $path) => $this->console->color('gray', Markup::formatDecision(
-			$this->console,
-			$path,
-			$this->findDecisionUrl === null ? null : ($this->findDecisionUrl)($path),
-		));
-
+		$formatDecision = $this->formatDecision(...);
 		foreach ($listed as $violation) {
 			$state = self::formatState($violation);
 			$this->write(sprintf(
@@ -218,6 +229,16 @@ final class ConsoleReporter implements Reporter
 			$this->write('  ' . $this->console->color('gray', '… and ' . array_sum($counts) . ' more: ')
 				. implode($this->console->color('gray', ', '), $summary) . "\n");
 		}
+	}
+
+
+	private function formatDecision(string $path): string
+	{
+		return $this->console->color('gray', Markup::formatDecision(
+			$this->console,
+			$path,
+			$this->findDecisionUrl === null ? null : ($this->findDecisionUrl)($path),
+		));
 	}
 
 
@@ -267,6 +288,8 @@ final class ConsoleReporter implements Reporter
 			$this->write(Markup::highlightCode($this->console, "Warning: $warning", 'yellow') . "\n\n");
 		}
 
+		$this->write($this->formatFrequentDecisions($result));
+
 		// the fixes left for want of consent, by what would decide them, each with how its risk is taken away
 		$risks = array_filter(Risk::cases(), fn(Risk $risk) => $result->countRefusedBy($risk) > 0);
 		foreach ($risks as $risk) {
@@ -291,6 +314,39 @@ final class ConsoleReporter implements Reporter
 			},
 			$this->formatVerdict($result),
 		) . "\n");
+	}
+
+
+	/**
+	 * What most of the errors of a long output are, and in a check what a fix makes of them, as the listing above has
+	 * scrolled away by then; an output that fits on a screen says nothing more.
+	 */
+	private function formatFrequentDecisions(RunResult $result): string
+	{
+		$total = array_sum($this->errorsByDecision);
+		if ($total < self::FrequentFrom) {
+			return '';
+		}
+
+		$counts = $this->errorsByDecision;
+		uksort($counts, fn(string $a, string $b) => [$counts[$b], $a] <=> [$counts[$a], $b]);
+		$frequent = array_slice($counts, 0, self::FrequentDecisions, preserve_keys: true);
+		$others = $total - array_sum($frequent);
+		$digits = strlen((string) $total);
+		$out = "Most of them break the same few decisions:\n";
+		foreach ($frequent as $decision => $count) {
+			$out .= str_pad((string) $count, $digits, ' ', STR_PAD_LEFT) . '  ' . $this->formatDecision($decision) . "\n";
+		}
+
+		$out .= $others === 0 ? '' : str_pad((string) $others, $digits, ' ', STR_PAD_LEFT) . "  the other decisions\n";
+		$left = $result->countRemaining(Severity::Error);
+		$found = $result->countViolations(Severity::Error);
+		return $out . "\n" . (!$this->fix && $left < $found
+			? Markup::highlightCode(
+				$this->console,
+				'Next, `dresscode fix` repairs ' . ($left === 0 ? 'all of them' : "all but $left of them") . ".\n\n",
+			)
+			: '');
 	}
 
 
