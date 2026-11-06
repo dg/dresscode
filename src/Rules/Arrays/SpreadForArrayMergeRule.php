@@ -11,10 +11,11 @@ use DressCode\Analyses\Types;
 use DressCode\{Decision, Domain, GlobalCalls, NodeRule, Risk, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Builder, Node, Token};
+use PhpSyntax\{Builder, Node, Printer, Token};
 use PhpSyntax\Nodes\{ArgumentNode, ArrayItemNode, ExpressionNode};
 use PhpSyntax\Nodes\Expression\{ArrayNode, FunctionCallNode};
 use PhpSyntax\Nodes\Scalar\StringNode;
+use function count;
 
 
 /**
@@ -82,12 +83,13 @@ final class SpreadForArrayMergeRule extends NodeRule
 
 		$parts = $placeholders = [];
 		foreach ($values as $i => $value) {
-			$items = $value instanceof ArrayNode ? $value->items->getItems() : null;
-			if ($items !== null && array_all($items, self::isMergedAlike(...))) {
-				array_push($parts, ...array_map(fn(Node $item) => $item->text, $items));
-			} else {
+			$items = $value instanceof ArrayNode ? $value->items : null;
+			if ($items === null || !array_all($items->getItems(), self::isMergedAlike(...))) {
 				$parts[] = "...\$a$i";
 				$placeholders["a$i"] = $value;
+			} elseif (count($items) > 0) { // the items as written, their lines kept
+				$comma = $items->getTrailingSeparator();
+				$parts[] = Printer::printText($items, fn(Token $token) => $token === $comma ? '' : null);
 			}
 		}
 
@@ -106,7 +108,7 @@ final class SpreadForArrayMergeRule extends NodeRule
 
 	/**
 	 * Whether the author wrote the call over several lines, its arguments or one of the merged arrays, which the array written
-	 * for it keeps with an item on each line.
+	 * for it keeps with an argument on each line, the items of a merged array on the lines they stood on.
 	 */
 	private static function isWrittenOverLines(FunctionCallNode $call): bool
 	{

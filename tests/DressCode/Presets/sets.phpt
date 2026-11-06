@@ -6,7 +6,8 @@
  */
 
 use DressCode\Config;
-use DressCode\Config\{ConfigResolver, PluginRegistry};
+use DressCode\Config\{ConfigResolver, PluginRegistry, RuleBuilder, RunnerFactory};
+use DressCode\Engine\{PhpFileProcessor, ReportPolicy};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -102,4 +103,89 @@ test('every construct and function newer PHP brought or retired is in a set', fu
 			&& preg_match('~^upgrading\.(syntax|functions|php)\.~', $decision->path),
 	));
 	Assert::same([], array_values(array_diff($upgrading, $sets)));
+});
+
+
+test('an array a set writes takes the layout of the standard', function () {
+	// the merged arrays keep the lines they stood on, which nette keeps and PER Coding Style spreads an item a line
+	$code = <<<'XX'
+		<?php declare(strict_types=1);
+
+		$languages = array_merge(
+			$languages,
+			['bg', 'de', 'es', 'fr', 'hu', 'it', 'pl', 'pt', 'ru', 'tr', 'uk', 'ja', 'el', 'ro', 'sl'],
+		);
+		$ranges = array_merge(
+			$ranges,
+			[
+				'a', 'b',
+				'c',
+			],
+		);
+
+		XX;
+
+	$nette = <<<'XX'
+		<?php declare(strict_types=1);
+
+		$languages = [
+			...$languages,
+			'bg', 'de', 'es', 'fr', 'hu', 'it', 'pl', 'pt', 'ru', 'tr', 'uk', 'ja', 'el', 'ro', 'sl',
+		];
+		$ranges = [
+			...$ranges,
+			'a', 'b',
+			'c',
+		];
+
+		XX;
+
+	$perCs = <<<'XX'
+		<?php
+
+		declare(strict_types=1);
+
+		$languages = [
+		    ...$languages,
+		    'bg',
+		    'de',
+		    'es',
+		    'fr',
+		    'hu',
+		    'it',
+		    'pl',
+		    'pt',
+		    'ru',
+		    'tr',
+		    'uk',
+		    'ja',
+		    'el',
+		    'ro',
+		    'sl',
+		];
+		$ranges = [
+		    ...$ranges,
+		    'a',
+		    'b',
+		    'c',
+		];
+
+		XX;
+
+	foreach (['nette' => $nette, 'perCs' => $perCs] as $standard => $expected) {
+		$factory = new RunnerFactory;
+		$resolved = $factory->resolve(new Config(use: [$standard, 'modernizations'], targets: ['php' => '8.5']), __DIR__)->resolveFor([]);
+		$style = $resolved->createStyle();
+		$processor = new PhpFileProcessor(
+			RuleBuilder::buildRules($resolved),
+			$resolved->createAnalyses($style),
+			$resolved->phpVersion,
+			$style,
+			// without the types a variable may be an object, which the spread takes and `array_merge()` refuses
+			policy: new ReportPolicy($factory->registry->expandSuppressedName(...), fixRisky: true, strict: true),
+			gates: $resolved->getGates(),
+		);
+		Assert::same($expected, $processor->process('merge.php', $code)->output, $standard);
+		Assert::same($expected, $processor->process('merge.php', $expected)->output, $standard);
+	}
 });

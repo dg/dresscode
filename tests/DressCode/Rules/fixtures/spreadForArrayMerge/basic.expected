@@ -17,6 +17,12 @@ $j = array_merge([
 	'a',
 ], $extra);
 $k = [];
+$m = [
+	'a', 'b',
+		'c', 'd',
+	'e', 'f',
+		'g',
+];
 
 function nested()
 {

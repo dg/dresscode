@@ -15,3 +15,18 @@ function merge(array $defaults, array $options, iterable $extra, Cart $cart): ar
 		array_merge($defaults, $cart),
 	];
 }
+
+
+function languages(array $languages): void
+{
+	$a = array_merge(
+		$languages,
+		['bg', 'de', 'es', 'fr', 'hu', 'it', 'pl', 'pt', 'ru', 'tr', 'uk', 'ja', 'el', 'ro', 'sl'],
+	);
+	$b = array_merge(
+		$languages,
+		[5 => 'x'],
+		['k' => 'y', 'l' => 'z'],
+	);
+	$c = array_merge($languages, ['bg', 'de']);
+}
