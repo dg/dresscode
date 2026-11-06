@@ -8,7 +8,7 @@
 namespace DressCode\Config;
 
 use DressCode\{Config, ConfigurationException, Decision, DecisionKind, Domain, Rule, RuleInfo, Value, Values};
-use DressCode\Domains\{Count, Flag, Map, Words};
+use DressCode\Domains\{Count, Flag, Map, Names, Words};
 use Nette\Utils\Helpers;
 use function count, is_array, is_bool, is_int, is_string, strlen;
 
@@ -50,7 +50,7 @@ final readonly class DecisionResolver
 	{
 		$said = $cascaded = [];
 		foreach ($layers as [$origin, $tree]) {
-			foreach ($this->flatten($tree, '') as $path => [$value, $tombstone, $inherited]) {
+			foreach ($this->flatten($tree, '', $origin->kind === LayerKind::CommandLine) as $path => [$value, $tombstone, $inherited]) {
 				$said[$path][] = [$value->withOrigin($origin), $tombstone];
 				$cascaded[$path] = $inherited;
 			}
@@ -105,9 +105,9 @@ final readonly class DecisionResolver
 	 * @param  array<string, mixed>  $tree
 	 * @throws ConfigurationException
 	 */
-	public function checkLayer(array $tree): void
+	public function checkLayer(array $tree, Layer $layer): void
 	{
-		$this->flatten($tree, '');
+		$this->flatten($tree, '', $layer->kind === LayerKind::CommandLine);
 	}
 
 
@@ -147,12 +147,13 @@ final readonly class DecisionResolver
 	/**
 	 * The values of a tree by the paths of their decisions, each with whether it replaces what the layers below said,
 	 * the tombstone of a `keep` on a section or a structure and a map written with `!` after its key, and whether it was
-	 * written on a group above the decision.
+	 * written on a group above the decision. A key with nothing under it, a section or a group `null` or empty and a list
+	 * of names or a map `null`, is the shape of a block commented out and says nothing, except on the command line.
 	 * @param  array<mixed>  $tree
 	 * @return array<string, array{Value, bool, bool}>
 	 * @throws ConfigurationException
 	 */
-	private function flatten(array $tree, string $prefix): array
+	private function flatten(array $tree, string $prefix, bool $commandLine): array
 	{
 		// a kind of places goes first, so that a place the same map names wins over it
 		$kinds = array_intersect_key($tree, Catalogue::PlaceKinds);
@@ -168,13 +169,15 @@ final readonly class DecisionResolver
 			$decision = is_int($key) ? null : $this->catalogue->find($path);
 			if ($replacing && (!$decision?->domain instanceof Map || !is_array($raw) || $raw === [])) {
 				throw new ConfigurationException("Key `$path!` replaces a map of the layers below with the entries it writes, and `$path` is no such map or gives none; write `$path` without `!`, or `keep` to withdraw the map.");
+			} elseif ($raw === null && !$commandLine && ($decision?->domain instanceof Names || $decision?->domain instanceof Map)) {
+				continue;
 			} elseif ($decision !== null) {
 				$values[$path] = [$decision->accept($raw), $replacing, false];
 				continue;
 			}
 
 			$under = is_int($key) ? [] : $this->catalogue->getDecisionsUnder($path);
-			if ($under === [] && $prefix !== '' && isset($kinds[$key])) {
+			if ($under === [] && $prefix !== '' && isset(Catalogue::PlaceKinds[$key])) {
 				$under = array_filter(
 					$this->catalogue->getDecisionsUnder($prefix),
 					fn(Decision $decision) => in_array(substr($decision->path, strlen($prefix) + 1), Catalogue::PlaceKinds[$key], true),
@@ -187,10 +190,12 @@ final readonly class DecisionResolver
 				foreach ($under as $inner => $decision) {
 					$values[$inner] = [$decision->takesKeep() ? Value::keep($decision->domain) : $decision->getDefault(), true, true];
 				}
+			} elseif (($raw === null || $raw === []) && !$commandLine) {
+				continue;
 			} elseif ($raw === []) {
 				throw new ConfigurationException("Key `$path` holds keys of its own, and an empty list or map says nothing of them; write the keys, or `keep`.");
 			} elseif (is_array($raw) && !array_is_list($raw)) {
-				$values = $this->flatten($raw, $path) + $values;
+				$values = $this->flatten($raw, $path, $commandLine) + $values;
 			} elseif ($prefix !== '' && (is_string($raw) || is_int($raw) || is_bool($raw) || is_array($raw))) {
 				$values = $this->inherit($raw, $path, $under) + $values;
 			} elseif ($prefix === '') {

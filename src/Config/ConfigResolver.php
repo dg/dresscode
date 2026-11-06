@@ -106,7 +106,7 @@ final class ConfigResolver
 				self::addSymbols($symbols, $profile->namespaces, $layer->describe());
 
 				if ($profile->decisions !== []) {
-					new DecisionResolver($this->getCatalogue())->checkLayer($profile->decisions);
+					new DecisionResolver($this->getCatalogue())->checkLayer($profile->decisions, $layer);
 					$decisionLayers[] = [$layer, $profile->decisions];
 				}
 

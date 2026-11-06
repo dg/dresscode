@@ -303,11 +303,90 @@ test('a map written with `!` after its key replaces the map of the layers below 
 		'Key `qualification.renamed!` replaces a map of the layers below with the entries it writes, and `qualification.renamed` is no such map or gives none; write `qualification.renamed` without `!`, or `keep` to withdraw the map.',
 	);
 	Assert::exception(
+		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['qualification' => ['renamed!' => null]]]]),
+		ConfigurationException::class,
+		'Key `qualification.renamed!` replaces a map of the layers below %a%',
+	);
+	Assert::exception(
 		fn() => $resolver->resolve([[new Layer(LayerKind::Configuration), ['qualification' => ['globalClass!' => 'bare']]]]),
 		ConfigurationException::class,
 		'Key `qualification.globalClass!` replaces %a%',
 	);
 });
+
+
+test(
+	'a key with nothing under it says nothing in a file, so the layer below holds, and the command line refuses it',
+	function () use ($resolver) {
+		$preset = [new Layer(LayerKind::Preset, 'perCs'), [
+			'qualification' => ['globalClass' => 'bare', 'renamed' => ['strlen' => 'imported']],
+			'multiline' => ['items' => ['array' => 'fill']],
+			'mistakes' => ['debugOutputFunctions' => ['dump']],
+		]];
+		$empty = [ // the shapes a block commented out leaves
+			['qualification' => null], ['qualification' => []], // a section
+			['multiline' => ['items' => null]], ['multiline' => ['items' => []]], // a group
+			['multiline' => ['items' => ['lists' => null]]], // a kind of places
+			['qualification' => ['renamed' => null]], // a map
+			['mistakes' => ['debugOutputFunctions' => null]], // a list of names
+		];
+		foreach ([new Layer(LayerKind::Configuration), new Layer(LayerKind::Override, 'legacy')] as $layer) {
+			foreach ($empty as $tree) {
+				$resolver->checkLayer($tree, $layer);
+				$resolved = $resolver->resolve([$preset, [$layer, $tree]]);
+				Assert::same(
+					[['bare'], ['strlen'], ['fill'], ['dump']],
+					[
+						[$resolved['qualification.globalClass']->value->getWord()],
+						array_keys($resolved['qualification.renamed']->value->getEntries()),
+						$resolved['multiline.items.array']->value->getWords(),
+						$resolved['mistakes.debugOutputFunctions']->value->getNames(),
+					],
+				);
+				Assert::same(['perCs'], array_map(fn($value) => $value->origin?->describe(), $resolved['multiline.items.array']->layers));
+			}
+		}
+
+		$file = new Layer(LayerKind::Configuration);
+		Assert::exception(
+			fn() => $resolver->checkLayer(['spacng' => null], $file),
+			ConfigurationException::class,
+			'Key `spacng` is unknown; write `spacing`.',
+		);
+		Assert::exception(
+			fn() => $resolver->checkLayer(['spacng' => []], $file),
+			ConfigurationException::class,
+			'Key `spacng` is unknown; write `spacing`.',
+		);
+		Assert::exception(
+			fn() => $resolver->checkLayer(['qualification' => ['globalClass' => null]], $file),
+			ConfigurationException::class,
+			'%a%`qualification.globalClass`%a%',
+		);
+
+		$commandLine = new Layer(LayerKind::CommandLine);
+		Assert::exception(
+			fn() => $resolver->checkLayer(['multiline' => ['items' => null]], $commandLine),
+			ConfigurationException::class,
+			'Key `multiline.items` holds keys of its own; write a map of them or `keep`.',
+		);
+		Assert::exception(
+			fn() => $resolver->checkLayer(['multiline' => ['items' => []]], $commandLine),
+			ConfigurationException::class,
+			'Key `multiline.items` holds keys of its own, and an empty list or map says nothing of them; write the keys, or `keep`.',
+		);
+		Assert::exception(
+			fn() => $resolver->checkLayer(['qualification' => ['renamed' => null]], $commandLine),
+			ConfigurationException::class,
+			'%a%`qualification.renamed`%a%',
+		);
+		Assert::exception(
+			fn() => $resolver->checkLayer(['mistakes' => ['debugOutputFunctions' => null]], $commandLine),
+			ConfigurationException::class,
+			'%a%`mistakes.debugOutputFunctions`%a%',
+		);
+	},
+);
 
 
 test(
@@ -329,11 +408,6 @@ test(
 			fn() => $resolve(['multiline' => ['items' => 3]]),
 			ConfigurationException::class,
 			'Key `multiline.items` gives `3`, which only a parameter under it takes; write it at the parameter.',
-		);
-		Assert::exception(
-			fn() => $resolve(['multiline' => ['items' => []]]),
-			ConfigurationException::class,
-			'Key `multiline.items` holds keys of its own, and an empty list or map says nothing of them; write the keys, or `keep`.',
 		);
 		Assert::exception(
 			fn() => $resolve(['controlFlow' => ['switch' => 'forbidden']]),
