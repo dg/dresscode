@@ -463,6 +463,74 @@ test('a family of `|>` or `??` spreads itself where its short first operand woul
 });
 
 
+test('the head of a `foreach` too wide spreads what it iterates, what it assigns only where the line left is still too wide', function () {
+	$code = <<<'XX'
+		<?php
+
+		function moveStock(int $fromWarehouse, int $fromStore): void
+		{
+			foreach ([[StockLocation::Warehouse, $fromWarehouse], [StockLocation::Store, $fromStore], [StockLocation::Showroom, $fromStore]] as [$location, $quantity]) {
+			}
+
+			foreach ($this->repository->findStockOfTheProductsByLocation($productsOfTheOrder, $locationsOfTheWarehouse, $optionsOfTheQuery) as [$location, $quantity]) {
+			}
+
+			// what it assigns spreads too where the line left after what it iterates would still be too wide
+			foreach ([StockLocation::Warehouse, StockLocation::Store] as [$locationOfTheStockInTheWarehouse, $quantityOfTheStockInTheWarehouse, $reservedQuantityOfTheStock, $orderedQuantity, $customerOfTheOrder]) {
+			}
+
+			foreach ([[StockLocation::Warehouse, $fromWarehouse], [StockLocation::Store, $fromStore], [StockLocation::Showroom, $fromStore]] as $pair) {
+			}
+		}
+
+		XX;
+	$expected = <<<'XX'
+		<?php
+
+		function moveStock(int $fromWarehouse, int $fromStore): void
+		{
+			foreach ([
+				[StockLocation::Warehouse, $fromWarehouse],
+				[StockLocation::Store, $fromStore],
+				[StockLocation::Showroom, $fromStore],
+			] as [$location, $quantity]) {
+			}
+
+			foreach ($this->repository->findStockOfTheProductsByLocation(
+				$productsOfTheOrder, $locationsOfTheWarehouse, $optionsOfTheQuery,
+			) as [$location, $quantity]) {
+			}
+
+			// what it assigns spreads too where the line left after what it iterates would still be too wide
+			foreach ([
+				StockLocation::Warehouse,
+				StockLocation::Store,
+			] as [
+				$locationOfTheStockInTheWarehouse,
+				$quantityOfTheStockInTheWarehouse,
+				$reservedQuantityOfTheStock,
+				$orderedQuantity,
+				$customerOfTheOrder,
+			]) {
+			}
+
+			foreach ([
+				[StockLocation::Warehouse, $fromWarehouse],
+				[StockLocation::Store, $fromStore],
+				[StockLocation::Showroom, $fromStore],
+			] as $pair) {
+			}
+		}
+
+		XX;
+	$processor = longLinesProcessor();
+	$result = $processor->process('foreach.php', $code);
+	Assert::null($result->failure);
+	Assert::same($expected, $result->output);
+	Assert::same($expected, $processor->process('foreach.php', $expected)->output);
+});
+
+
 test('a call in a condition waits for the condition, which is spread first', function () {
 	$code = <<<'XX'
 		<?php

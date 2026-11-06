@@ -564,11 +564,13 @@ final class NodeHelpers
 	 * of an array access or an interpolated string; where the line is opened by text, the end of a heredoc or markup,
 	 * which leaves the lines spread from it no indentation to count from; where a comment follows the code of the
 	 * line, which would stay on its last line, away from the code it speaks of or silences; where another construct to
-	 * spread begins after it on the line (`isFollowedBySplit()`); and where what precedes it on the line, which stays on
-	 * its first line, or what follows it, which stays on its last line, is too wide by itself. The outer one is spread
-	 * first and the inner one measured on the line it is left on, up to the first token a spread outer frame puts at
-	 * the start of a line, which its rule moves away later in the pass: the next argument, section, operator or link,
-	 * or the closing parenthesis. The width is that of the code, a comment after it left out (`measureCodeLine()`).
+	 * spread begins after it on the line (`isFollowedBySplit()`), or before it in the head of a `foreach`, where what
+	 * it iterates spreads before what it assigns (`waitsForIteratedExpression()`); and where what precedes it on the
+	 * line, which stays on its first line, or what follows it, which stays on its last line, is too wide by itself.
+	 * The outer one is spread first and the inner one measured on the line it is left on, up to the first token a spread
+	 * outer frame puts at the start of a line, which its rule moves away later in the pass: the next argument, section,
+	 * operator or link, or the closing parenthesis. The width is that of the code, a comment after it left out
+	 * (`measureCodeLine()`).
 	 */
 	public static function measureOverflow(Node $construct, Token $open, Gap $gap): ?int
 	{
@@ -662,18 +664,26 @@ final class NodeHelpers
 
 		$width = $stops === [] ? $width : self::measureCodeLine($open, $style, $stops);
 		$shift = self::measureItemShift($open, $style, $stops, $items);
+		[$foreach, $iterated] = self::findForeachHead($construct) ?? [null, false];
 		if (
 			$width - $shift <= $limit
 			|| self::isHeadTooWide($open, $style, $stops, $shift)
-			|| self::isFollowedBySplit($construct, $style, $stops)
+			|| self::isFollowedBySplit($construct, $style, $stops, $iterated ? $foreach?->asKeyword : null)
+			|| ($foreach !== null && !$iterated && self::waitsForIteratedExpression($foreach, $construct, $style, $stops))
 			|| self::isTooNarrowToSpread($construct, $style)
 		) {
 			return null;
 		}
 
-		// what follows the construct stays on its last line, so spreading it narrows no line too wide for that alone
+		// what follows the construct stays on its last line, so spreading it narrows no line too wide for that alone,
+		// unless it is the destructuring a `foreach` assigns, which spreads next
 		$after = $construct->getLastToken()?->getNext();
-		if ($after !== null && !$after->startsLine() && !isset($stops[spl_object_id($after)])) {
+		if (
+			$after !== null
+			&& !$after->startsLine()
+			&& !isset($stops[spl_object_id($after)])
+			&& !($iterated && $after === $foreach?->asKeyword && $foreach->value instanceof DestructuringNode)
+		) {
 			$rest = $width - self::measureCodeLine($open, $style, $stops + [spl_object_id($after) => true]);
 			if (Indentation::advance(0, $open->getLineIndentation(), $style->toPhpSyntax()) + $rest > $limit) {
 				return null;
@@ -705,34 +715,88 @@ final class NodeHelpers
 
 	/**
 	 * Whether a construct the run spreads for its width begins after the construct on its line, before the first of
-	 * the stops: of two constructs on a line with no common one to spread, the last is spread first, as the last
-	 * argument or the body of a `match` arm is, and the other one is measured again in the next pass.
+	 * the stops or the token given: of two constructs on a line with no common one to spread, the last is spread first,
+	 * as the last argument or the body of a `match` arm is, and the other one is measured again in the next pass. What
+	 * a `foreach` iterates is looked at up to its `as`, being spread first (`waitsForIteratedExpression()`).
 	 * @param  array<int, true>  $stops  the tokens by `spl_object_id()`
 	 */
-	private static function isFollowedBySplit(Node $construct, Style $style, array $stops): bool
+	private static function isFollowedBySplit(Node $construct, Style $style, array $stops, ?Token $until): bool
 	{
 		for (
 			$token = $construct->getLastToken()?->getNext();
-			$token !== null && !$token->startsLine() && !isset($stops[spl_object_id($token)]);
+			$token !== null && $token !== $until && !$token->startsLine() && !isset($stops[spl_object_id($token)]);
 			$token = $token->getNext()
 		) {
-			for ($node = $token->parent; $node !== null && $node->getFirstToken() === $token; $node = $node->parent) {
-				$frame = self::findSplitFrame($node);
-				if (
-					$frame !== null
-					&& !$frame[3]
-					&& !$frame[4]
-					&& $style->lineSplits->has($frame[0])
-					&& !self::isHeldWhole($node)
-					&& !self::isHeadTooWide($frame[1], $style, $stops)
-					&& !self::isTooNarrowToSpread($node, $style)
-				) {
-					return true;
-				}
+			if (self::beginsSplit($token, $style, $stops)) {
+				return true;
 			}
 		}
 
 		return false;
+	}
+
+
+	/**
+	 * Whether a construct after the `as` of the `foreach` waits for the iterated expression, which has a construct to
+	 * spread on its line: the head of a `foreach` is spread from what it iterates, what it assigns only on the line left.
+	 * @param  array<int, true>  $stops  the tokens by `spl_object_id()`
+	 */
+	private static function waitsForIteratedExpression(
+		Statement\ForeachNode $foreach,
+		Node $construct,
+		Style $style,
+		array $stops,
+	): bool
+	{
+		$expression = $foreach->expression;
+		return $expression->getFirstToken()->getCurrentLine() === $construct->getFirstToken()?->getCurrentLine()
+			&& array_any($expression->getTokens(), fn(Token $token) => self::beginsSplit($token, $style, $stops));
+	}
+
+
+	/**
+	 * Whether a construct the run spreads for its width and has not spread yet begins with the token.
+	 * @param  array<int, true>  $stops  the tokens by `spl_object_id()`
+	 */
+	private static function beginsSplit(Token $token, Style $style, array $stops): bool
+	{
+		for ($node = $token->parent; $node !== null && $node->getFirstToken() === $token; $node = $node->parent) {
+			$frame = self::findSplitFrame($node);
+			if (
+				$frame !== null
+				&& !$frame[3]
+				&& !$frame[4]
+				&& $style->lineSplits->has($frame[0])
+				&& !self::isHeldWhole($node)
+				&& !self::isHeadTooWide($frame[1], $style, $stops)
+				&& !self::isTooNarrowToSpread($node, $style)
+			) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * The `foreach` whose head holds the node, and whether the node stands in what it iterates rather than in what it
+	 * assigns after `as`; null for a node outside a head, the nearest statement deciding.
+	 * @return ?array{Statement\ForeachNode, bool}
+	 */
+	private static function findForeachHead(Node $node): ?array
+	{
+		for ($child = $node, $parent = $node->parent; $parent !== null; $child = $parent, $parent = $parent->parent) {
+			if ($parent instanceof Statement\ForeachNode) {
+				return $child === $parent->expression || $child === $parent->key || $child === $parent->value
+					? [$parent, $child === $parent->expression]
+					: null;
+			} elseif ($parent instanceof StatementNode) {
+				return null;
+			}
+		}
+
+		return null;
 	}
 
 
