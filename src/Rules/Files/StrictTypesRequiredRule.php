@@ -11,6 +11,7 @@ use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, V
 use DressCode\Domains\Words;
 use PhpSyntax\{Builder, Token, Trivia};
 use PhpSyntax\Nodes\Statement\{DeclareNode, InlineHtmlNode};
+use function count;
 
 
 /**
@@ -185,7 +186,7 @@ final class StrictTypesRequiredRule extends NodeRule
 
 	/**
 	 * The declaration follows the opening tag on its line; the comments and blank lines that stood between
-	 * them move behind the declaration.
+	 * them move behind the declaration, where the blank lines above and below it close up into the wider gap.
 	 */
 	private static function moveToTagLine(DeclareNode $declare, Trivia $tag): void
 	{
@@ -193,8 +194,17 @@ final class StrictTypesRequiredRule extends NodeRule
 		$rest = array_slice($token->leadingTrivia, 1);
 		$token->setLeadingTrivia([new Trivia(Trivia::OpenTag, rtrim($tag->text) . ' ')]);
 		$next = $declare->getLastToken()->getNext();
-		if ($next !== null && $rest !== []) {
-			$next->setLeadingTrivia([...$rest, ...$next->leadingTrivia]);
+		if ($next === null || $rest === []) {
+			return;
 		}
+
+		$above = 0;
+		for ($i = count($rest) - 1; $i >= 0 && $rest[$i]->is(Trivia::LineEnding); $i--) {
+			$above++;
+		}
+
+		$above -= $i >= 0 ? 1 : 0; // the line ending of the comment above
+		$narrower = max(0, min($above, $next->countBlankLinesBefore()));
+		$next->setLeadingTrivia([...array_slice($rest, 0, count($rest) - $narrower), ...$next->leadingTrivia]);
 	}
 }

@@ -1,0 +1,9 @@
+<?php
+// {"strictTypes.position": "sameLine"}
+
+/**
+ * Lists the classes the database uses.
+ */
+
+declare(strict_types=1);
+require __DIR__ . '/bootstrap.php';
