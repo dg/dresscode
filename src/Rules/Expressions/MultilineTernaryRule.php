@@ -19,12 +19,13 @@ use function is_string;
  * A ternary split over lines takes three in `perLine` of `multiline.items.ternary`: the condition, then `?` with its
  * branch, then `:` with its branch, while one its author split stays as it is where `fill` is accepted; one split at
  * either operator brings the other along, and so does the condition or the first branch spanning
- * lines, where the operators would hide at the ends of lines, except a condition of `?:` closed by a bracket opening
- * the line of the operator, `) ?: throw …`. A ternary on a line wider than the line length of the style is split so,
- * unless an outer construct on the line is spread first or `file.lineLengthExcept` names `ternary`, and the `?:` of
- * a short ternary stays together. With `multiline.operatorPosition.ternary: lineEnd` the operators end the lines
- * instead, `?` that of the condition and `:` that of the first branch. Where the lines stand is the matter of
- * `IndentationRule`.
+ * lines, where the operators would hide at the ends of lines, except a condition closed by a bracket opening the line
+ * of the operators, `) ?: throw …`, `) ? $a : $b`. A ternary on a line wider than the line length of the style is split
+ * so, unless an outer construct on the line is spread first, its condition or its last branch spreads in its place as
+ * the operand of a family of operators does (`NodeHelpers::measureOverflow()`), or `file.lineLengthExcept` names
+ * `ternary`; the `?:` of a short ternary stays together. With `multiline.operatorPosition.ternary: lineEnd` the
+ * operators end the lines instead, `?` that of the condition and `:` that of the first branch. Where the lines stand is
+ * the matter of `IndentationRule`.
  */
 #[RuleInfo(
 	Stage::Formatting,
@@ -68,11 +69,12 @@ final class MultilineTernaryRule extends GapRule
 			}
 
 			// an operand spanning lines before the last operator spans the ternary too, the operators then hiding at the
-			// ends of its lines; the last operand may span lines after them, which stay in sight, and so does `?:` after
-			// a condition whose last line is opened by brackets alone or by the end of a string, `) ?: throw …`, `]) ?: ''`
+			// ends of its lines; the last operand may span lines after them, which stay in sight, and so may a condition
+			// whose last line is opened by brackets alone or by the end of a string, the operators following it there,
+			// `) ?: throw …`, `]) ?: ''`, `) ? $a : $b`
 			$last = $ternary->then === null ? $ternary->question : $ternary->colon;
 			$closing = $ternary->condition->getLastToken();
-			$first = $ternary->then === null && self::opensLineWithBracketsOrText($closing) ? $closing : $ternary->getFirstToken();
+			$first = self::opensLineWithBracketsOrText($closing) ? $closing : $ternary->getFirstToken();
 			$because = $gap->once($ternary, fn() => match (true) {
 				$first->getCurrentLine() !== $last->getCurrentLine() => $this->layout->findShapes($first, null)[0] === ListLayout::PerLine
 					? $break

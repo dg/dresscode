@@ -632,7 +632,7 @@ final class NodeHelpers
 					&& self::findConditionComparison($node, $style) === null
 				) {
 					continue; // a comparison whose sides would not fit stays, what they hold spreads
-				} elseif ($node instanceof Expression\BinaryOpNode) {
+				} elseif ($node instanceof Expression\BinaryOpNode || $node instanceof Expression\TernaryNode) {
 					$families[] = $node; // it stays where its first or last operand spreads instead, measured up to the stops
 					continue;
 				}
@@ -650,8 +650,12 @@ final class NodeHelpers
 		}
 
 		if (
-			array_any($families, fn(Expression\BinaryOpNode $family) => self::findHuggedOperand($family, $style, $stops) === null)
-			|| ($construct instanceof Expression\BinaryOpNode && self::findHuggedOperand($construct, $style, $stops) !== null)
+			array_any(
+				$families,
+				fn(Expression\BinaryOpNode|Expression\TernaryNode $family) => self::findHuggedOperand($family, $style, $stops) === null,
+			)
+			|| (($construct instanceof Expression\BinaryOpNode || $construct instanceof Expression\TernaryNode)
+				&& self::findHuggedOperand($construct, $style, $stops) !== null)
 		) {
 			return null;
 		}
@@ -899,14 +903,18 @@ final class NodeHelpers
 
 
 	/**
-	 * The brackets of the first or the last operand of a family of operators a line too wide spreads in place of the
-	 * family, the last one first: where a line of its own would leave the operand too wide, its brackets being spread
-	 * then anyway, what precedes them fits on the first line and what follows them on the last one, `$a || foo(` and
-	 * `) || $b`, the operands before a last one taking half of the line length at most, so that its operator stays in
-	 * sight; null where the family spreads itself.
+	 * The brackets of the first or the last operand of a family of operators or of a ternary a line too wide spreads in
+	 * place of the family, the last one first: where a line of its own would leave the operand too wide, its brackets
+	 * being spread then anyway, what precedes them fits on the first line and what follows them on the last one,
+	 * `$a || foo(` and `) || $b`, `) ? $a : $b`, the operands before a last one taking half of the line length at most,
+	 * so that its operator stays in sight; null where the family spreads itself.
 	 * @param  array<int, true>  $stops  the tokens by `spl_object_id()` the line is measured up to
 	 */
-	private static function findHuggedOperand(Expression\BinaryOpNode $family, Style $style, array $stops): ?Node
+	private static function findHuggedOperand(
+		Expression\BinaryOpNode|Expression\TernaryNode $family,
+		Style $style,
+		array $stops,
+	): ?Node
 	{
 		$limit = $style->maxLineLength;
 		if ($limit === null) {
@@ -921,17 +929,9 @@ final class NodeHelpers
 		$width = self::measureCodeLine($start, $style, $stops);
 		$at = fn(Token $token) => self::measureCodeLine($start, $style, $stops + [spl_object_id($token) => true]);
 		$column = $at($start->getNext() ?? $start) - strlen($start->text);
-		foreach (['right', 'left'] as $side) {
-			$operation = $family;
-			while (
-				$operation->$side instanceof Expression\BinaryOpNode
-				&& strcasecmp($operation->$side->operator->text, $family->operator->text) === 0
-			) {
-				$operation = $operation->$side;
-			}
-
-			$alone = $side === 'left' ? $at($operation->operator) : $below + $width - $at($operation->operator) - 1;
-			$inner = self::findOperandFrame($operation->$side);
+		foreach (self::collectEdgeOperands($family) as $edge => [$operand, $operator]) {
+			$alone = $edge === 'first' ? $at($operator) : $below + $width - $at($operator) - 1;
+			$inner = self::findOperandFrame($operand);
 			$frame = $inner === null ? null : self::findSplitFrame($inner);
 			$first = $frame === null ? null : $frame[1]->getNext();
 			$close = $frame === null ? null : end($frame[2]);
@@ -944,7 +944,7 @@ final class NodeHelpers
 				&& $style->lineSplits->has($frame[0])
 				&& !self::isTooNarrowToSpread($inner, $style)
 				&& $alone > $limit
-				&& ($side === 'left' || $at($operation->operator) - $column <= intdiv($limit, 2))
+				&& ($edge === 'first' || $at($operator) - $column <= intdiv($limit, 2))
 				&& $at($first) <= $limit
 				&& $indent + $width - $at($close) <= $limit
 			) {
@@ -953,6 +953,38 @@ final class NodeHelpers
 		}
 
 		return null;
+	}
+
+
+	/**
+	 * The last and the first operand of a family of operators or of a ternary, each with the operator it stands beside:
+	 * the operands of the outermost operations of the family, the branch after the last operator of a ternary and its
+	 * condition, never the first branch of a full one.
+	 * @return array{last: array{ExpressionNode, Token}, first: array{ExpressionNode, Token}}
+	 */
+	private static function collectEdgeOperands(Expression\BinaryOpNode|Expression\TernaryNode $family): array
+	{
+		if ($family instanceof Expression\TernaryNode) {
+			return [
+				'last' => [$family->else, $family->then === null ? $family->question : $family->colon],
+				'first' => [$family->condition, $family->question],
+			];
+		}
+
+		$edges = [];
+		foreach (['last' => 'right', 'first' => 'left'] as $edge => $side) {
+			$operation = $family;
+			while (
+				$operation->$side instanceof Expression\BinaryOpNode
+				&& strcasecmp($operation->$side->operator->text, $family->operator->text) === 0
+			) {
+				$operation = $operation->$side;
+			}
+
+			$edges[$edge] = [$operation->$side, $operation->operator];
+		}
+
+		return $edges;
 	}
 
 

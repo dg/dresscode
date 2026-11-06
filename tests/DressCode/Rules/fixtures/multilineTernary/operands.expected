@@ -31,6 +31,25 @@ $a = iconv_mime_encode($b, $c, [
 preg_match_all('~
 	(?P<key> \w+)
 ~xi', $b, $c) ?: throw new Exception;
+
+// and so does `? $c : $d` with both branches on that line
+$a = foo(
+	$b,
+) ? $c : $d;
+
+// not a first branch spanning lines, nor branches on lines of their own after it
+$a = foo(
+	$b,
+)
+	? bar(
+	$c,
+)
+	: $d;
+$a = foo(
+	$b,
+)
+	? $c
+	: $d;
 return ($b
 	? $c
 	: $d)

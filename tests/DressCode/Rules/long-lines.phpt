@@ -162,6 +162,198 @@ test('a family of operators leaves its first or last operand to spread where a l
 });
 
 
+test('a ternary leaves its condition or its last branch to spread as a family of operators does, never its first branch', function () {
+	$code = <<<'XX'
+		<?php
+
+		final class Shop
+		{
+			public function left(string $name): void
+			{
+				$a = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) ?: $name;
+				$b = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) ?? $name;
+				$c = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) && $name;
+				$e = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) . $name;
+				$f = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) + $name;
+				$g = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) ** $name;
+				$h = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) | $name;
+				$i = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) << $name;
+				$j = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) === $name;
+				$k = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) <=> $name;
+				$l = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) instanceof Order;
+				$m = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) |> trim(...);
+			}
+
+
+			public function right(string $name): void
+			{
+				$a = $name ?: $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name);
+				$b = $name ?? $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name);
+				$c = $name && $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name);
+				$d = $name and $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name);
+				$e = $name . $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name);
+				$n .= $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name);
+				$o ??= $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name);
+			}
+
+
+			// the condition and the last branch, never the first one, which would hide the `?`
+			public function full(string $name): void
+			{
+				$a = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) ? $name : '';
+				$b = $name ? $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) : '';
+				$c = $name ? '' : $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name);
+			}
+
+
+			// the ternary spreads itself where the branches would not fit after the parenthesis, or the operands before the
+			// last one take more than half of the line
+			public function spread(string $name): void
+			{
+				$p = $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name) ? $this->formatTheNameOfTheCustomerWithAllOfItsTitlesAndDegrees($name, $titlesOfTheCustomer) : $this->formatTheDefaultNameOfTheShop($name);
+				$q = $this->repository->findTheDefaultNameByOrder($orderOfTheCustomer, $optionsOfTheQuery) ?: $this->database->fetchField('SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?', $name);
+			}
+		}
+
+		XX;
+	$expected = <<<'XX'
+		<?php
+
+		final class Shop
+		{
+			public function left(string $name): void
+			{
+				$a = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) ?: $name;
+				$b = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) ?? $name;
+				$c = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) && $name;
+				$e = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) . $name;
+				$f = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) + $name;
+				$g = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) ** $name;
+				$h = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) | $name;
+				$i = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) << $name;
+				$j = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) === $name;
+				$k = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) <=> $name;
+				$l = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) instanceof Order;
+				$m = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) |> trim(...);
+			}
+
+
+			public function right(string $name): void
+			{
+				$a = $name ?: $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				);
+				$b = $name ?? $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				);
+				$c = $name && $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				);
+				$d = $name and $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				);
+				$e = $name . $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				);
+				$n .= $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				);
+				$o ??= $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				);
+			}
+
+
+			// the condition and the last branch, never the first one, which would hide the `?`
+			public function full(string $name): void
+			{
+				$a = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				) ? $name : '';
+				$b = $name
+					? $this->database->fetchField(
+						'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+						$name,
+					)
+					: '';
+				$c = $name ? '' : $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				);
+			}
+
+
+			// the ternary spreads itself where the branches would not fit after the parenthesis, or the operands before the
+			// last one take more than half of the line
+			public function spread(string $name): void
+			{
+				$p = $this->database->fetchField(
+					'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+					$name,
+				)
+					? $this->formatTheNameOfTheCustomerWithAllOfItsTitlesAndDegrees($name, $titlesOfTheCustomer)
+					: $this->formatTheDefaultNameOfTheShop($name);
+				$q = $this->repository->findTheDefaultNameByOrder($orderOfTheCustomer, $optionsOfTheQuery)
+					?: $this->database->fetchField(
+						'SELECT name FROM customer INNER JOIN shop_order ON customer.id = customer_id WHERE order_id=?',
+						$name,
+					);
+			}
+		}
+
+		XX;
+	$processor = longLinesProcessor();
+	$result = $processor->process('ternary.php', $code);
+	Assert::null($result->failure);
+	Assert::same($expected, $result->output);
+	Assert::same($expected, $processor->process('ternary.php', $expected)->output);
+});
+
+
 test('a call in a condition waits for the condition, which is spread first', function () {
 	$code = <<<'XX'
 		<?php
