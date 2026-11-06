@@ -16,7 +16,7 @@ use PhpSyntax\{Builder, ConstantExpressionFeature, Indentation, Node, SymbolKind
 use PhpSyntax\Nodes\{
 	AnonymousClassNode, ArgumentListNode, ArgumentNode, AttributeAwareNode, AttributeGroupNode, AttributeNode,
 	ClassLikeNode, ClosureUseListNode, DestructuringNode, ElseifNode, Expression, ExpressionNode, FileNode,
-	IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode, PlainNodeList, Scalar,
+	FunctionLikeNode, IdentifierNode, MatchArmNode, MemberNode, NameNode, ParameterNode, PlainNodeList, Scalar,
 	SeparatedNodeList, Statement, StatementNode, Type, TypeNode, UseItemNode, VariadicPlaceholderNode,
 };
 use PhpSyntax\Nodes\Member\MethodNode;
@@ -1312,6 +1312,60 @@ final class NodeHelpers
 				$inner instanceof Expression\FunctionCallNode
 				&& GlobalCalls::findFunction($inner, ['compact' => true, 'extract' => true, 'get_defined_vars' => true], $context) !== null
 			));
+	}
+
+
+	/**
+	 * Whether the call taking the variable is the last the function does with it, so that nothing notices what the call
+	 * does to it: the variable is local or a parameter passed by value, reached by no reference, as neither `global` nor
+	 * `static` and by no name the code does not spell out, and the call stands in `return` with nothing after it reading
+	 * the variable, or gives the variable its next value (`$x = end($x)`) outside a loop, whose next round reads it.
+	 */
+	public static function isLastRead(Expression\VariableNode $variable, Expression\FunctionCallNode $call, RuleContext $context): bool
+	{
+		$name = $variable->plainName;
+		$function = $call->findAncestor(FunctionLikeNode::class);
+		$statement = $call->findAncestor(StatementNode::class);
+		if (
+			$name === null
+			|| $name === 'this'
+			|| $function === null
+			|| $function instanceof Expression\ArrowFunctionNode
+			|| $statement === null
+			|| self::findDynamicVariableAccesses($function, $context) !== []
+		) {
+			return false;
+		}
+
+		$occurrences = $function->find(Expression\VariableNode::class, fn(Expression\VariableNode $other) => $other->plainName === $name);
+		$referenced = array_any($occurrences, fn(Expression\VariableNode $other) => $other->getFirstToken()->getPrevious()?->is('&')
+			|| $other->parent instanceof Expression\AssignmentByReferenceNode
+			|| $other->findAncestor(Statement\GlobalNode::class) !== null
+			|| $other->findAncestor(Statement\StaticNode::class) !== null);
+		if ($referenced) {
+			return false;
+		} elseif ($statement instanceof Statement\ReturnNode) {
+			$end = $call->getLastToken();
+			return !array_any($occurrences, fn(Expression\VariableNode $other) => $end->isBefore($other->getFirstToken())
+				&& $other->getFirstToken()->isBefore($statement->getLastToken()));
+		}
+
+		$assignment = $statement instanceof Statement\ExpressionStatementNode ? $statement->expression : null;
+		for ($node = $statement->parent; $node !== $function && $node !== null; $node = $node->parent) {
+			if (
+				$node instanceof Statement\ForNode
+				|| $node instanceof Statement\ForeachNode
+				|| $node instanceof Statement\WhileNode
+				|| $node instanceof Statement\DoWhileNode
+			) {
+				return false;
+			}
+		}
+
+		return $assignment instanceof Expression\AssignmentNode
+			&& $assignment->expression === $call
+			&& $assignment->target instanceof Expression\VariableNode
+			&& $assignment->target->plainName === $name;
 	}
 
 

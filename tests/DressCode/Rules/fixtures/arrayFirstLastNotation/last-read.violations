@@ -1,0 +1,20 @@
+6: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` return false for an empty array
+13: The last item must be read with `array_last()`.
+20: The last item must be read with `array_last()`.
+29: The last item must be read with `array_last()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array
+37: The last item must be read with `array_last()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+44: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+50: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+57: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+64: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+71: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one
+77: The first item must be read with `array_first()`.
+	risky BehaviorChanges: `reset()` and `end()` move the pointer of the array and return false for an empty one

@@ -7,7 +7,8 @@
 
 namespace DressCode\Rules\Functions;
 
-use DressCode\{CodeWriter, Decision, Domain, GlobalCalls, NodeRule, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\Types;
+use DressCode\{CodeWriter, Decision, Domain, GlobalCalls, NodeRule, RuleContext, RuleInfo, Stage, Tristate};
 use DressCode\Rules\NodeHelpers;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Builder, Node, Token};
@@ -24,9 +25,12 @@ use function count;
  *
  * `reset()` and `end()` are a risky subject: they move the internal pointer of the array, which the new
  * functions leave where it is, and they answer an empty array with false where the new ones answer null.
- * A call of theirs whose value nothing takes is left alone, being there for the pointer.
+ * The pointer is no risk where the call is the last read of a local variable (`NodeHelpers::isLastRead()`), and
+ * the empty array none where the types say the array has an item; without the types, an array with an item is not
+ * told from one that may be empty. A call of theirs whose value nothing takes is left alone, being there for the
+ * pointer.
  */
-#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.5'], analyses: [NameResolver::class])]
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.5'], analyses: [Types::class, NameResolver::class])]
 final class ArrayFirstLastNotationRule extends NodeRule
 {
 	public static function getDecisions(): array
@@ -51,8 +55,8 @@ final class ArrayFirstLastNotationRule extends NodeRule
 			return;
 		}
 
-		$risky = $node instanceof Expression\FunctionCallNode;
-		$found = $risky
+		$pointerCall = $node instanceof Expression\FunctionCallNode;
+		$found = $pointerCall
 			? self::readPointerCall($node, $context)
 			: self::readOffset($node, $context);
 		if ($found === null || $node->hasInnerComment()) {
@@ -63,7 +67,16 @@ final class ArrayFirstLastNotationRule extends NodeRule
 
 		$uncertainty = GlobalCalls::findUncertaintyOfRewrite($node, [$array], $context);
 		$element = $function === 'array_first' ? 'first' : 'last';
-		$because = $risky ? '`reset()` and `end()` move the pointer of the array and return false for an empty one' : null;
+		$pointerMatters = $pointerCall
+			&& !($array instanceof Expression\VariableNode && NodeHelpers::isLastRead($array, $node, $context));
+		$emptyMatters = $pointerCall
+			&& $context->findAnalysis(Types::class)?->isOfType($array, 'non-empty-array') !== Tristate::Yes;
+		$because = match (true) {
+			$pointerMatters && $emptyMatters => '`reset()` and `end()` move the pointer of the array and return false for an empty one',
+			$pointerMatters => '`reset()` and `end()` move the pointer of the array',
+			$emptyMatters => '`reset()` and `end()` return false for an empty array',
+			default => null,
+		};
 		if (!$context->report(
 			$node,
 			"The $element item must be read with `$function()`.",

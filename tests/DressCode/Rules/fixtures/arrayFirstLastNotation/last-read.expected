@@ -1,0 +1,78 @@
+<?php
+
+// the last read of a local variable leaves no pointer anybody sees, and an array the types know has an item no false
+function returned(array $items)
+{
+	return reset($items);
+}
+
+
+/** @param non-empty-list<string> $items */
+function returnedWithItem(array $items)
+{
+	return array_last($items);
+}
+
+
+function overwritten(string $name)
+{
+	$label = explode('/', $name);
+	$label = array_last($label);
+	return $label;
+}
+
+
+// the pointer stays a risk
+function readLater(string $name)
+{
+	$parts = explode('/', $name);
+	$last = end($parts);
+	return $last . count($parts);
+}
+
+
+function inLoop(array $lists)
+{
+	foreach ($lists as $list) {
+		$list = end($list);
+	}
+}
+
+
+function readAfterInReturn(array $items)
+{
+	return reset($items) . current($items);
+}
+
+
+function byReference(array &$items)
+{
+	return reset($items);
+}
+
+
+function declaredGlobal()
+{
+	global $items;
+	return reset($items);
+}
+
+
+function capturedByReference(array $items)
+{
+	$fn = function () use (&$items) {};
+	return reset($items);
+}
+
+
+function compacted(array $items)
+{
+	$vars = compact('items');
+	return reset($items);
+}
+
+
+function property(\Acme\Shop\Catalog $catalog)
+{
+	return reset($catalog->items);
+}
