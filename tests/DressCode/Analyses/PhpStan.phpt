@@ -79,6 +79,89 @@ test('with the types every class of phpdoc-parser comes from the archive of PHPS
 });
 
 
+/**
+ * A project whose `bootstrapFiles` register the autoloader of an older copy of phpdoc-parser in front, as Composer
+ * registers that of a project, serving the class given, which lacks what PHPStan calls; with `$load` the bootstrap loads
+ * the class through it.
+ */
+function createBootstrappedProject(string $name, string $class, bool $load): string
+{
+	$root = createPhpDocProject($name, types: true);
+	// a rule asks for the types before any reads a doc comment, so the classes of phpdoc-parser load after the bootstrap
+	file_put_contents("$root/dresscode.neon", "use: [nette]\ntypeAnalysis: phpstan\npaths: [src]\ntargets:\n\tphp: '8.5'\n");
+	file_put_contents("$root/src/Order.php", <<<'PHP'
+		<?php declare(strict_types=1);
+
+		namespace App;
+
+
+		final class Order
+		{
+			/** @return list<string> */
+			public function items(): array
+			{
+				return ['a', 'b'];
+			}
+		}
+
+		PHP);
+	file_put_contents("$root/phpstan.neon", "parameters:\n\tbootstrapFiles:\n\t\t- bootstrap.php\n");
+	$cut = (int) strrpos($class, '\\');
+	file_put_contents("$root/Old.php", '<?php namespace ' . substr($class, 0, $cut) . '; class ' . substr($class, $cut + 1) . " {}\n");
+	$quoted = var_export($class, return: true);
+	file_put_contents(
+		"$root/bootstrap.php",
+		"<?php\nspl_autoload_register(fn(string \$class) => \$class === $quoted ? require __DIR__ . '/Old.php' : null, prepend: true);\n"
+		. ($load ? "class_exists($quoted);\n" : ''),
+	);
+	return $root;
+}
+
+
+/** @return array{int, string}  the exit code and the output of `check` over the project in a process of its own */
+function runCheck(string $root): array
+{
+	$command = [getPhpCliBinary(), __DIR__ . '/../../../bin/dresscode', 'check', '--no-cache', '--jobs', '1', '--no-color'];
+	$process = proc_open($command, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $root)
+		?: throw new RuntimeException('Cannot start DressCode.');
+	fclose($pipes[0]);
+	$output = stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+	return [proc_close($process), $output];
+}
+
+
+test('the autoloader the bootstrap files of the project register in front leaves phpdoc-parser to the archive', function () {
+	$root = createBootstrappedProject('phpdoc-bootstrap-loader', PHPStan\PhpDocParser\Parser\TokenIterator::class, load: false);
+	[$classes] = inspectPhpDocParserOrigin($root);
+	Assert::contains(PHPStan\PhpDocParser\Parser\TokenIterator::class, array_keys($classes));
+	Assert::same([], array_filter($classes, fn(string $file) => !str_starts_with($file, 'phar://')));
+	[$exit, $output] = runCheck($root);
+	Assert::true($exit < 2, $output);
+	Assert::notContains('Warning', $output);
+});
+
+
+test('a class of phpdoc-parser the bootstrap files of the project load by autoloading comes from the archive', function () {
+	$class = PHPStan\PhpDocParser\Ast\PhpDoc\Doctrine\DoctrineArgument::class;
+	$root = createBootstrappedProject('phpdoc-bootstrap-class', $class, load: true);
+	[$classes] = inspectPhpDocParserOrigin($root);
+	Assert::contains($class, array_keys($classes));
+	Assert::same([], array_filter($classes, fn(string $file) => !str_starts_with($file, 'phar://')));
+	[$exit, $output] = runCheck($root);
+	Assert::true($exit < 2, $output);
+	Assert::notContains('Warning', $output);
+});
+
+
+test('a class of phpdoc-parser the archive lacks, which the bootstrap files of the project load, is a warning of the run', function () {
+	$class = 'PHPStan\PhpDocParser\Ast\PhpDoc\NewerTagValueNode';
+	[$exit, $output] = runCheck(createBootstrappedProject('phpdoc-bootstrap-newer', $class, load: true));
+	Assert::true($exit < 2, $output);
+	Assert::same(1, substr_count($output, "Warning: The `bootstrapFiles` of PHPStan load `$class` from `"), $output);
+	Assert::contains('`scanDirectories` or `scanFiles` give PHPStan the declarations without loading them.', $output);
+});
+
+
 test('without the types phpdoc-parser comes from the vendor and the archive of PHPStan stays closed', function () {
 	[$classes, $phar] = inspectPhpDocParserOrigin(createPhpDocProject('phpdoc-origin-plain', types: false));
 	Assert::contains(PHPStan\PhpDocParser\Parser\TokenIterator::class, array_keys($classes));

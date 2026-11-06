@@ -79,6 +79,9 @@ final class PhpStan
 	/** that the types go without the configuration of the project, which PHPStan could not start with */
 	private ?string $configurationWarning = null;
 
+	/** that a bootstrap file of the project loaded a class of another copy of phpdoc-parser, which the claim cannot undo */
+	private ?string $parserWarning = null;
+
 
 	public function __construct(
 		private readonly string $root,
@@ -130,22 +133,44 @@ final class PhpStan
 
 	/**
 	 * Makes the copy of phpdoc-parser inside the archive of PHPStan, the only one PHPStan is tested with, the one the
-	 * process loads its classes from. The autoloader of the archive, which PHPStan registers in front of the others once it
-	 * starts, would otherwise mix it with the classes loaded before. The file is the one the bootstrap of PHPStan loads,
-	 * whose loader is created once.
+	 * process loads its classes from, its autoloader put in front of the others: the one PHPStan registers once it starts
+	 * and one a bootstrap file of the project registers in front would otherwise mix it with another copy. The file is the
+	 * one the bootstrap of PHPStan loads, whose loader is created once and handed back by every later require. Gives that
+	 * loader, null where there is no archive.
 	 */
-	public static function claimPhpDocParser(): void
+	public static function claimPhpDocParser(): ?ClassLoader
 	{
-		if (class_exists(PharAutoloader::class)) {
-			$dir = dirname((string) new \ReflectionClass(PharAutoloader::class)->getFileName());
-			require "phar://$dir/phpstan.phar/vendor/autoload.php";
+		if (!class_exists(PharAutoloader::class)) {
+			return null;
+		}
+
+		$dir = dirname((string) new \ReflectionClass(PharAutoloader::class)->getFileName());
+		$loader = require "phar://$dir/phpstan.phar/vendor/autoload.php";
+		assert($loader instanceof ClassLoader);
+		$loader->unregister();
+		$loader->register(prepend: true);
+		return $loader;
+	}
+
+
+	/**
+	 * Loads every class of phpdoc-parser from the archive of PHPStan, as PHPStan does once it starts, so that code of the
+	 * project run next gets the copy PHPStan runs with wherever it reaches one by autoloading.
+	 */
+	private static function loadPhpDocParser(): void
+	{
+		foreach (array_keys(self::claimPhpDocParser()?->getClassMap() ?? []) as $class) {
+			if (str_starts_with($class, 'PHPStan\PhpDocParser\\')) {
+				class_exists($class);
+			}
 		}
 	}
 
 
 	/**
-	 * A class of phpdoc-parser the process loaded from outside the archive of PHPStan before claiming it, which the
-	 * classes loaded since then mix with; null where there is none.
+	 * A class of phpdoc-parser the process loaded from outside the archive of PHPStan, before claiming it or by what ran
+	 * since, which the classes of the archive mix with; null where there is none.
+	 * @return ?class-string
 	 */
 	public static function findMixedPhpDocParserClass(): ?string
 	{
@@ -531,12 +556,12 @@ final class PhpStan
 
 	/**
 	 * What the run should be told of PHPStan: that the configuration of the project could not be loaded, once a container
-	 * is built without it.
+	 * is built without it, and that its bootstrap files loaded another copy of phpdoc-parser.
 	 * @return list<string>
 	 */
 	public function getWarnings(): array
 	{
-		return $this->configurationWarning === null ? [] : [$this->configurationWarning];
+		return array_values(array_filter([$this->configurationWarning, $this->parserWarning]));
 	}
 
 
@@ -606,10 +631,22 @@ final class PhpStan
 			singleReflectionInsteadOfFile: $this->replacement[0] ?? null,
 		);
 		// the container does not run them, the command of PHPStan does; an extension such as Larastan needs them
-		foreach ($container->getParameter('bootstrapFiles') as $file) {
+		$bootstrapFiles = $container->getParameter('bootstrapFiles');
+		if (!$bootstrapFiles) {
+			return $container;
+		}
+
+		self::loadPhpDocParser();
+		foreach ($bootstrapFiles as $file) {
 			(static function (string $file): void { require_once $file; })($file);
 		}
 
+		self::claimPhpDocParser();
+		$class = self::findMixedPhpDocParserClass();
+		$this->parserWarning = $class === null ? null : 'The `bootstrapFiles` of PHPStan load '
+			. Violation::formatCode($class) . ' from ' . Violation::formatCode((string) new \ReflectionClass($class)->getFileName())
+			. ', another copy of phpdoc-parser than PHPStan runs with, so reading a doc comment may fail; '
+			. '`scanDirectories` or `scanFiles` give PHPStan the declarations without loading them.';
 		return $container;
 	}
 
