@@ -354,12 +354,13 @@ test('a getter of another domain is a mistake of the rule', function () {
 test('the helpers keep the vocabulary of states, placements and counts', function () {
 	Assert::same(['forbidden' => 'never there'], Domain::state()->words);
 	Assert::same(['forbidden', 'required'], array_keys(Domain::state('forbidden', 'required')->words));
+	Assert::same(['forbidden', 'optional'], array_keys(Domain::state('forbidden', 'optional')->words));
 	Assert::same(['sameLine', 'nextLine'], array_keys(Domain::placement()->words));
 	Assert::same([1, 2], Domain::blankLines()->accept('1-2', 'blankLines.betweenMembers')->getCountRange());
 	Assert::exception(
 		fn() => Domain::state('allowed'),
 		InvalidArgumentException::class,
-		'Word `allowed` is none of `forbidden`, `required`.',
+		'Word `allowed` is none of `forbidden`, `required`, `optional`.',
 	);
 });
 

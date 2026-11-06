@@ -1,0 +1,50 @@
+<?php
+// a line an editor comments out in the first column keeps its indentation after the marker, which goes once it moves
+class Shop
+{
+	public function chain(): void
+	{
+		$orders = $this->getOrders()
+//			->where('status', 'new')
+			->where('id >=', 12852);
+	}
+
+
+	public function statement(): void
+	{
+//		$this->reset();
+		$this->load();
+//      $this->reset();
+		$this->load();
+#		$this->clear();
+		$this->load();
+//no indentation after the marker
+		$this->load();
+	}
+
+
+	public function block(): void
+	{
+//		if ($a) {
+//			foo();
+//		}
+		bar();
+	}
+
+
+	public function narrower(): void
+	{
+//  $x;
+		bar();
+	}
+
+
+	public function beforeClosing(): void
+	{
+		if ($a) {
+			foo();
+//			bar();
+		}
+	}
+}
+// at the level of the file the first column is where a comment stands

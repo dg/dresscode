@@ -1,6 +1,6 @@
 <?php
 // php 8.5
-// {"chain": "nested"}
+// {"indentation.chain": "nested"}
 $order
 	|> array_keys(...)
 		|> json_encode(...)

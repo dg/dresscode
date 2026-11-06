@@ -346,6 +346,9 @@ test('errors go to stderr with exit code 3', function () use ($root) {
 	[$code, , $err] = runApp($root, ['check', '--set', 'project.rename=off']);
 	Assert::same(3, $code);
 	Assert::match('Error: %A%project.rename%A%', $err);
+	[$code, , $err] = runApp($root, ['config', '--set', 'comments.firstColumn=required']);
+	Assert::same(3, $code);
+	Assert::same("Error: The command line: Key `comments.firstColumn` does not take `required`; write `forbidden` or `optional`.\n", $err);
 	[$code, , $err] = runApp($root, ['check', '--config', "$root/none.php"]);
 	Assert::same(3, $code);
 	Assert::match('Error: Configuration file `%a%` does not exist.%A%', $err);

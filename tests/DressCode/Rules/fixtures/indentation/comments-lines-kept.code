@@ -1,5 +1,5 @@
 <?php
-// {"commentLines": "keep"}
+// {"indentation.commentLines": "keep"}
 // the inner lines of a comment standing in place are left as they are, and a comment moved takes them along
 class A
 {

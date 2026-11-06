@@ -1,5 +1,5 @@
 <?php
-// {"binaryOperator": 1, "ternary": 0}
+// {"indentation.binaryOperator": 1, "indentation.ternary": 0}
 // with binary at one level a chain steps in instead of lining up
 $a =
 	$b

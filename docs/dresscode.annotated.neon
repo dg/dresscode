@@ -426,6 +426,7 @@ literals:                                   # strings, numbers and the array lit
 
 comments:
 	empty: forbidden                        # a comment with nothing in it, `/***/` too. Also: keep
+	firstColumn: forbidden                  # a line commented out in the first column takes the indentation of the line below. Also: optional
 	singleline: '//'                        # never `#`. Also: keep
 
 

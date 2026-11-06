@@ -1,5 +1,5 @@
 <?php
-// {"switchCase": "keep"}
+// {"indentation.switchCase": "keep"}
 switch ($a) {
 	case 1:
 		one();

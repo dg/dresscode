@@ -1,0 +1,20 @@
+<?php
+// {"comments.firstColumn": "optional"}
+// a comment in the first column stays where it is, and one elsewhere moves as before
+class Shop
+{
+	public function statement(): void
+	{
+//		$this->reset();
+		$this->load();
+ // misplaced
+		$this->load();
+	}
+
+
+	public function misplaced(): void
+	{
+//		$this->reset();
+	  $this->load();
+	}
+}

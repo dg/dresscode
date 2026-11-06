@@ -1,5 +1,5 @@
 <?php
-// {"chain": "nested"}
+// {"indentation.chain": "nested"}
 $class->addMethod('__construct')
 	->addPromotedParameter('container')
 		->setPrivate()

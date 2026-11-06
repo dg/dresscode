@@ -325,6 +325,15 @@ final class CorePlugin implements Plugin
 					default: 4,
 				),
 				...self::createIndentationDecisions(),
+				// what the indentation of a comment allows, which no rule of comments decides
+				new Decision(
+					'comments.firstColumn',
+					Domain::state('forbidden', 'optional'),
+					'A `//` or `#` comment on a line of its own in the first column of an indented block, as an editor comments a line out, the indentation of the line after the marker; where it may not stand there, it takes the indentation of the line below it and the marker loses the indentation it doubles',
+					['Not a `/* */` comment.'],
+					kind: DecisionKind::Parameter,
+					default: 'forbidden',
+				),
 				...self::createImportDecisions(),
 				new Decision(
 					'spacing.keyword',

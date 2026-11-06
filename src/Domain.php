@@ -25,6 +25,7 @@ abstract readonly class Domain
 	private const StateWords = [
 		'forbidden' => 'never there',
 		'required' => 'always there',
+		'optional' => 'there or not, as the author wrote it',
 	];
 
 	private const PlacementWords = [
@@ -40,7 +41,7 @@ abstract readonly class Domain
 	];
 
 
-	/** The words of a state, `forbidden`, `required` or both. */
+	/** The words of a state, `forbidden`, `required`, `optional` or several of them, `forbidden` unless some are named. */
 	public static function state(string ...$words): Words
 	{
 		$picked = self::pickWords(self::StateWords, $words ?: ['forbidden']);
