@@ -46,6 +46,7 @@ foreach (glob(__DIR__ . '/fixtures/nette/*.code') ?: [] as $file) {
 	Assert::null($result->failure, basename($file));
 	Assert::same($expected, $result->output, basename($file));
 	Assert::same($expected === $code, !$result->violations, basename($file));
+	Assert::same($expected, $processor->process(basename($file), $expected)->output, basename($file));
 }
 
 // a class name does not repeat its kind, which the standard reports and leaves to the author

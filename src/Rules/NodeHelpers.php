@@ -737,21 +737,26 @@ final class NodeHelpers
 
 
 	/**
-	 * Whether the items of a list are too narrow all together for spreading them to help a line too wide, narrower than
-	 * a tenth of the line length, which leaves the line too wide for what stands around the list, `->fetch(` above
-	 * `true,` being no better than the line it came from.
+	 * Whether what spreading a construct moves away is too narrow all together for it to help a line too wide, narrower
+	 * than a tenth of the line length, which leaves the line too wide for what stands around it: the items of a list,
+	 * `->fetch(` above `true,` being no better than the line it came from, and the operands of a family of operators
+	 * after its first one, `($o['enable']` above `?? true)`.
 	 */
 	private static function isTooNarrowToSpread(Node $construct, Style $style): bool
 	{
 		$frame = self::findSplitFrame($construct);
-		$first = $frame === null ? null : $frame[1]->getNext();
-		$close = $frame === null ? null : end($frame[2]);
-		return $frame !== null
-			&& $first !== null
-			&& $close instanceof Token
-			&& in_array($frame[0], ['argument', 'parameter', 'closureUse', 'attribute', 'array', 'list'], true)
-			&& self::measureCodeLine($frame[1], $style, [spl_object_id($close) => true])
-				- self::measureCodeLine($frame[1], $style, [spl_object_id($first) => true]) < intdiv((int) $style->maxLineLength, 10);
+		if ($frame === null) {
+			return false;
+		}
+
+		[$first, $end] = match (true) {
+			$construct instanceof Expression\BinaryOpNode => [$frame[2][0] ?? null, $construct->getLastToken()->getNext()],
+			in_array($frame[0], ['argument', 'parameter', 'closureUse', 'attribute', 'array', 'list'], true)
+				=> [$frame[1]->getNext(), end($frame[2]) ?: null],
+			default => [null, null],
+		};
+		$at = fn(?Token $token) => self::measureCodeLine($frame[1], $style, $token === null ? [] : [spl_object_id($token) => true]);
+		return $first !== null && $at($end) - $at($first) < intdiv((int) $style->maxLineLength, 10);
 	}
 
 
@@ -989,14 +994,17 @@ final class NodeHelpers
 
 
 	/**
-	 * The brackets an operand of a family spreads in, a unary operator, a cast, an assignment, whose target stays on the
-	 * first line, `$x = foo(` … `) or …`, and a comparison around them aside, the right side of the comparison first.
+	 * The brackets an operand of a family spreads in, a unary operator, a cast, `throw`, an offset read after them,
+	 * `foo(` … `)[0] ?? null`, an assignment, whose target stays on the first line, `$x = foo(` … `) or …`, and
+	 * a comparison around them aside, the right side of the comparison first.
 	 */
 	private static function findOperandFrame(ExpressionNode $operand): ?Node
 	{
 		return match (true) {
 			$operand instanceof Expression\UnaryOpNode,
 			$operand instanceof Expression\CastNode,
+			$operand instanceof Expression\ThrowNode,
+			$operand instanceof Expression\ArrayAccessNode,
 			$operand instanceof Expression\AssignmentNode => self::findOperandFrame($operand->expression),
 			$operand instanceof Expression\BinaryOpNode && self::findOperatorPlace($operand) === 'comparison'
 				=> self::findOperandFrame($operand->right) ?? self::findOperandFrame($operand->left),

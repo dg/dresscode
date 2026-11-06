@@ -13,10 +13,11 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
-function longLinesProcessor(): PhpFileProcessor
+/** @param array<string, mixed> $decisions */
+function longLinesProcessor(array $decisions = []): PhpFileProcessor
 {
 	$factory = new RunnerFactory;
-	$resolved = $factory->resolve(new Config(use: ['nette']), __DIR__)->resolveFor([]);
+	$resolved = $factory->resolve(new Config(use: ['nette'], decisions: $decisions), __DIR__)->resolveFor([]);
 	$style = $resolved->createStyle();
 	return new PhpFileProcessor(
 		RuleBuilder::buildRules($resolved),
@@ -361,6 +362,104 @@ test('a ternary leaves its condition or its last branch to spread as a family of
 	Assert::null($result->failure);
 	Assert::same($expected, $result->output);
 	Assert::same($expected, $processor->process('ternary.php', $expected)->output);
+});
+
+
+test('a family of `|>` or `??` spreads itself where its short first operand would not need to, a wide operand in its place', function () {
+	$code = <<<'XX'
+		<?php
+
+		final class Topic
+		{
+			// the family fits once spread, the short first operand being no reason to spread its brackets
+			public function pipe(array $posts): array
+			{
+				$tiers = array_map(fn($post): int => $post->posterId, $posts) |> array_unique(...) |> array_values(...) |> $this->userTitles->tiersFor(...);
+				$tiers = array_map(fn($post): int => $post->posterId, $posts) ?? array_unique($posts) ?? array_values($posts) ?? $this->titles->tiersFor($posts);
+				$variant = $set?->getPrimaryVariant() ?? $this->variants[$expiration->variant_id ?? $this->variantId] ?? (reset($this->variants) ?: $this->error());
+			}
+
+
+			// a first or a last operand wide on a line of its own spreads its brackets in place of the family
+			public function wideOperand(array $posts): array
+			{
+				$tiers = array_map(fn($post): int => $post->posterId + $post->editorId + $post->reviewerId + $post->moderatorId + $post->ownerId, $posts) ?? [];
+				$tiers = $cached ?? array_map(fn($post): int => $post->posterId + $post->editorId + $post->reviewerId + $post->moderatorId + $post->ownerId, $posts);
+				$value = $next ?? throw new ParseException("Option $option->name requires a value.", $command, reason: ParseError::MissingValue, parameter: $option);
+				$subcommand = array_values(array_filter($commands, fn(Command $candidate) => $candidate->name === $argumentOfTheCommand && $candidate->isEnabled()))[0] ?? null;
+			}
+
+
+			// operands after the first narrower than a tenth of the line are not worth a line, the line staying too wide
+			public function narrow(array $info): void
+			{
+				$this->deleteWhenMissingModels = $this->getAttributeValue($notification, DeleteWhenMissingModels::class, 'deleteWhenMissingModels') ?? false;
+				$info['flags']['homogenous'] = (bool) ($thisfile_riff_WAVE_MEXT_0['raw']['sound_information_of_the_whole_stream_in_the_file'] & 0x0001);
+			}
+		}
+
+		XX;
+	$expected = <<<'XX'
+		<?php
+
+		final class Topic
+		{
+			// the family fits once spread, the short first operand being no reason to spread its brackets
+			public function pipe(array $posts): array
+			{
+				$tiers = array_map(fn($post): int => $post->posterId, $posts)
+					|> array_unique(...)
+					|> array_values(...)
+					|> $this->userTitles->tiersFor(...);
+				$tiers = array_map(fn($post): int => $post->posterId, $posts)
+					?? array_unique($posts)
+					?? array_values($posts)
+					?? $this->titles->tiersFor($posts);
+				$variant = $set?->getPrimaryVariant()
+					?? $this->variants[$expiration->variant_id ?? $this->variantId]
+					?? (reset($this->variants) ?: $this->error());
+			}
+
+
+			// a first or a last operand wide on a line of its own spreads its brackets in place of the family
+			public function wideOperand(array $posts): array
+			{
+				$tiers = array_map(
+					fn($post): int => $post->posterId + $post->editorId + $post->reviewerId + $post->moderatorId + $post->ownerId,
+					$posts,
+				) ?? [];
+				$tiers = $cached ?? array_map(
+					fn($post): int => $post->posterId + $post->editorId + $post->reviewerId + $post->moderatorId + $post->ownerId,
+					$posts,
+				);
+				$value = $next ?? throw new ParseException(
+					"Option $option->name requires a value.",
+					$command,
+					reason: ParseError::MissingValue,
+					parameter: $option,
+				);
+				$subcommand = array_values(array_filter(
+					$commands,
+					fn(Command $candidate) => $candidate->name === $argumentOfTheCommand && $candidate->isEnabled(),
+				))[0] ?? null;
+			}
+
+
+			// operands after the first narrower than a tenth of the line are not worth a line, the line staying too wide
+			public function narrow(array $info): void
+			{
+				$this->deleteWhenMissingModels = $this->getAttributeValue($notification, DeleteWhenMissingModels::class, 'deleteWhenMissingModels') ?? false;
+				$info['flags']['homogenous'] = (bool) ($thisfile_riff_WAVE_MEXT_0['raw']['sound_information_of_the_whole_stream_in_the_file'] & 0x0001);
+			}
+		}
+
+		XX;
+	// the standard does not spread `??` for the width, so the operator is taken out of its exceptions here
+	$processor = longLinesProcessor(['file' => ['lineLengthExcept' => ['imports', 'strings']]]);
+	$result = $processor->process('pipe.php', $code);
+	Assert::null($result->failure);
+	Assert::same($expected, $result->output);
+	Assert::same($expected, $processor->process('pipe.php', $expected)->output);
 });
 
 

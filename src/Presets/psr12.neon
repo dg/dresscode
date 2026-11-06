@@ -82,6 +82,8 @@ multiline:
 		concatenation: [perLine, fill]
 		arithmetic: [perLine, fill]
 		bitwise: [perLine, fill]
+		coalesce: [perLine, fill]
+		pipe: [perLine, fill]
 	edges:
 		argument: apart                       # `foo(` above the arguments, `)` below them
 		parameter: apart

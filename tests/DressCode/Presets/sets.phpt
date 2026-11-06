@@ -59,7 +59,6 @@ test('a decision is made by a set or a standard, or written by the project on pu
 		'functions.namedBooleanArgument', // a named argument ties the call to the name of the parameter, which a project accepts
 		'indentation.singleLevel', // a measure of the shape of a body, not its layout
 		'phpdoc.annotation.itemTypes', // what the items of an array are, which only reports and a project asks for
-		'multiline.items.coalesce', 'multiline.items.pipe', // operands of `??` and `|>`, which no standard spreads
 		// an expression spanning lines after `=` or `=>`, which no standard keeps on the line of the operator
 		'multiline.expressionStart.assignment', 'multiline.expressionStart.arrayItem', 'multiline.expressionStart.arrowFunction',
 		// the `use` of a closure and a group of attributes, which no standard spreads

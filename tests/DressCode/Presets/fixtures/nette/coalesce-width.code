@@ -1,0 +1,16 @@
+<?php declare(strict_types=1);
+
+// `??` is not spread for the width, nor joined where its author spread it
+
+
+function read(?string $output): string
+{
+	return $output ?? throw new LogicException('The output is not captured, it was redirected to a file, discarded or piped to another process.');
+}
+
+
+function readError(?string $output): string
+{
+	return $output
+		?? throw new LogicException('The output is not captured, it was redirected to a file, discarded or piped to another process.');
+}

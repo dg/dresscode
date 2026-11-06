@@ -19,7 +19,9 @@ file:
 		declaration: required                 # risky, `'1'` passed to `int` then throws
 		position: sameLine
 	lineLength: 140                           # a tab counts as 4 columns
-	lineLengthExcept: [imports, strings]      # a line too wide only for its strings is not reported
+	# a line too wide only for its strings is not reported, nor one with `??`, which is not spread for the width,
+	# so that `?? throw new …` stays on the line of the value it guards
+	lineLengthExcept: [imports, strings, coalesce]
 
 indentation:
 	unit: tab

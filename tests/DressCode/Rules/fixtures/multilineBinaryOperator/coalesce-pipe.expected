@@ -1,0 +1,17 @@
+<?php
+// lineLength 50
+// {"items.coalesce": ["perLine", "fill"], "items.pipe": ["perLine", "fill"]}
+// the operands of `??` and `|>` spread like those of the other operators, a line each where too wide
+$fits = $aaaaaaaaaa ?? $bbbbbbbbbb ?? $cccccccccc;
+$spread = $aaaaaaaaaaaaaaaaaaaa
+	?? $bbbbbbbbbbbbbbbbbbbbbbbbbb;
+$piped = $aaaaaaaaaa
+	|> trim(...)
+	|> strtolower(...)
+	|> ucfirst(...);
+
+// as their author spread them
+$kept = $aaaaaaaaaa
+	?? $bbbbbbbbbb ?? $cccccccccc;
+$keptPipe = $aaaaaaaaaa
+	|> trim(...) |> strtolower(...);

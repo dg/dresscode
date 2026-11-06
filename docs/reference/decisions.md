@@ -129,7 +129,7 @@ What a line too wide leaves as it is: a construct named is not spread over lines
 
 - By default `[imports]`
 - Takes: a list of `imports` (a `use` import other than a group use on one line, which cannot be split); `strings` (a line that would fit were each of its string literals an empty pair of quotes, a string being never split); `argument` (the arguments of a call, of `new` and of an attribute, the variables of `unset()` and `isset()`); `parameter` (the parameters of a function or a method); `closureUse` (the variables of the `use` of a closure); `attribute` (the attributes of one group); `condition` (a condition of `if`, `elseif`, `while` and `do-while`); `chain` (a chain of method calls); `ternary` (a ternary); `for` (the header of a `for`); `logical` (the operands of a boolean operator outside a condition); `concatenation` (the operands of `.`); `arithmetic` (the operands of `+`, `-`, `*`, `/`, `%` and `**`); `bitwise` (the operands of `|`, `&`, `^`, `<<` and `>>`); `coalesce` (the operands of `??`); `pipe` (the operands of `|>`); `array` (the items of an array, which `multiline.maxWidth.array` spreads all the same); `list` (the items of `list()`); `implements` (the interfaces a class implements or an interface extends); `matchCondition` (the conditions of a `match` arm); regular expressions
-- The standards: perCs `[imports]`, psr12 `[imports]`, nette `[imports, strings]`
+- The standards: perCs `[imports]`, psr12 `[imports]`, nette `[imports, strings, coalesce]`
 - Rule `DressCode\Rules\Files\LineLengthRule`, stage Finishing
 - Read by rule `DressCode\Rules\Arrays\MultilineArrayRule`, which this decision does not turn on
 - Read by rule `DressCode\Rules\Classes\MultilineImplementsRule`, which this decision does not turn on
@@ -1114,7 +1114,7 @@ Not about the operators of one place joined by another, which begin a family of 
 
 - By default `keep`
 - Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines may share them as well); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- The standards: perCs `[perLine, fill]`, psr12 `[perLine, fill]`, nette `[perLine, fill]`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
 
 ### multiline.items.concatenation
@@ -1227,7 +1227,7 @@ Not about the operators of one place joined by another, which begin a family of 
 
 - By default `keep`
 - Takes: `perLine` (every operand on a line of its own); `fill` (the operands may share lines, one on a line passing too, and one spanning lines may share them as well); a list of them, every one passing and the first written where none matches; `keep`
-- The standards: perCs `keep`, psr12 `keep`, nette `keep`
+- The standards: perCs `[perLine, fill]`, psr12 `[perLine, fill]`, nette `[perLine, fill]`
 - Rule `DressCode\Rules\Expressions\MultilineBinaryOperatorRule`, stage Formatting
 
 ### multiline.items.ternary
