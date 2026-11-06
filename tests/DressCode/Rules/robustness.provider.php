@@ -8,4 +8,5 @@ return [
 	'psr12' => ['presets' => ['psr12']],
 	'perCs' => ['presets' => ['perCs', 'modernizations', 'cleanup']],
 	'nette' => ['presets' => ['nette', 'modernizations', 'deprecations']],
+	'symfony' => ['presets' => ['symfony', 'correctness']],
 ];
