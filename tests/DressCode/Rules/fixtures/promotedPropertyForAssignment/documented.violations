@@ -1,0 +1,6 @@
+5: The property `$cseId` must be promoted to a constructor parameter.
+11: The property `$apiKey` must be promoted to a constructor parameter.
+16: The property `$plain` must be promoted to a constructor parameter.
+31: The property `$name` must be promoted to a constructor parameter.
+48: The property `$same` must be promoted to a constructor parameter.
+54: The property `$documented` must be promoted to a constructor parameter.

@@ -393,3 +393,24 @@ test('an attribute written instead of an annotation stands where attributePositi
 		"<?php\n\nuse Acme\\Persistent;\n\nclass P\n{\n\t#[Other]\n\t#[Persistent]\n\tpublic \$lang;\n}\n",
 	);
 });
+
+
+test('a doc comment promotedProperties moves above the parameter is the one promotedPropertyAnnotation keeps', function () {
+	$rules = [
+		Rules\Classes\PromotedPropertyForAssignmentRule::class => ['upgrading.syntax.promotedProperties' => 'required'],
+		Rules\PhpDoc\PromotedPropertyAnnotationPositionRule::class => ['phpdoc.property.promoted' => '@var'],
+	];
+	// a `@param` without a description gives way to the doc comment, one with it is left to the author
+	$code = "<?php\nclass A\n{\n\t/** The name */\n\tprivate string \$name;\n\n\t/**\n\t * @param string \$name\n\t */\n\tpublic function __construct(\n\t\tstring \$name,\n\t) {\n\t\t\$this->name = \$name;\n\t}\n}\n";
+	interplay(
+		$rules,
+		$code,
+		"<?php\nclass A\n{\n\tpublic function __construct(\n\t\t/** The name */\n\t\tprivate string \$name,\n\t) {\n\t}\n}\n",
+	);
+	$result = interplay(
+		$rules,
+		str_replace('@param string $name', '@param string $name  as written', $code),
+		"<?php\nclass A\n{\n\t/**\n\t * @param string \$name  as written\n\t */\n\tpublic function __construct(\n\t\t/** The name */\n\t\tprivate string \$name,\n\t) {\n\t}\n}\n",
+	);
+	Assert::contains('phpdoc.property.promoted', array_map(fn(Violation $violation) => $violation->decision, $result->violations));
+});

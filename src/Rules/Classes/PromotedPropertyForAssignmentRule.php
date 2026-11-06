@@ -7,10 +7,12 @@
 
 namespace DressCode\Rules\Classes;
 
-use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage};
+use DressCode\Analyses\PhpDoc;
+use DressCode\{Decision, Domain, NodeRule, Risk, RuleContext, RuleInfo, Stage, Style};
 use DressCode\Rules\NodeHelpers;
+use PHPStan\PhpDocParser\Ast\PhpDoc\{PhpDocTagNode, VarTagValueNode};
 use PhpSyntax\Analyses\NameResolver;
-use PhpSyntax\{Node, Token};
+use PhpSyntax\{Indentation, Node, Token, Trivia};
 use PhpSyntax\Nodes\{ClassLikeNode, Expression, ParameterNode, Statement, TypeNode};
 use PhpSyntax\Nodes\Member\{MethodNode, PropertyNode};
 use PhpSyntax\Nodes\Scalar\NullNode;
@@ -19,9 +21,10 @@ use function count;
 
 /**
  * A property that the constructor does nothing with but assign a parameter of its own name to it is declared
- * by that parameter. The property must have no default value, no hooks, no attribute and no doc comment, because
- * the promoted parameter documents itself where it stands, and the types of the two must be written the same, so
- * that promotion narrows nothing. Neither the property nor the assignment may carry a comment, and a parameter
+ * by that parameter, its doc comment going above the parameter. The property must have no default value, no hooks
+ * and no attribute, and the types of the two must be written the same, so that promotion narrows nothing, its `@var`
+ * included, which above the parameter would narrow what the constructor takes beyond its type or its `@param`. Neither
+ * the property nor the assignment may carry a comment other than that doc comment, and a parameter
  * whose `null` default makes its type implicitly nullable is left alone, since the property would not be. The
  * assignment must be a statement of the constructor itself, not of a branch inside it, it must be the only place
  * the constructor reaches the property, and nothing in the constructor may write the parameter; a constructor
@@ -31,7 +34,7 @@ use function count;
  * instead of nothing. A typed property without a default answers such a read with an error, so no
  * working program can tell; an untyped one answers null, and the fix is risky there.
  */
-#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.0'], analyses: [NameResolver::class])]
+#[RuleInfo(Stage::Structure, requires: ['php' => '>=8.0'], modifiesComments: true, analyses: [PhpDoc::class, NameResolver::class])]
 final class PromotedPropertyForAssignmentRule extends NodeRule
 {
 	public static function getDecisions(): array
@@ -78,7 +81,16 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 				? null
 				: $parameter->variable->plainName;
 			$property = $name === null ? null : $properties[$name] ?? null;
-			$assignment = $property === null ? null : self::findPromotable($constructor, $constructor->body, $parameter, $property, $name);
+			$assignment = $property === null
+				? null
+				: self::findPromotable(
+					$constructor,
+					$constructor->body,
+					$parameter,
+					$property,
+					$name,
+					$context->getAnalysis(PhpDoc::class),
+				);
 			if (
 				$assignment === null
 				|| !$context->report(
@@ -91,7 +103,7 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 				continue;
 			}
 
-			self::promote($parameter, $property);
+			self::promote($parameter, $property, $context->style);
 			NodeHelpers::removeMergingGaps($assignment, $context->style->lineEnding);
 			NodeHelpers::removeMergingGaps($property, $context->style->lineEnding);
 		}
@@ -108,18 +120,20 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 		ParameterNode $parameter,
 		PropertyNode $property,
 		string $name,
+		PhpDoc $phpDoc,
 	): ?Statement\ExpressionStatementNode
 	{
 		$item = $property->items->getItems()[0];
+		$docComment = $property->getDocComment();
 		if (
 			$property->modifiers->static
 			|| $property->hooks !== null
 			|| $item->default !== null
-			|| $property->getDocComment() !== null
 			|| count($property->attributes) > 0
 			|| $property->hasInnerComment()
-			|| $property->hasLeadingComment()
+			|| array_any($property->getLeadingComments(), fn(Trivia $comment) => $comment !== $docComment)
 			|| $property->hasTrailingComment()
+			|| ($docComment !== null && self::narrowsParameter($docComment, $property, $constructor, $name, $phpDoc))
 			|| ($parameter->default instanceof NullNode && $parameter->type?->isNullable() === false)
 			|| $parameter->hasInnerComment()
 			|| self::normalizeType($property->type) !== self::normalizeType($parameter->type)
@@ -161,14 +175,64 @@ final class PromotedPropertyForAssignmentRule extends NodeRule
 	}
 
 
-	/** Writes the modifiers of the property in front of the parameter, `var` as `public`. */
-	private static function promote(ParameterNode $parameter, PropertyNode $property): void
+	/**
+	 * Whether the `@var` of the property says a type the parameter does not take yet, by its native type or by the
+	 * `@param` of the constructor, which above the promoted parameter would narrow what the constructor takes: a
+	 * property of `?string` the constructor checks to be `'on'|'off'|null` before it assigns it. The types are compared
+	 * as written.
+	 */
+	private static function narrowsParameter(
+		Trivia $docComment,
+		PropertyNode $property,
+		MethodNode $constructor,
+		string $name,
+		PhpDoc $phpDoc,
+	): bool
+	{
+		$normalize = fn(string $type) => (string) preg_replace('~\s+~', '', $type);
+		$taken = [self::normalizeType($property->type)];
+		$constructorDoc = $constructor->getDocComment();
+		foreach ($constructorDoc === null ? [] : $phpDoc->parse($constructorDoc)->getParamTagValues() as $param) {
+			if ($param->parameterName === "\$$name") {
+				$taken[] = $normalize((string) $param->type);
+			}
+		}
+
+		return array_any(
+			$phpDoc->parse($docComment)->getTags(),
+			fn(PhpDocTagNode $tag) => $tag->value instanceof VarTagValueNode
+				&& !in_array($normalize((string) $tag->value->type), $taken, true),
+		);
+	}
+
+
+	/**
+	 * Writes the modifiers of the property in front of the parameter, `var` as `public`, and its doc comment above it on
+	 * lines of its own, the parameter first moving to a line of its own, as a property declared in the class has it.
+	 */
+	private static function promote(ParameterNode $parameter, PropertyNode $property, Style $style): void
 	{
 		foreach ($property->modifiers->getTokens() as $modifier) {
 			$parameter->modifiers->append($modifier->is(Token::Var)
 				? Token::fromText('public')
 				: Token::fromText($modifier->text));
 		}
+
+		$docComment = $property->getDocComment();
+		if ($docComment === null) {
+			return;
+		}
+
+		$property->removeDocComment();
+		$first = $parameter->getFirstToken();
+		if (!$first->startsLine()) {
+			$first->ensureStartsLine($style->lineEnding);
+			$first->setIndentation(Indentation::infer($first, $style->toPhpSyntax()));
+		}
+
+		$indentation = $first->getLineIndentation();
+		$first->setLeadingTrivia([...$first->leadingTrivia, $docComment, Trivia::fromText($style->lineEnding)]);
+		Indentation::set($first, $indentation, $indentation);
 	}
 
 

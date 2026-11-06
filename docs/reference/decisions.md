@@ -4346,6 +4346,7 @@ A constructor parameter only assigned to a property.
 - The standards: perCs `keep`, psr12 `keep`, nette `keep`
 - Rule `DressCode\Rules\Classes\PromotedPropertyForAssignmentRule`, stage Structure
 - Needs PHP >=8.0
+- Modifies comments
 - May have risky fixes, made once the decision is named in `fixRisky` or with `--fix-risky`
 
 ### upgrading.syntax.readonlyClasses

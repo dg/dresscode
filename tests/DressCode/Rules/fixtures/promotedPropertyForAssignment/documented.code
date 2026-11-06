@@ -1,0 +1,88 @@
+<?php
+class Client
+{
+	/** Google custom search engine ID */
+	private string $cseId;
+
+	/**
+	 * The key of the account,
+	 * as the console gives it
+	 */
+	public string $apiKey;
+
+	/** @var list<string> */
+	private array $languages;
+
+	public string $plain;
+
+
+	public function __construct(string $cseId, string $apiKey, array $languages, string $plain)
+	{
+		$this->cseId = $cseId;
+		$this->apiKey = $apiKey;
+		$this->languages = $languages;
+		$this->plain = $plain;
+	}
+}
+
+class Annotated
+{
+	/** The name of the user */
+	private string $name;
+
+
+	/**
+	 * @param string $name  as the user wrote it
+	 */
+	public function __construct(
+		string $name,
+	) {
+		$this->name = $name;
+	}
+}
+
+// a `@var` the parameter does not take yet stays with its property, the constructor checking it
+class Typed
+{
+	/** @var string */
+	private string $same;
+
+	/** @var 'on'|'off'|null */
+	private ?string $checked;
+
+	/** @var list<string> */
+	private array $documented;
+
+
+	/**
+	 * @param list<string> $documented
+	 */
+	public function __construct(string $same, ?string $checked, array $documented)
+	{
+		$this->same = $same;
+		$this->checked = $checked;
+		$this->documented = $documented;
+	}
+}
+
+// left alone, the doc comment going with a property that stays
+class Kept
+{
+	// a comment other than a doc comment
+	private string $commented;
+
+	/** The attributed */
+	#[Attribute]
+	private string $attributed;
+
+	/** The defaulted */
+	private string $defaulted = 'x';
+
+
+	public function __construct(string $commented, string $attributed, string $defaulted)
+	{
+		$this->commented = $commented;
+		$this->attributed = $attributed;
+		$this->defaulted = $defaulted;
+	}
+}

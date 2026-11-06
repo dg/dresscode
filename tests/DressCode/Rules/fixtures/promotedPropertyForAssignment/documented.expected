@@ -1,0 +1,73 @@
+<?php
+class Client
+{
+	/** @var list<string> */
+	private array $languages;
+
+
+	public function __construct(
+		/** Google custom search engine ID */
+		private string $cseId,
+		/**
+		 * The key of the account,
+		 * as the console gives it
+		 */
+		public string $apiKey, array $languages, public string $plain)
+	{
+		$this->languages = $languages;
+	}
+}
+
+class Annotated
+{
+	/**
+	 * @param string $name  as the user wrote it
+	 */
+	public function __construct(
+		/** The name of the user */
+		private string $name,
+	) {
+	}
+}
+
+// a `@var` the parameter does not take yet stays with its property, the constructor checking it
+class Typed
+{
+	/** @var 'on'|'off'|null */
+	private ?string $checked;
+
+
+	/**
+	 * @param list<string> $documented
+	 */
+	public function __construct(
+		/** @var string */
+		private string $same, ?string $checked,
+		/** @var list<string> */
+		private array $documented)
+	{
+		$this->checked = $checked;
+	}
+}
+
+// left alone, the doc comment going with a property that stays
+class Kept
+{
+	// a comment other than a doc comment
+	private string $commented;
+
+	/** The attributed */
+	#[Attribute]
+	private string $attributed;
+
+	/** The defaulted */
+	private string $defaulted = 'x';
+
+
+	public function __construct(string $commented, string $attributed, string $defaulted)
+	{
+		$this->commented = $commented;
+		$this->attributed = $attributed;
+		$this->defaulted = $defaulted;
+	}
+}
