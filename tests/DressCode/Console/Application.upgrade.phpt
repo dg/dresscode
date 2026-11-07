@@ -1,5 +1,6 @@
 <?php declare(strict_types=1);
 
+use DressCode\Engine\ProcessRunner;
 use Nette\Utils\FileSystem;
 use Tester\Assert;
 
@@ -34,6 +35,8 @@ test('upgrade estimate measures what an upgrade changes, topic by topic, and cha
 
 		Right now  `dresscode upgrade today` can rewrite 2 of these, on the versions you have
 		Rules for  `php` up to %d%.%d%
+
+		Next       `dresscode upgrade plan php 8.4` orders this into steps you can run
 		XX, $out);
 	Assert::same($code, file_get_contents("$root/src/Code.php"));
 
@@ -57,6 +60,101 @@ test('upgrade estimate measures what an upgrade changes, topic by topic, and cha
 	$estimate = json_decode($out, associative: true, flags: JSON_THROW_ON_ERROR);
 	Assert::same([1, []], [$estimate['files'], $estimate['topics']]);
 	FileSystem::delete($root);
+});
+
+
+test('upgrade plan writes the steps, changing nothing', function () {
+	$root = createTempDir('upgrade-plan');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"type": "project", "require": {"php": "^8.0"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\n");
+	$code = "<?php\n\nfunction run(\$handle, int \$count = null): void\n{\n\tcurl_close(\$handle);\n\tstrftime('%Y');\n}\n";
+	file_put_contents("$root/src/Code.php", $code);
+	[$exit, $out, $err] = runApp($root, ['upgrade', 'plan', 'php', '8.4', '--no-types', '--offline', '--no-color']);
+	Assert::same('', $err);
+	Assert::same(0, $exit);
+	Assert::match(<<<'XX'
+		%A%Plan       php 8.4
+		  1  fix       works on the versions allowed today  php, upgrading.php.implicitNullable
+		  2  composer  raise php to ^8.4
+		%A%Tests      not run, no `--test-command` given
+		Next       `--save` keeps the plan in `dresscode-upgrade.neon` for the team to review
+		XX, $out);
+	Assert::same($code, file_get_contents("$root/src/Code.php"));
+	Assert::false(is_file("$root/dresscode-upgrade.neon"));
+	// a tool reads the plan as data with the root of the project, and no identity of a plan not saved
+	$data = json_decode(
+		runApp($root, ['upgrade', 'plan', 'php', '8.4', '--no-types', '--offline', '--format', 'json'])[1],
+		associative: true,
+		flags: JSON_THROW_ON_ERROR,
+	);
+	Assert::match('%a%upgrade-plan', $data['root']);
+	Assert::false(isset($data['planIdentity']));
+	// planned as a library, which `^8.0` already lets onto PHP 8.4, the plan is the bridge alone
+	$library = runApp($root, ['upgrade', 'plan', 'php', '8.4', '--library', '--no-types', '--offline', '--format', 'json'])[1];
+	Assert::same(['fix'], array_column(json_decode($library, associative: true, flags: JSON_THROW_ON_ERROR)['steps'], 'kind'));
+});
+
+
+test('a plan of no step is saved as no file', function () {
+	$root = createTempDir('plan-empty');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.4"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\ncacheDir: cache\n");
+	file_put_contents("$root/src/Code.php", "<?php\n");
+
+	[$exit, $out] = runApp($root, ['upgrade', 'plan', 'php', '8.4', '--save', '--no-types', '--offline', '--no-color']);
+	Assert::same(0, $exit);
+	Assert::contains('Saved      nothing, as the upgrade has no step to make', $out);
+	Assert::false(is_file("$root/dresscode-upgrade.neon"));
+});
+
+
+test('upgrade plan without a target refuses a project on PHP 7, which is offered none', function () {
+	$root = createTempDir('upgrade-plan-php7');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": "^7.4"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\n");
+	file_put_contents("$root/src/Code.php", "<?php\n\$x = 1;\n");
+	[$exit, , $err] = runApp($root, ['upgrade', 'plan', '--no-types', '--offline', '--no-color']);
+	Assert::same(3, $exit);
+	Assert::contains('There is no version to plan an upgrade to', $err);
+});
+
+
+test('upgrade plan says whether it plans a library or an application, and why', function () {
+	$root = createTempDir('upgrade-plan-mode');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\n");
+	file_put_contents("$root/src/Code.php", "<?php\n\$x = 1;\n");
+	$plan = fn() => runApp($root, ['upgrade', 'plan', 'php', '8.4', '--no-types', '--offline', '--no-color'])[1];
+	Assert::contains(
+		"Mode       library, `composer.json` gives no type, which Composer reads as `library`, and there is no `composer.lock`\n",
+		$plan(),
+	);
+	file_put_contents("$root/composer.lock", '{"packages": []}');
+	Assert::contains(
+		'Mode       application, `composer.json` gives no type, which Composer reads as `library`, yet the project has a `composer.lock` of its own, as an application has; `--library` plans it as a library',
+		$plan(),
+	);
+
+	// a terminal asks, Enter taking a library only where the type is written, as a run without one takes it
+	$ask = fn() => runApp($root, ['upgrade', 'plan', 'php', '8.4', '--no-types', '--offline', '--no-color'], "\n", interactive: true)[1];
+	Assert::match('%A?%Plan it as a library, %a% [y/N]%A%Mode       application, as you answered%A%', $ask());
+	file_put_contents("$root/composer.json", '{"type": "library", "require": {"php": "^8.0"}}');
+	Assert::match('%A?%Plan it as a library, %a% [Y/n]%A%Mode       library, as you answered%A%', $ask());
+	Assert::contains(
+		"Mode       library, `composer.json` gives the type `library`, though the project has a `composer.lock` of its own; `--no-library` plans it as an application\n",
+		$plan(),
+	);
+
+	ProcessRunner::run(['git', 'init', '-q'], $root, 60);
+	file_put_contents("$root/.gitignore", "composer.lock\n");
+	Assert::contains("Mode       library, `composer.json` gives the type `library`, and its git ignores `composer.lock`\n", $plan());
+
+	file_put_contents("$root/composer.json", '{"type": "project", "require": {"php": "^8.0"}}');
+	Assert::contains("Mode       application, `composer.json` gives the type `project`\n", $plan());
 });
 
 
@@ -98,6 +196,10 @@ test('upgrade refuses an option its command does not take, and a target it canno
 		[['upgrade', 'estimate', 'acme/mail'], 'Name the version of `acme/mail` to upgrade to, as `acme/mail 4.0`.'],
 		[['upgrade', 'estimate', 'php', 'next'], 'The version to upgrade to is written as `8.4` or `4.0`, `next` given.'],
 		[['upgrade', 'estimate', '--format', 'lines'], 'Option `--format`: expects `console` or `json`, `lines` given.'],
+		[
+			['upgrade', 'plan', '--quick-test-command', 'phpunit'],
+			'A command of the tests writes its JUnit report where `{junit}` stands, and `phpunit` has none.',
+		],
 	] as [$args, $message]) {
 		[$exit, , $err] = runApp($root, $args);
 		Assert::same(3, $exit);
