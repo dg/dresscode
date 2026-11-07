@@ -10,7 +10,7 @@ namespace DressCode\Config;
 use Composer\InstalledVersions;
 use DressCode\{Analyses, Config, ConfigurationException, Override, Plugin, PluginManifest, Profile, Rule};
 use DressCode\Engine\{
-	Baseline, FileFinder, FileProcessor, FileProcessors, Helpers, PhpFileProcessor, ReportPolicy, ResultCache, Runner, TypeAnalysisStatus,
+	Baseline, FileFinder, FileProcessor, FileProcessors, Helpers, PhpFileProcessor, Profiler, ReportPolicy, ResultCache, Runner, TypeAnalysisStatus,
 };
 use Nette\Utils\Finder;
 use PhpSyntax\Node;
@@ -131,6 +131,7 @@ final readonly class RunnerFactory
 		?string $configFile = null,
 		bool $fixRisky = false,
 		bool $baseline = true,
+		?Profiler $profiler = null,
 		bool $refreshCache = false,
 		array $leftAsWritten = [],
 	): Runner
@@ -152,6 +153,7 @@ final readonly class RunnerFactory
 				self::resolveAnalysedPaths($config, $root),
 				self::resolveCacheDir($config, $root) . '/phpstan',
 				$phpVersion,
+				$profiler,
 				$resolution->projectPackages->findPathsAheadOfSupport(),
 				self::findForeignPaths($root),
 				$resolution->projectPackages->findPhpStanExtensions(),
@@ -165,7 +167,7 @@ final readonly class RunnerFactory
 		$processors = new FileProcessors(
 			array_map(fn(Override $override) => $override->paths, $config->overrides),
 			function (array $overrides) use (
-				$resolution, $registry, $analyses, $strict, $baselineFile, $fixRisky, $leftAsWritten,
+				$resolution, $registry, $analyses, $strict, $baselineFile, $fixRisky, $profiler, $leftAsWritten,
 			): FileProcessor {
 				$variant = $resolution->resolveFor($overrides);
 				$style = $variant->createStyle();
@@ -190,6 +192,7 @@ final readonly class RunnerFactory
 						leftAsWritten: array_fill_keys($leftAsWritten, true),
 						strict: $strict,
 					),
+					profiler: $profiler,
 					gates: $variant->getGates(),
 				);
 			},
@@ -229,6 +232,7 @@ final readonly class RunnerFactory
 			$baselineFile,
 			$resultCache,
 			narrowed: (bool) $resolution->only,
+			profiler: $profiler,
 			warmUp: isset($phpstan) ? $phpstan->warmUp(...) : null,
 			findDependencies: isset($phpstan) ? $phpstan->getConfigurationFiles(...) : null,
 			findWarnings: isset($phpstan) ? $phpstan->getWarnings(...) : null,
