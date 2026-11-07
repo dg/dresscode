@@ -240,6 +240,61 @@ test('upgrade plan --save refuses to forget a step a run did not finish, unless 
 });
 
 
+test('upgrade run goes on after a raise in a new process, which says how far the whole run got', function () {
+	$root = createTempDir('upgrade-rerun');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"type": "project", "require": {"php": "^8.0"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\ncacheDir: cache\n");
+	file_put_contents("$root/src/Code.php", "<?php\n\nfunction run(int \$count = null): void\n{\n}\n");
+	file_put_contents("$root/dresscode-upgrade.neon", <<<'XX'
+		version: 1
+		toolVersion: '1.0'
+		targets: {php: '8.4'}
+		steps:
+			- {title: 'works on the versions allowed today', kind: fix, topics: [upgrading.php.implicitNullable]}
+			- {title: 'raise php to ^8.4', kind: composer, require: {php: '^8.4'}}
+			- {title: 'needs the targets', kind: fix, topics: [upgrading.php.implicitNullable]}
+		XX);
+	// a Composer that raises the constraint and changes no package
+	file_put_contents("$root/composer.php", <<<'XX'
+		<?php
+		if ($argv[1] === 'require' && !in_array('--dry-run', $argv, true)) {
+			file_put_contents('composer.json', '{"require": {"php": "^8.4"}}');
+		}
+		XX);
+
+	[$exit, $out] = DressCode\Engine\ProcessRunner::run(
+		[getPhpCliBinary(), __DIR__ . '/../../../bin/dresscode', 'upgrade', 'run', '--yes', '--no-types', '--no-color'],
+		$root,
+		90, // a fuse, should the run start itself again and again
+		env: ['COMPOSER_BINARY' => "$root/composer.php"],
+	);
+	Assert::same(0, $exit, $out);
+	Assert::same(1, substr_count($out, 'Config     '));
+	Assert::match(<<<'XX'
+		%A%Step 1     upgrading.php.implicitNullable 1 file
+		Step 3     upgrading.php.implicitNullable left nothing to fix
+		UPGRADED  %d% steps done, and the final check finds nothing more to upgrade, no tests run
+		%A%
+		XX, str_replace("\r", '', $out));
+
+	// embedded, the command line of the process is not its own to start again
+	file_put_contents("$root/composer.json", '{"type": "project", "require": {"php": "^8.0"}}');
+	putenv("COMPOSER_BINARY=$root/composer.php");
+	try {
+		[$exit, $out] = runApp($root, ['upgrade', 'run', '--yes', '--no-types', '--no-color']);
+	} finally {
+		putenv('COMPOSER_BINARY');
+	}
+
+	Assert::same(4, $exit);
+	Assert::contains(
+		'Waiting    step 2 raised the dependencies, which what runs after it loads anew: run `dresscode upgrade run` again',
+		$out,
+	);
+});
+
+
 test('upgrade abort puts back the files of a step a run did not finish, and says so where nothing is kept', function () {
 	$root = createTempDir('upgrade-abort');
 	mkdir("$root/src");
