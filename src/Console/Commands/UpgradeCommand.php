@@ -418,7 +418,7 @@ final readonly class UpgradeCommand
 			return $exit;
 		}
 
-		$printer = new RunOutcomePrinter($plan, $outcome, $running->step);
+		$printer = new RunOutcomePrinter($plan, $outcome, $running->step, $runner->project->root);
 		if ($output !== null) {
 			$output->write($printer->print($output));
 		} else {

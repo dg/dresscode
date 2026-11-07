@@ -131,17 +131,19 @@ final readonly class PlanRunner
 
 		$lastFixStep = array_key_last(array_filter($steps, fn(Step $step) => $step instanceof FixStep));
 		$applied = $resumed->applied ?? [];
+		$tasks = $resumed->tasks ?? [];
 		$followsRaise = $resumed !== null;
 		// the step of Composer whose raise no tests have run after yet, which the journal keeps across the runs
 		$untestedRaise = $resumed->step ?? $this->state->journal->findStep();
 		$testBaseline = null; // what the last tests were compared with
+		$lastTaskStep = max([0, ...array_keys(array_filter($applied, fn(array $topics) => array_intersect_key($tasks, $topics) !== []))]);
 		foreach ($steps as $number => $step) {
 			if (($singleStep !== null && $number !== $singleStep) || $number <= ($resumed->step ?? 0)) {
 				continue;
 			} elseif ($step instanceof ManualStep) {
 				$blockers = $this->findBlockers($number, $step);
 				if ($blockers !== null) {
-					return new RunOutcome(RunStop::Manual, $number, $applied, blockers: $blockers);
+					return new RunOutcome(RunStop::Manual, $number, $applied, $tasks, blockers: $blockers);
 				}
 
 				continue;
@@ -164,6 +166,7 @@ final readonly class PlanRunner
 							RunStop::Composer,
 							$number,
 							$applied,
+							$tasks,
 							raisedFiles: $this->state->journal->findChanged(),
 							composerFailure: $done ?: null,
 						);
@@ -172,7 +175,7 @@ final readonly class PlanRunner
 					$untestedRaise = $number;
 					// what the raise installed is loaded anew for what runs after it, the check at the end of the plan among it
 					if ($singleStep === null) {
-						return new RunOutcome(RunStop::Raised, $number, $applied);
+						return new RunOutcome(RunStop::Raised, $number, $applied, $tasks);
 					}
 				}
 
@@ -200,6 +203,7 @@ final readonly class PlanRunner
 						RunStop::Tests,
 						$number,
 						$applied,
+						$tasks,
 						$failure->newFailures,
 						$unprocessed,
 						crash: $failure->crash,
@@ -216,8 +220,12 @@ final readonly class PlanRunner
 				$this->state->journal->forget();
 			}
 
+			$tasks = array_filter([...$tasks, ...$result->tasks]); // the last fix of a topic tells what it leaves
+			$lastTaskStep = array_filter($result->tasks) === [] ? $lastTaskStep : $number;
 			if ($unprocessed !== []) {
-				return new RunOutcome(RunStop::Unprocessed, $number, $applied, unprocessed: $unprocessed, baseline: $testBaseline);
+				return new RunOutcome(RunStop::Unprocessed, $number, $applied, $tasks, unprocessed: $unprocessed, baseline: $testBaseline);
+			} elseif ($followsRaise && $lastTaskStep === $number) {
+				return new RunOutcome(RunStop::Tasks, $number, $applied, $tasks, baseline: $testBaseline);
 			}
 
 			$followsRaise = false;
@@ -234,6 +242,7 @@ final readonly class PlanRunner
 					RunStop::Tests,
 					$untestedRaise,
 					$applied,
+					$tasks,
 					$failure->newFailures,
 					crash: $failure->crash,
 					baseline: $testBaseline,
@@ -244,26 +253,35 @@ final readonly class PlanRunner
 			$this->state->journal->forget();
 		}
 
-		if ($singleStep === null) {
-			// a plan is done once the targets find nothing in the whole scope, which the estimate the plan was made from may have missed
+		if ($tasks !== []) { // a plan is done once nothing of it is left for a human
+			return new RunOutcome(RunStop::Tasks, $lastTaskStep, $applied, $tasks, baseline: $testBaseline);
+		} elseif ($singleStep === null) {
+			// and once the targets find nothing in the whole scope, which the estimate the plan was made from may have missed
 			$this->onProgress?->__invoke('checking the code against the targets');
 			$check = $this->runTopic('deprecations', $satisfiedRequirements, $declarations, $plan->paths);
 			if ($check->unprocessed !== []) {
 				return new RunOutcome(RunStop::Unprocessed, null, $applied, unprocessed: $check->unprocessed, baseline: $testBaseline);
-			} elseif ($check->changed !== []) {
+			} elseif ($check->changed !== [] || $check->tasks !== []) {
 				return new RunOutcome(
 					RunStop::Remaining,
 					null,
 					$applied,
+					array_filter(['deprecations' => $check->tasks]),
 					baseline: $testBaseline,
 					remaining: array_keys($check->changed),
 				);
 			}
 
+			// a place put off without a reason is no more done than one left
+			$postponed = Postponement::findIn($this->project, $plan->paths);
+			if ($postponed !== []) {
+				return new RunOutcome(RunStop::Tasks, null, $applied, baseline: $testBaseline, postponed: $postponed);
+			}
+
 			$this->state->remove();
 		}
 
-		return new RunOutcome(RunStop::Done, null, $applied, baseline: $testBaseline);
+		return new RunOutcome(RunStop::Done, null, $applied, $tasks, baseline: $testBaseline);
 	}
 
 
@@ -322,16 +340,17 @@ final readonly class PlanRunner
 	 */
 	private function fixStep(int $number, FixStep $step, array $paths, array $satisfied, ?NamespaceDeclarations $declarations): StepResult
 	{
-		$written = $unprocessed = $warnings = [];
+		$written = $unprocessed = $tasks = $warnings = [];
 		foreach ($step->topics as $topic) {
 			$this->onProgress?->__invoke("step $number, fixing $topic");
 			$reporter = $this->runTopic($topic, $satisfied, $declarations, $paths);
 			[$written[$topic], $unwritten] = $this->writeTopic($number, $reporter);
 			$unprocessed += $reporter->unprocessed + $unwritten;
+			$tasks[$topic] = $reporter->tasks;
 			$warnings = [...$warnings, ...$reporter->warnings];
 		}
 
-		return new StepResult($written, $unprocessed, $warnings);
+		return new StepResult($written, $unprocessed, $tasks, $warnings);
 	}
 
 

@@ -80,7 +80,7 @@ final class WorkerCodec
 
 
 	/** @return array<string, mixed> */
-	private static function encodeViolation(Violation $violation): array
+	public static function encodeViolation(Violation $violation): array
 	{
 		return [
 			'decision' => $violation->decision,
@@ -109,8 +109,11 @@ final class WorkerCodec
 	}
 
 
-	/** @return list<Violation> */
-	private static function decodeViolations(mixed $data): array
+	/**
+	 * @param  mixed  $data  a list of what `encodeViolation()` made
+	 * @return list<Violation>
+	 */
+	public static function decodeViolations(mixed $data): array
 	{
 		return array_values(array_map(fn(array $item) => new Violation(
 			(string) $item['decision'],

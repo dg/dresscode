@@ -131,8 +131,28 @@ test('upgrade plan writes the steps, upgrade run with a target makes them up to 
 	$run = json_decode($out, associative: true, flags: JSON_THROW_ON_ERROR);
 	Assert::same([1, 'composer', 2], [$run['version'], $run['outcome']['stop'], $run['outcome']['step']]);
 	Assert::same([['step' => 1, 'topic' => 'php', 'files' => []]], array_slice($run['outcome']['applied'], 0, 1));
+	Assert::same([], $run['outcome']['tasks']);
 	Assert::same('composer', $run['plan']['steps'][1]['kind']);
 	file_put_contents("$root/composer.json", '{"require": {"php": "^8.4"}}');
+	[$exit, $out] = runApp($root, ['upgrade', 'run', '--no-types', '--no-color']);
+	Assert::same(1, $exit);
+	Assert::match(<<<'XX'
+		%A%Step 3     php left nothing to fix
+		Manual     1 task the fixes left
+		  src/Code.php:5  Function `strftime()` is deprecated: since PHP 8.1.  [upgrading.php.deprecatedApi]
+		      `{`
+		      `%a%strftime(%a%);`
+		      `}`
+		Waiting    step 3 leaves the manual tasks above: %a%
+		XX, $out);
+
+	// a task confirmed with a reason is done
+	$code = str_replace(
+		"\tstrftime",
+		"\t// dresscode:ignore upgrading.php.deprecatedApi -- no replacement yet\n\tstrftime",
+		FileSystem::read("$root/src/Code.php"),
+	);
+	file_put_contents("$root/src/Code.php", $code);
 	[$exit, $out] = runApp($root, ['upgrade', 'run', '--no-types', '--no-color']);
 	Assert::same(0, $exit);
 	// the last step updated the packages to the newest versions, which nothing has to be said of then

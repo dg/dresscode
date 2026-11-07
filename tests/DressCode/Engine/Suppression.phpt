@@ -316,3 +316,19 @@ test('a comment the configuration names silences its rules on its line', functio
 	Assert::true($s->isSilenced('dresscode/noLooseComparisons', 11));
 	Assert::false($s->isSilenced('dresscode/noLooseComparisons', 12));
 });
+
+
+test('a directive is read with its kind, names and reason, and a comment without one none', function () {
+	Assert::same(
+		[
+			'kind' => 'ignore',
+			'names' => 'upgrading.php',
+			'reason' => 'the locale',
+			'text' => 'dresscode:ignore upgrading.php -- the locale',
+			'offset' => 3,
+		],
+		Suppression::findDirective('// dresscode:ignore upgrading.php -- the locale'),
+	);
+	Assert::same(['disable', '', ''], array_slice(array_values(Suppression::findDirective('/* phpcs:disable */') ?? []), 0, 3));
+	Assert::null(Suppression::findDirective('// the ignore of dresscode'));
+});
