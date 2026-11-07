@@ -772,7 +772,7 @@ test('suppression stops the fix', function () {
 test('a rule may fix a violation the baseline holds, and the contract holds', function () {
 	$code = "<?php\n\$a;\n\$a;\n";
 	[, $result] = run($code, [new RenameA]);
-	$baseline = DressCode\Engine\Baseline::fromResults([new DressCode\FileResult('test.php', $code, $code, [$result->violations[0]])]);
+	$baseline = DressCode\Engine\Baseline::fromViolations(['test.php' => [$result->violations[0]]]);
 
 	[$file, $result] = run($code, [new RenameA], baseline: $baseline);
 	Assert::same("<?php\n\$b;\n\$b;\n", (string) $file);

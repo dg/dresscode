@@ -225,7 +225,7 @@ With `--jobs` above 1 (by default the processor count, capped at one worker per 
 
 A process working through files, the parent without workers and every worker, keeps the cycle collector of PHP off and collects between two files once the memory has doubled since what the last collection left, never above three quarters of `memory_limit` (`Engine\CycleCollector`). The collector PHP runs by itself scans again and again what stays alive, the tree being processed and above all the reflection of PHPStan, and frees little: with the types it took a third of the run.
 
-A worker only processes and, when fixing, writes; the parent keeps the cache and the baseline, reads a file again when it hands it out, reports every file in the order of the input as soon as the files before it are done and keeps of its result what the run needs without the code and the output (`Engine\FileSummary`), so that only the files in progress and those waiting for an earlier one are held as text, and turns a worker that dies or exits with an error into a failure of the run.
+A worker only processes and, when fixing, writes; the parent keeps the cache and the baseline, reads a file again when it hands it out, reports every file in the order of the input as soon as the files before it are done and keeps of its result what the run needs without the code and the output and with the violations only counted (`Engine\FileSummary`, `Engine\ViolationTally`), so that only the files in progress and those waiting for an earlier one are held whole, a run whose violations code consumes one by one taking them through `Reporters\CollectingReporter`, and turns a worker that dies or exits with an error into a failure of the run.
 
 ## Configuration
 
