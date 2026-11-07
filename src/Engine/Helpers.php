@@ -157,6 +157,26 @@ final class Helpers
 
 
 	/**
+	 * Writes through a temporary file of its own renamed over the target, so that the file is either as it was or whole,
+	 * with no fallback in place; the directory is created where it is missing.
+	 * @throws IOException
+	 */
+	public static function replaceFile(string $file, string $content): void
+	{
+		$temp = self::writeTemporary($file, $content);
+		// Windows refuses a rename over a file another process holds open, as a scanner does for a moment after a write
+		for ($attempt = 1; !@rename($temp, $file); $attempt++) { // @ the failure is thrown below
+			if ($attempt === 10) {
+				@unlink($temp); // @ nothing to clean up then
+				throw new IOException("Unable to write file '$file'.");
+			}
+
+			usleep(20_000);
+		}
+	}
+
+
+	/**
 	 * Writes a file that does not exist yet, whole, and never over one another process created meanwhile.
 	 * @return bool  false where the file exists
 	 * @throws IOException

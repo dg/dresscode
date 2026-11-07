@@ -133,6 +133,7 @@ final readonly class EstimatePrinter
 
 		$major = $estimate->moves?->findMajor() ?? [];
 		$moves = match (true) {
+			$estimate->library => 'nothing, a library widens its constraints with `--no-update`',
 			$estimate->moves?->unknown !== null => "unknown, {$estimate->moves->unknown}",
 			$major !== [] => self::wrapList(array_map(
 				fn(Move $move) => "`$move->package` $move->from => $move->to"
@@ -207,6 +208,7 @@ final readonly class EstimatePrinter
 				], $estimate->moves->packages),
 				'unknown' => $estimate->moves->unknown,
 			],
+			'library' => $estimate->library,
 			'unverified' => array_map(
 				fn(string $path, string $why) => ['file' => $path, 'message' => $why],
 				array_keys($estimate->unprocessed),

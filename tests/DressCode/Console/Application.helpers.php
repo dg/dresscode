@@ -136,6 +136,7 @@ function createConsoleProject(): string
 /**
  * @param  list<string>  $args
  * @return array{int, string, string}
+ * @phpstan-impure
  */
 function runApp(string $root, array $args, string $stdin = '', bool $xdebug = false, bool $interactive = false): array
 {
