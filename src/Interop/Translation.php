@@ -1,0 +1,739 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Interop;
+
+use DressCode\Config;
+use DressCode\Config\{Catalogue, ConfigResolver, Draft, PluginRegistry};
+use DressCode\Domains\{Map, Shapes};
+use function array_key_exists, count, is_array, is_bool, is_int, is_string, sprintf;
+
+
+/**
+ * The DressCode configuration a foreign one translates to, together with what could not be carried over. Two foreign
+ * rules deciding one thing are merged in either order (`merge()`), a value only preferred, or `keep`, giving way to one
+ * set. How far a name is written out the foreign tools decide on two axes, the form of a qualified name and whether a
+ * global one stands bare, which the translation puts together into the decisions of `qualification`.
+ * @internal
+ */
+final class Translation
+{
+	/** no whitespace inside the parentheses of every place `spacing.padding` has for them */
+	public const NoSpaceInParentheses = [
+		'spacing.padding.argument' => 'forbidden',
+		'spacing.padding.parameter' => 'forbidden',
+		'spacing.padding.closureUse' => 'forbidden',
+		'spacing.padding.controlStructure' => 'forbidden',
+		'spacing.padding.grouping' => 'forbidden',
+	];
+
+	/** no whitespace inside the brackets of an array and of a destructuring */
+	public const NoSpaceInArrays = ['spacing.padding.array' => 'forbidden', 'spacing.padding.list' => 'forbidden'];
+
+	/** how firmly a foreign rule gives the value of a decision */
+	private const Kept = 0;
+	private const Preferred = 1;
+	private const Set = 2;
+
+	/** the width the closing comment of the configuration wraps a note at */
+	private const NoteWidth = 92;
+
+	/** @var array<string, mixed>  path => the value of the decision */
+	public private(set) array $decisions = [];
+
+	/** @var array{shape: array<string, string>, fallback: array<string, string>, optimizedCalls: bool} */
+	public private(set) array $qualification = ['shape' => [], 'fallback' => [], 'optimizedCalls' => false];
+
+	/** @var list<string> */
+	public private(set) array $presets = [];
+
+	public private(set) ?int $lineLength = null;
+
+	/** @var list<string>  paths the foreign rule sets under options other than those given */
+	public private(set) array $covered = [];
+
+	/** @var array<string, int>  path => how firmly its value is given */
+	private array $firmness = [];
+
+	/** @var array<string, string>  path the foreign rules give values that contradict each other => the note saying so */
+	private array $contradicted = [];
+
+	/** @var array<string, true>  paths whose lists are orders, never united */
+	private array $ordered = [];
+
+	/** @var array<string, true>  paths whose lists name what is allowed, narrowed to what every foreign rule allows */
+	private array $allowances = [];
+
+	/** the foreign rule being translated, which the values placed and the warnings given meanwhile come from */
+	private ?string $rule = null;
+
+	/** @var array<string, list<string>>  path => the foreign rules that gave it its value */
+	private array $origins = [];
+
+	/** @var array<string, array{NoteKind, list<string>}>  what was said => its kind, the foreign rules it is about */
+	private array $notes = [];
+
+
+	public function __construct(
+		/** the indent of the configuration object of PHP CS Fixer, which its fixers of the indentation write */
+		public readonly string $indent = '    ',
+		/** the line ending of the configuration object of PHP CS Fixer, which its `line_ending` writes */
+		public readonly string $lineEnding = "\n",
+		/** the foreign rules read, the rule sets not among them */
+		public readonly int $ruleCount = 0,
+		/** @var list<string>  the foreign rules read that are turned off */
+		private readonly array $disabledRules = [],
+	) {
+	}
+
+
+	public function addPreset(string $name): static
+	{
+		if (!in_array($name, $this->presets, true)) {
+			$this->presets[] = $name;
+		}
+
+		return $this;
+	}
+
+
+	/** The widest line; of two foreign rules naming different ones the narrower is kept, and said so. */
+	public function setLineLength(int $length): static
+	{
+		$this->recordOrigin('file.lineLength');
+		if ($this->lineLength !== null && $this->lineLength !== $length) {
+			$this->addDecisionNote(NoteKind::Difference, 'file.lineLength', sprintf(
+				'the line lengths `%d` and `%d` are named; DressCode has one and keeps the narrower.',
+				min($this->lineLength, $length),
+				max($this->lineLength, $length),
+			));
+		}
+
+		$this->lineLength = min($this->lineLength ?? $length, $length);
+		return $this;
+	}
+
+
+	/** The value of a decision, merged with what another foreign rule gave it. */
+	public function set(string $path, mixed $value): static
+	{
+		$this->place($path, $value, self::Set);
+		return $this;
+	}
+
+
+	/** The value of a decision unless another foreign rule sets it, which then wins in either order. */
+	public function prefer(string $path, mixed $value): static
+	{
+		$this->place($path, $value, self::Preferred);
+		return $this;
+	}
+
+
+	/**
+	 * The values of several decisions.
+	 * @param  array<string, mixed>  $values  path => value
+	 */
+	public function setAll(array $values): static
+	{
+		foreach ($values as $path => $value) {
+			$this->set($path, $value);
+		}
+
+		return $this;
+	}
+
+
+	/** The decisions the foreign rule sets under other options, which the rule covers whatever it sets under these. */
+	public function cover(string ...$paths): static
+	{
+		$this->covered = array_values(array_unique([...$this->covered, ...$paths]));
+		return $this;
+	}
+
+
+	/**
+	 * The value for every place of the kind `blocks` of the group, which a translation writes out place by place.
+	 * @return array<string, mixed>  path => the value
+	 */
+	public static function expandBlocks(string $group, mixed $value): array
+	{
+		return array_fill_keys(array_map(fn(string $place) => "$group.$place", Catalogue::PlaceKinds['blocks']), $value);
+	}
+
+
+	/**
+	 * The blank lines of a place, a count or the range from `$min` to `$max`; a count another foreign rule gave the place
+	 * widens it to the range of both, and the translation says so.
+	 */
+	public function setBlankLines(string $path, int $min, int $max): static
+	{
+		return $this->set($path, $min === $max ? $min : [$min, $max]);
+	}
+
+
+	/**
+	 * An order whose sequence carries meaning; another foreign rule setting a different one contradicts it instead of
+	 * uniting with it.
+	 * @param  list<string>  $order
+	 */
+	public function setOrder(string $path, array $order): static
+	{
+		$this->ordered[$path] = true;
+		return $this->set($path, $order);
+	}
+
+
+	/**
+	 * A list of what is allowed; another foreign rule allowing a different one narrows it to what both allow instead of
+	 * uniting with it, and one setting a single value the list allows narrows it to that value.
+	 * @param  list<string>  $allowed
+	 */
+	public function setAllowed(string $path, array $allowed): static
+	{
+		$this->allowances[$path] = true;
+		return $this->set($path, $allowed);
+	}
+
+
+	/** The value of a decision as it is given, whatever the foreign rules gave it before. */
+	public function replace(string $path, mixed $value): static
+	{
+		$this->decisions[$path] = $value;
+		$this->firmness[$path] = self::Set;
+		unset($this->contradicted[$path]);
+		return $this;
+	}
+
+
+	/** The decision left out of the translation, whatever the foreign rules gave it. */
+	public function remove(string $path): static
+	{
+		unset($this->decisions[$path], $this->firmness[$path], $this->contradicted[$path]);
+		return $this;
+	}
+
+
+	/**
+	 * The decisions a foreign rule turned off stands for, or those a foreign rule governs while allowing either form, `keep`
+	 * unless another foreign rule sets them, which then wins in either order.
+	 */
+	public function keep(string ...$paths): static
+	{
+		foreach ($paths as $path) {
+			$this->place($path, 'keep', self::Kept);
+		}
+
+		return $this;
+	}
+
+
+	/** A value merges with one given as firmly, replaces one given less firmly and gives way to one given more. */
+	private function place(string $path, mixed $value, int $firmness): void
+	{
+		$firmness = $value === 'keep' ? self::Kept : $firmness;
+		$current = $this->firmness[$path] ?? -1;
+		if ($firmness > $current) {
+			$this->origins[$path] = [];
+			$this->recordOrigin($path);
+			$this->firmness[$path] = $firmness;
+			unset($this->contradicted[$path]);
+			$this->decisions[$path] = $value;
+
+		} elseif ($firmness === $current && isset($this->contradicted[$path])) {
+			$this->recordOrigin($path);
+			$this->noteContradiction($path);
+
+		} elseif ($firmness === $current) {
+			$this->recordOrigin($path);
+			$merged = $this->merge($path, $this->decisions[$path] ?? null, $value);
+			if (isset($this->contradicted[$path])) {
+				unset($this->decisions[$path]);
+			} else {
+				$this->decisions[$path] = $merged;
+			}
+		}
+	}
+
+
+	private function recordOrigin(string $path): void
+	{
+		if ($this->rule !== null && !in_array($this->rule, $this->origins[$path] ?? [], true)) {
+			$this->origins[$path][] = $this->rule;
+		}
+	}
+
+
+	/**
+	 * The value two foreign rules give a decision together: a list the union unless it is an order, or what both allow
+	 * where it names what is allowed, which a single value set inside it narrows to that value, a map key by key, a
+	 * boolean true when either says true, counts of blank lines the range of both; values that contradict each other
+	 * mark the decision, which leaves it out, and are said so.
+	 */
+	private function merge(string $path, mixed $old, mixed $value): mixed
+	{
+		$isCount = fn(mixed $v) => is_int($v) || (is_array($v) && array_is_list($v) && count($v) === 2 && is_int($v[0]));
+		if ($old === $value) {
+			return $old;
+
+		} elseif (str_starts_with($path, 'blankLines.') && $isCount($old) && $isCount($value)) {
+			$this->addDecisionNote(
+				NoteKind::Difference,
+				$path,
+				"the blank lines of `$path` are counted differently; DressCode has one count there and takes the range of them all.",
+			);
+			[$oldMin, $oldMax] = is_int($old) ? [$old, $old] : $old;
+			[$min, $max] = is_int($value) ? [$value, $value] : $value;
+			$range = [min($min, $oldMin), $max === null || $oldMax === null ? null : max($max, $oldMax)];
+			return $range[0] === $range[1] ? $range[0] : $range;
+
+		} elseif (is_array($old) && is_array($value) && array_is_list($old) && array_is_list($value) && isset($this->allowances[$path])) {
+			return array_values(array_intersect($old, $value));
+
+		} elseif (isset($this->allowances[$path]) && is_string($value) && is_array($old) && in_array($value, $old, true)) {
+			// a single value one foreign rule sets inside what the other one allows narrows it to that value, in either order
+			return $value;
+
+		} elseif (isset($this->allowances[$path]) && is_string($old) && is_array($value) && in_array($old, $value, true)) {
+			return $old;
+
+		} elseif (is_array($old) && is_array($value) && array_is_list($old) && array_is_list($value) && !isset($this->ordered[$path])) {
+			return array_values(array_unique([...$old, ...$value], SORT_REGULAR));
+
+		} elseif (
+			is_array($old) && is_array($value) && !isset($this->ordered[$path])
+			&& !array_all([...array_keys($old), ...array_keys($value)], fn($key) => is_string($key))
+		) {
+			return $this->mergeBareNames($path, $old, $value);
+
+		} elseif (is_array($old) && is_array($value)) {
+			foreach ($value as $key => $item) {
+				$old[$key] = array_key_exists($key, $old) ? $this->merge($path, $old[$key], $item) : $item;
+			}
+
+			return $old;
+
+		} elseif (is_bool($old) && is_bool($value)) {
+			return $old || $value;
+		}
+
+		$this->noteContradiction($path);
+		return $old;
+	}
+
+
+	/** Marks the decision as contradicted, the note about it naming all the foreign rules that have given it a value so far. */
+	private function noteContradiction(string $path): void
+	{
+		unset($this->notes[$this->contradicted[$path] ?? '']);
+		$this->contradicted[$path] = $this->formatDecisionNote(
+			$path,
+			"the values given to `$path` contradict each other; DressCode leaves it out, for the configuration to set by hand.",
+		);
+		$this->addNote(NoteKind::Request, $this->contradicted[$path], $this->origins[$path] ?? []);
+	}
+
+
+	/**
+	 * Two maps holding names standing alone, `[print_r]`, merged by the name, a name alone giving way to an entry of it.
+	 * @param  array<mixed>  $old
+	 * @param  array<mixed>  $value
+	 * @return array<mixed>
+	 */
+	private function mergeBareNames(string $path, array $old, array $value): array
+	{
+		$entries = [];
+		foreach ([$old, $value] as $map) {
+			foreach ($map as $key => $item) {
+				if (is_int($key)) {
+					$entries[(string) $item] ??= null;
+				} else {
+					$entries[$key] = isset($entries[$key]) ? $this->merge($path, $entries[$key], $item) : $item;
+				}
+			}
+		}
+
+		return Map::collapseBareNames($entries);
+	}
+
+
+	/**
+	 * The form a qualified name is written in, `imported`, `backslashed` or `keep`, by the kind of name: `class`,
+	 * `function` and `constant` of every name, `globalClass`, `globalFunction` and `globalConstant` of a global one,
+	 * `optimizedFunction` and `optimizedConstant` of one the compiler works with.
+	 * @param  array<string, string>  $shapes
+	 */
+	public function setQualificationShape(array $shapes): static
+	{
+		$this->qualification['shape'] = $shapes + $this->qualification['shape'];
+		return $this;
+	}
+
+
+	/**
+	 * Whether a global function or constant stands `qualified`, `bare` or as written (`keep`): `function` and `constant`
+	 * of every one, `optimizedFunction` of a call the compiler optimizes and `optimizedConstant` of a constant it
+	 * computes with.
+	 * @param  array<string, string>  $fallbacks
+	 */
+	public function setQualificationFallback(array $fallbacks): static
+	{
+		$this->qualification['fallback'] = $fallbacks + $this->qualification['fallback'];
+		return $this;
+	}
+
+
+	/** A call the compiler optimizes is written in the form the optimization takes, its arguments included. */
+	public function markCallsOptimized(): static
+	{
+		$this->qualification['optimizedCalls'] = true;
+		return $this;
+	}
+
+
+	/** Says how the foreign rule being translated differs from what DressCode does. */
+	public function warn(string $message): static
+	{
+		return $this->addNote(NoteKind::Difference, $message, $this->rule === null ? [] : [$this->rule]);
+	}
+
+
+	/** Says what the project has to settle by hand. */
+	public function request(string $message): static
+	{
+		return $this->addNote(NoteKind::Request, $message, $this->rule === null ? [] : [$this->rule]);
+	}
+
+
+	/** Says that no DressCode rule stands for the foreign one. */
+	public function markUncovered(string $rule): static
+	{
+		return $this->addNote(NoteKind::Uncovered, "No DressCode rule covers `$rule`.", [$rule]);
+	}
+
+
+	/** Says what became of a decision, in a note opening with the foreign rules that gave it its value. */
+	public function addDecisionNote(NoteKind $kind, string $path, string $text): static
+	{
+		return $this->addNote($kind, $this->formatDecisionNote($path, $text), $this->origins[$path] ?? []);
+	}
+
+
+	private function formatDecisionNote(string $path, string $text): string
+	{
+		$rules = $this->origins[$path] ?? [];
+		sort($rules); // the same note whichever of the rules came first
+		return ($rules ? '`' . implode('`, `', $rules) . '`: ' : '') . $text;
+	}
+
+
+	/** @param  list<string>  $rules */
+	private function addNote(NoteKind $kind, string $message, array $rules): static
+	{
+		$rules = array_unique([...$this->notes[$message][1] ?? [], ...$rules]);
+		sort($rules);
+		$this->notes[$message] = [$kind, $rules];
+		return $this;
+	}
+
+
+	/**
+	 * Translates the foreign rule, what it places and warns about remembered as coming from it.
+	 * @param  \Closure(): void  $translate
+	 */
+	public function translateRule(string $rule, \Closure $translate): void
+	{
+		$this->rule = $rule;
+		try {
+			$translate();
+		} finally {
+			$this->rule = null;
+		}
+	}
+
+
+	/**
+	 * How the foreign rules read were carried over, each counted once under the worst that was said of it; `off` are
+	 * those of `whole` turned off, `general` what the project has to settle that is about no rule.
+	 * @return array{whole: int, off: int, difference: int, request: int, uncovered: int, general: int}
+	 */
+	public function countRules(): array
+	{
+		$uncovered = $this->collectRules(NoteKind::Uncovered);
+		$requested = $this->listRequestedRules();
+		$differing = array_diff($this->collectRules(NoteKind::Difference), $requested, $uncovered);
+		$noted = [...$uncovered, ...$requested, ...$differing];
+		return [
+			'whole' => $this->ruleCount - count($noted),
+			'off' => count(array_diff($this->disabledRules, $noted)),
+			'difference' => count($differing),
+			'request' => count($requested),
+			'uncovered' => count($uncovered),
+			'general' => count($this->describeUntranslated())
+				+ count(array_filter($this->selectNotes(NoteKind::Request), fn(array $note) => $note[1] === [])),
+		];
+	}
+
+
+	/**
+	 * The foreign rules the project has to finish by hand, in the order of their names.
+	 * @return list<string>
+	 */
+	public function listRequestedRules(): array
+	{
+		$rules = array_diff($this->collectRules(NoteKind::Request), $this->collectRules(NoteKind::Uncovered));
+		sort($rules);
+		return $rules;
+	}
+
+
+	/** @return list<array{kind: string, rules: list<string>, message: string}> */
+	public function listNotes(): array
+	{
+		$list = [];
+		foreach ($this->notes as $message => [$kind, $rules]) {
+			$list[] = ['kind' => $kind->value, 'rules' => $rules, 'message' => $message];
+		}
+
+		return $list;
+	}
+
+
+	/** @return list<string> */
+	private function collectRules(NoteKind $kind): array
+	{
+		return array_values(array_unique(array_merge(...array_column($this->selectNotes($kind), 1))));
+	}
+
+
+	/** @return array<string, array{NoteKind, list<string>}> */
+	private function selectNotes(NoteKind $kind): array
+	{
+		return array_filter($this->notes, fn(array $note) => $note[0] === $kind);
+	}
+
+
+	/**
+	 * The configuration the translation gives, the presets and the decisions they do not give already, to be written, and
+	 * after them what was not carried over, which outlives the output in the file.
+	 * @param  string  $provenance  what the file opens with, where it comes from
+	 */
+	public function toDraft(string $provenance = ''): Draft
+	{
+		$notes = $this->formatNotes();
+		$pointer = $notes === '' ? '' : 'What could not be carried over is at the end of this file.';
+		$draft = new Draft(implode("\n", array_filter([$provenance, $pointer])), $notes);
+		$draft->setUse(array_map(PluginRegistry::abbreviate(...), $this->presets));
+		foreach ($this->collectOwnDecisions() as $path => $value) {
+			$draft->setDecision($path, $value);
+		}
+
+		return $draft;
+	}
+
+
+	/** What was not carried over, as the closing comment of the configuration; empty where nothing is left to say. */
+	public function formatNotes(): string
+	{
+		$uncovered = $this->collectRules(NoteKind::Uncovered);
+		sort($uncovered);
+		$sections = [
+			['Waiting for you', '!', [...$this->describeUntranslated(), ...array_keys($this->selectNotes(NoteKind::Request))]],
+			['Works a little differently', '~', array_keys($this->selectNotes(NoteKind::Difference))],
+			['No DressCode rule, so nothing checks these now', '✗', $uncovered === [] ? [] : [implode(', ', $uncovered)]],
+		];
+		$out = '';
+		foreach ($sections as [$title, $mark, $notes]) {
+			$out .= $notes === [] ? '' : "\n$title\n";
+			foreach ($notes as $note) {
+				$out .= "  $mark " . self::wrapNote($note) . "\n";
+			}
+		}
+
+		return $out === ''
+			? ''
+			: rtrim("Left behind by the translation. Delete this block and the comment at the top once it is dealt with.\n$out");
+	}
+
+
+	/** The note broken into lines at its spaces, never inside its code, the further lines indented. */
+	private static function wrapNote(string $note): string
+	{
+		$glued = (string) preg_replace_callback('~`[^`]+`~', fn(array $code) => strtr($code[0], ' ', "\0"), $note);
+		return strtr(str_replace("\n", "\n      ", wordwrap($glued, self::NoteWidth)), "\0", ' ');
+	}
+
+
+	/** @return list<string>  the sentence saying what every configuration needs and this one lacks, if any */
+	private function describeUntranslated(): array
+	{
+		$untranslated = $this->findUntranslated();
+		$several = count($untranslated) > 1;
+		return $untranslated === [] ? [] : [sprintf(
+			'%s %s not translated; set %s with `%s`.',
+			ucfirst(implode(' and ', $untranslated)),
+			$several ? 'are' : 'is',
+			$several ? 'them' : 'it',
+			implode('` and `', array_keys($untranslated)),
+		)];
+	}
+
+
+	/**
+	 * The paths of the decisions the translation sets, those of the qualification included.
+	 * @return list<string>
+	 */
+	public function getPaths(): array
+	{
+		return array_keys($this->collectDecisions());
+	}
+
+
+	/**
+	 * What every configuration needs and the translation without a preset leaves to the defaults: the indentation and
+	 * the line ending.
+	 * @return array<string, string>  path => what it is
+	 */
+	public function findUntranslated(): array
+	{
+		return $this->presets ? [] : array_diff_key(
+			['indentation.unit' => 'the indentation', 'file.lineEnding' => 'the line ending'],
+			array_flip($this->getPaths()),
+		);
+	}
+
+
+	/**
+	 * The decisions, those the two axes of the qualification come to among them, what they leave as it is left to the presets.
+	 * @return array<string, mixed>  path => value
+	 */
+	private function collectDecisions(): array
+	{
+		$decisions = $this->decisions;
+		if ($this->qualification !== ['shape' => [], 'fallback' => [], 'optimizedCalls' => false]) {
+			$defaults = self::translateQualification([], [], optimizedCalls: false);
+			foreach (self::translateQualification(...array_values($this->qualification)) as $path => $value) {
+				if ($defaults[$path] !== $value) {
+					$decisions[$path] = $value;
+				}
+			}
+		}
+
+		if ($this->lineLength !== null) {
+			$decisions['file.lineLength'] = $this->lineLength;
+		}
+
+		// a range is kept as its two ends and a shape as its word while the foreign rules meet, and both are written as
+		// the configuration writes them
+		static $catalogue;
+		$catalogue ??= new ConfigResolver(new PluginRegistry)->getCatalogue();
+		foreach ($decisions as $path => $value) {
+			$domain = $catalogue->find($path)?->domain;
+			if (str_starts_with($path, 'blankLines.')) {
+				$decisions[$path] = self::writeRanges($value);
+			} elseif ($domain instanceof Shapes && is_string($value) && isset($domain->shapes[$value])) {
+				$decisions[$path] = $domain->getExample($value);
+			} elseif ($domain instanceof Shapes && is_array($value) && array_all($value, fn($word) => isset($domain->shapes[$word]))) {
+				$decisions[$path] = array_map($domain->getExample(...), $value);
+			}
+		}
+
+		return $decisions;
+	}
+
+
+	/**
+	 * The decisions less those whose value the presets of the translation give already, which the configuration then
+	 * need not write.
+	 * @return array<string, mixed>  path => value as the configuration writes it
+	 */
+	public function collectOwnDecisions(): array
+	{
+		$given = $this->presets === []
+			? []
+			: new ConfigResolver(new PluginRegistry)->resolve(new Config(use: $this->presets), Config::DefaultPhpVersion)->decisions;
+		return array_filter(
+			$this->collectDecisions(),
+			fn(mixed $value, string $path) => !isset($given[$path])
+				|| $given[$path]->decision->accept($value)->toData() !== $given[$path]->value->toData(),
+			ARRAY_FILTER_USE_BOTH,
+		);
+	}
+
+
+	/** The count as the configuration writes it, `0-1` or `1+` for a range, and so each count of a map. */
+	private static function writeRanges(mixed $value): mixed
+	{
+		return match (true) {
+			is_array($value) && array_keys($value) === [0, 1] && is_int($value[0]) => $value[0] . ($value[1] === null ? '+' : "-$value[1]"),
+			is_array($value) => array_map(self::writeRanges(...), $value),
+			default => $value,
+		};
+	}
+
+
+	/**
+	 * The decisions of the global and the other names the two axes come to: the form of a qualified name, and whether
+	 * a global function or constant stands qualified or bare, which the compiler may decide apart.
+	 * @param  array<string, string>  $shape
+	 * @param  array<string, string>  $fallback
+	 * @return array<string, mixed>  path => value
+	 */
+	private static function translateQualification(array $shape, array $fallback, bool $optimizedCalls): array
+	{
+		$values = [
+			'qualification.class.otherNamespace' => $shape['class'] ?? 'keep',
+			'qualification.class.global' => $shape['globalClass'] ?? $shape['class'] ?? 'keep',
+			'qualification.function.otherNamespace' => $shape['function'] ?? 'keep',
+			'qualification.constant.otherNamespace' => $shape['constant'] ?? 'keep',
+		];
+		// a name of the namespace of the file is shortened to the bare name, the import of it being no form there
+		foreach (['class', 'function', 'constant'] as $kind) {
+			$values["qualification.$kind.currentNamespace"] = match ($shape[$kind] ?? null) {
+				'imported' => 'bare',
+				'backslashed' => 'backslashed',
+				default => 'keep',
+			};
+		}
+
+		foreach (['Function', 'Constant'] as $kind) {
+			$form = $shape['global' . $kind] ?? $shape[lcfirst($kind)] ?? null;
+			$global = self::combine($fallback[lcfirst($kind)] ?? null, $form);
+			$optimized = match ($fallback['optimized' . $kind] ?? null) {
+				'bare' => 'bare',
+				'qualified' => self::combine('qualified', $shape['optimized' . $kind] ?? $form),
+				default => 'keep',
+			};
+			// the arguments of an optimized call written positionally are an intent of their own, the call then qualified
+			if ($optimized === 'keep' && $global === 'keep' && $kind === 'Function' && $optimizedCalls) {
+				$optimized = 'imported';
+			}
+
+			$values['qualification.' . lcfirst($kind) . '.global'] = $global;
+			// the optimized ones the foreign rules do not tell apart follow every global one
+			$values['qualification.' . lcfirst($kind) . '.optimized'] = $optimized === 'keep' ? $global : $optimized;
+		}
+
+		return $values;
+	}
+
+
+	/**
+	 * The forms a global name stands in, from whether it stands qualified or bare and the form of a qualified one; a
+	 * bare one takes the backslash away and leaves an import.
+	 * @return string|list<string>
+	 */
+	private static function combine(?string $fallback, ?string $shape): string|array
+	{
+		$qualified = $shape === 'keep' ? null : $shape;
+		return match ($fallback) {
+			'bare' => $qualified === 'imported' ? ['bare', 'imported'] : 'bare',
+			'qualified' => $qualified ?? ['imported', 'backslashed'],
+			default => $qualified === null ? 'keep' : [$qualified, 'bare'],
+		};
+	}
+}

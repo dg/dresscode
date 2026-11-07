@@ -125,3 +125,13 @@ function ruleSlug(DressCode\Rule|string $rule): string
 	$short = substr($class, (int) strrpos('\\' . $class, '\\'));
 	return str_ends_with($short, 'Rule') && $short !== 'Rule' ? lcfirst(substr($short, 0, -4)) : $short;
 }
+
+
+/**
+ * What a translation said, as it said it.
+ * @return list<string>
+ */
+function noteMessages(DressCode\Interop\Translation $translation): array
+{
+	return array_column($translation->listNotes(), 'message');
+}
