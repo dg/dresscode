@@ -28,24 +28,26 @@ final class Loader
 
 	/**
 	 * The root is the directory of the configuration file, and without one that of the nearest `composer.json`, else
-	 * the directory itself.
+	 * the directory itself; a root given wins over all of them.
 	 * @param  ?string  $file  the configuration file, or null to search from the directory upwards
 	 * @param  ?Config  $default  what applies when there is no configuration file
 	 * @return array{Config, string, ?string}  the configuration, the root directory with slashes, and the file it came from
 	 * @throws ConfigurationException
 	 */
-	public static function load(?string $file, string $directory, ?Config $default = null): array
+	public static function load(?string $file, string $directory, ?Config $default = null, ?string $root = null): array
 	{
 		$file ??= self::find($directory);
 		if ($file === null) {
 			$config = $default ?? throw new ConfigurationException(
 				"No `dresscode.neon` or `dresscode.php` found in `$directory` or above it, so there is no dress code to check against. Name a standard with `--use`.",
 			);
-			$composer = ComposerJson::findFile($directory);
-			$root = $composer === null ? $directory : dirname($composer);
+			if ($root === null) {
+				$composer = ComposerJson::findFile($directory);
+				$root = $composer === null ? $directory : dirname($composer);
+			}
 		} else {
 			$config = self::loadFile($file);
-			$root = dirname($file);
+			$root ??= dirname($file);
 		}
 
 		$root = realpath($root) ?: $root;
