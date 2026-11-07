@@ -120,6 +120,40 @@ test('upgrade today says which packages are installed newer than required, and w
 });
 
 
+test('upgrade today installs the upgrading data a library of the project needs only when asked, or with --yes', function () {
+	$root = createTempDir('upgrade-data');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2", "nette/utils": "^4.0"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\ncacheDir: cache\n");
+	file_put_contents("$root/src/a.php", "<?php\n");
+	// what Packagist said of the packages of upgrading data, remembered, so that the test asks it nothing
+	FileSystem::write("$root/cache/data-packages.json", '{"dresscode/upgrade-nette": ["nette/", "latte/latte"]}');
+	FileSystem::write(
+		"$root/vendor/composer/installed.json",
+		'{"packages": [{"name": "nette/utils", "version": "4.0.0", "version_normalized": "4.0.0.0", "install-path": "../nette/utils"}]}',
+	);
+
+	// outside a terminal it says how to install the data, and changes nothing
+	[$exit, , $err] = runApp($root, ['upgrade', 'today', '--no-color']);
+	Assert::same(3, $exit);
+	Assert::match(
+		"Error: The libraries of the project have upgrading data in `dresscode/upgrade-nette`, which DressCode does not have; install it with `composer require --working-dir=%a% dresscode/upgrade-nette`, or let `dresscode upgrade today --yes` do it.\n%A?%",
+		$err,
+	);
+
+	// in a terminal it asks, and declined it upgrades without the data
+	[$exit, $out] = runApp($root, ['upgrade', 'today', '--no-color'], stdin: "n\n", interactive: true);
+	Assert::same(0, $exit);
+	Assert::match('%A%Install it beside DressCode in `%a%`?%A%', $out);
+
+	// a format for a tool asks nothing in a terminal either
+	[$exit, $out, $err] = runApp($root, ['upgrade', 'today', '--format', 'json'], stdin: "y\n", interactive: true);
+	Assert::same(3, $exit);
+	Assert::contains('or let `dresscode upgrade today --yes` do it.', $err);
+	Assert::notContains('Install it', $out);
+});
+
+
 test('upgrade today runs the rules the maps of a package of upgrading data turn on, check only where use names it', function () {
 	require_once __DIR__ . '/fixtures/upgrade-plugin.php';
 	$root = createTempDir('upgrade-plugin');

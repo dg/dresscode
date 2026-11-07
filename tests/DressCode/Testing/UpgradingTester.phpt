@@ -244,12 +244,39 @@ test('a key under extra.dresscode that DressCode does not read is a problem', fu
 	$file = "package: acme/lib\n\nsince 3.0:\n\treplacedClasses:\n\t\tAcme\\Lib\\IControl: Acme\\Lib\\Control\n";
 	Assert::same(
 		[],
-		check($file, '{"name": "acme/rules", "extra": {"dresscode": {"upgrading-dir": "upgrading", "plugin": "Acme\\\\Rules"}}}'),
+		check(
+			$file,
+			'{"name": "acme/rules", "extra": {"dresscode": {"upgrading-dir": "upgrading", "packages": ["acme/lib"], "plugin": "Acme\\\\Rules"}}}',
+		),
 	);
 	Assert::same([], check($file, '{"name": "acme/rules", "extra": {"branch-alias": {}}}'));
 	Assert::same(
-		['Package `acme/rules`: `extra.dresscode` in its `composer.json` holds the key `upgrades`, which DressCode does not know; it reads `upgrading-dir`, `plugin`.'],
+		['Package `acme/rules`: `extra.dresscode` in its `composer.json` holds the key `upgrades`, which DressCode does not know; it reads `upgrading-dir`, `packages`, `plugin`.'],
 		check($file, '{"name": "acme/rules", "extra": {"dresscode": {"upgrading-dir": "upgrading", "upgrades": []}}}'),
+	);
+});
+
+
+test('the packages a package lists are exactly those its upgrading files are about', function () {
+	$root = createTempDir('upgrading-packages');
+	FileSystem::write("$root/upgrading/lib.neon", "package: acme/lib\n");
+	FileSystem::write("$root/upgrading/tools.neon", "package: acme/tools\n");
+	$problems = function (string $packages) use ($root): array {
+		FileSystem::write(
+			"$root/composer.json",
+			'{"name": "acme/rules", "extra": {"dresscode": {"upgrading-dir": "upgrading", "packages": ' . $packages . '}}}',
+		);
+		return UpgradingTester::collectPackageProblems($root);
+	};
+
+	Assert::same([], $problems('["acme/lib", "acme/tools"]'));
+	Assert::same([], $problems('["acme/"]'));
+	Assert::same(
+		[
+			'Package `acme/rules`: `extra.dresscode.packages` in its `composer.json` does not list `acme/tools`, which `upgrading/tools.neon` is about.',
+			'Package `acme/rules`: `extra.dresscode.packages` in its `composer.json` lists `acme/gone`, which no upgrading file is about.',
+		],
+		$problems('["acme/lib", "acme/gone"]'),
 	);
 });
 
