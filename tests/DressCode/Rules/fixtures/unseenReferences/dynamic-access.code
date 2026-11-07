@@ -1,0 +1,24 @@
+<?php
+// {"unseen": {"dynamicAccess": "reported"}}
+
+namespace App;
+
+function run(object $object, string $method, string $class, callable $callback): void
+{
+	$object->$method();
+	$object->{$method . 'Async'}();
+	$object->send();
+	echo $object->$method;
+	echo $object->name;
+	$class::create();
+	Factory::$method();
+	Factory::create();
+	new $class;
+	new Factory;
+	new class {};
+	$callback();
+	call_user_func($callback);
+	call_user_func('App\helper');
+	\call_user_func_array([$object, $method], []);
+	helper();
+}

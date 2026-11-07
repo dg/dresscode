@@ -99,6 +99,7 @@ test('every name is built in the shape of its kind', function () use ($rules) {
 		'lineLength', // the example of a decision: the noun of the construct, the width its value
 		'redundantArguments', // says the state of the arguments it drops, which `hygiene.defaultArgument` names
 		'phpdocAboveAttributes', // says the state, in the words of the two constructs
+		'unseenReferences', // names what it reports, the references an upgrade cannot see, which it never fixes
 	];
 
 	$outside = [];

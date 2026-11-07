@@ -1,0 +1,12 @@
+<?php
+// {"unseen": {"classNameString": "reported"}, "api": {"replacedClasses": {"Acme\\Mail\\OldMailer": "Acme\\Mail\\Mailer"}, "forbiddenClasses": {"Acme\\Legacy\\Gateway": "there is no replacement"}}}
+
+namespace App;
+
+$a = 'Acme\Mail\OldMailer';
+$b = '\Acme\Legacy\Gateway';
+$c = 'acme\mail\oldmailer';
+$d = 'OldMailer';
+$e = 'Acme\Mail\Mailer';
+$f = "Acme\\Mail\\OldMailer";
+$g = 'Acme\Mail\OldMailer is gone';
