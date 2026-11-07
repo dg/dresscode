@@ -9,7 +9,7 @@ namespace DressCode\Console;
 
 use DressCode\{Config, Reporter, Reporters};
 use DressCode\Config\{PluginRegistry, ResolvedProject};
-use DressCode\Console\Commands\{CheckOptions, ConfigOptions, RunOptions};
+use DressCode\Console\Commands\{CheckOptions, ConfigOptions, RunOptions, TodayUpgrade};
 use DressCode\Engine\{Baseline, FileSummary, Helpers, LineRanges, Runner, RunResult, Worker, WorkerPool};
 use Nette\CommandLine\{Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
@@ -17,8 +17,8 @@ use function count, in_array, is_string, sprintf, strlen;
 
 
 /**
- * The run over the files of the project, or over the code of stdin, which `check`, `fix` and `baseline` share: the
- * workers, the reporter, the progress and the review of the risky fixes.
+ * The run over the files of the project, or over the code of stdin, which `check`, `fix`, `baseline` and `upgrade today` share:
+ * the workers, the reporter, the progress and the review of the risky fixes.
  * @internal
  */
 final readonly class RunExecutor
@@ -32,6 +32,7 @@ final readonly class RunExecutor
 	/**
 	 * @param  ?CheckOptions  $check  what check and fix take beyond the run, null for the baseline
 	 * @param  bool  $generate  the baseline command writes the configured baseline, it never reads it
+	 * @param  ?TodayUpgrade  $upgrade  the run of `upgrade today`; null for another command
 	 */
 	public function run(
 		ParseResult $args,
@@ -41,6 +42,7 @@ final readonly class RunExecutor
 		bool $fix = false,
 		bool $generate = false,
 		bool $askRisky = false,
+		?TodayUpgrade $upgrade = null,
 	): int
 	{
 		// `fix --stdin` is the formatter of an editor, which reads the text and the exit code alone
@@ -61,7 +63,9 @@ final readonly class RunExecutor
 			}
 		}
 
-		[$factory, $resolution, $configFile] = $this->context->resolveProject($args, $configuration, $check->only ?? []);
+		[$factory, $resolution, $configFile] = $upgrade === null
+			? $this->context->resolveProject($args, $configuration, $check->only ?? [])
+			: $upgrade->resolve($args, $configuration);
 		[$config, $root] = [$resolution->config, $resolution->root];
 		$fixRisky = in_array(true, $check->fixRisky ?? [], true); // a bare `--fix-risky`, the names given go to the configuration
 		if ($run->worker !== null) { // the parent keeps the cache; the baseline decides what is reported
@@ -161,6 +165,8 @@ final readonly class RunExecutor
 			}
 
 			$this->context->writeHeader($configFile, $resolution, Baseline::findFile($config, $root));
+			$upgrade?->writePreface($resolution);
+
 			$out->setStatus(Markup::formatLabel($out, $fix ? 'Fixing' : 'Checking') . 'looking for files…');
 		}
 
@@ -170,6 +176,7 @@ final readonly class RunExecutor
 			$out->clearStatus();
 		}
 
+		$files = $upgrade?->leaveOutGenerated($files, $root, $preface) ?? $files;
 		if ($preface) {
 			$this->writeScope(files: $files, paths: $scope, root: $root, fix: $fix, narrowed: $paths && $scope !== $paths);
 		}
@@ -192,7 +199,9 @@ final readonly class RunExecutor
 		}
 
 		$jobs = $run->jobs ?? WorkerPool::countDefaultJobs(count($files));
-		$command = $jobs > 1 && $files ? $this->buildWorkerCommand($args, $configuration, $run, $check) : null;
+		$command = $jobs > 1 && $files
+			? $this->buildWorkerCommand($args, $configuration, $run, $check, $upgrade?->getWorkerOptions($resolution) ?? [])
+			: null;
 		$workers = $command
 			? new WorkerPool($command, $jobs, $this->context->workingDirectory, warmFirst: $runner->warmUp !== null)
 			: null;
@@ -216,8 +225,13 @@ final readonly class RunExecutor
 				$runner,
 				$resolution,
 				$run->paths,
+				$upgrade === null ? 'fix' : TodayUpgrade::Command,
 			);
 			$result = $runner->run($files, $fix, $reporter, $workers, $onProgress, $maxWarnings, $lines);
+			if ($upgrade !== null && $preface && $result->countChangedFiles()) {
+				$out->writeLine('Run `dresscode ' . TodayUpgrade::Command . '` again: the code it rewrote may hold more to upgrade.');
+			}
+
 			return $askRisky
 				? $this->review($runner, $result, $files, $root, $maxWarnings, $factory->registry)
 				: $result->getExitCode();
@@ -400,9 +414,16 @@ final readonly class RunExecutor
 	 * The command line of a worker: the same PHP, the same command and configuration; the paths come over the
 	 * connection. Null where there is no PHP to start one with, and the run stays in the process.
 	 * @param  ?CheckOptions  $check  null for the baseline
+	 * @param  list<string>  $extra  what the parent decided for the run beyond its command line
 	 * @return ?list<string>
 	 */
-	private function buildWorkerCommand(ParseResult $args, ConfigOptions $configuration, RunOptions $run, ?CheckOptions $check): ?array
+	private function buildWorkerCommand(
+		ParseResult $args,
+		ConfigOptions $configuration,
+		RunOptions $run,
+		?CheckOptions $check,
+		array $extra = [],
+	): ?array
 	{
 		$php = WorkerPool::buildPhpCommand();
 		if ($php === null) {
@@ -412,8 +433,9 @@ final readonly class RunExecutor
 		$command = [
 			...$php,
 			$this->context->scriptFile,
-			(string) $args->command->name,
+			...explode(' ', $args->command->getFullName()),
 			'--no-color',
+			...$extra,
 		];
 		foreach ([
 			'--config' => (array) $configuration->config,
@@ -498,6 +520,7 @@ final readonly class RunExecutor
 	 * @param  resource  $stream  the same place as the console; a machine-readable format is no text of a console
 	 * @param  string  $root  the paths of the results are relative to it
 	 * @param  list<string>  $paths  the paths as the command line gave them
+	 * @param  string  $command  the command whose `--ask-risky` decides the risky fixes left
 	 */
 	private function createReporter(
 		bool $diff,
@@ -509,6 +532,7 @@ final readonly class RunExecutor
 		Runner $runner,
 		ResolvedProject $resolution,
 		array $paths,
+		string $command = 'fix',
 	): Reporter
 	{
 		return match ($format) {
@@ -542,6 +566,7 @@ final readonly class RunExecutor
 				root: $root,
 				cwd: Helpers::canonicalizePath($this->context->workingDirectory),
 				findDecisionUrl: $registry->findUrl(...),
+				command: $command,
 			),
 		};
 	}
