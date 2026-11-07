@@ -118,6 +118,39 @@ test('upgrade plan writes the steps, upgrade run with a target makes them up to 
 		file_get_contents("$root/src/Code.php"),
 	);
 
+	// what the plan leaves for a human, the code as it stands, which on PHP 8.0 still needs `strftime()`, up to the raise
+	[$exit, $out] = runApp($root, ['upgrade', 'tasks', '--no-types', '--no-color']);
+	Assert::same(0, $exit);
+	Assert::match("%A%OK  no manual task before step 2, raise php to ^8.4\n", $out);
+	$data = json_decode(
+		runApp($root, ['upgrade', 'tasks', '--no-types', '--format', 'json'])[1],
+		associative: true,
+		flags: JSON_THROW_ON_ERROR,
+	);
+	Assert::same(DressCode\Upgrade\PlanFile::identify($root), $data['planIdentity']);
+	Assert::notNull($data['planIdentity']);
+	Assert::same([[], ['step' => 2, 'title' => 'raise php to ^8.4']], [$data['tasks'], $data['due']]);
+	// a file the fixes cannot process leaves the answer incomplete
+	file_put_contents("$root/src/Broken.php", "<?php function {\n");
+	[$exit, $out] = runApp($root, ['upgrade', 'tasks', '--no-types', '--no-color']);
+	Assert::same(2, $exit);
+	Assert::match(<<<'XX'
+		%A%Unverified 1 file the fixes could not process, left as they are
+		  src/Broken.php  %a%
+		FAILED  no manual task before step 2, raise php to ^8.4, in the files the fixes could process
+		XX, $out);
+	unlink("$root/src/Broken.php");
+	// a comment putting a task off without a reason is left before the raise too
+	$code = FileSystem::read("$root/src/Code.php");
+	file_put_contents(
+		"$root/src/Code.php",
+		str_replace("\tstrftime", "\t// dresscode:ignore upgrading.php.deprecatedApi\n\tstrftime", $code),
+	);
+	[$exit, $out] = runApp($root, ['upgrade', 'tasks', '--no-types', '--no-color']);
+	Assert::same(1, $exit);
+	Assert::match("%A%FOUND  manual tasks before step 2, raise php to ^8.4\n", $out);
+	file_put_contents("$root/src/Code.php", $code);
+
 	// a saved plan is run by upgrade run, which waits until the constraint is raised
 	[$exit, , $err] = runApp($root, ['upgrade', 'run', 'php', '8.4', '--no-types', '--offline']);
 	Assert::same(3, $exit);
@@ -145,6 +178,13 @@ test('upgrade plan writes the steps, upgrade run with a target makes them up to 
 		      `}`
 		Waiting    step 3 leaves the manual tasks above: %a%
 		XX, $out);
+	// once the raise is made, the tasks of the steps after it show
+	[$exit, $out] = runApp($root, ['upgrade', 'tasks', '--no-types', '--no-color']);
+	Assert::same(1, $exit);
+	Assert::match(
+		"%A%  src/Code.php:5  Function `strftime()` is deprecated: since PHP 8.1. %A%FOUND  the plan leaves manual tasks\n",
+		$out,
+	);
 
 	// a task confirmed with a reason is done
 	$code = str_replace(
@@ -375,6 +415,7 @@ test('upgrade refuses an option its command does not take, and a target it canno
 	foreach ([
 		[['upgrade'], 'Missing command.'],
 		[['upgrade', 'estimate', '--modernize'], 'Option `--modernize` belongs to command `upgrade today`.'],
+		[['upgrade', 'tasks', '--commit'], 'Option `--commit` belongs to command `upgrade run`.'],
 		[['upgrade', 'today', 'php'], 'Unexpected argument `php`.'],
 		[['upgrade', 'estimate', 'acme/mail'], 'Name the version of `acme/mail` to upgrade to, as `acme/mail 4.0`.'],
 		[['upgrade', 'estimate', 'php', 'next'], 'The version to upgrade to is written as `8.4` or `4.0`, `next` given.'],

@@ -309,7 +309,7 @@ final readonly class PlanRunner
 				);
 			}
 
-			// a place put off without a reason is no more done than one left
+			// a place put off without a reason is no more done than one left, as `upgrade tasks` says
 			$postponed = Postponement::findIn($this->project, $plan->paths);
 			if ($postponed !== []) {
 				return new RunOutcome(RunStop::Tasks, null, $applied, baseline: $testBaseline, postponed: $postponed);
@@ -457,6 +457,46 @@ final readonly class PlanRunner
 		}
 
 		return $baseline;
+	}
+
+
+	/**
+	 * What the fixes of the steps the plan does not leave out leave for a human in the code as it is now, and what the
+	 * check of the whole scope at the end of a run leaves besides, under `deprecations`, and the files they cannot
+	 * process, changing nothing; a task confirmed by a suppression or the baseline is done, and so is not among them.
+	 * @return array{array<string, list<Task>>, array<string, string>}  topic => its tasks, and file => why
+	 * @throws ConfigurationException
+	 */
+	public function findTasks(Plan $plan): array
+	{
+		$satisfied = $this->project->measureSatisfiedRequirements();
+		$declarations = $this->project->resolveNames()->declarations;
+		$tasks = $unprocessed = $found = [];
+		foreach ($plan->findSteps() as $step) {
+			foreach ($step instanceof FixStep ? $step->topics : [] as $topic) {
+				$this->onProgress?->__invoke("looking at $topic");
+				$reporter = $this->runTopic($topic, $satisfied, $declarations, $plan->paths);
+				$tasks[$topic] = $reporter->tasks;
+				$unprocessed += $reporter->unprocessed;
+				foreach ($reporter->tasks as $task) {
+					$found[self::identifyTask($task)] = true;
+				}
+			}
+		}
+
+		$this->onProgress?->__invoke('checking the whole scope');
+		$check = $this->runTopic('deprecations', $satisfied, $declarations, $plan->paths);
+		$tasks['deprecations'] = array_values(array_filter($check->tasks, fn(Task $task) => !isset($found[self::identifyTask($task)])));
+		$unprocessed += $check->unprocessed;
+		return [array_filter($tasks), $unprocessed];
+	}
+
+
+	/** The place and the message of the task, the same for a topic and for the check of the whole scope finding it. */
+	private static function identifyTask(Task $task): string
+	{
+		$violation = $task->violation;
+		return implode("\0", [$task->path, $violation->line, $violation->decision, $violation->message]);
 	}
 
 

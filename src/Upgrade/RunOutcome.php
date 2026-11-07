@@ -42,7 +42,7 @@ final readonly class RunOutcome
 		public array $raisedFiles = [],
 		/** @var list<string>  the files the targets still find something in that a fix changes and no step of the plan did */
 		public array $remaining = [],
-		/** @var list<Postponement>  the comments that put a place of the upgrade off without a reason */
+		/** @var list<Postponement>  the comments that put a place of the upgrade off without a reason, as `upgrade tasks` lists them */
 		public array $postponed = [],
 		/** @var list<string>  what the run tells the user, an analysis that went without or upgrading data it lacked among it */
 		public array $warnings = [],

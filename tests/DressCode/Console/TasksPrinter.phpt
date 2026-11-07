@@ -9,6 +9,17 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
+test('past the limit the tasks are counted by topic, the command listing them named', function () {
+	$task = new Task('src/A.php', new Violation('x.y', 'Write it.', 1, 1, Severity::Error, 'x'));
+	$console = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: false);
+	Assert::same(
+		"Manual     3 tasks the fixes left, `php` 2, `acme/lib` 1: `dresscode upgrade tasks` lists them\n",
+		new TasksPrinter(['php' => [$task, $task], 'empty' => [], 'acme/lib' => [$task]], listed: 2)->print($console),
+	);
+	Assert::contains("  src/A.php:1  Write it.  [x.y]\n", new TasksPrinter(['php' => [$task, $task]], listed: 2)->print($console));
+});
+
+
 test('a task shows its line with the one above and the one below, as code, without the indentation they share', function () {
 	$root = createTempDir('tasks');
 	mkdir("$root/src");

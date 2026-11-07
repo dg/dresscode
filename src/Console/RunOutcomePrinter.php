@@ -23,6 +23,9 @@ final readonly class RunOutcomePrinter
 	/** the version of the document the format `json` writes for a run */
 	public const Version = 1;
 
+	/** the manual tasks a run lists with their code, more of them only counted */
+	private const ListedTasks = 20;
+
 
 	public function __construct(
 		private Plan $plan,
@@ -48,7 +51,9 @@ final readonly class RunOutcomePrinter
 			))) . "\n";
 		}
 
-		$out .= new TasksPrinter($outcome->tasks, $outcome->postponed, $outcome->unprocessed, $this->root)->print($console);
+		$out .= new TasksPrinter(
+			$outcome->tasks, $outcome->postponed, $outcome->unprocessed, $this->root, self::ListedTasks,
+		)->print($console);
 		if ($baseline = $outcome->baseline) {
 			// a test failing before the first step is no regression, so passing the comparison is not passing the tests
 			$out .= Markup::formatLine(
