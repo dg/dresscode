@@ -10,6 +10,7 @@ namespace DressCode\Engine;
 use PhpSyntax\{Node, Token, Trivia};
 use PhpSyntax\Nodes\{FileNode, PlainNodeList, SeparatedNodeList};
 use function count;
+use const PREG_OFFSET_CAPTURE, PREG_UNMATCHED_AS_NULL;
 
 
 /**
@@ -109,19 +110,26 @@ final class Suppression
 
 
 	/**
-	 * The directive the comment holds, `dresscode:ignore upgrading -- why` or one of phpcs: its kind, the names it lists
-	 * and its text; null for none. A directive runs to the end of its comment or its line.
-	 * @return ?array{kind: string, names: string, text: string}
+	 * The directive the comment holds, `dresscode:ignore upgrading -- why` or one of phpcs: its kind, the names it lists,
+	 * the reason after ` -- `, its text and where it starts in the comment; null for none. A directive runs to the end of
+	 * its comment or its line.
+	 * @return ?array{kind: string, names: string, reason: string, text: string, offset: int}
 	 */
-	private static function findDirective(string $comment): ?array
+	public static function findDirective(string $comment): ?array
 	{
 		return preg_match(
-			'~(?:dresscode|phpcs):(ignoreFile|ignore|disable|enable)(?:\s+([\w/.\\\\][\w/.\\\\,\s-]*?))?(?:\s+--(?:\s.*?)?)?(?=\s*(?:\*/|$))~m',
+			'~(?:dresscode|phpcs):(ignoreFile|ignore|disable|enable)(?:\s+([\w/.\\\\][\w/.\\\\,\s-]*?))?(?:\s+--(?:\s(.*?))?)?(?=\s*(?:\*/|$))~m',
 			$comment,
 			$m,
-			PREG_UNMATCHED_AS_NULL,
+			PREG_OFFSET_CAPTURE | PREG_UNMATCHED_AS_NULL,
 		)
-			? ['kind' => (string) $m[1], 'names' => (string) ($m[2] ?? ''), 'text' => (string) $m[0]]
+			? [
+				'kind' => (string) $m[1][0],
+				'names' => (string) ($m[2][0] ?? ''),
+				'reason' => trim((string) ($m[3][0] ?? '')),
+				'text' => (string) $m[0][0],
+				'offset' => $m[0][1],
+			]
 			: null;
 	}
 
