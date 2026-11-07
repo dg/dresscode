@@ -15,3 +15,14 @@ test('what Packagist said is remembered for a day, so the run asks it nothing', 
 	clearstatcache();
 	Assert::same($time, filemtime("$dir/data-packages.json")); // asking Packagist would have written it again
 });
+
+
+test('offline, what is remembered is read however old it is', function () {
+	$dir = createTempDir('data-catalogue-offline');
+	FileSystem::write("$dir/data-packages.json", '{"dresscode/upgrade-nette": ["nette/"]}');
+	touch("$dir/data-packages.json", $time = time() - 10 * 86_400);
+	Assert::same(['dresscode/upgrade-nette' => ['nette/']], DataPackageCatalogue::load($dir, offline: true));
+	clearstatcache();
+	Assert::same($time, filemtime("$dir/data-packages.json"));
+	Assert::same([], DataPackageCatalogue::load(createTempDir('data-catalogue-empty'), offline: true));
+});

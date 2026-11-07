@@ -56,12 +56,19 @@ final class Versions
 
 
 	/** The versions the constraint allows from the version on, `^8.1 || ^9.0` from 8.3 being `^8.1, >=8.3 || ^9.0, >=8.3`. */
-	public static function raiseLowerBound(string $constraint, string $version): string
+	public static function restrictFrom(string $constraint, string $version): string
 	{
-		return implode(' || ', array_map(
-			fn(string $part) => "$part, >=$version",
-			preg_split('~\s*\|\|?\s*~', trim($constraint)) ?: [],
-		));
+		return implode(' || ', array_map(fn(string $part) => "$part, >=$version", self::splitAlternatives($constraint)));
+	}
+
+
+	/**
+	 * The alternatives of the constraint `||` separates, `^3.2` and `^4.0` of `^3.2 || ^4.0`.
+	 * @return list<string>
+	 */
+	public static function splitAlternatives(string $constraint): array
+	{
+		return preg_split('~\s*\|\|?\s*~', trim($constraint), flags: PREG_SPLIT_NO_EMPTY) ?: [];
 	}
 
 

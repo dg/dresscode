@@ -11,7 +11,7 @@ use DressCode\{Config, ConfigurationException};
 use DressCode\Config\{PackageDiscovery, ResolvedProject, RunnerFactory, Versions};
 use DressCode\Console\{CommandContext, Markup};
 use DressCode\Engine\Helpers;
-use DressCode\Upgrade\{Project, UpgradeFiles};
+use DressCode\Upgrade\{Project, UpgradeCheck, UpgradeFiles};
 use Nette\CommandLine\ParseResult;
 use function count;
 
@@ -55,14 +55,13 @@ final readonly class TodayUpgrade
 		$discovered = $project->discoverPackages();
 		$sets = $this->modernize ? ['deprecations', 'modernizations'] : ['deprecations'];
 		$names = $project->resolveNames();
-		$layer = $project->createLayer($discovered->findDataPlugins(), $names->declarations);
+		$layer = $project->createLayer($discovered->findDataPlugins(), types: true, declarations: $names->declarations);
 		$only = $this->only;
 		if ($file !== null && !$only) {
 			$only = [...$project->measureSatisfiedRequirements(), ...$sets, ...$discovered->findReachingPackages()];
 		}
 
-		$factory = new RunnerFactory;
-		$resolution = $factory->resolve($config, $root, $layer, $only ?: null, laid: $sets);
+		[$factory, $resolution] = new UpgradeCheck($layer, $only ?: null, $sets)->resolve($config, $root);
 		return [$factory, $names->warning === null ? $resolution : $resolution->withWarning($names->warning), $file];
 	}
 
