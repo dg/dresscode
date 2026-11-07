@@ -10,11 +10,11 @@ namespace DressCode\Console\Commands;
 use DressCode\{Analyses, Config, ConfigurationException, Tristate};
 use DressCode\Config\{PackageDiscovery, ProjectPackages, Versions};
 use DressCode\Console\{
-	CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter, TasksPrinter,
+	CommandContext, EstimatePrinter, Markup, PlanPrinter, RunExecutor, RunOutcomePrinter, StatusPrinter, TasksPrinter,
 };
 use DressCode\Engine\{Worker, WorkerPool};
 use DressCode\Upgrade\{
-	Composer, Estimate, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, Postponement, Project, Provenance, RunState, RunStop, Target, UpgradeCheck,
+	Composer, Estimate, Estimator, Plan, PlanBuilder, PlanFile, PlanRunner, PlanStatus, Postponement, Project, Provenance, RunState, RunStop, Target, UpgradeCheck,
 };
 use Nette\CommandLine\{Attributes as Cli, Console, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
@@ -292,6 +292,29 @@ final readonly class UpgradeCommand
 			$left => 1,
 			default => 0,
 		};
+	}
+
+
+	#[Cli\Command('Say where the saved plan stands and what a run keeps to go back, running no fix')]
+	public function status(
+		ParseResult $args,
+		#[Cli\Option('Output format: `console`, or `json` for a tool or an AI agent', alias: '-f', enum: ['console', 'json'])]
+		?string $format,
+		ConfigOptions $configuration,
+	): int
+	{
+		$project = $this->loadProject($args, $configuration);
+		$console = $this->findConsole($format);
+		$plan = PlanFile::read($project->root);
+		$printer = new StatusPrinter($plan, PlanStatus::read($plan, $project));
+		if ($console === null) {
+			$this->writeJson($project, $printer->toArray(), saved: true);
+		} else {
+			self::writeHeader($console, $project);
+			$console->write($printer->print($console));
+		}
+
+		return 0;
 	}
 
 
