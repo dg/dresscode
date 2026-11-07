@@ -46,6 +46,13 @@ final class PlanFile
 	private const StepKeys = ['fix' => ['topics'], 'composer' => ['require', 'update', 'platform'], 'update' => [], 'manual' => ['target']];
 
 
+	/** Whether the project in the root has a saved plan. */
+	public static function exists(string $root): bool
+	{
+		return is_file("$root/" . self::Name);
+	}
+
+
 	/** The identity of the saved plan, a hash of its text, by which a tool tells one plan from another; null without one. */
 	public static function identify(string $root): ?string
 	{
@@ -93,7 +100,7 @@ final class PlanFile
 		}
 
 		foreach ($tests as $key => $command) {
-			if (!str_contains($command, '{junit}')) {
+			if (!TestResults::hasJunitPlaceholder($command)) {
 				$fail("`tests.$key` must be a command writing its JUnit report where `{junit}` stands");
 			}
 		}
@@ -153,7 +160,7 @@ final class PlanFile
 			'steps' => $steps,
 		], fn($value) => $value !== []);
 		$header = '# dresscode upgrade: the plan for ' . implode(', ', array_map(fn(Target $target) => $target->format(), $plan->targets))
-			. "; set `skip: true` to leave a step out\n\n";
+			. "; set `skip: true` to leave a step out, and `dresscode upgrade run` runs what is left\n\n";
 		Helpers::replaceFile("$root/" . self::Name, $header . Neon::encode($data, blockMode: true));
 	}
 

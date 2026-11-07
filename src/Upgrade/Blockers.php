@@ -22,4 +22,11 @@ final readonly class Blockers
 		public ?string $unknown = null,
 	) {
 	}
+
+
+	/** Whether Composer said that nothing of the lock refuses the target. */
+	public function isClear(): bool
+	{
+		return $this->packages === [] && $this->unknown === null;
+	}
 }

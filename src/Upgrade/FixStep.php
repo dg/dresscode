@@ -16,7 +16,7 @@ final readonly class FixStep implements Step
 {
 	public function __construct(
 		public string $title,
-		/** @var list<string>  as `--only` takes them, each made apart */
+		/** @var list<string>  as `--only` takes them, each made and committed apart */
 		public array $topics,
 		public bool $skip = false,
 	) {

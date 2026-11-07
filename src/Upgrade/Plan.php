@@ -37,4 +37,45 @@ final readonly class Plan
 		public array $missingData = [],
 	) {
 	}
+
+
+	/** Whether the plan was made with what is given, the version of DressCode and those of the upgrading data. */
+	public function isMadeWith(Provenance $provenance): bool
+	{
+		return $this->toolVersion === $provenance->tool && $this->dataVersions === $provenance->data;
+	}
+
+
+	/**
+	 * The commands of the tests the plan gives, the whole suite first.
+	 * @return list<string>
+	 */
+	public function listTestCommands(): array
+	{
+		return array_values(array_filter([$this->testCommand, $this->quickTestCommand]));
+	}
+
+
+	/** The command testing after a step: the whole suite where `$whole`, else the quicker one, each standing in for the other. */
+	public function selectTestCommand(bool $whole): ?string
+	{
+		return $whole ? $this->testCommand ?? $this->quickTestCommand : $this->quickTestCommand ?? $this->testCommand;
+	}
+
+
+	/**
+	 * The steps the run makes, those the user left out aside, by their number from 1.
+	 * @return array<int, Step>
+	 */
+	public function findSteps(): array
+	{
+		$steps = [];
+		foreach ($this->steps as $index => $step) {
+			if (!$step->skip) {
+				$steps[$index + 1] = $step;
+			}
+		}
+
+		return $steps;
+	}
 }
