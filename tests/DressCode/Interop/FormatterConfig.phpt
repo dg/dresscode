@@ -6,6 +6,104 @@ use Tester\Assert;
 require __DIR__ . '/../../bootstrap.php';
 
 
+test('the paths a configuration checks are read relative to its own directory, the root among them taking all', function () {
+	$root = createTempDir('foreign-paths');
+	foreach (['conf', 'src', 'lib', 'test'] as $dir) {
+		@mkdir("$root/$dir"); // @ directory may already exist
+	}
+
+	file_put_contents("$root/conf/phpcs.xml", '<?xml version="1.0"?><ruleset name="x"><file>../src</file></ruleset>');
+	Assert::same(['src'], FormatterConfig::fromFile($root, 'conf/phpcs.xml')->paths);
+
+	// a path that does not exist is refused, as the formatter refuses it, rather than leaving the scope to the autoload
+	file_put_contents(
+		"$root/conf/phpcs.xml",
+		'<?xml version="1.0"?><ruleset name="x"><file>../src</file><file>../missing</file></ruleset>',
+	);
+	Assert::exception(
+		fn() => FormatterConfig::fromFile($root, 'conf/phpcs.xml'),
+		DressCode\ConfigurationException::class,
+		'`%a%conf/phpcs.xml` names `../missing`, which does not exist.',
+	);
+
+	// the root takes all, and an absolute path is where it says
+	file_put_contents("$root/phpcs.xml", '<?xml version="1.0"?><ruleset name="x"><file>src</file><file>.</file></ruleset>');
+	Assert::same(['.'], FormatterConfig::fromFile($root, 'phpcs.xml')->paths);
+	file_put_contents("$root/phpcs.xml", '<?xml version="1.0"?><ruleset name="x"><file>' . $root . '/src</file></ruleset>');
+	Assert::same(['src'], FormatterConfig::fromFile($root, 'phpcs.xml')->paths);
+
+	file_put_contents(
+		"$root/.php-cs-fixer.dist.php",
+		"<?php\nreturn (new PhpCsFixer\\Config)->setFinder(PhpCsFixer\\Finder::create()->in(__DIR__ . '/lib')->in(__DIR__ . '/test'));\n",
+	);
+	Assert::same(['lib', 'test'], FormatterConfig::fromFile($root, '.php-cs-fixer.dist.php')->paths);
+
+	// what the finder leaves out by a directory, a path and a name is what the scope leaves out
+	file_put_contents(
+		"$root/.php-cs-fixer.dist.php",
+		"<?php\nreturn (new PhpCsFixer\\Config)->setFinder(PhpCsFixer\\Finder::create()->in(__DIR__ . '/lib')"
+		. "->exclude('Cache')->notPath('#/Fixtures/#')->notName('*.phpt')->notName('/[.]draft[.]php$/'));\n",
+	);
+	$config = FormatterConfig::fromFile($root, '.php-cs-fixer.dist.php');
+	Assert::true($config->excludes('lib/Cache/a.php'));
+	Assert::true($config->excludes('lib/Http/Fixtures/a.php'));
+	Assert::true($config->excludes('lib/Http/a.phpt'));
+	Assert::true($config->excludes('lib/Http/a.draft.php'));
+	Assert::false($config->excludes('lib/Http/a.php'));
+	Assert::same([], $config->unread);
+
+	// a pattern of a name is matched against the name, a finder narrowed by names says it, and appended files alone are the scope
+	file_put_contents(
+		"$root/.php-cs-fixer.dist.php",
+		"<?php\nreturn (new PhpCsFixer\\Config)->setFinder(PhpCsFixer\\Finder::create()->in(__DIR__ . '/lib')"
+		. "->notName('/^Legacy/')->name('Wanted.php'));\n",
+	);
+	$config = FormatterConfig::fromFile($root, '.php-cs-fixer.dist.php');
+	Assert::true($config->excludes('lib/Legacy.php'));
+	Assert::false($config->excludes('lib/OldLegacy.php'));
+	Assert::same(['name()'], $config->unread);
+
+	file_put_contents("$root/test/extra.php", "<?php\n");
+	file_put_contents(
+		"$root/.php-cs-fixer.dist.php",
+		"<?php\nreturn (new PhpCsFixer\\Config)->setFinder(PhpCsFixer\\Finder::create()->append([__DIR__ . '/test/extra.php']));\n",
+	);
+	Assert::same(['test/extra.php'], FormatterConfig::fromFile($root, '.php-cs-fixer.dist.php')->paths);
+});
+
+
+test('a ruleset gives its extensions and the paths it ignores, and says what else of it is not carried over', function () {
+	$root = createTempDir('foreign-ruleset-args');
+	file_put_contents("$root/phpcs.xml", <<<'XX'
+		<?xml version="1.0"?>
+		<ruleset name="x">
+			<arg name="extensions" value="php,inc/php"/>
+			<arg name="ignore" value="*/cache/*"/>
+			<arg name="tab-width" value="8"/>
+			<arg value="sp"/>
+			<arg name="colors"/>
+			<arg name="report" value="full"/>
+			<arg value="n"/>
+			<config name="installed_paths" value="vendor/acme/standard"/>
+			<config name="testVersion" value="8.1-"/>
+			<ini name="memory_limit" value="1G"/>
+			<custom/>
+		</ruleset>
+		XX);
+	$config = FormatterConfig::fromFile($root, 'phpcs.xml');
+	Assert::same(['php', 'inc'], $config->extensions);
+	Assert::true($config->excludes('src/cache/a.php'));
+	Assert::same(
+		['<arg name="tab-width" value="8"/>', '<arg value="n"/>', '<config name="testVersion" value="8.1-"/>', '<custom>'],
+		$config->unread,
+	);
+	Assert::contains(
+		'`<arg name="tab-width" value="8"/>` of `phpcs.xml` is not carried over; what the configuration checks may differ from what PHP_CodeSniffer checked.',
+		noteMessages($config->translate()),
+	);
+});
+
+
 test('without evidence the configurations go in the order of the formatters, a local one before the one distributed', function () {
 	Assert::same([], FormatterSearch::find(createTempDir('foreign-none')));
 	$root = createTempDir('foreign-find');
@@ -79,4 +177,8 @@ test('a preset Laravel Pint does not have is refused, and what of its configurat
 		'`notPath` of `pint.json` is not carried over; what the configuration checks may differ from what Laravel Pint checked.',
 		noteMessages(FormatterConfig::fromFile($root, 'pint.json')->translate()),
 	);
+
+	// a file that is no JSON is told as such
+	file_put_contents("$root/pint.json", '{"preset": ');
+	Assert::same(['pint.json, which is no JSON'], FormatterConfig::fromFile($root, 'pint.json')->unread);
 });
