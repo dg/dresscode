@@ -135,6 +135,7 @@ final readonly class MigrateCommand
 			throw new UsageException("The configuration `$output` appeared meanwhile; remove it, or name another file.", $args->command);
 		}
 
+		$suppressions = new SuppressionMigration(new PluginRegistry()->expandSuppressedName(...))->countInFiles($root, $scope->files);
 		if ($json) {
 			$this->context->writeJson([
 				'version' => self::Version,
@@ -149,6 +150,7 @@ final readonly class MigrateCommand
 				'counts' => $translation->countRules(),
 				'notes' => $translation->listNotes(),
 				'untranslated' => array_keys($translation->findUntranslated()),
+				'suppressions' => $suppressions,
 			]);
 			return 0;
 		}
@@ -157,7 +159,7 @@ final readonly class MigrateCommand
 			$this->context->out->write($text);
 		}
 
-		$printer = new MigrationPrinter($translation, $config->file, $dryRun ? null : $output, $target);
+		$printer = new MigrationPrinter($translation, $config->file, $dryRun ? null : $output, $target, $suppressions);
 		$this->context->err->write(($choice->named ? '' : "\n") . $printer->print($this->context->err));
 		return 0;
 	}

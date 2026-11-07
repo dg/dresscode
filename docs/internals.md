@@ -393,7 +393,8 @@ The fixtures of every rule run again under each standard with the sets beside it
   the migration did and not what the configuration is, a note about a foreign rule counting it once under the worst said
   of it (`NoteKind`), the output those counts in whole sentences and last that the file was written (`MigrationPrinter`),
   with exit code 0 whatever the notes say, a run that wrote the file having done what it was asked,
-  and such a name written as a key of the file, in `--only` or in `fixRisky` is refused with the decisions that cover
-  it. With `--format json` both commands write a document of their `version` and the `root` and nothing
+  and saying how many phpcs suppression comments the files of the scope hold for `dresscode migrate suppressions` to
+  rewrite, and such a name written as a key of the file, in `--only` or in `fixRisky` is refused with the decisions
+  that cover it. With `--format json` both commands write a document of their `version` and the `root` and nothing
   else, `config` the configuration, the file it was written to, the counts, the notes and what stays untranslated,
   and never asking, `suppressions` the counts, the diffs of a dry run and what it kept, widened and skipped.

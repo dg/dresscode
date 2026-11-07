@@ -31,7 +31,7 @@ test('the rules left to the project are named up to five, in the order of their 
 		. "Next, settle what is left by hand; then `dresscode check` shows what the configuration finds in your code.\n"
 		. "\n"
 		. "WRITTEN  x.neon\n",
-		new MigrationPrinter($translation, 'a.php', 'x.neon', '/p/x.neon')->print(migrationConsole()),
+		new MigrationPrinter($translation, 'a.php', 'x.neon', '/p/x.neon', 0)->print(migrationConsole()),
 	);
 });
 
@@ -44,7 +44,7 @@ test('the next step names the rules to finish first', function () {
 	});
 	Assert::contains(
 		'Next, finish that rule; then `dresscode check`',
-		new MigrationPrinter($translation, 'a.php', 'x.neon', '/p/x.neon')->print(migrationConsole()),
+		new MigrationPrinter($translation, 'a.php', 'x.neon', '/p/x.neon', 0)->print(migrationConsole()),
 	);
 });
 
@@ -52,13 +52,13 @@ test('the next step names the rules to finish first', function () {
 test('the written file is a link only in a terminal with colors', function () {
 	$translation = new Translation;
 	$translation->addPreset('dresscode/psr12');
-	$printer = new MigrationPrinter($translation, 'a.php', 'x y.neon', 'W:/p/x y.neon');
+	$printer = new MigrationPrinter($translation, 'a.php', 'x y.neon', 'W:/p/x y.neon', 0);
 	Assert::contains('WRITTEN  x y.neon', $printer->print(migrationConsole()));
 	Assert::contains(
 		"\e]8;;file:///W:/p/x%20y.neon\e\\x y.neon\e]8;;\e\\",
 		$printer->print(migrationConsole(ColorDepth::Ansi256, terminal: true)),
 	);
 
-	$printer = new MigrationPrinter($translation, 'a.php', 'x.neon', '/home/p/x.neon');
+	$printer = new MigrationPrinter($translation, 'a.php', 'x.neon', '/home/p/x.neon', 0);
 	Assert::contains('file:///home/p/x.neon', $printer->print(migrationConsole(ColorDepth::Ansi256, terminal: true)));
 });

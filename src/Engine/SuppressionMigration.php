@@ -9,7 +9,7 @@ namespace DressCode\Engine;
 
 use DressCode\Config\PluginRegistry;
 use PhpSyntax\Nodes\FileNode;
-use PhpSyntax\Trivia;
+use PhpSyntax\{ParseException, Parser, Trivia};
 
 
 /**
@@ -39,6 +39,27 @@ final class SuppressionMigration
 		/** @var \Closure(string): list<string> */
 		private readonly \Closure $expandName,
 	) {
+	}
+
+
+	/**
+	 * The suppression comments of PHP_CodeSniffer the files hold that `migrate()` would rewrite, writing nothing; a file
+	 * that does not parse is migrated neither.
+	 * @param  list<string>  $files  relative to the root
+	 */
+	public function countInFiles(string $root, array $files): int
+	{
+		$count = 0;
+		$parser = new Parser;
+		foreach ($files as $file) {
+			$code = (string) @file_get_contents("$root/$file"); // @ file may have been deleted meanwhile
+			try {
+				$count += str_contains($code, 'phpcs') ? $this->migrate($parser->parse($code))->count : 0;
+			} catch (ParseException) {
+			}
+		}
+
+		return $count;
 	}
 
 

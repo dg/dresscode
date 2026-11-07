@@ -34,6 +34,7 @@ final readonly class MigrationPrinter
 		private ?string $written,
 		/** the absolute path of the file */
 		private string $target,
+		private int $suppressions,
 	) {
 	}
 
@@ -112,6 +113,7 @@ final readonly class MigrationPrinter
 		$location = $this->written === null ? 'the printed configuration' : "`$this->written`";
 		$lines = array_filter([
 			$this->translation->formatNotes() === '' ? '' : "The details are at the end of $location.",
+			$this->suppressions === 0 ? '' : Markup::formatSuppressionsHint($this->suppressions) . '.',
 			$this->written === null ? '' : "Next, $first`dresscode check` shows what the configuration finds in your code.",
 		]);
 		return $lines === [] ? '' : Markup::highlightCode($console, implode("\n", $lines)) . "\n";

@@ -7,6 +7,7 @@
 
 namespace DressCode\Console;
 
+use DressCode\Engine\Helpers;
 use DressCode\Violation;
 use Nette\CommandLine\{Ansi, Console, HelpRenderer};
 
@@ -139,6 +140,13 @@ final class Markup
 			},
 			preg_split('~(?<=\n)~', $diff, -1, PREG_SPLIT_NO_EMPTY) ?: [],
 		));
+	}
+
+
+	/** The line pointing a project at the phpcs suppression comments it has. */
+	public static function formatSuppressionsHint(int $count): string
+	{
+		return Helpers::formatCount($count, 'phpcs suppression comment') . ': `dresscode migrate suppressions` rewrites them';
 	}
 
 

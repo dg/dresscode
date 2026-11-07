@@ -488,6 +488,7 @@ Found `phpcs.xml` of PHP_CodeSniffer, run by `composer cs`.
 1  dropped, DressCode has no such rule, so nothing checks them now
 
 The details are at the end of `dresscode.neon`.
+12 phpcs suppression comments: `dresscode migrate suppressions` rewrites them.
 Next, `dresscode check` shows what the configuration finds in your code.
 
 WRITTEN  dresscode.neon

@@ -307,6 +307,26 @@ test('migrate config writes the paths the configuration names, and keeps the dec
 });
 
 
+test('migrate config points at the phpcs suppression comments of the files it writes the configuration for', function () {
+	$project = createTempDir('import-suppressions');
+	foreach (['src/A.php', 'src/B.php', 'tests/C.php'] as $file) {
+		@mkdir(dirname("$project/$file"), recursive: true); // @ directory may already exist
+		file_put_contents("$project/$file", "<?php\n// phpcs:ignore Generic.Files.LineLength\n");
+	}
+
+	// a string is no comment
+	file_put_contents("$project/src/D.php", "<?php\n\$text = '// phpcs:ignore Generic.Files.LineLength';\n");
+
+	file_put_contents(
+		"$project/phpcs.xml",
+		"<?xml version=\"1.0\"?>\n<ruleset name=\"Demo\">\n\t<file>src</file>\n\t<rule ref=\"PSR12\"/>\n</ruleset>\n",
+	);
+	[$code, , $err] = runApp($project, ['migrate', 'config']);
+	Assert::same(0, $code);
+	Assert::contains("\n2 phpcs suppression comments: `dresscode migrate suppressions` rewrites them.\n", $err);
+});
+
+
 test('migrate suppressions rewrites phpcs comments to the dresscode form', function () {
 	$root = createConsoleProject();
 	file_put_contents(
@@ -350,6 +370,10 @@ test('migrate suppressions rewrites phpcs comments to the dresscode form', funct
 	);
 	[$code, $out] = runApp($root, ['migrate', 'suppressions', 'src/s.php']);
 	Assert::same([0, "OK  no phpcs comments to rewrite\n"], [$code, $out]);
+	// what is migrated is counted no more, the hint of migrate config with it
+	$count = fn() => new DressCode\Engine\SuppressionMigration(new DressCode\Config\PluginRegistry()->expandSuppressedName(...))
+		->countInFiles($root, ['src/s.php']);
+	Assert::same(0, $count());
 
 	// an ignore before code on its line keeps covering that line, so there is nothing to review
 	file_put_contents("$root/src/t.php", "<?php\nfoo();\n/* phpcs:ignore Squiz.WhiteSpace.SuperfluousWhitespace */ \$a = 1;\n");
