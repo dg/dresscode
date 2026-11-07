@@ -143,15 +143,15 @@ final class Markup
 
 
 	/**
-	 * A line of a report: the label, the text with its code drawn and in gray what it rests on, broken under the values in
-	 * a terminal.
+	 * A line of a report: the label, the text with its code drawn, in gray what it rests on and the rest of the text after
+	 * it, broken under the values in a terminal.
 	 */
-	public static function formatLine(Console $console, string $label, string $text, string $aside = ''): string
+	public static function formatLine(Console $console, string $label, string $text, string $aside = '', string $rest = ''): string
 	{
 		return self::wrapLines(
 			$console,
 			self::formatLabel($console, $label) . self::highlightCode($console, $text)
-			. ($aside === '' ? '' : self::formatAside($console, $aside)),
+			. ($aside === '' ? '' : self::formatAside($console, $aside)) . self::highlightCode($console, $rest),
 		);
 	}
 

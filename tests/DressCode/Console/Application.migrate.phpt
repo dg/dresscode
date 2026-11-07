@@ -249,3 +249,85 @@ test('migrate config asks which configuration a project with several runs, and e
 	Assert::contains("  [1] `phpcs.xml` of PHP_CodeSniffer\n  [2] `pint.json` of Laravel Pint\nWhich one does it run? [1/2]", $out);
 	Assert::contains('Found `pint.json` of Laravel Pint.', $err);
 });
+
+
+test('migrate suppressions rewrites phpcs comments to the dresscode form', function () {
+	$root = createConsoleProject();
+	file_put_contents(
+		"$root/src/s.php",
+		"<?php\n// phpcs:ignoreFile\n/**\n * @phpcsSuppress Squiz.WhiteSpace.SuperfluousWhitespace\n */\nclass S\n{\n\t// phpcs:ignore Squiz.WhiteSpace.SuperfluousWhitespace, Generic.Metrics.CyclomaticComplexity -- why\n\tpublic \$a; // phpcs:disable Squiz.WhiteSpace.SuperfluousWhitespace\n\t// phpcs:enable\n}\n",
+	);
+	// a dry run shows the rewrites and writes nothing
+	$original = (string) file_get_contents("$root/src/s.php");
+	[$code, $out] = runApp($root, ['migrate', 'suppressions', 'src/s.php', '--dry-run']);
+	Assert::same(0, $code);
+	Assert::match(
+		"%A%-// phpcs:ignoreFile\n+// dresscode:ignoreFile\n%A%Of the 5 comments to rewrite:\n%A%Would rewrite 5 comments in 1 file, writing nothing.\n",
+		$out,
+	);
+	Assert::same($original, file_get_contents("$root/src/s.php"));
+	[$code, $out] = runApp($root, ['migrate', 'suppressions', 'src/s.php', '--dry-run', '--format', 'json']);
+	Assert::same(0, $code);
+	$data = json_decode($out, associative: true, flags: JSON_THROW_ON_ERROR);
+	Assert::same([5, 1, false], [$data['migrated'], $data['files'], $data['written']]);
+	Assert::match("%A%+// dresscode:ignoreFile\n%A%", $data['diffs']['src/s.php']);
+	Assert::same(['Generic.Metrics.CyclomaticComplexity' => ['src/s.php:8']], $data['unknown']);
+	Assert::same($original, file_get_contents("$root/src/s.php"));
+
+	// a name nothing covers and an ignore whose scope grows are said, and neither is a failure
+	[$code, $out, $err] = runApp($root, ['migrate', 'suppressions', 'src/s.php']);
+	Assert::same('', $err);
+	Assert::same(0, $code);
+	Assert::same(
+		"Of the 5 comments rewritten:\n"
+		. "1  names a rule DressCode does not know, which silences nothing: `Generic.Metrics.CyclomaticComplexity` (src/s.php:8)\n"
+		. "1  now silences the whole statement below it, not just the next line, so it may hide more than you meant (src/s.php:8)\n"
+		. "\n"
+		. "Next, replace or remove the unknown names and check what the others hide; then `dresscode check` shows the violations left.\n"
+		. "\n"
+		. "REWRITTEN  5 comments in 1 file\n",
+		$out,
+	);
+	Assert::same(
+		"<?php\n// dresscode:ignoreFile\n/**\n * @phpcsSuppress file.trailingWhitespace\n */\nclass S\n{\n\t// dresscode:ignore file.trailingWhitespace, Generic.Metrics.CyclomaticComplexity -- why\n\tpublic \$a; // dresscode:disable file.trailingWhitespace\n\t// dresscode:enable\n}\n",
+		file_get_contents("$root/src/s.php"),
+	);
+	[$code, $out] = runApp($root, ['migrate', 'suppressions', 'src/s.php']);
+	Assert::same([0, "OK  no phpcs comments to rewrite\n"], [$code, $out]);
+
+	// an ignore before code on its line keeps covering that line, so there is nothing to review
+	file_put_contents("$root/src/t.php", "<?php\nfoo();\n/* phpcs:ignore Squiz.WhiteSpace.SuperfluousWhitespace */ \$a = 1;\n");
+	[$code, $out] = runApp($root, ['migrate', 'suppressions', 'src/t.php']);
+	Assert::same([0, "REWRITTEN  1 comment in 1 file\n"], [$code, $out]);
+
+	// prose naming a directive is no directive, and every name of a list is rewritten
+	$code = "<?php\n// prose phpcs:ignoreFile is an example\n/** @phpcsSuppress Squiz.WhiteSpace.SuperfluousWhitespace, Squiz.WhiteSpace.SuperfluousWhitespace */\nclass U\n{\n}\n";
+	file_put_contents("$root/src/u.php", $code);
+	runApp($root, ['migrate', 'suppressions', 'src/u.php']);
+	Assert::same(
+		"<?php\n// prose phpcs:ignoreFile is an example\n/** @phpcsSuppress file.trailingWhitespace, file.trailingWhitespace */\nclass U\n{\n}\n",
+		file_get_contents("$root/src/u.php"),
+	);
+
+	// a file that does not parse is skipped, which the exit code says
+	file_put_contents("$root/src/v.php", "<?php function {\n");
+	[$code, $out] = runApp($root, ['migrate', 'suppressions', 'src/v.php']);
+	Assert::same(2, $code);
+	Assert::match(
+		"Skipped    src/v.php, its comments left as they are: %a%\n\nFAILED  1 file skipped, no comments in no files rewritten\n",
+		$out,
+	);
+});
+
+
+test('migrate suppressions narrows a directory holding the configured paths to them', function () {
+	$root = createConsoleProject();
+	mkdir("$root/other");
+	file_put_contents("$root/other/s.php", "<?php\n// phpcs:ignoreFile\n");
+	[, $out] = runApp($root, ['migrate', 'suppressions', '.']);
+	Assert::same("OK  no phpcs comments to rewrite\n", $out);
+	Assert::same("<?php\n// phpcs:ignoreFile\n", file_get_contents("$root/other/s.php"));
+	[, $out] = runApp("$root/other", ['migrate', 'suppressions', '.']);
+	Assert::match('REWRITTEN  1 comment in 1 file%A?%', $out);
+	Assert::same("<?php\n// dresscode:ignoreFile\n", file_get_contents("$root/other/s.php"));
+});
