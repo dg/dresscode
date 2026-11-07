@@ -9,9 +9,9 @@ namespace DressCode\Console;
 
 use DressCode\Config\{PhpVersionSource, Versions};
 use DressCode\Engine\Helpers;
-use DressCode\Interop\{Formatter, FormatterCandidate};
+use DressCode\Interop\{Formatter, FormatterCandidate, FormatterConfig};
 use DressCode\Measuring\{
-	LeftOutReason, ProjectFacts, Proposal, ProposedValue, Region, Scope, Shift, ShiftKind, StandardReason, ValueOrigin,
+	LeftOutReason, ProjectFacts, Proposal, ProposedValue, Question, Region, Scope, Shift, ShiftKind, StandardReason, ValueOrigin,
 };
 use DressCode\Violation;
 use Nette\CommandLine\Console;
@@ -78,7 +78,7 @@ final readonly class InitPrinter
 						'',
 						'taken as the first, the project having also '
 						. implode(' and ', array_map(fn(FormatterCandidate $other) => $other->format(), $unchosen))
-						. '; `--formatter` names another',
+						. '; a terminal asks which, without `--yes`',
 					));
 		}
 
@@ -119,6 +119,7 @@ final readonly class InitPrinter
 			'Measured',
 			'your code departs from it in ' . Helpers::formatCount(count($standard->residue), 'decision')
 			. ' over ' . Helpers::formatCount(count($proposal->sample->files), 'file'),
+			$changed[$chosen] ?? 0 ? "; $named alone would rewrite {$changed[$chosen]} of them" : '',
 		);
 		if ($proposal->isSampled()) {
 			$directories = $proposal->sample->directories;
@@ -303,6 +304,93 @@ final readonly class InitPrinter
 
 
 	/**
+	 * A question asked in a terminal, numbered in its round where the round has more: what it asks, the decisions or
+	 * a place of the code it is about with what a fix makes of it, and its answers by number. The code of the place is
+	 * drawn as it is, its backticks among it.
+	 * @param  list<string>  $preview  the lines of the place as a fix rewrites them, each a line of a diff
+	 */
+	public function printQuestion(Question $question, int $number = 1, int $count = 1, array $preview = []): string
+	{
+		$highlight = fn(string $text) => Markup::highlightCode($this->console, $text);
+		$example = $question->example;
+		$out = Markup::wrapLines(
+			$this->console,
+			($count > 1 ? $this->console->color('gray', "($number/$count)") . ' ' : '')
+			. $highlight($question->text)
+			. ($question->reason === null ? '' : ' ' . $this->formatAside($question->reason)),
+		) . "\n";
+		$width = $question->decisions ? max(array_map(strlen(...), array_keys($question->decisions))) : 0;
+		foreach ($question->decisions as $code => $cost) {
+			$out .= $this->formatLine('', str_pad($code, $width), "   $cost");
+		}
+
+		if ($example !== null) {
+			$out .= Markup::wrapLines(
+				$this->console,
+				$this->label('') . $this->console->color('gray', 'e.g.') . ' '
+				. $this->console->color('white', "$example->file:$example->line") . '  ' . $highlight($example->message),
+			) . "\n";
+			foreach (self::formatPreview($preview) as $line) {
+				$color = match ($line[0]) {
+					'-' => 'red',
+					'+' => 'green',
+					default => null,
+				};
+				$out .= $this->label('') . '     ' . $this->console->color($color, $line) . "\n";
+			}
+		}
+
+		foreach ($question->answers as $i => $answer) {
+			$out .= '  [' . ($i + 1) . '] ' . $highlight($answer->label) . ($i === 0 ? $this->formatAside(' (recommended)') : '') . "\n";
+		}
+
+		return $out;
+	}
+
+
+	/**
+	 * The lines of a diff with the indentation all of them share left out and a space after the sign.
+	 * @param  list<string>  $lines
+	 * @return list<string>
+	 */
+	private static function formatPreview(array $lines): array
+	{
+		$codes = Markup::stripIndentation(array_map(fn(string $line) => substr($line, 1), $lines));
+		return array_map(fn(string $line, string $code) => $line[0] . ' ' . $code, $lines, $codes);
+	}
+
+
+	/** The questions the answers given have left to the user, which no round before could ask. */
+	public function printNextRound(int $count): string
+	{
+		return 'Your answers leave ' . Helpers::formatCount($count, 'more question') . ":\n";
+	}
+
+
+	/**
+	 * What is the user's to decide where nobody was asked: each question as the line or the command that answers it
+	 * otherwise than the recommended answer init took.
+	 * @param  list<Question>  $questions
+	 */
+	public function printInstructions(array $questions): string
+	{
+		$out = '';
+		foreach ($questions as $question) {
+			$out .= $this->formatLine($out === '' ? 'Your call' : '', $question->instruction);
+		}
+
+		return $out;
+	}
+
+
+	/** The configuration of the formatter that could not be read, so its rules are not compared with the code. */
+	public function printUnreadable(FormatterConfig $config, string $error): string
+	{
+		return $this->formatLine('Formatter', "`$config->file` could not be read, so its rules are not compared with your code: $error");
+	}
+
+
+	/**
 	 * What has moved since the configuration that exists was written, and how to see what a value changes.
 	 * @param  list<Shift>  $shifts
 	 */
@@ -322,7 +410,10 @@ final readonly class InitPrinter
 			$out .= match ($shift->kind) {
 				ShiftKind::Measured => $this->formatLine(
 					$out === '' ? 'Moved' : '',
-					$has . ', init now writes ' . Violation::formatCode($shift->measured),
+					$has . ($shift->cost
+						? ', a fix of it rewrites ' . ($proposal->isSampled() ? 'about ' : '') . Helpers::formatCount($shift->cost, 'file')
+						: '')
+					. ', init now writes ' . Violation::formatCode($shift->measured),
 					"   ($shift->comment)",
 				),
 				ShiftKind::HeldToStandard => $this->formatLine(
@@ -352,9 +443,9 @@ final readonly class InitPrinter
 
 	/**
 	 * What else the project may do: run DressCode where it runs its formatter, translate the rules of the formatter, which
-	 * init does not read, and rewrite the comments that silence it.
+	 * the file only compared with the code or did not read, and rewrite the comments that silence it.
 	 */
-	public function printAlso(ProjectFacts $project, int $suppressions): string
+	public function printAlso(ProjectFacts $project, int $suppressions, bool $rulesRead): string
 	{
 		$config = $project->formatterConfig;
 		if ($config === null) {
@@ -365,17 +456,19 @@ final readonly class InitPrinter
 			'Also',
 			"`dresscode check` can take the place of {$config->formatter->value}"
 			. ($config->runBy === null ? ' where you run it' : " in `$config->runBy`"),
-		) . $this->formatLine(
-			'',
-			"its rules were not read; `dresscode migrate config $config->file` translates them instead of measuring the code",
-		);
+		) . $this->formatLine('', match (true) {
+			$rulesRead => 'its rules were compared with your code, not carried over',
+			$config->formatter->runsCode() => "its rules were not read, as `$config->file` is PHP",
+			default => 'its rules could not be read',
+		} . "; `dresscode migrate config $config->file` translates them instead of measuring the code");
 		return $out . ($suppressions ? $this->formatLine('', Markup::formatSuppressionsHint($suppressions)) : '');
 	}
 
 
 	/**
-	 * The proposal as the data the format `json` writes: the scope, the standard, what the file writes and why, and what
-	 * the check over the whole scope says.
+	 * The proposal as the data the format `json` writes: the scope, the standard, what the file writes and why, what the
+	 * check over the whole scope says and the lines of `dresscode.neon` answering what init would ask.
+	 * @param  list<Question>  $asked  the questions the recommended answers were taken for
 	 * @param  ?string  $configuration  the configuration init proposes; null over one that exists, or none chosen
 	 * @param  ?string  $written  the file the configuration was written to
 	 * @param  ?list<Shift>  $shifts  what has moved since the configuration that exists, the code being compared with it
@@ -383,6 +476,7 @@ final readonly class InitPrinter
 	 */
 	public function toArray(
 		Proposal $proposal,
+		array $asked = [],
 		?string $configuration = null,
 		?string $written = null,
 		?array $shifts = null,
@@ -397,6 +491,7 @@ final readonly class InitPrinter
 				'use' => $standard->presets,
 				'reason' => lcfirst($standard->reason->name),
 				'changedFiles' => (object) $standard->changedFiles,
+				'alternatives' => $standard->alternatives,
 				'unsure' => $standard->unsure,
 			],
 			'values' => array_map(fn(ProposedValue $proposed) => [
@@ -412,6 +507,7 @@ final readonly class InitPrinter
 				'leftFindings' => $verification->leftFindings,
 				'leftFiles' => $verification->leftFiles,
 			],
+			'instructions' => array_map(fn(Question $question) => $question->instruction, $asked),
 			'failed' => $proposal->findFailedFiles(),
 			'configuration' => $configuration,
 			'written' => $written,
@@ -459,5 +555,17 @@ final readonly class InitPrinter
 	private function formatLine(string $label, string $text, string $aside = '', string $rest = ''): string
 	{
 		return Markup::formatLine($this->console, $label, $text, $aside, $rest) . "\n";
+	}
+
+
+	private function label(string $label): string
+	{
+		return Markup::formatLabel($this->console, $label);
+	}
+
+
+	private function formatAside(string $text): string
+	{
+		return Markup::formatAside($this->console, $text);
 	}
 }

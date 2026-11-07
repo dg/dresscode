@@ -8,6 +8,19 @@ require __DIR__ . '/../../bootstrap.php';
 
 test('identical texts give nothing', function () {
 	Assert::same('', Diff::unified("a\nb\n", "a\nb\n", 'f.php'));
+	Assert::same([], Diff::findChangeNear("a\nb\n", "a\nb\n", 1));
+});
+
+
+test('the change nearest a line comes with the line above and below it, whichever hunk holds it', function () {
+	$old = implode("\n", range(1, 12)) . "\n";
+	$new = str_replace(["5\n", "10\n"], ["five\n", "ten\n"], $old);
+	Assert::same([' 4', '-5', '+five', ' 6'], Diff::findChangeNear($old, $new, 4));
+	Assert::same([' 9', '-10', '+ten', ' 11'], Diff::findChangeNear($old, $new, 9));
+
+	// a line added at the start has nothing above it, and the end of a file without a newline is no line of it
+	Assert::same(['+0', ' 1'], Diff::findChangeNear("1\n2\n", "0\n1\n2\n", 1));
+	Assert::same([' 1', '-2', '+two'], Diff::findChangeNear("1\n2", "1\ntwo", 2));
 });
 
 

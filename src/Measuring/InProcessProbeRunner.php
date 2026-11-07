@@ -8,6 +8,7 @@
 namespace DressCode\Measuring;
 
 use DressCode\Config\{Loader, RunnerFactory};
+use DressCode\ConfigurationException;
 use DressCode\Engine\Runner;
 use DressCode\Reporters\NullReporter;
 use Nette\Neon\Neon;
@@ -17,7 +18,8 @@ use function count;
 
 /**
  * Runs the probes one after another in the process, through the file a configuration is read from, as the process
- * of `check` reads it; what the tests need, and a run where no PHP binary can be started.
+ * of `check` reads it; what the tests need, a run where no PHP binary can be started, and the fix of the one file a
+ * question of init shows.
  * @internal
  */
 final readonly class InProcessProbeRunner implements ProbeRunner
@@ -46,6 +48,24 @@ final readonly class InProcessProbeRunner implements ProbeRunner
 		}
 
 		return $results;
+	}
+
+
+	/**
+	 * The code of the file as a fix under the probe writes it, nothing written; null where it does not parse or a rule
+	 * fails in it.
+	 * @throws ConfigurationException
+	 */
+	public function fix(Probe $probe, string $path): ?string
+	{
+		$file = self::createConfigPath();
+		try {
+			$result = $this->createRunner($probe, $file)[0]->processPath($path, fix: false);
+		} finally {
+			@unlink($file); // @ may not have been written
+		}
+
+		return $result->syntaxError === null && $result->failure === null ? $result->output ?? $result->code : null;
 	}
 
 

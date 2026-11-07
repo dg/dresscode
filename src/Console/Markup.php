@@ -10,6 +10,7 @@ namespace DressCode\Console;
 use DressCode\Engine\Helpers;
 use DressCode\Violation;
 use Nette\CommandLine\{Ansi, Console, HelpRenderer};
+use function strlen;
 
 
 /**
@@ -53,7 +54,7 @@ final class Markup
 	}
 
 
-	/** A question of a prompt with its code drawn, and in gray after it why it is asked. */
+	/** A question of a prompt with its code drawn, and in gray after it why it is asked, as `init` asks. */
 	public static function formatQuestion(Console $console, string $question, string $reason): string
 	{
 		return self::highlightCode($console, $question) . ' ' . self::formatAside($console, $reason);
@@ -140,6 +141,25 @@ final class Markup
 			},
 			preg_split('~(?<=\n)~', $diff, -1, PREG_SPLIT_NO_EMPTY) ?: [],
 		));
+	}
+
+
+	/**
+	 * The lines of code without the indentation all of them share, a blank line aside.
+	 * @param  list<string>  $lines
+	 * @return list<string>
+	 */
+	public static function stripIndentation(array $lines): array
+	{
+		$shared = null;
+		foreach ($lines as $line) {
+			if (trim($line) !== '') {
+				$indent = substr($line, 0, strspn($line, " \t"));
+				$shared = $shared === null ? $indent : substr($shared, 0, strspn($shared ^ $indent, "\0")); // the common prefix
+			}
+		}
+
+		return array_map(fn(string $line) => substr($line, strlen($shared ?? '')), $lines);
 	}
 
 

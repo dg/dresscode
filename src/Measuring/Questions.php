@@ -1,0 +1,360 @@
+<?php declare(strict_types=1);
+
+/**
+ * This file is part of the DressCode, a coding style and upgrade tool for PHP (https://dresscode.run)
+ * Copyright (c) 2026 David Grudl (https://davidgrudl.com)
+ */
+
+namespace DressCode\Measuring;
+
+use DressCode\ConfigurationException;
+use DressCode\Engine\Helpers;
+use DressCode\Interop\{FormatterConfig, Translation};
+use DressCode\Rules\Classes\NameCasingRule;
+use function count, sprintf, strlen;
+
+
+/**
+ * What `dresscode init` asks, where the measuring left the choice to the user: the standard first, then the decisions,
+ * the costliest first, and then what the answers left to the user in turn. Every question carries an answer that leaves
+ * the code as it is, which is recommended.
+ * @internal
+ */
+final class Questions
+{
+	/** the questions of decisions asked at most, before any answer */
+	private const MaxDecisions = 5;
+
+	/** the names no rule fixes that must share a pattern for init to offer it */
+	private const MinNames = 3;
+
+	/** @var array<string, true>  the decisions a question was found about, asked or not */
+	private array $found = [];
+
+
+	public function __construct(
+		/** the rules of the formatter of the project, which a value of the code may contradict */
+		private readonly ?Translation $formatterRules = null,
+	) {
+	}
+
+
+	/** A close call of standards nothing of the project decided, asked before the verification, as an answer measures again. */
+	public static function findStandardQuestion(Proposal $proposal): ?Question
+	{
+		$standard = $proposal->standard;
+		if (!$standard->alternatives) {
+			return null;
+		}
+
+		$chosen = implode(', ', $standard->presets);
+		$describe = fn(string $name) => sprintf('`%s`, a fix under it changes %d files', $name, $standard->changedFiles[$name] ?? 0);
+		$answers = [new Answer($describe($chosen))];
+		foreach ($standard->alternatives as $alternative) {
+			$answers[] = new Answer($describe($alternative), measureAgainst: [$alternative]);
+		}
+
+		$alternatives = array_map(fn(string $alternative) => "`$alternative`", $standard->alternatives);
+		return new Question(
+			"Your code is as near to `$chosen` as to " . implode(' and ', $alternatives) . '; which standard should it follow?',
+			$answers,
+			"`dresscode init --use {$standard->alternatives[0]}` measures against $alternatives[0] instead, with `dresscode.neon` deleted first",
+		);
+	}
+
+
+	/**
+	 * Asks round after round what the verified proposal leaves to the user, and checks the configuration again after
+	 * a round whose answers changed it, until a round changes nothing or nothing is left to ask.
+	 * @param  \Closure(list<Question>, bool): list<Answer>  $answer  answers a round, told whether it follows from the
+	 *     answers to the rounds before
+	 * @return list<Question>  the questions asked
+	 * @throws ConfigurationException
+	 */
+	public function askAll(Proposal $proposal, \Closure $answer): array
+	{
+		$asked = [];
+		while ($round = $this->findNext($proposal)) {
+			$answers = $answer($round, $asked !== []);
+			$asked = [...$asked, ...$round];
+			if (!$proposal->applyAnswers(...$answers)) {
+				break;
+			}
+
+			$proposal->verify();
+		}
+
+		return $asked;
+	}
+
+
+	/**
+	 * The questions of decisions the verified proposal leaves to the user that no call before found, the costliest
+	 * first: at most `MaxDecisions` of them the first time, and one more about the rest the budget left unchecked, every
+	 * one later, as it follows from the answers given.
+	 * @return list<Question>
+	 */
+	public function findNext(Proposal $proposal): array
+	{
+		$first = !$this->found;
+		$questions = array_diff_key([
+			...self::findOverBudget($proposal),
+			...self::findConflicts($proposal, $this->formatterRules),
+			...self::findNamePatterns($proposal),
+		], $this->found);
+		uasort($questions, fn(Question $a, Question $b) => $b->files <=> $a->files);
+		$this->found += array_fill_keys(array_keys($questions), true);
+		if (!$first || count($questions) <= self::MaxDecisions) {
+			return array_values($questions);
+		}
+
+		$rest = array_filter(
+			array_slice($questions, self::MaxDecisions),
+			fn(string $path) => ($proposal->values[$path] ?? null)?->origin === ValueOrigin::OverBudget,
+			ARRAY_FILTER_USE_KEY,
+		);
+		return [
+			...array_values(array_slice($questions, 0, self::MaxDecisions)),
+			...match (count($rest)) {
+				0 => [],
+				1 => array_values($rest),
+				default => [self::createRestQuestion($proposal, array_keys($rest))],
+			},
+		];
+	}
+
+
+	/**
+	 * A value the code or the standard holds to whose fix would rewrite more files than the budget allows.
+	 * @return array<string, Question>  by the path of the decision
+	 */
+	private static function findOverBudget(Proposal $proposal): array
+	{
+		$questions = [];
+		foreach ($proposal->values as $path => $proposed) {
+			if ($proposed->origin === ValueOrigin::OverBudget) {
+				$wanted = $proposal->standard->formatValue($path, $proposed->wanted);
+				$cost = Helpers::formatCount($proposed->cost, 'file');
+				$questions[$path] = new Question(
+					"Check `$path: $wanted`?",
+					[
+						new Answer("don't check it"),
+						new Answer("`$wanted` everywhere, a fix rewrites $cost", [$path => $proposed->wanted]),
+					],
+					"add `$path: $wanted` to `dresscode.neon` to check it too; its fix changes $cost",
+					$proposed->example,
+					$proposed->cost,
+					self::formatBudget($proposal),
+					previewValues: [$path => $proposed->wanted],
+				);
+			}
+		}
+
+		return $questions;
+	}
+
+
+	/**
+	 * The decisions over the budget a round has no room for, all checked by one answer.
+	 * @param  list<string>  $paths
+	 */
+	private static function createRestQuestion(Proposal $proposal, array $paths): Question
+	{
+		$values = $decisions = [];
+		$files = 0;
+		foreach ($paths as $path) {
+			$proposed = $proposal->values[$path];
+			$values[$path] = $proposed->wanted;
+			$decisions["`$path: " . $proposal->standard->formatValue($path, $proposed->wanted) . '`']
+				= 'a fix rewrites ' . Helpers::formatCount($proposed->cost, 'file');
+			$files += $proposed->cost;
+		}
+
+		$most = 'at most ' . Helpers::formatCount($files, 'file');
+		return new Question(
+			'Check the ' . count($paths) . ' decisions left too?',
+			[new Answer("don't check them"), new Answer("check all of them, a fix rewrites $most", $values)],
+			'add ' . implode(', ', array_keys($decisions)) . " to `dresscode.neon` to check them too; their fixes change $most",
+			files: $files,
+			reason: self::formatBudget($proposal),
+			decisions: $decisions,
+		);
+	}
+
+
+	/** What the budget is, in the words of someone who runs init for the first time. */
+	private static function formatBudget(Proposal $proposal): string
+	{
+		$budget = $proposal->verification->budget ?? throw new \LogicException('The proposal is not verified.');
+		return 'Without asking, init lets the first fix rewrite at most ' . Helpers::formatCount($budget, 'file') . ' (`--budget`).';
+	}
+
+
+	/**
+	 * A value the code holds to that the configuration of the formatter contradicts.
+	 * @return array<string, Question>  by the path of the decision
+	 */
+	private static function findConflicts(Proposal $proposal, ?Translation $formatterRules): array
+	{
+		$config = $proposal->project->formatterConfig;
+		if ($formatterRules === null || $config === null) {
+			return [];
+		}
+
+		$questions = [];
+		foreach ($formatterRules->collectDecisions() as $path => $foreign) {
+			$proposed = $proposal->values[$path] ?? null;
+			$decision = $proposal->standard->decisions[$path]->decision ?? null;
+			if ($proposed === null || $decision === null || $proposed->origin !== ValueOrigin::Measured || $proposed->isKept()) {
+				continue;
+			}
+
+			try {
+				if ($decision->accept($foreign)->toData() === $decision->accept($proposed->value)->toData()) {
+					continue;
+				}
+			} catch (ConfigurationException) {
+				continue;
+			}
+
+			$files = $proposal->estimateFiles($path, $foreign);
+			if ($files !== null) {
+				$questions[$path] = self::createConflict($proposal, $config, $path, $foreign, $files);
+			}
+		}
+
+		return $questions;
+	}
+
+
+	private static function createConflict(Proposal $proposal, FormatterConfig $config, string $path, mixed $foreign, int $files): Question
+	{
+		$proposed = $proposal->values[$path];
+		$formatterValue = $proposal->standard->formatValue($path, $foreign);
+		$measuredValue = $proposal->standard->formatValue($path, $proposed->value);
+		$about = $proposal->isSampled() ? 'about ' : '';
+		return new Question(
+			"`$config->file` wants `$path: $formatterValue`, your code writes `$measuredValue` ($proposed->comment); which should the file say?",
+			[
+				new Answer("`$measuredValue`, as your code writes it", [$path => $proposed->value], $proposed->comment),
+				new Answer(
+					"`$formatterValue`, as `$config->file` says, a fix rewrites $about" . Helpers::formatCount($files, 'file'),
+					[$path => $foreign],
+				),
+			],
+			"add `$path: $formatterValue` to `dresscode.neon` to say what `$config->file` says; its fix changes $about"
+			. Helpers::formatCount($files, 'file'),
+			files: $files,
+		);
+	}
+
+
+	/**
+	 * Names written in another case that share a prefix or a suffix, which `naming.except` may let pass.
+	 * @return array<string, Question>  by the path of the decision
+	 */
+	private static function findNamePatterns(Proposal $proposal): array
+	{
+		$verification = $proposal->verification ?? throw new \LogicException('The proposal is not verified.');
+		$questions = [];
+		$codes = [];
+		foreach (NameCasingRule::getDecisions() as $decision) {
+			$path = $decision->path;
+			$names = $files = [];
+			foreach ($verification->result->findings[$path] ?? [] as $finding) {
+				if ($finding->fixable || $finding->span === null) {
+					continue;
+				}
+
+				// what the rule reports begins with the name, a constant going on with its value
+				$file = $finding->file;
+				$codes[$file] ??= (string) @file_get_contents($proposal->project->root . "/$file"); // @ file may have been deleted meanwhile
+				if (preg_match('~\$?(\w+)~A', substr($codes[$file], ...$finding->span), $m)) {
+					$names[] = $m[1];
+					$files[$file] = true;
+				}
+			}
+
+			$pattern = count($names) < self::MinNames ? null : self::findPattern($names);
+			if ($pattern !== null) {
+				$questions[$path] = self::createNamePatternQuestion($proposal, $path, $names, $pattern, count($files));
+			}
+		}
+
+		return $questions;
+	}
+
+
+	/**
+	 * @param  list<string>  $names
+	 * @param  array{string, string}  $pattern  the regular expression, what it allows
+	 */
+	private static function createNamePatternQuestion(Proposal $proposal, string $path, array $names, array $pattern, int $files): Question
+	{
+		[$regex, $allows] = $pattern;
+		$kind = substr($path, strlen('naming.'));
+		$except = (array) ($proposal->values['naming.except']->value ?? $proposal->standard->decisions['naming.except']->value->toData() ?? []);
+		return new Question(
+			sprintf('%d %s names %s, which no rule renames; how should they be checked?', count($names), $kind, $allows),
+			[
+				new Answer('list them in the baseline'),
+				new Answer(
+					"allow names that $allows, now and later",
+					['naming.except' => [...$except, $regex]],
+					sprintf('the %d %s names that %s, which no rule renames', count($names), $kind, $allows),
+				),
+				new Answer("don't check $kind names", [$path => 'keep']),
+			],
+			"add `naming.except: [$regex]` to `dresscode.neon` to let the $kind names that $allows pass now and later, rather than the baseline listing those of today",
+			$proposal->verification?->result->findExample($path),
+			$files,
+		);
+	}
+
+
+	/**
+	 * The suffix or the prefix every name shares, cut at the boundary of a word, as the regular expression of
+	 * `naming.except` and what it allows: names that "end with `_`".
+	 * @param  list<string>  $names
+	 * @return ?array{string, string}
+	 */
+	private static function findPattern(array $names): ?array
+	{
+		if (!$names) {
+			return null;
+		}
+
+		$shortest = min(array_map(strlen(...), $names));
+		$suffix = $prefix = '';
+		for ($i = 1; $i < $shortest; $i++) {
+			$tail = substr($names[0], -$i);
+			if (!array_all($names, fn(string $name) => str_ends_with($name, $tail))) {
+				break;
+			} elseif (array_all($names, fn(string $name) => self::isWordBoundary($name, strlen($name) - $i))) {
+				$suffix = $tail;
+			}
+		}
+
+		for ($i = 1; $i < $shortest; $i++) {
+			$head = substr($names[0], 0, $i);
+			if (!array_all($names, fn(string $name) => str_starts_with($name, $head))) {
+				break;
+			} elseif (array_all($names, fn(string $name) => self::isWordBoundary($name, $i))) {
+				$prefix = $head;
+			}
+		}
+
+		return match (true) {
+			strlen($suffix) >= strlen($prefix) && $suffix !== '' => ['~' . preg_quote($suffix, '~') . '$~', "end with `$suffix`"],
+			$prefix !== '' => ['~^' . preg_quote($prefix, '~') . '~', "start with `$prefix`"],
+			default => null,
+		};
+	}
+
+
+	/** Whether a word of the name ends before the offset: at an underscore or where a capital follows a lowercase letter. */
+	private static function isWordBoundary(string $name, int $at): bool
+	{
+		return $name[$at - 1] === '_' || $name[$at] === '_' || (ctype_upper($name[$at]) && !ctype_upper($name[$at - 1]));
+	}
+}

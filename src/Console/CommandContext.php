@@ -251,14 +251,14 @@ final readonly class CommandContext
 
 	/**
 	 * Whether the rules of the configuration chosen may be read: data always, PHP, which runs when it is read, where the
-	 * file was named or the user agrees in a terminal.
+	 * file was named, `$yes` agrees or the user does in a terminal, asked `$question` after what reading does.
 	 */
-	public function confirmReadingRules(FormatterChoice $choice, bool $interactive): bool
+	public function confirmReadingRules(FormatterChoice $choice, bool $interactive, string $question, bool $yes = false): bool
 	{
 		$config = $choice->config;
-		return $config !== null && (!$config->formatter->runsCode() || $choice->named || ($interactive
+		return $config !== null && (!$config->formatter->runsCode() || $choice->named || $yes || ($interactive
 			&& $this->prompt->choose(
-				Markup::formatQuestion($this->out, 'Run it?', "`$config->file` is PHP, so reading it means running it."),
+				Markup::formatQuestion($this->out, $question, "`$config->file` is PHP, so reading it means running it."),
 				['y', 'n'],
 				'y',
 			) === 'y'));

@@ -49,6 +49,8 @@ final readonly class StandardChoice
 		public array $decisions,
 		/** @var list<string>  the files the checks found unparsable */
 		public array $unparsed,
+		/** @var list<string>  the standards as near to the code, which nothing of the project decided between */
+		public array $alternatives = [],
 		/** @var list<string>  the files a rule failed in under some standard, which none of them counted */
 		public array $failed = [],
 		/** a rule failed under every standard there was to choose from, so the one chosen may only seem the nearest */
@@ -98,9 +100,9 @@ final readonly class StandardChoice
 		// a standard a rule failed under is not measured whole, so its count may be short; it is chosen only where all are
 		$whole = array_filter($changed, fn(string $standard) => $checks[$standard]->failed === [], ARRAY_FILTER_USE_KEY);
 		$unsure = $presets === null && count($candidates) > 1 && $whole === [];
-		[$chosen, $reason] = match (true) {
-			$presets !== null => [(string) array_key_first($checks), StandardReason::Given],
-			count($candidates) === 1 => [(string) array_key_first($checks), StandardReason::Formatter],
+		[$chosen, $reason, $alternatives] = match (true) {
+			$presets !== null => [(string) array_key_first($checks), StandardReason::Given, []],
+			count($candidates) === 1 => [(string) array_key_first($checks), StandardReason::Formatter, []],
 			default => self::choose($whole ?: $changed, $project->formatterConfig?->standard),
 		};
 		$presets = array_combine(array_keys($probes), $candidates)[$chosen];
@@ -112,6 +114,7 @@ final readonly class StandardChoice
 			array_values(array_filter($checks[$chosen]->findResidue(), fn(string $path) => isset($decisions[$path]))),
 			$decisions,
 			array_values(array_unique(array_merge(...array_map(fn(ProbeResult $check) => $check->syntaxErrors, array_values($checks))))),
+			$alternatives,
 			array_values(array_unique(array_merge(...array_map(fn(ProbeResult $check) => $check->failed, array_values($checks))))),
 			$unsure,
 		);
@@ -122,10 +125,10 @@ final readonly class StandardChoice
 	 * The standard a fix changes the fewest files under; where the next one is within a tenth of it, the one the formatter
 	 * of the project names if it is among them, else `perCs` among them, else the fewest. PSR-12 says nothing of what PHP
 	 * brought since and so changes less, which is why it yields to PER Coding Style within `SuccessorShare`, unless the
-	 * formatter names it.
+	 * formatter names it. A close call the formatter does not decide leaves the other close standards as the alternatives.
 	 * @param  array<string, int>  $changed  standard => the files a fix under it changes, the fewest first
 	 * @param  ?string  $hint  the standard the formatter of the project names
-	 * @return array{string, StandardReason}
+	 * @return array{string, StandardReason, list<string>}
 	 */
 	private static function choose(array $changed, ?string $hint): array
 	{
@@ -146,6 +149,7 @@ final readonly class StandardChoice
 			$chosen === 'perCs' && ($changed['psr12'] ?? PHP_INT_MAX) < $changed['perCs']
 				? StandardReason::Successor
 				: StandardReason::Fewest,
+			$hinted === null ? array_values(array_diff($close, [$chosen])) : [],
 		];
 	}
 

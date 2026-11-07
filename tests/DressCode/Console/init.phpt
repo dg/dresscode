@@ -36,8 +36,9 @@ test('init writes what the code says, the loader reads it back as measured, and 
 		           src/C.php   generated
 		PHP        8.0, `composer.json` names none
 		Standard   `perCs` (PER Coding Style), the nearest to your code; `--use` names another
-		Measured   your code departs from it in 1 decision over 3 files
+		Measured   your code departs from it in 1 decision over 3 files; `perCs` alone would rewrite 3 of them
 		Your style `indentation.unit: tab`   your code, all 3 files
+		Your call  `dresscode init --use nette` measures against `nette` instead, with `dresscode.neon` deleted first
 		Checked    all 3 files: with these decisions a fix changes no files
 
 		Next       `dresscode check`      passes already
@@ -345,6 +346,8 @@ test('a decision the code holds to in all but a few files is written, unless its
 		"\tafterOpeningTag: keep   # not checked: a fix would change 3 of 20 files\n",
 		(string) file_get_contents("$root/dresscode.neon"),
 	);
+
+	Assert::contains('add `blankLines.afterOpeningTag: 1` to `dresscode.neon` to check it too; its fix changes 3 files', $out);
 
 	// init over its own file has nothing to say has moved
 	[$code, $out] = runInit($root);

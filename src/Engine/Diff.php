@@ -108,6 +108,46 @@ final class Diff
 
 
 	/**
+	 * The change of the second text nearest a line of the first, as the lines of a unified diff with the line above it and
+	 * the line below it; none where the texts are the same.
+	 * @return list<string>
+	 */
+	public static function findChangeNear(string $old, string $new, int $line): array
+	{
+		$nearest = [];
+		$distance = PHP_INT_MAX;
+		foreach (self::computeHunks($old, $new) as $hunk) {
+			$at = $hunk->oldStart; // of the old side, which a line added does not move
+			$start = $above = null;
+			$change = [];
+			foreach ([...$hunk->lines, null] as $text) { // null ends the last change
+				if ($text !== null && ($text[0] === '-' || $text[0] === '+')) {
+					$start ??= $at;
+					$change[] = $text;
+					$at += $text[0] === '-' ? 1 : 0;
+					continue;
+				} elseif ($text !== null && $text[0] !== ' ') { // no newline at the end of the file
+					continue;
+				} elseif ($start !== null) {
+					$away = $line < $start ? $start - $line : max(0, $line - $at + 1);
+					if ($away < $distance) {
+						$nearest = [...($above === null ? [] : [$above]), ...$change, ...($text === null ? [] : [$text])];
+						$distance = $away;
+					}
+
+					[$change, $start] = [[], null];
+				}
+
+				$above = $text;
+				$at++;
+			}
+		}
+
+		return $nearest;
+	}
+
+
+	/**
 	 * Edit script as [`' '` | `'-'` | `'+'`, line], the removed lines of a change before the added ones. A line
 	 * found on one side only cannot match, so it is left out of the search, which keeps a file indented anew cheap.
 	 * @param  list<string>  $a

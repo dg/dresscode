@@ -36,6 +36,19 @@ test(
 );
 
 
+test('over a configuration that exists, a decision the file leaves to the standard moves with its cost', function () use ($tabbed) {
+	$root = createProject('moved', [
+		'composer.json' => '{}',
+		'src/A.php' => $tabbed,
+		'src/B.php' => $tabbed,
+		'dresscode.neon' => "use: perCs\npaths: [src]\n",
+	]);
+	[$code, $out] = runInit($root);
+	Assert::same(0, $code);
+	Assert::contains('`indentation.unit`: `dresscode.neon` has `4 spaces`, a fix of it rewrites 2 files, init now writes `tab`', $out);
+});
+
+
 test('over a configuration that exists init says what it sets apart from the standard while the code holds to the standard', function () {
 	$spaced = "<?php\n\nfunction run(): void\n{\n    echo 1;\n}\n";
 	$root = createProject('existing-apart', [
@@ -44,7 +57,7 @@ test('over a configuration that exists init says what it sets apart from the sta
 		'src/b.php' => $spaced,
 		'dresscode.neon' => "use: perCs\npaths: [src]\nindentation:\n\tunit: tab\n",
 	]);
-	[$code, $out] = runInit($root);
+	[$code, $out] = runInit($root, ['--yes']);
 	Assert::same(0, $code);
 	Assert::match('%A%Moved      `indentation.unit`: `dresscode.neon` has `tab`, the code holds to `%a%` of the standard%A%', $out);
 	Assert::notContains('Moved      nothing', $out);
@@ -56,6 +69,7 @@ test('over a configuration that exists init says what it sets apart from the sta
 			'path' => 'indentation.unit',
 			'current' => 'tab',
 			'measured' => '4 spaces',
+			'cost' => null,
 			'comment' => '',
 		]],
 		$data['shifts'],
@@ -66,7 +80,7 @@ test('over a configuration that exists init says what it sets apart from the sta
 		"$root/dresscode.neon",
 		"use: perCs\npaths: [src]\noverrides:\n\t-\n\t\tpaths: [src/b.php]\n\t\tindentation:\n\t\t\tunit: tab\n",
 	);
-	[$code, $out] = runInit($root);
+	[$code, $out] = runInit($root, ['--yes']);
 	Assert::same(0, $code);
 	Assert::contains('comparing the code of', $out);
 	Assert::contains(
@@ -101,17 +115,33 @@ test(
 		[$code, $out, $err] = runInit($root, jobs: null);
 		Assert::same('', $err);
 		Assert::same(0, $code);
-		Assert::contains('`indentation.unit`: `dresscode.php` has `4 spaces`, init now writes `tab`', $out);
+		Assert::contains('`indentation.unit`: `dresscode.php` has `4 spaces`, a fix of it rewrites 1 file, init now writes `tab`', $out);
 	},
 );
 
 
-test('over a configuration that exists init takes no value of --set, as it writes nothing', function () {
-	$root = createProject('existing-set', stragglers() + ['dresscode.neon' => "use: perCs\npaths: [src]\n"]);
-	[$code, , $err] = runInit($root, ['--set', 'indentation.unit=tab']);
+test('over a configuration that exists init asks nothing in a terminal and takes no answer, as it writes nothing', function () {
+	$asked = createProject('existing-asked', stragglers() + ['dresscode.neon' => "use: perCs\npaths: [src]\n"]);
+	[$code, $out] = runInit($asked, [], "2\n");
+	Assert::same(0, $code);
+	Assert::notContains('Your choice', $out);
+	Assert::notContains('Your call', $out);
+	Assert::contains("\nMoved", $out);
+	$moved = substr($out, (int) strpos($out, "\nMoved"));
+
+	$piped = createProject('existing-piped', stragglers() + ['dresscode.neon' => "use: perCs\npaths: [src]\n"]);
+	[, $out] = runInit($piped);
+	Assert::same($moved, substr($out, (int) strpos($out, "\nMoved")));
+
+	// one init cannot read is no reason to ask for the standard either, and --set has nothing to answer
+	$broken = createProject('existing-broken', stragglers() + ['dresscode.neon' => "use: [\n"]);
+	[$code, $out] = runInit($broken, [], "2\n");
+	Assert::same(3, $code);
+	Assert::notContains('which standard should it follow?', $out);
+	[$code, , $err] = runInit($asked, ['--set', 'indentation.unit=tab']);
 	Assert::same(3, $code);
 	Assert::contains(
-		'`--set` writes a decision, and over `dresscode.neon`, which exists, init writes nothing; edit the file instead.',
+		'`--set` answers what init asks, and over `dresscode.neon`, which exists, it asks nothing; edit the file instead.',
 		$err,
 	);
 });
