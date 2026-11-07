@@ -22,8 +22,14 @@ use function count, is_array, is_string, strlen;
  */
 final class Draft
 {
+	/** a list on one line longer than this is written one item a line */
+	private const InlineWidth = 100;
+
 	/** @var list<string> */
 	private array $use = [];
+
+	/** @var ?array{list<string>, array<string, string>, list<string>}  paths, path left out => why, extensions */
+	private ?array $scope = null;
 
 	/** @var array<string, mixed>  path => value as the configuration writes it */
 	private array $decisions = [];
@@ -45,6 +51,18 @@ final class Draft
 	public function setUse(array $presets): static
 	{
 		$this->use = $presets;
+		return $this;
+	}
+
+
+	/**
+	 * @param  list<string>  $paths
+	 * @param  array<string, string>  $excludePaths  path => why it is left out
+	 * @param  list<string>  $fileExtensions
+	 */
+	public function setScope(array $paths, array $excludePaths = [], array $fileExtensions = ['php']): static
+	{
+		$this->scope = [$paths, $excludePaths, $fileExtensions];
 		return $this;
 	}
 
@@ -81,18 +99,27 @@ final class Draft
 
 
 	/**
-	 * What the configuration loads as must be what the draft says of the presets, which a run reads before it resolves
-	 * anything.
+	 * What the configuration loads as must be what the draft says of the presets and the scope, which a run reads before
+	 * it resolves anything.
 	 * @throws \LogicException
 	 */
 	private function checkLoaded(Config $config): void
 	{
+		[$paths, $excluded, $extensions] = $this->scope ?? [[], [], ['php']];
 		$use = [...$config->use, ...array_map(fn($plugin) => is_string($plugin) ? $plugin : $plugin::class, $config->plugins)];
 		$expected = $this->use;
 		sort($use);
 		sort($expected);
-		if ($use !== $expected) {
-			throw new \LogicException('The configuration written does not say what it was made to: `use` names other presets.');
+		$problem = match (true) {
+			$use !== $expected => '`use` names other presets',
+			$config->paths !== $paths => '`paths` are other paths',
+			$config->excludePaths !== array_values(array_unique([...Config::DefaultExcludePaths, ...array_keys($excluded)]))
+				=> '`excludePaths` are other paths',
+			$config->fileExtensions !== $extensions => '`fileExtensions` are other extensions',
+			default => null,
+		};
+		if ($problem !== null) {
+			throw new \LogicException("The configuration written does not say what it was made to: $problem.");
 		}
 	}
 
@@ -125,6 +152,7 @@ final class Draft
 	{
 		$sections = [
 			($this->header === '' ? '' : self::renderComment($this->header, '#')) . $this->renderUse(),
+			$this->renderScope(),
 			$this->renderDecisions(),
 		];
 		$sections = array_filter($sections, fn(string $section) => $section !== '');
@@ -135,7 +163,11 @@ final class Draft
 	/** The configuration as the source of `dresscode.php`. */
 	public function toPhp(): string
 	{
-		$arguments = $this->use ? "\tuse: " . self::export($this->use, 1) . ",\n" : '';
+		$arguments = '';
+		foreach ($this->buildSettings() as $key => $value) {
+			$arguments .= "\t$key: " . self::export($value, 1) . ",\n";
+		}
+
 		if ($decisions = $this->buildTree()) {
 			$arguments .= "\tdecisions: " . self::export($decisions, 1) . ",\n";
 		}
@@ -160,6 +192,22 @@ final class Draft
 	private static function renderComment(string $text, string $mark): string
 	{
 		return implode('', array_map(fn(string $line) => rtrim("$mark $line") . "\n", explode("\n", $text)));
+	}
+
+
+	/**
+	 * The keys of the configuration beside the decisions, those with their default value left out.
+	 * @return array<string, mixed>
+	 */
+	private function buildSettings(): array
+	{
+		[$paths, $excluded, $extensions] = $this->scope ?? [[], [], ['php']];
+		return array_filter([
+			'use' => $this->use,
+			'paths' => $paths,
+			'excludePaths' => array_keys($excluded),
+			'fileExtensions' => $extensions === ['php'] ? [] : $extensions,
+		], fn(array $value) => $value !== []);
 	}
 
 
@@ -226,6 +274,29 @@ final class Draft
 	}
 
 
+	/** The paths, those left out each with the reason beside it, and the extensions where they are not only `php`. */
+	private function renderScope(): string
+	{
+		if ($this->scope === null) {
+			return '';
+		}
+
+		[$paths, $excluded, $extensions] = $this->scope;
+		$out = 'paths: ' . self::renderList($paths) . "\n";
+		if ($excluded) {
+			$written = array_map(fn(string $path) => Neon::encode($path), array_keys($excluded));
+			$width = max(array_map(strlen(...), $written));
+			$out .= "excludePaths:\n" . implode('', array_map(
+				fn(string $path, string $why) => "\t- " . str_pad($path, $width) . "   # $why\n",
+				$written,
+				$excluded,
+			));
+		}
+
+		return $out . ($extensions === ['php'] ? '' : 'fileExtensions: ' . self::renderList($extensions) . "\n");
+	}
+
+
 	/** The decisions under their sections, each with its comment, the comments aligned. */
 	private function renderDecisions(): string
 	{
@@ -265,6 +336,15 @@ final class Draft
 				: $line[0] . str_repeat(' ', $column - $width($line[0])) . "# $line[1]\n",
 			$lines,
 		));
+	}
+
+
+	/** @param  list<string>  $items */
+	private static function renderList(array $items): string
+	{
+		$items = array_map(fn(string $item) => Neon::encode($item), $items);
+		$inline = '[' . implode(', ', $items) . ']';
+		return strlen($inline) <= self::InlineWidth ? $inline : "\n" . implode('', array_map(fn(string $item) => "\t- $item\n", $items));
 	}
 
 

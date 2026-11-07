@@ -18,6 +18,16 @@ function isProcessRunning(int $pid): bool
 }
 
 
+test('a command reads its input, and writes both streams unless the errors are left out', function () {
+	$dir = createTempDir('process-runner');
+	file_put_contents("$dir/echo.php", '<?php echo strtoupper(stream_get_contents(STDIN)); fwrite(STDERR, "!");');
+	$command = [getPhpCliBinary(), 'echo.php'];
+
+	Assert::same([0, 'ABC!'], ProcessRunner::run($command, $dir, 30, 'abc'));
+	Assert::same([0, 'ABC'], ProcessRunner::run($command, $dir, 30, 'abc', errors: false));
+});
+
+
 test('a command not ending in time is ended with what it started', function () {
 	$dir = createTempDir('process-runner-tree');
 	file_put_contents("$dir/parent.php", <<<'XX'

@@ -11,6 +11,7 @@ use DressCode\Config\Loader;
 use DressCode\Console\{Application, CommandContext, Markup, MigrationPrinter, SuppressionsPrinter};
 use DressCode\Engine\{Diff, Helpers, SuppressionMigration};
 use DressCode\Interop\FormatterCandidate;
+use DressCode\Measuring\Scope;
 use Nette\CommandLine\{Attributes as Cli, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use PhpSyntax\{ParseException, Parser, Printer};
@@ -76,6 +77,16 @@ final readonly class MigrateCommand
 		}
 
 		$root = Helpers::canonicalizePath($this->context->workingDirectory);
+		if (
+			Helpers::canonicalizePath(FileSystem::normalizePath(dirname($target)))
+			!== Helpers::canonicalizePath(FileSystem::normalizePath($root))
+		) {
+			// the paths it writes are relative to the project, and a configuration reads them relative to its own directory
+			throw new UsageException(
+				"The configuration `$output` would lie outside the root of the project, whose paths it names; write it into the root.",
+				$args->command,
+			);
+		}
 		$interactive = !$json && $this->context->prompt->isInteractive();
 		$choice = $this->context->chooseFormatterConfig($root, $file, $interactive);
 		$config = $choice->config ?? throw new UsageException(
@@ -102,13 +113,20 @@ final readonly class MigrateCommand
 		}
 
 		$translation = $config->translate();
+		$scope = Scope::fromProject($root);
+		foreach ($scope->listExcludePaths() as $path => $why) {
+			$translation->request("`$path` is excluded, $why->value; drop it from `excludePaths` to check it.");
+		}
+
 		$written = count($translation->collectOwnDecisions());
-		$text = $translation->toDraft(sprintf(
+		$draft = $translation->toDraft(sprintf(
 			"Translated from `%s` of %s\nby `dresscode migrate config` of DressCode %s.",
 			FileSystem::isAbsolute($config->file) ? basename($config->file) : $config->file,
 			$config->formatter->value,
 			Application::Version,
-		))->renderChecked($root, $syntax);
+		));
+		$scope->writeInto($draft);
+		$text = $draft->renderChecked($root, $syntax);
 		if (!$dryRun && !Helpers::createFile($target, $text)) {
 			throw new UsageException("The configuration `$output` appeared meanwhile; remove it, or name another file.", $args->command);
 		}

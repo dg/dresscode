@@ -17,6 +17,9 @@ Tester\Environment::setupFunctions();
 
 putenv('GITHUB_ACTIONS'); // the format of a report depends on it
 putenv('GITHUB_WORKSPACE');
+putenv('GIT_DIR'); // the git a test runs in a directory of its own would act on the repository these name
+putenv('GIT_WORK_TREE');
+putenv('GIT_INDEX_FILE');
 
 if (!defined('STDIN')) { // the CGI defines none
 	define('STDIN', fopen('php://stdin', 'r'));

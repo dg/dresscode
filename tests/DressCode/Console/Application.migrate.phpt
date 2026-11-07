@@ -60,6 +60,7 @@ test('migrate config translates a foreign configuration and says what it could n
 		. "use DressCode\\Config;\n\n"
 		. "return new Config(\n"
 		. "\tuse: ['psr12'],\n"
+		. "\tpaths: ['src'],\n"
 		. "\tdecisions: [\n"
 		. "\t\t'blankLines' => [\n" // the blank lines inside the braces of a class PSR-12 gives already
 		. "\t\t\t'aroundMethods' => 1,\n"
@@ -112,7 +113,7 @@ test('migrate config translates a foreign configuration and says what it could n
 	$neon = (string) file_get_contents("$dir/dresscode.neon");
 	Assert::match(
 		"# Translated from `phpcs.xml` of PHP_CodeSniffer\n# by `dresscode migrate config` of DressCode %a%.\n# What could not be carried over is at the end of this file.\n"
-		. "use: psr12\n\nblankLines:\n%A%\n\nmultiline:\n\ttrailingComma:\n\t\tarray: required\n%A%",
+		. "use: psr12\n\npaths: [.]\n\nblankLines:\n%A%\n\nmultiline:\n\ttrailingComma:\n\t\tarray: required\n%A%",
 		$neon,
 	);
 	// what was not carried over closes the file, no decision carrying a comment of it
@@ -137,6 +138,10 @@ test('migrate config translates a foreign configuration and says what it could n
 	[$code, , $err] = runApp($root, ['migrate', 'config', "$root/phpcs.xml", '-o', "$dir/dresscode.yaml"]);
 	Assert::same(3, $code);
 	Assert::contains('its extension is `.neon` or `.php`', $err);
+	// the paths it names are relative to the project, which a configuration elsewhere would read relative to itself
+	[$code, , $err] = runApp($root, ['migrate', 'config', "$root/phpcs.xml", '-o', "$dir/other.neon"]);
+	Assert::same(3, $code);
+	Assert::contains('would lie outside the root of the project', $err);
 });
 
 
@@ -248,6 +253,37 @@ test('migrate config asks which configuration a project with several runs, and e
 	Assert::same(0, $code);
 	Assert::contains("  [1] `phpcs.xml` of PHP_CodeSniffer\n  [2] `pint.json` of Laravel Pint\nWhich one does it run? [1/2]", $out);
 	Assert::contains('Found `pint.json` of Laravel Pint.', $err);
+});
+
+
+test('migrate config writes the scope, and says what it leaves out of it', function () {
+	$project = createTempDir('import-scope');
+	foreach (['src/A.php', 'src/drivers/B.php', 'tests/C.php'] as $file) {
+		@mkdir(dirname("$project/$file"), recursive: true); // @ directory may already exist
+		file_put_contents("$project/$file", "<?php\n");
+	}
+
+	file_put_contents("$project/phpcs.xml", <<<'XX'
+		<?xml version="1.0"?>
+		<ruleset name="Demo">
+			<rule ref="PSR12"/>
+		</ruleset>
+		XX);
+	[$code] = runApp($project, ['migrate', 'config']);
+	Assert::same(0, $code);
+	$neon = (string) file_get_contents("$project/dresscode.neon");
+	Assert::contains("use: psr12\n\npaths: [src, tests]\n", $neon);
+
+	// the data of tests are left out, which the file says is a change
+	unlink("$project/dresscode.neon");
+	@mkdir("$project/src/fixtures"); // @ directory may already exist
+	file_put_contents("$project/src/fixtures/D.php", "<?php\n");
+	[$code] = runApp($project, ['migrate', 'config']);
+	Assert::same(0, $code);
+	Assert::match(
+		"%A%# Waiting for you\n#   ! `fixtures` is excluded, test data; drop it from `excludePaths` to check it.\n",
+		(string) file_get_contents("$project/dresscode.neon"),
+	);
 });
 
 
