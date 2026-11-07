@@ -10,12 +10,14 @@ namespace DressCode\Upgrade;
 use DressCode\Config\ProjectPackages;
 use DressCode\Engine\{ProcessRunner, WorkerPool};
 use Nette\Utils\FileSystem;
+use function is_array;
+use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES;
 
 
 /**
  * Composer of the project: what its lock holds that refuses a target, which needs no network, what raising the
- * constraints would move, and the packages it installs. Composer is the script `COMPOSER_BINARY` names, run by this PHP
- * as Composer sets it for the scripts it runs, else `composer` on the path.
+ * constraints would move, the raise itself, and the packages it installs. Composer is the script `COMPOSER_BINARY`
+ * names, run by this PHP as Composer sets it for the scripts it runs, else `composer` on the path.
  * @internal
  */
 final readonly class Composer implements PackageManager
@@ -134,14 +136,91 @@ final readonly class Composer implements PackageManager
 
 
 	/**
-	 * What the raise would do to the installed packages, changing nothing: the operations of the update.
+	 * What the raise would do to the installed packages, changing nothing: the operations of the update, none without
+	 * `$update`. The dry run is of copies of `composer.json` and the lock beside them, `config.platform.php` raised where
+	 * the raise raises it, so that it resolves what the raise will, the platform alone among it.
 	 * @param  array<string, string>  $constraints  package => constraint
 	 * @return list<string>  as `- Upgrading nette/utils (v3.2.10 => v4.0.11)`
 	 * @throws ComposerException
 	 */
-	public function previewRequire(array $constraints): array
+	public function previewRequire(array $constraints, bool $update = true, ?string $platform = null): array
 	{
-		return self::parseOperations($this->run(self::buildRequire($constraints, update: true, dryRun: true), self::UpdateTimeout));
+		$data = json_decode((string) @file_get_contents("$this->root/composer.json"), associative: true); // @ none is told below
+		if (!is_array($data)) {
+			throw new ComposerException("The project has no `composer.json` Composer reads in `$this->root`.");
+		} elseif ($platform !== null) {
+			$data['config']['platform']['php'] = $platform;
+		}
+
+		// beside the original, so that the vendor directory and the paths it names are what they are for it
+		$copy = "$this->root/.dresscode-preview-" . bin2hex(random_bytes(6));
+		try {
+			FileSystem::write("$copy.json", json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+			if (is_file("$this->root/composer.lock")) {
+				FileSystem::copy("$this->root/composer.lock", "$copy.lock");
+			}
+
+			$arguments = $constraints === []
+				? ['update', '--lock', '--dry-run']
+				: self::buildRequire($constraints, $update, dryRun: true);
+			return self::parseOperations($this->run($arguments, self::UpdateTimeout, env: ['COMPOSER' => "$copy.json"]));
+		} finally {
+			@unlink("$copy.json"); // @ may not have been written
+			@unlink("$copy.lock"); // @ the project may have no lock
+		}
+	}
+
+
+	/**
+	 * Writes the constraints into `composer.json` and updates the packages they move to the lowest versions they allow,
+	 * which the code is written for and whose `@deprecated` the run reads, those they depend on changed as little as
+	 * the update needs; without `$update` only `composer.json` changes, and `config.platform.php` is raised first where
+	 * given.
+	 * @param  array<string, string>  $constraints  package => constraint
+	 * @throws ComposerException
+	 */
+	public function require(array $constraints, bool $update = true, ?string $platform = null): void
+	{
+		if ($platform !== null) {
+			$this->run(['config', 'platform.php', $platform], self::Timeout);
+		}
+
+		if ($constraints !== []) {
+			$this->run(self::buildRequire($constraints, $update), self::UpdateTimeout);
+		} elseif ($update) { // the platform alone, which the lock is to say it was resolved for
+			$this->run(['update', '--lock'], self::UpdateTimeout);
+		}
+	}
+
+
+	/**
+	 * What updating every package to the newest version the constraints allow would do, changing nothing.
+	 * @return list<string>  as `- Upgrading nette/utils (v4.0.0 => v4.0.11)`
+	 * @throws ComposerException
+	 */
+	public function previewUpdate(): array
+	{
+		return self::parseOperations($this->run(['update', '--dry-run'], self::UpdateTimeout));
+	}
+
+
+	/**
+	 * Updates every package to the newest version the constraints allow.
+	 * @throws ComposerException
+	 */
+	public function update(): void
+	{
+		$this->run(['update'], self::UpdateTimeout);
+	}
+
+
+	/**
+	 * Installs the packages the lock says.
+	 * @throws ComposerException
+	 */
+	public function install(): void
+	{
+		$this->run(['install'], self::UpdateTimeout);
 	}
 
 
@@ -187,14 +266,15 @@ final readonly class Composer implements PackageManager
 	/**
 	 * What Composer wrote on both streams.
 	 * @param  list<string>  $arguments
+	 * @param  array<string, string>  $env
 	 * @throws ComposerException  where it does not end in time, crashes or exits with a code above the one accepted
 	 */
-	private function run(array $arguments, int $timeout, int $accepted = 0): string
+	private function run(array $arguments, int $timeout, int $accepted = 0, array $env = []): string
 	{
 		$binary = getenv('COMPOSER_BINARY');
 		$composer = $binary ? [...WorkerPool::buildPhpCommand() ?? [PHP_BINARY], $binary] : ['composer'];
 		$command = [...$composer, ...$arguments, '--no-ansi', '--no-interaction'];
-		[$exit, $output] = ProcessRunner::run($command, $this->root, $timeout);
+		[$exit, $output] = ProcessRunner::run($command, $this->root, $timeout, env: $env);
 		if ($exit === null || $exit < 0 || $exit > $accepted) { // a crash ends with a negative code, by a signal or on Windows
 			$log = $this->keepLog($command, $timeout, $exit, $output);
 			throw new ComposerException(($exit === null

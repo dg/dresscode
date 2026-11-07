@@ -7,6 +7,8 @@
 
 namespace DressCode\Upgrade;
 
+use function is_array, is_int;
+
 
 /**
  * How far a run of a plan got: what each fix changed, the files they failed on, and where and why the run stopped.
@@ -32,10 +34,14 @@ final readonly class RunOutcome
 		public ?string $crash = null,
 		/** the results before the first step the last tests of the run were compared with; null where none ran */
 		public ?TestResults $baseline = null,
+		/** @var list<string>  the files of Composer a raise changed, which `upgrade abort` puts back */
+		public array $raisedFiles = [],
 		/** @var list<string>  the files the targets still find something in that a fix changes and no step of the plan did */
 		public array $remaining = [],
 		/** @var list<string>  what the run tells the user, an analysis that went without or upgrading data it lacked among it */
 		public array $warnings = [],
+		/** why Composer could not raise the constraints of the step the run stopped at; null where it was not asked or did */
+		public ?string $composerFailure = null,
 	) {
 	}
 
@@ -52,7 +58,7 @@ final readonly class RunOutcome
 			RunStop::Tests => $this->step === null && $this->crash !== null ? 2 : 1,
 			RunStop::Remaining, RunStop::Interrupted => 1,
 			RunStop::Unprocessed => 2,
-			RunStop::Composer, RunStop::Manual => 4,
+			RunStop::Composer, RunStop::Raised, RunStop::Manual => 4,
 		};
 	}
 
@@ -61,5 +67,35 @@ final readonly class RunOutcome
 	public function withWarnings(array $warnings): self
 	{
 		return new self(...['warnings' => array_values(array_unique([...$this->warnings, ...$warnings]))] + get_object_vars($this));
+	}
+
+
+	/**
+	 * A run stopped after a raise as the run that goes on after it reads it in another process.
+	 * @param  array<string, mixed>  $data  as `toArray()` made it
+	 */
+	public static function fromArray(array $data): self
+	{
+		$applied = [];
+		foreach (is_array($data['applied'] ?? null) ? $data['applied'] : [] as $step => $topics) {
+			foreach (is_array($topics) ? $topics : [] as $topic => $files) {
+				$applied[(int) $step][(string) $topic] = array_values(array_map(strval(...), (array) $files));
+			}
+		}
+
+		return new self(RunStop::Raised, is_int($data['step'] ?? null) ? $data['step'] : null, $applied);
+	}
+
+
+	/**
+	 * What a run that goes on after the raise needs of this one: where it stopped and what the fixes changed.
+	 * @return array<string, mixed>
+	 */
+	public function toArray(): array
+	{
+		return [
+			'step' => $this->step,
+			'applied' => $this->applied,
+		];
 	}
 }

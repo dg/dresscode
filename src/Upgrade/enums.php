@@ -36,6 +36,9 @@ enum RunStop
 	/** before a step of Composer whose constraints are not raised */
 	case Composer;
 
+	/** after a raise the run made, as what runs after it needs what it installed loaded by a process of its own */
+	case Raised;
+
 	/** at a manual step whose target the lock still refuses */
 	case Manual;
 

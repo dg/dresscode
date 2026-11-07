@@ -54,19 +54,20 @@ final readonly class CommandContext
 
 
 	/**
-	 * Runs DressCode again in a new process with the arguments given, which loads anew what this one loaded before the
-	 * packages changed, its input and output those of this process; null where it cannot, as this process is embedded,
-	 * so that its command line is not its own, or was started again itself.
+	 * Runs DressCode again in a new process with the arguments and the variables given, which loads anew what this one
+	 * loaded before the packages changed, its input and output those of this process; null where it cannot, as this
+	 * process is embedded, so that its command line is not its own, or was started again itself.
 	 * @param  list<string>  $arguments
+	 * @param  array<string, string>  $env
 	 */
-	public function rerun(array $arguments): ?int
+	public function rerun(array $arguments, array $env = []): ?int
 	{
 		if ($this->stdout !== STDOUT || getenv(self::RerunVariable) !== false) {
 			return null;
 		}
 
 		$command = [...WorkerPool::buildPhpCommand() ?? [PHP_BINARY], $this->scriptFile, ...$arguments];
-		$env = [...getenv(), self::RerunVariable => '1'];
+		$env = [...getenv(), ...$env, self::RerunVariable => '1'];
 		$process = proc_open($command, [STDIN, STDOUT, STDERR], $pipes, $this->workingDirectory, $env);
 		return $process === false ? null : proc_close($process);
 	}
