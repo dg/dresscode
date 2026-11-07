@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use DressCode\Config;
+use DressCode\Engine\ProcessRunner;
 use DressCode\Upgrade\{
 	Blocker, Blockers, ComposerException, ComposerStep, DependencyStep, FixStep, ManualStep, PackageManager, Plan, PlanRunner, Postponement,
 	Project, RunOutcome, RunState, RunStop, Target, Task, TestResults, TestRunner, TestStatus, UpdateStep,
@@ -170,6 +171,7 @@ test('a run says by its exit code whether it is done, leaves work for a human, i
 		'Unprocessed' => 2,
 		'Remaining' => 1,
 		'Interrupted' => 1,
+		'Commit' => 2,
 	], $codes);
 	// tests that do not run before the first step leave the run incomplete, a crash after a step goes back as a failure
 	Assert::same(2, new RunOutcome(RunStop::Tests, crash: 'it wrote no results')->getExitCode());
@@ -448,6 +450,153 @@ test('a file the fix cannot process stops the run after its step, and going back
 	// the text before the step stays until the user decides, as for a step that did not finish
 	$runner = new PlanRunner(createSteppedRunProject($root));
 	Assert::equal(new RunOutcome(RunStop::Interrupted, 1, interrupted: ['src/Code.php']), $runner->run(createSteppedPlan()));
+});
+
+
+test('with commit, each topic is committed with the files it changed once the tests of its step pass', function () {
+	$root = createSteppedProject('steps-commit');
+	foreach (['GIT_AUTHOR_NAME', 'GIT_COMMITTER_NAME'] as $name) {
+		putenv("$name=Test");
+	}
+
+	foreach (['GIT_AUTHOR_EMAIL', 'GIT_COMMITTER_EMAIL'] as $name) {
+		putenv("$name=test@example.com");
+	}
+
+	$git = fn(string ...$args) => ProcessRunner::run(['git', ...array_values($args)], $root, 60);
+	$git('init', '--quiet');
+	$git('commit', '--quiet', '--allow-empty', '-m', 'start');
+
+	$runner = new PlanRunner(createSteppedRunProject($root), commit: true);
+
+	// a change of the working tree would go into the commit of a topic changing that file
+	$git('add', 'src/Code.php');
+	$git('commit', '--quiet', '-m', 'code');
+	file_put_contents("$root/src/Code.php", "\n", FILE_APPEND);
+	Assert::exception(
+		fn() => $runner->run(createSteppedPlan()),
+		DressCode\ConfigurationException::class,
+		'A commit of a topic takes the files it changed whole, and the working tree has changes of its own; %a%',
+	);
+	$git('checkout', '--', 'src/Code.php');
+	// the plan the run saves is no change of the code
+	file_put_contents("$root/dresscode-upgrade.neon", "# plan\n");
+	$git('add', 'dresscode-upgrade.neon');
+	$git('commit', '--quiet', '-m', 'plan');
+	file_put_contents("$root/dresscode-upgrade.neon", "# plan saved anew\n");
+
+	$runner->run(createSteppedPlan());
+	[, $log] = $git('log', '-1', '--name-only');
+	Assert::match(
+		"%A%    upgrade: upgrading.php.implicitNullable\n\n    DressCode-Upgrade-Step: 1\n\nsrc/Code.php\n",
+		str_replace("\r", '', $log),
+	);
+
+	// a raise the run makes is committed too, so that the next run finds no changes of its own
+	$runner = new PlanRunner(createSteppedRunProject($root), commit: true, composer: new PlanRunnerComposer($root));
+	$raised = $runner->run(createSteppedPlan(), approve: fn() => true);
+	Assert::same(RunStop::Done, $runner->run(createSteppedPlan(), resumed: $raised)->stop);
+	Assert::contains('upgrade: raise php to ^8.4', $git('log', '-1')[1]);
+	Assert::false($runner->hasOwnChanges());
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.0"}}');
+	$git('commit', '--quiet', '-am', 'php ^8.0');
+
+	// a commit git refuses ends the run, what the step changed left in the working tree
+	file_put_contents("$root/src/Code.php", "<?php\r\n\r\nfunction run(int \$count = null): void\r\n{\r\n}\r\n");
+	$git('commit', '--quiet', '-am', 'back');
+	file_put_contents("$root/.git/hooks/pre-commit", "#!/bin/sh\necho refused by the hook\nexit 1\n");
+	chmod("$root/.git/hooks/pre-commit", 0o755);
+	$outcome = $runner->run(createSteppedPlan());
+	Assert::same(
+		[RunStop::Commit, 1, '`git commit` failed: refused by the hook; what step 1 changed is left uncommitted in the working tree.'],
+		[$outcome->stop, $outcome->step, $outcome->commitFailure],
+	);
+	Assert::contains('?int', (string) file_get_contents("$root/src/Code.php"));
+});
+
+
+test('with commit, a project git finds no repository of is refused before anything changes', function () {
+	$root = createSteppedProject('steps-commit-no-git');
+	$code = file_get_contents("$root/src/Code.php");
+	Assert::exception(
+		fn() => new PlanRunner(createSteppedRunProject($root), commit: true)->run(createSteppedPlan()),
+		DressCode\ConfigurationException::class,
+		'`--commit` commits into the git repository of the project, and git finds none there that tracks it, or refuses to tell its status.',
+	);
+	Assert::same($code, file_get_contents("$root/src/Code.php"));
+});
+
+
+test('with commit, a file the tests change after its step wrote it is kept as it is, and the step stays uncommitted', function () {
+	$root = createSteppedProject('steps-commit-edited');
+	file_put_contents("$root/edit.php", <<<'XX'
+		<?php
+		if (str_contains(file_get_contents(__DIR__ . '/src/Code.php'), '?int')) {
+			file_put_contents(__DIR__ . '/src/Code.php', "// edited\n", FILE_APPEND);
+		}
+		file_put_contents($argv[1], '<testsuites><testsuite><testcase classname="Code" name="run"/></testsuite></testsuites>');
+		XX);
+	$git = fn(string ...$args) => ProcessRunner::run(['git', ...array_values($args)], $root, 60);
+	$git('init', '--quiet');
+	$git('add', '--all');
+	$git('-c', 'user.name=Test', '-c', 'user.email=test@example.com', 'commit', '--quiet', '-m', 'start');
+
+	$outcome = new PlanRunner(createSteppedRunProject($root), commit: true)->run(
+		createSteppedPlan(escapeshellarg(getPhpCliBinary()) . ' edit.php {junit}'),
+	);
+	Assert::same(
+		[
+			RunStop::Commit,
+			'`src/Code.php` changed after step 1 wrote it, so the step is left uncommitted in the working tree; commit it yourself.',
+		],
+		[$outcome->stop, $outcome->commitFailure],
+	);
+	$code = (string) file_get_contents("$root/src/Code.php");
+	Assert::contains('?int', $code);
+	Assert::contains("// edited\n", $code);
+	Assert::match("%A%    start\n", str_replace("\r", '', $git('log', '-1')[1]));
+});
+
+
+test('with commit, a step leaving a file it cannot process is committed whole once a later run processes it', function () {
+	$root = createSteppedProject('steps-commit-errors');
+	file_put_contents("$root/src/Broken.php", "<?php function {\n");
+	$git = fn(string ...$args) => ProcessRunner::run(['git', ...array_values($args)], $root, 60);
+	$git('init', '--quiet');
+	$git('add', '--all');
+	$git('-c', 'user.name=Test', '-c', 'user.email=test@example.com', 'commit', '--quiet', '-m', 'start');
+	$runner = new PlanRunner(createSteppedRunProject($root), commit: true);
+
+	Assert::same(RunStop::Unprocessed, $runner->run(createSteppedPlan())->stop);
+	Assert::match("%A%    start\n", str_replace("\r", '', $git('log', '-1')[1]));
+	Assert::contains('?int', (string) file_get_contents("$root/src/Code.php"));
+
+	// what the run keeps lies in the repository, and a plan whose step 1 is another one now refuses to commit it
+	Assert::true(is_dir("$root/.git/dresscode-upgrade"));
+	$edited = new Plan([Target::php('8.4')], [new FixStep('edited', ['upgrading.php.deprecatedApi'])], '1.0');
+	Assert::exception(
+		fn() => $runner->run($edited),
+		DressCode\ConfigurationException::class,
+		'The plan changed since a run left step 1 uncommitted, waiting for files it could not process; %a%',
+	);
+
+	// a file the step wrote and someone changed since is a change of their own, which the commit would take
+	$written = (string) file_get_contents("$root/src/Code.php");
+	file_put_contents("$root/src/Code.php", "$written// mine\n");
+	Assert::exception(
+		fn() => $runner->run(createSteppedPlan()),
+		DressCode\ConfigurationException::class,
+		'A commit of a topic takes the files it changed whole, and the working tree has changes of its own; %a%',
+	);
+	file_put_contents("$root/src/Code.php", $written);
+
+	// the user makes the file parse, which is no change of their own for the run, and the step goes into one commit
+	file_put_contents("$root/src/Broken.php", "<?php\n\nfunction broken(int \$count = null): void\n{\n}\n");
+	Assert::same(RunStop::Composer, $runner->run(createSteppedPlan())->stop);
+	Assert::match(
+		"%A%    upgrade: upgrading.php.implicitNullable\n%A%\nsrc/Broken.php\nsrc/Code.php\n",
+		str_replace("\r", '', $git('log', '-1', '--name-only')[1]),
+	);
 });
 
 
