@@ -68,6 +68,21 @@ test('upgrade today leaves out the files a generator wrote and says how many', f
 });
 
 
+test('upgrade today --max-warnings fails where more warnings are left', function () {
+	$root = createTempDir('upgrade-warnings');
+	mkdir("$root/src");
+	file_put_contents("$root/composer.json", '{"require": {"php": ">=8.2"}}');
+	file_put_contents("$root/dresscode.neon", "paths: [src]\nseverity:\n\tupgrading.php.deprecatedApi: warning\n");
+	file_put_contents("$root/src/a.php", "<?php\n\nstrftime('%Y');\n");
+
+	/** @param list<string> $args */
+	$run = fn(array $args = []) => runApp($root, array_values(['upgrade', 'today', '--no-color', '--no-cache', ...$args]))[0];
+	Assert::same(0, $run());
+	Assert::same(0, $run(['--max-warnings', '1']));
+	Assert::same(1, $run(['--max-warnings', '0']));
+});
+
+
 test('upgrade today keeps what the project keeps, in an override too, the sets lying beneath its decisions', function () {
 	$code = "<?php\n\ndeclare(strict_types=1);\n\n\$h = curl_init();\ncurl_close(\$h);\n";
 	$root = createTempDir('upgrade-kept');
