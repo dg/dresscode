@@ -10,7 +10,7 @@ namespace DressCode\Measuring;
 use DressCode\Engine\{ProcessRunner, WorkerPool};
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
-use function count, dirname, is_array;
+use function count, is_array;
 use const PHP_OS_FAMILY;
 
 
@@ -51,8 +51,7 @@ final readonly class ProcessProbeRunner implements ProbeRunner
 	 */
 	public static function create(string $root, ?\Closure $onProgress = null, ?int $processors = null): self
 	{
-		$script = \Phar::running(returnPhar: false) ?: dirname(__DIR__, 2) . '/bin/dresscode';
-		$command = [...WorkerPool::buildPhpCommand() ?? [PHP_BINARY], $script];
+		$command = [...WorkerPool::buildPhpCommand() ?? [PHP_BINARY], WorkerPool::locateProgram()];
 		return new self($root, $command, $processors ?? WorkerPool::detectCpuCount(), $onProgress);
 	}
 

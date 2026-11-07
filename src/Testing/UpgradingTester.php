@@ -12,6 +12,7 @@ use DressCode\Config\{ComposerJson, CorePlugin, Layer, LayerKind, PackageDiscove
 use DressCode\Domains\Map;
 use DressCode\Rules\Upgrading\MemberTarget;
 use DressCode\Upgrading\{MemberMapGrammar, MemberPattern, MemberPatternKind};
+use Nette\Neon\{Exception, Neon};
 use Nette\Schema\ValidationException;
 use Nette\Utils\FileSystem;
 use function count, is_array, is_string, strlen;
@@ -75,6 +76,51 @@ final class UpgradingTester
 		$installed = $project->installed[$package]['version'] ?? null;
 		$reached = $upgrading->selectFor($installed, $layer);
 		return $problems === [] ? self::collectExistenceProblems(self::validate($reached->maps, $packageRules)[1]) : $problems;
+	}
+
+
+	/**
+	 * Checks that `extra.dresscode.packages` of the package at the root says exactly which packages its upgrading files
+	 * are about, by which `upgrade` offers it to a project lacking it: none of them left out, and none listed that no
+	 * file is about.
+	 * @return list<string>
+	 */
+	public static function collectPackageProblems(string $root): array
+	{
+		$composer = ComposerJson::read("$root/composer.json") ?? [];
+		$name = is_string($composer['name'] ?? null) ? $composer['name'] : 'the root package';
+		$extra = $composer['extra']['dresscode'] ?? null;
+		if (!is_array($extra)) {
+			return [];
+		}
+
+		try {
+			$about = [];
+			foreach (PackageDiscovery::findUpgradingFiles($root, $extra, $name) as $file) {
+				$package = Neon::decodeFile("$root/$file")['package'] ?? null;
+				if (is_string($package)) {
+					$about[$package] = $file;
+				}
+			}
+		} catch (ConfigurationException|Exception $e) {
+			return [$e->getMessage()];
+		}
+
+		$listed = is_array($extra['packages'] ?? null) ? array_values(array_filter($extra['packages'], is_string(...))) : [];
+		$problems = [];
+		foreach ($about as $package => $file) {
+			if (!PackageDiscovery::isAbout($listed, $package)) {
+				$problems[] = "Package `$name`: `extra.dresscode.packages` in its `composer.json` does not list `$package`, which `$file` is about.";
+			}
+		}
+
+		foreach ($listed as $package) {
+			if (!array_any(array_keys($about), fn(string $library) => PackageDiscovery::isAbout([$package], $library))) {
+				$problems[] = "Package `$name`: `extra.dresscode.packages` in its `composer.json` lists `$package`, which no upgrading file is about.";
+			}
+		}
+
+		return $problems;
 	}
 
 

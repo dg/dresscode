@@ -37,7 +37,7 @@ final class ProcessRunner
 		bool $errors = true,
 	): array
 	{
-		// the shell of Windows is what finds a program that is a `.bat`
+		// the shell of Windows is what finds `composer.bat`
 		$command = PHP_OS_FAMILY !== 'Windows'
 			? $command
 			: implode(' ', array_map(escapeshellarg(...), $command));

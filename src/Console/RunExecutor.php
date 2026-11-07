@@ -436,19 +436,9 @@ final readonly class RunExecutor
 			...explode(' ', $args->command->getFullName()),
 			'--no-color',
 			...$extra,
+			...$configuration->toArguments(),
+			...array_map(fn(string $only) => "--only=$only", $check->only ?? []),
 		];
-		foreach ([
-			'--config' => (array) $configuration->config,
-			'--use' => $configuration->use,
-			'--set' => $configuration->set,
-			'--severity' => $configuration->severity,
-			'--root' => (array) $configuration->root,
-			'--only' => $check->only ?? [],
-		] as $option => $values) {
-			foreach ($values as $value) {
-				$command[] = "$option=$value"; // a value starting with a dash would read as an option
-			}
-		}
 
 		if ($run->strictRules) {
 			$command[] = '--strict-rules';
