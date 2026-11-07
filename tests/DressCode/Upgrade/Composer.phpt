@@ -1,0 +1,110 @@
+<?php declare(strict_types=1);
+
+use DressCode\Upgrade\{Blocker, Composer, ComposerException, Move, Target};
+use Tester\Assert;
+
+require __DIR__ . '/../../bootstrap.php';
+
+
+test('the packages refusing a version are read from what why-not writes, the project itself left out', function () {
+	$output = <<<'XX'
+		acme/shop                     dev-master requires php (>= 8.2)
+		latte/latte                   v3.1.6     requires php (8.2 - 8.5)
+		nette/application             v3.3.0     requires php (8.3 - 8.5)
+		acme/legacy                   v1.0.0     conflicts php (>=8.4)
+		Not finding what you were looking for? Try calling `composer require "php:8.6" --dry-run` to get another view on the problem.
+		XX;
+
+	$blockers = Composer::parseBlockers(Target::php('8.6'), $output, 'acme/shop');
+	Assert::equal(Target::php('8.6'), $blockers->target);
+	Assert::equal(
+		[
+			new Blocker('latte/latte', 'v3.1.6', '8.2 - 8.5'),
+			new Blocker('nette/application', 'v3.3.0', '8.3 - 8.5'),
+			new Blocker('acme/legacy', 'v1.0.0', 'conflicts with php >=8.4'),
+		],
+		$blockers->packages,
+	);
+});
+
+
+test('the target itself refusing the PHP Composer runs on refuses no target', function () {
+	$output = <<<'XX'
+		acme/shop   dev-master requires acme/mail (^3.2)
+		acme/mail v4.0.0     requires php (>=8.0 <8.3 but 8.5.12 is installed)
+		XX;
+
+	Assert::same([], Composer::parseBlockers(new Target('acme/mail', '4.0'), $output, 'acme/shop')->packages);
+});
+
+
+test('the operations of an update are read once, though Composer lists them for the lock and for the installation', function () {
+	$output = <<<'XX'
+		./composer.json has been updated
+		Lock file operations: 0 installs, 1 update, 0 removals
+		  - Upgrading nette/utils (v3.2.10 => v4.0.11)
+		Installing dependencies from lock file (including require-dev)
+		Package operations: 0 installs, 1 update, 0 removals
+		  - Upgrading nette/utils (v3.2.10 => v4.0.11)
+		XX;
+
+	Assert::same(['- Upgrading nette/utils (v3.2.10 => v4.0.11)'], Composer::parseOperations($output));
+});
+
+
+test('the moves of an update are read from its upgrades and downgrades, not from what it installs or removes', function () {
+	$output = <<<'XX'
+		Lock file operations: 1 install, 2 updates, 1 removal
+		  - Removing acme/old (v1.0.0)
+		  - Upgrading nette/utils (v3.2.10 => v4.0.11)
+		  - Downgrading acme/mail (v2.1.0 => v2.0.3)
+		  - Installing acme/new (v1.2.0)
+		XX;
+
+	Assert::equal(
+		[new Move('nette/utils', 'v3.2.10', 'v4.0.11'), new Move('acme/mail', 'v2.1.0', 'v2.0.3')],
+		Composer::parseMoves(Composer::parseOperations($output)),
+	);
+});
+
+
+test('a Composer that fails says why, with the last line it wrote', function () {
+	putenv('COMPOSER_BINARY=dresscode-no-such-composer');
+	try {
+		$root = createTempDir('composer-failed');
+		file_put_contents("$root/composer.json", '{"require": {"acme/mail": "^3.0"}}');
+		$composer = new Composer($root);
+		Assert::exception(
+			fn() => $composer->previewRequire(['acme/mail' => '^4.0']),
+			ComposerException::class,
+			'Composer failed: %a%',
+		);
+		Assert::match('Composer failed: %a%', (string) $composer->findMoves(['acme/mail' => '^4.0'])->unknown);
+
+		// a Composer ending with a negative code, as a crash on Windows does
+		file_put_contents("$root/composer.php", "<?php\necho 'Out of memory';\nexit(-1);\n");
+		putenv("COMPOSER_BINARY=$root/composer.php");
+		Assert::exception(
+			fn() => $composer->previewRequire(['acme/mail' => '^4.0']),
+			ComposerException::class,
+			'Composer failed: Out of memory%a?%',
+		);
+	} finally {
+		putenv('COMPOSER_BINARY');
+	}
+});
+
+
+test('nothing refuses a version where why-not says no installed package depends on it otherwise', function () {
+	$output = 'There is no installed package depending on "php" in versions not matching 8.5';
+	$blockers = Composer::parseBlockers(Target::php('8.5'), $output, null);
+	Assert::same([], $blockers->packages);
+	Assert::null($blockers->unknown);
+});
+
+
+test('an output that is no answer of why-not leaves what refuses the version unknown', function () {
+	$blockers = Composer::parseBlockers(Target::php('8.5'), "Could not open input file: composer.phar\n", null);
+	Assert::same([], $blockers->packages);
+	Assert::same('Composer gave no answer: Could not open input file: composer.phar', $blockers->unknown);
+});
