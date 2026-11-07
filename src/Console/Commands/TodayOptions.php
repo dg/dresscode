@@ -44,6 +44,12 @@ final readonly class TodayOptions
 		)]
 		public array $only = [],
 		#[Cli\Option(
+			'Exit with `1` when more than `n` warnings are left, as in CI',
+			valueName: 'n',
+			normalizer: [CheckOptions::class, 'parseMaxWarnings'],
+		)]
+		public ?int $maxWarnings = null,
+		#[Cli\Option(
 			'Number of worker processes; by default the number of processors, at most one per four files; `1` runs in-process',
 			valueName: 'n',
 			normalizer: [RunOptions::class, 'parsePositiveInt'],
