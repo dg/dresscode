@@ -15,6 +15,7 @@ use Nette\CommandLine\{Console, ParseResult, Prompt, UsageException};
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
 use function is_string;
+use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES;
 
 
 /**
@@ -188,6 +189,16 @@ final readonly class CommandContext
 	public function write(string $text): void
 	{
 		$this->out->write(Markup::highlightCode($this->out, $text));
+	}
+
+
+	/**
+	 * The document of the format `json` on the output, as it is.
+	 * @param  array<string, mixed>  $data
+	 */
+	public function writeJson(array $data): void
+	{
+		fwrite($this->stdout, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n");
 	}
 
 

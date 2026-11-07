@@ -113,6 +113,14 @@ final class Markup
 	}
 
 
+	/** The name of a file, in a terminal with colors a link that opens it. */
+	public static function formatFileLink(Console $console, string $name, string $path): string
+	{
+		$url = 'file:///' . str_replace(['%2F', '%3A'], ['/', ':'], rawurlencode(ltrim(strtr($path, '\\', '/'), '/')));
+		return $console->isTerminal() && $console->hasColors() ? $console->link($url, $name) : $name;
+	}
+
+
 	public static function highlightDiff(Console $console, string $diff): string
 	{
 		return implode('', array_map(
@@ -144,7 +152,7 @@ final class Markup
 	/** The label a line of the output opens with, in gray and as wide as the others, so that the values line up. */
 	public static function formatLabel(Console $console, string $label): string
 	{
-		return $console->color('gray', str_pad($label, self::LabelWidth));
+		return $console->color('gray', mb_str_pad($label, self::LabelWidth));
 	}
 
 
@@ -153,9 +161,8 @@ final class Markup
 	 * that the terminal does not break them under the labels; outside a terminal the text stays as it is, a line of a
 	 * log or a pipe being as long as it needs.
 	 */
-	public static function wrapLines(Console $console, string $text): string
+	public static function wrapLines(Console $console, string $text, int $indent = self::LabelWidth): string
 	{
-		$indent = self::LabelWidth;
 		$width = $console->getWidth();
 		if (!$console->isTerminal() || $width <= 2 * $indent) {
 			return $text;

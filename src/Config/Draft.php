@@ -7,15 +7,17 @@
 
 namespace DressCode\Config;
 
+use DressCode\{Config, ConfigurationException};
 use DressCode\Engine\Helpers;
 use Nette\Neon\Neon;
-use function count, is_array, strlen;
+use Nette\Utils\FileSystem;
+use function count, is_array, is_string, strlen;
 
 
 /**
- * A configuration written from a translation, each key with what it rests on: as `dresscode.neon` with the comments and
- * as `dresscode.php` without them. The decisions are written in the order of the sections of the core, each value as the
- * configuration writes it.
+ * A configuration as `dresscode migrate config` writes it, each key with what it rests on: as `dresscode.neon` with the
+ * comments and as `dresscode.php` without them. The decisions are written in the order of the sections of the core, each
+ * value as the configuration writes it.
  * @internal
  */
 final class Draft
@@ -52,6 +54,69 @@ final class Draft
 		$this->decisions[$path] = $value;
 		$this->comments[$path] = $comment;
 		return $this;
+	}
+
+
+	/**
+	 * The configuration written in the format given, `neon` or `php`, resolved the way a run reads it before it is
+	 * anywhere a run could read it and checked to say what the draft does.
+	 * @throws \LogicException  where it says something else
+	 * @throws ConfigurationException
+	 */
+	public function renderChecked(string $root, string $format = 'neon'): string
+	{
+		$text = $format === 'php' ? $this->toPhp() : $this->toNeon();
+		$temp = sys_get_temp_dir() . '/dresscode-draft-' . uniqid(more_entropy: true) . ".$format";
+		FileSystem::write($temp, $text);
+		try {
+			$config = Loader::loadFile($temp);
+			$this->checkLoaded($config);
+			$this->checkResolution((new RunnerFactory)->resolve($config, $root)->resolvedConfig);
+		} finally {
+			@unlink($temp); // @ file may have been deleted meanwhile
+		}
+
+		return $text;
+	}
+
+
+	/**
+	 * What the configuration loads as must be what the draft says of the presets, which a run reads before it resolves
+	 * anything.
+	 * @throws \LogicException
+	 */
+	private function checkLoaded(Config $config): void
+	{
+		$use = [...$config->use, ...array_map(fn($plugin) => is_string($plugin) ? $plugin : $plugin::class, $config->plugins)];
+		$expected = $this->use;
+		sort($use);
+		sort($expected);
+		if ($use !== $expected) {
+			throw new \LogicException('The configuration written does not say what it was made to: `use` names other presets.');
+		}
+	}
+
+
+	/**
+	 * What a run makes of the configuration must be what the draft says of its decisions; anything else is a
+	 * configuration that says one thing and does another.
+	 * @throws \LogicException
+	 */
+	public function checkResolution(ResolvedConfig $resolved): void
+	{
+		$catalogue = self::getCatalogue();
+		foreach ($this->decisions as $path => $value) {
+			$decision = $catalogue->find($path);
+			if ($decision === null) { // a decision of a plugin, which the core does not know how to accept
+				continue;
+			}
+
+			$expected = $decision->accept($value);
+			$actual = ($resolved->decisions[$path] ?? null)?->value;
+			if ($actual === null || $actual->isKept() !== $expected->isKept() || $actual->toData() !== $expected->toData()) {
+				throw new \LogicException("The configuration written does not say what it was made to: `$path` resolves to another value.");
+			}
+		}
 	}
 
 
