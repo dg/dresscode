@@ -33,7 +33,7 @@ final readonly class RunOptions
 		#[Cli\Option(
 			'Number of worker processes; by default the number of processors, at most one per four files; `1` runs in-process',
 			valueName: 'n',
-			normalizer: [self::class, 'parseJobs'],
+			normalizer: [self::class, 'parsePositiveInt'],
 		)]
 		public ?int $jobs = null,
 		#[Cli\Flag('Treat a rule breaking its contract as an error, not a warning')]
@@ -45,7 +45,7 @@ final readonly class RunOptions
 	}
 
 
-	public static function parseJobs(string $value): int
+	public static function parsePositiveInt(string $value): int
 	{
 		return Normalizers::int($value, min: 1);
 	}

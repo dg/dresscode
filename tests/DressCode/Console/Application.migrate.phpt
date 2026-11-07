@@ -294,7 +294,7 @@ test('migrate config writes the paths the configuration names, and keeps the dec
 		$neon,
 	);
 
-	// the data of tests the ruleset checked are left out, which the file says is a change
+	// the data of tests the ruleset checked are left out as init leaves them out, which the file says is a change
 	unlink("$project/dresscode.neon");
 	@mkdir("$project/src/fixtures"); // @ directory may already exist
 	file_put_contents("$project/src/fixtures/D.php", "<?php\n");
@@ -370,7 +370,7 @@ test('migrate suppressions rewrites phpcs comments to the dresscode form', funct
 	);
 	[$code, $out] = runApp($root, ['migrate', 'suppressions', 'src/s.php']);
 	Assert::same([0, "OK  no phpcs comments to rewrite\n"], [$code, $out]);
-	// what is migrated is counted no more, the hint of migrate config with it
+	// what is migrated is counted no more, the hint of init and migrate config with it
 	$count = fn() => new DressCode\Engine\SuppressionMigration(new DressCode\Config\PluginRegistry()->expandSuppressedName(...))
 		->countInFiles($root, ['src/s.php']);
 	Assert::same(0, $count());

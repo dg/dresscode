@@ -192,7 +192,7 @@ test('console: the refused risky fixes are counted by their risk, with the advic
 			TypeAnalysisStatus::Available,
 			false,
 			'2 risky fixes wait, the type is unknown: set `typeAnalysis: phpstan`.',
-			'list what the namespaces declare under `namespaces`, or set `nameResolution: certain` if they declare nothing',
+			'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing',
 		],
 		[
 			TypeAnalysisStatus::Enabled,
@@ -204,7 +204,7 @@ test('console: the refused risky fixes are counted by their risk, with the advic
 			TypeAnalysisStatus::Unavailable,
 			false,
 			'2 risky fixes wait, the type is unknown: check them with `fix --ask-risky`.',
-			'list what the namespaces declare under `namespaces`, or set `nameResolution: certain` if they declare nothing',
+			'run `dresscode init`, which lists what the namespaces declare, or set `nameResolution: certain` if they declare nothing',
 		],
 	] as [$typeAnalysis, $listed, $advice, $names]) {
 		$stream = memory();

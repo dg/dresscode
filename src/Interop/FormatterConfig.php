@@ -7,7 +7,7 @@
 
 namespace DressCode\Interop;
 
-use DressCode\Config\ComposerJson;
+use DressCode\Config\{ComposerJson, PluginRegistry};
 use DressCode\ConfigurationException;
 use DressCode\Engine\Helpers;
 use Nette\Utils\FileSystem;
@@ -15,10 +15,10 @@ use function in_array, strlen;
 
 
 /**
- * The configuration of the formatter a project has, found where a project keeps it. What `dresscode migrate config`
- * takes of it besides its rules is read as data and never run: the paths it checks and those it leaves out, the paths a
- * rule of it leaves out, and how the project runs it. Only its rules, which `translate()` reads, need the configuration
- * of PHP CS Fixer run, being PHP.
+ * The configuration of the formatter a project has, found where a project keeps it. What `dresscode init` and
+ * `dresscode migrate config` take of it is read as data and never run: the standard it names, the paths it checks and
+ * those it leaves out, the paths a rule of it leaves out, and how the project runs it. Only its rules, which
+ * `translate()` reads, need the configuration of PHP CS Fixer run, being PHP.
  * @internal
  */
 final readonly class FormatterConfig
@@ -29,6 +29,8 @@ final readonly class FormatterConfig
 		public string $file,
 		/** the command of the project that runs it, `composer check`; null where none does */
 		public ?string $runBy,
+		/** the standard of DressCode its set or preset is; null for none */
+		public ?string $standard,
 		/** @var list<string>  the directories and files it checks, relative to the root; empty where it names none */
 		public array $paths,
 		/** @var list<string>  regular expressions of the paths, relative to the root, it leaves out */
@@ -69,9 +71,10 @@ final readonly class FormatterConfig
 	}
 
 
-	/** Laravel Pint: the directories it leaves out. */
+	/** Laravel Pint: the standard of its preset, `laravel` where it names none, and the directories it leaves out. */
 	private static function readPint(string $path, string $file, ?string $runBy): self
 	{
+		// a file that is no JSON names no preset, which is not the default preset of a file naming none
 		$config = ComposerJson::read($path);
 		$excludes = array_map(
 			fn($dir) => '~^' . preg_quote(trim((string) $dir, '/'), '~') . '/~',
@@ -81,6 +84,7 @@ final readonly class FormatterConfig
 			Formatter::Pint,
 			$file,
 			$runBy,
+			$config === null ? null : Pint::findStandard($config['preset'] ?? null),
 			[],
 			$excludes,
 			[],
@@ -91,20 +95,21 @@ final readonly class FormatterConfig
 
 
 	/**
-	 * A ruleset is data: the files it checks, the extensions and its own exclude patterns, those of its rules, and the
-	 * rest of it, which is how PHP_CodeSniffer runs, or else unread. A pattern is a regular expression in which `*` stands
-	 * for anything; an absolute one is matched against the path with a slash in front, a relative one against the path.
+	 * A ruleset is data: the standard it references, the files it checks, the extensions and its own exclude patterns,
+	 * those of its rules, and the rest of it, which is how PHP_CodeSniffer runs, or else unread. A pattern is a regular
+	 * expression in which `*` stands for anything; an absolute one is matched against the path with a slash in front, a
+	 * relative one against the path.
 	 */
 	private static function readPhpCodeSniffer(string $root, string $path, string $file, ?string $runBy): self
 	{
 		$xml = @simplexml_load_file($path); // @ a ruleset that is no XML gives nothing
 		if ($xml === false) {
-			return new self(Formatter::PhpCodeSniffer, $file, $runBy, [], [], [], $path, [basename($file) . ', which is no XML']);
+			return new self(Formatter::PhpCodeSniffer, $file, $runBy, null, [], [], [], $path, [basename($file) . ', which is no XML']);
 		}
 
 		$toRegex = fn(string $pattern, bool $relative = false) => '~' . ($relative ? '^' : '')
 			. str_replace(['~', '*'], ['\~', '.*'], trim($pattern)) . '~i';
-		$excludes = $ruleExcludes = $unread = [];
+		$standard = $excludes = $ruleExcludes = $unread = [];
 		$extensions = null;
 		foreach ($xml->{'exclude-pattern'} ?? [] as $pattern) {
 			$excludes[] = $toRegex((string) $pattern, (string) $pattern['type'] === 'relative');
@@ -139,15 +144,18 @@ final readonly class FormatterConfig
 
 		foreach ($xml->rule ?? [] as $rule) {
 			$ref = (string) $rule['ref'];
+			$standard[] = PhpCodeSniffer::getSets()[$ref] ?? null;
 			foreach ($rule->{'exclude-pattern'} ?? [] as $pattern) {
 				$ruleExcludes[$ref][] = $toRegex((string) $pattern, (string) $pattern['type'] === 'relative');
 			}
 		}
 
+		$standard = array_values(array_filter($standard))[0] ?? null;
 		return new self(
 			Formatter::PhpCodeSniffer,
 			$file,
 			$runBy,
+			$standard === null ? null : PluginRegistry::abbreviate($standard),
 			self::resolvePaths($root, $path, array_map(strval(...), iterator_to_array($xml->file, preserve_keys: false))),
 			$excludes,
 			$ruleExcludes,
@@ -172,13 +180,21 @@ final readonly class FormatterConfig
 
 
 	/**
-	 * A configuration of PHP CS Fixer is PHP, read from its syntax tree without running it (`PhpCsFixerSource`): the
-	 * directories its finder takes, `->in(__DIR__ . '/lib')`, and what it leaves out of them, a directory
-	 * `->exclude('Parser')`, a path `->notPath('Fixtures')` and a name `->notName('*.phpt')`.
+	 * A configuration of PHP CS Fixer is PHP, read from its syntax tree without running it (`PhpCsFixerSource`): the sets
+	 * its rules turn on, the directories its finder takes, `->in(__DIR__ . '/lib')`, and what it leaves out of them, a
+	 * directory `->exclude('Parser')`, a path `->notPath('Fixtures')` and a name `->notName('*.phpt')`.
 	 */
 	private static function readPhpCsFixer(string $root, string $path, string $file, ?string $runBy): self
 	{
 		$source = PhpCsFixerSource::fromCode((string) @file_get_contents($path), $path); // @ file may have been deleted meanwhile
+		$standard = null;
+		// @PhpCsFixer is @Symfony with more rules, which the standard is the nearest to
+		foreach ([...PhpCsFixer::getSets(), '@PhpCsFixer' => 'dresscode/symfony'] as $set => $preset) {
+			if (in_array($set, $source->sets, true)) {
+				$standard ??= PluginRegistry::abbreviate($preset);
+			}
+		}
+
 		// a finder of appended files alone takes those, one of neither the directory of the configuration
 		$in = $source->in ?: ($source->append === [] ? [dirname($path)] : []);
 		$dirs = self::resolvePaths($root, $path, $in);
@@ -204,6 +220,7 @@ final readonly class FormatterConfig
 			Formatter::PhpCsFixer,
 			$file,
 			$runBy,
+			$standard,
 			$source->append === [] ? $dirs : self::resolvePaths($root, $path, [...$in, ...$source->append]),
 			$excludes,
 			[],

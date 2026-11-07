@@ -16,10 +16,10 @@ use function count;
 
 
 /**
- * The files `dresscode migrate config` writes the configuration for, and those it leaves out with the reason. With git
- * the scope is what the repository tracks under the root, or under the paths the formatter of the project checks; without
- * it, what the autoload and the usual directories hold. Either way the data of tests are left out and whatever the
- * defaults exclude, and with git a file `linguist-generated` marks.
+ * The files `dresscode init` measures and writes the configuration for, as `dresscode migrate config` writes it too,
+ * and those it leaves out with the reason. With git the scope is what the repository tracks under the root, or under
+ * the paths the formatter of the project checks; without it, what the autoload and the usual directories hold. Either
+ * way a file a generator wrote and the data of tests are left out, and whatever the defaults exclude.
  * @internal
  */
 final class Scope
@@ -39,6 +39,9 @@ final class Scope
 	/** how long git may take to answer, in seconds */
 	private const GitTimeout = 60;
 
+	/** @var list<string>  the files in the paths git does not track and would add, which a run takes and the measuring does not */
+	public private(set) array $untracked = [];
+
 	/** @var ?array<string, LeftOutReason>  what `listExcludePaths()` gives, until the scope changes */
 	private ?array $excluded = null;
 
@@ -56,9 +59,10 @@ final class Scope
 
 	/**
 	 * The files of the extensions the repository tracks under the root, those the default exclusions name dropped without
-	 * a word, and the directories and files git ignores that hold PHP; null where there is no git, the root lies in no
-	 * repository or the repository tracks none of its code, as a project in a directory another repository ignores. With
-	 * the paths given, only what lies under them, the scope written as those paths.
+	 * a word, the directories and files git ignores that hold PHP, and the files it would add that lie in the paths, which
+	 * a run takes too, not measured; null where there is no git, the root lies in no repository or the repository tracks
+	 * none of its code, as a project in a directory another repository ignores. With the paths given, only what lies
+	 * under them, the scope written as those paths.
 	 * @param  list<string>  $extensions
 	 * @param  ?list<string>  $paths
 	 */
@@ -94,7 +98,19 @@ final class Scope
 			}
 		}
 
-		return new self($files, $leftOut, $paths);
+		$scope = new self($files, $leftOut, $paths);
+		$untracked = self::runGit(
+			$root,
+			['ls-files', '-z', '--others', '--exclude-standard', '--', ...array_map(fn(string $ext) => "*.$ext", $extensions)],
+		) ?? '';
+		$listed = $scope->listPaths();
+		$scope->untracked = array_values(array_filter(
+			explode("\0", $untracked),
+			fn(string $file) => $file !== ''
+				&& !Helpers::matchesAny(Config::DefaultExcludePaths, $file)
+				&& array_any($listed, fn(string $path) => $path === '.' || $file === $path || str_starts_with($file, "$path/")),
+		));
+		return $scope;
 	}
 
 
@@ -113,13 +129,36 @@ final class Scope
 	 * The scope of a project: what its formatter checks where its configuration names the paths, else what git tracks,
 	 * else what the autoload names, without what the formatter leaves out.
 	 */
-	public static function fromProject(string $root, FormatterConfig $formatterConfig): self
+	public static function fromProject(string $root, ?FormatterConfig $formatterConfig): self
 	{
-		$paths = $formatterConfig->paths ?: null;
+		$paths = $formatterConfig?->paths ?: null;
 		$extensions = $formatterConfig->extensions ?? self::Extensions;
 		$scope = self::fromGit($root, $extensions, $paths)
 			?? ($paths === null ? self::fromAutoload($root, $extensions) : self::fromPaths($root, $paths, $extensions));
-		$scope->leaveOut(array_values(array_filter($scope->files, $formatterConfig->excludes(...))), LeftOutReason::Foreign);
+		if ($formatterConfig !== null) {
+			$scope->leaveOut(array_values(array_filter($scope->files, $formatterConfig->excludes(...))), LeftOutReason::Foreign);
+		}
+
+		return $scope;
+	}
+
+
+	/**
+	 * The files the configuration checks, those an override gives decisions of its own left out, as what they keep is
+	 * no measure of the rest.
+	 */
+	public static function fromConfig(string $root, Config $config): self
+	{
+		$factory = new RunnerFactory;
+		$files = $factory->createFileFinder($factory->resolve($config, $root))->findFiles($config->paths ?: ['.']);
+		$scope = new self($files, [], $config->paths ?: ['.']);
+		$scope->leaveOut(
+			array_values(array_filter(
+				$files,
+				fn(string $file) => array_any($config->overrides, fn(Override $override) => Helpers::matchesAny($override->paths, $file)),
+			)),
+			LeftOutReason::Overridden,
+		);
 		return $scope;
 	}
 
@@ -194,7 +233,7 @@ final class Scope
 			$reason = match (true) {
 				str_ends_with($file, '.phpt') && self::isPhptTest("$root/$file") => LeftOutReason::PhptTest,
 				array_intersect(self::TestDataDirs, explode('/', $file)) !== [] => LeftOutReason::TestData,
-				isset($generated[$file]) => LeftOutReason::Generated,
+				isset($generated[$file]) || FileSample::isGenerated("$root/$file") => LeftOutReason::Generated,
 				default => null,
 			};
 			if ($reason === null) {
@@ -227,6 +266,13 @@ final class Scope
 	}
 
 
+	/** Whether the scope is all git tracks under the root, not narrowed to the paths of a formatter or of the autoload. */
+	public function isFromGit(): bool
+	{
+		return $this->paths === null;
+	}
+
+
 	/**
 	 * Leaves out the files given, those of them the scope has, for the reason given.
 	 * @param  list<string>  $files  relative to the root
@@ -241,17 +287,21 @@ final class Scope
 
 
 	/**
-	 * Writes the scope into the configuration, its paths, what it excludes and its extensions, and the overrides that keep
-	 * the decisions a rule of the formatter stands for in the files it leaves out of that rule.
+	 * Writes the scope into the configuration, its paths, what it excludes and its extensions, and with the formatter
+	 * the overrides that keep the decisions a rule of it stands for in the files it leaves out of that rule.
 	 * @param  \Closure(string): bool  $keepable  whether the decision of the path is kept there
 	 */
-	public function writeInto(Draft $draft, FormatterConfig $config, \Closure $keepable): void
+	public function writeInto(Draft $draft, ?FormatterConfig $config, \Closure $keepable): void
 	{
 		$draft->setScope(
 			$this->listPaths(),
 			array_map(fn(LeftOutReason $why) => $why->value, $this->listExcludePaths()),
 			$this->listExtensions(),
 		);
+		if ($config === null) {
+			return;
+		}
+
 		$translator = new Translator;
 		foreach (array_keys($config->ruleExcludePatterns) as $rule) {
 			$decisions = array_filter($translator->findPaths($rule), $keepable);

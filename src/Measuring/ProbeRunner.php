@@ -11,7 +11,7 @@ use DressCode\ConfigurationException;
 
 
 /**
- * Runs the checks the measuring counts by; the root is the project's, wherever the configuration lies.
+ * Runs the checks `dresscode init` counts by; the root is the project's, wherever the configuration lies.
  * @internal
  */
 interface ProbeRunner

@@ -113,7 +113,7 @@ final readonly class MigrateCommand
 		}
 
 		$translation = $config->translate();
-		// the scope, and the decisions a rule of the formatter stands for kept where it leaves files out
+		// the scope as init writes it, and the decisions a rule of the formatter stands for kept where it leaves files out
 		$scope = Scope::fromProject($root, $config);
 		foreach ($scope->listExcludePaths() as $path => $why) { // what the formatter left out is left out as it was, the rest is a change
 			if ($why !== LeftOutReason::Foreign) {

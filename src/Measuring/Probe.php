@@ -9,7 +9,7 @@ namespace DressCode\Measuring;
 
 
 /**
- * A check the measuring counts by: a configuration as `dresscode.neon` writes it over the project, its `paths`
+ * A check `dresscode init` counts by: a configuration as `dresscode.neon` writes it over the project, its `paths`
  * naming the files, narrowed as `--only` narrows a run, the values staying as the configuration resolves them.
  * @internal
  */

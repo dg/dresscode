@@ -54,7 +54,7 @@ targets:
 typeAnalysis: phpstan                       # the types of the code come from the PHPStan installed beside the tool. Also: none
 
 namespaces:                                 # the functions and constants the namespaces of the project declare
-	functions: [Acme\Shop\formatPrice, Acme\Shop\parsePrice]   # each by its full name
+	functions: ['Acme\Shop\{formatPrice, parsePrice}']   # by the full name, or those of one namespace as a group use writes them
 	constants: [Acme\Shop\CURRENCY]
 nameResolution: uncertain                   # `certain` says the lists above are complete, which turns on their guard
 

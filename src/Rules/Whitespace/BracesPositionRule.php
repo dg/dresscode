@@ -381,7 +381,11 @@ final class BracesPositionRule extends GapRule
 
 		// a comment inside makes a body not empty; an empty body kept stays on one line where it is written so
 		$emptyWord = $emptyDecision === null ? self::Expanded : $this->emptyBody[substr($emptyDecision, strlen(self::EmptyBody))];
-		$collapsed = $empty && $emptyWord === self::Collapsed && !$open->hasCommentUpTo($close);
+		$bare = $empty && !$open->hasCommentUpTo($close);
+		$collapsed = $bare && $emptyWord === self::Collapsed;
+		// an empty body expanded is placed as any other body, but its braces answer to the decision of the empty body,
+		// which then sees both of its shapes
+		$expanded = $bare && $emptyDecision !== null && $emptyWord === self::Expanded;
 		$kept = $empty && $emptyWord === null;
 		// a closure is on one line when written whole so, an empty body kept when its braces are
 		$from = $node instanceof ClosureNode && !$kept ? $node->functionKeyword : $open;
@@ -389,8 +393,8 @@ final class BracesPositionRule extends GapRule
 			'open' => $open,
 			'close' => $close,
 			'nextLine' => $nextLine,
-			'decision' => $decision,
-			'inside' => $inside,
+			'decision' => $expanded ? $emptyDecision : $decision,
+			'inside' => $expanded && $inside !== null ? $emptyDecision : $inside,
 			'collapsed' => $collapsed,
 			'emptyDecision' => $emptyDecision ?? self::EmptyBody . 'function',
 			// a body collapsing to {} is not asked about, its gaps being no construct decided once
