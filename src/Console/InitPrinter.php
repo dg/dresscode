@@ -102,6 +102,10 @@ final readonly class InitPrinter
 		$out = $this->formatLine('Standard', $named, ' (' . $standard->describe() . ')' . match ($standard->reason) {
 			StandardReason::Given => ', as given',
 			StandardReason::Formatter => ', ' . Formatter::Pint->value . ' formats the project in this style',
+			StandardReason::Successor => sprintf(
+				', the successor of `psr12`, under which a fix changes fewer files, %d; `--use` names another',
+				$changed['psr12'],
+			),
 			StandardReason::Fewest => sprintf(
 				', the nearest to your code%s; `--use` names another',
 				$next === null || $changed[$next] === ($changed[$chosen] ?? 0)

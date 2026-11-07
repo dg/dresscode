@@ -24,6 +24,9 @@ final readonly class StandardChoice
 	/** a standard changing at most this many times the fewest files fits the code as well */
 	private const CloseShare = 1.1;
 
+	/** PER Coding Style is taken over PSR-12, which it succeeds, unless it changes more than this many times the files */
+	private const SuccessorShare = 1.5;
+
 	/** the full names of the standards */
 	private const Names = [
 		'perCs' => 'PER Coding Style',
@@ -98,7 +101,7 @@ final readonly class StandardChoice
 		[$chosen, $reason] = match (true) {
 			$presets !== null => [(string) array_key_first($checks), StandardReason::Given],
 			count($candidates) === 1 => [(string) array_key_first($checks), StandardReason::Formatter],
-			default => [self::choose($whole ?: $changed, $project->formatterConfig?->standard), StandardReason::Fewest],
+			default => self::choose($whole ?: $changed, $project->formatterConfig?->standard),
 		};
 		$presets = array_combine(array_keys($probes), $candidates)[$chosen];
 		$decisions = (new RunnerFactory)->resolve(new Config(use: $presets), $project->root)->resolvedConfig->decisions;
@@ -117,16 +120,33 @@ final readonly class StandardChoice
 
 	/**
 	 * The standard a fix changes the fewest files under; where the next one is within a tenth of it, the one the formatter
-	 * of the project names if it is among them, else `perCs` among them, else the fewest.
+	 * of the project names if it is among them, else `perCs` among them, else the fewest. PSR-12 says nothing of what PHP
+	 * brought since and so changes less, which is why it yields to PER Coding Style within `SuccessorShare`, unless the
+	 * formatter names it.
 	 * @param  array<string, int>  $changed  standard => the files a fix under it changes, the fewest first
 	 * @param  ?string  $hint  the standard the formatter of the project names
+	 * @return array{string, StandardReason}
 	 */
-	private static function choose(array $changed, ?string $hint): string
+	private static function choose(array $changed, ?string $hint): array
 	{
-		$best = (string) array_key_first($changed);
-		$close = array_keys(array_filter($changed, fn(int $count) => $count <= self::CloseShare * $changed[$best]));
+		$candidates = $changed;
+		if (isset($candidates['psr12'], $candidates['perCs'])
+			&& $candidates['perCs'] <= self::SuccessorShare * $candidates['psr12']
+			&& $hint !== 'psr12'
+		) {
+			unset($candidates['psr12']);
+		}
+
+		$best = (string) array_key_first($candidates);
+		$close = array_keys(array_filter($candidates, fn(int $count) => $count <= self::CloseShare * $candidates[$best]));
 		$hinted = count($close) === 1 ? $best : (in_array($hint, $close, true) ? $hint : null);
-		return $hinted ?? (in_array(CorePlugin::Standards[0], $close, true) ? CorePlugin::Standards[0] : $best);
+		$chosen = $hinted ?? (in_array(CorePlugin::Standards[0], $close, true) ? CorePlugin::Standards[0] : $best);
+		return [
+			$chosen,
+			$chosen === 'perCs' && ($changed['psr12'] ?? PHP_INT_MAX) < $changed['perCs']
+				? StandardReason::Successor
+				: StandardReason::Fewest,
+		];
 	}
 
 
@@ -143,6 +163,7 @@ final readonly class StandardChoice
 		return match ($this->reason) {
 			StandardReason::Given => '',
 			StandardReason::Formatter => Formatter::Pint->value . ' formats the project in this style',
+			StandardReason::Successor => $this->describe() . ', the successor of PSR-12, under which a fix changes fewer files',
 			StandardReason::Fewest => $this->describe() . ', of the standards the one a fix changes the fewest files of your code under',
 		};
 	}
