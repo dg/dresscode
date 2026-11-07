@@ -9,8 +9,8 @@ namespace DressCode\Upgrade;
 
 
 /**
- * What an upgrade to the targets costs: the topics the check found, what it does not see, and how far the upgrading
- * data reach.
+ * What an upgrade to the targets costs: the topics the check found, what it does not see, what of the lock refuses
+ * the targets and what raising them moves, and how far the upgrading data reach.
  * @internal
  */
 final readonly class Estimate
@@ -23,6 +23,8 @@ final readonly class Estimate
 		/** the files checked */
 		public int $files,
 		public BlindSpots $blindSpots,
+		/** @var list<Blockers>  one for every target, where the project has a lock */
+		public array $blockers,
 		/** @var array<string, list<string>>  a package of upgrading data DressCode lacks => the libraries of the project it is about */
 		public array $missingData,
 		/** @var array<string, string>  library => the newest version its upgrading data know of */
@@ -33,16 +35,20 @@ final readonly class Estimate
 		public bool $types,
 		/** @var list<string>  what the user should be told about the run */
 		public array $warnings,
+		/** what raising the constraints to the targets moves, null where Composer was not asked, offline or without a lock */
+		public ?Moves $moves = null,
 		/** @var array<string, string>  the files the check could not process, whose places are not counted => why */
 		public array $unprocessed = [],
 	) {
 	}
 
 
-	/** Whether the estimate saw everything it was to: every file processed, the upgrading data there. */
+	/** Whether the estimate saw everything it was to: every file processed, the upgrading data there, Composer asked. */
 	public function isComplete(): bool
 	{
-		return $this->unprocessed === [] && $this->missingData === [];
+		return $this->unprocessed === []
+			&& $this->missingData === []
+			&& array_all($this->blockers, fn(Blockers $blockers) => $blockers->unknown === null);
 	}
 
 

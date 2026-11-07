@@ -130,6 +130,8 @@ final readonly class Estimator
 		$result = $factory->createRunner($resolution, cache: false)
 			->run($files, false, $collected, $this->createWorkers?->__invoke($run, count($files)));
 		[$topics, $unseen] = self::collectTopics($collected->violations, $resolution, $today, $targets);
+		$packages = ProjectPackages::read($this->project->root);
+		$composer = Composer::forLockOf($packages);
 
 		return new Estimate(
 			targets: $targets,
@@ -141,11 +143,13 @@ final readonly class Estimator
 				$this->countOtherFiles($runner, $scope),
 				count($found->generated),
 			),
-			missingData: $this->findMissingData(ProjectPackages::read($this->project->root)),
+			blockers: $composer === null ? [] : $this->findBlockers($composer, $targets),
+			missingData: $this->findMissingData($packages),
 			knownVersions: $discovered->findKnownVersions(),
 			namesMeasured: $names->declarations !== null,
 			types: $resolution->resolvedConfig->typeAnalysis !== null,
 			warnings: [...array_keys($resolution->warnings), ...$warnings],
+			moves: $composer === null || $this->offline ? null : $this->findMoves($composer, $packages, $targets),
 			unprocessed: self::collectUnprocessed($result),
 		);
 	}
@@ -321,6 +325,30 @@ final readonly class Estimator
 
 		ksort($counts);
 		return $counts;
+	}
+
+
+	/**
+	 * What the lock of the project holds that refuses each target.
+	 * @param  list<Target>  $targets
+	 * @return list<Blockers>
+	 */
+	private function findBlockers(Composer $composer, array $targets): array
+	{
+		$this->onProgress?->__invoke('asking Composer what the lock refuses');
+		return array_map($composer->findBlockers(...), $targets);
+	}
+
+
+	/**
+	 * What raising the constraints to the targets moves, as the dry run of Composer says, which needs the network.
+	 * @param  list<Target>  $targets
+	 */
+	private function findMoves(Composer $composer, ProjectPackages $packages, array $targets): Moves
+	{
+		$this->onProgress?->__invoke('asking Composer what the update moves');
+		$constraints = new Constraints($packages)->raise($targets);
+		return $constraints === [] ? new Moves : $composer->findMoves($constraints);
 	}
 
 

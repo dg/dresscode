@@ -68,6 +68,8 @@ test('the places are told by topic, by phase and by what the run can do about th
 	Assert::true($estimate->namesMeasured);
 	Assert::false($estimate->types);
 	Assert::same(['php' => '8.6'], $estimate->knownVersions);
+	// without a lock nothing is asked of Composer
+	Assert::same([], $estimate->blockers);
 });
 
 
