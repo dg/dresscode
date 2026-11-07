@@ -76,18 +76,10 @@ final class ProgressBar
 
 		asort($running);
 		$slowest = array_key_first($running);
-		if ($slowest !== null) {
-			$elapsed = $now - $running[$slowest];
-			$note = match (true) {
-				$large => self::formatSize($size),
-				$elapsed > self::SlowFile => sprintf('%ds', (int) $elapsed),
-				default => null,
-			};
-			if ($note !== null) {
-				$room = $this->console->getWidth() - Ansi::measure($line) - Ansi::measure($note) - 4;
-				$line .= $this->console->color('gray', '  ' . Ansi::truncate($slowest, max(1, $room), keepEnd: true))
-					. $this->console->color('yellow', "  $note");
-			}
+		if ($slowest !== null && ($large || $now - $running[$slowest] > self::SlowFile)) {
+			$note = '  ' . ($large ? $this->console->color('yellow', self::formatSize($size)) : StatusLine::formatSpinner($this->console));
+			$room = $this->console->getWidth() - Ansi::measure($line) - Ansi::measure($note) - 2;
+			$line .= $this->console->color('gray', '  ' . Ansi::truncate($slowest, max(1, $room), keepEnd: true)) . $note;
 		}
 
 		$this->console->setStatus($line);

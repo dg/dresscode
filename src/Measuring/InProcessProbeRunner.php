@@ -12,6 +12,7 @@ use DressCode\Engine\Runner;
 use DressCode\Reporters\NullReporter;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
+use function count;
 
 
 /**
@@ -23,6 +24,8 @@ final readonly class InProcessProbeRunner implements ProbeRunner
 {
 	public function __construct(
 		private string $root,
+		/** @var ?\Closure(int, int): void  the probes done and all of them, told as each one ends */
+		private ?\Closure $onProgress = null,
 	) {
 	}
 
@@ -36,6 +39,7 @@ final readonly class InProcessProbeRunner implements ProbeRunner
 				[$runner, $paths] = $this->createRunner($probe, $file);
 				$run = $runner->run($runner->files->findFiles($paths), fix: false, reporter: new NullReporter);
 				$results[$key] = ProbeResult::fromRun($run);
+				($this->onProgress)?->__invoke(count($results), count($probes));
 			}
 		} finally {
 			@unlink($file); // @ may not have been written
