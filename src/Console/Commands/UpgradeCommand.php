@@ -153,7 +153,7 @@ final readonly class UpgradeCommand
 		$console = $this->findConsole($options->format);
 		$mayAsk = $this->mayAsk($options->format);
 		$types = $this->decideTypes($options->types, $mayAsk, $project->config);
-		$runner = $this->createPlanRunner($project, $types, $console);
+		$runner = $this->createPlanRunner($project, $types, (bool) $running->commit, $console);
 		$handoff = RunHandoff::take();
 		if ($target === null) {
 			$plan = PlanFile::read($project->root);
@@ -177,6 +177,7 @@ final readonly class UpgradeCommand
 			$types ? '--types' : '--no-types',
 			...$options->format === null ? [] : ["--format=$options->format"],
 			...$running->yes ? ['--yes'] : [],
+			...$running->commit ? ['--commit'] : [],
 			...$args->get('--no-color') ? ['--no-color'] : [],
 			...$configuration->toArguments(),
 		];
@@ -370,12 +371,13 @@ final readonly class UpgradeCommand
 	 * The runner of the plan, telling its progress on the status line of the console, which data have none.
 	 * @throws ConfigurationException  for a project without a configuration file
 	 */
-	private function createPlanRunner(Project $project, bool $types, ?Console $console): PlanRunner
+	private function createPlanRunner(Project $project, bool $types, bool $commit, ?Console $console): PlanRunner
 	{
 		$console ??= $this->context->err;
 		return new PlanRunner(
 			$project,
 			$types,
+			$commit,
 			fn(string $what) => $console->setStatus(Markup::formatLabel($console, 'Upgrading') . "$what\u{2026}"),
 		);
 	}
@@ -400,7 +402,7 @@ final readonly class UpgradeCommand
 	{
 		$console = $output ?? $this->context->err;
 		if ($handoff->resumed === null) { // what the run before the raise said already
-			$this->warnBeforeRun($plan, $runner, $console);
+			$this->warnBeforeRun($plan, $runner, (bool) $running->commit, $console);
 		}
 
 		// without a terminal only `--yes` agrees, so without it Composer is not even asked what a raise changes
@@ -433,7 +435,7 @@ final readonly class UpgradeCommand
 	}
 
 
-	private function warnBeforeRun(Plan $plan, PlanRunner $runner, Console $console): void
+	private function warnBeforeRun(Plan $plan, PlanRunner $runner, bool $commit, Console $console): void
 	{
 		if (!$plan->isMadeWith(Provenance::current(ProjectPackages::read($runner->project->root)))) {
 			$console->writeLine(Markup::formatLine(
@@ -465,7 +467,7 @@ final readonly class UpgradeCommand
 			));
 		}
 
-		if ($runner->hasOwnChanges()) {
+		if (!$commit && $runner->hasOwnChanges()) {
 			$console->writeLine(Markup::formatLine(
 				$console,
 				'Warning',

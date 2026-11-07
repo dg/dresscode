@@ -11,7 +11,8 @@ use DressCode\Config\ProjectPackages;
 use DressCode\ConfigurationException;
 use DressCode\Engine\Helpers;
 use DressCode\Measuring\NamespaceDeclarations;
-use function count;
+use Nette\Utils\FileSystem;
+use function count, strlen;
 
 
 /**
@@ -35,6 +36,8 @@ final readonly class PlanRunner
 		public Project $project,
 		/** the fixes take the types of the code from PHPStan, which the caller knows is installed */
 		private bool $types = false,
+		/** each topic is committed with the files it changed, once its step passed the tests */
+		private bool $commit = false,
 		/** @var ?\Closure(string): void  told what is being done */
 		private ?\Closure $onProgress = null,
 		?VersionControl $git = null,
@@ -104,6 +107,17 @@ final readonly class PlanRunner
 				: "The plan has no step $singleStep; it has " . count($plan->steps) . '.');
 		}
 
+		// a step that left files it could not process is committed once a later run makes it whole
+		$uncommitted = $this->commit ? $this->findUncommitted($steps, $discard) : null;
+		$status = $this->commit
+			? $this->git->readStatus([PlanFile::Name, ...$uncommitted?->listOwnFiles($this->project->root) ?? []])
+			: null;
+		if ($status === WorkingTree::Unavailable) {
+			throw new ConfigurationException('`--commit` commits into the git repository of the project, and git finds none there that tracks it, or refuses to tell its status.');
+		} elseif ($status === WorkingTree::Dirty) {
+			throw new ConfigurationException('A commit of a topic takes the files it changed whole, and the working tree has changes of its own; commit or stash them first.');
+		}
+
 		$snapshots = $this->state->snapshots;
 		foreach ($snapshots->findInterrupted() as $number => $files) {
 			if (!$discard) {
@@ -158,6 +172,15 @@ final readonly class PlanRunner
 					$done = $due ? $this->runComposerStep($number, $step, $approve, $changes) : null;
 				} catch (ComposerException $e) {
 					$done = $e->getMessage();
+				} catch (CommitException $e) {
+					return new RunOutcome(
+						RunStop::Commit,
+						$number,
+						$applied,
+						$tasks,
+						raisedFiles: $this->state->journal->findChanged(),
+						commitFailure: $e->getMessage(),
+					);
 				}
 
 				if ($done !== null) {
@@ -218,6 +241,20 @@ final readonly class PlanRunner
 			$snapshots->drop($number);
 			if ($followsRaise) { // the raise holds once a step after it is done
 				$this->state->journal->forget();
+			}
+
+			try {
+				if ($this->commit) {
+					$this->commitStep($number, $step, $result->written, array_keys($unprocessed), $uncommitted);
+				}
+			} catch (CommitException $e) {
+				return new RunOutcome(
+					RunStop::Commit,
+					$number,
+					$applied,
+					array_filter([...$tasks, ...$result->tasks]),
+					commitFailure: $e->getMessage(),
+				);
 			}
 
 			$tasks = array_filter([...$tasks, ...$result->tasks]); // the last fix of a topic tells what it leaves
@@ -285,6 +322,26 @@ final readonly class PlanRunner
 	}
 
 
+	/**
+	 * The step a run left uncommitted, which the plan must still have under its number, unless told to forget it.
+	 * @param  array<int, Step>  $steps
+	 * @throws ConfigurationException
+	 */
+	private function findUncommitted(array $steps, bool $discard): ?UncommittedStep
+	{
+		$uncommitted = $this->state->findUncommitted();
+		$step = $uncommitted === null ? null : $steps[$uncommitted->step] ?? null;
+		if ($uncommitted === null || ($step !== null && UncommittedStep::identify($step) === $uncommitted->identity)) {
+			return $uncommitted;
+		} elseif (!$discard) {
+			throw new ConfigurationException("The plan changed since a run left step $uncommitted->step uncommitted, waiting for files it could not process; commit what it changed yourself, and `upgrade run --discard` forgets it.");
+		}
+
+		$this->state->forgetUncommitted();
+		return null;
+	}
+
+
 	/** What refuses the target of the manual step, or why Composer could not tell; null where nothing does. */
 	private function findBlockers(int $number, ManualStep $step): ?Blockers
 	{
@@ -296,7 +353,7 @@ final readonly class PlanRunner
 
 	/**
 	 * Whether the step was made, once `$approve` agreed to what Composer says it changes, the files of Composer kept as
-	 * they were before.
+	 * they were before, and with commits the raise committed.
 	 * @param  ?\Closure(DependencyStep, list<string>): bool  $approve
 	 * @param  ?list<string>  $changes  what Composer said the step changes, where it was asked already
 	 * @throws ComposerException
@@ -312,6 +369,7 @@ final readonly class PlanRunner
 			return false;
 		}
 
+		$root = $this->project->root;
 		$composerRoot = $this->project->findComposerRoot();
 		$journal = $this->state->journal;
 		$journal->recordBefore($number, $composerRoot);
@@ -325,11 +383,29 @@ final readonly class PlanRunner
 			$journal->recordAfter($composerRoot);
 		}
 
+		$raised = !$step instanceof ComposerStep || $step->isDoneIn(ProjectPackages::read($root));
+
 		if ($journal->findChanged() === []) {
 			$journal->forget();
 		}
 
-		return !$step instanceof ComposerStep || $step->isDoneIn(ProjectPackages::read($this->project->root));
+		if (!$raised) {
+			return false;
+		} elseif ($this->commit) {
+			try {
+				// the files of Composer as git names them from the root, which may lie below them
+				$up = str_repeat('../', substr_count(substr($root, strlen($composerRoot)), '/'));
+				$paths = $this->git->listUnignored(["{$up}composer.json", "{$up}composer.lock"]);
+				if ($paths !== []) {
+					$files = array_combine($paths, array_map(fn(string $path) => FileSystem::read("$root/$path"), $paths));
+					$this->git->commit($files, "upgrade: $step->title", "DressCode-Upgrade-Step: $number");
+				}
+			} catch (GitException $e) {
+				throw new CommitException("{$e->getMessage()}; the raise of step $number is left uncommitted.", previous: $e);
+			}
+		}
+
+		return true;
 	}
 
 
@@ -429,5 +505,75 @@ final readonly class PlanRunner
 		}
 
 		return [$written, $unwritten];
+	}
+
+
+	/**
+	 * Commits each topic of a step that processed every file, together with what the run before wrote in it and left
+	 * uncommitted, and otherwise keeps the step as uncommitted for the run that processes the rest.
+	 * @param  array<string, array<string, string>>  $written  topic => the files its fix wrote => their text
+	 * @param  list<string>  $unprocessed
+	 * @throws ConfigurationException  where git refuses a commit
+	 */
+	private function commitStep(int $number, FixStep $step, array $written, array $unprocessed, ?UncommittedStep $uncommitted): void
+	{
+		foreach ($uncommitted?->step === $number ? $uncommitted->topics : [] as $topic => $paths) {
+			foreach ($paths as $path) {
+				$file = Helpers::toAbsolutePath($path, $this->project->root);
+				if (!isset($written[$topic][$path]) && is_file($file)) {
+					$written[$topic][$path] = FileSystem::read($file);
+				}
+			}
+		}
+
+		$texts = array_merge(...array_values($written)); // the text a later topic wrote last
+		if ($unprocessed !== []) {
+			$this->state->saveUncommitted(new UncommittedStep(
+				$number,
+				UncommittedStep::identify($step),
+				array_map(array_keys(...), $written),
+				$unprocessed,
+				array_map(fn(string $text) => hash('xxh128', $text), $texts),
+			));
+			return;
+		}
+
+		// the commits are of the texts the tests passed over, which a file changed since is not
+		$changed = array_keys(array_filter(
+			$texts,
+			fn(string $text, string $path) => @file_get_contents(Helpers::toAbsolutePath($path, $this->project->root)) !== $text, // @ a file deleted since is changed too
+			ARRAY_FILTER_USE_BOTH,
+		));
+		if ($changed !== []) {
+			throw new CommitException('`' . implode('`, `', $changed) . "` changed after step $number wrote it, so the step is left uncommitted in the working tree; commit it yourself.");
+		}
+
+		$this->commitTopics($number, $written);
+		$this->state->forgetUncommitted();
+	}
+
+
+	/**
+	 * Commits each topic of the step with the files it changed as the topic left them, which a later topic of the step
+	 * may have changed again, and leaves the working tree as the last topic left it.
+	 * @param  array<string, array<string, string>>  $written  topic => the files its fix wrote => their text
+	 * @throws ConfigurationException  where git refuses a commit
+	 */
+	private function commitTopics(int $step, array $written): void
+	{
+		$committed = [];
+		foreach (array_filter($written) as $topic => $files) {
+			try {
+				$this->git->commit($files, "upgrade: $topic", "DressCode-Upgrade-Step: $step");
+			} catch (GitException $e) {
+				throw new CommitException(
+					"{$e->getMessage()}; what step $step changed is left uncommitted in the working tree"
+					. ($committed === [] ? '.' : ', but for the topics committed before: ' . implode(', ', $committed) . '.'),
+					previous: $e,
+				);
+			}
+
+			$committed[] = $topic;
+		}
 	}
 }

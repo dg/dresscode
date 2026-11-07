@@ -67,8 +67,8 @@ final readonly class Application
 
 	/**
 	 * Runs the command line and returns the exit code: 0 clean and complete, 1 violations, syntax errors, a refused
-	 * baseline or work an upgrade or a migration leaves for the user, 2 a file that failed or a command that could not
-	 * look at everything it was to, 3 a mistake of the command line or of the configuration, 4 an upgrade
+	 * baseline or work an upgrade or a migration leaves for the user, 2 a file that failed, a commit refused or a command
+	 * that could not look at everything it was to, 3 a mistake of the command line or of the configuration, 4 an upgrade
 	 * waiting for a step outside DressCode.
 	 * @param  list<string>  $argv  including the script name
 	 */
@@ -172,7 +172,7 @@ final readonly class Application
 		$program->addCommand('migrate', 'Move over from PHP CS Fixer, PHP_CodeSniffer or Laravel Pint', commandRequired: true)
 			->addCommandsFrom(new Commands\MigrateCommand($context));
 
-		$program->addText('Exit codes: `0` clean and complete, `1` violations, syntax errors, a refused baseline or manual tasks an upgrade or a migration leaves, `2` a file failed or a command could not look at everything it was to, `3` a mistake of the command line or of the configuration, `4` an upgrade waiting for a step outside DressCode.');
+		$program->addText('Exit codes: `0` clean and complete, `1` violations, syntax errors, a refused baseline or manual tasks an upgrade or a migration leaves, `2` a file failed, a commit was refused or a command could not look at everything it was to, `3` a mistake of the command line or of the configuration, `4` an upgrade waiting for a step outside DressCode.');
 		return $program;
 	}
 }
