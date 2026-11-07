@@ -302,7 +302,11 @@ final readonly class Layer
 	public readonly ?string $name
 	public readonly ?string $package
 	public readonly ?string $decision
-	public function __construct(DressCode\Config\LayerKind $kind, ?string $name = null, ?string $package = null, ?string $decision = null)
+	public readonly ?string $library
+	public readonly ?string $since
+	public readonly ?string $from
+	public function __construct(DressCode\Config\LayerKind $kind, ?string $name = null, ?string $package = null, ?string $decision = null, ?string $library = null, ?string $since = null, ?string $from = null)
+	public function withSection(string $library, string $since, ?string $from): DressCode\Config\Layer
 	public function describe(): string
 	public function formatReference(): string
 	public function isProject(): bool
@@ -673,7 +677,7 @@ final class RuleContext
 	public readonly string $path
 	public readonly DressCode\Style $style
 	public readonly string $phpVersion
-	public function report(PhpSyntax\Node|PhpSyntax\Token $at, string $message, ?string $decision = null, ?PhpSyntax\Trivia $trivia = null, int $lineInTrivia = 0, ?DressCode\Risk $risk = null, ?PhpSyntax\Token $follows = null, bool $byLine = false, bool $fixable = true, ?string $because = null): bool
+	public function report(PhpSyntax\Node|PhpSyntax\Token $at, string $message, ?string $decision = null, ?PhpSyntax\Trivia $trivia = null, int $lineInTrivia = 0, ?DressCode\Risk $risk = null, ?PhpSyntax\Token $follows = null, bool $byLine = false, bool $fixable = true, ?string $because = null, ?DressCode\Config\Layer $source = null): bool
 	public function isSilenced(PhpSyntax\Node|PhpSyntax\Token $at, ?string $decision = null, ?PhpSyntax\Trivia $trivia = null, int $lineInTrivia = 0): bool
 	/** @template T of object */
 	public function getAnalysis(class-string<T> $class): T
@@ -863,6 +867,7 @@ final readonly class MemberMapEntry
 	public readonly DressCode\Upgrading\MemberPattern $pattern
 	public readonly T $value
 	public readonly string $decision
+	public readonly ?DressCode\Config\Layer $origin
 ```
 
 ## `DressCode\Upgrading\MemberMapGrammar`
@@ -967,8 +972,8 @@ final readonly class Values
 	public function find(string $path): ?DressCode\Value
 	public function readMap(string $path): array<mixed>
 	public function findWithdrawnNames(string $path): list<string>
-	public function findPackageEntries(string $path): array<string, true>
 	public function getEntryDecision(string $path, string $key): string
+	public function getEntryOrigin(string $path, string $key): ?DressCode\Config\Layer
 	public function isKept(string $path): bool
 	public function isSelected(string $path): bool
 ```
@@ -991,7 +996,8 @@ final readonly class Violation
 	public readonly ?int $offset
 	public readonly ?int $length
 	public readonly ?array{int, int} $originalLines
-	public function __construct(string $decision, string $message, int $line, ?int $column, DressCode\Severity $severity, string $fingerprint, bool $fixable = true, ?DressCode\Risk $risk = null, bool $refused = false, ?string $because = null, ?string $derivedFrom = null, ?int $offset = null, ?int $length = null, ?array{int, int} $originalLines = null)
+	public readonly ?DressCode\Config\Layer $source
+	public function __construct(string $decision, string $message, int $line, ?int $column, DressCode\Severity $severity, string $fingerprint, bool $fixable = true, ?DressCode\Risk $risk = null, bool $refused = false, ?string $because = null, ?string $derivedFrom = null, ?int $offset = null, ?int $length = null, ?array{int, int} $originalLines = null, ?DressCode\Config\Layer $source = null)
 	public function findSpanStart(string $text): ?array{int, int}
 	public function findSpanEnd(string $text): ?array{int, int}
 	public static function formatCode(string $code): string

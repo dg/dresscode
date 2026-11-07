@@ -8,6 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\{CodeWriter, Risk, RuleContext};
+use DressCode\Config\Layer;
 use PhpSyntax\Analyses\NameResolver;
 use PhpSyntax\{Node, SymbolKind, Token};
 use PhpSyntax\Nodes\{ArgumentListNode, ArgumentNode, ExpressionNode, NameNode};
@@ -45,15 +46,17 @@ final readonly class Rewrite
 
 
 	/**
-	 * Reports the use under the decision with what the template made of it, and says whether it is to be rewritten.
+	 * Reports the use under the decision, with the section of the upgrading data the entry came with, and with what
+	 * the template made of it, and says whether it is to be rewritten.
 	 * @phpstan-assert-if-true !null $this->expression
 	 */
-	public function report(Node|Token $at, string $message, string $decision, RuleContext $context): bool
+	public function report(Node|Token $at, string $message, string $decision, ?Layer $source, RuleContext $context): bool
 	{
 		return $context->report(
 			$at,
 			$message . $this->refusal . '.',
 			decision: $decision,
+			source: $source,
 			fixable: $this->expression !== null,
 			risk: $this->because === null ? null : Risk::BehaviorChanges,
 			because: $this->because,

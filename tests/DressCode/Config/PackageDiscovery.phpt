@@ -158,6 +158,16 @@ test('a section above the lowest version says nothing, an entry right from a ver
 		$data->maps,
 	);
 	Assert::same(['4.0', '5.0'], $data->unreached);
+	Assert::same(
+		[
+			['3.0', null, ['replacedClasses' => ['Acme\Lib\Old' => 'Acme\Lib\Renamed']]],
+			['4.0', '3.0', ['replacedFunctions' => ['Acme\Lib\old_helper' => 'Acme\Lib\helper']]],
+		],
+		array_map(
+			fn(array $layer) => [$layer[0]->since, $layer[0]->from, $layer[1]],
+			$data->buildDecisions(fn(string $map) => $map),
+		),
+	);
 });
 
 
@@ -548,7 +558,7 @@ test('what a package says lies under the maps of the project where it says upgra
 	);
 	$layers = $resolution->resolvedConfig->decisions['upgrading.api.replacedClasses']->layers;
 	Assert::same(
-		['upgrading/upgrading.neon of acme/lib', 'the configuration'],
+		['upgrading/upgrading.neon of acme/lib, since 3.0', 'the configuration'],
 		array_map(fn($layer) => $layer->origin?->describe(), $layers),
 	);
 

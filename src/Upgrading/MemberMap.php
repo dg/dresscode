@@ -8,6 +8,7 @@
 namespace DressCode\Upgrading;
 
 use DressCode\Analyses\{MemberAccess, Parameter, Types};
+use DressCode\Config\Layer;
 use DressCode\{RuleContext, Tristate, Values};
 use PhpSyntax\Builder;
 use PhpSyntax\Nodes\{ArgumentListNode, IdentifierNode};
@@ -40,7 +41,12 @@ final readonly class MemberMap
 	 */
 	public static function fromValues(Values $values, string $path, ?\Closure $convert = null): self
 	{
-		return self::build($values->readMap($path), $convert, fn(string $key) => $values->getEntryDecision($path, $key));
+		return self::build(
+			$values->readMap($path),
+			$convert,
+			fn(string $key) => $values->getEntryDecision($path, $key),
+			fn(string $key) => $values->getEntryOrigin($path, $key),
+		);
 	}
 
 
@@ -62,9 +68,10 @@ final readonly class MemberMap
 	 * @param  array<mixed>  $entries
 	 * @param  ?\Closure(mixed, MemberPattern, string): V  $convert
 	 * @param  \Closure(string): string  $decide  the key as written => the decision its entry is reported under
+	 * @param  ?\Closure(string): ?Layer  $findOrigin  the key as written => the section of the upgrading data that laid it
 	 * @return self<V>
 	 */
-	private static function build(array $entries, ?\Closure $convert, \Closure $decide): self
+	private static function build(array $entries, ?\Closure $convert, \Closure $decide, ?\Closure $findOrigin = null): self
 	{
 		$byName = [];
 		foreach ($entries as $key => $value) {
@@ -77,6 +84,7 @@ final readonly class MemberMap
 				$pattern,
 				$convert === null ? $value : $convert($value, $pattern, (string) $key),
 				$decide((string) $key),
+				$findOrigin === null ? null : $findOrigin((string) $key),
 			);
 		}
 

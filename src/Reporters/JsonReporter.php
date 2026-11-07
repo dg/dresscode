@@ -104,6 +104,12 @@ final class JsonReporter implements Reporter
 			'because' => $violation->because,
 			'fingerprint' => $violation->fingerprint,
 			'derivedFrom' => $violation->derivedFrom,
+			'source' => $violation->source === null ? null : [
+				'package' => $violation->source->package,
+				'library' => $violation->source->library,
+				'since' => $violation->source->since,
+				'from' => $violation->source->from,
+			],
 		];
 	}
 
