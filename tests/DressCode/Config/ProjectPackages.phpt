@@ -154,6 +154,11 @@ test('the packages installed newer than the oldest version the project supports,
 		['name' => 'acme/transitive', 'version_normalized' => '5.1.0.0', 'install-path' => '../acme/transitive'],
 	]], JSON_THROW_ON_ERROR));
 
+	$project = ProjectPackages::read($root);
+	Assert::same(
+		['acme/older' => ['3.3', '3.1'], 'acme/patch' => ['3.3.5', '3.3'], 'acme/branch' => ['2.4.9999999.9999999', '2.0']],
+		$project->findNewerInstalled(),
+	);
 	Assert::same(
 		[
 			"$root/vendor/acme/older",
@@ -162,7 +167,7 @@ test('the packages installed newer than the oldest version the project supports,
 			"$root/vendor/acme/any",
 			"$root/vendor/acme/transitive",
 		],
-		ProjectPackages::read($root)->findPathsAheadOfSupport(),
+		$project->findPathsAheadOfSupport(),
 	);
 });
 
