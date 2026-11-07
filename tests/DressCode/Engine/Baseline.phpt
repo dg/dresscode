@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use DressCode\{ConfigurationException, FileResult, Risk, Severity, Violation};
+use DressCode\{ConfigurationException, Risk, Severity, Violation};
 use DressCode\Engine\{Baseline, Fingerprints};
 use Tester\Assert;
 
@@ -29,11 +29,8 @@ $b = violation('test/b', 'Message B.', '$y;');
 $c = violation('test/a', 'Message A.', '$x = 1;', occurrence: 2);
 
 
-test('generated from results, saved and loaded back', function () use ($file, $a, $b, $c) {
-	$baseline = Baseline::fromResults([
-		new FileResult('src/b.php', '', '', [$b]),
-		new FileResult('src/a.php', '', '', [$a, $c]),
-	]);
+test('generated from violations, saved and loaded back', function () use ($file, $a, $b, $c) {
+	$baseline = Baseline::fromViolations(['src/b.php' => [$b], 'src/a.php' => [$a, $c]]);
 	Assert::same(3, $baseline->count());
 	$baseline->save($file);
 	Assert::match(<<<'XX'
@@ -67,11 +64,11 @@ test('of the refused risky fixes it holds only those changing what the code does
 		risk: $risk,
 		refused: true,
 	);
-	$baseline = Baseline::fromResults([new FileResult('src/a.php', '', '', [
+	$baseline = Baseline::fromViolations(['src/a.php' => [
 		$refused('test/type', Risk::TypeUnknown),
 		$refused('test/name', Risk::NameUncertain),
 		$refused('test/behavior', Risk::BehaviorChanges),
-	])]);
+	]]);
 	Assert::same(1, $baseline->count());
 	Assert::true($baseline->has('src/a.php', 'test/behavior'));
 });
@@ -81,7 +78,7 @@ test('a fingerprint of nothing but digits survives the round trip', function () 
 	// PHP turns such a key into an int, NEON writes an unquoted number and the loader refuses the file
 	$digits = new Violation('test/a', 'M.', 1, null, Severity::Error, fingerprint: '9231335105126121');
 	$file = "$dir/digits.neon";
-	Baseline::fromResults([new FileResult('src/a.php', '', '', [$digits])])->save($file);
+	Baseline::fromViolations(['src/a.php' => [$digits]])->save($file);
 	Assert::contains("'9231335105126121'", (string) file_get_contents($file));
 	$baseline = Baseline::load($file);
 	assert($baseline !== null);

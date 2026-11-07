@@ -187,7 +187,7 @@ test('a violation the baseline holds is not recognized in a later round on a lin
 		processWithBaseline($rules(), $code, null)->violations,
 		fn($v) => $v->decision === 'mistakes.globalStatement',
 	));
-	$baseline = Baseline::fromResults([new FileResult('a.php', $code, $code, $global)]);
+	$baseline = Baseline::fromViolations(['a.php' => $global]);
 
 	$result = processWithBaseline($rules(), $code, $baseline);
 	Assert::same("<?php\nglobal \$b;\n", $result->output);
@@ -203,7 +203,7 @@ test('a violation the baseline holds is not recognized in a later round on a lin
 test('a violation the baseline holds is not recorded, and a rule that can fix it fixes it', function () {
 	$rules = fn() => [RuleBuilder::createRule(DressCode\Rules\Literals\StringQuotesRule::class, ['literals.quotes' => 'single'])];
 	$code = "<?php\n\$a = \"x\";\n";
-	$baseline = Baseline::fromResults([processWithBaseline($rules(), $code, null)]);
+	$baseline = Baseline::fromViolations(['a.php' => processWithBaseline($rules(), $code, null)->violations]);
 
 	$result = processWithBaseline($rules(), $code, $baseline);
 	Assert::same("<?php\n\$a = 'x';\n", $result->output);

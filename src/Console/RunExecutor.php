@@ -458,7 +458,8 @@ final readonly class RunExecutor
 	{
 		$name = $config->baseline ?? Baseline::getDefaultName($configFile);
 		$file = Helpers::toAbsolutePath($name, $root);
-		$run = $runner->run($files, fix: false, reporter: new Reporters\NullReporter, workers: $workers);
+		$collected = new Reporters\CollectingReporter;
+		$run = $runner->run($files, fix: false, reporter: $collected, workers: $workers);
 		$changed = $failed = [];
 		foreach ($run->files as $result) {
 			if ($result->failure !== null || $result->syntaxError !== null) {
@@ -483,7 +484,7 @@ final readonly class RunExecutor
 			return 1;
 		}
 
-		$baseline = Baseline::fromResults($run->files);
+		$baseline = Baseline::fromViolations($collected->violations);
 		$baseline->save($file);
 		$message = 'Baseline with ' . Helpers::formatCount($baseline->count(), 'violation') . " written to `$name`.\n";
 		// every other format keeps its stream to itself

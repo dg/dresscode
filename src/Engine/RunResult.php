@@ -7,7 +7,7 @@
 
 namespace DressCode\Engine;
 
-use DressCode\{Risk, Severity, Violation};
+use DressCode\{Risk, Severity};
 use function count;
 
 
@@ -18,7 +18,7 @@ use function count;
 final readonly class RunResult
 {
 	public function __construct(
-		/** @var list<FileSummary>  without their code and output, which a reporter sees in `reportFile()` */
+		/** @var list<FileSummary>  without their texts and violations, which a reporter sees in `reportFile()` */
 		public array $files,
 		public bool $fix,
 		/** violations the baseline matched */
@@ -34,7 +34,7 @@ final readonly class RunResult
 	/** Violations the files have as they were read. */
 	public function countViolations(?Severity $severity = null): int
 	{
-		return self::countBySeverity(array_merge(...array_map(fn(FileSummary $f) => $f->violations, $this->files)), $severity);
+		return $this->sum(fn(FileSummary $f) => $f->violations->count($severity));
 	}
 
 
@@ -44,35 +44,35 @@ final readonly class RunResult
 	 */
 	public function countRemaining(?Severity $severity = null): int
 	{
-		return self::countBySeverity(array_merge(...array_map(fn(FileSummary $f) => $f->remaining, $this->files)), $severity);
+		return $this->sum(fn(FileSummary $f) => $f->remaining->count($severity));
 	}
 
 
 	/** Violations left to the user that follow from another one of the same file, whose fix opened, closed or moved their line. */
 	public function countDerived(?Severity $severity = null): int
 	{
-		return self::countBySeverity(array_filter($this->listReported(), fn(Violation $v) => $v->derivedFrom !== null), $severity);
+		return $this->sum(fn(FileSummary $f) => $this->selectReported($f)->countDerived($severity));
 	}
 
 
 	/** Fixes a fix leaves because the run did not allow them; a fix it made is not one of them. */
 	public function countRefused(): int
 	{
-		return count($this->listRefused());
+		return $this->sum(fn(FileSummary $f) => $f->remaining->countRefused());
 	}
 
 
 	/** Fixes a fix leaves because the run did not allow them, of those the risk would decide. */
 	public function countRefusedBy(Risk $risk): int
 	{
-		return count(array_filter($this->listRefused(), fn(Violation $v) => $v->risk === $risk));
+		return $this->sum(fn(FileSummary $f) => $f->remaining->countRefused($risk));
 	}
 
 
 	/** Violations the run leaves to the user that no rule has a fix for. */
 	public function countUnfixable(): int
 	{
-		return count(array_filter($this->listReported(), fn(Violation $v) => !$v->fixable));
+		return $this->sum(fn(FileSummary $f) => $this->selectReported($f)->countUnfixable());
 	}
 
 
@@ -101,7 +101,7 @@ final readonly class RunResult
 	 */
 	public function countReported(?Severity $severity = null): int
 	{
-		return self::countBySeverity($this->listReported(), $severity);
+		return $this->sum(fn(FileSummary $f) => $this->selectReported($f)->count($severity));
 	}
 
 
@@ -120,26 +120,15 @@ final readonly class RunResult
 	}
 
 
-	/** @return list<Violation> */
-	private function listReported(): array
+	/** @param  \Closure(FileSummary): int  $count */
+	private function sum(\Closure $count): int
 	{
-		return array_merge(...array_map(fn(FileSummary $f) => $this->fix ? $f->remaining : $f->violations, $this->files));
+		return array_sum(array_map($count, $this->files));
 	}
 
 
-	/** @return list<Violation> */
-	private function listRefused(): array
+	private function selectReported(FileSummary $file): ViolationTally
 	{
-		return array_values(array_filter(
-			array_merge(...array_map(fn(FileSummary $f) => $f->remaining, $this->files)),
-			fn(Violation $v) => $v->refused,
-		));
-	}
-
-
-	/** @param array<Violation> $violations */
-	private static function countBySeverity(array $violations, ?Severity $severity): int
-	{
-		return count(array_filter($violations, fn(Violation $v) => $severity === null || $v->severity === $severity));
+		return $this->fix ? $file->remaining : $file->violations;
 	}
 }

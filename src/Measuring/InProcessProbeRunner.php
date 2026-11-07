@@ -10,7 +10,7 @@ namespace DressCode\Measuring;
 use DressCode\Config\{Loader, RunnerFactory};
 use DressCode\ConfigurationException;
 use DressCode\Engine\Runner;
-use DressCode\Reporters\NullReporter;
+use DressCode\Reporters\CollectingReporter;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
 use function count;
@@ -39,8 +39,9 @@ final readonly class InProcessProbeRunner implements ProbeRunner
 		try {
 			foreach ($probes as $key => $probe) {
 				[$runner, $paths] = $this->createRunner($probe, $file);
-				$run = $runner->run($runner->files->findFiles($paths), fix: false, reporter: new NullReporter);
-				$results[$key] = ProbeResult::fromRun($run);
+				$collected = new CollectingReporter;
+				$run = $runner->run($runner->files->findFiles($paths), fix: false, reporter: $collected);
+				$results[$key] = ProbeResult::fromRun($run, $collected->violations);
 				($this->onProgress)?->__invoke(count($results), count($probes));
 			}
 		} finally {
