@@ -10,7 +10,7 @@ namespace DressCode\Console\Commands;
 use DressCode\Config\Loader;
 use DressCode\Console\{Application, CommandContext, MigrationPrinter};
 use DressCode\Engine\Helpers;
-use DressCode\Interop\FormatterConfig;
+use DressCode\Interop\FormatterCandidate;
 use Nette\CommandLine\{Attributes as Cli, ParseResult, UsageException};
 use Nette\Utils\FileSystem;
 use function count, in_array, sprintf;
@@ -19,8 +19,9 @@ use function count, in_array, sprintf;
 /**
  * The command of `migrate`, the move from another formatter: `config` translates a configuration of PHP CS Fixer,
  * PHP_CodeSniffer or Laravel Pint into NEON or PHP by the extension of the file, checked as a run reads it before it
- * is written, what was not carried over being said in the file and no failure. It shows what it would write with
- * `--dry-run`.
+ * is written, what was not carried over being said in the file and no failure; a configuration of PHP CS Fixer is PHP,
+ * which runs when it is read, so one the project has is read only after the user agrees. It shows what it would write
+ * with `--dry-run`.
  * @internal
  */
 final readonly class MigrateCommand
@@ -38,14 +39,14 @@ final readonly class MigrateCommand
 	#[Cli\Command('Translate a PHP CS Fixer, PHP_CodeSniffer or Laravel Pint configuration')]
 	public function config(
 		ParseResult $args,
-		#[Cli\Argument('Configuration file of PHP CS Fixer, PHP_CodeSniffer or Laravel Pint')]
-		string $file,
+		#[Cli\Argument('Configuration file of PHP CS Fixer, PHP_CodeSniffer or Laravel Pint; the one the project has when omitted')]
+		?string $file = null,
 		#[Cli\Option('The configuration to write, NEON or PHP by its extension', alias: '-o', valueName: 'file')]
 		string $output = 'dresscode.neon',
 		#[Cli\Flag('Print the configuration instead of writing it')]
 		bool $dryRun = false,
 		#[Cli\Option(
-			'Output format: `console`, or `json` for a tool or an AI agent',
+			'Output format: `console`, or `json` for a tool or an AI agent, which never asks',
 			alias: '-f',
 			enum: ['console', 'json'],
 		)]
@@ -74,7 +75,31 @@ final readonly class MigrateCommand
 		}
 
 		$root = Helpers::canonicalizePath($this->context->workingDirectory);
-		$config = FormatterConfig::fromFile($root, $this->context->resolvePath($file));
+		$interactive = !$json && $this->context->prompt->isInteractive();
+		$choice = $this->context->chooseFormatterConfig($root, $file, $interactive);
+		$config = $choice->config ?? throw new UsageException(
+			'The project has no configuration of PHP CS Fixer, PHP_CodeSniffer or Laravel Pint; name the file to translate.',
+			$args->command,
+		);
+		if (!$choice->named) {
+			$this->context->writeNote('Found ' . $config->format() . ".\n" . ($choice->unchosen === []
+				? ''
+				: 'The project has also ' . implode(' and ', array_map(fn(FormatterCandidate $other) => $other->format(), $choice->unchosen))
+					. "; the first is taken, and `dresscode migrate config <file>` translates another.\n"));
+		}
+
+		if (!$this->context->confirmReadingRules($choice, $interactive)) {
+			if (!$interactive) {
+				throw new UsageException(
+					"`$config->file` is PHP, so reading it means running it, and it is read only when named: `dresscode migrate config $config->file`.",
+					$args->command,
+				);
+			}
+
+			$this->context->writeNote("Nothing written.\n");
+			return 0;
+		}
+
 		$translation = $config->translate();
 		$written = count($translation->collectOwnDecisions());
 		$text = $translation->toDraft(sprintf(
@@ -110,7 +135,7 @@ final readonly class MigrateCommand
 		}
 
 		$printer = new MigrationPrinter($translation, $config->file, $dryRun ? null : $output, $target);
-		$this->context->err->write($printer->print($this->context->err));
+		$this->context->err->write(($choice->named ? '' : "\n") . $printer->print($this->context->err));
 		return 0;
 	}
 }

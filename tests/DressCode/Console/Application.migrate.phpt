@@ -138,3 +138,114 @@ test('migrate config translates a foreign configuration and says what it could n
 	Assert::same(3, $code);
 	Assert::contains('its extension is `.neon` or `.php`', $err);
 });
+
+
+test('migrate config without a file finds the configuration the project has, and runs one of PHP CS Fixer only when agreed', function () {
+	$project = createTempDir('import-find');
+	[$code, , $err] = runApp($project, ['migrate', 'config']);
+	Assert::same(3, $code);
+	Assert::contains('The project has no configuration of PHP CS Fixer, PHP_CodeSniffer or Laravel Pint', $err);
+
+	// the preset of Laravel Pint is the standard, its rules those of PHP CS Fixer
+	file_put_contents("$project/pint.json", '{"preset": "per", "rules": {"cast_spaces": {"space": "none"}}}');
+	[$code, , $err] = runApp($project, ['migrate', 'config']);
+	Assert::same(0, $code);
+	Assert::contains('Found `pint.json` of Laravel Pint.', $err);
+	Assert::match("%A%use: perCs\n%A%cast: '(int)\$x'%A%", (string) file_get_contents("$project/dresscode.neon"));
+
+	// a dry run prints what it would write, over a file that exists too, and writes nothing
+	$written = (string) file_get_contents("$project/dresscode.neon");
+	file_put_contents("$project/dresscode.neon", '');
+	[$code, $out, $err] = runApp($project, ['migrate', 'config', '--dry-run']);
+	Assert::same([0, $written], [$code, $out]);
+	Assert::same(
+		"Found `pint.json` of Laravel Pint.\n\n1 rule in your `pint.json`, on the preset `perCs`:\n1  carried over exactly\n\nNothing written, as `--dry-run` asks.\n",
+		$err,
+	);
+	Assert::same('', file_get_contents("$project/dresscode.neon"));
+
+	// a preset alone translates no rule, which the headline must not count as nothing translated
+	$project2 = createTempDir('import-preset');
+	file_put_contents("$project2/pint.json", '{"preset": "per"}');
+	[$code, , $err] = runApp($project2, ['migrate', 'config']);
+	Assert::same(0, $code);
+	Assert::match(
+		"Found `pint.json` of Laravel Pint.\n\nNext, `dresscode check` %a%\n\nWRITTEN  dresscode.neon\n",
+		$err,
+	);
+
+	$project = createTempDir('import-fixer');
+	file_put_contents(
+		"$project/.php-cs-fixer.dist.php",
+		"<?php\nfile_put_contents(__DIR__ . '/ran', '');\nreturn ['cast_spaces' => true];\n",
+	);
+	file_put_contents("$project/composer.json", '{"scripts": {"cs": "php-cs-fixer fix --config=.php-cs-fixer.dist.php"}}');
+	[$code, , $err] = runApp($project, ['migrate', 'config']);
+	Assert::same(3, $code);
+	Assert::contains(
+		'`.php-cs-fixer.dist.php` is PHP, so reading it means running it, and it is read only when named: `dresscode migrate config .php-cs-fixer.dist.php`.',
+		$err,
+	);
+	Assert::false(is_file("$project/ran"));
+
+	[$code, $out, $err] = runApp($project, ['migrate', 'config'], "n\n", interactive: true);
+	Assert::same(0, $code);
+	Assert::contains('Found `.php-cs-fixer.dist.php` of PHP CS Fixer, run by `composer cs`.', $err);
+	Assert::contains('Run it? `.php-cs-fixer.dist.php` is PHP, so reading it means running it. [Y/n]', $out); // the question, then why it is asked
+	Assert::contains('Nothing written.', $err);
+	Assert::false(is_file("$project/ran"));
+	Assert::false(is_file("$project/dresscode.neon"));
+
+	[$code] = runApp($project, ['migrate', 'config'], "\n", interactive: true);
+	Assert::same(0, $code);
+	Assert::true(is_file("$project/ran"));
+	Assert::true(is_file("$project/dresscode.neon"));
+});
+
+
+test('migrate config counts the rules by what became of them, and a dry run points at the configuration it printed', function () {
+	$project = createTempDir('import-counts');
+	file_put_contents("$project/pint.json", json_encode(['preset' => 'per', 'rules' => [
+		'cast_spaces' => true,
+		'phpdoc_trim' => false,
+		'void_return' => true,
+		'no_spaces_around_offset' => ['positions' => ['inside']],
+		'no_such_fixer' => true,
+	]]));
+	[$code, $out, $err] = runApp($project, ['migrate', 'config', '--dry-run']);
+	Assert::same(0, $code);
+	Assert::same(
+		"Found `pint.json` of Laravel Pint.\n"
+		. "\n"
+		. "5 rules in your `pint.json`, on the preset `perCs`:\n"
+		. "2  carried over exactly (including the 1 you have turned off)\n"
+		. "1  carried over, but DressCode's result may differ a little\n"
+		. "1  you need to finish by hand: `no_spaces_around_offset`\n"
+		. "1  dropped, DressCode has no such rule, so nothing checks them now\n"
+		. "\n"
+		. "The details are at the end of the printed configuration.\n"
+		. "\n"
+		. "Nothing written, as `--dry-run` asks.\n",
+		$err,
+	);
+	Assert::match("%A%# Waiting for you\n#   ! `no_spaces_around_offset`: %A%", $out);
+});
+
+
+test('migrate config asks which configuration a project with several runs, and elsewhere takes the first and says so', function () {
+	$project = createTempDir('import-several');
+	file_put_contents("$project/phpcs.xml", '<?xml version="1.0"?><ruleset name="x"><rule ref="PSR12"/></ruleset>');
+	file_put_contents("$project/pint.json", '{"preset": "per"}');
+	[$code, , $err] = runApp($project, ['migrate', 'config']);
+	Assert::same(0, $code);
+	Assert::contains(
+		'The project has also `pint.json` of Laravel Pint; the first is taken, and `dresscode migrate config <file>` translates another.',
+		$err,
+	);
+
+	unlink("$project/dresscode.neon");
+	[$code, $out, $err] = runApp($project, ['migrate', 'config'], "2\n", interactive: true);
+	Assert::same(0, $code);
+	Assert::contains("  [1] `phpcs.xml` of PHP_CodeSniffer\n  [2] `pint.json` of Laravel Pint\nWhich one does it run? [1/2]", $out);
+	Assert::contains('Found `pint.json` of Laravel Pint.', $err);
+});

@@ -377,8 +377,10 @@ The fixtures of every rule run again under each standard with the sets beside it
   "covers". A message of a sniff stands for the decisions of its own row and for nothing where it has none, the
   decisions of the whole sniff silencing more than the message did; excluded while the configuration turns its sniff
   on by name, it makes what it stands for `keep` all the same. A foreign name is not a valid key in the
-  configuration: `dresscode migrate config` translates a whole configuration file once, options included: a `pint.json` of Laravel Pint is read as data, its
-  preset the standard of that name and its rules those of PHP CS Fixer, a file of PHP CS Fixer is run in a process of its own after the autoload of its project and PHP CS
+  configuration: `dresscode migrate config` translates a whole configuration file once, options included, the one named
+  or the one the project has as `Interop\FormatterSearch` finds it, a `pint.json` of Laravel Pint read as data, its
+  preset the standard of that name and its rules those of PHP CS Fixer, a file of PHP CS Fixer, which reading runs, only
+  after the user agrees in a terminal, and then in a process of its own after the autoload of its project and PHP CS
   Fixer, looked for among its tools too (`PhpCsFixer::readConfig()`), so that what it writes, the directory it changes
   and its exit stay its own; it writes `dresscode.neon` or the file `--output` names, in the format of its extension, NEON or PHP, never over an existing
   one, resolved as a run reads it and checked to say the decisions translated before it is written whole, or printed
@@ -390,4 +392,5 @@ The fixtures of every rule run again under each standard with the sets beside it
   with exit code 0 whatever the notes say, a run that wrote the file having done what it was asked,
   and such a name written as a key of the file, in `--only` or in `fixRisky` is refused with the decisions that cover
   it. With `--format json` `config` writes a document of its `version` and the `root` and nothing
-  else, the configuration, the file it was written to, the counts, the notes and what stays untranslated.
+  else, the configuration, the file it was written to, the counts, the notes and what stays untranslated, and never
+  asking.

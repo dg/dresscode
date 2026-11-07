@@ -52,6 +52,13 @@ final class Markup
 	}
 
 
+	/** A question of a prompt with its code drawn, and in gray after it why it is asked. */
+	public static function formatQuestion(Console $console, string $question, string $reason): string
+	{
+		return self::highlightCode($console, $question) . ' ' . self::formatAside($console, $reason);
+	}
+
+
 	/**
 	 * Draws the Markdown the explanations are written in: a heading in white without its marks, a bullet without its
 	 * dash and the paragraph nested under it in gray, below it, the code, an emphasis in gray and a link as a link of
