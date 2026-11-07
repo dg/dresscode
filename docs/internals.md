@@ -383,7 +383,8 @@ The fixtures of every rule run again under each standard with the sets beside it
   after the user agrees in a terminal, and then in a process of its own after the autoload of its project and PHP CS
   Fixer, looked for among its tools too (`PhpCsFixer::readConfig()`), so that what it writes, the directory it changes
   and its exit stay its own; it writes with the decisions the scope as `Measuring\Scope::fromProject()` makes it, every path it leaves out that the
-  formatter checked said as a change, into `dresscode.neon` or the file `--output` names in the root of the project,
+  formatter checked said as a change, and the overrides keeping the decisions of a foreign rule where the
+  configuration leaves files out of it, into `dresscode.neon` or the file `--output` names in the root of the project,
   the paths it names being relative to it, in the format of its extension, NEON or PHP, never over an existing one,
   resolved as a run reads it and checked to say the decisions translated before it is written whole, or printed
   instead with `--dry-run`, a decision whose value its presets give already left out (`Translation::collectOwnDecisions()`),

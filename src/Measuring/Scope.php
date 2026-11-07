@@ -7,10 +7,10 @@
 
 namespace DressCode\Measuring;
 
-use DressCode\Config;
+use DressCode\{Config, Override, Profile};
 use DressCode\Config\{ComposerJson, Draft, RunnerFactory};
 use DressCode\Engine\{Helpers, ProcessRunner};
-use DressCode\Interop\FormatterConfig;
+use DressCode\Interop\{FormatterConfig, Translator};
 use Nette\Utils\Finder;
 use function count;
 
@@ -241,15 +241,65 @@ final class Scope
 
 
 	/**
-	 * Writes the scope into the configuration, its paths, what it excludes and its extensions.
+	 * Writes the scope into the configuration, its paths, what it excludes and its extensions, and the overrides that keep
+	 * the decisions a rule of the formatter stands for in the files it leaves out of that rule.
+	 * @param  \Closure(string): bool  $keepable  whether the decision of the path is kept there
 	 */
-	public function writeInto(Draft $draft): void
+	public function writeInto(Draft $draft, FormatterConfig $config, \Closure $keepable): void
 	{
 		$draft->setScope(
 			$this->listPaths(),
 			array_map(fn(LeftOutReason $why) => $why->value, $this->listExcludePaths()),
 			$this->listExtensions(),
 		);
+		$translator = new Translator;
+		foreach (array_keys($config->ruleExcludePatterns) as $rule) {
+			$decisions = array_filter($translator->findPaths($rule), $keepable);
+			$files = array_values(array_filter($this->files, fn(string $file) => $config->excludesFromRule($file, $rule)));
+			if ($decisions && $files) {
+				$tree = [];
+				foreach ($decisions as $path) {
+					$tree = Helpers::placeValue($tree, $path, 'keep');
+				}
+
+				$draft->addOverride(
+					new Override($this->collapse($files), new Profile(decisions: $tree)),
+					"where $rule is left out by your formatter",
+				);
+			}
+		}
+	}
+
+
+	/**
+	 * The files of the scope given as the paths a configuration names: the highest directory of which every file of the
+	 * scope is given, and a file where its directory holds others too.
+	 * @param  list<string>  $files
+	 * @return list<string>
+	 */
+	private function collapse(array $files): array
+	{
+		$all = $given = [];
+		$set = array_flip($files);
+		foreach ($this->files as $file) {
+			for ($dir = dirname($file); $dir !== '.'; $dir = dirname($dir)) {
+				$all[$dir] = ($all[$dir] ?? 0) + 1;
+				$given[$dir] = ($given[$dir] ?? 0) + (int) isset($set[$file]);
+			}
+		}
+
+		$collapsed = [];
+		foreach ($files as $entry) {
+			while (($dir = dirname($entry)) !== '.' && $given[$dir] === $all[$dir]) {
+				$entry = $dir;
+			}
+
+			$collapsed[$entry] = true;
+		}
+
+		$collapsed = array_keys($collapsed);
+		sort($collapsed, SORT_STRING);
+		return $collapsed;
 	}
 
 

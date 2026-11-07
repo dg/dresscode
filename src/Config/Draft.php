@@ -7,7 +7,7 @@
 
 namespace DressCode\Config;
 
-use DressCode\{Config, ConfigurationException};
+use DressCode\{Config, ConfigurationException, Override};
 use DressCode\Engine\Helpers;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
@@ -36,6 +36,9 @@ final class Draft
 
 	/** @var array<string, string>  path => what the value rests on */
 	private array $comments = [];
+
+	/** @var list<array{Override, string}>  the override, what it rests on */
+	private array $overrides = [];
 
 
 	public function __construct(
@@ -75,6 +78,13 @@ final class Draft
 	}
 
 
+	public function addOverride(Override $override, string $comment = ''): static
+	{
+		$this->overrides[] = [$override, $comment];
+		return $this;
+	}
+
+
 	/**
 	 * The configuration written in the format given, `neon` or `php`, resolved the way a run reads it before it is
 	 * anywhere a run could read it and checked to say what the draft does.
@@ -99,8 +109,8 @@ final class Draft
 
 
 	/**
-	 * What the configuration loads as must be what the draft says of the presets and the scope, which a run reads before
-	 * it resolves anything.
+	 * What the configuration loads as must be what the draft says of the presets, the scope and the paths of the
+	 * overrides, which a run reads before it resolves anything.
 	 * @throws \LogicException
 	 */
 	private function checkLoaded(Config $config): void
@@ -116,6 +126,8 @@ final class Draft
 			$config->excludePaths !== array_values(array_unique([...Config::DefaultExcludePaths, ...array_keys($excluded)]))
 				=> '`excludePaths` are other paths',
 			$config->fileExtensions !== $extensions => '`fileExtensions` are other extensions',
+			array_map(fn(Override $override) => $override->paths, $config->overrides)
+				!== array_map(fn(array $entry) => $entry[0]->paths, $this->overrides) => 'an override is for other paths',
 			default => null,
 		};
 		if ($problem !== null) {
@@ -154,6 +166,7 @@ final class Draft
 			($this->header === '' ? '' : self::renderComment($this->header, '#')) . $this->renderUse(),
 			$this->renderScope(),
 			$this->renderDecisions(),
+			$this->renderOverrides(),
 		];
 		$sections = array_filter($sections, fn(string $section) => $section !== '');
 		return $this->appendFooter($sections ? implode("\n", $sections) : "use: []\n", '#');
@@ -172,10 +185,20 @@ final class Draft
 			$arguments .= "\tdecisions: " . self::export($decisions, 1) . ",\n";
 		}
 
+		if ($this->overrides) {
+			$arguments .= "\toverrides: [\n";
+			foreach ($this->overrides as [$override]) {
+				$arguments .= "\t\tnew Override(" . self::export($override->paths)
+					. ', new Profile(decisions: ' . self::export($override->profile->decisions, 2) . ")),\n";
+			}
+
+			$arguments .= "\t],\n";
+		}
+
 		return $this->appendFooter(
 			"<?php declare(strict_types=1);\n\n"
 			. ($this->header === '' ? '' : self::renderComment($this->header, '//') . "\n")
-			. "use DressCode\\Config;\n\n"
+			. 'use DressCode\\' . ($this->overrides ? '{Config, Override, Profile}' : 'Config') . ";\n\n"
 			. ($arguments === '' ? "return new Config;\n" : "return new Config(\n$arguments);\n"),
 			'//',
 		);
@@ -196,7 +219,7 @@ final class Draft
 
 
 	/**
-	 * The keys of the configuration beside the decisions, those with their default value left out.
+	 * The keys of the configuration beside the decisions and the overrides, those with their default value left out.
 	 * @return array<string, mixed>
 	 */
 	private function buildSettings(): array
@@ -336,6 +359,30 @@ final class Draft
 				: $line[0] . str_repeat(' ', $column - $width($line[0])) . "# $line[1]\n",
 			$lines,
 		));
+	}
+
+
+	/** The overrides, each with what it rests on above it. */
+	private function renderOverrides(): string
+	{
+		if (!$this->overrides) {
+			return '';
+		}
+
+		$out = "overrides:\n";
+		foreach ($this->overrides as [$override, $comment]) {
+			// an entry is written without the blank lines NEON puts between the keys of a block
+			$entry = rtrim(
+				(string) preg_replace(
+					'~\n+~',
+					"\n",
+					Neon::encode(['paths' => $override->paths, ...$override->profile->decisions], blockMode: true),
+				),
+			);
+			$out .= ($comment === '' ? '' : "\t# $comment\n") . "\t-\n" . preg_replace('~^~m', "\t\t", $entry) . "\n";
+		}
+
+		return $out;
 	}
 
 
