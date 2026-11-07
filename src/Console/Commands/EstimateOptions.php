@@ -11,7 +11,7 @@ use Nette\CommandLine\Attributes as Cli;
 
 
 /**
- * The inputs of measuring an upgrade, which `upgrade estimate` and `plan` share.
+ * The inputs of measuring an upgrade, which `upgrade estimate`, `plan` and `run` with a target share.
  * @internal
  */
 final readonly class EstimateOptions

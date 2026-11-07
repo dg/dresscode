@@ -9,7 +9,7 @@ namespace DressCode\Upgrade;
 
 
 /**
- * One step of a plan, a recipe rather than its result.
+ * One step of a plan, a recipe rather than its result, which the run measures anew whenever it comes to it.
  * @internal
  */
 interface Step

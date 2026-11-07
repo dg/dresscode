@@ -54,6 +54,17 @@ test('the steps go from what a human makes way for, through the bridge and the r
 		// what a newer PHP offers waits until the user takes it in
 		new FixStep('what the targets offer', ['upgrading.syntax.octalPrefix'], skip: true),
 	], $plan->steps);
+	Assert::same(
+		[
+			1 => ManualStep::class,
+			2 => FixStep::class,
+			3 => ComposerStep::class,
+			4 => FixStep::class,
+			5 => FixStep::class,
+			6 => UpdateStep::class,
+		],
+		array_map(fn(Step $step) => $step::class, $plan->findSteps()),
+	);
 	Assert::same('vendor/bin/tester tests -o junit:{junit}', $plan->testCommand);
 });
 
@@ -129,12 +140,15 @@ test('a platform of PHP below the target is raised with the constraint, which th
 	PlanFile::write($plan, $root);
 	Assert::equal($plan->steps, PlanFile::read($root)->steps);
 
-	// a platform below the target is raised where composer.json requires the target already
+	// a platform below the target is raised where composer.json requires the target already, the step done once it is
 	file_put_contents("$root/composer.json", '{"require": {"php": "^8.4", "acme/mail": "^3.0"}, "config": {"platform": {"php": "8.0"}}}');
 	$plan = new PlanBuilder(ProjectPackages::read($root))->build(createPlanEstimate());
 	$step = new ComposerStep('raise config.platform.php to 8.4', [], platform: '8.4');
 	Assert::equal($step, $plan->steps[2]);
 	Assert::same(['composer config platform.php 8.4', 'composer update --lock'], $step->formatCommands());
+	Assert::false($step->isDoneIn(ProjectPackages::read($root)));
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.4", "acme/mail": "^3.0"}, "config": {"platform": {"php": "8.4"}}}');
+	Assert::true($step->isDoneIn(ProjectPackages::read($root)));
 
 	PlanFile::write($plan, $root);
 	Assert::equal($plan->steps, PlanFile::read($root)->steps);
@@ -155,7 +169,7 @@ test('the file of the plan gives back the plan it was written from', function ()
 	PlanFile::write($plan, $root);
 	Assert::equal($plan, PlanFile::read($root));
 
-	// what the estimate could not see goes with the plan
+	// what the estimate could not see goes with the plan, so that a run of it says so
 	$plan = new Plan(
 		[Target::php('8.4')],
 		[new FixStep('fix', ['php'])],
