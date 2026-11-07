@@ -21,6 +21,10 @@ use function count;
  */
 final readonly class TasksPrinter
 {
+	/** the version of the document the format `json` writes for `upgrade tasks` */
+	public const Version = 1;
+
+
 	public function __construct(
 		/** @var array<string, list<Task>>  topic => its tasks */
 		private array $tasks,
@@ -30,6 +34,8 @@ final readonly class TasksPrinter
 		private array $unprocessed = [],
 		/** the root the paths are relative to, whose files show the lines of a task; none shows none */
 		private ?string $root = null,
+		/** more tasks than this are only counted by topic, `dresscode upgrade tasks` listing them */
+		private int $listed = PHP_INT_MAX,
 	) {
 	}
 
@@ -38,7 +44,16 @@ final readonly class TasksPrinter
 	{
 		$tasks = array_merge(...array_values($this->tasks));
 		$out = '';
-		if ($tasks !== []) {
+		if (count($tasks) > $this->listed) {
+			$topics = array_filter($this->tasks);
+			$byTopic = array_map(fn(string $topic, array $found) => "`$topic` " . count($found), array_keys($topics), $topics);
+			$out .= Markup::formatLine(
+				$console,
+				'Manual',
+				Helpers::formatCount(count($tasks), 'task') . ' the fixes left, ' . implode(', ', $byTopic),
+				': `dresscode upgrade tasks` lists them',
+			) . "\n";
+		} elseif ($tasks !== []) {
 			$out .= Markup::formatLine($console, 'Manual', Helpers::formatCount(count($tasks), 'task') . ' the fixes left') . "\n";
 			$files = [];
 			foreach ($tasks as $task) {

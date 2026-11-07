@@ -162,6 +162,23 @@ test('a target the lowest version allowed today already reaches raises nothing',
 });
 
 
+test('the first raise of a lower bound the project has not made is due, a widening or the platform alone never', function () {
+	$today = new ProjectPackages(required: ['php' => '>=8.1', 'acme/mail' => '^2.4']);
+	Assert::same(3, new PlanBuilder($today)->build(createPlanEstimate())->findDueRaise($today));
+	Assert::null(new PlanBuilder($today)->build(createPlanEstimate(library: true))->findDueRaise($today));
+
+	$plan = new Plan([Target::php('8.4')], [
+		new ComposerStep('raise config.platform.php to 8.4', [], platform: '8.4'),
+		new FixStep('needs the targets', ['php']),
+		new ComposerStep('raise php to ^8.4', ['php' => '^8.4']),
+	], '1.0');
+	Assert::same(3, $plan->findDueRaise($today));
+	Assert::null($plan->findDueRaise(new ProjectPackages(required: ['php' => '^8.4'])));
+	$skipped = new Plan([Target::php('8.4')], [new ComposerStep('raise php to ^8.4', ['php' => '^8.4'], skip: true)], '1.0');
+	Assert::null($skipped->findDueRaise($today));
+});
+
+
 test('the file of the plan gives back the plan it was written from', function () {
 	$root = createTempDir('plan-file');
 	$plan = new PlanBuilder(new ProjectPackages(required: ['php' => '^8.1']))
