@@ -19,9 +19,9 @@ use PhpSyntax\Nodes\Scalar\StringNode;
 
 
 /**
- * The places of the code an upgrade does not see, reported and never rewritten: a string holding the name of a class
- * the maps rename or forbid, which a rename does not reach, and a member, a class or a function reached by a name the
- * code computes, which no map of members can match.
+ * The places of the code an upgrade does not see, reported and never rewritten, so that the estimate of an upgrade
+ * counts them: a string holding the name of a class the maps rename or forbid, which a rename does not reach, and a
+ * member, a class or a function reached by a name the code computes, which no map of members can match.
  */
 #[RuleInfo(Stage::Structure, analyses: [NameResolver::class], reads: [self::Replaced, self::Forbidden])]
 final class UnseenReferencesRule extends NodeRule
