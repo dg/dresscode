@@ -139,6 +139,7 @@ final class ReplacedMembersRule extends NodeRule
 			$node->name,
 			$pattern->describeAccess($access, $node) . ' is replaced by ' . $target->describe($access->kind, $pattern) . $refusal . '.',
 			decision: $entry->decision,
+			source: $entry->origin,
 			fixable: $refusal === null,
 			risk: $risk === null ? null : Risk::BehaviorChanges,
 			because: $risk,
@@ -195,6 +196,7 @@ final class ReplacedMembersRule extends NodeRule
 			$node->name,
 			$pattern->describe($kind) . ' is replaced by ' . $target->describe($kind, $pattern) . ($refusal ?? '') . '.',
 			decision: $entry->decision,
+			source: $entry->origin,
 			fixable: $refusal === null,
 		)) {
 			$node->name->text = $target->name;
@@ -232,6 +234,7 @@ final class ReplacedMembersRule extends NodeRule
 			$callable->literal,
 			$pattern->describe($access->kind) . ' is replaced by ' . $target->describe($access->kind, $pattern) . $refusal . '.',
 			decision: $entry->decision,
+			source: $entry->origin,
 			fixable: $refusal === null,
 			risk: $risk === null ? null : Risk::BehaviorChanges,
 			because: $risk,

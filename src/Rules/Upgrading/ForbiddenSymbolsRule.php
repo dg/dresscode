@@ -8,6 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{PhpSymbols, Types};
+use DressCode\Config\Layer;
 use DressCode\{NodeRule, RuleContext, RuleInfo, Stage, Values};
 use DressCode\Upgrading\MemberMapGrammar;
 use PhpSyntax\Analyses\NameResolver;
@@ -45,14 +46,14 @@ final class ForbiddenSymbolsRule extends NodeRule
 	private const Constructs = [EvalNode::class, ExitNode::class, PrintNode::class, EmptyNode::class, IssetNode::class, UnsetNode::class];
 
 	/**
-	 * @var array<string, array{string, string, bool, string}>  lowercased class => the class as the map spells it, the end
-	 * of the message, whether the data of a package laid it and the decision it is reported under
+	 * @var array<string, array{string, string, ?Layer, string}>  lowercased class => the class as the map spells it, the
+	 * end of the message, the section of the upgrading data of a package that laid it and the decision it is reported under
 	 */
 	private array $classes = [];
 
 	/**
-	 * @var list<array{string, ?string, bool, string}>  regular expression, what to do instead, whether the data of a package
-	 * laid it, the decision it is reported under
+	 * @var list<array{string, ?string, ?Layer, string}>  regular expression, what to do instead, the section of the
+	 * upgrading data of a package that laid it, the decision it is reported under
 	 */
 	private array $functions = [];
 
@@ -60,8 +61,8 @@ final class ForbiddenSymbolsRule extends NodeRule
 	private array $withdrawnFunctions = [];
 
 	/**
-	 * @var list<array{string, ?string, bool, string}>  regular expression, what to do instead, whether the data of a package
-	 * laid it, the decision it is reported under
+	 * @var list<array{string, ?string, ?Layer, string}>  regular expression, what to do instead, the section of the
+	 * upgrading data of a package that laid it, the decision it is reported under
 	 */
 	private array $constants = [];
 
@@ -72,12 +73,11 @@ final class ForbiddenSymbolsRule extends NodeRule
 	public function configure(Values $values): void
 	{
 		$this->classes = [];
-		$fromPackages = $values->findPackageEntries(self::Classes);
 		foreach ($values->readMap(self::Classes) as $class => $message) {
 			$this->classes[strtolower(ltrim((string) $class, '\\'))] = [
 				ltrim((string) $class, '\\'),
 				$message === null ? '' : ": $message",
-				isset($fromPackages[$class]),
+				$values->getEntryOrigin(self::Classes, (string) $class),
 				$values->getEntryDecision(self::Classes, (string) $class),
 			];
 		}
@@ -89,17 +89,16 @@ final class ForbiddenSymbolsRule extends NodeRule
 
 	/**
 	 * The patterns of a map of names with what to do instead, and the names withdrawn from it.
-	 * @return array{list<array{string, ?string, bool, string}>, array<string, true>}
+	 * @return array{list<array{string, ?string, ?Layer, string}>, array<string, true>}
 	 */
 	private static function readPatterns(Values $values, string $path, bool $caseInsensitive): array
 	{
 		$patterns = [];
-		$fromPackages = $values->findPackageEntries($path);
 		foreach ($values->readMap($path) as $pattern => $sentence) {
 			$patterns[] = [
 				'~^' . str_replace('\*', '.*', preg_quote(ltrim((string) $pattern, '\\'), '~')) . '$~' . ($caseInsensitive ? 'i' : ''),
 				$sentence,
-				isset($fromPackages[$pattern]),
+				$values->getEntryOrigin($path, (string) $pattern),
 				$values->getEntryDecision($path, (string) $pattern),
 			];
 		}
@@ -140,10 +139,10 @@ final class ForbiddenSymbolsRule extends NodeRule
 
 		$entry = $this->classes[strtolower($context->getAnalysis(NameResolver::class)->resolveClass($node))] ?? null;
 		if ($entry !== null) {
-			[$class, $sentence, $fromPackage, $decision] = $entry;
+			[$class, $sentence, $source, $decision] = $entry;
 			$types = $context->findAnalysis(Types::class);
-			$verdict = Retirement::of($fromPackage, $types === null ? null : $types->findClassName($class) !== null);
-			$context->report($node, "Class `$class` is $verdict->value$sentence.", decision: $decision, fixable: false);
+			$verdict = Retirement::of($source !== null, $types === null ? null : $types->findClassName($class) !== null);
+			$context->report($node, "Class `$class` is $verdict->value$sentence.", decision: $decision, fixable: false, source: $source);
 		}
 	}
 
@@ -157,15 +156,21 @@ final class ForbiddenSymbolsRule extends NodeRule
 		$resolved = $context->getAnalysis(NameResolver::class)->resolveFunction($node->name);
 		$entry = isset($this->withdrawnFunctions[strtolower($resolved)]) ? null : self::findEntry($this->functions, $resolved);
 		if ($entry !== null) {
-			[$sentence, $fromPackage, $decision] = $entry;
+			[$sentence, $source, $decision] = $entry;
 			$types = $context->findAnalysis(Types::class);
 			$php = $context->getAnalysis(PhpSymbols::class);
-			$verdict = Retirement::of($fromPackage, match (true) {
+			$verdict = Retirement::of($source !== null, match (true) {
 				$types !== null => $types->findFunctionName($resolved) !== null,
 				$php->isBuiltinFunction($resolved) => $php->isBuiltinFunction($resolved, $context->phpVersion),
 				default => null,
 			});
-			$context->report($node->name, "Function `$resolved()` is $verdict->value$sentence.", decision: $decision, fixable: false);
+			$context->report(
+				$node->name,
+				"Function `$resolved()` is $verdict->value$sentence.",
+				decision: $decision,
+				fixable: false,
+				source: $source,
+			);
 		}
 	}
 
@@ -180,9 +185,15 @@ final class ForbiddenSymbolsRule extends NodeRule
 		$name = strtolower($keyword->text);
 		$entry = isset($this->withdrawnFunctions[$name]) ? null : self::findEntry($this->functions, $name);
 		if ($entry !== null) {
-			[$sentence, $fromPackage, $decision] = $entry;
-			$verdict = Retirement::of($fromPackage, exists: true);
-			$context->report($keyword, "Function `$name()` is $verdict->value$sentence.", decision: $decision, fixable: false);
+			[$sentence, $source, $decision] = $entry;
+			$verdict = Retirement::of($source !== null, exists: true);
+			$context->report(
+				$keyword,
+				"Function `$name()` is $verdict->value$sentence.",
+				decision: $decision,
+				fixable: false,
+				source: $source,
+			);
 		}
 	}
 
@@ -196,29 +207,36 @@ final class ForbiddenSymbolsRule extends NodeRule
 		$resolved = $context->getAnalysis(NameResolver::class)->resolveConstant($node);
 		$entry = isset($this->withdrawnConstants[$resolved]) ? null : self::findEntry($this->constants, $resolved);
 		if ($entry !== null) {
-			[$sentence, $fromPackage, $decision] = $entry;
+			[$sentence, $source, $decision] = $entry;
 			$types = $context->findAnalysis(Types::class);
-			$verdict = Retirement::of($fromPackage, match (true) {
+			$verdict = Retirement::of($source !== null, match (true) {
 				$types !== null => $types->knowsConstant($resolved),
 				$context->getAnalysis(PhpSymbols::class)->isBuiltinConstant($resolved) => true,
 				default => null,
 			});
-			$context->report($node, "Constant `$resolved` is $verdict->value$sentence.", decision: $decision, fixable: false);
+			$context->report(
+				$node,
+				"Constant `$resolved` is $verdict->value$sentence.",
+				decision: $decision,
+				fixable: false,
+				source: $source,
+			);
 		}
 	}
 
 
 	/**
 	 * The first pattern the name matches, as the end of its message, empty where its entry says nothing to do instead,
-	 * whether the data of a package laid it and the decision it is reported under; null where none matches.
-	 * @param  list<array{string, ?string, bool, string}>  $patterns
-	 * @return ?array{string, bool, string}
+	 * the section of the upgrading data of a package that laid it and the decision it is reported under; null where none
+	 * matches.
+	 * @param  list<array{string, ?string, ?Layer, string}>  $patterns
+	 * @return ?array{string, ?Layer, string}
 	 */
 	private static function findEntry(array $patterns, string $name): ?array
 	{
-		foreach ($patterns as [$pattern, $sentence, $fromPackage, $decision]) {
+		foreach ($patterns as [$pattern, $sentence, $source, $decision]) {
 			if (preg_match($pattern, $name)) {
-				return [$sentence === null ? '' : ": $sentence", $fromPackage, $decision];
+				return [$sentence === null ? '' : ": $sentence", $source, $decision];
 			}
 		}
 

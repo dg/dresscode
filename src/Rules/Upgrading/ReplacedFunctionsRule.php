@@ -9,6 +9,7 @@ namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\{Parameter, PhpSignatures, PhpSymbols};
 use DressCode\{CodeWriter, GlobalCalls, NodeRule, QualifiedNames, Risk, RuleContext, RuleInfo, Stage, Values};
+use DressCode\Config\Layer;
 use DressCode\Rules\NodeHelpers;
 use DressCode\Upgrading\MemberMapGrammar;
 use PhpSyntax\Analyses\NameResolver;
@@ -49,8 +50,8 @@ final class ReplacedFunctionsRule extends NodeRule
 	public const Map = MemberMapGrammar::ReplacedFunctions;
 
 	/**
-	 * @var array<lowercase-string, array{string, string}>  lowercased replaced name => the replaced and the replacing name
-	 * as the project spells them
+	 * @var array<lowercase-string, array{string, string, ?Layer}>  lowercased replaced name => the replaced and the
+	 * replacing name as the project spells them, and the section of the upgrading data that laid it
 	 */
 	private array $functions = [];
 
@@ -61,7 +62,11 @@ final class ReplacedFunctionsRule extends NodeRule
 		$this->functions = [];
 		foreach ($options as $old => $new) {
 			// both as the project spells them, which is what its message quotes back at it
-			$this->functions[strtolower(ltrim((string) $old, '\\'))] = [ltrim((string) $old, '\\'), ltrim($new, '\\')];
+			$this->functions[strtolower(ltrim((string) $old, '\\'))] = [
+				ltrim((string) $old, '\\'),
+				ltrim($new, '\\'),
+				$values->getEntryOrigin(self::Map, (string) $old),
+			];
 		}
 	}
 
@@ -81,7 +86,7 @@ final class ReplacedFunctionsRule extends NodeRule
 			return;
 		}
 
-		[$old, $new] = $this->functions[$key];
+		[$old, $new, $source] = $this->functions[$key];
 		$resolver = $context->getAnalysis(NameResolver::class);
 		$namespace = $resolver->getNamespace($node);
 
@@ -93,6 +98,7 @@ final class ReplacedFunctionsRule extends NodeRule
 			fixable: $refusal === null,
 			risk: $uncertainty === null ? null : Risk::NameUncertain,
 			because: $uncertainty,
+			source: $source,
 		)) {
 			return;
 		}

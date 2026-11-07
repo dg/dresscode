@@ -137,12 +137,13 @@ final readonly class UpgradingFile
 	 * rewritten where the lowest version reaches its section, or the version `from` says its fix is right from, a later
 	 * section having the last word on it: every entry where any version does, none where there is no lower bound. A
 	 * section above the lowest version says nothing, the lowest version not taking its fix, and turns no requirement on.
+	 * Every entry keeps the section and the version `from` it came with.
 	 */
 	public function selectFor(?string $constraint, Layer $layer): UpgradingData
 	{
 		$lowest = $constraint === null ? null : Versions::findLowestVersion($constraint);
 		$reaches = fn(string $version) => $constraint === null || ($lowest !== null && version_compare($lowest, $version, '>='));
-		$maps = $retirements = $unreached = [];
+		$maps = $retirements = $origins = $unreached = [];
 		foreach ($this->sections as $since => $section) {
 			$since = (string) $since;
 			$pending = false;
@@ -155,6 +156,7 @@ final readonly class UpgradingFile
 					}
 
 					$maps[$map][$key] = self::removeFrom($value);
+					$origins[$map][$key] = [$since, $from];
 					unset($retirements[$map][$key]);
 					if (in_array($map, self::ForbiddenMaps, true) && $value !== MemberMapGrammar::Keep) {
 						$retirements[$map][$key] = $since;
@@ -174,7 +176,7 @@ final readonly class UpgradingFile
 			}
 		}
 
-		return new UpgradingData($layer, $this->package, $this->namespaces, $maps, $retirements, $unreached, $requirements);
+		return new UpgradingData($layer, $this->package, $this->namespaces, $maps, $retirements, $unreached, $requirements, $origins);
 	}
 
 

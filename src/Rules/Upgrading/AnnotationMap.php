@@ -8,6 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\Analyses\PhpDoc;
+use DressCode\Config\Layer;
 use DressCode\{QualifiedNames, RuleContext, Values};
 use DressCode\Upgrading\MemberMapGrammar;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
@@ -52,7 +53,10 @@ final readonly class AnnotationMap
 		private array $attributes,
 		/** @var array<string, AttributeTarget>  lowercased class of an attribute, fully qualified => the attribute written instead */
 		private array $replacedAttributes,
-		/** @var array<string, string>  lowercased namespace of annotations => the namespace of the attributes written instead */
+		/**
+		 * @var array<string, array{string, ?Layer}>  lowercased namespace of annotations => the namespace of the attributes
+		 * written instead and the section of the upgrading data that laid it
+		 */
 		private array $namespaces,
 		/** @var array<string, true>  lowercased classes withdrawn from the map, which no namespace reaches */
 		private array $withdrawn = [],
@@ -64,11 +68,12 @@ final readonly class AnnotationMap
 	{
 		$attributes = $replacedAttributes = $namespaces = [];
 		foreach ($values->readMap(MemberMapGrammar::AttributeForAnnotation) as $key => $code) {
+			$origin = $values->getEntryOrigin(MemberMapGrammar::AttributeForAnnotation, (string) $key);
 			if (str_ends_with((string) $key, '*')) {
 				if (($namespace = AttributeTarget::findNamespace($code)) !== null) {
-					$namespaces[strtolower(trim((string) $key, '\\*'))] = $namespace;
+					$namespaces[strtolower(trim((string) $key, '\\*'))] = [$namespace, $origin];
 				}
-			} elseif (($target = AttributeTarget::fromCode($code)) === null) {
+			} elseif (($target = AttributeTarget::fromCode($code, $origin)) === null) {
 				continue;
 			} elseif (str_contains((string) $key, '\\')) {
 				$replacedAttributes[strtolower(ltrim((string) $key, '\\'))] = $target;
@@ -110,9 +115,12 @@ final readonly class AnnotationMap
 		}
 
 		$namespace = QualifiedNames::extractNamespace($class);
-		$target = $this->namespaces[strtolower($namespace)] ?? null;
-		return $this->replacedAttributes[strtolower($class)]
-			?? ($target === null ? null : new AttributeTarget($target . substr($class, strlen($namespace)), fromNamespace: true));
+		[$target, $origin] = $this->namespaces[strtolower($namespace)] ?? [null, null];
+		return $this->replacedAttributes[strtolower($class)] ?? ($target === null ? null : new AttributeTarget(
+			$target . substr($class, strlen($namespace)),
+			fromNamespace: true,
+			origin: $origin,
+		));
 	}
 
 
