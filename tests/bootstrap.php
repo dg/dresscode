@@ -24,6 +24,10 @@ if (!defined('STDIN')) { // the CGI defines none
 	define('STDERR', fopen('php://stderr', 'w'));
 }
 
+if (PHP_SAPI !== 'cli') {
+	set_time_limit(0); // as the CLI has none
+}
+
 
 /** The CLI binary of PHP a test runs code with, the test skipped without one. */
 function getPhpCliBinary(): string

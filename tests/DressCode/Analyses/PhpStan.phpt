@@ -30,7 +30,7 @@ function inspectPhpDocParserOrigin(string $root): array
 		PHP;
 	file_put_contents("$root/inspect.php", $script);
 	$process = proc_open(
-		[PHP_BINARY, "$root/inspect.php", __DIR__ . '/../../../vendor/autoload.php', "$root/origin.json"],
+		[getPhpCliBinary(), "$root/inspect.php", __DIR__ . '/../../../vendor/autoload.php', "$root/origin.json"],
 		[1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
 		$pipes,
 		$root,
@@ -88,7 +88,7 @@ test('without the types phpdoc-parser comes from the vendor and the archive of P
 
 
 test('a class the project lacks, which PHPStan looks for through the autoloaders, stays whole in the file cache of opcache', function () {
-	$probe = shell_exec(escapeshellarg(PHP_BINARY) . ' -d opcache.enable_cli=1 -r "echo (int) function_exists(\'opcache_get_status\');"');
+	$probe = shell_exec(escapeshellarg(getPhpCliBinary()) . ' -d opcache.enable_cli=1 -r "echo (int) function_exists(\'opcache_get_status\');"');
 	if ($probe !== '1') {
 		Environment::skip('opcache is not loaded');
 	}
@@ -102,7 +102,7 @@ test('a class the project lacks, which PHPStan looks for through the autoloaders
 	$code = FileSystem::read(__DIR__ . '/../../../src/Rules/NodeHelpers.php');
 	file_put_contents("$root/src/Helpers.php", str_replace('namespace DressCode\Rules;', 'namespace App;', $code));
 	$command = [
-		PHP_BINARY,
+		getPhpCliBinary(),
 		'-d', 'opcache.enable_cli=1',
 		'-d', "opcache.file_cache=$root/opcache",
 		'-d', 'opcache.file_cache_only=1',
