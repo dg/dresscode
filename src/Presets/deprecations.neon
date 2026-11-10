@@ -7,7 +7,7 @@
 classes:
 	overridingMethod:
 		signature: required                   # a child matching a parent changed by an upgrade
-		parameterName: required
+		parameterName: required               # as the parent names them
 
 expressions:
 	cast: canonical                           # `(int)`, not `(integer)`, PHP 8.5
@@ -33,7 +33,7 @@ upgrading:
 		implicitNullable: forbidden           # `?int $x = null`, not `int $x = null`, PHP 8.4
 		deprecatedApi: forbidden              # `mb_convert_encoding()`, not `utf8_encode()`, `E_STRICT` reported
 		deprecatedArgument: forbidden         # `trigger_error($m, E_USER_ERROR)` reported
-		constructorReturnValue: forbidden     # PHP 8.6
+		constructorReturnValue: forbidden     # `return $x;` in a constructor, PHP 8.6
 		sleepAndWakeup: forbidden             # `__serialize()`, PHP 8.5
 		returnInFinally: forbidden            # PHP 8.6
 		csvEscapeArgument: required           # the `escape` of `fgetcsv()` written out, PHP 8.4

@@ -3,46 +3,46 @@
 # PSR-12, section by section; the specification defines the style and this preset adds nothing of its own.
 
 severity:
-	file.longLines: warning                   # what nothing could spread only warns, the limit being soft
+	file.longLines: warning                  # what nothing could spread only warns, the limit being soft
 
 file:
 	bom: forbidden
-	invalidUtf8: forbidden                    # PSR-1 asks for UTF-8 only
-	openingTag: required                      # `<?php`, not `<?` or `<?PHP`
+	invalidUtf8: forbidden                   # PSR-1 asks for UTF-8 only
+	openingTag: required                     # `<?php`, not `<?` or `<?PHP`
 	strictTypes:
-		position: nextLine                    # §3, `<?php` on a line of its own
-	closingTagAtEnd: forbidden                # a `?>` before HTML stays
-	lineEnding: majority                      # as most lines of the file, LF on a tie
+		position: nextLine                   # §3, `<?php` on a line of its own
+	closingTagAtEnd: forbidden               # a `?>` before HTML stays
+	lineEnding: majority                     # as most lines of the file, LF on a tie
 	finalLineEndings: 1
-	trailingWhitespace: forbidden             # the text of a string stays
-	lineLength: 120                           # what is wider is spread
+	trailingWhitespace: forbidden            # the text of a string stays
+	lineLength: 120                          # what is wider is spread
 	longLines: forbidden
-	statementsPerLine: 1                      # `foo(); bar();` takes two lines
+	statementsPerLine: 1                     # `foo(); bar();` takes two lines
 
 indentation:
 	unit: '4 spaces'
-	binaryOperator: 0                         # `&& $b` right below `$a`, a level deeper after `$x =` or `return`
-	ternary: 1                                # `?` and `:` opening a line
-	switchCase: 1                             # `case` inside `switch`
-	chain: flat                               # every link one level below the start of the chain
-	commentLines: aligned
+	binaryOperator: 0                        # `&& $b` right below `$a`, a level deeper after `$x =` or `return`
+	ternary: 1                               # `?` and `:` opening a line
+	switchCase: 1                            # `case` inside `switch`
+	chain: flat                              # every link one level below the start of the chain
+	commentLines: aligned                    # the inner lines of a comment in the column of its first
 
 braces:
 	position:
 		class: nextLine
-		function: nextLine                    # one with parameters on one line
-		multilineSignature: sameLine          # `) {` on a line of their own
+		function: nextLine                   # one with parameters on one line
+		multilineSignature: sameLine         # `) {` on a line of their own
 		closure: sameLine
 		anonymousClass: sameLine
 		controlStructure: sameLine
-		continuingKeyword: sameLine           # `} else {`
-	emptyBody:                                # not `{}`
+		continuingKeyword: sameLine          # `} else {`
+	emptyBody:                               # not `{}`
 		class: expanded
 		function: expanded
 		closure: expanded
 		propertyHook: expanded
-	bracelessBody: forbidden                  # `if ($a) foo();` gets braces
-	singlelineClosure: forbidden              # `function () { return 1; }` is spread
+	bracelessBody: forbidden                 # `if ($a) foo();` gets braces
+	singlelineClosure: forbidden             # `function () { return 1; }` is spread
 
 blankLines:
 	afterOpeningTag: 1
@@ -54,28 +54,28 @@ blankLines:
 	betweenImports: 0
 	betweenImportKinds: 1
 	beforeOpenBrace:
-		class: 0                              # §4.1: no blank line between the head and `{` below it
+		class: 0                             # §4.1: no blank line between the head and `{` below it
 	bodyStart:
 		class: 0
 		anonymousClass: 0
-		controlStructure: 0                   # §5: the body on the next line after `{`
+		controlStructure: 0                  # §5: the body on the next line after `{`
 	bodyEnd:
 		class: 0
 		anonymousClass: 0
-		function: 0                           # §4.4, §7: `}` on the next line following the body
+		function: 0                          # §4.4, §7: `}` on the next line following the body
 		closure: 0
-		controlStructure: 0                   # §5
+		controlStructure: 0                  # §5
 		branch: 0
 	betweenTraitUses: 0
 	afterTraitUses: 1
 
 multiline:
 	items:
-		argument: perLine                     # an argument per line once spread
-		parameter: perLine                    # a parameter per line once spread or too wide
-		for: perLine                          # a section of `for` per line
-		implements: perLine                   # an interface per line below `implements`
-		matchCondition: perLine               # a condition of a `match` arm per line, `=>` after the last
+		argument: perLine                    # an argument per line once spread
+		parameter: perLine                   # a parameter per line once spread or too wide
+		for: perLine                         # a section of `for` per line
+		implements: perLine                  # an interface per line below `implements`
+		matchCondition: perLine              # a condition of a `match` arm per line, `=>` after the last
 		# the parts of a condition and the operands as their author spread them, a line each where too wide
 		condition: [perLine, fill]
 		logical: [perLine, fill]
@@ -85,83 +85,83 @@ multiline:
 		coalesce: [perLine, fill]
 		pipe: [perLine, fill]
 	edges:
-		argument: apart                       # `foo(` above the arguments, `)` below them
+		argument: apart                      # `foo(` above the arguments, `)` below them
 		parameter: apart
 		implements: apart
-		condition: apart                      # `if (` above `$a`, `) {` below the last part
-	operatorPosition:                         # `+ $b` opens the line, not ends the one before
+		condition: apart                     # `if (` above `$a`, `) {` below the last part
+	operatorPosition:                        # `+ $b` opens the line, not ends the one before
 		operators: lineStart
 		concatenation: keep
 		ternary: keep
 
 spacing:
 	declare: 'declare(strict_types=1)'
-	call: 'foo($a, $b)'                       # `function foo($a)` too
-	padding:                                  # `foo($a)`, `if ($a)`, `($a + $b)`
+	call: 'foo($a, $b)'                      # `function foo($a)` too
+	padding:                                 # `foo($a)`, `if ($a)`, `($a + $b)`
 		argument: forbidden
 		parameter: forbidden
 		closureUse: forbidden
 		controlStructure: forbidden
 		grouping: forbidden
-	keyword: required                         # `return $x`, `if (`, `} else {`, `new`, `class Foo extends Bar`
-	openBrace: required                       # `if ($a) {`, `function () {`
+	keyword: required                        # `return $x`, `if (`, `} else {`, `new`, `class Foo extends Bar`
+	openBrace: required                      # `if ($a) {`, `function () {`
 	alternativeSyntax: 'if ($a):'
-	body: required                            # `{ return 1; }`, `{ get; set; }`
+	body: required                           # `{ return 1; }`, `{ get; set; }`
 	import: 'use Acme\{Foo, Bar};'
 	comma: '$a, $b'
 	alignment:
-		comma: forbidden                      # no extra spaces after a comma
+		comma: forbidden                     # no extra spaces after a comma
 	cast: '(int) $x'
 	reference: '&$x'
 	spread: '...$x'
-	unaryOperator: '-$x'                      # `++$i` too
-	logicalNot: ['!$x', '! $x']               # `! $x` may stay
-	binaryOperator: '$a + $b'                 # `=`, `=>`, `instanceof` too
+	unaryOperator: '-$x'                     # `++$i` too
+	logicalNot: ['!$x', '! $x']              # `! $x` may stay
+	binaryOperator: '$a + $b'                # `=`, `=>`, `instanceof` too
 	concatenation: '$a . $b'
-	ternary: '$a ? $b : $c'                   # `$a ?: $b` too
+	ternary: '$a ? $b : $c'                  # `$a ?: $b` too
 	anonymousClass: 'new class ($a)'
 	anonymousFunction: 'function ($x)'
-	typeDeclaration: '?int $x'                # `): int` too
+	typeDeclaration: '?int $x'               # `): int` too
 	catchType: 'catch (A | B $e)'
 	switchCase: 'case 1:'
 
 # names are reported, never renamed
 naming:
 	class: PascalCase
-	method: camelCase                         # `__construct()` passes
+	method: camelCase                        # `__construct()` passes
 	constant: UPPER_CASE
 
 casing:
-	keyword: lowercase                        # `self`, `parent` too
+	keyword: lowercase                       # `self`, `parent` too
 	trueFalseNull: lowercase
-	type: lowercase                           # `int`, `string`, `void`
+	type: lowercase                          # `int`, `string`, `void`
 
 imports:
-	leadingBackslash: forbidden               # `use Foo\Bar;`, not `use \Foo\Bar;`
+	leadingBackslash: forbidden              # `use Foo\Bar;`, not `use \Foo\Bar;`
 	order:
-		kinds: [class, function, constant]    # the names of a kind in the order written
+		kinds: [class, function, constant]   # the names of a kind in the order written
 
 classes:
-	visibility: required                      # `var` is `public`; interface methods and set visibility too
+	visibility: required                     # `var` is `public`; interface methods and set visibility too
 	modifiers:
-		order: canonical                      # `final public static`
+		order: canonical                     # `final public static`
 	members:
-		order: [traitUse]
-		grouping:                             # `public $a, $b;` is split
+		order: [traitUse]                    # trait uses first, the rest as written
+		grouping:                            # `public $a, $b;` is split
 			property: separated
 			traitUse: separated
 	emptyParentheses:
-		instantiation: required               # `new Foo()`
+		instantiation: required              # `new Foo()`
 
 controlFlow:
-	elseif: 'elseif'                          # not `else if`
+	elseif: 'elseif'                         # not `else if`
 	switch:
-		fallThroughComment: no break          # the comment of a fall-through
-	emptyStatement: forbidden                 # `foo();;`
+		fallThroughComment: no break         # the comment of a fall-through
+	emptyStatement: forbidden                # `foo();;`
 
 expressions:
-	cast: canonical                           # `(int)`, not `(integer)` or `( int )`
+	cast: canonical                          # `(int)`, not `(integer)` or `( int )`
 
 upgrading:
 	php:
-		caseSemicolon: forbidden              # `case 1:`, not `case 1;`
+		caseSemicolon: forbidden             # `case 1:`, not `case 1;`

@@ -36,7 +36,7 @@ braces:
 		closure: expanded
 		propertyHook: expanded
 		anonymousClass: keep
-	singlelineClosure: keep
+	singlelineClosure: keep                   # `function () { return 1; }` may stay
 	alternativeSyntax: forbidden              # no `if: ... endif;`
 
 # a range `1-2` leaves the choice to the author
@@ -62,7 +62,7 @@ multiline:
 		array: fill                           # items may share a line
 		list: fill
 		import: fill                          # the names filling the lines
-		argument: fillPlain                   # `foo($a, $b, self::X)` share lines, `foo(fn() => 1, bar())` one on a line
+		argument: fillPlain                   # `foo($a, self::X)` share lines, `foo(bar(), $b)` one on a line
 		matchArm: perLine
 		matchCondition: fill                  # conditions may share a line
 	edges:
@@ -84,7 +84,7 @@ multiline:
 		throw: sameLine
 		yield: sameLine
 		echo: sameLine
-	semicolon: sameLine
+	semicolon: sameLine                       # not on a line of its own below a chain
 	trailingComma: required                   # a group use and `list()` too
 
 spacing:
@@ -112,8 +112,8 @@ naming:
 	variable: camelCase
 	abstractClassAffix: forbidden             # `Foo`, not `AbstractFoo`
 	interfaceAffix: forbidden                 # `Foo`, not `FooInterface`
-	traitAffix: forbidden
-	errorAffix: forbidden
+	traitAffix: forbidden                     # `Foo`, not `FooTrait`
+	errorAffix: forbidden                     # `Foo`, not `FooError`
 
 casing:
 	magicConstant: uppercase
@@ -149,7 +149,7 @@ classes:
 		instantiation: forbidden              # `new Foo`, but `new Foo()->bar()`
 
 functions:
-	innerFunction: forbidden
+	innerFunction: forbidden                  # a named function inside another, reported
 	arrowFunction:
 		oneExpression: required               # `fn() =>` for a closure only returning
 		emptyBody: keep                       # `function () {}` stays a callback doing nothing
@@ -178,7 +178,7 @@ expressions:
 	ternary:
 		short: required                       # `$a ?: $b`
 	coalesce: required                        # `$a ?? $b`
-	wordLogicalOperator: forbidden
+	wordLogicalOperator: forbidden            # `&&`, not `and`
 	explicitPrecedence: required              # `($a && $b) || $c`
 	doubleNegation: forbidden                 # `(bool) $a`, not `!!$a`
 
@@ -201,7 +201,7 @@ phpdoc:
 		casing: canonical                     # `@inheritDoc`, not `@inheritdoc`
 		inlineVar: forbidden                  # becomes `assert()`, risky
 	stars: aligned                            # below the first `*` of `/**`
-	blankLines: trimmed
+	blankLines: trimmed                       # none opening or closing it, never two in a row
 	property:
 		plainComment: forbidden               # not `//` or `/* */`
 		lineSpan: collapsed                   # `/** @var int */`
@@ -224,7 +224,7 @@ hygiene:
 		object: required                      # `$object::class`
 
 mistakes:
-	globalStatement: forbidden
+	globalStatement: forbidden                # `global $x`, reported
 	debugOutput: keep                         # may stay
 
 upgrading:

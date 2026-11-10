@@ -5,51 +5,51 @@
 # layout, so it goes with any standard.
 
 classes:
-	instantiationWrapping: forbidden           # `new Foo()->bar()`, not `(new Foo())->bar()`
+	instantiationWrapping: forbidden     # `new Foo()->bar()`, not `(new Foo())->bar()`
 
 functions:
 	arrowFunction:
-		oneExpression: required                # `fn() =>` for a closure only returning
-	arrowFunctionNested: yes                   # also one holding another closure
+		oneExpression: required          # `fn() =>` for a closure only returning
+	arrowFunctionNested: yes             # also one holding another closure
 
 expressions:
 	ternary:
-		short: required                        # `$a ?: $b`
-	coalesce: required                         # `$a ?? $b`
+		short: required                  # `$a ?: $b`
+	coalesce: required                   # `$a ?? $b`
 
 literals:
-	arraySyntax: short                         # `[1, 2]`, `[$a] =`
+	arraySyntax: short                   # `[1, 2]`, `[$a] =`
 
 hygiene:
 	classNameNotation:
-		currentClass: required                 # `self::class`, `static::class`
-		object: required                       # `$object::class`, PHP 8.0
+		currentClass: required           # `self::class`, `static::class`
+		object: required                 # `$object::class`, PHP 8.0
 
 upgrading:
-	packages: yes                              # as the upgrading files of the packages say
+	packages: yes                        # as the upgrading files of the packages say
 	php:
-		sleepAndWakeup: forbidden              # `__serialize()` and `__unserialize()` instead
+		sleepAndWakeup: forbidden        # `__serialize()` and `__unserialize()` instead
 	syntax:
-		spreadForArrayMerge: required          # `[...$a, ...$b]`, not `array_merge($a, $b)`
-		dynamicClassConstant: required         # `X::{$name}`, not `constant(X::class . '::' . $name)`
-		match: required                        # for a `switch` returning or assigning
-		throwExpression: required              # `$a ?? throw new E`
-		cloneWith: required                    # `clone($o, [...])`
-		nullsafe: required                     # `$a?->b`, not `$a !== null ? $a->b : null`
-		pipe: required                         # `$x |> a(...) |> b(...)`, not `b(a($x))`
-		firstClassCallables: required          # `foo(...)`, not `Closure::fromCallable('foo')`
-		octalPrefix: required                  # `0o17`, not `017`
-		newInInitializer: required             # `Clock $c = new SystemClock`, not a `null` swapped in the body
-		promotedProperties: required
-		readonlyClasses: required              # `readonly class`, not `readonly` on every property
+		spreadForArrayMerge: required    # `[...$a, ...$b]`, not `array_merge($a, $b)`
+		dynamicClassConstant: required   # `X::{$name}`, not `constant(X::class . '::' . $name)`
+		match: required                  # for a `switch` returning or assigning
+		throwExpression: required        # `$a ?? throw new E`
+		cloneWith: required              # `clone($o, [...])`
+		nullsafe: required               # `$a?->b`, not `$a !== null ? $a->b : null`
+		pipe: required                   # `$x |> a(...) |> b(...)`, not `b(a($x))`
+		firstClassCallables: required    # `foo(...)`, not `Closure::fromCallable('foo')`
+		octalPrefix: required            # `0o17`, not `017`
+		newInInitializer: required       # `Clock $c = new SystemClock`, not a `null` swapped in the body
+		promotedProperties: required     # `__construct(private Foo $foo)`
+		readonlyClasses: required        # `readonly class`, not `readonly` on every property
 	functions:
 		array_is_list: required
-		arraySearchFunctions: required         # `array_find()`, `array_any()` for a `foreach`
-		arrayFirstLast: required               # `array_first()`, not `reset()`
-		clamp: required                        # `clamp($x, $lo, $hi)`, not `max($lo, min($x, $hi))`
+		arraySearchFunctions: required   # `array_find()`, `array_any()` for a `foreach`
+		arrayFirstLast: required         # `array_first()`, not `reset()`
+		clamp: required                  # `clamp($x, $lo, $hi)`, not `max($lo, min($x, $hi))`
 		get_debug_type: required
-		json_validate: required                # not `json_decode()` only testing
-		substringFunctions: required           # `str_contains()`, not `strpos() !== false`
-		roundingMode: required                 # `RoundingMode::HalfAwayFromZero`, not `PHP_ROUND_HALF_UP`
+		json_validate: required          # not `json_decode()` only testing
+		substringFunctions: required     # `str_contains()`, not `strpos() !== false`
+		roundingMode: required           # `RoundingMode::HalfAwayFromZero`, not `PHP_ROUND_HALF_UP`
 	phpdoc:
-		deprecated: required                   # `#[\Deprecated]`, not `@deprecated`
+		deprecated: required             # `#[\Deprecated]`, not `@deprecated`

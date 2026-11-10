@@ -6,8 +6,8 @@
 
 qualification:
 	function:
-		global: bare                                # `array_map()`, reached by the fallback at run time
-		optimized: imported                         # `use function strlen;`, its arguments positional
+		global: bare                         # `array_map()`, reached by the fallback at run time
+		optimized: imported                  # `use function strlen;`, its arguments positional
 	constant:
-		global: bare                                # `E_ALL`
-		optimized: [imported, backslashed]          # `PHP_VERSION_ID` imported or `\PHP_VERSION_ID`
+		global: bare                         # `E_ALL`
+		optimized: [imported, backslashed]   # `PHP_VERSION_ID` imported or `\PHP_VERSION_ID`

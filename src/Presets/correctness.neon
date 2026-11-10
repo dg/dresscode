@@ -16,7 +16,7 @@ phpdoc:
 mistakes:
 	__debugInfoReturningNull: forbidden         # `[]`, not `null`
 	thisOutsideObject: forbidden                # in a static method or a function, reported
-	staticSetState: required
+	staticSetState: required                    # `static function __set_state()`, as PHP calls it
 	continueInSwitch: forbidden                 # a `continue` only leaving a `switch`, reported
 	unreachableCatch: forbidden                 # after `catch (Throwable)`
 	exceptionWhereThrowableBelongs: forbidden   # `catch (Exception)` where `Throwable` is meant, reported

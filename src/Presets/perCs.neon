@@ -42,7 +42,7 @@ multiline:
 		closureUse: required
 		import: optional
 		list: optional
-	attributePosition: above                 # a group per line above the declaration, and above a parameter in a list spread over lines
+	attributePosition: above                 # a group per line above, of a parameter only where the list is spread
 
 spacing:
 	attribute: '#[Foo($a)]'
