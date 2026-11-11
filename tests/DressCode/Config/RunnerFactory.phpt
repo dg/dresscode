@@ -6,7 +6,7 @@ use DressCode\{
 };
 use DressCode\Config\{ComposerJson, PhpVersionSource, RunnerFactory};
 use DressCode\Engine\{Baseline, Runner, TypeAnalysisStatus};
-use DressCode\Reporters\NullReporter;
+use DressCode\Reporters\{CollectingReporter, NullReporter};
 use DressCode\Rules\ControlFlow\MatchForSwitchRule;
 use Nette\Utils\FileSystem;
 use PhpSyntax\{Node, Token};
@@ -325,10 +325,11 @@ test('a rule of a plugin is built by the factory of its manifest, anew for every
 		overrides: [new Override(['tests'], new Profile(targets: ['php' => '8.4']))],
 		decisions: ['dependent' => ['variables' => 'forbidden']],
 	);
-	$result = buildRunner($config, $root)->run(['a.php', 'tests/b.php'], false, new NullReporter);
+	$collected = new CollectingReporter;
+	buildRunner($config, $root)->run(['a.php', 'tests/b.php'], false, $collected);
 	Assert::same(
 		['A variable, served.', 'A variable, served.'],
-		array_map(fn($file) => $file->violations[0]->message, $result->files),
+		array_map(fn(array $violations) => $violations[0]->message, array_values($collected->violations)),
 	);
 	Assert::count(2, $plugin->built);
 	Assert::notSame($plugin->built[0], $plugin->built[1]);
@@ -486,10 +487,11 @@ test('a configuration of PHPStan it cannot start with is a warning of the run, a
 		decisions: ['upgrading' => ['declarations' => ['deprecatedMember' => 'forbidden']]],
 	);
 	$runner = $factory->createRunner($factory->resolve($config, $root), cache: false);
-	$result = $runner->run(['Check.php'], false, new NullReporter);
+	$collected = new CollectingReporter;
+	$result = $runner->run(['Check.php'], false, $collected);
 	Assert::same(['5: upgrading.declarations.deprecatedMember'], array_map(
 		fn($violation) => "$violation->line: $violation->decision",
-		$result->files[0]->violations,
+		$collected->violations['Check.php'],
 	));
 	Assert::match(
 		'PHPStan could not start with the configuration of the project: %a%; the types go without it.',
@@ -552,8 +554,9 @@ function findNullArguments(string $root): array
 		typeAnalysis: 'phpstan',
 		decisions: ['upgrading' => ['php' => ['nullArgument' => 'forbidden']]],
 	);
-	$result = $factory->createRunner($factory->resolve($config, $root), cache: false)->run(['Check.php'], false, new NullReporter);
-	return [array_map(fn($violation) => $violation->line, $result->files[0]->violations), $result->warnings];
+	$collected = new CollectingReporter;
+	$result = $factory->createRunner($factory->resolve($config, $root), cache: false)->run(['Check.php'], false, $collected);
+	return [array_map(fn($violation) => $violation->line, $collected->violations['Check.php'] ?? []), $result->warnings];
 }
 
 

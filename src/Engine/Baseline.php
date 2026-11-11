@@ -7,7 +7,7 @@
 
 namespace DressCode\Engine;
 
-use DressCode\{Config, ConfigurationException, FileResult};
+use DressCode\{Config, ConfigurationException, Violation};
 use DressCode\Config\Loader;
 use Nette\Neon\{Exception as NeonException, Neon};
 use function is_array, is_string;
@@ -120,15 +120,15 @@ final class Baseline
 	}
 
 
-	/** @param list<FileResult|FileSummary> $results */
-	public static function fromResults(array $results): self
+	/** @param  array<string, list<Violation>>  $violations  the path => what the file violates */
+	public static function fromViolations(array $violations): self
 	{
 		$baseline = new self;
-		foreach ($results as $result) {
-			foreach ($result->violations as $violation) {
+		foreach ($violations as $path => $list) {
+			foreach ($list as $violation) {
 				// a refused risky fix that is only uncertain waits for what the project can tell, not for the baseline
 				if (!$violation->refused || !$violation->risk?->isResolvable()) {
-					$baseline->add($result->path, $violation->fingerprint, $violation->decision, $violation->message);
+					$baseline->add($path, $violation->fingerprint, $violation->decision, $violation->message);
 				}
 			}
 		}

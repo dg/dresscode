@@ -107,3 +107,17 @@ test('the derived violations are counted among those the run reports', function 
 	Assert::same(1, new RunResult($files, fix: true)->countDerived(Severity::Error));
 	Assert::same(0, new RunResult($files, fix: true)->countDerived(Severity::Warning));
 });
+
+
+test('the violations no rule has a fix for are counted among those the run reports', function () {
+	$unfixable = new Violation('test/a', 'M.', 1, null, Severity::Error, fingerprint: 'a', fixable: false);
+	$files = [FileSummary::of(new FileResult(
+		'a.php',
+		"<?php\n",
+		"<?php\n\n",
+		[$unfixable, $unfixable, makeViolation('test/b')],
+		remaining: [$unfixable],
+	))];
+	Assert::same(2, new RunResult($files, fix: false)->countUnfixable());
+	Assert::same(1, new RunResult($files, fix: true)->countUnfixable());
+});
