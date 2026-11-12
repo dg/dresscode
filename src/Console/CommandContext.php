@@ -10,7 +10,7 @@ namespace DressCode\Console;
 use DressCode\{Config, ConfigurationException, Plugin};
 use DressCode\Config\{Loader, PhpVersionSource, ResolvedProject, RunnerFactory};
 use DressCode\Console\Commands\ConfigOptions;
-use DressCode\Engine\Helpers;
+use DressCode\Engine\{Helpers, WorkerPool};
 use DressCode\Interop\{FormatterConfig, FormatterSearch};
 use Nette\CommandLine\{Console, ParseResult, Prompt, UsageException};
 use Nette\Neon\Neon;
@@ -26,6 +26,10 @@ use const JSON_PRETTY_PRINT, JSON_THROW_ON_ERROR, JSON_UNESCAPED_SLASHES;
  */
 final readonly class CommandContext
 {
+	/** marks a process of DressCode another one started again, which starts none itself */
+	private const RerunVariable = 'DRESSCODE_RERUN';
+
+
 	public function __construct(
 		/** @var resource */
 		public mixed $stdout,
@@ -37,7 +41,7 @@ final readonly class CommandContext
 		public Console $err,
 		/** the directory the paths of the command line are relative to */
 		public string $workingDirectory,
-		/** the script the workers are started with */
+		/** the script the workers and a run started again are started with */
 		public string $scriptFile,
 		/** what applies when the project has no configuration file */
 		public ?Config $defaultConfig,
@@ -46,6 +50,39 @@ final readonly class CommandContext
 		/** asks a person at a terminal, which `fix --ask-risky` does */
 		public Prompt $prompt,
 	) {
+	}
+
+
+	/**
+	 * Runs DressCode again in a new process with the arguments given, which loads anew what this one loaded before the
+	 * packages changed, its input and output those of this process; null where it cannot, as this process is embedded,
+	 * so that its command line is not its own, or was started again itself.
+	 * @param  list<string>  $arguments
+	 */
+	public function rerun(array $arguments): ?int
+	{
+		if ($this->stdout !== STDOUT || getenv(self::RerunVariable) !== false) {
+			return null;
+		}
+
+		$command = [...WorkerPool::buildPhpCommand() ?? [PHP_BINARY], $this->scriptFile, ...$arguments];
+		$env = [...getenv(), self::RerunVariable => '1'];
+		$process = proc_open($command, [STDIN, STDOUT, STDERR], $pipes, $this->workingDirectory, $env);
+		return $process === false ? null : proc_close($process);
+	}
+
+
+	/**
+	 * A process started again writes after what the one that started it wrote, as a file of the output it inherits
+	 * starts at its beginning on Windows.
+	 */
+	public function seekOutputEnd(): void
+	{
+		if (getenv(self::RerunVariable) !== false) {
+			foreach ([$this->stdout, $this->stderr] as $stream) {
+				@fseek($stream, 0, SEEK_END); // @ a terminal or a pipe has no end to seek
+			}
+		}
 	}
 
 

@@ -54,6 +54,30 @@ final readonly class ConfigOptions
 
 
 	/**
+	 * The options as the command line of another process of DressCode gives them, each value glued to its option, as
+	 * one starting with a dash would read as an option of its own.
+	 * @return list<string>
+	 */
+	public function toArguments(): array
+	{
+		$arguments = [];
+		foreach ([
+			'--config' => (array) $this->config,
+			'--use' => $this->use,
+			'--set' => $this->set,
+			'--severity' => $this->severity,
+			'--root' => (array) $this->root,
+		] as $option => $values) {
+			foreach ($values as $value) {
+				$arguments[] = "$option=$value";
+			}
+		}
+
+		return $arguments;
+	}
+
+
+	/**
 	 * The normalizer of `--use`, which names a preset or a plugin, not a decision.
 	 */
 	public static function checkPreset(string $spec): string

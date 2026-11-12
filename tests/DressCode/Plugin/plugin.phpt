@@ -20,7 +20,13 @@ function runPlugin(array $args, ?string $cwd = null, ?Config $default = null): a
 {
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
-	$app = new Application($out, $err, cwd: $cwd ?? __DIR__ . '/fixtures/project', defaultConfig: $default);
+	$app = new Application(
+		$out,
+		$err,
+		cwd: $cwd ?? __DIR__ . '/fixtures/project',
+		script: __DIR__ . '/../../../bin/dresscode',
+		defaultConfig: $default,
+	);
 	$code = $app->run(['dresscode', ...$args]);
 	rewind($out);
 	rewind($err);
