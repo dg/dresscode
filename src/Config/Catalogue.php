@@ -56,7 +56,7 @@ final class Catalogue
 		'canonical' => null, 'alphabetical' => null, 'short' => null, 'long' => null,
 		'separated' => null, 'combined' => null, 'grouped' => null, 'joined' => null,
 		'PascalCase' => null, 'camelCase' => null, 'snake_case' => null, 'UPPER_CASE' => null, 'Pascal_Snake_Case' => null,
-		'constant' => null, 'property' => null, 'traitUse' => null,
+		'constant' => null, 'property' => null, 'traitUse' => null, 'reported' => 'reported where it stands',
 	];
 
 	/**
