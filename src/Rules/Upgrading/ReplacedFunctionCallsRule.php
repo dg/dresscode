@@ -8,6 +8,7 @@
 namespace DressCode\Rules\Upgrading;
 
 use DressCode\{CodeWriter, GlobalCalls, NodeRule, QualifiedNames, RuleContext, RuleInfo, Stage, Values};
+use DressCode\Config\Layer;
 use DressCode\Rules\NodeHelpers;
 use DressCode\Upgrading\{FunctionPattern, MemberMapGrammar};
 use PhpSyntax\Analyses\NameResolver;
@@ -33,8 +34,8 @@ use PhpSyntax\Nodes\Statement\ExpressionStatementNode;
 final class ReplacedFunctionCallsRule extends NodeRule
 {
 	/**
-	 * @var array<lowercase-string, list<array{FunctionPattern, CallTemplate, string}>>  the function => its keys with the
-	 * decision each is reported under, the most specific first
+	 * @var array<lowercase-string, list<array{FunctionPattern, CallTemplate, string, ?Layer}>>  the function => its keys
+	 * with the decision each is reported under and the section of the upgrading data it came with, the most specific first
 	 */
 	private array $functions = [];
 
@@ -52,6 +53,7 @@ final class ReplacedFunctionCallsRule extends NodeRule
 					$pattern,
 					CallTemplate::fromEntry($value, $pattern),
 					$values->getEntryDecision(MemberMapGrammar::ReplacedCalls, (string) $key),
+					$values->getEntryOrigin(MemberMapGrammar::ReplacedCalls, (string) $key),
 				];
 				$this->shortNames[strtolower(QualifiedNames::stripNamespace($pattern->name))] = true;
 			}
@@ -90,7 +92,7 @@ final class ReplacedFunctionCallsRule extends NodeRule
 			return;
 		}
 
-		foreach ($this->functions[$function] as [$pattern, $template, $decision]) {
+		foreach ($this->functions[$function] as [$pattern, $template, $decision, $source]) {
 			$bindings = $pattern->bind($call->arguments);
 			if ($bindings === null) {
 				continue;
@@ -99,7 +101,7 @@ final class ReplacedFunctionCallsRule extends NodeRule
 			$subject = "Function `$pattern->name()`";
 			$uncertainty = str_contains($function, '\\') ? null : GlobalCalls::findUncertainty($call, $context);
 			if ($template->removesCall()) {
-				$template->removeCall($call, $subject, $decision, $context, $uncertainty);
+				$template->removeCall($call, $subject, $decision, $source, $context, $uncertainty);
 				return;
 			}
 
@@ -109,6 +111,7 @@ final class ReplacedFunctionCallsRule extends NodeRule
 					$call->name,
 					$template->describe($subject) . "$rewrite->refusal.",
 					decision: $decision,
+					source: $source,
 					fixable: $rewrite->expression !== null,
 					risk: $rewrite->expression === null ? null : NodeHelpers::findRisk($rewrite->because, $uncertainty),
 					because: $rewrite->expression === null ? null : $rewrite->because ?? $uncertainty,
