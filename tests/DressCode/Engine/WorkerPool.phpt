@@ -54,7 +54,7 @@ test('a worker stuck in the middle of an answer fails the run once it spends lon
 	Assert::exception(
 		fn() => processWith(new WorkerPool(fakeWorker('stall'), jobs: 1, taskTimeout: 1)),
 		RuntimeException::class,
-		'A worker has spent more than 1 s on `a.php`; a rule has most likely looped.%A?%',
+		'A worker process has not answered about `a.php` within 1 s: a rule may loop on it, or the answer does not reach the main process. Run with `--jobs 1`, which uses no workers: if it finishes, the rules are fine.%A?%',
 	);
 	Assert::true(microtime(as_float: true) - $started < 10);
 });
