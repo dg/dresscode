@@ -16,94 +16,65 @@ require __DIR__ . '/../../bootstrap.php';
 
 $registry = new PluginRegistry;
 $resolver = new ConfigResolver($registry);
-$resolved = $resolver->resolve(new Config(use: ['symfony']), Config::DefaultPhpVersion);
-$rules = RuleBuilder::buildRules($resolved);
 // which rules run, not in what order
-$slugs = array_map(fn($rule) => ruleSlug($rule), $rules);
-sort($slugs);
-$expected = [
-	'delimiterSpacing',
-	'arraySyntax',
-	'trailingComma',
-	'classHeadSpacing',
-	'nameCasing',
-	'memberOrder',
-	'privateForProtected',
-	'noGroupedDeclarations',
+$names = function (string $preset) use ($resolver): array {
+	$names = array_map(
+		fn($rule) => ruleSlug($rule),
+		RuleBuilder::buildRules($resolver->resolve(new Config(use: [$preset]), Config::DefaultPhpVersion)),
+	);
+	sort($names);
+	return $names;
+};
+$symfonyAdds = [
 	'uselessNullInitialization',
-	'visibilityRequired',
-	'modifierOrder',
 	'commentSpacing',
 	'noEmptyComments',
 	'noHashComments',
-	'noBracelessBodies',
-	'elseifNotation',
-	'fallThroughComment',
-	'multilineCondition',
 	'noAlternativeSyntax',
 	'noContinueInSwitch',
-	'noEmptyStatements',
-	'switchCaseNotation',
-	'switchCaseSpacing',
 	'uselessBraces',
-	'uselessParenthesesAfterConstruct',
 	'uselessElse',
 	'uselessReturn',
-	'binaryOperatorSpacing',
-	'castCanonicalType',
-	'operandSpacing',
-	'emptyArgumentParentheses',
 	'increment',
-	'multilineBinaryOperator',
+	'memberAccessSpacing',
+	'noBacktickOperators',
 	'noDoubleNegations',
 	'notEqualsNotation',
-	'memberAccessSpacing',
-	'ternaryOperatorSpacing',
+	'uselessParenthesesAfterConstruct',
 	'yoda',
-	'declareSpacing',
-	'finalLineEndings',
-	'openingTagNotation',
-	'lineEnding',
-	'noBom',
-	'noClosingTag',
-	'noInvalidUtf8',
-	'noTrailingWhitespace',
-	'strictTypesRequired',
-	'arrowFunctionForClosure',
-	'functionNameSpacing',
 	'methodCasing',
-	'namedArgumentSpacing',
 	'noDollarBraceInterpolations',
-	'builtinCasing',
-	'noBacktickOperators',
 	'stringQuotes',
-	'importNotation',
-	'declaredNameCasing',
-	'importOrder',
 	'globalNameQualification',
-	'optimizedCallNotation',
-	'uselessLeadingBackslash',
+	'importNotation',
 	'noUnusedImports',
+	'optimizedCallNotation',
 	'uselessAlias',
 	'phpdocBlankLines',
 	'phpdocTypeNotation',
 	'nullableTypeForDefaultNull',
-	'typeDeclarationSpacing',
-	'typeNotation',
-	'attributePosition',
-	'attributeSpacing',
-	'statementBlankLines',
-	'memberBlankLines',
-	'blockBlankLines',
-	'bracesPosition',
-	'commaSpacing',
-	'constructSpacing',
-	'indentation',
-	'semicolonSpacing',
-	'noStatementsSharingLine',
 ];
+// what breaks a construct over lines, which Symfony leaves to the author, and what its rule set does not have
+$symfonyOff = [
+	'multilineArray',
+	'multilineImplements',
+	'multilineFor',
+	'multilineChain',
+	'multilineMatchArm',
+	'multilineTernary',
+	'lineLength',
+	'multilineCall',
+	'multilineSignature',
+	'heredocIndentation',
+	'nowdocForHeredoc',
+	'phpdocAboveAttributes',
+];
+$expected = [...array_diff($names('perCs'), $symfonyOff), ...$symfonyAdds];
 sort($expected);
-Assert::same($expected, $slugs);
+Assert::same($expected, $names('symfony'));
+
+$resolved = $resolver->resolve(new Config(use: ['symfony']), Config::DefaultPhpVersion);
+$rules = RuleBuilder::buildRules($resolved);
 Assert::same(['    ', null], [$resolved->indent, $resolved->lineEnding]);
 
 $style = $resolved->createStyle();
