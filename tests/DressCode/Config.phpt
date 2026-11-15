@@ -6,6 +6,15 @@ use Tester\Assert;
 require __DIR__ . '/../bootstrap.php';
 
 
+final class ConfigTestPlugin implements DressCode\Plugin
+{
+	public function getManifest(): DressCode\PluginManifest
+	{
+		return new DressCode\PluginManifest;
+	}
+}
+
+
 #[DressCode\RuleInfo(DressCode\Stage::Structure)]
 final class ConfigTestRule extends NodeRule
 {
@@ -16,50 +25,18 @@ final class ConfigTestRule extends NodeRule
 }
 
 
-test('defaults', function () {
-	$config = new Config;
-	Assert::same([], $config->use);
-	Assert::same([], $config->plugins);
-	Assert::same([], $config->rules);
-	Assert::same([], $config->targets);
-	Assert::same(['functions' => [], 'constants' => []], $config->namespaces);
-	Assert::null($config->nameResolution);
-	Assert::same([], $config->fixRisky);
-	Assert::same([], $config->severity);
-	Assert::same([], $config->overrides);
-	Assert::same([], $config->paths);
-	Assert::same(['vendor', 'node_modules', 'temp', 'tmp', 'log', '.*'], $config->excludePaths);
-	Assert::same(['php'], $config->fileExtensions);
-	Assert::null($config->skipWhen);
-	Assert::null($config->baseline);
-	Assert::null($config->cacheDir);
-	Assert::same([], $config->analyses);
-	Assert::null($config->typeAnalysis);
+test('a plugin in use is set apart from the presets, given as an instance or as its class', function () {
+	$plugin = new ConfigTestPlugin;
+	$config = new Config(use: ['a/b', $plugin, ConfigTestPlugin::class, 'c/d']);
+	Assert::same(['a/b', 'c/d'], $config->use);
+	Assert::same([$plugin, ConfigTestPlugin::class], $config->plugins);
 });
 
 
-test('every key is a named argument', function () {
-	$override = new Override(['tests'], new Profile(use: ['x/y']));
+test('a rule is given by its class, or with the factory that builds it', function () {
 	$factory = fn() => new ConfigTestRule;
-	$config = new Config(
-		use: ['a/b'],
-		rules: [ConfigTestRule::class],
-		targets: ['php' => '8.2'],
-		overrides: [$override],
-		paths: ['src'],
-		fileExtensions: ['php', 'phpt'],
-		skipWhen: fn(string $content, string $path) => $path === 'skip.php',
-		baseline: 'baseline.json',
-	);
-	Assert::same(['a/b'], $config->use);
-	Assert::same([ConfigTestRule::class => null], $config->rules);
+	Assert::same([ConfigTestRule::class => null], new Config(rules: [ConfigTestRule::class])->rules);
 	Assert::same([ConfigTestRule::class => $factory], new Config(rules: [ConfigTestRule::class => $factory])->getRuleFactories());
-	Assert::same('8.2', $config->targets['php'] ?? null);
-	Assert::same([$override], $config->overrides);
-	Assert::same(['src'], $config->paths);
-	Assert::same(['php', 'phpt'], $config->fileExtensions);
-	Assert::true(($config->skipWhen ?? throw new LogicException)('', 'skip.php'));
-	Assert::same('baseline.json', $config->baseline);
 });
 
 

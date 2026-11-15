@@ -157,7 +157,7 @@ test('the sample is every k-th file of every directory, the same for the same tr
 });
 
 
-test('the probes run in-process with --jobs 1 and measure the same', function () use ($tabbed) {
+test('the probes measure the same in workers as with --jobs 1 in the process', function () use ($tabbed) {
 	$root = createProject('jobs', ['src/A.php' => $tabbed, 'src/B.php' => str_replace('A', 'B', $tabbed), 'composer.json' => '{}']);
 	$neon = fn(?int $jobs) => json_decode(
 		runInit($root, ['--use', 'perCs', '--dry-run', '--format', 'json'], jobs: $jobs)[1],

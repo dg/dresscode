@@ -322,13 +322,11 @@ test('the types of the code come from phpstan or from nowhere', function () {
 });
 
 
-test('a rule of the project is named by its class, and what the namespaces declare is a map', function () {
+test('what the namespaces declare is a map', function () {
 	$config = Loader::loadFile(FileMock::create(<<<'XX'
-		rules: [LoaderRule]
 		namespaces:
 			functions: [App\helper]
 		XX, 'neon'));
-	Assert::same([LoaderRule::class => null], $config->rules);
 	Assert::same(['functions' => ['App\helper'], 'constants' => []], $config->namespaces);
 });
 

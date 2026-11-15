@@ -116,7 +116,10 @@ test('a file turns on only a requirement of the rules of its package, with a wor
 		['`since 3.0`: `upgrading.php.backticks`: An upgrading file turns on only a requirement of the rules of its package.'],
 		$problems("\tupgrading.php.backticks: forbidden"),
 	);
-	Assert::match('%a%`acme.retired`%a%', $problems("\tacme.retired: forbidden")[0]);
+	Assert::match(
+		'`since 3.0`: Key `acme.retired` does not take `forbidden`; write `required`.',
+		$problems("\tacme.retired: forbidden")[0],
+	);
 });
 
 
@@ -373,6 +376,11 @@ test('a sample reads its classes from its own code, not from those of a sample r
 
 		namespace App {
 			class Job implements \Acme\Lib\Control {}
+
+			function run(Job $job): mixed
+			{
+				return $job->limit;
+			}
 		}
 		XX;
 	$own = <<<'XX'
@@ -391,12 +399,16 @@ test('a sample reads its classes from its own code, not from those of a sample r
 			}
 		}
 		XX;
-	$run = fn(string $code, string $name) => UpgradingTester::runSample($code, $root, name: $name)->violations;
+	$run = fn(string $code, string $name) => array_map(
+		fn($violation) => $violation->message,
+		UpgradingTester::runSample($code, $root, name: $name)->violations,
+	);
+	$reported = ['Property `Acme\Lib\Control::$limit` is removed: there is no replacement, since acme/lib 3.0.'];
 
 	// the class of the sample implements nothing, whichever sample ran before
-	$run($implementing, 'a');
+	Assert::same($reported, $run($implementing, 'a'));
 	Assert::same([], $run($own, 'b'));
-	$run($implementing, 'c');
+	Assert::same($reported, $run($implementing, 'c'));
 	Assert::same([], $run($own, 'b'));
 	Assert::same([], glob("$root/temp/*"));
 });

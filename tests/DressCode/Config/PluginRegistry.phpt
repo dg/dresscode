@@ -95,7 +95,6 @@ test('a rule is known by its class, once however often it is registered', functi
 	$registry->registerRule(RuleOne::class);
 	Assert::same($count + 1, count($registry->rules));
 	Assert::same(RuleOne::class, $registry->rules[$count]);
-	Assert::same('dresscode/nette', $registry->findPreset('nette'));
 });
 
 
@@ -211,6 +210,7 @@ test('presets', function () {
 	$registry->registerPreset('test/preset', $file);
 	Assert::same('dresscode/perCs', $registry->resolvePreset('dresscode/perCs'));
 	Assert::same('dresscode/perCs', $registry->resolvePreset('perCs'));
+	Assert::same('dresscode/nette', $registry->findPreset('nette'));
 	Assert::same('test/preset', $registry->resolvePreset('test/preset'));
 	Assert::same([
 		'dresscode/perCs', 'dresscode/psr12', 'dresscode/nette', 'dresscode/symfony', 'dresscode/laravel', 'dresscode/cleanup',

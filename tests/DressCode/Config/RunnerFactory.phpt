@@ -842,7 +842,7 @@ test(
 		Assert::exception(
 			fn() => (new RunnerFactory)->resolve(new Config(decisions: ['plugin' => ['variables' => 'forbidden']]), "$fixtures/project"),
 			ConfigurationException::class,
-			'%a%`plugin%a%',
+			'Key `plugin` is unknown.',
 		);
 
 		$root = createTempDir('runner-factory-plugins');

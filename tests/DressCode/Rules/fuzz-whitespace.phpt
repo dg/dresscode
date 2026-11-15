@@ -492,6 +492,7 @@ if ($only = getenv('DRESSCODE_FUZZ_ONLY')) {
 
 // every file is reported, so that one broken rule does not hide the rest
 $failures = [];
+$damagedFiles = 0;
 foreach ($files as $file) {
 	$where = substr($file, strrpos($file, '/corpus/') + 8);
 	$fixed = $processor->process($file, (string) file_get_contents($file));
@@ -513,6 +514,7 @@ foreach ($files as $file) {
 		candidateSpaces($tree),
 		$randomizer,
 	);
+	$damagedFiles += $damaged !== $canonical ? 1 : 0;
 	$what = "$where: the damage to lines " . implode(', ', $lines) . ' of its fixed form';
 	if (meaning($canonical) !== meaning($damaged)) {
 		$failures[] = "$what changed the code.\nThe damage:\n" . excerpt(Diff::unified($canonical, $damaged, $where));
@@ -532,3 +534,4 @@ foreach ($files as $file) {
 }
 
 Assert::same([], $failures, "seed $seed");
+Assert::true($damagedFiles > count($files) / 2, "seed $seed: most files were left undamaged");

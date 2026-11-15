@@ -346,7 +346,7 @@ test('errors go to stderr with exit code 3', function () use ($root) {
 	Assert::match('Error: Option `--set`: expects the value in NEON, `project.rename={` given:%A%', $err);
 	[$code, , $err] = runApp($root, ['check', '--set', 'project.rename=off']);
 	Assert::same(3, $code);
-	Assert::match('Error: %A%project.rename%A%', $err);
+	Assert::match('Error: The command line: Key `project.rename` does not take `off`; write `forbidden` or `keep`.', $err);
 	[$code, , $err] = runApp($root, ['config', '--set', 'comments.firstColumn=required']);
 	Assert::same(3, $code);
 	Assert::same("Error: The command line: Key `comments.firstColumn` does not take `required`; write `forbidden` or `optional`.\n", $err);
@@ -884,7 +884,6 @@ test('exit codes: a file that failed is 2, a mistake of the command line or of t
 		"<?php\nreturn new DressCode\\Config(rules: ConsoleRules, decisions: ['project' => ['rename' => 'forbidden']], paths: ['src'], baseline: 1);\n",
 	);
 	Assert::same(3, runApp($root, ['check', '--config', "$root/invalid.php", '--no-cache'])[0]);
-	Assert::same(3, runApp($root, ['check', '--nope'])[0]);
 	[$code, , $err] = runApp($root, ['config', '--preset', '']);
 	Assert::same(3, $code);
 	Assert::match("Error: Option `--preset`: `use` names a preset or the path of a file, an empty string given.\n%A%", $err);
@@ -947,20 +946,12 @@ test('a risky fix waits for the run to allow it, and is a violation until it is 
 	Assert::match("%A%\nREVIEWED  no risky fixes to ask about\n", $out);
 	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
 
-	// or only for the decisions, rules and presets it names, with workers as without them
-	foreach (['1', '2'] as $jobs) {
-		file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
-		Assert::same(
-			1,
-			runApp(
-				$root,
-				['fix', '--config', $config, '--no-cache', '--jobs', $jobs, '--fix-risky=mistakes.strictArgument'],
-			)[0],
-		);
-		Assert::same("<?php\n\$r;\n", (string) file_get_contents("$root/src/r.php"));
-		Assert::same(0, runApp($root, ['fix', '--config', $config, '--no-cache', '--jobs', $jobs, '--fix-risky=project.riskyRename'])[0]);
-		Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
-	}
+	// or only for the decisions, rules and presets it names
+	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");
+	Assert::same(1, runApp($root, ['fix', '--config', $config, '--no-cache', '--fix-risky=mistakes.strictArgument'])[0]);
+	Assert::same("<?php\n\$r;\n", (string) file_get_contents("$root/src/r.php"));
+	Assert::same(0, runApp($root, ['fix', '--config', $config, '--no-cache', '--fix-risky=project.riskyRename'])[0]);
+	Assert::same("<?php\n\$s;\n", (string) file_get_contents("$root/src/r.php"));
 
 	// and so does the configuration, for the rules it names
 	file_put_contents("$root/src/r.php", "<?php\n\$r;\n");

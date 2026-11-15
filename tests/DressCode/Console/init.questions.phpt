@@ -211,8 +211,8 @@ test('a close call of standards is asked first, and the answer measures against 
 	$root = createProject('close', stragglers());
 	[$code, $out] = runInit($root, [], "2\n\n");
 	Assert::same(0, $code);
-	Assert::match('%A%Your code is as near to `%a%` as to `%a%`; which standard should it follow?%A%', $out);
-	Assert::notSame('perCs', Loader::loadFile("$root/dresscode.neon")->use[0] ?? null);
+	Assert::match('%A%Your code is as near to `perCs` as to `nette` and `symfony`; which standard should it follow?%A%', $out);
+	Assert::same('nette', Loader::loadFile("$root/dresscode.neon")->use[0] ?? null);
 
 	// without a terminal the nearer is taken, and the line says how to measure against the other
 	$root = createProject('close-pipe', stragglers());

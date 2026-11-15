@@ -129,6 +129,7 @@ $worlds = [
 // every file of every world is reported, so that one broken rule does not hide the rest
 $registry = new PluginRegistry;
 $failures = [];
+$rewritten = 0;
 foreach ($worlds as $world => $symbols) {
 	$processor = new PhpFileProcessor(
 		$rules,
@@ -145,6 +146,7 @@ foreach ($worlds as $world => $symbols) {
 			continue;
 		}
 
+		$rewritten += $result->output !== $code ? 1 : 0;
 		$before = meanings($code, $symbols);
 		$after = meanings($result->output, $symbols);
 		if ($before !== $after) {
@@ -155,3 +157,4 @@ foreach ($worlds as $world => $symbols) {
 }
 
 Assert::same([], $failures);
+Assert::true($rewritten > 0, 'the rules rewrote no file, so no name was put to the test');
