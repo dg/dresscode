@@ -76,7 +76,7 @@ final class WorkerPool
 		private readonly int $jobs,
 		/** working directory of the workers */
 		private readonly ?string $cwd = null,
-		/** seconds a worker may spend on one file before the run fails, since a rule has most likely looped */
+		/** seconds a worker may spend on one file before the run fails */
 		private readonly int $taskTimeout = 300,
 		/** seconds a worker may take to connect, the first one filling the cache the others share among them */
 		private readonly int $connectTimeout = 300,
@@ -507,7 +507,7 @@ final class WorkerPool
 
 		foreach ($this->inProgress as [$path, $since]) {
 			if (microtime(as_float: true) - $since > $this->taskTimeout) {
-				throw new \RuntimeException("A worker has spent more than $this->taskTimeout s on `$path`; a rule has most likely looped." . $this->collectErrors());
+				throw new \RuntimeException("A worker process has not answered about `$path` within $this->taskTimeout s: a rule may loop on it, or the answer does not reach the main process. Run with `--jobs 1`, which uses no workers: if it finishes, the rules are fine." . $this->collectErrors());
 			}
 		}
 
