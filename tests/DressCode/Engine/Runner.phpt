@@ -427,7 +427,12 @@ test('a reporter sees the texts of a file, what the run keeps of it does not', f
 test('processCode processes a text for the given path and writes nothing', function () use ($root) {
 	$runner = engine($root);
 	Assert::true($runner->processCode("$root/src/x.php", "<?php\n\$a;\n")->changed);
+	Assert::false(is_file("$root/src/x.php"));
 	Assert::same('src/x.php', $runner->processCode("$root/src/x.php", '<?php')->path);
+
+	file_put_contents("$root/src/a.php", "<?php\n\$a;\n");
+	Assert::true($runner->processCode("$root/src/a.php", "<?php\n\$a;\n")->changed);
+	Assert::same("<?php\n\$a;\n", file_get_contents("$root/src/a.php"));
 });
 
 

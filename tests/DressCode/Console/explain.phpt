@@ -35,7 +35,9 @@ test('every decision can be explained', function () use ($registry, $resolved) {
 	$console->setColorDepth(ColorDepth::None);
 	$printer = new ExplainPrinter($registry);
 	foreach ($resolved->decisions as $path => $decision) {
-		Assert::contains("`$path`", Markup::formatMarkdown($console, $printer->printDecision($decision)), $path);
+		$markdown = $printer->printDecision($decision);
+		Assert::match("## `$path`\n\n%A%\n\nTakes: %A%\n\nHere %A%", $markdown, $path);
+		Assert::notSame('', Markup::formatMarkdown($console, $markdown), $path);
 	}
 });
 
@@ -147,6 +149,8 @@ test('explain without a decision draws the document that the markdown format wri
 	[$code, $text] = explainApp($root, []);
 	Assert::same(0, $code);
 	Assert::contains('Decisions of this project', $text);
+	Assert::notContains('# Decisions of this project', $text);
+	Assert::notContains('## controlFlow', $text);
 	Assert::contains('Composed of:', $text);
 	Assert::contains('imports.unused', $text);
 });

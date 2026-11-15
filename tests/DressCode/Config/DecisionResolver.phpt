@@ -366,7 +366,7 @@ test(
 		Assert::exception(
 			fn() => $resolver->checkLayer(['qualification' => ['globalClass' => null]], $file),
 			ConfigurationException::class,
-			'%a%`qualification.globalClass`%a%',
+			'Key `qualification.globalClass` does not take `null`; write `bare`, `imported`, `backslashed` or `keep`.',
 		);
 
 		$commandLine = new Layer(LayerKind::CommandLine);
@@ -383,12 +383,12 @@ test(
 		Assert::exception(
 			fn() => $resolver->checkLayer(['qualification' => ['renamed' => null]], $commandLine),
 			ConfigurationException::class,
-			'%a%`qualification.renamed`%a%',
+			'Key `qualification.renamed` does not take `null`; write a map of names or `keep`.',
 		);
 		Assert::exception(
 			fn() => $resolver->checkLayer(['mistakes' => ['debugOutputFunctions' => null]], $commandLine),
 			ConfigurationException::class,
-			'%a%`mistakes.debugOutputFunctions`%a%',
+			'Key `mistakes.debugOutputFunctions` does not take `null`; write a list of names.',
 		);
 	},
 );

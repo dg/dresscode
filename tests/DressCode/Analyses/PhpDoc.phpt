@@ -25,13 +25,14 @@ function docComments(FileNode $file): array
 }
 
 
-test('parse and read', function () {
-	$file = (new Parser)->parse("<?php\n/**\n * Does things.\n * @param  int  \$a  the count\n * @return list<string>\n */\nfunction f(\$a) {}");
+test('every parse gives a tree of its own, and only of a doc comment', function () {
+	$file = (new Parser)->parse("<?php\n/**\n * Does things.\n * @return list<string>\n */\nfunction f(\$a) {}");
 	$phpDoc = new PhpDoc;
-	$node = $phpDoc->parse(docComments($file)[0]);
-	Assert::same('Does things.', (string) $node->children[0]);
-	Assert::count(1, $node->getParamTagValues());
+	$trivia = docComments($file)[0];
+	$node = $phpDoc->parse($trivia);
 	Assert::same('list<string>', (string) $node->getReturnTagValues()[0]->type);
+	$node->children = [];
+	Assert::same('Does things.', (string) $phpDoc->parse($trivia)->children[0]);
 	Assert::exception(fn() => $phpDoc->parse(new Trivia(Trivia::Comment, '// x')), InvalidArgumentException::class, 'Not a doc comment.');
 });
 

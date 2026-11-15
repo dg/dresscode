@@ -89,6 +89,7 @@ function collectAsked(array $methods, string $method, array $seen = []): array
 test('a rule names every analysis it or a static helper it calls asks for', function () {
 	$methods = collectMethods(__DIR__ . '/../../../src/Rules');
 	$missing = [];
+	$asking = 0;
 	foreach (require __DIR__ . '/rules.provider.php' as [, $rule]) {
 		$prefix = strtolower("$rule::");
 		$asked = [];
@@ -98,10 +99,12 @@ test('a rule names every analysis it or a static helper it calls asks for', func
 			}
 		}
 
+		$asking += $asked !== [] ? 1 : 0;
 		foreach (array_diff(array_unique($asked), RuleInfo::fromRule($rule)->analyses) as $analysis) {
 			$missing[] = "$rule asks for $analysis";
 		}
 	}
 
 	Assert::same([], $missing);
+	Assert::true($asking > 50, 'the rules asking for an analysis were not found');
 });

@@ -49,7 +49,7 @@ test('a check reports the violations of the code, a fix leaves what the fixed te
 	Assert::same(4, $fix->countViolations());
 	Assert::same(4, $fix->countReported());
 	Assert::same(1, $fix->countReported(Severity::Error));
-	Assert::same($fix->countRemaining(), $fix->countReported());
+	Assert::same(4, $fix->countRemaining());
 });
 
 

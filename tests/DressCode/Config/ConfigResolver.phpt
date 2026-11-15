@@ -463,7 +463,9 @@ test('--only keeps what it names of what the configuration comes to, and turns n
 		fn(ResolvedRule $rule) => $rule->class,
 		createResolver()->resolve(new Config(use: ['nette']), '8.3', only: ['dresscode/types'])->getActiveRules(),
 	);
-	Assert::true($section !== [] && $section !== $preset);
+	Assert::same([DressCode\Rules\Types\TypeNotationRule::class], $section);
+	Assert::contains(DressCode\Rules\Types\TypeNotationRule::class, $preset);
+	Assert::contains(DressCode\Rules\PhpDoc\PhpdocTypeNotationRule::class, $preset);
 	Assert::exception(
 		fn() => createResolver()->resolve(new Config(use: ['nette']), '8.3', only: ['nothing.*']),
 		ConfigurationException::class,
@@ -790,7 +792,8 @@ test('what the namespaces declare adds up over the layers, and only the configur
 	$certain = $resolver->resolve(new Config(nameResolution: 'certain'), Config::DefaultPhpVersion);
 	Assert::true($certain->toNamespacedSymbols()->complete);
 	Assert::true($certain->toNamespacedSymbols()->hasConstant('Fw\VERSION'));
-	Assert::notSame($uncertain->toArray(), $certain->toArray());
+	Assert::same('uncertain', $uncertain->toArray()['namespaces'][2]);
+	Assert::same('certain', $certain->toArray()['namespaces'][2]);
 
 	// a certain resolution turns on the guard of its lists, which nothing turns off, the fixes resting on the lists
 	$guard = DressCode\Rules\Namespaces\NoUnlistedNamespacedDeclarationsRule::class;
@@ -1027,7 +1030,7 @@ test('errors', function () {
 	Assert::exception(
 		fn() => resolve(new Config(decisions: projectDecisions(['none']))),
 		ConfigurationException::class,
-		'%a%`project.none`%a%',
+		'Key `project.none` is unknown.',
 	);
 	Assert::exception(
 		fn() => resolve(new Config(use: ['test/broken'])),

@@ -142,7 +142,7 @@ test('every rule read is counted once under the worst said of it', function () {
 
 	// a rule set names rules and is none, a set for a version of PHP stands for its rules
 	Assert::same(1, (new Translator)->translate(['@PSR12' => true, 'cast_spaces' => true])->ruleCount);
-	Assert::true((new Translator)->translate(['@PHP84Migration' => true])->ruleCount > 1);
+	Assert::same(14, (new Translator)->translate(['@PHP84Migration' => true])->ruleCount);
 });
 
 
@@ -1211,7 +1211,6 @@ test('the sniffs of PSR12 listed one by one translate, all but four that no rule
 		'Squiz.WhiteSpace.ControlStructureSpacing', 'Squiz.WhiteSpace.ScopeClosingBrace', 'Squiz.WhiteSpace.ScopeKeywordSpacing',
 		'Squiz.WhiteSpace.SuperfluousWhitespace',
 	];
-	Assert::count(60, $sniffs);
 	$translation = (new Translator)->translate(array_fill_keys($sniffs, true));
 	$uncovered = [
 		'Generic.PHP.DisallowAlternativePHPTags',

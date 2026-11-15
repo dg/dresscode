@@ -3,7 +3,7 @@
 use DressCode\Analyses\IndentationPlan;
 use DressCode\Config\{Catalogue, CorePlugin};
 use DressCode\{ConfigurationException, Decision, DecisionKind, Domain, ImportStyle, NodeRule, RuleInfo, Stage};
-use DressCode\Domains\{Count, Names, Shapes};
+use DressCode\Domains\{Count, Map, Names, Shapes, Words};
 use Tester\Assert;
 
 require __DIR__ . '/../../bootstrap.php';
@@ -399,6 +399,24 @@ test('a rule has some decision, a decision one declaration, and no path is both 
 		'Decision `spacing.call` is also a structure holding `spacing.call.inner` (rules `CallRule` and `StructureRule`).',
 	);
 	Assert::exception(fn() => new Catalogue([stdClass::class]), ConfigurationException::class, 'Class `stdClass` is not a rule.'); // @phpstan-ignore argument.type (the check is the point)
+});
+
+
+test('a word several decisions share comes from the lexicon, in its meaning', function () {
+	$decision = fn(string $path, Domain $domain) => new Decision($path, $domain, 'Something is written');
+	Assert::same(
+		[
+			'spacing.a wide: shared by several decisions and no word of the lexicon',
+			'spacing.b wide: shared by several decisions and no word of the lexicon',
+			'spacing.c required: its gloss does not begin with `always there`',
+		],
+		Catalogue::findLexiconProblems([
+			$decision('spacing.a', new Words(['wide' => 'with room', 'own' => 'its own word'])),
+			$decision('spacing.b', new Map(new Words(['wide' => 'with room']))),
+			$decision('spacing.c', new Words(['required' => 'mandatory'])),
+			$decision('spacing.d', new Words(['required' => 'always there, once'])),
+		]),
+	);
 });
 
 

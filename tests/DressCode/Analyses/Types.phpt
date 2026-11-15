@@ -640,7 +640,8 @@ test('a class the pass moved down has its types, while the disk still has it hig
 
 	$file = (new Parser)->parse(sprintf($code, "use Acme\\Shop\\Order;\n"));
 	$types = new Analyses\Types($file, $path, $phpstan);
-	Assert::notNull($types->findMemberAccess($file->find(MethodCallNode::class)[0]));
+	$access = $types->findMemberAccess($file->find(MethodCallNode::class)[0]);
+	Assert::same([['App\Sheet'], 'log', true], [$access?->classes, $access?->name, $access?->declared]);
 	Assert::null($types->failure);
 });
 
@@ -654,7 +655,8 @@ test('an anonymous class has its types, while the disk still has a shorter text'
 
 	$file = (new Parser)->parse(sprintf($code, str_repeat('x', 60)));
 	$types = new Analyses\Types($file, $path, $phpstan);
-	Assert::notNull($types->findMemberAccess($file->find(MethodCallNode::class)[0]));
+	$access = $types->findMemberAccess($file->find(MethodCallNode::class)[0]);
+	Assert::same(['log', true], [$access?->name, $access?->declared]);
 	Assert::null($types->failure);
 });
 

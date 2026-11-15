@@ -354,14 +354,24 @@ test('lines: the path relative to the working directory or absolute, a message o
 
 
 test('an empty scope still gets the skeleton of a machine-readable format', function () {
+	$reports = [];
 	foreach ([JsonReporter::class, CheckstyleReporter::class, GithubReporter::class] as $class) {
 		$stream = memory();
 		$reporter = new $class($stream);
 		$reporter->start(new RunInfo('', false, 0));
 		$reporter->finish(new RunResult([], fix: false));
 		rewind($stream);
-		Assert::notSame('', (string) stream_get_contents($stream), $class);
+		$reports[$class] = (string) stream_get_contents($stream);
 	}
+
+	$json = json_decode($reports[JsonReporter::class], associative: true, flags: JSON_THROW_ON_ERROR);
+	Assert::same([], $json['files']);
+	Assert::same(0, $json['summary']['files']);
+	Assert::same(
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<checkstyle version=\"1.0\">\n</checkstyle>\n",
+		$reports[CheckstyleReporter::class],
+	);
+	Assert::same("no violations in no files\n", $reports[GithubReporter::class]);
 });
 
 

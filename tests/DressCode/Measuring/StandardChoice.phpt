@@ -62,5 +62,5 @@ test('a standard a rule failed under is chosen only where every one failed, its 
 			), array_combine(array_keys($probes), array_keys($probes)));
 		}
 	};
-	Assert::notSame(['perCs'], StandardChoice::measure(ProjectFacts::detect($root), null, $runner, [])->presets);
+	Assert::same(['psr12'], StandardChoice::measure(ProjectFacts::detect($root), null, $runner, [])->presets);
 });

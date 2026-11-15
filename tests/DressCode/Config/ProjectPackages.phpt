@@ -225,14 +225,6 @@ test('the extensions of PHPStan a project has, with the configuration files its 
 });
 
 
-test('a project without packages has none', function () {
-	$project = new ProjectPackages;
-	Assert::null($project->rootPath);
-	Assert::false($project->has('acme/lib'));
-	Assert::null($project->findVersion('acme/lib'));
-});
-
-
 test('a requirement is met where every version the code is written for satisfies it', function () {
 	$root = createTempDir('project-packages-requirement');
 	FileSystem::write("$root/composer.json", json_encode([
