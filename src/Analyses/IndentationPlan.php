@@ -211,19 +211,7 @@ final class IndentationPlan
 	 */
 	public static function getMinimumLevel(Token $first): int
 	{
-		return !$first->startsLine() || Indentation::opensStatement($first) || self::opensMatchArm($first) ? 1 : 0;
-	}
-
-
-	private static function opensMatchArm(Token $token): bool
-	{
-		for ($node = $token->parent; $node !== null && $node->getFirstToken() === $token; $node = $node->parent) {
-			if ($node instanceof Nodes\MatchArmNode) {
-				return true;
-			}
-		}
-
-		return false;
+		return !$first->startsLine() || Indentation::opensStatement($first) || Indentation::opensMatchArm($first) ? 1 : 0;
 	}
 
 
