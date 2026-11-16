@@ -28,16 +28,17 @@ final class DataPackageCatalogue
 
 
 	/**
+	 * @param  bool  $offline  what is remembered, however old, and Packagist never asked
 	 * @return array<string, list<string>>  package => the libraries it is about, a whole vendor written `vendor/`;
 	 *   empty where Packagist cannot be reached and nothing is remembered
 	 */
-	public static function load(string $cacheDir): array
+	public static function load(string $cacheDir, bool $offline = false): array
 	{
 		$file = "$cacheDir/data-packages.json";
 		$cached = is_file($file) ? json_decode((string) file_get_contents($file), associative: true) : null;
 		$cached = is_array($cached) ? $cached : null;
-		if ($cached !== null && filemtime($file) > time() - self::MaxAge) {
-			return $cached;
+		if ($offline || ($cached !== null && filemtime($file) > time() - self::MaxAge)) {
+			return $cached ?? [];
 		}
 
 		$fetched = self::fetch();

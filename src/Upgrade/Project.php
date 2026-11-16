@@ -9,14 +9,15 @@ namespace DressCode\Upgrade;
 
 use DressCode\{Config, ConfigurationException};
 use DressCode\Config\{PackageDiscovery, ProjectPackages, RunnerFactory};
+use DressCode\Engine\Helpers;
 use DressCode\Measuring\{NamespaceDeclarations, Scope};
 use DressCode\Reporters\CollectingReporter;
 use function count;
 
 
 /**
- * The project an upgrade runs over: its configuration, or the scope the command gives it where it has no file of its
- * own, and what the command line lays over it.
+ * The project an upgrade measures or runs: its configuration, or the scope the command gives it where it has no file of
+ * its own, and what the command line lays over it.
  * @internal
  */
 final readonly class Project
@@ -34,7 +35,7 @@ final readonly class Project
 
 	/**
 	 * The project of an upgrade over its configuration, or over the scope `init` would write where it has no file of its
-	 * own.
+	 * own, so that every command of an upgrade sees the same files.
 	 * @throws ConfigurationException  for a directory that is no project at all
 	 */
 	public static function fromConfig(Config $config, string $root, ?string $configFile, ?Config $commandLine = null): self
@@ -52,46 +53,66 @@ final readonly class Project
 	}
 
 
-	/** The packages of upgrading data that reach the project. */
-	public function discoverPackages(): PackageDiscovery
+	/**
+	 * The packages of upgrading data that reach the project, with the versions of the targets where given.
+	 * @param  array<string, string>  $targets  package => version
+	 */
+	public function discoverPackages(array $targets = []): PackageDiscovery
 	{
-		return PackageDiscovery::discover(new RunnerFactory()->readProjectPackages($this->config, $this->root));
+		return PackageDiscovery::discover(
+			new RunnerFactory()->readProjectPackages($this->config, $this->root, commandLine: new Config(targets: $targets)),
+		);
 	}
 
 
 	/**
 	 * The layer an upgrade lays over the configuration: the command line, the plugins of the packages of upgrading data,
-	 * the types, and where they were measured in every file the names resolved for certain with what the namespaces
-	 * declare.
+	 * the targets, the types, and where they were measured in every file the names resolved for certain with what the
+	 * namespaces declare.
 	 * @param  list<string>  $plugins
+	 * @param  array<string, string>  $targets  package => version
+	 * @param  array<string, mixed>  $decisions  path => value, over those of the command line
 	 */
-	public function createLayer(array $plugins, ?NamespaceDeclarations $declarations): Config
+	public function createLayer(
+		array $plugins,
+		bool $types,
+		array $targets = [],
+		?NamespaceDeclarations $declarations = null,
+		array $decisions = [],
+	): Config
 	{
 		$commandLine = $this->commandLine;
 		$certain = $declarations !== null;
+		$tree = $commandLine->decisions ?? [];
+		foreach ($decisions as $path => $value) {
+			$tree = Helpers::placeValue($tree, $path, $value);
+		}
+
 		return new Config(
 			use: [...$commandLine->plugins ?? [], ...$commandLine->use ?? [], ...$plugins],
+			targets: $targets,
 			namespaces: $certain ? ['functions' => $declarations->functions, 'constants' => $declarations->constants] : [],
 			nameResolution: $certain ? 'certain' : null,
 			fixRisky: $commandLine->fixRisky ?? [],
 			severity: $commandLine->severity ?? [],
-			typeAnalysis: 'phpstan',
-			decisions: $commandLine->decisions ?? [],
+			typeAnalysis: $types ? 'phpstan' : null,
+			decisions: $tree,
 		);
 	}
 
 
 	/**
 	 * How the names are resolved where the configuration says nothing of them: for certain with what the namespaces of
-	 * the scope declare, unless a file cannot be read or does not parse.
+	 * the scope declare, or of the files of it given, unless a file cannot be read or does not parse.
+	 * @param  ?list<string>  $files  relative to the root
 	 */
-	public function resolveNames(): NameResolution
+	public function resolveNames(?array $files = null): NameResolution
 	{
 		if ($this->config->nameResolution !== null) {
 			return new NameResolution;
 		}
 
-		$declarations = NamespaceDeclarations::collect($this->root, $this->findFiles());
+		$declarations = NamespaceDeclarations::collect($this->root, $files ?? $this->findFiles());
 		return $declarations->unparsed === []
 			? new NameResolution($declarations)
 			: new NameResolution(warning: 'The names are not resolved for certain: ' . count($declarations->unparsed) . ' of the files cannot be read or do not parse.');
@@ -99,15 +120,28 @@ final readonly class Project
 
 
 	/**
-	 * The files of the scope of the configuration, relative to the root.
+	 * The files of the scope of the configuration, or of the paths within it, relative to the root.
+	 * @param  list<string>  $paths  all the configured ones where empty
 	 * @return list<string>
 	 * @throws ConfigurationException
 	 */
-	private function findFiles(): array
+	private function findFiles(array $paths = []): array
 	{
 		$factory = new RunnerFactory;
 		return $factory->createFileFinder($factory->resolve($this->config, $this->root, $this->commandLine))
-			->findFiles($this->config->paths, configured: $this->config->paths);
+			->findFiles($paths ?: $this->config->paths, configured: $this->config->paths);
+	}
+
+
+	/**
+	 * The files the estimate checks, within the paths given or all the configured ones, those a generator wrote left out,
+	 * which it counts apart.
+	 * @param  list<string>  $paths  relative to the root
+	 * @throws ConfigurationException
+	 */
+	public function findUpgradeFiles(array $paths = []): UpgradeFiles
+	{
+		return UpgradeFiles::fromScope($this->root, $this->findFiles($paths));
 	}
 
 
@@ -154,5 +188,11 @@ final readonly class Project
 		}
 
 		return $satisfied;
+	}
+
+
+	public function getCacheDir(): string
+	{
+		return RunnerFactory::resolveCacheDir($this->config, $this->root);
 	}
 }

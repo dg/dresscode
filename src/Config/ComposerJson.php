@@ -59,7 +59,7 @@ final class ComposerJson
 		$constraint = is_string($constraint) && Versions::isConstraint($constraint) ? $constraint : null;
 		$platform = $data['config']['platform']['php'] ?? null;
 		if (is_string($platform) && Versions::isVersion($platform)) {
-			return $constraint === null ? ">=$platform" : Versions::raiseLowerBound($constraint, $platform);
+			return $constraint === null ? ">=$platform" : Versions::restrictFrom($constraint, $platform);
 		}
 
 		return $constraint !== null && Versions::findLowestVersion($constraint) !== null ? $constraint : null;
