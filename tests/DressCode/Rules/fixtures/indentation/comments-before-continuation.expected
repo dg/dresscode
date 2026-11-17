@@ -18,3 +18,26 @@ if ($a) {
 while ($a) {
 	foo();
 }
+
+try {
+	foo();
+	// ends the try
+} catch (Exception $e) {
+	bar();
+
+	// ends the catch
+
+} finally {
+	baz();
+}
+
+if ($a) {
+	foo();
+	// ends the if
+} elseif ($b) {
+	bar();
+	// ends the elseif
+	// on two lines
+} else {
+	baz();
+}
