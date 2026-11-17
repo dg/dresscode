@@ -30,13 +30,13 @@ final readonly class UpgradingData
 		public array $maps,
 		/** @var array<string, array<string, string>>  forbidden map => the key of an entry => the version that retired it */
 		public array $retirements = [],
-		/** @var list<string>  the versions of the sections holding what is not rewritten yet, ascending */
+		/** @var list<string>  the versions that bring the sections holding what is not rewritten yet, ascending */
 		public array $unreached = [],
 		/** @var array<string, string>  the requirements of the rules of the plugin of the package it turns on => their values */
 		public array $requirements = [],
 		/**
-		 * @var array<string, array<string, array{string, ?string}>>  map => the key of an entry => the version of the section
-		 * it came with and the version `from` says its fix is right from
+		 * @var array<string, array<string, array{string, ?string}>>  map => the key of an entry => the version of its
+		 * section the line of the lowest version has it from, and the version `from` says its fix is right from
 		 */
 		public array $origins = [],
 		/** the newest version a section of the file is of, null for what DressCode knows of a package itself */

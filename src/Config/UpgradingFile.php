@@ -25,7 +25,7 @@ final readonly class UpgradingFile
 	/** the maps of what the code must not have */
 	private const ForbiddenMaps = ['forbiddenClasses', 'forbiddenFunctions', 'forbiddenConstants', 'forbiddenMembers'];
 
-	private const SectionPattern = '~^since (\d+(?:\.\d+)*)$~D';
+	private const SectionPattern = '~^since (.+)$~D';
 	private const PackagePattern = '~^(?:php|[a-z0-9_.-]+/[a-z0-9_.-]+)$~D';
 	private const VersionPattern = '~^\d+(?:\.\d+)*$~D';
 
@@ -35,9 +35,11 @@ final readonly class UpgradingFile
 		public string $package,
 		/** @var array{functions: list<string>, constants: list<string>}  what the package declares in its namespaces, fully qualified */
 		public array $namespaces,
-		/** @var array<string, array<string, array<string, mixed>>>  version => map => its entries, the oldest first */
+		/** @var array<string, Since>  the versions as a section writes them => what they say, the oldest first */
+		private array $since,
+		/** @var array<string, array<string, array<string, mixed>>>  versions => map => its entries */
 		private array $sections,
-		/** @var array<string, array<string, string>>  version => a requirement of the plugin of the package => its value */
+		/** @var array<string, array<string, string>>  versions => a requirement of the plugin of the package => its value */
 		private array $requirements = [],
 	) {
 	}
@@ -64,7 +66,7 @@ final readonly class UpgradingFile
 			throw new ConfigurationException("Upgrading file $label: The key `package` must name the package the sections are versions of, as `vendor/name`, or `php`.");
 		}
 
-		$sections = $requirements = [];
+		$since = $sections = $requirements = [];
 		foreach ($data as $key => $section) {
 			if ($key === 'package' || $key === 'namespaces') {
 				continue;
@@ -72,6 +74,12 @@ final readonly class UpgradingFile
 				throw new ConfigurationException("Upgrading file $label: Unexpected key `$key`; the file holds `package`, `namespaces` and sections `since <version>`.");
 			} elseif (!is_array($section) || (array_is_list($section) && $section !== [])) {
 				throw new ConfigurationException("Upgrading file $label: The section `$key` must be a map of maps to their entries.");
+			}
+
+			try {
+				$since[$m[1]] = Since::parse($m[1]);
+			} catch (\InvalidArgumentException $e) {
+				throw new ConfigurationException("Upgrading file $label, `$key`: {$e->getMessage()}", previous: $e);
 			}
 
 			foreach ($section as $map => $entries) {
@@ -99,33 +107,32 @@ final readonly class UpgradingFile
 			}
 		}
 
-		uksort($sections, fn(string $a, string $b) => version_compare($a, $b));
-		uksort($requirements, fn(string $a, string $b) => version_compare($a, $b));
+		uasort($since, fn(Since $a, Since $b) => version_compare($a->getOldest(), $b->getOldest()));
 		try {
 			$namespaces = new Profile(namespaces: is_array($data['namespaces'] ?? null) ? $data['namespaces'] : [])->namespaces;
 		} catch (\InvalidArgumentException $e) {
 			throw new ConfigurationException("Upgrading file $label: {$e->getMessage()}", previous: $e);
 		}
 
-		return new self($package, $namespaces, $sections, $requirements);
+		return new self($package, $namespaces, $since, $sections, $requirements);
 	}
 
 
 	/**
 	 * Every section as it is written, the oldest first: its maps, the entries without the version `from` says their fix
 	 * is right from, and the requirements it turns on.
-	 * @return array<string, array{array<string, array<string, mixed>>, array<string, string>}>  version => maps, requirements
+	 * @return array<string, array{array<string, array<string, mixed>>, array<string, string>}>  versions => maps, requirements
 	 */
 	public function getSections(): array
 	{
-		$versions = array_unique(array_map(strval(...), [...array_keys($this->sections), ...array_keys($this->requirements)]));
-		usort($versions, fn(string $a, string $b) => version_compare($a, $b));
 		$sections = [];
-		foreach ($versions as $version) {
-			$sections[$version] = [
-				array_map(fn(array $entries) => array_map(self::removeFrom(...), $entries), $this->sections[$version] ?? []),
-				$this->requirements[$version] ?? [],
-			];
+		foreach (array_keys($this->since) as $versions) {
+			if (isset($this->sections[$versions]) || isset($this->requirements[$versions])) {
+				$sections[$versions] = [
+					array_map(fn(array $entries) => array_map(self::removeFrom(...), $entries), $this->sections[$versions] ?? []),
+					$this->requirements[$versions] ?? [],
+				];
+			}
 		}
 
 		return $sections;
@@ -134,48 +141,52 @@ final readonly class UpgradingFile
 
 	/**
 	 * The data for code that must work with the versions of the constraint, null where any version does. An entry is
-	 * rewritten where the lowest version reaches its section, or the version `from` says its fix is right from, a later
-	 * section having the last word on it: every entry where any version does, none where there is no lower bound. A
-	 * section above the lowest version says nothing, the lowest version not taking its fix, and turns no requirement on.
-	 * Every entry keeps the section and the version `from` it came with.
+	 * rewritten where its section holds for the lowest version, or the lowest version reaches the version `from` says
+	 * its fix is right from, a section the line of the lowest version had later having the last word on it: every entry
+	 * where any version does, none where there is no lower bound. A section that does not hold for the lowest version
+	 * says nothing, the lowest version not taking its fix, and turns no requirement on. Every entry keeps the version of
+	 * its section the line of the lowest version had it from, and the version `from`.
 	 */
 	public function selectFor(?string $constraint, Layer $layer): UpgradingData
 	{
 		$lowest = $constraint === null ? null : Versions::findLowestVersion($constraint);
+		$holds = fn(Since $since) => $constraint === null || ($lowest !== null && $since->holdsFor($lowest));
 		$reaches = fn(string $version) => $constraint === null || ($lowest !== null && version_compare($lowest, $version, '>='));
-		$maps = $retirements = $origins = $unreached = [];
-		foreach ($this->sections as $since => $section) {
-			$since = (string) $since;
+		$order = $this->since;
+		uasort($order, fn(Since $a, Since $b) => version_compare($a->findVersionFor($lowest), $b->findVersionFor($lowest)));
+
+		$maps = $retirements = $origins = $unreached = $requirements = [];
+		foreach ($order as $versions => $since) {
+			if ($holds($since)) {
+				$requirements = array_replace($requirements, $this->requirements[$versions] ?? []);
+			}
+
+			$version = $since->findVersionFor($lowest);
 			$pending = false;
-			foreach ($section as $map => $entries) {
+			foreach ($this->sections[$versions] ?? [] as $map => $entries) {
 				foreach ($entries as $key => $value) {
 					$from = is_array($value) ? $value['from'] ?? null : null;
-					if (!$reaches($since) && ($from === null || !$reaches($from))) {
+					if (!$holds($since) && ($from === null || !$reaches($from))) {
 						$pending = true;
 						continue;
 					}
 
 					$maps[$map][$key] = self::removeFrom($value);
-					$origins[$map][$key] = [$since, $from];
+					$origins[$map][$key] = [$version, $from];
 					unset($retirements[$map][$key]);
 					if (in_array($map, self::ForbiddenMaps, true) && $value !== MemberMapGrammar::Keep) {
-						$retirements[$map][$key] = $since;
+						$retirements[$map][$key] = $version;
 					}
 				}
 			}
 
 			if ($pending) {
-				$unreached[] = $since;
+				$unreached[] = $since->findVersionAfter($lowest);
 			}
 		}
 
-		$requirements = [];
-		foreach ($this->requirements as $since => $values) {
-			if ($reaches((string) $since)) {
-				$requirements = array_replace($requirements, $values);
-			}
-		}
-
+		$unreached = array_values(array_unique($unreached));
+		usort($unreached, fn(string $a, string $b) => version_compare($a, $b));
 		return new UpgradingData(
 			$layer,
 			$this->package,
@@ -190,13 +201,13 @@ final readonly class UpgradingFile
 	}
 
 
-	/** The newest version a section is of, the sections being in order of their versions. */
+	/** The newest version a section is of. */
 	private function findNewestVersion(): ?string
 	{
 		$newest = null;
-		foreach ([array_key_last($this->sections), array_key_last($this->requirements)] as $version) {
-			if ($version !== null && ($newest === null || version_compare((string) $version, $newest, '>'))) {
-				$newest = (string) $version;
+		foreach ($this->since as $since) {
+			if ($newest === null || version_compare($since->getNewest(), $newest, '>')) {
+				$newest = $since->getNewest();
 			}
 		}
 
