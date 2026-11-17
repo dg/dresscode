@@ -15,7 +15,7 @@ class A
 	{
 		if ($a) {
 			x();
-		// comment
+			// comment
 		}
 		else {
 			y(

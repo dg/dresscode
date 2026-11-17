@@ -155,11 +155,14 @@ final class IndentationPlan
 		$indentation = $base . $style->getIndentation($level);
 		$this->lines[$line] = $indentation;
 		// a comment above a closing bracket belongs to the content before it, unless the bracket is followed
-		// by the next branch of a non-empty structure, which the comment then introduces; a comment above
-		// a later case belongs to the statements of the previous one
+		// by the next branch of a non-empty structure and the comment is written no deeper than the bracket,
+		// which it then introduces; a comment above a later case belongs to the statements of the previous one
 		$commentIndentation = match (true) {
 			$role === LayoutRole::Closer && self::continuesStructure($token) && self::hasCommentsAtTwoLevels($token, $indentation) => null,
-			$role === LayoutRole::Closer && !(self::continuesStructure($token) && !$token->getPrevious()?->is('{')),
+			$role === LayoutRole::Closer && (
+				!(self::continuesStructure($token) && !$token->getPrevious()?->is('{'))
+				|| self::hasCommentsOnlyDeeper($token, $indentation, $style)
+			),
 			$role === LayoutRole::Case && !self::isFirstItem($child, $token)
 				=> $indentation . $style->indent,
 			default => $indentation,
@@ -230,6 +233,28 @@ final class IndentationPlan
 	 */
 	private static function hasCommentsAtTwoLevels(Token $token, string $indentation): bool
 	{
+		$levels = self::getCommentLevels($token);
+		$last = array_pop($levels);
+		return $last === $indentation && array_any($levels, fn(string $level) => strlen($level) > strlen($last));
+	}
+
+
+	/** Whether comments stand on lines of their own above the token, every one written deeper than the indentation the token is given. */
+	private static function hasCommentsOnlyDeeper(Token $token, string $indentation, Style $style): bool
+	{
+		$phpSyntax = $style->toPhpSyntax();
+		$width = Indentation::measure($indentation, $phpSyntax);
+		$levels = self::getCommentLevels($token);
+		return $levels !== [] && array_all($levels, fn(string $level) => Indentation::measure($level, $phpSyntax) > $width);
+	}
+
+
+	/**
+	 * The indentations of the comments on lines of their own above the token, as written.
+	 * @return list<string>
+	 */
+	private static function getCommentLevels(Token $token): array
+	{
 		$levels = [];
 		$trailing = $token->getPrevious()->trailingTrivia ?? [];
 		$lineStart = ($trailing[count($trailing) - 1] ?? null)?->isLineEnding() ?? false;
@@ -248,8 +273,7 @@ final class IndentationPlan
 			}
 		}
 
-		$last = array_pop($levels);
-		return $last === $indentation && array_any($levels, fn(string $level) => strlen($level) > strlen($last));
+		return $levels;
 	}
 
 

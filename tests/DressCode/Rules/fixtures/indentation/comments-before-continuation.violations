@@ -1,3 +1,5 @@
-4: Expected the comment without indentation, 2 tabs found.
-11: Expected the comment without indentation, 2 tabs found.
+4: Expected the comment indented by 1 tab, 2 tabs found.
+11: Expected the comment indented by 1 tab, 2 tabs found.
 16: Expected the comment indented by 1 tab, 2 tabs found.
+49: Expected the closing brace without indentation, 2 tabs found.
+57: Expected the closing brace indented by 1 tab, none found.

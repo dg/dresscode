@@ -1,14 +1,14 @@
 <?php
 if ($a) {
 	foo();
-// introduces the else
+	// too deep, still ends the if
 } else {
 	bar();
 }
 
 do {
 	foo();
-// introduces the while
+	// too deep, still ends the body
 } while ($a);
 
 if ($a) {
@@ -17,4 +17,45 @@ if ($a) {
 }
 while ($a) {
 	foo();
+}
+
+try {
+	foo();
+	// ends the try
+} catch (Exception $e) {
+	bar();
+
+	// ends the catch
+
+} finally {
+	baz();
+}
+
+if ($a) {
+	foo();
+	// ends the if
+} elseif ($b) {
+	bar();
+	// ends the elseif
+	// on two lines
+} else {
+	baz();
+}
+
+// measured against where the brace is placed, not where it is written
+if ($a) {
+	foo();
+	// ends the if
+} else {
+	bar();
+}
+
+function f()
+{
+	if ($a) {
+		foo();
+	// heads the else
+	} else {
+		bar();
+	}
 }

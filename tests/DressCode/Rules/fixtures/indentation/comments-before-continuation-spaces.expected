@@ -1,0 +1,27 @@
+<?php
+// a comment written deeper than the brace ends the branch, whatever unit the code is written in
+try {
+	commit();
+} catch (A $e) {
+	rollback($e);
+	// ends the catch
+} catch (Throwable $e) {
+	x();
+}
+
+function f()
+{
+	if ($a) {
+		foo();
+		// ends the if
+	} else {
+		bar();
+	}
+
+	if ($a) {
+		foo();
+	// heads the else
+	} else {
+		bar();
+	}
+}
