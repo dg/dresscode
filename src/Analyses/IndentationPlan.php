@@ -155,11 +155,15 @@ final class IndentationPlan
 		$indentation = $base . $style->getIndentation($level);
 		$this->lines[$line] = $indentation;
 		// a comment above a closing bracket belongs to the content before it, unless the bracket is followed
-		// by the next branch of a non-empty structure, which the comment then introduces; a comment above
+		// by the next branch of a non-empty structure, which the comment then introduces, or the comment is
+		// written at the level of the content and so ends the branch the bracket closes; a comment above
 		// a later case belongs to the statements of the previous one
 		$commentIndentation = match (true) {
 			$role === LayoutRole::Closer && self::continuesStructure($token) && self::hasCommentsAtTwoLevels($token, $indentation) => null,
-			$role === LayoutRole::Closer && !(self::continuesStructure($token) && !$token->getPrevious()?->is('{')),
+			$role === LayoutRole::Closer && (
+				!(self::continuesStructure($token) && !$token->getPrevious()?->is('{'))
+				|| self::hasCommentsOnlyAt($token, $indentation . $style->indent)
+			),
 			$role === LayoutRole::Case && !self::isFirstItem($child, $token)
 				=> $indentation . $style->indent,
 			default => $indentation,
@@ -230,6 +234,26 @@ final class IndentationPlan
 	 */
 	private static function hasCommentsAtTwoLevels(Token $token, string $indentation): bool
 	{
+		$levels = self::getCommentLevels($token);
+		$last = array_pop($levels);
+		return $last === $indentation && array_any($levels, fn(string $level) => strlen($level) > strlen($last));
+	}
+
+
+	/** Whether there are comments on lines of their own above the token and every one stands at the indentation as written. */
+	private static function hasCommentsOnlyAt(Token $token, string $indentation): bool
+	{
+		$levels = self::getCommentLevels($token);
+		return $levels !== [] && array_all($levels, fn(string $level) => $level === $indentation);
+	}
+
+
+	/**
+	 * The indentations of the comments on lines of their own above the token, as written.
+	 * @return list<string>
+	 */
+	private static function getCommentLevels(Token $token): array
+	{
 		$levels = [];
 		$trailing = $token->getPrevious()->trailingTrivia ?? [];
 		$lineStart = ($trailing[count($trailing) - 1] ?? null)?->isLineEnding() ?? false;
@@ -248,8 +272,7 @@ final class IndentationPlan
 			}
 		}
 
-		$last = array_pop($levels);
-		return $last === $indentation && array_any($levels, fn(string $level) => strlen($level) > strlen($last));
+		return $levels;
 	}
 
 
