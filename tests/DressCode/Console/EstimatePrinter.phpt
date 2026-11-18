@@ -144,3 +144,15 @@ test('the moves Composer could not say are unknown, with the reason', function (
 
 	Assert::contains("Versions   unknown, Composer did not answer in time\n", new EstimatePrinter($estimate)->print($console));
 });
+
+
+test('a library widening its constraints moves nothing, which Composer is not asked about', function () {
+	$estimate = new Estimate([new Target('acme/utils', '4.0')], [], 1, new BlindSpots, [], [], [], true, false, [], library: true);
+	$console = new Console(fopen('php://memory', 'w+') ?: throw new RuntimeException, ColorDepth::None, terminal: false);
+
+	Assert::contains(
+		"Versions   nothing, a library widens its constraints with `--no-update`\n",
+		new EstimatePrinter($estimate)->print($console),
+	);
+	Assert::true(new EstimatePrinter($estimate)->toArray()['library']);
+});

@@ -9,7 +9,8 @@ namespace DressCode\Config;
 
 use Composer\Semver\VersionParser;
 use DressCode\Analyses\PhpStanExtension;
-use DressCode\Engine\Helpers;
+use DressCode\Engine\{Helpers, ProcessRunner};
+use DressCode\Tristate;
 use Nette\Utils\FileSystem;
 use function is_array, is_string;
 
@@ -50,6 +51,8 @@ final readonly class ProjectPackages
 		private array $replaced = [],
 		/** the versions of PHP the code must work with, null where nobody said them */
 		private ?string $php = null,
+		/** the version of PHP `config.platform.php` sets, which Composer resolves the packages for; null for none */
+		public ?string $platformPhp = null,
 	) {
 	}
 
@@ -106,6 +109,7 @@ final readonly class ProjectPackages
 			$required,
 			$installed,
 			replaced: array_diff_key($replaced, $installed),
+			platformPhp: is_string($platform = $composer['config']['platform']['php'] ?? null) ? $platform : null,
 		);
 	}
 
@@ -118,7 +122,8 @@ final readonly class ProjectPackages
 	public function withTargets(array $versions): self
 	{
 		return new self(
-			$this->rootName, $this->rootPath, $this->rootExtra, $this->required, $this->installed, $versions, $this->replaced, $this->php,
+			$this->rootName, $this->rootPath, $this->rootExtra, $this->required,
+			$this->installed, $versions, $this->replaced, $this->php, $this->platformPhp,
 		);
 	}
 
@@ -138,6 +143,7 @@ final readonly class ProjectPackages
 			$this->targets,
 			$this->replaced,
 			Versions::isVersion($target) ? ">=$target" : $target,
+			$this->platformPhp,
 		);
 	}
 
@@ -152,6 +158,48 @@ final readonly class ProjectPackages
 			|| isset($this->installed[$package])
 			|| isset($this->replaced[$package])
 			|| ($package === PackageDiscovery::Php && $this->php !== null);
+	}
+
+
+	/**
+	 * Whether the project is a library, which says so by its `type`, a project giving none being one as Composer reads
+	 * it, and has no lock of its own; maybe for one with a lock, as an application has.
+	 */
+	public function isLibrary(): Tristate
+	{
+		return match (true) {
+			$this->findType() !== 'library' => Tristate::No,
+			$this->hasOwnLock() => Tristate::Maybe,
+			default => Tristate::Yes,
+		};
+	}
+
+
+	/** The type of the project, `library` where its composer.json gives none, as Composer reads it. */
+	public function findType(): string
+	{
+		$type = ComposerJson::read("$this->rootPath/composer.json")['type'] ?? null;
+		return is_string($type) ? $type : 'library';
+	}
+
+
+	/**
+	 * Whether the project keeps a `composer.lock` of its own: one its git ignores is what an install of a library leaves,
+	 * unless git ignores `composer.json` with it, the project then lying in a directory another repository ignores.
+	 */
+	private function hasOwnLock(): bool
+	{
+		if ($this->rootPath === null || !is_file("$this->rootPath/composer.lock")) {
+			return false;
+		}
+
+		[, $ignored] = ProcessRunner::run(
+			['git', '-C', $this->rootPath, 'check-ignore', 'composer.lock', 'composer.json'],
+			$this->rootPath,
+			timeout: 60,
+			errors: false,
+		);
+		return preg_split('~\R~', trim($ignored)) !== ['composer.lock'];
 	}
 
 

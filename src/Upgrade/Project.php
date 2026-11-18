@@ -16,8 +16,8 @@ use function count;
 
 
 /**
- * The project an upgrade measures or runs: its configuration, or the scope the command gives it where it has no file of
- * its own, and what the command line lays over it.
+ * The project an upgrade measures, plans or runs: its configuration, or the scope the command gives it where it has no
+ * file of its own, and what the command line lays over it.
  * @internal
  */
 final readonly class Project
