@@ -48,7 +48,8 @@ final readonly class EstimatePrinter
 	}
 
 
-	public function print(Console $console): string
+	/** @param  bool  $passive  no step of the run follows that would change the code */
+	public function print(Console $console, bool $passive = true): string
 	{
 		$estimate = $this->estimate;
 		$targets = implode(', ', array_map(fn(Target $target) => $target->format(), $estimate->targets));
@@ -58,7 +59,7 @@ final readonly class EstimatePrinter
 			"$targets over " . Helpers::formatCount($estimate->files, 'file'),
 			($estimate->namesMeasured ? ', the names resolved for certain as measured' : '')
 			. ($estimate->types ? '' : ', without the types of the code')
-			. ', an estimate: nothing was changed',
+			. ($passive ? ', an estimate: nothing was changed' : ''),
 		) . "\n\n";
 
 		$width = max([0, ...array_map(fn(Topic $topic) => strlen($topic->name), $estimate->topics)]);

@@ -41,6 +41,7 @@ test('a group DressCode fixes whole says so, and an estimate that no run follows
 	Assert::contains('an estimate: nothing was changed', $out);
 	Assert::contains("Must change, 2 findings, all fixed by DressCode\n", $out);
 	Assert::contains('fixed by DressCode, once ^4.0 is installed', $out);
+	Assert::notContains('nothing was changed', new EstimatePrinter($estimate)->print($console, passive: false));
 });
 
 

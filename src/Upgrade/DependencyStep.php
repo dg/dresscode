@@ -9,7 +9,7 @@ namespace DressCode\Upgrade;
 
 
 /**
- * A step Composer makes, changing the packages of the project.
+ * A step Composer makes, changing the packages of the project, which the run asks the user to agree to.
  * @internal
  */
 interface DependencyStep extends Step

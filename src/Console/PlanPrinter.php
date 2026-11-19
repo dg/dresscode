@@ -25,15 +25,15 @@ final readonly class PlanPrinter
 
 	public function __construct(
 		private Plan $plan,
-		/** whether the plan is of a library or of an application, and why */
-		private string $mode,
+		/** whether the plan is of a library or of an application, and why, where the plan was made just now */
+		private ?string $mode = null,
 	) {
 	}
 
 
 	public function print(Console $console): string
 	{
-		$out = Markup::formatLine($console, 'Mode', $this->mode) . "\n"
+		$out = ($this->mode === null ? '' : Markup::formatLine($console, 'Mode', $this->mode) . "\n")
 			. Markup::formatLine(
 				$console,
 				'Plan',

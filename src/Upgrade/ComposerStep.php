@@ -7,6 +7,9 @@
 
 namespace DressCode\Upgrade;
 
+use DressCode\Config\{PackageDiscovery, ProjectPackages, Versions};
+use function array_key_exists;
+
 
 /**
  * The step raising the constraints of `composer.json` and updating the packages they move, or widening them alone, or
@@ -40,5 +43,44 @@ final readonly class ComposerStep implements DependencyStep
 		}
 
 		return $commands;
+	}
+
+
+	/**
+	 * Whether the project has the step done: `composer.json` requires every package of the step with a lower bound the
+	 * step reaches, allowing the newest version the step names, `^8.4` and `~8.4.0` raising `^8.1` to `^8.4` and
+	 * `^3.2 || ^4.0` widening `^3.2`, and for a step that updates, the versions installed and locked are ones the step
+	 * allows, for PHP the platform the project sets, which reaches the one the step raises it to.
+	 * @phpstan-impure
+	 */
+	public function isDoneIn(ProjectPackages $project): bool
+	{
+		$locked = $this->update ? $project->readLockedVersions() : null;
+		return ($this->platform === null || version_compare($project->platformPhp ?? '0', $this->platform, '>='))
+			&& array_all($this->require, function (string $constraint, string $package) use ($project, $locked): bool {
+				$required = $project->required[$package] ?? null;
+				$lowests = array_map(
+					fn(string $part) => Versions::findLowestVersion($part) ?? '0',
+					Versions::splitAlternatives($constraint),
+				);
+				usort($lowests, fn(string $a, string $b) => version_compare($a, $b));
+				// false for a package missing, null for nothing to compare, as the version of a branch without an alias
+				$installed = match (true) {
+					$package === PackageDiscovery::Php => $project->platformPhp,
+					!isset($project->installed[$package]) => false,
+					default => $project->installed[$package]['version'],
+				};
+				$lock = match (true) {
+					$locked === null || $package === PackageDiscovery::Php => null,
+					!array_key_exists($package, $locked) => false,
+					default => $locked[$package],
+				};
+				return $required !== null
+					&& version_compare(Versions::findLowestVersion($required) ?? '0', $lowests[0] ?? '0', '>=')
+					&& Versions::isSubset((string) end($lowests), $required)
+					&& (!$this->update
+						|| (($installed === null || ($installed !== false && Versions::isSubset($installed, $constraint)))
+							&& ($lock === null || ($lock !== false && Versions::isSubset($lock, $constraint)))));
+			});
 	}
 }
