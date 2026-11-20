@@ -42,6 +42,9 @@ enum RunStop
 	/** at a manual step whose target the lock still refuses */
 	case Manual;
 
+	/** after the step a raise leads to, or at the end of the plan, where tasks are left for a human */
+	case Tasks;
+
 	/** after a step whose tests newly failed, which went back */
 	case Tests;
 
