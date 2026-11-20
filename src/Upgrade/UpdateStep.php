@@ -9,7 +9,8 @@ namespace DressCode\Upgrade;
 
 
 /**
- * The step updating every package to the newest version the constraints allow, which a raise left at the lowest.
+ * The step updating every package to the newest version the constraints allow, which a raise left at the lowest; it is
+ * done once Composer says the update would change nothing.
  * @internal
  */
 final readonly class UpdateStep implements DependencyStep

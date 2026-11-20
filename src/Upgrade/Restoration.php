@@ -15,10 +15,14 @@ namespace DressCode\Upgrade;
 final readonly class Restoration
 {
 	public function __construct(
-		/** @var list<string>  the files written back, relative to the root */
+		/** @var list<string>  the files written back, relative to the root, those of Composer by their names */
 		public array $restored,
 		/** @var array<string, string>  the files left as they are => why */
 		public array $left,
+		/** the packages of the lock are installed after the files of Composer went back */
+		public bool $installs,
+		/** why `composer install` failed; null where it did not run or did not fail */
+		public ?string $installFailure = null,
 	) {
 	}
 }
