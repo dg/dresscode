@@ -19,6 +19,8 @@ final readonly class PlanRunOptions
 	public function __construct(
 		#[Cli\Option('Run that step of the plan alone', valueName: 'n', normalizer: [RunOptions::class, 'parsePositiveInt'])]
 		public ?int $step = null,
+		#[Cli\Flag('Commit every topic with the files it changed, and the raise of Composer')]
+		public ?bool $commit = null,
 		#[Cli\Flag('Raise the constraints of Composer and update without asking, outside a terminal too')]
 		public ?bool $yes = null,
 		#[Cli\Flag('Go on from the code as it is after a run interrupted in a step, which may have rewritten some files')]

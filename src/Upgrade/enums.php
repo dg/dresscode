@@ -56,6 +56,9 @@ enum RunStop
 
 	/** before the first step, as a run was interrupted in a step that may have rewritten some files */
 	case Interrupted;
+
+	/** after a step whose changes could not be committed */
+	case Commit;
 }
 
 

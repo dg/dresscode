@@ -84,6 +84,7 @@ final readonly class RunOutcomePrinter
 				$outcome->newFailures === [] => $outcome->crash ?? 'the tests wrote no results after it',
 				default => 'these tests now fail: ' . implode(', ', $outcome->newFailures),
 			}),
+			RunStop::Commit => Markup::formatLine($console, 'Failed', "step $outcome->step, $outcome->commitFailure"),
 			RunStop::Composer => $outcome->composerFailure === null
 				? Markup::formatLine($console, 'Waiting', "step $outcome->step, {$this->formatComposerStep((int) $outcome->step)}")
 				: Markup::formatLine(
@@ -192,6 +193,7 @@ final readonly class RunOutcomePrinter
 			'remaining' => $outcome->remaining,
 			'warnings' => $outcome->warnings,
 			'composerFailure' => $outcome->composerFailure,
+			'commitFailure' => $outcome->commitFailure,
 		];
 	}
 
