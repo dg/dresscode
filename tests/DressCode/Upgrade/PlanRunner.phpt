@@ -428,6 +428,11 @@ test('a file the fix cannot process stops the run after its step, and going back
 	Assert::same([RunStop::Unprocessed, 1], [$outcome->stop, $outcome->step]);
 	Assert::match('Syntax error: %a%', $outcome->unprocessed['src/Broken.php']);
 	Assert::contains('?int', (string) file_get_contents("$root/src/Code.php"));
+	// the tasks of the plan say so too, as nothing of the file is checked
+	Assert::match(
+		'Syntax error: %a%',
+		new PlanRunner(createSteppedRunProject($root))->findTasks(createSteppedPlan())[1]['src/Broken.php'] ?? '',
+	);
 
 	// the tests change the file the step wrote, as a user editing it while they run would
 	$root = createSteppedProject('steps-conflict');
@@ -899,9 +904,10 @@ test('a raise a fix follows stops the run, which goes on after it from the outco
 
 
 test(
-	'a suppression without a reason only puts a task off, so a run whose fixes leave nothing else is not done',
+	'the tasks are what the fixes of the plan leave in the code as it stands, changing nothing',
 	function () {
 		$root = createSteppedProject('steps-tasks');
+		file_put_contents("$root/composer.json", '{"require": {"php": "^8.1"}}');
 		$code = <<<'XX'
 			<?php
 
@@ -927,11 +933,18 @@ test(
 		$plan = new Plan([Target::php('8.4')], [new FixStep('bridge', ['php', 'upgrading.php.implicitNullable'])], '1.0');
 		$runner = new PlanRunner(createSteppedRunProject($root));
 
+		[$tasks, $unprocessed] = $runner->findTasks($plan);
+		Assert::same([], $unprocessed);
+		Assert::same([['src/Date.php', 5]], array_map(fn(Task $task) => [$task->path, $task->violation->line], $tasks['php']));
 		Assert::equal(
 			[new Postponement('src/Date.php', 10, 'dresscode:ignore upgrading.php.deprecatedApi')],
 			Postponement::findIn($runner->project, $plan->paths),
 		);
+		// a suppression without a reason only puts a task off; and nothing is changed, the fix of `Code.php` included
+		Assert::same($code, file_get_contents("$root/src/Date.php"));
+		Assert::notContains('?int', (string) file_get_contents("$root/src/Code.php"));
 
+		// so a run whose fixes leave nothing else is not done either
 		file_put_contents(
 			"$root/src/Date.php",
 			str_replace(
@@ -945,3 +958,18 @@ test(
 		Assert::equal([new Postponement('src/Date.php', 11, 'dresscode:ignore upgrading.php.deprecatedApi')], $outcome->postponed);
 	},
 );
+
+
+test('the tasks hold what the check of the whole scope at the end of a run finds and no topic of the plan does', function () {
+	$root = createSteppedProject('steps-tasks-remaining');
+	file_put_contents("$root/composer.json", '{"require": {"php": "^8.1"}}');
+	file_put_contents("$root/src/Date.php", "<?php\n\nfunction month(): string\n{\n\treturn strftime('%B');\n}\n");
+	$plan = new Plan([Target::php('8.4')], [new FixStep('bridge', ['upgrading.php.implicitNullable'])], '1.0');
+
+	[$tasks] = new PlanRunner(createSteppedRunProject($root))->findTasks($plan);
+	Assert::same(['deprecations'], array_keys($tasks));
+	Assert::same(
+		[['src/Date.php', 5, 'upgrading.php.deprecatedApi']],
+		array_map(fn(Task $task) => [$task->path, $task->violation->line, $task->violation->decision], $tasks['deprecations']),
+	);
+});

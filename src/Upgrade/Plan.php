@@ -7,6 +7,8 @@
 
 namespace DressCode\Upgrade;
 
+use DressCode\Config\ProjectPackages;
+
 
 /**
  * The recipe of an upgrade: the targets, the steps in their order, the versions of the tool and of the upgrading data
@@ -77,5 +79,18 @@ final readonly class Plan
 		}
 
 		return $steps;
+	}
+
+
+	/**
+	 * The step raising the lower bounds that the project has not made yet, before which the code shows no task of the
+	 * steps after it; null where none is due.
+	 */
+	public function findDueRaise(ProjectPackages $packages): ?int
+	{
+		return array_find_key(
+			$this->findSteps(),
+			fn(Step $step) => $step instanceof ComposerStep && $step->update && $step->require !== [] && !$step->isDoneIn($packages),
+		);
 	}
 }
