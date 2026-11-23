@@ -10,7 +10,7 @@ namespace DressCode\Analyses;
 use Composer\Autoload\ClassLoader;
 use Composer\InstalledVersions;
 use DressCode\Config\ComposerJson;
-use DressCode\Engine\Helpers;
+use DressCode\Engine\{Helpers, Profiler};
 use DressCode\Violation;
 use Nette\Utils\FileSystem;
 use PhpParser\{Node, NodeFinder};
@@ -90,6 +90,7 @@ final class PhpStan
 		string $tempDir,
 		/** the version of PHP the code is written for, which PHPStan parses it as where the running PHP is older */
 		private readonly ?string $phpVersion = null,
+		private readonly ?Profiler $profiler = null,
 		/**
 		 * @var list<string>  the directories of the packages installed in a newer version than the oldest one the project
 		 * supports, or supported from no particular version, whose declarations may say what that one does not
@@ -289,6 +290,7 @@ final class PhpStan
 		$resolver = $container->getByType(NodeScopeResolver::class);
 		$resolver->setAnalysedFiles([$path]);
 		$scope = $container->getByType(ScopeFactory::class)->create(ScopeContext::create($path));
+		$start = $this->profiler ? hrtime(as_number: true) : 0;
 		$inCallback = false;
 		// a warning of PHPStan is the first sign of its failure on the file, and printed it would spoil the output; one it
 		// silences is not, a rename into its cache another process has just written being one
@@ -312,6 +314,8 @@ final class PhpStan
 		} finally {
 			restore_error_handler();
 		}
+
+		$this->profiler?->addPhase('phpstan: scopes', hrtime(as_number: true) - $start);
 	}
 
 
@@ -586,6 +590,7 @@ final class PhpStan
 		if (ini_get('opcache.file_cache_only')) {
 			ini_set('opcache.enable', '0');
 		}
+		$start = $this->profiler ? hrtime(as_number: true) : 0;
 		$configs = [
 			...array_merge(...array_map(fn(PhpStanExtension $extension) => $extension->includes, $this->extensions)),
 			...array_filter([$config]),
@@ -609,6 +614,10 @@ final class PhpStan
 			);
 		}
 
+		$this->profiler?->addPhase(
+			$this->replacement === null ? 'phpstan: container' : 'phpstan: derived container build',
+			hrtime(as_number: true) - $start,
+		);
 		$this->configurationFiles ??= $this->collectConfigurationFiles($container);
 		return $this->container = $container;
 	}

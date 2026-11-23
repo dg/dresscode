@@ -19,7 +19,7 @@ use const JSON_INVALID_UTF8_SUBSTITUTE, JSON_THROW_ON_ERROR;
 final class Worker
 {
 	/** @return int  exit code */
-	public static function run(string $address, Runner $runner, bool $fix): int
+	public static function run(string $address, Runner $runner, bool $fix, ?Profiler $profiler = null): int
 	{
 		$context = stream_context_create(['socket' => ['tcp_nodelay' => true]]); // Nagle would delay every small message by an ACK
 		$socket = @stream_socket_client("tcp://$address", $errno, $error, timeout: 10, context: $context); // @ reported below
@@ -28,10 +28,15 @@ final class Worker
 			return 2;
 		}
 
-		$collector = new CycleCollector;
+		$collector = new CycleCollector($profiler);
 		$sent = false;
 		while (($line = fgets($socket)) !== false) {
 			$job = json_decode($line, associative: true);
+			if (is_array($job) && ($job['finish'] ?? null) === true) { // nothing is left; the parent waits for what was measured since the last file
+				fwrite($socket, json_encode(['profile' => $profiler?->takeRecords() ?? []], JSON_THROW_ON_ERROR) . "\n");
+				continue;
+			}
+
 			$path = is_array($job) && is_string($job['path'] ?? null) ? base64_decode($job['path'], strict: true) : false;
 			if ($path === false) {
 				fwrite(STDERR, "Unexpected message from the parent: $line");
@@ -39,7 +44,7 @@ final class Worker
 			}
 
 			$result = $runner->processPath($path, $fix);
-			$message = WorkerCodec::encode($result);
+			$message = WorkerCodec::encode($result, $profiler?->takeRecords());
 			// the files the results depend on and what the analyses tell, with the first result after they are known
 			if (!$sent && ($dependencies = ($runner->findDependencies)?->__invoke()) !== null) {
 				$message['dependencies'] = $dependencies;

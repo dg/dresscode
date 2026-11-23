@@ -48,6 +48,7 @@ final class RulePlan
 	public function __construct(
 		/** @var list<Rule> in configuration order */
 		public readonly array $rules,
+		?Profiler $profiler = null,
 		array $gates = [],
 	) {
 		$stages = $leaves = [];
@@ -79,7 +80,7 @@ final class RulePlan
 		$this->stages = $stages;
 		$this->leaves = $leaves;
 		$this->gates = $gates;
-		$this->claims = new Claims($rules);
+		$this->claims = new Claims($rules, $profiler);
 	}
 
 
