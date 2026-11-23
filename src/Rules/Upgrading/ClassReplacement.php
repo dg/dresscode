@@ -112,19 +112,20 @@ final class ClassReplacement
 				$dataUse = $found === null || $found[1] === null || $refusal !== null ? null : self::findDataUse($name, $resolver);
 				if ($found === null) {
 					continue;
-				} elseif (($keeps !== null && $keeps($name)) || self::keepsAlive($name, $found[1], $resolver)) {
-					$kept[strtolower($class)] = true;
-				} elseif (
+				}
+
+				$left = ($keeps !== null && $keeps($name))
+					|| self::keepsAlive($name, $found[1], $resolver)
 					// reported before the import goes, which a reference the run leaves as it is needs
-					$dataUse !== null
-					&& !self::report($context, $name, $found[0], $found[1], $found[2] ?? $dataUse, $found[3] ?? null)
-				) {
-					$kept[strtolower($class)] = true;
-				} else {
+					|| ($dataUse !== null
+						&& !self::report($context, $name, $found[0], $found[1], $found[2] ?? $dataUse, $found[3] ?? null));
+				if (!$left) {
 					$references[] = [$name, $found[0], $found[1], $found[2] ?? null, $refusal, $found[3] ?? null, $dataUse !== null];
-					if ($refusal !== null) {
-						$kept[strtolower($class)] = true; // the reference left as it is needs its import
-					}
+					$left = $refusal !== null;
+				}
+
+				if ($left && $name->form === NameForm::Unqualified) {
+					$kept[strtolower($class)] = true; // only a name without a namespace reaches the class through its import
 				}
 			}
 		}

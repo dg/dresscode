@@ -1,0 +1,16 @@
+<?php
+// {"api": {"replacedClasses": {"App\\Old": "App\\Current"}}}
+
+namespace App;
+
+use App\Current;
+
+// a name left as it is keeps the import only where it reaches the class through it
+function route(string $class, array $map): array
+{
+	return [
+		new Current,
+		$class === \App\Old::class,
+		$map[namespace\Old::class],
+	];
+}

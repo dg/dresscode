@@ -1,0 +1,6 @@
+6: Class `App\Old` is replaced by `App\Current`.
+12: Class `App\Old` is replaced by `App\Current`.
+13: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the comparison then meets another string
+14: Class `App\Old` is replaced by `App\Current`.
+	risky BehaviorChanges: `::class` is the name as written, so the array then has another key
