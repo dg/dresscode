@@ -63,6 +63,26 @@ enum RunStop
 
 
 /**
+ * What `upgrade status` knows of a step of the plan, running no fix.
+ * @internal
+ */
+enum StepStatus
+{
+	/** a step of Composer whose constraints the project has, a manual step the lock no longer refuses */
+	case Done;
+
+	/** a step of Composer still to raise, a manual step the lock still refuses */
+	case Due;
+
+	/** left out with `skip: true` */
+	case Skipped;
+
+	/** a fix, which only its rules tell, a step to the newest versions, or one Composer could not answer for */
+	case Unknown;
+}
+
+
+/**
  * How a test ended, as its JUnit report says; a test repeated under one identity ends as the worst of them.
  * @internal
  */
