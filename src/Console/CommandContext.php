@@ -41,7 +41,7 @@ final readonly class CommandContext
 		public string $scriptFile,
 		/** what applies when the project has no configuration file */
 		public ?Config $defaultConfig,
-		/** PHP runs with Xdebug, which makes a run many times slower */
+		/** Xdebug is on, which makes the work this process does itself many times slower */
 		public bool $xdebug,
 		/** asks a person at a terminal, which `fix --ask-risky` does */
 		public Prompt $prompt,
@@ -128,6 +128,14 @@ final readonly class CommandContext
 	{
 		$resolved = FileSystem::resolvePath($this->workingDirectory, $path);
 		return Helpers::canonicalizePath(realpath($resolved) ?: $resolved);
+	}
+
+
+	public function warnOfXdebug(): void
+	{
+		if ($this->xdebug) {
+			$this->err->writeLine('Warning: Xdebug is loaded and makes the run many times slower.', 'red');
+		}
 	}
 
 

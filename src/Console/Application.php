@@ -10,7 +10,7 @@ namespace DressCode\Console;
 use DressCode\{Config, ConfigurationException, ConvergenceException, RuleException};
 use Nette\CommandLine\{ColorDepth, Command, Console, HelpRenderer, Parser as CommandLineParser, Prompt, UsageException};
 use Nette\Utils\FileSystem;
-use function extension_loaded;
+use function extension_loaded, function_exists;
 use const PHP_OS_FAMILY;
 
 
@@ -30,7 +30,7 @@ final readonly class Application
 	 * @param  ?resource  $stdin
 	 * @param  ?string  $script  the script the workers are started with, the one the process was started with by default
 	 * @param  ?Config  $defaultConfig  what applies when the project has no configuration file
-	 * @param  ?bool  $xdebug  whether Xdebug is loaded; detected when the output is the process's own
+	 * @param  ?bool  $xdebug  whether Xdebug is on; detected when the output is the process's own
 	 * @param  ?bool  $interactive  whether the output and the input are a terminal a person answers at; detected from each
 	 */
 	public function __construct(
@@ -55,7 +55,7 @@ final readonly class Application
 			workingDirectory: $cwd ?? (string) getcwd(),
 			scriptFile: $script ?? $_SERVER['argv'][0] ?? 'dresscode',
 			defaultConfig: $defaultConfig,
-			xdebug: $xdebug ?? ($stdout === null && extension_loaded('xdebug')),
+			xdebug: $xdebug ?? ($stdout === null && self::isXdebugOn()),
 			prompt: new Prompt($out, $stdin ?? STDIN, inputTerminal: $interactive),
 		);
 	}
@@ -154,5 +154,12 @@ final readonly class Application
 
 		$program->addText('Exit codes: `0` clean and complete, `1` violations, syntax errors, a refused baseline or manual tasks a migration leaves, `2` a file failed or a command could not look at everything it was to, `3` a mistake of the command line or of the configuration.');
 		return $program;
+	}
+
+
+	/** Whether Xdebug is loaded in a mode other than `off`; one older than 3.1 tells no mode. */
+	private static function isXdebugOn(): bool
+	{
+		return function_exists('xdebug_info') ? xdebug_info('mode') !== [] : extension_loaded('xdebug');
 	}
 }

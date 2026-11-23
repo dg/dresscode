@@ -46,9 +46,10 @@ test('check with the configured paths', function () use ($root) {
 });
 
 
-test('a run under Xdebug warns that it is slower, in the formats a person reads', function () use ($root) {
+test('a run under Xdebug warns that it is slower, in the formats a person reads, unless workers do the work', function () use ($root) {
 	Assert::same("Warning: Xdebug is loaded and makes the run many times slower.\n", runApp($root, ['check'], xdebug: true)[2]);
 	Assert::same('', runApp($root, ['check', '--format', 'json'], xdebug: true)[2]);
+	Assert::same('', runApp($root, ['check', '--jobs', '2'], xdebug: true)[2]);
 });
 
 

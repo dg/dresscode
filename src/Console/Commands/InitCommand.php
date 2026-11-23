@@ -130,6 +130,18 @@ final readonly class InitCommand
 		$printer = new InitPrinter($console);
 		// over a configuration that exists nothing is written, so nothing is asked and no answer is taken
 		$interactive = $current === null && $format === 'console' && !$yes && $this->context->prompt->isInteractive();
+		// a probe names the plugins of the configuration by their class, which a configuration of PHP may declare itself and
+		// so only in this process
+		$plugins = array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, $current->plugins ?? []);
+		$runner = WorkerPool::buildPhpCommand() === null
+			|| $jobs === 1
+			|| ($plugins !== [] && Loader::detectFormat((string) $file) === 'php')
+			? new InProcessProbeRunner($root, $status->advance(...))
+			: ProcessProbeRunner::create($root, $status->advance(...), $jobs);
+		if (!$json && $runner instanceof InProcessProbeRunner) {
+			$this->context->warnOfXdebug();
+		}
+
 		$console->write(CommandContext::formatName($console) . Markup::highlightCode($console, $current === null
 			? '  looking at ' . FileSystem::platformSlashes($root) . " to write its `dresscode.neon`\n\n"
 			: '  comparing the code of ' . FileSystem::platformSlashes($root) . ' with its `' . basename((string) $file) . "`\n\n"));
@@ -153,14 +165,6 @@ final readonly class InitCommand
 			throw new ConfigurationException('The project has no PHP file to measure in ' . implode(', ', $scope->listPaths()) . ', so init has nothing to make a configuration of; write `dresscode.neon` with the standard it is to keep, `use: nette`, or run init in the root of the code.');
 		}
 
-		// a probe names the plugins of the configuration by their class, which a configuration of PHP may declare itself and
-		// so only in this process
-		$plugins = array_map(fn(string|Plugin $plugin) => is_string($plugin) ? $plugin : $plugin::class, $current->plugins ?? []);
-		$runner = WorkerPool::buildPhpCommand() === null
-			|| $jobs === 1
-			|| ($plugins !== [] && Loader::detectFormat((string) $file) === 'php')
-			? new InProcessProbeRunner($root, $status->advance(...))
-			: ProcessProbeRunner::create($root, $status->advance(...), $jobs);
 		$presets = $use ?: ($current?->use ? [...$plugins, ...$current->use] : null);
 		$proposal = Proposal::measure($project, $scope, $runner, $presets, $budget, $status->show(...));
 		if ($proposal->standard->unsure) {

@@ -399,3 +399,11 @@ test(
 		Assert::notContains('overrides', $out);
 	},
 );
+
+
+test('a run under Xdebug warns that it is slower where it measures in this process, never in JSON', function () use ($tabbed) {
+	$root = createProject('xdebug', ['src/A.php' => $tabbed, 'composer.json' => '{}']);
+	Assert::same("Warning: Xdebug is loaded and makes the run many times slower.\n", runInit($root, ['--dry-run'], xdebug: true)[2]);
+	Assert::same('', runInit($root, ['--dry-run', '--format', 'json'], xdebug: true)[2]);
+	Assert::same('', runInit($root, ['--dry-run'], jobs: 2, xdebug: true)[2]);
+});

@@ -27,7 +27,7 @@ function createProject(string $name, array $files): string
  * @param  ?int  $jobs  1 keeps the probes in the process, where they cost a fraction; null starts them as a user's run does
  * @return array{int, string, string}
  */
-function runInit(string $root, array $args = [], ?string $answers = null, ?int $jobs = 1): array
+function runInit(string $root, array $args = [], ?string $answers = null, ?int $jobs = 1, bool $xdebug = false): array
 {
 	$out = fopen('php://memory', 'w+') ?: throw new RuntimeException;
 	$err = fopen('php://memory', 'w+') ?: throw new RuntimeException;
@@ -41,7 +41,8 @@ function runInit(string $root, array $args = [], ?string $answers = null, ?int $
 	// a terminal as wide as no line of the output, so that it breaks none, whatever terminal the tests run in
 	putenv('COLUMNS=1000');
 	try {
-		$code = new Application($out, $err, $in, cwd: $root, interactive: $answers !== null)->run(['dresscode', 'init', ...$args]);
+		$application = new Application($out, $err, $in, cwd: $root, xdebug: $xdebug, interactive: $answers !== null);
+		$code = $application->run(['dresscode', 'init', ...$args]);
 	} finally {
 		putenv('COLUMNS');
 	}

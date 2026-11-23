@@ -183,10 +183,6 @@ final readonly class CheckCommand
 		// the machine-readable formats must not be prefaced, and a generated baseline is not a report
 		$preface = !$generate && in_array($format, ['console', 'github'], true);
 		if ($preface) {
-			if ($this->context->xdebug) {
-				$err->writeLine('Warning: Xdebug is loaded and makes the run many times slower.', 'red');
-			}
-
 			$this->context->writeHeader($configFile, $resolution, Baseline::findFile($config, $root));
 			$out->setStatus(Markup::formatLabel($out, $fix ? 'Fixing' : 'Checking') . 'looking for files…');
 		}
@@ -224,6 +220,10 @@ final readonly class CheckCommand
 		$workers = $command
 			? new WorkerPool($command, $jobs, $this->context->workingDirectory, warmFirst: $runner->warmUp !== null)
 			: null;
+		if ($preface && $workers === null) {
+			$this->context->warnOfXdebug();
+		}
+
 		$progress = !$generate && $format === 'console' && count($files) > 1 && $out->isTerminal()
 			? new ProgressBar($out, count($files))
 			: null;
