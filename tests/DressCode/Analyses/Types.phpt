@@ -460,7 +460,7 @@ test('syntax PHPStan fails on costs the file its types where PHPStan stopped, no
 		<?php
 		function test(string $s): void
 		{
-			$length = strlen(?);
+			$object = new class(...) {};
 			$s;
 		}
 		PHP);

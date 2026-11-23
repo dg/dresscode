@@ -185,7 +185,7 @@ final class AttributeForAnnotationRule extends NodeRule
 			return;
 		}
 
-		$arguments = ($node->arguments?->items->getItems() ?? []) === [] ? '' : (string) $node->arguments?->text;
+		$arguments = ($node->arguments?->items->getItems() ?? []) === [] ? '' : (string) $node->arguments->text;
 		if (strcasecmp($attribute->class, $class) === 0 && ($attribute->arguments === '' || $arguments !== '')) {
 			return;
 		}
