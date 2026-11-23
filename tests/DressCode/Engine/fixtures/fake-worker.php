@@ -1,7 +1,8 @@
 <?php declare(strict_types=1);
 
-// A worker of WorkerPool behaving as the first argument says: php fake-worker.php <split|stall|other-path|silent|log=<file>|exit=<code>|exit-at-start=<code>|kill> --worker <address>
+// A worker of WorkerPool behaving as the first argument says: php fake-worker.php <split|stall|other-path|silent|log=<file>|env=<file>|exit=<code>|exit-at-start=<code>|kill> --worker <address>
 // log=<file> writes into the file when it starts and when it connects, a while later, and then answers as split does;
+// env=<file> writes the variable XDEBUG_MODE it was started with into the file and answers as split does;
 // silent never connects; exit=<code> and kill end the process at the first file, exit-at-start=<code> before it connects
 
 $mode = $argv[1];
@@ -19,6 +20,9 @@ if (str_starts_with($mode, 'log=')) {
 	file_put_contents($log, "start\n", FILE_APPEND | LOCK_EX);
 	usleep(300_000);
 	file_put_contents($log, "connect\n", FILE_APPEND | LOCK_EX);
+	$mode = 'split';
+} elseif (str_starts_with($mode, 'env=')) {
+	file_put_contents(substr($mode, 4), (string) getenv('XDEBUG_MODE'), LOCK_EX);
 	$mode = 'split';
 }
 

@@ -49,6 +49,19 @@ test('with the warm-up first, the other workers start only once the first has co
 });
 
 
+test('a worker runs with Xdebug off, whatever the process starting it has', function () {
+	$file = createTempDir('xdebug-off') . '/mode.txt';
+	putenv('XDEBUG_MODE=debug');
+	try {
+		processWith(new WorkerPool(fakeWorker("env=$file"), jobs: 1));
+	} finally {
+		putenv('XDEBUG_MODE');
+	}
+
+	Assert::same('off', file_get_contents($file));
+});
+
+
 test('a worker stuck in the middle of an answer fails the run once it spends longer than the timeout on the file', function () {
 	$started = microtime(as_float: true);
 	Assert::exception(

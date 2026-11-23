@@ -129,7 +129,7 @@ final readonly class ProcessProbeRunner implements ProbeRunner
 			[0 => ['file', $null, 'r'], 1 => ['file', "$file.json", 'w'], 2 => ['file', "$file.err", 'w']],
 			$pipes,
 			$this->root,
-			[...getenv(), self::ProbeVariable => '1'],
+			WorkerPool::buildEnvironment([self::ProbeVariable => '1']),
 		);
 		if ($process === false) {
 			throw new \RuntimeException('A process of `check` could not be started.');

@@ -168,6 +168,18 @@ final class WorkerPool
 
 
 	/**
+	 * The environment a process of DressCode is started with: that of this process with Xdebug off, which would only
+	 * make the work many times slower, and the variables given.
+	 * @param  array<string, string>  $variables
+	 * @return array<string, string>
+	 */
+	public static function buildEnvironment(array $variables = []): array
+	{
+		return [...getenv(), 'XDEBUG_MODE' => 'off', ...$variables];
+	}
+
+
+	/**
 	 * The results by path, each as soon as it arrives; the content of a file is read when it is handed out, so that
 	 * only the files in progress are held.
 	 * @param  list<string>  $paths
@@ -478,6 +490,7 @@ final class WorkerPool
 			[0 => ['pipe', 'r'], 1 => ['file', $output, 'a'], 2 => ['file', $output, 'a']],
 			$pipes,
 			$this->cwd,
+			self::buildEnvironment(),
 		);
 		if ($process === false) {
 			throw new \RuntimeException('Cannot start a worker process: `' . implode(' ', $this->command) . '`');
